@@ -14,18 +14,25 @@
 
   = render 'warehouse_reports/filters', f:f
 
-.d-flex
-  .pt-2!= pagy_info(@pagy, item_name: _('client').pluralize(@pagy.count))
-  .ml-auto!= pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
 - if @pagy.count.positive?
-  %table.table
-    %thead
-      %th Client Name
-      %th DOB
-      %th SSN
-    %tbody
-      - @clients.each do |client|
-        %tr
-          %td= link_to_if can_view_clients?, client.name, appropriate_client_path(client)
-          %td= dob_or_age client.DOB
-          %td= ssn client.SSN
+  .pagy-container.mb-4
+    != pagy_info(@pagy, item_name: _('client').pluralize(@pagy.count)) if @pagy.count.positive?
+    != pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
+  .table-responsive
+    %table.table.table-striped.table-hover.mb-0
+      %thead
+        %th Client Name
+        %th DOB
+        %th SSN
+      %tbody
+        - @clients.each do |client|
+          %tr
+            %td= link_to_if can_view_clients?, client.name, appropriate_client_path(client)
+            %td= dob_or_age client.DOB
+            %td= ssn client.SSN
+  - if @pagy.pages > 1
+    .pagy-container.mt-4
+      != pagy_info(@pagy, item_name: _('client').pluralize(@pagy.count)) if @pagy.count.positive?
+      != pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
+- else
+  .none-found No clients found.

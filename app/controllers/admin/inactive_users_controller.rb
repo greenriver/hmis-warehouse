@@ -22,10 +22,7 @@ module Admin
         user_scope
       end
 
-      # sort / paginate
-      @users = @users.
-        preload(:roles).
-        page(params[:page]).per(25)
+      @pagy, @users = pagy(@users.preload(:roles))
     end
 
     def reactivate

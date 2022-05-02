@@ -8,36 +8,44 @@
 
 
   - @prompt = "Search agencies..."
-  .row
+  .row.mb-4
     .col-8
       = render 'search_form'
     .col-4.text-right
       = link_to new_admin_agency_path, class: 'btn btn-primary mb-2' do
         %span.icon-plus
         Add an Agency
-  .mt-4.mb-4!= pagy_info(@pagy, item_name: _('agency').pluralize(@pagy.count))
-  .card.table-responsive
-    %table.table.table-striped.mb-0
-      %thead
-        %tr
-          %th Name
-          %th Assigned Users
-          %th CoC Codes
-          %th Available Publicly
-          %th
-      %tbody
-        - @agencies.each do |agency|
-          - users = agency.users.active.count
+  - if @pagy.count.positive?
+    .pagy-container.mb-4
+      != pagy_info(@pagy, item_name: _('agency').pluralize(@pagy.count))
+      != pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
+    .table-responsive
+      %table.table.table-striped.mb-0
+        %thead
           %tr
-            %td
-              = link_to agency.name, edit_admin_agency_path(agency)
-            %td
-              = users
-            %td= agency.consent_limits.pluck(:name).join("; ")
-            %td= checkmark(agency.expose_publically)
-            %td
-              - unless users > 0
-                = link_to admin_agency_path(agency),  method: :delete, data: {confirm: "Would you really like to delete the agency #{agency.name}?"}, class: ['btn', 'btn-sm', 'btn-danger'] do
-                  %span.icon-cross
-                  Delete
-  .mt-4!= pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
+            %th Name
+            %th Assigned Users
+            %th CoC Codes
+            %th Available Publicly
+            %th
+        %tbody
+          - @agencies.each do |agency|
+            - users = agency.users.active.count
+            %tr
+              %td
+                = link_to agency.name, edit_admin_agency_path(agency)
+              %td
+                = users
+              %td= agency.consent_limits.pluck(:name).join("; ")
+              %td= checkmark(agency.expose_publically)
+              %td
+                - unless users > 0
+                  = link_to admin_agency_path(agency),  method: :delete, data: {confirm: "Would you really like to delete the agency #{agency.name}?"}, class: ['btn', 'btn-sm', 'btn-danger'] do
+                    %span.icon-cross
+                    Delete
+    - if @pagy.pages > 1
+      .pagy-container.mt-4
+        != pagy_info(@pagy, item_name: _('agency').pluralize(@pagy.count))
+        != pagy_bootstrap_nav(@pagy)
+  - else
+    .none-found No agencies found.

@@ -16,87 +16,92 @@
 
 = render 'admin/users/tabs', selected_path: admin_users_path
 
-.table-utilities
-.mb-4!= pagy_info(@pagy, item_name: _('user account').pluralize(@pagy.count))
 :ruby
   columns = ['last_name', 'first_name', 'email']
   directions = current_sort_order(Hash[columns.map {|x| [x, nil]}])
   titles = {}
   directions.each {| k,v | titles[k] = @users.human_attribute_name(k)}
 
-.row
-  .col-sm-12
-    .table-responsive.card
-      %table.table.table-striped.mb-0
-        %thead
+- if @pagy.count.positive?
+  .pagy-container.mb-4
+    != pagy_info(@pagy, item_name: _('user account').pluralize(@pagy.count))
+    != pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
+  .table-responsive
+    %table.table.table-striped.mb-0
+      %thead
+        %tr
+          - titles.each do | k, title |
+            %th.text-nowrap
+              = sort_link(titles[k], k, directions)
+              %i{:class => ["fa", "fa-sort-#{directions[k]}"] }
+          %th Roles
+          %th Groups
+          %th Status
+          %th Actions
+      %tbody
+        - @users.each do |user|
           %tr
-            - titles.each do | k, title |
-              %th.text-nowrap
-                = sort_link(titles[k], k, directions)
-                %i{:class => ["fa", "fa-sort-#{directions[k]}"] }
-            %th Roles
-            %th Groups
-            %th Status
-            %th Actions
-        %tbody
-          - @users.each do |user|
-            %tr
-              %td= user.last_name
-              %td= user.first_name
-              %td
-                = user.email
-                - if user.agency
-                  .user__agency
-                    %em.text-muted= user.agency.name
-                - else
-                  .text-danger.user__agency{ data: { toggle: :tooltip, title: 'Lack of agency may prevent login, password reset, and account deletion. Edit the account to set the agency.' }}
-                    %i.icon-warning
-                    %em
-                      = link_to 'Agency not assigned!', edit_admin_user_path(id: user), class: 'text-danger'
-              %td
-                - user.roles.each do |r|
-                  .mb-1= r.name
-              %td
-                - user.access_groups.general.each do |g|
-                  .mb-1= g.name
-              %td
-                - if user.provider.present?
-                  %div= "Sign-in provided by #{user.provider.upcase}"
-                = render 'user_invitation_status', user: user
-              %td
-                - if user.invitation_status != :active || user.access_locked?
-                  .mb-6
-                    - if user.invitation_status == :pending_confirmation
-                      .w-100
-                        = link_to admin_user_resend_invitation_path(user), method: :post, class: 'btn btn-sm btn-secondary mb-2' do
-                          %i.icon-envelope-o
-                          Resend Invitation
-                    - elsif user.invitation_status == :invitation_expired
-                      .w-100
-                        = link_to admin_user_recreate_invitation_path(user), method: :post, class: 'btn btn-sm btn-secondary mb-2' do
-                          %i.icon-envelope-o
-                          Re-create Invitation
-                    - elsif user.access_locked?
-                      .w-100
-                        = link_to unlock_admin_user_path(user), method: :post, class: 'btn btn-sm btn-secondary mb-2' do
-                          %i.icon-unlocked
-                          Unlock
+            %td= user.last_name
+            %td= user.first_name
+            %td
+              = user.email
+              - if user.agency
+                .user__agency
+                  %em.text-muted= user.agency.name
+              - else
+                .text-danger.user__agency{ data: { toggle: :tooltip, title: 'Lack of agency may prevent login, password reset, and account deletion. Edit the account to set the agency.' }}
+                  %i.icon-warning
+                  %em
+                    = link_to 'Agency not assigned!', edit_admin_user_path(id: user), class: 'text-danger'
+            %td
+              - user.roles.each do |r|
+                .mb-1= r.name
+            %td
+              - user.access_groups.general.each do |g|
+                .mb-1= g.name
+            %td
+              - if user.provider.present?
+                %div= "Sign-in provided by #{user.provider.upcase}"
+              = render 'user_invitation_status', user: user
+            %td
+              - if user.invitation_status != :active || user.access_locked?
+                .mb-6
+                  - if user.invitation_status == :pending_confirmation
+                    .w-100
+                      = link_to admin_user_resend_invitation_path(user), method: :post, class: 'btn btn-sm btn-secondary mb-2' do
+                        %i.icon-envelope-o
+                        Resend Invitation
+                  - elsif user.invitation_status == :invitation_expired
+                    .w-100
+                      = link_to admin_user_recreate_invitation_path(user), method: :post, class: 'btn btn-sm btn-secondary mb-2' do
+                        %i.icon-envelope-o
+                        Re-create Invitation
+                  - elsif user.access_locked?
+                    .w-100
+                      = link_to unlock_admin_user_path(user), method: :post, class: 'btn btn-sm btn-secondary mb-2' do
+                        %i.icon-unlocked
+                        Unlock
+              .w-100
+                = link_to(edit_admin_user_path(id: user), class: 'btn btn-sm btn-secondary mb-2 text-nowrap') do
+                  %i.icon-pencil
+                  Edit Account
+              - if can_audit_users?
                 .w-100
-                  = link_to(edit_admin_user_path(id: user), class: 'btn btn-sm btn-secondary mb-2 text-nowrap') do
-                    %i.icon-pencil
-                    Edit Account
-                - if can_audit_users?
-                  .w-100
-                    = link_to admin_user_audit_path(user), class: 'btn btn-sm btn-secondary mb-2' do
-                      %i.icon-eye{data: {toggle: :tooltip, title: 'Audit'}}
-                      Audit
-                - if can_impersonate_users? && user.impersonateable_by?(true_user)
-                  .w-100
-                    = link_to impersonate_admin_user_path(true_user, become_id: user.id), method: :post, class: 'btn btn-sm btn-secondary mb-2' do
-                      %i.icon-enter
-                      Become
+                  = link_to admin_user_audit_path(user), class: 'btn btn-sm btn-secondary mb-2' do
+                    %i.icon-eye{data: {toggle: :tooltip, title: 'Audit'}}
+                    Audit
+              - if can_impersonate_users? && user.impersonateable_by?(true_user)
                 .w-100
-                  = link_to admin_user_path(user),  method: :delete, data: {confirm: "Would you really like to de-activate the account? #{user.name} will no longer be able to login."}, class: 'btn btn-sm btn-danger mb-2 text-nowrap' do
-                    %i.icon-cross
-                    De-Activate
-    .mt-4!= pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
+                  = link_to impersonate_admin_user_path(true_user, become_id: user.id), method: :post, class: 'btn btn-sm btn-secondary mb-2' do
+                    %i.icon-enter
+                    Become
+              .w-100
+                = link_to admin_user_path(user),  method: :delete, data: {confirm: "Would you really like to de-activate the account? #{user.name} will no longer be able to login."}, class: 'btn btn-sm btn-danger mb-2 text-nowrap' do
+                  %i.icon-cross
+                  De-Activate
+  - if @pagy.pages > 1
+    .pagy-container.mt-4
+      != pagy_info(@pagy, item_name: _('user account').pluralize(@pagy.count))
+      != pagy_bootstrap_nav(@pagy)
+- else
+  .none-found No users found.

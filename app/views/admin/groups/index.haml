@@ -12,27 +12,34 @@
     = link_to new_admin_group_path, class: 'btn btn-primary mb-2' do
       %span.icon-plus
       Add a Group
-
-  .mb-2!= pagy_info(@pagy, item_name: _('group').pluralize(@pagy.count))
-  .card
-    %table.table.table-striped.mb-0
-      %thead
-        %tr
-          %th Name
-          %th.text-center Assigned Users
-          %th.text-center
-            System Group
-            %i.icon-info{data: {toggle: :tooltip, title: 'System groups are automatically maintained, and cannot be removed.'}}
-          %th
-      %tbody
-        - @groups.each do |group|
+  - if @pagy.count.positive?
+    .pagy-container.mb-4
+      != pagy_info(@pagy, item_name: _('group').pluralize(@pagy.count))
+      != pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
+    .table-responsive
+      %table.table.table-striped.mb-0
+        %thead
           %tr
-            %td= link_to group.name, edit_admin_group_path(group)
-            %td.text-center= group.users.count
-            %td.text-center= checkmark(group.must_exist?, style: :svg)
-            %td
-              - unless group.users.count.positive? || group.must_exist?
-                = link_to admin_group_path(group),  method: :delete, data: {confirm: "Would you really like to delete the group #{group.name}?"}, class: ['btn', 'btn-sm', 'btn-danger'] do
-                  %span.icon-cross
-                  Delete
-  .mt-4!= pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
+            %th Name
+            %th.text-center Assigned Users
+            %th.text-center
+              System Group
+              %i.icon-info{data: {toggle: :tooltip, title: 'System groups are automatically maintained, and cannot be removed.'}}
+            %th
+        %tbody
+          - @groups.each do |group|
+            %tr
+              %td= link_to group.name, edit_admin_group_path(group)
+              %td.text-center= group.users.count
+              %td.text-center= checkmark(group.must_exist?, style: :svg)
+              %td
+                - unless group.users.count.positive? || group.must_exist?
+                  = link_to admin_group_path(group),  method: :delete, data: {confirm: "Would you really like to delete the group #{group.name}?"}, class: ['btn', 'btn-sm', 'btn-danger'] do
+                    %span.icon-cross
+                    Delete
+    - if @pagy.pages > 1
+      .pagy-container.mt-4
+        != pagy_info(@pagy, item_name: _('group').pluralize(@pagy.count))
+        != pagy_bootstrap_nav(@pagy)
+  - else
+    .none-found No groups found.

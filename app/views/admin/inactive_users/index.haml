@@ -11,40 +11,43 @@
 
 = render 'admin/users/tabs', selected_path: admin_inactive_users_path
 
-.table-utilities
-  %p= page_entries_info @users, entry_name: _('user account')
-
-.row
-  .col-sm-12
-    .table-responsive.card
-      %table.table.table-striped.mb-0
-        %thead
+- if @pagy.count.positive?
+  .pagy-container.mb-4
+    != pagy_info(@pagy, item_name: _('user account').pluralize(@pagy.count))
+    != pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
+  .table-responsive
+    %table.table.table-striped.mb-0
+      %thead
+        %tr
+          %th Name
+          %th Email
+          %th Roles
+          %th Audit
+          %th Status
+          %th
+      %tbody
+        - @users.each do |user|
           %tr
-            %th Name
-            %th Email
-            %th Roles
-            %th Audit
-            %th Status
-            %th
-        %tbody
-          - @users.each do |user|
-            %tr
-              %td= user.name
-              %td= user.email
-              %td= user.roles.map(&:name).join(', ')
-              %td
-                = link_to admin_user_audit_path(user), class: 'btn btn-sm btn-secondary btn-icon-only' do
-                  %i.icon-eye{data: {toggle: :tooltip, title: 'Audit'}}
-              %td
-                = render 'user_status', user: user
-              %td
-                - if user.invitation_status.in?([:invitation_expired, :pending_confirmation])
-                  = simple_form_for(user, url: admin_user_recreate_invitation_path(user), method: :post) do |f|
-                    = f.button :button, data: { confirm: 'When re-inviting an user, the account will be re-activated and an email invitation will be sent to the address on file.' }, class: 'btn btn-primary' do
-                      Re-invite
-                - else
-                  = simple_form_for(user, url: reactivate_admin_inactive_user_path(user)) do |f|
-                    = f.button :button, data: { confirm: 'When re-activating an account, the password will be set to something random and an email will be sent to the address on file with a link to pick a new password.' }, class: 'btn btn-primary' do
-                      Re-activate
-
-    %p= paginate @users
+            %td= user.name
+            %td= user.email
+            %td= user.roles.map(&:name).join(', ')
+            %td
+              = link_to admin_user_audit_path(user), class: 'btn btn-sm btn-secondary btn-icon-only' do
+                %i.icon-eye{data: {toggle: :tooltip, title: 'Audit'}}
+            %td
+              = render 'user_status', user: user
+            %td
+              - if user.invitation_status.in?([:invitation_expired, :pending_confirmation])
+                = simple_form_for(user, url: admin_user_recreate_invitation_path(user), method: :post) do |f|
+                  = f.button :button, data: { confirm: 'When re-inviting an user, the account will be re-activated and an email invitation will be sent to the address on file.' }, class: 'btn btn-primary' do
+                    Re-invite
+              - else
+                = simple_form_for(user, url: reactivate_admin_inactive_user_path(user)) do |f|
+                  = f.button :button, data: { confirm: 'When re-activating an account, the password will be set to something random and an email will be sent to the address on file with a link to pick a new password.' }, class: 'btn btn-primary' do
+                    Re-activate
+  - if @pagy.pages > 1
+    .pagy-container.mt-4
+      != pagy_info(@pagy, item_name: _('user account').pluralize(@pagy.count))
+      != pagy_bootstrap_nav(@pagy)
+- else
+  .none-found No users found.
