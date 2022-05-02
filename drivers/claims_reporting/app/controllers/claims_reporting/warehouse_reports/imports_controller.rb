@@ -6,7 +6,8 @@
 
 module ClaimsReporting::WarehouseReports
   class ImportsController < ApplicationController
-    before_action :require_can_administer_health!
+    include WarehouseReportAuthorization
+    before_action :require_can_view_member_health_reports!
 
     def index
       cols = ClaimsReporting::Import.column_names - ['content']
