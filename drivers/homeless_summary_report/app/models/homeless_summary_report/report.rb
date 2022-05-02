@@ -541,12 +541,13 @@ module HomelessSummaryReport
       # Force measure 2 because it has the largest date range, and we only use this to check to see if
       # someone existed in a demographic category, time is irrelevant for these
       measure = 'Measure 2'
-      demographic_scope = report_scope(measure)
 
       @filter = filter
       base_variant = spec[:base_variant]
       extra_filters = base_variant[:extra_filters] || {}
       @filter.update(extra_filters.merge(sub_spec[:extra_filters] || {}))
+      demographic_scope = report_scope(measure)
+
       # demographic_filter is a method known to filter_scopes
       sub_spec[:demographic_filters].each do |demographic_filter|
         demographic_scope = send(demographic_filter, demographic_scope)
