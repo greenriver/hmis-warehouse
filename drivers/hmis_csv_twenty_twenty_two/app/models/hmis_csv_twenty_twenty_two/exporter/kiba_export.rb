@@ -8,12 +8,12 @@ module HmisCsvTwentyTwentyTwo::Exporter
   module KibaExport
     module_function
 
-    def export!(source_class:, source_config:, transforms:, dest_class:, dest_config:)
+    def export!(source_class:, source_config:, transforms:, dest_class:, dest_config:, options:)
       job = Kiba.parse do
         source source_class, source_config
 
         transforms.each do |t|
-          transform t
+          transform(t, options)
         end
 
         destination dest_class, dest_config

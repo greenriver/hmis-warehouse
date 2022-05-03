@@ -18,7 +18,8 @@ module Export::Scopes
           c_scope = client_source
         end
         c_scope.joins(:warehouse_client_source).
-          where(enrollment_exists_for_client)
+          where(enrollment_exists_for_client).
+          preload(:source_clients)
       end
     end
 
@@ -38,7 +39,7 @@ module Export::Scopes
         when 1
           # no-op
         end
-        e_scope
+        e_scope.preload(:project, :client)
       end
     end
 
@@ -46,7 +47,7 @@ module Export::Scopes
       @project_scope ||= begin
         p_scope = project_source.where(id: @projects)
         p_scope = p_scope.with_deleted if @export.include_deleted
-        p_scope
+        p_scope.preload(:organization)
       end
     end
 

@@ -10,7 +10,12 @@ module Export::Exporter
 
   included do
     def setup_export
-      options = {
+      @export = GrdaWarehouse::HmisExport.create(options)
+      @export.fake_data = GrdaWarehouse::FakeData.where(environment: @faked_environment).first_or_create
+    end
+
+    def options
+      @options ||= {
         user_id: @user&.id,
         start_date: @range.start,
         end_date: @range.end,
@@ -23,10 +28,8 @@ module Export::Exporter
         include_deleted: @include_deleted,
         version: @version,
       }
-      options[:export_id] = Digest::MD5.hexdigest(options.to_s)[0..31]
-
-      @export = GrdaWarehouse::HmisExport.create(options)
-      @export.fake_data = GrdaWarehouse::FakeData.where(environment: @faked_environment).first_or_create
+      @options[:export_id] = Digest::MD5.hexdigest(@options.to_s)[0..31]
+      @options
     end
 
     def create_export_directory

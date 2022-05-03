@@ -6,6 +6,11 @@
 
 require 'zip'
 require 'csv'
+require 'kiba-common/sources/enumerable'
+
+# Testing notes
+# reload!; rh = GrdaWarehouse::RecurringHmisExport.last; rh.run
+
 module HmisCsvTwentyTwentyTwo::Exporter
   class Base
     include ArelHelper
@@ -56,18 +61,36 @@ module HmisCsvTwentyTwentyTwo::Exporter
         set_time_format
         setup_export
 
-        # Project related items
-        destination_class = HmisCsvTwentyTwentyTwo::Exporter::Project
+        export_class = HmisCsvTwentyTwentyTwo::Exporter::Export
+        export_opts = {
+          hmis_class: GrdaWarehouse::Hud::Export,
+          export: @export,
+        }
         HmisCsvTwentyTwentyTwo::Exporter::KibaExport.export!(
-          source_class: HmisCsvTwentyTwentyTwo::Exporter::RailsSource,
-          source_config: destination_class.export_scope(
-            project_scope: project_scope,
-            export: @export,
-          ),
-          transforms: destination_class.transforms,
+          options: export_opts,
+          source_class: Kiba::Common::Sources::Enumerable,
+          source_config: export_class.export_scope(**export_opts),
+          transforms: export_class.transforms,
           dest_class: HmisCsvTwentyTwentyTwo::Exporter::CsvDestination,
-          dest_config: File.join(@file_path, file_name_for(destination_class)),
+          dest_config: {
+            hmis_class: export_opts[:hmis_class],
+            output_file: File.join(@file_path, 'Export.csv'),
+          },
         )
+        exportable_files.each do |destination_class, opts|
+          opts[:export] = @export
+          HmisCsvTwentyTwentyTwo::Exporter::KibaExport.export!(
+            options: options,
+            source_class: HmisCsvTwentyTwentyTwo::Exporter::RailsSource,
+            source_config: destination_class.export_scope(**opts),
+            transforms: destination_class.transforms,
+            dest_class: HmisCsvTwentyTwentyTwo::Exporter::CsvDestination,
+            dest_config: {
+              hmis_class: opts[:hmis_class],
+              output_file: File.join(@file_path, file_name_for(destination_class)),
+            },
+          )
+        end
 
         # export_project_cocs
         # export_organizations
@@ -95,23 +118,14 @@ module HmisCsvTwentyTwentyTwo::Exporter
         # export_users
 
         # build_export_file
-      #   zip_archive
-      #   upload_zip
-      #   save_fake_data
-      # ensure
-      #   remove_export_files
-      #   reset_time_format
-      binding.pry
+        #   zip_archive
+        #   upload_zip
+        #   save_fake_data
+        # ensure
+        #   remove_export_files
+        #   reset_time_format
       end
       @export
-    end
-
-    def export_projects
-      project_source.new.export!(
-        project_scope: project_scope,
-        path: @file_path,
-        export: @export,
-      )
     end
 
     def export_project_cocs
@@ -120,14 +134,6 @@ module HmisCsvTwentyTwentyTwo::Exporter
         path: @file_path,
         export: @export,
         coc_codes: @coc_codes,
-      )
-    end
-
-    def export_organizations
-      organization_source.new.export!(
-        project_scope: project_scope,
-        path: @file_path,
-        export: @export,
       )
     end
 
@@ -304,14 +310,6 @@ module HmisCsvTwentyTwentyTwo::Exporter
       )
     end
 
-    def export_users
-      user_source.new.export!(
-        project_scope: project_scope,
-        path: @file_path,
-        export: @export,
-      )
-    end
-
     def build_export_file
       export = export_source.new(path: @file_path)
       export.ExportID = @export.export_id
@@ -334,14 +332,10 @@ module HmisCsvTwentyTwentyTwo::Exporter
     end
 
     def file_name_for(klass)
-      exportable_files[klass]
+      exportable_files[klass][:hmis_class].hud_csv_file_name(version: '2022')
     end
 
     def exportable_files
-      self.class.exportable_files
-    end
-
-    def self.exportable_files
       {
         # 'Affiliation.csv' => HmisCsvTwentyTwentyTwo::Exporter::Affiliation,
         # 'Client.csv' => client_source,
@@ -355,8 +349,20 @@ module HmisCsvTwentyTwentyTwo::Exporter
         # 'HealthAndDV.csv' => health_and_dv_source,
         # 'IncomeBenefits.csv' => income_benefits_source,
         # 'Inventory.csv' => inventory_source,
-        # 'Organization.csv' => organization_source,
-        HmisCsvTwentyTwentyTwo::Exporter::Project => 'Project.csv',
+        HmisCsvTwentyTwentyTwo::Exporter::Organization => {
+          hmis_class: GrdaWarehouse::Hud::Organization,
+          project_scope: project_scope,
+        },
+        HmisCsvTwentyTwentyTwo::Exporter::Project => {
+          hmis_class: GrdaWarehouse::Hud::Project,
+          project_scope: project_scope,
+        },
+
+        HmisCsvTwentyTwentyTwo::Exporter::Enrollment => {
+          hmis_class: GrdaWarehouse::Hud::Enrollment,
+          enrollment_scope: enrollment_scope,
+          project_scope: project_scope,
+        },
         # 'ProjectCoC.csv' => project_coc_source,
         # 'Services.csv' => service_source,
         # 'CurrentLivingSituation.csv' => current_living_situation_source,
@@ -364,113 +370,30 @@ module HmisCsvTwentyTwentyTwo::Exporter
         # 'AssessmentQuestions.csv' => assessment_question_source,
         # 'AssessmentResults.csv' => assessment_result_source,
         # 'Event.csv' => event_source,
-        # 'User.csv' => user_source,
         # 'YouthEducationStatus.csv' => youth_education_status_source,
+        # NOTE: User must be last since we collect user_ids from the other files
+        HmisCsvTwentyTwentyTwo::Exporter::User => {
+          hmis_class: GrdaWarehouse::Hud::User,
+          project_scope: project_scope,
+        },
+
       }.freeze
     end
 
-    def self.affiliation_source
-      HmisCsvTwentyTwentyTwo::Exporter::Affiliation
-    end
-
-    def affiliation_source
-      self.class.affiliation_source
-    end
-
     def self.client_source
-      HmisCsvTwentyTwentyTwo::Exporter::Client
+      GrdaWarehouse::Hud::Client
     end
 
     def client_source
       self.class.client_source
     end
 
-    def self.disability_source
-      HmisCsvTwentyTwentyTwo::Exporter::Disability
-    end
-
-    def disability_source
-      self.class.disability_source
-    end
-
-    def self.employment_education_source
-      HmisCsvTwentyTwentyTwo::Exporter::EmploymentEducation
-    end
-
-    def employment_education_source
-      self.class.employment_education_source
-    end
-
     def self.enrollment_source
-      HmisCsvTwentyTwentyTwo::Exporter::Enrollment
+      GrdaWarehouse::Hud::Enrollment
     end
 
     def enrollment_source
       self.class.enrollment_source
-    end
-
-    def self.enrollment_coc_source
-      HmisCsvTwentyTwentyTwo::Exporter::EnrollmentCoc
-    end
-
-    def enrollment_coc_source
-      self.class.enrollment_coc_source
-    end
-
-    def self.exit_source
-      HmisCsvTwentyTwentyTwo::Exporter::Exit
-    end
-
-    def exit_source
-      self.class.exit_source
-    end
-
-    def self.export_source
-      HmisCsvTwentyTwentyTwo::Exporter::Export
-    end
-
-    def export_source
-      self.class.export_source
-    end
-
-    def self.funder_source
-      HmisCsvTwentyTwentyTwo::Exporter::Funder
-    end
-
-    def funder_source
-      self.class.funder_source
-    end
-
-    def self.health_and_dv_source
-      HmisCsvTwentyTwentyTwo::Exporter::HealthAndDv
-    end
-
-    def health_and_dv_source
-      self.class.health_and_dv_source
-    end
-
-    def self.income_benefits_source
-      HmisCsvTwentyTwentyTwo::Exporter::IncomeBenefit
-    end
-
-    def income_benefits_source
-      self.class.income_benefits_source
-    end
-
-    def self.inventory_source
-      HmisCsvTwentyTwentyTwo::Exporter::Inventory
-    end
-
-    def inventory_source
-      self.class.inventory_source
-    end
-
-    def self.organization_source
-      HmisCsvTwentyTwentyTwo::Exporter::Organization
-    end
-
-    def organization_source
-      self.class.organization_source
     end
 
     def self.project_source
@@ -479,78 +402,6 @@ module HmisCsvTwentyTwentyTwo::Exporter
 
     def project_source
       self.class.project_source
-    end
-
-    def self.project_coc_source
-      HmisCsvTwentyTwentyTwo::Exporter::ProjectCoc
-    end
-
-    def project_coc_source
-      self.class.project_coc_source
-    end
-
-    def self.service_source
-      HmisCsvTwentyTwentyTwo::Exporter::Service
-    end
-
-    def service_source
-      self.class.service_source
-    end
-
-    def self.current_living_situation_source
-      HmisCsvTwentyTwentyTwo::Exporter::CurrentLivingSituation
-    end
-
-    def current_living_situation_source
-      self.class.current_living_situation_source
-    end
-
-    def self.assessment_source
-      HmisCsvTwentyTwentyTwo::Exporter::Assessment
-    end
-
-    def assessment_source
-      self.class.assessment_source
-    end
-
-    def self.assessment_question_source
-      HmisCsvTwentyTwentyTwo::Exporter::AssessmentQuestion
-    end
-
-    def assessment_question_source
-      self.class.assessment_question_source
-    end
-
-    def self.assessment_result_source
-      HmisCsvTwentyTwentyTwo::Exporter::AssessmentResult
-    end
-
-    def assessment_result_source
-      self.class.assessment_result_source
-    end
-
-    def self.event_source
-      HmisCsvTwentyTwentyTwo::Exporter::Event
-    end
-
-    def event_source
-      self.class.event_source
-    end
-
-    def self.youth_education_status_source
-      HmisCsvTwentyTwentyTwo::Exporter::YouthEducationStatus
-    end
-
-    def youth_education_status_source
-      self.class.youth_education_status_source
-    end
-
-    def self.user_source
-      HmisCsvTwentyTwentyTwo::Exporter::User
-    end
-
-    def user_source
-      self.class.user_source
     end
   end
 end

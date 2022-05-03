@@ -5,21 +5,22 @@
 ###
 
 module HmisCsvTwentyTwentyTwo::Exporter
-  class Project
+  class Enrollment
     include ::HmisCsvTwentyTwentyTwo::Exporter::ExportConcern
 
     def process(row)
       row.UserID ||= 'op-system'
-      row.OrganizationID = row.organization&.id || 'Unknown'
-      row.ProjectID = row.id
+      row.EnrollmentID = row.id
+      row.PersonalID = row.client.id
+      row.ProjectID = row.project&.id || 'Unknown'
     end
 
-    def self.export_scope(project_scope:, export:)
+    def self.export_scope(enrollment_scope:, export:)
       export_scope = case export.period_type
       when 3
-        project_scope
+        enrollment_scope
       when 1
-        project_scope.
+        enrollment_scope.
           modified_within_range(range: (export.start_date..export.end_date))
       end
       note_involved_user_ids(scope: export_scope, export: export)
@@ -29,9 +30,9 @@ module HmisCsvTwentyTwentyTwo::Exporter
 
     def self.transforms
       [
-        HmisCsvTwentyTwentyTwo::Exporter::Project::Overrides,
+        HmisCsvTwentyTwentyTwo::Exporter::Enrollment::Overrides,
         HmisCsvTwentyTwentyTwo::Exporter::FakeData,
-        HmisCsvTwentyTwentyTwo::Exporter::Project,
+        HmisCsvTwentyTwentyTwo::Exporter::Enrollment,
       ]
     end
   end
