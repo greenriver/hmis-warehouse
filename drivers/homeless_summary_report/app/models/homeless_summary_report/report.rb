@@ -545,8 +545,11 @@ module HomelessSummaryReport
       @filter = filter
       base_variant = spec[:base_variant]
       extra_filters = base_variant[:extra_filters] || {}
-      @filter.update(extra_filters.merge(sub_spec[:extra_filters] || {}))
+      demographic_filter_values = extra_filters.merge(sub_spec[:extra_filters] || {})
+      @filter.update(demographic_filter_values)
+
       demographic_scope = report_scope(measure)
+      @filter.update(demographic_filter_values)
 
       # demographic_filter is a method known to filter_scopes
       sub_spec[:demographic_filters].each do |demographic_filter|
