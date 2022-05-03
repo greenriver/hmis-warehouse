@@ -8,12 +8,18 @@ module HmisCsvTwentyTwentyTwo::Exporter
   class Organization
     include ::HmisCsvTwentyTwentyTwo::Exporter::ExportConcern
 
+    def initialize(options)
+      @options = options
+    end
+
     def process(row)
       row.UserID ||= 'op-system'
       row.OrganizationID = row.id
+
+      row
     end
 
-    def self.export_scope(project_scope:, export:, hmis_class:)
+    def self.export_scope(project_scope:, export:, hmis_class:, **_)
       export_scope = case export.period_type
       when 3
         hmis_class.where(project_exists_for_organization(project_scope, hmis_class: hmis_class))

@@ -79,6 +79,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
         )
         exportable_files.each do |destination_class, opts|
           opts[:export] = @export
+          options[:export] = @export
           HmisCsvTwentyTwentyTwo::Exporter::KibaExport.export!(
             options: options,
             source_class: HmisCsvTwentyTwentyTwo::Exporter::RailsSource,
@@ -376,7 +377,6 @@ module HmisCsvTwentyTwentyTwo::Exporter
           hmis_class: GrdaWarehouse::Hud::User,
           project_scope: project_scope,
         },
-
       }.freeze
     end
 

@@ -8,14 +8,20 @@ module HmisCsvTwentyTwentyTwo::Exporter
   class Enrollment
     include ::HmisCsvTwentyTwentyTwo::Exporter::ExportConcern
 
+    def initialize(options)
+      @options = options
+    end
+
     def process(row)
       row.UserID ||= 'op-system'
       row.EnrollmentID = row.id
       row.PersonalID = row.client.id
       row.ProjectID = row.project&.id || 'Unknown'
+
+      row
     end
 
-    def self.export_scope(enrollment_scope:, export:)
+    def self.export_scope(enrollment_scope:, export:, **_)
       export_scope = case export.period_type
       when 3
         enrollment_scope

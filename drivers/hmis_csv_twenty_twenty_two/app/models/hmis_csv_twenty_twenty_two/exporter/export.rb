@@ -6,7 +6,7 @@
 
 module HmisCsvTwentyTwentyTwo::Exporter
   class Export
-    def self.export_scope(export:, hmis_class:)
+    def self.export_scope(export:, hmis_class:, **_)
       [
         hmis_class.new(
           ExportID: export.export_id,

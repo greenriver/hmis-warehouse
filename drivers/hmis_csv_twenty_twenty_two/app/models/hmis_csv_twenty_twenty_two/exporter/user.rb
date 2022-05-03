@@ -6,11 +6,17 @@
 
 module HmisCsvTwentyTwentyTwo::Exporter
   class User
-    def process(row)
-      row.UserID = row.id
+    def initialize(options)
+      @options = options
     end
 
-    def self.export_scope(export:, hmis_class:)
+    def process(row)
+      row.UserID = row.id
+
+      row
+    end
+
+    def self.export_scope(export:, hmis_class:, **_)
       hmis_class.where(id: export.user_ids.to_a)
     end
 
