@@ -455,6 +455,15 @@ module HomelessSummaryReport
       # Work through all the SPM report variants, building up the `report_clients` as we go.
       run_spm.each do |household_category, spec|
         report = spec[:base_variant]
+
+        # Create lists of client IDs in each demographic variant
+        demographic_variant_clients = {}
+        spec[:variants].each do |demographic_category, sub_spec|
+          detail_variant_name = "spm_#{household_category}__#{demographic_category}"
+          client_ids = client_ids_for_demographic_category(spec, sub_spec)
+          demographic_variant_clients[detail_variant_name] = client_ids
+        end
+
         spm_fields.each do |spm_field, parts|
           cells = parts[:cells]
           cells.each do |cell|
@@ -473,12 +482,10 @@ module HomelessSummaryReport
               report_clients[client_id] = report_client
 
               # Set demographic flags
-              spec[:variants].each do |demographic_category, sub_spec|
-                detail_variant_name = "spm_#{household_category}__#{demographic_category}"
-                client_ids_in_demographic_category = client_ids_for_demographic_category(spec, sub_spec)
-                next unless client_id.in?(client_ids_in_demographic_category)
+              demographic_variant_clients.each do |demographic_variant_name, client_ids|
+                next unless client_id.in?(client_ids)
 
-                report_client[detail_variant_name] = 1
+                report_client[demographic_variant_name] = 1
               end
             end
           end
