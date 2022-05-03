@@ -460,8 +460,7 @@ module HomelessSummaryReport
         demographic_variant_clients = {}
         spec[:variants].each do |demographic_category, sub_spec|
           detail_variant_name = "spm_#{household_category}__#{demographic_category}"
-          client_ids = client_ids_for_demographic_category(spec, sub_spec)
-          demographic_variant_clients[detail_variant_name] = client_ids
+          demographic_variant_clients[detail_variant_name] = client_ids_for_demographic_category(spec, sub_spec)
         end
 
         spm_fields.each do |spm_field, parts|
@@ -518,9 +517,8 @@ module HomelessSummaryReport
     private def client_ids_for_demographic_category(spec, sub_spec)
       @filter = filter
 
-      # Force date range from measure 2 because it has the largest date range,
-      # and we only use this to check to see if someone existed in a demographic
-      # category, time is irrelevant for these
+      # Force date range from measure 2 because it has the largest date range, and we
+      # only use this to check to see if someone existed in a demographic category
       @filter.update(start: @filter.start - 2.years)
 
       # Update filter with demographic values
