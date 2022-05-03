@@ -22,7 +22,7 @@ module
       ]
     end
 
-    protected def build_general_control_section(include_comparison_period: true)
+    protected def build_general_control_section(include_comparison_period: true, include_inactivity_days: false)
       ::Filters::UiControlSection.new(id: 'general').tap do |section|
         section.add_control(
           id: 'project_types',
@@ -43,6 +43,15 @@ module
           value: @filter.ce_cls_as_homeless ? 'Yes' : nil,
           hint: "Including Coordinated Entry enrollments where the client has at least two homeless current living situations (#{HUD.homeless_situations(as: :current).to_sentence}) within the report range. These clients will be included even if they do not have an enrollment in one of the chosen project types.",
         )
+        if include_inactivity_days
+          section.add_control(
+            id: 'inactivity_days',
+            label: 'Definition of Newly Homeless',
+            short_label: 'Newly Homeless Days',
+            value: @filter.inactivity_days,
+            hint: 'Number of days of inactivity required to be considered newly homeless',
+          )
+        end
         section.add_control(
           id: 'reporting_period',
           required: true,
