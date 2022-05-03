@@ -914,6 +914,13 @@ module GrdaWarehouse::WarehouseReports
           limitable: true,
           health: true,
         }
+        r_list['Health: General'] << {
+          url: 'health_flexible_service/warehouse_reports/member_expiration',
+          name: 'VPR Member Expiration',
+          description: 'View clients receiving flex services that have expired.',
+          limitable: true,
+          health: true,
+        }
       end
       if RailsDrivers.loaded.include?(:prior_living_situation)
         r_list['Operational'] << {
@@ -1189,6 +1196,24 @@ module GrdaWarehouse::WarehouseReports
           description: 'View differences between the client\'s self-reported date homelessness started (DateToStreetESSH) and the enrollment entry date.',
           limitable: true,
           health: false,
+        }
+      end
+      if RailsDrivers.loaded.include?(:built_for_zero_report)
+        r_list['Operational'] << {
+          url: 'built_for_zero_report/warehouse_reports/bfz',
+          name: _('Built For Zero Monthly Report'),
+          description: 'Generate Built For Zero monthly reporting information',
+          limitable: false,
+          health: false,
+        }
+      end
+      if RailsDrivers.loaded.include?(:health_ip_followup_report)
+        r_list['Health: BH CP Claims/Payments'] << {
+          url: 'health_ip_followup_report/warehouse_reports/followup_reports',
+          name: 'Inpatient Follow Ups',
+          description: 'Rate of 72-hour follow ups after inpatient visits.',
+          limitable: false,
+          health: true,
         }
       end
 

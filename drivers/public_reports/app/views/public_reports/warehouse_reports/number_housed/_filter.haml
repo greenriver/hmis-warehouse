@@ -1,10 +1,7 @@
 = simple_form_for @filter, as: :filters, url: public_reports_warehouse_reports_number_housed_index_path do |f|
   - content_for :filters_col_full do
     .row
-      .col-sm-3
-        = f.input :start, as: :date_picker, label: 'Start'
-      .col-sm-3
-        = f.input :end, as: :date_picker, label: 'End'
+      = render 'public_reports/date_filter', f: f
       -# NOTE: the outflow report doesn't currently support CoC filtering
       -# - if GrdaWarehouse::Config.get(:multi_coc_installation)
       -#   .col-sm

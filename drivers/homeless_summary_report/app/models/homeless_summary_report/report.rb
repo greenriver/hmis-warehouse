@@ -58,6 +58,22 @@ module HomelessSummaryReport
       update(completed_at: Time.current)
     end
 
+    def describe_filter_as_html
+      filter.describe_filter_as_html(
+        [
+          :start,
+          :end,
+          :coc_codes,
+          :project_type_codes,
+          :project_ids,
+          :project_group_ids,
+          :data_source_ids,
+          :funder_ids,
+          :hoh_only,
+        ],
+      )
+    end
+
     def filter=(filter_object)
       self.options = filter_object.to_h
       # force reset the filter cache
@@ -67,7 +83,7 @@ module HomelessSummaryReport
 
     def filter
       @filter ||= begin
-        f = ::Filters::FilterBase.new(user_id: user_id, enforce_one_year_range: false)
+        f = ::Filters::HudFilterBase.new(user_id: user_id, enforce_one_year_range: false)
         f.update(options.with_indifferent_access.merge(enforce_one_year_range: false)) if options.present?
         f
       end
@@ -102,9 +118,8 @@ module HomelessSummaryReport
       # ensure filter has been set
       filter
       [
-        build_general_control_section(include_comparison_period: false),
+        build_funding_section,
         build_hoh_control_section,
-        build_coc_control_section(true),
       ]
     end
 
@@ -127,19 +142,13 @@ module HomelessSummaryReport
       when 'Measure 7'
         @filter.update(start: @filter.start - 1.days)
       end
-      # puts measure
-      scope = report_scope_source
-      scope = filter_for_user_access(scope)
+
+      # Make sure we take advantage of the additive nature of HUD report filters
+      @filter.project_ids = @filter.effective_project_ids
+
+      scope = @filter.apply(report_scope_source)
       scope = filter_for_range(scope)
-      scope = filter_for_cocs(scope)
-      scope = filter_for_head_of_household(scope)
-      scope = filter_for_project_type(scope)
-      scope = filter_for_data_sources(scope)
-      scope = filter_for_organizations(scope)
-      scope = filter_for_projects(scope)
-      scope = filter_for_funders(scope)
-      scope = filter_for_ca_homeless(scope)
-      scope = filter_for_ce_cls_homeless(scope)
+
       # force re-calculation of filter
       @filter = nil
       filter
@@ -532,12 +541,13 @@ module HomelessSummaryReport
       # Force measure 2 because it has the largest date range, and we only use this to check to see if
       # someone existed in a demographic category, time is irrelevant for these
       measure = 'Measure 2'
-      demographic_scope = report_scope(measure)
 
       @filter = filter
       base_variant = spec[:base_variant]
       extra_filters = base_variant[:extra_filters] || {}
       @filter.update(extra_filters.merge(sub_spec[:extra_filters] || {}))
+      demographic_scope = report_scope(measure)
+
       # demographic_filter is a method known to filter_scopes
       sub_spec[:demographic_filters].each do |demographic_filter|
         demographic_scope = send(demographic_filter, demographic_scope)

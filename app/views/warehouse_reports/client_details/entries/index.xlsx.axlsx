@@ -17,21 +17,22 @@ wb.add_worksheet(name: "Entry Detail #{GrdaWarehouse::WarehouseReports::Dashboar
   @report.buckets.each do |group, clients|
     section = @report.data[group][:label]
     clients.each do |client_id|
-      meta = @report.enrollments[client_id].first
       enrollments = @report.enrollments[client_id]
       enrollments.each do |enrollment|
+        client = enrollment.client
+        project = enrollment.project
         row = [
           client_id,
-          enrollment[:first_name],
-          enrollment[:last_name],
-          enrollment[:first_date_in_program],
-          enrollment[:last_date_in_program],
-          enrollment[:project_name],
-          enrollment[:organization_name],
-          HUD.project_type(enrollment[:project_type]),
+          client.FirstName,
+          client.LastName,
+          enrollment.first_date_in_program,
+          enrollment.last_date_in_program,
+          project.name(include_confidential_names: current_user.can_view_confidential_enrollment_details?),
+          project.organization_name(current_user),
+          HUD.project_type(enrollment.computed_project_type),
           section,
-          HUD.ethnicity(enrollment[:ethnicity]),
-        ] + GrdaWarehouse::Hud::Client.race_fields.map { |m| HUD.no_yes_reasons_for_missing_data(enrollment[m.to_sym]&.to_i) }
+          HUD.ethnicity(client.Ethnicity),
+        ] + GrdaWarehouse::Hud::Client.race_fields.map { |m| HUD.no_yes_reasons_for_missing_data(client.public_send(m.to_sym)&.to_i) }
         sheet.add_row(row)
       end
     end

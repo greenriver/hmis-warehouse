@@ -30,7 +30,7 @@ module WarehouseReports
         where(id: first_time_homeless_client_ids).
         preload(
           :first_service_history,
-          first_service_history: [:organization, :project],
+          first_service_history: { project: :organization },
           source_clients: :data_source,
         ).
         select(*columns).

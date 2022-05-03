@@ -162,6 +162,8 @@ module GrdaWarehouse::Tasks
         child_in_household: :child_in_household,
         days_homeless_in_last_three_years: :days_homeless_in_last_three_years_cached,
         days_literally_homeless_in_last_three_years: :literally_homeless_last_three_years_cached,
+        hmis_days_homeless_last_three_years: :hmis_days_homeless_in_last_three_years,
+        hmis_days_homeless_all_time: :hmis_days_homeless_all_time,
         vispdat_score: :most_recent_vispdat_score,
         vispdat_length_homeless_in_days: :days_homeless_for_vispdat_prioritization,
         vispdat_priority_score: :calculate_vispdat_priority_score,
@@ -178,6 +180,7 @@ module GrdaWarehouse::Tasks
         youth_rrh_desired: :youth_rrh_desired,
         rrh_assessment_contact_info: :contact_info_for_rrh_assessment,
         rrh_assessment_collected_at: :cas_assessment_collected_at,
+        entry_date: :cas_assessment_collected_at,
         requires_wheelchair_accessibility: :requires_wheelchair_accessibility,
         required_number_of_bedrooms: :required_number_of_bedrooms,
         required_minimum_occupancy: :required_minimum_occupancy,
@@ -219,6 +222,7 @@ module GrdaWarehouse::Tasks
         assessor_last_name: :assessor_last_name,
         assessor_email: :assessor_email,
         assessor_phone: :assessor_phone,
+        match_group: :match_group,
       }
     end
 

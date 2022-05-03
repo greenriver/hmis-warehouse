@@ -98,6 +98,10 @@ module HealthFlexibleService
       where(query)
     end
 
+    scope :expired_before, ->(date) do
+      where(arel_table[:open].eq(true).and(arel_table[:end_date].lt(date)))
+    end
+
     private def education_from(value)
       case value
       when '[3] Has high school diploma/GED. (safe)'

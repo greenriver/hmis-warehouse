@@ -25,37 +25,28 @@
       %table.mb-0.table
         %thead
           %tr
-            %th
-              Client
-            %th
-              Entry
-            %th
-              Exit
-            %th
-              Project Type
-            %th
-              Project
-            %th
-              Organization
+            %th Client
+            %th Entry
+            %th Exit
+            %th Project Type
+            %th Project
+            %th Organization
         %tbody
           - clients.each_with_index do |client_id, i|
             - meta = @report.enrollments[client_id].first
+            - client = meta.client
             - enrollments = @report.enrollments[client_id]
             - odd_class = if i % 2 == 0 then 'odd' else 'even' end
             %tr{class: odd_class}
               %td{rowspan: enrollments.count + 1}
-                = link_to_if current_user.can_view_clients?, "#{meta[:first_name]} #{meta[:last_name]}", appropriate_client_path(client_id)
+                = link_to_if current_user.can_view_clients?, "#{client.FirstName} #{client.LastName}", appropriate_client_path(client_id)
             - enrollments.each_with_index do |enrollment, index|
+              - project = enrollment.project
               - highlight = ''
               - highlight = 'warehouse-reports__enrollment-highlighted' if index == 0
               %tr{class: [highlight, odd_class]}
-                %td
-                  = enrollment[:first_date_in_program]
-                %td
-                  = enrollment[:last_date_in_program]
-                %td
-                  = HUD.project_type(enrollment[:project_type])
-                %td
-                  = enrollment[:project_name]
-                %td
-                  = enrollment[:organization_name]
+                %td= enrollment.first_date_in_program
+                %td= enrollment.last_date_in_program
+                %td= HUD.project_type(enrollment.computed_project_type)
+                %td= project.name(include_confidential_names: current_user.can_view_confidential_enrollment_details?)
+                %td= project.organization_name(current_user)

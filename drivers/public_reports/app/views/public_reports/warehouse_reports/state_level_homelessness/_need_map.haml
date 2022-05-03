@@ -8,21 +8,21 @@
       %option{value: 'adults_homeless_map'} Adults in Adult Only Households (age 18+)
       %option{value: 'adults_with_children_homeless_map'} Adults with Children
       %option{value: 'veterans_homeless_map'} Veterans
-.state-map#comparison-map
-.d-flex
-  .state-map-comparison-legend.ml-auto.mr-auto.d-flex
-    - @report.map_colors.each do |color, color_data|
-      .ml-4
-        .color-box.mr-auto.ml-auto.p-2{style: "background-color: #{color}; width: 20px; height: 20px; border: 1px solid \#CCCCCC;"}
-        .color-range
-          = color_data[:description]
+.state-map-wrapper
+  .state-map#comparison-map
+.row.state-map-comparison-legend.ml-auto.mr-auto.d-flex
+  - @report.map_colors.each do |color, color_data|
+    .col-sm.ml-4.mb-2.d-flex
+      .color-box.mr-2.ml-2.p-2{style: "background-color: #{color}; width: 20px; height: 20px; border: 1px solid \#CCCCCC;"}
+      .color-range
+        = color_data[:description]
 .d-flex
   .ml-auto.mr-auto.d-flex
-    Percentage of homeless population
-
-- # include the map class directly
-- map_type = @report.map_type
-= render map_type
+    - if @report.settings.map_overall_geography_census?
+      Population group rate by location
+    - else
+      Percentage of homeless population
+= render 'map_js'
 
 .d-flex
   %p.ml-auto.mr-auto.note Please note: the map above shows the number of individuals and families receiving homelessness services based on the #{@report.map_type_human} of the providers' principal site during the selected period.

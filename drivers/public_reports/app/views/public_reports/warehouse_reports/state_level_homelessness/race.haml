@@ -1,0 +1,11 @@
+= render 'chart_css'
+- data = @report.parsed_pre_calculated_data
+%section.position-relative
+  = render 'slider', data: data['quarters']
+  = render 'location', data: data
+
+  .mb-4
+    - chart_class = "race-chart"
+    = render 'race_chart', data: data['race_chart'], chart_class: chart_class, category: :race, groups: ::HUD.races(multi_racial: true).values + ['Other or Unknown']
+
+  = render 'glossary_content'

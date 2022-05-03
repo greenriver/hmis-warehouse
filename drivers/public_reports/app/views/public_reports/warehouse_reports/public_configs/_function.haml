@@ -1,0 +1,3 @@
+%section
+  %h3 Functionality
+  = f.input :iteration_type, collection: PublicReports::Setting.available_iteration_types.invert, as: :select_two, label: 'Iteration Length', hint: 'At this time, this will only affect the State-Level Homelessness Report'
