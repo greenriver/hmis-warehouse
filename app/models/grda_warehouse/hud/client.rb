@@ -1130,7 +1130,7 @@ module GrdaWarehouse::Hud
           select { |d| d.DisabilityResponse.in?([0, 1, 2, 3]) }.
           sort_by(&:InformationDate).
           reverse.
-          detect(&disability_check).DisabilityResponse
+          detect(&disability_check)&.DisabilityResponse
       end
     end
 
