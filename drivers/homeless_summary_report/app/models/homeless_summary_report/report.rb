@@ -149,9 +149,6 @@ module HomelessSummaryReport
       scope = @filter.apply(report_scope_source)
       scope = filter_for_range(scope)
 
-      # force re-calculation of filter
-      @filter = nil
-      filter
       scope
     end
 
@@ -545,18 +542,16 @@ module HomelessSummaryReport
       @filter = filter
       base_variant = spec[:base_variant]
       extra_filters = base_variant[:extra_filters] || {}
-      demographic_filter_values = extra_filters.merge(sub_spec[:extra_filters] || {})
-      @filter.update(demographic_filter_values)
-
+      @filter.update(extra_filters.merge(sub_spec[:extra_filters] || {}))
       demographic_scope = report_scope(measure)
-      @filter.update(demographic_filter_values)
 
       # demographic_filter is a method known to filter_scopes
       sub_spec[:demographic_filters].each do |demographic_filter|
         demographic_scope = send(demographic_filter, demographic_scope)
       end
-      puts demographic_scope.select(:client_id).to_sql
+
       ids = demographic_scope.pluck(:client_id).uniq.to_set
+
       @filter = nil
       filter
       ids
