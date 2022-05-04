@@ -25,7 +25,7 @@ module Health::Tasks
       @to_revoke = []
       @to_restore = []
       @new_patients = []
-      @configs = configs.presence || Health::ImportConfig.all
+      @configs = configs.presence || Health::ImportConfig.epic_data
       @prevent_massive_change = prevent_massive_change
 
       raise 'load_locally only supports a single config' if @load_locally && @configs.count > 1

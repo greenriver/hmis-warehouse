@@ -112,8 +112,6 @@
           = f.input :health_emergency, collection: GrdaWarehouse::Config.available_health_emergencies, label: 'Ongoing health emergency?', include_blank: 'No current emergency', as: :select_two
           = f.input :health_emergency_tracing, collection: GrdaWarehouse::Config.available_health_emergency_tracings, label: 'Tracing contacts for', include_blank: 'No current emergency', as: :select_two
           = f.input :send_sms_for_covid_reminders, label: 'Send SMS reminders for 2nd dose of COVID-19 Vaccine?'
-          - if RailsDrivers.loaded.include?(:claims_reporting) && ClaimsReporting::Importer.default_credentials[:host].present?
-            = f.input :health_claims_data_path, label: _('Health SFTP incoming claims data folder'), hint: "If provided, any new claims data files detected will be imported automatically. #{link_to 'Details & Logs', claims_reporting_imports_path}".html_safe
 
       %section.o-section-card
         %h3 CAS

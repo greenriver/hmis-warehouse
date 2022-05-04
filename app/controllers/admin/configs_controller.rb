@@ -57,7 +57,6 @@ module Admin
         :health_emergency,
         :health_emergency_tracing,
         :health_priority_age,
-        :health_claims_data_path,
         :multi_coc_installation,
         :auto_de_duplication_accept_threshold,
         :auto_de_duplication_reject_threshold,

@@ -7,7 +7,7 @@
 module Health
   class EdIpVisitImporter
     def sftp_credentials
-      YAML.safe_load(ERB.new(File.read(Rails.root.join('config/health_sftp.yml'))).result)[Rails.env]['ONE'].with_indifferent_access
+      @sftp_credentials ||= Health::ImportConfig.find_by(kind: :ed_ip_visits) || {}
     end
 
     def polling_enabled?
@@ -29,7 +29,7 @@ module Health
     end
 
     private def new_files
-      directory = "#{sftp_credentials[:path]}/CMT ED_IP Data"
+      directory = sftp_credentials[:path]
       results = []
       most_recent_upload = Health::EdIpVisitFile.maximum(:created_at)
       using_sftp do |sftp|
@@ -63,7 +63,7 @@ module Health
       Net::SFTP.start(
         credentials['host'],
         credentials['username'],
-        password: credentials['password'],
+        password: credentials['password'] || credentials.password,
         auth_methods: ['publickey', 'password'],
         keepalive: true,
         keepalive_interval: 60,
