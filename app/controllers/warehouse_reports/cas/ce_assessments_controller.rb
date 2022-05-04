@@ -14,12 +14,10 @@ module WarehouseReports::Cas
       @report = assessment_source.new(filter: @filter)
       respond_to do |format|
         format.html do
-          @client_page = @report.clients.
-            page(params[:page].to_i).
-            per(50)
-          @clients = @client_page.
+          @clients = @report.clients.
             select(@report.columns).
             order(@report.order)
+          @pagy, @clients = pagy(@clients, items: 50)
         end
         format.xlsx do
           filename = 'CE Assessments.xlsx'

@@ -12,7 +12,7 @@
   - headers = @report.header_for(@options)
   %p Showing #{pluralize(rows.count, 'client')}.
   .card
-    %table.table.table-striped.mb-0
+    %table.table.table-striped
       %thead
         %tr
           - headers.each do |header|

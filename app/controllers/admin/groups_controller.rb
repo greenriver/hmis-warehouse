@@ -11,9 +11,8 @@ module Admin
     before_action :set_entities, only: [:new, :edit, :create, :update]
 
     def index
-      @groups = access_group_scope.
-        order(:name).
-        page(params[:page])
+      @groups = access_group_scope.order(:name)
+      @pagy, @groups = pagy(@groups)
     end
 
     def new

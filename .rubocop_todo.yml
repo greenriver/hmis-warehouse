@@ -53,7 +53,6 @@ Layout/CaseIndentation:
 # Cop supports --auto-correct.
 Layout/ClosingParenthesisIndentation:
   Exclude:
-    - 'app/models/grda_warehouse/warehouse_reports/cas/ce_assessment.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_one.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
     - 'app/models/report_generators/data_quality/fy2017/base.rb'
@@ -569,7 +568,6 @@ Layout/EndAlignment:
 # Configuration parameters: AllowForAlignment, AllowBeforeTrailingComments, ForceEqualSignAlignment.
 Layout/ExtraSpacing:
   Exclude:
-    - 'app/models/grda_warehouse/warehouse_reports/cas/ce_assessment.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_two.rb'
     - 'app/models/grda_warehouse/warehouse_reports/youth/export.rb'
@@ -586,7 +584,6 @@ Layout/ExtraSpacing:
 # SupportedStyles: consistent, consistent_relative_to_receiver, special_for_inner_method_call, special_for_inner_method_call_in_parentheses
 Layout/FirstArgumentIndentation:
   Exclude:
-    - 'app/models/grda_warehouse/warehouse_reports/cas/ce_assessment.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
     - 'app/models/reporting/data_quality_reports/project_group.rb'
 
@@ -729,7 +726,6 @@ Layout/LeadingCommentSpace:
 # SupportedStyles: symmetrical, new_line, same_line
 Layout/MultilineMethodCallBraceLayout:
   Exclude:
-    - 'app/models/grda_warehouse/warehouse_reports/cas/ce_assessment.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_one.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
     - 'app/models/report_generators/data_quality/fy2017/base.rb'
@@ -748,7 +744,6 @@ Layout/MultilineMethodCallIndentation:
     - 'app/models/grda_warehouse/health_emergency/uploaded_test.rb'
     - 'app/models/grda_warehouse/tasks/chronically_homeless.rb'
     - 'app/models/grda_warehouse/us_census_api/coc_agg.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/cas/ce_assessment.rb'
     - 'app/models/grda_warehouse/warehouse_reports/dashboard/base.rb'
     - 'app/models/grda_warehouse/warehouse_reports/hud_lot.rb'
     - 'app/models/grda_warehouse/warehouse_reports/initiative_report.rb'
@@ -1603,7 +1598,6 @@ Naming/MemoizedInstanceVariableName:
   Exclude:
     - 'app/controllers/application_controller.rb'
     - 'app/models/grda_warehouse/tasks/test_data.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/cas/ce_assessment.rb'
     - 'app/models/grda_warehouse/warehouse_reports/confidential_touch_point.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
     - 'app/models/grda_warehouse/warehouse_reports/touch_point.rb'
@@ -2457,7 +2451,6 @@ Style/TrailingCommaInArguments:
     - 'app/models/grda_warehouse/tasks/dmh_chronically_homeless.rb'
     - 'app/models/grda_warehouse/tasks/test_data.rb'
     - 'app/models/grda_warehouse/us_census_api/coc_agg.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/cas/ce_assessment.rb'
     - 'app/models/grda_warehouse/warehouse_reports/initiative_report.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_one.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'

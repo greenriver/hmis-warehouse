@@ -17,7 +17,7 @@ module WarehouseReports
       project_ids = params.dig(:filter, :project_ids) || []
 
       @project_ids = project_ids.reject(&:blank?)
-      @clients = clients.page(params[:page].to_i)
+      @pagy, @clients = pagy(clients)
     end
 
     def filtered_project_list

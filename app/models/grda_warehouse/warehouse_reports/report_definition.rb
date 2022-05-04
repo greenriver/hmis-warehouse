@@ -387,7 +387,7 @@ module GrdaWarehouse::WarehouseReports
           {
             url: 'warehouse_reports/really_old_enrollments',
             name: 'Really Old Enrollments',
-            description: 'List clients who have enrollments prior to 1970.',
+            description: 'List clients who have enrollments prior to 1980.',
             limitable: true,
             health: false,
           },

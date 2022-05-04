@@ -3,23 +3,35 @@
 %h1= title
 = render '/warehouse_reports/breadcrumbs', tab: 'data-quality'
 
-.warehouse-reports__missing-projects
-  .row
-    %p The following clients have characters in their names that are unsual.  For clarity, spaces have been replaced with ⎵.
-  .text-right
+-# .warehouse-reports__missing-projects
+- if @pagy.count.positive?
+  .mb-4
+    The following clients have characters in their names that are unsual.  For clarity, spaces have been replaced with ⎵.
+  .text-right.mb-4
     = link_to({format: :xlsx},{class: 'btn btn-primary'}) do
-      Download Excel
-  %p= page_entries_info @clients, entry_name: _('client')
-  %table.table.table-sm.table-hover
-    %thead
-      %tr
-        %th Last Name
-        %th First Name
-        %th Data Source
-    %tbody
-      - @clients.each do |client|
+      %i.icon-file-excel.icon-lg
+      Download
+  .pagy-container.mb-4
+    != pagy_info(@pagy, item_name: _('client').pluralize(@pagy.count))
+    != pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
+  .table-responsive
+    %table.table.table-striped
+      %thead
         %tr
-          %td= link_to_if can_view_clients?, client.LastName.gsub(' ', '⎵'), appropriate_client_path(client)
-          %td= link_to_if can_view_clients?, client.FirstName.gsub(' ', '⎵'), appropriate_client_path(client)
-          %td= client.source_clients.map{|m| m.data_source&.short_name}.uniq.join(', ')
-%p= paginate @clients
+          %th Last Name
+          %th First Name
+          %th Data Source
+      %tbody
+        - @clients.each do |client|
+          %tr
+            %td= link_to_if can_view_clients?, client.LastName.gsub(' ', '⎵'), appropriate_client_path(client)
+            %td= link_to_if can_view_clients?, client.FirstName.gsub(' ', '⎵'), appropriate_client_path(client)
+            %td= client.source_clients.map{|m| m.data_source&.short_name}.uniq.join(', ')
+
+
+  - if @pagy.pages > 1
+    .pagy-container.mt-4
+      != pagy_info(@pagy, item_name: _('client').pluralize(@pagy.count))
+      != pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
+- else
+  .none-found.mt-4 No clients found.

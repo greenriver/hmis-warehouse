@@ -7,7 +7,7 @@
       - first_version = anomaly.versions.first
       %h3 Reported By #{User.find(first_version.whodunnit)&.name} on #{first_version.created_at.to_date}
       .card.mb-4
-        %table.table.table-striped.mb-0
+        %table.table.table-striped
           %thead
             %tr
               %th

@@ -6,7 +6,7 @@
       .col-sm-3
         = f.input :end, as: :date_picker, input_html: {value: @end}
       .col-sm-3
-        = f.input :id, label: 'Projects', collection: [], as: :select_two, input_html: {data: {'collection-path' => api_projects_path(selected_project_ids: [@project_id])}}, include_blank: false
+        = f.input :id, label: 'Project', collection: [], as: :select_two, input_html: {data: {'collection-path' => api_projects_path(selected_project_ids: [@project_id])}}, include_blank: false
 
   - content_for :filter_actions do
     .row
