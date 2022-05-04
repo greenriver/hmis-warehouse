@@ -9,27 +9,18 @@
   %table.mb-0.table.table-striped
     %thead
       %tr
-        %th
-          Client
-        %th
-          Project Type
-        %th
-          Project
-        %th
-          Entry Date
-        %th
-          Exit Date
+        %th Client
+        %th Project Type
+        %th Project
+        %th Entry Date
+        %th Exit Date
     %tbody
       - @report.enrollments.each do |client_id, enrollments|
         - enrollments.each do |enrollment|
+          - client = enrollment.client
           %tr
-            %td
-              = link_to_if current_user.can_view_clients?, "#{enrollment[:first_name]} #{enrollment[:last_name]}", appropriate_client_path(id: client_id)
-            %td
-              = HUD.project_type(enrollment[:project_type])
-            %td
-              = enrollment[:project_name]
-            %td
-              = enrollment[:first_date_in_program]
-            %td
-              = enrollment[:last_date_in_program]
+            %td= link_to_if current_user.can_view_clients?, "#{client.FirstName} #{client.LastName}", appropriate_client_path(id: client_id)
+            %td= HUD.project_type(enrollment.computed_project_type)
+            %td= enrollment.project.name(include_confidential_names: current_user.can_view_confidential_enrollment_details?)
+            %td= enrollment.first_date_in_program
+            %td= enrollment.last_date_in_program

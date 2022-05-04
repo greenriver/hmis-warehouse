@@ -1130,13 +1130,13 @@ module GrdaWarehouse::Hud
           select { |d| d.DisabilityResponse.in?([0, 1, 2, 3]) }.
           sort_by(&:InformationDate).
           reverse.
-          detect(&disability_check).try(:response)
+          detect(&disability_check)&.DisabilityResponse
       end
     end
 
     GrdaWarehouse::Hud::Disability.disability_types.each_value do |disability_type|
       define_method "#{disability_type}_response?".to_sym do
-        send("#{disability_type}_response".to_sym) == 'Yes'
+        send("#{disability_type}_response".to_sym).in?([1, 2, 3])
       end
     end
 

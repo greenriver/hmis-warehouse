@@ -49,8 +49,8 @@ module WarehouseReports
     end
 
     def enrollment_scope
-      service_history_source.entry.joins(:project, :organization).
-        preload(:project, :organization, :client)
+      service_history_source.entry.joins(:client, project: :organization).
+        preload(:client, project: :organization)
     end
 
     def reporting_class
