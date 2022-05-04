@@ -65,7 +65,7 @@ module Filters
     attribute :returned_to_homelessness_from_permanent_destination, Boolean, default: false
     attribute :creator_id, Integer, default: nil
     attribute :report_version, Symbol
-    attribute :inactivity_days, Integer, default: (365 * 2).to_i
+    attribute :inactivity_days, Integer, default: 365 * 2
 
     validates_presence_of :start, :end
 
