@@ -74,5 +74,15 @@ module HmisCsvTwentyTwentyTwo::Exporter::ExportConcern
 
       id || 'Unknown'
     end
+
+    def assessment_id(row, export)
+      id = if export.include_deleted || export.period_type == 1
+        row.assessment_with_deleted&.id
+      else
+        row.assessment&.id
+      end
+
+      id || 'Unknown'
+    end
   end
 end

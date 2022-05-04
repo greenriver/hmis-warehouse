@@ -42,7 +42,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
         { enrollment: [:project, { client: :warehouse_client_source }] }
       end
 
-      export_scope = export_scope.joins(join_tables)
+      export_scope = export_scope.joins(join_tables).preload([join_tables] + [:user])
 
       export_scope
     end

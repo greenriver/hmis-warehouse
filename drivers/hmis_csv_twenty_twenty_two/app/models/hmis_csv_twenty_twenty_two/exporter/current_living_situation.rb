@@ -5,7 +5,7 @@
 ###
 
 module HmisCsvTwentyTwentyTwo::Exporter
-  class EnrollmentCoc
+  class CurrentLivingSituation
     include ::HmisCsvTwentyTwentyTwo::Exporter::ExportConcern
 
     def initialize(options)
@@ -16,12 +16,10 @@ module HmisCsvTwentyTwentyTwo::Exporter
       row.UserID = row.user&.id || 'op-system'
       # Pre-calculate and assign. After assignment the relations will be broken
       personal_id = personal_id(row, @options[:export])
-      project_id = project_id(row, @options[:export])
       enrollment_id = enrollment_id(row, @options[:export])
       row.PersonalID = personal_id
-      row.ProjectID = project_id
       row.EnrollmentID = enrollment_id
-      row.EnrollmentCoCID = row.id
+      row.CurrentLivingSitID = row.id
 
       row
     end
@@ -38,9 +36,9 @@ module HmisCsvTwentyTwentyTwo::Exporter
       note_involved_user_ids(scope: export_scope, export: export)
 
       join_tables = if export.include_deleted || export.period_type == 1
-        { enrollment_with_deleted: [{ client_with_deleted: :warehouse_client_source, project_with_deleted: :project_cocs_with_deleted }] }
+        { enrollment_with_deleted: [:project_with_deleted, { client_with_deleted: :warehouse_client_source }] }
       else
-        { enrollment: [{ client: :warehouse_client_source, project: :project_cocs }] }
+        { enrollment: [:project, { client: :warehouse_client_source }] }
       end
 
       export_scope = export_scope.joins(join_tables).preload([join_tables] + [:user])
@@ -50,9 +48,9 @@ module HmisCsvTwentyTwentyTwo::Exporter
 
     def self.transforms
       [
-        HmisCsvTwentyTwentyTwo::Exporter::EnrollmentCoc::Overrides,
+        HmisCsvTwentyTwentyTwo::Exporter::CurrentLivingSituation::Overrides,
         HmisCsvTwentyTwentyTwo::Exporter::FakeData,
-        HmisCsvTwentyTwentyTwo::Exporter::EnrollmentCoc,
+        HmisCsvTwentyTwentyTwo::Exporter::CurrentLivingSituation,
       ]
     end
   end

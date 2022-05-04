@@ -31,6 +31,7 @@ module GrdaWarehouse::Hud
     # Setup an association to enrollment that allows us to pull the records even if the
     # enrollment has been deleted
     belongs_to :enrollment_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::Enrollment', primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], optional: true
+    belongs_to :assessment_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::Assessment', primary_key: [:AssessmentID, :PersonalID, :data_source_id], foreign_key: [:AssessmentID, :PersonalID, :data_source_id], optional: true
 
     has_one :lookup, class_name: 'GrdaWarehouse::AssessmentAnswerLookup', primary_key: [:AssessmentQuestion, :AssessmentAnswer], foreign_key: [:assessment_question, :response_code]
 

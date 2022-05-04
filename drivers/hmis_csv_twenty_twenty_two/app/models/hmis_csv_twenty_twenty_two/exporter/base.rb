@@ -175,17 +175,42 @@ module HmisCsvTwentyTwentyTwo::Exporter
           hmis_class: GrdaWarehouse::Hud::EmploymentEducation,
           enrollment_scope: enrollment_scope,
         },
-
-        # 'EmploymentEducation.csv' => employment_education_source,
-        # 'Funder.csv' => funder_source,
-        # 'HealthAndDV.csv' => health_and_dv_source,
-        # 'IncomeBenefits.csv' => income_benefits_source,
-        # 'Services.csv' => service_source,
-        # 'CurrentLivingSituation.csv' => current_living_situation_source,
-        # 'Assessment.csv' => assessment_source,
-        # 'AssessmentQuestions.csv' => assessment_question_source,
-        # 'AssessmentResults.csv' => assessment_result_source,
-        # 'Event.csv' => event_source,
+        HmisCsvTwentyTwentyTwo::Exporter::IncomeBenefit => {
+          hmis_class: GrdaWarehouse::Hud::IncomeBenefit,
+          enrollment_scope: enrollment_scope,
+        },
+        HmisCsvTwentyTwentyTwo::Exporter::HealthAndDv => {
+          hmis_class: GrdaWarehouse::Hud::HealthAndDv,
+          enrollment_scope: enrollment_scope,
+        },
+        HmisCsvTwentyTwentyTwo::Exporter::CurrentLivingSituation => {
+          hmis_class: GrdaWarehouse::Hud::CurrentLivingSituation,
+          enrollment_scope: enrollment_scope,
+        },
+        HmisCsvTwentyTwentyTwo::Exporter::Service => {
+          hmis_class: GrdaWarehouse::Hud::Service,
+          enrollment_scope: enrollment_scope,
+        },
+        HmisCsvTwentyTwentyTwo::Exporter::Assessment => {
+          hmis_class: GrdaWarehouse::Hud::Assessment,
+          enrollment_scope: enrollment_scope,
+        },
+        HmisCsvTwentyTwentyTwo::Exporter::AssessmentQuestion => {
+          hmis_class: GrdaWarehouse::Hud::AssessmentQuestion,
+          enrollment_scope: enrollment_scope,
+        },
+        HmisCsvTwentyTwentyTwo::Exporter::AssessmentResult => {
+          hmis_class: GrdaWarehouse::Hud::AssessmentResult,
+          enrollment_scope: enrollment_scope,
+        },
+        HmisCsvTwentyTwentyTwo::Exporter::Event => {
+          hmis_class: GrdaWarehouse::Hud::Event,
+          enrollment_scope: enrollment_scope,
+        },
+        HmisCsvTwentyTwentyTwo::Exporter::YouthEducationStatus => {
+          hmis_class: GrdaWarehouse::Hud::YouthEducationStatus,
+          enrollment_scope: enrollment_scope,
+        },
         # 'YouthEducationStatus.csv' => youth_education_status_source,
         # NOTE: User must be last since we collect user_ids from the other files
         HmisCsvTwentyTwentyTwo::Exporter::User => {

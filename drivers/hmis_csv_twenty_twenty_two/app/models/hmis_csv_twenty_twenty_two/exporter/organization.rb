@@ -28,7 +28,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
       end
       note_involved_user_ids(scope: export_scope, export: export)
 
-      export_scope
+      export_scope.preload(:user)
     end
 
     def self.project_exists_for_organization project_scope, hmis_class:

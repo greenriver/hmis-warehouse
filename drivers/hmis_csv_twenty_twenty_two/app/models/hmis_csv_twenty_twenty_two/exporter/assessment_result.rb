@@ -5,7 +5,7 @@
 ###
 
 module HmisCsvTwentyTwentyTwo::Exporter
-  class EnrollmentCoc
+  class AssessmentResult
     include ::HmisCsvTwentyTwentyTwo::Exporter::ExportConcern
 
     def initialize(options)
@@ -16,12 +16,12 @@ module HmisCsvTwentyTwentyTwo::Exporter
       row.UserID = row.user&.id || 'op-system'
       # Pre-calculate and assign. After assignment the relations will be broken
       personal_id = personal_id(row, @options[:export])
-      project_id = project_id(row, @options[:export])
       enrollment_id = enrollment_id(row, @options[:export])
+      assessment_id = assessment_id(row, @options[:export])
       row.PersonalID = personal_id
-      row.ProjectID = project_id
       row.EnrollmentID = enrollment_id
-      row.EnrollmentCoCID = row.id
+      row.AssessmentID = assessment_id
+      row.AssessmentResultID = row.id
 
       row
     end
@@ -29,8 +29,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
     def self.export_scope(enrollment_scope:, export:, hmis_class:, **_)
       export_scope = case export.period_type
       when 3
-        hmis_class.where(enrollment_exists_for_model(enrollment_scope, hmis_class)).
-          where(hmis_class.arel_table[:InformationDate].lteq(export.end_date))
+        hmis_class.where(enrollment_exists_for_model(enrollment_scope, hmis_class))
       when 1
         hmis_class.where(enrollment_exists_for_model(enrollment_scope, hmis_class)).
           modified_within_range(range: (export.start_date..export.end_date))
@@ -38,21 +37,20 @@ module HmisCsvTwentyTwentyTwo::Exporter
       note_involved_user_ids(scope: export_scope, export: export)
 
       join_tables = if export.include_deleted || export.period_type == 1
-        { enrollment_with_deleted: [{ client_with_deleted: :warehouse_client_source, project_with_deleted: :project_cocs_with_deleted }] }
+        [:assessment_with_deleted, { enrollment_with_deleted: [:project_with_deleted, { client_with_deleted: :warehouse_client_source }] }]
       else
-        { enrollment: [{ client: :warehouse_client_source, project: :project_cocs }] }
+        [:assessment, { enrollment: [:project, { client: :warehouse_client_source }] }]
       end
 
-      export_scope = export_scope.joins(join_tables).preload([join_tables] + [:user])
+      export_scope = export_scope.joins(join_tables).preload(join_tables + [:user])
 
       export_scope
     end
 
     def self.transforms
       [
-        HmisCsvTwentyTwentyTwo::Exporter::EnrollmentCoc::Overrides,
         HmisCsvTwentyTwentyTwo::Exporter::FakeData,
-        HmisCsvTwentyTwentyTwo::Exporter::EnrollmentCoc,
+        HmisCsvTwentyTwentyTwo::Exporter::AssessmentResult,
       ]
     end
   end
