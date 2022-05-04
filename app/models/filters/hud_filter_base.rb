@@ -31,11 +31,11 @@ module Filters
       end
 
       if coc_codes.present?
-        @effective_project_ids = GrdaWarehouse::Hud::ProjectCoc.in_cocs(coc_codes: coc_codes).
-          where(ProjectID: @effective_project_ids).
+        @effective_project_ids = GrdaWarehouse::Hud::ProjectCoc.in_coc(coc_code: coc_codes).
+          joins(:project).
+          where(p_t[:id].in(@effective_project_ids)).
           distinct.
-          pluck(:ProjectID).
-          map(&:to_i)
+          pluck(p_t[:id])
       end
 
       # Add an invalid id if there are none
