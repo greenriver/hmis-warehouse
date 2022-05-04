@@ -358,11 +358,13 @@ module HmisCsvTwentyTwentyTwo::Exporter
           hmis_class: GrdaWarehouse::Hud::Project,
           project_scope: project_scope,
         },
-
         HmisCsvTwentyTwentyTwo::Exporter::Enrollment => {
           hmis_class: GrdaWarehouse::Hud::Enrollment,
           enrollment_scope: enrollment_scope,
-          project_scope: project_scope,
+        },
+        HmisCsvTwentyTwentyTwo::Exporter::EnrollmentCoc => {
+          hmis_class: GrdaWarehouse::Hud::EnrollmentCoc,
+          enrollment_scope: enrollment_scope,
         },
         # 'ProjectCoC.csv' => project_coc_source,
         # 'Services.csv' => service_source,

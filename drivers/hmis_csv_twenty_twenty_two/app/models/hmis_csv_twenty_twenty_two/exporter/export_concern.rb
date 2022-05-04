@@ -29,5 +29,43 @@ module HmisCsvTwentyTwentyTwo::Exporter::ExportConcern
       export.user_ids ||= Set.new
       export.user_ids += scope.distinct.joins(:user).pluck(u_t[:id])
     end
+
+    def self.enrollment_exists_for_model(enrollment_scope, hmis_class)
+      enrollment_scope.where(
+        e_t[:PersonalID].eq(hmis_class.arel_table[:PersonalID]).
+        and(e_t[:EnrollmentID].eq(hmis_class.arel_table[:EnrollmentID])).
+        and(e_t[:data_source_id].eq(hmis_class.arel_table[:data_source_id])),
+      ).arel.exists
+    end
+
+    def enrollment_id(row, export)
+      id = if export.include_deleted || export.period_type == 1
+        row.enrollment_with_deleted&.id
+      else
+        row.enrollment&.id
+      end
+
+      id || 'Unknown'
+    end
+
+    def project_id(row, export)
+      id = if export.include_deleted || export.period_type == 1
+        row.enrollment_with_deleted&.project_with_deleted&.id
+      else
+        row.enrollment&.project&.id
+      end
+
+      id || 'Unknown'
+    end
+
+    def personal_id(row, export)
+      id = if export.include_deleted || export.period_type == 1
+        row.enrollment_with_deleted&.client_with_deleted&.id
+      else
+        row.enrollment&.client&.id
+      end
+
+      id || 'Unknown'
+    end
   end
 end

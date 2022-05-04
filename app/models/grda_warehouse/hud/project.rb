@@ -143,6 +143,10 @@ module GrdaWarehouse::Hud
     has_many :contacts, class_name: 'GrdaWarehouse::Contact::Project', foreign_key: :entity_id
     has_many :organization_contacts, through: :organization, source: :contacts
 
+    # Setup an association to project_cocs that allows us to pull the records even if the
+    # project_coc has been deleted
+    belongs_to :project_cocs_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::ProjectCoc', primary_key: [:ProjectID, :data_source_id], foreign_key: [:ProjectID, :data_source_id], optional: true
+
     scope :residential, -> do
       where(ProjectType: RESIDENTIAL_PROJECT_TYPE_IDS)
     end

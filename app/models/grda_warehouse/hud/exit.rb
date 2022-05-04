@@ -17,9 +17,13 @@ module GrdaWarehouse::Hud
 
     belongs_to :enrollment, **hud_enrollment_belongs, inverse_of: :exit, optional: true
     belongs_to :data_source, inverse_of: :exits
-    has_one :client, through: :enrollment, inverse_of: :exits
     belongs_to :direct_client, **hud_assoc(:PersonalID, 'Client'), inverse_of: :direct_exits, optional: true
     belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :exits, optional: true
+    # Setup an association to enrollment that allows us to pull the records even if the
+    # enrollment has been deleted
+    belongs_to :enrollment_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::Enrollment', primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], optional: true
+
+    has_one :client, through: :enrollment, inverse_of: :exits
     has_one :project, through: :enrollment
     has_one :destination_client, through: :enrollment
 
