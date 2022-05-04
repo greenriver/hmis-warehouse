@@ -46,10 +46,9 @@ module
         if include_inactivity_days
           section.add_control(
             id: 'inactivity_days',
-            label: 'Definition of Newly Homeless',
-            short_label: 'Newly Homeless Days',
+            label: 'Homeless History Lookback',
             value: @filter.inactivity_days,
-            hint: 'Number of days of inactivity required to be considered newly homeless',
+            hint: 'Time away before a client is considered newly homeless',
           )
         end
         section.add_control(
