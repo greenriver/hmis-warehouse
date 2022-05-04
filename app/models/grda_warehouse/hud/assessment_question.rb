@@ -26,6 +26,7 @@ module GrdaWarehouse::Hud
     has_one :enrollment, through: :assessment
     has_one :client, through: :assessment, inverse_of: :assessment_questions
     belongs_to :direct_client, **hud_assoc(:PersonalID, 'Client'), optional: true
+    belongs_to :user, **hud_assoc(:UserID, 'User'), inverse_of: :assessment_questions, optional: true
     belongs_to :data_source
     # Setup an association to enrollment that allows us to pull the records even if the
     # enrollment has been deleted

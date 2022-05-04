@@ -16,6 +16,7 @@ module GrdaWarehouse::Hud
     self.sequence_name = "public.\"#{table_name}_id_seq\""
 
     belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :youth_education_statuses, optional: true
+    belongs_to :user, **hud_assoc(:UserID, 'User'), inverse_of: :youth_education_statuses, optional: true
     belongs_to :enrollment, **hud_enrollment_belongs, inverse_of: :youth_education_statuses, optional: true
     belongs_to :data_source, optional: true
     # Setup an association to enrollment that allows us to pull the records even if the

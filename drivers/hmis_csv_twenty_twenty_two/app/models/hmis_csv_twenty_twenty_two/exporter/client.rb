@@ -5,7 +5,7 @@
 ###
 
 module HmisCsvTwentyTwentyTwo::Exporter
-  class Enrollment
+  class Client
     include ::HmisCsvTwentyTwentyTwo::Exporter::ExportConcern
 
     def initialize(options)
@@ -13,10 +13,8 @@ module HmisCsvTwentyTwentyTwo::Exporter
     end
 
     def process(row)
-      row.UserID ||= 'op-system'
-      row.EnrollmentID = row.id
-      row.PersonalID = row.client.id
-      row.ProjectID = row.project&.id || 'Unknown'
+      row.UserID = row.user&.id || 'op-system'
+      row.PersonalID = row.id
 
       row
     end

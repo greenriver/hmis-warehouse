@@ -13,10 +13,23 @@ module HmisCsvTwentyTwentyTwo::Exporter
     end
 
     def process(row)
-      row.UserID ||= 'op-system'
+      row.UserID = row.user&.id || 'op-system'
+
+      # Pre-calculate and assign. After assignment the relations will be broken
+      export = @options[:export]
+      personal_id = if export.include_deleted || export.period_type == 1
+        row&.client_with_deleted&.id
+      else
+        row&.client&.id
+      end
+      project_id = if export.include_deleted || export.period_type == 1
+        row&.project_with_deleted&.id
+      else
+        row&.project&.id
+      end
+      row.PersonalID = personal_id
+      row.ProjectID = project_id
       row.EnrollmentID = row.id
-      row.PersonalID = row.client.id
-      row.ProjectID = row.project&.id || 'Unknown'
 
       row
     end

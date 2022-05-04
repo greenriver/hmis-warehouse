@@ -18,6 +18,7 @@ module GrdaWarehouse::Hud
     belongs_to :enrollment, **hud_enrollment_belongs, inverse_of: :exit, optional: true
     belongs_to :data_source, inverse_of: :exits
     belongs_to :direct_client, **hud_assoc(:PersonalID, 'Client'), inverse_of: :direct_exits, optional: true
+    belongs_to :user, **hud_assoc(:UserID, 'User'), inverse_of: :exits, optional: true
     belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :exits, optional: true
     # Setup an association to enrollment that allows us to pull the records even if the
     # enrollment has been deleted

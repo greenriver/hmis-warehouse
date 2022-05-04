@@ -13,7 +13,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
     end
 
     def process(row)
-      row.UserID ||= 'op-system'
+      row.UserID = row.user&.id || 'op-system'
       row.OrganizationID = row.organization&.id || 'Unknown'
       row.ProjectID = row.id
 

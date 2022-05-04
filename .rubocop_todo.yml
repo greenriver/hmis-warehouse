@@ -320,7 +320,6 @@ Layout/EmptyLinesAroundClassBody:
     - 'app/models/grda_warehouse/health_emergency/test_batch.rb'
     - 'app/models/grda_warehouse/hmis/client_attribute_defined_text.rb'
     - 'app/models/grda_warehouse/hmis/staff.rb'
-    - 'app/models/grda_warehouse/hud/user.rb'
     - 'app/models/grda_warehouse/identify_duplicates_log.rb'
     - 'app/models/grda_warehouse/import/hmis_six_one_one/affiliation.rb'
     - 'app/models/grda_warehouse/import/hmis_six_one_one/disability.rb'

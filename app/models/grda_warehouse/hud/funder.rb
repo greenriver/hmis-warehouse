@@ -17,6 +17,7 @@ module GrdaWarehouse::Hud
 
     belongs_to :project, **hud_assoc(:ProjectID, 'Project'), inverse_of: :funders, optional: true
     belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :funders, optional: true
+    belongs_to :user, **hud_assoc(:UserID, 'User'), inverse_of: :funders, optional: true
     belongs_to :data_source
 
     scope :importable, -> do

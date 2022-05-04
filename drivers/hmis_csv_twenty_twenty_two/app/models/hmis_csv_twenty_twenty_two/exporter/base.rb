@@ -93,18 +93,14 @@ module HmisCsvTwentyTwentyTwo::Exporter
           )
         end
 
-        # export_project_cocs
-        # export_organizations
         # export_inventories
         # export_funders
         # export_affiliations
 
         # # Enrollment related
-        # export_enrollments
+
         # export_exits
-        # export_clients
-        # export_enrollment_cocs
-        # export_disabilities
+
         # export_employment_educations
         # export_health_and_dvs
         # export_income_benefits
@@ -118,7 +114,6 @@ module HmisCsvTwentyTwentyTwo::Exporter
 
         # export_users
 
-        # build_export_file
         #   zip_archive
         #   upload_zip
         #   save_fake_data
@@ -129,209 +124,6 @@ module HmisCsvTwentyTwentyTwo::Exporter
       @export
     end
 
-    def export_project_cocs
-      project_coc_source.new.export_project_related!(
-        project_scope: project_scope,
-        path: @file_path,
-        export: @export,
-        coc_codes: @coc_codes,
-      )
-    end
-
-    def export_inventories
-      inventory_source.new.export_project_related!(
-        project_scope: project_scope,
-        path: @file_path,
-        export: @export,
-        coc_codes: @coc_codes,
-      )
-    end
-
-    def export_funders
-      funder_source.new.export_project_related!(
-        project_scope: project_scope,
-        path: @file_path,
-        export: @export,
-        coc_codes: @coc_codes,
-      )
-    end
-
-    def export_affiliations
-      affiliation_source.new.export_project_related!(
-        project_scope: project_scope,
-        path: @file_path,
-        export: @export,
-        coc_codes: @coc_codes,
-      )
-    end
-
-    def export_enrollments
-      enrollment_source.new.export!(
-        enrollment_scope: enrollment_scope,
-        project_scope: project_scope,
-        path: @file_path,
-        export: @export,
-      )
-    end
-
-    def export_enrollment_cocs
-      enrollment_coc_source.new.export_enrollment_related!(
-        enrollment_scope: enrollment_scope,
-        project_scope: project_scope,
-        path: @file_path,
-        export: @export,
-        coc_codes: @coc_codes,
-      )
-    end
-
-    def export_clients
-      client_source.new.export!(
-        client_scope: client_scope,
-        path: @file_path,
-        export: @export,
-      )
-    end
-
-    def export_disabilities
-      disability_source.new.export_enrollment_related!(
-        enrollment_scope: enrollment_scope,
-        project_scope: project_scope,
-        path: @file_path,
-        export: @export,
-        coc_codes: @coc_codes,
-      )
-    end
-
-    def export_employment_educations
-      employment_education_source.new.export_enrollment_related!(
-        enrollment_scope: enrollment_scope,
-        project_scope: project_scope,
-        path: @file_path,
-        export: @export,
-        coc_codes: @coc_codes,
-      )
-    end
-
-    def export_exits
-      exit_source.new.export!(
-        enrollment_scope: enrollment_scope,
-        project_scope: project_scope,
-        path: @file_path,
-        export: @export,
-      )
-    end
-
-    def export_health_and_dvs
-      health_and_dv_source.new.export_enrollment_related!(
-        enrollment_scope: enrollment_scope,
-        project_scope: project_scope,
-        path: @file_path,
-        export: @export,
-        coc_codes: @coc_codes,
-      )
-    end
-
-    def export_income_benefits
-      income_benefits_source.new.export_enrollment_related!(
-        enrollment_scope: enrollment_scope,
-        project_scope: project_scope,
-        path: @file_path,
-        export: @export,
-        coc_codes: @coc_codes,
-      )
-    end
-
-    def export_services
-      service_source.new.export_enrollment_related!(
-        enrollment_scope: enrollment_scope,
-        project_scope: project_scope,
-        path: @file_path,
-        export: @export,
-        coc_codes: @coc_codes,
-      )
-    end
-
-    def export_current_living_situations
-      current_living_situation_source.new.export_enrollment_related!(
-        enrollment_scope: enrollment_scope,
-        project_scope: project_scope,
-        path: @file_path,
-        export: @export,
-        coc_codes: @coc_codes,
-      )
-    end
-
-    def export_assessments
-      assessment_source.new.export_enrollment_related!(
-        enrollment_scope: enrollment_scope,
-        project_scope: project_scope,
-        path: @file_path,
-        export: @export,
-        coc_codes: @coc_codes,
-      )
-    end
-
-    def export_assessment_questions
-      assessment_question_source.new.export_enrollment_related!(
-        enrollment_scope: enrollment_scope,
-        project_scope: project_scope,
-        path: @file_path,
-        export: @export,
-        coc_codes: @coc_codes,
-      )
-    end
-
-    def export_assessment_results
-      assessment_result_source.new.export_enrollment_related!(
-        enrollment_scope: enrollment_scope,
-        project_scope: project_scope,
-        path: @file_path,
-        export: @export,
-        coc_codes: @coc_codes,
-      )
-    end
-
-    def export_events
-      event_source.new.export_enrollment_related!(
-        enrollment_scope: enrollment_scope,
-        project_scope: project_scope,
-        path: @file_path,
-        export: @export,
-        coc_codes: @coc_codes,
-      )
-    end
-
-    def export_youth_education_statuses
-      youth_education_status_source.new.export_enrollment_related!(
-        enrollment_scope: enrollment_scope,
-        project_scope: project_scope,
-        path: @file_path,
-        export: @export,
-        coc_codes: @coc_codes,
-      )
-    end
-
-    def build_export_file
-      export = export_source.new(path: @file_path)
-      export.ExportID = @export.export_id
-      export.SourceType = 3 # data warehouse
-      export.SourceID = _('Boston DND Warehouse')[0..31] # potentially more than one CoC
-      export.SourceName = _('Boston DND Warehouse')
-      export.SourceContactFirst = @user&.first_name || 'Automated'
-      export.SourceContactLast = @user&.last_name || 'Export'
-      export.SourceContactEmail = @user&.email
-      export.ExportDate = Date.current
-      export.ExportStartDate = @range.start
-      export.ExportEndDate = @range.end
-      export.SoftwareName = _('OpenPath HMIS Warehouse')
-      export.SoftwareVersion = 1
-      export.CSVVersion = '2022'
-      export.ExportPeriodType = @period_type
-      export.ExportDirective = @directive || 2
-      export.HashStatus = @hash_status
-      export.export!
-    end
-
     def file_name_for(klass)
       exportable_files[klass][:hmis_class].hud_csv_file_name(version: '2022')
     end
@@ -339,17 +131,12 @@ module HmisCsvTwentyTwentyTwo::Exporter
     def exportable_files
       {
         # 'Affiliation.csv' => HmisCsvTwentyTwentyTwo::Exporter::Affiliation,
-        # 'Client.csv' => client_source,
-        # 'Disabilities.csv' => disability_source,
         # 'EmploymentEducation.csv' => employment_education_source,
-        # 'Enrollment.csv' => enrollment_source,
-        # 'EnrollmentCoC.csv' => enrollment_coc_source,
         # 'Exit.csv' => exit_source,
         # 'Export.csv' => export_source,
         # 'Funder.csv' => funder_source,
         # 'HealthAndDV.csv' => health_and_dv_source,
         # 'IncomeBenefits.csv' => income_benefits_source,
-        # 'Inventory.csv' => inventory_source,
         HmisCsvTwentyTwentyTwo::Exporter::Organization => {
           hmis_class: GrdaWarehouse::Hud::Organization,
           project_scope: project_scope,
@@ -358,12 +145,24 @@ module HmisCsvTwentyTwentyTwo::Exporter
           hmis_class: GrdaWarehouse::Hud::Project,
           project_scope: project_scope,
         },
+        HmisCsvTwentyTwentyTwo::Exporter::Inventory => {
+          hmis_class: GrdaWarehouse::Hud::Inventory,
+          project_scope: project_scope,
+        },
+        HmisCsvTwentyTwentyTwo::Exporter::ProjectCoc => {
+          hmis_class: GrdaWarehouse::Hud::ProjectCoc,
+          project_scope: project_scope,
+        },
         HmisCsvTwentyTwentyTwo::Exporter::Enrollment => {
           hmis_class: GrdaWarehouse::Hud::Enrollment,
           enrollment_scope: enrollment_scope,
         },
         HmisCsvTwentyTwentyTwo::Exporter::EnrollmentCoc => {
           hmis_class: GrdaWarehouse::Hud::EnrollmentCoc,
+          enrollment_scope: enrollment_scope,
+        },
+        HmisCsvTwentyTwentyTwo::Exporter::Disability => {
+          hmis_class: GrdaWarehouse::Hud::Disability,
           enrollment_scope: enrollment_scope,
         },
         # 'ProjectCoC.csv' => project_coc_source,

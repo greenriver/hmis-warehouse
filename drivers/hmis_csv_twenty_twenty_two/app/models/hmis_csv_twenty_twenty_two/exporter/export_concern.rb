@@ -38,6 +38,13 @@ module HmisCsvTwentyTwentyTwo::Exporter::ExportConcern
       ).arel.exists
     end
 
+    def self.project_exists_for_model(project_scope, hmis_class)
+      project_scope.where(
+        p_t[:ProjectID].eq(hmis_class.arel_table[:ProjectID]).
+        and(p_t[:data_source_id].eq(hmis_class.arel_table[:data_source_id])),
+      ).arel.exists
+    end
+
     def enrollment_id(row, export)
       id = if export.include_deleted || export.period_type == 1
         row.enrollment_with_deleted&.id
