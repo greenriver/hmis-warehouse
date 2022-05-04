@@ -30,9 +30,7 @@ module WarehouseReports::HealthEmergency
         preload(:processed_service_history, :service_history_enrollments, :health_emergency_vaccinations)
       respond_to do |format|
         format.html do
-          @clients = @clients.
-            page(params[:page]).
-            per(25)
+          @pagy, @clients = pagy(@clients)
         end
         format.xlsx do
         end

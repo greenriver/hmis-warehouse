@@ -5,16 +5,15 @@
 = render 'filter'
 
 - if @pagy.count.positive?
-  .d-flex
-    .ml-auto.mb-4
-      = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary ml-auto'}) do
-        %i.icon-download2
-        Download
-  .d-flex
-    %p!= pagy_info(@pagy, item_name: _('enrollment').pluralize(@pagy.count))
-    %p.ml-auto!= pagy_bootstrap_nav(@pagy)
-  .table-responsive.card
-    %table.table.table-striped.mb-0
+  .text-right.mb-4
+    = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary'}) do
+      %i.icon-file-excel.icon-lg
+      Download
+  .pagy-container.mb-4
+    != pagy_info(@pagy, item_name: _('enrollment').pluralize(@pagy.count))
+    != pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
+  .table-responsive
+    %table.table.table-striped
       %thead
         %tr
           %th Client
@@ -34,5 +33,9 @@
             %td= en.MoveInDate
             %td= en.exit&.ExitDate
             %td= HUD.destination(en.exit&.Destination)
-  .d-flex
-    %p.ml-auto!= pagy_bootstrap_nav(@pagy)
+  - if @pagy.pages > 1
+    .pagy-container.mt-4
+      != pagy_info(@pagy, item_name: _('enrollment').pluralize(@pagy.count))
+      != pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
+- else
+  .none-found.mt-4 No enrollments found.

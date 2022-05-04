@@ -14,14 +14,14 @@
     .ml-4
       = f.button :submit, 'Add Users', class: 'btn btn-secondary mt-no-label'
 
-%h3.mt-4
+%h3.mt-4.mb-4
   = pluralize(item.users.count, 'User')
   in
   %em= item.name
 
 - if item.users.count.positive?
   .users.table-responsive
-    %table.table.table-striped.mb-0
+    %table.table.table-striped
       %thead
         %tr
           %th Name
@@ -38,5 +38,4 @@
                 %i.icon-cross
                 Remove User
 - else
-  %p.none-found
-    No users found
+  .none-found No users

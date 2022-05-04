@@ -17,8 +17,8 @@ module DataSources
 
     def show
       @files = @config.import_type.constantize.where(config_id: @config.id).
-        order(created_at: :desc).
-        page(params[:page]).per(25)
+        order(created_at: :desc)
+      @pagy, @files = pagy(@files)
     end
 
     def new

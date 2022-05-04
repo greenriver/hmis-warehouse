@@ -7,20 +7,29 @@
   %p
     The following clients were born on the same day they entered a project.
   = render 'warehouse_reports/limited_by_project_note'
-  %p= page_entries_info @clients, entry_name: _('client')
-  %table.table.table-sm.table-hover
-    %thead
-      %tr
-        %th Client
-        %th DOB
-        %th First Enrollment Date
-        %th Project
-    %tbody
-      - @clients.each do |client|
-        - enrollment = client.source_enrollments.select{ |m| m[:EntryDate] == client.DOB }.first
+- if @pagy.count.positive?
+  .pagy-container.mb-4
+    != pagy_info(@pagy, item_name: _('client').pluralize(@pagy.count))
+    != pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
+  .table-responsive
+    %table.table.table-striped
+      %thead
         %tr
-          %td= link_to_if can_view_clients?, client.name, appropriate_client_path(client)
-          %td= client.DOB
-          %td= enrollment.EntryDate
-          %td= enrollment.project&.ProjectName
-%p= paginate @clients
+          %th Client
+          %th DOB
+          %th First Enrollment Date
+          %th Project
+      %tbody
+        - @clients.each do |client|
+          - enrollment = client.source_enrollments.select{ |m| m[:EntryDate] == client.DOB }.first
+          %tr
+            %td= link_to_if can_view_clients?, client.name, appropriate_client_path(client)
+            %td= client.DOB
+            %td= enrollment&.EntryDate
+            %td= enrollment&.project&.ProjectName
+  - if @pagy.pages > 1
+    .pagy-container.mt-4
+      != pagy_info(@pagy, item_name: _('client').pluralize(@pagy.count))
+      != pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
+- else
+  .none-found No clients found.

@@ -1,9 +1,9 @@
-.d-flex
-  %p!= pagy_info(@pagy, item_name: _('report').pluralize(@pagy.count))
-  %p.ml-auto!= pagy_bootstrap_nav(@pagy) if @pagy.count.positive?
 - if @pagy.count.positive?
-  .card.mb-6
-    %table.table.table-striped.mb-0
+  .pagy-container.mb-4
+    != pagy_info(@pagy, item_name: _('report').pluralize(@pagy.count))
+    != pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
+  .table-responsive
+    %table.table.table-striped
       %thead
         %tr
           %th Report Name
@@ -23,3 +23,10 @@
             %td= report.started_at
             %td= report.completed_at
             %td= report&.requestor&.name
+
+  - if @pagy.pages > 1
+    .pagy-container.mt-4
+      != pagy_info(@pagy, item_name: _('report').pluralize(@pagy.count))
+      != pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
+- else
+  .none-found No reports found.
