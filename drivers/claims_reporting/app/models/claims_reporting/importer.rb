@@ -15,7 +15,7 @@ module ClaimsReporting
     attr_accessor :logger
 
     def default_credentials
-      @default_credentials ||= Health::ImportConfig.find_by(kind: :claims_reporting) || {}
+      @default_credentials ||= ::Health::ImportConfig.find_by(kind: :claims_reporting) || {}
     end
 
     def default_path
