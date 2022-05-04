@@ -13,7 +13,7 @@
       - else
         = f.input :report_version, as: :hidden, input_html: { value: report_versions.map(&:last)}
     %div{ class: coc_cols }
-      = f.input :coc_codes, collection: @filter.coc_code_options_for_select(user: current_user), as: :select_two, input_html: {multiple: true, placeholder: 'Please Choose'}, label: 'CoC Codes', hint: default_coc_code
+      = f.input :coc_codes, collection: @filter.coc_code_options_for_select(user: current_user), as: :select_two, input_html: {multiple: true, placeholder: 'Please Choose', data: {'filter-projects-target' => 'cocCodes', 'action': 'change->filter-projects#update'}}, label: 'CoC Codes', hint: default_coc_code
   = render 'hud_reports/project_filter', f: f
   %h2 Limits
   .row

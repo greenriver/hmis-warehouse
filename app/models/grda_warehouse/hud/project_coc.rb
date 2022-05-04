@@ -38,6 +38,13 @@ module GrdaWarehouse::Hud
       )
     end
 
+    scope :in_cocs, ->(coc_codes:) do
+      where(
+        pc_t[:CoCCode].in(coc_codes).and(pc_t[:hud_coc_code].eq(nil).or(pc_t[:hud_coc_code].eq(''))).
+        or(pc_t[:hud_coc_code].in(coc_codes)),
+      )
+    end
+
     scope :with_coc, -> do
       where.not(CoCCode: nil).or(where.not(hud_coc_code: nil))
     end
