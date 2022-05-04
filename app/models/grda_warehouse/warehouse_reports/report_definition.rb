@@ -896,6 +896,13 @@ module GrdaWarehouse::WarehouseReports
           limitable: false,
           health: true,
         }
+        r_list['Health: BH CP Claims/Payments'] << {
+          url: 'claims_reporting/warehouse_reports/imports',
+          name: 'Claims Reporting Imports',
+          description: 'History of automatically imported claims information',
+          limitable: false,
+          health: true,
+        }
       end
       if RailsDrivers.loaded.include?(:project_pass_fail)
         r_list['Data Quality'] << {

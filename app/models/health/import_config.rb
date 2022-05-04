@@ -9,5 +9,9 @@ module Health
     self.table_name = :import_configs
 
     attr_encrypted :password, key: ENV['ENCRYPTION_KEY'][0..31]
+
+    scope :epic_data, -> do
+      where(kind: :epic_data)
+    end
   end
 end

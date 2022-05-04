@@ -7,7 +7,7 @@ namespace :health do
 
   desc "Import and match health data"
   task daily: [:environment, "log:info_to_stdout"] do
-    ClaimsReporting::Importer.nightly! if RailsDrivers.loaded.include?(:claims_reporting)
+    ClaimsReporting::Importer.new.nightly! if RailsDrivers.loaded.include?(:claims_reporting)
     Importing::RunHealthImportJob.new.perform
     Health::Tasks::NotifyCareCoordinatorsOfPatientEligibilityProblems.new.notify!
     Health::Tasks::CalculateValidUnpayableQas.new.run!
@@ -49,12 +49,6 @@ namespace :health do
   desc "Create Health::AccountableCareOrganization"
   task setup_initial_aco: [:environment, "log:info_to_stdout"] do
     Health::AccountableCareOrganization.create!(name: 'MassHealth')
-  end
-
-  desc "Import patient Referrals"
-  task import_patient_referrals: [:environment, "log:info_to_stdout"] do
-    Health::Tasks::ImportPatientReferrals.new.import!
-    Health::Tasks::ImportPatientReferralRefreshes.new.import!
   end
 
   desc "Fix HealthFile relationships"
