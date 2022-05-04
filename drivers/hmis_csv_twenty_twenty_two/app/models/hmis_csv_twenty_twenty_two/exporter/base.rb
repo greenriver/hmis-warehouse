@@ -130,13 +130,6 @@ module HmisCsvTwentyTwentyTwo::Exporter
 
     def exportable_files
       {
-        # 'Affiliation.csv' => HmisCsvTwentyTwentyTwo::Exporter::Affiliation,
-        # 'EmploymentEducation.csv' => employment_education_source,
-        # 'Exit.csv' => exit_source,
-        # 'Export.csv' => export_source,
-        # 'Funder.csv' => funder_source,
-        # 'HealthAndDV.csv' => health_and_dv_source,
-        # 'IncomeBenefits.csv' => income_benefits_source,
         HmisCsvTwentyTwentyTwo::Exporter::Organization => {
           hmis_class: GrdaWarehouse::Hud::Organization,
           project_scope: project_scope,
@@ -153,8 +146,21 @@ module HmisCsvTwentyTwentyTwo::Exporter
           hmis_class: GrdaWarehouse::Hud::ProjectCoc,
           project_scope: project_scope,
         },
+        HmisCsvTwentyTwentyTwo::Exporter::Affiliation => {
+          hmis_class: GrdaWarehouse::Hud::Affiliation,
+          project_scope: project_scope,
+        },
+        HmisCsvTwentyTwentyTwo::Exporter::Funder => {
+          hmis_class: GrdaWarehouse::Hud::Funder,
+          project_scope: project_scope,
+        },
+
         HmisCsvTwentyTwentyTwo::Exporter::Enrollment => {
           hmis_class: GrdaWarehouse::Hud::Enrollment,
+          enrollment_scope: enrollment_scope,
+        },
+        HmisCsvTwentyTwentyTwo::Exporter::Exit => {
+          hmis_class: GrdaWarehouse::Hud::Exit,
           enrollment_scope: enrollment_scope,
         },
         HmisCsvTwentyTwentyTwo::Exporter::EnrollmentCoc => {
@@ -165,7 +171,15 @@ module HmisCsvTwentyTwentyTwo::Exporter
           hmis_class: GrdaWarehouse::Hud::Disability,
           enrollment_scope: enrollment_scope,
         },
-        # 'ProjectCoC.csv' => project_coc_source,
+        HmisCsvTwentyTwentyTwo::Exporter::EmploymentEducation => {
+          hmis_class: GrdaWarehouse::Hud::EmploymentEducation,
+          enrollment_scope: enrollment_scope,
+        },
+
+        # 'EmploymentEducation.csv' => employment_education_source,
+        # 'Funder.csv' => funder_source,
+        # 'HealthAndDV.csv' => health_and_dv_source,
+        # 'IncomeBenefits.csv' => income_benefits_source,
         # 'Services.csv' => service_source,
         # 'CurrentLivingSituation.csv' => current_living_situation_source,
         # 'Assessment.csv' => assessment_source,
