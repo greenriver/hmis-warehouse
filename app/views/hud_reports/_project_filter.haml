@@ -1,15 +1,16 @@
+- project_types_collection = local_assigns[:project_types_collection] || @filter.available_residential_project_types
 %h2 Projects to Include
 %p.alert.alert-info Please note, the following options are additive.  If you choose a single project and a project type, the report will run for all projects in the project type and the chosen project.  If you choose a data source and project type, the report will run for all projects in the chosen data source and chosen project type.
 .row
   .col-md-8
     .row
       .col-sm-6
-        = f.input :project_ids, collection: @filter.project_options_for_select(user: current_user), as: :grouped_select_two, group_method: :last, input_html: { multiple: true, placeholder: 'Choose Projects', data: { 'filter-projects-target' => 'projects', action: 'change->filter-projects#update' } },label: 'Projects'
+        = f.input :project_ids, collection: @filter.project_options_for_select(user: current_user), as: :grouped_select_two, group_method: :last, input_html: { multiple: true, placeholder: 'Choose Projects', data: { 'filter-projects-target' => 'projects', action: 'change->filter-projects#update' } }, label: 'Projects'
       .col-sm-6
         = f.input :data_source_ids, collection: @filter.data_source_options_for_select(user: current_user), as: :select_two, input_html: {multiple: true, placeholder: 'Choose Data Sources', data: { 'filter-projects-target' => 'dataSources', action: 'change->filter-projects#update' }}, label: 'Data Sources'
     .row
       .col-sm-6
-        = f.input :project_type_codes, collection: @filter.available_residential_project_types, input_html: { multiple: true, placeholder: 'Choose Project Types', data: { 'filter-projects-target' => 'projectTypes', action: 'change->filter-projects#update' } }, label: 'Project Types', as: :select_two
+        = f.input :project_type_codes, collection: project_types_collection, input_html: { multiple: true, placeholder: 'Choose Project Types', data: { 'filter-projects-target' => 'projectTypes', action: 'change->filter-projects#update' } }, label: 'Project Types', as: :select_two
       .col-sm-6
         = f.input :project_group_ids, collection: @filter.project_groups_options_for_select(user: current_user), as: :select_two, input_html: {multiple: true, placeholder: 'Choose Project Groups', data: { 'filter-projects-target' => 'projectGroups', action: 'change->filter-projects#update' }}, label: 'Project Groups'
   .col-md-4
