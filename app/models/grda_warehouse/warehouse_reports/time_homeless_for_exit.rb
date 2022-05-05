@@ -145,14 +145,10 @@ module GrdaWarehouse::WarehouseReports
     end
 
     private def client_scope
-      apply_filters(client_source.destination_visible_to(filter.user))
-    end
-
-    private def apply_filters(scope)
-      scope = scope.send(filter.sub_population).
+      scope = client_source.destination_visible_to(filter.user).
+        send(filter.sub_population).
         joins(source_enrollments: :project).
         merge(GrdaWarehouse::Hud::Project.viewable_by(filter.user))
-
       scope = scope.merge(GrdaWarehouse::Hud::Project.where(id: filter.effective_project_ids)) if filter.effective_project_ids.reject(&:zero?).any?
       scope = scope.where(id: cohort_client_scope.select(:client_id)) if filter.cohort_ids.any?
       scope
