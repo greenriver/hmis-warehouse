@@ -27,6 +27,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
       row = ensure_reasonable_name(row, confidential: options[:confidential])
       row = override_project_type(row)
       row = override_continuum_project(row)
+      row = calculated_pit_count(row, export: options[:export])
 
       [
         { hud_field: :HousingType, override_field: :housing_type_override },
@@ -79,6 +80,19 @@ module HmisCsvTwentyTwentyTwo::Exporter
       return row if row.hud_continuum_funded.blank?
 
       row.ContinuumProject = 1 if row.hud_continuum_funded
+      row
+    end
+
+    def self.calculated_pit_count(row, export:)
+      most_recent_pit_date = Filters::FilterBase.pit_date(export.end_date)
+      row.PITCount = GrdaWarehouse::ServiceHistoryService.service_excluding_extrapolated.
+        joins(service_history_enrollment: :project).
+        merge(GrdaWarehouse::Hud::Project.where(id: row.id)).
+        where(date: most_recent_pit_date).
+        distinct.
+        select(:client_id).
+        count || 0
+
       row
     end
   end

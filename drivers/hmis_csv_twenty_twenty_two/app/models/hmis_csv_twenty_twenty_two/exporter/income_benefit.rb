@@ -19,7 +19,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
       enrollment_id = enrollment_id(row, @options[:export])
       row.PersonalID = personal_id
       row.EnrollmentID = enrollment_id
-      row.IncomeBenefitID = row.id
+      row.IncomeBenefitsID = row.id
 
       row
     end
@@ -43,7 +43,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
 
       export_scope = export_scope.joins(join_tables).preload([join_tables] + [:user])
 
-      export_scope
+      export_scope.distinct
     end
 
     def self.transforms

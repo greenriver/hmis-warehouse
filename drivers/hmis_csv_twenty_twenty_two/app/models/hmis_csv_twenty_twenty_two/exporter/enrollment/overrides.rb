@@ -71,6 +71,8 @@ module HmisCsvTwentyTwentyTwo::Exporter
       return row unless row.project.project_type_overridden_as_ph?
 
       row.MoveInDate ||= row.EntryDate
+
+      row
     end
   end
 end

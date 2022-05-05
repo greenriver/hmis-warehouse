@@ -43,7 +43,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
 
       export_scope = export_scope.joins(join_tables).preload([join_tables] + [:user])
 
-      export_scope
+      export_scope.distinct
     end
 
     def self.transforms

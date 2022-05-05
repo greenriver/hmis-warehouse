@@ -5,45 +5,30 @@
 ###
 
 require 'rails_helper'
+require_relative 'export_helper'
 
 RSpec.describe HmisCsvTwentyTwentyTwo::Exporter::Base, type: :model do
-  def csv_file_path(klass)
-    File.join(@exporter.file_path, @exporter.file_name_for(klass))
+  before(:all) do
+    cleanup_test_environment
+    setup_data
+
+    @project_class = HmisCsvTwentyTwentyTwo::Exporter::Project
+    @exporter = HmisCsvTwentyTwentyTwo::Exporter::Base.new(
+      start_date: 1.week.ago.to_date,
+      end_date: Date.current,
+      projects: [@projects.first.id],
+      period_type: 3,
+      directive: 3,
+      user_id: @user.id,
+    )
+    @exporter.export!(cleanup: false, zip: false, upload: false)
   end
 
+  after(:all) do
+    @exporter.remove_export_files
+    cleanup_test_environment
+  end
   describe 'When exporting project related item' do
-    before(:all) do
-      HmisCsvImporter::Utility.clear!
-      GrdaWarehouse::Utility.clear!
-      User.delete_all
-      @data_source = create :source_data_source, id: 2
-      @user = create :user
-      @projects = create_list :hud_project, 5, data_source_id: @data_source.id
-      @organizations = create_list :hud_organization, 5, data_source_id: @data_source.id
-      @inventories = create_list :hud_inventory, 5, data_source_id: @data_source.id
-      @affiliations = create_list :hud_affiliation, 5, data_source_id: @data_source.id
-      @project_cocs = create_list :hud_project_coc, 5, data_source_id: @data_source.id
-      @funders = create_list :hud_funder, 5, data_source_id: @data_source.id
-      @project_class = HmisCsvTwentyTwentyTwo::Exporter::Project
-      @exporter = HmisCsvTwentyTwentyTwo::Exporter::Base.new(
-        start_date: 1.week.ago.to_date,
-        end_date: Date.current,
-        projects: [@projects.first.id],
-        period_type: 3,
-        directive: 3,
-        user_id: @user.id,
-      )
-      @exporter.export!(cleanup: false, zip: false, upload: false)
-    end
-
-    after(:all) do
-      @exporter.remove_export_files
-      HmisCsvImporter::Utility.clear!
-      GrdaWarehouse::Utility.clear!
-      User.delete_all
-      FactoryBot.reload
-    end
-
     describe 'when exporting projects' do
       it 'project scope should find one project' do
         expect(@exporter.project_scope.count).to eq 1
@@ -65,13 +50,7 @@ RSpec.describe HmisCsvTwentyTwentyTwo::Exporter::Base, type: :model do
       end
     end
 
-    [
-      HmisCsvTwentyTwentyTwo::Exporter::Organization,
-      HmisCsvTwentyTwentyTwo::Exporter::Inventory,
-      HmisCsvTwentyTwentyTwo::Exporter::Affiliation,
-      HmisCsvTwentyTwentyTwo::Exporter::ProjectCoc,
-      HmisCsvTwentyTwentyTwo::Exporter::Funder,
-    ].each do |klass|
+    project_classes.each do |klass|
       describe "when exporting #{klass}" do
         it "creates one #{klass.hud_csv_file_name} CSV file" do
           expect(File.exist?(csv_file_path(klass))).to be true

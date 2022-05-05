@@ -29,7 +29,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
       end
       note_involved_user_ids(scope: export_scope, export: export)
 
-      export_scope.preload(:user)
+      export_scope.preload(:user).distinct
     end
 
     def self.transforms

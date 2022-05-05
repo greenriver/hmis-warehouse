@@ -34,11 +34,16 @@ module HmisCsvTwentyTwentyTwo::Exporter
     def self.best_coc(row, export)
       return row.CoCCode if row.CoCCode.present?
 
-      if export.include_deleted || export.period_type == 1
-        row.enrollment_with_deleted&.project_with_deleted&.project_cocs_with_deleted&.first&.CoCCode
+      project_cocs = if export.include_deleted || export.period_type == 1
+        row.enrollment_with_deleted&.project_with_deleted&.project_cocs_with_deleted&.map(&:CoCCode)
       else
-        row.enrollment&.project&.project_cocs&.first&.CoCCode
+        row.enrollment&.project&.project_cocs&.map(&:CoCCode)
       end
+      project_cocs.uniq!
+      # If we have more than one project coc, don't guess
+      return nil if project_cocs.blank? || project_cocs.count > 1
+
+      project_cocs.first
     end
 
     def self.fix_household_id(row)
