@@ -121,7 +121,7 @@ RSpec.shared_context '2022 confidential setup', shared_context: :metadata do
   end
 
   def csv_file_path(exporter, klass)
-    File.join(exporter.file_path, klass.hud_csv_file_name)
+    File.join(exporter.file_path, exporter.file_name_for(klass))
   end
 end
 

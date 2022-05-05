@@ -49,7 +49,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
       @directive = directive.presence || 2
       @hash_status = hash_status.presence || 1
       @faked_pii = faked_pii
-      @user = ::User.find(user_id)
+      @user = ::User.find_by(id: user_id)
       @include_deleted = include_deleted
       @faked_environment = faked_environment
       @confidential = confidential
@@ -74,7 +74,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
           dest_class: HmisCsvTwentyTwentyTwo::Exporter::CsvDestination,
           dest_config: {
             hmis_class: export_opts[:hmis_class],
-            output_file: File.join(@file_path, 'Export.csv'),
+            output_file: File.join(@file_path, file_name_for(destination_class)),
           },
         )
         exportable_files.each do |destination_class, opts|
@@ -92,40 +92,24 @@ module HmisCsvTwentyTwentyTwo::Exporter
             },
           )
         end
-
-        # export_inventories
-        # export_funders
-        # export_affiliations
-
-        # # Enrollment related
-
-        # export_exits
-
-        # export_employment_educations
-        # export_health_and_dvs
-        # export_income_benefits
-        # export_services
-        # export_current_living_situations
-        # export_assessments
-        # export_assessment_questions
-        # export_assessment_results
-        # export_events
-        # export_youth_education_statuses
-
-        # export_users
-
-        #   zip_archive
-        #   upload_zip
-        #   save_fake_data
-        # ensure
-        #   remove_export_files
-        #   reset_time_format
+        zip_archive
+        upload_zip
+        save_fake_data
+      ensure
+        remove_export_files
+        reset_time_format
       end
       @export
     end
 
     def file_name_for(klass)
-      exportable_files[klass][:hmis_class].hud_csv_file_name(version: '2022')
+      return 'Export.csv' if klass == HmisCsvTwentyTwentyTwo::Exporter::Export
+
+      hmis_class_for(klass).hud_csv_file_name(version: '2022')
+    end
+
+    def hmis_class_for(klass)
+      exportable_files[klass][:hmis_class]
     end
 
     def exportable_files
@@ -211,7 +195,6 @@ module HmisCsvTwentyTwentyTwo::Exporter
           hmis_class: GrdaWarehouse::Hud::YouthEducationStatus,
           enrollment_scope: enrollment_scope,
         },
-        # 'YouthEducationStatus.csv' => youth_education_status_source,
         # NOTE: User must be last since we collect user_ids from the other files
         HmisCsvTwentyTwentyTwo::Exporter::User => {
           hmis_class: GrdaWarehouse::Hud::User,

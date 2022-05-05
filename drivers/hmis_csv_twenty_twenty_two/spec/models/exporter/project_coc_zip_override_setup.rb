@@ -15,7 +15,7 @@ RSpec.shared_context '2022 project coc zip override setup', shared_context: :met
   let!(:clients) { create_list :hud_client, 5, data_source_id: data_source.id }
 
   def csv_file_path(exporter, klass)
-    File.join(exporter.file_path, klass.hud_csv_file_name)
+    File.join(exporter.file_path, exporter.file_name_for(klass))
   end
 end
 

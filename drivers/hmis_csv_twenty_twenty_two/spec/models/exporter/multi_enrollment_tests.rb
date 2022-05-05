@@ -86,10 +86,10 @@ RSpec.shared_context '2022 multi-enrollment tests', shared_context: :metadata do
         before(:each) do
           exporter.public_send(item[:export_method])
         end
-        it "creates one #{item[:klass].hud_csv_file_name} CSV file" do
+        it "creates one #{exporter.file_name_for(item[:klass])} CSV file" do
           expect(File.exist?(csv_file_path(item[:klass]))).to be true
         end
-        it "adds three rows to the #{item[:klass].hud_csv_file_name} CSV file" do
+        it "adds three rows to the #{exporter.file_name_for(item[:klass])} CSV file" do
           csv = CSV.read(csv_file_path(item[:klass]), headers: true)
           expect(csv.count).to eq 3
         end
@@ -105,7 +105,7 @@ RSpec.shared_context '2022 multi-enrollment tests', shared_context: :metadata do
           end.map(&:id).map(&:to_s).sort.first(3)
           expect(csv_ids).to eq source_ids
         end
-        if item[:klass].column_names.include?('EnrollmentID')
+        if item[:klass].hmis_class.column_names.include?('EnrollmentID')
           it 'EnrollmentIDs from CSV file match the ids of first three enrollments' do
             # binding.pry if item[:list] == :exits
             csv = CSV.read(csv_file_path(item[:klass]), headers: true)
@@ -114,7 +114,7 @@ RSpec.shared_context '2022 multi-enrollment tests', shared_context: :metadata do
             expect(csv_ids).to eq source_ids
           end
         end
-        if item[:klass].column_names.include?('PersonalID')
+        if item[:klass].hmis_class.column_names.include?('PersonalID')
           it 'PersonalID from CSV should not be blank' do
             # binding.pry if item[:list] == :exits
             csv = CSV.read(csv_file_path(item[:klass]), headers: true)

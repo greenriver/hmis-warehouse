@@ -18,7 +18,7 @@ RSpec.shared_context '2022 single-project tests', shared_context: :metadata do
     end
     describe 'when exporting projects' do
       before(:each) do
-        exporter.export_projects
+        exporter.export!
         @project_class = HmisCsvTwentyTwentyTwo::Exporter::Project
       end
       it 'project scope should find one project' do
@@ -43,6 +43,7 @@ RSpec.shared_context '2022 single-project tests', shared_context: :metadata do
     ProjectRelatedHmisTwentyTwentyTests::TESTS.each do |item|
       describe "when exporting #{item[:list]}" do
         before(:each) do
+          # FIXME: move this to before all (just export once)
           exporter.public_send(item[:export_method])
         end
         it "creates one #{item[:klass].hud_csv_file_name} CSV file" do
@@ -57,7 +58,7 @@ RSpec.shared_context '2022 single-project tests', shared_context: :metadata do
           current_hud_key = item[:klass].new.clean_headers([item[:klass].hud_key]).first.to_s
           expect(csv.first[current_hud_key]).to eq send(item[:list]).first.id.to_s
         end
-        if item[:klass].column_names.include?('ProjectID')
+        if item[:klass].hmis_class.column_names.include?('ProjectID')
           it 'ProjectID from CSV file match the id of first project' do
             csv = CSV.read(csv_file_path(item[:klass]), headers: true)
             expect(csv.first['ProjectID']).to eq projects.first.id.to_s

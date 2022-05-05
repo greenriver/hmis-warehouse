@@ -9,6 +9,19 @@ module HmisCsvTwentyTwentyTwo::Exporter::ExportConcern
   included do
     include ArelHelper
 
+    # This is for backward compatibility for tests
+    def self.hud_csv_file_name
+      test_exporter.file_name_for(self)
+    end
+
+    def self.hmis_class
+      test_exporter.hmis_class_for(self)
+    end
+
+    def self.test_exporter
+      HmisCsvTwentyTwentyTwo::Exporter::Base.new(user_id: 1, start_date: Date.yesterday, end_date: Date.current, projects: [1])
+    end
+
     def self.simple_override(row, hud_field:, override_field:, default_value: nil)
       row[hud_field] ||= default_value if default_value.present?
       return row if row.send(override_field).blank?

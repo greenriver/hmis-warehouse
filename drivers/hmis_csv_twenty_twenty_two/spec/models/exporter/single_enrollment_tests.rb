@@ -66,10 +66,10 @@ RSpec.shared_context '2022 single-enrollment tests', shared_context: :metadata d
         before(:each) do
           exporter.public_send(item[:export_method])
         end
-        it "creates one #{item[:klass].hud_csv_file_name} CSV file" do
+        it "creates one #{exporter.file_name_for(item[:klass])} CSV file" do
           expect(File.exist?(csv_file_path(item[:klass]))).to be true
         end
-        it "adds one row to the #{item[:klass].hud_csv_file_name} CSV file" do
+        it "adds one row to the #{exporter.file_name_for(item[:klass])} CSV file" do
           csv = CSV.read(csv_file_path(item[:klass]), headers: true)
           expect(csv.count).to eq 1
         end
@@ -78,13 +78,13 @@ RSpec.shared_context '2022 single-enrollment tests', shared_context: :metadata d
           current_hud_key = item[:klass].new.clean_headers([item[:klass].hud_key]).first.to_s
           expect(csv.first[current_hud_key]).to eq send(item[:list]).first.id.to_s
         end
-        if item[:klass].column_names.include?('EnrollmentID')
+        if item[:klass].hmis_class.column_names.include?('EnrollmentID')
           it 'EnrollmentID from CSV file match the id of first enrollment' do
             csv = CSV.read(csv_file_path(item[:klass]), headers: true)
             expect(csv.first['EnrollmentID']).to eq enrollments.first.id.to_s
           end
         end
-        if item[:klass].column_names.include?('PersonalID')
+        if item[:klass].hmis_class.column_names.include?('PersonalID')
           it 'PersonalID from CSV file match the id of first client' do
             csv = CSV.read(csv_file_path(item[:klass]), headers: true)
             expect(csv.first['PersonalID']).to_not be_empty

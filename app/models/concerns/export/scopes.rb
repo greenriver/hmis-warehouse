@@ -12,7 +12,7 @@ module Export::Scopes
       # include any client with an open enrollment
       # during the report period in one of the involved projects
       @client_scope ||= begin
-        if @export.include_deleted
+        if @export&.include_deleted
           c_scope = client_source.with_deleted
         else
           c_scope = client_source
@@ -26,13 +26,13 @@ module Export::Scopes
     def enrollment_scope
       @enrollment_scope ||= begin
         # Choose all enrollments open during the range at one of the associated projects.
-        if @export.include_deleted
+        if @export&.include_deleted
           e_scope = enrollment_source.with_deleted
         else
           e_scope = enrollment_source.joins(:client)
         end
         e_scope = e_scope.where(project_exists_for_enrollment)
-        case @export.period_type
+        case @export&.period_type
         when 3
           # FIXME: open_during_range may need to include logic to include deleted Exits
           e_scope = e_scope.open_during_range(@range)
@@ -46,18 +46,18 @@ module Export::Scopes
     def project_scope
       @project_scope ||= begin
         p_scope = project_source.where(id: @projects)
-        p_scope = p_scope.with_deleted if @export.include_deleted
+        p_scope = p_scope.with_deleted if @export&.include_deleted
         p_scope.preload(:organization)
       end
     end
 
     def enrollment_exists_for_client
-      if @export.include_deleted
+      if @export&.include_deleted
         e_scope = enrollment_source.with_deleted
       else
         e_scope = enrollment_source
       end
-      case @export.period_type
+      case @export&.period_type
       when 3
         e_scope = e_scope.open_during_range(@range)
       when 1

@@ -50,14 +50,14 @@ RSpec.shared_context '2022 multi-project tests', shared_context: :metadata do
         before(:each) do
           exporter.public_send(item[:export_method])
         end
-        it "creates one #{item[:klass].hud_csv_file_name} CSV file" do
+        it "creates one #{exporter.file_name_for(item[:klass])} CSV file" do
           expect(File.exist?(csv_file_path(item[:klass]))).to be true
         end
-        it "adds three rows to the #{item[:klass].hud_csv_file_name} CSV file" do
+        it "adds three rows to the #{exporter.file_name_for(item[:klass])} CSV file" do
           csv = CSV.read(csv_file_path(item[:klass]), headers: true)
           expect(csv.count).to eq 3
         end
-        if item[:klass].column_names.include?('ProjectID')
+        if item[:klass].hmis_class.column_names.include?('ProjectID')
           it 'hud keys in CSV should match source data' do
             csv = CSV.read(csv_file_path(item[:klass]), headers: true)
             current_hud_key = item[:klass].new.clean_headers([item[:klass].hud_key]).first.to_s
@@ -75,7 +75,7 @@ RSpec.shared_context '2022 multi-project tests', shared_context: :metadata do
             source_ids = involved_project_ids.map(&:to_s).sort
             expect(csv_project_ids).to eq source_ids
           end
-        elsif item[:klass].column_names.include?('OrganizationID')
+        elsif item[:klass].hmis_class.column_names.include?('OrganizationID')
           it 'hud keys in CSV should match source data' do
             csv = CSV.read(csv_file_path(item[:klass]), headers: true)
             current_hud_key = item[:klass].new.clean_headers([item[:klass].hud_key]).first.to_s

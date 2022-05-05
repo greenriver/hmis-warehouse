@@ -130,7 +130,7 @@ RSpec.shared_context '2022 enrollment dates setup', shared_context: :metadata do
   end
 
   def csv_file_path(klass)
-    File.join(exporter.file_path, klass.hud_csv_file_name)
+    File.join(exporter.file_path, exporter.file_name_for(klass))
   end
 end
 
