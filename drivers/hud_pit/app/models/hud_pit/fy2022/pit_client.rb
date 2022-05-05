@@ -17,13 +17,19 @@ module HudPit::Fy2022
     # Hide ID and timestamps, move identifying info to the front
     def self.detail_headers
       special = ['destination_client', 'first_name', 'last_name', 'PersonalID']
-      remove = ['id', 'created_at', 'updated_at']
+      remove = ['id', 'created_at', 'updated_at', 'destination_client_id']
       cols = special + (column_names - special - remove)
       cols.map do |h|
-        title = h.humanize
-        title = 'Client' if h == 'destination_client'
-        title = 'Source Client' if h == 'client_id'
-        title = 'Personal ID' if h == 'PersonalID'
+        title = case h
+        when 'destination client'
+          'Client'
+        when 'client_id'
+          'Source Client'
+        when 'PersonalID'
+          'Personal ID'
+        else
+          h.humanize
+        end
         [h, title]
       end.to_h
     end
