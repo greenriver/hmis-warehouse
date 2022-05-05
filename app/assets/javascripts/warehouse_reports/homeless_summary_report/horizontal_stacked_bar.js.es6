@@ -53,22 +53,8 @@ window.App.WarehouseReports.HomelessSummaryReport.HorizontalStackedBar = class H
         columns: columns,
         groups: this.groups,
         type: 'bar',
-        // color: this._colors,
-        labels: {
-          format: (v, id, i, j) => {
-            if (v < 0.25 * this.max_value) {
-              return '';
-            }
-            if (this.options.showPercentageWithValue) {
-              let percentage = 0
-              let setIndex = setNames.indexOf(id)
-              if (columnTotals[setIndex] > v) {
-                percentage = (v / columnTotals[setIndex]) * 100
-              }
-              return `${d3.format(",")(v)} (${percentage.toFixed(1)}%)`;
-            }
-            return d3.format(",")(v);
-          }
+        stack: {
+          normalize: true
         },
       };
       const config = {
@@ -120,7 +106,7 @@ window.App.WarehouseReports.HomelessSummaryReport.HorizontalStackedBar = class H
         },
         tooltip: {
           contents: (d, defaultTitleFormat, defaultValueFormat, color) => {
-            return this._toolip(d, defaultTitleFormat, defaultValueFormat, color);
+            return this._tooltip(d, defaultTitleFormat, defaultValueFormat, color);
           }
         },
       };
@@ -158,14 +144,14 @@ window.App.WarehouseReports.HomelessSummaryReport.HorizontalStackedBar = class H
     return color;
   }
 
-  _toolip(d, defaultTitleFormat, defaultValueFormat, color) {
+  _tooltip(d, defaultTitleFormat, defaultValueFormat, color) {
     // Somewhat reverse engineered from here:
     // https://github.com/naver/billboard.js/blob/aa91babc6d3173e58e56eef33aad7c7c051b747f/src/internals/tooltip.js#L110
 
     const tooltip_title = defaultTitleFormat(d[0].x);
     let support = $(this.chart_selector).data('chart').support
     // console.log(d, defaultValueFormat(d[0].value), support, tooltip_title)
-    let html = "<table class='bb-tooltip'>";
+    let html = "<table class='bb-tooltip' style='opacity: 1;'>";
     html += "<thead>";
     html += `<tr><th colspan='2'>${tooltip_title}</th><th>Destination Details</th></tr>`;
     html += "</thead>";
@@ -175,10 +161,10 @@ window.App.WarehouseReports.HomelessSummaryReport.HorizontalStackedBar = class H
 
       if (row != null) {
         const bg_color = color(row.id);
-        const box = `<td class='name'><svg><rect style='fill:${bg_color}' width='10' height='10'></rect></svg>${row.name}</td>`;
-        const value = `<td>${row.value}</td>`;
-        // console.log(support, tooltip_title)
-        let details = `<td class='text-left'>${support.all_detail_counts[tooltip_title][row.name].join('<br />')}</td>`;
+        const box = `<td class='name' style='width: 200px;'><svg><rect style='fill:${bg_color}' width='10' height='10'></rect></svg>${row.name}</td>`;
+        const value = `<td style='width: 10%; white-space: nowrap;'>${row.value} (${parseFloat((row.ratio * 100.0).toFixed(1))}%)</td>`;
+        const detailRows = support.all_detail_counts[tooltip_title][row.name].map(this.shortenDestinationDetail)
+        const details = `<td class='text-left' style='white-space: nowrap;'>${detailRows.join('<br />')}</td>`;
         html += box;
         html += value;
         html += details;
@@ -188,7 +174,24 @@ window.App.WarehouseReports.HomelessSummaryReport.HorizontalStackedBar = class H
 
     html += "</tbody>";
     html += '</table>';
+    $(".bb-tooltip-container").css("z-index", 1000);
     return html;
+  }
+
+  shortenDestinationDetail(str) {
+    const lastIndex = str.lastIndexOf(':');
+    let destinationDetail = str.slice(0, lastIndex);
+    const count = str.slice(lastIndex + 1);
+    // For long destination details, shorten them by dropping parenthesized text
+    // 'Rental by client, with HCV voucher (tenant or project based)'  ==> 'Rental by client, with HCV voucher'
+    if (destinationDetail.length > 30) {
+      destinationDetail = destinationDetail.replace(/\([^()]*\)/g, '').trim();
+    }
+    // Special case to shorten especially long destination detail
+    if (destinationDetail.length > 30 && destinationDetail.startsWith("Emergency shelter,")) {
+      destinationDetail = "Emergency shelter"
+    }
+    return `${destinationDetail}:${count}`;
   }
 
   _observe() {
