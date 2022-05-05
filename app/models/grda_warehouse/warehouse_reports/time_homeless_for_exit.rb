@@ -28,7 +28,7 @@ module GrdaWarehouse::WarehouseReports
               destination: exit_record.destination,
               project_name: entry.project_name,
               project_id: entry.project_id,
-            }
+            },
           )
         end
       end
@@ -69,7 +69,7 @@ module GrdaWarehouse::WarehouseReports
             {
               exit_date: date,
               destination: "#{HUD.destination(destination)} (#{destination})",
-            }
+            },
           )
         end
         # Layer on the first enrollment in PH if it is earlier
@@ -80,7 +80,7 @@ module GrdaWarehouse::WarehouseReports
             {
               exit_date: date,
               destination: project_name,
-            }
+            },
           )
         end
       end
@@ -145,13 +145,15 @@ module GrdaWarehouse::WarehouseReports
     end
 
     private def client_scope
-      apply_filters(client_source.viewable_by(filter.user))
+      apply_filters(client_source.destination_visible_to(filter.user))
     end
 
     private def apply_filters(scope)
       scope = scope.send(filter.sub_population).
         joins(source_enrollments: :project).
-        merge(GrdaWarehouse::Hud::Project.where(id: filter.effective_project_ids))
+        merge(GrdaWarehouse::Hud::Project.viewable_by(filter.user))
+
+      scope = scope.merge(GrdaWarehouse::Hud::Project.where(id: filter.effective_project_ids)) if filter.effective_project_ids.reject(&:zero?).any?
       scope = scope.where(id: cohort_client_scope.select(:client_id)) if filter.cohort_ids.any?
       scope
     end
