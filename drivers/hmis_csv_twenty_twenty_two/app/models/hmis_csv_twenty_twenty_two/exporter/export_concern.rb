@@ -19,7 +19,9 @@ module HmisCsvTwentyTwentyTwo::Exporter::ExportConcern
     end
 
     def self.test_exporter
-      HmisCsvTwentyTwentyTwo::Exporter::Base.new(user_id: 1, start_date: Date.yesterday, end_date: Date.current, projects: [1])
+      raise 'Only available for testing' unless Rails.env.test?
+
+      HmisCsvTwentyTwentyTwo::Exporter::Base.new(user_id: 0, start_date: Date.yesterday, end_date: Date.current, projects: [0])
     end
 
     def self.simple_override(row, hud_field:, override_field:, default_value: nil)

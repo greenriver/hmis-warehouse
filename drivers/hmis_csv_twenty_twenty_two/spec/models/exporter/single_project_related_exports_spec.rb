@@ -5,22 +5,93 @@
 ###
 
 require 'rails_helper'
-require_relative './project_setup'
-require_relative './single_project_tests'
 
 RSpec.describe HmisCsvTwentyTwentyTwo::Exporter::Base, type: :model do
-  include_context '2022 project setup'
-
-  let(:exporter) do
-    HmisCsvTwentyTwentyTwo::Exporter::Base.new(
-      start_date: 1.week.ago.to_date,
-      end_date: Date.current,
-      projects: [projects.first.id],
-      period_type: 3,
-      directive: 3,
-      user_id: user.id,
-    )
+  def csv_file_path(klass)
+    File.join(@exporter.file_path, @exporter.file_name_for(klass))
   end
 
-  include_context '2022 single-project tests'
+  describe 'When exporting project related item' do
+    before(:all) do
+      HmisCsvImporter::Utility.clear!
+      GrdaWarehouse::Utility.clear!
+      User.delete_all
+      @data_source = create :source_data_source, id: 2
+      @user = create :user
+      @projects = create_list :hud_project, 5, data_source_id: @data_source.id
+      @organizations = create_list :hud_organization, 5, data_source_id: @data_source.id
+      @inventories = create_list :hud_inventory, 5, data_source_id: @data_source.id
+      @affiliations = create_list :hud_affiliation, 5, data_source_id: @data_source.id
+      @project_cocs = create_list :hud_project_coc, 5, data_source_id: @data_source.id
+      @funders = create_list :hud_funder, 5, data_source_id: @data_source.id
+      @project_class = HmisCsvTwentyTwentyTwo::Exporter::Project
+      @exporter = HmisCsvTwentyTwentyTwo::Exporter::Base.new(
+        start_date: 1.week.ago.to_date,
+        end_date: Date.current,
+        projects: [@projects.first.id],
+        period_type: 3,
+        directive: 3,
+        user_id: @user.id,
+      )
+      @exporter.export!(cleanup: false, zip: false, upload: false)
+    end
+
+    after(:all) do
+      @exporter.remove_export_files
+      HmisCsvImporter::Utility.clear!
+      GrdaWarehouse::Utility.clear!
+      User.delete_all
+      FactoryBot.reload
+    end
+
+    describe 'when exporting projects' do
+      it 'project scope should find one project' do
+        expect(@exporter.project_scope.count).to eq 1
+      end
+      it 'creates one CSV file' do
+        expect(File.exist?(csv_file_path(@project_class))).to be true
+      end
+      it 'adds one row to the project CSV file' do
+        csv_projects = CSV.read(csv_file_path(@project_class), headers: true)
+        expect(csv_projects.count).to eq 1
+      end
+      it 'project from CSV file should have the same name as the first project' do
+        csv_projects = CSV.read(csv_file_path(@project_class), headers: true)
+        expect(csv_projects.first['ProjectName']).to eq @projects.first.ProjectName
+      end
+      it 'ProjectID from CSV file match the id of first project' do
+        csv_projects = CSV.read(csv_file_path(@project_class), headers: true)
+        expect(csv_projects.first['ProjectID']).to eq @projects.first.id.to_s
+      end
+    end
+
+    [
+      HmisCsvTwentyTwentyTwo::Exporter::Organization,
+      HmisCsvTwentyTwentyTwo::Exporter::Inventory,
+      HmisCsvTwentyTwentyTwo::Exporter::Affiliation,
+      HmisCsvTwentyTwentyTwo::Exporter::ProjectCoc,
+      HmisCsvTwentyTwentyTwo::Exporter::Funder,
+    ].each do |klass|
+      describe "when exporting #{klass}" do
+        it "creates one #{klass.hud_csv_file_name} CSV file" do
+          expect(File.exist?(csv_file_path(klass))).to be true
+        end
+        it "adds one row to the #{klass.hud_csv_file_name} CSV file" do
+          csv = CSV.read(csv_file_path(klass), headers: true)
+          expect(csv.count).to eq 1
+        end
+        it 'hud key in CSV should match id of first item in list' do
+          csv = CSV.read(csv_file_path(klass), headers: true)
+          hmis_class = klass.hmis_class
+          expect(csv.first[hmis_class.hud_key.to_s]).to eq hmis_class.first.id.to_s
+        end
+        if klass.hmis_class.column_names.include?('ProjectID')
+          it 'ProjectID from CSV file match the id of first project' do
+            csv = CSV.read(csv_file_path(klass), headers: true)
+            expect(csv.first['ProjectID']).to eq @projects.first.id.to_s
+          end
+        end
+      end
+    end
+  end
 end

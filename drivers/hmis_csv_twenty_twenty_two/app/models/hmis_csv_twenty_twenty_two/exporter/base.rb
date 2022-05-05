@@ -55,7 +55,13 @@ module HmisCsvTwentyTwentyTwo::Exporter
       @confidential = confidential
     end
 
-    def export!
+    # Exports HMIS data in the specified CSV format, wrapped in a zip file.
+    #
+    # @param cleanup [Boolean] remove csv files from the file system when finished
+    # @param zip [Boolean] create a zip file from the CSVs
+    # @param upload [Boolean] store the zip file permanently
+    # @return [Export] the object representing the chosen export options.
+    def export!(cleanup: true, zip: true, upload: true)
       create_export_directory
       begin
         set_time_format
@@ -74,7 +80,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
           dest_class: HmisCsvTwentyTwentyTwo::Exporter::CsvDestination,
           dest_config: {
             hmis_class: export_opts[:hmis_class],
-            output_file: File.join(@file_path, file_name_for(destination_class)),
+            output_file: File.join(@file_path, file_name_for(export_class)),
           },
         )
         exportable_files.each do |destination_class, opts|
@@ -92,11 +98,11 @@ module HmisCsvTwentyTwentyTwo::Exporter
             },
           )
         end
-        zip_archive
-        upload_zip
+        zip_archive if zip
+        upload_zip if zip && upload
         save_fake_data
       ensure
-        remove_export_files
+        remove_export_files if cleanup
         reset_time_format
       end
       @export
