@@ -161,7 +161,7 @@ window.App.WarehouseReports.HomelessSummaryReport.HorizontalStackedBar = class H
 
       if (row != null) {
         const bg_color = color(row.id);
-        const box = `<td class='name' style='width: 200px;'><svg><rect style='fill:${bg_color}' width='10' height='10'></rect></svg>${row.name}</td>`;
+        const box = `<td class='name' style='width: 110px;'><svg><rect style='fill:${bg_color}' width='10' height='10'></rect></svg>${row.name.split(/[ ,]/)[0]}</td>`;
         const value = `<td style='width: 10%; white-space: nowrap;'>${row.value} (${parseFloat((row.ratio * 100.0).toFixed(1))}%)</td>`;
         const detailRows = support.all_detail_counts[tooltip_title][row.name].map(this.shortenDestinationDetail)
         const details = `<td class='text-left' style='white-space: nowrap;'>${detailRows.join('<br />')}</td>`;
