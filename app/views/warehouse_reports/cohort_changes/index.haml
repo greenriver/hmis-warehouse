@@ -124,33 +124,39 @@
           %td= details[:gender_diverse]
           %td= details[:cisgender]
 
-  .mb-4.text-right
-    = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary'}) do
-      %i.icon-download2
-      Download Excel
-  = render 'pagination'
-  %table.table.table-sm.table-hover
-    %thead
-      %tr
-        %th Last Name
-        %th First Name
-        %th Entry Date
-        %th Exit Date
-        %th Exit Reason
-        %th Group
-    %tbody
-      - @enrollments.each do |c_en|
-        - client = c_en.cohort_client.client
-        -# - associated_exit = c_en.associated_exit
-        %tr
-          %td= link_to_if can_view_clients?, client.LastName, appropriate_client_path(client)
-          %td= link_to_if can_view_clients?, client.FirstName, appropriate_client_path(client)
-          %td= c_en.entry_date&.to_date
-          %td= c_en&.exit_date&.to_date
-          %td= c_en&.change_reason
-          %td
-          %td= @report.group(client.id)
-
-  = render 'pagination'
+  - if @pagy.count.positive?
+    .text-right.mb-4
+      = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary'}) do
+        %i.icon-file-excel.icon-lg
+        Download
+    .pagy-container.mb-4
+      != pagy_info(@pagy, item_name: _('cohort enrollment').pluralize(@pagy.count))
+      != pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
+    .table-responsive
+      %table.table.table-striped
+        %thead
+          %tr
+            %th Last Name
+            %th First Name
+            %th Entry Date
+            %th Exit Date
+            %th Exit Reason
+            %th Group
+        %tbody
+          - @enrollments.each do |c_en|
+            - client = c_en.cohort_client.client
+            -# - associated_exit = c_en.associated_exit
+            %tr
+              %td= link_to_if can_view_clients?, client.LastName, appropriate_client_path(client)
+              %td= link_to_if can_view_clients?, client.FirstName, appropriate_client_path(client)
+              %td= c_en.entry_date&.to_date
+              %td= c_en&.exit_date&.to_date
+              %td= c_en&.change_reason
+              %td
+              %td= @report.group(client.id)
+    - if @pagy.pages > 1
+      .pagy-container.mt-4
+        != pagy_info(@pagy, item_name: _('cohort enrollment').pluralize(@pagy.count))
+        != pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
 - else
-  %p None Found.
+  .none-found None Found.

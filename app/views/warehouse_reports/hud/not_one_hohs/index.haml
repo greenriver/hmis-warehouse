@@ -3,7 +3,7 @@
 %h1= title
 = render '/warehouse_reports/breadcrumbs', tab: 'data-quality'
 = render 'filter'
-- if @enrollments_array.present?
+- if @pagy.count.positive?
   #computation-accordion.panel-group.panel-collapsible
     - content_for :panel_collapse_content, flush: true do
       %h3 Household Identifier
@@ -19,15 +19,16 @@
         An HMIS may, but is not required to, utilize a Global Household ID at record creation upon initial entry into an HMIS based on the person(s) presenting together as a household at the time of initial entry. A Global Household ID is a value which spans an entire HMIS implementation representing a collection of persons who have been in a household together. Assignment of a client in or out of a global household at a specific project need not immediately affect the client’s data at other projects. If, for example, one household member exits from a household in project A and that household is also being served in project B, there is no requirement to alter the household configuration at project B.
 
     = render 'common/panel_collapse', id: 'computation-info', title: 'HUD Guidance'
-  .d-flex
-    .ml-auto.mb-4
-      = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary ml-auto'}) do
-        %i.icon-download2
-        Download
-  .d-flex
-    %p.ml-auto= paginate @enrollments
+
+  .text-right.mb-4
+    = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary'}) do
+      %i.icon-file-excel.icon-lg
+      Download
+  .pagy-container.mb-4
+    != pagy_info(@pagy, item_name: _('enrollment').pluralize(@pagy.count))
+    != pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
   .table-responsive
-    %table.table.table-sm.table-hover
+    %table.table.table-striped
       %thead
         %tr
           %th Client
@@ -55,3 +56,9 @@
             %td
               = HUD.relationship_to_hoh(en.RelationshipToHoH)
               (#{en.RelationshipToHoH})
+  - if @pagy.pages > 1
+    .pagy-container.mt-4
+      != pagy_info(@pagy, item_name: _('enrollment').pluralize(@pagy.count))
+      != pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
+- else
+  .none-found.mt-4 No enrollments found.

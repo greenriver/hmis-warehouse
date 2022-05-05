@@ -3,17 +3,16 @@
 %h1= title
 = render '/warehouse_reports/breadcrumbs', tab: 'data-quality'
 = render 'filter'
-- if @enrollments.exists?
-  .d-flex
-    .ml-auto.mb-4
-      = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary ml-auto'}) do
-        %i.icon-download2
-        Download
-  .d-flex
-    %p= page_entries_info @enrollments, entry_name: _('enrollment')
-    %p.ml-auto= paginate @enrollments
+- if @pagy.count.positive?
+  .text-right.mb-4
+    = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary'}) do
+      %i.icon-file-excel.icon-lg
+      Download
+  .pagy-container.mb-4
+    != pagy_info(@pagy, item_name: _('enrollment').pluralize(@pagy.count))
+    != pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
   .table-responsive
-    %table.table.table-sm.table-hover
+    %table.table.table-striped
       %thead
         %tr
           %th Client
@@ -34,5 +33,9 @@
             %td= en.EntryDate
             %td= en.exit&.ExitDate
             %td= en.enrollment_cocs.map(&:DataCollectionStage).uniq.compact.join(', ').presence || 'EnrollmentCoC missing'
-  .d-flex
-    %p.ml-auto= paginate @enrollments
+  - if @pagy.pages > 1
+    .pagy-container.mt-4
+      != pagy_info(@pagy, item_name: _('enrollment').pluralize(@pagy.count))
+      != pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
+- else
+  .none-found.mt-4 No enrollments found.

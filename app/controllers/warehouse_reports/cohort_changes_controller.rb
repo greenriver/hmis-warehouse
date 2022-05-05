@@ -17,7 +17,7 @@ module WarehouseReports
         preload(cohort_client: [client: [:source_clients, :vispdats]])
       respond_to do |format|
         format.html do
-          @enrollments = @enrollments.page(params[:page]).per(25)
+          @pagy, @enrollments = pagy(@enrollments)
         end
         format.xlsx {}
       end

@@ -8,17 +8,17 @@
 
 = render 'filter'
 
-.row
-  .col-sm-12.text-right
-    - if  can_view_clients?
+- if @pagy.count.positive?
+  - if can_view_clients?
+    .text-right.mb-4
       = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary'}) do
-        Download Excel
-.row.mt-4
-  .col-sm-12.d-flex.align-items-center.mb-4
-    %p.mr-4= page_entries_info @enrollments, entry_name: _('client')
-    %p= paginate @enrollments
-  .col-sm-12
-    %table.table.table-hover
+        %i.icon-file-excel.icon-lg
+        Download
+  .pagy-container.mb-4
+    != pagy_info(@pagy, item_name: _('enrollment').pluralize(@pagy.count))
+    != pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
+  .table-responsive
+    %table.table.table-striped
       %thead
         %tr
           %th
@@ -52,4 +52,9 @@
               = record.client.race_description
             %td
               = HUD.ethnicity(record.client.Ethnicity)
-    = paginate @enrollments
+  - if @pagy.pages > 1
+    .pagy-container.mt-4
+      != pagy_info(@pagy, item_name: _('enrollment').pluralize(@pagy.count))
+      != pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
+- else
+  .none-found.mt-4 No enrollments found.
