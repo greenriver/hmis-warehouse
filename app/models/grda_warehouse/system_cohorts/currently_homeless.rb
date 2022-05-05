@@ -10,12 +10,19 @@ module GrdaWarehouse::SystemCohorts
       'Currently Homeless'
     end
 
-    def sync
+    def sync(processing_date: Date.current, date_window: 1.day)
+      @processing_date = processing_date
+      @date_window = date_window
+
       add_missing_clients
 
       remove_housed_clients
       remove_inactive_clients
       remove_no_longer_meets_criteria
+    end
+
+    private def inactive_date
+      @processing_date - days_of_inactivity.days
     end
 
     private def add_missing_clients
@@ -29,14 +36,14 @@ module GrdaWarehouse::SystemCohorts
       moved_in_ph = enrollment_source.
         ongoing.
         ph.
-        where(she_t[:move_in_date].lt(Date.current)).
+        where(she_t[:move_in_date].lt(@processing_date)).
         select(:client_id)
 
       candidate_enrollments = enrollment_source.
         homeless.
         ongoing.
-        with_service_between(start_date: inactive_date, end_date: Date.current).
-        where.not(client_id: service_history_source.where(date: Date.yesterday, homeless: false).select(:client_id)).
+        with_service_between(start_date: inactive_date, end_date: @processing_date).
+        where.not(client_id: service_history_source.where(date: @processing_date - @date_window, homeless: false).select(:client_id)).
         where.not(client_id: moved_in_ph).
         where.not(client_id: cohort_clients.select(:client_id)).
         group(:client_id).minimum(:first_date_in_program)
@@ -62,7 +69,7 @@ module GrdaWarehouse::SystemCohorts
           newly_identified << client_id
         elsif HUD.permanent_destinations.include?(previous_destination) || previous_service_date < enrollment_date
           returned_from_housing << client_id
-        elsif most_recent_service_dates[client_id] && most_recent_service_dates[client_id] >= Date.current - days_of_inactivity.days
+        elsif most_recent_service_dates[client_id] && most_recent_service_dates[client_id] >= @processing_date - days_of_inactivity.days
           returned_from_inactive << client_id
         end
       end
@@ -110,7 +117,7 @@ module GrdaWarehouse::SystemCohorts
         pluck(:client_id)
       moved_in_ph = enrollment_source.ongoing.ph.
         where(client_id: cohort_clients.select(:client_id)).
-        where(she_t[:move_in_date].lt(Date.current)).
+        where(she_t[:move_in_date].lt(@processing_date)).
         pluck(:client_id)
       remove_clients(no_ongoing | moved_in_ph, 'No longer meets criteria')
     end
