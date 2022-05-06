@@ -19,7 +19,7 @@ RSpec.shared_context 'report context', shared_context: :metadata do
   end
 
   def report_result
-    ::HudReports::ReportInstance.last
+    HomelessSummaryReport::Report.last
   end
 
   def setup(file_path)

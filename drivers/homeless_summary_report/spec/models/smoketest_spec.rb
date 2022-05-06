@@ -20,6 +20,6 @@ RSpec.describe HomelessSummaryReport::Report, type: :model do
 
   it 'populates the report' do
     run!(default_filter)
-    expect(report_result).not_to eq(nil)
+    expect(report_result.completed_at).not_to eq(nil)
   end
 end
