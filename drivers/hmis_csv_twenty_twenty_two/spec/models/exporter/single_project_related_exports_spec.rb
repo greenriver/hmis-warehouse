@@ -28,6 +28,7 @@ RSpec.describe HmisCsvTwentyTwentyTwo::Exporter::Base, type: :model do
     @exporter.remove_export_files
     cleanup_test_environment
   end
+
   describe 'When exporting project related item' do
     describe 'when exporting projects' do
       it 'project scope should find one project' do

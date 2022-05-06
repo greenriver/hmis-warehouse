@@ -1,5 +1,5 @@
-def csv_file_path(klass)
-  File.join(@exporter.file_path, @exporter.file_name_for(klass))
+def csv_file_path(klass, exporter: @exporter)
+  File.join(exporter.file_path, exporter.file_name_for(klass))
 end
 
 def cleanup_test_environment
