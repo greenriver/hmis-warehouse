@@ -5,9 +5,8 @@
 ###
 
 require 'rails_helper'
-require_relative './project_setup'
+require_relative 'export_helper'
 require_relative './single_project_tests'
-require_relative './enrollment_setup'
 require_relative './single_enrollment_tests'
 
 def project_test_type
@@ -15,9 +14,6 @@ def project_test_type
 end
 
 RSpec.describe HmisCsvTwentyTwentyTwo::Exporter::Base, type: :model do
-  include_context '2022 project setup'
-  include_context '2022 enrollment setup'
-
   let(:project_test_type) { 'organization-based' }
   let(:exporter) do
     HmisCsvTwentyTwentyTwo::Exporter::Base.new(

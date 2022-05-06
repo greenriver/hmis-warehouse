@@ -48,6 +48,10 @@ def setup_data
   @assessment_results = create_list :hud_assessment_result, 5, data_source_id: @data_source.id
   @events = create_list :hud_event, 5, data_source_id: @data_source.id
   @current_living_situations = create_list :hud_current_living_situation, 5, data_source_id: @data_source.id
+
+  @project_class = HmisCsvTwentyTwentyTwo::Exporter::Project
+  @enrollment_class = HmisCsvTwentyTwentyTwo::Exporter::Enrollment
+  @client_class = HmisCsvTwentyTwentyTwo::Exporter::Client
 end
 
 def project_classes

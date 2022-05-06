@@ -25,9 +25,6 @@ RSpec.describe HmisCsvTwentyTwentyTwo::Exporter::Base, type: :model do
     # Move 3 assessments into range
     @assessments.first(3).each { |m| m.update(AssessmentDate: 2.weeks.ago) }
 
-    @project_class = HmisCsvTwentyTwentyTwo::Exporter::Project
-    @enrollment_class = HmisCsvTwentyTwentyTwo::Exporter::Enrollment
-    @client_class = HmisCsvTwentyTwentyTwo::Exporter::Client
     @involved_project_ids = @projects.map(&:id)
     @exporter = HmisCsvTwentyTwentyTwo::Exporter::Base.new(
       start_date: 3.week.ago.to_date,

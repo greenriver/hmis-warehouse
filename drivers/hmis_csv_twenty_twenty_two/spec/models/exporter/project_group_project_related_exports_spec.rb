@@ -5,9 +5,8 @@
 ###
 
 require 'rails_helper'
-require_relative './project_setup'
+require_relative 'export_helper'
 require_relative './multi_project_tests'
-require_relative './enrollment_setup'
 require_relative './multi_enrollment_tests'
 
 def project_test_type
@@ -15,9 +14,6 @@ def project_test_type
 end
 
 RSpec.describe HmisCsvTwentyTwentyTwo::Exporter::Base, type: :model do
-  include_context '2022 project setup'
-  include_context '2022 enrollment setup'
-
   let(:project_test_type) { 'project group-based' }
   let!(:project_group) { create :project_group, name: 'P Group', options: ::Filters::HudFilterBase.new(user_id: user.id).update(project_ids: projects.first(3).map(&:id)).to_h, projects: projects.first(3) }
   let(:involved_project_ids) { project_group.project_ids }

@@ -17,9 +17,7 @@ RSpec.describe HmisCsvTwentyTwentyTwo::Exporter::Base, type: :model do
   before(:all) do
     cleanup_test_environment
     setup_data
-    @project_class = HmisCsvTwentyTwentyTwo::Exporter::Project
-    @enrollment_class = HmisCsvTwentyTwentyTwo::Exporter::Enrollment
-    @client_class = HmisCsvTwentyTwentyTwo::Exporter::Client
+
     @involved_project_ids = @data_source.project_ids.first(3)
     @exporter = HmisCsvTwentyTwentyTwo::Exporter::Base.new(
       start_date: 1.week.ago.to_date,

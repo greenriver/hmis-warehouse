@@ -5,14 +5,10 @@
 ###
 
 require 'rails_helper'
-require_relative './project_setup'
-require_relative './enrollment_setup'
+require_relative 'export_helper'
 require_relative './single_enrollment_tests'
 
 RSpec.describe HmisCsvTwentyTwentyTwo::Exporter::Base, type: :model do
-  include_context '2022 project setup'
-  include_context '2022 enrollment setup'
-
   let(:exporter) do
     HmisCsvTwentyTwentyTwo::Exporter::Base.new(
       start_date: 1.week.ago.to_date,

@@ -43,8 +43,11 @@ module HmisCsvTwentyTwentyTwo::Exporter
       @logger = logger
       @debug = debug
       @range = ::Filters::DateRange.new(start: start_date, end: end_date)
-      @projects = projects
-      @coc_codes = coc_codes
+      @projects = if coc_codes.present?
+        GrdaWarehouse::Hud::Project.where(id: projects).in_coc(coc_code: coc_codes)
+      else
+        projects
+      end
       @period_type = period_type.presence || 3
       @directive = directive.presence || 2
       @hash_status = hash_status.presence || 1
