@@ -1,0 +1,28 @@
+- reports = [@report]
+- column_class = 'col-sm-8'
+- if @report.include_comparison?
+  - reports << @comparison
+  - column_class = 'col-sm-6'
+.row
+  - reports.each_with_index do |report, index|
+    - comparison_class = ''
+    - if reports.count > 1
+      - comparison_class = "c-swatch__border-left--td-#{index}"
+    %div{class: column_class}
+      %h3 Clients in Projects
+
+      .card.mb-4{class: comparison_class}
+        %table.table.mb-4
+          %thead
+            %tr
+              %th Project
+              %th Project type
+              %th Organization
+              %th Unique Client Count
+          %tbody
+            - report.project_names.each do |id, proj|
+              %tr
+                %th= proj[:project_name]
+                %td= proj[:project_type]
+                %td= proj[:organization_name]
+                %td= link_to_if @report.can_see_client_details?(current_user), number_with_delimiter(report.enrollment_count(id)), details_core_demographics_report_warehouse_reports_core_index_path(report.filter.for_params.deep_merge(key: "project_#{id}", filters: { start: report.filter.start_date, end: report.filter.end_date })), target: :_blank
