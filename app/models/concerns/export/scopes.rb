@@ -17,8 +17,8 @@ module Export::Scopes
         else
           c_scope = client_source
         end
-        c_scope.joins(:warehouse_client_source).
-          where(enrollment_exists_for_client).
+        c_scope.destination.where(id: c_scope.joins(:warehouse_client_source).
+          where(enrollment_exists_for_client).select(wc_t[:destination_id])).
           preload(:source_clients)
       end
     end

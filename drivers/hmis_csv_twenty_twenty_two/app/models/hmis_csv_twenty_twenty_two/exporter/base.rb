@@ -149,6 +149,10 @@ module HmisCsvTwentyTwentyTwo::Exporter
           hmis_class: GrdaWarehouse::Hud::Enrollment,
           enrollment_scope: enrollment_scope,
         },
+        HmisCsvTwentyTwentyTwo::Exporter::Client => {
+          hmis_class: GrdaWarehouse::Hud::Client,
+          client_scope: client_scope,
+        },
         HmisCsvTwentyTwentyTwo::Exporter::Exit => {
           hmis_class: GrdaWarehouse::Hud::Exit,
           enrollment_scope: enrollment_scope,

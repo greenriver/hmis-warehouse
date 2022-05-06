@@ -24,6 +24,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
     end
 
     def self.apply_overrides(row)
+      row = pick_best_source_client_data(row)
       row = apply_length_limits(row)
       row = enforce_gender_none(row)
       [
@@ -46,7 +47,6 @@ module HmisCsvTwentyTwentyTwo::Exporter
       ].each do |hud_field|
         row = replace_blank(row, hud_field: hud_field, default_value: 99)
       end
-      row = pick_best_source_client_data(row)
 
       row
     end
@@ -78,7 +78,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
     # Loop over source clients in reverse chronological order.
     # If we find better data in previous source clients, use it
     def self.pick_best_source_client_data(row)
-      source_clients.sort_by(&:DateUpdated).reverse_each do |sc|
+      row.source_clients.sort_by(&:DateUpdated).reverse_each do |sc|
         if row.NameDataQuality != 1 && sc.NameDataQuality == 1
           row.NameDataQuality = sc.NameDataQuality
           row.FirstName = sc.FirstName

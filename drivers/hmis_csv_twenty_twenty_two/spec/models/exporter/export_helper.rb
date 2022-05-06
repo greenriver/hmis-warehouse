@@ -51,28 +51,36 @@ def setup_data
 end
 
 def project_classes
-  [
-    HmisCsvTwentyTwentyTwo::Exporter::Organization,
-    HmisCsvTwentyTwentyTwo::Exporter::Inventory,
-    HmisCsvTwentyTwentyTwo::Exporter::Affiliation,
-    HmisCsvTwentyTwentyTwo::Exporter::ProjectCoc,
-    HmisCsvTwentyTwentyTwo::Exporter::Funder,
-  ]
+  project_related_items.values
+end
+
+def project_related_items
+  {
+    organizations: HmisCsvTwentyTwentyTwo::Exporter::Organization,
+    inventories: HmisCsvTwentyTwentyTwo::Exporter::Inventory,
+    affiliations: HmisCsvTwentyTwentyTwo::Exporter::Affiliation,
+    project_cocs: HmisCsvTwentyTwentyTwo::Exporter::ProjectCoc,
+    funders: HmisCsvTwentyTwentyTwo::Exporter::Funder,
+  }
 end
 
 def enrollment_classes
-  [
-    HmisCsvTwentyTwentyTwo::Exporter::Disability,
-    HmisCsvTwentyTwentyTwo::Exporter::EnrollmentCoc,
-    HmisCsvTwentyTwentyTwo::Exporter::EmploymentEducation,
-    HmisCsvTwentyTwentyTwo::Exporter::HealthAndDv,
-    HmisCsvTwentyTwentyTwo::Exporter::IncomeBenefit,
-    HmisCsvTwentyTwentyTwo::Exporter::Service,
-    HmisCsvTwentyTwentyTwo::Exporter::Exit,
-    HmisCsvTwentyTwentyTwo::Exporter::Assessment,
-    HmisCsvTwentyTwentyTwo::Exporter::AssessmentQuestion,
-    HmisCsvTwentyTwentyTwo::Exporter::AssessmentResult,
-    HmisCsvTwentyTwentyTwo::Exporter::Event,
-    HmisCsvTwentyTwentyTwo::Exporter::CurrentLivingSituation,
-  ]
+  enrollment_related_items.values
+end
+
+def enrollment_related_items
+  {
+    disabilities: HmisCsvTwentyTwentyTwo::Exporter::Disability,
+    enrollment_cocs: HmisCsvTwentyTwentyTwo::Exporter::EnrollmentCoc,
+    employment_educations: HmisCsvTwentyTwentyTwo::Exporter::EmploymentEducation,
+    health_and_dvs: HmisCsvTwentyTwentyTwo::Exporter::HealthAndDv,
+    income_benefits: HmisCsvTwentyTwentyTwo::Exporter::IncomeBenefit,
+    services: HmisCsvTwentyTwentyTwo::Exporter::Service,
+    exits: HmisCsvTwentyTwentyTwo::Exporter::Exit,
+    assessments: HmisCsvTwentyTwentyTwo::Exporter::Assessment,
+    assessment_questions: HmisCsvTwentyTwentyTwo::Exporter::AssessmentQuestion,
+    assessment_results: HmisCsvTwentyTwentyTwo::Exporter::AssessmentResult,
+    events: HmisCsvTwentyTwentyTwo::Exporter::Event,
+    current_living_situations: HmisCsvTwentyTwentyTwo::Exporter::CurrentLivingSituation,
+  }
 end
