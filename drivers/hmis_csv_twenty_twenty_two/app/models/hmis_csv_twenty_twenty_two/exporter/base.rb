@@ -48,6 +48,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
       else
         projects
       end
+      @coc_codes = coc_codes
       @period_type = period_type.presence || 3
       @directive = directive.presence || 2
       @hash_status = hash_status.presence || 1
@@ -163,6 +164,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
         HmisCsvTwentyTwentyTwo::Exporter::EnrollmentCoc => {
           hmis_class: GrdaWarehouse::Hud::EnrollmentCoc,
           enrollment_scope: enrollment_scope,
+          coc_codes: @coc_codes,
         },
         HmisCsvTwentyTwentyTwo::Exporter::Disability => {
           hmis_class: GrdaWarehouse::Hud::Disability,

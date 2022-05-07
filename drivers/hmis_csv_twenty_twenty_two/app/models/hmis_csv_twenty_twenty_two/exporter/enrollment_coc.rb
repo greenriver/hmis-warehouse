@@ -26,24 +26,25 @@ module HmisCsvTwentyTwentyTwo::Exporter
       row
     end
 
-    def self.export_scope(enrollment_scope:, export:, hmis_class:, **_)
-      export_scope = case export.period_type
-      when 3
-        hmis_class.where(enrollment_exists_for_model(enrollment_scope, hmis_class)).
-          where(hmis_class.arel_table[:InformationDate].lteq(export.end_date))
-      when 1
-        hmis_class.where(enrollment_exists_for_model(enrollment_scope, hmis_class)).
-          modified_within_range(range: (export.start_date..export.end_date))
-      end
-      note_involved_user_ids(scope: export_scope, export: export)
-
+    def self.export_scope(enrollment_scope:, export:, hmis_class:, coc_codes:, **_)
       join_tables = if export.include_deleted || export.period_type == 1
         { enrollment_with_deleted: [{ client_with_deleted: :warehouse_client_source, project_with_deleted: :project_cocs_with_deleted }] }
       else
         { enrollment: [{ client: :warehouse_client_source, project: :project_cocs }] }
       end
+      export_scope = hmis_class.joins(join_tables).preload([join_tables] + [:user])
 
-      export_scope = export_scope.joins(join_tables).preload([join_tables] + [:user])
+      export_scope = case export.period_type
+      when 3
+        export_scope.merge(enrollment_scope).
+          where(hmis_class.arel_table[:InformationDate].lteq(export.end_date))
+      when 1
+        export_scope.merge(enrollment_scope).
+          modified_within_range(range: (export.start_date..export.end_date))
+      end
+      note_involved_user_ids(scope: export_scope, export: export)
+
+      export_scope = export_scope.where(CoCCode: coc_codes) if coc_codes.present?
 
       export_scope.distinct
     end

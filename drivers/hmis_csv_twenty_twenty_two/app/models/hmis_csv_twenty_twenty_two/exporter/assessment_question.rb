@@ -27,22 +27,21 @@ module HmisCsvTwentyTwentyTwo::Exporter
     end
 
     def self.export_scope(enrollment_scope:, export:, hmis_class:, **_)
-      export_scope = case export.period_type
-      when 3
-        hmis_class.where(enrollment_exists_for_model(enrollment_scope, hmis_class))
-      when 1
-        hmis_class.where(enrollment_exists_for_model(enrollment_scope, hmis_class)).
-          modified_within_range(range: (export.start_date..export.end_date))
-      end
-      note_involved_user_ids(scope: export_scope, export: export)
-
       join_tables = if export.include_deleted || export.period_type == 1
         [:assessment_with_deleted, { enrollment_with_deleted: [:project_with_deleted, { client_with_deleted: :warehouse_client_source }] }]
       else
         [:assessment, { enrollment: [:project, { client: :warehouse_client_source }] }]
       end
+      export_scope = hmis_class.joins(join_tables).preload(join_tables + [:user])
 
-      export_scope = export_scope.joins(join_tables).preload(join_tables + [:user])
+      export_scope = case export.period_type
+      when 3
+        export_scope.merge(enrollment_scope)
+      when 1
+        export_scope.merge(enrollment_scope).
+          modified_within_range(range: (export.start_date..export.end_date))
+      end
+      note_involved_user_ids(scope: export_scope, export: export)
 
       export_scope.distinct
     end

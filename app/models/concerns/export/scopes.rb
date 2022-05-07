@@ -39,6 +39,7 @@ module Export::Scopes
         when 1
           # no-op
         end
+        e_scope = e_scope.joins(:enrollment_cocs).where(ec_t[:CoCCode].in(Array(@coc_codes))) if @coc_codes.present?
         e_scope.preload(:project, :client)
       end
     end

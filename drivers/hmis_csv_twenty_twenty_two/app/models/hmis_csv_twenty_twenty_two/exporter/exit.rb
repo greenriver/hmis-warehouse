@@ -33,12 +33,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
         hmis_class.modified_within_range(range: (export.start_date..export.end_date))
       end
 
-      join_tables = if export.include_deleted || export.period_type == 1
-        { enrollment_with_deleted: [:project_with_deleted, { client_with_deleted: :warehouse_client_source }] }
-      else
-        { enrollment: [:project, { client: :warehouse_client_source }] }
-      end
-
+      join_tables = enrollment_related_join_tables(export)
       export_scope = export_scope.
         joins(join_tables).
         merge(enrollment_scope).

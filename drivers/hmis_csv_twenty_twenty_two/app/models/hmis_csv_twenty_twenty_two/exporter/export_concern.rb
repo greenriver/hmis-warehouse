@@ -45,12 +45,12 @@ module HmisCsvTwentyTwentyTwo::Exporter::ExportConcern
       export.user_ids += scope.distinct.joins(:user).pluck(u_t[:id])
     end
 
-    def self.enrollment_exists_for_model(enrollment_scope, hmis_class)
-      enrollment_scope.where(
-        e_t[:PersonalID].eq(hmis_class.arel_table[:PersonalID]).
-        and(e_t[:EnrollmentID].eq(hmis_class.arel_table[:EnrollmentID])).
-        and(e_t[:data_source_id].eq(hmis_class.arel_table[:data_source_id])),
-      ).arel.exists
+    def self.enrollment_related_join_tables(export)
+      if export.include_deleted || export.period_type == 1
+        { enrollment_with_deleted: [:project_with_deleted, { client_with_deleted: :warehouse_client_source }] }
+      else
+        { enrollment: [:project, { client: :warehouse_client_source }] }
+      end
     end
 
     def self.project_exists_for_model(project_scope, hmis_class)
