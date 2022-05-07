@@ -40,6 +40,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
         preload([join_tables] + [:user])
 
       # Enforce only one exit per enrollment (we shouldn't need to do this, but sometimes we receive more than one exit for an enrollment and don't have cleanup on the import)
+      # Return the newest exit record
       mrex_t = Arel::Table.new(:most_recent_exits)
       join = ex_t.join(mrex_t).on(ex_t[:id].eq(mrex_t[:current_id]))
       export_scope = export_scope.where(

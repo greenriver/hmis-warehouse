@@ -5,83 +5,66 @@
 ###
 
 RSpec.shared_context '2022 single-enrollment tests', shared_context: :metadata do
-  describe 'When exporting enrollment related item' do
-    describe 'when exporting enrollments' do
-      it 'enrollment scope should find one enrollment' do
-        expect(@exporter.enrollment_scope.count).to eq 1
-      end
-      it 'creates one CSV file' do
-        expect(File.exist?(csv_file_path(@enrollment_class))).to be true
-      end
-      it 'adds one row to the enrollment CSV file' do
-        csv = CSV.read(csv_file_path(@enrollment_class), headers: true)
-        expect(csv.count).to eq 1
-      end
-      it 'EnrollmentID from CSV file match the id of first enrollment' do
-        csv = CSV.read(csv_file_path(@enrollment_class), headers: true)
-        expect(csv.first['EnrollmentID']).to eq @enrollments.first.id.to_s
-      end
+  describe 'when exporting enrollments' do
+    it 'enrollment scope should find one enrollment' do
+      expect(@exporter.enrollment_scope.count).to eq 1
+    end
+    it 'creates one CSV file' do
+      expect(File.exist?(csv_file_path(@enrollment_class))).to be true
+    end
+    it 'adds one row to the enrollment CSV file' do
+      csv = CSV.read(csv_file_path(@enrollment_class), headers: true)
+      expect(csv.count).to eq 1
+    end
+    it 'EnrollmentID from CSV file match the id of first enrollment' do
+      csv = CSV.read(csv_file_path(@enrollment_class), headers: true)
+      expect(csv.first['EnrollmentID']).to eq @enrollments.first.id.to_s
+    end
 
-      it 'PersonalID from CSV file is not blank' do
-        csv = CSV.read(csv_file_path(@enrollment_class), headers: true)
-        expect(csv.first['PersonalID']).to_not be_empty
-      end
+    it 'PersonalID from CSV file is not blank' do
+      csv = CSV.read(csv_file_path(@enrollment_class), headers: true)
+      expect(csv.first['PersonalID']).to_not be_empty
     end
-    describe 'when exporting clients' do
-      it 'client scope should find one client' do
-        expect(@exporter.client_scope.count).to eq 1
+  end
+  describe 'when exporting clients' do
+    it 'client scope should find one client' do
+      expect(@exporter.client_scope.count).to eq 1
+    end
+    it 'creates one CSV file' do
+      expect(File.exist?(csv_file_path(@client_class))).to be true
+    end
+    it 'adds one row to the CSV file' do
+      csv = CSV.read(csv_file_path(@client_class), headers: true)
+      expect(csv.count).to eq 1
+    end
+    it 'PersonalID from CSV file match the id of first client' do
+      csv = CSV.read(csv_file_path(@client_class), headers: true)
+      expect(csv.first['PersonalID']).to eq @clients.first.destination_client.id.to_s
+    end
+  end
+  enrollment_related_items.each do |items, klass|
+    describe "when exporting #{items}" do
+      it "creates one #{klass.hud_csv_file_name} CSV file" do
+        expect(File.exist?(csv_file_path(klass))).to be true
       end
-      it 'creates one CSV file' do
-        expect(File.exist?(csv_file_path(@client_class))).to be true
-      end
-      it 'adds one row to the CSV file' do
-        csv = CSV.read(csv_file_path(@client_class), headers: true)
+      it "adds one row to the #{klass.hud_csv_file_name} CSV file" do
+        csv = CSV.read(csv_file_path(klass), headers: true)
         expect(csv.count).to eq 1
       end
-      it 'PersonalID from CSV file match the id of first client' do
-        csv = CSV.read(csv_file_path(@client_class), headers: true)
-        expect(csv.first['PersonalID']).to eq @clients.first.destination_client.id.to_s
+      it 'hud key in CSV should match id of first item in list' do
+        csv = CSV.read(csv_file_path(klass), headers: true)
+        expect(csv.first[klass.hmis_class.hud_key.to_s]).to eq instance_variable_get("@#{items}").first.id.to_s
       end
-    end
-    describe 'when exporting exits' do
-      it 'exit scope should find one exit' do
-        expect(@exporter.exit_scope.count).to eq 1
-      end
-      it 'adds one row to the CSV file' do
-        csv = CSV.read(csv_file_path(@exit_class), headers: true)
-        expect(csv.count).to eq 1
-      end
-      it 'DateUpdated from CSV file match the later exit record' do
-        csv = CSV.read(csv_file_path(@exit_class), headers: true)
-        @exporter.set_time_format
-        expect(csv.first['DateUpdated']).to eq @extra_exit.DateUpdated.to_s
-        @exporter.reset_time_format
-      end
-    end
-    enrollment_related_items.each do |items, klass|
-      describe "when exporting #{items}" do
-        it "creates one #{klass.hud_csv_file_name} CSV file" do
-          expect(File.exist?(csv_file_path(klass))).to be true
-        end
-        it "adds one row to the #{klass.hud_csv_file_name} CSV file" do
+      if klass.hmis_class.column_names.include?('EnrollmentID')
+        it 'EnrollmentID from CSV file match the id of first enrollment' do
           csv = CSV.read(csv_file_path(klass), headers: true)
-          expect(csv.count).to eq 1
+          expect(csv.first['EnrollmentID']).to eq @enrollments.first.id.to_s
         end
-        it 'hud key in CSV should match id of first item in list' do
+      end
+      if klass.hmis_class.column_names.include?('PersonalID')
+        it 'PersonalID from CSV file match the id of first client' do
           csv = CSV.read(csv_file_path(klass), headers: true)
-          expect(csv.first[klass.hmis_class.hud_key.to_s]).to eq instance_variable_get("@#{items}").first.id.to_s
-        end
-        if klass.hmis_class.column_names.include?('EnrollmentID')
-          it 'EnrollmentID from CSV file match the id of first enrollment' do
-            csv = CSV.read(csv_file_path(klass), headers: true)
-            expect(csv.first['EnrollmentID']).to eq @enrollments.first.id.to_s
-          end
-        end
-        if klass.hmis_class.column_names.include?('PersonalID')
-          it 'PersonalID from CSV file match the id of first client' do
-            csv = CSV.read(csv_file_path(klass), headers: true)
-            expect(csv.first['PersonalID']).to_not be_empty
-          end
+          expect(csv.first['PersonalID']).to_not be_empty
         end
       end
     end
