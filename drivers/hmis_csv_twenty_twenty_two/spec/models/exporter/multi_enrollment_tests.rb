@@ -5,7 +5,6 @@
 ###
 
 RSpec.shared_context '2022 multi-enrollment tests', shared_context: :metadata do
-  # FIXME!  Add a test for an enrollment with multiple exits, confirm only one gets exported
   def involved_projects
     GrdaWarehouse::Hud::Project.where(id: @involved_project_ids)
   end

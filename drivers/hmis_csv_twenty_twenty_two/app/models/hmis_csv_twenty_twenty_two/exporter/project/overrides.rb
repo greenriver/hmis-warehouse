@@ -77,9 +77,13 @@ module HmisCsvTwentyTwentyTwo::Exporter
     def self.override_continuum_project(row)
       # ContinuumProject can't be NULL, set to 0 if we don't know what it should be
       row.ContinuumProject ||= 0
-      return row if row.hud_continuum_funded.blank?
+      return row if row.hud_continuum_funded.nil?
 
-      row.ContinuumProject = 1 if row.hud_continuum_funded
+      row.ContinuumProject = if row.hud_continuum_funded
+        1
+      else
+        0
+      end
       row
     end
 

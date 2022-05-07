@@ -50,8 +50,10 @@ def setup_data
   @current_living_situations = create_list :hud_current_living_situation, 5, data_source_id: @data_source.id
 
   @project_class = HmisCsvTwentyTwentyTwo::Exporter::Project
+  @project_coc_class = HmisCsvTwentyTwentyTwo::Exporter::ProjectCoc
   @enrollment_class = HmisCsvTwentyTwentyTwo::Exporter::Enrollment
   @client_class = HmisCsvTwentyTwentyTwo::Exporter::Client
+  @exit_class = HmisCsvTwentyTwentyTwo::Exporter::Exit
 end
 
 def project_classes
