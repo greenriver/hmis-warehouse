@@ -5,7 +5,7 @@
 %h1= content_for :title
 %p= "Created by #{@report.user.name_with_email} on #{@report.completed_at.to_date}"
 .well.report-listing.warehouse-reports__completed
-  = @report.filter.describe_filter_as_html
+  = @report.describe_filter_as_html
   .text-right.mb-4
     = render 'report_downloads/report_download', export: @pdf_export, excel_download_path: homeless_summary_report_warehouse_reports_report_path(@report, format: :xlsx)
 - @report.measures.each do |measure, data|

@@ -6,6 +6,7 @@
 
 module Filters
   class HudFilterBase < FilterBase
+    include ArelHelper
     validates_presence_of :coc_codes
 
     # Force people to choose project types because they are additive with projects
@@ -20,6 +21,22 @@ module Filters
       @effective_project_ids += effective_project_ids_from_organizations
       @effective_project_ids += effective_project_ids_from_data_sources
       @effective_project_ids += effective_project_ids_from_project_types
+
+      if funder_ids.present?
+        @effective_project_ids = funder_scope.where(Funder: funder_ids).
+          joins(:project).
+          where(p_t[:id].in(@effective_project_ids)).
+          distinct.
+          pluck(p_t[:id])
+      end
+
+      if coc_codes.present?
+        @effective_project_ids = GrdaWarehouse::Hud::ProjectCoc.in_coc(coc_code: coc_codes).
+          joins(:project).
+          where(p_t[:id].in(@effective_project_ids)).
+          distinct.
+          pluck(p_t[:id])
+      end
 
       # Add an invalid id if there are none
       @effective_project_ids = [0] if @effective_project_ids.empty?
@@ -41,11 +58,16 @@ module Filters
       scope = filter_for_race(scope)
       scope = filter_for_ethnicity(scope)
       scope = filter_for_sub_population(scope)
+
       scope
     end
 
     private def report_scope_source
       GrdaWarehouse::ServiceHistoryEnrollment.entry
+    end
+
+    private def funder_scope
+      GrdaWarehouse::Hud::Funder
     end
   end
 end

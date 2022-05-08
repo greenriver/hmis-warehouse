@@ -19,6 +19,13 @@ module PublicReports
       types
     end
 
+    def self.available_iteration_types
+      {
+        quarter: 'Quarters',
+        year: 'Years',
+      }
+    end
+
     def self.available_map_type_descriptions
       types = {
         'Continuum of Care' => 'Client data will be aggregated by comparing the CoCCodes from the Project CoC records for the projects where a client is enrolled.',

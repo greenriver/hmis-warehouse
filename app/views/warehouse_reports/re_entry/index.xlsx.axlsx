@@ -21,6 +21,7 @@ wb.add_worksheet(name: "First Time Homeless #{GrdaWarehouse::WarehouseReports::D
   @enrollments.each do |enrollment|
     client = enrollment.client
     re_entry = @re_entries[enrollment.id]
+    project = enrollment.project
     sheet.add_row([
       client.id,
       client.FirstName,
@@ -28,8 +29,8 @@ wb.add_worksheet(name: "First Time Homeless #{GrdaWarehouse::WarehouseReports::D
       HUD.no_yes_reasons_for_missing_data(client.VeteranStatus),
       enrollment.first_date_in_program,
       HUD.project_type(enrollment.computed_project_type),
-      enrollment.project_name,
-      enrollment.organization.try(:OrganizationName),
+      project.name(include_confidential_names: current_user.can_view_confidential_enrollment_details?),
+      project.organization_name(current_user),
       re_entry.days_since_last_exit,
       HUD.project_type(re_entry.prior_exit_project_type),
       HUD.destination(re_entry.prior_exit_destination_id),

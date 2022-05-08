@@ -1,0 +1,55 @@
+= render '/warehouse_reports/breadcrumbs', tab: 'health-bh-cp-claims-payments'
+
+%h1= "Claims Reporting Imports"
+- sftp_config = ClaimsReporting::Importer.new.default_credentials
+- if sftp_config.present?
+  - sftp_host = sftp_config['host']
+  - path = sftp_config['path']
+  %h4 Health SFTP Status
+  %table.table.table-sm.table-striped
+    %tr
+      %th Host
+      %td= sftp_host
+    %tr
+      %th= _('Health SFTP incoming claims data folder')
+      %td
+        - if path.present?
+          = path
+        - else
+          %em Not set. Automatic import disabled.
+      - if path
+        %tr
+          %th Pending files
+          %td
+            - pending = ClaimsReporting::Importer.new.pending
+            - if pending.none?
+              %em None found
+            - else
+              = pending.to_sentence
+%h4 Past imports
+- if @imports.present?
+  .table-responsive
+    %table.table.table-sm.table-striped
+      %thead
+        %tr
+          %th File
+          %th Status
+          %th Started
+          %th Finished
+      %tbody
+        - @imports.each do |import|
+          %tr
+            %td= import.source_path
+            %td
+              - if import.results.present? || import.status_message.present?
+                %details{open: import.completed_at.nil?}
+                  %summary= import.status_text
+                  = import.status_message
+                  - if import.results.present?
+                    %pre= JSON.pretty_generate import.results
+              - else
+                = import.status_text
+            %td= import.started_at
+            %td= import.completed_at
+- else
+  %p None found.

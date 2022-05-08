@@ -1,0 +1,14 @@
+= simple_form_for :report, url: built_for_zero_report_warehouse_reports_bfz_index_path, method: :get do |f|
+  - content_for :filters_col_full do
+    .row
+      .col-sm-3
+        = f.input :start_date, as: :date_picker, input_html: { value: @start_date }
+      .col-sm-3
+        = f.input :end_date, as: :date_picker, input_html: { value: @end_date }
+      .col-sm-6
+        = f.input :section, as: :select_two, collection: BuiltForZeroReport.sections, selected: @section_key
+
+  - content_for :filter_actions do
+    = f.submit 'Update Report', class: ['btn', 'btn-primary'], data: { disable_with: false }
+
+  = render 'warehouse_reports/filters', f:f

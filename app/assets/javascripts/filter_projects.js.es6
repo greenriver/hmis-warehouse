@@ -3,7 +3,18 @@ window.App.StimulusApp = window.App.StimulusApp || {}
 
 App.StimulusApp.register('filter-projects', class extends Stimulus.Controller {
   static get targets() {
-    return ['element', 'header', 'projects', 'projectTypes', 'dataSources', 'projectGroups', 'calculatedProjects', 'submitButton']
+    return [
+      'element',
+      'header',
+      'projects',
+      'projectTypes',
+      'dataSources',
+      'projectGroups',
+      'funderIds',
+      'cocCodes',
+      'calculatedProjects',
+      'submitButton',
+    ]
   }
 
   initialize() {
@@ -23,6 +34,12 @@ App.StimulusApp.register('filter-projects', class extends Stimulus.Controller {
       project_group_ids: $(this.projectGroupsTarget).val(),
       project_type_codes: $(this.projectTypesTarget).val(),
     }
+    if (this.hasFunderIdsTarget) {
+      data.funder_ids = $(this.funderIdsTarget).val()
+    }
+    if (this.hasCocCodesTarget) {
+      data.coc_codes = $(this.cocCodesTarget).val()
+    }
     $(this.calculatedProjectsTarget).html('<p class="well rollup-container"></p>')
     $.ajax({
       // It is not ideal to call this synchronously as it sometimes hangs the browser temporarily,
@@ -33,8 +50,10 @@ App.StimulusApp.register('filter-projects', class extends Stimulus.Controller {
       data: data,
     }).done((ret) => {
       // console.debug('success')
-      if(ret.includes('No Projects')) {
-        $(this.submitButtonTarget).before('<p class="w-100 mb-4 alert alert-warning jProjectWarning">This report will not work unless you have included at least one project above.</p>')
+      if (ret.includes('No Projects')) {
+        if ($('.jProjectWarning').length == 0) {
+          $(this.submitButtonTarget).before('<p class="w-100 mb-4 alert alert-warning jProjectWarning">This report will not work unless you have included at least one project above.</p>')
+        }
         $(this.submitButtonTarget).attr('disabled', 'disabled');
       }
       else {
@@ -48,12 +67,16 @@ App.StimulusApp.register('filter-projects', class extends Stimulus.Controller {
   }
 
   prepNativeEvents() {
-    [
+    const targets = [
       this.projectsTarget,
       this.projectTypesTarget,
       this.dataSourcesTarget,
       this.projectGroupsTarget,
-    ].forEach(el => {
+    ];
+    if (this.hasFunderIdsTarget) targets.push(this.funderIdsTarget);
+    if (this.hasCocCodesTarget) targets.push(this.cocCodesTarget);
+
+    targets.forEach(el => {
       $(el).on('select2:close', (e) => {
         let event = new Event('change', { bubbles: true }) // fire a native event
         e.target.dispatchEvent(event);

@@ -896,6 +896,13 @@ module GrdaWarehouse::WarehouseReports
           limitable: false,
           health: true,
         }
+        r_list['Health: BH CP Claims/Payments'] << {
+          url: 'claims_reporting/warehouse_reports/imports',
+          name: 'Claims Reporting Imports',
+          description: 'History of automatically imported claims information',
+          limitable: false,
+          health: true,
+        }
       end
       if RailsDrivers.loaded.include?(:project_pass_fail)
         r_list['Data Quality'] << {
@@ -911,6 +918,13 @@ module GrdaWarehouse::WarehouseReports
           url: 'health_flexible_service/warehouse_reports/member_lists',
           name: 'VPR Member Lists',
           description: 'Generate the quarterly member list files for flex services',
+          limitable: true,
+          health: true,
+        }
+        r_list['Health: General'] << {
+          url: 'health_flexible_service/warehouse_reports/member_expiration',
+          name: 'VPR Member Expiration',
+          description: 'View clients receiving flex services that have expired.',
           limitable: true,
           health: true,
         }
@@ -1188,6 +1202,15 @@ module GrdaWarehouse::WarehouseReports
           name: 'Date Homelessness Started',
           description: 'View differences between the client\'s self-reported date homelessness started (DateToStreetESSH) and the enrollment entry date.',
           limitable: true,
+          health: false,
+        }
+      end
+      if RailsDrivers.loaded.include?(:built_for_zero_report)
+        r_list['Operational'] << {
+          url: 'built_for_zero_report/warehouse_reports/bfz',
+          name: _('Built For Zero Monthly Report'),
+          description: 'Generate Built For Zero monthly reporting information',
+          limitable: false,
           health: false,
         }
       end

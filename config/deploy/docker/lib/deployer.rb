@@ -127,7 +127,7 @@ class Deployer
     _docker_login!
     _build_and_push_all!
     _check_secrets!
-    _check_compiled_assets!
+    # _check_compiled_assets! # Moved to entrypoint.
   end
 
   def roll_out

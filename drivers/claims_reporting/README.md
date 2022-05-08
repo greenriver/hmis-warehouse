@@ -11,7 +11,7 @@ Claims data is provided in a Zip file containing CSVs for each table. The CSV fo
 
 - `ClaimsReporting::Importer.clear!` will reset/truncate claims_reporting_* tables in dev/test environments
 - `#import_from_zip(zip_file_path_or_io, replace_all: false)` will append/upsert the data into the files. Setting replace_all: true will truncate each table as it goes.
-- `#import_from_health_sftp` can be used to download and import from a SFTP site (defaults to the one config/health_sftp.yml)
+- `#import_from_health_sftp` can be used to download and import from a SFTP site (configured in Health:ImportConfig with kind: 'claims_reporting')
 - `#check_sftp` finds potential files matching the expected naming convention on SFTP
 
 - `#import_all_from_health_sftp(root_path: '/prod/Claims Data')` imports any previously un-imported files

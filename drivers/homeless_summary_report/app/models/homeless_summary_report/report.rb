@@ -58,6 +58,22 @@ module HomelessSummaryReport
       update(completed_at: Time.current)
     end
 
+    def describe_filter_as_html
+      filter.describe_filter_as_html(
+        [
+          :start,
+          :end,
+          :coc_codes,
+          :project_type_codes,
+          :project_ids,
+          :project_group_ids,
+          :data_source_ids,
+          :funder_ids,
+          :hoh_only,
+        ],
+      )
+    end
+
     def filter=(filter_object)
       self.options = filter_object.to_h
       # force reset the filter cache
@@ -67,7 +83,7 @@ module HomelessSummaryReport
 
     def filter
       @filter ||= begin
-        f = ::Filters::FilterBase.new(user_id: user_id, enforce_one_year_range: false)
+        f = ::Filters::HudFilterBase.new(user_id: user_id, enforce_one_year_range: false)
         f.update(options.with_indifferent_access.merge(enforce_one_year_range: false)) if options.present?
         f
       end
@@ -102,9 +118,8 @@ module HomelessSummaryReport
       # ensure filter has been set
       filter
       [
-        build_general_control_section(include_comparison_period: false),
+        build_funding_section,
         build_hoh_control_section,
-        build_coc_control_section(true),
       ]
     end
 
@@ -114,36 +129,6 @@ module HomelessSummaryReport
         :warehouse_reports,
         :reports,
       ]
-    end
-
-    # @return filtered scope
-    def report_scope(measure)
-      @filter = filter
-      # Measure 2 needs a 2 year look-back
-      # Measure 7 needs to extend one day before the filter start to match the SPM
-      case measure
-      when 'Measure 2'
-        @filter.update(start: @filter.start - 2.years)
-      when 'Measure 7'
-        @filter.update(start: @filter.start - 1.days)
-      end
-      # puts measure
-      scope = report_scope_source
-      scope = filter_for_user_access(scope)
-      scope = filter_for_range(scope)
-      scope = filter_for_cocs(scope)
-      scope = filter_for_head_of_household(scope)
-      scope = filter_for_project_type(scope)
-      scope = filter_for_data_sources(scope)
-      scope = filter_for_organizations(scope)
-      scope = filter_for_projects(scope)
-      scope = filter_for_funders(scope)
-      scope = filter_for_ca_homeless(scope)
-      scope = filter_for_ce_cls_homeless(scope)
-      # force re-calculation of filter
-      @filter = nil
-      filter
-      scope
     end
 
     def report_scope_source
@@ -470,12 +455,20 @@ module HomelessSummaryReport
       # Work through all the SPM report variants, building up the `report_clients` as we go.
       run_spm.each do |household_category, spec|
         report = spec[:base_variant]
-        detail_variant_name = "spm_#{household_category}__all"
+
+        # Create lists of client IDs in each demographic variant
+        demographic_variant_clients = {}
+        spec[:variants].each do |demographic_category, sub_spec|
+          detail_variant_name = "spm_#{household_category}__#{demographic_category}"
+          demographic_variant_clients[detail_variant_name] = client_ids_for_demographic_category(spec, sub_spec)
+        end
+
         spm_fields.each do |spm_field, parts|
           cells = parts[:cells]
           cells.each do |cell|
             spm_clients = answer_clients(report[:report], *cell)
             spm_clients.each do |spm_client|
+              detail_variant_name = "spm_#{household_category}__all"
               client_id = spm_client[:client_id]
               report_client = report_clients[client_id] || Client.new_with_default_values
               report_client[:client_id] = client_id
@@ -486,6 +479,13 @@ module HomelessSummaryReport
               report_client[field_name(cell)] = true if field_measure(spm_field) == 7
               report_client[detail_variant_name] = report[:report].id # SPM ID for future reference
               report_clients[client_id] = report_client
+
+              # Set demographic flags
+              demographic_variant_clients.each do |demographic_variant_name, client_ids|
+                next unless client_id.in?(client_ids)
+
+                report_client[demographic_variant_name] = 1
+              end
             end
           end
         end
@@ -499,20 +499,6 @@ module HomelessSummaryReport
             client.spm_m7b1_c3
           ) && !client.spm_m7b2_c3
         client
-      end
-
-      # Set demographic flags
-      variants.each do |household_category, spec|
-        spec[:variants].each do |demographic_category, sub_spec|
-          detail_variant_name = "spm_#{household_category}__#{demographic_category}"
-          client_ids_in_demographic_category = client_ids_for_demographic_category(spec, sub_spec)
-          report_clients.each do |client_id, report_client|
-            next unless client_id.in?(client_ids_in_demographic_category)
-
-            # This previously inserted 0, now we just need to make it > 0
-            report_client[detail_variant_name] = 1
-          end
-        end
       end
 
       Client.import(
@@ -529,21 +515,34 @@ module HomelessSummaryReport
     # filter set.  When it's done, it can just clear it as calling `filter` will reset it from
     # the chosen options
     private def client_ids_for_demographic_category(spec, sub_spec)
-      # Force measure 2 because it has the largest date range, and we only use this to check to see if
-      # someone existed in a demographic category, time is irrelevant for these
-      measure = 'Measure 2'
-      demographic_scope = report_scope(measure)
-
       @filter = filter
-      base_variant = spec[:base_variant]
-      extra_filters = base_variant[:extra_filters] || {}
+
+      # Force date range from measure 2 because it has the largest date range, and we
+      # only use this to check to see if someone existed in a demographic category
+      @filter.update(start: @filter.start - 2.years)
+
+      # Update filter with demographic values
+      base_variant = spec[:base_variant] # household type and age ranges
+      extra_filters = base_variant[:extra_filters] || {} # demographics
       @filter.update(extra_filters.merge(sub_spec[:extra_filters] || {}))
-      # demographic_filter is a method known to filter_scopes
+
+      # Make sure we take advantage of the additive nature of HUD report filters
+      @filter.project_ids = @filter.effective_project_ids
+
+      # Apply HUD filters
+      scope = @filter.apply(report_scope_source)
+
+      # Filter for range
+      scope = filter_for_range(scope)
+
+      # Filter for demographics, to catch any demo filters that aren't applied with HudFilterBase.apply
       sub_spec[:demographic_filters].each do |demographic_filter|
-        demographic_scope = send(demographic_filter, demographic_scope)
+        # demographic_filter is a method known to filter_scopes
+        scope = send(demographic_filter, scope)
       end
-      puts demographic_scope.select(:client_id).to_sql
-      ids = demographic_scope.pluck(:client_id).uniq.to_set
+
+      ids = scope.pluck(:client_id).uniq.to_set
+
       @filter = nil
       filter
       ids
@@ -769,6 +768,15 @@ module HomelessSummaryReport
             name: 'All Clients',
             extra_filters: {
               household_type: :all,
+            },
+          },
+          variants: {},
+        },
+        without_children: {
+          base_variant: {
+            name: 'Clients in Adult Only Households',
+            extra_filters: {
+              household_type: :without_children,
             },
           },
           variants: {},
