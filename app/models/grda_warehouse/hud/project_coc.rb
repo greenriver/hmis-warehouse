@@ -136,65 +136,26 @@ module GrdaWarehouse::Hud
 
     def for_export
       # This should never happen, but does
-      self.ProjectID = project&.id || 'Unknown'
-      self.CoCCode = hud_coc_code if hud_coc_code.present?
-      self.GeographyType = geography_type_override if geography_type_override.present?
-      self.GeographyType ||= 99
-      self.Geocode = geocode_override if geocode_override.present?
-      self.Geocode ||= '0' * 6
-      self.Zip = zip_override if zip_override.present?
-      self.Address1 = self.Address1[0...100] if self.Address1
-      self.Address2 = self.Address2[0...100] if self.Address2
-      self.City = self.City[0...50] if self.City
-      self.Zip = self.Zip.to_s.rjust(5, '0')[0...5] if self.Zip
-      self.Zip ||= '0' * 5
+      # self.ProjectID = project&.id || 'Unknown'
+      # self.CoCCode = hud_coc_code if hud_coc_code.present?
+      # self.GeographyType = geography_type_override if geography_type_override.present?
+      # self.GeographyType ||= 99
+      # self.Geocode = geocode_override if geocode_override.present?
+      # self.Geocode ||= '0' * 6
+      # self.Zip = zip_override if zip_override.present?
+      # self.Address1 = self.Address1[0...100] if self.Address1
+      # self.Address2 = self.Address2[0...100] if self.Address2
+      # self.City = self.City[0...50] if self.City
+      # self.Zip = self.Zip.to_s.rjust(5, '0')[0...5] if self.Zip
+      # self.Zip ||= '0' * 5
 
-      self.UserID = 'op-system' if self.UserID.blank?
-      self.ProjectCoCID = id
-      return self
-    end
+      # self.UserID = 'op-system' if self.UserID.blank?
+      # self.ProjectCoCID = id
+      # return self
 
-    # when we export, we always need to replace ProjectCoCID with the value of id
-    # and ProjectID with the id of the related project
-    def self.to_csv(scope:)
-      attributes = hud_csv_headers.dup
-      headers = attributes.clone
-      attributes[attributes.index(:ProjectCoCID)] = :id
-      attributes[attributes.index(:ProjectID)] = 'project.id'
-
-      CSV.generate(headers: true) do |csv|
-        csv << headers
-
-        scope.each do |i|
-          csv << attributes.map do |attr|
-            attr = attr.to_s
-            # we need to grab the appropriate id from the related project
-            v = if attr.include?('.')
-              obj, meth = attr.split('.')
-              i.send(obj).send(meth)
-            else
-              if attr == 'CoCCode' && i.hud_coc_code.present? # rubocop:disable Style/IfInsideElse
-                i.hud_coc_code
-              elsif attr == 'GeographyType' && i.geography_type_override.present?
-                i.geography_type_override
-              elsif attr == 'Geocode' && i.geocode_override.present?
-                i.geocode_override
-              elsif attr == 'Zip' && i.zip_override.present?
-                i.zip_override
-              else
-                i.send(attr)
-              end
-            end
-
-            if v.is_a? Date
-              v = v.strftime('%Y-%m-%d')
-            elsif v.is_a? Time
-              v = v.to_formatted_s(:db)
-            end
-            v
-          end
-        end
-      end
+      row = HmisCsvTwentyTwentyTwo::Exporter::ProjectCoc::Overrides.apply_overrides(self)
+      row = HmisCsvTwentyTwentyTwo::Exporter::ProjectCoc.adjust_keys(row)
+      row
     end
   end
 end

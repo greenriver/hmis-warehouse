@@ -11,6 +11,12 @@ module HmisCsvTwentyTwentyTwo::Exporter
     end
 
     def process(row)
+      row = self.class.adjust_keys(row)
+
+      row
+    end
+
+    def self.adjust_keys(row)
       row.UserID = row.id
 
       row

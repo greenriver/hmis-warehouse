@@ -89,48 +89,18 @@ module GrdaWarehouse::Hud
     end
 
     def for_export
+      row = HmisCsvTwentyTwentyTwo::Exporter::Funder::Overrides.apply_overrides(self)
+      row = HmisCsvTwentyTwentyTwo::Exporter::Funder.adjust_keys(row)
+      row
+
       # This should never happen, but does
-      self.ProjectID = project&.id || 'Unknown'
-      self.GrantID ||= 'Unknown'
-      self.OtherFunder = self.OtherFunder[0...50] if self.OtherFunder.present?
+      # self.ProjectID = project&.id || 'Unknown'
+      # self.GrantID ||= 'Unknown'
+      # self.OtherFunder = self.OtherFunder[0...50] if self.OtherFunder.present?
 
-      self.UserID = 'op-system' if self.UserID.blank?
-      self.FunderID = id
-      return self
-    end
-
-    # when we export, we always need to replace FunderID with the value of id
-    def self.to_csv(scope:)
-      attributes = hud_csv_headers.dup
-      headers = attributes.clone
-      attributes[attributes.index(:FunderID)] = :id
-      attributes[attributes.index(:ProjectID)] = 'project.id'
-
-      CSV.generate(headers: true) do |csv|
-        csv << headers
-
-        scope.each do |i|
-          csv << attributes.map do |attr|
-            attr = attr.to_s
-            v = if attr.include?('.')
-              obj, meth = attr.split('.')
-              i.send(obj).send(meth)
-            elsif attr == 'GrantID' && i.GrantID.blank?
-              'Unknown'
-            elsif attr == 'OtherFunder' && i.OtherFunder.present?
-              i.OtherFunder[0...50]
-            else
-              i.send(attr)
-            end
-            if v.is_a? Date
-              v = v.strftime('%Y-%m-%d')
-            elsif v.is_a? Time
-              v = v.to_formatted_s(:db)
-            end
-            v
-          end
-        end
-      end
+      # self.UserID = 'op-system' if self.UserID.blank?
+      # self.FunderID = id
+      # return self
     end
   end
 end

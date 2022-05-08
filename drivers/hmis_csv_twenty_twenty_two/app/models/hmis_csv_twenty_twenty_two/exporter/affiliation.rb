@@ -13,6 +13,12 @@ module HmisCsvTwentyTwentyTwo::Exporter
     end
 
     def process(row)
+      row = self.class.adjust_keys(row)
+
+      row
+    end
+
+    def self.adjust_keys(row)
       row.UserID = row.user&.id || 'op-system'
       row.ProjectID = row.project&.id || 'Unknown'
       row.ResProjectID = row.residential_project&.id || 'Unknown'

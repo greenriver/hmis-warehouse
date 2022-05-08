@@ -194,34 +194,15 @@ module GrdaWarehouse::Hud
     end
 
     def for_export
-      self.VictimServiceProvider ||= 0
+      # self.VictimServiceProvider ||= 0
 
-      self.UserID = 'op-system' if self.UserID.blank?
-      self.OrganizationID = id
-      return self
-    end
+      # self.UserID = 'op-system' if self.UserID.blank?
+      # self.OrganizationID = id
+      # return self
 
-    # when we export, we always need to replace OrganizationID with the value of id
-    def self.to_csv(scope:)
-      attributes = hud_csv_headers.dup
-      headers = attributes.clone
-      attributes[attributes.index(:OrganizationID)] = :id
-
-      CSV.generate(headers: true) do |csv|
-        csv << headers
-
-        scope.each do |i|
-          csv << attributes.map do |attr|
-            v = i.send(attr)
-            if v.is_a? Date
-              v = v.strftime('%Y-%m-%d')
-            elsif v.is_a? Time
-              v = v.to_formatted_s(:db)
-            end
-            v
-          end
-        end
-      end
+      row = HmisCsvTwentyTwentyTwo::Exporter::Organization::Overrides.apply_overrides(self, options: { confidential: false })
+      row = HmisCsvTwentyTwentyTwo::Exporter::Organization.adjust_keys(row)
+      row
     end
 
     def self.confidential_organization_name

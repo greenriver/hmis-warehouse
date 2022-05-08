@@ -27,7 +27,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
       row = ensure_reasonable_name(row, confidential: options[:confidential])
       row = override_project_type(row)
       row = override_continuum_project(row)
-      row = calculated_pit_count(row, export: options[:export])
+      row = calculated_pit_count(row, export: options[:export]) if options[:export].present?
 
       [
         { hud_field: :HousingType, override_field: :housing_type_override },

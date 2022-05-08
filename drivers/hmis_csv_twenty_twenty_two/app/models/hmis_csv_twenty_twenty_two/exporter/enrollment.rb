@@ -13,10 +13,15 @@ module HmisCsvTwentyTwentyTwo::Exporter
     end
 
     def process(row)
+      row = self.class.adjust_keys(row, @options[:export])
+
+      row
+    end
+
+    def self.adjust_keys(row, export)
       row.UserID = row.user&.id || 'op-system'
 
       # Pre-calculate and assign. After assignment the relations will be broken
-      export = @options[:export]
       personal_id = if export.include_deleted || export.period_type == 1
         row&.client_with_deleted&.id
       else

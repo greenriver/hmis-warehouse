@@ -13,11 +13,17 @@ module HmisCsvTwentyTwentyTwo::Exporter
     end
 
     def process(row)
+      row = self.class.adjust_keys(row, @options[:export])
+
+      row
+    end
+
+    def self.adjust_keys(row, export)
       row.UserID = row.user&.id || 'op-system'
       # Pre-calculate and assign. After assignment the relations will be broken
-      personal_id = personal_id(row, @options[:export])
-      project_id = project_id(row, @options[:export])
-      enrollment_id = enrollment_id(row, @options[:export])
+      personal_id = personal_id(row, export)
+      project_id = project_id(row, export)
+      enrollment_id = enrollment_id(row, export)
       row.PersonalID = personal_id
       row.ProjectID = project_id
       row.EnrollmentID = enrollment_id
