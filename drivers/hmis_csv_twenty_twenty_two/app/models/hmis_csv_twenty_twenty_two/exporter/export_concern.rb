@@ -60,7 +60,7 @@ module HmisCsvTwentyTwentyTwo::Exporter::ExportConcern
       ).arel.exists
     end
 
-    def enrollment_id(row, export)
+    def self.enrollment_id(row, export)
       id = if export.include_deleted || export.period_type == 1
         row.enrollment_with_deleted&.id
       else
@@ -70,7 +70,7 @@ module HmisCsvTwentyTwentyTwo::Exporter::ExportConcern
       id || 'Unknown'
     end
 
-    def project_id(row, export)
+    def self.project_id(row, export)
       id = if export.include_deleted || export.period_type == 1
         row.enrollment_with_deleted&.project_with_deleted&.id
       else
@@ -80,7 +80,7 @@ module HmisCsvTwentyTwentyTwo::Exporter::ExportConcern
       id || 'Unknown'
     end
 
-    def personal_id(row, export)
+    def self.personal_id(row, export)
       id = if export.include_deleted || export.period_type == 1
         row.enrollment_with_deleted&.client_with_deleted&.id
       else
@@ -90,7 +90,7 @@ module HmisCsvTwentyTwentyTwo::Exporter::ExportConcern
       id || 'Unknown'
     end
 
-    def assessment_id(row, export)
+    def self.assessment_id(row, export)
       id = if export.include_deleted || export.period_type == 1
         row.assessment_with_deleted&.id
       else
