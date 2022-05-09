@@ -4,6 +4,7 @@
     - next unless section
     -# - section_url = polymorphic_path(@report.filter_path_array, *(link_params.except(:action).merge(filter_section_id: section.id)))
     - section.controls.each do |control|
+      - next if control.id == 'inactivity_days'
       - values = Array.wrap(control.value.presence).compact
       - values.each do |value|
         %li.list-inline-item.chip-v2-prs1

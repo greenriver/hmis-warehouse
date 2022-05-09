@@ -108,7 +108,7 @@ module PerformanceMetrics
           percentage_other_change = 0
           percentage_other_change = (with_increased_other_income / clients_served.to_f * 100).round if clients_served.positive?
           incomes << [
-            'Current Period', [
+            'Prior Period', [
               ['Employment Income', percentage_earned_change],
               ['Non-Employment Income', percentage_other_change],
             ]
@@ -642,6 +642,10 @@ module PerformanceMetrics
       end
     end
 
+    private def caper_generator_class
+      HudApr::Generators::Caper::Fy2021::Generator
+    end
+
     private def run_caper
       # puts 'Running CAPER'
       # Run CAPER Q5 to get Q5a B6 (adult leavers) for the denominator
@@ -651,9 +655,8 @@ module PerformanceMetrics
         'Question 16',
       ]
       caper_filter = ::Filters::HudFilterBase.new(user_id: filter.user_id).update(filter.to_h)
-      generator = HudApr::Generators::Caper::Fy2021::Generator
-      caper_report = HudReports::ReportInstance.from_filter(caper_filter, generator.title, build_for_questions: questions)
-      generator.new(caper_report).run!(email: false, manual: false)
+      caper_report = HudReports::ReportInstance.from_filter(caper_filter, caper_generator_class.title, build_for_questions: questions)
+      caper_generator_class.new(caper_report).run!(email: false, manual: false)
       caper_report
     end
 
@@ -668,7 +671,7 @@ module PerformanceMetrics
     end
 
     private def destination_client_column(report)
-      return :destination_client_id if report.report_name == 'Consolidated Annual Performance and Evaluation Report - FY 2020'
+      return :destination_client_id if report.report_name == caper_generator_class.title
 
       :client_id
     end

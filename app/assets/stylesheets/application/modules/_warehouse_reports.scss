@@ -2,7 +2,7 @@
 
 .warehouse-reports__client
 {
-  margin: 1em;
+  margin: 1em 0;
   border: 1px solid $gray-040;
 }
 .warehouse-reports__client .row
@@ -17,10 +17,6 @@
 {
   background-color: $gray-015;
   padding: 1em;
-}
-.warehouse-reports__chronic .pagination
-{
-  margin-top: 1em;
 }
 .warehouse-reports__enrollment-highlighted
 {

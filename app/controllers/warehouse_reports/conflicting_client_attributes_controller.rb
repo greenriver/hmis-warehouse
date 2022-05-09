@@ -11,10 +11,8 @@ module WarehouseReports
 
     def index
       @attribute_name = attributes.detect { |a| a == params.dig(:report, :attribute) } || 'DOB'
-      @clients = client_scope.
-        where(id: destination_client_ids).
-        order(:LastName, :FirstName).
-        page(params[:page])
+      @clients = client_scope.where(id: destination_client_ids).order(:LastName, :FirstName)
+      @pagy, @clients = pagy(@clients)
     end
 
     def attributes

@@ -14,8 +14,7 @@
       %i.icon.icon-download2
       Download Excel
 - if @report.clients_for_question(@key, :reporting, project_id: project_id).blank?
-  %p.none-found
-    No records found.
+  .none-found No records found.
 - else
   .card
     .overflow-x-scroll{style: "height: 800px"}

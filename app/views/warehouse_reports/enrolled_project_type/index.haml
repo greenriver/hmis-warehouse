@@ -5,33 +5,38 @@
 = render 'filter'
 
 .warehouse-reports__chronic
-  .row
-    .col
-      = render 'common/population_warnings'
-    .col.pull-right
+  .mb-4
+    = render 'common/population_warnings'
+  - if @pagy.count.positive?
+    .text-right.mb-4
       = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary'}) do
-        Download Excel
-  .row
-    .col
-      %p
-        = page_entries_info @clients, entry_name: 'Client'
-  .card
-    %table.mb-0.table.table-striped
-      %thead
-        %tr
-          %th Last Name
-          %th First Name
-          %th Age
-          %th Veteran Status
-          %th= "Cumulative Days Homeless as of #{Date.current}"
-          %th= "Days Homeless in The Past Three Years as of #{Date.current}"
-      %tbody
-        - @clients.each do |client|
+        %i.icon-file-excel.icon-lg
+        Download
+    .pagy-container.mb-4
+      != pagy_info(@pagy, item_name: _('client').pluralize(@pagy.count))
+      != pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
+    .table-responsive
+      %table.table.table-striped
+        %thead
           %tr
-            %td= link_to_if can_view_clients?, client.LastName, appropriate_client_path(client)
-            %td= link_to_if can_view_clients?, client.FirstName, appropriate_client_path(client)
-            %th= client.age
-            %th= HUD.veteran_status(client.VeteranStatus)
-            %td.text-center= client.days_homeless
-            %td.text-center= client.days_homeless_in_last_three_years
-  %p= paginate @clients
+            %th Last Name
+            %th First Name
+            %th Age
+            %th Veteran Status
+            %th= "Cumulative Days Homeless as of #{Date.current}"
+            %th= "Days Homeless in The Past Three Years as of #{Date.current}"
+        %tbody
+          - @clients.each do |client|
+            %tr
+              %td= link_to_if can_view_clients?, client.LastName, appropriate_client_path(client)
+              %td= link_to_if can_view_clients?, client.FirstName, appropriate_client_path(client)
+              %th= client.age
+              %th= HUD.veteran_status(client.VeteranStatus)
+              %td.text-center= client.days_homeless
+              %td.text-center= client.days_homeless_in_last_three_years
+    - if @pagy.pages > 1
+      .pagy-container.mt-4
+        != pagy_info(@pagy, item_name: _('client').pluralize(@pagy.count))
+        != pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
+  - else
+    .none-found No clients found.

@@ -18,21 +18,31 @@
   = render 'warehouse_reports/filters', f:f
 
 = render 'warehouse_reports/limited_by_project_note'
-.warehouse-reports__really_old_enrollments
-  %p= page_entries_info @clients, entry_name: _('client')
-  %table.table.table-hover
-    %thead
-      %tr
-        %th Last Name
-        %th First Name
-        %th Enrollment Date
-        %th Data Source
-    %tbody
-      - st = GrdaWarehouse::Hud::Enrollment.arel_table
-      - @clients.each do |client|
+
+- if @pagy.count.positive?
+  .pagy-container.mb-4
+    != pagy_info(@pagy, item_name: _('client').pluralize(@pagy.count))
+    != pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
+  .warehouse-reports__really_old_enrollments.table-responsive
+    %table.table.table-striped
+      %thead
         %tr
-          %td= link_to_if can_view_clients?, client.LastName.tr(' ', '⎵'), appropriate_client_path(client)
-          %td= link_to_if can_view_clients?, client.FirstName.tr(' ', '⎵'), appropriate_client_path(client)
-          %td= client.source_enrollments.where( st[:EntryDate].lt @date ).map{|m| "#{m.EntryDate} at #{m.try(:project).try(:name)}"}.join(', ')
-          %td= client.source_clients.map{|m| m.data_source&.short_name}.uniq.join(', ')
-%p= paginate @clients
+          %th Last Name
+          %th First Name
+          %th Enrollment Date
+          %th Data Source
+      %tbody
+        - st = GrdaWarehouse::Hud::Enrollment.arel_table
+        - @clients.each do |client|
+          %tr
+            %td= link_to_if can_view_clients?, client.LastName.tr(' ', '⎵'), appropriate_client_path(client)
+            %td= link_to_if can_view_clients?, client.FirstName.tr(' ', '⎵'), appropriate_client_path(client)
+            %td= client.source_enrollments.where( st[:EntryDate].lt @date ).map{|m| "#{m.EntryDate} at #{m.try(:project).try(:name)}"}.join(', ')
+            %td= client.source_clients.map{|m| m.data_source&.short_name}.uniq.join(', ')
+
+  - if @pagy.pages > 1
+    .pagy-container.mt-4
+      != pagy_info(@pagy, item_name: _('client').pluralize(@pagy.count))
+      != pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
+- else
+  .none-found No clients found.

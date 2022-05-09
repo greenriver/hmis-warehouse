@@ -9,11 +9,13 @@ class AdHocDataSourcesController < ApplicationController
   before_action :set_data_source, only: [:show, :update, :edit, :destroy]
 
   def index
-    @data_sources = data_source_scope.active.order(name: :asc).page(params[:page]).per(25)
+    @data_sources = data_source_scope.active.order(name: :asc)
+    @pagy, @data_sources = pagy(@data_sources)
   end
 
   def show
-    @uploads = @data_source.ad_hoc_batches.order(id: :desc).page(params[:page]).per(25)
+    @uploads = @data_source.ad_hoc_batches.order(id: :desc)
+    @pagy, @uploads = pagy(@uploads)
   end
 
   def download

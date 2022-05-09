@@ -5,7 +5,7 @@
       %p= page_entries_info @text_messages, entry_name: _('Messages')
       %p= paginate @text_messages
   .card
-    %table.table.table-striped.mb-0
+    %table.table.table-striped
       %thead
         %tr
           %th Subscriber
@@ -21,5 +21,4 @@
             %td= message.send_on_or_after
             %td= message.sent_at
 - else
-  %p.none-found
-    No messages queued.
+  .none-found No messages queued.

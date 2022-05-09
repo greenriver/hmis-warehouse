@@ -13,7 +13,7 @@
           %i.icon-plus
           Add VPR
     - if @vprs.any?
-      .card
+      .table-responsive
         %table.table.table-striped
           %thead
             %tr
@@ -47,4 +47,4 @@
                     %i.icon-cross
 
     - else
-      %p.well.none-found No VPRs on file.
+      .none-found No VPRs on file.
