@@ -9,8 +9,7 @@ module HealthFlexibleService
     before_action :require_can_view_some_vprs!
 
     def index
-      @patients = vpr_patient_scope.
-        page(params[:page].to_i).per(25)
+      @pagy, @patients = pagy(vpr_patient_scope)
     end
 
     private def vpr_patient_scope
