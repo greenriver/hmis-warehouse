@@ -1,14 +1,15 @@
 - url = polymorphic_path(@report.report_path_array)
-= simple_form_for @filter, as: :filters, url: url do |f|
+- alert = 'Please note, the following options are additive.  If you choose a single project and a project type, the report will run for all projects in the project type and the chosen project.  If you choose a data source and project type, the report will run for all projects in the chosen data source and chosen project type. Projects are limited by supported Project Types (PH, ES, TH, SH, SO) and selected CoC.'
+= simple_form_for @filter, as: :filters, url: url, data: { controller: 'filter-projects', 'filter-projects-supported-project-types-value': @report.project_type_ids } do |f|
   - content_for :filters_col_full do
     %p Please note, the report will cover the year prior to the date chosen, and provide a comparison to the year before that.
-    .d-flex
-      .mr-4
-        = f.input :end, as: :date_picker, label: 'End date of period'
-      .mr-auto
-        = f.input :coc_code, collection: @filter.coc_code_options_for_select(user: current_user), required: false, input_html: { class: ['select2-id-when-selected'], placeholder: 'Please Choose' }, label: 'CoC Code', as: :select_two, placeholder: 'Please Choose', required: true
-
+    .row.mb-4
+      .col-sm-3
+        = f.input :end, as: :date_picker, label: 'End date of period', required: true
+      .col-sm-3
+        = f.input :coc_code, collection: @filter.coc_code_options_for_select(user: current_user), required: false, input_html: { class: ['select2-id-when-selected'], placeholder: 'Please Choose', data: {'filter-projects-target' => 'cocCodes', 'action': 'change->filter-projects#update'} }, label: 'CoC Code', as: :select_two, placeholder: 'Please Choose', required: true
+    = render 'hud_reports/project_filter', f: f, project_types_collection: @report.project_type_options_for_select, projects_collection: @report.project_options_for_select(current_user), alert: alert
   - content_for :filter_actions do
-    = f.submit 'Queue Report', class: ['btn', 'btn-primary']
+    = f.submit 'Queue Report', class: ['btn', 'btn-primary'], data: { 'filter-projects-target' => 'submitButton' }
 
   = render 'warehouse_reports/filters', f:f

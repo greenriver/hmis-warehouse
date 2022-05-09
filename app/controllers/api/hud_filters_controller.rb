@@ -17,24 +17,27 @@ module Api
       filter.update(filter_params)
       respond_to do |format|
         @data = {}
-        GrdaWarehouse::Hud::Project.
+        projects = GrdaWarehouse::Hud::Project.
           joins(:organization).
-          where(id: filter.effective_project_ids).
-          pluck(
-            :id,
-            :ProjectName,
-            :computed_project_type,
-            o_t[:OrganizationName],
-            o_t[:id],
-          ).each do |id, p_name, type, o_name, o_id|
-            name = GrdaWarehouse::Hud::Project.confidentialize(name: p_name)
-            name = p_name if can_view_confidential_enrollment_details?
-            @data[[o_id, o_name]] ||= []
-            @data[[o_id, o_name]] << [
-              "#{name} (#{HUD.project_type_brief(type)})",
-              id,
-            ]
-          end
+          where(id: filter.effective_project_ids)
+
+        projects = projects.with_project_type(params[:supported_project_types].map(&:to_i)) if params[:supported_project_types].present?
+
+        projects.pluck(
+          :id,
+          :ProjectName,
+          :computed_project_type,
+          o_t[:OrganizationName],
+          o_t[:id],
+        ).each do |id, p_name, type, o_name, o_id|
+          name = GrdaWarehouse::Hud::Project.confidentialize(name: p_name)
+          name = p_name if can_view_confidential_enrollment_details?
+          @data[[o_id, o_name]] ||= []
+          @data[[o_id, o_name]] << [
+            "#{name} (#{HUD.project_type_brief(type)})",
+            id,
+          ]
+        end
         format.html do
           render layout: false
         end

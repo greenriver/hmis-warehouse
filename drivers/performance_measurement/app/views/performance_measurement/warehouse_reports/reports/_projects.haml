@@ -2,7 +2,7 @@
 - all_projects_class_name = "jAppProjectChart_#{key}"
 .p-4.mb-4{ class: "performance-measurement--highlight-light-#{@report.highlight_id(category)}" }
   %h2 Project Level
-%h4 Project Comparsison #{@report.filter.date_range_words}
+%h4 Project Comparison #{@report.filter.date_range_words}
 .c-chart--vertical-bar{ class: all_projects_class_name, data: { chart: result.data_for_projects_bar.to_json, include_percent: result.primary_unit.starts_with?('%').to_s }}
 - my_projects = @report.my_projects(current_user, key)
 - if my_projects.present?
