@@ -55,7 +55,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
     end
 
     def self.apply_hash_status(row, export)
-      return unless export.hash_status == 4
+      return row unless export.hash_status == 4
 
       row.FirstName = Digest::SHA256.hexdigest(Soundex.new(row.FirstName).soundex) if row.FirstName.present?
       row.LastName = Digest::SHA256.hexdigest(Soundex.new(row.LastName).soundex) if row.LastName.present?
