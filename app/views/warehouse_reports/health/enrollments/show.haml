@@ -21,8 +21,7 @@
     = f.submit 'Override', class: 'btn-sm btn-secondary'
 
   %h2.mt-4 Transactions
-
-%p= paginate @transactions
+= render 'common/pagination_top', item_name: 'transaction'
 - @transactions.each do |transaction|
   .panel-group.panel-collapsible
     - content_for :panel_collapse_content, flush: true do
