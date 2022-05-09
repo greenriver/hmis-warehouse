@@ -17,8 +17,7 @@ class HmisCsvImporter::ImporterErrorsController < ApplicationController
     @klass = HmisCsvImporter::Importer::Importer.importable_files[@filename]
     @data_source = @import.data_source
 
-    @errors = importer_log.import_errors.where(HmisCsvImporter::Importer::ImportError.arel_table[:source_type].lower.matches(pattern)).
-      page(params[:page]).
-      per(200)
+    @errors = importer_log.import_errors.where(HmisCsvImporter::Importer::ImportError.arel_table[:source_type].lower.matches(pattern))
+    @pagy, @errors = pagy(@errors, items: 200)
   end
 end

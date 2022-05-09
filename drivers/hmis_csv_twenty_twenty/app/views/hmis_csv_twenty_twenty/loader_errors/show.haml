@@ -3,8 +3,8 @@
     &laquo; Import Log
 
 %h1 Loader Errors
-%p= paginate @errors
-.card
+= render 'common/pagination_top', item_name: 'error'
+.table-responsive
   %table.table.table-striped
     %thead
       %tr
@@ -17,3 +17,4 @@
           %td= error.file_name
           %td= error.details
           %td= error.source
+= render 'common/pagination_bottom', item_name: 'error'
