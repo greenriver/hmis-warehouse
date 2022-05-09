@@ -17,7 +17,7 @@
               %tr
                 %td
                   = link_to_if(report.completed?, report.status, performance_measurement_warehouse_reports_report_path(report))
-                %th= render 'filter_attributes', filter: report.filter
+                %th= report.describe_filter_as_html
                 %td.text-nowrap
                   = report.created_at
                   .text-sm.text-muted by #{report.user&.name}

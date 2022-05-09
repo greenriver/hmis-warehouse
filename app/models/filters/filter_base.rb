@@ -261,6 +261,7 @@ module Filters
         end
         opts['Comparison Range'] = comparison_range_words if includes_comparison?
         opts['CoC Codes'] = chosen_coc_codes if coc_codes.present?
+        opts['CoC Code'] = chosen_coc_code if coc_code.present?
         opts['Project Types'] = chosen_project_types
         opts['Sub-Population'] = chosen_sub_population
         opts['Data Sources'] = data_source_names if data_source_ids.any?
@@ -737,6 +738,8 @@ module Filters
         'Genders'
       when :coc_codes
         'CoCs'
+      when :coc_code
+        'CoC'
       when :organization_ids
         'Organizations'
       when :project_ids
@@ -801,6 +804,8 @@ module Filters
         chosen_genders
       when :coc_codes
         chosen_coc_codes
+      when :coc_code
+        chosen_coc_code
       when :organization_ids
         chosen_organizations
       when :project_ids
@@ -866,6 +871,10 @@ module Filters
 
     def chosen_coc_codes
       coc_codes
+    end
+
+    def chosen_coc_code
+      coc_code
     end
 
     def chosen_organizations
