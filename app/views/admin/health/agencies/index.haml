@@ -4,23 +4,24 @@
 = render 'menus/health_admin_tabs'
 .row
   .col-sm-8
-    %table.table.table-sm
-      %thead
-        %tr
-          %th Name
-          %th Users
-          %th
-
-      %tbody
-        - @health_agencies.each do |health_agency|
+    .table-responsive
+      %table.table.table-striped
+        %thead
           %tr
-            %td= link_to health_agency.name, edit_admin_health_agency_path(health_agency)
-            %td
-              - health_agency.users.each do |user|
-                .health_agency_user= user.name
-            %td
-              = link_to admin_health_agency_path(health_agency), method: :delete, class: 'btn btn-sm btn-icon-only btn-danger', data: { :confirm => 'Are you sure?' } do
-                %span.icon-cross
+            %th Name
+            %th Users
+            %th
+
+        %tbody
+          - @health_agencies.each do |health_agency|
+            %tr
+              %td= link_to health_agency.name, edit_admin_health_agency_path(health_agency)
+              %td
+                - health_agency.users.each do |user|
+                  .health_agency_user= user.name
+              %td
+                = link_to admin_health_agency_path(health_agency), method: :delete, class: 'btn btn-sm btn-icon-only btn-danger', data: { :confirm => 'Are you sure?' } do
+                  %span.icon-cross
   .col-sm-4
     = link_to new_admin_health_agency_path, class: 'btn btn-primary' do
       %i.icon-plus

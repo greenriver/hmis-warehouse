@@ -10,8 +10,8 @@ module Admin
 
     def show
       @user = User.find params[:user_id]
-      @locations = @user.login_activities.order(created_at: :desc).
-        page(params[:page]).per(50)
+      @locations = @user.login_activities.order(created_at: :desc)
+      @pagy, @locations = pagy(@locations, items: 50)
     end
   end
 end

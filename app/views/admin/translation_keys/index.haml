@@ -5,36 +5,38 @@
 
 - locales = TranslationKey.available_locales
 
-.row.table-utilities
-  .col-sm-12
-    %p= page_entries_info @translation_keys, entry_name: _('translation')
-    %p= paginate @translation_keys
-.row
-  .col-sm-8
-    - if @translation_keys.present?
-      %table.table.table-sm
-        %thead
-          %tr
-            %th Default strings
-            - locales.each do |locale|
-              %th= human_locale(locale)
-        %tbody
-          - @translation_keys.each do |key|
+- if @pagy.count.positive?
+  .row
+    .col-sm-8
+      = render 'common/pagination_top', item_name: 'translation'
+      .table-responsive
+        %table.table.table-sm
+          %thead
             %tr
-              %td= key.key
+              %th Default strings
               - locales.each do |locale|
+                %th= human_locale(locale)
+              %th
+          %tbody
+            - @translation_keys.each do |key|
+              %tr
+                %td= key.key
+                - locales.each do |locale|
+                  %td
+                    - translation = key.translations.detect{|t| t.locale == locale }
+                    = simple_form_for(translation, remote: true, url: admin_translation_text_path(translation.id), method: :patch, html: {class: 'jTranslationTextForm'})do |t|
+                      = t.input :text, label: false, input_html: {class: 'jTranslationText', rows: 2, cols: 30}
                 %td
-                  - translation = key.translations.detect{|t| t.locale == locale }
-                  = simple_form_for(translation, remote: true, url: admin_translation_text_path(translation.id), method: :patch, html: {class: 'jTranslationTextForm'})do |t|
-                    = t.input :text, label: false, input_html: {class: 'jTranslationText', rows: 2, cols: 30}
-              %td
-                %button.btn.btn-secondary
-                  Save
-  .col-sm-4
-    = simple_form_for :search, as: :search, url: admin_translation_keys_path, method: :get do |f|
-      = f.input :q, label: 'Search'
-      = f.input :missing_translations, as: :boolean, label: 'Only show untranslated strings'
-      = f.button :submit, value: 'Search or Filter'
+                  %button.btn.btn-secondary.btn-sm
+                    Save
+      = render 'common/pagination_bottom', item_name: 'translation'
+    .col-sm-4.mt-8
+      = simple_form_for :search, as: :search, url: admin_translation_keys_path, method: :get do |f|
+        = f.input :q, label: 'Search'
+        = f.input :missing_translations, as: :boolean, label: 'Only show untranslated strings'
+        = f.button :submit, value: 'Search or Filter'
+- else
+  .none-found No translations found.
 
 = content_for :page_js do
   :javascript

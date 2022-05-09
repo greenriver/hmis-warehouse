@@ -15,9 +15,8 @@ module Admin
         pt_a[:item_id].eq(@user_id).and(pt_a[:item_type].eq('User')).
         or(pt_a[:referenced_user_id].eq(@user_id)),
       )
-      @versions = edits.where.not(whodunnit: nil).
-        order(created_at: :desc).
-        page(params[:page]).per(500)
+      @versions = edits.where.not(whodunnit: nil).order(created_at: :desc)
+      @pagy, @versions = pagy(@versions, items: 500)
     end
 
     def describe_changes_to(version)
