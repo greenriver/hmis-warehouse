@@ -1,4 +1,0 @@
-Medicaid_ID,Member_Name_Last,Member_Name_First,Member_Middle_Initial,Member_Suffix,Member_Date_of_Birth,Member_Sex,ACO_MCO_Name,ACO_MCO_PID,ACO_MCO_SL,Member_CP_Assignment_Plan,CP_Name_Official,CP_PID,CP_SL,Enrollment_Start_Date,Start_Reason_Desc,Disenrollment_Date,Stop_Reason_Desc,Record_Status,Record_Update_Date,Export_Date
-123,Last1,First1,,,1980-01-01,,,,,,,,,,,,,A,20190529,
-456,Last2,First2,,,1980-01-01,,,,,,,,,,,,,N,20190529,
-789,Last3,First3,,,1980-01-01,,,,,,,,,,,,,I,20190529,

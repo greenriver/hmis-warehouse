@@ -1,7 +1,7 @@
 - coc_cols = if active_report_versions.count > 1 then 'col-sm-3' else 'col-sm-6' end
 
 - default_coc_code = GrdaWarehouse::Config.get(:site_coc_codes)
-= simple_form_for @filter, as: :filter, url: url do |f|
+= simple_form_for @filter, as: :filter, url: url, data: { controller: 'filter-projects' } do |f|
   - content_for :filters_col_full do
     .hud-report-options
       %h2 Required Options
@@ -17,20 +17,9 @@
         - else
           = f.input :report_version, as: :hidden, input_html: { value: active_report_versions.map(&:last)}
         %div{ class: coc_cols }
-          = f.input :coc_codes, collection: @filter.coc_code_options_for_select(user: current_user), as: :select_two, input_html: {multiple: true}, label: 'CoC Codes', hint: default_coc_code
-      %h2 Projects to Include
-      .row
-        .col-6
-          = f.input :project_ids, collection: @filter.project_options_for_select(user: current_user), as: :grouped_select_two, group_method: :last, input_html: { multiple: true, placeholder: 'Choose Projects' },label: 'Projects'
-        .col-6
-          = f.input :data_source_ids, collection: @filter.data_source_options_for_select(user: current_user), as: :select_two, input_html: {multiple: true, placeholder: 'Choose Data Sources'}, label: 'Data Sources'
-      .row
-        .col-6
-          = f.input :project_type_codes, collection: @filter.path_project_types_for_select, input_html: { multiple: true, placeholder: 'Choose Project Types' }, label: 'Project Types', as: :select_two
-        .col-6
-          = f.input :project_group_ids, collection: @filter.project_groups_options_for_select(user: current_user), as: :select_two, input_html: {multiple: true, placeholder: 'Choose Project Groups'}, label: 'Project Groups'
-
+          = f.input :coc_codes, collection: @filter.coc_code_options_for_select(user: current_user), as: :select_two, input_html: {multiple: true, data: {'filter-projects-target' => 'cocCodes', 'action': 'change->filter-projects#update'}}, label: 'CoC Codes', hint: default_coc_code
+      = render 'hud_reports/project_filter', f: f, project_types_collection: @filter.path_project_types_for_select
   - content_for :filter_actions do
-    = f.button :submit, value: 'Queue Report'
+    = f.button :submit, value: 'Queue Report', data: { 'filter-projects-target' => 'submitButton' }
 
   = render 'warehouse_reports/filters', f: f

@@ -10,7 +10,7 @@
       .col-sm-3
         = f.input :end, as: :date_picker, label: 'End Date', required: true
       .col-sm-6
-        = f.input :coc_codes, collection: @filter.coc_code_options_for_select(user: current_user), as: :select_two, input_html: {multiple: true, placeholder: 'Choose CoCs'}, label: 'CoC Codes'
+        = f.input :coc_codes, collection: @filter.coc_code_options_for_select(user: current_user), as: :select_two, input_html: {multiple: true, placeholder: 'Choose CoCs', data: {'filter-projects-target' => 'cocCodes', 'action': 'change->filter-projects#update'}}, label: 'CoC Codes'
     = render 'hud_reports/project_filter', f: f
     %h2 Limits
     .row.mt-4
