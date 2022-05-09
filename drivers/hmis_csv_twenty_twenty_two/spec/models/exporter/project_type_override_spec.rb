@@ -81,10 +81,10 @@ RSpec.describe HmisCsvTwentyTwentyTwo::Exporter::Base, type: :model do
       project = csv.detect { |p| p['ProjectID'] == @project_ph.id.to_s }
       expect(project['MoveInDate']).not_to be_empty
     end
-    it 'TrackingMethod is set to nil' do
+    it 'TrackingMethod is set to blank' do
       csv = CSV.read(csv_file_path(@project_class, exporter: @exporter_2), headers: true)
       project = csv.detect { |p| p['ProjectID'] == @project_ph.id.to_s }
-      expect(project['TrackingMethod']).to eq csv.first['EntryDate']
+      expect(project['TrackingMethod']).to be_empty
     end
   end
 
