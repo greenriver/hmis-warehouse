@@ -1,1 +1,1 @@
-"AssessmentID","EnrollmentID","PersonalID","AssessmentDate","AssessmentLocation","AssessmentType","AssessmentLevel","PrioritizationStatus","DateCreated","DateUpdated","UserID","DateDeleted","ExportID"
+AssessmentID,EnrollmentID,PersonalID,AssessmentDate,AssessmentLocation,AssessmentType,AssessmentLevel,PrioritizationStatus,DateCreated,DateUpdated,UserID,DateDeleted,ExportID

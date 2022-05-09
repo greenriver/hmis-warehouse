@@ -1,1 +1,2 @@
 ProjectCoCID,ProjectID,CoCCode,Geocode,Address1,Address2,City,State,Zip,GeographyType,DateCreated,DateUpdated,UserID,DateDeleted,ExportID
+COC-1,P-1,XX-500,509025,,,,,,,2021-01-01 00:00:00,2021-01-01 00:00:00,user,,EXPORT

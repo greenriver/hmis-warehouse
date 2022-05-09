@@ -11,6 +11,10 @@ RSpec.shared_context 'report context', shared_context: :metadata do
 
   def default_filter
     {
+      start: Date.parse('2022-01-01'),
+      end: Date.parse('2022-12-31'),
+      project_type_codes: GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.keys,
+      coc_codes: ['XX-500', 'XX-501'],
     }
   end
 
@@ -19,7 +23,11 @@ RSpec.shared_context 'report context', shared_context: :metadata do
   end
 
   def report_result
-    HomelessSummaryReport::Report.last
+    @report_result ||= HomelessSummaryReport::Report.last
+  end
+
+  def result(field, demographics)
+    HomelessSummaryReport::Result.find_by(field: field, detail_link_slug: demographics, calculation: :count, report_id: report_result.id).value
   end
 
   def setup(file_path)

@@ -1,1 +1,2 @@
-"EnrollmentCoCID","EnrollmentID","HouseholdID","ProjectID","PersonalID","InformationDate","CoCCode","DataCollectionStage","DateCreated","DateUpdated","UserID","DateDeleted","ExportID"
+EnrollmentCoCID,EnrollmentID,HouseholdID,ProjectID,PersonalID,InformationDate,CoCCode,DataCollectionStage,DateCreated,DateUpdated,UserID,DateDeleted,ExportID
+ECOC-1,E-1,H-1,P-1,C-1,2022-01-01,XX-500,1,2022-01-01 00:00:00,2022-01-01 00:00:00,user,,EXPORT

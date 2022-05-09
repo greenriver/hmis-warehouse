@@ -134,7 +134,7 @@ module HomelessSummaryReport::WarehouseReports
     end
 
     private def filter_class
-      ::Filters::FilterBase
+      ::Filters::HudFilterBase
     end
 
     private def flash_interpolation_options

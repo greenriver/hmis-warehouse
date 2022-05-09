@@ -1,1 +1,1 @@
-"EventID","EnrollmentID","PersonalID","EventDate","Event","ProbSolDivRRResult","ReferralCaseManageAfter","LocationCrisisOrPHHousing","ReferralResult","ResultDate","DateCreated","DateUpdated","UserID","DateDeleted","ExportID"
+EventID,EnrollmentID,PersonalID,EventDate,Event,ProbSolDivRRResult,ReferralCaseManageAfter,LocationCrisisOrPHHousing,ReferralResult,ResultDate,DateCreated,DateUpdated,UserID,DateDeleted,ExportID

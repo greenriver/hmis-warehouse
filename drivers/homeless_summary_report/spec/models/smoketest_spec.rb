@@ -12,6 +12,7 @@ RSpec.describe HomelessSummaryReport::Report, type: :model do
 
   before(:all) do
     setup(default_setup_path)
+    run!(default_filter)
   end
 
   after(:all) do
@@ -19,7 +20,7 @@ RSpec.describe HomelessSummaryReport::Report, type: :model do
   end
 
   it 'populates the report' do
-    run!(default_filter)
     expect(report_result.completed_at).not_to eq(nil)
+    expect(result(:m1a_es_sh_days, :spm_all_persons__all)).to be >= 1
   end
 end
