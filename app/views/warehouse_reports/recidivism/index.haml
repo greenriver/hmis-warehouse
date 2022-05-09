@@ -19,9 +19,7 @@
       %i.icon-file-excel.icon-lg
       Download
 
-  .pagy-container.mb-4
-    != pagy_info(@pagy, item_name: _('client').pluralize(@pagy.count))
-    != pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
+  = render 'common/pagination_top', item_name: 'client'
 
   - @clients.each do |client|
     .warehouse-reports__client

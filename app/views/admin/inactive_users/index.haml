@@ -12,9 +12,7 @@
 = render 'admin/users/tabs', selected_path: admin_inactive_users_path
 
 - if @pagy.count.positive?
-  .pagy-container.mb-4
-    != pagy_info(@pagy, item_name: _('user account').pluralize(@pagy.count))
-    != pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
+  = render 'common/pagination_top', item_name: 'user account'
   .table-responsive
     %table.table.table-striped
       %thead

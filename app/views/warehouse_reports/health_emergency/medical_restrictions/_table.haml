@@ -4,9 +4,7 @@
       = link_to({action: :index, format: :pdf}.merge(filter: filter_params), {class: 'btn btn-secondary'}) do
         %i.icon-download2
         Report as PDF
-    .pagy-container.mb-4
-      != pagy_info(@pagy, item_name: _('restriction').pluralize(@pagy.count))
-      != pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
+    = render 'common/pagination_top', item_name: 'restriction'
     - if params[:batch_id]
       %p.p-4.report-hightlight Hightlighed rows were indicate they were added in this batch.
   .table-responsive

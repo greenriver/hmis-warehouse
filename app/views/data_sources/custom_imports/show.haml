@@ -1,9 +1,7 @@
 - content_for :title, "#{@config.description} Imports for #{@data_source.short_name}"
 %h1= content_for :title
 - if @pagy.count.positive?
-  .pagy-container.mb-4
-    != pagy_info(@pagy, item_name: _('file').pluralize(@pagy.count))
-    != pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
+  = render 'common/pagination_top', item_name: 'file'
   .table-responsive
     %table.table.table-striped
       %thead

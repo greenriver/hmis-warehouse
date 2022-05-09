@@ -23,9 +23,7 @@
   directions.each {| k,v | titles[k] = @users.human_attribute_name(k)}
 
 - if @pagy.count.positive?
-  .pagy-container.mb-4
-    != pagy_info(@pagy, item_name: _('user account').pluralize(@pagy.count))
-    != pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
+  = render 'common/pagination_top', item_name: 'user account'
   .table-responsive
     %table.table.table-striped
       %thead
