@@ -6,14 +6,25 @@
 
 module HmisCsvTwentyTwentyTwo::Exporter
   class User
+    include ::HmisCsvTwentyTwentyTwo::Exporter::ExportConcern
+
     def initialize(options)
       @options = options
     end
 
-    def process(row)
-      row = self.class.adjust_keys(row)
-
-      row
+    # Append a system user record to cover records where the user wasn't available
+    def close
+      user = ::User.system_user
+      row =  GrdaWarehouse::Hud::User.new(
+        UserID: 'op-system',
+        UserFirstName: user.first_name,
+        UserLastName: user.last_name,
+        UserEmail: user.email,
+        DateCreated: Time.current,
+        DateUpdated: Time.current,
+        ExportID: @options[:export].export_id,
+      )
+      yield row
     end
 
     def self.adjust_keys(row)

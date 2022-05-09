@@ -13,6 +13,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
     end
 
     def process(row)
+      row = assign_export_id(row)
       row = self.class.adjust_keys(row, @options[:export])
 
       row
@@ -23,9 +24,9 @@ module HmisCsvTwentyTwentyTwo::Exporter
 
       # Pre-calculate and assign. After assignment the relations will be broken
       personal_id = if export.include_deleted || export.period_type == 1
-        row&.client_with_deleted&.id
+        row&.client_with_deleted&.warehouse_client_source&.destination_id
       else
-        row&.client&.id
+        row&.client&.warehouse_client_source&.destination_id
       end
       project_id = if export.include_deleted || export.period_type == 1
         row&.project_with_deleted&.id

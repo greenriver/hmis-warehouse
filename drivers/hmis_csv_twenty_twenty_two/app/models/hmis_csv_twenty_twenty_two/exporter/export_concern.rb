@@ -82,9 +82,9 @@ module HmisCsvTwentyTwentyTwo::Exporter::ExportConcern
 
     def self.personal_id(row, export)
       id = if export.include_deleted || export.period_type == 1
-        row.enrollment_with_deleted&.client_with_deleted&.id
+        row.enrollment_with_deleted&.client_with_deleted&.warehouse_client_source&.destination_id
       else
-        row.enrollment&.client&.id
+        row.enrollment&.client&.warehouse_client_source&.destination_id
       end
 
       id || 'Unknown'
@@ -98,6 +98,18 @@ module HmisCsvTwentyTwentyTwo::Exporter::ExportConcern
       end
 
       id || 'Unknown'
+    end
+
+    def process(row)
+      row = assign_export_id(row)
+      row = self.class.adjust_keys(row)
+
+      row
+    end
+
+    def assign_export_id(row)
+      row.ExportID = @options[:export].export_id
+      row
     end
   end
 end

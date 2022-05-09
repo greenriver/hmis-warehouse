@@ -11,7 +11,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
     def initialize(options)
       @output_file = options[:output_file]
       @keys = options[:hmis_class].hmis_configuration(version: '2022').keys
-      @csv ||= CSV.open(@output_file, 'w')
+      @csv ||= CSV.open(@output_file, 'wb', force_quotes: true)
       return if @headers_written
 
       @headers_written = true
@@ -19,7 +19,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
     end
 
     def write(row)
-      @csv ||= CSV.open(@output_file, 'w')
+      @csv ||= CSV.open(@output_file, 'wb', force_quotes: true)
       @csv << row.values_at(*@keys)
     end
 
