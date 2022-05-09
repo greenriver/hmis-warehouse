@@ -6,30 +6,26 @@
   %li.nav-item{ class: ( 'active' if @search == 'unseen' ) }
     = link_to 'Unread', messages_path( message_params.merge search: 'unseen' ), class: 'nav-link'
 
-.row
-  .col-sm-4
-
-    %table.table.table-sm
-      %tr
-        %th Subject
-        %th Sent
-      - @messages.each do |m|
-        %tr
-          %td
-            - link = link_to ApplicationMailer.remove_prefix(m.subject), messages_path( message_params.merge id: m.id )
-            - if m.opened?
-              = link
-            - else
-              %b= link
-          %td
-            - link = link_to m.created_at, messages_path( message_params.merge id: m.id )
-            - if m.opened?
-              = link.html_safe
-            - else
-              %b= link
-
-    %p= paginate @messages
-
-  .col-sm-8
-    - if @message
-      = render 'message'
+- if @pagy.count.positive?
+  .row
+    .col-sm-6
+      = render 'common/pagination_top', item_name: 'message'
+      .table-responsive
+        %table.table.table-striped.table-sm
+          %tr
+            %th Subject
+            %th Sent
+          - @messages.each do |m|
+            %tr
+              %td
+                - link = link_to ApplicationMailer.remove_prefix(m.subject), messages_path(message_params.merge id: m.id)
+                - if m.opened?
+                  = link
+                - else
+                  %b= link
+              %td= m.created_at
+    .col-sm-6
+      - if @message
+        = render 'message'
+- else
+  .none-found No messages.
