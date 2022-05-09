@@ -22,9 +22,6 @@
               %td
                 = link_to hap_report_warehouse_reports_hap_report_path(report), method: :delete, class: 'btn btn-sm btn-danger btn-icon-only', data: {confirm: "Are you sure you want to delete this report?"} do
                   %i.icon-cross
-    - if @pagy.pages > 1
-      .pagy-container.mt-4
-        != pagy_info(@pagy, item_name: _('report').pluralize(@pagy.count))
-        != pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
+    = render 'common/pagination_bottom', item_name: 'report'
   - else
     .none-found No reports found.

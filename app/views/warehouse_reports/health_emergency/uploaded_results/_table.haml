@@ -20,9 +20,6 @@
                 = link_to warehouse_reports_health_emergency_uploaded_result_path(batch) do
                   = batch.uploaded_count
             %td= batch.matched_count
-  - if @pagy.pages > 1
-    .pagy-container.mt-4
-      != pagy_info(@pagy, item_name: _('batch').pluralize(@pagy.count))
-      != pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
+  = render 'common/pagination_bottom', item_name: 'batch'
 - else
   .none-found.mt-4 No batches found.

@@ -26,9 +26,6 @@
               - if served_on
                 on
                 = served_on
-  - if @pagy.pages > 1
-    .pagy-container.mt-4
-      != pagy_info(@pagy, item_name: _('client').pluralize(@pagy.count))
-      != pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
+  = render 'common/pagination_bottom', item_name: 'client'
 - else
   .none-found No clients found.

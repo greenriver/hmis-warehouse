@@ -37,9 +37,6 @@
             %td= entry.first_date_in_program
             %td= entry.project_name
             %td= client.source_clients.map{|m| m.data_source.short_name}.uniq.join(', ')
-  - if @pagy.pages > 1
-    .pagy-container.mt-4
-      != pagy_info(@pagy, item_name: _('client').pluralize(@pagy.count))
-      != pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
+  = render 'common/pagination_bottom', item_name: 'client'
 - else
   .none-found.mt-4 No clients found.

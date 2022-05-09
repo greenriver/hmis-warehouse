@@ -29,9 +29,6 @@
             %td= client.ce_assessment.vulnerability_score
             %td= client.ce_assessment.created_at&.to_date
             %td= checkmark(client.ce_assessment.submitted_at.present?)
-  - if @pagy.pages > 1
-    .pagy-container.mt-4
-      != pagy_info(@pagy, item_name: _('assessment').pluralize(@pagy.count))
-      != pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
+  = render 'common/pagination_bottom', item_name: 'assessment'
 - else
   .none-found.mt-4 No assessments found.
