@@ -4,6 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+require 'soundex'
 module HmisCsvTwentyTwentyTwo::Exporter
   class Client::Overrides
     include ::HmisCsvTwentyTwentyTwo::Exporter::ExportConcern
@@ -18,14 +19,15 @@ module HmisCsvTwentyTwentyTwo::Exporter
     # in addition, there is a single `apply_overrides` method if you want all of them
     # the `process method` will apply all overrides, and then set primary and foreign keys correctly for export
     def process(row)
-      row = self.class.apply_overrides(row)
+      row = self.class.apply_overrides(row, export: @options[:export])
 
       row
     end
 
-    def self.apply_overrides(row)
+    def self.apply_overrides(row, export:)
       # Don't actually do this, identify duplicates and client cleanup should handle this, just use the destination client
       # row = pick_best_source_client_data(row)
+      row = apply_hash_status(row, export)
       row = apply_length_limits(row)
       row = enforce_gender_none(row)
       [
@@ -49,6 +51,22 @@ module HmisCsvTwentyTwentyTwo::Exporter
         row = replace_blank(row, hud_field: hud_field, default_value: 99)
       end
 
+      row
+    end
+
+    def self.apply_hash_status(row, export)
+      return unless export.hash_status == 4
+
+      row.FirstName = Digest::SHA256.hexdigest(Soundex.new(row.FirstName).soundex) if row.FirstName.present?
+      row.LastName = Digest::SHA256.hexdigest(Soundex.new(row.LastName).soundex) if row.LastName.present?
+      row.MiddleName = Digest::SHA256.hexdigest(Soundex.new(row.MiddleName).soundex) if row.MiddleName.present?
+
+      if row.SSN.present?
+        padded_ssn = row.SSN.rjust(9, 'x')
+        last_four =  padded_ssn.last(4)
+        digested_ssn = Digest::SHA256.hexdigest(padded_ssn)
+        row.SSN = "#{last_four}#{digested_ssn}"
+      end
       row
     end
 
