@@ -50,8 +50,8 @@ module HmisCsvTwentyTwentyTwo::Exporter
     def self.transforms
       [
         HmisCsvTwentyTwentyTwo::Exporter::IncomeBenefit::Overrides,
-        HmisCsvTwentyTwentyTwo::Exporter::FakeData,
         HmisCsvTwentyTwentyTwo::Exporter::IncomeBenefit,
+        HmisCsvTwentyTwentyTwo::Exporter::FakeData,
       ]
     end
   end

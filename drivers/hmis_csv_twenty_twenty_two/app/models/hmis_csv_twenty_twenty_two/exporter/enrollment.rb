@@ -55,8 +55,8 @@ module HmisCsvTwentyTwentyTwo::Exporter
     def self.transforms
       [
         HmisCsvTwentyTwentyTwo::Exporter::Enrollment::Overrides,
-        HmisCsvTwentyTwentyTwo::Exporter::FakeData,
         HmisCsvTwentyTwentyTwo::Exporter::Enrollment,
+        HmisCsvTwentyTwentyTwo::Exporter::FakeData,
       ]
     end
   end

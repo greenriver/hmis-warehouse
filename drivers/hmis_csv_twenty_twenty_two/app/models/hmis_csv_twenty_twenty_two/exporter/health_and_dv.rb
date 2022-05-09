@@ -50,8 +50,8 @@ module HmisCsvTwentyTwentyTwo::Exporter
     def self.transforms
       [
         HmisCsvTwentyTwentyTwo::Exporter::HealthAndDv::Overrides,
-        HmisCsvTwentyTwentyTwo::Exporter::FakeData,
         HmisCsvTwentyTwentyTwo::Exporter::HealthAndDv,
+        HmisCsvTwentyTwentyTwo::Exporter::FakeData,
       ]
     end
   end

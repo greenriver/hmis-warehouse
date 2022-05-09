@@ -50,8 +50,8 @@ module HmisCsvTwentyTwentyTwo::Exporter
     def self.transforms
       [
         HmisCsvTwentyTwentyTwo::Exporter::CurrentLivingSituation::Overrides,
-        HmisCsvTwentyTwentyTwo::Exporter::FakeData,
         HmisCsvTwentyTwentyTwo::Exporter::CurrentLivingSituation,
+        HmisCsvTwentyTwentyTwo::Exporter::FakeData,
       ]
     end
   end

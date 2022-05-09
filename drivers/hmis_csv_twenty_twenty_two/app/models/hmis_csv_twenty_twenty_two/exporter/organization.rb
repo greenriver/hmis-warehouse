@@ -47,8 +47,8 @@ module HmisCsvTwentyTwentyTwo::Exporter
     def self.transforms
       [
         HmisCsvTwentyTwentyTwo::Exporter::Organization::Overrides,
-        HmisCsvTwentyTwentyTwo::Exporter::FakeData,
         HmisCsvTwentyTwentyTwo::Exporter::Organization,
+        HmisCsvTwentyTwentyTwo::Exporter::FakeData,
       ]
     end
   end

@@ -49,8 +49,8 @@ module HmisCsvTwentyTwentyTwo::Exporter
 
     def self.transforms
       [
-        HmisCsvTwentyTwentyTwo::Exporter::FakeData,
         HmisCsvTwentyTwentyTwo::Exporter::Event,
+        HmisCsvTwentyTwentyTwo::Exporter::FakeData,
       ]
     end
   end

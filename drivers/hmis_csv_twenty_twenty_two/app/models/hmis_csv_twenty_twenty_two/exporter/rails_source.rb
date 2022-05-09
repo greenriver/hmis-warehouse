@@ -11,10 +11,8 @@ module HmisCsvTwentyTwentyTwo::Exporter
     end
 
     def each
-      @scope.find_in_batches(batch_size: 10_000) do |batch|
-        batch.each do |row|
-          yield(row)
-        end
+      @scope.find_each(batch_size: 10_000) do |row|
+        yield(row)
       end
     end
   end
