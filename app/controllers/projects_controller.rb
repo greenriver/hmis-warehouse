@@ -15,8 +15,8 @@ class ProjectsController < ApplicationController
   def show
     @clients = @project.service_history_enrollments.entry.
       preload(:client).
-      order(she_t[:first_date_in_program].desc, she_t[:last_date_in_program].desc).
-      page(params[:page]).per(25)
+      order(she_t[:first_date_in_program].desc, she_t[:last_date_in_program].desc)
+    @pagy, @clients = pagy(@clients)
     url = 'censuses'
     @show_census = GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: url).viewable_by(current_user).exists?
   end

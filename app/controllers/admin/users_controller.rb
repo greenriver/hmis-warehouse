@@ -26,11 +26,11 @@ module Admin
         user_scope
       end
 
-      # sort / paginate
       @users = @users.
         preload(:roles).
-        order(sort_column => sort_direction).
-        page(params[:page]).per(25)
+        order(sort_column => sort_direction)
+
+      @pagy, @users = pagy(@users)
     end
 
     def edit

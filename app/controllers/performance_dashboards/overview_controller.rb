@@ -50,6 +50,7 @@ module PerformanceDashboards
           :lot_homeless,
           :breakdown,
           :coordinated_assessment_living_situation_homeless,
+          :inactivity_days,
         ],
       )
     end

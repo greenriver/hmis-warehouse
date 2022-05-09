@@ -8,6 +8,8 @@
 - else
   - chart_class = "#{key}-#{breakdown.parameterize}-chart"
 - breakdown_notes ||= false
+- newly_homeless_range = @filter.available_inactivity_days.invert[@filter.inactivity_days]
+- newly_homeless_range = newly_homeless_range == '1 year' ? 'year' : newly_homeless_range
 
 :ruby
   # FIXME
@@ -23,4 +25,4 @@
   end
 
 .perf-overview-breakdown
-  = render 'performance_dashboards/overview/breakdown/base', key: key, chart_class: chart_class, desc: "#{@report.performance_type.pluralize} entering a project in the chosen universe who have not been seen in the universe for the past 24 months.", detail_params: detail_params, comparison_params: comparison_params, columns: columns, categories: categories, sub_keys: sub_keys, client_counts: client_counts, chart_height: chart_height, excluded_categories: excluded_categories, breakdown_notes: breakdown_notes
+  = render 'performance_dashboards/overview/breakdown/base', key: key, chart_class: chart_class, desc: "#{@report.performance_type.pluralize} entering a project in the chosen universe who have not been seen in the universe for the past #{newly_homeless_range}.", detail_params: detail_params, comparison_params: comparison_params, columns: columns, categories: categories, sub_keys: sub_keys, client_counts: client_counts, chart_height: chart_height, excluded_categories: excluded_categories, breakdown_notes: breakdown_notes

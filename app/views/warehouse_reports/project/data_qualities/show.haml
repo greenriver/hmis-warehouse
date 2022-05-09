@@ -58,7 +58,7 @@
 
     = render 'actions', f: f
 - elsif params[:filters].present?
-  %p.none-found
+  .none-found
     Your search resulted in no projects,
     = link_to 'choose a less specific search.', warehouse_reports_project_data_quality_path
 = content_for :page_js do

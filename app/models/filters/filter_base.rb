@@ -65,6 +65,7 @@ module Filters
     attribute :returned_to_homelessness_from_permanent_destination, Boolean, default: false
     attribute :creator_id, Integer, default: nil
     attribute :report_version, Symbol
+    attribute :inactivity_days, Integer, default: 365 * 2
 
     validates_presence_of :start, :end
 
@@ -144,6 +145,7 @@ module Filters
       self.times_homeless_in_last_three_years = filters.dig(:times_homeless_in_last_three_years)&.reject(&:blank?)&.map(&:to_i) unless filters.dig(:times_homeless_in_last_three_years).nil?
       self.report_version = filters.dig(:report_version)&.to_sym
       self.creator_id = filters.dig(:creator_id).to_i unless filters.dig(:creator_id).nil?
+      self.inactivity_days = filters.dig(:inactivity_days).to_i unless filters.dig(:inactivity_days).nil?
 
       ensure_dates_work if valid?
       self
@@ -195,6 +197,7 @@ module Filters
           report_version: report_version,
           ph: ph,
           creator_id: creator_id,
+          inactivity_days: inactivity_days,
         },
       }
     end
@@ -226,6 +229,7 @@ module Filters
         :report_version,
         :ph,
         :creator_id,
+        :inactivity_days,
         coc_codes: [],
         project_types: [],
         project_type_codes: [],
@@ -621,6 +625,19 @@ module Filters
         fifty_five_to_fifty_nine: '55 - 59',
         sixty_to_sixty_one: '60 - 61',
         over_sixty_one: '62+',
+      }.invert.freeze
+    end
+
+    def available_inactivity_days
+      {
+        30 => '30 days',
+        45 => '45 days',
+        60 => '60 days',
+        90 => '90 days',
+        365 => '1 year',
+        365 * 2 => '2 years',
+        365 * 3 => '3 years',
+        365 * 20 => '20 years',
       }.invert.freeze
     end
 

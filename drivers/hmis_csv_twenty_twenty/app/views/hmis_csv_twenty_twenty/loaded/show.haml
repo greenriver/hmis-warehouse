@@ -23,4 +23,4 @@
               - row.hmis_data.each do |key, value|
                 %td= link_to_if key.to_sym == @klass.hud_key, value, hmis_path(search: {type: entry_name, id: value, data_source_id: row.data_source_id })
 - else
-  %p.well.none-found No data found.
+  .none-found No data found.

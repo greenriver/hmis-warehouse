@@ -6,7 +6,7 @@
   %p Showing data for #{pluralize(data.count, 'unique client')}.
   %h3 Gender
   .card.mb-6
-    %table.table.table-striped.mb-0
+    %table.table.table-striped
       %thead
         %tr
           - HUD.gender_id_to_field_name.each_key do |id|
@@ -17,7 +17,7 @@
             %td= data.count { |row| row[field] == 1 }
   %h3 Age
   .card.mb-6
-    %table.table.table-striped.mb-0
+    %table.table.table-striped
       %thead
         %tr
           - GrdaWarehouse::Hud::Client.extended_age_groups.each_value do |group|
@@ -28,7 +28,7 @@
             %td= data.count { |row| group[:range].include?(row[:reporting_age]) }
   %h3 Race
   .card.mb-6
-    %table.table.table-striped.mb-0
+    %table.table.table-striped
       %thead
         %tr
           - HUD.races(multi_racial: true).values.each do |race|
@@ -39,7 +39,7 @@
             %td= data.count { |row| row[:race] == race }
   %h3 Ethnicity
   .card.mb-6
-    %table.table.table-striped.mb-0
+    %table.table.table-striped
       %thead
         %tr
           - HUD.yes_no_missing_options.each_value do |option|

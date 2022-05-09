@@ -38,7 +38,7 @@
     %h3 Contacts
     %p Contacts are inherited from included projects.
     .card
-      %table.table.table-striped.mb-0
+      %table.table.table-striped
         %thead
           %tr
             %th Name
@@ -53,8 +53,8 @@
 .mt-6
   - if @reports&.any?
     %h3 Project Data Quality Reports
-    .card
-      %table.table.table-striped.mb-0
+    .table-responsive
+      %table.table.table-striped
         %thead
           %tr
             %th Date Range
@@ -70,6 +70,4 @@
               %td
                 = report.completed_at
   - else
-    .well
-      %p.none-found
-        No reports on file
+    .none-found No reports on file
