@@ -34,7 +34,7 @@ module WarehouseReports::Hud
         order(EntryDate: :desc)
       respond_to do |format|
         format.html do
-          @pagy, @enrollments = pagy(@enrollments)
+          @pagy, @enrollments = pagy(@enrollments, items: 50)
         end
         format.xlsx {}
       end

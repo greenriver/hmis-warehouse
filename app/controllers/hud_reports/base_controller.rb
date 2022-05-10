@@ -88,9 +88,8 @@ module HudReports
         @reports = @reports.joins(:report_cells).
           merge(report_cell_source.universe.where(question: @question))
       end
-      @reports = apply_view_filters(@reports)
-      @reports = @reports.order(created_at: :desc).
-        page(params[:page]).per(25)
+      @reports = apply_view_filters(@reports).order(created_at: :desc)
+      @pagy, @reports = pagy(@reports)
     end
 
     def apply_view_filters(reports)

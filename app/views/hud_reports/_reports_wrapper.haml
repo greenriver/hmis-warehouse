@@ -1,14 +1,8 @@
-.row
-  - if @reports.present?
-    .col
-      %p= paginate @reports
-  .col.d-flex
-    .ml-auto
-      = render 'hud_reports/view_filter'
-- if @reports.present?
+- if @pagy.count.positive?
+  .text-right
+    = render 'hud_reports/view_filter'
   .jReportListing
     = render 'hud_reports/reports'
   = render 'hud_reports/list_refresher'
-  %p= paginate @reports
 - else
   .none-found.mt-4 No reports to show
