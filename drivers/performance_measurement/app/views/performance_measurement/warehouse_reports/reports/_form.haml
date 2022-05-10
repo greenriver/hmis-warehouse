@@ -1,5 +1,5 @@
 - url = polymorphic_path(@report.report_path_array)
-- alert = 'Please note, the following options are additive.  If you choose a single project and a project type, the report will run for all projects in the project type and the chosen project.  If you choose a data source and project type, the report will run for all projects in the chosen data source and chosen project type. Projects are limited by supported Project Types (PH, ES, TH, SH, SO) and selected CoC.'
+- alert = 'Included projects are limited by supported types (ES, SO, SH, TH, PH) and selected CoC.'
 = simple_form_for @filter, as: :filters, url: url, data: { controller: 'filter-projects', 'filter-projects-supported-project-types-value': @report.project_type_ids } do |f|
   - content_for :filters_col_full do
     %p Please note, the report will cover the year prior to the date chosen, and provide a comparison to the year before that.

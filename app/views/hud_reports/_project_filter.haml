@@ -1,10 +1,11 @@
 - project_types_collection = local_assigns[:project_types_collection] || @filter.available_residential_project_types
 - projects_collection = local_assigns[:projects_collection] || @filter.project_options_for_select(user: current_user)
 %h2 Projects to Include
-- if local_assigns[:alert]
-  %p.alert.alert-info= local_assigns[:alert]
-- else
-  %p.alert.alert-info Please note, the following options are additive.  If you choose a single project and a project type, the report will run for all projects in the project type and the chosen project.  If you choose a data source and project type, the report will run for all projects in the chosen data source and chosen project type.
+%p.alert.alert-info
+  Please note, the following options are additive.  If you choose a single project and a project type, the report will run for all projects in the project type and the chosen project.  If you choose a data source and project type, the report will run for all projects in the chosen data source and chosen project type.
+  - if local_assigns[:alert].present?
+    %br
+    %br= local_assigns[:alert]
 .row
   .col-md-8
     .row
