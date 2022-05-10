@@ -8,7 +8,7 @@
       = link_to new_data_source_non_hmis_upload_path, class: 'btn btn-primary pull-right' do
         %span.icon-plus
         Upload Dashboard Extras
-- if true #@pagy.count.positive?
+- if @pagy.count.positive?
   = render 'common/pagination_top', item_name: 'upload'
   .table-responsive
     %table.table.table-striped.table-sm
