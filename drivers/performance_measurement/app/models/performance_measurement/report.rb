@@ -123,7 +123,7 @@ module PerformanceMeasurement
 
     def project_options_for_select(user)
       GrdaWarehouse::Hud::Project.viewable_by(user).
-        where(ProjectType: project_type_ids).
+        with_hud_project_type(project_type_ids).
         options_for_select(user: user)
     end
 
