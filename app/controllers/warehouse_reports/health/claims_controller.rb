@@ -129,8 +129,8 @@ module WarehouseReports::Health
         format.html do
           patient_t = Health::Patient.arel_table
           @qualifying_activities = @report.qualifying_activities.joins(:patient).
-            order(patient_t[:last_name].asc, patient_t[:first_name].asc, date_of_activity: :desc).
-            page(params[:page]).per(100)
+            order(patient_t[:last_name].asc, patient_t[:first_name].asc, date_of_activity: :desc)
+          @pagy, @qualifying_activities = pagy(@qualifying_activities, items: 100)
         end
       end
     end
