@@ -33,5 +33,6 @@
             %td
               = link_to ad_hoc_data_source_path(data_source), method: :delete, class: 'btn btn-sm btn-danger btn-icon-only', data: { confirm: "Are you certain you want to delete #{data_source.name}?" } do
                 %i.icon-cross
+  = render 'common/pagination_bottom', item_name: 'data source'
 - else
   .none-found No Ad-Hoc Data Sources
