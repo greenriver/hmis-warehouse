@@ -1,29 +1,26 @@
 .warehouse-reports__ad_hoc-export
-  - if @reports.exists?
-    .row
-      .col-8
-        %p= page_entries_info @reports, entry_name: _('report')
-    .card
-      .table-responsive
-        %table.table.table-striped
-          %thead
+  - if @pagy.count.positive?
+    = render 'common/pagination_top', item_name: 'report'
+    .table-responsive
+      %table.table.table-striped
+        %thead
+          %tr
+            %th Status
+            %th Options
+            %th Requested
+            %th
+        %tbody.report-listing.warehouse-reports__completed
+          - @reports.each do |report|
             %tr
-              %th Status
-              %th Options
-              %th Requested
-              %th
-          %tbody.report-listing.warehouse-reports__completed
-            - @reports.each do |report|
-              %tr
-                %td
-                  = link_to_if(report.completed?, report.status, performance_measurement_warehouse_reports_report_path(report))
-                %th= render 'filter_attributes', filter: report.filter
-                %td.text-nowrap
-                  = report.created_at
-                  .text-sm.text-muted by #{report.user&.name}
-                %td
-                  = link_to performance_measurement_warehouse_reports_report_path(report), method: :delete, class: 'btn btn-sm btn-danger btn-icon-only', data: {confirm: "Are you sure you want to delete this report?"} do
-                    %i.icon-cross
-
+              %td
+                = link_to_if(report.completed?, report.status, performance_measurement_warehouse_reports_report_path(report))
+              %th= render 'filter_attributes', filter: report.filter
+              %td.text-nowrap
+                = report.created_at
+                .text-sm.text-muted by #{report.user&.name}
+              %td
+                = link_to performance_measurement_warehouse_reports_report_path(report), method: :delete, class: 'btn btn-sm btn-danger btn-icon-only', data: {confirm: "Are you sure you want to delete this report?"} do
+                  %i.icon-cross
+    = render 'common/pagination_bottom', item_name: 'report'
   - else
     .none-found No reports found.

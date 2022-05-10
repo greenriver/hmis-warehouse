@@ -15,8 +15,8 @@ module WarehouseReports::Health
 
     def index
       @reports = report_scope.order(created_at: :desc).
-        select(:id, :user_id, :options, :started_at, :completed_at).
-        page(params[:page]).per(25)
+        select(:id, :user_id, :options, :started_at, :completed_at)
+      @pagy, @reports = pagy(@reports)
     end
 
     def create
