@@ -115,7 +115,7 @@ module AuditReports
       end
 
       sorted.reverse! if @direction == 'desc'
-      Kaminari.paginate_array(sorted)
+      sorted
     end
 
     def view_history
