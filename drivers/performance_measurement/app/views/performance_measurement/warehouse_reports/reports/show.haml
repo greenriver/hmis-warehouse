@@ -10,6 +10,6 @@
 %p= "Created by #{@report.user.name_with_email} on #{@report.completed_at.to_date}"
 .well.report-listing.warehouse-reports__completed
   %h3 Chosen Universe
-  = render 'filter_attributes', filter: @report.filter
+  .mt-4= @report.describe_filter_as_html
 
 = render 'table', goal_popover: true, pdf: false
