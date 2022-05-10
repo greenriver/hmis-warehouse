@@ -12,11 +12,17 @@ module HudPathReport::Filters
 
     def project_options_for_select(user:)
       path_funded = ::GrdaWarehouse::Hud::Funder.funding_source(funder_code: 21)
-      all_project_scope.joins(:funders).options_for_select(user: user, scope: path_funded)
+      all_project_scope.with_hud_project_type(path_project_type_ids)
+        .joins(:funders)
+        .options_for_select(user: user, scope: path_funded)
     end
 
     def path_project_types_for_select
       GrdaWarehouse::Hud::Project::PROJECT_GROUP_TITLES.select { |k, _| k.in?([:so, :services_only]) }.invert.freeze
+    end
+
+    def path_project_type_ids
+      [:so, :services_only].map { |s| GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING[s] }.flatten
     end
   end
 end

@@ -1,7 +1,7 @@
 - coc_cols = if active_report_versions.count > 1 then 'col-sm-3' else 'col-sm-6' end
-
 - default_coc_code = GrdaWarehouse::Config.get(:site_coc_codes)
-= simple_form_for @filter, as: :filter, url: url, data: { controller: 'filter-projects' } do |f|
+- alert = 'Included projects are limited by supported types (Street Outreach and Services Only) and selected CoCs.'
+= simple_form_for @filter, as: :filter, url: url, data: { controller: 'filter-projects', 'filter-projects-supported-project-types-value': @filter.path_project_type_ids } do |f|
   - content_for :filters_col_full do
     .hud-report-options
       %h2 Required Options
@@ -18,7 +18,8 @@
           = f.input :report_version, as: :hidden, input_html: { value: active_report_versions.map(&:last)}
         %div{ class: coc_cols }
           = f.input :coc_codes, collection: @filter.coc_code_options_for_select(user: current_user), as: :select_two, input_html: {multiple: true, data: {'filter-projects-target' => 'cocCodes', 'action': 'change->filter-projects#update'}}, label: 'CoC Codes', hint: default_coc_code
-      = render 'hud_reports/project_filter', f: f, project_types_collection: @filter.path_project_types_for_select
+      = render 'hud_reports/project_filter', f: f, project_types_collection: @filter.path_project_types_for_select, alert: alert
+
   - content_for :filter_actions do
     = f.button :submit, value: 'Queue Report', data: { 'filter-projects-target' => 'submitButton' }
 
