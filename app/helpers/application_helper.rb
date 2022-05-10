@@ -6,6 +6,7 @@
 
 module ApplicationHelper
   include Pagy::Frontend
+  include AssetHelper
   # permissions
   # See Role.rb for specifics of what permissions are available
   (Role.permissions + User.additional_permissions).each do |permission|
@@ -344,5 +345,20 @@ module ApplicationHelper
 
   def report_filter_visible?(key, user)
     user.report_filter_visible?(key)
+  end
+
+  # Added here to replace wicked_pdf_stylesheet_link_tag when we removed WickedPdf
+  def inline_stylesheet_link_tag(*sources)
+    AssetHelper.wicked_pdf_stylesheet_link_tag(*sources)
+  end
+
+  # Added here to replace wicked_pdf_javascript_src_tag when we removed WickedPdf
+  def inline_javascript_src_tag(js_file, options = {})
+    AssetHelper.wicked_pdf_javascript_src_tag(js_file, options)
+  end
+
+  # Added here to replace wicked_pdf_asset_base64 when we removed WickedPdf
+  def inline_asset_base64(path)
+    AssetHelper.wicked_pdf_asset_base64(path)
   end
 end

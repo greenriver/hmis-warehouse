@@ -19,8 +19,10 @@
           = branch_info
         .git-branch.ml-4
           .navbar-text
-            .label.label-warning
+            .label.label-info
               = Rails.version
+              on
+              = ENV['RUBY_VERSION']
         .rails-env.ml-4.mr-6
           .navbar-text
             %span.label.label-success
@@ -28,7 +30,7 @@
       - else
         .git-revision.ml-auto
           .navbar-text
-            .label.label-warning
+            .label.label-info
               = git_revision
         .git-branch.ml-4
           .navbar-text

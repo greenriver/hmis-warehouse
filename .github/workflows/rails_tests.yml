@@ -22,7 +22,7 @@ jobs:
 
     # Docker Hub image that the job executes in
     # $RUBY_VERSION
-    container: ruby:2.7.5-alpine3.13
+    container: ruby:2.7.6-alpine
 
     # Service containers to run with job
     services:
@@ -75,7 +75,7 @@ jobs:
             imagemagick \
             libmagic file-dev file \
             build-base libxml2-dev libxslt-dev postgresql-dev \
-            wkhtmltopdf libgcc libstdc++ libx11 glib libxrender libxext libintl ttf-dejavu ttf-droid ttf-freefont ttf-liberation ttf-ubuntu-font-family \
+            libgcc libstdc++ libx11 glib libxrender libxext libintl ttf-dejavu ttf-droid ttf-freefont ttf-liberation ttf-ubuntu-font-family \
             chromium nss freetype freetype-dev harfbuzz ca-certificates ttf-freefont \
             lftp postgresql tmux postgis geos geos-dev \
             shared-mime-info
@@ -84,7 +84,7 @@ jobs:
           chmod 600 ~/.pgpass
 
           npm install
-          gem install bundler --version=2.2.30
+          gem install bundler --version=2.3.8
 
       - name: Install gems
         run: |
@@ -184,7 +184,6 @@ jobs:
           WAREHOUSE_DATABASE_HOST: postgres
           WAREHOUSE_DATABASE_PASS: postgres
           WAREHOUSE_DATABASE_USER: postgres
-          WKHTMLTOPDF_PATH: /usr/bin/wkhtmltopdf
           # Tell Puppeteer to skip installing Chrome. We'll be using the installed package.
           PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
           PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium-browser

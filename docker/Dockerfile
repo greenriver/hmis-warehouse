@@ -1,7 +1,7 @@
 # Based on https://github.com/ledermann/docker-rails/blob/develop/Dockerfile
 ARG RUBY_VERSION
 # NOTE FROM clears all ARGs
-FROM ruby:$RUBY_VERSION-alpine3.14
+FROM ruby:$RUBY_VERSION-alpine
 
 ARG BUNDLER_VERSION
 
@@ -31,7 +31,7 @@ RUN apk add --no-cache \
   imagemagick \
   libmagic file-dev file \
   build-base libxml2-dev libxslt-dev postgresql-dev gcompat \
-  wkhtmltopdf libgcc libstdc++ libx11 glib libxrender libxext libintl \
+  libgcc libstdc++ libx11 glib libxrender libxext libintl \
   ttf-dejavu ttf-droid ttf-freefont ttf-liberation \
   chromium nss freetype freetype-dev harfbuzz ca-certificates \
   lftp postgresql tmux postgis geos geos-dev proj proj-dev proj-util zip expect \
@@ -39,6 +39,7 @@ RUN apk add --no-cache \
   vim less \
   tar \
   python3 py3-pip \
+  && git config --global --add safe.directory /app \
   && ln -s libproj.so.21.1.2 /usr/lib/libproj.so.20
 
 RUN pip3 install awscliv2
