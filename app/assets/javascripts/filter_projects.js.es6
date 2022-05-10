@@ -2,6 +2,12 @@ window.App.Form = window.App.Form || {}
 window.App.StimulusApp = window.App.StimulusApp || {}
 
 App.StimulusApp.register('filter-projects', class extends Stimulus.Controller {
+  static get values() {
+    return {
+      supportedProjectTypes: Array,
+    }
+  }
+
   static get targets() {
     return [
       'element',
@@ -38,8 +44,15 @@ App.StimulusApp.register('filter-projects', class extends Stimulus.Controller {
       data.funder_ids = $(this.funderIdsTarget).val()
     }
     if (this.hasCocCodesTarget) {
-      data.coc_codes = $(this.cocCodesTarget).val()
+      const val = $(this.cocCodesTarget).val();
+      if (val) data.coc_codes = Array.isArray(val) ? val : [val];
     }
+
+    // Special parameter to limit the project list by supported project type IDs
+    if (this.hasSupportedProjectTypesValue) {
+      data.supported_project_types = this.supportedProjectTypesValue
+    }
+
     $(this.calculatedProjectsTarget).html('<p class="well rollup-container"></p>')
     $.ajax({
       // It is not ideal to call this synchronously as it sometimes hangs the browser temporarily,
