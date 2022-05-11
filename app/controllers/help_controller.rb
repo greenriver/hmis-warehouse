@@ -45,7 +45,7 @@ class HelpController < ApplicationController
   end
 
   def index
-    @help = help_source.sorted
+    @pagy, @help = pagy(help_source.sorted)
   end
 
   def update
