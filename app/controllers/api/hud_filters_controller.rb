@@ -21,7 +21,7 @@ module Api
           joins(:organization).
           where(id: filter.effective_project_ids)
 
-        projects = projects.with_project_type(params[:supported_project_types].map(&:to_i)) if params[:supported_project_types].present?
+        projects = projects.with_hud_project_type(params[:supported_project_types].map(&:to_i)) if params[:supported_project_types].present?
 
         projects.pluck(
           :id,
