@@ -11,7 +11,7 @@ module Export::Exporter
   included do
     def setup_export
       @export ||= GrdaWarehouse::HmisExport.create(options)
-      @export.fake_data = GrdaWarehouse::FakeData.where(environment: @faked_environment).first_or_create
+      @export.fake_data ||= GrdaWarehouse::FakeData.where(environment: @faked_environment).first_or_create
     end
 
     def options
