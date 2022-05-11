@@ -26,6 +26,6 @@ class HmisCsvImporter::ImporterValidationErrorsController < ApplicationControlle
     @validations = @validations.
       where(type: @filters.selected_validation, validated_column: @filters.column).
       preload(:source)
-    @pagy, @validations = pagy(@validations, items: 100)
+    @pagy, @validations = pagy(@validations, items: 200)
   end
 end
