@@ -28,8 +28,6 @@ module PerformanceMeasurement
 
     after_initialize :filter
 
-    SPM_PROJECT_TYPES = [:es, :so, :sh, :th, :ph].freeze
-
     # NOTE: this differs from viewable_by which looks at the report definitions
     scope :visible_to, ->(user) do
       return all if user.can_view_all_reports?
@@ -115,12 +113,16 @@ module PerformanceMeasurement
       'performance_measurement/warehouse_reports/reports'
     end
 
+    def spm_project_types
+      GrdaWarehouse::Hud::Project::SPM_PROJECT_TYPE_CODES
+    end
+
     def project_type_ids
-      SPM_PROJECT_TYPES.map { |s| GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING[s.to_sym] }.flatten
+      spm_project_types.map { |s| GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING[s.to_sym] }.flatten
     end
 
     def project_type_options_for_select
-      GrdaWarehouse::Hud::Project::PROJECT_GROUP_TITLES.select { |k, _| k.in?(SPM_PROJECT_TYPES) }.freeze.invert
+      GrdaWarehouse::Hud::Project::PROJECT_GROUP_TITLES.select { |k, _| k.in?(spm_project_types) }.freeze.invert
     end
 
     def project_options_for_select(user)
@@ -142,7 +144,7 @@ module PerformanceMeasurement
     end
 
     def default_project_types
-      SPM_PROJECT_TYPES
+      GrdaWarehouse::Hud::Project::SPM_PROJECT_TYPE_CODES
     end
 
     def report_path_array
