@@ -1,10 +1,7 @@
 - coc_cols = if active_report_versions.count > 1 then 'col-sm-3' else 'col-sm-6' end
 - default_coc_code = GrdaWarehouse::Config.get(:site_coc_codes)
 - alert = 'Included projects are limited by supported types (Street Outreach and Services Only) and selected CoCs.'
-- project_types_collection = @filter.path_project_types_for_select
--# Limit project list by supported project types and Funder ID
 - path_funder_code = HudPathReport::Generators::Fy2020::Base::PATH_FUNDER_CODE
-- api_projects_parameters = { project_types: project_types_collection.values, funder_codes: [path_funder_code] }
 = simple_form_for @filter, as: :filter, url: url, data: { controller: 'filter-projects', 'filter-projects-supported-project-types-value': @filter.path_project_type_ids } do |f|
   - content_for :filters_col_full do
     .hud-report-options
@@ -23,7 +20,7 @@
         %div{ class: coc_cols }
           = f.input :coc_codes, collection: @filter.coc_code_options_for_select(user: current_user), as: :select_two, input_html: {multiple: true, data: {'filter-projects-target' => 'cocCodes', 'action': 'change->filter-projects#update'}}, label: 'CoC Codes', hint: default_coc_code
         = f.input :funder_ids, as: :hidden, input_html: { value: [path_funder_code], data: {'filter-projects-target' => 'funderIds'} }
-      = render 'hud_reports/project_filter', f: f, project_types_collection: project_types_collection, api_projects_parameters: api_projects_parameters, alert: alert
+      = render 'hud_reports/project_filter', f: f, project_types_collection: @filter.path_project_types_for_select, api_projects_parameters: { project_types: @filter.default_project_type_codes, funder_codes: [path_funder_code] }, alert: alert
 
   - content_for :filter_actions do
     = f.button :submit, value: 'Queue Report', data: { 'filter-projects-target' => 'submitButton' }
