@@ -7,7 +7,9 @@
 module GrdaWarehouse::SystemCohorts
   class Base < GrdaWarehouse::Cohort
     # Factory
-    def self.update_system_cohorts(processing_date: Date.current, date_window: 1.day)
+    def self.update_system_cohorts(processing_date: nil, date_window: nil)
+      processing_date ||= ::GrdaWarehouse::Config.get(:system_cohort_processing_date) || Date.current
+      date_window ||= ::GrdaWarehouse::Config.get(:system_cohort_date_window) || 1.day
       cohort_classes.each do |config_key, klass|
         next unless GrdaWarehouse::Config.get(config_key)
 

@@ -34,7 +34,8 @@
           = f.input :chronic_cohort, label: 'Chronic', hint: 'The chronic cohort includes all clients who are currently chronically homeless with open enrollment in ES, SO, TH, SH and no move-in date in a current PH project.'
           = f.input :adult_and_child_cohort, label: 'Adult and Child', hint: 'The adult and child cohort includes all clients in an adult and child household with open enrollment in ES, SO, TH, SH and no move-in date in a current PH project.'
           = f.input :adult_only_cohort, label: 'Adult Only', hint: 'The adult only cohort includes all clients in a household with only adults with open enrollment in ES, SO, TH, SH and no move-in date in a current PH project.'
-
+          = f.input :system_cohort_processing_date, as: :date_picker, label: 'Date to calculate system cohorts from', hint: 'Should be left blank except in test environments'
+          = f.input :system_cohort_date_window, label: 'Number of days to consider when determining newly homeless'
       %section.o-section-card
         %h3 Client Calculations
         .c-card.c-card--flush.c-card--padded.flex-wrap

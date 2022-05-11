@@ -43,7 +43,7 @@ module GrdaWarehouse::SystemCohorts
         homeless.
         ongoing.
         with_service_between(start_date: inactive_date, end_date: @processing_date).
-        where.not(client_id: service_history_source.where(date: @processing_date - @date_window, homeless: false).select(:client_id)).
+        where.not(client_id: service_history_source.where(date: (@processing_date - @date_window .. @processing_date - 1.day), homeless: false).select(:client_id)).
         where.not(client_id: moved_in_ph).
         where.not(client_id: cohort_clients.select(:client_id)).
         group(:client_id).minimum(:first_date_in_program)
