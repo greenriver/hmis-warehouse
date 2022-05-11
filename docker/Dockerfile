@@ -37,7 +37,7 @@ RUN apk add --no-cache \
   lftp postgresql tmux postgis geos geos-dev proj proj-dev proj-util zip expect \
   shared-mime-info \
   vim less \
-  tar \
+  tar xz \
   python3 py3-pip \
   && git config --global --add safe.directory /app \
   && ln -s libproj.so.21.1.2 /usr/lib/libproj.so.20
