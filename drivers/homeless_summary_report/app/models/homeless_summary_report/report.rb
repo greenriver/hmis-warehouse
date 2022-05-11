@@ -26,6 +26,8 @@ module HomelessSummaryReport
 
     after_initialize :filter
 
+    SPM_PROJECT_TYPES = [:es, :so, :sh, :th, :ph].freeze
+
     # NOTE: this differs from viewable_by which looks at the report definitions
     scope :visible_to, ->(user) do
       return all if user.can_view_all_reports?
@@ -111,11 +113,11 @@ module HomelessSummaryReport
     end
 
     def project_type_ids
-      [:es, :so, :sh, :th, :ph].map { |s| GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING[s.to_sym] }.flatten
+      SPM_PROJECT_TYPES.map { |s| GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING[s.to_sym] }.flatten
     end
 
     def project_type_options_for_select
-      GrdaWarehouse::Hud::Project::PROJECT_GROUP_TITLES.select { |k, _| k.in?([:es, :so, :sh, :th, :ph]) }.freeze.invert
+      GrdaWarehouse::Hud::Project::PROJECT_GROUP_TITLES.select { |k, _| k.in?(SPM_PROJECT_TYPES) }.freeze.invert
     end
 
     def project_options_for_select(user)
