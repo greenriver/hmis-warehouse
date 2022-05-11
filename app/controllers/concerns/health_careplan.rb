@@ -50,8 +50,7 @@ module HealthCareplan
         wait_until: 'networkidle0',
         print_background: true,
       }
-      coversheet = "<html><head><meta charset='UTF-8' /></head><body>#{coversheet}</body></html>"
-      CombinePDF.parse(Grover.new(coversheet, grover_options).to_pdf, allow_optional_content: true)
+      CombinePDF.parse(Grover.new(wrap_in_html(coversheet), grover_options).to_pdf, allow_optional_content: true)
     end
 
     def careplan_pdf_full
@@ -88,8 +87,7 @@ module HealthCareplan
         wait_until: 'networkidle0',
         print_background: true,
       }
-      pctp = "<html><head><meta charset='UTF-8' /></head><body>#{pctp}</body></html>"
-      CombinePDF.parse(Grover.new(pctp, grover_options).to_pdf, allow_optional_content: true)
+      CombinePDF.parse(Grover.new(wrap_in_html(pctp), grover_options).to_pdf, allow_optional_content: true)
     end
 
     def careplan_pdf_pctp
@@ -126,8 +124,12 @@ module HealthCareplan
         wait_until: 'networkidle0',
         print_background: true,
       }
-      pctp = "<html><head><meta charset='UTF-8' /></head><body>#{pctp}</body></html>"
-      CombinePDF.parse(Grover.new(pctp, grover_options).to_pdf, allow_optional_content: true)
+
+      CombinePDF.parse(Grover.new(wrap_in_html(pctp), grover_options).to_pdf, allow_optional_content: true)
+    end
+
+    private def wrap_in_html(content)
+      "<html><head><meta charset='UTF-8' /></head><body>#{content}</body></html>"
     end
 
     # The logic for creating the CarePlan PDF is fairly complicated and needs to be used in both the careplan controllers and the signable document controllers
