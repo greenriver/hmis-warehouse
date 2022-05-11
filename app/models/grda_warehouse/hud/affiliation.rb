@@ -19,6 +19,7 @@ module GrdaWarehouse::Hud
     # NOTE: you can't use hud_assoc for residential project, the keys don't match
     belongs_to :residential_project, class_name: 'GrdaWarehouse::Hud::Project', primary_key: [:ProjectID, :data_source_id], foreign_key: [:ResProjectID, :data_source_id], inverse_of: :affiliations, optional: true
     belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :affiliations, optional: true
+    belongs_to :user, **hud_assoc(:UserID, 'User'), inverse_of: :affiliations, optional: true
     belongs_to :data_source
 
     def self.related_item_keys

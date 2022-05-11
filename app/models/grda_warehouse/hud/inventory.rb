@@ -33,6 +33,7 @@ module GrdaWarehouse::Hud
     belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :inventories, optional: true
     # has_one :project, through: :project_coc, source: :project
     has_one :project, **hud_assoc(:ProjectID, 'Project'), inverse_of: :inventories
+    belongs_to :user, **hud_assoc(:UserID, 'User'), inverse_of: :inventories, optional: true
     belongs_to :project_coc, class_name: 'GrdaWarehouse::Hud::ProjectCoc', primary_key: [:ProjectID, :CoCCode, :data_source_id], foreign_key: [:ProjectID, :CoCCode, :data_source_id], inverse_of: :inventories, optional: true
     belongs_to :data_source
 
@@ -105,59 +106,10 @@ module GrdaWarehouse::Hud
     end
 
     def for_export
-      # This should never happen, but does
-      self.ProjectID = project&.id || 'Unknown'
-      self.CoCCode = coc_code_override if coc_code_override.present?
-      self.InventoryStartDate = inventory_start_date_override if inventory_start_date_override.present?
-      self.InventoryEndDate = inventory_end_date_override if inventory_end_date_override.present?
-
-      self.BedInventory ||= 0
-      self.UnitInventory ||= 0
-
-      self.UserID = 'op-system' if self.UserID.blank?
-      self.InventoryID = id
-      return self
-    end
-
-    # when we export, we always need to replace InventoryID with the value of id
-    # and ProjectID with the id of the related project
-    def self.to_csv(scope:)
-      attributes = hud_csv_headers.dup
-      headers = attributes.clone
-      attributes[attributes.index(:InventoryID)] = :id
-      attributes[attributes.index(:ProjectID)] = 'project.id'
-
-      CSV.generate(headers: true) do |csv|
-        csv << headers
-
-        scope.each do |i|
-          csv << attributes.map do |attr|
-            attr = attr.to_s
-            # we need to grab the appropriate id from the related project
-            v = if attr.include?('.')
-              obj, meth = attr.split('.')
-              i.send(obj).send(meth)
-            # These items are numeric and should not be null, assume 0 if empty
-            elsif ['BedInventory', 'UnitInventory'].include? attr
-              i.send(attr).presence || 0
-            elsif attr == 'CoCCode' && i.coc_code_override.present?
-              i.coc_code_override
-            elsif attr == 'InventoryStartDate' && i.inventory_start_date_override.present?
-              i.inventory_start_date_override
-            elsif attr == 'InventoryEndDate' && i.inventory_end_date_override.present?
-              i.inventory_end_date_override
-            else
-              i.send(attr)
-            end
-            if v.is_a? Date
-              v = v.strftime('%Y-%m-%d')
-            elsif v.is_a? Time
-              v = v.to_formatted_s(:db)
-            end
-            v
-          end
-        end
-      end
+      fake_export = OpenStruct.new(include_deleted: false, period_type: 3)
+      row = HmisCsvTwentyTwentyTwo::Exporter::Inventory::Overrides.apply_overrides(self, export: fake_export)
+      row = HmisCsvTwentyTwentyTwo::Exporter::Inventory.adjust_keys(row)
+      row
     end
 
     def self.related_item_keys

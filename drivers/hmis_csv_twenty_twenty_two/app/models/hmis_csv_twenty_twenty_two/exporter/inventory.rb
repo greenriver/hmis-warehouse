@@ -5,54 +5,40 @@
 ###
 
 module HmisCsvTwentyTwentyTwo::Exporter
-  class Inventory < GrdaWarehouse::Hud::Inventory
-    include ::HmisCsvTwentyTwentyTwo::Exporter::Shared
-    setup_hud_column_access(GrdaWarehouse::Hud::Inventory.hud_csv_headers(version: '2022'))
+  class Inventory
+    include ::HmisCsvTwentyTwentyTwo::Exporter::ExportConcern
 
-    belongs_to :project_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::Project', primary_key: [:ProjectID, :data_source_id], foreign_key: [:ProjectID, :data_source_id], inverse_of: :inventories, optional: true
+    def initialize(options)
+      @options = options
+    end
 
-    def apply_overrides(row, data_source_id:)
-      # Apply direct overrides
-      override = coc_code_override_for(inventory_id: row[:InventoryID].to_i, data_source_id: data_source_id)
-      row[:CoCCode] = override if override
-      # Apply default value from project coc if not set
-      row[:CoCCode] = enrollment_coc_from_project_coc(row[:ProjectID], data_source_id) if row[:CoCCode].blank?
-
-      override = inventory_start_date_override_for(inventory_id: row[:InventoryID].to_i, data_source_id: data_source_id)
-      row[:InventoryStartDate] = override if override
-
-      override = inventory_end_date_override_for(inventory_id: row[:InventoryID].to_i, data_source_id: data_source_id)
-      row[:InventoryEndDate] = override if override
-      row[:UserID] = 'op-system' if row[:UserID].blank?
+    def self.adjust_keys(row)
+      row.UserID = row.user&.id || 'op-system'
+      row.ProjectID = row.project&.id || 'Unknown'
+      row.InventoryID = row.id
 
       row
     end
 
-    def coc_code_override_for(inventory_id:, data_source_id:)
-      @coc_code_overrides ||= self.class.where.not(coc_code_override: nil).
-        pluck(:data_source_id, :id, :coc_code_override).
-        map do |ds_id, i_id, coc_code_override|
-          [[ds_id, i_id], coc_code_override] if coc_code_override.present?
-        end.compact.to_h
-      @coc_code_overrides[[data_source_id, inventory_id]]
+    def self.export_scope(project_scope:, export:, hmis_class:, **_)
+      export_scope = case export.period_type
+      when 3
+        hmis_class.where(project_exists_for_model(project_scope, hmis_class))
+      when 1
+        hmis_class.where(project_exists_for_model(project_scope, hmis_class)).
+          modified_within_range(range: (export.start_date..export.end_date))
+      end
+      note_involved_user_ids(scope: export_scope, export: export)
+
+      export_scope.distinct.preload(:user, :project)
     end
 
-    def inventory_start_date_override_for(inventory_id:, data_source_id:)
-      @inventory_start_date_overrides ||= self.class.where.not(inventory_start_date_override: nil).
-        pluck(:data_source_id, :id, :inventory_start_date_override).
-        map do |ds_id, i_id, inventory_start_date_override|
-          [[ds_id, i_id], inventory_start_date_override] if inventory_start_date_override.present?
-        end.compact.to_h
-      @inventory_start_date_overrides[[data_source_id, inventory_id]]
-    end
-
-    def inventory_end_date_override_for(inventory_id:, data_source_id:)
-      @inventory_end_date_overrides ||= self.class.where.not(inventory_end_date_override: nil).
-        pluck(:data_source_id, :id, :inventory_end_date_override).
-        map do |ds_id, i_id, inventory_end_date_override|
-          [[ds_id, i_id], inventory_end_date_override] if inventory_end_date_override.present?
-        end.compact.to_h
-      @inventory_end_date_overrides[[data_source_id, inventory_id]]
+    def self.transforms
+      [
+        HmisCsvTwentyTwentyTwo::Exporter::Inventory::Overrides,
+        HmisCsvTwentyTwentyTwo::Exporter::Inventory,
+        HmisCsvTwentyTwentyTwo::Exporter::FakeData,
+      ]
     end
   end
 end

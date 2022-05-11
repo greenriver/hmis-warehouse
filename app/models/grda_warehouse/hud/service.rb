@@ -18,8 +18,13 @@ module GrdaWarehouse::Hud
     belongs_to :data_source, inverse_of: :services
     belongs_to :direct_client, **hud_assoc(:PersonalID, 'Client'), inverse_of: :direct_services, optional: true
     belongs_to :enrollment, **hud_enrollment_belongs, inverse_of: :services, optional: true
-    has_one :client, through: :enrollment, inverse_of: :services
     belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :services, optional: true
+    belongs_to :user, **hud_assoc(:UserID, 'User'), inverse_of: :services, optional: true
+    # Setup an association to enrollment that allows us to pull the records even if the
+    # enrollment has been deleted
+    belongs_to :enrollment_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::Enrollment', primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], optional: true
+
+    has_one :client, through: :enrollment, inverse_of: :services
     has_one :project, through: :enrollment
     has_one :organization, through: :project
 
@@ -40,7 +45,7 @@ module GrdaWarehouse::Hud
           where(st2[:EnrollmentID].eq(st1[:EnrollmentID])).
           where(st2[:DateProvided].eq(st1[:DateProvided])).
           where(st2[:id].gt(st1[:id])).
-          exists.not
+          exists.not,
       )
     }
 

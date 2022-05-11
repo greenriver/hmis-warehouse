@@ -28,11 +28,16 @@ module GrdaWarehouse::Hud
     has_many :inventories, **hud_assoc(:UserID, 'Inventory')
     has_many :organizations, **hud_assoc(:UserID, 'Organization')
     has_many :projects, **hud_assoc(:UserID, 'Project')
-    has_many :project_coss, **hud_assoc(:UserID, 'ProjectCoc')
+    has_many :project_cocs, **hud_assoc(:UserID, 'ProjectCoc')
     has_many :services, **hud_assoc(:UserID, 'Service')
+    has_many :current_living_situations, **hud_assoc(:UserID, 'CurrentLivingSituation')
+    has_many :assessments, **hud_assoc(:UserID, 'Assessment')
+    has_many :assessment_questions, **hud_assoc(:UserID, 'AssessmentQuestion')
+    has_many :assessment_results, **hud_assoc(:UserID, 'AssessmentResult')
+    has_many :events, **hud_assoc(:UserID, 'Event')
+    has_many :youth_education_statuses, **hud_assoc(:UserID, 'YouthEducationStatus')
 
     belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :users, optional: true
     belongs_to :data_source
-
   end
 end

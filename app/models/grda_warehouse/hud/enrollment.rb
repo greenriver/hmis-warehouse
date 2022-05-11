@@ -23,6 +23,7 @@ module GrdaWarehouse::Hud
     belongs_to :client, **hud_assoc(:PersonalID, 'Client'), inverse_of: :enrollments, optional: true
     belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :enrollments, optional: true
     belongs_to :project, **hud_assoc(:ProjectID, 'Project'), inverse_of: :enrollments, optional: true
+    belongs_to :user, **hud_assoc(:UserID, 'User'), inverse_of: :projects, optional: true
     has_one :organization, through: :project, autosave: false
 
     has_many :enrollment_extras, class_name: 'GrdaWarehouse::EnrollmentExtra', dependent: :destroy, inverse_of: :enrollment

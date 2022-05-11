@@ -10,11 +10,6 @@ module Reports
       @project_cocs = GrdaWarehouse::Hud::ProjectCoc.joins(:project).
         merge(project_scope).
         distinct
-
-      respond_to do |format|
-        format.html
-        format.csv { send_data GrdaWarehouse::Hud::ProjectCoc.to_csv(scope: @project_cocs), filename: "projectcoc-#{Time.current.to_s(:number)}.csv" }
-      end
     end
   end
 end
