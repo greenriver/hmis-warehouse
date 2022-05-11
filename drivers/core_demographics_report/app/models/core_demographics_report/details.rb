@@ -29,7 +29,8 @@ module
         merge(household_detail_hash).
         merge(dv_detail_hash).
         merge(relationship_detail_hash).
-        merge(prior_detail_hash)
+        merge(prior_detail_hash).
+        merge(enrollment_detail_hash)
     end
 
     def detail_scope_from_key(key)
