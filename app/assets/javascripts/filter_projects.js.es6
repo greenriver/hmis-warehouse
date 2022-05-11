@@ -41,7 +41,8 @@ App.StimulusApp.register('filter-projects', class extends Stimulus.Controller {
       project_type_codes: $(this.projectTypesTarget).val(),
     }
     if (this.hasFunderIdsTarget) {
-      data.funder_ids = $(this.funderIdsTarget).val()
+      const val = $(this.funderIdsTarget).val();
+      if (val) data.funder_ids = Array.isArray(val) ? val : [val];
     }
     if (this.hasCocCodesTarget) {
       const val = $(this.cocCodesTarget).val();

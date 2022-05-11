@@ -7,16 +7,19 @@
 module HudPathReport::Filters
   class PathFilter < ::Filters::HudFilterBase
     def default_project_type_codes
-      [:so, :services_only]
-    end
-
-    def project_options_for_select(user:)
-      path_funded = ::GrdaWarehouse::Hud::Funder.funding_source(funder_code: 21)
-      all_project_scope.joins(:funders).options_for_select(user: user, scope: path_funded)
+      path_project_types
     end
 
     def path_project_types_for_select
-      GrdaWarehouse::Hud::Project::PROJECT_GROUP_TITLES.select { |k, _| k.in?([:so, :services_only]) }.invert.freeze
+      GrdaWarehouse::Hud::Project::PROJECT_GROUP_TITLES.select { |k, _| k.in?(path_project_types) }.invert.freeze
+    end
+
+    def path_project_type_ids
+      path_project_types.map { |s| GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING[s] }.flatten
+    end
+
+    def path_project_types
+      GrdaWarehouse::Hud::Project::PATH_PROJECT_TYPE_CODES
     end
   end
 end
