@@ -9,13 +9,13 @@
     %title= [(strip_tags content_for(:title)).presence, _('Boston DND Warehouse')].compact.join(' :: ')
     %link{rel: :icon, type: 'image/png', href: 'data:;base64,iVBORw0KGgo='}
     %link{href: '//fonts.googleapis.com/css?family=Open+Sans:300,400,400italic,600,700|Open+Sans+Condensed:700|Poppins:400,300,500,700', rel: 'stylesheet', type: 'text/css'}
-    = wicked_pdf_stylesheet_link_tag 'application', media: 'all'
-    = wicked_pdf_stylesheet_link_tag 'print', media: 'print'
+    = inline_stylesheet_link_tag 'application'
+    = inline_stylesheet_link_tag 'print'
 
     = cache('theme', expires_in: 4.hours) do
       - Dir.glob('app/assets/stylesheets/theme/styles/*.scss') do |stylesheet|
         - theme_styles = "theme/styles/#{File.basename(stylesheet, '.scss')}"
-        = wicked_pdf_stylesheet_link_tag(theme_styles, media: 'all')
+        = inline_stylesheet_link_tag(theme_styles)
 
     = render 'layouts/favicon'
     = csrf_meta_tags
