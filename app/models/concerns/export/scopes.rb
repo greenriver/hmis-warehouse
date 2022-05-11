@@ -40,8 +40,8 @@ module Export::Scopes
           raise NotImplementedError
         when 1 # Updated (handled within the individual models)
           # no-op
-        else
-          raise NotImplementedError
+        else # rubocop:disable Style/EmptyElse
+          # Used for tests to count things
         end
         e_scope = e_scope.joins(:enrollment_cocs).where(ec_t[:CoCCode].in(Array(@coc_codes))) if @coc_codes.present?
         e_scope.distinct.preload(:project, :client)
