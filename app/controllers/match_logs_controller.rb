@@ -7,6 +7,7 @@
 class MatchLogsController < ApplicationController
   before_action :require_can_view_imports!
   def index
-    @pagy, @duplicates = pagy(GrdaWarehouse::IdentifyDuplicatesLog.order(started_at: :desc))
+    @duplicates = GrdaWarehouse::IdentifyDuplicatesLog.order(started_at: :desc)
+    @pagy, @duplicates = pagy(@duplicates)
   end
 end
