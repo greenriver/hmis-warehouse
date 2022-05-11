@@ -562,6 +562,10 @@ module Filters
         distinct
     end
 
+    def available_project_types
+      GrdaWarehouse::Hud::Project::PROJECT_GROUP_TITLES.invert
+    end
+
     def available_residential_project_types
       GrdaWarehouse::Hud::Project::RESIDENTIAL_TYPE_TITLES.invert
     end
