@@ -3,4 +3,4 @@
 %p Use this form to search for a client.  Once you find them, you can attach a scan card for future use.
 = render 'search_form'
 .mt-6
-  = render 'search_results'
+  = render 'search_results', form_options: { data: { submits_to_ajax_modal: request.xhr? }}
