@@ -1,6 +1,6 @@
-= wicked_pdf_stylesheet_link_tag 'dashboard_pdf', media: 'all'
-= wicked_pdf_javascript_include_tag 'pdf'
-= wicked_pdf_javascript_include_tag 'application'
+= inline_stylesheet_link_tag 'dashboard_pdf'
+= inline_javascript_src_tag 'pdf'
+= inline_javascript_src_tag 'application'
 %link{href: '//fonts.googleapis.com/css?family=Open+Sans:300,400,400italic,600,700|Open+Sans+Condensed:700', rel: 'stylesheet', type: 'text/css'}
 .footer
   .d-flex

@@ -6,6 +6,7 @@
 
 module HealthCareplan
   extend ActiveSupport::Concern
+  include ApplicationHelper
 
   included do
     def set_careplan
@@ -32,9 +33,24 @@ module HealthCareplan
         template: 'health/careplans/_pdf_coversheet',
         layout: false,
         encoding: 'UTF-8',
-        page_size: 'Letter',
       )
-      CombinePDF.parse(coversheet, allow_optional_content: true)
+      grover_options = {
+        display_url: root_url,
+        displayHeaderFooter: false,
+        timeout: 50_000,
+        format: 'Letter',
+        emulate_media: 'print',
+        style_tag_options: [{ content: inline_stylesheet_link_tag('print'), media: 'print' }],
+        margin: {
+          top: '.5in',
+          bottom: '.5in',
+          left: '.4in',
+          right: '.4in',
+        },
+        wait_until: 'networkidle0',
+        print_background: true,
+      }
+      CombinePDF.parse(Grover.new(wrap_in_html(coversheet), grover_options).to_pdf, allow_optional_content: true)
     end
 
     def careplan_pdf_full
@@ -44,13 +60,34 @@ module HealthCareplan
         template: 'health/careplans/show',
         layout: false,
         encoding: 'UTF-8',
-        page_size: 'Letter',
-        header: { html: { template: 'health/careplans/_pdf_header' }, spacing: 1 },
-        footer: { html: { template: 'health/careplans/_pdf_footer' }, spacing: 5 },
-        # Show table of contents by providing the 'toc' property
-        # toc: {}
       )
-      CombinePDF.parse(pctp, allow_optional_content: true)
+      header = render_to_string(
+        template: 'health/careplans/_pdf_header',
+        layout: false,
+      )
+      footer = render_to_string(
+        template: 'health/careplans/_pdf_footer',
+        layout: false,
+      )
+      grover_options = {
+        display_url: root_url,
+        display_header_footer: true,
+        header_template: header,
+        footer_template: footer,
+        timeout: 50_000,
+        format: 'Letter',
+        emulate_media: 'print',
+        style_tag_options: [{ content: inline_stylesheet_link_tag('print') }],
+        margin: {
+          top: '1.5in',
+          bottom: '1.5in',
+          left: '.4in',
+          right: '.4in',
+        },
+        wait_until: 'networkidle0',
+        print_background: true,
+      }
+      CombinePDF.parse(Grover.new(wrap_in_html(pctp), grover_options).to_pdf, allow_optional_content: true)
     end
 
     def careplan_pdf_pctp
@@ -60,13 +97,39 @@ module HealthCareplan
         template: 'health/careplans/pctp_only',
         layout: false,
         encoding: 'UTF-8',
-        page_size: 'Letter',
-        header: { html: { template: 'health/careplans/_pdf_header' }, spacing: 1 },
-        footer: { html: { template: 'health/careplans/_pdf_footer' }, spacing: 5 },
-        # Show table of contents by providing the 'toc' property
-        # toc: {}
       )
-      CombinePDF.parse(pctp, allow_optional_content: true)
+      header = render_to_string(
+        template: 'health/careplans/_pdf_header',
+        layout: false,
+      )
+      footer = render_to_string(
+        template: 'health/careplans/_pdf_footer',
+        layout: false,
+      )
+      grover_options = {
+        display_url: root_url,
+        display_header_footer: true,
+        header_template: header,
+        footer_template: footer,
+        timeout: 50_000,
+        format: 'Letter',
+        emulate_media: 'print',
+        style_tag_options: [{ content: inline_stylesheet_link_tag('print') }],
+        margin: {
+          top: '1.5in',
+          bottom: '1.5in',
+          left: '.4in',
+          right: '.4in',
+        },
+        wait_until: 'networkidle0',
+        print_background: true,
+      }
+
+      CombinePDF.parse(Grover.new(wrap_in_html(pctp), grover_options).to_pdf, allow_optional_content: true)
+    end
+
+    private def wrap_in_html(content)
+      "<html><head><meta charset='UTF-8' /></head><body>#{content}</body></html>"
     end
 
     # The logic for creating the CarePlan PDF is fairly complicated and needs to be used in both the careplan controllers and the signable document controllers
