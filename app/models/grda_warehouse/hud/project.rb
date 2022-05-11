@@ -855,7 +855,7 @@ module GrdaWarehouse::Hud
       @options = begin
         options = {}
         project_scope = viewable_by(user)
-        project_scope = project_scope.merge(scope) if scope.present?
+        project_scope = project_scope.merge(scope) unless scope.nil?
 
         project_scope.
           joins(:organization, :data_source).
