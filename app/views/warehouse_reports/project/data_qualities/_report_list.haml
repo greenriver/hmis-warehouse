@@ -1,7 +1,5 @@
 - if @pagy.count.positive?
-  .pagy-container.mb-4
-    != pagy_info(@pagy, item_name: _('report').pluralize(@pagy.count))
-    != pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
+  = render 'common/pagination_top', item_name: 'report'
   .table-responsive
     %table.table.table-striped
       %thead
@@ -24,9 +22,6 @@
             %td= report.completed_at
             %td= report&.requestor&.name
 
-  - if @pagy.pages > 1
-    .pagy-container.mt-4
-      != pagy_info(@pagy, item_name: _('report').pluralize(@pagy.count))
-      != pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
+  = render 'common/pagination_bottom', item_name: 'report'
 - else
   .none-found No reports found.

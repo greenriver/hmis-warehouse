@@ -18,8 +18,8 @@ module TextMessage::WarehouseReports
           tm_m_t[:send_on_or_after].between(@filter.range).
           or(tm_m_t[:sent_at].between(@filter.start.to_time..@filter.end.to_time.end_of_day)),
         ).
-        order(:send_on_or_after).
-        page(params[:page]).per(100)
+        order(:send_on_or_after)
+      @pagy, @text_messages = pagy(@text_messages, items: 100)
     end
 
     def filter_params

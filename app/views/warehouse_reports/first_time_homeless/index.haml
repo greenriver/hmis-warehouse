@@ -22,9 +22,7 @@
     = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary'}) do
       %i.icon-file-excel.icon-lg
       Download
-  .pagy-container.mb-4
-    != pagy_info(@pagy, item_name: _('client').pluralize(@pagy.count))
-    != pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
+  = render 'common/pagination_top', item_name: 'client'
 
   .table-responsive
     %table.table.table-striped
@@ -60,10 +58,7 @@
             %td= project.name(include_confidential_names: current_user.can_view_confidential_enrollment_details?)
             %td= project.organization_name(current_user)
             %td= client.source_clients.map{|m| m.data_source&.short_name}.uniq.reject(&:blank?).join(', ')
-  - if @pagy.pages > 1
-    .pagy-container.mt-4
-      != pagy_info(@pagy, item_name: _('client').pluralize(@pagy.count))
-      != pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
+  = render 'common/pagination_bottom', item_name: 'client'
 - else
   .none-found.mt-4 No clients found.
 - filter = { start: @filter.start, end: @filter.end, sub_population: @filter.sub_population, project_type_codes: @filter.project_type_codes, age_ranges: @filter.age_ranges, heads_of_household: @filter.heads_of_household, organization_ids: @filter.organization_ids, project_ids: @filter.project_ids}

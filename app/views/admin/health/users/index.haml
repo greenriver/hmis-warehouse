@@ -7,49 +7,52 @@
     = render 'search_form'
 %p Use this form to grant access to the healthcare sections of the window into the warehouse to users.
 
-.row
-  .col-sm-10
-    = simple_form_for :users, url: admin_health_users_path do |f|
-      = f.error_notification
-      .form-inputs
-        %p= page_entries_info @users
-        %p= paginate @users
-        %table.table.table-striped
-          %thead
-            %tr
-              %th User
-              %th Email
-              %th Audit Access
-              %th Health roles
-          %tbody
-            - @users.each do |user|
-              %tr
-                = simple_fields_for user do |t|
-                  %td
-                    = user.name
-                    = t.input :id, as: :hidden, input_html: { id: "users[#{user.id}]id", name: "users[#{user.id}]id"}
-                  %td
-                    = user.email
-                  %td
-                    - if can_audit_users? && user.roles.where(name: Role.health.map(&:name)).any?
-                      = link_to admin_user_audit_path(user) do
-                        %span.icon-eye{data: {toggle: :tooltip, title: 'Audit'}}
-                  %td
-                    .form-group.check_boxes.optional.user_roles
-                      - Role.health.each do |role|
-                        - id = "users[#{user.id}]roles[#{role.id}]"
-                        - name = "users[#{user.id}]roles[]"
-                        %span.checkbox
-                          %label{for: id}
-                            = check_box_tag(id, 1, user.roles.where(name: role.name).any?, id: id, class: "check_boxes optional")
-                            = role.name
-                    - if can_manage_health_agency?
-                      %label Health Agencies:
-                      %div
-                        %p= user.health_agencies.any? ? user.health_agency_names.to_sentence : 'This user does not belong to any agencies'
-                        = link_to 'Edit Agencies', new_admin_health_user_agency_user_path(user), data: {behavior: 'assign agency user'}
-      .form-actions.pull-right
-        = f.button :submit, 'Save Changes', class: 'btn btn-primary'
+- if @pagy.count.positive?
+  .row
+    .col-sm-10
+      = simple_form_for :users, url: admin_health_users_path do |f|
+        = f.error_notification
+        .form-inputs
+          = render 'common/pagination_top', item_name: 'user'
+          .table-responsive
+            %table.table.table-striped
+              %thead
+                %tr
+                  %th User
+                  %th Email
+                  %th Audit Access
+                  %th Health roles
+              %tbody
+                - @users.each do |user|
+                  %tr
+                    = simple_fields_for user do |t|
+                      %td
+                        = user.name
+                        = t.input :id, as: :hidden, input_html: { id: "users[#{user.id}]id", name: "users[#{user.id}]id"}
+                      %td
+                        = user.email
+                      %td
+                        - if can_audit_users? && user.roles.where(name: Role.health.map(&:name)).any?
+                          = link_to admin_user_audit_path(user) do
+                            %span.icon-eye{data: {toggle: :tooltip, title: 'Audit'}}
+                      %td
+                        .form-group.check_boxes.optional.user_roles
+                          - Role.health.each do |role|
+                            - id = "users[#{user.id}]roles[#{role.id}]"
+                            - name = "users[#{user.id}]roles[]"
+                            %span.checkbox
+                              %label{for: id}
+                                = check_box_tag(id, 1, user.roles.where(name: role.name).any?, id: id, class: "check_boxes optional")
+                                = role.name
+                        - if can_manage_health_agency?
+                          %label Health Agencies:
+                          %div
+                            %p= user.health_agencies.any? ? user.health_agency_names.to_sentence : 'This user does not belong to any agencies'
+                            = link_to 'Edit Agencies', new_admin_health_user_agency_user_path(user), data: {behavior: 'assign agency user'}
+        .form-actions.pull-right
+          = f.button :submit, 'Save Changes', class: 'btn btn-primary'
+- else
+  .none-found No users.
 
 = render 'agency_user_modal'
 

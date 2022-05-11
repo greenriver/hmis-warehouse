@@ -5,5 +5,4 @@
     - anchor = 'consent'
   - else
     - anchor = 'other'
-  .o-pagination.o-pagination--centered.mt-5
-    = paginate files, params: { anchor: anchor }
+  = render 'common/pagination_bottom', item_name: 'file'

@@ -1,7 +1,5 @@
-- if @users.any?
-  .d-flex
-    %p= page_entries_info @users, entry_name: _('user')
-    %p.ml-auto= paginate @users
+- if @pagy.count.positive?
+  = render 'common/pagination_top', item_name: 'user'
   .card.warehouse-reports__user-directory
     %table.table.table-fixed.table-striped
       %thead
@@ -17,6 +15,6 @@
             %td= user.email
             %td= user.phone_for_directory
             %td= user.agency_name
-  %p= paginate @users
+  = render 'common/pagination_bottom', item_name: 'user'
 - else
   .none-found No users found.

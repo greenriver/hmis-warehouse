@@ -21,9 +21,8 @@ class ReportResultsController < ApplicationController
     at = @results.arel_table
     # sort / paginate
     sort = at[sort_column.to_sym].send(sort_direction)
-    @results = @results.
-      order(sort).
-      page(params[:page].to_i).per(20)
+    @results = @results.order(sort)
+    @pagy, @results = pagy(@results)
   end
 
   # GET /report_results/new

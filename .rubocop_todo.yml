@@ -1888,7 +1888,6 @@ Style/IfUnlessModifier:
     - 'app/models/similarity_metric/experiment/score_histogram.rb'
     - 'app/models/similarity_metric/initializer.rb'
     - 'app/models/similarity_metric/tasks/generate_candidates.rb'
-    - 'drivers/user_directory_report/app/controllers/user_directory_report/warehouse_reports/users_controller.rb'
 
 # Offense count: 3
 # Cop supports --auto-correct.

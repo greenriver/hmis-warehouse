@@ -1,31 +1,29 @@
 = render partial: 'breadcrumbs'
-.row
-  .col-sm-12
-    %h1 Automated Match History
-.row.table-utilities
-  .col-sm-12
-    .table-responsive
-      %table.table.table-sm.table-hover
-        %thead
-          %tr
-            %th Started
-            %th Completed In
-            %th Unmatched clients
-            %th Clients matched
-            %th Clients created
-          %tbody
-            - @duplicates.each do |d|
-              %tr
-                %td
-                  = d.started_at
-                %td
-                  = d.import_time
-                %td
-                  = d.to_match
-                %td
-                  = d.matched
-                %td
-                  = d.new_created
-               
-
-%p= paginate @duplicates
+%h1 Automated Match History
+- if @pagy.count.positive?
+  = render 'common/pagination_top', item_name: 'log'
+  .table-responsive
+    %table.table.table-striped
+      %thead
+        %tr
+          %th Started
+          %th Completed In
+          %th Unmatched clients
+          %th Clients matched
+          %th Clients created
+        %tbody
+          - @duplicates.each do |d|
+            %tr
+              %td
+                = d.started_at
+              %td
+                = d.import_time
+              %td
+                = d.to_match
+              %td
+                = d.matched
+              %td
+                = d.new_created
+  = render 'common/pagination_bottom', item_name: 'log'
+- else
+  .none-found No logs found.

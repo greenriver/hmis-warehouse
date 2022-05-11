@@ -12,8 +12,8 @@ module WarehouseReports
 
     def index
       @reports = report_scope.order(created_at: :desc).
-        select(:id, :user_id, :options, :client_count, :started_at, :completed_at, :created_at).
-        page(params[:page]).per(25)
+        select(:id, :user_id, :options, :client_count, :started_at, :completed_at, :created_at)
+      @pagy, @reports = pagy(@reports)
     end
 
     def create

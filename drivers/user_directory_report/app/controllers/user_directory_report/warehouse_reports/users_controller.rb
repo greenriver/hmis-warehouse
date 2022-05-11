@@ -15,6 +15,7 @@ module UserDirectoryReport::WarehouseReports
 
     def warehouse
       @users = _users(User)
+      @pagy, @users = pagy(@users)
       @user_source = 'warehouse'
       render :report
     end
@@ -25,15 +26,14 @@ module UserDirectoryReport::WarehouseReports
       else
         @users = []
       end
+      @pagy, @users = pagy(@users)
       @user_source = 'cas'
       render :report
     end
 
     def nav_link_classes(link_type, user_source)
       class_list = ['nav-link']
-      if link_type == user_source
-        class_list.append('active')
-      end
+      class_list.append('active') if link_type == user_source
       class_list.join(' ')
     end
 
@@ -45,12 +45,10 @@ module UserDirectoryReport::WarehouseReports
       if params[:q].present?
         users = user_model.in_directory.
           text_search(params[:q]).
-          order(:last_name, :first_name).
-          page(params[:page]).per(25)
+          order(:last_name, :first_name)
       else
         users = user_model.in_directory.
-          order(:last_name, :first_name).
-          page(params[:page]).per(25)
+          order(:last_name, :first_name)
       end
       return users
     end

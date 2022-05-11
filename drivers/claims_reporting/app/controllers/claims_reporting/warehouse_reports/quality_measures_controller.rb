@@ -12,7 +12,7 @@ module ClaimsReporting::WarehouseReports
 
     def index
       @reports = report_class.ordered.visible_to(current_user)
-      @reports = @reports.page(params[:page]).per(25)
+      @pagy, @reports = pagy(@reports)
       @report = report_class.new
       @filter = ::Filters::QualityMeasuresFilter.new(user_id: current_user.id)
     end

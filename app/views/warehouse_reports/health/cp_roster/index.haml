@@ -18,9 +18,11 @@
       = f.button :submit, "Upload CSV", disabled: true, id: 'enrollment_upload_button', class: 'btn btn-secondary btn-sm ml-2'
 
 - if @files.present?
+  = render 'common/pagination_top', item_name: 'file'
   = render 'table'
+  = render 'common/pagination_bottom', item_name: 'file'
 - else
-  %p No uploaded roster files.
+  .none-found No uploaded roster files.
 
 - content_for :page_js do
   :javascript

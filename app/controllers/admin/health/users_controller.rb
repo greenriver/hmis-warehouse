@@ -15,8 +15,8 @@ module Admin::Health
       else
         @users = User.all
       end
-      @users = @users.order(last_name: :asc, first_name: :asc).
-        page(params[:page].to_i).per(25)
+      @users = @users.order(last_name: :asc, first_name: :asc)
+      @pagy, @users = pagy(@users)
     end
 
     def update

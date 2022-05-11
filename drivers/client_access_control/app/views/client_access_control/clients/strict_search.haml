@@ -5,32 +5,29 @@
     %h1= content_for :title
     - @prompt = t '.search_prompt'
   %p Results will be shown if three of the four options match exactly.
-  .row
-    .col-8.well
-      = simple_form_for @client, as: :client, url: clients_path, method: :get do |f|
-        .row
-          .col-6
-            = f.input :first_name, label: 'First Name'
-          .col-6
-            = f.input :last_name, label: 'Last Name'
-        .row
-          .col-6
-            = f.input :dob, as: :date_picker, label: 'Birthdate'
-          .col-6
-            = f.input :ssn, label: 'Social Security Number', hint: 'Full SSN or last 4 digits'
-        .row
-          .col-4.offset-8.text-right
-            = f.button :submit, 'Search'
+  .well.col-8
+    = simple_form_for @client, as: :client, url: clients_path, method: :get do |f|
+      .row
+        .col-6
+          = f.input :first_name, label: 'First Name'
+        .col-6
+          = f.input :last_name, label: 'Last Name'
+      .row
+        .col-6
+          = f.input :dob, as: :date_picker, label: 'Birthdate'
+        .col-6
+          = f.input :ssn, label: 'Social Security Number', hint: 'Full SSN or last 4 digits'
+      .row
+        .col-4.offset-8.text-right
+          = f.button :submit, 'Search'
 
-  - if params[:client].present?
-    %p.mr-5= page_entries_info @clients, entry_name: _('client')
-  %p= paginate @clients, params: {sort: @column, direction: @direction}
-
-  .o-page__main-content.mt-3
-    .clients__list
-      - @clients.preload(:source_clients).each do |client|
-        = render 'client_card', client: client
-
-  %p= paginate @clients, params: {sort: @column, direction: @direction}
-
+  - if @pagy.count.positive?
+    = render 'common/pagination_top', item_name: 'client'
+    .o-page__main-content.mt-3
+      .clients__list
+        - @clients.preload(:source_clients).each do |client|
+          = render 'client_card', client: client
+    = render 'common/pagination_bottom', item_name: 'client'
+  - elsif params[:client].present?
+    .none-found.col-8 No results.
   = render 'application/js_link', base_path: 'clients/'

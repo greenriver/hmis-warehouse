@@ -38,7 +38,7 @@ module Admin
           )
       end
 
-      @translation_keys = @translation_keys.page(params[:page]).per(25)
+      @pagy, @translation_keys = pagy(@translation_keys)
       render action: :index
     end
 

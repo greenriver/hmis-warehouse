@@ -32,8 +32,8 @@ module Health
       # search / paginate
       @qualifying_activities = @patient.qualifying_activities.
         date_search(params[:start_date], params[:end_date]).
-        order(date_of_activity: :desc).
-        page(params[:page]).per(25)
+        order(date_of_activity: :desc)
+      @pagy, @qualifying_activities = pagy(@qualifying_activities)
     end
 
     protected def title_for_show

@@ -1,10 +1,6 @@
-
-- if @text_messages.exists?
-  .row
-    .col-8
-      %p= page_entries_info @text_messages, entry_name: _('Messages')
-      %p= paginate @text_messages
-  .card
+- if @pagy.count.positive?
+  = render 'common/pagination_top', item_name: 'message'
+  .table-responsive
     %table.table.table-striped
       %thead
         %tr
@@ -20,5 +16,6 @@
             %td= message.topic.title
             %td= message.send_on_or_after
             %td= message.sent_at
+  = render 'common/pagination_bottom', item_name: 'message'
 - else
   .none-found No messages queued.

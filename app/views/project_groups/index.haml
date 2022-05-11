@@ -18,8 +18,9 @@
   %ul
     %li Project Groups are used in some reporting contexts to run project-based reports against multiple related projects.
     %li Access to a project group does not imply access to the projects within the group, projects must still be assigned to users to grant access.
-- if @project_groups.to_a.any?
-  .card
+- if @pagy.count.positive?
+  = render 'common/pagination_top', item_name: 'project group'
+  .table-responsive
     %table.table.table-striped
       %thead
         %tr
@@ -37,7 +38,6 @@
             %th= group.projects.count
             %td.reports
               = group.describe_filter_as_html
-  %p= paginate @project_groups
+  = render 'common/pagination_bottom', item_name: 'project group'
 - else
-  %p
-    There are no project groups.
+  .none-found There are no project groups.

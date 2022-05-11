@@ -16,8 +16,7 @@ module IncomeBenefitsReport::WarehouseReports
     before_action :set_pdf_export
 
     def index
-      @reports = report_scope.ordered.
-        page(params[:page]).per(25)
+      @pagy, @reports = pagy(report_scope.ordered)
       # @filter = filter_class.new(user_id: current_user.id)
       # @filter.set_from_params(filter_params) if filter_params.present?
       @report = report_class.new(user_id: current_user.id)

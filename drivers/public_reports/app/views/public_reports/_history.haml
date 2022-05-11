@@ -1,5 +1,5 @@
-- if @reports.exists?
-  %p= paginate @reports
+- if @pagy.count.positive?
+  = render 'common/pagination_top', item_name: 'report'
   .card.warehouse-reports__completed
     %table.table.table-striped.table-responsive
       %thead
@@ -28,7 +28,6 @@
               - if report.completed?
                 .mt-2
                   %em= report.completed_at.to_date
-
+  = render 'common/pagination_bottom', item_name: 'report'
 - else
-  %p
-    No reports on file
+  .none-found No reports on file

@@ -8,6 +8,6 @@
           - btn_classes.push('active btn-light')
         = link_to group[:title].titleize, group[:path], class: btn_classes
     %h4.mt-3= @active_patient_referral_group == 'our patient' ? "Known by one of your agencies" : 'Not Your Patient'
-.mt-3{class: @active_patient_referral_group.present? ? 'pull-right text-right' : 'pull-left'}
-  .mb-2= page_entries_info @patient_referrals, entry_name: _('patient')
-  %div= paginate @patient_referrals, params: {q: params[:q], filters: tab_path_params[:filters]}
+%div
+  .mb-2!= pagy_info(@pagy, item_name: _('patient').pluralize(@pagy.count))
+  != pagy_bootstrap_nav(@pagy) if @pagy.pages > 1

@@ -26,10 +26,9 @@
           %i.icon-info
           Claim file submitted on #{@report.submitted_at.to_date}
 
-- if @report.qualifying_activities.any?
-  %p= page_entries_info @qualifying_activities, entry_name: _('qualifying activities')
-  %p= paginate @qualifying_activities
+- if @pagy.count.positive?
+  = render 'common/pagination_top', item_name: 'qualifying activity'
   = render 'qualifying_activities'
-  %p= paginate @qualifying_activities
+  = render 'common/pagination_bottom', item_name: 'qualifying activity'
 - else
-  %p There are no unsubmitted claims.
+  .none-found There are no unsubmitted claims.

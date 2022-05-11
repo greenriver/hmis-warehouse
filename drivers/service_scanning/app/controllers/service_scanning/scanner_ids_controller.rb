@@ -21,8 +21,8 @@ module ServiceScanning
           params[:q],
           client_scope: client_search_scope,
         ).
-        order(LastName: :asc, FirstName: :asc).
-        page(params[:page]).per(20)
+        order(LastName: :asc, FirstName: :asc)
+      @pagy, @clients = pagy(@clients)
     end
 
     def show

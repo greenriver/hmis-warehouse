@@ -177,7 +177,7 @@ module WarehouseReports::Project
         order(name: :asc).
         preload(:contacts, projects: [organization: :contacts])
 
-      @project_scope = @projects.page(params[:page]).per(50)
+      @pagy, @project_scope = pagy(@projects, items: 50)
       @projects = @project_scope.
         group_by { |p| [p.data_source.short_name, p.organization] }
     end

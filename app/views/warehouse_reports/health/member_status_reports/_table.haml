@@ -1,24 +1,26 @@
-- if @reports.any?
-  %p= paginate @reports
-  %table.table.table-hover
-    %thead
-      %tr
-        %th Report
-        %th Summary
-        %th Receiver
-        %th Start
-        %th End
-        %th Run by
-        %th Status
-    %tbody
-      - @reports.each do |report|
+- if @pagy.count.positive?
+  = render 'common/pagination_top', item_name: 'report'
+  .table-responsive
+    %table.table.table-striped
+      %thead
         %tr
-          %td= link_to_if report.completed_at, 'Member Status', "#{warehouse_reports_health_member_status_report_url(report)}.xlsx"
+          %th Report
+          %th Summary
+          %th Receiver
+          %th Start
+          %th End
+          %th Run by
+          %th Status
+      %tbody
+        - @reports.each do |report|
+          %tr
+            %td= link_to_if report.completed_at, 'Member Status', "#{warehouse_reports_health_member_status_report_url(report)}.xlsx"
 
-          %td= link_to_if report.completed_at, 'Summary', "#{warehouse_reports_health_member_status_report_url(report)}.xlsx?summary=true"
+            %td= link_to_if report.completed_at, 'Summary', "#{warehouse_reports_health_member_status_report_url(report)}.xlsx?summary=true"
 
-          %td= report.receiver || 'All'
-          %td= report.report_start_date
-          %td= report.report_end_date
-          %td= report.user&.name
-          %td= report.status
+            %td= report.receiver || 'All'
+            %td= report.report_start_date
+            %td= report.report_end_date
+            %td= report.user&.name
+            %td= report.status
+  = render 'common/pagination_bottom', item_name: 'report'

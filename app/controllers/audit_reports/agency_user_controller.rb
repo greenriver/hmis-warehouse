@@ -27,7 +27,7 @@ module AuditReports
       respond_to do |format|
         format.html do
           @users = sort_users(@users)
-          @users = @users.page(params[:page]).per(25)
+          @pagy, @users = pagy(@users)
         end
         format.xlsx do
           @users = @users.order(:last_name, :first_name)
@@ -115,7 +115,7 @@ module AuditReports
       end
 
       sorted.reverse! if @direction == 'desc'
-      Kaminari.paginate_array(sorted)
+      sorted
     end
 
     def view_history

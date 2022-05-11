@@ -16,6 +16,6 @@ class HmisCsvImporter::LoadedController < ApplicationController
     @data = @klass.where(loader_id: log.id).
       order(@klass.hud_key => :asc)
     @data = @data.with_deleted if @klass.paranoid?
-    @data = @data.page(params[:page]).per(500)
+    @pagy, @data = pagy(@data, items: 500)
   end
 end

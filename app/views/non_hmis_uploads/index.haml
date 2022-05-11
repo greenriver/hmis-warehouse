@@ -1,6 +1,6 @@
 - content_for :title, 'Dashboard Extras Uploads'
 = render 'uploads/breadcrumbs'
-.row
+.row.mb-4
   .col-sm-8
     %h1= content_for :title
   .col-sm-4
@@ -8,25 +8,26 @@
       = link_to new_data_source_non_hmis_upload_path, class: 'btn btn-primary pull-right' do
         %span.icon-plus
         Upload Dashboard Extras
-
-.row.table-utilities
-  .col-sm-12
-    .table-responsive
-      %table.table.table-sm.table-hover
-        %thead
+- if @pagy.count.positive?
+  = render 'common/pagination_top', item_name: 'upload'
+  .table-responsive
+    %table.table.table-striped.table-sm
+      %thead
+        %tr
+          %th Filename
+          %th Uploaded By
+          %th Uploaded On
+          %th Completed In
+      %tbody
+        - @uploads.each do |upload|
           %tr
-            %th Filename
-            %th Uploaded By
-            %th Uploaded On
-            %th Completed In
-        %tbody
-          - @uploads.each do |upload|
-            %tr
-              %td
-                = link_to File.basename(upload.file.to_s), data_source_non_hmis_upload_path(data_source_id: upload.data_source_id, id: upload.id)
-              %td= upload.user&.name
-              %td= upload.created_at
-              %td
-                = upload.import_time
+            %td
+              = link_to File.basename(upload.file.to_s), data_source_non_hmis_upload_path(data_source_id: upload.data_source_id, id: upload.id)
+            %td= upload.user&.name
+            %td= upload.created_at
+            %td
+              = upload.import_time
 
-%p= paginate @uploads
+  = render 'common/pagination_bottom', item_name: 'upload'
+- else
+  .none-found No uploads.

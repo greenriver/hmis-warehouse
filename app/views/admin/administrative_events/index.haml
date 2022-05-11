@@ -3,31 +3,34 @@
 %h1= content_for :title
 = render :partial => 'menus/admin_tabs'
 
-.d-flex
+.d-flex.mb-4
   .ml-auto
-    = link_to new_admin_administrative_event_path, class: 'btn btn-primary mb-2' do
+    = link_to new_admin_administrative_event_path, class: 'btn btn-primary' do
       %span.icon-plus
       Add an Administrative Event
 
-.table-responsive
-  %table.table.table-sm
-    %thead
-      %th Date
-      %th Title
-      %th Description
-    %tbody
-      - @events.each do |event|
-        %tr
-          %td= event.date
-          %td= event.title
-          %td= simple_format event.description
-          %td
-            = link_to action: :edit, id: event do
-              %span.icon-pencil
-              Edit
-          %td
-            = link_to admin_administrative_event_path(event),  method: :delete, data: {confirm: "Would you really like to delete this administrative event?"} do
-              %span.icon-cross
-              Delete
-
-%p= paginate @events
+- if @pagy.count.positive?
+  = render 'common/pagination_top', item_name: 'event'
+  .table-responsive
+    %table.table.table-striped
+      %thead
+        %th Date
+        %th Title
+        %th Description
+      %tbody
+        - @events.each do |event|
+          %tr
+            %td= event.date
+            %td= event.title
+            %td= simple_format event.description
+            %td
+              = link_to action: :edit, id: event do
+                %span.icon-pencil
+                Edit
+            %td
+              = link_to admin_administrative_event_path(event),  method: :delete, data: {confirm: "Would you really like to delete this administrative event?"} do
+                %span.icon-cross
+                Delete
+  = render 'common/pagination_bottom', item_name: 'event'
+- else
+  .none-found No administrative events found.
