@@ -1,41 +1,43 @@
 %h3
   = link_to 'Service History Generation Status', service_history_logs_path
-%table.table.table-sm
-  %tr
-    %th
-      Clients no service histories
-      %em (others may need updates)
-    %td
-      = number_with_delimiter @service_histories_to_add
+.card.mb-4
+  %table.table.table-striped
+    %tr
+      %th
+        Clients with no service histories
+        %em (others may need updates)
+      %td
+        = number_with_delimiter @service_histories_to_add || 'None'
 - unless @service_history
   %p
     %em No service history found.
 - else
-  %table.table.table-sm
-    %tr
-      %th
-        Started On
-      %td
-        = @service_history.started_at
-    %tr
-      %th
-        Execution time
-      %td
-        = @service_history.import_time
-    %tr
-      %th
-        Clients processed
-      %td
-        = @service_history.clients_processed
-        of
-        = @service_history.total_clients
-    %tr
-      %th
-        Clients updated
-      %td
-        = number_with_delimiter @service_history.clients_updated
-    %tr
-      %th
-        Clients patched
-      %td
-        = number_with_delimiter @service_history.clients_patched
+  .card
+    %table.table.table-striped
+      %tr
+        %th
+          Started On
+        %td
+          = @service_history.started_at
+      %tr
+        %th
+          Execution time
+        %td
+          = @service_history.import_time
+      %tr
+        %th
+          Clients processed
+        %td
+          = @service_history.clients_processed
+          of
+          = @service_history.total_clients
+      %tr
+        %th
+          Clients updated
+        %td
+          = number_with_delimiter @service_history.clients_updated
+      %tr
+        %th
+          Clients patched
+        %td
+          = number_with_delimiter @service_history.clients_patched
