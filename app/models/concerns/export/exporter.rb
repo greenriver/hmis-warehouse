@@ -28,7 +28,7 @@ module Export::Exporter
         include_deleted: @include_deleted,
         version: @version,
       }
-      @options[:export_id] = Digest::MD5.hexdigest(@options.to_s)[0..31]
+      @options[:export_id] ||= Digest::MD5.hexdigest(@options.to_s)[0..31]
       @options
     end
 
