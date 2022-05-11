@@ -9,11 +9,11 @@
   .row
     .col-sm-8
       = render 'common/pagination_top', item_name: 'translation'
-      .table-responsive
-        %table.table.table-sm
+      .table-responsive.card
+        %table.table.table-striped
           %thead
             %tr
-              %th Default strings
+              %th{style: 'width: 30%;'} Default strings
               - locales.each do |locale|
                 %th= human_locale(locale)
               %th
@@ -31,10 +31,11 @@
                     Save
       = render 'common/pagination_bottom', item_name: 'translation'
     .col-sm-4.mt-8
-      = simple_form_for :search, as: :search, url: admin_translation_keys_path, method: :get do |f|
-        = f.input :q, label: 'Search'
-        = f.input :missing_translations, as: :boolean, label: 'Only show untranslated strings'
-        = f.button :submit, value: 'Search or Filter'
+      .well
+        = simple_form_for :search, as: :search, url: admin_translation_keys_path, method: :get do |f|
+          = f.input :q, label: 'Search'
+          = f.input :missing_translations, as: :boolean, label: 'Only show untranslated strings'
+          = f.button :submit, value: 'Search or Filter'
 - else
   .none-found No translations found.
 
