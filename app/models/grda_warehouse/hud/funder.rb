@@ -92,15 +92,6 @@ module GrdaWarehouse::Hud
       row = HmisCsvTwentyTwentyTwo::Exporter::Funder::Overrides.apply_overrides(self)
       row = HmisCsvTwentyTwentyTwo::Exporter::Funder.adjust_keys(row)
       row
-
-      # This should never happen, but does
-      # self.ProjectID = project&.id || 'Unknown'
-      # self.GrantID ||= 'Unknown'
-      # self.OtherFunder = self.OtherFunder[0...50] if self.OtherFunder.present?
-
-      # self.UserID = 'op-system' if self.UserID.blank?
-      # self.FunderID = id
-      # return self
     end
   end
 end

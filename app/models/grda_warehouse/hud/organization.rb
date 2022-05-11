@@ -194,12 +194,6 @@ module GrdaWarehouse::Hud
     end
 
     def for_export
-      # self.VictimServiceProvider ||= 0
-
-      # self.UserID = 'op-system' if self.UserID.blank?
-      # self.OrganizationID = id
-      # return self
-
       row = HmisCsvTwentyTwentyTwo::Exporter::Organization::Overrides.apply_overrides(self, options: { confidential: false })
       row = HmisCsvTwentyTwentyTwo::Exporter::Organization.adjust_keys(row)
       row

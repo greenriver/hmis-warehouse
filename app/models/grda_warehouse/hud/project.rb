@@ -695,36 +695,6 @@ module GrdaWarehouse::Hud
     end
 
     def for_export
-      # This should never happen, but does
-      # self.OrganizationID = organization&.id || 'Unknown'
-      # self.HousingType = housing_type_override if housing_type_override.present?
-      # self.ContinuumProject = hud_continuum_funded if hud_continuum_funded.present?
-      # self.ContinuumProject = self.ContinuumProject.presence || 0
-      # self.OperatingStartDate = operating_start_date_override if operating_start_date_override.present?
-      # self.OperatingEndDate = operating_end_date_override if operating_end_date_override.present?
-      # self.ProjectCommonName = self.ProjectName if self.ProjectCommonName.blank?
-      # self.ProjectCommonName = self.ProjectCommonName[0...50] if self.ProjectCommonName
-      # self.HMISParticipatingProject = hmis_participating_project_override if hmis_participating_project_override.present?
-      # # NOTE: this defaults to 0 now, HUD doesn't believe this should ever be 99 even though the spec permits it
-      # self.HMISParticipatingProject = 0 if self.HMISParticipatingProject.blank?
-      # self.TargetPopulation = target_population_override if target_population_override.present?
-
-      # # Need to set the project type prior to calculating the tracking method override
-      # self.ProjectType = computed_project_type if computed_project_type.present?
-      # # If we are have an ES project, the only valid options are 0 and 3, otherwise it should be blank
-      # self.TrackingMethod = if self.ProjectType.in?(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es])
-      #   if tracking_method_override.in?([0, 3])
-      #     tracking_method_override
-      #   else
-      #     0
-      #   end
-      # else
-      #   nil # explicit nil return to indicate that it should always be nil if not ES
-      # end
-      # self.UserID = 'op-system' if self.UserID.blank?
-      # self.ProjectID = id
-      # return self
-
       row = HmisCsvTwentyTwentyTwo::Exporter::Project::Overrides.apply_overrides(self, options: { confidential: false })
       row = HmisCsvTwentyTwentyTwo::Exporter::Project.adjust_keys(row)
       row

@@ -135,24 +135,6 @@ module GrdaWarehouse::Hud
     end
 
     def for_export
-      # This should never happen, but does
-      # self.ProjectID = project&.id || 'Unknown'
-      # self.CoCCode = hud_coc_code if hud_coc_code.present?
-      # self.GeographyType = geography_type_override if geography_type_override.present?
-      # self.GeographyType ||= 99
-      # self.Geocode = geocode_override if geocode_override.present?
-      # self.Geocode ||= '0' * 6
-      # self.Zip = zip_override if zip_override.present?
-      # self.Address1 = self.Address1[0...100] if self.Address1
-      # self.Address2 = self.Address2[0...100] if self.Address2
-      # self.City = self.City[0...50] if self.City
-      # self.Zip = self.Zip.to_s.rjust(5, '0')[0...5] if self.Zip
-      # self.Zip ||= '0' * 5
-
-      # self.UserID = 'op-system' if self.UserID.blank?
-      # self.ProjectCoCID = id
-      # return self
-
       row = HmisCsvTwentyTwentyTwo::Exporter::ProjectCoc::Overrides.apply_overrides(self)
       row = HmisCsvTwentyTwentyTwo::Exporter::ProjectCoc.adjust_keys(row)
       row

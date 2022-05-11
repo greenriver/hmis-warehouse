@@ -33,11 +33,15 @@ module Export::Scopes
         end
         e_scope = e_scope.where(project_exists_for_enrollment)
         case @export&.period_type
-        when 3
+        when 3 # Reporting period
           # FIXME: open_during_range may need to include logic to include deleted Exits
           e_scope = e_scope.open_during_range(@range)
-        when 1
+        when 2 # Effective (not implemented or exposed)
+          raise NotImplementedError
+        when 1 # Updated (handled within the individual models)
           # no-op
+        else
+          raise NotImplementedError
         end
         e_scope = e_scope.joins(:enrollment_cocs).where(ec_t[:CoCCode].in(Array(@coc_codes))) if @coc_codes.present?
         e_scope.distinct.preload(:project, :client)

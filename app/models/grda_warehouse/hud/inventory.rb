@@ -106,19 +106,6 @@ module GrdaWarehouse::Hud
     end
 
     def for_export
-      # This should never happen, but does
-      # self.ProjectID = project&.id || 'Unknown'
-      # self.CoCCode = coc_code_override if coc_code_override.present?
-      # self.InventoryStartDate = inventory_start_date_override if inventory_start_date_override.present?
-      # self.InventoryEndDate = inventory_end_date_override if inventory_end_date_override.present?
-
-      # self.BedInventory ||= 0
-      # self.UnitInventory ||= 0
-
-      # self.UserID = 'op-system' if self.UserID.blank?
-      # self.InventoryID = id
-      # return self
-
       fake_export = OpenStruct.new(include_deleted: false, period_type: 3)
       row = HmisCsvTwentyTwentyTwo::Exporter::Inventory::Overrides.apply_overrides(self, export: fake_export)
       row = HmisCsvTwentyTwentyTwo::Exporter::Inventory.adjust_keys(row)
