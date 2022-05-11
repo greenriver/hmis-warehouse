@@ -53,6 +53,7 @@ data_styles = {
   'Number of Months' => [th_style, nil, nil, percentage_format],
   'Prior Living Situation' => [th_style, nil, nil, percentage_format],
   'Household Types' => [th_style, nil, nil, percentage_format],
+  'Clients in Projects' => [th_style, nil, nil, nil, nil],
 }
 wb.add_worksheet(name: 'Data') do |sheet|
   sheet.styles.add_style(sz: 24, b: true, alignment: { horizontal: :center })
