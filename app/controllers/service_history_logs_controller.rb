@@ -7,6 +7,7 @@
 class ServiceHistoryLogsController < ApplicationController
   before_action :require_can_view_imports!
   def index
-    @pagy, @service = pagy(GrdaWarehouse::GenerateServiceHistoryLog.order(started_at: :desc))
+    @service = GrdaWarehouse::GenerateServiceHistoryLog.order(started_at: :desc)
+    @pagy, @service = pagy(@service)
   end
 end
