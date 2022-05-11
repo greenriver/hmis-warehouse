@@ -27,7 +27,7 @@ module PatientReferral
     else
       @patient_referrals = Health::PatientReferral.none
     end
-    @pagy, @patient_referrals = pagy(@patient_referrals, items: 3)
+    @pagy, @patient_referrals = pagy(@patient_referrals)
     load_tabs
   end
 
