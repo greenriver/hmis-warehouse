@@ -13,6 +13,10 @@ module HmisCsvTwentyTwentyTwo::Loader
 
     attr_accessor :file_path
 
+    scope :with_deleted, -> do
+      current_scope
+    end
+
     def self.load_from_csv(file_path:, data_source_id:)
       new CSV.parse(
         File.read(File.join(file_path, hud_csv_file_name)).gsub("\r\n", "\n"),
