@@ -67,7 +67,7 @@ RSpec.describe HomelessSummaryReport::Report, type: :model do
       expect(result(:m1a_es_sh_days, :spm_all_persons__veteran)).to be == 1
     end
 
-    it "doesn't find data not in the dataset'" do
+    it "doesn't find data not in the dataset (all persons)" do
       expect(result(:m1a_es_sh_days, :spm_all_persons__american_indian_alaskan_native)).to be_zero
       expect(result(:m1a_es_sh_days, :spm_all_persons__has_disability)).to be_zero
       expect(result(:m1a_es_sh_days, :spm_all_persons__has_psh_move_in_date)).to be_zero
@@ -78,6 +78,47 @@ RSpec.describe HomelessSummaryReport::Report, type: :model do
       expect(result(:m1a_es_sh_days, :spm_all_persons__returned_to_homelessness_from_permanent_destination)).to be_zero
       expect(result(:m1a_es_sh_days, :spm_all_persons__white)).to be_zero
       expect(result(:m1a_es_sh_days, :spm_all_persons__white_non_hispanic_latino)).to be_zero
+    end
+
+    it "doesn't find data not in the dataset (adult only)" do
+      expect(result(:m1a_es_sh_days, :spm_without_children__american_indian_alaskan_native)).to be_zero
+      expect(result(:m1a_es_sh_days, :spm_without_children__has_disability)).to be_zero
+      expect(result(:m1a_es_sh_days, :spm_without_children__has_psh_move_in_date)).to be_zero
+      expect(result(:m1a_es_sh_days, :spm_without_children__has_rrh_move_in_date)).to be_zero
+      expect(result(:m1a_es_sh_days, :spm_without_children__h_n_h_l)).to be_zero
+      expect(result(:m1a_es_sh_days, :spm_without_children__native_hawaiian_other_pacific_islander)).to be_zero
+      expect(result(:m1a_es_sh_days, :spm_without_children__n_n_h_l)).to be_zero
+      expect(result(:m1a_es_sh_days, :spm_without_children__returned_to_homelessness_from_permanent_destination)).to be_zero
+      expect(result(:m1a_es_sh_days, :spm_without_children__white)).to be_zero
+      expect(result(:m1a_es_sh_days, :spm_without_children__white_non_hispanic_latino)).to be_zero
+    end
+
+    it 'has correct demographic counts for clients in Adult Only Households' do
+      expect(result(:m1a_es_sh_days, :spm_without_children__all)).to be == 3
+      expect(result(:m1a_es_sh_days, :spm_without_children__hispanic_latino)).to be == 1
+      expect(result(:m1a_es_sh_days, :spm_without_children__race_none)).to be == 2
+    end
+
+    it 'has correct demographic counts for clients in Adult Only Households who are Age 55+' do
+      expect(result(:m1a_es_sh_days, :spm_without_children_and_fifty_five_plus__all)).to be == 2
+      expect(result(:m1a_es_sh_days, :spm_without_children_and_fifty_five_plus__veteran)).to be == 1
+      expect(result(:m1a_es_sh_days, :spm_without_children_and_fifty_five_plus__non_hispanic_latino)).to be == 2
+      expect(result(:m1a_es_sh_days, :spm_without_children_and_fifty_five_plus__race_none)).to be == 1
+      expect(result(:m1a_es_sh_days, :spm_without_children_and_fifty_five_plus__asian)).to be == 1
+      expect(result(:m1a_es_sh_days, :spm_without_children_and_fifty_five_plus__a_n_h_l)).to be == 1
+    end
+
+    it 'has correct demographic counts for clients in Child Only Households' do
+      expect(result(:m1a_es_sh_days, :spm_only_children__all)).to be == 2
+      # client four
+      expect(result(:m1a_es_sh_days, :spm_only_children__fleeing_dv)).to be == 1
+      expect(result(:m1a_es_sh_days, :spm_only_children__hispanic_latino)).to be == 1
+      expect(result(:m1a_es_sh_days, :spm_only_children__race_none)).to be == 1
+      # client five
+      expect(result(:m1a_es_sh_days, :spm_only_children__non_hispanic_latino)).to be == 1
+      expect(result(:m1a_es_sh_days, :spm_only_children__black_african_american)).to be == 1
+      expect(result(:m1a_es_sh_days, :spm_only_children__asian)).to be == 1
+      expect(result(:m1a_es_sh_days, :spm_only_children__multi_racial)).to be == 1
     end
   end
 
@@ -90,15 +131,15 @@ RSpec.describe HomelessSummaryReport::Report, type: :model do
       expect(result(:m1a_es_sh_days, :spm_all_persons__all)).to be == 1
     end
 
-    xit 'includes 1 adult' do
+    it 'includes 1 adult' do
       expect(result(:m1a_es_sh_days, :spm_without_children__all)).to be == 1
     end
 
-    xit 'includes 1 adult hispanic/latino' do
+    it 'includes 1 adult hispanic/latino' do
       expect(result(:m1a_es_sh_days, :spm_without_children__hispanic_latino)).to be == 1
     end
 
-    xit 'includes 1 without race' do
+    it 'includes 1 without race' do
       expect(result(:m1a_es_sh_days, :spm_without_children__race_none)).to be == 1
     end
 
