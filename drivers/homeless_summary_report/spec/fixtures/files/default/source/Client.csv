@@ -1,2 +1,6 @@
 PersonalID,FirstName,MiddleName,LastName,NameSuffix,NameDataQuality,SSN,SSNDataQuality,DOB,DOBDataQuality,AmIndAKNative,Asian,BlackAfAmerican,NativeHIPacific,White,RaceNone,Ethnicity,Female,Male,NoSingleGender,Transgender,Questioning,GenderNone,VeteranStatus,YearEnteredService,YearSeparated,WorldWarII,KoreanWar,VietnamWar,DesertStorm,AfghanistanOEF,IraqOIF,IraqOND,OtherTheater,MilitaryBranch,DischargeStatus,DateCreated,DateUpdated,UserID,DateDeleted,ExportID
-C-1,Client,,One,,1,001010001,1,2020-01-01,1,0,0,0,0,1,,0,1,0,0,0,0,,99,,,,,,,,,,,,,2022-01-01 00:00:00,2022-01-01 00:00:00,user,,EXPORT
+C-1,Client,,One,,1,001010001,1,1980-01-01,1,0,0,0,0,0,1,1,0,0,0,0,0,8,0,,,,,,,,,,,,,2022-01-01 00:00:00,2022-01-01 00:00:00,user,,EXPORT
+C-2,Client,,Two,,1,001010002,1,1960-01-01,1,0,0,0,0,0,1,0,0,0,0,0,0,8,1,,,,,,,,,,,,,2022-01-01 00:00:00,2022-01-01 00:00:00,user,,EXPORT
+C-3,Client,,Three,,1,001010003,1,1960-01-01,1,0,1,0,0,0,,0,0,0,0,0,0,8,0,,,,,,,,,,,,,2022-01-01 00:00:00,2022-01-01 00:00:00,user,,EXPORT
+C-4,Client,,Four,,1,001010004,1,2010-01-01,1,0,0,0,0,0,1,1,0,0,0,0,0,8,0,,,,,,,,,,,,,2022-01-01 00:00:00,2022-01-01 00:00:00,user,,EXPORT
+C-5,Client,,Five,,1,001010005,1,2010-01-01,1,0,1,1,0,0,,0,0,0,0,0,0,8,0,,,,,,,,,,,,,2022-01-01 00:00:00,2022-01-01 00:00:00,user,,EXPORT

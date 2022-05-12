@@ -18,12 +18,21 @@ RSpec.shared_context 'report context', shared_context: :metadata do
     }
   end
 
+  def coc_filter
+    {
+      start: Date.parse('2022-01-01'),
+      end: Date.parse('2022-12-31'),
+      project_type_codes: GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.keys,
+      coc_codes: ['XX-501'],
+    }
+  end
+
   def run!(filter)
     HomelessSummaryReport::Report.new(user_id: User.setup_system_user.id, filter: filter).run_and_save!
   end
 
   def report_result
-    @report_result ||= HomelessSummaryReport::Report.last
+    HomelessSummaryReport::Report.last
   end
 
   def result(field, demographics)

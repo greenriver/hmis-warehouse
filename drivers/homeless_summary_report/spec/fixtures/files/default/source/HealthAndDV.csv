@@ -1,1 +1,2 @@
 HealthAndDVID,EnrollmentID,PersonalID,InformationDate,DomesticViolenceVictim,WhenOccurred,CurrentlyFleeing,GeneralHealthStatus,DentalHealthStatus,MentalHealthStatus,PregnancyStatus,DueDate,LifeValue,SupportFromOthers,BounceBack,FeelingFrequency,DataCollectionStage,DateCreated,DateUpdated,UserID,DateDeleted,ExportID
+HDV-1,E-4,C-4,2022-01-01,1,1,1,,,,,,,,,,1,2021-01-01 00:00:00,2021-01-01 00:00:00,user,,EXPORT
