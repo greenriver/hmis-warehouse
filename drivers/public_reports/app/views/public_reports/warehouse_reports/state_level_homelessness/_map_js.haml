@@ -47,12 +47,12 @@
 
       // L.geoJSON(this.state, geoJSONOptions).addTo(this.map);
       this.geojson = L.geoJSON(this.shapes, geoJSONOptions).addTo(this.map);
-      let bounds = this.geojson.getBounds();
+      const bounds = this.geojson.getBounds();
 
       this.map.fitBounds(bounds);
 
       this.initInfoBox();
-      var resizeObserver = new ResizeObserver(() => {
+      const resizeObserver = new ResizeObserver(() => {
         this.map.invalidateSize();
         this.map.fitBounds(bounds);
       });
