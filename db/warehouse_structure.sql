@@ -16089,6 +16089,16 @@ INHERITS (public.service_history_services);
 
 
 --
+-- Name: service_history_services_2022; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.service_history_services_2022 (
+    CONSTRAINT service_history_services_2022_date_check CHECK (((date >= '2022-01-01'::date) AND (date <= '2022-12-31'::date)))
+)
+INHERITS (public.service_history_services);
+
+
+--
 -- Name: service_history_services_2023; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -20132,6 +20142,13 @@ ALTER TABLE ONLY public.service_history_services_2019 ALTER COLUMN id SET DEFAUL
 --
 
 ALTER TABLE ONLY public.service_history_services_2021 ALTER COLUMN id SET DEFAULT nextval('public.service_history_services_id_seq'::regclass);
+
+
+--
+-- Name: service_history_services_2022 id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services_2022 ALTER COLUMN id SET DEFAULT nextval('public.service_history_services_id_seq'::regclass);
 
 
 --
