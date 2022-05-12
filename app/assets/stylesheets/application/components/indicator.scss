@@ -30,8 +30,8 @@
     fill: $brand-success;
   }
   &.fail {
-    color: rgb(115, 72, 213);
-    fill: rgb(115, 72, 213);
+    color: $brand-danger;
+    fill: $brand-danger;
   }
 }
 .c-indicator__values {

@@ -66,6 +66,7 @@ module PerformanceMeasurement
         [
           :start,
           :end,
+          :comparison_pattern,
           :coc_code,
           :project_type_codes,
           :project_ids,

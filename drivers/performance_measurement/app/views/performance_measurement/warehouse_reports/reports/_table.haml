@@ -11,7 +11,6 @@
           %th Metric
           %th Passed
           %th Value
-          %th Direction
         %tbody
           - sub_group.each do |row|
             - key = row.first
@@ -65,9 +64,6 @@
                     - joiner = if indicator[:primary_unit].starts_with?('%') then '' else ' ' end
                     - text.join(joiner)
                   = link_to(link_text, performance_measurement_warehouse_reports_report_details_path(@report, key: key), target: :_blank)
-                %td.text-center
-                  - if @report.detail_year_over_year_change?(key)
-                    .c-indicator__change-icon= change_direction_icon(indicator[:direction])
             - else
               %tr
                 %td
