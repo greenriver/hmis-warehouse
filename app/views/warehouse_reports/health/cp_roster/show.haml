@@ -1,19 +1,24 @@
 = render '/warehouse_reports/breadcrumbs', tab: 'health'
 - title = "#{@file.label} uploaded on #{@file.created_at}"
 - content_for :title, title
-%h1= content_for :title
+%h1.mb-4= content_for :title
 
-%div.overflow-scroll
-  %table.table.table-sm.table-hover{id: "jRosterTable"}
-    %thead
-      %tr
-        - @file.columns.values.each do |label|
-          %th= label
-    %tbody
-      - @rows.each do |entry|
+- if @pagy.count.positive?
+  = render 'common/pagination_top', item_name: 'row'
+  %div.overflow-scroll
+    %table.table.table-sm{id: "jRosterTable"}
+      %thead
         %tr
-          - @file.columns.keys.each do |key|
-            %td= entry[key]
+          - @file.columns.values.each do |label|
+            %th= label
+      %tbody
+        - @rows.each do |entry|
+          %tr
+            - @file.columns.keys.each do |key|
+              %td= entry[key]
+  = render 'common/pagination_bottom', item_name: 'row'
+- else
+  .none-found No data
 
 = content_for :page_js do
   :javascript

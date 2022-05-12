@@ -7,10 +7,8 @@
 %h1= content_for :title
 
 = render 'hud_path_report/shared/report_form', url: path_for_questions(@question)
-
-- if @reports.present?
+- if @pagy.count.positive?
   = render 'hud_reports/year_tabs'
-  %p= paginate @reports
   .jReportListing
     = render 'hud_reports/reports'
   = render 'hud_reports/list_refresher'

@@ -2,8 +2,25 @@ window.App.Form = window.App.Form || {}
 window.App.StimulusApp = window.App.StimulusApp || {}
 
 App.StimulusApp.register('filter-projects', class extends Stimulus.Controller {
+  static get values() {
+    return {
+      supportedProjectTypes: Array,
+    }
+  }
+
   static get targets() {
-    return ['element', 'header', 'projects', 'projectTypes', 'dataSources', 'projectGroups', 'funderIds', 'calculatedProjects', 'submitButton']
+    return [
+      'element',
+      'header',
+      'projects',
+      'projectTypes',
+      'dataSources',
+      'projectGroups',
+      'funderIds',
+      'cocCodes',
+      'calculatedProjects',
+      'submitButton',
+    ]
   }
 
   initialize() {
@@ -24,8 +41,19 @@ App.StimulusApp.register('filter-projects', class extends Stimulus.Controller {
       project_type_codes: $(this.projectTypesTarget).val(),
     }
     if (this.hasFunderIdsTarget) {
-      data.funder_ids = $(this.funderIdsTarget).val()
+      const val = $(this.funderIdsTarget).val();
+      if (val) data.funder_ids = Array.isArray(val) ? val : [val];
     }
+    if (this.hasCocCodesTarget) {
+      const val = $(this.cocCodesTarget).val();
+      if (val) data.coc_codes = Array.isArray(val) ? val : [val];
+    }
+
+    // Special parameter to limit the project list by supported project type IDs
+    if (this.hasSupportedProjectTypesValue) {
+      data.supported_project_types = this.supportedProjectTypesValue
+    }
+
     $(this.calculatedProjectsTarget).html('<p class="well rollup-container"></p>')
     $.ajax({
       // It is not ideal to call this synchronously as it sometimes hangs the browser temporarily,
@@ -36,8 +64,10 @@ App.StimulusApp.register('filter-projects', class extends Stimulus.Controller {
       data: data,
     }).done((ret) => {
       // console.debug('success')
-      if(ret.includes('No Projects')) {
-        $(this.submitButtonTarget).before('<p class="w-100 mb-4 alert alert-warning jProjectWarning">This report will not work unless you have included at least one project above.</p>')
+      if (ret.includes('No Projects')) {
+        if ($('.jProjectWarning').length == 0) {
+          $(this.submitButtonTarget).before('<p class="w-100 mb-4 alert alert-warning jProjectWarning">This report will not work unless you have included at least one project above.</p>')
+        }
         $(this.submitButtonTarget).attr('disabled', 'disabled');
       }
       else {
@@ -57,9 +87,9 @@ App.StimulusApp.register('filter-projects', class extends Stimulus.Controller {
       this.dataSourcesTarget,
       this.projectGroupsTarget,
     ];
-    if (this.hasFunderIdsTarget) {
-      targets.push(this.funderIdsTarget);
-    }
+    if (this.hasFunderIdsTarget) targets.push(this.funderIdsTarget);
+    if (this.hasCocCodesTarget) targets.push(this.cocCodesTarget);
+
     targets.forEach(el => {
       $(el).on('select2:close', (e) => {
         let event = new Event('change', { bubbles: true }) // fire a native event

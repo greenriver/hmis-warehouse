@@ -270,8 +270,8 @@ module PublicReports
         end
         if settings.map_overall_geography_census?
           m_colors[colors[0]] = { description: 'None', range: (0..0), low: 0, high: 0 }
-          m_colors[colors[1]] = { description: 'Any - 15 per 10,000', range: (0.000001..15.0), low: 0.000001, high: 15.0 }
-          # m_colors[colors[2]] = { description: '11 - 15 per 10,000', range: (10.000001..15.0), low: 10.000001, high: 15.0 }
+          m_colors[colors[1]] = { description: 'Any - 5 per 10,000', range: (0.000001..5.0), low: 0.000001, high: 5.0 }
+          m_colors[colors[2]] = { description: '6 - 15 per 10,000', range: (6.000001..15.0), low: 6.000001, high: 15.0 }
           m_colors[colors[3]] = { description: '16 - 20 per 10,000', range: (15.000001..20.0), low: 15.000001, high: 20.0 }
           m_colors[colors[4]] = { description: '21 - 25 per 10,000', range: (20.000001..25.0), low: 20.000001, high: 25.0 }
           m_colors[colors[5]] = { description: '26+ per 10,000', range: (25.000001..100.0), low: 25.000001, high: 100.0 }

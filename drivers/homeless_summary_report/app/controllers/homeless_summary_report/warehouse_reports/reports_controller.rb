@@ -16,8 +16,7 @@ module HomelessSummaryReport::WarehouseReports
     before_action :set_pdf_export, only: [:show]
 
     def index
-      @reports = report_scope.ordered.
-        page(params[:page]).per(25)
+      @pagy, @reports = pagy(report_scope.ordered)
       @report = report_class.new(user_id: current_user.id)
       previous_report = report_scope.last
       if previous_report

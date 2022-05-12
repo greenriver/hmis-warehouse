@@ -55,31 +55,6 @@ module GrdaWarehouse::Hud
       "#{self.Address} #{self.City}"
     end
 
-    # when we export, we always need to replace GeographyID with the value of id
-    # and ProjectID with the id of the related project
-    def self.to_csv(scope:)
-      attributes = hud_csv_headers
-      headers = attributes.clone
-      attributes[attributes.index('GeographyID')] = 'id'
-      attributes[attributes.index('ProjectID')] = 'project.id'
-
-      CSV.generate(headers: true) do |csv|
-        csv << headers
-
-        scope.each do |i|
-          csv << attributes.map do |attr|
-            # we need to grab the appropriate id from the related project
-            if attr.include?('.')
-              obj, meth = attr.split('.')
-              i.send(obj).send(meth)
-            else
-              i.send(attr)
-            end
-          end
-        end
-      end
-    end
-
     def self.related_item_keys
       [:ProjectID]
     end

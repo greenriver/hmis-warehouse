@@ -10,8 +10,8 @@ module Admin
 
     def index
       @files = file_source.order(id: :desc).
-        select(:id, :name, :created_at).
-        page(params[:page].to_i).per(25)
+        select(:id, :name, :created_at)
+      @pagy, @files = pagy(@files)
       @file = file_source.new
     end
 

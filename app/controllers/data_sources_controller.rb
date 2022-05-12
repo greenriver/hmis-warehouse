@@ -17,7 +17,7 @@ class DataSourcesController < ApplicationController
     else
       data_source_scope
     end
-    @data_sources = @data_sources.order(name: :asc).page(params[:page]).per(25)
+    @pagy, @data_sources = pagy(@data_sources.order(name: :asc))
     # @data_spans_by_id = GrdaWarehouse::DataSource.data_spans_by_id
     @client_counts = @data_sources.map { |ds| [ds.id, ds.client_count] }.to_h
     @project_counts = @data_sources.map { |ds| [ds.id, ds.project_count] }.to_h

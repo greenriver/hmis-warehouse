@@ -35,7 +35,7 @@ module WarehouseReports::Hud
 
       respond_to do |format|
         format.html do
-          @enrollments = @enrollments.page(params[:page]).per(25)
+          @pagy, @enrollments = pagy(@enrollments)
           # to_a this now to prevent additional count and exist queries in the view
           @enrollments_array = @enrollments.to_a
         end

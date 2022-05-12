@@ -18,7 +18,8 @@ module ClientDetailReports
     end
 
     private def filter_params
-      return {} unless params[:filter].present?
+      # default to homeless project types, but don't set it if we have any sort of filter set
+      return { project_type_codes: GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPE_CODES } unless params[:filter].present?
 
       params.require(:filter).permit(
         :start,
@@ -42,6 +43,7 @@ module ClientDetailReports
       @filter = ::Filters::FilterBase.new(
         user_id: current_user.id,
         enforce_one_year_range: false,
+        project_type_codes: [],
       ).set_from_params(filter_params)
     end
   end

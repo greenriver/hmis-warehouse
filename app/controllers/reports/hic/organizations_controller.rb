@@ -10,10 +10,6 @@ module Reports
       @organizations = organization_scope.joins(:projects).
         merge(project_scope).
         distinct
-      respond_to do |format|
-        format.html
-        format.csv { send_data GrdaWarehouse::Hud::Organization.to_csv(scope: @organizations), filename: "organization-#{Time.current.to_s(:number)}.csv" }
-      end
     end
 
     def organization_scope

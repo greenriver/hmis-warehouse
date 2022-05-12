@@ -1,5 +1,7 @@
-- if @clients.present?
-  %p= paginate @clients
+- if @pagy.present? && @pagy.count.positive?
+  = render 'common/pagination_top', item_name: 'client'
   - @clients.each do |client|
     = render 'client_card', client: client
-  %p= paginate @clients
+  = render 'common/pagination_bottom', item_name: 'client'
+- elsif @pagy.present?
+  .none-found No clients found.

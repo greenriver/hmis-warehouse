@@ -5,18 +5,59 @@
 ###
 
 module HmisCsvTwentyTwentyTwo::Exporter
-  class AssessmentResult < GrdaWarehouse::Hud::AssessmentResult
-    include ::HmisCsvTwentyTwentyTwo::Exporter::Shared
-    setup_hud_column_access(GrdaWarehouse::Hud::AssessmentResult.hud_csv_headers(version: '2022'))
+  class AssessmentResult
+    include ::HmisCsvTwentyTwentyTwo::Exporter::ExportConcern
 
-    # Setup an association to enrollment that allows us to pull the records even if the
-    # enrollment has been deleted
-    belongs_to :enrollment_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::Enrollment', primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], optional: true
+    def initialize(options)
+      @options = options
+    end
 
-    def apply_overrides(row, data_source_id:) # rubocop:disable Lint/UnusedMethodArgument
-      row[:UserID] = 'op-system' if row[:UserID].blank?
+    def process(row)
+      row = assign_export_id(row)
+      row = self.class.adjust_keys(row, @options[:export])
 
       row
+    end
+
+    def self.adjust_keys(row, export)
+      row.UserID = row.user&.id || 'op-system'
+      # Pre-calculate and assign. After assignment the relations will be broken
+      personal_id = personal_id(row, export)
+      enrollment_id = enrollment_id(row, export)
+      assessment_id = assessment_id(row, export)
+      row.PersonalID = personal_id
+      row.EnrollmentID = enrollment_id
+      row.AssessmentID = assessment_id
+      row.AssessmentResultID = row.id
+
+      row
+    end
+
+    def self.export_scope(enrollment_scope:, export:, hmis_class:, **_)
+      join_tables = if export.include_deleted || export.period_type == 1
+        [:assessment_with_deleted, { enrollment_with_deleted: [:project_with_deleted, { client_with_deleted: :warehouse_client_source }] }]
+      else
+        [:assessment, { enrollment: [:project, { client: :warehouse_client_source }] }]
+      end
+      export_scope = hmis_class.joins(join_tables).preload(join_tables + [:user])
+
+      export_scope = case export.period_type
+      when 3
+        export_scope.merge(enrollment_scope)
+      when 1
+        export_scope.merge(enrollment_scope).
+          modified_within_range(range: (export.start_date..export.end_date))
+      end
+      note_involved_user_ids(scope: export_scope, export: export)
+
+      export_scope.distinct
+    end
+
+    def self.transforms
+      [
+        HmisCsvTwentyTwentyTwo::Exporter::AssessmentResult,
+        HmisCsvTwentyTwentyTwo::Exporter::FakeData,
+      ]
     end
   end
 end

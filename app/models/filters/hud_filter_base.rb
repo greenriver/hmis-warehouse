@@ -30,6 +30,14 @@ module Filters
           pluck(p_t[:id])
       end
 
+      if coc_codes.present?
+        @effective_project_ids = GrdaWarehouse::Hud::ProjectCoc.in_coc(coc_code: coc_codes).
+          joins(:project).
+          where(p_t[:id].in(@effective_project_ids)).
+          distinct.
+          pluck(p_t[:id])
+      end
+
       # Add an invalid id if there are none
       @effective_project_ids = [0] if @effective_project_ids.empty?
 

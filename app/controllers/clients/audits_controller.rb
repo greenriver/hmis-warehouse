@@ -17,8 +17,8 @@ class Clients::AuditsController < ApplicationController
     @audit_log = ActivityLog.where(item_model: 'GrdaWarehouse::Hud::Client').
       where(al_t[:path].matches("%clients/#{client_id}/%"). # contains client_id
             or(al_t[:path].matches("%clients/#{client_id}"))). # ends with client_id
-      order(created_at: :desc).
-      page(params[:page]).per(50)
+      order(created_at: :desc)
+    @pagy, @audit_log = pagy(@audit_log, items: 50)
   end
 
   protected

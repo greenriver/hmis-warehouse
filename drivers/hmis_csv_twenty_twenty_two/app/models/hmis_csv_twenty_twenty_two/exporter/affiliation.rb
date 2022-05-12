@@ -5,16 +5,40 @@
 ###
 
 module HmisCsvTwentyTwentyTwo::Exporter
-  class Affiliation < GrdaWarehouse::Hud::Affiliation
-    include ::HmisCsvTwentyTwentyTwo::Exporter::Shared
-    setup_hud_column_access(GrdaWarehouse::Hud::Affiliation.hud_csv_headers(version: '2022'))
+  class Affiliation
+    include ::HmisCsvTwentyTwentyTwo::Exporter::ExportConcern
 
-    belongs_to :project_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::Project', primary_key: [:ProjectID, :data_source_id], foreign_key: [:ProjectID, :data_source_id], inverse_of: :affiliations, optional: true
+    def initialize(options)
+      @options = options
+    end
 
-    def apply_overrides(row, data_source_id:) # rubocop:disable Lint/UnusedMethodArgument
-      row[:UserID] = 'op-system' if row[:UserID].blank?
+    def self.adjust_keys(row)
+      row.UserID = row.user&.id || 'op-system'
+      row.ProjectID = row.project&.id || 'Unknown'
+      row.ResProjectID = row.residential_project&.id || 'Unknown'
+      row.AffiliationID = row.id
 
       row
+    end
+
+    def self.export_scope(project_scope:, export:, hmis_class:, **_)
+      export_scope = case export.period_type
+      when 3
+        hmis_class.joins(:project).merge(project_scope)
+      when 1
+        hmis_class.joins(:project).merge(project_scope).
+          modified_within_range(range: (export.start_date..export.end_date))
+      end
+      note_involved_user_ids(scope: export_scope, export: export)
+
+      export_scope.distinct.preload(:user)
+    end
+
+    def self.transforms
+      [
+        HmisCsvTwentyTwentyTwo::Exporter::Affiliation,
+        HmisCsvTwentyTwentyTwo::Exporter::FakeData,
+      ]
     end
   end
 end

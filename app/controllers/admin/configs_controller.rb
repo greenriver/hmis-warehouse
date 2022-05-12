@@ -57,7 +57,6 @@ module Admin
         :health_emergency,
         :health_emergency_tracing,
         :health_priority_age,
-        :health_claims_data_path,
         :multi_coc_installation,
         :auto_de_duplication_accept_threshold,
         :auto_de_duplication_reject_threshold,
@@ -99,6 +98,8 @@ module Admin
         :service_register_visible,
         :enable_youth_unstably_housed,
         :cas_sync_project_group_id,
+        :system_cohort_processing_date,
+        :system_cohort_date_window,
         client_details: [],
       )
     end

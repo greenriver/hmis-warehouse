@@ -12,9 +12,9 @@
     = link_to download_warehouse_reports_health_contact_tracing_index_path, class: 'btn btn-primary' do
       Download
 
-%p= paginate @paginated
-.card
-  .card-body.p-0
+- if @pagy.count.positive?
+  = render 'common/pagination_top', item_name: 'case'
+  .table-responsive
     %table.table.table-striped
       %thead
         %tr
@@ -27,6 +27,9 @@
       %tbody
         - @paginated.each do |index_case|
           = render 'index_case', index_case: index_case
+  = render 'common/pagination_bottom', item_name: 'case'
+- else
+  .none-found No cases
 
 - content_for :page_js do
   :javascript

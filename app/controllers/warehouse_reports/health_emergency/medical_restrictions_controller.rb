@@ -37,9 +37,7 @@ module WarehouseReports::HealthEmergency
         format.html do
           @pdf = false
           @html = true
-          @restrictions = @restrictions.
-            page(params[:page]).
-            per(25)
+          @pagy, @restrictions = pagy(@restrictions)
         end
         format.pdf do
           @pdf = true

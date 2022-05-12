@@ -39,7 +39,8 @@ class ClientMatchesController < ApplicationController
           :data_source,
           destination_client: :destination_client,
         ],
-      ).order(ordering).page(params[:page])
+      ).order(ordering)
+    @pagy, @matches = pagy(@matches)
 
     client_ids = @matches.map do |m|
       [

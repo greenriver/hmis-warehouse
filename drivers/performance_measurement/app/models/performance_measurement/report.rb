@@ -61,6 +61,20 @@ module PerformanceMeasurement
       update(completed_at: Time.current)
     end
 
+    def describe_filter_as_html
+      filter.describe_filter_as_html(
+        [
+          :start,
+          :end,
+          :coc_code,
+          :project_type_codes,
+          :project_ids,
+          :project_group_ids,
+          :data_source_ids,
+        ],
+      )
+    end
+
     def filter=(filter_object)
       self.options = filter_object.to_h
       # force reset the filter cache
@@ -70,7 +84,7 @@ module PerformanceMeasurement
 
     def filter
       @filter ||= begin
-        f = ::Filters::FilterBase.new(user_id: user_id)
+        f = ::Filters::HudFilterBase.new(user_id: user_id)
         f.update((options || {}).merge(comparison_pattern: :prior_year).with_indifferent_access)
         f.update(start: f.end - 1.years + 1.days)
         f
@@ -99,6 +113,24 @@ module PerformanceMeasurement
       'performance_measurement/warehouse_reports/reports'
     end
 
+    def spm_project_types
+      GrdaWarehouse::Hud::Project::SPM_PROJECT_TYPE_CODES
+    end
+
+    def project_type_ids
+      spm_project_types.map { |s| GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING[s.to_sym] }.flatten
+    end
+
+    def project_type_options_for_select
+      GrdaWarehouse::Hud::Project::PROJECT_GROUP_TITLES.select { |k, _| k.in?(spm_project_types) }.freeze.invert
+    end
+
+    def project_options_for_select(user)
+      GrdaWarehouse::Hud::Project.viewable_by(user).
+        with_hud_project_type(project_type_ids).
+        options_for_select(user: user)
+    end
+
     def url
       performance_measurement_warehouse_reports_report_url(host: ENV.fetch('FQDN'), id: id, protocol: 'https')
     end
@@ -107,38 +139,12 @@ module PerformanceMeasurement
       _('CoC Performance Measurement Dashboard')
     end
 
-    def report_sections
-      @report_sections ||= build_control_sections
-    end
-
-    protected def build_control_sections
-      [
-        build_simple_control_section,
-      ]
-    end
-
-    private def build_simple_control_section
-      ::Filters::UiControlSection.new(id: 'general').tap do |section|
-        section.add_control(
-          id: 'start',
-          required: true,
-          value: filter.start,
-        )
-        section.add_control(
-          id: 'coc_code',
-          label: 'CoC Code',
-          short_label: 'CoC',
-          value: filter.chosen_coc_codes,
-        )
-      end
-    end
-
     def multiple_project_types?
       true
     end
 
     def default_project_types
-      [:ph, :es, :th, :sh, :so]
+      GrdaWarehouse::Hud::Project::SPM_PROJECT_TYPE_CODES
     end
 
     def report_path_array
@@ -151,11 +157,14 @@ module PerformanceMeasurement
 
     # @return filtered scope
     def report_scope
-      # Report range
-      scope = report_scope_source
-      scope = filter_for_user_access(scope)
+      processed_filter = filter
+      # report uses only one coc_code, need to adjust for the HUD filter that needs coc_codes
+      processed_filter.coc_codes = [processed_filter.coc_code]
+      processed_filter.project_ids = processed_filter.effective_project_ids
+      scope = processed_filter.apply(report_scope_source)
       scope = filter_for_range(scope)
-      scope = filter_for_coc(scope)
+
+      reset_filter
       scope
     end
 
@@ -541,9 +550,8 @@ module PerformanceMeasurement
         'Measure 5',
         'Measure 7',
       ]
-      # For now, we're using a fixed set of project types
+
       options = filter.to_h
-      options[:project_type_codes] = [:es, :so, :sh, :th, :ph]
       # Because we want data back for all projects in the CoC we need to run this as the System User who will have access to everything
       options[:user_id] = User.setup_system_user.id
 

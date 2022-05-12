@@ -2,9 +2,9 @@
 -# NOTE: this layout always uses the open path svg, even if a different print logo has been defined.
 %html
   %head
-    = wicked_pdf_stylesheet_link_tag 'dashboard_pdf', media: 'all'
-    = wicked_pdf_javascript_include_tag 'pdf'
-    = wicked_pdf_javascript_include_tag 'application'
+    = inline_stylesheet_link_tag 'dashboard_pdf'
+    = inline_javascript_src_tag 'pdf'
+    = inline_javascript_src_tag 'application'
     %link{href: '//fonts.googleapis.com/css?family=Open+Sans:300,400,400italic,600,700|Open+Sans+Condensed:700', rel: 'stylesheet', type: 'text/css'}
 
   %body{data: { controller: 'stimulus-select' }}
@@ -14,7 +14,7 @@
       .mr-4
         %h1= @title
       .ml-auto
-        - logo = wicked_pdf_asset_base64('theme/open_path.svg') rescue nil
+        - logo = inline_asset_base64('theme/open_path.svg') rescue nil
         = image_tag(logo, width: 250) if logo.present?
 
     = yield

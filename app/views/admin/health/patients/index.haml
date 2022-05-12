@@ -16,46 +16,47 @@
       = render 'search_form'
     .o-page__sort
       = render 'sort', sort_options: sort_options
-
-  .o-page__main-content
-    = simple_form_for :patients, url: admin_health_patients_path do |f|
-      = f.error_notification
-      .form-inputs
-        %p= page_entries_info @patients, entry_name: _('patient')
-        %p= paginate @patients, params: {sort: @column, direction: @direction}
-        %table.table.table-striped
-          %thead
-            %tr
-              %th Patient ID
-              %th Patient
-              %th DOB
-              %th Gender
-              %th Client
-              %th DOB
-              %th Gender
-              %th Client ID
-          %tbody
-            - @patients.each do |patient|
+  - if @pagy.count.positive?
+    .o-page__main-content
+      = simple_form_for :patients, url: admin_health_patients_path do |f|
+        = f.error_notification
+        = render 'common/pagination_top', item_name: 'patient'
+        .form-inputs
+          %table.table.table-striped
+            %thead
               %tr
-                = simple_fields_for 'patients[]', patient do |t|
-                  %td
-                    = patient.id_in_source
-                  %td
-                    = patient.name
-                  %td
-                    = patient.birthdate
-                  %td
-                    = patient.gender
-                  %td
-                    - if patient.client.present?
-                      = link_to client_health_pilot_patient_index_path(client_id: patient.client_id) do
-                        = patient.client.name
-                  %td
-                    = patient&.client&.DOB
-                  %td
-                    = HUD::gender(patient&.client&.Gender)
-                  %td
-                    = t.input :client_id, label: false, input_html: {size: 8, style: 'width: 8em;'}
-      .form-actions
-        = f.button :submit, value: 'Update Connections'
-      %p= paginate @patients, params: {sort: @column, direction: @direction}
+                %th Patient ID
+                %th Patient
+                %th DOB
+                %th Gender
+                %th Client
+                %th DOB
+                %th Gender
+                %th Client ID
+            %tbody
+              - @patients.each do |patient|
+                %tr
+                  = simple_fields_for 'patients[]', patient do |t|
+                    %td
+                      = patient.id_in_source
+                    %td
+                      = patient.name
+                    %td
+                      = patient.birthdate
+                    %td
+                      = patient.gender
+                    %td
+                      - if patient.client.present?
+                        = link_to client_health_pilot_patient_index_path(client_id: patient.client_id) do
+                          = patient.client.name
+                    %td
+                      = patient&.client&.DOB
+                    %td
+                      = HUD::gender(patient&.client&.Gender)
+                    %td
+                      = t.input :client_id, label: false, input_html: {size: 8, style: 'width: 8em;'}
+        .form-actions
+          = f.button :submit, value: 'Update Connections'
+        = render 'common/pagination_bottom', item_name: 'patient'
+  - else
+    .none-found.mt-4 No patients.

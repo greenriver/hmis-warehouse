@@ -6,31 +6,29 @@
 = render 'filter'
 
 .warehouse-reports__ssm-export
-  - if @reports.exists?
-    .row
-      .col-8
-        %p= page_entries_info @reports, entry_name: _('report')
-    %table.table.table-sm.table-hover
-      %thead
-        %tr
-          %th Status
-          %th Options
-          %th Download
-          %th
-      %tbody.report-listing.warehouse-reports__completed
-        - @reports.each do |report|
+  - if @pagy.count.positive?
+    = render 'common/pagination_top', item_name: 'report'
+    .table-responsive
+      %table.table.table-striped
+        %thead
           %tr
-            %td= report.status
+            %th Status
+            %th Options
+            %th Download
             %th
-              = render 'parameters', options: report.options
-            %td
-              - if report.completed?
-                = link_to warehouse_reports_health_ssm_export_path(report, format: :xlsx), class: 'btn btn-sm btn-secondary' do
-                  Download
-            %td
-              = link_to warehouse_reports_health_ssm_export_path(report), method: :delete, class: 'btn btn-sm btn-danger btn-icon-only', data: {confirm: "Are you sure you want to delete this report?"} do
-                %i.icon-cross
-
+        %tbody.report-listing.warehouse-reports__completed
+          - @reports.each do |report|
+            %tr
+              %td= report.status
+              %th
+                = render 'parameters', options: report.options
+              %td
+                - if report.completed?
+                  = link_to warehouse_reports_health_ssm_export_path(report, format: :xlsx), class: 'btn btn-sm btn-secondary' do
+                    Download
+              %td
+                = link_to warehouse_reports_health_ssm_export_path(report), method: :delete, class: 'btn btn-sm btn-danger btn-icon-only', data: {confirm: "Are you sure you want to delete this report?"} do
+                  %i.icon-cross
+    = render 'common/pagination_bottom', item_name: 'report'
   - else
-    %p.text-center.well
-      No reports found.
+    .none-found No reports found.

@@ -36,7 +36,7 @@
         - if (count = @counts[status].to_i) > 0
           %span.badge.badge-primary{data: {status: status}}= count
 - if @matches.empty?
-  %p There are no #{@status} client matches at this time.
+  .none-found There are no #{@status} client matches at this time.
 
 - @matches.group_by{|m| m.destination_client}.each do |dest, matches|
   .merge-row
@@ -55,4 +55,4 @@
       - matches.each do |match|
         .slab.merge-card
           = render match
-= paginate @matches
+= render 'common/pagination_bottom', item_name: 'match'

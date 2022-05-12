@@ -14,57 +14,55 @@
       = link_to new_data_source_path, class: 'btn btn-primary' do
         %span.icon-plus
         Add Data Source
-.d-flex
-  %p= page_entries_info(@data_sources, entry_name: _('data sources'))
-  %p.ml-auto= paginate @data_sources
-.card
-  .table-responsive
-    %table.table
-      %thead
+= render 'common/pagination_top', item_name: 'data source'
+.table-responsive
+  %table.table.table-striped
+    %thead
+      %tr
+        %th Name
+        %th Short Name
+        %th Client Records
+        %th Project Count
+        %th Visible in Window
+        %th Authoritative?
+        %th Last Import Run
+        %th
+        %th
+    %tbody
+      %tr
+        %td Warehouse
+        %td
+          .destination-sqr Warehouse
+        %td= number_with_delimiter(GrdaWarehouse::Hud::Client.destination.count)
+        %td{colspan: 6}
+      - @data_sources.each do |data_source|
+        - most_recently_completed = data_source.import_logs.maximum(:completed_at)&.localtime
         %tr
-          %th Name
-          %th Short Name
-          %th Client Records
-          %th Project Count
-          %th Visible in Window
-          %th Authoritative?
-          %th Last Import Run
-          %th
-          %th
-      %tbody
-        %tr
-          %td Warehouse
+          %td= link_to data_source.name, data_source_path(data_source)
           %td
-            .destination-sqr Warehouse
-          %td= number_with_delimiter(GrdaWarehouse::Hud::Client.destination.count)
-          %td{colspan: 5}
-        - @data_sources.each do |data_source|
-          - most_recently_completed = data_source.import_logs.maximum(:completed_at)&.localtime
-          %tr
-            %td= link_to data_source.name, data_source_path(data_source)
-            %td
-              .ds{class: "ds-color-#{data_source.id}"}= data_source.short_name
-            %td= number_with_delimiter(@client_counts[data_source.id])
-            %td= number_with_delimiter(@project_counts[data_source.id])
-            %td.text-center= checkmark(data_source.visible_in_window)
-            %td.text-center= checkmark(data_source.authoritative)
-            %td
-              = most_recently_completed
-              - if data_source.unprocessed_enrollment_count.positive?
-                .mt-2
-                  %em
-                    Enrollments remaining to process: #{data_source.unprocessed_enrollment_count}
-            %td
-              -# NOTE: this will only show the data source as stalled if the files were brought in by the system user
-              - if most_recently_completed.present?
-                - stall_date = data_source.stalled_since?(most_recently_completed)
-                - if stall_date
-                  .label.label-warning
-                    same file since: #{stall_date}
-              - if data_source.import_paused
-                .label.label-info
-                  import paused
-            %td
-              - if can_delete_data_sources?
-                = link_to data_source_path(data_source), method: :delete, data: {confirm: "Deleting the #{data_source.name} Data Source will delete ALL associated data. Do you want to proceed?"}, class: 'btn btn-sm btn-danger btn-icon-only' do
-                  %span.icon-cross
+            .ds{class: "ds-color-#{data_source.id}"}= data_source.short_name
+          %td= number_with_delimiter(@client_counts[data_source.id])
+          %td= number_with_delimiter(@project_counts[data_source.id])
+          %td.text-center= checkmark(data_source.visible_in_window)
+          %td.text-center= checkmark(data_source.authoritative)
+          %td
+            = most_recently_completed
+            - if data_source.unprocessed_enrollment_count.positive?
+              .mt-2
+                %em
+                  Enrollments remaining to process: #{data_source.unprocessed_enrollment_count}
+          %td
+            -# NOTE: this will only show the data source as stalled if the files were brought in by the system user
+            - if most_recently_completed.present?
+              - stall_date = data_source.stalled_since?(most_recently_completed)
+              - if stall_date
+                .label.label-warning
+                  same file since: #{stall_date}
+            - if data_source.import_paused
+              .label.label-info
+                import paused
+          %td
+            - if can_delete_data_sources?
+              = link_to data_source_path(data_source), method: :delete, data: {confirm: "Deleting the #{data_source.name} Data Source will delete ALL associated data. Do you want to proceed?"}, class: 'btn btn-sm btn-danger btn-icon-only' do
+                %span.icon-cross
+= render 'common/pagination_bottom', item_name: 'data source'

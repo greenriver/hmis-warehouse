@@ -5,60 +5,60 @@
 ###
 
 module HmisCsvTwentyTwentyTwo::Exporter
-  class Enrollment < GrdaWarehouse::Hud::Enrollment
-    include ::HmisCsvTwentyTwentyTwo::Exporter::Shared
-    setup_hud_column_access(GrdaWarehouse::Hud::Enrollment.hud_csv_headers(version: '2022'))
+  class Enrollment
+    include ::HmisCsvTwentyTwentyTwo::Exporter::ExportConcern
 
-    # Setup some joins so we can include deleted relationships when appropriate
-    belongs_to :client_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::Client', foreign_key: [:PersonalID, :data_source_id], primary_key: [:PersonalID, :data_source_id], inverse_of: :enrollments, optional: true
-    belongs_to :project_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::Project', foreign_key: [:ProjectID, :data_source_id], primary_key: [:ProjectID, :data_source_id], inverse_of: :enrollments, optional: true
-
-    def export! enrollment_scope:, project_scope:, path:, export: # rubocop:disable Lint/UnusedMethodArgument
-      case export.period_type
-      when 3
-        export_scope = enrollment_scope
-      when 1
-        export_scope = enrollment_scope.
-          modified_within_range(range: (export.start_date..export.end_date))
-      end
-
-      export_to_path(
-        export_scope: export_scope,
-        path: path,
-        export: export,
-      )
+    def initialize(options)
+      @options = options
     end
 
-    # HouseholdID and RelationshipToHoH are required, but often not provided, send some sane defaults
-    # Also unique the HouseholdID to a data source
-    def apply_overrides(row, data_source_id:)
-      id_of_enrollment = enrollment_export_id(row[:EnrollmentID], row[:PersonalID], data_source_id)
-
-      # These should never happen, but somehow they do
-      row[:ProjectID] = 'Unknown' if row[:ProjectID].blank?
-
-      # NOTE: RelationshipToHoH changes must come before HouseholdID
-      row[:RelationshipToHoH] = 1 if row[:RelationshipToHoH].blank? && row[:HouseholdID].blank?
-      row[:RelationshipToHoH] = 99 if row[:RelationshipToHoH].blank?
-
-      if row[:HouseholdID].blank?
-        row[:HouseholdID] = Digest::MD5.hexdigest("e_#{data_source_id}_#{row[:ProjectID]}_#{id_of_enrollment}")
-      else
-        row[:HouseholdID] = Digest::MD5.hexdigest("#{data_source_id}_#{row[:ProjectID]}_#{row[:HouseholdID]}")
-      end
-
-      # Only use the first 5 of the zip
-      row[:LastPermanentZIP] = row[:LastPermanentZIP].to_s[0..4] if row[:LastPermanentZIP].present?
-      row[:LastPermanentCity] = row[:LastPermanentCity][0...50] if row[:LastPermanentCity]
-      # If the project has been overridden as PH, assume the MoveInDate
-      # is the EntryDate if we don't have a MoveInDate.
-      # Usually we won't have a MoveInDate because it isn't required
-      # if the project type isn't PH
-      row[:MoveInDate] = row[:MoveInDate].presence || row[:EntryDate] if project_type_overridden_to_psh?(row[:ProjectID], data_source_id)
-
-      row[:UserID] = 'op-system' if row[:UserID].blank?
+    def process(row)
+      row = assign_export_id(row)
+      row = self.class.adjust_keys(row, @options[:export])
 
       row
+    end
+
+    def self.adjust_keys(row, export)
+      row.UserID = row.user&.id || 'op-system'
+
+      # Pre-calculate and assign. After assignment the relations will be broken
+      personal_id = if export.include_deleted || export.period_type == 1
+        row&.client_with_deleted&.warehouse_client_source&.destination_id
+      else
+        row&.client&.warehouse_client_source&.destination_id
+      end
+      project_id = if export.include_deleted || export.period_type == 1
+        row&.project_with_deleted&.id
+      else
+        row&.project&.id
+      end
+      row.PersonalID = personal_id
+      row.ProjectID = project_id
+      row.EnrollmentID = row.id
+
+      row
+    end
+
+    def self.export_scope(enrollment_scope:, export:, **_)
+      export_scope = case export.period_type
+      when 3
+        enrollment_scope
+      when 1
+        enrollment_scope.
+          modified_within_range(range: (export.start_date..export.end_date))
+      end
+      note_involved_user_ids(scope: export_scope, export: export)
+
+      export_scope.distinct.preload(:user, :project, :client)
+    end
+
+    def self.transforms
+      [
+        HmisCsvTwentyTwentyTwo::Exporter::Enrollment::Overrides,
+        HmisCsvTwentyTwentyTwo::Exporter::Enrollment,
+        HmisCsvTwentyTwentyTwo::Exporter::FakeData,
+      ]
     end
   end
 end

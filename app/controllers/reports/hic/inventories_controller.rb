@@ -13,11 +13,6 @@ module Reports
         within_range(@filter.on..@filter.on).
         merge(project_scope).
         distinct
-
-      respond_to do |format|
-        format.html
-        format.csv { send_data GrdaWarehouse::Hud::Inventory.to_csv(scope: @inventories), filename: "inventory-#{Time.current}.csv" }
-      end
     end
   end
 end

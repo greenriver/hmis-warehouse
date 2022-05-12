@@ -10,11 +10,11 @@ module WarehouseReports
     before_action :set_report, only: [:show, :destroy]
 
     def index
-      @reports = report_source.all.order(created_at: :desc).page(params[:page]).per(25)
+      @pagy, @reports = pagy(report_source.all.order(created_at: :desc))
     end
 
     def running
-      @reports = report_source.all.order(created_at: :desc).page(params[:page]).per(25)
+      @pagy, @reports = pagy(report_source.all.order(created_at: :desc))
     end
 
     # download

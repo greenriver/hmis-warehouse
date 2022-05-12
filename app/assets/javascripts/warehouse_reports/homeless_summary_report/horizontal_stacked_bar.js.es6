@@ -75,7 +75,7 @@ window.App.WarehouseReports.HomelessSummaryReport.HorizontalStackedBar = class H
             tick: {
               rotate: -35,
               autorotate: true,
-              format: function (x) { return d3.format(",.2r")(x); }
+              format: function (x) { return x + "%"; }
             },
           },
           x: {

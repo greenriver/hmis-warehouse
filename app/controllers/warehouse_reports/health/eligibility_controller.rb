@@ -94,7 +94,7 @@ module WarehouseReports::Health
     end
 
     def set_reports
-      @reports = filtered_inquiry_scope.page(params[:page]).per(20)
+      @pagy, @reports = pagy(filtered_inquiry_scope)
     end
 
     def filtered_inquiry_scope

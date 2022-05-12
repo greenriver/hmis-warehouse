@@ -1,9 +1,7 @@
 - if can_upload_hud_zips?
   %h2 Clients
   - if @pagy.count.positive?
-    .pagy-container.mb-4
-      != pagy_info(@pagy, item_name: _('client').pluralize(@pagy.count))
-      != pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
+    = render 'common/pagination_top', item_name: 'client'
     .table-responsive
       %table.table.table-striped.table-hover.mb-0
         %thead
@@ -21,10 +19,7 @@
                   Confidential Client
               %td= service.first_date_in_program
               %td= service.last_date_in_program
-    - if @pagy.pages > 1
-      .pagy-container.mt-4
-        != pagy_info(@pagy, item_name: _('client').pluralize(@pagy.count))
-        != pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
+    = render 'common/pagination_bottom', item_name: 'client'
   - else
     .card
       %h4.text-center No clients

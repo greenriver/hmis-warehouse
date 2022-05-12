@@ -11,9 +11,7 @@ module Admin::Health
     before_action :require_has_administrative_access_to_health!
 
     def index
-      @roles = role_scope.order(name: :asc).
-        page(params[:page].to_i).
-        per(50)
+      @roles = role_scope.order(name: :asc)
     end
 
     def update

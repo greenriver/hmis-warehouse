@@ -1,5 +1,3 @@
-= wicked_pdf_stylesheet_link_tag 'print', media: 'print'
-
 - title = "MassHealth Behavioral Health Community Partners Program"
 - content_for :title, title
 
@@ -12,20 +10,20 @@
 
 - if ENV['CAREPLAN_LOGO'].present?
   %span
-    = image_tag(wicked_pdf_asset_base64("theme/logo/#{ENV['CAREPLAN_LOGO']}"), style: 'width: 100%;')
+    = image_tag(inline_asset_base64("theme/logo/#{ENV['CAREPLAN_LOGO']}"), style: 'width: 100%;')
 
 .l-print{style: "padding-top: 20px;"}
-  %article.l-print__section.health__care-hub-note{style: 'border: 1px solid black;'}
+  %article.l-print__section.health__care-hub-note{style: 'border: 1px solid black'}
     %p
-      This document is a 
+      This document is a
       %b Person-Centered Treatment Plan
       prepared by Boston Coordinated Care Hub, a BH CP that works with ACOs
       and MCOs to provide care management and coordination to MassHealth members with complex behavioral health conditions.
-      This document summarizes a member’s Comprehensive Assessment and conveys important information including the member’s
+      This document summarizes a member's Comprehensive Assessment and conveys important information including the member's
       preferences, needs, goals, and plans to achieve prioritized goals.
     %p
       %u ACTION:
-      If you are the patient’s PCP, please review and provide your signature on the signature page.
+      If you are the patient's PCP, please review and provide your signature on the signature page.
 
 %p{style: "padding-top: 20px;"}
   %strong Name of Member:
