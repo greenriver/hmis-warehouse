@@ -103,6 +103,9 @@ RSpec.describe HomelessSummaryReport::Report, type: :model do
       expect(result(:m1a_es_sh_days, :spm_without_children__returned_to_homelessness_from_permanent_destination)).to be_zero
       expect(result(:m1a_es_sh_days, :spm_without_children__white)).to be_zero
       expect(result(:m1a_es_sh_days, :spm_without_children__white_non_hispanic_latino)).to be_zero
+      expect(result(:m1a_es_sh_days, :spm_without_children__fleeing_dv)).to be_zero
+      expect(result(:m1a_es_sh_days, :spm_without_children__b_n_h_l)).to be_zero
+      expect(result(:m1a_es_sh_days, :spm_without_children__multi_racial)).to be_zero
     end
 
     it 'includes 2 clients (adult only 55+)' do
