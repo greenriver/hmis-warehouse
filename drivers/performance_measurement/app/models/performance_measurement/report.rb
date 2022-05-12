@@ -40,6 +40,14 @@ module PerformanceMeasurement
       order(updated_at: :desc)
     end
 
+    def reporting_spm_id
+      @reporting_spm_id ||= clients.first.reporting_spm_id if clients.any?
+    end
+
+    def comparison_spm_id
+      @comparison_spm_id ||= clients.first.comparison_spm_id if clients.any?
+    end
+
     def run_and_save!
       start
       begin
