@@ -16,7 +16,6 @@
     - if can_view_hud_reports? && @report.clients.any?
       .col-2
         %h3.mb-4 SPMs
-        - report_start = Date.parse(@report.options[:start.to_s])
         .mb-2
           = link_to hud_reports_spm_path(@report.reporting_spm_id), class: 'btn btn-sm btn-secondary' do
             Report Year
