@@ -24,45 +24,8 @@
       - next unless result.hud_project
 
       .page-break-avoid
-        %h3= result.hud_project.name_and_type
-        .d-flex.mb-6
-          .w-50= render 'warehouse_reports/indicator', indicator: result
-          .w-50
-            - class_name = "jProjectLevelPerformance_#{key}_#{project_id}"
-            %div{class: class_name, data: { chart: result.data_for_system_level_bar.to_json, include_percent: result.primary_unit.starts_with?('%').to_s }}
-            = content_for :page_js do
-              :javascript
-                $(document).ready(function(){
-                  var data = $('.#{class_name}').data('chart');
-                  var max = Math.max(...data.columns[1].slice(1));
-                  var include_percent = $('.#{class_name}').data('includePercent');
-                  data.labels['format'] = function (v, id, i, texts) {
-                    if(v < max * 0.15) {
-                      return '';
-                    }
-                    if(include_percent) {
-                      return d3.format(".0%")(v / 100)
-                    } else {
-                      return d3.format(",.2r")(v)
-                    }
-                  }
-                  var chart = bb.generate({
-                    data: data,
-                    axis: {
-                      x: { type: 'category' },
-                      y: {
-                        tick: {
-                          stepSize: 1,
-                          count: 3,
-                          format: function(x) { return `${d3.format('d')(x)}${include_percent ? '%' : ''}`},
-                        },
-                      },
-                    },
-                    size: { height: 150 },
-                    legend: { show: false },
-                    bindto: '.#{class_name}'
-                  });
-                });
+        %h3.mb-4= result.hud_project.name_and_type
+        = render 'performance_measurement/warehouse_reports/reports/details_row', key: key, result: result, system_class_name: "jProjectLevelPerformance_#{key}_#{project_id}", show_label_detail: false
 
 = content_for :page_js do
   :javascript
