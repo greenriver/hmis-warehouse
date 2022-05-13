@@ -219,7 +219,22 @@
       %tr
         %th TOTAL YYA SERVED
         %th Number of  UNDUPLICATED YYA served (update each quarter)
-        %td= data_link(:total_client_ids_served)
+        %td
+          %ul.list-unstyled
+            - by_agency = @report.all_served_ids_by_agency
+            - breakout_by_agency = by_agency.size > 1
+            %li
+              - if breakout_by_agency
+                = surround "All agencies ( ", " )" do
+                  = data_link(:total_client_ids_served)
+              - else
+                = data_link(:total_client_ids_served)
+            - if breakout_by_agency
+              - by_agency.each do |agency, clients|
+                %li
+                  #{agency} (
+                  = link_to clients.count, details_warehouse_reports_youth_intakes_path(filter: { start: @filter.start, end: @filter.end }, key: :total_client_ids_served, agency: agency), data: { loads_in_pjax_modal: true }
+                  )
         %td Please update YTD each quarter.  Unduplicated count of all YYA who received Assessment/ Case Management/ Case Coordination and/or Direct Financial Assistance, provided with EOHHS Funds. Include clients served as part of Winter Response and College Student Services.
 
 %h2 B. Winter Response (Oct 01- April 30)

@@ -20,11 +20,18 @@ module WarehouseReports
 
       # FIXME: allowed_report keys should be simplified, maybe all methods should start with q_
       @key = @report.allowed_report_keys.detect { |key| key.to_s == params[:key] }
+      @agency = params[:agency]
       raise 'Key required' unless @key
 
       client_ids = case @key
       when :two_c, :five_n, :six_q, :follow_up_two_d
         @report.public_send(@key).values.flatten.uniq
+      when :total_client_ids_served
+        if @agency
+          @report.all_served_ids_by_agency[@agency]
+        else
+          @report.public_send(:total_client_ids_served)
+        end
       else
         @report.public_send(@key)
       end
