@@ -35,9 +35,10 @@
             = content_for :page_js do
               :javascript
                 $(document).ready(function(){
-                  var data = $('.#{class_name}').data('chart');
-                  var max = Math.max(...data.columns[1].slice(1));
-                  var include_percent = $('.#{class_name}').data('includePercent');
+                  const data = $('.#{class_name}').data('chart');
+                  const max = Math.max(...data.columns[1].slice(1));
+                  const include_percent = $('.#{class_name}').data('includePercent');
+                  const goal = #{@report.detail_goal_for(key)};
                   data.labels['format'] = function (v, id, i, texts) {
                     if(v < max * 0.15) {
                       return '';
@@ -48,12 +49,21 @@
                       return d3.format(",.2r")(v)
                     }
                   }
-                  var chart = bb.generate({
+                  const chart = bb.generate({
                     data: data,
                     axis: {
+                      rotated: include_percent,
                       x: { type: 'category' },
-                      y: { tick: { stepSize: 1, count: 3, format: d3.format('d') }}
+                      y: {
+                        tick: {
+                          stepSize: 1,
+                          count: 3,
+                          format: function(x) { return `${d3.format('d')(x)}${include_percent ? '%' : ''}`}
+                        },
+                        max: max < goal ? goal : undefined,
+                      },
                     },
+                    grid: { y: { lines: [{ value: goal }] } },
                     size: { height: 150 },
                     legend: { show: false },
                     bindto: '.#{class_name}'

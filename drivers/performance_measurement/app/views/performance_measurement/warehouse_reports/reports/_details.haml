@@ -23,10 +23,10 @@
         - report_start = Date.parse(@report.options[:start.to_s])
         .mb-2
           = link_to hud_reports_spm_path(@report.comparison_spm_id), class: 'btn btn-sm btn-secondary' do
-            = "#{(report_start - 1.year).year} SPM"
+            = (report_start - 1.year).year
         .mb-2
           = link_to hud_reports_spm_path(@report.reporting_spm_id), class: 'btn btn-sm btn-secondary' do
-            = "#{report_start.year} SPM"
+            = report_start.year
 
   .p-4.mb-4{ class: "performance-measurement--highlight-light-#{@report.highlight_id(category)}" }
     %h2 System Level
@@ -55,27 +55,42 @@
 = content_for :page_js do
   :javascript
     $(document).ready(function(){
-      var data = $('.#{system_class_name}').data('chart');
-      var max = Math.max(...data.columns[1].slice(1));
-      var include_percent = #{result.primary_unit.starts_with?('%')}
-      data.labels['format'] = function (v, id, i, texts) {
-        if(v < max * 0.15) {
+      const data = $('.#{system_class_name}').data('chart');
+      const max = Math.max(...data.columns[1].slice(1));
+      const include_percent = #{result.primary_unit.starts_with?('%')}
+      const goal = #{@report.detail_goal_for(key)};
+      data.labels.format = function (v, id, i, texts) {
+        if (v < max * 0.15) {
           return '';
         }
-        if(include_percent) {
-          return d3.format(".0%")(v / 100)
+        if (include_percent) {
+          return d3.format(".0%")(v / 100);
         } else {
-          return d3.format(",d")(v)
+          return d3.format(",d")(v);
         }
       }
-      var chart = bb.generate({
+
+      const chart = bb.generate({
         data: data,
         axis: {
+          rotated: include_percent,
           x: { type: 'category' },
-          y: { tick: { stepSize: 1, count: 3, format: d3.format('d') }}
+          y: {
+            tick: {
+              stepSize: 1,
+              count: 3,
+              format: function(x) { return `${d3.format('d')(x)}${include_percent ? '%' : ''}`}
+            },
+            max: max < goal ? goal : undefined,
+          },
         },
+        grid: { y: { lines: [{ value: goal }] } },
         size: { height: 150 },
         legend: { show: false },
+        // bar: { label: { threshold: 1 } },
         bindto: '.#{system_class_name}'
       });
+
+      d3.select('.#{system_class_name} .bb-ygrid-line line').style('stroke-width', 2)
+      d3.select('.#{system_class_name} .bb-ygrid-line line').style('stroke-dasharray', 2)
     });

@@ -29,5 +29,8 @@
     .bb-chart-text .bb-text {
       fill: white !important;
     }
+    .bb-ygrid-line line {
+      stroke: $brand-success;
+    }
   }
 }

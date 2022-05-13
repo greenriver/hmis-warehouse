@@ -61,6 +61,11 @@ module PerformanceMeasurement::Details
       format(detail[:goal_description], { goal: goal_config[detail[:goal_calculation]] })
     end
 
+    def detail_goal_for(key)
+      detail = detail_hash[key]
+      goal_config[detail[:goal_calculation]]
+    end
+
     def detail_calculation_description_for(key)
       detail_hash[key][:calculation_description]
     end

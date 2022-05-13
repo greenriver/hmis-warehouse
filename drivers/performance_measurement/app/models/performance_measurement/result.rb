@@ -25,11 +25,19 @@ module PerformanceMeasurement
       where(system_level: true)
     end
 
+    def comparison_year
+      report.filter.comparison_as_date_range.start.strftime('%Y')
+    end
+
+    def report_year
+      report.filter.start.strftime('%Y')
+    end
+
     def data_for_system_level_bar
       {
         x: 'x',
         columns: [
-          ['x', report.filter.comparison_range_words, report.filter.date_range_words],
+          ['x', comparison_year, report_year],
           [primary_unit, comparison_primary_value, primary_value],
         ],
         type: 'bar',
