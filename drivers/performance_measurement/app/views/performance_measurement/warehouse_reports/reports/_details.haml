@@ -23,17 +23,16 @@
     .calculation.ml-6
       %h3 Calculation
       %p= @report.detail_calculation_description_for(key)
-    - if can_view_hud_reports? && @report.clients.any?
-      .col-1.ml-6.p-0
+    - measure = @report.detail_measure_for(key)
+    - if can_view_hud_reports? && measure.present? && @report.clients.any?
+      .col-2.ml-6.p-0
         %h3.mb-4 SPMs
-        - report_start = Date.parse(@report.options[:start.to_s])
         .mb-2
-          = link_to hud_reports_spm_path(@report.comparison_spm_id), class: 'btn btn-sm btn-secondary' do
-            = (report_start - 1.year).year
+          = link_to result_hud_reports_spm_measure_path(@report.reporting_spm_id, measure), class: 'btn btn-sm btn-secondary' do
+            = "#{measure} - Report Year"
         .mb-2
-          = link_to hud_reports_spm_path(@report.reporting_spm_id), class: 'btn btn-sm btn-secondary' do
-            = report_start.year
-
+          = link_to result_hud_reports_spm_measure_path(@report.comparison_spm_id, measure), class: 'btn btn-sm btn-secondary' do
+            = "#{measure} - Comparison Year"
   .p-4.mb-4{ class: "performance-measurement--highlight-light-#{@report.highlight_id(category)}" }
     %h2 System Level
   = render 'performance_measurement/warehouse_reports/reports/details_row', key: key, result: result, system_class_name: system_class_name, show_label_detail: true
