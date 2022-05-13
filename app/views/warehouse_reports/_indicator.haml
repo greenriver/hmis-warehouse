@@ -17,17 +17,19 @@
           - key = :primary
           - value_key = "#{key}_value".to_sym
           - if indicator[value_key]
-            .d-flex.mb-2{class: [base_value_classname, "#{base_value_classname}--#{key.to_s.gsub('_value', '')}"]}
+            .d-flex.align-items-center{class: [base_value_classname, "#{base_value_classname}--#{key.to_s.gsub('_value', '')}"]}
               %span.c-indicator__value-number.pr-2
                 - if defined?(link)
                   = link_to(number_with_delimiter(indicator[value_key]), link, target: :_blank)
                 - else
                   = indicator[value_key]
-              %span.c-indicator__value-unit.mt-1= indicator["#{key}_unit".to_sym]
-        .c-indicator__secondary-value.d-flex
-          .c-indicator__change-icon= change_direction_icon(indicator[:direction])
+              %span.c-indicator__value-unit= indicator["#{key}_unit".to_sym]
+        .c-indicator__secondary-value.d-flex.align-items-center
           - key = :secondary
           - value_key = "#{key}_value".to_sym
+          -# - if indicator[value_key] != 0
+          .c-indicator__change-icon
+            = change_direction_icon(indicator[:direction]) if indicator[value_key] != 0
           - if indicator[value_key]
             %div{class: [base_value_classname, "#{base_value_classname}--#{key.to_s.gsub('_value', '')}"]}
               %span.c-indicator__value-number
