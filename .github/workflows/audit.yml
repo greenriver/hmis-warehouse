@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-20.04
 
     # Docker Hub image that the job executes in
-    container: ruby:2.7.5-alpine3.13
+    container: ruby:2.7.6-alpine
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -32,11 +32,11 @@ jobs:
             imagemagick \
             libmagic file-dev file \
             build-base libxml2-dev libxslt-dev postgresql-dev \
-            wkhtmltopdf libgcc libstdc++ libx11 glib libxrender libxext libintl ttf-dejavu ttf-droid ttf-freefont ttf-liberation ttf-ubuntu-font-family \
+            libgcc libstdc++ libx11 glib libxrender libxext libintl ttf-dejavu ttf-droid ttf-freefont ttf-liberation ttf-freefont \
             chromium nss freetype freetype-dev harfbuzz ca-certificates ttf-freefont \
             lftp postgresql postgis geos geos-dev \
             shared-mime-info
-          gem install bundler --version=2.2.30
+          gem install bundler --version=2.3.8
 
       - name: Install gems
         run: |

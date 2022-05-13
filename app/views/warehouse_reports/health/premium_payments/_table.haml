@@ -1,27 +1,30 @@
-- if @files.any?
-  %h2 Previous 820 Files
-  %table.table.table-hover
-    %thead
-      %tr
-        %th
-          File
-        %th
-          Download Excel
-        %th
-          Uploaded on
-        %th
-          Status
-        %th
-          Uploaded by
-        %th
-    %tbody
-      - @files.each do |f|
+- if @pagy.count.positive?
+  %h2.mb-4 Previous 820 Files
+  = render 'common/pagination_top', item_name: 'file'
+  .table-responsive
+    %table.table.table-striped
+      %thead
         %tr
-          %td= link_to f.original_filename, warehouse_reports_health_premium_payment_path(f, format: :txt)
-          %td
-            - if f.completed?
-              = link_to warehouse_reports_health_premium_payment_path(f, format: :xlsx), class: 'btn btn-sm btn-icon-only btn-secondary' do
-                %i.icon-download2
-          %td= f.created_at.to_date
-          %td= f.status
-          %td= f.user.name
+          %th
+            File
+          %th
+            Download Excel
+          %th
+            Uploaded on
+          %th
+            Status
+          %th
+            Uploaded by
+          %th
+      %tbody
+        - @files.each do |f|
+          %tr
+            %td= link_to f.original_filename, warehouse_reports_health_premium_payment_path(f, format: :txt)
+            %td
+              - if f.completed?
+                = link_to warehouse_reports_health_premium_payment_path(f, format: :xlsx), class: 'btn btn-sm btn-icon-only btn-secondary' do
+                  %i.icon-download2
+            %td= f.created_at.to_date
+            %td= f.status
+            %td= f.user.name
+  = render 'common/pagination_bottom', item_name: 'file'

@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
@@ -26,8 +27,8 @@ module HudSpmReport
     def show
       @report = report_source.find(params[:id].to_i)
       @results = report_results(@report.id).
-        select(*report_result_summary_columns).
-        page(params[:page].to_i).per(20)
+        select(*report_result_summary_columns)
+      @pagy, @results = pagy(@results)
     end
 
     def report_source

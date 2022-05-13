@@ -63,6 +63,7 @@ module GrdaWarehouse::Hud
 
     belongs_to :data_source, inverse_of: :clients
     belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :clients, optional: true
+    belongs_to :user, **hud_assoc(:UserID, 'User'), inverse_of: :clients, optional: true
 
     has_one :warehouse_client_source, class_name: 'GrdaWarehouse::WarehouseClient', foreign_key: :source_id, inverse_of: :source
     has_many :warehouse_client_destination, class_name: 'GrdaWarehouse::WarehouseClient', foreign_key: :destination_id, inverse_of: :destination

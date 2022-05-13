@@ -11,8 +11,7 @@ module WarehouseReports::Health
 
     def index
       @file = premium_source.new
-      @files = premium_source.order(id: :desc).
-        page(params[:page]).per(25)
+      @pagy, @files = pagy(premium_source.order(id: :desc))
     end
 
     def show

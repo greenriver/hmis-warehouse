@@ -5,45 +5,63 @@
 ###
 
 module HmisCsvTwentyTwentyTwo::Exporter
-  class EnrollmentCoc < GrdaWarehouse::Hud::EnrollmentCoc
-    include ::HmisCsvTwentyTwentyTwo::Exporter::Shared
-    setup_hud_column_access(GrdaWarehouse::Hud::EnrollmentCoc.hud_csv_headers(version: '2022'))
+  class EnrollmentCoc
+    include ::HmisCsvTwentyTwentyTwo::Exporter::ExportConcern
 
-    # Setup an association to enrollment that allows us to pull the records even if the
-    # enrollment has been deleted
-    belongs_to :enrollment_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::Enrollment', primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], optional: true
+    def initialize(options)
+      @options = options
+    end
 
-    # HouseholdID is required, but often not provided, send some sane defaults
-    # Also unique the HouseholdID to a data source
-    def apply_overrides(row, data_source_id:)
-      row[:ProjectID] = project_id_from_enrollment_id(row[:EnrollmentID], data_source_id) # Force all EnrollmentCoC projects to be the same as their enrollment
-      id_of_enrollment = enrollment_export_id(row[:EnrollmentID], row[:PersonalID], data_source_id)
-
-      if row[:HouseholdID].blank?
-        row[:HouseholdID] = Digest::MD5.hexdigest("e_#{data_source_id}_#{row[:ProjectID]}_#{id_of_enrollment}")
-      else
-        row[:HouseholdID] = Digest::MD5.hexdigest("#{data_source_id}_#{row[:ProjectID]}_#{row[:HouseholdID]}")
-      end
-
-      row[:CoCCode] = enrollment_coc_from_project_coc(row[:ProjectID], data_source_id) if row[:CoCCode].blank?
-
-      # Required by HUD spec, not always provided 99 is not valid, but we can't really guess
-      row[:DataCollectionStage] = 99 if row[:DataCollectionStage].blank?
-
-      row[:UserID] = 'op-system' if row[:UserID].blank?
+    def process(row)
+      row = assign_export_id(row)
+      row = self.class.adjust_keys(row, @options[:export])
 
       row
     end
 
-    def project_id_from_enrollment_id(enrollment_id, data_source_id)
-      @project_id_from_enrollment_id ||= {}.tap do |enrollments|
-        GrdaWarehouse::Hud::Enrollment.
-          pluck(:EnrollmentID, :data_source_id, :ProjectID).
-          each do |e_id, ds_id, p_id|
-            enrollments[[e_id, ds_id]] = p_id
-          end
+    def self.adjust_keys(row, export)
+      row.UserID = row.user&.id || 'op-system'
+      # Pre-calculate and assign. After assignment the relations will be broken
+      personal_id = personal_id(row, export)
+      project_id = project_id(row, export)
+      enrollment_id = enrollment_id(row, export)
+      row.PersonalID = personal_id
+      row.ProjectID = project_id
+      row.EnrollmentID = enrollment_id
+      row.EnrollmentCoCID = row.id
+
+      row
+    end
+
+    def self.export_scope(enrollment_scope:, export:, hmis_class:, coc_codes:, **_)
+      join_tables = if export.include_deleted || export.period_type == 1
+        { enrollment_with_deleted: [{ client_with_deleted: :warehouse_client_source, project_with_deleted: :project_cocs_with_deleted }] }
+      else
+        { enrollment: [{ client: :warehouse_client_source, project: :project_cocs }] }
       end
-      @project_id_from_enrollment_id[[enrollment_id, data_source_id]] || 'Unknown'
+      export_scope = hmis_class.joins(join_tables).preload([join_tables] + [:user])
+
+      export_scope = case export.period_type
+      when 3
+        export_scope.merge(enrollment_scope).
+          where(hmis_class.arel_table[:InformationDate].lteq(export.end_date))
+      when 1
+        export_scope.merge(enrollment_scope).
+          modified_within_range(range: (export.start_date..export.end_date))
+      end
+      note_involved_user_ids(scope: export_scope, export: export)
+
+      export_scope = export_scope.where(CoCCode: coc_codes) if coc_codes.present?
+
+      export_scope.distinct
+    end
+
+    def self.transforms
+      [
+        HmisCsvTwentyTwentyTwo::Exporter::EnrollmentCoc::Overrides,
+        HmisCsvTwentyTwentyTwo::Exporter::EnrollmentCoc,
+        HmisCsvTwentyTwentyTwo::Exporter::FakeData,
+      ]
     end
   end
 end

@@ -14,8 +14,7 @@ class HmisCsvTwentyTwenty::ImportedController < ApplicationController
       find_by(importer_log_id: log.id)
     @klass = HmisCsvTwentyTwenty::Importer::Importer.importable_files[@filename]
     @data = @klass.where(importer_log_id: log.id).
-      order(@klass.hud_key => :asc).
-      page(params[:page]).
-      per(500)
+      order(@klass.hud_key => :asc)
+    @pagy, @data = pagy(@data, items: 500)
   end
 end

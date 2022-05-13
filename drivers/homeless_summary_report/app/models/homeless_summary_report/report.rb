@@ -110,8 +110,22 @@ module HomelessSummaryReport
       true
     end
 
-    def default_project_types
-      [:ph, :es, :th, :sh, :so]
+    def spm_project_types
+      GrdaWarehouse::Hud::Project::SPM_PROJECT_TYPE_CODES
+    end
+
+    def project_type_ids
+      spm_project_types.map { |s| GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING[s.to_sym] }.flatten
+    end
+
+    def project_type_options_for_select
+      GrdaWarehouse::Hud::Project::PROJECT_GROUP_TITLES.select { |k, _| k.in?(spm_project_types) }.freeze.invert
+    end
+
+    def project_options_for_select(user)
+      GrdaWarehouse::Hud::Project.viewable_by(user).
+        with_hud_project_type(project_type_ids).
+        options_for_select(user: user)
     end
 
     private def build_control_sections
@@ -568,11 +582,6 @@ module HomelessSummaryReport
         'Measure 7',
       ]
       options = filter.to_h
-      # NOTE: The returns to homeless calculation in the SPM won't work unless homeless types are included in the calculation.
-      # For now we've decided to let that slide, and require people to pick the right project types when running the report.
-      # The two lines commented below could potentially help with forcing that.
-      # options[:project_type_codes] ||= []
-      # options[:project_type_codes] += [:es, :so, :sh, :th]
       generator = HudSpmReport::Generators::Fy2020::Generator
       variants.each do |_, spec|
         base_variant = spec[:base_variant]

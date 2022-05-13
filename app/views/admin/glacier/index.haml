@@ -104,44 +104,42 @@
         Use something like the following to restore files like tar gzipped and encrypted archives:
         %tt bundle exec rake glacier:backup:restore_file[32,/home/blackman]
 
-
-
-.row
-  .col-sm-6= page_entries_info @archives, entry_name: 'Archive'
-  .col-sm-6.text-right
+- if @pagy.count.positive?
+  .text-right.mb-4
     Total size stored in Glacier
     %strong
       = number_to_human_size @total_size
+  = render 'common/pagination_top', item_name: 'archive'
+  .table-responsive
+    %table.table.table-striped.table-hover{style: 'table-layout: fixed; word-wrap: break-word;'}
+      %thead
+        %tr
+          %th Vault
+          %th Archive
+          %th Process
+          %th Location
+          %th Status
+          %th Size
+          %th Notes
+        %tbody
+          - @archives.each do |archive|
+            %tr
+              %td= @vaults[archive.glacier_vault_id].try(:name)
+              %td= archive.archive_name
+              %td
+                = archive.upload_started_at
+                - if archive.upload_finished_at
+                  - run_time = distance_of_time_in_words(archive.upload_finished_at - archive.upload_started_at)
+                  = " - #{archive.upload_finished_at}"
+                  %br
+                  (#{run_time})
+                - else
+                  = " - incomplete"
 
-%p= paginate @archives
-
-.table-responsive
-  %table.table.table-striped.table-hover{style: 'table-layout: fixed; word-wrap: break-word;'}
-    %thead
-      %tr
-        %th Vault
-        %th Archive
-        %th Process
-        %th Location
-        %th Status
-        %th Size
-        %th Notes
-      %tbody
-        - @archives.each do |archive|
-          %tr
-            %td= @vaults[archive.glacier_vault_id].try(:name)
-            %td= archive.archive_name
-            %td
-              = archive.upload_started_at
-              - if archive.upload_finished_at
-                - run_time = distance_of_time_in_words(archive.upload_finished_at - archive.upload_started_at)
-                = " - #{archive.upload_finished_at}"
-                %br
-                (#{run_time})
-              - else
-                = " - incomplete"
-
-            %td= archive.location
-            %td= archive.status
-            %td= number_to_human_size archive.size_in_bytes
-            %td= archive.notes
+              %td= archive.location
+              %td= archive.status
+              %td= number_to_human_size archive.size_in_bytes
+              %td= archive.notes
+  = render 'common/pagination_bottom', item_name: 'archive'
+- else
+  .none-found No archives found.

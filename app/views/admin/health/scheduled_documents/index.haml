@@ -3,7 +3,7 @@
 
 = render 'menus/health_admin_tabs'
 
-.row
+.row.mb-4
   .col.text-right
     .btn-group
       %button.btn.btn-default.dropdown-toggle(type='button' data-toggle='dropdown')
@@ -14,22 +14,25 @@
           = link_to new_admin_health_scheduled_document_path(type: 'Health::ScheduledDocuments::EnrollmentDisenrollment') do
             Enrollment-Disenrollment Files
 
-.row.mt-4
-  %table.table.table-striped
-    %thead
-      %th Document Name
-      %th Destination
-      %th Active?
-      %th Last Run At
-      %th
-    %tbody
-      - @scheduled_documents.each do |document|
-        %tr
-          %td= link_to document.name, edit_admin_health_scheduled_document_path(document)
-          %td= document.hostname
-          %td= checkmark_or_x(document.active)
-          %td= document.last_run_at
-          %td
-            = link_to admin_health_scheduled_document_path(document), method: :delete, data: {confirm: "Are you sure you want to delete #{document.name}?"}, class: 'btn btn-danger btn-sm btn-icon-only' do
+- if @scheduled_documents.any?
+  .table-responsive
+    %table.table.table-striped
+      %thead
+        %th Document Name
+        %th Destination
+        %th Active?
+        %th Last Run At
+        %th
+      %tbody
+        - @scheduled_documents.each do |document|
+          %tr
+            %td= link_to document.name, edit_admin_health_scheduled_document_path(document)
+            %td= document.hostname
+            %td= checkmark_or_x(document.active)
+            %td= document.last_run_at
+            %td
+              = link_to admin_health_scheduled_document_path(document), method: :delete, data: {confirm: "Are you sure you want to delete #{document.name}?"}, class: 'btn btn-danger btn-sm btn-icon-only' do
 
-              %i.icon-cross
+                %i.icon-cross
+- else
+  .none-found No scheduled documents.

@@ -31,8 +31,8 @@ module ServiceScanning
           query,
           client_scope: client_search_scope,
         ).
-        order(LastName: :asc, FirstName: :asc).
-        page(params[:page]).per(20)
+        order(LastName: :asc, FirstName: :asc)
+      @pagy, @search_results = pagy(@search_results)
     end
 
     def create

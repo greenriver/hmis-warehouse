@@ -10,9 +10,7 @@
     = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary'}) do
       %i.icon-file-excel.icon-lg
       Download
-  .pagy-container.mb-4
-    != pagy_info(@pagy, item_name: _('client').pluralize(@pagy.count))
-    != pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
+  = render 'common/pagination_top', item_name: 'client'
   .table-responsivewarehouse-reports__chronic
     %table.table.table-striped
       %thead
@@ -32,9 +30,6 @@
             %th= HUD.veteran_status(client.VeteranStatus)
             %td.text-center= client.days_homeless
             %td.text-center= client.days_homeless_in_last_three_years
-  - if @pagy.pages > 1
-    .pagy-container.mt-4
-      != pagy_info(@pagy, item_name: _('client').pluralize(@pagy.count))
-      != pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
+  = render 'common/pagination_bottom', item_name: 'client'
 - else
   .none-found No clients found.

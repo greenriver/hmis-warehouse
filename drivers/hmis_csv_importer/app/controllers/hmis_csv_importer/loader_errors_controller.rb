@@ -12,6 +12,7 @@ class HmisCsvImporter::LoaderErrorsController < ApplicationController
     @filename = loader_log.summary.keys.detect { |v| v == params[:file] }
     @import = GrdaWarehouse::ImportLog.viewable_by(current_user).
       find_by(loader_log_id: loader_log.id)
-    @errors = loader_log.load_errors.where(file_name: @filename).page(params[:page])
+    @errors = loader_log.load_errors.where(file_name: @filename)
+    @pagy, @errors = pagy(@errors, items: 200)
   end
 end

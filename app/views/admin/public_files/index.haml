@@ -5,21 +5,26 @@
 
 .row
   .col-sm-8
-    - if @files.present?
-      %table.table.table-sm
-        %thead
-          %tr
-            %th File Name
-            %th Destroy
-        %tbody
-          - @files.each do |file|
+    - if @pagy.count.positive?
+      = render 'common/pagination_top', item_name: 'file'
+      .table-responsive
+        %table.table.table-striped
+          %thead
             %tr
-              %td
-                = link_to public_file_path(id: file.id) do
-                  = file.class.known_locations[file.name]
-              %td
-                = link_to admin_public_file_path(id: file.id), method: :delete, data: {confirm: 'Are you sure you want to delete this file? It will no longer be accessible.'}, class: 'btn btn-danger btn-sm btn-icon-only' do
-                  %i.icon-cross
+              %th File Name
+              %th Destroy
+          %tbody
+            - @files.each do |file|
+              %tr
+                %td
+                  = link_to public_file_path(id: file.id) do
+                    = file.class.known_locations[file.name]
+                %td
+                  = link_to admin_public_file_path(id: file.id), method: :delete, data: {confirm: 'Are you sure you want to delete this file? It will no longer be accessible.'}, class: 'btn btn-danger btn-sm btn-icon-only' do
+                    %i.icon-cross
+      = render 'common/pagination_bottom', item_name: 'file'
+    - else
+      .none-found No files
   .col-sm-4
     %h4 Upload
     = simple_form_for @file, url: admin_public_files_path do |f|

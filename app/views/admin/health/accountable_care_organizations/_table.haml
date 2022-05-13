@@ -1,17 +1,21 @@
-%table.table.table-sm
-  %thead
-    %tr
-      %th Name
-      %th Short Name
-      %th MCO PID
-      %th MCO SL
-      %th EDI Name
+- if accountable_care_organizations.any?
+  .table-responsive
+    %table.table.table-striped
+      %thead
+        %tr
+          %th Name
+          %th Short Name
+          %th MCO PID
+          %th MCO SL
+          %th EDI Name
 
-  %tbody
-    - accountable_care_organizations.each do |accountable_care_organization|
-      %tr
-        %td= link_to accountable_care_organization.name, edit_admin_health_accountable_care_organization_path(accountable_care_organization)
-        %td= accountable_care_organization.short_name
-        %td= accountable_care_organization.mco_pid
-        %td= accountable_care_organization.mco_sl
-        %td= accountable_care_organization.edi_name
+      %tbody
+        - accountable_care_organizations.each do |accountable_care_organization|
+          %tr
+            %td= link_to accountable_care_organization.name, edit_admin_health_accountable_care_organization_path(accountable_care_organization)
+            %td= accountable_care_organization.short_name
+            %td= accountable_care_organization.mco_pid
+            %td= accountable_care_organization.mco_sl
+            %td= accountable_care_organization.edi_name
+- else
+  .none-found No ACOs.

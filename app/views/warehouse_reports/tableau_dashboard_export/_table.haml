@@ -1,25 +1,29 @@
-%p= paginate @reports
-.table-responsive
-  %table.table.table-sm.table-hover
-    %thead
-      %th CoC Code
-      %th Run by
-      %th Started
-      %th Status
-      %th Download
-      %th Delete
-    %tbody
-      - @reports.each do |report|
-        %tr
-          %td= report.display_coc_code
-          %td= report.user_name
-          %td= report.created_at
-          %td= report.status
-          %td
-            - if report.complete?
-              = link_to action: :show, id: report.id do
-                %span.icon-download2
-                Download
-          %td
-            = link_to warehouse_reports_tableau_dashboard_export_path(report), method: :delete, class: 'btn btn-sm btn-danger btn-icon-only' do
-              %i.icon-cross
+- if @pagy.count.positive?
+  = render 'common/pagination_top', item_name: 'report'
+  .table-responsive
+    %table.table.table-striped
+      %thead
+        %th CoC Code
+        %th Run by
+        %th Started
+        %th Status
+        %th Download
+        %th Delete
+      %tbody
+        - @reports.each do |report|
+          %tr
+            %td= report.display_coc_code
+            %td= report.user_name
+            %td= report.created_at
+            %td= report.status
+            %td
+              - if report.complete?
+                = link_to action: :show, id: report.id do
+                  %span.icon-download2
+                  Download
+            %td
+              = link_to warehouse_reports_tableau_dashboard_export_path(report), method: :delete, class: 'btn btn-sm btn-danger btn-icon-only' do
+                %i.icon-cross
+  = render 'common/pagination_bottom', item_name: 'report'
+- else
+  .none-found.mt-4 No reports found.

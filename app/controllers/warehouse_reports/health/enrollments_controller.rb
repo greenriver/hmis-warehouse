@@ -60,7 +60,7 @@ module WarehouseReports::Health
 
     def show
       @file = Health::Enrollment.find(params[:id].to_i)
-      @transactions = Kaminari.paginate_array(@file.transactions).page(params[:page])
+      @pagy, @transactions = pagy(@file.transactions)
     end
 
     def download

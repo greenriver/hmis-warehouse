@@ -16,11 +16,10 @@
   :css
     body,
     .l-print__footer {
+      box-sizing: border-box;
       margin: 0;
-      padding: 0;
+      padding: 0 0.18in;
       overflow: hidden;
-    }
-    .l-print__footer {
       font-family: sans-serif;
       width: 100%;
       color: #999999;
@@ -37,11 +36,12 @@
       display: inline-block;
       width: 50%;
       vertical-align: middle;
-      font-size: 12px;
+      font-size: 10px;
     }
 
     .l-print__footer h4 {
       margin-bottom: 5px;
+      font-size: 10px;
     }
 
     .l-print__footer-page-number {
@@ -55,4 +55,4 @@
         .l-print__footer-date> Printed on #{Date.current}
         .l-print__footer-page-number<
           %span> p.
-          %span.page>
+          %span.pageNumber>

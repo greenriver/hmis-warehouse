@@ -1,40 +1,44 @@
-- if @reports.any?
-  %p= paginate @reports
-  %table.table.table-sm.table-hover
-    %thead
-      %tr
-        %th Eligibility Request
-        %th Created On
-        %th Acknowledged
-        %th Delete
-    %tbody
-      - @reports.each do |report|
+- if @pagy.count.positive?
+  = render 'common/pagination_top', item_name: 'report'
+  .table-responsive
+    %table.table.table-sm.table-striped
+      %thead
         %tr
-          %td
-            = link_to_unless(report.has_batch?, "For #{report.service_date}", "#{warehouse_reports_health_eligibility_url(report)}.txt") do
-              For #{report.service_date} (via API in #{pluralize(report.batches.count, 'batch')})
-          %td= report.created_at
-          %td
-            - unless report.batches.present?
-              - if report.eligibility_response.present?
-                = link_to warehouse_reports_health_eligibility_result_url(report) do
-                  %i.icon-checkmark
-                  = "(#{report.eligibility_response.eligible_clients} eligible/#{report.eligibility_response.ineligible_clients} ineligible clients, #{report.eligibility_response.client_errors} errors)"
-            - else
-              - responses = report.batch_responses
-              - if responses.all?{ |r| r.response.present? }
-                - error = responses.detect{ |r| ! r.response.starts_with?('ISA')}&.response
-                - if error.blank?
-                  - eligible_clients = responses.map{ |r| r.eligible_clients }.sum
-                  - ineligible_clients = responses.map{ |r| r.ineligible_clients }.sum
-                  - client_errors = responses.map{ |r| r.client_errors }.sum
+          %th Eligibility Request
+          %th Created On
+          %th Acknowledged
+          %th Delete
+      %tbody
+        - @reports.each do |report|
+          %tr
+            %td
+              = link_to_unless(report.has_batch?, "For #{report.service_date}", "#{warehouse_reports_health_eligibility_url(report)}.txt") do
+                For #{report.service_date} (via API in #{pluralize(report.batches.count, 'batch')})
+            %td= report.created_at
+            %td
+              - unless report.batches.present?
+                - if report.eligibility_response.present?
                   = link_to warehouse_reports_health_eligibility_result_url(report) do
                     %i.icon-checkmark
-                    = "(#{eligible_clients} eligible/#{ineligible_clients} ineligible clients, #{client_errors} errors)"
-                - else
-                  %i.icon-warning
-                  = error
+                    = "(#{report.eligibility_response.eligible_clients} eligible/#{report.eligibility_response.ineligible_clients} ineligible clients, #{report.eligibility_response.client_errors} errors)"
+              - else
+                - responses = report.batch_responses
+                - if responses.all?{ |r| r.response.present? }
+                  - error = responses.detect{ |r| ! r.response.starts_with?('ISA')}&.response
+                  - if error.blank?
+                    - eligible_clients = responses.map{ |r| r.eligible_clients }.sum
+                    - ineligible_clients = responses.map{ |r| r.ineligible_clients }.sum
+                    - client_errors = responses.map{ |r| r.client_errors }.sum
+                    = link_to warehouse_reports_health_eligibility_result_url(report) do
+                      %i.icon-checkmark
+                      = "(#{eligible_clients} eligible/#{ineligible_clients} ineligible clients, #{client_errors} errors)"
+                  - else
+                    %i.icon-warning
+                    = error
 
-          %td
-            = link_to warehouse_reports_health_eligibility_url(report), method: :delete, class: 'btn btn-danger btn-sm btn-icon-only', data: {confirm: "Are you sure you want to delete this Eligibility Request?"} do
-              %i.icon-cross
+            %td
+              = link_to warehouse_reports_health_eligibility_url(report), method: :delete, class: 'btn btn-danger btn-sm btn-icon-only', data: {confirm: "Are you sure you want to delete this Eligibility Request?"} do
+                %i.icon-cross
+  = render 'common/pagination_bottom', item_name: 'report'
+- else
+  .none-found No reports

@@ -21,7 +21,7 @@ class MessagesController < ApplicationController
       @description = 'unread'
       messages.unseen
     end
-    @messages = @messages.page(message_params[:page]).per(25)
+    @pagy, @messages = pagy(@messages)
   end
 
   private def message_params

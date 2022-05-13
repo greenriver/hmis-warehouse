@@ -1,15 +1,16 @@
 - project_types_collection = local_assigns[:project_types_collection] || @filter.available_residential_project_types
-- projects_collection = local_assigns[:projects_collection] || @filter.project_options_for_select(user: current_user)
+- api_projects_parameters = local_assigns[:api_projects_parameters] || {}
 %h2 Projects to Include
-- if local_assigns[:alert]
-  %p.alert.alert-info= local_assigns[:alert]
-- else
-  %p.alert.alert-info Please note, the following options are additive.  If you choose a single project and a project type, the report will run for all projects in the project type and the chosen project.  If you choose a data source and project type, the report will run for all projects in the chosen data source and chosen project type.
+%p.alert.alert-info
+  Please note, the following options are additive.  If you choose a single project and a project type, the report will run for all projects in the project type and the chosen project.  If you choose a data source and project type, the report will run for all projects in the chosen data source and chosen project type.
+  - if local_assigns[:alert].present?
+    %br
+    %br= local_assigns[:alert]
 .row
   .col-md-8
     .row
       .col-sm-6
-        = f.input :project_ids, collection: projects_collection, as: :grouped_select_two, group_method: :last, input_html: { multiple: true, placeholder: 'Choose Projects', data: { 'filter-projects-target' => 'projects', action: 'change->filter-projects#update' } }, label: 'Projects'
+        = f.input :project_ids, collection: [], as: :grouped_select_two, group_method: :last, input_html: { multiple: true, placeholder: 'Choose Projects', data: { 'filter-projects-target' => 'projects', action: 'change->filter-projects#update', 'collection-path' => api_projects_path(selected_project_ids: @filter.project_ids, **api_projects_parameters) } }, label: 'Projects'
       .col-sm-6
         = f.input :data_source_ids, collection: @filter.data_source_options_for_select(user: current_user), as: :select_two, input_html: {multiple: true, placeholder: 'Choose Data Sources', data: { 'filter-projects-target' => 'dataSources', action: 'change->filter-projects#update' }}, label: 'Data Sources'
     .row

@@ -27,8 +27,7 @@ class AccountsController < ApplicationController
   end
 
   def locations
-    @locations = @user.login_activities.order(created_at: :desc).
-      page(params[:page]).per(50)
+    @pagy, @locations = pagy(@user.login_activities.order(created_at: :desc), items: 50)
   end
 
   private def account_params

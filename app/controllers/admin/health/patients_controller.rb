@@ -21,11 +21,11 @@ module Admin::Health
         ).to_sql,
       )
       @patients = @patients.text_search(params[:q]) if params[:q].present?
-      @patients = @patients.page(params[:page].to_i).per(50)
+      @pagy, @patients = pagy(@patients, items: 50)
     end
 
     def update
-      @patients = @patients.page(params[:page].to_i).per(50)
+      @pagy, @patients = pagy(@patients, items: 50)
       error = false
       patients_params.each do |patient_id, client|
         patient_source.transaction do

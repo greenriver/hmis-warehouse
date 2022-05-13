@@ -39,7 +39,7 @@ module
       rows['_Household Types'] ||= []
       rows['*Household Types'] ||= []
       rows['*Household Types'] += ['Household Type', 'Count', 'Percentage', nil, nil]
-      @filter.available_household_types.each do |id, title|
+      @filter.available_household_types.invert.each do |id, title|
         rows["_Household Types_data_#{title}"] ||= []
         rows["_Household Types_data_#{title}"] += [
           title,

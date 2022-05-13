@@ -1,32 +1,31 @@
 = render partial: 'breadcrumbs'
-.row
-  .col-sm-12
-    %h1 Service History Generation Logs
-.row.table-utilities
-  .col-sm-12
-    .table-responsive
-      %table.table.table-sm.table-hover
-        %thead
-          %tr
-            %th Started
-            %th Execution time
-            %th Clients processed
-            %th Clients updated
-            %th Clients patched
-          %tbody
-            - @service.each do |d|
-              %tr
-                %td
-                  = d.started_at
-                %td
-                  = d.import_time
-                %td
-                  = d.clients_processed
-                  of
-                  = d.total_clients
-                %td
-                  = d.clients_updated
-                %td
-                  = d.clients_patched
-
-%p= paginate @service
+%h1 Service History Generation Logs
+- if @pagy.count.positive?
+  = render 'common/pagination_top', item_name: 'log'
+  .table-responsive
+    %table.table.table-striped
+      %thead
+        %tr
+          %th Started
+          %th Execution time
+          %th Clients processed
+          %th Clients updated
+          %th Clients patched
+        %tbody
+          - @service.each do |d|
+            %tr
+              %td
+                = d.started_at
+              %td
+                = d.import_time
+              %td
+                = d.clients_processed
+                of
+                = d.total_clients
+              %td
+                = d.clients_updated
+              %td
+                = d.clients_patched
+  = render 'common/pagination_bottom', item_name: 'log'
+- else
+  .none-found No logs found.

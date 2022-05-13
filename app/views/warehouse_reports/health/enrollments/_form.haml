@@ -5,6 +5,6 @@
 
   - content_for :filter_actions do
     = f.submit 'Upload', class: 'btn btn-primary'
-    = f.submit 'Retrieve Enrollments Via API', class: "btn btn-secondary mt-no-label"
+    = f.submit 'Retrieve Enrollments Via API', class: "btn btn-secondary"
 
   = render 'warehouse_reports/filters', f:f, submit_button: nil

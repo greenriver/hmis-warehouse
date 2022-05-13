@@ -1,6 +1,6 @@
-- if errors.present?
-  = paginate errors
-  .card
+- if @pagy.count.positive?
+  = render 'common/pagination_top', item_name: 'error'
+  .table-responsive
     %table.table.table-striped
       %thead
         %tr
@@ -12,5 +12,6 @@
             %td= error.details
             - source = error.source
             %td= source.public_send(source.class.hud_key) if source.present?
+  = render 'common/pagination_bottom', item_name: 'error'
 - else
   .none-found No errors found.
