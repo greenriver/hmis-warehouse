@@ -264,7 +264,10 @@ module PerformanceMeasurement
         # Summary calculations, all based on existing data
         summary_calculations.each do |parts|
           report_clients.each do |client_id, client|
-            client["#{variant_name}_#{parts[:key]}"] = parts[:value_calculation].call(client, variant_name)
+            value = parts[:value_calculation].call(client, variant_name) || false
+            client["#{variant_name}_#{parts[:key]}"] = value
+            next unless value
+
             # These are only system level
             project_clients << {
               report_id: id,
@@ -566,9 +569,11 @@ module PerformanceMeasurement
         {
           key: :retention_or_positive_destination,
           value_calculation: ->(client, variant_name) {
-            client["#{variant_name}_so_destination"].present? ||
-            client["#{variant_name}_es_sh_th_rrh_destination"].present? ||
-            client["#{variant_name}_moved_in_destination"].present?
+            return true if HudSpmReport::Generators::Fy2020::Base::PERMANENT_DESTINATIONS.include?(client.send("#{variant_name}_so_destination"))
+            return true if HudSpmReport::Generators::Fy2020::Base::PERMANENT_DESTINATIONS.include?(client.send("#{variant_name}_es_sh_th_rrh_destination"))
+            return true if HudSpmReport::Generators::Fy2020::Base::PERMANENT_DESTINATIONS_OR_STAYER.include?(client.send("#{variant_name}_moved_in_destination"))
+
+            false
           },
         },
       ]
@@ -773,7 +778,7 @@ module PerformanceMeasurement
               }
             },
             ->(spm_client, project_id, variant_name) {
-              return unless spm_client[:m7b2_destination].present? && spm_client[:m7b2_destination].in?(HudSpmReport::Generators::Fy2020::Base::PERMANENT_DESTINATIONS)
+              return unless spm_client[:m7b2_destination].present? && spm_client[:m7b2_destination].in?(HudSpmReport::Generators::Fy2020::Base::PERMANENT_DESTINATIONS_OR_STAYER)
 
               {
                 report_id: id,

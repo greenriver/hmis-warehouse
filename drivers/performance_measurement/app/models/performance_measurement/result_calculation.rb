@@ -90,7 +90,7 @@ module PerformanceMeasurement::ResultCalculation
     end
 
     def client_count(field, period, project_id: nil)
-      return clients.joins(:client_projects).merge(PerformanceMeasurement::ClientProject.where(period: period, for_question: field)).count if project_id.blank?
+      return clients.joins(:client_projects).merge(PerformanceMeasurement::ClientProject.where(period: period, for_question: field)).distinct.count if project_id.blank?
 
       @client_counts ||= {}
       @client_counts[[field, period]] ||= clients.joins(:client_projects).
@@ -102,7 +102,7 @@ module PerformanceMeasurement::ResultCalculation
 
     def client_count_present(field, period, project_id: nil)
       column = "#{period}_#{field}"
-      return clients.joins(:client_projects).merge(PerformanceMeasurement::ClientProject.where(period: period, for_question: field)).count if project_id.blank?
+      return clients.joins(:client_projects).merge(PerformanceMeasurement::ClientProject.where(period: period, for_question: field)).distinct.count if project_id.blank?
 
       @client_count_present ||= {}
       @client_count_present[column] ||= clients.joins(:client_projects).
@@ -114,7 +114,7 @@ module PerformanceMeasurement::ResultCalculation
 
     def client_sum(field, period, project_id: nil)
       column = "#{period}_#{field}"
-      return clients.joins(:client_projects).merge(PerformanceMeasurement::ClientProject.where(period: period, for_question: field)).sum(column) if project_id.blank?
+      return clients.joins(:client_projects).merge(PerformanceMeasurement::ClientProject.where(period: period, for_question: field)).distinct.sum(column) if project_id.blank?
 
       @client_sums ||= {}
       @client_sums[column] ||= clients.joins(:client_projects).
@@ -127,7 +127,7 @@ module PerformanceMeasurement::ResultCalculation
     def inventory_sum(field, period, project_id: nil, project_type:)
       column = "#{period}_#{field}"
       project_scope = projects.joins(:hud_project).merge(GrdaWarehouse::Hud::Project.send(project_type))
-      return project_scope.sum(column) if project_id.blank?
+      return project_scope.distinct.sum(column) if project_id.blank?
 
       @inventory_sum ||= {}
       @inventory_sum[column] ||= {}
@@ -137,7 +137,7 @@ module PerformanceMeasurement::ResultCalculation
 
     def client_ids(field, period, project_id: nil)
       key = [period, field]
-      return clients.joins(:client_projects).merge(PerformanceMeasurement::ClientProject.where(period: period, for_question: field)).pluck(:id) if project_id.blank?
+      return clients.joins(:client_projects).merge(PerformanceMeasurement::ClientProject.where(period: period, for_question: field)).distinct.pluck(:id) if project_id.blank?
 
       @client_ids ||= {}
       existing = @client_ids.dig(key)
@@ -495,7 +495,7 @@ module PerformanceMeasurement::ResultCalculation
     end
 
     # Summary calculation only
-    def retention_or_positive_destination(detail, project: id)
+    def retention_or_positive_destinations(detail, project: nil)
       return unless project.blank?
 
       field = detail[:calculation_column]
@@ -911,9 +911,11 @@ module PerformanceMeasurement::ResultCalculation
     end
 
     def save_results
-      results = result_methods.map { |method, row| send(method, row) }
+      results = detail_hash.map { |method, row| send(method, row) }
       projects.preload(:hud_project).each do |project|
-        result_methods.each do |method, row|
+        detail_hash.each do |method, row|
+          next if row[:column] == :system
+
           results << send(method, row, project: project)
         end
       end
@@ -921,10 +923,6 @@ module PerformanceMeasurement::ResultCalculation
         PerformanceMeasurement::Result.where(report_id: id).delete_all
         PerformanceMeasurement::Result.import!(results.compact, batch_size: 5_000)
       end
-    end
-
-    private def result_methods
-      detail_hash.map { |k, row| [k, row] }.to_h.freeze
     end
   end
 end

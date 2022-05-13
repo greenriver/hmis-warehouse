@@ -441,17 +441,17 @@ module PerformanceMeasurement::Details
             'days_homeless_es_sh_th_ph',
           ],
         },
-        retention_or_positive_destination: {
+        retention_or_positive_destinations: {
           category: 'Non-Recurring',
           sub_category: 'Destination',
-          column: :both,
+          column: :system,
           year_over_year_change: false,
           title: 'Number of People with a Successful Placement or Retention Housing',
           goal_description: '**At least %{goal}%%** of persons will exit to a “positive” destination (as defined by HUD) or will retain housing.',
           goal_calculation: :destination,
           denominator_label: 'Total Exits',
           calculation_description: 'Number of persons who exited street outreach to a positive destination / Number of persons who exited street outreach or who exited ES, SH, TH, RRH to a Positive Destination, or PH with No Move-in or who had a Housing Move-In Date that either exited to a permanent destination after moving into housing or remained in the PH project / Number of persons housed by PH projects.',
-          calculation_column: :retention_or_positive_destination,
+          calculation_column: [:retention_or_positive_destination],
           detail_columns: [
             'retention_or_positive_destination',
           ],
