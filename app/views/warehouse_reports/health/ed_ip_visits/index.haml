@@ -13,7 +13,7 @@
 - if @files.present?
   = render 'table'
 - else
-  %p No uploaded files.
+  .none-found No uploaded files.
 
 - content_for :page_js do
   :javascript

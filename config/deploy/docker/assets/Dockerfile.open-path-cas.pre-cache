@@ -1,8 +1,7 @@
 #####################################################
 ## Multi-stage build to speed up subsequent builds ##
 #####################################################
-
-FROM ruby:2.7.5-alpine3.14
+FROM ruby:2.7.6-alpine
 
 #freetds-dev \
 # maybe can get rid of icu?
@@ -14,14 +13,15 @@ RUN apk add --no-cache \
   icu icu-dev \
   curl libcurl curl-dev \
   libmagic file-dev file \
-  build-base libxml2-dev libxslt-dev postgresql-dev tmux postgresql shared-mime-info
+  build-base libxml2-dev libxslt-dev postgresql-dev tmux postgresql shared-mime-info \
+  && git config --global --add safe.directory /app
 
 WORKDIR /app
 
 RUN addgroup -g 1001 app \
   && adduser -u 1001 -G app -h /app -D app
 
-RUN gem install bundler --version=1.17.3 && \
+RUN gem install bundler --version=2.3.8 && \
   mkdir -p app/assets tmp/pids lib/assets vendor/assets public locale var
 
 COPY Gemfile Gemfile.lock Rakefile config.ru ./

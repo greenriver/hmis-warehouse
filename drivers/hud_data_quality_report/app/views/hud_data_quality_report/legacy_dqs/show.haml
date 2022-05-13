@@ -4,32 +4,31 @@
 
 %h1= _("Report Result: #{@report.name}")
 
-.row
-  .col-sm-8
-    %p= page_entries_info(@results, entry_name: _('report'))
-
-.table-responsive
-  %table.table.table-hover.table-striped
-    %thead
-      %tr
-        %th Status
-        %th Started
-        %th Limits
-        %th Run by
-        %th Completed in
-    %tbody
-      - @results.each do |result|
+- if @pagy.count.positive?
+  = render 'common/pagination_top', item_name: 'report'
+  .table-responsive
+    %table.table.table-striped
+      %thead
         %tr
-          %td
-            - if result.job_status.present?
-              Report Failed
-            - else
-              = link_to result.last_run_status, hud_reports_legacy_dq_legacy_result_path(@report, result)
-          %td= result.created_at
-          - if @report.has_options?
+          %th Status
+          %th Started
+          %th Limits
+          %th Run by
+          %th Completed in
+      %tbody
+        - @results.each do |result|
+          %tr
             %td
-              = result.value_for_options result.options
-          %td= result.user.name
-          %td= result.completed_in
-
-%p= paginate @results
+              - if result.job_status.present?
+                Report Failed
+              - else
+                = link_to result.last_run_status, hud_reports_legacy_dq_legacy_result_path(@report, result)
+            %td= result.created_at
+            - if @report.has_options?
+              %td
+                = result.value_for_options result.options
+            %td= result.user.name
+            %td= result.completed_in
+  = render 'common/pagination_bottom', item_name: 'report'
+- else
+  .none-found No reports

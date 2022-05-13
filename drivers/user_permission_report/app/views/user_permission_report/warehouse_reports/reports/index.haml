@@ -12,16 +12,14 @@
 
     = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary ml-auto'}) do
       %i.icon-file-excel.icon-lg
-      Download Excel
+      Download
 
-.row
+.row.mb-4
   .col-sm-8
     %h1= content_for :title
 
-- if @users.any?
-  .d-flex
-    %p= page_entries_info @users, entry_name: _('user')
-    %p.ml-auto= paginate @users
+- if @pagy.count.positive?
+  = render 'common/pagination_top', item_name: 'user'
   .card.warehouse-reports__user-permission
     %table.table.table-striped
       %thead
@@ -65,6 +63,6 @@
                     All
                   - else
                     = "#{items[:count]} / #{items[:total]}"
-  %p= paginate @users
+  = render 'common/pagination_bottom', item_name: 'user'
 - else
   .none-found No users found.

@@ -19,6 +19,7 @@ module CoreDemographicsReport
     include CoreDemographicsReport::DvCalculations
     include CoreDemographicsReport::PriorCalculations
     include CoreDemographicsReport::HouseholdTypeCalculations
+    include CoreDemographicsReport::Projects
     include CoreDemographicsReport::Details
 
     attr_reader :filter
@@ -59,6 +60,7 @@ module CoreDemographicsReport
         'dvs',
         'priors',
         'household_types',
+        'projects',
       ]
     end
 
@@ -163,6 +165,12 @@ module CoreDemographicsReport
       end
     end
 
+    def project_count
+      @project_count ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
+        report_scope.select(p_t[:id]).distinct.count
+      end
+    end
+
     def can_see_client_details?(user)
       user.can_access_some_version_of_clients?
     end
@@ -188,6 +196,7 @@ module CoreDemographicsReport
           rows = report.dv_status_data_for_export(rows)
           rows = report.priors_data_for_export(rows)
           rows = report.household_type_data_for_export(rows)
+          rows = report.enrollment_data_for_export(rows)
         end
       end
     end

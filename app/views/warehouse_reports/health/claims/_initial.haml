@@ -33,28 +33,29 @@
 
 - if @completed_reports.any?
   %h2 Previously Submitted Claims Files
-  %table.table.table-sm.table-hover
-    %thead
-      %tr
-        %th Submitted On
-        %th Date Chosen
-        %th Qualifying Activities Included
-        %th Patients Included
-        %th Result
-    %tbody
-      - @completed_reports.each do |report|
+  .card
+    %table.table.table-striped
+      %thead
         %tr
-          %td= link_to report.submitted_at.to_date, "#{warehouse_reports_health_claim_url(report)}.txt"
-          %td= report.max_date
-          %td= report.qualifying_activities.count
-          %td= report.qualifying_activities.select(:patient_id).distinct.count
-          %td
-            - case report.result
-            - when 'accepted'
-              = link_to details_warehouse_reports_health_claim_url(report), class: 'btn btn-success', data: { loads_in_pjax_modal: true } do
-                Accepted
-            - when 'rejected'
-              = link_to details_warehouse_reports_health_claim_url(report), class: 'btn btn-danger', data: { loads_in_pjax_modal: true } do
-                REJECTED
-            - else
-              = report.result
+          %th Submitted On
+          %th Date Chosen
+          %th Qualifying Activities Included
+          %th Patients Included
+          %th Result
+      %tbody
+        - @completed_reports.each do |report|
+          %tr
+            %td= link_to report.submitted_at.to_date, "#{warehouse_reports_health_claim_url(report)}.txt"
+            %td= report.max_date
+            %td= report.qualifying_activities.count
+            %td= report.qualifying_activities.select(:patient_id).distinct.count
+            %td
+              - case report.result
+              - when 'accepted'
+                = link_to details_warehouse_reports_health_claim_url(report), class: 'btn btn-success', data: { loads_in_pjax_modal: true } do
+                  Accepted
+              - when 'rejected'
+                = link_to details_warehouse_reports_health_claim_url(report), class: 'btn btn-danger', data: { loads_in_pjax_modal: true } do
+                  REJECTED
+              - else
+                = report.result

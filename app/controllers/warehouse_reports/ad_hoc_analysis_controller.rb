@@ -13,8 +13,8 @@ module WarehouseReports
 
     def index
       @reports = report_scope.order(created_at: :desc).
-        select(*report_source.index_columns).
-        page(params[:page]).per(25)
+        select(*report_source.index_columns)
+      @pagy, @reports = pagy(@reports)
     end
 
     def create

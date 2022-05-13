@@ -10,7 +10,7 @@ module HapReport::WarehouseReports
     before_action :set_report, only: [:show, :destroy, :details]
 
     def index
-      @reports = report_scope.page(params[:page]).per(25)
+      @pagy, @reports = pagy(report_scope)
       @filter = HapReport::HapFilter.new(user_id: current_user.id)
     end
 
@@ -26,7 +26,7 @@ module HapReport::WarehouseReports
         )
         redirect_to action: :index
       else
-        @reports = report_scope.page(params[:page]).per(25)
+        @pagy, @reports = pagy(report_scope)
         render :index # Show validation errors
       end
     end

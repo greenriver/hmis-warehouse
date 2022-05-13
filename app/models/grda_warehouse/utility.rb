@@ -20,6 +20,7 @@ class GrdaWarehouse::Utility
       GrdaWarehouse::Census::ByProjectClient,
       GrdaWarehouse::Census::ByProjectType,
       GrdaWarehouse::Census::ByProjectTypeClient,
+      GrdaWarehouse::ProjectGroup,
       GrdaWarehouse::Chronic,
       GrdaWarehouse::HudChronic,
       GrdaWarehouse::Hud::Affiliation,

@@ -23,14 +23,14 @@
   .o-page__filter
     = render 'filter'
 
-- if @patients.any?
-  %p.mr-5= page_entries_info @patients, entry_name: _('patient')
-  = paginate @patients
-
+- if @pagy.count.positive?
+  = render 'common/pagination_top', item_name: 'patient'
   - @patients.each do |patient|
     = render 'patient_card', patient: patient
+  = render 'common/pagination_bottom', item_name: 'patient'
+- else
+  .none-found No patients
 
-  = paginate @patients
 
 = content_for :page_js do
   :javascript

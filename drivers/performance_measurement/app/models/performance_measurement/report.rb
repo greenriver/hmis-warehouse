@@ -113,17 +113,21 @@ module PerformanceMeasurement
       'performance_measurement/warehouse_reports/reports'
     end
 
+    def spm_project_types
+      GrdaWarehouse::Hud::Project::SPM_PROJECT_TYPE_CODES
+    end
+
     def project_type_ids
-      [:es, :so, :sh, :th, :ph].map { |s| GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING[s.to_sym] }.flatten
+      spm_project_types.map { |s| GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING[s.to_sym] }.flatten
     end
 
     def project_type_options_for_select
-      GrdaWarehouse::Hud::Project::PROJECT_GROUP_TITLES.select { |k, _| k.in?([:es, :so, :sh, :th, :ph]) }.freeze.invert
+      GrdaWarehouse::Hud::Project::PROJECT_GROUP_TITLES.select { |k, _| k.in?(spm_project_types) }.freeze.invert
     end
 
     def project_options_for_select(user)
       GrdaWarehouse::Hud::Project.viewable_by(user).
-        where(ProjectType: project_type_ids).
+        with_hud_project_type(project_type_ids).
         options_for_select(user: user)
     end
 
@@ -140,7 +144,7 @@ module PerformanceMeasurement
     end
 
     def default_project_types
-      [:ph, :es, :th, :sh, :so]
+      GrdaWarehouse::Hud::Project::SPM_PROJECT_TYPE_CODES
     end
 
     def report_path_array

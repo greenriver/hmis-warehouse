@@ -25,7 +25,7 @@ module WarehouseReports
 
       respond_to do |format|
         format.html do
-          @enrollments = @enrollments.page(params[:page].to_i).per(25)
+          @pagy, @enrollments = pagy(@enrollments)
         end
         format.xlsx do
           require_can_view_clients!

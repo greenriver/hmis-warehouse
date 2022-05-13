@@ -23,7 +23,6 @@ module Clients
       end
 
       @consent_files = consent_scope
-      @files = file_scope.page(params[:page].to_i).per(20).order(created_at: :desc)
       @deleted_files = all_file_scope.only_deleted
 
       @available_tags = GrdaWarehouse::AvailableFileTag.all.index_by(&:name)

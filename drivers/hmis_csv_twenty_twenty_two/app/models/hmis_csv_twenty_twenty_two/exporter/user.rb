@@ -5,19 +5,43 @@
 ###
 
 module HmisCsvTwentyTwentyTwo::Exporter
-  class User < GrdaWarehouse::Hud::User
-    include ::HmisCsvTwentyTwentyTwo::Exporter::Shared
-    setup_hud_column_access(GrdaWarehouse::Hud::User.hud_csv_headers(version: '2022'))
+  class User
+    include ::HmisCsvTwentyTwentyTwo::Exporter::ExportConcern
 
-    # NOTE: because there is no direct connection to the scopes for all
-    # exported models, we'll just gather the unique UserIDs while we're processing.
-    def export! project_scope:, path:, export: # rubocop:disable Lint/UnusedMethodArgument
-      export_scope = self.class.where(id: export.user_ids.to_a)
-      export_to_path(
-        export_scope: export_scope,
-        path: path,
-        export: export,
+    def initialize(options)
+      @options = options
+    end
+
+    # Append a system user record to cover records where the user wasn't available
+    def close
+      user = ::User.system_user
+      row =  GrdaWarehouse::Hud::User.new(
+        UserID: 'op-system',
+        UserFirstName: user.first_name,
+        UserLastName: user.last_name,
+        UserEmail: user.email,
+        DateCreated: Time.current,
+        DateUpdated: Time.current,
+        ExportID: @options[:export].export_id,
       )
+      yield row
+    end
+
+    def self.adjust_keys(row)
+      row.UserID = row.id
+
+      row
+    end
+
+    def self.export_scope(export:, hmis_class:, **_)
+      hmis_class.where(id: export.user_ids.to_a)
+    end
+
+    def self.transforms
+      [
+        HmisCsvTwentyTwentyTwo::Exporter::User,
+        HmisCsvTwentyTwentyTwo::Exporter::FakeData,
+      ]
     end
   end
 end

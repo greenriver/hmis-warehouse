@@ -9,12 +9,12 @@ module WarehouseReports::Health
     before_action :require_can_administer_health!
 
     def index
-      @files = file_scope
+      @pagy, @files = pagy(file_scope)
     end
 
     def show
       @file = file_scope.find(params[:id].to_i)
-      @rows = @file.rosters
+      @pagy, @rows = pagy(@file.rosters)
     end
 
     def roster
@@ -24,7 +24,7 @@ module WarehouseReports::Health
         file: roster_params[:content].original_filename,
       )
       @file.parse
-      @rows = @file.rosters.page(params[:page]).per(25)
+      @pagy, @rows = pagy(@file.rosters)
       render :show
     rescue Exception => e
       flash[:error] = "Error processing uploaded file #{e}"
@@ -38,7 +38,7 @@ module WarehouseReports::Health
         file: enrollment_params[:content].original_filename,
       )
       @file.parse
-      @rows = @file.rosters.page(params[:page]).per(25)
+      @pagy, @rows = pagy(@file.rosters)
       render :show
     rescue Exception => e
       flash[:error] = "Error processing uploaded file #{e}"

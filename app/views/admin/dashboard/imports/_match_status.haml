@@ -1,39 +1,41 @@
 %h3
   = link_to 'Duplicate Match Status', match_logs_path
-%table.table.table-sm
-  %tr
-    %th
-      Clients remaining to match
-    %td
-      = number_with_delimiter @source_clients_with_no_destination
+.card
+  %table.table.table-striped
+    %tr
+      %th
+        Clients remaining to match
+      %td
+        = number_with_delimiter @source_clients_with_no_destination
 %h4 Most Recent Match
 - unless @duplicates
   %p
     %em No match history found.
 - else
-  %table.table.table-sm
-    %tr
-      %th
-        Started On
-      %td
-        = @duplicates.started_at
-    %tr
-      %th
-        Completed In
-      %td
-        = @duplicates.import_time
-    %tr
-      %th
-        Unmatched clients
-      %td
-        = number_with_delimiter @duplicates.to_match
-    %tr
-      %th
-        Clients matched
-      %td
-        = number_with_delimiter @duplicates.matched
-    %tr
-      %th
-        Clients created
-      %td
-        = number_with_delimiter @duplicates.new_created
+  .card
+    %table.table.table-striped
+      %tr
+        %th
+          Started On
+        %td
+          = @duplicates.started_at
+      %tr
+        %th
+          Completed In
+        %td
+          = @duplicates.import_time
+      %tr
+        %th
+          Unmatched clients
+        %td
+          = number_with_delimiter @duplicates.to_match
+      %tr
+        %th
+          Clients matched
+        %td
+          = number_with_delimiter @duplicates.matched
+      %tr
+        %th
+          Clients created
+        %td
+          = number_with_delimiter @duplicates.new_created

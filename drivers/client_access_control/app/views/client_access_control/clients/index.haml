@@ -21,20 +21,17 @@
     .o-page__sort
       = render 'client_access_control/clients/search/filter'
       = render 'client_access_control/clients/search/sort', sort_options: sort_options
-  .table-utilities
-    - if params[:q].present?
-      %p.mr-5= page_entries_info @clients, entry_name: _('client')
-      .client__current-sort-filter
-        Currently sorted by:
-        %strong= sort_options.select{|m| m[:column] == @column && m[:direction] == @direction}&.first.try(:[], :title)
-  = paginate @clients, params: {sort: @column, direction: @direction}
-
+  -# .table-utilities
+  - if @pagy.count.positive?
+    .client__current-sort-filter
+      Currently sorted by:
+      %strong= sort_options.select{|m| m[:column] == @column && m[:direction] == @direction}&.first.try(:[], :title)
+    = render 'common/pagination_top', item_name: 'client'
   .o-page__main-content.mt-3
     .clients__list
       = render 'clients/new_client'
       - @clients.each do |client|
         = render 'client_access_control/clients/client_card', client: client
-
-    = paginate @clients, params: {sort: @column, direction: @direction}
+    = render 'common/pagination_bottom', item_name: 'client'
 
     = render 'application/js_link', base_path: 'clients/'

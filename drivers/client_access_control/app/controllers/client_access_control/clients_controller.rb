@@ -58,7 +58,7 @@ class ClientAccessControl::ClientsController < ApplicationController
       distinct.
       preload(preloads)
 
-    @clients = @clients.page(params[:page]).per(20)
+    @pagy, @clients = pagy(@clients)
 
     if current_user.can_use_strict_search?
       @client = client_source.new(strict_search_params)

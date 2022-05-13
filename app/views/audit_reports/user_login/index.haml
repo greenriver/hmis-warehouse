@@ -2,29 +2,35 @@
 - content_for :title, title
 %h1= title
 = render '/warehouse_reports/breadcrumbs', tab: 'audit'
-.d-flex.mb-4
-  %p.alert.alert-info
-    All enabled accounts are shown below (non-disabled accounts with a valid password set).
-    %br Highlighted rows haven't logged in since #{User.stale_account_threshold.to_date}.
-  .ml-4
-    = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary ml-auto'}) do
-      Download Excel
-= paginate @users
-.card
-  %table.table.table-striped
-    %thead
-      %tr
-        %th First Name
-        %th Last Name
-        %th Email
-        %th Agency
-        %th Last Login
-    %tbody
-      - @users.each do |user|
-        - highlight = 'table-warning' if user.stale_account?
-        %tr{class: highlight}
-          %td= link_to user.first_name, admin_user_audit_path(user)
-          %td= link_to user.last_name, admin_user_audit_path(user)
-          %td= user.email
-          %td= user.agency.name
-          %td= user.current_sign_in_at
+
+- if @pagy.count.positive?
+  .d-flex.mb-4
+    %p.alert.alert-info
+      All enabled accounts are shown below (non-disabled accounts with a valid password set).
+      %br Highlighted rows haven't logged in since #{User.stale_account_threshold.to_date}.
+    .ml-4
+      = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary ml-auto'}) do
+        %i.icon-file-excel.icon-lg
+        Download
+  = render 'common/pagination_top', item_name: 'user'
+  .table-responsive
+    %table.table.table-striped
+      %thead
+        %tr
+          %th First Name
+          %th Last Name
+          %th Email
+          %th Agency
+          %th Last Login
+      %tbody
+        - @users.each do |user|
+          - highlight = 'table-warning' if user.stale_account?
+          %tr{class: highlight}
+            %td= link_to user.first_name, admin_user_audit_path(user)
+            %td= link_to user.last_name, admin_user_audit_path(user)
+            %td= user.email
+            %td= user.agency.name
+            %td= user.current_sign_in_at
+  = render 'common/pagination_bottom', item_name: 'user'
+- else
+  .none-found No users found.

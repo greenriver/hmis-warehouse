@@ -13,9 +13,7 @@ module WarehouseReports::HealthEmergency
     before_action :require_can_edit_health_emergency_clinical!
 
     def index
-      @results = upload_scope.
-        page(params[:page]).
-        per(25)
+      @pagy, @results = pagy(upload_scope)
     end
 
     def new

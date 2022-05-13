@@ -9,7 +9,8 @@ class Admin::AdministrativeEventsController < ApplicationController
   before_action :load_event, only: [:edit, :update, :destroy]
 
   def index
-    @events = administrative_event_source.order(date: :desc).page(params[:page]).per(25)
+    @events = administrative_event_source.order(date: :desc)
+    @pagy, @events = pagy(@events)
   end
 
   def create

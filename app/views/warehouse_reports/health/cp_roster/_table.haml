@@ -1,14 +1,15 @@
-%table.table.table-sm.table-hover
-  %thead
-    %tr
-      %th Roster Type
-      %th Upload Date
-      %th
-  %tbody
-    - @files.each do |file|
+.table-responsive
+  %table.table.table-striped
+    %thead
       %tr
-        %td= link_to file.label, warehouse_reports_health_cp_roster_path(file)
-        %td= file.created_at
-        %td
-          = link_to warehouse_reports_health_cp_roster_path(file), method: :delete, class: 'btn btn-danger btn-sm btn-icon-only', data: {confirm: "Are you sure you want to delete this roster?"} do
-            %i.icon-cross
+        %th Roster Type
+        %th Upload Date
+        %th
+    %tbody
+      - @files.each do |file|
+        %tr
+          %td= link_to file.label, warehouse_reports_health_cp_roster_path(file)
+          %td= file.created_at
+          %td
+            = link_to warehouse_reports_health_cp_roster_path(file), method: :delete, class: 'btn btn-danger btn-sm btn-icon-only', data: {confirm: "Are you sure you want to delete this roster?"} do
+              %i.icon-cross

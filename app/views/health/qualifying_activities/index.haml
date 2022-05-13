@@ -4,14 +4,10 @@
   .o-page__header
     %h1= content_for :title
   = render 'clients/tab_navigation', current: client_health_qualifying_activities_path(client_id: @client)
-  .row
+  .row.mb-2
     .col-sm-8
       = render 'filter', data: {placement: 'bottom'}
     .col-sm-4.mt-4
-
-  .table-utilities.mt-2
-    %p.w-100= page_entries_info @qualifying_activities, entry_name: _('qualifying activities')
-    %p= paginate @qualifying_activities
 
   .row
     .col-sm-6
@@ -37,9 +33,11 @@
           = @patient.days_to_engage
   .row.mt-4
     .col
-      - if @qualifying_activities.present?
+      - if @pagy.count.positive?
+        = render 'common/pagination_top', item_name: 'qualifying activity'
         .o-card-grid
           - @qualifying_activities.each do |qa|
             = render 'card', qa: qa
+        = render 'common/pagination_bottom', item_name: 'qualifying activity'
       - else
-        %p.no-data None on file.
+        .none-found None on file.

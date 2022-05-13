@@ -1,7 +1,6 @@
-- if @results
-  %p= page_entries_info @results, entry_name: 'batch'
-  %p= paginate @results
-  .card
+- if @pagy.count.positive?
+  = render 'common/pagination_top', item_name: 'batch'
+  .table-responsive
     %table.table.table-striped
       %thead
         %tr
@@ -21,4 +20,6 @@
                 = link_to warehouse_reports_health_emergency_uploaded_result_path(batch) do
                   = batch.uploaded_count
             %td= batch.matched_count
-  %p= paginate @results
+  = render 'common/pagination_bottom', item_name: 'batch'
+- else
+  .none-found.mt-4 No batches found.

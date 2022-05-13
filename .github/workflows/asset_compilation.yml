@@ -41,7 +41,7 @@ jobs:
           - gha_production_load_11
 
     runs-on: ubuntu-20.04
-    container: ruby:2.7.5-alpine3.13
+    container: ruby:2.7.6-alpine
 
     steps:
     - name: Checkout
@@ -77,7 +77,7 @@ jobs:
           imagemagick \
           libmagic file-dev file \
           build-base libxml2-dev libxslt-dev postgresql-dev \
-          wkhtmltopdf libgcc libstdc++ libx11 glib libxrender libxext libintl ttf-dejavu ttf-droid ttf-freefont ttf-liberation ttf-ubuntu-font-family \
+          libgcc libstdc++ libx11 glib libxrender libxext libintl ttf-dejavu ttf-droid ttf-freefont ttf-liberation ttf-freefont \
           chromium nss freetype freetype-dev harfbuzz ca-certificates ttf-freefont \
           lftp postgresql tmux postgis geos geos-dev \
           shared-mime-info \
@@ -89,7 +89,7 @@ jobs:
         chmod 600 ~/.pgpass
 
         npm install
-        gem install bundler --version=2.2.30
+        gem install bundler --version=2.3.8
 
     # According to https://www.jessesquires.com/blog/2021/08/23/caching-bundler-on-github-actions/
     # this is fragile and failure prone, but the step they recommend using instead (ruby/ruby-setup)

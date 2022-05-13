@@ -14,8 +14,7 @@ module Admin
     before_action :set_account_request, only: [:edit, :update, :destroy]
 
     def index
-      @account_requests = account_request_scope.
-        page(params[:page]).per(25)
+      @pagy, @account_requests = pagy(account_request_scope)
     end
 
     def edit

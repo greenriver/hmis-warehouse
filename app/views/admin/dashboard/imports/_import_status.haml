@@ -4,26 +4,27 @@
   - @imports.each do |import|
     %h4
       = import.data_source.name
-    %table.table.table-sm
-      %tr
-        %th
-          Imported On
-        %td
-          - if import.persisted?
-            = link_to import&.created_at, import_path(import)
-          - else
-            %em Never run
-      - if import.persisted?
+    .card
+      %table.table.table-striped
         %tr
           %th
-            Completed In
+            Imported On
           %td
-            = import.import_time
-        %tr
-          %th
-            Files Found
-          %td
-            = import.files.try(:count)
+            - if import.persisted?
+              = link_to import&.created_at, import_path(import)
+            - else
+              %em Never run
+        - if import.persisted?
+          %tr
+            %th
+              Completed In
+            %td
+              = import.import_time
+          %tr
+            %th
+              Files Found
+            %td
+              = import.files.try(:count)
 - else
   %p
     %em No import history found.

@@ -1,16 +1,18 @@
-.mb-4= page_entries_info @locations
-%p= paginate(@locations)
-.card
-  %table.table.table-striped
-    %thead
-      %tr
-        %th Login Time
-        %th IP Address
-        %th Location
-    %tbody
-      - @locations.each do |location|
+- if @pagy.count.positive?
+  = render 'common/pagination_top', item_name: 'login activity'
+  .table-responsive
+    %table.table.table-striped
+      %thead
         %tr
-          %td= location.created_at
-          %td= location.ip
-          %td= location.location_description
-%p= paginate(@locations)
+          %th Login Time
+          %th IP Address
+          %th Location
+      %tbody
+        - @locations.each do |location|
+          %tr
+            %td= location.created_at
+            %td= location.ip
+            %td= location.location_description
+  = render 'common/pagination_bottom', item_name: 'login activity'
+- else
+  .none-found No activity found.
