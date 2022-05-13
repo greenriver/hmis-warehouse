@@ -261,6 +261,20 @@ module PerformanceMeasurement
           end
           reset_filter
         end
+        # Summary calculations, all based on existing data
+        summary_calculations.each do |parts|
+          report_clients.each do |client_id, client|
+            client["#{variant_name}_#{parts[:key]}"] = parts[:value_calculation].call(client, variant_name)
+            # These are only system level
+            project_clients << {
+              report_id: id,
+              client_id: client_id,
+              project_id: nil,
+              for_question: parts[:key], # allows limiting for a specific response
+              period: variant_name,
+            }
+          end
+        end
       end
 
       Client.import!(
@@ -309,11 +323,11 @@ module PerformanceMeasurement
           },
         },
         {
-          key: :served_on_pit_date_unsheltered,
-          data: ->(filter) {
+          key: :served_on_pit_date_unsheltered, # note, actually yearly overall count
+          data: ->(_) {
             {}.tap do |project_types_by_client_id|
               report_scope.joins(:service_history_services, :project, :client).
-                where(shs_t[:date].eq(filter.pit_date)).
+                # where(shs_t[:date].eq(filter.pit_date)). # removed to become yearly to match SPM M3 3.2
                 so.distinct.
                 pluck(:client_id, c_t[:DOB], p_t[:id]).
                 each do |client_id, dob, project_id|
@@ -540,6 +554,26 @@ module PerformanceMeasurement
       extras
     end
 
+    private def summary_calculations
+      [
+        {
+          key: :seen_in_range,
+          value_calculation: ->(client, variant_name) {
+            client["#{variant_name}_served_on_pit_date_sheltered"] ||
+            client["#{variant_name}_served_on_pit_date_unsheltered"]
+          },
+        },
+        {
+          key: :retention_or_positive_destination,
+          value_calculation: ->(client, variant_name) {
+            client["#{variant_name}_so_destination"].present? ||
+            client["#{variant_name}_es_sh_th_rrh_destination"].present? ||
+            client["#{variant_name}_moved_in_destination"].present?
+          },
+        },
+      ]
+    end
+
     private def run_spm
       # puts 'Running SPM'
       questions = [
@@ -595,7 +629,7 @@ module PerformanceMeasurement
       }
     end
 
-    def spm_fields
+    def spm_fields # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
       [
         {
           cells: [['3.2', 'C2']],
@@ -604,7 +638,7 @@ module PerformanceMeasurement
           project_source: :m3_project_id,
           questions: [
             {
-              name: :served_on_pit_date_sheltered,
+              name: :served_on_pit_date_sheltered, # Poorly named, this is actually a yearly count
               value_calculation: ->(spm_client) { spm_client[:m3_active_project_types].present? },
             },
           ],
@@ -833,6 +867,56 @@ module PerformanceMeasurement
           ],
         },
         {
+          cells: [['4.1', 'C2']],
+          title: 'Stayers with Increased Earned Income',
+          history_source: :m4_history,
+          project_source: :m4_project_id,
+          questions: [
+            {
+              name: :earned_income_stayer,
+              value_calculation: ->(spm_client) { (spm_client[:m4_latest_earned_income].presence || 0) > (spm_client[:m4_earliest_earned_income].presence || 0) },
+            },
+          ],
+          client_project_rows: [
+            ->(spm_client, project_id, variant_name) {
+              return unless spm_client[:m4_stayer] && (spm_client[:m4_latest_earned_income].presence || 0) > (spm_client[:m4_earliest_earned_income].presence || 0)
+
+              {
+                report_id: id,
+                client_id: spm_client[:client_id],
+                project_id: project_id,
+                for_question: :increased_income__earned_income_stayer,
+                period: variant_name,
+              }
+            },
+          ],
+        },
+        {
+          cells: [['4.2', 'C2']],
+          title: 'Stayers with Increased Non-Cash Income',
+          history_source: :m4_history,
+          project_source: :m4_project_id,
+          questions: [
+            {
+              name: :non_employment_income_stayer,
+              value_calculation: ->(spm_client) { (spm_client[:m4_latest_non_earned_income].presence || 0) > (spm_client[:m4_earliest_non_earned_income].presence || 0) },
+            },
+          ],
+          client_project_rows: [
+            ->(spm_client, project_id, variant_name) {
+              return unless spm_client[:m4_stayer] && (spm_client[:m4_latest_non_earned_income].presence || 0) > (spm_client[:m4_earliest_non_earned_income].presence || 0)
+
+              {
+                report_id: id,
+                client_id: spm_client[:client_id],
+                project_id: project_id,
+                for_question: :increased_income__non_earned_income_stayer,
+                period: variant_name,
+              }
+            },
+          ],
+        },
+        {
           cells: [['4.6', 'C2']],
           title: 'Leavers with Increased Income',
           history_source: :m4_history,
@@ -856,6 +940,56 @@ module PerformanceMeasurement
                 client_id: spm_client[:client_id],
                 project_id: project_id,
                 for_question: :increased_income__income_leaver,
+                period: variant_name,
+              }
+            },
+          ],
+        },
+        {
+          cells: [['4.4', 'C2']],
+          title: 'Leavers with Increased Earned Income',
+          history_source: :m4_history,
+          project_source: :m4_project_id,
+          questions: [
+            {
+              name: :earned_income_leaver,
+              value_calculation: ->(spm_client) { (spm_client[:m4_latest_earned_income].presence || 0) > (spm_client[:m4_earliest_earned_income].presence || 0) },
+            },
+          ],
+          client_project_rows: [
+            ->(spm_client, project_id, variant_name) {
+              return unless ! spm_client[:m4_stayer] && (spm_client[:m4_latest_earned_income].presence || 0) > (spm_client[:m4_earliest_earned_income].presence || 0)
+
+              {
+                report_id: id,
+                client_id: spm_client[:client_id],
+                project_id: project_id,
+                for_question: :increased_income__earned_income_leaver,
+                period: variant_name,
+              }
+            },
+          ],
+        },
+        {
+          cells: [['4.5', 'C2']],
+          title: 'Leavers with Increased Non-Cash Income',
+          history_source: :m4_history,
+          project_source: :m4_project_id,
+          questions: [
+            {
+              name: :non_employment_income_leaver,
+              value_calculation: ->(spm_client) { (spm_client[:m4_latest_non_earned_income].presence || 0) > (spm_client[:m4_earliest_non_earned_income].presence || 0) },
+            },
+          ],
+          client_project_rows: [
+            ->(spm_client, project_id, variant_name) {
+              return unless ! spm_client[:m4_stayer] && (spm_client[:m4_latest_non_earned_income].presence || 0) > (spm_client[:m4_earliest_non_earned_income].presence || 0)
+
+              {
+                report_id: id,
+                client_id: spm_client[:client_id],
+                project_id: project_id,
+                for_question: :increased_income__non_earned_income_leaver,
                 period: variant_name,
               }
             },
