@@ -35,6 +35,6 @@
             = "#{measure} - Comparison Year"
   .p-4.mb-4{ class: "performance-measurement--highlight-light-#{@report.highlight_id(category)}" }
     %h2 System Level
-  = render 'performance_measurement/warehouse_reports/reports/details_row', key: key, result: result, system_class_name: system_class_name, show_label_detail: true
+  = render 'performance_measurement/warehouse_reports/reports/details_row', key: key, result: result, class_name: system_class_name, show_label_detail: true
   - if @report.detail_column_for(key) != :system
     = render 'performance_measurement/warehouse_reports/reports/projects', key: key, category: category

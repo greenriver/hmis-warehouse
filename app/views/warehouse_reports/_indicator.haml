@@ -27,7 +27,6 @@
         .c-indicator__secondary-value.d-flex.align-items-center
           - key = :secondary
           - value_key = "#{key}_value".to_sym
-          -# - if indicator[value_key] != 0
           .c-indicator__change-icon
             = change_direction_icon(indicator[:direction]) if indicator[value_key] != 0
           - if indicator[value_key]
