@@ -5,7 +5,7 @@
   - group.each do |sub_category, sub_group|
     %h3{ class: class_name }= sub_category
     .well.p-0
-      %table.table.table-striped
+      %table.table.table-striped.table-fixed
         %thead
           %th Relevancy
           %th Metric
@@ -18,7 +18,7 @@
             - if indicator
               - column = row.last[:column]
               %tr
-                %td.nobr
+                %td.nobr{style: 'width: 80px;'}
                   - if column == :both
                     - words = 'System and Project Level'
                     %span.icon-svg--sm.mr-2{ data: { toggle: :tooltip, title: words }}
@@ -53,10 +53,10 @@
                   - if options[:title].present? && goal_popover
                     %a{ role: :button, tabindex: 0, data: options }
                       %i.icon-info
-                %td.text-center
+                %td.text-center{style: 'width: 80px;'}
                   .c-indicator__passed{ class: indicator[:passed] ? "pass" : "fail" }
                     = checkmark_or_x(indicator[:passed], size: :sm, symbol_names: { true => 'ok-circled', false => 'cancel-circled2' }, wrapper_classes: {true => 'pass', false => 'fail'}, style: :svg)
-                %td.nobr.font-size-md
+                %td.nobr.font-size-md{style: 'width: 235px;'}
                   - link_text = if @report.detail_year_over_year_change?(key)
                     - "#{number_with_delimiter(indicator[:secondary_value])}% change over year"
                   - else
