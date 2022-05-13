@@ -18,9 +18,9 @@
         %h3.mb-4 SPMs
         - report_start = Date.parse(@report.options[:start.to_s])
         .mb-2
-          = link_to hud_reports_spm_path(@report.comparison_spm_id), class: 'btn btn-sm btn-secondary' do
-            = (report_start - 1.year).year
-        .mb-2
           = link_to hud_reports_spm_path(@report.reporting_spm_id), class: 'btn btn-sm btn-secondary' do
-            = report_start.year
+            Report Year
+        .mb-2
+          = link_to hud_reports_spm_path(@report.comparison_spm_id), class: 'btn btn-sm btn-secondary' do
+            Comparison Year
 = render 'table', goal_popover: true, pdf: false
