@@ -172,6 +172,31 @@ module PerformanceMeasurement::ResultCalculation
       @client_data.dig(key, project_id) || []
     end
 
+    def count_of_homeless_clients_in_range(detail, project: nil)
+      field = detail[:calculation_column]
+      reporting_count = client_count(field, :reporting, project_id: project&.project_id)
+      comparison_count = client_count(field, :comparison, project_id: project&.project_id)
+
+      progress = calculate_processed(detail[:goal_calculation], reporting_count, comparison_count)
+      PerformanceMeasurement::Result.new(
+        report_id: id,
+        field: __method__,
+        title: detail_title_for(__method__.to_sym),
+        direction: direction(reporting_count, comparison_count),
+        primary_value: reporting_count,
+        primary_unit: 'clients',
+        secondary_value: progress[:progress],
+        secondary_unit: '%',
+        value_label: 'Change over year',
+        comparison_primary_value: comparison_count,
+        system_level: project&.project_id.blank?,
+        project_id: project&.project_id,
+        passed: progress[:passed],
+        goal: progress[:goal],
+        goal_progress: progress[:progress],
+      )
+    end
+
     def count_of_sheltered_homeless_clients(detail, project: nil)
       field = detail[:calculation_column]
       reporting_count = client_count(field, :reporting, project_id: project&.project_id)
@@ -463,6 +488,47 @@ module PerformanceMeasurement::ResultCalculation
         comparison_primary_value: comparison_median,
         system_level: project&.project_id.blank?,
         project_id: project&.project_id,
+        passed: progress[:passed],
+        goal: progress[:goal],
+        goal_progress: progress[:progress],
+      )
+    end
+
+    # Summary calculation only
+    def retention_or_positive_destination(detail, project: id)
+      return unless project.blank?
+
+      field = detail[:calculation_column]
+      reporting_destinations = client_ids([:so_destination, :es_sh_th_rrh_destination, :moved_in_destination], :reporting, project_id: nil)
+      reporting_destinations_in_range = client_ids(field, :reporting, project_id: nil)
+      comparison_destinations = client_ids([:so_destination, :es_sh_th_rrh_destination, :moved_in_destination], :comparison, project_id: nil)
+      comparison_destinations_in_range = client_ids(field, :comparison, project_id: nil)
+      reporting_denominator = reporting_destinations.count
+      reporting_numerator = reporting_destinations_in_range.count
+      reporting_percent = percent_of(reporting_numerator, reporting_denominator)
+
+      comparison_denominator = comparison_destinations.count
+      comparison_numerator = comparison_destinations_in_range.count
+      comparison_percent = percent_of(comparison_numerator, comparison_denominator)
+
+      progress = calculate_processed(detail[:goal_calculation], reporting_percent)
+      PerformanceMeasurement::Result.new(
+        report_id: id,
+        field: __method__,
+        title: detail_title_for(__method__.to_sym),
+        direction: direction(reporting_percent, comparison_percent),
+        primary_value: reporting_percent,
+        primary_unit: '% of exits',
+        secondary_value: percent_changed(reporting_percent, comparison_percent),
+        secondary_unit: '%',
+        value_label: 'Change over year',
+        comparison_primary_value: comparison_percent,
+        system_level: true,
+        project_id: nil,
+        reporting_numerator: reporting_numerator,
+        reporting_denominator: reporting_denominator,
+        comparison_numerator: comparison_numerator,
+        comparison_denominator: comparison_denominator,
         passed: progress[:passed],
         goal: progress[:goal],
         goal_progress: progress[:progress],
@@ -780,8 +846,28 @@ module PerformanceMeasurement::ResultCalculation
       increased_income(detail, :income_stayer, __method__, project: project)
     end
 
+    def stayers_with_increased_earned_income(detail, project: nil)
+      increased_income(detail, :income_stayer, __method__, project: project)
+    end
+
+    def stayers_with_increased_non_cash_income(detail, project: nil)
+      increased_income(detail, :income_stayer, __method__, project: project)
+    end
+
     def leavers_with_increased_income(detail, project: nil)
       increased_income(detail, :income_leaver, __method__, project: project)
+    end
+
+    def leavers_with_increased_earned_income(detail, project: nil)
+      increased_income(detail, :income_stayer, __method__, project: project)
+    end
+
+    def leavers_with_increased_non_cash_income(detail, project: nil)
+      increased_income(detail, :income_stayer, __method__, project: project)
+    end
+
+    def increased_income_all_clients(detail, project: nil)
+      increased_income(detail, [:income_stayer, :income_leaver], __method__, project: project)
     end
 
     def increased_income(detail, status_field, meth, project: nil)
