@@ -129,7 +129,7 @@ module PerformanceMeasurement::Details
           sub_category: 'People',
           column: :both,
           year_over_year_change: true,
-          title: 'Number of Homeless People Seen on **%{pit_date}%%**',
+          title: "Number of Homeless People Seen on #{filter.pit_date}",
           goal_description: 'The CoC will reduce total homelessness by **%{goal}%% annually** (as reported during a single Point in Time)',
           goal_calculation: :people,
           denominator_label: '',
