@@ -59,8 +59,10 @@
       const max = Math.max(...data.columns[1].slice(1));
       const include_percent = #{result.primary_unit.starts_with?('%')}
       const goal = #{@report.detail_goal_for(key)};
+      const axisMax = max < goal ? goal : undefined;
+
       data.labels.format = function (v, id, i, texts) {
-        if (v < max * 0.15) {
+        if (v < (axisMax || max) * 0.15) {
           return '';
         }
         if (include_percent) {
@@ -87,10 +89,8 @@
         grid: { y: { lines: [{ value: goal }] } },
         size: { height: 150 },
         legend: { show: false },
-        // bar: { label: { threshold: 1 } },
         bindto: '.#{system_class_name}'
       });
-
       d3.select('.#{system_class_name} .bb-ygrid-line line').style('stroke-width', 2)
       d3.select('.#{system_class_name} .bb-ygrid-line line').style('stroke-dasharray', 2)
     });

@@ -3,7 +3,7 @@
 .p-4.mb-4{ class: "performance-measurement--highlight-light-#{@report.highlight_id(category)}" }
   %h2 Project Level
 %h4 Project Comparison #{@report.filter.date_range_words}
-.c-chart--vertical-bar{ class: all_projects_class_name, data: { chart: result.data_for_projects_bar.to_json, include_percent: result.primary_unit.starts_with?('%').to_s }}
+.c-chart--vertical-bar.mb-6{ class: all_projects_class_name, data: { chart: result.data_for_projects_bar.to_json, include_percent: result.primary_unit.starts_with?('%').to_s }}
 - my_projects = @report.my_projects(current_user, key)
 - if my_projects.present?
   .well.no-break
@@ -39,11 +39,13 @@
                   const max = Math.max(...data.columns[1].slice(1));
                   const include_percent = $('.#{class_name}').data('includePercent');
                   const goal = #{@report.detail_goal_for(key)};
+                  const axisMax = max < goal ? goal : undefined;
+
                   data.labels['format'] = function (v, id, i, texts) {
-                    if(v < max * 0.15) {
+                    if (v < (axisMax || max) * 0.15) {
                       return '';
                     }
-                    if(include_percent) {
+                    if (include_percent) {
                       return d3.format(".0%")(v / 100)
                     } else {
                       return d3.format(",.2r")(v)
@@ -60,7 +62,7 @@
                           count: 3,
                           format: function(x) { return `${d3.format('d')(x)}${include_percent ? '%' : ''}`}
                         },
-                        max: max < goal ? goal : undefined,
+                        max: axisMax
                       },
                     },
                     grid: { y: { lines: [{ value: goal }] } },
@@ -68,6 +70,8 @@
                     legend: { show: false },
                     bindto: '.#{class_name}'
                   });
+                  d3.select('.#{class_name} .bb-ygrid-line line').style('stroke-width', 2)
+                  d3.select('.#{class_name} .bb-ygrid-line line').style('stroke-dasharray', 2)
                 });
 - other_projects = @report.other_projects(current_user, key)
 - if other_projects.present?
@@ -104,7 +108,13 @@
                     data: data,
                     axis: {
                       x: { type: 'category' },
-                      y: { tick: { stepSize: 1, count: 3, format: d3.format('d') }}
+                      y: {
+                        tick: {
+                          stepSize: 1,
+                          count: 3,
+                          format: function(x) { return `${d3.format('d')(x)}${include_percent ? '%' : ''}`},
+                        },
+                      },
                     },
                     size: { height: 150 },
                     legend: { show: false },
@@ -150,7 +160,7 @@
             tick: {
               rotate: -35,
               autorotate: true,
-              format: function (x) { return d3.format(",.2r")(x); }
+              format: function(x) { return `${d3.format('d')(x)}${include_percent ? '%' : ''}`},
             },
           },
           x: {
@@ -177,7 +187,6 @@
         padding: {
           left: 300,
           top: 0,
-          bottom: 40,
         },
       });
 
