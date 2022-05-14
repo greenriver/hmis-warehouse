@@ -61,8 +61,17 @@ module PerformanceMeasurement::Details
       format(detail[:goal_description], { goal: goal_config[detail[:goal_calculation]] })
     end
 
+    def detail_goal_for(key)
+      detail = detail_hash[key]
+      goal_config[detail[:goal_calculation]]
+    end
+
     def detail_calculation_description_for(key)
       detail_hash[key][:calculation_description]
+    end
+
+    def detail_measure_for(key)
+      detail_hash[key][:measure]
     end
 
     def detail_column_for(key)
@@ -168,6 +177,7 @@ module PerformanceMeasurement::Details
           denominator_label: '',
           calculation_description: 'The difference (as a percentage) between the number of un-duplicated total sheltered homeless persons reported in HMIS (via ES and TH projects) and the previous reporting period’s count',
           calculation_column: :served_on_pit_date_sheltered,
+          measure: 'Measure 3',
           detail_columns: [
             'served_on_pit_date',
             'served_on_pit_date_sheltered',
@@ -202,6 +212,7 @@ module PerformanceMeasurement::Details
           denominator_label: '',
           calculation_description: 'The difference (as a percentage) between the number of persons who entered during the reporting period with no prior enrollments in  HMIS (via the CoC’s ES, SH, TH, and PH projects) and the previous reporting period’s count.',
           calculation_column: :first_time,
+          measure: 'Measure 5',
           detail_columns: [
             'first_time',
           ],
@@ -324,6 +335,7 @@ module PerformanceMeasurement::Details
           denominator_label: '',
           calculation_description: 'SPM 1a. Average number of days persons are homeless in ES, SH, and TH projects.',
           calculation_column: :days_homeless_es_sh_th,
+          measure: 'Measure 1',
           detail_columns: [
             'days_homeless_es_sh_th',
           ],
@@ -339,6 +351,7 @@ module PerformanceMeasurement::Details
           denominator_label: '',
           calculation_description: 'SPM 1a. Median number of days persons are homeless in ES, SH, and TH projects.',
           calculation_column: :days_homeless_es_sh_th,
+          measure: 'Measure 1',
           detail_columns: [
             'days_homeless_es_sh_th',
           ],
@@ -422,6 +435,7 @@ module PerformanceMeasurement::Details
           denominator_label: '',
           calculation_description: 'SPM 1b. Average number of days persons report being homeless prior to entering ES, SH, TH and PH projects, plus the time spent in those projects prior to Housing Move-In Date (as appliable).',
           calculation_column: :days_homeless_es_sh_th_ph,
+          measure: 'Measure 1',
           detail_columns: [
             'days_homeless_es_sh_th_ph',
           ],
@@ -437,6 +451,7 @@ module PerformanceMeasurement::Details
           denominator_label: '',
           calculation_description: 'SPM 1b. Median number of days persons report being homeless prior to entering ES, SH, TH and PH projects, plus the time spent in those projects prior to Housing Move-In Date (as appliable).',
           calculation_column: :days_homeless_es_sh_th_ph,
+          measure: 'Measure 1',
           detail_columns: [
             'days_homeless_es_sh_th_ph',
           ],
@@ -467,6 +482,7 @@ module PerformanceMeasurement::Details
           denominator_label: 'Total Exits',
           calculation_description: 'Number of persons who exited street outreach to a positive destination / Number of persons who exited street outreach.',
           calculation_column: :so_destination_positive,
+          measure: 'Measure 7',
           detail_columns: [
             'so_destination',
           ],
@@ -482,6 +498,7 @@ module PerformanceMeasurement::Details
           denominator_label: 'Total Exits',
           calculation_description: 'Number of persons who exited to permanent housing destination / Number of persons who exited ES, SH, TH, RRH, plus persons in other PH projects who exited without moving into housing',
           calculation_column: :es_sh_th_rrh_destination_positive,
+          measure: 'Measure 7',
           detail_columns: [
             'es_sh_th_rrh_destination',
           ],
@@ -497,6 +514,7 @@ module PerformanceMeasurement::Details
           denominator_label: 'Total Exits/Move-ins',
           calculation_description: 'Number of persons with a Housing Move-In Date that either exited to a permanent destination after moving into housing or remained in the PH project / Number of persons housed by PH projects',
           calculation_column: :moved_in_destination_positive,
+          measure: 'Measure 7',
           detail_columns: [
             'moved_in_destination',
           ],
@@ -512,6 +530,7 @@ module PerformanceMeasurement::Details
           denominator_label: 'Total Returns',
           calculation_description: 'Based on clients who exited SO, ES, TH, SH, or PH to a permanent housing destination in the date range two years prior to the report date range: Number of persons who returned to SO, ES, TH, SH or PH within 6 months of exit / Number of persons who exited SO, ES, TH, SH, or PH to a permanent housing destination in the date range two years prior to the report date range',
           calculation_column: :returned_in_six_months,
+          measure: 'Measure 2',
           detail_columns: [
             'days_to_return',
           ],
@@ -527,6 +546,7 @@ module PerformanceMeasurement::Details
           denominator_label: 'Total Returns',
           calculation_description: 'Based on clients who exited SO, ES, TH, SH, or PH to a permanent housing destination in the date range two years prior to the report date range: Number of persons who returned to SO, ES, TH, SH or PH within 2 years of exit / Number of persons who exited SO, ES, TH, SH, or PH to a permanent housing destination in the date range two years prior to the report date range',
           calculation_column: :returned_in_two_years,
+          measure: 'Measure 2',
           detail_columns: [
             'days_to_return',
           ],
@@ -560,6 +580,7 @@ module PerformanceMeasurement::Details
           denominator_label: 'Total Stayers',
           calculation_description: 'Number of adult stayers in CoC-funded projects with increased total income / Number of adult system stayers in CoC-funded projects',
           calculation_column: :increased_income__income_stayer,
+          measure: 'Measure 4',
           detail_columns: [
             'income_stayer',
             'increased_income',
@@ -608,6 +629,7 @@ module PerformanceMeasurement::Details
           denominator_label: 'Total Leavers',
           calculation_description: 'Number of adult leavers from CoC-funded projects with increased total income / Number of adult system leavers from CoC-funded projects',
           calculation_column: :increased_income__income_leaver,
+          measure: 'Measure 4',
           detail_columns: [
             'income_leaver',
             'increased_income',
