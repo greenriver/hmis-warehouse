@@ -563,6 +563,32 @@ module PerformanceMeasurement
           },
         }
       end
+      # extras << {
+      #   key: :days_in_any_bed_in_period,
+      #   data: ->(_filter) {
+      #     {}.tap do |days_by_client_id|
+      #       scope = report_scope.joins(:service_history_services, :project, :client).
+      #         merge(GrdaWarehouse::ServiceHistoryService.where(date: filter.range)).
+      #         in_project_type([:es, :sh, :so, :th, :psh, :oph, :rrh]).
+      #         distinct
+      #       dobs = scope.pluck(:client_id, c_t[:DOB]).to_h
+      #       scope.group(:client_id, p_t[:id]).
+      #         count(shs_t[:date]).
+      #         each do |(client_id, project_id), days|
+      #           days_by_client_id[client_id] ||= { value: 0, project_ids: Set.new, dob: nil }
+      #           days_by_client_id[client_id][:value] += days
+      #           days_by_client_id[client_id][:project_ids] << project_id
+      #           days_by_client_id[client_id][:dob] = dobs[client_id]
+      #         end
+      #     end
+      #   },
+      #   value_calculation: ->(calculation, client_id, data) {
+      #     details = data[client_id]
+      #     return unless details.present?
+
+      #     details[calculation]
+      #   },
+      # }
       extras
     end
 

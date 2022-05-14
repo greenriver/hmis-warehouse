@@ -122,7 +122,7 @@ module PerformanceMeasurement::Details
     memoize :project_details
 
     def clients_for_question(key, period, project_id: nil)
-      field = result_methods[key].try(:[], :calculation_column)
+      field = detail_hash[key].try(:[], :calculation_column)
       return [] unless field
 
       project_scope = PerformanceMeasurement::ClientProject.where(period: period, for_question: field)
@@ -223,15 +223,18 @@ module PerformanceMeasurement::Details
           column: :system,
           year_over_year_change: false,
           title: 'Average Bed Utilization Overall',
-          goal_description: 'The CoC will maintain ES, SH, and TH utilization rates **higher than %{goal}%%**.',
+          goal_description: 'The CoC will maintain utilization rates **higher than %{goal}%%**.',
           goal_calculation: :capacity,
           denominator_label: 'Average Capacity',
-          calculation_description: 'The average of the number of persons occupying a bed each night divided by the system’s total bed capacity in ES, SH, and TH during the reporting range.',
-          calculation_column: :days_in_th_bed_in_period,
+          calculation_description: 'The average of the number of persons occupying a bed each night divided by the system’s total bed capacity during the reporting range.',
+          calculation_column: :days_in_any_bed_in_period,
           detail_columns: [
             'days_in_es_bed_in_period',
             'days_in_sh_bed_in_period',
             'days_in_th_bed_in_period',
+            'days_in_rrh_bed_in_period',
+            'days_in_psh_bed_in_period',
+            'days_in_oph_bed_in_period',
           ],
         },
         es_average_bed_utilization: {

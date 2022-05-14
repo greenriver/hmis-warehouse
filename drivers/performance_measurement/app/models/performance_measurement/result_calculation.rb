@@ -789,23 +789,23 @@ module PerformanceMeasurement::ResultCalculation
         :days_in_es_bed_in_period,
         :days_in_sh_bed_in_period,
         :days_in_th_bed_in_period,
+        :days_in_rrh_bed_in_period,
+        :days_in_psh_bed_in_period,
+        :days_in_oph_bed_in_period,
       ]
-      columns = bed_columns.map { |f| cl(a_t["reporting_#{f}"], 0).to_sql }
+
       (reporting_days, comparison_days) = [:reporting, :comparison].map do |period|
+        columns = bed_columns.map { |f| cl(a_t["#{period}_#{f}"], 0).to_sql }
         clients.joins(:client_projects).
           merge(
             PerformanceMeasurement::ClientProject.
               where(period: period, for_question: bed_columns),
-          ).sum(Arel.sql(columns.join(' + ')))
+          ).distinct.sum(Arel.sql(columns.join(' + ')))
       end
 
       reporting_inventory = 0
       comparison_inventory = 0
-      [
-        :es,
-        :sh,
-        :th,
-      ].each do |project_type|
+      [:es, :sh, :so, :th, :psh, :oph, :rrh].each do |project_type|
         reporting_inventory += inventory_sum(:ave_bed_capacity_per_night, :reporting, project_type: project_type)
         comparison_inventory += inventory_sum(:ave_bed_capacity_per_night, :comparison, project_type: project_type)
       end
