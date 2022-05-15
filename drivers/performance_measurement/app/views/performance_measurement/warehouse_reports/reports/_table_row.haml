@@ -1,0 +1,71 @@
+- markdown = Redcarpet::Markdown.new(::InlineHtml)
+- indicator = @report.result_for(key)
+- if indicator
+  - column = row[:column]
+  %tr
+    %td.nobr{style: 'width: 80px;'}
+      - if column == :both
+        - words = 'System and Project Level'
+        %span.icon-svg--sm.mr-2{ data: { toggle: :tooltip, title: words }}
+          %svg
+            %use{'xlink:href' => '#icon-city'}
+          %svg.ml-2
+            %use{'xlink:href' => '#icon-house'}
+          - if pdf
+            %br
+            = words
+      - elsif column == :project
+        - words = 'Project Level'
+        %span.icon-svg--sm.mr-2{ data: { toggle: :tooltip, title: words }}
+          %svg.ml-2
+            %use{'xlink:href' => '#icon-house'}
+          - if pdf
+            %br
+            = words
+      - elsif column == :system
+        - words = 'System Level'
+        %span.icon-svg--sm.mr-2{ data: { toggle: :tooltip, title: words }}
+          %svg
+            %use{'xlink:href' => '#icon-city'}
+          - if pdf
+            %br
+            = words
+    %td
+      %p
+        %strong= @report.detail_title_for(key)
+      %p= raw markdown.render(@report.detail_goal_description_for(indicator.field.to_sym))
+      %p
+        %strong Calculation:
+        = raw markdown.render(@report.detail_calculation_description_for(indicator.field.to_sym))
+        - if row[:measure].present?
+          %br
+          Calculated using SPM #{row[:measure]}.
+
+    %td.text-center{style: 'width: 80px;'}
+      .c-indicator__passed{ class: indicator[:passed] ? "pass" : "fail" }
+        = checkmark_or_x(indicator[:passed], size: :sm, symbol_names: { true => 'ok-circled', false => 'cancel-circled2' }, wrapper_classes: {true => 'pass', false => 'fail'}, style: :svg)
+    %td.nobr.font-size-md{style: 'width: 235px;'}
+      - include_median = key.to_s.ends_with?('_average')
+      - link_text = if @report.detail_year_over_year_change?(key)
+        - "#{number_with_delimiter(indicator[:secondary_value])}% change over year"
+      - else
+        - text = [ number_with_delimiter(indicator[:primary_value]), indicator[:primary_unit] ]
+        - joiner = if indicator[:primary_unit].starts_with?('%') then '' else ' ' end
+        - text = text.join(joiner)
+        - if include_median
+          - text = "Average: #{text}"
+        - text
+      = link_to(link_text, performance_measurement_warehouse_reports_report_details_path(@report, key: key), target: :_blank)
+      - if include_median
+        - secondary_key = key.to_s.gsub(/_average$/, '_median')
+        - secondary_indicator = @report.result_for(secondary_key)
+        - text = [ number_with_delimiter(secondary_indicator[:primary_value]), secondary_indicator[:primary_unit] ]
+        - joiner = if secondary_indicator[:primary_unit].starts_with?('%') then '' else ' ' end
+        - text = text.join(joiner)
+        - link_text = "Median: #{text}"
+        .mt-4= link_to(link_text, performance_measurement_warehouse_reports_report_details_path(@report, key: secondary_key), target: :_blank)
+- else
+  %tr
+    %td
+      Error displaying:
+      = key

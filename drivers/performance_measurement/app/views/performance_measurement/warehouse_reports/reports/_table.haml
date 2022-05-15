@@ -1,71 +1,32 @@
 - markdown = Redcarpet::Markdown.new(::InlineHtml)
-- @report.summary_table.each.with_index do |(title, group), i|
-  - class_name = "performance-measurement--highlight-light-#{i + 1} p-2"
-  %h2{ class: class_name }= title
-  - group.each do |sub_category, sub_group|
-    %h3{ class: class_name }= sub_category
-    .well.p-0
-      %table.table.table-striped.table-fixed
-        %thead
-          %th Relevancy
-          %th Metric
-          %th Passed
-          %th Value
-        %tbody
-          - sub_group.each do |row|
-            - key = row.first
-            - indicator = @report.result_for(key)
-            - if indicator
-              - column = row.last[:column]
-              %tr
-                %td.nobr{style: 'width: 80px;'}
-                  - if column == :both
-                    - words = 'System and Project Level'
-                    %span.icon-svg--sm.mr-2{ data: { toggle: :tooltip, title: words }}
-                      %svg
-                        %use{'xlink:href' => '#icon-city'}
-                      %svg.ml-2
-                        %use{'xlink:href' => '#icon-house'}
-                      - if pdf
-                        %br
-                        = words
-                  - elsif column == :project
-                    - words = 'Project Level'
-                    %span.icon-svg--sm.mr-2{ data: { toggle: :tooltip, title: words }}
-                      %svg.ml-2
-                        %use{'xlink:href' => '#icon-house'}
-                      - if pdf
-                        %br
-                        = words
-                  - elsif column == :system
-                    - words = 'System Level'
-                    %span.icon-svg--sm.mr-2{ data: { toggle: :tooltip, title: words }}
-                      %svg
-                        %use{'xlink:href' => '#icon-city'}
-                      - if pdf
-                        %br
-                        = words
-                %td
-                  - options = { title: markdown.render(@report.detail_goal_description_for(indicator.field.to_sym)), content: markdown.render(@report.detail_calculation_description_for(indicator.field.to_sym)), toggle: :popover, boundary: :window, trigger: :focus, placement: :bottom, html: 'true' }
-                  .mb-2
-                    %strong= @report.detail_title_for(key)
-                  = raw markdown.render(options[:title])
-                  - if options[:title].present? && goal_popover
-                    %a{ role: :button, tabindex: 0, data: options }
-                      %i.icon-info
-                %td.text-center{style: 'width: 80px;'}
-                  .c-indicator__passed{ class: indicator[:passed] ? "pass" : "fail" }
-                    = checkmark_or_x(indicator[:passed], size: :sm, symbol_names: { true => 'ok-circled', false => 'cancel-circled2' }, wrapper_classes: {true => 'pass', false => 'fail'}, style: :svg)
-                %td.nobr.font-size-md{style: 'width: 235px;'}
-                  - link_text = if @report.detail_year_over_year_change?(key)
-                    - "#{number_with_delimiter(indicator[:secondary_value])}% change over year"
-                  - else
-                    - text = [ number_with_delimiter(indicator[:primary_value]), indicator[:primary_unit] ]
-                    - joiner = if indicator[:primary_unit].starts_with?('%') then '' else ' ' end
-                    - text.join(joiner)
-                  = link_to(link_text, performance_measurement_warehouse_reports_report_details_path(@report, key: key), target: :_blank)
-            - else
-              %tr
-                %td
-                  Error displaying:
-                  = key
+- @report.display_order.each.with_index do |sub_sections, i|
+  - sub_sections.each do |keys|
+    - keys.each.with_index do |(key, sub_keys), idx|
+      - class_name = "performance-measurement--highlight-light-#{i + 1} p-2"
+      - row = @report.detail_hash[key]
+      - if idx.zero?
+        %h2{ class: class_name }= "#{row[:category]}: #{row[:sub_category]}"
+      .table-responsive.mb-4
+        %table.table.table-striped
+          - if idx.zero?
+            %thead
+              %th Relevancy
+              %th Metric
+              %th Passed
+              %th
+          %tbody
+            = render 'table_row', key: key, row: row, pdf: pdf
+      - if sub_keys.present?
+        - content_for "panel_collapse_content_#{sub_keys.first}".to_sym do
+          .table-responsive
+            %table.table.table-striped
+              %thead
+                %th Relevancy
+                %th Metric
+                %th Passed
+                %th
+              - sub_keys.each.with_index do |key, idx|
+                - row = @report.detail_hash[key]
+                %tbody
+                  = render 'table_row', key: key, row: row, pdf: pdf
+        = render 'common/panel_collapse', id: sub_keys.first.to_s, title: 'Details', content: "_#{sub_keys.first}", panel_body_padded: 'n'

@@ -131,11 +131,68 @@ module PerformanceMeasurement::Details
     end
     memoize :clients_for_question
 
-    private def detail_hash
+    def display_order
+      [
+        [
+          {
+            count_of_homeless_clients: [],
+            count_of_homeless_clients_in_range: [
+              :count_of_sheltered_homeless_clients,
+              :count_of_unsheltered_homeless_clients,
+            ],
+            first_time_homeless_clients: [],
+          },
+          {
+            overall_average_bed_utilization: [
+              :es_average_bed_utilization,
+              :sh_average_bed_utilization,
+              :th_average_bed_utilization,
+              :rrh_average_bed_utilization,
+              :psh_average_bed_utilization,
+              :oph_average_bed_utilization,
+            ],
+          },
+        ],
+        [
+          {
+            length_of_homeless_time_homeless_average: [],
+            length_of_homeless_stay_average: [],
+            time_to_move_in_average: [],
+          },
+        ],
+        [
+          {
+            retention_or_positive_destinations: [
+              :so_positive_destinations,
+              :es_sh_th_rrh_positive_destinations,
+              :moved_in_positive_destinations,
+            ],
+          },
+          {
+            returned_in_two_years: [
+              :returned_in_six_months,
+              :returned_in_two_years,
+            ],
+          },
+          {
+            increased_income_all_clients: [
+              :stayers_with_increased_income,
+              :stayers_with_increased_earned_income,
+              :stayers_with_increased_non_cash_income,
+              :leavers_with_increased_income,
+              :leavers_with_increased_earned_income,
+              :leavers_with_increased_non_cash_income,
+            ],
+          },
+        ],
+      ]
+    end
+
+    def detail_hash
       @detail_hash ||= {
         count_of_homeless_clients: {
           category: 'Rare',
-          sub_category: 'People',
+          sub_category: 'Homelessness',
           column: :both,
           year_over_year_change: true,
           title: "Number of Homeless People Seen on #{filter.pit_date}",
@@ -152,7 +209,7 @@ module PerformanceMeasurement::Details
         },
         count_of_homeless_clients_in_range: {
           category: 'Rare',
-          sub_category: 'People',
+          sub_category: 'Homelessness',
           column: :system,
           year_over_year_change: true,
           title: 'Number of Homeless People Seen Throughout the Year',
@@ -168,7 +225,7 @@ module PerformanceMeasurement::Details
         },
         count_of_sheltered_homeless_clients: {
           category: 'Rare',
-          sub_category: 'People',
+          sub_category: 'Homelessness',
           column: :both,
           year_over_year_change: true,
           title: 'Number of Sheltered Homeless People',
@@ -186,7 +243,7 @@ module PerformanceMeasurement::Details
         },
         count_of_unsheltered_homeless_clients: {
           category: 'Rare',
-          sub_category: 'People',
+          sub_category: 'Homelessness',
           column: :both,
           year_over_year_change: true,
           title: 'Number of Unsheltered Homeless People',
@@ -203,7 +260,7 @@ module PerformanceMeasurement::Details
         },
         first_time_homeless_clients: {
           category: 'Rare',
-          sub_category: 'People',
+          sub_category: 'Homelessness',
           column: :both,
           year_over_year_change: true,
           title: 'Number of First-Time Homeless People',
@@ -336,7 +393,7 @@ module PerformanceMeasurement::Details
           goal_description: 'Persons in the CoC will have an average combined length of time homeless in ES, SH, and TH of **no more than %{goal} days**.',
           goal_calculation: :time_time,
           denominator_label: '',
-          calculation_description: 'SPM 1a. Average number of days persons are homeless in ES, SH, and TH projects.',
+          calculation_description: 'Number of days persons are homeless in ES, SH, and TH projects.',
           calculation_column: :days_homeless_es_sh_th,
           measure: 'Measure 1',
           detail_columns: [
@@ -352,7 +409,7 @@ module PerformanceMeasurement::Details
           goal_description: 'Persons in the CoC will have a median combined length of time homeless in ES, SH, and TH of **no more than %{goal} days**.',
           goal_calculation: :time_time,
           denominator_label: '',
-          calculation_description: 'SPM 1a. Median number of days persons are homeless in ES, SH, and TH projects.',
+          calculation_description: 'Number of days persons are homeless in ES, SH, and TH projects.',
           calculation_column: :days_homeless_es_sh_th,
           measure: 'Measure 1',
           detail_columns: [
@@ -436,7 +493,7 @@ module PerformanceMeasurement::Details
           goal_description: 'Persons in the CoC will have an average combined length of time homeless in ES, SH, TH and PH prior to move-in of **no more than %{goal} days**.',
           goal_calculation: :time_move_in,
           denominator_label: '',
-          calculation_description: 'SPM 1b. Average number of days persons report being homeless prior to entering ES, SH, TH and PH projects, plus the time spent in those projects prior to Housing Move-In Date (as appliable).',
+          calculation_description: 'Number of days persons report being homeless prior to entering ES, SH, TH and PH projects, plus the time spent in those projects prior to Housing Move-In Date (as appliable).',
           calculation_column: :days_homeless_es_sh_th_ph,
           measure: 'Measure 1',
           detail_columns: [
@@ -452,7 +509,7 @@ module PerformanceMeasurement::Details
           goal_description: 'Persons in the CoC will have a median combined length of time homeless in ES, SH, TH and PH prior to move-in of **no more than %{goal} days**.',
           goal_calculation: :time_move_in,
           denominator_label: '',
-          calculation_description: 'SPM 1b. Median number of days persons report being homeless prior to entering ES, SH, TH and PH projects, plus the time spent in those projects prior to Housing Move-In Date (as appliable).',
+          calculation_description: 'Number of days persons report being homeless prior to entering ES, SH, TH and PH projects, plus the time spent in those projects prior to Housing Move-In Date (as appliable).',
           calculation_column: :days_homeless_es_sh_th_ph,
           measure: 'Measure 1',
           detail_columns: [
@@ -464,7 +521,7 @@ module PerformanceMeasurement::Details
           sub_category: 'Destination',
           column: :system,
           year_over_year_change: false,
-          title: 'Number of People with a Successful Placement or Retention Housing',
+          title: 'Number of People with a Successful Placement or Retention of Housing',
           goal_description: '**At least %{goal}%%** of persons will exit to a “positive” destination (as defined by HUD) or will retain housing.',
           goal_calculation: :destination,
           denominator_label: 'Total Exits',
@@ -610,7 +667,7 @@ module PerformanceMeasurement::Details
           sub_category: 'Income',
           column: :both,
           year_over_year_change: true,
-          title: 'Stayer with Increased Non-Cash Income',
+          title: 'Stayer with Increased Non-Employment Income',
           goal_description: 'CoC-funded projects will increase the percentage of adult stayers who increase total income by **%{goal}%% annually**',
           goal_calculation: :income,
           denominator_label: 'Total Stayers',
@@ -659,7 +716,7 @@ module PerformanceMeasurement::Details
           sub_category: 'Income',
           column: :both,
           year_over_year_change: true,
-          title: 'Leaver with Increased Non-Cash Income',
+          title: 'Leaver with Increased Non-Employment Income',
           goal_description: 'CoC-funded projects will increase the percentage of adult leavers who increase total income by **%{goal}%% annually**',
           goal_calculation: :income,
           denominator_label: 'Total Leavers',
