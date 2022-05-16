@@ -9,14 +9,10 @@
     &laquo; #{_('CoC Performance Measurement Dashboard')}
 .performance-measurement
   .p-4{ class: "performance-measurement--highlight-#{@report.highlight_id(category)}" }
-    %h1.mb-4= title
-    .mb-1
-      %strong Report Range:
-      = @report.filter.date_range_words
-    .mb-0
-      %strong Comparison Range:
-      = @report.filter.comparison_range_words
-  .d-flex.m-4
+    %h1= title
+  .warehouse-reports__completed.mt-2.ml-2.d-flex
+    = @report.filter.describe_filter_as_html([:start, :end, :comparison_pattern])
+  .d-flex.mb-4
     .goal.col-4
       %h3 Goal
       %p= raw markdown.render(@report.detail_goal_description_for(key))
