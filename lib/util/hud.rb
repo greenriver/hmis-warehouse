@@ -2863,7 +2863,14 @@ module HUD
       'UT-503' => 'Utah Balance of State CoC',
       'VA-500' => 'Richmond/Henrico, Chesterfield, Hanover Counties CoC',
     }
-    codes['XX-500'] = 'Test CoC' unless Rails.env.production?
+    unless Rails.env.production?
+      codes.merge!(
+        {
+          'XX-500' => 'Test CoC',
+          'XX-501' => '2nd Test CoC',
+        },
+      )
+    end
     codes.freeze
   end
 
