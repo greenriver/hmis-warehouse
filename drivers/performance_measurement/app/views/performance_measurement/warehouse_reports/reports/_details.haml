@@ -28,11 +28,12 @@
       .col-2.ml-6.p-0
         %h3.mb-4= "SPM #{measure}"
         .mb-2
-          = link_to result_hud_reports_spm_measure_path(@report.reporting_spm_id, measure), class: 'btn btn-sm btn-secondary' do
-            Report Year
+          - if @report.reporting_spm_id.present?
+            = link_to 'Report Year', result_hud_reports_spm_measure_path(@report.reporting_spm_id, measure), class: 'btn btn-sm btn-secondary'
         .mb-2
-          = link_to result_hud_reports_spm_measure_path(@report.comparison_spm_id, measure), class: 'btn btn-sm btn-secondary' do
-            Comparison Year
+          - if @report.comparison_spm_id.present?
+            = link_to 'Comparison Year', result_hud_reports_spm_measure_path(@report.comparison_spm_id, measure), class: 'btn btn-sm btn-secondary'
+
   .p-4.mb-4{ class: "performance-measurement--highlight-light-#{@report.highlight_id(category)}" }
     %h2 System Level
   = render 'performance_measurement/warehouse_reports/reports/details_row', key: key, result: result, class_name: system_class_name, show_label_detail: true

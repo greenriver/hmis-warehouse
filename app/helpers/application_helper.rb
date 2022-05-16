@@ -373,8 +373,8 @@ module ApplicationHelper
   end
 
   # Added here to replace wicked_pdf_javascript_src_tag when we removed WickedPdf
-  def inline_javascript_src_tag(js_file, options = {})
-    AssetHelper.wicked_pdf_javascript_src_tag(js_file, options)
+  def inline_javascript_include_tag(js_file, options = {})
+    AssetHelper.wicked_pdf_javascript_include_tag(js_file, options)
   end
 
   # Added here to replace wicked_pdf_asset_base64 when we removed WickedPdf

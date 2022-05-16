@@ -8,18 +8,20 @@
         .c-chart--vertical-bar{ class: class_name, data: { chart: result.data_for_system_level_bar.to_json }}
       .col-5.d-flex.align-items-center.mb-6.pr-0
         .card.p-3
-          .mb-6
-            %span.mr-2 #{result.report_year}:
-            %strong= result.reporting_numerator
-            of
-            = label
-            %strong= result.reporting_denominator
-          .mb-0
-            %span.mr-2 #{result.comparison_year}:
-            %strong= result.comparison_numerator
-            of
-            = label
-            %strong= result.comparison_denominator
+          .mb-6.d-flex
+            .mr-2 #{result.report_year}:
+            %div
+              %strong= result.reporting_numerator
+              of
+              = label
+              %strong= result.reporting_denominator
+          .mb-0.d-flex
+            .mr-2 #{result.comparison_year}:
+            %div
+              %strong= result.comparison_numerator
+              of
+              = label
+              %strong= result.comparison_denominator
   - else
     .col-6
       = render 'warehouse_reports/indicator', indicator: @report.detail_indicator_result(result, key)
@@ -100,8 +102,8 @@
       html += "<tbody>";
 
       const bg_color = color(data.id);
-      const box = `<td><svg><rect style='fill:${bg_color}' width='10' height='10'></rect></svg>${data.name}</td>`;
-      const value = `<td>${defaultValueFormat(data.value)}${description}</td>`;
+      const box = `<td style='white-space: nowrap;'><svg><rect style='fill:${bg_color}' width='10' height='10'></rect></svg>${data.name}</td>`;
+      const value = `<td style='white-space: nowrap;'>${defaultValueFormat(data.value)}${description}</td>`;
       html += box;
       html += value;
       if (goal)

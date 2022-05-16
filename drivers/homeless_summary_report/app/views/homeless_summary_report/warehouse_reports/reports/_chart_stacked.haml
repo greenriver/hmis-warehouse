@@ -5,9 +5,10 @@
   .row
     .col-sm-4
       %h3= "#{@report.title_for(household_category, :all)} #{row[:title]}"
-      %a.jToggleChartData{href: '#'}
-        Toggle demographics
-        %i.icon-users
+      - unless @pdf
+        %a.jToggleChartData{href: '#'}
+          Toggle demographics
+          %i.icon-users
     .col-sm-8
       %div{ class: "#{variant_slug}-legend" }
       .jChart.c-chart--horizontal-bar{class: "#{variant_slug}", data: {chart: chart_data.to_json, active: 'one_' }}
