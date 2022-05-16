@@ -177,7 +177,6 @@ module PerformanceMeasurement::Details
           {
             returned_in_two_years: [
               :returned_in_six_months,
-              :returned_in_two_years,
             ],
           },
           {

@@ -86,6 +86,26 @@ module ApplicationHelper
     end
   end
 
+  def tagged(boolean, state, icon: 'check', title: nil, label: nil)
+    capture do
+      content_tag(:div, class: 'd-flex') do
+        content_tag(:div, class: "c-tag c-tag--#{state}") do
+          inner = []
+          inner << content_tag(:div, title, class: 'c-tag__title') if title.present?
+          inner << content_tag(:div, class: 'c-tag__wrapper') do
+            icon_label = []
+            icon_label << content_tag(:div, class: 'c-tag__icon-svg') do
+              checkmark_or_x(boolean, size: :xs, symbol_names: { boolean => icon }, wrapper_classes: { boolean => state }, style: :svg)
+            end
+            icon_label << content_tag(:div, label, class: 'c-tag__content') if label.present?
+            icon_label.join.html_safe
+          end
+          inner.join.html_safe
+        end
+      end
+    end
+  end
+
   def ssn(number)
     if can_view_full_ssn?
       # pad with leading 0s if we don't have enough characters

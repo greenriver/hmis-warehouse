@@ -1,9 +1,10 @@
 - markdown = Redcarpet::Markdown.new(::InlineHtml)
 - category = @report.detail_category_for(key)
-- title = "#{category} | #{@report.detail_title_for(key)}"
+- title = "#{category}: #{@report.detail_title_for(key)}"
 - system_class_name = "jSystemLevelChart_#{key}"
 - result = @report.result_for(key)
 - label = @report.detail_denominator_label_for(key)
+- measure = @report.detail_measure_for(key)
 = content_for :crumbs do
   = link_to performance_measurement_warehouse_reports_report_path(@report) do
     &laquo; #{_('CoC Performance Measurement Dashboard')}
@@ -17,12 +18,15 @@
       %h3 Goal
       %p= raw markdown.render(@report.detail_goal_description_for(key))
     .calculation.ml-6
-      %h3 Calculation
+      %h3.d-flex
+        Calculation
+        - if ! can_view_hud_reports? && measure.present?
+          .ml-auto
+            .badge.badge-secondary= "SPM #{measure}"
       %p= @report.detail_calculation_description_for(key)
-    - measure = @report.detail_measure_for(key)
     - if can_view_hud_reports? && measure.present?
       .col-2.ml-6.p-0
-        %h3.mb-4= measure
+        %h3.mb-4= "SPM #{measure}"
         .mb-2
           = link_to result_hud_reports_spm_measure_path(@report.reporting_spm_id, measure), class: 'btn btn-sm btn-secondary' do
             Report Year
