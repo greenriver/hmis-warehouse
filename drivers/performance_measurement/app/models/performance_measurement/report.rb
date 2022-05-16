@@ -41,11 +41,11 @@ module PerformanceMeasurement
     end
 
     def reporting_spm_id
-      @reporting_spm_id ||= clients.first.reporting_spm_id if clients.any?
+      @reporting_spm_id ||= clients&.first&.reporting_spm_id
     end
 
     def comparison_spm_id
-      @comparison_spm_id ||= clients.first.comparison_spm_id if clients.any?
+      @comparison_spm_id ||= clients&.first&.comparison_spm_id
     end
 
     def run_and_save!

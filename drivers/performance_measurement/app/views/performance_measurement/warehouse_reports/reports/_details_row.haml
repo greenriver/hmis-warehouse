@@ -1,14 +1,14 @@
 - label = @report.detail_denominator_label_for(key)
 .d-flex.justify-content-around.mb-4
-  .col-4
-    = render 'warehouse_reports/indicator', indicator: @report.detail_indicator_result(result, key)
   - if label.present? && show_label_detail
-    .d-flex.col-8.justify-content-end
+    .col-4
+      = render 'warehouse_reports/indicator', indicator: @report.detail_indicator_result(result, key)
+    .col-8.d-flex.justify-content-end.pr-0
       .col-6
         .c-chart--vertical-bar{ class: class_name, data: { chart: result.data_for_system_level_bar.to_json }}
-      .col-5.d-flex.align-items-center.mb-6
+      .col-5.d-flex.align-items-center.mb-6.pr-0
         .card.p-3
-          .mb-2
+          .mb-6
             %span.mr-2 #{result.report_year}:
             %strong= result.reporting_numerator
             of
@@ -21,8 +21,11 @@
             = label
             %strong= result.comparison_denominator
   - else
-    .d-flex.col-4
+    .col-6
+      = render 'warehouse_reports/indicator', indicator: @report.detail_indicator_result(result, key)
+    .col-5
       .c-chart--vertical-bar{ class: class_name, data: { chart: result.data_for_system_level_bar.to_json }}
+    .col-1
 
 = content_for :page_js do
   :javascript
