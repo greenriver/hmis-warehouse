@@ -15,7 +15,6 @@
   margin-bottom: space(3);
 }
 .c-indicator__content {
-  width: 35rem;
   margin-left: auto;
   margin-right: auto;
 }
@@ -30,8 +29,8 @@
     fill: $brand-success;
   }
   &.fail {
-    color: rgb(115, 72, 213);
-    fill: rgb(115, 72, 213);
+    color: $brand-danger;
+    fill: $brand-danger;
   }
 }
 .c-indicator__values {
@@ -49,7 +48,6 @@
   svg,
   .icon-svg svg {
     width: 2rem;
-    height: 2rem;
   }
 }
 .c-indicator__value-number {

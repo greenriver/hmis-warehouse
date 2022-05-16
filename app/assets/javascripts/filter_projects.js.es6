@@ -30,6 +30,7 @@ App.StimulusApp.register('filter-projects', class extends Stimulus.Controller {
   connect() {
     this.element['filterProjects'] = this // allow access to this controller from other controllers
     this.prepNativeEvents()
+    this.watchForRemoteLoads()
     this.update()
   }
 
@@ -97,5 +98,18 @@ App.StimulusApp.register('filter-projects', class extends Stimulus.Controller {
       });
       $(el).trigger('change')
     })
+  }
+
+  // Projects can be loaded via ajax, make sure we update the list if that
+  // takes longer than the rest of the page to happen
+  watchForRemoteLoads() {
+    const targets = [
+      this.projectsTarget,
+    ];
+    targets.forEach(el => {
+      $(el).on('change', (e) => {
+        this.update()
+      });
+    });
   }
 })
