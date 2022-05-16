@@ -849,6 +849,15 @@ module GrdaWarehouse::WarehouseReports
       }
       if RailsDrivers.loaded.include?(:service_scanning)
         r_list['Operational'] << {
+          url: 'ma_yya_report/warehouse_reports/report',
+          name: 'MA Homeless Youth Program Report',
+          description: 'Downloadable MA YYA report.',
+          limitable: true,
+          health: false,
+        }
+      end
+      if RailsDrivers.loaded.include?(:service_scanning)
+        r_list['Operational'] << {
           url: 'service_scanning/warehouse_reports/scanned_services',
           name: _('Scanned Services'),
           description: 'Pull a list of services added within a date range',
