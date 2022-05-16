@@ -29,9 +29,9 @@
     $(document).ready(function() {
       const data = $('.#{class_name}').data('chart');
       const max = Math.max(...data.columns[1].slice(1));
-      const includePercent = #{result.percentage?}
-      const goal = #{@report.detail_goal_for(key)};
-      const axisMax = max < goal ? goal : undefined;
+      const includePercent = #{result.percentage?};
+      const goal = #{@report.detail_goal_for_reference_line(key).to_json};
+      const axisMax = max < goal && goal !== null ? goal : undefined;
       const tooltipTitles = #{result.titles_for_system_level_bar_tooltip.to_json.html_safe}
 
       data.labels.format = function (v, id, i, texts) {
@@ -57,10 +57,9 @@
               count: 3,
               format: function(x) { return `${d3.format('d')(x)}${includePercent ? '%' : ''}`}
             },
-            max: max < goal ? goal : undefined,
+            ...(axisMax && { max: axisMax }),
           },
         },
-        grid: { y: { lines: [{ value: goal }] } },
         size: { height: 150 },
         legend: { show: false },
         tooltip: {
@@ -70,6 +69,11 @@
             }
           }
         },
+        ...(goal !== null && {
+          grid: {
+            lines: { front: false },
+            y: { lines: [{ value: goal }] } }
+        }),
         bindto: '.#{class_name}'
       });
       d3.select('.#{class_name} .bb-ygrid-line line').style('stroke-width', 2)
