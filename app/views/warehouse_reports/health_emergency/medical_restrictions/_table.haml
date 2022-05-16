@@ -32,9 +32,7 @@
             %td= client.age
             %td= restriction.created_at.to_date
             %td= simple_format(restriction.notes || restriction.note)
-  - if @html && @pagy.pages > 1
-    .pagy-container.mt-4
-      != pagy_info(@pagy, item_name: _('restriction').pluralize(@pagy.count))
-      != pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
+  - if @html
+    = render 'common/pagination_bottom', item_name: 'restriction'
 - elsif @html
   .none-found.mt-4 No restrictions found.
