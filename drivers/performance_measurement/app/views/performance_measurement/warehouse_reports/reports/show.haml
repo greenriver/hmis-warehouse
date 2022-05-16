@@ -13,7 +13,7 @@
     .col-8
       %h3.mb-4 Chosen Universe
       = @report.describe_filter_as_html
-    - if can_view_hud_reports? && @report.clients.any?
+    - if can_view_hud_reports? && @report.reporting_spm_id.present? && @report.comparison_spm_id.present?
       .col-2
         %h3.mb-4 SPMs
         .mb-2

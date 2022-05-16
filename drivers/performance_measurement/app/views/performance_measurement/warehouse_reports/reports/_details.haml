@@ -9,14 +9,10 @@
     &laquo; #{_('CoC Performance Measurement Dashboard')}
 .performance-measurement
   .p-4{ class: "performance-measurement--highlight-#{@report.highlight_id(category)}" }
-    %h1.mb-4= title
-    .mb-1
-      %strong Report Range:
-      = @report.filter.date_range_words
-    .mb-0
-      %strong Comparison Range:
-      = @report.filter.comparison_range_words
-  .d-flex.m-4
+    %h1= title
+  .warehouse-reports__completed.mt-2.ml-2.d-flex
+    = @report.filter.describe_filter_as_html([:start, :end, :comparison_pattern])
+  .d-flex.mb-4
     .goal.col-4
       %h3 Goal
       %p= raw markdown.render(@report.detail_goal_description_for(key))
@@ -24,15 +20,15 @@
       %h3 Calculation
       %p= @report.detail_calculation_description_for(key)
     - measure = @report.detail_measure_for(key)
-    - if can_view_hud_reports? && measure.present? && @report.clients.any?
+    - if can_view_hud_reports? && measure.present?
       .col-2.ml-6.p-0
-        %h3.mb-4 SPMs
+        %h3.mb-4= measure
         .mb-2
           = link_to result_hud_reports_spm_measure_path(@report.reporting_spm_id, measure), class: 'btn btn-sm btn-secondary' do
-            = "#{measure} - Report Year"
+            Report Year
         .mb-2
           = link_to result_hud_reports_spm_measure_path(@report.comparison_spm_id, measure), class: 'btn btn-sm btn-secondary' do
-            = "#{measure} - Comparison Year"
+            Comparison Year
   .p-4.mb-4{ class: "performance-measurement--highlight-light-#{@report.highlight_id(category)}" }
     %h2 System Level
   = render 'performance_measurement/warehouse_reports/reports/details_row', key: key, result: result, class_name: system_class_name, show_label_detail: true

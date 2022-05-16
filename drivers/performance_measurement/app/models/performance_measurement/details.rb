@@ -61,9 +61,15 @@ module PerformanceMeasurement::Details
       format(detail[:goal_description], { goal: goal_config[detail[:goal_calculation]] })
     end
 
-    def detail_goal_for(key)
+    def detail_goal_for_reference_line(key)
+      # Only show goal for reference line if units match
       detail = detail_hash[key]
-      goal_config[detail[:goal_calculation]]
+      goal_value = goal_config[detail[:goal_calculation]]
+      goal_is_percentage = detail[:goal_description].include? '%{goal}%%'
+      value_is_percentage = detail[:denominator_label].present?
+      return nil unless goal_is_percentage == value_is_percentage
+
+      goal_value
     end
 
     def detail_calculation_description_for(key)
