@@ -1,32 +1,9 @@
 = inline_stylesheet_link_tag 'dashboard_pdf'
-= inline_javascript_src_tag 'pdf'
-= inline_javascript_src_tag 'application'
+= inline_javascript_include_tag 'pdf'
+= inline_javascript_include_tag 'application'
 %link{href: '//fonts.googleapis.com/css?family=Open+Sans:300,400,400italic,600,700|Open+Sans+Condensed:700', rel: 'stylesheet', type: 'text/css'}
 .footer
   .d-flex
-    .ml-2
-      %strong
-        %div Legend
-    .ml-2
-      .c-indicator__secondary-value.d-flex
-        %div Decrease
-        .c-indicator__change-icon= change_direction_icon(:down)
-    .ml-2
-      .c-indicator__secondary-value.d-flex
-        %div Increase
-        .c-indicator__change-icon= change_direction_icon(:up)
-    .ml-2
-      .c-indicator__secondary-value.d-flex
-        %div No Change
-        .c-indicator__change-icon= change_direction_icon(:none)
-    .ml-2
-      .d-flex
-        %div Goal met
-        .c-indicator__passed.ml-2.pass= checkmark_or_x(true, size: :sm, symbol_names: { true => 'ok-circled', false => 'cancel-circled2' }, wrapper_classes: {true => 'pass', false => 'fail'}, style: :svg)
-    .ml-2
-      .d-flex
-        %div Goal not met
-        .c-indicator__passed.ml-2.fail= checkmark_or_x(false, size: :sm, symbol_names: { true => 'ok-circled', false => 'cancel-circled2' }, wrapper_classes: {true => 'pass', false => 'fail'}, style: :svg)
     .ml-auto
       page
       %strong

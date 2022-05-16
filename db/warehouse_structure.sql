@@ -15412,7 +15412,19 @@ CREATE TABLE public.pm_clients (
     comparison_days_in_rrh_bed integer,
     comparison_days_in_rrh_bed_details jsonb,
     comparison_days_in_rrh_bed_in_period integer,
-    comparison_days_in_rrh_bed_details_in_period jsonb
+    comparison_days_in_rrh_bed_details_in_period jsonb,
+    reporting_seen_in_range boolean DEFAULT false NOT NULL,
+    reporting_retention_or_positive_destination boolean DEFAULT false NOT NULL,
+    reporting_earned_income_stayer boolean DEFAULT false NOT NULL,
+    reporting_earned_income_leaver boolean DEFAULT false NOT NULL,
+    reporting_non_employment_income_stayer boolean DEFAULT false NOT NULL,
+    reporting_non_employment_income_leaver boolean DEFAULT false NOT NULL,
+    comparison_seen_in_range boolean DEFAULT false NOT NULL,
+    comparison_retention_or_positive_destination boolean DEFAULT false NOT NULL,
+    comparison_earned_income_stayer boolean DEFAULT false NOT NULL,
+    comparison_earned_income_leaver boolean DEFAULT false NOT NULL,
+    comparison_non_employment_income_stayer boolean DEFAULT false NOT NULL,
+    comparison_non_employment_income_leaver boolean DEFAULT false NOT NULL
 );
 
 
@@ -47697,6 +47709,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220413144557'),
 ('20220415192223'),
 ('20220427144200'),
-('20220511171233');
+('20220511171233'),
+('20220512174700');
 
 

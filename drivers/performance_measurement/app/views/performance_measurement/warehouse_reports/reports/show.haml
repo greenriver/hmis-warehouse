@@ -9,7 +9,17 @@
     = render 'report_downloads/report_download', export: @pdf_export, excel_download_path: nil
 %p= "Created by #{@report.user.name_with_email} on #{@report.completed_at.to_date}"
 .well.report-listing.warehouse-reports__completed
-  %h3 Chosen Universe
-  .mt-4= @report.describe_filter_as_html
-
-= render 'table', goal_popover: true, pdf: false
+  .row.justify-content-between
+    .col-8
+      %h3.mb-4 Chosen Universe
+      = @report.describe_filter_as_html
+    - if can_view_hud_reports? && @report.reporting_spm_id.present? && @report.comparison_spm_id.present?
+      .col-2
+        %h3.mb-4 SPMs
+        .mb-2
+          = link_to hud_reports_spm_path(@report.reporting_spm_id), class: 'btn btn-sm btn-secondary' do
+            Report Year
+        .mb-2
+          = link_to hud_reports_spm_path(@report.comparison_spm_id), class: 'btn btn-sm btn-secondary' do
+            Comparison Year
+= render 'rows', goal_popover: true, pdf: false
