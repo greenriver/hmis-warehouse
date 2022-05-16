@@ -43,6 +43,8 @@ module GrdaWarehouse::Hud
     end.freeze
 
     HOMELESS_PROJECT_TYPE_CODES = [:es, :so, :sh, :th].freeze
+    SPM_PROJECT_TYPE_CODES = [:es, :so, :sh, :th, :ph].freeze
+    PATH_PROJECT_TYPE_CODES = [:so, :services_only].freeze
 
     RESIDENTIAL_PROJECT_TYPE_IDS = RESIDENTIAL_PROJECT_TYPES.values.flatten.uniq.sort
 
@@ -780,7 +782,7 @@ module GrdaWarehouse::Hud
       @options = begin
         options = {}
         project_scope = viewable_by(user)
-        project_scope = project_scope.merge(scope) if scope.present?
+        project_scope = project_scope.merge(scope) unless scope.nil?
 
         project_scope.
           joins(:organization, :data_source).

@@ -69,6 +69,11 @@ module Api
       @data_source_ids ||= ds_ids.map(&:to_i) if ds_ids.present?
     end
 
+    private def funder_codes
+      f_codes = project_params[:funder_codes].select(&:present?) if project_params[:funder_codes].present?
+      @funder_codes ||= f_codes.map(&:to_i) if f_codes.present?
+    end
+
     private def organization_ids
       org_ids = project_params[:organization_ids].select(&:present?) if project_params[:organization_ids].present?
       @organization_ids ||= if org_ids.present?
@@ -84,9 +89,10 @@ module Api
       @project_types ||= begin
         types = []
 
+        project_type_to_id = project_source::PERFORMANCE_REPORTING.merge(project_source::RESIDENTIAL_PROJECT_TYPES)
         if project_params[:project_types].present?
           project_params[:project_types]&.select(&:present?)&.map(&:to_sym)&.each do |type|
-            types += project_source::RESIDENTIAL_PROJECT_TYPES[type]
+            types += project_type_to_id[type]
           end
         end
         if project_params[:project_type_ids].present?
@@ -106,16 +112,19 @@ module Api
         project_types: [],
         project_type_ids: [],
         selected_project_ids: [],
+        funder_codes: [],
       )
     end
 
     private def project_scope
       @project_scope ||= begin
         scope = project_source.viewable_by(current_user).
-          joins(:data_source, :organization).
+          joins(:data_source, :organization, :funders).
           with_project_type(project_types)
         scope = scope.merge(data_source_source.where(id: data_source_ids)) if data_source_ids.present?
         scope = scope.merge(organization_source.where(id: organization_ids)) if organization_ids.present?
+        scope = scope.merge(funder_source.funding_source(funder_code: funder_codes)) if funder_codes.present?
+
         scope
       end
     end
@@ -130,6 +139,10 @@ module Api
 
     def organization_source
       GrdaWarehouse::Hud::Organization
+    end
+
+    def funder_source
+      GrdaWarehouse::Hud::Funder
     end
   end
 end

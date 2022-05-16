@@ -20,7 +20,9 @@ class HmisCsvImporter::Utility
       HmisCsvImporter::Aggregated::Enrollment,
       HmisCsvImporter::Aggregated::Exit,
       HmisCsvImporter::Loader::LoaderLog,
+      HmisCsvImporter::Loader::LoadError,
       HmisCsvImporter::Importer::ImporterLog,
+      HmisCsvImporter::Importer::ImportError,
       HmisCsvImporter::HmisCsvValidation::Base,
     ].each do |klass|
       klass.connection.execute("TRUNCATE TABLE #{klass.quoted_table_name}")

@@ -11,6 +11,8 @@ module HudPathReport::Generators::Fy2020
     include HudPathReport::CommonQueries
     include HudReports::Incomes
 
+    PATH_FUNDER_CODE = 21
+
     def initialize(generator = nil, report = nil, options: {})
       super
       options = report.options.with_indifferent_access.merge(user_id: report.user_id) if options.blank?
@@ -119,7 +121,7 @@ module HudPathReport::Generators::Fy2020
       scope = client.source_enrollments.
         joins(project: :funders).
         open_during_range(@report.start_date..@report.end_date).
-        merge(::GrdaWarehouse::Hud::Funder.funding_source(funder_code: 21)). # PATH projects are PATH funded
+        merge(::GrdaWarehouse::Hud::Funder.funding_source(funder_code: PATH_FUNDER_CODE)). # PATH projects are PATH funded
         order(EntryDate: :desc)
       scope = scope.with_project_type(@filter.project_type_ids) if @filter.project_type_ids.present?
       scope = scope.in_project(@report.project_ids) if @report.project_ids.present? # for consistency with client_scope
