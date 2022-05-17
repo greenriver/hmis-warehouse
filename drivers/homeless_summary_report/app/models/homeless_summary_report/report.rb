@@ -690,20 +690,7 @@ module HomelessSummaryReport
     end
 
     def m7_fields
-      {
-        m7a1_destination: {
-          title: 'who exit Street Outreach',
-          calculations: [:count, :count_destinations],
-        },
-        m7b1_destination: {
-          title: ' in ES, SH, TH, and PH-RRH who exited, plus persons in other PH projects who exited without moving into housing',
-          calculations: [:count, :count_destinations],
-        },
-        m7b2_destination: {
-          title: ' in all PH projects except PH-RRH who exited after moving into housing, or who moved into housing and remained in the PH project',
-          calculations: [:count, :count_destinations],
-        },
-      }
+      spm_fields.filter { |f, _| field_measure(f) == 7 }
     end
 
     def spm_fields
@@ -739,6 +726,7 @@ module HomelessSummaryReport
             ['7a.1', 'C4'],
           ],
           title: 'who exit Street Outreach',
+          calculations: [:count, :count_destinations],
         },
         m7b1_destination: {
           cells: [
@@ -746,6 +734,7 @@ module HomelessSummaryReport
             ['7b.1', 'C3'],
           ],
           title: 'in ES, SH, TH, and PH-RRH who exited, plus persons in other PH projects who exited without moving into housing',
+          calculations: [:count, :count_destinations],
         },
         m7b2_destination: {
           cells: [
@@ -753,6 +742,7 @@ module HomelessSummaryReport
             ['7b.2', 'C3'],
           ],
           title: 'in all PH projects except PH-RRH who exited after moving into housing, or who moved into housing and remained in the PH project',
+          calculations: [:count, :count_destinations],
         },
       }.
         freeze
