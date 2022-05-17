@@ -16,6 +16,6 @@
               - sub_keys.each.with_index do |key, idx|
                 - if @report.show_row?(key)
                   - row = @report.detail_hash[key]
-                  .ml-2.mt-4.border-bottom
+                  .pl-2.mt-4.border-bottom
                     = render 'row', key: key, row: row, pdf: pdf
-            = render 'common/panel_collapse', id: sub_keys.first.to_s, title: 'Breakdowns', content: "_#{sub_keys.first}", panel_body_padded: 'n', wrapper_class: 'mb-0 no-border-radius-top', default_open: pdf ? 'yes' : 'no', allow_toggle: pdf ? 'no' : 'yes'
+            = render 'common/panel_collapse', id: sub_keys.first.to_s, title: 'Breakdowns', content: "_#{sub_keys.first}", panel_body_padded: 'n', wrapper_class: 'mb-0 performance-measurement__collapsiblePanel', default_open: pdf ? 'yes' : 'no', allow_toggle: pdf ? 'no' : 'yes'
