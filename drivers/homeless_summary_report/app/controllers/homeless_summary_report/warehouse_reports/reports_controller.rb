@@ -73,7 +73,7 @@ module HomelessSummaryReport::WarehouseReports
         @data_cells = ['m2_reentry_days']
       elsif @report.field_measure(params['cell']) == 7
         @measure = 'Measure 7'
-        @data_cells = @report.m7_fields.keys
+        @data_cells = [params['cell']]
       end
       @detail_clients = @report.clients.send(@variant).send(@cell)
     end
