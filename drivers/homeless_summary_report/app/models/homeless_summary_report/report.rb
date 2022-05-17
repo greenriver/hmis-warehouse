@@ -103,7 +103,11 @@ module HomelessSummaryReport
     end
 
     def title
-      _('Homeless Summary Report')
+      _('System Performance Measures by Sub-Population')
+    end
+
+    def description
+      _('A summary of SPMs 1, 2, and 7 with sub-population and demographic details')
     end
 
     def multiple_project_types?
