@@ -3,7 +3,6 @@
 = content_for :crumbs do
   = link_to homeless_summary_report_warehouse_reports_report_path(@report) do
     &laquo; #{_(@report.title)}
-= render 'beta_warning'
 %h1= title
 - unless @detail_clients.present?
   %p.mt-4 No clients matched the current criteria.
