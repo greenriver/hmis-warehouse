@@ -193,6 +193,24 @@ module PerformanceMeasurement::Details
       ]
     end
 
+    # Some fields should only be displayed if there are projects of that type included in the report scope
+    def show_row?(key)
+      return true unless limit_display_by_project_type.key?(key)
+
+      projects.joins(:hud_project).merge(GrdaWarehouse::Hud::Project.send(limit_display_by_project_type[key])).exists?
+    end
+
+    private def limit_display_by_project_type
+      {
+        es_average_bed_utilization: :es,
+        sh_average_bed_utilization: :sh,
+        th_average_bed_utilization: :th,
+        rrh_average_bed_utilization: :rrh,
+        psh_average_bed_utilization: :psh,
+        oph_average_bed_utilization: :oph,
+      }
+    end
+
     def detail_hash
       @detail_hash ||= {
         count_of_homeless_clients: {
