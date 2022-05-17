@@ -3,12 +3,12 @@
 - content_for :title, @report.title
 %h1= content_for :title
 %p.mb-2= @report.description
-%p.font-italic= "Created by #{@report.user.name_with_email} on #{@report.completed_at.to_date}"
+%p= "Created by #{@report.user.name_with_email} on #{@report.completed_at.to_date}"
 
 .well.report-listing.warehouse-reports__completed.d-flex.justify-content-between
   .col-8.pl-0
     = @report.describe_filter_as_html
-  .col-2
+  .col-3.text-right
     = render 'report_downloads/report_download', export: @pdf_export, excel_download_path: homeless_summary_report_warehouse_reports_report_path(@report, format: :xlsx)
 - @report.measures.each do |measure, data|
   .well
