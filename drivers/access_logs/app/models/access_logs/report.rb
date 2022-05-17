@@ -21,7 +21,10 @@ class AccessLogs::Report < OpenStruct
     self[:filter]
   end
 
-  def csv
-    ActivityLog.as_csv(user_id: filter.user_id, range: filter.range)
+  def data
+    warehouse_csv = ActivityLog.as_csv(user_id: filter.user_id, range: filter.range)
+    {
+      'Warehouse' => warehouse_csv,
+    }
   end
 end

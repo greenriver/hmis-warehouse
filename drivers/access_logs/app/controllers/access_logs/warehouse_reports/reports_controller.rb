@@ -12,14 +12,13 @@ module AccessLogs::WarehouseReports
     def index
       respond_to do |format|
         format.html {}
-        format.csv do
+        format.xlsx do
           # BaseFilters tries really hard to set the user_id, but in this case, sometimes
           # we don't want it
           @filter.user_id = filter_params[:filters][:user_id]
           @report = AccessLogs::Report.new(filter: @filter)
-          filename = "Access Logs #{Time.current.to_s(:db)}.csv"
-
-          send_data @report.csv, filename: filename, type: 'text/csv'
+          filename = "Access Logs #{Time.current.to_s(:db)}"
+          headers['Content-Disposition'] = "attachment; filename=#{filename}.xlsx"
         end
       end
     end

@@ -60,12 +60,14 @@ class ActivityLog < ApplicationRecord
     scope = scope.where(user_id: user_id) if user_id.present?
     data = pluck_to_hash(columns, scope)
     data = scrub(data)
-    CSV.generate do |csv|
-      csv << columns.values
-      data.each do |row|
-        csv << row.values
-      end
+
+    rows = []
+    rows << columns.values
+    data.each do |row|
+      rows << row.values
     end
+
+    rows
   end
 
   def self.scrub(data)
