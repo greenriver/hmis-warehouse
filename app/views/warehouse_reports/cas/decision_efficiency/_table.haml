@@ -32,7 +32,7 @@
             %td= row[:sub_program_name]
             %td= link_to(row[:match_stated_at]&.to_date, GrdaWarehouse::Config.get(:cas_url) + "/matches/#{row[:match_id]}",  target: '_blank')
             %td= row[:client_move_in_date]&.to_date
-            %td= "#{row[:first_name]} #{row[:last_name]}"
+            %td= link_to_if row[:warehouse_client_id].present?, "#{row[:first_name]} #{row[:last_name]}", appropriate_client_path(row[:warehouse_client_id])
             %td= JSON.parse(row[:hsa_contacts])&.map { |m| "#{m['name']} <#{m['email']}>" }.join(', ') if row[:hsa_contacts].present?
             %td= JSON.parse(row[:hsp_contacts])&.map { |m| "#{m['name']} <#{m['email']}>" }.join(', ') if row[:hsp_contacts].present?
             %td= JSON.parse(row[:hsp_contacts])&.map { |m| m['agency'] }.join(', ') if row[:hsp_contacts].present?
