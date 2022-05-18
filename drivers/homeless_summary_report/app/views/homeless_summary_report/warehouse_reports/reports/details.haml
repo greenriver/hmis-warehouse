@@ -1,9 +1,8 @@
-- title = "Homeless Summary Report Details"
+- title = "Report Details"
 - content_for :title, title
 = content_for :crumbs do
   = link_to homeless_summary_report_warehouse_reports_report_path(@report) do
-    &laquo; #{_('Homeless Summary Report')}
-= render 'beta_warning'
+    &laquo; #{_(@report.title)}
 %h1= title
 - unless @detail_clients.present?
   %p.mt-4 No clients matched the current criteria.

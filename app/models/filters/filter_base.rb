@@ -334,28 +334,28 @@ module Filters
     end
 
     # Date that can be used to find the closest PIT date, either that contained in the range,
-    # or the most-recent PIT (third wednesday of January)
+    # or the most-recent PIT (last wednesday of January)
     # for simplicity, we'll just find the date in the january prior to the end date
+    # 3/10/2020 - 6/20/2020 -> last wed in 1/2020
+    # 10/1/2020 - 12/31/2020 -> last wed in 1/2020
+    # 10/1/2020 - 9/30/2021 -> last wed in 1/2021
+    # 10/1/2019 - 1/1/2020 -> last wed in 1/2019 (NOTE: end-date is before PIT date in 2020)
+    def self.pit_date(date)
+      wednesday = last_wednesday(date.year, 1)
+      # date occurred on or after PIT date in this year
+      return wednesday unless date.before?(wednesday)
+
+      # date is early in January (before the last wednesday), use PIT date from prior year
+      last_wednesday(date.year - 1, 1)
+    end
+
+    def self.last_wednesday(year, month)
+      d = Date.new(year, month, 1)
+      (d.beginning_of_month .. d.end_of_month).select(&:wednesday?).last
+    end
+
     def pit_date
       self.class.pit_date(last)
-    end
-
-    def self.pit_date(date)
-      third_wednesday_of_end_year = third_wednesday(date.year, 1)
-      return third_wednesday_of_end_year if date > third_wednesday_of_end_year
-
-      third_wednesday(date.year - 1, date.month)
-    end
-
-    private def third_wednesday(year, month)
-      self.class.third_wednesday(year, month)
-    end
-
-    def self.third_wednesday(year, month)
-      d = Date.new(year, month, 1)
-      d += 1.weeks if d.wday > 3 # if the first falls after Wednesday, move forward a week
-      d -= (d.wday - 3) % 7 # ensure the first Wednesday
-      d + 2.weeks # move to the 3rd Wednesday
     end
 
     def date_range_words
