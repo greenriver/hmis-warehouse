@@ -47,16 +47,17 @@ class ActivityLog < ApplicationRecord
     ['minute', 'hour', 'day', 'week', 'month', 'year']
   end
 
-  def self.as_csv(user_id: nil, range: 1.years.ago..Time.current)
+  def self.to_a(user_id: nil, range: 1.years.ago..Time.current)
     columns = {
       user_id: 'User ID',
+      agency_name_column => 'Agency Name',
       path: 'Path',
       created_at: 'Access Time',
       session_hash: 'Session',
       ip_address: 'IP Address',
       referrer: 'Referrer',
     }
-    scope = where(created_at: range)
+    scope = where(created_at: range).left_outer_joins(user: :agency)
     scope = scope.where(user_id: user_id) if user_id.present?
     data = pluck_to_hash(columns, scope)
     data = scrub(data)
@@ -68,6 +69,10 @@ class ActivityLog < ApplicationRecord
     end
 
     rows
+  end
+
+  def self.agency_name_column
+    Agency.arel_table[:name]
   end
 
   def self.scrub(data)

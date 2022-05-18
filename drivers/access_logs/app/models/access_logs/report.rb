@@ -23,8 +23,8 @@ class AccessLogs::Report < OpenStruct
 
   def data
     {
-      'Warehouse' => ActivityLog.as_csv(user_id: filter.user_id, range: filter.range),
-      'CAS' => (Cas::ActivityLog.as_csv(range: filter.range) unless filter.user_id.present?),
+      'Warehouse' => ActivityLog.to_a(user_id: filter.user_id, range: filter.range),
+      'CAS' => (Cas::ActivityLog.to_a(range: filter.range) unless filter.user_id.present?),
     }
   end
 end

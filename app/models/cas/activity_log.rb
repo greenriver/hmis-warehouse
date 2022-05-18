@@ -8,21 +8,21 @@ module Cas
   class ActivityLog < CasBase
     belongs_to :user
 
-    def self.as_csv(range: 1.years.ago..Time.current)
+    def self.to_a(range: 1.years.ago..Time.current)
       return nil unless db_exists?
 
       columns = {
         user_id: 'CAS User ID',
-        agency_name: 'Agency Name',
+        agency_name_column => 'Agency Name',
         path: 'Path',
         created_at: 'Access Time',
         session_hash: 'Session',
         ip_address: 'IP Address',
         referrer: 'Referrer',
       }
-      scope = where(created_at: range)
-      data = pluck_to_hash(columns, scope, exclude: [:agency_name])
-      data = scrub_and_add_agency(data)
+      scope = where(created_at: range).left_outer_joins(user: :agency)
+      data = pluck_to_hash(columns, scope)
+      data = scrub(data)
 
       rows = []
       rows << columns.values
@@ -33,17 +33,16 @@ module Cas
       rows
     end
 
-    def self.scrub_and_add_agency(data)
-      agency_names = data.map { |row| row[:user_id] }.uniq.map do |id|
-        [id, Cas::User.find(id)&.agency_name]
-      end.to_h
+    def self.agency_name_column
+      Cas::Agency.arel_table[:name]
+    end
 
+    def self.scrub(data)
       data.map do |row|
         # Strip anything after the ?
         row[:path]&.gsub!(/\?.*/, '')
         row[:referrer]&.gsub!(/\?.*/, '')
         row[:created_at] = row[:created_at].to_s(:db)
-        row[:agency_name] = agency_names[row[:user_id]]
         row
       end
     end

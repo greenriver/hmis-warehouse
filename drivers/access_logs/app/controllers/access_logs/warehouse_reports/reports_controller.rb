@@ -28,7 +28,7 @@ module AccessLogs::WarehouseReports
     end
 
     def filter_params
-      return {} unless params[:filters].present?
+      return { filters: { start: 3.months.ago.to_date, end: 1.days.ago.to_date } } unless params[:filters].present?
 
       clean = params.permit(filters: [:user_id] + @filter.known_params)
       clean[:filters][:enforce_one_year_range] = false
