@@ -985,11 +985,15 @@ module HUD
     case version
     when '2020', nil
       case as
-      when :prior, :current, :destination
+      when :prior, :current
         [
           16,
           1,
           18,
+        ]
+      when :destination
+        [
+          16,
         ]
       end
     end

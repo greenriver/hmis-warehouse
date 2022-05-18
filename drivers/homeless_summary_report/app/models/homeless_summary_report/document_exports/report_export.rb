@@ -37,7 +37,7 @@ module HomelessSummaryReport::DocumentExports
         )
         PdfGenerator.new.perform(
           html: html,
-          file_name: "#{_('Homeless Summary Report')} #{DateTime.current.to_s(:db)}",
+          file_name: "#{_(@report.title)} #{DateTime.current.to_s(:db)}",
         ) do |io|
           self.pdf_file = io
         end

@@ -265,16 +265,18 @@ module PublicReports
     def map_colors
       @map_colors ||= {}.tap do |m_colors|
         colors = ['#FFFFFF']
-        5.times do |i|
+        8.times do |i|
           colors << settings["color_#{i}"]
         end
         if settings.map_overall_geography_census?
           m_colors[colors[0]] = { description: 'None', range: (0..0), low: 0, high: 0 }
-          m_colors[colors[1]] = { description: 'Any - 5 per 10,000', range: (0.000001..5.0), low: 0.000001, high: 5.0 }
-          m_colors[colors[2]] = { description: '6 - 15 per 10,000', range: (6.000001..15.0), low: 6.000001, high: 15.0 }
-          m_colors[colors[3]] = { description: '16 - 20 per 10,000', range: (15.000001..20.0), low: 15.000001, high: 20.0 }
-          m_colors[colors[4]] = { description: '21 - 25 per 10,000', range: (20.000001..25.0), low: 20.000001, high: 25.0 }
-          m_colors[colors[5]] = { description: '26+ per 10,000', range: (25.000001..100.0), low: 25.000001, high: 100.0 }
+          m_colors[colors[1]] = { description: 'Any - 3 per 10,000', range: (0.000001..3.0), low: 0.000001, high: 3.0 }
+          m_colors[colors[2]] = { description: '4 - 6 per 10,000', range: (4.000001..6.0), low: 4.000001, high: 6.0 }
+          m_colors[colors[3]] = { description: '7 - 9 per 10,000', range: (7.000001..9.0), low: 7.000001, high: 9.0 }
+          m_colors[colors[4]] = { description: '10 - 12 per 10,000', range: (10.000001..12.0), low: 10.000001, high: 12.0 }
+          m_colors[colors[5]] = { description: '13 - 15 per 10,000', range: (13.000001..15.0), low: 13.000001, high: 15.0 }
+          m_colors[colors[6]] = { description: '16 - 18 per 10,000', range: (16.000001..18.0), low: 16.000001, high: 18.0 }
+          m_colors[colors[7]] = { description: '19+ per 10,000', range: (18.000001..100.0), low: 18.000001, high: 100.0 }
         else
           m_colors[colors[0]] = { description: '0%', range: (0..0), low: 0, high: 0 }
           m_colors[colors[1]] = { description: 'Any - 10%', range: (0.000001..10.0), low: 0.000001, high: 10.0 }
