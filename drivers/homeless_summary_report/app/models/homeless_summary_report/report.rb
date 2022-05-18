@@ -231,15 +231,20 @@ module HomelessSummaryReport
               )
             else
               # For measure 7 we only want the large buckets, we'll add the detail buckets as a json blob
-              destinations.first(6).each.with_index do |ids, i|
-                destination_name = measures[section][:headers].drop(1)[i]
+              destination_buckets.each.with_index do |(destination_name, ids), i|
+                # skip 'Client Count', that happened above
+                next if ids.blank?
+
+                # calculate the overall count of people with this exit destination type
                 value = calculate(detail_variant_name, field, calculation, data.merge(destination: ids))
                 details = []
-                destinations.drop(6).each do |d_id|
-                  next unless ::HUD.destination_type(d_id) == ::HUD.destination_type(ids.first)
-
-                  count = calculate(detail_variant_name, field, calculation, data.merge(destination: d_id))
-                  details << "#{HUD.destination(d_id)}: #{count}" if count&.positive?
+                # skip 'Remained housed', it doesn't need details
+                unless ids == [0]
+                  # calculate the count of people in each destination of the type
+                  ids.each do |d_id|
+                    count = calculate(detail_variant_name, field, calculation, data.merge(destination: d_id))
+                    details << "#{HUD.destination(d_id)}: #{count}" if count&.positive?
+                  end
                 end
 
                 results << HomelessSummaryReport::Result.new(
@@ -311,19 +316,6 @@ module HomelessSummaryReport
       else
         results_hash.dig(section.to_s, household_category.to_s, demographic_category.to_s, field.to_s, calculation.to_s, '')
       end
-      # NOTE: this allocates a bunch of arrays, and then runs through the results over and over to find the right one, above
-      # does an index lookup instead
-      # result = results.detect do |row|
-      #   checks = [
-      #     row.section == section.to_s,
-      #     row.household_category == household_category.to_s,
-      #     row.demographic_category == demographic_category.to_s,
-      #     row.field == field.to_s,
-      #     row.calculation == calculation.to_s,
-      #   ]
-      #   checks << (row.destination == destination.to_s) if destination.present?
-      #   checks.all?(true)
-      # end
       return '' unless result
 
       format(result.format, result.value)
@@ -336,18 +328,7 @@ module HomelessSummaryReport
       else
         results_hash.dig(section.to_s, household_category.to_s, demographic_category.to_s, field.to_s, calculation.to_s, '')
       end
-      # result = results.detect do |row|
-      #   checks = [
-      #     row.section == section.to_s,
-      #     row.household_category == household_category.to_s,
-      #     row.demographic_category == demographic_category.to_s,
-      #     row.field == field.to_s,
-      #     row.calculation == 'count_destinations',
-      #   ]
-      #   checks << (row.destination == destination.to_s) if destination.present?
-      #   checks.all?(true)
-      # end
-      result.details
+      result&.details || ''
     end
 
     def max_value_for(section)
@@ -407,14 +388,9 @@ module HomelessSummaryReport
     end
 
     def stacked_chart_data_for(section:, household_category:, field:)
-      data = measures[section]
-      row_data = data[:fields][field]
-
-      headers = data[:headers].dup.tap { |i| i.delete_at(row_data[:calculations].find_index(:count)) } # delete_at acts on original object
-      headers = headers[0..5]
       columns = {}
       detail_counts = {}
-
+      buckets = destination_buckets.keys
       ([:all] + self.class.demographic_variants.keys).each do |demographic_category|
         next if exclude_variants(section, demographic_category)
 
@@ -422,13 +398,14 @@ module HomelessSummaryReport
         section_columns = [['x', title_for(household_category, demographic_category)]]
         section_detail_counts = {}
         values = {}
-        headers.each.with_index do |destination, c_idx|
+        buckets.each.with_index do |destination, c_idx|
+          next if destination == 'Client Count'
           # Eliminate Remained Housed if not 7b2
-          next if section == 'Measure 7' && headers[c_idx] == 'Remained housed' && field.to_s != 'm7b2_destination'
+          next if section == 'Measure 7' && buckets[c_idx] == 'Remained housed' && field.to_s != 'm7b2_destination'
 
-          values[headers[c_idx]] ||= []
-          values[headers[c_idx]] << formatted_value_for(section: section, household_category: household_category, demographic_category: demographic_category, field: field, calculation: :count_destinations, destination: destination)
-          section_detail_counts[headers[c_idx]] = details_counts_for_destination(section: section, household_category: household_category, demographic_category: demographic_category, field: field, destination: destination)
+          values[buckets[c_idx]] ||= []
+          values[buckets[c_idx]] << formatted_value_for(section: section, household_category: household_category, demographic_category: demographic_category, field: field, calculation: :count_destinations, destination: destination)
+          section_detail_counts[buckets[c_idx]] = details_counts_for_destination(section: section, household_category: household_category, demographic_category: demographic_category, field: field, destination: destination)
         end
         values.each do |k, v|
           section_columns << [k] + v
@@ -451,7 +428,7 @@ module HomelessSummaryReport
         params: [],
         one_columns: columns['all'],
         all_columns: all_columns.values,
-        groups: [headers],
+        groups: [destination_buckets.keys],
         options: {
           height: 180,
           max: max_value_for(section),
@@ -625,15 +602,7 @@ module HomelessSummaryReport
         },
         'Measure 7' => {
           fields: m7_fields,
-          headers: [
-            'Client Count',
-            'Homeless Destinations',
-            'Permanent Destinations',
-            'Temporary Destinations',
-            'Institutional Destinations',
-            'Unknown, doesn\'t know, refused, or not collected',
-            'Remained housed',
-          ] + ::HUD.valid_destinations.map { |id, d| "#{d} (#{id})" },
+          headers: destination_buckets.keys + ::HUD.valid_destinations.map { |id, d| "#{d} (#{id})" },
           description: 'Successful Placement from Street Outreach and Successful Placement in or Retention of Permanent Housing',
         },
       }
@@ -643,15 +612,20 @@ module HomelessSummaryReport
       # Measure 7 is table with Client Count, column for count of every destination
     end
 
+    private def destination_buckets
+      {
+        'Client Count' => [],
+        'Homeless Destinations' => [16], # HUD.homeless_destinations,
+        'Permanent Destinations' => HUD.permanent_destinations,
+        'Temporary Destinations' => [1, 14, 27, 18, 12, 13, 2, 32], # NOTE: this should probably be HUD.temporary_destinations, but HUD doesn't define homeless destinations, and some temporary destinations are also institutional, so we'll place them here.
+        'Institutional Destinations' => [7, 4, 5, 15, 25, 29], # HUD.institutional_destinations,
+        'Unknown, doesn\'t know, refused, or not collected' => HUD.other_destinations,
+        'Remained housed' => [0], # include those who remained housed for 7b2
+      }.freeze
+    end
+
     def destinations
-      [
-        HUD.homeless_destinations,
-        HUD.permanent_destinations,
-        HUD.temporary_destinations,
-        HUD.institutional_destinations,
-        HUD.other_destinations,
-        [0], # include those who remained housed for 7b2
-      ] + HUD.valid_destinations.keys
+      @destinations ||= destination_buckets.values.select(&:present?) + HUD.valid_destinations.keys
     end
 
     def field_measure(field)
