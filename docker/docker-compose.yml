@@ -136,6 +136,21 @@ services:
       - ./tmp:/home/user/sftp
       - ./spec/support/sftp.conf:/etc/sftp/users.conf:ro
 
+  localstack:
+    container_name: "op-localstack"
+    image: localstack/localstack
+    environment:
+      - DEBUG=${DEBUG-}
+      - DATA_DIR=${DATA_DIR-}
+      - LAMBDA_EXECUTOR=${LAMBDA_EXECUTOR-}
+      - LOCALSTACK_API_KEY=${LOCALSTACK_API_KEY-}  # only required for Pro
+      - HOST_TMP_FOLDER=${TMPDIR:-/tmp/}localstack
+      - DOCKER_HOST=unix:///var/run/docker.sock
+    volumes:
+      - "${TMPDIR:-/tmp}/localstack:/tmp/localstack"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+
+
 volumes:
   bundle_alpine:
   node_modules_alpine:
