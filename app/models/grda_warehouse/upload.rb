@@ -16,9 +16,9 @@ module GrdaWarehouse
     belongs_to :delayed_job, optional: true, class_name: '::Delayed::Job'
     has_one :import_log, class_name: 'GrdaWarehouse::ImportLog', required: false
 
-    mount_uploader :file, ImportUploader
+    has_one_attached :hmis_zip
     validates :data_source, presence: true
-    validates :file, presence: true, on: :create
+    validates :hmis_zip, presence: true, on: :create
 
     scope :completed, -> do
       where(percent_complete: 100)

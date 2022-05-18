@@ -27,23 +27,21 @@ class UploadsController < ApplicationController
   def create
     run_import = false
     # Prevent create if user forgot to include file
-    unless upload_params[:file]
-      @upload = upload_source.new
-      flash[:alert] = _('You must attach a file in the form.')
-      render :new
-      return
-    end
-    file = upload_params[:file]
-    @upload = upload_source.new(
+    # unless upload_params[:hmis_zip]
+    #   @upload = upload_source.new
+    #   flash[:alert] = _('You must attach a file in the form.')
+    #   render :new
+    #   return
+    # end
+    @upload = upload_source.create!(
       upload_params.merge(
         percent_complete: 0.0,
         data_source_id: @data_source.id,
         user_id: current_user.id,
-        content_type: file.content_type,
-        content: file.read,
+        file: 'See S3', # Temporary until we remove the column
       ),
     )
-    if @upload.save
+    if @upload.persisted?
       run_import = true
       flash[:notice] = _('Upload queued to start.')
       redirect_to action: :index
@@ -66,7 +64,7 @@ class UploadsController < ApplicationController
 
   private def upload_params
     params.require(:grda_warehouse_upload).
-      permit(:file, :deidentified, :project_whitelist)
+      permit(:file, :deidentified, :project_whitelist, :hmis_zip)
   end
 
   private def data_source_source
