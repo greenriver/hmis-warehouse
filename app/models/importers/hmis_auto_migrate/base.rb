@@ -100,9 +100,9 @@ module Importers::HmisAutoMigrate
       path = Pathname.new(file_path)
       @upload.hmis_zip.attach(
         io: path.open,
-        content_type: content_type,
         filename: path.basename,
       )
+      @upload.file = 'See S3' # Temporary until we remove the column
       @upload.save!
       @upload.id
     end
