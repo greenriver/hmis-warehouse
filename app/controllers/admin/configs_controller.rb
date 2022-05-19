@@ -98,6 +98,8 @@ module Admin
         :service_register_visible,
         :enable_youth_unstably_housed,
         :cas_sync_project_group_id,
+        :system_cohort_processing_date,
+        :system_cohort_date_window,
         client_details: [],
       )
     end

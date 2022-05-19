@@ -48,8 +48,7 @@
               %button.c-btn-select.j-select-all.not-checked.mr-3{data: {state: true, 'scope': "##{select_scope}"}, type: 'button'}
               .mt-2 All / None
             %h2.mb-6.mt-0 Organizations and Projects
-          .ml-auto
-            %p= paginate @project_scope
+          .ml-auto!= pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
         - @projects.each do |(data_source, organization), projects|
           = render 'organization', f: f, data_source: data_source, organization: organization, projects: projects
 
@@ -58,7 +57,7 @@
 
     = render 'actions', f: f
 - elsif params[:filters].present?
-  %p.none-found
+  .none-found
     Your search resulted in no projects,
     = link_to 'choose a less specific search.', warehouse_reports_project_data_quality_path
 = content_for :page_js do

@@ -43,6 +43,8 @@ module GrdaWarehouse::Hud
     end.freeze
 
     HOMELESS_PROJECT_TYPE_CODES = [:es, :so, :sh, :th].freeze
+    SPM_PROJECT_TYPE_CODES = [:es, :so, :sh, :th, :ph].freeze
+    PATH_PROJECT_TYPE_CODES = [:so, :services_only].freeze
 
     RESIDENTIAL_PROJECT_TYPE_IDS = RESIDENTIAL_PROJECT_TYPES.values.flatten.uniq.sort
 
@@ -103,6 +105,7 @@ module GrdaWarehouse::Hud
     belongs_to :organization, **hud_assoc(:OrganizationID, 'Organization'), inverse_of: :projects, optional: true
     belongs_to :data_source, inverse_of: :projects
     belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :projects, optional: true
+    belongs_to :user, **hud_assoc(:UserID, 'User'), inverse_of: :projects, optional: true
 
     has_and_belongs_to_many :project_groups,
                             class_name: 'GrdaWarehouse::ProjectGroup',
@@ -141,6 +144,10 @@ module GrdaWarehouse::Hud
     end, class_name: 'GrdaWarehouse::WarehouseReports::Project::DataQuality::Base'
     has_many :contacts, class_name: 'GrdaWarehouse::Contact::Project', foreign_key: :entity_id
     has_many :organization_contacts, through: :organization, source: :contacts
+
+    # Setup an association to project_cocs that allows us to pull the records even if the
+    # project_coc has been deleted
+    belongs_to :project_cocs_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::ProjectCoc', primary_key: [:ProjectID, :data_source_id], foreign_key: [:ProjectID, :data_source_id], optional: true
 
     scope :residential, -> do
       where(ProjectType: RESIDENTIAL_PROJECT_TYPE_IDS)
@@ -690,89 +697,9 @@ module GrdaWarehouse::Hud
     end
 
     def for_export
-      # This should never happen, but does
-      self.OrganizationID = organization&.id || 'Unknown'
-      self.HousingType = housing_type_override if housing_type_override.present?
-      self.ContinuumProject = hud_continuum_funded if hud_continuum_funded.present?
-      self.ContinuumProject = self.ContinuumProject.presence || 0
-      self.OperatingStartDate = operating_start_date_override if operating_start_date_override.present?
-      self.OperatingEndDate = operating_end_date_override if operating_end_date_override.present?
-      self.ProjectCommonName = self.ProjectName if self.ProjectCommonName.blank?
-      self.ProjectCommonName = self.ProjectCommonName[0...50] if self.ProjectCommonName
-      self.HMISParticipatingProject = hmis_participating_project_override if hmis_participating_project_override.present?
-      # NOTE: this defaults to 0 now, HUD doesn't believe this should ever be 99 even though the spec permits it
-      self.HMISParticipatingProject = 0 if self.HMISParticipatingProject.blank?
-      self.TargetPopulation = target_population_override if target_population_override.present?
-
-      # Need to set the project type prior to calculating the tracking method override
-      self.ProjectType = computed_project_type if computed_project_type.present?
-      # If we are have an ES project, the only valid options are 0 and 3, otherwise it should be blank
-      self.TrackingMethod = if self.ProjectType.in?(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es])
-        if tracking_method_override.in?([0, 3])
-          tracking_method_override
-        else
-          0
-        end
-      else # rubocop:disable Style/EmptyElse
-        nil # explicit nil return to indicate that it should always be nil if not ES
-      end
-      self.UserID = 'op-system' if self.UserID.blank?
-      self.ProjectID = id
-      return self
-    end
-
-    # when we export, we always need to replace ProjectID with the value of id
-    # and OrganizationID with the id of the related organization
-    def self.to_csv(scope:, override_project_type:)
-      attributes = hud_csv_headers.dup
-      headers = attributes.clone
-      attributes[attributes.index(:ProjectID)] = :id
-      attributes[attributes.index(:OrganizationID)] = 'organization.id'
-
-      CSV.generate(headers: true) do |csv|
-        csv << headers
-
-        scope.each do |i|
-          csv << attributes.map do |attr|
-            attr = attr.to_s
-            # we need to grab the appropriate id from the related organization
-            v = if attr.include?('.')
-              obj, meth = attr.split('.')
-              i.send(obj).send(meth)
-            elsif override_project_type && attr == 'ProjectType'
-              i.computed_project_type
-            elsif attr == 'ResidentialAffiliation'
-              i.send(attr).presence || 99
-            elsif attr == 'TrackingMethod'
-              if i.tracking_method_override.present?
-                i.tracking_method_override
-              else
-                i.send(attr).presence || 0
-              end
-            elsif attr == 'ProjectCommonName' && i.ProjectCommonName.blank?
-              i.ProjectName
-            elsif attr == 'ContinuumProject' && i.hud_continuum_funded
-              1
-            elsif attr == 'OperatingStartDate' && i.operating_start_date_override.present?
-              i.operating_start_date_override
-            elsif attr == 'OperatingEndDate' && i.operating_end_date_override.present?
-              i.operating_end_date_override
-            elsif attr == 'HMISParticipatingProject' && i.hmis_participating_project_override.present?
-              i.hmis_participating_project_override
-            elsif attr == 'TargetPopulation' && i.target_population_override.present?
-              i.target_population_override
-            else
-              i.send(attr)
-            end
-            if v.is_a? Date
-              v = v.strftime('%Y-%m-%d')
-            elsif v.is_a? Time
-              v = v.to_formatted_s(:db)
-            end
-            v
-          end
-        end
-      end
+      row = HmisCsvTwentyTwentyTwo::Exporter::Project::Overrides.apply_overrides(self, options: { confidential: false })
+      row = HmisCsvTwentyTwentyTwo::Exporter::Project.adjust_keys(row)
+      row
     end
 
     def confidential_hint
@@ -855,7 +782,7 @@ module GrdaWarehouse::Hud
       @options = begin
         options = {}
         project_scope = viewable_by(user)
-        project_scope = project_scope.merge(scope) if scope.present?
+        project_scope = project_scope.merge(scope) unless scope.nil?
 
         project_scope.
           joins(:organization, :data_source).

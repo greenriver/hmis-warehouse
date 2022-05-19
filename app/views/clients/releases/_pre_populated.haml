@@ -1,10 +1,10 @@
 !!!
 %html
   %head
-    = wicked_pdf_stylesheet_link_tag 'roi_pdf', media: 'all'
-    = wicked_pdf_javascript_include_tag 'pdf'
+    = inline_stylesheet_link_tag 'roi_pdf'
+    = inline_javascript_include_tag 'pdf'
     %link{href: '//fonts.googleapis.com/css?family=Open+Sans:300,400,400italic,600,700|Open+Sans+Condensed:700', rel: 'stylesheet', type: 'text/css'}
-    = stylesheet_link_tag 'roi_pdf', media: 'all'
+    = stylesheet_link_tag 'roi_pdf'
   %body
     %section.coc-roi.portrait.page-break-after
       %h1= _('Authorization for Use/Disclosure of Personal Information')
@@ -38,7 +38,7 @@
                 %th SSN:
                 %td= masked_ssn(@client.SSN)
         .ml-auto
-          - logo = wicked_pdf_asset_base64("theme/logo/#{ENV['PRINT_LOGO']}") rescue nil
+          - logo = inline_asset_base64("theme/logo/#{ENV['PRINT_LOGO']}") rescue nil
           = image_tag(logo, width: 250) if logo.present?
 
       = simple_format(_('Open Path ROI content'))
@@ -67,7 +67,7 @@
     .landscape
       .d-flex
         .ml-auto.mb-4
-          - logo = wicked_pdf_asset_base64("theme/logo/#{ENV['PRINT_LOGO']}") rescue nil
+          - logo = inline_asset_base64("theme/logo/#{ENV['PRINT_LOGO']}") rescue nil
           = image_tag(logo, width: 250) if logo.present?
       .row
         .col-12
@@ -75,7 +75,7 @@
             - if @coc_map.present?
               %img{src: "data:image/png;base64,#{Base64.strict_encode64(@coc_map)}"}
             -# = image_tag(@coc_map_path)
-            -# img = wicked_pdf_asset_base64(@coc_map_path) rescue nil
+            -# img = inline_asset_base64(@coc_map_path) rescue nil
             =# image_tag(img) if img.present?
         .col-6
           %h3 Continuum of Care
@@ -93,5 +93,3 @@
                     .color-box{style: "border-left: 2em solid #{coc.color};"}
                       O
                   %td= coc.description_and_coc_code
-
-

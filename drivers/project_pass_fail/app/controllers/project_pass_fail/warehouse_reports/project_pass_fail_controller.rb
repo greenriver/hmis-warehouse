@@ -29,8 +29,7 @@ module ProjectPassFail::WarehouseReports
       # Handle arriving from the Document Export list
       redirect_to(action: :show, id: params[:id]) if params[:id]
 
-      @reports = report_scope.ordered.
-        page(params[:page]).per(25)
+      @pagy, @reports = pagy(report_scope.ordered)
     end
 
     def create

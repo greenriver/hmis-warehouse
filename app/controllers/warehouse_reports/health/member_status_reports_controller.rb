@@ -61,7 +61,8 @@ module WarehouseReports::Health
     end
 
     def set_reports
-      @reports = report_scope.order(created_at: :desc).page(params[:page]).per(20)
+      @reports = report_scope.order(created_at: :desc)
+      @pagy, @reports = pagy(@reports)
     end
 
     def default_options

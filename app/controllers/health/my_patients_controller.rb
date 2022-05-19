@@ -63,7 +63,7 @@ module Health
             sort_order = determine_sort_order(medicaid_ids, @column, @direction)
             @patients = @patients.order_as_specified(sort_order)
           end
-          @patients = @patients.page(params[:page].to_i).per(25)
+          @pagy, @patients = pagy(@patients)
           @scores = calculate_dashboards(medicaid_ids)
         end
         format.xlsx do

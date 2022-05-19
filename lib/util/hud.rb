@@ -985,11 +985,15 @@ module HUD
     case version
     when '2020', nil
       case as
-      when :prior, :current, :destination
+      when :prior, :current
         [
           16,
           1,
           18,
+        ]
+      when :destination
+        [
+          16,
         ]
       end
     end
@@ -2863,7 +2867,14 @@ module HUD
       'UT-503' => 'Utah Balance of State CoC',
       'VA-500' => 'Richmond/Henrico, Chesterfield, Hanover Counties CoC',
     }
-    codes['XX-500'] = 'Test CoC' unless Rails.env.production?
+    unless Rails.env.production?
+      codes.merge!(
+        {
+          'XX-500' => 'Test CoC',
+          'XX-501' => '2nd Test CoC',
+        },
+      )
+    end
     codes.freeze
   end
 

@@ -16,7 +16,7 @@ module Admin
         agency_scope
       end
 
-      @agencies = @agencies.page(params[:page])
+      @pagy, @agencies = pagy(@agencies)
     end
 
     def new

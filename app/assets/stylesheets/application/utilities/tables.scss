@@ -21,3 +21,22 @@
 tr.even td {
   background-color: $gray-015;
 }
+.table-striped {
+  background-color: $white;
+  margin-bottom: 0;
+}
+.table-responsive {
+  border: 1px solid rgba(0, 0, 0, 0.125);
+  border-radius: 0.25rem;
+}
+
+.pagy-container {
+  display: flex;
+  align-items: center;
+  nav {
+    margin-left: auto;
+  }
+  ul.pagination {
+    margin-bottom: 0;
+  }
+}

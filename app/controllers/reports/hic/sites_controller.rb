@@ -11,10 +11,6 @@ module Reports
       @sites = GrdaWarehouse::Hud::Geography.joins(:project).
         merge(project_scope).
         distinct
-      respond_to do |format|
-        format.html
-        format.csv { send_data GrdaWarehouse::Hud::Geography.to_csv(scope: @sites), filename: "geography-#{Time.current.to_s(:number)}.csv" }
-      end
     end
   end
 end

@@ -3,24 +3,26 @@
 - content_for :title, title
 %h1= title
 = render 'admin/audits/user_tabs'
-%p= paginate @versions
-.card
-  %table.table.table-striped.mb-0
-    %thead
-      %tr
-        %th Date
-        %th Editor
-        %th Changes
-    %tbody
-      - @versions.each do |version|
-        - changes = describe_changes_to(version)
-        - if changes.present?
-          %tr
-            %td= version.created_at
-            %td= version.name_of_whodunnit?
-            %td
-              - changes.each do |change|
-                = change
-                %br
-
-%p= paginate @versions
+- if @pagy.count.positive?
+  = render 'common/pagination_top', item_name: 'edit'
+  .table-responsive
+    %table.table.table-striped
+      %thead
+        %tr
+          %th Date
+          %th Editor
+          %th Changes
+      %tbody
+        - @versions.each do |version|
+          - changes = describe_changes_to(version)
+          - if changes.present?
+            %tr
+              %td= version.created_at
+              %td= version.name_of_whodunnit?
+              %td
+                - changes.each do |change|
+                  = change
+                  %br
+  = render 'common/pagination_bottom', item_name: 'edit'
+- else
+  .none-found No history found.

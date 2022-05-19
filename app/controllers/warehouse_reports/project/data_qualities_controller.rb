@@ -35,10 +35,10 @@ module WarehouseReports::Project
     end
 
     def history
-      scope = filtered_report_scope.
+      @reports = filtered_report_scope.
         order(id: :desc).
         preload(project: [:organization, :data_source])
-      @pagy, @reports = pagy(scope, items: 50)
+      @pagy, @reports = pagy(@reports, items: 50)
     end
 
     def create
@@ -177,7 +177,7 @@ module WarehouseReports::Project
         order(name: :asc).
         preload(:contacts, projects: [organization: :contacts])
 
-      @project_scope = @projects.page(params[:page]).per(50)
+      @pagy, @project_scope = pagy(@projects, items: 50)
       @projects = @project_scope.
         group_by { |p| [p.data_source.short_name, p.organization] }
     end

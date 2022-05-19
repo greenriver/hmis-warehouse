@@ -11,8 +11,8 @@ class AdHocDataSources::UploadsController < ApplicationController
 
   def index
     attributes = upload_source.column_names - ['content', 'file']
-    @uploads = @data_source.ad_hoc_batches.select(*attributes).
-      page(params[:page].to_i).per(20).order(created_at: :desc)
+    @uploads = @data_source.ad_hoc_batches.select(*attributes).order(created_at: :desc)
+    @pagy, @uploads = pagy(@uploads)
   end
 
   def new

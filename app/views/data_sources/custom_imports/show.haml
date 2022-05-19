@@ -1,11 +1,9 @@
 - content_for :title, "#{@config.description} Imports for #{@data_source.short_name}"
 %h1= content_for :title
-- if @files.exists?
-  .d-flex
-    %p= page_entries_info @files, entry_name: _('imports')
-    %p= paginate @files
-  .card
-    %table.table.table-striped.mb-0
+- if @pagy.count.positive?
+  = render 'common/pagination_top', item_name: 'file'
+  .table-responsive
+    %table.table.table-striped
       %thead
         %tr
           %th File Name
@@ -29,6 +27,6 @@
             %td
               - if file.import_errors
                 = file.import_errors.inspect
+  = render 'common/pagination_bottom', item_name: 'file'
 - else
-  %p.none-found
-    No files imported.
+  .none-found No files imported.

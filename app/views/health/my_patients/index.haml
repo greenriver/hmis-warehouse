@@ -16,20 +16,19 @@
   .o-page__filter
     = render 'health/patients/filter'
 
-  - if @patients.present?
+  - if @pagy.count.positive?
     .o-page__link.ml-auto
       = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary ml-auto disab'}) do
         %i.icon-download2
         Tracking Sheet
 
-- if @patients.any?
-  %p.mr-5= page_entries_info @patients, entry_name: _('patient')
-  = paginate @patients
-
+- if @pagy.count.positive?
+  = render 'common/pagination_top', item_name: 'patient'
   - @patients.each do |patient|
     = render 'health/patients/patient_card', patient: patient
-
-  = paginate @patients
+  = render 'common/pagination_bottom', item_name: 'patient'
+- else
+  .none-found No patients
 
 = content_for :page_js do
   :javascript

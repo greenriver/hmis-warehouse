@@ -5,33 +5,33 @@
 = render 'filter'
 
 .warehouse-reports__chronic
-  .row
-    .col
-      = render 'common/population_warnings'
-    .col.pull-right
+  .mb-4
+    = render 'common/population_warnings'
+  - if @pagy.count.positive?
+    .text-right.mb-4
       = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary'}) do
-        Download Excel
-  .row
-    .col
-      %p
-        = page_entries_info @clients, entry_name: 'Client'
-  .card
-    %table.mb-0.table.table-striped
-      %thead
-        %tr
-          %th Last Name
-          %th First Name
-          %th Age
-          %th Veteran Status
-          %th= "Cumulative Days Homeless as of #{Date.current}"
-          %th= "Days Homeless in The Past Three Years as of #{Date.current}"
-      %tbody
-        - @clients.each do |client|
+        %i.icon-file-excel.icon-lg
+        Download
+    = render 'common/pagination_top', item_name: 'client'
+    .table-responsive
+      %table.table.table-striped
+        %thead
           %tr
-            %td= link_to_if can_view_clients?, client.LastName, appropriate_client_path(client)
-            %td= link_to_if can_view_clients?, client.FirstName, appropriate_client_path(client)
-            %th= client.age
-            %th= HUD.veteran_status(client.VeteranStatus)
-            %td.text-center= client.days_homeless
-            %td.text-center= client.days_homeless_in_last_three_years
-  %p= paginate @clients
+            %th Last Name
+            %th First Name
+            %th Age
+            %th Veteran Status
+            %th= "Cumulative Days Homeless as of #{Date.current}"
+            %th= "Days Homeless in The Past Three Years as of #{Date.current}"
+        %tbody
+          - @clients.each do |client|
+            %tr
+              %td= link_to_if can_view_clients?, client.LastName, appropriate_client_path(client)
+              %td= link_to_if can_view_clients?, client.FirstName, appropriate_client_path(client)
+              %th= client.age
+              %th= HUD.veteran_status(client.VeteranStatus)
+              %td.text-center= client.days_homeless
+              %td.text-center= client.days_homeless_in_last_three_years
+    = render 'common/pagination_bottom', item_name: 'client'
+  - else
+    .none-found No clients found.

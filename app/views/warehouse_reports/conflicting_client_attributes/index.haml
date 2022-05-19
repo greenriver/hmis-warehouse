@@ -14,16 +14,20 @@
 
   = render 'warehouse_reports/filters', f:f
 
-= paginate @clients
-= page_entries_info @clients, entry_name: 'Client'
-%table.table
-  %thead
-    %th Client Name
-    %th DOB
-    %th SSN
-  %tbody
-    - @clients.each do |client|
-      %tr
-        %td= link_to_if can_view_clients?, client.name, appropriate_client_path(client)
-        %td= dob_or_age client.DOB
-        %td= ssn client.SSN
+- if @pagy.count.positive?
+  = render 'common/pagination_top', item_name: 'client'
+  .table-responsive
+    %table.table.table-striped
+      %thead
+        %th Client Name
+        %th DOB
+        %th SSN
+      %tbody
+        - @clients.each do |client|
+          %tr
+            %td= link_to_if can_view_clients?, client.name, appropriate_client_path(client)
+            %td= dob_or_age client.DOB
+            %td= ssn client.SSN
+  = render 'common/pagination_bottom', item_name: 'client'
+- else
+  .none-found No clients found.

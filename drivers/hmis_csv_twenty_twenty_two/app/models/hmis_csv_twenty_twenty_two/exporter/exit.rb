@@ -5,68 +5,72 @@
 ###
 
 module HmisCsvTwentyTwentyTwo::Exporter
-  class Exit < GrdaWarehouse::Hud::Exit
-    include ::HmisCsvTwentyTwentyTwo::Exporter::Shared
+  class Exit
+    include ::HmisCsvTwentyTwentyTwo::Exporter::ExportConcern
+    include ArelHelper
 
-    setup_hud_column_access(GrdaWarehouse::Hud::Exit.hud_csv_headers(version: '2022'))
-
-    # Setup an association to enrollment that allows us to pull the records even if the
-    # enrollment has been deleted
-    belongs_to :enrollment_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::Enrollment', primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], optional: true
-
-    def export! enrollment_scope:, project_scope:, path:, export: # rubocop:disable Lint/UnusedMethodArgument
-      case export.period_type
-      when 3
-        export_scope = self.class.where(id: enrollment_scope.select(ex_t[:id]))
-        export_scope = export_scope.where(self.class.arel_table[:ExitDate].lteq(export.end_date))
-      when 1
-        export_scope = self.class.where(id: enrollment_scope.select(ex_t[:id])).
-          modified_within_range(range: (export.start_date..export.end_date))
-      end
-
-      if export.include_deleted || export.period_type == 1
-        join_tables = { enrollment_with_deleted: [{ client_with_deleted: :warehouse_client_source }] }
-      else
-        join_tables = { enrollment: [:project, { client: :warehouse_client_source }] }
-      end
-
-      if columns_to_pluck.include?(:ProjectID)
-        if export.include_deleted || export.period_type == 1
-          join_tables[:enrollment_with_deleted] << :project_with_deleted
-        else
-          join_tables[:enrollment] << :project
-        end
-      end
-      # We'll need to index these on EnrollmentID to ensure we only get one exit per enrollment
-      # index_by chooses the last one, so sort by DateUpdated asc
-      export_scope = export_scope.joins(join_tables).order(DateUpdated: :desc)
-
-      export_to_path(
-        export_scope: export_scope,
-        path: path,
-        export: export,
-      )
+    def initialize(options)
+      @options = options
     end
 
-    def apply_overrides(row, data_source_id:) # rubocop:disable Lint/UnusedMethodArgument
-      row[:Destination] = 99 if row[:Destination].blank?
-      row[:OtherDestination] = row[:OtherDestination][0..49] if row[:OtherDestination].present?
-      row[:UserID] = 'op-system' if row[:UserID].blank?
+    def process(row)
+      row = assign_export_id(row)
+      row = self.class.adjust_keys(row, @options[:export])
 
       row
     end
 
-    # Limit exits to one per enrollment (sometimes we get data with more) and only export
-    # the most recently changed
-    def ids_to_export export_scope:
-      window = <<-SQL
-        row_number() OVER
-        (
-          PARTITION BY #{ex_t[:EnrollmentID].to_sql}
-          ORDER BY #{ex_t[:DateUpdated].desc.to_sql}
-        ) as row_number
-      SQL
-      export_scope.pluck(:id, Arel.sql(window)).select { |_, row_number| row_number == 1 }.map(&:first)
+    def self.adjust_keys(row, export)
+      row.UserID = row.user&.id || 'op-system'
+      # Pre-calculate and assign. After assignment the relations will be broken
+      personal_id = personal_id(row, export)
+      enrollment_id = enrollment_id(row, export)
+      row.PersonalID = personal_id
+      row.EnrollmentID = enrollment_id
+      row.ExitID = row.id
+
+      row
+    end
+
+    def self.export_scope(enrollment_scope:, export:, hmis_class:, **_)
+      export_scope = case export.period_type
+      when 3
+        hmis_class.where(hmis_class.arel_table[:ExitDate].lteq(export.end_date))
+      when 1
+        hmis_class.modified_within_range(range: (export.start_date..export.end_date))
+      end
+
+      join_tables = enrollment_related_join_tables(export)
+      export_scope = export_scope.
+        joins(join_tables).
+        merge(enrollment_scope).
+        preload([join_tables] + [:user])
+
+      # Enforce only one exit per enrollment (we shouldn't need to do this, but sometimes we receive more than one exit for an enrollment and don't have cleanup on the import)
+      # Return the newest exit record
+      mrex_t = Arel::Table.new(:most_recent_exits)
+      join = ex_t.join(mrex_t).on(ex_t[:id].eq(mrex_t[:current_id]))
+      export_scope = export_scope.where(
+        id: GrdaWarehouse::Hud::Exit.
+        with(
+          most_recent_exits:
+            export_scope.
+              define_window(:exit_by_modification_date).partition_by(e_t[:id], order_by: { ex_t[:DateUpdated] => :desc }).
+              select_window(:first_value, ex_t[:id], over: :exit_by_modification_date, as: :current_id),
+        ).
+          joins(join.join_sources),
+      )
+
+      note_involved_user_ids(scope: export_scope, export: export)
+      export_scope.distinct
+    end
+
+    def self.transforms
+      [
+        HmisCsvTwentyTwentyTwo::Exporter::Exit::Overrides,
+        HmisCsvTwentyTwentyTwo::Exporter::Exit,
+        HmisCsvTwentyTwentyTwo::Exporter::FakeData,
+      ]
     end
   end
 end

@@ -2,6 +2,12 @@ window.App.Form = window.App.Form || {}
 window.App.StimulusApp = window.App.StimulusApp || {}
 
 App.StimulusApp.register('filter-projects', class extends Stimulus.Controller {
+  static get values() {
+    return {
+      supportedProjectTypes: Array,
+    }
+  }
+
   static get targets() {
     return [
       'element',
@@ -24,6 +30,7 @@ App.StimulusApp.register('filter-projects', class extends Stimulus.Controller {
   connect() {
     this.element['filterProjects'] = this // allow access to this controller from other controllers
     this.prepNativeEvents()
+    this.watchForRemoteLoads()
     this.update()
   }
 
@@ -35,11 +42,19 @@ App.StimulusApp.register('filter-projects', class extends Stimulus.Controller {
       project_type_codes: $(this.projectTypesTarget).val(),
     }
     if (this.hasFunderIdsTarget) {
-      data.funder_ids = $(this.funderIdsTarget).val()
+      const val = $(this.funderIdsTarget).val();
+      if (val) data.funder_ids = Array.isArray(val) ? val : [val];
     }
     if (this.hasCocCodesTarget) {
-      data.coc_codes = $(this.cocCodesTarget).val()
+      const val = $(this.cocCodesTarget).val();
+      if (val) data.coc_codes = Array.isArray(val) ? val : [val];
     }
+
+    // Special parameter to limit the project list by supported project type IDs
+    if (this.hasSupportedProjectTypesValue) {
+      data.supported_project_types = this.supportedProjectTypesValue
+    }
+
     $(this.calculatedProjectsTarget).html('<p class="well rollup-container"></p>')
     $.ajax({
       // It is not ideal to call this synchronously as it sometimes hangs the browser temporarily,
@@ -83,5 +98,18 @@ App.StimulusApp.register('filter-projects', class extends Stimulus.Controller {
       });
       $(el).trigger('change')
     })
+  }
+
+  // Projects can be loaded via ajax, make sure we update the list if that
+  // takes longer than the rest of the page to happen
+  watchForRemoteLoads() {
+    const targets = [
+      this.projectsTarget,
+    ];
+    targets.forEach(el => {
+      $(el).on('change', (e) => {
+        this.update()
+      });
+    });
   }
 })

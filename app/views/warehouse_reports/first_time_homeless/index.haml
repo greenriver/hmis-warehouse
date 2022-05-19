@@ -11,21 +11,21 @@
   %strong #{@filter.project_type_codes.reject(&:blank?).map(&:upcase).to_sentence(last_word_connector: ', or ')}
   within the period from #{@filter.start} to #{@filter.end} limited to the chosen universe.
   = render 'common/population_warnings'
-- if @clients.any?
+- if @pagy.count.positive?
   %h4 New Clients in Last Year (#{1.years.ago.to_date} to #{1.days.ago.to_date})
   .well
     .jCharts
       %p.jLoading.text-center Loading...
 
   %h4 New Clients in Selected Range (#{@filter.start} to #{@filter.end})
-  %p= page_entries_info @clients, entry_name: _('client')
-  .d-flex
-    %p= paginate @clients
-    .ml-auto.mb-4
-      = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary'}) do
-        Download Excel
-  .card
-    %table.table.table-striped.mb-0
+  .text-right.mb-4
+    = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary'}) do
+      %i.icon-file-excel.icon-lg
+      Download
+  = render 'common/pagination_top', item_name: 'client'
+
+  .table-responsive
+    %table.table.table-striped
       %thead
         %tr
           %th Last Name
@@ -58,9 +58,9 @@
             %td= project.name(include_confidential_names: current_user.can_view_confidential_enrollment_details?)
             %td= project.organization_name(current_user)
             %td= client.source_clients.map{|m| m.data_source&.short_name}.uniq.reject(&:blank?).join(', ')
-  %p= paginate @clients
+  = render 'common/pagination_bottom', item_name: 'client'
 - else
-  %p.well.none-found No clients found
+  .none-found.mt-4 No clients found.
 - filter = { start: @filter.start, end: @filter.end, sub_population: @filter.sub_population, project_type_codes: @filter.project_type_codes, age_ranges: @filter.age_ranges, heads_of_household: @filter.heads_of_household, organization_ids: @filter.organization_ids, project_ids: @filter.project_ids}
 - if @filter.coc_codes
   - filter[:coc_codes] = @filter.coc_codes

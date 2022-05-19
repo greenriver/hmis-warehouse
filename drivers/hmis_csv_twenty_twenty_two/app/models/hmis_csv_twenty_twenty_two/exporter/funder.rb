@@ -5,18 +5,40 @@
 ###
 
 module HmisCsvTwentyTwentyTwo::Exporter
-  class Funder < GrdaWarehouse::Hud::Funder
-    include ::HmisCsvTwentyTwentyTwo::Exporter::Shared
-    setup_hud_column_access(GrdaWarehouse::Hud::Funder.hud_csv_headers(version: '2022'))
+  class Funder
+    include ::HmisCsvTwentyTwentyTwo::Exporter::ExportConcern
 
-    belongs_to :project_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::Project', primary_key: [:ProjectID, :data_source_id], foreign_key: [:ProjectID, :data_source_id], inverse_of: :funders, optional: true
+    def initialize(options)
+      @options = options
+    end
 
-    def apply_overrides(row, data_source_id:) # rubocop:disable Lint/UnusedMethodArgument
-      row[:GrantID] = 'Unknown' if row[:GrantID].blank?
-      row[:OtherFunder] = row[:OtherFunder][0...50] if row[:OtherFunder]
-      row[:UserID] = 'op-system' if row[:UserID].blank?
+    def self.adjust_keys(row)
+      row.UserID = row.user&.id || 'op-system'
+      row.ProjectID = row.project&.id || 'Unknown'
+      row.FunderID = row.id
 
       row
+    end
+
+    def self.export_scope(project_scope:, export:, hmis_class:, **_)
+      export_scope = case export.period_type
+      when 3
+        hmis_class.where(project_exists_for_model(project_scope, hmis_class))
+      when 1
+        hmis_class.where(project_exists_for_model(project_scope, hmis_class)).
+          modified_within_range(range: (export.start_date..export.end_date))
+      end
+      note_involved_user_ids(scope: export_scope, export: export)
+
+      export_scope.distinct.preload(:user, :project)
+    end
+
+    def self.transforms
+      [
+        HmisCsvTwentyTwentyTwo::Exporter::Funder::Overrides,
+        HmisCsvTwentyTwentyTwo::Exporter::Funder,
+        HmisCsvTwentyTwentyTwo::Exporter::FakeData,
+      ]
     end
   end
 end

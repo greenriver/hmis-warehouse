@@ -118,7 +118,7 @@ class GrdaWarehouse::WarehouseReports::Cas::CeAssessment < OpenStruct
     @assessment_dates ||= GrdaWarehouse::HmisForm.pathways.
       joins(:destination_client).
       where(client_id: GrdaWarehouse::WarehouseClient.where(
-          destination_id: destination_client_scope.select(:id)
+          destination_id: destination_client_scope&.select(:id)
         ).select(:source_id)
       ).
       group(wc_t[:destination_id]).
@@ -135,7 +135,7 @@ class GrdaWarehouse::WarehouseReports::Cas::CeAssessment < OpenStruct
       GrdaWarehouse::ServiceHistoryEnrollment.
         entry.
         residential.
-        where(client_id: destination_client_scope.select(:id)).
+        where(client_id: destination_client_scope&.select(:id)).
         order(first_date_in_program: :desc).
         select(:client_id, :first_date_in_program, :last_date_in_program, :project_name, :computed_project_type).each do |enrollment|
           enrollments[enrollment.client_id] ||= enrollment

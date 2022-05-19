@@ -6,6 +6,7 @@
 
 module ApplicationHelper
   include Pagy::Frontend
+  include AssetHelper
   # permissions
   # See Role.rb for specifics of what permissions are available
   (Role.permissions + User.additional_permissions).each do |permission|
@@ -80,6 +81,26 @@ module ApplicationHelper
       content_tag(:span, class: "icon-svg--#{size} #{wrapper_class} mr-2", data: { toggle: :tooltip, title: tooltip }) do
         content_tag(:svg) do
           content_tag(:use, '', 'xlink:href' => "\#icon-#{symbol_name}")
+        end
+      end
+    end
+  end
+
+  def tagged(boolean, state, icon: 'check', title: nil, label: nil)
+    capture do
+      content_tag(:div, class: 'd-flex') do
+        content_tag(:div, class: "c-tag c-tag--#{state}") do
+          inner = []
+          inner << content_tag(:div, title, class: 'c-tag__title') if title.present?
+          inner << content_tag(:div, class: 'c-tag__wrapper') do
+            icon_label = []
+            icon_label << content_tag(:div, class: 'c-tag__icon-svg') do
+              checkmark_or_x(boolean, size: :xs, symbol_names: { boolean => icon }, wrapper_classes: { boolean => state }, style: :svg)
+            end
+            icon_label << content_tag(:div, label, class: 'c-tag__content') if label.present?
+            icon_label.join.html_safe
+          end
+          inner.join.html_safe
         end
       end
     end
@@ -344,5 +365,20 @@ module ApplicationHelper
 
   def report_filter_visible?(key, user)
     user.report_filter_visible?(key)
+  end
+
+  # Added here to replace wicked_pdf_stylesheet_link_tag when we removed WickedPdf
+  def inline_stylesheet_link_tag(*sources)
+    AssetHelper.wicked_pdf_stylesheet_link_tag(*sources)
+  end
+
+  # Added here to replace wicked_pdf_javascript_src_tag when we removed WickedPdf
+  def inline_javascript_include_tag(js_file, options = {})
+    AssetHelper.wicked_pdf_javascript_include_tag(js_file, options)
+  end
+
+  # Added here to replace wicked_pdf_asset_base64 when we removed WickedPdf
+  def inline_asset_base64(path)
+    AssetHelper.wicked_pdf_asset_base64(path)
   end
 end

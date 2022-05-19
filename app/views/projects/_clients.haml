@@ -1,24 +1,25 @@
 - if can_upload_hud_zips?
   %h2 Clients
-  .d-flex
-    %p= page_entries_info(@clients, entry_name: _('client'))
-    %p.ml-auto= paginate @clients
-  .card
-    %table.table.table-striped.table-hover.mb-0
-      %thead
-        %tr
-          %th Client
-          %th Entry Date
-          %th Exit Date
-      %tbody
-        - @clients.each do |service|
+  - if @pagy.count.positive?
+    = render 'common/pagination_top', item_name: 'client'
+    .table-responsive
+      %table.table.table-striped.table-hover.mb-0
+        %thead
           %tr
-            %td
-              - if ! @project.confidential? || can_edit_projects? || can_view_confidential_enrollment_details?
-                = link_to_if can_view_clients?, service.client.name, client_path(service.client)
-              - else
-                Confidential Client
-            %td= service.first_date_in_program
-            %td= service.last_date_in_program
-
-  %p.ml-auto= paginate @clients
+            %th Client
+            %th Entry Date
+            %th Exit Date
+        %tbody
+          - @clients.each do |service|
+            %tr
+              %td
+                - if ! @project.confidential? || can_edit_projects? || can_view_confidential_enrollment_details?
+                  = link_to_if can_view_clients?, service.client.name, client_path(service.client)
+                - else
+                  Confidential Client
+              %td= service.first_date_in_program
+              %td= service.last_date_in_program
+    = render 'common/pagination_bottom', item_name: 'client'
+  - else
+    .card
+      %h4.text-center No clients

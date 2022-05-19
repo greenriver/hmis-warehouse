@@ -13,7 +13,8 @@ class UploadsController < ApplicationController
     attributes = GrdaWarehouse::Upload.column_names - ['import_errors', 'content']
     @uploads = upload_source.select(*attributes).
       where(data_source_id: @data_source.id).
-      page(params[:page].to_i).per(20).order(created_at: :desc)
+      order(created_at: :desc)
+    @pagy, @uploads = pagy(@uploads)
   end
 
   def new

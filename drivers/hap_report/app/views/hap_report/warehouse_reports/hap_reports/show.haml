@@ -7,7 +7,7 @@
 .warehouse-reports__completed
   = render 'filters/report_parameters', options: @report.options, report: @report
 .card
-  %table.table.table-striped.mb-0
+  %table.table.table-striped
     %thead
       %th
       - @report.project_columns.keys.each do |label|

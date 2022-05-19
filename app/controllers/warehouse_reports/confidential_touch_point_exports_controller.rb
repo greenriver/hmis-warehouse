@@ -13,10 +13,8 @@ module WarehouseReports
       options = { search_scope: touch_point_scope }
       options.merge!(filter_params) if filter_params.present?
       @filter = ::Filters::HealthTouchPointExportsFilter.new(options)
-      @reports = report_scope.for_list.
-        order(created_at: :desc).
-        page(params[:page]).
-        per(25)
+      @reports = report_scope.for_list.order(created_at: :desc)
+      @pagy, @reports = pagy(@reports)
     end
 
     def report_scope

@@ -3,23 +3,30 @@
 %h1= title
 = render '/warehouse_reports/breadcrumbs', tab: 'data-quality'
 
-.warehouse-reports__missing-projects
-  .row
-    %p The following clients have characters in their names that are unsual.  For clarity, spaces have been replaced with ⎵.
-  .text-right
-    = link_to({format: :xlsx},{class: 'btn btn-primary'}) do
-      Download Excel
-  %p= page_entries_info @clients, entry_name: _('client')
-  %table.table.table-sm.table-hover
-    %thead
-      %tr
-        %th Last Name
-        %th First Name
-        %th Data Source
-    %tbody
-      - @clients.each do |client|
+-# .warehouse-reports__missing-projects
+- if @pagy.count.positive?
+  .mb-4
+    The following clients have characters in their names that are unsual.  For clarity, spaces have been replaced with ⎵.
+  .text-right.mb-4
+    = link_to({format: :xlsx},{class: 'btn btn-secondary'}) do
+      %i.icon-file-excel.icon-lg
+      Download
+  = render 'common/pagination_top', item_name: 'client'
+  .table-responsive
+    %table.table.table-striped
+      %thead
         %tr
-          %td= link_to_if can_view_clients?, client.LastName.gsub(' ', '⎵'), appropriate_client_path(client)
-          %td= link_to_if can_view_clients?, client.FirstName.gsub(' ', '⎵'), appropriate_client_path(client)
-          %td= client.source_clients.map{|m| m.data_source&.short_name}.uniq.join(', ')
-%p= paginate @clients
+          %th Last Name
+          %th First Name
+          %th Data Source
+      %tbody
+        - @clients.each do |client|
+          %tr
+            %td= link_to_if can_view_clients?, client.LastName.gsub(' ', '⎵'), appropriate_client_path(client)
+            %td= link_to_if can_view_clients?, client.FirstName.gsub(' ', '⎵'), appropriate_client_path(client)
+            %td= client.source_clients.map{|m| m.data_source&.short_name}.uniq.join(', ')
+
+
+  = render 'common/pagination_bottom', item_name: 'client'
+- else
+  .none-found.mt-4 No clients found.

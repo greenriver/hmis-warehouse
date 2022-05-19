@@ -1,25 +1,26 @@
 - question_label ||= 'Question'
-%table.table.table-hover.table-striped
-  %thead
-    %th= question_label
-    %th Last Run
-    %th Status
-  %tbody
-    - generator.questions.each do |name, klass|
-      %tr
-        - answer = klass.most_recent_answer(user: current_user, report_name: report_name)
-        %td
-          - if answer
-            = link_to name, path_for_question(name, report: answer&.report_instance)
-          - else
-            = link_to name, path_for_question(name)
-          %br
-          = @generator.describe_table(name)
-        %td
-          = answer&.created_at
-          - if answer&.user
-            by #{answer.user.name}
-        %td
-          = answer&.status
-          - if answer&.completed?
-            in #{answer&.completed_in}
+.table-responsive.mb-4
+  %table.table.table-striped
+    %thead
+      %th= question_label
+      %th Last Run
+      %th Status
+    %tbody
+      - generator.questions.each do |name, klass|
+        %tr
+          - answer = klass.most_recent_answer(user: current_user, report_name: report_name)
+          %td
+            - if answer
+              = link_to name, path_for_question(name, report: answer&.report_instance)
+            - else
+              = link_to name, path_for_question(name)
+            %br
+            = @generator.describe_table(name)
+          %td
+            = answer&.created_at
+            - if answer&.user
+              by #{answer.user.name}
+          %td
+            = answer&.status
+            - if answer&.completed?
+              in #{answer&.completed_in}

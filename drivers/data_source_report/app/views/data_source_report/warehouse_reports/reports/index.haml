@@ -6,39 +6,44 @@
   .col-sm-8
     %h1= content_for :title
 
-.card
-  %table.table.table-striped.mb-0
-    %thead
-      %tr
-        %th Name
-        %th Client Records
-        %th Project Count
-        %th Last Import Run
-        %th
-    %tbody
-      %tr
-        %td Warehouse
-        %td= number_with_delimiter(GrdaWarehouse::Hud::Client.destination.count)
-        %td{colspan: 5}
-      - @data_sources.each do |data_source|
-        - most_recently_completed = data_source.import_logs.maximum(:completed_at)&.localtime
+- if @pagy.count.positive?
+  = render 'common/pagination_top', item_name: 'data source'
+  .table-responsive
+    %table.table.table-striped
+      %thead
         %tr
-          %td= data_source.name
-          %td= number_with_delimiter(@client_counts[data_source.id])
-          %td= number_with_delimiter(@project_counts[data_source.id])
-          %td
-            = most_recently_completed
-            - if data_source.unprocessed_enrollment_count.positive?
-              .mt-2
-                %em
-                  Enrollments remaining to process: #{data_source.unprocessed_enrollment_count}
-          %td
-            -# NOTE: this will only show the data source as stalled if the files were brought in by the system user
-            - if most_recently_completed.present?
-              - stall_date = data_source.stalled_since?(most_recently_completed)
-              - if stall_date
-                .label.label-warning
-                  same file since: #{stall_date}
-            - if data_source.import_paused
-              .label.label-info
-                import paused
+          %th Name
+          %th Client Records
+          %th Project Count
+          %th Last Import Run
+          %th
+      %tbody
+        %tr
+          %td Warehouse
+          %td= number_with_delimiter(GrdaWarehouse::Hud::Client.destination.count)
+          %td{colspan: 5}
+        - @data_sources.each do |data_source|
+          - most_recently_completed = data_source.import_logs.maximum(:completed_at)&.localtime
+          %tr
+            %td= data_source.name
+            %td= number_with_delimiter(@client_counts[data_source.id])
+            %td= number_with_delimiter(@project_counts[data_source.id])
+            %td
+              = most_recently_completed
+              - if data_source.unprocessed_enrollment_count.positive?
+                .mt-2
+                  %em
+                    Enrollments remaining to process: #{data_source.unprocessed_enrollment_count}
+            %td
+              -# NOTE: this will only show the data source as stalled if the files were brought in by the system user
+              - if most_recently_completed.present?
+                - stall_date = data_source.stalled_since?(most_recently_completed)
+                - if stall_date
+                  .label.label-warning
+                    same file since: #{stall_date}
+              - if data_source.import_paused
+                .label.label-info
+                  import paused
+  = render 'common/pagination_bottom', item_name: 'data source'
+- else
+  .none-found No Data Sources

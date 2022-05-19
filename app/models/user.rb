@@ -340,6 +340,12 @@ class User < ApplicationRecord
     user
   end
 
+  def self.system_user
+    Rails.cache.fetch('system_user', expires_in: 4.hours) do
+      setup_system_user
+    end
+  end
+
   def system_user?
     email == 'noreply@greenriver.com'
   end

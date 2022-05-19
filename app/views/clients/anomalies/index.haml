@@ -20,8 +20,7 @@
       - if @anomalies[slug.to_s].present?
         = render 'anomalies_table', anomalies: @anomalies[slug.to_s]
       - else
-        %p.none-found
-          There are no identified issues in this category.
+        .none-found There are no identified issues in this category.
 
 = content_for :page_js do
   :javascript

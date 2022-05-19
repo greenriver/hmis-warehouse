@@ -1,31 +1,34 @@
 %h1 Coordinated Entry Assessment Details
 
-.d-flex
-  = render 'sort'
-  = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary ml-auto'}) do
-    Download Excel
-
-- if @clients
-  %p= paginate @clients
-  %table.table
-    %thead
-      %tr
-        %th Name
-        %th DOB
-        %th Current Location
-        %th Assessment Score
-        %th Vulnerability Score
-        %th Started On
-        %th Completed?
-    %tbody
-      - @clients.each do |client|
+- if @pagy.count.positive?
+  .d-flex
+    .mt-4!= render 'sort'
+    .text-right.mb-4.ml-auto
+      = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary'}) do
+        %i.icon-file-excel.icon-lg
+        Download
+  = render 'common/pagination_top', item_name: 'assessment'
+  .table-responsive
+    %table.table.table-striped
+      %thead
         %tr
-          %td= link_to_if can_view_clients?, client.name, appropriate_client_path(client)
-          %td= client.DOB
-          %td= client.ce_assessment.location
-          %td= client.ce_assessment.score
-          %td= client.ce_assessment.vulnerability_score
-          %td= client.ce_assessment.created_at&.to_date
-          %td= checkmark(client.ce_assessment.submitted_at.present?)
+          %th Name
+          %th DOB
+          %th Current Location
+          %th Assessment Score
+          %th Vulnerability Score
+          %th Started On
+          %th Completed?
+      %tbody
+        - @clients.each do |client|
+          %tr
+            %td= link_to_if can_view_clients?, client.name, appropriate_client_path(client)
+            %td= client.DOB
+            %td= client.ce_assessment.location
+            %td= client.ce_assessment.score
+            %td= client.ce_assessment.vulnerability_score
+            %td= client.ce_assessment.created_at&.to_date
+            %td= checkmark(client.ce_assessment.submitted_at.present?)
+  = render 'common/pagination_bottom', item_name: 'assessment'
 - else
-  No assessments available.
+  .none-found.mt-4 No assessments found.

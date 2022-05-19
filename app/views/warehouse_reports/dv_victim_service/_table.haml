@@ -1,18 +1,19 @@
-- if @clients.count == 0
-  No clients found.
-- else
-  %p= page_entries_info @clients, entry_name: 'client'
-  %p= paginate @clients
-  %table.table.table-striped
-    %thead
-      %tr
-        %th
-          Client ID
-        %th
-          Client Name
-    %tbody
-      - @clients.each do |source_client|
-        - client = source_client.destination_client
+- if @pagy.count.positive?
+  = render 'common/pagination_top', item_name: 'client'
+  .table-responsive
+    %table.table.table-striped
+      %thead
         %tr
-          %td= client.id
-          %td= link_to_if can_view_clients?, source_client.name, appropriate_client_path(client.id)
+          %th
+            Client ID
+          %th
+            Client Name
+      %tbody
+        - @clients.each do |source_client|
+          - client = source_client.destination_client
+          %tr
+            %td= client.id
+            %td= link_to_if can_view_clients?, source_client.name, appropriate_client_path(client.id)
+  = render 'common/pagination_bottom', item_name: 'client'
+- else
+  .none-found No clients found.

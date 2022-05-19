@@ -10,5 +10,5 @@
   = f.input :map_type, label: 'Map breakdowns', as: :select_two, collection: PublicReports::Setting.available_map_types.invert
   = f.input :map_overall_population_method, label: 'Overall Population Calculation', as: :select_two, collection: PublicReports::Setting.available_map_overall_population_methods.invert
 %h4 Map Colors
-- 5.times do |i|
+- 8.times do |i|
   = f.input "color_#{i}", label: "Map Color #{i}", input_html: { value: @config.color(i), class: 'colorpicker'}

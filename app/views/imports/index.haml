@@ -1,30 +1,22 @@
-.row
-  .col-sm-8
-    %h1= _('Import Logs')
-  .col-sm-4
-    - if false
-      .pull-right
-        = link_to new_import_path, class: 'btn btn-primary pull-right' do
-          %span.icon-plus
-          Import HUD CSV
-.row.table-utilities
-  .col-sm-12
-    .table-responsive
-      %table.table.table-sm.table-hover
-        %thead
-          %tr
-            %th Source
-            %th Imported On
-            %th Completed In
-          %tbody
-            - @imports.each do |import|
-              %tr
-                %td
-                  = link_to import.data_source.name, import_path(import)
-                %td
-                  = import.created_at
-                %td
-                  = import.import_time
-
-
-%p= paginate @imports
+%h1 Import Logs
+- if @pagy.count.positive?
+  = render 'common/pagination_top', item_name: 'import'
+  .table-responsive
+    %table.table.table-striped
+      %thead
+        %tr
+          %th Source
+          %th Imported On
+          %th Completed In
+        %tbody
+          - @imports.each do |import|
+            %tr
+              %td
+                = link_to import.data_source.name, import_path(import)
+              %td
+                = import.created_at
+              %td
+                = import.import_time
+  = render 'common/pagination_bottom', item_name: 'import'
+- else
+  .none-found No imports found.

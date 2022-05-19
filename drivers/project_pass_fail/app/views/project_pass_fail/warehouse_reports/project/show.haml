@@ -21,5 +21,9 @@
               %td{style: 'max-width: 600px;'}
                 - if k.in?([:first_name, :last_name]) && client.client&.destination_client.present?
                   = link_to client[k], appropriate_client_path(client.client.destination_client)
+                - elsif k == :household_id && (client[k].blank? || client[k].ends_with?('*HH'))
+                  .text-danger
+                    Missing source data
+                  .text-muted= client[k]
                 - else
                   = client[k]

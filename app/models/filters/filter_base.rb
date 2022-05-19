@@ -65,6 +65,7 @@ module Filters
     attribute :returned_to_homelessness_from_permanent_destination, Boolean, default: false
     attribute :creator_id, Integer, default: nil
     attribute :report_version, Symbol
+    attribute :inactivity_days, Integer, default: 365 * 2
 
     validates_presence_of :start, :end
 
@@ -144,6 +145,7 @@ module Filters
       self.times_homeless_in_last_three_years = filters.dig(:times_homeless_in_last_three_years)&.reject(&:blank?)&.map(&:to_i) unless filters.dig(:times_homeless_in_last_three_years).nil?
       self.report_version = filters.dig(:report_version)&.to_sym
       self.creator_id = filters.dig(:creator_id).to_i unless filters.dig(:creator_id).nil?
+      self.inactivity_days = filters.dig(:inactivity_days).to_i unless filters.dig(:inactivity_days).nil?
 
       ensure_dates_work if valid?
       self
@@ -195,6 +197,7 @@ module Filters
           report_version: report_version,
           ph: ph,
           creator_id: creator_id,
+          inactivity_days: inactivity_days,
         },
       }
     end
@@ -226,6 +229,7 @@ module Filters
         :report_version,
         :ph,
         :creator_id,
+        :inactivity_days,
         coc_codes: [],
         project_types: [],
         project_type_codes: [],
@@ -261,6 +265,7 @@ module Filters
         end
         opts['Comparison Range'] = comparison_range_words if includes_comparison?
         opts['CoC Codes'] = chosen_coc_codes if coc_codes.present?
+        opts['CoC Code'] = chosen_coc_code if coc_code.present?
         opts['Project Types'] = chosen_project_types
         opts['Sub-Population'] = chosen_sub_population
         opts['Data Sources'] = data_source_names if data_source_ids.any?
@@ -329,28 +334,28 @@ module Filters
     end
 
     # Date that can be used to find the closest PIT date, either that contained in the range,
-    # or the most-recent PIT (third wednesday of January)
+    # or the most-recent PIT (last wednesday of January)
     # for simplicity, we'll just find the date in the january prior to the end date
+    # 3/10/2020 - 6/20/2020 -> last wed in 1/2020
+    # 10/1/2020 - 12/31/2020 -> last wed in 1/2020
+    # 10/1/2020 - 9/30/2021 -> last wed in 1/2021
+    # 10/1/2019 - 1/1/2020 -> last wed in 1/2019 (NOTE: end-date is before PIT date in 2020)
+    def self.pit_date(date)
+      wednesday = last_wednesday(date.year, 1)
+      # date occurred on or after PIT date in this year
+      return wednesday unless date.before?(wednesday)
+
+      # date is early in January (before the last wednesday), use PIT date from prior year
+      last_wednesday(date.year - 1, 1)
+    end
+
+    def self.last_wednesday(year, month)
+      d = Date.new(year, month, 1)
+      (d.beginning_of_month .. d.end_of_month).select(&:wednesday?).last
+    end
+
     def pit_date
       self.class.pit_date(last)
-    end
-
-    def self.pit_date(date)
-      third_wednesday_of_end_year = third_wednesday(date.year, 1)
-      return third_wednesday_of_end_year if date > third_wednesday_of_end_year
-
-      third_wednesday(date.year - 1, date.month)
-    end
-
-    private def third_wednesday(year, month)
-      self.class.third_wednesday(year, month)
-    end
-
-    def self.third_wednesday(year, month)
-      d = Date.new(year, month, 1)
-      d += 1.weeks if d.wday > 3 # if the first falls after Wednesday, move forward a week
-      d -= (d.wday - 3) % 7 # ensure the first Wednesday
-      d + 2.weeks # move to the 3rd Wednesday
     end
 
     def date_range_words
@@ -557,6 +562,10 @@ module Filters
         distinct
     end
 
+    def available_project_types
+      GrdaWarehouse::Hud::Project::PROJECT_GROUP_TITLES.invert
+    end
+
     def available_residential_project_types
       GrdaWarehouse::Hud::Project::RESIDENTIAL_TYPE_TITLES.invert
     end
@@ -621,6 +630,19 @@ module Filters
         fifty_five_to_fifty_nine: '55 - 59',
         sixty_to_sixty_one: '60 - 61',
         over_sixty_one: '62+',
+      }.invert.freeze
+    end
+
+    def available_inactivity_days
+      {
+        30 => '30 days',
+        45 => '45 days',
+        60 => '60 days',
+        90 => '90 days',
+        365 => '1 year',
+        365 * 2 => '2 years',
+        365 * 3 => '3 years',
+        365 * 20 => '20 years',
       }.invert.freeze
     end
 
@@ -737,6 +759,8 @@ module Filters
         'Genders'
       when :coc_codes
         'CoCs'
+      when :coc_code
+        'CoC'
       when :organization_ids
         'Organizations'
       when :project_ids
@@ -801,6 +825,8 @@ module Filters
         chosen_genders
       when :coc_codes
         chosen_coc_codes
+      when :coc_code
+        chosen_coc_code
       when :organization_ids
         chosen_organizations
       when :project_ids
@@ -866,6 +892,10 @@ module Filters
 
     def chosen_coc_codes
       coc_codes
+    end
+
+    def chosen_coc_code
+      coc_code
     end
 
     def chosen_organizations

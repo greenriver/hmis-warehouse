@@ -7,7 +7,7 @@
 .well.report-listing.warehouse-reports__completed
   = @report.filter.describe_filter_as_html
 
-= render 'performance_measurement/warehouse_reports/reports/table', goal_popover: false, pdf: true
+= render 'performance_measurement/warehouse_reports/reports/rows', goal_popover: true, pdf: true
 
 - @report.summary_table.each.with_index do |(title, group), i|
   - group.each do |sub_category, sub_group|

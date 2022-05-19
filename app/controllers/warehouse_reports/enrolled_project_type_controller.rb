@@ -26,7 +26,7 @@ module WarehouseReports
 
       respond_to do |format|
         format.html do
-          @clients = @clients.page(params[:page]).per(25)
+          @pagy, @clients = pagy(@clients)
         end
         format.xlsx do
           @clients

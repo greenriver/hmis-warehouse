@@ -164,11 +164,13 @@ class PerformanceDashboards::Base
   end
 
   # An entry is an enrollment where the entry date is within the report range, and there are no entries in the
-  # specified project types for the prior 24 months.
+  # specified project types for specified inactivity period (default is 24 months).
   def entries
+    # Use month duration to handle leap years
+    inactivity_duration = @filter.inactivity_days > 90 ? @filter.inactivity_days.days.in_months.round.months : @filter.inactivity_days.days
     previous_period = report_scope_source.entry.
-      open_between(start_date: @filter.start_date - 24.months, end_date: @filter.start_date - 1.day).
-      with_service_between(start_date: @filter.start_date - 24.months, end_date: @filter.start_date - 1.day).
+      open_between(start_date: @filter.start_date - inactivity_duration, end_date: @filter.start_date - 1.day).
+      with_service_between(start_date: @filter.start_date - inactivity_duration, end_date: @filter.start_date - 1.day).
       in_project_type(@project_types)
     # To make this performant, we'll manipulate these a bit
 

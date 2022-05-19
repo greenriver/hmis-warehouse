@@ -15,7 +15,7 @@ module UserPermissionReport::WarehouseReports
       respond_to do |format|
         format.html do
           @users = @users.text_search(params[:q]) if params[:q].present?
-          @users = @users.page(params[:page]).per(25)
+          @pagy, @users = pagy(@users)
         end
         format.xlsx do
           date = Date.current.strftime('%Y-%m-%d')

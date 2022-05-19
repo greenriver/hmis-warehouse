@@ -8,39 +8,39 @@
 
 
   - @prompt = "Search agencies..."
-  .row
+  .row.mb-4
     .col-8
       = render 'search_form'
     .col-4.text-right
       = link_to new_admin_agency_path, class: 'btn btn-primary mb-2' do
         %span.icon-plus
         Add an Agency
-  %p.mt-2= page_entries_info @agencies
-
-  .row.table-utilities
-    .col-sm-12
-      .table-responsive
-        %table.table.table-condensed
-          %thead
+  - if @pagy.count.positive?
+    = render 'common/pagination_top', item_name: 'agency'
+    .table-responsive
+      %table.table.table-striped
+        %thead
+          %tr
+            %th Name
+            %th Assigned Users
+            %th CoC Codes
+            %th Available Publicly
+            %th
+        %tbody
+          - @agencies.each do |agency|
+            - users = agency.users.active.count
             %tr
-              %th Name
-              %th Assigned Users
-              %th CoC Codes
-              %th Available Publicly
-              %th
-          %tbody
-            - @agencies.each do |agency|
-              - users = agency.users.active.count
-              %tr
-                %td
-                  = link_to agency.name, edit_admin_agency_path(agency)
-                %td
-                  = users
-                %td= agency.consent_limits.pluck(:name).join("; ")
-                %td= checkmark(agency.expose_publically)
-                %td
-                  - unless users > 0
-                    = link_to admin_agency_path(agency),  method: :delete, data: {confirm: "Would you really like to delete the agency #{agency.name}?"}, class: ['btn', 'btn-sm', 'btn-danger'] do
-                      %span.icon-cross
-                      Delete
-      %p= paginate @agencies
+              %td
+                = link_to agency.name, edit_admin_agency_path(agency)
+              %td
+                = users
+              %td= agency.consent_limits.pluck(:name).join("; ")
+              %td= checkmark(agency.expose_publically)
+              %td
+                - unless users > 0
+                  = link_to admin_agency_path(agency),  method: :delete, data: {confirm: "Would you really like to delete the agency #{agency.name}?"}, class: ['btn', 'btn-sm', 'btn-danger'] do
+                    %span.icon-cross
+                    Delete
+    = render 'common/pagination_bottom', item_name: 'agency'
+  - else
+    .none-found No agencies found.

@@ -6,7 +6,7 @@ gem 'rails_drivers'
 # bundle exec rake doc:rails generates the API under doc/api.
 gem 'sdoc', group: :doc
 
-gem 'nokogiri', '>= 1.12.5' # >= 1.11.0.rc4 due to CVE-2020-26247
+gem 'nokogiri', '>= 1.13.6' # >= 1.13.6 due to CVE-2022-29181
 gem 'rubyzip',  '>= 1.2.1' # >= 1.2.1 due to CVE-2017-5946
 gem 'sshkit'
 gem 'paranoia', '~> 2.0'
@@ -148,7 +148,6 @@ gem 'rubyXL', require: false
 gem 'soundex', require: false # for HMIS 6.11 + exports that use SHA-256 of soundex
 
 # PDF Exports
-gem 'wicked_pdf'
 gem 'combine_pdf'
 gem 'grover'
 

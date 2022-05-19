@@ -16,8 +16,7 @@ module HomelessSummaryReport::WarehouseReports
     before_action :set_pdf_export, only: [:show]
 
     def index
-      @reports = report_scope.ordered.
-        page(params[:page]).per(25)
+      @pagy, @reports = pagy(report_scope.ordered)
       @report = report_class.new(user_id: current_user.id)
       previous_report = report_scope.last
       if previous_report
@@ -45,15 +44,22 @@ module HomelessSummaryReport::WarehouseReports
         user_id: current_user.id,
       )
       @report.filter = @filter
-      @report.save
-      ::WarehouseReports::GenericReportJob.perform_later(
-        user_id: current_user.id,
-        report_class: @report.class.name,
-        report_id: @report.id,
-      )
-      # Make sure the form will work
-      filters
-      respond_with(@report, location: homeless_summary_report_warehouse_reports_reports_path)
+
+      if @filter.valid?
+        @report.save
+        ::WarehouseReports::GenericReportJob.perform_later(
+          user_id: current_user.id,
+          report_class: @report.class.name,
+          report_id: @report.id,
+        )
+        # Make sure the form will work
+        filters
+        respond_with(@report, location: homeless_summary_report_warehouse_reports_reports_path)
+      else
+        @pagy, @reports = pagy(report_scope.ordered)
+        filters
+        render :index
+      end
     end
 
     def destroy
@@ -74,7 +80,7 @@ module HomelessSummaryReport::WarehouseReports
         @data_cells = ['m2_reentry_days']
       elsif @report.field_measure(params['cell']) == 7
         @measure = 'Measure 7'
-        @data_cells = @report.m7_fields
+        @data_cells = [params['cell']]
       end
       @detail_clients = @report.clients.send(@variant).send(@cell)
     end
@@ -134,7 +140,7 @@ module HomelessSummaryReport::WarehouseReports
     end
 
     private def filter_class
-      ::Filters::FilterBase
+      ::Filters::HudFilterBase
     end
 
     private def flash_interpolation_options

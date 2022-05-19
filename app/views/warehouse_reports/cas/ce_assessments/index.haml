@@ -8,18 +8,16 @@
 - if @filter.project_id.blank?
   .well
     %p You must choose a project.
-- else
-  .text-right.mb-4
-    = link_to({format: :xlsx}.merge(filter_params),{class: 'btn btn-secondary'}) do
-      Download Excel
+- elsif @pagy.count.positive?
   .well
     %p All clients have at least one ongoing enrollment, at least #{@filter.days_homeless} days homeless in the past three years, and have not been assessed in the previous #{@filter.no_assessment_in} days.
     %p Clients will be limited to those with an ongoing enrollment at #{@report.project_name} who do not also have an enrollment with a move-in-date at a housing project.
-    .row.mb-4
-      .col-sm-8
-        = paginate @clients
-      .col-sm-4.text-right.pt-2
-        = page_entries_info @clients, entry_name: _('clients')
+  .text-right.mb-4
+    = link_to({format: :xlsx}.merge(filter_params),{class: 'btn btn-secondary'}) do
+      %i.icon-file-excel.icon-lg
+      Download
+  = render 'common/pagination_top', item_name: 'assessment'
+  .table-responsive
     %table.table.table-striped
       %thead
         %tr
@@ -45,3 +43,6 @@
                 #{enrollment.project_name} (#{HUD.project_type_brief(enrollment.computed_project_type)})
                 %br
                 #{enrollment.first_date_in_program} - #{enrollment.last_date_in_program}
+  = render 'common/pagination_bottom', item_name: 'assessment'
+- else
+  .none-found.mt-4 No assessments found.

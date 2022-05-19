@@ -25,13 +25,37 @@ module PerformanceMeasurement
       where(system_level: true)
     end
 
+    def comparison_year
+      report.filter.comparison_as_date_range.end.strftime('%Y')
+    end
+
+    def report_year
+      report.filter.end.strftime('%Y')
+    end
+
+    def titles_for_system_level_bar_tooltip
+      [report.filter.date_range_words, report.filter.comparison_range_words]
+    end
+
+    def percentage?
+      primary_unit.starts_with?('%')
+    end
+
     def data_for_system_level_bar
+      columns = if percentage?
+        [
+          ['x', report_year, comparison_year],
+          [primary_unit, primary_value, comparison_primary_value],
+        ]
+      else
+        [
+          ['x', comparison_year, report_year],
+          [primary_unit, comparison_primary_value, primary_value],
+        ]
+      end
       {
         x: 'x',
-        columns: [
-          ['x', report.filter.comparison_range_words, report.filter.date_range_words],
-          [primary_unit, comparison_primary_value, primary_value],
-        ],
+        columns: columns,
         type: 'bar',
         labels: {
           colors: 'white',

@@ -12,7 +12,7 @@ th_style = wb_styles.add_style(
 wb.add_worksheet(name: 'Report Info') do |sheet|
   sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
   sheet.add_row(
-    ['Homeless Summary Report'],
+    [@report.title],
     style: header_style,
   )
   @filter.selected_params_for_display.each do |title, value|

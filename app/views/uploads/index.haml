@@ -9,9 +9,10 @@
           %span.icon-plus
           Upload HUD CSV
 
-.card
+- if @pagy.count.positive?
+  = render 'common/pagination_top', item_name: 'upload'
   .table-responsive
-    %table.table.table-striped.mb-0
+    %table.table.table-striped
       %thead
         %tr
           %th Filename
@@ -34,6 +35,6 @@
                   - if upload&.file&.present? || upload.import_time == 'failed'
                     %br
                     = link_to 'Download Original', download_upload_import_path(upload)
-
-
-%p= paginate @uploads
+  = render 'common/pagination_bottom', item_name: 'upload'
+- else
+  .none-found No uploads.

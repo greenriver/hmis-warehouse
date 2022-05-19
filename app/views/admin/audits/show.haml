@@ -3,31 +3,33 @@
 - content_for :title, title
 %h1= title
 = render 'admin/audits/user_tabs'
-.d-flex
-  %p= paginate @activity_log
-.card
-  %table.table.table-striped.mb-0
-    %thead
-      %tr
-        %th Action
-        %th Item
-        %th Item Type
-        %th Date
-        %th IP Address
-    %tbody
-      - @activity_log.each do |i|
-        - title = i.title || i.controller_name
+- if @pagy.count.positive?
+  = render 'common/pagination_top', item_name: 'action'
+  .table-responsive
+    %table.table.table-striped
+      %thead
         %tr
-          %td
-            - tooltip = "Method: #{i.method}"
-            %span.action{data: {toggle: :tooltip, title: tooltip}}
-              = i.action_name
+          %th Action
+          %th Item
+          %th Item Type
+          %th Date
+          %th IP Address
+      %tbody
+        - @activity_log.each do |i|
+          - title = i.title || i.controller_name
+          %tr
+            %td
+              - tooltip = "Method: #{i.method}"
+              %span.action{data: {toggle: :tooltip, title: tooltip}}
+                = i.action_name
 
-          %td= link_to title, i.path
-          %td
-            - tooltip = "Class: #{i.item_model}"
-            %span.action{data: {toggle: :tooltip, title: tooltip}}
-              = i.clean_object_name
-          %td= i.created_at
-          %td= i.ip_address
-%p= paginate @activity_log
+            %td= link_to title, i.path
+            %td
+              - tooltip = "Class: #{i.item_model}"
+              %span.action{data: {toggle: :tooltip, title: tooltip}}
+                = i.clean_object_name
+            %td= i.created_at
+            %td= i.ip_address
+  = render 'common/pagination_bottom', item_name: 'action'
+- else
+  .none-found No activity found.

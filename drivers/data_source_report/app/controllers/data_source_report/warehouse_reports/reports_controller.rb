@@ -12,9 +12,8 @@ module DataSourceReport::WarehouseReports
     before_action :set_limited, only: [:index]
 
     def index
-      # search
-      @data_sources = data_source_scope
-      @data_sources = @data_sources.order(name: :asc).page(params[:page]).per(25)
+      @data_sources = data_source_scope.order(name: :asc)
+      @pagy, @data_sources = pagy(@data_sources)
       @client_counts = @data_sources.map { |ds| [ds.id, ds.client_count] }.to_h
       @project_counts = @data_sources.map { |ds| [ds.id, ds.project_count] }.to_h
     end

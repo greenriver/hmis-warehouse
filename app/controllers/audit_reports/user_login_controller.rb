@@ -12,7 +12,7 @@ module AuditReports
       @users = users_scope
       respond_to do |format|
         format.html do
-          @users = @users.page(params[:page]).per(25)
+          @pagy, @users = pagy(@users)
         end
         format.xlsx do
           date = Date.current.strftime('%Y-%m-%d')

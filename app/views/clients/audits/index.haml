@@ -6,25 +6,28 @@
 = render 'clients/tab_navigation', current: client_audits_path(@client)
 
 %h1=content_for :title
-%p= paginate @audit_log
-.card
-  %table.table.table-striped.mb-0
-    %thead
-      %tr
-        %th Date
-        %th User
-        %th Action
-        %th Item
-    %tbody
-      - @audit_log.each do |item|
-        - title = item.title || item.controller_name
+- if @pagy.count.positive?
+  = render 'common/pagination_top', item_name: 'log'
+  .table-responsive
+    %table.table.table-striped
+      %thead
         %tr
-          %td= item.created_at
-          %td= link_to item.user.name, edit_admin_user_path(item.user.id)
-          %td
-            - tooltip = "Method: #{item.method}"
-            %span.action{data: {toggle: :tooltip, title: tooltip}}
-              = item.action_name
+          %th Date
+          %th User
+          %th Action
+          %th Item
+      %tbody
+        - @audit_log.each do |item|
+          - title = item.title || item.controller_name
+          %tr
+            %td= item.created_at
+            %td= link_to item.user.name, edit_admin_user_path(item.user.id)
+            %td
+              - tooltip = "Method: #{item.method}"
+              %span.action{data: {toggle: :tooltip, title: tooltip}}
+                = item.action_name
 
-          %td= link_to title, item.path
-%p= paginate @audit_log
+            %td= link_to title, item.path
+  = render 'common/pagination_bottom', item_name: 'log'
+- else
+  .none-found No access history

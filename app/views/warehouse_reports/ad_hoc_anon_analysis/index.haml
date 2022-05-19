@@ -6,12 +6,10 @@
 = render 'filter'
 
 .warehouse-reports__ad_hoc-export
-  - if @reports.exists?
-    .row
-      .col-8
-        %p= page_entries_info @reports, entry_name: _('report')
+  - if @pagy.count.positive?
+    = render 'common/pagination_top', item_name: 'report'
     .table-responsive
-      %table.table.table-sm.table-hover
+      %table.table.table-striped
         %thead
           %tr
             %th Status
@@ -35,7 +33,6 @@
               %td
                 = link_to warehouse_reports_ad_hoc_anon_analysis_path(report), method: :delete, class: 'btn btn-sm btn-danger btn-icon-only', data: {confirm: "Are you sure you want to delete this report?"} do
                   %i.icon-cross
-
+    = render 'common/pagination_bottom', item_name: 'report'
   - else
-    %p.text-center.well
-      No reports found.
+    .none-found No reports found.

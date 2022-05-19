@@ -6,9 +6,7 @@
   columns = {'percent_complete' => 'Status', 'created_at' => 'Started'}
   directions = current_sort_order(Hash[columns.map {|x,_| [x, nil]}])
   titles = columns
-.row
-  .col-sm-8
-    %p= page_entries_info(@results, entry_name: _('report'))
+= render 'common/pagination_top', item_name: 'report'
 .table-responsive
   %table.table.table-hover.table-striped
     %thead
@@ -39,5 +37,4 @@
           %td
             = link_to report_report_result_path(@report, result),  method: :delete, class: 'btn btn-sm btn-danger btn-icon-only', data: {confirm: _("Would you really like to delete this report result?")} do
               %span.icon-cross
-
-%p= paginate @results, params: {sort: directions.compact.keys.first, direction: directions.compact.values.first}
+= render 'common/pagination_bottom', item_name: 'report'

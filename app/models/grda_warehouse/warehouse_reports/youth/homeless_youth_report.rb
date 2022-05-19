@@ -383,6 +383,12 @@ module GrdaWarehouse::WarehouseReports::Youth
         where(client_id: total_client_ids_served)
     end
 
+    def all_served_ids_by_agency
+      user_id_to_agency_name = User.joins(:agency).pluck(:id, Agency.arel_table[:name]).to_h
+      all_served.group_by { |client| user_id_to_agency_name[client.user_id] }.
+        transform_values { |clients| clients.map(&:client_id) }
+    end
+
     # Clients with a new intake, or a case note, financial assistance, or referral within the date range
     def total_client_ids_served
       @total_client_ids_served ||= (client_ids_for_opened_intakes + client_ids_for_case_notes_in_range + five_a + six_a).uniq

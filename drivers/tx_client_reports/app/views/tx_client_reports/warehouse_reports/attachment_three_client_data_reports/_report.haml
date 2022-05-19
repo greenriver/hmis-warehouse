@@ -1,9 +1,7 @@
 .overflow-scroll
-  .d-flex
-    .page-info!= pagy_info(@pagy, item_name: _('client').pluralize(@pagy.count))
-    .ml-auto!= pagy_bootstrap_nav(@pagy)
-  .card
-    %table.table.table-striped.mb-0
+  = render 'common/pagination_top', item_name: 'client'
+  .table-responsive
+    %table.table.table-striped
       %thead
         %tr
           %th Project Name
@@ -33,3 +31,4 @@
             %td= row[:hh_size]
             %td= number_to_currency(row[:income])
             %td= checkmark(row[:female_hoh])
+  = render 'common/pagination_bottom', item_name: 'client'

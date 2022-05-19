@@ -6,7 +6,7 @@
 = render '/warehouse_reports/breadcrumbs', tab: 'operational'
 = render 'form'
 
-- if @clients.present?
+- if @pagy.count.positive?
   %p
     The following clients have an open PH enrollment between
     = @filter.start
@@ -14,13 +14,12 @@
     = @filter.end
     and opened an enrollment at an emergency shelter or had a street outreach contact between the PH move-in date and PH exit.
 
-  .text-right
+  .text-right.mb-4
     = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary'}) do
-      Download Excel
-  .row
-    .col-sm-12
-      .mb-4= page_entries_info @clients, entry_name: 'Clients'
-      = paginate(@clients)
+      %i.icon-file-excel.icon-lg
+      Download
+
+  = render 'common/pagination_top', item_name: 'client'
 
   - @clients.each do |client|
     .warehouse-reports__client
@@ -30,7 +29,7 @@
       .row
         .col-sm-6
           %h4 PH Enrollments
-          %table.table.table-sm.table-hover
+          %table.table.table-sm
             %thead
               %tr
                 %th Project
@@ -46,7 +45,7 @@
                   %td= enrollment[:last_date_in_program]
         .col-sm-6
           %h4 ES and SO Enrollments
-          %table.table.table-sm.table-hover
+          %table.table.table-sm
             %thead
               %tr
                 %th Project
@@ -64,5 +63,6 @@
                   %td= enrollment[:last_date_in_program]
                   %td= @homeless_service_dates[enrollment[:id]]
                   %td= @homeless_service[enrollment[:id]]
+  = render 'common/pagination_bottom', item_name: 'client'
 - else
-  %p.text-center No clients found.
+  .none-found No clients found.
