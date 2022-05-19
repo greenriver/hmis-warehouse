@@ -110,7 +110,7 @@ module Importers::HmisAutoMigrate
 
     private def replace_original_upload_file
       # rezip files
-      zip_file_path = File.join(@local_path, @upload.hmis_zip.filename)
+      zip_file_path = File.join(@local_path, @upload.hmis_zip.filename.to_s)
       files = Dir.glob(File.join(@local_path, '*')).map { |f| File.basename(f) }
       Zip::File.open(zip_file_path, Zip::File::CREATE) do |zipfile|
         files.each do |filename|
