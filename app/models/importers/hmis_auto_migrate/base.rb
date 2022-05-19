@@ -78,10 +78,10 @@ module Importers::HmisAutoMigrate
     end
 
     private def reconstitute_upload
-      reconstitute_zip_file = File.join(@local_path, @upload.reload.file.file.filename)
+      reconstitute_zip_file = File.join(@local_path, @upload.reload.hmis_zip.filename.to_s)
       FileUtils.mkdir_p(@local_path) unless File.directory?(@local_path)
       File.open(reconstitute_zip_file, 'w+b') do |file|
-        file.write(@upload.content)
+        file.write(@upload.hmis_zip.download)
       end
       reconstitute_zip_file
     end
@@ -97,9 +97,12 @@ module Importers::HmisAutoMigrate
     end
 
     private def add_content_to_upload_and_save(file_path:)
-      @upload.file = Pathname.new(file_path).open
-      @upload.content_type = @upload.file.content_type
-      @upload.content = @upload.file.read
+      path = Pathname.new(file_path)
+      @upload.hmis_zip.attach(
+        io: path.open,
+        content_type: content_type,
+        filename: path.basename,
+      )
       @upload.save!
       @upload.id
     end

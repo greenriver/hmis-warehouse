@@ -73,6 +73,19 @@ module GrdaWarehouse
         end
       end
     end
+
+    def copy_to_s3!
+      return unless content.present?
+      return unless valid? # Ignore uploads that are already invalid (data source deleted?)
+      return if hmis_zip.attached? # don't re-process
+
+      Tempfile.create(binmode: true) do |tmp_file|
+        tmp_file.write(content)
+        tmp_file.rewind
+        hmis_zip.attach(io: tmp_file, content_type: content_type, filename: file, identify: false)
+      end
+    end
+
     # Overrides some methods, so must be included at the end
     include RailsDrivers::Extensions
   end

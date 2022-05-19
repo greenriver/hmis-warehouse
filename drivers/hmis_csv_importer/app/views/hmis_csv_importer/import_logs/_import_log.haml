@@ -34,7 +34,7 @@
         %tr
           %th Files Found
           %td
-            = link_to_if @import&.upload&.content.present?, "#{@import.files.try(:count)} in #{@import.upload.file.to_s.split('/').last}", download_import_path(@import)
+            = link_to_if @import&.upload&.hmis_zip.present?, "#{@import.files.try(:count)} in #{@import.upload.hmis_zip.filename}", download_import_path(@import)
   .col
     %table.table
       %tbody

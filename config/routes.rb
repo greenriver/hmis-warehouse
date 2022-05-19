@@ -609,7 +609,7 @@ Rails.application.routes.draw do
     resource :copy, only: [:new, :create], controller: 'cohorts/copy'
   end
 
-  resources :imports do
+  resources :imports, only: [:index, :show] do
     get :download, on: :member
     get :download_upload, on: :member
   end

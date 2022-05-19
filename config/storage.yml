@@ -18,11 +18,12 @@ amazon:
 
 localstack:
   service: S3
-  endpoint: <%= ENV.fetch('OPENSTACK_S3_ENDPOINT') %>
-  access_key_id: <%= ENV.fetch('AWS_ACCESS_KEY_ID') %>
-  secret_access_key: <%= ENV.fetch('AWS_SECRET_ACCESS_KEY') %>
-  bucket: <%= ENV.fetch('ACTIVE_STORAGE_BUCKET') %>
-  region: <%= ENV.fetch('AWS_REGION') %>
-  http_open_timeout: 60
-  http_read_timeout: 60
+  force_path_style: true # don't force dns hoop jumping
+  endpoint: http://op-localstack:4566
+  access_key_id: '1234'
+  secret_access_key: '12345678'
+  region: us-east-1
+  bucket: <%= ENV.fetch('ACTIVE_STORAGE_BUCKET', 'active-storage') %>
+  http_open_timeout: 30
+  http_read_timeout: 30
   retry_limit: 5

@@ -11,7 +11,7 @@ class UploadsController < ApplicationController
 
   def index
     attributes = GrdaWarehouse::Upload.column_names - ['import_errors', 'content']
-    @uploads = upload_source.select(*attributes).
+    @uploads = upload_source.with_attached_hmis_zip.select(*attributes).
       where(data_source_id: @data_source.id).
       order(created_at: :desc)
     @pagy, @uploads = pagy(@uploads)
@@ -27,12 +27,12 @@ class UploadsController < ApplicationController
   def create
     run_import = false
     # Prevent create if user forgot to include file
-    # unless upload_params[:hmis_zip]
-    #   @upload = upload_source.new
-    #   flash[:alert] = _('You must attach a file in the form.')
-    #   render :new
-    #   return
-    # end
+    unless upload_params[:hmis_zip]
+      @upload = upload_source.new
+      flash[:alert] = _('You must attach a file in the form.')
+      render :new
+      return
+    end
     @upload = upload_source.create!(
       upload_params.merge(
         percent_complete: 0.0,
@@ -64,7 +64,7 @@ class UploadsController < ApplicationController
 
   private def upload_params
     params.require(:grda_warehouse_upload).
-      permit(:file, :deidentified, :project_whitelist, :hmis_zip)
+      permit(:deidentified, :project_whitelist, :hmis_zip)
   end
 
   private def data_source_source
