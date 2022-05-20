@@ -44,6 +44,10 @@ module IncomeBenefitsReport
       order(updated_at: :desc)
     end
 
+    def default_project_types
+      [:ph]
+    end
+
     def run_and_save!
       update(started_at: Time.current)
       begin
@@ -67,7 +71,7 @@ module IncomeBenefitsReport
 
     def filter
       @filter ||= begin
-        f = ::Filters::FilterBase.new(user_id: user_id)
+        f = ::Filters::FilterBase.new(user_id: user_id, enforce_one_year_range: false)
         f.set_from_params(options['filters'].with_indifferent_access) if options.try(:[], 'filters')
         f
       end
