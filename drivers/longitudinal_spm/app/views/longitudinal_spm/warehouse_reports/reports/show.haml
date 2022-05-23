@@ -1,0 +1,40 @@
+= render 'breadcrumbs'
+
+- content_for :title, @report.title
+%h1= content_for :title
+%p.mb-2= @report.description
+%p= "Created by #{@report.user.name_with_email} on #{@report.completed_at.to_date}"
+
+.well.report-listing.warehouse-reports__completed.d-flex.justify-content-between
+  .col-8.pl-0
+    = @report.describe_filter_as_html
+
+- @report.spm_measures.each do |measure, tables|
+  %h2
+    = measure
+    = @report.spm_describe(measure)
+  - tables.each do |table, cells|
+    %h3
+      = table
+      = @report.spm_describe(table)
+    - cells.each do |cell|
+      %h4= @report.spm_describe(table, cell)
+      .chart{id: "spm_#{table.gsub('.', '_')}_#{cell}"}
+      = content_for :page_js do
+        :javascript
+          bb.generate({
+            data: {
+              x: 'x',
+              columns: #{@report.chart_data(measure, table, cell).to_json.html_safe},
+              type: 'line',
+            },
+            axis: {
+              x: {
+                type: 'timeseries',
+                tick: {
+                  format: '%b %Y'
+                }
+              }
+            },
+            bindto: "\#spm_#{table.gsub('.', '_')}_#{cell}"
+          })

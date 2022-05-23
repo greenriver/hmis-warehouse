@@ -14,6 +14,7 @@ module HomelessSummaryReport
     include Filter::ControlSections
     include Filter::FilterScopes
     include Reporting::Status
+    include SpmBasedReports
     include Rails.application.routes.url_helpers
     include ActionView::Helpers::NumberHelper
     include ArelHelper
@@ -112,24 +113,6 @@ module HomelessSummaryReport
 
     def multiple_project_types?
       true
-    end
-
-    def spm_project_types
-      GrdaWarehouse::Hud::Project::SPM_PROJECT_TYPE_CODES
-    end
-
-    def project_type_ids
-      spm_project_types.map { |s| GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING[s.to_sym] }.flatten
-    end
-
-    def project_type_options_for_select
-      GrdaWarehouse::Hud::Project::PROJECT_GROUP_TITLES.select { |k, _| k.in?(spm_project_types) }.freeze.invert
-    end
-
-    def project_options_for_select(user)
-      GrdaWarehouse::Hud::Project.viewable_by(user).
-        with_hud_project_type(project_type_ids).
-        options_for_select(user: user)
     end
 
     private def build_control_sections
