@@ -118,7 +118,7 @@ module BuiltForZeroReport
           changed_at: c_c_change_t[:changed_at],
         }
         data = source_scope.
-          pluck(*([c_t[:id]] + fields.values)).
+          pluck(*fields.values).
           group_by(&:first).
           transform_values { |arr| fields.keys.zip(arr.flatten).to_h }.
           reject { |_, v| v[:change] == 'destroy' && v[:changed_at] < @start_date } # Only include exits in the reporting period
