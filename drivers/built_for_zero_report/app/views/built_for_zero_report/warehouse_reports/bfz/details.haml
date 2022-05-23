@@ -7,13 +7,13 @@
   %table.table.table-striped
     %thead
       %tr
-        %th Client ID
         - columns.each do |key|
           %th= key.to_s.humanize
     %tbody
       - @data.each do |id, values|
         %tr
-          %td
-            = link_to id, client_path(id)
-          - columns.each do |key|
+        - columns.each do |key|
+          - if key == :client_id
+            %td= link_to id, client_path(id)
+          -else
             %td= values[key]
