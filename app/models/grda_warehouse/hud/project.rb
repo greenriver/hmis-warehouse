@@ -783,6 +783,7 @@ module GrdaWarehouse::Hud
         options = {}
         project_scope = viewable_by(user)
         project_scope = project_scope.merge(scope) unless scope.nil?
+        project_scope = project_scope.where(confidential: false) unless user.can_view_confidential_enrollment_details?
 
         project_scope.
           joins(:organization, :data_source).
