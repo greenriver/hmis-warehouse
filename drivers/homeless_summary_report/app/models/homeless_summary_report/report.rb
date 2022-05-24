@@ -615,10 +615,10 @@ module HomelessSummaryReport
     private def destination_buckets
       {
         'Client Count' => [],
-        'Homeless Destinations' => [16], # HUD.homeless_destinations,
+        'Homeless Destinations' => [16, 1, 18], # HUD.homeless_destinations,
         'Permanent Destinations' => HUD.permanent_destinations,
-        'Temporary Destinations' => [1, 14, 27, 18, 12, 13, 2, 32], # NOTE: this should probably be HUD.temporary_destinations, but HUD doesn't define homeless destinations, and some temporary destinations are also institutional, so we'll place them here.
-        'Institutional Destinations' => [7, 4, 5, 15, 25, 29], # HUD.institutional_destinations,
+        'Temporary Destinations' => [2, 12, 13, 14, 27, 29, 32], # NOTE: this should probably be HUD.temporary_destinations, but HUD doesn't define homeless destinations, and some temporary destinations are also institutional, so we'll place them here.
+        'Institutional Destinations' => [4, 5, 6, 7, 15, 25], # HUD.institutional_destinations,
         'Unknown, doesn\'t know, refused, or not collected' => HUD.other_destinations,
         'Remained housed' => [0], # include those who remained housed for 7b2
       }.freeze
