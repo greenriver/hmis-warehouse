@@ -2361,7 +2361,7 @@ module HUD
       2 => 'Neither agree nor disagree',
       3 => 'Somewhat agree',
       4 => 'Strongly agree',
-      8 => 'Client doesn’t know',
+      8 => 'Client doesn\'t know',
       9 => 'Client refused',
       99 => 'Data not collected',
     }
@@ -2376,7 +2376,7 @@ module HUD
       2 => 'Several times a month',
       3 => 'Several times a week',
       4 => 'At least every day',
-      8 => 'Client doesn’t know',
+      8 => 'Client doesn\'t know',
       9 => 'Client refused',
       99 => 'Data not collected',
     }
@@ -2401,7 +2401,7 @@ module HUD
       0 => 'Not currently enrolled in any school or educational course',
       1 => 'Currently enrolled but NOT attending regularly (when school or the course is in session)',
       2 => 'Currently enrolled and attending regularly (when school or the course is in session)',
-      8 => 'Client doesn’t know',
+      8 => 'Client doesn\'t know',
       9 => 'Client refused',
       99 => 'Data not collected',
     }
@@ -2430,8 +2430,8 @@ module HUD
   def current_ed_status
     map = {
       0 => 'Pursuing a high school diploma or GED',
-      1 => 'Pursuing Associate’s Degree',
-      2 => 'Pursuing Bachelor’s Degree',
+      1 => 'Pursuing Associate\'s Degree',
+      2 => 'Pursuing Bachelor\'s Degree',
       3 => 'Pursuing Graduate Degree',
       4 => 'Pursuing other post-secondary credential',
       8 => "Client doesn't know",

@@ -504,7 +504,7 @@ module HudApr::Generators::Shared::Fy2021
         },
         '8 or 9' => {
           order: 3,
-          label: 'Client Doesn’t Know/Client Refused',
+          label: 'Client Doesn\'t Know/Client Refused',
           clause: a_t[:ethnicity].in([8, 9]),
         },
         '99' => {

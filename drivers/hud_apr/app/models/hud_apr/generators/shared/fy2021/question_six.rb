@@ -25,7 +25,7 @@ module HudApr::Generators::Shared::Fy2021
       metadata = {
         header_row: [
           'Data Element',
-          'Client Doesn’t Know/Refused',
+          'Client Doesn\'t Know/Refused',
           'Information Missing',
           'Data Issues',
           'Total',

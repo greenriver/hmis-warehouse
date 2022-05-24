@@ -1102,7 +1102,7 @@ module GrdaWarehouse::Hud
       response = source_disabilities.detect(&:substance?).try(:response)
       nos = [
         'No',
-        'Client doesn’t know',
+        'Client doesn\'t know',
         'Client refused',
         'Data not collected',
       ]

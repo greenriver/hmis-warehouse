@@ -71,7 +71,7 @@ module HudApr::Generators::Shared::Fy2021
         'Client became homeless – moving to a shelter or other place unfit for human habitation' => a_t[:housing_assessment].eq(6),
         'Client went to jail/prison' => a_t[:housing_assessment].eq(7),
         'Client died' => a_t[:housing_assessment].eq(10),
-        'Client doesn’t know/Client refused' => a_t[:housing_assessment].in([8, 9]),
+        'Client doesn\'t know/Client refused' => a_t[:housing_assessment].in([8, 9]),
         'Data not collected (no exit interview completed)' => a_t[:housing_assessment].eq(99).or(leavers_clause.and(a_t[:housing_assessment].eq(nil))),
         'Total' => leavers_clause,
       }.freeze
