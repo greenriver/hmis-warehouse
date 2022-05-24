@@ -7,6 +7,7 @@
 class AccessLogs::Report < OpenStruct
   include ArelHelper
   attr_accessor :filter
+  attr_writer :cas_user_id
 
   def self.viewable_by(user)
     GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: url).
@@ -24,7 +25,7 @@ class AccessLogs::Report < OpenStruct
   def data
     {
       'Warehouse' => ActivityLog.to_a(user_id: filter.user_id, range: filter.range),
-      'CAS' => (Cas::ActivityLog.to_a(range: filter.range) unless filter.user_id.present?),
+      'CAS' => Cas::ActivityLog.to_a(user_id: @cas_user_id, range: filter.range),
     }
   end
 end

@@ -5,8 +5,10 @@
         = f.input :start, as: :date_picker
       .col-sm-3
         = f.input :end, as: :date_picker
-      .col-sm-6
-        = f.input :user_id, as: :select_two, collection: User.all, label: 'User', include_blank: 'All', selected: nil
+      .col-sm-3
+        = f.input :user_id, as: :select_two, collection: User.all, label: 'Warehouse User', include_blank: 'All', selected: nil
+      .col-sm-3
+        = f.input :cas_user_id, as: :select_two, collection: Cas::User.all, label: 'CAS User', include_blank: 'All', selected: nil
 
   - content_for :filter_actions do
     = f.submit 'Download', class: ['btn', 'btn-primary'], data: { disable_with: false }
