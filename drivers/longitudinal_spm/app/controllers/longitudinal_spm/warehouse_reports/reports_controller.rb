@@ -67,24 +67,6 @@ module LongitudinalSpm::WarehouseReports
       respond_with(@report, location: longitudinal_spm_warehouse_reports_reports_path)
     end
 
-    def details
-      # params = details_params(@report)
-      # @variant = params['variant'] || 'all_persons'
-      # @cell = "spm_#{params['cell']}"
-      # @cell_name = @cell.humanize.split(' ')[1..].join(' ')
-      # if @report.field_measure(params['cell']) == 1
-      #   @measure = 'Measure 1'
-      #   @data_cells = @report.m1_fields.keys
-      # elsif @report.field_measure(params['cell']) == 2
-      #   @measure = 'Measure 2'
-      #   @data_cells = ['m2_reentry_days']
-      # elsif @report.field_measure(params['cell']) == 7
-      #   @measure = 'Measure 7'
-      #   @data_cells = [params['cell']]
-      # end
-      # @detail_clients = @report.clients.send(@variant).send(@cell)
-    end
-
     def details_params
       params.permit(
         :spm_id,

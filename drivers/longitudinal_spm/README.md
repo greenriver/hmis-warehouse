@@ -1,3 +1,3 @@
 ## LongitudinalSpm README
 
-This README file should be used to explain the functionality of the driver.
+Compare quarterly System Performance Measurement Reports for length of time homeless, returns to homelessness, and successful placements on a quarterly cycle.
