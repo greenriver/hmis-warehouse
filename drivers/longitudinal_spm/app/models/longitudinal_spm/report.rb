@@ -207,10 +207,10 @@ module LongitudinalSpm
         spm_filter.update(options.deep_merge(dates))
         report = HudReports::ReportInstance.from_filter(
           spm_filter,
-          generator.title,
+          spm_generator.title,
           build_for_questions: spm_measures.keys,
         )
-        generator.new(report).run!(email: false, manual: false)
+        spm_generator.new(report).run!(email: false, manual: false)
         spms.create(report_id: id, spm_id: report.id, start_date: dates[:start], end_date: dates[:end])
       end
     end
