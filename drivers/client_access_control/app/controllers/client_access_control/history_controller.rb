@@ -117,7 +117,7 @@ module ClientAccessControl
         includes(:service_history_services, :organization).
         each do |enrollment|
           project_type = enrollment.send(enrollment.class.project_type_column)
-          project_name = enrollment.project&.name(include_confidential_names: current_user.can_view_confidential_enrollment_details?)
+          project_name = enrollment.project&.name(current_user)
           @dates[enrollment.date] ||= []
           record = {
             date: enrollment.date,
@@ -163,7 +163,7 @@ module ClientAccessControl
         preload(:service_history_services, :organization, :project).
         each do |enrollment|
           project_type = enrollment.send(enrollment.class.project_type_column)
-          project_name = enrollment.project&.name(include_confidential_names: current_user.can_view_confidential_enrollment_details?)
+          project_name = enrollment.project&.name(current_user)
           @dates[enrollment.date] ||= []
           record = {
             record_type: enrollment.record_type,

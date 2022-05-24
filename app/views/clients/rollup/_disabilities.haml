@@ -27,7 +27,7 @@
           %tr
             %td
               .ds{class: "ds-color-#{disability.data_source_id}"}= ds_short_name_for(disability.enrollment.client.id)
-            %td= project&.name(include_confidential_names: can_view_confidential_enrollment_details?)
+            %td= project&.name(current_user)
             %td.date-cell= disability.enrollment.EntryDate
             %td= disability.InformationDate
             %td= HUD.disability_type disability.DisabilityType

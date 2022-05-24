@@ -21,7 +21,7 @@
       .col-sm-4
         %h4 Projects
         - names = @report.projects.map do |project|
-          - project.organization_and_name(include_confidential_names: true)
+          - project.organization_and_name(current_user)
         %p= names.join('<br />').html_safe
       .col-sm-4
         %h4 Run

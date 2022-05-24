@@ -18,7 +18,7 @@ wb.add_worksheet(name: "Exit Detail #{GrdaWarehouse::WarehouseReports::Dashboard
       client.LastName,
       enrollment.last_date_in_program,
       enrollment.destination,
-      enrollment.project.name(include_confidential_names: current_user.can_view_confidential_enrollment_details?),
+      enrollment.project.name(current_user),
       HUD.ethnicity(client.Ethnicity),
     ] + GrdaWarehouse::Hud::Client.race_fields.map { |m| HUD.no_yes_reasons_for_missing_data(client[m.to_sym]&.to_i) }
     sheet.add_row(row)

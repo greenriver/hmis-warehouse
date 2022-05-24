@@ -24,7 +24,7 @@
           %tr
             %td
               .ds{class: "ds-color-#{h.data_source_id}"}= ds_short_name_for(h.enrollment.client.id)
-            %td= project&.name(include_confidential_names: can_view_confidential_enrollment_details?)
+            %td= project&.name(current_user)
             %td.date-cell= h.enrollment.EntryDate
             %td= h.InformationDate
             %td= hud_1_8 h.DomesticViolenceVictim

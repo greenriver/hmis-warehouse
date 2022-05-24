@@ -571,11 +571,10 @@ module GrdaWarehouse::Hud
 
     # Get the name for this project, protecting confidential names if appropriate
     #
-    # @param include_confidential_names [Boolean] include confidential names, or replace them with a generic string?
-    # FIXME: include_confidential_names should default to false
+    # @param user [User] user viewing the project. If not provided, confidential project names will be obfuscated.
     # @param include_project_type [Boolean] include the HUD project type in the name?
-    def name(include_confidential_names: true, include_project_type: false)
-      project_name = if include_confidential_names
+    def name(user = nil, include_project_type: false)
+      project_name = if user.present? && user.can_view_confidential_enrollment_details?
         self.ProjectName
       else
         safe_project_name
@@ -611,9 +610,9 @@ module GrdaWarehouse::Hud
       organization.OrganizationName
     end
 
-    def organization_and_name(include_confidential_names: false)
-      project_name = name(include_confidential_names: include_confidential_names, include_project_type: true)
-      return "#{organization&.OrganizationName} / #{project_name}" if include_confidential_names
+    def organization_and_name(user)
+      project_name = name(user, include_project_type: true)
+      return "#{organization&.OrganizationName} / #{project_name}" if user.can_view_confidential_enrollment_details?
 
       "#{organization&.OrganizationName} / #{project_name}" unless confidential?
 
@@ -621,7 +620,10 @@ module GrdaWarehouse::Hud
     end
 
     def name_and_type(include_confidential_names: false)
-      name(include_confidential_names: include_confidential_names, include_project_type: true)
+      project_name = include_confidential_names ? self.ProjectName : safe_project_name
+      return project_name unless computed_project_type.present?
+
+      "#{project_name} (#{HUD.project_type_brief(computed_project_type)})"
     end
 
     def self.project_names_for_coc coc_code
@@ -799,7 +801,7 @@ module GrdaWarehouse::Hud
             org_name = project.organization.OrganizationName
             org_name += " at #{project.data_source.short_name}" if Rails.env.development?
             options[org_name] ||= []
-            text = project.name(include_confidential_names: user.can_view_confidential_enrollment_details?, include_project_type: true)
+            text = project.name(user, include_project_type: true)
             # text += "#{project.ContinuumProject.inspect} #{project.hud_continuum_funded.inspect}"
             options[org_name] << [
               text,

@@ -11,7 +11,7 @@
       %h3 Assessment Details
       %dl
         %dt Project
-        %dd= @assessment.enrollment.project&.name(include_confidential_names: can_view_confidential_enrollment_details?)
+        %dd= @assessment.enrollment.project&.name(current_user)
         %dt Assessment Date
         %dd= @assessment.AssessmentDate
         %dt Assessment Level

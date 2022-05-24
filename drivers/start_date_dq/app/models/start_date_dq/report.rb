@@ -52,7 +52,7 @@ module StartDateDq
         date_to_street: date_to_street,
         entry_date: entry_date,
         personal_id: row.enrollment.PersonalID,
-        project_name: row.project&.name(include_confidential_names: user.can_view_confidential_enrollment_details?),
+        project_name: row.project&.name(user),
         project_type: HUD.project_type_brief(row.project_type),
       }
     end

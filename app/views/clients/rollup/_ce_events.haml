@@ -27,7 +27,7 @@
           %tr
             %td
               .ds{class: "ds-color-#{event.data_source_id}"}= ds_short_name_for(event.enrollment.client.id)
-            %td= project&.name(include_confidential_names: can_view_confidential_enrollment_details?)
+            %td= project&.name(current_user)
             %td.date-cell= event.enrollment.EntryDate
             %td= event.EventDate
             %td= HUD.event(event.Event)

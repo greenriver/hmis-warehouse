@@ -24,7 +24,7 @@
           %tr
             %td
               .ds{class: "ds-color-#{situation.data_source_id}"}= ds_short_name_for(situation.enrollment.client.id)
-            %td= project&.name(include_confidential_names: can_view_confidential_enrollment_details?)
+            %td= project&.name(current_user)
             %td.date-cell= situation.enrollment.EntryDate
             %td= situation.InformationDate
             %td= HUD.living_situation situation.CurrentLivingSituation

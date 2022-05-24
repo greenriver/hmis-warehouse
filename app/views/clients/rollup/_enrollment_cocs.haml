@@ -25,7 +25,7 @@
           %tr
             %td
               .ds{class: "ds-color-#{enrollment_coc.data_source_id}"}= ds_short_name_for(enrollment_coc.enrollment.client.id)
-            %td= project&.name(include_confidential_names: can_view_confidential_enrollment_details?)
+            %td= project&.name(current_user)
             %td.date-cell= enrollment_coc.enrollment.EntryDate
             %td= enrollment_coc.InformationDate
             %td= enrollment_coc.CoCCode
