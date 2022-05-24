@@ -7,34 +7,41 @@
 
 .well.report-listing.warehouse-reports__completed.d-flex.justify-content-between
   .col-8.pl-0
+    %h3 Universe
     = @report.describe_filter_as_html
+  .col-4.ml-auto
+    - if can_view_all_hud_reports? || can_view_own_hud_reports?
+      %h3 SPM Reports
+      - @report.spms.order(start_date: :asc).each do |spm|
+        .ml-auto
+          = link_to "#{spm.start_date} - #{spm.end_date}", hud_reports_spm_path(spm.spm_id), target: :_blank, class: 'btn btn-sm btn-secondary ml-2 mb-2'
+
 
 - @report.spm_measures.each do |measure, tables|
-  %h2
-    = measure
-    = @report.spm_describe(measure)
-  - tables.each do |table, cells|
-    %h3
-      = table
-      = @report.spm_describe(table)
-    - cells.each do |cell|
-      %h4= @report.spm_describe(table, cell)
-      .chart{id: "spm_#{table.gsub('.', '_')}_#{cell}"}
-      = content_for :page_js do
-        :javascript
-          bb.generate({
-            data: {
-              x: 'x',
-              columns: #{@report.chart_data(measure, table, cell).to_json.html_safe},
-              type: 'line',
-            },
-            axis: {
-              x: {
-                type: 'timeseries',
-                tick: {
-                  format: '%b %Y'
+  %h2= "#{measure}: #{@report.spm_describe(measure)}"
+  .well
+    - tables.each do |table, cells|
+      %h3
+        = "Table: #{table}"
+        = @report.spm_describe(table)
+      - cells.each do |cell|
+        %h4= @report.spm_describe(table, cell)
+        .chart{id: "spm_#{table.gsub('.', '_')}_#{cell}"}
+        = content_for :page_js do
+          :javascript
+            bb.generate({
+              data: {
+                x: 'x',
+                columns: #{@report.chart_data(measure, table, cell).to_json.html_safe},
+                type: 'line',
+              },
+              axis: {
+                x: {
+                  type: 'timeseries',
+                  tick: {
+                    format: '%b %Y'
+                  }
                 }
-              }
-            },
-            bindto: "\#spm_#{table.gsub('.', '_')}_#{cell}"
-          })
+              },
+              bindto: "\#spm_#{table.gsub('.', '_')}_#{cell}"
+            })
