@@ -8,7 +8,7 @@ module Cas
   class ActivityLog < CasBase
     belongs_to :user
 
-    def self.to_a(range: 1.years.ago..Time.current)
+    def self.to_a(user_id: nil, range: 1.years.ago..Time.current)
       return nil unless db_exists?
 
       columns = {
@@ -21,6 +21,7 @@ module Cas
         referrer: 'Referrer',
       }
       scope = where(created_at: range).left_outer_joins(user: :agency)
+      scope = scope.where(user_id: user_id) if user_id.present?
       data = pluck_to_hash(columns, scope)
       data = scrub(data)
 
