@@ -5,7 +5,11 @@ wb.add_worksheet(name: @name.slice(0,30).gsub(':', ' ')) do |sheet|
   @clients.each do |client|
     row = []
     HudPathReport::Fy2020::PathClient.detail_headers.each_key do |k|
-      row << client[k]
+      if k == 'contacts'
+        row << count_dates(client[k])
+      else
+        row << client[k]
+      end
     end
     sheet.add_row(row)
   end

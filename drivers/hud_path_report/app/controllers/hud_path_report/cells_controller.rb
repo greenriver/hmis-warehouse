@@ -32,4 +32,8 @@ module HudPathReport
     end
     helper_method :formatted_cell
   end
+
+  def count_dates(date_array)
+    date_array.sort.tally.map { |k, v| "#{k} (#{v})" }.join(', ')
+  end
 end
