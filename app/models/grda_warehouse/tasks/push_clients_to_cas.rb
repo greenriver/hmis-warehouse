@@ -47,8 +47,11 @@ module GrdaWarehouse::Tasks
               :processed_service_history,
               :hmis_client,
               :source_disabilities,
+              :source_health_and_dvs,
+              :source_exits,
               source_clients: { most_recent_pathways_or_rrh_assessment: [:assessment_questions, :user] },
               cohort_clients: :cohort,
+              source_enrollments: [:income_benefits, :exit],
             ).
               where(id: client_id_batch).find_each do |client|
               project_client = project_clients[client.id] || Cas::ProjectClient.new(data_source_id: data_source.id, id_in_data_source: client.id)
