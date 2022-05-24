@@ -896,7 +896,12 @@ module GrdaWarehouse::Hud
     end
 
     def deceased_on
-      @deceased_on ||= source_exits.where(Destination: ::HUD.valid_destinations.invert['Deceased']).pluck(:ExitDate).last
+      # To allow preload(:source_exits) do the calculation in memory
+      @deceased_on ||= source_exits.
+        select do |m|
+          m.Destination == ::HUD.valid_destinations.invert['Deceased']
+        end&.
+        max_by(&:ExitDate)&.ExitDate
     end
 
     def moved_in_with_ph?
@@ -1145,14 +1150,16 @@ module GrdaWarehouse::Hud
     def domestic_violence?
       return pathways_domestic_violence if pathways_domestic_violence
 
-      dv_scope = source_health_and_dvs.where(DomesticViolenceVictim: 1)
+      # To allow preload(:source_health_and_dvs) do the calculation in memory
+      dv_scope = source_health_and_dvs.select { |m| m.DomesticViolenceVictim == 1 }
       lookback_days = GrdaWarehouse::Config.get(:domestic_violence_lookback_days)
       if lookback_days&.positive?
-        dv_scope.where(hdv_t[:InformationDate].gt(lookback_days.days.ago.to_date)). # Limit report date to a reasonable range
-          where(hdv_t[:WhenOccurred].eq(1)). # Limit to within 3 months of report date
-          exists?
+        dv_scope.select do |m|
+          m.InformationDate > lookback_days.days.ago.to_date && # Limit report date to a reasonable range
+          m.WhenOccurred == 1 # Limit to within 3 months of report date
+        end.present?
       else
-        dv_scope.exists?
+        dv_scope.present?
       end
     end
 
@@ -1620,9 +1627,14 @@ module GrdaWarehouse::Hud
     def cas_pregnancy_status
       one_year_ago = 1.years.ago.to_date
       in_last_year = one_year_ago .. Date.current
-      hmis_pregnancy = source_health_and_dvs.where(PregnancyStatus: 1).
-        where(hdv_t[:InformationDate].gt(one_year_ago).
-          or(hdv_t[:DueDate].gt(Date.current - 3.months))).exists?
+      # To allow preload(:source_health_and_dvs) do the calculation in memory
+      hmis_pregnancy = source_health_and_dvs.detect do |m|
+        m.PregnancyStatus == 1 &&
+        (
+          m.InformationDate > one_year_ago ||
+          m.DueDate > Date.current - 3.months
+        )
+      end.present?
       vispdat_pregnancy = vispdats.completed.where(pregnant_answer: 1, submitted_at: in_last_year).exists?
       eto_pregnancy = source_hmis_forms.vispdat.
         vispdat_pregnant.
