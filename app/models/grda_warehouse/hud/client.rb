@@ -896,6 +896,7 @@ module GrdaWarehouse::Hud
     end
 
     def deceased_on
+      # To allow preload(:source_exits) do the calculation in memory
       @deceased_on ||= source_exits.
         select do |m|
           m.Destination == ::HUD.valid_destinations.invert['Deceased']
@@ -1149,6 +1150,7 @@ module GrdaWarehouse::Hud
     def domestic_violence?
       return pathways_domestic_violence if pathways_domestic_violence
 
+      # To allow preload(:source_health_and_dvs) do the calculation in memory
       dv_scope = source_health_and_dvs.select { |m| m.DomesticViolenceVictim == 1 }
       lookback_days = GrdaWarehouse::Config.get(:domestic_violence_lookback_days)
       if lookback_days&.positive?
@@ -1625,6 +1627,7 @@ module GrdaWarehouse::Hud
     def cas_pregnancy_status
       one_year_ago = 1.years.ago.to_date
       in_last_year = one_year_ago .. Date.current
+      # To allow preload(:source_health_and_dvs) do the calculation in memory
       hmis_pregnancy = source_health_and_dvs.detect do |m|
         m.PregnancyStatus == 1 &&
         (

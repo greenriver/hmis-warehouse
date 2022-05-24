@@ -303,6 +303,7 @@ module CasClientData
     end
 
     private def max_current_total_monthly_income
+      # To allow preload(:source_enrollments) do the open_on_date calculation in memory
       source_enrollments.select do |enrollment|
         entry_date = enrollment.EntryDate
         exit_date = enrollment.exit&.ExitDate || Date.tomorrow
