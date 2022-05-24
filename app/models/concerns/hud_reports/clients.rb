@@ -26,7 +26,7 @@ module HudReports::Clients
       {
         'Yes' => column.eq(1),
         'No' => column.eq(0),
-        'Client Doesn’t Know/Client Refused' => column.in([8, 9]),
+        'Client Doesn\'t Know/Client Refused' => column.in([8, 9]),
         'Data Not Collected' => column.eq(99).or(column.eq(nil)),
         'Total' => Arel.sql('1=1'),
       }
