@@ -23,7 +23,7 @@
             %tr
               %td
                 .ds{class: "ds-color-#{benefit.data_source_id}"}= ds_short_name_for(benefit.client.id)
-              %td= GrdaWarehouse::Hud::Project.confidentialize(name: project&.name)
+              %td= project&.name(include_confidential_names: can_view_confidential_enrollment_details?)
               %td= l benefit.enrollment.EntryDate
               %td= benefit.InformationDate
               %td= HUD.data_collection_stage(benefit.DataCollectionStage)

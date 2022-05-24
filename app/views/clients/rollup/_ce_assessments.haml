@@ -26,7 +26,7 @@
           %tr
             %td
               .ds{class: "ds-color-#{assessment.data_source_id}"}= ds_short_name_for(assessment.enrollment.client.id)
-            %td= GrdaWarehouse::Hud::Project.confidentialize(name: project&.name)
+            %td= project&.name(include_confidential_names: can_view_confidential_enrollment_details?)
             %td.date-cell= assessment.enrollment.EntryDate
             %td= link_to(assessment.AssessmentDate, client_hud_assessment_path(@client, assessment))
             %td= HUD.assessment_type assessment.AssessmentType
