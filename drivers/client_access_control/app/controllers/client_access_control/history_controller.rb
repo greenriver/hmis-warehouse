@@ -117,7 +117,7 @@ module ClientAccessControl
         includes(:service_history_services, :organization).
         each do |enrollment|
           project_type = enrollment.send(enrollment.class.project_type_column)
-          project_name = name_for_project(enrollment.project_name)
+          project_name = enrollment.project&.name(include_confidential_names: current_user.can_view_confidential_enrollment_details?)
           @dates[enrollment.date] ||= []
           record = {
             date: enrollment.date,
@@ -160,10 +160,10 @@ module ClientAccessControl
       @years = (params[:years] || 3).to_i
       pdf_enrollment_scope.homeless.enrollment_open_in_prior_years(years: @years).
         where(record_type: [:entry, :exit]).
-        preload(:service_history_services, :organization).
+        preload(:service_history_services, :organization, :project).
         each do |enrollment|
           project_type = enrollment.send(enrollment.class.project_type_column)
-          project_name = name_for_project(enrollment.project_name)
+          project_name = enrollment.project&.name(include_confidential_names: current_user.can_view_confidential_enrollment_details?)
           @dates[enrollment.date] ||= []
           record = {
             record_type: enrollment.record_type,
@@ -228,14 +228,6 @@ module ClientAccessControl
 
     private def client_source
       ::GrdaWarehouse::Hud::Client
-    end
-
-    private def name_for_project(project_name)
-      if current_user&.can_view_confidential_enrollment_details?
-        project_name
-      else
-        ::GrdaWarehouse::Hud::Project.confidentialize(name: project_name)
-      end
     end
 
     private def enrollment_scope

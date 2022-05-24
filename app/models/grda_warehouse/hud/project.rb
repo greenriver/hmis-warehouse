@@ -585,9 +585,19 @@ module GrdaWarehouse::Hud
       project_name
     end
 
+    def self.confidentialize_name(user, name, confidential)
+      return name if user.can_view_confidential_enrollment_details?
+
+      if confidential
+        GrdaWarehouse::Hud::Project.confidential_project_name
+      else
+        name
+      end
+    end
+
     # Get the safe name for this project.
     def safe_project_name
-      if confidential_name?
+      if confidential?
         self.class.confidential_project_name
       else
         self.ProjectName
@@ -601,15 +611,11 @@ module GrdaWarehouse::Hud
       organization.OrganizationName
     end
 
-    def confidential_name?
-      confidential? || /healthcare/i.match(self.ProjectName).present?
-    end
-
     def organization_and_name(include_confidential_names: false)
       project_name = name(include_confidential_names: include_confidential_names, include_project_type: true)
       return "#{organization&.OrganizationName} / #{project_name}" if include_confidential_names
 
-      "#{organization&.OrganizationName} / #{project_name}" unless confidential_name?
+      "#{organization&.OrganizationName} / #{project_name}" unless confidential?
 
       project_name
     end
@@ -710,9 +716,9 @@ module GrdaWarehouse::Hud
       'If enrollments are combined, the import process will collapse sequential enrollments for a given client at this project.'
     end
 
-    # Sometimes all we have is a name, we still want to try and
-    # protect those
-    def self.confidentialize(name:)
+    # Sometimes all we have is a name, we still want to try and protect those.
+    # This is not reliable! Use `name` or `confidentialize_name` methods whenever possible.
+    def self.confidentialize_by_name_only(name:)
       # cache for a short amount of time to avoid multiple fetches
       @confidential_project_names = Rails.cache.fetch('confidential_project_names', expires_in: 1.minutes) do
         GrdaWarehouse::Hud::Project.where(confidential: true).
@@ -720,7 +726,7 @@ module GrdaWarehouse::Hud
           map(&:downcase).
           map(&:strip)
       end
-      if @confidential_project_names.include?(name&.downcase&.strip) || /healthcare/i.match(name).present?
+      if @confidential_project_names.include?(name&.downcase&.strip)
         GrdaWarehouse::Hud::Project.confidential_project_name
       else
         name
