@@ -16,7 +16,7 @@ module AccessLogs::WarehouseReports
           # BaseFilters tries really hard to set the user_id, but in this case, sometimes
           # we don't want it
           @filter.user_id = filter_params[:filters][:user_id]
-          @report = AccessLogs::Report.new(filter: @filter, cas_user_id: @cas_user_id)
+          @report = AccessLogs::Report.new(filter: @filter)
           # Set the CAS user ID on the report because it's not on the filter object
           @report.cas_user_id = filter_params[:filters]['cas_user_id']
 
