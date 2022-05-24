@@ -60,7 +60,7 @@ module WarehouseReports::Health
 
     def show
       @file = Health::Enrollment.find(params[:id].to_i)
-      @pagy, @transactions = pagy(@file.transactions)
+      @pagy, @transactions = pagy_array(@file.transactions)
     end
 
     def download
