@@ -1,5 +1,5 @@
 = content_for :modal_title do
-  Edit Funder for #{@funder.project.name} at #{@funder.project.organization.name}
+  Edit Funder for #{@funder.project.name(current_user)} at #{@funder.project.organization.name}
 = simple_form_for :funder, url: manual_hmis_data_funder_path, method: :patch do |f|
   = render 'manual_hmis_data/form', form: f
   = f.submit 'Save Funder'
