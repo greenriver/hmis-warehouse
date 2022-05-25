@@ -114,7 +114,7 @@ module ClientAccessControl
     def set_dates
       @dates = {}
       enrollment_scope.
-        includes(:service_history_services, :organization, :project).references(:project).
+        includes(:service_history_services, :organization, :project).references(:organization, :project).
         each do |enrollment|
           project_type = enrollment.send(enrollment.class.project_type_column)
           project_name = enrollment.project&.name(current_user)
