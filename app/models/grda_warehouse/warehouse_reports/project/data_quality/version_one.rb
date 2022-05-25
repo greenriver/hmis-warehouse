@@ -710,7 +710,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         counts[:last_of_month] = data[:last_of_month].count
         project_counts = {
           id: project.id,
-          name: project.name,
+          name: project.ProjectName,
           project_type: project[GrdaWarehouse::Hud::Project.project_type_column],
         }.merge(counts)
         totals[:counts][:capacity] += counts[:capacity]
