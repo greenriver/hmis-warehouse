@@ -30,7 +30,7 @@ module GrdaWarehouse
       response.read_body
     end
 
-    def put(query, body)
+    def post(query, body)
       url = URI([endpoint, query].compact.join('/'))
       https = Net::HTTP.new(url.host, url.port)
       https.use_ssl = true
