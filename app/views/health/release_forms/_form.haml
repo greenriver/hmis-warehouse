@@ -1,7 +1,11 @@
 = simple_form_for @release_form, url: form_url, as: :form, remote: true, html: {multipart: true} do |f|
 
-  = f.error_notification
-
+  - if @release_form.errors.any?
+    .alert.alert-danger.flex-column.align-items-start
+      %p Please review the errors below:
+      %ul.error_list
+        - @release_form.errors.messages.values.first.each do |msg|
+          %li= msg
   .row
     .col-sm-6
       = f.input :signature_on, as: :date_picker
@@ -17,10 +21,7 @@
           %i.icon-download2
           Blank Release Form
 
-  - highlights = ''
-  - if @release_form.errors.messages[:file_location].present?
-    - highlights = 'alert alert-danger'
-  %div{class: highlights}
+  %div
     .row
       .col-sm-6.j-file-upload
         = render 'upload_fields', f: f
