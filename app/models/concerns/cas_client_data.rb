@@ -322,7 +322,7 @@ module CasClientData
     end
 
     private def days_homeless_for_vispdat_prioritization
-      vispdat_prioritization_days_homeless || days_homeless_in_last_three_years_cached
+      vispdat_prioritization_days_homeless || days_homeless_in_last_three_years_cached || 0
     end
 
     private def hmis_days_homeless_in_last_three_years
