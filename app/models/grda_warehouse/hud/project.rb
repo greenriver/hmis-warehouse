@@ -626,11 +626,8 @@ module GrdaWarehouse::Hud
       project_name
     end
 
-    def name_and_type(include_confidential_names: false)
-      project_name = include_confidential_names ? self.ProjectName : safe_project_name
-      return project_name unless computed_project_type.present?
-
-      "#{project_name} (#{HUD.project_type_brief(computed_project_type)})"
+    def name_and_type(ignore_confidential_status: false)
+      name(include_project_type: true, ignore_confidential_status: ignore_confidential_status)
     end
 
     def self.project_names_for_coc coc_code

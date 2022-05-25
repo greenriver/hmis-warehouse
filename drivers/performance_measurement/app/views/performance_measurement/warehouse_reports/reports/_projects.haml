@@ -13,7 +13,7 @@
       - next unless result.hud_project
 
       .page-break-avoid
-        %h3.mb-4= result.hud_project.name_and_type
+        %h3.mb-4= result.hud_project.name_and_type(ignore_confidential_status: true)
         = render 'performance_measurement/warehouse_reports/reports/details_row', key: key, result: result, class_name: "jProjectLevelPerformance_#{key}_#{project_id}", show_label_detail: false
 - other_projects = @report.other_projects(current_user, key)
 - if other_projects.present?
@@ -24,7 +24,7 @@
       - next unless result.hud_project
 
       .page-break-avoid
-        %h3.mb-4= result.hud_project.name_and_type
+        %h3.mb-4= result.hud_project.name_and_type(ignore_confidential_status: true)
         = render 'performance_measurement/warehouse_reports/reports/details_row', key: key, result: result, class_name: "jProjectLevelPerformance_#{key}_#{project_id}", show_label_detail: false
 
 = content_for :page_js do
