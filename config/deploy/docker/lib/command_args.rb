@@ -7,7 +7,29 @@ class CommandArgs
 
   def initialize
     path = Pathname.new(__FILE__).join('..', '..', 'assets', 'secret.deploy.values.yml')
-    config = YAML.load_file(path)
+    local_config = YAML.load_file(path)
+    remote_config_text = AwsSdkHelpers::Helpers.get_secret(ENV['SECRETS_YML_SECRET_ARN'])
+    remote_config = YAML.safe_load(remote_config_text)
+
+    if local_config != remote_config
+      puts 'Local secrets.yml differs from remote config, would you like to pull down the remote version? This will overwrite your local file. [y/N]'
+      unsure = $stdin.readline
+      if unsure.chomp.downcase.match?(/y(es)?/)
+        File.write(path, remote_config_text)
+        config = remote_config
+      else
+        tmppath = "/tmp/remote-secrets-#{Time.now.to_i}.yml"
+        File.write(tmppath, remote_config_text)
+        puts "Okay. Remote config saved to #{tmppath} for your convenience. (Local is at #{path})"
+        exit
+      end
+    elsif remote_config.nil?
+      config = local_config
+      puts "[WARN] ❗ Remote secrets.yml not found, using local: #{path}"
+    else
+      config = remote_config
+    end
+
     defaults = config['_global_defaults'] || {}
     config.each_key do |key|
       config.delete(key) if key.match?(/^_/)
