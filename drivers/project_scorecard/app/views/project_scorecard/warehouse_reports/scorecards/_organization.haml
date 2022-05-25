@@ -1,4 +1,5 @@
 - id = organization.id
+-# FIXME should confidential projects be hidden or obfuscated?
 .mb-5
   .c-card.c-card--linked.c-card--row.j-parent
     .c-card__content.d-flex.align-items-center
@@ -34,7 +35,7 @@
               = check_box_tag("project[#{project.id}]", 1, false, {class: 'j-child-select'})
               %label{ for:"project_#{project.id}", tabindex: '1' }
           %td<
-            = link_to project.ProjectName, history_project_scorecard_warehouse_reports_scorecards_path(:filters => { project_ids: [project.id], start: 1.year.ago})
+            = link_to project.name(current_user), history_project_scorecard_warehouse_reports_scorecards_path(:filters => { project_ids: [project.id], start: 1.year.ago})
           %td<
             = HUD.project_type_brief(project[GrdaWarehouse::Hud::Project.project_type_column])
           %td<

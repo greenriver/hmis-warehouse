@@ -1,4 +1,5 @@
 - id = organization.id
+-# FIXME should confidential projects be hidden or obfuscated?
 .mb-5
   .c-card.c-card--linked.c-card--row.j-parent
     .c-card__content.d-flex.align-items-center
@@ -35,7 +36,7 @@
               = check_box_tag("project[#{project.id}]", 1, false, {class: 'j-child-select'})
               %label{for:"project_#{project.id}", tabindex:'1' }
           %td<
-            = link_to project.ProjectName, project_data_quality_reports_path(project)
+            = link_to project.name(current_user), project_data_quality_reports_path(project)
           %td<
             = HUD.project_type_brief(project[GrdaWarehouse::Hud::Project.project_type_column])
           %td<
@@ -50,7 +51,6 @@
           %td.text-right<
             = link_to new_project_contact_path(project), data: {loads_in_pjax_modal: true}, class: 'btn btn-secondary btn-sm' do
               = "Manage contacts (#{project.contacts.count})"
-            -# %ul.list-unstyled
               - if project.contacts.any?
                 = project.contacts.each do |contact|
                   %li= contact.full_name_with_email
