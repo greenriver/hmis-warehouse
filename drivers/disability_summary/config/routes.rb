@@ -13,6 +13,7 @@ BostonHmis::Application.routes.draw do
         get :filters, on: :collection
         get :download, on: :collection
         post :render_section, on: :collection
+        get :section, on: :collection
       end
     end
   end
