@@ -54,6 +54,10 @@ module LongitudinalSpm
       update(completed_at: Time.current)
     end
 
+    def url
+      longitudinal_spm_warehouse_reports_report_url(host: ENV.fetch('FQDN'), id: id, protocol: 'https')
+    end
+
     def title
       'Longitudinal System Performance Measures'
     end
