@@ -65,7 +65,7 @@ jobs:
           REPORTING_DATABASE_DB_TEST: test_boston_reporting
         run: |
           apk add --no-cache \
-            nodejs yarn npm \
+            nodejs yarn \
             tzdata \
             git \
             bash \
@@ -83,7 +83,7 @@ jobs:
           echo "postgres:5432:*:postgres:postgres" > ~/.pgpass
           chmod 600 ~/.pgpass
 
-          npm install
+          yarn install
           gem install bundler --version=2.3.8
 
       - name: Install gems
