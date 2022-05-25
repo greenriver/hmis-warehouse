@@ -35,7 +35,7 @@
               = check_box_tag("project[#{project.id}]", 1, false, {class: 'j-child-select'})
               %label{for:"project_#{project.id}", tabindex:'1' }
           %td<
-            = link_to project.name, project_data_quality_reports_path(project)
+            = link_to project.name(current_user), project_data_quality_reports_path(project)
           %td<
             = HUD.project_type_brief(project[GrdaWarehouse::Hud::Project.project_type_column])
           %td<
