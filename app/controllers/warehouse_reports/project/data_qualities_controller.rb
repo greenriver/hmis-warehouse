@@ -187,7 +187,11 @@ module WarehouseReports::Project
     end
 
     def project_scope
-      GrdaWarehouse::Hud::Project.viewable_by(current_user)
+      if current_user.can_view_confidential_enrollment_details?
+        GrdaWarehouse::Hud::Project.viewable_by(current_user)
+      else
+        GrdaWarehouse::Hud::Project.viewable_by(current_user).non_confidential
+      end
     end
 
     def project_group_scope

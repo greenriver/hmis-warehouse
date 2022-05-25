@@ -209,6 +209,10 @@ module GrdaWarehouse::Hud
       where(confidential: true)
     end
 
+    scope :non_confidential, -> do
+      where(confidential: false)
+    end
+
     scope :coc_funded, -> do
       # hud_continuum_funded overrides ContinuumProject
       where(
