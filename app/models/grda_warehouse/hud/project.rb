@@ -617,8 +617,8 @@ module GrdaWarehouse::Hud
       organization.OrganizationName
     end
 
-    def organization_and_name(user)
-      project_name = name(user, include_project_type: true)
+    def organization_and_name(user = nil, ignore_confidential_status: false)
+      project_name = name(user, include_project_type: true, ignore_confidential_status: ignore_confidential_status)
       return "#{organization&.OrganizationName} / #{project_name}" if user.can_view_confidential_enrollment_details?
 
       "#{organization&.OrganizationName} / #{project_name}" unless confidential?
