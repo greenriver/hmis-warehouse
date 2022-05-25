@@ -1647,7 +1647,6 @@ Naming/PredicateName:
     - 'app/models/reports/lsa/fy2019/base.rb'
     - 'app/models/reports/pit/fy2017/base.rb'
     - 'app/models/reports/pit/fy2017/by_project.rb'
-    - 'app/models/reports/pit/fy2018/base.rb'
     - 'app/models/reports/pit/fy2018/by_project.rb'
     - 'app/models/reports/system_performance/fy2016/base.rb'
     - 'app/models/reports/system_performance/fy2017/base.rb'

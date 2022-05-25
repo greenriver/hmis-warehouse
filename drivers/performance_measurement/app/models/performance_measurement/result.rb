@@ -88,7 +88,7 @@ module PerformanceMeasurement
           count = result[value_column].round
           if count.positive?
             project_intermediate << [
-              "#{result.hud_project.name_and_type(ignore_confidential_status: true)} (#{result.hud_project.id})",
+              "#{result.hud_project.name_and_type} (#{result.hud_project.id})",
               count,
             ]
           end

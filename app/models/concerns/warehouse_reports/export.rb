@@ -30,7 +30,7 @@ module WarehouseReports::Export
       when 'data_source_ids'
         GrdaWarehouse::DataSource.where(id: value).map(&:short_name)
       when 'project_ids'
-        GrdaWarehouse::Hud::Project.where(id: value).map { |p| p.name(include_project_type: true, ignore_confidential_status: true) }
+        GrdaWarehouse::Hud::Project.where(id: value).map(&:name_and_type)
       when 'organization_ids'
         GrdaWarehouse::Hud::Organization.where(id: value).map(&:OrganizationName)
       else

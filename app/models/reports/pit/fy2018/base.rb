@@ -52,7 +52,7 @@ module Reports::Pit::Fy2018
     end
 
     private def project_names(ids)
-      GrdaWarehouse::Hud::Project.where(id: ids).map { |p| p.organization_and_name(ignore_confidential_status: true) }
+      GrdaWarehouse::Hud::Project.where(id: ids).map(&:organization_and_name)
     end
 
     private def project_group_names(ids)
