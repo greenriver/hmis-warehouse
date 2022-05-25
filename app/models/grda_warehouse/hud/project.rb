@@ -569,12 +569,15 @@ module GrdaWarehouse::Hud
 
     alias_attribute :name, :ProjectName
 
-    # Get the name for this project, protecting confidential names if appropriate
+    # Get the name for this project, protecting confidential names if appropriate.
+    # Confidential names are shown if the user has permission to view confidential projects
+    # AND the project is in the user's project list.
     #
-    # @param user [User] user viewing the project. If not provided, confidential project names will be obfuscated.
+    # @param user [User] user viewing the project
     # @param include_project_type [Boolean] include the HUD project type in the name?
-    def name(user = nil, include_project_type: false)
-      project_name = if user.present? && user.can_view_confidential_enrollment_details?
+    # @param ignore_confidential_status [Boolean] always show confidential names, regardless of user access?
+    def name(user = nil, include_project_type: false, ignore_confidential_status: false)
+      project_name = if ignore_confidential_status || (user&.can_view_confidential_enrollment_details? && user&.can_access_project?(self))
         self.ProjectName
       else
         safe_project_name
