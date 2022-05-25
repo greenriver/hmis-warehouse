@@ -159,7 +159,7 @@ module ProjectScorecard
     end
 
     def project_name
-      return project.name(ignore_confidential_status: true) if project.present?
+      return project.name if project.present?
 
       project_group.name
     end
