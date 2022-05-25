@@ -309,7 +309,8 @@ module CasClientData
         exit_date = enrollment.exit&.ExitDate || Date.tomorrow
         Date.current.between?(entry_date, exit_date)
       end.map do |enrollment|
-        enrollment.income_benefits&.max_by(&:InformationDate)&.TotalMonthlyIncome
+        enrollment.income_benefits.select { |m| m.InformationDate.present? }&.
+          max_by(&:InformationDate)&.TotalMonthlyIncome
       end.compact.max || 0
     end
 
