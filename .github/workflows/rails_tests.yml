@@ -65,7 +65,7 @@ jobs:
           REPORTING_DATABASE_DB_TEST: test_boston_reporting
         run: |
           apk add --no-cache \
-            nodejs yarn \
+            nodejs yarn npm \
             tzdata \
             git \
             bash \
