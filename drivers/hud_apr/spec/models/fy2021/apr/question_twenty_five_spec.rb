@@ -30,13 +30,13 @@ RSpec.describe HudApr::Generators::Apr::Fy2021::QuestionTwentyFive, type: :model
   describe 'Q25b: Number of Veteran Households' do
   end
 
-  describe 'Q25c: Gender – Veterans' do
+  describe 'Q25c: Gender - Veterans' do
   end
 
-  describe 'Q25d: Age – Veterans' do
+  describe 'Q25d: Age - Veterans' do
   end
 
-  describe 'Q25e: Physical and Mental Health Conditions – Veterans' do
+  describe 'Q25e: Physical and Mental Health Conditions - Veterans' do
   end
 
   describe 'Q25f: Cash Income Category - Income Category - by Start and Annual /Exit Status – Veterans' do

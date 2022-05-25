@@ -62,7 +62,7 @@ module HudApr::Generators::Shared::Fy2021
         header_row: HEADER_ROW,
         row_labels: [
           'Total Households',
-          'For PSH & RRH – the total households served who moved into housing',
+          'For PSH & RRH - the total households served who moved into housing',
         ],
         first_column: 'B',
         last_column: 'F',

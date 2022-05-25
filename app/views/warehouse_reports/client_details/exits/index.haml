@@ -10,6 +10,4 @@
 = render 'background_render', url: render_section_warehouse_reports_client_details_exits_path, fetch_params: { filter: @filter.for_params[:filters] } do
   .rollup
     .rollup-container.well
-
-- if Rails.env.development?
-  %p= link_to 'Section not loading?', section_warehouse_reports_client_details_exits_path(link_params), target: :_blank
+= render 'common/section_not_loading', path_to_section: section_warehouse_reports_client_details_exits_path(link_params)

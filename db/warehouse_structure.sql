@@ -14472,6 +14472,117 @@ ALTER SEQUENCE public.lftp_s3_syncs_id_seq OWNED BY public.lftp_s3_syncs.id;
 
 
 --
+-- Name: longitudinal_spm_results; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.longitudinal_spm_results (
+    id bigint NOT NULL,
+    report_id bigint NOT NULL,
+    spm_id bigint NOT NULL,
+    start_date date,
+    end_date date,
+    measure character varying,
+    "table" character varying,
+    cell character varying,
+    value double precision,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: longitudinal_spm_results_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.longitudinal_spm_results_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: longitudinal_spm_results_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.longitudinal_spm_results_id_seq OWNED BY public.longitudinal_spm_results.id;
+
+
+--
+-- Name: longitudinal_spm_spms; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.longitudinal_spm_spms (
+    id bigint NOT NULL,
+    report_id bigint NOT NULL,
+    spm_id bigint NOT NULL,
+    start_date date,
+    end_date date,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: longitudinal_spm_spms_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.longitudinal_spm_spms_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: longitudinal_spm_spms_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.longitudinal_spm_spms_id_seq OWNED BY public.longitudinal_spm_spms.id;
+
+
+--
+-- Name: longitudinal_spms; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.longitudinal_spms (
+    id bigint NOT NULL,
+    user_id bigint,
+    options jsonb,
+    processing_errors character varying,
+    started_at timestamp without time zone,
+    completed_at timestamp without time zone,
+    failed_at timestamp without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: longitudinal_spms_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.longitudinal_spms_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: longitudinal_spms_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.longitudinal_spms_id_seq OWNED BY public.longitudinal_spms.id;
+
+
+--
 -- Name: lookups_ethnicities_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -20814,6 +20925,27 @@ ALTER TABLE ONLY public.lftp_s3_syncs ALTER COLUMN id SET DEFAULT nextval('publi
 
 
 --
+-- Name: longitudinal_spm_results id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.longitudinal_spm_results ALTER COLUMN id SET DEFAULT nextval('public.longitudinal_spm_results_id_seq'::regclass);
+
+
+--
+-- Name: longitudinal_spm_spms id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.longitudinal_spm_spms ALTER COLUMN id SET DEFAULT nextval('public.longitudinal_spm_spms_id_seq'::regclass);
+
+
+--
+-- Name: longitudinal_spms id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.longitudinal_spms ALTER COLUMN id SET DEFAULT nextval('public.longitudinal_spms_id_seq'::regclass);
+
+
+--
 -- Name: lookups_ethnicities id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -23636,6 +23768,30 @@ ALTER TABLE ONLY public.involved_in_imports
 
 ALTER TABLE ONLY public.lftp_s3_syncs
     ADD CONSTRAINT lftp_s3_syncs_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: longitudinal_spm_results longitudinal_spm_results_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.longitudinal_spm_results
+    ADD CONSTRAINT longitudinal_spm_results_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: longitudinal_spm_spms longitudinal_spm_spms_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.longitudinal_spm_spms
+    ADD CONSTRAINT longitudinal_spm_spms_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: longitudinal_spms longitudinal_spms_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.longitudinal_spms
+    ADD CONSTRAINT longitudinal_spms_pkey PRIMARY KEY (id);
 
 
 --
@@ -40557,6 +40713,41 @@ CREATE INDEX index_lftp_s3_syncs_on_updated_at ON public.lftp_s3_syncs USING btr
 
 
 --
+-- Name: index_longitudinal_spm_results_on_report_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_longitudinal_spm_results_on_report_id ON public.longitudinal_spm_results USING btree (report_id);
+
+
+--
+-- Name: index_longitudinal_spm_results_on_spm_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_longitudinal_spm_results_on_spm_id ON public.longitudinal_spm_results USING btree (spm_id);
+
+
+--
+-- Name: index_longitudinal_spm_spms_on_report_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_longitudinal_spm_spms_on_report_id ON public.longitudinal_spm_spms USING btree (report_id);
+
+
+--
+-- Name: index_longitudinal_spm_spms_on_spm_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_longitudinal_spm_spms_on_spm_id ON public.longitudinal_spm_spms USING btree (spm_id);
+
+
+--
+-- Name: index_longitudinal_spms_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_longitudinal_spms_on_user_id ON public.longitudinal_spms USING btree (user_id);
+
+
+--
 -- Name: index_lookups_ethnicities_on_value; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -47710,6 +47901,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220415192223'),
 ('20220427144200'),
 ('20220511171233'),
-('20220512174700');
+('20220512174700'),
+('20220523123830');
 
 
