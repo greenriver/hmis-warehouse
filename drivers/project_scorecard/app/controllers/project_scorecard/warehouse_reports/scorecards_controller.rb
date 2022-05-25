@@ -35,7 +35,7 @@ module ProjectScorecard::WarehouseReports
 
     def show
       report_id = { report_id: @report.id }
-      @pdf_export = ProjectScorecard::DocumentExports::ScorecardExport.new(query_string: report_id.to_query)
+      @pdf_export = ProjectScorecard::DocumentExports::ScorecardExport.new(query_string: report_id.to_query, user: current_user)
     end
 
     def create

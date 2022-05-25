@@ -13,7 +13,7 @@
         - @reports.each do |report|
           %tr
             - if report.project.present?
-              %td= "#{report.project.organization_and_name} (#{report.project.data_source.name})"
+              %td= "#{report.project.organization_and_name(current_user)} (#{report.project.data_source.name})"
               %td= link_to report.status, project_data_quality_report_path(project_id: report.project_id, id: report.id)
             - else
               %td= report.project_group.name

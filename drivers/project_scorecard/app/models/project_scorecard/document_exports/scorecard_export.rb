@@ -39,7 +39,7 @@ module ProjectScorecard::DocumentExports
           user: user,
           assigns: view_assigns,
         )
-        file_name = @report.project&.name || @report.project_group&.name
+        file_name = @report.project&.name(user) || @report.project_group&.name
         PdfGenerator.new.perform(
           html: html,
           file_name: "#{file_name.titlecase} Scorecard #{DateTime.current.to_s(:db)}",
