@@ -1,3 +1,3 @@
 = content_for :crumbs do
   = link_to project_path(@entity) do
-    = "« #{@entity.ProjectName}"
+    = "« " + @entity.name(current_user, ignore_confidential_status: can_edit_projects?)
