@@ -18,4 +18,3 @@ Rails.application.config.assets.precompile += %w( roi_pdf.css )
 Rails.application.config.assets.precompile += %w( chart.js )
 Rails.application.config.assets.precompile += %w( pdf.js )
 Rails.application.config.assets.precompile += ['theme/styles/*.css']
-Rails.application.config.assets.precompile += %w( moment.min.js )
