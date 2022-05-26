@@ -7,7 +7,7 @@ class CommandArgs
 
   def initialize
     path = Pathname.new(__FILE__).join('..', '..', 'assets', 'secret.deploy.values.yml')
-    local_config = YAML.load_file(path)
+    local_config = File.exist?(path) ? YAML.load_file(path) : false
     remote_config_text = AwsSdkHelpers::Helpers.get_secret(ENV['SECRETS_YML_SECRET_ARN'])
     remote_config = YAML.safe_load(remote_config_text)
 
