@@ -1,7 +1,7 @@
 # Based on https://github.com/ledermann/docker-rails/blob/develop/Dockerfile
 ARG RUBY_VERSION
 # NOTE FROM clears all ARGs
-FROM ruby:$RUBY_VERSION-alpine
+FROM ruby:$RUBY_VERSION-alpine3.15
 
 ARG BUNDLER_VERSION
 
@@ -40,7 +40,7 @@ RUN apk add --no-cache \
   tar xz \
   python3 py3-pip \
   && git config --global --add safe.directory /app \
-  && ln -s libproj.so.21.1.2 /usr/lib/libproj.so.20
+  && ln -s $(ls -1r /usr/lib/libproj.so.* | head -1) /usr/lib/libproj.so.25
 
 RUN pip3 install awscliv2
 
