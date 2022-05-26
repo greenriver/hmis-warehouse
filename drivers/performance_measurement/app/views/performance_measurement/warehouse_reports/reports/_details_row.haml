@@ -35,8 +35,12 @@
       const data = $('.#{class_name}').data('chart');
       const max = Math.max(...data.columns[1].slice(1));
       const includePercent = #{result.percentage?};
+      const max_100 = #{result.max_100?};
       const goal = #{@report.detail_goal_for_reference_line(key).to_json};
-      const axisMax = max < goal && goal !== null ? goal : undefined;
+      let axisMax = max < goal && goal !== null ? goal : undefined;
+      if(max_100) {
+        axisMax = 100;
+      }
       const tooltipTitles = #{result.titles_for_system_level_bar_tooltip.to_json.html_safe}
 
       data.labels.format = function (v, id, i, texts) {
@@ -49,8 +53,7 @@
           return d3.format(",d")(v);
         }
       }
-
-      const chart = bb.generate({
+      options = {
         data: data,
         axis: {
           rotated: includePercent,
@@ -77,7 +80,11 @@
             y: { lines: [{ value: goal }] } }
         }),
         bindto: '.#{class_name}'
-      });
+      };
+      if(max_100) {
+        options.axis.y.padding = { top: 0, bottom: 0}
+      }
+      const chart = bb.generate(options);
       d3.select('.#{class_name} .bb-ygrid-line line').style('stroke-width', 2)
       d3.select('.#{class_name} .bb-ygrid-line line').style('stroke-dasharray', 2)
     });
