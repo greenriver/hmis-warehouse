@@ -46,7 +46,7 @@
   :javascript
 
     $('.jInitialDate').on('change', function(e) {
-      const initial_date =  moment($(this).val(), "MMM DD, YYYY")
+      const initial_date = moment($(this).val(), "MMM DD, YYYY")
       const review_date = initial_date.add(12, 'months');
       $('.jReviewDate').val(review_date.format("MMM D, YYYY"));
     });
