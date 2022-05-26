@@ -1,7 +1,7 @@
 #####################################################
 ## Multi-stage build to speed up subsequent builds ##
 #####################################################
-FROM ruby:2.7.6-alpine
+FROM ruby:2.7.6-alpine3.15
 
 #freetds-dev \
 # maybe can get rid of icu?

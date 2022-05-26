@@ -3,7 +3,7 @@
 ########################
 ## Stage for the code ##
 ########################
-FROM ruby:2.7.6-alpine AS code
+FROM ruby:2.7.6-alpine3.15 AS code
 
 RUN mkdir -p /app /app/shape_files/CoC /etc/ssl/certs \
     /app/shape_files/CoC /app/shape_files/zip_codes.census.2018 \
