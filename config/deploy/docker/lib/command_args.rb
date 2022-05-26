@@ -1,11 +1,14 @@
 # frozen_string_literal: true
 
 require 'yaml'
+require 'dotenv'
 
 class CommandArgs
   attr_accessor :deployments
 
   def initialize
+    Dotenv.load('.env', '.env.local')
+
     path = Pathname.new(__FILE__).join('..', '..', 'assets', 'secret.deploy.values.yml')
     local_config = File.exist?(path) ? YAML.load_file(path) : false
     remote_config_text = AwsSdkHelpers::Helpers.get_secret(ENV['SECRETS_YML_SECRET_ARN'])

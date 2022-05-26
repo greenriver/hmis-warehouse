@@ -14,7 +14,6 @@ WORKDIR /app
 COPY Gemfile Gemfile.lock Rakefile config.ru package.json ./
 COPY bin ./bin
 COPY public ./public
-COPY config/deploy/docker/assets/download_secrets.rb ./bin
 COPY config/deploy/docker/lib ./bin
 COPY config/deploy/docker/assets/deploy_tasks.open-path-warehouse.sh ./bin/deploy_tasks.sh
 
