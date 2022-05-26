@@ -68,7 +68,7 @@ module CePerformance::WarehouseReports
     end
 
     def details
-      details_params(@report)
+      details_params
     end
 
     def details_params
