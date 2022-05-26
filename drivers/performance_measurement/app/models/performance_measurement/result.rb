@@ -41,6 +41,10 @@ module PerformanceMeasurement
       primary_unit.starts_with?('%')
     end
 
+    def max_100?
+      field.starts_with?('returned')
+    end
+
     def data_for_system_level_bar
       columns = if percentage?
         [
