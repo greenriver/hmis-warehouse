@@ -10,14 +10,7 @@ class CommandArgs
     local_config = File.exist?(path) ? YAML.load_file(path) : false
     remote_config_text = AwsSdkHelpers::Helpers.get_secret(ENV['SECRETS_YML_SECRET_ARN'])
 
-    puts "remote_config_text is class #{remote_config_text.class}"
-    resp = AwsSdkHelpers::ClientMethods.secretsmanager.get_secret_value(
-      secret_id: ENV['SECRETS_YML_SECRET_ARN'],
-    )
-    puts "resp keys: #{resp.to_h.keys}"
-    puts "resp[:secret_string] is class #{resp.to_h[:secret_string]}"
-
-    remote_config = YAML.safe_load(remote_config_text)
+    remote_config = YAML.safe_load(remote_config_text, [Symbol])
 
     if local_config != remote_config && local_config.present?
       puts 'Local secrets.yml differs from remote config, would you like to pull down the remote version? This will overwrite your local file. [y/N]'
