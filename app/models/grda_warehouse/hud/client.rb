@@ -1155,7 +1155,7 @@ module GrdaWarehouse::Hud
       lookback_days = GrdaWarehouse::Config.get(:domestic_violence_lookback_days)
       if lookback_days&.positive?
         dv_scope.select do |m|
-          m.InformationDate > lookback_days.days.ago.to_date && # Limit report date to a reasonable range
+          m.InformationDate.present? && m.InformationDate > lookback_days.days.ago.to_date && # Limit report date to a reasonable range
           m.WhenOccurred == 1 # Limit to within 3 months of report date
         end.present?
       else
@@ -1631,8 +1631,8 @@ module GrdaWarehouse::Hud
       hmis_pregnancy = source_health_and_dvs.detect do |m|
         m.PregnancyStatus == 1 &&
         (
-          m.InformationDate > one_year_ago ||
-          m.DueDate > Date.current - 3.months
+          (m.InformationDate.present? && m.InformationDate > one_year_ago) ||
+          (m.DueDate.present? && m.DueDate > Date.current - 3.months)
         )
       end.present?
       vispdat_pregnancy = vispdats.completed.where(pregnant_answer: 1, submitted_at: in_last_year).exists?

@@ -2421,7 +2421,6 @@ Style/TrailingCommaInArguments:
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_one.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_two.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/youth/follow_ups_report.rb'
     - 'app/models/grda_warehouse/warehouse_reports/youth/inactive_intake.rb'
     - 'app/models/health/cha_saver.rb'
     - 'app/models/health/claim.rb'
