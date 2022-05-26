@@ -391,6 +391,96 @@ ALTER SEQUENCE public.cas_reports_id_seq OWNED BY public.cas_reports.id;
 
 
 --
+-- Name: ce_performance_clients; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.ce_performance_clients (
+    id bigint NOT NULL,
+    client_id bigint,
+    report_id bigint,
+    first_name character varying,
+    last_name character varying,
+    reporting_age integer,
+    head_of_household boolean,
+    prior_living_situation integer,
+    los_under_threshold integer,
+    previous_street_essh integer,
+    prevention_tool_score integer,
+    assessment_score integer,
+    events jsonb,
+    assessments jsonb,
+    diversion_event boolean,
+    diversion_successful boolean,
+    veteran boolean,
+    household_size integer,
+    household_ages jsonb,
+    chronically_homeless_at_entry boolean,
+    entry_date date,
+    exit_date date,
+    initial_assessment_date date,
+    latest_assessment_date date,
+    initial_housing_referral_date date,
+    housing_enrollment_entry_date date,
+    housing_enrollment_move_in_date date,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: ce_performance_clients_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.ce_performance_clients_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: ce_performance_clients_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.ce_performance_clients_id_seq OWNED BY public.ce_performance_clients.id;
+
+
+--
+-- Name: ce_performance_results; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.ce_performance_results (
+    id bigint NOT NULL,
+    report_id bigint,
+    field character varying,
+    value double precision,
+    format character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: ce_performance_results_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.ce_performance_results_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: ce_performance_results_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.ce_performance_results_id_seq OWNED BY public.ce_performance_results.id;
+
+
+--
 -- Name: client_service_history; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1875,6 +1965,20 @@ ALTER TABLE ONLY public.cas_reports ALTER COLUMN id SET DEFAULT nextval('public.
 
 
 --
+-- Name: ce_performance_clients id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ce_performance_clients ALTER COLUMN id SET DEFAULT nextval('public.ce_performance_clients_id_seq'::regclass);
+
+
+--
+-- Name: ce_performance_results id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ce_performance_results ALTER COLUMN id SET DEFAULT nextval('public.ce_performance_results_id_seq'::regclass);
+
+
+--
 -- Name: clients_unduplicated id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -2190,6 +2294,22 @@ ALTER TABLE ONLY public.ar_internal_metadata
 
 ALTER TABLE ONLY public.cas_reports
     ADD CONSTRAINT cas_reports_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: ce_performance_clients ce_performance_clients_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ce_performance_clients
+    ADD CONSTRAINT ce_performance_clients_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: ce_performance_results ce_performance_results_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ce_performance_results
+    ADD CONSTRAINT ce_performance_results_pkey PRIMARY KEY (id);
 
 
 --
@@ -2588,6 +2708,27 @@ CREATE INDEX index_agencies_consent_limits_on_consent_limit_id ON public.agencie
 --
 
 CREATE UNIQUE INDEX index_cas_reports_on_client_id_and_match_id_and_decision_id ON public.cas_reports USING btree (client_id, match_id, decision_id);
+
+
+--
+-- Name: index_ce_performance_clients_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ce_performance_clients_on_client_id ON public.ce_performance_clients USING btree (client_id);
+
+
+--
+-- Name: index_ce_performance_clients_on_report_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ce_performance_clients_on_report_id ON public.ce_performance_clients USING btree (report_id);
+
+
+--
+-- Name: index_ce_performance_results_on_report_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ce_performance_results_on_report_id ON public.ce_performance_results USING btree (report_id);
 
 
 --
@@ -3230,6 +3371,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220216174239'),
 ('20220309140327'),
 ('20220314183405'),
-('20220518143528');
+('20220518143528'),
+('20220526203313');
 
 
