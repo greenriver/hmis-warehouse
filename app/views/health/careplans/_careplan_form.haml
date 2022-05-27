@@ -42,12 +42,11 @@
 
 
 
-= javascript_include_tag 'moment.min.js'
 = content_for :page_js do
   :javascript
 
     $('.jInitialDate').on('change', function(e) {
-      var initial_date = moment($(this).val()).format("MMM DD, YYYY");
-      var review_date = moment(initial_date).add(6, 'months');
-      $('.jReviewDate').val(review_date.format("MMM DD, YYYY"));
+      const initial_date = moment($(this).val(), "MMM DD, YYYY")
+      const review_date = initial_date.add(12, 'months');
+      $('.jReviewDate').val(review_date.format("MMM D, YYYY"));
     });

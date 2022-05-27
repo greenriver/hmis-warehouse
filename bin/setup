@@ -10,8 +10,8 @@ Dir.chdir APP_ROOT do
   system 'gem install bundler --conservative'
   system 'bundle check || bundle install --without seven_zip'
 
-  puts '== Installing NPM =='
-  system 'npm install'
+  puts '== Installing NPM dependencies =='
+  system 'yarn install'
 
   ymls = [
     'secrets.yml',
