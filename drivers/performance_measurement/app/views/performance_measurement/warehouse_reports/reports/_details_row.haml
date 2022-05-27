@@ -1,6 +1,7 @@
-- label = @report.detail_denominator_label_for(key)
+- denominator_label = @report.detail_denominator_label_for(key)
+- numerator_label = @report.detail_numerator_label_for(key)
 .d-flex.justify-content-around.mb-4
-  - if label.present? && show_label_detail
+  - if denominator_label.present? && show_label_detail
     .col-4
       = render 'warehouse_reports/indicator', indicator: @report.detail_indicator_result(result, key)
     .col-8.d-flex.justify-content-end.pr-0
@@ -12,16 +13,18 @@
             .mr-2 #{result.report_year}:
             %div
               %strong= result.reporting_numerator
+              = numerator_label
               of
-              = label
               %strong= result.reporting_denominator
+              = denominator_label
           .mb-0.d-flex
             .mr-2 #{result.comparison_year}:
             %div
               %strong= result.comparison_numerator
+              = numerator_label
               of
-              = label
               %strong= result.comparison_denominator
+              = denominator_label
   - else
     .col-6
       = render 'warehouse_reports/indicator', indicator: @report.detail_indicator_result(result, key)
@@ -71,7 +74,36 @@
         legend: { show: false },
         tooltip: {
           contents: (d, defaultTitleFormat, defaultValueFormat, color) => {
-            return _tooltip(d, defaultTitleFormat, defaultValueFormat, color, tooltipTitles, goal)
+            const data = d[0];
+
+            // Build ratio description
+            let description = '';
+            const denominatorLabel = "#{@report.detail_denominator_label_for(key)}";
+            const numeratorLabel = "#{@report.detail_numerator_label_for(key)}";
+            if (denominatorLabel) {
+              const numer = data.index === 0 ? "#{result.reporting_numerator}" : "#{result.comparison_numerator}";
+              const denom = data.index === 0 ? "#{result.reporting_denominator}" : "#{result.comparison_denominator}";
+              description = ` (${numer} ${numeratorLabel} of ${denom} ${denominatorLabel})`;
+            }
+
+            let html = "<table class='bb-tooltip' style='opacity: 1;'>";
+            html += "<thead>";
+            html += `<tr><th colspan="3">${tooltipTitles[data.index]}</th></tr>`
+            if (goal) html += `<tr><th></th><th>Value</th><th>Goal</th></tr>`;
+            html += "</thead>";
+            html += "<tbody>";
+
+            const bg_color = color(data.id);
+            const box = `<td style='white-space: nowrap;'><svg><rect style='fill:${bg_color}' width='10' height='10'></rect></svg>${data.name}</td>`;
+            const value = `<td style='white-space: nowrap;'>${defaultValueFormat(data.value)}${description}</td>`;
+            html += box;
+            html += value;
+            if (goal)
+              html += `<td style='white-space: nowrap;'>${defaultValueFormat(goal)}</td>`;
+            html += "</tr>";
+            html += "</tbody>";
+            html += '</table>';
+            return html;
           },
         },
         ...(goal !== null && {
@@ -88,35 +120,3 @@
       d3.select('.#{class_name} .bb-ygrid-line line').style('stroke-width', 2)
       d3.select('.#{class_name} .bb-ygrid-line line').style('stroke-dasharray', 2)
     });
-
-    function _tooltip(d, defaultTitleFormat, defaultValueFormat, color, tooltipTitles, goal) {
-      const data = d[0];
-
-      // Build ratio description
-      let description = '';
-      const denominatorLabel = "#{@report.detail_denominator_label_for(key)}";
-      if (denominatorLabel) {
-        const numer = data.index === 0 ? "#{result.reporting_numerator}" : "#{result.comparison_numerator}";
-        const denom = data.index === 0 ? "#{result.reporting_denominator}" : "#{result.comparison_denominator}";
-        description = ` (${numer} of ${denominatorLabel} ${denom})`;
-      }
-
-      let html = "<table class='bb-tooltip' style='opacity: 1;'>";
-      html += "<thead>";
-      html += `<tr><th colspan="3">${tooltipTitles[data.index]}</th></tr>`
-      if (goal) html += `<tr><th></th><th>Value</th><th>Goal</th></tr>`;
-      html += "</thead>";
-      html += "<tbody>";
-
-      const bg_color = color(data.id);
-      const box = `<td style='white-space: nowrap;'><svg><rect style='fill:${bg_color}' width='10' height='10'></rect></svg>${data.name}</td>`;
-      const value = `<td style='white-space: nowrap;'>${defaultValueFormat(data.value)}${description}</td>`;
-      html += box;
-      html += value;
-      if (goal)
-        html += `<td style='white-space: nowrap;'>${defaultValueFormat(goal)}</td>`;
-      html += "</tr>";
-      html += "</tbody>";
-      html += '</table>';
-      return html;
-    }
