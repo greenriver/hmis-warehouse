@@ -41,7 +41,7 @@ module ProjectScorecard::DocumentExports
         )
         PdfGenerator.new.perform(
           html: html,
-          file_name: "#{@report.project.name.titlecase} Scorecard #{DateTime.current.to_s(:db)}",
+          file_name: "#{@report.project&.name&.titlecase} Scorecard #{DateTime.current.to_s(:db)}",
         ) do |io|
           self.pdf_file = io
         end
