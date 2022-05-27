@@ -27,9 +27,9 @@
 //= require jquery-ui/widgets/sortable
 //= require jquery-ui/widgets/slider
 //= require jquery-ui/widgets/autocomplete
-//= require leaflet
-//= require leaflet.markercluster/leaflet.markercluster
-//= require leaflet-beautify-marker/leaflet-beautify-marker-icon
+//= require leaflet/dist/leaflet
+//= require leaflet.markercluster/dist/leaflet.markercluster
+//= require beautifymarker/leaflet-beautify-marker-icon
 //= require jquery.periodicalupdater
 //= require jquery.updater
 //= require jquery.minicolors

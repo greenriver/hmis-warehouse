@@ -64,6 +64,7 @@ untracked
 *.code-workspace
 .vscode
 docker-compose.dev.yml
+yarn-error.log
 
 # docker deployment
 docker/deploy/REVISION

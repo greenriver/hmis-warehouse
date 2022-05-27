@@ -145,6 +145,11 @@ balanced-match@^1.0.0:
   resolved "https://registry.yarnpkg.com/balanced-match/-/balanced-match-1.0.0.tgz#89b4d199ab2bee49de164ea02b89ce462d71b767"
   integrity sha512-9Y0g0Q8rmSt+H33DfKv7FOc3v+iRI+o1lbzt8jGcIosYW37IIW/2XVYq5NPdmaD5NQ59Nk26Kl/vZbwW9Fr8vg==
 
+beautifymarker@^1.0.9:
+  version "1.0.9"
+  resolved "https://registry.yarnpkg.com/beautifymarker/-/beautifymarker-1.0.9.tgz#edc49a0667fb87d1a317a78927b47d6b3e602005"
+  integrity sha512-kLkiA2+xXg2/kbgeQTiiJQwKnVmiDleDh3yLTeGZGzEKk0RnopB3l2QhkL3rof0Nq/Lxv98pIWH2eAbDl4SauQ==
+
 billboard.js@^1.12.9:
   version "1.12.9"
   resolved "https://registry.yarnpkg.com/billboard.js/-/billboard.js-1.12.9.tgz#d2f9ebceb044230dbc95348913f2d667dfa05dab"
@@ -1057,6 +1062,16 @@ json-stable-stringify-without-jsonify@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/json-stable-stringify-without-jsonify/-/json-stable-stringify-without-jsonify-1.0.1.tgz#9db7b59496ad3f3cfef30a75142d2d930ad72651"
   integrity sha1-nbe1lJatPzz+8wp1FC0tkwrXJlE=
+
+leaflet.markercluster@^1.5.3:
+  version "1.5.3"
+  resolved "https://registry.yarnpkg.com/leaflet.markercluster/-/leaflet.markercluster-1.5.3.tgz#9cdb52a4eab92671832e1ef9899669e80efc4056"
+  integrity sha512-vPTw/Bndq7eQHjLBVlWpnGeLa3t+3zGiuM7fJwCkiMFq+nmRuG3RI3f7f4N4TDX7T4NpbAXpR2+NTRSEGfCSeA==
+
+leaflet@1.7.1:
+  version "1.7.1"
+  resolved "https://registry.yarnpkg.com/leaflet/-/leaflet-1.7.1.tgz#10d684916edfe1bf41d688a3b97127c0322a2a19"
+  integrity sha512-/xwPEBidtg69Q3HlqPdU3DnrXQOvQU/CCHA1tcDQVzOwm91YMYaILjNp7L4Eaw5Z4sOYdbBz6koWyibppd8Zqw==
 
 levn@^0.4.1:
   version "0.4.1"
