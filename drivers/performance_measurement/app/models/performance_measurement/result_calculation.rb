@@ -668,9 +668,9 @@ module PerformanceMeasurement::ResultCalculation
 
     def returned_in_range(detail, meth, project: nil)
       field = detail[:calculation_column]
-      reporting_returns = client_ids(:returned_ever, :reporting, project_id: project&.project_id)
+      reporting_returns = client_ids(:exited_to_permanent_destination, :reporting, project_id: project&.project_id)
       reporting_returns_in_range = client_ids(field, :reporting, project_id: project&.project_id)
-      comparison_returns = client_ids(:returned_ever, :comparison, project_id: project&.project_id)
+      comparison_returns = client_ids(:exited_to_permanent_destination, :comparison, project_id: project&.project_id)
       comparison_returns_in_range = client_ids(field, :comparison, project_id: project&.project_id)
       reporting_denominator = reporting_returns.count
       reporting_numerator = reporting_returns_in_range.count

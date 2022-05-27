@@ -309,7 +309,8 @@ module CasClientData
         exit_date = enrollment.exit&.ExitDate || Date.tomorrow
         Date.current.between?(entry_date, exit_date)
       end.map do |enrollment|
-        enrollment.income_benefits&.max_by(&:InformationDate)&.TotalMonthlyIncome
+        enrollment.income_benefits.select { |m| m.InformationDate.present? }&.
+          max_by(&:InformationDate)&.TotalMonthlyIncome
       end.compact.max || 0
     end
 
@@ -322,7 +323,7 @@ module CasClientData
     end
 
     private def days_homeless_for_vispdat_prioritization
-      vispdat_prioritization_days_homeless || days_homeless_in_last_three_years_cached
+      vispdat_prioritization_days_homeless || days_homeless_in_last_three_years_cached || 0
     end
 
     private def hmis_days_homeless_in_last_three_years

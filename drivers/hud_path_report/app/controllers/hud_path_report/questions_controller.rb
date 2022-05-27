@@ -28,7 +28,7 @@ module HudPathReport
     end
 
     private def set_question
-      @question = generator.valid_question_number(params[:question] || params[:id])
+      @question = generator.valid_question_number(params[:question_id] || params[:id])
     end
 
     private def report_param_name
