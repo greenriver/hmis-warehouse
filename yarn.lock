@@ -1006,6 +1006,11 @@ inherits@2, inherits@^2.0.3, inherits@~2.0.3:
   resolved "https://registry.yarnpkg.com/inherits/-/inherits-2.0.4.tgz#0fa2c64f932917c3433a0ded55363aae37416b7c"
   integrity sha512-k/vGaX4/Yla3WzyMCvTQOXYeIHvqOKtnqBduzTHpzpQZzAskKMhZ2K+EnBiSM9zGSoIFeMpXKxa4dYeZIQqewQ==
 
+inputmask@3.3.8:
+  version "3.3.8"
+  resolved "https://registry.yarnpkg.com/inputmask/-/inputmask-3.3.8.tgz#a29c6a24083ced712361be47a7d6c750efd2bb78"
+  integrity sha512-AdaIgwNxjM9GsBjuWAFf6Dqh8YbF/mUmE1IXndkn7gP/wTxzxJr//Rkd65M26xC9AyH3Qa1Av3l6RNrIiaOHDw==
+
 is-extglob@^2.1.1:
   version "2.1.1"
   resolved "https://registry.yarnpkg.com/is-extglob/-/is-extglob-2.1.1.tgz#a88c02535791f02ed37c76a1b9ea9773c833f8c2"

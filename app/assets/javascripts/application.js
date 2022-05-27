@@ -38,8 +38,8 @@
 //= require d3-interpolate/build/d3-interpolate.min
 //= require d3-scale-chromatic/dist/d3-scale-chromatic.min
 //= require topojson-client/dist/topojson-client.min
-//= require inputmask/jquery.inputmask.bundle.min
-//= require inputmask/inputmask/bindings/inputmask.binding.min
+//= require inputmask/dist/min/jquery.inputmask.bundle.min
+//= require inputmask/dist/min/inputmask/bindings/inputmask.binding.min
 //= require billboard.js/dist/billboard.min
 //= require moment/moment.js
 //= require bootstrap-datetimepicker
