@@ -17,7 +17,6 @@
 //= require popper
 //= require bootstrap-sprockets
 //= require bootstrap
-//= require vis.min
 //= require jquery_ujs
 //= require DataTables/datatables.min
 //= require handlebars.runtime
