@@ -34,9 +34,9 @@
 //= require jquery.updater
 //= require jquery.minicolors
 //= require jquery.minicolors.simple_form
-//= require d3.min
-//= require d3-interpolate.v1.min
-//= require d3-scale-chromatic.v1.min
+//= require d3/build/d3.min
+//= require d3-interpolate/build/d3-interpolate.min
+//= require d3-scale-chromatic/dist/d3-scale-chromatic.min
 //= require topojson.min.js
 //= require inputmask/jquery.inputmask.bundle.min
 //= require inputmask/inputmask/bindings/inputmask.binding.min
