@@ -23,7 +23,7 @@
 //= require handlebars.runtime
 //= require select2
 //= require bootstrap-datepicker
-//= require Chart.bundle.min
+//= require chart.js/dist/Chart.bundle.min
 //= require jquery-ui/widgets/sortable
 //= require jquery-ui/widgets/slider
 //= require jquery-ui/widgets/autocomplete
