@@ -67,7 +67,7 @@ jobs:
         REPORTING_DATABASE_DB_TEST: reporting_test
       run: |
         apk add --no-cache \
-          nodejs yarn npm \
+          nodejs yarn \
           tzdata \
           git \
           bash \
@@ -88,7 +88,7 @@ jobs:
         echo "postgres:5432:*:postgres:postgres" > ~/.pgpass
         chmod 600 ~/.pgpass
 
-        npm install
+        yarn install
         gem install bundler --version=2.3.8
 
     # According to https://www.jessesquires.com/blog/2021/08/23/caching-bundler-on-github-actions/
