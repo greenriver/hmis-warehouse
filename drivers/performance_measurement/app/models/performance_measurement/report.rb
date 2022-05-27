@@ -187,6 +187,7 @@ module PerformanceMeasurement
 
     private def create_universe
       clients.delete_all
+      projects.delete_all
       report_clients = {}
       add_clients(report_clients)
     end
