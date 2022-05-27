@@ -29,8 +29,6 @@
 //= require leaflet/dist/leaflet
 //= require leaflet.markercluster/dist/leaflet.markercluster
 //= require beautifymarker/leaflet-beautify-marker-icon
-//= require jquery.periodicalupdater
-//= require jquery.updater
 //= require jquery.minicolors
 //= require jquery.minicolors.simple_form
 //= require d3/build/d3.min
