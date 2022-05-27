@@ -38,7 +38,7 @@
 //= require inputmask/dist/min/jquery.inputmask.bundle.min
 //= require inputmask/dist/min/inputmask/bindings/inputmask.binding.min
 //= require billboard.js/dist/billboard.min
-//= require moment/moment.js
+//= require moment/moment
 //= require bootstrap-datetimepicker
 //= require stimulus/dist/stimulus.umd
 //= require promise-polyfill/dist/polyfill.min.js
