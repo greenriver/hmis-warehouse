@@ -16508,31 +16508,12 @@ ALTER SEQUENCE public.recurring_hmis_exports_id_seq OWNED BY public.recurring_hm
 CREATE TABLE public.remote_configs (
     id bigint NOT NULL,
     type character varying NOT NULL,
+    remote_credential_id bigint,
     active boolean DEFAULT false,
-    username character varying NOT NULL,
-    encrypted_password character varying NOT NULL,
-    encrypted_password_iv character varying,
-    region character varying,
-    bucket character varying,
-    path character varying,
-    endpoint character varying,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
 );
-
-
---
--- Name: COLUMN remote_configs.username; Type: COMMENT; Schema: public; Owner: -
---
-
-COMMENT ON COLUMN public.remote_configs.username IS 'username or equivalent eg. s3_access_key_id';
-
-
---
--- Name: COLUMN remote_configs.encrypted_password; Type: COMMENT; Schema: public; Owner: -
---
-
-COMMENT ON COLUMN public.remote_configs.encrypted_password IS 'password or equivalent eg. s3_secret_access_key';
 
 
 --
@@ -16552,6 +16533,60 @@ CREATE SEQUENCE public.remote_configs_id_seq
 --
 
 ALTER SEQUENCE public.remote_configs_id_seq OWNED BY public.remote_configs.id;
+
+
+--
+-- Name: remote_credentials; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.remote_credentials (
+    id bigint NOT NULL,
+    type character varying NOT NULL,
+    active boolean DEFAULT false,
+    username character varying NOT NULL,
+    encrypted_password character varying NOT NULL,
+    encrypted_password_iv character varying,
+    region character varying,
+    bucket character varying,
+    path character varying,
+    endpoint character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: COLUMN remote_credentials.username; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.remote_credentials.username IS 'username or equivalent eg. s3_access_key_id';
+
+
+--
+-- Name: COLUMN remote_credentials.encrypted_password; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.remote_credentials.encrypted_password IS 'password or equivalent eg. s3_secret_access_key';
+
+
+--
+-- Name: remote_credentials_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.remote_credentials_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: remote_credentials_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.remote_credentials_id_seq OWNED BY public.remote_credentials.id;
 
 
 --
@@ -21237,6 +21272,13 @@ ALTER TABLE ONLY public.remote_configs ALTER COLUMN id SET DEFAULT nextval('publ
 
 
 --
+-- Name: remote_credentials id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.remote_credentials ALTER COLUMN id SET DEFAULT nextval('public.remote_credentials_id_seq'::regclass);
+
+
+--
 -- Name: report_definitions id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -24124,6 +24166,14 @@ ALTER TABLE ONLY public.recurring_hmis_exports
 
 ALTER TABLE ONLY public.remote_configs
     ADD CONSTRAINT remote_configs_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: remote_credentials remote_credentials_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.remote_credentials
+    ADD CONSTRAINT remote_credentials_pkey PRIMARY KEY (id);
 
 
 --
@@ -41222,6 +41272,13 @@ CREATE UNIQUE INDEX index_recurring_hmis_exports_on_encrypted_s3_secret_iv ON pu
 
 
 --
+-- Name: index_remote_configs_on_remote_credential_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_remote_configs_on_remote_credential_id ON public.remote_configs USING btree (remote_credential_id);
+
+
+--
 -- Name: index_report_tokens_on_contact_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -47971,6 +48028,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220511171233'),
 ('20220512174700'),
 ('20220523123830'),
-('20220525125953');
+('20220525125953'),
+('20220527144703'),
+('20220527144717');
 
 
