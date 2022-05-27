@@ -21,7 +21,7 @@
 //= require jquery_ujs
 //= require DataTables/datatables.min
 //= require handlebars.runtime
-//= require select2
+//= require select2/dist/js/select2.full.min
 //= require bootstrap-datepicker
 //= require chart.js/dist/Chart.bundle.min
 //= require jquery-ui/widgets/sortable
