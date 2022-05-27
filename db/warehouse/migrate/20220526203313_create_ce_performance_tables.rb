@@ -3,6 +3,7 @@ class CreateCePerformanceTables < ActiveRecord::Migration[6.1]
     create_table :ce_performance_clients do |t|
       t.belongs_to :client
       t.belongs_to :report
+      t.belongs_to :ce_apr
       t.string :first_name
       t.string :last_name
       t.integer :reporting_age
