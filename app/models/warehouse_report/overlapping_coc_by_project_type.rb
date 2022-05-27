@@ -249,7 +249,7 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
     services.group_by { |s| s.service_history_enrollment.project }.map do |project, project_services|
       {
         coc: project.project_cocs.first.CoCCode,
-        project_name: project.name(ignore_confidential_status: true),
+        project_name: project.name,
         project_type: ::HUD.project_type_brief(project.ProjectType),
         history: history_details(project_services),
       }
