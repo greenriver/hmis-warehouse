@@ -31,7 +31,12 @@ class CommandArgs
         tmppath = "/tmp/remote-secrets-#{Time.now.to_i}.yml"
         File.write(tmppath, remote_config_text)
         puts "Okay. Remote config saved to #{tmppath} for your convenience. (Local is at #{path})"
-        exit
+        pp `diff #{path} #{tmppath}`
+        puts 'continue anyway? [y/N]'
+        unsure = $stdin.readline
+        exit unless unsure.chomp.downcase.match?(/y(es)?/)
+        config = local_config
+        puts "[WARN] ❗ Using local config: #{path}"
       end
     elsif remote_config.nil?
       config = local_config
