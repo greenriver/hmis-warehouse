@@ -111,5 +111,16 @@ module AwsSdkHelpers
     def _on_demand_capacity_provider_name
       @_on_demand_capacity_provider_name ||= AwsSdkHelpers::Helpers.get_capacity_provider_name('OnDemand')
     end
+
+    def self.get_secret(secret_arn)
+      resp = AwsSdkHelpers::ClientMethods.secretsmanager.get_secret_value(
+        secret_id: secret_arn,
+      )
+
+      return resp.to_h[:secret_string]
+    rescue Aws::Errors::MissingCredentialsError
+      warn 'Need credentials to sync secrets (or run on a server/container with a role)'
+      puts 'ERROR=secretsyncfailed'
+    end
   end
 end
