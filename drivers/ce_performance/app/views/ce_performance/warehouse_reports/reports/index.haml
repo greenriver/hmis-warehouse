@@ -1,0 +1,6 @@
+- content_for :title, @report.title
+
+= render '/warehouse_reports/breadcrumbs', tab: 'performance'
+%h1.mb-5= @report.title
+= render 'form'
+= render 'history_table'

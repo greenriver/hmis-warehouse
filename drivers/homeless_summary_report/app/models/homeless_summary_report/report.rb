@@ -99,6 +99,10 @@ module HomelessSummaryReport
       'homeless_summary_report/warehouse_reports/reports'
     end
 
+    def self.default_project_type_codes
+      GrdaWarehouse::Hud::Project::SPM_PROJECT_TYPE_CODES
+    end
+
     def url
       homeless_summary_report_warehouse_reports_report_url(host: ENV.fetch('FQDN'), id: id, protocol: 'https')
     end

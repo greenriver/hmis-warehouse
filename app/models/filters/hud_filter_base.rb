@@ -10,9 +10,7 @@ module Filters
     validates_presence_of :coc_codes
 
     # Force people to choose project types because they are additive with projects
-    def default_project_type_codes
-      []
-    end
+    attribute :default_project_type_codes, Array, default: []
 
     # NOTE: This differs from the base filter class because it doesn't include any projects based on CoCCode
     def effective_project_ids

@@ -1232,6 +1232,15 @@ module GrdaWarehouse::WarehouseReports
           health: true,
         }
       end
+      if RailsDrivers.loaded.include?(:ce_performance)
+        r_list['Performance'] << {
+          url: 'ce_performance/warehouse_reports/reports',
+          name: _('Coordinated Entry Performance'),
+          description: _('A tool to track performance and utilization of Coordinated Entry resources.'),
+          limitable: true,
+          health: false,
+        }
+      end
 
       r_list
     end
@@ -1283,7 +1292,12 @@ module GrdaWarehouse::WarehouseReports
       cleanup << 'census_tracking/warehouse_reports/census_trackers' unless RailsDrivers.loaded.include?(:census_tracking)
       cleanup << 'income_benefits_report/warehouse_reports/report' unless RailsDrivers.loaded.include?(:income_benefits_report)
       cleanup << 'client_location_history/warehouse_reports/client_location_history' unless RailsDrivers.loaded.include?(:client_location_history)
-
+      cleanup << 'client_location_history/warehouse_reports/client_location_history' unless RailsDrivers.loaded.include?(:client_location_history)
+      cleanup << 'analysis_tool/warehouse_reports/analysis_tool' unless RailsDrivers.loaded.include?(:analysis_tool)
+      cleanup << 'start_date_dq/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:start_date_dq)
+      cleanup << 'built_for_zero_report/warehouse_reports/bfz' unless RailsDrivers.loaded.include?(:built_for_zero_report)
+      cleanup << 'health_ip_followup_report/warehouse_reports/followup_reports' unless RailsDrivers.loaded.include?(:health_ip_followup_report)
+      cleanup << 'ce_performance/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:ce_performance)
       cleanup.each do |url|
         GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: url).delete_all
       end

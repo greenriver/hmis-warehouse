@@ -108,6 +108,14 @@ module CePerformance
       true
     end
 
+    def project_type_ids
+      filter.project_type_ids
+    end
+
+    def default_project_type_codes
+      GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING.keys
+    end
+
     private def build_control_sections
       # ensure filter has been set
       filter
@@ -166,6 +174,7 @@ module CePerformance
           columns: Client.attribute_names.map(&:to_sym),
         },
       )
+
       universe.add_universe_members(report_clients)
     end
 
