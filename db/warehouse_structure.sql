@@ -5116,7 +5116,6 @@ CREATE TABLE public.configs (
     youth_no_child_cohort boolean DEFAULT false NOT NULL,
     youth_and_child_cohort boolean DEFAULT false NOT NULL,
     cas_sync_project_group_id integer,
-    majority_sheltered_calculation character varying DEFAULT 'current_living_situation'::character varying,
     system_cohort_processing_date date,
     system_cohort_date_window integer DEFAULT 1
 );
@@ -47966,7 +47965,6 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220331180748'),
 ('20220411150736'),
 ('20220413144557'),
-('20220415192223'),
 ('20220427144200'),
 ('20220511171233'),
 ('20220512174700'),

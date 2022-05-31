@@ -40,6 +40,7 @@ class ApplicationController < ActionController::Base
   before_action :health_emergency?
 
   before_action :prepare_exception_notifier
+  before_action :set_current_user, if: :json_request?
 
   prepend_before_action :skip_timeout
 
@@ -268,6 +269,14 @@ class ApplicationController < ActionController::Base
   end
   helper_method :bypass_2fa_enabled?
 
+  def hmis_api_enabled?
+    ENV['ENABLE_HMIS_API'] == 'true'
+  end
+
+  def json_request?
+    request.format.json?
+  end
+
   def set_hostname
     @op_hostname ||= begin # rubocop:disable Naming/MemoizedInstanceVariableName
       `hostname`
@@ -282,5 +291,17 @@ class ApplicationController < ActionController::Base
       current_user: current_user&.email || 'none',
       current_user_browser: browser.to_s,
     }
+  end
+
+  def authenticate_user!(*args)
+    if args.blank? && json_request? && hmis_api_enabled?
+      authenticate_api_user!
+    else
+      super
+    end
+  end
+
+  def set_current_user
+    @current_user ||= warden.authenticate(scope: :api_user) if hmis_api_enabled?
   end
 end

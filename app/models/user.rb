@@ -12,6 +12,7 @@ class User < ApplicationRecord
   include ArelHelper
   has_paper_trail ignore: [:provider_raw_info]
   acts_as_paranoid
+  before_create :add_jti
 
   attr_accessor :remember_device, :device_name, :client_access_arbiter
 
@@ -248,6 +249,10 @@ class User < ApplicationRecord
     return censuses_path if can_view_censuses?
 
     root_path
+  end
+
+  def add_jti
+    self.jti ||= SecureRandom.uuid
   end
 
   # ensure we have a secret

@@ -36,6 +36,14 @@ Rails.application.routes.draw do
 
   get '/user_training', to: 'user_training#index'
 
+  if ENV['ENABLE_HMIS_API'] == 'true'
+    namespace :api, defaults: { format: :json } do
+      devise_for :users, class_name: 'ApiUser',
+                         skip: [:registrations, :invitations, :passwords, :confirmations, :unlocks],
+                         path: '', path_names: { sign_in: 'login', sign_out: 'logout' }
+    end
+  end
+
   def healthcare_routes(window:)
     namespace :health do
       resources :patient, only: [:index, :update], controller: '/health/patient'

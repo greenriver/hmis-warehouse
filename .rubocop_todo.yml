@@ -1581,7 +1581,6 @@ Naming/HeredocDelimiterNaming:
 # SupportedStylesForLeadingUnderscores: disallowed, required, optional
 Naming/MemoizedInstanceVariableName:
   Exclude:
-    - 'app/controllers/application_controller.rb'
     - 'app/models/grda_warehouse/tasks/test_data.rb'
     - 'app/models/grda_warehouse/warehouse_reports/confidential_touch_point.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
