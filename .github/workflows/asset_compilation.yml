@@ -115,15 +115,9 @@ jobs:
         bundle config set --local without 'production staging development'
         bundle install --jobs 10 --retry 3
 
-    - name: 'App setup'
-      env:
-        SECRETS_FILE_SECRET_ARN: ${{ secrets.SECRETS_FILE_SECRET_ARN }}
-      run: |
-        # cp config/database.yml.ci config/database.yml
-        SECRET_ARN=$SECRETS_FILE_SECRET_ARN bundle exec bin/download_secrets.rb > config/deploy/docker/assets/secret.deploy.values.yml
-
     - name: Generate checksum and compile
       env:
+        SECRETS_YML_SECRET_ARN: ${{ secrets.SECRETS_YML_SECRET_ARN }}
         DATABASE_ADAPTER: postgresql
         DATABASE_HOST: postgres
         DATABASE_PASS: postgres
