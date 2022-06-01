@@ -30,13 +30,13 @@ echo 'Setting Timezone'
 cp /usr/share/zoneinfo/$TIMEZONE /app/etc-localtime
 echo $TIMEZONE > /etc/timezone
 
-echo 'Syncing the assets from s3...'
+echo 'Syncing the client assets from s3...'
 T1=`date +%s`
 ./bin/sync_app_assets.rb
 T2=`date +%s`
 echo "...sync_app_assets 1 took $(expr $T2 - $T1) seconds"
 
-echo 'Pulling down assets from S3...'
+echo 'Clobbering assets...'
 T1=`date +%s`
 bundle exec rake assets:clobber && mkdir -p ./public/assets
 T2=`date +%s`
@@ -48,8 +48,8 @@ T2=`date +%s`
 echo "...checksumming took $(expr $T2 - $T1) seconds"
 echo "Using ASSET_CHECKSUM [${ASSET_CHECKSUM}]"
 
+echo 'Pulling down the compiled assets...' # Using ASSETS_PREFIX from .env and ASSET_CHECKSUM from above.
 cd ./public/assets
-# Pull down the compiled assets. Using ASSETS_PREFIX from .env and ASSET_CHECKSUM from above.
 bundle exec ../../bin/wait_for_compiled_assets.rb
 T1=`date +%s`
 ASSETS_PREFIX="${ASSETS_PREFIX}/${ASSET_CHECKSUM}" ASSETS_BUCKET_NAME=openpath-precompiled-assets UPDATE_ONLY=true ../../bin/sync_app_assets.rb
