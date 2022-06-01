@@ -33,7 +33,7 @@ wb.add_worksheet name: 'Inventory Utilization' do |sheet|
   @report.report.each do |_,project|
     sheet.add_row(
       [
-        project.name(current_user),
+        project.name,
         ::HUD.project_type_brief(project.project_type),
         project.organization_name,
         project.beds,
