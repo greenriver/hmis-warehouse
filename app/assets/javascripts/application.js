@@ -11,31 +11,26 @@
 // about supported directives.
 //
 /////////////////////
-// Vendor libs (gems)
+// Vendor libs
 ////////////////////
 //= require jquery3
 //= require popper
 //= require bootstrap-sprockets
 //= require bootstrap
-//= require bootstrap-datetimepicker
 //= require jquery_ujs
-//= require jquery.minicolors
-//= require jquery.minicolors.simple_form
-//= require jquery-ui/widgets/sortable
-//= require jquery-ui/widgets/slider
-//= require jquery-ui/widgets/autocomplete
-//= require handlebars.runtime
-
-/////////////////////
-// Vendor libs (yarn packages)
-////////////////////
 //= require DataTables/datatables.min
+//= require handlebars.runtime
 //= require select2/dist/js/select2.full.min
 //= require bootstrap-datepicker/dist/js/bootstrap-datepicker.min
 //= require chart.js/dist/Chart.bundle.min
+//= require jquery-ui/widgets/sortable
+//= require jquery-ui/widgets/slider
+//= require jquery-ui/widgets/autocomplete
 //= require leaflet/dist/leaflet
 //= require leaflet.markercluster/dist/leaflet.markercluster
 //= require beautifymarker/leaflet-beautify-marker-icon
+//= require jquery.minicolors
+//= require jquery.minicolors.simple_form
 //= require d3/build/d3.min
 //= require d3-interpolate/build/d3-interpolate.min
 //= require d3-scale-chromatic/dist/d3-scale-chromatic.min
@@ -44,8 +39,9 @@
 //= require inputmask/dist/min/inputmask/bindings/inputmask.binding.min
 //= require billboard.js/dist/billboard.min
 //= require moment/moment
+//= require bootstrap-datetimepicker
 //= require stimulus/dist/stimulus.umd
-//= require promise-polyfill/dist/polyfill.min.js
+//= require promise-polyfill/dist/polyfill.min
 
 //////////////////////////
 // App specific code
