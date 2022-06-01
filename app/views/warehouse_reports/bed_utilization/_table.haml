@@ -24,7 +24,7 @@
         - @report.report.each do |id, project|
           - next unless project
           %tr
-            %td= link_to_if user.can_access_project?(project), project.name(current_user), project_path(project.id)
+            %td= link_to_if current_user.can_access_project?(project), project.name(current_user), project_path(project.id)
             %td
               - project_type = project.project_type
               - p_type = ::HUD.project_type_brief(project_type)
