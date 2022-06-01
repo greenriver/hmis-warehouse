@@ -60,7 +60,7 @@ module AuthenticatesWithTwoFactor
     user.record_failure_and_lock_access_if_exceeded!
     Rails.logger.info("Failed Login: user=#{user.email} ip=#{request.remote_ip} method=OTP")
     flash.now[:alert] = _('Invalid two-factor code.')
-    prompt_for_two_factor(user)
+    prompt_for_two_factor(user, invalid_code: true)
   end
 
   private def add_2fa_device(user, name)
