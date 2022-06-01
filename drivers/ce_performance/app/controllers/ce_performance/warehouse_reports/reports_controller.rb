@@ -13,7 +13,7 @@ module CePerformance::WarehouseReports
 
     before_action :require_can_access_some_version_of_clients!, only: [:details]
     before_action :set_report, only: [:show, :destroy, :details]
-    before_action :set_pdf_export, only: [:show]
+    # before_action :set_pdf_export, only: [:show]
 
     def index
       @pagy, @reports = pagy(report_scope.ordered)

@@ -3866,6 +3866,41 @@ ALTER SEQUENCE public.ce_assessments_id_seq OWNED BY public.ce_assessments.id;
 
 
 --
+-- Name: ce_performance_ce_aprs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.ce_performance_ce_aprs (
+    id bigint NOT NULL,
+    report_id bigint NOT NULL,
+    ce_apr_id bigint NOT NULL,
+    start_date date,
+    end_date date,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: ce_performance_ce_aprs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.ce_performance_ce_aprs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: ce_performance_ce_aprs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.ce_performance_ce_aprs_id_seq OWNED BY public.ce_performance_ce_aprs.id;
+
+
+--
 -- Name: ce_performance_clients; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -3899,7 +3934,18 @@ CREATE TABLE public.ce_performance_clients (
     housing_enrollment_entry_date date,
     housing_enrollment_move_in_date date,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    ce_apr_client_id integer,
+    dob date,
+    move_in_date date,
+    period character varying,
+    household_type character varying,
+    days_before_assessment integer,
+    days_on_list integer,
+    days_in_project integer,
+    days_between_referral_and_housing integer,
+    q5a_b1 boolean DEFAULT false,
+    deleted_at timestamp without time zone
 );
 
 
@@ -3933,7 +3979,10 @@ CREATE TABLE public.ce_performance_results (
     value double precision,
     format character varying,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    type character varying,
+    period character varying,
+    deleted_at timestamp without time zone
 );
 
 
@@ -19727,6 +19776,13 @@ ALTER TABLE ONLY public.ce_assessments ALTER COLUMN id SET DEFAULT nextval('publ
 
 
 --
+-- Name: ce_performance_ce_aprs id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ce_performance_ce_aprs ALTER COLUMN id SET DEFAULT nextval('public.ce_performance_ce_aprs_id_seq'::regclass);
+
+
+--
 -- Name: ce_performance_clients id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -22401,6 +22457,14 @@ ALTER TABLE ONLY public.cas_vacancies
 
 ALTER TABLE ONLY public.ce_assessments
     ADD CONSTRAINT ce_assessments_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: ce_performance_ce_aprs ce_performance_ce_aprs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ce_performance_ce_aprs
+    ADD CONSTRAINT ce_performance_ce_aprs_pkey PRIMARY KEY (id);
 
 
 --
@@ -38875,6 +38939,20 @@ CREATE INDEX index_ce_assessments_on_user_id ON public.ce_assessments USING btre
 
 
 --
+-- Name: index_ce_performance_ce_aprs_on_ce_apr_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ce_performance_ce_aprs_on_ce_apr_id ON public.ce_performance_ce_aprs USING btree (ce_apr_id);
+
+
+--
+-- Name: index_ce_performance_ce_aprs_on_report_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ce_performance_ce_aprs_on_report_id ON public.ce_performance_ce_aprs USING btree (report_id);
+
+
+--
 -- Name: index_ce_performance_clients_on_ce_apr_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -48183,6 +48261,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220526203313'),
 ('20220527144703'),
 ('20220527144717'),
-('20220527191834');
+('20220527191834'),
+('20220601122623');
 
 
