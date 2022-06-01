@@ -32,6 +32,9 @@ msgstr ""
 msgid "A claim was submitted for this SSM; it is no longer editable."
 msgstr ""
 
+msgid "A summary of SPMs 1, 2, and 7 with sub-population and demographic details"
+msgstr ""
+
 msgid "Able to pass a drug test"
 msgstr ""
 
@@ -63,6 +66,9 @@ msgid "Alerts"
 msgstr ""
 
 msgid "All Assigned Clients"
+msgstr ""
+
+msgid "Analysis Tool"
 msgstr ""
 
 msgid "Appropriate for sober supportive housing"
@@ -102,6 +108,9 @@ msgid "Boston DND Warehouse"
 msgstr ""
 
 msgid "Boston HMIS staff at DND"
+msgstr ""
+
+msgid "Built For Zero Monthly Report"
 msgstr ""
 
 msgid "Bulk set Health Prioritization for CAS."
@@ -3701,9 +3710,6 @@ msgstr ""
 msgid "Homeless Service Provider Organization Name"
 msgstr ""
 
-msgid "Homeless Summary Report"
-msgstr ""
-
 msgid "Homeless or Housed"
 msgstr ""
 
@@ -3738,9 +3744,6 @@ msgid "If you don't see a patient you claimed in this list, they have been assig
 msgstr ""
 
 msgid "Import Dashboard"
-msgstr ""
-
-msgid "Import Logs"
 msgstr ""
 
 msgid "Import a Zip of HUD CSVs"
@@ -3824,9 +3827,6 @@ msgstr ""
 msgid "Manually entered date at which the client became document ready"
 msgstr ""
 
-msgid "Messages"
-msgstr ""
-
 msgid "Meth Production Conviction"
 msgstr ""
 
@@ -3906,9 +3906,6 @@ msgid "Part of a family"
 msgstr ""
 
 msgid "Pathways"
-msgstr ""
-
-msgid "Pathways V3 Assessment Date"
 msgstr ""
 
 msgid "Patient Engagement Trends"
@@ -4097,6 +4094,9 @@ msgstr ""
 msgid "Successful housing outcomes are one of the most important measures of project success."
 msgstr ""
 
+msgid "System Performance Measures by Sub-Population"
+msgstr ""
+
 msgid "TCHC Sign-In Sheets"
 msgstr ""
 
@@ -4143,6 +4143,15 @@ msgid "Time in Project"
 msgstr ""
 
 msgid "To support collaboration between agencies and knowledge of local resources at the CoC will provides CoC wide meetings with varying topics related to homelessness and housing services. The measure indicates agency participation."
+msgstr ""
+
+msgid "Total Number of People Entering and Exiting Homelessness"
+msgstr ""
+
+msgid "Total Number of People Experiencing Homelessness"
+msgstr ""
+
+msgid "Total People Experiencing Homelessness"
 msgstr ""
 
 msgid "Type of Housing"
@@ -4202,6 +4211,12 @@ msgstr ""
 msgid "Where People are Staying"
 msgstr ""
 
+msgid "Where is the need?"
+msgstr ""
+
+msgid "Who is experiencing homelessness?"
+msgstr ""
+
 msgid "Willing to engage with housing case management"
 msgstr ""
 
@@ -4226,40 +4241,16 @@ msgstr ""
 msgid "Youth and Young Adults"
 msgstr ""
 
-msgid "account requests"
-msgstr ""
-
 msgid "anomaly reminder text"
-msgstr ""
-
-msgid "client"
-msgstr ""
-
-msgid "clients"
-msgstr ""
-
-msgid "cohort enrollment"
 msgstr ""
 
 msgid "contact us"
 msgstr ""
 
-msgid "data sources"
-msgstr ""
-
 msgid "engagement period has ended, and there is no signed careplan"
 msgstr ""
 
-msgid "enrollment"
-msgstr ""
-
-msgid "groups"
-msgstr ""
-
 msgid "housing"
-msgstr ""
-
-msgid "imports"
 msgstr ""
 
 msgid "invalid procedure code"
@@ -4289,12 +4280,6 @@ msgstr ""
 msgid "pre-placement"
 msgstr ""
 
-msgid "qualifying activities"
-msgstr ""
-
-msgid "report"
-msgstr ""
-
 msgid "search"
 msgstr ""
 
@@ -4317,13 +4302,4 @@ msgid "too many non-outreach activities in the month"
 msgstr ""
 
 msgid "too many outreach activities in the month"
-msgstr ""
-
-msgid "translation"
-msgstr ""
-
-msgid "user"
-msgstr ""
-
-msgid "user account"
 msgstr ""

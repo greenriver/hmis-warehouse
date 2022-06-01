@@ -1008,6 +1008,15 @@ module GrdaWarehouse::WarehouseReports
           health: false,
         }
       end
+      if RailsDrivers.loaded.include?(:longitudinal_spm)
+        r_list['Performance'] << {
+          url: 'longitudinal_spm/warehouse_reports/reports',
+          name: 'Longitudinal System Performance Measurement',
+          description: 'Compare quarterly System Performance Measurement Reports for length of time homeless, returns to homelessness, and successful placements.',
+          limitable: true,
+          health: false,
+        }
+      end
       if RailsDrivers.loaded.include?(:homeless_summary_report)
         r_list['Operational'] << {
           url: 'homeless_summary_report/warehouse_reports/reports',

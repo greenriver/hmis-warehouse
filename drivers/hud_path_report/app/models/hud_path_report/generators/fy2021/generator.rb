@@ -40,7 +40,7 @@ module HudPathReport::Generators::Fy2021
     end
 
     def self.valid_question_number(question_number)
-      questions.keys.detect { |q| q == question_number } || 'Question 8 to 16'
+      questions.keys.detect { |q| q == question_number } || 'Q8-Q16'
     end
 
     def self.filter_class

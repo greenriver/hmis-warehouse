@@ -23,10 +23,10 @@ module HudApr::Generators::Shared::Fy2021
         row_labels: [
           'Adults',
           'Children',
-          'Client Doesn’t Know/ Client Refused',
+          'Client Doesn\'t Know/ Client Refused',
           'Data Not Collected',
           'Total',
-          'For PSH & RRH – the total persons served who moved into housing',
+          'For PSH & RRH - the total persons served who moved into housing',
         ],
         first_column: 'B',
         last_column: 'F',

@@ -85,7 +85,11 @@ module PerformanceMeasurement::Details
     end
 
     def detail_denominator_label_for(key)
-      detail_hash[key][:denominator_label]
+      detail_hash[key].try(:[], :denominator_label)&.downcase || ''
+    end
+
+    def detail_numerator_label_for(key)
+      detail_hash[key].try(:[], :numerator_label)&.downcase || ''
     end
 
     def my_projects(user, key)
@@ -608,10 +612,11 @@ module PerformanceMeasurement::Details
           column: :both,
           year_over_year_change: false,
           title: 'Number of People Who Returned to Homelessness Within Six Months',
-          goal_description: 'The CoC will have **no more than %{goal}%%** of adults who exited to permanent housing return to ES, SH, TH, or SO within six months of exit',
+          goal_description: 'The CoC will have **no more than %{goal}%%** of adults who exited to permanent destinations return to ES, SH, TH, or SO within six months of exit',
           goal_calculation: :recidivism_6_months,
-          denominator_label: 'Total Returns',
-          calculation_description: 'The number of persons who returned to SO, ES, TH, SH or PH within 6 months of exit divided by the number of persons who exited SO, ES, TH, SH, or PH to a permanent housing destination in the report range two years prior to the report date range.',
+          numerator_label: 'returned to homelessness',
+          denominator_label: 'Total exits to permanent destinations',
+          calculation_description: 'The number of persons who returned to homelessness within 6 months of exit divided by the number of persons who exited SO, ES, TH, SH, or PH to permanent destinations within two years prior to the report end date.',
           calculation_column: :returned_in_six_months,
           measure: 'Measure 2',
           detail_columns: [
@@ -624,10 +629,11 @@ module PerformanceMeasurement::Details
           column: :both,
           year_over_year_change: false,
           title: 'Number of People Who Returned to Homelessness Within Two Years',
-          goal_description: 'The CoC will have **no more than %{goal}%%** of adults who exited to permanent housing return to ES, SH, TH, or SO within two years of exit',
+          goal_description: 'The CoC will have **no more than %{goal}%%** of adults who exited to permanent destinations return to ES, SH, TH, or SO within two years of exit',
           goal_calculation: :recidivism_24_months,
-          denominator_label: 'Total Returns',
-          calculation_description: 'The number of persons who returned to SO, ES, TH, SH or PH within 2 years of exit divided by the number of persons who exited SO, ES, TH, SH, or PH to a permanent housing destination in the report range two years prior to the report date range.',
+          numerator_label: 'returned to homelessness',
+          denominator_label: 'Total exits to permanent destinations',
+          calculation_description: 'The number of persons who returned to homelessness within 2 years of exit divided by the number of persons who exited SO, ES, TH, SH, or PH to permanent destinations within two years prior to the report end date.',
           calculation_column: :returned_in_two_years,
           measure: 'Measure 2',
           detail_columns: [

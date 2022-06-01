@@ -35,13 +35,13 @@ module GrdaWarehouse::WarehouseReports::Youth
           :case_managements,
           :direct_financial_assistances,
           :youth_referrals,
-          :youth_follow_ups
+          :youth_follow_ups,
         ).
         references(
           :case_managements,
           :direct_financial_assistances,
           :youth_referrals,
-          :youth_follow_ups
+          :youth_follow_ups,
         ).
         where.not(id: ids_for_seen).
         distinct.
@@ -58,7 +58,7 @@ module GrdaWarehouse::WarehouseReports::Youth
         last_name: :LastName,
         engagement_date: :engagement_date,
         # GREATEST is not supported on SQL Server, so to work there, this would need to be abstracted
-        last_seen: 'GREATEST(engagement_date, provided_on, referred_on, contacted_on, engaged_on)',
+        last_seen: Arel.sql('GREATEST(engagement_date, provided_on, referred_on, contacted_on, engaged_on)'),
       }
     end
 

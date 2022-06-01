@@ -476,7 +476,7 @@ module ReportGenerators::DataQuality::Fy2017
         },
         q2_b1: {
           title:  nil,
-          value: 'Client Doesn’t Know/Refused',
+          value: 'Client Doesn\'t Know/Refused',
         },
         q2_c1: {
           title:  nil,

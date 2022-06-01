@@ -12,14 +12,16 @@ module AccessLogs::WarehouseReports
     def index
       respond_to do |format|
         format.html {}
-        format.csv do
+        format.xlsx do
           # BaseFilters tries really hard to set the user_id, but in this case, sometimes
           # we don't want it
           @filter.user_id = filter_params[:filters][:user_id]
           @report = AccessLogs::Report.new(filter: @filter)
-          filename = "Access Logs #{Time.current.to_s(:db)}.csv"
+          # Set the CAS user ID on the report because it's not on the filter object
+          @report.cas_user_id = filter_params[:filters]['cas_user_id']
 
-          send_data @report.csv, filename: filename, type: 'text/csv'
+          filename = "Access Logs #{Time.current.to_s(:db)}"
+          headers['Content-Disposition'] = "attachment; filename=#{filename}.xlsx"
         end
       end
     end
@@ -29,9 +31,9 @@ module AccessLogs::WarehouseReports
     end
 
     def filter_params
-      return {} unless params[:filters].present?
+      return { filters: { start: 3.months.ago.to_date, end: 1.days.ago.to_date } } unless params[:filters].present?
 
-      clean = params.permit(filters: [:user_id] + @filter.known_params)
+      clean = params.permit(filters: [:user_id, :cas_user_id] + @filter.known_params)
       clean[:filters][:enforce_one_year_range] = false
       clean
     end

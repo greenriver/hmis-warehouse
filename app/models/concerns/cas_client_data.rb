@@ -302,16 +302,15 @@ module CasClientData
       cohort_clients.pluck(:assessment_score)&.compact&.max || 0
     end
 
-    # Use the Pathways value if it is present and non-zero
-    # Otherwise, pull the maximum total monthly income from any open enrollments, looking
-    # only at the most recent assessment per enrollment
     private def max_current_total_monthly_income
-      return income_total_monthly if income_total_monthly.present? && income_total_monthly.positive?
-
-      source_enrollments.open_on_date(Date.current).map do |enrollment|
-        enrollment.income_benefits.limit(1).
-          order(InformationDate: :desc).
-          pluck(:TotalMonthlyIncome).first
+      # To allow preload(:source_enrollments) do the open_on_date calculation in memory
+      source_enrollments.select do |enrollment|
+        entry_date = enrollment.EntryDate
+        exit_date = enrollment.exit&.ExitDate || Date.tomorrow
+        Date.current.between?(entry_date, exit_date)
+      end.map do |enrollment|
+        enrollment.income_benefits.select { |m| m.InformationDate.present? }&.
+          max_by(&:InformationDate)&.TotalMonthlyIncome
       end.compact.max || 0
     end
 
@@ -324,7 +323,7 @@ module CasClientData
     end
 
     private def days_homeless_for_vispdat_prioritization
-      vispdat_prioritization_days_homeless || days_homeless_in_last_three_years
+      vispdat_prioritization_days_homeless || days_homeless_in_last_three_years_cached || 0
     end
 
     private def hmis_days_homeless_in_last_three_years
