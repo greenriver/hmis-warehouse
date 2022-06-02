@@ -1,0 +1,19 @@
+- markdown = Redcarpet::Markdown.new(::InlineHtml)
+- system_class_name = "jSystemLevelChart_#{@result.class.name.underscore.dasherize}"
+
+= content_for :crumbs do
+  = link_to ce_performance_warehouse_reports_report_path(@report) do
+    &laquo; #{@report.title}
+.ce-performance
+  .p-4
+    %h1= @result.class.title
+  .warehouse-reports__completed.mt-2.ml-2.d-flex
+    = @report.filter.describe_filter_as_html
+  .d-flex.mb-4
+    .goal.col-4
+      %h3 Goal
+      %p= raw markdown.render(@result.class.description)
+    .calculation.ml-6
+      %h3.d-flex
+        Calculation
+    = render 'hud_report_links'

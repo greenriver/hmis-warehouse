@@ -36,11 +36,27 @@ module CePerformance
     end
 
     def self.description
-      "Persons in the CoC will have an average combined length of time in CE of no more than #{goal} days."
+      "Persons in the CoC will have an average combined length of time in CE of **no more than #{goal} days**."
     end
 
     def self.calculation
       'Average number of days between CE Project Start Date and Exit Date, or Report Period End Date for Stayers'
+    end
+
+    def self.display_result?
+      true
+    end
+
+    def self.median_class
+      CePerformance::Results::CategoryOneMedian
+    end
+
+    def passed?
+      value.present? && value < self.class.goal
+    end
+
+    def detail_link_text
+      "Average: #{value} days"
     end
   end
 end

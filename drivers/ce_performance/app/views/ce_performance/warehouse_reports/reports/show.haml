@@ -10,19 +10,8 @@
     %h3 Universe
     = @report.describe_filter_as_html
   .ml-auto
-    - if can_view_all_hud_reports? || can_view_own_hud_reports?
-      %h3 CE APR Reports
-      - @report.ce_aprs.order(start_date: :asc).each do |ce_apr|
-        .ml-auto
-          = link_to "#{ce_apr.start_date} - #{ce_apr.end_date}", hud_reports_ce_apr_path(ce_apr.ce_apr_id), target: :_blank, class: 'btn btn-sm btn-secondary mb-2'
+    = render 'hud_report_links'
 - @report.results_for_display[:reporting].each do |result_class, result|
-  - comparison = @report.results_for_display[:comparison][result_class]
-  %h2= result_class.title
-  .well
-    %p= result_class.description
-    %p= result_class.calculation
-    %dl
-      %dt Reporting Period
-      %dd= result.value
-      %dt Comparison Period
-      %dd= comparison.value
+  - next unless result_class.display_result?
+
+  = render result, result_class: result_class, result: result

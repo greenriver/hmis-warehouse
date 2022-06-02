@@ -66,14 +66,15 @@ module CePerformance::WarehouseReports
     end
 
     def details
-      details_params
+      key = @report.results_for_display[:reporting].keys.detect do |k|
+        details_params[:key] == k.to_s
+      end
+      @result = @report.results_for_display[:reporting][key]
+      @comparison = @report.results_for_display[:comparison][key]
     end
 
     def details_params
-      params.permit(
-        :variant,
-        :cell,
-      )
+      params.permit(:key)
     end
     helper_method :details_params
 
