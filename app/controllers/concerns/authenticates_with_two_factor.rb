@@ -39,7 +39,7 @@ module AuthenticatesWithTwoFactor
     render 'devise/sessions/new'
   end
 
-  def authenticate_with_two_factor
+  def authenticate_with_two_factor(perform_authentication: true)
     self.resource = find_user
     user = resource
     return locked_user_redirect(user) unless user.active?
@@ -48,7 +48,7 @@ module AuthenticatesWithTwoFactor
     if using_memorized_device?(user) && bypass_2fa_enabled?
       two_factor_successful(user)
     elsif user_params[:otp_attempt].present? && session[:otp_user_id]
-      authenticate_with_two_factor_via_otp(user)
+      authenticate_with_two_factor_via_otp(user) if perform_authentication
     elsif user&.valid_password?(user_params[:password])
       prompt_for_two_factor(user)
     end

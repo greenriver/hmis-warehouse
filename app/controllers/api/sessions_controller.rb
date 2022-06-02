@@ -10,13 +10,14 @@ class Api::SessionsController < Devise::SessionsController
   before_action :check_request_format, only: [:create]
   respond_to :json
 
-  prepend_before_action(
-    :authenticate_with_two_factor,
-    if: -> { action_name == 'create' && two_factor_enabled? },
-  )
+  prepend_before_action do
+    authenticate_with_two_factor(perform_authentication: false) if action_name == 'create' && two_factor_enabled?
+  end
 
   def create
-    self.resource = warden.authenticate!(auth_options) unless two_factor_enabled?
+    self.resource = warden.authenticate!(auth_options)
+    # FIXME should call record_failure_and_lock_access_if_exceeded if otp strategy failed,
+    # but we never get here if it does. and no exception is thrown (???)
     sign_in(:api_user, resource)
     render json: { success: true, jwt: current_token }
   end
