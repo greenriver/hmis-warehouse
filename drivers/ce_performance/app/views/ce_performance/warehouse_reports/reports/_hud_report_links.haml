@@ -1,5 +1,9 @@
-- if can_view_all_hud_reports? || can_view_own_hud_reports?
-  %h3 CE APR Reports
-  - @report.ce_aprs.order(start_date: :asc).each do |ce_apr|
+
+%h3 CE APR Reports
+- @report.ce_aprs.order(start_date: :asc).each do |ce_apr|
+  - if can_view_all_hud_reports? || can_view_own_hud_reports?
     .ml-auto
       = link_to "#{ce_apr.start_date} - #{ce_apr.end_date}", hud_reports_ce_apr_path(ce_apr.ce_apr_id), target: :_blank, class: 'btn btn-sm btn-secondary mb-2'
+  - else
+    .ml-auto
+      .badge.badge-secondary.p-2.mb-2= "#{ce_apr.start_date} - #{ce_apr.end_date}"

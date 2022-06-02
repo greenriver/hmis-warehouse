@@ -25,5 +25,13 @@ module CePerformance
         or(arel_table[:los_under_threshold].eq(1).and(arel_table[:previous_street_essh].eq(1))),
       )
     end
+
+    scope :diverted, -> do
+      where(diversion_event: true)
+    end
+
+    scope :successfully_diverted, -> do
+      diverted.where(diversion_successful: true)
+    end
   end
 end

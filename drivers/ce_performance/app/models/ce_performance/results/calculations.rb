@@ -23,5 +23,53 @@ module CePerformance::Results::Calculations
 
       (sorted[mid] + sorted[mid - 1]) / 2
     end
+
+    def self.display_result?
+      true
+    end
+
+    def percentage?
+      false
+    end
+
+    def max_100?
+      false
+    end
+
+    def goal_line
+      self.class.goal
+    end
+
+    def chart_slug
+      self.class.name.split('::').last.underscore.dasherize
+    end
+
+    def passed?
+      value.present? && value < self.class.goal
+    end
+
+    def titles_for_bar_tooltip(report)
+      [report.filter.date_range_words, report.filter.comparison_range_words]
+    end
+
+    def direction(comparison)
+      return :none if value == comparison.value
+      return :up if (value.presence || 0) > (comparison.value.presence || 0)
+
+      :down
+    end
+
+    def change_over_year(comparison)
+      return 0 unless value.present?
+      return 100 if comparison.value.blank? || comparison.value.zero?
+
+      self.class.percent_of(value - comparison.value, comparison.value)
+    end
+
+    def self.percent_of(numerator, denominator)
+      return 0 unless denominator.positive?
+
+      ((numerator / denominator.to_f) * 100).round
+    end
   end
 end

@@ -82,7 +82,11 @@ module CePerformance
 
     def filter
       @filter ||= begin
-        f = ::Filters::HudFilterBase.new(user_id: user_id, enforce_one_year_range: false)
+        f = ::Filters::HudFilterBase.new(
+          user_id: user_id,
+          enforce_one_year_range: false,
+          comparison_pattern: :prior_year,
+        )
         f.update(options.with_indifferent_access.merge(enforce_one_year_range: false)) if options.present?
         f
       end
@@ -293,8 +297,10 @@ module CePerformance
 
     private def result_types
       [
-        CePerformance::Results::CategoryOneAverage,
-        CePerformance::Results::CategoryOneMedian,
+        CePerformance::Results::CategoryOne,
+        CePerformance::Results::SuccessfulDiversion,
+        CePerformance::Results::TimeInProjectAverage,
+        CePerformance::Results::TimeInProjectMedian,
       ]
     end
 
@@ -341,12 +347,7 @@ module CePerformance
         reporting_filter = ::Filters::HudFilterBase.new(user_id: user_id)
         reporting_filter.update(filter.to_h)
         reporting_filter.coc_codes = [filter.coc_code]
-        comparison_filter = ::Filters::HudFilterBase.new(user_id: user_id)
-        comparison_filter.update(reporting_filter.to_h)
-        comparison_filter.update(
-          start: reporting_filter.start - 1.years,
-          end: reporting_filter.end - 1.years,
-        )
+        comparison_filter = reporting_filter.to_comparison
         periods[:reporting] = reporting_filter
         periods[:comparison] = comparison_filter
       end

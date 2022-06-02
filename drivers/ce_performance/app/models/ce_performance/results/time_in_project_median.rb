@@ -5,7 +5,7 @@
 ###
 
 module CePerformance
-  class Results::CategoryOneMedian < CePerformance::Result
+  class Results::TimeInProjectMedian < CePerformance::Result
     include CePerformance::Results::Calculations
     # Find the number of people who are literally homeless (category 1)
     # 1. Find all clients served (CE APR Q5 B1)
@@ -18,12 +18,12 @@ module CePerformance
       create(
         report_id: report.id,
         period: period,
-        value: median(values),
+        value: median(values).round,
       )
     end
 
     def self.client_scope(report, period)
-      report.clients.served_in_period(period).literally_homeless_at_entry
+      report.clients.served_in_period(period)
     end
 
     # TODO: move to goal configuration
@@ -47,12 +47,39 @@ module CePerformance
       false
     end
 
-    def passed?
-      value.present? && value < self.class.goal
-    end
-
     def detail_link_text
       "Median: #{value} days"
+    end
+
+    def indicator(comparison)
+      @indicator ||= OpenStruct.new(
+        primary_value: value,
+        primary_unit: 'days',
+        secondary_value: change_over_year(comparison),
+        secondary_unit: '%',
+        value_label: 'change over year',
+        passed: passed?,
+        direction: direction(comparison),
+      )
+    end
+
+    def data_for_chart(report, comparison)
+      aprs = report.ce_aprs.order(start_date: :asc).to_a
+      comparison_year = aprs.first.end_date.year
+      report_year = aprs.last.end_date.year
+      columns = [
+        ['x', comparison_year, report_year],
+        ['days', comparison.value, value],
+      ]
+      {
+        x: 'x',
+        columns: columns,
+        type: 'bar',
+        labels: {
+          colors: 'white',
+          centered: true,
+        },
+      }
     end
   end
 end

@@ -1,0 +1,20 @@
+- markdown = Redcarpet::Markdown.new(::InlineHtml)
+- median = @report.results_for_display[:reporting][result_class.median_class]
+
+- status = result.passed? ? 'success' : 'danger'
+- icon = result.passed? ? 'check' : 'cross'
+- label = result.passed? ? 'Passed' : 'Failed'
+
+
+.card.mb-2.pb-0.page-break-avoid
+  .p-4.d-flex
+    .mr-4
+      %h2= result_class.title
+      %p= raw markdown.render(result_class.description)
+    .font-size-md.ml-auto
+      .mb-4.d-flex
+        .ml-auto= tagged(result.passed?, status, icon: icon, label: label)
+      .mb-4
+        = link_to result.detail_link_text, details_ce_performance_warehouse_reports_report_path(@report, key: result_class, target: :_blank)
+      .mb-4
+        = link_to median.detail_link_text, details_ce_performance_warehouse_reports_report_path(@report, key: result_class.median_class, target: :_blank)

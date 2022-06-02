@@ -12,8 +12,12 @@ class AddDeletedDatToCeClients < ActiveRecord::Migration[6.1]
     add_column :ce_performance_clients, :q5a_b1, :boolean, default: false
     add_column :ce_performance_clients, :deleted_at, :datetime
 
+    remove_column :ce_performance_results, :format, :string
+    remove_column :ce_performance_results, :field, :string
     add_column :ce_performance_results, :type, :string
     add_column :ce_performance_results, :period, :string
+    add_column :ce_performance_results, :numerator, :integer
+    add_column :ce_performance_results, :denominator, :integer
     add_column :ce_performance_results, :deleted_at, :datetime
 
     create_table :ce_performance_ce_aprs do |t|

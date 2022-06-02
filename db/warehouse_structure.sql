@@ -3975,13 +3975,13 @@ ALTER SEQUENCE public.ce_performance_clients_id_seq OWNED BY public.ce_performan
 CREATE TABLE public.ce_performance_results (
     id bigint NOT NULL,
     report_id bigint,
-    field character varying,
     value double precision,
-    format character varying,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     type character varying,
     period character varying,
+    numerator integer,
+    denominator integer,
     deleted_at timestamp without time zone
 );
 
