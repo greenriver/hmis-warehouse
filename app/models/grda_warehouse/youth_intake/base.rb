@@ -62,6 +62,11 @@ module GrdaWarehouse::YouthIntake
       end
     end
 
+    def hmis_client?
+      # If there is a client from a non-authoritative data source, it is from an HMIS upload
+      client.source_clients.any? { |client| ! client.data_source.authoritative? }
+    end
+
     scope :served, -> do
       where(turned_away: false)
     end

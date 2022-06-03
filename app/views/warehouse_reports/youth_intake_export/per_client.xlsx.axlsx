@@ -1,0 +1,145 @@
+wb = xlsx_package.workbook
+wb.add_worksheet(name: 'Youth Intakes') do |sheet|
+  intake_order = [
+    :entered_by_user,
+    :user_email,
+    :user_agency,
+    :title,
+    :other_staff_completed_intake,
+    :first_name,
+    :last_name,
+    :ssn,
+    :client_dob,
+    :staff_name,
+    :staff_email,
+    :engagement_date,
+    :exit_date,
+    :unaccompanied,
+    :street_outreach_contact,
+    :housing_status,
+    :owns_cell_phone,
+    :secondary_education,
+    :attending_college,
+    :health_insurance,
+    :requesting_financial_assistance,
+    :staff_believes_youth_under_24,
+    :gender,
+    :client_lgbtq,
+    :race_array,
+    :ethnicity_description,
+    :client_primary_language,
+    :pregnant_or_parenting,
+    :disabilities,
+    :how_hear,
+    :needs_shelter,
+    :referred_to_shelter,
+    :in_stable_housing,
+    :stable_housing_zipcode,
+    :youth_experiencing_homelessness_at_start,
+    :turned_away,
+    :college_pilot,
+    :graduating_college,
+    :other_agency_involvements,
+    :client_id,
+  ]
+  bold = sheet.styles.add_style(sz: 12, b: true)
+  intake = GrdaWarehouse::YouthIntake::Base.export_headers.zip(client_intake.for_export).
+    select { |k, _v| intake_order.include?(k.to_sym) }.
+    sort_by { |k, _v| intake_order.find_index(k.to_sym) }
+  intake.each do |k, v|
+    sheet.add_row([k.titleize, v], style: [bold, nil])
+  end
+end
+
+wb.add_worksheet(name: 'Referrals') do |sheet|
+  referrals_order = [
+    :entered_by_user,
+    :user_email,
+    :user_agency,
+    :referred_on,
+    :referred_to,
+    :notes,
+  ]
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+  row = GrdaWarehouse::Youth::YouthReferral.export_headers.select { |k, _v| referrals_order.include?(k.to_sym) }.map(&:titleize)
+  sheet.add_row(row, style: title)
+
+  client_referrals.each do |record|
+    row = GrdaWarehouse::Youth::YouthReferral.export_headers.zip(record.for_export).
+      select { |k, _v| referrals_order.include?(k.to_sym) }.
+      sort_by { |k, _v| referrals_order.find_index(k.to_sym) }.
+      map { |_k, v| v }
+    sheet.add_row(row)
+  end
+end
+
+wb.add_worksheet(name: 'Case Management') do |sheet|
+  case_managements_order = [
+    :entered_by_user,
+    :user_email,
+    :user_agency,
+    :engaged_on,
+    :activity,
+    :housing_status,
+    :other_housing_status,
+    :zip_code,
+  ]
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+  row = GrdaWarehouse::Youth::YouthCaseManagement.export_headers.select { |k, _v| case_managements_order.include?(k.to_sym) }.map(&:titleize)
+  sheet.add_row(row, style: title)
+
+  client_case_managements.each do |record|
+    row = GrdaWarehouse::Youth::YouthCaseManagement.export_headers.zip(record.for_export).
+      select { |k, _v| case_managements_order.include?(k.to_sym) }.
+      sort_by { |k, _v| case_managements_order.find_index(k.to_sym) }.
+      map { |_k, v| v }
+    sheet.add_row(row)
+  end
+end
+
+wb.add_worksheet(name: 'Direct Financial Assistance') do |sheet|
+  dfas_order = [
+    :entered_by_user,
+    :user_email,
+    :user_agency,
+    :provided_on,
+    :type_provided,
+    :amount,
+  ]
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+  row = GrdaWarehouse::Youth::DirectFinancialAssistance.export_headers.select { |k, _v| dfas_order.include?(k.to_sym) }.map(&:titleize)
+  sheet.add_row(row, style: title)
+
+  client_dfas.each do |record|
+    row = GrdaWarehouse::Youth::DirectFinancialAssistance.export_headers.zip(record.for_export).
+      select { |k, _v| dfas_order.include?(k.to_sym) }.
+      sort_by { |k, _v| dfas_order.find_index(k.to_sym) }.
+      map { |_k, v| v }
+    sheet.add_row(row)
+  end
+end
+
+wb.add_worksheet(name: '3-Month Follow-ups') do |sheet|
+  follow_ups_order = [
+    :entered_by_user,
+    :user_email,
+    :user_agency,
+    :contacted_on,
+    :housing_status,
+    :zip_code,
+    :action,
+    :action_on,
+    :required_on,
+  ]
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+  row = GrdaWarehouse::Youth::YouthFollowUp.export_headers.select { |k, _v| follow_ups_order.include?(k.to_sym) }.map(&:titleize)
+  sheet.add_row(row, style: title)
+
+  client_follow_ups.each do |record|
+    row = GrdaWarehouse::Youth::YouthFollowUp.export_headers.zip(record.for_export).
+      select { |k, _v| follow_ups_order.include?(k.to_sym) }.
+      sort_by { |k, _v| follow_ups_order.find_index(k.to_sym) }.
+      map { |_k, v| v }
+    sheet.add_row(row)
+  end
+end
