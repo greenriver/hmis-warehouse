@@ -40,11 +40,13 @@ jobs:
   deploy:
     name: Deploy
     runs-on: ubuntu-20.04
-    container: ruby:2.7.6-alpine3.15
 
     steps:
     - name: Checkout
       uses: actions/checkout@v3
+
+    - name: Install Ruby
+      uses: ruby/setup-ruby@v1
 
     #- name: Install postgres
     #  uses: harmon758/postgresql-action@v1
