@@ -40,6 +40,8 @@ jobs:
   deploy:
     name: Deploy
     runs-on: ubuntu-20.04
+    env:
+      BUNDLE_WITHOUT: 'production staging development'
 
     steps:
     - name: Checkout
@@ -48,7 +50,9 @@ jobs:
     - name: Install Ruby
       uses: ruby/setup-ruby@v1
       with:
+        bundler: 'Gemfile.lock'
         bundler-cache: true
+        cache-version: 1
 
     #- name: Install postgres
     #  uses: harmon758/postgresql-action@v1
