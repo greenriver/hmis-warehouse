@@ -120,25 +120,17 @@ jobs:
         echo Building deploy
         docker build --file=$DOCKER_ASSETS_PATH/Dockerfile.${ECR_REPOSITORY}.deploy -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--deploy .
 
-        if [ -f $DOCKER_ASSETS_PATH/Dockerfile.${ECR_REPOSITORY}.dj ];
-        then
-          echo Building dj
-          docker build --file=$DOCKER_ASSETS_PATH/Dockerfile.${ECR_REPOSITORY}.dj -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--dj .
-        else
-          echo Not building dj
-        fi
+        echo Building dj
+        docker build --file=$DOCKER_ASSETS_PATH/Dockerfile.${ECR_REPOSITORY}.dj -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--dj .
 
         echo Pushing base/web/deploy
+        GITHASH=${GITHASH} VARIANT='base' bin/error_if_githash_is_latest.rb
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--base
+        GITHASH=${GITHASH} VARIANT='web' bin/error_if_githash_is_latest.rb
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--web
+        GITHASH=${GITHASH} VARIANT='dj' bin/error_if_githash_is_latest.rb
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--dj
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--deploy
-        if [ -f $DOCKER_ASSETS_PATH/Dockerfile.${ECR_REPOSITORY}.dj ];
-        then
-          echo pushing dj
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--dj
-        else
-          echo not pushing dj
-        fi
 
         echo $IMAGE_TAG--base > image-tag.txt
         echo $IMAGE_TAG--web >> image-tag.txt
