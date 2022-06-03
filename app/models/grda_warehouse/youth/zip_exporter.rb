@@ -31,7 +31,10 @@ module GrdaWarehouse::Youth
             housing_resolution_plans: @housing_resolution_plans.select { |hrp| hrp.client_id == intake.client_id },
           }
           contents = @controller.render_to_string(:per_client, locals: locals)
-          filename = File.join(@file_path, 'Client ' + intake.client_id.to_s + (intake.hmis_client? ? ' (HMIS)' : '') + '.xlsx')
+          name = "Client #{intake.client_id} - #{intake.id}"
+          name += ' (HMIS)' if intake.hmis_client?
+          name += '.xlsx'
+          filename = File.join(@file_path, name)
           File.open(filename, 'w') { |file| file.write(contents) }
         end
         file = create_zip_file
