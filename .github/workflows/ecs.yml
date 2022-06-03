@@ -71,8 +71,7 @@ jobs:
         export PRE_CACHE_TAG="${RUBY_VERSION}-${PRE_CACHE_VERSION}--pre-cache"
         echo "::set-output name=pre_cache_tag::$PRE_CACHE_TAG"
 
-        apk add python3 py3-pip
-        pip3 install awscli
+        apt-get install awscli
 
     - name: Build, tag, and push image to Amazon ECR
       id: build-image
