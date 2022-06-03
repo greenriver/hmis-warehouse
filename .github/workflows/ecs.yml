@@ -49,6 +49,9 @@ jobs:
     #  uses: harmon758/postgresql-action@v1
     #  with:
     #    postgresql version: '11'  # See https://hub.docker.com/_/postgres for available versions
+    - name: Install aws cli
+      id: install-aws-cli
+      uses: unfor19/install-aws-cli-action@v1.0.3
 
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v1
@@ -70,8 +73,6 @@ jobs:
         export PRE_CACHE_VERSION=`cat .pre-cache-version`
         export PRE_CACHE_TAG="${RUBY_VERSION}-${PRE_CACHE_VERSION}--pre-cache"
         echo "::set-output name=pre_cache_tag::$PRE_CACHE_TAG"
-
-        apt-get install awscli
 
     - name: Build, tag, and push image to Amazon ECR
       id: build-image
