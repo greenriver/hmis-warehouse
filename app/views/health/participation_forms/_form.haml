@@ -1,6 +1,11 @@
 = simple_form_for @participation_form, url: form_url, as: :form, remote: true, html: {multipart: true} do |f|
 
-  = f.error_notification
+  - if @participation_form.errors.any?
+    .alert.alert-danger.flex-column.align-items-start
+      %p Please review the errors below:
+      %ul.error_list
+        - @participation_form.errors.messages.values.first.each do |msg|
+          %li= msg
 
   .col-sm-12
     .row
@@ -23,10 +28,7 @@
             %i.icon-download2
             Blank Participation Form
 
-    - highlights = ''
-    - if @participation_form.errors.messages[:file].present?
-      - highlights = 'alert alert-danger'
-    %div{class: highlights}
+    %div
       .row
         .col-sm-6.j-file-upload
           = render 'upload_fields', f: f
