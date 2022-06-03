@@ -40,20 +40,10 @@ jobs:
   deploy:
     name: Deploy
     runs-on: ubuntu-20.04
-    env:
-      BUNDLE_WITHOUT: 'production staging development'
-      BUNDLE_DEPLOYMENT: false
 
     steps:
     - name: Checkout
       uses: actions/checkout@v3
-
-    - name: Install Ruby
-      uses: ruby/setup-ruby@v1
-      with:
-        bundler: 'Gemfile.lock'
-        bundler-cache: true
-        cache-version: 1
 
     #- name: Install postgres
     #  uses: harmon758/postgresql-action@v1
@@ -71,7 +61,7 @@ jobs:
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v1
 
-    - name: Prepare pre-cache image
+    - name: Prepare
       id: prep
       env:
         ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
@@ -80,6 +70,9 @@ jobs:
         export PRE_CACHE_VERSION=`cat .pre-cache-version`
         export PRE_CACHE_TAG="${RUBY_VERSION}-${PRE_CACHE_VERSION}--pre-cache"
         echo "::set-output name=pre_cache_tag::$PRE_CACHE_TAG"
+
+        apk add python3 py3-pip
+        pip3 install awscli
 
     - name: Build, tag, and push image to Amazon ECR
       id: build-image
@@ -134,11 +127,11 @@ jobs:
         docker build --file=$DOCKER_ASSETS_PATH/Dockerfile.${ECR_REPOSITORY}.dj -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--dj .
 
         echo Pushing base/web/deploy
-        GITHASH=${GITHASH} VARIANT='base' bundle exec bin/error_if_githash_is_latest.rb
+        GITHASH=${GITHASH} VARIANT='base' bin/error_if_githash_is_latest
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--base
-        GITHASH=${GITHASH} VARIANT='web' bundle exec bin/error_if_githash_is_latest.rb
+        GITHASH=${GITHASH} VARIANT='web' bin/error_if_githash_is_latest
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--web
-        GITHASH=${GITHASH} VARIANT='dj' bundle exec bin/error_if_githash_is_latest.rb
+        GITHASH=${GITHASH} VARIANT='dj' bin/error_if_githash_is_latest
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--dj
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--deploy
 

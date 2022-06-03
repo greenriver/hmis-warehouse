@@ -1,0 +1,8 @@
+#!/bin/bash
+
+TAGS = $(aws ecr describe-images --repository-name $ECR_REPOSITORY --image-ids imageTag=githash-${GITHASH}--${VARIANT} --query=imageDetails[0].imageTags)
+
+if [[ $TAGS == *"latest"* ]]; then
+  echo 'This githash has a latest tag!'
+  exit 1
+fi
