@@ -5,15 +5,15 @@
 ###
 
 module CePerformance
-  class Results::TimeInProjectMedian < CePerformance::Result
+  class Results::ReferralToHousingAverage < CePerformance::Result
     include CePerformance::Results::Calculations
-    # For anyone served by CE, how long have they been in the project
+    # For anyone served by CE, how long between referral and housing
     def self.calculate(report, period, _filter)
-      values = client_scope(report, period).pluck(:days_in_project)
+      values = client_scope(report, period).pluck(:days_between_referral_and_housing)
       create(
         report_id: report.id,
         period: period,
-        value: median(values),
+        value: average(values),
       )
     end
 
@@ -23,35 +23,46 @@ module CePerformance
 
     # TODO: move to goal configuration
     def self.goal
-      30
+      5
+    end
+
+    def passed?(comparison)
+      return false if value.nil?
+      # we can't get any shorter
+      return true if value.zero?
+      # we were under the threshold last year, and we're lower now
+      return true if comparison.value.present? && comparison.value <= self.class.goal && value <= comparison.value
+
+      # change over year is better than goal
+      change_over_year(comparison) <= -self.class.goal
     end
 
     def self.title
-      _('Median Length of Time in CE')
+      _('Average Length of Time from CE Project Entry to Housing Referral')
     end
 
     def self.description
-      "Persons in the CoC will have an median length of time in CE of **no more than #{goal} days**."
+      "The CoC will decrease the average combined length of time from CE Project Entry to Housing Referral by **#{goal} days** annually."
     end
 
     def self.calculation
-      'Median number of days between CE Project Start Date and Exit Date, or Report Period End Date for Stayers'
+      'Average number of days between CE Project Start Date and Housing Referral Date'
     end
 
-    def self.display_result?
-      false
+    def self.median_class
+      CePerformance::Results::ReferralToHousingMedian
     end
 
     def detail_link_text
-      "Median: #{value.to_i} days"
+      "Average: #{value.to_i} days"
     end
 
     def indicator(comparison)
       @indicator ||= OpenStruct.new(
         primary_value: value.to_i,
         primary_unit: 'days',
-        secondary_value: percent_change_over_year(comparison),
-        secondary_unit: '%',
+        secondary_value: change_over_year(comparison).to_i,
+        secondary_unit: 'days',
         value_label: 'change over year',
         passed: passed?(comparison),
         direction: direction(comparison),
@@ -66,6 +77,7 @@ module CePerformance
         ['x', comparison_year, report_year],
         ['days', comparison.value, value],
       ]
+
       {
         x: 'x',
         columns: columns,

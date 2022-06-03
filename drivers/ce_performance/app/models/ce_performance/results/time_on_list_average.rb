@@ -5,15 +5,15 @@
 ###
 
 module CePerformance
-  class Results::TimeInProjectMedian < CePerformance::Result
+  class Results::TimeOnListAverage < CePerformance::Result
     include CePerformance::Results::Calculations
-    # For anyone served by CE, how long have they been in the project
+    # For anyone served by CE, how long have they been on the prioritization list
     def self.calculate(report, period, _filter)
-      values = client_scope(report, period).pluck(:days_in_project)
+      values = client_scope(report, period).pluck(:days_on_list)
       create(
         report_id: report.id,
         period: period,
-        value: median(values),
+        value: average(values),
       )
     end
 
@@ -27,30 +27,30 @@ module CePerformance
     end
 
     def self.title
-      _('Median Length of Time in CE')
+      _('Average Length of Time on Prioritization List')
     end
 
     def self.description
-      "Persons in the CoC will have an median length of time in CE of **no more than #{goal} days**."
+      "Persons in the CoC will have an average length of time on the prioritization list of **no more than #{goal} days**."
     end
 
     def self.calculation
-      'Median number of days between CE Project Start Date and Exit Date, or Report Period End Date for Stayers'
+      'Average number of days between CE Assessment and Exit Date, or Report Period End Date for Stayers'
     end
 
-    def self.display_result?
-      false
+    def self.median_class
+      CePerformance::Results::TimeOnListMedian
     end
 
     def detail_link_text
-      "Median: #{value.to_i} days"
+      "Average: #{value.to_i} days"
     end
 
     def indicator(comparison)
       @indicator ||= OpenStruct.new(
         primary_value: value.to_i,
         primary_unit: 'days',
-        secondary_value: percent_change_over_year(comparison),
+        secondary_value: percent_change_over_year(comparison).to_i,
         secondary_unit: '%',
         value_label: 'change over year',
         passed: passed?(comparison),
@@ -66,6 +66,7 @@ module CePerformance
         ['x', comparison_year, report_year],
         ['days', comparison.value, value],
       ]
+
       {
         x: 'x',
         columns: columns,

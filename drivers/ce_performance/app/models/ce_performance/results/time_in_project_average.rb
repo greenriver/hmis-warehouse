@@ -7,18 +7,13 @@
 module CePerformance
   class Results::TimeInProjectAverage < CePerformance::Result
     include CePerformance::Results::Calculations
-    # Find the number of people who are literally homeless (category 1)
-    # 1. Find all clients served (CE APR Q5 B1)
-    # 2. Of those count those who entered with Prior Living Situation (3.917.1)
-    #   homeless
-    #   or
-    #   LOSUnderThreshold = yes and PreviousStreetESSH yes
+    # For anyone served by CE, how long have they been in the project
     def self.calculate(report, period, _filter)
       values = client_scope(report, period).pluck(:days_in_project)
       create(
         report_id: report.id,
         period: period,
-        value: average(values).round,
+        value: average(values),
       )
     end
 
@@ -48,17 +43,17 @@ module CePerformance
     end
 
     def detail_link_text
-      "Average: #{value} days"
+      "Average: #{value.to_i} days"
     end
 
     def indicator(comparison)
       @indicator ||= OpenStruct.new(
-        primary_value: value,
+        primary_value: value.to_i,
         primary_unit: 'days',
-        secondary_value: change_over_year(comparison),
+        secondary_value: percent_change_over_year(comparison),
         secondary_unit: '%',
         value_label: 'change over year',
-        passed: passed?,
+        passed: passed?(comparison),
         direction: direction(comparison),
       )
     end

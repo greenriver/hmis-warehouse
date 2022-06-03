@@ -85,7 +85,6 @@ module CePerformance
         f = ::Filters::HudFilterBase.new(
           user_id: user_id,
           enforce_one_year_range: false,
-          comparison_pattern: :prior_year,
         )
         f.update(options.with_indifferent_access.merge(enforce_one_year_range: false)) if options.present?
         f
@@ -153,7 +152,7 @@ module CePerformance
     def results_for_display
       @results_for_display ||= {}.tap do |rfd|
         periods.keys.each do |period|
-          rfd[period] = results.select { |r| r.period == period.to_s }.map do |r|
+          rfd[period] = results.order(:id).select { |r| r.period == period.to_s }.map do |r|
             [r.class, r]
           end.to_h
         end
@@ -301,6 +300,12 @@ module CePerformance
         CePerformance::Results::SuccessfulDiversion,
         CePerformance::Results::TimeInProjectAverage,
         CePerformance::Results::TimeInProjectMedian,
+        CePerformance::Results::ReferralToHousingAverage,
+        CePerformance::Results::ReferralToHousingMedian,
+        CePerformance::Results::TimeOnListAverage,
+        CePerformance::Results::TimeOnListMedian,
+        CePerformance::Results::TimeToAssessmentAverage,
+        CePerformance::Results::TimeToAssessmentMedian,
       ]
     end
 

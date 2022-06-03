@@ -30,12 +30,16 @@ module CePerformance
       5
     end
 
+    def self.ce_apr_question
+      'Question 5'
+    end
+
     def self.title
       _('Number of Clients in Category 1')
     end
 
     def self.description
-      "Persons enrolled in CE who entered from Categoery 1 homelessness **should decrease by #{goal}% per year**."
+      "Persons enrolled in CE who entered from Category 1 homelessness **should decrease by #{goal}% per year**."
     end
 
     def self.calculation
@@ -43,11 +47,11 @@ module CePerformance
     end
 
     def detail_link_text
-      "#{value} Clients"
+      "#{value.to_i} Clients"
     end
 
     def passed?(comparison)
-      value.present? && change_over_year(comparison) < -self.class.goal
+      value.present? && percent_change_over_year(comparison) < - self.class.goal
     end
 
     def max_100?
@@ -56,9 +60,9 @@ module CePerformance
 
     def indicator(comparison)
       @indicator ||= OpenStruct.new(
-        primary_value: value,
+        primary_value: value.to_i,
         primary_unit: 'clients',
-        secondary_value: change_over_year(comparison),
+        secondary_value: percent_change_over_year(comparison),
         secondary_unit: '%',
         value_label: 'change over year',
         passed: passed?(comparison),

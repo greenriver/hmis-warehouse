@@ -28,6 +28,10 @@ module CePerformance::Results::Calculations
       true
     end
 
+    def self.ce_apr_question
+      nil
+    end
+
     def percentage?
       false
     end
@@ -44,8 +48,8 @@ module CePerformance::Results::Calculations
       self.class.name.split('::').last.underscore.dasherize
     end
 
-    def passed?
-      value.present? && value < self.class.goal
+    def passed?(_comparison)
+      value.present? && value <= self.class.goal
     end
 
     def titles_for_bar_tooltip(report)
@@ -59,11 +63,17 @@ module CePerformance::Results::Calculations
       :down
     end
 
-    def change_over_year(comparison)
+    def percent_change_over_year(comparison)
       return 0 unless value.present?
       return 100 if comparison.value.blank? || comparison.value.zero?
 
       self.class.percent_of(value - comparison.value, comparison.value)
+    end
+
+    def change_over_year(comparison)
+      return 0 unless value.present?
+
+      value - comparison.value
     end
 
     def self.percent_of(numerator, denominator)

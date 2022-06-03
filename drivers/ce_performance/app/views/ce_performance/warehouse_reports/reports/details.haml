@@ -13,6 +13,10 @@
       %p= raw markdown.render(@result.class.description)
       %h3 Calculation
       %p= raw markdown.render(@result.class.calculation)
+      - if @result.class.ce_apr_question.present?
+        .badge.badge-secondary.p-2
+          CE APR
+          = @result.class.ce_apr_question
     .col.warehouse-reports__completed.mt-2.ml-2
       %h3 Universe
       = @report.filter.describe_filter_as_html
@@ -70,7 +74,7 @@
 
             // Build ratio description
             let description = '';
-            if (denominatorLabel) {
+            if (#{@result.percentage?}) {
               const numer = data.index === 0 ? "#{@result.numerator}" : "#{@comparison.numerator}";
               const denom = data.index === 0 ? "#{@result.denominator}" : "#{@comparison.denominator}";
               description = ` (${numer} of ${denom})`;

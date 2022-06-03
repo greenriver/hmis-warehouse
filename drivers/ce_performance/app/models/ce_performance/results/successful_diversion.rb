@@ -34,6 +34,26 @@ module CePerformance
       5
     end
 
+    def self.ce_apr_question
+      'Question 9'
+    end
+
+    def goal_line
+      nil
+    end
+
+    def max_100?
+      true
+    end
+
+    def passed?(comparison)
+      value.present? && percent_change_over_year(comparison) > self.class.goal
+    end
+
+    def percentage?
+      true
+    end
+
     def self.title
       _('Number of persons successfully Diverted')
     end
@@ -46,22 +66,18 @@ module CePerformance
       'The difference (as a percentage) between the number of unduplicated households served by CE and the number with a Diversion CE Event recorded where the CE Event shows "yes" for being housed/re-housed in a safe alternative as a result'
     end
 
-    def max_100?
-      true
-    end
-
-    def detail_link_text
-      "#{value}% change over year"
+    def detail_link_text(comparison)
+      "#{percent_change_over_year(comparison)}% change over year"
     end
 
     def indicator(comparison)
       @indicator ||= OpenStruct.new(
         primary_value: value,
         primary_unit: '% successful',
-        secondary_value: change_over_year(comparison),
+        secondary_value: percent_change_over_year(comparison),
         secondary_unit: '%',
         value_label: 'change over year',
-        passed: passed?,
+        passed: passed?(comparison),
         direction: direction(comparison),
       )
     end

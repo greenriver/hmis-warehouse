@@ -95,11 +95,14 @@ module CePerformance::WarehouseReports
       default_options = {
         sub_population: :clients,
         coc_codes: site_coc_codes,
+        comparison_pattern: :prior_year,
       }
       return { filters: default_options } unless params[:filters].present?
 
       filters = params.permit(filters: @filter.known_params)
-      filters[:coc_codes] ||= site_coc_codes
+      filters[:filters][:coc_codes] ||= site_coc_codes
+      # Enforce comparison
+      filters[:filters][:comparison_pattern] = :prior_year
       filters
     end
     helper_method :filter_params

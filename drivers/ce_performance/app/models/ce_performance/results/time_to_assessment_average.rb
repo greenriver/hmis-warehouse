@@ -5,15 +5,15 @@
 ###
 
 module CePerformance
-  class Results::TimeInProjectMedian < CePerformance::Result
+  class Results::TimeToAssessmentAverage < CePerformance::Result
     include CePerformance::Results::Calculations
-    # For anyone served by CE, how long have they been in the project
+    # For anyone served by CE, how long have they been on the prioritization list
     def self.calculate(report, period, _filter)
-      values = client_scope(report, period).pluck(:days_in_project)
+      values = client_scope(report, period).pluck(:days_before_assessment)
       create(
         report_id: report.id,
         period: period,
-        value: median(values),
+        value: average(values),
       )
     end
 
@@ -23,34 +23,34 @@ module CePerformance
 
     # TODO: move to goal configuration
     def self.goal
-      30
+      7
     end
 
     def self.title
-      _('Median Length of Time in CE')
+      _('Average Length of time from Access to Assessment')
     end
 
     def self.description
-      "Persons in the CoC will have an median length of time in CE of **no more than #{goal} days**."
+      "Persons in the CoC will have an average length of time in CE before assessment of **no more than #{goal} days**."
     end
 
     def self.calculation
-      'Median number of days between CE Project Start Date and Exit Date, or Report Period End Date for Stayers'
+      'Average number of days between CE Project Start Date and CE Assessment date.'
     end
 
-    def self.display_result?
-      false
+    def self.median_class
+      CePerformance::Results::TimeToAssessmentMedian
     end
 
     def detail_link_text
-      "Median: #{value.to_i} days"
+      "Average: #{value.to_i} days"
     end
 
     def indicator(comparison)
       @indicator ||= OpenStruct.new(
         primary_value: value.to_i,
         primary_unit: 'days',
-        secondary_value: percent_change_over_year(comparison),
+        secondary_value: percent_change_over_year(comparison).to_i,
         secondary_unit: '%',
         value_label: 'change over year',
         passed: passed?(comparison),
@@ -59,13 +59,12 @@ module CePerformance
     end
 
     def data_for_chart(report, comparison)
-      aprs = report.ce_aprs.order(start_date: :asc).to_a
-      comparison_year = aprs.first.end_date.year
-      report_year = aprs.last.end_date.year
+      comparison_year, report_year = report.ce_aprs.order(start_date: :asc).pluck(:end_date).map(&:year)
       columns = [
         ['x', comparison_year, report_year],
         ['days', comparison.value, value],
       ]
+
       {
         x: 'x',
         columns: columns,
