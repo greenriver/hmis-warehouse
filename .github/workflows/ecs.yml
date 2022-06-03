@@ -124,11 +124,11 @@ jobs:
         docker build --file=$DOCKER_ASSETS_PATH/Dockerfile.${ECR_REPOSITORY}.dj -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--dj .
 
         echo Pushing base/web/deploy
-        GITHASH=${GITHASH} VARIANT='base' bin/error_if_githash_is_latest.rb
+        GITHASH=${GITHASH} VARIANT='base' bundle exec bin/error_if_githash_is_latest.rb
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--base
-        GITHASH=${GITHASH} VARIANT='web' bin/error_if_githash_is_latest.rb
+        GITHASH=${GITHASH} VARIANT='web' bundle exec bin/error_if_githash_is_latest.rb
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--web
-        GITHASH=${GITHASH} VARIANT='dj' bin/error_if_githash_is_latest.rb
+        GITHASH=${GITHASH} VARIANT='dj' bundle exec bin/error_if_githash_is_latest.rb
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--dj
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--deploy
 
