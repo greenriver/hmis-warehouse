@@ -42,6 +42,7 @@ jobs:
     runs-on: ubuntu-20.04
     env:
       BUNDLE_WITHOUT: 'production staging development'
+      BUNDLE_DEPLOYMENT: false
 
     steps:
     - name: Checkout
