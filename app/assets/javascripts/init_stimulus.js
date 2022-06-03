@@ -1,3 +1,2 @@
-//= require stimulus
-App = App || {}
-App.StimulusApp = Stimulus.Application.start()
+App = App || {};
+App.StimulusApp = Stimulus.Application.start();
