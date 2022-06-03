@@ -101,6 +101,9 @@ jobs:
         else
           echo Pulling pre-cache image
           docker pull $ECR_REGISTRY/$ECR_REPOSITORY:${PRE_CACHE_TAG}
+
+          echo Tagging pre-cache so local dockerfiles will work
+          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:${PRE_CACHE_TAG} ${ECR_REPOSITORY}:latest--pre-cache
         fi
 
         # the pre-cache image is like a stale version of the code. This builds the most recent things
