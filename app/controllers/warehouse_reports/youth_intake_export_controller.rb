@@ -36,6 +36,11 @@ module WarehouseReports
         preload(:client, :youth_intakes).
         visible_by?(current_user).
         between(start_date: @filter.start, end_date: @filter.end)
+      @housing_resolution_plans = GrdaWarehouse::Youth::HousingResolutionPlan.ordered.
+        joins(:client).
+        preload(:client, :youth_intakes).
+        visible_by?(current_user).
+        between(start_date: @filter.start, end_date: @filter.end)
 
       commit = params[:commit]
       respond_to do |format|
@@ -52,6 +57,7 @@ module WarehouseReports
               dfas: @dfas,
               case_managements: @case_managements,
               follow_ups: @follow_ups,
+              housing_resolution_plans: @housing_resolution_plans,
               controller: self,
             )
             send_data(zip_exporter.export!, filename: zip_filename)

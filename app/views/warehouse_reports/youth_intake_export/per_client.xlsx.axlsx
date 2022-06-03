@@ -143,3 +143,44 @@ wb.add_worksheet(name: '3-Month Follow-ups') do |sheet|
     sheet.add_row(row)
   end
 end
+
+wb.add_worksheet(name: 'Housing Resolution Plans') do |sheet|
+  housing_resolution_plans_order = [
+    :entered_by_user,
+    :user_email,
+    :user_agency,
+    :pronouns,
+    :planned_on,
+    :staff_name,
+    :location,
+    :chosen_resolution,
+    :temporary_resolution,
+    :plan_description, :action_steps,
+    :backup_plan,
+    :next_checkin,
+    :how_to_contact,
+    :psc_attempted,
+    :psc_why_not,
+    :resolution_achieved,
+    :resolution_why_not,
+    :problem_solving_point,
+    :housing_crisis_causes,
+    :housing_crisis_cause_other,
+    :factor_employment_income,
+    :factor_family_supports,
+    :factor_social_supports,
+    :factor_life_skills,
+  ]
+
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+  row = GrdaWarehouse::Youth::HousingResolutionPlan.export_headers.select { |k, _v| housing_resolution_plans_order.include?(k.to_sym) }.map(&:titleize)
+  sheet.add_row(row, style: title)
+
+  housing_resolution_plans.each do |record|
+    row = GrdaWarehouse::Youth::HousingResolutionPlan.export_headers.zip(record.for_export).
+      select { |k, _v| housing_resolution_plans_order.include?(k.to_sym) }.
+      sort_by { |k, _v| housing_resolution_plans_order.find_index(k.to_sym) }.
+      map { |_k, v| v }
+    sheet.add_row(row)
+  end
+end

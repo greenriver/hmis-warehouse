@@ -7,12 +7,13 @@
 require 'zip'
 module GrdaWarehouse::Youth
   class ZipExporter
-    def initialize(intakes:, referrals:, dfas:, case_managements:, follow_ups:, controller:, file_path: 'var/yya_export')
+    def initialize(intakes:, referrals:, dfas:, case_managements:, follow_ups:, housing_resolution_plans:, controller:, file_path: 'var/yya_export')
       @intakes = intakes
       @referrals = referrals
       @dfas = dfas
       @case_managements = case_managements
       @follow_ups = follow_ups
+      @housing_resolution_plans = housing_resolution_plans
       @controller = controller
       @file_path = "#{file_path}/#{Process.pid}" # Usual Unixism -- create a unique path based on the PID
     end
@@ -27,6 +28,7 @@ module GrdaWarehouse::Youth
             client_dfas: @dfas.select { |dfa| dfa.client_id == intake.client_id },
             client_case_managements: @case_managements.select { |case_management| case_management.client_id == intake.client_id },
             client_follow_ups: @follow_ups.select { |follow_up| follow_up.client_id == intake.client_id },
+            housing_resolution_plans: @housing_resolution_plans.select { |hrp| hrp.client_id == intake.client_id },
           }
           contents = @controller.render_to_string(:per_client, locals: locals)
           filename = File.join(@file_path, 'Client ' + intake.client_id.to_s + (intake.hmis_client? ? ' (HMIS)' : '') + '.xlsx')
