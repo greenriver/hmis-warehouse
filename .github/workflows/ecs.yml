@@ -40,6 +40,7 @@ jobs:
   deploy:
     name: Deploy
     runs-on: ubuntu-20.04
+    container: ruby:2.7.6-alpine3.15
 
     steps:
     - name: Checkout
