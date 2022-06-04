@@ -88,7 +88,7 @@ module CePerformance
       report_year = aprs.last.end_date.year
       columns = [
         ['x', report_year, comparison_year],
-        ['days', value, comparison.value],
+        ['diversions', value, comparison.value],
       ]
       {
         x: 'x',

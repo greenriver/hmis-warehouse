@@ -3945,7 +3945,8 @@ CREATE TABLE public.ce_performance_clients (
     days_in_project integer,
     days_between_referral_and_housing integer,
     q5a_b1 boolean DEFAULT false,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    assessment_type character varying
 );
 
 
@@ -3982,7 +3983,8 @@ CREATE TABLE public.ce_performance_results (
     period character varying,
     numerator integer,
     denominator integer,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    event_type integer
 );
 
 
@@ -48262,6 +48264,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220527144703'),
 ('20220527144717'),
 ('20220527191834'),
-('20220601122623');
+('20220601122623'),
+('20220604181405');
 
 

@@ -9,8 +9,9 @@
 .ce-performance
   .row
     .goal.col-4
-      %h3 Goal
-      %p= raw markdown.render(@result.class.description)
+      - if @result.class.goal.present?
+        %h3 Goal
+        %p= raw markdown.render(@result.class.description)
       %h3 Calculation
       %p= raw markdown.render(@result.class.calculation)
       - if @result.class.ce_apr_question.present?
@@ -23,8 +24,9 @@
     .col.calculation.ml-6
       = render 'hud_report_links'
   .row.justify-content-around.mb-4
-    .col-6
-      = render 'warehouse_reports/indicator', indicator: indicator
+    - if indicator.present?
+      .col-6
+        = render 'warehouse_reports/indicator', indicator: indicator
     .col-5
       .c-chart--vertical-bar{ class: chart_class_name, data: { chart: @result.data_for_chart(@report, @comparison).to_json }}
 
@@ -32,7 +34,10 @@
   :javascript
     $(document).ready(function() {
       const data = $('.#{chart_class_name}').data('chart');
-      const max = Math.max(...data.columns[1].slice(1));
+      let max = data.columns[0].slice(1);
+      if(data.columns.length == 2) {
+        max = Math.max(...data.columns[1].slice(1));
+      }
       const includePercent = #{@result.percentage?};
       const max_100 = #{@result.max_100?};
       const goal = #{@result.goal_line.to_json};
@@ -75,8 +80,8 @@
             // Build ratio description
             let description = '';
             if (#{@result.percentage?}) {
-              const numer = data.index === 0 ? "#{@result.numerator}" : "#{@comparison.numerator}";
-              const denom = data.index === 0 ? "#{@result.denominator}" : "#{@comparison.denominator}";
+              const numer = data.index === 0 ? "#{@result.numerator}" : "#{@comparison&.numerator}";
+              const denom = data.index === 0 ? "#{@result.denominator}" : "#{@comparison&.denominator}";
               description = ` (${numer} of ${denom})`;
             }
 

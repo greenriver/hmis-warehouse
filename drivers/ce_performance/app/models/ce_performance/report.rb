@@ -166,14 +166,26 @@ module CePerformance
         report_clients = add_q9b_clients(report_clients, period, ce_apr)
         report_clients = add_q9d_clients(report_clients, period, ce_apr)
         # TODO:
+        # Number of persons/households - CAT2: at imminent risk: prevention tool score completed; prior living situation set per HUD
+        # Number of persons screened for Prevention - Number of Head of Household with a recorded Prevention Tool Score (currently from auxiliary data)
+        # Sub-populations -
+        #   Veterans,
+        #   Adult and child households,
+        #   Adult only households,
+        #   Chronically Homeless at Entry,
+        #   Youth (18-24),
+        #   Domestic Violence (Enrollment.CurrentlyFleeing or Enrollment.DomesticViolenceVictim),
+        #   LGBT (can't really do with current data, maybe Gender.Questioning, or Gender.Transgender or Gender.NoSingleGender, is availale in the auxiliary data) ,
+        #   HIV - Enrollment.disabilities.DisabilityType = 8
+        # Number and Types of CE Events - Group and count by ID (Q9d B15) - partially implemented
+        # CE Assessment Score ranges/types - only available in auxiliary data currently (score is integer, type is Family/Single/Youth)
+        # Assessment Point Connections (referral data to ensure clients are getting connected) - TBD
+
         # add prevention_tool_score
         # add assessment_score
-        # add household_ages
+        # add assessment_type
         # add initial_assessment_date
         # add latest_assessment_date
-        # add initial_housing_referral_date
-        # add housing_enrollment_entry_date
-        # add housing_enrollment_move_in_date
 
         Client.import!(
           report_clients.values,
@@ -196,24 +208,25 @@ module CePerformance
           ce_apr_id: ce_apr.id,
           ce_apr_client_id: ce_apr_client.id,
         )
-        report_client[:q5a_b1] = true
-        report_client[:first_name] = ce_apr_client.first_name
-        report_client[:last_name] = ce_apr_client.last_name
-        report_client[:dob] = ce_apr_client[:dob]
-        report_client[:reporting_age] = ce_apr_client[:age]
-        report_client[:veteran] = ce_apr_client[:veteran_status] == 1
-        report_client[:entry_date] = ce_apr_client[:first_date_in_program]
-        report_client[:move_in_date] = ce_apr_client[:move_in_date]
-        report_client[:exit_date] = ce_apr_client[:last_date_in_program]
-        report_client[:head_of_household] = ce_apr_client[:head_of_household]
-        report_client[:prior_living_situation] = ce_apr_client[:prior_living_situation]
-        report_client[:los_under_threshold] = ce_apr_client[:los_under_threshold]
-        report_client[:previous_street_essh] = ce_apr_client[:date_to_street]
-        report_client[:household_size] = ce_apr_client[:household_members].count
+        report_client.q5a_b1 = true
+        report_client.first_name = ce_apr_client.first_name
+        report_client.last_name = ce_apr_client.last_name
+        report_client.dob = ce_apr_client.dob
+        report_client.reporting_age = ce_apr_client.age
+        report_client.veteran = ce_apr_client.veteran_status == 1
+        report_client.entry_date = ce_apr_client.first_date_in_program
+        report_client.move_in_date = ce_apr_client.move_in_date
+        report_client.exit_date = ce_apr_client.last_date_in_program
+        report_client.head_of_household = ce_apr_client.head_of_household
+        report_client.prior_living_situation = ce_apr_client.prior_living_situation
+        report_client.los_under_threshold = ce_apr_client.los_under_threshold
+        report_client.previous_street_essh = ce_apr_client.date_to_street
+        report_client.household_size = ce_apr_client.household_members.count
+        report_client.household_ages = household_ages(ce_apr_client).uniq
         report_client.household_type = ce_apr_client.household_type
-        report_client[:chronically_homeless_at_entry] = ce_apr_client[:chronically_homeless]
-        report_client[:period] = period
-        report_clients[ce_apr_client[:client_id]] = report_client
+        report_client.chronically_homeless_at_entry = ce_apr_client.chronically_homeless
+        report_client.period = period
+        report_clients[ce_apr_client.client_id] = report_client
       end
       report_clients
     end
@@ -234,22 +247,23 @@ module CePerformance
           }
         end
         min_assessment_date = ce_apr_client.hud_report_ce_assessments.map(&:assessment_date).min
-        end_date = [ce_apr_client[:last_date_in_program], ce_apr.end_date].compact.min
-        report_client.days_before_assessment = min_assessment_date - ce_apr_client[:first_date_in_program]
+        end_date = [ce_apr_client.last_date_in_program, ce_apr.end_date].compact.min
+        report_client.days_before_assessment = min_assessment_date - ce_apr_client.first_date_in_program
         report_client.days_on_list = end_date - min_assessment_date if min_assessment_date.present?
-        report_client.days_in_project = end_date - ce_apr_client[:first_date_in_program]
-        report_client[:period] = period
-        report_clients[ce_apr_client[:client_id]] = report_client
+        report_client.days_in_project = end_date - ce_apr_client.first_date_in_program
+        report_client.period = period
+        report_clients[ce_apr_client.client_id] = report_client
       end
       report_clients
     end
+
     private def add_q9d_clients(report_clients, period, ce_apr)
       # All clients placed on prioritization list
       ce_apr_clients = answer_clients(ce_apr, 'Q9d', 'B17')
       ce_apr_clients.each do |ce_apr_client|
-        report_client = report_clients[ce_apr_client[:client_id]] || Client.new(
+        report_client = report_clients[ce_apr_client.client_id] || Client.new(
           report_id: id,
-          client_id: ce_apr_client[:client_id],
+          client_id: ce_apr_client.client_id,
           ce_apr_id: ce_apr.id,
           ce_apr_client_id: ce_apr_client.id,
         )
@@ -294,6 +308,17 @@ module CePerformance
       report_clients
     end
 
+    private def household_ages(apr_client)
+      date = [apr_client.first_date_in_program, filter.start].compact.max
+      ages = [apr_client.age]
+      apr_client.household_members.each do |member|
+        next unless member['dob'].present?
+
+        ages << GrdaWarehouse::Hud::Client.age(date: date, dob: member['dob'].to_date)
+      end
+      ages
+    end
+
     private def result_types
       [
         CePerformance::Results::CategoryOne,
@@ -306,6 +331,7 @@ module CePerformance
         CePerformance::Results::TimeOnListMedian,
         CePerformance::Results::TimeToAssessmentAverage,
         CePerformance::Results::TimeToAssessmentMedian,
+        CePerformance::Results::EventType,
       ]
     end
 

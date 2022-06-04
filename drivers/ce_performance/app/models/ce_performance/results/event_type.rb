@@ -1,0 +1,106 @@
+###
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+module CePerformance
+  class Results::EventType < CePerformance::Result
+    include CePerformance::Results::Calculations
+    # Count all events by event type
+    def self.calculate(report, period, _filter)
+      events = {}
+      client_scope(report, period).find_each do |client|
+        client.events&.each do |event|
+          events[event['event']] ||= 0
+          events[event['event']] += 1
+        end
+      end
+      events.each do |id, count|
+        create(
+          report_id: report.id,
+          period: period,
+          value: count,
+          event_type: id,
+        )
+      end
+    end
+
+    def self.client_scope(report, period)
+      report.clients.served_in_period(period)
+    end
+
+    # TODO: move to goal configuration
+    def self.goal
+      nil
+    end
+
+    def self.ce_apr_question
+      'Question 9'
+    end
+
+    def self.title
+      _('Number and Types of CE Events ')
+    end
+
+    def self.description
+      ''
+    end
+
+    def self.calculation
+      'Counts of events by type occurring during the reporting range.'
+    end
+
+    def detail_link_text
+      'Event details'
+    end
+
+    def indicator(_)
+      nil
+    end
+
+    def passed?(_comparison)
+      true
+    end
+
+    def percentage?
+      false
+    end
+
+    def data_for_chart(report, comparison)
+      report_year_data = report.results.where.not(event_type: nil).pluck(:event_type, :value).to_h
+      comparison_year_data = if comparison.present?
+        comparison.results.where.not(event_type: nil).pluck(:event_type, :value).to_h
+      else
+        {}
+      end
+
+      # normalize data
+      comparison_year_data.keys.each do |k|
+        report_year_data[k] ||= 0
+      end
+      report_year_data.keys.each do |k|
+        comparison_year_data[k] ||= 0
+      end
+      report_year_data.to_h.sort
+      comparison_year_data.to_h.sort
+
+      columns = []
+      x = ['x']
+      report_year_data.each do |k, count|
+        columns << [::HUD.event(k), count]
+        x << ::HUD.event(k)
+      end
+      columns << x
+      {
+        x: 'x',
+        columns: columns,
+        type: 'bar',
+        labels: {
+          colors: 'white',
+          centered: true,
+        },
+      }
+    end
+  end
+end

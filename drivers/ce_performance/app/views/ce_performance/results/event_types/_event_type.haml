@@ -1,0 +1,14 @@
+- markdown = Redcarpet::Markdown.new(::InlineHtml)
+- comparison = @report.results_for_display[:comparison][result_class]
+- status = result.passed?(comparison) ? 'success' : 'danger'
+- icon = result.passed?(comparison) ? 'check' : 'cross'
+- label = result.passed?(comparison) ? 'Passed' : 'Failed'
+
+.card.mb-2.pb-0.page-break-avoid
+  .p-4.d-flex
+    .mr-4
+      %h2= result_class.title
+      %p= raw markdown.render(result_class.description)
+    .font-size-md.ml-auto
+      .mb-4
+        = link_to result.detail_link_text, details_ce_performance_warehouse_reports_report_path(@report, key: result_class, target: :_blank)
