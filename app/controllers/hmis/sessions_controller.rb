@@ -4,10 +4,9 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class Api::SessionsController < Devise::SessionsController
+class Hmis::SessionsController < Devise::SessionsController
   include AuthenticatesWithTwoFactor
   skip_before_action :verify_signed_out_user
-  before_action :check_request_format, only: [:create]
   respond_to :json
 
   prepend_before_action do
@@ -18,19 +17,19 @@ class Api::SessionsController < Devise::SessionsController
     self.resource = warden.authenticate!(auth_options)
     # FIXME should call record_failure_and_lock_access_if_exceeded if otp strategy failed (or save device if it succeeded?),
     # but we never get here if it does. and no exception is thrown (???)
-    sign_in(:api_user, resource)
+    sign_in(:hmis_user, resource)
     render json: { success: true, name: resource.name, email: resource.email }
   end
 
-  def check_request_format
-    return if request.format == :json
+  def destroy
+    # signed_out = (Devise.sign_out_all_scopes ? sign_out : sign_out(resource_name))
+    sign_out(resource_name) # Only sign out of the HMIS, not the warehouse
 
-    sign_out
-    render status: 406, json: { success: 'false', message: 'JSON requests only.' }
+    render json: { success: true }, status: 200
   end
 
   def find_user
-    ApiUser.find_by(email: user_params[:email])
+    HmisUser.find_by(email: user_params[:email])
   end
 
   def prompt_for_two_factor(user, invalid_code: false)
@@ -39,7 +38,7 @@ class Api::SessionsController < Devise::SessionsController
   end
 
   def user_params
-    params.require(:api_user).permit(:email, :password, :otp_attempt, :remember_device, :device_name)
+    params.require(:hmis_user).permit(:email, :password, :otp_attempt, :remember_device, :device_name)
   end
 
   def two_factor_enabled?

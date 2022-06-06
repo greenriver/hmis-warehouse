@@ -36,14 +36,6 @@ Rails.application.routes.draw do
 
   get '/user_training', to: 'user_training#index'
 
-  if ENV['ENABLE_HMIS_API'] == 'true'
-    namespace :api, defaults: { format: :json } do
-      devise_for :users, class_name: 'ApiUser',
-                         skip: [:registrations, :invitations, :passwords, :confirmations, :unlocks],
-                         path: '', path_names: { sign_in: 'login', sign_out: 'logout' }
-    end
-  end
-
   def healthcare_routes(window:)
     namespace :health do
       resources :patient, only: [:index, :update], controller: '/health/patient'
@@ -663,6 +655,21 @@ Rails.application.routes.draw do
     end
   end
 
+  if ENV['ENABLE_HMIS_API'] == 'true'
+    namespace :hmis, defaults: { format: :json } do
+      devise_for :users, class_name: 'HmisUser',
+                         skip: [:registrations, :invitations, :passwords, :confirmations, :unlocks],
+                         path: '', path_names: { sign_in: 'login', sign_out: 'logout' }
+
+      resources :user, only: [:none] do
+        get :index, on: :collection
+      end
+      resources :projects, only: [:none] do
+        post :index, on: :collection
+      end
+    end
+  end
+
   resources :hmis, only: [:index, :show]
 
   resources :weather, only: [:index]
@@ -744,9 +751,6 @@ Rails.application.routes.draw do
       put :unfavorite, on: :member
     end
     resources :clients, only: [:show]
-    resources :user, only: [:none] do
-      get :index, on: :collection
-    end
   end
 
   namespace :admin do

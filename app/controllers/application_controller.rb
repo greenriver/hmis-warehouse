@@ -21,7 +21,7 @@ class ApplicationController < ActionController::Base
 
   before_action :authenticate_user!
   auto_session_timeout User.timeout_in
-  before_action :set_current_api_user, if: :json_request?
+  before_action :set_current_hmis_user, if: :json_request?
   before_action :set_csrf_cookie, if: :json_request?
 
   before_action :set_paper_trail_whodunnit
@@ -298,14 +298,14 @@ class ApplicationController < ActionController::Base
 
   def authenticate_user!(*args)
     if args.blank? && json_request? && hmis_api_enabled?
-      authenticate_api_user!
+      authenticate_hmis_user!
     else
       super
     end
   end
 
-  def set_current_api_user
-    @current_api_user ||= warden.authenticate(scope: :api_user) if hmis_api_enabled?
+  def set_current_hmis_user
+    @current_hmis_user ||= warden.authenticate(scope: :hmis_user) if hmis_api_enabled?
   end
 
   private def set_csrf_cookie

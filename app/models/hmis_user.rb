@@ -4,5 +4,5 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class ApiUser < User
+class HmisUser < User
 end
