@@ -744,6 +744,9 @@ Rails.application.routes.draw do
       put :unfavorite, on: :member
     end
     resources :clients, only: [:show]
+    resources :user, only: [:none] do
+      get :index, on: :collection
+    end
   end
 
   namespace :admin do

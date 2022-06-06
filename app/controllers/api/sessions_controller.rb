@@ -6,7 +6,6 @@
 
 class Api::SessionsController < Devise::SessionsController
   include AuthenticatesWithTwoFactor
-  skip_before_action :verify_authenticity_token # FIXME remove
   skip_before_action :verify_signed_out_user
   before_action :check_request_format, only: [:create]
   respond_to :json
@@ -16,7 +15,6 @@ class Api::SessionsController < Devise::SessionsController
   end
 
   def create
-    Rails.logger.info(">>> session[:_csrf_token].inspect #{session[:_csrf_token].inspect}")
     self.resource = warden.authenticate!(auth_options)
     # FIXME should call record_failure_and_lock_access_if_exceeded if otp strategy failed (or save device if it succeeded?),
     # but we never get here if it does. and no exception is thrown (???)

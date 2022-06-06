@@ -18,15 +18,13 @@ class ApplicationController < ActionController::Base
   include ControllerAuthorization
   include ActivityLogger
   include Pagy::Backend
-  # Prevent CSRF attacks by raising an exception.
-  # For APIs, you may want to use :null_session instead.
-  protect_from_forgery with: :exception, prepend: true
+
   before_action :authenticate_user!
   auto_session_timeout User.timeout_in
   before_action :set_current_api_user, if: :json_request?
   before_action :set_csrf_cookie, if: :json_request?
 
-  before_action :set_paper_trail_whodunnit # try moving
+  before_action :set_paper_trail_whodunnit
   before_action :set_notification
   before_action :set_hostname
 
@@ -44,6 +42,10 @@ class ApplicationController < ActionController::Base
   before_action :prepare_exception_notifier
 
   prepend_before_action :skip_timeout
+
+  # Prevent CSRF attacks by raising an exception.
+  # Needs to be prepended because https://github.com/heartcombo/devise/pull/4033/files
+  protect_from_forgery with: :exception, prepend: true
 
   def cache_grda_warehouse_base_queries
     GrdaWarehouseBase.cache do
@@ -295,7 +297,6 @@ class ApplicationController < ActionController::Base
   end
 
   def authenticate_user!(*args)
-    Rails.logger.info(">>>  authenticate_user #{request.url}")
     if args.blank? && json_request? && hmis_api_enabled?
       authenticate_api_user!
     else
@@ -308,8 +309,6 @@ class ApplicationController < ActionController::Base
   end
 
   private def set_csrf_cookie
-    Rails.logger.info(">>> Set CSRF cookie #{request.url}")
-    # CGI.unescape(form_authenticity_token)
-    cookies['CSRF-Token'] = { value: form_authenticity_token, expires: 1.hour.from_now }
+    cookies['CSRF-Token'] = { value: form_authenticity_token }
   end
 end
