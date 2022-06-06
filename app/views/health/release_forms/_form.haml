@@ -15,11 +15,12 @@
           %label Location
           %p.form-control-static= @release_form.file_location
 
-    - if @blank_release_form_url.present?
+    - if @blank_release_form_url.present? || @blank_directed_form_url.present?
       .col-sm-6.text-right
-        = link_to @blank_release_form_url, class: 'btn btn-secondary' do
-          %i.icon-download2
-          Blank Release Form
+        - if @blank_release_form_url.present?
+          = link_to @blank_release_form_url, class: 'btn btn-secondary' do
+            %i.icon-download2
+            Blank Release Form
         - if @blank_directed_form_url.present?
           = link_to @blank_directed_form_url, class: 'btn btn-secondary mt-4' do
             %i.icon-download2

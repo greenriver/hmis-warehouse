@@ -26,6 +26,7 @@ module GrdaWarehouse
         'patient/directed_release' => 'Patient Directed Release Form', # app/controllers/health/release_forms_controller.rb
         'patient/participation' => 'Participation Form', # app/controllers/health/participation_forms_controller.rb
         'patient/participation_spanish' => 'Participation Form (SPANISH)', # app/controllers/health/participation_forms_controller.rb
+        'patient/directed_participation' => 'Patient Directed Participation Form', # app/controllers/health/participation_forms_controller.rb
         'patient/ssm' => 'SSM Form', # app/controllers/health/self_sufficiency_matrix_forms_controller.rb.rb
         'patient/cha' => 'CHA Form', # app/controllers/health/comprehensive_health_assessments_controller.rb
         'patient/care_plan' => 'Care Plan Form', # app/controllers/health/careplans_controller.rb

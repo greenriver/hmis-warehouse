@@ -22,11 +22,16 @@
             %label Location
             %p.form-control-static= @participation_form.location
 
-      - if @blank_participation_form_url.present?
+      - if @blank_participation_form_url.present? || @blank_directed_form_url.present?
         .col-sm-6.text-right
-          = link_to @blank_participation_form_url, class: 'btn btn-secondary' do
-            %i.icon-download2
-            Blank Participation Form
+          - if @blank_participation_form_url.present?
+            = link_to @blank_participation_form_url, class: 'btn btn-secondary' do
+              %i.icon-download2
+              Blank Participation Form
+          - if @blank_directed_form_url.present?
+            = link_to @blank_directed_form_url, class: 'btn btn-secondary mt-4' do
+              %i.icon-download2
+              Blank Directed Participation Form
 
     %div
       .row
