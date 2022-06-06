@@ -1715,8 +1715,7 @@ CREATE TABLE public.users (
     provider_set_at timestamp without time zone,
     exclude_from_directory boolean DEFAULT false,
     exclude_phone_from_directory boolean DEFAULT false,
-    notify_on_new_account boolean DEFAULT false NOT NULL,
-    jti character varying NOT NULL
+    notify_on_new_account boolean DEFAULT false NOT NULL
 );
 
 
@@ -2872,13 +2871,6 @@ CREATE INDEX index_users_on_invited_by_id ON public.users USING btree (invited_b
 
 
 --
--- Name: index_users_on_jti; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX index_users_on_jti ON public.users USING btree (jti);
-
-
---
 -- Name: index_users_on_reset_password_token; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3238,7 +3230,6 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220216174239'),
 ('20220309140327'),
 ('20220314183405'),
-('20220518143528'),
-('20220531144920');
+('20220518143528');
 
 
