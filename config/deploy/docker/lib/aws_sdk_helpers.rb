@@ -122,19 +122,5 @@ module AwsSdkHelpers
       warn 'Need credentials to sync secrets (or run on a server/container with a role)'
       puts 'ERROR=secretsyncfailed'
     end
-
-    def self.githash_is_latest(githash, variant = 'web')
-      repo_name = ENV.fetch('ECR_REPOSITORY')
-      getparams = {
-        repository_name: repo_name,
-        image_ids: [
-          { image_tag: "githash-#{githash}--#{variant}" },
-        ],
-      }
-      tags = ecr.describe_images(getparams).image_details[0].image_tags
-      return true if tags.any? { |x| x.match?(/latest/) }
-
-      return false
-    end
   end
 end
