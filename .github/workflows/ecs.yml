@@ -74,6 +74,11 @@ jobs:
         export PRE_CACHE_TAG="${RUBY_VERSION}-${PRE_CACHE_VERSION}--pre-cache"
         echo "::set-output name=pre_cache_tag::$PRE_CACHE_TAG"
 
+        export GITHASH="${SHA::9}"
+        GITHASH=${GITHASH} VARIANT='base' bin/error_if_githash_is_latest
+        GITHASH=${GITHASH} VARIANT='web' bin/error_if_githash_is_latest
+        GITHASH=${GITHASH} VARIANT='dj' bin/error_if_githash_is_latest
+
     - name: Build, tag, and push image to Amazon ECR
       id: build-image
       env:
@@ -127,11 +132,8 @@ jobs:
         docker build --file=$DOCKER_ASSETS_PATH/Dockerfile.${ECR_REPOSITORY}.dj -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--dj .
 
         echo Pushing base/web/deploy
-        GITHASH=${GITHASH} VARIANT='base' bin/error_if_githash_is_latest
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--base
-        GITHASH=${GITHASH} VARIANT='web' bin/error_if_githash_is_latest
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--web
-        GITHASH=${GITHASH} VARIANT='dj' bin/error_if_githash_is_latest
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--dj
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--deploy
 
