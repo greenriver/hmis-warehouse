@@ -68,6 +68,7 @@ jobs:
       id: prep
       env:
         ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+        SHA: ${{ github.sha }}
       run: |
         export RUBY_VERSION=`cat .ruby-version`
         export PRE_CACHE_VERSION=`cat .pre-cache-version`
