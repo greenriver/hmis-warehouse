@@ -20,11 +20,13 @@ class ApplicationController < ActionController::Base
   include Pagy::Backend
   # Prevent CSRF attacks by raising an exception.
   # For APIs, you may want to use :null_session instead.
-  protect_from_forgery with: :exception
+  protect_from_forgery with: :exception, prepend: true
   before_action :authenticate_user!
   auto_session_timeout User.timeout_in
+  before_action :set_current_api_user, if: :json_request?
+  before_action :set_csrf_cookie, if: :json_request?
 
-  before_action :set_paper_trail_whodunnit
+  before_action :set_paper_trail_whodunnit # try moving
   before_action :set_notification
   before_action :set_hostname
 
@@ -40,7 +42,6 @@ class ApplicationController < ActionController::Base
   before_action :health_emergency?
 
   before_action :prepare_exception_notifier
-  before_action :set_current_user, if: :json_request?
 
   prepend_before_action :skip_timeout
 
@@ -294,6 +295,7 @@ class ApplicationController < ActionController::Base
   end
 
   def authenticate_user!(*args)
+    Rails.logger.info(">>>  authenticate_user #{request.url}")
     if args.blank? && json_request? && hmis_api_enabled?
       authenticate_api_user!
     else
@@ -301,7 +303,13 @@ class ApplicationController < ActionController::Base
     end
   end
 
-  def set_current_user
-    @current_user ||= warden.authenticate(scope: :api_user) if hmis_api_enabled?
+  def set_current_api_user
+    @current_api_user ||= warden.authenticate(scope: :api_user) if hmis_api_enabled?
+  end
+
+  private def set_csrf_cookie
+    Rails.logger.info(">>> Set CSRF cookie #{request.url}")
+    # CGI.unescape(form_authenticity_token)
+    cookies['CSRF-Token'] = { value: form_authenticity_token, expires: 1.hour.from_now }
   end
 end

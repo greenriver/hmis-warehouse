@@ -10,8 +10,8 @@ Rails.application.config.middleware.insert_before 0, Rack::Cors do
     cors_hosts = ENV['CORS_HOSTS']
     return unless cors_hosts.present?
 
-    origins [cors_hosts]
+    origins cors_hosts
 
-    resource '/api/*', headers: :any, methods: [:get, :post, :delete, :options]
+    resource '*', headers: :any, methods: [:get, :post, :delete, :options], credentials: true
   end
 end

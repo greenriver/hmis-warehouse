@@ -5,7 +5,7 @@
 ###
 
 class ApiUser < User
-  include Devise::JWT::RevocationStrategies::JTIMatcher
-  devise :jwt_authenticatable, jwt_revocation_strategy: self
-  validates :jti, presence: true
+  # include Devise::JWT::RevocationStrategies::JTIMatcher
+  # devise :jwt_authenticatable, jwt_revocation_strategy: self
+  # validates :jti, presence: true
 end

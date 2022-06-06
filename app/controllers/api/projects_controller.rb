@@ -11,6 +11,12 @@
 module Api
   class ProjectsController < ApplicationController
     include ArelHelper
+    # skip_before_action :verify_authenticity_token
+
+    def verify_authenticity_token
+      # byebug
+      super
+    end
 
     def index
       respond_to do |format|
@@ -118,7 +124,7 @@ module Api
 
     private def project_scope
       @project_scope ||= begin
-        scope = project_source.viewable_by(current_user).
+        scope = project_source.viewable_by(current_user || current_api_user).
           joins(:data_source, :organization, :funders).
           with_project_type(project_types)
         scope = scope.merge(data_source_source.where(id: data_source_ids)) if data_source_ids.present?
