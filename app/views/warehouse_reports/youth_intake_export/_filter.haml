@@ -6,6 +6,7 @@
 
   - content_for :filter_actions do
     = f.button :submit, value: 'Download Data'
+    = f.button :submit, value: 'Download Per-Client Data'
 
   = render 'warehouse_reports/filters', f:f, submit_button: nil
 = content_for :page_js do
