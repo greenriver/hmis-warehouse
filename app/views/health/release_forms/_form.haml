@@ -20,6 +20,10 @@
         = link_to @blank_release_form_url, class: 'btn btn-secondary' do
           %i.icon-download2
           Blank Release Form
+        - if @blank_directed_form_url.present?
+          = link_to @blank_directed_form_url, class: 'btn btn-secondary mt-4' do
+            %i.icon-download2
+            Blank Directed Release Form
 
   %div
     .row
