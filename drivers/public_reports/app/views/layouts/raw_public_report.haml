@@ -67,4 +67,5 @@
     = yield
 
     %p.completed-at
-      Data accurate as of #{@report.completed_at.to_date}
+      = _('Data accurate as of')
+      #{@report.completed_at.to_date}
