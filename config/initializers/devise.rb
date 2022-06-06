@@ -6,20 +6,6 @@ Devise.setup do |config|
   config.warden do |manager|
     manager.default_strategies(scope: :user).unshift :two_factor_authenticatable
     manager.default_strategies(scope: :user).unshift :two_factor_backupable
-
-    if ENV['DEVISE_JWT_SECRET_KEY'].present?
-      Warden::JWTAuth.configure do |config|
-        config.secret = ENV['DEVISE_JWT_SECRET_KEY']
-        config.dispatch_requests = [
-          ['POST', /^\/api\/login$/],
-          ['POST', /^\/api\/login.json$/],
-        ]
-        config.revocation_requests = [
-          ['DELETE', /^\/api\/logout$/],
-          ['DELETE', /^\/api\/logout.json$/],
-        ]
-      end
-    end
   end
 
   # The secret key used by Devise. Devise uses this key to generate
@@ -415,22 +401,6 @@ Devise.setup do |config|
   # Time period for account expiry from last_activity_at
   expire_after = ENV.fetch('ACCOUNT_EXPIRATION_DAYS') { 180 }.to_i
   config.expire_after = expire_after.days
-
-  if ENV['DEVISE_JWT_SECRET_KEY'].present?
-    config.jwt do |jwt|
-      jwt.secret = ENV['DEVISE_JWT_SECRET_KEY']
-      jwt.dispatch_requests = [
-        ['POST', /^\/api\/login$/],
-        ['POST', /^\/api\/login.json$/],
-      ]
-      jwt.revocation_requests = [
-        ['DELETE', /^\/api\/logout$/],
-        ['DELETE', /^\/api\/logout.json$/],
-      ]
-      jwt.expiration_time = 1.day.to_i
-      jwt.request_formats = { api_user: [:json] }
-    end
-  end
 
   if ENV['OKTA_DOMAIN'].present?
     require 'omni_auth/strategies/custom_okta'

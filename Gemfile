@@ -74,7 +74,6 @@ gem 'devise_invitable', '~> 2.0'
 gem 'devise-pwned_password'
 gem 'devise-security'
 gem 'devise-two-factor'
-gem 'devise-jwt'
 gem 'rack-cors'
 
 gem 'omniauth', '~> 1.9.1'
