@@ -6,7 +6,7 @@
       .row
         .col-sm-9.rrh__time.chunk
           .percentExitingPrePlacementChart.mb-2
-          .percentExitingPrePlacementChartLegend.d-flex{style: 'max-width: 100%; overflow: auto;'}
+          .percentExitingPrePlacementChartLegend.d-flex{style: 'max-width: 100%; overflow-x: auto; overflow-y: hidden;'}
           %p.mb-4.text-center.description
             Percentage of clients exiting #{_('pre-placement')} to #{_('stabilization')} out of those who exited #{_('pre-placement')}.
         .col-sm-3.metric.text-center.rrh__time.chunk
@@ -19,13 +19,13 @@
     = render 'common/panel_collapse', id: 'percentExitingPrePlacementChart', title: "Percentage Exiting #{_('Pre-Placement')} to #{_('Stabilization')}", default_open: 'yes'
     - content_for :panel_collapse_content, flush: true do
       .percentInStabilizationChart.mb-2
-      .percentInStabilizationChartLegend.d-flex{style: 'max-width: 100%; overflow: auto;'}
+      .percentInStabilizationChartLegend.d-flex{style: 'max-width: 100%; overflow-x: auto; overflow-y: hidden;'}
       %p.mb-4.text-center.description
         Percentage of clients enrolled in #{_('stabilization')} out of those enrolled in either #{_('pre-placement')} or #{_('stabilization')}.
     = render 'common/panel_collapse', id: 'percentInStabilizationChart', title: "Percentage of Participants Enrolled in #{_('Stabilization')}", default_open: 'yes'
     - content_for :panel_collapse_content, flush: true do
       .percentExitingStabilizationChart.mb-2
-      .percentExitingStabilizationChartLegend.d-flex{style: 'max-width: 100%; overflow: auto;'}
+      .percentExitingStabilizationChartLegend.d-flex{style: 'max-width: 100%; overflow-x: auto; overflow-y: hidden;'}
       %p.mb-4.text-center.description
         Percentage of clients exiting #{_('stabilization')} to a permanent destination out of those who exited #{_('stabilization')}.
     = render 'common/panel_collapse', id: 'percentExitingStabilizationChart', title: "Percentage Exiting #{_('Stabilization')} to Permanent Destinations", default_open: 'yes'
