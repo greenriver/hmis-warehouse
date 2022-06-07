@@ -49,6 +49,9 @@ jobs:
     #  uses: harmon758/postgresql-action@v1
     #  with:
     #    postgresql version: '11'  # See https://hub.docker.com/_/postgres for available versions
+    - name: Install aws cli
+      id: install-aws-cli
+      uses: unfor19/install-aws-cli-action@v1.0.3
 
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v1
@@ -61,15 +64,21 @@ jobs:
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v1
 
-    - name: Prepare pre-cache image
+    - name: Prepare
       id: prep
       env:
         ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+        SHA: ${{ github.sha }}
       run: |
         export RUBY_VERSION=`cat .ruby-version`
         export PRE_CACHE_VERSION=`cat .pre-cache-version`
         export PRE_CACHE_TAG="${RUBY_VERSION}-${PRE_CACHE_VERSION}--pre-cache"
         echo "::set-output name=pre_cache_tag::$PRE_CACHE_TAG"
+
+        export GITHASH="${SHA::9}"
+        GITHASH=${GITHASH} VARIANT='base' bin/error_if_githash_is_latest
+        GITHASH=${GITHASH} VARIANT='web' bin/error_if_githash_is_latest
+        GITHASH=${GITHASH} VARIANT='dj' bin/error_if_githash_is_latest
 
     - name: Build, tag, and push image to Amazon ECR
       id: build-image
@@ -120,25 +129,14 @@ jobs:
         echo Building deploy
         docker build --file=$DOCKER_ASSETS_PATH/Dockerfile.${ECR_REPOSITORY}.deploy -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--deploy .
 
-        if [ -f $DOCKER_ASSETS_PATH/Dockerfile.${ECR_REPOSITORY}.dj ];
-        then
-          echo Building dj
-          docker build --file=$DOCKER_ASSETS_PATH/Dockerfile.${ECR_REPOSITORY}.dj -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--dj .
-        else
-          echo Not building dj
-        fi
+        echo Building dj
+        docker build --file=$DOCKER_ASSETS_PATH/Dockerfile.${ECR_REPOSITORY}.dj -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--dj .
 
         echo Pushing base/web/deploy
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--base
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--web
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--dj
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--deploy
-        if [ -f $DOCKER_ASSETS_PATH/Dockerfile.${ECR_REPOSITORY}.dj ];
-        then
-          echo pushing dj
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--dj
-        else
-          echo not pushing dj
-        fi
 
         echo $IMAGE_TAG--base > image-tag.txt
         echo $IMAGE_TAG--web >> image-tag.txt
