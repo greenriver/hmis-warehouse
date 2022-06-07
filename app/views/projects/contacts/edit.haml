@@ -1,4 +1,4 @@
-- title = "Edit Project Contact for #{@entity.ProjectName}"
+- title = "Edit Project Contact for #{@entity.name(ignore_confidential_status: true)}"
 - content_for :title, title
 %h1= title
 .row

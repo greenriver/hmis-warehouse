@@ -5,6 +5,8 @@
         = org.name
         - if can_see_raw_hmis_data?
           = link_to 'HMIS', hmi_path(org.id, type: 'Organization'), class: 'btn btn-xs btn-secondary btn-hmis ml-2'
+      - if org.confidential?
+        .mb-1.badge.badge-info.badge-pill Confidential Organization
       - if org.dmh
         Treated as DMH for chronic calculations
     .col-sm-4.text-right

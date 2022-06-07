@@ -36,7 +36,7 @@
                 %th{colspan: 10}
                   .d-flex
                     .mr-4
-                      = enrollment.project&.organization_and_name(include_confidential_names: can_view_confidential_enrollment_details?)
+                      = enrollment.project&.organization_and_name(current_user)
                     - disabling_condition = enrollment.DisablingCondition == 1
                     - if disabling_condition
                       .ml-4

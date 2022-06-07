@@ -81,7 +81,8 @@ module Censuses
 
       dimension_scope = census_data_scope(user: user).by_project_id(project_id)
       organization_id = project.organization&.id
-      dimension_label = "#{project.name} (#{project_type}) < #{project.organization&.name} < #{project.data_source&.short_name}"
+      name_and_type = project.name(ignore_confidential_status: true, include_project_type: true)
+      dimension_label = "#{name_and_type} < #{project.organization&.name} < #{project.data_source&.short_name}"
       compute_dimension(start_date, end_date, data_source_id, organization_id, project_id, dimension_label, dimension_scope)
     end
 
@@ -99,7 +100,7 @@ module Censuses
       compute_dimension(start_date, end_date, data_source_id, organization_id, 'all', dimension_label, dimension_scope)
     end
 
-    private def compute_dimension(start_date, end_date, data_source_id, organization_id, project_id, dimension_label, dimension_scope) # rubocop:disable Metrics/ParameterLists
+    private def compute_dimension(start_date, end_date, data_source_id, organization_id, project_id, dimension_label, dimension_scope)
       # Move the start of the range to include "yesterday"
       yesterday = 0
       adjusted_start_date = start_date.to_date - 1.day
@@ -120,7 +121,7 @@ module Censuses
       add_dimension(data_source_id, organization_id, project_id, client_data, bed_data, dimension_label) unless client_data.empty?
     end
 
-    private def add_dimension(data_source_id, organization_id, project_id, clients, beds, title) # rubocop:disable Metrics/ParameterLists
+    private def add_dimension(data_source_id, organization_id, project_id, clients, beds, title)
       @shape[data_source_id] ||= {}
       @shape[data_source_id][organization_id] ||= {}
       @shape[data_source_id][organization_id][project_id] ||= {}

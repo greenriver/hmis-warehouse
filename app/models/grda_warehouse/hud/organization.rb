@@ -227,8 +227,9 @@ module GrdaWarehouse::Hud
       # don't cache this, it's a class method
       @options = begin
         options = {}
-        viewable_by(user).
-          joins(:data_source).
+        scope = viewable_by(user)
+        scope = scope.where(confidential: false) unless user.can_view_confidential_enrollment_details?
+        scope.joins(:data_source).
           order(ds_t[:name].asc, OrganizationName: :asc).
           pluck(ds_t[:name].as('ds_name'), :OrganizationName, :id).each do |ds, org_name, id|
             options[ds] ||= []

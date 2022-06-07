@@ -216,7 +216,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       # if we have more than one project, use average, otherwise, use the project
       key = 'Average'
       if projects.count == 1
-        key = project.name
+        key = project.ProjectName
       end
       # This is nasty, but for billboard we save these as a 3 element array
       # the second element contains the actual value
@@ -234,7 +234,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     def describe_timeliness_entry_average_value
       key = 'Average'
       if projects.count == 1
-        key = project.name
+        key = project.ProjectName
       end
       # This is nasty, but for billboard we save these as a 3 element array
       # the second element contains the actual value
@@ -244,7 +244,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     def describe_timeliness_exit_average_value
       key = 'Average'
       if projects.count == 1
-        key = project.name
+        key = project.ProjectName
       end
       # This is nasty, but for billboard we save these as a 3 element array
       # the second element contains the actual value
@@ -722,8 +722,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         data: begin
           data_map = {}
           projects.each do |project|
-          # project_counts.keys.each do |project_id|
-            name = project.name
+            name = project.ProjectName
             data_map[name] = []
             self.class.length_of_stay_buckets.values.each do |range|
               data_map[name] << project_counts[project.id][:buckets][range] rescue 0
@@ -910,7 +909,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       json_shape = {}
       all_completeness_percentages = []
       projects.each do |project|
-        name = project.name
+        name = project.ProjectName
         data = answers[:project_missing][project.id]
         all_completeness_percentages += completeness_percentages(data)
         json_shape[name] = {
@@ -1469,7 +1468,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
         project_counts = {
           id: project.id,
-          name: project.name,
+          name: project.ProjectName,
           project_type: project[GrdaWarehouse::Hud::Project.project_type_column],
         }.merge(counts)
 
@@ -1611,7 +1610,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
         project_counts = {
           id: project.id,
-          name: project.name,
+          name: project.ProjectName,
           project_type: project[GrdaWarehouse::Hud::Project.project_type_column],
         }.merge(counts)
 
@@ -1697,7 +1696,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       entry_timeliness = {}
       entry_timeliness_support = {}
       projects.each do |project|
-        entry_timeliness[project.name] = []
+        entry_timeliness[project.ProjectName] = []
       end
       entry_total = 0
       entry_count = 0
@@ -1716,7 +1715,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       end
       exit_timeliness = {}
       projects.each do |project|
-        exit_timeliness[project.name] = []
+        exit_timeliness[project.ProjectName] = []
       end
       exit_timeliness_support = {}
       exit_total = 0
@@ -2245,7 +2244,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     def destination_ph
       ph_destinations = {}
       projects.each do |project|
-        ph_destinations[project.name] = Set.new
+        ph_destinations[project.ProjectName] = Set.new
       end
       leavers.each do |client_id|
         enrollments[client_id].each do |enrollment|

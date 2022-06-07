@@ -48,5 +48,5 @@
                 %td= enrollment.first_date_in_program
                 %td= enrollment.last_date_in_program
                 %td= HUD.project_type(enrollment.computed_project_type)
-                %td= project.name(include_confidential_names: current_user.can_view_confidential_enrollment_details?)
+                %td= project.name(current_user)
                 %td= project.organization_name(current_user)

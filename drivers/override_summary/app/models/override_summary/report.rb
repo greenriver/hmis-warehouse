@@ -42,7 +42,7 @@ module OverrideSummary
     def data
       @data ||= {}.tap do |by_project|
         all_projects.each do |project|
-          project_name = project.name(include_confidential_names: true, include_project_type: true)
+          project_name = project.name_and_type(ignore_confidential_status: true)
           organization_name = project.organization.OrganizationName
           by_project[organization_name] ||= {}
           by_project[organization_name][project_name] ||= {}
@@ -70,7 +70,7 @@ module OverrideSummary
           data = {}
           funders.each do |funder|
             org_name = funder.project.organization.OrganizationName
-            project_name = funder.project.name(include_confidential_names: true, include_project_type: true)
+            project_name = funder.project.name_and_type(ignore_confidential_status: true)
             data[org_name] ||= {}
             data[org_name][project_name] ||= []
             data[org_name][project_name] << funder
@@ -82,7 +82,7 @@ module OverrideSummary
           data = {}
           inventories.each do |inventory|
             org_name = inventory.project.organization.OrganizationName
-            project_name = inventory.project.name(include_confidential_names: true, include_project_type: true)
+            project_name = inventory.project.name_and_type(ignore_confidential_status: true)
             data[org_name] ||= {}
             data[org_name][project_name] ||= []
             data[org_name][project_name] << inventory
@@ -94,7 +94,7 @@ module OverrideSummary
           data = {}
           project_cocs.each do |project_coc|
             org_name = project_coc.project.organization.OrganizationName
-            project_name = project_coc.project.name(include_confidential_names: true, include_project_type: true)
+            project_name = project_coc.project.name_and_type(ignore_confidential_status: true)
             data[org_name] ||= {}
             data[org_name][project_name] ||= []
             data[org_name][project_name] << project_coc

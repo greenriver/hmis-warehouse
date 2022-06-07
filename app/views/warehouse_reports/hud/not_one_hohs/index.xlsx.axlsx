@@ -23,7 +23,7 @@ wb.add_worksheet(name: 'Not One Head of Household') do |sheet|
       c.PersonalID,
       c.FirstName,
       c.LastName,
-      project.name,
+      project.name(current_user),
       en.EntryDate,
       en.exit&.ExitDate,
       en.HouseholdID,
