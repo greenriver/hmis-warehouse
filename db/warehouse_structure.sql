@@ -3866,6 +3866,148 @@ ALTER SEQUENCE public.ce_assessments_id_seq OWNED BY public.ce_assessments.id;
 
 
 --
+-- Name: ce_performance_ce_aprs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.ce_performance_ce_aprs (
+    id bigint NOT NULL,
+    report_id bigint NOT NULL,
+    ce_apr_id bigint NOT NULL,
+    start_date date,
+    end_date date,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: ce_performance_ce_aprs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.ce_performance_ce_aprs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: ce_performance_ce_aprs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.ce_performance_ce_aprs_id_seq OWNED BY public.ce_performance_ce_aprs.id;
+
+
+--
+-- Name: ce_performance_clients; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.ce_performance_clients (
+    id bigint NOT NULL,
+    client_id bigint,
+    report_id bigint,
+    ce_apr_id bigint,
+    first_name character varying,
+    last_name character varying,
+    reporting_age integer,
+    head_of_household boolean,
+    prior_living_situation integer,
+    los_under_threshold integer,
+    previous_street_essh integer,
+    prevention_tool_score integer,
+    assessment_score integer,
+    events jsonb,
+    assessments jsonb,
+    diversion_event boolean,
+    diversion_successful boolean,
+    veteran boolean,
+    household_size integer,
+    household_ages jsonb,
+    chronically_homeless_at_entry boolean,
+    entry_date date,
+    exit_date date,
+    initial_assessment_date date,
+    latest_assessment_date date,
+    initial_housing_referral_date date,
+    housing_enrollment_entry_date date,
+    housing_enrollment_move_in_date date,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    ce_apr_client_id integer,
+    dob date,
+    move_in_date date,
+    period character varying,
+    household_type character varying,
+    days_before_assessment integer,
+    days_on_list integer,
+    days_in_project integer,
+    days_between_referral_and_housing integer,
+    q5a_b1 boolean DEFAULT false,
+    deleted_at timestamp without time zone,
+    assessment_type character varying
+);
+
+
+--
+-- Name: ce_performance_clients_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.ce_performance_clients_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: ce_performance_clients_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.ce_performance_clients_id_seq OWNED BY public.ce_performance_clients.id;
+
+
+--
+-- Name: ce_performance_results; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.ce_performance_results (
+    id bigint NOT NULL,
+    report_id bigint,
+    value double precision,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    type character varying,
+    period character varying,
+    numerator integer,
+    denominator integer,
+    deleted_at timestamp without time zone,
+    event_type integer
+);
+
+
+--
+-- Name: ce_performance_results_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.ce_performance_results_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: ce_performance_results_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.ce_performance_results_id_seq OWNED BY public.ce_performance_results.id;
+
+
+--
 -- Name: census_by_project_types; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -5118,7 +5260,8 @@ CREATE TABLE public.configs (
     cas_sync_project_group_id integer,
     majority_sheltered_calculation character varying DEFAULT 'current_living_situation'::character varying,
     system_cohort_processing_date date,
-    system_cohort_date_window integer DEFAULT 1
+    system_cohort_date_window integer DEFAULT 1,
+    roi_model character varying DEFAULT 'explicit'::character varying
 );
 
 
@@ -13250,7 +13393,9 @@ CREATE TABLE public.hud_report_apr_clients (
     ce_event_referral_result integer,
     gender_multi character varying,
     bed_nights integer,
-    pit_enrollments jsonb DEFAULT '[]'::jsonb
+    pit_enrollments jsonb DEFAULT '[]'::jsonb,
+    source_enrollment_id integer,
+    los_under_threshold integer
 );
 
 
@@ -16508,31 +16653,12 @@ ALTER SEQUENCE public.recurring_hmis_exports_id_seq OWNED BY public.recurring_hm
 CREATE TABLE public.remote_configs (
     id bigint NOT NULL,
     type character varying NOT NULL,
+    remote_credential_id bigint,
     active boolean DEFAULT false,
-    username character varying NOT NULL,
-    encrypted_password character varying NOT NULL,
-    encrypted_password_iv character varying,
-    region character varying,
-    bucket character varying,
-    path character varying,
-    endpoint character varying,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
 );
-
-
---
--- Name: COLUMN remote_configs.username; Type: COMMENT; Schema: public; Owner: -
---
-
-COMMENT ON COLUMN public.remote_configs.username IS 'username or equivalent eg. s3_access_key_id';
-
-
---
--- Name: COLUMN remote_configs.encrypted_password; Type: COMMENT; Schema: public; Owner: -
---
-
-COMMENT ON COLUMN public.remote_configs.encrypted_password IS 'password or equivalent eg. s3_secret_access_key';
 
 
 --
@@ -16552,6 +16678,60 @@ CREATE SEQUENCE public.remote_configs_id_seq
 --
 
 ALTER SEQUENCE public.remote_configs_id_seq OWNED BY public.remote_configs.id;
+
+
+--
+-- Name: remote_credentials; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.remote_credentials (
+    id bigint NOT NULL,
+    type character varying NOT NULL,
+    active boolean DEFAULT false,
+    username character varying NOT NULL,
+    encrypted_password character varying NOT NULL,
+    encrypted_password_iv character varying,
+    region character varying,
+    bucket character varying,
+    path character varying,
+    endpoint character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: COLUMN remote_credentials.username; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.remote_credentials.username IS 'username or equivalent eg. s3_access_key_id';
+
+
+--
+-- Name: COLUMN remote_credentials.encrypted_password; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.remote_credentials.encrypted_password IS 'password or equivalent eg. s3_secret_access_key';
+
+
+--
+-- Name: remote_credentials_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.remote_credentials_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: remote_credentials_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.remote_credentials_id_seq OWNED BY public.remote_credentials.id;
 
 
 --
@@ -19599,6 +19779,27 @@ ALTER TABLE ONLY public.ce_assessments ALTER COLUMN id SET DEFAULT nextval('publ
 
 
 --
+-- Name: ce_performance_ce_aprs id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ce_performance_ce_aprs ALTER COLUMN id SET DEFAULT nextval('public.ce_performance_ce_aprs_id_seq'::regclass);
+
+
+--
+-- Name: ce_performance_clients id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ce_performance_clients ALTER COLUMN id SET DEFAULT nextval('public.ce_performance_clients_id_seq'::regclass);
+
+
+--
+-- Name: ce_performance_results id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ce_performance_results ALTER COLUMN id SET DEFAULT nextval('public.ce_performance_results_id_seq'::regclass);
+
+
+--
 -- Name: census_by_project_types id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -21237,6 +21438,13 @@ ALTER TABLE ONLY public.remote_configs ALTER COLUMN id SET DEFAULT nextval('publ
 
 
 --
+-- Name: remote_credentials id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.remote_credentials ALTER COLUMN id SET DEFAULT nextval('public.remote_credentials_id_seq'::regclass);
+
+
+--
 -- Name: report_definitions id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -22252,6 +22460,30 @@ ALTER TABLE ONLY public.cas_vacancies
 
 ALTER TABLE ONLY public.ce_assessments
     ADD CONSTRAINT ce_assessments_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: ce_performance_ce_aprs ce_performance_ce_aprs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ce_performance_ce_aprs
+    ADD CONSTRAINT ce_performance_ce_aprs_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: ce_performance_clients ce_performance_clients_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ce_performance_clients
+    ADD CONSTRAINT ce_performance_clients_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: ce_performance_results ce_performance_results_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ce_performance_results
+    ADD CONSTRAINT ce_performance_results_pkey PRIMARY KEY (id);
 
 
 --
@@ -24124,6 +24356,14 @@ ALTER TABLE ONLY public.recurring_hmis_exports
 
 ALTER TABLE ONLY public.remote_configs
     ADD CONSTRAINT remote_configs_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: remote_credentials remote_credentials_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.remote_credentials
+    ADD CONSTRAINT remote_credentials_pkey PRIMARY KEY (id);
 
 
 --
@@ -38702,6 +38942,48 @@ CREATE INDEX index_ce_assessments_on_user_id ON public.ce_assessments USING btre
 
 
 --
+-- Name: index_ce_performance_ce_aprs_on_ce_apr_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ce_performance_ce_aprs_on_ce_apr_id ON public.ce_performance_ce_aprs USING btree (ce_apr_id);
+
+
+--
+-- Name: index_ce_performance_ce_aprs_on_report_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ce_performance_ce_aprs_on_report_id ON public.ce_performance_ce_aprs USING btree (report_id);
+
+
+--
+-- Name: index_ce_performance_clients_on_ce_apr_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ce_performance_clients_on_ce_apr_id ON public.ce_performance_clients USING btree (ce_apr_id);
+
+
+--
+-- Name: index_ce_performance_clients_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ce_performance_clients_on_client_id ON public.ce_performance_clients USING btree (client_id);
+
+
+--
+-- Name: index_ce_performance_clients_on_report_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ce_performance_clients_on_report_id ON public.ce_performance_clients USING btree (report_id);
+
+
+--
+-- Name: index_ce_performance_results_on_report_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ce_performance_results_on_report_id ON public.ce_performance_results USING btree (report_id);
+
+
+--
 -- Name: index_census_groups_on_year_and_dataset_and_name; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -41219,6 +41501,13 @@ CREATE UNIQUE INDEX index_recurring_hmis_exports_on_encrypted_s3_access_key_id_i
 --
 
 CREATE UNIQUE INDEX index_recurring_hmis_exports_on_encrypted_s3_secret_iv ON public.recurring_hmis_exports USING btree (encrypted_s3_secret_iv);
+
+
+--
+-- Name: index_remote_configs_on_remote_credential_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_remote_configs_on_remote_credential_id ON public.remote_configs USING btree (remote_credential_id);
 
 
 --
@@ -47971,6 +48260,13 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220511171233'),
 ('20220512174700'),
 ('20220523123830'),
-('20220525125953');
+('20220525125953'),
+('20220526203313'),
+('20220527144703'),
+('20220527144717'),
+('20220527191834'),
+('20220601122623'),
+('20220604181405'),
+('20220607155407');
 
 

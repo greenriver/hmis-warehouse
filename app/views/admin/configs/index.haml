@@ -14,6 +14,7 @@
       %section.o-section-card
         %h3 Release of Information
         .c-card.c-card--flush.c-card--padded.flex-wrap
+          = f.input :roi_model, collection: GrdaWarehouse::Config.available_roi_models, as: :select_two
           = f.input :release_duration, collection: GrdaWarehouse::Config.available_release_durations, as: :select_two
           = f.input :allow_partial_release, label: 'Allow partial CAS releases?'
           = f.input :consent_visible_to_all, label: 'Should everyone with client file access be able to see all consent forms?'
