@@ -12,7 +12,7 @@
     "@cable_ready/polyfills": "^4.4.6",
     "@stimulus/polyfills": "^2.0.0",
     "beautifymarker": "^1.0.9",
-    "billboard.js": "^1.12.9",
+    "billboard.js": "3.4.1",
     "bootstrap-datepicker": "1.9.0",
     "cable_ready": "^5.0.0-pre0",
     "chart.js": "2.6.0",
