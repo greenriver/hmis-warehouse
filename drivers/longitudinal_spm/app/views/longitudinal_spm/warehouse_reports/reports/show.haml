@@ -35,10 +35,7 @@
                 columns: #{@report.chart_data(measure, table, cell).to_json.html_safe},
                 type: 'line',
               },
-              bindto: "\#spm_#{table.gsub('.', '_')}_#{cell}"
-            };
-            if(['Measure 2', 'Measure 7'].includes('#{measure}')) {
-              options.axis = {
+              axis: {
                 x: {
                   type: 'timeseries',
                   padding: { right: 15000*60*60*24 },
@@ -47,30 +44,20 @@
                   }
                 },
                 y: {
-                  max: 100,
-                  min: 0,
                   padding: 0,
                   tick: {
-                    format: function(y) {
-                      return y + '%'
-                    }
+                    culling: { max: 5, lines: true }
                   }
                 }
-              }
-            } else {
-              options.axis = {
-                x: {
-                  type: 'timeseries',
-                  padding: { right: 15000*60*60*24 },
-                  tick: {
-                    format: '%b %Y'
-                  }
-                },
-                y: {
-                  padding: 0
-                }
-              }
+              },
+              bindto: "\#spm_#{table.gsub('.', '_')}_#{cell}"
+            };
+
+            // Tables 2 and 7 should be 0-100 (and labeled as percentage)
+            if (['Measure 2', 'Measure 7'].includes('#{measure}')) {
+              options.axis.y.max = 100;
+              options.axis.y.min = 0;
+              options.axis.y.tick.format = function(y) { return y + '%' }
             }
+
             bb.generate(options)
--#
--# Tables 2 and 7 should be 0-100 (and label as percentage)
