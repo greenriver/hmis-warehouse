@@ -8,6 +8,7 @@ Rails.application.routes.draw do
   namespace :tx_client_reports do
     namespace :warehouse_reports do
       resources :attachment_three_client_data_reports, only: [:index]
+      resources :research_exports, only: [:index]
     end
   end
 end
