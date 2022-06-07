@@ -41,7 +41,7 @@
         if(include_percent) {
           return d3.format(".0%")(v / 100)
         } else {
-          return d3.format(",.2r")(v)
+          return d3.format(',')(v)
         }
       }
       var all_project_chart = bb.generate({
@@ -65,7 +65,7 @@
             tick: {
               rotate: -35,
               autorotate: true,
-              format: function(x) { return `${d3.format('d')(x)}${include_percent ? '%' : ''}`},
+              format: function(x) { return `${d3.format(',d')(x)}${include_percent ? '%' : ''}`},
             },
           },
           x: {

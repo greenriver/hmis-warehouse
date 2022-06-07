@@ -65,12 +65,15 @@
             tick: {
               stepSize: 1,
               count: 3,
-              format: function(x) { return `${d3.format('d')(x)}${includePercent ? '%' : ''}`}
+              format: function(x) { return `${d3.format(',d')(x)}${includePercent ? '%' : ''}`}
             },
             ...(axisMax && { max: axisMax }),
           },
         },
         size: { height: 150 },
+        padding: {
+          top: 1,
+        },
         legend: { show: false },
         tooltip: {
           contents: (d, defaultTitleFormat, defaultValueFormat, color) => {
