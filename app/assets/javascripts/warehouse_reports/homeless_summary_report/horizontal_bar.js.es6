@@ -20,16 +20,16 @@ window.App.WarehouseReports.HomelessSummaryReport.HorizontalBar = class Horizont
 
   _build_chart() {
     if ($(this.chart_selector).length > 0) {
-      const self = this
+      const self = this;
       this.options = $(this.chart_selector).data('chart').options;
       this.categories = $(this.chart_selector).data('chart').categories;
       if (this.truncate_labels > 0) {
         // this.categories = this.categories.map(c => c.substring(0, this.truncate_labels))
         this.categories = this.categories.map(c => {
-          separator = ' '
+          separator = ' ';
           if (c.length <= this.truncate_labels) return c;
           return c.substr(0, c.lastIndexOf(' ', this.truncate_labels)) + '...';
-        })
+        });
       }
       this.link_params = $(this.chart_selector).data('chart').params;
 
@@ -52,14 +52,14 @@ window.App.WarehouseReports.HomelessSummaryReport.HorizontalBar = class Horizont
         labels: {
           format: (v, id, i, j) => {
             if (this.options.showPercentageWithValue) {
-              let percentage = 0
-              let setIndex = setNames.indexOf(id)
+              let percentage = 0;
+              let setIndex = setNames.indexOf(id);
               if (columnTotals[setIndex] > v) {
-                percentage = (v/columnTotals[setIndex])*100
+                percentage = (v/columnTotals[setIndex])*100;
               }
-              return `${d3.format(",")(v)} (${percentage.toFixed(1)}%)`;
+              return `${d3.format(',')(v)} (${percentage.toFixed(1)}%)`;
             }
-            return d3.format(",")(v);
+            return d3.format(',')(v);
           }
         },
       };
@@ -81,7 +81,7 @@ window.App.WarehouseReports.HomelessSummaryReport.HorizontalBar = class Horizont
             tick: {
               rotate: -35,
               autorotate: true,
-              format: function (x) { return d3.format(",.2r")(x); }
+              format: function (x) { return d3.format(',.2r')(x); }
             },
           },
           x: {
@@ -108,7 +108,7 @@ window.App.WarehouseReports.HomelessSummaryReport.HorizontalBar = class Horizont
         padding: {
           left: this.padding.left || 250,
           top: 0,
-          bottom: 40,
+          bottom: 10,
         },
         tooltip: {
           contents: (d, defaultTitleFormat, defaultValueFormat, color) => {
@@ -127,13 +127,13 @@ window.App.WarehouseReports.HomelessSummaryReport.HorizontalBar = class Horizont
     // https://github.com/naver/billboard.js/blob/aa91babc6d3173e58e56eef33aad7c7c051b747f/src/internals/tooltip.js#L110
 
     const tooltip_title = defaultTitleFormat(d[0].x);
-    let support = $(this.chart_selector).data('chart').support
+    let support = $(this.chart_selector).data('chart').support;
     // console.log(d, defaultValueFormat(d[0].value), support, tooltip_title)
-    let html = "<table class='bb-tooltip'>";
-    html += "<thead>";
+    let html = '<table class=\'bb-tooltip\'>';
+    html += '<thead>';
     html += `<tr><th></th><th>${tooltip_title}</th><th>Clients</th></tr>`;
-    html += "</thead>";
-    html += "<tbody>";
+    html += '</thead>';
+    html += '<tbody>';
     let details_added = false;
     $(d).each(i => {
       const row = d[i];
@@ -150,11 +150,11 @@ window.App.WarehouseReports.HomelessSummaryReport.HorizontalBar = class Horizont
           html += details;
           details_added = true;
         }
-        return html += "</tr>";
+        return html += '</tr>';
       }
     });
 
-    html += "</tbody>";
+    html += '</tbody>';
     html += '</table>';
     return html;
   }
