@@ -30,19 +30,19 @@ RSpec.describe HudApr::Generators::Apr::Fy2021::QuestionTwentySeven, type: :mode
   describe 'Q27b: Parenting Youth' do
   end
 
-  describe 'Q27c: Gender – Youth' do
+  describe 'Q27c: Gender - Youth' do
   end
 
-  describe 'Q27d: Living Situation – Youth' do
+  describe 'Q27d: Living Situation - Youth' do
   end
 
   describe 'Q27e: Length of Participation - Youth' do
   end
 
-  describe 'Q27f: Exit Destination – Youth' do
+  describe 'Q27f: Exit Destination - Youth' do
   end
 
-  describe 'Q27g: Cash Income – Sources - Youth' do
+  describe 'Q27g: Cash Income - Sources - Youth' do
   end
 
   describe 'Q27h: Client Cash Income Category - Earned/Other Income Category - by Start and Annual Assessment/Exit Status - Youth' do

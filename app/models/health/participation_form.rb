@@ -35,7 +35,6 @@ module Health
     scope :valid, -> do
       parent_ids = Health::ParticipationFormFile.where.not(parent_id: nil).select(:parent_id)
       where.not(location: [nil, '']).
-        or(where(verbal_approval: true)).
         or(where(id: parent_ids))
     end
 
@@ -95,8 +94,6 @@ module Health
     end
 
     def file_or_location
-      return if verbal_approval?
-
       errors.add :file, 'Please upload a participation file' if health_file.blank? && location.blank?
       errors.add :health_file, health_file.errors.messages.try(:[], :file)&.uniq&.join('; ') if health_file.present? && health_file.invalid?
     end
