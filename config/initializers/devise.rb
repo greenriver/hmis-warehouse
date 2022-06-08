@@ -404,6 +404,7 @@ Devise.setup do |config|
   if ENV['OKTA_DOMAIN'].present?
     require 'omni_auth/strategies/custom_okta'
 
+
     # Uncomment to allow sign in via OKTA with a simple GET request. See CVE-2015-9284
     # on reasons why you dont want that
     # OmniAuth.config.allowed_request_methods = [:post, :get]

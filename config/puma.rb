@@ -4,7 +4,6 @@
 # the maximum value specified for Puma. Default is set to 5 threads for minimum
 # and maximum; this matches the default thread size of Active Record.
 #
-worker_timeout 3600
 
 max_threads_count = ENV.fetch("RAILS_MAX_THREADS") { 5 }.to_i
 min_threads_count = ENV.fetch("RAILS_MIN_THREADS") { max_threads_count }.to_i
@@ -44,6 +43,11 @@ end
 # Needs to be higher than the idle timeout on the load balancer, which defaults
 # to 60 seconds.
 persistent_timeout ENV.fetch('PUMA_PERSISTENT_TIMEOUT') { 70 }.to_i
+
+# Increase timeout during develpoment to allow debugging
+if ENV.fetch("RAILS_ENV") == "development"
+  worker_timeout 3600
+end
 
 # Allow puma to be restarted by `rails restart` command.
 plugin :tmp_restart
