@@ -29,7 +29,11 @@ class HmisApi::SessionsController < Devise::SessionsController
   end
 
   def find_user
-    HmisApiUser.find_by(email: user_params[:email])
+    if session[:otp_user_id]
+      HmisApiUser.find(session[:otp_user_id])
+    elsif user_params[:email]
+      HmisApiUser.find_by(email: user_params[:email])
+    end
   end
 
   def prompt_for_two_factor(user, invalid_code: false)
@@ -39,8 +43,7 @@ class HmisApi::SessionsController < Devise::SessionsController
   end
 
   def user_params
-    # TODO later, add :remember_device and :device_name to support 2fa bypass (based on site config)
-    params.require(:hmis_api_user).permit(:email, :password, :otp_attempt)
+    params.require(:hmis_api_user).permit(:email, :password, :otp_attempt, :remember_device, :device_name)
   end
 
   def two_factor_enabled?
