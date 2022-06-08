@@ -608,12 +608,7 @@ class User < ApplicationRecord
   end
 
   def skip_session_limitable?
-    # allow multiple concurrect sessions in development
-    if Rails.env.development?
-      true
-    else
-      false
-    end
+    ENV.fetch('SKIP_SESSION_LIMITABLE') == 'true'
   end
 
   # Returns an array of hashes of access group name => [item names]
