@@ -45,7 +45,7 @@ persistent_timeout ENV.fetch('PUMA_PERSISTENT_TIMEOUT') { 70 }.to_i
 
 # Increase timeout during develpoment to allow debugging
 if ENV.fetch("RAILS_ENV") == "development"
-  worker_timeout 3600
+  ENV.fetch('WORKER_TIMEOUT', 3600).to_i
 end
 
 # Allow puma to be restarted by `rails restart` command.
