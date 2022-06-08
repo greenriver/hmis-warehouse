@@ -100,6 +100,7 @@ module Health
 
     private def set_blank_form
       @blank_participation_form_url = GrdaWarehouse::PublicFile.url_for_location 'patient/participation'
+      @blank_directed_form_url = GrdaWarehouse::PublicFile.url_for_location 'patient/directed_participation'
     end
 
     private def health_file_params_blank?

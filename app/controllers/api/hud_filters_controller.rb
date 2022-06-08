@@ -26,12 +26,12 @@ module Api
         projects.pluck(
           :id,
           :ProjectName,
+          :confidential,
           :computed_project_type,
           o_t[:OrganizationName],
           o_t[:id],
-        ).each do |id, p_name, type, o_name, o_id|
-          name = GrdaWarehouse::Hud::Project.confidentialize(name: p_name)
-          name = p_name if can_view_confidential_enrollment_details?
+        ).each do |id, p_name, p_confidential, type, o_name, o_id|
+          name = GrdaWarehouse::Hud::Project.confidentialize_name(current_user, p_name, p_confidential)
           @data[[o_id, o_name]] ||= []
           @data[[o_id, o_name]] << [
             "#{name} (#{HUD.project_type_brief(type)})",

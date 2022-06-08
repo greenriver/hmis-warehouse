@@ -29,7 +29,7 @@ class WarehouseReport::BedUtilization < OpenStruct
         preload(:inventories, :organization).find_each do |project|
           report_data[project.id] ||= OpenStruct.new(
             id: project.id,
-            name: project.ProjectName,
+            name: project.name(filter.user),
             organization_name: project.organization.OrganizationName,
             project_type: project.compute_project_type,
             clients: average(client_count(project)).round,

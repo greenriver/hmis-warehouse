@@ -1,14 +1,14 @@
-= simple_form_for :filter, url: warehouse_reports_dv_victim_service_index_path, html: { method: :get, class: 'jFilter' } do |f|
+= simple_form_for @filter, as: :filters, url: warehouse_reports_dv_victim_service_index_path, html: { method: :get } do |f|
   - content_for :filters_col_full do
     .row
       .col-3
-        = f.input :start, label: 'Start Date', as: :date_picker, input_html: {value: @start_date}
+        = f.input :start, label: 'Start Date', as: :date_picker
       .col-3
-        = f.input :end, label: 'End Date', as: :date_picker, input_html: {value: @end_date}
+        = f.input :end, label: 'End Date', as: :date_picker
       .col-3
-        = f.input :project_types, collection: HUD.project_types.invert, as: :select_two, input_html: { multiple: true }
+        = f.input :project_type_codes, label: 'Project Types', as: :select_two, collection: GrdaWarehouse::Hud::Project::PROJECT_GROUP_TITLES.invert, as: :select_two, input_html: { multiple: true, placeholder: 'Choose Project Types' }
       .col-3
-        = f.input :project_ids, collection: filtered_project_list, as: :grouped_select_two, group_method: :last, input_html: {multiple: true, class: ['jProjects'] }, selected: @project_ids, label: 'Projects', required: false
+        = f.input :project_ids, collection: [], as: :select_two, input_html: { data: { 'collection-path' => api_projects_path(selected_project_ids: @filter.project_ids) }, multiple: true, placeholder: 'Any Project'}, label: 'Projects'
     .row
       .col-sm-12
         Clients are included in the report if they are recorded as currently fleeing domestic violence in the reporting range.
@@ -19,23 +19,3 @@
 
 
   = render 'warehouse_reports/filters', f:f
-
-- # FIXME: needs stimulus on form
-= content_for :page_js do
-  :javascript
-    $(document).ready(function() {
-      $('.jProjectTypes').on('change', function(e){
-        var project_type_ids = $('.jProjectTypes').val();
-        if(project_type_ids == null) {
-          project_types_ids = [2, 3, 13]
-        }
-        var selected_project_ids = $('.jProjects').val();
-        $.post('#{api_projects_path()}', {
-          project_type_ids: project_type_ids,
-          selected_project_ids: selected_project_ids
-        }, function(data){
-          $('.jProjects').html(data);
-        });
-      });
-      $('.jProjectTypes').trigger('change');
-    });

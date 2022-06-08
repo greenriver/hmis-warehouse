@@ -39,15 +39,15 @@ RSpec.describe HudApr::Generators::Apr::Fy2021::QuestionTwentyFive, type: :model
   describe 'Q25e: Physical and Mental Health Conditions - Veterans' do
   end
 
-  describe 'Q25f: Cash Income Category - Income Category - by Start and Annual /Exit Status – Veterans' do
+  describe 'Q25f: Cash Income Category - Income Category - by Start and Annual /Exit Status - Veterans' do
   end
 
-  describe 'Q25g: Type of Cash Income Sources – Veterans' do
+  describe 'Q25g: Type of Cash Income Sources - Veterans' do
   end
 
-  describe 'Q25h: Type of Non-Cash Benefit Sources – Veterans' do
+  describe 'Q25h: Type of Non-Cash Benefit Sources - Veterans' do
   end
 
-  describe 'Q25i: Exit Destination – Veterans' do
+  describe 'Q25i: Exit Destination - Veterans' do
   end
 end

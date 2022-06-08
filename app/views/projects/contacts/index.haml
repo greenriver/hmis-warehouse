@@ -1,7 +1,7 @@
-- title = "Project Contacts for #{@entity.ProjectName}"
+- title = "Project Contacts for #{@entity.name(current_user, ignore_confidential_status: can_edit_projects?)}"
 - content_for :modal_title, title
 = render 'breadcrumbs'
-.row
+.row.mt-4.mb-2
   .col-sm-12
     = link_to new_project_contact_path(@entity), data: { loads_in_pjax_modal: true }, class: 'btn btn-primary pull-right mb-2' do
       %span.icon-plus
@@ -9,26 +9,26 @@
 .row
   .col-sm-12
     - if @contacts.present?
-      %table.table.table-sm
-        %thead
-          %tr
-            %th
-              Name
-            %th
-              Email
-            %th
-        %tbody
-          - @contacts.each do |contact|
+      .table-responsive
+        %table.table.table-sm.table-striped
+          %thead
             %tr
-              %td
-                = link_to edit_project_contact_path(@entity, contact) do
-                  = contact.full_name
-              %td
-                = contact.email
-              %td
-                = link_to project_contact_path(@entity, contact), method: :delete, class: 'btn btn-default', data: {confirm: "Do you really want to delete contact #{contact.full_name}"} do
-                  %span.icon-cross
-                  Delete
+              %th
+                Name
+              %th
+                Email
+              %th
+          %tbody
+            - @contacts.each do |contact|
+              %tr
+                %td
+                  = link_to edit_project_contact_path(@entity, contact) do
+                    = contact.full_name
+                %td
+                  = contact.email
+                %td
+                  = link_to project_contact_path(@entity, contact), method: :delete, class: 'btn btn-sm btn-secondary', data: {confirm: "Do you really want to delete contact #{contact.full_name}"} do
+                    %span.icon-cross
+                    Delete
     - else
-      %p
-        No project contacts on file.
+      .none-found No project contacts on file.

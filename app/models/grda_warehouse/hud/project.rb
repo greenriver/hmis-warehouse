@@ -209,6 +209,10 @@ module GrdaWarehouse::Hud
       where(confidential: true)
     end
 
+    scope :non_confidential, -> do
+      where(confidential: false)
+    end
+
     scope :coc_funded, -> do
       # hud_continuum_funded overrides ContinuumProject
       where(
@@ -569,13 +573,15 @@ module GrdaWarehouse::Hud
 
     alias_attribute :name, :ProjectName
 
-    # Get the name for this project, protecting confidential names if appropriate
+    # Get the name for this project, protecting confidential names if appropriate.
+    # Confidential names are shown if the user has permission to view confidential projects
+    # AND the project is in the user's project list.
     #
-    # @param include_confidential_names [Boolean] include confidential names, or replace them with a generic string?
-    # FIXME: include_confidential_names should default to false
+    # @param user [User] user viewing the project
     # @param include_project_type [Boolean] include the HUD project type in the name?
-    def name(include_confidential_names: true, include_project_type: false)
-      project_name = if include_confidential_names
+    # @param ignore_confidential_status [Boolean] always show confidential names, regardless of user access?
+    def name(user = nil, include_project_type: false, ignore_confidential_status: false)
+      project_name = if ignore_confidential_status || (user&.can_view_confidential_enrollment_details? && user&.can_access_project?(self))
         self.ProjectName
       else
         safe_project_name
@@ -585,9 +591,19 @@ module GrdaWarehouse::Hud
       project_name
     end
 
+    def self.confidentialize_name(user, name, confidential)
+      return name if user.can_view_confidential_enrollment_details?
+
+      if confidential
+        GrdaWarehouse::Hud::Project.confidential_project_name
+      else
+        name
+      end
+    end
+
     # Get the safe name for this project.
     def safe_project_name
-      if confidential_name?
+      if confidential?
         self.class.confidential_project_name
       else
         self.ProjectName
@@ -601,21 +617,17 @@ module GrdaWarehouse::Hud
       organization.OrganizationName
     end
 
-    def confidential_name?
-      confidential? || /healthcare/i.match(self.ProjectName).present?
-    end
+    def organization_and_name(user = nil, ignore_confidential_status: false)
+      project_name = name(user, include_project_type: true, ignore_confidential_status: ignore_confidential_status)
+      return "#{organization&.OrganizationName} / #{project_name}" if user&.can_view_confidential_enrollment_details? || ignore_confidential_status
 
-    def organization_and_name(include_confidential_names: false)
-      project_name = name(include_confidential_names: include_confidential_names, include_project_type: true)
-      return "#{organization&.OrganizationName} / #{project_name}" if include_confidential_names
-
-      "#{organization&.OrganizationName} / #{project_name}" unless confidential_name?
+      return "#{organization&.OrganizationName} / #{project_name}" unless confidential?
 
       project_name
     end
 
-    def name_and_type(include_confidential_names: false)
-      name(include_confidential_names: include_confidential_names, include_project_type: true)
+    def name_and_type(ignore_confidential_status: false)
+      name(include_project_type: true, ignore_confidential_status: ignore_confidential_status)
     end
 
     def self.project_names_for_coc coc_code
@@ -710,9 +722,9 @@ module GrdaWarehouse::Hud
       'If enrollments are combined, the import process will collapse sequential enrollments for a given client at this project.'
     end
 
-    # Sometimes all we have is a name, we still want to try and
-    # protect those
-    def self.confidentialize(name:)
+    # Sometimes all we have is a name, we still want to try and protect those.
+    # This is not reliable! Use `name` or `confidentialize_name` methods whenever possible.
+    def self.confidentialize_by_name_only(name:)
       # cache for a short amount of time to avoid multiple fetches
       @confidential_project_names = Rails.cache.fetch('confidential_project_names', expires_in: 1.minutes) do
         GrdaWarehouse::Hud::Project.where(confidential: true).
@@ -720,7 +732,7 @@ module GrdaWarehouse::Hud
           map(&:downcase).
           map(&:strip)
       end
-      if @confidential_project_names.include?(name&.downcase&.strip) || /healthcare/i.match(name).present?
+      if @confidential_project_names.include?(name&.downcase&.strip)
         GrdaWarehouse::Hud::Project.confidential_project_name
       else
         name
@@ -783,6 +795,7 @@ module GrdaWarehouse::Hud
         options = {}
         project_scope = viewable_by(user)
         project_scope = project_scope.merge(scope) unless scope.nil?
+        project_scope = project_scope.where(confidential: false) unless user.can_view_confidential_enrollment_details?
 
         project_scope.
           joins(:organization, :data_source).
@@ -792,7 +805,7 @@ module GrdaWarehouse::Hud
             org_name = project.organization.OrganizationName
             org_name += " at #{project.data_source.short_name}" if Rails.env.development?
             options[org_name] ||= []
-            text = project.name(include_confidential_names: user.can_view_confidential_enrollment_details?, include_project_type: true)
+            text = project.name(user, include_project_type: true)
             # text += "#{project.ContinuumProject.inspect} #{project.hud_continuum_funded.inspect}"
             options[org_name] << [
               text,
