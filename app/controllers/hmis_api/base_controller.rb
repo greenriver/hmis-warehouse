@@ -5,8 +5,8 @@
 ###
 
 class HmisApi::BaseController < ApplicationController
-  before_action :set_csrf_cookie
   respond_to :json
+  before_action :set_csrf_cookie
 
   private def set_csrf_cookie
     cookies['CSRF-Token'] = form_authenticity_token

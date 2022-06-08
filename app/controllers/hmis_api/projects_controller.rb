@@ -8,7 +8,6 @@
 
 class HmisApi::ProjectsController < HmisApi::BaseController
   include ArelHelper
-  respond_to :json
 
   def index
     render json: project_scope.pluck(:ProjectName)

@@ -6,26 +6,26 @@
 
 class HmisApi::SessionsController < Devise::SessionsController
   include AuthenticatesWithTwoFactor
-  skip_before_action :verify_signed_out_user
   respond_to :json
-
-  prepend_before_action do
-    authenticate_with_two_factor(perform_authentication: false) if action_name == 'create' && two_factor_enabled?
-  end
+  skip_before_action :verify_signed_out_user
+  before_action :authenticate_with_2fa, only: [:create], if: -> { two_factor_enabled? }
 
   def create
     self.resource = warden.authenticate!(auth_options)
-    # FIXME should call record_failure_and_lock_access_if_exceeded if otp strategy failed (or save device if it succeeded?),
-    # but we never get here if it does. and no exception is thrown (???)
     sign_in(:hmis_api_user, resource)
-    cookies['CSRF-Token'] = form_authenticity_token
+    set_csrf_cookie
     render json: { success: true, name: resource.name, email: resource.email }
   end
 
   def destroy
-    sign_out(resource_name) # Only sign out of the HMIS, not the warehouse
+    sign_out(:hmis_api_user) # Only sign out of the HMIS, not the warehouse
 
     render json: { success: true }, status: 200
+  end
+
+  private def authenticate_with_2fa
+    set_csrf_cookie
+    authenticate_with_two_factor
   end
 
   def find_user
@@ -33,12 +33,14 @@ class HmisApi::SessionsController < Devise::SessionsController
   end
 
   def prompt_for_two_factor(user, invalid_code: false)
-    session[:otp_user_id] = user.id # we don't use this, just need it for AuthenticatesWithTwoFactor to work
-    render status: 403, json: { error: invalid_code ? 'invalid_code' : 'mfa_required' }
+    session[:otp_user_id] = user.id # Needed for AuthenticatesWithTwoFactor to work
+    error_type = invalid_code ? :invalid_code : :mfa_required
+    render_json_error(:forbidden, error_type)
   end
 
   def user_params
-    params.require(:hmis_api_user).permit(:email, :password, :otp_attempt, :remember_device, :device_name)
+    # TODO later, add :remember_device and :device_name to support 2fa bypass (based on site config)
+    params.require(:hmis_api_user).permit(:email, :password, :otp_attempt)
   end
 
   def two_factor_enabled?
@@ -46,7 +48,7 @@ class HmisApi::SessionsController < Devise::SessionsController
   end
 
   def locked_user_redirect(*)
-    render status: 403, json: { error: 'account locked' }
+    render_json_error(:forbidden, :account_locked)
   end
 
   def valid_otp_attempt?(user)
@@ -59,5 +61,20 @@ class HmisApi::SessionsController < Devise::SessionsController
 
   private def clean_code
     user_params[:otp_attempt].gsub(/[^0-9a-z]/, '')
+  end
+
+  private def set_csrf_cookie
+    cookies['CSRF-Token'] = form_authenticity_token
+  end
+
+  private def render_json_error(status, type, message: nil)
+    status = Rack::Utils::SYMBOL_TO_STATUS_CODE[status] if status.is_a? Symbol
+    error = { type: type }
+    error[:message] = message if message.present?
+    render status: status, json: { error: error }
+  end
+
+  private def two_factor_resource_name
+    :hmis_api_user
   end
 end

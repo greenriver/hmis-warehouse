@@ -39,7 +39,7 @@ module AuthenticatesWithTwoFactor
     render 'devise/sessions/new'
   end
 
-  def authenticate_with_two_factor(perform_authentication: true)
+  def authenticate_with_two_factor
     self.resource = find_user
     user = resource
     return locked_user_redirect(user) unless user.active?
@@ -47,8 +47,8 @@ module AuthenticatesWithTwoFactor
     # bypass 2fa if user has device
     if using_memorized_device?(user) && bypass_2fa_enabled?
       two_factor_successful(user)
-    elsif user_params[:otp_attempt].present? && session[:otp_user_id]
-      authenticate_with_two_factor_via_otp(user) if perform_authentication
+    elsif user_params[:otp_attempt].present? && session[:otp_user_id].present?
+      authenticate_with_two_factor_via_otp(user)
     elsif user&.valid_password?(user_params[:password])
       prompt_for_two_factor(user)
     end
@@ -92,7 +92,7 @@ module AuthenticatesWithTwoFactor
     session.delete(:otp_user_id)
 
     user.save!
-    sign_in(user, message: :two_factor_authenticated, event: :authentication)
+    sign_in(two_factor_resource_name, user, message: :two_factor_authenticated, event: :authentication)
 
     # add 2fa device if true
     return unless user_params[:remember_device] == 'true' && bypass_2fa_enabled?
@@ -101,5 +101,9 @@ module AuthenticatesWithTwoFactor
     browser = Browser.new(request.user_agent)
     device_name = user_params[:device_name].presence || "#{browser.name} #{browser.platform.name}"
     add_2fa_device(user, device_name)
+  end
+
+  private def two_factor_resource_name
+    :user
   end
 end

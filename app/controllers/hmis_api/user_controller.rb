@@ -12,7 +12,7 @@ class HmisApi::UserController < HmisApi::BaseController
     # Set CSRF cookie even if no user is logged in, so that the client can send it with the login request
     set_csrf_cookie
 
-    return render status: 401, json: { success: 'false', message: 'No user logged in' } unless current_hmis_api_user.present?
+    return render_json_error(:unauthorized, :not_logged_in) unless current_hmis_api_user.present?
 
     authenticate_hmis_api_user!
 
@@ -20,5 +20,12 @@ class HmisApi::UserController < HmisApi::BaseController
       name: current_hmis_api_user.name,
       email: current_hmis_api_user.email,
     }
+  end
+
+  private def render_json_error(status, type, message: nil)
+    status = Rack::Utils::SYMBOL_TO_STATUS_CODE[status] if status.is_a? Symbol
+    error = { type: type }
+    error[:message] = message if message.present?
+    render status: status, json: { error: error }
   end
 end
