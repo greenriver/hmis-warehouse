@@ -37,7 +37,7 @@ class HmisApi::SessionsController < Devise::SessionsController
   end
 
   def prompt_for_two_factor(user, invalid_code: false)
-    session[:otp_user_id] = user.id # Needed for AuthenticatesWithTwoFactor to work
+    session[:otp_user_id] = user.id
     error_type = invalid_code ? :invalid_code : :mfa_required
     render_json_error(:forbidden, error_type)
   end

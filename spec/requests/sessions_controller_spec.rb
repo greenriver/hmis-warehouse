@@ -40,8 +40,7 @@ RSpec.describe Users::SessionsController, type: :request do
 
   describe 'Account locked after 9 un-successful logins' do
     before(:each) do
-      # FIXME: this should be (Devise.maximum_attempts -1)  (not a hard coded 9, see bug above)
-      9.times do
+      (Devise.maximum_attempts - 1).times do
         post user_session_path(user: { email: user.email, password: 'incorrect' })
       end
     end
