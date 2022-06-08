@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class Hmis::SessionsController < Devise::SessionsController
+class HmisApi::SessionsController < Devise::SessionsController
   include AuthenticatesWithTwoFactor
   skip_before_action :verify_signed_out_user
   respond_to :json
@@ -17,19 +17,19 @@ class Hmis::SessionsController < Devise::SessionsController
     self.resource = warden.authenticate!(auth_options)
     # FIXME should call record_failure_and_lock_access_if_exceeded if otp strategy failed (or save device if it succeeded?),
     # but we never get here if it does. and no exception is thrown (???)
-    sign_in(:hmis_user, resource)
+    sign_in(:hmis_api_user, resource)
+    cookies['CSRF-Token'] = form_authenticity_token
     render json: { success: true, name: resource.name, email: resource.email }
   end
 
   def destroy
-    # signed_out = (Devise.sign_out_all_scopes ? sign_out : sign_out(resource_name))
     sign_out(resource_name) # Only sign out of the HMIS, not the warehouse
 
     render json: { success: true }, status: 200
   end
 
   def find_user
-    HmisUser.find_by(email: user_params[:email])
+    HmisApiUser.find_by(email: user_params[:email])
   end
 
   def prompt_for_two_factor(user, invalid_code: false)
@@ -38,7 +38,7 @@ class Hmis::SessionsController < Devise::SessionsController
   end
 
   def user_params
-    params.require(:hmis_user).permit(:email, :password, :otp_attempt, :remember_device, :device_name)
+    params.require(:hmis_api_user).permit(:email, :password, :otp_attempt, :remember_device, :device_name)
   end
 
   def two_factor_enabled?

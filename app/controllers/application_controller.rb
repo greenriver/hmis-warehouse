@@ -21,8 +21,6 @@ class ApplicationController < ActionController::Base
 
   before_action :authenticate_user!
   auto_session_timeout User.timeout_in
-  before_action :set_current_hmis_user, if: :json_request?
-  before_action :set_csrf_cookie, if: :json_request?
 
   before_action :set_paper_trail_whodunnit
   before_action :set_notification
@@ -272,14 +270,6 @@ class ApplicationController < ActionController::Base
   end
   helper_method :bypass_2fa_enabled?
 
-  def hmis_api_enabled?
-    ENV['ENABLE_HMIS_API'] == 'true'
-  end
-
-  def json_request?
-    request.format.json?
-  end
-
   def set_hostname
     @op_hostname ||= begin # rubocop:disable Naming/MemoizedInstanceVariableName
       `hostname`
@@ -294,21 +284,5 @@ class ApplicationController < ActionController::Base
       current_user: current_user&.email || 'none',
       current_user_browser: browser.to_s,
     }
-  end
-
-  def authenticate_user!(*args)
-    if args.blank? && json_request? && hmis_api_enabled?
-      authenticate_hmis_user!
-    else
-      super
-    end
-  end
-
-  def set_current_hmis_user
-    @current_hmis_user ||= warden.authenticate(scope: :hmis_user) if hmis_api_enabled?
-  end
-
-  private def set_csrf_cookie
-    cookies['CSRF-Token'] = { value: form_authenticity_token }
   end
 end
