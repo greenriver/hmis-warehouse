@@ -886,7 +886,7 @@ Rails.application.routes.draw do
     get :actioncable
   end
 
-  if ENV['ENABLE_HMIS_API'] == 'true'
+  if ENV['ENABLE_HMIS_API'] == 'true' && !Rails.env.production?
     namespace :hmis_api, path: 'hmis-api', defaults: { format: :json } do
       devise_for :users, class_name: 'HmisApiUser',
                          skip: [:registrations, :invitations, :passwords, :confirmations, :unlocks, :password_expired],
