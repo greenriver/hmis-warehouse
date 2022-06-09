@@ -19,8 +19,7 @@ class HmisApi::SessionsController < Devise::SessionsController
 
   def destroy
     sign_out(:hmis_api_user) # Only sign out of the HMIS, not the warehouse
-
-    render json: { success: true }, status: 200
+    render json: { success: true }, status: 204
   end
 
   private def authenticate_with_2fa
