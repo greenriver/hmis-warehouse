@@ -5,8 +5,8 @@
 ###
 
 class HmisApi::UserController < HmisApi::BaseController
-  skip_before_action :verify_authenticity_token
-  skip_before_action :authenticate_user!
+  skip_before_action :verify_authenticity_token, only: [:index]
+  skip_before_action :authenticate_user!, only: [:index]
 
   def index
     # Set CSRF cookie even if no user is logged in, so that the client can send it with the login request
