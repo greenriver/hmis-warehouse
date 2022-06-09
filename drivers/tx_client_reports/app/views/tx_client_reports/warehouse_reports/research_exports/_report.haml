@@ -5,7 +5,7 @@
         %i.icon-file-excel
         Download Excel
 .overflow-scroll
-  = render 'common/pagination_top', item_name: 'client'
+  = render 'common/pagination_top', item_name: 'enrollment'
   .table-responsive
     %table.table.table-striped
       %thead
@@ -17,4 +17,4 @@
           %tr
             - row.each.with_index do |v, i|
               %td= @report.format_enrollment_value(v, i)
-  = render 'common/pagination_bottom', item_name: 'client'
+  = render 'common/pagination_bottom', item_name: 'enrollment'
