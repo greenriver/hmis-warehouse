@@ -1,4 +1,4 @@
-= simple_form_for @filter, as: :filters, url: tx_client_reports_warehouse_reports_research_exports_path, method: :get do |f|
+= simple_form_for @filter, as: :filters, url: tx_client_reports_warehouse_reports_research_exports_path, method: :post do |f|
   - content_for :filters_col_full do
     .hud-report-options
       %h2 Required Options
@@ -26,6 +26,6 @@
 
 
   - content_for :filter_actions do
-    = f.submit 'Update Filter', class: 'btn btn-primary'
+    = f.submit 'Queue Export', class: 'btn btn-primary'
 
   = render 'warehouse_reports/filters', f:f
