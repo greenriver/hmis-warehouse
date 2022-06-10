@@ -152,22 +152,37 @@ RSpec.describe model, type: :model do
       describe 'user without permission to view confidential enrollment details' do
         describe 'assigned to confidential project' do
           before do
-            user.add_viewable(p1)
+            user.add_viewable(p1) # confidential project
+            user.add_viewable(p2) # non-confidential project
           end
           it 'sees p1 confidentialized' do
-            expect(u[user]).to eq p[p1]
+            expect(u[user]).to eq p[p1, p2]
             expect(p1.name(user).downcase).to include 'confidential'
+          end
+          it 'does not see p1 in options for select' do
+            options = GrdaWarehouse::Hud::Project.options_for_select(user: user)
+            expect(options.keys.size).to eq 1
+            project_ids = options.values.flatten(1).map(&:second)
+            expect(project_ids).to eq [p2.id]
           end
         end
 
         describe 'assigned to confidential organization' do
           before do
-            user.add_viewable(o2)
+            user.add_viewable(o2) # confidential organization
+            user.add_viewable(p2) # non-confidential project
           end
           it 'sees p3 and p4 confidentialized' do
-            expect(u[user]).to eq p[p3, p4]
+            expect(u[user]).to eq p[p2, p3, p4]
             expect(p3.name(user).downcase).to include 'confidential'
             expect(p4.name(user).downcase).to include 'confidential'
+          end
+
+          it 'does not see p3 and p4 in options for select' do
+            options = GrdaWarehouse::Hud::Project.options_for_select(user: user)
+            expect(options.keys.size).to eq 1
+            project_ids = options.values.flatten(1).map(&:second)
+            expect(project_ids).to eq [p2.id]
           end
         end
 

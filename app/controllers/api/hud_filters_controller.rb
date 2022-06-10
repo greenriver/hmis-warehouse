@@ -30,11 +30,13 @@ module Api
           :computed_project_type,
           o_t[:OrganizationName],
           o_t[:id],
-        ).each do |id, p_name, p_confidential, type, o_name, o_id|
-          name = GrdaWarehouse::Hud::Project.confidentialize_name(current_user, p_name, p_confidential)
-          @data[[o_id, o_name]] ||= []
-          @data[[o_id, o_name]] << [
-            "#{name} (#{HUD.project_type_brief(type)})",
+          o_t[:confidential],
+        ).each do |id, p_name, p_confidential, type, o_name, o_id, o_confidential|
+          project_name = GrdaWarehouse::Hud::Project.confidentialize_name(current_user, p_name, p_confidential || o_confidential)
+          organization_name = o_confidential ? GrdaWarehouse::Hud::Organization.confidential_organization_name : o_name
+          @data[[o_id, organization_name]] ||= []
+          @data[[o_id, organization_name]] << [
+            "#{project_name} (#{HUD.project_type_brief(type)})",
             id,
           ]
         end
