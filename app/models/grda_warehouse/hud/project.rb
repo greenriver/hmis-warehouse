@@ -206,11 +206,11 @@ module GrdaWarehouse::Hud
     end
 
     scope :confidential, -> do
-      where(confidential: true)
+      joins(:organization).where(p_t[:confidential].eq(true).or(o_t[:confidential].eq(true)))
     end
 
     scope :non_confidential, -> do
-      where(confidential: false)
+      joins(:organization).where(p_t[:confidential].eq(false).and(o_t[:confidential].eq(false)))
     end
 
     scope :coc_funded, -> do
@@ -572,6 +572,14 @@ module GrdaWarehouse::Hud
     end
 
     alias_attribute :name, :ProjectName
+
+    def confidential?
+      super || organization&.confidential?
+    end
+
+    def confidential
+      super || organization&.confidential
+    end
 
     # Get the name for this project, protecting confidential names if appropriate.
     # Confidential names are shown if the user has permission to view confidential projects
