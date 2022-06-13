@@ -31,11 +31,12 @@
       %tbody
         - @entries.each do |entry|
           - client = @clients[entry[:client_id]]
+          - safe_project_name = GrdaWarehouse::Hud::Project.confidentialize_name(current_user, entry.project_name, entry.project_confidential || entry.organization_confidential)
           %tr
             %td= link_to_if can_view_clients?, client.LastName, appropriate_client_path(client)
             %td= link_to_if can_view_clients?, client.FirstName, appropriate_client_path(client)
             %td= entry.first_date_in_program
-            %td= entry.project_name
+            %td= safe_project_name
             %td= client.source_clients.map{|m| m.data_source.short_name}.uniq.join(', ')
   = render 'common/pagination_bottom', item_name: 'client'
 - else
