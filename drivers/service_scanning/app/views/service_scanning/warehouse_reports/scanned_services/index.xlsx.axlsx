@@ -29,7 +29,7 @@ wb.add_worksheet(name: 'Services') do |sheet|
       client.FirstName,
       client.LastName,
       dob_or_age(client.DOB&.to_date),
-      service.project.name(current_user),
+      service.project.name_in_enrollment_context(current_user),
       service.provided_at,
       service.title_only,
       service.other_type,

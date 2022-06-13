@@ -30,7 +30,7 @@
                     %span
                       .ds{class: "ds-color-#{service.data_source_id}"}= ds_short_name_for(service.client.id)
                     %span{ data: { toggle: 'tooltip', title: project&.organization_and_name(current_user), project: projects[project] } }
-                      = project&.name(current_user) || 'Unable to determine project name'
+                      = project&.name_in_enrollment_context(current_user) || 'Unable to determine project name'
                   .text-right
                     - if @client.hmis_source_visible_by?(current_user)
                       = link_to 'HMIS', hmi_path(service, type: 'Services'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis mb-2'

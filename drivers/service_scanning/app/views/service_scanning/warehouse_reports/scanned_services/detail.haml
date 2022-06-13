@@ -1,6 +1,6 @@
 - title = _('Scanned Service Details')
 - content_for :modal_title, title
-%p #{pluralize(@services.count, 'Service')} provided on #{@filter.start} at #{@project.name(current_user)}.
+%p #{pluralize(@services.count, 'Service')} provided on #{@filter.start} at #{@project.name_in_enrollment_context(current_user)}.
 .card
   %table.table
     %thead

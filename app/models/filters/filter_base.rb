@@ -80,6 +80,11 @@ module Filters
         sub_population,
         start_age,
         end_age,
+        ph,
+        project_type_codes,
+        gender,
+        race,
+        ethnicity,
       ]
     end
 

@@ -575,12 +575,32 @@ module GrdaWarehouse::Hud
 
     # Get the name for this project, protecting confidential names if appropriate.
     # Confidential names are shown if the user has permission to view confidential projects
+    # within the context of assigned reports
     # AND the project is in the user's project list.
     #
     # @param user [User] user viewing the project
     # @param include_project_type [Boolean] include the HUD project type in the name?
     # @param ignore_confidential_status [Boolean] always show confidential names, regardless of user access?
     def name(user = nil, include_project_type: false, ignore_confidential_status: false)
+      project_name = if ignore_confidential_status || (user&.can_report_on_confidential_projects? && user&.can_access_project?(self))
+        self.ProjectName
+      else
+        safe_project_name
+      end
+      project_name += " (#{HUD.project_type_brief(computed_project_type)})" if include_project_type && computed_project_type.present?
+
+      project_name
+    end
+
+    # Get the name for this project, protecting confidential names if appropriate.
+    # Confidential names are shown if the user has permission to view confidential projects
+    # within the context of enrollments
+    # AND the project is in the user's project list.
+    #
+    # @param user [User] user viewing the project
+    # @param include_project_type [Boolean] include the HUD project type in the name?
+    # @param ignore_confidential_status [Boolean] always show confidential names, regardless of user access?
+    def name_in_enrollment_context(user, include_project_type: false)
       project_name = if ignore_confidential_status || (user&.can_view_confidential_enrollment_details? && user&.can_access_project?(self))
         self.ProjectName
       else

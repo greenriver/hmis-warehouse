@@ -754,6 +754,15 @@ class Role < ApplicationRecord
         administrative: true,
         categories: [
           'Client Extras',
+          'Confidentiality',
+        ],
+      },
+      can_report_on_confidential_projects: {
+        description: 'When running reports, users with this permission can see the names of confidential projects and organizations and choose confidential them from the project list.  Projects will still be limited by data assignments. Please note that this may expose information about clients at confidential projects within the context of assigned reports.',
+        administrative: true,
+        categories: [
+          'Reporting',
+          'Confidentiality',
         ],
       },
       can_manage_ad_hoc_data_sources: {
