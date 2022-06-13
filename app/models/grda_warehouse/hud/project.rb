@@ -206,11 +206,11 @@ module GrdaWarehouse::Hud
     end
 
     scope :confidential, -> do
-      where(confidential: true)
+      joins(:organization).where(p_t[:confidential].eq(true).or(o_t[:confidential].eq(true)))
     end
 
     scope :non_confidential, -> do
-      where(confidential: false)
+      joins(:organization).where(p_t[:confidential].eq(false).and(o_t[:confidential].eq(false)))
     end
 
     scope :coc_funded, -> do
@@ -573,6 +573,14 @@ module GrdaWarehouse::Hud
 
     alias_attribute :name, :ProjectName
 
+    def confidential?
+      super || organization&.confidential?
+    end
+
+    def confidential
+      super || organization&.confidential
+    end
+
     # Get the name for this project, protecting confidential names if appropriate.
     # Confidential names are shown if the user has permission to view confidential projects
     # AND the project is in the user's project list.
@@ -718,6 +726,10 @@ module GrdaWarehouse::Hud
       'If marked as confidential, the project name will be replaced with "Confidential Project" within individual client pages. Users with the "Can view confidential enrollment details" will still see the project name.'
     end
 
+    def member_of_confidential_organization_hint
+      'This project is part of a confidential organization.'
+    end
+
     def combine_enrollments_hint
       'If enrollments are combined, the import process will collapse sequential enrollments for a given client at this project.'
     end
@@ -795,7 +807,7 @@ module GrdaWarehouse::Hud
         options = {}
         project_scope = viewable_by(user)
         project_scope = project_scope.merge(scope) unless scope.nil?
-        project_scope = project_scope.where(confidential: false) unless user.can_view_confidential_enrollment_details?
+        project_scope = project_scope.merge(non_confidential) unless user.can_view_confidential_enrollment_details?
 
         project_scope.
           joins(:organization, :data_source).
