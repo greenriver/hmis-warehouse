@@ -50,7 +50,9 @@ module WarehouseReports
       GrdaWarehouse::Hud::Client
     end
     private def service_history_enrollment_source
-      GrdaWarehouse::ServiceHistoryEnrollment.joins(:project).merge(GrdaWarehouse::Hud::Project.es.viewable_by(current_user))
+      GrdaWarehouse::ServiceHistoryEnrollment.joins(:project).
+        merge(GrdaWarehouse::Hud::Project.es.viewable_by(current_user)).
+        preload(project: :organization)
     end
     private def service_history_service_source
       GrdaWarehouse::ServiceHistoryService
