@@ -6,7 +6,7 @@
         - if can_see_raw_hmis_data?
           = link_to 'HMIS', hmi_path(org.id, type: 'Organization'), class: 'btn btn-xs btn-secondary btn-hmis ml-2'
       - if org.confidential?
-        .mb-1.badge.badge-info.badge-pill Confidential Organization
+        .mb-1.badge.badge-info.badge-pill.c-tag-pill Confidential Organization
       - if org.dmh
         Treated as DMH for chronic calculations
     .col-sm-4.text-right
@@ -31,7 +31,8 @@
         %th Project Type
         %th Tracking Method
         %th.text-center Confidential?
-        %th Edit
+        - if can_edit_projects?
+          %th Edit
         %th
     %tbody
       - org.projects.each do |project|
