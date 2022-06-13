@@ -22,7 +22,7 @@ module Api
         project_scope.
           pluck(
             :id,
-            :ProjectName,
+            :ProjectName, # OK to use non-confidentialized name because list is filtered by confidentiality in project_scope
             :computed_project_type,
             o_t[:OrganizationName],
             o_t[:id],
