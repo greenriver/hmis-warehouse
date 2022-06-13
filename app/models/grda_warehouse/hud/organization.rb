@@ -213,6 +213,22 @@ module GrdaWarehouse::Hud
 
     alias_attribute :name, :OrganizationName
 
+    def name(user = nil)
+      if user&.can_view_confidential_enrollment_details?
+        self.OrganizationName
+      else
+        safe_organization_name
+      end
+    end
+
+    def safe_organization_name
+      if confidential?
+        self.class.confidential_organization_name
+      else
+        self.OrganizationName
+      end
+    end
+
     def self.text_search(text)
       return none unless text.present?
 

@@ -81,8 +81,8 @@ module Censuses
 
       dimension_scope = census_data_scope(user: user).by_project_id(project_id)
       organization_id = project.organization&.id
-      name_and_type = project.name(ignore_confidential_status: true, include_project_type: true)
-      dimension_label = "#{name_and_type} < #{project.organization&.name} < #{project.data_source&.short_name}"
+      name_and_type = project.name(user, include_project_type: true)
+      dimension_label = "#{name_and_type} < #{project.organization&.name(user)} < #{project.data_source&.short_name}"
       compute_dimension(start_date, end_date, data_source_id, organization_id, project_id, dimension_label, dimension_scope)
     end
 
@@ -94,7 +94,7 @@ module Censuses
     end
 
     private def for_organization_id(start_date, end_date, data_source_id, organization_id, user: nil)
-      organization_name = GrdaWarehouse::Hud::Organization.find(organization_id).name
+      organization_name = GrdaWarehouse::Hud::Organization.find(organization_id).name(user)
       dimension_label = "All programs from #{organization_name}"
       dimension_scope = census_data_scope(user: user).by_organization_id(organization_id)
       compute_dimension(start_date, end_date, data_source_id, organization_id, 'all', dimension_label, dimension_scope)
