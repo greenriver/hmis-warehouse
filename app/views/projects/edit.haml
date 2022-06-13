@@ -10,7 +10,7 @@
       = f.input :extrapolate_contacts, label: 'Should service records for this project be extrapolated to cover the month of contact?'
       = f.input :operating_start_date_override, as: :date_picker, label: "Override the operating start date, currently: #{@project.OperatingStartDate&.to_date || 'unset'}"
       = f.input :operating_end_date_override, as: :date_picker, label: "Override the operating end date, currently: #{@project.OperatingEndDate&.to_date || 'unset'}"
-      = f.input :confidential, label: 'Confidential?', hint: @project.confidential_hint
+      = f.input :confidential, label: 'Confidential?', hint: @project.confidential_hint, disabled: @project.organization.confidential?, wrapper_html: @project.organization.confidential? && { data: { toggle: :tooltip }, title: @project.member_of_confidential_organization_hint }
       = f.input :uses_move_in_date, label: 'Uses move-in-date?'
       = f.input :hud_continuum_funded, collection: {'Yes'=>true, 'No'=>false}, label: 'Continuum project?', include_blank: "Use actual ContinuumProject: #{yes_no(@project.ContinuumProject == 1, include_icon: false)}", as: :select_two
       = f.input :hmis_participating_project_override, collection: HUD.yes_no_missing_options.invert, include_blank: "Use actual HMISParticipatingProject: #{HUD.no_yes_missing(@project.HMISParticipatingProject) || 'unset'}", as: :select_two, label: 'HMIS Participating Project Override'

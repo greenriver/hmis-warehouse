@@ -726,6 +726,10 @@ module GrdaWarehouse::Hud
       'If marked as confidential, the project name will be replaced with "Confidential Project" within individual client pages. Users with the "Can view confidential enrollment details" will still see the project name.'
     end
 
+    def member_of_confidential_organization_hint
+      'This project is part of a confidential organization.'
+    end
+
     def combine_enrollments_hint
       'If enrollments are combined, the import process will collapse sequential enrollments for a given client at this project.'
     end
