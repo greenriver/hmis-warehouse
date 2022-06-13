@@ -58,7 +58,8 @@
         %td
           %span{data: @client.program_tooltip_data_for_enrollment(e)}
             - if include_links
-              = link_to e[:project_name], project_path(id: e[:project_id])
+              - can_view_project_page = e[:project_name] != GrdaWarehouse::Hud::Project.confidential_project_name || current_user.can_edit_projects?
+              = link_to_if can_view_project_page, e[:project_name], project_path(id: e[:project_id])
             - else
               = e[:project_name]
 
