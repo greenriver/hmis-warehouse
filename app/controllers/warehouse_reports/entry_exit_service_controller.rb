@@ -14,7 +14,7 @@ module WarehouseReports
       # this is a translation of an original raw SQL query into Arel
       @enrollments = GrdaWarehouse::Hud::Client.joins(
         :warehouse_client_source,
-        enrollments: [:project, :exit, :services],
+        enrollments: [:project, :exit, :services, :organization],
       ).
         where(
           p_t[project_source.project_type_column].in(
@@ -24,11 +24,24 @@ module WarehouseReports
         merge(GrdaWarehouse::Hud::Project.viewable_by(current_user)).
         where(ex_t[:ExitDate].eq s_t[:DateProvided]).
         where(e_t[:EntryDate].eq s_t[:DateProvided]).
-        distinct.pluck(*columns.values).map do |row|
-          Hash[columns.keys.zip(row)]
-        end
+        distinct
 
-      respond_to :html, :xlsx
+      respond_to do |format|
+        format.html do
+          @pagy, @enrollments = pagy(@enrollments, items: 50)
+          @data = @enrollments.pluck(*columns.values).map { |r| row_to_hash(r) }
+        end
+        format.xlsx do
+          @data = @enrollments.pluck(*columns.values).map { |r| row_to_hash(r) }
+        end
+      end
+    end
+
+    private def row_to_hash(row)
+      row_hash = Hash[columns.keys.zip(row)]
+      safe_project_name = GrdaWarehouse::Hud::Project.confidentialize_name(current_user, row_hash[:project_name], row_hash[:project_confidential] || row_hash[:organization_confidential])
+      row_hash[:project_name] = safe_project_name
+      row_hash
     end
 
     def columns
@@ -42,10 +55,12 @@ module WarehouseReports
         FirstName: c_t[:FirstName],
         LastName: c_t[:LastName],
         destination_id: wc_t[:destination_id],
-        ProjectID: e_t[:ProjectID],
-        ProjectName: p_t[:ProjectName],
+        project_id: p_t[:id],
+        project_name: p_t[:ProjectName],
         project_type: p_t[project_source.project_type_column].as('project_type'),
         RecordType: s_t[:RecordType],
+        project_confidential: p_t[:confidential],
+        organization_confidential: o_t[:confidential],
       }
     end
 
