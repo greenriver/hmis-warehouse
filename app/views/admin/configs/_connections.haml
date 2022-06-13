@@ -1,0 +1,16 @@
+%section.o-section-card
+  %h3 Connections
+  .c-card.c-card--flush.c-card--padded.flex-wrap
+    = f.input :pii_encryption_type, collection: GrdaWarehouse::Config.available_encryption_types, label: 'PII Encryption Type', as: :select_two
+    = f.input :request_account_available, label: 'Allow anyone to request an account?'
+    = f.input :eto_api_available, label: 'Is the ETO API available?'
+    = f.input :url_of_blank_consent_form, label: 'Blank consent form URL'
+    = f.input :site_coc_codes, as: :string, label: 'Default CoC Codes', hint: 'comma separated.  eg. MA-500, MA-504'
+    = f.input :continuum_name, as: :string, label: 'Continuum Name'
+    = f.input :multi_coc_installation, label: 'Is this a multi-CoC installation?'
+    = f.input :only_most_recent_import, label: 'Only allow importing of the most-recent HMIS version'
+    = f.input :bypass_2fa_duration, label: 'Memorize MFA devices for', collection: GrdaWarehouse::Config.available_bypass_2fa_durations, as: :select_two
+    = f.input :support_contact_email
+    = f.input :service_register_visible, label: 'Enable the Service Register?'
+
+    -# f.input :default_coc_zipcodes, as: :string, label: 'Default CoC Zip codes', hint: 'comma separated.  eg. 02108, 02109'
