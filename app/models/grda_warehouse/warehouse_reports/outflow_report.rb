@@ -18,7 +18,7 @@ module GrdaWarehouse::WarehouseReports
       entries_scope.
         residential.
         joins(:client).
-        preload(:client).
+        preload(:client, :project, :organization).
         order(c_t[:LastName], c_t[:FirstName]).
         where(client_id: send(key)).
         group_by(&:client_id)
