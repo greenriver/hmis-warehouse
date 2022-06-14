@@ -2,7 +2,7 @@
   %header.row.c-card__header
     .col-sm-8
       %h3
-        = org.name
+        = org.name(current_user, ignore_confidential_status: can_edit_organizations?)
         - if can_see_raw_hmis_data?
           = link_to 'HMIS', hmi_path(org.id, type: 'Organization'), class: 'btn btn-xs btn-secondary btn-hmis ml-2'
       - if org.confidential?
