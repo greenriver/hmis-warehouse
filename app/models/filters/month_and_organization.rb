@@ -24,7 +24,8 @@ module Filters
     def disambiguated_organizations
       @disambiguated_organizations ||= organizations.
         includes(:data_source).
-        group_by(&:name).
+        # OK to ignore because confidential organizations are filtered out if user does not have permission to view them
+        group_by { |o| o.name(ignore_confidential_status: true) }.
         flat_map do |name, orgs|
         if orgs.many?
           orgs.map do |org|
@@ -37,12 +38,13 @@ module Filters
     end
 
     def disambiguated_name(org)
-      "#{org.name} < #{org.data_source&.short_name}"
+      "#{org.name(ignore_confidential_status: true)} < #{org.data_source&.short_name}"
     end
 
     def organization_name
-      if disambiguated_organizations.key?(organization.name)
-        organization.name
+      org_name = organization.name(ignore_confidential_status: true)
+      if disambiguated_organizations.key?(org_name)
+        org_name
       elsif disambiguated_organizations.key?(disambiguated_name(organization))
         disambiguated_name(organization)
       else
@@ -81,11 +83,13 @@ module Filters
     end
 
     def organization_scope
-      if user.present?
-        GrdaWarehouse::Hud::Organization.residential.viewable_by(user)
-      else
-        GrdaWarehouse::Hud::Organization.residential
-      end
+      scope = organization_source.residential.viewable_by(user)
+      scope = scope.merge(organization_source.non_confidential) unless user.can_view_confidential_enrollment_details?
+      scope
+    end
+
+    def organization_source
+      GrdaWarehouse::Hud::Organization
     end
 
     validate do

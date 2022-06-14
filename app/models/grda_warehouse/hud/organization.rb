@@ -38,6 +38,10 @@ module GrdaWarehouse::Hud
       where(confidential: true)
     end
 
+    scope :non_confidential, -> do
+      where(confidential: false)
+    end
+
     scope :dmh, -> do
       where(dmh: true)
     end
