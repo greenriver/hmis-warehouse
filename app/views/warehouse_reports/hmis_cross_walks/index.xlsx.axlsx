@@ -17,9 +17,9 @@ wb.add_worksheet(name: 'Projects') do |sheet|
       [
         row.id,
         row.ProjectID,
-        row.ProjectName,
+        row.name(current_user),
         row.organization&.OrganizationID,
-        row.organization&.OrganizationName,
+        row.organization&.name(current_user),
         row.data_source&.short_name,
       ],
     )
@@ -42,7 +42,7 @@ wb.add_worksheet(name: 'Organizations') do |sheet|
       [
         row.id,
         row.OrganizationID,
-        row.OrganizationName,
+        row.name(current_user),
         row.data_source&.short_name,
       ],
     )
@@ -67,7 +67,7 @@ wb.add_worksheet(name: 'Inventory') do |sheet|
         row.id,
         row.InventoryID,
         row.project.ProjectID,
-        row.project.ProjectName,
+        row.project.name(current_user),
         row.data_source&.short_name,
       ],
     )
@@ -92,7 +92,7 @@ wb.add_worksheet(name: 'Funders') do |sheet|
         row.id,
         row.FunderID,
         row.project.ProjectID,
-        row.project.ProjectName,
+        row.project.name(current_user),
         row.data_source&.short_name,
       ],
     )
@@ -117,7 +117,7 @@ wb.add_worksheet(name: 'ProjectCoCs') do |sheet|
         row.id,
         row.ProjectCoCID,
         row.project.ProjectID,
-        row.project.ProjectName,
+        row.project.name(current_user),
         row.data_source&.short_name,
       ],
     )
