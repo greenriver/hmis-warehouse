@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 module HmisApi
   class GraphqlController < HmisApi::BaseController
     # If accessing from outside this domain, nullify the session
