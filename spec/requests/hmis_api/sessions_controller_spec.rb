@@ -15,6 +15,18 @@ RSpec.describe HmisApi::SessionsController, type: :request do
     end
   end
 
+  describe 'Successful logout' do
+    before(:each) do
+      post hmis_api_user_session_path(hmis_api_user: { email: user.email, password: user.password })
+    end
+
+    it 'has correct response code' do
+      expect(response.status).to eq 200
+      delete destroy_hmis_api_user_session_path
+      expect(response.status).to eq 204
+    end
+  end
+
   describe 'Un-successful login' do
     before(:each) do
       post hmis_api_user_session_path(hmis_api_user: { email: user.email, password: 'incorrect' })
@@ -40,8 +52,8 @@ RSpec.describe HmisApi::SessionsController, type: :request do
 
   describe 'Account locked after 9 un-successful logins' do
     before(:each) do
-      # FIXME: this should be (Devise.maximum_attempts -1)  (not a hard coded 9, see bug above)
-      9.times do
+      # Devise.maximum_attempts is twice what it should be (see Devise 2FA bug above)
+      ((Devise.maximum_attempts / 2) - 1).times do
         post hmis_api_user_session_path(hmis_api_user: { email: user.email, password: 'incorrect' })
       end
     end
@@ -105,14 +117,17 @@ RSpec.describe HmisApi::SessionsController, type: :request do
 
     describe 'User remembers 2FA device' do
       before(:each) do
+        GrdaWarehouse::Config.first_or_create
         GrdaWarehouse::Config.update(bypass_2fa_duration: 30)
         GrdaWarehouse::Config.invalidate_cache
         post hmis_api_user_session_path(hmis_api_user: { otp_attempt: user_2fa.current_otp, remember_device: true, device_name: 'Test Device' })
-        sign_out(user_2fa)
+        delete destroy_hmis_api_user_session_path
+        expect(response.status).to eq 204
         post hmis_api_user_session_path(hmis_api_user: { email: user_2fa.email, password: user_2fa.password })
       end
 
       it 'user failed_attempts should not increment' do
+        expect(response.status).to eq 200
         expect(user_2fa.reload.failed_attempts).to eq 0
       end
 
@@ -122,18 +137,30 @@ RSpec.describe HmisApi::SessionsController, type: :request do
       end
 
       it 'user has one memorized device' do
+        expect(response.status).to eq 200
         expect(user_2fa.two_factors_memorized_devices.count).to eq 1
       end
 
       it 'user has something in memorized device cookie' do
+        expect(response.status).to eq 200
         device_uuid = user_2fa.two_factors_memorized_devices.first.uuid
         jar = ActionDispatch::Cookies::CookieJar.build(request, cookies.to_hash)
         expect(jar.encrypted[:memorized_device]).to eq device_uuid
       end
 
+      it 'user does not have to enter 2fa on log in before device expires' do
+        travel_to Time.current + 30.days do
+          delete destroy_hmis_api_user_session_path
+          expect(response.status).to eq 204
+          post hmis_api_user_session_path(hmis_api_user: { email: user_2fa.email, password: user_2fa.password })
+          expect(response.status).to eq 200
+        end
+      end
+
       it 'user has to reenter 2fa after device expires' do
         travel_to Time.current + 31.days do
-          sign_out(user_2fa)
+          delete destroy_hmis_api_user_session_path
+          expect(response.status).to eq 204
           post hmis_api_user_session_path(hmis_api_user: { email: user_2fa.email, password: user_2fa.password })
           expect(response.status).to eq 403
           expect(response.body).to include 'mfa_required'

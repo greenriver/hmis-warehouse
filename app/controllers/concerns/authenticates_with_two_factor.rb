@@ -25,7 +25,7 @@ module AuthenticatesWithTwoFactor
   # user - User record
   #
   # Returns nil
-  def prompt_for_two_factor(user)
+  def prompt_for_two_factor(user, invalid_code: nil) # rubocop:disable Lint/UnusedMethodArgument
     # Set @user for Devise views
     @user = user
     return locked_user_redirect(user) unless user.active?

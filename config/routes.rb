@@ -886,7 +886,10 @@ Rails.application.routes.draw do
     get :actioncable
   end
 
-  if ENV['ENABLE_HMIS_API'] == 'true'
+  # Routes for the HMIS API
+  # NOTE: current omniauthable setup doesn't play nicely with multiple models.
+  # If we need to use Okta and the HMIS API together, see https://stackoverflow.com/a/13591797
+  if ENV['ENABLE_HMIS_API'] == 'true' && !ENV['OKTA_DOMAIN'].present?
     namespace :hmis_api, path: 'hmis-api', defaults: { format: :json } do
       devise_for :users, class_name: 'HmisApiUser',
                          skip: [:registrations, :invitations, :passwords, :confirmations, :unlocks, :password_expired],

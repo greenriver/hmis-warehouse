@@ -5,4 +5,7 @@
 ###
 
 class HmisApiUser < User
+  def skip_session_limitable?
+    true
+  end
 end
