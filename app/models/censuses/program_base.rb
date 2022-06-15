@@ -137,17 +137,17 @@ module Censuses
 
     # Detail view
 
-    def detail_name(project_code)
+    def detail_name(project_code, user: nil)
       data_source_id, organization_id, project_id = project_code.split('-')
       return 'All Programs from All Sources on' if data_source_id == 'all'
 
       data_source_name = GrdaWarehouse::DataSource.find(data_source_id.to_i).name
       return "All Programs from #{data_source_name} on" if organization_id == 'all'
 
-      organization_name = GrdaWarehouse::Hud::Organization.find(organization_id.to_i).name
+      organization_name = GrdaWarehouse::Hud::Organization.find(organization_id.to_i).name(user)
       return "All Projects from #{organization_name} on" if project_id == 'all'
 
-      project_name = GrdaWarehouse::Hud::Project.find(project_id.to_i).name
+      project_name = GrdaWarehouse::Hud::Project.find(project_id.to_i).name(user)
       "#{project_name} at #{organization_name} on"
     end
 
@@ -159,6 +159,7 @@ module Censuses
         'short_name' => ds_t[:short_name].to_sql,
         'client_id' => she_t[:client_id].to_sql,
         'project_id' => p_t[:id].to_sql,
+        'confidential' => bool_or(p_t[:confidential], o_t[:confidential]),
       }
 
       base_scope = GrdaWarehouse::ServiceHistoryService.where(date: date)
@@ -175,10 +176,12 @@ module Censuses
           merge(GrdaWarehouse::Hud::Project.where(id: project.to_i))
       end
 
-      base_scope.joins(:client, service_history_enrollment: [:data_source, :project]).
+      base_scope.joins(:client, service_history_enrollment: [:data_source, :project, project: [:organization]]).
         pluck(*columns.values).
         map do |row|
-          Hash[columns.keys.zip(row)]
+          h = Hash[columns.keys.zip(row)]
+          h['ProjectName'] = GrdaWarehouse::Hud::Project.confidential_project_name if h['confidential']
+          h
         end
     end
 

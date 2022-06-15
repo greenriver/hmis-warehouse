@@ -150,6 +150,10 @@ module ArelHelper
       self.class.confidentialized_project_name column
     end
 
+    def bool_or(*args)
+      self.class.bool_or(*args)
+    end
+
     # Example
     # Returns most-recently started enrollment that matches the scope (open in 2020) for each client
     # GrdaWarehouse::ServiceHistoryEnrollment.entry.
@@ -547,6 +551,13 @@ module ArelHelper
         [p_t[:confidential].eq(true).or(o_t[:confidential].eq(true)), GrdaWarehouse::Hud::Project.confidential_project_name],
       ]
       acase(conditions, elsewise: column)
+    end
+
+    def bool_or(field1, field2)
+      conditions = [
+        [field1.eq(true).or(field2.eq(true)), true],
+      ]
+      acase(conditions, elsewise: 'false')
     end
 
     # Some shortcuts for arel tables

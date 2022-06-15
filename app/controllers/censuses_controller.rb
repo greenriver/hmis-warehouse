@@ -26,7 +26,7 @@ class CensusesController < ApplicationController
     census = klass.new
     @date = params[:date].to_date
     if params[:project].present?
-      @census_detail_name = census.detail_name(params[:project])
+      @census_detail_name = census.detail_name(params[:project], user: current_user)
       ds_id, org_id, p_id = params[:project].split('-')
       @clients = census.clients_for_date(@date, ds_id, org_id, p_id)
 
