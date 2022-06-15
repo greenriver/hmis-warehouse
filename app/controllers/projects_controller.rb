@@ -9,7 +9,7 @@ class ProjectsController < ApplicationController
   before_action :require_can_delete_projects_or_data_sources!, only: [:destroy]
   before_action :require_can_edit_projects!, only: [:edit, :update]
   before_action :set_project, only: [:show, :update, :edit, :destroy]
-  before_action :require_can_view_confidential_enrollment_details!, if: -> { !can_edit_projects? && @project.confidential? }
+  before_action :require_can_view_confidential_project_names!, if: -> { !can_edit_projects? && @project.confidential? }
 
   include ArelHelper
 

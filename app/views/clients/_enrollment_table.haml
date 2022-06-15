@@ -52,7 +52,7 @@
           .enrollment__project_type{class: e[:class]}
             %span.service-type__program-type{data: {toggle: :tooltip, title: HUD.project_type(e[:project_type_id])}}
               = e[:project_type]
-          - if e[:confidential_project] && can_view_confidential_enrollment_details?
+          - if e[:confidential_project] && can_view_confidential_project_names?
             .confidential_project{data: {toggle: :tooltip, title: GrdaWarehouse::Hud::Project.confidential_project_name}}
               CP
         %td

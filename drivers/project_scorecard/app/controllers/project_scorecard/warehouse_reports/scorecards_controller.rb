@@ -182,7 +182,7 @@ module ProjectScorecard::WarehouseReports
     end
 
     private def project_scope
-      if current_user.can_view_confidential_enrollment_details?
+      if current_user.can_view_confidential_project_names?
         GrdaWarehouse::Hud::Project.viewable_by(current_user)
       else
         GrdaWarehouse::Hud::Project.viewable_by(current_user).non_confidential

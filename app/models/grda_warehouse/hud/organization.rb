@@ -218,7 +218,7 @@ module GrdaWarehouse::Hud
     alias_attribute :name, :OrganizationName
 
     def name(user = nil, ignore_confidential_status: false)
-      if ignore_confidential_status || user&.can_view_confidential_enrollment_details?
+      if ignore_confidential_status || user&.can_view_confidential_project_names?
         self.OrganizationName
       else
         safe_organization_name
@@ -248,7 +248,7 @@ module GrdaWarehouse::Hud
       @options = begin
         options = {}
         scope = viewable_by(user)
-        scope = scope.where(confidential: false) unless user.can_view_confidential_enrollment_details?
+        scope = scope.where(confidential: false) unless user.can_view_confidential_project_names?
         scope.joins(:data_source).
           order(ds_t[:name].asc, OrganizationName: :asc).
           pluck(ds_t[:name].as('ds_name'), :OrganizationName, :id).each do |ds, org_name, id|

@@ -118,7 +118,7 @@ module Api
     private def project_scope
       @project_scope ||= begin
         scope = project_source.viewable_by(current_user)
-        scope = scope.merge(project_source.non_confidential) unless current_user.can_view_confidential_enrollment_details?
+        scope = scope.merge(project_source.non_confidential) unless current_user.can_view_confidential_project_names?
 
         scope = scope.joins(:data_source, :organization, :funders).with_project_type(project_types)
         scope = scope.merge(data_source_source.where(id: data_source_ids)) if data_source_ids.present?

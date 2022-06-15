@@ -84,7 +84,7 @@ module Filters
 
     def organization_scope
       scope = organization_source.residential.viewable_by(user)
-      scope = scope.merge(organization_source.non_confidential) unless user.can_view_confidential_enrollment_details?
+      scope = scope.merge(organization_source.non_confidential) unless user.can_view_confidential_project_names?
       scope
     end
 
