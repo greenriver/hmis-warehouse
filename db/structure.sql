@@ -1185,7 +1185,8 @@ CREATE TABLE public.roles (
     can_view_service_register_on_client boolean DEFAULT false,
     can_view_all_vprs boolean DEFAULT false,
     can_view_my_vprs boolean DEFAULT false,
-    can_search_own_clients boolean DEFAULT false
+    can_search_own_clients boolean DEFAULT false,
+    can_report_on_confidential_projects boolean DEFAULT false
 );
 
 
@@ -3232,6 +3233,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220309140327'),
 ('20220314183405'),
 ('20220518143528'),
-('20220609133835');
+('20220609133835'),
+('20220613211706'),
+('20220613212850');
 
 

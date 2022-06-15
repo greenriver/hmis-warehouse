@@ -461,18 +461,6 @@ class RollOut
     puts "[INFO] Task arn: #{task_arn || 'unknown'} #{target_group_name}"
     puts "[INFO] Debug with: aws ecs describe-tasks --cluster #{cluster} --tasks #{task_arn} #{target_group_name}"
 
-    puts "[INFO] Waiting on the task to start and finish quickly to catch resource-related errors #{target_group_name}"
-    begin
-      ecs.wait_until(:tasks_running, { cluster: cluster, tasks: [task_arn] }, { max_attempts: 5, delay: 5 })
-    rescue Aws::Waiters::Errors::TooManyAttemptsError => e
-      puts "[WARN] #{e.message}"
-    end
-    begin
-      ecs.wait_until(:tasks_stopped, { cluster: cluster, tasks: [task_arn] }, { max_attempts: 2, delay: 5 })
-    rescue Aws::Waiters::Errors::TooManyAttemptsError => e
-      puts "[WARN] #{e.message}"
-    end
-
     results = ecs.describe_tasks(cluster: cluster, tasks: [task_arn])
 
     if results.failures.length.positive?
@@ -489,6 +477,16 @@ class RollOut
 
     task_id = task_arn.split('/').last
     log_stream_name.sub!(/TASK_ID/, task_id)
+
+    puts "[INFO] Waiting on the task to start... #{target_group_name}"
+    begin
+      ecs.wait_until(:tasks_running, { cluster: cluster, tasks: [task_arn] }, { max_attempts: 25, delay: 10 })
+    rescue Aws::Waiters::Errors::TooManyAttemptsError => _e
+      puts "[WARN] Task didn't start in time. Trying again."
+
+      ecs.stop_task(cluster: cluster, task: task_arn)
+      _run_task!
+    end
 
     _tail_logs
   end
