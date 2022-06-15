@@ -53,7 +53,7 @@ module ManualHmisData
     end
 
     private def project_coc_scope
-      project_coc_source.joins(:project).merge(GrdaWarehouse::Hud::Project.viewable_by(current_user))
+      project_coc_source.joins(:project).merge(GrdaWarehouse::Hud::Project.viewable_by(current_user, project_scope: :all))
     end
 
     private def project_coc_source
