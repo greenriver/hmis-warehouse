@@ -146,4 +146,10 @@ FactoryBot.define do
     name { 'can view clients' }
     can_edit_clients { true }
   end
+
+  factory :can_view_confidential_projects, class: 'Role' do
+    name { 'can view confidential enrollment details and projects' }
+    can_view_confidential_enrollment_details { true }
+    can_view_projects { true }
+  end
 end
