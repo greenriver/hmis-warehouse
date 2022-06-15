@@ -13,17 +13,37 @@ module TxClientReports::WarehouseReports
     before_action :filter
 
     def index
-      @rows = report.rows
       respond_to do |format|
         format.html do
+          @reports = report_class.viewable_by(current_user).ordered
           show_validations
-          @pagy, @rows = pagy(@rows)
+          @pagy, @reports = pagy(@reports)
         end
         format.xlsx do
-          filename = "Research Export - #{Time.current.to_s(:db)}.xlsx"
-          headers['Content-Disposition'] = "attachment; filename=#{filename}"
+          @report = report_class.new(options: @filter.for_params, user_id: @filter.user_id)
+          filename = "Research Export  #{Time.current.to_s(:db)}.xlsx"
+          headers['ContentDisposition'] = "attachment; filename=#{filename}"
         end
       end
+    end
+
+    def show
+      filename = "Research Export - #{Time.current.to_s(:db)}.xlsx"
+      headers['Content-Disposition'] = "attachment; filename=#{filename}"
+      export = report.export
+      send_data(export.content, type: export.content_type, filename: filename)
+    end
+
+    def create
+      @filter.update(filter_params)
+      @report = report_class.create(options: @filter.for_params, user_id: @filter.user_id)
+
+      ::WarehouseReports::GenericReportJob.perform_later(
+        user_id: current_user.id,
+        report_class: @report.class.name,
+        report_id: @report.id,
+      )
+      respond_with(@report, location: tx_client_reports_warehouse_reports_research_exports_path)
     end
 
     private def show_validations
@@ -39,25 +59,27 @@ module TxClientReports::WarehouseReports
           project_type_numbers: GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS,
           enforce_one_year_range: false,
         )
-        f.update(report_params)
+        f.update(filter_params)
         f
       end
     end
 
-    private def show_report?
-      filter.effective_project_ids.present? && filter.effective_project_ids != [0]
-    end
-    helper_method :show_report?
-
     private def report
-      @report ||= TxClientReports::ResearchExport.new(@filter)
+      @report ||= report_class.find(params[:id].to_i)
     end
-    helper_method :report
 
-    private def report_params
+    private def report_class
+      TxClientReports::ResearchExport
+    end
+
+    private def filter_params
       return {} unless params[:filters].present?
 
       params.require(:filters).permit(::Filters::FilterBase.new.known_params)
+    end
+
+    private def flash_interpolation_options
+      { resource_name: @report.title }
     end
   end
 end
