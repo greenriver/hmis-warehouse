@@ -210,7 +210,7 @@ module GrdaWarehouse
 
     def consent_type_with_extras
       full_string = _(consent_type)
-      full_string += " in #{coc_codes.to_sentence}" if coc_codes.any?
+      full_string += " in #{coc_codes.to_sentence}" if coc_codes&.any?
       full_string
     end
 
@@ -240,8 +240,10 @@ module GrdaWarehouse
 
       coc_codes_chosen = if coc_codes.include?('All CoCs')
         ['All CoCs']
-      else
+      elsif coc_available?
         coc_codes.presence || ['All CoCs']
+      else
+        []
       end
 
       if ! client.consent_form_valid?
@@ -270,6 +272,10 @@ module GrdaWarehouse
           client.invalidate_consent!
         end
       end
+    end
+
+    private def coc_available?
+      (GrdaWarehouse::AvailableFileTag.consent_forms.where(coc_available: true).pluck(:name) & tag_list).present?
     end
 
     def notify_users

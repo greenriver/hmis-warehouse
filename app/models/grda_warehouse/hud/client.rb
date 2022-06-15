@@ -976,14 +976,25 @@ module GrdaWarehouse::Hud
     # and maintained in the warehouse
     def self.full_release_string
       # Return the untranslated string, but force the translator to see it
-      _('Full HAN Release')
-      'Full HAN Release'
+      if GrdaWarehouse::Config.implicit_roi?
+        _('Implicit Release')
+        'Implicit Release'
+      else
+        _('Full HAN Release')
+        'Full HAN Release'
+      end
     end
 
     def self.partial_release_string
       # Return the untranslated string, but force the translator to see it
       _('Limited CAS Release')
       'Limited CAS Release'
+    end
+
+    def self.no_release_string
+      return 'Consent revoked' if GrdaWarehouse::Config.implicit_roi?
+
+      'None on file'
     end
 
     def self.consent_validity_period
@@ -1021,7 +1032,7 @@ module GrdaWarehouse::Hud
 
     def release_current_status
       consent_text = if housing_release_status.blank?
-        'None on file'
+        self.class.no_release_string
       elsif release_duration.in?(['One Year', 'Two Years'])
         if consent_form_valid?
           "Valid Until #{consent_form_signed_on + self.class.consent_validity_period}"
@@ -1094,6 +1105,12 @@ module GrdaWarehouse::Hud
         consent_expires_on: nil,
         consented_coc_codes: [],
       )
+    end
+
+    def apply_housing_release_status
+      return unless GrdaWarehouse::Config.implicit_roi?
+
+      self.housing_release_status = GrdaWarehouse::Hud::Client.full_release_string
     end
 
     # End Release information

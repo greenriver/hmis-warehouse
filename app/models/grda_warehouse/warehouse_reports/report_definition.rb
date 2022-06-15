@@ -324,7 +324,7 @@ module GrdaWarehouse::WarehouseReports
           {
             url: 'warehouse_reports/missing_projects',
             name: 'Missing Projects ',
-            description: "Shows Project IDs for enrollment records where the project isn''t in the source data.",
+            description: "Shows Project IDs for enrollment records where the project isn't in the source data.",
             limitable: false,
             health: false,
           },
