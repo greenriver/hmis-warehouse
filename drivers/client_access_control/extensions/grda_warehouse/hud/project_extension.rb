@@ -9,8 +9,8 @@ module ClientAccessControl::GrdaWarehouse::Hud
     extend ActiveSupport::Concern
 
     included do
-      scope :visible_to, ->(user) do
-        viewable_by(user)
+      scope :visible_to, ->(user, project_scope: :non_confidential) do
+        viewable_by(user, project_scope: project_scope)
       end
     end
   end
