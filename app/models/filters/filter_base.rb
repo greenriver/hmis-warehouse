@@ -18,6 +18,7 @@ module Filters
     attribute :start, Date, lazy: true, default: ->(r, _) { r.default_start }
     attribute :end, Date, lazy: true, default: ->(r, _) { r.default_end }
     attribute :enforce_one_year_range, Boolean, default: true
+    attribute :require_service_during_range, Boolean, default: true
     attribute :sort
     attribute :heads_of_household, Boolean, default: false
     attribute :comparison_pattern, Symbol, default: ->(r, _) { r.default_comparison_pattern }
@@ -100,6 +101,8 @@ module Filters
       # Allow multi-year filters if we explicitly passed in something that isn't truthy
       enforce_range = filters.dig(:enforce_one_year_range)
       self.enforce_one_year_range = enforce_range.in?(['1', 'true', true]) unless enforce_range.nil?
+      require_service = filters.dig(:require_service_during_range)
+      self.require_service_during_range = require_service.in?(['1', 'true', true]) unless require_service.nil?
       self.comparison_pattern = clean_comparison_pattern(filters.dig(:comparison_pattern)&.to_sym)
       self.coc_codes = filters.dig(:coc_codes)&.select { |code| available_coc_codes&.include?(code) }.presence || coc_codes.presence || user.coc_codes
       self.coc_code = filters.dig(:coc_code) if available_coc_codes&.include?(filters.dig(:coc_code))
@@ -198,6 +201,7 @@ module Filters
           ce_cls_as_homeless: ce_cls_as_homeless,
           limit_to_vispdat: limit_to_vispdat,
           enforce_one_year_range: enforce_one_year_range,
+          require_service_during_range: require_service_during_range,
           times_homeless_in_last_three_years: times_homeless_in_last_three_years,
           report_version: report_version,
           ph: ph,
@@ -231,6 +235,7 @@ module Filters
         :coc_code,
         :limit_to_vispdat,
         :enforce_one_year_range,
+        :require_service_during_range,
         :report_version,
         :ph,
         :creator_id,
