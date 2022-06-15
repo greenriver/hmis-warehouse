@@ -140,6 +140,13 @@ module GrdaWarehouse
       }
     end
 
+    def self.available_client_dashboards
+      {
+        'Default' => :default,
+        'VA' => :va,
+      }
+    end
+
     def self.client_search_available?
       get(:pii_encryption_type).to_sym.in?([:none])
     end
