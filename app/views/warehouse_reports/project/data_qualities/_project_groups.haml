@@ -22,7 +22,7 @@
             %th
               Last Sent On
         %tbody
-          - project_groups.each do |group|
+          - project_groups.uniq.each do |group|
             - id = group.id
             - last_report = @project_group_report_shells[id]
             %tr.jProject.jProject{data: {organization_id: :project_groups}}
