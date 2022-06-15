@@ -30,7 +30,7 @@ class InventoriesController < ApplicationController
   end
 
   private def inventory_scope
-    inventory_source.joins(:project).merge(GrdaWarehouse::Hud::Project.viewable_by(current_user))
+    inventory_source.joins(:project).merge(GrdaWarehouse::Hud::Project.viewable_by(current_user, project_scope: :all))
   end
 
   private def inventory_source

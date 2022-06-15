@@ -57,7 +57,7 @@ class ProjectsController < ApplicationController
   end
 
   private def project_scope
-    project_source.viewable_by current_user
+    project_source.viewable_by(current_user, project_scope: :all)
   end
 
   private def project_source
