@@ -1061,6 +1061,13 @@ module GrdaWarehouse::WarehouseReports
           limitable: true,
           health: false,
         }
+        r_list['Exports'] << {
+          url: 'tx_client_reports/warehouse_reports/research_exports',
+          name: _('Offline Research Export'),
+          description: 'Download enrollment data for offline research.',
+          limitable: true,
+          health: false,
+        }
       end
       if RailsDrivers.loaded.include?(:public_reports)
         # Only attempt this if the driver is loaded, and only install the reports

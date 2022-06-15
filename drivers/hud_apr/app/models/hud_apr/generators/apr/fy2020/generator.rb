@@ -45,7 +45,7 @@ module HudApr::Generators::Apr::Fy2020
         HudApr::Generators::Apr::Fy2020::QuestionSixteen, #  Cash Income - Ranges
         HudApr::Generators::Apr::Fy2020::QuestionSeventeen, # Cash Income - Sources
         HudApr::Generators::Apr::Fy2020::QuestionEighteen, # Client Cash Income Category - Earned/Other Income Category - by Start and t/Exit Status
-        HudApr::Generators::Apr::Fy2020::QuestionNineteen, # Cash Income – Changes over Time
+        HudApr::Generators::Apr::Fy2020::QuestionNineteen, # Cash Income - Changes over Time
         HudApr::Generators::Apr::Fy2020::QuestionTwenty, # Non-Cash Benefits
         HudApr::Generators::Apr::Fy2020::QuestionTwentyOne, # Health Insurance
         HudApr::Generators::Apr::Fy2020::QuestionTwentyTwo, # Length of participation

@@ -1,7 +1,11 @@
 = simple_form_for @release_form, url: form_url, as: :form, remote: true, html: {multipart: true} do |f|
 
-  = f.error_notification
-
+  - if @release_form.errors.any?
+    .alert.alert-danger.flex-column.align-items-start
+      %p Please review the errors below:
+      %ul.error_list
+        - @release_form.errors.messages.values.first.each do |msg|
+          %li= msg
   .row
     .col-sm-6
       = f.input :signature_on, as: :date_picker
@@ -11,16 +15,18 @@
           %label Location
           %p.form-control-static= @release_form.file_location
 
-    - if @blank_release_form_url.present?
+    - if @blank_release_form_url.present? || @blank_directed_form_url.present?
       .col-sm-6.text-right
-        = link_to @blank_release_form_url, class: 'btn btn-secondary' do
-          %i.icon-download2
-          Blank Release Form
+        - if @blank_release_form_url.present?
+          = link_to @blank_release_form_url, class: 'btn btn-secondary' do
+            %i.icon-download2
+            Blank Release Form
+        - if @blank_directed_form_url.present?
+          = link_to @blank_directed_form_url, class: 'btn btn-secondary mt-4' do
+            %i.icon-download2
+            Blank Directed Release Form
 
-  - highlights = ''
-  - if @release_form.errors.messages[:file_location].present?
-    - highlights = 'alert alert-danger'
-  %div{class: highlights}
+  %div
     .row
       .col-sm-6.j-file-upload
         = render 'upload_fields', f: f
