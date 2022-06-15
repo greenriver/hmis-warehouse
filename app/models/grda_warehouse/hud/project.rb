@@ -574,11 +574,11 @@ module GrdaWarehouse::Hud
     alias_attribute :name, :ProjectName
 
     def confidential?
-      super || organization&.confidential?
+      super || GrdaWarehouse::Hud::Organization.confidential_org?(self.OrganizationID, data_source_id)
     end
 
     def confidential
-      super || organization&.confidential
+      super || GrdaWarehouse::Hud::Organization.confidential_org?(self.OrganizationID, data_source_id)
     end
 
     # Get the name for this project, protecting confidential names if appropriate.

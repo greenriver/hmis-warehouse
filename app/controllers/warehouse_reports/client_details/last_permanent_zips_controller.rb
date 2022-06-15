@@ -28,9 +28,8 @@ module WarehouseReports::ClientDetails
       end
 
       @clients = population_service_history_source.
-        joins(:client, :enrollment, :project, :organization).
-        includes(:client, :enrollment, :project, :organization).
-        preload(:organization). # FIXME why isnt this working, still a bunch of organization queries
+        joins(:client, :enrollment, :project).
+        includes(:client, :enrollment, :project).
         open_between(start_date: @range.start, end_date: @range.end).
         distinct.
         order(first_date_in_program: :asc).
