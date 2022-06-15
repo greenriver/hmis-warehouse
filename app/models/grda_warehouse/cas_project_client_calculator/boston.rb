@@ -291,8 +291,8 @@ module GrdaWarehouse::CasProjectClientCalculator
       client.source_health_and_dvs&.detect do |m|
         m.PregnancyStatus == 1 &&
         (
-          m.InformationDate > one_year_ago ||
-          m.DueDate > Date.current - 3.months
+          (m.InformationDate.present? && m.InformationDate > one_year_ago) ||
+          (m.DueDate.present? && m.DueDate > Date.current - 3.months)
         )
       end.present?
     end
