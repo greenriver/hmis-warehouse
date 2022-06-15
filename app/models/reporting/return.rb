@@ -41,7 +41,7 @@ module Reporting
 
     def enrollment_data(c_ids)
       GrdaWarehouse::ServiceHistoryEnrollment.entry.homeless.
-        joins(:project, :organization, :client).
+        joins(:project, :organization, :client, project: [:organization]).
         where(client_id: c_ids).
         open_between(start_date: Reporting::MonthlyReports::Base.lookback_start, end_date: Date.current).
         with_service_between(
@@ -145,7 +145,7 @@ module Reporting
         project_id: p_t[:id],
         hmis_project_id: p_t[:ProjectID],
         destination: she_t[:destination],
-        project_name: she_t[:project_name],
+        project_name: confidentialized_project_name(she_t[:project_name]),
         organization_id: o_t[:id],
         unaccompanied_youth: she_t[:unaccompanied_youth],
         parenting_youth: she_t[:parenting_youth],

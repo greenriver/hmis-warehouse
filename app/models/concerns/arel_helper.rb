@@ -146,6 +146,10 @@ module ArelHelper
       self.class.checksum(*args)
     end
 
+    def confidentialized_project_name(column)
+      self.class.confidentialized_project_name column
+    end
+
     # Example
     # Returns most-recently started enrollment that matches the scope (open in 2020) for each client
     # GrdaWarehouse::ServiceHistoryEnrollment.entry.
@@ -536,6 +540,13 @@ module ArelHelper
       exp = qt exp
       exp = lit exp.to_sql unless exp.respond_to?(:as)
       nf 'CAST', [exp.as(as)]
+    end
+
+    def confidentialized_project_name(column)
+      conditions = [
+        [p_t[:confidential].eq(true).or(o_t[:confidential].eq(true)), GrdaWarehouse::Hud::Project.confidential_project_name],
+      ]
+      acase(conditions, elsewise: column)
     end
 
     # Some shortcuts for arel tables
