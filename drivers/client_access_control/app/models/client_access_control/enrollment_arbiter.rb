@@ -41,19 +41,39 @@ module ClientAccessControl
       client_scope = unscoped_clients.source
       client_scope = client_scope.where(id: client_ids) if client_ids.present?
       coc_codes = user.coc_codes
-      client_scope.where(
-        # NOTE: you need to merge in Enrollment to get the where DateDeleted is null
-        # also, it is more performant to sub-query enrollments for unknown reasons
+
+      # NOTE: you need to merge in Enrollment to get the where DateDeleted is null
+      # also, it is more performant to sub-query enrollments for unknown reasons.
+      where_clause = c_t[:id].in(
+        Arel.sql(
+          client_scope.joins(:enrollments).merge(::GrdaWarehouse::Hud::Enrollment.paranoia_scope).
+          where(e_t[:id].in(Arel.sql(enrollment_sub_query(user).select(:id).to_sql))).
+          select(c_t[:id]).to_sql,
+        ),
+      ) # 1
+      # The can_search_own_clients permission limits search results regardles of ROI status
+      unless user.can_search_own_clients?
+        where_clause = where_clause.or(
+          c_t[:id].in(
+            Arel.sql(
+              consent_sub_query(coc_codes).
+              joins(:warehouse_client_destination).
+              select(wc_t[:source_id]).to_sql,
+            ),
+          ),
+        ) # 2
+      end
+      where_clause = where_clause.or(
         c_t[:id].in(
           Arel.sql(
-            client_scope.joins(:enrollments).merge(::GrdaWarehouse::Hud::Enrollment.paranoia_scope).
-            where(e_t[:id].in(Arel.sql(enrollment_sub_query(user).select(:id).to_sql))).
-            select(c_t[:id]).to_sql,
+            client_scope.
+            joins(:data_source).
+            where(ds_t[:id].in(data_source_ids)).
+            select(:id).to_sql,
           ),
-        ). # 1
-        or(c_t[:id].in(Arel.sql(consent_sub_query(coc_codes).joins(:warehouse_client_destination).select(wc_t[:source_id]).to_sql))). # 2
-        or(c_t[:id].in(Arel.sql(client_scope.joins(:data_source).where(ds_t[:id].in(data_source_ids)).select(:id).to_sql))), # 3, 4
-      )
+        ),
+      ) # 3, 4
+      client_scope.where(where_clause)
     end
 
     def enrollments_visible_to(user, client_ids: nil)
