@@ -13,7 +13,6 @@
         %dt SSN:
         %dd= ssn(@client.SSN)
 = simple_form_for @file, url: client_releases_path(@client) do |f|
-  - console
   - if @file.errors.any?
     .alert.alert-danger{style: 'display: block;'}
       %p Failed to upload file. Please review the errors below
