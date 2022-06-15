@@ -70,18 +70,9 @@ module Filters
 
     validates_presence_of :start, :end
 
-    # NOTE: keep this up-to-date if adding additional attributes
+    # Incorporate anything that might change the results
     def cache_key
-      [
-        user.id,
-        effective_project_ids,
-        cohort_ids,
-        coc_codes,
-        coc_code,
-        sub_population,
-        start_age,
-        end_age,
-      ]
+      to_h
     end
 
     # use incoming data, if not available, use previously set value, or default value
