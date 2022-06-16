@@ -1,6 +1,26 @@
 {
   "ignored_warnings": [
     {
+      "warning_type": "Command Injection",
+      "warning_code": 14,
+      "fingerprint": "023c724508b4c341ebb8aae1c407e91e113c05bccffe0dca58702f276fbe1dd0",
+      "check_name": "Execute",
+      "message": "Possible command injection",
+      "file": "config/deploy/docker/lib/command_args.rb",
+      "line": 34,
+      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
+      "code": "`diff #{path} #{tmppath}`",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "CommandArgs",
+        "method": "initialize"
+      },
+      "user_input": "path",
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
       "warning_type": "File Access",
       "warning_code": 16,
       "fingerprint": "0a8413f58bac50c36a5c6154a71747e5b6dcc2c7c345f8388fd7d4f42e2350d3",
@@ -254,7 +274,7 @@
         {
           "type": "template",
           "name": "homeless_summary_report/warehouse_reports/reports/show",
-          "line": 25,
+          "line": 27,
           "file": "drivers/homeless_summary_report/app/views/homeless_summary_report/warehouse_reports/reports/show.haml",
           "rendered": {
             "name": "homeless_summary_report/warehouse_reports/reports/_counts_table",
@@ -1821,7 +1841,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "drivers/homeless_summary_report/app/models/homeless_summary_report/report.rb",
-      "line": 1035,
+      "line": 986,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "clients.send(variant).send(\"spm_#{field}\").average(\"spm_#{field}\")",
       "render_path": null,
@@ -2564,6 +2584,6 @@
       "note": ""
     }
   ],
-  "updated": "2022-05-14 15:14:48 +0000",
+  "updated": "2022-05-28 00:26:04 +0000",
   "brakeman_version": "5.0.4"
 }

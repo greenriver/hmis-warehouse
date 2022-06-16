@@ -24,7 +24,7 @@
           %tr
             %td
               .ds{class: "ds-color-#{situation.data_source_id}"}= ds_short_name_for(situation.enrollment.client.id)
-            %td= GrdaWarehouse::Hud::Project.confidentialize(name: project&.name)
+            %td= project&.name(current_user)
             %td.date-cell= situation.enrollment.EntryDate
             %td= situation.InformationDate
             %td= HUD.living_situation situation.CurrentLivingSituation

@@ -29,7 +29,7 @@ wb.add_worksheet(name: "First Time Homeless #{GrdaWarehouse::WarehouseReports::D
       ::HUD.no_yes_reasons_for_missing_data(client.VeteranStatus),
       client.first_service_history.date,
       ::HUD.project_type(client.first_service_history.project_type),
-      project.name(include_confidential_names: current_user.can_view_confidential_enrollment_details?),
+      project.name(current_user),
       project.organization_name(current_user),
       client.source_clients.map { |m| m.data_source&.short_name }.uniq.join(', '),
       ::HUD.ethnicity(client.Ethnicity),

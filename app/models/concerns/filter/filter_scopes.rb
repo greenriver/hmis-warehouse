@@ -13,8 +13,10 @@ module Filter::FilterScopes
     end
 
     private def filter_for_range(scope)
-      scope.open_between(start_date: @filter.start_date, end_date: @filter.end_date).
-        with_service_between(start_date: @filter.start_date, end_date: @filter.end_date)
+      scope = scope.open_between(start_date: @filter.start_date, end_date: @filter.end_date)
+      return scope unless @filter.require_service_during_range
+
+      scope.with_service_between(start_date: @filter.start_date, end_date: @filter.end_date)
     end
 
     private def filter_for_cocs(scope)

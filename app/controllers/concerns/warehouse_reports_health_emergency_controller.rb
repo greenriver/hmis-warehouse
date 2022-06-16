@@ -26,9 +26,9 @@ module WarehouseReportsHealthEmergencyController
     private def set_filter
       clean_params = filter_params || {}
       @filter = if filter_params&.dig(:start).present?
-        ::Filters::DateRangeAndSources.new(filter_params)
+        ::Filters::DateRangeAndSources.new(filter_params.merge(user_id: current_user.id))
       else
-        ::Filters::DateRangeAndSources.new(clean_params.merge(start: default_start_date, end: Date.current))
+        ::Filters::DateRangeAndSources.new(clean_params.merge(user_id: current_user.id, start: default_start_date, end: Date.current))
       end
     end
 
@@ -51,15 +51,5 @@ module WarehouseReportsHealthEmergencyController
     private def selected_sort
       sort_options.keys.detect { |m| m == params.dig(:filter, :sort)&.to_sym } || sort_options.keys.first
     end
-
-    private def available_locations
-      GrdaWarehouse::Hud::Project.viewable_by(current_user).map do |p|
-        [
-          p.name_and_type,
-          p.id,
-        ]
-      end
-    end
-    helper_method :available_locations
   end
 end

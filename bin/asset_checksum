@@ -10,14 +10,6 @@ if [ "$ASSETS_PREFIX" = "" ]; then
   export ASSETS_PREFIX=qa-warehouse-staging-ecs
 fi
 
-# Get client secrets, store in separate secrets file for hashing later.
-if [ "$SECRET_ARN" != "" ]; then
-  bin/download_secrets.rb > .env.secret
-else
-  echo 'No $SECRET_ARN!'
-  exit 1
-fi
-
 # Pull down our client theme files.
 ASSETS_BUCKET_NAME=openpath-ecs-assets UPDATE_ONLY=false ./bin/sync_app_assets.rb > /dev/null 2>&1
 
@@ -33,4 +25,4 @@ tar -cf - --sort=name `# Force sorting` \
   --no-acls `# No ACLs` \
   --mode="go-rwx,u-rw" `# Normalize permissions` \
   --exclude=.keep,*.rbc,**.orig,*.swp `# Exclude a few files we know we don't care about` \
-  app/assets .env.secret | md5sum | cut -d ' ' -f 1
+  app/assets | md5sum | cut -d ' ' -f 1

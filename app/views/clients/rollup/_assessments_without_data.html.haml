@@ -16,7 +16,7 @@
         %tr{ class: ( 'assessment__new-type' if any_buttons )}
           %td= form.assessment_type
           %td= form.collected_at.to_date
-          %td= GrdaWarehouse::Hud::Project.confidentialize(name: form.collection_location)
+          %td= GrdaWarehouse::Hud::Project.confidentialize_by_name_only(name: form.collection_location)
           %td= form.staff
           %td.zero-width
             - if rest.any?
@@ -26,7 +26,7 @@
           %tr{ class: cz, style: 'display:none;' }
             %td= form.assessment_type
             %td= form.collected_at.to_date
-            %td= GrdaWarehouse::Hud::Project.confidentialize(name: form.collection_location)
+            %td= GrdaWarehouse::Hud::Project.confidentialize_by_name_only(name: form.collection_location)
             %td= form.staff
 - else
   .no-data

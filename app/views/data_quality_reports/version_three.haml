@@ -49,7 +49,7 @@
           var url = '#{polymorphic_path(@answers_path, @report_keys)}'
           $.get(url, function(data){
             var completeness_#{index} = new App.DataQualityReports.Completeness(
-              data['project_missing']['#{json_escape(project.name.gsub("'",  %q(\\\')))}'],
+              data['project_missing']['#{json_escape(project.ProjectName.gsub("'",  %q(\\\')))}'],
               '.completeness-chart-#{index}',
               '#{polymorphic_path(@support_path, @report_keys)}',
               #{project.id}

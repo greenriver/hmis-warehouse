@@ -30,16 +30,6 @@ class AssetCompiler
   end
 
   def run!
-    time_me name: 'Secrets download' do
-      system(`SECRET_ARN=#{@secret_arn.shellescape} bin/download_secrets.rb > .env`)
-    end
-
-    Dotenv.load('.env')
-
-    time_me name: 'Clobberin\'' do
-      system('source .env; rake assets:clobber') # TODO: don't call out to rake like this, it's inefficient
-    end
-
     checksum = '<nochecksum>'
     time_me name: 'Checksumming' do
       checksum = `SECRET_ARN=#{@secret_arn.shellescape} ASSETS_PREFIX=#{@target_group_name.shellescape} bin/asset_checksum`.split(' ')[-1]
@@ -56,6 +46,12 @@ class AssetCompiler
       puts 'Compiled assets already exist.'
       return
     end
+
+    time_me name: 'Secrets download' do
+      system(`SECRET_ARN=#{@secret_arn.shellescape} bin/download_secrets.rb > .env`)
+    end
+
+    Dotenv.load('.env')
 
     time_me name: 'Compiling assets' do
       system('source .env; rake --quiet assets:precompile > /dev/null 2>&1') # TODO: don't call out to rake like this, it's inefficient

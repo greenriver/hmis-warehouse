@@ -19,7 +19,7 @@ RSpec.describe HudApr::Generators::Apr::Fy2021::QuestionTwentyTwo, type: :model 
     cleanup
   end
 
-  describe 'Q22a1: Length of Participation – CoC Projects' do
+  describe 'Q22a1: Length of Participation - CoC Projects' do
     it 'finds all clients' do
       expect(report_result.answer(question: 'Q22a1', cell: 'B6').summary).to eq(5)
       expect(report_result.answer(question: 'Q22a1', cell: 'B7').summary).to eq(4)
