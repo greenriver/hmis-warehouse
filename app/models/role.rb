@@ -284,6 +284,13 @@ class Role < ApplicationRecord
           'Client Access',
         ],
       },
+      can_search_own_clients: {
+        description: 'Ability to use the client search where results are limited to clients assigned to the user. Must be used in conjunction with "Can View Clients" for access to client dashboards',
+        administrative: false,
+        categories: [
+          'Client Access',
+        ],
+      },
       can_view_cached_client_enrollments: {
         description: 'Ability to see all enrollments for a client as cached in the history log of client enrollments.  There is no limit imposed on these cached views.',
         administrative: true,
