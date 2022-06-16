@@ -100,6 +100,8 @@ module Admin
         :cas_sync_project_group_id,
         :system_cohort_processing_date,
         :system_cohort_date_window,
+        :roi_model,
+        :client_dashboard,
         client_details: [],
       )
     end

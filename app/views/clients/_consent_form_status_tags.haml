@@ -2,7 +2,7 @@
 - state='success'
 - icon='checkmark'
 
-- if status == 'None on file'
+- if status == @client.class.no_release_string
   - state='warning'
   - icon='question'
 - elsif status == 'Expired'

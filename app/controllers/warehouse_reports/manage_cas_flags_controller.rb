@@ -135,9 +135,9 @@ module WarehouseReports
     def flag(column:, client_ids:)
       default = column_default(column: column)
       set_to = if column == :full_housing_release
-        'Full HAN Release'
+        GrdaWarehouse::Hud::Client.full_release_string
       elsif column == :limited_cas_release
-        'Limited CAS Release'
+        GrdaWarehouse::Hud::Client.partial_release_string
       elsif default === false || default === 'false' # rubocop:disable Style/CaseEquality
         true
       else
