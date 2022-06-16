@@ -898,9 +898,8 @@ Rails.application.routes.draw do
       resources :user, only: [:none] do
         get :index, on: :collection
       end
-      resources :projects, only: [:none] do
-        post :index, on: :collection
-      end
+
+      post 'hmis-gql', to: "graphql#execute", defaults: { schema: :hmis }
     end
   end
 

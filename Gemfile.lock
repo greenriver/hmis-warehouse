@@ -410,6 +410,7 @@ GEM
       mail (>= 2.2.1)
     gmail_xoauth (0.4.2)
       oauth (>= 0.3.6)
+    graphql (2.0.9)
     grosser-pomo (0.5.1)
     grover (1.1.1)
       combine_pdf (~> 1.0)
@@ -986,6 +987,7 @@ DEPENDENCIES
   gettext (>= 3.0.2)
   gettext_i18n_rails
   gmail
+  graphql (~> 2.0)
   grosser-pomo
   grover
   guard-rspec
