@@ -433,7 +433,7 @@ class User < ApplicationRecord
   private def cached_viewable_project_ids(force_calculation: false)
     key = [self.class.name, __method__, id]
     Rails.cache.delete(key) if force_calculation
-    Rails.cache.fetch(key, expires_in: 2.minutes) do
+    Rails.cache.fetch(key, expires_in: 1.minutes) do
       GrdaWarehouse::Hud::Project.viewable_by(self, project_scope: :all).pluck(:id).to_set
     end
   end
@@ -481,7 +481,7 @@ class User < ApplicationRecord
   end
 
   def coc_codes(force_calculation: false)
-    key = [self, __method__]
+    key = [self.class.name, __method__, id]
     Rails.cache.delete(key) if force_calculation
     Rails.cache.fetch(key, expires_in: 1.minutes) do
       (access_groups.map(&:coc_codes).flatten + access_group.coc_codes).compact.uniq
