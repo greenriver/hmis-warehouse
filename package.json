@@ -15,7 +15,7 @@
     "billboard.js": "^1.12.9",
     "bootstrap-datepicker": "1.9.0",
     "cable_ready": "^5.0.0-pre0",
-    "chart.js": "2.6.0",
+    "chart.js": "2.9.4",
     "d3": "4.10.2",
     "d3-interpolate": "1.1.6",
     "d3-scale-chromatic": "1.2.0",
