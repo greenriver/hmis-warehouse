@@ -41,7 +41,13 @@ RSpec.describe model, type: :model do
   let!(:pc5) { create :hud_project_coc, data_source_id: ds2.id, ProjectID: p7.ProjectID, CoCCode: 'foo', hud_coc_code: 'bar' }
   let!(:pc6) { create :hud_project_coc, data_source_id: ds2.id, ProjectID: p8.ProjectID, hud_coc_code: 'bar' }
 
-  u = ->(user) { model.viewable_by(user).pluck(:id).sort }
+  u = ->(user) do
+    if model == GrdaWarehouse::Hud::Project
+      model.viewable_by(user, project_scope: :all).pluck(:id).sort
+    else
+      model.viewable_by(user).pluck(:id).sort
+    end
+  end
   p = ->(*projects) { projects.map(&:id).sort }
 
   describe 'scopes' do
@@ -149,7 +155,7 @@ RSpec.describe model, type: :model do
         end
       end
 
-      describe 'user without permission to view confidential enrollment details' do
+      describe 'user without permission to view confidential project names' do
         describe 'assigned to confidential project' do
           before do
             user.add_viewable(p1) # confidential project
@@ -203,7 +209,7 @@ RSpec.describe model, type: :model do
         end
       end
 
-      describe 'user with permission to view confidential enrollment details' do
+      describe 'user with permission to view confidential project names' do
         before do
           user.roles << can_view_confidential_projects
         end

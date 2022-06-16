@@ -210,7 +210,10 @@ module GrdaWarehouse::Hud
     end
 
     scope :non_confidential, -> do
-      joins(:organization).where(p_t[:confidential].eq(false).and(o_t[:confidential].eq(false)))
+      joins(:organization).where(
+        p_t[:confidential].eq(false).and(o_t[:confidential].eq(false)).
+        or(p_t[:confidential].eq(nil).and(o_t[:confidential].eq(nil))),
+      )
     end
 
     scope :coc_funded, -> do

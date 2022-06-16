@@ -430,9 +430,11 @@ class User < ApplicationRecord
     @viewable_project_ids ||= GrdaWarehouse::Hud::Project.viewable_by(self).pluck(:id)
   end
 
-  private def cached_viewable_project_ids
-    Rails.cache.fetch([self.class.name, __method__, id], expires_in: 2.minutes) do
-      GrdaWarehouse::Hud::Project.viewable_by(self).pluck(:id).to_set
+  private def cached_viewable_project_ids(force_calculation: false)
+    key = [self.class.name, __method__, id]
+    Rails.cache.delete(key) if force_calculation
+    Rails.cache.fetch(key, expires_in: 2.minutes) do
+      GrdaWarehouse::Hud::Project.viewable_by(self, project_scope: :all).pluck(:id).to_set
     end
   end
 
@@ -473,10 +475,15 @@ class User < ApplicationRecord
     viewables.each do |viewable|
       access_group.add_viewable(viewable)
     end
+    # invalidate cache of project ids, since we've changed the list
+    cached_viewable_project_ids(force_calculation: true)
+    coc_codes(force_calculation: true)
   end
 
-  def coc_codes
-    Rails.cache.fetch([self, 'coc_codes'], expires_in: 1.minutes) do
+  def coc_codes(force_calculation: false)
+    key = [self, __method__]
+    Rails.cache.delete(key) if force_calculation
+    Rails.cache.fetch(key, expires_in: 1.minutes) do
       (access_groups.map(&:coc_codes).flatten + access_group.coc_codes).compact.uniq
     end
   end
