@@ -12,6 +12,7 @@ module GrdaWarehouse
     alias_attribute :subscriptionkey, :username
     alias_attribute :apikey, :password
     PAGE_SIZE = 25
+    acts_as_paranoid
 
     # Note, CRQL queries are paginated at 25 by default, if more than 25 results are needed
     # and 25 results are returned, continue to fetch additional queries incrementing the page argument
