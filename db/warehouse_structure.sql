@@ -5708,7 +5708,7 @@ CREATE TABLE public.eccovia_assessments (
     id bigint NOT NULL,
     client_id bigint,
     data_source_id bigint,
-    assessment_id character varying NOT NULL,
+    assessment_id character varying,
     score integer,
     assessed_at timestamp without time zone,
     assessor_id character varying,
@@ -5748,6 +5748,7 @@ CREATE TABLE public.eccovia_case_managers (
     id bigint NOT NULL,
     client_id bigint,
     data_source_id bigint,
+    case_manager_id character varying,
     first_name character varying,
     last_name character varying,
     email character varying,
@@ -25293,6 +25294,27 @@ CREATE INDEX disabilities_export_id ON public."Disabilities" USING btree ("Expor
 --
 
 CREATE UNIQUE INDEX dq_client_conflict_columns ON public.hud_report_dq_clients USING btree (client_id, data_source_id, report_instance_id);
+
+
+--
+-- Name: e_a_c_d_a_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX e_a_c_d_a_idx ON public.eccovia_assessments USING btree (client_id, data_source_id, assessment_id);
+
+
+--
+-- Name: e_c_C_c_d_a_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX "e_c_C_c_d_a_idx" ON public.eccovia_client_contacts USING btree (client_id, data_source_id);
+
+
+--
+-- Name: e_c_m_c_d_a_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX e_c_m_c_d_a_idx ON public.eccovia_case_managers USING btree (client_id, data_source_id, case_manager_id);
 
 
 --

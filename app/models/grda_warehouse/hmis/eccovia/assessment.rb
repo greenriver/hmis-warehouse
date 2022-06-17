@@ -13,16 +13,17 @@ module GrdaWarehouse
     def self.fetch_updated(data_source_id:, credentials:, since:)
       since ||= 3.years.ago
 
-      query = "crql?q=select VulnerabilityID, ClientID, CreatedBy from VulnerabilityIndex where UpdatedDate > '#{since.to_s(:db)}'"
+      query = "crql?q=select VulnerabilityID, ClientID, CreatedBy, UpdatedDate from VulnerabilityIndex where UpdatedDate > '#{since.to_s(:db)}'"
       assessments = credentials.get_all(query).index_by { |a| a['VulnerabilityID'] }
+      return unless assessments.present?
 
-      scores(assessments.keys).each do |score|
+      scores(assessments.keys, credentials: credentials).each do |score|
         assessments[score['VulnerabilityID']]['ScoreTotal'] = score['ScoreTotal']
       end
 
-      user_objects = users(assessments.values.map { |a| a['CreatedBy'] }.uniq).index_by { |u| u['UserID'] }
+      user_objects = users(assessments.values.map { |a| a['CreatedBy'] }.uniq, credentials: credentials).index_by { |u| u['UserID'] }
 
-      batch = assessments.map do |assessment|
+      batch = assessments.values.map do |assessment|
         user = user_objects[assessment['UserID']]
         new(
           data_source_id: data_source_id,
@@ -31,23 +32,27 @@ module GrdaWarehouse
           score: assessment['ScoreTotal'],
           assessed_at: assessment['UpdatedDate'],
           assessor_id: assessment['CreatedBy'],
-          assessor_email: user['Email'],
+          assessor_email: user.try(:[], 'Email'),
           last_fetched_at: Time.current,
         )
       end
 
       import(
         batch,
-        on_duplicate_key_update: { conflict_target: [:assessment_id], columns: [:score, :assessed_at, :assessor_id, :assessor_email, :last_fetched_at] },
+        on_duplicate_key_update: {
+          conflict_target: [:client_id, :data_source_id, :assessment_id],
+          columns: [:score, :assessed_at, :assessor_id, :assessor_email, :last_fetched_at],
+        },
+        validate: false,
       )
     end
 
-    def self.scores(ids)
+    def self.scores(ids, credentials:)
       query = "crql?q=SELECT ScoreTotal, VulnerabilityID FROM VISPDAT where VulnerabilityID in (#{quote(ids)})"
       credentials.get_all(query)
     end
 
-    def self.users(ids)
+    def self.users(ids, credentials:)
       query = "crql?q=SELECT UserID, CellPhone, OfficePhone, Email FROM osUsers where UserID in (#{quote(ids)})"
       credentials.get_all(query)
     end
