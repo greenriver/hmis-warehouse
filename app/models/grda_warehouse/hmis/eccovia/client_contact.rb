@@ -5,7 +5,7 @@
 ###
 
 module GrdaWarehouse
-  class Hmis::Eccovia::ClientContact < GrdaWarehouseBase
+  class HMIS::Eccovia::ClientContact < GrdaWarehouseBase
     self.table_name = :eccovia_client_contacts
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
     acts_as_paranoid
