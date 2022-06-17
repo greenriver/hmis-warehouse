@@ -1144,7 +1144,7 @@ CREATE TABLE public.roles (
     can_view_own_hud_reports boolean DEFAULT false,
     enforced_2fa boolean DEFAULT false,
     can_edit_access_groups boolean DEFAULT false,
-    can_view_confidential_project_names boolean DEFAULT false,
+    can_view_confidential_enrollment_details boolean DEFAULT false,
     can_manage_ad_hoc_data_sources boolean DEFAULT false,
     can_view_client_ad_hoc_data_sources boolean DEFAULT false,
     can_impersonate_users boolean DEFAULT false,
@@ -3237,5 +3237,3 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220613211706'),
 ('20220613212850'),
 ('20220615155458');
-
-
