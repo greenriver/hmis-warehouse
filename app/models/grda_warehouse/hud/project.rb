@@ -599,13 +599,13 @@ module GrdaWarehouse::Hud
       project_name
     end
 
-    def self.confidentialize_name(user, name, confidential)
-      return name if user.can_view_confidential_enrollment_details?
+    def self.confidentialize_name(user, project_name, confidential)
+      return project_name if user&.can_view_confidential_enrollment_details?
 
       if confidential
         GrdaWarehouse::Hud::Project.confidential_project_name
       else
-        name
+        project_name
       end
     end
 
