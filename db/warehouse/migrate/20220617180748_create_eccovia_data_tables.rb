@@ -13,7 +13,12 @@ class CreateEccoviaDataTables < ActiveRecord::Migration[6.1]
     create_table :eccovia_assessments do |t|
       t.belongs_to :client
       t.belongs_to :data_source
+      t.string :assessment_id, null: false
       t.integer :score
+      t.datetime :assessed_at
+      t.string :assessor_id
+      t.string :assessor_name
+      t.string :assessor_email
       t.datetime :last_fetched_at
 
       t.timestamps

@@ -72,7 +72,7 @@ module GrdaWarehouse
       # Enrollment table Enrollment
       # VISPDAT table VISPDAT
       query = "cto/#{table}/description"
-      Oj.load(get(query))
+      Oj.load(get_json(query))
     end
 
     def fields(table)
