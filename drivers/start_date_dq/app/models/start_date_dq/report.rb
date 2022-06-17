@@ -44,7 +44,7 @@ module StartDateDq
       ]
     end
 
-    def column_values(row)
+    def column_values(row, user)
       date_to_street = row.enrollment.DateToStreetESSH
       entry_date = row.enrollment.EntryDate
       {
@@ -52,7 +52,7 @@ module StartDateDq
         date_to_street: date_to_street,
         entry_date: entry_date,
         personal_id: row.enrollment.PersonalID,
-        project_name: GrdaWarehouse::Hud::Project.confidentialize(name: row.project&.name),
+        project_name: row.project&.name(user),
         project_type: HUD.project_type_brief(row.project_type),
       }
     end

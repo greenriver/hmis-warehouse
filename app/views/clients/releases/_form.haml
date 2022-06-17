@@ -77,8 +77,9 @@
       .col-sm-5
         %h4 Release Information
         .well
-          = f.input :coc_codes, collection: current_user.coc_codes_for_consent, include_blank: 'All CoCs', as: :select_two, input_html: { multiple: true, data: { 'disable-select-all' => true }}
-          %br
+          - if item.coc_available
+            = f.input :coc_codes, collection: current_user.coc_codes_for_consent, include_blank: 'All CoCs', as: :select_two, input_html: { multiple: true, data: { 'disable-select-all' => true }}
+            %br
           = link_to pre_populated_client_releases_path(), class: 'btn btn-success jPrePopulated', data: { href: pre_populated_client_releases_path() } do
             %i.icon-printer
             Print Release Form

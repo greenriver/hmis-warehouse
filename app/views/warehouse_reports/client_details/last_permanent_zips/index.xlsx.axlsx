@@ -27,7 +27,7 @@ wb.add_worksheet(name: "#{GrdaWarehouse::WarehouseReports::Dashboard::Base.avail
       enrollment.age,
       yes_no(enrollment.parenting_youth || enrollment.parenting_juvenile),
       enrollment.first_date_in_program,
-      enrollment.project.name(include_confidential_names: current_user.can_view_confidential_enrollment_details?),
+      enrollment.project.name(current_user),
       yes_no(enrollment.head_of_household),
     ]
     sheet.add_row(row)

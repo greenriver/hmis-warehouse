@@ -18,6 +18,6 @@ wb.add_worksheet(name: @report.title[0, 30]) do |sheet|
       client.id,
       client.FirstName,
       client.LastName,
-    ] + @report.column_values(row).values)
+    ] + @report.column_values(row, current_user).values)
   end
 end

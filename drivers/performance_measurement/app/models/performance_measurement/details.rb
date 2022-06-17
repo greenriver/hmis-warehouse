@@ -85,7 +85,11 @@ module PerformanceMeasurement::Details
     end
 
     def detail_denominator_label_for(key)
-      detail_hash[key][:denominator_label]
+      detail_hash[key].try(:[], :denominator_label)&.downcase || ''
+    end
+
+    def detail_numerator_label_for(key)
+      detail_hash[key].try(:[], :numerator_label)&.downcase || ''
     end
 
     def my_projects(user, key)
@@ -610,6 +614,7 @@ module PerformanceMeasurement::Details
           title: 'Number of People Who Returned to Homelessness Within Six Months',
           goal_description: 'The CoC will have **no more than %{goal}%%** of adults who exited to permanent destinations return to ES, SH, TH, or SO within six months of exit',
           goal_calculation: :recidivism_6_months,
+          numerator_label: 'returned to homelessness',
           denominator_label: 'Total exits to permanent destinations',
           calculation_description: 'The number of persons who returned to homelessness within 6 months of exit divided by the number of persons who exited SO, ES, TH, SH, or PH to permanent destinations within two years prior to the report end date.',
           calculation_column: :returned_in_six_months,
@@ -626,6 +631,7 @@ module PerformanceMeasurement::Details
           title: 'Number of People Who Returned to Homelessness Within Two Years',
           goal_description: 'The CoC will have **no more than %{goal}%%** of adults who exited to permanent destinations return to ES, SH, TH, or SO within two years of exit',
           goal_calculation: :recidivism_24_months,
+          numerator_label: 'returned to homelessness',
           denominator_label: 'Total exits to permanent destinations',
           calculation_description: 'The number of persons who returned to homelessness within 2 years of exit divided by the number of persons who exited SO, ES, TH, SH, or PH to permanent destinations within two years prior to the report end date.',
           calculation_column: :returned_in_two_years,

@@ -1,6 +1,6 @@
 .d-flex.justify-content-between.mb-2
   %h2 Project CoC Records
-  - if RailsDrivers.loaded.include?(:manual_hmis_data)
+  - if RailsDrivers.loaded.include?(:manual_hmis_data) && can_edit_projects?
     = link_to new_manual_hmis_data_project_project_coc_path(@project), data: {loads_in_pjax_modal: true}, class: 'btn btn-sm btn-secondary' do
       %i.icon-plus
       Add Manual Project CoC Record

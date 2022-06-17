@@ -1,7 +1,7 @@
 - remote_submit = params[:remote_submit] == 'true'
 
 - title = "Manage Project Contacts"
-- project_name = @entity.ProjectName
+- project_name = @entity.name(current_user, ignore_confidential_status: can_edit_projects?)
 - content_for :modal_title, title
 - content_for :modal_title_secondary, project_name
 .jModalReplaceMe

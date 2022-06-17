@@ -93,6 +93,8 @@ module ClientAccessControl::GrdaWarehouse::Hud
 
       private def visible_because_of_release?(user)
         return false unless user.can_view_clients?
+        # access isn't governed by release if a client can only search their assigned clients
+        return false if user.can_search_own_clients?
         return unless release_valid?
 
         valid_in_any_coc = consented_coc_codes == [] || consented_coc_codes.include?('All CoCs')

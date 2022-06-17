@@ -8,20 +8,19 @@
 /////////////////////
 // Vendor
 //= require ./application/vendor/bootstrap/index
-//= require select2
+//= require select2/dist/css/select2.min
 //= require select2-bootstrap
-//= require bootstrap-datepicker
+//= require bootstrap-datepicker/dist/css/bootstrap-datepicker.min
 //= require billboard.js/dist/billboard.min
 //= require jquery-ui/sortable
 //= require jquery-ui/slider
 //= require jquery-ui/autocomplete
-//= require leaflet
-//= require leaflet.markercluster/MarkerCluster.css
-//= require leaflet.markercluster/MarkerCluster.Default.css
-//= require leaflet-beautify-marker/leaflet-beautify-marker-icon.css
+//= require leaflet/dist/leaflet.css
+//= require leaflet.markercluster/dist/MarkerCluster.css
+//= require leaflet.markercluster/dist/MarkerCluster.Default.css
+//= require beautifymarker/leaflet-beautify-marker-icon.css
 //= require jquery.minicolors
 //= require datatables_bootstrap
-//= require vis
 //= require ./application/vendor/icons
 //= require bootstrap-datetimepicker
 

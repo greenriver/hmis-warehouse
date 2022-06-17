@@ -161,6 +161,12 @@ class User < ApplicationRecord
     end
   end
 
+  def can_access_project?(project)
+    return false unless can_view_projects?
+
+    cached_viewable_project_ids.include? project.id
+  end
+
   def can_view_censuses?
     GrdaWarehouse::WarehouseReports::ReportDefinition.viewable_by(self).where(url: 'censuses').exists?
   end
@@ -424,6 +430,12 @@ class User < ApplicationRecord
     @viewable_project_ids ||= GrdaWarehouse::Hud::Project.viewable_by(self).pluck(:id)
   end
 
+  private def cached_viewable_project_ids
+    Rails.cache.fetch([self.class.name, __method__, id], expires_in: 2.minutes) do
+      GrdaWarehouse::Hud::Project.viewable_by(self).pluck(:id).to_set
+    end
+  end
+
   def user_care_coordinators
     Health::UserCareCoordinator.where(user_id: id)
   end
@@ -593,6 +605,10 @@ class User < ApplicationRecord
         entity_type: model.sti_name,
       ).select(:entity_id),
     )
+  end
+
+  def skip_session_limitable?
+    ENV.fetch('SKIP_SESSION_LIMITABLE', false) == 'true'
   end
 
   # Returns an array of hashes of access group name => [item names]

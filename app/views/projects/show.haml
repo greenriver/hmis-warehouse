@@ -1,5 +1,5 @@
 = render 'breadcrumbs'
-- content_for :title, "#{@project.name} at #{@project.organization.name}"
+- content_for :title, "#{@project.name(current_user, ignore_confidential_status: can_edit_projects?)} at #{@project.organization.name}"
 .row
   .col-sm-8
     %h1= content_for :title
@@ -13,7 +13,7 @@
         = link_to project_path(@project), method: :delete, class: ['btn', 'btn-sm', 'btn-danger'], data: { confirm: "Deleting #{@project.ProjectName} will delete ALL associated data.  Do you want to proceed?"} do
           %i.icon-cross
           Delete Project
-.row
+.row.mb-4
   .col-sm-8
     .card
       %table.table.table-striped.table-hover.mb-0
@@ -105,14 +105,14 @@
             %td
               - @project.affiliated_projects.each do |project|
                 = link_to project_path(project) do
-                  = project.ProjectName
+                  = project.name(current_user, ignore_confidential_status: can_edit_projects?)
         - if @project.residential_projects.any?
           %tr
             %th Affiliated Residential Projects
             %td
               - @project.residential_projects.each do |project|
                 = link_to project_path(project) do
-                  = project.ProjectName
+                  = project.name(current_user, ignore_confidential_status: can_edit_projects?)
 
   .col-sm-4
     .d-flex.mt-4

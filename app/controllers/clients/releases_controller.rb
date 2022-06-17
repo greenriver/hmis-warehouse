@@ -62,7 +62,7 @@ module Clients
           effective_date: allowed_params[:effective_date],
           expiration_date: allowed_params[:expiration_date],
           consent_form_confirmed: allowed_params[:consent_form_confirmed] || GrdaWarehouse::Config.get(:auto_confirm_consent),
-          coc_codes: allowed_params[:coc_codes].reject(&:blank?),
+          coc_codes: allowed_params[:coc_codes]&.reject(&:blank?) || [],
           consent_revoked_at: allowed_params[:consent_revoked_at],
         }
 

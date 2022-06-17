@@ -19,7 +19,7 @@ RSpec.describe HudApr::Generators::Caper::Fy2021::QuestionTwentyTwo, type: :mode
     cleanup
   end
 
-  describe 'Q22a2: Length of Participation – ESG Projects' do
+  describe 'Q22a2: Length of Participation - ESG Projects' do
     it 'counts all clients' do
       expect(report_result.answer(question: 'Q22a2', cell: 'B16').summary).to eq(9)
     end

@@ -55,7 +55,7 @@
               - if client.first_service_history.project.act_as_project_type.present?
                 acts as
                 = ::HUD.project_type_brief(client.first_service_history.project.act_as_project_type)
-            %td= project.name(include_confidential_names: current_user.can_view_confidential_enrollment_details?)
+            %td= project.name(current_user)
             %td= project.organization_name(current_user)
             %td= client.source_clients.map{|m| m.data_source&.short_name}.uniq.reject(&:blank?).join(', ')
   = render 'common/pagination_bottom', item_name: 'client'

@@ -1,5 +1,5 @@
 - content_for :modal_title do
-  "Edit Project CoC Record for #{@project.name} at #{@project.organization.name}"
+  Edit Project CoC Record for #{@project.name(ignore_confidential_status: true)} at #{@project.organization.name}
 = simple_form_for @project_coc, as: :project_coc, url: project_coc_path(@project_coc) do |f|
   .row
     .col-sm-6

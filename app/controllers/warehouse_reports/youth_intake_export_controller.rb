@@ -36,10 +36,32 @@ module WarehouseReports
         preload(:client, :youth_intakes).
         visible_by?(current_user).
         between(start_date: @filter.start, end_date: @filter.end)
+      @housing_resolution_plans = GrdaWarehouse::Youth::HousingResolutionPlan.ordered.
+        joins(:client).
+        preload(:client, :youth_intakes).
+        visible_by?(current_user).
+        between(start_date: @filter.start, end_date: @filter.end)
+
+      commit = params[:commit]
       respond_to do |format|
         format.xlsx do
-          filename = "Youth Intake Export #{Time.current.to_s.delete(',')}.xlsx"
-          render(xlsx: 'index', filename: filename)
+          case commit
+          when 'Download Data'
+            xlsx_filename = "Youth Intake Export #{Time.current.to_s.delete(',')}.xlsx"
+            render(xlsx: 'index', filename: xlsx_filename)
+          when 'Download Per-Client Data'
+            zip_filename = "Youth Intake Exports #{Time.current.to_s.delete(',')}.zip"
+            zip_exporter = GrdaWarehouse::Youth::ZipExporter.new(
+              intakes: @intakes,
+              referrals: @referrals,
+              dfas: @dfas,
+              case_managements: @case_managements,
+              follow_ups: @follow_ups,
+              housing_resolution_plans: @housing_resolution_plans,
+              controller: self,
+            )
+            send_data(zip_exporter.export!, filename: zip_filename)
+          end
         end
       end
     end

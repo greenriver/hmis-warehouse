@@ -1,7 +1,7 @@
 %tr
   %td
     .project__name.mb-2{id: "project-#{project.id}"}
-      = link_to_if can_view_projects?, project.name, project_path(project)
+      = link_to_if can_view_projects?, project.name(current_user, ignore_confidential_status: can_edit_projects?), project_path(project)
     %td
       .enrollment__project_type{class: "client__service_type_#{project.ProjectType}"}
         .service-type__program-type{data: {toggle: :tooltip, title: HUD.project_type(project.ProjectType)}}

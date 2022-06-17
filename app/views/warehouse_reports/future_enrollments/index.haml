@@ -20,7 +20,7 @@
           %tr
             %td= link_to_if can_view_clients?, client.LastName.tr(' ', '⎵'), appropriate_client_path(client)
             %td= link_to_if can_view_clients?, client.FirstName.tr(' ', '⎵'), appropriate_client_path(client)
-            %td= client.source_enrollments.where(et[:EntryDate].gt(Date.current)).map{|m| "#{m.EntryDate} at #{m.project.name}"}.join(', ')
+            %td= client.source_enrollments.where(et[:EntryDate].gt(Date.current)).map{|m| "#{m.EntryDate} at #{m.project.name(current_user)}"}.join(', ')
             %td= client.source_clients.map{|m| m.data_source.short_name}.uniq.join(', ')
 
   = render 'common/pagination_bottom', item_name: 'client'
