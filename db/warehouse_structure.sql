@@ -5700,6 +5700,157 @@ ALTER SEQUENCE public.document_exports_id_seq OWNED BY public.document_exports.i
 
 
 --
+-- Name: eccovia_assessments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.eccovia_assessments (
+    id bigint NOT NULL,
+    client_id bigint,
+    data_source_id bigint,
+    score integer,
+    last_fetched_at timestamp without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: eccovia_assessments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.eccovia_assessments_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: eccovia_assessments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.eccovia_assessments_id_seq OWNED BY public.eccovia_assessments.id;
+
+
+--
+-- Name: eccovia_case_managers; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.eccovia_case_managers (
+    id bigint NOT NULL,
+    client_id bigint,
+    data_source_id bigint,
+    first_name character varying,
+    last_name character varying,
+    email character varying,
+    phone character varying,
+    cell character varying,
+    last_fetched_at timestamp without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: eccovia_case_managers_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.eccovia_case_managers_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: eccovia_case_managers_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.eccovia_case_managers_id_seq OWNED BY public.eccovia_case_managers.id;
+
+
+--
+-- Name: eccovia_client_contacts; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.eccovia_client_contacts (
+    id bigint NOT NULL,
+    client_id bigint,
+    data_source_id bigint,
+    email character varying,
+    phone character varying,
+    cell character varying,
+    street character varying,
+    street2 character varying,
+    city character varying,
+    state character varying,
+    zip character varying,
+    last_fetched_at timestamp without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: eccovia_client_contacts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.eccovia_client_contacts_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: eccovia_client_contacts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.eccovia_client_contacts_id_seq OWNED BY public.eccovia_client_contacts.id;
+
+
+--
+-- Name: eccovia_fetches; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.eccovia_fetches (
+    id bigint NOT NULL,
+    credentials_id bigint,
+    data_source_id bigint,
+    active boolean DEFAULT false NOT NULL,
+    last_fetched_at timestamp without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: eccovia_fetches_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.eccovia_fetches_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: eccovia_fetches_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.eccovia_fetches_id_seq OWNED BY public.eccovia_fetches.id;
+
+
+--
 -- Name: enrollment_change_histories; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -20070,6 +20221,34 @@ ALTER TABLE ONLY public.document_exports ALTER COLUMN id SET DEFAULT nextval('pu
 
 
 --
+-- Name: eccovia_assessments id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.eccovia_assessments ALTER COLUMN id SET DEFAULT nextval('public.eccovia_assessments_id_seq'::regclass);
+
+
+--
+-- Name: eccovia_case_managers id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.eccovia_case_managers ALTER COLUMN id SET DEFAULT nextval('public.eccovia_case_managers_id_seq'::regclass);
+
+
+--
+-- Name: eccovia_client_contacts id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.eccovia_client_contacts ALTER COLUMN id SET DEFAULT nextval('public.eccovia_client_contacts_id_seq'::regclass);
+
+
+--
+-- Name: eccovia_fetches id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.eccovia_fetches ALTER COLUMN id SET DEFAULT nextval('public.eccovia_fetches_id_seq'::regclass);
+
+
+--
 -- Name: enrollment_change_histories id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -22794,6 +22973,38 @@ ALTER TABLE ONLY public.direct_financial_assistances
 
 ALTER TABLE ONLY public.document_exports
     ADD CONSTRAINT document_exports_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: eccovia_assessments eccovia_assessments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.eccovia_assessments
+    ADD CONSTRAINT eccovia_assessments_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: eccovia_case_managers eccovia_case_managers_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.eccovia_case_managers
+    ADD CONSTRAINT eccovia_case_managers_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: eccovia_client_contacts eccovia_client_contacts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.eccovia_client_contacts
+    ADD CONSTRAINT eccovia_client_contacts_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: eccovia_fetches eccovia_fetches_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.eccovia_fetches
+    ADD CONSTRAINT eccovia_fetches_pkey PRIMARY KEY (id);
 
 
 --
@@ -39528,6 +39739,62 @@ CREATE INDEX index_document_exports_on_user_id ON public.document_exports USING 
 
 
 --
+-- Name: index_eccovia_assessments_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_eccovia_assessments_on_client_id ON public.eccovia_assessments USING btree (client_id);
+
+
+--
+-- Name: index_eccovia_assessments_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_eccovia_assessments_on_data_source_id ON public.eccovia_assessments USING btree (data_source_id);
+
+
+--
+-- Name: index_eccovia_case_managers_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_eccovia_case_managers_on_client_id ON public.eccovia_case_managers USING btree (client_id);
+
+
+--
+-- Name: index_eccovia_case_managers_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_eccovia_case_managers_on_data_source_id ON public.eccovia_case_managers USING btree (data_source_id);
+
+
+--
+-- Name: index_eccovia_client_contacts_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_eccovia_client_contacts_on_client_id ON public.eccovia_client_contacts USING btree (client_id);
+
+
+--
+-- Name: index_eccovia_client_contacts_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_eccovia_client_contacts_on_data_source_id ON public.eccovia_client_contacts USING btree (data_source_id);
+
+
+--
+-- Name: index_eccovia_fetches_on_credentials_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_eccovia_fetches_on_credentials_id ON public.eccovia_fetches USING btree (credentials_id);
+
+
+--
+-- Name: index_eccovia_fetches_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_eccovia_fetches_on_data_source_id ON public.eccovia_fetches USING btree (data_source_id);
+
+
+--
 -- Name: index_enrollment_change_histories_on_client_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -48337,6 +48604,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220604181405'),
 ('20220607155407'),
 ('20220610173543'),
+('20220617180748'),
 ('20220628162723');
 
 
