@@ -165,13 +165,14 @@ module ProjectScorecard
     end
 
     def key_project
-      return project if project.present?
-
-      candidate = project_group.projects.detect(&:rrh?)
-      candidate = project_group.projects.detect(&:psh?) if candidate.blank?
-      candidate = project_group.projects.detect(&:sh?) if candidate.blank?
-      candidate = project_group.projects.first if candidate.blank?
-      candidate
+      @key_project ||= begin
+        candidate = project if project.present?
+        candidate = project_group.projects.detect(&:rrh?) if candidate.blank?
+        candidate = project_group.projects.detect(&:psh?) if candidate.blank?
+        candidate = project_group.projects.detect(&:sh?) if candidate.blank?
+        candidate = project_group.projects.first if candidate.blank?
+        candidate
+      end
     end
 
     def title
@@ -336,8 +337,22 @@ module ProjectScorecard
       spm = HudReports::ReportInstance.from_filter(filter, generator.title, build_for_questions: questions)
       generator.new(spm).run!(email: false, manual: false)
 
-      number_of_exits = answer(spm, '2', 'B7')
-      number_of_returns = answer(spm, '2', 'I7')
+      project_row = if key_project.so?
+        '2'
+      elsif key_project.es?
+        '3'
+      elsif key_project.th?
+        '4'
+      elsif key_project.sh?
+        '5'
+      elsif key_project.ph?
+        '6'
+      else
+        '7'
+      end
+
+      number_of_exits = answer(spm, '2', 'B' + project_row)
+      number_of_returns = answer(spm, '2', 'I' + project_row)
 
       return nil if number_of_exits.blank? || number_of_exits.zero?
 
