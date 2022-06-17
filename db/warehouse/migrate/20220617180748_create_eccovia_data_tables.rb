@@ -13,7 +13,7 @@ class CreateEccoviaDataTables < ActiveRecord::Migration[6.1]
     create_table :eccovia_assessments do |t|
       t.belongs_to :client
       t.belongs_to :data_source
-      t.string :assessment_id, null: false
+      t.string :assessment_id
       t.integer :score
       t.datetime :assessed_at
       t.string :assessor_id
@@ -24,10 +24,12 @@ class CreateEccoviaDataTables < ActiveRecord::Migration[6.1]
       t.timestamps
       t.datetime :deleted_at
     end
+    add_index :eccovia_assessments, [:client_id, :data_source_id, :assessment_id], unique: true, name: :e_a_c_d_a_idx
 
     create_table :eccovia_case_managers do |t|
       t.belongs_to :client
       t.belongs_to :data_source
+      t.string :case_manager_id
       t.string :first_name
       t.string :last_name
       t.string :email
@@ -38,6 +40,7 @@ class CreateEccoviaDataTables < ActiveRecord::Migration[6.1]
       t.timestamps
       t.datetime :deleted_at
     end
+    add_index :eccovia_case_managers, [:client_id, :data_source_id, :case_manager_id], unique: true, name: :e_c_m_c_d_a_idx
 
     create_table :eccovia_client_contacts do |t|
       t.belongs_to :client
@@ -55,5 +58,6 @@ class CreateEccoviaDataTables < ActiveRecord::Migration[6.1]
       t.timestamps
       t.datetime :deleted_at
     end
+    add_index :eccovia_client_contacts, [:client_id, :data_source_id], unique: true, name: :e_c_C_c_d_a_idx
   end
 end

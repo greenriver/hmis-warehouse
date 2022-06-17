@@ -34,7 +34,10 @@ module GrdaWarehouse
 
     def get(query, page: nil)
       results = Oj.load(get_json(query, page: page))
-      raise results['errors'].join('; ') if results['errors'].present?
+      if results['errors'].present?
+        puts "FAILED: #{query}"
+        raise results['errors'].join('; ')
+      end
       return [] unless results['data'].present?
 
       results['data']['Table1']
