@@ -131,6 +131,11 @@ Rails.application.configure do
   routes.default_url_options ||= {}
   routes.default_url_options[:script_name]= ''
 
+  # Disable CSRF origin check during development because the HMIS frontend has a different origin
+  if ENV.fetch('ENABLE_HMIS_API', false) == 'true'
+    config.action_controller.forgery_protection_origin_check = false
+  end
+
   slack_config = Rails.application.config_for(:exception_notifier)[:slack]
   if slack_config.present?
     config.middleware.use(ExceptionNotification::Rack,
