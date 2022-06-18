@@ -797,7 +797,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
         sum(:days_to_add_exit_date)
     end
 
-    def average_time_to_enter
+    def average_time_to_enter(user = nil)
       @average_time_to_enter ||= begin
         # these need to be padded front and back for chart js to correctly show the goal
         labels = ['', 'Days to Entry', '']
@@ -813,16 +813,16 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
                                end
           data[project.id] = [0, average_timeliness, 0]
         end
-        data = re_key_on_project_name(data)
+        data = re_key_on_project_name(data, user)
         {
           labels: labels,
           data: data.merge('Goal' => goal),
-          projects: projects.map { |p| [p.ProjectName, p.id] }.to_h,
+          projects: projects.map { |p| [p.name(user), p.id] }.to_h,
         }
       end
     end
 
-    def average_time_to_exit
+    def average_time_to_exit(user = nil)
       @average_time_to_exit ||= begin
         # these need to be padded front and back for chart js to correctly show the goal
         labels = ['', 'Days to Exit', '']
@@ -838,11 +838,11 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
                                end
           data[project.id] = [0, average_timeliness, 0]
         end
-        data = re_key_on_project_name(data)
+        data = re_key_on_project_name(data, user)
         {
           labels: labels,
           data: data.merge('Goal' => goal),
-          projects: projects.map { |p| [p.ProjectName, p.id] }.to_h,
+          projects: projects.map { |p| [p.name(user), p.id] }.to_h,
         }
       end
     end
@@ -925,14 +925,14 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
       end
     end
 
-    def re_key_on_project_name(data)
+    def re_key_on_project_name(data, user = nil)
       # To prevent duplicate names from being counted oddly, we key on id then replace for display
       data.map do |id, values|
-        [report_projects.where(id: id).first.project_name, values]
+        [report_projects.find(id).project&.name(user), values]
       end.to_h
     end
 
-    def enrolled_length_of_stay
+    def enrolled_length_of_stay(user = nil)
       @enrolled_length_of_stay ||= begin
         labels = self.class.length_of_stay_buckets.keys
         data = {}
@@ -949,17 +949,17 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
             totals[index] += count
           end
         end
-        data = re_key_on_project_name(data)
+        data = re_key_on_project_name(data, user)
         {
           labels: labels,
           data: data.merge('Totals' => totals),
           ranges: self.class.length_of_stay_buckets,
-          projects: projects.map { |p| [p.ProjectName, p.id] }.to_h,
+          projects: projects.map { |p| [p.name(user), p.id] }.to_h,
         }
       end
     end
 
-    def ph_destinations
+    def ph_destinations(user = nil)
       @ph_destinations ||= begin
         data = {}
         labels = ['', 'Exit %', '']
@@ -978,11 +978,11 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
                        end
           data[project.id] = [0, percentage, 0]
         end
-        data = re_key_on_project_name(data)
+        data = re_key_on_project_name(data, user)
         {
           labels: labels,
           data: data.merge('Goal' => goal),
-          projects: projects.map { |p| [p.ProjectName, p.id] }.to_h,
+          projects: projects.map { |p| [p.name(user), p.id] }.to_h,
         }
       end
     end
