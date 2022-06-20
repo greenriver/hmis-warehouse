@@ -34,6 +34,7 @@ module ViewableEntities
         group_method: :last,
         selected: @user.access_group.organizations.pluck(:id),
         collection: collection,
+        label_method: ->(organization) { organization.name(ignore_confidential_status: true) },
         placeholder: 'Organization',
         multiple: true,
         input_html: {
@@ -49,13 +50,13 @@ module ViewableEntities
       collection = model.
         order(:name).
         joins(:organization, :data_source).
-        group_by { |p| "#{p.data_source&.name} / #{p.organization&.name}" }
+        group_by { |p| "#{p.data_source&.name} / #{p.organization&.OrganizationName}" }
       {
         as: :grouped_select,
         group_method: :last,
         selected: @user.access_group.projects.pluck(:id),
         collection: collection,
-        label_method: :name_and_type,
+        label_method: ->(project) { project.name_and_type(ignore_confidential_status: true) },
         placeholder: 'Project',
         multiple: true,
         input_html: {
