@@ -548,6 +548,7 @@ module ArelHelper
       nf 'CAST', [exp.as(as)]
     end
 
+    # NOTE: you must join project and organization for this to work.
     def confidentialized_project_name(column)
       conditions = [
         [p_t[:confidential].eq(true).or(o_t[:confidential].eq(true)), GrdaWarehouse::Hud::Project.confidential_project_name],
