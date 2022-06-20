@@ -585,6 +585,16 @@ module GrdaWarehouse::Hud
     # Confidential names are shown if the user has permission to view confidential projects
     # AND the project is in the user's project list.
     #
+    # This should be used any time a project's name is being displayed in the app.
+    #
+    # The following views are EXCEPTIONS to the rule. They show confidential names regardless of user permission:
+    # - HUD Reports
+    # - Override Summary Report
+    # - HMIS Cross Walks Report
+    # - Project and Organizaton assignment for Users and Groups
+    # - View Project page (because it already requires can_view_confidential_project_names)
+    # - Edit Project page and other pages that require can_edit_projects (because users who can edit projects can change their confidentiality status)
+    #
     # @param user [User] user viewing the project
     # @param include_project_type [Boolean] include the HUD project type in the name?
     # @param ignore_confidential_status [Boolean] always show confidential names, regardless of user access?
@@ -599,6 +609,8 @@ module GrdaWarehouse::Hud
       project_name
     end
 
+    # Useful for confidentializing name after 'pluck'
+    # The confidential parameter should indicate whether the Project or Organization is confidential
     def self.confidentialize_name(user, project_name, confidential)
       return project_name if user&.can_view_confidential_enrollment_details?
 
