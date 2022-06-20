@@ -28,7 +28,7 @@ module Censuses
       }
       GrdaWarehouse::ServiceHistoryService.where(date: date).
         where(project_type: GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[project_type]).
-        joins(service_history_enrollment: [:client, :data_source, :project, project: [:organization]]).
+        joins(service_history_enrollment: [:client, :data_source, project: :organization]).
         merge(GrdaWarehouse::ServiceHistoryEnrollment.send(population)).
         order(c_t[:LastName].asc, c_t[:FirstName].asc).
         pluck(*columns.values).

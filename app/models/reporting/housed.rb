@@ -412,7 +412,7 @@ module Reporting
     def two_project_residential_data(client_id_batch)
       GrdaWarehouse::ServiceHistoryEnrollment.entry.
         where(client_id: client_id_batch).
-        joins(:project, :enrollment, :client, project: [:organization]).
+        joins(:enrollment, :client, project: :organization).
         merge(GrdaWarehouse::Hud::Project.where(id: two_project_ids)).
         where(
           she_t[:first_date_in_program].lt(Date.current).
@@ -448,7 +448,7 @@ module Reporting
     def two_project_service_data(client_id_batch)
       GrdaWarehouse::ServiceHistoryEnrollment.entry.
         where(client_id: client_id_batch).
-        joins(:project, :enrollment, :client, project: [:organization]).
+        joins(:enrollment, :client, project: :organization).
         merge(GrdaWarehouse::Hud::Project.where(id: affiliated_projects.values)).
         open_between(start_date: lookback_date, end_date: Date.current).
         order(she_t[:first_date_in_program].desc).
@@ -530,7 +530,7 @@ module Reporting
     def one_project_data(client_id_batch)
       GrdaWarehouse::ServiceHistoryEnrollment.entry.
         where(client_id: client_id_batch).
-        joins(:project, :enrollment, :client, project: [:organization]).
+        joins(:enrollment, :client, project: :organization).
         merge(GrdaWarehouse::Hud::Project.where(id: one_project_ids)).
         open_between(start_date: lookback_date, end_date: Date.current).
         pluck(*one_project_columns.values).

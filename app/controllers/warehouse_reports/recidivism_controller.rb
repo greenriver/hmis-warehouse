@@ -11,12 +11,12 @@ module WarehouseReports
 
     def index
       @filter = ::Filters::DateRange.new(date_range_options)
-      ph_scope = ph_source.joins(:project, project: [:organization]).open_between(start_date: @filter.start, end_date: @filter.end).distinct
+      ph_scope = ph_source.joins(project: :organization).open_between(start_date: @filter.start, end_date: @filter.end).distinct
       @ph_clients = ph_scope.pluck(*columns).
         map { |row| to_hash_confidentialized(row) }.
         group_by { |row| row[:client_id] }
 
-      @homeless_clients = homeless_source.joins(:project, project: [:organization]).
+      @homeless_clients = homeless_source.joins(project: :organization).
         with_service_between(start_date: @filter.start, end_date: @filter.end).
         where(client_id: ph_scope.select(:client_id)).
         distinct.

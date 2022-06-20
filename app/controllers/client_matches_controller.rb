@@ -50,7 +50,7 @@ class ClientMatchesController < ApplicationController
     end.flatten.compact
     @ongoing_enrollments = client_ids.map { |id| [id, Set[]] }.to_h
     GrdaWarehouse::ServiceHistoryEnrollment.where(client_id: client_ids).entry.ongoing.
-      joins(:project, project: [:organization]).
+      joins(project: :organization).
       pluck(:client_id, :project_name, bool_or(p_t[:confidential], o_t[:confidential])).each do |client_id, project_name, confidential|
         @ongoing_enrollments[client_id] << GrdaWarehouse::Hud::Project.confidentialize_name(current_user, project_name, confidential)
       end

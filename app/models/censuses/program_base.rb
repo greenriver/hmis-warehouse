@@ -176,7 +176,7 @@ module Censuses
           merge(GrdaWarehouse::Hud::Project.where(id: project.to_i))
       end
 
-      base_scope.joins(:client, service_history_enrollment: [:data_source, :project, project: [:organization]]).
+      base_scope.joins(:client, service_history_enrollment: [:data_source, project: :organization]).
         pluck(*columns.values).
         map do |row|
           h = Hash[columns.keys.zip(row)]

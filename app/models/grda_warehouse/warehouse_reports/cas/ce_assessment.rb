@@ -135,7 +135,7 @@ class GrdaWarehouse::WarehouseReports::Cas::CeAssessment < OpenStruct
       GrdaWarehouse::ServiceHistoryEnrollment.
         entry.
         residential.
-        joins(:project, project: [:organization]).
+        joins(project: :organization).
         where(client_id: destination_client_scope&.select(:id)).
         order(first_date_in_program: :desc).
         select(

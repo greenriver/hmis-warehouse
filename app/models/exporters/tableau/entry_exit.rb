@@ -85,7 +85,7 @@ module Exporters::Tableau::EntryExit
     export_scope = model.in_project_type(project_types).entry.
       open_between(start_date: start_date, end_date: end_date).
       # with_service_between(start_date: start_date, end_date: end_date, service_scope: :service_excluding_extrapolated).
-      joins(enrollment: :client, project: [:organization]).
+      joins(enrollment: :client, project: :organization).
       includes(enrollment: [:exit, project: :project_cocs]).
       references(enrollment: [:exit, project: :project_cocs]).
       # for aesthetics

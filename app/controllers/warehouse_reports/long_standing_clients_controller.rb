@@ -28,7 +28,7 @@ module WarehouseReports
 
     private def service_history_source
       GrdaWarehouse::ServiceHistoryEnrollment.entry.
-        joins(:project, project: [:organization]).
+        joins(project: :organization).
         merge(GrdaWarehouse::Hud::Project.viewable_by(current_user))
     end
 
