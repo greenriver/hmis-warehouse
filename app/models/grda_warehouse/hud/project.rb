@@ -591,6 +591,7 @@ module GrdaWarehouse::Hud
     # - HUD Reports
     # - Override Summary Report
     # - HMIS Cross Walks Report
+    # - User Permission Report
     # - Project and Organizaton assignment for Users and Groups
     # - View Project page (because it already requires can_view_confidential_project_names)
     # - Edit Project page and other pages that require can_edit_projects (because users who can edit projects can change their confidentiality status)
