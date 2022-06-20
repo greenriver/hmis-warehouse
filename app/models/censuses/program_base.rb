@@ -151,7 +151,7 @@ module Censuses
       "#{project_name} at #{organization_name} on"
     end
 
-    def clients_for_date(date, data_source = nil, organization = nil, project = nil)
+    def clients_for_date(user, date, data_source = nil, organization = nil, project = nil)
       columns = {
         'LastName' => c_t[:LastName].to_sql,
         'FirstName' => c_t[:FirstName].to_sql,
@@ -180,7 +180,7 @@ module Censuses
         pluck(*columns.values).
         map do |row|
           h = Hash[columns.keys.zip(row)]
-          h['ProjectName'] = GrdaWarehouse::Hud::Project.confidential_project_name if h['confidential']
+          h['ProjectName'] = GrdaWarehouse::Hud::Project.confidential_project_name if h['confidential'] && !user.can_view_confidential_enrollment_details?
           h
         end
     end

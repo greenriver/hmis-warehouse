@@ -12,7 +12,7 @@ module Censuses
       "#{GrdaWarehouse::Hud::Project::PROJECT_TYPE_TITLES[project_type.to_sym]} on"
     end
 
-    def clients_for_date(date, project_type, population = :clients)
+    def clients_for_date(user, date, project_type, population = :clients)
       known_sub_populations = GrdaWarehouse::ServiceHistoryEnrollment.known_standard_cohorts
 
       raise "Population #{population} not defined" unless known_sub_populations.include?(population.to_sym)
@@ -34,7 +34,7 @@ module Censuses
         pluck(*columns.values).
         map do |row|
           h = Hash[columns.keys.zip(row)]
-          h['ProjectName'] = GrdaWarehouse::Hud::Project.confidential_project_name if h['confidential']
+          h['ProjectName'] = GrdaWarehouse::Hud::Project.confidential_project_name if h['confidential'] && !user.can_view_confidential_enrollment_details?
           h
         end
     end
