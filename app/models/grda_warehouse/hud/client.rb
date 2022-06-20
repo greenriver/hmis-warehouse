@@ -1785,6 +1785,7 @@ module GrdaWarehouse::Hud
       service_history_enrollments.ongoing.
         joins(:service_history_services, :project).
         merge(GrdaWarehouse::Hud::Project.public_send(type)).
+        # FIXME confidentialize by organization too
         group(:project_name, p_t[:confidential], p_t[:id]).
         maximum("#{GrdaWarehouse::ServiceHistoryService.quoted_table_name}.date").
         map do |(project_name, confidential, project_id), date|

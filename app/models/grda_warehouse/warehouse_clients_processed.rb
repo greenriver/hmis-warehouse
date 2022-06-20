@@ -635,6 +635,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
         group(:client_id, :project_name, p_t[:confidential], p_t[:id]).
         maximum(shs_t[:date]).
         each do |(client_id, project_name, confidential, project_id), date|
+          # FIXME confidentialize by organization too
           project_name = GrdaWarehouse::Hud::Project.confidential_project_name if confidential
           lsit[client_id] ||= []
           lsit[client_id] << {
