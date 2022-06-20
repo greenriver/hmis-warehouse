@@ -4,8 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module GrdaWarehouse
-  class HMIS::Eccovia::ClientContact < GrdaWarehouseBase
+module EccoviaData
+  class ClientContact < GrdaWarehouseBase
     self.table_name = :eccovia_case_managers
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
     acts_as_paranoid

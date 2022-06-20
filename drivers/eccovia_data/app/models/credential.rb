@@ -6,8 +6,8 @@
 
 require 'uri'
 require 'net/http'
-module GrdaWarehouse
-  class RemoteCredentials::Eccovia < GrdaWarehouse::RemoteCredential
+module EccoviaData
+  class Credential < GrdaWarehouse::RemoteCredential
     # Docs: https://apidoc.eccovia.com/
     alias_attribute :subscriptionkey, :username
     alias_attribute :apikey, :password
@@ -41,6 +41,17 @@ module GrdaWarehouse
       return [] unless results['data'].present?
 
       results['data']['Table1']
+    end
+
+    def get_all_in_batches(query)
+      i = 1
+      loop do
+        data = get(query, page: i)
+        yield(data)
+        break if data.blank? || data.count < PAGE_SIZE
+
+        i += 1
+      end
     end
 
     def get_all(query)
