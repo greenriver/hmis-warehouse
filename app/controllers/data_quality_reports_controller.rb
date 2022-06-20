@@ -52,7 +52,7 @@ class DataQualityReportsController < ApplicationController
     if params[:individual].present?
       @data = @report.support_for(support_params)
 
-      unless current_user.can_view_confidential_enrollment_details? && @data[:headers].include?('Project ID')
+      if !current_user.can_view_confidential_enrollment_details? && @data[:headers].include?('Project ID')
         project_id_col = @data[:headers].find_index('Project ID')
         project_name_col = @data[:headers].find_index('Project')
         @data[:counts].each_with_index do |row, i|
