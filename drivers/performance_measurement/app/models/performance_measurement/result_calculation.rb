@@ -30,12 +30,12 @@ module PerformanceMeasurement::ResultCalculation
         :recidivism_6_months,
         :recidivism_24_months
         progress = reporting_value
-        progress.to_i <= goal_value # we display values in integers, if we're within the same integer, just say it passed
+        progress.round <= goal_value # we display values in integers, if we're within the same integer, just say it passed
       # greater than or equal to goal
       when :capacity,
         :destination
         progress = reporting_value
-        progress >= goal_value
+        progress.round >= goal_value # we display values in integers, if we're within the same integer, just say it passed
       else
         raise "#{goal_method} is undefined for calculate_processed"
       end
@@ -114,20 +114,24 @@ module PerformanceMeasurement::ResultCalculation
 
     def client_sum(field, period, project_id: nil)
       column = "#{period}_#{field}"
-      return clients.joins(:client_projects).merge(PerformanceMeasurement::ClientProject.where(period: period, for_question: field)).distinct.sum(column) if project_id.blank?
+      return clients.joins(:client_projects).merge(PerformanceMeasurement::ClientProject.where(period: period, for_question: field)).sum(column) if project_id.blank?
 
       @client_sums ||= {}
       @client_sums[column] ||= clients.joins(:client_projects).
         merge(PerformanceMeasurement::ClientProject.where(period: period, for_question: field).where.not(project_id: nil)).
         group(:project_id).
-        distinct.sum(column)
+        sum(column)
       @client_sums[column][project_id] || 0
     end
 
     def inventory_sum(field, period, project_id: nil, project_type:)
       column = "#{period}_#{field}"
       project_scope = projects.joins(:hud_project).merge(GrdaWarehouse::Hud::Project.send(project_type))
-      return project_scope.distinct.sum(column) if project_id.blank?
+      project_ids = client_projects.for_question("days_in_#{project_type}_bed_in_period").
+        where(period: period).
+        distinct.
+        pluck(:project_id)
+      return project_scope.where(project_id: project_ids).sum(column) if project_id.blank?
 
       @inventory_sum ||= {}
       @inventory_sum[column] ||= {}
@@ -800,7 +804,7 @@ module PerformanceMeasurement::ResultCalculation
           merge(
             PerformanceMeasurement::ClientProject.
               where(period: period, for_question: bed_columns),
-          ).distinct.sum(Arel.sql(columns.join(' + ')))
+          ).sum(Arel.sql(columns.join(' + ')))
       end
 
       reporting_inventory = 0
