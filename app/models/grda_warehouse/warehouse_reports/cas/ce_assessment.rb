@@ -135,9 +135,17 @@ class GrdaWarehouse::WarehouseReports::Cas::CeAssessment < OpenStruct
       GrdaWarehouse::ServiceHistoryEnrollment.
         entry.
         residential.
+        joins(:project, project: [:organization]).
         where(client_id: destination_client_scope&.select(:id)).
         order(first_date_in_program: :desc).
-        select(:client_id, :first_date_in_program, :last_date_in_program, :project_name, :computed_project_type).each do |enrollment|
+        select(
+          :client_id,
+          :first_date_in_program,
+          :last_date_in_program,
+          :project_name,
+          :computed_project_type,
+          bool_or(p_t[:confidential], o_t[:confidential]).as('confidential'),
+        ).each do |enrollment|
           enrollments[enrollment.client_id] ||= enrollment
         end
       enrollments

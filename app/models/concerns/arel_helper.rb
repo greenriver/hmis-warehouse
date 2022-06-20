@@ -16,12 +16,14 @@ module ArelHelper
     # that you can pass to Active Record count, etc.
     # See config/initializers/arel_attributes_attribute.rb
     # This has been re-implemented as to_sql
-    def qualified_column(arel_attribute)
+    def qualified_column(arel_attribute, alias_name: nil)
       table = arel_attribute.relation
-      connection = table.engine.connection
+      connection = table.class.engine.connection
       table_name = connection.quote_table_name table.table_name
       column_name = connection.quote_column_name arel_attribute.name
-      "#{table_name}.#{column_name}"
+      return "#{table_name}.#{column_name}" unless alias_name.present?
+
+      return "#{table_name}.#{column_name} as #{alias_name}"
     end
 
     # NOTE: quoted_table_name must be quoted, use something like User.quoted_table_name
