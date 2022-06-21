@@ -161,7 +161,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
       enrolled_clients.adult_or_head_of_household
     end
 
-    def served_percentages
+    def served_percentages(user:)
       @served_percentages ||= begin
         percentages = []
         enrolled = enrolled_clients.group(:project_id).select(:enrolled).count
@@ -171,7 +171,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
           percent = ((active_count / enrolled_count.to_f) * 100).round(2)
           next unless percent < completeness_goal
 
-          project_name = projects.detect { |p| p.id == id }&.ProjectName || 'Project Missing'
+          project_name = projects.detect { |p| p.id == id }&.name(user) || 'Project Missing'
           percentages << {
             project_id: id,
             project_name: project_name,
@@ -184,8 +184,8 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
       @served_percentages
     end
 
-    def describe_completeness(method, as_percent: false, support_path: nil, report_keys: nil) # rubocop:disable Lint/UnusedMethodArgument
-      served_percentages = send(method)
+    def describe_completeness(method, as_percent: false, support_path: nil, report_keys: nil, user: nil) # rubocop:disable Lint/UnusedMethodArgument
+      served_percentages = send(method, user: user)
       if served_percentages.any?
         served_percentages.map do |details|
           content_tag(:li) do
@@ -205,7 +205,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
       end
     end
 
-    def bed_utilization_percentages
+    def bed_utilization_percentages(user:)
       @bed_utilization_percentages ||= begin
         percentages = []
         report_projects.each do |report_project|
@@ -213,7 +213,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
 
           percentages << {
             project_id: report_project.project_id,
-            project_name: report_project.project_name,
+            project_name: report_project.safe_project_name(user),
             label: 'Bed utilization below acceptable threshold',
             percent: report_project.average_bed_utilization,
           }
@@ -223,7 +223,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
       @bed_utilization_percentages
     end
 
-    def unit_utilization_percentages
+    def unit_utilization_percentages(user:)
       @unit_utilization_percentages ||= begin
         percentages = []
         report_projects.each do |report_project|
@@ -231,7 +231,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
 
           percentages << {
             project_id: report_project.project_id,
-            project_name: report_project.project_name,
+            project_name: report_project.safe_project_name(user),
             label: 'Unit utilization below acceptable threshold',
             percent: report_project.average_unit_utilization,
           }
@@ -241,17 +241,18 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
       @unit_utilization_percentages
     end
 
-    def project_descriptor
+    def project_descriptor(user:)
       @project_descriptor ||= begin
         issues = []
         report_projects.each do |report_project|
           # some of these are only valid for residential project types
           next unless report_project.project_type.in?(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS)
 
+          project_name = report_project.safe_project_name(user)
           if report_project.bed_inventory.blank? || report_project.bed_inventory.zero?
             issues << {
               project_id: report_project.project_id,
-              project_name: report_project.project_name,
+              project_name: project_name,
               label: 'Missing Bed Inventory',
               value: report_project.bed_inventory,
             }
@@ -259,7 +260,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
           if report_project.unit_inventory.blank? || report_project.unit_inventory.zero?
             issues << {
               project_id: report_project.project_id,
-              project_name: report_project.project_name,
+              project_name: project_name,
               label: 'Missing Unit Inventory',
               value: report_project.unit_inventory,
             }
@@ -267,7 +268,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
           if report_project.coc_code.blank? || malformed_coc_code(report_project.coc_code)
             issues << {
               project_id: report_project.project_id,
-              project_name: report_project.project_name,
+              project_name: project_name,
               label: 'Missing or malformed CoC Code',
               value: report_project.coc_code,
             }
@@ -275,7 +276,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
           if report_project.funder.blank?
             issues << {
               project_id: report_project.project_id,
-              project_name: report_project.project_name,
+              project_name: project_name,
               label: 'Missing Funder',
               value: report_project.funder,
             }
@@ -283,7 +284,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
           if report_project.geocode.blank? || report_project.geocode.length != 6
             issues << {
               project_id: report_project.project_id,
-              project_name: report_project.project_name,
+              project_name: project_name,
               label: 'Missing or malformed Geocode',
               value: report_project.geocode,
             }
@@ -291,7 +292,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
           if report_project.geography_type.blank?
             issues << {
               project_id: report_project.project_id,
-              project_name: report_project.project_name,
+              project_name: project_name,
               label: 'Missing Geography Type',
               value: report_project.geography_type,
             }
@@ -299,7 +300,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
           if report_project.housing_type.blank?
             issues << {
               project_id: report_project.project_id,
-              project_name: report_project.project_name,
+              project_name: project_name,
               label: 'Missing Housing Type',
               value: report_project.housing_type,
             }
@@ -307,7 +308,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
           if report_project.inventory_information_dates.blank?
             issues << {
               project_id: report_project.project_id,
-              project_name: report_project.project_name,
+              project_name: project_name,
               label: 'Missing Inventory Information Date',
               value: report_project.inventory_information_dates,
             }
@@ -315,7 +316,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
           if report_project.operating_start_date.blank?
             issues << {
               project_id: report_project.project_id,
-              project_name: report_project.project_name,
+              project_name: project_name,
               label: 'Missing Operation Start Date',
               value: report_project.operating_start_date,
             }
@@ -324,7 +325,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
 
           issues << {
             project_id: report_project.project_id,
-            project_name: report_project.project_name,
+            project_name: project_name,
             label: 'Missing Project Type',
             value: report_project.project_type,
           }
@@ -342,7 +343,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
     end
 
     # return where the completeness value is < threshold
-    def client_data
+    def client_data(user:)
       @client_data ||= begin
         percentages = []
 
@@ -359,7 +360,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
             percentage = ((count.to_f / denominator) * 100).round
             next unless percentage < completeness_goal
 
-            project_name = projects.detect { |p| p.id == id }&.ProjectName || 'Project Missing'
+            project_name = projects.detect { |p| p.id == id }&.name(user) || 'Project Missing'
             percentages << {
               project_id: id,
               project_name: project_name,
@@ -518,7 +519,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
       ]
     end
 
-    def timeliness
+    def timeliness(user:)
       @timeliness ||= begin
         issues = []
         time_to_enter_entry = entering_clients.group(:project_id).
@@ -528,7 +529,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
           average_timeliness = count.to_f / denominator
           next unless average_timeliness > timeliness_goal
 
-          project_name = projects.detect { |p| p.id == id }&.ProjectName || 'Project Missing'
+          project_name = projects.detect { |p| p.id == id }&.name(user) || 'Project Missing'
           issues << {
             project_id: id,
             project_name: project_name,
@@ -546,7 +547,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
           average_timeliness = count.to_f / denominator
           next unless average_timeliness > timeliness_goal
 
-          project_name = projects.detect { |p| p.id == id }&.ProjectName || 'Project Missing'
+          project_name = projects.detect { |p| p.id == id }&.name(user) || 'Project Missing'
           issues << {
             project_id: id,
             project_name: project_name,
@@ -559,7 +560,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
       @timeliness
     end
 
-    def dob_after_entry
+    def dob_after_entry(user:)
       @dob_after_entry ||= begin
         issues = []
         dob_issues = enrolled_clients.group(:project_id).
@@ -568,7 +569,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
         dob_issues.each do |id, count|
           next if count.zero?
 
-          project_name = projects.detect { |p| p.id == id }&.ProjectName || 'Project Missing'
+          project_name = projects.detect { |p| p.id == id }&.name(user) || 'Project Missing'
           issues << {
             project_id: id,
             project_name: project_name,
@@ -580,7 +581,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
       end
     end
 
-    def final_month_service
+    def final_month_service(user:)
       @final_month_service ||= begin
         issues = []
         service_issues = enrolled_clients.group(:project_id).
@@ -589,7 +590,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
         service_issues.each do |id, count|
           next if count.zero?
 
-          project_name = projects.detect { |p| p.id == id }&.ProjectName || 'Project Missing'
+          project_name = projects.detect { |p| p.id == id }&.name(user) || 'Project Missing'
           issues << {
             project_id: id,
             project_name: project_name,
@@ -601,7 +602,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
       end
     end
 
-    def service_after_exit_date
+    def service_after_exit_date(user:)
       @service_after_exit_date ||= begin
         issues = []
         service_issues = exiting_clients.group(:project_id).
@@ -610,7 +611,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
         service_issues.each do |id, count|
           next if count.zero?
 
-          project_name = projects.detect { |p| p.id == id }&.ProjectName || 'Project Missing'
+          project_name = projects.detect { |p| p.id == id }&.name(user) || 'Project Missing'
           issues << {
             project_id: id,
             project_name: project_name,
@@ -622,7 +623,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
       end
     end
 
-    def household_type_mismatch
+    def household_type_mismatch(user:)
       @household_type_mismatch ||= begin
         issues = []
         household_type_issues = enrolled_clients.where(incorrect_household_type: true).group(:project_id).distinct.
@@ -636,14 +637,14 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
           if project.serves_families?
             issues << {
               project_id: id,
-              project_name: project.ProjectName,
+              project_name: project.name(user),
               label: 'Individuals at family project',
               value: count,
             }
           else
             issues << {
               project_id: id,
-              project_name: project.ProjectName,
+              project_name: project.name(user),
               label: 'Families at individual project',
               value: count,
             }
@@ -653,7 +654,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
       end
     end
 
-    def enrollments_with_no_service
+    def enrollments_with_no_service(user:)
       @enrollments_with_no_service ||= begin
         issues = []
         service_issues = enrolled_clients.group(:project_id).
@@ -662,7 +663,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
         service_issues.each do |id, count|
           next if count.zero?
 
-          project_name = projects.detect { |p| p.id == id }&.ProjectName || 'Project Missing'
+          project_name = projects.detect { |p| p.id == id }&.name(user) || 'Project Missing'
           issues << {
             project_id: id,
             project_name: project_name,
@@ -674,7 +675,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
       end
     end
 
-    def move_in_date_after_threshold
+    def move_in_date_after_threshold(user:)
       @move_in_date_after_threshold ||= begin
         issues = []
         move_in_date_issues = move_in_date_above_threshold.group(:project_id).
@@ -682,7 +683,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
         move_in_date_issues.each do |id, count|
           next if count.zero?
 
-          project_name = projects.detect { |p| p.id == id }&.ProjectName || 'Project Missing'
+          project_name = projects.detect { |p| p.id == id }&.name(user) || 'Project Missing'
           issues << {
             project_id: id,
             project_name: project_name,
@@ -749,29 +750,33 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
       end
     end
 
-    def describe_time_to_enter
+    def describe_time_to_enter(user:)
       @describe_time_to_enter ||= begin
         issues = []
         time_to_enter_by_project_id.each do |id, count|
           denominator = entering_clients.where(project_id: id).count
-          average_timeliness = count.to_f / denominator
-          project_name = projects.detect { |p| p.id == id }&.ProjectName || 'Project Missing'
+          average_timeliness = begin
+            (count.to_f / denominator).round
+          rescue StandardError
+            0
+          end
+          project_name = projects.detect { |p| p.id == id }&.name(user) || 'Project Missing'
           issues << {
             project_id: id,
             project_name: project_name,
-            label: pluralize(average_timeliness.round, 'day'),
+            label: pluralize(average_timeliness, 'day'),
           }
         end
         issues
       end
     end
 
-    def time_to_enter_by_project_id
+    def time_to_enter_by_project_id(user: nil) # rubocop:disable Lint/UnusedMethodArgument
       @time_to_enter_by_project_id ||= entering_clients.group(:project_id).
         sum(:days_to_add_entry_date)
     end
 
-    def describe_time_to_exit
+    def describe_time_to_exit(user:)
       @describe_time_to_exit ||= begin
         issues = []
         report_projects.each do |project|
@@ -783,8 +788,8 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
                                  0
                                end
           issues << {
-            project_id: project.id,
-            project_name: project.project_name,
+            project_id: project.project_id,
+            project_name: project.safe_project_name(user),
             label: pluralize(average_timeliness, 'day'),
           }
         end
@@ -847,7 +852,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
       end
     end
 
-    def average_time_in_project
+    def average_time_in_project(user:)
       @average_time_in_project ||= begin
         issues = []
         days_by_project_id = enrolled_clients.group(:project_id).
@@ -863,7 +868,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
                  end
           issues << {
             project_id: project.project_id,
-            project_name: project.project_name,
+            project_name: project.safe_project_name(user),
             label: days,
           }
         end
@@ -886,7 +891,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
       end
     end
 
-    def percent_in_project_over_one_year
+    def percent_in_project_over_one_year(user:)
       @percent_in_project_over_one_year ||= begin
         issues = []
         more_than_one_year = enrolled_clients.group(:project_id).
@@ -901,7 +906,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
                                   end
           issues << {
             project_id: project.project_id,
-            project_name: project.project_name,
+            project_name: project.safe_project_name(user),
             label: pluralize(count, 'client'),
             percent: percent_over_one_year,
           }
@@ -987,7 +992,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
       end
     end
 
-    def percent_exiting_to_ph
+    def percent_exiting_to_ph(user:)
       @percent_exiting_to_ph ||= begin
         issues = []
         report_projects.each do |project|
@@ -1001,9 +1006,10 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
                        rescue StandardError
                          0
                        end
+
           issues << {
             project_id: project.project_id,
-            project_name: project.project_name,
+            project_name: project.safe_project_name(user),
             label: pluralize(count, 'client').to_s,
             percent: percentage,
           }
