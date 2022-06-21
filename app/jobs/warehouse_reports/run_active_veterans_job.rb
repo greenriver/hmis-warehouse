@@ -7,6 +7,7 @@
 module WarehouseReports
   class RunActiveVeteransJob < BaseJob
     queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
+    include ArelHelper
 
     def perform(params)
       report = GrdaWarehouse::WarehouseReports::ActiveVeteransReport.new
@@ -38,10 +39,12 @@ module WarehouseReports
 
       enrollments = scope.entry.open_between(start_date: range.start, end_date: range.end + 1.day).
         includes(:enrollment).
-        joins(:data_source, :project).
+        joins(:data_source, project: :organization).
         where(client_id: clients.map(&:id)).pluck(*service_history_columns.values).
         map do |row|
-          Hash[service_history_columns.keys.zip(row)]
+          h = Hash[service_history_columns.keys.zip(row)]
+          h[:project_name] = GrdaWarehouse::Hud::Project.confidentialize_name(user, h[:project_name], h[:confidential])
+          h
         end.
         compact.
         group_by { |m| m[:client_id] }
@@ -82,8 +85,6 @@ module WarehouseReports
     end
 
     def service_history_columns
-      enrollment_table = GrdaWarehouse::Hud::Enrollment.arel_table
-      ds_table = GrdaWarehouse::DataSource.arel_table
       {
         client_id: :client_id,
         project_id: :project_id,
@@ -92,9 +93,10 @@ module WarehouseReports
         project_name: :project_name,
         project_type: service_history_source.project_type_column,
         data_source_id: :data_source_id,
-        PersonalID: enrollment_table[:PersonalID].as('PersonalID'),
-        ds_short_name: ds_table[:short_name].as('short_name'),
-        ds_id: ds_table[:id].as('ds_id'),
+        PersonalID: e_t[:PersonalID].as('PersonalID'),
+        ds_short_name: ds_t[:short_name].as('short_name'),
+        ds_id: ds_t[:id].as('ds_id'),
+        confidential: bool_or(p_t[:confidential], o_t[:confidential]),
       }
     end
 
