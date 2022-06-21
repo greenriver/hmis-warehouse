@@ -60,7 +60,8 @@ module GrdaWarehouse::WarehouseReports
     end
 
     def involved_projects
-      projects = project_scope.pluck(:id, :ProjectName).to_h
+      # always confidentialized project name regardless of who is running the report, because it is made visible to unauthenticated users
+      projects = project_scope.joins(:organization).pluck(:id, confidentialized_project_name(p_t[:ProjectName])).to_h
       @data.merge!(involved_projects: projects)
     end
 

@@ -3,7 +3,7 @@ wb = xlsx_package.workbook
 wb.add_worksheet(name: "Entry=Exit=Service") do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
   sheet.add_row(['Personal ID','First Name', 'Last Name', 'Entry Date', 'Exit Date',  'Date of Service', 'Project', 'Project ID', 'Project Type', 'Record Type', 'Data Source'], :style => title)
-  @enrollments.each do |client|
+  @data.each do |client|
     uuid = if data_sources[client[:data_source_id]].munged_personal_id 
       GrdaWarehouse::Hud::Client.uuid client[:PersonalID]
     else
@@ -13,11 +13,11 @@ wb.add_worksheet(name: "Entry=Exit=Service") do |sheet|
       uuid, 
       client[:FirstName], 
       client[:LastName],
-      client[:EntyDate],
+      client[:EntryDate],
       client[:ExitDate],
       client[:DateProvided],
-      client[:ProjectName],
-      client[:ProjectID],
+      client[:project_name],
+      client[:project_id],
       client[:project_type],
       client[:RecordType],
       data_sources[client[:data_source_id]].name

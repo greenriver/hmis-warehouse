@@ -85,7 +85,7 @@ module ClientAccessControl::GrdaWarehouse::Hud
       private def visible_because_of_data_assignment?(user)
         return false unless user.can_view_clients?
 
-        visible_because_of_enrollments = (source_enrollments.joins(:project).pluck(p_t[:id]) & GrdaWarehouse::Hud::Project.viewable_by(user).pluck(:id)).present?
+        visible_because_of_enrollments = (source_enrollments.joins(:project).pluck(p_t[:id]) & GrdaWarehouse::Hud::Project.viewable_by(user, confidential_scope_limiter: :all).pluck(:id)).present?
         visible_because_of_data_sources = (source_clients.pluck(:data_source_id) & user.data_sources.pluck(:id)).present?
 
         visible_because_of_enrollments || visible_because_of_data_sources

@@ -30,7 +30,7 @@ module PerformanceMeasurement::ResultCalculation
         :recidivism_6_months,
         :recidivism_24_months
         progress = reporting_value
-        progress <= goal_value
+        progress.to_i <= goal_value # we display values in integers, if we're within the same integer, just say it passed
       # greater than or equal to goal
       when :capacity,
         :destination

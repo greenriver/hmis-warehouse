@@ -22,13 +22,15 @@ module Api
         project_scope.
           pluck(
             :id,
-            :ProjectName,
+            :ProjectName, # OK to use non-confidentialized name because list is filtered by confidentiality in project_scope
             :computed_project_type,
             o_t[:OrganizationName],
             o_t[:id],
-          ).each do |id, p_name, type, o_name, o_id|
-            @data[[o_id, o_name]] ||= []
-            @data[[o_id, o_name]] << [
+            ds_t[:short_name],
+          ).each do |id, p_name, type, o_name, o_id, ds_name|
+            o_name_at_ds = "#{o_name} at #{ds_name}"
+            @data[[o_id, o_name_at_ds]] ||= []
+            @data[[o_id, o_name_at_ds]] << [
               "#{p_name} (#{HUD.project_type_brief(type)})",
               id,
               selected_project_ids.include?(id),
@@ -118,7 +120,7 @@ module Api
     private def project_scope
       @project_scope ||= begin
         scope = project_source.viewable_by(current_user)
-        scope = scope.merge(project_source.non_confidential) unless current_user.can_view_confidential_enrollment_details?
+        scope = scope.merge(project_source.non_confidential) unless current_user.can_view_confidential_project_names?
 
         scope = scope.joins(:data_source, :organization, :funders).with_project_type(project_types)
         scope = scope.merge(data_source_source.where(id: data_source_ids)) if data_source_ids.present?
