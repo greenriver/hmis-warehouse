@@ -2935,45 +2935,44 @@ module GrdaWarehouse::Hud
       enrollments.map { |e| e[:months_served] }.flatten(1).uniq.size
     end
 
-    def affiliated_residential_projects enrollment
+    private def affiliated_residential_projects(enrollment, user)
       @residential_affiliations ||= GrdaWarehouse::Hud::Affiliation.preload(:project, :residential_project).map do |affiliation|
         [
           [affiliation.project&.ProjectID, affiliation.project&.data_source_id],
-          affiliation.residential_project&.ProjectName,
+          affiliation.residential_project&.name(user),
         ]
       end.group_by(&:first)
       @residential_affiliations[[enrollment[:ProjectID], enrollment[:data_source_id]]].map(&:last) rescue [] # rubocop:disable Style/RescueModifier
     end
 
-    def affiliated_projects enrollment
+    private def affiliated_projects(enrollment, user)
       @project_affiliations ||= GrdaWarehouse::Hud::Affiliation.preload(:project, :residential_project).
         map do |affiliation|
         [
           [affiliation.residential_project&.ProjectID, affiliation.residential_project&.data_source_id],
-          affiliation.project&.ProjectName,
+          affiliation.project&.name(user),
         ]
       end.group_by(&:first)
       @project_affiliations[[enrollment[:ProjectID], enrollment[:data_source_id]]].map(&:last) rescue [] # rubocop:disable Style/RescueModifier
     end
 
-    def affiliated_projects_str_for_enrollment enrollment
-      project_names = affiliated_projects(enrollment)
+    private def affiliated_projects_str_for_enrollment(enrollment, user)
+      project_names = affiliated_projects(enrollment, user)
       return nil unless project_names.any?
 
       "Affiliated with #{project_names.to_sentence}"
     end
 
-    def residential_projects_str_for_enrollment enrollment
-      project_names = affiliated_residential_projects(enrollment)
+    private def residential_projects_str_for_enrollment(enrollment, user)
+      project_names = affiliated_residential_projects(enrollment, user)
       return nil unless project_names.any?
 
       "Affiliated with #{project_names.to_sentence}"
     end
 
-    def program_tooltip_data_for_enrollment enrollment
-      affiliated_projects_str = affiliated_projects_str_for_enrollment(enrollment)
-      residential_projects_str = residential_projects_str_for_enrollment(enrollment)
-
+    def program_tooltip_data_for_enrollment(enrollment, user)
+      affiliated_projects_str = affiliated_projects_str_for_enrollment(enrollment, user)
+      residential_projects_str = residential_projects_str_for_enrollment(enrollment, user)
       # only show tooltip if there are projects to list
       if affiliated_projects_str.present? || residential_projects_str.present?
         title = [affiliated_projects_str, residential_projects_str].compact.join("\n")

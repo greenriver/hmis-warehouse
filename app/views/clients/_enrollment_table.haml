@@ -56,7 +56,7 @@
             .confidential_project{data: {toggle: :tooltip, title: GrdaWarehouse::Hud::Project.confidential_project_name}}
               CP
         %td
-          %span{data: @client.program_tooltip_data_for_enrollment(e)}
+          %span{data: @client.program_tooltip_data_for_enrollment(e, current_user)}
             - if include_links
               - can_view_project_page = current_user.can_edit_projects?
               - can_view_project_page ||=  e[:project_name] != GrdaWarehouse::Hud::Project.confidential_project_name && current_user.can_view_projects?
