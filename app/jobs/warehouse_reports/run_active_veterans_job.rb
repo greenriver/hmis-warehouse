@@ -16,7 +16,7 @@ module WarehouseReports
 
       user = User.find(params[:current_user_id])
       report.user_id = user.id
-      report.parameters[:visible_projects] = if user.can_view_all_reports?
+      report.parameters[:visible_projects] = if GrdaWarehouse::DataSource.can_see_all_data_sources?(user)
         [:all, 'All']
       else
         GrdaWarehouse::Hud::Project.viewable_by(user).pluck(:id, :ProjectName)

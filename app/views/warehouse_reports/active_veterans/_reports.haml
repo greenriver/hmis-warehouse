@@ -8,7 +8,7 @@
     %td= render 'parameters', report: report
     %td.warehouse-reports__completed
       - if report.parameters['visible_projects'].present? && report.parameters['visible_projects'].first != 'all'
-        - title = report.parameters['visible_projects'].map(&:last).join(', ')
+        - title = limited_projects_list(report)
         - data = {toggle: :tooltip, title: "Limited by access to the following projects: #{title}"}
         %span{data: data}
           Limited
@@ -29,7 +29,7 @@
     %td.warehouse-reports__completed= render 'parameters', report: report
     %td
       - if report.parameters['visible_projects'].present? && report.parameters['visible_projects'].first != 'all'
-        - title = report.parameters['visible_projects'].map(&:last).join(', ')
+        - title = limited_projects_list(report)
         - data = {toggle: :tooltip, title: "Limited by access to the following projects: #{title}"}
         %span{data: data}
           Limited
