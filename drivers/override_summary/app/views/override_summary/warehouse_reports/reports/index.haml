@@ -17,7 +17,7 @@
           %h3= project_name
           - if data[:projects]
             - data[:projects].each do |project|
-              = link_to project.ProjectName, project_path(project), target: :_blank
+              .mb-2= link_to project.name(ignore_confidential_status: true), project_path(project), target: :_blank
               = render 'table', klass: GrdaWarehouse::Hud::Project, object: project
           - if data[:inventories]
             - data[:inventories].each do |inventory|

@@ -15,8 +15,8 @@
       %span{data: {toggle: :tooltip, title: project.confidential_hint}}
         = checkmark project.confidential
 
-    %td
-      - if can_edit_projects?
+    - if can_edit_projects?
+      %td
         = link_to edit_project_path(project), class: ['btn', 'btn-sm', 'btn-secondary', 'btn-icon-only'] do
           %i.icon-pencil
     %td

@@ -626,31 +626,38 @@ class User < ApplicationRecord
       groups = access_groups.general.map do |group|
         [
           group.name,
-          group.public_send(entity_type).map(&:name).select(&:presence).compact,
+          group.public_send(entity_type).map(&:ProjectName).select(&:presence).compact,
         ]
       end
       # indirectly inherited projects from data sources
       access_groups.general.each do |group|
         groups << [
           group.name,
-          group.data_sources.map(&:projects).flatten.map(&:name).select(&:presence).compact,
+          group.data_sources.map(&:projects).flatten.map(&:ProjectName).select(&:presence).compact,
         ]
       end
       # indirectly inherited projects from organizations
       access_groups.general.each do |group|
         groups << [
           group.name,
-          group.organizations.map(&:projects).flatten.map(&:name).select(&:presence).compact,
+          group.organizations.map(&:projects).flatten.map(&:ProjectName).select(&:presence).compact,
         ]
       end
       # indirectly inherited projects from coc_codes
       access_groups.general.each do |group|
         groups << [
           group.name,
-          GrdaWarehouse::Hud::Project.in_coc(coc_code: group.coc_codes).map(&:name).select(&:presence).compact,
+          GrdaWarehouse::Hud::Project.in_coc(coc_code: group.coc_codes).map(&:ProjectName).select(&:presence).compact,
         ]
       end
       groups
+    when :organizations
+      access_groups.general.map do |group|
+        [
+          group.name,
+          group.public_send(entity_type).map(&:OrganizationName).select(&:presence).compact,
+        ]
+      end
     else
       access_groups.general.map do |group|
         [

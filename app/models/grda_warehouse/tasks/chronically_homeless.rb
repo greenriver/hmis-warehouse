@@ -201,8 +201,10 @@ module GrdaWarehouse::Tasks
         debug_log "Found previous residential history, using #{homeless_reset(client_id: client_id)} instead of #{@date - 3.years} as beginning of calculation"
         scope = scope.where(shs_t[:date].between(homeless_reset(client_id: client_id)..@date))
       end
-      all_dates = scope.pluck(*service_history_columns.values).map do |row|
-        service_history_columns.keys.zip(row).to_h
+      all_dates = scope.joins(project: :organization).pluck(*service_history_columns.values).map do |row|
+        h = service_history_columns.keys.zip(row).to_h
+        h[:project_name] = GrdaWarehouse::Hud::Project.confidential_project_name if h[:confidential]
+        h.except!(:confidential)
       end
       # Throw out any dates that fall outside of the enrollment
       # Unless this is SO and we allow them
@@ -390,6 +392,7 @@ module GrdaWarehouse::Tasks
         project_tracking_method: :project_tracking_method,
         project_name: :project_name,
         move_in_date: :move_in_date,
+        confidential: bool_or(p_t[:confidential], o_t[:confidential]),
       }
     end
 

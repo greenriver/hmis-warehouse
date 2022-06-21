@@ -1783,11 +1783,12 @@ module GrdaWarehouse::Hud
       return nil unless type.in?(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.keys + [:homeless])
 
       service_history_enrollments.ongoing.
-        joins(:service_history_services, :project).
+        joins(:service_history_services, :project, :organization).
         merge(GrdaWarehouse::Hud::Project.public_send(type)).
-        group(:project_name, p_t[:confidential], p_t[:id]).
+        # FIXME confidentialize by organization too
+        group(:project_name, p_t[:id], bool_or(p_t[:confidential], o_t[:confidential])).
         maximum("#{GrdaWarehouse::ServiceHistoryService.quoted_table_name}.date").
-        map do |(project_name, confidential, project_id), date|
+        map do |(project_name, project_id, confidential), date|
           unless include_confidential_names
             project_name = GrdaWarehouse::Hud::Project.confidential_project_name if confidential
           end

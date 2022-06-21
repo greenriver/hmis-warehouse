@@ -75,7 +75,7 @@ module WarehouseReports
             project_buckets[bucket] += 1
           end
           project_buckets['average'] = (project_lengths.sum / project_lengths.size.to_f).round
-          data << [project.ProjectName, project_buckets]
+          data << [project.name(current_user), project_buckets]
         end
         data
 

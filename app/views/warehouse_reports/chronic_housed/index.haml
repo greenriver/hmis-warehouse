@@ -10,22 +10,21 @@
   Limit to clients on the chronic list within a date range.
 = render 'filter'
 
-.row
-  .col-sm-12
-    .warehouse-reports
-      - if @clients.any?
-        .row
-          .col-sm-12.text-right
-            = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary'}) do
-              Download Excel
-        %p
-          Found
-          %strong
-            = @clients.size
-          clients housed in permanent destinations and on the chronic lists between:
-          %strong
-            = "#{@range.start} and #{@range.end}."
-      %table.table.table-sm.table-hover
+.warehouse-reports
+  - if @clients.any?
+    .row
+      .col-sm-12.text-right
+        = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary'}) do
+          Download Excel
+    %p
+      Found
+      %strong
+        = @clients.size
+      clients housed in permanent destinations and on the chronic lists between:
+      %strong
+        = "#{@range.start} and #{@range.end}."
+    .table-responsive
+      %table.table.table-sm.table-striped
         %thead
           %tr
             %th Client
@@ -41,3 +40,5 @@
                 = @chronics[client.client_id].map(&:date).uniq.join('<br />').html_safe
               %td
                 = exits.map{|ex| [ex.exit_date, HUD.destination(ex.destination)].join(' - ')}.uniq.join('<br />').html_safe
+  - else
+    .none-found No clients found.

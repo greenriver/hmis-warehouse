@@ -912,6 +912,8 @@ module Filters
     def chosen_projects
       return nil unless project_ids.reject(&:blank?).present?
 
+      # OK to use non-confidentialized ProjectName because confidential projects
+      # are only select-able if user has permission to view their names
       GrdaWarehouse::Hud::Project.where(id: project_ids).pluck(:ProjectName)
     end
 

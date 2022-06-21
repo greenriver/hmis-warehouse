@@ -51,6 +51,15 @@ class DataQualityReportsController < ApplicationController
   def support
     if params[:individual].present?
       @data = @report.support_for(support_params)
+
+      if !current_user.can_view_confidential_enrollment_details? && @data[:headers].include?('Project ID')
+        project_id_col = @data[:headers].find_index('Project ID')
+        project_name_col = @data[:headers].find_index('Project')
+        @data[:counts].each_with_index do |row, i|
+          @data[:counts][i][project_name_col] = GrdaWarehouse::Hud::Project.confidential_project_name if confidential_project_ids.include?(row[project_id_col])
+        end
+      end
+
       @details_title = @data[:title] || 'Supporting Data'
       @method = params[:method]
       respond_to do |format|
@@ -208,5 +217,12 @@ class DataQualityReportsController < ApplicationController
 
   def utilization_grade_source
     GrdaWarehouse::Grades::Utilization
+  end
+
+  def confidential_project_ids
+    projects = Rails.cache.fetch('confidential_project_ids', expires_in: 2.minutes) do
+      GrdaWarehouse::Hud::Project.confidential.pluck(:id).to_set
+    end
+    projects
   end
 end

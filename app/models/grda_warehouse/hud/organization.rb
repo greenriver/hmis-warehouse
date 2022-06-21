@@ -38,6 +38,10 @@ module GrdaWarehouse::Hud
       where(confidential: true)
     end
 
+    scope :non_confidential, -> do
+      where(confidential: false)
+    end
+
     scope :dmh, -> do
       where(dmh: true)
     end
@@ -213,6 +217,22 @@ module GrdaWarehouse::Hud
 
     alias_attribute :name, :OrganizationName
 
+    def name(user = nil, ignore_confidential_status: false)
+      if ignore_confidential_status || user&.can_view_confidential_enrollment_details?
+        self.OrganizationName
+      else
+        safe_organization_name
+      end
+    end
+
+    def safe_organization_name
+      if confidential?
+        self.class.confidential_organization_name
+      else
+        self.OrganizationName
+      end
+    end
+
     def self.text_search(text)
       return none unless text.present?
 
@@ -221,6 +241,13 @@ module GrdaWarehouse::Hud
       where(
         arel_table[:OrganizationName].matches(query),
       )
+    end
+
+    def self.confidential_org?(organization_id, data_source_id)
+      confidential_organization_ids = Rails.cache.fetch('confidential_organization_ids', expires_in: 2.minutes) do
+        confidential.pluck(:OrganizationID, :data_source_id).to_set
+      end
+      confidential_organization_ids.include?([organization_id, data_source_id])
     end
 
     def self.options_for_select user:
