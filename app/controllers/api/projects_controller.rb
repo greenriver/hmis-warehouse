@@ -26,9 +26,11 @@ module Api
             :computed_project_type,
             o_t[:OrganizationName],
             o_t[:id],
-          ).each do |id, p_name, type, o_name, o_id|
-            @data[[o_id, o_name]] ||= []
-            @data[[o_id, o_name]] << [
+            ds_t[:short_name],
+          ).each do |id, p_name, type, o_name, o_id, ds_name|
+            o_name_at_ds = "#{o_name} at #{ds_name}"
+            @data[[o_id, o_name_at_ds]] ||= []
+            @data[[o_id, o_name_at_ds]] << [
               "#{p_name} (#{HUD.project_type_brief(type)})",
               id,
               selected_project_ids.include?(id),
