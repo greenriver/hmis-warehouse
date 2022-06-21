@@ -356,6 +356,12 @@ class User < ApplicationRecord
     email == 'noreply@greenriver.com'
   end
 
+  def can_report_on_confidential_projects?
+    return true if system_user?
+
+    super
+  end
+
   def inactive?
     return true unless active?
 
