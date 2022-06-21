@@ -631,11 +631,10 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
       GrdaWarehouse::ServiceHistoryEnrollment.entry.ongoing.
         merge(GrdaWarehouse::Hud::Project.public_send(type)).
         where(client_id: @client_ids).
-        joins(:service_history_services, :project).
-        group(:client_id, :project_name, p_t[:confidential], p_t[:id]).
+        joins(:service_history_services, :project, :organization).
+        group(:client_id, :project_name, p_t[:id], bool_or(p_t[:confidential], o_t[:confidential])).
         maximum(shs_t[:date]).
-        each do |(client_id, project_name, confidential, project_id), date|
-          # FIXME confidentialize by organization too
+        each do |(client_id, project_name, project_id, confidential), date|
           project_name = GrdaWarehouse::Hud::Project.confidential_project_name if confidential
           lsit[client_id] ||= []
           lsit[client_id] << {
