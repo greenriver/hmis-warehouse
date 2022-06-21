@@ -379,6 +379,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Support
         'Entry Date' => :entry_date,
         'Exit Date' => :exit_date,
         'Project' => :project_name,
+        'Project ID' => :project_id,
         'Entry Earned' => :income_at_entry_earned,
         'Entry Non-Employment' => :income_at_entry_non_employment_cash,
         'Entry Overall' => :income_at_entry_overall,
