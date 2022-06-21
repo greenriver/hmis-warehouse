@@ -237,7 +237,7 @@ module ProjectScorecard::WarehouseReports
       project_ids = @filter.anded_effective_project_ids
       @projects = if project_ids&.any?
         p_scope = project_scope
-        p_scope = p_scope.non_confidential unless current_user.can_view_confidential_enrollment_details?
+        p_scope = p_scope.non_confidential unless current_user.can_view_confidential_project_names?
         p_scope.where(id: project_ids).
           joins(:organization, :data_source).
           order(p_t[:data_source_id].asc, o_t[:OrganizationName].asc, p_t[:ProjectName].asc).
