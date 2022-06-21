@@ -32,7 +32,7 @@ jobs:
           - gha_production_load_2
           - gha_production_load_3
           - gha_production_load_4
-          - gha_production_load_5
+          # client removed - gha_production_load_5
           - gha_production_load_6
           - gha_production_load_7
           - gha_production_load_8
