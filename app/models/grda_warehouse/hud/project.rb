@@ -210,7 +210,10 @@ module GrdaWarehouse::Hud
     end
 
     scope :non_confidential, -> do
-      joins(:organization).where(p_t[:confidential].eq(false).and(o_t[:confidential].eq(false)))
+      joins(:organization).where(
+        p_t[:confidential].eq(false).and(o_t[:confidential].eq(false)).
+        or(p_t[:confidential].eq(nil).and(o_t[:confidential].eq(nil))),
+      )
     end
 
     scope :coc_funded, -> do
@@ -351,9 +354,12 @@ module GrdaWarehouse::Hud
           has_access_to_project_through_coc_codes(user, q, qc),
         ].join(' OR '),
       )
+
       # If a user can't report on confidential projects, exclude them entirely
-      query = query.merge(public_send(project_scope)) unless user.can_report_on_confidential_projects?
-      query
+      # return query if user.can_report_on_confidential_projects?
+      return query if user.can_report_on_confidential_projects?
+
+      query.send(project_scope)
     end
 
     scope :editable_by, ->(user) do

@@ -45,7 +45,7 @@ module ViewableEntities
     helper_method :organization_viewability
 
     private def project_viewability(base)
-      model = GrdaWarehouse::Hud::Project.viewable_by(current_user)
+      model = GrdaWarehouse::Hud::Project.viewable_by(current_user, project_scope: :all)
       collection = model.
         order(:name).
         joins(:organization, :data_source).

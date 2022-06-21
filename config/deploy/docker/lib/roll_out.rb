@@ -238,13 +238,8 @@ class RollOut
     minimum, maximum = _get_min_max_from_desired(web_options['container_count'])
 
     # Keep production web containers on on-demand providers
-    capacity_provider_name = if target_group_name.match?(/production|prd/)
-      _on_demand_capacity_provider_name
-    else
-      _spot_capacity_provider_name
-    end
     _start_service!(
-      capacity_provider: capacity_provider_name,
+      capacity_provider: _on_demand_capacity_provider_name,
       name: name + '-2', # version bump for change from port 443 -> 3000
       load_balancers: lb,
       desired_count: web_options['container_count'] || 1,
