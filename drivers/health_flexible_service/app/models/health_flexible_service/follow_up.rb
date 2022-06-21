@@ -8,7 +8,7 @@ module HealthFlexibleService
   class FollowUp < HealthBase
     acts_as_paranoid
 
-    belongs_to :patient, class_name: 'Health::Patient', optional: true
+    # belongs_to :patient, class_name: 'Health::Patient', optional: true
     belongs_to :user, class_name: 'User', optional: true
     belongs_to :vpr, inverse_of: :follow_ups
 
@@ -17,11 +17,13 @@ module HealthFlexibleService
     end
 
     def set_defaults
+      client = vpr.client
+
       self.completed_on = Date.current
-      self.first_name = patient.client.FirstName
-      self.middle_name = patient.client.MiddleName
-      self.last_name = patient.client.LastName
-      self.dob = patient.birthdate
+      self.first_name = client.FirstName
+      self.middle_name = client.MiddleName
+      self.last_name = client.LastName
+      self.dob = client.DOB
       self.delivery_first_name = user.first_name
       self.delivery_last_name = user.last_name
       self.delivery_organization = user.agency&.name

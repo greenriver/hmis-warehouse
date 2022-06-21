@@ -14,8 +14,11 @@ module HealthFlexibleService
     phi_attr :middle_name, Phi::Name
     phi_attr :last_name, Phi::Name
     phi_attr :dob, Phi::Date
+    phi_attr :medicaid_id, Phi::HealthPlan
+    phi_attr :aco, Phi::SmallPopulation
 
     belongs_to :patient, class_name: 'Health::Patient', optional: true
+    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', optional: true
     belongs_to :user, class_name: 'User', optional: true
     has_many :follow_ups, inverse_of: :vpr, dependent: :destroy
 
@@ -33,19 +36,21 @@ module HealthFlexibleService
     end
 
     def set_defaults
-      cha = patient.recent_cha_form
-      ssm = patient.recent_ssm_form
+      patient = client.patient
+      cha = patient&.recent_cha_form
+      ssm = patient&.recent_ssm_form
       mmis_name = ::Health::Cp.sender.first&.mmis_enrollment_name
 
       self.planned_on = Date.current
       self.end_date = planned_on + 6.months
-      self.first_name = patient.client.FirstName
-      self.middle_name = patient.client.MiddleName
-      self.last_name = patient.client.LastName
-      self.dob = patient.birthdate
+      self.first_name = client.FirstName
+      self.middle_name = client.MiddleName
+      self.last_name = client.LastName
+      self.medicaid_id = patient&.medicaid_id
+      self.dob = client.DOB
       self.contact_type = :member
-      self.phone = patient.most_recent_phone
-      self.email = patient.email
+      self.phone = patient&.most_recent_phone
+      self.email = patient&.email
       self.main_contact_first_name = user.first_name
       self.main_contact_last_name = user.last_name
       self.main_contact_organization = user.agency&.name
@@ -62,11 +67,12 @@ module HealthFlexibleService
       self.representative_phone = user.phone
       self.representative_email = user.email
       self.member_agrees_to_plan = true
+      self.aco_id = patient&.aco&.id
       self.aco_approved = true
       self.aco_approved_on = Date.current
       self.health_needs_screened_on = Date.current
       self.risk_factors_screened_on = Date.current
-      self.gender = gender_from(patient.gender)
+      self.gender = gender_from(patient.gender) if patient
       self.race = race_from(cha.answer('b_q2')) if cha
       self.primary_language = language_from(cha.answer('b_q3')) if cha
       self.education = education_from(ssm.option_text_for(:education, ssm.education_score)) if ssm

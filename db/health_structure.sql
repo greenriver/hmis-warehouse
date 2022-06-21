@@ -2966,7 +2966,10 @@ CREATE TABLE public.health_flexible_service_vprs (
     deleted_at timestamp without time zone,
     end_date date,
     primary_language_detail character varying,
-    open boolean DEFAULT true
+    open boolean DEFAULT true,
+    client_id bigint,
+    medicaid_id character varying,
+    aco_id bigint
 );
 
 
@@ -6699,6 +6702,20 @@ CREATE INDEX index_health_flexible_service_follow_ups_on_vpr_id ON public.health
 
 
 --
+-- Name: index_health_flexible_service_vprs_on_aco_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_health_flexible_service_vprs_on_aco_id ON public.health_flexible_service_vprs USING btree (aco_id);
+
+
+--
+-- Name: index_health_flexible_service_vprs_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_health_flexible_service_vprs_on_client_id ON public.health_flexible_service_vprs USING btree (client_id);
+
+
+--
 -- Name: index_health_flexible_service_vprs_on_created_at; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -7533,6 +7550,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220407204625'),
 ('20220428183105'),
 ('20220428191717'),
-('20220428192510');
+('20220428192510'),
+('20220616173636'),
+('20220616195501');
 
 
