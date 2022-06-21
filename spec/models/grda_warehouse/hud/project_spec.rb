@@ -15,6 +15,7 @@ RSpec.describe model, type: :model do
 
   let!(:admin_role) { create :admin_role }
   let!(:can_view_confidential_projects) { create :can_view_confidential_projects }
+  let!(:can_report_on_confidential_projects) { create :can_report_on_confidential_projects, can_report_on_confidential_projects: true }
 
   let!(:user) { create :user }
 
@@ -171,6 +172,10 @@ RSpec.describe model, type: :model do
             project_ids = options.values.flatten(1).map(&:second)
             expect(project_ids).to eq [p2.id]
           end
+
+          it 'does not include p1 in viewable_by' do
+            expect(GrdaWarehouse::Hud::Project.viewable_by(user).pluck(:id)).to_not include p1.id
+          end
         end
 
         describe 'assigned to confidential organization' do
@@ -189,6 +194,11 @@ RSpec.describe model, type: :model do
             expect(options.keys.size).to eq 1
             project_ids = options.values.flatten(1).map(&:second)
             expect(project_ids).to eq [p2.id]
+          end
+
+          it 'does not include p3 or p4 in viewable_by' do
+            expect(GrdaWarehouse::Hud::Project.viewable_by(user).pluck(:id)).to_not include p3.id
+            expect(GrdaWarehouse::Hud::Project.viewable_by(user).pluck(:id)).to_not include p4.id
           end
         end
 
@@ -224,6 +234,23 @@ RSpec.describe model, type: :model do
           it 'sees p1 project name' do
             expect(u[user]).to eq p[p1]
             expect(p1.name(user).downcase).not_to include 'confidential'
+          end
+
+          it 'does not include p1 in viewable_by' do
+            expect(GrdaWarehouse::Hud::Project.viewable_by(user).pluck(:id)).to_not include p1.id
+          end
+        end
+
+        describe 'when given permission to report on confidential projects' do
+          before do
+            user.roles << can_report_on_confidential_projects
+            user.add_viewable(p1)
+          end
+          after do
+            user.roles = []
+          end
+          it 'does include p1 in viewable_by' do
+            expect(GrdaWarehouse::Hud::Project.viewable_by(user).pluck(:id)).to include p1.id
           end
         end
 
