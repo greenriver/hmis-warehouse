@@ -205,7 +205,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
       end
     end
 
-    def bed_utilization_percentages(user: nil)
+    def bed_utilization_percentages(user:)
       @bed_utilization_percentages ||= begin
         percentages = []
         report_projects.each do |report_project|
@@ -223,7 +223,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
       @bed_utilization_percentages
     end
 
-    def unit_utilization_percentages(user: nil)
+    def unit_utilization_percentages(user:)
       @unit_utilization_percentages ||= begin
         percentages = []
         report_projects.each do |report_project|
@@ -241,7 +241,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
       @unit_utilization_percentages
     end
 
-    def project_descriptor(user: nil)
+    def project_descriptor(user:)
       @project_descriptor ||= begin
         issues = []
         report_projects.each do |report_project|
@@ -654,7 +654,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
       end
     end
 
-    def enrollments_with_no_service(user: nil)
+    def enrollments_with_no_service(user:)
       @enrollments_with_no_service ||= begin
         issues = []
         service_issues = enrolled_clients.group(:project_id).
@@ -675,7 +675,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
       end
     end
 
-    def move_in_date_after_threshold(user: nil)
+    def move_in_date_after_threshold(user:)
       @move_in_date_after_threshold ||= begin
         issues = []
         move_in_date_issues = move_in_date_above_threshold.group(:project_id).
@@ -750,7 +750,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
       end
     end
 
-    def describe_time_to_enter(user: nil)
+    def describe_time_to_enter(user:)
       @describe_time_to_enter ||= begin
         issues = []
         time_to_enter_by_project_id.each do |id, count|
@@ -776,7 +776,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
         sum(:days_to_add_entry_date)
     end
 
-    def describe_time_to_exit(user: nil)
+    def describe_time_to_exit(user:)
       @describe_time_to_exit ||= begin
         issues = []
         report_projects.each do |project|
@@ -852,7 +852,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
       end
     end
 
-    def average_time_in_project(user: nil)
+    def average_time_in_project(user:)
       @average_time_in_project ||= begin
         issues = []
         days_by_project_id = enrolled_clients.group(:project_id).
@@ -891,7 +891,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
       end
     end
 
-    def percent_in_project_over_one_year(user: nil)
+    def percent_in_project_over_one_year(user:)
       @percent_in_project_over_one_year ||= begin
         issues = []
         more_than_one_year = enrolled_clients.group(:project_id).
