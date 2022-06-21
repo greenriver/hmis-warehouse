@@ -53,7 +53,7 @@ module ManualHmisData
     end
 
     private def inventory_scope
-      inventory_source.joins(:project).merge(GrdaWarehouse::Hud::Project.viewable_by(current_user, non_confidential_scope_limiter: :all))
+      inventory_source.joins(:project).merge(GrdaWarehouse::Hud::Project.viewable_by(current_user, confidential_scope_limiter: :all))
     end
 
     private def inventory_source

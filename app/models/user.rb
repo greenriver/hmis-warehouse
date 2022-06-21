@@ -434,7 +434,7 @@ class User < ApplicationRecord
     key = [self.class.name, __method__, id]
     Rails.cache.delete(key) if force_calculation
     Rails.cache.fetch(key, expires_in: 1.minutes) do
-      GrdaWarehouse::Hud::Project.viewable_by(self, project_scope: :all).pluck(:id).to_set
+      GrdaWarehouse::Hud::Project.viewable_by(self, confidential_scope_limiter: :all).pluck(:id).to_set
     end
   end
 
