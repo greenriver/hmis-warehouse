@@ -124,24 +124,5 @@ module WarehouseReports
     def flash_interpolation_options
       { resource_name: 'Active Veterans Report' }
     end
-
-    def limited_projects_list(report)
-      return nil unless report.parameters['visible_projects'].present? && report.parameters['visible_projects'].first != 'all'
-
-      num_projects = report.parameters['visible_projects'].size
-      max_projects = 8
-
-      project_names = if current_user.can_view_confidential_enrollment_details?
-        report.parameters['visible_projects'].first(max_projects).map(&:second)
-      else
-        ids = report.parameters['visible_projects'].first(max_projects).map(&:first)
-        GrdaWarehouse::Hud::Project.where(id: ids).map { |project| project.name(current_user) }
-      end
-
-      title = project_names.join(', ')
-      title += " and #{num_projects - max_projects} more" if num_projects > max_projects
-      title
-    end
-    helper_method :limited_projects_list
   end
 end

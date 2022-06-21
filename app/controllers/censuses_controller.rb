@@ -61,6 +61,8 @@ class CensusesController < ApplicationController
       @clients = census.clients_for_date(current_user, @date)
       @yesterday_client_count = census.clients_for_date(current_user, @date - 1.day).size
     end
+
+    # Note: ProjectName is already confidentialized here
     @involved_projects = @clients.map { |row| [row['project_id'], row['ProjectName']] }.to_h
     respond_to do |format|
       format.html {}
