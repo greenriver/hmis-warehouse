@@ -13,8 +13,7 @@ module WarehouseReports
       # and is identical on entry records
       @years = (params[:years] || 5).to_i
       @entries = service_history_source.
-        # FIXME bool_or
-        select(:first_date_in_program, :last_date_in_program, :client_id, :project_id, :project_name, p_t[:confidential].as('project_confidential'), o_t[:confidential].as('organization_confidential')).
+        select(:first_date_in_program, :last_date_in_program, :client_id, :project_id, :project_name, bool_or(p_t[:confidential], o_t[:confidential]).as('confidential')).
         where(she_t[:date].lteq(@years.years.ago)).
         where(last_date_in_program: nil).
         es
