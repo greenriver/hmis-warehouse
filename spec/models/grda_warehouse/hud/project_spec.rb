@@ -44,7 +44,7 @@ RSpec.describe model, type: :model do
 
   u = ->(user) do
     if model == GrdaWarehouse::Hud::Project
-      model.viewable_by(user, project_scope: :all).pluck(:id).sort
+      model.viewable_by(user, non_confidential_scope_limiter: :all).pluck(:id).sort
     else
       model.viewable_by(user).pluck(:id).sort
     end

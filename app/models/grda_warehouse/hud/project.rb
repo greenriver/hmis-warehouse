@@ -342,7 +342,7 @@ module GrdaWarehouse::Hud
     #   within the context of reporting project_scope is almost always non_confidential
     #   within the client dashboard context, project_scope is :all, which includes confidential projects
     #   names of confidential projects are obfuscated unless the user can_view_confidential_project_names
-    scope :viewable_by, ->(user, project_scope: :non_confidential) do
+    scope :viewable_by, ->(user, non_confidential_scope_limiter: :non_confidential) do
       qc = ->(s) { connection.quote_column_name s }
       q  = ->(s) { connection.quote s }
 
@@ -359,7 +359,7 @@ module GrdaWarehouse::Hud
       # return query if user.can_report_on_confidential_projects?
       return query if user.can_report_on_confidential_projects?
 
-      query.send(project_scope)
+      query.send(non_confidential_scope_limiter)
     end
 
     scope :editable_by, ->(user) do

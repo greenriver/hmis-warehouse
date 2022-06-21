@@ -110,7 +110,7 @@ module ClientAccessControl
 
     private def project_ids(user)
       @project_ids ||= begin
-        ids = ::GrdaWarehouse::Hud::Project.visible_to(user, project_scope: :all).pluck(:id).uniq
+        ids = ::GrdaWarehouse::Hud::Project.visible_to(user, non_confidential_scope_limiter: :all).pluck(:id).uniq
         if ::GrdaWarehouse::Config.get(:window_access_requires_release)
           ids
         else

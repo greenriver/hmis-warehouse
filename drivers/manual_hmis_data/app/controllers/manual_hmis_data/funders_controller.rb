@@ -53,7 +53,7 @@ module ManualHmisData
     end
 
     private def funder_scope
-      funder_source.joins(:project).merge(GrdaWarehouse::Hud::Project.viewable_by(current_user, project_scope: :all))
+      funder_source.joins(:project).merge(GrdaWarehouse::Hud::Project.viewable_by(current_user, non_confidential_scope_limiter: :all))
     end
 
     private def funder_source
