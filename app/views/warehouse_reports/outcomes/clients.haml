@@ -13,6 +13,7 @@
         = link_to(polymorphic_path(@report.clients_path_array, link_params.except('action').merge({ format: :xlsx })), class: 'btn btn-secondary mb-2') do
           %i.icon-file-excel.icon-lg
           Download
+    -# Project names listed in this table are always confidentialized, even if user has access to see their names. This is because the names are saved in the reporting DB and we don't know who ran it at that point.
     %table.table.table-sm
       %thead
         %tr

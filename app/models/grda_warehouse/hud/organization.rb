@@ -243,6 +243,13 @@ module GrdaWarehouse::Hud
       )
     end
 
+    def self.confidential_org?(organization_id, data_source_id)
+      confidential_organization_ids = Rails.cache.fetch('confidential_organization_ids', expires_in: 2.minutes) do
+        confidential.pluck(:OrganizationID, :data_source_id).to_set
+      end
+      confidential_organization_ids.include?([organization_id, data_source_id])
+    end
+
     def self.options_for_select user:
       # don't cache this, it's a class method
       @options = begin

@@ -39,7 +39,7 @@ module WarehouseReports
 
     private def row_to_hash(row)
       row_hash = Hash[columns.keys.zip(row)]
-      safe_project_name = GrdaWarehouse::Hud::Project.confidentialize_name(current_user, row_hash[:project_name], row_hash[:project_confidential] || row_hash[:organization_confidential])
+      safe_project_name = GrdaWarehouse::Hud::Project.confidentialize_name(current_user, row_hash[:project_name], row_hash[:confidential])
       row_hash[:project_name] = safe_project_name
       row_hash
     end
@@ -59,8 +59,7 @@ module WarehouseReports
         project_name: p_t[:ProjectName],
         project_type: p_t[project_source.project_type_column].as('project_type'),
         RecordType: s_t[:RecordType],
-        project_confidential: p_t[:confidential],
-        organization_confidential: o_t[:confidential],
+        confidential: bool_or(p_t[:confidential], o_t[:confidential]),
       }
     end
 

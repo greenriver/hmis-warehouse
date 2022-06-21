@@ -67,6 +67,7 @@ module ServiceScanning
       project_scope = ::GrdaWarehouse::Hud::Project.joins(:data_source).
         merge(::GrdaWarehouse::DataSource.scannable)
       project_scope = project_scope.viewable_by(user)
+      project_scope = project_scope.merge(::GrdaWarehouse::Hud::Project.non_confidential) unless user&.can_view_confidential_enrollment_details?
       project_scope.
         joins(:organization).
         order(o_t[:OrganizationName].asc, ProjectName: :asc).

@@ -73,10 +73,10 @@ module GrdaWarehouse::WarehouseReports
           )
         end
         # Layer on the first enrollment in PH if it is earlier
-        clients_with_housed_enrollments.order(e_t[:MoveInDate].asc).pluck(:id, e_t[:MoveInDate], p_t[:ProjectName], p_t[:confidential], o_t[:confidential]).each do |client_id, date, project_name, p_confidential, o_confidential|
+        clients_with_housed_enrollments.order(e_t[:MoveInDate].asc).pluck(:id, e_t[:MoveInDate], p_t[:ProjectName], bool_or(p_t[:confidential], o_t[:confidential])).each do |client_id, date, project_name, confidential|
           next unless dates[client_id].blank? || date < dates[client_id].exit_date
 
-          safe_project_name = GrdaWarehouse::Hud::Project.confidentialize_name(filter.user, project_name, p_confidential || o_confidential)
+          safe_project_name = GrdaWarehouse::Hud::Project.confidentialize_name(filter.user, project_name, confidential)
           dates[client_id] = OpenStruct.new(
             {
               exit_date: date,
@@ -93,11 +93,11 @@ module GrdaWarehouse::WarehouseReports
         # if there are overlapping homeless enrollments, go to the beginning of the first in the
         # overlapping bunch
         homeless_entries.order(she_t[:first_date_in_program].desc).
-          pluck(:id, she_t[:first_date_in_program], she_t[:last_date_in_program], p_t[:ProjectName], p_t[:id], p_t[:confidential], o_t[:confidential]).
-          each do |client_id, entry_date, exit_date, project_name, project_id, p_confidential, o_confidential|
+          pluck(:id, she_t[:first_date_in_program], she_t[:last_date_in_program], p_t[:ProjectName], p_t[:id], bool_or(p_t[:confidential], o_t[:confidential])).
+          each do |client_id, entry_date, exit_date, project_name, project_id, confidential|
             next if client_housed_dates[client_id].exit_date < entry_date
 
-            safe_project_name = GrdaWarehouse::Hud::Project.confidentialize_name(filter.user, project_name, p_confidential || o_confidential)
+            safe_project_name = GrdaWarehouse::Hud::Project.confidentialize_name(filter.user, project_name, confidential)
             existing_date = dates[client_id]
             # first-time through
             if existing_date.blank?

@@ -236,7 +236,9 @@ module ProjectScorecard::WarehouseReports
     private def set_projects_and_groups
       project_ids = @filter.anded_effective_project_ids
       @projects = if project_ids&.any?
-        project_scope.where(id: project_ids).
+        p_scope = project_scope
+        p_scope = p_scope.non_confidential unless current_user.can_view_confidential_enrollment_details?
+        p_scope.where(id: project_ids).
           joins(:organization, :data_source).
           order(p_t[:data_source_id].asc, o_t[:OrganizationName].asc, p_t[:ProjectName].asc).
           preload(:contacts, :data_source, organization: :contacts)

@@ -31,7 +31,7 @@
       %tbody
         - @entries.each do |entry|
           - client = @clients[entry[:client_id]]
-          - safe_project_name = GrdaWarehouse::Hud::Project.confidentialize_name(current_user, entry.project_name, entry.project_confidential || entry.organization_confidential)
+          - safe_project_name = GrdaWarehouse::Hud::Project.confidentialize_name(current_user, entry.project_name, entry.confidential)
           %tr
             %td= link_to_if can_view_clients?, client.LastName, appropriate_client_path(client)
             %td= link_to_if can_view_clients?, client.FirstName, appropriate_client_path(client)
