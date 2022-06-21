@@ -359,7 +359,7 @@ class User < ApplicationRecord
   def can_report_on_confidential_projects?
     return true if system_user?
 
-    super
+    can_report_on_confidential_projects
   end
 
   def inactive?
