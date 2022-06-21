@@ -218,7 +218,7 @@ module WarehouseReports
           pt = projects.arel_table
 
           scope = data_sources.importable.joins(organizations: :projects).merge(projects.viewable_by(user))
-          scope = scope.merge(organizations.non_confidential).merge(projects.non_confidential) unless user.can_view_confidential_enrollment_details?
+          scope = scope.merge(organizations.non_confidential).merge(projects.non_confidential) unless user.can_view_confidential_project_names?
           scope = scope.select(st[:id], st[:name], st[:short_name], ot[:id], ot[:OrganizationName], pt[:id], pt[:ProjectName])
           sql = scope.to_sql
 

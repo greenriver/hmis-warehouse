@@ -148,8 +148,13 @@ FactoryBot.define do
   end
 
   factory :can_view_confidential_projects, class: 'Role' do
-    name { 'can view confidential enrollment details and projects' }
-    can_view_confidential_enrollment_details { true }
+    name { 'can view confidential project names' }
+    can_view_confidential_project_names { true }
     can_view_projects { true }
+  end
+
+  factory :can_report_on_confidential_projects, class: 'Role' do
+    name { 'can report on confidential projects' }
+    can_report_on_confidential_projects { true }
   end
 end

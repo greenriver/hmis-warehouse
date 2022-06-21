@@ -35,9 +35,9 @@ class GrdaWarehouse::WarehouseReports::Cas::CeAssessment < OpenStruct
       # This is a bit awkward but reduces the query time by about 3x
       # in certain permission situations
       GrdaWarehouse::Hud::Client.where(
-        id: client_ids.distinct.select(:id)
+        id: client_ids.distinct.select(:id),
       ).joins(:processed_service_history).
-      preload(:processed_service_history)
+        preload(:processed_service_history)
     end
   end
 
@@ -68,7 +68,7 @@ class GrdaWarehouse::WarehouseReports::Cas::CeAssessment < OpenStruct
     ]
   end
 
-  private def vieable_project_ids
+  private def viewable_project_ids
     @viewable_project_ids ||= GrdaWarehouse::Hud::Project.
       viewable_by(@filter.user).distinct.select(:id)
   end
@@ -82,8 +82,8 @@ class GrdaWarehouse::WarehouseReports::Cas::CeAssessment < OpenStruct
         joins(:project).
         merge(
           GrdaWarehouse::Hud::Project.where(id: @filter.project_id).
-           where(id: vieable_project_ids) # Ensure we are only including visible projects
-        )
+           where(id: viewable_project_ids), # Ensure we are only including visible projects
+        ),
       )
   end
 
@@ -97,7 +97,7 @@ class GrdaWarehouse::WarehouseReports::Cas::CeAssessment < OpenStruct
     scope.joins(:processed_service_history).
       merge(
         GrdaWarehouse::WarehouseClientsProcessed.
-          where(literally_homeless_last_three_years: @filter.days_homeless..Float::INFINITY)
+          where(literally_homeless_last_three_years: @filter.days_homeless..Float::INFINITY),
       )
   end
 
@@ -105,8 +105,8 @@ class GrdaWarehouse::WarehouseReports::Cas::CeAssessment < OpenStruct
     scope.joins(:warehouse_client_destination).
       merge(
         GrdaWarehouse::WarehouseClient.where.not(
-          source_id:  source_clients_with_recent_assessments.select(:client_id)
-        )
+          source_id: source_clients_with_recent_assessments.select(:client_id),
+        ),
       )
   end
 
@@ -118,9 +118,8 @@ class GrdaWarehouse::WarehouseReports::Cas::CeAssessment < OpenStruct
     @assessment_dates ||= GrdaWarehouse::HmisForm.pathways.
       joins(:destination_client).
       where(client_id: GrdaWarehouse::WarehouseClient.where(
-          destination_id: destination_client_scope&.select(:id)
-        ).select(:source_id)
-      ).
+        destination_id: destination_client_scope&.select(:id),
+      ).select(:source_id)).
       group(wc_t[:destination_id]).
       maximum(hmis_form_t[:collected_at])
   end

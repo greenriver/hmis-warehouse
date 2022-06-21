@@ -180,7 +180,7 @@ module Censuses
         pluck(*columns.values).
         map do |row|
           h = Hash[columns.keys.zip(row)]
-          h['ProjectName'] = GrdaWarehouse::Hud::Project.confidential_project_name if h['confidential'] && !user.can_view_confidential_enrollment_details?
+          h['ProjectName'] = GrdaWarehouse::Hud::Project.confidential_project_name if h['confidential'] && !user.can_view_confidential_project_names?
           h
         end
     end
