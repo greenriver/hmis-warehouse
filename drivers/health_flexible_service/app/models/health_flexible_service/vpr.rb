@@ -21,6 +21,7 @@ module HealthFlexibleService
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', optional: true
     belongs_to :user, class_name: 'User', optional: true
     has_many :follow_ups, inverse_of: :vpr, dependent: :destroy
+    belongs_to :aco, class_name: 'Health::AccountableCareOrganization', optional: true
 
     scope :open_between, ->(start_date:, end_date:) do
       at = arel_table
@@ -106,6 +107,14 @@ module HealthFlexibleService
 
     scope :expired_before, ->(date) do
       where(arel_table[:open].eq(true).and(arel_table[:end_date].lt(date)))
+    end
+
+    scope :at_acos, ->(acos) do
+      where(aco_id: acos)
+    end
+
+    def name
+      "#{last_name}, #{first_name} #{middle_name}"
     end
 
     private def education_from(value)
