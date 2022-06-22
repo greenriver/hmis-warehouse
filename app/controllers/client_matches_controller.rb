@@ -7,6 +7,7 @@
 class ClientMatchesController < ApplicationController
   before_action :require_can_edit_clients!
   include ClientPathGenerator
+  include ArelHelper
   helper ClientMatchHelper
 
   def index
