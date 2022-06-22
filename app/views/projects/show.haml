@@ -1,5 +1,6 @@
 = render 'breadcrumbs'
-- content_for :title, "#{@project.name(current_user, ignore_confidential_status: can_edit_projects?)} at #{@project.organization.name}"
+-# confidentiality status ignored because page is not visible to users who can't see confidential project names
+- content_for :title, "#{@project.name(ignore_confidential_status: true)} at #{@project.organization.name(ignore_confidential_status: true)}"
 .row
   .col-sm-8
     %h1= content_for :title

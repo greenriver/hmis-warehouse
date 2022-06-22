@@ -11,6 +11,7 @@
         - project = GrdaWarehouse::Hud::Project.joins(:data_source).where(ProjectID: p_id, data_source_id: ds_id).first
         %dt Limited to Project:
         %dd
+          -# OK to use un-confidentialized name because this is only used for HUD reports
           = link_to project.ProjectName, project_path(project)
       - if @report.has_data_source_option?
         - ds_id = @result.options['data_source'].to_i

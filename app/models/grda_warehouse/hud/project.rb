@@ -206,11 +206,14 @@ module GrdaWarehouse::Hud
     end
 
     scope :confidential, -> do
-      where(confidential: true)
+      joins(:organization).where(p_t[:confidential].eq(true).or(o_t[:confidential].eq(true)))
     end
 
     scope :non_confidential, -> do
-      where(confidential: false)
+      joins(:organization).where(
+        p_t[:confidential].eq(false).and(o_t[:confidential].eq(false)).
+        or(p_t[:confidential].eq(nil).and(o_t[:confidential].eq(nil))),
+      )
     end
 
     scope :coc_funded, -> do
@@ -332,11 +335,18 @@ module GrdaWarehouse::Hud
     # End Standard Cohort Scopes
     #################################
 
-    scope :viewable_by, ->(user) do
+    # A single scope to determine if a user can access a project within a particular context
+    #
+    # @param user [User] user viewing the project
+    # @param project_scope [Symbol] a symbolized scope name that is merged into the vieable projects
+    #   within the context of reporting project_scope is almost always non_confidential
+    #   within the client dashboard context, project_scope is :all, which includes confidential projects
+    #   names of confidential projects are obfuscated unless the user can_view_confidential_project_names
+    scope :viewable_by, ->(user, confidential_scope_limiter: :non_confidential) do
       qc = ->(s) { connection.quote_column_name s }
       q  = ->(s) { connection.quote s }
 
-      where(
+      query = where(
         [
           has_access_to_project_through_viewable_entities(user, q, qc),
           has_access_to_project_through_organization(user, q, qc),
@@ -344,6 +354,12 @@ module GrdaWarehouse::Hud
           has_access_to_project_through_coc_codes(user, q, qc),
         ].join(' OR '),
       )
+
+      # If a user can't report on confidential projects, exclude them entirely
+      # return query if user.can_report_on_confidential_projects?
+      return query if user.can_report_on_confidential_projects?
+
+      query.send(confidential_scope_limiter)
     end
 
     scope :editable_by, ->(user) do
@@ -573,15 +589,36 @@ module GrdaWarehouse::Hud
 
     alias_attribute :name, :ProjectName
 
+    def confidential?
+      super || GrdaWarehouse::Hud::Organization.confidential_org?(self.OrganizationID, data_source_id)
+    end
+
+    def confidential
+      super || GrdaWarehouse::Hud::Organization.confidential_org?(self.OrganizationID, data_source_id)
+    end
+
     # Get the name for this project, protecting confidential names if appropriate.
     # Confidential names are shown if the user has permission to view confidential projects
     # AND the project is in the user's project list.
+    #
+    # This should be used any time a project's name is being displayed in the app.
+    #
+    # The following views are EXCEPTIONS to the rule. They show confidential names regardless of user permission:
+    # - HUD Reports
+    # - Override Summary Report
+    # - HMIS Cross Walks Report
+    # - User Permission Report
+    # - Project and Organizaton assignment for Users and Groups
+    # - View Project page (because it already requires can_view_confidential_project_names)
+    # - Edit Project page and other pages that require can_edit_projects (because users who can edit projects can change their confidentiality status)
+    # - Edit Project Group
+    # - Cohorts (Agency, Housing Search Agency, and Location)
     #
     # @param user [User] user viewing the project
     # @param include_project_type [Boolean] include the HUD project type in the name?
     # @param ignore_confidential_status [Boolean] always show confidential names, regardless of user access?
     def name(user = nil, include_project_type: false, ignore_confidential_status: false)
-      project_name = if ignore_confidential_status || (user&.can_view_confidential_enrollment_details? && user&.can_access_project?(self))
+      project_name = if ignore_confidential_status || (user&.can_view_confidential_project_names? && user&.can_access_project?(self))
         self.ProjectName
       else
         safe_project_name
@@ -591,13 +628,15 @@ module GrdaWarehouse::Hud
       project_name
     end
 
-    def self.confidentialize_name(user, name, confidential)
-      return name if user.can_view_confidential_enrollment_details?
+    # Useful for confidentializing name after 'pluck'
+    # The confidential parameter should indicate whether the Project or Organization is confidential
+    def self.confidentialize_name(user, project_name, confidential)
+      return project_name if user&.can_view_confidential_project_names?
 
       if confidential
         GrdaWarehouse::Hud::Project.confidential_project_name
       else
-        name
+        project_name
       end
     end
 
@@ -612,14 +651,14 @@ module GrdaWarehouse::Hud
 
     # Provide an organization name that is confidentialized in the same way as the project
     def organization_name(user = nil)
-      return organization.class.confidential_organization_name if confidential? && (user.blank? || ! user.can_view_confidential_enrollment_details?)
+      return organization.class.confidential_organization_name if confidential? && (user.blank? || ! user.can_view_confidential_project_names?)
 
       organization.OrganizationName
     end
 
     def organization_and_name(user = nil, ignore_confidential_status: false)
-      project_name = name(user, include_project_type: true, ignore_confidential_status: ignore_confidential_status)
-      return "#{organization&.OrganizationName} / #{project_name}" if user&.can_view_confidential_enrollment_details? || ignore_confidential_status
+      project_name = name(user, ignore_confidential_status: ignore_confidential_status)
+      return "#{organization&.OrganizationName} / #{project_name}" if user&.can_view_confidential_project_names? || ignore_confidential_status
 
       return "#{organization&.OrganizationName} / #{project_name}" unless confidential?
 
@@ -718,6 +757,10 @@ module GrdaWarehouse::Hud
       'If marked as confidential, the project name will be replaced with "Confidential Project" within individual client pages. Users with the "Can view confidential enrollment details" will still see the project name.'
     end
 
+    def member_of_confidential_organization_hint
+      'This project is part of a confidential organization.'
+    end
+
     def combine_enrollments_hint
       'If enrollments are combined, the import process will collapse sequential enrollments for a given client at this project.'
     end
@@ -795,7 +838,7 @@ module GrdaWarehouse::Hud
         options = {}
         project_scope = viewable_by(user)
         project_scope = project_scope.merge(scope) unless scope.nil?
-        project_scope = project_scope.where(confidential: false) unless user.can_view_confidential_enrollment_details?
+        project_scope = project_scope.merge(non_confidential) unless user.can_view_confidential_project_names?
 
         project_scope.
           joins(:organization, :data_source).

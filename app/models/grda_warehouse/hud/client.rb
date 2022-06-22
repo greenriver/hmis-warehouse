@@ -976,14 +976,25 @@ module GrdaWarehouse::Hud
     # and maintained in the warehouse
     def self.full_release_string
       # Return the untranslated string, but force the translator to see it
-      _('Full HAN Release')
-      'Full HAN Release'
+      if GrdaWarehouse::Config.implicit_roi?
+        _('Implicit Release')
+        'Implicit Release'
+      else
+        _('Full HAN Release')
+        'Full HAN Release'
+      end
     end
 
     def self.partial_release_string
       # Return the untranslated string, but force the translator to see it
       _('Limited CAS Release')
       'Limited CAS Release'
+    end
+
+    def self.no_release_string
+      return 'Consent revoked' if GrdaWarehouse::Config.implicit_roi?
+
+      'None on file'
     end
 
     def self.consent_validity_period
@@ -1021,7 +1032,7 @@ module GrdaWarehouse::Hud
 
     def release_current_status
       consent_text = if housing_release_status.blank?
-        'None on file'
+        self.class.no_release_string
       elsif release_duration.in?(['One Year', 'Two Years'])
         if consent_form_valid?
           "Valid Until #{consent_form_signed_on + self.class.consent_validity_period}"
@@ -1094,6 +1105,12 @@ module GrdaWarehouse::Hud
         consent_expires_on: nil,
         consented_coc_codes: [],
       )
+    end
+
+    def apply_housing_release_status
+      return unless GrdaWarehouse::Config.implicit_roi?
+
+      self.housing_release_status = GrdaWarehouse::Hud::Client.full_release_string
     end
 
     # End Release information
@@ -1766,11 +1783,12 @@ module GrdaWarehouse::Hud
       return nil unless type.in?(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.keys + [:homeless])
 
       service_history_enrollments.ongoing.
-        joins(:service_history_services, :project).
+        joins(:service_history_services, :project, :organization).
         merge(GrdaWarehouse::Hud::Project.public_send(type)).
-        group(:project_name, p_t[:confidential], p_t[:id]).
+        # FIXME confidentialize by organization too
+        group(:project_name, p_t[:id], bool_or(p_t[:confidential], o_t[:confidential])).
         maximum("#{GrdaWarehouse::ServiceHistoryService.quoted_table_name}.date").
-        map do |(project_name, confidential, project_id), date|
+        map do |(project_name, project_id, confidential), date|
           unless include_confidential_names
             project_name = GrdaWarehouse::Hud::Project.confidential_project_name if confidential
           end
@@ -2917,45 +2935,44 @@ module GrdaWarehouse::Hud
       enrollments.map { |e| e[:months_served] }.flatten(1).uniq.size
     end
 
-    def affiliated_residential_projects enrollment
+    private def affiliated_residential_projects(enrollment, user)
       @residential_affiliations ||= GrdaWarehouse::Hud::Affiliation.preload(:project, :residential_project).map do |affiliation|
         [
           [affiliation.project&.ProjectID, affiliation.project&.data_source_id],
-          affiliation.residential_project&.ProjectName,
+          affiliation.residential_project&.name(user),
         ]
       end.group_by(&:first)
       @residential_affiliations[[enrollment[:ProjectID], enrollment[:data_source_id]]].map(&:last) rescue [] # rubocop:disable Style/RescueModifier
     end
 
-    def affiliated_projects enrollment
+    private def affiliated_projects(enrollment, user)
       @project_affiliations ||= GrdaWarehouse::Hud::Affiliation.preload(:project, :residential_project).
         map do |affiliation|
         [
           [affiliation.residential_project&.ProjectID, affiliation.residential_project&.data_source_id],
-          affiliation.project&.ProjectName,
+          affiliation.project&.name(user),
         ]
       end.group_by(&:first)
       @project_affiliations[[enrollment[:ProjectID], enrollment[:data_source_id]]].map(&:last) rescue [] # rubocop:disable Style/RescueModifier
     end
 
-    def affiliated_projects_str_for_enrollment enrollment
-      project_names = affiliated_projects(enrollment)
+    private def affiliated_projects_str_for_enrollment(enrollment, user)
+      project_names = affiliated_projects(enrollment, user)
       return nil unless project_names.any?
 
       "Affiliated with #{project_names.to_sentence}"
     end
 
-    def residential_projects_str_for_enrollment enrollment
-      project_names = affiliated_residential_projects(enrollment)
+    private def residential_projects_str_for_enrollment(enrollment, user)
+      project_names = affiliated_residential_projects(enrollment, user)
       return nil unless project_names.any?
 
       "Affiliated with #{project_names.to_sentence}"
     end
 
-    def program_tooltip_data_for_enrollment enrollment
-      affiliated_projects_str = affiliated_projects_str_for_enrollment(enrollment)
-      residential_projects_str = residential_projects_str_for_enrollment(enrollment)
-
+    def program_tooltip_data_for_enrollment(enrollment, user)
+      affiliated_projects_str = affiliated_projects_str_for_enrollment(enrollment, user)
+      residential_projects_str = residential_projects_str_for_enrollment(enrollment, user)
       # only show tooltip if there are projects to list
       if affiliated_projects_str.present? || residential_projects_str.present?
         title = [affiliated_projects_str, residential_projects_str].compact.join("\n")

@@ -23,7 +23,7 @@
     .mb-4
       %h2= key.to_s.humanize.titleize 
       .warehouse-reports__user-permission__profile-association
-        - associated_items = @user.access_groups.map { |ag| ag.public_send(key) }.flatten.uniq.map(&:name)
+        - associated_items = @user.access_groups.map { |ag| ag.public_send(key) }.flatten.uniq.map { |item| item.try(:ProjectName) || item.try(:OrganizationName) || item.name}
         - if associated_items.any?
           %ul
             - associated_items.each do |item|

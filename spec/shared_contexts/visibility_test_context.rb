@@ -6,13 +6,21 @@ RSpec.shared_context 'visibility test context', shared_context: :metadata do
   let!(:window_organization) { create :grda_warehouse_hud_organization, data_source_id: window_visible_data_source.id, OrganizationName: 'Visible Org' }
   let!(:window_project) { create :grda_warehouse_hud_project, data_source_id: window_visible_data_source.id, ProjectName: 'Visible Project' }
   let!(:window_project_coc) { create :grda_warehouse_hud_project_coc, data_source_id: window_visible_data_source.id, ProjectID: window_project.ProjectID, CoCCode: 'AA-000' }
-  let!(:window_source_client) { create :grda_warehouse_hud_client, data_source_id: window_visible_data_source.id }
+  let!(:window_source_client) do
+    create(
+      :grda_warehouse_hud_client,
+      data_source_id: window_visible_data_source.id,
+      DOB: 50.years.ago,
+      SSN: nil,
+    )
+  end
   let!(:window_enrollment) do
     create(
       :grda_warehouse_hud_enrollment,
       data_source_id: window_visible_data_source.id,
       PersonalID: window_source_client.PersonalID,
       ProjectID: window_project.ProjectID,
+      EntryDate: 1.months.ago.to_date,
     )
   end
   let(:window_destination_client) { create :grda_warehouse_hud_client, data_source_id: warehouse_data_source.id }
@@ -30,13 +38,21 @@ RSpec.shared_context 'visibility test context', shared_context: :metadata do
   let!(:non_window_organization) { create :grda_warehouse_hud_organization, data_source_id: non_window_visible_data_source.id, OrganizationName: 'Non-Window  Org' }
   let!(:non_window_project) { create :grda_warehouse_hud_project, data_source_id: non_window_visible_data_source.id, ProjectName: 'Non-Window Project' }
   let!(:non_window_project_coc) { create :grda_warehouse_hud_project_coc, data_source_id: non_window_visible_data_source.id, ProjectID: non_window_project.ProjectID, CoCCode: 'ZZ-000' }
-  let!(:non_window_source_client) { create :grda_warehouse_hud_client, data_source_id: non_window_visible_data_source.id }
+  let!(:non_window_source_client) do
+    create(
+      :grda_warehouse_hud_client,
+      data_source_id: non_window_visible_data_source.id,
+      DOB: 51.years.ago,
+      SSN: nil,
+    )
+  end
   let!(:non_window_enrollment) do
     create(
       :grda_warehouse_hud_enrollment,
       data_source_id: non_window_visible_data_source.id,
       PersonalID: non_window_source_client.PersonalID,
       ProjectID: non_window_project.ProjectID,
+      EntryDate: 1.months.ago.to_date,
     )
   end
   let(:non_window_destination_client) { create :grda_warehouse_hud_client, data_source_id: warehouse_data_source.id }
@@ -59,6 +75,7 @@ RSpec.shared_context 'visibility test context', shared_context: :metadata do
   let!(:can_edit_users) { create :role, can_edit_users: true }
   let!(:can_manage_config) { create :role, can_manage_config: true }
   let!(:can_edit_data_sources) { create :role, can_edit_data_sources: true, can_view_projects: true }
+  let!(:can_search_own_clients) { create :role, can_search_own_clients: true }
 
   # groups
   let!(:window_data_source_viewable) { create :access_group }
