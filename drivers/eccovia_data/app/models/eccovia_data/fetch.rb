@@ -10,7 +10,9 @@ module EccoviaData
     belongs_to :credentials, class_name: 'EccoviaData::Credential'
 
     def fetch_updated
-      EccoviaData::Assessment.fetch_updated(since: last_fetched_at, data_source_id: data_source_id, credentials: credentials)
+      EccoviaData::Assessment.fetch_updated(data_source_id: data_source_id, credentials: credentials)
+      EccoviaData::ClientContact.fetch_updated(data_source_id: data_source_id, credentials: credentials)
+      EccoviaData::CaseManager.fetch_updated(data_source_id: data_source_id, credentials: credentials)
 
       update(last_fetched_at: Time.current)
     end

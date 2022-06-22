@@ -11,14 +11,14 @@ module EccoviaData
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', foreign_key: [:client_id, :data_source_id], primary_key: [:PersonalID, :data_source_id]
     acts_as_paranoid
 
-    def self.fetch_updated(data_source_id:, credentials:, since:)
-      since ||= default_lookback
+    def self.fetch_updated(data_source_id:, credentials:)
+      since = max_fetch_time || default_lookback
 
       query = "crql?q=select ClientID, Address, Address2, City, State, ZipCode, ZipCodeID, HomePhone, WorkPhone, MsgPhone, Email, UpdatedDate from cmClient where UpdatedDate > '#{since.to_s(:db)}'"
       credentials.get_all_in_batches(query) do |client_batch|
         break unless client_batch.present?
 
-        batch = client_batch.values.map do |client|
+        batch = client_batch.map do |client|
           new(
             data_source_id: data_source_id,
             client_id: client['ClientID'],
@@ -29,7 +29,7 @@ module EccoviaData
             zip: client['ZipCode'],
             email: client['Email'],
             phone: client['HomePhone'],
-            cell_phone: client['MsgPhone'],
+            cell: client['MsgPhone'],
             last_fetched_at: Time.current,
           )
         end
@@ -38,7 +38,17 @@ module EccoviaData
           batch,
           on_duplicate_key_update: {
             conflict_target: [:client_id, :data_source_id],
-            columns: [:street, :street2, :city, :state, :zip, :email, :phone, :cell_phone, :last_fetched_at],
+            columns: [
+              :street,
+              :street2,
+              :city,
+              :state,
+              :zip,
+              :email,
+              :phone,
+              :cell,
+              :last_fetched_at,
+            ],
           },
           validate: false,
         )
