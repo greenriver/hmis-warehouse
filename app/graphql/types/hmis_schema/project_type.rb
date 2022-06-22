@@ -9,6 +9,7 @@
 module Types
   class HmisSchema::ProjectType < Types::BaseEnum
     description 'HUD Project Types'
+    graphql_name 'ProjectType'
 
     value 'ES', 'Emergency Shelter', value: 1
     value 'TH', 'Transitional Housing', value: 2
