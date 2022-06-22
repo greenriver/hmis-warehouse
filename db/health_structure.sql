@@ -2814,7 +2814,7 @@ ALTER SEQUENCE public.health_flexible_service_follow_ups_id_seq OWNED BY public.
 
 CREATE TABLE public.health_flexible_service_vprs (
     id bigint NOT NULL,
-    patient_id bigint NOT NULL,
+    patient_id bigint,
     user_id bigint NOT NULL,
     planned_on date,
     first_name character varying,
