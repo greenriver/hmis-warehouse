@@ -11,8 +11,8 @@ module EccoviaData
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', foreign_key: [:client_id, :data_source_id], primary_key: [:PersonalID, :data_source_id]
     acts_as_paranoid
 
-    def self.fetch_updated(data_source_id:, credentials:, since:)
-      since ||= default_lookback
+    def self.fetch_updated(data_source_id:, credentials:)
+      since = max_fetch_time || default_lookback
 
       query = "crql?q=select VulnerabilityID, ClientID, CreatedBy, UpdatedDate from VulnerabilityIndex where UpdatedDate > '#{since.to_s(:db)}'"
       credentials.get_all_in_batches(query) do |assessment_batch|
@@ -44,7 +44,13 @@ module EccoviaData
           batch,
           on_duplicate_key_update: {
             conflict_target: [:client_id, :data_source_id, :assessment_id],
-            columns: [:score, :assessed_at, :assessor_id, :assessor_email, :last_fetched_at],
+            columns: [
+              :score,
+              :assessed_at,
+              :assessor_id,
+              :assessor_email,
+              :last_fetched_at,
+            ],
           },
           validate: false,
         )

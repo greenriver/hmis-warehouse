@@ -5705,7 +5705,7 @@ ALTER SEQUENCE public.document_exports_id_seq OWNED BY public.document_exports.i
 
 CREATE TABLE public.eccovia_assessments (
     id bigint NOT NULL,
-    client_id bigint,
+    client_id character varying,
     data_source_id bigint,
     assessment_id character varying,
     score integer,
@@ -5745,14 +5745,17 @@ ALTER SEQUENCE public.eccovia_assessments_id_seq OWNED BY public.eccovia_assessm
 
 CREATE TABLE public.eccovia_case_managers (
     id bigint NOT NULL,
-    client_id bigint,
+    client_id character varying,
     data_source_id bigint,
     case_manager_id character varying,
+    user_id character varying,
     first_name character varying,
     last_name character varying,
     email character varying,
     phone character varying,
     cell character varying,
+    start_date date,
+    end_date date,
     last_fetched_at timestamp without time zone,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
@@ -5785,7 +5788,7 @@ ALTER SEQUENCE public.eccovia_case_managers_id_seq OWNED BY public.eccovia_case_
 
 CREATE TABLE public.eccovia_client_contacts (
     id bigint NOT NULL,
-    client_id bigint,
+    client_id character varying,
     data_source_id bigint,
     email character varying,
     phone character varying,
@@ -25311,10 +25314,10 @@ CREATE UNIQUE INDEX "e_c_C_c_d_a_idx" ON public.eccovia_client_contacts USING bt
 
 
 --
--- Name: e_c_m_c_d_a_idx; Type: INDEX; Schema: public; Owner: -
+-- Name: e_c_m_c_d_a_u_idx; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX e_c_m_c_d_a_idx ON public.eccovia_case_managers USING btree (client_id, data_source_id, case_manager_id);
+CREATE UNIQUE INDEX e_c_m_c_d_a_u_idx ON public.eccovia_case_managers USING btree (client_id, data_source_id, case_manager_id, user_id);
 
 
 --
@@ -39766,13 +39769,6 @@ CREATE INDEX index_document_exports_on_user_id ON public.document_exports USING 
 
 
 --
--- Name: index_eccovia_assessments_on_client_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_eccovia_assessments_on_client_id ON public.eccovia_assessments USING btree (client_id);
-
-
---
 -- Name: index_eccovia_assessments_on_data_source_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -39780,24 +39776,10 @@ CREATE INDEX index_eccovia_assessments_on_data_source_id ON public.eccovia_asses
 
 
 --
--- Name: index_eccovia_case_managers_on_client_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_eccovia_case_managers_on_client_id ON public.eccovia_case_managers USING btree (client_id);
-
-
---
 -- Name: index_eccovia_case_managers_on_data_source_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_eccovia_case_managers_on_data_source_id ON public.eccovia_case_managers USING btree (data_source_id);
-
-
---
--- Name: index_eccovia_client_contacts_on_client_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_eccovia_client_contacts_on_client_id ON public.eccovia_client_contacts USING btree (client_id);
 
 
 --

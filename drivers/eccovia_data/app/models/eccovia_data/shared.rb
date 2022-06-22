@@ -20,5 +20,9 @@ module EccoviaData::Shared
     def self.quote(ids)
       ids.map { |id| connection.quote(id) }.join(', ')
     end
+
+    def self.max_fetch_time
+      maximum(:last_fetched_at)
+    end
   end
 end
