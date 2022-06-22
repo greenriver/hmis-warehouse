@@ -13,7 +13,7 @@ module EccoviaData::Shared
     end
 
     def self.users(ids, credentials:)
-      query = "crql?q=SELECT UserID, CellPhone, OfficePhone, Email FROM osUsers where UserID in (#{quote(ids)})"
+      query = "crql?q=SELECT UserID, CellPhone, OfficePhone, Email, UserName FROM osUsers where UserID in (#{quote(ids)})"
       credentials.get_all(query)
     end
 
