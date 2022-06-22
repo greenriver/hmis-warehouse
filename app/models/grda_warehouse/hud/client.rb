@@ -1766,7 +1766,7 @@ module GrdaWarehouse::Hud
     end
 
     def confidential_project_ids
-      @confidential_project_ids ||= Rails.cache.fetch('confidential_project_ids', expires_in: 5.minutes) do
+      @confidential_project_ids ||= Rails.cache.fetch('confidential_project_ids', expires_in: 2.minutes) do
         GrdaWarehouse::Hud::Project.confidential.pluck(:ProjectID, :data_source_id)
       end
     end
