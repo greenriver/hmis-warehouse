@@ -122,7 +122,7 @@ module ClientAccessControl::GrdaWarehouse::Hud
           total_enrollment_count = en_scope.joins(:project, :source_client, :enrollment).count
           en_scope = en_scope.joins(:enrollment).merge(::GrdaWarehouse::Hud::Enrollment.visible_to(user)) unless user == User.setup_system_user
           enrollments = en_scope.joins(:project, :source_client, :enrollment).
-            includes(:project, :organization, :source_client, enrollment: [:enrollment_cocs, :exit]).
+            includes(:organization, :source_client, project: :project_cocs, enrollment: [:enrollment_cocs, :exit]).
             order(first_date_in_program: :desc)
           visible_enrollment_count = enrollments.count
           enrollments.map do |entry|
@@ -134,7 +134,7 @@ module ClientAccessControl::GrdaWarehouse::Hud
             else
               cocs = ''
               if ::GrdaWarehouse::Config.get(:expose_coc_code)
-                cocs = entry.enrollment&.enrollment_cocs&.map(&:CoCCode)&.uniq&.join(', ')
+                cocs = project.project_cocs&.pluck(GrdaWarehouse::Hud::ProjectCoc.coc_code_coalesce)&.reject(&:blank?)&.uniq&.join(', ')
                 cocs = " (#{cocs})" if cocs.present?
               end
               "#{entry.project_name} < #{organization.OrganizationName} #{cocs}"
