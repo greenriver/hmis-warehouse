@@ -2756,7 +2756,7 @@ ALTER SEQUENCE public.health_files_id_seq OWNED BY public.health_files.id;
 
 CREATE TABLE public.health_flexible_service_follow_ups (
     id bigint NOT NULL,
-    patient_id bigint NOT NULL,
+    patient_id bigint,
     user_id bigint NOT NULL,
     completed_on date,
     first_name character varying,
@@ -7552,6 +7552,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220428191717'),
 ('20220428192510'),
 ('20220616173636'),
-('20220616195501');
+('20220616195501'),
+('20220623172328');
 
 

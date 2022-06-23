@@ -2473,12 +2473,15 @@ module GrdaWarehouse::Hud
     end
 
     private def health_dependent_items
-      [
+      items = [
         Health::Patient,
         Health::HealthFile,
         Health::Tracing::Case,
         Health::Vaccination,
       ]
+      items << HealthFlexibleService::Vpr if RailsDrivers.loaded.include?(:health_flexible_service)
+
+      items
     end
 
     def force_full_service_history_rebuild

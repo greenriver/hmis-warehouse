@@ -23,7 +23,7 @@ module HealthFlexibleService
       self.first_name = client.FirstName
       self.middle_name = client.MiddleName
       self.last_name = client.LastName
-      self.dob = client.DOB
+      self.dob = client.patient&.birthdate.presence || client.DOB
       self.delivery_first_name = user.first_name
       self.delivery_last_name = user.last_name
       self.delivery_organization = user.agency&.name

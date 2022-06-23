@@ -11,7 +11,11 @@
             .c-detail-block__title
               DOB
             .c-detail-block__value
-              = "#{client.DOB} (#{client.age})"
+              - if client.patient.present?
+                - patient = client.patient
+                = "#{patient.birthdate} (#{patient.age(on_date: Date.current)})"
+              - else
+                = "#{client.DOB} (#{client.age})"
       .col-md-12.col-lg-9
         .row.align-items-stretch.justify-content-end.row--internal
           .col-md-4.card-wrapper

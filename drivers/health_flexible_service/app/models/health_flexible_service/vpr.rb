@@ -48,7 +48,7 @@ module HealthFlexibleService
       self.middle_name = client.MiddleName
       self.last_name = client.LastName
       self.medicaid_id = patient&.medicaid_id
-      self.dob = client.DOB
+      self.dob = patient&.birthdate.presence || client.DOB
       self.contact_type = :member
       self.phone = patient&.most_recent_phone
       self.email = patient&.email
