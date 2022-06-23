@@ -51,7 +51,7 @@ echo "Using ASSET_CHECKSUM [${ASSET_CHECKSUM}]"
 echo 'Pulling down the compiled assets...' # Using ASSETS_PREFIX from .env and ASSET_CHECKSUM from above.
 cd ./public/assets
 
-if [ "$CONTAINER_VARIANT"="deploy" ]; then
+if [ "$CONTAINER_VARIANT" == "deploy" ]; then
   bundle exec ../../bin/wait_for_compiled_assets.rb
 fi
 
