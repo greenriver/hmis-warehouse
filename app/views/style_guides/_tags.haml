@@ -40,3 +40,10 @@
     = tagged(true, 'warning', title: 'Status', label: 'Parked', icon: 'clock-o')
   .d-flex.mr-3
     = tagged(true, 'danger', title: 'Status', label: 'Pre-empted', icon: 'cross')
+.mt-8.d-flex.flex-column
+  - (1..14).each do |id|
+    - next if id == 5
+    .mt-3.ml-6
+      .enrollment__project_type{class: "client__service_type_#{id}"}
+        .service-type__program-type{data: {toggle: :tooltip, title: HUD.project_type(id)}}
+          = HUD.project_type_brief(id)
