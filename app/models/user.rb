@@ -386,6 +386,10 @@ class User < ApplicationRecord
     viewable GrdaWarehouse::ProjectGroup
   end
 
+  def project_access_groups
+    viewable GrdaWarehouse::ProjectAccessGroup
+  end
+
   def associated_by(associations:)
     return [] unless associations.present?
 
@@ -410,6 +414,13 @@ class User < ApplicationRecord
           [
             ds.name,
             ds.projects.map(&:ProjectName),
+          ]
+        end
+      when :project_access_group
+        project_access_groups.preload(:projects).map do |pag|
+          [
+            pag.name,
+            pag.projects.map(&:ProjectName),
           ]
         end
       else
@@ -535,6 +546,7 @@ class User < ApplicationRecord
         data_sources: GrdaWarehouse::DataSource,
         organizations: GrdaWarehouse::Hud::Organization,
         projects: GrdaWarehouse::Hud::Project,
+        project_access_groups: GrdaWarehouse::ProjectAccessGroup,
         reports: GrdaWarehouse::WarehouseReports::ReportDefinition,
         cohorts: GrdaWarehouse::Cohort,
         project_groups: GrdaWarehouse::ProjectGroup,
@@ -629,14 +641,21 @@ class User < ApplicationRecord
       access_groups.general.each do |group|
         groups << [
           group.name,
-          group.data_sources.map(&:projects).flatten.map(&:name).select(&:presence).compact,
+          group.data_sources.flat_map(&:projects).map(&:name).select(&:presence).compact,
         ]
       end
       # indirectly inherited projects from organizations
       access_groups.general.each do |group|
         groups << [
           group.name,
-          group.organizations.map(&:projects).flatten.map(&:name).select(&:presence).compact,
+          group.organizations.flat_map(&:projects).map(&:name).select(&:presence).compact,
+        ]
+      end
+      # indirectly inherited projects from project_access_groups
+      access_groups.general.each do |group|
+        groups << [
+          group.name,
+          group.project_access_groups.flat_map(&:projects).map(&:name).select(&:presence).compact,
         ]
       end
       # indirectly inherited projects from coc_codes

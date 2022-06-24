@@ -181,6 +181,10 @@ module GrdaWarehouse
       ]
     end
 
+    def effective_project_ids
+      filter.effective_project_ids
+    end
+
     def project_ids
       filter.project_ids
     end

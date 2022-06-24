@@ -176,6 +176,7 @@ module Admin
         data_sources: [],
         organizations: [],
         projects: [],
+        project_access_groups: [],
         reports: [],
         cohorts: [],
         project_groups: [],

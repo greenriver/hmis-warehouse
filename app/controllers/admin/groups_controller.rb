@@ -61,6 +61,7 @@ module Admin
         data_sources: [],
         organizations: [],
         projects: [],
+        project_access_groups: [],
         reports: [],
         cohorts: [],
         project_groups: [],
@@ -113,6 +114,20 @@ module Admin
         input_html: {
           class: 'jUserViewable jProjects',
           name: 'access_group[projects][]',
+        },
+      }
+
+      @project_access_groups = {
+        selected: @group&.project_access_groups&.map(&:id) || [],
+        collection: GrdaWarehouse::ProjectAccessGroup.
+          order(:name).
+          pluck(:name, :id),
+        id: :project_access_groups,
+        placeholder: 'Project Group',
+        multiple: true,
+        input_html: {
+          class: 'jUserViewable jProjectAccessGroups',
+          name: 'access_group[project_access_groups][]',
         },
       }
 
