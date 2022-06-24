@@ -29,7 +29,7 @@ module HudDataQualityReport::Generators::Fy2022
       metadata = {
         header_row: [
           'Data Element',
-          'Client Doesn’t Know/Refused',
+          'Client Doesn\’t Know/Refused',
           'Information Missing',
           'Data Issues',
           'Total',
