@@ -370,6 +370,8 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     # Check that the expected number of files arrived within a 24 hour window, otherwise we might be looking
     # at two partial runs
     # If we only expect one file, then first and last will be the same and time_diff will be 0.0
+    return nil if most_recent_upload.blank? || previously_completed_upload.blank?
+
     time_diff = most_recent_upload.completed_at - previously_completed_upload.completed_at
     return most_recent_upload.completed_at unless time_diff < 24.hours.to_i
     return nil if most_recent_upload.completed_at > 48.hours.ago
