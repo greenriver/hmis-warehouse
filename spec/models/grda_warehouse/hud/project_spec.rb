@@ -40,6 +40,8 @@ RSpec.describe model, type: :model do
   let!(:pc5) { create :hud_project_coc, data_source_id: ds2.id, ProjectID: p7.ProjectID, CoCCode: 'foo', hud_coc_code: 'bar' }
   let!(:pc6) { create :hud_project_coc, data_source_id: ds2.id, ProjectID: p8.ProjectID, hud_coc_code: 'bar' }
 
+  let!(:pg1) { create :project_access_group, projects: [p1] }
+
   u = ->(user) { model.viewable_by(user).pluck(:id).sort }
   p = ->(*projects) { projects.map(&:id).sort }
 
@@ -118,6 +120,21 @@ RSpec.describe model, type: :model do
         end
         it 'sees p7 and p8' do
           expect(u[user]).to eq p[p7, p8]
+        end
+      end
+
+      describe 'user given project access group' do
+        before do
+          user.add_viewable(pg1)
+          user.save
+        end
+        after do
+          user.coc_codes = []
+          user.save
+        end
+        it 'sees p1 but not p2' do
+          expect(u[user]).to eq p[p1]
+          expect(u[user]).to_not include p2
         end
       end
     end
