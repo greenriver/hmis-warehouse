@@ -34,6 +34,11 @@ module HudDataQualityReport::Generators::Fy2022
         approximate_move_in_dates = {}
         enrollments_by_client_id.each do |_, enrollments|
           last_service_history_enrollment = enrollments.last
+          enrollment = last_service_history_enrollment.enrollment
+          source_client = enrollment.client
+          client_start_date = [@report.start_date, last_service_history_enrollment.first_date_in_program].max
+          age = source_client.age_on(client_start_date)
+
           hh_id = get_hh_id(last_service_history_enrollment)
           date = [
             @report.start_date,
@@ -42,7 +47,7 @@ module HudDataQualityReport::Generators::Fy2022
           household_types[hh_id] = household_makeup(hh_id, date)
           times_to_move_in[last_service_history_enrollment.client_id] = time_to_move_in(last_service_history_enrollment)
           move_in_dates[last_service_history_enrollment.client_id] = appropriate_move_in_date(last_service_history_enrollment)
-          approximate_move_in_dates[last_service_history_enrollment.client_id] = approximate_time_to_move_in(last_service_history_enrollment)
+          approximate_move_in_dates[last_service_history_enrollment.client_id] = approximate_time_to_move_in(last_service_history_enrollment, age)
         end
 
         pending_associations = {}
