@@ -99,7 +99,7 @@ module HudReports::LengthOfStays
       # DateToStreetESSH needs to be pulled from HoH if not available on client
       # This applies to any household member whose age is <= 17 (calculated according to the HMIS Reporting Glossary), regardless of their relationship to the head of household, but not clients of unknown age.
       date_to_street = if reporting_age.present? && reporting_age <= 17
-        hoh_date_to_street_dates[enrollment[:head_of_household]]
+        hoh_date_to_street_dates[enrollment[:head_of_household_id]]
       else
         enrollment.enrollment.DateToStreetESSH
       end
@@ -114,7 +114,7 @@ module HudReports::LengthOfStays
       move_in_date = enrollment.move_in_date
       return move_in_date if move_in_date.present?
 
-      hoh_move_in_date = hoh_entry_dates[enrollment[:head_of_household]]
+      hoh_move_in_date = hoh_entry_dates[enrollment[:head_of_household_id]]
       return nil unless hoh_move_in_date.present?
       return hoh_move_in_date if enrollment.first_date_in_program < hoh_move_in_date
 
