@@ -16126,7 +16126,8 @@ CREATE TABLE public.project_scorecard_reports (
     special_population_only character varying,
     project_less_than_two boolean,
     geographic_location character varying,
-    apr_id bigint
+    apr_id bigint,
+    spm_id integer
 );
 
 
@@ -48335,6 +48336,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220601122623'),
 ('20220604181405'),
 ('20220607155407'),
-('20220610173543');
+('20220610173543'),
+('20220628162723');
 
 
