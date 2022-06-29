@@ -10,49 +10,58 @@
     %p #{ds_name} is currently set to prevent imports from loading if they contain any errors.  This import contained at least one error, which you can review below.  If the errors are unacceptable, fix them in the HMIS CSV files and re-upload.
 .row
   .col
-    %table.table
-      %tbody
-        %tr
-          %th Imported On
-          %td= @import.created_at
-        %tr
-          %th Loaded
-          %td= @import&.loader_log&.load_time
-        - import_time = @import&.importer_log&.import_time
-        - if import_time
+    .card.mb-4
+      %table.table.table-striped
+        %tbody
           %tr
-            %th Imported
-            %td= import_time
-        %tr
-          %th Completed In
-          %td
-            = status
-            - if @import.importer_log&.paused?
-              = link_to hmis_csv_importer_importer_restart_path(@import), class: 'ml-4 btn btn-primary btn-sm', method: :put do
-                %i.icon-enter
-                Resume Import
-        %tr
-          %th Files Found
-          %td
-            = link_to_if @import&.upload&.content.present?, "#{@import.files.try(:count)} in #{@import.upload.file.to_s.split('/').last}", download_import_path(@import)
+            %th Imported On
+            %td= @import.created_at
+          %tr
+            %th Loaded
+            %td= @import&.loader_log&.load_time
+          - import_time = @import&.importer_log&.import_time
+          - if import_time
+            %tr
+              %th Imported
+              %td= import_time
+          %tr
+            %th Completed In
+            %td
+              = status
+              - if @import.importer_log&.paused?
+                = link_to hmis_csv_importer_importer_restart_path(@import), class: 'ml-4 btn btn-primary btn-sm', method: :put do
+                  %i.icon-enter
+                  Resume Import
+          %tr
+            %th Files Found
+            %td
+              #{@import.files.try(:count)} in #{@import.upload.file.to_s.split('/').last}
+              .mt-4
+                - if @import&.upload&.content.present?
+                  = link_to download_import_path(@import), class: 'btn btn-sm btn-secondary' do
+                    %i.icon-download2
+                    Download Original
+                - if @import.importer_log&.any_errors_or_validations?
+                  = link_to hmis_csv_importer_importer_errors_path(@import, format: :xlsx), class: 'btn btn-sm btn-secondary ml-4' do
+                    %i.icon-download2
+                    Download Error Report
+
   .col
-    %table.table
-      %tbody
-        %tr
-          %th Loader Log ID
-          %td= @import&.loader_log_id
-        %tr
-          %th Upload ID
-          %td= @import&.upload_id
-        %tr
-          %th Import Log ID
-          %td= @import.id
-        %tr
-          %th Importer Log ID
-          %td= @import&.importer_log_id
-
-
-
+    .card.mb-4
+      %table.table.table-striped
+        %tbody
+          %tr
+            %th Loader Log ID
+            %td= @import&.loader_log_id
+          %tr
+            %th Upload ID
+            %td= @import&.upload_id
+          %tr
+            %th Import Log ID
+            %td= @import.id
+          %tr
+            %th Importer Log ID
+            %td= @import&.importer_log_id
 
 - if @import.loader_log.present?
   %h3 Loader Summary
