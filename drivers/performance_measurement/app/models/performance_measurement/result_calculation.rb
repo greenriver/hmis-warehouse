@@ -498,7 +498,6 @@ module PerformanceMeasurement::ResultCalculation
       )
     end
 
-    # FIXME
     def time_to_move_in_average(detail, project: nil)
       return unless project.blank? || project.hud_project&.ph?
 
@@ -561,7 +560,6 @@ module PerformanceMeasurement::ResultCalculation
         goal_progress: progress[:progress],
       )
     end
-    # END FIXME
 
     # Summary calculation only
     def retention_or_positive_destinations(detail, project: nil)

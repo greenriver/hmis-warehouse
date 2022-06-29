@@ -549,7 +549,6 @@ module PerformanceMeasurement::Details
             'days_in_th_bed_details_in_period',
           ],
         },
-        # FIXME
         time_to_move_in_average: {
           category: 'Brief',
           sub_category: 'Time',
@@ -580,7 +579,6 @@ module PerformanceMeasurement::Details
             'days_homeless_before_move_in',
           ],
         },
-        # END FIXME
         retention_or_positive_destinations: {
           category: 'Non-Recurring',
           sub_category: 'Destination',
