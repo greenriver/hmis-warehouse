@@ -7,13 +7,15 @@
         - row = @report.detail_hash[key]
         - if idx.zero?
           %h2{ class: class_name }= "#{row[:category]}: #{row[:sub_category]}"
+
         .card.mb-2.pb-0.page-break-avoid
           .p-4
             = render 'row', key: key, row: row, pdf: pdf
           - if sub_keys.present?
             - content_for "panel_collapse_content_#{sub_keys.first}".to_sym do
               - sub_keys.each.with_index do |key, idx|
-                - row = @report.detail_hash[key]
-                .ml-2.mt-4.border-bottom
-                  = render 'row', key: key, row: row, pdf: pdf
-            = render 'common/panel_collapse', id: sub_keys.first.to_s, title: 'Breakdowns', content: "_#{sub_keys.first}", panel_body_padded: 'n', wrapper_class: 'mb-0 no-border-radius-top', default_open: pdf ? 'yes' : 'no', allow_toggle: pdf ? 'no' : 'yes'
+                - if @report.show_row?(key)
+                  - row = @report.detail_hash[key]
+                  .pl-2.mt-4.border-bottom
+                    = render 'row', key: key, row: row, pdf: pdf
+            = render 'common/panel_collapse', id: sub_keys.first.to_s, title: 'Breakdowns', content: "_#{sub_keys.first}", panel_body_padded: 'n', wrapper_class: 'mb-0 performance-measurement__collapsiblePanel', default_open: pdf ? 'yes' : 'no', allow_toggle: pdf ? 'no' : 'yes'

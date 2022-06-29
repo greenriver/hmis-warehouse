@@ -7,11 +7,14 @@
         .col-sm-3
           = f.input :end, as: :date_picker
         .col-sm-6
-          = f.input :project_ids, label: 'Projects', collection: available_locations, input_html: { multiple: :multiple }, hint: 'Clients will be limited to those with service at chosen projects since the start date.', as: :select_two
+          = f.input :project_ids, label: 'Projects', collection: @filter.project_options_for_select(user: current_user), input_html: { multiple: :multiple }, as: :grouped_select_two, group_method: :last
       - if sort_options.count > 1
         .row
           .col-sm-3
             = f.input :sort, collection: sort_options.invert, include_blank: false, as: :select_two
+      .row
+        .col-sm-12
+          Clients will be limited to those with service at chosen projects since the start date.
     - content_for :filter_actions do
       = f.button :submit, value: 'Update View'
 

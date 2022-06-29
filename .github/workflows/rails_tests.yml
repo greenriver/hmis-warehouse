@@ -22,7 +22,7 @@ jobs:
 
     # Docker Hub image that the job executes in
     # $RUBY_VERSION
-    container: ruby:2.7.6-alpine
+    container: ruby:2.7.6-alpine3.15
 
     # Service containers to run with job
     services:
@@ -83,7 +83,7 @@ jobs:
           echo "postgres:5432:*:postgres:postgres" > ~/.pgpass
           chmod 600 ~/.pgpass
 
-          npm install
+          yarn install
           gem install bundler --version=2.3.8
 
       - name: Install gems

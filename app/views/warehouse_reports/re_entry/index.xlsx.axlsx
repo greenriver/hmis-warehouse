@@ -29,7 +29,7 @@ wb.add_worksheet(name: "First Time Homeless #{GrdaWarehouse::WarehouseReports::D
       HUD.no_yes_reasons_for_missing_data(client.VeteranStatus),
       enrollment.first_date_in_program,
       HUD.project_type(enrollment.computed_project_type),
-      project.name(include_confidential_names: current_user.can_view_confidential_enrollment_details?),
+      project.name(current_user),
       project.organization_name(current_user),
       re_entry.days_since_last_exit,
       HUD.project_type(re_entry.prior_exit_project_type),

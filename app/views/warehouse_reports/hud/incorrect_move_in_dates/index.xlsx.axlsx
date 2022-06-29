@@ -22,7 +22,7 @@ wb.add_worksheet(name: 'Incorrect Move-in Dates') do |sheet|
       c.PersonalID,
       c.FirstName,
       c.LastName,
-      project.name,
+      project.name(current_user),
       en.EntryDate,
       en.MoveInDate,
       en.exit&.ExitDate,

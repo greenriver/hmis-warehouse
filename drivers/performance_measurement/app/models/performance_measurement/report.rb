@@ -187,6 +187,7 @@ module PerformanceMeasurement
 
     private def create_universe
       clients.delete_all
+      projects.delete_all
       report_clients = {}
       add_clients(report_clients)
     end
@@ -839,13 +840,13 @@ module PerformanceMeasurement
               }
             },
             ->(spm_client, project_id, variant_name) {
-              return unless spm_client[:m2_reentry_days].present? && spm_client[:m2_reentry_days].positive?
+              return unless spm_client[:m2_exit_to_destination].present? && HudSpmReport::Generators::Fy2020::Base::PERMANENT_DESTINATIONS.include?(spm_client[:m2_exit_to_destination])
 
               {
                 report_id: id,
                 client_id: spm_client[:client_id],
                 project_id: project_id,
-                for_question: :returned_ever,
+                for_question: :exited_to_permanent_destination,
                 period: variant_name,
               }
             },

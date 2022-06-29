@@ -15,7 +15,7 @@ module WarehouseReports
     # `run_and_save!` should run whatever calculations are necessary and save the results
     # `url` must provide a link to the individual report
     def perform(user_id:, report_class:, report_id:)
-      klass = whitelisted_reports[report_class]
+      klass = allowed_reports[report_class]
       if klass
         report = klass.find(report_id)
         report.run_and_save!
@@ -23,12 +23,12 @@ module WarehouseReports
         NotifyUser.report_completed(user_id, report).deliver_later
       else
         setup_notifier('Generic Report Runner')
-        msg = "Unable to run report, #{report_class} is not included in the white list."
+        msg = "Unable to run report, #{report_class} is not included in the allowed list of reports."
         @notifier.ping(msg) if @send_notifications
       end
     end
 
-    def whitelisted_reports
+    def allowed_reports
       reports = {
         'GrdaWarehouse::WarehouseReports::Youth::Export' => ::GrdaWarehouse::WarehouseReports::Youth::Export,
         'Health::SsmExport' => ::Health::SsmExport,
@@ -59,6 +59,8 @@ module WarehouseReports
       reports['PerformanceMetrics::Report'] = PerformanceMetrics::Report if RailsDrivers.loaded.include?(:performance_metrics)
       reports['HomelessSummaryReport::Report'] = HomelessSummaryReport::Report if RailsDrivers.loaded.include?(:homeless_summary_report)
       reports['PerformanceMeasurement::Report'] = PerformanceMeasurement::Report if RailsDrivers.loaded.include?(:performance_measurement)
+      reports['LongitudinalSpm::Report'] = LongitudinalSpm::Report if RailsDrivers.loaded.include?(:longitudinal_spm)
+      reports['TxClientReports::ResearchExport'] = TxClientReports::ResearchExport if RailsDrivers.loaded.include?(:tx_client_reports)
       reports
     end
   end

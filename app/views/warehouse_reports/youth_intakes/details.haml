@@ -1,4 +1,6 @@
 - title = "Homeless Youth Report #{@key.to_s.humanize}"
+- if @agency
+  - title = title + " at #{@agency}"
 - content_for :title, title
 = content_for :modal_title, title
 

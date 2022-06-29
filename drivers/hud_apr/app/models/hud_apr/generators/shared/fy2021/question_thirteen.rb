@@ -82,7 +82,7 @@ module HudApr::Generators::Shared::Fy2021
         '2 Conditions' => :two,
         '3+ Conditions' => :three,
         'Condition Unknown' => :unknown,
-        'Client Doesn’t Know/Client Refused' => :refused,
+        'Client Doesn\'t Know/Client Refused' => :refused,
         'Data Not Collected' => :not_collected,
         'Total' => :total,
       }

@@ -20,6 +20,4 @@
         = render 'background_render', url: render_section_core_demographics_report_warehouse_reports_core_index_path, fetch_params: {partial: section, filters: @filter.for_params[:filters] } do
           .rollup
             .rollup-container.well
-
-        - if Rails.env.development?
-          %p= link_to 'Section not loading?', section_core_demographics_report_warehouse_reports_core_index_path(partial: section, filters: @filter.for_params[:filters]), target: :_blank
+        = render 'common/section_not_loading', path_to_section: section_core_demographics_report_warehouse_reports_core_index_path(partial: section, filters: @filter.for_params[:filters])

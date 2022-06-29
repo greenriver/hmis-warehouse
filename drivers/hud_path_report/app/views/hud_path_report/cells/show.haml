@@ -34,5 +34,7 @@
                       = client[k]
                     %a{href: '#', class: ['btn', 'btn-sm'], data: { toggle: :popover, title: 'Client Information', url: api_client_path(client.client_id), html: 'true' }}
                       %i.icon-info
+                  - elsif k == 'contacts'
+                    = count_dates(client[k])
                   - else
                     = formatted_cell(client[k])

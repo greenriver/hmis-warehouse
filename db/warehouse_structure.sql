@@ -3866,6 +3866,148 @@ ALTER SEQUENCE public.ce_assessments_id_seq OWNED BY public.ce_assessments.id;
 
 
 --
+-- Name: ce_performance_ce_aprs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.ce_performance_ce_aprs (
+    id bigint NOT NULL,
+    report_id bigint NOT NULL,
+    ce_apr_id bigint NOT NULL,
+    start_date date,
+    end_date date,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: ce_performance_ce_aprs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.ce_performance_ce_aprs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: ce_performance_ce_aprs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.ce_performance_ce_aprs_id_seq OWNED BY public.ce_performance_ce_aprs.id;
+
+
+--
+-- Name: ce_performance_clients; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.ce_performance_clients (
+    id bigint NOT NULL,
+    client_id bigint,
+    report_id bigint,
+    ce_apr_id bigint,
+    first_name character varying,
+    last_name character varying,
+    reporting_age integer,
+    head_of_household boolean,
+    prior_living_situation integer,
+    los_under_threshold integer,
+    previous_street_essh integer,
+    prevention_tool_score integer,
+    assessment_score integer,
+    events jsonb,
+    assessments jsonb,
+    diversion_event boolean,
+    diversion_successful boolean,
+    veteran boolean,
+    household_size integer,
+    household_ages jsonb,
+    chronically_homeless_at_entry boolean,
+    entry_date date,
+    exit_date date,
+    initial_assessment_date date,
+    latest_assessment_date date,
+    initial_housing_referral_date date,
+    housing_enrollment_entry_date date,
+    housing_enrollment_move_in_date date,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    ce_apr_client_id integer,
+    dob date,
+    move_in_date date,
+    period character varying,
+    household_type character varying,
+    days_before_assessment integer,
+    days_on_list integer,
+    days_in_project integer,
+    days_between_referral_and_housing integer,
+    q5a_b1 boolean DEFAULT false,
+    deleted_at timestamp without time zone,
+    assessment_type character varying
+);
+
+
+--
+-- Name: ce_performance_clients_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.ce_performance_clients_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: ce_performance_clients_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.ce_performance_clients_id_seq OWNED BY public.ce_performance_clients.id;
+
+
+--
+-- Name: ce_performance_results; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.ce_performance_results (
+    id bigint NOT NULL,
+    report_id bigint,
+    value double precision,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    type character varying,
+    period character varying,
+    numerator integer,
+    denominator integer,
+    deleted_at timestamp without time zone,
+    event_type integer
+);
+
+
+--
+-- Name: ce_performance_results_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.ce_performance_results_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: ce_performance_results_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.ce_performance_results_id_seq OWNED BY public.ce_performance_results.id;
+
+
+--
 -- Name: census_by_project_types; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -5118,7 +5260,8 @@ CREATE TABLE public.configs (
     cas_sync_project_group_id integer,
     majority_sheltered_calculation character varying DEFAULT 'current_living_situation'::character varying,
     system_cohort_processing_date date,
-    system_cohort_date_window integer DEFAULT 1
+    system_cohort_date_window integer DEFAULT 1,
+    roi_model character varying DEFAULT 'explicit'::character varying
 );
 
 
@@ -13250,7 +13393,9 @@ CREATE TABLE public.hud_report_apr_clients (
     ce_event_referral_result integer,
     gender_multi character varying,
     bed_nights integer,
-    pit_enrollments jsonb DEFAULT '[]'::jsonb
+    pit_enrollments jsonb DEFAULT '[]'::jsonb,
+    source_enrollment_id integer,
+    los_under_threshold integer
 );
 
 
@@ -14469,6 +14614,117 @@ CREATE SEQUENCE public.lftp_s3_syncs_id_seq
 --
 
 ALTER SEQUENCE public.lftp_s3_syncs_id_seq OWNED BY public.lftp_s3_syncs.id;
+
+
+--
+-- Name: longitudinal_spm_results; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.longitudinal_spm_results (
+    id bigint NOT NULL,
+    report_id bigint NOT NULL,
+    spm_id bigint NOT NULL,
+    start_date date,
+    end_date date,
+    measure character varying,
+    "table" character varying,
+    cell character varying,
+    value double precision,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: longitudinal_spm_results_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.longitudinal_spm_results_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: longitudinal_spm_results_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.longitudinal_spm_results_id_seq OWNED BY public.longitudinal_spm_results.id;
+
+
+--
+-- Name: longitudinal_spm_spms; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.longitudinal_spm_spms (
+    id bigint NOT NULL,
+    report_id bigint NOT NULL,
+    spm_id bigint NOT NULL,
+    start_date date,
+    end_date date,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: longitudinal_spm_spms_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.longitudinal_spm_spms_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: longitudinal_spm_spms_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.longitudinal_spm_spms_id_seq OWNED BY public.longitudinal_spm_spms.id;
+
+
+--
+-- Name: longitudinal_spms; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.longitudinal_spms (
+    id bigint NOT NULL,
+    user_id bigint,
+    options jsonb,
+    processing_errors character varying,
+    started_at timestamp without time zone,
+    completed_at timestamp without time zone,
+    failed_at timestamp without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: longitudinal_spms_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.longitudinal_spms_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: longitudinal_spms_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.longitudinal_spms_id_seq OWNED BY public.longitudinal_spms.id;
 
 
 --
@@ -16388,6 +16644,94 @@ CREATE SEQUENCE public.recurring_hmis_exports_id_seq
 --
 
 ALTER SEQUENCE public.recurring_hmis_exports_id_seq OWNED BY public.recurring_hmis_exports.id;
+
+
+--
+-- Name: remote_configs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.remote_configs (
+    id bigint NOT NULL,
+    type character varying NOT NULL,
+    remote_credential_id bigint,
+    active boolean DEFAULT false,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: remote_configs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.remote_configs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: remote_configs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.remote_configs_id_seq OWNED BY public.remote_configs.id;
+
+
+--
+-- Name: remote_credentials; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.remote_credentials (
+    id bigint NOT NULL,
+    type character varying NOT NULL,
+    active boolean DEFAULT false,
+    username character varying NOT NULL,
+    encrypted_password character varying NOT NULL,
+    encrypted_password_iv character varying,
+    region character varying,
+    bucket character varying,
+    path character varying,
+    endpoint character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: COLUMN remote_credentials.username; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.remote_credentials.username IS 'username or equivalent eg. s3_access_key_id';
+
+
+--
+-- Name: COLUMN remote_credentials.encrypted_password; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.remote_credentials.encrypted_password IS 'password or equivalent eg. s3_secret_access_key';
+
+
+--
+-- Name: remote_credentials_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.remote_credentials_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: remote_credentials_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.remote_credentials_id_seq OWNED BY public.remote_credentials.id;
 
 
 --
@@ -18341,6 +18685,44 @@ CREATE VIEW public.todd_stats AS
 
 
 --
+-- Name: tx_research_exports; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.tx_research_exports (
+    id bigint NOT NULL,
+    user_id bigint,
+    export_id bigint,
+    options jsonb DEFAULT '{}'::jsonb,
+    started_at timestamp without time zone,
+    completed_at timestamp without time zone,
+    failed_at timestamp without time zone,
+    processing_errors text,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: tx_research_exports_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.tx_research_exports_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: tx_research_exports_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.tx_research_exports_id_seq OWNED BY public.tx_research_exports.id;
+
+
+--
 -- Name: uploads; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -19432,6 +19814,27 @@ ALTER TABLE ONLY public.cas_vacancies ALTER COLUMN id SET DEFAULT nextval('publi
 --
 
 ALTER TABLE ONLY public.ce_assessments ALTER COLUMN id SET DEFAULT nextval('public.ce_assessments_id_seq'::regclass);
+
+
+--
+-- Name: ce_performance_ce_aprs id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ce_performance_ce_aprs ALTER COLUMN id SET DEFAULT nextval('public.ce_performance_ce_aprs_id_seq'::regclass);
+
+
+--
+-- Name: ce_performance_clients id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ce_performance_clients ALTER COLUMN id SET DEFAULT nextval('public.ce_performance_clients_id_seq'::regclass);
+
+
+--
+-- Name: ce_performance_results id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ce_performance_results ALTER COLUMN id SET DEFAULT nextval('public.ce_performance_results_id_seq'::regclass);
 
 
 --
@@ -20814,6 +21217,27 @@ ALTER TABLE ONLY public.lftp_s3_syncs ALTER COLUMN id SET DEFAULT nextval('publi
 
 
 --
+-- Name: longitudinal_spm_results id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.longitudinal_spm_results ALTER COLUMN id SET DEFAULT nextval('public.longitudinal_spm_results_id_seq'::regclass);
+
+
+--
+-- Name: longitudinal_spm_spms id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.longitudinal_spm_spms ALTER COLUMN id SET DEFAULT nextval('public.longitudinal_spm_spms_id_seq'::regclass);
+
+
+--
+-- Name: longitudinal_spms id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.longitudinal_spms ALTER COLUMN id SET DEFAULT nextval('public.longitudinal_spms_id_seq'::regclass);
+
+
+--
 -- Name: lookups_ethnicities id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -21042,6 +21466,20 @@ ALTER TABLE ONLY public.recurring_hmis_export_links ALTER COLUMN id SET DEFAULT 
 --
 
 ALTER TABLE ONLY public.recurring_hmis_exports ALTER COLUMN id SET DEFAULT nextval('public.recurring_hmis_exports_id_seq'::regclass);
+
+
+--
+-- Name: remote_configs id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.remote_configs ALTER COLUMN id SET DEFAULT nextval('public.remote_configs_id_seq'::regclass);
+
+
+--
+-- Name: remote_credentials id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.remote_credentials ALTER COLUMN id SET DEFAULT nextval('public.remote_credentials_id_seq'::regclass);
 
 
 --
@@ -21584,6 +22022,13 @@ ALTER TABLE ONLY public.text_message_topics ALTER COLUMN id SET DEFAULT nextval(
 
 
 --
+-- Name: tx_research_exports id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tx_research_exports ALTER COLUMN id SET DEFAULT nextval('public.tx_research_exports_id_seq'::regclass);
+
+
+--
 -- Name: uploads id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -22060,6 +22505,30 @@ ALTER TABLE ONLY public.cas_vacancies
 
 ALTER TABLE ONLY public.ce_assessments
     ADD CONSTRAINT ce_assessments_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: ce_performance_ce_aprs ce_performance_ce_aprs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ce_performance_ce_aprs
+    ADD CONSTRAINT ce_performance_ce_aprs_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: ce_performance_clients ce_performance_clients_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ce_performance_clients
+    ADD CONSTRAINT ce_performance_clients_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: ce_performance_results ce_performance_results_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ce_performance_results
+    ADD CONSTRAINT ce_performance_results_pkey PRIMARY KEY (id);
 
 
 --
@@ -23639,6 +24108,30 @@ ALTER TABLE ONLY public.lftp_s3_syncs
 
 
 --
+-- Name: longitudinal_spm_results longitudinal_spm_results_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.longitudinal_spm_results
+    ADD CONSTRAINT longitudinal_spm_results_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: longitudinal_spm_spms longitudinal_spm_spms_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.longitudinal_spm_spms
+    ADD CONSTRAINT longitudinal_spm_spms_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: longitudinal_spms longitudinal_spms_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.longitudinal_spms
+    ADD CONSTRAINT longitudinal_spms_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: lookups_ethnicities lookups_ethnicities_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -23903,6 +24396,22 @@ ALTER TABLE ONLY public.recurring_hmis_exports
 
 
 --
+-- Name: remote_configs remote_configs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.remote_configs
+    ADD CONSTRAINT remote_configs_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: remote_credentials remote_credentials_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.remote_credentials
+    ADD CONSTRAINT remote_credentials_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: report_definitions report_definitions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -24108,6 +24617,14 @@ ALTER TABLE ONLY public.text_message_topic_subscribers
 
 ALTER TABLE ONLY public.text_message_topics
     ADD CONSTRAINT text_message_topics_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: tx_research_exports tx_research_exports_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tx_research_exports
+    ADD CONSTRAINT tx_research_exports_pkey PRIMARY KEY (id);
 
 
 --
@@ -38478,6 +38995,48 @@ CREATE INDEX index_ce_assessments_on_user_id ON public.ce_assessments USING btre
 
 
 --
+-- Name: index_ce_performance_ce_aprs_on_ce_apr_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ce_performance_ce_aprs_on_ce_apr_id ON public.ce_performance_ce_aprs USING btree (ce_apr_id);
+
+
+--
+-- Name: index_ce_performance_ce_aprs_on_report_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ce_performance_ce_aprs_on_report_id ON public.ce_performance_ce_aprs USING btree (report_id);
+
+
+--
+-- Name: index_ce_performance_clients_on_ce_apr_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ce_performance_clients_on_ce_apr_id ON public.ce_performance_clients USING btree (ce_apr_id);
+
+
+--
+-- Name: index_ce_performance_clients_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ce_performance_clients_on_client_id ON public.ce_performance_clients USING btree (client_id);
+
+
+--
+-- Name: index_ce_performance_clients_on_report_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ce_performance_clients_on_report_id ON public.ce_performance_clients USING btree (report_id);
+
+
+--
+-- Name: index_ce_performance_results_on_report_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ce_performance_results_on_report_id ON public.ce_performance_results USING btree (report_id);
+
+
+--
 -- Name: index_census_groups_on_year_and_dataset_and_name; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -40557,6 +41116,41 @@ CREATE INDEX index_lftp_s3_syncs_on_updated_at ON public.lftp_s3_syncs USING btr
 
 
 --
+-- Name: index_longitudinal_spm_results_on_report_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_longitudinal_spm_results_on_report_id ON public.longitudinal_spm_results USING btree (report_id);
+
+
+--
+-- Name: index_longitudinal_spm_results_on_spm_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_longitudinal_spm_results_on_spm_id ON public.longitudinal_spm_results USING btree (spm_id);
+
+
+--
+-- Name: index_longitudinal_spm_spms_on_report_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_longitudinal_spm_spms_on_report_id ON public.longitudinal_spm_spms USING btree (report_id);
+
+
+--
+-- Name: index_longitudinal_spm_spms_on_spm_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_longitudinal_spm_spms_on_spm_id ON public.longitudinal_spm_spms USING btree (spm_id);
+
+
+--
+-- Name: index_longitudinal_spms_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_longitudinal_spms_on_user_id ON public.longitudinal_spms USING btree (user_id);
+
+
+--
 -- Name: index_lookups_ethnicities_on_value; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -40960,6 +41554,13 @@ CREATE UNIQUE INDEX index_recurring_hmis_exports_on_encrypted_s3_access_key_id_i
 --
 
 CREATE UNIQUE INDEX index_recurring_hmis_exports_on_encrypted_s3_secret_iv ON public.recurring_hmis_exports USING btree (encrypted_s3_secret_iv);
+
+
+--
+-- Name: index_remote_configs_on_remote_credential_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_remote_configs_on_remote_credential_id ON public.remote_configs USING btree (remote_credential_id);
 
 
 --
@@ -44582,6 +45183,20 @@ CREATE INDEX index_text_message_topics_on_updated_at ON public.text_message_topi
 
 
 --
+-- Name: index_tx_research_exports_on_export_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_tx_research_exports_on_export_id ON public.tx_research_exports USING btree (export_id);
+
+
+--
+-- Name: index_tx_research_exports_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_tx_research_exports_on_user_id ON public.tx_research_exports USING btree (user_id);
+
+
+--
 -- Name: index_universe_type_and_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -47710,6 +48325,16 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220415192223'),
 ('20220427144200'),
 ('20220511171233'),
-('20220512174700');
+('20220512174700'),
+('20220523123830'),
+('20220525125953'),
+('20220526203313'),
+('20220527144703'),
+('20220527144717'),
+('20220527191834'),
+('20220601122623'),
+('20220604181405'),
+('20220607155407'),
+('20220610173543');
 
 

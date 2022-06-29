@@ -347,21 +347,33 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     @unprocessed_enrollment_count ||= enrollments.unprocessed.joins(:project, :destination_client).count
   end
 
-  # Is the most-recent upload for this data source that was created by the system user
-  # more than 48 hours old and the data source setup to be auto imported?
-  # return the date of the most-recent import
+  # Have we received the expected number of files at least once over the past 48 hours?
+  # there is an assumption that within
+  # return the date of the most-recent fully successful import
   def stalled_since?(date)
     return nil unless date.present?
     return nil if import_paused
     return nil unless hmis_import_config&.active
 
-    user = User.setup_system_user
-    most_recent_upload = uploads.completed.
-      where(user_id: user.id).
+    # hmis_import_config.file_count is the expected number of uploads for a given day
+    # fetch the expected number, and confirm they all arrived within a 24 hour window
+    most_recent_uploads = uploads.completed.
+      # limit look back to 6 months to improve performance
+      where(user_id: User.system_user.id, completed_at: 6.months.ago.to_date..Date.current).
       order(created_at: :desc).
       select(:id, :data_source_id, :user_id, :completed_at).
-      first
-    return nil unless most_recent_upload
+      first(hmis_import_config.file_count)
+    return nil unless most_recent_uploads
+
+    most_recent_upload = most_recent_uploads.first
+    previously_completed_upload = most_recent_uploads.last
+    # Check that the expected number of files arrived within a 24 hour window, otherwise we might be looking
+    # at two partial runs
+    # If we only expect one file, then first and last will be the same and time_diff will be 0.0
+    return nil if most_recent_upload.blank? || previously_completed_upload.blank?
+
+    time_diff = most_recent_upload.completed_at - previously_completed_upload.completed_at
+    return most_recent_upload.completed_at unless time_diff < 24.hours.to_i
     return nil if most_recent_upload.completed_at > 48.hours.ago
 
     most_recent_upload.completed_at.to_date

@@ -26,7 +26,7 @@
           - project = en.project
           %tr
             %td= link_to_if can_view_clients?, client.name, appropriate_client_path(client)
-            %td= project.name
+            %td= project.name(current_user)
             %td= en.EntryDate
             %td= en.MoveInDate
             %td= en.exit&.ExitDate

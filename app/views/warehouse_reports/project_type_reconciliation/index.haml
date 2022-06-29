@@ -1,6 +1,6 @@
 - title = "Project Type Reconciliation"
 - content_for :title, title
-.row
+.row.mb-4
   .col-sm-8
     %h1= content_for(:title)
   .col-sm-4.text-right
@@ -28,4 +28,4 @@
           %td= HUD.project_type(project.ProjectType)
           %td= HUD.project_type(project.act_as_project_type)
 - else
-  %p All project types match.
+  .none-found All project types match.

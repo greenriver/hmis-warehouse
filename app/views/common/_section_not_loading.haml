@@ -1,0 +1,5 @@
+- checktime = if Rails.env.development? then 10000 else 30000 end
+%p.section-not-loading.hide= link_to 'Section not loading?', path_to_section, target: :_blank
+= content_for :page_js do
+  :javascript
+    new App.Rollups.Checker('#{path_to_section.html_safe}', #{checktime})

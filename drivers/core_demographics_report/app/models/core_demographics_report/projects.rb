@@ -13,7 +13,7 @@ module
         report_scope.distinct.pluck(p_t[:id]).each do |id|
           project = GrdaWarehouse::Hud::Project.joins(:organization).find(id)
           hashes["project_#{id}"] = {
-            title: project.organization_and_name(include_confidential_names: @filter.user.can_view_confidential_enrollment_details?),
+            title: project.organization_and_name(@filter.user),
             headers: client_headers,
             columns: client_columns,
             scope: -> { report_scope.joins(:client, :project).merge(GrdaWarehouse::Hud::Project.where(id: id)).distinct },
@@ -31,7 +31,7 @@ module
           [
             project.id,
             {
-              project_name: project.name(include_confidential_names: @filter.user.can_view_confidential_enrollment_details?),
+              project_name: project.name(@filter.user),
               organization_name: project.organization_name(@filter.user),
               project_type: HUD.project_type_brief(project.computed_project_type),
             },

@@ -11,20 +11,18 @@ module GrdaWarehouse::CasProjectClientCalculator
     # A hook/wrapper to enable easily overriding how we get data for a given project client column
     # To use this efficiently, you'll probably want to preload a handful of data, see push_clients_to_cas.rb
     def value_for_cas_project_client(client:, column:)
-      current_value = client.send(column)
-      # Return existing value if we don't have anything in the new format
-      return current_value unless client.most_recent_pathways_or_rrh_assessment_for_destination.present?
-
-      case column
-      when *boolean_lookups.keys
-        assessment_value = for_boolean(client, boolean_lookups[column])
-        return assessment_value unless assessment_value.nil?
-      when *pathways_questions
-        assessment_value = send(column, client)
-        return assessment_value unless assessment_value.nil?
+      if client.most_recent_pathways_or_rrh_assessment_for_destination.present?
+        current_value = case column
+        when *boolean_lookups.keys
+          for_boolean(client, boolean_lookups[column])
+        when *pathways_questions
+          send(column, client)
+        end
+        # by default, just attempt to fetch the data from the client
+        return current_value unless current_value.nil?
       end
-      # by default, just attempt to fetch the data from the client
-      current_value
+      # If calculator didn't return anything, ask the client for the answer
+      client.send(column)
     end
 
     private def boolean_lookups
@@ -64,6 +62,10 @@ module GrdaWarehouse::CasProjectClientCalculator
         :assessor_last_name,
         :assessor_email,
         :assessor_phone,
+        :cas_pregnancy_status,
+        :most_recent_vispdat_score,
+        :calculate_vispdat_priority_score,
+        :days_homeless_for_vispdat_prioritization,
       ]
     end
     # memoize :pathways_questions
@@ -205,16 +207,12 @@ module GrdaWarehouse::CasProjectClientCalculator
     private def max_current_total_monthly_income(client)
       amount = client.most_recent_pathways_or_rrh_assessment_for_destination.
         question_matching_requirement('c_hh_estimated_annual_gross')&.AssessmentAnswer
-      if amount.present?
-        amount = amount.to_i
-        return (amount / 12).round if amount.positive?
-      end
+      return nil if amount.blank?
 
-      client.source_enrollments.open_on_date(Date.current).map do |enrollment|
-        enrollment.income_benefits.limit(1).
-          order(InformationDate: :desc).
-          pluck(:TotalMonthlyIncome).first
-      end.compact.max || 0
+      amount = amount.to_i
+      return nil unless amount.positive?
+
+      (amount / 12).round
     end
 
     private def cas_assessment_collected_at(client)
@@ -286,6 +284,29 @@ module GrdaWarehouse::CasProjectClientCalculator
         client.most_recent_pathways_or_rrh_assessment_for_destination&.user&.UserPhone,
         client.most_recent_pathways_or_rrh_assessment_for_destination&.user&.UserExtension,
       ].compact.join('x')
+    end
+
+    private def cas_pregnancy_status(client)
+      one_year_ago = 1.years.ago.to_date
+      client.source_health_and_dvs&.detect do |m|
+        m.PregnancyStatus == 1 &&
+        (
+          (m.InformationDate.present? && m.InformationDate > one_year_ago) ||
+          (m.DueDate.present? && m.DueDate > Date.current - 3.months)
+        )
+      end.present?
+    end
+
+    private def most_recent_vispdat_score(_)
+      0
+    end
+
+    private def calculate_vispdat_priority_score(_)
+      0
+    end
+
+    private def days_homeless_for_vispdat_prioritization(client)
+      client.processed_service_history&.days_homeless_last_three_years
     end
   end
 end

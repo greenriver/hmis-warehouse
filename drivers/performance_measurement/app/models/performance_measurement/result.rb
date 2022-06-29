@@ -41,13 +41,25 @@ module PerformanceMeasurement
       primary_unit.starts_with?('%')
     end
 
+    def max_100?
+      field.starts_with?('returned')
+    end
+
     def data_for_system_level_bar
-      {
-        x: 'x',
-        columns: [
+      columns = if percentage?
+        [
           ['x', report_year, comparison_year],
           [primary_unit, primary_value, comparison_primary_value],
-        ],
+        ]
+      else
+        [
+          ['x', comparison_year, report_year],
+          [primary_unit, comparison_primary_value, primary_value],
+        ]
+      end
+      {
+        x: 'x',
+        columns: columns,
         type: 'bar',
         labels: {
           colors: 'white',

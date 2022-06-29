@@ -17,10 +17,16 @@ module IncomeBenefitsReport::WarehouseReports
 
     def index
       @pagy, @reports = pagy(report_scope.ordered)
-      # @filter = filter_class.new(user_id: current_user.id)
-      # @filter.set_from_params(filter_params) if filter_params.present?
       @report = report_class.new(user_id: current_user.id)
       @report.filter = @filter
+
+      previous_report = report_scope.last
+      if previous_report&.options&.key?('filters')
+        @filter.update(previous_report.options['filters'])
+      else
+        @filter['project_type_codes'] = @report.default_project_types
+      end
+
       # Make sure the form will work
       filters
     end

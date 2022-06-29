@@ -116,7 +116,7 @@ window.App.WarehouseReports.HomelessSummaryReport.HorizontalStackedBar = class H
             bindto: this.legend_holder,
             template: (title, color) => {
               const swatch = `<svg class="chart-legend-item-swatch-prs1" viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg"><rect width="10" height="10" fill="${color}"/></svg>`;
-              return `<div class="chart-legend-item-prs1">${swatch}<div class="chart-legend-item-label-prs1">${title}</div></div>`;
+              return `<div class="chart-legend-item-prs1 align-items-center">${swatch}<div class="chart-legend-item-label-prs1">${title}</div></div>`;
             },
           },
         };

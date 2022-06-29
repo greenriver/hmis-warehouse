@@ -21,7 +21,7 @@ module HudSpmReport::Generators::Fy2020
 
     def self.table_descriptions
       {
-        'Measure 6' => 'Homeless Prevention and Housing Placement of Persons Defined by Category 3 of HUD’s Homeless Definition in CoC Program-funded Projects',
+        'Measure 6' => 'Homeless Prevention and Housing Placement of Persons Defined by Category 3 of HUD\'s Homeless Definition in CoC Program-funded Projects',
       }.merge(
         tables.map do |table|
           [table.first, table.last]

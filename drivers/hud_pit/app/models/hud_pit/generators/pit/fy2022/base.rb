@@ -292,7 +292,7 @@ module HudPit::Generators::Pit::Fy2022
           query: a_t[:pit_gender].eq('Transgender'),
         },
         gender_other: {
-          title: 'Gender Don’t identify as male, female, or transgender',
+          title: 'Gender Don\'t identify as male, female, or transgender',
           query: a_t[:pit_gender].eq('A gender other than singularly female or male (e.g., non-binary, genderfluid, agender, culturally specific gender)'),
         },
         non_latino: {

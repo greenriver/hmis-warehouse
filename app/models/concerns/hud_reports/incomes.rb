@@ -190,7 +190,7 @@ module HudReports::Incomes
         'Adults with Only Other Income' => :other,
         'Adults with Both Earned and Other Income' => :both,
         'Adults with No Income' => :none,
-        'Adults with Client Doesn’t Know/Client Refused Income Information' => a_t["income_from_any_source_at_#{suffix}"].in([8, 9]),
+        'Adults with Client Doesn\'t Know/Client Refused Income Information' => a_t["income_from_any_source_at_#{suffix}"].in([8, 9]),
         'Adults with Missing Income Information' => a_t["income_from_any_source_at_#{suffix}"].eq(99).
           or(a_t["income_from_any_source_at_#{suffix}"].eq(nil)).
           and(a_t["income_sources_at_#{suffix}"].not_eq(nil)),

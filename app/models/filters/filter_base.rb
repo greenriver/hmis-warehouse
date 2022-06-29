@@ -18,6 +18,7 @@ module Filters
     attribute :start, Date, lazy: true, default: ->(r, _) { r.default_start }
     attribute :end, Date, lazy: true, default: ->(r, _) { r.default_end }
     attribute :enforce_one_year_range, Boolean, default: true
+    attribute :require_service_during_range, Boolean, default: true
     attribute :sort
     attribute :heads_of_household, Boolean, default: false
     attribute :comparison_pattern, Symbol, default: ->(r, _) { r.default_comparison_pattern }
@@ -95,6 +96,8 @@ module Filters
       # Allow multi-year filters if we explicitly passed in something that isn't truthy
       enforce_range = filters.dig(:enforce_one_year_range)
       self.enforce_one_year_range = enforce_range.in?(['1', 'true', true]) unless enforce_range.nil?
+      require_service = filters.dig(:require_service_during_range)
+      self.require_service_during_range = require_service.in?(['1', 'true', true]) unless require_service.nil?
       self.comparison_pattern = clean_comparison_pattern(filters.dig(:comparison_pattern)&.to_sym)
       self.coc_codes = filters.dig(:coc_codes)&.select { |code| available_coc_codes&.include?(code) }.presence || coc_codes.presence || user.coc_codes
       self.coc_code = filters.dig(:coc_code) if available_coc_codes&.include?(filters.dig(:coc_code))
@@ -193,6 +196,7 @@ module Filters
           ce_cls_as_homeless: ce_cls_as_homeless,
           limit_to_vispdat: limit_to_vispdat,
           enforce_one_year_range: enforce_one_year_range,
+          require_service_during_range: require_service_during_range,
           times_homeless_in_last_three_years: times_homeless_in_last_three_years,
           report_version: report_version,
           ph: ph,
@@ -226,6 +230,7 @@ module Filters
         :coc_code,
         :limit_to_vispdat,
         :enforce_one_year_range,
+        :require_service_during_range,
         :report_version,
         :ph,
         :creator_id,
@@ -334,28 +339,28 @@ module Filters
     end
 
     # Date that can be used to find the closest PIT date, either that contained in the range,
-    # or the most-recent PIT (third wednesday of January)
+    # or the most-recent PIT (last wednesday of January)
     # for simplicity, we'll just find the date in the january prior to the end date
+    # 3/10/2020 - 6/20/2020 -> last wed in 1/2020
+    # 10/1/2020 - 12/31/2020 -> last wed in 1/2020
+    # 10/1/2020 - 9/30/2021 -> last wed in 1/2021
+    # 10/1/2019 - 1/1/2020 -> last wed in 1/2019 (NOTE: end-date is before PIT date in 2020)
+    def self.pit_date(date)
+      wednesday = last_wednesday(date.year, 1)
+      # date occurred on or after PIT date in this year
+      return wednesday unless date.before?(wednesday)
+
+      # date is early in January (before the last wednesday), use PIT date from prior year
+      last_wednesday(date.year - 1, 1)
+    end
+
+    def self.last_wednesday(year, month)
+      d = Date.new(year, month, 1)
+      (d.beginning_of_month .. d.end_of_month).select(&:wednesday?).last
+    end
+
     def pit_date
       self.class.pit_date(last)
-    end
-
-    def self.pit_date(date)
-      third_wednesday_of_end_year = third_wednesday(date.year, 1)
-      return third_wednesday_of_end_year if date > third_wednesday_of_end_year
-
-      third_wednesday(date.year - 1, date.month)
-    end
-
-    private def third_wednesday(year, month)
-      self.class.third_wednesday(year, month)
-    end
-
-    def self.third_wednesday(year, month)
-      d = Date.new(year, month, 1)
-      d += 1.weeks if d.wday > 3 # if the first falls after Wednesday, move forward a week
-      d -= (d.wday - 3) % 7 # ensure the first Wednesday
-      d + 2.weeks # move to the 3rd Wednesday
     end
 
     def date_range_words
@@ -560,6 +565,10 @@ module Filters
       GrdaWarehouse::Hud::Client.joins(:cohort_clients).
         merge(GrdaWarehouse::CohortClient.active.where(cohort_id: cohort_ids)).
         distinct
+    end
+
+    def available_project_types
+      GrdaWarehouse::Hud::Project::PROJECT_GROUP_TITLES.invert
     end
 
     def available_residential_project_types

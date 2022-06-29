@@ -5,6 +5,7 @@
   .row
     .col-sm-4
       %h3= "#{@report.title_for(household_category, :all)} #{row[:title]}"
+      .mb-1.font-italic= 'Includes approximate start date' if [:m1b_es_sh_ph_days, :m1b_es_sh_th_ph_days].include? field
       - unless @pdf
         %a.jToggleChartData{href: '#'}
           Toggle demographics
@@ -33,5 +34,4 @@
 
         chart.chart.load(data);
       });
-      document.dataset.chartLoaded = true;
     });

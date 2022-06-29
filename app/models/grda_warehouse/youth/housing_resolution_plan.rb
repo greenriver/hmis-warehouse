@@ -6,9 +6,19 @@
 
 module GrdaWarehouse::Youth
   class HousingResolutionPlan < GrdaWarehouse::Youth::Base
+    include YouthExport
+
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', inverse_of: :housing_resolution_plans
     belongs_to :user, optional: true
     has_many :youth_intakes, through: :client
+    scope :ordered, -> do
+      order(planned_on: :desc)
+    end
+
+    scope :between, ->(start_date:, end_date:) do
+      at = arel_table
+      where(at[:planned_on].gteq(start_date).and(at[:planned_on].lteq(end_date)))
+    end
 
     def yes_no
       [

@@ -45,7 +45,7 @@ module HudApr::Generators::Caper::Fy2020
         HudApr::Generators::Caper::Fy2020::QuestionSixteen, #  Cash Income - Ranges
         HudApr::Generators::Caper::Fy2020::QuestionSeventeen, # Cash Income - Sources
         # No 18 for Caper
-        HudApr::Generators::Caper::Fy2020::QuestionNineteen, # Cash Income – Changes over Time
+        HudApr::Generators::Caper::Fy2020::QuestionNineteen, # Cash Income - Changes over Time
         HudApr::Generators::Caper::Fy2020::QuestionTwenty, # Non-Cash Benefits
         HudApr::Generators::Caper::Fy2020::QuestionTwentyOne, # Health Insurance
         HudApr::Generators::Caper::Fy2020::QuestionTwentyTwo, # Length of participation

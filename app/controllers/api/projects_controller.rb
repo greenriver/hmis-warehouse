@@ -8,6 +8,7 @@
 # data sources and organizations
 # optionally, limits the list to only those a user can see
 # Default to all
+# Confidential projects are excluded if user does not have permission to see them
 module Api
   class ProjectsController < ApplicationController
     include ArelHelper
@@ -26,11 +27,9 @@ module Api
             o_t[:OrganizationName],
             o_t[:id],
           ).each do |id, p_name, type, o_name, o_id|
-            name = GrdaWarehouse::Hud::Project.confidentialize(name: p_name)
-            name = p_name if can_view_confidential_enrollment_details?
             @data[[o_id, o_name]] ||= []
             @data[[o_id, o_name]] << [
-              "#{name} (#{HUD.project_type_brief(type)})",
+              "#{p_name} (#{HUD.project_type_brief(type)})",
               id,
               selected_project_ids.include?(id),
             ]
@@ -118,14 +117,15 @@ module Api
 
     private def project_scope
       @project_scope ||= begin
-        scope = project_source.viewable_by(current_user).
-          joins(:data_source, :organization, :funders).
-          with_project_type(project_types)
+        scope = project_source.viewable_by(current_user)
+        scope = scope.where(confidential: false) unless current_user.can_view_confidential_enrollment_details?
+
+        scope = scope.joins(:data_source, :organization, :funders).with_project_type(project_types)
         scope = scope.merge(data_source_source.where(id: data_source_ids)) if data_source_ids.present?
         scope = scope.merge(organization_source.where(id: organization_ids)) if organization_ids.present?
         scope = scope.merge(funder_source.funding_source(funder_code: funder_codes)) if funder_codes.present?
 
-        scope
+        scope.distinct
       end
     end
 

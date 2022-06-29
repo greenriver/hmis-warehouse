@@ -1,5 +1,5 @@
 = content_for :modal_title do
-  Edit Project CoC Record for #{@project_coc.project.name} at #{@project_coc.project.organization.name}
+  Edit Project CoC Record for #{@project_coc.project.name(ignore_confidential_status: true)} at #{@project_coc.project.organization.name}
 = simple_form_for :project_coc, url: manual_hmis_data_project_coc_path, method: :patch do |f|
   = render 'manual_hmis_data/form', form: f
   = f.submit 'Save Project CoC Record'
