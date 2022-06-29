@@ -1,0 +1,14 @@
+= simple_form_for @filter, as: :filter, url: ma_yya_report_warehouse_reports_reports_path do |f|
+  - content_for :filters_col_full do
+    .row
+      .col-sm-3
+        = f.input :start, as: :date_picker
+      .col-sm-3
+        = f.input :end, as: :date_picker
+      .col-sm-6
+        = f.input :project_ids, as: :grouped_select_two, collection: MaYyaReport::Report.yya_projects(current_user), group_method: :last, input_html: { multiple: true }, label: 'Projects'
+
+  - content_for :filter_actions do
+    = f.submit 'Queue Report', class: ['btn', 'btn-primary']
+
+  = render 'warehouse_reports/filters', f:f

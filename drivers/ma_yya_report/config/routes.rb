@@ -7,7 +7,9 @@
 Rails.application.routes.draw do
   namespace :ma_yya_report do
     namespace :warehouse_reports do
-      resources :report, only: [:index]
+      resources :reports do
+        get :details, on: :member
+      end
     end
   end
 end

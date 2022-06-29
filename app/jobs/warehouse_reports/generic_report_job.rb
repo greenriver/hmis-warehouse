@@ -15,7 +15,7 @@ module WarehouseReports
     # `run_and_save!` should run whatever calculations are necessary and save the results
     # `url` must provide a link to the individual report
     def perform(user_id:, report_class:, report_id:)
-      klass = whitelisted_reports[report_class]
+      klass = allowed_reports[report_class]
       if klass
         report = klass.find(report_id)
         report.run_and_save!
@@ -28,7 +28,7 @@ module WarehouseReports
       end
     end
 
-    def whitelisted_reports
+    def allowed_reports
       reports = {
         'GrdaWarehouse::WarehouseReports::Youth::Export' => ::GrdaWarehouse::WarehouseReports::Youth::Export,
         'Health::SsmExport' => ::Health::SsmExport,
@@ -59,6 +59,7 @@ module WarehouseReports
       reports['PerformanceMetrics::Report'] = PerformanceMetrics::Report if RailsDrivers.loaded.include?(:performance_metrics)
       reports['HomelessSummaryReport::Report'] = HomelessSummaryReport::Report if RailsDrivers.loaded.include?(:homeless_summary_report)
       reports['PerformanceMeasurement::Report'] = PerformanceMeasurement::Report if RailsDrivers.loaded.include?(:performance_measurement)
+      reports['MaYyaReport::Report'] = MaYyaReport::Report if RailsDrivers.loaded.include?(:ma_yya_report)
       reports
     end
   end

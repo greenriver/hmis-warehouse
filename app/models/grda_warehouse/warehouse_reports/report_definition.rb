@@ -847,9 +847,9 @@ module GrdaWarehouse::WarehouseReports
         ],
         'Population Dashboards' => [],
       }
-      if RailsDrivers.loaded.include?(:service_scanning)
+      if RailsDrivers.loaded.include?(:ma_yya_report)
         r_list['Operational'] << {
-          url: 'ma_yya_report/warehouse_reports/report',
+          url: 'ma_yya_report/warehouse_reports/reports',
           name: 'MA Homeless Youth Program Report',
           description: 'Downloadable MA YYA report.',
           limitable: true,

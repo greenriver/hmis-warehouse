@@ -1,0 +1,20 @@
+= content_for :crumbs do
+  = link_to ma_yya_report_warehouse_reports_reports_path do
+    = "« MA YYA Reports"
+%h1.mb-5
+  MA YYA Report
+
+.warehouse-reports__completed
+  = render 'filters/report_parameters', options: @report.options, report: @report
+.card
+  %table.table.table-striped
+    %thead
+      %tr
+        %th Report Label
+        %th Count
+    %tbody
+      - @report.labels.each do |label|
+        %tr
+          %th= label.to_s.underscore.titleize
+          - count = @report.answer(label)
+          %td= link_to_if(count&.positive?, number_with_delimiter(count), details_ma_yya_report_warehouse_reports_report_path(@report, cell: label))
