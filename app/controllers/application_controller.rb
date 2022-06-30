@@ -283,4 +283,12 @@ class ApplicationController < ActionController::Base
       current_user_browser: browser.to_s,
     }
   end
+
+  # For Lograge
+  def append_info_to_payload(payload)
+    super
+    payload[:host] = request.host
+    payload[:remote_ip] = request.remote_ip
+    payload[:ip] = request.ip
+  end
 end

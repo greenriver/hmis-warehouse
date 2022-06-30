@@ -1,4 +1,5 @@
 require "#{Rails.root}/lib/util/exception_notifier.rb"
+require "#{Rails.root}/app/logger/log_formatter.rb"
 
 I18n.config.available_locales = :en
 
@@ -102,9 +103,6 @@ Rails.application.configure do
   # don't need email sandbox with letter opener
   config.sandbox_email_mode = true
 
-  # make the development log noisy so you can see request parameters, views rendered, etc.
-  config.lograge.enabled = false
-
   # do gzip compressing in dev mode to simulate nginx config in production
   config.middleware.insert_after ActionDispatch::Static, Rack::Deflater
 
@@ -130,6 +128,29 @@ Rails.application.configure do
   # In order to fix the problem, the following options must be set.
   routes.default_url_options ||= {}
   routes.default_url_options[:script_name]= ''
+
+  # https://tasdikrahman.me/2020/07/07/structured-logging-in-rails/
+  config.lograge.formatter = Lograge::Formatters::Json.new
+  config.lograge.enabled = true
+  config.lograge.base_controller_class = ['ActionController::Base']
+  config.lograge.custom_options = lambda do |event|
+    {
+      request_time: Time.now,
+      application: Rails.application.class,
+      process_id: Process.pid,
+      host: event.payload[:host],
+      remote_ip: event.payload[:remote_ip],
+      ip: event.payload[:ip],
+      x_forwarded_for: event.payload[:x_forwarded_for],
+      # params: event.payload[:params].except(*exceptions).to_json,
+      rails_env: Rails.env,
+      exception: event.payload[:exception]&.first,
+      request_id: event.payload[:headers]['action_dispatch.request_id'],
+    }.compact
+  end
+
+  config.log_level = ENV.fetch('LOG_LEVEL') { 'debug' }.to_sym
+  config.log_formatter = LogFormatter.new
 
   slack_config = Rails.application.config_for(:exception_notifier)[:slack]
   if slack_config.present?

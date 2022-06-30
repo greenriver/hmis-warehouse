@@ -1,4 +1,5 @@
 require "#{Rails.root}/lib/util/exception_notifier.rb"
+require "#{Rails.root}/app/logger/log_formatter.rb"
 
 Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
@@ -54,12 +55,28 @@ Rails.application.configure do
   # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
   config.force_ssl = true
 
-  # Use the lowest log level to ensure availability of diagnostic information
-  # when problems arise.
-  config.log_level = ENV.fetch('LOG_LEVEL') { 'info' }.to_sym
+  # https://tasdikrahman.me/2020/07/07/structured-logging-in-rails/
+  config.lograge.formatter = Lograge::Formatters::Json.new
+  config.lograge.enabled = true
+  config.lograge.base_controller_class = ['ActionController::Base']
+  config.lograge.custom_options = lambda do |event|
+    {
+      request_time: Time.now,
+      application: Rails.application.class,
+      process_id: Process.pid,
+      host: event.payload[:host],
+      remote_ip: event.payload[:remote_ip],
+      ip: event.payload[:ip],
+      x_forwarded_for: event.payload[:x_forwarded_for],
+      # params: event.payload[:params].except(*exceptions).to_json,
+      rails_env: Rails.env,
+      exception: event.payload[:exception]&.first,
+      request_id: event.payload[:headers]['action_dispatch.request_id'],
+    }.compact
+  end
 
-  # Prepend all log lines with the following tags.
-  config.log_tags = [ :request_id ]
+  config.log_level = ENV.fetch('LOG_LEVEL') { 'info' }.to_sym
+  config.log_formatter = LogFormatter.new
 
   # Use a different cache store in production.
   # config.cache_store = :mem_cache_store
@@ -80,19 +97,6 @@ Rails.application.configure do
 
   # Send deprecation notices to registered listeners.
   config.active_support.deprecation = :notify
-
-  # Use default logging formatter so that PID and timestamp are not suppressed.
-  config.log_formatter = ::Logger::Formatter.new
-
-  # Use a different logger for distributed setups.
-  # require 'syslog/logger'
-  # config.logger = ActiveSupport::TaggedLogging.new(Syslog::Logger.new 'app-name')
-
-  if ENV["RAILS_LOG_TO_STDOUT"].present?
-    logger           = ActiveSupport::Logger.new(STDOUT)
-    logger.formatter = config.log_formatter
-    config.logger    = ActiveSupport::TaggedLogging.new(logger)
-  end
 
   # Do not dump schema after migrations.
   config.active_record.dump_schema_after_migration = false
