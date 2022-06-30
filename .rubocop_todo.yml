@@ -283,7 +283,6 @@ Layout/EmptyLinesAroundClassBody:
     - 'app/jobs/background_render/core_demographics_report_job.rb'
     - 'app/models/grda_warehouse/cas_availability.rb'
     - 'app/models/grda_warehouse/cas_non_hmis_client_history.rb'
-    - 'app/models/grda_warehouse/cas_report.rb'
     - 'app/models/grda_warehouse/cas_vacancy.rb'
     - 'app/models/grda_warehouse/census/by_project_type.rb'
     - 'app/models/grda_warehouse/census/by_project_type_client.rb'
@@ -965,7 +964,6 @@ Layout/SpaceInLambdaLiteral:
     - 'app/models/agency.rb'
     - 'app/models/grda_warehouse/cas_availability.rb'
     - 'app/models/grda_warehouse/cas_non_hmis_client_history.rb'
-    - 'app/models/grda_warehouse/cas_report.rb'
     - 'app/models/grda_warehouse/cas_vacancy.rb'
     - 'app/models/grda_warehouse/census/by_project.rb'
     - 'app/models/grda_warehouse/census/by_project_client.rb'
@@ -1116,7 +1114,6 @@ Layout/SpaceInsideHashLiteralBraces:
 # SupportedStyles: space, no_space
 Layout/SpaceInsideParens:
   Exclude:
-    - 'app/models/grda_warehouse/cas_report.rb'
     - 'app/models/grda_warehouse/census_by_project.rb'
     - 'app/models/grda_warehouse/census_by_project_type.rb'
     - 'app/models/grda_warehouse/document_export.rb'
