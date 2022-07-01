@@ -47,6 +47,7 @@ module MaYyaReport
             at_risk_of_homelessness: at_risk_of_homelessness?(enrollment_cls),
             initial_contact: initial_contact(enrollments_by_client_id[client_id]),
             direct_assistance: direct_assistance?(enrollment.enrollment),
+            education_status_date: education_status&.InformationDate,
             current_school_attendance: education_status&.CurrentSchoolAttend,
             current_educational_status: education_status&.CurrentEdStatus,
             age: enrollment.client.age_on([@filter.start_date, enrollment.first_date_in_program].max),
@@ -64,6 +65,7 @@ module MaYyaReport
             sexual_orientation: enrollment.enrollment.SexualOrientation,
             most_recent_education_status: education_status&.MostRecentEdStatus,
             health_insurance: enrollment.enrollment.income_benefits_at_entry&.InsuranceFromAnySource == 1,
+            rehoused_on: rehoused_on(enrollment.enrollment),
             subsequent_current_living_situations: subsequent_current_living_situations(enrollment.enrollment),
           )
         end
@@ -175,6 +177,14 @@ module MaYyaReport
 
         en.client.age_on([@filter.start_date, en.EntryDate].max)
       end.compact
+    end
+
+    private def rehoused_on(enrollment)
+      enrollment.current_living_situations.
+        detect do |cls|
+          cls.CurrentLivingSituation.in?([19, 3, 31, 33, 34, 10, 20, 21, 11]) &&
+          cls.InformationDate > enrollment.EntryDate
+        end&.InformationDate
     end
 
     private def subsequent_current_living_situations(enrollment)

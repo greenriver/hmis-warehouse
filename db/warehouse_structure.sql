@@ -514,7 +514,8 @@ CREATE TABLE public."Client" (
     "GenderNone" integer,
     "NativeHIPacific" integer,
     "NoSingleGender" integer,
-    tc_hat_additional_days_homeless integer DEFAULT 0
+    tc_hat_additional_days_homeless integer DEFAULT 0,
+    health_housing_navigator_id bigint
 );
 
 
@@ -13498,7 +13499,9 @@ CREATE TABLE public.ma_yya_report_clients (
     reported_previous_period boolean,
     deleted_at timestamp without time zone,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    education_status_date date,
+    rehoused_on date
 );
 
 
@@ -17507,6 +17510,44 @@ CREATE VIEW public.todd_stats AS
 
 
 --
+-- Name: tx_research_exports; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.tx_research_exports (
+    id bigint NOT NULL,
+    user_id bigint,
+    export_id bigint,
+    options jsonb DEFAULT '{}'::jsonb,
+    started_at timestamp without time zone,
+    completed_at timestamp without time zone,
+    failed_at timestamp without time zone,
+    processing_errors text,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: tx_research_exports_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.tx_research_exports_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: tx_research_exports_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.tx_research_exports_id_seq OWNED BY public.tx_research_exports.id;
+
+
+--
 -- Name: uploads; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -20771,6 +20812,13 @@ ALTER TABLE ONLY public.text_message_topics ALTER COLUMN id SET DEFAULT nextval(
 
 
 --
+-- Name: tx_research_exports id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tx_research_exports ALTER COLUMN id SET DEFAULT nextval('public.tx_research_exports_id_seq'::regclass);
+
+
+--
 -- Name: uploads id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -23319,6 +23367,14 @@ ALTER TABLE ONLY public.text_message_topic_subscribers
 
 ALTER TABLE ONLY public.text_message_topics
     ADD CONSTRAINT text_message_topics_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: tx_research_exports tx_research_exports_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tx_research_exports
+    ADD CONSTRAINT tx_research_exports_pkey PRIMARY KEY (id);
 
 
 --
@@ -38760,6 +38816,13 @@ CREATE INDEX "index_Client_on_data_source_id" ON public."Client" USING btree (da
 
 
 --
+-- Name: index_Client_on_health_housing_navigator_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_Client_on_health_housing_navigator_id" ON public."Client" USING btree (health_housing_navigator_id);
+
+
+--
 -- Name: index_Client_on_pending_date_deleted; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -45837,6 +45900,20 @@ CREATE INDEX index_text_message_topics_on_updated_at ON public.text_message_topi
 
 
 --
+-- Name: index_tx_research_exports_on_export_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_tx_research_exports_on_export_id ON public.tx_research_exports USING btree (export_id);
+
+
+--
+-- Name: index_tx_research_exports_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_tx_research_exports_on_user_id ON public.tx_research_exports USING btree (user_id);
+
+
+--
 -- Name: index_universe_type_and_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -48939,6 +49016,10 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220512174700'),
 ('20220516171135'),
 ('20220523123830'),
-('20220525125953');
+('20220525125953'),
+('20220610173543'),
+('20220621180929'),
+('20220621181125'),
+('20220630151129');
 
 
