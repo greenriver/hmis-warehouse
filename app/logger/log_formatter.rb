@@ -1,3 +1,5 @@
+require 'logger'
+
 class LogFormatter < ::Logger::Formatter
   def call(severity, time, program_name, message)
     message = '' if message.blank?
