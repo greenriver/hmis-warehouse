@@ -1,4 +1,5 @@
 require_relative 'boot'
+require_relative "../app/logger/log_formatter.rb"
 
 require 'rails/all'
 require "active_record_extended"
@@ -50,17 +51,28 @@ module BostonHmis
     end
 
     config.lograge.enabled = true
+    config.lograge.formatter = Lograge::Formatters::Json.new
+    config.lograge.base_controller_class = ['ActionController::Base']
     config.lograge.custom_options = ->(event) do
       {
+        request_time: Time.current,
+        application: Rails.application.class,
         server_protocol: event.payload[:server_protocol],
+        host: event.payload[:host],
         remote_ip: event.payload[:remote_ip],
+        ip: event.payload[:ip],
         session_id: event.payload[:session_id],
         user_id: event.payload[:user_id],
+        process_id: Process.pid,
         pid: event.payload[:pid],
-        request_id: event.payload[:request_id],
-        request_start: event.payload[:request_start]
+        request_id: event.payload[:request_id] || event.payload[:headers]['action_dispatch.request_id'],
+        request_start: event.payload[:request_start],
+        x_forwarded_for: event.payload[:x_forwarded_for],
+        rails_env: Rails.env,
+        exception: event.payload[:exception]&.first,
       }
     end
+    config.log_formatter = LogFormatter.new
 
     # default to not be sandbox email mode
     config.sandbox_email_mode = false
