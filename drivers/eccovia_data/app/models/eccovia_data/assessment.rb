@@ -12,7 +12,7 @@ module EccoviaData
     acts_as_paranoid
 
     def self.fetch_updated(data_source_id:, credentials:)
-      since = max_fetch_time || default_lookback
+      since = max_fetch_time(data_source_id) || default_lookback
 
       query = "crql?q=select VulnerabilityID, ClientID, CreatedBy, UpdatedDate from VulnerabilityIndex where UpdatedDate > '#{since.to_s(:db)}'"
       credentials.get_all_in_batches(query) do |assessment_batch|
@@ -27,7 +27,7 @@ module EccoviaData
         user_objects = users(assessments.values.map { |a| a['CreatedBy'] }.uniq, credentials: credentials).index_by { |u| u['UserID'] }
 
         batch = assessments.values.map do |assessment|
-          user = user_objects[assessment['UserID']]
+          user = user_objects[assessment['CreatedBy']]
           new(
             data_source_id: data_source_id,
             client_id: assessment['ClientID'],
@@ -35,6 +35,7 @@ module EccoviaData
             score: assessment['ScoreTotal'],
             assessed_at: assessment['UpdatedDate'],
             assessor_id: assessment['CreatedBy'],
+            assessor_name: user.try(:[], 'UserName'),
             assessor_email: user.try(:[], 'Email'),
             last_fetched_at: Time.current,
           )
@@ -70,6 +71,11 @@ module EccoviaData
     def self.scores(ids, credentials:)
       query = "crql?q=SELECT ScoreTotal, VulnerabilityID FROM VISPDAT where VulnerabilityID in (#{quote(ids)})"
       credentials.get_all(query)
+    end
+
+    # For now, we only support one type.
+    def assessment_type
+      'VI-SPDAT'
     end
   end
 end
