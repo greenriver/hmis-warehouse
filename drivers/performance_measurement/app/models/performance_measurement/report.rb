@@ -459,6 +459,43 @@ module PerformanceMeasurement
             details[calculation]
           },
         },
+        {
+          key: :days_homeless_before_move_in,
+          data: ->(_filter) {
+            {}.tap do |days_by_client_id|
+              # NOTE for later, the following should get days before move-in including those with no move in
+              # scope = report_scope.joins(:service_history_services, :project, :client).
+              #   permanent_housing.
+              #   # After move-in, homeless is marked false
+              #   merge(GrdaWarehouse::ServiceHistoryService.where(homeless: nil)).
+              #   distinct
+              # dobs = scope.pluck(:client_id, c_t[:DOB]).to_h
+              # scope.group(:client_id, p_t[:id]).
+              #   count(shs_t[:date]).
+
+              # For now, we're going to only include client's who have moved in
+              scope = report_scope.joins(:project, :client).
+                permanent_housing.
+                where.not(move_in_date: nil).
+                distinct
+              dobs = scope.pluck(:client_id, c_t[:DOB]).to_h
+              scope.pluck(:client_id, p_t[:id], :first_date_in_program, :move_in_date).
+                each do |client_id, project_id, entry_date, move_in|
+                  days = (move_in - entry_date).to_i
+                  days_by_client_id[client_id] ||= { value: 0, project_ids: Set.new, dob: nil }
+                  days_by_client_id[client_id][:value] += days
+                  days_by_client_id[client_id][:project_ids] << project_id
+                  days_by_client_id[client_id][:dob] = dobs[client_id]
+                end
+            end
+          },
+          value_calculation: ->(calculation, client_id, data) {
+            details = data[client_id]
+            return unless details.present?
+
+            details[calculation]
+          },
+        },
       ]
       [:es, :sh, :so, :th, :psh, :oph, :rrh].each do |p_type|
         extras << {
@@ -564,32 +601,6 @@ module PerformanceMeasurement
           },
         }
       end
-      # extras << {
-      #   key: :days_in_any_bed_in_period,
-      #   data: ->(_filter) {
-      #     {}.tap do |days_by_client_id|
-      #       scope = report_scope.joins(:service_history_services, :project, :client).
-      #         merge(GrdaWarehouse::ServiceHistoryService.where(date: filter.range)).
-      #         in_project_type([:es, :sh, :so, :th, :psh, :oph, :rrh]).
-      #         distinct
-      #       dobs = scope.pluck(:client_id, c_t[:DOB]).to_h
-      #       scope.group(:client_id, p_t[:id]).
-      #         count(shs_t[:date]).
-      #         each do |(client_id, project_id), days|
-      #           days_by_client_id[client_id] ||= { value: 0, project_ids: Set.new, dob: nil }
-      #           days_by_client_id[client_id][:value] += days
-      #           days_by_client_id[client_id][:project_ids] << project_id
-      #           days_by_client_id[client_id][:dob] = dobs[client_id]
-      #         end
-      #     end
-      #   },
-      #   value_calculation: ->(calculation, client_id, data) {
-      #     details = data[client_id]
-      #     return unless details.present?
-
-      #     details[calculation]
-      #   },
-      # }
       extras
     end
 
