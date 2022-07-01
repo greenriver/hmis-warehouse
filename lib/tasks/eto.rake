@@ -60,6 +60,8 @@ namespace :eto do
           data_source_id: data_source_id,
         )
       end
+      # Eccovia too!
+      EccoviaData::Fetch.all.each(&:fetch_updated) if RailsDrivers.loaded.include?(:eccovia_data)
     end
   end
 end
