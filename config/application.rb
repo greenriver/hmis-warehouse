@@ -51,6 +51,7 @@ module BostonHmis
     end
 
     config.lograge.enabled = true
+    config.lograge.logger = ActiveSupport::Logger.new(STDOUT)
     config.lograge.formatter = Lograge::Formatters::Json.new
     config.lograge.base_controller_class = ['ActionController::Base']
     config.lograge.custom_options = ->(event) do
