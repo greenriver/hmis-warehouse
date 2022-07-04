@@ -712,14 +712,16 @@ module Filters
       GrdaWarehouse::Hud::Project::PROJECT_TYPES_WITH_INVENTORY
     end
 
-    def describe_filter_as_html(keys = nil)
+    def describe_filter_as_html(keys = nil, limited: true)
       describe_filter(keys).uniq.map do |(k, v)|
         content_tag(:div, class: 'report-parameters__parameter') do
           label = content_tag(:label, k, class: 'label label-default parameter-label')
           if v.is_a?(Array)
-            count = v.count
-            v = v.first(5)
-            v << "#{count - 5} more" if count > 5
+            if limited
+              count = v.count
+              v = v.first(5)
+              v << "#{count - 5} more" if count > 5
+            end
             v = v.to_sentence
           end
           label.concat(content_tag(:label, v, class: 'label label-primary parameter-value'))

@@ -111,12 +111,30 @@
   display: flex;
   flex-wrap: wrap;
 }
-
+.report-parameters-all {
+  .report-parameters__parameter {
+    display: block;
+    .label {
+      display: block;
+      &.label-default,
+      &.label-primary {
+        background: transparent;
+        color: $gray-darker;
+      }
+    }
+  }
+}
 .report-parameters__parameter
 {
   display: flex;
   margin-bottom: 0.5em;
   margin-right: 0.5em;
+  .label {
+
+  }
+  .label-default {
+    background: transparent;
+  }
 }
 
 .data-quality__table
