@@ -23,7 +23,7 @@ $gray-light:             lighten($gray-base, 46.7%) !default; // #777
 $gray-lighter:           lighten($gray-base, 93.5%) !default; // #eee
 
 $brand-primary:         #457687 !default;
-$brand-primary-l:       #81adb9 !default;
+$brand-primary-l:       #C3D7DF !default;
 $brand-primary-ll:      #d8e7ea !default;
 $brand-primary-d:       darken($brand-primary, 5%) !default;
 $brand-secondary:       #7D5226 !default;
@@ -45,7 +45,7 @@ $brand-danger-l:        #ffa69b !default;
 // COB-sg colors
 $cob-sg-freedom-trail-red: rgb(251, 77, 66) !default; // #FB4D42
 $cob-sg-charles-blue: rgb(9, 31, 47) !default; // #091F2F
-$cob-sg-optimistic-blue: rgb(40, 139, 238) !default; // #288BE4
+$cob-sg-optimistic-blue: #60AAEB !default;
 // supporting blues
 $cob-sg-blue-002: #061622 !default;
 $cob-sg-blue-003: #0C2639 !default;
