@@ -1,38 +1,5 @@
 .mt-8.d-flex
   .d-flex.mr-3
-    .c-tag.c-tag--success
-      .c-tag__title Status
-      .c-tag__wrapper
-        .c-tag__icon.c-tag__icon--sm
-          .icon-checkmark
-        .c-tag__content
-          %span In Progress
-  .d-flex.mr-3
-    .c-tag.c-tag--warning
-      .c-tag__title Status
-      .c-tag__wrapper
-        .c-tag__icon
-          .icon-minus-circle
-        .c-tag__content
-          %span Pre-empted
-  .d-flex.mr-3
-    .c-tag.c-tag--warning
-      .c-tag__title Status
-      .c-tag__wrapper
-        .c-tag__icon
-          .icon-clock-o
-        .c-tag__content
-          %span Parked
-  .d-flex.mr-3
-    .c-tag.c-tag--danger
-      .c-tag__title Status
-      .c-tag__wrapper
-        .c-tag__icon.c-tag__icon--sm
-          .icon-cross
-        .c-tag__content
-          %span Pre-empted
-.mt-8.d-flex
-  .d-flex.mr-3
     = tagged(true, 'success', title: 'Status', label: 'In Progress', icon: 'check')
   .d-flex.mr-3
     = tagged(true, 'warning', title: 'Status', label: 'Pre-empted', icon: 'minus-circle')
@@ -40,7 +7,9 @@
     = tagged(true, 'warning', title: 'Status', label: 'Parked', icon: 'clock-o')
   .d-flex.mr-3
     = tagged(true, 'danger', title: 'Status', label: 'Pre-empted', icon: 'cross')
+
 .mt-8.d-flex.flex-column
+  .h3 Project Types
   - (1..14).each do |id|
     - next if id == 5
     .mt-3.ml-6
