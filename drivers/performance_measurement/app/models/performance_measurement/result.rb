@@ -45,6 +45,18 @@ module PerformanceMeasurement
       field.starts_with?('returned')
     end
 
+    def data_for_row
+      OpenStruct.new(
+        unit: primary_unit,
+        this_year_count: primary_value,
+        last_year_count: comparison_primary_value,
+        goal: goal,
+        goal_direction: report.detail_goal_direction(field),
+        brief_goal_description: report.detail_goal_description_brief(field),
+        goal_unit: report.detail_goal_unit(field),
+      )
+    end
+
     def data_for_system_level_bar
       columns = if percentage?
         [

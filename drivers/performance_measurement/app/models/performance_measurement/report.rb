@@ -69,19 +69,27 @@ module PerformanceMeasurement
       update(completed_at: Time.current)
     end
 
-    def describe_filter_as_html
-      filter.describe_filter_as_html(
-        [
-          :start,
-          :end,
-          :comparison_pattern,
-          :coc_code,
-          :project_type_codes,
-          :project_ids,
-          :project_group_ids,
-          :data_source_ids,
-        ],
-      )
+    def describe_filter_as_html(keys = nil, inline: false)
+      keys ||= [
+        :project_type_codes,
+        :project_ids,
+        :project_group_ids,
+        :data_source_ids,
+      ]
+      filter.describe_filter_as_html(keys, inline: inline)
+    end
+
+    def known_params
+      [
+        :start,
+        :end,
+        :comparison_period,
+        :coc_code,
+        :project_type_codes,
+        :project_ids,
+        :project_group_ids,
+        :data_source_ids,
+      ]
     end
 
     def filter=(filter_object)

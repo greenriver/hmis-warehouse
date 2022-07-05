@@ -111,15 +111,24 @@
   display: flex;
   flex-wrap: wrap;
 }
-.report-parameters-all {
+.report-parameters-all,
+.warehouse-reports__completed {
   .report-parameters__parameter {
     display: block;
     .label {
       display: block;
+      font-size: 1rem;
       &.label-default,
       &.label-primary {
         background: transparent;
         color: $gray-darker;
+      }
+      &.label-default {
+        margin-bottom: 0;
+      }
+      &.label-primary {
+        font-weight: normal;
+        margin-bottom: 1rem;
       }
     }
   }
@@ -236,9 +245,11 @@
   $color: nth($indicator-colors, $i);
   .performance-measurement--highlight-#{$i} {
     background: $color;
+    color: darken($color, 60%);
   }
   .performance-measurement--highlight-light-#{$i} {
     background: lighten($color, 5%);
+    color: darken($color, 60%);
   }
 }
 
@@ -253,4 +264,12 @@
   .panel-body > div:last-child {
     border-bottom: 0 !important;
   }
+}
+.performance-measurement__result-number {
+  font-size: 1.2rem;
+}
+.performance-measurement .super-rounded {
+  border-radius: 100px;
+  font-weight: bold;
+  font-size: 1.2rem;
 }
