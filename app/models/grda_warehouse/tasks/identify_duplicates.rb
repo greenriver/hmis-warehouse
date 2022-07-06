@@ -64,6 +64,7 @@ module GrdaWarehouse::Tasks
             new_created += 1
             destination_client = client.dup
             destination_client.data_source_id = @dnd_warehouse_data_source.id
+            destination_client.apply_housing_release_status
             destination_client.save
           end
           GrdaWarehouse::WarehouseClient.create(

@@ -31,8 +31,9 @@
         = f.input :version, collection: ::Filters::HmisExport.options_for_version, include_blank: false, as: :select_two
       .col-sm-3
         = f.input :include_deleted, collection: {'No' => false, 'Yes' => true}, include_blank: false, as: :select_two
-      .col-sm-3
-        %p= f.input :confidential, as: :boolean, label: 'Replace confidential project and organization names with the confidential version?'
+      - if current_user.can_view_confidential_project_names?
+        .col-sm-3
+          %p= f.input :confidential, as: :boolean, label: 'Replace confidential project and organization names with the confidential version?'
 
     - if can_export_anonymous_hmis_data?
       .row

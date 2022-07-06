@@ -1,0 +1,4 @@
+%section.o-section-card
+  %h3 Client Display
+  .c-card.c-card--flush.c-card--padded.flex-wrap
+    = f.input :client_dashboard, collection: GrdaWarehouse::Config.available_client_dashboards, as: :select_two
