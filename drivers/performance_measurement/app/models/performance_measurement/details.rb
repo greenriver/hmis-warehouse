@@ -123,7 +123,7 @@ module PerformanceMeasurement::Details
     end
 
     def my_projects(user, key)
-      project_details(key).select do |project_id, _|
+      project_details(user, key).select do |project_id, _|
         user.viewable_project_ids.include?(project_id)
       end
     end
@@ -142,17 +142,17 @@ module PerformanceMeasurement::Details
     end
 
     def other_projects(user, key)
-      project_details(key).select do |project_id, _|
+      project_details(user, key).select do |project_id, _|
         user.viewable_project_ids.exclude?(project_id)
       end
     end
     memoize :other_projects
 
-    def project_details(key)
+    def project_details(user, key)
       details = results.project.left_outer_joins(:hud_project).
         order(p_t[:ProjectName].asc, p_t[GrdaWarehouse::Hud::Project.project_type_column].asc).
         for_field(key).
-        sort_by { |project| project.hud_project.name_and_type }.
+        sort_by { |project| project.hud_project.name(user) }.
         index_by(&:project_id)
       # throw out any where there are no associated client_projects
       # NOTE: we also need to throw these out in `inventory_sum`
@@ -205,6 +205,7 @@ module PerformanceMeasurement::Details
             time_to_move_in_average: [
               :time_to_move_in_median,
             ],
+            length_of_homeless_time_homeless_es_sh_th_ph_average: [],
           },
         ],
         [
@@ -489,7 +490,7 @@ module PerformanceMeasurement::Details
           sub_category: 'Time',
           column: :system,
           year_over_year_change: false,
-          title: 'Length of Time Homeless (Average Days)',
+          title: 'Average Length of Time Homeless in ES, SH and TH (Average Days)',
           goal_description: 'Persons in the CoC will have an average combined length of time homeless in ES, SH, and TH of **no more than %{goal} days**.',
           goal_description_brief: 'average days',
           goal_direction: '< ',
@@ -499,6 +500,7 @@ module PerformanceMeasurement::Details
           calculation_description: 'The average number of days persons are homeless in ES, SH, and TH projects.',
           calculation_column: :days_homeless_es_sh_th,
           measure: 'Measure 1',
+          table: '1a',
           detail_columns: [
             'days_homeless_es_sh_th',
           ],
@@ -508,7 +510,7 @@ module PerformanceMeasurement::Details
           sub_category: 'Time',
           column: :system,
           year_over_year_change: false,
-          title: 'Length of Time Homeless (Median Days)',
+          title: 'Average Length of Time Homeless in ES, SH and TH (Median Days)',
           goal_description: 'Persons in the CoC will have a median combined length of time homeless in ES, SH, and TH of **no more than %{goal} days**.',
           goal_description_brief: 'median days',
           goal_direction: '< ',
@@ -518,8 +520,43 @@ module PerformanceMeasurement::Details
           calculation_description: 'The median number of days persons are homeless in ES, SH, and TH projects',
           calculation_column: :days_homeless_es_sh_th,
           measure: 'Measure 1',
+          table: '1a',
           detail_columns: [
             'days_homeless_es_sh_th',
+          ],
+        },
+        length_of_homeless_time_homeless_es_sh_th_ph_average: {
+          category: 'Brief',
+          sub_category: 'Time',
+          column: :system,
+          year_over_year_change: false,
+          title: 'Length of Time Homeless in ES, SH, TH, and PH (Average Days)',
+          goal_description: 'Persons in the CoC will have an average combined length of time homeless in ES, SH, TH and PH prior to move-in of **no more than %{goal} days**.',
+          goal_calculation: :time_time,
+          denominator_label: '',
+          calculation_description: 'The average number of days persons report being homeless prior to entering ES, SH, TH and PH projects, plus the time spent in those projects prior to Housing Move-In Date (as applicable).',
+          calculation_column: :days_homeless_es_sh_th_ph,
+          measure: 'Measure 1',
+          table: '1b',
+          detail_columns: [
+            'days_homeless_es_sh_th_ph',
+          ],
+        },
+        length_of_homeless_time_homeless_es_sh_th_ph_median: {
+          category: 'Brief',
+          sub_category: 'Time',
+          column: :system,
+          year_over_year_change: false,
+          title: 'Length of Time Homeless in ES, SH, TH, and PH (Median Days)',
+          goal_description: 'Persons in the CoC will have a median combined length of time homeless in ES, SH, TH and PH prior to move-in of **no more than %{goal} days**.',
+          goal_calculation: :time_time,
+          denominator_label: '',
+          calculation_description: 'The median number of days persons report being homeless prior to entering ES, SH, TH and PH projects, plus the time spent in those projects prior to Housing Move-In Date (as applicable).',
+          calculation_column: :days_homeless_es_sh_th_ph,
+          measure: 'Measure 1',
+          table: '1b',
+          detail_columns: [
+            'days_homeless_es_sh_th_ph',
           ],
         },
         length_of_homeless_stay_average: {
@@ -599,39 +636,37 @@ module PerformanceMeasurement::Details
         time_to_move_in_average: {
           category: 'Brief',
           sub_category: 'Time',
-          column: :system,
+          column: :project,
           year_over_year_change: false,
-          title: 'Time Homeless Prior to PH Move-in (Average Days)',
-          goal_description: 'Persons in the CoC will have an average combined length of time homeless in ES, SH, TH and PH prior to move-in of **no more than %{goal} days**.',
+          title: 'Length of Time to Move-In (Average Days)',
+          goal_description: 'Persons in the CoC will have an average length of time in PH prior to move-in of **no more than %{goal} days**.',
           goal_description_brief: 'average days',
           goal_direction: '< ',
           goal_unit: '',
           goal_calculation: :time_move_in,
           denominator_label: '',
-          calculation_description: 'The average number of days persons report being homeless prior to entering ES, SH, TH and PH projects, plus the time spent in those projects prior to Housing Move-In Date (as applicable).',
-          calculation_column: :days_homeless_es_sh_th_ph,
-          measure: 'Measure 1',
+          calculation_description: 'The average number of days persons spend in PH between entry date and move-in.',
+          calculation_column: :days_homeless_before_move_in,
           detail_columns: [
-            'days_homeless_es_sh_th_ph',
+            'days_homeless_before_move_in',
           ],
         },
         time_to_move_in_median: {
           category: 'Brief',
           sub_category: 'Time',
-          column: :system,
+          column: :project,
           year_over_year_change: false,
-          title: 'Time Homeless Prior to PH Move-in (Median Days)',
-          goal_description: 'Persons in the CoC will have a median combined length of time homeless in ES, SH, TH and PH prior to move-in of **no more than %{goal} days**.',
+          title: 'Length of Time to Move-In (Median Days)',
+          goal_description: 'Persons in the CoC will have a median length of time in PH prior to move-in of **no more than %{goal} days**.',
           goal_description_brief: 'median days',
           goal_direction: '< ',
           goal_unit: '',
           goal_calculation: :time_move_in,
           denominator_label: '',
-          calculation_description: 'The median number of days persons report being homeless prior to entering ES, SH, TH and PH projects, plus the time spent in those projects prior to Housing Move-In Date (as applicable).',
-          calculation_column: :days_homeless_es_sh_th_ph,
-          measure: 'Measure 1',
+          calculation_description: 'The median number of days persons spend in PH between entry date and move-in.',
+          calculation_column: :days_homeless_before_move_in,
           detail_columns: [
-            'days_homeless_es_sh_th_ph',
+            'days_homeless_before_move_in',
           ],
         },
         retention_or_positive_destinations: {

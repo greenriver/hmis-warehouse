@@ -10,6 +10,7 @@ BostonHmis::Application.routes.draw do
     get 'importer_validations/:id/:file', to: 'importer_validations#show', as: :importer_validation
     get 'importer_validation_errors/:id/:file', to: 'importer_validation_errors#show', as: :importer_validation_error
     get 'importer_errors/:id/:file', to: 'importer_errors#show', as: :importer_error
+    get 'importer_errors/:id', to: 'importer_errors#download', as: :importer_errors
     get 'importer_validations/:id/:file/download', to: 'importer_validations#download', as: :importer_validation_download
     resources :importer_extensions, only: [:edit, :update]
     resources :loaded, only: [:show]

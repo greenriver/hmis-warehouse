@@ -7,6 +7,7 @@
 class ClientMatchesController < ApplicationController
   before_action :require_can_edit_clients!
   include ClientPathGenerator
+  include ArelHelper
   helper ClientMatchHelper
 
   def index
@@ -50,8 +51,9 @@ class ClientMatchesController < ApplicationController
     end.flatten.compact
     @ongoing_enrollments = client_ids.map { |id| [id, []] }.to_h
     GrdaWarehouse::ServiceHistoryEnrollment.where(client_id: client_ids).entry.ongoing.
-      pluck(:client_id, :project_name).each do |row|
-        @ongoing_enrollments[row.first] << row.last
+      joins(project: :organization).
+      pluck(:client_id, :project_name, bool_or(p_t[:confidential], o_t[:confidential])).each do |client_id, project_name, confidential|
+        @ongoing_enrollments[client_id] << GrdaWarehouse::Hud::Project.confidentialize_name(current_user, project_name, confidential)
       end
   end
 

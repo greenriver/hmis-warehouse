@@ -12,8 +12,7 @@
             •
           .spm-measure.font-weight-bold= "SPM #{row[:measure]}"
     .col-sm-4
-      %h3
-        = @report.detail_title_for(key)
+      %h3= @report.detail_title_for(key)
       %p= raw markdown.render(@report.detail_goal_description_for(result.field.to_sym))
     - numbers = result.data_for_row
     .col-sm-2

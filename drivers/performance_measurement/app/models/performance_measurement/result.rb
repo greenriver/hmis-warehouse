@@ -81,7 +81,7 @@ module PerformanceMeasurement
       }
     end
 
-    def data_for_projects_bar(period: :reporting)
+    def data_for_projects_bar(user, period: :reporting)
       value_column = if period == :reporting
         :primary_value
       else
@@ -105,7 +105,7 @@ module PerformanceMeasurement
           count = result[value_column].round
           if count.positive?
             project_intermediate << [
-              "#{result.hud_project.name_and_type} (#{result.hud_project.id})",
+              "#{result.hud_project.name(user, include_project_type: true)} (#{result.hud_project.id})",
               count,
             ]
           end

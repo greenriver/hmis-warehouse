@@ -74,7 +74,7 @@ module Exporters::Tableau::EntryExit
       _date_to_street_es_sh: e_t[:DateToStreetESSH], # in use
       prior_es_enrollment_last3_count: nil, # in use
       local_planning_group: p_t[:local_planning_group], # in use
-      confidential: p_t[:confidential], # in use
+      confidential: bool_or(p_t[:confidential], o_t[:confidential]), # in use
       coc_name: nil, # in use
     }
   end
@@ -85,7 +85,7 @@ module Exporters::Tableau::EntryExit
     export_scope = model.in_project_type(project_types).entry.
       open_between(start_date: start_date, end_date: end_date).
       # with_service_between(start_date: start_date, end_date: end_date, service_scope: :service_excluding_extrapolated).
-      joins(enrollment: :client).
+      joins(enrollment: :client, project: :organization).
       includes(enrollment: [:exit, project: :project_cocs]).
       references(enrollment: [:exit, project: :project_cocs]).
       # for aesthetics
@@ -188,7 +188,7 @@ module Exporters::Tableau::EntryExit
           # when :rel_to_hoh
           #   ::HUD.relationship_to_hoh value&.to_i
           when :prov_id
-            if row['confidential'] == 't'
+            if row['confidential']
               "#{GrdaWarehouse::Hud::Project.confidential_project_name} (#{HUD.project_type_brief(row['prog_type']&.to_i)})"
             else
               "#{value} (#{row['_prov_id']})"

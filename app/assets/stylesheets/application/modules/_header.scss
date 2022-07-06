@@ -180,7 +180,8 @@ $nav-btn-states: (
     width: 2rem;
   }
   .message-count {
-    background-color: $cob-sg-optimistic-blue;
+    background-color: white;
+    color: $link-blue;
     transform: translate(-50%, -50%);
   }
   ul li.message {

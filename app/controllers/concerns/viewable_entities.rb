@@ -34,6 +34,7 @@ module ViewableEntities
         group_method: :last,
         selected: @user.access_group.organizations.pluck(:id),
         collection: collection,
+        label_method: ->(organization) { organization.name(ignore_confidential_status: true) },
         placeholder: 'Organization',
         multiple: true,
         input_html: {
@@ -45,17 +46,17 @@ module ViewableEntities
     helper_method :organization_viewability
 
     private def project_viewability(base)
-      model = GrdaWarehouse::Hud::Project.viewable_by(current_user)
+      model = GrdaWarehouse::Hud::Project.viewable_by(current_user, confidential_scope_limiter: :all)
       collection = model.
         order(:name).
         joins(:organization, :data_source).
-        group_by { |p| "#{p.data_source&.name} / #{p.organization&.name}" }
+        group_by { |p| "#{p.data_source&.name} / #{p.organization&.OrganizationName}" }
       {
         as: :grouped_select,
         group_method: :last,
         selected: @user.access_group.projects.pluck(:id),
         collection: collection,
-        label_method: :name_and_type,
+        label_method: ->(project) { project.name_and_type(ignore_confidential_status: true) },
         placeholder: 'Project',
         multiple: true,
         input_html: {
@@ -65,6 +66,21 @@ module ViewableEntities
       }
     end
     helper_method :project_viewability
+
+    private def project_access_group_viewability(base)
+      {
+        label: 'Project Groups',
+        selected: @user.access_group.project_access_groups.pluck(:id),
+        collection: GrdaWarehouse::ProjectAccessGroup.viewable_by(current_user).order(:name),
+        placeholder: 'Project Group',
+        multiple: true,
+        input_html: {
+          class: 'jUserViewable jProjectAccessGroups',
+          name: "#{base}[project_access_groups][]",
+        },
+      }
+    end
+    helper_method :project_access_group_viewability
 
     private def coc_viewability(base)
       {

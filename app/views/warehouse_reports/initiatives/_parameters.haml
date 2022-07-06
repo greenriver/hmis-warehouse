@@ -9,15 +9,12 @@
 .report-parameters__parameter
   %label.label.label-default.parameter-label Projects
   %label.label.label-primary.parameter-value
-    - project_names = GrdaWarehouse::Hud::Project.order(ProjectName: :asc).where(id: report.projects).pluck(:ProjectName)
-    - if project_names.empty? || project_names == @all_project_names
+    - project_names = GrdaWarehouse::Hud::Project.order(ProjectName: :asc).where(id: report.projects).map { |project| project.name(current_user)}
+    - if project_names.empty?
       All
     - else
       - names = project_names.join(' ')
-      - if truncate
-        = names.truncate(50, separator: ' ')
-      - else
-        = names
+      = names
 
 .report-parameters__parameter
   %label.label.label-default.parameter-label Sub Population

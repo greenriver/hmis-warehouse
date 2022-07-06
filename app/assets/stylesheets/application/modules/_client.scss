@@ -32,13 +32,13 @@
 }
 .service-type__first
 {
-  background-color: $cob-sg-optimistic-blue;
-  color: white;
+  background-color: $brand-primary-ll;
+  color: black;
 }
 .service-type__program-type {
-  background-color: black;
+  background-color: #E6E6E6;
   @include tag-pill;
-  color: white;
+  color: black;
 }
 .client__client_unique_id
 {
@@ -65,79 +65,79 @@
 .client__service_type_1 {
   /* border-bottom: 1px solid #0074D9; */
   .service-type__program-type {
-    background-color: #0074D9;
+    background-color: #80C3FF;
   }
 }
 .client__service_type_2 {
   /* border-bottom: 1px solid #3c84b7; */
   .service-type__program-type {
-    background-color: #3c84b7;
+    background-color: #8EE698;
   }
 }
 .client__service_type_3 {
   /* border-bottom: 1px solid #299b9b; */
   .service-type__program-type {
-    background-color: #299b9b;
+    background-color: #4ACFCF;
   }
 }
 .client__service_type_4 {
   /* border-bottom: 1px solid #3D9970; */
   .service-type__program-type {
-    background-color: #3D9970;
+    background-color: #7FCCAB;
   }
 }
 .client__service_type_6 {
   /* border-bottom: 1px solid #8e7a30; */
   .service-type__program-type {
-    background-color: #8e7a30;
+    background-color: #FFE380;
   }
 }
 .client__service_type_7 {
   /* border-bottom: 1px solid #d36e15; */
   .service-type__program-type {
-    background-color: #d36e15;
+    background-color: #DEDEDE;
   }
 }
 .client__service_type_8 {
   /* border-bottom: 1px solid #FF4136; */
   .service-type__program-type {
-    background-color: #FF4136;
+    background-color: #FF9994;
   }
 }
 .client__service_type_9 {
   /* border-bottom: 1px solid #85144b; */
   .service-type__program-type {
-    background-color: #85144b;
+    background-color: #EF9AC1;
   }
 }
 .client__service_type_10 {
   /* border-bottom: 1px solid #ce0ea3; */
   .service-type__program-type {
-    background-color: #ce0ea3;
+    background-color: #FFA680;
   }
 }
 .client__service_type_11 {
   /* border-bottom: 1px solid #B10DC9; */
   .service-type__program-type {
-    background-color: #B10DC9;
+    background-color: #FFDBF7;
   }
 }
 .client__service_type_12 {
   /* border-bottom: 1px solid #21992f; */
   .service-type__program-type {
-    background-color: #21992f;
+    background-color: #B2CDE1;
   }
 }
 .client__service_type_13 {
   /* border-bottom: 1px solid #00b750; */
   .service-type__program-type {
-    background-color: #00b750;
+    background-color: #9EFFC5;
   }
 }
 .client__service_type_14 {
   /* border-bottom: 1px solid #001f3f; */
   .service-type__program-type {
-    background-color: #001f3f;
+    background-color: #C7E4FF;
   }
 }
 .client__potential-match {
@@ -495,8 +495,8 @@ $client-image-height: 200px;
 
 .confidential_project {
   @include tag-pill;
-  color: white;
-  background-color: orange;
+  color: black;
+  background-color: #FFC380;
 }
 
 .client__chronic
