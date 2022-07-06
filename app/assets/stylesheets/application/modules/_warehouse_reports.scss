@@ -251,6 +251,10 @@
   .performance-measurement--highlight-light-#{$i} {
     background: lighten($color, 5%);
     color: darken($color, 60%);
+    th {
+      background-color: lighten($color, 5%);
+      color: darken($color, 60%);
+    }
   }
 }
 

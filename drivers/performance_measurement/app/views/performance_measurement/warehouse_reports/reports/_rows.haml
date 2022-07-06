@@ -10,7 +10,7 @@
 
         .card.squared.mb-0.pb-0.page-break-avoid
           .p-4
-            = render 'row', key: key, row: row, pdf: pdf
+            = render 'row', key: key, row: row
           - if sub_keys.present?
             - title = 'Breakdowns'
             - include_median = key.to_s.ends_with?('_average')
@@ -20,7 +20,7 @@
                 - if @report.show_row?(key)
                   - row = @report.detail_hash[key]
                   .ml-8.mt-4.border-bottom
-                    = render 'row', key: key, row: row, pdf: pdf
+                    = render 'row', key: key, row: row
             - content_for "panel_collapse_heading_#{sub_keys.first}".to_sym do
               .d-flex.ml-6
                 %i.icon-angle-right.j-toggle-arrow

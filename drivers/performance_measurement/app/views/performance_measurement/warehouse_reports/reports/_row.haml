@@ -4,16 +4,9 @@
   - column = row[:column]
   .row.m-0.mb-4.performance-measurement__row.j-click-row
     .col-12
-      - words = ''
-      - if column == :both
-        - words = 'System and Project Level'
-      - elsif column == :project
-        - words = 'Project Level'
-      - elsif column == :system
-        - words = 'System Level'
       .d-flex
         .level-indicator.mb-2
-          = words
+          = @report.detail_words_for(row[:column])
         - if row[:measure].present?
           .font-weight-bold.ml-2.mr-2
             •

@@ -35,7 +35,8 @@
         .mb-2
           = link_to hud_reports_spm_path(@report.comparison_spm_id), class: 'btn btn-sm btn-secondary' do
             Comparison Year
-= render 'rows', goal_popover: true, pdf: false
+= render 'summary'
+= render 'rows', pdf: false
 
 = content_for :page_js do
   :javascript

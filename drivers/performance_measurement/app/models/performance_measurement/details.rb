@@ -34,6 +34,16 @@ module PerformanceMeasurement::Details
       detail_for(key)[:sub_category]
     end
 
+    def detail_words_for(column)
+      if column == :both
+        'System & Project Level'
+      elsif column == :project
+        'Project Level'
+      elsif column == :system
+        'System Level'
+      end
+    end
+
     def goal_configurations
       @goal_configurations ||= {}.tap do |gc|
         detail_hash.each do |_key, data|

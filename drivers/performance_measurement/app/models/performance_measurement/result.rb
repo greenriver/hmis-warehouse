@@ -50,6 +50,7 @@ module PerformanceMeasurement
         unit: primary_unit,
         this_year_count: primary_value,
         last_year_count: comparison_primary_value,
+        number_for_goal: goal_progress.round,
         goal: goal,
         goal_direction: report.detail_goal_direction(field),
         brief_goal_description: report.detail_goal_description_brief(field),
