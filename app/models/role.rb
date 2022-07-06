@@ -9,7 +9,6 @@ class Role < ApplicationRecord
   has_many :users, through: :user_roles
   validates :name, presence: true
 
-  attr_accessor :can_view_confidential_enrollment_details
   def role_name
     name.to_s
   end
