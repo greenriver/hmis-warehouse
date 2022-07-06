@@ -175,6 +175,8 @@ module HudApr::CellDetailsConcern
         :household_type,
         :household_members,
         :move_in_date,
+        :date_to_street,
+        :approximate_time_to_move_in,
       ].freeze
     end
 

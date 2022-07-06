@@ -125,6 +125,7 @@ module PerformanceMeasurement::Details
         sort_by { |project| project.hud_project.name(user) }.
         index_by(&:project_id)
       # throw out any where there are no associated client_projects
+      # NOTE: we also need to throw these out in `inventory_sum`
       cp_key = detail_hash[key][:calculation_column]
       project_ids = client_projects.for_question(cp_key).distinct.pluck(:project_id)
       details.select { |k, _| k.in?(project_ids) }.to_h
