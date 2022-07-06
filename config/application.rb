@@ -73,7 +73,8 @@ module BostonHmis
         exception: event.payload[:exception]&.first,
       }
     end
-    config.log_formatter = LogFormatter.new
+    config.logger = ActiveSupport::Logger.new(STDOUT)
+    config.logger.formatter = LogFormatter.new
 
     # default to not be sandbox email mode
     config.sandbox_email_mode = false
