@@ -25,19 +25,20 @@
           clients housed in permanent destinations and on the chronic lists between:
           %strong
             = "#{@range.start} and #{@range.end}."
-      %table.table.table-sm.table-hover
-        %thead
-          %tr
-            %th Client
-            %th{style: 'width: 10em;'} On Lists
-            %th Housed On
-        %tbody
-          - @clients.each do |_,exits|
-            - client = exits.first
+      .card
+        %table.table.table-striped
+          %thead
             %tr
-              %td
-                = link_to_if can_view_clients?, "#{client.first_name} #{client.last_name}", appropriate_client_path(id: client.client_id)
-              %td
-                = @chronics[client.client_id].map(&:date).uniq.join('<br />').html_safe
-              %td
-                = exits.map{|ex| [ex.exit_date, HUD.destination(ex.destination)].join(' - ')}.uniq.join('<br />').html_safe
+              %th Client
+              %th{style: 'width: 10em;'} On Lists
+              %th Housed On
+          %tbody
+            - @clients.each do |_,exits|
+              - client = exits.first
+              %tr
+                %td
+                  = link_to_if can_view_clients?, "#{client.first_name} #{client.last_name}", appropriate_client_path(id: client.client_id)
+                %td
+                  = @chronics[client.client_id].map(&:date).uniq.join('<br />').html_safe
+                %td
+                  = exits.map{|ex| [ex.exit_date, HUD.destination(ex.destination)].join(' - ')}.uniq.join('<br />').html_safe

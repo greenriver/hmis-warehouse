@@ -26,7 +26,7 @@
       = link_to warehouse_reports_active_veteran_path(report) do
         = report.client_count
         clients
-    %td.warehouse-reports__completed= render 'parameters', report: report
+    %td.warehouse-reports__completed.report-parameters= render 'parameters', report: report
     %td
       - if report.parameters['visible_projects'].present? && report.parameters['visible_projects'].first != 'all'
         - title = report.parameters['visible_projects'].map(&:last).join(', ')

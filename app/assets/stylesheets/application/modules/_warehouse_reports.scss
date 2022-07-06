@@ -112,21 +112,22 @@
   flex-wrap: wrap;
 }
 .report-parameters-all,
-.warehouse-reports__completed {
+.warehouse-reports__completed,
+.report-parameters {
   .report-parameters__parameter {
     display: block;
     .label {
       display: block;
       font-size: 1rem;
-      &.label-default,
-      &.label-primary {
+      &.parameter-label,
+      &.parameter-value {
         background: transparent;
         color: $gray-darker;
       }
-      &.label-default {
+      &.parameter-label {
         margin-bottom: 0;
       }
-      &.label-primary {
+      &.parameter-value {
         font-weight: normal;
         margin-bottom: 1rem;
       }
@@ -141,7 +142,7 @@
   .label {
 
   }
-  .label-default {
+  .parameter-label {
     background: transparent;
   }
 }

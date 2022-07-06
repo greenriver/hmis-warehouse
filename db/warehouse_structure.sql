@@ -5261,7 +5261,8 @@ CREATE TABLE public.configs (
     majority_sheltered_calculation character varying DEFAULT 'current_living_situation'::character varying,
     system_cohort_processing_date date,
     system_cohort_date_window integer DEFAULT 1,
-    roi_model character varying DEFAULT 'explicit'::character varying
+    roi_model character varying DEFAULT 'explicit'::character varying,
+    client_dashboard character varying DEFAULT 'default'::character varying NOT NULL
 );
 
 
@@ -48613,6 +48614,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220604181405'),
 ('20220607155407'),
 ('20220610173543'),
+('20220612161111'),
 ('20220617180748');
 
 

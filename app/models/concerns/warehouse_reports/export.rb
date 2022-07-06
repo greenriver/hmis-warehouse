@@ -11,13 +11,13 @@ module WarehouseReports::Export
     def key_for_display(key)
       case key
       when 'data_source_ids'
-        'data sources'
+        'Data Sources'
       when 'project_ids'
-        'projects'
+        'Projects'
       when 'organization_ids'
-        'organizations'
+        'Organizations'
       else
-        key.humanize.downcase
+        key.humanize.titleize
       end
     end
 
