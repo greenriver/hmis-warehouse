@@ -9,9 +9,6 @@ class Role < ApplicationRecord
   has_many :users, through: :user_roles
   validates :name, presence: true
 
-  # remove the next line after release-38 has been fully deployed and merged to production
-  attr_accessor :can_view_confidential_enrollment_details
-
   def role_name
     name.to_s
   end
