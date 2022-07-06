@@ -1,5 +1,5 @@
 - accordion_class = if @pdf then '' else '' end
-%h3= link_to_if can_view_projects?, project.project&.ProjectName, project_path(project.project)
+%h3= link_to_if can_view_projects?, project.project&.name(current_user), project_path(project.project)
 .well.page-break-after
   .d-flex.text-center.justify-content-center.mt-4
     .overall-utilization-rate.chunk.mr-auto.ml-4

@@ -133,6 +133,20 @@ module GrdaWarehouse
       }
     end
 
+    def self.available_roi_models
+      {
+        'Explicit' => :explicit,
+        'Implicit' => :implicit,
+      }
+    end
+
+    def self.available_client_dashboards
+      {
+        'Default' => :default,
+        'VA' => :va,
+      }
+    end
+
     def self.client_search_available?
       get(:pii_encryption_type).to_sym.in?([:none])
     end
@@ -183,6 +197,10 @@ module GrdaWarehouse
       cache_store.fetch(config, expires_in: 10.seconds) do
         first_or_create.public_send(config)
       end
+    end
+
+    def self.implicit_roi?
+      get(:roi_model).to_s == 'implicit'
     end
 
     def self.arbiter_class

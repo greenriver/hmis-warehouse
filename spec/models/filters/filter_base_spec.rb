@@ -2,8 +2,9 @@ require 'rails_helper'
 
 RSpec.describe Filters::FilterBase, type: :model do
   let!(:data_source) { create :data_source_fixed_id }
-  let!(:es_project) { create :grda_warehouse_hud_project, computed_project_type: 1 }
-  let!(:psh_project) { create :grda_warehouse_hud_project, computed_project_type: 3 }
+  let!(:organization) { create :grda_warehouse_hud_organization }
+  let!(:es_project) { create :grda_warehouse_hud_project, computed_project_type: 1, OrganizationID: organization.OrganizationID }
+  let!(:psh_project) { create :grda_warehouse_hud_project, computed_project_type: 3, OrganizationID: organization.OrganizationID }
   let!(:user) { create :user }
 
   before :each do

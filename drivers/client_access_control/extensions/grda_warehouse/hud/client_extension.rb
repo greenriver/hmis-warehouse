@@ -85,7 +85,7 @@ module ClientAccessControl::GrdaWarehouse::Hud
       private def visible_because_of_data_assignment?(user)
         return false unless user.can_view_clients?
 
-        visible_because_of_enrollments = (source_enrollments.joins(:project).pluck(p_t[:id]) & GrdaWarehouse::Hud::Project.viewable_by(user).pluck(:id)).present?
+        visible_because_of_enrollments = (source_enrollments.joins(:project).pluck(p_t[:id]) & GrdaWarehouse::Hud::Project.viewable_by(user, confidential_scope_limiter: :all).pluck(:id)).present?
         visible_because_of_data_sources = (source_clients.pluck(:data_source_id) & user.data_sources.pluck(:id)).present?
 
         visible_because_of_enrollments || visible_because_of_data_sources
@@ -93,6 +93,8 @@ module ClientAccessControl::GrdaWarehouse::Hud
 
       private def visible_because_of_release?(user)
         return false unless user.can_view_clients?
+        # access isn't governed by release if a client can only search their assigned clients
+        return false if user.can_search_own_clients?
         return unless release_valid?
 
         valid_in_any_coc = consented_coc_codes == [] || consented_coc_codes.include?('All CoCs')

@@ -17,7 +17,7 @@ wb.add_worksheet(name: "Open Enrollments") do |sheet|
       client[:id], 
       client[:FirstName], 
       client[:LastName], 
-      entry[:project_name],
+      entry.project.name(current_user),
       entry[:first_date_in_program],
       max_date,
     ])

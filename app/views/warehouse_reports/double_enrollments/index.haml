@@ -32,10 +32,10 @@
       - st = GrdaWarehouse::Hud::Enrollment.arel_table
       - @counts.each do |client_id, data|
         - client = @clients[client_id]
-        - data.each do |client_id, project_type, project_names, count|
+        - data.each do |client_id, project_type, project_names, confidential_agg, count|
           %tr
             %td= link_to_if can_view_clients?, client.LastName, appropriate_client_path(client)
             %td= link_to_if can_view_clients?, client.FirstName, appropriate_client_path(client)
             %td= count
             %td= HUD.project_type project_type
-            %td= project_names
+            %td= confidentialize_project_list(project_names, confidential_agg)

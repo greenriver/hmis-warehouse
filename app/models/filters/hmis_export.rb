@@ -110,21 +110,21 @@ module Filters
 
     def effective_project_ids_from_project_groups
       GrdaWarehouse::ProjectGroup.joins(:projects).
-        merge(GrdaWarehouse::ProjectGroup.viewable_by(user)).
+        merge(viewable_project_scope).
         where(id: project_group_ids.reject(&:blank?).map(&:to_i)).
         pluck(p_t[:id].as('project_id').to_sql)
     end
 
     def effective_project_ids_from_organizations
       GrdaWarehouse::Hud::Organization.joins(:projects).
-        merge(GrdaWarehouse::Hud::Project.viewable_by(user)).
+        merge(viewable_project_scope).
         where(id: organization_ids.reject(&:blank?).map(&:to_i)).
         pluck(p_t[:id].as('project_id').to_sql)
     end
 
     def effective_project_ids_from_data_sources
       GrdaWarehouse::DataSource.joins(:projects).
-        merge(GrdaWarehouse::Hud::Project.viewable_by(user)).
+        merge(viewable_project_scope).
         where(id: data_source_ids.reject(&:blank?).map(&:to_i)).
         pluck(p_t[:id].as('project_id').to_sql)
     end
@@ -147,8 +147,14 @@ module Filters
       end
     end
 
+    def viewable_project_scope
+      return GrdaWarehouse::Hud::Project.non_confidential.viewable_by(user) unless user.can_view_confidential_project_names?
+
+      GrdaWarehouse::Hud::Project.viewable_by(user)
+    end
+
     def all_project_ids
-      GrdaWarehouse::Hud::Project.viewable_by(user).pluck(:id)
+      viewable_project_scope.pluck(:id)
     end
 
     def user

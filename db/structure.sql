@@ -1028,7 +1028,6 @@ CREATE TABLE public.roles (
     can_edit_help boolean DEFAULT false,
     can_view_all_hud_reports boolean DEFAULT false,
     can_view_own_hud_reports boolean DEFAULT false,
-    can_view_confidential_enrollment_details boolean DEFAULT false,
     can_manage_ad_hoc_data_sources boolean DEFAULT false,
     can_manage_own_ad_hoc_data_sources boolean DEFAULT false,
     can_view_client_ad_hoc_data_sources boolean DEFAULT false,
@@ -1073,7 +1072,10 @@ CREATE TABLE public.roles (
     can_edit_health_emergency_contact_tracing boolean DEFAULT false,
     health_role boolean DEFAULT false NOT NULL,
     can_view_all_vprs boolean DEFAULT false,
-    can_view_my_vprs boolean DEFAULT false
+    can_view_my_vprs boolean DEFAULT false,
+    can_search_own_clients boolean DEFAULT false,
+    can_view_confidential_project_names boolean DEFAULT false,
+    can_report_on_confidential_projects boolean DEFAULT false
 );
 
 
@@ -2881,6 +2883,11 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220216174239'),
 ('20220309140327'),
 ('20220314183405'),
-('20220518143528');
+('20220518143528'),
+('20220609133835'),
+('20220613211706'),
+('20220613212850'),
+('20220615155458'),
+('20220621144511');
 
 
