@@ -97,7 +97,7 @@ $icons: (
 );
 
 
-// Convert 'e807 to "\e807"
+// Convert 'e807' to "\e807"
 // See: https://github.com/sass/sass/issues/659#issuecomment-53775335
 @function icon-char($icon-code) {
   @return #{"\"\\"}#{$icon-code + "\""};

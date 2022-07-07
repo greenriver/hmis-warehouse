@@ -38,7 +38,7 @@
 
 @each $name, $icon-code in $icons {
   .icon-#{$name} {
-    &:before {
+    &::before {
       content: icon-char($icon-code);
     }
   }
