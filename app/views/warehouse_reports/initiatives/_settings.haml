@@ -12,8 +12,8 @@
     .col-sm-6
       %h4 Projects
       %ul
-        - project_names = GrdaWarehouse::Hud::Project.order(ProjectName: :asc).where(id: @parameters.projects).pluck(:ProjectName)
-        - if project_names.empty? || project_names == @all_project_names
+        - project_names = GrdaWarehouse::Hud::Project.order(ProjectName: :asc).where(id: @parameters.projects).map { |project| project.name(current_user)}
+        - if project_names.empty?
           All
         - else
           - project_names.each do |name|

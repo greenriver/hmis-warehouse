@@ -1,4 +1,4 @@
 .mb-2.reports.warehouse-reports__completed
   - # NOTE: this is not ideal, we need to figure out which filter type we're actually using
   - # but for displaying the items chosen, it's probably fine
-  = Filters::FilterBase.new(user_id: report.user_id).update(report.options.with_indifferent_access).describe_filter_as_html
+  = Filters::FilterBase.new(user_id: report.user_id).update(report.options.with_indifferent_access).describe_filter_as_html(@generator.allowed_options)

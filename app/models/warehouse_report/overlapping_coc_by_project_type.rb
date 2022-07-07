@@ -191,18 +191,18 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
       end
   end
 
-  def limited_details_hash
+  def limited_details_hash(user)
     {
       start_date: start_date.iso8601,
       end_date: end_date.iso8601,
       cocs: [coc1, coc2].map do |coc|
         { code: coc.cocnum, name: coc.cocname }
       end,
-      clients: limited_details_clients,
+      clients: limited_details_clients(user),
     }
   end
 
-  def limited_details_clients
+  def limited_details_clients(user)
     client_num = 0
     clients_by_id = shared_clients.index_by(&:id)
     relevant_client_ids = @non_overlapping ? non_overlapping_client_ids : overlapping_client_ids
@@ -222,7 +222,7 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
           age_group: age_group(client),
           race: client.race_description,
           ethnicity: ::HUD.ethnicity(client.Ethnicity),
-          enrollments: enrollment_details(services),
+          enrollments: enrollment_details(services, user),
           client_id: client.to_param,
         }
       end
@@ -245,11 +245,11 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
     end
   end
 
-  private def enrollment_details(services)
+  private def enrollment_details(services, user)
     services.group_by { |s| s.service_history_enrollment.project }.map do |project, project_services|
       {
         coc: project.project_cocs.first.effective_coc_code,
-        project_name: project.name,
+        project_name: project.name(user),
         project_type: ::HUD.project_type_brief(project.ProjectType),
         history: history_details(project_services),
       }

@@ -14,6 +14,8 @@ RSpec.describe model, type: :model do
   # project coc: pc1 pc2    pc3 pc4    pc5 pc6
 
   let!(:admin_role) { create :admin_role }
+  let!(:can_view_confidential_projects) { create :can_view_confidential_projects }
+  let!(:can_report_on_confidential_projects) { create :can_report_on_confidential_projects, can_report_on_confidential_projects: true }
 
   let!(:user) { create :user }
 
@@ -42,7 +44,14 @@ RSpec.describe model, type: :model do
 
   let!(:pg1) { create :project_access_group, projects: [p1] }
 
-  u = ->(user) { model.viewable_by(user).pluck(:id).sort }
+  u = ->(user) do
+    if model == GrdaWarehouse::Hud::Project
+      model.viewable_by(user, confidential_scope_limiter: :all).pluck(:id).sort
+    else
+      model.viewable_by(user).pluck(:id).sort
+    end
+  end
+
   p = ->(*projects) { projects.map(&:id).sort }
 
   describe 'scopes' do
@@ -135,6 +144,163 @@ RSpec.describe model, type: :model do
         it 'sees p1 but not p2' do
           expect(u[user]).to eq p[p1]
           expect(u[user]).to_not include p2
+        end
+      end
+    end
+
+    describe 'confidentiality' do
+      before(:each) do
+        p1.update(confidential: true) # project in CoC 'foo'
+        p8.update(confidential: true) # project in CoC 'bar'
+        o2.update(confidential: true)
+      end
+
+      describe 'projects in a confidential organization' do
+        it 'are considered confidential' do
+          expect(p3.confidential).to be true
+          expect(p3.confidential?).to be true
+        end
+      end
+
+      describe 'project scopes' do
+        it 'include confidential projects' do
+          confidential_scope = GrdaWarehouse::Hud::Project.confidential
+          expect(confidential_scope.pluck(:id).sort).to eq p[p1, p3, p4, p8]
+        end
+
+        it 'exclude confidential projects' do
+          non_confidential_scope = GrdaWarehouse::Hud::Project.non_confidential
+          expect(non_confidential_scope.pluck(:id).sort).to eq p[p2, p5, p6, p7]
+        end
+      end
+
+      describe 'user without permission to view confidential project names' do
+        describe 'assigned to confidential project' do
+          before do
+            user.add_viewable(p1) # confidential project
+            user.add_viewable(p2) # non-confidential project
+          end
+          it 'sees p1 confidentialized' do
+            expect(u[user]).to eq p[p1, p2]
+            expect(p1.name(user).downcase).to include 'confidential'
+          end
+          it 'does not see p1 in options for select' do
+            options = GrdaWarehouse::Hud::Project.options_for_select(user: user)
+            expect(options.keys.size).to eq 1
+            project_ids = options.values.flatten(1).map(&:second)
+            expect(project_ids).to eq [p2.id]
+          end
+
+          it 'does not include p1 in viewable_by' do
+            expect(GrdaWarehouse::Hud::Project.viewable_by(user).pluck(:id)).to_not include p1.id
+          end
+        end
+
+        describe 'assigned to confidential organization' do
+          before do
+            user.add_viewable(o2) # confidential organization
+            user.add_viewable(p2) # non-confidential project
+          end
+          it 'sees p3 and p4 confidentialized' do
+            expect(u[user]).to eq p[p2, p3, p4]
+            expect(p3.name(user).downcase).to include 'confidential'
+            expect(p4.name(user).downcase).to include 'confidential'
+          end
+
+          it 'does not see p3 and p4 in options for select' do
+            options = GrdaWarehouse::Hud::Project.options_for_select(user: user)
+            expect(options.keys.size).to eq 1
+            project_ids = options.values.flatten(1).map(&:second)
+            expect(project_ids).to eq [p2.id]
+          end
+
+          it 'does not include p3 or p4 in viewable_by' do
+            expect(GrdaWarehouse::Hud::Project.viewable_by(user).pluck(:id)).to_not include p3.id
+            expect(GrdaWarehouse::Hud::Project.viewable_by(user).pluck(:id)).to_not include p4.id
+          end
+        end
+
+        describe 'assigned to coc foo' do
+          before do
+            user.coc_codes = ['foo']
+            user.save
+          end
+          after do
+            user.coc_codes = []
+            user.save
+          end
+          it 'sees p1 and p4 confidentialized' do
+            expect(u[user]).to include(p1.id, p4.id)
+            expect(p1.name(user).downcase).to include 'confidential'
+            expect(p4.name(user).downcase).to include 'confidential'
+          end
+        end
+      end
+
+      describe 'user with permission to view confidential project names' do
+        before do
+          user.roles << can_view_confidential_projects
+        end
+        after do
+          user.roles = []
+        end
+
+        describe 'assigned to confidential project' do
+          before do
+            user.add_viewable(p1)
+          end
+          it 'sees p1 project name' do
+            expect(u[user]).to eq p[p1]
+            expect(p1.name(user).downcase).not_to include 'confidential'
+          end
+
+          it 'does not include p1 in viewable_by' do
+            expect(GrdaWarehouse::Hud::Project.viewable_by(user).pluck(:id)).to_not include p1.id
+          end
+        end
+
+        describe 'when given permission to report on confidential projects' do
+          before do
+            user.roles << can_report_on_confidential_projects
+            user.add_viewable(p1)
+          end
+          after do
+            user.roles = []
+          end
+          it 'does include p1 in viewable_by' do
+            expect(GrdaWarehouse::Hud::Project.viewable_by(user).pluck(:id)).to include p1.id
+          end
+        end
+
+        describe 'assigned to confidential organization' do
+          before do
+            user.add_viewable(o2)
+          end
+          it 'sees p3 and p4 project names' do
+            expect(u[user]).to eq p[p3, p4]
+            expect(p3.name(user).downcase).not_to include 'confidential'
+            expect(p4.name(user).downcase).not_to include 'confidential'
+          end
+        end
+
+        describe 'assigned to coc foo' do
+          before do
+            user.coc_codes = ['foo']
+            user.save
+          end
+          after do
+            user.coc_codes = []
+            user.save
+          end
+          it 'sees p1 and p4 project names' do
+            expect(u[user]).to include(p1.id, p4.id)
+            expect(p1.name(user).downcase).not_to include 'confidential'
+            expect(p4.name(user).downcase).not_to include 'confidential'
+          end
+          it 'sees p8 confidentialized' do
+            expect(u[user]).not_to include p8.id
+            expect(p8.name(user).downcase).to include 'confidential'
+          end
         end
       end
     end

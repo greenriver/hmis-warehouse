@@ -93,7 +93,7 @@ module PerformanceMeasurement::Details
     end
 
     def my_projects(user, key)
-      project_details(key).select do |project_id, _|
+      project_details(user, key).select do |project_id, _|
         user.viewable_project_ids.include?(project_id)
       end
     end
@@ -112,17 +112,17 @@ module PerformanceMeasurement::Details
     end
 
     def other_projects(user, key)
-      project_details(key).select do |project_id, _|
+      project_details(user, key).select do |project_id, _|
         user.viewable_project_ids.exclude?(project_id)
       end
     end
     memoize :other_projects
 
-    def project_details(key)
+    def project_details(user, key)
       details = results.project.left_outer_joins(:hud_project).
         order(p_t[:ProjectName].asc, p_t[GrdaWarehouse::Hud::Project.project_type_column].asc).
         for_field(key).
-        sort_by { |project| project.hud_project.name_and_type }.
+        sort_by { |project| project.hud_project.name(user) }.
         index_by(&:project_id)
       # throw out any where there are no associated client_projects
       # NOTE: we also need to throw these out in `inventory_sum`

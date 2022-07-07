@@ -331,7 +331,7 @@ module IncomeBenefitsReport
     end
 
     private def populate_clients!(range)
-      report_scope.preload(:client, :project, enrollment: :income_benefits).find_in_batches do |batch|
+      report_scope.preload(:client, project: :organization, enrollment: :income_benefits).find_in_batches do |batch|
         report_clients = []
         race_cache = GrdaWarehouse::Hud::Client.new
         client_ids = batch.map(&:client_id)
@@ -380,7 +380,7 @@ module IncomeBenefitsReport
         entry_date: enrollment.first_date_in_program,
         exit_date: enrollment.last_date_in_program,
         move_in_date: enrollment.move_in_date,
-        project_name: enrollment.project_name,
+        project_name: enrollment.project&.name(filter.user),
         project: enrollment.project,
       )
     end
