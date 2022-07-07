@@ -1,0 +1,2 @@
+"InventoryID","ProjectID","CoCCode","HouseholdType","Availability","UnitInventory","BedInventory","CHVetBedInventory","YouthVetBedInventory","VetBedInventory","CHYouthBedInventory","YouthBedInventory","CHBedInventory","OtherBedInventory","ESBedType","InventoryStartDate","InventoryEndDate","DateCreated","DateUpdated","UserID","DateDeleted","ExportID"
+"4975263","1559","XX-500",1,,9,9,0,0,0,0,9,0,0,,2020-07-01,,2022-04-10 00:00:00,2022-04-10 00:00:00,"889",,"FC441CC92F51873B6BC3E171E8465759"

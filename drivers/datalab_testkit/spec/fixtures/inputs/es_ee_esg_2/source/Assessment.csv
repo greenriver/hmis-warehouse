@@ -1,0 +1,4 @@
+"AssessmentID","EnrollmentID","PersonalID","AssessmentDate","AssessmentLocation","AssessmentType","AssessmentLevel","PrioritizationStatus","DateCreated","DateUpdated","UserID","DateDeleted","ExportID"
+"4975394","192301","93377",2020-11-11,"Agency One",2,1,2,2022-05-03 00:00:00,2022-05-03 00:00:00,"889",,"2ED73E4E8B8E1D5A7834DBBA2A619BB3"
+"4975420","190635","90746",2020-10-15,"Agency One",3,2,1,2022-05-03 00:00:00,2022-05-03 00:00:00,"889",,"2ED73E4E8B8E1D5A7834DBBA2A619BB3"
+"4975422","192181","93534",2020-10-22,"Agency One",1,1,1,2022-05-03 00:00:00,2022-05-03 00:00:00,"889",,"2ED73E4E8B8E1D5A7834DBBA2A619BB3"
