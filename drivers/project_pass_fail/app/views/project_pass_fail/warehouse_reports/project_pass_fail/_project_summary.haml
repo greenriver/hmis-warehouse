@@ -7,7 +7,7 @@
       .ml-2.mr-2
         %h4.title Bed Utilization Rate
         .d-flex.justify-content-center
-          = embedded_svg(:group)
+          %i.icon-group
         .metric{class: status_class}
           = number_to_percentage project.utilization_rate_as_percent, precision: 2
     .overall-unit-utilization-rate.chunk.mr-auto.ml-auto
@@ -15,7 +15,7 @@
       .ml-2.mr-2
         %h4.title Unit Utilization Rate
         .d-flex.justify-content-center
-          = embedded_svg(:group)
+          %i.icon-group
         .metric{class: status_class}
           = number_to_percentage project.unit_utilization_rate_as_percent, precision: 2
     .overall-universal-data-elements.chunk.mr-auto.ml-auto
@@ -26,7 +26,7 @@
           %br
           Error Rates Within Threshold?
         .d-flex.justify-content-center
-          = embedded_svg('file-text')
+          %i.icon-file-text
         .metric-sm.mt-2{class: status_class, style: 'font-size: 1rem;'}
           = checkmark_or_x(project.within_universal_data_element_threshold?, size: :sm, style: :svg)
     .overall-timeliness.chunk.mr-4.ml-4
@@ -37,7 +37,7 @@
           %br
           to Enter Enrollments
         .d-flex.justify-content-center
-          = embedded_svg(:calendar)
+          %i.icon-calendar
         .metric{class: status_class}
           = number_with_delimiter(project.average_days_to_enter_entry_date.round)
   - if @pdf

@@ -6,27 +6,23 @@
     .col-sm-2
       - if column == :both
         - words = 'System and Project Level'
-        %span.icon-svg--sm.mr-2{ data: { toggle: :tooltip, title: words }}
-          %svg
-            %use{'xlink:href' => '#icon-city'}
-          %svg.ml-2
-            %use{'xlink:href' => '#icon-house'}
+        %span.icon-lg.mr-2{ data: { toggle: :tooltip, title: words }}
+          %i.icon-city
+          %i.ml-2.icon-house
           - if pdf
             %br
             = words
       - elsif column == :project
         - words = 'Project Level'
-        %span.icon-svg--sm.mr-2{ data: { toggle: :tooltip, title: words }}
-          %svg.ml-2
-            %use{'xlink:href' => '#icon-house'}
+        %span.icon-lg.mr-2{ data: { toggle: :tooltip, title: words }}
+          %i.icon-house
           - if pdf
             %br
             = words
       - elsif column == :system
         - words = 'System Level'
-        %span.icon-svg--sm.mr-2{ data: { toggle: :tooltip, title: words }}
-          %svg
-            %use{'xlink:href' => '#icon-city'}
+        %span.icon-lg.mr-2{ data: { toggle: :tooltip, title: words }}
+          %i.icon-city
           - if pdf
             %br
             = words

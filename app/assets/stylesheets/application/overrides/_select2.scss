@@ -53,6 +53,7 @@
   &::after {
     font-weight: normal;
     font-family: 'icons';
+    // confirm that this still works
     content: 'select all #{get-icon-code('checkmark2')}'
   }
   &.j-all-selected {

@@ -36,10 +36,10 @@
     -moz-osx-font-smoothing: grayscale;
 }
 
-@each $name, $char-code in $icons {
+@each $name, $icon-code in $icons {
   .icon-#{$name} {
-    &::before {
-      content: $char-code;
+    &:before {
+      content: icon-char($icon-code);
     }
   }
 }
