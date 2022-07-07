@@ -8,24 +8,20 @@ module WarehouseReports
   class RecidivismController < ApplicationController
     include WarehouseReportAuthorization
     include ArelHelper
+
     def index
-      columns = [:client_id, :project_name, :first_date_in_program, :last_date_in_program, :move_in_date, :computed_project_type, :id]
       @filter = ::Filters::DateRange.new(date_range_options)
-      ph_scope = ph_source.open_between(start_date: @filter.start, end_date: @filter.end).distinct
+      ph_scope = ph_source.joins(project: :organization).open_between(start_date: @filter.start, end_date: @filter.end).distinct
       @ph_clients = ph_scope.pluck(*columns).
-        map do |row|
-          Hash[columns.zip(row)]
-        end.
+        map { |row| to_hash_confidentialized(row) }.
         group_by { |row| row[:client_id] }
 
-      @homeless_clients = homeless_source.
+      @homeless_clients = homeless_source.joins(project: :organization).
         with_service_between(start_date: @filter.start, end_date: @filter.end).
         where(client_id: ph_scope.select(:client_id)).
         distinct.
         pluck(*columns).
-        map do |row|
-          Hash[columns.zip(row)]
-        end.
+        map { |row| to_hash_confidentialized(row) }.
         group_by { |row| row[:client_id] }
 
       # Throw away the homeless client if all homeless enrollments start before all PH enrollments
@@ -68,6 +64,17 @@ module WarehouseReports
           headers['Content-Disposition'] = "attachment; filename=#{filename}"
         end
       end
+    end
+
+    private def columns
+      [:client_id, :project_name, :first_date_in_program, :last_date_in_program, :move_in_date, :computed_project_type, :id, bool_or(p_t[:confidential], o_t[:confidential])]
+    end
+
+    private def to_hash_confidentialized(row)
+      confidential = row.pop
+      h = Hash[columns[0...-1].zip(row)]
+      h[:project_name] = GrdaWarehouse::Hud::Project.confidentialize_name(current_user, h[:project_name], confidential)
+      h
     end
 
     def ph_source

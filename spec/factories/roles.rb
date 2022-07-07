@@ -146,4 +146,15 @@ FactoryBot.define do
     name { 'can view clients' }
     can_edit_clients { true }
   end
+
+  factory :can_view_confidential_projects, class: 'Role' do
+    name { 'can view confidential project names' }
+    can_view_confidential_project_names { true }
+    can_view_projects { true }
+  end
+
+  factory :can_report_on_confidential_projects, class: 'Role' do
+    name { 'can report on confidential projects' }
+    can_report_on_confidential_projects { true }
+  end
 end

@@ -6,15 +6,6 @@
     %td= job.run_at
     %td= render 'spinner'
     %td= render 'parameters', report: report
-    %td.warehouse-reports__completed
-      - if report.parameters['visible_projects'].present? && report.parameters['visible_projects'].first != 'all'
-        - title = report.parameters['visible_projects'].map(&:last).join(', ')
-        - data = {toggle: :tooltip, title: "Limited by access to the following projects: #{title}"}
-        %span{data: data}
-          Limited
-      - else
-        Unlimited
-
     %td
       - if report.user_id
         = User.find(report.user_id)&.name
@@ -27,14 +18,6 @@
         = report.client_count
         clients
     %td.warehouse-reports__completed= render 'parameters', report: report
-    %td
-      - if report.parameters['visible_projects'].present? && report.parameters['visible_projects'].first != 'all'
-        - title = report.parameters['visible_projects'].map(&:last).join(', ')
-        - data = {toggle: :tooltip, title: "Limited by access to the following projects: #{title}"}
-        %span{data: data}
-          Limited
-      - else
-        Unlimited
     %td
       - if report.user_id
         = User.find(report.user_id)&.name

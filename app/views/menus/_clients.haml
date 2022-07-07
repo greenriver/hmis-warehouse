@@ -22,7 +22,7 @@
       - if can_access_some_client_search?
         %li.o-menu__item
           = link_to clients_path, class: 'o-menu__link' do
-            - if can_use_strict_search?
+            - if can_use_strict_search? || can_search_own_clients?
               = _('Client Search')
             - else
               = _('Window into the Warehouse')

@@ -93,6 +93,7 @@ module Admin
           order(:name).
           preload(:data_source).
           group_by { |o| o.data_source&.name },
+        label_method: ->(organization) { organization.name(ignore_confidential_status: true) },
         placeholder: 'Organization',
         multiple: true,
         input_html: {
@@ -108,7 +109,8 @@ module Admin
         collection: GrdaWarehouse::Hud::Project.
           order(:name).
           preload(:organization, :data_source).
-          group_by { |p| "#{p.data_source&.name} / #{p.organization&.name}" },
+          group_by { |p| "#{p.data_source&.name} / #{p.organization&.name(ignore_confidential_status: true)}" },
+        label_method: ->(project) { project.name(ignore_confidential_status: true) },
         placeholder: 'Project',
         multiple: true,
         input_html: {

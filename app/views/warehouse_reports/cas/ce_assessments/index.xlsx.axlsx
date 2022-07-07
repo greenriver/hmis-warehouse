@@ -18,6 +18,7 @@ wb.add_worksheet(name: "CE Assessment Status") do |sheet|
 
   @report.clients.each do |client|
     enrollment = @report.max_enrollment_for(@report.clients, client.id)
+    safe_project_name = enrollment ? GrdaWarehouse::Hud::Project.confidentialize_name(current_user, enrollment.project_name, enrollment.confidential) : nil
     row = [
       client.id,
       client.FirstName,
@@ -26,7 +27,7 @@ wb.add_worksheet(name: "CE Assessment Status") do |sheet|
       client.DOB&.year,
       client.processed_service_history.days_homeless_last_three_years,
       @report.max_pathways_date(@report.clients, client.id),
-      enrollment&.project_name,
+      safe_project_name,
       HUD.project_type_brief(enrollment&.computed_project_type),
       enrollment&.first_date_in_program,
       enrollment&.last_date_in_program,
