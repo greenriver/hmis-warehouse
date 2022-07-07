@@ -38,8 +38,18 @@ module CePerformance
       'Average number of days between CE Project Start Date and Exit Date, or Report Period End Date for Stayers'
     end
 
-    def self.median_class
-      CePerformance::Results::TimeInProjectMedian
+    def category
+      'Time'
+    end
+
+    def nested_header
+      'Median Time'
+    end
+
+    def nested_results
+      [
+        CePerformance::Results::TimeInProjectMedian,
+      ]
     end
 
     def detail_link_text

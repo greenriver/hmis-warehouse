@@ -49,8 +49,14 @@ module CePerformance
       'Average number of days between CE Project Start Date and Housing Referral Date'
     end
 
-    def self.median_class
-      CePerformance::Results::ReferralToHousingMedian
+    def nested_header
+      'Median Time'
+    end
+
+    def nested_results
+      [
+        CePerformance::Results::ReferralToHousingMedian,
+      ]
     end
 
     def detail_link_text

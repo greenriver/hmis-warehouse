@@ -31,11 +31,15 @@ module CePerformance
     end
 
     def self.description
-      "Persons in the CoC will have an median length of time on the prioritization list of **no more than #{goal} days**."
+      "Persons in the CoC will have a median length of time on the prioritization list of **no more than #{goal} days**."
     end
 
     def self.calculation
       'Median number of days between CE Assessment and Exit Date, or Report Period End Date for Stayers'
+    end
+
+    def category
+      'Time'
     end
 
     def self.display_result?

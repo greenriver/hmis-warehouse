@@ -1,5 +1,6 @@
 - markdown = Redcarpet::Markdown.new(::InlineHtml)
 - comparison = @report.results_for_display[category_name][:comparison][result_class]
+
 - status = result.passed?(comparison) ? 'success' : 'danger'
 - icon = result.passed?(comparison) ? 'check' : 'cross'
 - label = result.passed?(comparison) ? 'Passed' : 'Failed'
@@ -14,3 +15,4 @@
         .ml-auto= tagged(result.passed?(comparison), status, icon: icon, label: label)
       .mb-4
         = link_to result.detail_link_text, details_ce_performance_warehouse_reports_report_path(@report, key: result_class, target: :_blank)
+  = render 'ce_performance/warehouse_reports/reports/nested_rows', category_name: category_name, result: result, result_class: result_class, pdf: pdf

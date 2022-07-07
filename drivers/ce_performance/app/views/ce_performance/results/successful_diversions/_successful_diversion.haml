@@ -1,5 +1,5 @@
 - markdown = Redcarpet::Markdown.new(::InlineHtml)
-- comparison = @report.results_for_display[:comparison][result_class]
+- comparison = @report.results_for_display[category_name][:comparison][result_class]
 - status = result.passed?(comparison) ? 'success' : 'danger'
 - icon = result.passed?(comparison) ? 'check' : 'cross'
 - label = result.passed?(comparison) ? 'Passed' : 'Failed'

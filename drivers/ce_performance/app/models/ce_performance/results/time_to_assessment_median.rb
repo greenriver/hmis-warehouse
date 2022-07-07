@@ -31,11 +31,15 @@ module CePerformance
     end
 
     def self.description
-      "Persons in the CoC will have an median length of time in CE before assessment of **no more than #{goal} days**."
+      "Persons in the CoC will have a median length of time in CE before assessment of **no more than #{goal} days**."
     end
 
     def self.calculation
       'Median number of days between CE Project Start Date and CE Assessment date.'
+    end
+
+    def category
+      'Time'
     end
 
     def self.display_result?

@@ -38,6 +38,10 @@ module CePerformance
       'Question 9'
     end
 
+    def category
+      'Diversion'
+    end
+
     def goal_line
       nil
     end

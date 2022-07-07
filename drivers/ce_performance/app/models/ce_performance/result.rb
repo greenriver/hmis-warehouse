@@ -9,5 +9,17 @@ module CePerformance
     acts_as_paranoid
 
     belongs_to :report
+
+    def nested_header
+      'Breakdowns'
+    end
+
+    def nested_results
+      []
+    end
+
+    def category
+      'Participation'
+    end
   end
 end

@@ -57,20 +57,29 @@ module CePerformance
       update(completed_at: Time.current)
     end
 
-    def describe_filter_as_html
-      filter.describe_filter_as_html(
-        [
-          :start,
-          :end,
-          :coc_codes,
-          :project_type_codes,
-          :project_ids,
-          :project_group_ids,
-          :data_source_ids,
-          :funder_ids,
-          :hoh_only,
-        ],
-      )
+    def describe_filter_as_html(keys = nil, inline: false)
+      keys ||= [
+        :project_type_codes,
+        :project_ids,
+        :project_group_ids,
+        :data_source_ids,
+      ]
+      filter.describe_filter_as_html(keys, inline: inline)
+    end
+
+    def known_params
+      [
+        :start,
+        :end,
+        :comparison_period,
+        :coc_code,
+        :project_type_codes,
+        :project_ids,
+        :project_group_ids,
+        :data_source_ids,
+        :funder_ids,
+        :hoh_only,
+      ]
     end
 
     def filter=(filter_object)
@@ -152,9 +161,11 @@ module CePerformance
     def results_for_display
       @results_for_display ||= {}.tap do |rfd|
         periods.keys.each do |period|
-          rfd[period] = results.order(:id).select { |r| r.period == period.to_s }.map do |r|
-            [r.class, r]
-          end.to_h
+          results.each do |r|
+            rfd[r.category] ||= {}
+            rfd[r.category][period] ||= {}
+            rfd[r.category][period][r.class] ||= r
+          end
         end
       end
     end
