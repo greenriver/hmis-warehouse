@@ -30,7 +30,7 @@ $brand-secondary:       #7D5226 !default;
 $brand-secondary-l:     lighten($brand-secondary, 25%) !default;
 $brand-success:         #009f44 !default;
 $brand-success-l:       #B1F2C4 !default;
-$brand-success-ll:      lighten($brand-success-l, 25%) !default;
+$brand-success-ll:      lighten($brand-success-l, 5%) !default;
 $brand-success-d:       #68c27f !default;
 $brand-positive:        $brand-success !default;
 $brand-positive-l:      $brand-success-l !default;
@@ -76,9 +76,9 @@ $vi-spdat: rgb(147, 12, 0) !default;
 
 // Tables
 $table-border-color: #DDDDDD !default;
-$table-cell-bg-positive: lighten($brand-success-l, 25%);
-$table-cell-bg-warning: lighten($brand-warning-l, 25%);
-$table-cell-bg-danger: lighten($brand-danger-l, 25%);
+$table-cell-bg-positive: lighten($brand-success-l, 5%);
+$table-cell-bg-warning: lighten($brand-warning-l, 5%);
+$table-cell-bg-danger: lighten($brand-danger-l, 5%);
 
 // Tabs
 $tab-bg: #88A6C9 !default; // Primary in HMIS
