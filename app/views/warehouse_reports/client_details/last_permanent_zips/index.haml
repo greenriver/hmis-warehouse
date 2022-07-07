@@ -7,7 +7,7 @@
 
 = render 'filter'
 
-.d-flex
+.d-flex.mb-6
   %p
     The following is last permanent zip code information for clients with open enrollments between
     = @range.start
@@ -44,5 +44,5 @@
           %td= checkmark(enrollment.parenting_youth || enrollment.parenting_juvenile)
           %td= enrollment.first_date_in_program
           %td= enrollment.last_date_in_program
-          %td= enrollment.project.name(include_confidential_names: current_user.can_view_confidential_enrollment_details?)
+          %td= enrollment.project.name(current_user)
           %td= checkmark(enrollment.head_of_household)

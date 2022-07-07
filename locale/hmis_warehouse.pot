@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: hmis_warehouse 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-20 23:50+0000\n"
-"PO-Revision-Date: 2022-05-20 23:50+0000\n"
+"POT-Creation-Date: 2022-07-06 22:50+0000\n"
+"PO-Revision-Date: 2022-07-06 22:50+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
@@ -3570,6 +3570,9 @@ msgstr ""
 msgid "Data Sources"
 msgstr ""
 
+msgid "Data accurate as of"
+msgstr ""
+
 msgid "Date Housed"
 msgstr ""
 
@@ -3744,6 +3747,9 @@ msgstr ""
 msgid "If you don't see a patient you claimed in this list, they have been assigned by BHCHP and will appear as a client for your agency staff."
 msgstr ""
 
+msgid "Implicit Release"
+msgstr ""
+
 msgid "Import Dashboard"
 msgstr ""
 
@@ -3877,6 +3883,9 @@ msgid "Number Housed Report Generator"
 msgstr ""
 
 msgid "Number of participants who exited to or remained in permanent supportive housing during the reporting period"
+msgstr ""
+
+msgid "Offline Research Export"
 msgstr ""
 
 msgid "Open Path ROI"

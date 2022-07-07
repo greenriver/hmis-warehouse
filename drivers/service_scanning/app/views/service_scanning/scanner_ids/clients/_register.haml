@@ -22,4 +22,4 @@
               %tr
                 %td= contact.provided_at
                 %td= contact.title
-                %td= contact.project&.name_and_type
+                %td= contact.project&.name(current_user, include_project_type: true)

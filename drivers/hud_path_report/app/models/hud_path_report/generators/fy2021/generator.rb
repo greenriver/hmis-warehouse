@@ -50,5 +50,17 @@ module HudPathReport::Generators::Fy2021
     def self.filter_class
       ::HudPathReport::Filters::PathFilter
     end
+
+    def self.allowed_options
+      [
+        :start,
+        :end,
+        :coc_codes,
+        :project_ids,
+        :data_source_ids,
+        :project_type_codes,
+        :project_group_ids,
+      ]
+    end
   end
 end

@@ -1,13 +1,12 @@
-.mb-2.report-parameters__parameter
-  - report.parameters['range'].each do |k,v|
-    - next if v.blank?
-    %label.label.label-default.parameter-label
-      =k.humanize.downcase
+
+- report.parameters['range'].each do |k,v|
+  - next if v.blank?
+  .report-parameters__parameter
+    %label.label.label-default.parameter-label=k.humanize.titleize
     %label.label.label-primary.parameter-value
-      %strong
-        - v = v.compact.delete_if(&:blank?).map(&:upcase).join(', ') if v.is_a?(Array)
-        - if v.blank?
-          All
-        - else
-        = v
+      - v = v.compact.delete_if(&:blank?).map(&:upcase).join(', ') if v.is_a?(Array)
+      - if v.blank?
+        All
+      - else
+      = v
     &nbsp;

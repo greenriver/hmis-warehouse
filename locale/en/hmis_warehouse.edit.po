@@ -3569,6 +3569,9 @@ msgstr ""
 msgid "Data Sources"
 msgstr ""
 
+msgid "Data accurate as of"
+msgstr ""
+
 msgid "Date Housed"
 msgstr ""
 
@@ -3743,6 +3746,9 @@ msgstr ""
 msgid "If you don't see a patient you claimed in this list, they have been assigned by BHCHP and will appear as a client for your agency staff."
 msgstr ""
 
+msgid "Implicit Release"
+msgstr ""
+
 msgid "Import Dashboard"
 msgstr ""
 
@@ -3876,6 +3882,9 @@ msgid "Number Housed Report Generator"
 msgstr ""
 
 msgid "Number of participants who exited to or remained in permanent supportive housing during the reporting period"
+msgstr ""
+
+msgid "Offline Research Export"
 msgstr ""
 
 msgid "Open Path ROI"

@@ -16,9 +16,9 @@
       Chosen Options
 
 .tab-content
-  %div.tab-pane.active.show.fade{role: :tabpanel, id: 'settings', aria:{labelledby:"settings"}}
+  %div.tab-pane.fade{role: :tabpanel, id: 'settings', aria:{labelledby:"settings"}}
     = render 'settings'
-  %div.tab-pane.fade{role: :tabpanel, id: 'outcomes', aria:{labelledby:"outcomes"}}
+  %div.tab-pane.active.show.fade{role: :tabpanel, id: 'outcomes', aria:{labelledby:"outcomes"}}
     .warehouse-reports__initiatives
       = render 'outcomes'
   %div.tab-pane.fade{role: :tabpanel, id: 'details', aria:{labelledby:"details"}}

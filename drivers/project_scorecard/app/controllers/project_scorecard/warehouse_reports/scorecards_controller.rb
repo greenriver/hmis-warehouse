@@ -35,7 +35,7 @@ module ProjectScorecard::WarehouseReports
 
     def show
       report_id = { report_id: @report.id }
-      @pdf_export = ProjectScorecard::DocumentExports::ScorecardExport.new(query_string: report_id.to_query)
+      @pdf_export = ProjectScorecard::DocumentExports::ScorecardExport.new(query_string: report_id.to_query, user: current_user)
     end
 
     def create
@@ -95,9 +95,14 @@ module ProjectScorecard::WarehouseReports
     helper_method :workflow_action
 
     def link_to_apr(text, question)
-      helpers.link_to_if(current_user.can_view_hud_reports && @report.apr_id.present?, text, result_hud_reports_apr_question_path(@report.apr_id || 0, question))
+      helpers.link_to_if(current_user.can_view_hud_reports && @report.apr_id.present?, text, result_hud_reports_apr_question_path(@report.apr_id || 0, question), target: :blank)
     end
     helper_method :link_to_apr
+
+    def link_to_spm(text, measure)
+      helpers.link_to_if(current_user.can_view_hud_reports && @report.spm_id.present?, text, result_hud_reports_spm_measure_path(@report.spm_id || 0, measure), target: :blank)
+    end
+    helper_method :link_to_spm
 
     private def appropriate_action
       return :show if @report.status == 'completed'
@@ -182,7 +187,11 @@ module ProjectScorecard::WarehouseReports
     end
 
     private def project_scope
-      GrdaWarehouse::Hud::Project.viewable_by(current_user)
+      if current_user.can_view_confidential_project_names?
+        GrdaWarehouse::Hud::Project.viewable_by(current_user)
+      else
+        GrdaWarehouse::Hud::Project.viewable_by(current_user).non_confidential
+      end
     end
 
     def project_group_scope
@@ -232,7 +241,9 @@ module ProjectScorecard::WarehouseReports
     private def set_projects_and_groups
       project_ids = @filter.anded_effective_project_ids
       @projects = if project_ids&.any?
-        project_scope.where(id: project_ids).
+        p_scope = project_scope
+        p_scope = p_scope.non_confidential unless current_user.can_view_confidential_project_names?
+        p_scope.where(id: project_ids).
           joins(:organization, :data_source).
           order(p_t[:data_source_id].asc, o_t[:OrganizationName].asc, p_t[:ProjectName].asc).
           preload(:contacts, :data_source, organization: :contacts)

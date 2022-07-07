@@ -161,6 +161,12 @@ class User < ApplicationRecord
     end
   end
 
+  def can_access_project?(project)
+    return false unless can_view_projects?
+
+    cached_viewable_project_ids.include? project.id
+  end
+
   def can_view_censuses?
     GrdaWarehouse::WarehouseReports::ReportDefinition.viewable_by(self).where(url: 'censuses').exists?
   end
@@ -350,6 +356,12 @@ class User < ApplicationRecord
     email == 'noreply@greenriver.com'
   end
 
+  def can_report_on_confidential_projects?
+    return true if system_user?
+
+    can_report_on_confidential_projects
+  end
+
   def inactive?
     return true unless active?
 
@@ -380,6 +392,10 @@ class User < ApplicationRecord
     viewable GrdaWarehouse::ProjectGroup
   end
 
+  def project_access_groups
+    viewable GrdaWarehouse::ProjectAccessGroup
+  end
+
   def associated_by(associations:)
     return [] unless associations.present?
 
@@ -406,6 +422,13 @@ class User < ApplicationRecord
             ds.projects.map(&:ProjectName),
           ]
         end
+      when :project_access_group
+        project_access_groups.preload(:projects).map do |pag|
+          [
+            pag.name,
+            pag.projects.map(&:ProjectName),
+          ]
+        end
       else
         []
       end
@@ -422,6 +445,14 @@ class User < ApplicationRecord
   # inverse of GrdaWarehouse::Hud::Project.viewable_by(user)
   def viewable_project_ids
     @viewable_project_ids ||= GrdaWarehouse::Hud::Project.viewable_by(self).pluck(:id)
+  end
+
+  private def cached_viewable_project_ids(force_calculation: false)
+    key = [self.class.name, __method__, id]
+    Rails.cache.delete(key) if force_calculation
+    Rails.cache.fetch(key, expires_in: 1.minutes) do
+      GrdaWarehouse::Hud::Project.viewable_by(self, confidential_scope_limiter: :all).pluck(:id).to_set
+    end
   end
 
   def user_care_coordinators
@@ -461,10 +492,15 @@ class User < ApplicationRecord
     viewables.each do |viewable|
       access_group.add_viewable(viewable)
     end
+    # invalidate cache of project ids, since we've changed the list
+    cached_viewable_project_ids(force_calculation: true)
+    coc_codes(force_calculation: true)
   end
 
-  def coc_codes
-    Rails.cache.fetch([self, 'coc_codes'], expires_in: 1.minutes) do
+  def coc_codes(force_calculation: false)
+    key = [self.class.name, __method__, id]
+    Rails.cache.delete(key) if force_calculation
+    Rails.cache.fetch(key, expires_in: 1.minutes) do
       (access_groups.map(&:coc_codes).flatten + access_group.coc_codes).compact.uniq
     end
   end
@@ -523,6 +559,7 @@ class User < ApplicationRecord
         data_sources: GrdaWarehouse::DataSource,
         organizations: GrdaWarehouse::Hud::Organization,
         projects: GrdaWarehouse::Hud::Project,
+        project_access_groups: GrdaWarehouse::ProjectAccessGroup,
         reports: GrdaWarehouse::WarehouseReports::ReportDefinition,
         cohorts: GrdaWarehouse::Cohort,
         project_groups: GrdaWarehouse::ProjectGroup,
@@ -595,6 +632,10 @@ class User < ApplicationRecord
     )
   end
 
+  def skip_session_limitable?
+    ENV.fetch('SKIP_SESSION_LIMITABLE', false) == 'true'
+  end
+
   # Returns an array of hashes of access group name => [item names]
   def inherited_for_type(entity_type)
     case entity_type
@@ -610,31 +651,45 @@ class User < ApplicationRecord
       groups = access_groups.general.map do |group|
         [
           group.name,
-          group.public_send(entity_type).map(&:name).select(&:presence).compact,
+          group.public_send(entity_type).map(&:ProjectName).select(&:presence).compact,
         ]
       end
       # indirectly inherited projects from data sources
       access_groups.general.each do |group|
         groups << [
           group.name,
-          group.data_sources.map(&:projects).flatten.map(&:name).select(&:presence).compact,
+          group.data_sources.flat_map(&:projects).map(&:ProjectName).select(&:presence).compact,
         ]
       end
       # indirectly inherited projects from organizations
       access_groups.general.each do |group|
         groups << [
           group.name,
-          group.organizations.map(&:projects).flatten.map(&:name).select(&:presence).compact,
+          group.organizations.flat_map(&:projects).map(&:ProjectName).select(&:presence).compact,
+        ]
+      end
+      # indirectly inherited projects from project_access_groups
+      access_groups.general.each do |group|
+        groups << [
+          group.name,
+          group.project_access_groups.flat_map(&:projects).map(&:ProjectName).select(&:presence).compact,
         ]
       end
       # indirectly inherited projects from coc_codes
       access_groups.general.each do |group|
         groups << [
           group.name,
-          GrdaWarehouse::Hud::Project.in_coc(coc_code: group.coc_codes).map(&:name).select(&:presence).compact,
+          GrdaWarehouse::Hud::Project.in_coc(coc_code: group.coc_codes).map(&:ProjectName).select(&:presence).compact,
         ]
       end
       groups
+    when :organizations
+      access_groups.general.map do |group|
+        [
+          group.name,
+          group.public_send(entity_type).map(&:OrganizationName).select(&:presence).compact,
+        ]
+      end
     else
       access_groups.general.map do |group|
         [

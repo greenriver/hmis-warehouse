@@ -1,4 +1,4 @@
-- content_for :title, "Project Data Quality Report for #{@report.title}"
+- content_for :title, "Project Data Quality Report for #{@report.title(current_user)}"
 - grouped_as = @report.report_type
 %h1= content_for :title
 - if @report.processing_errors.present?
@@ -21,7 +21,7 @@
       .col-sm-4
         %h4 Projects
         - names = @report.projects.map do |project|
-          - project.organization_and_name(include_confidential_names: true)
+          - project.organization_and_name(current_user)
         %p= names.join('<br />').html_safe
       .col-sm-4
         %h4 Run
@@ -58,13 +58,13 @@
   = content_for :page_js do
     :javascript
       (function($) {
-        var time_to_enter = new App.DataQualityReports.TimeToEnter(#{@report.average_time_to_enter.to_json.html_safe}, '.time-to-enter-chart', '#{polymorphic_path(@support_path, @report_keys.merge({method: "average_time_to_enter"}))}');
+        var time_to_enter = new App.DataQualityReports.TimeToEnter(#{@report.average_time_to_enter(current_user).to_json.html_safe}, '.time-to-enter-chart', '#{polymorphic_path(@support_path, @report_keys.merge({method: "average_time_to_enter"}))}');
         time_to_enter.build_chart();
 
-        var time_to_exit = new App.DataQualityReports.TimeToExit(#{@report.average_time_to_exit.to_json.html_safe}, '.time-to-exit-chart', '#{polymorphic_path(@support_path, @report_keys.merge({method: "average_time_to_exit"}))}');
+        var time_to_exit = new App.DataQualityReports.TimeToExit(#{@report.average_time_to_exit(current_user).to_json.html_safe}, '.time-to-exit-chart', '#{polymorphic_path(@support_path, @report_keys.merge({method: "average_time_to_exit"}))}');
         time_to_exit.build_chart();
 
-        var time_in_program = new App.DataQualityReports.TimeInProgram(#{@report.enrolled_length_of_stay.to_json.html_safe}, '.time-in-program-chart',
+        var time_in_program = new App.DataQualityReports.TimeInProgram(#{@report.enrolled_length_of_stay(current_user).to_json.html_safe}, '.time-in-program-chart',
             '#{polymorphic_path(@support_path, @report_keys.merge({method: "enrolled_length_of_stay"}))}');
             time_in_program.build_chart();
 
@@ -76,7 +76,7 @@
           '#{polymorphic_path(@support_path, @report_keys.merge({method: "no_income"}))}');
           no_income.build_chart();
 
-        var ph_destination = new App.DataQualityReports.PHDestination(#{@report.ph_destinations.to_json.html_safe}, '.ph-destination-chart',
+        var ph_destination = new App.DataQualityReports.PHDestination(#{@report.ph_destinations(current_user).to_json.html_safe}, '.ph-destination-chart',
             '#{polymorphic_path(@support_path, @report_keys.merge({method: "ph_destinations"}))}');
             ph_destination.build_chart();
       })(jQuery);

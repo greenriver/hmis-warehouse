@@ -30,7 +30,7 @@ wb.add_worksheet(name: "Active #{GrdaWarehouse::WarehouseReports::Dashboard::Bas
         client.FirstName,
         client.LastName,
         HUD.project_type(enrollment.computed_project_type),
-        enrollment.project.name(include_confidential_names: current_user.can_view_confidential_enrollment_details?),
+        enrollment.project.name(current_user),
         enrollment.first_date_in_program,
         enrollment.last_date_in_program,
         length_of_stay.to_i,

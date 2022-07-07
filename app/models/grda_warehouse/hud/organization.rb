@@ -38,6 +38,10 @@ module GrdaWarehouse::Hud
       where(confidential: true)
     end
 
+    scope :non_confidential, -> do
+      where(confidential: false)
+    end
+
     scope :dmh, -> do
       where(dmh: true)
     end
@@ -213,6 +217,22 @@ module GrdaWarehouse::Hud
 
     alias_attribute :name, :OrganizationName
 
+    def name(user = nil, ignore_confidential_status: false)
+      if ignore_confidential_status || user&.can_view_confidential_project_names?
+        self.OrganizationName
+      else
+        safe_organization_name
+      end
+    end
+
+    def safe_organization_name
+      if confidential?
+        self.class.confidential_organization_name
+      else
+        self.OrganizationName
+      end
+    end
+
     def self.text_search(text)
       return none unless text.present?
 
@@ -223,12 +243,20 @@ module GrdaWarehouse::Hud
       )
     end
 
+    def self.confidential_org?(organization_id, data_source_id)
+      confidential_organization_ids = Rails.cache.fetch('confidential_organization_ids', expires_in: 2.minutes) do
+        confidential.pluck(:OrganizationID, :data_source_id).to_set
+      end
+      confidential_organization_ids.include?([organization_id, data_source_id])
+    end
+
     def self.options_for_select user:
       # don't cache this, it's a class method
       @options = begin
         options = {}
-        viewable_by(user).
-          joins(:data_source).
+        scope = viewable_by(user)
+        scope = scope.where(confidential: false) unless user.can_view_confidential_project_names?
+        scope.joins(:data_source).
           order(ds_t[:name].asc, OrganizationName: :asc).
           pluck(ds_t[:name].as('ds_name'), :OrganizationName, :id).each do |ds, org_name, id|
             options[ds] ||= []

@@ -7,13 +7,9 @@
 # provides validation for date ranges
 module Filters
   class OutflowReport < FilterBase
-    attribute :sub_population, Symbol, default: :clients
     attribute :no_service_after_date, Date, lazy: true, default: ->(r, _) { r.default_no_service_after_date }
     attribute :no_recent_service_project_ids, Array, default: []
     attribute :limit_to_vispdats, Boolean, default: false
-    attribute :races, Array, default: []
-    attribute :ethnicities, Array, default: []
-    attribute :genders, Array, default: []
     attribute :require_homeless_enrollment, Boolean, default: false
 
     validates_presence_of :start, :end, :sub_population
@@ -21,6 +17,16 @@ module Filters
     def default_no_service_after_date
       Date.current - 90.day
     end
+
+    def update(filters)
+      super
+      self.no_service_after_date = filters.dig(:no_service_after_date)&.to_date
+      self.no_recent_service_project_ids = filters.dig(:no_recent_service_project_ids)&.reject(&:blank?)&.map(&:to_i).presence
+      self.limit_to_vispdats = filters.dig(:limit_to_vispdats).in?(['1', 'true', true]) unless filters.dig(:limit_to_vispdats).nil?
+      self.require_homeless_enrollment = filters.dig(:require_homeless_enrollment).in?(['1', 'true', true]) unless filters.dig(:require_homeless_enrollment).nil?
+      self
+    end
+    alias set_from_params update
 
     # These are not presented in the UI, but need to be set to nothing or all homeless projects are returned
     def default_project_type_codes

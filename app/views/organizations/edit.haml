@@ -4,6 +4,6 @@
 = render 'breadcrumbs'
 
 = simple_form_for @organization, as: :organization, url: organization_path(@organization) do |f|
-  = f.input :confidential, label: 'Is this organization confidential?', hint: 'If checked, when exporting HMIS CSVs and choosing the confidential option, this organization\'s name will be obfuscated.'
+  = f.input :confidential, label: 'Is this organization confidential?', hint: 'If checked, when exporting HMIS CSVs and choosing the confidential option, this organization\'s name will be obfuscated. All projects within the organization will also be marked as confidential.'
   .form-actions
     = f.button :submit, value: 'Save Organization'

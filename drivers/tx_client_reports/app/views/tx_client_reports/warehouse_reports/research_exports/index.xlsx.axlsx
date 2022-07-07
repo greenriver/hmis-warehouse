@@ -1,0 +1,18 @@
+wb = xlsx_package.workbook
+wb.add_worksheet(name: 'Enrollments') do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center, wrap_text: true })
+  sheet.add_row(@report.enrollment_headers, style: title)
+
+  @report.enrollment_rows.each do |row|
+    sheet.add_row(row.map.with_index { |v, i| @report.format_enrollment_value(v, i) })
+  end
+end
+
+wb.add_worksheet(name: 'Demographics') do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center, wrap_text: true })
+  sheet.add_row(@report.demographic_headers, style: title)
+
+  @report.demographic_rows.each do |row|
+    sheet.add_row(row.map.with_index { |v, i| @report.format_demographic_value(v, i) })
+  end
+end

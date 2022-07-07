@@ -324,7 +324,7 @@ module GrdaWarehouse::WarehouseReports
           {
             url: 'warehouse_reports/missing_projects',
             name: 'Missing Projects ',
-            description: "Shows Project IDs for enrollment records where the project isn''t in the source data.",
+            description: "Shows Project IDs for enrollment records where the project isn't in the source data.",
             limitable: false,
             health: false,
           },
@@ -1058,6 +1058,13 @@ module GrdaWarehouse::WarehouseReports
           url: 'tx_client_reports/warehouse_reports/attachment_three_client_data_reports',
           name: 'Attachment III - Client Data Report',
           description: 'Attachment III - Client Data Report',
+          limitable: true,
+          health: false,
+        }
+        r_list['Exports'] << {
+          url: 'tx_client_reports/warehouse_reports/research_exports',
+          name: _('Offline Research Export'),
+          description: 'Download enrollment data for offline research.',
           limitable: true,
           health: false,
         }

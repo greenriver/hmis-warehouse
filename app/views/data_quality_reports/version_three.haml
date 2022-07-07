@@ -1,4 +1,4 @@
-- content_for :title, "Project Data Quality Report for #{@report.title}"
+- content_for :title, "Project Data Quality Report for #{@report.title(current_user)}"
 %h1= content_for :title
 - if @report.processing_errors.present?
   %p.alert.alert-danger.text-center
@@ -49,7 +49,7 @@
           var url = '#{polymorphic_path(@answers_path, @report_keys)}'
           $.get(url, function(data){
             var completeness_#{index} = new App.DataQualityReports.Completeness(
-              data['project_missing']['#{json_escape(project.name.gsub("'",  %q(\\\')))}'],
+              data['project_missing']['#{json_escape(project.ProjectName.gsub("'",  %q(\\\')))}'],
               '.completeness-chart-#{index}',
               '#{polymorphic_path(@support_path, @report_keys)}',
               #{project.id}

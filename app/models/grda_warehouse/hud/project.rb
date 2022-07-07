@@ -206,7 +206,14 @@ module GrdaWarehouse::Hud
     end
 
     scope :confidential, -> do
-      where(confidential: true)
+      joins(:organization).where(p_t[:confidential].eq(true).or(o_t[:confidential].eq(true)))
+    end
+
+    scope :non_confidential, -> do
+      joins(:organization).where(
+        p_t[:confidential].eq(false).and(o_t[:confidential].eq(false)).
+        or(p_t[:confidential].eq(nil).and(o_t[:confidential].eq(nil))),
+      )
     end
 
     scope :coc_funded, -> do
@@ -328,18 +335,32 @@ module GrdaWarehouse::Hud
     # End Standard Cohort Scopes
     #################################
 
-    scope :viewable_by, ->(user) do
-      qc = ->(s) { connection.quote_column_name s }
-      q  = ->(s) { connection.quote s }
+    # A single scope to determine if a user can access a project within a particular context
+    #
+    # @param user [User] user viewing the project
+    # @param project_scope [Symbol] a symbolized scope name that is merged into the vieable projects
+    #   within the context of reporting project_scope is almost always non_confidential
+    #   within the client dashboard context, project_scope is :all, which includes confidential projects
+    #   names of confidential projects are obfuscated unless the user can_view_confidential_project_names
+    scope :viewable_by, ->(user, confidential_scope_limiter: :non_confidential) do
+      quoted_column = ->(s) { connection.quote_column_name s }
+      quoted_string = ->(s) { connection.quote s }
 
-      where(
+      query = where(
         [
-          has_access_to_project_through_viewable_entities(user, q, qc),
-          has_access_to_project_through_organization(user, q, qc),
-          has_access_to_project_through_data_source(user, q, qc),
-          has_access_to_project_through_coc_codes(user, q, qc),
+          access_to_project_through_viewable_entities(user, quoted_string, quoted_column),
+          access_to_project_through_organization(user, quoted_string, quoted_column),
+          access_to_project_through_data_source(user, quoted_string, quoted_column),
+          access_to_project_through_coc_codes(user, quoted_string, quoted_column),
+          access_to_project_through_project_access_groups(user, quoted_string, quoted_column),
         ].join(' OR '),
       )
+
+      # If a user can't report on confidential projects, exclude them entirely
+      # return query if user.can_report_on_confidential_projects?
+      return query if user.can_report_on_confidential_projects?
+
+      query.send(confidential_scope_limiter)
     end
 
     scope :editable_by, ->(user) do
@@ -377,7 +398,7 @@ module GrdaWarehouse::Hud
       visible_count.positive? && visible_count == all.count
     end
 
-    def self.has_access_to_project_through_viewable_entities(user, q, qc) # rubocop:disable Naming/PredicateName, Naming/MethodParameterName
+    def self.access_to_project_through_viewable_entities(user, quoted_string, quoted_column)
       viewability_table = GrdaWarehouse::GroupViewableEntity.quoted_table_name
       project_table     = quoted_table_name
       viewability_deleted_column_name = GrdaWarehouse::GroupViewableEntity.paranoia_column
@@ -387,7 +408,7 @@ module GrdaWarehouse::Hud
       group_id_query = if group_ids.empty?
         '0=1'
       else
-        "#{viewability_table}.#{qc.call('access_group_id')} IN (#{group_ids.join(', ')})"
+        "#{viewability_table}.#{quoted_column.call('access_group_id')} IN (#{group_ids.join(', ')})"
       end
 
       <<-SQL.squish
@@ -396,21 +417,21 @@ module GrdaWarehouse::Hud
           SELECT 1 FROM
             #{viewability_table}
             WHERE
-              #{viewability_table}.#{qc.call('entity_id')}   = #{project_table}.#{qc.call('id')}
+              #{viewability_table}.#{quoted_column.call('entity_id')}   = #{project_table}.#{quoted_column.call('id')}
               AND
-              #{viewability_table}.#{qc.call('entity_type')} = #{q.call(sti_name)}
+              #{viewability_table}.#{quoted_column.call('entity_type')} = #{quoted_string.call(sti_name)}
               AND
               #{group_id_query}
               AND
-              #{viewability_table}.#{qc.call(viewability_deleted_column_name)} IS NULL
+              #{viewability_table}.#{quoted_column.call(viewability_deleted_column_name)} IS NULL
               AND
-              #{project_table}.#{qc.call(GrdaWarehouse::Hud::Project.paranoia_column)} IS NULL
+              #{project_table}.#{quoted_column.call(GrdaWarehouse::Hud::Project.paranoia_column)} IS NULL
         )
 
       SQL
     end
 
-    def self.has_access_to_project_through_organization(user, q, qc) # rubocop:disable Naming/PredicateName, Naming/MethodParameterName
+    def self.access_to_project_through_organization(user, quoted_string, quoted_column)
       viewability_table   = GrdaWarehouse::GroupViewableEntity.quoted_table_name
       project_table       = quoted_table_name
       organization_table  = GrdaWarehouse::Hud::Organization.quoted_table_name
@@ -421,7 +442,7 @@ module GrdaWarehouse::Hud
       group_id_query = if group_ids.empty?
         '0=1'
       else
-        "#{viewability_table}.#{qc.call('access_group_id')} IN (#{group_ids.join(', ')})"
+        "#{viewability_table}.#{quoted_column.call('access_group_id')} IN (#{group_ids.join(', ')})"
       end
 
       <<-SQL.squish
@@ -432,25 +453,25 @@ module GrdaWarehouse::Hud
             INNER JOIN
             #{organization_table}
             ON
-              #{viewability_table}.#{qc.call('entity_id')}   = #{organization_table}.#{qc.call('id')}
+              #{viewability_table}.#{quoted_column.call('entity_id')}   = #{organization_table}.#{quoted_column.call('id')}
               AND
-              #{viewability_table}.#{qc.call('entity_type')} = #{q.call(GrdaWarehouse::Hud::Organization.sti_name)}
+              #{viewability_table}.#{quoted_column.call('entity_type')} = #{quoted_string.call(GrdaWarehouse::Hud::Organization.sti_name)}
               AND
               #{group_id_query}
               AND
-              #{viewability_table}.#{qc.call(viewability_deleted_column_name)} IS NULL
+              #{viewability_table}.#{quoted_column.call(viewability_deleted_column_name)} IS NULL
             WHERE
-              #{organization_table}.#{qc.call('data_source_id')} = #{project_table}.#{qc.call('data_source_id')}
+              #{organization_table}.#{quoted_column.call('data_source_id')} = #{project_table}.#{quoted_column.call('data_source_id')}
               AND
-              #{organization_table}.#{qc.call('OrganizationID')} = #{project_table}.#{qc.call('OrganizationID')}
+              #{organization_table}.#{quoted_column.call('OrganizationID')} = #{project_table}.#{quoted_column.call('OrganizationID')}
               AND
-              #{organization_table}.#{qc.call(GrdaWarehouse::Hud::Organization.paranoia_column)} IS NULL
+              #{organization_table}.#{quoted_column.call(GrdaWarehouse::Hud::Organization.paranoia_column)} IS NULL
         )
 
       SQL
     end
 
-    def self.has_access_to_project_through_data_source(user, q, qc) # rubocop:disable Naming/PredicateName, Naming/MethodParameterName
+    def self.access_to_project_through_data_source(user, quoted_string, quoted_column)
       data_source_table = GrdaWarehouse::DataSource.quoted_table_name
       viewability_table = GrdaWarehouse::GroupViewableEntity.quoted_table_name
       project_table     = quoted_table_name
@@ -461,7 +482,7 @@ module GrdaWarehouse::Hud
       group_id_query = if group_ids.empty?
         '0=1'
       else
-        "#{viewability_table}.#{qc.call('access_group_id')} IN (#{group_ids.join(', ')})"
+        "#{viewability_table}.#{quoted_column.call('access_group_id')} IN (#{group_ids.join(', ')})"
       end
 
       <<-SQL.squish
@@ -472,23 +493,23 @@ module GrdaWarehouse::Hud
             INNER JOIN
             #{data_source_table}
             ON
-              #{viewability_table}.#{qc.call('entity_id')}   = #{data_source_table}.#{qc.call('id')}
+              #{viewability_table}.#{quoted_column.call('entity_id')}   = #{data_source_table}.#{quoted_column.call('id')}
               AND
-              #{viewability_table}.#{qc.call('entity_type')} = #{q.call(GrdaWarehouse::DataSource.sti_name)}
+              #{viewability_table}.#{quoted_column.call('entity_type')} = #{quoted_string.call(GrdaWarehouse::DataSource.sti_name)}
               AND
               #{group_id_query}
               AND
-              #{viewability_table}.#{qc.call(viewability_deleted_column_name)} IS NULL
+              #{viewability_table}.#{quoted_column.call(viewability_deleted_column_name)} IS NULL
               AND
-              #{data_source_table}.#{qc.call(GrdaWarehouse::DataSource.paranoia_column)} IS NULL
+              #{data_source_table}.#{quoted_column.call(GrdaWarehouse::DataSource.paranoia_column)} IS NULL
             WHERE
-              #{project_table}.#{qc.call('data_source_id')} = #{data_source_table}.#{qc.call('id')}
+              #{project_table}.#{quoted_column.call('data_source_id')} = #{data_source_table}.#{quoted_column.call('id')}
         )
 
       SQL
     end
 
-    def self.has_access_to_project_through_coc_codes(user, q, qc) # rubocop:disable Naming/PredicateName, Naming/MethodParameterName
+    def self.access_to_project_through_coc_codes(user, quoted_string, quoted_column)
       return '(1=0)' unless user.coc_codes.any?
 
       project_coc_table = GrdaWarehouse::Hud::ProjectCoc.quoted_table_name
@@ -502,31 +523,40 @@ module GrdaWarehouse::Hud
             INNER JOIN
             #{project_table} AS pt
             ON
-              #{project_coc_table}.#{qc[:ProjectID]}      = pt.#{qc[:ProjectID]}
+              #{project_coc_table}.#{quoted_column[:ProjectID]}      = pt.#{quoted_column[:ProjectID]}
               AND
-              #{project_coc_table}.#{qc[:data_source_id]} = pt.#{qc[:data_source_id]}
+              #{project_coc_table}.#{quoted_column[:data_source_id]} = pt.#{quoted_column[:data_source_id]}
               AND
-              #{project_coc_table}.#{qc.call(GrdaWarehouse::Hud::ProjectCoc.paranoia_column)} IS NULL
+              #{project_coc_table}.#{quoted_column.call(GrdaWarehouse::Hud::ProjectCoc.paranoia_column)} IS NULL
             WHERE
               (
                 (
-                  #{project_coc_table}.#{qc[:CoCCode]} IN (#{user.coc_codes.map { |c| q[c] }.join ','})
+                  #{project_coc_table}.#{quoted_column[:CoCCode]} IN (#{user.coc_codes.map { |c| quoted_string[c] }.join ','})
                   AND
                   (
-                    #{project_coc_table}.#{qc[:hud_coc_code]} IS NULL
+                    #{project_coc_table}.#{quoted_column[:hud_coc_code]} IS NULL
                     OR
-                    #{project_coc_table}.#{qc[:hud_coc_code]} = ''
+                    #{project_coc_table}.#{quoted_column[:hud_coc_code]} = ''
                   )
                 )
                 OR
-                #{project_coc_table}.#{qc[:hud_coc_code]} IN (#{user.coc_codes.map { |c| q[c] }.join ','})
+                #{project_coc_table}.#{quoted_column[:hud_coc_code]} IN (#{user.coc_codes.map { |c| quoted_string[c] }.join ','})
               )
               AND
-              #{project_table}.#{qc[:id]} = pt.#{qc[:id]}
+              #{project_table}.#{quoted_column[:id]} = pt.#{quoted_column[:id]}
 
         )
 
       SQL
+    end
+
+    def self.access_to_project_through_project_access_groups(user, _, _)
+      return '(1=0)' unless user.project_access_groups.any?
+
+      project_ids = Rails.cache.fetch([user, 'project_access_group_project_ids'], expires_in: 1.minutes) do
+        user.project_access_groups.flat_map(&:projects).map(&:id)
+      end
+      p_t[:id].in(project_ids).to_sql
     end
 
     # make a scope for every project type and a type? method for instances
@@ -569,13 +599,36 @@ module GrdaWarehouse::Hud
 
     alias_attribute :name, :ProjectName
 
-    # Get the name for this project, protecting confidential names if appropriate
+    def confidential?
+      super || GrdaWarehouse::Hud::Organization.confidential_org?(self.OrganizationID, data_source_id)
+    end
+
+    def confidential
+      super || GrdaWarehouse::Hud::Organization.confidential_org?(self.OrganizationID, data_source_id)
+    end
+
+    # Get the name for this project, protecting confidential names if appropriate.
+    # Confidential names are shown if the user has permission to view confidential projects
+    # AND the project is in the user's project list.
     #
-    # @param include_confidential_names [Boolean] include confidential names, or replace them with a generic string?
-    # FIXME: include_confidential_names should default to false
+    # This should be used any time a project's name is being displayed in the app.
+    #
+    # The following views are EXCEPTIONS to the rule. They show confidential names regardless of user permission:
+    # - HUD Reports
+    # - Override Summary Report
+    # - HMIS Cross Walks Report
+    # - User Permission Report
+    # - Project and Organizaton assignment for Users and Groups
+    # - View Project page (because it already requires can_view_confidential_project_names)
+    # - Edit Project page and other pages that require can_edit_projects (because users who can edit projects can change their confidentiality status)
+    # - Edit Project Group
+    # - Cohorts (Agency, Housing Search Agency, and Location)
+    #
+    # @param user [User] user viewing the project
     # @param include_project_type [Boolean] include the HUD project type in the name?
-    def name(include_confidential_names: true, include_project_type: false)
-      project_name = if include_confidential_names
+    # @param ignore_confidential_status [Boolean] always show confidential names, regardless of user access?
+    def name(user = nil, include_project_type: false, ignore_confidential_status: false)
+      project_name = if ignore_confidential_status || (user&.can_view_confidential_project_names? && user&.can_access_project?(self))
         self.ProjectName
       else
         safe_project_name
@@ -585,9 +638,21 @@ module GrdaWarehouse::Hud
       project_name
     end
 
+    # Useful for confidentializing name after 'pluck'
+    # The confidential parameter should indicate whether the Project or Organization is confidential
+    def self.confidentialize_name(user, project_name, confidential)
+      return project_name if user&.can_view_confidential_project_names?
+
+      if confidential
+        GrdaWarehouse::Hud::Project.confidential_project_name
+      else
+        project_name
+      end
+    end
+
     # Get the safe name for this project.
     def safe_project_name
-      if confidential_name?
+      if confidential?
         self.class.confidential_project_name
       else
         self.ProjectName
@@ -596,26 +661,22 @@ module GrdaWarehouse::Hud
 
     # Provide an organization name that is confidentialized in the same way as the project
     def organization_name(user = nil)
-      return organization.class.confidential_organization_name if confidential? && (user.blank? || ! user.can_view_confidential_enrollment_details?)
+      return organization.class.confidential_organization_name if confidential? && (user.blank? || ! user.can_view_confidential_project_names?)
 
       organization.OrganizationName
     end
 
-    def confidential_name?
-      confidential? || /healthcare/i.match(self.ProjectName).present?
-    end
+    def organization_and_name(user = nil, ignore_confidential_status: false)
+      project_name = name(user, ignore_confidential_status: ignore_confidential_status)
+      return "#{organization&.OrganizationName} / #{project_name}" if user&.can_view_confidential_project_names? || ignore_confidential_status
 
-    def organization_and_name(include_confidential_names: false)
-      project_name = name(include_confidential_names: include_confidential_names, include_project_type: true)
-      return "#{organization&.OrganizationName} / #{project_name}" if include_confidential_names
-
-      "#{organization&.OrganizationName} / #{project_name}" unless confidential_name?
+      return "#{organization&.OrganizationName} / #{project_name}" unless confidential?
 
       project_name
     end
 
-    def name_and_type(include_confidential_names: false)
-      name(include_confidential_names: include_confidential_names, include_project_type: true)
+    def name_and_type(ignore_confidential_status: false)
+      name(include_project_type: true, ignore_confidential_status: ignore_confidential_status)
     end
 
     def self.project_names_for_coc coc_code
@@ -706,13 +767,17 @@ module GrdaWarehouse::Hud
       'If marked as confidential, the project name will be replaced with "Confidential Project" within individual client pages. Users with the "Can view confidential enrollment details" will still see the project name.'
     end
 
+    def member_of_confidential_organization_hint
+      'This project is part of a confidential organization.'
+    end
+
     def combine_enrollments_hint
       'If enrollments are combined, the import process will collapse sequential enrollments for a given client at this project.'
     end
 
-    # Sometimes all we have is a name, we still want to try and
-    # protect those
-    def self.confidentialize(name:)
+    # Sometimes all we have is a name, we still want to try and protect those.
+    # This is not reliable! Use `name` or `confidentialize_name` methods whenever possible.
+    def self.confidentialize_by_name_only(name:)
       # cache for a short amount of time to avoid multiple fetches
       @confidential_project_names = Rails.cache.fetch('confidential_project_names', expires_in: 1.minutes) do
         GrdaWarehouse::Hud::Project.where(confidential: true).
@@ -720,7 +785,7 @@ module GrdaWarehouse::Hud
           map(&:downcase).
           map(&:strip)
       end
-      if @confidential_project_names.include?(name&.downcase&.strip) || /healthcare/i.match(name).present?
+      if @confidential_project_names.include?(name&.downcase&.strip)
         GrdaWarehouse::Hud::Project.confidential_project_name
       else
         name
@@ -783,6 +848,7 @@ module GrdaWarehouse::Hud
         options = {}
         project_scope = viewable_by(user)
         project_scope = project_scope.merge(scope) unless scope.nil?
+        project_scope = project_scope.merge(non_confidential) unless user.can_view_confidential_project_names?
 
         project_scope.
           joins(:organization, :data_source).
@@ -792,7 +858,7 @@ module GrdaWarehouse::Hud
             org_name = project.organization.OrganizationName
             org_name += " at #{project.data_source.short_name}" if Rails.env.development?
             options[org_name] ||= []
-            text = project.name(include_confidential_names: user.can_view_confidential_enrollment_details?, include_project_type: true)
+            text = project.name(user, include_project_type: true)
             # text += "#{project.ContinuumProject.inspect} #{project.hud_continuum_funded.inspect}"
             options[org_name] << [
               text,

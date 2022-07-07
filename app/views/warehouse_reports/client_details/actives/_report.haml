@@ -21,6 +21,6 @@
           %tr
             %td= link_to_if current_user.can_view_clients?, "#{client.FirstName} #{client.LastName}", appropriate_client_path(id: client_id)
             %td= HUD.project_type(enrollment.computed_project_type)
-            %td= enrollment.project.name(include_confidential_names: current_user.can_view_confidential_enrollment_details?)
+            %td= enrollment.project.name(current_user)
             %td= enrollment.first_date_in_program
             %td= enrollment.last_date_in_program

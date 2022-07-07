@@ -238,13 +238,8 @@ class RollOut
     minimum, maximum = _get_min_max_from_desired(web_options['container_count'])
 
     # Keep production web containers on on-demand providers
-    capacity_provider_name = if target_group_name.match?(/production|prd/)
-      _on_demand_capacity_provider_name
-    else
-      _spot_capacity_provider_name
-    end
     _start_service!(
-      capacity_provider: capacity_provider_name,
+      capacity_provider: _on_demand_capacity_provider_name,
       name: name + '-2', # version bump for change from port 443 -> 3000
       load_balancers: lb,
       desired_count: web_options['container_count'] || 1,
@@ -334,6 +329,8 @@ class RollOut
     # substituted later on
     self.log_stream_name = "#{log_prefix}/#{name}/TASK_ID"
     environment << { 'name' => 'LOG_STREAM_NAME_PREFIX', 'value' => "#{log_prefix}/#{name}" }
+
+    environment << { 'name' => 'CONTAINER_VARIANT', 'value' => image.split('--')[1].to_s }
 
     ten_minutes = 10 * 60
 
@@ -461,18 +458,6 @@ class RollOut
     puts "[INFO] Task arn: #{task_arn || 'unknown'} #{target_group_name}"
     puts "[INFO] Debug with: aws ecs describe-tasks --cluster #{cluster} --tasks #{task_arn} #{target_group_name}"
 
-    puts "[INFO] Waiting on the task to start and finish quickly to catch resource-related errors #{target_group_name}"
-    begin
-      ecs.wait_until(:tasks_running, { cluster: cluster, tasks: [task_arn] }, { max_attempts: 5, delay: 5 })
-    rescue Aws::Waiters::Errors::TooManyAttemptsError => e
-      puts "[WARN] #{e.message}"
-    end
-    begin
-      ecs.wait_until(:tasks_stopped, { cluster: cluster, tasks: [task_arn] }, { max_attempts: 2, delay: 5 })
-    rescue Aws::Waiters::Errors::TooManyAttemptsError => e
-      puts "[WARN] #{e.message}"
-    end
-
     results = ecs.describe_tasks(cluster: cluster, tasks: [task_arn])
 
     if results.failures.length.positive?
@@ -489,6 +474,16 @@ class RollOut
 
     task_id = task_arn.split('/').last
     log_stream_name.sub!(/TASK_ID/, task_id)
+
+    puts "[INFO] Waiting on the task to start... #{target_group_name}"
+    begin
+      ecs.wait_until(:tasks_running, { cluster: cluster, tasks: [task_arn] }, { max_attempts: 25, delay: 10 })
+    rescue Aws::Waiters::Errors::TooManyAttemptsError => _e
+      puts "[WARN] Task didn't start in time. Trying again."
+
+      ecs.stop_task(cluster: cluster, task: task_arn)
+      _run_task!
+    end
 
     _tail_logs
   end

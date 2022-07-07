@@ -410,6 +410,7 @@ GEM
       mail (>= 2.2.1)
     gmail_xoauth (0.4.2)
       oauth (>= 0.3.6)
+    graphql (2.0.9)
     grosser-pomo (0.5.1)
     grover (1.1.1)
       combine_pdf (~> 1.0)
@@ -456,7 +457,7 @@ GEM
       nokogiri (>= 1.6.0)
       ruby_parser (~> 3.5)
     htmlentities (4.3.4)
-    http (5.0.4)
+    http (5.1.0)
       addressable (~> 2.8)
       http-cookie (~> 1.0)
       http-form_data (~> 2.2)
@@ -470,7 +471,7 @@ GEM
     ice_nine (0.11.2)
     iniparse (1.5.0)
     io-console (0.5.9)
-    jmespath (1.4.0)
+    jmespath (1.6.1)
     jquery-minicolors-rails (2.2.6.2)
       jquery-rails
       rails (>= 3.2.8)
@@ -512,7 +513,7 @@ GEM
       railties (>= 4)
       request_store (~> 1.0)
     logstop (0.2.7)
-    loofah (2.17.0)
+    loofah (2.18.0)
       crass (~> 1.0.2)
       nokogiri (>= 1.5.9)
     lumberjack (1.2.8)
@@ -661,7 +662,7 @@ GEM
       activesupport (>= 4.2)
       choice (~> 0.2.0)
       ruby-graphviz (~> 1.2)
-    rails-html-sanitizer (1.4.2)
+    rails-html-sanitizer (1.4.3)
       loofah (~> 2.3)
     rails_drivers (1.2.0)
       rails (>= 5.2)
@@ -986,6 +987,7 @@ DEPENDENCIES
   gettext (>= 3.0.2)
   gettext_i18n_rails
   gmail
+  graphql (~> 2.0)
   grosser-pomo
   grover
   guard-rspec
@@ -1036,6 +1038,7 @@ DEPENDENCIES
   rails (~> 6.1)
   rails-controller-testing
   rails-erd
+  rails-html-sanitizer (>= 1.4.3)
   rails_drivers
   ransack
   redcarpet

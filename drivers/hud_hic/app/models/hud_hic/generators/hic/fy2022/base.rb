@@ -59,5 +59,16 @@ module HudHic::Generators::Hic::Fy2022
 
       @universe ||= @report.universe(self.class.question_number)
     end
+
+    def self.allowed_options
+      [
+        :on,
+        :coc_codes,
+        :project_ids,
+        :data_source_ids,
+        :project_type_codes,
+        :project_group_ids,
+      ]
+    end
   end
 end

@@ -39,6 +39,8 @@ class EcsTools
   end
 
   def poll_state_until_stable!(cluster, failures: true, max_unfinished: 0)
+    return if ENV.fetch('DISABLE_POLL_UNTIL_STABLE', false)
+
     puts 'These are only services, not tasks (e.g. migrations won\'t appear here)'
     puts 'PRIMARY: The most recently pushed task definition. These are the desired things we want or are deployed'
     puts 'ACTIVE: This is what\'s currently running and will show up when we have not yet transferred all the containers to be primary'

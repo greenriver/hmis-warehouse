@@ -5,7 +5,7 @@
         = f.input :initiative_name
     .row.w-100
       .col-md-4
-        = f.input :project_ids, collection: GrdaWarehouse::Hud::Project.options_for_select(user: current_user), as: :grouped_select_two, group_method: :last, input_html: {multiple: true }, label: 'Projects'
+        = f.input :project_ids, collection: [], as: :select_two, input_html: { multiple: true, data: { 'collection-path' => api_projects_path(selected_project_ids: @filter.project_ids) }, placeholder: 'Choose a Project'}, label: 'Projects'
       - if can_edit_project_groups?
         .col-md-4
           = f.input :project_group_ids, collection: GrdaWarehouse::ProjectGroup.viewable_by(current_user).pluck(:name, :id), input_html: {multiple: true}, label: 'Project Groups', as: :select_two
