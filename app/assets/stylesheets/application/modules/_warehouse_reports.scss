@@ -278,3 +278,27 @@
   font-weight: bold;
   font-size: 1.2rem;
 }
+
+.performance-measurement--target-guage {
+  border-radius: 100px;
+  background-color: $gray-lighter;
+  height: 15px;
+  position: relative;
+}
+.performance-measurement--target-guage-foreground {
+  border-radius: 100px;
+  height: 15px;
+  position: absolute;
+  &.success {
+    background-color: $brand-success-ll;
+  }
+  &.danger {
+    background-color: $brand-danger-l;
+  }
+}
+.performance-measurement--target-guage-target {
+  background-color: $gray-dark;
+  height: 15px;
+  width: 2px;
+  position: absolute;
+}

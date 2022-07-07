@@ -41,6 +41,12 @@
 = content_for :page_js do
   :javascript
     $(document).ready(function() {
+      $('.j-summary-row').addClass('cursor-pointer');
+      $('.j-summary-row').on('click', function(e) {
+        $('html, body').animate({
+          scrollTop: $($(this).data('target')).offset().top
+        }, 500);
+      });
       $('.j-click-row').addClass('cursor-pointer');
       $('.j-click-row').on('click', function(e) {
         var link = $(this).find('.j-click-row-source');

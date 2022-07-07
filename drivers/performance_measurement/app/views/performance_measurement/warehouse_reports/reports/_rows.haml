@@ -8,7 +8,7 @@
         - if idx.zero?
           %h2.mt-6.mb-0.p-6{ class: class_name }= "#{row[:category]}: #{row[:sub_category]}"
 
-        .card.squared.mb-0.pb-0.page-break-avoid
+        .card.squared.mb-0.pb-0.page-break-avoid{id: key}
           .p-4
             = render 'row', key: key, row: row
           - if sub_keys.present?

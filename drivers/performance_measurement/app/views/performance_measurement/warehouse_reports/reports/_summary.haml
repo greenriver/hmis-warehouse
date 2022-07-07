@@ -1,6 +1,6 @@
 - markdown = Redcarpet::Markdown.new(::InlineHtml)
-.card
-  .c-card__header.mb-2
+.card.overflow-hidden
+  .m-4
     %h2 Summary
   %table.table.mb-0
     %tbody
@@ -18,11 +18,14 @@
             - if result
               - row = @report.detail_hash[key]
               - data = result.data_for_row
+              - status = result[:passed] ? 'success' : 'danger'
+              - icon = result[:passed] ? 'check' : 'cross'
+              - label = result[:passed] ? 'Passed' : 'Failed'
               %tr
-                %td
+                %td.j-summary-row{data: { target: "##{key}"}}
                   .row
                     .col-sm-6
-                      %h4= @report.detail_title_for(key)
+                      %h4.mb-0= @report.detail_title_for(key)
                       .d-flex
                         .level-indicator.mb-2= @report.detail_words_for(row[:column])
                         - if row[:measure].present?
@@ -33,14 +36,13 @@
                       .muted.text-sm.text-uppercase
                         Target:
                         = data.goal_direction
-                        = data.goal
+                        = data.goal.round
                         = data.goal_unit
+                      .performance-measurement--target-guage{ style: "width: #{data.gauge_max}px;" }
+                        .performance-measurement--target-guage-foreground{ style: "width: #{data.gauge_value}px;", class: status }
+                        .performance-measurement--target-guage-target{ style: "margin-left: #{data.gauge_target}px;" }
                       .muted.text-sm
                         = data.number_for_goal
                     .col-sm-3.d-flex
-                      .ml-auto.mr-4
-                        - status = result[:passed] ? 'success' : 'danger'
-                        - icon = result[:passed] ? 'check' : 'cross'
-                        - label = result[:passed] ? 'Passed' : 'Failed'
-                        = tagged(result[:passed], status, icon: icon, label: label)
+                      .ml-auto.mr-4= tagged(result[:passed], status, icon: icon, label: label)
               - row = @report.detail_hash[key]
