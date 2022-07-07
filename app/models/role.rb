@@ -8,7 +8,6 @@ class Role < ApplicationRecord
   has_many :user_roles, dependent: :destroy, inverse_of: :role
   has_many :users, through: :user_roles
   validates :name, presence: true
-  alias_attribute :can_view_confidential_enrollment_details, :can_view_confidential_project_names
 
   def role_name
     name.to_s
