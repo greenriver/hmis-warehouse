@@ -35,7 +35,7 @@ RUN apk add --no-cache \
   ttf-dejavu ttf-droid ttf-freefont ttf-liberation \
   chromium nss freetype freetype-dev harfbuzz ca-certificates \
   lftp postgresql tmux postgis geos geos-dev proj proj-dev proj-util zip expect \
-  shared-mime-info \
+  shared-mime-info docker \
   vim less \
   tar xz \
   python3 py3-pip \
