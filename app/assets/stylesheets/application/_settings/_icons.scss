@@ -106,3 +106,9 @@ $icons: (
 @function get-icon-code($name) {
   @return icon-char(map-get($icons, "#{$name}"));
 }
+
+// Function to generate a string like "select all \ea10"
+@function get-icon-code-with-prefix($name, $prefix) {
+  $icon-code: map-get($icons, "#{$name}");
+  @return #{"\""}#{$prefix}#{"\\"}#{$icon-code + "\""}
+}
