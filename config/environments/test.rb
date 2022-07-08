@@ -1,6 +1,8 @@
 Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
 
+  config.log_level = ENV.fetch('LOG_LEVEL') { 'info' }.to_sym
+
   config.cache_classes = true
   config.action_view.cache_template_loading = true
 
