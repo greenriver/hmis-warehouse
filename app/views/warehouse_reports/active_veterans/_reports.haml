@@ -17,7 +17,7 @@
       = link_to warehouse_reports_active_veteran_path(report) do
         = report.client_count
         clients
-    %td.warehouse-reports__completed= render 'parameters', report: report
+    %td.warehouse-reports__completed.report-parameters= render 'parameters', report: report
     %td
       - if report.user_id
         = User.find(report.user_id)&.name

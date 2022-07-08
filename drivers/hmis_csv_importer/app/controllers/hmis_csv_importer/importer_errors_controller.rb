@@ -15,7 +15,6 @@ class HmisCsvImporter::ImporterErrorsController < ApplicationController
     @errors = importer_log.import_errors.preload(:source).
       group_by(&:source_type)
 
-    # render xlsx: 'download', filename: "import_errors_#{importer_log.id}.xlsx"
     respond_to do |format|
       format.xlsx do
         response.headers['Content-Disposition'] = "attachment; filename=import_errors_#{importer_log.id}.xlsx"
