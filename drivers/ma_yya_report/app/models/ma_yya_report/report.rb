@@ -34,7 +34,7 @@ module MaYyaReport
 
     private def create_universe
       # FIXME Look back 1 year to check for previously reported clients
-      previous_period_filter = filter.dup
+      previous_period_filter = filter.deep_dup
       previous_period_filter.end = filter.start - 1.day
       previous_period_filter.start = previous_period_filter.start - 1.year
 
