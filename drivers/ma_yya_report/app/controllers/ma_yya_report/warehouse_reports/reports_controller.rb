@@ -15,7 +15,7 @@ module MaYyaReport::WarehouseReports
     end
 
     def create
-      @filter = ::Filters::FilterBase.new(user_id: current_user.id).set_from_params(filter_params)
+      @filter = ::Filters::FilterBase.new(user_id: current_user.id).update(filter_params)
 
       if @filter.valid?
         @report = report_scope.create(user_id: @filter.user_id, options: report_options(@filter))
@@ -64,7 +64,7 @@ module MaYyaReport::WarehouseReports
     end
 
     def report_options(filter)
-      filter.for_params[:filters].select { |k, _| report_class.report_options.include?(k) }
+      filter.to_h.select.slice(report_class.report_options)
     end
 
     private def set_report
