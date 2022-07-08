@@ -53,13 +53,25 @@ module CePerformance
     end
 
     def detail_link_text
-      "Average: #{value.to_i} days"
+      "Average: #{value.to_i} #{unit}"
+    end
+
+    def goal_direction
+      '<'
+    end
+
+    def brief_goal_description
+      'time between assessment and exit'
+    end
+
+    def unit
+      'days'
     end
 
     def indicator(comparison)
       @indicator ||= OpenStruct.new(
         primary_value: value.to_i,
-        primary_unit: 'days',
+        primary_unit: unit,
         secondary_value: percent_change_over_year(comparison).to_i,
         secondary_unit: '%',
         value_label: 'change over year',
@@ -74,7 +86,7 @@ module CePerformance
       report_year = aprs.last.end_date.year
       columns = [
         ['x', comparison_year, report_year],
-        ['days', comparison.value, value],
+        [unit, comparison.value, value],
       ]
 
       {

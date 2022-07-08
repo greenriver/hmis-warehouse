@@ -27,7 +27,7 @@ module CePerformance
 
     # TODO: move to goal configuration
     def self.goal
-      5
+      nil
     end
 
     def self.ce_apr_question
@@ -55,11 +55,11 @@ module CePerformance
     end
 
     def detail_link_text
-      "#{value.to_i} Households"
+      "#{value.to_i} #{unit}"
     end
 
-    def passed?(comparison)
-      value.present? && percent_change_over_year(comparison) < - self.class.goal
+    def unit
+      'households'
     end
 
     def max_100?
@@ -69,7 +69,7 @@ module CePerformance
     def indicator(comparison)
       @indicator ||= OpenStruct.new(
         primary_value: value.to_i,
-        primary_unit: 'households',
+        primary_unit: unit,
         secondary_value: percent_change_over_year(comparison),
         secondary_unit: '%',
         value_label: 'change over year',
@@ -84,7 +84,7 @@ module CePerformance
       report_year = aprs.last.end_date.year
       columns = [
         ['x', report_year, comparison_year],
-        ['households', value, comparison.value],
+        [unit, value, comparison.value],
       ]
       {
         x: 'x',

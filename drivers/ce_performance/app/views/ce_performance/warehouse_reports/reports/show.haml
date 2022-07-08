@@ -49,6 +49,7 @@
       });
       $('.j-click-row').addClass('cursor-pointer');
       $('.j-click-row').on('click', function(e) {
+        e.preventDefault();
         var link = $(this).find('.j-click-row-source');
         window.open(link.attr('href'), '_blank');
       });

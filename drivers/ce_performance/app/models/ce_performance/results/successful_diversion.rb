@@ -66,6 +66,18 @@ module CePerformance
       "The CoC will increase successful diversion by **#{goal}% annually**."
     end
 
+    def unit
+      'diversions'
+    end
+
+    def goal_direction
+      '+'
+    end
+
+    def brief_goal_description
+      'annual diversions'
+    end
+
     def self.calculation
       'The difference (as a percentage) between the number of unduplicated households served by CE and the number with a Diversion CE Event recorded where the CE Event shows "yes" for being housed/re-housed in a safe alternative as a result'
     end

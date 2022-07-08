@@ -23,7 +23,7 @@ module CePerformance
 
     # TODO: move to goal configuration
     def self.goal
-      7
+      nil
     end
 
     def self.title
@@ -46,6 +46,10 @@ module CePerformance
       'Time'
     end
 
+    def unit
+      'days'
+    end
+
     def nested_header
       'Median Time'
     end
@@ -63,7 +67,7 @@ module CePerformance
     def indicator(comparison)
       @indicator ||= OpenStruct.new(
         primary_value: value.to_i,
-        primary_unit: 'days',
+        primary_unit: unit,
         secondary_value: percent_change_over_year(comparison).to_i,
         secondary_unit: '%',
         value_label: 'change over year',
@@ -76,7 +80,7 @@ module CePerformance
       comparison_year, report_year = report.ce_aprs.order(start_date: :asc).pluck(:end_date).map(&:year)
       columns = [
         ['x', comparison_year, report_year],
-        ['days', comparison.value, value],
+        [unit, comparison.value, value],
       ]
 
       {

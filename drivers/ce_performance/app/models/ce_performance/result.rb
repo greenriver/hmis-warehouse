@@ -25,5 +25,13 @@ module CePerformance
     def display_goal?
       true
     end
+
+    def goal_direction
+      ''
+    end
+
+    def brief_goal_description
+      ''
+    end
   end
 end

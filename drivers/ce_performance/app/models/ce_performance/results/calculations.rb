@@ -49,6 +49,8 @@ module CePerformance::Results::Calculations
     end
 
     def passed?(_comparison)
+      return true unless self.class.goal.present?
+
       value.present? && value <= self.class.goal
     end
 

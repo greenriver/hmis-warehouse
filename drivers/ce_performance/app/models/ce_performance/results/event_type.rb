@@ -35,6 +35,14 @@ module CePerformance
       nil
     end
 
+    def display_goal?
+      false
+    end
+
+    def unit
+      'events'
+    end
+
     def self.ce_apr_question
       'Question 9'
     end
@@ -57,10 +65,6 @@ module CePerformance
 
     def indicator(_)
       nil
-    end
-
-    def passed?(_comparison)
-      true
     end
 
     def percentage?
