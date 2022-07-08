@@ -1,5 +1,5 @@
 
-%h3 CE APR Reports
+%h3= title
 - @report.ce_aprs.order(start_date: :asc).each do |ce_apr|
   - if can_view_all_hud_reports? || can_view_own_hud_reports?
     .ml-auto

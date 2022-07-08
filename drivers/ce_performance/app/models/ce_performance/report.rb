@@ -170,6 +170,10 @@ module CePerformance
       end
     end
 
+    def highlight_id(category_name)
+      results_for_display.keys.index(category_name) + 1
+    end
+
     private def populate_universe
       run_ce_aprs.each do |period, ce_apr|
         report_clients = {}

@@ -25,7 +25,7 @@
       .minimal-collapse
         = render 'common/panel_collapse', id: 'universe', title: 'Chosen Universe', content: '_universe', heading_slug: '_universe', arrow_icon: 'icon-angle'
     .col-2
-      = render 'hud_report_links'
+      = render 'hud_report_links', title: 'CE APR Reports'
 
 
 - @report.results_for_display.each.with_index do |(category_name, periods), i|

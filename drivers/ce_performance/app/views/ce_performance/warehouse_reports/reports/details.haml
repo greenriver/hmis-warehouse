@@ -5,30 +5,42 @@
   = link_to ce_performance_warehouse_reports_report_path(@report) do
     &laquo; #{@report.title}
 
-%h1= @result.class.title
 .ce-performance
-  .row
-    .goal.col-4
-      - if @result.class.goal.present?
+  %label.super-rounded.p-4.pl-6.pr-6{ class: "performance-measurement--highlight-#{@report.highlight_id(@cagetory_name)}" }
+    = @cagetory_name
+
+  %h1.ml-2= @result.class.title
+  .warehouse-reports__completed.mt-2.d-flex
+    = @report.filter.describe_filter_as_html([:start, :end, :comparison_pattern], inline: true)
+  .d-flex.mb-4.border-top.pt-4
+    - if @result.display_goal?
+      .goal.col-4
         %h3 Goal
         %p= raw markdown.render(@result.class.description)
+    .calculation.ml-6.mr-6
       %h3 Calculation
       %p= raw markdown.render(@result.class.calculation)
-      - if @result.class.ce_apr_question.present?
-        .badge.badge-secondary.p-2
-          CE APR
-          = @result.class.ce_apr_question
-    .col.warehouse-reports__completed.mt-2.ml-2
-      %h3 Universe
-      = @report.filter.describe_filter_as_html
-    .col.calculation.ml-6
-      = render 'hud_report_links'
-  .row.justify-content-around.mb-4
-    - if indicator.present?
-      .col-6
-        = render 'warehouse_reports/indicator', indicator: indicator
-    .col-5
-      .c-chart--vertical-bar{ class: chart_class_name, data: { chart: @result.data_for_chart(@report, @comparison).to_json }}
+
+    - if @result.class.ce_apr_question.present?
+      .col-2.ml-auto.p-0
+        = render 'hud_report_links', title: "CE APR #{@result.class.ce_apr_question}"
+
+.row
+  .col-6
+    - status = @result.passed?(@comparison) ? 'success' : 'danger'
+    - icon = @result.passed?(@comparison) ? 'check' : 'cross'
+    - label = @result.passed?(@comparison) ? 'Passed' : 'Failed'
+    .row
+      .col-sm-4
+        = tagged(@result.passed?(@comparison), status, icon: icon, label: label)
+      .col-sm-4
+        .performance-measurement__result-number.font-weight-bold=indicator.secondary_value
+        .text-capitalize="#{indicator.secondary_unit} #{sanitize(indicator.value_label)}"
+      .col-sm-4
+        .performance-measurement__result-number.font-weight-bold=indicator.primary_value
+        .text-capitalize=indicator.primary_unit
+  .col-6
+    .c-chart--vertical-bar{ class: chart_class_name, data: { chart: @result.data_for_chart(@report, @comparison).to_json }}
 
 = content_for :page_js do
   :javascript
