@@ -343,15 +343,16 @@ module GrdaWarehouse::Hud
     #   within the client dashboard context, project_scope is :all, which includes confidential projects
     #   names of confidential projects are obfuscated unless the user can_view_confidential_project_names
     scope :viewable_by, ->(user, confidential_scope_limiter: :non_confidential) do
-      qc = ->(s) { connection.quote_column_name s }
-      q  = ->(s) { connection.quote s }
+      quoted_column = ->(s) { connection.quote_column_name s }
+      quoted_string = ->(s) { connection.quote s }
 
       query = where(
         [
-          has_access_to_project_through_viewable_entities(user, q, qc),
-          has_access_to_project_through_organization(user, q, qc),
-          has_access_to_project_through_data_source(user, q, qc),
-          has_access_to_project_through_coc_codes(user, q, qc),
+          access_to_project_through_viewable_entities(user, quoted_string, quoted_column),
+          access_to_project_through_organization(user, quoted_string, quoted_column),
+          access_to_project_through_data_source(user, quoted_string, quoted_column),
+          access_to_project_through_coc_codes(user, quoted_string, quoted_column),
+          access_to_project_through_project_access_groups(user, quoted_string, quoted_column),
         ].join(' OR '),
       )
 
@@ -397,7 +398,7 @@ module GrdaWarehouse::Hud
       visible_count.positive? && visible_count == all.count
     end
 
-    def self.has_access_to_project_through_viewable_entities(user, q, qc) # rubocop:disable Naming/PredicateName, Naming/MethodParameterName
+    def self.access_to_project_through_viewable_entities(user, quoted_string, quoted_column)
       viewability_table = GrdaWarehouse::GroupViewableEntity.quoted_table_name
       project_table     = quoted_table_name
       viewability_deleted_column_name = GrdaWarehouse::GroupViewableEntity.paranoia_column
@@ -407,7 +408,7 @@ module GrdaWarehouse::Hud
       group_id_query = if group_ids.empty?
         '0=1'
       else
-        "#{viewability_table}.#{qc.call('access_group_id')} IN (#{group_ids.join(', ')})"
+        "#{viewability_table}.#{quoted_column.call('access_group_id')} IN (#{group_ids.join(', ')})"
       end
 
       <<-SQL.squish
@@ -416,21 +417,21 @@ module GrdaWarehouse::Hud
           SELECT 1 FROM
             #{viewability_table}
             WHERE
-              #{viewability_table}.#{qc.call('entity_id')}   = #{project_table}.#{qc.call('id')}
+              #{viewability_table}.#{quoted_column.call('entity_id')}   = #{project_table}.#{quoted_column.call('id')}
               AND
-              #{viewability_table}.#{qc.call('entity_type')} = #{q.call(sti_name)}
+              #{viewability_table}.#{quoted_column.call('entity_type')} = #{quoted_string.call(sti_name)}
               AND
               #{group_id_query}
               AND
-              #{viewability_table}.#{qc.call(viewability_deleted_column_name)} IS NULL
+              #{viewability_table}.#{quoted_column.call(viewability_deleted_column_name)} IS NULL
               AND
-              #{project_table}.#{qc.call(GrdaWarehouse::Hud::Project.paranoia_column)} IS NULL
+              #{project_table}.#{quoted_column.call(GrdaWarehouse::Hud::Project.paranoia_column)} IS NULL
         )
 
       SQL
     end
 
-    def self.has_access_to_project_through_organization(user, q, qc) # rubocop:disable Naming/PredicateName, Naming/MethodParameterName
+    def self.access_to_project_through_organization(user, quoted_string, quoted_column)
       viewability_table   = GrdaWarehouse::GroupViewableEntity.quoted_table_name
       project_table       = quoted_table_name
       organization_table  = GrdaWarehouse::Hud::Organization.quoted_table_name
@@ -441,7 +442,7 @@ module GrdaWarehouse::Hud
       group_id_query = if group_ids.empty?
         '0=1'
       else
-        "#{viewability_table}.#{qc.call('access_group_id')} IN (#{group_ids.join(', ')})"
+        "#{viewability_table}.#{quoted_column.call('access_group_id')} IN (#{group_ids.join(', ')})"
       end
 
       <<-SQL.squish
@@ -452,25 +453,25 @@ module GrdaWarehouse::Hud
             INNER JOIN
             #{organization_table}
             ON
-              #{viewability_table}.#{qc.call('entity_id')}   = #{organization_table}.#{qc.call('id')}
+              #{viewability_table}.#{quoted_column.call('entity_id')}   = #{organization_table}.#{quoted_column.call('id')}
               AND
-              #{viewability_table}.#{qc.call('entity_type')} = #{q.call(GrdaWarehouse::Hud::Organization.sti_name)}
+              #{viewability_table}.#{quoted_column.call('entity_type')} = #{quoted_string.call(GrdaWarehouse::Hud::Organization.sti_name)}
               AND
               #{group_id_query}
               AND
-              #{viewability_table}.#{qc.call(viewability_deleted_column_name)} IS NULL
+              #{viewability_table}.#{quoted_column.call(viewability_deleted_column_name)} IS NULL
             WHERE
-              #{organization_table}.#{qc.call('data_source_id')} = #{project_table}.#{qc.call('data_source_id')}
+              #{organization_table}.#{quoted_column.call('data_source_id')} = #{project_table}.#{quoted_column.call('data_source_id')}
               AND
-              #{organization_table}.#{qc.call('OrganizationID')} = #{project_table}.#{qc.call('OrganizationID')}
+              #{organization_table}.#{quoted_column.call('OrganizationID')} = #{project_table}.#{quoted_column.call('OrganizationID')}
               AND
-              #{organization_table}.#{qc.call(GrdaWarehouse::Hud::Organization.paranoia_column)} IS NULL
+              #{organization_table}.#{quoted_column.call(GrdaWarehouse::Hud::Organization.paranoia_column)} IS NULL
         )
 
       SQL
     end
 
-    def self.has_access_to_project_through_data_source(user, q, qc) # rubocop:disable Naming/PredicateName, Naming/MethodParameterName
+    def self.access_to_project_through_data_source(user, quoted_string, quoted_column)
       data_source_table = GrdaWarehouse::DataSource.quoted_table_name
       viewability_table = GrdaWarehouse::GroupViewableEntity.quoted_table_name
       project_table     = quoted_table_name
@@ -481,7 +482,7 @@ module GrdaWarehouse::Hud
       group_id_query = if group_ids.empty?
         '0=1'
       else
-        "#{viewability_table}.#{qc.call('access_group_id')} IN (#{group_ids.join(', ')})"
+        "#{viewability_table}.#{quoted_column.call('access_group_id')} IN (#{group_ids.join(', ')})"
       end
 
       <<-SQL.squish
@@ -492,23 +493,23 @@ module GrdaWarehouse::Hud
             INNER JOIN
             #{data_source_table}
             ON
-              #{viewability_table}.#{qc.call('entity_id')}   = #{data_source_table}.#{qc.call('id')}
+              #{viewability_table}.#{quoted_column.call('entity_id')}   = #{data_source_table}.#{quoted_column.call('id')}
               AND
-              #{viewability_table}.#{qc.call('entity_type')} = #{q.call(GrdaWarehouse::DataSource.sti_name)}
+              #{viewability_table}.#{quoted_column.call('entity_type')} = #{quoted_string.call(GrdaWarehouse::DataSource.sti_name)}
               AND
               #{group_id_query}
               AND
-              #{viewability_table}.#{qc.call(viewability_deleted_column_name)} IS NULL
+              #{viewability_table}.#{quoted_column.call(viewability_deleted_column_name)} IS NULL
               AND
-              #{data_source_table}.#{qc.call(GrdaWarehouse::DataSource.paranoia_column)} IS NULL
+              #{data_source_table}.#{quoted_column.call(GrdaWarehouse::DataSource.paranoia_column)} IS NULL
             WHERE
-              #{project_table}.#{qc.call('data_source_id')} = #{data_source_table}.#{qc.call('id')}
+              #{project_table}.#{quoted_column.call('data_source_id')} = #{data_source_table}.#{quoted_column.call('id')}
         )
 
       SQL
     end
 
-    def self.has_access_to_project_through_coc_codes(user, q, qc) # rubocop:disable Naming/PredicateName, Naming/MethodParameterName
+    def self.access_to_project_through_coc_codes(user, quoted_string, quoted_column)
       return '(1=0)' unless user.coc_codes.any?
 
       project_coc_table = GrdaWarehouse::Hud::ProjectCoc.quoted_table_name
@@ -522,31 +523,40 @@ module GrdaWarehouse::Hud
             INNER JOIN
             #{project_table} AS pt
             ON
-              #{project_coc_table}.#{qc[:ProjectID]}      = pt.#{qc[:ProjectID]}
+              #{project_coc_table}.#{quoted_column[:ProjectID]}      = pt.#{quoted_column[:ProjectID]}
               AND
-              #{project_coc_table}.#{qc[:data_source_id]} = pt.#{qc[:data_source_id]}
+              #{project_coc_table}.#{quoted_column[:data_source_id]} = pt.#{quoted_column[:data_source_id]}
               AND
-              #{project_coc_table}.#{qc.call(GrdaWarehouse::Hud::ProjectCoc.paranoia_column)} IS NULL
+              #{project_coc_table}.#{quoted_column.call(GrdaWarehouse::Hud::ProjectCoc.paranoia_column)} IS NULL
             WHERE
               (
                 (
-                  #{project_coc_table}.#{qc[:CoCCode]} IN (#{user.coc_codes.map { |c| q[c] }.join ','})
+                  #{project_coc_table}.#{quoted_column[:CoCCode]} IN (#{user.coc_codes.map { |c| quoted_string[c] }.join ','})
                   AND
                   (
-                    #{project_coc_table}.#{qc[:hud_coc_code]} IS NULL
+                    #{project_coc_table}.#{quoted_column[:hud_coc_code]} IS NULL
                     OR
-                    #{project_coc_table}.#{qc[:hud_coc_code]} = ''
+                    #{project_coc_table}.#{quoted_column[:hud_coc_code]} = ''
                   )
                 )
                 OR
-                #{project_coc_table}.#{qc[:hud_coc_code]} IN (#{user.coc_codes.map { |c| q[c] }.join ','})
+                #{project_coc_table}.#{quoted_column[:hud_coc_code]} IN (#{user.coc_codes.map { |c| quoted_string[c] }.join ','})
               )
               AND
-              #{project_table}.#{qc[:id]} = pt.#{qc[:id]}
+              #{project_table}.#{quoted_column[:id]} = pt.#{quoted_column[:id]}
 
         )
 
       SQL
+    end
+
+    def self.access_to_project_through_project_access_groups(user, _, _)
+      return '(1=0)' unless user.project_access_groups.any?
+
+      project_ids = Rails.cache.fetch([user, 'project_access_group_project_ids'], expires_in: 1.minutes) do
+        user.project_access_groups.flat_map(&:projects).map(&:id)
+      end
+      p_t[:id].in(project_ids).to_sql
     end
 
     # make a scope for every project type and a type? method for instances

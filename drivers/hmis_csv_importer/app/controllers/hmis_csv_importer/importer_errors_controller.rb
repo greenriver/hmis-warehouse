@@ -8,6 +8,21 @@ class HmisCsvImporter::ImporterErrorsController < ApplicationController
   include HmisCsvImporter::ValidationFiltering
   before_action :require_can_view_imports!
 
+  def download
+    importer_log = HmisCsvImporter::Importer::ImporterLog.find(params[:id].to_i)
+    @validations = importer_log.import_validations.preload(:source).
+      group_by(&:source_type)
+    @errors = importer_log.import_errors.preload(:source).
+      group_by(&:source_type)
+
+    # render xlsx: 'download', filename: "import_errors_#{importer_log.id}.xlsx"
+    respond_to do |format|
+      format.xlsx do
+        response.headers['Content-Disposition'] = "attachment; filename=import_errors_#{importer_log.id}.xlsx"
+      end
+    end
+  end
+
   def show
     importer_log = HmisCsvImporter::Importer::ImporterLog.find(params[:id].to_i)
     @import = GrdaWarehouse::ImportLog.viewable_by(current_user).

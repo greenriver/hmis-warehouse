@@ -6,6 +6,11 @@
 
 module GrdaWarehouse
   class RemoteConfig < GrdaWarehouseBase
-    attr_encrypted :password, key: ENV['ENCRYPTION_KEY'][0..31]
+    acts_as_paranoid
+
+    belongs_to :remote_credential
+    scope :active, -> do
+      where(active: true)
+    end
   end
 end

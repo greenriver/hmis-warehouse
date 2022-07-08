@@ -248,7 +248,7 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
   private def enrollment_details(services, user)
     services.group_by { |s| s.service_history_enrollment.project }.map do |project, project_services|
       {
-        coc: project.project_cocs.first.CoCCode,
+        coc: project.project_cocs.first.effective_coc_code,
         project_name: project.name(user),
         project_type: ::HUD.project_type_brief(project.ProjectType),
         history: history_details(project_services),

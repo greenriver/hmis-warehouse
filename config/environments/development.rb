@@ -102,9 +102,6 @@ Rails.application.configure do
   # don't need email sandbox with letter opener
   config.sandbox_email_mode = true
 
-  # make the development log noisy so you can see request parameters, views rendered, etc.
-  config.lograge.enabled = false
-
   # do gzip compressing in dev mode to simulate nginx config in production
   config.middleware.insert_after ActionDispatch::Static, Rack::Deflater
 
@@ -130,6 +127,8 @@ Rails.application.configure do
   # In order to fix the problem, the following options must be set.
   routes.default_url_options ||= {}
   routes.default_url_options[:script_name]= ''
+
+  config.log_level = ENV.fetch('LOG_LEVEL') { 'debug' }.to_sym
 
   # Disable CSRF origin check during development because the HMIS frontend has a different origin
   if ENV.fetch('ENABLE_HMIS_API', false) == 'true'

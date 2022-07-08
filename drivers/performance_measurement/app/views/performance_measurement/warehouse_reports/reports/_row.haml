@@ -34,8 +34,10 @@
       %h3
         = @report.detail_title_for(key)
         - if row[:measure].present?
+          - text = row[:measure]
+          - text += " #{row[:table]}" if row[:table].present?
           %br
-          .badge.badge-secondary= "SPM #{row[:measure]}"
+          .badge.badge-secondary= "SPM #{text}"
       %p= raw markdown.render(@report.detail_goal_description_for(indicator.field.to_sym))
     .col-sm-4
       .d-flex

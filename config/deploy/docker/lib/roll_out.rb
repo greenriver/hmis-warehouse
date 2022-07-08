@@ -330,6 +330,8 @@ class RollOut
     self.log_stream_name = "#{log_prefix}/#{name}/TASK_ID"
     environment << { 'name' => 'LOG_STREAM_NAME_PREFIX', 'value' => "#{log_prefix}/#{name}" }
 
+    environment << { 'name' => 'CONTAINER_VARIANT', 'value' => image.split('--')[1].to_s }
+
     ten_minutes = 10 * 60
 
     hard_mem_limit_mb = (soft_mem_limit_mb * memory_multiplier).to_i
