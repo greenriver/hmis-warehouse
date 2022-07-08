@@ -42,7 +42,7 @@
                     %i.icon-download2
                     Download Original
                 - if @import.importer_log&.any_errors_or_validations?
-                  = link_to hmis_csv_importer_importer_errors_path(@import, format: :xlsx), class: 'btn btn-sm btn-secondary ml-4' do
+                  = link_to hmis_csv_importer_importer_errors_path(@import.importer_log, format: :xlsx), class: 'btn btn-sm btn-secondary ml-4' do
                     %i.icon-download2
                     Download Error Report
 

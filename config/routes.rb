@@ -886,6 +886,7 @@ Rails.application.routes.draw do
     get :cache_status
     get :details
     get :actioncable
+    get :ping
   end
 
   # Routes for the HMIS API

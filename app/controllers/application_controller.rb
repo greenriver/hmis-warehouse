@@ -136,6 +136,7 @@ class ApplicationController < ActionController::Base
     super
     payload[:server_protocol] = request.env['SERVER_PROTOCOL']
     payload[:remote_ip] = request.remote_ip
+    payload[:ip] = request.ip
     payload[:session_id] = request.env['rack.session.record'].try(:session_id)
     payload[:user_id] = current_user&.id
     payload[:pid] = Process.pid

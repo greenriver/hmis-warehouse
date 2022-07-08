@@ -42,7 +42,7 @@ module GrdaWarehouse::Tasks
               index_by(&:id_in_data_source)
             max_dates = GrdaWarehouse::Hud::Client.date_of_last_homeless_service(client_id_batch)
             ongoing_enrolled_project_details = GrdaWarehouse::Hud::Client.ongoing_enrolled_project_details(client_id_batch)
-            client_source.preload(
+            preloads = [
               :vispdats,
               :processed_service_history,
               :hmis_client,
@@ -52,7 +52,15 @@ module GrdaWarehouse::Tasks
               source_clients: { most_recent_pathways_or_rrh_assessment: [:assessment_questions, :user] },
               cohort_clients: :cohort,
               source_enrollments: [:income_benefits, :exit],
-            ).
+            ]
+            if RailsDrivers.loaded.include?(:eccovia_data) && EccoviaData::Fetch.exists?
+              preloads += [
+                :source_eccovia_assessments,
+                :source_eccovia_client_contacts,
+                :source_eccovia_case_managers,
+              ]
+            end
+            client_source.preload(preloads).
               where(id: client_id_batch).find_each do |client|
               project_client = project_clients[client.id] || Cas::ProjectClient.new(data_source_id: data_source.id, id_in_data_source: client.id)
               project_client.assign_attributes(attributes_for_cas_project_client(client))

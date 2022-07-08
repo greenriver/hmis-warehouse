@@ -1,21 +1,50 @@
 - if @client.requires_api_update?
   - @client.update_via_api
 - caseworkers = @client.caseworkers(can_view_client_user_assignments: current_user.can_view_client_user_assignments)
-- if caseworkers.any?
-  %table.table.table-striped
-    %thead
-      %tr
-        %th Name
-        %th Phone
-        %th Type
-        %th Source
-    %tbody
-      - caseworkers.each do |caseworker|
+- eccovia_case_managers = []
+- if RailsDrivers.loaded.include?(:eccovia_data)
+  - eccovia_case_managers = @client.source_eccovia_case_managers
+- if caseworkers.any? || eccovia_case_managers.any?
+  - if caseworkers.any?
+    %table.table.table-striped
+      %thead
         %tr
-          %td= caseworker[:name]
-          %td= caseworker[:phone]
-          %td= caseworker[:title]
-          %td= caseworker[:source]
+          %th Name
+          %th Phone
+          %th Type
+          %th Source
+      %tbody
+        - caseworkers.each do |caseworker|
+          %tr
+            %td= caseworker[:name]
+            %td= caseworker[:phone]
+            %td= caseworker[:title]
+            %td= caseworker[:source]
+  - if eccovia_case_managers.any?
+    %table.table.table-striped
+      %thead
+        %tr
+          %th Name
+          %th Phone
+          %th Cell
+          %th Email
+          %th Date Range
+      %tbody
+        - eccovia_case_managers.each do |case_manager|
+          %tr
+            %td= case_manager.name
+            %td= case_manager.phone
+            %td= case_manager.cell
+            %td= case_manager.email
+            %td
+              - if case_manager.start_date.present?
+                = case_manager.start_date
+              - if case_manager.end_date.present?
+                to
+                = case_manager.end_date
+              - elsif case_manager.start_date.present?
+                = '...'
+
 - else
   .no-data
     No caseworkers on file
