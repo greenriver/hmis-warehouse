@@ -31,11 +31,15 @@ module CePerformance
     end
 
     def self.description
-      "Persons in the CoC will have an average length of time in CE before assessment of **no more than #{goal} days**."
+      'Average number of days between CE Project Start Date and CE Assessment date.'
     end
 
     def self.calculation
       'Average number of days between CE Project Start Date and CE Assessment date.'
+    end
+
+    def display_goal?
+      false
     end
 
     def category

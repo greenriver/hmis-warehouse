@@ -28,12 +28,14 @@
       = render 'hud_report_links'
 
 
-- @report.results_for_display.each do |category_name, periods|
-  %h2= category_name
-  - periods[:reporting].each do |result_class, result|
-    - next unless result_class.display_result?
+- @report.results_for_display.each.with_index do |(category_name, periods), i|
+  - classes = "performance-measurement--highlight-light-#{i + 1}"
+  .page-break-after
+    %h2.mt-6.mb-0.p-6{class: classes}= category_name
+    - periods[:reporting].each do |result_class, result|
+      - next unless result_class.display_result?
 
-    = render result, category_name: category_name, result_class: result_class, result: result, pdf: false
+      = render result, category_name: category_name, result_class: result_class, result: result, pdf: false
 
 
 = content_for :page_js do

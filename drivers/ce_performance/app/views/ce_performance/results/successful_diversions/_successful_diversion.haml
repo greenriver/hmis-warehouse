@@ -13,4 +13,4 @@
       .mb-4.d-flex
         .ml-auto= tagged(result.passed?(comparison), status, icon: icon, label: label)
       .mb-4
-        = link_to result.detail_link_text(comparison), details_ce_performance_warehouse_reports_report_path(@report, key: result_class, target: :_blank)
+        = link_to result.detail_link_text(comparison), details_ce_performance_warehouse_reports_report_path(@report, key: result_class, category_name: category_name, target: :_blank)

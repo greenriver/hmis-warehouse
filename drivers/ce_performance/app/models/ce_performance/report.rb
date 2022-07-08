@@ -333,6 +333,7 @@ module CePerformance
     private def result_types
       [
         CePerformance::Results::CategoryOne,
+        CePerformance::Results::CategoryOneHousehold,
         CePerformance::Results::SuccessfulDiversion,
         CePerformance::Results::TimeInProjectAverage,
         CePerformance::Results::TimeInProjectMedian,

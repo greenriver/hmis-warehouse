@@ -5,7 +5,7 @@
 ###
 
 module CePerformance
-  class Results::CategoryOne < CePerformance::Result
+  class Results::CategoryOneHousehold < CePerformance::Result
     include CePerformance::Results::Calculations
     # Find the number of people who are literally homeless (category 1)
     # 1. Find all clients served (CE APR Q5 B1)
@@ -22,7 +22,7 @@ module CePerformance
     end
 
     def self.client_scope(report, period)
-      report.clients.served_in_period(period).literally_homeless_at_entry
+      report.clients.served_in_period(period).literally_homeless_at_entry.where(head_of_household: true)
     end
 
     # TODO: move to goal configuration
@@ -35,29 +35,27 @@ module CePerformance
     end
 
     def self.title
-      _('Number of Clients in Category 1')
+      _('Number of Households in Category 1')
     end
 
     def self.description
-      'Count of persons enrolled in CE who entered from Category 1 homelessness within the reporting range.'
+      'Count of heads of households enrolled in CE who entered from Category 1 homelessness within the reporting range.'
     end
 
     def self.calculation
-      'Count of clients enrolled in CE who entered with a prior living situation of literally homeless, or who\'s length of time was under the threshold and were previously on the street or in shelter.'
+      'Count of heads of households enrolled in CE who entered with a prior living situation of literally homeless, or who\'s length of time was under the threshold and were previously on the street or in shelter.'
+    end
+
+    def self.display_result?
+      false
     end
 
     def display_goal?
       false
     end
 
-    def nested_results
-      [
-        CePerformance::Results::CategoryOneHousehold,
-      ]
-    end
-
     def detail_link_text
-      "#{value.to_i} Clients"
+      "#{value.to_i} Households"
     end
 
     def passed?(comparison)
@@ -71,7 +69,7 @@ module CePerformance
     def indicator(comparison)
       @indicator ||= OpenStruct.new(
         primary_value: value.to_i,
-        primary_unit: 'clients',
+        primary_unit: 'households',
         secondary_value: percent_change_over_year(comparison),
         secondary_unit: '%',
         value_label: 'change over year',
@@ -86,7 +84,7 @@ module CePerformance
       report_year = aprs.last.end_date.year
       columns = [
         ['x', report_year, comparison_year],
-        ['clients', value, comparison.value],
+        ['households', value, comparison.value],
       ]
       {
         x: 'x',

@@ -21,5 +21,9 @@ module CePerformance
     def category
       'Participation'
     end
+
+    def display_goal?
+      true
+    end
   end
 end
