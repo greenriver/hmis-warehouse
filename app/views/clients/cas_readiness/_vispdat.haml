@@ -45,3 +45,13 @@
               = f.label :vispdat_prioritization_days_homeless do
                 Days for use in VI-SPDAT Prioritization
               = f.input :vispdat_prioritization_days_homeless, label: false, input_html: {value: f.object.vispdat_prioritization_days_homeless || @client.days_homeless_in_last_three_years}
+- if RailsDrivers.loaded.include?(:eccovia_data)
+  - eccovia_assessment = @client.source_eccovia_assessments&.max_by(&:assessed_at)
+  - if eccovia_assessment.present?
+    %section.o-section-card
+      %header
+        %h3 VI-SPDAT
+      .c-card.c-card--flush.c-card--padded.c-card--block
+        %dl.o-list--featured
+          %dt Most recent VI-SPDAT Score
+          %dd= eccovia_assessment.score
