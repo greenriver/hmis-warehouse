@@ -1,73 +1,42 @@
 - markdown = Redcarpet::Markdown.new(::InlineHtml)
-- indicator = @report.result_for(key)
-- if indicator
+- result = @report.result_for(key)
+- if result
   - column = row[:column]
-  .row.m-0.mb-4
-    .col-sm-2
-      - if column == :both
-        - words = 'System and Project Level'
-        %span.icon-svg--sm.mr-2{ data: { toggle: :tooltip, title: words }}
-          %svg
-            %use{'xlink:href' => '#icon-city'}
-          %svg.ml-2
-            %use{'xlink:href' => '#icon-house'}
-          - if pdf
-            %br
-            = words
-      - elsif column == :project
-        - words = 'Project Level'
-        %span.icon-svg--sm.mr-2{ data: { toggle: :tooltip, title: words }}
-          %svg.ml-2
-            %use{'xlink:href' => '#icon-house'}
-          - if pdf
-            %br
-            = words
-      - elsif column == :system
-        - words = 'System Level'
-        %span.icon-svg--sm.mr-2{ data: { toggle: :tooltip, title: words }}
-          %svg
-            %use{'xlink:href' => '#icon-city'}
-          - if pdf
-            %br
-            = words
-    .col-sm-6
-      %h3
-        = @report.detail_title_for(key)
+  .row.m-0.mb-4.performance-measurement__row.j-click-row
+    .col-12
+      .d-flex
+        .level-indicator.mb-2
+          = @report.detail_words_for(row[:column])
         - if row[:measure].present?
-          - text = row[:measure]
-          - text += " #{row[:table]}" if row[:table].present?
-          %br
-          .badge.badge-secondary= "SPM #{text}"
-      %p= raw markdown.render(@report.detail_goal_description_for(indicator.field.to_sym))
+          .font-weight-bold.ml-2.mr-2
+            •
+          .spm-measure.font-weight-bold= "SPM #{row[:measure]}"
     .col-sm-4
+      %h3= @report.detail_title_for(key)
+      %p= raw markdown.render(@report.detail_goal_description_for(result.field.to_sym))
+    - numbers = result.data_for_row
+    .col-sm-2
+      .text-uppercase This Year
+      .performance-measurement__result-number.font-weight-bold= numbers.this_year_count
+      .text-capitalize= numbers.unit
+    .col-sm-2
+      .text-uppercase Last Year
+      .performance-measurement__result-number.font-weight-bold= numbers.last_year_count
+      .text-capitalize= numbers.unit
+    .col-sm-2
+      .text-uppercase Target
+      .performance-measurement__result-number.font-weight-bold #{numbers.goal_direction}#{numbers.goal}#{numbers.goal_unit}
+      .text-capitalize= numbers.brief_goal_description
+    .col-sm-2
       .d-flex
         .mb-4.ml-auto
-          - status = indicator[:passed] ? 'success' : 'danger'
-          - icon = indicator[:passed] ? 'check' : 'cross'
-          - label = indicator[:passed] ? 'Passed' : 'Failed'
-          = tagged(indicator[:passed], status, icon: icon, label: label)
-
-          - include_median = key.to_s.ends_with?('_average')
-          - link_text = if @report.detail_year_over_year_change?(key)
-            - "#{number_with_delimiter(indicator[:secondary_value])}% change over year"
-          - else
-            - text = [ number_with_delimiter(indicator[:primary_value]), indicator[:primary_unit] ]
-            - joiner = if indicator[:primary_unit].starts_with?('%') then '' else ' ' end
-            - text = text.join(joiner)
-            - if include_median
-              - text = "Average: #{text}"
-            - text
+          - status = result[:passed] ? 'success' : 'danger'
+          - icon = result[:passed] ? 'check' : 'cross'
+          - label = result[:passed] ? 'Passed' : 'Failed'
+          = tagged(result[:passed], status, icon: icon, label: label)
       .d-flex
-        .font-size-md.ml-auto
-          = link_to(link_text, performance_measurement_warehouse_reports_report_details_path(@report, key: key), target: :_blank)
-          - if include_median
-            - secondary_key = key.to_s.gsub(/_average$/, '_median')
-            - secondary_indicator = @report.result_for(secondary_key)
-            - text = [ number_with_delimiter(secondary_indicator[:primary_value]), secondary_indicator[:primary_unit] ]
-            - joiner = if secondary_indicator[:primary_unit].starts_with?('%') then '' else ' ' end
-            - text = text.join(joiner)
-            - link_text = "Median: #{text}"
-            .mt-2= link_to(link_text, performance_measurement_warehouse_reports_report_details_path(@report, key: secondary_key), target: :_blank)
+        .font-size-sm.ml-auto
+          = link_to('View more details', performance_measurement_warehouse_reports_report_details_path(@report, key: key), target: :_blank, class: 'j-click-row-source')
 - else
   %tr
     %td
