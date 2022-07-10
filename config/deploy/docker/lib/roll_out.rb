@@ -477,9 +477,9 @@ class RollOut
 
     puts "[INFO] Waiting on the task to start... #{target_group_name}"
     begin
-      ecs.wait_until(:tasks_running, { cluster: cluster, tasks: [task_arn] }, { max_attempts: 25, delay: 10 })
-    rescue Aws::Waiters::Errors::TooManyAttemptsError => _e
-      puts "[WARN] Task didn't start in time. Trying again."
+      ecs.wait_until(:tasks_running, { cluster: cluster, tasks: [task_arn] }, { max_attempts: 3, delay: 10 })
+    rescue Aws::Waiters::Errors::FailureStateError, Aws::Waiters::Errors::TooManyAttemptsError
+      puts '[WARN] Something went wrong trying to start the deploment task. Cancelling it and trying again.'
 
       ecs.stop_task(cluster: cluster, task: task_arn)
       _run_task!
