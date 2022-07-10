@@ -159,7 +159,7 @@ class Deployer
 
   def _check_that_you_pushed_to_remote!
     branch = `git rev-parse --abbrev-ref HEAD`.chomp
-    remote = `git ls-remote origin | grep #{branch}`.chomp
+    remote = `git ls-remote origin | grep refs/heads/#{branch}$`.chomp
     our_commit = `git rev-parse #{branch}`.chomp
 
     raise '[FATAL] Push or pull your branch first!' unless remote.start_with?(our_commit)
