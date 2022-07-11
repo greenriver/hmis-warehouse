@@ -56,7 +56,7 @@ class WorkoffArbiter
       task_definition: _task_definition,
       capacity_provider_strategy: [
         {
-          capacity_provider: _on_demand_capacity_provider_name,
+          capacity_provider: _on_demand_capacity_provider_name(target_group_name),
           weight: 1,
           base: 1,
         },
