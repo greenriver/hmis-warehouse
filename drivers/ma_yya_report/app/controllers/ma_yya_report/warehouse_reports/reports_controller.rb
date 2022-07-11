@@ -11,7 +11,7 @@ module MaYyaReport::WarehouseReports
 
     def index
       @pagy, @reports = pagy(report_scope)
-      @filter = ::Filters::FilterBase.new(user_id: current_user.id)
+      @filter = ::Filters::FilterBase.new(user_id: current_user.id, **default_filter_params)
     end
 
     def create
@@ -63,8 +63,18 @@ module MaYyaReport::WarehouseReports
       )
     end
 
+    private def default_filter_params
+      prior_project_ids = MaYyaReport::Report.last&.options.try(:[], 'project_ids')
+      day_in_last_quarter = Date.current - 90.days
+      {
+        start: day_in_last_quarter.beginning_of_quarter,
+        end: day_in_last_quarter.end_of_quarter,
+        project_ids: prior_project_ids,
+      }
+    end
+
     def report_options(filter)
-      filter.to_h.select.slice(report_class.report_options)
+      filter.to_h.slice(*report_class.report_options)
     end
 
     private def set_report

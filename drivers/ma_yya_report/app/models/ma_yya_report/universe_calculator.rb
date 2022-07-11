@@ -13,13 +13,7 @@ module MaYyaReport
     end
 
     def client_ids
-      # We don't use tap here to allow for '+='
-      client_ids = Set.new
-      client_scope.find_in_batches do |batch|
-        clients = for_batch(batch)
-        client_ids += clients.keys
-      end
-      client_ids
+      client_scope.distinct.pluck(:id)
     end
 
     def calculate(&post_processor)
