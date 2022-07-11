@@ -118,7 +118,7 @@ module GrdaWarehouse::HealthEmergency
       self.matched_count = 0
       sheet.each_row_streaming(offset: 1) do |row|
         row = self.class.headers.zip(row.map(&:value)).to_h
-        client = GrdaWarehouse::HealthEmergency::UploadedTest.new(clean(row).merge( batch_id: id))
+        client = GrdaWarehouse::HealthEmergency::UploadedTest.new(clean(row).merge(batch_id: id))
         matching_client_ids = []
         matching_client_ids += name_matches(client)
         matching_client_ids += ssn_matches(client)
@@ -145,8 +145,8 @@ module GrdaWarehouse::HealthEmergency
             result: uploaded_test.test_result,
             location: uploaded_test.test_location,
             emergency_type: health_emergency,
-          ).first_or_create do |test|
-            test.assign_attributes(
+          ).first_or_create do |t|
+            t.assign_attributes(
               user_id: user.id,
               agency_id: user.agency&.id,
             )
@@ -175,7 +175,7 @@ module GrdaWarehouse::HealthEmergency
     end
 
     def notify_user
-      NotifyUser.report_completed(user.id, self).deliver_later
+      NotifyUser.report_completed(user.id, self).deliver_later(priority: -5)
     end
 
     private def sheet
@@ -187,7 +187,7 @@ module GrdaWarehouse::HealthEmergency
     end
 
     private def check_header!
-      upload_headers.map{ |h| h.gsub(/\s+/, "") } == self.class.headers.map{ |h| h.gsub(/\s+/, "") }
+      upload_headers.map { |h| h.gsub(/\s+/, '') } == self.class.headers.map { |h| h.gsub(/\s+/, '') }
     end
 
     def self.headers
@@ -206,6 +206,5 @@ module GrdaWarehouse::HealthEmergency
         ssn: 'SSN',
       }.freeze
     end
-
   end
 end

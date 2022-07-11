@@ -32,7 +32,7 @@ module Reporting
       else
         Exporters::Tableau.export_all(report_id: @report_id)
       end
-      NotifyUser.dashboard_export_report_finished(@current_user_id, @report_id).deliver_later
+      NotifyUser.dashboard_export_report_finished(@current_user_id, @report_id).deliver_later(priority: -5)
     end
 
     def enqueue(job)

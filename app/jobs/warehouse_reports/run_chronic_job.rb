@@ -94,7 +94,7 @@ module WarehouseReports
       report.data = data
       report.save
 
-      NotifyUser.chronic_report_finished(report_params[:current_user_id], report.id).deliver_later
+      NotifyUser.chronic_report_finished(report_params[:current_user_id], report.id).deliver_later(priority: -5)
     end
 
     def log(msg, underline: false)

@@ -291,8 +291,8 @@ namespace :grda_warehouse do
   end
 
   desc 'Warm Cohort Cache'
-  task :warm_cohort_cache, [] => [:environment, 'log:info_to_stdout'] do |task, args|
-    GrdaWarehouse::Cohort.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)).prepare_active_cohorts
+  task :warm_cohort_cache, [] => [:environment, 'log:info_to_stdout'] do
+    GrdaWarehouse::Cohort.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running), priority: 12).prepare_active_cohorts
   end
 
   desc 'Process Recurring HMIS Exports'

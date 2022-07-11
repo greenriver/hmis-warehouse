@@ -92,7 +92,7 @@ module GrdaWarehouse::CoordinatedEntryAssessment
     end
 
     def notify_ce_assessment_completed
-      NotifyUser.ce_assessment_completed(id).deliver_later if ce_assessment_completed?
+      NotifyUser.ce_assessment_completed(id).deliver_later(priority: -5) if ce_assessment_completed?
     end
 
     def ce_assessment_completed?

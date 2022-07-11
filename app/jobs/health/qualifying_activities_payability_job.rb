@@ -21,7 +21,7 @@ module Health
       @report = report_source.find(report_id)
       ::Health::Tasks::CalculateValidUnpayableQas.new.run!
       @report.pre_calculate_qualifying_activity_payability!
-      NotifyUser.health_qa_pre_calculation_finished(@current_user_id).deliver_later
+      NotifyUser.health_qa_pre_calculation_finished(@current_user_id).deliver_later(priority: -5)
     end
 
     def enqueue(job, queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running))

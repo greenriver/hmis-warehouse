@@ -72,7 +72,7 @@ module WarehouseReports
       report.data = data
       report.save
 
-      NotifyUser.active_veterans_report_finished(params[:current_user_id], report.id).deliver_later
+      NotifyUser.active_veterans_report_finished(params[:current_user_id], report.id).deliver_later(priority: -5)
     end
 
     def service_history_scope

@@ -66,7 +66,7 @@ module WarehouseReports
       report.data = data
       report.save
 
-      NotifyUser.enrolled_disabled_report_finished(params[:current_user_id], report.id).deliver_later
+      NotifyUser.enrolled_disabled_report_finished(params[:current_user_id], report.id).deliver_later(priority: -5)
     end
 
     def client_source

@@ -31,7 +31,7 @@ module WarehouseReports
             unsent_medical_restrictions: unsent_medical_restrictions,
             test_batch_id: test_batch_id,
             unsent_test_results: unsent_test_results,
-          ).deliver_later
+          ).deliver_later(priority: -5)
         end
 
         sent_at = Time.current
