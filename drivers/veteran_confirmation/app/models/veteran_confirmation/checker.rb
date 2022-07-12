@@ -6,7 +6,12 @@
 
 module VeteranConfirmation
   class Checker
+    CONFIRMED = 'confirmed'.freeze
+    NOT_CONFIRMED = 'not confirmed'.freeze
+
     def check(clients)
+      return if credentials.nil?
+
       client_id = 0
       {}.tap do |results|
         last_client_id = clients.pluck(:id).max
@@ -23,8 +28,6 @@ module VeteranConfirmation
     end
 
     private def status(client)
-      credentials = Credential.first
-
       query = {
         first_name: client.FirstName,
         last_name: client.LastName,
@@ -44,6 +47,10 @@ module VeteranConfirmation
       result = JSON.parse(response.read_body)
 
       return result['veteran_status']
+    end
+
+    private def credentials
+      @credentials ||= Credential.first
     end
   end
 end

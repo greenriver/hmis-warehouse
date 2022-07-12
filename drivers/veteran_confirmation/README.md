@@ -4,6 +4,7 @@ Use the VA [Veteran Confirmation API](https://developer.va.gov/explore/verificat
 to check if a client is a veteran.
 
 To configure:
-<pre>
-VeteranConfirmation::Credential.create(username: 'none', apikey: <i>API Key</i>, endpoint: <i>URL</i>)
-</pre>
+
+```ruby
+VeteranConfirmation::Credential.create(username: 'none', apikey: API Key, endpoint: URL)
+```
