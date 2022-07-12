@@ -51,6 +51,7 @@ class WorkoffArbiter
   end
 
   def add_worker!
+    target_group_name = ENV.fetch('TARGET_GROUP_NAME', false)
     payload = {
       cluster: ENV.fetch('CLUSTER_NAME'),
       task_definition: _task_definition,
