@@ -46,10 +46,14 @@ module PerformanceMeasurement
     end
 
     def data_for_row
+      this_year_count = primary_value.to_s
+      this_year_count += ' %' if percentage?
+      last_year_count = comparison_primary_value.to_s
+      last_year_count += ' %' if percentage?
       OpenStruct.new(
-        unit: primary_unit,
-        this_year_count: primary_value,
-        last_year_count: comparison_primary_value,
+        unit: primary_unit.sub('% ', ''),
+        this_year_count: this_year_count,
+        last_year_count: last_year_count,
         number_for_goal: goal_progress.round,
         goal: goal,
         goal_direction: report.detail_goal_direction(field),
