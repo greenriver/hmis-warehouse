@@ -18,7 +18,8 @@ module CePerformance
     end
 
     def self.client_scope(report, period)
-      report.clients.served_in_period(period)
+      report.clients.served_in_period(period).
+        where.not(days_in_project: nil)
     end
 
     # TODO: move to goal configuration

@@ -180,6 +180,7 @@ module CePerformance
         report_clients = add_q5a_clients(report_clients, period, ce_apr)
         report_clients = add_q9b_clients(report_clients, period, ce_apr)
         report_clients = add_q9d_clients(report_clients, period, ce_apr)
+        # report_clients = add_ph_clients(report_clients, period)
         # TODO:
         # Number of persons/households - CAT2: at imminent risk: prevention tool score completed; prior living situation set per HUD
         # Number of persons screened for Prevention - Number of Head of Household with a recorded Prevention Tool Score (currently from auxiliary data)
@@ -273,8 +274,19 @@ module CePerformance
     end
 
     private def add_q9d_clients(report_clients, period, ce_apr)
+      active_filter = periods[period]
       # All clients placed on prioritization list
-      ce_apr_clients = answer_clients(ce_apr, 'Q9d', 'B17')
+      ce_apr_clients = answer_clients(ce_apr, 'Q9d', 'B16')
+      # NOTE: this potentially expands outside of the permissions of the user
+      # Find all PH enrollments for the destination client associated with the ce_apr_clients
+      # that are also visible by the user, and started within the report range
+      ph_enrollments = GrdaWarehouse::Hud::Client.
+        where(id: ce_apr_clients.map(&:destination_client_id)).
+        joins(source_enrollments: :project).
+        merge(GrdaWarehouse::Hud::Project.ph.viewable_by(user)).
+        merge(GrdaWarehouse::Hud::Enrollment.opened_during_range(active_filter.range)).
+        pluck(:id, e_t[:EntryDate], e_t[:MoveInDate]).
+        group_by(&:shift)
       ce_apr_clients.each do |ce_apr_client|
         report_client = report_clients[ce_apr_client.client_id] || Client.new(
           report_id: id,
@@ -289,27 +301,25 @@ module CePerformance
             result: e.referral_result,
           }
         end
-        report_client.diversion_event = report_client.events.any? { |e| e[:event].to_i == 2 }
+        report_client.diversion_event = report_client.events.any? { |e| e.with_indifferent_access[:event].to_i == 2 }
         report_client.diversion_successful = report_client.events.any? do |e|
-          e[:event].to_i == 2 && e[:result].to_i == 1
+          e.with_indifferent_access[:event].to_i == 2 && e.with_indifferent_access[:result].to_i == 1
         end
         initial_referral_date = report_client.events.select do |e|
-          e[:event].in?(HOUSING_REFERRAL_EVENTS)
-        end&.map { |e| e[:date] }&.min
+          e.with_indifferent_access[:event].in?(HOUSING_REFERRAL_EVENTS)
+        end&.map { |e| e.with_indifferent_access[:date] }&.min&.to_date
         report_client.initial_housing_referral_date = initial_referral_date
-        # NOTE: this potentially expands outside of the permissions of the user
         if initial_referral_date.present?
-          dates = ce_apr_client.source_enrollment.
-            client.destination_client.
-            source_enrollments.
-            with_project_type(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph]).
-            pluck(:EntryDate, :MoveInDate)
+          report_client.days_between_entry_and_initial_referral = initial_referral_date - report_client.entry_date
+          dates = ph_enrollments[ce_apr_client.destination_client_id]
           housing_entry_date = dates&.
-            select { |d, _| d >= initial_referral_date }&.
+            map(&:first)&.
+            select { |d| d >= initial_referral_date }&.
             min
           if housing_entry_date.present?
             housing_move_in_date = dates&.
-              select { |_, d| d >= housing_entry_date }&.
+              map(&:last)&.
+              select { |d| d >= housing_entry_date }&.
               min
             report_client.housing_enrollment_entry_date = housing_entry_date
             report_client.housing_enrollment_move_in_date = housing_move_in_date
@@ -322,6 +332,17 @@ module CePerformance
       end
       report_clients
     end
+
+    # Don't add any new clients, just calculate time between first successful referral to PH and first subsequent PH entry
+    # private def add_ph_clients(report_clients, period)
+    #   active_filter = periods[period]
+    #   ph_enrollments = GrdaWarehouse::ServiceHistoryEnrollment.ph.entry_within_date_range(start_date: active_filter.start, end_date: active_filter.end).pluck(:client_id, :first_date_in_project).group_by(&:shift)
+    #   report_clients.each do |client_id, client|
+    #     next unless ph_enrollments.key?(client_id)
+
+    #     client.days_between_referral_
+    #   end
+    # end
 
     private def household_ages(apr_client)
       date = [apr_client.first_date_in_program, filter.start].compact.max
@@ -341,6 +362,8 @@ module CePerformance
         CePerformance::Results::SuccessfulDiversion,
         CePerformance::Results::TimeInProjectAverage,
         CePerformance::Results::TimeInProjectMedian,
+        CePerformance::Results::EntryToReferralAverage,
+        CePerformance::Results::EntryToReferralMedian,
         CePerformance::Results::ReferralToHousingAverage,
         CePerformance::Results::ReferralToHousingMedian,
         CePerformance::Results::TimeOnListAverage,

@@ -129,6 +129,7 @@ Rails.application.configure do
   routes.default_url_options[:script_name]= ''
 
   config.log_level = ENV.fetch('LOG_LEVEL') { 'debug' }.to_sym
+  config.logger.formatter = ActiveSupport::Logger::SimpleFormatter.new
 
   # Disable CSRF origin check during development because the HMIS frontend has a different origin
   if ENV.fetch('ENABLE_HMIS_API', false) == 'true'

@@ -9,7 +9,8 @@ module CePerformance
     include CePerformance::Results::Calculations
     # For anyone served by CE, how long between referral and housing
     def self.calculate(report, period, _filter)
-      values = client_scope(report, period).pluck(:days_between_referral_and_housing)
+      values = client_scope(report, period).
+        pluck(:days_between_referral_and_housing)
       create(
         report_id: report.id,
         period: period,
@@ -18,7 +19,8 @@ module CePerformance
     end
 
     def self.client_scope(report, period)
-      report.clients.served_in_period(period)
+      report.clients.served_in_period(period).
+        where.not(days_between_referral_and_housing: nil)
     end
 
     # TODO: move to goal configuration
@@ -38,15 +40,15 @@ module CePerformance
     end
 
     def self.title
-      _('Median Length of Time from CE Project Entry to Housing Referral')
+      _('Median Length of Time from Housing Referral to Housing Start')
     end
 
     def self.description
-      "The CoC will decrease the median length of time from CE Project Entry to Housing Referral by **#{goal} days** annually."
+      "The CoC will decrease the median length of time from Housing Referral to Housing Start by **#{goal} days** annually."
     end
 
     def self.calculation
-      'Median number of days between CE Project Start Date and Housing Referral Date'
+      'Median number of days between Housing Referral Date and next PH Entry Date'
     end
 
     def goal_direction
@@ -54,7 +56,7 @@ module CePerformance
     end
 
     def brief_goal_description
-      'time to referral'
+      'time to PH entry'
     end
 
     def self.display_result?
