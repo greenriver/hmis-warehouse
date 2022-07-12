@@ -7,6 +7,7 @@ To recreate the icon font and add to it (recommended method):
 3. Rename the font "icons"
 4. Click 'Download webfont' button (zip file)
 5. From the zipped file, copy the fonts files (eot, svg, ttf, woff) to the /app/assets/fonts directory, replacing the files already there
+6. From the zip file's css/icons-embedded.css, copy the second @font-face declaration (with the data url) into /app/assets/stylesheets/application/vendor/icons_embedded.scss
 6. From the zip file's css/icons-embedded.css, in the font-face declaration at the top of the file, copy the url variable from one of the font file paths, e.g. 'emfcbl'
 7. In the stylesheet (/app/assets/stylesheets/application/vendor/icons.scss) font-face declaration, paste in the new url variable in each font file path
 8. From the zip file's css/icon-codes.css, copy all of the css declarations

@@ -111,12 +111,40 @@
   display: flex;
   flex-wrap: wrap;
 }
-
+.report-parameters-all,
+.warehouse-reports__completed,
+.report-parameters {
+  .report-parameters__parameter {
+    display: block;
+    .label {
+      display: block;
+      font-size: 1rem;
+      &.parameter-label,
+      &.parameter-value {
+        background: transparent;
+        color: $gray-darker;
+      }
+      &.parameter-label {
+        margin-bottom: 0;
+      }
+      &.parameter-value {
+        font-weight: normal;
+        margin-bottom: 1rem;
+      }
+    }
+  }
+}
 .report-parameters__parameter
 {
   display: flex;
   margin-bottom: 0.5em;
   margin-right: 0.5em;
+  .label {
+
+  }
+  .parameter-label {
+    background: transparent;
+  }
 }
 
 .data-quality__table
@@ -218,9 +246,15 @@
   $color: nth($indicator-colors, $i);
   .performance-measurement--highlight-#{$i} {
     background: $color;
+    color: darken($color, 60%);
   }
   .performance-measurement--highlight-light-#{$i} {
     background: lighten($color, 5%);
+    color: darken($color, 60%);
+    th {
+      background-color: lighten($color, 5%);
+      color: darken($color, 60%);
+    }
   }
 }
 
@@ -235,4 +269,36 @@
   .panel-body > div:last-child {
     border-bottom: 0 !important;
   }
+}
+.performance-measurement__result-number {
+  font-size: 1.2rem;
+}
+.performance-measurement .super-rounded {
+  border-radius: 100px;
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+.performance-measurement--target-guage {
+  border-radius: 100px;
+  background-color: $gray-lighter;
+  height: 15px;
+  position: relative;
+}
+.performance-measurement--target-guage-foreground {
+  border-radius: 100px;
+  height: 15px;
+  position: absolute;
+  &.success {
+    background-color: $brand-success-ll;
+  }
+  &.danger {
+    background-color: $brand-danger-l;
+  }
+}
+.performance-measurement--target-guage-target {
+  background-color: $gray-dark;
+  height: 15px;
+  width: 2px;
+  position: absolute;
 }

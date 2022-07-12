@@ -53,20 +53,20 @@
   &::after {
     font-weight: normal;
     font-family: 'icons';
-    content: 'select all #{get-icon-code('checkmark2')}'
+    content: get-icon-code-with-prefix('checkmark2', 'select all ');
   }
   &.j-all-selected {
     &::after {
       font-weight: normal;
       font-family: 'icons';
-      content: 'select none #{get-icon-code('checkmark')}'
+      content: get-icon-code-with-prefix('checkmark', 'select none ');
     }
   }
   &.j-any-selected {
     &::after {
       font-weight: normal;
       font-family: 'icons';
-      content: 'select none #{get-icon-code('checkmark')}'
+      content: get-icon-code-with-prefix('checkmark', 'select none ');
     }
   }
 }

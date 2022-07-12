@@ -47,6 +47,9 @@
     animation: highlight 2s;
   }
 }
+.minimal-collapse .c-card__content {
+  border: 0;
+}
 
 .no-border-radius-top .c-card__content {
   border-top-right-radius: 0;
