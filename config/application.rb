@@ -1,4 +1,5 @@
 require_relative 'boot'
+require_relative "../app/logger/log_formatter.rb"
 
 require 'rails/all'
 require "active_record_extended"
@@ -14,6 +15,7 @@ module BostonHmis
     # Initialize configuration defaults for originally generated Rails version.
     config.load_defaults 5.2
     config.autoloader = :classic
+    config.autoload_paths << Rails.root.join('lib/devise')
 
     # ActionCable
     config.action_cable.mount_path = "/cable"
@@ -50,17 +52,30 @@ module BostonHmis
     end
 
     config.lograge.enabled = true
+    config.lograge.logger = ActiveSupport::Logger.new(STDOUT)
+    config.lograge.formatter = Lograge::Formatters::Json.new
+    config.lograge.base_controller_class = ['ActionController::Base']
     config.lograge.custom_options = ->(event) do
       {
+        request_time: Time.current,
+        application: Rails.application.class,
         server_protocol: event.payload[:server_protocol],
+        host: event.payload[:host],
         remote_ip: event.payload[:remote_ip],
+        ip: event.payload[:ip],
         session_id: event.payload[:session_id],
         user_id: event.payload[:user_id],
+        process_id: Process.pid,
         pid: event.payload[:pid],
-        request_id: event.payload[:request_id],
-        request_start: event.payload[:request_start]
+        request_id: event.payload[:request_id] || event.payload[:headers]['action_dispatch.request_id'],
+        request_start: event.payload[:request_start],
+        x_forwarded_for: event.payload[:x_forwarded_for],
+        rails_env: Rails.env,
+        exception: event.payload[:exception]&.first,
       }
     end
+    config.logger = ActiveSupport::Logger.new(STDOUT)
+    config.logger.formatter = LogFormatter.new
 
     # default to not be sandbox email mode
     config.sandbox_email_mode = false

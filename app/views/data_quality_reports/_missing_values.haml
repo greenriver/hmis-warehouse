@@ -39,7 +39,7 @@
             - p_class = "client__service_type_#{p_type}"
             - grade = GrdaWarehouse::Grades::Missing.grade_from_score(counts["#{project.id}"]['score'])
             %tr
-              %td= project.ProjectName
+              %td= project.name(current_user)
               %td
                 %span{class: "client__service_type_#{project.ProjectType}"}
                   .enrollment__project_type{class: p_class}
@@ -107,7 +107,7 @@
             - p_class = "client__service_type_#{p_type}"
             - grade = GrdaWarehouse::Grades::Missing.grade_from_score(counts["#{project.id}"]['score'])
             %tr
-              %td.data-quality__middle= project.ProjectName
+              %td.data-quality__middle= project.name(current_user)
               %td.data-quality__middle
                 %span{class: "client__service_type_#{project.ProjectType}"}
                   .enrollment__project_type{class: p_class}

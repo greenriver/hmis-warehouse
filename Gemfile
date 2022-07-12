@@ -8,6 +8,7 @@ gem 'sdoc', group: :doc
 
 gem 'nokogiri', '>= 1.13.6' # >= 1.13.6 due to CVE-2022-29181
 gem 'rubyzip',  '>= 1.2.1' # >= 1.2.1 due to CVE-2017-5946
+gem 'rails-html-sanitizer', '>= 1.4.3' # >= 1.4.3 due to CVE-2022-32209
 gem 'sshkit'
 gem 'paranoia', '~> 2.0'
 gem 'composite_primary_keys', '=13.0.0'
@@ -282,3 +283,5 @@ end
 gem "business_time", "~> 0.10.0"
 
 gem "cable_ready", "~> 4.5"
+
+gem "graphql", "~> 2.0"

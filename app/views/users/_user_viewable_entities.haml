@@ -34,8 +34,9 @@
     .c-columns
       = render 'users/entity_column', entity: data_source_viewability(base), f: f, entity_type: :data_sources
       = render 'users/entity_column', entity: organization_viewability(base), f: f, entity_type: :organizations
-      = render 'users/entity_column', entity: project_viewability(base), associations: [:data_source, :organization, :coc_code], f: f, entity_type: :projects
+      = render 'users/entity_column', entity: project_access_group_viewability(base), f: f, entity_type: :project_access_groups
       = render 'users/entity_column', entity: coc_viewability(base), f: f, entity_type: :coc_codes
+      = render 'users/entity_column', entity: project_viewability(base), associations: [:data_source, :organization, :coc_code, :project_access_group], f: f, entity_type: :projects
 
   .tab-pane.fade#reports-cohorts{role: 'tabpanel', aria: {labelledby: 'reports-cohorts'}}
     .c-columns

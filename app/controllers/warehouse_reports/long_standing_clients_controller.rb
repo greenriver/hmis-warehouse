@@ -13,7 +13,7 @@ module WarehouseReports
       # and is identical on entry records
       @years = (params[:years] || 5).to_i
       @entries = service_history_source.
-        select(:first_date_in_program, :last_date_in_program, :client_id, :project_name).
+        select(:first_date_in_program, :last_date_in_program, :client_id, :project_id, :project_name, bool_or(p_t[:confidential], o_t[:confidential]).as('confidential')).
         where(she_t[:date].lteq(@years.years.ago)).
         where(last_date_in_program: nil).
         es
@@ -28,7 +28,8 @@ module WarehouseReports
 
     private def service_history_source
       GrdaWarehouse::ServiceHistoryEnrollment.entry.
-        joins(:project).merge(GrdaWarehouse::Hud::Project.viewable_by(current_user))
+        joins(project: :organization).
+        merge(GrdaWarehouse::Hud::Project.viewable_by(current_user))
     end
 
     private def data_source_source

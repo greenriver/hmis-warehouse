@@ -284,6 +284,13 @@ class Role < ApplicationRecord
           'Client Access',
         ],
       },
+      can_search_own_clients: {
+        description: 'Ability to use the client search where results are limited to clients assigned to the user. Must be used in conjunction with "Can View Clients" for access to client dashboards',
+        administrative: false,
+        categories: [
+          'Client Access',
+        ],
+      },
       can_view_cached_client_enrollments: {
         description: 'Ability to see all enrollments for a client as cached in the history log of client enrollments.  There is no limit imposed on these cached views.',
         administrative: true,
@@ -742,11 +749,20 @@ class Role < ApplicationRecord
           'Reporting',
         ],
       },
-      can_view_confidential_enrollment_details: {
-        description: 'Anyone with this permission will see the name of confidential projects in locations where it is associated with a client or enrollment.',
+      can_view_confidential_project_names: {
+        description: 'Anyone with this permission will see the name of confidential projects when displayed within reports or on client dashboards. To include confidential projects in reports, users must also be able to Report on Confidential Projects.',
         administrative: true,
         categories: [
           'Client Extras',
+          'Confidentiality',
+        ],
+      },
+      can_report_on_confidential_projects: {
+        description: 'Reports for users with this permission will include confidential projects.  The names of confidential projects will not be exposed unless the user an also view confidential project names.  Users without this permission will exclude any confidential projects.',
+        administrative: true,
+        categories: [
+          'Reporting',
+          'Confidentiality',
         ],
       },
       can_manage_ad_hoc_data_sources: {

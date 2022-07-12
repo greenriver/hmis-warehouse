@@ -7,7 +7,7 @@
         .col-sm-3
           = f.input :end, as: :date_picker
         .col-sm-6
-          = f.input :project_ids, label: 'Projects', collection: @filter.project_options_for_select(user: current_user), input_html: { multiple: :multiple }, as: :grouped_select_two, group_method: :last
+          = f.input :project_ids, collection: [], as: :select_two, input_html: { multiple: true, data: { 'collection-path' => api_projects_path(selected_project_ids: @filter.project_ids) }, placeholder: 'Choose a Project'}, label: 'Projects'
       - if sort_options.count > 1
         .row
           .col-sm-3
