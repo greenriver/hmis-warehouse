@@ -13,8 +13,11 @@ RSpec.describe 'Datalab Testkit SPM All-Projects', type: :model do
   include_context 'datalab spm context'
 
   before(:all) do
+    puts "Starting SPM Data Lab TestKit #{Time.current}"
     setup
+    puts "Setup Done for SPM Data Lab TestKit #{Time.current}"
     run(default_spm_filter, HudSpmReport::Generators::Fy2020::Generator.questions.keys)
+    puts "Finished SPM Run Data Lab TestKit #{Time.current}"
   end
 
   xit 'Measure 1a' do

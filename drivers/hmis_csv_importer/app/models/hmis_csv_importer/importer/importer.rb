@@ -781,7 +781,7 @@ module HmisCsvImporter::Importer
       GrdaWarehouse::Tasks::ServiceHistory::Enrollment.queue_batch_process_unprocessed!
       # These need to be updated any time the enrollment changes
       GrdaWarehouse::ChEnrollment.maintain!
-      puts "Took #{Time.current - s_time} seconds"
+      puts "Took #{Time.current - s_time} seconds - #{Time.current}"
     end
 
     private def db_transaction(&block)
