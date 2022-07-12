@@ -180,7 +180,7 @@ module CePerformance
         report_clients = add_q5a_clients(report_clients, period, ce_apr)
         report_clients = add_q9b_clients(report_clients, period, ce_apr)
         report_clients = add_q9d_clients(report_clients, period, ce_apr)
-        # report_clients = add_ph_clients(report_clients, period)
+
         # TODO:
         # Number of persons/households - CAT2: at imminent risk: prevention tool score completed; prior living situation set per HUD
         # Number of persons screened for Prevention - Number of Head of Household with a recorded Prevention Tool Score (currently from auxiliary data)
@@ -196,12 +196,6 @@ module CePerformance
         # Number and Types of CE Events - Group and count by ID (Q9d B15) - partially implemented
         # CE Assessment Score ranges/types - only available in auxiliary data currently (score is integer, type is Family/Single/Youth)
         # Assessment Point Connections (referral data to ensure clients are getting connected) - TBD
-
-        # add prevention_tool_score
-        # add assessment_score
-        # add assessment_type
-        # add initial_assessment_date
-        # add latest_assessment_date
 
         Client.import!(
           report_clients.values,
@@ -332,17 +326,6 @@ module CePerformance
       end
       report_clients
     end
-
-    # Don't add any new clients, just calculate time between first successful referral to PH and first subsequent PH entry
-    # private def add_ph_clients(report_clients, period)
-    #   active_filter = periods[period]
-    #   ph_enrollments = GrdaWarehouse::ServiceHistoryEnrollment.ph.entry_within_date_range(start_date: active_filter.start, end_date: active_filter.end).pluck(:client_id, :first_date_in_project).group_by(&:shift)
-    #   report_clients.each do |client_id, client|
-    #     next unless ph_enrollments.key?(client_id)
-
-    #     client.days_between_referral_
-    #   end
-    # end
 
     private def household_ages(apr_client)
       date = [apr_client.first_date_in_program, filter.start].compact.max
