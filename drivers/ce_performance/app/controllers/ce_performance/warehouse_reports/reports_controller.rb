@@ -71,7 +71,7 @@ module CePerformance::WarehouseReports
       end
       @result = @report.results_for_display[details_params[:category_name]][:reporting][key]
       @comparison = @report.results_for_display[details_params[:category_name]][:comparison][key]
-      @cagetory_name = @report.results_for_display.keys.detect { |m| m == details_params[:category_name] }
+      @category_name = @report.results_for_display.keys.detect { |m| m == details_params[:category_name] }
     end
 
     def details_params

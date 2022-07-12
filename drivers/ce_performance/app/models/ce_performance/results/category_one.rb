@@ -12,7 +12,7 @@ module CePerformance
     # 2. Of those count those who entered with Prior Living Situation (3.917.1)
     #   homeless
     #   or
-    #   LOSUnderThreshold = yes and PreviousStreetESSH yes
+    #   LOSUnderThreshold = yes and PreviousStreetESSH = yes
     def self.calculate(report, period, _filter)
       create(
         report_id: report.id,

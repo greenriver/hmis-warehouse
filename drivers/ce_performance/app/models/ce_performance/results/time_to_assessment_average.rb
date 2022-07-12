@@ -7,7 +7,7 @@
 module CePerformance
   class Results::TimeToAssessmentAverage < CePerformance::Result
     include CePerformance::Results::Calculations
-    # For anyone served by CE, how long have they been on the prioritization list
+    # For anyone served by CE, how long before assessment
     def self.calculate(report, period, _filter)
       values = client_scope(report, period).pluck(:days_before_assessment)
       create(

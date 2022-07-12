@@ -6,8 +6,8 @@
     &laquo; #{@report.title}
 
 .ce-performance
-  %label.super-rounded.p-4.pl-6.pr-6{ class: "performance-measurement--highlight-#{@report.highlight_id(@cagetory_name)}" }
-    = @cagetory_name
+  %label.super-rounded.p-4.pl-6.pr-6{ class: "performance-measurement--highlight-#{@report.highlight_id(@category_name)}" }
+    = @category_name
 
   %h1.ml-2= @result.class.title
   .warehouse-reports__completed.mt-2.d-flex
