@@ -24,6 +24,7 @@ module Filters
     attribute :comparison_pattern, Symbol, default: ->(r, _) { r.default_comparison_pattern }
     attribute :household_type, Symbol, default: :all
     attribute :hoh_only, Boolean, default: false
+    attribute :default_project_type_codes, Array, default: GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPE_CODES
     attribute :project_type_codes, Array, default: ->(r, _) { r.default_project_type_codes }
     attribute :project_type_numbers, Array, default: ->(_r, _) { [] }
     attribute :veteran_statuses, Array, default: []
@@ -523,6 +524,10 @@ module Filters
       end
     end
 
+    def project_type_code_options_for_select
+      GrdaWarehouse::Hud::Project::PROJECT_GROUP_TITLES.select { |k, _| k.in?(default_project_type_codes) }.freeze.invert
+    end
+
     def project_options_for_select(user:)
       all_project_scope.options_for_select(user: user)
     end
@@ -695,25 +700,31 @@ module Filters
       comparison_pattern != :no_comparison_period
     end
 
-    def default_project_type_codes
-      GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPE_CODES
-    end
-
     def default_project_type_numbers
       GrdaWarehouse::Hud::Project::PROJECT_TYPES_WITH_INVENTORY
     end
 
-    def describe_filter_as_html(keys = nil)
+    def describe_filter_as_html(keys = nil, limited: true, inline: false)
       describe_filter(keys).uniq.map do |(k, v)|
-        content_tag(:div, class: 'report-parameters__parameter') do
-          label = content_tag(:label, k, class: 'label label-default parameter-label')
+        wrapper_classes = ['report-parameters__parameter']
+        label_text = k
+        if inline
+          wrapper_classes << 'd-flex'
+          label_text += ':'
+        end
+        content_tag(:div, class: wrapper_classes) do
+          label = content_tag(:label, label_text, class: 'label label-default parameter-label')
           if v.is_a?(Array)
-            count = v.count
-            v = v.first(5)
-            v << "#{count - 5} more" if count > 5
+            if limited
+              count = v.count
+              v = v.first(5)
+              v << "#{count - 5} more" if count > 5
+            end
             v = v.to_sentence
           end
-          label.concat(content_tag(:label, v, class: 'label label-primary parameter-value'))
+          value_classes = ['label', 'label-primary', 'parameter-value']
+          value_classes << 'pl-0' if inline
+          label.concat(content_tag(:label, v, class: value_classes))
         end
       end.join.html_safe
     end

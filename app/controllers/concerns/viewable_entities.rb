@@ -67,6 +67,21 @@ module ViewableEntities
     end
     helper_method :project_viewability
 
+    private def project_access_group_viewability(base)
+      {
+        label: 'Project Groups',
+        selected: @user.access_group.project_access_groups.pluck(:id),
+        collection: GrdaWarehouse::ProjectAccessGroup.viewable_by(current_user).order(:name),
+        placeholder: 'Project Group',
+        multiple: true,
+        input_html: {
+          class: 'jUserViewable jProjectAccessGroups',
+          name: "#{base}[project_access_groups][]",
+        },
+      }
+    end
+    helper_method :project_access_group_viewability
+
     private def coc_viewability(base)
       {
         label: 'CoC Codes',

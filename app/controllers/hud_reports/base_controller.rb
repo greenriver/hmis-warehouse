@@ -50,6 +50,7 @@ module HudReports
     end
 
     def new
+      @filter.default_project_type_codes = generator.default_project_type_codes
     end
 
     def create

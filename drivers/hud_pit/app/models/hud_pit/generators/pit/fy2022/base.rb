@@ -34,6 +34,17 @@ module HudPit::Generators::Pit::Fy2022
       so: 4,
     }.freeze
 
+    def self.allowed_options
+      [
+        :on,
+        :coc_codes,
+        :project_ids,
+        :data_source_ids,
+        :project_type_codes,
+        :project_group_ids,
+      ]
+    end
+
     private def universe
       add unless populated?
 

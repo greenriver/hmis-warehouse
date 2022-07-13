@@ -435,7 +435,7 @@ module PerformanceMeasurement::ResultCalculation
       )
     end
 
-    def time_to_move_in_average(detail, project: nil)
+    def length_of_homeless_time_homeless_es_sh_th_ph_average(detail, project: nil)
       return unless project.blank? || project.hud_project&.es? || project.hud_project&.sh? || project.hud_project&.th? || project.hud_project&.ph?
 
       field = detail[:calculation_column]
@@ -467,8 +467,71 @@ module PerformanceMeasurement::ResultCalculation
       )
     end
 
-    def time_to_move_in_median(detail, project: nil)
+    def length_of_homeless_time_homeless_es_sh_th_ph_median(detail, project: nil)
       return unless project.blank? || project.hud_project&.es? || project.hud_project&.sh? || project.hud_project&.th? || project.hud_project&.ph?
+
+      field = detail[:calculation_column]
+
+      reporting_days = client_data(field, :reporting, project_id: project&.project_id)
+      comparison_days = client_data(field, :comparison, project_id: project&.project_id)
+
+      reporting_median = median(reporting_days)
+      comparison_median = median(comparison_days)
+
+      progress = calculate_processed(detail[:goal_calculation], reporting_median)
+      PerformanceMeasurement::Result.new(
+        report_id: id,
+        field: __method__,
+        title: detail_title_for(__method__.to_sym),
+        direction: direction(reporting_median, comparison_median),
+        primary_value: reporting_median,
+        primary_unit: 'days',
+        secondary_value: percent_changed(reporting_median, comparison_median),
+        secondary_unit: '%',
+        value_label: 'Change over year',
+        comparison_primary_value: comparison_median,
+        system_level: project&.project_id.blank?,
+        project_id: project&.project_id,
+        passed: progress[:passed],
+        goal: progress[:goal],
+        goal_progress: progress[:progress],
+      )
+    end
+
+    def time_to_move_in_average(detail, project: nil)
+      return unless project.blank? || project.hud_project&.ph?
+
+      field = detail[:calculation_column]
+
+      reporting_count = client_count_present(field, :reporting, project_id: project&.project_id)
+      comparison_count = client_count_present(field, :comparison, project_id: project&.project_id)
+      reporting_days = client_sum(field, :reporting, project_id: project&.project_id)
+      comparison_days = client_sum(field, :comparison, project_id: project&.project_id)
+      reporting_average = average(reporting_days, reporting_count)
+      comparison_average = average(comparison_days, comparison_count)
+
+      progress = calculate_processed(detail[:goal_calculation], reporting_average)
+      PerformanceMeasurement::Result.new(
+        report_id: id,
+        field: __method__,
+        title: detail_title_for(__method__.to_sym),
+        direction: direction(reporting_average, comparison_average),
+        primary_value: reporting_average,
+        primary_unit: 'days',
+        secondary_value: percent_changed(reporting_average, comparison_average),
+        secondary_unit: '%',
+        value_label: 'Change over year',
+        comparison_primary_value: comparison_average,
+        system_level: project&.project_id.blank?,
+        project_id: project&.project_id,
+        passed: progress[:passed],
+        goal: progress[:goal],
+        goal_progress: progress[:progress],
+      )
+    end
+
+    def time_to_move_in_median(detail, project: nil)
+      return unless project.blank? || project.hud_project&.ph?
 
       field = detail[:calculation_column]
 

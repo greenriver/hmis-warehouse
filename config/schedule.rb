@@ -164,7 +164,9 @@ tasks.each do |task|
     if ENV['ECS'] == 'true' && task[:interruptable]
       rake_spot task[:task]
     else
-      rake task[:task]
+      # For the time being, move all cron tasks to the "spot" capacity provider
+      rake_spot task[:task]
+      # rake task[:task]
     end
   end
 end

@@ -241,9 +241,7 @@ module Reporting
     end
 
     def populate!
-      return if Reporting::Housed.advisory_lock_exists?(ADVISORY_LOCK_KEY)
-
-      Reporting::Housed.with_advisory_lock(ADVISORY_LOCK_KEY) do
+      Reporting::Housed.with_advisory_lock(ADVISORY_LOCK_KEY, timeout_seconds: 0) do
         remove_no_longer_used
         client_ids.each_slice(1_000) do |client_id_batch|
           cache_client = GrdaWarehouse::Hud::Client.new

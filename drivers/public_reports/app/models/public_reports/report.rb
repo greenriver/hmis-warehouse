@@ -83,6 +83,19 @@ module PublicReports
       end
     end
 
+    def known_params
+      [
+        :start,
+        :end,
+        :coc_codes,
+        :project_ids,
+        :organization_ids,
+        :data_source_ids,
+        :project_type_numbers,
+        :hoh_only,
+      ]
+    end
+
     def published?
       published_url.present?
     end

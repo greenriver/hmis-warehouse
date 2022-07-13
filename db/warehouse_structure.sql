@@ -3946,7 +3946,8 @@ CREATE TABLE public.ce_performance_clients (
     days_between_referral_and_housing integer,
     q5a_b1 boolean DEFAULT false,
     deleted_at timestamp without time zone,
-    assessment_type character varying
+    assessment_type character varying,
+    days_between_entry_and_initial_referral integer
 );
 
 
@@ -48615,6 +48616,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220607155407'),
 ('20220610173543'),
 ('20220612161111'),
-('20220617180748');
+('20220617180748'),
+('20220628162723'),
+('20220712164926');
 
 
