@@ -66,6 +66,7 @@ module GrdaWarehouse::CasProjectClientCalculator
         :most_recent_vispdat_score,
         :calculate_vispdat_priority_score,
         :days_homeless_for_vispdat_prioritization,
+        :disabling_condition,
       ]
     end
     # memoize :pathways_questions
@@ -307,6 +308,10 @@ module GrdaWarehouse::CasProjectClientCalculator
 
     private def days_homeless_for_vispdat_prioritization(client)
       client.processed_service_history&.days_homeless_last_three_years
+    end
+
+    private def disabling_condition(client)
+      client.chronically_disabled? || client.disabling_condition?
     end
   end
 end

@@ -199,13 +199,13 @@ module PerformanceMeasurement::Details
             length_of_homeless_time_homeless_average: [
               :length_of_homeless_time_homeless_median,
             ],
+            length_of_homeless_time_homeless_es_sh_th_ph_average: [],
             length_of_homeless_stay_average: [
               :length_of_homeless_stay_median,
             ],
             time_to_move_in_average: [
               :time_to_move_in_median,
             ],
-            length_of_homeless_time_homeless_es_sh_th_ph_average: [],
           },
         ],
         [

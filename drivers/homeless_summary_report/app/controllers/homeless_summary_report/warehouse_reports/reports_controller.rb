@@ -16,14 +16,12 @@ module HomelessSummaryReport::WarehouseReports
     before_action :set_pdf_export, only: [:show]
 
     def index
+      @filter.default_project_type_codes = report_class.default_project_type_codes
       @pagy, @reports = pagy(report_scope.ordered)
       @report = report_class.new(user_id: current_user.id)
       previous_report = report_scope.last
-      if previous_report
-        @filter.update(previous_report.options)
-      else
-        @filter['project_type_codes'] = []
-      end
+      @filter.update(previous_report.options) if previous_report
+
       # Make sure the form will work
       filters
     end

@@ -24,6 +24,7 @@ module Filters
     attribute :comparison_pattern, Symbol, default: ->(r, _) { r.default_comparison_pattern }
     attribute :household_type, Symbol, default: :all
     attribute :hoh_only, Boolean, default: false
+    attribute :default_project_type_codes, Array, default: GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPE_CODES
     attribute :project_type_codes, Array, default: ->(r, _) { r.default_project_type_codes }
     attribute :project_type_numbers, Array, default: ->(_r, _) { [] }
     attribute :veteran_statuses, Array, default: []
@@ -523,6 +524,10 @@ module Filters
       end
     end
 
+    def project_type_code_options_for_select
+      GrdaWarehouse::Hud::Project::PROJECT_GROUP_TITLES.select { |k, _| k.in?(default_project_type_codes) }.freeze.invert
+    end
+
     def project_options_for_select(user:)
       all_project_scope.options_for_select(user: user)
     end
@@ -693,10 +698,6 @@ module Filters
 
     def includes_comparison?
       comparison_pattern != :no_comparison_period
-    end
-
-    def default_project_type_codes
-      GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPE_CODES
     end
 
     def default_project_type_numbers
