@@ -127,7 +127,7 @@ module Api
         scope = scope.merge(organization_source.where(id: organization_ids)) if organization_ids.present?
         scope = scope.joins(:funders).merge(funder_source.funding_source(funder_code: funder_codes)) if funder_codes.present?
 
-        scope.distinct
+        scope.distinct.order(o_t[:OrganizationName], p_t[:ProjectName])
       end
     end
 
