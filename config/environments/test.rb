@@ -52,4 +52,7 @@ Rails.application.configure do
   config.action_mailer.default_url_options = { host: ENV['FQDN'], port: ENV['PORT'] }
 
   config.force_ssl = false
+
+  config.log_level = ENV.fetch('LOG_LEVEL') { 'info' }.to_sym
+  config.logger.formatter = ActiveSupport::Logger::SimpleFormatter.new
 end
