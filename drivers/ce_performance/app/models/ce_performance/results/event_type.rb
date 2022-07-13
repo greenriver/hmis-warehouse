@@ -63,8 +63,16 @@ module CePerformance
       'Event details'
     end
 
-    def indicator(_)
-      nil
+    def indicator(comparison)
+      @indicator ||= OpenStruct.new(
+        primary_value: value.to_i,
+        primary_unit: unit,
+        secondary_value: percent_change_over_year(comparison),
+        secondary_unit: '%',
+        value_label: 'change over year',
+        passed: passed?(comparison),
+        direction: direction(comparison),
+      )
     end
 
     def percentage?
@@ -73,8 +81,8 @@ module CePerformance
 
     def data_for_chart(report, comparison)
       report_year_data = report.results.where.not(event_type: nil).pluck(:event_type, :value).to_h
-      comparison_year_data = if comparison.present?
-        comparison.results.where.not(event_type: nil).pluck(:event_type, :value).to_h
+      comparison_year_data = if false # comparison.present?
+        comparison.where.not(event_type: nil).pluck(:event_type, :value).to_h
       else
         {}
       end

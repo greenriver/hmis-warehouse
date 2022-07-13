@@ -22,6 +22,7 @@ module BostonHmis
     config.action_cable.url = ENV.fetch('ACTION_CABLE_URL') { "wss://#{ENV['FQDN']}/cable" }
 
     Rails.application.config.active_record.belongs_to_required_by_default = true
+    config.active_record.yaml_column_permitted_classes = [Symbol, Date, Time]
 
     # Use the responders controller from the responders gem
     config.app_generators.scaffold_controller :responders_controller
