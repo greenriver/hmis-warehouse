@@ -24,7 +24,7 @@ module BostonHmis
     Rails.application.config.active_record.belongs_to_required_by_default = true
     # https://discuss.rubyonrails.org/t/cve-2022-32224-possible-rce-escalation-bug-with-serialized-columns-in-active-record/81017
     # config.active_record.yaml_column_permitted_classes = [Symbol, Date, Time]
-    config.active_storage.use_yaml_unsafe_load
+    config.active_storage.use_yaml_unsafe_load = true
 
     # Use the responders controller from the responders gem
     config.app_generators.scaffold_controller :responders_controller
