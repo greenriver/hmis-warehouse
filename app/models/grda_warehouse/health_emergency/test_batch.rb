@@ -68,9 +68,7 @@ module GrdaWarehouse::HealthEmergency
     end
 
     def self.process!
-      return if advisory_lock_exists?('test_upload_processing')
-
-      with_advisory_lock('test_upload_processing') do
+      with_advisory_lock('test_upload_processing', timeout_seconds: 0) do
         un_started.each(&:process!)
       end
     end
@@ -175,7 +173,7 @@ module GrdaWarehouse::HealthEmergency
     end
 
     def notify_user
-      NotifyUser.report_completed(user.id, self).deliver_later(priority: -5)
+      NotifyUser.report_completed(user.id, self).deliver_later
     end
 
     private def sheet

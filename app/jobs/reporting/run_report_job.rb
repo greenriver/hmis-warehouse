@@ -32,7 +32,7 @@ module Reporting
       end
 
       user_id = ReportResult.where(id: @result_id).pluck(:user_id)&.first
-      NotifyUser.hud_report_finished(user_id, @report.id, @result_id).deliver_later(priority: -5) if user_id
+      NotifyUser.hud_report_finished(user_id, @report.id, @result_id).deliver_later if user_id
     end
 
     def enqueue(job)

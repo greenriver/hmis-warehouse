@@ -39,9 +39,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
   def update_cached_counts(client_ids: [])
     if client_ids.blank?
       # On larger installations, this can take 24+ hours sometimes.  Prevent if from getting out of hand
-      return if GrdaWarehouse::WarehouseClientsProcessed.advisory_lock_exists?(advisory_lock_name)
-
-      GrdaWarehouse::WarehouseClientsProcessed.with_advisory_lock(advisory_lock_name) do
+      GrdaWarehouse::WarehouseClientsProcessed.with_advisory_lock(advisory_lock_name, timeout_seconds: 0) do
         internal_update_cached_counts(client_ids: client_ids)
       end
     end

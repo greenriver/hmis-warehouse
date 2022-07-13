@@ -27,7 +27,7 @@ module Clients
         user_id: current_user.id,
         involved_user_ids: @anomaly.involved_user_ids,
         anomaly_id: @anomaly.id,
-      ).deliver_later(priority: -5)
+      ).deliver_later
       respond_with(@anomaly, location: client_anomalies_path(client_id: @client.id, anchor: @anomaly.status))
     end
 
@@ -42,7 +42,7 @@ module Clients
       NotifyUser.anomaly_identified(
         client_id: @client.id,
         user_id: current_user.id,
-      ).deliver_later(priority: -5)
+      ).deliver_later
       respond_with(@anomaly, location: client_anomalies_path(client_id: @client.id, anchor: :new))
     end
 

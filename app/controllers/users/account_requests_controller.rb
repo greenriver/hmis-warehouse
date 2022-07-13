@@ -15,7 +15,7 @@ class Users::AccountRequestsController < ApplicationController
   def create
     @account_request = account_request_source.create(account_request_params.merge(status: :requested))
     flash[:notice] = "Thank you for your account request.<br />You will recieve an invitation email after the request has been approved.<br />Your invitation email will be sent to #{@account_request.email}.".html_safe if @account_request.valid?
-    NotifyUser.pending_account_submitted.deliver_later(priority: -5)
+    NotifyUser.pending_account_submitted.deliver_later
     respond_with(@account_request, location: root_path)
   end
 

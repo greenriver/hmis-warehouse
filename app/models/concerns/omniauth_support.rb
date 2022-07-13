@@ -60,7 +60,7 @@ module OmniauthSupport
       if !user.new_record? && user.provider_set_at.blank?
         logger.info { "User#from_omniauth linking to pre-existing user. provider:#{user.provider} uid:#{user.uid} existing_user_id:#{user.id}" }
         user.provider_set_at = Time.current
-        ::ApplicationMailer.with(user: user).provider_linked.deliver_later(priority: -5)
+        ::ApplicationMailer.with(user: user).provider_linked.deliver_later
       end
 
       user.skip_confirmation! unless user.confirmed?
@@ -68,7 +68,7 @@ module OmniauthSupport
       user.save(validate: false)
 
       # send notifications if this is a completely new user, or if the user was just connected to omniauth
-      NotifyUser.new_account_created(user.reload).deliver_later(priority: -5) if newly_created
+      NotifyUser.new_account_created(user.reload).deliver_later if newly_created
 
       user
     end

@@ -30,7 +30,7 @@ class ExportBaseJob < BaseJob
       recurring_hmis_export.store(report) if recurring_hmis_export.s3_valid?
     end
 
-    NotifyUser.hmis_export_finished(options[:user_id], report.id, report_url: report_url).deliver_later(priority: -5) if report_url.present?
+    NotifyUser.hmis_export_finished(options[:user_id], report.id, report_url: report_url).deliver_later if report_url.present?
   end
 
   def log(msg, underline: false)

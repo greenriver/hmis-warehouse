@@ -283,9 +283,9 @@ module GrdaWarehouse
       return unless client.present?
 
       # notify related users if the client has a full release and the file is visible in the window
-      NotifyUser.file_uploaded(id).deliver_later(priority: -5) if client.release_valid? && visible_in_window
+      NotifyUser.file_uploaded(id).deliver_later if client.release_valid? && visible_in_window
       # Send out administrative notifications as appropriate
-      FileNotificationMailer.notify(client.id).deliver_later(priority: -5) if GrdaWarehouse::AvailableFileTag.should_send_notifications?(tag_list)
+      FileNotificationMailer.notify(client.id).deliver_later if GrdaWarehouse::AvailableFileTag.should_send_notifications?(tag_list)
     end
 
     def file_exists_and_not_too_large

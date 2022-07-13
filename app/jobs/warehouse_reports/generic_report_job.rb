@@ -20,7 +20,7 @@ module WarehouseReports
         report = klass.find(report_id)
         report.run_and_save!
 
-        NotifyUser.report_completed(user_id, report).deliver_later(priority: -5)
+        NotifyUser.report_completed(user_id, report).deliver_later
       else
         setup_notifier('Generic Report Runner')
         msg = "Unable to run report, #{report_class} is not included in the allowed list of reports."

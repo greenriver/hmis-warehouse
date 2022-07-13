@@ -20,7 +20,7 @@ module Health
     def perform
       @report = report_source.find(report_id)
       @report.run!
-      NotifyUser.health_member_status_report_finished(@current_user_id).deliver_later(priority: -5)
+      NotifyUser.health_member_status_report_finished(@current_user_id).deliver_later
     end
 
     def enqueue(job, queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running))

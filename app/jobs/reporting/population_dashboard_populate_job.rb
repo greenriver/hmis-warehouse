@@ -16,9 +16,7 @@ module Reporting
 
     def perform(sub_population:)
       advisory_lock_name = "population_dashboard_populate_job_#{sub_population}"
-      return if Reporting::MonthlyReports::Base.advisory_lock_exists?(advisory_lock_name)
-
-      Reporting::MonthlyReports::Base.with_advisory_lock(advisory_lock_name) do
+      Reporting::MonthlyReports::Base.with_advisory_lock(advisory_lock_name, timeout_seconds: 0) do
         if sub_population == 'all'
           setup_notifier('PopulationDashboardProcessor')
           Reporting::MonthlyReports::Base.available_types.keys.reverse_each do |sub_pop|

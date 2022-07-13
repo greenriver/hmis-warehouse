@@ -713,7 +713,7 @@ module GrdaWarehouse::Hud
     end
 
     def notify_users
-      NotifyUser.client_added(id).deliver_later(priority: -5) if send_notifications
+      NotifyUser.client_added(id).deliver_later if send_notifications
     end
 
     def self.ahar_age_groups

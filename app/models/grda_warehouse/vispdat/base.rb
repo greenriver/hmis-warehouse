@@ -223,7 +223,7 @@ module GrdaWarehouse::Vispdat
     def notify_vispdat_completed
       return unless vispdat_completed?
 
-      NotifyUser.vispdat_completed(id).deliver_later(priority: -5)
+      NotifyUser.vispdat_completed(id).deliver_later
     end
 
     def vispdat_completed?

@@ -10,9 +10,7 @@ module WarehouseReports
 
     def perform
       advisory_lock_name = 'he_batch_notifications'
-      return if GrdaWarehouse::HealthEmergency::AmaRestriction.advisory_lock_exists?(advisory_lock_name)
-
-      GrdaWarehouse::HealthEmergency::AmaRestriction.with_advisory_lock(advisory_lock_name) do
+      GrdaWarehouse::HealthEmergency::AmaRestriction.with_advisory_lock(advisory_lock_name, timeout_seconds: 0) do
         medical_restriction_batch_id = nil
         test_batch_id = nil
 
@@ -31,7 +29,7 @@ module WarehouseReports
             unsent_medical_restrictions: unsent_medical_restrictions,
             test_batch_id: test_batch_id,
             unsent_test_results: unsent_test_results,
-          ).deliver_later(priority: -5)
+          ).deliver_later
         end
 
         sent_at = Time.current
