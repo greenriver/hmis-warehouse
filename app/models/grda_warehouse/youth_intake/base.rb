@@ -96,6 +96,10 @@ module GrdaWarehouse::YouthIntake
       where(at[:engagement_date].gteq(start_date))
     end
 
+    scope :only_most_recent_by_client, -> do
+      one_for_column(:engagement_date, source_arel_table: arel_table, group_on: :client_id)
+    end
+
     scope :ordered, -> do
       order(engagement_date: :desc, exit_date: :desc)
     end
