@@ -12,13 +12,14 @@ module Types
     field :id, ID, null: false
     field :name, String, null: false
     field :project_type, Types::HmisSchema::ProjectType, null: false
+    field :organization, Types::HmisSchema::Organization, null: true
 
-    def self.projects(context, project_types)
-      viewable_projects = GrdaWarehouse::Hud::Project.viewable_by(context[:current_user])
-      viewable_projects = viewable_projects.with_project_type(project_types) if project_types.present?
+    def name
+      object.name(context[:current_user])
+    end
 
-      # TODO: Adapters to  separate GraphQL types from ActiveRecord models
-      viewable_projects.distinct.all.map { |p| { id: p.ProjectID, name: p.ProjectName, project_type: p.ProjectType } }
+    def project_type
+      object.ProjectType
     end
   end
 end

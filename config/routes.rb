@@ -900,9 +900,11 @@ Rails.application.routes.draw do
 
       resources :user, only: [:none] do
         get :index, on: :collection
+        get :logout, on: :collection
       end
 
-      post 'hmis-gql', to: "graphql#execute", defaults: { schema: :hmis }
+      post 'hmis-gql', to: 'graphql#execute', defaults: { schema: :hmis }
+      mount GraphiQL::Rails::Engine, at: '/graphiql', graphql_path: '/hmis-api/hmis-gql', defaults: { format: :html } if Rails.env.development?
     end
   end
 

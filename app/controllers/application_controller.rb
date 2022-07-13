@@ -184,7 +184,7 @@ class ApplicationController < ActionController::Base
     if last_url.present?
       last_url
     else
-      current_user.my_root_path
+      current_user&.my_root_path || root_path
     end
   end
 
