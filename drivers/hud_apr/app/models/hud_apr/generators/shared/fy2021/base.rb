@@ -160,6 +160,7 @@ module HudApr::Generators::Shared::Fy2021
             destination_client_id: last_service_history_enrollment.client_id,
             data_source_id: source_client.data_source_id,
             report_instance_id: @report.id,
+            source_enrollment_id: enrollment.id,
 
             age: age,
             alcohol_abuse_entry: [1, 3].include?(disabilities_at_entry.detect(&:substance?)&.DisabilityResponse),
@@ -179,6 +180,7 @@ module HudApr::Generators::Shared::Fy2021
             date_homeless: enrollment.DateToStreetESSH,
             date_of_engagement: last_service_history_enrollment.enrollment.DateOfEngagement,
             date_of_last_bed_night: last_bed_night&.DateProvided,
+            los_under_threshold: enrollment.LOSUnderThreshold,
             date_to_street: dates_to_street[last_service_history_enrollment.client_id],
             destination: last_service_history_enrollment.destination,
             developmental_disability_entry: disabilities_at_entry.detect(&:developmental?)&.DisabilityResponse,
