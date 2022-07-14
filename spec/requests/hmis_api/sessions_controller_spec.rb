@@ -7,7 +7,7 @@ RSpec.describe HmisApi::SessionsController, type: :request do
 
   describe 'Successful login' do
     before(:each) do
-      post hmis_api_user_session_path(hmis_api_user: { email: user.email, password: user.password })
+      post hmis_user_session_path(hmis_user: { email: user.email, password: user.password })
     end
 
     it 'user failed_attempts should not increment' do
@@ -17,19 +17,19 @@ RSpec.describe HmisApi::SessionsController, type: :request do
 
   describe 'Successful logout' do
     before(:each) do
-      post hmis_api_user_session_path(hmis_api_user: { email: user.email, password: user.password })
+      post hmis_user_session_path(hmis_user: { email: user.email, password: user.password })
     end
 
     it 'has correct response code' do
       expect(response.status).to eq 200
-      delete destroy_hmis_api_user_session_path
+      delete destroy_hmis_user_session_path
       expect(response.status).to eq 204
     end
   end
 
   describe 'Un-successful login' do
     before(:each) do
-      post hmis_api_user_session_path(hmis_api_user: { email: user.email, password: 'incorrect' })
+      post hmis_user_session_path(hmis_user: { email: user.email, password: 'incorrect' })
     end
 
     # FIXME: we need to double the number of attempts because of a bug in devise 2FA that
@@ -41,7 +41,7 @@ RSpec.describe HmisApi::SessionsController, type: :request do
 
     describe 'followed by a successful login' do
       before(:each) do
-        post hmis_api_user_session_path(hmis_api_user: { email: user.email, password: user.password })
+        post hmis_user_session_path(hmis_user: { email: user.email, password: user.password })
       end
 
       it 'user failed_attempts should return to 0' do
@@ -54,21 +54,21 @@ RSpec.describe HmisApi::SessionsController, type: :request do
     before(:each) do
       # Devise.maximum_attempts is twice what it should be (see Devise 2FA bug above)
       ((Devise.maximum_attempts / 2) - 1).times do
-        post hmis_api_user_session_path(hmis_api_user: { email: user.email, password: 'incorrect' })
+        post hmis_user_session_path(hmis_user: { email: user.email, password: 'incorrect' })
       end
     end
     it 'user should not be locked' do
       expect(user.reload.access_locked?).to be_falsey
     end
     it 'after 10, the user should be locked' do
-      post hmis_api_user_session_path(hmis_api_user: { email: user.email, password: 'incorrect' })
+      post hmis_user_session_path(hmis_user: { email: user.email, password: 'incorrect' })
       expect(user.reload.access_locked?).to be_truthy
     end
   end
 
   describe 'Login with 2FA enabled' do
     before(:each) do
-      post hmis_api_user_session_path(hmis_api_user: { email: user_2fa.email, password: user_2fa.password })
+      post hmis_user_session_path(hmis_user: { email: user_2fa.email, password: user_2fa.password })
     end
 
     it 'user failed_attempts should not increment' do
@@ -81,13 +81,13 @@ RSpec.describe HmisApi::SessionsController, type: :request do
     end
 
     it 'user logs in when correct 2fa entered' do
-      post hmis_api_user_session_path(hmis_api_user: { otp_attempt: user_2fa.current_otp })
+      post hmis_user_session_path(hmis_user: { otp_attempt: user_2fa.current_otp })
       expect(response.status).to eq 200
       expect(user_2fa.reload.failed_attempts).to eq 0
     end
 
     it 'user does not log in when incorrect 2fa entered' do
-      post hmis_api_user_session_path(hmis_api_user: { otp_attempt: '-1' })
+      post hmis_user_session_path(hmis_user: { otp_attempt: '-1' })
       expect(response.status).to eq 403
       expect(response.body).to include 'invalid_code'
       expect(user_2fa.reload.failed_attempts).to eq 2 # double increment bug
@@ -95,9 +95,9 @@ RSpec.describe HmisApi::SessionsController, type: :request do
 
     describe 'User does not remember 2FA device' do
       before(:each) do
-        post hmis_api_user_session_path(hmis_api_user: { otp_attempt: user_2fa.current_otp, remember_device: nil })
+        post hmis_user_session_path(hmis_user: { otp_attempt: user_2fa.current_otp, remember_device: nil })
         sign_out(user_2fa)
-        post hmis_api_user_session_path(hmis_api_user: { email: user_2fa.email, password: user_2fa.password })
+        post hmis_user_session_path(hmis_user: { email: user_2fa.email, password: user_2fa.password })
       end
 
       it 'user is expected to enter 2fa' do
@@ -123,10 +123,10 @@ RSpec.describe HmisApi::SessionsController, type: :request do
         GrdaWarehouse::Config.first_or_create
         GrdaWarehouse::Config.update(bypass_2fa_duration: 30)
         GrdaWarehouse::Config.invalidate_cache
-        post hmis_api_user_session_path(hmis_api_user: { otp_attempt: user_2fa.current_otp, remember_device: true, device_name: 'Test Device' })
-        delete destroy_hmis_api_user_session_path
+        post hmis_user_session_path(hmis_user: { otp_attempt: user_2fa.current_otp, remember_device: true, device_name: 'Test Device' })
+        delete destroy_hmis_user_session_path
         expect(response.status).to eq 204
-        post hmis_api_user_session_path(hmis_api_user: { email: user_2fa.email, password: user_2fa.password })
+        post hmis_user_session_path(hmis_user: { email: user_2fa.email, password: user_2fa.password })
       end
 
       it 'user failed_attempts should not increment' do
@@ -153,18 +153,18 @@ RSpec.describe HmisApi::SessionsController, type: :request do
 
       it 'user does not have to enter 2fa on log in before device expires' do
         travel_to Time.current + 30.days do
-          delete destroy_hmis_api_user_session_path
+          delete destroy_hmis_user_session_path
           expect(response.status).to eq 204
-          post hmis_api_user_session_path(hmis_api_user: { email: user_2fa.email, password: user_2fa.password })
+          post hmis_user_session_path(hmis_user: { email: user_2fa.email, password: user_2fa.password })
           expect(response.status).to eq 200
         end
       end
 
       it 'user has to reenter 2fa after device expires' do
         travel_to Time.current + 31.days do
-          delete destroy_hmis_api_user_session_path
+          delete destroy_hmis_user_session_path
           expect(response.status).to eq 204
-          post hmis_api_user_session_path(hmis_api_user: { email: user_2fa.email, password: user_2fa.password })
+          post hmis_user_session_path(hmis_user: { email: user_2fa.email, password: user_2fa.password })
           expect(response.status).to eq 403
           expect(response.body).to include 'mfa_required'
         end

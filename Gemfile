@@ -68,7 +68,7 @@ gem 'mimemagic'
 gem 'acts-as-taggable-on', '~> 7.0'
 # this doesn't install cleanly on a Mac
 # We aren't currently using this anyway
-# gem 'seven_zip_ruby'
+gem 'seven_zip_ruby'
 gem 'hellosign-ruby-sdk'
 
 gem 'devise', '~> 4'

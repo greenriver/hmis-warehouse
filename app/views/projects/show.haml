@@ -120,7 +120,7 @@
       %h4 HMIS Info
       .ml-auto
         - if can_see_raw_hmis_data?
-          = link_to 'HMIS', hmi_path(@project.id, type: 'Project'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis'
+          = link_to 'HMIS', source_datum_path(@project.id, type: 'Project'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis'
     .card
       %table.table.table-striped.table-hover.mb-0
         %tr

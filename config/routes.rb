@@ -657,7 +657,7 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :hmis, only: [:index, :show]
+  resources :source_data, only: [:index, :show]
 
   resources :weather, only: [:index]
 
@@ -893,8 +893,8 @@ Rails.application.routes.draw do
   # NOTE: current omniauthable setup doesn't play nicely with multiple models.
   # If we need to use Okta and the HMIS API together, see https://stackoverflow.com/a/13591797
   if ENV['ENABLE_HMIS_API'] == 'true' && !ENV['OKTA_DOMAIN'].present?
-    namespace :hmis_api, path: 'hmis-api', defaults: { format: :json } do
-      devise_for :users, class_name: 'HmisApiUser',
+    namespace :hmis, path: 'hmis-api', defaults: { format: :json } do
+      devise_for :users, class_name: 'Hmis::User',
                          skip: [:registrations, :invitations, :passwords, :confirmations, :unlocks, :password_expired],
                          path: '', path_names: { sign_in: 'login', sign_out: 'logout' }
 

@@ -7,7 +7,7 @@
 module GrdaWarehouse::Hud
   class Export < Base
     include HudSharedScopes
-    include ::HMIS::Structure::Export
+    include ::HmisStructure::Export
     include RailsDrivers::Extensions
 
     attr_accessor :source_id

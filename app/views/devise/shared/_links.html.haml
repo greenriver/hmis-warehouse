@@ -2,7 +2,7 @@
   - unless controller_name.in?(["sessions", "root"])
     = link_to "Sign in", new_session_path(resource_name)
     %br/
-  - unless resource_name == :hmis_api_user
+  - unless resource_name == :hmis_user
     - if devise_mapping.registerable? && controller_name != 'registrations'
       = link_to "Create an account", new_registration_path(resource_name)
       %br/

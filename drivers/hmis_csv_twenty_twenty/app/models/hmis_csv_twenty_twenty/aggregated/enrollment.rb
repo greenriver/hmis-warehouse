@@ -6,7 +6,7 @@
 
 module HmisCsvTwentyTwenty::Aggregated
   class Enrollment < GrdaWarehouse::Hud::Base
-    include ::HMIS::Structure::Enrollment
+    include ::HmisStructure::Enrollment
     include HmisCsvTwentyTwenty::Importer::ImportConcern
     include AggregatedImportConcern
 
