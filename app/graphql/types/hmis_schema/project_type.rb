@@ -22,7 +22,7 @@ module Types
     value 'PH', 'Permanent Housing', value: 10
     value 'DAY_SHELTER', 'Day Shelter', value: 11
     value 'PREVENTION', 'Homelessness Prevention', value: 12
-    value 'RRH', 'Rapig Re-Housing', value: 13
+    value 'RRH', 'Rapid Re-Housing', value: 13
     value 'CE', 'Coordinated Entry', value: 14
   end
 end

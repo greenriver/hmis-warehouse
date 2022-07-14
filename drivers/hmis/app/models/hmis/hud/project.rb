@@ -10,6 +10,14 @@ class Hmis::Hud::Project < Hmis::Hud::Base
 
   belongs_to :organization, **hmis_relation(:OrganizationID, 'Organization')
 
-  scope :viewable_by, ->(_user) { all } # TODO: Fill in logic for this
-  scope :with_project_type, ->(_project_types) { all } # TODO: Fill in logic for this
+  # Any projects the user has been assigned, limited to the data source the HMIS is connected to
+  scope :viewable_by, ->(user) do
+    viewable_ids = GrdaWarehouse::Hud::Project.viewable_by(user).pluck(:id)
+    where(id: viewable_ids, data_source_id: user.hmis_data_source_id)
+  end
+
+  # Always use ProjectType, we shouldn't need overrides since we can change the source data
+  scope :with_project_type, ->(project_types) do
+    where(ProjectType: project_types)
+  end
 end

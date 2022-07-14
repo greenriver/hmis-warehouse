@@ -10,5 +10,9 @@ class Hmis::Hud::Organization < Hmis::Hud::Base
 
   has_many :projects, **hmis_relation(:OrganizationID, 'Project')
 
-  scope :viewable_by, ->(_user) { all } # TODO: Fill in logic for this
+  # Any organizations the user has been assigned, limited to the data source the HMIS is connected to
+  scope :viewable_by, ->(user) do
+    viewable_ids = GrdaWarehouse::Hud::Project.viewable_by(user).pluck(:id)
+    where(id: viewable_ids, data_source_id: user.hmis_data_source_id)
+  end
 end
