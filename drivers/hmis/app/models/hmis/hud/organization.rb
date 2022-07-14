@@ -7,4 +7,6 @@
 class Hmis::Hud::Organization < Base
   self.table_name = :Organization
   self.sequence_name = "public.\"#{table_name}_id_seq\""
+
+  has_many :projects, **hmis_relation(:OrganizationID, 'Project')
 end

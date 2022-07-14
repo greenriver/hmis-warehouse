@@ -7,4 +7,6 @@
 class Hmis::Hud::Enrollment < Base
   self.table_name = :Enrollment
   self.sequence_name = "public.\"#{table_name}_id_seq\""
+
+  belongs_to :client, **hmis_relation(:PersonalID, 'Client')
 end

@@ -7,4 +7,6 @@
 class Hmis::Hud::AssessmentResult < Base
   self.table_name = :AssessmentResults
   self.sequence_name = "public.\"#{table_name}_id_seq\""
+
+  belongs_to :assessment, **hmis_relation(:AssessmentID, 'Assessment')
 end

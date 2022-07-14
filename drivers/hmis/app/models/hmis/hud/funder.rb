@@ -7,4 +7,6 @@
 class Hmis::Hud::Funder < Base
   self.table_name = :Funder
   self.sequence_name = "public.\"#{table_name}_id_seq\""
+
+  belongs_to :project, **hmis_relation(:ProjectID, 'Project')
 end

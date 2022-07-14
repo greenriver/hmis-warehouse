@@ -7,4 +7,6 @@
 class Hmis::Hud::Exit < Base
   self.table_name = :Exit
   self.sequence_name = "public.\"#{table_name}_id_seq\""
+
+  belongs_to :enrollment, **hmis_relation(:EnrollmentID, 'Enrollment')
 end

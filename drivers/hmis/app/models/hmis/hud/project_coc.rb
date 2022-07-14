@@ -7,4 +7,6 @@
 class Hmis::Hud::ProjectCoc < Base
   self.table_name = :ProjectCoC
   self.sequence_name = "public.\"#{table_name}_id_seq\""
+
+  belongs_to :project, **hmis_relation(:ProjectID, 'Project')
 end
