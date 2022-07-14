@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class Hmis::UserController < HmisApi::BaseController
+class Hmis::UserController < Hmis::BaseController
   skip_before_action :verify_authenticity_token, only: [:index]
   skip_before_action :authenticate_user!, only: [:index]
 
