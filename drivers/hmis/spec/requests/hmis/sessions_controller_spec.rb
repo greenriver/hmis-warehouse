@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe HmisApi::SessionsController, type: :request do
+RSpec.describe Hmis::SessionsController, type: :request do
   let(:user) { create :user }
   let(:user_2fa) { create :user_2fa }
   let(:email) { ActionMailer::Base.deliveries.last }
