@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class Hmis::Hud::CurrentLivingSituation < Base
+class Hmis::Hud::CurrentLivingSituation < Hmis::Hud::Base
   self.table_name = :CurrentLivingSituation
   self.sequence_name = "public.\"#{table_name}_id_seq\""
 

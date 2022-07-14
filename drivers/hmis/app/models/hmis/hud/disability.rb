@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class Hmis::Hud::Disability < Base
+class Hmis::Hud::Disability < Hmis::Hud::Base
   self.table_name = :Disabilities
   self.sequence_name = "public.\"#{table_name}_id_seq\""
 

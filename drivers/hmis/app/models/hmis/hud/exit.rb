@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class Hmis::Hud::Exit < Base
+class Hmis::Hud::Exit < Hmis::Hud::Base
   self.table_name = :Exit
   self.sequence_name = "public.\"#{table_name}_id_seq\""
 

@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class Hmis::Hud::Affiliation < Base
+class Hmis::Hud::Affiliation < Hmis::Hud::Base
   self.table_name = :Affiliation
   self.sequence_name = "public.\"#{table_name}_id_seq\""
 end

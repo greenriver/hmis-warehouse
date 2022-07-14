@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class Hmis::Hud::AssessmentQuestion < Base
+class Hmis::Hud::AssessmentQuestion < Hmis::Hud::Base
   self.table_name = :AssessmentQuestions
   self.sequence_name = "public.\"#{table_name}_id_seq\""
 end

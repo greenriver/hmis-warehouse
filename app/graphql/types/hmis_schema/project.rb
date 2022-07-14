@@ -10,16 +10,8 @@ module Types
   class HmisSchema::Project < Types::BaseObject
     description 'HUD Project'
     field :id, ID, null: false
-    field :name, String, null: false
-    field :project_type, Types::HmisSchema::ProjectType, null: false
+    field :ProjectName, String, null: false
+    field :ProjectType, Types::HmisSchema::ProjectType, null: false
     field :organization, Types::HmisSchema::Organization, null: true
-
-    def name
-      object.name(context[:current_user])
-    end
-
-    def project_type
-      object.ProjectType
-    end
   end
 end

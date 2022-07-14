@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class Hmis::Hud::EmploymentEducation < Base
+class Hmis::Hud::EmploymentEducation < Hmis::Hud::Base
   self.table_name = 'EmploymentEducation'
   self.sequence_name = "public.\"#{table_name}_id_seq\""
 

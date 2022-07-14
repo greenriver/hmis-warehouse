@@ -15,24 +15,16 @@ module Types
     include Types::HmisSchema::HasProjects
     include Types::HmisSchema::HasOrganizations
 
-    # field :projects, [Types::HmisSchema::Project], 'Get a list of projects' do
-    #   argument :project_types, [Types::HmisSchema::ProjectType], required: false
-    # end
-
-    # def projects(project_types: nil)
-    #   Types::HmisSchema::Project.projects(user: current_user, project_types: project_types)
-    # end
-
     projects_field :projects, description: 'Get a list of projects'
 
     def projects(**args)
-      resolve_projects(GrdaWarehouse::Hud::Project.all, **args)
+      resolve_projects(Hmis::Hud::Project.all, **args)
     end
 
     organizations_field :organizations, description: 'Get a list of organizations'
 
     def organizations(**args)
-      resolve_projects(GrdaWarehouse::Hud::Organization.all, **args)
+      resolve_organizations(Hmis::Hud::Organization.all, **args)
     end
   end
 end
