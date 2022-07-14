@@ -555,6 +555,7 @@ class RollOut
           },
         ],
         placement_strategy: _placement_strategy,
+        placement_constraints: [],
         deployment_configuration: {
           maximum_percent: maximum_percent,
           minimum_healthy_percent: minimum_healthy_percent,
