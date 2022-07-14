@@ -4,7 +4,11 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# NOTE: u = Hmis::User.first; u.hmis_data_source_id = 3; u.can_view_full_ssn?
+# NOTE:
+# r = Hmis::Role.create(name: 'test')
+# u = Hmis::User.first; u.hmis_data_source_id = 3
+# u.user_hmis_data_sources_roles.create(role: r, data_source_id: u.hmis_data_source_id)
+# u.can_view_full_ssn?
 class Hmis::User < ::User
   has_many :user_hmis_data_sources_roles, class_name: '::Hmis::UserHmisDataSourceRole', dependent: :destroy, inverse_of: :user # join table with user_id, data_source_id, role_id
   has_many :roles, through: :user_hmis_data_sources_roles, source: :role
