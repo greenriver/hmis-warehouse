@@ -900,7 +900,10 @@ Rails.application.routes.draw do
 
       resources :user, only: [:none] do
         get :index, on: :collection
-        get :logout, on: :collection
+      end
+
+      devise_scope :hmis_api_user do
+        match 'logout' => 'sessions#destroy', via: :get if Rails.env.development?
       end
 
       post 'hmis-gql', to: 'graphql#execute', defaults: { schema: :hmis }

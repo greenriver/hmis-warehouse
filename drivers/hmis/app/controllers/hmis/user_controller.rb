@@ -17,9 +17,4 @@ class Hmis::UserController < HmisApi::BaseController
       email: current_hmis_user.email,
     }
   end
-
-  def logout
-    sign_out(:hmis_user) # Sign out of the HMIS
-    render json: { success: true }, status: 204
-  end
 end
