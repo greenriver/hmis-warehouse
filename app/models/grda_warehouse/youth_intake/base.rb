@@ -380,7 +380,7 @@ module GrdaWarehouse::YouthIntake
         RaceNone: compute_race_none,
         DateUpdated: Time.now,
       }
-      gender_column = HUD.gender_id_to_field_name[client_gender]
+      gender_column = ::HUD.gender_id_to_field_name[client_gender]
       data[gender_column] = 1 unless gender_column.nil?
       data[:FirstName] = first_name if first_name.present?
       data[:LastName] = last_name if last_name.present?
