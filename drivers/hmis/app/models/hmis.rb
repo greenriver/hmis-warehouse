@@ -1,5 +1,5 @@
 module Hmis
   def self.table_name_prefix
-    'hmi_'
+    'hmis_'
   end
 end
