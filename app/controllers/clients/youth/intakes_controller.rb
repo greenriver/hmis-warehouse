@@ -155,11 +155,11 @@ module Clients::Youth
 
       # Clean arrays to remove blanks
       @intake.client_race = intake_params[:client_race].select(&:present?)
-      @client.client_race = ['RaceNone'] if @client.client_race.empty?
+      @intake.client_race = ['RaceNone'] if @intake.client_race.empty?
       @intake.disabilities = intake_params[:disabilities].select(&:present?)
-      @client.disabilities = ['Unknown'] if @client.disabilities.empty?
+      @intake.disabilities = ['Unknown'] if @intake.disabilities.empty?
       @intake.other_agency_involvements = intake_params[:other_agency_involvements].select(&:present?)
-      @client.other_agency_involvements = ['Unknown'] if @client.other_agency_involvements.empty?
+      @intake.other_agency_involvements = ['Unknown'] if @intake.other_agency_involvements.empty?
     end
 
     private def intake_params
