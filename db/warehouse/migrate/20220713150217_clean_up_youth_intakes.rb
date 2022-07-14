@@ -1,5 +1,6 @@
 class CleanUpYouthIntakes < ActiveRecord::Migration[6.1]
   def change
+    PaperTrail.enabled = false
     GrdaWarehouse::YouthIntake::Base.with_deleted.find_each do |intake|
       client_race = intake.client_race.reject(&:blank?)
       client_race = ['RaceNone'] if client_race.nil? || client_race.size.zero?
