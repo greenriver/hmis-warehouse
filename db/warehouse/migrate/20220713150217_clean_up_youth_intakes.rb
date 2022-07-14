@@ -13,7 +13,7 @@ class CleanUpYouthIntakes < ActiveRecord::Migration[6.1]
         []
       else
         intake.disabilities.reject(&:blank?)
-      END
+      end
       disabilities = ['Unknown'] if disabilities.nil? || disabilities.size.zero?
 
       other_agency_involvements = if intake.other_agency_involvements == '[]'
