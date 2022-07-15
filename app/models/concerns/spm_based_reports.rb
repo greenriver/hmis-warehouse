@@ -15,10 +15,6 @@ module SpmBasedReports
       spm_project_types.map { |s| GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING[s.to_sym] }.flatten
     end
 
-    def project_type_options_for_select
-      GrdaWarehouse::Hud::Project::PROJECT_GROUP_TITLES.select { |k, _| k.in?(spm_project_types) }.freeze.invert
-    end
-
     def project_options_for_select(user)
       GrdaWarehouse::Hud::Project.viewable_by(user).
         with_hud_project_type(project_type_ids).

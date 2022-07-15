@@ -3,8 +3,8 @@
   exporter = HudReports::CsvExporter.new(report, table)
   columns = exporter.display_column_names
   rows = exporter.as_array
-.table-responsive
-  %table.table.table-sm.table-bordered
+.table-responsive.mb-6
+  %table.table.table-sm.table-bordered.mb-0
     %thead.thead-dark
       %tr
         %th

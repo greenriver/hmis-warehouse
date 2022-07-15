@@ -25,6 +25,10 @@ module HudApr::Generators::CeApr::Fy2021
       hud_reports_ce_apr_url(report, { host: ENV['FQDN'], protocol: 'https' })
     end
 
+    def self.default_project_type_codes
+      GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING.keys
+    end
+
     def self.filter_class
       ::Filters::HudFilterBase
     end
