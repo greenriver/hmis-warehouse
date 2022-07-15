@@ -12,7 +12,7 @@ module EccoviaData
     acts_as_paranoid
 
     def self.fetch_updated(data_source_id:, credentials:)
-      since = max_fetch_time || default_lookback
+      since = max_fetch_time(data_source_id) || default_lookback
 
       query = "crql?q=select ClientID, Address, Address2, City, State, ZipCode, ZipCodeID, HomePhone, WorkPhone, MsgPhone, Email, UpdatedDate from cmClient where UpdatedDate > '#{since.to_s(:db)}'"
       credentials.get_all_in_batches(query) do |client_batch|

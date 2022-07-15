@@ -8,7 +8,7 @@ module EccoviaData
   class CaseManager < GrdaWarehouseBase
     include Shared
     self.table_name = :eccovia_case_managers
-    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
+    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', foreign_key: [:client_id, :data_source_id], primary_key: [:PersonalID, :data_source_id]
     acts_as_paranoid
 
     # NOTE: this is how you get assigned case manager for a client:
@@ -22,7 +22,7 @@ module EccoviaData
 
     # NOTE: for now, we only want to fetch data related to enrollments in CE projects
     def self.fetch_updated(data_source_id:, credentials:)
-      since = max_fetch_time || default_lookback
+      since = max_fetch_time(data_source_id) || default_lookback
       fetch_time = Time.current
       ids = warehouse_enrollment_ids(data_source_id: data_source_id, credentials: credentials, since: since)
       ids.each_slice(EccoviaData::Credential::PAGE_SIZE) do |id_batch|
@@ -106,6 +106,10 @@ module EccoviaData
     def self.all_assignment_ids(credentials:)
       query = 'crql?q=select ClntCaseID from cmCaseAssign'
       credentials.get_all(query)&.map { |a| a['ClntCaseID'] }
+    end
+
+    def name
+      "#{first_name} #{last_name}"
     end
   end
 end

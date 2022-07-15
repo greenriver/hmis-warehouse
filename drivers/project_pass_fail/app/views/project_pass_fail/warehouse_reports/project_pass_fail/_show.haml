@@ -1,6 +1,7 @@
 %h3 Selected Universe:
 .reports
-  = render 'filters/report_parameters', options: @report.options['filters'], report: @report
+  .report-parameters
+    = @report.filter.describe_filter_as_html(@report.known_params)
 
 - if @report.universal_data_element_threshold.present?
   .well
