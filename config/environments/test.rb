@@ -53,5 +53,5 @@ Rails.application.configure do
 
   config.force_ssl = false
 
-  config.log_level = ENV.fetch('LOG_LEVEL') { 'debug' }.to_sym
+  config.log_level = ENV.fetch('LOG_LEVEL') { 'info' }.to_sym
 end
