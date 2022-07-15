@@ -56,4 +56,8 @@ class Hmis::User < ApplicationRecord
         where(roles: { permission => true })
     end
   end
+
+  def lock_access!(opts = {})
+    super opts.merge({ send_instructions: false })
+  end
 end
