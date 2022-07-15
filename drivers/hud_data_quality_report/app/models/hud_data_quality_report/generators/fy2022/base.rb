@@ -29,6 +29,7 @@ module HudDataQualityReport::Generators::Fy2022
 
         # Pre-calculate some values
         household_types = {}
+        household_assessment_required = {}
         times_to_move_in = {}
         move_in_dates = {}
         approximate_move_in_dates = {}
@@ -41,6 +42,8 @@ module HudDataQualityReport::Generators::Fy2022
           age = source_client.age_on(client_start_date)
 
           hh_id = get_hh_id(last_service_history_enrollment)
+          hoh_enrollment = hoh_enrollments[get_hoh_id(hh_id)]
+          household_assessment_required[hh_id] = annual_assessment_expected?(hoh_enrollment)
           date = [
             @report.start_date,
             last_service_history_enrollment.first_date_in_program,
@@ -96,11 +99,8 @@ module HudDataQualityReport::Generators::Fy2022
           end
 
           age = source_client.age_on(client_start_date)
-          household_type = if age.blank? || age.negative?
-            :unknown
-          else
-            household_types[get_hh_id(last_service_history_enrollment)]
-          end
+          household_type = household_types[get_hh_id(last_service_history_enrollment)]
+          annual_assessment_expected = household_assessment_required[get_hh_id(last_service_history_enrollment)]
 
           processed_source_clients << source_client.id
           pending_associations[client] = report_client_universe.new(
@@ -113,7 +113,7 @@ module HudDataQualityReport::Generators::Fy2022
             alcohol_abuse_entry: [1, 3].include?(disabilities_at_entry.detect(&:substance?)&.DisabilityResponse),
             alcohol_abuse_exit: [1, 3].include?(disabilities_at_exit.detect(&:substance?)&.DisabilityResponse),
             alcohol_abuse_latest: [1, 3].include?(disabilities_latest.detect(&:substance?)&.DisabilityResponse),
-            annual_assessment_expected: annual_assessment_expected?(last_service_history_enrollment),
+            annual_assessment_expected: annual_assessment_expected,
             annual_assessment_in_window: annual_assessment_in_window?(last_service_history_enrollment, income_at_annual_assessment&.InformationDate),
             approximate_time_to_move_in: approximate_move_in_dates[last_service_history_enrollment.client_id],
             came_from_street_last_night: enrollment.PreviousStreetESSH,
