@@ -1,9 +1,11 @@
 :ruby
+  e_t = GrdaWarehouse::Hud::Enrollment.arel_table
+  hdv_t = GrdaWarehouse::Hud::HealthAndDv.arel_table
   special_populations = @client.
     source_enrollment_health_and_dvs.
     joins(enrollment: :client).
     merge(GrdaWarehouse::Hud::Enrollment.visible_to(current_user)).
-    sort_by{ |b| b.enrollment.date }.reverse
+    order(e_t[:EntryDate].desc, hdv_t[:InformationDate].desc)
 - if special_populations.any?
   .table-responsive
     %table.table
