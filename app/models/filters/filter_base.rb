@@ -18,7 +18,7 @@ module Filters
     attribute :start, Date, lazy: true, default: ->(r, _) { r.default_start }
     attribute :end, Date, lazy: true, default: ->(r, _) { r.default_end }
     attribute :enforce_one_year_range, Boolean, default: true
-    attribute :require_service_during_range, Boolean, default: true
+    attribute :require_service_during_range, Boolean, default: GrdaWarehouse::Config.get(:require_service_for_reporting_default)
     attribute :sort
     attribute :heads_of_household, Boolean, default: false
     attribute :comparison_pattern, Symbol, default: ->(r, _) { r.default_comparison_pattern }

@@ -5264,7 +5264,8 @@ CREATE TABLE public.configs (
     system_cohort_processing_date date,
     system_cohort_date_window integer DEFAULT 1,
     roi_model character varying DEFAULT 'explicit'::character varying,
-    client_dashboard character varying DEFAULT 'default'::character varying NOT NULL
+    client_dashboard character varying DEFAULT 'default'::character varying NOT NULL,
+    require_service_for_reporting_default boolean DEFAULT true NOT NULL
 );
 
 
@@ -48621,6 +48622,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220628162723'),
 ('20220712164926'),
 ('20220713150217'),
-('20220714190911');
+('20220714190911'),
+('20220715194241');
 
 
