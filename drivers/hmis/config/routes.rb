@@ -12,7 +12,7 @@ BostonHmis::Application.routes.draw do
         get :index, on: :collection
       end
 
-      devise_scope :hmis_api_user do
+      devise_scope :hmis_user do
         match 'logout' => 'sessions#destroy', via: :get if Rails.env.development?
       end
 
