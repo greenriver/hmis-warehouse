@@ -83,10 +83,10 @@ module HudApr::Generators::Shared::Fy2021
           enrollments = enrollments_by_client_id[client.id]
           next unless enrollments.present?
 
+          last_service_history_enrollment = enrollments.last
           hh_id = get_hh_id(last_service_history_enrollment)
           # Fetch the Head of Household's enrollment, but if we don't have a head, just use ours
           hoh_enrollment = hoh_enrollments[get_hoh_id(hh_id)] || last_service_history_enrollment
-          last_service_history_enrollment = enrollments.last
           if needs_ce_assessments?
             ce_latest_assessment = latest_ce_assessment(last_service_history_enrollment, hoh_enrollment)
             ce_latest_event = latest_ce_event(last_service_history_enrollment, hoh_enrollment, ce_latest_assessment)
@@ -114,7 +114,7 @@ module HudApr::Generators::Shared::Fy2021
           exit_record = last_service_history_enrollment.enrollment if exit_date.present? && exit_date <= @report.end_date
 
           income_at_start = enrollment.income_benefits_at_entry
-          income_at_annual_assessment = annual_assessment(enrollment, hoh_enrollment.entry_date)
+          income_at_annual_assessment = annual_assessment(enrollment, hoh_enrollment.first_date_in_program)
           income_at_exit = exit_record&.income_benefits_at_exit
 
           disabilities = enrollment.disabilities.select { |disability| [1, 2, 3].include?(disability.DisabilityResponse) }
@@ -139,17 +139,17 @@ module HudApr::Generators::Shared::Fy2021
           end
 
           age = source_client.age_on(client_start_date)
-          household_type = household_types[get_hh_id(last_service_history_enrollment)]
+          household_type = household_types[hh_id]
           # household_type = if age.blank? || age.negative?
           #   :unknown
           # else
-          #   household_types[get_hh_id(last_service_history_enrollment)]
+          #   household_types[hh_id]
           # end
-          hoh_anniversary_date = anniversary_date(entry_date: hoh_enrollment.entry_date, report_end_date: @report.end_date)
-          annual_assessment_expected = if age >= 18
-            household_assessment_required[get_hh_id(last_service_history_enrollment)] && last_service_history_enrollment.first_date_in_project < hoh_anniversary_date
+          hoh_anniversary_date = anniversary_date(entry_date: hoh_enrollment.first_date_in_program, report_end_date: @report.end_date)
+          annual_assessment_expected = if age.present? && age >= 18
+            household_assessment_required[hh_id] && last_service_history_enrollment.first_date_in_program < hoh_anniversary_date
           else
-            household_assessment_required[get_hh_id(last_service_history_enrollment)]
+            household_assessment_required[hh_id]
           end
 
           household_calculation_date = if needs_ce_assessments?
