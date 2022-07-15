@@ -63,6 +63,14 @@ class ApplicationNotifier < Slack::Notifier
       # It needs to be very responsive to be useful however so
       # skip it if we cant get a connection fast
       redis = self.class.redis
+      # TODO: remove CI instrumentation
+      puts Rails.application.config_for(:cache_store).inspect
+      puts url
+      if url.blank?
+        super
+        return
+      end
+
       if redis&.ping
         @redis = redis
         @namespace = self.class.encode_key(url, channel, username)
