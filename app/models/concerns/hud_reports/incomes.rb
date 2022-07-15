@@ -22,8 +22,7 @@ module HudReports::Incomes
   extend ActiveSupport::Concern
 
   included do
-    private def annual_assessment(enrollment)
-      enrollment_date = enrollment.EntryDate
+    private def annual_assessment(enrollment, hoh_entry_date)
       # Anniversary date needs to be calculated thusly:
       # Calculate the head of household’s number of years in the project. This can be done using the same
       # algorithm as for calculating a client’s age as of a certain date. Use the client’s [project start date] and the [report end date] as the two dates of comparison. It is important to use the “age” method of determining client anniversaries due to leap years; using “one year = 365 days” will eventually incorrectly offset the calculated anniversaries of long-term stayers.
@@ -32,7 +31,7 @@ module HudReports::Incomes
       #   a. 30 days prior to the [anniversary date] (even if this date falls before the [report start date])
       #   b. and the lesser of (30 days after the [anniversary date], [report end date])
 
-      anniversary_date = anniversary_date(entry_date: enrollment_date, report_end_date: @report.end_date)
+      anniversary_date = anniversary_date(entry_date: hoh_entry_date, report_end_date: @report.end_date)
 
       enrollment.income_benefits_annual_update.
         where(InformationDate: anniversary_date - 30.days .. [anniversary_date + 30.days, @report.end_date].min).
