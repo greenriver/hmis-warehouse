@@ -5,6 +5,8 @@
 ###
 
 class Hmis::Hud::CurrentLivingSituation < Hmis::Hud::Base
+  include ::HmisStructure::CurrentLivingSituation
+  include ::Hmis::Hud::Shared
   self.table_name = :CurrentLivingSituation
   self.sequence_name = "public.\"#{table_name}_id_seq\""
 

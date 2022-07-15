@@ -5,6 +5,8 @@
 ###
 
 class Hmis::Hud::Organization < Hmis::Hud::Base
+  include ::HmisStructure::Organization
+  include ::Hmis::Hud::Shared
   self.table_name = :Organization
   self.sequence_name = "public.\"#{table_name}_id_seq\""
 

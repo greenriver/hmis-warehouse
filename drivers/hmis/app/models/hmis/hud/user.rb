@@ -5,6 +5,8 @@
 ###
 
 class Hmis::Hud::User < Hmis::Hud::Base
+  include ::HmisStructure::User
+  include ::Hmis::Hud::Shared
   self.table_name = :User
   self.sequence_name = "public.\"#{table_name}_id_seq\""
 end

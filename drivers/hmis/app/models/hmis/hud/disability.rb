@@ -5,6 +5,8 @@
 ###
 
 class Hmis::Hud::Disability < Hmis::Hud::Base
+  include ::HmisStructure::Disability
+  include ::Hmis::Hud::Shared
   self.table_name = :Disabilities
   self.sequence_name = "public.\"#{table_name}_id_seq\""
 

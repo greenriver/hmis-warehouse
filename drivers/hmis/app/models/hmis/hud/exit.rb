@@ -5,6 +5,8 @@
 ###
 
 class Hmis::Hud::Exit < Hmis::Hud::Base
+  include ::HmisStructure::Exit
+  include ::Hmis::Hud::Shared
   self.table_name = :Exit
   self.sequence_name = "public.\"#{table_name}_id_seq\""
 

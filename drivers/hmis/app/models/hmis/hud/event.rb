@@ -5,6 +5,8 @@
 ###
 
 class Hmis::Hud::Event < Hmis::Hud::Base
+  include ::HmisStructure::Event
+  include ::Hmis::Hud::Shared
   self.table_name = :Event
   self.sequence_name = "public.\"#{table_name}_id_seq\""
 

@@ -5,6 +5,8 @@
 ###
 
 class Hmis::Hud::EnrollmentCoc < Hmis::Hud::Base
+  include ::HmisStructure::EnrollmentCoc
+  include ::Hmis::Hud::Shared
   self.table_name = :EnrollmentCoC
   self.sequence_name = "public.\"#{table_name}_id_seq\""
 

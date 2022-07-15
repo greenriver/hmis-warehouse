@@ -5,6 +5,8 @@
 ###
 
 class Hmis::Hud::Client < Hmis::Hud::Base
+  include ::HmisStructure::Client
+  include ::Hmis::Hud::Shared
   self.table_name = :Client
   self.sequence_name = "public.\"#{table_name}_id_seq\""
 

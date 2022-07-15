@@ -5,6 +5,8 @@
 ###
 
 class Hmis::Hud::HealthAndDv < Hmis::Hud::Base
+  include ::HmisStructure::HealthAndDv
+  include ::Hmis::Hud::Shared
   self.table_name = :HealthAndDV
   self.sequence_name = "public.\"#{table_name}_id_seq\""
 

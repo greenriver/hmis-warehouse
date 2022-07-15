@@ -5,6 +5,8 @@
 ###
 
 class Hmis::Hud::Service < Hmis::Hud::Base
+  include ::HmisStructure::Service
+  include ::Hmis::Hud::Shared
   self.table_name = :Services
   self.sequence_name = "public.\"#{table_name}_id_seq\""
 

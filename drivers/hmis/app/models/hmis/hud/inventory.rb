@@ -5,6 +5,8 @@
 ###
 
 class Hmis::Hud::Inventory < Hmis::Hud::Base
+  include ::HmisStructure::Inventory
+  include ::Hmis::Hud::Shared
   self.table_name = :Inventory
   self.sequence_name = "public.\"#{table_name}_id_seq\""
 

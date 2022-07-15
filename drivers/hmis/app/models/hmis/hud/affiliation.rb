@@ -5,6 +5,8 @@
 ###
 
 class Hmis::Hud::Affiliation < Hmis::Hud::Base
+  include ::HmisStructure::Affiliation
+  include ::Hmis::Hud::Shared
   self.table_name = :Affiliation
   self.sequence_name = "public.\"#{table_name}_id_seq\""
 end

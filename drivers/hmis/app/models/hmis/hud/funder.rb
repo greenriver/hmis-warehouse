@@ -5,6 +5,8 @@
 ###
 
 class Hmis::Hud::Funder < Hmis::Hud::Base
+  include ::HmisStructure::Funder
+  include ::Hmis::Hud::Shared
   self.table_name = :Funder
   self.sequence_name = "public.\"#{table_name}_id_seq\""
 

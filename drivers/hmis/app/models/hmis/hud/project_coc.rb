@@ -5,6 +5,8 @@
 ###
 
 class Hmis::Hud::ProjectCoc < Hmis::Hud::Base
+  include ::HmisStructure::ProjectCoc
+  include ::Hmis::Hud::Shared
   self.table_name = :ProjectCoC
   self.sequence_name = "public.\"#{table_name}_id_seq\""
 
