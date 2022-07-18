@@ -102,6 +102,7 @@ module Admin
         :system_cohort_date_window,
         :roi_model,
         :client_dashboard,
+        :require_service_for_reporting_default,
         client_details: [],
       )
     end
