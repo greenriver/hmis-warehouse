@@ -8,7 +8,7 @@
   titles = columns
 = render 'common/pagination_top', item_name: 'report'
 .table-responsive
-  %table.table.table-hover.table-striped
+  %table.table.table-striped
     %thead
       %tr
         - titles.each do | k, title |
@@ -30,8 +30,10 @@
               = link_to result.last_run_status, report_report_result_path(@report, result)
           %td= result.created_at
           - if @report.has_options?
-            %td
-              = result.value_for_options result.options
+            %td.warehouse-reports__completed.d-flex
+              .options
+                = @report.describe_filter_as_html(result)
+              .ml-auto.nobr= link_to 'View universe details', filter_path(filter: @report.filter_from_result(result).to_h, selected_keys: @report.allowed_options(result)), data: { loads_in_ajax_modal: true }
           %td= result.user.name
           %td= result.completed_in
           %td
