@@ -526,7 +526,10 @@ CREATE TABLE public."Client" (
     "GenderNone" integer,
     "NativeHIPacific" integer,
     "NoSingleGender" integer,
-    tc_hat_additional_days_homeless integer DEFAULT 0
+    tc_hat_additional_days_homeless integer DEFAULT 0,
+    preferred_name character varying,
+    pronouns character varying,
+    sexual_orientation character varying
 );
 
 
@@ -5264,7 +5267,8 @@ CREATE TABLE public.configs (
     system_cohort_processing_date date,
     system_cohort_date_window integer DEFAULT 1,
     roi_model character varying DEFAULT 'explicit'::character varying,
-    client_dashboard character varying DEFAULT 'default'::character varying NOT NULL
+    client_dashboard character varying DEFAULT 'default'::character varying NOT NULL,
+    require_service_for_reporting_default boolean DEFAULT true NOT NULL
 );
 
 
@@ -10126,6 +10130,87 @@ ALTER SEQUENCE public.hmis_assessments_id_seq OWNED BY public.hmis_assessments.i
 
 
 --
+-- Name: hmis_case_notes; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_case_notes (
+    id bigint NOT NULL,
+    client_id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    organization_id bigint,
+    project_id bigint,
+    enrollment_id bigint,
+    source_type character varying,
+    source_id bigint,
+    information_date date NOT NULL,
+    note text,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: hmis_case_notes_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_case_notes_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_case_notes_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_case_notes_id_seq OWNED BY public.hmis_case_notes.id;
+
+
+--
+-- Name: hmis_client_alerts; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_client_alerts (
+    id bigint NOT NULL,
+    client_id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    organization_id bigint,
+    project_id bigint,
+    coc_code character varying,
+    source_type character varying,
+    source_id bigint,
+    information_date date NOT NULL,
+    severity character varying NOT NULL,
+    note text,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: hmis_client_alerts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_client_alerts_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_client_alerts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_client_alerts_id_seq OWNED BY public.hmis_client_alerts.id;
+
+
+--
 -- Name: hmis_client_attributes_defined_text; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -12987,6 +13072,44 @@ CREATE SEQUENCE public.hmis_staff_x_clients_id_seq
 --
 
 ALTER SEQUENCE public.hmis_staff_x_clients_id_seq OWNED BY public.hmis_staff_x_clients.id;
+
+
+--
+-- Name: hmis_wips; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_wips (
+    id bigint NOT NULL,
+    client_id bigint NOT NULL,
+    project_id bigint,
+    enrollment_id bigint,
+    source_type character varying,
+    source_id bigint,
+    date date NOT NULL,
+    data jsonb,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: hmis_wips_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_wips_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_wips_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_wips_id_seq OWNED BY public.hmis_wips.id;
 
 
 --
@@ -20814,6 +20937,20 @@ ALTER TABLE ONLY public.hmis_assessments ALTER COLUMN id SET DEFAULT nextval('pu
 
 
 --
+-- Name: hmis_case_notes id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_case_notes ALTER COLUMN id SET DEFAULT nextval('public.hmis_case_notes_id_seq'::regclass);
+
+
+--
+-- Name: hmis_client_alerts id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_client_alerts ALTER COLUMN id SET DEFAULT nextval('public.hmis_client_alerts_id_seq'::regclass);
+
+
+--
 -- Name: hmis_client_attributes_defined_text id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -21203,6 +21340,13 @@ ALTER TABLE ONLY public.hmis_staff ALTER COLUMN id SET DEFAULT nextval('public.h
 --
 
 ALTER TABLE ONLY public.hmis_staff_x_clients ALTER COLUMN id SET DEFAULT nextval('public.hmis_staff_x_clients_id_seq'::regclass);
+
+
+--
+-- Name: hmis_wips id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_wips ALTER COLUMN id SET DEFAULT nextval('public.hmis_wips_id_seq'::regclass);
 
 
 --
@@ -23652,6 +23796,22 @@ ALTER TABLE ONLY public.hmis_assessments
 
 
 --
+-- Name: hmis_case_notes hmis_case_notes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_case_notes
+    ADD CONSTRAINT hmis_case_notes_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_client_alerts hmis_client_alerts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_client_alerts
+    ADD CONSTRAINT hmis_client_alerts_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: hmis_client_attributes_defined_text hmis_client_attributes_defined_text_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -24097,6 +24257,14 @@ ALTER TABLE ONLY public.hmis_staff
 
 ALTER TABLE ONLY public.hmis_staff_x_clients
     ADD CONSTRAINT hmis_staff_x_clients_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_wips hmis_wips_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_wips
+    ADD CONSTRAINT hmis_wips_pkey PRIMARY KEY (id);
 
 
 --
@@ -40472,6 +40640,83 @@ CREATE INDEX index_hmis_assessments_on_site_id ON public.hmis_assessments USING 
 
 
 --
+-- Name: index_hmis_case_notes_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_case_notes_on_client_id ON public.hmis_case_notes USING btree (client_id);
+
+
+--
+-- Name: index_hmis_case_notes_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_case_notes_on_enrollment_id ON public.hmis_case_notes USING btree (enrollment_id);
+
+
+--
+-- Name: index_hmis_case_notes_on_organization_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_case_notes_on_organization_id ON public.hmis_case_notes USING btree (organization_id);
+
+
+--
+-- Name: index_hmis_case_notes_on_project_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_case_notes_on_project_id ON public.hmis_case_notes USING btree (project_id);
+
+
+--
+-- Name: index_hmis_case_notes_on_source; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_case_notes_on_source ON public.hmis_case_notes USING btree (source_type, source_id);
+
+
+--
+-- Name: index_hmis_case_notes_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_case_notes_on_user_id ON public.hmis_case_notes USING btree (user_id);
+
+
+--
+-- Name: index_hmis_client_alerts_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_client_alerts_on_client_id ON public.hmis_client_alerts USING btree (client_id);
+
+
+--
+-- Name: index_hmis_client_alerts_on_organization_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_client_alerts_on_organization_id ON public.hmis_client_alerts USING btree (organization_id);
+
+
+--
+-- Name: index_hmis_client_alerts_on_project_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_client_alerts_on_project_id ON public.hmis_client_alerts USING btree (project_id);
+
+
+--
+-- Name: index_hmis_client_alerts_on_source; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_client_alerts_on_source ON public.hmis_client_alerts USING btree (source_type, source_id);
+
+
+--
+-- Name: index_hmis_client_alerts_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_client_alerts_on_user_id ON public.hmis_client_alerts USING btree (user_id);
+
+
+--
 -- Name: index_hmis_client_attributes_defined_text_on_client_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -40917,6 +41162,34 @@ CREATE INDEX index_hmis_forms_on_name ON public.hmis_forms USING btree (name);
 --
 
 CREATE INDEX index_hmis_import_configs_on_data_source_id ON public.hmis_import_configs USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_wips_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_wips_on_client_id ON public.hmis_wips USING btree (client_id);
+
+
+--
+-- Name: index_hmis_wips_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_wips_on_enrollment_id ON public.hmis_wips USING btree (enrollment_id);
+
+
+--
+-- Name: index_hmis_wips_on_project_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_wips_on_project_id ON public.hmis_wips USING btree (project_id);
+
+
+--
+-- Name: index_hmis_wips_on_source; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_wips_on_source ON public.hmis_wips USING btree (source_type, source_id);
 
 
 --
@@ -48620,6 +48893,9 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220617180748'),
 ('20220628162723'),
 ('20220712164926'),
-('20220714190911');
+('20220713150217'),
+('20220714190911'),
+('20220715194241'),
+('20220718185442');
 
 
