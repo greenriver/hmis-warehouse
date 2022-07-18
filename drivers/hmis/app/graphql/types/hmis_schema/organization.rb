@@ -19,7 +19,7 @@ module Types
       resolve_projects(object.projects, **args)
     end
 
-    def self.organizations(scope = GrdaWarehouse::Hud::Organization.all, user:)
+    def self.organizations(scope = Hmis::Hud::Organization.all, user:)
       scope.viewable_by(user)
     end
   end
