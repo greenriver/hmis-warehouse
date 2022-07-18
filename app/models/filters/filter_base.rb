@@ -68,6 +68,7 @@ module Filters
     attribute :creator_id, Integer, default: nil
     attribute :report_version, Symbol
     attribute :inactivity_days, Integer, default: 365 * 2
+    attribute :lsa_scope, Integer, default: nil
 
     validates_presence_of :start, :end
 
@@ -141,6 +142,7 @@ module Filters
       self.report_version = filters.dig(:report_version)&.to_sym
       self.creator_id = filters.dig(:creator_id).to_i unless filters.dig(:creator_id).nil?
       self.inactivity_days = filters.dig(:inactivity_days).to_i unless filters.dig(:inactivity_days).nil?
+      self.lsa_scope = filters.dig(:lsa_scope).to_i unless filters.dig(:lsa_scope).nil?
 
       ensure_dates_work if valid?
       self
@@ -194,6 +196,7 @@ module Filters
           ph: ph,
           creator_id: creator_id,
           inactivity_days: inactivity_days,
+          lsa_scope: lsa_scope,
         },
       }
     end
@@ -227,6 +230,7 @@ module Filters
         :ph,
         :creator_id,
         :inactivity_days,
+        :lsa_scope,
         coc_codes: [],
         project_types: [],
         project_type_codes: [],
@@ -801,6 +805,8 @@ module Filters
         'Client Limits'
       when :times_homeless_in_last_three_years
         'Times Homeless in Past 3 Years'
+      when :lsa_scope
+        'LSA Scope'
       end
 
       return unless value.present?
@@ -866,6 +872,8 @@ module Filters
         chosen_vispdat_limits
       when :times_homeless_in_last_three_years
         chosen_times_homeless_in_last_three_years
+      when :lsa_scope
+        chosen_lsa_scope
       end
     end
 
@@ -997,6 +1005,17 @@ module Filters
       currently_fleeing.map do |id|
         available_currently_fleeing.invert[id]
       end.join(', ')
+    end
+
+    def chosen_lsa_scope
+      case lsa_scope.to_i
+      when 1
+        'System-Wide'
+      when 2
+        'Project-Focused'
+      else
+        'Auto Select'
+      end
     end
 
     def data_source_names
