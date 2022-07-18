@@ -13,10 +13,10 @@ module Types
       return_type = kwargs[:type]
       return unless return_type.is_a?(Class) && return_type < BasePaginated
 
-      extension(PaginagtionWrapperExtension)
+      extension(PaginationWrapperExtension)
     end
 
-    class PaginagtionWrapperExtension < GraphQL::Schema::FieldExtension
+    class PaginationWrapperExtension < GraphQL::Schema::FieldExtension
       def apply
         field.argument(:offset, Integer, required: false)
         field.argument(:limit, Integer, required: false)
