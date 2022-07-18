@@ -10,14 +10,6 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   self.table_name = :Client
   self.sequence_name = "public.\"#{table_name}_id_seq\""
 
-  def preferred_name
-    # TODO: Implement this
-  end
-
-  def pronouns
-    # TODO: Implement this
-  end
-
   def ssn_serial
     self.SSN&.[](-4..-1)
   end

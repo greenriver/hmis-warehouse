@@ -8,11 +8,11 @@ module Types
   class DateTime < BaseScalar
     description 'A DateTime object, transporated as a string'
 
-    def self.coerce_input(input_value)
+    def self.coerce_input(input_value, _context)
       DateTime.parse(input_value)
     end
 
-    def self.coerce_result(ruby_value)
+    def self.coerce_result(ruby_value, _context)
       ruby_value.to_s
     end
   end
