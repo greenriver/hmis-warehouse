@@ -7,5 +7,28 @@
 module Types
   class BaseField < GraphQL::Schema::Field
     argument_class Types::BaseArgument
+
+    def initialize(**kwargs, &block)
+      super
+      return_type = kwargs[:type]
+      return unless return_type.is_a?(Class) && return_type < BasePaginated
+
+      extension(PaginagtionWrapperExtension)
+    end
+
+    class PaginagtionWrapperExtension < GraphQL::Schema::FieldExtension
+      def apply
+        field.argument(:offset, Integer, required: false)
+        field.argument(:limit, Integer, required: false)
+      end
+
+      def resolve(object:, arguments:, **_rest)
+        cleaned_arguments = arguments.dup
+        offset = cleaned_arguments.delete(:offset)
+        limit = cleaned_arguments.delete(:limit)
+        resolved_object = yield(object, cleaned_arguments)
+        Types::PaginatedScope.new(resolved_object, offset: offset, limit: limit)
+      end
+    end
   end
 end

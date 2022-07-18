@@ -10,6 +10,18 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   self.table_name = :Client
   self.sequence_name = "public.\"#{table_name}_id_seq\""
 
-  has_many :enrollments, **hmis_relation(:EnrollmentID, 'Enrollment')
+  def preferred_name
+    # TODO: Implement this
+  end
+
+  def pronouns
+    # TODO: Implement this
+  end
+
+  def ssn_serial
+    self.SSN&.[](-4..-1)
+  end
+
+  has_many :enrollments, **hmis_relation(:PersonalID, 'Enrollment')
   has_many :projects, through: :enrollments
 end

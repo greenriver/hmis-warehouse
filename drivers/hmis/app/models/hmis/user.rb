@@ -22,6 +22,11 @@ class Hmis::User < ApplicationRecord
     true
   end
 
+  def can_report_on_confidential_projects
+    # TODO: Make this role present on the HMIS user model or Hmis::Hud::Project.viewable_by will error out
+    true
+  end
+
   # load a hash of permission names (e.g. 'can_view_all_reports')
   # to a boolean true if the user has the permission through one
   # of their roles

@@ -8,12 +8,12 @@
 
 module Types
   module HmisSchema
-    module HasOrganizations
+    module HasEnrollments
       extend ActiveSupport::Concern
 
       class_methods do
-        def organizations_field(name = :organizations, description = nil, **override_options, &block)
-          default_field_options = { type: [Types::HmisSchema::Organization], null: false, description: description }
+        def enrollments_field(name = :enrollments, description = nil, type: [Types::HmisSchema::Enrollment], **override_options, &block)
+          default_field_options = { type: type, null: false, description: description }
           field_options = default_field_options.merge(override_options)
           field(name, **field_options) do
             instance_eval(&block) if block_given?
@@ -21,9 +21,8 @@ module Types
         end
       end
 
-      def resolve_organizations(scope = object.organizations, user: current_user)
-        organizations_scope = scope.viewable_by(user)
-        organizations_scope
+      def resolve_enrollments(scope = object.enrollments, _user: current_user)
+        scope
       end
     end
   end

@@ -14,6 +14,7 @@ module Types
     include GraphQL::Types::Relay::HasNodesField
     include Types::HmisSchema::HasProjects
     include Types::HmisSchema::HasOrganizations
+    include Types::HmisSchema::HasClients
 
     projects_field :projects, description: 'Get a list of projects'
 
@@ -26,5 +27,18 @@ module Types
     def organizations(**args)
       resolve_organizations(Hmis::Hud::Organization.all, **args)
     end
+
+    clients_field :client_search, 'Search for clients', type: Types::HmisSchema::Client.page_type, null: false do |field|
+      field.argument :input, Types::HmisSchema::ClientSearchInput, required: true
+    end
+
+    # Need to keep "input" stated as an argument. Un-ignore once we're actually using it
+    # rubocop:disable Lint/UnusedMethodArgument
+    def client_search(input:, **args)
+      # TODO <SANDY>: Apply client search here, input shape is defined in Types::HmisSchema::ClientSearchInput
+      search_scope = Hmis::Hud::Client.all
+      resolve_clients(search_scope, **args)
+    end
+    # rubocop:enable Lint/UnusedMethodArgument
   end
 end
