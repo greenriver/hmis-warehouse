@@ -10,5 +10,9 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   self.table_name = :Enrollment
   self.sequence_name = "public.\"#{table_name}_id_seq\""
 
+  delegate :exit_date, to: :exit, allow_nil: true
+
+  belongs_to :project, **hmis_relation(:ProjectID, 'Project')
+  has_one :exit, **hmis_relation(:EnrollmentID, 'Exit')
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
 end

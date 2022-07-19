@@ -13,5 +13,9 @@ module Types
     def current_user
       context[:current_user]
     end
+
+    def self.page_type
+      @page_type ||= BasePaginated.create(self)
+    end
   end
 end
