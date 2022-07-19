@@ -21,9 +21,9 @@
             %th Locations
             %th
         %tbody
-          - services.group_by{ |s| l(s.DateProvided) }.each do |date, services|
+          - services.group_by{ |s| s.DateProvided }.each do |date, services|
             %tr
-              %td.date-cell= date
+              %td= date
               %td
                 - services.each do |service|
                   - project = service.project
