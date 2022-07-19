@@ -12,7 +12,7 @@ module Types
 
     description 'HUD Organization'
     field :id, ID, null: false
-    field :organizationName, String, method: :OrganizationName, null: false
+    field :organization_name, String, method: :OrganizationName, null: false
     projects_field :projects, 'Get a list of projects for this organization'
 
     def projects(**args)
