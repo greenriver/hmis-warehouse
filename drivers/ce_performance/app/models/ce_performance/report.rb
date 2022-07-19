@@ -72,7 +72,7 @@ module CePerformance
         :start,
         :end,
         :comparison_period,
-        :coc_code,
+        :coc_codes,
         :project_type_codes,
         :project_ids,
         :project_group_ids,
@@ -399,7 +399,6 @@ module CePerformance
       @periods ||= {}.tap do |periods|
         reporting_filter = ::Filters::HudFilterBase.new(user_id: user_id)
         reporting_filter.update(filter.to_h)
-        reporting_filter.coc_codes = [filter.coc_code]
         comparison_filter = reporting_filter.to_comparison
         periods[:reporting] = reporting_filter
         periods[:comparison] = comparison_filter

@@ -1,6 +1,6 @@
 
 %h3= title
-- @report.ce_aprs.order(start_date: :asc).each do |ce_apr|
+- @report.ce_aprs.order(start_date: :desc).each do |ce_apr|
   - if can_view_all_hud_reports? || can_view_own_hud_reports?
     .ml-auto
       = link_to "#{ce_apr.start_date} - #{ce_apr.end_date}", hud_reports_ce_apr_path(ce_apr.ce_apr_id), target: :_blank, class: 'btn btn-sm btn-secondary mb-2'

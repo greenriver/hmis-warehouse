@@ -53,5 +53,8 @@ Rails.application.configure do
 
   config.force_ssl = false
 
-  config.log_level = ENV.fetch('LOG_LEVEL') { 'debug' }.to_sym
+  config.log_level = ENV.fetch('LOG_LEVEL') { 'info' }.to_sym
+  # Don't echo everything to STDOUT in the test environment
+  config.lograge.logger = ActiveSupport::Logger.new("log/#{Rails.env}.log")
+  config.logger = ActiveSupport::Logger.new("log/#{Rails.env}.log")
 end
