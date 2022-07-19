@@ -90,7 +90,7 @@ module HudDataQualityReport::Generators::Fy2022
           disabilities_latest = enrollment.disabilities.select { |d| d.InformationDate == max_disability_date }
 
           health_and_dv = enrollment.health_and_dvs.
-            select { |h| h.InformationDate <= report_end_date }.
+            select { |h| h.InformationDate <= report_end_date && !h.DomesticViolenceVictim.nil? }.
             max_by(&:InformationDate)
 
           last_bed_night = enrollment.services.select do |s|
@@ -178,7 +178,8 @@ module HudDataQualityReport::Generators::Fy2022
             income_total_at_annual_assessment: income_at_annual_assessment&.hud_total_monthly_income,
             income_total_at_exit: income_at_exit&.hud_total_monthly_income,
             income_total_at_start: income_at_start&.hud_total_monthly_income,
-            indefinite_and_impairs: disabilities.detect(&:indefinite_and_impairs?).present?,
+            # NOTE: this is used for data quality, and should only look at the most recent disability
+            indefinite_and_impairs: disabilities_latest.detect(&:indefinite_and_impairs?).present?,
             insurance_from_any_source_at_annual_assessment: income_at_annual_assessment&.InsuranceFromAnySource,
             insurance_from_any_source_at_exit: income_at_exit&.InsuranceFromAnySource,
             insurance_from_any_source_at_start: income_at_start&.InsuranceFromAnySource,
@@ -261,6 +262,7 @@ module HudDataQualityReport::Generators::Fy2022
     private def clients_with_enrollments(batch)
       enrollment_scope.
         where(client_id: batch.map(&:id)).
+        order(first_date_in_program: :asc).
         reject { |shs| shs.project_type == 4 && shs.enrollment.DateOfEngagement >= report_end_date }.
         group_by(&:client_id)
     end

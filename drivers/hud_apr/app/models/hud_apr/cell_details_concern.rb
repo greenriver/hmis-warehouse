@@ -103,6 +103,14 @@ module HudApr::CellDetailsConcern
         :relationship_to_hoh,
         :enrollment_coc,
         :disabling_condition,
+        :indefinite_and_impairs,
+        :developmental_disability,
+        :hiv_aids,
+        :physical_disability,
+        :chronic_disability,
+        :mental_health_problem,
+        :substance_abuse,
+        :indefinite_and_impairs,
       ].freeze
     end
 

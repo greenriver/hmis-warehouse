@@ -228,7 +228,8 @@ module HudApr::Generators::Shared::Fy2021
             income_total_at_annual_assessment: income_at_annual_assessment&.hud_total_monthly_income,
             income_total_at_exit: income_at_exit&.hud_total_monthly_income,
             income_total_at_start: income_at_start&.hud_total_monthly_income,
-            indefinite_and_impairs: disabilities.detect(&:indefinite_and_impairs?).present?,
+            # NOTE: this is used for data quality, and should only look at the most recent disability
+            indefinite_and_impairs: disabilities_latest.detect(&:indefinite_and_impairs?).present?,
             insurance_from_any_source_at_annual_assessment: income_at_annual_assessment&.InsuranceFromAnySource,
             insurance_from_any_source_at_exit: income_at_exit&.InsuranceFromAnySource,
             insurance_from_any_source_at_start: income_at_start&.InsuranceFromAnySource,
