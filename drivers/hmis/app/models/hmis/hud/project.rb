@@ -14,7 +14,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
 
   # Any projects the user has been assigned, limited to the data source the HMIS is connected to
   scope :viewable_by, ->(user) do
-    viewable_ids = GrdaWarehouse::Hud::Project.viewable_by(user).pluck(:id)
+    viewable_ids = GrdaWarehouse::Hud::Project.viewable_by_entity(user).pluck(:id)
     where(id: viewable_ids, data_source_id: user.hmis_data_source_id)
   end
 
