@@ -88,6 +88,10 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     where(authoritative: true)
   end
 
+  scope :hmis, -> do
+    where.not(hmis: nil)
+  end
+
   scope :scannable, -> do
     where(service_scannable: true)
   end

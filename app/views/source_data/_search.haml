@@ -1,0 +1,7 @@
+.o-page__search
+  = simple_form_for :search, url: source_data_path, method: :get do |f|
+    = f.input :type, collection: GrdaWarehouse::Hud.hud_csv_names, include_blank: false, selected: @type, as: :select_two, label: 'Record Type'
+    .input-group
+      = f.input :id, label: false, placeholder: 'Search by ID or HMIS ID', class: 'form-control', input_html: { value: @id }
+      .input-group-append
+        %button.btn.btn-secondary{type: :submit} Search

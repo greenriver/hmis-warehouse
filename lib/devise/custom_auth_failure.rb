@@ -6,7 +6,7 @@
 
 class CustomAuthFailure < Devise::FailureApp
   def respond
-    if warden_options[:scope] == :hmis_api_user && request.format == :json
+    if warden_options[:scope] == :hmis_user && request.format == :json
       json_error_response
     else
       super

@@ -13,7 +13,7 @@ module GrdaWarehouse::Hud
     include ArelHelper
     include HealthCharts
     include ApplicationHelper
-    include ::HMIS::Structure::Client
+    include ::HmisStructure::Client
     include HudSharedScopes
     include HudChronicDefinition
     include SiteChronic

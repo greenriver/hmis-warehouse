@@ -66,8 +66,6 @@ gem 'mimemagic'
 # since there are no tests for this
 # it should be tested manually
 gem 'acts-as-taggable-on', '~> 7.0'
-# this doesn't install cleanly on a Mac
-# We aren't currently using this anyway
 gem 'seven_zip_ruby'
 gem 'hellosign-ruby-sdk'
 
@@ -256,6 +254,8 @@ group :development do
   # boot time/memory profiling
   gem 'derailed_benchmarks', require: false
   gem 'bumbler', require: false
+
+  gem 'graphiql-rails'
 end
 
 group :test do
