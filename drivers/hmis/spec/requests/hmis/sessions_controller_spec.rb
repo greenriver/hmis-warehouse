@@ -50,6 +50,33 @@ RSpec.describe Hmis::SessionsController, type: :request do
     end
   end
 
+  describe 'Un-successful login due to missing CSRF token' do
+    before do
+      ActionController::Base.allow_forgery_protection = true
+    end
+    after do
+      ActionController::Base.allow_forgery_protection = false
+    end
+    it 'has correct response code' do
+      post hmis_user_session_path(hmis_user: { email: user.email, password: user.password })
+      expect(response.status).to eq 401
+    end
+  end
+
+  describe 'Un-successful login due to inactive account' do
+    before do
+      user.update(active: false)
+    end
+    after do
+      user.update(active: false)
+    end
+    it 'has correct response' do
+      post hmis_user_session_path(hmis_user: { email: user.email, password: user.password })
+      expect(response.status).to eq 401
+      expect(response.body).to include 'inactive'
+    end
+  end
+
   describe 'Account locked after 9 un-successful logins' do
     before(:each) do
       # Devise.maximum_attempts is twice what it should be (see Devise 2FA bug above)
