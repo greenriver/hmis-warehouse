@@ -5,6 +5,7 @@
 ###
 
 class Hmis::SessionsController < Devise::SessionsController
+  include Hmis::Concerns::JsonErrors
   include AuthenticatesWithTwoFactor
   respond_to :json
   skip_before_action :verify_signed_out_user
@@ -67,13 +68,6 @@ class Hmis::SessionsController < Devise::SessionsController
 
   private def set_csrf_cookie
     cookies['CSRF-Token'] = form_authenticity_token
-  end
-
-  private def render_json_error(status, type, message: nil)
-    status = Rack::Utils::SYMBOL_TO_STATUS_CODE[status] if status.is_a? Symbol
-    error = { type: type }
-    error[:message] = message if message.present?
-    render status: status, json: { error: error }
   end
 
   private def two_factor_resource_name
