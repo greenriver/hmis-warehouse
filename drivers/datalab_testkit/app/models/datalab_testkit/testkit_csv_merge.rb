@@ -30,6 +30,8 @@ module DatalabTestkit
       destination_file = File.join(@destination_dir, filename)
       dups = Set.new
       if File.exist?(destination_file)
+        return if filename == 'Export.csv' # only process Export.csv once
+
         destination_table = CSV.read(destination_file)
         destination_table.each do |row|
           dups << row[0]
@@ -42,6 +44,7 @@ module DatalabTestkit
       source_table.each do |row|
         next if dups.include?(row[0])
 
+        row['ExportID'] = 'MERGED-ID'
         destination_table << row.values_at
       end
 
