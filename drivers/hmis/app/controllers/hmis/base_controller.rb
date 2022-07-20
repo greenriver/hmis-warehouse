@@ -5,8 +5,10 @@
 ###
 
 class Hmis::BaseController < ApplicationController
+  include Hmis::Concerns::JsonErrors
   respond_to :json
   before_action :set_csrf_cookie
+  protect_from_forgery with: :reset_session
 
   private def set_csrf_cookie
     cookies['CSRF-Token'] = form_authenticity_token

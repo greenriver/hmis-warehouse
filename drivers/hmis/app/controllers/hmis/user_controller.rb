@@ -8,8 +8,15 @@ class Hmis::UserController < Hmis::BaseController
   skip_before_action :verify_authenticity_token, only: [:index]
   skip_before_action :authenticate_user!, only: [:index]
 
+  # Endpoint to retrieve the currently logged-in user.
+  #
+  # This is called by the frontend on initial page load, to determine whether
+  # there is a currently active session.
+  #
+  # If there is no active session, warden will return a 401.
+  # We set a CSRF cookie *prior* to authentication, because the frontend
+  # needs a valid CSRF token to hit POST /hmis/login.
   def index
-    # Set CSRF cookie even if no user is logged in, so that the client can send it with the login request
     set_csrf_cookie
     authenticate_hmis_user!
     render json: {
