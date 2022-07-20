@@ -57,12 +57,9 @@ module HmisCsvFixtures
   end
 
   def process_imported_fixtures(user: User.setup_system_user)
-    # These are run in the importer, so they should not need to be done again
-    # GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
-    puts "Start ProjectCleanup: #{Time.now}"
+    puts "Start post processing: #{Time.now}"
     GrdaWarehouse::Tasks::ProjectCleanup.new.run!
-    GrdaWarehouse::ServiceHistoryServiceMaterialized.refresh!
-    GrdaWarehouse::Tasks::ServiceHistory::Add.new.run!
+    GrdaWarehouse::Tasks::ServiceHistory::Enrollment.batch_process_unprocessed!
     AccessGroup.maintain_system_groups
     AccessGroup.where(name: 'All Data Sources').first.add(user)
     Delayed::Worker.new.work_off
