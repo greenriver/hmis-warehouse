@@ -68,7 +68,7 @@ RSpec.describe Hmis::SessionsController, type: :request do
       user.update(active: false)
     end
     after do
-      user.update(active: false)
+      user.update(active: true)
     end
     it 'has correct response' do
       post hmis_user_session_path(hmis_user: { email: user.email, password: user.password })
