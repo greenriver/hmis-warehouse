@@ -3031,8 +3031,7 @@ CREATE TABLE public.data_sources (
     service_scannable boolean DEFAULT false NOT NULL,
     import_aggregators jsonb DEFAULT '{}'::jsonb,
     import_cleanups jsonb DEFAULT '{}'::jsonb,
-    refuse_imports_with_errors boolean DEFAULT false,
-    hmis character varying
+    refuse_imports_with_errors boolean DEFAULT false
 );
 
 
@@ -48622,7 +48621,6 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220628162723'),
 ('20220712164926'),
 ('20220713150217'),
-('20220714190911'),
 ('20220715194241');
 
 
