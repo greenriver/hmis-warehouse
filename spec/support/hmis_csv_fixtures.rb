@@ -61,16 +61,11 @@ module HmisCsvFixtures
     # GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
     puts "Start ProjectCleanup: #{Time.now}"
     GrdaWarehouse::Tasks::ProjectCleanup.new.run!
-    puts "Start ServiceHistoryServiceMaterialized refresh: #{Time.now}"
     GrdaWarehouse::ServiceHistoryServiceMaterialized.refresh!
-    puts "Start ServiceHistory::Add: #{Time.now}"
     GrdaWarehouse::Tasks::ServiceHistory::Add.new.run!
-    puts "Start maintain access groups #{Time.now}"
     AccessGroup.maintain_system_groups
     AccessGroup.where(name: 'All Data Sources').first.add(user)
-    puts "Run workers"
     Delayed::Worker.new.work_off
-    puts "Done!"
   end
 
   def cleanup_hmis_csv_fixtures

@@ -38,22 +38,22 @@ RSpec.shared_context 'datalab testkit context', shared_context: :metadata do
     HmisCsvImporter::Utility.clear!
     GrdaWarehouse::Utility.clear!
 
-    # warehouse = GrdaWarehouseBase.connection
+    warehouse = GrdaWarehouseBase.connection
 
     # Will use stored fixed point if one exists, instead of reprocessing the fixture, delete the fixpoint to regenerate
     # Fixpoints runs out of memory reloading this, so it is disabled for now
-    # if Fixpoint.exists? :datalab_2_0_app
-    #   restore_fixpoint :datalab_2_0_app
-    #   restore_fixpoint :datalab_2_0_warehouse, connection: warehouse
-    # else
-    Dir.glob(hmis_file_prefix).select { |f| File.directory? f }.each do |file_path|
-      puts "*** #{file_path} ***"
-      import_hmis_csv_fixture(file_path, run_jobs: false)
+    if Fixpoint.exists? :datalab_2_0_app
+      restore_fixpoint :datalab_2_0_app
+      restore_fixpoint :datalab_2_0_warehouse, connection: warehouse
+    else
+      Dir.glob(hmis_file_prefix).select { |f| File.directory? f }.each do |file_path|
+        puts "*** #{file_path} ***"
+        import_hmis_csv_fixture(file_path, run_jobs: false)
+      end
+      process_imported_fixtures
+      store_fixpoint :datalab_2_0_app
+      store_fixpoint :datalab_2_0_warehouse, connection: warehouse
     end
-    process_imported_fixtures
-    # store_fixpoint :datalab_2_0_app
-    # store_fixpoint :datalab_2_0_warehouse, connection: warehouse
-    # end
   end
 
   def cleanup
