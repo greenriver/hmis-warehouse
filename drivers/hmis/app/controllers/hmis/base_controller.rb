@@ -9,6 +9,10 @@ class Hmis::BaseController < ApplicationController
   respond_to :json
   before_action :set_csrf_cookie
 
+  rescue_from ActionController::InvalidAuthenticityToken do
+    render_json_error(401, :unauthenticated)
+  end
+
   private def set_csrf_cookie
     cookies['CSRF-Token'] = form_authenticity_token
   end
@@ -21,9 +25,5 @@ class Hmis::BaseController < ApplicationController
     domain = URI.parse(request.origin).host
     data_source_id = GrdaWarehouse::DataSource.hmis.where(hmis: domain).pluck(:id).first
     current_hmis_user.hmis_data_source_id = data_source_id
-  end
-
-  def handle_unverified_request
-    render_json_error(401, :unauthenticated)
   end
 end

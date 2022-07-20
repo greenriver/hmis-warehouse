@@ -16,6 +16,6 @@ class CustomAuthFailure < Devise::FailureApp
   def json_error_response
     self.status = 401
     self.content_type = 'application/json'
-    self.response_body = { error: { type: warden_message, message: i18n_message } }.to_json
+    self.response_body = { error: { type: warden_message || :unauthenticated, message: i18n_message } }.to_json
   end
 end
