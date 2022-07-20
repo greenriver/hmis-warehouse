@@ -8,10 +8,7 @@ class Hmis::BaseController < ApplicationController
   include Hmis::Concerns::JsonErrors
   respond_to :json
   before_action :set_csrf_cookie
-
-  rescue_from ActionController::InvalidAuthenticityToken do
-    render_json_error(401, :unauthenticated)
-  end
+  protect_from_forgery with: :reset_session
 
   private def set_csrf_cookie
     cookies['CSRF-Token'] = form_authenticity_token

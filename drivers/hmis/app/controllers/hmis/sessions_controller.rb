@@ -11,10 +11,6 @@ class Hmis::SessionsController < Devise::SessionsController
   skip_before_action :verify_signed_out_user
   before_action :authenticate_with_2fa, only: [:create], if: -> { two_factor_enabled? }
 
-  rescue_from ActionController::InvalidAuthenticityToken do
-    render_json_error(401, :unauthenticated)
-  end
-
   def create
     self.resource = warden.authenticate!(auth_options)
     sign_in(:hmis_user, resource)
@@ -25,6 +21,12 @@ class Hmis::SessionsController < Devise::SessionsController
   def destroy
     sign_out(:hmis_user) # Only sign out of the HMIS, not the warehouse
     render json: { success: true }, status: 204
+  end
+
+  # We require a valid CSRF token on login form submission.
+  # Override the devise implementation to return 401 instead of raising InvalidAuthenticityToken.
+  def handle_unverified_request
+    render_json_error(401, :unverified_request)
   end
 
   private def authenticate_with_2fa
