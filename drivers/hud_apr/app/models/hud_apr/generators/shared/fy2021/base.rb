@@ -171,7 +171,8 @@ module HudApr::Generators::Shared::Fy2021
             alcohol_abuse_exit: [1, 3].include?(disabilities_at_exit.detect(&:substance?)&.DisabilityResponse),
             alcohol_abuse_latest: [1, 3].include?(disabilities_latest.detect(&:substance?)&.DisabilityResponse),
             annual_assessment_expected: annual_assessment_expected,
-            annual_assessment_in_window: annual_assessment_in_window?(last_service_history_enrollment, income_at_annual_assessment&.InformationDate),
+            # anniversary dates are always based on HoH enrollment
+            annual_assessment_in_window: annual_assessment_in_window?(hoh_enrollment, income_at_annual_assessment&.InformationDate),
             approximate_time_to_move_in: approximate_move_in_dates[last_service_history_enrollment.client_id],
             came_from_street_last_night: enrollment.PreviousStreetESSH,
             chronic_disability_entry: disabilities_at_entry.detect(&:chronic?)&.DisabilityResponse,
@@ -227,7 +228,8 @@ module HudApr::Generators::Shared::Fy2021
             income_total_at_annual_assessment: income_at_annual_assessment&.hud_total_monthly_income,
             income_total_at_exit: income_at_exit&.hud_total_monthly_income,
             income_total_at_start: income_at_start&.hud_total_monthly_income,
-            indefinite_and_impairs: disabilities.detect(&:indefinite_and_impairs?).present?,
+            # NOTE: this is used for data quality, and should only look at the most recent disability
+            indefinite_and_impairs: disabilities_latest.detect(&:indefinite_and_impairs?).present?,
             insurance_from_any_source_at_annual_assessment: income_at_annual_assessment&.InsuranceFromAnySource,
             insurance_from_any_source_at_exit: income_at_exit&.InsuranceFromAnySource,
             insurance_from_any_source_at_start: income_at_start&.InsuranceFromAnySource,
