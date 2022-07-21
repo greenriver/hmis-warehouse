@@ -18,8 +18,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   before(:each) do
     user.add_viewable(ds1)
     post hmis_user_session_path(hmis_user: { email: user.email, password: user.password })
-    hmis_user = Hmis::User.find(user.id)
-    hmis_user.hmis_data_source_id = ds1.id
   end
 
   describe 'Projects query' do
