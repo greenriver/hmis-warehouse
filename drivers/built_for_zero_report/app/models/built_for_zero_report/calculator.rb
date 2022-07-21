@@ -27,11 +27,31 @@ module BuiltForZeroReport
     # @param start_date [Date] The start of the reporting range
     # @param end_date [Date] The end of the reporting range
     # @param client_ids [Set, nil] If defined, limit the clients to the specified destination client ids
-    def initialize(cohort_key, start_date, end_date, client_ids: nil)
+    def initialize(cohort_key, start_date, end_date, user:, client_ids: nil)
       @cohort_id = GrdaWarehouse::SystemCohorts::Base.find_system_cohort(cohort_key).id
       @start_date = start_date
       @end_date = end_date
       @client_ids = client_ids
+      @user = user
+    end
+
+    def for_api
+      {
+        'subpopulation_id' => sub_population_id,
+        'actively_homeless' => actively_homeless.count,
+        'avg_lot_from_id_to_housing' => average_lot_to_housing,
+        'housing_placements' => housed.count,
+        'moved_to_inactive' => inactive.count,
+        'no_longer_meets_population_criteria' => ineligible.count,
+        'newly_identified' => newly_identified.count,
+        'returned_from_housing' => returned_from_housing.count,
+        'returned_from_inactive' => returned_from_inactivity.count,
+        'name' => @user.name,
+        'email' => @user.email,
+        'organization' => @user.agency_name,
+        'date_interval_start' => @start_date,
+        'date_interval' => '1 month',
+      }
     end
 
     # @return [SourceDataHash] actively homeless clients in cohort during the reporting period

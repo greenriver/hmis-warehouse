@@ -9,6 +9,7 @@ require 'net/http'
 module BuiltForZeroReport
   class Credential < GrdaWarehouse::RemoteCredential
     alias_attribute :apikey, :path
+    alias_attribute :community_id, :bucket
     attr_accessor :bearer_token
     attr_accessor :bearer_token_expires_at
     acts_as_paranoid
@@ -39,9 +40,11 @@ module BuiltForZeroReport
       https = Net::HTTP.new(url.host, url.port)
       https.use_ssl = true
 
-      request = Net::HTTP::Get.new(url)
-      request['apikey'] = apikey
-      request['Authorization: Bearer'] = bearer_token
+      headers = {
+        'apikey' => apikey,
+        'Authorization: Bearer' => bearer_token,
+      }
+      request = Net::HTTP::Get.new(url, headers)
       response = https.request(request)
       response.read_body
     end
@@ -55,14 +58,24 @@ module BuiltForZeroReport
       url = URI([endpoint, query].compact.join('/'))
       https = Net::HTTP.new(url.host, url.port)
       https.use_ssl = true
+      headers = {
+        'Content-Type' => 'application/json',
+        'apikey' => apikey,
+      }
+      request = Net::HTTP::Post.new(url, headers)
 
-      request = Net::HTTP::Post.new(url)
-      request['Content-Type'] = 'application/json'
-      request['Ocp-Apim-Subscription-Key'] = subscriptionkey
-      request['Authorization'] = "ApiKey #{apikey}"
       request.body = Oj.dump(body)
       response = https.request(request)
       response.read_body
+    end
+
+    # Use this to determine the community_id, then save that to the credential
+    def communities
+      get('rest/v1/communities?select=*')
+    end
+
+    def section_ids
+      @section_ids ||= get("rest/v1/subpopulations?accountid=eq.#{community_id}&select=*")
     end
   end
 end

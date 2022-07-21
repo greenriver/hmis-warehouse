@@ -6,6 +6,7 @@ module BuiltForZeroReport
   def self.all_report_sections
     {
       veterans: 'Veterans Section',
+      chronic_veterans: 'Chronic Veterans Section',
       chronic: 'Chronic Section',
       adults: 'All Single Adults (Individuals) Section',
       youth: 'Youth Section',
@@ -18,6 +19,7 @@ module BuiltForZeroReport
 
     cohort_keys = {
       veterans: :veteran_cohort,
+      chronic_veterans: :chronic_cohort,
       chronic: :chronic_cohort,
       adults: :adult_only_cohort,
       youth: :youth_cohort,

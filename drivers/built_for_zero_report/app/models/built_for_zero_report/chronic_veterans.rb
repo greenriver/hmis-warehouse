@@ -5,13 +5,18 @@
 ###
 
 module BuiltForZeroReport
-  class Veterans
+  class ChronicVeterans
     include ActiveModel::Model
-    attr_accessor :veterans, :user
-    alias data veterans
+    attr_accessor :chronic_veterans, :user
+    alias data chronic_veterans
 
     def initialize(start_date, end_date, user:)
       @veterans = Calculator.new(:veteran_cohort, start_date, end_date, user: user)
+      @chronic_veterans = Calculator.new(:chronic_cohort, start_date, end_date, client_ids: @veterans.actively_homeless.keys, user: user)
+    end
+
+    def self.sub_population_name
+      'Chronic Veteran'
     end
   end
 end
