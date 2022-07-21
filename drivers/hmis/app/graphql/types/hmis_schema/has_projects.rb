@@ -18,18 +18,17 @@ module Types
           field_options = default_field_options.merge(override_options)
           field(name, **field_options) do
             argument :project_types, [Types::HmisSchema::ProjectType], required: false unless without_args.include? :project_types
-            argument :sort_by, Types::HmisSchema::ProjectSortOption, required: false
+            argument :sort_order, Types::HmisSchema::ProjectSortOption, required: false
+            argument :sort_direction, Types::HmisSchema::SortDirection, required: false
             instance_eval(&block) if block_given?
           end
         end
       end
 
-      def resolve_projects(scope = object.projects, user: current_user, project_types: nil, sort_by: :organization_and_name)
+      def resolve_projects(scope = object.projects, user: current_user, project_types: nil, sort_order: nil, sort_direction: :asc)
         projects_scope = scope.viewable_by(user)
         projects_scope = projects_scope.with_project_type(project_types) if project_types.present?
-
-        # FIXME: define sort function in the enum or somewhere else?
-        projects_scope = projects_scope.joins(:organization).order(o_t[:OrganizationName], p_t[:ProjectName]) if sort_by.present?
+        projects_scope = projects_scope.sort_by_option(sort_order, sort_direction) if sort_order.present?
 
         projects_scope
       end
