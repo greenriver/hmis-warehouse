@@ -12,6 +12,7 @@ module PerformanceMeasurement
     include Filter::ControlSections
     include Filter::FilterScopes
     include Reporting::Status
+    include SpmBasedReports
     include Rails.application.routes.url_helpers
     include ActionView::Helpers::NumberHelper
     include ArelHelper
@@ -46,6 +47,10 @@ module PerformanceMeasurement
 
     def comparison_spm_id
       @comparison_spm_id ||= clients&.first&.comparison_spm_id
+    end
+
+    def self.default_project_type_codes
+      GrdaWarehouse::Hud::Project::SPM_PROJECT_TYPE_CODES
     end
 
     def run_and_save!
@@ -128,24 +133,6 @@ module PerformanceMeasurement
 
     def self.url
       'performance_measurement/warehouse_reports/reports'
-    end
-
-    def spm_project_types
-      GrdaWarehouse::Hud::Project::SPM_PROJECT_TYPE_CODES
-    end
-
-    def project_type_ids
-      spm_project_types.map { |s| GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING[s.to_sym] }.flatten
-    end
-
-    def project_type_options_for_select
-      GrdaWarehouse::Hud::Project::PROJECT_GROUP_TITLES.select { |k, _| k.in?(spm_project_types) }.freeze.invert
-    end
-
-    def project_options_for_select(user)
-      GrdaWarehouse::Hud::Project.viewable_by(user).
-        with_hud_project_type(project_type_ids).
-        options_for_select(user: user)
     end
 
     def url

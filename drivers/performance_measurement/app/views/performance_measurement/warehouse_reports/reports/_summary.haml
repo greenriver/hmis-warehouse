@@ -24,7 +24,7 @@
               %tr
                 %td.j-summary-row{data: { target: "##{key}"}}
                   .row
-                    .col-sm-6
+                    .col-md-6
                       %h4.mb-0= @report.detail_title_for(key)
                       .d-flex
                         .level-indicator.mb-2= @report.detail_words_for(row[:column])
@@ -32,7 +32,7 @@
                           .font-weight-bold.ml-2.mr-2
                             •
                           .spm-measure.font-weight-bold= "SPM #{row[:measure]}"
-                    .col-sm-3
+                    .col-md-3
                       .muted.text-sm.text-uppercase
                         Target:
                         = data.goal_direction
@@ -43,6 +43,6 @@
                         .performance-measurement--target-guage-target{ style: "margin-left: #{data.gauge_target}px;" }
                       .muted.text-sm
                         = data.number_for_goal
-                    .col-sm-3.d-flex
+                    .col-md-3.d-flex
                       .ml-auto.mr-4= tagged(result[:passed], status, icon: icon, label: label)
               - row = @report.detail_hash[key]

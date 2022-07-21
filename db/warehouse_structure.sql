@@ -3946,7 +3946,8 @@ CREATE TABLE public.ce_performance_clients (
     days_between_referral_and_housing integer,
     q5a_b1 boolean DEFAULT false,
     deleted_at timestamp without time zone,
-    assessment_type character varying
+    assessment_type character varying,
+    days_between_entry_and_initial_referral integer
 );
 
 
@@ -5262,7 +5263,8 @@ CREATE TABLE public.configs (
     system_cohort_processing_date date,
     system_cohort_date_window integer DEFAULT 1,
     roi_model character varying DEFAULT 'explicit'::character varying,
-    client_dashboard character varying DEFAULT 'default'::character varying NOT NULL
+    client_dashboard character varying DEFAULT 'default'::character varying NOT NULL,
+    require_service_for_reporting_default boolean DEFAULT true NOT NULL
 );
 
 
@@ -48616,6 +48618,9 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220610173543'),
 ('20220612161111'),
 ('20220617180748'),
-('20220628162723');
+('20220628162723'),
+('20220712164926'),
+('20220713150217'),
+('20220715194241');
 
 

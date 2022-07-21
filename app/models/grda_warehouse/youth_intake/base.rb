@@ -96,6 +96,10 @@ module GrdaWarehouse::YouthIntake
       where(at[:engagement_date].gteq(start_date))
     end
 
+    scope :only_most_recent_by_client, -> do
+      one_for_column(:engagement_date, source_arel_table: arel_table, group_on: :client_id)
+    end
+
     scope :ordered, -> do
       order(engagement_date: :desc, exit_date: :desc)
     end
@@ -376,7 +380,7 @@ module GrdaWarehouse::YouthIntake
         RaceNone: compute_race_none,
         DateUpdated: Time.now,
       }
-      gender_column = HUD.gender_id_to_field_name[client_gender]
+      gender_column = ::HUD.gender_id_to_field_name[client_gender]
       data[gender_column] = 1 unless gender_column.nil?
       data[:FirstName] = first_name if first_name.present?
       data[:LastName] = last_name if last_name.present?

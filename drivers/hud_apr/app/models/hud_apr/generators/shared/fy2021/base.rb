@@ -83,12 +83,11 @@ module HudApr::Generators::Shared::Fy2021
           enrollments = enrollments_by_client_id[client.id]
           next unless enrollments.present?
 
-          hoh_enrollment = nil
           last_service_history_enrollment = enrollments.last
+          hh_id = get_hh_id(last_service_history_enrollment)
+          # Fetch the Head of Household's enrollment, but if we don't have a head, just use ours
+          hoh_enrollment = hoh_enrollments[get_hoh_id(hh_id)] || last_service_history_enrollment
           if needs_ce_assessments?
-            hh_id = get_hh_id(last_service_history_enrollment)
-            # Fetch the Head of Household's enrollment, but if we don't have a head, just use ours
-            hoh_enrollment = hoh_enrollments[get_hoh_id(hh_id)] || last_service_history_enrollment
             ce_latest_assessment = latest_ce_assessment(last_service_history_enrollment, hoh_enrollment)
             ce_latest_event = latest_ce_event(last_service_history_enrollment, hoh_enrollment, ce_latest_assessment)
             #
@@ -115,7 +114,7 @@ module HudApr::Generators::Shared::Fy2021
           exit_record = last_service_history_enrollment.enrollment if exit_date.present? && exit_date <= @report.end_date
 
           income_at_start = enrollment.income_benefits_at_entry
-          income_at_annual_assessment = annual_assessment(enrollment)
+          income_at_annual_assessment = annual_assessment(enrollment, hoh_enrollment.first_date_in_program)
           income_at_exit = exit_record&.income_benefits_at_exit
 
           disabilities = enrollment.disabilities.select { |disability| [1, 2, 3].include?(disability.DisabilityResponse) }
@@ -140,19 +139,26 @@ module HudApr::Generators::Shared::Fy2021
           end
 
           age = source_client.age_on(client_start_date)
-          household_type = household_types[get_hh_id(last_service_history_enrollment)]
+          household_type = household_types[hh_id]
           # household_type = if age.blank? || age.negative?
           #   :unknown
           # else
-          #   household_types[get_hh_id(last_service_history_enrollment)]
+          #   household_types[hh_id]
           # end
-          annual_assessment_expected = household_assessment_required[get_hh_id(last_service_history_enrollment)]
+          hoh_anniversary_date = anniversary_date(entry_date: hoh_enrollment.first_date_in_program, report_end_date: @report.end_date)
+          annual_assessment_expected = if age.present? && age >= 18
+            household_assessment_required[hh_id] && last_service_history_enrollment.first_date_in_program < hoh_anniversary_date
+          else
+            household_assessment_required[hh_id]
+          end
 
           household_calculation_date = if needs_ce_assessments?
             ce_latest_assessment&.AssessmentDate || hoh_enrollment&.first_date_in_program
           else
             last_service_history_enrollment.first_date_in_program
           end
+
+          chronic_source = household_chronic_status(hh_id, last_service_history_enrollment.client_id)
           processed_source_clients << source_client.id
           ce_hash = {}
           options = {
@@ -160,25 +166,28 @@ module HudApr::Generators::Shared::Fy2021
             destination_client_id: last_service_history_enrollment.client_id,
             data_source_id: source_client.data_source_id,
             report_instance_id: @report.id,
+            source_enrollment_id: enrollment.id,
 
             age: age,
             alcohol_abuse_entry: [1, 3].include?(disabilities_at_entry.detect(&:substance?)&.DisabilityResponse),
             alcohol_abuse_exit: [1, 3].include?(disabilities_at_exit.detect(&:substance?)&.DisabilityResponse),
             alcohol_abuse_latest: [1, 3].include?(disabilities_latest.detect(&:substance?)&.DisabilityResponse),
             annual_assessment_expected: annual_assessment_expected,
-            annual_assessment_in_window: annual_assessment_in_window?(last_service_history_enrollment, income_at_annual_assessment&.InformationDate),
+            # anniversary dates are always based on HoH enrollment
+            annual_assessment_in_window: annual_assessment_in_window?(hoh_enrollment, income_at_annual_assessment&.InformationDate),
             approximate_time_to_move_in: approximate_move_in_dates[last_service_history_enrollment.client_id],
             came_from_street_last_night: enrollment.PreviousStreetESSH,
             chronic_disability_entry: disabilities_at_entry.detect(&:chronic?)&.DisabilityResponse,
             chronic_disability_exit: disabilities_at_exit.detect(&:chronic?)&.DisabilityResponse,
             chronic_disability_latest: disabilities_latest.detect(&:chronic?)&.DisabilityResponse,
             chronic_disability: disabilities.detect(&:chronic?).present?,
-            chronically_homeless: last_service_history_enrollment.enrollment.chronically_homeless_at_start?,
-            chronically_homeless_detail: last_service_history_enrollment.enrollment.chronically_homeless_at_start,
+            chronically_homeless: chronic_source[:chronic_status],
+            chronically_homeless_detail: chronic_source[:chronic_detail],
             currently_fleeing: health_and_dv&.CurrentlyFleeing,
             date_homeless: enrollment.DateToStreetESSH,
             date_of_engagement: last_service_history_enrollment.enrollment.DateOfEngagement,
             date_of_last_bed_night: last_bed_night&.DateProvided,
+            los_under_threshold: enrollment.LOSUnderThreshold,
             date_to_street: dates_to_street[last_service_history_enrollment.client_id],
             destination: last_service_history_enrollment.destination,
             developmental_disability_entry: disabilities_at_entry.detect(&:developmental?)&.DisabilityResponse,
@@ -221,7 +230,8 @@ module HudApr::Generators::Shared::Fy2021
             income_total_at_annual_assessment: income_at_annual_assessment&.hud_total_monthly_income,
             income_total_at_exit: income_at_exit&.hud_total_monthly_income,
             income_total_at_start: income_at_start&.hud_total_monthly_income,
-            indefinite_and_impairs: disabilities.detect(&:indefinite_and_impairs?).present?,
+            # NOTE: this is used for data quality, and should only look at the most recent disability
+            indefinite_and_impairs: disabilities_latest.detect(&:indefinite_and_impairs?).present?,
             insurance_from_any_source_at_annual_assessment: income_at_annual_assessment&.InsuranceFromAnySource,
             insurance_from_any_source_at_exit: income_at_exit&.InsuranceFromAnySource,
             insurance_from_any_source_at_start: income_at_start&.InsuranceFromAnySource,

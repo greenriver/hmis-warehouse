@@ -29,6 +29,7 @@ module HudDataQualityReport::Generators::Fy2022
 
         # Pre-calculate some values
         household_types = {}
+        household_assessment_required = {}
         times_to_move_in = {}
         move_in_dates = {}
         approximate_move_in_dates = {}
@@ -41,6 +42,8 @@ module HudDataQualityReport::Generators::Fy2022
           age = source_client.age_on(client_start_date)
 
           hh_id = get_hh_id(last_service_history_enrollment)
+          hoh_enrollment = hoh_enrollments[get_hoh_id(hh_id)]
+          household_assessment_required[hh_id] = annual_assessment_expected?(hoh_enrollment)
           date = [
             @report.start_date,
             last_service_history_enrollment.first_date_in_program,
@@ -70,8 +73,12 @@ module HudDataQualityReport::Generators::Fy2022
           exit_date = last_service_history_enrollment.last_date_in_program
           exit_record = last_service_history_enrollment.enrollment if exit_date.present? && exit_date < report_end_date
 
+          hh_id = get_hh_id(last_service_history_enrollment)
+          # Fetch the Head of Household's enrollment, but if we don't have a head, just use ours
+          hoh_enrollment = hoh_enrollments[get_hoh_id(hh_id)] || last_service_history_enrollment
+
           income_at_start = enrollment.income_benefits_at_entry
-          income_at_annual_assessment = annual_assessment(enrollment)
+          income_at_annual_assessment = annual_assessment(enrollment, hoh_enrollment.first_date_in_program)
           income_at_exit = exit_record&.income_benefits_at_exit
 
           disabilities = enrollment.disabilities.select { |disability| [1, 2, 3].include?(disability.DisabilityResponse) }
@@ -83,7 +90,7 @@ module HudDataQualityReport::Generators::Fy2022
           disabilities_latest = enrollment.disabilities.select { |d| d.InformationDate == max_disability_date }
 
           health_and_dv = enrollment.health_and_dvs.
-            select { |h| h.InformationDate <= report_end_date }.
+            select { |h| h.InformationDate <= report_end_date && !h.DomesticViolenceVictim.nil? }.
             max_by(&:InformationDate)
 
           last_bed_night = enrollment.services.select do |s|
@@ -96,10 +103,12 @@ module HudDataQualityReport::Generators::Fy2022
           end
 
           age = source_client.age_on(client_start_date)
-          household_type = if age.blank? || age.negative?
-            :unknown
+          household_type = household_types[hh_id]
+          hoh_anniversary_date = anniversary_date(entry_date: hoh_enrollment.first_date_in_program, report_end_date: @report.end_date)
+          annual_assessment_expected = if age.present? && age >= 18
+            household_assessment_required[hh_id] && last_service_history_enrollment.first_date_in_program < hoh_anniversary_date
           else
-            household_types[get_hh_id(last_service_history_enrollment)]
+            household_assessment_required[hh_id]
           end
 
           processed_source_clients << source_client.id
@@ -113,8 +122,9 @@ module HudDataQualityReport::Generators::Fy2022
             alcohol_abuse_entry: [1, 3].include?(disabilities_at_entry.detect(&:substance?)&.DisabilityResponse),
             alcohol_abuse_exit: [1, 3].include?(disabilities_at_exit.detect(&:substance?)&.DisabilityResponse),
             alcohol_abuse_latest: [1, 3].include?(disabilities_latest.detect(&:substance?)&.DisabilityResponse),
-            annual_assessment_expected: annual_assessment_expected?(last_service_history_enrollment),
-            annual_assessment_in_window: annual_assessment_in_window?(last_service_history_enrollment, income_at_annual_assessment&.InformationDate),
+            annual_assessment_expected: annual_assessment_expected,
+            # anniversary dates are always based on HoH enrollment
+            annual_assessment_in_window: annual_assessment_in_window?(hoh_enrollment, income_at_annual_assessment&.InformationDate),
             approximate_time_to_move_in: approximate_move_in_dates[last_service_history_enrollment.client_id],
             came_from_street_last_night: enrollment.PreviousStreetESSH,
             chronic_disability_entry: disabilities_at_entry.detect(&:chronic?)&.DisabilityResponse,
@@ -168,7 +178,8 @@ module HudDataQualityReport::Generators::Fy2022
             income_total_at_annual_assessment: income_at_annual_assessment&.hud_total_monthly_income,
             income_total_at_exit: income_at_exit&.hud_total_monthly_income,
             income_total_at_start: income_at_start&.hud_total_monthly_income,
-            indefinite_and_impairs: disabilities.detect(&:indefinite_and_impairs?).present?,
+            # NOTE: this is used for data quality, and should only look at the most recent disability
+            indefinite_and_impairs: disabilities_latest.detect(&:indefinite_and_impairs?).present?,
             insurance_from_any_source_at_annual_assessment: income_at_annual_assessment&.InsuranceFromAnySource,
             insurance_from_any_source_at_exit: income_at_exit&.InsuranceFromAnySource,
             insurance_from_any_source_at_start: income_at_start&.InsuranceFromAnySource,
@@ -251,6 +262,7 @@ module HudDataQualityReport::Generators::Fy2022
     private def clients_with_enrollments(batch)
       enrollment_scope.
         where(client_id: batch.map(&:id)).
+        order(first_date_in_program: :asc).
         reject { |shs| shs.project_type == 4 && shs.enrollment.DateOfEngagement >= report_end_date }.
         group_by(&:client_id)
     end
