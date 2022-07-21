@@ -11,8 +11,8 @@ module Types
     description 'HUD Client Sorting Options'
     graphql_name 'ClientSortOption'
 
-    value 'LAST_NAME', 'Client Last Name', value: 'LastName'
-
-    # TODO: Add more sorting options if needed
+    Hmis::Hud::Client::SORT_OPTIONS.each do |opt|
+      value opt.to_s.upcase, value: opt
+    end
   end
 end

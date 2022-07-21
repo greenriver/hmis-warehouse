@@ -17,15 +17,14 @@ module Types
           field_options = default_field_options.merge(override_options)
           field(name, **field_options) do
             argument :sort_order, Types::HmisSchema::OrganizationSortOption, required: false
-            argument :sort_direction, Types::HmisSchema::SortDirection, required: false
             instance_eval(&block) if block_given?
           end
         end
       end
 
-      def resolve_organizations(scope = object.organizations, user: current_user, sort_order: nil, sort_direction: :asc)
+      def resolve_organizations(scope = object.organizations, user: current_user, sort_order: nil)
         organizations_scope = scope.viewable_by(user)
-        organizations_scope = organizations_scope.sort_by_option(sort_order, sort_direction) if sort_order.present?
+        organizations_scope = organizations_scope.sort_by_option(sort_order) if sort_order.present?
         organizations_scope
       end
     end

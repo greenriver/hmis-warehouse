@@ -16,4 +16,19 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
   has_many :enrollments, **hmis_relation(:PersonalID, 'Enrollment')
   has_many :projects, through: :enrollments
+
+  SORT_OPTIONS = [:last_name_asc, :last_name_desc].freeze
+
+  def self.sort_by_option(option)
+    raise NotImplementedError unless SORT_OPTIONS.include?(option)
+
+    case option
+    when :last_name_asc
+      order(:LastName)
+    when :last_name_desc
+      order(LastName: :desc)
+    else
+      raise NotImplementedError
+    end
+  end
 end

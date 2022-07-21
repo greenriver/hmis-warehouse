@@ -17,15 +17,14 @@ module Types
           field_options = default_field_options.merge(override_options)
           field(name, **field_options) do
             argument :sort_order, Types::HmisSchema::ClientSortOption, required: false
-            argument :sort_direction, Types::HmisSchema::SortDirection, required: false
             instance_eval(&block) if block_given?
           end
         end
       end
 
-      def resolve_clients(scope = object.clients, sort_order: :LastName, sort_direction: :asc, _user: current_user, no_sort: false)
+      def resolve_clients(scope = object.clients, sort_order: :last_name_asc, _user: current_user, no_sort: false)
         clients_scope = scope
-        clients_scope = clients_scope.order(sort_order => sort_direction) unless no_sort
+        clients_scope = clients_scope.sort_by_option(sort_order) unless no_sort
         clients_scope
       end
     end

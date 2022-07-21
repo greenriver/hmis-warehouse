@@ -26,14 +26,14 @@ class Hmis::Hud::Project < Hmis::Hud::Base
 
   SORT_OPTIONS = [:organization_and_name, :name].freeze
 
-  def self.sort_by_option(option, direction)
-    raise NotImplementedError unless SORT_OPTIONS.include?(option) && [:asc, :desc].include?(direction)
+  def self.sort_by_option(option)
+    raise NotImplementedError unless SORT_OPTIONS.include?(option)
 
     case option
     when :name
-      order(ProjectName: direction)
+      order(:ProjectName)
     when :organization_and_name
-      joins(:organization).order(o_t[:OrganizationName].send(direction), p_t[:ProjectName].send(direction))
+      joins(:organization).order(o_t[:OrganizationName], p_t[:ProjectName])
     else
       raise NotImplementedError
     end
