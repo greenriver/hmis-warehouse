@@ -5,6 +5,7 @@
 ###
 
 class Hmis::Hud::Project < Hmis::Hud::Base
+  include ArelHelper
   include ::HmisStructure::Project
   include ::Hmis::Hud::Shared
   self.table_name = :Project
@@ -21,5 +22,20 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   # Always use ProjectType, we shouldn't need overrides since we can change the source data
   scope :with_project_type, ->(project_types) do
     where(ProjectType: project_types)
+  end
+
+  SORT_OPTIONS = [:organization_and_name, :name].freeze
+
+  def self.sort_by_option(option)
+    raise NotImplementedError unless SORT_OPTIONS.include?(option)
+
+    case option
+    when :name
+      order(:ProjectName)
+    when :organization_and_name
+      joins(:organization).order(o_t[:OrganizationName], p_t[:ProjectName])
+    else
+      raise NotImplementedError
+    end
   end
 end

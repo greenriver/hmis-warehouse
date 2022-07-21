@@ -17,4 +17,17 @@ class Hmis::Hud::Organization < Hmis::Hud::Base
     viewable_ids = GrdaWarehouse::Hud::Organization.viewable_by(user).pluck(:id)
     where(id: viewable_ids, data_source_id: user.hmis_data_source_id)
   end
+
+  SORT_OPTIONS = [:name].freeze
+
+  def self.sort_by_option(option)
+    raise NotImplementedError unless SORT_OPTIONS.include?(option)
+
+    case option
+    when :name
+      order(:OrganizationName)
+    else
+      raise NotImplementedError
+    end
+  end
 end

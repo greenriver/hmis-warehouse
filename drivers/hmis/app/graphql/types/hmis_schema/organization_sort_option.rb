@@ -7,11 +7,11 @@
 # frozen_string_literal: true
 
 module Types
-  class HmisSchema::ClientSortOption < Types::BaseEnum
-    description 'HUD Client Sorting Options'
-    graphql_name 'ClientSortOption'
+  class HmisSchema::OrganizationSortOption < Types::BaseEnum
+    description 'HUD Organization Sorting Options'
+    graphql_name 'OrganizationSortOption'
 
-    Hmis::Hud::Client::SORT_OPTIONS.each do |opt|
+    Hmis::Hud::Organization::SORT_OPTIONS.each do |opt|
       value opt.to_s.upcase, value: opt
     end
   end
