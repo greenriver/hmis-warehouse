@@ -13,5 +13,9 @@ module BuiltForZeroReport
     def initialize(start_date, end_date, user:)
       @veterans = Calculator.new(:veteran_cohort, start_date, end_date, user: user)
     end
+
+    def self.sub_population_name
+      'Veterans'
+    end
   end
 end

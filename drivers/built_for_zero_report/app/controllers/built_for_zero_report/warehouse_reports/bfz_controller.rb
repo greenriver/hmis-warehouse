@@ -11,6 +11,10 @@ module BuiltForZeroReport::WarehouseReports
     before_action :set_report
 
     def index
+      return unless params[:commit] == 'Submit Report'
+
+      BuiltForZeroReport.delay.submit_via_api!(@start_date, @end_date, user: current_user)
+      flash[:notice] = 'Report queued, please check the BFZ website to confirm delivery.'
     end
 
     def details
@@ -48,14 +52,7 @@ module BuiltForZeroReport::WarehouseReports
     helper_method :report_params
 
     def sections
-      {
-        'adults' => ::BuiltForZeroReport::Adults,
-        'chronic' => ::BuiltForZeroReport::Chronic,
-        'families' => ::BuiltForZeroReport::Families,
-        'veterans' => ::BuiltForZeroReport::Veterans,
-        'chronic_veterans' => ::BuiltForZeroReport::ChronicVeterans,
-        'youth' => ::BuiltForZeroReport::Youth,
-      }.freeze
+      BuiltForZeroReport.section_classes
     end
   end
 end

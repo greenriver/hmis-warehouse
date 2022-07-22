@@ -59,8 +59,10 @@ module BuiltForZeroReport
       https = Net::HTTP.new(url.host, url.port)
       https.use_ssl = true
       headers = {
+        # 'Prefer' => 'return=minimal',
         'Content-Type' => 'application/json',
         'apikey' => apikey,
+        'Authorization: Bearer' => bearer_token,
       }
       request = Net::HTTP::Post.new(url, headers)
 
@@ -72,6 +74,11 @@ module BuiltForZeroReport
     # Use this to determine the community_id, then save that to the credential
     def communities
       get('rest/v1/communities?select=*')
+    end
+
+    def submit(body)
+      query = 'rest/v1/community_reported_population'
+      post(query, body)
     end
 
     def section_ids

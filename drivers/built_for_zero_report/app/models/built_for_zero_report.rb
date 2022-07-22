@@ -34,4 +34,28 @@ module BuiltForZeroReport
       invert.
       freeze
   end
+
+  def self.section_classes
+    {
+      'adults' => ::BuiltForZeroReport::Adults,
+      'chronic' => ::BuiltForZeroReport::Chronic,
+      'families' => ::BuiltForZeroReport::Families,
+      'veterans' => ::BuiltForZeroReport::Veterans,
+      'chronic_veterans' => ::BuiltForZeroReport::ChronicVeterans,
+      'youth' => ::BuiltForZeroReport::Youth,
+    }.freeze
+  end
+
+  # Returns success or failure string
+  def self.submit_via_api!(start_date, end_date, user:)
+    credential = BuiltForZeroReport::Credential.first
+    data = credential.section_ids.map do |m|
+      section = section_classes.values.detect { |sc| m['subpopname'] == sc.sub_population_name }
+      sub_population_id = m['id']
+      next if section.blank?
+
+      section.new(start_date, end_date, user: user).data.for_api(sub_population_id)
+    end.compact
+    credential.submit(data.to_json)
+  end
 end
