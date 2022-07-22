@@ -1,9 +1,4 @@
-require './drivers/hmis/spec/support/graphql_helpers'
 require 'rails_helper'
-
-RSpec.configure do |c|
-  c.include GraphqlHelpers
-end
 
 RSpec.describe Hmis::GraphqlController, type: :request do
   let(:user) { create :user }
@@ -56,4 +51,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(project_names).to eq ['CCC', 'DDD', 'AAA', 'BBB']
     end
   end
+end
+
+RSpec.configure do |c|
+  c.include GraphqlHelpers
 end
