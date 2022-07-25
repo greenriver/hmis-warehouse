@@ -460,12 +460,16 @@ class User < ApplicationRecord
   end
 
   def care_coordinators
-    ids = user_care_coordinators.pluck(:care_coordinator_id)
+    ids = user_care_coordinators.
+      joins(:coordination_team).
+      pluck(:team_coordinator_id)
     User.where(id: ids)
   end
 
   def user_team_coordinators
-    Health::UserCareCoordinator.where(care_coordinator_id: id)
+    Health::UserCareCoordinator.
+      joins(:coordination_team).
+      where(coordination_team: { team_coordinator_id: id })
   end
 
   def team_coordinators
