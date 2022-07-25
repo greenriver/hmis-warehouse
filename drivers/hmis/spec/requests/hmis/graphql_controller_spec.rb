@@ -17,7 +17,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   describe 'Projects query' do
     it 'sorts by name' do
-      result = post_graphql do
+      response, result = post_graphql do
         <<~GRAPHQL
           query {
             projects(sortOrder: NAME) {
@@ -27,12 +27,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         GRAPHQL
       end
 
+      expect(response.status).to eq 200
       project_names = result.dig('data', 'projects').map { |d| d['projectName'] }
       expect(project_names).to eq ['AAA', 'BBB', 'CCC', 'DDD']
     end
 
     it 'sorts by organization and name' do
-      result = post_graphql do
+      response, result = post_graphql do
         <<~GRAPHQL
           query {
             projects(sortOrder: ORGANIZATION_AND_NAME) {
@@ -44,11 +45,27 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           }
         GRAPHQL
       end
-
+      expect(response.status).to eq 200
       organization_names = result.dig('data', 'projects').map { |d| d['organization']['organizationName'] }
       expect(organization_names).to eq ['XXX', 'XXX', 'ZZZ', 'ZZZ']
       project_names = result.dig('data', 'projects').map { |d| d['projectName'] }
       expect(project_names).to eq ['CCC', 'DDD', 'AAA', 'BBB']
+    end
+
+    it 'responds with 401 if not authenticated' do
+      delete destroy_hmis_user_session_path
+      expect(response.status).to eq 204
+      response, body = post_graphql do
+        <<~GRAPHQL
+          query {
+            projects {
+              projectName
+            }
+          }
+        GRAPHQL
+      end
+      expect(response.status).to eq 401
+      expect(body.dig('error', 'type')).to eq 'unauthenticated'
     end
   end
 end
