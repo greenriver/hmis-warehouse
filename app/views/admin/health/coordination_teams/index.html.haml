@@ -1,0 +1,10 @@
+- content_for :title,  'Coordination Teams'
+%h1= content_for :title
+
+= render 'menus/health_admin_tabs'
+
+- if @teams.blank?
+  = render 'new team'
+- else
+  - @teams.each do |team|
+    = render 'form', team: team
