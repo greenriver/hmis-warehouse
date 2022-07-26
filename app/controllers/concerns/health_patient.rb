@@ -61,6 +61,8 @@ module HealthPatient
           merge(Health::PatientReferral.not_confirmed_rejected).
           find_by(client_id: params[:client_id].to_i)
       end
+
+      not_authorized! unless @patient.present?
     end
   end
 end
