@@ -43,6 +43,8 @@ module HealthPatient
       GrdaWarehouse::Hud::Client.destination
     end
 
+    # Note: use set_hpc_patient instead.
+    # This bypasses the filter for disenrolled patients. Only used by pilot program.
     protected def set_patient
       @patient = Health::Patient.accessible_by_user(current_user).find_by(client_id: params[:client_id].to_i)
     end
