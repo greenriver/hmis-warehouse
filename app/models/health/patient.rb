@@ -332,6 +332,16 @@ module Health
         having(nf('count', [h_sd_t[:patient_id]]).between(range)).select(:patient_id))
     end
 
+    # For now, all patients are visible to all health users
+    # BUT, all patients must have a referral
+    scope :viewable_by_user, ->(user) do
+      if user.can_administer_health?
+        joins(:patient_referral)
+      else
+        joins(:patient_referral).merge(Health::PatientReferral.not_confirmed_rejected)
+      end
+    end
+
     delegate :effective_date, to: :patient_referral
     delegate :enrollment_start_date, to: :patient_referral
     delegate :aco, to: :patient_referral
