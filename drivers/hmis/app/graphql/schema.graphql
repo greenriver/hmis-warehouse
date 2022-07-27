@@ -2,13 +2,13 @@
 HUD Client
 """
 type Client {
-  dateUpdated: DateTime!
+  dateUpdated: ISO8601DateTime!
 
   """
   Date of birth as format yyyy-mm-dd
   """
-  dob: Date
-  endDate: DateTime
+  dob: ISO8601Date
+  endDate: ISO8601DateTime
   enrollments: [Enrollment!]!
   firstName: String!
   id: ID!
@@ -17,7 +17,7 @@ type Client {
   preferredName: String
   pronouns: String
   ssnSerial: String
-  startDate: DateTime
+  startDate: ISO8601DateTime
 }
 
 """
@@ -69,24 +69,24 @@ type ClientsPaginated {
 }
 
 """
-A Date object, transporated as a string
-"""
-scalar Date
-
-"""
-A DateTime object, transporated as a string
-"""
-scalar DateTime
-
-"""
 HUD Enrollment
 """
 type Enrollment {
-  entryDate: DateTime
-  exitDate: DateTime
+  entryDate: ISO8601DateTime
+  exitDate: ISO8601DateTime
   id: ID!
   project: Project
 }
+
+"""
+An ISO 8601-encoded date
+"""
+scalar ISO8601Date
+
+"""
+An ISO 8601-encoded datetime
+"""
+scalar ISO8601DateTime
 
 """
 HUD Organization
