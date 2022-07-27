@@ -66,7 +66,7 @@ gem 'mimemagic'
 # since there are no tests for this
 # it should be tested manually
 gem 'acts-as-taggable-on', '~> 7.0'
-gem 'seven_zip_ruby'
+# gem 'seven_zip_ruby'
 gem 'hellosign-ruby-sdk'
 
 gem 'devise', '~> 4'
