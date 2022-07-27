@@ -11,7 +11,7 @@ module Types
     description 'HUD Enrollment'
     field :id, ID, null: false
     field :project, Types::HmisSchema::Project, null: true
-    field :entry_date, DateTime, null: true
-    field :exit_date, DateTime, null: true
+    field :entry_date, GraphQL::Types::ISO8601DateTime, null: true
+    field :exit_date, GraphQL::Types::ISO8601DateTime, null: true
   end
 end
