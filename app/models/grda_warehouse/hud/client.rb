@@ -1895,19 +1895,12 @@ module GrdaWarehouse::Hud
         where = sa[:PersonalID].eq(text).or(sa[:id].eq(text))
       else
         query = "%#{text}%"
-        alt_names = UniqueName.where(double_metaphone: Text::Metaphone.double_metaphone(text).to_s).map(&:name)
-        nicks = Nickname.for(text).map(&:name)
         where = sa[:FirstName].matches(query).
           or(sa[:LastName].matches(query))
-        if nicks.any?
-          nicks_for_search = nicks.map { |m| GrdaWarehouse::Hud::Client.connection.quote(m) }.join(',')
-          where = where.or(nf('LOWER', [arel_table[:FirstName]]).in(nicks_for_search))
-        end
-        if alt_names.present?
-          alt_names_for_search = alt_names.map { |m| GrdaWarehouse::Hud::Client.connection.quote(m) }.join(',')
-          where = where.or(nf('LOWER', [arel_table[:FirstName]]).in(alt_names_for_search)).
-            or(nf('LOWER', [arel_table[:LastName]]).in(alt_names_for_search))
-        end
+
+        where = nickname_search(where, text)
+        where = metaphone_search_first_name(where, text)
+        where = metaphone_search_last_name(where, text)
       end
       begin
         client_ids = client_scope.
@@ -1922,6 +1915,27 @@ module GrdaWarehouse::Hud
 
       client_ids << text if numeric && self.destination.where(id: text).exists? # rubocop:disable Style/RedundantSelf
       where(id: client_ids)
+    end
+
+    def self.nickname_search(where, text)
+      nicks = Nickname.for(text).map(&:name)
+      where = where.or(nf('LOWER', [arel_table[:FirstName]]).in(nicks)) if nicks.any?
+
+      where
+    end
+
+    def self.metaphone_search_first_name(where, text)
+      alt_names = UniqueName.where(double_metaphone: Text::Metaphone.double_metaphone(text).to_s).map(&:name)
+      where = where.or(nf('LOWER', [arel_table[:FirstName]]).in(alt_names)) if alt_names.present?
+
+      where
+    end
+
+    def self.metaphone_search_last_name(where, text)
+      alt_names = UniqueName.where(double_metaphone: Text::Metaphone.double_metaphone(text).to_s).map(&:name)
+      where = where.or(nf('LOWER', [arel_table[:LastName]]).in(alt_names)) if alt_names.present?
+
+      where
     end
 
     # Must match 3 of four First Name, Last Name, SSN, DOB
