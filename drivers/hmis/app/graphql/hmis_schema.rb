@@ -5,8 +5,7 @@
 ###
 
 class HmisSchema < GraphQL::Schema
-  # TODO: Uncomment when we have mutations, otherwise creates an empty type
-  # mutation(Types::HmisSchema::MutationType)
+  mutation(Types::HmisSchema::MutationType)
   query(Types::HmisSchema::QueryType)
 
   # For batch-loading (see https://graphql-ruby.org/dataloader/overview.html)

@@ -8,5 +8,6 @@
 
 module Types
   class HmisSchema::MutationType < Types::BaseObject
+    field :create_client, mutation: Mutations::CreateClient
   end
 end
