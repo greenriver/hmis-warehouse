@@ -17,5 +17,7 @@ module Types
     field :has_more_after, Boolean, null: false
     field :pages_count, Integer, null: false
     field :nodes_count, Integer, null: false
+    field :limit, Integer, null: false
+    field :offset, Integer, null: false
   end
 end
