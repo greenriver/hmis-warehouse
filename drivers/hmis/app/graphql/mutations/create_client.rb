@@ -4,9 +4,8 @@ module Mutations
 
     type Types::HmisSchema::Client
 
-    # def resolve(input:)
-    #   # params = input.to_params
-    #   Hmis::Hud::Client.first
-    # end
+    def resolve(input:)
+      Hmis::Hud::Client.new(**input.to_params)
+    end
   end
 end

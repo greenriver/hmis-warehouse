@@ -11,10 +11,8 @@ module Types
     description 'HUD Ethnicity'
     graphql_name 'Ethnicity'
 
-    value 'ETHNICITY_NON_HISPANIC', 'Non-Hispanic/Non-Latin(a)(o)(x)', value: 0
-    value 'ETHNICITY_HISPANIC', 'Hispanic/Latin(a)(o)(x)', value: 1
-    value 'ETHNICITY_UNKNOWN', 'Client doesn\'t know', value: 8
-    value 'ETHNICITY_REFUSED', 'Client refused', value: 9
-    value 'ETHNICITY_NOT_COLLECTED', 'Data not collected', value: 99
+    Hmis::Hud::Client.ethnicity_enum_map.members.each do |member|
+      value "ETHNICITY_#{to_enum_key(member[:key])}", member[:desc], value: member[:value]
+    end
   end
 end

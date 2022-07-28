@@ -11,13 +11,8 @@ module Types
     description 'HUD Race'
     graphql_name 'Race'
 
-    value 'RACE_AM_IND_AK_NATIVE', 'American Indian, Alaska Native, or Indigenous', value: 1
-    value 'RACE_ASIAN', 'Asian or Asian American', value: 2
-    value 'RACE_BLACK_AF_AMERICAN', 'Black, African-American, or African', value: 3
-    value 'RACE_NATIVE_HI_PACIFIC', 'Native Hawaiian or Pacific Islander', value: 4
-    value 'RACE_WHITE', 'White', value: 5
-    value 'RACE_UNKNOWN', 'Client doesn\'t know', value: 8
-    value 'RACE_REFUSED', 'Client refused', value: 9
-    value 'RACE_NOT_COLLECTED', 'Data not collected', value: 99
+    Hmis::Hud::Client.race_enum_map.members.each do |member|
+      value "RACE_#{to_enum_key(member[:key])}", member[:desc], value: member[:value]
+    end
   end
 end

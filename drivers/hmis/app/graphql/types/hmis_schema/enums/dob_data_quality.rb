@@ -11,10 +11,8 @@ module Types
     description 'HUD DOB Data Quality'
     graphql_name 'DOBDataQuality'
 
-    value 'DOB_FULL', 'Full DOB Reported', value: 1
-    value 'DOB_PARTIAL', 'Approximate or partial  DOB reported', value: 2
-    value 'DOB_UNKNOWN', 'Client doesn\'t know', value: 8
-    value 'DOB_REFUSED', 'Client refused', value: 9
-    value 'DOB_NOT_COLLECTED', 'Data not collected', value: 99
+    Hmis::Hud::Client.dob_data_quality_enum_map.members.each do |member|
+      value "DOB_#{to_enum_key(member[:key])}", member[:desc], value: member[:value]
+    end
   end
 end

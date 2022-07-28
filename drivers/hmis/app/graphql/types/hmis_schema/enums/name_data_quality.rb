@@ -11,10 +11,8 @@ module Types
     description 'HUD Name Data Quality'
     graphql_name 'NameDataQuality'
 
-    value 'NAME_FULL', 'Full name reported', value: 1
-    value 'NAME_PARTIAL', 'Partial, street name, or code name reported', value: 2
-    value 'NAME_UNKNOWN', 'Client doesn\'t know', value: 8
-    value 'NAME_REFUSED', 'Client refused', value: 9
-    value 'NAME_NOT_COLLECTED', 'Data not collected', value: 99
+    Hmis::Hud::Client.name_data_quality_enum_map.members.each do |member|
+      value "NAME_#{to_enum_key(member[:key])}", member[:desc], value: member[:value]
+    end
   end
 end

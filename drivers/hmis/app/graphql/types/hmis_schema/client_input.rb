@@ -18,60 +18,41 @@ module Types
     argument :ethnicity, Types::HmisSchema::Enums::Ethnicity, required: false
     argument :veteran_status, Types::HmisSchema::Enums::VeteranStatus, required: false
 
-    def gender_attrs
+    def gender_map
+      Hmis::Hud::Client.gender_enum_map
+    end
+
+    def race_map
+      Hmis::Hud::Client.race_enum_map
+    end
+
+    def multi_field_attrs(input_field, enum_map)
       result = {}
-      return result unless gender.present?
+      return result unless input_field.present?
 
-      gender_none_values = [
-        Types::HmisSchema::Enums::Gender.values['GENDER_UNKNOWN'].value,
-        Types::HmisSchema::Enums::Gender.values['GENDER_REFUSED'].value,
-        Types::HmisSchema::Enums::Gender.values['GENDER_NOT_COLLECTED'].value,
-      ]
+      null_value = input_field.find { |val| enum_map.null_member?(value: val) }
 
-      if gender.any? { |val| gender_none_values.include?(val) }
-        result['Female'] = 99
-        result['Male'] = 99
-        result['NoSingleGender'] = 99
-        result['Transgender'] = 99
-        result['Questioning'] = 99
-        result['GenderNone'] = gender_none_values.find { |val| gender.include?(val) }
+      if null_value.nil?
+        input_field.each do |value|
+          member = enum_map.lookup(value: value)
+          result[member[:key]] = 1
+        end
       else
-        result['Female'] = 1 if gender.include?(Types::HmisSchema::Enums::Gender.values['GENDER_FEMALE'].value)
-        result['Male'] = 1 if gender.include?(Types::HmisSchema::Enums::Gender.values['GENDER_MALE'].value)
-        result['NoSingleGender'] = 1 if gender.include?(Types::HmisSchema::Enums::Gender.values['GENDER_NO_SINGLE_GENDER'].value)
-        result['Transgender'] = 1 if gender.include?(Types::HmisSchema::Enums::Gender.values['GENDER_TRANSGENDER'].value)
-        result['Questioning'] = 1 if gender.include?(Types::HmisSchema::Enums::Gender.values['GENDER_QUESTIONING'].value)
+        enum_map.base_members.each do |member|
+          result[member[:key]] = 99
+        end
+        result['GenderNone'] = null_value
       end
 
       result
     end
 
+    def gender_attrs
+      multi_field_attrs(gender, gender_map)
+    end
+
     def race_attrs
-      result = {}
-      return result unless race.present?
-
-      race_none_values = [
-        Types::HmisSchema::Enums::Race.values['RACE_UNKNOWN'].value,
-        Types::HmisSchema::Enums::Race.values['RACE_REFUSED'].value,
-        Types::HmisSchema::Enums::Race.values['RACE_NOT_COLLECTED'].value,
-      ]
-
-      if race.any? { |val| race_none_values.include?(val) }
-        result['AmIndAKNative'] = 99
-        result['Asian'] = 99
-        result['BlackAfAmerican'] = 99
-        result['NativeHIPacific'] = 99
-        result['White'] = 99
-        result['RaceNone'] = race_none_values.find { |val| race.include?(val) }
-      else
-        result['AmIndAKNative'] = 1 if race.include?(Types::HmisSchema::Enums::Race.values['RACE_AM_IND_AK_NATIVE'].value)
-        result['Asian'] = 1 if race.include?(Types::HmisSchema::Enums::Race.values['RACE_ASIAN'].value)
-        result['BlackAfAmerican'] = 1 if race.include?(Types::HmisSchema::Enums::Race.values['RACE_BLACK_AF_AMERICAN'].value)
-        result['NativeHIPacific'] = 1 if race.include?(Types::HmisSchema::Enums::Race.values['RACE_NATIVE_HI_PACIFIC'].value)
-        result['White'] = 1 if race.include?(Types::HmisSchema::Enums::Race.values['RACE_WHITE'].value)
-      end
-
-      result
+      multi_field_attrs(race, race_map)
     end
 
     def to_params
@@ -91,8 +72,6 @@ module Types
 
       result = result.merge(race_attrs)
       result = result.merge(gender_attrs)
-
-      puts '~~~~~~~~~~~~~', result, '~~~~~~~~~~~~~'
 
       result
     end

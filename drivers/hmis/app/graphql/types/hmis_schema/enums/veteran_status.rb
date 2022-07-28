@@ -11,10 +11,8 @@ module Types
     description 'HUD Veteran Status'
     graphql_name 'VeteranStatus'
 
-    value 'VETERAN_STATUS_NO', 'No', value: 0
-    value 'VETERAN_STATUS_YES', 'Yes', value: 1
-    value 'VETERAN_STATUS_UNKNOWN', 'Client doesn\'t know', value: 8
-    value 'VETERAN_STATUS_REFUSED', 'Client refused', value: 9
-    value 'VETERAN_STATUS_NOT_COLLECTED', 'Data not collected', value: 99
+    Hmis::Hud::Client.veteran_status_enum_map.members.each do |member|
+      value "VETERAN_STATUS_#{to_enum_key(member[:key])}", member[:desc], value: member[:value]
+    end
   end
 end
