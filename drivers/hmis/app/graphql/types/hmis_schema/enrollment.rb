@@ -10,8 +10,8 @@ module Types
   class HmisSchema::Enrollment < Types::BaseObject
     description 'HUD Enrollment'
     field :id, ID, null: false
-    field :project, Types::HmisSchema::Project, null: true
-    field :entry_date, DateTime, null: true
-    field :exit_date, DateTime, null: true
+    field :project, Types::HmisSchema::Project, null: false
+    field :entry_date, GraphQL::Types::ISO8601DateTime, null: true
+    field :exit_date, GraphQL::Types::ISO8601DateTime, null: true
   end
 end

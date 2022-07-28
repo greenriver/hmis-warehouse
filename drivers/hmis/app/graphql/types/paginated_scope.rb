@@ -6,6 +6,8 @@
 
 module Types
   class PaginatedScope
+    attr_reader :offset, :limit
+
     def initialize(all_nodes, offset: 0, limit:)
       @all_nodes = all_nodes
       @offset = offset

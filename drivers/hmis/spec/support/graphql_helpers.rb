@@ -13,12 +13,10 @@ module GraphqlHelpers
       result = JSON.parse(response.body)
       raise result.to_h['errors'].first['message'] unless result.to_h['errors'].nil? || result.to_h['errors'].empty?
 
-      result.to_h
+      [response, result.to_h]
     else
-      error = JSON.parse(response.body).to_h['error']['message']
-      raise error if error
-
-      {}
+      body = JSON.parse(response.body)
+      [response, body.to_h]
     end
   end
 end
