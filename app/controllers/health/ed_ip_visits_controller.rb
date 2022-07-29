@@ -14,7 +14,7 @@ module Health
 
     def index
       set_hpc_patient
-      set_patient if @patient.blank?
+      # set_patient if @patient.blank?
 
       respond_to do |format|
         format.json do
