@@ -1,0 +1,13 @@
+- importer_class = GrdaWarehouse::Config.active_supplmental_enrollment_importer_class
+- content_for :title, "Upload #{importer_class.title}"
+%h1= content_for :title
+
+- markdown = Redcarpet::Markdown.new(::TranslatedHtml)
+%p= raw markdown.render(importer_class.describe)
+= simple_form_for @upload, url: data_source_non_hmis_uploads_path(@data_source) do |f|
+  = f.error_notification
+  .form-inputs
+    = f.input :file, as: :file
+    = f.hidden_field :file_cache
+  .form-actions
+    = f.button :submit, value: 'Upload'

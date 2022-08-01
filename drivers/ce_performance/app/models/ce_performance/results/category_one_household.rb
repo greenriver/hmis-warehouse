@@ -35,11 +35,11 @@ module CePerformance
     end
 
     def self.title
-      _('Number of Households in Category 1')
+      _('Number of Households in Where the Head of Household is Homeless at Entry')
     end
 
     def self.description
-      'Count of heads of households enrolled in CE who entered from Category 1 homelessness within the reporting range.'
+      'Count of heads of households enrolled in CE who entered from a homeless situation within the reporting range.'
     end
 
     def self.calculation

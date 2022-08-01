@@ -272,6 +272,7 @@ module GrdaWarehouse
         :roi_model,
         :client_dashboard,
         :require_service_for_reporting_default,
+        :supplemental_enrollment_importer,
         client_details: [],
       ]
     end
@@ -279,6 +280,29 @@ module GrdaWarehouse
     def self.arbiter_class
       # FIXME: for now, just return the one known one
       ClientAccessControl::EnrollmentArbiter if RailsDrivers.loaded.include?(:client_access_control)
+    end
+
+    def self.active_supplmental_enrollment_importer_class
+      supplmental_enrollment_importer_name = available_supplmental_enrollment_importers.values.detect do |class_name|
+        get(:supplemental_enrollment_importer) == class_name
+      end || default_supplmental_enrollment_importers.values.first
+      supplmental_enrollment_importer_name.constantize
+    end
+
+    def self.available_supplmental_enrollment_importers
+      Rails.application.config.supplmental_enrollment_importers[:available]
+    end
+
+    def self.add_supplmental_enrollment_importer(name, class_name)
+      importers = default_supplmental_enrollment_importers
+      importers[name] = class_name
+      Rails.application.config.supplmental_enrollment_importers[:available] = importers.sort.to_h
+    end
+
+    def self.default_supplmental_enrollment_importers
+      {
+        'Default' => 'GrdaWarehouse::Tasks::EnrollmentExtrasImport',
+      }
     end
   end
 end

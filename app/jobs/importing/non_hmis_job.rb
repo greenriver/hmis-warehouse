@@ -19,11 +19,7 @@ module Importing
       FileUtils.mkdir_p(base_path) unless File.directory?(base_path)
       file = File.open(path, 'w+b')
       file.write(@upload.content)
-      task = GrdaWarehouse::Tasks::EnrollmentExtrasImport.new(
-        source: file,
-        data_source_id: @data_source_id,
-      )
-      task.run!
+      GrdaWarehouse::Config.active_supplmental_enrollment_importer_class.run!(@data_source_id, file, @upload.id)
     end
 
     def enqueue(job)

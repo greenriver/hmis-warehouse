@@ -1,16 +1,1 @@
-- content_for :title, 'Upload Dashboard Extras'
-%h1= content_for :title
-.row
-  .col-sm-10
-    %p
-      Use this form to upload dashboard extras. This file should be an
-      %strong xlsx
-      file containing ROI, VI-SPDAT, and LPG related info.
-    = simple_form_for @upload, url: data_source_non_hmis_uploads_path(@data_source) do |f|
-      = f.error_notification
-      .form-inputs
-        = f.input :file, as: :file
-        = f.hidden_field :file_cache
-      .form-actions
-        = f.button :submit, value: 'Upload'
-
+= render GrdaWarehouse::Config.active_supplmental_enrollment_importer_class

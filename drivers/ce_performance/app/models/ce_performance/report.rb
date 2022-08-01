@@ -229,6 +229,8 @@ module CePerformance
         report_client.exit_date = ce_apr_client.last_date_in_program
         report_client.head_of_household = ce_apr_client.head_of_household
         report_client.prior_living_situation = ce_apr_client.prior_living_situation
+        # was the client ever literally homeless during the report range
+        report_client.cls_literally_homeless = any_cls_literally_homeless?(ce_apr_client)
         report_client.los_under_threshold = ce_apr_client.los_under_threshold
         report_client.previous_street_essh = ce_apr_client.date_to_street
         report_client.household_size = ce_apr_client.household_members.count
@@ -327,6 +329,10 @@ module CePerformance
       report_clients
     end
 
+    private def any_cls_literally_homeless?(ce_apr_client)
+      ce_apr_client.hud_report_apr_living_situations
+    end
+
     private def household_ages(apr_client)
       date = [apr_client.first_date_in_program, filter.start].compact.max
       ages = [apr_client.age]
@@ -366,7 +372,7 @@ module CePerformance
     end
 
     private def answer_clients(report, table, cell)
-      report.answer(question: table, cell: cell).universe_members.preload(:universe_membership).map(&:universe_membership)
+      report.answer(question: table, cell: cell).universe_members.preload(universe_membership: :hud_report_apr_living_situations).map(&:universe_membership)
     end
 
     private def run_ce_aprs
