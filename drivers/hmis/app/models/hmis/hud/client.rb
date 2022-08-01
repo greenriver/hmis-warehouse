@@ -8,22 +8,25 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   include ::HmisStructure::Client
   include ::Hmis::Hud::Shared
   include ArelHelper
+  include ClientSearch
 
   self.table_name = :Client
   self.sequence_name = "public.\"#{table_name}_id_seq\""
 
-  scope :hmis_scope, ->(user) do
-    where(data_source_id: user.hmis_data_source_id)
+  belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
+
+  scope :visible_to, ->(user) do
+    joins(:data_source).merge(GrdaWarehouse::DataSource.hmis(user))
   end
 
-  scope :searchable_by, ->(user) do
+  scope :searchable_to, ->(user) do
     # TODO: additional access control rules go here
-    hmis_scope(user)
+    visible_to(user)
   end
 
   def self.source_for(destination_id:, user:)
     source_id = GrdaWarehouse::Hud::Client.find(destination_id).source_clients.find_by(data_source_id: user.hmis_data_source_id).id
-    searchable_by(user).where(id: source_id)
+    searchable_to(user).where(id: source_id)
   end
 
   def ssn_serial
@@ -37,25 +40,29 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
   def self.client_search(input:, user: nil)
     # Apply ID searches directly, as they can only ever return a single client
-    return searchable_by(user).where(id: input.id) if input.id.present?
-    return searchable_by(user).where(PersonalID: input.personal_id) if input.personal_id
+    return searchable_to(user).where(id: input.id) if input.id.present?
+    return searchable_to(user).where(PersonalID: input.personal_id) if input.personal_id
     return source_for(destination_id: input.warehouse_id, user: user) if input.warehouse_id
 
     # Build search scope
-    scope = GrdaWarehouse::Hud::Client.where(id: searchable_by(user).select(:id))
-    scope = scope.full_text_search(input.text_search) if input.text_search.present?
+    scope = GrdaWarehouse::Hud::Client.where(id: searchable_to(user).select(:id))
+    if input.text_search.present?
+      scope = text_searcher(input.text_search, client_scope: scope) do |where|
+        where(where).pluck(:id)
+      end
+    end
 
     if input.first_name.present?
       query = c_t[:FirstName].matches("#{input.first_name}%")
-      query = GrdaWarehouse::Hud::Client.nickname_search(query, input.first_name)
-      query = GrdaWarehouse::Hud::Client.metaphone_search_first_name(query, input.first_name)
+      query = nickname_search(query, input.first_name)
+      query = metaphone_search(query, :FirstName, input.first_name)
       scope = scope.where(query)
     end
 
     if input.last_name.present?
       query = c_t[:LastName].matches("#{input.last_name}%")
-      query = GrdaWarehouse::Hud::Client.nickname_search(query, input.last_name)
-      query = GrdaWarehouse::Hud::Client.metaphone_search_last_name(query, input.last_name)
+      query = nickname_search(query, input.last_name)
+      query = metaphone_search(query, :LastName, input.last_name)
       scope = scope.where(query)
     end
 
