@@ -3882,7 +3882,16 @@ CREATE TABLE public.ce_performance_ce_aprs (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     deleted_at timestamp without time zone,
-    cls_literally_homeless boolean DEFAULT false NOT NULL
+    cls_literally_homeless boolean DEFAULT false NOT NULL,
+    vispdat_type character varying,
+    vispdat_range character varying,
+    prioritization_tool_type character varying,
+    prioritization_tool_score integer,
+    community character varying,
+    lgbtq_household_members boolean DEFAULT false NOT NULL,
+    client_lgbtq boolean DEFAULT false NOT NULL,
+    dv_survivor boolean DEFAULT false NOT NULL,
+    prevention_tool_score integer
 );
 
 
@@ -5933,9 +5942,9 @@ CREATE TABLE public.enrollment_extras (
     prioritization_tool_score integer,
     agency_name character varying,
     community character varying,
-    lgbtq_household_members boolean DEFAULT false NOT NULL,
-    client_lgbtq boolean DEFAULT false NOT NULL,
-    dv_survivor boolean DEFAULT false NOT NULL,
+    lgbtq_household_members boolean,
+    client_lgbtq boolean,
+    dv_survivor boolean,
     prevention_tool_score integer
 );
 
@@ -38285,6 +38294,13 @@ CREATE INDEX idx_hmis_2020_services_imid_du ON public.hmis_2020_services USING b
 --
 
 CREATE INDEX idx_hmis_2020_users_imid_du ON public.hmis_2020_users USING btree (importer_log_id, "DateUpdated");
+
+
+--
+-- Name: idx_tpc_uniqueness; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX idx_tpc_uniqueness ON public.enrollment_extras USING btree (hud_enrollment_id, entry_date, vispdat_ended_at, project_name, agency_name, community, data_source_id);
 
 
 --

@@ -14,7 +14,7 @@
   .config-button-wrapper
     = link_to new_data_source_non_hmis_upload_path(@data_source), class: 'btn btn-sm btn-secondary mb-4 mr-2' do
       %span.icon-upload2
-      Upload Supplemental Enrollment Data
+      Upload #{GrdaWarehouse::Config.active_supplmental_enrollment_importer_class.title}
 
 - if can_edit_data_sources?
   .config-button-wrapper

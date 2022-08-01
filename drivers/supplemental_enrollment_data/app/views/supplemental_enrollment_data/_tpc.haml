@@ -1,6 +1,10 @@
 - importer_class = GrdaWarehouse::Config.active_supplmental_enrollment_importer_class
 - content_for :title, "Upload #{importer_class.title}"
-%h1= content_for :title
+.d-flex
+  %h1= content_for :title
+  .ml-auto
+    = link_to "Previously Uploaded #{importer_class.title}", data_source_non_hmis_uploads_path(@data_source), class: 'btn btn-secondary mb-4 mr-2'
+
 
 - markdown = Redcarpet::Markdown.new(::TranslatedHtml)
 %p= raw markdown.render(importer_class.describe)
