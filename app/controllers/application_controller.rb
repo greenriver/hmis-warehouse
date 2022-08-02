@@ -43,7 +43,11 @@ class ApplicationController < ActionController::Base
 
   # Prevent CSRF attacks by raising an exception.
   # Needs to be prepended because https://github.com/heartcombo/devise/pull/4033/files
-  protect_from_forgery with: :exception, prepend: true
+  protect_from_forgery with: :null_session, prepend: true
+
+  def handle_unverified_request
+    sign_out
+  end
 
   def cache_grda_warehouse_base_queries
     GrdaWarehouseBase.cache do
