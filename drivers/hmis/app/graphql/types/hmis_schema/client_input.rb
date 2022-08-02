@@ -26,7 +26,7 @@ module Types
       Hmis::Hud::Client.race_enum_map
     end
 
-    def multi_field_attrs(input_field, enum_map)
+    def multi_field_attrs(input_field, enum_map, none_field)
       result = {}
       return result unless input_field.present?
 
@@ -41,18 +41,18 @@ module Types
         enum_map.base_members.each do |member|
           result[member[:key]] = 99
         end
-        result['GenderNone'] = null_value
+        result[none_field] = null_value unless none_field.nil?
       end
 
       result
     end
 
     def gender_attrs
-      multi_field_attrs(gender, gender_map)
+      multi_field_attrs(gender, gender_map, 'GenderNone')
     end
 
     def race_attrs
-      multi_field_attrs(race, race_map)
+      multi_field_attrs(race, race_map, 'RaceNone')
     end
 
     def to_params
