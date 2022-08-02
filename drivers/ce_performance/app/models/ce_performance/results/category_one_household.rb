@@ -8,11 +8,12 @@ module CePerformance
   class Results::CategoryOneHousehold < CePerformance::Result
     include CePerformance::Results::Calculations
     # Find the number of people who are literally homeless (category 1)
-    # 1. Find all clients served (CE APR Q5 B1)
+    # 1. Find all HoH served (CE APR Q5 B1)
     # 2. Of those count those who entered with Prior Living Situation (3.917.1)
     #   homeless
     #   or
     #   LOSUnderThreshold = yes and PreviousStreetESSH = yes
+    #   or received a homeless CLS during the report range
     def self.calculate(report, period, _filter)
       create(
         report_id: report.id,
@@ -22,7 +23,7 @@ module CePerformance
     end
 
     def self.client_scope(report, period)
-      report.clients.served_in_period(period).literally_homeless_at_entry.where(head_of_household: true)
+      report.clients.served_in_period(period).literally_homeless.where(head_of_household: true)
     end
 
     # TODO: move to goal configuration
@@ -35,15 +36,15 @@ module CePerformance
     end
 
     def self.title
-      _('Number of Households in Where the Head of Household is Homeless at Entry')
+      _('Number of Households in Where the Head of Household is Literally Homeless')
     end
 
     def self.description
-      'Count of heads of households enrolled in CE who entered from a homeless situation within the reporting range.'
+      'Count of heads of households enrolled in CE who entered from a literally homeless situation within the reporting range, or had a literally homeless Current Living Situation collected during the report range.'
     end
 
     def self.calculation
-      'Count of heads of households enrolled in CE who entered with a prior living situation of literally homeless, or who\'s length of time was under the threshold and were previously on the street or in shelter.'
+      'Count of heads of households enrolled in CE who entered with a prior living situation of literally homeless, or who\'s length of time was under the threshold and were previously on the street or in shelter, or who had a literally homeless Current Living Situation collected during the report range.'
     end
 
     def self.display_result?

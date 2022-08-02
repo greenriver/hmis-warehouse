@@ -11,7 +11,7 @@ gem 'rubyzip',  '>= 1.2.1' # >= 1.2.1 due to CVE-2017-5946
 gem 'rails-html-sanitizer', '>= 1.4.3' # >= 1.4.3 due to CVE-2022-32209
 gem 'sshkit'
 gem 'paranoia', '~> 2.0'
-gem 'composite_primary_keys', '=13.0.0'
+gem 'composite_primary_keys', '=13.0.3'
 gem 'pg'
 gem 'activerecord-sqlserver-adapter'
 gem 'activerecord-import'

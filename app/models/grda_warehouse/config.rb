@@ -290,7 +290,7 @@ module GrdaWarehouse
     end
 
     def self.available_supplmental_enrollment_importers
-      Rails.application.config.supplmental_enrollment_importers[:available]
+      Rails.application.config.supplmental_enrollment_importers[:available].presence || default_supplmental_enrollment_importers
     end
 
     def self.add_supplmental_enrollment_importer(name, class_name)

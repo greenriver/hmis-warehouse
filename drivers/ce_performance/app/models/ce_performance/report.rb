@@ -310,12 +310,12 @@ module CePerformance
           dates = ph_enrollments[ce_apr_client.destination_client_id]
           housing_entry_date = dates&.
             map(&:first)&.
-            select { |d| d >= initial_referral_date }&.
+            select { |d| d.present? && d >= initial_referral_date }&.
             min
           if housing_entry_date.present?
             housing_move_in_date = dates&.
               map(&:last)&.
-              select { |d| d >= housing_entry_date }&.
+              select { |d| d.present? && d >= housing_entry_date }&.
               min
             report_client.housing_enrollment_entry_date = housing_entry_date
             report_client.housing_enrollment_move_in_date = housing_move_in_date
@@ -330,7 +330,9 @@ module CePerformance
     end
 
     private def any_cls_literally_homeless?(ce_apr_client)
-      ce_apr_client.hud_report_apr_living_situations
+      ce_apr_client.hud_report_apr_living_situations.any? do |m|
+        m.living_situation.in?(::HUD.homeless_situations(as: :current))
+      end
     end
 
     private def household_ages(apr_client)
@@ -348,6 +350,8 @@ module CePerformance
       [
         CePerformance::Results::CategoryOne,
         CePerformance::Results::CategoryOneHousehold,
+        CePerformance::Results::CategoryTwo,
+        CePerformance::Results::CategoryTwoHousehold,
         CePerformance::Results::SuccessfulDiversion,
         CePerformance::Results::TimeInProjectAverage,
         CePerformance::Results::TimeInProjectMedian,

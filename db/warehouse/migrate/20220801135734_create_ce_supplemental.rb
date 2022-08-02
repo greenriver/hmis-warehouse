@@ -1,7 +1,7 @@
 class CreateCeSupplemental < ActiveRecord::Migration[6.1]
   def change
     add_column :configs, :supplemental_enrollment_importer, :string, default: 'GrdaWarehouse::Tasks::EnrollmentExtrasImport'
-    change_table :ce_performance_ce_aprs do |t|
+    change_table :ce_performance_clients do |t|
       t.boolean :cls_literally_homeless, default: false, null: false
       t.string :vispdat_type
       t.string :vispdat_range
@@ -11,7 +11,6 @@ class CreateCeSupplemental < ActiveRecord::Migration[6.1]
       t.boolean :lgbtq_household_members, default: false, null: false
       t.boolean :client_lgbtq, default: false, null: false
       t.boolean :dv_survivor, default: false, null: false
-      t.integer :prevention_tool_score
     end
     change_table :enrollment_extras do |t|
       t.references :file, index: true
@@ -51,6 +50,9 @@ class CreateCeSupplemental < ActiveRecord::Migration[6.1]
       unique: true,
       name: :idx_tpc_uniqueness,
     )
+  end
+
+  def up
     change_column_null :enrollment_extras, :enrollment_id, true, nil
   end
 end

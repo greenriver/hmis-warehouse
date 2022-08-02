@@ -3881,17 +3881,7 @@ CREATE TABLE public.ce_performance_ce_aprs (
     end_date date,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone,
-    cls_literally_homeless boolean DEFAULT false NOT NULL,
-    vispdat_type character varying,
-    vispdat_range character varying,
-    prioritization_tool_type character varying,
-    prioritization_tool_score integer,
-    community character varying,
-    lgbtq_household_members boolean DEFAULT false NOT NULL,
-    client_lgbtq boolean DEFAULT false NOT NULL,
-    dv_survivor boolean DEFAULT false NOT NULL,
-    prevention_tool_score integer
+    deleted_at timestamp without time zone
 );
 
 
@@ -3961,7 +3951,16 @@ CREATE TABLE public.ce_performance_clients (
     q5a_b1 boolean DEFAULT false,
     deleted_at timestamp without time zone,
     assessment_type character varying,
-    days_between_entry_and_initial_referral integer
+    days_between_entry_and_initial_referral integer,
+    cls_literally_homeless boolean DEFAULT false NOT NULL,
+    vispdat_type character varying,
+    vispdat_range character varying,
+    prioritization_tool_type character varying,
+    prioritization_tool_score integer,
+    community character varying,
+    lgbtq_household_members boolean DEFAULT false NOT NULL,
+    client_lgbtq boolean DEFAULT false NOT NULL,
+    dv_survivor boolean DEFAULT false NOT NULL
 );
 
 

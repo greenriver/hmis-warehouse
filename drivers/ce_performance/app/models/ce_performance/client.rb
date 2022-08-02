@@ -20,10 +20,15 @@ module CePerformance
     end
 
     scope :literally_homeless_at_entry, -> do
-      where(
-        arel_table[:prior_living_situation].in(::HUD.homeless_situations(as: :prior)).
-        or(arel_table[:los_under_threshold].eq(1).and(arel_table[:previous_street_essh].eq(1))),
-      )
+      where(literally_homeless_at_entry_query)
+    end
+
+    scope :literally_homeless, -> do
+      where(literally_homeless_at_entry_query.or(literally_homeless_during_enrollment_query))
+    end
+
+    scope :not_literally_homeless, -> do
+      where.not(literally_homeless)
     end
 
     scope :diverted, -> do
@@ -32,6 +37,15 @@ module CePerformance
 
     scope :successfully_diverted, -> do
       diverted.where(diversion_successful: true)
+    end
+
+    def self.literally_homeless_at_entry_query
+      arel_table[:prior_living_situation].in(::HUD.homeless_situations(as: :prior)).
+        or(arel_table[:los_under_threshold].eq(1).and(arel_table[:previous_street_essh].eq(1)))
+    end
+
+    def self.literally_homeless_during_enrollment_query
+      arel_table[:cls_literally_homeless].eq(true)
     end
   end
 end

@@ -5,15 +5,15 @@
 ###
 
 module CePerformance
-  class Results::CategoryOne < CePerformance::Result
+  class Results::CategoryTwo < CePerformance::Result
     include CePerformance::Results::Calculations
-    # Find the number of people who are literally homeless (category 1)
+    # Find the number of people who are not literally homeless (category 1)
     # 1. Find all clients served (CE APR Q5 B1)
-    # 2. Of those count those who entered with Prior Living Situation (3.917.1)
+    # 2. Of those count those who did not enter with Prior Living Situation (3.917.1)
     #   homeless
-    #   or
+    #   nor
     #   LOSUnderThreshold = yes and PreviousStreetESSH = yes
-    #   or received a homeless CLS during the report range
+    #   nor receive a homeless CLS during the report range
     def self.calculate(report, period, _filter)
       create(
         report_id: report.id,
@@ -23,7 +23,7 @@ module CePerformance
     end
 
     def self.client_scope(report, period)
-      report.clients.served_in_period(period).literally_homeless
+      report.clients.served_in_period(period).not_literally_homeless
     end
 
     # TODO: move to goal configuration
@@ -36,15 +36,15 @@ module CePerformance
     end
 
     def self.title
-      _('Number of Clients Who Are Literally Homeless')
+      _('Number of Clients Who Were Not Literally Homeless')
     end
 
     def self.description
-      'Count of clients enrolled in CE who entered from a literally homeless situation within the reporting range, or had a literally homeless Current Living Situation collected during the report range.'
+      'Count of clients enrolled in CE who did not enter from a literally homeless situation within the reporting range, and did not have a literally homeless Current Living Situation collected during the report range.'
     end
 
     def self.calculation
-      'Count of clients enrolled in CE who entered with a prior living situation of literally homeless, or who\'s length of time was under the threshold and were previously on the street or in shelter, or who had a literally homeless Current Living Situation collected during the report range.'
+      'Count of clients enrolled in CE who did not enter with a prior living situation of literally homeless, nor who\'s length of time was under the threshold and were previously on the street or in shelter, nor who had a literally homeless Current Living Situation collected during the report range.'
     end
 
     def display_goal?
@@ -53,7 +53,7 @@ module CePerformance
 
     def nested_results
       [
-        CePerformance::Results::CategoryOneHousehold,
+        CePerformance::Results::CategoryTwoHousehold,
       ]
     end
 

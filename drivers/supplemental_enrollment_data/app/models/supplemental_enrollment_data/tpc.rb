@@ -11,8 +11,8 @@ module SupplementalEnrollmentData
     # Re-using the existing table
     self.table_name = :enrollment_extras
     belongs_to :file, class_name: 'GrdaWarehouse::NonHmisUpload'
-    belongs_to :enrollment, class_name: 'GrdaWarehouse::Hud::Enrollment', primary_key: [:EnrollmentID, :data_source_id], foreign_key: [:hud_enrollment_id, :data_source_id]
-    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', primary_key: [:PersonalID, :data_source_id], foreign_key: [:client_id, :data_source_id]
+    belongs_to :enrollment, class_name: 'GrdaWarehouse::Hud::Enrollment', optional: true
+    has_many :client, class_name: 'GrdaWarehouse::Hud::Client', foreign_key: [:PersonalID, :data_source_id], primary_key: [:client_id, :data_source_id]
 
     def self.title
       'Supplemental Enrollment Data'
@@ -57,7 +57,11 @@ module SupplementalEnrollmentData
     end
 
     def self.conflict_update_columns
-      spec.keys + [:file_id, :data_source_id]
+      spec.keys + [
+        :enrollment_id,
+        :file_id,
+        :data_source_id,
+      ]
     end
 
     def self.conflict_key
@@ -77,6 +81,7 @@ module SupplementalEnrollmentData
       transaction do
         name = workbook.sheets[0]
         sheet = workbook.sheet(0)
+        enrollment_ids = enrollment_ids_by_source_id(data_source_id)
         Rails.logger.info "Importing sheet #{name} from #{@source}"
         validate_headers(sheet, name)
         batch = []
@@ -84,13 +89,27 @@ module SupplementalEnrollmentData
           # skip the header line
           next if i.zero?
 
-          batch << new(row.merge(data_source_id: data_source_id, file_id: upload_id))
+          batch << new(
+            row.merge(
+              data_source_id: data_source_id,
+              file_id: upload_id,
+              enrollment_id: enrollment_ids[row[:hud_enrollment_id].to_s],
+            ),
+          )
         end
+
         import!(
           batch,
           on_duplicate_key_update: { conflict_target: conflict_key, columns: conflict_update_columns },
         )
       end
+    end
+
+    def self.enrollment_ids_by_source_id(data_source_id)
+      GrdaWarehouse::Hud::Enrollment.where(data_source_id: data_source_id).
+        pluck(:EnrollmentID, :id).
+        index_by(&:shift).
+        transform_values(&:first)
     end
 
     def self.validate_headers(sheet, name)
