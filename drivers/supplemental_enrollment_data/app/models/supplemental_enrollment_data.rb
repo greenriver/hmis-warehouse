@@ -5,4 +5,8 @@
 ###
 
 module SupplementalEnrollmentData
+  module GrdaWarehouse
+    module Hud
+    end
+  end
 end

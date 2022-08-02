@@ -10,9 +10,9 @@ module SupplementalEnrollmentData
   class Tpc < ::GrdaWarehouseBase
     # Re-using the existing table
     self.table_name = :enrollment_extras
-    belongs_to :file, class_name: 'GrdaWarehouse::NonHmisUpload'
-    belongs_to :enrollment, class_name: 'GrdaWarehouse::Hud::Enrollment', optional: true
-    has_many :client, class_name: 'GrdaWarehouse::Hud::Client', foreign_key: [:PersonalID, :data_source_id], primary_key: [:client_id, :data_source_id]
+    belongs_to :file, class_name: '::GrdaWarehouse::NonHmisUpload'
+    belongs_to :enrollment, class_name: '::GrdaWarehouse::Hud::Enrollment', optional: true
+    has_many :client, class_name: '::GrdaWarehouse::Hud::Client', foreign_key: [:PersonalID, :data_source_id], primary_key: [:client_id, :data_source_id]
 
     def self.title
       'Supplemental Enrollment Data'
@@ -106,7 +106,7 @@ module SupplementalEnrollmentData
     end
 
     def self.enrollment_ids_by_source_id(data_source_id)
-      GrdaWarehouse::Hud::Enrollment.where(data_source_id: data_source_id).
+      ::GrdaWarehouse::Hud::Enrollment.where(data_source_id: data_source_id).
         pluck(:EnrollmentID, :id).
         index_by(&:shift).
         transform_values(&:first)

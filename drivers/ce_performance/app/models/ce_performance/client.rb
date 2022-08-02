@@ -28,7 +28,7 @@ module CePerformance
     end
 
     scope :not_literally_homeless, -> do
-      where.not(literally_homeless)
+      where.not(literally_homeless_at_entry_query.or(literally_homeless_during_enrollment_query))
     end
 
     scope :diverted, -> do

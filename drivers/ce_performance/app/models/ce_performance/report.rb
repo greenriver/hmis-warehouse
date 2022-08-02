@@ -237,10 +237,34 @@ module CePerformance
         report_client.household_ages = household_ages(ce_apr_client).uniq
         report_client.household_type = ce_apr_client.household_type
         report_client.chronically_homeless_at_entry = ce_apr_client.chronically_homeless
+        if RailsDrivers.loaded.include?(:supplemental_enrollment_data)
+          most_recent_supplement = pick_supplement(ce_apr_client.source_enrollment.tpc_supplemental_enrollment_datum, period)
+          if most_recent_supplement.present?
+            report_client.vispdat_type = most_recent_supplement.vispdat_type
+            report_client.vispdat_range = most_recent_supplement.vispdat_range
+            report_client.prevention_tool_score = most_recent_supplement.prevention_tool_score
+            report_client.prioritization_tool_type = most_recent_supplement.prioritization_tool_type
+            report_client.prioritization_tool_score = most_recent_supplement.prioritization_tool_score
+            report_client.community = most_recent_supplement.community
+            report_client.lgbtq_household_members = most_recent_supplement.lgbtq_household_members || false
+            report_client.client_lgbtq = most_recent_supplement.client_lgbtq || false
+            report_client.dv_survivor = most_recent_supplement.dv_survivor || false
+          end
+        end
         report_client.period = period
         report_clients[ce_apr_client.client_id] = report_client
       end
       report_clients
+    end
+
+    # find the newest that is before the report end date
+    private def pick_supplement(supplements, period)
+      active_filter = periods[period]
+      supplements.select do |m|
+        [m.entry_date, m.vispdat_ended_at].compact.all? { |d| d <= active_filter.end }
+      end.max_by do |m|
+        [m.entry_date, m.vispdat_ended_at].compact.max
+      end
     end
 
     private def add_q9b_clients(report_clients, period, ce_apr)
@@ -376,7 +400,17 @@ module CePerformance
     end
 
     private def answer_clients(report, table, cell)
-      report.answer(question: table, cell: cell).universe_members.preload(universe_membership: :hud_report_apr_living_situations).map(&:universe_membership)
+      preloads = if RailsDrivers.loaded.include?(:supplemental_enrollment_data)
+        {
+          universe_membership: [
+            :hud_report_apr_living_situations,
+            source_enrollment: :tpc_supplemental_enrollment_datum,
+          ],
+        }
+      else
+        { universe_membership: :hud_report_apr_living_situations }
+      end
+      report.answer(question: table, cell: cell).universe_members.preload(preloads).map(&:universe_membership)
     end
 
     private def run_ce_aprs
