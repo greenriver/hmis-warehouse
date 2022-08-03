@@ -10,7 +10,7 @@ module CePerformance
     # For anyone served by CE, how long have they been in the project
     def self.calculate(report, period, _filter)
       numerator = client_scope(report, period).count
-      denominator = report.clients.served_in_period(period).count
+      denominator = report.clients.served_in_period(period).hoh.count
       create(
         report_id: report.id,
         period: period,
@@ -20,48 +20,49 @@ module CePerformance
 
     def self.client_scope(report, period)
       report.clients.served_in_period(period).
-        where.not(days_in_project: nil)
+        hoh.
+        where.not(prevention_tool_score: nil)
     end
 
     # TODO: move to goal configuration
     def self.goal
-      30
+      100
     end
 
     def self.title
-      _('Median Length of Time in CE')
+      _('Clients Screened for Prevention')
     end
 
     def self.description
-      "Persons in the CoC will have a median length of time in CE of **no more than #{goal} days**."
+      "The CoC will screen **#{goal}%** of eligible persons for prevention."
     end
 
     def self.calculation
-      'Median number of days between CE Project Start Date and Exit Date, or Report Period End Date for Stayers'
+      'Percentage of the Heads of Household who were screened for prevention.'
     end
 
     def category
-      'Time'
+      'Participation'
     end
 
     def self.display_result?
-      false
+      true
     end
 
     def goal_direction
-      '<'
+      ''
     end
 
     def brief_goal_description
-      'time in CE'
+      'percentage screened'
     end
 
     def unit
-      'days'
+      'percent'
     end
 
     def detail_link_text
-      "Median: #{value.to_i} days"
+      "#{value.to_i} clients"
     end
 
     def indicator(comparison)

@@ -51,6 +51,10 @@ module CePerformance
       _('Number and Types of CE Events ')
     end
 
+    def category
+      'Activity'
+    end
+
     def self.description
       ''
     end
@@ -79,13 +83,14 @@ module CePerformance
       false
     end
 
-    def data_for_chart(report, comparison)
+    def data_for_chart(report, _comparison)
       report_year_data = report.results.where.not(event_type: nil).pluck(:event_type, :value).to_h
-      comparison_year_data = if false # comparison.present?
-        comparison.where.not(event_type: nil).pluck(:event_type, :value).to_h
-      else
-        {}
-      end
+      comparison_year_data = {}
+      # if comparison.present?
+      #   comparison.where.not(event_type: nil).pluck(:event_type, :value).to_h
+      # else
+      #   {}
+      # end
 
       # normalize data
       comparison_year_data.keys.each do |k|

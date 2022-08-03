@@ -43,6 +43,10 @@ module CePerformance
       _('Median Length of Time from Housing Referral to Housing Start')
     end
 
+    def category
+      'Time'
+    end
+
     def self.description
       "The CoC will decrease the median length of time from Housing Referral to Housing Start by **#{goal} days** annually."
     end

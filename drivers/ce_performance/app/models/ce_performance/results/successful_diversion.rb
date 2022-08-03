@@ -39,7 +39,7 @@ module CePerformance
     end
 
     def category
-      'Diversion'
+      'Participation'
     end
 
     def goal_line

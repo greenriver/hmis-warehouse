@@ -36,7 +36,7 @@ module CePerformance
     end
 
     def self.title
-      _('Number of Clients Who Are Literally Homeless')
+      _('Number of Clients Who Were Literally Homeless')
     end
 
     def self.description

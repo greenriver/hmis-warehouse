@@ -5,30 +5,23 @@
 ###
 
 module CePerformance
-  class Results::CategoryTwoHousehold < CePerformance::Result
+  class Results::Vispdat < CePerformance::Result
     include CePerformance::Results::Calculations
-    # Find the number of people who are not literally homeless (category 1)
-    # 1. Find all HoH served (CE APR Q5 B1)
-    # 2. Of those count those who did not enter with Prior Living Situation (3.917.1)
-    #   homeless
-    #   nor
-    #   LOSUnderThreshold = yes and PreviousStreetESSH = yes
-    #   nor receive a homeless CLS during the report range
     def self.calculate(report, period, _filter)
       create(
         report_id: report.id,
         period: period,
-        value: client_scope(report, period).count,
+        value: average(client_scope(report, period).pluck(:assessment_score)),
       )
     end
 
     def self.client_scope(report, period)
-      report.clients.served_in_period(period).not_literally_homeless.hoh
+      report.clients.served_in_period(period).where.not(assessment_score: nil)
     end
 
     # TODO: move to goal configuration
     def self.goal
-      5
+      nil
     end
 
     def self.ce_apr_question
@@ -36,31 +29,39 @@ module CePerformance
     end
 
     def self.title
-      _('Number of Households Who Were Not Literally Homeless')
+      _('Average VI-SPDAT Score')
+    end
+
+    def category
+      'Activity'
     end
 
     def self.description
-      'Count of heads of household enrolled in CE who did not enter from a literally homeless situation within the reporting range, and did not have a literally homeless Current Living Situation collected during the report range.'
+      'Average VI-SPDAT score for clients enrolled during the report period.'
     end
 
     def self.calculation
-      'Count of heads of household enrolled in CE who did not enter with a prior living situation of literally homeless, nor who\'s length of time was under the threshold and were previously on the street or in shelter, nor who had a literally homeless Current Living Situation collected during the report range.'
-    end
-
-    def self.display_result?
-      false
+      'The average of the most recent VI-SPDAT scores collected before the end of the report period for clients enrolled during the reporting period.'
     end
 
     def display_goal?
       false
     end
 
+    def nested_results
+      [
+        CePerformance::Results::VispdatAdult,
+        CePerformance::Results::VispdatAdultAndChild,
+        CePerformance::Results::VispdatYouth,
+      ]
+    end
+
     def detail_link_text
-      "#{value.to_i} #{unit}"
+      'VI-SPDAT details'
     end
 
     def unit
-      'households'
+      'average score'
     end
 
     def max_100?

@@ -23,7 +23,7 @@ module CePerformance
     end
 
     def self.client_scope(report, period)
-      report.clients.served_in_period(period).literally_homeless.where(head_of_household: true)
+      report.clients.served_in_period(period).literally_homeless.hoh
     end
 
     # TODO: move to goal configuration
@@ -36,7 +36,7 @@ module CePerformance
     end
 
     def self.title
-      _('Number of Households in Where the Head of Household is Literally Homeless')
+      _('Number of Households Who Were Literally Homeless')
     end
 
     def self.description

@@ -237,11 +237,12 @@ module CePerformance
         report_client.household_ages = household_ages(ce_apr_client).uniq
         report_client.household_type = ce_apr_client.household_type
         report_client.chronically_homeless_at_entry = ce_apr_client.chronically_homeless
-        if RailsDrivers.loaded.include?(:supplemental_enrollment_data)
+        if include_supplemental?
           most_recent_supplement = pick_supplement(ce_apr_client.source_enrollment.tpc_supplemental_enrollment_datum, period)
           if most_recent_supplement.present?
             report_client.vispdat_type = most_recent_supplement.vispdat_type
             report_client.vispdat_range = most_recent_supplement.vispdat_range
+            report_client.assessment_score = most_recent_supplement.vispdat_grand_total
             report_client.prevention_tool_score = most_recent_supplement.prevention_tool_score
             report_client.prioritization_tool_type = most_recent_supplement.prioritization_tool_type
             report_client.prioritization_tool_score = most_recent_supplement.prioritization_tool_score
@@ -255,6 +256,10 @@ module CePerformance
         report_clients[ce_apr_client.client_id] = report_client
       end
       report_clients
+    end
+
+    def include_supplemental?
+      RailsDrivers.loaded.include?(:supplemental_enrollment_data) && SupplementalEnrollmentData::Tpc.exists?
     end
 
     # find the newest that is before the report end date
@@ -371,11 +376,18 @@ module CePerformance
     end
 
     private def result_types
-      [
+      types = [
         CePerformance::Results::CategoryOne,
         CePerformance::Results::CategoryOneHousehold,
         CePerformance::Results::CategoryTwo,
         CePerformance::Results::CategoryTwoHousehold,
+      ]
+      if include_supplemental?
+        types += [
+          CePerformance::Results::ClientsScreened,
+        ]
+      end
+      types += [
         CePerformance::Results::SuccessfulDiversion,
         CePerformance::Results::TimeInProjectAverage,
         CePerformance::Results::TimeInProjectMedian,
@@ -388,7 +400,12 @@ module CePerformance
         CePerformance::Results::TimeToAssessmentAverage,
         CePerformance::Results::TimeToAssessmentMedian,
         CePerformance::Results::EventType,
+        CePerformance::Results::Vispdat,
+        CePerformance::Results::VispdatAdult,
+        CePerformance::Results::VispdatAdultAndChild,
+        CePerformance::Results::VispdatYouth,
       ]
+      types
     end
 
     private def calculate_results

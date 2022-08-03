@@ -19,6 +19,10 @@ module CePerformance
       in_period(period).where(q5a_b1: true)
     end
 
+    scope :hoh, -> do
+      where(head_of_household: true)
+    end
+
     scope :literally_homeless_at_entry, -> do
       where(literally_homeless_at_entry_query)
     end
