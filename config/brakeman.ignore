@@ -793,6 +793,25 @@
       "note": ""
     },
     {
+      "warning_type": "Cross-Site Scripting",
+      "warning_code": 2,
+      "fingerprint": "5c9883ed5eb776ac880ae57d089018ff8d55a3138c5bbc61efcc816c9978278c",
+      "check_name": "CrossSiteScripting",
+      "message": "Unescaped model attribute",
+      "file": "app/views/supplemental_enrollment_datum/_default.haml",
+      "line": 7,
+      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
+      "code": "markdown.render(GrdaWarehouse::Config.active_supplmental_enrollment_importer_class.describe)",
+      "render_path": null,
+      "location": {
+        "type": "template",
+        "template": "supplemental_enrollment_datum/_default"
+      },
+      "user_input": "GrdaWarehouse::Config.active_supplmental_enrollment_importer_class.describe",
+      "confidence": "Weak",
+      "note": ""
+    },
+    {
       "warning_type": "Dynamic Render Path",
       "warning_code": 15,
       "fingerprint": "5e218500963e50340c098eba0301ff524fef605cfe646cc30739c101b587d0af",
@@ -1801,7 +1820,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "drivers/homeless_summary_report/app/models/homeless_summary_report/report.rb",
-      "line": 986,
+      "line": 990,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "clients.send(variant).send(\"spm_#{field}\").average(\"spm_#{field}\")",
       "render_path": null,
@@ -2584,6 +2603,6 @@
       "note": ""
     }
   ],
-  "updated": "2022-07-11 15:59:31 +0000",
+  "updated": "2022-08-03 14:34:24 +0000",
   "brakeman_version": "5.0.4"
 }
