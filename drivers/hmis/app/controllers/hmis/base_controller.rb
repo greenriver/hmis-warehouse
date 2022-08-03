@@ -24,7 +24,8 @@ class Hmis::BaseController < ApplicationController
     # In development: treat requests from GraphiQL as if they are coming from the local frontend
     domain = ENV['HMIS_HOSTNAME'] if Rails.env.development? && domain == ENV['HOSTNAME'] && ENV['HMIS_HOSTNAME'].present?
 
-    data_source_id = GrdaWarehouse::DataSource.hmis.where(hmis: domain).pluck(:id).first
+    # Throw an error if you don't have any HMIS Data Sources
+    data_source_id = GrdaWarehouse::DataSource.hmis.find_by(hmis: domain).id
     current_hmis_user.hmis_data_source_id = data_source_id
   end
 end

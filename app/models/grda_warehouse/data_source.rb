@@ -88,8 +88,10 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     where(authoritative: true)
   end
 
-  scope :hmis, -> do
-    where.not(hmis: nil)
+  scope :hmis, ->(user = nil) do
+    scope = where.not(hmis: nil)
+    scope = scope.where(id: user.hmis_data_source_id) if user.present?
+    scope
   end
 
   scope :scannable, -> do

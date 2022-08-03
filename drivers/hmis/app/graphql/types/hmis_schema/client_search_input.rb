@@ -15,7 +15,7 @@ module Types
     argument :organizations, [ID], required: false
 
     def to_params
-      to_h
+      OpenStruct.new(to_h.deep_dup)
     end
   end
 end
