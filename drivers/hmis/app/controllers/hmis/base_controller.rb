@@ -8,7 +8,6 @@ class Hmis::BaseController < ApplicationController
   include Hmis::Concerns::JsonErrors
   respond_to :json
   before_action :set_csrf_cookie
-  protect_from_forgery with: :reset_session
 
   private def set_csrf_cookie
     cookies['CSRF-Token'] = form_authenticity_token
@@ -16,6 +15,13 @@ class Hmis::BaseController < ApplicationController
 
   def authenticate_user!
     authenticate_hmis_user!
+  end
+
+  # Override the devise implementation to reset the session
+  # and return 401, instead of raising InvalidAuthenticityToken
+  def handle_unverified_request
+    reset_session
+    render_json_error(401, :unverified_request)
   end
 
   def attach_data_source_id
