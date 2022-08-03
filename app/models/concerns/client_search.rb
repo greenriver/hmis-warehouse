@@ -8,7 +8,7 @@ module ClientSearch
   extend ActiveSupport::Concern
   included do
     # Requires a block!
-    def self.text_searcher(text, client_scope:) # rubocop:disable Lint/UnusedMethodArgument
+    def self.text_searcher(text)
       return none unless text.present?
 
       text.strip!

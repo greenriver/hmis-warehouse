@@ -1862,7 +1862,7 @@ module GrdaWarehouse::Hud
     end
 
     def self.text_search(text, client_scope:)
-      text_searcher(text, client_scope: client_scope) do |where|
+      text_searcher(text) do |where|
         client_scope.
           joins(:warehouse_client_source).searchable.
           where(where).

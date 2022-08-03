@@ -47,8 +47,8 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     # Build search scope
     scope = GrdaWarehouse::Hud::Client.where(id: searchable_to(user).select(:id))
     if input.text_search.present?
-      scope = text_searcher(input.text_search, client_scope: scope) do |where|
-        where(where).pluck(:id)
+      scope = text_searcher(input.text_search) do |where|
+        scope.where(where).pluck(:id)
       end
     end
 
