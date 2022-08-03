@@ -56,7 +56,7 @@ module ClientSearch
         return none
       end
 
-      client_ids << text if numeric && self.destination.where(id: text).exists? # rubocop:disable Style/RedundantSelf
+      client_ids << text if numeric && GrdaWarehouse::Hud::Client.destination.where(id: text).exists?
       where(id: client_ids)
     end
 
