@@ -39,6 +39,15 @@ module GrdaWarehouse
       }
     end
 
+    def self.available_verified_homeless_history_method
+      {
+        'Include enrollments from data sources that are visible in the window.' => :visible_in_window,
+        'Include enrollments that are visible to the user.' => :visible_to_user,
+        'Include all enrollments if client has a release that grants the user access to the client. If no release, only include enrollments that are visible to the user.' => :release,
+        'Include all enrollments' => :all_enrollments,
+      }
+    end
+
     def self.family_calculation_methods
       {
         'At least one adult & child' => :adult_child,
