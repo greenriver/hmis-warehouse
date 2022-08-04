@@ -1060,7 +1060,9 @@ module GrdaWarehouse::Hud
       @release_duration = GrdaWarehouse::Config.get(:release_duration)
     end
 
-    def release_valid?
+    def release_valid?(coc_codes: nil)
+      return active_confirmed_consent_in_cocs(coc_codes).exists? if coc_codes.present?
+
       housing_release_status&.starts_with?(self.class.full_release_string) || false
     end
 
