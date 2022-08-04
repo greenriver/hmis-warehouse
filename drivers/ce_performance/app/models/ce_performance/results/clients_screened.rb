@@ -8,7 +8,7 @@ module CePerformance
   class Results::ClientsScreened < CePerformance::Result
     include CePerformance::Results::Calculations
     # For anyone served by CE, how long have they been in the project
-    def self.calculate(report, period, _filter)
+    def self.calculate(report, period)
       numerator = client_scope(report, period).count
       denominator = report.clients.served_in_period(period).hoh.count
       create(

@@ -14,7 +14,7 @@ module CePerformance
     #   or
     #   LOSUnderThreshold = yes and PreviousStreetESSH = yes
     #   or received a homeless CLS during the report range
-    def self.calculate(report, period, _filter)
+    def self.calculate(report, period)
       create(
         report_id: report.id,
         period: period,
@@ -61,10 +61,6 @@ module CePerformance
 
     def unit
       'households'
-    end
-
-    def max_100?
-      true
     end
 
     def indicator(comparison)

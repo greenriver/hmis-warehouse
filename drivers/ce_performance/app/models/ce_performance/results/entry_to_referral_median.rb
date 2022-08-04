@@ -8,7 +8,7 @@ module CePerformance
   class Results::EntryToReferralMedian < CePerformance::Result
     include CePerformance::Results::Calculations
     # For anyone served by CE, how long between entry and referral
-    def self.calculate(report, period, _filter)
+    def self.calculate(report, period)
       values = client_scope(report, period).
         pluck(:days_between_entry_and_initial_referral)
       create(

@@ -164,7 +164,7 @@ module CePerformance
           results.each do |r|
             rfd[r.category] ||= {}
             rfd[r.category][period] ||= {}
-            rfd[r.category][period][r.class] ||= r
+            rfd[r.category][period][r.class] ||= r if r.period == period.to_s
           end
         end
       end
@@ -409,9 +409,9 @@ module CePerformance
     end
 
     private def calculate_results
-      periods.each do |period, report_filter|
+      periods.each_key do |period|
         result_types.each do |result_class|
-          result_class.calculate(self, period, report_filter)
+          result_class.calculate(self, period)
         end
       end
     end

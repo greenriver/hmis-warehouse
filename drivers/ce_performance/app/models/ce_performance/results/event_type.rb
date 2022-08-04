@@ -8,7 +8,7 @@ module CePerformance
   class Results::EventType < CePerformance::Result
     include CePerformance::Results::Calculations
     # Count all events by event type
-    def self.calculate(report, period, _filter)
+    def self.calculate(report, period)
       events = {}
       client_scope(report, period).find_each do |client|
         client.events&.each do |event|

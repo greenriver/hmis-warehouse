@@ -8,7 +8,7 @@ module CePerformance
   class Results::ReferralToHousingMedian < CePerformance::Result
     include CePerformance::Results::Calculations
     # For anyone served by CE, how long between referral and housing
-    def self.calculate(report, period, _filter)
+    def self.calculate(report, period)
       values = client_scope(report, period).
         pluck(:days_between_referral_and_housing)
       create(

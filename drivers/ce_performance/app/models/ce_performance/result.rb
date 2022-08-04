@@ -33,5 +33,19 @@ module CePerformance
     def brief_goal_description
       ''
     end
+
+    def data_for_subpopulations(report)
+      @data_for_subpopulations ||= {}.tap do |data|
+        CePerformance::Client.subpopulations(report).each do |title, scope|
+          [
+            :reporting,
+            :comparison,
+          ].each do |period|
+            data[period] ||= {}
+            data[period][title] = self.class.client_scope(report, period).send(scope).count
+          end
+        end
+      end
+    end
   end
 end

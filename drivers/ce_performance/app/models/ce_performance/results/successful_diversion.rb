@@ -9,7 +9,7 @@ module CePerformance
     include CePerformance::Results::Calculations
     # 1. Find the number of people who received a successful diversion event
     # 2. Divide those by the number of people who received a diversion event
-    def self.calculate(report, period, _filter)
+    def self.calculate(report, period)
       diverted = diverted_scope(report, period).count
       successfully_diverted = successfully_diverted_scope(report, period).count
       create(

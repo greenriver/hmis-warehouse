@@ -31,8 +31,11 @@
     - icon = @result.passed?(@comparison) ? 'check' : 'cross'
     - label = @result.passed?(@comparison) ? 'Passed' : 'Failed'
     .row
-      .col-sm-4
-        = tagged(@result.passed?(@comparison), status, icon: icon, label: label)
+      - if @result.display_goal?
+        .col-sm-4
+          = tagged(@result.passed?(@comparison), status, icon: icon, label: label)
+      - else
+        .col-sm-2
       .col-sm-4
         .performance-measurement__result-number.font-weight-bold=indicator.secondary_value
         .text-capitalize="#{indicator.secondary_unit} #{sanitize(indicator.value_label)}"
@@ -41,6 +44,10 @@
         .text-capitalize=indicator.primary_unit
   .col-6
     .c-chart--vertical-bar{ class: chart_class_name, data: { chart: @result.data_for_chart(@report, @comparison).to_json }}
+= debug @result.data_for_subpopulations(@report)
+Convert to Table
+Links to client tables behind ability to access HUD report
+
 
 = content_for :page_js do
   :javascript

@@ -7,7 +7,7 @@
 module CePerformance
   class Results::VispdatYouth < CePerformance::Result
     include CePerformance::Results::Calculations
-    def self.calculate(report, period, _filter)
+    def self.calculate(report, period)
       create(
         report_id: report.id,
         period: period,

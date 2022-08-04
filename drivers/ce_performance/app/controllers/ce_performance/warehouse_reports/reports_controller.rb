@@ -69,6 +69,7 @@ module CePerformance::WarehouseReports
       key = @report.results_for_display[details_params[:category_name]][:reporting].keys.detect do |k|
         details_params[:key] == k.to_s
       end
+
       @result = @report.results_for_display[details_params[:category_name]][:reporting][key]
       @comparison = @report.results_for_display[details_params[:category_name]][:comparison][key]
       @category_name = @report.results_for_display.keys.detect { |m| m == details_params[:category_name] }
