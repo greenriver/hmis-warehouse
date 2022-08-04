@@ -4,16 +4,36 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+class Hmis::Hud::ClientValidator < ActiveModel::Validator
+  IGNORED = [
+    :ExportID,
+  ].freeze
+
+  def validate(record)
+    Hmis::Hud::Client.hmis_configuration(version: '2022').except(*IGNORED).each do |key, options|
+      record.errors.add(key, :required) if options[:null] == false && record.send(key).blank?
+      record.errors.add(key, :too_long, count: options[:limit]) if options[:limit].present? && record.send(key).present? && record.send(key).size > options[:limit]
+    end
+
+    record.errors.add :gender, :required if ::HUD.gender_id_to_field_name.except(8, 9, 99).values.any? { |field| record.send(field).nil? }
+    record.errors.add :race, :required if ::HUD.races.except('RaceNone').keys.any? { |field| record.send(field).nil? }
+  end
+end
+
 class Hmis::Hud::Client < Hmis::Hud::Base
   include ::HmisStructure::Client
   include ::Hmis::Hud::Shared
   include ArelHelper
   include ClientSearch
 
+  attr_accessor :gender, :race
+
   self.table_name = :Client
   self.sequence_name = "public.\"#{table_name}_id_seq\""
 
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
+
+  validates_with Hmis::Hud::ClientValidator
 
   scope :visible_to, ->(user) do
     joins(:data_source).merge(GrdaWarehouse::DataSource.hmis(user))
@@ -95,19 +115,19 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   def self.data_quality_enum_map_for(type = :other)
     desc_map = {
       name: {
-        full: 'Full name reported',
-        partial: 'Partial, street name, or code name reported',
+        full: ::HUD.name_data_quality(1),
+        partial: ::HUD.name_data_quality(2),
       },
       ssn: {
-        full: 'Full SSN Reported',
-        partial: 'Approximate or partial SSN reported',
+        full: ::HUD.ssn_data_quality(1),
+        partial: ::HUD.ssn_data_quality(2),
       },
       dob: {
-        full: 'Full DOB Reported',
-        partial: 'Approximate or partial  DOB reported',
+        full: ::HUD.dob_data_quality(1),
+        partial: ::HUD.dob_data_quality(1),
       },
       other: {
-        full: 'Full value Reported',
+        full: 'Full value reported',
         partial: 'Partial value reported',
       },
     }
