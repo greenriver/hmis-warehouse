@@ -32,13 +32,9 @@ module Types
       field.argument :input, Types::HmisSchema::ClientSearchInput, required: true
     end
 
-    # Need to keep "input" stated as an argument. Un-ignore once we're actually using it
-    # rubocop:disable Lint/UnusedMethodArgument
     def client_search(input:, **args)
-      # TODO <SANDY>: Apply client search here, input shape is defined in Types::HmisSchema::ClientSearchInput
-      search_scope = Hmis::Hud::Client.all
+      search_scope = Hmis::Hud::Client.client_search(input: input.to_params, user: current_user)
       resolve_clients(search_scope, **args)
     end
-    # rubocop:enable Lint/UnusedMethodArgument
   end
 end

@@ -24,8 +24,10 @@ class Hmis::SessionsController < Devise::SessionsController
   end
 
   # We require a valid CSRF token on login form submission.
-  # Override the devise implementation to return 401 instead of raising InvalidAuthenticityToken.
+  # Override the devise implementation to reset the session
+  # and return 401, instead of raising InvalidAuthenticityToken
   def handle_unverified_request
+    reset_session
     render_json_error(401, :unverified_request)
   end
 
