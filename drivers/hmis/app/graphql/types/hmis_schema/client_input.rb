@@ -33,9 +33,9 @@ module Types
       null_value = input_field.find { |val| enum_map.null_member?(value: val) }
 
       if null_value.nil?
-        input_field.each do |value|
+        enum_map.base_members.map { |item| item[:value] }.each do |value|
           member = enum_map.lookup(value: value)
-          result[member[:key]] = 1
+          result[member[:key]] = input_field.include?(value) ? 1 : 0
         end
       else
         enum_map.base_members.each do |member|
@@ -65,7 +65,7 @@ module Types
       result['NameDataQuality'] = name_quality
       result['DOB'] = dob
       result['DOBDataQuality'] = dob_quality
-      result['SSN'] = ssn
+      result['SSN'] = ssn.gsub(/\D/, '')
       result['SSNDataQuality'] = ssn_quality
       result['Ethnicity'] = ethnicity
       result['VeteranStatus'] = veteran_status
