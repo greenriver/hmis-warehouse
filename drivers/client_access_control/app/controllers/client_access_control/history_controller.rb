@@ -9,7 +9,7 @@ module ClientAccessControl
     include ClientPathGenerator
     include ClientDependentControllers
 
-    skip_before_action :authenticate_user!, only: [:pdf] # ???
+    skip_before_action :authenticate_user!, only: [:pdf]
     before_action :require_can_see_this_client_demographics!, except: [:pdf]
     before_action :set_client, except: [:pdf]
     before_action :set_dates, only: [:show]
@@ -74,7 +74,7 @@ module ClientAccessControl
         assigns: {
           organization_counts: @organization_counts,
           project_type_counts: @project_type_counts,
-          user: @user,
+          user: @requesting_user || @user,
           dates: @dates,
           client: @client,
           ordered_dates: @dates.keys.sort,
@@ -256,7 +256,7 @@ module ClientAccessControl
         raise 'User is missing' unless user.present?
 
         if @client.release_valid?(user.coc_codes)
-          scope # should this be limited by CoCs though?
+          scope
         else
           scope.visible_in_window_to(user)
         end
