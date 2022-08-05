@@ -137,6 +137,12 @@ tasks = [
     trigger: health_trigger,
     interruptable: true,
   },
+  {
+    task: 'dba:dry_run',
+    frequency: 1.day,
+    at: '11:00am',
+    interruptable: true,
+  },
   # {
   #   task: 'glacier:backup:database',
   #   frequency: 1.month,
