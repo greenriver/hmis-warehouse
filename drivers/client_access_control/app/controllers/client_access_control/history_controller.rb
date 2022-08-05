@@ -43,7 +43,7 @@ module ClientAccessControl
       current_user ||= @user # rubocop:disable Lint/UselessAssignment
 
       # The user that requested the PDF generation. If job was kicked off from CAS, this is nil.
-      @requesting_user = User.find_by(id: params[:user_id]&.to_i) if params[:user_id].present?
+      @requesting_user = User.find_by(id: params[:user_id]&.to_i)
 
       @client = ::GrdaWarehouse::Hud::Client.destination.find(params[:client_id].to_i)
       set_pdf_dates

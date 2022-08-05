@@ -39,7 +39,7 @@ module GrdaWarehouse
       }
     end
 
-    def self.available_verified_homeless_history_method
+    def self.available_verified_homeless_history_methods
       {
         'Include enrollments from data sources that are visible in the window.' => :visible_in_window,
         'Include enrollments that are visible to the user.' => :visible_to_user,
@@ -281,6 +281,7 @@ module GrdaWarehouse
         :roi_model,
         :client_dashboard,
         :require_service_for_reporting_default,
+        :verified_homeless_history_method,
         client_details: [],
       ]
     end
