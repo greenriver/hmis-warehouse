@@ -1,0 +1,21 @@
+- data = @result.data_for_subpopulations(@report)
+- reporting = data[:reporting]
+- comparison = data[:comparison]
+- aprs = @report.ce_aprs.order(start_date: :asc).to_a
+- comparison_year = aprs.first.end_date.year
+- report_year = aprs.last.end_date.year
+- sub_pops = CePerformance::Client.subpopulations(@report)
+.card.mt-4
+  %table.table.table-striped
+    %thead
+      %tr
+        %th Sub-Population
+        %th= report_year
+        %th= comparison_year
+    %tbody
+      - reporting.each do |k, v|
+        - sub_pop = sub_pops[k]
+        %tr
+          %th= k
+          %td= link_to_if can_view_all_hud_reports? || can_view_own_hud_reports?, v, clients_ce_performance_warehouse_reports_report_path(@report, period: :reporting, sub_population: sub_pop, key: @key, category_name: @category_name)
+          %td= comparison[k]

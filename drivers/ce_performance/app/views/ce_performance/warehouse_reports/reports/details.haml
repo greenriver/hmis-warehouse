@@ -44,10 +44,7 @@
         .text-capitalize=indicator.primary_unit
   .col-6
     .c-chart--vertical-bar{ class: chart_class_name, data: { chart: @result.data_for_chart(@report, @comparison).to_json }}
-= debug @result.data_for_subpopulations(@report)
-Convert to Table
-Links to client tables behind ability to access HUD report
-
+= render 'sub_population_table'
 
 = content_for :page_js do
   :javascript

@@ -456,6 +456,58 @@ module CePerformance
       end
     end
 
+    def detail_headers(key: nil) # rubocop:disable Lint/UnusedMethodArgument
+      @detail_headers ||= {}.tap do |headers|
+        headers.merge!(
+          {
+            'client_id' => 'Warehouse Client ID',
+            'dob' => 'DOB',
+            'veteran' => 'Veteran Status',
+            'first_name' => 'First Name',
+            'last_name' => 'Last Name',
+            'reporting_age' => 'Reporting Age',
+            'head_of_household' => 'Head of Household',
+            'household_size' => 'Household Size',
+            'household_type' => 'Household Type',
+            'prior_living_situation' => 'Prior Living Situation',
+            'los_under_threshold' => 'Length of time Under Threshold',
+            'previous_street_essh' => 'Previous Street ES/SH',
+            'entry_date' => 'Entry Date',
+            'exit_date' => 'Exit Date',
+            'events' => 'Events',
+            'diversion_event' => 'Diversion Event',
+            'diversion_successful' => 'Diversion Successful',
+            'days_between_entry_and_initial_referral' => 'Days Between Entry and Initial Referral',
+            'days_between_referral_and_housing' => 'Days Between Referral and Housing',
+            'days_in_project' => 'Days in Project',
+            'days_on_list' => 'Days on the Prioritization List',
+            'source_client.race_description' => 'Race',
+          },
+        )
+        if include_supplemental?
+          headers ['vispdat_type'] = 'VI-SPDAT Type'
+          headers ['vispdat_range'] = 'VI-SPDAT Range'
+          headers ['assessment_score'] = 'VI-SPDAT Score'
+          headers ['prioritization_tool_type'] = 'Prioritization Tool Type'
+          headers ['prioritization_tool_score'] = 'Prioritization Tool Score'
+          headers ['community'] = 'Community'
+          headers ['client_lgbtq'] = 'Client Identifies as LGBTQ'
+          headers ['lgbtq_household_members'] = 'Household Identifies as LGBTQ'
+          headers['dv_survivor'] = 'Survivor of Domestic Violence'
+        end
+      end.freeze
+    end
+
+    def client_value(client, column)
+      return client.public_send(column) unless column.include?('source_client')
+
+      client.source_client.public_send(column.gsub('source_client.', ''))
+    end
+
+    def available_periods
+      periods.keys
+    end
+
     private def periods
       @periods ||= {}.tap do |periods|
         reporting_filter = ::Filters::HudFilterBase.new(user_id: user_id)

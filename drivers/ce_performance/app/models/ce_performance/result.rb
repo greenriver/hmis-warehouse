@@ -34,6 +34,12 @@ module CePerformance
       ''
     end
 
+    def clients_for(report:, period:, sub_population:)
+      return self.class.client_scope(report, period).preload(:source_client) unless sub_population.present?
+
+      self.class.client_scope(report, period).send(sub_population).preload(:source_client)
+    end
+
     def data_for_subpopulations(report)
       @data_for_subpopulations ||= {}.tap do |data|
         CePerformance::Client.subpopulations(report).each do |title, scope|
