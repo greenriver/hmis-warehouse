@@ -27,16 +27,24 @@
   .row
     .col-3
       - if file.visible_in_window
-        %em This file is visible in the window
-      .jThumb.mt-2{data: {file: file.id}}
+        .font-italic.mb-2 This file is visible in the window
+      - if file.content_type == 'application/pdf' && file.content.present?
+        .mb-2
+          = link_to preview_client_file_path(id: file.id), class: 'btn btn-secondary btn-sm', target: '_blank' do
+            %span.icon-eye
+            Preview
+      - else
+        .jThumb.mb-2{data: {file: file.id}}
       - if file.content.present?
-        = link_to appropriate_file_path(id: file.id), class: 'btn btn-icon-only btn-secondary icon-lg mt-2' do
-          %i.icon-download2
+        %div
+          = link_to appropriate_file_path(id: file.id), class: 'btn btn-secondary btn-sm' do
+            %span.icon-download2
+            Download
     .col-4
       - file.tag_list.each do |tag|
         - included_info = @available_tags[tag]&.included_info
         .client__file-tags.mb-2
-          - if included_info
+          - if included_info.present?
             .files-included-info
               %em Contains:
               = included_info

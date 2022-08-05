@@ -9,7 +9,7 @@ $('.jThumb').each (e) ->
     if(textStatus == 'success')
       link = '<a href="' + preview_url + '" target="_blank"><div style="background-image: url(' + thumb_url + ')" class="file-thumbnail file-thumbnail--image"></div></a>'
     else
-      link = '<a href="' + preview_url + '" target="_blank"><div class="file-thumbnail"></div></a>'
+      link = '<a class="btn btn-secondary btn-sm" target="_blank" href="' + preview_url + '"><span class="icon-eye"></span>Preview</a>'
     $(thumb).html(link)
 
 $(document).on 'change', '.jFileTag', (e) ->
