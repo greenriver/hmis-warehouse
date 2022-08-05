@@ -39,6 +39,10 @@ module GrdaWarehouse
 
     scope :visible_by?, ->(user) do
       can_view_homeless_verification_pdfs = GrdaWarehouse::Config.get(:verified_homeless_history_visible_to_all) || user.can_generate_homeless_verification_pdfs?
+      is_own_file = arel_table[:user_id].eq(user.id)
+      is_verified_homeless_history = arel_table[:id].in(Arel.sql(verified_homeless_history.select(:id).to_sql))
+      is_consent_form = arel_table[:id].in(Arel.sql(consent_forms.select(:id).to_sql))
+
       # If you can see all client files, show everything
       if user.can_manage_client_files?
         current_scope
@@ -47,33 +51,32 @@ module GrdaWarehouse
       elsif user.can_manage_window_client_files? || user.can_use_separated_consent?
         sql = arel_table[:client_id].in(
           Arel.sql(GrdaWarehouse::Hud::Client.full_housing_release_on_file.select(:id).to_sql),
-        ).or(arel_table[:user_id].eq(user.id))
+        ).or(is_own_file)
 
-        sql = sql.or(arel_table[:id].in(Arel.sql(consent_forms.select(:id).to_sql))) if GrdaWarehouse::Config.get(:consent_visible_to_all)
+        sql = sql.or(is_consent_form) if GrdaWarehouse::Config.get(:consent_visible_to_all)
 
         # Include homeless verification PDfs based on site config:
         # If using 'release' method, show all files ONLY if there is a valid release. If not, only show your own files.
         # If using any other method, show all files.
         if can_view_homeless_verification_pdfs
-          access_method = ::GrdaWarehouse::Config.get(:verified_homeless_history_method).to_sym
-          if access_method == :release && !client.release_valid?(user.coc_codes)
-            sql = sql.or(arel_table[:user_id].eq(user.id).and(arel_table[:id].in(Arel.sql(verified_homeless_history.select(:id).to_sql))))
+          clients_with_consent = Arel.sql(GrdaWarehouse::Hud::Client.active_confirmed_consent_in_cocs(user.coc_codes).select(:id).to_sql)
+          if ::GrdaWarehouse::Config.get(:verified_homeless_history_method).to_sym == :release
+            sql = sql.or(arel_table[:client_id].in(clients_with_consent).and(is_verified_homeless_history))
           else
-            sql = sql.or(arel_table[:id].in(Arel.sql(verified_homeless_history.select(:id).to_sql)))
+            sql = sql.or(is_verified_homeless_history)
           end
         end
 
         window.where(sql)
       # You can only see files you uploaded
       elsif user.can_see_own_file_uploads? || user.can_use_separated_consent?
-        sql = arel_table[:user_id].eq(user.id)
-        sql = sql.or(arel_table[:id].in(Arel.sql(consent_forms.select(:id).to_sql))) if GrdaWarehouse::Config.get(:consent_visible_to_all)
-        sql = sql.or(arel_table[:id].in(Arel.sql(verified_homeless_history.select(:id).to_sql))) if can_view_homeless_verification_pdfs
+        sql = is_own_file
+        sql = sql.or(is_consent_form) if GrdaWarehouse::Config.get(:consent_visible_to_all)
+        sql = sql.or(is_verified_homeless_history) if can_view_homeless_verification_pdfs
         where(sql)
       # You have specific permission to generate homeless verification PDFs
       elsif user.can_generate_homeless_verification_pdfs?
-        sql = arel_table[:id].in(Arel.sql(verified_homeless_history.select(:id).to_sql))
-        where(sql)
+        where(is_verified_homeless_history)
       else
         none
       end
