@@ -28,7 +28,7 @@
     .col-3
       - if file.visible_in_window
         .font-italic.mb-2 This file is visible in the window
-      - if file.content_type == 'application/pdf' && file.content.present?
+      - if file.content_type != 'image/jpeg'
         .mb-2
           = link_to preview_client_file_path(id: file.id), class: 'btn btn-secondary btn-sm', target: '_blank' do
             %span.icon-eye
