@@ -21,6 +21,10 @@ module CePerformance
       )
     end
 
+    def self.client_scope(report, period)
+      successfully_diverted_scope(report, period)
+    end
+
     def self.diverted_scope(report, period)
       report.clients.in_period(period).diverted
     end
@@ -104,7 +108,7 @@ module CePerformance
       report_year = aprs.last.end_date.year
       columns = [
         ['x', report_year, comparison_year],
-        ['diversions', value, comparison.value],
+        [unit, value, comparison.value],
       ]
       {
         x: 'x',

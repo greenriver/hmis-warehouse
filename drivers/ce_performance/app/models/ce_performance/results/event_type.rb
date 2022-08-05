@@ -16,18 +16,19 @@ module CePerformance
           events[event['event']] += 1
         end
       end
-      events.each do |id, count|
+      available_event_ids.each do |event_id|
+        count = events[event_id] || 0
         create(
           report_id: report.id,
           period: period,
           value: count,
-          event_type: id,
+          event_type: event_id,
         )
       end
     end
 
     def self.client_scope(report, period)
-      report.clients.served_in_period(period)
+      report.clients.served_in_period(period).where.not(events: nil)
     end
 
     # TODO: move to goal configuration
@@ -49,6 +50,10 @@ module CePerformance
 
     def self.title
       _('Number and Types of CE Events ')
+    end
+
+    def self.available_event_ids
+      ::HUD.events.keys
     end
 
     def category

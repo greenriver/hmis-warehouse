@@ -1,0 +1,15 @@
+wb = xlsx_package.workbook
+ws_title = "#{@result.class.title} #{@sub_population_title}"
+
+wb.add_worksheet(name: ws_title.slice(0, 30).gsub(':', ' ')) do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
+  headers = @report.detail_headers(key: @key)
+  sheet.add_row(headers.values, style: title)
+  @clients.each do |client|
+    row = []
+    headers.each_key do |k|
+      row << @report.client_value(client, k)
+    end
+    sheet.add_row(row)
+  end
+end

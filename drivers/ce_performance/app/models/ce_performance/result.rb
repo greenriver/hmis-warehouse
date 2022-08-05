@@ -43,12 +43,14 @@ module CePerformance
     def data_for_subpopulations(report)
       @data_for_subpopulations ||= {}.tap do |data|
         CePerformance::Client.subpopulations(report).each do |title, scope|
+          count_scope = self.class.client_scope(report, period)
+          count_scope = count_scope.send(scope) if scope
           [
             :reporting,
             :comparison,
           ].each do |period|
             data[period] ||= {}
-            data[period][title] = self.class.client_scope(report, period).send(scope).count
+            data[period][title] = count_scope.count
           end
         end
       end

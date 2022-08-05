@@ -79,11 +79,18 @@ module CePerformance::WarehouseReports
         details_params[:key] == k.to_s
       end
       @category_name = @report.results_for_display.keys.detect { |m| m == details_params[:category_name] }
-      period = (@report.available_periods.detect { |p| p.to_s == params[:period] } || :reporting).to_sym
-      @result = @report.results_for_display[@category_name][period][@key]
-      sub_population = CePerformance::Client.subpopulations(@report).values.map(&:to_s).detect { |sp| params[:sub_population] == sp }&.to_sym # Note, blank will not apply sub-population limits
-      @sub_population_title = CePerformance::Client.subpopulations(@report).invert[sub_population]
-      @clients = @result.clients_for(report: @report, period: period, sub_population: sub_population)
+      @period = (@report.available_periods.detect { |p| p.to_s == params[:period] } || :reporting).to_sym
+      @result = @report.results_for_display[@category_name][@period][@key]
+      @sub_population = CePerformance::Client.subpopulations(@report).values.map(&:to_s).detect { |sp| params[:sub_population] == sp }&.to_sym # Note, blank will not apply sub-population limits
+      @sub_population_title = CePerformance::Client.subpopulations(@report).invert[@sub_population]
+      @clients = @result.clients_for(report: @report, period: @period, sub_population: @sub_population)
+      respond_to do |format|
+        format.html {}
+        format.xlsx do
+          filename = "#{"#{@result.class.title} #{@sub_population_title}".tr(' ', '-')}-#{Date.current.to_s(:db)}.xlsx"
+          headers['Content-Disposition'] = "attachment; filename=#{filename}"
+        end
+      end
     end
 
     def details_params

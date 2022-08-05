@@ -28,6 +28,10 @@ module CePerformance
       5
     end
 
+    def goal_line
+      nil
+    end
+
     def passed?(comparison)
       return false if value.nil?
       # we can't get any shorter

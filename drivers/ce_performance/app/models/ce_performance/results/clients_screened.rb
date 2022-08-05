@@ -29,6 +29,22 @@ module CePerformance
       100
     end
 
+    def passed?(_comparison)
+      value.present? && value >= self.class.goal
+    end
+
+    def max_100?
+      true
+    end
+
+    def percentage?
+      true
+    end
+
+    def goal_line
+      nil
+    end
+
     def self.title
       _('Clients Screened for Prevention')
     end
@@ -82,8 +98,8 @@ module CePerformance
       comparison_year = aprs.first.end_date.year
       report_year = aprs.last.end_date.year
       columns = [
-        ['x', comparison_year, report_year],
-        [unit, comparison.value, value],
+        ['x', report_year, comparison_year],
+        [unit, value, comparison.value],
       ]
       {
         x: 'x',

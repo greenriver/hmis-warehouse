@@ -2,7 +2,6 @@
 = content_for :crumbs do
   = link_to details_ce_performance_warehouse_reports_report_path(@report, key: @key, category_name: @category_name) do
     &laquo; #{@report.title}
-= debug 'TODO: ADD DOWNLOAD HERE'
 .ce-performance
   %label.super-rounded.p-4.pl-6.pr-6{ class: "performance-measurement--highlight-#{@report.highlight_id(@category_name)}" }
     = @category_name
@@ -10,7 +9,12 @@
   %h1.ml-2= @result.class.title
   .warehouse-reports__completed.mt-2.d-flex
     = @report.filter.describe_filter_as_html([:start, :end, :comparison_pattern], inline: true)
-  %h2.ml-2= @sub_population_title
+  .d-flex.mb-4
+    %h2.ml-2= @sub_population_title
+    .ml-auto
+      = link_to clients_ce_performance_warehouse_reports_report_path(@report, period: @period, sub_population: @sub_population, key: @key, category_name: @category_name, format: :xlsx), class: ['btn', 'btn-secondary'] do
+        %i.icon-file-excel
+        Download Excel
 - if @clients.blank?
   .none-found No records found.
 - else

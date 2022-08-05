@@ -180,23 +180,6 @@ module CePerformance
         report_clients = add_q5a_clients(report_clients, period, ce_apr)
         report_clients = add_q9b_clients(report_clients, period, ce_apr)
         report_clients = add_q9d_clients(report_clients, period, ce_apr)
-
-        # TODO:
-        # Number of persons/households - CAT2: at imminent risk: prevention tool score completed; prior living situation set per HUD
-        # Number of persons screened for Prevention - Number of Head of Household with a recorded Prevention Tool Score (currently from auxiliary data)
-        # Sub-populations -
-        #   Veterans,
-        #   Adult and child households,
-        #   Adult only households,
-        #   Chronically Homeless at Entry,
-        #   Youth (18-24),
-        #   Domestic Violence (Enrollment.CurrentlyFleeing or Enrollment.DomesticViolenceVictim),
-        #   LGBT (can't really do with current data, maybe Gender.Questioning, or Gender.Transgender or Gender.NoSingleGender, is availale in the auxiliary data) ,
-        #   HIV - Enrollment.disabilities.DisabilityType = 8
-        # Number and Types of CE Events - Group and count by ID (Q9d B15) - partially implemented
-        # CE Assessment Score ranges/types - only available in auxiliary data currently (score is integer, type is Family/Single/Youth)
-        # Assessment Point Connections (referral data to ensure clients are getting connected) - TBD
-
         Client.import!(
           report_clients.values,
           batch_size: 5_000,

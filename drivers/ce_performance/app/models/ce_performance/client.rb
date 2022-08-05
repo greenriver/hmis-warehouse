@@ -115,6 +115,7 @@ module CePerformance
 
     def self.subpopulations(report)
       pops = {
+        'All Clients' => nil,
         'Veterans' => :veteran,
         'Adult and Child Households' => :adult_and_child_households,
         'Adult only Households (> 18)' => :adult_only_households,

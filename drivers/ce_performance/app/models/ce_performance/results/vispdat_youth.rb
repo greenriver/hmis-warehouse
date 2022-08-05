@@ -60,10 +60,6 @@ module CePerformance
       'average score'
     end
 
-    def max_100?
-      true
-    end
-
     def indicator(comparison)
       @indicator ||= OpenStruct.new(
         primary_value: value.to_i,
@@ -81,8 +77,8 @@ module CePerformance
       comparison_year = aprs.first.end_date.year
       report_year = aprs.last.end_date.year
       columns = [
-        ['x', report_year, comparison_year],
-        [unit, value, comparison.value],
+        ['x', comparison_year, report_year],
+        [unit, comparison.value, value],
       ]
       {
         x: 'x',
