@@ -51,7 +51,7 @@ module GrdaWarehouse
 
         sql = sql.or(arel_table[:id].in(Arel.sql(consent_forms.select(:id).to_sql))) if GrdaWarehouse::Config.get(:consent_visible_to_all)
 
-        # Include hoomeless verification PDfs based on site config:
+        # Include homeless verification PDfs based on site config:
         # If using 'release' method, show all files ONLY if there is a valid release. If not, only show your own files.
         # If using any other method, show all files.
         if can_view_homeless_verification_pdfs
