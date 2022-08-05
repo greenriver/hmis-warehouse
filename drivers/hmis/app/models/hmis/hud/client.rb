@@ -10,13 +10,15 @@ class Hmis::Hud::ClientValidator < ActiveModel::Validator
   ].freeze
 
   def validate(record)
-    Hmis::Hud::Client.hmis_configuration(version: '2022').except(*IGNORED).each do |key, options|
+    return if record.skip_validations == [:all]
+
+    Hmis::Hud::Client.hmis_configuration(version: '2022').except(*IGNORED, *record.skip_validations).each do |key, options|
       record.errors.add(key, :required) if options[:null] == false && record.send(key).blank?
       record.errors.add(key, :too_long, count: options[:limit]) if options[:limit].present? && record.send(key).present? && record.send(key).size > options[:limit]
     end
 
-    record.errors.add :gender, :required if ::HUD.gender_id_to_field_name.except(8, 9, 99).values.any? { |field| record.send(field).nil? }
-    record.errors.add :race, :required if ::HUD.races.except('RaceNone').keys.any? { |field| record.send(field).nil? }
+    record.errors.add :gender, :required if !record.skip_validations.include?(:gender) && ::HUD.gender_id_to_field_name.except(8, 9, 99).values.any? { |field| record.send(field).nil? }
+    record.errors.add :race, :required if !record.skip_validations.include?(:race) && ::HUD.races.except('RaceNone').keys.any? { |field| record.send(field).nil? }
   end
 end
 
@@ -27,6 +29,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   include ClientSearch
 
   attr_accessor :gender, :race
+  attr_writer :skip_validations
 
   self.table_name = :Client
   self.sequence_name = "public.\"#{table_name}_id_seq\""
@@ -42,6 +45,10 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   scope :searchable_to, ->(user) do
     # TODO: additional access control rules go here
     visible_to(user)
+  end
+
+  def skip_validations
+    @skip_validations ||= []
   end
 
   def self.source_for(destination_id:, user:)
