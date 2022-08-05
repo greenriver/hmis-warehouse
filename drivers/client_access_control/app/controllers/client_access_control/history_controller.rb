@@ -41,6 +41,10 @@ module ClientAccessControl
     def pdf
       @user = User.setup_system_user
       current_user ||= @user # rubocop:disable Lint/UselessAssignment
+
+      # The user that requested the PDF generation. If job was kicked off from CAS, this is nil.
+      @requesting_user = User.find_by(id: params[:user_id]&.to_i) if params[:user_id].present?
+
       @client = ::GrdaWarehouse::Hud::Client.destination.find(params[:client_id].to_i)
       set_pdf_dates
 
@@ -95,7 +99,7 @@ module ClientAccessControl
       end
 
       @file.client_id = @client.id
-      @file.user_id = User.find_by(email: 'noreply@greenriver.com').id
+      @file.user_id = @requesting_user&.id || @user.id
       @file.note = "Auto Generated for prior #{@years} years"
       @file.name = file_name
       @file.visible_in_window = true
@@ -160,9 +164,7 @@ module ClientAccessControl
       @dates = {}
       @years = (params[:years] || 3).to_i
 
-      requesting_user = User.find_by(id: params[:user_id]&.to_i) if params[:user_id].present?
-
-      pdf_enrollment_scope(requesting_user).homeless.enrollment_open_in_prior_years(years: @years).
+      pdf_enrollment_scope(@requesting_user).homeless.enrollment_open_in_prior_years(years: @years).
         where(record_type: [:entry, :exit]).
         preload(:service_history_services, :organization, :project).
         each do |enrollment|

@@ -50,7 +50,18 @@ module GrdaWarehouse
         ).or(arel_table[:user_id].eq(user.id))
 
         sql = sql.or(arel_table[:id].in(Arel.sql(consent_forms.select(:id).to_sql))) if GrdaWarehouse::Config.get(:consent_visible_to_all)
-        sql = sql.or(arel_table[:id].in(Arel.sql(verified_homeless_history.select(:id).to_sql))) if can_view_homeless_verification_pdfs
+
+        # Include hoomeless verification PDfs based on site config:
+        # If using 'release' method, show all files ONLY if there is a valid release. If not, only show your own files.
+        # If using any other method, show all files.
+        if can_view_homeless_verification_pdfs
+          access_method = ::GrdaWarehouse::Config.get(:verified_homeless_history_method).to_sym
+          if access_method == :release && !client.release_valid?(user.coc_codes)
+            sql = sql.or(arel_table[:user_id].eq(user.id).and(arel_table[:id].in(Arel.sql(verified_homeless_history.select(:id).to_sql))))
+          else
+            sql = sql.or(arel_table[:id].in(Arel.sql(verified_homeless_history.select(:id).to_sql)))
+          end
+        end
 
         window.where(sql)
       # You can only see files you uploaded
