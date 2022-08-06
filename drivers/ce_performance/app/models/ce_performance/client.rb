@@ -104,6 +104,12 @@ module CePerformance
       joins(:source_client).merge(GrdaWarehouse::Hud::Client.multi_racial)
     end
 
+    # FIXME eventually.  This would be much better if we could figure out how to query the events column
+    # something like and events @> '{"event": "13"}'
+    def self.with_event_type(event_type)
+      where.not(events: nil).to_a.select { |c| c.events.detect { |e| e['event'] == event_type }.present? }
+    end
+
     def self.literally_homeless_at_entry_query
       arel_table[:prior_living_situation].in(::HUD.homeless_situations(as: :prior)).
         or(arel_table[:los_under_threshold].eq(1).and(arel_table[:previous_street_essh].eq(1)))

@@ -164,7 +164,7 @@ module CePerformance
           results.each do |r|
             rfd[r.category] ||= {}
             rfd[r.category][period] ||= {}
-            rfd[r.category][period][r.class] ||= r if r.period == period.to_s
+            rfd[r.category][period][r.class] ||= r if r.period == period.to_s && r.overview
           end
         end
       end
@@ -178,8 +178,9 @@ module CePerformance
       @vispdat_ranges ||= clients.distinct.where.not(vispdat_range: nil).pluck(:vispdat_range)
     end
 
-    def clients_title(sub_population_title:, vispdat_range:)
-      return "VI-SPDAT Range: #{vispdat_range}" if vispdat_range
+    def clients_title(sub_population_title: nil, vispdat_range: nil, event_type: nil)
+      return "VI-SPDAT Range: #{vispdat_range}" if vispdat_range.present?
+      return "Event Type: #{::HUD.event(event_type)}" if event_type.present?
 
       return sub_population_title
     end

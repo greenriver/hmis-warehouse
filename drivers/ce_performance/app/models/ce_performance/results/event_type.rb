@@ -16,6 +16,13 @@ module CePerformance
           events[event['event']] += 1
         end
       end
+      # Summary
+      create(
+        report_id: report.id,
+        period: period,
+        value: events.values.sum,
+        event_type: 0, # using zero to denote all
+      )
       available_event_ids.each do |event_id|
         count = events[event_id] || 0
         create(
@@ -52,16 +59,20 @@ module CePerformance
       _('Number and Types of CE Events ')
     end
 
-    def self.available_event_ids
-      ::HUD.events.keys
-    end
-
     def category
       'Activity'
     end
 
     def self.description
       ''
+    end
+
+    def overview
+      event_type.zero?
+    end
+
+    def display_event_breakdown?
+      true
     end
 
     def self.calculation
@@ -88,32 +99,31 @@ module CePerformance
       false
     end
 
-    def data_for_chart(report, _comparison)
-      report_year_data = report.results.where.not(event_type: nil).pluck(:event_type, :value).to_h
-      comparison_year_data = {}
-      # if comparison.present?
-      #   comparison.where.not(event_type: nil).pluck(:event_type, :value).to_h
-      # else
-      #   {}
+    def data_for_chart(report, comparison)
+      # scope = report.results.where.not(event_type: nil)
+      # report_year_data = scope.where(period: :reporting).pluck(:event_type, :value).to_h
+      # comparison_year_data = scope.where(period: :comparison).pluck(:event_type, :value).to_h
+
+      # columns = []
+      # self.class.available_event_ids.each do |k|
+      #   columns << [::HUD.event(k), comparison_year_data[k], report_year_data[k]]
       # end
-
-      # normalize data
-      comparison_year_data.keys.each do |k|
-        report_year_data[k] ||= 0
-      end
-      report_year_data.keys.each do |k|
-        comparison_year_data[k] ||= 0
-      end
-      report_year_data.to_h.sort
-      comparison_year_data.to_h.sort
-
-      columns = []
-      x = ['x']
-      report_year_data.each do |k, count|
-        columns << [::HUD.event(k), count]
-        x << ::HUD.event(k)
-      end
-      columns << x
+      # {
+      #   columns: columns,
+      #   groups: [self.class.available_event_ids.map { |k| ::HUD.event(k) }],
+      #   type: 'bar',
+      #   labels: {
+      #     colors: 'white',
+      #     centered: true,
+      #   },
+      # }
+      aprs = report.ce_aprs.order(start_date: :asc).to_a
+      comparison_year = aprs.first.end_date.year
+      report_year = aprs.last.end_date.year
+      columns = [
+        ['x', comparison_year, report_year],
+        [unit, comparison.value, value],
+      ]
       {
         x: 'x',
         columns: columns,
