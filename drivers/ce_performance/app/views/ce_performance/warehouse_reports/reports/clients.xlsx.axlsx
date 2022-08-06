@@ -1,5 +1,5 @@
 wb = xlsx_package.workbook
-ws_title = "#{@result.class.title} #{@sub_population_title}"
+ws_title = "#{@result.class.title} #{@report.clients_title(sub_population_title: @sub_population_title, vispdat_range: @vispdat_range)}"
 
 wb.add_worksheet(name: ws_title.slice(0, 30).gsub(':', ' ')) do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })

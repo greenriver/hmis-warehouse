@@ -1,4 +1,3 @@
-
 = content_for :crumbs do
   = link_to details_ce_performance_warehouse_reports_report_path(@report, key: @key, category_name: @category_name) do
     &laquo; #{@report.title}
@@ -10,9 +9,9 @@
   .warehouse-reports__completed.mt-2.d-flex
     = @report.filter.describe_filter_as_html([:start, :end, :comparison_pattern], inline: true)
   .d-flex.mb-4
-    %h2.ml-2= @sub_population_title
+    %h2.ml-2= @report.clients_title(sub_population_title: @sub_population_title, vispdat_range: @vispdat_range)
     .ml-auto
-      = link_to clients_ce_performance_warehouse_reports_report_path(@report, period: @period, sub_population: @sub_population, key: @key, category_name: @category_name, format: :xlsx), class: ['btn', 'btn-secondary'] do
+      = link_to clients_ce_performance_warehouse_reports_report_path(@report, period: @period, sub_population: @sub_population, key: @key, category_name: @category_name, vispdat_range: @vispdat_range, format: :xlsx), class: ['btn', 'btn-secondary'] do
         %i.icon-file-excel
         Download Excel
 - if @clients.blank?

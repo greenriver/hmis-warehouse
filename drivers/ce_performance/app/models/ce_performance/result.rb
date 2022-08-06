@@ -26,6 +26,10 @@ module CePerformance
       true
     end
 
+    def display_vispdat_breakdown?
+      false
+    end
+
     def goal_direction
       ''
     end
@@ -34,23 +38,39 @@ module CePerformance
       ''
     end
 
-    def clients_for(report:, period:, sub_population:)
-      return self.class.client_scope(report, period).preload(:source_client) unless sub_population.present?
+    def clients_for(report:, period:, sub_population:, vispdat_range:)
+      return self.class.client_scope(report, period).send(sub_population).preload(:source_client) if sub_population.present?
+      return self.class.client_scope(report, period).where(vispdat_range: vispdat_range).preload(:source_client) if vispdat_range.present?
 
-      self.class.client_scope(report, period).send(sub_population).preload(:source_client)
+      self.class.client_scope(report, period).preload(:source_client)
     end
 
     def data_for_subpopulations(report)
       @data_for_subpopulations ||= {}.tap do |data|
         CePerformance::Client.subpopulations(report).each do |title, scope|
-          count_scope = self.class.client_scope(report, period)
-          count_scope = count_scope.send(scope) if scope
           [
             :reporting,
             :comparison,
           ].each do |period|
+            count_scope = self.class.client_scope(report, period)
+            count_scope = count_scope.send(scope) if scope
             data[period] ||= {}
             data[period][title] = count_scope.count
+          end
+        end
+      end
+    end
+
+    def data_for_vispdats(report)
+      @data_for_vispdats ||= {}.tap do |data|
+        report.vispdat_ranges.each do |range|
+          [
+            :reporting,
+            :comparison,
+          ].each do |period|
+            count_scope = self.class.client_scope(report, period).where(vispdat_range: range)
+            data[period] ||= {}
+            data[period][range] = count_scope.count
           end
         end
       end

@@ -48,6 +48,12 @@ module CePerformance
       false
     end
 
+    def display_vispdat_breakdown?
+      return false unless report.include_supplemental?
+
+      true
+    end
+
     def nested_results
       [
         CePerformance::Results::VispdatAdult,

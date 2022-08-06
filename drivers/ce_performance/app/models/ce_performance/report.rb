@@ -174,6 +174,16 @@ module CePerformance
       results_for_display.keys.index(category_name) + 1
     end
 
+    def vispdat_ranges
+      @vispdat_ranges ||= clients.distinct.where.not(vispdat_range: nil).pluck(:vispdat_range)
+    end
+
+    def clients_title(sub_population_title:, vispdat_range:)
+      return "VI-SPDAT Range: #{vispdat_range}" if vispdat_range
+
+      return sub_population_title
+    end
+
     private def populate_universe
       run_ce_aprs.each do |period, ce_apr|
         report_clients = {}

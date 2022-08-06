@@ -83,11 +83,12 @@ module CePerformance::WarehouseReports
       @result = @report.results_for_display[@category_name][@period][@key]
       @sub_population = CePerformance::Client.subpopulations(@report).values.map(&:to_s).detect { |sp| params[:sub_population] == sp }&.to_sym # Note, blank will not apply sub-population limits
       @sub_population_title = CePerformance::Client.subpopulations(@report).invert[@sub_population]
-      @clients = @result.clients_for(report: @report, period: @period, sub_population: @sub_population)
+      @vispdat_range = @report.vispdat_ranges.detect { |m| m == params[:vispdat_range] }
+      @clients = @result.clients_for(report: @report, period: @period, sub_population: @sub_population, vispdat_range: @vispdat_range)
       respond_to do |format|
         format.html {}
         format.xlsx do
-          filename = "#{"#{@result.class.title} #{@sub_population_title}".tr(' ', '-')}-#{Date.current.to_s(:db)}.xlsx"
+          filename = "#{"#{@result.class.title} #{@report.clients_title(sub_population_title: @sub_population_title, vispdat_range: @vispdat_range)}".tr(' ', '-')}-#{Date.current.to_s(:db)}.xlsx"
           headers['Content-Disposition'] = "attachment; filename=#{filename}"
         end
       end
