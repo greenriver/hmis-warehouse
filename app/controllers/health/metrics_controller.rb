@@ -13,7 +13,7 @@ module Health
     helper HealthOverviewHelper
 
     before_action :set_client, only: [:index]
-    before_action :set_patient, only: [:index]
+    before_action :set_hpc_patient, only: [:index]
 
     def index
       load_patient_metrics
