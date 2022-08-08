@@ -1,14 +1,6 @@
 #!/bin/bash
 set -e
 
-# Remove a potentially pre-existing server.pid for Rails.
-rm -f /app/tmp/pids/server.pid
-
-cd /app
-bundle config --global set build.sassc --disable-march-tune-native
-bundle install
-yarn install
-
 if [ ! -e /bundle/ruby/2.7.0/gems/seven_zip_ruby-1.3.0/lib/seven_zip_ruby/7z.so ]
 then
   echo Reinstalling seven_zip_ruby because the dynamic link library is not in the correct place
