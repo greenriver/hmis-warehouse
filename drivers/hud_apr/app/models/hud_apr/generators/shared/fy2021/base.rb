@@ -157,6 +157,8 @@ module HudApr::Generators::Shared::Fy2021
           else
             last_service_history_enrollment.first_date_in_program
           end
+
+          chronic_source = household_chronic_status(hh_id, last_service_history_enrollment.client_id)
           processed_source_clients << source_client.id
           ce_hash = {}
           options = {
@@ -179,8 +181,8 @@ module HudApr::Generators::Shared::Fy2021
             chronic_disability_exit: disabilities_at_exit.detect(&:chronic?)&.DisabilityResponse,
             chronic_disability_latest: disabilities_latest.detect(&:chronic?)&.DisabilityResponse,
             chronic_disability: disabilities.detect(&:chronic?).present?,
-            chronically_homeless: last_service_history_enrollment.enrollment.chronically_homeless_at_start?,
-            chronically_homeless_detail: last_service_history_enrollment.enrollment.chronically_homeless_at_start,
+            chronically_homeless: chronic_source[:chronic_status],
+            chronically_homeless_detail: chronic_source[:chronic_detail],
             currently_fleeing: health_and_dv&.CurrentlyFleeing,
             date_homeless: enrollment.DateToStreetESSH,
             date_of_engagement: last_service_history_enrollment.enrollment.DateOfEngagement,

@@ -510,14 +510,12 @@ Rails.application.routes.draw do
     resources :files, controller: 'clients/files', except: [:edit] do
       get :preview, on: :member
       get :thumb, on: :member
-      get :has_thumb, on: :member
       get :show_delete_modal, on: :member
       post :batch_download, on: :collection
     end
     resources :releases, controller: 'clients/releases', except: [:edit] do
       get :preview, on: :member
       get :thumb, on: :member
-      get :has_thumb, on: :member
       get :show_delete_modal, on: :member
       post :batch_download, on: :collection
       get :pre_populated, on: :collection

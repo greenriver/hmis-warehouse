@@ -155,7 +155,6 @@ module HudPit::Generators::Pit::Fy2022
             domestic_violence: health_and_dv&.DomesticViolenceVictim,
             domestic_violence_currently_fleeing: health_and_dv&.CurrentlyFleeing,
             hiv_aids: disabilities_latest.detect(&:hiv?)&.DisabilityResponse&.present?,
-            hiv_aids_indefinite_impairing: disabilities_latest.detect { |d| d.indefinite_and_impairs? && d.hiv? }&.DisabilityResponse.present?,
             mental_illness: disabilities_latest.detect(&:mental?)&.DisabilityResponse&.present?,
             mental_illness_indefinite_impairing: disabilities_latest.detect { |d| d.indefinite_and_impairs? && d.mental? }&.DisabilityResponse.present?,
             project_type: last_service_history_enrollment.computed_project_type,
