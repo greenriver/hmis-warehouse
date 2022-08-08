@@ -282,24 +282,24 @@ module GrdaWarehouse
       ClientAccessControl::EnrollmentArbiter if RailsDrivers.loaded.include?(:client_access_control)
     end
 
-    def self.active_supplmental_enrollment_importer_class
-      supplmental_enrollment_importer_name = available_supplmental_enrollment_importers.values.detect do |class_name|
+    def self.active_supplemental_enrollment_importer_class
+      supplemental_enrollment_importer_name = available_supplemental_enrollment_importers.values.detect do |class_name|
         get(:supplemental_enrollment_importer) == class_name
-      end || default_supplmental_enrollment_importers.values.first
-      supplmental_enrollment_importer_name.constantize
+      end || default_supplemental_enrollment_importers.values.first
+      supplemental_enrollment_importer_name.constantize
     end
 
-    def self.available_supplmental_enrollment_importers
-      Rails.application.config.supplmental_enrollment_importers[:available].presence || default_supplmental_enrollment_importers
+    def self.available_supplemental_enrollment_importers
+      Rails.application.config.supplemental_enrollment_importers[:available].presence || default_supplemental_enrollment_importers
     end
 
-    def self.add_supplmental_enrollment_importer(name, class_name)
-      importers = default_supplmental_enrollment_importers
+    def self.add_supplemental_enrollment_importer(name, class_name)
+      importers = default_supplemental_enrollment_importers
       importers[name] = class_name
-      Rails.application.config.supplmental_enrollment_importers[:available] = importers.sort.to_h
+      Rails.application.config.supplemental_enrollment_importers[:available] = importers.sort.to_h
     end
 
-    def self.default_supplmental_enrollment_importers
+    def self.default_supplemental_enrollment_importers
       {
         'Default' => 'GrdaWarehouse::Tasks::EnrollmentExtrasImport',
       }

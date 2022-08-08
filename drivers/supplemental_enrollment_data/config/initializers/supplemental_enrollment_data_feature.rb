@@ -12,7 +12,7 @@
 # use with caution!
 RailsDrivers.loaded << :supplemental_enrollment_data
 
-GrdaWarehouse::Config.add_supplmental_enrollment_importer(
+GrdaWarehouse::Config.add_supplemental_enrollment_importer(
   'TPC',
   'SupplementalEnrollmentData::Tpc',
 )

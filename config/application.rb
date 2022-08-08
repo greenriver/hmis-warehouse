@@ -109,6 +109,6 @@ module BostonHmis
     config.hmis_migrations = {}
     config.hmis_data_lake = nil
     config.custom_imports = []
-    config.supplmental_enrollment_importers = {}
+    config.supplemental_enrollment_importers = {}
   end
 end

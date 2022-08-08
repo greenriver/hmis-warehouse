@@ -14,4 +14,4 @@
     = f.input :enable_youth_hrp, label: 'Enable Youth Housing Resolution Plans'
     = f.input :enable_youth_unstably_housed, label: 'Enable youth Unstably Housed option'
     = f.input :warehouse_client_name_order, label: 'How should the names on clients be calculated?', collection: GrdaWarehouse::Config.available_warehouse_client_name_orders, as: :select_two
-    = f.input :supplemental_enrollment_importer, label: 'What version of the supplemental enrollment importer should we use.', collection: GrdaWarehouse::Config.available_supplmental_enrollment_importers, as: :select_two
+    = f.input :supplemental_enrollment_importer, label: 'What version of the supplemental enrollment importer should we use.', collection: GrdaWarehouse::Config.available_supplemental_enrollment_importers, as: :select_two

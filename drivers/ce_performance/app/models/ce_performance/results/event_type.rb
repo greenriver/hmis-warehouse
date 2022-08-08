@@ -100,23 +100,6 @@ module CePerformance
     end
 
     def data_for_chart(report, comparison)
-      # scope = report.results.where.not(event_type: nil)
-      # report_year_data = scope.where(period: :reporting).pluck(:event_type, :value).to_h
-      # comparison_year_data = scope.where(period: :comparison).pluck(:event_type, :value).to_h
-
-      # columns = []
-      # self.class.available_event_ids.each do |k|
-      #   columns << [::HUD.event(k), comparison_year_data[k], report_year_data[k]]
-      # end
-      # {
-      #   columns: columns,
-      #   groups: [self.class.available_event_ids.map { |k| ::HUD.event(k) }],
-      #   type: 'bar',
-      #   labels: {
-      #     colors: 'white',
-      #     centered: true,
-      #   },
-      # }
       aprs = report.ce_aprs.order(start_date: :asc).to_a
       comparison_year = aprs.first.end_date.year
       report_year = aprs.last.end_date.year
