@@ -283,7 +283,7 @@ module CePerformance
         end
         min_assessment_date = ce_apr_client.hud_report_ce_assessments.map(&:assessment_date).min
         end_date = [ce_apr_client.last_date_in_program, ce_apr.end_date].compact.min
-        report_client.days_before_assessment = min_assessment_date - ce_apr_client.first_date_in_program
+        report_client.days_before_assessment = min_assessment_date - ce_apr_client.first_date_in_program if min_assessment_date.present?
         report_client.days_on_list = end_date - min_assessment_date if min_assessment_date.present?
         report_client.days_in_project = end_date - ce_apr_client.first_date_in_program
         report_client.period = period
