@@ -546,7 +546,8 @@ $file-thumbnail-size: 75px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: $black;
+  background: rgba($black, .3);
+  border-radius: .2rem;
   &::before {
     font-family: 'icons';
     content: '\e9ce'; // Eye
@@ -559,6 +560,7 @@ $file-thumbnail-size: 75px;
     }
     &::after {
       background: rgba($black, .3);
+      border-radius: .2rem;
     }
   }
 }
@@ -578,6 +580,7 @@ $file-thumbnail-size: 75px;
     bottom: 0;
     left: 0;
     right: 0;
+    border-radius: .2rem;
   }
 }
 
