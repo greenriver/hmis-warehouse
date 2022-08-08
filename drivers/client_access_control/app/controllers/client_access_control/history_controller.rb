@@ -164,7 +164,9 @@ module ClientAccessControl
       @dates = {}
       @years = (params[:years] || 3).to_i
 
-      pdf_enrollment_scope(@requesting_user).homeless.enrollment_open_in_prior_years(years: @years).
+      @client.enrollments_for_verified_homeless_history(user: @requesting_user).
+        homeless.
+        enrollment_open_in_prior_years(years: @years).
         where(record_type: [:entry, :exit]).
         preload(:service_history_services, :organization, :project).
         each do |enrollment|
@@ -238,31 +240,6 @@ module ClientAccessControl
 
     private def enrollment_scope
       @client.service_history_enrollments.visible_in_window_to(current_user)
-    end
-
-    private def pdf_enrollment_scope(user = nil)
-      scope = @client.service_history_enrollments
-
-      case ::GrdaWarehouse::Config.get(:verified_homeless_history_method).to_sym
-      when :all_enrollments
-        scope
-      when :visible_in_window
-        scope.joins(:data_source).merge(::GrdaWarehouse::DataSource.where(visible_in_window: true))
-      when :visible_to_user
-        raise 'User is missing' unless user.present?
-
-        scope.visible_in_window_to(user)
-      when :release
-        raise 'User is missing' unless user.present?
-
-        if @client.release_valid?(user.coc_codes)
-          scope
-        else
-          scope.visible_in_window_to(user)
-        end
-      else
-        raise NotImplementedError
-      end
     end
 
     private def title_for_show

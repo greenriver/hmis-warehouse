@@ -189,6 +189,31 @@ module ClientAccessControl::GrdaWarehouse::Hud
           end
         end
       end
+
+      def enrollments_for_verified_homeless_history(user: nil)
+        scope = service_history_enrollments
+
+        case ::GrdaWarehouse::Config.get(:verified_homeless_history_method).to_sym
+        when :all_enrollments
+          scope
+        when :visible_in_window
+          scope.joins(:data_source).merge(::GrdaWarehouse::DataSource.where(visible_in_window: true))
+        when :visible_to_user
+          raise 'User is missing' unless user.present?
+
+          scope.visible_in_window_to(user)
+        when :release
+          raise 'User is missing' unless user.present?
+
+          if release_valid?(coc_codes: user.coc_codes)
+            scope
+          else
+            scope.visible_in_window_to(user)
+          end
+        else
+          raise NotImplementedError
+        end
+      end
     end
   end
 end
