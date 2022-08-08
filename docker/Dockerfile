@@ -36,6 +36,7 @@ RUN apk add --no-cache \
   chromium nss freetype freetype-dev harfbuzz ca-certificates \
   lftp postgresql tmux postgis geos geos-dev proj proj-dev proj-util zip expect \
   shared-mime-info docker \
+  p7zip \
   vim less \
   tar xz \
   python3 py3-pip \
