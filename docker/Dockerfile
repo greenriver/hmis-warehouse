@@ -36,7 +36,6 @@ RUN apk add --no-cache \
   chromium nss freetype freetype-dev harfbuzz ca-certificates \
   lftp postgresql tmux postgis geos geos-dev proj proj-dev proj-util zip expect \
   shared-mime-info docker \
-  p7zip \
   vim less \
   tar xz \
   python3 py3-pip \
@@ -59,5 +58,7 @@ COPY Gemfile.lock /app/Gemfile.lock
 ENV BUNDLE_PATH=/bundle
 ENV PATH=$PATH:/app/bin
 COPY docker/entrypoint.sh /usr/bin/
+COPY docker/shell.entrypoint.sh /usr/bin/
 RUN chmod +x /usr/bin/entrypoint.sh
+RUN chmod +x /usr/bin/shell.entrypoint.sh
 ENTRYPOINT ["entrypoint.sh"]
