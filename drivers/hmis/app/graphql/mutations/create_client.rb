@@ -17,12 +17,13 @@ module Mutations
         **input.to_params,
       )
 
-      errors = client.errors
+      errors = []
 
       if client.valid?
         client.save!
         GrdaWarehouse::Tasks::IdentifyDuplicates.new.delay.run!
       else
+        errors = client.errors
         client = nil
       end
 

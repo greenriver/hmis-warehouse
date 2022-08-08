@@ -56,4 +56,16 @@ class Hmis::FieldMap
   def null_member?(key: nil, value: nil)
     @null_members.any? { |member| member[:key] == key || member[:value] == value }
   end
+
+  def self.no_yes
+    Hmis::FieldMap.new(
+      ::HUD.no_yes_reasons_for_missing_data_options.slice(0, 1).map do |value, desc|
+        {
+          key: desc,
+          value: value,
+          desc: desc,
+        }
+      end,
+    )
+  end
 end
