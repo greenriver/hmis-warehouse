@@ -56,6 +56,7 @@ module Types
 
       result = result.merge(race_attrs)
       result = result.merge(gender_attrs)
+      # TODO: YearEnteredService, YearSeparated, WorldWarII, KoreanWar, VietnamWar, DesertStorm, AfghanistanOEF, IraqOIF, IraqOND, OtherTheater, MilitaryBranch, DischargeStatus
 
       result
     end
