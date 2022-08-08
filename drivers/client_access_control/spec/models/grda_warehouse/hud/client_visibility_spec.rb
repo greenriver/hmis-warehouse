@@ -726,9 +726,10 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
         end
       end
 
-      describe 'and client has valid release in any CoC, and user does not have assigned coc_codes' do
+      describe 'and client has valid release, but user does not have assigned coc_codes' do
         before do
           user.coc_codes = []
+          user.roles << can_view_clients
           non_window_source_client.update(
             housing_release_status: non_window_source_client.class.full_release_string,
             consent_form_signed_on: 5.days.ago,
@@ -736,7 +737,11 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
             consented_coc_codes: ['ZZ-999'],
           )
         end
-        it 'all enrollments included' do
+        it 'enrollments visible to user included' do
+          expect(non_window_source_client.enrollments_for_verified_homeless_history(user: user).count).to eq 0
+
+          # add visibility and confirm it gets included
+          user.add_viewable(non_window_project)
           expect(non_window_source_client.enrollments_for_verified_homeless_history(user: user).count).to eq 1
         end
       end
