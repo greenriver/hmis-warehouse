@@ -726,8 +726,9 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
         end
       end
 
-      describe 'and client has valid release in any CoC' do
+      describe 'and client has valid release in any CoC, and user does not have assigned coc_codes' do
         before do
+          user.coc_codes = []
           non_window_source_client.update(
             housing_release_status: non_window_source_client.class.full_release_string,
             consent_form_signed_on: 5.days.ago,
