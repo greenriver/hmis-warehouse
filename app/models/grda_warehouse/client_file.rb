@@ -41,7 +41,11 @@ module GrdaWarehouse
       can_view_homeless_verification_pdfs = GrdaWarehouse::Config.get(:verified_homeless_history_visible_to_all) || user.can_generate_homeless_verification_pdfs?
       is_own_file = arel_table[:user_id].eq(user.id)
       is_verified_homeless_history = arel_table[:id].in(Arel.sql(verified_homeless_history.select(:id).to_sql))
+      is_not_verified_homeless_history = arel_table[:id].not_in(Arel.sql(verified_homeless_history.select(:id).to_sql))
       is_consent_form = arel_table[:id].in(Arel.sql(consent_forms.select(:id).to_sql))
+      has_full_housing_release = arel_table[:client_id].in(
+        Arel.sql(GrdaWarehouse::Hud::Client.full_housing_release_on_file.select(:id).to_sql),
+      )
 
       # If you can see all client files, show everything
       if user.can_manage_client_files?
@@ -49,9 +53,8 @@ module GrdaWarehouse
       # If all you can see are window files:
       #   show those with full releases and those you uploaded
       elsif user.can_manage_window_client_files? || user.can_use_separated_consent?
-        sql = arel_table[:client_id].in(
-          Arel.sql(GrdaWarehouse::Hud::Client.full_housing_release_on_file.select(:id).to_sql),
-        ).or(is_own_file)
+        sql = is_own_file
+        sql = sql.or(has_full_housing_release.and(is_not_verified_homeless_history))
 
         sql = sql.or(is_consent_form) if GrdaWarehouse::Config.get(:consent_visible_to_all)
 
@@ -59,9 +62,9 @@ module GrdaWarehouse
         # If using 'release' method, show all files ONLY if there is a valid release. If not, only show your own files.
         # If using any other method, show all files.
         if can_view_homeless_verification_pdfs
-          clients_with_consent = Arel.sql(GrdaWarehouse::Hud::Client.active_confirmed_consent_in_cocs(user.coc_codes).select(:id).to_sql)
           if ::GrdaWarehouse::Config.get(:verified_homeless_history_method).to_sym == :release
-            sql = sql.or(arel_table[:client_id].in(clients_with_consent).and(is_verified_homeless_history))
+            clients_with_consent = GrdaWarehouse::Hud::Client.active_confirmed_consent_in_cocs(user.coc_codes).select(:id)
+            sql = sql.or(arel_table[:client_id].in(Arel.sql(clients_with_consent.to_sql)).and(is_verified_homeless_history))
           else
             sql = sql.or(is_verified_homeless_history)
           end
