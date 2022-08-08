@@ -21,6 +21,27 @@ module Hmis
       case params[:schema]
       when :hmis
         result = HmisSchema.execute(query, variables: variables, context: context, operation_name: operation_name)
+
+        if params[:_json]
+          # We have a batch of operations
+          queries = params[:_json].map do |param|
+            {
+              query: param[:query],
+              operation_name: param[:operationName],
+              variables: variables,
+              context: context,
+            }
+          end
+          result = HmisSchema.multiplex(queries)&.to_json
+        else
+          # We have a single operation
+          result = HmisSchema.execute(
+            query: params[:query],
+            variables: variables,
+            context: context,
+            operation_name: params[:operationName],
+          )
+        end
       end
       render json: result
     rescue StandardError => e
