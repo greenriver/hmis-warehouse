@@ -280,6 +280,9 @@ App.StimulusApp.register('stimulus-select', class extends Stimulus.Controller {
       .attr('data-stimulus-select-target', 'selectAll')
       .attr('data-action', 'click->stimulus-select#toggleAll')
     $select.on('change', (e) => {
+      if($select.data('disableSelectAll')) {
+        return
+      }
       this._updateSelectAllText()
     })
     $select.trigger('change')
