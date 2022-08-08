@@ -394,11 +394,15 @@ module CePerformance
         CePerformance::Results::TimeToAssessmentAverage,
         CePerformance::Results::TimeToAssessmentMedian,
         CePerformance::Results::EventType,
-        CePerformance::Results::Vispdat,
-        CePerformance::Results::VispdatAdult,
-        CePerformance::Results::VispdatAdultAndChild,
-        CePerformance::Results::VispdatYouth,
       ]
+      if include_supplemental?
+        types += [
+          CePerformance::Results::Vispdat,
+          CePerformance::Results::VispdatAdult,
+          CePerformance::Results::VispdatAdultAndChild,
+          CePerformance::Results::VispdatYouth,
+        ]
+      end
       types
     end
 
