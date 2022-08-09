@@ -2191,7 +2191,6 @@ Style/RegexpLiteral:
     - 'app/models/eto_api/base.rb'
     - 'app/models/grda_warehouse/us_census_api/is_a_database_view.rb'
     - 'lib/rds_sql_server/lsa/fy2018/lsa_queries.rb'
-    - 'lib/util/mail/database_delivery.rb'
 
 # Offense count: 188
 # Cop supports --auto-correct.

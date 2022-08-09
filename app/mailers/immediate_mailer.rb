@@ -11,7 +11,11 @@ class ImmediateMailer < ApplicationMailer
     inactive_user = User.inactive.find_by(email: to)
     return if inactive_user.present?
 
-    delivery_method_options = { delivery_method_options: delivery_method_options }
-    mail(from: message.from, to: to, subject: "#{prefix} #{@message.subject}", **delivery_method_options)
+    mail(
+      from: message.from,
+      to: to,
+      subject: "#{prefix} #{@message.subject}",
+      delivery_method_options: delivery_method_options,
+    )
   end
 end
