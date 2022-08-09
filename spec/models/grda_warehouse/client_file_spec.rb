@@ -150,14 +150,6 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
   end
 
   describe 'visible_by scope for verified homeless history files' do
-    GrdaWarehouse::Config.delete_all
-    GrdaWarehouse::Config.first_or_create
-    GrdaWarehouse::Config.update(verified_homeless_history_visible_to_all: true)
-    GrdaWarehouse::Config.invalidate_cache
-    # before do
-    #   GrdaWarehouse::Config.delete_all
-    #   GrdaWarehouse::Config.invalidate_cache
-    # end
     let!(:user) { create :user }
     let!(:can_manage_client_files) { create :role, can_manage_client_files: true }
     let!(:can_manage_window_client_files) { create :role, can_manage_window_client_files: true }
@@ -167,7 +159,7 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
     let!(:own_file) { create :client_file, user: user }
 
     before :each do
-      # config.update(verified_homeless_history_visible_to_all: true)
+      config.update(verified_homeless_history_visible_to_all: true)
       file.tag_list.add(verified_homeless_tag.name)
       file.save!
       own_file.tag_list.add(verified_homeless_tag.name)
@@ -190,15 +182,13 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
       describe 'and verified_homeless_history_method is not :release' do
         it 'can see own and others files' do
           visible_files = GrdaWarehouse::ClientFile.visible_by?(user)
-          expect(visible_files.count).to eq(2) # got 1
+          expect(visible_files.count).to eq(2)
         end
       end
 
       describe 'and verified_homeless_history_method is :release' do
         before :each do
-          GrdaWarehouse::Config.update(verified_homeless_history_method: :release)
-          GrdaWarehouse::Config.invalidate_cache
-          # config.update(verified_homeless_history_method: :release)
+          config.update(verified_homeless_history_method: :release)
         end
         describe 'and client does not have consent' do
           it 'can see own files' do
@@ -221,7 +211,7 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
           it 'can see own and others files' do
             expect(GrdaWarehouse::Hud::Client.active_confirmed_consent_in_cocs(user.coc_codes).count).to eq(1)
             visible_files = GrdaWarehouse::ClientFile.visible_by?(user)
-            expect(visible_files.count).to eq(2) # got 1
+            expect(visible_files.count).to eq(2)
           end
         end
         describe 'and client has consent in different coc' do
