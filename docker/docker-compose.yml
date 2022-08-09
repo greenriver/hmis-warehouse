@@ -22,7 +22,9 @@ x-app: &app
     CHROMEDRIVER_VERSION: 79.0.3945.36
     GROVER_NO_SANDBOX: 'true'
     BUNDLE_FORCE_RUBY_PLATFORM: 'true'
-  env_file: .env.local
+  env_file:
+    - .env.development.local
+    - .env.local
   tmpfs:
     - /tmp
 
