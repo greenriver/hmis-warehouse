@@ -71,7 +71,7 @@ module CePerformance
     end
 
     def unit
-      'diversions'
+      'percent'
     end
 
     def goal_direction

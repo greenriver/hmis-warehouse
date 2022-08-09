@@ -49,28 +49,36 @@ module CePerformance
     end
 
     scope :adult_and_child_households, -> do
-      where(household_type: :adults_and_children)
+      where(household_type: :adults_and_children).hoh
     end
 
     scope :adult_only_households, -> do
-      where(household_type: :adults_only)
+      where(household_type: :adults_only).hoh
     end
 
     scope :child_only_households, -> do
-      where(household_type: :children_only)
+      where(household_type: :children_only).hoh
     end
 
     scope :youth_only_households, -> do
       # Unclear why, but active record extended isn't working here
-      where(household_type: :adults_only).where('household_ages <@ json_build_array(?)::jsonb', (18..24).to_a)
+      where(household_type: :adults_only).where('household_ages <@ json_build_array(?)::jsonb', (18..24).to_a).hoh
     end
 
     scope :unknown_households, -> do
-      where(household_type: :unknown)
+      where(household_type: :unknown).hoh
     end
 
     scope :chronically_homeless_at_entry, -> do
       where(chronically_homeless_at_entry: true)
+    end
+
+    scope :children, -> do
+      where(reporting_age: 0..17)
+    end
+
+    scope :over_55, -> do
+      where(reporting_age: 55..105)
     end
 
     scope :dv_survivor, -> do
@@ -82,7 +90,7 @@ module CePerformance
     end
 
     scope :lgbtq_household_members, -> do
-      where(lgbtq_household_members: true)
+      where(lgbtq_household_members: true).hoh
     end
 
     scope :race_am_ind_ak_native, -> do
@@ -129,6 +137,8 @@ module CePerformance
         'Youth only Households (18-24)' => :youth_only_households,
         'Unknown Household Type' => :unknown_households,
         'Chronically Homeless at Entry' => :chronically_homeless_at_entry,
+        'Under 18' => :children,
+        'Over 55' => :over_55,
       }
       if report.include_supplemental?
         pops['Survivor of Domestic Violence'] = :dv_survivor
