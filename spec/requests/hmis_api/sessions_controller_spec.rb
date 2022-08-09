@@ -118,11 +118,16 @@ RSpec.describe HmisApi::SessionsController, type: :request do
     describe 'User remembers 2FA device' do
       # HMIS frontend currently doesnt send remember_device or device_name
       before { skip('Disabled because of intermittent failues on CI') }
-
-      before(:each) do
+      before(:all) do
         GrdaWarehouse::Config.first_or_create
         GrdaWarehouse::Config.update(bypass_2fa_duration: 30)
         GrdaWarehouse::Config.invalidate_cache
+      end
+      after(:all) do
+        GrdaWarehouse::Config.delete_all
+      end
+
+      before(:each) do
         post hmis_api_user_session_path(hmis_api_user: { otp_attempt: user_2fa.current_otp, remember_device: true, device_name: 'Test Device' })
         delete destroy_hmis_api_user_session_path
         expect(response.status).to eq 204
