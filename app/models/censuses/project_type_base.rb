@@ -8,11 +8,11 @@ module Censuses
   class ProjectTypeBase < Base
     include ArelHelper
 
-    def detail_name(project_type)
+    def detail_name(project_type, user: nil) # rubocop:disable Lint/UnusedMethodArgument
       "#{GrdaWarehouse::Hud::Project::PROJECT_TYPE_TITLES[project_type.to_sym]} on"
     end
 
-    def clients_for_date(date, project_type, population = :clients)
+    def clients_for_date(user, date, project_type, population = :clients)
       known_sub_populations = GrdaWarehouse::ServiceHistoryEnrollment.known_standard_cohorts
 
       raise "Population #{population} not defined" unless known_sub_populations.include?(population.to_sym)
@@ -24,15 +24,18 @@ module Censuses
         'short_name' => ds_t[:short_name].to_sql,
         'client_id' => she_t[:client_id].to_sql,
         'project_id' => p_t[:id].to_sql,
+        'confidential' => bool_or(p_t[:confidential], o_t[:confidential]),
       }
       GrdaWarehouse::ServiceHistoryService.where(date: date).
         where(project_type: GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[project_type]).
-        joins(service_history_enrollment: [:client, :data_source, :project]).
+        joins(service_history_enrollment: [:client, :data_source, project: :organization]).
         merge(GrdaWarehouse::ServiceHistoryEnrollment.send(population)).
         order(c_t[:LastName].asc, c_t[:FirstName].asc).
         pluck(*columns.values).
         map do |row|
-          Hash[columns.keys.zip(row)]
+          h = Hash[columns.keys.zip(row)]
+          h['ProjectName'] = GrdaWarehouse::Hud::Project.confidential_project_name if h['confidential'] && !user.can_view_confidential_project_names?
+          h
         end
     end
 

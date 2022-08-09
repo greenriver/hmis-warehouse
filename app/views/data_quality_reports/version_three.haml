@@ -1,4 +1,4 @@
-- content_for :title, "Project Data Quality Report for #{@report.title}"
+- content_for :title, "Project Data Quality Report for #{@report.title(current_user)}"
 %h1= content_for :title
 - if @report.processing_errors.present?
   %p.alert.alert-danger.text-center

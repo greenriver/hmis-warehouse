@@ -1,0 +1,15 @@
+%section.o-section-card
+  %h3 Security
+  .c-card.c-card--flush.c-card--padded.flex-wrap
+    .d-flex.mb-4
+      .mr-2 Minimum password length
+      .ml-auto.mr-4= Devise.password_length.first()
+    .d-flex.mb-4
+      .mr-2 Number of failed login attempts allowed
+      .ml-auto.mr-4= Devise.maximum_attempts
+    .d-flex.mb-4
+      .mr-2 Account expiration length
+      .ml-auto.mr-4= "#{Devise.expire_after.in_days.to_i} days"
+    .d-flex.mb-4
+      .mr-2 Session timeout length
+      .ml-auto.mr-4= "#{Devise.timeout_in.in_minutes.to_i} minutes"

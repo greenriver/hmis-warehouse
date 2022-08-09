@@ -90,7 +90,7 @@ module WarehouseReports
         @report.cache_key.merge(user_id: current_user.id, view: :limited_details_hash, rev: CACHE_VERSION),
         expires_in: CACHE_LIFETIME,
       ) do
-        @report.limited_details_hash
+        @report.limited_details_hash(current_user)
       end
       layout = if request.xhr?
         'content_only'

@@ -116,5 +116,23 @@ module HudReports
     def self.common_fields
       []
     end
+
+    def self.allowed_options
+      [
+        :start,
+        :end,
+        :coc_codes,
+        :project_ids,
+        :data_source_ids,
+        :project_type_codes,
+        :project_group_ids,
+        :sub_population,
+        :age_ranges,
+        :hoh_only,
+        :genders,
+        :races,
+        :ethnicities,
+      ]
+    end
   end
 end

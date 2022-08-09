@@ -10,8 +10,8 @@
 
 = render 'warehouse_reports/limited_by_project_note'
 
-.warehouse-reports
-  %table.table.table-sm.table-hover
+.warehouse-reports.table-responsive
+  %table.table.table-striped
     %thead
       %tr
         %th Client
@@ -24,6 +24,6 @@
         - client_name = "#{@clients[entry[:client_id]]&.fetch(:FirstName)} #{@clients[entry[:client_id]]&.fetch(:LastName)}"
         %tr
           %td= link_to_if can_view_clients?, client_name, appropriate_client_path(entry[:client_id])
-          %td= link_to entry[:project_name], project_path(entry.project.id)
+          %td= link_to entry.project.name(current_user), project_path(entry.project.id)
           %td= entry[:first_date_in_program]
           %td= @max_dates[entry.id]

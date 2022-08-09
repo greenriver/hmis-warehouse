@@ -283,7 +283,6 @@ Layout/EmptyLinesAroundClassBody:
     - 'app/jobs/background_render/core_demographics_report_job.rb'
     - 'app/models/grda_warehouse/cas_availability.rb'
     - 'app/models/grda_warehouse/cas_non_hmis_client_history.rb'
-    - 'app/models/grda_warehouse/cas_report.rb'
     - 'app/models/grda_warehouse/cas_vacancy.rb'
     - 'app/models/grda_warehouse/census/by_project_type.rb'
     - 'app/models/grda_warehouse/census/by_project_type_client.rb'
@@ -316,7 +315,6 @@ Layout/EmptyLinesAroundClassBody:
     - 'app/models/grda_warehouse/grades/utilization.rb'
     - 'app/models/grda_warehouse/health_emergency/isolation.rb'
     - 'app/models/grda_warehouse/health_emergency/quarantine.rb'
-    - 'app/models/grda_warehouse/health_emergency/test_batch.rb'
     - 'app/models/grda_warehouse/hmis/client_attribute_defined_text.rb'
     - 'app/models/grda_warehouse/hmis/staff.rb'
     - 'app/models/grda_warehouse/identify_duplicates_log.rb'
@@ -891,7 +889,6 @@ Layout/SpaceBeforeBlockBraces:
     - 'app/models/grda_warehouse/export/hmis_six_one_one/exit.rb'
     - 'app/models/grda_warehouse/export/hmis_twenty_twenty/client.rb'
     - 'app/models/grda_warehouse/export/hmis_twenty_twenty/exit.rb'
-    - 'app/models/grda_warehouse/health_emergency/test_batch.rb'
     - 'app/models/grda_warehouse/tasks/chronically_homeless.rb'
     - 'app/models/grda_warehouse/tasks/enrollment_extras_import.rb'
     - 'app/models/grda_warehouse/tasks/test_data.rb'
@@ -965,7 +962,6 @@ Layout/SpaceInLambdaLiteral:
     - 'app/models/agency.rb'
     - 'app/models/grda_warehouse/cas_availability.rb'
     - 'app/models/grda_warehouse/cas_non_hmis_client_history.rb'
-    - 'app/models/grda_warehouse/cas_report.rb'
     - 'app/models/grda_warehouse/cas_vacancy.rb'
     - 'app/models/grda_warehouse/census/by_project.rb'
     - 'app/models/grda_warehouse/census/by_project_client.rb'
@@ -1116,7 +1112,6 @@ Layout/SpaceInsideHashLiteralBraces:
 # SupportedStyles: space, no_space
 Layout/SpaceInsideParens:
   Exclude:
-    - 'app/models/grda_warehouse/cas_report.rb'
     - 'app/models/grda_warehouse/census_by_project.rb'
     - 'app/models/grda_warehouse/census_by_project_type.rb'
     - 'app/models/grda_warehouse/document_export.rb'
@@ -1158,7 +1153,6 @@ Layout/SpaceInsideParens:
     - 'app/models/grda_warehouse/export/hmis_twenty_twenty/project_coc.rb'
     - 'app/models/grda_warehouse/export/hmis_twenty_twenty/service.rb'
     - 'app/models/grda_warehouse/export/hmis_twenty_twenty/user.rb'
-    - 'app/models/grda_warehouse/health_emergency/test_batch.rb'
     - 'app/models/grda_warehouse/import/hmis_six_one_one/affiliation.rb'
     - 'app/models/grda_warehouse/import/hmis_six_one_one/client.rb'
     - 'app/models/grda_warehouse/import/hmis_six_one_one/disability.rb'
@@ -1376,7 +1370,6 @@ Lint/ShadowingOuterLocalVariable:
     - 'app/models/grda_warehouse/export/hmis_six_one_one/project.rb'
     - 'app/models/grda_warehouse/export/hmis_six_one_one/project_coc.rb'
     - 'app/models/grda_warehouse/export/hmis_twenty_twenty/project_coc.rb'
-    - 'app/models/grda_warehouse/health_emergency/test_batch.rb'
     - 'app/models/grda_warehouse/warehouse_reports/initiative_report.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_one.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
@@ -1577,7 +1570,6 @@ Naming/HeredocDelimiterNaming:
 # SupportedStylesForLeadingUnderscores: disallowed, required, optional
 Naming/MemoizedInstanceVariableName:
   Exclude:
-    - 'app/controllers/application_controller.rb'
     - 'app/models/grda_warehouse/tasks/test_data.rb'
     - 'app/models/grda_warehouse/warehouse_reports/confidential_touch_point.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
@@ -2293,7 +2285,6 @@ Style/StringLiterals:
     - 'app/models/grda_warehouse/census/by_project_type_client.rb'
     - 'app/models/grda_warehouse/coordinated_entry_assessment/individual.rb'
     - 'app/models/grda_warehouse/export/hmis_twenty_twenty/project_coc.rb'
-    - 'app/models/grda_warehouse/health_emergency/test_batch.rb'
     - 'app/models/grda_warehouse/report/demographic.rb'
     - 'app/models/grda_warehouse/shape.rb'
     - 'app/models/grda_warehouse/tasks/chronically_homeless.rb'

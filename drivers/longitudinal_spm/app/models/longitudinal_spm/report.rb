@@ -34,6 +34,10 @@ module LongitudinalSpm
       order(updated_at: :desc)
     end
 
+    def self.default_project_type_codes
+      GrdaWarehouse::Hud::Project::SPM_PROJECT_TYPE_CODES
+    end
+
     def run_and_save!
       start
       begin
@@ -91,6 +95,8 @@ module LongitudinalSpm
           :project_ids,
           :project_group_ids,
           :data_source_ids,
+          :funder_ids,
+          :hoh_only,
         ],
       )
     end

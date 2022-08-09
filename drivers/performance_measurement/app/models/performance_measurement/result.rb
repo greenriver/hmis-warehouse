@@ -45,6 +45,34 @@ module PerformanceMeasurement
       field.starts_with?('returned')
     end
 
+    def data_for_row
+      this_year_count = primary_value.to_s
+      this_year_count += ' %' if percentage?
+      last_year_count = comparison_primary_value.to_s
+      last_year_count += ' %' if percentage?
+      OpenStruct.new(
+        unit: primary_unit.sub('% ', ''),
+        this_year_count: this_year_count,
+        last_year_count: last_year_count,
+        number_for_goal: goal_progress.round,
+        goal: goal,
+        goal_direction: report.detail_goal_direction(field),
+        brief_goal_description: report.detail_goal_description_brief(field),
+        goal_unit: report.detail_goal_unit(field),
+        gauge_max: gauge_width,
+        gauge_value: (goal_progress / max_for_gauge * gauge_width).round,
+        gauge_target: (goal / max_for_gauge * gauge_width).round,
+      )
+    end
+
+    private def gauge_width
+      200
+    end
+
+    private def max_for_gauge
+      [gauge_width, goal, goal_progress].max
+    end
+
     def data_for_system_level_bar
       columns = if percentage?
         [
@@ -68,7 +96,7 @@ module PerformanceMeasurement
       }
     end
 
-    def data_for_projects_bar(period: :reporting)
+    def data_for_projects_bar(user, period: :reporting)
       value_column = if period == :reporting
         :primary_value
       else
@@ -92,7 +120,7 @@ module PerformanceMeasurement
           count = result[value_column].round
           if count.positive?
             project_intermediate << [
-              "#{result.hud_project.name_and_type} (#{result.hud_project.id})",
+              "#{result.hud_project.name(user, include_project_type: true)} (#{result.hud_project.id})",
               count,
             ]
           end

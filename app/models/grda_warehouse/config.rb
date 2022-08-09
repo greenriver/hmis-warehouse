@@ -39,6 +39,15 @@ module GrdaWarehouse
       }
     end
 
+    def self.available_verified_homeless_history_methods
+      {
+        'Include enrollments from data sources that are visible in the window.' => :visible_in_window,
+        'Include enrollments that are visible to the user.' => :visible_to_user,
+        'Include all enrollments if client has a release that grants the user access to the client. If no release, only include enrollments that are visible to the user.' => :release,
+        'Include all enrollments' => :all_enrollments,
+      }
+    end
+
     def self.family_calculation_methods
       {
         'At least one adult & child' => :adult_child,
@@ -133,6 +142,20 @@ module GrdaWarehouse
       }
     end
 
+    def self.available_roi_models
+      {
+        'Explicit' => :explicit,
+        'Implicit' => :implicit,
+      }
+    end
+
+    def self.available_client_dashboards
+      {
+        'Default' => :default,
+        'VA' => :va,
+      }
+    end
+
     def self.client_search_available?
       get(:pii_encryption_type).to_sym.in?([:none])
     end
@@ -155,34 +178,112 @@ module GrdaWarehouse
       GrdaWarehouse::ProjectGroup.find(project_group_id)
     end
 
-    def self.cache_store
-      @cache_store ||= begin
-        store = ActiveSupport::Cache::MemoryStore.new
-
-        if ENV['RAILS_LOG_TO_STDOUT'].present?
-          store.logger = Logger.new($stdout)
-        else
-          store.logger = Logger.new(Rails.root.join('log/cache.log'))
-        end
-
-        store.logger.level = Logger::INFO
-
-        store
-      end
-    end
-
     def invalidate_cache
       self.class.invalidate_cache
     end
 
     def self.invalidate_cache
-      cache_store.clear
+      @settings = nil
+      @settings_update_at = nil
     end
 
     def self.get(config)
-      cache_store.fetch(config, expires_in: 10.seconds) do
-        first_or_create.public_send(config)
-      end
+      # Use cached config for 30 seconds
+      return @settings.public_send(config) if @settings && @settings_update_at.present? && @settings_update_at > 30.seconds.ago
+
+      @settings = first_or_create
+      @settings_update_at = Time.current
+      @settings.public_send(config)
+    end
+
+    def self.implicit_roi?
+      get(:roi_model).to_s == 'implicit'
+    end
+
+    def self.known_configs
+      [
+        :last_name,
+        :eto_api_available,
+        :healthcare_available,
+        :project_type_override,
+        :release_duration,
+        :cas_available_method,
+        :cas_flag_method,
+        :site_coc_codes,
+        :default_coc_zipcodes,
+        :family_calculation_method,
+        :continuum_name,
+        :cas_url,
+        :url_of_blank_consent_form,
+        :allow_partial_release,
+        :window_access_requires_release,
+        :show_partial_ssn_in_window_search_results,
+        :so_day_as_month,
+        :ahar_psh_includes_rrh,
+        :allow_multiple_file_tags,
+        :infer_family_from_household_id,
+        :chronic_definition,
+        :vispdat_prioritization_scheme,
+        :rrh_cas_readiness,
+        :show_vispdats_on_dashboards,
+        :cas_days_homeless_source,
+        :consent_visible_to_all,
+        :verified_homeless_history_visible_to_all,
+        :only_most_recent_import,
+        :expose_coc_code,
+        :auto_confirm_consent,
+        :health_emergency,
+        :health_emergency_tracing,
+        :health_priority_age,
+        :multi_coc_installation,
+        :auto_de_duplication_accept_threshold,
+        :auto_de_duplication_reject_threshold,
+        :pii_encryption_type,
+        :auto_de_duplication_enabled,
+        :request_account_available,
+        :dashboard_lookback,
+        :domestic_violence_lookback_days,
+        :support_contact_email,
+        :completeness_goal,
+        :excess_goal,
+        :timeliness_goal,
+        :income_increase_goal,
+        :ph_destination_increase_goal,
+        :move_in_date_threshold,
+        :pf_universal_data_element_threshold,
+        :pf_utilization_min,
+        :pf_utilization_max,
+        :pf_timeliness_threshold,
+        :pf_show_income,
+        :pf_show_additional_timeliness,
+        :cas_sync_months,
+        :send_sms_for_covid_reminders,
+        :bypass_2fa_duration,
+        :enable_system_cohorts,
+        :currently_homeless_cohort,
+        :veteran_cohort,
+        :youth_cohort,
+        :youth_no_child_cohort,
+        :youth_and_child_cohort,
+        :chronic_cohort,
+        :adult_and_child_cohort,
+        :adult_only_cohort,
+        :enable_youth_hrp,
+        :show_client_last_seen_info_in_client_details,
+        :ineligible_uses_extrapolated_days,
+        :warehouse_client_name_order,
+        :cas_calculator,
+        :service_register_visible,
+        :enable_youth_unstably_housed,
+        :cas_sync_project_group_id,
+        :system_cohort_processing_date,
+        :system_cohort_date_window,
+        :roi_model,
+        :client_dashboard,
+        :require_service_for_reporting_default,
+        :verified_homeless_history_method,
+        client_details: [],
+      ]
     end
 
     def self.arbiter_class

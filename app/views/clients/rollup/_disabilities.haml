@@ -35,8 +35,15 @@
               - if disability.DisabilityType == 10
                 = HUD.disability_response disability.DisabilityResponse
               - else
-                = HUD.no_yes_reasons_for_missing_data disability.DisabilityResponse
-            %td= HUD.no_yes_reasons_for_missing_data(disability.IndefiniteAndImpairs)
+                - if disability.DisabilityType == 8 && !can_view_hiv_status?
+                  %i.light redacted
+                - else
+                  = HUD.no_yes_reasons_for_missing_data disability.DisabilityResponse
+            %td
+              - if disability.DisabilityType == 8 && !can_view_hiv_status?
+                %i.light redacted
+              - else
+                = HUD.no_yes_reasons_for_missing_data(disability.IndefiniteAndImpairs)
 - else
   .no-data
     No Disabilities on file

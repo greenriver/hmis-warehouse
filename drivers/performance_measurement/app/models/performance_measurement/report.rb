@@ -12,6 +12,7 @@ module PerformanceMeasurement
     include Filter::ControlSections
     include Filter::FilterScopes
     include Reporting::Status
+    include SpmBasedReports
     include Rails.application.routes.url_helpers
     include ActionView::Helpers::NumberHelper
     include ArelHelper
@@ -48,6 +49,10 @@ module PerformanceMeasurement
       @comparison_spm_id ||= clients&.first&.comparison_spm_id
     end
 
+    def self.default_project_type_codes
+      GrdaWarehouse::Hud::Project::SPM_PROJECT_TYPE_CODES
+    end
+
     def run_and_save!
       start
       begin
@@ -69,19 +74,27 @@ module PerformanceMeasurement
       update(completed_at: Time.current)
     end
 
-    def describe_filter_as_html
-      filter.describe_filter_as_html(
-        [
-          :start,
-          :end,
-          :comparison_pattern,
-          :coc_code,
-          :project_type_codes,
-          :project_ids,
-          :project_group_ids,
-          :data_source_ids,
-        ],
-      )
+    def describe_filter_as_html(keys = nil, inline: false)
+      keys ||= [
+        :project_type_codes,
+        :project_ids,
+        :project_group_ids,
+        :data_source_ids,
+      ]
+      filter.describe_filter_as_html(keys, inline: inline)
+    end
+
+    def known_params
+      [
+        :start,
+        :end,
+        :comparison_period,
+        :coc_code,
+        :project_type_codes,
+        :project_ids,
+        :project_group_ids,
+        :data_source_ids,
+      ]
     end
 
     def filter=(filter_object)
@@ -120,24 +133,6 @@ module PerformanceMeasurement
 
     def self.url
       'performance_measurement/warehouse_reports/reports'
-    end
-
-    def spm_project_types
-      GrdaWarehouse::Hud::Project::SPM_PROJECT_TYPE_CODES
-    end
-
-    def project_type_ids
-      spm_project_types.map { |s| GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING[s.to_sym] }.flatten
-    end
-
-    def project_type_options_for_select
-      GrdaWarehouse::Hud::Project::PROJECT_GROUP_TITLES.select { |k, _| k.in?(spm_project_types) }.freeze.invert
-    end
-
-    def project_options_for_select(user)
-      GrdaWarehouse::Hud::Project.viewable_by(user).
-        with_hud_project_type(project_type_ids).
-        options_for_select(user: user)
     end
 
     def url
@@ -459,6 +454,43 @@ module PerformanceMeasurement
             details[calculation]
           },
         },
+        {
+          key: :days_homeless_before_move_in,
+          data: ->(_filter) {
+            {}.tap do |days_by_client_id|
+              # NOTE for later, the following should get days before move-in including those with no move in
+              # scope = report_scope.joins(:service_history_services, :project, :client).
+              #   permanent_housing.
+              #   # After move-in, homeless is marked false
+              #   merge(GrdaWarehouse::ServiceHistoryService.where(homeless: nil)).
+              #   distinct
+              # dobs = scope.pluck(:client_id, c_t[:DOB]).to_h
+              # scope.group(:client_id, p_t[:id]).
+              #   count(shs_t[:date]).
+
+              # For now, we're going to only include client's who have moved in
+              scope = report_scope.joins(:project, :client).
+                permanent_housing.
+                where.not(move_in_date: nil).
+                distinct
+              dobs = scope.pluck(:client_id, c_t[:DOB]).to_h
+              scope.pluck(:client_id, p_t[:id], :first_date_in_program, :move_in_date).
+                each do |client_id, project_id, entry_date, move_in|
+                  days = (move_in - entry_date).to_i
+                  days_by_client_id[client_id] ||= { value: 0, project_ids: Set.new, dob: nil }
+                  days_by_client_id[client_id][:value] += days
+                  days_by_client_id[client_id][:project_ids] << project_id
+                  days_by_client_id[client_id][:dob] = dobs[client_id]
+                end
+            end
+          },
+          value_calculation: ->(calculation, client_id, data) {
+            details = data[client_id]
+            return unless details.present?
+
+            details[calculation]
+          },
+        },
       ]
       [:es, :sh, :so, :th, :psh, :oph, :rrh].each do |p_type|
         extras << {
@@ -564,32 +596,6 @@ module PerformanceMeasurement
           },
         }
       end
-      # extras << {
-      #   key: :days_in_any_bed_in_period,
-      #   data: ->(_filter) {
-      #     {}.tap do |days_by_client_id|
-      #       scope = report_scope.joins(:service_history_services, :project, :client).
-      #         merge(GrdaWarehouse::ServiceHistoryService.where(date: filter.range)).
-      #         in_project_type([:es, :sh, :so, :th, :psh, :oph, :rrh]).
-      #         distinct
-      #       dobs = scope.pluck(:client_id, c_t[:DOB]).to_h
-      #       scope.group(:client_id, p_t[:id]).
-      #         count(shs_t[:date]).
-      #         each do |(client_id, project_id), days|
-      #           days_by_client_id[client_id] ||= { value: 0, project_ids: Set.new, dob: nil }
-      #           days_by_client_id[client_id][:value] += days
-      #           days_by_client_id[client_id][:project_ids] << project_id
-      #           days_by_client_id[client_id][:dob] = dobs[client_id]
-      #         end
-      #     end
-      #   },
-      #   value_calculation: ->(calculation, client_id, data) {
-      #     details = data[client_id]
-      #     return unless details.present?
-
-      #     details[calculation]
-      #   },
-      # }
       extras
     end
 

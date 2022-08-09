@@ -99,6 +99,7 @@ module DefaultFileTypes
           group: 'Homeless Verification',
           included_info: '',
           weight: 14,
+          verified_homeless_history: true,
         },
         {
           name: 'Verification of Program Enrollment for CAS',

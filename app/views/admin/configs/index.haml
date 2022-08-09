@@ -11,126 +11,16 @@
         = link_to 'Public Files', admin_public_files_path, class: 'nav-item nav-link'
         = link_to 'TalentLMS', admin_talentlms_path, class: 'nav-item nav-link'
     .col-sm-4
-      %section.o-section-card
-        %h3 Release of Information
-        .c-card.c-card--flush.c-card--padded.flex-wrap
-          = f.input :release_duration, collection: GrdaWarehouse::Config.available_release_durations, as: :select_two
-          = f.input :allow_partial_release, label: 'Allow partial CAS releases?'
-          = f.input :consent_visible_to_all, label: 'Should everyone with client file access be able to see all consent forms?'
-          = f.input :auto_confirm_consent, label: 'Should consent forms be confirmed automatically?'
-          = f.input :window_access_requires_release, label: 'Block access to the window if a client doesn\'t have a release?'
-          = f.input :show_partial_ssn_in_window_search_results, label: 'Show partial SSNs in the window search results? (no means don\'t show anything)'
-          = f.input :show_client_last_seen_info_in_client_details, label: 'Show date and location last seen on client detail page'
-
-      %section.o-section-card
-        %h3 System Cohorts
-        .c-card.c-card--flush.c-card--padded.flex-wrap
-          = f.input :enable_system_cohorts, label: 'Enable system cohorts?'
-          = f.input :currently_homeless_cohort, label: 'Currently Homeless', hint: 'The currently homeless cohort includes all open enrollment in ES, SO, TH, SH and no move-in date in a current PH project.'
-          = f.input :veteran_cohort, label: 'Veteran', hint: 'The veteran cohort includes all veterans with open enrollment in ES, SO, TH, SH and no move-in date in a current PH project.'
-          = f.input :youth_cohort, label: 'Youth (everyone < 25)', hint: 'The youth cohort includes all unnacompanied clients under 25 with open enrollment in ES, SO, TH, SH and no move-in date in a current PH project.'
-          = f.input :youth_no_child_cohort, label: 'Youth (no one in household < 18)', hint: 'This cohort includes all clients in a household where everyone is between 18 and 25 with open enrollment in ES, SO, TH, SH and no move-in date in a current PH project.'
-          = f.input :youth_and_child_cohort, label: 'Youth (18-24 and <18)', hint: 'This cohort includes all clients in enrollments where everyone is <25 and at least one client is 18-24 and another is < 18 with open enrollment in ES, SO, TH, SH and no move-in date in a current PH project.'
-          = f.input :chronic_cohort, label: 'Chronic', hint: 'The chronic cohort includes all clients who are currently chronically homeless with open enrollment in ES, SO, TH, SH and no move-in date in a current PH project.'
-          = f.input :adult_and_child_cohort, label: 'Adult and Child', hint: 'The adult and child cohort includes all clients in an adult and child household with open enrollment in ES, SO, TH, SH and no move-in date in a current PH project.'
-          = f.input :adult_only_cohort, label: 'Adult Only', hint: 'The adult only cohort includes all clients in a household with only adults with open enrollment in ES, SO, TH, SH and no move-in date in a current PH project.'
-          = f.input :system_cohort_processing_date, as: :date_picker, label: 'Date to calculate system cohorts from', hint: 'Should be left blank except in test environments'
-          = f.input :system_cohort_date_window, label: 'Number of days to consider when determining newly homeless'
-      %section.o-section-card
-        %h3 Client Calculations
-        .c-card.c-card--flush.c-card--padded.flex-wrap
-          = f.input :project_type_override, label: 'Override ALL project types?', hint: 'Treat the Project Type Override as a global override instead of just an override for federal reporting.'
-          = f.input :so_day_as_month, label: 'Extrapolate all street outreach contacts to cover the entire month?'
-          = f.input :chronic_definition, collection: GrdaWarehouse::Config.available_chronic_definitions, as: :select_two
-          = f.input :verified_homeless_history_visible_to_all, label: 'Should everyone with client file access be able to see all verified homeless history files?'
-          = f.input :allow_multiple_file_tags, label: 'Should client files be allowed to have more than one tag?'
-          = f.input :vispdat_prioritization_scheme, collection: GrdaWarehouse::Config.available_vispdat_prioritization_schemes, label: 'How should we prioritize VI-SPDAT scores for CAS', include_blank: false, as: :select_two
-          = f.input :show_vispdats_on_dashboards, label: "Show VI-SPDAT as a filter on the dashboards?"
-          = f.input :family_calculation_method, collection: GrdaWarehouse::Config.family_calculation_methods, label: 'Method used to identify families (exclusive of HUD reporting)', as: :select_two
-          = f.input :infer_family_from_household_id, label: 'Should "presented as an individual" be inferred from the count of matching household ids? (unchecked uses project inventory HouseholdType)'
-          = f.input :expose_coc_code, label: 'Expose CoC Code on client dashboard rows?', hint: 'This is most useful if the installation spans multiple CoCs'
-          = f.input :enable_youth_hrp, label: 'Enable Youth Housing Resolution Plans'
-          = f.input :enable_youth_unstably_housed, label: 'Enable youth Unstably Housed option'
-          = f.input :warehouse_client_name_order, label: 'How should the names on clients be calculated?', collection: GrdaWarehouse::Config.available_warehouse_client_name_orders, as: :select_two
-
-      %section.o-section-card
-        %h3 Reporting Options
-        .c-card.c-card--flush.c-card--padded.flex-wrap
-          = f.input :dashboard_lookback, as: :date_picker, label: 'Dashboard Lookback Date'
-          %h4 Project Data Quality Report
-          = f.input :completeness_goal, label: 'Completeness Goal', hint: 'Percent'
-          = f.input :excess_goal, label: 'Excess Goal', hint: 'Percent'
-          = f.input :timeliness_goal, label: 'Timeliness Goal', hint: 'Days'
-          = f.input :income_increase_goal, label: 'Income Increase Goal', hint: 'Percent'
-          = f.input :ph_destination_increase_goal, label: 'PH Destination Increase Goal', hint: 'Percent'
-          = f.input :move_in_date_threshold, label: 'Move-in-Date Threshold', hint: 'Days'
-          %h4 Project Pass/Fail Report
-          = f.input :pf_universal_data_element_threshold, label: 'Universal Data Elements Error Threshold', hint: 'Percent'
-          = f.input :pf_utilization_min, label: 'Utilization Minimum Threshold', hint: 'Percent'
-          = f.input :pf_utilization_max, label: 'Utilization Maximum Threshold', hint: 'Percent'
-          = f.input :pf_timeliness_threshold, label: 'Timeliness Threshold', hint: 'Days'
-          = f.input :pf_show_income, label: 'Show Income Section'
-          = f.input :pf_show_additional_timeliness, label: 'Show Additional Timeliness Section'
-
+      = render 'roi', f: f
+      = render 'client_calculations', f: f
+      = render 'client_display', f: f
+      = render 'system_cohorts', f: f
     .col-sm-4
-      %section.o-section-card
-        %h3 Connections
-        .c-card.c-card--flush.c-card--padded.flex-wrap
-          = f.input :pii_encryption_type, collection: GrdaWarehouse::Config.available_encryption_types, label: 'PII Encryption Type', as: :select_two
-          = f.input :request_account_available, label: 'Allow anyone to request an account?'
-          = f.input :eto_api_available, label: 'Is the ETO API available?'
-          = f.input :url_of_blank_consent_form, label: 'Blank consent form URL'
-          = f.input :site_coc_codes, as: :string, label: 'Default CoC Codes', hint: 'comma separated.  eg. MA-500, MA-504'
-          = f.input :continuum_name, as: :string, label: 'Continuum Name'
-          = f.input :multi_coc_installation, label: 'Is this a multi-CoC installation?'
-          = f.input :only_most_recent_import, label: 'Only allow importing of the most-recent HMIS version'
-          = f.input :bypass_2fa_duration, label: 'Memorize MFA devices for', collection: GrdaWarehouse::Config.available_bypass_2fa_durations, as: :select_two
-          = f.input :support_contact_email
-          = f.input :service_register_visible, label: 'Enable the Service Register?'
-
-          -# f.input :default_coc_zipcodes, as: :string, label: 'Default CoC Zip codes', hint: 'comma separated.  eg. 02108, 02109'
-
-      %section.o-section-card
-        %h3 Security
-        .c-card.c-card--flush.c-card--padded.flex-wrap
-          .d-flex.mb-4
-            .mr-2 Minimum password length
-            .ml-auto.mr-4= Devise.password_length.first()
-          .d-flex.mb-4
-            .mr-2 Number of failed login attempts allowed
-            .ml-auto.mr-4= Devise.maximum_attempts
-          .d-flex.mb-4
-            .mr-2 Account expiration length
-            .ml-auto.mr-4= "#{Devise.expire_after.in_days.to_i} days"
-          .d-flex.mb-4
-            .mr-2 Session timeout length
-            .ml-auto.mr-4= "#{Devise.timeout_in.in_minutes.to_i} minutes"
-
-      %section.o-section-card
-        %h3 Healthcare
-        .c-card.c-card--flush.c-card--padded.flex-wrap
-          = f.input :healthcare_available, label: 'Enable Healthcare section?'
-          = f.input :health_emergency, collection: GrdaWarehouse::Config.available_health_emergencies, label: 'Ongoing health emergency?', include_blank: 'No current emergency', as: :select_two
-          = f.input :health_emergency_tracing, collection: GrdaWarehouse::Config.available_health_emergency_tracings, label: 'Tracing contacts for', include_blank: 'No current emergency', as: :select_two
-          = f.input :send_sms_for_covid_reminders, label: 'Send SMS reminders for 2nd dose of COVID-19 Vaccine?'
-
-      %section.o-section-card
-        %h3 CAS
-        .c-card.c-card--flush.c-card--padded.flex-wrap
-          = f.input :cas_url, label: 'CAS Site URL'
-          = f.input :cas_days_homeless_source, collection: GrdaWarehouse::Config.available_days_homeless_sources, label: 'Source of days homeless to send to CAS', as: :select_two
-          = f.input :cas_available_method, collection: GrdaWarehouse::Config.available_cas_methods, label: 'Method used to determine which clients to sync with CAS', as: :select_two, input_html: {class: :jSyncMethod}
-          .jCasSyncMonths
-            = f.input :cas_sync_months, as: :select_two, collection: GrdaWarehouse::Config.available_cas_sync_months, label: 'Clients active within prior'
-          .jCasSyncProjectGroup
-            = f.input :cas_sync_project_group_id, collection: GrdaWarehouse::ProjectGroup.viewable_by(current_user), label: 'Project Group to sync', as: :select_two
-          = f.input :cas_flag_method, collection: GrdaWarehouse::Config.available_cas_flag_methods,  label: 'Should the CAS Readiness form require additional human review, or is the existence of a file flagged with the appropriate tag sufficient for matching in CAS?', as: :select_two
-          = f.input :rrh_cas_readiness, label: 'Include RRH section in CAS Readiness?'
-          = f.input :client_details, collection: GrdaWarehouse::Hud::Client.cas_columns.invert.to_a.sort, label: 'Checkboxes displayed in CAS Readiness', as: :select_two, input_html: { multiple: true }
-          = f.input :health_priority_age, label: 'Age above which should be automatically flagged as health prioritized'
-          = f.input :domestic_violence_lookback_days, label: 'How long should a victim of domestic violence be considered a victim?', collection: GrdaWarehouse::Config.dv_days, as: :select_two
-          = f.input :ineligible_uses_extrapolated_days, label: 'Should calculations of ineligibility for CAS and Cohorts include extrapolated days?', hint: 'This also affects adding clients to cohorts, the most-recent days served on enrollment roll-ups.'
-          = f.input :cas_calculator, label: 'Which method should be used to set CAS values?', as: :select_two, collection: GrdaWarehouse::Config.available_cas_calculators
+      = render 'connections', f: f
+      = render 'security', f: f
+      = render 'reporting_options', f: f
+      = render 'healthcare', f: f
+      = render 'cas', f: f
 
       = f.submit value: 'Save Site Configuration', class: 'btn btn-primary'
 = content_for :page_js do

@@ -1,0 +1,56 @@
+= render 'breadcrumbs'
+
+- content_for :title, @report.title
+%h1= content_for :title
+= render 'warehouse_reports/beta_warning'
+%p.mb-2= @report.description
+%p= "Created by #{@report.user.name_with_email} on #{@report.completed_at.to_date}"
+
+.well.report-listing.warehouse-reports__completed
+  .row.justify-content-between
+    .col-10
+      - content_for :panel_collapse_content_universe, flush: true do
+        .d-flex
+          .d-flex
+            = @report.describe_filter_as_html
+          .ml-auto.nobr= link_to 'View universe details', filter_path(filter: @report.filter.to_h, selected_keys: @report.known_params), data: { loads_in_ajax_modal: true }
+      - content_for :panel_collapse_heading_universe do
+        .d-flex.pt-4
+          %h2.mb-4.mr-6 Chosen Universe
+          = @report.describe_filter_as_html([:start, :comparison_pattern, :coc_code], inline: true)
+          .ml-auto.d-flex
+            %i.icon-angle-right.j-toggle-arrow
+            .j-toggle-text.ml-2.show Show Details
+            .j-toggle-text.ml-2.hide Hide Details
+      .minimal-collapse
+        = render 'common/panel_collapse', id: 'universe', title: 'Chosen Universe', content: '_universe', heading_slug: '_universe', arrow_icon: 'icon-angle'
+    .col-2
+      = render 'hud_report_links', title: 'CE APR Reports'
+
+
+- @report.results_for_display.each.with_index do |(category_name, periods), i|
+  - classes = "performance-measurement--highlight-light-#{i + 1}"
+  .page-break-after
+    %h2.mt-6.mb-0.p-6{class: classes}= category_name
+    - periods[:reporting].each do |result_class, result|
+      - next unless result_class.display_result?
+
+      = render result, category_name: category_name, result_class: result_class, result: result, pdf: false
+
+
+= content_for :page_js do
+  :javascript
+    $(document).ready(function() {
+      $('.j-summary-row').addClass('cursor-pointer');
+      $('.j-summary-row').on('click', function(e) {
+        $('html, body').animate({
+          scrollTop: $($(this).data('target')).offset().top
+        }, 500);
+      });
+      $('.j-click-row').addClass('cursor-pointer');
+      $('.j-click-row').on('click', function(e) {
+        e.preventDefault();
+        var link = $(this).find('.j-click-row-source');
+        window.open(link.attr('href'), '_blank');
+      });
+    });

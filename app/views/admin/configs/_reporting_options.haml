@@ -1,0 +1,19 @@
+%section.o-section-card
+  %h3 Reporting Options
+  .c-card.c-card--flush.c-card--padded.flex-wrap
+    = f.input :dashboard_lookback, as: :date_picker, label: 'Dashboard Lookback Date'
+    = f.input :require_service_for_reporting_default, label: 'Should we require service during the reporting range by default?', hint: 'This is not implemented on all reports'
+    %h4 Project Data Quality Report
+    = f.input :completeness_goal, label: 'Completeness Goal', hint: 'Percent'
+    = f.input :excess_goal, label: 'Excess Goal', hint: 'Percent'
+    = f.input :timeliness_goal, label: 'Timeliness Goal', hint: 'Days'
+    = f.input :income_increase_goal, label: 'Income Increase Goal', hint: 'Percent'
+    = f.input :ph_destination_increase_goal, label: 'PH Destination Increase Goal', hint: 'Percent'
+    = f.input :move_in_date_threshold, label: 'Move-in-Date Threshold', hint: 'Days'
+    %h4 Project Pass/Fail Report
+    = f.input :pf_universal_data_element_threshold, label: 'Universal Data Elements Error Threshold', hint: 'Percent'
+    = f.input :pf_utilization_min, label: 'Utilization Minimum Threshold', hint: 'Percent'
+    = f.input :pf_utilization_max, label: 'Utilization Maximum Threshold', hint: 'Percent'
+    = f.input :pf_timeliness_threshold, label: 'Timeliness Threshold', hint: 'Days'
+    = f.input :pf_show_income, label: 'Show Income Section'
+    = f.input :pf_show_additional_timeliness, label: 'Show Additional Timeliness Section'

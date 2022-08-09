@@ -33,5 +33,7 @@
                       = client[k]
                     %a{href: '#', class: ['btn', 'btn-sm'], data: { toggle: :popover, title: 'Client Information', url: api_client_path(client.client_id), html: 'true' }}
                       %i.icon-info
+                  - elsif k.to_s.starts_with?('hiv_aids') && !can_view_hiv_status?
+                    %i.light redacted
                   - else
                     = formatted_cell(client[k])

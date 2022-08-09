@@ -18,9 +18,8 @@ class ApplicationController < ActionController::Base
   include ControllerAuthorization
   include ActivityLogger
   include Pagy::Backend
-  # Prevent CSRF attacks by raising an exception.
-  # For APIs, you may want to use :null_session instead.
   protect_from_forgery with: :exception
+
   before_action :authenticate_user!
   auto_session_timeout User.timeout_in
 
@@ -134,6 +133,7 @@ class ApplicationController < ActionController::Base
     super
     payload[:server_protocol] = request.env['SERVER_PROTOCOL']
     payload[:remote_ip] = request.remote_ip
+    payload[:ip] = request.ip
     payload[:session_id] = request.env['rack.session.record'].try(:session_id)
     payload[:user_id] = current_user&.id
     payload[:pid] = Process.pid

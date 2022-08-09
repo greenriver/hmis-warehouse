@@ -1,0 +1,6 @@
+"Source","Benefit at start","Benefit at latest annual assessment for stayers","Benefit at exit for leavers"
+"a. No sources",18,5,5
+"b. 1+ source(s)",24,1,12
+"c. Client Doesn't Know/Client Refused",0,0,0
+"d. Data Not Collected/Not stayed long enough for Annual Assessment",1,20,0
+"e. Total clients",43,26,17

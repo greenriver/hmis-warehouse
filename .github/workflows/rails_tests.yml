@@ -193,6 +193,7 @@ jobs:
           HEALTH_DATABASE_DB: health_db
           REPORTING_DATABASE_DB: reporting_db
           MAX_FAILURES: 20
+          LOG_LEVEL: INFO
         run: |
           bundle exec rspec --fail-fast=$MAX_FAILURES --color --format p -P "{spec,drivers}/**/*_spec.rb"
           OKTA_DOMAIN=localhost OKTA_CLIENT_ID=x OKTA_CLIENT_SECRET=x bundle exec rspec --fail-fast=$MAX_FAILURES --color -fd spec/requests/omniauth_spec.rb # this one test needs a different ENV

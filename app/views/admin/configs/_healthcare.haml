@@ -1,0 +1,7 @@
+%section.o-section-card
+  %h3 Healthcare
+  .c-card.c-card--flush.c-card--padded.flex-wrap
+    = f.input :healthcare_available, label: 'Enable Healthcare section?'
+    = f.input :health_emergency, collection: GrdaWarehouse::Config.available_health_emergencies, label: 'Ongoing health emergency?', include_blank: 'No current emergency', as: :select_two
+    = f.input :health_emergency_tracing, collection: GrdaWarehouse::Config.available_health_emergency_tracings, label: 'Tracing contacts for', include_blank: 'No current emergency', as: :select_two
+    = f.input :send_sms_for_covid_reminders, label: 'Send SMS reminders for 2nd dose of COVID-19 Vaccine?'

@@ -1,76 +1,51 @@
 .report-parameters
   .report-parameters__parameter
-    %label.label.label-default.parameter-label
-      Start Date
-    %label.label.label-primary.parameter-value
-      %strong
-        = report.start_date
+    %label.label.label-default.parameter-label Start Date
+    %label.label.label-primary.parameter-value= report.start_date
   .report-parameters__parameter
-    %label.label.label-default.parameter-label
-      End Date
-    %label.label.label-primary.parameter-value
-      %strong
-        = report.end_date
+    %label.label.label-default.parameter-label End Date
+    %label.label.label-primary.parameter-value= report.end_date
 
   .report-parameters__parameter
-    %label.label.label-default.parameter-label
-      Hash Status
-    %label.label.label-primary.parameter-value
-      %strong
-        = HUD.hash_status report.hash_status
+    %label.label.label-default.parameter-label Hash Status
+    %label.label.label-primary.parameter-value= HUD.hash_status report.hash_status
 
   .report-parameters__parameter
-    %label.label.label-default.parameter-label
-      Period Type
-    %label.label.label-primary.parameter-value
-      %strong
-        = HUD.export_period_type report.period_type
+    %label.label.label-default.parameter-label Period Type
+    %label.label.label-primary.parameter-value= HUD.export_period_type report.period_type
 
   .report-parameters__parameter
-    %label.label.label-default.parameter-label
-      Export Directive
-    %label.label.label-primary.parameter-value
-      %strong
-        = HUD.export_directive report.directive
+    %label.label.label-default.parameter-label Export Directive
+    %label.label.label-primary.parameter-value= HUD.export_directive report.directive
   - if report.confidential
     .report-parameters__parameter
-      %label.label.label-default.parameter-label
-        Confidential
-      %label.label.label-success.parameter-value
-        %strong
-          %i.icon-checkmark
+      %label.label.label-default.parameter-label Confidential
+      %label.label.text-success.parameter-value
+        %i.icon-checkmark
   - if can_export_anonymous_hmis_data?
     .report-parameters__parameter
-      %label.label.label-default.parameter-label
-        Faked PII
+      %label.label.label-default.parameter-label Faked PII
       - if report.faked_pii
-        %label.label.label-success.parameter-value
-          %strong
-            %i.icon-checkmark
-      - else
-        %label.label.label-danger.parameter-value
-          %strong
-            %i.icon-cross
-
-  .report-parameters__parameter
-    %label.label.label-default.parameter-label
-      Projects
-    %label.label.label-primary.parameter-value
-      %strong
-        - project_names = GrdaWarehouse::Hud::Project.order(ProjectName: :asc).where(id: report.project_ids).pluck(:ProjectName)
-        - if project_names.empty? || project_names == @all_project_names
-          All
-        - else
-          = project_names.join(', ').truncate(50, separator: ' ')
-
-  .report-parameters__parameter
-    %label.label.label-default.parameter-label
-      Include Deleted
-    - if report.include_deleted
-      %label.label.label-success.parameter-value
-        %strong
+        %label.label.text-success.parameter-value
           %i.icon-checkmark
-    - else
-      %label.label.label-danger.parameter-value
-        %strong
+      - else
+        %label.label.text-danger.parameter-value
           %i.icon-cross
+
+  .report-parameters__parameter
+    %label.label.label-default.parameter-label Projects
+    %label.label.label-primary.parameter-value
+      - project_names = GrdaWarehouse::Hud::Project.order(ProjectName: :asc).where(id: report.project_ids).pluck(:ProjectName)
+      - if project_names.empty? || project_names == @all_project_names
+        All
+      - else
+        = project_names.join(', ').truncate(50, separator: ' ')
+
+  .report-parameters__parameter
+    %label.label.label-default.parameter-label Include Deleted
+    - if report.include_deleted
+      %label.label.text-success.parameter-value
+        %i.icon-checkmark
+    - else
+      %label.label.text-danger.parameter-value
+        %i.icon-cross

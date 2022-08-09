@@ -22,6 +22,10 @@ module HudPathReport::Generators::Fy2021
       "v3.5 #{short_name} #{fiscal_year}"
     end
 
+    def self.default_project_type_codes
+      GrdaWarehouse::Hud::Project::PATH_PROJECT_TYPE_CODES
+    end
+
     def url
       hud_reports_path_url(report, { host: ENV['FQDN'], protocol: 'https' })
     end
@@ -45,6 +49,18 @@ module HudPathReport::Generators::Fy2021
 
     def self.filter_class
       ::HudPathReport::Filters::PathFilter
+    end
+
+    def self.allowed_options
+      [
+        :start,
+        :end,
+        :coc_codes,
+        :project_ids,
+        :data_source_ids,
+        :project_type_codes,
+        :project_group_ids,
+      ]
     end
   end
 end

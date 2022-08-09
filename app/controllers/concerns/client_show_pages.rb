@@ -67,7 +67,7 @@ module ClientShowPages
     end
 
     def js_clients
-      @js_clients ||= if can_view_confidential_enrollment_details?
+      @js_clients ||= if can_view_confidential_project_names?
         source_clients.each_with_index.map { |c, i| [c.id, [i, c.uuid, c.data_source&.short_name, c.organizations.map(&:name).to_sentence]] }.to_h
       else
         source_clients.each_with_index.map do |c, i|

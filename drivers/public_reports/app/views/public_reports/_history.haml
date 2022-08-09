@@ -21,7 +21,7 @@
               - if report.version_slug.present?
                 (#{report.version_slug})
             %td.report-parameters.parameter-label
-              = report.filter_object.describe_filter_as_html
+              = report.filter_object.describe_filter_as_html(report.known_params)
             %td
               .nobr
                 = report&.user&.name

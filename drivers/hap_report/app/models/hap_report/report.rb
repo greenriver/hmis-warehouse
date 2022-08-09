@@ -335,7 +335,9 @@ module HapReport
     def value_for_display(key, value)
       case key
       when 'project_ids'
-        return GrdaWarehouse::Hud::Project.where(id: value).map(&:name).join(', ')
+        # We can use non-confidentialized ProjectName here because this renders the selected project list,
+        # and confidential projects are only selectable for users who can view their names.
+        return GrdaWarehouse::Hud::Project.where(id: value).map(&:ProjectName).join(', ')
       end
 
       value

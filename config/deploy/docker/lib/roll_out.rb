@@ -22,6 +22,7 @@ class RollOut
   attr_accessor :last_task_completed
   attr_accessor :log_prefix
   attr_accessor :log_stream_name
+  attr_accessor :log_stream_name_template
   attr_accessor :rails_env
   attr_accessor :secrets_arn
   attr_accessor :service_exists
@@ -30,6 +31,7 @@ class RollOut
   attr_accessor :target_group_name
   attr_accessor :task_definition
   attr_accessor :task_role
+  attr_accessor :task_arn
   attr_accessor :web_options
   attr_accessor :only_check_ram
 
@@ -238,13 +240,8 @@ class RollOut
     minimum, maximum = _get_min_max_from_desired(web_options['container_count'])
 
     # Keep production web containers on on-demand providers
-    capacity_provider_name = if target_group_name.match?(/production|prd/)
-      _on_demand_capacity_provider_name
-    else
-      _spot_capacity_provider_name
-    end
     _start_service!(
-      capacity_provider: capacity_provider_name,
+      capacity_provider: _on_demand_capacity_provider_name,
       name: name + '-2', # version bump for change from port 443 -> 3000
       load_balancers: lb,
       desired_count: web_options['container_count'] || 1,
@@ -332,8 +329,10 @@ class RollOut
     # I'm not sure if there's a way to simplify the stream name
     # This won't be a complete and valid stream name until TASK_ID is
     # substituted later on
-    self.log_stream_name = "#{log_prefix}/#{name}/TASK_ID"
+    self.log_stream_name_template = "#{log_prefix}/#{name}/TASK_ID"
     environment << { 'name' => 'LOG_STREAM_NAME_PREFIX', 'value' => "#{log_prefix}/#{name}" }
+
+    environment << { 'name' => 'CONTAINER_VARIANT', 'value' => image.split('--')[1].to_s }
 
     ten_minutes = 10 * 60
 
@@ -451,35 +450,17 @@ class RollOut
       end
     end
 
-    task_arn = results.tasks.first&.task_arn
+    self.task_arn = results.tasks.first&.task_arn
 
-    if task_arn.nil?
+    if self.task_arn.nil?
       puts "[FATAL] Something went wrong with the task. exiting #{target_group_name}"
       exit
     end
 
-    puts "[INFO] Task arn: #{task_arn || 'unknown'} #{target_group_name}"
-    puts "[INFO] Debug with: aws ecs describe-tasks --cluster #{cluster} --tasks #{task_arn} #{target_group_name}"
+    puts "[INFO] Task arn: #{self.task_arn || 'unknown'} #{target_group_name}"
+    puts "[INFO] Debug with: aws ecs describe-tasks --cluster #{cluster} --tasks #{self.task_arn} #{target_group_name}"
 
-    puts "[INFO] Waiting on the task to start and finish quickly to catch resource-related errors #{target_group_name}"
-    begin
-      ecs.wait_until(:tasks_running, { cluster: cluster, tasks: [task_arn] }, { max_attempts: 5, delay: 5 })
-    rescue Aws::Waiters::Errors::TooManyAttemptsError => e
-      puts "[WARN] #{e.message}"
-    end
-    begin
-      ecs.wait_until(:tasks_stopped, { cluster: cluster, tasks: [task_arn] }, { max_attempts: 2, delay: 5 })
-    rescue Aws::Waiters::Errors::TooManyAttemptsError => e
-      puts "[WARN] #{e.message}"
-    end
-
-    results = ecs.describe_tasks(cluster: cluster, tasks: [task_arn])
-
-    if results.failures.length.positive?
-      puts "[FATAL] failures: #{results.failures} #{target_group_name}"
-      exit
-    end
-
+    results = ecs.describe_tasks(cluster: cluster, tasks: [self.task_arn])
     failure_reasons = results.tasks.flat_map { |x| x.containers.map(&:reason) }.compact
 
     if failure_reasons.length.positive?
@@ -487,10 +468,21 @@ class RollOut
       exit
     end
 
-    task_id = task_arn.split('/').last
-    log_stream_name.sub!(/TASK_ID/, task_id)
+    task_id = self.task_arn.split('/').last
+    self.log_stream_name = self.log_stream_name_template.sub(/TASK_ID/, task_id)
 
+    puts "[INFO] Waiting on the task to start... #{target_group_name}"
+    begin
+      ecs.wait_until(:tasks_running, { cluster: cluster, tasks: [self.task_arn] }, { max_attempts: 25, delay: 10 })
+    rescue Aws::Waiters::Errors::FailureStateError, Aws::Waiters::Errors::TooManyAttemptsError
+      puts '[WARN] Something went wrong trying to start the task. Cancelling it and trying again.'
+
+      _stop_task!
+      _run_task!
+    end
     _tail_logs
+    rescue Interrupt, SystemExit
+      _interrupt
   end
 
   def _get_status
@@ -563,6 +555,7 @@ class RollOut
           },
         ],
         placement_strategy: _placement_strategy,
+        placement_constraints: [],
         deployment_configuration: {
           maximum_percent: maximum_percent,
           minimum_healthy_percent: minimum_healthy_percent,
@@ -611,6 +604,27 @@ class RollOut
     system(cmd)
 
     raise 'Aborting deployment due to command error' if $CHILD_STATUS.exitstatus != 0
+  end
+
+  def _stop_task!
+    unless self.task_arn.present?
+      puts '[WARN] No task to stop, proceeding'
+      return
+    end
+
+    ecs.stop_task(cluster: cluster, task: self.task_arn)
+    ecs.wait_until(:tasks_stopped, { cluster: cluster, tasks: [self.task_arn] }, { max_attempts: 30, delay: 5 })
+    self.task_arn = nil
+    puts 'Task stopped.'
+    rescue Aws::Waiters::Errors::FailureStateError, Aws::Waiters::Errors::TooManyAttemptsError
+      puts "[FATAL] 🔥 Could not confirm stopped task #{self.task_arn}, it might still be running."
+      exit
+  end
+
+  def _interrupt
+    puts "❗ Caught interrupt, stopping task #{self.task_arn}..."
+    _stop_task!
+    exit 130
   end
 end
 # rubocop:enable Style/RedundantSelf

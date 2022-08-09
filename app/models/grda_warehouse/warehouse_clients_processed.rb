@@ -31,7 +31,23 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
     new.update_cached_counts(client_ids: client_ids)
   end
 
+  private def advisory_lock_name
+    'warehouse_clients_processed_update_cached_counts'
+  end
+
+  # Only run if it's not already running or we have a specific set of client_ids
   def update_cached_counts(client_ids: [])
+    if client_ids.blank?
+      # On larger installations, this can take 24+ hours sometimes.  Prevent if from getting out of hand
+      GrdaWarehouse::WarehouseClientsProcessed.with_advisory_lock(advisory_lock_name, timeout_seconds: 0) do
+        internal_update_cached_counts(client_ids: client_ids)
+      end
+    end
+
+    internal_update_cached_counts(client_ids: client_ids)
+  end
+
+  private def internal_update_cached_counts(client_ids: [])
     setup_notifier('WarehouseClientsProcessed')
     extra_data = []
     limited_data = []
@@ -631,10 +647,10 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
       GrdaWarehouse::ServiceHistoryEnrollment.entry.ongoing.
         merge(GrdaWarehouse::Hud::Project.public_send(type)).
         where(client_id: @client_ids).
-        joins(:service_history_services, :project).
-        group(:client_id, :project_name, p_t[:confidential], p_t[:id]).
+        joins(:service_history_services, :project, :organization).
+        group(:client_id, :project_name, p_t[:id], bool_or(p_t[:confidential], o_t[:confidential])).
         maximum(shs_t[:date]).
-        each do |(client_id, project_name, confidential, project_id), date|
+        each do |(client_id, project_name, project_id, confidential), date|
           project_name = GrdaWarehouse::Hud::Project.confidential_project_name if confidential
           lsit[client_id] ||= []
           lsit[client_id] << {
