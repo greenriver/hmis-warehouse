@@ -410,6 +410,9 @@ GEM
       mail (>= 2.2.1)
     gmail_xoauth (0.4.2)
       oauth (>= 0.3.6)
+    graphiql-rails (1.8.0)
+      railties
+      sprockets-rails
     graphql (2.0.9)
     grosser-pomo (0.5.1)
     grover (1.1.1)
@@ -988,6 +991,7 @@ DEPENDENCIES
   gettext (>= 3.0.2)
   gettext_i18n_rails
   gmail
+  graphiql-rails
   graphql (~> 2.0)
   grosser-pomo
   grover

@@ -5278,7 +5278,8 @@ CREATE TABLE public.configs (
     roi_model character varying DEFAULT 'explicit'::character varying,
     client_dashboard character varying DEFAULT 'default'::character varying NOT NULL,
     require_service_for_reporting_default boolean DEFAULT true NOT NULL,
-    supplemental_enrollment_importer character varying DEFAULT 'GrdaWarehouse::Tasks::EnrollmentExtrasImport'::character varying
+    supplemental_enrollment_importer character varying DEFAULT 'GrdaWarehouse::Tasks::EnrollmentExtrasImport'::character varying,
+    verified_homeless_history_method character varying DEFAULT 'visible_in_window'::character varying
 );
 
 
@@ -48954,6 +48955,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220714190911'),
 ('20220715194241'),
 ('20220718185442'),
-('20220801135734');
+('20220801135734'),
+('20220804160252');
 
 

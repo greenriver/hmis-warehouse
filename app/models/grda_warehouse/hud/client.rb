@@ -13,13 +13,14 @@ module GrdaWarehouse::Hud
     include ArelHelper
     include HealthCharts
     include ApplicationHelper
-    include ::HMIS::Structure::Client
+    include ::HmisStructure::Client
     include HudSharedScopes
     include HudChronicDefinition
     include SiteChronic
     include ClientHealthEmergency
     include ::Youth::Intake
     include CasClientData
+    include ClientSearch
     has_paper_trail
 
     attr_accessor :source_id
@@ -1863,56 +1864,8 @@ module GrdaWarehouse::Hud
     end
 
     def self.text_search(text, client_scope:)
-      return none unless text.present?
-
-      text.strip!
-      sa = source.arel_table
-      alpha_numeric = /[[[:alnum:]]-]+/.match(text).try(:[], 0) == text
-      numeric = /[\d-]+/.match(text).try(:[], 0) == text
-      date = /\d\d\/\d\d\/\d\d\d\d/.match(text).try(:[], 0) == text
-      social = /\d\d\d-\d\d-\d\d\d\d/.match(text).try(:[], 0) == text
-      # Explicitly search for only last, first if there's a comma in the search
-      if text.include?(',')
-        last, first = text.split(',').map(&:strip)
-        where = sa[:LastName].lower.matches("#{last.downcase}%") if last.present?
-        if last.present? && first.present?
-          where = where.and(sa[:FirstName].lower.matches("#{first.downcase}%"))
-        elsif first.present?
-          where = sa[:FirstName].lower.matches("#{first.downcase}%")
-        end
-      # Explicity search for "first last"
-      elsif text.include?(' ')
-        first, last = text.split(' ').map(&:strip)
-        where = sa[:FirstName].lower.matches("#{first.downcase}%").
-          and(sa[:LastName].lower.matches("#{last.downcase}%"))
-      # Explicitly search for a PersonalID
-      elsif alpha_numeric && (text.size == 32 || text.size == 36)
-        where = sa[:PersonalID].matches(text.gsub('-', ''))
-      elsif social
-        where = sa[:SSN].eq(text.gsub('-', ''))
-      elsif date
-        (month, day, year) = text.split('/')
-        where = sa[:DOB].eq("#{year}-#{month}-#{day}")
-      elsif numeric
-        where = sa[:PersonalID].eq(text).or(sa[:id].eq(text))
-      else
-        query = "%#{text}%"
-        alt_names = UniqueName.where(double_metaphone: Text::Metaphone.double_metaphone(text).to_s).map(&:name)
-        nicks = Nickname.for(text).map(&:name)
-        where = sa[:FirstName].matches(query).
-          or(sa[:LastName].matches(query))
-        if nicks.any?
-          nicks_for_search = nicks.map { |m| GrdaWarehouse::Hud::Client.connection.quote(m) }.join(',')
-          where = where.or(nf('LOWER', [arel_table[:FirstName]]).in(nicks_for_search))
-        end
-        if alt_names.present?
-          alt_names_for_search = alt_names.map { |m| GrdaWarehouse::Hud::Client.connection.quote(m) }.join(',')
-          where = where.or(nf('LOWER', [arel_table[:FirstName]]).in(alt_names_for_search)).
-            or(nf('LOWER', [arel_table[:LastName]]).in(alt_names_for_search))
-        end
-      end
-      begin
-        client_ids = client_scope.
+      text_searcher(text) do |where|
+        client_scope.
           joins(:warehouse_client_source).searchable.
           where(where).
           preload(:destination_client).
@@ -1921,9 +1874,6 @@ module GrdaWarehouse::Hud
       rescue RangeError
         return none
       end
-
-      client_ids << text if numeric && self.destination.where(id: text).exists? # rubocop:disable Style/RedundantSelf
-      where(id: client_ids)
     end
 
     # Must match 3 of four First Name, Last Name, SSN, DOB

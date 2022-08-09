@@ -10,7 +10,7 @@ module GrdaWarehouse::Hud
     include HudSharedScopes
     include TsqlImport
     include NotifierConfig
-    include ::HMIS::Structure::Enrollment
+    include ::HmisStructure::Enrollment
 
     attr_accessor :source_id
 

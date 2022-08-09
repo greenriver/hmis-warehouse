@@ -7,7 +7,7 @@
 module GrdaWarehouse::Hud
   class YouthEducationStatus < Base
     include HudSharedScopes
-    include ::HMIS::Structure::YouthEducationStatus
+    include ::HmisStructure::YouthEducationStatus
     include RailsDrivers::Extensions
 
     attr_accessor :source_id
