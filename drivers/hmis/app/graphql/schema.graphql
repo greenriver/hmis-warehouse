@@ -8,7 +8,6 @@ type Client {
   Date of birth as format yyyy-mm-dd
   """
   dob: ISO8601Date
-  endDate: ISO8601DateTime
   enrollments: [Enrollment!]!
   firstName: String!
   id: ID!
@@ -17,7 +16,6 @@ type Client {
   preferredName: String
   pronouns: String
   ssnSerial: String
-  startDate: ISO8601DateTime
 }
 
 """

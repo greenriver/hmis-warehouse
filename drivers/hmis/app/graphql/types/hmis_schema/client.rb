@@ -21,8 +21,6 @@ module Types
     field :pronouns, String, null: true
     field :date_updated, GraphQL::Types::ISO8601DateTime, null: false
     enrollments_field :enrollments
-    field :start_date, GraphQL::Types::ISO8601DateTime, null: true
-    field :end_date, GraphQL::Types::ISO8601DateTime, null: true
 
     def enrollments
       resolve_enrollments
