@@ -561,6 +561,40 @@ ALTER SEQUENCE public.glacier_vaults_id_seq OWNED BY public.glacier_vaults.id;
 
 
 --
+-- Name: hmis_roles; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_roles (
+    id bigint NOT NULL,
+    name character varying NOT NULL,
+    can_view_full_ssn boolean DEFAULT false NOT NULL,
+    can_view_clients boolean DEFAULT false NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: hmis_roles_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_roles_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_roles_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_roles_id_seq OWNED BY public.hmis_roles.id;
+
+
+--
 -- Name: imports; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1422,6 +1456,40 @@ ALTER SEQUENCE public.uploads_id_seq OWNED BY public.uploads.id;
 
 
 --
+-- Name: user_hmis_data_source_roles; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.user_hmis_data_source_roles (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    role_id bigint NOT NULL,
+    data_source_id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: user_hmis_data_source_roles_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.user_hmis_data_source_roles_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: user_hmis_data_source_roles_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.user_hmis_data_source_roles_id_seq OWNED BY public.user_hmis_data_source_roles.id;
+
+
+--
 -- Name: user_roles; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1711,6 +1779,13 @@ ALTER TABLE ONLY public.glacier_vaults ALTER COLUMN id SET DEFAULT nextval('publ
 
 
 --
+-- Name: hmis_roles id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_roles ALTER COLUMN id SET DEFAULT nextval('public.hmis_roles_id_seq'::regclass);
+
+
+--
 -- Name: imports id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -1851,6 +1926,13 @@ ALTER TABLE ONLY public.uploads ALTER COLUMN id SET DEFAULT nextval('public.uplo
 
 
 --
+-- Name: user_hmis_data_source_roles id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_hmis_data_source_roles ALTER COLUMN id SET DEFAULT nextval('public.user_hmis_data_source_roles_id_seq'::regclass);
+
+
+--
 -- Name: user_roles id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -1988,6 +2070,14 @@ ALTER TABLE ONLY public.glacier_archives
 
 ALTER TABLE ONLY public.glacier_vaults
     ADD CONSTRAINT glacier_vaults_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_roles hmis_roles_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_roles
+    ADD CONSTRAINT hmis_roles_pkey PRIMARY KEY (id);
 
 
 --
@@ -2156,6 +2246,14 @@ ALTER TABLE ONLY public.unique_names
 
 ALTER TABLE ONLY public.uploads
     ADD CONSTRAINT uploads_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: user_hmis_data_source_roles user_hmis_data_source_roles_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_hmis_data_source_roles
+    ADD CONSTRAINT user_hmis_data_source_roles_pkey PRIMARY KEY (id);
 
 
 --
@@ -2496,6 +2594,27 @@ CREATE INDEX index_two_factors_memorized_devices_on_user_id ON public.two_factor
 --
 
 CREATE INDEX index_uploads_on_deleted_at ON public.uploads USING btree (deleted_at);
+
+
+--
+-- Name: index_user_hmis_data_source_roles_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_user_hmis_data_source_roles_on_data_source_id ON public.user_hmis_data_source_roles USING btree (data_source_id);
+
+
+--
+-- Name: index_user_hmis_data_source_roles_on_role_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_user_hmis_data_source_roles_on_role_id ON public.user_hmis_data_source_roles USING btree (role_id);
+
+
+--
+-- Name: index_user_hmis_data_source_roles_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_user_hmis_data_source_roles_on_user_id ON public.user_hmis_data_source_roles USING btree (user_id);
 
 
 --
@@ -2888,6 +3007,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220613211706'),
 ('20220613212850'),
 ('20220615155458'),
-('20220621144511');
+('20220621144511'),
+('20220714144937');
 
 

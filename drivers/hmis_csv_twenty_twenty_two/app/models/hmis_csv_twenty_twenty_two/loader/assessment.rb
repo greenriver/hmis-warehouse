@@ -7,7 +7,7 @@
 module HmisCsvTwentyTwentyTwo::Loader
   class Assessment < GrdaWarehouse::Hud::Base
     include LoaderConcern
-    include ::HMIS::Structure::Assessment
+    include ::HmisStructure::Assessment
     # Because GrdaWarehouse::Hud::* defines the table name, we can't use table_name_prefix :(
     self.table_name = 'hmis_csv_2022_assessments'
   end

@@ -35,7 +35,7 @@ module LsaSqlServer
   end
 
   class DbUp < SqlServerBase
-    include ::HMIS::Structure::Base
+    include ::HmisStructure::Base
     self.table_name = :db_up
 
     def self.csv_columns

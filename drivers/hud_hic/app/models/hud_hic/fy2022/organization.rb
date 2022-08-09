@@ -7,7 +7,7 @@
 module HudHic::Fy2022
   class Organization < ::GrdaWarehouseBase
     self.table_name = 'hud_report_hic_organizations'
-    include ::HMIS::Structure::Organization
+    include ::HmisStructure::Organization
     acts_as_paranoid
 
     has_many :report_organizations, as: :universe_membership, dependent: :destroy

@@ -1,0 +1,77 @@
+- title = "HMIS #{@type} Source Data"
+- content_for :title, title
+%h1= content_for :title
+- if @imported
+  .well
+    %p
+      Details are shown for imported data.  The columns show the results of the import process.
+      %br
+      %strong Warehouse Value
+      represents the final data after merging the post-processed data with the existing warehouse record.
+      %br
+      %strong Post-Processed Value
+      shows the record after passing through the import and cleaning process.
+      %br
+      %strong CSV Value
+      is the record as imported directly from the HMIS CSV import.
+
+    - models = (@data_source.import_aggregators.keys + @data_source.import_cleanups.keys).uniq.sort
+    - if models.present?
+      %p The following extensions are enabled on this data source, and will cause changes during the import process
+      %table.table.table-striped
+        %thead
+          %tr
+            %th Model
+            %th Extensions
+        %tbody
+          - models.each do |model|
+            %tr
+              %td= model
+              %td
+                - aggregators = @data_source.import_aggregators[model]&.map do |aggregator|
+                  - aggregator.constantize.description
+                - cleanups = @data_source.import_cleanups[model]&.map do |cleanup|
+                  - cleanup.constantize.description
+                #{((aggregators || []) + (cleanups || [])).sort.join(', ')}.
+
+.card
+  %table.table.table-striped
+    %thead
+      %tr
+        %th
+        %th Warehouse Value
+        - if @imported
+          %th Post-Processed Value
+        - if @csv
+          %th CSV Value
+    %tr
+      %th Data Source
+      %td= link_to "#{@item.data_source.name} (#{@item.data_source_id})", data_source_path(@item.data_source)
+      - if @imported
+        %td= @imported.data_source_id
+      - if @csv
+        %td= @csv.data_source_id
+    %tr
+      %th Internal ID
+      %td= @item.id
+      - if @imported
+        %td= @imported.id
+      - if @csv
+        %td= @csv.id
+    - @item.class.hud_csv_headers.each do |key|
+      - value = @item[key]
+      - if key == :PersonalID && @item.class.name != 'GrdaWarehouse::Hud::Client'
+        - value = link_to @item[key], source_data_path(search: {id: @item[key], type: 'Client'})
+      - elsif key == :EnrollmentID && @item.class.name != 'GrdaWarehouse::Hud::Enrollment'
+        - value = link_to @item[key], source_data_path(search: {id: @item[key], type: 'Enrollment'})
+      - elsif key == :OrganizationID && @item.class.name != 'GrdaWarehouse::Hud::Organization'
+        - value = link_to @item[key], source_data_path(search: {id: @item[key], type: 'Organization'})
+      - elsif key == :ProjectID && @item.class.name != 'GrdaWarehouse::Hud::Project'
+        - value = link_to @item[key], source_data_path(search: {id: @item[key], type: 'Project'})
+      %tr
+        %th= key
+        %td= value
+        - if @imported
+          %td= @imported[key]
+        - if @csv
+          %td= @csv[key]
