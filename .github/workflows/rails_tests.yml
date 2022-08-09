@@ -53,41 +53,41 @@ jobs:
           - tmp:/home/user/sftp
           - /spec/support/sftp.conf:/etc/sftp/users.conf:ro
 
-      env:
-        CLIENT: test
-        DATABASE_ADAPTER: postgresql
-        DATABASE_APP_DB_TEST: boston_hmis_test
-        DATABASE_DB_TEST: boston_cas_test
-        DATABASE_APP_DB: boston_db
-        DATABASE_HOST: postgres
-        DATABASE_PASS: postgres
-        DATABASE_USER: postgres
-        DATABASE_WAREHOUSE_DB_TEST: test_hmis_warehouse
-        DEFAULT_FROM: greenriver.testing@mailinator.com
-        ENCRYPTION_KEY: strongEncryptionstrongEncryptionstrongEncryption
-        FQDN: openpath.host
-        HEALTH_DATABASE_ADAPTER: postgresql
-        HEALTH_DATABASE_DB_TEST: health_test
-        HEALTH_DATABASE_HOST: postgres
-        HEALTH_DATABASE_PASS: postgres
-        HEALTH_DATABASE_USER: postgres
-        HEALTH_FROM: greenriver.testing@mailinator.com
-        HOSTNAME: openpath.host
-        PORT: 80
-        RAILS_ENV: test
-        REPORTING_DATABASE_ADAPTER: postgresql
-        REPORTING_DATABASE_DB_TEST: test_boston_reporting
-        REPORTING_DATABASE_HOST: postgres
-        REPORTING_DATABASE_PASS: postgres
-        REPORTING_DATABASE_USER: postgres
-        WAREHOUSE_DATABASE_ADAPTER: postgis
-        WAREHOUSE_DATABASE_DB_TEST: warehouse_test
-        WAREHOUSE_DATABASE_HOST: postgres
-        WAREHOUSE_DATABASE_PASS: postgres
-        WAREHOUSE_DATABASE_USER: postgres
-        WAREHOUSE_DATABASE_DB: warehouse_db
-        HEALTH_DATABASE_DB: health_db
-        REPORTING_DATABASE_DB: reporting_db
+    env:
+      CLIENT: test
+      DATABASE_ADAPTER: postgresql
+      DATABASE_APP_DB_TEST: boston_hmis_test
+      DATABASE_DB_TEST: boston_cas_test
+      DATABASE_APP_DB: boston_db
+      DATABASE_HOST: postgres
+      DATABASE_PASS: postgres
+      DATABASE_USER: postgres
+      DATABASE_WAREHOUSE_DB_TEST: test_hmis_warehouse
+      DEFAULT_FROM: greenriver.testing@mailinator.com
+      ENCRYPTION_KEY: strongEncryptionstrongEncryptionstrongEncryption
+      FQDN: openpath.host
+      HEALTH_DATABASE_ADAPTER: postgresql
+      HEALTH_DATABASE_DB_TEST: health_test
+      HEALTH_DATABASE_HOST: postgres
+      HEALTH_DATABASE_PASS: postgres
+      HEALTH_DATABASE_USER: postgres
+      HEALTH_FROM: greenriver.testing@mailinator.com
+      HOSTNAME: openpath.host
+      PORT: 80
+      RAILS_ENV: test
+      REPORTING_DATABASE_ADAPTER: postgresql
+      REPORTING_DATABASE_DB_TEST: test_boston_reporting
+      REPORTING_DATABASE_HOST: postgres
+      REPORTING_DATABASE_PASS: postgres
+      REPORTING_DATABASE_USER: postgres
+      WAREHOUSE_DATABASE_ADAPTER: postgis
+      WAREHOUSE_DATABASE_DB_TEST: warehouse_test
+      WAREHOUSE_DATABASE_HOST: postgres
+      WAREHOUSE_DATABASE_PASS: postgres
+      WAREHOUSE_DATABASE_USER: postgres
+      WAREHOUSE_DATABASE_DB: warehouse_db
+      HEALTH_DATABASE_DB: health_db
+      REPORTING_DATABASE_DB: reporting_db
 
     steps:
       - name: Checkout
