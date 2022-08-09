@@ -112,6 +112,29 @@ module CePerformance
       joins(:source_client).merge(GrdaWarehouse::Hud::Client.multi_racial)
     end
 
+    scope :non_hispanic, -> do
+      joins(:source_client).merge(GrdaWarehouse::Hud::Client.where(Ethnicity: 0))
+    end
+    scope :hispanic, -> do
+      joins(:source_client).merge(GrdaWarehouse::Hud::Client.where(Ethnicity: 1))
+    end
+
+    scope :female, -> do
+      joins(:source_client).merge(GrdaWarehouse::Hud::Client.gender_female)
+    end
+    scope :male, -> do
+      joins(:source_client).merge(GrdaWarehouse::Hud::Client.gender_male)
+    end
+    scope :agender, -> do
+      joins(:source_client).merge(GrdaWarehouse::Hud::Client.no_single_gender)
+    end
+    scope :transgender, -> do
+      joins(:source_client).merge(GrdaWarehouse::Hud::Client.gender_transgender)
+    end
+    scope :questioning, -> do
+      joins(:source_client).merge(GrdaWarehouse::Hud::Client.questioning)
+    end
+
     # FIXME eventually.  This would be much better if we could figure out how to query the events column
     # something like and events @> '{"event": "13"}'
     def self.with_event_type(event_type)
@@ -152,8 +175,18 @@ module CePerformance
         'Native Hawaiian or Pacific Islander' => :race_native_hi_other_pacific,
         'White' => :race_white,
         'Multi-Racial' => :multi_racial,
+        'Non-Hispanic/Non-Latin(a)(o)(x)' => :non_hispanic,
+        'Hispanic/Latin(a)(o)(x)' => :hispanic,
+      }
+      gender_pops = {
+        'Female' => :female,
+        'Male' => :male,
+        'A gender other than singularly female or male (e.g., non-binary, genderfluid, agender, culturally specific gender)' => :agender,
+        'Transgender' => :transgender,
+        'Questioning' => :questioning,
       }
       pops = pops.merge(race_pops)
+      pops = pops.merge(gender_pops)
       pops
     end
   end
