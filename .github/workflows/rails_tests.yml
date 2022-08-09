@@ -151,6 +151,11 @@ jobs:
           ecmaVersion: 'es5'
           files: 'app*.js'
 
+      # Regenerate the graphql schema and fail if it has changed
+      - name: 'Check HMIS GraphQL schema'
+        run: |
+          bundle exec rake driver:hmis:dump_graphql_schema
+
       - name: Run tests
         env:
           CLIENT: test
