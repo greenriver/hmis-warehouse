@@ -30,7 +30,7 @@
                     - search_string = GrdaWarehouse::Hud::Client.uuid(value) if @data_source.munged_personal_id? || value.length == 32
                     = link_to value, clients_path(q: search_string)
                   - else
-                    = link_to_if key.to_sym == @klass.hud_key, value, hmis_path(search: {type: entry_name, id: value, data_source_id: @data_source.id })
+                    = link_to_if key.to_sym == @klass.hud_key, value, source_data_path(search: {type: entry_name, id: value, data_source_id: @data_source.id })
   = render 'common/pagination_bottom', item_name: entry_name
 - else
   .none-found No validation flags.

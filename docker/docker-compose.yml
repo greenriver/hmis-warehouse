@@ -1,7 +1,7 @@
 version: '3.8'
 
 x-app: &app
-  image: hmis-warehouse:3.2
+  image: hmis-warehouse:3.3
   build:
     context: .
     args:
@@ -41,7 +41,7 @@ services:
     profiles:
       - manual
     command: /bin/bash
-    entrypoint: ''
+    entrypoint: '/usr/bin/shell.entrypoint.sh'
     depends_on:
       - db
       - redis

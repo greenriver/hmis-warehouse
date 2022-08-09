@@ -6,7 +6,7 @@
 
 module HmisCsvTwentyTwenty::Importer
   class AssessmentQuestion < GrdaWarehouse::Hud::Base
-    include ::HMIS::Structure::AssessmentQuestion
+    include ::HmisStructure::AssessmentQuestion
     include ImportConcern
 
     # Because GrdaWarehouse::Hud::* defines the table name, we can't use table_name_prefix :(
