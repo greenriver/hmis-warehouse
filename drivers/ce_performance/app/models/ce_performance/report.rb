@@ -164,7 +164,7 @@ module CePerformance
           results.each do |r|
             rfd[r.category] ||= {}
             rfd[r.category][period] ||= {}
-            rfd[r.category][period][r.class] ||= r
+            rfd[r.category][period][r.class] ||= r if r.period == period.to_s && r.overview
           end
         end
       end
@@ -174,29 +174,23 @@ module CePerformance
       results_for_display.keys.index(category_name) + 1
     end
 
+    def vispdat_ranges
+      @vispdat_ranges ||= clients.distinct.where.not(vispdat_range: nil).pluck(:vispdat_range)
+    end
+
+    def clients_title(sub_population_title: nil, vispdat_range: nil, event_type: nil)
+      return "VI-SPDAT Range: #{vispdat_range}" if vispdat_range.present?
+      return "Event Type: #{::HUD.event(event_type)}" if event_type.present?
+
+      return sub_population_title
+    end
+
     private def populate_universe
       run_ce_aprs.each do |period, ce_apr|
         report_clients = {}
         report_clients = add_q5a_clients(report_clients, period, ce_apr)
         report_clients = add_q9b_clients(report_clients, period, ce_apr)
         report_clients = add_q9d_clients(report_clients, period, ce_apr)
-
-        # TODO:
-        # Number of persons/households - CAT2: at imminent risk: prevention tool score completed; prior living situation set per HUD
-        # Number of persons screened for Prevention - Number of Head of Household with a recorded Prevention Tool Score (currently from auxiliary data)
-        # Sub-populations -
-        #   Veterans,
-        #   Adult and child households,
-        #   Adult only households,
-        #   Chronically Homeless at Entry,
-        #   Youth (18-24),
-        #   Domestic Violence (Enrollment.CurrentlyFleeing or Enrollment.DomesticViolenceVictim),
-        #   LGBT (can't really do with current data, maybe Gender.Questioning, or Gender.Transgender or Gender.NoSingleGender, is availale in the auxiliary data) ,
-        #   HIV - Enrollment.disabilities.DisabilityType = 8
-        # Number and Types of CE Events - Group and count by ID (Q9d B15) - partially implemented
-        # CE Assessment Score ranges/types - only available in auxiliary data currently (score is integer, type is Family/Single/Youth)
-        # Assessment Point Connections (referral data to ensure clients are getting connected) - TBD
-
         Client.import!(
           report_clients.values,
           batch_size: 5_000,
@@ -229,16 +223,47 @@ module CePerformance
         report_client.exit_date = ce_apr_client.last_date_in_program
         report_client.head_of_household = ce_apr_client.head_of_household
         report_client.prior_living_situation = ce_apr_client.prior_living_situation
+        # was the client ever literally homeless during the report range
+        report_client.cls_literally_homeless = any_cls_literally_homeless?(ce_apr_client)
         report_client.los_under_threshold = ce_apr_client.los_under_threshold
         report_client.previous_street_essh = ce_apr_client.date_to_street
         report_client.household_size = ce_apr_client.household_members.count
         report_client.household_ages = household_ages(ce_apr_client).uniq
         report_client.household_type = ce_apr_client.household_type
         report_client.chronically_homeless_at_entry = ce_apr_client.chronically_homeless
+        if include_supplemental?
+          most_recent_supplement = pick_supplement(ce_apr_client.source_enrollment.tpc_supplemental_enrollment_datum, period)
+          if most_recent_supplement.present?
+            report_client.vispdat_type = most_recent_supplement.vispdat_type
+            report_client.vispdat_range = most_recent_supplement.vispdat_range
+            report_client.assessment_score = most_recent_supplement.vispdat_grand_total
+            report_client.prevention_tool_score = most_recent_supplement.prevention_tool_score
+            report_client.prioritization_tool_type = most_recent_supplement.prioritization_tool_type
+            report_client.prioritization_tool_score = most_recent_supplement.prioritization_tool_score
+            report_client.community = most_recent_supplement.community
+            report_client.lgbtq_household_members = most_recent_supplement.lgbtq_household_members || false
+            report_client.client_lgbtq = most_recent_supplement.client_lgbtq || false
+            report_client.dv_survivor = most_recent_supplement.dv_survivor || false
+          end
+        end
         report_client.period = period
         report_clients[ce_apr_client.client_id] = report_client
       end
       report_clients
+    end
+
+    def include_supplemental?
+      RailsDrivers.loaded.include?(:supplemental_enrollment_data) && SupplementalEnrollmentData::Tpc.exists?
+    end
+
+    # find the newest that is before the report end date
+    private def pick_supplement(supplements, period)
+      active_filter = periods[period]
+      supplements.select do |m|
+        [m.entry_date, m.vispdat_ended_at].compact.all? { |d| d <= active_filter.end }
+      end.max_by do |m|
+        [m.entry_date, m.vispdat_ended_at].compact.max
+      end
     end
 
     private def add_q9b_clients(report_clients, period, ce_apr)
@@ -258,7 +283,7 @@ module CePerformance
         end
         min_assessment_date = ce_apr_client.hud_report_ce_assessments.map(&:assessment_date).min
         end_date = [ce_apr_client.last_date_in_program, ce_apr.end_date].compact.min
-        report_client.days_before_assessment = min_assessment_date - ce_apr_client.first_date_in_program
+        report_client.days_before_assessment = min_assessment_date - ce_apr_client.first_date_in_program if min_assessment_date.present?
         report_client.days_on_list = end_date - min_assessment_date if min_assessment_date.present?
         report_client.days_in_project = end_date - ce_apr_client.first_date_in_program
         report_client.period = period
@@ -308,12 +333,12 @@ module CePerformance
           dates = ph_enrollments[ce_apr_client.destination_client_id]
           housing_entry_date = dates&.
             map(&:first)&.
-            select { |d| d >= initial_referral_date }&.
+            select { |d| d.present? && d >= initial_referral_date }&.
             min
           if housing_entry_date.present?
             housing_move_in_date = dates&.
               map(&:last)&.
-              select { |d| d >= housing_entry_date }&.
+              select { |d| d.present? && d >= housing_entry_date }&.
               min
             report_client.housing_enrollment_entry_date = housing_entry_date
             report_client.housing_enrollment_move_in_date = housing_move_in_date
@@ -325,6 +350,12 @@ module CePerformance
         report_clients[ce_apr_client[:client_id]] = report_client
       end
       report_clients
+    end
+
+    private def any_cls_literally_homeless?(ce_apr_client)
+      ce_apr_client.hud_report_apr_living_situations.any? do |m|
+        m.living_situation.in?(::HUD.homeless_situations(as: :current))
+      end
     end
 
     private def household_ages(apr_client)
@@ -339,9 +370,18 @@ module CePerformance
     end
 
     private def result_types
-      [
+      types = [
         CePerformance::Results::CategoryOne,
         CePerformance::Results::CategoryOneHousehold,
+        CePerformance::Results::CategoryTwo,
+        CePerformance::Results::CategoryTwoHousehold,
+      ]
+      if include_supplemental?
+        types += [
+          CePerformance::Results::ClientsScreened,
+        ]
+      end
+      types += [
         CePerformance::Results::SuccessfulDiversion,
         CePerformance::Results::TimeInProjectAverage,
         CePerformance::Results::TimeInProjectMedian,
@@ -355,18 +395,37 @@ module CePerformance
         CePerformance::Results::TimeToAssessmentMedian,
         CePerformance::Results::EventType,
       ]
+      if include_supplemental?
+        types += [
+          CePerformance::Results::Vispdat,
+          CePerformance::Results::VispdatAdult,
+          CePerformance::Results::VispdatAdultAndChild,
+          CePerformance::Results::VispdatYouth,
+        ]
+      end
+      types
     end
 
     private def calculate_results
-      periods.each do |period, report_filter|
+      periods.each_key do |period|
         result_types.each do |result_class|
-          result_class.calculate(self, period, report_filter)
+          result_class.calculate(self, period)
         end
       end
     end
 
     private def answer_clients(report, table, cell)
-      report.answer(question: table, cell: cell).universe_members.preload(:universe_membership).map(&:universe_membership)
+      preloads = if RailsDrivers.loaded.include?(:supplemental_enrollment_data)
+        {
+          universe_membership: [
+            :hud_report_apr_living_situations,
+            source_enrollment: :tpc_supplemental_enrollment_datum,
+          ],
+        }
+      else
+        { universe_membership: :hud_report_apr_living_situations }
+      end
+      report.answer(question: table, cell: cell).universe_members.preload(preloads).map(&:universe_membership)
     end
 
     private def run_ce_aprs
@@ -393,6 +452,58 @@ module CePerformance
           reports[period] = report
         end
       end
+    end
+
+    def detail_headers(key: nil) # rubocop:disable Lint/UnusedMethodArgument
+      @detail_headers ||= {}.tap do |headers|
+        headers.merge!(
+          {
+            'client_id' => 'Warehouse Client ID',
+            'dob' => 'DOB',
+            'veteran' => 'Veteran Status',
+            'first_name' => 'First Name',
+            'last_name' => 'Last Name',
+            'reporting_age' => 'Reporting Age',
+            'head_of_household' => 'Head of Household',
+            'household_size' => 'Household Size',
+            'household_type' => 'Household Type',
+            'prior_living_situation' => 'Prior Living Situation',
+            'los_under_threshold' => 'Length of time Under Threshold',
+            'previous_street_essh' => 'Previous Street ES/SH',
+            'entry_date' => 'Entry Date',
+            'exit_date' => 'Exit Date',
+            'events' => 'Events',
+            'diversion_event' => 'Diversion Event',
+            'diversion_successful' => 'Diversion Successful',
+            'days_between_entry_and_initial_referral' => 'Days Between Entry and Initial Referral',
+            'days_between_referral_and_housing' => 'Days Between Referral and Housing',
+            'days_in_project' => 'Days in Project',
+            'days_on_list' => 'Days on the Prioritization List',
+            'source_client.race_description' => 'Race',
+          },
+        )
+        if include_supplemental?
+          headers ['vispdat_type'] = 'VI-SPDAT Type'
+          headers ['vispdat_range'] = 'VI-SPDAT Range'
+          headers ['assessment_score'] = 'VI-SPDAT Score'
+          headers ['prioritization_tool_type'] = 'Prioritization Tool Type'
+          headers ['prioritization_tool_score'] = 'Prioritization Tool Score'
+          headers ['community'] = 'Community'
+          headers ['client_lgbtq'] = 'Client Identifies as LGBTQ'
+          headers ['lgbtq_household_members'] = 'Household Identifies as LGBTQ'
+          headers['dv_survivor'] = 'Survivor of Domestic Violence'
+        end
+      end.freeze
+    end
+
+    def client_value(client, column)
+      return client.public_send(column) unless column.include?('source_client')
+
+      client.source_client.public_send(column.gsub('source_client.', ''))
+    end
+
+    def available_periods
+      periods.keys
     end
 
     private def periods

@@ -292,7 +292,7 @@ GEM
     combine_pdf (1.0.22)
       matrix
       ruby-rc4 (>= 0.1.5)
-    composite_primary_keys (13.0.0)
+    composite_primary_keys (13.0.3)
       activerecord (~> 6.1.0)
     concurrent-ruby (1.1.10)
     crack (0.4.5)
@@ -963,7 +963,7 @@ DEPENDENCIES
   charlock_holmes
   coffee-rails
   combine_pdf
-  composite_primary_keys (= 13.0.0)
+  composite_primary_keys (= 13.0.3)
   curb
   daemons
   delayed_job
