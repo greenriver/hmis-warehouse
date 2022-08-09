@@ -5,6 +5,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:ds1) { create :hmis_data_source }
   let!(:ds2) { create :hmis_data_source, hmis: nil, id: 2 }
 
+  before(:all) do
+    GrdaWarehouse::Utility.clear!
+  end
+
   before(:each) do
     user.add_viewable(ds1)
     post hmis_user_session_path(hmis_user: { email: user.email, password: user.password })
