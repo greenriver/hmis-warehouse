@@ -139,8 +139,9 @@ Rails.application.configure do
     config.action_controller.forgery_protection_origin_check = false
   end
 
-  slack_config = Rails.application.config_for(:exception_notifier)[:slack]
-  if slack_config.present? && !slack_config[:webhook_url] == 'www.unknown.com'
+  exception_notifier_config = Rails.application.config_for(:exception_notifier)
+  if exception_notifier_config&.[](:slack).present?
+    slack_config = exception_notifier_config[:slack]
     config.middleware.use(ExceptionNotification::Rack,
       slack: {
         webhook_url: slack_config[:webhook_url],
