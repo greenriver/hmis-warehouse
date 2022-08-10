@@ -7,4 +7,4 @@
 
 = render 'report_download', export: @pdf_export
 
-= render 'table', detail_path: [:detail, :warehouse_reports, :health_agency_performance, :index], permission: current_user.has_some_patient_access?
+= render 'table', entities: @agencies, detail_path: [:detail, :warehouse_reports, :health_agency_performance, :index], permission: current_user.has_some_patient_access?

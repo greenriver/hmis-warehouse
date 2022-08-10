@@ -28,9 +28,9 @@ module WarehouseReports::Health
     end
 
     def detail
-      @agency_id = params.require(:agency)[:agency_id]&.to_i
-      @section = params.require(:agency)[:section]
-      @patient_ids = params.require(:agency)[:patient_ids].split(',')&.map(&:to_i)
+      @agency_id = params.require(:entity)[:entity_id]&.to_i
+      @section = params.require(:entity)[:section]
+      @patient_ids = params.require(:entity)[:patient_ids].split(',')&.map(&:to_i)
       @patients = Health::Patient.bh_cp.where(id: @patient_ids).
         preload(:care_coordinator).
         order(last_name: :asc, first_name: :asc)
