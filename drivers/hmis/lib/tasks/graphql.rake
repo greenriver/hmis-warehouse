@@ -11,10 +11,8 @@ task dump_graphql_schema: [:environment, 'log:info_to_stdout'] do
 
   new_sha = Digest::SHA1.hexdigest(File.read(schema_path))
   if old_sha != new_sha
-    puts "Updated #{schema_path}"
-    # Needed for GitHub Actions check:
-    # Exit with status code 1 to indicate that the schema has changed
-    exec('false')
+    # Use 'abort' to exit with status code 1, to indicate that the schema has changed
+    abort "Updated #{schema_path}"
   else
     puts 'Schema unchanged.'
   end
