@@ -140,7 +140,7 @@ Rails.application.configure do
   end
 
   slack_config = Rails.application.config_for(:exception_notifier)[:slack]
-  if slack_config.present?
+  if slack_config.present? && !slack_config[:webhook_url] == 'www.unknown.com'
     config.middleware.use(ExceptionNotification::Rack,
       slack: {
         webhook_url: slack_config[:webhook_url],
