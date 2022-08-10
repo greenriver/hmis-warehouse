@@ -45,6 +45,7 @@ module Types
       result['FirstName'] = first_name
       result['LastName'] = last_name
       result['MiddleName'] = middle_name
+      result['NameSuffix'] = name_suffix
       result['preferred_name'] = preferred_name
       result['NameDataQuality'] = name_quality
       result['DOB'] = dob
