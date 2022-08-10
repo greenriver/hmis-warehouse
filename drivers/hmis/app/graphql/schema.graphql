@@ -9,9 +9,9 @@ type Client {
   """
   dob: ISO8601Date
   enrollments: [Enrollment!]!
-  firstName: String!
+  firstName: String
   id: ID!
-  lastName: String!
+  lastName: String
   nameSuffix: String
   personalId: String!
   preferredName: String
