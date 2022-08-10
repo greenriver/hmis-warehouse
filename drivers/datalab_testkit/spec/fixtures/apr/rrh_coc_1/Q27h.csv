@@ -1,0 +1,12 @@
+"Category","Number of youth at start","Number of youth at annual assessment (stayers)","Number of youth at exit (leavers)"
+"a. Youth with only earned income (i.e., employment income)",0,0,0
+"b. Youth with only other income",1,0,1
+"c. Youth with both earned and other income",0,0,0
+"d. Youth with no income",0,0,0
+"e. Youth with Client Doesn't Know/Client Refused income information",0,0,0
+"f. Youth with missing income information",0,0,0
+"g. Number of Youth stayers not yet required to have an annual assessment",,0,
+"h. Number of Youth stayers without required annual assessment",,0,
+"i. Total Youth",1,0,1
+"j. 1 or more source of income",1,0,1
+"k. Youth with income information at start AND follow-up/exit",,0,1

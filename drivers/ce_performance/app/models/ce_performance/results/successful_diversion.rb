@@ -9,7 +9,7 @@ module CePerformance
     include CePerformance::Results::Calculations
     # 1. Find the number of people who received a successful diversion event
     # 2. Divide those by the number of people who received a diversion event
-    def self.calculate(report, period, _filter)
+    def self.calculate(report, period)
       diverted = diverted_scope(report, period).count
       successfully_diverted = successfully_diverted_scope(report, period).count
       create(
@@ -19,6 +19,10 @@ module CePerformance
         numerator: successfully_diverted,
         denominator: diverted,
       )
+    end
+
+    def self.client_scope(report, period)
+      successfully_diverted_scope(report, period)
     end
 
     def self.diverted_scope(report, period)
@@ -39,7 +43,7 @@ module CePerformance
     end
 
     def category
-      'Diversion'
+      'Participation'
     end
 
     def goal_line
@@ -67,7 +71,7 @@ module CePerformance
     end
 
     def unit
-      'diversions'
+      'percent'
     end
 
     def goal_direction
@@ -104,7 +108,7 @@ module CePerformance
       report_year = aprs.last.end_date.year
       columns = [
         ['x', report_year, comparison_year],
-        ['diversions', value, comparison.value],
+        [unit, value, comparison.value],
       ]
       {
         x: 'x',

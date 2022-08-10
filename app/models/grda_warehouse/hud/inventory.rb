@@ -14,7 +14,7 @@
 module GrdaWarehouse::Hud
   class Inventory < Base
     include HudSharedScopes
-    include ::HMIS::Structure::Inventory
+    include ::HmisStructure::Inventory
     include ArelHelper
     include RailsDrivers::Extensions
     require 'csv'

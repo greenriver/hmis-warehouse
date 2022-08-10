@@ -21,4 +21,4 @@
           %i.icon-pencil
     %td
       - if can_see_raw_hmis_data?
-        = link_to 'HMIS', hmi_path(project.id, type: 'Project'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis'
+        = link_to 'HMIS', source_datum_path(project.id, type: 'Project'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis'

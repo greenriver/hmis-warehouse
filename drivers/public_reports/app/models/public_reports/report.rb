@@ -230,6 +230,11 @@ module PublicReports
         return data if data > 100
 
         100
+      when 'hoh_pit_chart'
+        return data if data.zero?
+        return data if data > 20
+
+        20
       when 'location'
         # return percentages for each instead of raw counts
         (sheltered, unsheltered) = data

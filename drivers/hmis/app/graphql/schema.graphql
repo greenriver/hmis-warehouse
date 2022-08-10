@@ -1,0 +1,214 @@
+"""
+HUD Client
+"""
+type Client {
+  dateUpdated: DateTime!
+
+  """
+  Date of birth as format yyyy-mm-dd
+  """
+  dob: Date
+  endDate: DateTime
+  enrollments: [Enrollment!]!
+  firstName: String!
+  id: ID!
+  lastName: String!
+  personalId: String!
+  preferredName: String
+  pronouns: String
+  ssnSerial: String
+  startDate: DateTime
+}
+
+"""
+HMIS Client search input
+"""
+input ClientSearchInput {
+  """
+  Date of birth as format yyyy-mm-dd
+  """
+  dob: String
+  firstName: String
+
+  """
+  Client primary key
+  """
+  id: ID
+  lastName: String
+  organizations: [ID!]
+  personalId: String
+  preferredName: String
+  projects: [ID!]
+
+  """
+  Last 4 digits of SSN
+  """
+  ssnSerial: String
+
+  """
+  Omnisearch string
+  """
+  textSearch: String
+  warehouseId: String
+}
+
+"""
+HUD Client Sorting Options
+"""
+enum ClientSortOption {
+  LAST_NAME_ASC
+  LAST_NAME_DESC
+}
+
+type ClientsPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  nodes: [Client!]!
+  nodesCount: Int!
+  pagesCount: Int!
+}
+
+"""
+A Date object, transporated as a string
+"""
+scalar Date
+
+"""
+A DateTime object, transporated as a string
+"""
+scalar DateTime
+
+"""
+HUD Enrollment
+"""
+type Enrollment {
+  entryDate: DateTime
+  exitDate: DateTime
+  id: ID!
+  project: Project
+}
+
+"""
+HUD Organization
+"""
+type Organization {
+  id: ID!
+  organizationName: String!
+
+  """
+  Get a list of projects for this organization
+  """
+  projects(projectTypes: [ProjectType!], sortOrder: ProjectSortOption): [Project!]!
+}
+
+"""
+HUD Organization Sorting Options
+"""
+enum OrganizationSortOption {
+  NAME
+}
+
+"""
+HUD Project
+"""
+type Project {
+  id: ID!
+  organization: Organization
+  projectName: String!
+  projectType: ProjectType!
+}
+
+"""
+HUD Project Sorting Options
+"""
+enum ProjectSortOption {
+  NAME
+  ORGANIZATION_AND_NAME
+}
+
+"""
+HUD Project Types
+"""
+enum ProjectType {
+  """
+  Coordinated Entry
+  """
+  CE
+
+  """
+  Day Shelter
+  """
+  DAY_SHELTER
+
+  """
+  Emergency Shelter
+  """
+  ES
+
+  """
+  Permanent Housing Only
+  """
+  OPH
+
+  """
+  Other
+  """
+  OTHER
+
+  """
+  Permanent Housing
+  """
+  PH
+
+  """
+  Homelessness Prevention
+  """
+  PREVENTION
+
+  """
+  Permanent Supportive Housing
+  """
+  PSH
+
+  """
+  Rapid Re-Housing
+  """
+  RRH
+
+  """
+  Services Only
+  """
+  SERVICES_ONLY
+
+  """
+  Safe Haven
+  """
+  SH
+
+  """
+  Street Outreach
+  """
+  SO
+
+  """
+  Transitional Housing
+  """
+  TH
+}
+
+type Query {
+  """
+  Search for clients
+  """
+  clientSearch(input: ClientSearchInput!, limit: Int, offset: Int, sortOrder: ClientSortOption): ClientsPaginated!
+
+  """
+  Get a list of organizations
+  """
+  organizations(sortOrder: OrganizationSortOption): [Organization!]!
+
+  """
+  Get a list of projects
+  """
+  projects(projectTypes: [ProjectType!], sortOrder: ProjectSortOption): [Project!]!
+}

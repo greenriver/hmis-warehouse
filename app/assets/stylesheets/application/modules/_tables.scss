@@ -136,3 +136,8 @@ table.dataTable thead .sorting_desc:after {
     }
   }
 }
+.public-agencies .dataTable {
+  border: 1px solid $gray-034;
+  margin-bottom: 2rem !important;
+  margin-top: 1rem !important;
+}

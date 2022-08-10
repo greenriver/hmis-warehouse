@@ -8,7 +8,7 @@ module CePerformance
   class Results::TimeInProjectMedian < CePerformance::Result
     include CePerformance::Results::Calculations
     # For anyone served by CE, how long have they been in the project
-    def self.calculate(report, period, _filter)
+    def self.calculate(report, period)
       values = client_scope(report, period).pluck(:days_in_project)
       create(
         report_id: report.id,

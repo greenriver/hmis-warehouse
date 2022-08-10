@@ -7,7 +7,7 @@
 module HudHic::Fy2022
   class Inventory < ::GrdaWarehouseBase
     self.table_name = 'hud_report_hic_inventories'
-    include ::HMIS::Structure::Inventory
+    include ::HmisStructure::Inventory
     acts_as_paranoid
 
     has_many :report_inventories, as: :universe_membership, dependent: :destroy
