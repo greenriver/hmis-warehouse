@@ -941,7 +941,6 @@ module GrdaWarehouse::Hud
 
     alias_attribute :last_name, :LastName
     alias_attribute :first_name, :FirstName
-    alias_attribute :name_suffix, :NameSuffix
     alias_attribute :dob, :DOB
     alias_attribute :ssn, :SSN
 
