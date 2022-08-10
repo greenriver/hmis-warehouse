@@ -8,7 +8,7 @@ module CePerformance
   class Results::TimeOnListMedian < CePerformance::Result
     include CePerformance::Results::Calculations
     # For anyone served by CE, how long have they been on the prioritization list
-    def self.calculate(report, period, _filter)
+    def self.calculate(report, period)
       values = client_scope(report, period).pluck(:days_on_list)
       create(
         report_id: report.id,

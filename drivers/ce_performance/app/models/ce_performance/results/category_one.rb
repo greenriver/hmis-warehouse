@@ -13,7 +13,8 @@ module CePerformance
     #   homeless
     #   or
     #   LOSUnderThreshold = yes and PreviousStreetESSH = yes
-    def self.calculate(report, period, _filter)
+    #   or received a homeless CLS during the report range
+    def self.calculate(report, period)
       create(
         report_id: report.id,
         period: period,
@@ -22,12 +23,12 @@ module CePerformance
     end
 
     def self.client_scope(report, period)
-      report.clients.served_in_period(period).literally_homeless_at_entry
+      report.clients.served_in_period(period).literally_homeless
     end
 
     # TODO: move to goal configuration
     def self.goal
-      5
+      nil
     end
 
     def self.ce_apr_question
@@ -35,15 +36,15 @@ module CePerformance
     end
 
     def self.title
-      _('Number of Clients in Category 1')
+      _('Number of Clients Who Were Literally Homeless')
     end
 
     def self.description
-      'Count of persons enrolled in CE who entered from Category 1 homelessness within the reporting range.'
+      'Count of clients enrolled in CE who entered from a literally homeless situation within the reporting range, or had a literally homeless Current Living Situation collected during the report range.'
     end
 
     def self.calculation
-      'Count of clients enrolled in CE who entered with a prior living situation of literally homeless, or who\'s length of time was under the threshold and were previously on the street or in shelter.'
+      'Count of clients enrolled in CE who entered with a prior living situation of literally homeless, or who\'s length of time was under the threshold and were previously on the street or in shelter, or who had a literally homeless Current Living Situation collected during the report range.'
     end
 
     def display_goal?
@@ -62,10 +63,6 @@ module CePerformance
 
     def unit
       'clients'
-    end
-
-    def max_100?
-      true
     end
 
     def indicator(comparison)

@@ -11,8 +11,8 @@ module CePerformance::WarehouseReports
     include ArelHelper
     include BaseFilters
 
-    before_action :require_can_access_some_version_of_clients!, only: [:details]
-    before_action :set_report, only: [:show, :destroy, :details]
+    before_action :require_can_access_some_version_of_clients!, only: [:details, :clients]
+    before_action :set_report, only: [:show, :destroy, :details, :clients]
     # before_action :set_pdf_export, only: [:show]
 
     def index
@@ -66,12 +66,33 @@ module CePerformance::WarehouseReports
     end
 
     def details
-      key = @report.results_for_display[details_params[:category_name]][:reporting].keys.detect do |k|
+      @key = @report.results_for_display[details_params[:category_name]][:reporting].keys.detect do |k|
         details_params[:key] == k.to_s
       end
-      @result = @report.results_for_display[details_params[:category_name]][:reporting][key]
-      @comparison = @report.results_for_display[details_params[:category_name]][:comparison][key]
       @category_name = @report.results_for_display.keys.detect { |m| m == details_params[:category_name] }
+      @result = @report.results_for_display[@category_name][:reporting][@key]
+      @comparison = @report.results_for_display[@category_name][:comparison][@key]
+    end
+
+    def clients
+      @key = @report.results_for_display[details_params[:category_name]][:reporting].keys.detect do |k|
+        details_params[:key] == k.to_s
+      end
+      @category_name = @report.results_for_display.keys.detect { |m| m == details_params[:category_name] }
+      @period = (@report.available_periods.detect { |p| p.to_s == params[:period] } || :reporting).to_sym
+      @result = @report.results_for_display[@category_name][@period][@key]
+      @sub_population = CePerformance::Client.subpopulations(@report).values.map(&:to_s).detect { |sp| params[:sub_population] == sp }&.to_sym # Note, blank will not apply sub-population limits
+      @sub_population_title = CePerformance::Client.subpopulations(@report).invert[@sub_population]
+      @vispdat_range = @report.vispdat_ranges.detect { |m| m == params[:vispdat_range] }
+      @event_type = @result.class.available_event_ids.detect { |m| m == params[:event_type]&.to_i }
+      @clients = @result.clients_for(report: @report, period: @period, sub_population: @sub_population, vispdat_range: @vispdat_range, event_type: @event_type)
+      respond_to do |format|
+        format.html {}
+        format.xlsx do
+          filename = "#{"#{@result.class.title} #{@report.clients_title(sub_population_title: @sub_population_title, vispdat_range: @vispdat_range)}".tr(' ', '-')}-#{Date.current.to_s(:db)}.xlsx"
+          headers['Content-Disposition'] = "attachment; filename=#{filename}"
+        end
+      end
     end
 
     def details_params
@@ -119,5 +140,13 @@ module CePerformance::WarehouseReports
     private def flash_interpolation_options
       { resource_name: @report.title }
     end
+
+    def formatted_cell(cell)
+      return view_context.content_tag(:pre, JSON.pretty_generate(cell)) if cell.is_a?(Array) || cell.is_a?(Hash)
+      return view_context.yes_no(cell) if cell.in?([true, false])
+
+      cell
+    end
+    helper_method :formatted_cell
   end
 end
