@@ -52,7 +52,7 @@ module GrdaWarehouse
         current_scope
       # If all you can see are window files:
       #   show those with full releases and those you uploaded
-      elsif user.can_manage_window_client_files? || user.can_use_separated_consent?
+      elsif user.can_manage_window_client_files?
         sql = is_own_file
         sql = sql.or(has_full_housing_release.and(is_not_verified_homeless_history))
 
