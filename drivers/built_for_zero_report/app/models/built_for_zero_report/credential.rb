@@ -6,6 +6,7 @@
 
 require 'uri'
 require 'net/http'
+require 'curb'
 module BuiltForZeroReport
   class Credential < GrdaWarehouse::RemoteCredential
     alias_attribute :apikey, :path
@@ -59,16 +60,28 @@ module BuiltForZeroReport
       https = Net::HTTP.new(url.host, url.port)
       https.use_ssl = true
       headers = {
-        # 'Prefer' => 'return=minimal',
+        'Prefer' => 'return=minimal',
         'Content-Type' => 'application/json',
         'apikey' => apikey,
         'Authorization: Bearer' => bearer_token,
       }
-      request = Net::HTTP::Post.new(url, headers)
+      # Notes for future debugging
+      # request = Net::HTTP::Post.new(url, headers)
+      # # request.body = body
+      # ruby_body = Oj.load(body)
+      # request.set_form_data(ruby_body)
 
-      request.body = Oj.dump(body)
-      response = https.request(request)
-      response.read_body
+      # response = https.request(request)
+      # response.read_body
+
+      # curl_command = "curl '#{url}' -X POST -H 'apikey: #{apikey}' -H 'Authorization: Bearer #{bearer_token}' -H 'Content-Type: application/json' --data-raw '#{body}'"
+      # system(curl_command)
+      # puts body.inspect
+
+      result = Curl.post(url.to_s, body) do |h|
+        h.headers = headers
+      end
+      raise 'Failed to post' unless result.status.starts_with?('2')
     end
 
     # Use this to determine the community_id, then save that to the credential

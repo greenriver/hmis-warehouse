@@ -43,7 +43,7 @@ module BuiltForZeroReport
     end
 
     def for_api(sub_population_id)
-      data = {
+      {
         'subpopulation_id' => sub_population_id,
         'actively_homeless' => actively_homeless.count,
         'avg_lot_from_id_to_housing' => average_lot_to_housing,
@@ -59,10 +59,11 @@ module BuiltForZeroReport
         'date_interval_start' => @start_date.to_time.utc.strftime('%FT%T.000Z'), # match API format
         'date_interval' => @interval,
       }
-      data.delete_if { |k, _| !@data_keys.include?(k) }
+      # data['avg_lot_from_id_to_housing'] = average_lot_to_housing unless average_lot_to_housing.present?
+      # data.delete_if { |k, _| !@data_keys.include?(k) }
     end
 
-    def default_data_keys
+    def self.default_data_keys
       [
         'subpopulation_id',
         'actively_homeless',
@@ -78,7 +79,11 @@ module BuiltForZeroReport
         'organization',
         'date_interval_start',
         'date_interval',
-      ]
+      ].freeze
+    end
+
+    def default_data_keys
+      self.class.default_data_keys
     end
 
     # @return [SourceDataHash] actively homeless clients in cohort during the reporting period
@@ -100,7 +105,7 @@ module BuiltForZeroReport
     #   and the average length of time to housing for the housed clients in the cohort
     def average_lot_to_housing
       client_count = lot_to_housing.count
-      return 'Unknown' if client_count.zero?
+      return 0 if client_count.zero?
 
       sum_of_days = lot_to_housing.map { |_, v| v[:lot_to_housing] }.sum
       (sum_of_days / client_count.to_f).round
