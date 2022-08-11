@@ -11,13 +11,13 @@ wb.add_worksheet(name: @report.title[0, 30]) do |sheet|
     ],
     style: title,
   )
-  @patients.each do |patient|
+  @vprs.each do |vpr|
     sheet.add_row([
-      patient.medicaid_id,
-      patient.last_name,
-      patient.first_name,
-      patient.flexible_services.last.planned_on,
-      patient.flexible_services.last.end_date,
+      vpr.medicaid_id,
+      vpr.last_name,
+      vpr.first_name,
+      vpr.planned_on,
+      vpr.end_date,
     ])
   end
 end

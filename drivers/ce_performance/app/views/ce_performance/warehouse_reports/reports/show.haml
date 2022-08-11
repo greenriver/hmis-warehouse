@@ -17,7 +17,7 @@
       - content_for :panel_collapse_heading_universe do
         .d-flex.pt-4
           %h2.mb-4.mr-6 Chosen Universe
-          = @report.describe_filter_as_html([:start, :comparison_pattern, :coc_code], inline: true)
+          = @report.describe_filter_as_html([:start, :comparison_pattern, :coc_codes], inline: true)
           .ml-auto.d-flex
             %i.icon-angle-right.j-toggle-arrow
             .j-toggle-text.ml-2.show Show Details

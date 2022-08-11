@@ -47,23 +47,22 @@ module HmisCsvFixtures
       raise "Unsupported CSV version #{version}"
     end
 
+    puts "Starting import: #{Time.now}"
     importer.import!
     FileUtils.rm_rf(tmp_path) if tmp_path
-
-    if run_jobs
-      # 2020 always runs this so we don't need to do it twice
-      GrdaWarehouse::Tasks::IdentifyDuplicates.new.run! unless version == '2020'
-
-      GrdaWarehouse::Tasks::ProjectCleanup.new.run!
-      GrdaWarehouse::ServiceHistoryServiceMaterialized.refresh!
-      GrdaWarehouse::Tasks::ServiceHistory::Add.new.run!
-      AccessGroup.maintain_system_groups
-      AccessGroup.where(name: 'All Data Sources').first.add(user)
-      Delayed::Worker.new.work_off
-    end
+    process_imported_fixtures(user: user) if run_jobs
 
     Rails.cache.delete([user, 'access_groups']) # These are cached in project.rb etc for one minute, which is too long for tests
     importer
+  end
+
+  def process_imported_fixtures(user: User.setup_system_user)
+    puts "Start post processing: #{Time.now}"
+    GrdaWarehouse::Tasks::ProjectCleanup.new.run!
+    GrdaWarehouse::Tasks::ServiceHistory::Enrollment.batch_process_unprocessed!
+    AccessGroup.maintain_system_groups
+    AccessGroup.where(name: 'All Data Sources').first.add(user)
+    Delayed::Worker.new.work_off
   end
 
   def cleanup_hmis_csv_fixtures

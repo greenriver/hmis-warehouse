@@ -124,7 +124,6 @@ Layout/EmptyLineAfterGuardClause:
     - 'app/models/grda_warehouse/health_emergency/ama_restriction.rb'
     - 'app/models/grda_warehouse/health_emergency/test.rb'
     - 'app/models/grda_warehouse/tasks/chronically_homeless.rb'
-    - 'app/models/grda_warehouse/tasks/enrollment_extras_import.rb'
     - 'app/models/grda_warehouse/tasks/hud_chronically_homeless.rb'
     - 'app/models/grda_warehouse/tasks/test_data.rb'
     - 'app/models/grda_warehouse/vispdat/family.rb'
@@ -347,7 +346,6 @@ Layout/EmptyLinesAroundClassBody:
     - 'app/models/grda_warehouse/schema_migration.rb'
     - 'app/models/grda_warehouse/tasks/census_import.rb'
     - 'app/models/grda_warehouse/tasks/chronically_homeless.rb'
-    - 'app/models/grda_warehouse/tasks/enrollment_extras_import.rb'
     - 'app/models/grda_warehouse/tasks/hud_chronically_homeless.rb'
     - 'app/models/grda_warehouse/tasks/test_data.rb'
     - 'app/models/grda_warehouse/us_census_api/census_variable.rb'
@@ -617,7 +615,6 @@ Layout/FirstHashElementIndentation:
 # SupportedLastArgumentHashStyles: always_inspect, always_ignore, ignore_implicit, ignore_explicit
 Layout/HashAlignment:
   Exclude:
-    - 'app/models/grda_warehouse/tasks/enrollment_extras_import.rb'
     - 'app/models/grda_warehouse/warehouse_reports/initiative_report.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_one.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
@@ -890,7 +887,6 @@ Layout/SpaceBeforeBlockBraces:
     - 'app/models/grda_warehouse/export/hmis_twenty_twenty/client.rb'
     - 'app/models/grda_warehouse/export/hmis_twenty_twenty/exit.rb'
     - 'app/models/grda_warehouse/tasks/chronically_homeless.rb'
-    - 'app/models/grda_warehouse/tasks/enrollment_extras_import.rb'
     - 'app/models/grda_warehouse/tasks/test_data.rb'
     - 'app/models/grda_warehouse/warehouse_reports/dashboard/entered.rb'
     - 'app/models/grda_warehouse/warehouse_reports/dashboard/housed.rb'
@@ -995,7 +991,6 @@ Layout/SpaceInsideArrayLiteralBrackets:
     - 'app/models/grda_warehouse/census/census_builder.rb'
     - 'app/models/grda_warehouse/census_by_project.rb'
     - 'app/models/grda_warehouse/census_by_project_type.rb'
-    - 'app/models/grda_warehouse/tasks/enrollment_extras_import.rb'
     - 'app/models/grda_warehouse/tasks/test_data.rb'
     - 'app/models/grda_warehouse/us_census_api/aggregates.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
@@ -1191,7 +1186,6 @@ Layout/SpaceInsideParens:
     - 'app/models/grda_warehouse/import/hmis_twenty_twenty/service.rb'
     - 'app/models/grda_warehouse/import/hmis_twenty_twenty/user.rb'
     - 'app/models/grda_warehouse/tasks/chronically_homeless.rb'
-    - 'app/models/grda_warehouse/tasks/enrollment_extras_import.rb'
     - 'app/models/grda_warehouse/tasks/hud_chronically_homeless.rb'
     - 'app/models/grda_warehouse/tasks/test_data.rb'
     - 'app/models/grda_warehouse/us_census_api/relevant_variables.rb'
@@ -1226,7 +1220,6 @@ Layout/SpaceInsidePercentLiteralDelimiters:
 # SupportedStylesForEmptyBrackets: space, no_space
 Layout/SpaceInsideReferenceBrackets:
   Exclude:
-    - 'app/models/grda_warehouse/tasks/enrollment_extras_import.rb'
 
 # Offense count: 27
 # Cop supports --auto-correct.
@@ -1492,7 +1485,6 @@ Lint/UselessAssignment:
     - 'app/models/grda_warehouse/export/hmis_twenty_twenty/exit.rb'
     - 'app/models/grda_warehouse/tasks/chronically_homeless.rb'
     - 'app/models/grda_warehouse/tasks/dmh_chronically_homeless.rb'
-    - 'app/models/grda_warehouse/tasks/enrollment_extras_import.rb'
     - 'app/models/grda_warehouse/tasks/service_history/base.rb'
     - 'app/models/grda_warehouse/tasks/test_data.rb'
     - 'app/models/grda_warehouse/warehouse_reports/dashboard/entered.rb'
@@ -1780,7 +1772,6 @@ Style/GuardClause:
     - 'app/models/glacier/restore.rb'
     - 'app/models/grda_warehouse/tasks/census_import.rb'
     - 'app/models/grda_warehouse/tasks/chronically_homeless.rb'
-    - 'app/models/grda_warehouse/tasks/enrollment_extras_import.rb'
     - 'app/models/grda_warehouse/tasks/test_data.rb'
     - 'app/models/grda_warehouse/us_census_api/coc_agg.rb'
     - 'app/models/grda_warehouse/us_census_api/state_fips.rb'
@@ -1953,7 +1944,6 @@ Style/MutableConstant:
   Exclude:
     - 'app/models/grda_warehouse/hmis/base.rb'
     - 'app/models/grda_warehouse/hmis/staff_x_client.rb'
-    - 'app/models/grda_warehouse/tasks/enrollment_extras_import.rb'
     - 'app/models/grda_warehouse/tasks/test_data.rb'
     - 'app/models/grda_warehouse/us_census_api/aggregates.rb'
     - 'app/models/grda_warehouse/us_census_api/census_variable.rb'
@@ -2204,7 +2194,6 @@ Style/RescueModifier:
     - 'app/models/grda_warehouse/census/project_batch.rb'
     - 'app/models/grda_warehouse/census/project_type_batch.rb'
     - 'app/models/grda_warehouse/hmis/base.rb'
-    - 'app/models/grda_warehouse/tasks/enrollment_extras_import.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_one.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_two.rb'
@@ -2259,7 +2248,6 @@ Style/Semicolon:
 # Cop supports --auto-correct.
 Style/SlicingWithRange:
   Exclude:
-    - 'app/models/grda_warehouse/tasks/enrollment_extras_import.rb'
 
 # Offense count: 988
 # Cop supports --auto-correct.
@@ -2289,7 +2277,6 @@ Style/StringLiterals:
     - 'app/models/grda_warehouse/shape.rb'
     - 'app/models/grda_warehouse/tasks/chronically_homeless.rb'
     - 'app/models/grda_warehouse/tasks/dmh_chronically_homeless.rb'
-    - 'app/models/grda_warehouse/tasks/enrollment_extras_import.rb'
     - 'app/models/grda_warehouse/tasks/service_history/add.rb'
     - 'app/models/grda_warehouse/tasks/test_data.rb'
     - 'app/models/grda_warehouse/us_census_api/aggregates.rb'
@@ -2477,7 +2464,6 @@ Style/TrailingCommaInHashLiteral:
     - 'app/models/glacier/uploader.rb'
     - 'app/models/glacier/utils.rb'
     - 'app/models/grda_warehouse/shape.rb'
-    - 'app/models/grda_warehouse/tasks/enrollment_extras_import.rb'
     - 'app/models/grda_warehouse/tasks/test_data.rb'
     - 'app/models/grda_warehouse/us_census_api/aggregates.rb'
     - 'app/models/grda_warehouse/vispdat/family.rb'

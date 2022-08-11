@@ -108,7 +108,7 @@ module GrdaWarehouse::Hud
     end
 
     def indefinite_and_impairs?
-      self.IndefiniteAndImpairs == 1
+      self.DisabilityType.in?([5, 7, 9, 10]) && self.IndefiniteAndImpairs == 1
     end
 
     # see Disabilities.csv spec version 5

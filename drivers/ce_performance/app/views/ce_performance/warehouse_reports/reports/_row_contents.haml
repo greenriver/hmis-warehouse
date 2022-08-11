@@ -10,6 +10,7 @@
   .performance-measurement__result-number.font-weight-bold= result.value.round
   .text-capitalize= result.unit
 .col-sm-2
-  .text-uppercase Last Year
-  .performance-measurement__result-number.font-weight-bold= comparison.value.round
-  .text-capitalize= comparison.unit
+  - if comparison.present?
+    .text-uppercase Last Year
+    .performance-measurement__result-number.font-weight-bold= comparison.value.round
+    .text-capitalize= comparison.unit

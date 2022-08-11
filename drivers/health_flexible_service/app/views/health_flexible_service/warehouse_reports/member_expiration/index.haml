@@ -4,30 +4,30 @@
 .mt-6 Clients receiving flex services that have expired.
 
 - if !@pagy.present?
-  %p.text-center No patients found
+  %p.text-center No VPRs found
 - elsif @pagy.count.positive?
   .d-flex
     .ml-auto.mb-4
       = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary ml-auto'}) do
         %i.icon-download2
         Download
-  = render 'common/pagination_top', item_name: 'patient'
+  = render 'common/pagination_top', item_name: 'VPR'
   .card
     %table.table.table-striped
       %thead
         %tr
-          %th Patient
+          %th Client
           %th VPR Start Date
           %th VPR End Date
       %tbody
-        - @patients.each do |patient|
+        - @vprs.each do |vpr|
           %tr
-            - if patient.client.present?
-              %td= link_to patient.name, client_health_patient_index_path(patient.client)
+            - if vpr.client.present?
+              %td= link_to vpr.name, client_health_patient_index_path(vpr.client)
             - else
-              %td= patient.name
-            %td= patient.flexible_services.last.planned_on
-            %td= patient.flexible_services.last.end_date
-  = render 'common/pagination_bottom', item_name: 'patient'
+              %td= vpr.name
+            %td= vpr.planned_on
+            %td= vpr.end_date
+  = render 'common/pagination_bottom', item_name: 'VPR'
 - else
-  .none-found No patients found
+  .none-found No VPRs found

@@ -52,6 +52,7 @@ Dir.chdir APP_ROOT do
     puts "\n== Seeding Database =="
     run_or_exit 'bundle exec rake db:seed'
     run_or_exit 'bundle exec rake grda_warehouse:seed_grades'
+    run_or_exit 'bundle exec rake grda_warehouse:seed_file_types'
   else
     puts "\n== NOT Seeding test Database =="
   end

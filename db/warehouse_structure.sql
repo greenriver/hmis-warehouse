@@ -529,7 +529,8 @@ CREATE TABLE public."Client" (
     tc_hat_additional_days_homeless integer DEFAULT 0,
     preferred_name character varying,
     pronouns character varying,
-    sexual_orientation character varying
+    sexual_orientation character varying,
+    health_housing_navigator_id bigint
 );
 
 
@@ -3951,7 +3952,16 @@ CREATE TABLE public.ce_performance_clients (
     q5a_b1 boolean DEFAULT false,
     deleted_at timestamp without time zone,
     assessment_type character varying,
-    days_between_entry_and_initial_referral integer
+    days_between_entry_and_initial_referral integer,
+    cls_literally_homeless boolean DEFAULT false NOT NULL,
+    vispdat_type character varying,
+    vispdat_range character varying,
+    prioritization_tool_type character varying,
+    prioritization_tool_score integer,
+    community character varying,
+    lgbtq_household_members boolean DEFAULT false NOT NULL,
+    client_lgbtq boolean DEFAULT false NOT NULL,
+    dv_survivor boolean DEFAULT false NOT NULL
 );
 
 
@@ -5268,7 +5278,9 @@ CREATE TABLE public.configs (
     system_cohort_date_window integer DEFAULT 1,
     roi_model character varying DEFAULT 'explicit'::character varying,
     client_dashboard character varying DEFAULT 'default'::character varying NOT NULL,
-    require_service_for_reporting_default boolean DEFAULT true NOT NULL
+    require_service_for_reporting_default boolean DEFAULT true NOT NULL,
+    supplemental_enrollment_importer character varying DEFAULT 'GrdaWarehouse::Tasks::EnrollmentExtrasImport'::character varying,
+    verified_homeless_history_method character varying DEFAULT 'visible_in_window'::character varying
 );
 
 
@@ -5908,14 +5920,33 @@ ALTER SEQUENCE public.enrollment_change_histories_id_seq OWNED BY public.enrollm
 
 CREATE TABLE public.enrollment_extras (
     id integer NOT NULL,
-    enrollment_id integer NOT NULL,
+    enrollment_id integer,
     vispdat_grand_total integer,
     vispdat_added_at date,
     vispdat_started_at date,
     vispdat_ended_at date,
     source_tab character varying,
     created_at timestamp without time zone,
-    updated_at timestamp without time zone
+    updated_at timestamp without time zone,
+    file_id bigint,
+    data_source_id integer,
+    client_id character varying,
+    client_uid character varying,
+    hud_enrollment_id character varying,
+    enrollment_group_id character varying,
+    project_name character varying,
+    entry_date date,
+    exit_date date,
+    vispdat_type character varying,
+    vispdat_range character varying,
+    prioritization_tool_type character varying,
+    prioritization_tool_score integer,
+    agency_name character varying,
+    community character varying,
+    lgbtq_household_members boolean,
+    client_lgbtq boolean,
+    dv_survivor boolean,
+    prevention_tool_score integer
 );
 
 
@@ -38267,6 +38298,13 @@ CREATE INDEX idx_hmis_2020_users_imid_du ON public.hmis_2020_users USING btree (
 
 
 --
+-- Name: idx_tpc_uniqueness; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX idx_tpc_uniqueness ON public.enrollment_extras USING btree (hud_enrollment_id, entry_date, vispdat_ended_at, project_name, agency_name, community, data_source_id);
+
+
+--
 -- Name: income_benefits_date_created; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -38453,6 +38491,13 @@ CREATE INDEX "index_Client_on_creator_id" ON public."Client" USING btree (creato
 --
 
 CREATE INDEX "index_Client_on_data_source_id" ON public."Client" USING btree (data_source_id);
+
+
+--
+-- Name: index_Client_on_health_housing_navigator_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_Client_on_health_housing_navigator_id" ON public."Client" USING btree (health_housing_navigator_id);
 
 
 --
@@ -39979,6 +40024,27 @@ CREATE INDEX index_eccovia_fetches_on_data_source_id ON public.eccovia_fetches U
 --
 
 CREATE INDEX index_enrollment_change_histories_on_client_id ON public.enrollment_change_histories USING btree (client_id);
+
+
+--
+-- Name: index_enrollment_extras_on_client_id_and_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_enrollment_extras_on_client_id_and_data_source_id ON public.enrollment_extras USING btree (client_id, data_source_id);
+
+
+--
+-- Name: index_enrollment_extras_on_file_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_enrollment_extras_on_file_id ON public.enrollment_extras USING btree (file_id);
+
+
+--
+-- Name: index_enrollment_extras_on_hud_enrollment_id_and_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_enrollment_extras_on_hud_enrollment_id_and_data_source_id ON public.enrollment_extras USING btree (hud_enrollment_id, data_source_id);
 
 
 --
@@ -48891,11 +48957,14 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220610173543'),
 ('20220612161111'),
 ('20220617180748'),
+('20220621180929'),
 ('20220628162723'),
 ('20220712164926'),
 ('20220713150217'),
 ('20220714190911'),
 ('20220715194241'),
-('20220718185442');
+('20220718185442'),
+('20220801135734'),
+('20220804160252');
 
 

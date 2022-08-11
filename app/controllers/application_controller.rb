@@ -18,8 +18,8 @@ class ApplicationController < ActionController::Base
   include ControllerAuthorization
   include ActivityLogger
   include Pagy::Backend
-
   protect_from_forgery with: :exception
+
   before_action :authenticate_user!
   auto_session_timeout User.timeout_in
 
