@@ -22,8 +22,14 @@ module Types
         end
       end
 
-      def resolve_clients(scope = object.clients, sort_order: :last_name_asc, _user: current_user, no_sort: false)
-        clients_scope = scope
+      def resolve_clients_with_loader(association_name = :clients, sort_order: :last_name_asc, user: current_user, no_sort: false)
+        clients_scope = Hmis::Hud::Client.visible_to(user)
+        clients_scope = clients_scope.sort_by_option(sort_order) unless no_sort
+        load_ar_association(object, association_name, scope: clients_scope)
+      end
+
+      def resolve_clients(scope = object.clients, sort_order: :last_name_asc, user: current_user, no_sort: false)
+        clients_scope = scope.visible_to(user)
         clients_scope = clients_scope.sort_by_option(sort_order) unless no_sort
         clients_scope
       end

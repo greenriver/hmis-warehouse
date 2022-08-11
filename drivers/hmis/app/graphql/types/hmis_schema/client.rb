@@ -25,7 +25,7 @@ module Types
     field :end_date, GraphQL::Types::ISO8601DateTime, null: true
 
     def enrollments
-      resolve_enrollments
+      resolve_enrollments_with_loader
     end
   end
 end

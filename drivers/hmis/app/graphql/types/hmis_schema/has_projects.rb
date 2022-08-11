@@ -23,6 +23,13 @@ module Types
         end
       end
 
+      def resolve_projects_with_loader(association_name = :projects, user: current_user, project_types: nil, sort_order: nil)
+        projects_scope = Hmis::Hud::Project.viewable_by(user)
+        projects_scope = projects_scope.with_project_type(project_types) if project_types.present?
+        projects_scope = projects_scope.sort_by_option(sort_order) if sort_order.present?
+        load_ar_association(object, association_name, scope: projects_scope)
+      end
+
       def resolve_projects(scope = object.projects, user: current_user, project_types: nil, sort_order: nil)
         projects_scope = scope.viewable_by(user)
         projects_scope = projects_scope.with_project_type(project_types) if project_types.present?

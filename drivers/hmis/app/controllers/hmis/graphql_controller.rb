@@ -13,15 +13,11 @@ module Hmis
 
     def execute
       variables = prepare_variables(params[:variables])
-      query = params[:query]
-      operation_name = params[:operationName]
       context = {
         current_user: current_hmis_user,
       }
       case params[:schema]
       when :hmis
-        result = HmisSchema.execute(query, variables: variables, context: context, operation_name: operation_name)
-
         if params[:_json]
           # We have a batch of operations
           queries = params[:_json].map do |param|

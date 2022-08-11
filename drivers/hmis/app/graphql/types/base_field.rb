@@ -23,6 +23,7 @@ module Types
       end
 
       def resolve(object:, arguments:, **_rest)
+        # byebug
         cleaned_arguments = arguments.dup
         offset = cleaned_arguments.delete(:offset)
         limit = cleaned_arguments.delete(:limit)
