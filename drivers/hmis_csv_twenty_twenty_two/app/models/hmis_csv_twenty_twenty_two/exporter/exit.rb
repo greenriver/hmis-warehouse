@@ -49,7 +49,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
       # Enforce only one exit per enrollment (we shouldn't need to do this, but sometimes we receive more than one exit for an enrollment and don't have cleanup on the import)
       # Return the newest exit record
 
-      # FIXME (we should figure out which ids to pull in ruby, then fetch just those ids)
+      # Figure out which ids to pull in ruby, then fetch just those ids
       # index_by uses the last value
       puts export_scope.to_sql
       exit_ids = export_scope.order(DateUpdated: :asc).pluck(:id, :DateUpdated, :EnrollmentID, :data_source_id).
