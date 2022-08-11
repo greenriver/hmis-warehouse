@@ -36,7 +36,8 @@ module Export::Scopes
             e_t[:ProjectID].eq(p_t[:ProjectID]).
               and(e_t[:data_source_id].eq(p_t[:data_source_id])),
           ).join_sources).
-          merge(project_scope)
+          # Plucking project ids should never be > ~10k, and is usually _way_ faster than merging the scope
+          where(p_t[:id].in(project_scope.pluck(:id)))
         case @export&.period_type
         when 3 # Reporting period
           # FIXME: open_during_range may need to include logic to include deleted Exits
