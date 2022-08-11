@@ -38,11 +38,12 @@ module HmisCsvTwentyTwentyTwo::Exporter::ExportConcern
     end
 
     def self.note_involved_user_ids(scope:, export:)
-      u_t = GrdaWarehouse::Hud::User.arel_table
-
       # Note user_ids
       export.user_ids ||= Set.new
-      export.user_ids += scope.distinct.joins(:user).pluck(u_t[:id])
+      hud_user_ids = scope.pluck(:data_source_id, :UserID).group_by(&:shift)
+      hud_user_ids.each do |ds_id, ids|
+        export.user_ids += GrdaWarehouse::Hud::User.where(data_source_id: ds_id, UserID: ids.flatten.uniq).pluck(:id).to_set
+      end
     end
 
     def self.enrollment_related_join_tables(export)

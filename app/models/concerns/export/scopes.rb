@@ -31,7 +31,12 @@ module Export::Scopes
         else
           e_scope = enrollment_source.joins(:client)
         end
-        e_scope = e_scope.where(project_exists_for_enrollment)
+        e_scope = e_scope.
+          joins(e_t.join(p_t).on(
+            e_t[:ProjectID].eq(p_t[:ProjectID]).
+              and(e_t[:data_source_id].eq(p_t[:data_source_id])),
+          ).join_sources).
+          merge(project_scope)
         case @export&.period_type
         when 3 # Reporting period
           # FIXME: open_during_range may need to include logic to include deleted Exits
