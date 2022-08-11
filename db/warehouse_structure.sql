@@ -529,7 +529,8 @@ CREATE TABLE public."Client" (
     tc_hat_additional_days_homeless integer DEFAULT 0,
     preferred_name character varying,
     pronouns character varying,
-    sexual_orientation character varying
+    sexual_orientation character varying,
+    health_housing_navigator_id bigint
 );
 
 
@@ -38493,6 +38494,13 @@ CREATE INDEX "index_Client_on_data_source_id" ON public."Client" USING btree (da
 
 
 --
+-- Name: index_Client_on_health_housing_navigator_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_Client_on_health_housing_navigator_id" ON public."Client" USING btree (health_housing_navigator_id);
+
+
+--
 -- Name: index_Client_on_pending_date_deleted; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -48949,6 +48957,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220610173543'),
 ('20220612161111'),
 ('20220617180748'),
+('20220621180929'),
 ('20220628162723'),
 ('20220712164926'),
 ('20220713150217'),
