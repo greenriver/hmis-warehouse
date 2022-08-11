@@ -20,12 +20,12 @@ module Types
     field :dob, GraphQL::Types::ISO8601Date, 'Date of birth as format yyyy-mm-dd', null: true
     field :pronouns, String, null: true
     field :date_updated, GraphQL::Types::ISO8601DateTime, null: false
-    enrollments_field :enrollments
+    enrollments_field :enrollments, type: Types::HmisSchema::Enrollment.page_type
     field :start_date, GraphQL::Types::ISO8601DateTime, null: true
     field :end_date, GraphQL::Types::ISO8601DateTime, null: true
 
     def enrollments
-      resolve_enrollments_with_loader
+      resolve_enrollments
     end
   end
 end
