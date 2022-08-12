@@ -2058,8 +2058,14 @@ module GrdaWarehouse::Hud
       self.class.race_fields.select { |f| send(f).to_i == 1 }
     end
 
-    def race_description
-      race_fields.map { |f| ::HUD.race f }.join ', '
+    def race_description(include_missing_reason: false)
+      description = race_fields.map { |f| ::HUD.race f }.join ', '
+
+      if include_missing_reason && !description.present? && ![1, 0].include?(self.RaceNone)
+        HUD.no_yes_reasons_for_missing_data(self.RaceNone)
+      else
+        description
+      end
     end
 
     def ethnicity_description
