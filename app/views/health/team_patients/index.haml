@@ -11,7 +11,7 @@
   = link_to team.name, health_team_patients_path(entity_id: team.id), class: btn_classes
 
 .mt-4.mb-6
-  = render 'warehouse_reports/health/agency_performance/table', entities: @teams, entity_label: 'Team', detail_path: [:detail, :health, :team_patients], permission: current_user.has_some_patient_access?
+  = render 'warehouse_reports/health/agency_performance/table', report: @report, entities: @teams, entity_label: 'Team', totals: @totals, detail_path: [:detail, :health, :team_patients], permission: current_user.has_some_patient_access?
 
 %h2.mb-4 Patients
 

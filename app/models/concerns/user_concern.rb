@@ -423,17 +423,26 @@ module UserConcern
     end
 
     def care_coordinators
-      ids = user_care_coordinators.pluck(:care_coordinator_id)
+      ids = user_care_coordinators.
+        joins(:coordination_team).
+        pluck(:team_coordinator_id)
       User.where(id: ids)
     end
 
     def user_team_coordinators
-      Health::UserCareCoordinator.where(care_coordinator_id: id)
+      Health::UserCareCoordinator.
+        joins(:coordination_team).
+        where(coordination_team: { team_coordinator_id: id })
     end
 
     def team_coordinators
       ids = user_team_coordinators.pluck(:user_id)
       User.where(id: ids)
+    end
+
+    def patients
+      Health::Patient.where(care_coordinator_id: id).
+        or(Health::Patient.where(nurse_care_manager_id: id))
     end
 
     private def create_access_group
