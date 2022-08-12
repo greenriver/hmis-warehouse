@@ -22,16 +22,19 @@ module Types
         end
       end
 
-      def resolve_organizations_with_loader(association_name = :organizations, user: current_user, sort_order: nil)
-        organizations_scope = Hmis::Hud::Organization.viewable_by(user)
-        organizations_scope = organizations_scope.sort_by_option(sort_order) if sort_order.present?
-        load_ar_association(object, association_name, scope: organizations_scope)
+      def resolve_organizations_with_loader(association_name = :organizations, **args)
+        load_ar_association(object, association_name, scope: apply_organization_arguments(Hmis::Hud::Organization, **args))
       end
 
-      def resolve_organizations(scope = object.organizations, user: current_user, sort_order: nil)
+      def resolve_organizations(scope = object.organizations, **args)
+        apply_organization_arguments(scope, **args)
+      end
+
+      private
+
+      def apply_organization_arguments(scope, user: current_user, sort_order: nil)
         organizations_scope = scope.viewable_by(user)
-        organizations_scope = organizations_scope.sort_by_option(sort_order) if sort_order.present?
-        organizations_scope
+        organizations_scope.sort_by_option(sort_order) if sort_order.present?
       end
     end
   end

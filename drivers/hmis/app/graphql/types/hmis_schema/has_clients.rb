@@ -22,13 +22,17 @@ module Types
         end
       end
 
-      def resolve_clients_with_loader(association_name = :clients, sort_order: :last_name_asc, user: current_user, no_sort: false)
-        clients_scope = Hmis::Hud::Client.visible_to(user)
-        clients_scope = clients_scope.sort_by_option(sort_order) unless no_sort
-        load_ar_association(object, association_name, scope: clients_scope)
+      def resolve_clients_with_loader(association_name = :clients, **args)
+        load_ar_association(object, association_name, scope: apply_client_arguments(Hmis::Hud::Client, **args))
       end
 
-      def resolve_clients(scope = object.clients, sort_order: :last_name_asc, user: current_user, no_sort: false)
+      def resolve_clients(scope = object.clients, **args)
+        apply_client_arguments(scope, **args)
+      end
+
+      private
+
+      def apply_client_arguments(scope, sort_order: :last_name_asc, no_sort: false, user: current_user)
         clients_scope = scope.visible_to(user)
         clients_scope = clients_scope.sort_by_option(sort_order) unless no_sort
         clients_scope

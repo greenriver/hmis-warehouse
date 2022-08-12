@@ -21,11 +21,17 @@ module Types
         end
       end
 
-      def resolve_enrollments_with_loader(association_name = :enrollments, _user: current_user)
-        load_ar_association(object, association_name, scope: Hmis::Hud::Enrollment.all)
+      def resolve_enrollments_with_loader(association_name = :enrollments, **args)
+        load_ar_association(object, association_name, scope: apply_enrollment_arguments(Hmis::Hud::Enrollment.all, **args))
       end
 
-      def resolve_enrollments(scope = object.enrollments, _user: current_user)
+      def resolve_enrollments(scope = object.enrollments, **args)
+        apply_enrollment_arguments(scope, **args)
+      end
+
+      private
+
+      def apply_enrollment_arguments(scope, _user: current_user)
         scope
       end
     end
