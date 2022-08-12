@@ -127,10 +127,10 @@
               - title = 'HMIS'
               - if e[:hmis_exit_id]
                 - title = title + ' Enrollment'
-              = link_to title, hmi_path(e[:hmis_id], type: 'Enrollment'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis mb-2'
+              = link_to title, source_datum_path(e[:hmis_id], type: 'Enrollment'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis mb-2'
             - if e[:hmis_exit_id]
               - title = 'HMIS Exit'
-              = link_to title, hmi_path(e[:hmis_exit_id], type: 'Exit'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis mb-2'
+              = link_to title, source_datum_path(e[:hmis_exit_id], type: 'Exit'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis mb-2'
             .text-teeny.font-weight-light
               .text-nowrap
                 Created: #{e[:created_at]}

@@ -4,13 +4,10 @@
 - label = result.passed?(comparison) ? 'Passed' : 'Failed'
 
 
-.card.mb-2.pb-0.page-break-avoid
+.card.mb-0.pb-0.page-break-avoid
   .row.m-0.mb-4.p-4.performance-measurement__row.j-click-row
     = render 'row_contents', result: result, result_class: result_class, comparison: comparison, category_name: category_name
-    .col-sm-2
-      .text-uppercase Target
-      .performance-measurement__result-number.font-weight-bold #{result.goal_direction}#{result.class.goal} #{result.unit}
-      .text-capitalize= result.brief_goal_description
+
     .col-sm-2.ml-auto
       .mb-4.d-flex.font-size-md
         .ml-auto= tagged(result.passed?(comparison), status, icon: icon, label: label)

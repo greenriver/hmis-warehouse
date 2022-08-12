@@ -686,7 +686,7 @@ class Role < ApplicationRecord
         ],
       },
       can_upload_dashboard_extras: {
-        description: 'Access to upload the non-HMIS files for use in the Tableau dashboard export',
+        description: 'Access to upload the supplemental enrollment data for a data source',
         administrative: false,
         categories: [
           'Data Sources & Inventory',

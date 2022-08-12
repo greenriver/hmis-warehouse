@@ -37,7 +37,6 @@ module HudPit::Generators::Pit::Fy2022
         :adults_with_substance_use,
         :adults_with_substance_use_indefinite,
         :adults_with_hiv,
-        :adults_with_hiv_indefinite,
         :adult_dv_survivors,
         :adult_dv_survivors_currently_fleeing,
       ]
@@ -57,7 +56,7 @@ module HudPit::Generators::Pit::Fy2022
         first_column: 'B',
         last_column: 'E',
         first_row: 2,
-        last_row: 9,
+        last_row: 8,
       }
       populate_table(table_name, metadata)
     end

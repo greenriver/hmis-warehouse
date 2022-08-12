@@ -8,7 +8,7 @@ module CePerformance
   class Results::ReferralToHousingAverage < CePerformance::Result
     include CePerformance::Results::Calculations
     # For anyone served by CE, how long between referral and housing
-    def self.calculate(report, period, _filter)
+    def self.calculate(report, period)
       values = client_scope(report, period).
         pluck(:days_between_referral_and_housing)
       create(
@@ -28,6 +28,10 @@ module CePerformance
       5
     end
 
+    def goal_line
+      nil
+    end
+
     def passed?(comparison)
       return false if value.nil?
       # we can't get any shorter
@@ -41,6 +45,10 @@ module CePerformance
 
     def self.title
       _('Average Length of Time from Housing Referral to Housing Start')
+    end
+
+    def category
+      'Time'
     end
 
     def self.description

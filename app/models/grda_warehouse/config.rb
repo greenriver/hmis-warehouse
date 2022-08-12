@@ -39,6 +39,15 @@ module GrdaWarehouse
       }
     end
 
+    def self.available_verified_homeless_history_methods
+      {
+        'Include enrollments from data sources that are visible in the window.' => :visible_in_window,
+        'Include enrollments that are visible to the user.' => :visible_to_user,
+        'Include all enrollments if client has a release that grants the user access to the client. If no release, only include enrollments that are visible to the user.' => :release,
+        'Include all enrollments' => :all_enrollments,
+      }
+    end
+
     def self.family_calculation_methods
       {
         'At least one adult & child' => :adult_child,
@@ -272,6 +281,8 @@ module GrdaWarehouse
         :roi_model,
         :client_dashboard,
         :require_service_for_reporting_default,
+        :supplemental_enrollment_importer,
+        :verified_homeless_history_method,
         client_details: [],
       ]
     end
@@ -279,6 +290,29 @@ module GrdaWarehouse
     def self.arbiter_class
       # FIXME: for now, just return the one known one
       ClientAccessControl::EnrollmentArbiter if RailsDrivers.loaded.include?(:client_access_control)
+    end
+
+    def self.active_supplemental_enrollment_importer_class
+      supplemental_enrollment_importer_name = available_supplemental_enrollment_importers.values.detect do |class_name|
+        get(:supplemental_enrollment_importer) == class_name
+      end || default_supplemental_enrollment_importers.values.first
+      supplemental_enrollment_importer_name.constantize
+    end
+
+    def self.available_supplemental_enrollment_importers
+      Rails.application.config.supplemental_enrollment_importers[:available].presence || default_supplemental_enrollment_importers
+    end
+
+    def self.add_supplemental_enrollment_importer(name, class_name)
+      importers = default_supplemental_enrollment_importers
+      importers[name] = class_name
+      Rails.application.config.supplemental_enrollment_importers[:available] = importers.sort.to_h
+    end
+
+    def self.default_supplemental_enrollment_importers
+      {
+        'Default' => 'GrdaWarehouse::Tasks::EnrollmentExtrasImport',
+      }
     end
   end
 end

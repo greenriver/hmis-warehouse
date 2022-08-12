@@ -67,6 +67,7 @@ module CePerformance::Results::Calculations
 
     def percent_change_over_year(comparison)
       return 0 unless value.present?
+      return 0 if value&.zero? && comparison.value&.zero?
       return 100 if comparison.value.blank? || comparison.value.zero?
 
       self.class.percent_of(value - comparison.value, comparison.value)

@@ -9,5 +9,6 @@ require 'net/http'
 module GrdaWarehouse
   class RemoteCredentials::Smtp < GrdaWarehouse::RemoteCredential
     alias_attribute :server, :endpoint
+    alias_attribute :from, :path
   end
 end

@@ -13,18 +13,13 @@ module HealthFlexibleService
     end
 
     def data
-      vpr_t = HealthFlexibleService::Vpr.arel_table
-
       report_scope_source.
-        select(report_scope_source.column_names + [vpr_t[:end_date]]).
-        merge(HealthFlexibleService::Vpr.expired_before(Date.tomorrow)).
-        order(vpr_t[:end_date].desc).
-        preload(:flexible_services, :client).
-        distinct
+        expired_before(Date.tomorrow).
+        order(end_date: :desc)
     end
 
     def report_scope_source
-      ::Health::Patient.joins(:flexible_services)
+      HealthFlexibleService::Vpr
     end
   end
 end

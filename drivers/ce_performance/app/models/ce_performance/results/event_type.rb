@@ -8,7 +8,7 @@ module CePerformance
   class Results::EventType < CePerformance::Result
     include CePerformance::Results::Calculations
     # Count all events by event type
-    def self.calculate(report, period, _filter)
+    def self.calculate(report, period)
       events = {}
       client_scope(report, period).find_each do |client|
         client.events&.each do |event|
@@ -16,18 +16,26 @@ module CePerformance
           events[event['event']] += 1
         end
       end
-      events.each do |id, count|
+      # Summary
+      create(
+        report_id: report.id,
+        period: period,
+        value: events.values.sum,
+        event_type: 0, # using zero to denote all
+      )
+      available_event_ids.each do |event_id|
+        count = events[event_id] || 0
         create(
           report_id: report.id,
           period: period,
           value: count,
-          event_type: id,
+          event_type: event_id,
         )
       end
     end
 
     def self.client_scope(report, period)
-      report.clients.served_in_period(period)
+      report.clients.served_in_period(period).where.not(events: nil)
     end
 
     # TODO: move to goal configuration
@@ -51,8 +59,20 @@ module CePerformance
       _('Number and Types of CE Events ')
     end
 
+    def category
+      'Activity'
+    end
+
     def self.description
       ''
+    end
+
+    def overview
+      event_type.zero?
+    end
+
+    def display_event_breakdown?
+      true
     end
 
     def self.calculation
@@ -80,30 +100,13 @@ module CePerformance
     end
 
     def data_for_chart(report, comparison)
-      report_year_data = report.results.where.not(event_type: nil).pluck(:event_type, :value).to_h
-      comparison_year_data = if false # comparison.present?
-        comparison.where.not(event_type: nil).pluck(:event_type, :value).to_h
-      else
-        {}
-      end
-
-      # normalize data
-      comparison_year_data.keys.each do |k|
-        report_year_data[k] ||= 0
-      end
-      report_year_data.keys.each do |k|
-        comparison_year_data[k] ||= 0
-      end
-      report_year_data.to_h.sort
-      comparison_year_data.to_h.sort
-
-      columns = []
-      x = ['x']
-      report_year_data.each do |k, count|
-        columns << [::HUD.event(k), count]
-        x << ::HUD.event(k)
-      end
-      columns << x
+      aprs = report.ce_aprs.order(start_date: :asc).to_a
+      comparison_year = aprs.first.end_date.year
+      report_year = aprs.last.end_date.year
+      columns = [
+        ['x', comparison_year, report_year],
+        [unit, comparison.value, value],
+      ]
       {
         x: 'x',
         columns: columns,

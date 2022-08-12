@@ -20,7 +20,7 @@
           %tr
             %td
               - if can_see_raw_hmis_data? && !funder.manual_entry?
-                = link_to 'HMIS', hmi_path(funder.id, type: 'Funder'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis'
+                = link_to 'HMIS', source_datum_path(funder.id, type: 'Funder'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis'
             %td= funder.FunderID
             %td
               = HUD.funding_source funder.Funder.to_i

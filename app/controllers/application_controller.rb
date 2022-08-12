@@ -18,6 +18,7 @@ class ApplicationController < ActionController::Base
   include ControllerAuthorization
   include ActivityLogger
   include Pagy::Backend
+  protect_from_forgery with: :exception
 
   before_action :authenticate_user!
   auto_session_timeout User.timeout_in
@@ -40,10 +41,6 @@ class ApplicationController < ActionController::Base
   before_action :prepare_exception_notifier
 
   prepend_before_action :skip_timeout
-
-  # Prevent CSRF attacks by raising an exception.
-  # Needs to be prepended because https://github.com/heartcombo/devise/pull/4033/files
-  protect_from_forgery with: :exception, prepend: true
 
   def cache_grda_warehouse_base_queries
     GrdaWarehouseBase.cache do
@@ -184,7 +181,7 @@ class ApplicationController < ActionController::Base
     if last_url.present?
       last_url
     else
-      current_user.my_root_path
+      current_user&.my_root_path || root_path
     end
   end
 
