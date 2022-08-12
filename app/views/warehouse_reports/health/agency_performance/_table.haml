@@ -3,7 +3,7 @@
     %thead
       %tr
         %th{colspan: 9} All enrolled patients
-        %th.agency-performance__date-effected{colspan: 3} Activity occurred between #{@report.range.first} and #{@report.range.last}
+        %th.agency-performance__date-effected{colspan: 3} Activity occurred between #{report.range.first} and #{report.range.last}
       %tr
         %th= entity_label
         %th Patients Assigned
@@ -153,25 +153,25 @@
     - if entities.size > 1
       %tfoot
         %tr
-          %td= @totals.name
-          %td.text-right= @totals.patient_referrals.size
-          %td.text-right= @totals.consented_patients.size
-          %td.text-right= @totals.with_chas.size
-          %td.agency-performance__without.text-right= @totals.without_chas.size
-          %td.text-right= @totals.with_ssms.size
-          %td.agency-performance__without.text-right= @totals.without_ssms.size
-          %td.text-right= @totals.with_signed_careplans.size
-          %td.agency-performance__without.text-right= @totals.without_signed_careplans.size
-          %td.agency-performance__date-effected.text-right= @totals.with_careplans_signed_within_range.size
+          %td= totals.name
+          %td.text-right= totals.patient_referrals.size
+          %td.text-right= totals.consented_patients.size
+          %td.text-right= totals.with_chas.size
+          %td.agency-performance__without.text-right= totals.without_chas.size
+          %td.text-right= totals.with_ssms.size
+          %td.agency-performance__without.text-right= totals.without_ssms.size
+          %td.text-right= totals.with_signed_careplans.size
+          %td.agency-performance__without.text-right= totals.without_signed_careplans.size
+          %td.agency-performance__date-effected.text-right= totals.with_careplans_signed_within_range.size
           %td.text-right
-            - numerator = @totals.with_careplans_in_122_days.size
-            - denominator = @totals.with_careplans_signed_within_range.size
+            - numerator = totals.with_careplans_in_122_days.size
+            - denominator = totals.with_careplans_signed_within_range.size
             - percentage = 0
             - percentage = ((numerator/denominator.to_f) * 100).round if denominator.positive? && numerator.positive?
-            = @totals.with_careplans_in_122_days.size
+            = totals.with_careplans_in_122_days.size
             (#{percentage}%)
-          -#%td.agency-performance__without.text-right= @totals.without_qualifying_activities_within_range.size
-          %td.agency-performance__without.text-right= @totals.without_payable_qualifying_activities_within_range.size
+          -#%td.agency-performance__without.text-right= totals.without_qualifying_activities_within_range.size
+          %td.agency-performance__without.text-right= totals.without_payable_qualifying_activities_within_range.size
   = content_for :page_js do
     :javascript
       $(document).ready(function() {

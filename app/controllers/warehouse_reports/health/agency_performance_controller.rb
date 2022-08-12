@@ -21,10 +21,10 @@ module WarehouseReports::Health
         end_date: @end_date,
       }.to_query
       @pdf_export = Health::DocumentExports::AgencyPerformanceExport.new(query_string: query_string)
-      @report = Health::AgencyPerformance.new(range: (@start_date..@end_date))
 
-      @agencies = @report.agency_counts
-      @totals = @report.total_counts
+      @agency_report = Health::AgencyPerformance.new(range: (@start_date..@end_date))
+      @agencies = @agency_report.agency_counts
+      @agency_totals = @agency_report.total_counts
     end
 
     def detail
