@@ -23,8 +23,8 @@ module Types
     field :date_updated, GraphQL::Types::ISO8601DateTime, null: false
     enrollments_field :enrollments, type: Types::HmisSchema::Enrollment.page_type
 
-    def enrollments
-      resolve_enrollments
+    def enrollments(**args)
+      resolve_enrollments(**args)
     end
   end
 end
