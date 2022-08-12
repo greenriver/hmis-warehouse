@@ -1678,7 +1678,8 @@ CREATE TABLE public.coordination_teams (
     color character varying,
     team_coordinator_id bigint,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    team_nurse_care_manager_id bigint
 );
 
 
@@ -6597,6 +6598,13 @@ CREATE INDEX index_coordination_teams_on_team_coordinator_id ON public.coordinat
 
 
 --
+-- Name: index_coordination_teams_on_team_nurse_care_manager_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_coordination_teams_on_team_nurse_care_manager_id ON public.coordination_teams USING btree (team_nurse_care_manager_id);
+
+
+--
 -- Name: index_disenrollment_reasons_on_reason_code; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -7619,6 +7627,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220621181125'),
 ('20220623172328'),
 ('20220721163813'),
-('20220721165009');
+('20220721165009'),
+('20220812184231');
 
 

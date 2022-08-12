@@ -37,6 +37,7 @@ module Admin::Health
       params.require(:health_coordination_team).permit(
         :name,
         :team_coordinator_id,
+        :team_nurse_care_manager_id,
       )
     end
 
