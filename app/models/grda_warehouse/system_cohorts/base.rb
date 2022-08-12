@@ -192,6 +192,7 @@ module GrdaWarehouse::SystemCohorts
         adult_only_cohort: GrdaWarehouse::SystemCohorts::AdultOnly,
         youth_no_child_cohort: GrdaWarehouse::SystemCohorts::YouthNoChild,
         youth_and_child_cohort: GrdaWarehouse::SystemCohorts::YouthAndChild,
+        youth_hoh_cohort: GrdaWarehouse::SystemCohorts::YouthHoh,
       }.freeze
     end
   end
