@@ -477,6 +477,11 @@ class User < ApplicationRecord
     User.where(id: ids)
   end
 
+  def patients
+    Health::Patient.where(care_coordinator_id: id).
+      or(Health::Patient.where(nurse_care_manager_id: id))
+  end
+
   private def create_access_group
     group = AccessGroup.for_user(self).first_or_create
     group.access_group_members.where(user_id: id).first_or_create

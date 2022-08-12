@@ -71,7 +71,7 @@ module Health
     end
 
     def load_active_agency
-      @active_agency = current_user.health_agencies.select { |a| a.id.to_s == params[:agency_id] }.first if params[:agency_id].present?
+      @active_agency = current_user.health_agencies.select { |a| a.id.to_s == params[:entity_id] }.first if params[:entity_id].present?
       @active_agency = current_user.health_agencies.first unless @active_agency.present?
     end
 

@@ -689,6 +689,11 @@ Rails.application.routes.draw do
         post :detail
       end
     end
+    resources :team_patients, only: [:index] do
+      collection do
+        post :detail
+      end
+    end
     resources :my_patients, only: [:index]
     namespace :he do
       get :search

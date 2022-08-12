@@ -1,0 +1,26 @@
+- content_for(:title, "Patients for #{@active_team.name}")
+  .o-page
+  .o-page__header
+  %h1= content_for(:title)
+
+  .btn-group.btn-group-action-2.btn-group-xs.mb-4{role: 'group'}
+  - @teams.each do |team|
+  - btn_classes = ['btn', 'btn-secondary']
+  - if team.id == @active_team.id
+    - btn_classes.push(['active', 'btn-light'])
+  = link_to team.name, health_team_patients_path(entity_id: team.id), class: btn_classes
+
+.mt-4.mb-6
+  = render 'warehouse_reports/health/agency_performance/table', entities: @teams, entity_label: 'Team', detail_path: [:detail, :health, :team_patients], permission: current_user.has_some_patient_access?
+
+%h2.mb-4 Patients
+
+- if @pagy.count.positive?
+  = render 'common/pagination_top', item_name: 'patient'
+  - @patients.each do |patient|
+    = render 'health/patients/patient_card', patient: patient
+  = render 'common/pagination_bottom', item_name: 'patient'
+- else
+  .none-found No patients
+
+= render 'health/patients/assignment_js'

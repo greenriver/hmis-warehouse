@@ -14,8 +14,12 @@ module Health
 
     belongs_to :user, optional: true
     belongs_to :care_coordinator, class_name: 'User', optional: true # TODO: Obsolete, to be removed
-    belongs_to :coordination_team, optional: true
+    belongs_to :coordination_team, optional: true, inverse_of: :user_care_coordinators
 
     validates_presence_of :user_id
+
+    def patients
+      user&.patients
+    end
   end
 end

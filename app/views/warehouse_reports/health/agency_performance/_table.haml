@@ -5,7 +5,7 @@
         %th{colspan: 9} All enrolled patients
         %th.agency-performance__date-effected{colspan: 3} Activity occurred between #{@report.range.first} and #{@report.range.last}
       %tr
-        %th Agency
+        %th= entity_label
         %th Patients Assigned
         %th Consented
         %th With CHA
