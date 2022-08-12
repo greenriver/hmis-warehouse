@@ -127,13 +127,15 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               dob
               dateUpdated
               enrollments {
-                id
-                project {
+                nodes {
                   id
-                  projectName
+                  project {
+                    id
+                    projectName
+                  }
+                  entryDate
+                  exitDate
                 }
-                entryDate
-                exitDate
               }
             }
             errors {
