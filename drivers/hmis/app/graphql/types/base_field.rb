@@ -23,12 +23,17 @@ module Types
       end
 
       def resolve(object:, arguments:, **_rest)
-        # byebug
         cleaned_arguments = arguments.dup
-        offset = cleaned_arguments.delete(:offset)
-        limit = cleaned_arguments.delete(:limit)
+
+        pagination_arguments = {}
+
+        [:offset, :limit].each do |arg|
+          value = cleaned_arguments.delete(arg)
+          pagination_arguments[arg] = value if value.present?
+        end
+
         resolved_object = yield(object, cleaned_arguments)
-        Types::PaginatedScope.new(resolved_object, offset: offset, limit: limit)
+        Types::PaginatedScope.new(resolved_object, **pagination_arguments)
       end
     end
   end
