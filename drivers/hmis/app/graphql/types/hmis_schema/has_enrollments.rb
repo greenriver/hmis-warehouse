@@ -16,6 +16,7 @@ module Types
           default_field_options = { type: type, null: false, description: description }
           field_options = default_field_options.merge(override_options)
           field(name, **field_options) do
+            argument :sort_order, HmisSchema::EnrollmentSortOption, required: false
             instance_eval(&block) if block_given?
           end
         end
@@ -31,8 +32,9 @@ module Types
 
       private
 
-      def apply_enrollment_arguments(scope, _user: current_user)
-        scope
+      def apply_enrollment_arguments(scope, _user: current_user, sort_order: :most_recent)
+        enrollments_scope = scope
+        enrollments_scope.sort_by_option(sort_order) if sort_order.present?
       end
     end
   end
