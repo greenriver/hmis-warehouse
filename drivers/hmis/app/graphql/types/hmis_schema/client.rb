@@ -13,9 +13,10 @@ module Types
     description 'HUD Client'
     field :id, ID, null: false
     field :personal_id, String, null: false
-    field :first_name, String, null: false
-    field :last_name, String, null: false
+    field :first_name, String, null: true
+    field :last_name, String, null: true
     field :preferred_name, String, null: true
+    field :name_suffix, String, null: true
     field :ssn_serial, String, null: true
     field :dob, GraphQL::Types::ISO8601Date, 'Date of birth as format yyyy-mm-dd', null: true
     field :pronouns, String, null: true

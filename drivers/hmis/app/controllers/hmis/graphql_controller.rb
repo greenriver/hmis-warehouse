@@ -12,7 +12,6 @@ module Hmis
     before_action :attach_data_source_id
 
     def execute
-      variables = prepare_variables(params[:variables])
       context = {
         current_user: current_hmis_user,
       }
@@ -24,7 +23,7 @@ module Hmis
             {
               query: param[:query],
               operation_name: param[:operationName],
-              variables: variables,
+              variables: prepare_variables(param[:variables]),
               context: context,
             }
           end
@@ -33,7 +32,7 @@ module Hmis
           # We have a single operation
           result = HmisSchema.execute(
             query: params[:query],
-            variables: variables,
+            variables: prepare_variables(params[:variables]),
             context: context,
             operation_name: params[:operationName],
           )
