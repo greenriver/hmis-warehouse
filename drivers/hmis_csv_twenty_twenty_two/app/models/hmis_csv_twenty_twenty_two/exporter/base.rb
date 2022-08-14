@@ -90,6 +90,9 @@ module HmisCsvTwentyTwentyTwo::Exporter
         exportable_files.each do |destination_class, opts|
           opts[:export] = @export
           options[:export] = @export
+          tmp_table_prefix = opts[:hmis_class].table_name.downcase
+
+          opts[:temp_class] = TempExport.create_temporary_table(table_name: "temp_export_#{tmp_table_prefix}_#{export.id}s", model_name: destination_class.temp_model_name)
           HmisCsvTwentyTwentyTwo::Exporter::KibaExport.export!(
             options: options,
             source_class: HmisCsvTwentyTwentyTwo::Exporter::RailsSource,
@@ -101,6 +104,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
               output_file: File.join(@file_path, file_name_for(destination_class)),
             },
           )
+          opts[:temp_class].drop
         end
         zip_archive if zip
         upload_zip if zip && upload
