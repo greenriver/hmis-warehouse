@@ -9,9 +9,10 @@ type Client {
   """
   dob: ISO8601Date
   enrollments: [Enrollment!]!
-  firstName: String!
+  firstName: String
   id: ID!
-  lastName: String!
+  lastName: String
+  nameSuffix: String
   personalId: String!
   preferredName: String
   pronouns: String
@@ -30,6 +31,7 @@ input ClientInput {
   lastName: String
   middleName: String
   nameQuality: NameDataQuality
+  nameSuffix: String
   preferredName: String
   race: [Race!]
   ssn: String
