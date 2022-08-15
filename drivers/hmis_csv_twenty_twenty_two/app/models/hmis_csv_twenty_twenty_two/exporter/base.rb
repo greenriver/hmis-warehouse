@@ -33,6 +33,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
       include_deleted: false,
       faked_environment: :development,
       confidential: false,
+      options: {},
       file_path: 'var/hmis_export',
       logger: Rails.logger,
       debug: true
@@ -57,6 +58,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
       @include_deleted = include_deleted
       @faked_environment = faked_environment
       @confidential = confidential
+      @selected_options = options
     end
 
     # Exports HMIS data in the specified CSV format, wrapped in a zip file.
@@ -109,6 +111,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
         zip_archive if zip
         upload_zip if zip && upload
         save_fake_data
+        @export.update(completed_at: Time.current)
       ensure
         remove_export_files if cleanup
         reset_time_format
