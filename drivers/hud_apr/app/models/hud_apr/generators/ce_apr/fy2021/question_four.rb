@@ -25,7 +25,7 @@ module HudApr::Generators::CeApr::Fy2021
     # as noted in the spec:
     # Be sure to include data on all projects with clients and enrollments included on any question in this APR.
     private def q4_project_scope
-      active_project_ids = @generator.client_scope.distinct.pluck(p_t[:id])
+      active_project_ids = @generator.active_project_ids
       active_project_ids = @report.project_ids if active_project_ids.blank?
       GrdaWarehouse::Hud::Project.where(id: active_project_ids)
     end
