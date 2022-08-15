@@ -23,6 +23,7 @@ class ExportBaseJob < BaseJob
       user_id: options[:user_id],
       version: options[:version],
       confidential: options[:confidential],
+      options: options[:options],
     ).export!
 
     if (recurring_hmis_export = recurring_hmis_export(options))
