@@ -16,7 +16,7 @@ module Types
     projects_field :projects, 'Get a list of projects for this organization'
 
     def projects(**args)
-      resolve_projects(object.projects, **args)
+      resolve_projects_with_loader(:projects, **args)
     end
 
     def self.organizations(scope = Hmis::Hud::Organization.all, user:)
