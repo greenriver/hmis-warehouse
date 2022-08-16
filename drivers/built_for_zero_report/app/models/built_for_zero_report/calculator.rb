@@ -59,8 +59,6 @@ module BuiltForZeroReport
         'date_interval_start' => @start_date.to_time.utc.strftime('%FT%T.000Z'), # match API format
         'date_interval' => @interval,
       }
-      # data['avg_lot_from_id_to_housing'] = average_lot_to_housing unless average_lot_to_housing.present?
-      # data.delete_if { |k, _| !@data_keys.include?(k) }
     end
 
     def self.default_data_keys
