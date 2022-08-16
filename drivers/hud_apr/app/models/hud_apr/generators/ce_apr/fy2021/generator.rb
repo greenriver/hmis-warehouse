@@ -57,7 +57,7 @@ module HudApr::Generators::CeApr::Fy2021
 
     # NOTE: Questions 4 through 9
     # Clients in any HMIS project using Method 2 - Active Clients by Date of Service where the enrollment has data in element 4.19 (CE Assessment) with a Date of Assessment in the date range of the report.
-    # When including CE Events (element 4.20) for these clients, the system should include data up to 90 days past the report end date. Detailed instructions for this are found on 9c and 9d.
+    # When including CE Events (element 4.20) for these clients, the system should include data up to 90 days past the report end date. Detailed instructions for this are found on 9c and 9d.  In addition, we are including these events in the calculation of involved projects in Q4
     # Unless otherwise instructed, use data from the enrollment with the latest assessment.
     # Include household members attached to the head of household’s enrollment who were active at the time of that latest assessment, as determined by the household members’ entry and exit dates.
 
@@ -102,6 +102,30 @@ module HudApr::Generators::CeApr::Fy2021
       scope = scope.merge(@filter.apply(GrdaWarehouse::ServiceHistoryEnrollment.all))
 
       scope.select(:id)
+    end
+
+    def active_project_ids
+      start_date = @report.start_date
+      end_date = @report.end_date
+      event_end_date = end_date + 90.days
+      project_ids = client_source.
+        distinct.
+        joins(service_history_enrollments: { enrollment: [:assessments, :project] }).
+        merge(GrdaWarehouse::Hud::Project.coc_funded).
+        merge(report_scope_source.open_between(start_date: start_date, end_date: end_date)).
+        merge(GrdaWarehouse::Hud::Assessment.within_range(start_date..end_date)).
+        merge(GrdaWarehouse::ServiceHistoryEnrollment.heads_of_households).
+        pluck(p_t[:id])
+
+      project_ids += client_source.
+        distinct.
+        joins(service_history_enrollments: { enrollment: [:events, :project] }).
+        merge(GrdaWarehouse::Hud::Project.coc_funded).
+        merge(report_scope_source.open_between(start_date: start_date, end_date: end_date)).
+        merge(GrdaWarehouse::Hud::Event.within_range(start_date..event_end_date)).
+        pluck(p_t[:id])
+
+      project_ids
     end
   end
 end

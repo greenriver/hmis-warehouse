@@ -2058,8 +2058,13 @@ module GrdaWarehouse::Hud
       self.class.race_fields.select { |f| send(f).to_i == 1 }
     end
 
-    def race_description
-      race_fields.map { |f| ::HUD.race f }.join ', '
+    def race_description(include_missing_reason: false)
+      description = race_fields.map { |f| ::HUD.race f }.join ', '
+      return description if description.present?
+      return '' unless include_missing_reason
+      return '' unless self.RaceNone.in?(HUD.race_gender_none_options.keys)
+
+      HUD.race_none(self.RaceNone)
     end
 
     def ethnicity_description
@@ -2443,12 +2448,15 @@ module GrdaWarehouse::Hud
     end
 
     private def health_dependent_items
-      [
+      items = [
         Health::Patient,
         Health::HealthFile,
         Health::Tracing::Case,
         Health::Vaccination,
       ]
+      items << HealthFlexibleService::Vpr if RailsDrivers.loaded.include?(:health_flexible_service)
+
+      items
     end
 
     def force_full_service_history_rebuild

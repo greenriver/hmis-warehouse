@@ -52,13 +52,13 @@ module HealthFlexibleService
 
     def columns(vpr, category)
       [
-        vpr.patient[:medicaid_id],
+        vpr[:medicaid_id],
         vpr[:last_name],
         vpr[:first_name],
         vpr[:middle_name],
         '', # We don't collect suffix, so leave it blank
         vpr[:dob].strftime('%Y%m%d'),
-        vpr.patient.aco[:vpr_name],
+        vpr.aco[:vpr_name],
         delivery_entities(vpr, category),
         'No', # transportation
         vpr[:gender],
@@ -79,9 +79,8 @@ module HealthFlexibleService
 
     def vpr_scope(category)
       HealthFlexibleService::Vpr.
-        joins(patient: :patient_referral).
-        preload(patient: :patient_referral).
-        merge(::Health::PatientReferral.at_acos(@aco_id)).
+        preload(:aco).
+        at_acos(@aco_id).
         open_between(start_date: @report_range.begin, end_date: @report_range.end).
         category(category).
         order(last_name: :asc, first_name: :asc, middle_name: :asc).
