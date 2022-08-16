@@ -23,7 +23,7 @@ module Types
       end
 
       def resolve_enrollments_with_loader(association_name = :enrollments, **args)
-        load_ar_association(object, association_name, scope: apply_enrollment_arguments(Hmis::Hud::Enrollment.all, **args))
+        load_ar_association(object, association_name, scope: apply_enrollment_arguments(Hmis::Hud::Enrollment, **args))
       end
 
       def resolve_enrollments(scope = object.enrollments, **args)
@@ -32,8 +32,8 @@ module Types
 
       private
 
-      def apply_enrollment_arguments(scope, _user: current_user, sort_order: :most_recent)
-        enrollments_scope = scope
+      def apply_enrollment_arguments(scope, user: current_user, sort_order: :most_recent)
+        enrollments_scope = scope.viewable_by(user)
         enrollments_scope.sort_by_option(sort_order) if sort_order.present?
       end
     end
