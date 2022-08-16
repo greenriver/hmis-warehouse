@@ -94,9 +94,11 @@ module GrdaWarehouse::SystemCohorts
     end
 
     # Build household data for anyone with a residential enrollment
-    private def households
+    private def households(hoh_only: false)
       @households ||= {}.tap do |hh|
-        GrdaWarehouse::Hud::Enrollment.residential.open_on_date.preload(:destination_client).find_in_batches(batch_size: 250) do |batch|
+        enrollments = GrdaWarehouse::Hud::Enrollment.residential.open_on_date
+        enrollments = enrollments.heads_of_households if hoh_only
+        enrollments.preload(:destination_client).find_in_batches(batch_size: 250) do |batch|
           batch.each do |enrollment|
             next unless enrollment.destination_client
 
@@ -152,6 +154,14 @@ module GrdaWarehouse::SystemCohorts
       end.flatten
     end
 
+    private def youth_and_hoh_client_ids
+      @youth_and_hoh_client_ids ||= households(hoh_only: true).select do |_, enrollments|
+        only_under_25?(enrollments)
+      end.map do |_, enrollments|
+        enrollments.map { |client| client[:client_id] }
+      end.flatten
+    end
+
     private def household(enrollment)
       households[get_hh_id(enrollment)]
     end
@@ -182,6 +192,7 @@ module GrdaWarehouse::SystemCohorts
         adult_only_cohort: GrdaWarehouse::SystemCohorts::AdultOnly,
         youth_no_child_cohort: GrdaWarehouse::SystemCohorts::YouthNoChild,
         youth_and_child_cohort: GrdaWarehouse::SystemCohorts::YouthAndChild,
+        youth_hoh_cohort: GrdaWarehouse::SystemCohorts::YouthHoh,
       }.freeze
     end
   end
