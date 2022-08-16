@@ -24,7 +24,7 @@
                   .col-md-3
                     - passed = result.passed?(comparison)
                     - status = passed ? 'success' : 'danger'
-                    - icon = passed ? 'success' : 'cross'
+                    - icon = passed ? 'check' : 'cross'
                     - label = passed ? 'Passed' : 'Failed'
                     .muted.text-sm.text-uppercase
                       Target:
