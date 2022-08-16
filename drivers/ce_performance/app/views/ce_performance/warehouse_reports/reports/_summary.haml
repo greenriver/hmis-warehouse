@@ -1,0 +1,38 @@
+.card.overflow-hidden
+  .m-4
+    %h2 Summary
+  %table.table.mb-0
+    %tbody
+      - @report.results_for_display.each.with_index do |(category_name, periods), i|
+        - classes = "performance-measurement--highlight-light-#{i + 1}"
+        - sub_sections = periods[:reporting].select {|r| r.display_result? }
+        - comparison_sections = periods[:comparison].select {|r| r.display_result? }
+        - rowspan = sub_sections.count + 1
+        %tr.c-table__row{ class: classes }
+          %th.p-6{rowspan: rowspan}
+            %h2= category_name
+        - sub_sections.each do |result_class, result|
+          - comparison = comparison_sections[result_class]
+          %tr
+            %td.j-summary-row{data: { target: "##{result_class.title.parameterize}"}}
+              .row
+                .col-md-6
+                  %h4= result_class.title
+                  - if result_class.ce_apr_question.present?
+                    .font-weight-bold= result_class.ce_apr_question
+                - if result.display_goal?
+                  .col-md-3
+                    - passed = result.passed?(comparison)
+                    - status = passed ? 'success' : 'danger'
+                    - icon = passed ? 'success' : 'cross'
+                    - label = passed ? 'Passed' : 'Failed'
+                    .muted.text-sm.text-uppercase
+                      Target:
+                      = result.goal_direction
+                      = result_class.goal&.round
+                      = result.goal_unit
+                    .performance-measurement--target-guage{ style: "width: #{result.gauge_width}px;" }
+                      .performance-measurement--target-guage-foreground{ style: "width: #{result.gauge_value}px;", class: status }
+                      .performance-measurement--target-guage-target{ style: "margin-left: #{result.gauge_target}px;" }
+                  .col-md-3.d-flex
+                    .ml-auto.mr-4= tagged(passed, status, icon: icon, label: label)

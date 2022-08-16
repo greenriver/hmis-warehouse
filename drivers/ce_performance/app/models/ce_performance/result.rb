@@ -38,6 +38,28 @@ module CePerformance
       false
     end
 
+    def goal_unit
+      return '%' if unit == 'percent'
+
+      unit
+    end
+
+    def gauge_width
+      200
+    end
+
+    private def max_for_gauge
+      [gauge_width, self.class.goal, value].max
+    end
+
+    def gauge_value
+      (value / max_for_gauge * gauge_width).round
+    end
+
+    def gauge_target
+      (self.class.goal / max_for_gauge * gauge_width).round
+    end
+
     def goal_direction
       ''
     end

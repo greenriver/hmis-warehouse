@@ -52,7 +52,7 @@ module CePerformance
     end
 
     def self.ce_apr_question
-      'Question 9'
+      'Question 10'
     end
 
     def self.title
