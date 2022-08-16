@@ -29,7 +29,7 @@
                     .muted.text-sm.text-uppercase
                       Target:
                       = result.goal_direction
-                      = result_class.goal&.round
+                      = result.goal&.round
                       = result.goal_unit
                     .performance-measurement--target-guage{ style: "width: #{result.gauge_width}px;" }
                       .performance-measurement--target-guage-foreground{ style: "width: #{result.gauge_value}px;", class: status }

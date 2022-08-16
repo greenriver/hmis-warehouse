@@ -22,12 +22,24 @@ module CePerformance
       []
     end
 
-    def category
+    def self.category
       'Participation'
     end
 
+    def category
+      self.class.category
+    end
+
     def display_goal?
-      true
+      self.class.display_goal?
+    end
+
+    def self.display_goal?
+      goal_column.present?
+    end
+
+    def self.goal_column
+      nil
     end
 
     def display_vispdat_breakdown?
@@ -49,7 +61,7 @@ module CePerformance
     end
 
     private def max_for_gauge
-      [gauge_width, self.class.goal, value].max
+      [gauge_width, goal, value].max
     end
 
     def gauge_value
@@ -57,7 +69,7 @@ module CePerformance
     end
 
     def gauge_target
-      (self.class.goal / max_for_gauge * gauge_width).round
+      (goal / max_for_gauge * gauge_width).round
     end
 
     def goal_direction

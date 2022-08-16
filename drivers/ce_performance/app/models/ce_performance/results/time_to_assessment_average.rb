@@ -22,16 +22,11 @@ module CePerformance
         where.not(days_before_assessment: nil)
     end
 
-    # TODO: move to goal configuration
-    def self.goal
-      nil
-    end
-
     def self.title
       _('Average Length of time from Access to Assessment')
     end
 
-    def self.description
+    def description
       'Average number of days between CE Project Start Date and CE Assessment date.'
     end
 
@@ -39,11 +34,7 @@ module CePerformance
       'Average number of days between CE Project Start Date and CE Assessment date.'
     end
 
-    def display_goal?
-      false
-    end
-
-    def category
+    def self.category
       'Time'
     end
 

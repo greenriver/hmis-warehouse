@@ -38,15 +38,6 @@ module CePerformance
       report.clients.served_in_period(period).where.not(events: nil)
     end
 
-    # TODO: move to goal configuration
-    def self.goal
-      nil
-    end
-
-    def display_goal?
-      false
-    end
-
     def unit
       'events'
     end
@@ -59,11 +50,11 @@ module CePerformance
       _('Number and Types of CE Events ')
     end
 
-    def category
+    def self.category
       'Activity'
     end
 
-    def self.description
+    def description
       ''
     end
 
