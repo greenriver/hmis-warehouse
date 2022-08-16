@@ -1352,7 +1352,7 @@ Lint/SafeNavigationConsistency:
   Exclude:
 
 # Offense count: 1
-Lint/SelfAssignment:
+Style/SelfAssignment:
   Exclude:
     - 'app/models/grda_warehouse/tasks/dmh_chronically_homeless.rb'
 
