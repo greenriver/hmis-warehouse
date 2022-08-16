@@ -6,6 +6,7 @@
 
 module GrdaWarehouse::SystemCohorts
   class YouthHoh < CurrentlyHomeless
+    include ArelHelper
     def cohort_name
       'Youth (under 25) and Head of Household'
     end
@@ -19,7 +20,7 @@ module GrdaWarehouse::SystemCohorts
 
       project_ids = GrdaWarehouse::ProjectGroup.where(id: project_group).
         joins(:projects).
-        pluck(:project_id)
+        pluck(p_t[:id])
       scope.in_project(project_ids)
     end
   end
