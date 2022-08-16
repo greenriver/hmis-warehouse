@@ -78,7 +78,9 @@ module CePerformance
     end
 
     def data_for_chart(report, comparison)
-      comparison_year, report_year = report.ce_aprs.order(start_date: :asc).pluck(:end_date).map(&:year)
+      aprs = report.ce_aprs.order(start_date: :asc).to_a
+      comparison_year = aprs.first.end_date.year
+      report_year = aprs.last.end_date.year
       columns = [
         ['x', comparison_year, report_year],
         [unit, comparison.value, value],

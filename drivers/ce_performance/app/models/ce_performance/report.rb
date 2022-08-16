@@ -178,8 +178,13 @@ module CePerformance
       @vispdat_ranges ||= clients.distinct.where.not(vispdat_range: nil).pluck(:vispdat_range)
     end
 
-    def clients_title(sub_population_title: nil, vispdat_range: nil, event_type: nil)
+    def vispdat_types
+      @vispdat_types ||= clients.distinct.where.not(vispdat_type: nil).pluck(:vispdat_type)
+    end
+
+    def clients_title(sub_population_title: nil, vispdat_range: nil, vispdat_type: nil, event_type: nil)
       return "VI-SPDAT Range: #{vispdat_range}" if vispdat_range.present?
+      return "VI-SPDAT Type: #{vispdat_type}" if vispdat_type.present?
       return "Event Type: #{::HUD.event(event_type)}" if event_type.present?
 
       return sub_population_title
@@ -190,7 +195,7 @@ module CePerformance
         report_clients = {}
         report_clients = add_q5a_clients(report_clients, period, ce_apr)
         report_clients = add_q9b_clients(report_clients, period, ce_apr)
-        report_clients = add_q9d_clients(report_clients, period, ce_apr)
+        report_clients = add_q10_clients(report_clients, period, ce_apr)
         Client.import!(
           report_clients.values,
           batch_size: 5_000,
@@ -292,10 +297,13 @@ module CePerformance
       report_clients
     end
 
-    private def add_q9d_clients(report_clients, period, ce_apr)
+    private def add_q10_clients(report_clients, period, ce_apr)
       active_filter = periods[period]
-      # All clients placed on prioritization list
-      ce_apr_clients = answer_clients(ce_apr, 'Q9d', 'B16')
+      ce_apr_clients = Set.new
+      (4..19).each do |num|
+        cell = "B#{num}"
+        ce_apr_clients += answer_clients(ce_apr, 'Q10', cell)
+      end
       # NOTE: this potentially expands outside of the permissions of the user
       # Find all PH enrollments for the destination client associated with the ce_apr_clients
       # that are also visible by the user, and started within the report range
@@ -312,6 +320,16 @@ module CePerformance
           client_id: ce_apr_client.client_id,
           ce_apr_id: ce_apr.id,
           ce_apr_client_id: ce_apr_client.id,
+          first_name: ce_apr_client.first_name,
+          last_name: ce_apr_client.last_name,
+          dob: ce_apr_client.dob,
+          reporting_age: ce_apr_client.age,
+          veteran: ce_apr_client.veteran_status == 1,
+          entry_date: ce_apr_client.first_date_in_program,
+          move_in_date: ce_apr_client.move_in_date,
+          exit_date: ce_apr_client.last_date_in_program,
+          head_of_household: ce_apr_client.head_of_household,
+          prior_living_situation: ce_apr_client.prior_living_situation,
         )
         report_client.events = ce_apr_client.hud_report_ce_events.map do |e|
           {
@@ -433,6 +451,7 @@ module CePerformance
       questions = [
         'Question 5',
         'Question 9',
+        'Question 10',
       ]
       generator = HudApr::Generators::CeApr::Fy2021::Generator
       {}.tap do |reports|

@@ -84,12 +84,13 @@ module CePerformance::WarehouseReports
       @sub_population = CePerformance::Client.subpopulations(@report).values.map(&:to_s).detect { |sp| params[:sub_population] == sp }&.to_sym # Note, blank will not apply sub-population limits
       @sub_population_title = CePerformance::Client.subpopulations(@report).invert[@sub_population]
       @vispdat_range = @report.vispdat_ranges.detect { |m| m == params[:vispdat_range] }
+      @vispdat_type = @report.vispdat_types.detect { |m| m == params[:vispdat_type] }
       @event_type = @result.class.available_event_ids.detect { |m| m == params[:event_type]&.to_i }
-      @clients = @result.clients_for(report: @report, period: @period, sub_population: @sub_population, vispdat_range: @vispdat_range, event_type: @event_type)
+      @clients = @result.clients_for(report: @report, period: @period, sub_population: @sub_population, vispdat_range: @vispdat_range, event_type: @event_type, vispdat_type: @vispdat_type)
       respond_to do |format|
         format.html {}
         format.xlsx do
-          filename = "#{"#{@result.class.title} #{@report.clients_title(sub_population_title: @sub_population_title, vispdat_range: @vispdat_range)}".tr(' ', '-')}-#{Date.current.to_s(:db)}.xlsx"
+          filename = "#{"#{@result.class.title} #{@report.clients_title(sub_population_title: @sub_population_title, vispdat_range: @vispdat_range, vispdat_type: @vispdat_type)}".tr(' ', '-')}-#{Date.current.to_s(:db)}.xlsx"
           headers['Content-Disposition'] = "attachment; filename=#{filename}"
         end
       end

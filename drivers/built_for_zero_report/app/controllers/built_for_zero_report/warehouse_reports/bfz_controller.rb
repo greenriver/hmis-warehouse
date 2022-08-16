@@ -11,6 +11,10 @@ module BuiltForZeroReport::WarehouseReports
     before_action :set_report
 
     def index
+      return unless params[:commit] == 'Submit Report'
+
+      BuiltForZeroReport.delay.submit_via_api!(@start_date, @end_date, user: current_user)
+      flash[:notice] = 'Report queued, please check the BFZ website to confirm delivery.'
     end
 
     def details
@@ -25,8 +29,6 @@ module BuiltForZeroReport::WarehouseReports
         :returned_from_housing,
         :returned_from_inactivity
         @section.data.public_send(report_params[:key])
-      when :chronic_veterans # chronic veterans are the special case that has no separate section
-        @section.chronic_veterans.actively_homeless
       end
     end
 
@@ -34,7 +36,7 @@ module BuiltForZeroReport::WarehouseReports
       @start_date = report_params[:start_date]&.to_date || Date.current.prev_month.beginning_of_month
       @end_date = report_params[:end_date]&.to_date || Date.current.prev_month.end_of_month
       @section_key = report_params[:section]
-      @section = sections[@section_key]&.new(@start_date, @end_date)
+      @section = sections[@section_key]&.new(@start_date, @end_date, user: current_user)
     end
 
     def report_params
@@ -50,13 +52,7 @@ module BuiltForZeroReport::WarehouseReports
     helper_method :report_params
 
     def sections
-      {
-        'adults' => ::BuiltForZeroReport::Adults,
-        'chronic' => ::BuiltForZeroReport::Chronic,
-        'families' => ::BuiltForZeroReport::Families,
-        'veterans' => ::BuiltForZeroReport::Veterans,
-        'youth' => ::BuiltForZeroReport::Youth,
-      }.freeze
+      BuiltForZeroReport.section_classes
     end
   end
 end

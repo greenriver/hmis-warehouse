@@ -9,7 +9,10 @@
   %table.table.table-striped
     %thead
       %tr
-        %th Sub-Population
+        %th
+          Sub-Population
+          - if @result.hoh_only?
+            (For Heads of Household Only)
         %th= comparison_year
         %th= report_year
     %tbody

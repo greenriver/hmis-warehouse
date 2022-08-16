@@ -44,9 +44,9 @@
         .text-capitalize=indicator.primary_unit
   .col-6.ce-performance
     .c-chart--vertical-bar{ class: chart_class_name, data: { chart: @result.data_for_chart(@report, @comparison).to_json }}
-= render 'sub_population_table'
 = render 'vispdat_breakdown_table'
 = render 'event_breakdown_table'
+= render 'sub_population_table'
 
 = content_for :page_js do
   :javascript

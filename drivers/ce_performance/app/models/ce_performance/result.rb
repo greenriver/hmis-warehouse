@@ -50,9 +50,14 @@ module CePerformance
       true
     end
 
-    def clients_for(report:, period:, sub_population: nil, vispdat_range: nil, event_type: nil)
+    def hoh_only?
+      unit == 'households'
+    end
+
+    def clients_for(report:, period:, sub_population: nil, vispdat_range: nil, vispdat_type: nil, event_type: nil)
       return self.class.client_scope(report, period).send(sub_population).preload(:source_client) if sub_population.present?
       return self.class.client_scope(report, period).where(vispdat_range: vispdat_range).preload(:source_client) if vispdat_range.present?
+      return self.class.client_scope(report, period).where(vispdat_type: vispdat_type).preload(:source_client) if vispdat_type.present?
       return self.class.client_scope(report, period).preload(:source_client).with_event_type(event_type) if event_type.present?
 
       self.class.client_scope(report, period).preload(:source_client)
@@ -74,8 +79,8 @@ module CePerformance
       end
     end
 
-    def data_for_vispdats(report)
-      @data_for_vispdats ||= {}.tap do |data|
+    def data_for_vispdat_ranges(report)
+      @data_for_vispdat_ranges ||= {}.tap do |data|
         report.vispdat_ranges.each do |range|
           [
             :reporting,
@@ -84,6 +89,21 @@ module CePerformance
             count_scope = self.class.client_scope(report, period).where(vispdat_range: range)
             data[period] ||= {}
             data[period][range] = count_scope.count
+          end
+        end
+      end
+    end
+
+    def data_for_vispdat_types(report)
+      @data_for_vispdat_types ||= {}.tap do |data|
+        report.vispdat_types.each do |type|
+          [
+            :reporting,
+            :comparison,
+          ].each do |period|
+            count_scope = self.class.client_scope(report, period).where(vispdat_type: type)
+            data[period] ||= {}
+            data[period][type] = count_scope.count
           end
         end
       end
