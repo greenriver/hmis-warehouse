@@ -64,16 +64,23 @@ module CePerformance
       200
     end
 
-    def max_for_gauge(_comparison)
-      [gauge_width, goal, value].max
+    private def gauge_max
+      100
+    end
+
+    private def gauge_ratio
+      (gauge_width / 120.to_f) # to allow roughly 120 to show on the gauge
     end
 
     def gauge_value(comparison)
-      (value * max_for_gauge(comparison) / 100).round
+      v = goal_progress(comparison)
+      return 0 unless v.present?
+
+      (v.clamp(0, 120) * gauge_ratio).round
     end
 
-    def gauge_target(comparison)
-      (goal * max_for_gauge(comparison) / 100).round
+    def gauge_target
+      goal * gauge_ratio
     end
 
     def goal_direction

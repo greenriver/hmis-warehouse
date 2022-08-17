@@ -31,10 +31,9 @@
                       = result.goal_direction
                       = result.goal&.round
                       = result.goal_unit
-                    = debug [[:gauge_value, result.gauge_value(comparison)], [:gauge_target, result.gauge_target(comparison)], [:max_for_gauge, result.max_for_gauge(comparison)], [goal: result.goal]]
                     .performance-measurement--target-guage{ style: "width: #{result.gauge_width}px;" }
                       .performance-measurement--target-guage-foreground{ style: "width: #{result.gauge_value(comparison)}px;", class: status }
-                      .performance-measurement--target-guage-target{ style: "margin-left: #{result.gauge_target(comparison)}px;" }
+                      .performance-measurement--target-guage-target{ style: "margin-left: #{result.gauge_target}px;" }
                     .muted.text-sm
                       = result.goal_progress(comparison)
                   .col-md-3.d-flex

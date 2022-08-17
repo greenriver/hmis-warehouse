@@ -28,18 +28,6 @@ module CePerformance
       change_over_year(comparison).to_i
     end
 
-    def max_for_gauge(comparison)
-      [gauge_width, goal, change_over_year(comparison).to_i].max
-    end
-
-    def gauge_value(comparison)
-      (change_over_year(comparison).to_i * max_for_gauge(comparison) / 100).round
-    end
-
-    def gauge_target(comparison)
-      (goal * max_for_gauge(comparison) / 100).round
-    end
-
     def self.goal_column
       :time_to_referral
     end
