@@ -187,6 +187,6 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   end
 
   def self.veteran_status_enum_map
-    Hmis::FieldMap.no_yes
+    Hmis::FieldMap.no_yes_reasons
   end
 end

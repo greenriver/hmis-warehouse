@@ -365,7 +365,7 @@ module HUD
       8 => 'Client doesn\'t know',
       9 => 'Client refused',
       99 => 'Data not collected',
-    }
+    }.freeze
   end
 
   def veteran_status(*args)

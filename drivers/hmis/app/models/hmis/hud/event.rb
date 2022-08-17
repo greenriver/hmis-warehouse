@@ -38,4 +38,12 @@ class Hmis::Hud::Event < Hmis::Hud::Base
       include_base_null: false,
     )
   end
+
+  def self.prob_sol_div_rr_result_enum_map
+    Hmis::FieldMap.yes_no_missing
+  end
+
+  def self.referral_case_manage_after_enum_map
+    Hmis::FieldMap.yes_no_missing
+  end
 end
