@@ -7,7 +7,7 @@
 module Types
   class BaseEnum < GraphQL::Schema::Enum
     def self.to_enum_key(value)
-      value.to_s.underscore.upcase
+      value.to_s.underscore.upcase.gsub(/\s+/, '_')
     end
   end
 end
