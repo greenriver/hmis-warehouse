@@ -24,6 +24,18 @@ module CePerformance
         where.not(days_between_referral_and_housing: nil)
     end
 
+    def goal_progress(comparison)
+      change_over_year(comparison).to_i
+    end
+
+    def max_for_gauge(comparison)
+      [gauge_width, goal, change_over_year(comparison).to_i].max
+    end
+
+    def gauge_value(comparison)
+      (change_over_year(comparison).to_i * max_for_gauge(comparison) / 100).round
+    end
+
     def self.goal_column
       :time_to_housing
     end

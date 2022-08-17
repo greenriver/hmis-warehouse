@@ -56,20 +56,24 @@ module CePerformance
       unit
     end
 
+    def goal_progress(_comparison)
+      value&.round
+    end
+
     def gauge_width
       200
     end
 
-    private def max_for_gauge
+    def max_for_gauge(_comparison)
       [gauge_width, goal, value].max
     end
 
-    def gauge_value
-      (value / max_for_gauge * gauge_width).round
+    def gauge_value(comparison)
+      (value * max_for_gauge(comparison) / 100).round
     end
 
-    def gauge_target
-      (goal / max_for_gauge * gauge_width).round
+    def gauge_target(comparison)
+      (goal * max_for_gauge(comparison) / 100).round
     end
 
     def goal_direction
