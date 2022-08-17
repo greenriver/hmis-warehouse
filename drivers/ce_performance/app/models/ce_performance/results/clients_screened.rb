@@ -15,6 +15,7 @@ module CePerformance
         report_id: report.id,
         period: period,
         value: percent_of(numerator, denominator),
+        goal: report.goal_for(goal_column),
       )
     end
 
@@ -24,13 +25,12 @@ module CePerformance
         where.not(prevention_tool_score: nil)
     end
 
-    # TODO: move to goal configuration
-    def self.goal
-      100
+    def self.goal_column
+      :screening
     end
 
     def passed?(_comparison)
-      value.present? && value >= self.class.goal
+      value.present? && value >= goal
     end
 
     def max_100?
@@ -49,7 +49,7 @@ module CePerformance
       _('Clients Screened for Prevention')
     end
 
-    def self.description
+    def description
       "The CoC will screen **#{goal}%** of eligible persons for prevention."
     end
 
@@ -57,7 +57,7 @@ module CePerformance
       'Percentage of the Heads of Household who were screened for prevention.'
     end
 
-    def category
+    def self.category
       'Participation'
     end
 

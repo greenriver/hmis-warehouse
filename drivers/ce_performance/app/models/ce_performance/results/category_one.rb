@@ -26,11 +26,6 @@ module CePerformance
       report.clients.served_in_period(period).literally_homeless
     end
 
-    # TODO: move to goal configuration
-    def self.goal
-      nil
-    end
-
     def self.ce_apr_question
       'Question 5'
     end
@@ -39,16 +34,12 @@ module CePerformance
       _('Number of Clients Who Were Literally Homeless')
     end
 
-    def self.description
+    def description
       'Count of clients enrolled in CE who entered from a literally homeless situation within the reporting range, or had a literally homeless Current Living Situation collected during the report range.'
     end
 
     def self.calculation
       'Count of clients enrolled in CE who entered with a prior living situation of literally homeless, or who\'s length of time was under the threshold and were previously on the street or in shelter, or who had a literally homeless Current Living Situation collected during the report range.'
-    end
-
-    def display_goal?
-      false
     end
 
     def nested_results

@@ -19,11 +19,6 @@ module CePerformance
       report.clients.served_in_period(period).where.not(assessment_score: nil).where(vispdat_type: 'Single')
     end
 
-    # TODO: move to goal configuration
-    def self.goal
-      nil
-    end
-
     def self.ce_apr_question
       'Question 5'
     end
@@ -32,20 +27,16 @@ module CePerformance
       _('Average Single VI-SPDAT Score')
     end
 
-    def category
+    def self.category
       'Activity'
     end
 
-    def self.description
+    def description
       'Average Single VI-SPDAT score for clients enrolled during the report period.'
     end
 
     def self.calculation
       'The average of the most recent Single VI-SPDAT scores collected before the end of the report period for clients enrolled during the reporting period.'
-    end
-
-    def display_goal?
-      false
     end
 
     def display_vispdat_breakdown?

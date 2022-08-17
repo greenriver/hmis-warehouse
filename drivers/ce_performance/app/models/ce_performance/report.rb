@@ -432,6 +432,15 @@ module CePerformance
       end
     end
 
+    def goal_for(goal_column)
+      goal = if filter.coc_codes.size == 1
+        CePerformance::Goal.for_coc(filter.coc_codes.first)
+      else
+        CePerformance::Goal.for_coc('default')
+      end
+      goal[goal_column]
+    end
+
     private def answer_clients(report, table, cell)
       preloads = if RailsDrivers.loaded.include?(:supplemental_enrollment_data)
         {
@@ -532,6 +541,27 @@ module CePerformance
         comparison_filter = reporting_filter.to_comparison
         periods[:reporting] = reporting_filter
         periods[:comparison] = comparison_filter
+      end
+    end
+
+    def goal_configurations
+      @goal_configurations ||= {}.tap do |gc|
+        result_types.each do |result_class|
+          next unless result_class.display_goal?
+          next unless result_class.display_result?
+
+          category = result_class.category
+          column = result_class.goal_column
+          title = result_class.title
+          calculation = result_class.calculation
+          gc[category] ||= {}
+          gc[category][title] ||= {}
+          gc[category][title][column] ||= []
+          gc[category][title][column] << [
+            title,
+            calculation,
+          ]
+        end
       end
     end
   end

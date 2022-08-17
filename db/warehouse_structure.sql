@@ -3985,6 +3985,44 @@ ALTER SEQUENCE public.ce_performance_clients_id_seq OWNED BY public.ce_performan
 
 
 --
+-- Name: ce_performance_goals; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.ce_performance_goals (
+    id bigint NOT NULL,
+    coc_code character varying NOT NULL,
+    screening integer DEFAULT 100 NOT NULL,
+    diversion integer DEFAULT 5 NOT NULL,
+    time_in_ce integer DEFAULT 30 NOT NULL,
+    time_to_referral integer DEFAULT 5 NOT NULL,
+    time_to_housing integer DEFAULT 5 NOT NULL,
+    time_on_list integer DEFAULT 30 NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: ce_performance_goals_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.ce_performance_goals_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: ce_performance_goals_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.ce_performance_goals_id_seq OWNED BY public.ce_performance_goals.id;
+
+
+--
 -- Name: ce_performance_results; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -3999,7 +4037,8 @@ CREATE TABLE public.ce_performance_results (
     numerator integer,
     denominator integer,
     deleted_at timestamp without time zone,
-    event_type integer
+    event_type integer,
+    goal integer
 );
 
 
@@ -5922,7 +5961,7 @@ ALTER SEQUENCE public.enrollment_change_histories_id_seq OWNED BY public.enrollm
 
 CREATE TABLE public.enrollment_extras (
     id integer NOT NULL,
-    enrollment_id integer NOT NULL,
+    enrollment_id integer,
     vispdat_grand_total integer,
     vispdat_added_at date,
     vispdat_started_at date,
@@ -23829,6 +23868,13 @@ ALTER TABLE ONLY public.ce_performance_clients ALTER COLUMN id SET DEFAULT nextv
 
 
 --
+-- Name: ce_performance_goals id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ce_performance_goals ALTER COLUMN id SET DEFAULT nextval('public.ce_performance_goals_id_seq'::regclass);
+
+
+--
 -- Name: ce_performance_results id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -26568,6 +26614,14 @@ ALTER TABLE ONLY public.ce_performance_ce_aprs
 
 ALTER TABLE ONLY public.ce_performance_clients
     ADD CONSTRAINT ce_performance_clients_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: ce_performance_goals ce_performance_goals_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ce_performance_goals
+    ADD CONSTRAINT ce_performance_goals_pkey PRIMARY KEY (id);
 
 
 --
@@ -52655,6 +52709,9 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220804160252'),
 ('20220811205630'),
 ('20220815134022'),
-('20220815140216');
+('20220815140216'),
+('20220816194756'),
+('20220816204223'),
+('20220816205217');
 
 

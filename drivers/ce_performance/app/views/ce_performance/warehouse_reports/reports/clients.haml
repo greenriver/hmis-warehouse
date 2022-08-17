@@ -35,7 +35,7 @@
                 - value = @report.client_value(client, k)
                 %td
                   - if k.to_s == 'client_id'
-                    = link_to appropriate_client_path(client[k]) do
+                    = link_to from_source_client_path(client[k]) do
                       = value
                     %a{href: '#', class: ['btn', 'btn-sm'], data: { toggle: :popover, title: 'Client Information', url: api_client_path(client.client_id), html: 'true' }}
                       %i.icon-info

@@ -16,7 +16,7 @@
     - if @result.display_goal?
       .goal.col-4
         %h3 Goal
-        %p= raw markdown.render(@result.class.description)
+        %p= raw markdown.render(@result.description)
     .calculation.ml-6.mr-6
       %h3 Calculation
       %p= raw markdown.render(@result.class.calculation)

@@ -15,6 +15,7 @@ module CePerformance
         report_id: report.id,
         period: period,
         value: average(values),
+        goal: report.goal_for(goal_column),
       )
     end
 
@@ -23,9 +24,12 @@ module CePerformance
         where.not(days_between_entry_and_initial_referral: nil)
     end
 
-    # TODO: move to goal configuration
-    def self.goal
-      5
+    def goal_progress(comparison)
+      change_over_year(comparison).to_i
+    end
+
+    def self.goal_column
+      :time_to_referral
     end
 
     def goal_line
@@ -37,21 +41,21 @@ module CePerformance
       # we can't get any shorter
       return true if value.zero?
       # we were under the threshold last year, and we're lower now
-      return true if comparison.value.present? && comparison.value <= self.class.goal && value <= comparison.value
+      return true if comparison.value.present? && comparison.value <= goal && value <= comparison.value
 
       # change over year is better than goal
-      change_over_year(comparison) <= -self.class.goal
+      change_over_year(comparison) <= -goal
     end
 
     def self.title
       _('Average Length of Time from CE Project Entry to Housing Referral')
     end
 
-    def category
+    def self.category
       'Time'
     end
 
-    def self.description
+    def description
       "The CoC will decrease the average combined length of time from CE Project Entry to Housing Referral by **#{goal} days** annually."
     end
 

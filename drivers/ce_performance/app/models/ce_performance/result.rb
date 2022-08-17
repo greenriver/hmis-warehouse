@@ -22,12 +22,24 @@ module CePerformance
       []
     end
 
-    def category
+    def self.category
       'Participation'
     end
 
+    def category
+      self.class.category
+    end
+
     def display_goal?
-      true
+      self.class.display_goal?
+    end
+
+    def self.display_goal?
+      goal_column.present?
+    end
+
+    def self.goal_column
+      nil
     end
 
     def display_vispdat_breakdown?
@@ -36,6 +48,39 @@ module CePerformance
 
     def display_event_breakdown?
       false
+    end
+
+    def goal_unit
+      return '%' if unit == 'percent'
+
+      unit
+    end
+
+    def goal_progress(_comparison)
+      value&.round
+    end
+
+    def gauge_width
+      200
+    end
+
+    private def gauge_max
+      100
+    end
+
+    private def gauge_ratio
+      (gauge_width / 120.to_f) # to allow roughly 120 to show on the gauge
+    end
+
+    def gauge_value(comparison)
+      v = goal_progress(comparison)
+      return 0 unless v.present?
+
+      (v.clamp(0, 120) * gauge_ratio).round
+    end
+
+    def gauge_target
+      goal * gauge_ratio
     end
 
     def goal_direction
