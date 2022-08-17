@@ -19,7 +19,7 @@
                 .col-md-6
                   %h4= result_class.title
                   - if result_class.ce_apr_question.present?
-                    .font-weight-bold= result_class.ce_apr_question
+                    .font-weight-bold CE APR #{result_class.ce_apr_question}
                 - if result.display_goal?
                   .col-md-3
                     - passed = result.passed?(comparison)
