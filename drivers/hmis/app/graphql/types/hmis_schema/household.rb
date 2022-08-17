@@ -10,5 +10,19 @@ module Types
   class HmisSchema::Household < Types::BaseObject
     description 'HUD Household'
     field :id, ID, null: false
+    field :household_clients, [HmisSchema::HouseholdClient], null: false
+
+    def id
+      object.first.household_id
+    end
+
+    def household_clients
+      object.map do |enrollment|
+        {
+          relationship_to_ho_h: enrollment.relationship_to_ho_h,
+          client: enrollment.client,
+        }
+      end
+    end
   end
 end

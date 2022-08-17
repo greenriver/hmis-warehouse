@@ -1676,13 +1676,17 @@ module HUD
     }.freeze
   end
 
-  # 4.20.D
-  def referral_result(id, reverse = false)
-    map = {
+  def referral_results
+    {
       1 => 'Successful referral: client accepted',
       2 => 'Unsuccessful referral: client rejected',
       3 => 'Unsuccessful referral: provider rejected',
-    }
+    }.freeze
+  end
+
+  # 4.20.D
+  def referral_result(id, reverse = false)
+    map = referral_results
 
     _translate map, id, reverse
   end

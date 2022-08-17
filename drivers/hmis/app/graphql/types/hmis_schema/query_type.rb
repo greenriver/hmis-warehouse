@@ -50,7 +50,7 @@ module Types
     end
 
     def enrollment(id:)
-      Hmis::Hud::Enrollment.visible_to(current_user).find_by(id: id)
+      Hmis::Hud::Enrollment.viewable_by(current_user).find_by(id: id)
     end
   end
 end

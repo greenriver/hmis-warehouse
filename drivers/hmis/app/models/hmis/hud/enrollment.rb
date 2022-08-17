@@ -23,6 +23,10 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     joins(:project).merge(Hmis::Hud::Project.viewable_by(user))
   end
 
+  scope :heads_of_households, -> do
+    where(RelationshipToHoH: 1)
+  end
+
   def self.sort_by_option(option)
     raise NotImplementedError unless SORT_OPTIONS.include?(option)
 
