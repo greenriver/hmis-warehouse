@@ -6,7 +6,7 @@
 
 module HmisCsvImporter::Aggregated
   class Exit < GrdaWarehouse::Hud::Base
-    include ::HMIS::Structure::Exit
+    include ::HmisStructure::Exit
     include HmisCsvImporter::Importer::ImportConcern
     include AggregatedImportConcern
     include ArelHelper

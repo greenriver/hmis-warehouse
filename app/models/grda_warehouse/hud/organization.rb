@@ -9,7 +9,7 @@ module GrdaWarehouse::Hud
   class Organization < Base
     include ArelHelper
     include HudSharedScopes
-    include ::HMIS::Structure::Organization
+    include ::HmisStructure::Organization
     include RailsDrivers::Extensions
 
     attr_accessor :source_id

@@ -11,7 +11,7 @@ gem 'rubyzip',  '>= 1.2.1' # >= 1.2.1 due to CVE-2017-5946
 gem 'rails-html-sanitizer', '>= 1.4.3' # >= 1.4.3 due to CVE-2022-32209
 gem 'sshkit'
 gem 'paranoia', '~> 2.0'
-gem 'composite_primary_keys', '=13.0.0'
+gem 'composite_primary_keys', '=13.0.3'
 gem 'pg'
 gem 'activerecord-sqlserver-adapter'
 gem 'activerecord-import'
@@ -66,9 +66,7 @@ gem 'mimemagic'
 # since there are no tests for this
 # it should be tested manually
 gem 'acts-as-taggable-on', '~> 7.0'
-# this doesn't install cleanly on a Mac
-# We aren't currently using this anyway
-gem 'seven_zip_ruby'
+gem 'seven_zip_ruby' unless ENV['NO_7ZIP'] == '1'
 gem 'hellosign-ruby-sdk'
 
 gem 'devise', '~> 4'
@@ -256,6 +254,8 @@ group :development do
   # boot time/memory profiling
   gem 'derailed_benchmarks', require: false
   gem 'bumbler', require: false
+
+  gem 'graphiql-rails'
 end
 
 group :test do

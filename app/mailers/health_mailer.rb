@@ -7,7 +7,7 @@
 class HealthMailer < DatabaseMailer
   def shared_health_mailer_options
     {
-      from: ENV.fetch('HEALTH_FROM'),
+      from: health_from,
       delivery_method_options: {
         address: health_smtp_server,
         user_name: health_smtp_username,
@@ -30,5 +30,9 @@ class HealthMailer < DatabaseMailer
 
   private def health_smtp_password
     health_smtp_configuration&.password || ENV['SMTP_PASSWORD']
+  end
+
+  private def health_from
+    health_smtp_configuration&.from || ENV['HEALTH_FROM']
   end
 end

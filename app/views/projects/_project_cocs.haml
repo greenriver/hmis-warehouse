@@ -21,7 +21,7 @@
           %tr
             %td
               - if can_see_raw_hmis_data? && !p_coc.manual_entry?
-                = link_to 'HMIS', hmi_path(p_coc.id, type: 'ProjectCoC'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis'
+                = link_to 'HMIS', source_datum_path(p_coc.id, type: 'ProjectCoC'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis'
             %td= p_coc.ProjectCoCID
             %td
               = p_coc.CoCCode
