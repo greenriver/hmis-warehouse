@@ -44,6 +44,7 @@ def compare_results(goal: nil, file_path:, question:, skip: [])
 
   aggregate_failures 'comparing cells' do
     results_metadata = report_result.answer(question: question).metadata
+    # FIXME: APR is thinking there are 3 projects when there should only be 1
     (results_metadata['first_row'] .. results_metadata['last_row']).each do |row_number|
       (results_metadata['first_column'] .. results_metadata['last_column']).each do |column_name|
         cell_name = column_name + row_number.to_s

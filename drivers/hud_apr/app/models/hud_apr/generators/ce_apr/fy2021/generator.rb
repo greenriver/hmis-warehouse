@@ -125,7 +125,7 @@ module HudApr::Generators::CeApr::Fy2021
         merge(GrdaWarehouse::Hud::Event.within_range(start_date..event_end_date)).
         pluck(p_t[:id])
 
-      project_ids
+      project_ids & @report.project_ids
     end
   end
 end
