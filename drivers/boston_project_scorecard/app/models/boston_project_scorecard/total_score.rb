@@ -9,12 +9,22 @@ module BostonProjectScorecard
     extend ActiveSupport::Concern
     included do
       def project_performance_score
-        [].compact.sum
-        12
+        [
+          rrh_exits_to_ph_score,
+          psh_stayers_or_to_ph_score,
+          increased_stayer_employment_income_score,
+          increased_stayer_other_income_score,
+          increased_leaver_employment_income_score,
+          increased_leaver_other_income_score,
+          days_to_lease_up_score,
+        ].compact.sum
       end
 
       def project_performance_available
-        48
+        max = 48
+        max -= 24 unless rrh? || psh?
+
+        max
       end
 
       def project_performance_weight

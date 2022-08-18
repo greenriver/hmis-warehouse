@@ -14,6 +14,7 @@ module BostonProjectScorecard
     # TODO: includes
     include Header
     include TotalScore
+    include ProjectPerformance
 
     belongs_to :project, class_name: 'GrdaWarehouse::Hud::Project', optional: true
     belongs_to :project_group, class_name: 'GrdaWarehouse::ProjectGroup', optional: true
@@ -93,10 +94,11 @@ module BostonProjectScorecard
     end
 
     private def percentage(value)
-      return 0 if value.nan?
-      return 0 if value.infinite?
+      v = value
+      v = 0 if value.nan?
+      v = 0 if value.infinite?
 
-      (value * 100).to_i
+      "#{v}%"
     end
 
     def controlled_parameters
@@ -152,12 +154,32 @@ module BostonProjectScorecard
       else
         project_group.projects.first.computed_project_type
       end
+      update(project_type: project_type)
+
       assessment_answers = {}
+
+      if apr.present?
+        assessment_answers.merge!(
+          {
+            apr_id: apr.id,
+            increased_stayer_employment_income: answer(apr, 'Q19a1', 'J2') * 100,
+            increased_stayer_other_income: answer(apr, 'Q19a1', 'J4') * 100,
+            increased_leaver_employment_income: answer(apr, 'Q19a2', 'J2') * 100,
+            increased_leaver_other_income: answer(apr, 'Q19a2', 'J4') * 100,
+            days_to_lease_up: answer(apr, 'Q22c', 'B11').round,
+          },
+        )
+        # Project Performance 1:
+        assessment_answers.merge!(rrh_exits_to_ph: answer(apr, 'Q23c', 'B46') * 100) if rrh?
+        if psh?
+          value = ((answer(apr, 'Q5a', 'B1') - answer(apr, 'Q23c', 'B43') + answer(apr, 'Q23c', 'B43')) /
+            (answer(apr, 'Q5a', 'B1') - answer(apr, 'Q23c', 'B45')).to_f) * 100
+          assessment_answers.merge!(psh_stayers_or_to_ph: value)
+        end
+      end
 
       assessment_answers.merge!(
         {
-          apr_id: apr&.id,
-          project_type: project_type,
           status: 'pre-filled',
         },
       )

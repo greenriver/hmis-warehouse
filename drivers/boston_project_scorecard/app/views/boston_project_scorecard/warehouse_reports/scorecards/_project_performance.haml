@@ -29,8 +29,8 @@
         %br
         0 pts: 24% - 0%
       %th{rowspan: 8} #{@report.project_performance_weight}%
-      %td
-      %td
+      %td= @report.rrh_exits_to_ph_value
+      %td= @report.rrh_exits_to_ph_score
     %tr
       %td 1.b. PSH: % of clients who remained in PSH or exited to PH (benchmark 80%) (stayers & leavers)
       %td
@@ -47,8 +47,8 @@
         4 pts: 54-25%
         %br
         0 pts: 24% - 0%
-      %td
-      %td
+      %td= @report.psh_stayers_or_to_ph_value
+      %td= @report.psh_stayers_or_to_ph_score
     %tr
       %td 2. % of clients who increased income through employment(Stayers- measured from start and annual assessment)
       %td APR Table Q19a1, Cell J2
@@ -60,8 +60,8 @@
         2 pts: 54-25%
         %br
         0 pts: 24% - 0%
-      %td
-      %td
+      %td= @report.increased_stayer_employment_income_value
+      %td= @report.increased_stayer_employment_income_score
     %tr
       %td 3. % of clients who increased non-earned income (ex. social benefits) (Stayers- measured from start and annual assessment)
       %td APR Table Q19a1, Cell J4
@@ -73,8 +73,8 @@
         2 pts: 54-25%
         %br
         0 pts: 24% - 0%
-      %td
-      %td
+      %td= @report.increased_stayer_other_income_value
+      %td= @report.increased_stayer_other_income_score
     %tr
       %td 4. % of Clients who increased income growth through employment (Leavers – measured from start and exit)
       %td APR Table Q19a2, Cell J2
@@ -86,8 +86,8 @@
         2 pts: 54-25%
         %br
         0 pts: 24% - 0%
-      %td
-      %td
+      %td= @report.increased_leaver_employment_income_value
+      %td= @report.increased_leaver_employment_income_score
     %tr
       %td 5. % of clients who increased non-earned income (ex. social benefits) (Leavers – measured from start and exit)
       %td APR Table Q19a2, Cell J4
@@ -99,8 +99,8 @@
         2 pts: 54-25%
         %br
         0 pts: 24% - 0%
-      %td
-      %td
+      %td= @report.increased_leaver_other_income_value
+      %td= @report.increased_leaver_other_income_score
     %tr
       %td 6. Time to Lease Up; avg days from project admit date to date housed- project
       %td APR  Table 22c: Length of Time between Project Start Date and Housing Move-in Date, Row 11B: Average Length of time to Housing
@@ -112,5 +112,5 @@
         4 pts: 61-180 days
         %br
         0 pts: over 180 days
-      %td
-      %td
+      %td= @report.days_to_lease_up_value
+      %td= @report.days_to_lease_up_score

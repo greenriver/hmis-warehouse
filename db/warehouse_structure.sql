@@ -2228,7 +2228,14 @@ CREATE TABLE public.boston_project_scorecard_reports (
     management_oversight_pass boolean,
     management_oversight_notes character varying,
     prioritization_pass boolean,
-    prioritization_notes character varying
+    prioritization_notes character varying,
+    rrh_exits_to_ph double precision,
+    psh_stayers_or_to_ph double precision,
+    increased_stayer_employment_income double precision,
+    increased_stayer_other_income double precision,
+    increased_leaver_employment_income double precision,
+    increased_leaver_other_income double precision,
+    days_to_lease_up integer
 );
 
 
@@ -50044,6 +50051,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220801135734'),
 ('20220804160252'),
 ('20220812193159'),
-('20220817193604');
+('20220817193604'),
+('20220818155829');
 
 
