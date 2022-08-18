@@ -12,7 +12,6 @@ namespace :maintenance do
     end
 
     # catch first deployments, we'll build on subsequent calls
-    source = 'https://qa-hmis-warehouse.openpath.host/maintenance'
     uri = URI(source)
     res = Net::HTTP.get_response(uri)
     exit unless res.code.to_s == '200'
