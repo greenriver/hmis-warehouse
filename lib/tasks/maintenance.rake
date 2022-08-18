@@ -10,6 +10,13 @@ namespace :maintenance do
     else
       maintenance_index_url(host: ENV['FQDN'], protocol: 'https')
     end
+
+    # catch first deployments, we'll build on subsequent calls
+    source = 'https://qa-hmis-warehouse.openpath.host/maintenance'
+    uri = URI(source)
+    res = Net::HTTP.get_response(uri)
+    exit unless res.code.to_s == '200'
+
     premailer = Premailer.new(source)
 
     # File.open(destination, 'wb') do |file|
