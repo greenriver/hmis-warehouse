@@ -226,11 +226,12 @@ module Reports::Lsa::Fy2021
     private def invalid_funders(user)
       missing_data_rows(
         GrdaWarehouse::Hud::Project.viewable_by(user).coc_funded.joins(:organization).
+        references(:funders).
         includes(:funders).
         distinct.
         # merge(GrdaWarehouse::Hud::Project.viewable_by(user).coc_funded.hud_residential).
         where(ProjectID: GrdaWarehouse::Hud::Enrollment.open_during_range(@range).select(:ProjectID)).
-        where(f_t[:Funder].not_in(::HUD.funding_sources.keys)),
+        where(f_t[:Funder].not_in(::HUD.funding_sources.keys).or(f_t[:GrantID].eq(nil))),
       )
     end
 

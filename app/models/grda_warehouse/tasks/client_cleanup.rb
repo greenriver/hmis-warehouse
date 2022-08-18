@@ -41,6 +41,8 @@ module GrdaWarehouse::Tasks
           clean_warehouse_clients
           log 'Deleting hmis clients'
           clean_hmis_clients
+          log 'Fix missing created dates'
+          add_destination_created_dates
           log 'Soft-deleting destination clients'
           clean_destination_clients
         end
@@ -702,6 +704,19 @@ module GrdaWarehouse::Tasks
       return if @dry_run
 
       GrdaWarehouse::HmisClient.where(client_id: @clients).delete_all
+    end
+
+    private def add_destination_created_dates
+      GrdaWarehouse::Hud::Client.destination.where(DateCreated: nil).preload(:source_clients).find_each do |client|
+        date_created = client.source_clients.map(&:DateCreated).compact.min
+        date_updated = client.source_clients.map(&:DateUpdated).compact.max
+        next unless date_created.present?
+
+        client.update(
+          DateCreated: date_created,
+          DateUpdated: date_updated,
+        )
+      end
     end
 
     private def clean_destination_clients
