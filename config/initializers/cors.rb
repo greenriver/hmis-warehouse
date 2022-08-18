@@ -10,9 +10,8 @@ Rails.application.config.middleware.insert_before 0, Rack::Cors do
     origins hmis_hostname
 
     resource '/hmis/*',
-        headers: :any,
-        methods: [:get, :post, :delete, :put, :patch, :options, :head],
-        credentials: true,
-        debug: true
+      headers: :any,
+      methods: [:get, :post, :delete, :put, :patch, :options, :head],
+      credentials: true
   end
 end
