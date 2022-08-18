@@ -634,6 +634,8 @@ GEM
     rack (2.2.4)
     rack-attack (6.5.0)
       rack (>= 1.0, < 3)
+    rack-cors (1.1.1)
+      rack (>= 2.0.0)
     rack-mini-profiler (2.3.3)
       rack (>= 1.2.0)
     rack-test (2.0.2)
@@ -1040,6 +1042,7 @@ DEPENDENCIES
   pry-rails
   puma (~> 4.3.11)
   rack-attack
+  rack-cors
   rack-mini-profiler
   rails (~> 6.1)
   rails-controller-testing
