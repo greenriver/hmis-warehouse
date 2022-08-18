@@ -12,6 +12,8 @@ module BostonProjectScorecard
 
     # Calculations for report sections
     # TODO: includes
+    include Header
+    include TotalScore
 
     belongs_to :project, class_name: 'GrdaWarehouse::Hud::Project', optional: true
     belongs_to :project_group, class_name: 'GrdaWarehouse::ProjectGroup', optional: true
@@ -40,7 +42,7 @@ module BostonProjectScorecard
       case status
       when 'pending'
         case field
-        when :recipient, :subrecipient, :funding_year, :grant_term
+        when :period_start_date, :period_end_date, :project_type, :secondary_reviewer_id
           # Allow editing the header while being pre-filled
           false
         else
@@ -48,20 +50,16 @@ module BostonProjectScorecard
         end
 
       when 'pre-filled'
-        # Prevent editing the response during initial review
-        case field
-        when :improvement_plan, :financial_plan
-          true
-        else
-          false
-        end
+        # Entire form is editable after pre-filling
+        false
 
       when 'ready'
         case field
-        when :improvement_plan, :financial_plan
-          false
-        else
+        when :period_start_date, :period_end_date, :project_type, :secondary_reviewer_id
+          # Lock header when ready
           true
+        else
+          false
         end
 
       else
@@ -102,7 +100,22 @@ module BostonProjectScorecard
     end
 
     def controlled_parameters
-      @controlled_parameters ||= [].freeze
+      @controlled_parameters ||= [
+        :project_type,
+        :period_start_date,
+        :period_end_date,
+        :secondary_reviewer,
+        :initial_goals_pass,
+        :initial_goals_notes,
+        :timeliness_pass,
+        :timeliness_notes,
+        :independent_living_pass,
+        :independent_living_notes,
+        :management_oversight_pass,
+        :management_oversight_notes,
+        :prioritization_pass,
+        :prioritization_notes,
+      ].freeze
     end
 
     def project_name
@@ -111,19 +124,8 @@ module BostonProjectScorecard
       project_group.name
     end
 
-    def key_project
-      @key_project ||= begin
-        candidate = project if project.present?
-        candidate = project_group.projects.detect(&:rrh?) if candidate.blank?
-        candidate = project_group.projects.detect(&:psh?) if candidate.blank?
-        candidate = project_group.projects.detect(&:sh?) if candidate.blank?
-        candidate = project_group.projects.first if candidate.blank?
-        candidate
-      end
-    end
-
     def title
-      "#{project_name} Project Scorecard"
+      'MA-500 Boston Continuum of Care FY21 Renewal Project Scoring Tool'
     end
 
     def url
@@ -133,23 +135,29 @@ module BostonProjectScorecard
     def run_and_save!
       update(started_at: Time.current)
 
-      previous = if project_id.present?
-        self.class.where(project_id: project_id).
-          where.not(id: id).
-          order(id: :desc).
-          first
-      else
-        self.class.where(project_group_id: project_group_id).
-          where.not(id: id).
-          order(id: :desc).
-          first
-      end
+      # previous = if project_id.present?
+      #   self.class.where(project_id: project_id).
+      #     where.not(id: id).
+      #     order(id: :desc).
+      #     first
+      # else
+      #   self.class.where(project_group_id: project_group_id).
+      #     where.not(id: id).
+      #     order(id: :desc).
+      #     first
+      # end
       apr = apr_report if RailsDrivers.loaded.include?(:hud_apr)
+      project_type = if project_id.present?
+        project.computed_project_type
+      else
+        project_group.projects.first.computed_project_type
+      end
       assessment_answers = {}
 
       assessment_answers.merge!(
         {
           apr_id: apr&.id,
+          project_type: project_type,
           status: 'pre-filled',
         },
       )

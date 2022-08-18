@@ -1,6 +1,8 @@
 = render 'breadcrumbs'
 - if @report.pending?
-  %h1= @report.title
+  %h1
+    = render 'layouts/footer_seal'
+    = @report.title
   .alert.alert-info
     %p This report is being pre-populated with data, please check back later.
 - else

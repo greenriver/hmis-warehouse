@@ -1,0 +1,92 @@
+%table.table.table-bordered
+  %thead
+    %tr
+      %th{style: 'width:10%'} Criteria Topic
+      %th{style: 'width:15%'} Scored Criteria
+      %th{style: 'width:15%'} Criteria Source
+      %th{style: 'width:15%'} Point Scale
+      %th Weight
+      %th Source Value
+      %th Score
+  %tbody
+    %tr
+      %th{rowspan: 6}
+        Project financial performance based on CoC/DND monitoring and invoicing
+        %br
+        .text-danger
+          * These are done through the funding periods
+      %td 10. Type of housing project proposal; RRH, PSH, Joint TH-RRH
+      %td Project application
+      %td
+        6: PSH
+        %br
+        3: RRH/Joint TH-PH
+      %th{rowspan: 6} #{@report.financial_performance_weight}%
+      %td
+      %td
+    %tr
+      %td 11. Invoicing- submit invoices- on time, with all back up materials, and for eligible activities
+      %td CoC monitoring report/ Agency external audit
+      %td
+        6 pts: Iinvoices regularly submitted on time
+        %br
+        3 pts: Usually on time, complete with few errors
+        %br
+        1 pt: Submitted quarterly/not monthly
+      %td
+      %td
+    %tr
+      %td
+        12. Is project efficient with funds- do calculation of cost per person served in each project
+        (include HUD service funds and match total and compare standard practice: PH 1 FTE for 15-20 households,
+        families $4,000 per year, RRH 1 FTE to 20-30 clients per yr.
+      %td
+        APR Q8a Cell B2, Project Application Budget
+        %p
+        Most Recently Completed Grant Year Spend divided by Total Number of Households Served
+      %td
+        6 pts: if standard is met and funding is equal to or less than per person/family ratio
+        %br
+        0 pts: if not met and more funds per person/family
+      %td
+      %td
+    %tr
+      %td
+        13. Required match based on project budget
+        %p
+        Was the match reported at end of operating year greater than the minimum required?
+      %td
+        Project Application and spend
+        %p
+        Agency Spend Divided by Contract Budget value
+        %p
+        Diff w/ leasing program
+      %td
+        6 pts: > 25%
+        %br
+        0 pts: 0-25%
+      %td
+      %td
+    %tr
+      %td 14. Project returns unobligated funds in most recent grant application year
+      %td ASPEND / DND budget tracking
+      %td
+        6 pts: 0 - 10% return
+        %br
+        0 pts: 11 - 20%
+      %td
+      %td
+    %tr
+      %td 15. Project utilization rate from current project operating year
+      %td
+        APR (quarterly average for operating year)
+        %br
+        APR, Q8b Average of cells B2, B3, B4, B5 / Total Listed on Grant application
+      %td
+        6 pts: 85 -over 100%
+        %br
+        3 pt: 84 - 75%
+        %br
+        0 pts: under 74%
+      %td
+      %td

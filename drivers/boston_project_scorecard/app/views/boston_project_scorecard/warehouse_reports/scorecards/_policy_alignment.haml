@@ -1,0 +1,36 @@
+%table.table.table-bordered
+  %thead
+    %tr
+      %th{style: 'width:10%'} Criteria Topic
+      %th{style: 'width:15%'} Scored Criteria
+      %th{style: 'width:15%'} Criteria Source
+      %th{style: 'width:15%'} Point Scale
+      %th Weight
+      %th Source Value
+      %th Score
+  %tbody
+    %tr
+      %th{rowspan: 3} Alignment with HUD and  Boston CoC system-wide policy priorities
+      %td 16. Serving sub-populations in line with HUD and Boston CoC priorities
+      %td Project Application
+      %td Up to 6 pts: 1.2 pts for each sub-population served
+      %th{rowspan: 3} #{@report.policy_alignment_weight}%
+      %td
+      %td
+    %tr
+      %td 17. Project practices a Housing First model/low barrier program
+      %td Project Application and cross reference with desk review
+      %td
+        6 pts: yes
+        %br
+        0 pts: no
+      %td
+      %td
+    %tr
+      %td
+        18. Does project serve participants who have the following vulnerabilities and severity of needs that may
+        prevent them to enter housing due to the following barriers
+      %td Project Application
+      %td Up to 6 pts: 1 pts for each sub-population served
+      %td
+      %td

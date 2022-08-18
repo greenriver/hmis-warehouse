@@ -2209,12 +2209,26 @@ CREATE TABLE public.boston_project_scorecard_reports (
     start_date date NOT NULL,
     end_date date NOT NULL,
     apr_id bigint,
+    project_type integer,
+    period_start_date date,
+    period_end_date date,
+    secondary_reviewer_id bigint,
     started_at timestamp without time zone,
     completed_at timestamp without time zone,
     sent_at timestamp without time zone,
     deleted_at timestamp without time zone,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    initial_goals_pass boolean,
+    initial_goals_notes character varying,
+    timeliness_pass boolean,
+    timeliness_notes character varying,
+    independent_living_pass boolean,
+    independent_living_notes character varying,
+    management_oversight_pass boolean,
+    management_oversight_notes character varying,
+    prioritization_pass boolean,
+    prioritization_notes character varying
 );
 
 
@@ -40367,6 +40381,13 @@ CREATE INDEX index_boston_project_scorecard_reports_on_project_id ON public.bost
 
 
 --
+-- Name: index_boston_project_scorecard_reports_on_secondary_reviewer_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_boston_project_scorecard_reports_on_secondary_reviewer_id ON public.boston_project_scorecard_reports USING btree (secondary_reviewer_id);
+
+
+--
 -- Name: index_boston_project_scorecard_reports_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -50022,6 +50043,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220718185442'),
 ('20220801135734'),
 ('20220804160252'),
-('20220812193159');
+('20220812193159'),
+('20220817193604');
 
 

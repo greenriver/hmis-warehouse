@@ -4,7 +4,9 @@
 
   .row
     .col-sm-8
-      %h1= @report.title
+      %h1
+        = render 'layouts/footer_seal'
+        = @report.title
     .col-sm-4
       .text-right
         - if @report.status != 'pre-filled' && @report.admin?(current_user)
