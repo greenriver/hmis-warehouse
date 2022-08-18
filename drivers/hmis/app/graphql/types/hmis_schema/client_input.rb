@@ -8,6 +8,7 @@ module Types
     argument :middle_name, String, required: false
     argument :last_name, String, required: false
     argument :preferred_name, String, required: false
+    argument :name_suffix, String, required: false
     argument :name_quality, Types::HmisSchema::Enums::NameDataQuality, required: false
     # TODO: Needs more discussion
     # argument :pronouns, [String], required: false

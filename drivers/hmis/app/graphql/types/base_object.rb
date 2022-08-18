@@ -17,5 +17,9 @@ module Types
     def self.page_type
       @page_type ||= BasePaginated.create(self)
     end
+
+    def load_ar_association(object, association, scope: nil)
+      dataloader.with(Sources::ActiveRecordAssociation, association, scope).load(object)
+    end
   end
 end

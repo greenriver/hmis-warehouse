@@ -36,5 +36,13 @@ module Types
       search_scope = Hmis::Hud::Client.client_search(input: input.to_params, user: current_user)
       resolve_clients(search_scope, **args)
     end
+
+    field :client, Types::HmisSchema::Client, 'Client lookup', null: true do
+      argument :id, ID, required: true
+    end
+
+    def client(id:)
+      Hmis::Hud::Client.visible_to(current_user).find_by(id: id)
+    end
   end
 end

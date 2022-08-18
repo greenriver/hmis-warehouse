@@ -41,7 +41,7 @@ module CePerformance::Results::Calculations
     end
 
     def goal_line
-      self.class.goal
+      goal
     end
 
     def chart_slug
@@ -49,9 +49,9 @@ module CePerformance::Results::Calculations
     end
 
     def passed?(_comparison)
-      return true unless self.class.goal.present?
+      return true unless goal.present?
 
-      value.present? && value <= self.class.goal
+      value.present? && value <= goal
     end
 
     def titles_for_bar_tooltip(report)

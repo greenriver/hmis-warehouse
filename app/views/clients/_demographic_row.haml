@@ -18,7 +18,7 @@
     - if client.DOB.present?
       = "#{client.DOB} (#{client.age})"
   %td= client.gender
-  %td= client.race_fields.map{ |f| HUD::race f }.join ', '
+  %td= client.race_description(include_missing_reason: true)
   %td= HUD::ethnicity client.Ethnicity
   %td= HUD::no_yes_reasons_for_missing_data client.VeteranStatus
   %td

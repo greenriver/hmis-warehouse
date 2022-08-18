@@ -13,5 +13,17 @@ module Types
     field :project, Types::HmisSchema::Project, null: false
     field :entry_date, GraphQL::Types::ISO8601DateTime, null: true
     field :exit_date, GraphQL::Types::ISO8601DateTime, null: true
+
+    def project
+      load_ar_association(object, :project)
+    end
+
+    def exit_date
+      exit&.exit_date
+    end
+
+    def exit
+      load_ar_association(object, :exit)
+    end
   end
 end

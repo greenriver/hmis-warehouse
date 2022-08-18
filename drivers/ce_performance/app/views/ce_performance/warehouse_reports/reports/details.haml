@@ -16,7 +16,7 @@
     - if @result.display_goal?
       .goal.col-4
         %h3 Goal
-        %p= raw markdown.render(@result.class.description)
+        %p= raw markdown.render(@result.description)
     .calculation.ml-6.mr-6
       %h3 Calculation
       %p= raw markdown.render(@result.class.calculation)
@@ -44,9 +44,9 @@
         .text-capitalize=indicator.primary_unit
   .col-6.ce-performance
     .c-chart--vertical-bar{ class: chart_class_name, data: { chart: @result.data_for_chart(@report, @comparison).to_json }}
-= render 'sub_population_table'
 = render 'vispdat_breakdown_table'
 = render 'event_breakdown_table'
+= render 'sub_population_table'
 
 = content_for :page_js do
   :javascript

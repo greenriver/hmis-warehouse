@@ -18,6 +18,7 @@ module CePerformance
         value: percent_of(successfully_diverted, diverted),
         numerator: successfully_diverted,
         denominator: diverted,
+        goal: report.goal_for(goal_column),
       )
     end
 
@@ -33,16 +34,15 @@ module CePerformance
       report.clients.in_period(period).successfully_diverted
     end
 
-    # TODO: move to goal configuration
-    def self.goal
-      5
+    def self.goal_column
+      :diversion
     end
 
     def self.ce_apr_question
       'Question 9'
     end
 
-    def category
+    def self.category
       'Participation'
     end
 
@@ -55,7 +55,7 @@ module CePerformance
     end
 
     def passed?(comparison)
-      value.present? && percent_change_over_year(comparison) > self.class.goal
+      value.present? && percent_change_over_year(comparison) > goal
     end
 
     def percentage?
@@ -66,7 +66,7 @@ module CePerformance
       _('Number of persons successfully Diverted')
     end
 
-    def self.description
+    def description
       "The CoC will increase successful diversion by **#{goal}% annually**."
     end
 
