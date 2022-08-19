@@ -27,34 +27,34 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
       pluck(:id)
   end
 
-  def self.update_cached_counts(client_ids: [])
-    new.update_cached_counts(client_ids: client_ids)
-  end
-
-  private def advisory_lock_name
-    'warehouse_clients_processed_update_cached_counts'
+  def self.update_cached_counts(client_ids: [], ids_were_blank: false)
+    new.update_cached_counts(client_ids: client_ids, ids_were_blank: ids_were_blank)
   end
 
   # Only run if it's not already running or we have a specific set of client_ids
-  def update_cached_counts(client_ids: [])
-    if client_ids.blank?
-      # On larger installations, this can take 24+ hours sometimes.  Prevent if from getting out of hand
-      GrdaWarehouse::WarehouseClientsProcessed.with_advisory_lock(advisory_lock_name, timeout_seconds: 0) do
-        internal_update_cached_counts(client_ids: client_ids)
-      end
-    end
+  def update_cached_counts(client_ids: [], ids_were_blank: false)
+    return internal_update_cached_counts(client_ids: client_ids, ids_were_blank: ids_were_blank) if client_ids.present?
 
-    internal_update_cached_counts(client_ids: client_ids)
+    # if we asked to update everyone, re-ask but with batches of 5,000 clients since that's our batch size later anyway
+    default_client_ids.each_slice(5_000).with_index do |batch, i|
+      ids_were_blank = i.zero? # catch cohorts and CAS clients on first batch
+      self.class.delay(
+        queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running),
+        priority: 12,
+      ).update_cached_counts(
+        client_ids: batch,
+        ids_were_blank: ids_were_blank,
+      )
+    end
   end
 
-  private def internal_update_cached_counts(client_ids: [])
+  private def internal_update_cached_counts(client_ids: [], ids_were_blank: false)
     setup_notifier('WarehouseClientsProcessed')
     extra_data = []
     limited_data = []
     # If we passed any client_ids in, then use them, otherwise,
     # process anyone active in the past year, or who is on a cohort or active in CAS
-    if client_ids.blank?
-      client_ids = default_client_ids
+    if ids_were_blank
       cohort_client_ids = GrdaWarehouse::CohortClient.joins(:cohort, :client).
         merge(GrdaWarehouse::Cohort.active).distinct.pluck(:client_id)
       cas_active_client_ids = GrdaWarehouse::Hud::Client.cas_active.pluck(:id)
