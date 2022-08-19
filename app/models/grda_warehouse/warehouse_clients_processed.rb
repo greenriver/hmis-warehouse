@@ -27,13 +27,13 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
       pluck(:id)
   end
 
-  def self.update_cached_counts(client_ids: [], include_cas_and_cohorts: false)
-    new.update_cached_counts(client_ids: client_ids, include_cas_and_cohorts: include_cas_and_cohorts)
+  def self.update_cached_counts(client_ids: [], include_cas_and_cohorts: false, skip_expensive_calculations: false)
+    new.update_cached_counts(client_ids: client_ids, include_cas_and_cohorts: include_cas_and_cohorts, skip_expensive_calculations: skip_expensive_calculations)
   end
 
   # Only run if it's not already running or we have a specific set of client_ids
-  def update_cached_counts(client_ids: [], include_cas_and_cohorts: false)
-    return internal_update_cached_counts(client_ids: client_ids, include_cas_and_cohorts: include_cas_and_cohorts) if client_ids.present?
+  def update_cached_counts(client_ids: [], include_cas_and_cohorts: false, skip_expensive_calculations: false)
+    return internal_update_cached_counts(client_ids: client_ids, include_cas_and_cohorts: include_cas_and_cohorts, skip_expensive_calculations: skip_expensive_calculations) if client_ids.present?
 
     # if we asked to update everyone, re-ask but with batches of 5,000 clients since that's our batch size later anyway
     # but for subsequent batches, we want the shorter, faster processing
