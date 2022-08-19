@@ -1,0 +1,35 @@
+- content_for :title,  'Team Coordinators'
+%h1= content_for :title
+
+= render 'menus/health_admin_tabs'
+= render 'form'
+- unless @team_members.exists?
+  %p.no-data No team coordinators assigned
+- else
+  .well
+    %table.table.datatable
+      %thead
+        %tr
+          %th
+            Team
+          %th
+            Care Coordinator
+          %th
+      %tbody
+        - @team_members.find_each do |member|
+          %tr
+            %td
+              = member.coordination_team&.name
+            %td
+              = member.user&.name
+            %td
+              = link_to admin_health_team_member_path(member.id), class: 'btn btn-danger btn-icon-only btn-sm', method: :delete do
+                %i.icon-cross
+  = content_for :page_js do
+    :javascript
+      $('.datatable').DataTable({
+        searching: true,
+        ordering: true,
+        paging: false,
+        info: false
+      });
