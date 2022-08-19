@@ -1669,6 +1669,40 @@ ALTER SEQUENCE public.contacts_id_seq OWNED BY public.contacts.id;
 
 
 --
+-- Name: coordination_teams; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.coordination_teams (
+    id bigint NOT NULL,
+    name character varying,
+    color character varying,
+    team_coordinator_id bigint,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    team_nurse_care_manager_id bigint
+);
+
+
+--
+-- Name: coordination_teams_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.coordination_teams_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: coordination_teams_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.coordination_teams_id_seq OWNED BY public.coordination_teams.id;
+
+
+--
 -- Name: cp_member_files; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -4657,7 +4691,8 @@ CREATE TABLE public.user_care_coordinators (
     care_coordinator_id integer,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    coordination_team_id bigint
 );
 
 
@@ -5012,6 +5047,13 @@ ALTER TABLE ONLY public.comprehensive_health_assessments ALTER COLUMN id SET DEF
 --
 
 ALTER TABLE ONLY public.contacts ALTER COLUMN id SET DEFAULT nextval('public.contacts_id_seq'::regclass);
+
+
+--
+-- Name: coordination_teams id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.coordination_teams ALTER COLUMN id SET DEFAULT nextval('public.coordination_teams_id_seq'::regclass);
 
 
 --
@@ -5722,6 +5764,14 @@ ALTER TABLE ONLY public.comprehensive_health_assessments
 
 ALTER TABLE ONLY public.contacts
     ADD CONSTRAINT contacts_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: coordination_teams coordination_teams_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.coordination_teams
+    ADD CONSTRAINT coordination_teams_pkey PRIMARY KEY (id);
 
 
 --
@@ -6541,6 +6591,20 @@ CREATE INDEX index_contacts_on_source_type_and_source_id ON public.contacts USIN
 
 
 --
+-- Name: index_coordination_teams_on_team_coordinator_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_coordination_teams_on_team_coordinator_id ON public.coordination_teams USING btree (team_coordinator_id);
+
+
+--
+-- Name: index_coordination_teams_on_team_nurse_care_manager_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_coordination_teams_on_team_nurse_care_manager_id ON public.coordination_teams USING btree (team_nurse_care_manager_id);
+
+
+--
 -- Name: index_disenrollment_reasons_on_reason_code; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -7122,6 +7186,13 @@ CREATE INDEX index_transaction_acknowledgements_on_deleted_at ON public.transact
 
 
 --
+-- Name: index_user_care_coordinators_on_coordination_team_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_user_care_coordinators_on_coordination_team_id ON public.user_care_coordinators USING btree (coordination_team_id);
+
+
+--
 -- Name: index_vaccinations_on_created_at; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -7554,6 +7625,9 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220616173636'),
 ('20220616195501'),
 ('20220621181125'),
-('20220623172328');
+('20220623172328'),
+('20220721163813'),
+('20220721165009'),
+('20220812184231');
 
 
