@@ -33,7 +33,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
 
   # Only run if it's not already running or we have a specific set of client_ids
   def update_cached_counts(client_ids: [], ids_were_blank: false)
-    return internal_update_cached_counts(client_ids: client_ids) if client_ids.present?
+    return internal_update_cached_counts(client_ids: client_ids, ids_were_blank: ids_were_blank) if client_ids.present?
 
     # if we asked to update everyone, re-ask but with batches of 5,000 clients since that's our batch size later anyway
     default_client_ids.each_slice(5_000).with_index do |batch, i|
