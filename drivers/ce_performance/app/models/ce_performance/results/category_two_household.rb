@@ -26,11 +26,6 @@ module CePerformance
       report.clients.served_in_period(period).not_literally_homeless.hoh
     end
 
-    # TODO: move to goal configuration
-    def self.goal
-      nil
-    end
-
     def self.ce_apr_question
       'Question 5'
     end
@@ -39,7 +34,7 @@ module CePerformance
       _('Number of Households Who Were Not Literally Homeless')
     end
 
-    def self.description
+    def description
       'Count of heads of household enrolled in CE who did not enter from a literally homeless situation within the reporting range, and did not have a literally homeless Current Living Situation collected during the report range.'
     end
 
@@ -48,10 +43,6 @@ module CePerformance
     end
 
     def self.display_result?
-      false
-    end
-
-    def display_goal?
       false
     end
 
@@ -80,8 +71,8 @@ module CePerformance
       comparison_year = aprs.first.end_date.year
       report_year = aprs.last.end_date.year
       columns = [
-        ['x', report_year, comparison_year],
-        [unit, value, comparison.value],
+        ['x', comparison_year, report_year],
+        [unit, comparison.value, value],
       ]
       {
         x: 'x',

@@ -10,7 +10,7 @@
     = render 'row_contents', result: result, result_class: result_class, comparison: comparison, category_name: category_name
     .col-sm-2
       .text-uppercase Target
-      .performance-measurement__result-number.font-weight-bold #{result.goal_direction}#{result.class.goal} #{result.unit}
+      .performance-measurement__result-number.font-weight-bold #{result.goal_direction}#{result.goal} #{result.unit}
       .text-capitalize= result.brief_goal_description
     .col-sm-2.ml-auto
       .mb-4.d-flex.font-size-md

@@ -22,12 +22,24 @@ module CePerformance
       []
     end
 
-    def category
+    def self.category
       'Participation'
     end
 
+    def category
+      self.class.category
+    end
+
     def display_goal?
-      true
+      self.class.display_goal?
+    end
+
+    def self.display_goal?
+      goal_column.present?
+    end
+
+    def self.goal_column
+      nil
     end
 
     def display_vispdat_breakdown?
@@ -36,6 +48,39 @@ module CePerformance
 
     def display_event_breakdown?
       false
+    end
+
+    def goal_unit
+      return '%' if unit == 'percent'
+
+      unit
+    end
+
+    def goal_progress(_comparison)
+      value&.round
+    end
+
+    def gauge_width
+      200
+    end
+
+    private def gauge_max
+      100
+    end
+
+    private def gauge_ratio
+      (gauge_width / 120.to_f) # to allow roughly 120 to show on the gauge
+    end
+
+    def gauge_value(comparison)
+      v = goal_progress(comparison)
+      return 0 unless v.present?
+
+      (v.clamp(0, 120) * gauge_ratio).round
+    end
+
+    def gauge_target
+      goal * gauge_ratio
     end
 
     def goal_direction
@@ -50,9 +95,14 @@ module CePerformance
       true
     end
 
-    def clients_for(report:, period:, sub_population: nil, vispdat_range: nil, event_type: nil)
+    def hoh_only?
+      unit == 'households'
+    end
+
+    def clients_for(report:, period:, sub_population: nil, vispdat_range: nil, vispdat_type: nil, event_type: nil)
       return self.class.client_scope(report, period).send(sub_population).preload(:source_client) if sub_population.present?
       return self.class.client_scope(report, period).where(vispdat_range: vispdat_range).preload(:source_client) if vispdat_range.present?
+      return self.class.client_scope(report, period).where(vispdat_type: vispdat_type).preload(:source_client) if vispdat_type.present?
       return self.class.client_scope(report, period).preload(:source_client).with_event_type(event_type) if event_type.present?
 
       self.class.client_scope(report, period).preload(:source_client)
@@ -74,8 +124,8 @@ module CePerformance
       end
     end
 
-    def data_for_vispdats(report)
-      @data_for_vispdats ||= {}.tap do |data|
+    def data_for_vispdat_ranges(report)
+      @data_for_vispdat_ranges ||= {}.tap do |data|
         report.vispdat_ranges.each do |range|
           [
             :reporting,
@@ -84,6 +134,21 @@ module CePerformance
             count_scope = self.class.client_scope(report, period).where(vispdat_range: range)
             data[period] ||= {}
             data[period][range] = count_scope.count
+          end
+        end
+      end
+    end
+
+    def data_for_vispdat_types(report)
+      @data_for_vispdat_types ||= {}.tap do |data|
+        report.vispdat_types.each do |type|
+          [
+            :reporting,
+            :comparison,
+          ].each do |period|
+            count_scope = self.class.client_scope(report, period).where(vispdat_type: type)
+            data[period] ||= {}
+            data[period][type] = count_scope.count
           end
         end
       end

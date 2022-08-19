@@ -4,7 +4,7 @@
   %h2= result_class.title
   - if result_class.ce_apr_question.present?
     .spm-measure.font-weight-bold= "CE APR #{result_class.ce_apr_question}"
-  %p= raw markdown.render(result_class.description)
+  %p= raw markdown.render(result.description)
 .col-sm-2
   .text-uppercase This Year
   .performance-measurement__result-number.font-weight-bold= result.value.round

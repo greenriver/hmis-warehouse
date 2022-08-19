@@ -1,7 +1,7 @@
 - if @result.display_vispdat_breakdown?
   - vispdat_ranges = @report.vispdat_ranges
   - if vispdat_ranges.present?
-    - data = @result.data_for_vispdats(@report)
+    - data = @result.data_for_vispdat_ranges(@report)
     - reporting = data[:reporting]
     - comparison = data[:comparison]
     - aprs = @report.ce_aprs.order(start_date: :asc).to_a
@@ -20,3 +20,22 @@
               %th= vispdat_range
               - [[:comparison, comparison[vispdat_range]], [:reporting, v]].each do |period, value|
                 %td= link_to_if can_view_all_hud_reports? || can_view_own_hud_reports?, value, clients_ce_performance_warehouse_reports_report_path(@report, period: period, vispdat_range: vispdat_range, key: @key, category_name: @category_name)
+    - data = @result.data_for_vispdat_types(@report)
+    - reporting = data[:reporting]
+    - comparison = data[:comparison]
+    - aprs = @report.ce_aprs.order(start_date: :asc).to_a
+    - comparison_year = aprs.first.end_date.year
+    - report_year = aprs.last.end_date.year
+    .card.mt-4
+      %table.table.table-striped
+        %thead
+          %tr
+            %th VI-SPDAT Type
+            %th= comparison_year
+            %th= report_year
+        %tbody
+          - reporting.each do |vispdat_type, v|
+            %tr
+              %th= vispdat_type
+              - [[:comparison, comparison[vispdat_type]], [:reporting, v]].each do |period, value|
+                %td= link_to_if can_view_all_hud_reports? || can_view_own_hud_reports?, value, clients_ce_performance_warehouse_reports_report_path(@report, period: period, vispdat_type: vispdat_type, key: @key, category_name: @category_name)

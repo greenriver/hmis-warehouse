@@ -10,7 +10,7 @@
 
     .col-sm-2.ml-auto
       .mb-4.d-flex.font-size-md
-        .ml-auto= tagged(result.passed?(comparison), status, icon: icon, label: label)
+
       .d-flex
         .font-size-sm.ml-auto
           = link_to result.detail_link_text, details_ce_performance_warehouse_reports_report_path(@report, key: result_class, category_name: category_name, target: :_blank), class: 'j-click-row-source'

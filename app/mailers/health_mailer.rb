@@ -17,7 +17,7 @@ class HealthMailer < DatabaseMailer
   end
 
   private def health_smtp_configuration
-    GrdaWarehouse::RemoteConfigs::HealthMailer.first&.remote_credential
+    GrdaWarehouse::RemoteConfigs::HealthMailer.active&.first&.remote_credential
   end
 
   private def health_smtp_server

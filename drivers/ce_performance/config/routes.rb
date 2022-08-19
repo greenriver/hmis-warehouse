@@ -5,6 +5,7 @@ BostonHmis::Application.routes.draw do
         get :details, on: :member
         get :clients, on: :member
       end
+      resources :goal_configs, except: [:show]
     end
   end
 end

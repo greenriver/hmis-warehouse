@@ -14,6 +14,7 @@ module CePerformance
         report_id: report.id,
         period: period,
         value: median(values),
+        goal: report.goal_for(goal_column),
       )
     end
 
@@ -22,16 +23,15 @@ module CePerformance
         where.not(days_in_project: nil)
     end
 
-    # TODO: move to goal configuration
-    def self.goal
-      30
+    def self.goal_column
+      :time_in_ce
     end
 
     def self.title
       _('Median Length of Time in CE')
     end
 
-    def self.description
+    def description
       "Persons in the CoC will have a median length of time in CE of **no more than #{goal} days**."
     end
 
@@ -39,7 +39,7 @@ module CePerformance
       'Median number of days between CE Project Start Date and Exit Date, or Report Period End Date for Stayers'
     end
 
-    def category
+    def self.category
       'Time'
     end
 

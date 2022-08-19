@@ -27,11 +27,61 @@ module BuiltForZeroReport
     # @param start_date [Date] The start of the reporting range
     # @param end_date [Date] The end of the reporting range
     # @param client_ids [Set, nil] If defined, limit the clients to the specified destination client ids
-    def initialize(cohort_key, start_date, end_date, client_ids: nil)
+    # @param client_ids [Array, nil] If defined, an array of string representations of the keys we will send to the API
+    def initialize(cohort_key, start_date, end_date, user:, client_ids: nil, data_keys: nil)
       @cohort_id = GrdaWarehouse::SystemCohorts::Base.find_system_cohort(cohort_key).id
-      @start_date = start_date
-      @end_date = end_date
+      @data_keys = data_keys.presence || default_data_keys
+      @start_date = start_date.to_date
+      @end_date = end_date.to_date
       @client_ids = client_ids
+      @user = user
+      @interval = if @start_date + 1.months - 1.days == @end_date
+        '1 month'
+      else
+        "#{(@end_date - @start_date).to_i} days"
+      end
+    end
+
+    def for_api(sub_population_id)
+      {
+        'subpopulation_id' => sub_population_id,
+        'actively_homeless' => actively_homeless.count,
+        'avg_lot_from_id_to_housing' => average_lot_to_housing,
+        'housing_placements' => housed.count,
+        'moved_to_inactive' => inactive.count,
+        'no_longer_meets_population_criteria' => ineligible.count,
+        'newly_identified' => newly_identified.count,
+        'returned_from_housing' => returned_from_housing.count,
+        'returned_from_inactive' => returned_from_inactivity.count,
+        'name' => @user.name,
+        'email' => @user.email,
+        'organization' => @user.agency_name,
+        'date_interval_start' => @start_date.to_time.utc.strftime('%FT%T.000Z'), # match API format
+        'date_interval' => @interval,
+      }
+    end
+
+    def self.default_data_keys
+      [
+        'subpopulation_id',
+        'actively_homeless',
+        'avg_lot_from_id_to_housing',
+        'housing_placements',
+        'moved_to_inactive',
+        'no_longer_meets_population_criteria',
+        'newly_identified',
+        'returned_from_housing',
+        'returned_from_inactive',
+        'name',
+        'email',
+        'organization',
+        'date_interval_start',
+        'date_interval',
+      ].freeze
+    end
+
+    def default_data_keys
+      self.class.default_data_keys
     end
 
     # @return [SourceDataHash] actively homeless clients in cohort during the reporting period
@@ -53,7 +103,7 @@ module BuiltForZeroReport
     #   and the average length of time to housing for the housed clients in the cohort
     def average_lot_to_housing
       client_count = lot_to_housing.count
-      return 'Unknown' if client_count.zero?
+      return 0 if client_count.zero?
 
       sum_of_days = lot_to_housing.map { |_, v| v[:lot_to_housing] }.sum
       (sum_of_days / client_count.to_f).round

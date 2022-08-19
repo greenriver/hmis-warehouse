@@ -12,15 +12,31 @@ module Hmis
     before_action :attach_data_source_id
 
     def execute
-      variables = prepare_variables(params[:variables])
-      query = params[:query]
-      operation_name = params[:operationName]
       context = {
         current_user: current_hmis_user,
       }
       case params[:schema]
       when :hmis
-        result = HmisSchema.execute(query, variables: variables, context: context, operation_name: operation_name)
+        if params[:_json]
+          # We have a batch of operations
+          queries = params[:_json].map do |param|
+            {
+              query: param[:query],
+              operation_name: param[:operationName],
+              variables: prepare_variables(param[:variables]),
+              context: context,
+            }
+          end
+          result = HmisSchema.multiplex(queries)&.to_json
+        else
+          # We have a single operation
+          result = HmisSchema.execute(
+            query: params[:query],
+            variables: prepare_variables(params[:variables]),
+            context: context,
+            operation_name: params[:operationName],
+          )
+        end
       end
       render json: result
     rescue StandardError => e

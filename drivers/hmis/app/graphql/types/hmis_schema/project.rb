@@ -13,5 +13,9 @@ module Types
     field :project_name, String, method: :ProjectName, null: false
     field :project_type, Types::HmisSchema::ProjectType, method: :ProjectType, null: false
     field :organization, Types::HmisSchema::Organization, null: false
+
+    def organization
+      load_ar_association(object, :organization)
+    end
   end
 end

@@ -21,6 +21,7 @@ module HudSpmReport
     end
 
     def show
+      @filter.default_project_type_codes = generator.default_project_type_codes
       @path_for_running = running_hud_reports_spm_measure_path(link_params.except('action', 'controller'))
     end
 

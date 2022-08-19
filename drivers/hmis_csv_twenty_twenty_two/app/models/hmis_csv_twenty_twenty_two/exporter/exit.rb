@@ -32,8 +32,8 @@ module HmisCsvTwentyTwentyTwo::Exporter
       row
     end
 
-    def self.export_scope(enrollment_scope:, export:, hmis_class:, **_)
-      export_scope = case export.period_type
+    def self.export_scope(enrollment_scope:, export:, hmis_class:, temp_class:, **_)
+      intermediate_scope = case export.period_type
       when 3
         hmis_class.where(hmis_class.arel_table[:ExitDate].lteq(export.end_date))
       when 1
@@ -41,28 +41,23 @@ module HmisCsvTwentyTwentyTwo::Exporter
       end
 
       join_tables = enrollment_related_join_tables(export)
-      export_scope = export_scope.
+      intermediate_scope = intermediate_scope.
         joins(join_tables).
-        merge(enrollment_scope).
-        preload([join_tables] + [:user])
+        merge(enrollment_scope)
 
       # Enforce only one exit per enrollment (we shouldn't need to do this, but sometimes we receive more than one exit for an enrollment and don't have cleanup on the import)
       # Return the newest exit record
-      mrex_t = Arel::Table.new(:most_recent_exits)
-      join = ex_t.join(mrex_t).on(ex_t[:id].eq(mrex_t[:current_id]))
-      export_scope = export_scope.where(
-        id: GrdaWarehouse::Hud::Exit.
-        with(
-          most_recent_exits:
-            export_scope.
-              define_window(:exit_by_modification_date).partition_by(e_t[:id], order_by: { ex_t[:DateUpdated] => :desc }).
-              select_window(:first_value, ex_t[:id], over: :exit_by_modification_date, as: :current_id),
-        ).
-          joins(join.join_sources),
-      )
+      ids = intermediate_scope.order(DateUpdated: :asc).
+        pluck(:id, :DateUpdated, :EnrollmentID, :data_source_id).
+        index_by do |_, _, enrollment_id, ds_id|
+          [enrollment_id, ds_id]
+        end.values.map(&:first)
 
+      temp_class.import([:source_id], ids.map { |id| [id] }, batch_size: 50_000)
+      tmp_export_table = temp_class.arel_table
+      export_scope = hmis_class.joins(hmis_class.arel_table.join(tmp_export_table).on(hmis_class.arel_table[:id].eq(tmp_export_table[:source_id])).join_sources)
       note_involved_user_ids(scope: export_scope, export: export)
-      export_scope.distinct
+      export_scope.preload([join_tables] + [:user]).distinct
     end
 
     def self.transforms
