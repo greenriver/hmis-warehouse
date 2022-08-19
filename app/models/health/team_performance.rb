@@ -27,7 +27,7 @@ module Health
         consented_patients = consent_dates.select { |p_id, _| p_id.in?(patient_ids) }.keys
         unconsented_patients = patient_ids - consented_patients
 
-        with_ssms = ssm_dates.select { |p_id, _| p_id.in?(patient_ids) }.keys
+        with_ssms = ssm_dates.keys & patient_ids
         without_ssms = patient_ids - with_ssms
 
         with_chas = cha_dates.select { |p_id, _| p_id.in?(patient_ids) }.keys
