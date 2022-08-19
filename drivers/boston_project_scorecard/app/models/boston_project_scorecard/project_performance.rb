@@ -17,27 +17,27 @@ module BostonProjectScorecard
       end
 
       def rrh_exits_to_ph_value
-        percentage(rrh_exits_to_ph) if rrh?
+        percentage_string(rrh_exits_to_ph) if rrh?
       end
 
       def psh_stayers_or_to_ph_value
-        percentage(psh_stayers_or_to_ph) if psh?
+        percentage_string(psh_stayers_or_to_ph) if psh?
       end
 
       def increased_stayer_employment_income_value
-        percentage(increased_stayer_employment_income)
+        percentage_string(increased_stayer_employment_income)
       end
 
       def increased_stayer_other_income_value
-        percentage(increased_stayer_other_income)
+        percentage_string(increased_stayer_other_income)
       end
 
       def increased_leaver_employment_income_value
-        percentage(increased_leaver_employment_income)
+        percentage_string(increased_leaver_employment_income)
       end
 
       def increased_leaver_other_income_value
-        percentage(increased_leaver_other_income)
+        percentage_string(increased_leaver_other_income)
       end
 
       def days_to_lease_up_value

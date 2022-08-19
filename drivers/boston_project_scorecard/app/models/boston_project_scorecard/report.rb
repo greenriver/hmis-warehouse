@@ -15,6 +15,7 @@ module BostonProjectScorecard
     include Header
     include TotalScore
     include ProjectPerformance
+    include DataQuality
 
     belongs_to :project, class_name: 'GrdaWarehouse::Hud::Project', optional: true
     belongs_to :project_group, class_name: 'GrdaWarehouse::ProjectGroup', optional: true
@@ -93,12 +94,19 @@ module BostonProjectScorecard
       end
     end
 
-    private def percentage(value)
+    private def percentage_string(value)
       v = value
       v = 0 if value.nan?
       v = 0 if value.infinite?
 
-      "#{v}%"
+      "#{v.round(2)}%"
+    end
+
+    private def percentage(value)
+      return 0 if value.nan?
+      return 0 if value.infinite?
+
+      (value * 100).round(2)
     end
 
     def controlled_parameters
@@ -159,6 +167,14 @@ module BostonProjectScorecard
       assessment_answers = {}
 
       if apr.present?
+        # Project Performance
+        # 1a / 1b
+        assessment_answers.merge!(rrh_exits_to_ph: answer(apr, 'Q23c', 'B46') * 100) if rrh?
+        if psh?
+          value = ((answer(apr, 'Q5a', 'B1') - answer(apr, 'Q23c', 'B43') + answer(apr, 'Q23c', 'B43')) /
+            (answer(apr, 'Q5a', 'B1') - answer(apr, 'Q23c', 'B45')).to_f) * 100
+          assessment_answers.merge!(psh_stayers_or_to_ph: value)
+        end
         assessment_answers.merge!(
           {
             apr_id: apr.id,
@@ -169,13 +185,24 @@ module BostonProjectScorecard
             days_to_lease_up: answer(apr, 'Q22c', 'B11').round,
           },
         )
-        # Project Performance 1:
-        assessment_answers.merge!(rrh_exits_to_ph: answer(apr, 'Q23c', 'B46') * 100) if rrh?
-        if psh?
-          value = ((answer(apr, 'Q5a', 'B1') - answer(apr, 'Q23c', 'B43') + answer(apr, 'Q23c', 'B43')) /
-            (answer(apr, 'Q5a', 'B1') - answer(apr, 'Q23c', 'B45')).to_f) * 100
-          assessment_answers.merge!(psh_stayers_or_to_ph: value)
-        end
+
+        # Data Quality
+        # need unique count of client_ids not, sum of counts since someone might appear more than once
+        total_served = answer(apr, 'Q5a', 'B1')
+        total_ude_errors = (2..6).map { |row| answer_client_ids(apr, 'Q6b', 'B' + row.to_s) }.flatten.uniq.count
+        percent_ude_errors = percentage(total_ude_errors / total_served.to_f)
+
+        # Include adults, leavers, and all HoHs in denominators
+        denominator = [2, 5, 14, 15].map { |row| answer_client_ids(apr, 'Q5a', 'B' + row.to_s) }.flatten.uniq.count
+        total_income_and_housing_errors = (2..5).map { |row| answer_client_ids(apr, 'Q6c', 'B' + row.to_s) }.flatten.uniq.count
+        percent_income_and_housing_errors = percentage(total_income_and_housing_errors / denominator.to_f)
+        assessment_answers.merge!(
+          {
+            pii_error_rate: answer(apr, 'Q6a', 'F8') * 100,
+            ude_error_rate: percent_ude_errors,
+            income_and_housing_error_rate: percent_income_and_housing_errors,
+          },
+        )
       end
 
       assessment_answers.merge!(

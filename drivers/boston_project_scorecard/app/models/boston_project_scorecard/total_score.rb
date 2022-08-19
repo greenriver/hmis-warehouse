@@ -32,11 +32,15 @@ module BostonProjectScorecard
       end
 
       def project_performance_weighted_score
-        (project_performance_score / project_performance_available.to_f) * project_performance_weight
+        ((project_performance_score / project_performance_available.to_f) * project_performance_weight).round(2)
       end
 
       def data_quality_score
-        [].compact.sum
+        [
+          pii_error_rate_score,
+          ude_error_rate_score,
+          income_and_housing_error_rate_score,
+        ].compact.sum
       end
 
       def data_quality_available
@@ -48,7 +52,7 @@ module BostonProjectScorecard
       end
 
       def data_quality_weighted_score
-        (data_quality_score / data_quality_available.to_f) * data_quality_weight
+        ((data_quality_score / data_quality_available.to_f) * data_quality_weight).round(2)
       end
 
       def financial_performance_score
@@ -64,7 +68,7 @@ module BostonProjectScorecard
       end
 
       def financial_performance_weighted_score
-        (financial_performance_score / financial_performance_available.to_f) * financial_performance_weight
+        ((financial_performance_score / financial_performance_available.to_f) * financial_performance_weight).round(2)
       end
 
       def policy_alignment_score
@@ -80,7 +84,7 @@ module BostonProjectScorecard
       end
 
       def policy_alignment_weighted_score
-        (policy_alignment_score / policy_alignment_available.to_f) * policy_alignment_weight
+        ((policy_alignment_score / policy_alignment_available.to_f) * policy_alignment_weight).round(2)
       end
 
       def racial_equity_score
@@ -98,7 +102,7 @@ module BostonProjectScorecard
       end
 
       def racial_equity_weighted_score
-        (racial_equity_score / racial_equity_available.to_f) * racial_equity_weight
+        ((racial_equity_score / racial_equity_available.to_f) * racial_equity_weight).round(2)
       end
 
       def total_score_score
