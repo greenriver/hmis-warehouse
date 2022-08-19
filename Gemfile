@@ -260,7 +260,7 @@ end
 
 group :test do
   gem 'capybara'
-  gem 'fixpoints'
+  gem 'fixpoints', github: 'greenriver/fixpoints', branch: 'table-limits'
   gem 'minitest-reporters'
   gem 'rspec-mocks'
   gem 'shoulda'

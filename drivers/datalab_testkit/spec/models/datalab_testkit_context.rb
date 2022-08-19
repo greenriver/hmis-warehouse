@@ -51,8 +51,11 @@ RSpec.shared_context 'datalab testkit context', shared_context: :metadata do
         import_hmis_csv_fixture(file_path, run_jobs: false)
       end
       process_imported_fixtures
-      store_fixpoint :datalab_2_0_app
-      store_fixpoint :datalab_2_0_warehouse, connection: warehouse
+      store_fixpoint :datalab_2_0_app, exclude_tables: ['versions']
+      exclude_tables = ['versions'] +
+        HmisCsvImporter::Loader::Loader.loadable_files.values.map(&:table_name) +
+        HmisCsvImporter::Importer::Importer.importable_files.values.map(&:table_name)
+      store_fixpoint :datalab_2_0_warehouse, connection: warehouse, exclude_tables: exclude_tables
     end
   end
 
