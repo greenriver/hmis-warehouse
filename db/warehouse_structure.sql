@@ -2235,7 +2235,10 @@ CREATE TABLE public.boston_project_scorecard_reports (
     increased_stayer_other_income double precision,
     increased_leaver_employment_income double precision,
     increased_leaver_other_income double precision,
-    days_to_lease_up integer
+    days_to_lease_up integer,
+    pii_error_rate double precision,
+    ude_error_rate double precision,
+    income_and_housing_error_rate double precision
 );
 
 
@@ -50052,6 +50055,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220804160252'),
 ('20220812193159'),
 ('20220817193604'),
-('20220818155829');
+('20220818155829'),
+('20220818173333');
 
 
