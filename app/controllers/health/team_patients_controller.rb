@@ -13,7 +13,7 @@ module Health
     before_action :require_can_view_patients_for_own_agency!
 
     def index
-      @active_team = ::Health::CoordinationTeam.all.to_a.detect { |a| a.id.to_s == params[:entity_id] } if params[:entity_id].present?
+      @active_team = ::Health::CoordinationTeam.find_by(id: params[:entity_id])
       @active_team ||= ::Health::CoordinationTeam.find_by(team_coordinator_id: current_user.id) ||
         Health::UserCareCoordinator.find_by(user_id: current_user.id)&.coordination_team ||
         ::Health::CoordinationTeam.first
