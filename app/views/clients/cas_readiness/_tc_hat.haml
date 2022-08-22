@@ -3,12 +3,17 @@
   .row
     %section.o-section-card.col-lg-8.col-xl-6
       %h3 Characteristics from TC HAT
-      .c-card.c-card--flush.c-card--padded.flex-wrap
-        %p Please note, this list includes additional characteristics that may come from other sources as it is a comprehensive list of everything sent to CAS for this client.
-        - GrdaWarehouse::Tasks::PushClientsToCas.new.attributes_for_display(current_user, @client).sort_by(&:first).each do |title, value|
-          .d-flex.mb-2
-            .title.text-bold= "#{title}:"
-            .ml-2= value
+      .c-card.c-card--flush.flex-wrap
+        %p.p-2 Please note, this list includes additional characteristics that may come from other sources as it is a comprehensive list of everything sent to CAS for this client.
+        %table.table.table-striped.table-sm
+          %tbody
+          - GrdaWarehouse::Tasks::PushClientsToCas.new.attributes_for_display(current_user, @client).sort_by(&:first).each do |title, value, description|
+            %tr
+              %td.title.text-bold
+                = title
+                - if description.present?
+                  %i.icon-info.ml-1{data: {toggle: :tooltip, title: description}}
+              %td.ml-2= value
 
   .row
     .col-lg-8.col-xl-6
