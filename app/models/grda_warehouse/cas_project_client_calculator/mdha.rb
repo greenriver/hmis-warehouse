@@ -19,6 +19,10 @@ module GrdaWarehouse::CasProjectClientCalculator
       client.send(column)
     end
 
+    def description_for_column(column)
+      GrdaWarehouse::Hud::Client.cas_columns_data.dig(column, :description)
+    end
+
     private def eccovia_columns
       return [] unless RailsDrivers.loaded.include?(:eccovia_data)
 

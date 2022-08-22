@@ -12,5 +12,9 @@ module GrdaWarehouse::CasProjectClientCalculator
     def value_for_cas_project_client(client:, column:)
       client.send(column)
     end
+
+    def description_for_column(column)
+      GrdaWarehouse::Hud::Client.cas_columns_data.dig(column, :description)
+    end
   end
 end

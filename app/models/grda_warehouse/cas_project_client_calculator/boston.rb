@@ -25,6 +25,16 @@ module GrdaWarehouse::CasProjectClientCalculator
       client.send(column)
     end
 
+    def description_for_column(column)
+      custom_descriptions[column] || GrdaWarehouse::Hud::Client.cas_columns_data.dig(column, :description)
+    end
+
+    private def custom_descriptions
+      {
+        disabling_condition: 'description of disabling condition',
+      }.freeze
+    end
+
     private def boolean_lookups
       {
         hiv_positive: 'c_housing_HIV',

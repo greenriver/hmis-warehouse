@@ -254,6 +254,7 @@ module GrdaWarehouse::Tasks
         [
           title_display_for(k),
           value_display_for(k, value),
+          @calculator_instance.description_for_column(k),
         ]
       end.compact.sort_by(&:first)
     end

@@ -28,6 +28,10 @@ module GrdaWarehouse::CasProjectClientCalculator
       current_value
     end
 
+    def description_for_column(column)
+      GrdaWarehouse::Hud::Client.cas_columns_data.dig(column, :description)
+    end
+
     private def boolean_lookups
       {
         lifetime_sex_offender: 'is the client a lifetime sex',
