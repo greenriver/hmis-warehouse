@@ -104,21 +104,19 @@ module Health
     end
 
     def patient_referrals
-      hash = {}
-      team_scope.find_each do |team|
-        hash.merge!(
-          team.
-            patients.
-            joins(:patient_referral).
-            merge(Health::PatientReferral.active_within_range(start_date: @range.first, end_date: @range.last)).
-            pluck(:patient_id, hpr_t[:enrollment_start_date]).
-            map { |a| a + [team.id] }.
-            group_by(&:shift).
-            transform_values(&:flatten),
-        )
+      @patient_referrals ||= {}.tap do |hash|
+        team_scope.find_each do |team|
+          hash.merge!(
+            team.
+              patients.
+              joins(:patient_referral).
+              merge(Health::PatientReferral.active_within_range(start_date: @range.first, end_date: @range.last)).
+              pluck(:patient_id, hpr_t[:enrollment_start_date], lit(team.id.to_s)).
+              group_by(&:shift).
+              transform_values(&:flatten),
+          )
+        end
       end
-
-      hash
     end
 
     def consent_dates
