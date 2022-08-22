@@ -299,12 +299,32 @@ def maintain_system_groups
   AccessGroup.maintain_system_groups
 end
 
-ensure_db_triggers_and_functions()
-setup_fake_user() if Rails.env.development?
-maintain_data_sources()
+def setup_fake_health_data
+  return unless Rails.env.development?
+  return if Health::PatientReferral.exists?
+
+  FactoryBot.create_list(:patient_referral, 50)
+  FactoryBot.create(:accountable_care_organization)
+  FactoryBot.create(:health_agency, name: 'GR Health')
+  health_admin = Role.create(
+    health_role: true,
+    name: 'Health Admin',
+    can_administer_health: true,
+    can_view_aggregate_health: true,
+    can_manage_health_agency: true,
+  )
+  u = User.not_system.first
+  u.roles << health_admin
+  Health::AgencyUserSaver.new(user_id: u.id, agency_ids: Health::Agency.pluck(:id)).save
+end
+
+ensure_db_triggers_and_functions
+setup_fake_user if Rails.env.development?
+setup_fake_health_data
+maintain_data_sources
 GrdaWarehouse::WarehouseReports::ReportDefinition.maintain_report_definitions
-maintain_health_seeds()
+maintain_health_seeds
 # install_shapes() # run manually as needed
-maintain_lookups()
-maintain_system_groups()
-maintain_zip_code_shapes()
+maintain_lookups
+maintain_system_groups
+maintain_zip_code_shapes
