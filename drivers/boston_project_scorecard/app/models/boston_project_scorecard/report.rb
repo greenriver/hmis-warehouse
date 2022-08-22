@@ -16,6 +16,7 @@ module BostonProjectScorecard
     include TotalScore
     include ProjectPerformance
     include DataQuality
+    include FinancialPerformance
 
     belongs_to :project, class_name: 'GrdaWarehouse::Hud::Project', optional: true
     belongs_to :project_group, class_name: 'GrdaWarehouse::ProjectGroup', optional: true
