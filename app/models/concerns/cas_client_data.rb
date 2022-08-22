@@ -29,7 +29,7 @@ module CasClientData
 
     def self.cas_columns_data
       @cas_columns_data ||= {
-        disability_verified_on: { title: _('Disability Verification on File'), description: 'test' },
+        disability_verified_on: { title: _('Disability Verification on File'), description: '' },
         housing_release_status: { title: _('Housing Release Status') },
         full_housing_release: { title: _('Full HAN Release on File') },
         limited_cas_release: { title: _('Limited CAS Release on File') },

@@ -11,7 +11,7 @@
             %tr
               %td.title.text-bold
                 = title
-                - if description
+                - if description.present?
                   %i.icon-info.ml-1{data: {toggle: :tooltip, title: description}}
               %td.ml-2= value
 

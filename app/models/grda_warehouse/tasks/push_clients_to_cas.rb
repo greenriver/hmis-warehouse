@@ -254,7 +254,7 @@ module GrdaWarehouse::Tasks
         [
           title_display_for(k),
           value_display_for(k, value),
-          @calculator_instance.description_for_column(k),
+          description_display_for(k),
         ]
       end.compact.sort_by(&:first)
     end
@@ -264,6 +264,11 @@ module GrdaWarehouse::Tasks
       return override if override.present?
 
       column.to_s.humanize
+    end
+
+    def description_display_for(column)
+      @calculator_instance ||= GrdaWarehouse::Config.get(:cas_calculator).constantize.new
+      @calculator_instance.description_for_column(column)
     end
 
     def value_display_for(key, value)
