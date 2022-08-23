@@ -14,22 +14,22 @@ module Health
     before_action :set_dates
 
     def index
-      @team_name = if params[:entity_id].present?
-        @active_team = ::Health::CoordinationTeam.find_by(name: params[:entity_id])
+      @team_name = params[:entity_id]
+      if @team_name.blank?
         @active_team ||= ::Health::CoordinationTeam.find_by(team_coordinator_id: current_user.id) ||
           Health::UserCareCoordinator.find_by(user_id: current_user.id)&.coordination_team ||
           ::Health::CoordinationTeam.first
         @active_team.name
       else
-        'All Patients'
+        @active_team = ::Health::CoordinationTeam.find_by(name: @team_name)
       end
 
       @report = Health::TeamPerformance.new(range: (@start_date..@end_date), team_scope: Health::CoordinationTeam.all)
       @teams = @report.team_counts
       @totals = @report.total_counts
 
-      @patients = if params[:entity_id].present?
-        patient_source.where(id: @report.team_counts.detect { |counts| counts.name == @active_team&.name }.patient_referrals)
+      @patients = if @active_team.present?
+        patient_source.where(id: @report.team_counts.detect { |counts| counts.name == @active_team.name }.patient_referrals)
       else
         patient_source.where(id: @report.total_counts.patient_referrals)
       end
