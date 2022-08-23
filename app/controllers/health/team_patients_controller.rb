@@ -11,6 +11,7 @@ module Health
     include HealthPatientDashboard
 
     before_action :require_can_view_patients_for_own_agency!
+    before_action :set_dates
 
     def index
       @team_id = params[:entity_id].to_i
@@ -25,7 +26,7 @@ module Health
         @team_name = 'All Patients'
       end
 
-      @report = Health::TeamPerformance.new(range: (Date.today..Date.tomorrow), team_scope: Health::CoordinationTeam.all)
+      @report = Health::TeamPerformance.new(range: (@start_date..@end_date), team_scope: Health::CoordinationTeam.all)
       @teams = @report.team_counts
       @totals = @report.total_counts
       @patients = if @team_id.positive?
@@ -106,6 +107,20 @@ module Health
         order(last_name: :asc, first_name: :asc)
 
       @team = Health::CoordinationTeam.find(@team_id)
+    end
+
+    def set_dates
+      @start_date = Date.current.beginning_of_month.to_date
+      @end_date = @start_date.end_of_month
+
+      @start_date = params[:filter].try(:[], :start_date).presence || @start_date
+      @end_date = params[:filter].try(:[], :end_date).presence || @end_date
+
+      return unless @start_date.to_date > @end_date.to_date
+
+      new_start = @end_date
+      @end_date = @start_date
+      @start_date = new_start
     end
 
     private def patient_source
