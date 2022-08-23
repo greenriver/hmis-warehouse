@@ -96,7 +96,7 @@ module CasClientData
     end
 
     def self.manual_cas_columns
-      cas_columns.except(:hiv_positive, :dmh_eligible, :chronically_homeless_for_cas, :full_housing_release, :limited_cas_release, :housing_release_status, :sync_with_cas, :hues_eligible, :disability_verified_on, :required_number_of_bedrooms, :required_minimum_occupancy, :cas_match_override, :health_prioritized, :tie_breaker_date).
+      cas_columns.except(:hiv_positive, :dmh_eligible, :chronically_homeless_for_cas, :full_housing_release, :limited_cas_release, :housing_release_status, :sync_with_cas, :hues_eligible, :disability_verified_on, :required_number_of_bedrooms, :required_minimum_occupancy, :cas_match_override, :health_prioritized, :tie_breaker_date, :vispdat_length_homeless_in_days).
         keys
     end
 
