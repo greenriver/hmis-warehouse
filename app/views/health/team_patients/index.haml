@@ -1,4 +1,4 @@
-- content_for(:title, "Patients for #{@active_team.name}")
+- content_for(:title, "Patients for #{@team_name}")
   .o-page
   .o-page__header
   %h1= content_for(:title)
@@ -6,9 +6,14 @@
   .btn-group.btn-group-action-2.btn-group-xs.mb-4{role: 'group'}
   - @teams.each do |team|
   - btn_classes = ['btn', 'btn-secondary']
-  - if team.id == @active_team.id
+  - if team.id == @team_id
     - btn_classes.push(['active', 'btn-light'])
   = link_to team.name, health_team_patients_path(entity_id: team.id), class: btn_classes
+
+- btn_classes = ['btn', 'btn-secondary']
+- if @team_id == -1
+  - btn_classes.push(['active', 'btn-light'])
+= link_to "All Patients", health_team_patients_path(entity_id: -1), class: btn_classes
 
 .mt-4.mb-6
   = render 'warehouse_reports/health/agency_performance/table', report: @report, entities: @teams, entity_label: 'Team', totals: @totals, detail_path: [:detail, :health, :team_patients], permission: current_user.has_some_patient_access?

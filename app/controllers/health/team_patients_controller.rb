@@ -13,15 +13,26 @@ module Health
     before_action :require_can_view_patients_for_own_agency!
 
     def index
-      @active_team = ::Health::CoordinationTeam.find_by(id: params[:entity_id])
-      @active_team ||= ::Health::CoordinationTeam.find_by(team_coordinator_id: current_user.id) ||
-        Health::UserCareCoordinator.find_by(user_id: current_user.id)&.coordination_team ||
-        ::Health::CoordinationTeam.first
+      @team_id = params[:entity_id].to_i
+      if @team_id >= 0
+        active_team = ::Health::CoordinationTeam.find_by(id: @team_id)
+        active_team ||= ::Health::CoordinationTeam.find_by(team_coordinator_id: current_user.id) ||
+          Health::UserCareCoordinator.find_by(user_id: current_user.id)&.coordination_team ||
+          ::Health::CoordinationTeam.first
+        @team_name = active_team.name
+        @team_id = active_team.id
+      else
+        @team_name = 'All Patients'
+      end
 
       @report = Health::TeamPerformance.new(range: (Date.today..Date.tomorrow), team_scope: Health::CoordinationTeam.all)
       @teams = @report.team_counts
       @totals = @report.total_counts
-      @patients = patient_source.where(id: @report.team_counts.detect { |counts| counts.id == @active_team.id }.patient_referrals)
+      @patients = if @team_id.positive?
+        patient_source.where(id: @report.team_counts.detect { |counts| counts.id == @team_id }.patient_referrals)
+      else
+        @patients = patient_source.where(id: @report.total_counts.patient_referrals)
+      end
 
       @q = @patients.ransack(params[:q])
       @patients = @q.result(distinct: true) if params[:q].present?
