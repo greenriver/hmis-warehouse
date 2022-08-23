@@ -17,6 +17,7 @@ module BostonProjectScorecard
     include ProjectPerformance
     include DataQuality
     include FinancialPerformance
+    include PolicyAlignment
 
     belongs_to :project, class_name: 'GrdaWarehouse::Hud::Project', optional: true
     belongs_to :project_group, class_name: 'GrdaWarehouse::ProjectGroup', optional: true
@@ -126,7 +127,22 @@ module BostonProjectScorecard
         :management_oversight_notes,
         :prioritization_pass,
         :prioritization_notes,
+        :invoicing,
+        :application_budget,
+        :proposed_households_served,
+        :proposal_ftes,
+        :actual_households_served,
+        :amount_agency_spent,
+        :returned_funds,
+        :practices_housing_first,
       ].freeze
+    end
+
+    def controlled_array_parameters
+      [
+        :subpopulations_served,
+        :vulnerable_subpopulations_served,
+      ]
     end
 
     def project_name
@@ -204,6 +220,15 @@ module BostonProjectScorecard
             income_and_housing_error_rate: percent_income_and_housing_errors,
           },
         )
+
+        # Financial performance
+        utilization_values = [
+          answer(apr, 'Q8b', 'B2'),
+          answer(apr, 'Q8b', 'B3'),
+          answer(apr, 'Q8b', 'B4'),
+          answer(apr, 'Q8b', 'B5'),
+        ].compact
+        assessment_answers.merge!(average_utilization_rate: percentage(utilization_values.sum / utilization_values.count.to_f))
       end
 
       assessment_answers.merge!(

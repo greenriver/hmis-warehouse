@@ -36,6 +36,10 @@ module BostonProjectScorecard
         }
       end
 
+      def invoicing_score
+        invoicing
+      end
+
       def cost_efficiency_value
         return unless actual_households_served&.positive?
 
@@ -86,7 +90,7 @@ module BostonProjectScorecard
       def returned_funds_percent
         return unless returned_funds_budget.present?
 
-        percentage(returned_funds / returns.budget.to_f)
+        percentage(returned_funds / returned_funds_budget.to_f)
       end
 
       def returned_funds_value

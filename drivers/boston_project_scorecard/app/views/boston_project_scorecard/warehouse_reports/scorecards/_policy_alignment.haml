@@ -15,8 +15,8 @@
       %td Project Application
       %td Up to 6 pts: 1.2 pts for each sub-population served
       %th{rowspan: 3} #{@report.policy_alignment_weight}%
-      %td
-      %td
+      %td= f.input :subpopulations_served, collection: @report.subpopulations_served_options, as: :check_boxes, label: 'Select all sub-populations served:'
+      %td= @report.subpopulations_served_score
     %tr
       %td 17. Project practices a Housing First model/low barrier program
       %td Project Application and cross reference with desk review
@@ -24,13 +24,13 @@
         6 pts: yes
         %br
         0 pts: no
-      %td
-      %td
+      %td= f.input :practices_housing_first, as: :pretty_boolean, label: 'Project practices a housing first model'
+      %td= @report.practices_housing_first_score
     %tr
       %td
         18. Does project serve participants who have the following vulnerabilities and severity of needs that may
         prevent them to enter housing due to the following barriers
       %td Project Application
       %td Up to 6 pts: 1 pts for each sub-population served
-      %td
-      %td
+      %td= f.input :vulnerable_subpopulations_served, collection: @report.vulnerable_subpopulations_served_options, as: :check_boxes, label: 'Select all sub-populations served:'
+      %td= @report.vulnerable_subpopulations_served_score

@@ -56,7 +56,14 @@ module BostonProjectScorecard
       end
 
       def financial_performance_score
-        [].compact.sum
+        [
+          project_type_score,
+          invoicing_score,
+          efficiency_score,
+          required_match_score,
+          returned_funds_score,
+          utilization_rate_score,
+        ].compact.sum
       end
 
       def financial_performance_available
@@ -72,7 +79,11 @@ module BostonProjectScorecard
       end
 
       def policy_alignment_score
-        [].compact.sum
+        [
+          subpopulations_served_score,
+          practices_housing_first_score,
+          vulnerable_subpopulations_served_score,
+        ].compact.sum
       end
 
       def policy_alignment_available
@@ -93,7 +104,7 @@ module BostonProjectScorecard
 
       def racial_equity_available
         # TODO
-        1
+        0
       end
 
       def racial_equity_weight

@@ -2246,7 +2246,10 @@ CREATE TABLE public.boston_project_scorecard_reports (
     actual_households_served integer,
     amount_agency_spent double precision,
     returned_funds double precision,
-    average_utilization_rate double precision
+    average_utilization_rate double precision,
+    subpopulations_served jsonb,
+    practices_housing_first boolean,
+    vulnerable_subpopulations_served jsonb
 );
 
 
@@ -50130,6 +50133,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220817193604'),
 ('20220818155829'),
 ('20220818173333'),
-('20220819184832');
+('20220819184832'),
+('20220822182146');
 
 

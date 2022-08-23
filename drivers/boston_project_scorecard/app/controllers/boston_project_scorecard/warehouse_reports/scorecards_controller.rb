@@ -179,6 +179,12 @@ module BostonProjectScorecard::WarehouseReports
       @report.controlled_parameters.each do |name|
         parameter_names << name unless @report.locked?(name, current_user)
       end
+      array_parameters = {}
+      @report.controlled_array_parameters.each do |name|
+        array_parameters[name] = [] unless @report.locked?(name, current_user)
+      end
+      parameter_names << array_parameters if array_parameters.size.positive?
+
       params.require(:boston_project_scorecard_report).permit(*parameter_names)
     end
 
