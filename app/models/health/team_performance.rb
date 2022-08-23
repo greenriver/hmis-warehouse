@@ -20,9 +20,9 @@ module Health
     end
 
     def team_counts
-      @team_counts ||= teams.map do |id, name|
-        patient_ids = patient_referrals.select do |_, (_, team_id)|
-          team_id == id
+      @team_counts ||= teams.map do |name|
+        patient_ids = patient_referrals.select do |_, (_, _, team_name)|
+          team_name == name
         end.keys
 
         consented_patients = consent_dates.select { |p_id, _| p_id.in?(patient_ids) }.keys
@@ -45,7 +45,7 @@ module Health
 
         OpenStruct.new(
           {
-            id: id,
+            id: nil,
             name: name,
             patient_referrals: patient_ids,
             consented_patients: consented_patients,
@@ -92,7 +92,7 @@ module Health
     end
 
     def teams
-      @teams ||= team_scope.pluck(:id, :name).to_h
+      @teams ||= team_scope.order(name: :asc).distinct.pluck(:name)
     end
 
     def team_scope
@@ -132,7 +132,7 @@ module Health
 
           hash.merge!(
             active_patients_in_range.
-              pluck(:patient_id, hpr_t[:enrollment_start_date], lit(team.id.to_s)).
+              pluck(:patient_id, hpr_t[:enrollment_start_date], lit(team.id.to_s), lit(HealthBase.connection.quote(team.name))).
               group_by(&:shift).
               transform_values(&:flatten),
           )

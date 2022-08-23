@@ -14,25 +14,24 @@ module Health
     before_action :set_dates
 
     def index
-      @team_id = params[:entity_id].to_i
-      if @team_id >= 0
-        active_team = ::Health::CoordinationTeam.find_by(id: @team_id)
-        active_team ||= ::Health::CoordinationTeam.find_by(team_coordinator_id: current_user.id) ||
+      @team_name = if params[:entity_id].present?
+        @active_team = ::Health::CoordinationTeam.find_by(name: params[:entity_id])
+        @active_team ||= ::Health::CoordinationTeam.find_by(team_coordinator_id: current_user.id) ||
           Health::UserCareCoordinator.find_by(user_id: current_user.id)&.coordination_team ||
           ::Health::CoordinationTeam.first
-        @team_name = active_team.name
-        @team_id = active_team.id
+        @active_team.name
       else
-        @team_name = 'All Patients'
+        'All Patients'
       end
 
       @report = Health::TeamPerformance.new(range: (@start_date..@end_date), team_scope: Health::CoordinationTeam.all)
       @teams = @report.team_counts
       @totals = @report.total_counts
-      @patients = if @team_id.positive?
-        patient_source.where(id: @report.team_counts.detect { |counts| counts.id == @team_id }.patient_referrals)
+
+      @patients = if params[:entity_id].present?
+        patient_source.where(id: @report.team_counts.detect { |counts| counts.name == @active_team&.name }.patient_referrals)
       else
-        @patients = patient_source.where(id: @report.total_counts.patient_referrals)
+        patient_source.where(id: @report.total_counts.patient_referrals)
       end
 
       @q = @patients.ransack(params[:q])
@@ -99,14 +98,14 @@ module Health
     end
 
     def detail
-      @team_id = params.require(:entity)[:entity_id]&.to_i
+      team_name = params.require(:entity)[:entity_id]
       @section = params.require(:entity)[:section]
       @patient_ids = params.require(:entity)[:patient_ids]&.split(',')&.map(&:to_i)
       @patients = Health::Patient.bh_cp.where(id: @patient_ids).
         preload(:care_coordinator).
         order(last_name: :asc, first_name: :asc)
 
-      @team = Health::CoordinationTeam.find(@team_id)
+      @team = Health::CoordinationTeam.find_by(name: team_name)
     end
 
     def set_dates

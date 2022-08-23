@@ -20,6 +20,7 @@
         %th.agency-performance__without No Payable QAs
     %tbody
       - entities.each do |entity|
+        - entity_slug = entity.id || entity.name
         %tr
           %td= entity.name
           %td.text-right
@@ -27,7 +28,7 @@
             - title = "#{pluralize(scope.size, 'Patient')} Assigned"
             - if permission
               = simple_form_for :entity, method: :post, url: detail_path, data: { submits_to_pjax_modal: true } do |f|
-                = f.input :entity_id, as: :hidden, input_html: {value: entity.id}
+                = f.input :entity_id, as: :hidden, input_html: {value: entity_slug}
                 = f.input :patient_ids, as: :hidden, input_html: {value: scope.join(',')}
                 = f.input :section, as: :hidden, input_html: {value: title}
                 = f.submit scope.size, class: 'btn btn-secondary btn-sm', data: { disable_with: false }
@@ -38,7 +39,7 @@
             - title = "#{pluralize(scope.size, 'Patient')} Consented"
             - if permission
               = simple_form_for :entity, method: :post, url: detail_path, data: { submits_to_pjax_modal: true } do |f|
-                = f.input :entity_id, as: :hidden, input_html: {value: entity.id}
+                = f.input :entity_id, as: :hidden, input_html: {value: entity_slug}
                 = f.input :patient_ids, as: :hidden, input_html: {value: scope.join(',')}
                 = f.input :section, as: :hidden, input_html: {value: title}
                 = f.submit scope.size, class: 'btn btn-secondary btn-sm', data: { disable_with: false }
@@ -49,7 +50,7 @@
             - title = "#{pluralize(scope.size, 'Patient')} with CHAs"
             - if permission
               = simple_form_for :entity, method: :post, url: detail_path, data: { submits_to_pjax_modal: true } do |f|
-                = f.input :entity_id, as: :hidden, input_html: {value: entity.id}
+                = f.input :entity_id, as: :hidden, input_html: {value: entity_slug}
                 = f.input :patient_ids, as: :hidden, input_html: {value: scope.join(',')}
                 = f.input :section, as: :hidden, input_html: {value: title}
                 = f.submit scope.size, class: 'btn btn-secondary btn-sm', data: { disable_with: false }
@@ -60,7 +61,7 @@
             - title = "#{pluralize(scope.size, 'Patient')} without CHAs"
             - if permission
               = simple_form_for :entity, method: :post, url: detail_path, data: { submits_to_pjax_modal: true } do |f|
-                = f.input :entity_id, as: :hidden, input_html: {value: entity.id}
+                = f.input :entity_id, as: :hidden, input_html: {value: entity_slug}
                 = f.input :patient_ids, as: :hidden, input_html: {value: scope.join(',')}
                 = f.input :section, as: :hidden, input_html: {value: title}
                 = f.submit scope.size, class: 'btn btn-secondary btn-sm', data: { disable_with: false }
@@ -71,7 +72,7 @@
             - title = "#{pluralize(scope.size, 'Patient')} with SSMs"
             - if permission
               = simple_form_for :entity, method: :post, url: detail_path, data: { submits_to_pjax_modal: true } do |f|
-                = f.input :entity_id, as: :hidden, input_html: {value: entity.id}
+                = f.input :entity_id, as: :hidden, input_html: {value: entity_slug}
                 = f.input :patient_ids, as: :hidden, input_html: {value: scope.join(',')}
                 = f.input :section, as: :hidden, input_html: {value: title}
                 = f.submit scope.size, class: 'btn btn-secondary btn-sm', data: { disable_with: false }
@@ -82,7 +83,7 @@
             - title = "#{pluralize(scope.size, 'Patient')} without SSMs"
             - if permission
               = simple_form_for :entity, method: :post, url: detail_path, data: { submits_to_pjax_modal: true } do |f|
-                = f.input :entity_id, as: :hidden, input_html: {value: entity.id}
+                = f.input :entity_id, as: :hidden, input_html: {value: entity_slug}
                 = f.input :patient_ids, as: :hidden, input_html: {value: scope.join(',')}
                 = f.input :section, as: :hidden, input_html: {value: title}
                 = f.submit scope.size, class: 'btn btn-secondary btn-sm', data: { disable_with: false }
@@ -94,7 +95,7 @@
             - title = "#{pluralize(scope.size, 'Patient')} with Signed Care Plans"
             - if permission
               = simple_form_for :entity, method: :post, url: detail_path, data: { submits_to_pjax_modal: true } do |f|
-                = f.input :entity_id, as: :hidden, input_html: {value: entity.id}
+                = f.input :entity_id, as: :hidden, input_html: {value: entity_slug}
                 = f.input :patient_ids, as: :hidden, input_html: {value: scope.join(',')}
                 = f.input :section, as: :hidden, input_html: {value: title}
                 = f.submit scope.size, class: 'btn btn-secondary btn-sm', data: { disable_with: false }
@@ -105,7 +106,7 @@
             - title = "#{pluralize(scope.size, 'Patient')} without Signed Care Plans"
             - if permission
               = simple_form_for :entity, method: :post, url: detail_path, data: { submits_to_pjax_modal: true } do |f|
-                = f.input :entity_id, as: :hidden, input_html: {value: entity.id}
+                = f.input :entity_id, as: :hidden, input_html: {value: entity_slug}
                 = f.input :patient_ids, as: :hidden, input_html: {value: scope.join(',')}
                 = f.input :section, as: :hidden, input_html: {value: title}
                 = f.submit scope.size, class: 'btn btn-secondary btn-sm', data: { disable_with: false }
@@ -116,7 +117,7 @@
             - title = "#{pluralize(scope.size, 'Patient')} with Care Plans Signed Within Period"
             - if permission
               = simple_form_for :entity, method: :post, url: detail_path, data: { submits_to_pjax_modal: true } do |f|
-                = f.input :entity_id, as: :hidden, input_html: {value: entity.id}
+                = f.input :entity_id, as: :hidden, input_html: {value: entity_slug}
                 = f.input :patient_ids, as: :hidden, input_html: {value: scope.join(',')}
                 = f.input :section, as: :hidden, input_html: {value: title}
                 = f.submit scope.size, class: 'btn btn-secondary btn-sm', data: { disable_with: false }
@@ -132,7 +133,7 @@
             - link_text = "#{numerator}  (#{percentage}%)"
             - if permission
               = simple_form_for :entity, method: :post, url: detail_path, data: { submits_to_pjax_modal: true } do |f|
-                = f.input :entity_id, as: :hidden, input_html: {value: entity.id}
+                = f.input :entity_id, as: :hidden, input_html: {value: entity_slug}
                 = f.input :patient_ids, as: :hidden, input_html: {value: scope.join(',')}
                 = f.input :section, as: :hidden, input_html: {value: title}
                 = f.submit link_text, class: 'btn btn-secondary btn-sm', data: { disable_with: false }
@@ -144,7 +145,7 @@
             - title = "#{pluralize(scope.size, 'Patient')} without Payable QAs in Chosen Date Range"
             - if permission
               = simple_form_for :entity, method: :post, url: detail_path, data: { submits_to_pjax_modal: true } do |f|
-                = f.input :entity_id, as: :hidden, input_html: {value: entity.id}
+                = f.input :entity_id, as: :hidden, input_html: {value: entity_slug}
                 = f.input :patient_ids, as: :hidden, input_html: {value: scope.join(',')}
                 = f.input :section, as: :hidden, input_html: {value: title}
                 = f.submit scope.size, class: 'btn btn-secondary btn-sm', data: { disable_with: false }
