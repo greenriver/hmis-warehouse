@@ -9,18 +9,16 @@
   = link_to health_my_patients_path do
     My Patients
   page
-%table.table
-  %thead
-    %tr
-      %th
-        Team
-      %th
-        Team Coordinator
-      %th
-        Nurse Care Manager
-      %th
-      %th
-  %tbody
-    = render 'new_team'
-    - @teams.each do |team|
-      = render 'row', team: team
+
+%h2 New Team
+.well
+  = render 'new_team'
+%h2 Existing Teams
+.well
+  .row
+    .col-sm-3 Team
+    .col-sm-3 Team Coordinator
+    .col-sm-3 Nurse Care Manager
+    .col-sm-3
+  - @teams.each do |team|
+    = render 'row', team: team
