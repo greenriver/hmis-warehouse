@@ -3,19 +3,20 @@
 
 - if @patients.present?
   - grouped_patients = @patients.group_by(&:care_coordinator_id).map { |_, patients| [patients.first.care_coordinator&.name || '', patients] }.sort.to_h
-  %table.table.table-striped
-    %thead
-      %tr
-        %th Care Coordinator
-        %th Patients
-    %tbody
-      - grouped_patients.each do |care_coordinator, patients|
+  .card
+    %table.table.table-striped
+      %thead
         %tr
-          %td{rowspan: patients.count}= care_coordinator
-          - patient = patients.first
-          %td= link_to "#{patient.first_name} #{patient.last_name}", polymorphic_path(health_path_generator + [:patient, :index], client_id: patient.client_id)
-        - patients[1..-1].each do |patient|
+          %th Care Coordinator
+          %th Patients
+      %tbody
+        - grouped_patients.each do |care_coordinator, patients|
           %tr
+            %td{rowspan: patients.count}= care_coordinator
+            - patient = patients.first
             %td= link_to "#{patient.first_name} #{patient.last_name}", polymorphic_path(health_path_generator + [:patient, :index], client_id: patient.client_id)
+          - patients[1..-1].each do |patient|
+            %tr
+              %td= link_to "#{patient.first_name} #{patient.last_name}", polymorphic_path(health_path_generator + [:patient, :index], client_id: patient.client_id)
 - else
   No patients found
