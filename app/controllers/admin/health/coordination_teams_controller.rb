@@ -14,23 +14,23 @@ module Admin::Health
     end
 
     def create
-      team = team_class.create(team_params)
-      flash[:error] = team.errors.full_messages.join('; ') if team.errors.any?
-      respond_with(team, location: admin_health_coordination_teams_path)
+      @team = team_class.create(team_params)
+      flash[:error] = @team.errors.full_messages.join('; ') if @team.errors.any?
+      respond_with(@team, location: admin_health_coordination_teams_path)
     end
 
     def update
-      team = team_class.find(params[:id].to_i)
-      team.update(team_params)
-      flash[:error] = team.errors.full_messages.join('; ') if team.errors.any?
-      respond_with(team, location: admin_health_coordination_teams_path)
+      @team = team_class.find(params[:id].to_i)
+      @team.update(team_params)
+      flash[:error] = @team.errors.full_messages.join('; ') if @team.errors.any?
+      respond_with(@team, location: admin_health_coordination_teams_path)
     end
 
     def destroy
-      team = team_class.find(params[:id].to_i)
+      @team = team_class.find(params[:id].to_i)
       team.destroy
-      flash[:error] = team.errors.full_messages.join('; ') if team.errors.any?
-      respond_with(team, location: admin_health_coordination_teams_path)
+      flash[:error] = @team.errors.full_messages.join('; ') if @team.errors.any?
+      respond_with(@team, location: admin_health_coordination_teams_path)
     end
 
     private def team_params
@@ -42,7 +42,7 @@ module Admin::Health
     end
 
     private def set_teams
-      @teams = team_class.order(name: :asc)
+      @teams = team_class.order(name: :asc, id: :asc)
     end
 
     private def team_class
