@@ -3,7 +3,7 @@
 
 - if @patients.present?
   - grouped_patients = @patients.group_by(&:care_coordinator_id).map { |_, patients| [patients.first.care_coordinator&.name || '', patients] }.sort.to_h
-  %table.table.table-sm
+  %table.table.table-striped
     %thead
       %tr
         %th Care Coordinator

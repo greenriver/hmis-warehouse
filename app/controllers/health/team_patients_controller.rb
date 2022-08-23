@@ -11,17 +11,28 @@ module Health
     include HealthPatientDashboard
 
     before_action :require_can_view_patients_for_own_agency!
+    before_action :set_dates
 
     def index
-      @active_team = ::Health::CoordinationTeam.find_by(name: params[:entity_id])
-      @active_team ||= ::Health::CoordinationTeam.find_by(team_coordinator_id: current_user.id) ||
-        Health::UserCareCoordinator.find_by(user_id: current_user.id)&.coordination_team ||
-        ::Health::CoordinationTeam.first
+      @team_name = if params[:entity_id].present?
+        @active_team = ::Health::CoordinationTeam.find_by(name: params[:entity_id])
+        @active_team ||= ::Health::CoordinationTeam.find_by(team_coordinator_id: current_user.id) ||
+          Health::UserCareCoordinator.find_by(user_id: current_user.id)&.coordination_team ||
+          ::Health::CoordinationTeam.first
+        @active_team.name
+      else
+        'All Patients'
+      end
 
-      @report = Health::TeamPerformance.new(range: (Date.today..Date.tomorrow), team_scope: Health::CoordinationTeam.all)
+      @report = Health::TeamPerformance.new(range: (@start_date..@end_date), team_scope: Health::CoordinationTeam.all)
       @teams = @report.team_counts
       @totals = @report.total_counts
-      @patients = patient_source.where(id: @report.team_counts.detect { |counts| counts.name == @active_team.name }.patient_referrals)
+
+      @patients = if params[:entity_id].present?
+        patient_source.where(id: @report.team_counts.detect { |counts| counts.name == @active_team&.name }.patient_referrals)
+      else
+        patient_source.where(id: @report.total_counts.patient_referrals)
+      end
 
       @q = @patients.ransack(params[:q])
       @patients = @q.result(distinct: true) if params[:q].present?
@@ -95,6 +106,20 @@ module Health
         order(last_name: :asc, first_name: :asc)
 
       @team = Health::CoordinationTeam.find_by(name: team_name)
+    end
+
+    def set_dates
+      @start_date = Date.current.beginning_of_month.to_date
+      @end_date = @start_date.end_of_month
+
+      @start_date = params[:filter].try(:[], :start_date).presence || @start_date
+      @end_date = params[:filter].try(:[], :end_date).presence || @end_date
+
+      return unless @start_date.to_date > @end_date.to_date
+
+      new_start = @end_date
+      @end_date = @start_date
+      @start_date = new_start
     end
 
     private def patient_source

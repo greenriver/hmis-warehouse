@@ -9,9 +9,10 @@ module Health
     include ArelHelper
 
     attr_accessor :range
-    def initialize range:, team_scope: nil
+    def initialize(range:, team_scope: nil, consider_qas: true)
       @range = (range.first.to_date..range.last.to_date)
       @team_scope = team_scope
+      @consider_qas = consider_qas
     end
 
     def self.url
@@ -106,11 +107,31 @@ module Health
     def patient_referrals
       @patient_referrals ||= {}.tap do |hash|
         team_scope.find_each do |team|
-          hash.merge!(
-            team.
-              patients.
+          population = team.patients
+
+          if @consider_qas
+            patient_ids_with_payable_qas_in_month = population.
+              joins(:qualifying_activities).
+              merge(Health::QualifyingActivity.payable.in_range(Date.current.beginning_of_month..Date.tomorrow)).
+              pluck(:id)
+
+            active_patients_in_range = population.
               joins(:patient_referral).
-              merge(Health::PatientReferral.active_within_range(start_date: @range.first, end_date: @range.last)).
+              merge(Health::PatientReferral.assigned.not_disenrolled).
+              or(
+                population.
+                  joins(:patient_referral).
+                  merge(Health::PatientReferral.pending_disenrollment.not_confirmed_rejected).
+                  where.not(id: patient_ids_with_payable_qas_in_month),
+              )
+          else
+            active_patients_in_range = population.
+              joins(:patient_referral).
+              merge(Health::PatientReferral.active_within_range(start_date: @range.first, end_date: @range.last))
+          end
+
+          hash.merge!(
+            active_patients_in_range.
               pluck(:patient_id, hpr_t[:enrollment_start_date], lit(team.id.to_s), lit(HealthBase.connection.quote(team.name))).
               group_by(&:shift).
               transform_values(&:flatten),
