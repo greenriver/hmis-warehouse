@@ -31,8 +31,8 @@ module GrdaWarehouse::CasProjectClientCalculator
 
     private def custom_descriptions
       {
-        disability_verified_on: 'FIXME description override for disability_verified_on',
-        disabling_condition: 'FIXME description of disabling condition',
+        disability_verified_on: '',
+        disabling_condition: '',
       }.freeze
     end
 

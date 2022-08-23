@@ -238,11 +238,10 @@ module GrdaWarehouse::Tasks
     end
 
     private def attributes_for_cas_project_client(client)
-      @calculator_instance ||= GrdaWarehouse::Config.get(:cas_calculator).constantize.new
       {}.tap do |options|
         project_client_columns.map do |destination, source|
           # puts "Processing: #{destination} from: #{source}"
-          options[destination] = @calculator_instance.value_for_cas_project_client(client: client, column: source)
+          options[destination] = calculator_instance.value_for_cas_project_client(client: client, column: source)
         end
       end
     end
@@ -267,8 +266,7 @@ module GrdaWarehouse::Tasks
     end
 
     def description_display_for(column)
-      @calculator_instance ||= GrdaWarehouse::Config.get(:cas_calculator).constantize.new
-      @calculator_instance.description_for_column(column)
+      calculator_instance.description_for_column(column)
     end
 
     def value_display_for(key, value)
@@ -357,6 +355,10 @@ module GrdaWarehouse::Tasks
         keys << :vispdat_length_homeless_in_days unless user.can_view_vspdat?
         keys << :vispdat_priority_score unless user.can_view_vspdat?
       end
+    end
+
+    private def calculator_instance
+      @calculator_instance ||= GrdaWarehouse::Config.get(:cas_calculator).constantize.new
     end
   end
 end
