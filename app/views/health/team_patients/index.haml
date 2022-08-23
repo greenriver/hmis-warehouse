@@ -13,7 +13,19 @@
 .mt-4.mb-6
   = render 'warehouse_reports/health/agency_performance/table', report: @report, entities: @teams, entity_label: 'Team', totals: @totals, detail_path: [:detail, :health, :team_patients], permission: current_user.has_some_patient_access?
 
-%h2.mb-4 Patients
+.o-page__controls
+  .o-page__search
+    = render 'health/patients/search_form', url: health_team_patients_path
+  .o-page__sort
+    = render 'health/patients/sort'
+  .o-page__filter
+    = render 'health/patients/filter'
+
+  - if @pagy.count.positive?
+    .o-page__link.ml-auto
+      = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary ml-auto disab'}) do
+        %i.icon-download2
+        Tracking Sheet
 
 - if @pagy.count.positive?
   = render 'common/pagination_top', item_name: 'patient'
@@ -22,5 +34,8 @@
   = render 'common/pagination_bottom', item_name: 'patient'
 - else
   .none-found No patients
+
+= render 'health/patients/assignment_js'
+
 
 = render 'health/patients/assignment_js'
