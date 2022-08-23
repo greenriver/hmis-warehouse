@@ -1,19 +1,8 @@
 - check_wrapper_class = {class: 'form-group--tight'}
 = simple_form_for @client, as: :readiness, url: polymorphic_path(cas_readiness_path_generator, client_id: @client.id)  do |f|
   .row
-    %section.o-section-card.col-lg-8.col-xl-6
-      %h3 Characteristics from Pathways Assessment
-      .c-card.c-card--flush.flex-wrap
-        %p.p-2 Please note, this list includes additional characteristics that may come from other sources as it is a comprehensive list of everything sent to CAS for this client.
-        %table.table.table-striped.table-sm
-          %tbody
-          - GrdaWarehouse::Tasks::PushClientsToCas.new.attributes_for_display(current_user, @client).each do |title, value, description|
-            %tr
-              %td.title.text-bold
-                = title
-                - if description.present?
-                  %i.icon-info.ml-1{data: {toggle: :tooltip, title: description}}
-              %td.ml-2= value
+    %section.o-section-card.col-lg-12.col-xl-10
+      = render 'attributes_table', f: f, title: 'Characteristics from Pathways Assessment'
 
   .row
     .col-lg-8.col-xl-6

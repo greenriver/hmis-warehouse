@@ -1,0 +1,10 @@
+%h3= title
+.c-card.c-card--flush.flex-wrap
+  %p.p-2 Please note, this list includes additional characteristics that may come from other sources as it is a comprehensive list of everything sent to CAS for this client.
+  %table.table.table-striped.table-sm
+    %tbody
+    - GrdaWarehouse::Tasks::PushClientsToCas.new.attributes_for_display(current_user, @client).each do |title, value, description|
+      %tr
+        %td.title.text-bold{style: 'min-width: 300px'}= title
+        %td.ml-2= value
+        %td.ml-2= description
