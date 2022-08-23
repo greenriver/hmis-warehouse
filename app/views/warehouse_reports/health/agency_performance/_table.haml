@@ -22,7 +22,7 @@
       - entities.each do |entity|
         - entity_slug = entity.id || entity.name
         %tr
-          %td= entity.name
+          %th= entity.name
           %td.text-right
             - scope = entity.patient_referrals
             - title = "#{pluralize(scope.size, 'Patient')} Assigned"

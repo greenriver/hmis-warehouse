@@ -28,7 +28,7 @@ module Admin::Health
 
     def destroy
       @team = team_class.find(params[:id].to_i)
-      team.destroy
+      @team.destroy
       flash[:error] = @team.errors.full_messages.join('; ') if @team.errors.any?
       respond_with(@team, location: admin_health_coordination_teams_path)
     end
