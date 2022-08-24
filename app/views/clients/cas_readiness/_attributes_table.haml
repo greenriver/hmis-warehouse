@@ -2,8 +2,15 @@
 .c-card.c-card--flush.flex-wrap
   %p.p-2 Please note, this list includes additional characteristics that may come from other sources as it is a comprehensive list of everything sent to CAS for this client.
   %table.table.table-striped.table-sm
+    %thead
+      %tr
+        %th Characteristic
+        %th Value
+        %th Source
     %tbody
     - GrdaWarehouse::Tasks::PushClientsToCas.new.attributes_for_display(current_user, @client).each do |title, value, description|
+      -# There's no need to show any rows where the data is "unused" these are either overridden to describe where they come from, or only used in the manual method
+      - next if description == 'Unused'
       %tr
         %td.title.text-bold{style: 'min-width: 300px'}= title
         %td.ml-2= value

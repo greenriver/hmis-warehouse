@@ -14,7 +14,11 @@ module GrdaWarehouse::CasProjectClientCalculator
     end
 
     def description_for_column(column)
-      GrdaWarehouse::Hud::Client.cas_columns_data.dig(column, :description)
+      custom_descriptions[column].presence || GrdaWarehouse::Hud::Client.cas_columns_data.dig(column, :description)
+    end
+
+    private def custom_descriptions
+      {}
     end
   end
 end
