@@ -62,7 +62,7 @@ module CustomImportsBostonServices::Synthetic
     end
 
     def data_source
-      'CAS'
+      'Clarity Custom Import'
     end
 
     def referral_result
