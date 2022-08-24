@@ -6,10 +6,9 @@
 = render '/warehouse_reports/breadcrumbs'
 
 .warehouse-reports__chronic
-  .row
-    .col-sm-12
-      %h4 Report Parameters
-      = render 'parameters', report: @report
+  %h4 Report Parameters
+  .report-parameters
+    = render 'parameters', report: @report
   .row
     .col-sm-12
       %h4 HUD Chronic Clients

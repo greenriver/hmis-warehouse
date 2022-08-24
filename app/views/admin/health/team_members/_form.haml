@@ -1,0 +1,23 @@
+= simple_form_for :team_member, url: admin_health_team_members_path do |f|
+  %h3 Assign Care Coordinators to Teams
+  %p
+    Team Coordinators will see all patients assigned to themselves and their assigned care coordinators on the
+    = link_to health_my_patients_path do
+      My Patients
+    page
+  %table.table
+    %thead
+      %tr
+        %th
+          Team
+        %th
+          Care Coordinator
+        %th
+    %tbody
+      %tr
+        %td= f.input :coordination_team_id, collection: Health::CoordinationTeam.all, as: :select_two, label: false
+        %td= f.input :user_id, collection: User.can_edit_patient_items_for_own_agency.diet.order(last_name: :asc, first_name: :asc).distinct, as: :select_two, label: false
+        %td
+          %button.btn.btn-primary{name: :submit}
+            %i.icon-plus
+            Add

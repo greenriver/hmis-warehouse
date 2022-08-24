@@ -29,6 +29,7 @@ jobs:
           - gha_staging_load_10
           - gha_staging_load_11
           - gha_staging_load_12
+          - gha_staging_load_13
           - gha_production_load_1
           - gha_production_load_2
           - gha_production_load_3

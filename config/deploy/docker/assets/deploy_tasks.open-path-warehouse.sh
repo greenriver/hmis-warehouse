@@ -10,8 +10,10 @@ sed -i.bak '/EXTENSION/d' db/reporting_structure.sql
 sed -i.bak '/EXTENSION/d' db/warehouse_structure.sql
 
 # Only enable for initial deployments to new installations
-# TODO: fix the bootstra_databases! method in roll_out.rb to handle a first install
-# ./bin/db_prep
+if [[ "$BOOTSTRAP_DATABASES" = "true" ]]
+then
+  ./bin/db_prep --no-create-databases
+fi
 
 echo Storing Themed Maintenance Page
 T1=`date +%s`
