@@ -235,6 +235,7 @@ module GrdaWarehouse::Tasks
         assessor_email: :assessor_email,
         assessor_phone: :assessor_phone,
         match_group: :match_group,
+        encampment_decomissioned: :encampment_decomissioned,
       }
     end
 
@@ -341,6 +342,7 @@ module GrdaWarehouse::Tasks
           :date_of_birth,
           :dob_quality_code,
           :alternate_names,
+          :encampment_decomissioned,
         ].each do |k|
           keys << k
         end
