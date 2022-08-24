@@ -28,7 +28,7 @@ module BostonProjectScorecard
       end
 
       def project_performance_weight
-        41
+        38
       end
 
       def project_performance_weighted_score
@@ -48,7 +48,7 @@ module BostonProjectScorecard
       end
 
       def data_quality_weight
-        13
+        12
       end
 
       def data_quality_weighted_score
@@ -71,7 +71,7 @@ module BostonProjectScorecard
       end
 
       def financial_performance_weight
-        31
+        29
       end
 
       def financial_performance_weighted_score
@@ -83,15 +83,15 @@ module BostonProjectScorecard
           subpopulations_served_score,
           practices_housing_first_score,
           vulnerable_subpopulations_served_score,
-        ].compact.sum
+        ].compact.sum + racial_equity_score
       end
 
       def policy_alignment_available
-        18
+        18 + racial_equity_available
       end
 
       def policy_alignment_weight
-        15
+        21
       end
 
       def policy_alignment_weighted_score
@@ -99,20 +99,23 @@ module BostonProjectScorecard
       end
 
       def racial_equity_score
-        [].compact.sum
+        [
+          barrier_id_process_score,
+          plan_to_address_barriers_score,
+        ].compact.sum
       end
 
       def racial_equity_available
-        # TODO
-        0
+        8
       end
 
       def racial_equity_weight
-        # TODO
+        # Not used, as currently rolled into Policy Alignment
         0
       end
 
       def racial_equity_weighted_score
+        # Not used, as currently rolled into Policy Alignment
         ((racial_equity_score / racial_equity_available.to_f) * racial_equity_weight).round(2)
       end
 
@@ -122,7 +125,7 @@ module BostonProjectScorecard
           data_quality_score,
           financial_performance_score,
           policy_alignment_score,
-          racial_equity_score,
+          # racial_equity_score, # Rolled into Policy Alignment
         ].compact.sum
       end
 
@@ -132,7 +135,7 @@ module BostonProjectScorecard
           data_quality_available,
           financial_performance_available,
           policy_alignment_available,
-          racial_equity_available,
+          # racial_equity_available, # Rolled into Policy Alignment
         ].compact.sum
       end
 
@@ -142,7 +145,7 @@ module BostonProjectScorecard
           data_quality_weight,
           financial_performance_weight,
           policy_alignment_weight,
-          racial_equity_weight,
+          # racial_equity_weight, # Rolled into Policy Alignment
         ].compact.sum
       end
 
@@ -152,7 +155,7 @@ module BostonProjectScorecard
           data_quality_weighted_score,
           financial_performance_weighted_score,
           policy_alignment_weighted_score,
-          racial_equity_weighted_score,
+          # racial_equity_weighted_score, # Rolled into Policy Alignment
         ].compact.sum
       end
     end

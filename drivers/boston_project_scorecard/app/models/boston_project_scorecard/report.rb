@@ -18,6 +18,7 @@ module BostonProjectScorecard
     include DataQuality
     include FinancialPerformance
     include PolicyAlignment
+    include RacialEquity
 
     belongs_to :project, class_name: 'GrdaWarehouse::Hud::Project', optional: true
     belongs_to :project_group, class_name: 'GrdaWarehouse::ProjectGroup', optional: true
@@ -135,6 +136,8 @@ module BostonProjectScorecard
         :amount_agency_spent,
         :returned_funds,
         :practices_housing_first,
+        :barrier_id_process,
+        :plan_to_address_barriers,
       ].freeze
     end
 

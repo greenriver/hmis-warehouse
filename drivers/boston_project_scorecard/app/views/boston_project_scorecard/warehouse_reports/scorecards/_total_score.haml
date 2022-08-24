@@ -1,3 +1,4 @@
+%h2 Project Score
 %table.table.table-bordered
   %thead
     %tr
@@ -31,12 +32,12 @@
       %td= @report.policy_alignment_available
       %td #{@report.policy_alignment_weight}%
       %td= @report.policy_alignment_weighted_score
-    %tr
-      %th= link_to 'Racial Equity', '#racial-equity'
-      %td= @report.racial_equity_score
-      %td= @report.racial_equity_available
-      %td #{@report.racial_equity_weight}%
-      %td= @report.racial_equity_weighted_score
+    -#%tr
+    -#  %th= link_to 'Racial Equity', '#racial-equity'
+    -#  %td= @report.racial_equity_score
+    -#  %td= @report.racial_equity_available
+    -#  %td #{@report.racial_equity_weight}%
+    -#  %td= @report.racial_equity_weighted_score
     %tr
       %th Total Score
       %td= @report.total_score_score

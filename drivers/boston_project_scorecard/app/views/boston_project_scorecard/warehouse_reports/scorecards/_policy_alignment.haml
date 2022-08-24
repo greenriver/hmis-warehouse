@@ -1,3 +1,4 @@
+%h2{id: 'policy-alignment'}  Alignment with CoC/HUD Policy Priorities
 %table.table.table-bordered
   %thead
     %tr
@@ -14,7 +15,7 @@
       %td 16. Serving sub-populations in line with HUD and Boston CoC priorities
       %td Project Application
       %td Up to 6 pts: 1.2 pts for each sub-population served
-      %th{rowspan: 3} #{@report.policy_alignment_weight}%
+      %th{rowspan: 5} #{@report.policy_alignment_weight}%
       %td= f.input :subpopulations_served, collection: @report.subpopulations_served_options, as: :check_boxes, label: 'Select all sub-populations served:'
       %td= @report.subpopulations_served_score
     %tr
@@ -34,3 +35,34 @@
       %td Up to 6 pts: 1 pts for each sub-population served
       %td= f.input :vulnerable_subpopulations_served, collection: @report.vulnerable_subpopulations_served_options, as: :check_boxes, label: 'Select all sub-populations served:'
       %td= @report.vulnerable_subpopulations_served_score
+    %tr
+      %th{rowspan: 2}
+        Racial Equity
+        %p
+        To answer “yes” under this element, projects must submit evidence or an attestation that satisfies the scoring element criteria.
+        %p
+        To qualify, the actions must have been taken within the last three years.
+      %td
+        19. The project applicant currently has a process to identify whether participants over-represented in the
+        homeless system (e.g., Black, Latinx, LGBQIA, people of color) face barriers to equitably accessing or
+        receiving services from their organization.
+      %td City Application
+      %td
+        4 pts: Yes
+        %br
+        0 pts: No
+      -#%th{rowspan: 2} #{@report.racial_equity_weight}%
+      %td= f.input :barrier_id_process, as: :pretty_boolean, label: 'Has a process'
+      %td= @report.barrier_id_process_score
+    %tr
+      %td
+        20. The project applicant currently has a plan to address or eliminate barriers identified to participants
+        over-represented in the homeless system (e.g., Black, Latinx, LGBQIA, people of color), OR no barriers were
+        identified in the assessment above.
+      %td City Application
+      %td
+        4 pts: Yes, has plan
+        %br
+        0 pts: No plan
+      %td= f.input :plan_to_address_barriers, as: :pretty_boolean, label: 'Has a plan'
+      %td= @report.plan_to_address_barriers_score
