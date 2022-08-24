@@ -21,7 +21,6 @@ module Types
     field :date_updated, GraphQL::Types::ISO8601DateTime, null: false
     field :date_deleted, GraphQL::Types::ISO8601DateTime, null: false
     # field :user, HmisSchema::User, null: false
-    # field :export, HmisSchema::Export, null: false
 
     def client
       load_ar_association(object, :client)
@@ -34,11 +33,6 @@ module Types
     # TODO: Add user type?
     # def user
     #   load_ar_association(object, :user)
-    # end
-
-    # TODO: Add export type?
-    # def export
-    #   load_ar_association(object, :export)
     # end
   end
 end

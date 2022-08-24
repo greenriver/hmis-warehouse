@@ -27,8 +27,7 @@ class Hmis::Hud::Event < Hmis::Hud::Base
 
   def self.referral_result_enum_map
     Hmis::FieldMap.new(
-      [1, 2, 3].map do |value|
-        desc = ::HUD.referral_result(value)
+      ::HUD.referral_results.map do |value, desc|
         {
           key: desc,
           value: value,
