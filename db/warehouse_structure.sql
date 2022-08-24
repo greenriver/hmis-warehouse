@@ -2249,7 +2249,8 @@ CREATE TABLE public.boston_project_scorecard_reports (
     vulnerable_subpopulations_served jsonb,
     barrier_id_process boolean,
     plan_to_address_barriers boolean,
-    contracted_budget double precision
+    contracted_budget double precision,
+    archive character varying
 );
 
 
@@ -50136,6 +50137,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220819184832'),
 ('20220822182146'),
 ('20220824155726'),
-('20220824194239');
+('20220824194239'),
+('20220824202625');
 
 
