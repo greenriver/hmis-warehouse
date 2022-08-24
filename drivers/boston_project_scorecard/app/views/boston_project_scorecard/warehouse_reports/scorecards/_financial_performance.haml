@@ -38,11 +38,10 @@
       %td= @report.invoicing_score
     %tr
       %td
-        12. Is project efficient with funds- do calculation of cost per person served in each project
-        (include HUD service funds and match total and compare standard practice: PH 1 FTE for 15-20 households,
-        families $4,000 per year, RRH 1 FTE to 20-30 clients per yr.
+        12. Is the project efficient with funds? Does the cost per person served in each project
+        (include HUD funds and match total and compare standard practice: $4,000 per household.
       %td
-        APR Q8a Cell B2, Project Application Budget
+        Project Application Budget
         %p
         Most Recently Completed Grant Year Spend divided by Total Number of Households Served
       %td
@@ -50,16 +49,11 @@
         %br
         0 pts: if not met and more funds per person/family
       %td
-        = f.input :application_budget
-        = f.input :proposed_households_served
-        = f.input :proposal_ftes, label: 'Proposal FTEs'
+        = f.input :amount_agency_spent, label: 'Most Recently Completed Grant Year Spend'
         = f.input :actual_households_served
         %p
         - if @report.cost_efficiency_value.present?
           = "$#{@report.cost_efficiency_value} / Household Served"
-          %p
-        - if @report.staff_efficiency_value.present?
-          #{@report.staff_efficiency_value} / FTE
       %td= @report.efficiency_score
     %tr
       %td
@@ -69,16 +63,13 @@
       %td
         Project Application and spend
         %p
-        Agency Spend Divided by Contract Budget value
-        %p
-        Diff w/ leasing program
+        Grant Year Spend Divided by Contract Budget value
       %td
         6 pts: > 25%
         %br
         0 pts: 0-25%
       %td
-        = f.input :amount_agency_spent
-        =# f.input :contracted_budget
+        = f.input :contracted_budget
         = @report.required_match_value
       %td= @report.required_match_score
     %tr
@@ -90,7 +81,6 @@
         0 pts: 11 - 20%
       %td
         = f.input :returned_funds
-        =# f.input :returned_funds_budget
         = @report.returned_funds_value
       %td= @report.returned_funds_score
     %tr

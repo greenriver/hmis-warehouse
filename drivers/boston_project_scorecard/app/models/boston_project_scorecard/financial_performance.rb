@@ -43,25 +43,15 @@ module BostonProjectScorecard
       def cost_efficiency_value
         return unless actual_households_served&.positive?
 
-        (application_budget / actual_households_served.to_f).round(2)
-      end
-
-      def staff_efficiency_value
-        return unless actual_households_served&.positive?
-
-        (proposal_ftes / actual_households_served.to_f).round(2)
+        (amount_agency_spent / actual_households_served.to_f).round(2)
       end
 
       def efficiency_score
-        return unless cost_efficiency_value.present? && staff_efficiency_value.present?
-        return 6 if psh? && cost_efficiency_value > 4000 && staff_efficiency_value >= 15 && staff_efficiency_value <= 20
-        return 6 if rrh? && cost_efficiency_value > 4000 && staff_efficiency_value >= 20 && staff_efficiency_value <= 30
+        return unless cost_efficiency_value.present?
+
+        return 6 if cost_efficiency_value <= 4000
 
         0
-      end
-
-      def contracted_budget
-        application_budget
       end
 
       def required_match_percent
@@ -83,14 +73,10 @@ module BostonProjectScorecard
         0
       end
 
-      def returned_funds_budget
-        application_budget
-      end
-
       def returned_funds_percent
-        return unless returned_funds_budget.present?
+        return unless contracted_budget.present?
 
-        percentage(returned_funds / returned_funds_budget.to_f)
+        percentage(returned_funds / contracted_budget.to_f)
       end
 
       def returned_funds_value
@@ -100,16 +86,16 @@ module BostonProjectScorecard
       end
 
       def returned_funds_score
-        return unless returned_funds_budget.present?
+        return unless contracted_budget.present?
         return 6 if returned_funds_percent <= 10
 
         0
       end
 
       def utilization_rate_percent
-        return unless proposed_households_served.present?
+        return unless actual_households_served.present?
 
-        percentage(average_utilization_rate / proposed_households_served.to_f)
+        percentage(average_utilization_rate / actual_households_served.to_f)
       end
 
       def utilization_rate_value

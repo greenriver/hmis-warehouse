@@ -2240,9 +2240,6 @@ CREATE TABLE public.boston_project_scorecard_reports (
     ude_error_rate double precision,
     income_and_housing_error_rate double precision,
     invoicing integer,
-    application_budget double precision,
-    proposed_households_served integer,
-    proposal_ftes double precision,
     actual_households_served integer,
     amount_agency_spent double precision,
     returned_funds double precision,
@@ -2251,7 +2248,8 @@ CREATE TABLE public.boston_project_scorecard_reports (
     practices_housing_first boolean,
     vulnerable_subpopulations_served jsonb,
     barrier_id_process boolean,
-    plan_to_address_barriers boolean
+    plan_to_address_barriers boolean,
+    contracted_budget double precision
 );
 
 
@@ -50137,6 +50135,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220818173333'),
 ('20220819184832'),
 ('20220822182146'),
-('20220824155726');
+('20220824155726'),
+('20220824194239');
 
 

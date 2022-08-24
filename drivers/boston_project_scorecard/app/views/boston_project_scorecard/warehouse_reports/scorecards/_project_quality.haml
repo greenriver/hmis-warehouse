@@ -30,9 +30,10 @@
       %td= f.input :independent_living_notes, as: :text, label: false, **@report.field_input_options(:independent_living_notes, current_user)
     %tr
       %td
-        Applicant has been unwilling to accept technical assistance, has a history of inadequate financial accounting
-        practices, has indications of project mismanagement, has a drastic reduction in the population served, has made
-        program changes without prior HUD approval, or has lost a project site
+        Applicant has been willing to accept technical assistance if one of the following has been an issue; a history
+        of inadequate financial accounting practices, indications of project mismanagement, a drastic reduction in the
+        population served, made program changes without prior HUD approval, or has lost a project site.
+        (Pass if the applicant has not had issues and no technical assistance was needed.)
       %td= f.input :management_oversight_pass, as: :pretty_boolean, label: false, **@report.field_input_options(:management_oversight_pass, current_user)
       %td= f.input :management_oversight_notes, as: :text, label: false, **@report.field_input_options(:management_oversight_notes, current_user)
     %tr
