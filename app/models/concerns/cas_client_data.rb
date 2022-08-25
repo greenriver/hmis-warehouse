@@ -30,7 +30,7 @@ module CasClientData
     def self.cas_columns_data
       @cas_columns_data ||= {
         disability_verified_on: { title: _('Disability Verification on File'), description: 'Date disability verification file was uploaded' },
-        housing_release_status: { title: _('Housing Release Status'), description: 'What is the client\'s release status?' },
+        housing_release_status: { title: _('Housing Release Status'), description: 'Release status is governed by uploaded files' },
         full_housing_release: { title: _('Full HAN Release on File'), description: 'Does the client have a full release on file?' },
         limited_cas_release: { title: _('Limited CAS Release on File'), description: 'Does the client have a partial release on file?' },
         sync_with_cas: { title: _('Available for matching in CAS'), description: "Based on the chosen method for sending client\'s to CAS. Curently: #{GrdaWarehouse::Config.available_cas_methods.invert[GrdaWarehouse::Config.get(:cas_available_method).to_sym]}" },
