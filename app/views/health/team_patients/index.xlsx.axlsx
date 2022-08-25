@@ -1,0 +1,10 @@
+wb = xlsx_package.workbook
+wb.add_worksheet(name: "Tracking Sheet") do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+  headers = @tracking_sheet.row(@patients.first).keys
+  sheet.add_row(headers, :style => title)
+  @patients.each do |p|
+    values = @tracking_sheet.row(p).values
+    sheet.add_row(values, types: [:string] + [nil] * (values.count - 1))
+  end
+end
