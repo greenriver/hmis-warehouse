@@ -82,8 +82,8 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     scope = scope.where(c_t[:SSN].matches("%#{input.ssn_serial}")) if input.ssn_serial.present?
     scope = scope.where(c_t[:DOB].eq(Date.parse(input.dob))) if input.dob.present?
 
-    # TODO: projects
-    # TODO: organizations
+    scope = scope.joins(:projects).merge(Hmis::Hud::Project.viewable_by(user).where(id: input.projects)) if input.projects.present?
+    scope = scope.joins(projects: :organization).merge(Hmis::Hud::Organization.viewable_by(user).where(id: input.organizations)) if input.organizations.present?
 
     Hmis::Hud::Client.where(id: scope.select(:id))
   end
