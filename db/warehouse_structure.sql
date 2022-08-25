@@ -518,7 +518,8 @@ CREATE TABLE public."Client" (
     health_housing_navigator_id bigint,
     preferred_name character varying,
     pronouns character varying,
-    sexual_orientation character varying
+    sexual_orientation character varying,
+    encampment_decomissioned boolean DEFAULT false NOT NULL
 );
 
 
@@ -2197,6 +2198,83 @@ ALTER SEQUENCE public.bo_configs_id_seq OWNED BY public.bo_configs.id;
 
 
 --
+-- Name: boston_project_scorecard_reports; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.boston_project_scorecard_reports (
+    id bigint NOT NULL,
+    project_id bigint,
+    project_group_id bigint,
+    status character varying DEFAULT 'pending'::character varying,
+    user_id bigint,
+    start_date date NOT NULL,
+    end_date date NOT NULL,
+    apr_id bigint,
+    project_type integer,
+    period_start_date date,
+    period_end_date date,
+    secondary_reviewer_id bigint,
+    started_at timestamp without time zone,
+    completed_at timestamp without time zone,
+    sent_at timestamp without time zone,
+    deleted_at timestamp without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    initial_goals_pass boolean,
+    initial_goals_notes character varying,
+    timeliness_pass boolean,
+    timeliness_notes character varying,
+    independent_living_pass boolean,
+    independent_living_notes character varying,
+    management_oversight_pass boolean,
+    management_oversight_notes character varying,
+    prioritization_pass boolean,
+    prioritization_notes character varying,
+    rrh_exits_to_ph double precision,
+    psh_stayers_or_to_ph double precision,
+    increased_stayer_employment_income double precision,
+    increased_stayer_other_income double precision,
+    increased_leaver_employment_income double precision,
+    increased_leaver_other_income double precision,
+    days_to_lease_up integer,
+    pii_error_rate double precision,
+    ude_error_rate double precision,
+    income_and_housing_error_rate double precision,
+    invoicing integer,
+    actual_households_served integer,
+    amount_agency_spent double precision,
+    returned_funds double precision,
+    average_utilization_rate double precision,
+    subpopulations_served jsonb,
+    practices_housing_first boolean,
+    vulnerable_subpopulations_served jsonb,
+    barrier_id_process boolean,
+    plan_to_address_barriers boolean,
+    contracted_budget double precision,
+    archive character varying
+);
+
+
+--
+-- Name: boston_project_scorecard_reports_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.boston_project_scorecard_reports_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: boston_project_scorecard_reports_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.boston_project_scorecard_reports_id_seq OWNED BY public.boston_project_scorecard_reports.id;
+
+
+--
 -- Name: cas_availabilities; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2763,6 +2841,44 @@ ALTER SEQUENCE public.ce_performance_clients_id_seq OWNED BY public.ce_performan
 
 
 --
+-- Name: ce_performance_goals; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.ce_performance_goals (
+    id bigint NOT NULL,
+    coc_code character varying NOT NULL,
+    screening integer DEFAULT 100 NOT NULL,
+    diversion integer DEFAULT 5 NOT NULL,
+    time_in_ce integer DEFAULT 30 NOT NULL,
+    time_to_referral integer DEFAULT 5 NOT NULL,
+    time_to_housing integer DEFAULT 5 NOT NULL,
+    time_on_list integer DEFAULT 30 NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: ce_performance_goals_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.ce_performance_goals_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: ce_performance_goals_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.ce_performance_goals_id_seq OWNED BY public.ce_performance_goals.id;
+
+
+--
 -- Name: ce_performance_results; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2777,7 +2893,8 @@ CREATE TABLE public.ce_performance_results (
     numerator integer,
     denominator integer,
     deleted_at timestamp without time zone,
-    event_type integer
+    event_type integer,
+    goal integer
 );
 
 
@@ -3882,7 +3999,9 @@ CREATE TABLE public.configs (
     client_dashboard character varying DEFAULT 'default'::character varying NOT NULL,
     require_service_for_reporting_default boolean DEFAULT true NOT NULL,
     verified_homeless_history_method character varying DEFAULT 'visible_in_window'::character varying,
-    supplemental_enrollment_importer character varying DEFAULT 'GrdaWarehouse::Tasks::EnrollmentExtrasImport'::character varying
+    supplemental_enrollment_importer character varying DEFAULT 'GrdaWarehouse::Tasks::EnrollmentExtrasImport'::character varying,
+    youth_hoh_cohort boolean DEFAULT false NOT NULL,
+    youth_hoh_cohort_project_group_id integer
 );
 
 
@@ -4800,7 +4919,10 @@ CREATE TABLE public.exports (
     file character varying,
     delayed_job_id integer,
     version character varying,
-    confidential boolean DEFAULT false NOT NULL
+    confidential boolean DEFAULT false NOT NULL,
+    started_at timestamp without time zone,
+    completed_at timestamp without time zone,
+    options jsonb
 );
 
 
@@ -19069,6 +19191,13 @@ ALTER TABLE ONLY public.bo_configs ALTER COLUMN id SET DEFAULT nextval('public.b
 
 
 --
+-- Name: boston_project_scorecard_reports id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.boston_project_scorecard_reports ALTER COLUMN id SET DEFAULT nextval('public.boston_project_scorecard_reports_id_seq'::regclass);
+
+
+--
 -- Name: cas_availabilities id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -19150,6 +19279,13 @@ ALTER TABLE ONLY public.ce_performance_ce_aprs ALTER COLUMN id SET DEFAULT nextv
 --
 
 ALTER TABLE ONLY public.ce_performance_clients ALTER COLUMN id SET DEFAULT nextval('public.ce_performance_clients_id_seq'::regclass);
+
+
+--
+-- Name: ce_performance_goals id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ce_performance_goals ALTER COLUMN id SET DEFAULT nextval('public.ce_performance_goals_id_seq'::regclass);
 
 
 --
@@ -21792,6 +21928,14 @@ ALTER TABLE ONLY public.bo_configs
 
 
 --
+-- Name: boston_project_scorecard_reports boston_project_scorecard_reports_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.boston_project_scorecard_reports
+    ADD CONSTRAINT boston_project_scorecard_reports_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: cas_availabilities cas_availabilities_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -21885,6 +22029,14 @@ ALTER TABLE ONLY public.ce_performance_ce_aprs
 
 ALTER TABLE ONLY public.ce_performance_clients
     ADD CONSTRAINT ce_performance_clients_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: ce_performance_goals ce_performance_goals_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ce_performance_goals
+    ADD CONSTRAINT ce_performance_goals_pkey PRIMARY KEY (id);
 
 
 --
@@ -40290,6 +40442,41 @@ CREATE INDEX index_assessment_answer_lookups_on_response_code ON public.assessme
 
 
 --
+-- Name: index_boston_project_scorecard_reports_on_apr_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_boston_project_scorecard_reports_on_apr_id ON public.boston_project_scorecard_reports USING btree (apr_id);
+
+
+--
+-- Name: index_boston_project_scorecard_reports_on_project_group_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_boston_project_scorecard_reports_on_project_group_id ON public.boston_project_scorecard_reports USING btree (project_group_id);
+
+
+--
+-- Name: index_boston_project_scorecard_reports_on_project_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_boston_project_scorecard_reports_on_project_id ON public.boston_project_scorecard_reports USING btree (project_id);
+
+
+--
+-- Name: index_boston_project_scorecard_reports_on_secondary_reviewer_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_boston_project_scorecard_reports_on_secondary_reviewer_id ON public.boston_project_scorecard_reports USING btree (secondary_reviewer_id);
+
+
+--
+-- Name: index_boston_project_scorecard_reports_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_boston_project_scorecard_reports_on_user_id ON public.boston_project_scorecard_reports USING btree (user_id);
+
+
+--
 -- Name: index_cas_availabilities_on_available_at; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -49937,6 +50124,22 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220715194241'),
 ('20220718185442'),
 ('20220801135734'),
-('20220804160252');
+('20220804160252'),
+('20220811205630'),
+('20220812193159'),
+('20220815134022'),
+('20220815140216'),
+('20220816194756'),
+('20220816204223'),
+('20220816205217'),
+('20220817193604'),
+('20220818155829'),
+('20220818173333'),
+('20220819184832'),
+('20220822182146'),
+('20220824150945'),
+('20220824155726'),
+('20220824194239'),
+('20220824202625');
 
 
