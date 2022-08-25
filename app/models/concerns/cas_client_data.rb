@@ -114,6 +114,7 @@ module CasClientData
         :rrh_desired,
         :youth_rrh_desired,
         :tc_hat_additional_days_homeless,
+        :encampment_decomissioned,
         neighborhood_interests: [],
       ]
     end

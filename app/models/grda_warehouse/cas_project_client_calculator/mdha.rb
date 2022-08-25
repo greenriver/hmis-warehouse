@@ -54,8 +54,9 @@ module GrdaWarehouse::CasProjectClientCalculator
     end
 
     private def match_group(client)
-      # TODO: return 1 if client has encampment decomissioning flag, once we have that data
-      if client.veteran?
+      if client.encampment_decomissioned?
+        1
+      elsif client.veteran?
         2
       else
         3
