@@ -12,42 +12,7 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
 
   belongs_to :enrollment, **hmis_relation(:EnrollmentID, 'Enrollment')
 
-  def self.assessment_types_enum_map
-    Hmis::FieldMap.new(
-      ::HUD.assessment_types.map do |value, desc|
-        {
-          key: desc,
-          value: value,
-          desc: desc,
-        }
-      end,
-      include_base_null: false,
-    )
-  end
-
-  def self.assessment_levels_enum_map
-    Hmis::FieldMap.new(
-      ::HUD.assessment_levels.map do |value, desc|
-        {
-          key: desc,
-          value: value,
-          desc: desc,
-        }
-      end,
-      include_base_null: false,
-    )
-  end
-
-  def self.prioritization_statuses_enum_map
-    Hmis::FieldMap.new(
-      ::HUD.prioritization_statuses.map do |value, desc|
-        {
-          key: desc,
-          value: value,
-          desc: desc,
-        }
-      end,
-      include_base_null: false,
-    )
-  end
+  use_enum :assessment_types_enum_map, ::HUD.assessment_types
+  use_enum :assessment_levels_enum_map, ::HUD.assessment_levels
+  use_enum :prioritization_statuses_enum_map, ::HUD.prioritization_statuses
 end

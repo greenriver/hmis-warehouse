@@ -107,48 +107,19 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     dob_data_quality_enum_map: ::HUD.dob_data_quality_options,
     gender_enum_map: ::HUD.genders,
   }.each do |name, options_hash|
-    define_singleton_method(name) do
-      Hmis::FieldMap.new(
-        options_hash.map do |value, desc|
-          {
-            key: desc,
-            value: value,
-            desc: desc,
-            null: [8, 9, 99].include?(value),
-          }
-        end,
-        include_base_null: false,
-      )
-    end
-  end
-
-  def self.race_enum_map
-    Hmis::FieldMap.new(
-      ::HUD.races.except('RaceNone').map do |field, desc|
-        {
-          key: field,
-          value: field,
-          desc: desc,
-        }
-      end,
-      include_base_null: true,
-    )
-  end
-
-  def self.ethnicity_enum_map
-    Hmis::FieldMap.new(
-      ::HUD.ethnicities.slice(0, 1).map do |value, desc|
+    use_enum(name, options_hash) do |hash|
+      hash.map do |value, desc|
         {
           key: desc,
           value: value,
           desc: desc,
+          null: [8, 9, 99].include?(value),
         }
-      end,
-      include_base_null: true,
-    )
+      end
+    end
   end
 
-  def self.veteran_status_enum_map
-    Hmis::FieldMap.no_yes_reasons
-  end
+  use_enum :race_enum_map, ::HUD.races.except('RaceNone'), include_base_null: true
+  use_enum :ethnicity_enum_map, ::HUD.ethnicities.slice(0, 1), include_base_null: true
+  use_common_enum :veteran_status_enum_map, :no_yes_reasons
 end

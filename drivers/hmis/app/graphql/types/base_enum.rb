@@ -12,7 +12,7 @@ module Types
 
     def self.with_enum_map(enum_map, prefix: '')
       enum_map.members.each do |member|
-        member_values = member
+        member_values = member.dup
         member_values[:key] = "#{prefix}#{member[:key]}"
         member_values[:desc] = "(#{member_values[:value]}) #{member_values[:desc]}"
         member_values = yield member if block_given?

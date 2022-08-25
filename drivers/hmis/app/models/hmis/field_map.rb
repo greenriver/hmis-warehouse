@@ -22,7 +22,7 @@ class Hmis::FieldMap
 
   attr_reader :members, :base_members, :null_members
 
-  def initialize(members, include_base_null: true)
+  def initialize(members, include_base_null: false)
     @base_members = members.reject { |v| v[:null] }
     @null_members = members.select { |v| v[:null] }
     @null_members = [*@null_members, *BASE_NULL_VALUES] if include_base_null
@@ -66,6 +66,7 @@ class Hmis::FieldMap
           desc: desc,
         }
       end,
+      include_base_null: true,
     )
   end
 
@@ -78,7 +79,6 @@ class Hmis::FieldMap
           desc: desc,
         }
       end,
-      include_base_null: false,
     )
   end
 
@@ -91,7 +91,6 @@ class Hmis::FieldMap
           desc: desc,
         }
       end,
-      include_base_null: false,
     )
   end
 end

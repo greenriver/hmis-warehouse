@@ -12,37 +12,8 @@ class Hmis::Hud::Event < Hmis::Hud::Base
 
   belongs_to :enrollment, **hmis_relation(:EnrollmentID, 'Enrollment')
 
-  def self.events_enum_map
-    Hmis::FieldMap.new(
-      ::HUD.events.map do |value, desc|
-        {
-          key: desc,
-          value: value,
-          desc: desc,
-        }
-      end,
-      include_base_null: false,
-    )
-  end
-
-  def self.referral_result_enum_map
-    Hmis::FieldMap.new(
-      ::HUD.referral_results.map do |value, desc|
-        {
-          key: desc,
-          value: value,
-          desc: desc,
-        }
-      end,
-      include_base_null: false,
-    )
-  end
-
-  def self.prob_sol_div_rr_result_enum_map
-    Hmis::FieldMap.yes_no_missing
-  end
-
-  def self.referral_case_manage_after_enum_map
-    Hmis::FieldMap.yes_no_missing
-  end
+  use_enum :events_enum_map, ::HUD.events
+  use_enum :referral_result_enum_map, ::HUD.referral_results
+  use_common_enum :prob_sol_div_rr_result_enum_map, :yes_no_missing
+  use_common_enum :referral_case_manage_after_enum_map, :yes_no_missing
 end
