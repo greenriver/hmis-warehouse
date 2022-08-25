@@ -1,17 +1,24 @@
+- description = GrdaWarehouse::Tasks::PushClientsToCas.new.description_display_for(:disability_verified_on)
+
 %section.o-section-card
   %h3 Disability Verification
   .c-card.c-card--block.c-card--padded.c-card--flush
+    - if description.present?
+      %p= description
     .d-flex.flex-wrap
       %p
-        = checkmark_or_x(@client.disability_verified_on.present?)
-        Disability Verification On File
-        - if @client.disability_verification_sources.exists?
+        .mb-1
+          - confirmed = @client.disability_verified_on.present?
+          = checkmark_or_x(confirmed)
+        - if !confirmed
+          No Disability Verification on File
+        - elsif @client.disability_verification_sources.exists?
           - @client.disability_verification_sources.each do |v|
             .disability_verification Disability Verified at #{v.location} on #{v.verified_at&.to_date}
         - else
-          %span= GrdaWarehouse::Hud::Client.cas_columns[:disability_verified_on]
-          - tags = GrdaWarehouse::AvailableFileTag.tag_includes('Verification of Disability').map(&:name)
-          - file = @client.client_files.tagged_with(tags, any: true).order(:created_at).last
-          - if file.present?
-            - if file.tag_list.present?
-              = "(#{file.tag_list.join(', ')})"
+          .disability_verification= "Disability Verified on #{@client.disability_verified_on.to_date}"
+          - tags = @client.cas_attributes_file_tag_map[:disability_verified_on]
+          -# Use same sort order as disability_verified_on (set in sync_cas_attributes_with_files)
+          - file = @client.client_files.tagged_with(tags, any: true).order(updated_at: :desc).first
+          - if file&.tag_list.present?
+            .ml-2= "(#{file.tag_list.join(', ')})"

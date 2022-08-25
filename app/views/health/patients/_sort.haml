@@ -9,4 +9,4 @@
           - title = "<span class='icon-checkbox-checked'></span> #{opt[:title]}".html_safe
         - else
           - title = "<span class='icon-checkbox-unchecked'></span> #{opt[:title]}".html_safe
-        %li= sort_as_link(title, opt[:column], opt[:direction])
+        %li= sort_as_link(title, opt[:column], opt[:direction], [:entity_id])
