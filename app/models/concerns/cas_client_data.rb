@@ -174,6 +174,12 @@ module CasClientData
       active_by_data || sync_with_cas
     end
 
+    # If we aren't using the manual CAS flag method of sync-ing, but have marked the client
+    # as "force sync", then also force make them available
+    def force_remove_unavailable_fors
+      GrdaWarehouse::Config.get(:cas_available_method).to_sym != :cas_flag && sync_with_cas
+    end
+
     def inactivate_in_cas
       update(sync_with_cas: false)
     end

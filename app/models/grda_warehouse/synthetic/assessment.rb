@@ -61,6 +61,7 @@ module GrdaWarehouse::Synthetic
 
     def hud_assessment_hash
       return nil unless enrollment.present? &&
+        source.present? &&
         assessment_date.present? &&
         assessment_location.present? &&
         assessment_type.present? &&

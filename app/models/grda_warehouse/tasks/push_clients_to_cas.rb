@@ -158,6 +158,7 @@ module GrdaWarehouse::Tasks
         domestic_violence: :domestic_violence?,
         disability_verified_on: :disability_verified_on,
         sync_with_cas: :active_in_cas?,
+        force_remove_unavailable_fors: :force_remove_unavailable_fors,
         dmh_eligible: :dmh_eligible,
         va_eligible: :va_eligible,
         hues_eligible: :hues_eligible,

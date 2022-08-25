@@ -2183,7 +2183,6 @@ Style/RegexpLiteral:
   Exclude:
     - 'app/controllers/concerns/warehouse_report_authorization.rb'
     - 'app/controllers/warehouse_reports/health/completed_contact_tracing_controller.rb'
-    - 'app/models/eto_api/base.rb'
     - 'app/models/grda_warehouse/us_census_api/is_a_database_view.rb'
     - 'lib/rds_sql_server/lsa/fy2018/lsa_queries.rb'
 
@@ -2325,7 +2324,6 @@ Style/StringLiterals:
     - 'app/models/health/sdh_case_management_note.rb'
     - 'app/models/health/ssm_export.rb'
     - 'app/models/health/transaction_acknowledgement.rb'
-    - 'app/models/health/user_care_coordinator.rb'
     - 'app/models/report_generators/data_quality/fy2017/q3.rb'
     - 'app/models/report_generators/lsa/fy2018/all.rb'
     - 'app/models/report_generators/lsa/fy2019/all.rb'

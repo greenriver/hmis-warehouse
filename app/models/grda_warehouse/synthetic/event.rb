@@ -82,6 +82,7 @@ module GrdaWarehouse::Synthetic
 
     def hud_event_hash
       return nil unless enrollment.present? &&
+        source.present? &&
         event_date.present? &&
         event.present?
 
