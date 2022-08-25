@@ -10,7 +10,7 @@ RSpec.shared_context '2022 multi-enrollment tests', shared_context: :metadata do
   end
 
   def involved_enrollments
-    GrdaWarehouse::Hud::Enrollment.where(ProjectID: involved_projects.select(:ProjectID))
+    GrdaWarehouse::Hud::Enrollment.order(id: :asc).where(ProjectID: involved_projects.select(:ProjectID))
   end
 
   def involved_clients

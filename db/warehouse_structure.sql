@@ -518,7 +518,8 @@ CREATE TABLE public."Client" (
     health_housing_navigator_id bigint,
     preferred_name character varying,
     pronouns character varying,
-    sexual_orientation character varying
+    sexual_orientation character varying,
+    encampment_decomissioned boolean DEFAULT false NOT NULL
 );
 
 
@@ -2763,6 +2764,44 @@ ALTER SEQUENCE public.ce_performance_clients_id_seq OWNED BY public.ce_performan
 
 
 --
+-- Name: ce_performance_goals; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.ce_performance_goals (
+    id bigint NOT NULL,
+    coc_code character varying NOT NULL,
+    screening integer DEFAULT 100 NOT NULL,
+    diversion integer DEFAULT 5 NOT NULL,
+    time_in_ce integer DEFAULT 30 NOT NULL,
+    time_to_referral integer DEFAULT 5 NOT NULL,
+    time_to_housing integer DEFAULT 5 NOT NULL,
+    time_on_list integer DEFAULT 30 NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: ce_performance_goals_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.ce_performance_goals_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: ce_performance_goals_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.ce_performance_goals_id_seq OWNED BY public.ce_performance_goals.id;
+
+
+--
 -- Name: ce_performance_results; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2777,7 +2816,8 @@ CREATE TABLE public.ce_performance_results (
     numerator integer,
     denominator integer,
     deleted_at timestamp without time zone,
-    event_type integer
+    event_type integer,
+    goal integer
 );
 
 
@@ -3882,7 +3922,9 @@ CREATE TABLE public.configs (
     client_dashboard character varying DEFAULT 'default'::character varying NOT NULL,
     require_service_for_reporting_default boolean DEFAULT true NOT NULL,
     verified_homeless_history_method character varying DEFAULT 'visible_in_window'::character varying,
-    supplemental_enrollment_importer character varying DEFAULT 'GrdaWarehouse::Tasks::EnrollmentExtrasImport'::character varying
+    supplemental_enrollment_importer character varying DEFAULT 'GrdaWarehouse::Tasks::EnrollmentExtrasImport'::character varying,
+    youth_hoh_cohort boolean DEFAULT false NOT NULL,
+    youth_hoh_cohort_project_group_id integer
 );
 
 
@@ -4800,7 +4842,10 @@ CREATE TABLE public.exports (
     file character varying,
     delayed_job_id integer,
     version character varying,
-    confidential boolean DEFAULT false NOT NULL
+    confidential boolean DEFAULT false NOT NULL,
+    started_at timestamp without time zone,
+    completed_at timestamp without time zone,
+    options jsonb
 );
 
 
@@ -19153,6 +19198,13 @@ ALTER TABLE ONLY public.ce_performance_clients ALTER COLUMN id SET DEFAULT nextv
 
 
 --
+-- Name: ce_performance_goals id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ce_performance_goals ALTER COLUMN id SET DEFAULT nextval('public.ce_performance_goals_id_seq'::regclass);
+
+
+--
 -- Name: ce_performance_results id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -21885,6 +21937,14 @@ ALTER TABLE ONLY public.ce_performance_ce_aprs
 
 ALTER TABLE ONLY public.ce_performance_clients
     ADD CONSTRAINT ce_performance_clients_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: ce_performance_goals ce_performance_goals_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ce_performance_goals
+    ADD CONSTRAINT ce_performance_goals_pkey PRIMARY KEY (id);
 
 
 --
@@ -49937,6 +49997,13 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220715194241'),
 ('20220718185442'),
 ('20220801135734'),
-('20220804160252');
+('20220804160252'),
+('20220811205630'),
+('20220815134022'),
+('20220815140216'),
+('20220816194756'),
+('20220816204223'),
+('20220816205217'),
+('20220824150945');
 
 
