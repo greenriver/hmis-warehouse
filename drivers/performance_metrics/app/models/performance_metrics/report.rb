@@ -262,6 +262,10 @@ module PerformanceMetrics
       end
     end
 
+    def describe_filter_as_html
+      filter.describe_filter_as_html(filter.all_known_keys.reject { |k| k.in?([:on, :lsa_scope]) })
+    end
+
     private def to_comparison
       @original_filter = @filter
       @filter = filter.to_comparison

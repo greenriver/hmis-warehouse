@@ -77,6 +77,10 @@ module IncomeBenefitsReport
       end
     end
 
+    def describe_filter_as_html
+      filter.describe_filter_as_html(filter.all_known_keys.reject { |k| k.in?([:on, :lsa_scope]) })
+    end
+
     def to_comparison
       comparison = dup
       comparison.filter = filter.to_comparison

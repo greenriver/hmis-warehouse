@@ -259,6 +259,10 @@ module Filters
       ]
     end
 
+    def all_known_keys
+      known_params.map { |k| if k.is_a?(Hash) then k.keys else k end }.flatten
+    end
+
     def selected_params_for_display(single_date: false)
       {}.tap do |opts|
         if single_date
@@ -809,6 +813,8 @@ module Filters
         'Times Homeless in Past 3 Years'
       when :lsa_scope
         'LSA Scope'
+      when :cohort_ids
+        'Cohorts'
       end
 
       return unless value.present?
@@ -876,6 +882,8 @@ module Filters
         chosen_times_homeless_in_last_three_years
       when :lsa_scope
         chosen_lsa_scope
+      when :cohort_ids
+        cohorts
       end
     end
 
