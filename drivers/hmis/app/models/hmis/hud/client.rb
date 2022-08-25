@@ -101,46 +101,25 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     end
   end
 
-  def self.name_data_quality_enum_map
-    Hmis::FieldMap.new(
-      ::HUD.name_data_quality_options.map do |value, desc|
-        {
-          key: desc,
-          value: value,
-          desc: desc,
-          null: [8, 9, 99].include?(value),
-        }
-      end,
-      include_base_null: false,
-    )
-  end
-
-  def self.ssn_data_quality_enum_map
-    Hmis::FieldMap.new(
-      ::HUD.ssn_data_quality_options.map do |value, desc|
-        {
-          key: desc,
-          value: value,
-          desc: desc,
-          null: [8, 9, 99].include?(value),
-        }
-      end,
-      include_base_null: false,
-    )
-  end
-
-  def self.dob_data_quality_enum_map
-    Hmis::FieldMap.new(
-      ::HUD.dob_data_quality_options.map do |value, desc|
-        {
-          key: desc,
-          value: value,
-          desc: desc,
-          null: [8, 9, 99].include?(value),
-        }
-      end,
-      include_base_null: false,
-    )
+  {
+    name_data_quality_enum_map: ::HUD.name_data_quality_options,
+    ssn_data_quality_enum_map: ::HUD.ssn_data_quality_options,
+    dob_data_quality_enum_map: ::HUD.dob_data_quality_options,
+    gender_enum_map: ::HUD.genders,
+  }.each do |name, options_hash|
+    define_singleton_method(name) do
+      Hmis::FieldMap.new(
+        options_hash.map do |value, desc|
+          {
+            key: desc,
+            value: value,
+            desc: desc,
+            null: [8, 9, 99].include?(value),
+          }
+        end,
+        include_base_null: false,
+      )
+    end
   end
 
   def self.race_enum_map
@@ -156,20 +135,6 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     )
   end
 
-  def self.gender_enum_map
-    Hmis::FieldMap.new(
-      ::HUD.genders.map do |value, desc|
-        {
-          key: desc,
-          value: value,
-          desc: desc,
-          null: [8, 9, 99].include?(value),
-        }
-      end,
-      include_base_null: false,
-    )
-  end
-
   def self.ethnicity_enum_map
     Hmis::FieldMap.new(
       ::HUD.ethnicities.slice(0, 1).map do |value, desc|
@@ -179,6 +144,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
           desc: desc,
         }
       end,
+      include_base_null: true,
     )
   end
 

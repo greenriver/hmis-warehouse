@@ -335,7 +335,7 @@ module HUD
     {
       0 => 'No',
       1 => 'Yes',
-      99 => 'Data not collected*',
+      99 => 'Data not collected',
     }
   end
 

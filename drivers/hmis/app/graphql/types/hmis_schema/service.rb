@@ -15,10 +15,10 @@ module Types
     field :date_provided, GraphQL::Types::ISO8601Date, null: false
     field :record_type, HmisSchema::Enums::RecordType, null: false
     # field :type_provided
-    # field :other_type_provided
-    # field :moving_on_other_type
+    field :other_type_provided, String, null: true
+    field :moving_on_other_type, String, null: true
     # field :sub_type_provided
-    # field :faa_amount
+    field :faa_amount, Float, null: true
     field :referral_outcome, HmisSchema::Enums::PATHReferralOutcome, null: true
     field :date_created, GraphQL::Types::ISO8601DateTime, null: false
     field :date_updated, GraphQL::Types::ISO8601DateTime, null: false

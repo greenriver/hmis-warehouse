@@ -12,7 +12,7 @@ module Types
     graphql_name 'Gender'
 
     Hmis::Hud::Client.gender_enum_map.members.each do |member|
-      value "GENDER_#{to_enum_key(member[:key])}", member[:desc], value: member[:value]
+      value "GENDER_#{to_enum_key(member[:key])}", "(#{member[:value]}) #{member[:desc]}", value: member[:value]
     end
   end
 end
