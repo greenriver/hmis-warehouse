@@ -1255,6 +1255,15 @@ module GrdaWarehouse::WarehouseReports
           health: false,
         }
       end
+      if RailsDrivers.loaded.include?(:hmis_data_quality_tool)
+        r_list['Data Quality'] << {
+          url: 'hmis_data_quality_tool/warehouse_reports/reports',
+          name: HmisDataQualityTool::Report.new.title,
+          description: HmisDataQualityTool::Report.new.description,
+          limitable: true,
+          health: false,
+        }
+      end
 
       r_list
     end
@@ -1315,6 +1324,8 @@ module GrdaWarehouse::WarehouseReports
         cleanup << 'ce_performance/warehouse_reports/reports'
         cleanup << 'ce_performance/warehouse_reports/goal_configs'
       end
+      cleanup << 'hmis_data_quality_tool/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:hmis_data_quality_tool)
+
       cleanup.each do |url|
         GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: url).delete_all
       end
