@@ -11,8 +11,6 @@ module Types
     description 'HUD SSN Data Quality'
     graphql_name 'SSNDataQuality'
 
-    Hmis::Hud::Client.ssn_data_quality_enum_map.members.each do |member|
-      value "SSN_#{to_enum_key(member[:key])}", member[:desc], value: member[:value]
-    end
+    with_enum_map Hmis::Hud::Client.ssn_data_quality_enum_map, prefix: 'SSN_'
   end
 end

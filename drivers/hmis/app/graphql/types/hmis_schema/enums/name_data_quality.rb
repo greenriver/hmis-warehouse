@@ -11,8 +11,6 @@ module Types
     description 'HUD Name Data Quality'
     graphql_name 'NameDataQuality'
 
-    Hmis::Hud::Client.name_data_quality_enum_map.members.each do |member|
-      value "NAME_#{to_enum_key(member[:key])}", member[:desc], value: member[:value]
-    end
+    with_enum_map Hmis::Hud::Client.name_data_quality_enum_map, prefix: 'NAME_'
   end
 end

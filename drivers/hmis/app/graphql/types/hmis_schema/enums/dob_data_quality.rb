@@ -11,8 +11,6 @@ module Types
     description 'HUD DOB Data Quality'
     graphql_name 'DOBDataQuality'
 
-    Hmis::Hud::Client.dob_data_quality_enum_map.members.each do |member|
-      value "DOB_#{to_enum_key(member[:key])}", member[:desc], value: member[:value]
-    end
+    with_enum_map Hmis::Hud::Client.dob_data_quality_enum_map, prefix: 'DOB_'
   end
 end

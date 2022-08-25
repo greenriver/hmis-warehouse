@@ -15,7 +15,7 @@ class Hmis::Hud::Service < Hmis::Hud::Base
 
   def self.record_type_enum_map
     Hmis::FieldMap.new(
-      ::HUD.races.map do |field, desc|
+      ::HUD.record_types.map do |field, desc|
         next if desc == 'Contact' # ::HUD indicates that these were removed
 
         {
@@ -23,7 +23,7 @@ class Hmis::Hud::Service < Hmis::Hud::Base
           value: field,
           desc: desc,
         }
-      end,
+      end.compact,
       include_base_null: false,
     )
   end

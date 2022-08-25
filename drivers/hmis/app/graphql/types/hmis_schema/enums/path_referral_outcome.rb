@@ -11,8 +11,6 @@ module Types
     description 'HUD PATHReferralOutcome'
     graphql_name 'PATHReferralOutcome'
 
-    Hmis::Hud::Service.p_a_t_h_referral_outcome_enum_map.members.each do |member|
-      value to_enum_key(member[:key]), member[:desc], value: member[:value]
-    end
+    with_enum_map Hmis::Hud::Service.p_a_t_h_referral_outcome_enum_map
   end
 end

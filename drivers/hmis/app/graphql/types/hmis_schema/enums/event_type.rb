@@ -11,8 +11,6 @@ module Types
     description 'HUD EventType'
     graphql_name 'EventType'
 
-    Hmis::Hud::Event.events_enum_map.members.each do |member|
-      value to_enum_key(member[:key]), member[:desc], value: member[:value]
-    end
+    with_enum_map Hmis::Hud::Event.events_enum_map
   end
 end

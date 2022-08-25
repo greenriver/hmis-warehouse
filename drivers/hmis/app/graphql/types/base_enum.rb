@@ -9,5 +9,15 @@ module Types
     def self.to_enum_key(value)
       value.to_s.underscore.upcase.gsub(/\W+/, '_')
     end
+
+    def self.with_enum_map(enum_map, prefix: '')
+      enum_map.members.each do |member|
+        member_values = member
+        member_values[:key] = "#{prefix}#{member[:key]}"
+        member_values[:desc] = "(#{member_values[:value]}) #{member_values[:desc]}"
+        member_values = yield member if block_given?
+        value to_enum_key(member_values[:key]), member_values[:desc], value: member_values[:value]
+      end
+    end
   end
 end

@@ -11,8 +11,6 @@ module Types
     description 'HUD ReferralResult'
     graphql_name 'ReferralResult'
 
-    Hmis::Hud::Event.referral_result_enum_map.members.each do |member|
-      value to_enum_key(member[:key]), member[:desc], value: member[:value]
-    end
+    with_enum_map Hmis::Hud::Event.referral_result_enum_map
   end
 end

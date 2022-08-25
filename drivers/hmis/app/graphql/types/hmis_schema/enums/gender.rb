@@ -11,8 +11,6 @@ module Types
     description 'HUD Gender'
     graphql_name 'Gender'
 
-    Hmis::Hud::Client.gender_enum_map.members.each do |member|
-      value "GENDER_#{to_enum_key(member[:key])}", "(#{member[:value]}) #{member[:desc]}", value: member[:value]
-    end
+    with_enum_map Hmis::Hud::Client.gender_enum_map, prefix: 'GENDER_'
   end
 end

@@ -11,8 +11,6 @@ module Types
     description 'HUD Race'
     graphql_name 'Race'
 
-    Hmis::Hud::Client.race_enum_map.members.each do |member|
-      value "RACE_#{to_enum_key(member[:key])}", member[:desc], value: member[:value]
-    end
+    with_enum_map Hmis::Hud::Client.race_enum_map, prefix: 'RACE_'
   end
 end

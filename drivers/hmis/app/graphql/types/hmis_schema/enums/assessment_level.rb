@@ -11,8 +11,6 @@ module Types
     description 'HUD AssessmentLevel'
     graphql_name 'AssessmentLevel'
 
-    Hmis::Hud::Assessment.assessment_levels_enum_map.members.each do |member|
-      value to_enum_key(member[:key]), member[:desc], value: member[:value]
-    end
+    with_enum_map Hmis::Hud::Assessment.assessment_levels_enum_map
   end
 end

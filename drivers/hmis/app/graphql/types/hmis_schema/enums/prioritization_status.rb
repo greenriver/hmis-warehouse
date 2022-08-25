@@ -11,8 +11,6 @@ module Types
     description 'HUD PrioritizationStatus'
     graphql_name 'PrioritizationStatus'
 
-    Hmis::Hud::Assessment.prioritization_statuses_enum_map.members.each do |member|
-      value to_enum_key(member[:key]), member[:desc], value: member[:value]
-    end
+    with_enum_map Hmis::Hud::Assessment.prioritization_statuses_enum_map
   end
 end

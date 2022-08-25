@@ -11,8 +11,6 @@ module Types
     description 'HUD AssessmentType'
     graphql_name 'AssessmentType'
 
-    Hmis::Hud::Assessment.assessment_types_enum_map.members.each do |member|
-      value to_enum_key(member[:key]), member[:desc], value: member[:value]
-    end
+    with_enum_map Hmis::Hud::Assessment.assessment_types_enum_map
   end
 end

@@ -11,8 +11,6 @@ module Types
     description 'HUD RecordType'
     graphql_name 'RecordType'
 
-    Hmis::Hud::Service.record_type_enum_map.members.each do |member|
-      value to_enum_key(member[:key]), member[:desc], value: member[:value]
-    end
+    with_enum_map Hmis::Hud::Service.record_type_enum_map
   end
 end
