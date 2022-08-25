@@ -11,4 +11,33 @@ class Hmis::Hud::Service < Hmis::Hud::Base
   self.sequence_name = "public.\"#{table_name}_id_seq\""
 
   belongs_to :enrollment, **hmis_relation(:EnrollmentID, 'Enrollment')
+  belongs_to :client, **hmis_relation(:PersonalID, 'Client')
+
+  def self.record_type_enum_map
+    Hmis::FieldMap.new(
+      ::HUD.races.map do |field, desc|
+        next if desc == 'Contact' # ::HUD indicates that these were removed
+
+        {
+          key: desc,
+          value: field,
+          desc: desc,
+        }
+      end,
+      include_base_null: false,
+    )
+  end
+
+  def self.p_a_t_h_referral_outcome_enum_map
+    Hmis::FieldMap.new(
+      ::HUD.p_a_t_h_referral_outcome_map.map do |field, desc|
+        {
+          key: desc,
+          value: field,
+          desc: desc,
+        }
+      end,
+      include_base_null: false,
+    )
+  end
 end

@@ -1527,13 +1527,17 @@ module HUD
     _translate map, id, reverse
   end
 
-  # 4.16.A1 / P2.A
-  def p_a_t_h_referral_outcome(id, reverse = false)
-    map = {
+  def p_a_t_h_referral_outcome_map
+    {
       1 => 'Attained',
       2 => 'Not attained',
       3 => 'Unknown',
-    }
+    }.freeze
+  end
+
+  # 4.16.A1 / P2.A
+  def p_a_t_h_referral_outcome(id, reverse = false)
+    map = p_a_t_h_referral_outcome_map
 
     _translate map, id, reverse
   end

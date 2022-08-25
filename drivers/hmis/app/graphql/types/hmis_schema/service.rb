@@ -10,5 +10,30 @@ module Types
   class HmisSchema::Service < Types::BaseObject
     description 'HUD Service'
     field :id, ID, null: false
+    field :enrollment, Types::HmisSchema::Enrollment, null: false
+    field :client, HmisSchema::Client, null: false
+    field :date_provided, GraphQL::Types::ISO8601Date, null: false
+    field :record_type, HmisSchema::Enums::RecordType, null: false
+    # field :type_provided
+    # field :other_type_provided
+    # field :moving_on_other_type
+    # field :sub_type_provided
+    # field :faa_amount
+    field :referral_outcome, HmisSchema::Enums::PATHReferralOutcome, null: true
+    field :date_created, GraphQL::Types::ISO8601DateTime, null: false
+    field :date_updated, GraphQL::Types::ISO8601DateTime, null: false
+    field :date_deleted, GraphQL::Types::ISO8601DateTime, null: false
+    # field :user, HmisSchema::User, null: false
+    # field :export, HmisSchema::Export, null: false
+
+    # TODO: Add user type?
+    # def user
+    #   load_ar_association(object, :user)
+    # end
+
+    # TODO: Add export type?
+    # def export
+    #   load_ar_association(object, :export)
+    # end
   end
 end
