@@ -22,7 +22,7 @@ module Types
     field :referral_outcome, HmisSchema::Enums::PATHReferralOutcome, null: true
     field :date_created, GraphQL::Types::ISO8601DateTime, null: false
     field :date_updated, GraphQL::Types::ISO8601DateTime, null: false
-    field :date_deleted, GraphQL::Types::ISO8601DateTime, null: false
+    field :date_deleted, GraphQL::Types::ISO8601DateTime, null: true
     # field :user, HmisSchema::User, null: false
     # field :export, HmisSchema::Export, null: false
 

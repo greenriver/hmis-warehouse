@@ -8,7 +8,7 @@ type Assessment {
   assessmentType: AssessmentType!
   client: Client!
   dateCreated: ISO8601DateTime!
-  dateDeleted: ISO8601DateTime!
+  dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
   enrollment: Enrollment!
   id: ID!
@@ -272,7 +272,7 @@ HUD Event
 type Event {
   client: Client!
   dateCreated: ISO8601DateTime!
-  dateDeleted: ISO8601DateTime!
+  dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
   enrollment: Enrollment!
   event: EventType!
@@ -913,7 +913,7 @@ HUD Service
 type Service {
   client: Client!
   dateCreated: ISO8601DateTime!
-  dateDeleted: ISO8601DateTime!
+  dateDeleted: ISO8601DateTime
   dateProvided: ISO8601Date!
   dateUpdated: ISO8601DateTime!
   enrollment: Enrollment!

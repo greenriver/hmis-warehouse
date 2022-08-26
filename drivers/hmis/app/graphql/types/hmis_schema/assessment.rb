@@ -19,7 +19,7 @@ module Types
     field :prioritization_status, HmisSchema::Enums::PrioritizationStatus, null: false
     field :date_created, GraphQL::Types::ISO8601DateTime, null: false
     field :date_updated, GraphQL::Types::ISO8601DateTime, null: false
-    field :date_deleted, GraphQL::Types::ISO8601DateTime, null: false
+    field :date_deleted, GraphQL::Types::ISO8601DateTime, null: true
     # field :user, HmisSchema::User, null: false
 
     def client
