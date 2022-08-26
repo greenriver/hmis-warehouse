@@ -1295,8 +1295,8 @@ module HUD
   end
 
   # 4.14.A / P1.2
-  def p_a_t_h_services(id, reverse = false)
-    map = {
+  def p_a_t_h_services_map
+    {
       1 => 'Re-engagement',
       2 => 'Screening',
       3 => 'Habilitation/rehabilitation',
@@ -1310,14 +1310,18 @@ module HUD
       11 => 'Security deposits',
       12 => 'One-time rent for eviction prevention',
       14 => 'Clinical assessment',
-    }
+    }.freeze
+  end
+
+  def p_a_t_h_services(id, reverse = false)
+    map = p_a_t_h_services_map
 
     _translate map, id, reverse
   end
 
   # 4.14.B / R14.2
-  def r_h_y_services(id, reverse = false)
-    map = {
+  def r_h_y_services_map
+    {
       # 1 => 'Basic support services',
       2 => 'Community service/service learning (CSL)',
       # 3 => 'Counseling/therapy',
@@ -1347,14 +1351,18 @@ module HUD
       27 => 'Post-natal newborn care (wellness exams; immunizations)',
       28 => 'STD Testing',
       29 => 'Street-based Services',
-    }
+    }.freeze
+  end
+
+  def r_h_y_services(id, reverse = false)
+    map = r_h_y_services_map
 
     _translate map, id, reverse
   end
 
   # 4.14.C, W1.2
-  def h_o_p_w_a_services(id, reverse = false)
-    map = {
+  def h_o_p_w_a_services_map
+    {
       1 => 'Adult day care and personal assistance',
       2 => 'Case management',
       3 => 'Child care',
@@ -1369,21 +1377,29 @@ module HUD
       12 => 'Substance abuse services/treatment',
       13 => 'Transportation',
       14 => 'Other HOPWA funded service',
-    }
+    }.freeze
+  end
+
+  def h_o_p_w_a_services(id, reverse = false)
+    map = h_o_p_w_a_services_map
 
     _translate map, id, reverse
   end
 
   # 4.14.D / V2.2
-  def s_s_v_f_services(id, reverse = false)
-    map = {
+  def s_s_v_f_services_map
+    {
       1 => 'Outreach services',
       2 => 'Case management services',
       3 => 'Assistance obtaining VA benefits',
       4 => 'Assistance obtaining/coordinating other public benefits',
       5 => 'Direct provision of other public benefits',
       6 => 'Other (non-TFA) supportive service approved by VA',
-    }
+    }.freeze
+  end
+
+  def s_s_v_f_services(id, reverse = false)
+    map = s_s_v_f_services_map
 
     _translate map, id, reverse
   end
@@ -1441,30 +1457,38 @@ module HUD
   end
 
   # 4.15.A / W2.3
-  def h_o_p_w_a_financial_assistance(id, reverse = false)
-    map = {
+  def h_o_p_w_a_financial_assistance_map
+    {
       1 => 'Rental assistance',
       2 => 'Security deposits',
       3 => 'Utility deposits',
       4 => 'Utility payments',
       7 => 'Mortgage assistance',
-    }
+    }.freeze
+  end
+
+  def h_o_p_w_a_financial_assistance(id, reverse = false)
+    map = h_o_p_w_a_financial_assistance_map
 
     _translate map, id, reverse
   end
 
   # 4.14
-  def bed_night(id, reverse = false)
-    map = {
+  def bed_night_map
+    {
       200 => 'BedNight',
-    }
+    }.freeze
+  end
+
+  def bed_night(id, reverse = false)
+    map = bed_night_map
 
     _translate map, id, reverse
   end
 
   # 4.15.B / V3.3
-  def s_s_v_f_financial_assistance(id, reverse = false)
-    map = {
+  def s_s_v_f_financial_assistance_map
+    {
       1 => 'Rental assistance',
       2 => 'Security deposit',
       3 => 'Utility deposit',
@@ -1478,12 +1502,32 @@ module HUD
       14 => 'Emergency housing assistance',
       15 => 'Extended Shallow Subsidy - Rental Assistance',
       16 => 'Food Assistance',
-    }
+    }.freeze
+  end
+
+  def s_s_v_f_financial_assistance(id, reverse = false)
+    map = s_s_v_f_financial_assistance_map
 
     _translate map, id, reverse
   end
 
   # 4.16.A / P2.2
+  def p_a_t_h_referral_map
+    {
+      1 => 'Community mental health',
+      2 => 'Substance use treatment',
+      3 => 'Primary health/dental care',
+      4 => 'Job training',
+      5 => 'Educational services',
+      6 => 'Housing services',
+      7 => 'Permanent housing',
+      8 => 'Income assistance',
+      9 => 'Employment assistance',
+      10 => 'Medical insurance',
+      11 => 'Temporary housing',
+    }.freeze
+  end
+
   def p_a_t_h_referral(id, reverse = false)
     map = {
       1 => 'Community mental health',
@@ -2297,8 +2341,8 @@ module HUD
   end
 
   # V8.1
-  def voucher_tracking(id, reverse = false)
-    map = {
+  def voucher_tracking_map
+    {
       1 => 'Referral package forwarded to PHA',
       2 => 'Voucher denied by PHA',
       3 => 'Voucher issued by PHA',
@@ -2311,7 +2355,11 @@ module HUD
       10 => 'Veteran exited - family maintained the voucher',
       11 => 'Veteran exited - prior to ever receiving a voucher',
       12 => 'Other',
-    }
+    }.freeze
+  end
+
+  def voucher_tracking(id, reverse = false)
+    map = voucher_tracking_map
 
     _translate map, id, reverse
   end
@@ -2392,14 +2440,18 @@ module HUD
   end
 
   # C2.2 MovingOnAssistance
-  def moving_on_assistance
-    map = {
+  def moving_on_assistance_map
+    {
       1 => 'Subsidized housing application assistance',
       2 => 'Financial assistance for Moving On (e.g., security deposit, moving expenses)',
       3 => 'Non-financial assistance for Moving On (e.g., housing navigation, transition support)',
       4 => 'Housing referral/placement',
       5 => 'Other (please specify)',
-    }
+    }.freeze
+  end
+
+  def moving_on_assistance
+    map = moving_on_assistance_map
     _translate map, id, reverse
   end
 

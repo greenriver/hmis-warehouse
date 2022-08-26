@@ -14,6 +14,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   belongs_to :project, **hmis_relation(:ProjectID, 'Project')
   has_one :exit, **hmis_relation(:EnrollmentID, 'Exit')
+  has_many :services, **hmis_relation(:EnrollmentID, 'Service')
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
 
   SORT_OPTIONS = [:most_recent].freeze
