@@ -12,6 +12,8 @@ module Types
     field :id, ID, null: false
     field :household_clients, [HmisSchema::HouseholdClient], null: false
 
+    # object is a scope on Hmis::Hud::Enrollment
+
     def id
       object.first.household_id
     end
@@ -21,6 +23,7 @@ module Types
         {
           relationship_to_ho_h: enrollment.relationship_to_ho_h,
           client: enrollment.client,
+          enrollment: enrollment,
         }
       end
     end

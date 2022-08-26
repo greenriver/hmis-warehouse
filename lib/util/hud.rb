@@ -1184,7 +1184,7 @@ module HUD
       4 => 'Other relative',
       5 => 'Unrelated household member',
       99 => 'Data not collected',
-    }
+    }.freeze
   end
 
   # 4.1.1

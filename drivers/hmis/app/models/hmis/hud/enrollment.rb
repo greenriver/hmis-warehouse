@@ -40,4 +40,6 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
       raise NotImplementedError
     end
   end
+
+  use_enum :relationships_to_hoh_enum_map, ::HUD.relationships_to_hoh
 end

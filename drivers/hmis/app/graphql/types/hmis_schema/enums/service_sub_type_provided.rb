@@ -18,7 +18,7 @@ module Types
     ].each do |record_type, enum|
       rt_key, rt_value = HmisSchema::Enums::ServiceTypeProvided.enum_member_for_value(record_type)
       enum.values.each do |enum_key, enum_value|
-        value [rt_key, enum_key].join('_'), [rt_value.description, enum_value.description].join(' – '), value: [rt_value.value, enum_value.value].join(':')
+        value [rt_key, enum_key].join('__'), [rt_value.description, enum_value.description].join(' – '), value: [rt_value.value, enum_value.value].join(':')
       end
     end
   end
