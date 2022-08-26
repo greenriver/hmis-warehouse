@@ -8,7 +8,7 @@
 
 module Types
   class HmisSchema::Enums::SSVFService < Types::BaseEnum
-    description 'HUD SSVFService'
+    description 'HUD SSVFService (V2.2)'
     graphql_name 'SSVFService'
 
     with_enum_map Hmis::Hud::Service.s_s_v_f_service_enum_map

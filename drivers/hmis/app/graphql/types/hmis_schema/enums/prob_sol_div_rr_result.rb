@@ -8,7 +8,7 @@
 
 module Types
   class HmisSchema::Enums::ProbSolDivRRResult < Types::BaseEnum
-    description 'HUD ProbSolDivRRResult'
+    description 'HUD ProbSolDivRRResult (1.7)'
     graphql_name 'ProbSolDivRRResult'
 
     with_enum_map Hmis::Hud::Event.prob_sol_div_rr_result_enum_map

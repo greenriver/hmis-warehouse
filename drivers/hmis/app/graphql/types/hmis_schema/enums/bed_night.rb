@@ -8,7 +8,7 @@
 
 module Types
   class HmisSchema::Enums::BedNight < Types::BaseEnum
-    description 'HUD BedNight'
+    description 'HUD BedNight (4.14)'
     graphql_name 'BedNight'
 
     with_enum_map Hmis::Hud::Service.bed_night_enum_map

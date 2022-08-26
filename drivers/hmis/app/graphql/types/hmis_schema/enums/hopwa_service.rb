@@ -8,7 +8,7 @@
 
 module Types
   class HmisSchema::Enums::HOPWAService < Types::BaseEnum
-    description 'HUD HOPWAService'
+    description 'HUD HOPWAService (W1.2)'
     graphql_name 'HOPWAService'
 
     with_enum_map Hmis::Hud::Service.h_o_p_w_a_service_enum_map

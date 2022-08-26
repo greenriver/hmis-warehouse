@@ -8,7 +8,7 @@
 
 module Types
   class HmisSchema::Enums::RecordType < Types::BaseEnum
-    description 'HUD RecordType'
+    description 'HUD RecordType (1.4)'
     graphql_name 'RecordType'
 
     with_enum_map Hmis::Hud::Service.record_type_enum_map

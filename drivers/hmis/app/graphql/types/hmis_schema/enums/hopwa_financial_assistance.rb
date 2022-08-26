@@ -8,7 +8,7 @@
 
 module Types
   class HmisSchema::Enums::HOPWAFinancialAssistance < Types::BaseEnum
-    description 'HUD HOPWAFinancialAssistance'
+    description 'HUD HOPWAFinancialAssistance (W2.3)'
     graphql_name 'HOPWAFinancialAssistance'
 
     with_enum_map Hmis::Hud::Service.h_o_p_w_a_financial_assistance_enum_map

@@ -8,7 +8,7 @@
 
 module Types
   class HmisSchema::Enums::PrioritizationStatus < Types::BaseEnum
-    description 'HUD PrioritizationStatus'
+    description 'HUD PrioritizationStatus (4.19.7)'
     graphql_name 'PrioritizationStatus'
 
     with_enum_map Hmis::Hud::Assessment.prioritization_statuses_enum_map

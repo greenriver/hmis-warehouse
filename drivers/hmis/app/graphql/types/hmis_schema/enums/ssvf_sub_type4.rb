@@ -8,7 +8,7 @@
 
 module Types
   class HmisSchema::Enums::SSVFSubType4 < Types::BaseEnum
-    description 'HUD SSVFSubType4'
+    description 'HUD SSVFSubType4 (V2.B)'
     graphql_name 'SSVFSubType4'
 
     with_enum_map Hmis::Hud::Service.s_s_v_f_sub_type4_enum_map

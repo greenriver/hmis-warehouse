@@ -8,7 +8,7 @@
 
 module Types
   class HmisSchema::Enums::VoucherTracking < Types::BaseEnum
-    description 'HUD VoucherTracking'
+    description 'HUD VoucherTracking (V8.1)'
     graphql_name 'VoucherTracking'
 
     with_enum_map Hmis::Hud::Service.voucher_tracking_enum_map

@@ -8,7 +8,7 @@
 
 module Types
   class HmisSchema::Enums::NameDataQuality < Types::BaseEnum
-    description 'HUD Name Data Quality'
+    description 'HUD NameDataQuality (3.01.5)'
     graphql_name 'NameDataQuality'
 
     with_enum_map Hmis::Hud::Client.name_data_quality_enum_map, prefix: 'NAME_'

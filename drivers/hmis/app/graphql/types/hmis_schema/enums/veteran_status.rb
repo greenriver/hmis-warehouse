@@ -8,7 +8,7 @@
 
 module Types
   class HmisSchema::Enums::VeteranStatus < Types::BaseEnum
-    description 'HUD Veteran Status'
+    description 'HUD Veteran Status (1.8)'
     graphql_name 'VeteranStatus'
 
     with_enum_map Hmis::Hud::Client.veteran_status_enum_map, prefix: 'VETERAN_STATUS_'

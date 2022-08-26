@@ -8,7 +8,7 @@
 
 module Types
   class HmisSchema::Enums::SSVFFinancialAssistance < Types::BaseEnum
-    description 'HUD SSVFFinancialAssistance'
+    description 'HUD SSVFFinancialAssistance (V3.3)'
     graphql_name 'SSVFFinancialAssistance'
 
     with_enum_map Hmis::Hud::Service.s_s_v_f_financial_assistance_enum_map

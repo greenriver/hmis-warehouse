@@ -8,7 +8,7 @@
 
 module Types
   class HmisSchema::Enums::ServiceSubTypeProvided < Types::BaseEnum
-    description 'HUD Service TypeProvided:SubTypeProvided aggregate'
+    description 'HUD Service TypeProvided:SubTypeProvided aggregate (V2.A, V2.B, V2.C)'
     graphql_name 'ServiceSubTypeProvided'
 
     [

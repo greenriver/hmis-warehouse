@@ -8,7 +8,7 @@
 
 module Types
   class HmisSchema::Enums::Ethnicity < Types::BaseEnum
-    description 'HUD Ethnicity'
+    description 'HUD Ethnicity (3.05.1)'
     graphql_name 'Ethnicity'
 
     with_enum_map Hmis::Hud::Client.ethnicity_enum_map, prefix: 'ETHNICITY_'

@@ -8,7 +8,7 @@
 
 module Types
   class HmisSchema::Enums::RelationshipToHoH < Types::BaseEnum
-    description 'HUD RelationshipToHoH'
+    description 'HUD RelationshipToHoH (3.15.1)'
     graphql_name 'RelationshipToHoH'
 
     with_enum_map Hmis::Hud::Enrollment.relationships_to_hoh_enum_map

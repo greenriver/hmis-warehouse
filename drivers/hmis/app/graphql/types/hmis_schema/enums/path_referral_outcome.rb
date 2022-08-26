@@ -8,7 +8,7 @@
 
 module Types
   class HmisSchema::Enums::PATHReferralOutcome < Types::BaseEnum
-    description 'HUD PATHReferralOutcome'
+    description 'HUD PATHReferralOutcome (P2.A)'
     graphql_name 'PATHReferralOutcome'
 
     with_enum_map Hmis::Hud::Service.p_a_t_h_referral_outcome_enum_map

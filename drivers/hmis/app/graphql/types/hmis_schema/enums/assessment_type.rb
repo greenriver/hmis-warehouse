@@ -8,7 +8,7 @@
 
 module Types
   class HmisSchema::Enums::AssessmentType < Types::BaseEnum
-    description 'HUD AssessmentType'
+    description 'HUD AssessmentType (4.19.3)'
     graphql_name 'AssessmentType'
 
     with_enum_map Hmis::Hud::Assessment.assessment_types_enum_map

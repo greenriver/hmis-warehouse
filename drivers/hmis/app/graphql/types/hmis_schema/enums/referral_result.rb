@@ -8,7 +8,7 @@
 
 module Types
   class HmisSchema::Enums::ReferralResult < Types::BaseEnum
-    description 'HUD ReferralResult'
+    description 'HUD ReferralResult (4.20.D)'
     graphql_name 'ReferralResult'
 
     with_enum_map Hmis::Hud::Event.referral_result_enum_map

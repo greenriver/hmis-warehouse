@@ -8,7 +8,7 @@
 
 module Types
   class HmisSchema::Enums::EventType < Types::BaseEnum
-    description 'HUD EventType'
+    description 'HUD EventType (4.20.2)'
     graphql_name 'EventType'
 
     with_enum_map Hmis::Hud::Event.events_enum_map

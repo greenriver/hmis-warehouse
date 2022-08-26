@@ -8,7 +8,7 @@
 
 module Types
   class HmisSchema::Enums::MovingOnAssistance < Types::BaseEnum
-    description 'HUD MovingOnAssistance'
+    description 'HUD MovingOnAssistance (C2.2)'
     graphql_name 'MovingOnAssistance'
 
     with_enum_map Hmis::Hud::Service.moving_on_assistance_enum_map

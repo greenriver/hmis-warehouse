@@ -8,7 +8,7 @@
 
 module Types
   class HmisSchema::Enums::PATHReferral < Types::BaseEnum
-    description 'HUD PATHReferral'
+    description 'HUD PATHReferral (P2.2)'
     graphql_name 'PATHReferral'
 
     with_enum_map Hmis::Hud::Service.p_a_t_h_referral_enum_map

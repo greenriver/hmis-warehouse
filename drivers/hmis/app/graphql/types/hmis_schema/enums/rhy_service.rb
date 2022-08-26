@@ -8,7 +8,7 @@
 
 module Types
   class HmisSchema::Enums::RHYService < Types::BaseEnum
-    description 'HUD RHYService'
+    description 'HUD RHYService (R14.2)'
     graphql_name 'RHYService'
 
     with_enum_map Hmis::Hud::Service.r_h_y_service_enum_map

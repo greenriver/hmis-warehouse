@@ -8,7 +8,7 @@
 
 module Types
   class HmisSchema::Enums::ReferralCaseManageAfter < Types::BaseEnum
-    description 'HUD ReferralCaseManageAfter'
+    description 'HUD ReferralCaseManageAfter (1.7)'
     graphql_name 'ReferralCaseManageAfter'
 
     with_enum_map Hmis::Hud::Event.prob_sol_div_rr_result_enum_map

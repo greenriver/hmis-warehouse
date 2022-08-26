@@ -8,7 +8,7 @@
 
 module Types
   class HmisSchema::Enums::PATHService < Types::BaseEnum
-    description 'HUD PATHService'
+    description 'HUD PATHService (P1.2)'
     graphql_name 'PATHService'
 
     with_enum_map Hmis::Hud::Service.p_a_t_h_service_enum_map

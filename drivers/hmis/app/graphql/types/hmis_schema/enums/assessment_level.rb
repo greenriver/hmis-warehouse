@@ -8,7 +8,7 @@
 
 module Types
   class HmisSchema::Enums::AssessmentLevel < Types::BaseEnum
-    description 'HUD AssessmentLevel'
+    description 'HUD AssessmentLevel (4.19.4)'
     graphql_name 'AssessmentLevel'
 
     with_enum_map Hmis::Hud::Assessment.assessment_levels_enum_map
