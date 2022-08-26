@@ -14,7 +14,7 @@ module Types
     field :client, HmisSchema::Client, null: false
     field :date_provided, GraphQL::Types::ISO8601Date, null: false
     field :record_type, HmisSchema::Enums::RecordType, null: false
-    field :type_provided, HmisSchema::Unions::ServiceTypeProvided, null: false
+    field :type_provided, HmisSchema::Enums::ServiceTypeProvided, null: false
     field :other_type_provided, String, null: true
     field :moving_on_other_type, String, null: true
     # field :sub_type_provided

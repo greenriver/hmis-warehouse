@@ -19,5 +19,9 @@ module Types
         value to_enum_key(member_values[:key]), member_values[:desc], value: member_values[:value]
       end
     end
+
+    def self.enum_member_for_value(value)
+      values.find { |_, v| v.value == value }
+    end
   end
 end
