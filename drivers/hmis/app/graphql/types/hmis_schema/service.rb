@@ -17,7 +17,7 @@ module Types
     field :type_provided, HmisSchema::Enums::ServiceTypeProvided, null: false
     field :other_type_provided, String, null: true
     field :moving_on_other_type, String, null: true
-    # field :sub_type_provided
+    field :sub_type_provided, HmisSchema::Enums::ServiceSubTypeProvided, null: true
     field :faa_amount, Float, null: true
     field :referral_outcome, HmisSchema::Enums::PATHReferralOutcome, null: true
     field :date_created, GraphQL::Types::ISO8601DateTime, null: false
@@ -35,5 +35,9 @@ module Types
     # def export
     #   load_ar_association(object, :export)
     # end
+
+    def type_provided
+      [object.record_type, object.type_provided].join(':')
+    end
   end
 end

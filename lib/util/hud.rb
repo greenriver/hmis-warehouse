@@ -1405,20 +1405,24 @@ module HUD
   end
 
   # 4.14.D3 / V2.A
-  def s_s_v_f_sub_type3(id, reverse = false)
-    map = {
+  def s_s_v_f_sub_type3_map
+    {
       1 => 'VA vocational and rehabilitation counseling',
       2 => 'Employment and training services',
       3 => 'Educational assistance',
       4 => 'Health care services',
-    }
+    }.freeze
+  end
+
+  def s_s_v_f_sub_type3(id, reverse = false)
+    map = s_s_v_f_sub_type3_map
 
     _translate map, id, reverse
   end
 
   # 4.14.D4 / V2.4 / V2.B
-  def s_s_v_f_sub_type4(id, reverse = false)
-    map = {
+  def s_s_v_f_sub_type4_map
+    {
       1 => 'Health care services',
       2 => 'Daily living services',
       3 => 'Personal financial planning services',
@@ -1432,14 +1436,18 @@ module HUD
       11 => 'Legal services - other',
       12 => 'Child care',
       13 => 'Housing counseling',
-    }
+    }.freeze
+  end
+
+  def s_s_v_f_sub_type4(id, reverse = false)
+    map = s_s_v_f_sub_type4_map
 
     _translate map, id, reverse
   end
 
   # 4.14.D5 / V2.5 / V2.C
-  def s_s_v_f_sub_type5(id, reverse = false)
-    map = {
+  def s_s_v_f_sub_type5_map
+    {
       1 => 'Personal financial planning services',
       2 => 'Transportation services',
       3 => 'Income support services',
@@ -1451,7 +1459,11 @@ module HUD
       9 => 'Legal services - other',
       10 => 'Child care',
       11 => 'Housing counseling',
-    }
+    }.freeze
+  end
+
+  def s_s_v_f_sub_type5(id, reverse = false)
+    map = s_s_v_f_sub_type5_map
 
     _translate map, id, reverse
   end

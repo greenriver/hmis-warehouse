@@ -27,4 +27,9 @@ class Hmis::Hud::Service < Hmis::Hud::Base
   use_enum :bed_night_enum_map, ::HUD.bed_night_map
   use_enum :voucher_tracking_enum_map, ::HUD.voucher_tracking_map
   use_enum :moving_on_assistance_enum_map, ::HUD.moving_on_assistance_map
+
+  # Enums for SubTypeProvided
+  use_enum :s_s_v_f_sub_type3_enum_map, ::HUD.s_s_v_f_sub_type3_map
+  use_enum :s_s_v_f_sub_type4_enum_map, ::HUD.s_s_v_f_sub_type4_map
+  use_enum :s_s_v_f_sub_type5_enum_map, ::HUD.s_s_v_f_sub_type5_map
 end
