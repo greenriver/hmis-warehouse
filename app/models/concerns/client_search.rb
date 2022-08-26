@@ -8,7 +8,7 @@ module ClientSearch
   extend ActiveSupport::Concern
   included do
     # Requires a block!
-    def self.text_searcher(text)
+    def self.text_searcher(text, &block)
       return none unless text.present?
 
       text.strip!
@@ -26,7 +26,7 @@ module ClientSearch
         elsif first.present?
           where = sa[:FirstName].lower.matches("#{first.downcase}%")
         end
-        # Explicity search for "first last"
+        # Explicitly search for "first last"
       elsif text.include?(' ')
         first, last = text.split(' ').map(&:strip)
         where = sa[:FirstName].lower.matches("#{first.downcase}%").
@@ -51,12 +51,22 @@ module ClientSearch
         where = metaphone_search(where, :LastName, text)
       end
       begin
-        client_ids = yield(where)
+        # requires a block to calculate which client_ids are acceptable within
+        # the search context
+        client_ids = block.call(where)
       rescue RangeError
         return none
       end
 
-      client_ids << text if numeric && GrdaWarehouse::Hud::Client.destination.where(id: text).exists?
+      if numeric
+        source_client_ids = GrdaWarehouse::WarehouseClient.where(destination_id: text).pluck(:source_id)
+        if source_client_ids.any?
+          # append destination_id
+          client_ids << text
+          # append any source client ids for that destination
+          client_ids += source_client_ids
+        end
+      end
       where(id: client_ids)
     end
 

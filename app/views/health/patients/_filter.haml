@@ -15,7 +15,7 @@
     = form_tag(nil, method: "get") do
       %label Status
       -# preserve search for filtering
-      = hidden_field_tag 'agency_id', params[:agency_id]
+      = hidden_field_tag 'entity_id', params[:entity_id]
       - if params[:q] && params[:q][:full_text_search]
         = hidden_field_tag 'q[full_text_search]', params[:q][:full_text_search]
       .radio
