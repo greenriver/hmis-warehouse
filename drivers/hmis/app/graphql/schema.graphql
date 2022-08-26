@@ -1,4 +1,66 @@
 """
+HUD Assessment
+"""
+type Assessment {
+  assessmentDate: ISO8601DateTime!
+  assessmentLevel: AssessmentLevel!
+  assessmentLocation: String!
+  assessmentType: AssessmentType!
+  client: Client!
+  dateCreated: ISO8601DateTime!
+  dateDeleted: ISO8601DateTime!
+  dateUpdated: ISO8601DateTime!
+  enrollment: Enrollment!
+  id: ID!
+  prioritizationStatus: PrioritizationStatus!
+}
+
+"""
+HUD AssessmentLevel (4.19.4)
+"""
+enum AssessmentLevel {
+  """
+  (1) Crisis Needs Assessment
+  """
+  CRISIS_NEEDS_ASSESSMENT
+
+  """
+  (2) Housing Needs Assessment
+  """
+  HOUSING_NEEDS_ASSESSMENT
+}
+
+"""
+HUD AssessmentType (4.19.3)
+"""
+enum AssessmentType {
+  """
+  (3) In Person
+  """
+  IN_PERSON
+
+  """
+  (1) Phone
+  """
+  PHONE
+
+  """
+  (2) Virtual
+  """
+  VIRTUAL
+}
+
+type AssessmentsPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [Assessment!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
+}
+
+"""
 HUD Client
 """
 type Client {
@@ -24,18 +86,18 @@ HMIS Client input
 """
 input ClientInput {
   dob: String
-  dobQuality: DOBDataQuality
+  dobDataQuality: DOBDataQuality
   ethnicity: Ethnicity
   firstName: String
   gender: [Gender!]
   lastName: String
   middleName: String
-  nameQuality: NameDataQuality
+  nameDataQuality: NameDataQuality
   nameSuffix: String
   preferredName: String
   race: [Race!]
   ssn: String
-  ssnQuality: SSNDataQuality
+  ssnDataQuality: SSNDataQuality
   veteranStatus: VeteranStatus
 }
 
@@ -114,43 +176,47 @@ type CreateClientPayload {
 }
 
 """
-HUD DOB Data Quality
+HUD DOB Data Quality (3.03.2)
 """
 enum DOBDataQuality {
   """
-  Full DOB reported
+  (2) Approximate or partial DOB reported
   """
-  DOB_FULL
+  DOB_APPROXIMATE_OR_PARTIAL_DOB_REPORTED
 
   """
-  Data not collected
+  (8) Client doesn't know
   """
-  DOB_NOT_COLLECTED
+  DOB_CLIENT_DOESN_T_KNOW
 
   """
-  Full DOB reported
+  (9) Client refused
   """
-  DOB_PARTIAL
+  DOB_CLIENT_REFUSED
 
   """
-  Client refused
+  (99) Data not collected
   """
-  DOB_REFUSED
+  DOB_DATA_NOT_COLLECTED
 
   """
-  Client doesn't know
+  (1) Full DOB reported
   """
-  DOB_UNKNOWN
+  DOB_FULL_DOB_REPORTED
 }
 
 """
 HUD Enrollment
 """
 type Enrollment {
+  assessments(limit: Int, offset: Int): AssessmentsPaginated!
   entryDate: ISO8601DateTime
+  events(limit: Int, offset: Int): EventsPaginated!
   exitDate: ISO8601DateTime
+  household: Household
   id: ID!
   project: Project!
+  services(limit: Int, offset: Int): ServicesPaginated!
 }
 
 """
@@ -171,78 +237,220 @@ type EnrollmentsPaginated {
 }
 
 """
-HUD Ethnicity
+HUD Ethnicity (3.05.1)
 """
 enum Ethnicity {
   """
-  Hispanic/Latin(a)(o)(x)
+  (1) Hispanic/Latin(a)(o)(x)
   """
-  ETHNICITY_HISPANIC
+  ETHNICITY_HISPANIC_LATIN_A_O_X_
 
   """
-  Non-Hispanic/Non-Latin(a)(o)(x)
+  (0) Non-Hispanic/Non-Latin(a)(o)(x)
   """
-  ETHNICITY_NON_HISPANIC
+  ETHNICITY_NON_HISPANIC_NON_LATIN_A_O_X_
 
   """
-  Data not collected
+  (99) Data not collected
   """
   ETHNICITY_NOT_COLLECTED
 
   """
-  Client refused
+  (9) Client refused
   """
   ETHNICITY_REFUSED
 
   """
-  Client doesn't know
+  (8) Client doesn't know
   """
   ETHNICITY_UNKNOWN
 }
 
 """
-HUD Gender
+HUD Event
+"""
+type Event {
+  client: Client!
+  dateCreated: ISO8601DateTime!
+  dateDeleted: ISO8601DateTime!
+  dateUpdated: ISO8601DateTime!
+  enrollment: Enrollment!
+  event: EventType!
+  eventDate: ISO8601DateTime!
+  id: ID!
+  locationCrisisOrPhHousing: String
+  probSolDivRrResult: ProbSolDivRRResult
+  referralCaseManageAfter: ReferralCaseManageAfter
+  referralResult: ReferralResult
+  resultDate: ISO8601DateTime
+}
+
+"""
+HUD EventType (4.20.2)
+"""
+enum EventType {
+  """
+  (2) Problem Solving/Diversion/Rapid Resolution intervention or service
+  """
+  PROBLEM_SOLVING_DIVERSION_RAPID_RESOLUTION_INTERVENTION_OR_SERVICE
+
+  """
+  (18) Referral to a Housing Stability Voucher
+  """
+  REFERRAL_TO_A_HOUSING_STABILITY_VOUCHER
+
+  """
+  (16) Referral to emergency assistance/flex fund/furniture assistance
+  """
+  REFERRAL_TO_EMERGENCY_ASSISTANCE_FLEX_FUND_FURNITURE_ASSISTANCE
+
+  """
+  (17) Referral to Emergency Housing Voucher (EHV)
+  """
+  REFERRAL_TO_EMERGENCY_HOUSING_VOUCHER_EHV_
+
+  """
+  (10) Referral to Emergency Shelter bed opening
+  """
+  REFERRAL_TO_EMERGENCY_SHELTER_BED_OPENING
+
+  """
+  (7) Referral to Housing Navigation project or services
+  """
+  REFERRAL_TO_HOUSING_NAVIGATION_PROJECT_OR_SERVICES
+
+  """
+  (12) Referral to Joint TH-RRH project/unit/resource opening
+  """
+  REFERRAL_TO_JOINT_TH_RRH_PROJECT_UNIT_RESOURCE_OPENING
+
+  """
+  (8) Referral to Non-continuum services: Ineligible for continuum services
+  """
+  REFERRAL_TO_NON_CONTINUUM_SERVICES_INELIGIBLE_FOR_CONTINUUM_SERVICES
+
+  """
+  (9) Referral to Non-continuum services: No availability in continuum services
+  """
+  REFERRAL_TO_NON_CONTINUUM_SERVICES_NO_AVAILABILITY_IN_CONTINUUM_SERVICES
+
+  """
+  (15) Referral to Other PH project/unit/resource opening
+  """
+  REFERRAL_TO_OTHER_PH_PROJECT_UNIT_RESOURCE_OPENING
+
+  """
+  (5) Referral to Post-placement/ follow-up case management
+  """
+  REFERRAL_TO_POST_PLACEMENT_FOLLOW_UP_CASE_MANAGEMENT
+
+  """
+  (1) Referral to Prevention Assistance project
+  """
+  REFERRAL_TO_PREVENTION_ASSISTANCE_PROJECT
+
+  """
+  (14) Referral to PSH project resource opening
+  """
+  REFERRAL_TO_PSH_PROJECT_RESOURCE_OPENING
+
+  """
+  (13) Referral to RRH project resource opening
+  """
+  REFERRAL_TO_RRH_PROJECT_RESOURCE_OPENING
+
+  """
+  (3) Referral to scheduled Coordinated Entry Crisis Needs Assessment
+  """
+  REFERRAL_TO_SCHEDULED_COORDINATED_ENTRY_CRISIS_NEEDS_ASSESSMENT
+
+  """
+  (4) Referral to scheduled Coordinated Entry Housing Needs Assessment
+  """
+  REFERRAL_TO_SCHEDULED_COORDINATED_ENTRY_HOUSING_NEEDS_ASSESSMENT
+
+  """
+  (6) Referral to Street Outreach project or services
+  """
+  REFERRAL_TO_STREET_OUTREACH_PROJECT_OR_SERVICES
+
+  """
+  (11) Referral to Transitional Housing bed/unit opening
+  """
+  REFERRAL_TO_TRANSITIONAL_HOUSING_BED_UNIT_OPENING
+}
+
+type EventsPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [Event!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
+}
+
+"""
+HUD Gender (1.7)
 """
 enum Gender {
   """
-  Female
+  (4) A gender other than singularly female or male (e.g., non-binary, genderfluid, agender, culturally specific gender)
+  """
+  GENDER_A_GENDER_OTHER_THAN_SINGULARLY_FEMALE_OR_MALE_E_G_NON_BINARY_GENDERFLUID_AGENDER_CULTURALLY_SPECIFIC_GENDER_
+
+  """
+  (8) Client doesn't know
+  """
+  GENDER_CLIENT_DOESN_T_KNOW
+
+  """
+  (9) Client refused
+  """
+  GENDER_CLIENT_REFUSED
+
+  """
+  (99) Data not collected
+  """
+  GENDER_DATA_NOT_COLLECTED
+
+  """
+  (0) Female
   """
   GENDER_FEMALE
 
   """
-  Male
+  (1) Male
   """
   GENDER_MALE
 
   """
-  Data not collected
-  """
-  GENDER_NOT_COLLECTED
-
-  """
-  A gender other than singularly female or male (e.g., non-binary, genderfluid, agender, culturally specific gender)
-  """
-  GENDER_NO_SINGLE_GENDER
-
-  """
-  Questioning
+  (6) Questioning
   """
   GENDER_QUESTIONING
 
   """
-  Client refused
-  """
-  GENDER_REFUSED
-
-  """
-  Transgender
+  (5) Transgender
   """
   GENDER_TRANSGENDER
+}
 
-  """
-  Client doesn't know
-  """
-  GENDER_UNKNOWN
+"""
+HUD Household
+"""
+type Household {
+  householdClients: [HouseholdClient!]!
+  id: ID!
+}
+
+"""
+HUD Client within a Household
+"""
+type HouseholdClient {
+  client: Client!
+  enrollment: Enrollment!
+  id: ID!
+  relationshipToHoH: RelationshipToHoH!
 }
 
 """
@@ -270,33 +478,33 @@ type Mutation {
 }
 
 """
-HUD Name Data Quality
+HUD NameDataQuality (3.01.5)
 """
 enum NameDataQuality {
   """
-  Full name reported
+  (8) Client doesn't know
   """
-  NAME_FULL
+  NAME_CLIENT_DOESN_T_KNOW
 
   """
-  Data not collected
+  (9) Client refused
   """
-  NAME_NOT_COLLECTED
+  NAME_CLIENT_REFUSED
 
   """
-  Partial, street name, or code name reported
+  (99) Data not collected
   """
-  NAME_PARTIAL
+  NAME_DATA_NOT_COLLECTED
 
   """
-  Client refused
+  (1) Full name reported
   """
-  NAME_REFUSED
+  NAME_FULL_NAME_REPORTED
 
   """
-  Client doesn't know
+  (2) Partial, street name, or code name reported
   """
-  NAME_UNKNOWN
+  NAME_PARTIAL_STREET_NAME_OR_CODE_NAME_REPORTED
 }
 
 """
@@ -317,6 +525,61 @@ HUD Organization Sorting Options
 """
 enum OrganizationSortOption {
   NAME
+}
+
+"""
+HUD PATHReferralOutcome (P2.A)
+"""
+enum PATHReferralOutcome {
+  """
+  (1) Attained
+  """
+  ATTAINED
+
+  """
+  (2) Not attained
+  """
+  NOT_ATTAINED
+
+  """
+  (3) Unknown
+  """
+  UNKNOWN
+}
+
+"""
+HUD PrioritizationStatus (4.19.7)
+"""
+enum PrioritizationStatus {
+  """
+  (2) Not placed on prioritization list
+  """
+  NOT_PLACED_ON_PRIORITIZATION_LIST
+
+  """
+  (1) Placed on prioritization list
+  """
+  PLACED_ON_PRIORITIZATION_LIST
+}
+
+"""
+HUD ProbSolDivRRResult (1.7)
+"""
+enum ProbSolDivRRResult {
+  """
+  (99) Data not collected
+  """
+  DATA_NOT_COLLECTED
+
+  """
+  (0) No
+  """
+  NO
+
+  """
+  (1) Yes
+  """
+  YES
 }
 
 """
@@ -419,6 +682,11 @@ type Query {
   clientSearch(input: ClientSearchInput!, limit: Int, offset: Int, sortOrder: ClientSortOption): ClientsPaginated!
 
   """
+  Enrollment lookup
+  """
+  enrollment(id: ID!): Enrollment
+
+  """
   Get a list of organizations
   """
   organizations(sortOrder: OrganizationSortOption): [Organization!]!
@@ -430,78 +698,875 @@ type Query {
 }
 
 """
-HUD Race
+HUD Race (1.7)
 """
 enum Race {
   """
-  American Indian, Alaska Native, or Indigenous
+  (AmIndAKNative) American Indian, Alaska Native, or Indigenous
   """
-  RACE_AM_IND_AK_NATIVE
+  RACE_AMERICAN_INDIAN_ALASKA_NATIVE_OR_INDIGENOUS
 
   """
-  Asian or Asian American
+  (Asian) Asian or Asian American
   """
-  RACE_ASIAN
+  RACE_ASIAN_OR_ASIAN_AMERICAN
 
   """
-  Black, African American, or African
+  (BlackAfAmerican) Black, African American, or African
   """
-  RACE_BLACK_AF_AMERICAN
+  RACE_BLACK_AFRICAN_AMERICAN_OR_AFRICAN
 
   """
-  Native Hawaiian or Pacific Islander
+  (NativeHIPacific) Native Hawaiian or Pacific Islander
   """
-  RACE_NATIVE_HI_PACIFIC
+  RACE_NATIVE_HAWAIIAN_OR_PACIFIC_ISLANDER
 
   """
-  Data not collected
+  (99) Data not collected
   """
   RACE_NOT_COLLECTED
 
   """
-  Client refused
+  (9) Client refused
   """
   RACE_REFUSED
 
   """
-  Client doesn't know
+  (8) Client doesn't know
   """
   RACE_UNKNOWN
 
   """
-  White
+  (White) White
   """
   RACE_WHITE
 }
 
 """
-HUD SSN Data Quality
+HUD RecordType (1.4)
+"""
+enum RecordType {
+  """
+  (200) Bed night
+  """
+  BED_NIGHT
+
+  """
+  (300) C2 Moving On Assistance Provided
+  """
+  C2_MOVING_ON_ASSISTANCE_PROVIDED
+
+  """
+  (151) HOPWA financial assistance
+  """
+  HOPWA_FINANCIAL_ASSISTANCE
+
+  """
+  (143) HOPWA service
+  """
+  HOPWA_SERVICE
+
+  """
+  (210) HUD-VASH OTH voucher tracking
+  """
+  HUD_VASH_OTH_VOUCHER_TRACKING
+
+  """
+  (161) PATH referral
+  """
+  PATH_REFERRAL
+
+  """
+  (141) PATH service
+  """
+  PATH_SERVICE
+
+  """
+  (162) RHY referral
+  """
+  RHY_REFERRAL
+
+  """
+  (142) RHY service connections
+  """
+  RHY_SERVICE_CONNECTIONS
+
+  """
+  (152) SSVF financial assistance
+  """
+  SSVF_FINANCIAL_ASSISTANCE
+
+  """
+  (144) SSVF service
+  """
+  SSVF_SERVICE
+}
+
+"""
+HUD ReferralCaseManageAfter (1.7)
+"""
+enum ReferralCaseManageAfter {
+  """
+  (99) Data not collected
+  """
+  DATA_NOT_COLLECTED
+
+  """
+  (0) No
+  """
+  NO
+
+  """
+  (1) Yes
+  """
+  YES
+}
+
+"""
+HUD ReferralResult (4.20.D)
+"""
+enum ReferralResult {
+  """
+  (1) Successful referral: client accepted
+  """
+  SUCCESSFUL_REFERRAL_CLIENT_ACCEPTED
+
+  """
+  (2) Unsuccessful referral: client rejected
+  """
+  UNSUCCESSFUL_REFERRAL_CLIENT_REJECTED
+
+  """
+  (3) Unsuccessful referral: provider rejected
+  """
+  UNSUCCESSFUL_REFERRAL_PROVIDER_REJECTED
+}
+
+"""
+HUD RelationshipToHoH (3.15.1)
+"""
+enum RelationshipToHoH {
+  """
+  (2) Child
+  """
+  CHILD
+
+  """
+  (99) Data not collected
+  """
+  DATA_NOT_COLLECTED
+
+  """
+  (4) Other relative
+  """
+  OTHER_RELATIVE
+
+  """
+  (1) Self (head of household)
+  """
+  SELF_HEAD_OF_HOUSEHOLD_
+
+  """
+  (3) Spouse or partner
+  """
+  SPOUSE_OR_PARTNER
+
+  """
+  (5) Unrelated household member
+  """
+  UNRELATED_HOUSEHOLD_MEMBER
+}
+
+"""
+HUD SSN Data Quality (3.02.2)
 """
 enum SSNDataQuality {
   """
-  Full SSN reported
+  (2) Approximate or partial SSN reported
   """
-  SSN_FULL
+  SSN_APPROXIMATE_OR_PARTIAL_SSN_REPORTED
 
   """
-  Data not collected
+  (8) Client doesn't know
   """
-  SSN_NOT_COLLECTED
+  SSN_CLIENT_DOESN_T_KNOW
 
   """
-  Approximate or partial SSN reported
+  (9) Client refused
   """
-  SSN_PARTIAL
+  SSN_CLIENT_REFUSED
 
   """
-  Client refused
+  (99) Data not collected
   """
-  SSN_REFUSED
+  SSN_DATA_NOT_COLLECTED
 
   """
-  Client doesn't know
+  (1) Full SSN reported
   """
-  SSN_UNKNOWN
+  SSN_FULL_SSN_REPORTED
+}
+
+"""
+HUD Service
+"""
+type Service {
+  client: Client!
+  dateCreated: ISO8601DateTime!
+  dateDeleted: ISO8601DateTime!
+  dateProvided: ISO8601Date!
+  dateUpdated: ISO8601DateTime!
+  enrollment: Enrollment!
+  faaAmount: Float
+  id: ID!
+  movingOnOtherType: String
+  otherTypeProvided: String
+  recordType: RecordType!
+  referralOutcome: PATHReferralOutcome
+  subTypeProvided: ServiceSubTypeProvided
+  typeProvided: ServiceTypeProvided!
+}
+
+"""
+HUD Service TypeProvided:SubTypeProvided aggregate (V2.A, V2.B, V2.C)
+"""
+enum ServiceSubTypeProvided {
+  """
+  (144) SSVF service – (4) Assistance obtaining/coordinating other public benefits – (12) Child care
+  """
+  SSVF_SERVICE__ASSISTANCE_OBTAINING_COORDINATING_OTHER_PUBLIC_BENEFITS__CHILD_CARE
+
+  """
+  (144) SSVF service – (4) Assistance obtaining/coordinating other public benefits – (2) Daily living services
+  """
+  SSVF_SERVICE__ASSISTANCE_OBTAINING_COORDINATING_OTHER_PUBLIC_BENEFITS__DAILY_LIVING_SERVICES
+
+  """
+  (144) SSVF service – (4) Assistance obtaining/coordinating other public
+  benefits – (6) Fiduciary and representative payee services
+  """
+  SSVF_SERVICE__ASSISTANCE_OBTAINING_COORDINATING_OTHER_PUBLIC_BENEFITS__FIDUCIARY_AND_REPRESENTATIVE_PAYEE_SERVICES
+
+  """
+  (144) SSVF service – (4) Assistance obtaining/coordinating other public benefits – (1) Health care services
+  """
+  SSVF_SERVICE__ASSISTANCE_OBTAINING_COORDINATING_OTHER_PUBLIC_BENEFITS__HEALTH_CARE_SERVICES
+
+  """
+  (144) SSVF service – (4) Assistance obtaining/coordinating other public benefits – (13) Housing counseling
+  """
+  SSVF_SERVICE__ASSISTANCE_OBTAINING_COORDINATING_OTHER_PUBLIC_BENEFITS__HOUSING_COUNSELING
+
+  """
+  (144) SSVF service – (4) Assistance obtaining/coordinating other public benefits – (5) Income support services
+  """
+  SSVF_SERVICE__ASSISTANCE_OBTAINING_COORDINATING_OTHER_PUBLIC_BENEFITS__INCOME_SUPPORT_SERVICES
+
+  """
+  (144) SSVF service – (4) Assistance obtaining/coordinating other public benefits – (7) Legal services - child support
+  """
+  SSVF_SERVICE__ASSISTANCE_OBTAINING_COORDINATING_OTHER_PUBLIC_BENEFITS__LEGAL_SERVICES___CHILD_SUPPORT
+
+  """
+  (144) SSVF service – (4) Assistance obtaining/coordinating other public
+  benefits – (8) Legal services - eviction prevention
+  """
+  SSVF_SERVICE__ASSISTANCE_OBTAINING_COORDINATING_OTHER_PUBLIC_BENEFITS__LEGAL_SERVICES___EVICTION_PREVENTION
+
+  """
+  (144) SSVF service – (4) Assistance obtaining/coordinating other public benefits – (11) Legal services - other
+  """
+  SSVF_SERVICE__ASSISTANCE_OBTAINING_COORDINATING_OTHER_PUBLIC_BENEFITS__LEGAL_SERVICES___OTHER
+
+  """
+  (144) SSVF service – (4) Assistance obtaining/coordinating other public
+  benefits – (9) Legal services - outstanding fines and penalties
+  """
+  SSVF_SERVICE__ASSISTANCE_OBTAINING_COORDINATING_OTHER_PUBLIC_BENEFITS__LEGAL_SERVICES___OUTSTANDING_FINES_AND_PENALTIES
+
+  """
+  (144) SSVF service – (4) Assistance obtaining/coordinating other public
+  benefits – (10) Legal services - restore / acquire driver's license
+  """
+  SSVF_SERVICE__ASSISTANCE_OBTAINING_COORDINATING_OTHER_PUBLIC_BENEFITS__LEGAL_SERVICES___RESTORE_ACQUIRE_DRIVER_S_LICENSE
+
+  """
+  (144) SSVF service – (4) Assistance obtaining/coordinating other public
+  benefits – (3) Personal financial planning services
+  """
+  SSVF_SERVICE__ASSISTANCE_OBTAINING_COORDINATING_OTHER_PUBLIC_BENEFITS__PERSONAL_FINANCIAL_PLANNING_SERVICES
+
+  """
+  (144) SSVF service – (4) Assistance obtaining/coordinating other public benefits – (4) Transportation services
+  """
+  SSVF_SERVICE__ASSISTANCE_OBTAINING_COORDINATING_OTHER_PUBLIC_BENEFITS__TRANSPORTATION_SERVICES
+
+  """
+  (144) SSVF service – (3) Assistance obtaining VA benefits – (3) Educational assistance
+  """
+  SSVF_SERVICE__ASSISTANCE_OBTAINING_VA_BENEFITS__EDUCATIONAL_ASSISTANCE
+
+  """
+  (144) SSVF service – (3) Assistance obtaining VA benefits – (2) Employment and training services
+  """
+  SSVF_SERVICE__ASSISTANCE_OBTAINING_VA_BENEFITS__EMPLOYMENT_AND_TRAINING_SERVICES
+
+  """
+  (144) SSVF service – (3) Assistance obtaining VA benefits – (4) Health care services
+  """
+  SSVF_SERVICE__ASSISTANCE_OBTAINING_VA_BENEFITS__HEALTH_CARE_SERVICES
+
+  """
+  (144) SSVF service – (3) Assistance obtaining VA benefits – (1) VA vocational and rehabilitation counseling
+  """
+  SSVF_SERVICE__ASSISTANCE_OBTAINING_VA_BENEFITS__VA_VOCATIONAL_AND_REHABILITATION_COUNSELING
+
+  """
+  (144) SSVF service – (5) Direct provision of other public benefits – (10) Child care
+  """
+  SSVF_SERVICE__DIRECT_PROVISION_OF_OTHER_PUBLIC_BENEFITS__CHILD_CARE
+
+  """
+  (144) SSVF service – (5) Direct provision of other public benefits – (4) Fiduciary and representative payee services
+  """
+  SSVF_SERVICE__DIRECT_PROVISION_OF_OTHER_PUBLIC_BENEFITS__FIDUCIARY_AND_REPRESENTATIVE_PAYEE_SERVICES
+
+  """
+  (144) SSVF service – (5) Direct provision of other public benefits – (11) Housing counseling
+  """
+  SSVF_SERVICE__DIRECT_PROVISION_OF_OTHER_PUBLIC_BENEFITS__HOUSING_COUNSELING
+
+  """
+  (144) SSVF service – (5) Direct provision of other public benefits – (3) Income support services
+  """
+  SSVF_SERVICE__DIRECT_PROVISION_OF_OTHER_PUBLIC_BENEFITS__INCOME_SUPPORT_SERVICES
+
+  """
+  (144) SSVF service – (5) Direct provision of other public benefits – (5) Legal services - child support
+  """
+  SSVF_SERVICE__DIRECT_PROVISION_OF_OTHER_PUBLIC_BENEFITS__LEGAL_SERVICES___CHILD_SUPPORT
+
+  """
+  (144) SSVF service – (5) Direct provision of other public benefits – (6) Legal services - eviction prevention
+  """
+  SSVF_SERVICE__DIRECT_PROVISION_OF_OTHER_PUBLIC_BENEFITS__LEGAL_SERVICES___EVICTION_PREVENTION
+
+  """
+  (144) SSVF service – (5) Direct provision of other public benefits – (9) Legal services - other
+  """
+  SSVF_SERVICE__DIRECT_PROVISION_OF_OTHER_PUBLIC_BENEFITS__LEGAL_SERVICES___OTHER
+
+  """
+  (144) SSVF service – (5) Direct provision of other public benefits – (7) Legal services - outstanding fines and penalties
+  """
+  SSVF_SERVICE__DIRECT_PROVISION_OF_OTHER_PUBLIC_BENEFITS__LEGAL_SERVICES___OUTSTANDING_FINES_AND_PENALTIES
+
+  """
+  (144) SSVF service – (5) Direct provision of other public benefits – (8) Legal
+  services - restore / acquire driver's license
+  """
+  SSVF_SERVICE__DIRECT_PROVISION_OF_OTHER_PUBLIC_BENEFITS__LEGAL_SERVICES___RESTORE_ACQUIRE_DRIVER_S_LICENSE
+
+  """
+  (144) SSVF service – (5) Direct provision of other public benefits – (1) Personal financial planning services
+  """
+  SSVF_SERVICE__DIRECT_PROVISION_OF_OTHER_PUBLIC_BENEFITS__PERSONAL_FINANCIAL_PLANNING_SERVICES
+
+  """
+  (144) SSVF service – (5) Direct provision of other public benefits – (2) Transportation services
+  """
+  SSVF_SERVICE__DIRECT_PROVISION_OF_OTHER_PUBLIC_BENEFITS__TRANSPORTATION_SERVICES
+}
+
+"""
+HUD Service RecordType:TypeProvided aggregate (P1.2, R14.2, W1.2, V2.2, W2.3, V3.3, P2.2, 4.14, V8.1, C2.2)
+"""
+enum ServiceTypeProvided {
+  """
+  (200) Bed night – (200) BedNight
+  """
+  BED_NIGHT__BED_NIGHT
+
+  """
+  (300) C2 Moving On Assistance Provided – (2) Financial assistance for Moving On (e.g., security deposit, moving expenses)
+  """
+  C2_MOVING_ON_ASSISTANCE_PROVIDED__FINANCIAL_ASSISTANCE_FOR_MOVING_ON_E_G_SECURITY_DEPOSIT_MOVING_EXPENSES_
+
+  """
+  (300) C2 Moving On Assistance Provided – (4) Housing referral/placement
+  """
+  C2_MOVING_ON_ASSISTANCE_PROVIDED__HOUSING_REFERRAL_PLACEMENT
+
+  """
+  (300) C2 Moving On Assistance Provided – (3) Non-financial assistance for
+  Moving On (e.g., housing navigation, transition support)
+  """
+  C2_MOVING_ON_ASSISTANCE_PROVIDED__NON_FINANCIAL_ASSISTANCE_FOR_MOVING_ON_E_G_HOUSING_NAVIGATION_TRANSITION_SUPPORT_
+
+  """
+  (300) C2 Moving On Assistance Provided – (5) Other (please specify)
+  """
+  C2_MOVING_ON_ASSISTANCE_PROVIDED__OTHER_PLEASE_SPECIFY_
+
+  """
+  (300) C2 Moving On Assistance Provided – (1) Subsidized housing application assistance
+  """
+  C2_MOVING_ON_ASSISTANCE_PROVIDED__SUBSIDIZED_HOUSING_APPLICATION_ASSISTANCE
+
+  """
+  (151) HOPWA financial assistance – (7) Mortgage assistance
+  """
+  HOPWA_FINANCIAL_ASSISTANCE__MORTGAGE_ASSISTANCE
+
+  """
+  (151) HOPWA financial assistance – (1) Rental assistance
+  """
+  HOPWA_FINANCIAL_ASSISTANCE__RENTAL_ASSISTANCE
+
+  """
+  (151) HOPWA financial assistance – (2) Security deposits
+  """
+  HOPWA_FINANCIAL_ASSISTANCE__SECURITY_DEPOSITS
+
+  """
+  (151) HOPWA financial assistance – (3) Utility deposits
+  """
+  HOPWA_FINANCIAL_ASSISTANCE__UTILITY_DEPOSITS
+
+  """
+  (151) HOPWA financial assistance – (4) Utility payments
+  """
+  HOPWA_FINANCIAL_ASSISTANCE__UTILITY_PAYMENTS
+
+  """
+  (143) HOPWA service – (1) Adult day care and personal assistance
+  """
+  HOPWA_SERVICE__ADULT_DAY_CARE_AND_PERSONAL_ASSISTANCE
+
+  """
+  (143) HOPWA service – (2) Case management
+  """
+  HOPWA_SERVICE__CASE_MANAGEMENT
+
+  """
+  (143) HOPWA service – (3) Child care
+  """
+  HOPWA_SERVICE__CHILD_CARE
+
+  """
+  (143) HOPWA service – (4) Criminal justice/legal services
+  """
+  HOPWA_SERVICE__CRIMINAL_JUSTICE_LEGAL_SERVICES
+
+  """
+  (143) HOPWA service – (5) Education
+  """
+  HOPWA_SERVICE__EDUCATION
+
+  """
+  (143) HOPWA service – (6) Employment and training services
+  """
+  HOPWA_SERVICE__EMPLOYMENT_AND_TRAINING_SERVICES
+
+  """
+  (143) HOPWA service – (7) Food/meals/nutritional services
+  """
+  HOPWA_SERVICE__FOOD_MEALS_NUTRITIONAL_SERVICES
+
+  """
+  (143) HOPWA service – (8) Health/medical care
+  """
+  HOPWA_SERVICE__HEALTH_MEDICAL_CARE
+
+  """
+  (143) HOPWA service – (9) Life skills training
+  """
+  HOPWA_SERVICE__LIFE_SKILLS_TRAINING
+
+  """
+  (143) HOPWA service – (10) Mental health care/counseling
+  """
+  HOPWA_SERVICE__MENTAL_HEALTH_CARE_COUNSELING
+
+  """
+  (143) HOPWA service – (14) Other HOPWA funded service
+  """
+  HOPWA_SERVICE__OTHER_HOPWA_FUNDED_SERVICE
+
+  """
+  (143) HOPWA service – (11) Outreach and/or engagement
+  """
+  HOPWA_SERVICE__OUTREACH_AND_OR_ENGAGEMENT
+
+  """
+  (143) HOPWA service – (12) Substance abuse services/treatment
+  """
+  HOPWA_SERVICE__SUBSTANCE_ABUSE_SERVICES_TREATMENT
+
+  """
+  (143) HOPWA service – (13) Transportation
+  """
+  HOPWA_SERVICE__TRANSPORTATION
+
+  """
+  (210) HUD-VASH OTH voucher tracking – (12) Other
+  """
+  HUD_VASH_OTH_VOUCHER_TRACKING__OTHER
+
+  """
+  (210) HUD-VASH OTH voucher tracking – (1) Referral package forwarded to PHA
+  """
+  HUD_VASH_OTH_VOUCHER_TRACKING__REFERRAL_PACKAGE_FORWARDED_TO_PHA
+
+  """
+  (210) HUD-VASH OTH voucher tracking – (10) Veteran exited - family maintained the voucher
+  """
+  HUD_VASH_OTH_VOUCHER_TRACKING__VETERAN_EXITED___FAMILY_MAINTAINED_THE_VOUCHER
+
+  """
+  (210) HUD-VASH OTH voucher tracking – (11) Veteran exited - prior to ever receiving a voucher
+  """
+  HUD_VASH_OTH_VOUCHER_TRACKING__VETERAN_EXITED___PRIOR_TO_EVER_RECEIVING_A_VOUCHER
+
+  """
+  (210) HUD-VASH OTH voucher tracking – (9) Veteran exited - voucher was returned
+  """
+  HUD_VASH_OTH_VOUCHER_TRACKING__VETERAN_EXITED___VOUCHER_WAS_RETURNED
+
+  """
+  (210) HUD-VASH OTH voucher tracking – (2) Voucher denied by PHA
+  """
+  HUD_VASH_OTH_VOUCHER_TRACKING__VOUCHER_DENIED_BY_PHA
+
+  """
+  (210) HUD-VASH OTH voucher tracking – (5) Voucher in use - veteran moved into housing
+  """
+  HUD_VASH_OTH_VOUCHER_TRACKING__VOUCHER_IN_USE___VETERAN_MOVED_INTO_HOUSING
+
+  """
+  (210) HUD-VASH OTH voucher tracking – (3) Voucher issued by PHA
+  """
+  HUD_VASH_OTH_VOUCHER_TRACKING__VOUCHER_ISSUED_BY_PHA
+
+  """
+  (210) HUD-VASH OTH voucher tracking – (4) Voucher revoked or expired
+  """
+  HUD_VASH_OTH_VOUCHER_TRACKING__VOUCHER_REVOKED_OR_EXPIRED
+
+  """
+  (210) HUD-VASH OTH voucher tracking – (7) Voucher was administratively absorbed by new PHA
+  """
+  HUD_VASH_OTH_VOUCHER_TRACKING__VOUCHER_WAS_ADMINISTRATIVELY_ABSORBED_BY_NEW_PHA
+
+  """
+  (210) HUD-VASH OTH voucher tracking – (8) Voucher was converted to Housing Choice Voucher
+  """
+  HUD_VASH_OTH_VOUCHER_TRACKING__VOUCHER_WAS_CONVERTED_TO_HOUSING_CHOICE_VOUCHER
+
+  """
+  (210) HUD-VASH OTH voucher tracking – (6) Voucher was ported locally
+  """
+  HUD_VASH_OTH_VOUCHER_TRACKING__VOUCHER_WAS_PORTED_LOCALLY
+
+  """
+  (161) PATH referral – (1) Community mental health
+  """
+  PATH_REFERRAL__COMMUNITY_MENTAL_HEALTH
+
+  """
+  (161) PATH referral – (5) Educational services
+  """
+  PATH_REFERRAL__EDUCATIONAL_SERVICES
+
+  """
+  (161) PATH referral – (9) Employment assistance
+  """
+  PATH_REFERRAL__EMPLOYMENT_ASSISTANCE
+
+  """
+  (161) PATH referral – (6) Housing services
+  """
+  PATH_REFERRAL__HOUSING_SERVICES
+
+  """
+  (161) PATH referral – (8) Income assistance
+  """
+  PATH_REFERRAL__INCOME_ASSISTANCE
+
+  """
+  (161) PATH referral – (4) Job training
+  """
+  PATH_REFERRAL__JOB_TRAINING
+
+  """
+  (161) PATH referral – (10) Medical insurance
+  """
+  PATH_REFERRAL__MEDICAL_INSURANCE
+
+  """
+  (161) PATH referral – (7) Permanent housing
+  """
+  PATH_REFERRAL__PERMANENT_HOUSING
+
+  """
+  (161) PATH referral – (3) Primary health/dental care
+  """
+  PATH_REFERRAL__PRIMARY_HEALTH_DENTAL_CARE
+
+  """
+  (161) PATH referral – (2) Substance use treatment
+  """
+  PATH_REFERRAL__SUBSTANCE_USE_TREATMENT
+
+  """
+  (161) PATH referral – (11) Temporary housing
+  """
+  PATH_REFERRAL__TEMPORARY_HOUSING
+
+  """
+  (141) PATH service – (6) Case management
+  """
+  PATH_SERVICE__CASE_MANAGEMENT
+
+  """
+  (141) PATH service – (14) Clinical assessment
+  """
+  PATH_SERVICE__CLINICAL_ASSESSMENT
+
+  """
+  (141) PATH service – (4) Community mental health
+  """
+  PATH_SERVICE__COMMUNITY_MENTAL_HEALTH
+
+  """
+  (141) PATH service – (3) Habilitation/rehabilitation
+  """
+  PATH_SERVICE__HABILITATION_REHABILITATION
+
+  """
+  (141) PATH service – (10) Housing eligibility determination
+  """
+  PATH_SERVICE__HOUSING_ELIGIBILITY_DETERMINATION
+
+  """
+  (141) PATH service – (8) Housing minor renovation
+  """
+  PATH_SERVICE__HOUSING_MINOR_RENOVATION
+
+  """
+  (141) PATH service – (9) Housing moving assistance
+  """
+  PATH_SERVICE__HOUSING_MOVING_ASSISTANCE
+
+  """
+  (141) PATH service – (12) One-time rent for eviction prevention
+  """
+  PATH_SERVICE__ONE_TIME_RENT_FOR_EVICTION_PREVENTION
+
+  """
+  (141) PATH service – (7) Residential supportive services
+  """
+  PATH_SERVICE__RESIDENTIAL_SUPPORTIVE_SERVICES
+
+  """
+  (141) PATH service – (1) Re-engagement
+  """
+  PATH_SERVICE__RE_ENGAGEMENT
+
+  """
+  (141) PATH service – (2) Screening
+  """
+  PATH_SERVICE__SCREENING
+
+  """
+  (141) PATH service – (11) Security deposits
+  """
+  PATH_SERVICE__SECURITY_DEPOSITS
+
+  """
+  (141) PATH service – (5) Substance use treatment
+  """
+  PATH_SERVICE__SUBSTANCE_USE_TREATMENT
+
+  """
+  (142) RHY service connections – (2) Community service/service learning (CSL)
+  """
+  RHY_SERVICE_CONNECTIONS__COMMUNITY_SERVICE_SERVICE_LEARNING_CSL_
+
+  """
+  (142) RHY service connections – (7) Criminal justice /legal services
+  """
+  RHY_SERVICE_CONNECTIONS__CRIMINAL_JUSTICE_LEGAL_SERVICES
+
+  """
+  (142) RHY service connections – (5) Education
+  """
+  RHY_SERVICE_CONNECTIONS__EDUCATION
+
+  """
+  (142) RHY service connections – (6) Employment and training services
+  """
+  RHY_SERVICE_CONNECTIONS__EMPLOYMENT_AND_TRAINING_SERVICES
+
+  """
+  (142) RHY service connections – (14) Health/medical care
+  """
+  RHY_SERVICE_CONNECTIONS__HEALTH_MEDICAL_CARE
+
+  """
+  (142) RHY service connections – (26) Home-based Services
+  """
+  RHY_SERVICE_CONNECTIONS__HOME_BASED_SERVICES
+
+  """
+  (142) RHY service connections – (8) Life skills training
+  """
+  RHY_SERVICE_CONNECTIONS__LIFE_SKILLS_TRAINING
+
+  """
+  (142) RHY service connections – (10) Parenting education for youth with children
+  """
+  RHY_SERVICE_CONNECTIONS__PARENTING_EDUCATION_FOR_YOUTH_WITH_CHILDREN
+
+  """
+  (142) RHY service connections – (12) Post-natal care
+  """
+  RHY_SERVICE_CONNECTIONS__POST_NATAL_CARE
+
+  """
+  (142) RHY service connections – (27) Post-natal newborn care (wellness exams; immunizations)
+  """
+  RHY_SERVICE_CONNECTIONS__POST_NATAL_NEWBORN_CARE_WELLNESS_EXAMS_IMMUNIZATIONS_
+
+  """
+  (142) RHY service connections – (13) Pre-natal care
+  """
+  RHY_SERVICE_CONNECTIONS__PRE_NATAL_CARE
+
+  """
+  (142) RHY service connections – (28) STD Testing
+  """
+  RHY_SERVICE_CONNECTIONS__STD_TESTING
+
+  """
+  (142) RHY service connections – (29) Street-based Services
+  """
+  RHY_SERVICE_CONNECTIONS__STREET_BASED_SERVICES
+
+  """
+  (142) RHY service connections – (18) Substance use disorder/Prevention Services
+  """
+  RHY_SERVICE_CONNECTIONS__SUBSTANCE_USE_DISORDER_PREVENTION_SERVICES
+
+  """
+  (142) RHY service connections – (17) Substance use disorder treatment
+  """
+  RHY_SERVICE_CONNECTIONS__SUBSTANCE_USE_DISORDER_TREATMENT
+
+  """
+  (152) SSVF financial assistance – (10) Child care
+  """
+  SSVF_FINANCIAL_ASSISTANCE__CHILD_CARE
+
+  """
+  (152) SSVF financial assistance – (14) Emergency housing assistance
+  """
+  SSVF_FINANCIAL_ASSISTANCE__EMERGENCY_HOUSING_ASSISTANCE
+
+  """
+  (152) SSVF financial assistance – (15) Extended Shallow Subsidy - Rental Assistance
+  """
+  SSVF_FINANCIAL_ASSISTANCE__EXTENDED_SHALLOW_SUBSIDY___RENTAL_ASSISTANCE
+
+  """
+  (152) SSVF financial assistance – (16) Food Assistance
+  """
+  SSVF_FINANCIAL_ASSISTANCE__FOOD_ASSISTANCE
+
+  """
+  (152) SSVF financial assistance – (12) General housing stability assistance
+  """
+  SSVF_FINANCIAL_ASSISTANCE__GENERAL_HOUSING_STABILITY_ASSISTANCE
+
+  """
+  (152) SSVF financial assistance – (11) General housing stability assistance - emergency supplies
+  """
+  SSVF_FINANCIAL_ASSISTANCE__GENERAL_HOUSING_STABILITY_ASSISTANCE___EMERGENCY_SUPPLIES
+
+  """
+  (152) SSVF financial assistance – (5) Moving costs
+  """
+  SSVF_FINANCIAL_ASSISTANCE__MOVING_COSTS
+
+  """
+  (152) SSVF financial assistance – (1) Rental assistance
+  """
+  SSVF_FINANCIAL_ASSISTANCE__RENTAL_ASSISTANCE
+
+  """
+  (152) SSVF financial assistance – (2) Security deposit
+  """
+  SSVF_FINANCIAL_ASSISTANCE__SECURITY_DEPOSIT
+
+  """
+  (152) SSVF financial assistance – (8) Transportation services: tokens/vouchers
+  """
+  SSVF_FINANCIAL_ASSISTANCE__TRANSPORTATION_SERVICES_TOKENS_VOUCHERS
+
+  """
+  (152) SSVF financial assistance – (9) Transportation services: vehicle repair/maintenance
+  """
+  SSVF_FINANCIAL_ASSISTANCE__TRANSPORTATION_SERVICES_VEHICLE_REPAIR_MAINTENANCE
+
+  """
+  (152) SSVF financial assistance – (3) Utility deposit
+  """
+  SSVF_FINANCIAL_ASSISTANCE__UTILITY_DEPOSIT
+
+  """
+  (152) SSVF financial assistance – (4) Utility fee payment assistance
+  """
+  SSVF_FINANCIAL_ASSISTANCE__UTILITY_FEE_PAYMENT_ASSISTANCE
+
+  """
+  (144) SSVF service – (4) Assistance obtaining/coordinating other public benefits
+  """
+  SSVF_SERVICE__ASSISTANCE_OBTAINING_COORDINATING_OTHER_PUBLIC_BENEFITS
+
+  """
+  (144) SSVF service – (3) Assistance obtaining VA benefits
+  """
+  SSVF_SERVICE__ASSISTANCE_OBTAINING_VA_BENEFITS
+
+  """
+  (144) SSVF service – (2) Case management services
+  """
+  SSVF_SERVICE__CASE_MANAGEMENT_SERVICES
+
+  """
+  (144) SSVF service – (5) Direct provision of other public benefits
+  """
+  SSVF_SERVICE__DIRECT_PROVISION_OF_OTHER_PUBLIC_BENEFITS
+
+  """
+  (144) SSVF service – (6) Other (non-TFA) supportive service approved by VA
+  """
+  SSVF_SERVICE__OTHER_NON_TFA_SUPPORTIVE_SERVICE_APPROVED_BY_VA
+
+  """
+  (144) SSVF service – (1) Outreach services
+  """
+  SSVF_SERVICE__OUTREACH_SERVICES
+}
+
+type ServicesPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [Service!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
 }
 
 type ValidationError {
@@ -513,31 +1578,31 @@ type ValidationError {
 }
 
 """
-HUD Veteran Status
+HUD Veteran Status (1.8)
 """
 enum VeteranStatus {
   """
-  No
+  (8) Client doesn't know
+  """
+  VETERAN_STATUS_CLIENT_DOESN_T_KNOW
+
+  """
+  (9) Client refused
+  """
+  VETERAN_STATUS_CLIENT_REFUSED
+
+  """
+  (99) Data not collected
+  """
+  VETERAN_STATUS_DATA_NOT_COLLECTED
+
+  """
+  (0) No
   """
   VETERAN_STATUS_NO
 
   """
-  Data not collected
-  """
-  VETERAN_STATUS_NOT_COLLECTED
-
-  """
-  Client refused
-  """
-  VETERAN_STATUS_REFUSED
-
-  """
-  Client doesn't know
-  """
-  VETERAN_STATUS_UNKNOWN
-
-  """
-  Yes
+  (1) Yes
   """
   VETERAN_STATUS_YES
 }
