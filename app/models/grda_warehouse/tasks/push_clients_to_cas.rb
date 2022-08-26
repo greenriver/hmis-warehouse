@@ -300,6 +300,8 @@ module GrdaWarehouse::Tasks
         value&.join(', ')&.titleize
       elsif value.is_a?(Array)
         value.join(', ')
+      elsif key == :assessment_name
+        value&.titleize
       else
         value
       end
