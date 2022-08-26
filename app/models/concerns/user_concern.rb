@@ -418,26 +418,18 @@ module UserConcern
       end
     end
 
-    def user_care_coordinators
-      Health::UserCareCoordinator.where(user_id: id)
-    end
-
-    def care_coordinators
-      ids = user_care_coordinators.
+    def team_mates
+      team_leader_ids = Health::UserCareCoordinator.
         joins(:coordination_team).
+        where(user_id: id).
         pluck(:team_coordinator_id)
-      User.where(id: ids)
-    end
 
-    def user_team_coordinators
-      Health::UserCareCoordinator.
+      team_member_ids = Health::UserCareCoordinator.
         joins(:coordination_team).
-        where(coordination_team: { team_coordinator_id: id })
-    end
+        merge(Health::CoordinationTeam.lead_by(team_leader_ids + [id])).
+        pluck(:user_id)
 
-    def team_coordinators
-      ids = user_team_coordinators.pluck(:user_id)
-      User.where(id: ids)
+      User.where(id: team_member_ids)
     end
 
     def patients
