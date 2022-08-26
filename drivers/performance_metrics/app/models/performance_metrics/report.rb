@@ -262,6 +262,10 @@ module PerformanceMetrics
       end
     end
 
+    def describe_filter_as_html
+      filter.describe_filter_as_html(filter.all_known_keys.reject { |k| k.in?([:on, :lsa_scope]) })
+    end
+
     private def to_comparison
       @original_filter = @filter
       @filter = filter.to_comparison
@@ -462,6 +466,7 @@ module PerformanceMetrics
       scope = filter_for_funders(scope)
       scope = filter_for_ca_homeless(scope)
       scope = filter_for_ce_cls_homeless(scope)
+      scope = filter_for_cohorts(scope)
       scope
     end
 
