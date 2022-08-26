@@ -1,6 +1,9 @@
 BostonHmis::Application.routes.draw do
-  scope :hmis_data_quality_tool do
-    # TODO
-    # get '/my_path', to: 'hmis_data_quality_tool/my_controller'
+  namespace :hmis_data_quality_tool do
+    namespace :warehouse_reports do
+      resources :reports, only: [:index, :create, :show, :destroy] do
+        get :clients, on: :member
+      end
+    end
   end
 end

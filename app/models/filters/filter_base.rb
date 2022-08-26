@@ -100,6 +100,7 @@ module Filters
         self.heads_of_household = filter_hoh
         self.hoh_only = filter_hoh
       end
+      self.default_project_type_codes = Array.wrap(filters.dig(:default_project_type_codes))&.reject(&:blank?) if filters.key?(:default_project_type_codes)
       if filters.key?(:project_type_codes)
         self.project_type_codes = Array.wrap(filters.dig(:project_type_codes))&.reject(&:blank?)
       elsif filters.key?(:project_type_numbers)
@@ -232,6 +233,7 @@ module Filters
         :inactivity_days,
         :lsa_scope,
         coc_codes: [],
+        default_project_type_codes: [],
         project_types: [],
         project_type_codes: [],
         project_type_numbers: [],
@@ -400,6 +402,44 @@ module Filters
       ids << effective_project_ids_from_coc_codes
       ids << effective_project_ids_from_project_types
       ids.reject(&:empty?).reduce(&:&)
+    end
+
+    # Apply all known scopes
+    # NOTE: by default we use coc_codes, if you need to filter by the coc_code singular, make note
+    def apply(scope, all_project_types: nil, use_coc_codes: true, use_coc_code: false)
+      @filter = self
+      filter_for_user_access(scope)
+      filter_for_range(scope)
+      filter_for_cocs(scope) if use_coc_codes
+      filter_for_coc(scope) if use_coc_code
+      filter_for_household_type(scope)
+      filter_for_head_of_household(scope)
+      filter_for_age(scope)
+      filter_for_gender(scope)
+      filter_for_race(scope)
+      filter_for_ethnicity(scope)
+      filter_for_veteran_status(scope)
+      filter_for_project_type(scope, all_project_types: all_project_types)
+      filter_for_projects(scope)
+      filter_for_funders(scope)
+      filter_for_data_sources(scope)
+      filter_for_organizations(scope)
+      filter_for_sub_population(scope)
+      filter_for_prior_living_situation(scope)
+      filter_for_destination(scope)
+      filter_for_disabilities(scope)
+      filter_for_indefinite_disabilities(scope)
+      filter_for_dv_status(scope)
+      filter_for_dv_currently_fleeing(scope)
+      filter_for_chronic_at_entry(scope)
+      filter_for_chronic_status(scope)
+      filter_for_rrh_move_in(scope)
+      filter_for_psh_move_in(scope)
+      filter_for_first_time_homeless_in_past_two_years(scope)
+      filter_for_returned_to_homelessness_from_permanent_destination(scope)
+      filter_for_ca_homeless(scope)
+      filter_for_ce_cls_homeless(scope)
+      filter_for_times_homeless(scope)
     end
 
     def all_projects?

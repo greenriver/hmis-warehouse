@@ -1,0 +1,48 @@
+= render 'breadcrumbs'
+
+- content_for :title, @report.title
+%h1= content_for :title
+
+.d-flex.mb-2
+  %p= @report.description
+  %p.ml-auto= "Created by #{@report.user.name_with_email} on #{@report.completed_at.to_date}"
+
+.well.report-listing.warehouse-reports__completed
+  .justify-content-between
+    - content_for :panel_collapse_content_universe, flush: true do
+      .d-flex
+        .d-flex
+          = @report.describe_filter_as_html(@report.known_params)
+    - content_for :panel_collapse_heading_universe do
+      .d-flex.pt-4
+        %h2.mb-4.mr-6 Chosen Universe
+        = @report.describe_filter_as_html([:start, :comparison_pattern, :coc_codes], inline: true)
+        .ml-auto.d-flex
+          %i.icon-angle-right.j-toggle-arrow
+          .j-toggle-text.ml-2.show Show Details
+          .j-toggle-text.ml-2.hide Hide Details
+    .minimal-collapse
+      = render 'common/panel_collapse', id: 'universe', title: 'Chosen Universe', content: '_universe', heading_slug: '_universe', arrow_icon: 'icon-angle'
+%h2 Validations
+.card.mb-6
+  %table.table.table-striped
+    %thead
+      %tr
+        %th Category
+        %th Section
+        %th Invalid Values
+    %tbody
+      - @report.validations.each do |result|
+        = render 'row', result: result
+
+%h2 Data Quality Checks
+.card
+  %table.table.table-striped
+    %thead
+      %tr
+        %th Category
+        %th Section
+        %th Invalid Values
+    %tbody
+      - @report.dq_checks.each do |result|
+        = render 'row', result: result

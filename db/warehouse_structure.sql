@@ -12950,6 +12950,7 @@ CREATE TABLE public.hmis_dqt_assessments (
     client_id bigint NOT NULL,
     report_id bigint NOT NULL,
     project_name character varying,
+    destination_client_id integer,
     hmis_assessment_id character varying,
     data_source_id integer,
     assessment_type integer,
@@ -12959,7 +12960,8 @@ CREATE TABLE public.hmis_dqt_assessments (
     project_operating_start_date date,
     project_operating_end_date date,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
 );
 
 
@@ -12990,17 +12992,27 @@ CREATE TABLE public.hmis_dqt_clients (
     id bigint NOT NULL,
     client_id bigint NOT NULL,
     report_id bigint NOT NULL,
+    destination_client_id integer,
     first_name character varying,
     last_name character varying,
     personal_id character varying,
     data_source_id integer,
+    dob date,
+    dob_data_quality integer,
     male integer,
     female integer,
     no_single_gender integer,
     transgender integer,
     questioning integer,
+    am_ind_ak_native integer,
+    asian integer,
+    black_af_american integer,
+    native_hi_pacific integer,
+    white integer,
+    race_none integer,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
 );
 
 
@@ -13034,6 +13046,7 @@ CREATE TABLE public.hmis_dqt_current_living_situations (
     client_id bigint NOT NULL,
     report_id bigint NOT NULL,
     project_name character varying,
+    destination_client_id integer,
     hmis_current_living_situation_id character varying,
     data_source_id integer,
     current_living_situation integer,
@@ -13042,7 +13055,8 @@ CREATE TABLE public.hmis_dqt_current_living_situations (
     project_operating_end_date date,
     project_tracking_method integer,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
 );
 
 
@@ -13076,12 +13090,17 @@ CREATE TABLE public.hmis_dqt_enrollments (
     report_id bigint NOT NULL,
     personal_id character varying,
     project_name character varying,
+    destination_client_id integer,
     hmis_enrollment_id character varying,
     exit_id character varying,
     data_source_id integer,
     entry_date date,
     move_in_date date,
     exit_date date,
+    age integer,
+    household_max_age integer,
+    household_id character varying,
+    head_of_household_count integer,
     disabling_condition integer,
     living_situation integer,
     relationship_to_hoh integer,
@@ -13090,8 +13109,11 @@ CREATE TABLE public.hmis_dqt_enrollments (
     project_operating_start_date date,
     project_operating_end_date date,
     project_tracking_method integer,
+    lot integer,
+    days_since_last_service integer,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
 );
 
 
@@ -13125,6 +13147,7 @@ CREATE TABLE public.hmis_dqt_events (
     client_id bigint NOT NULL,
     report_id bigint NOT NULL,
     project_name character varying,
+    destination_client_id integer,
     hmis_event_id character varying,
     data_source_id integer,
     event integer,
@@ -13132,7 +13155,8 @@ CREATE TABLE public.hmis_dqt_events (
     project_operating_start_date date,
     project_operating_end_date date,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
 );
 
 
@@ -13182,7 +13206,8 @@ CREATE TABLE public.hmis_dqt_inventories (
     inventory_start_date integer,
     inventory_end_date integer,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
 );
 
 
@@ -13221,7 +13246,8 @@ CREATE TABLE public.hmis_dqt_projects (
     project_operating_start_date date,
     project_operating_end_date date,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
 );
 
 
@@ -13257,12 +13283,14 @@ CREATE TABLE public.hmis_dqt_services (
     project_name character varying,
     hmis_service_id character varying,
     data_source_id integer,
+    destination_client_id integer,
     date_provided date,
     project_operating_start_date date,
     project_operating_end_date date,
     project_tracking_method integer,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
 );
 
 
@@ -14637,7 +14665,8 @@ CREATE TABLE public.hud_report_instances (
     build_for_questions jsonb,
     remaining_questions jsonb,
     coc_codes jsonb,
-    manual boolean DEFAULT true NOT NULL
+    manual boolean DEFAULT true NOT NULL,
+    failed_at timestamp without time zone
 );
 
 
@@ -53363,6 +53392,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220816204223'),
 ('20220816205217'),
 ('20220824150945'),
-('20220825131554');
+('20220825131554'),
+('20220826123607');
 
 
