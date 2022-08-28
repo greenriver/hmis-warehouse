@@ -7,10 +7,10 @@
   = @report.filter.describe_filter_as_html([:start, :end, :comparison_pattern], inline: true)
 .d-flex.mb-4
   .ml-auto
-    = link_to clients_hmis_data_quality_tool_warehouse_reports_report_path(@report, key: @result.title, format: :xlsx), class: ['btn', 'btn-secondary'] do
+    = link_to items_hmis_data_quality_tool_warehouse_reports_report_path(@report, key: @result.title, format: :xlsx), class: ['btn', 'btn-secondary'] do
       %i.icon-file-excel
       Download Excel
-- if @clients.blank?
+- if @items.blank?
   .none-found No records found.
 - else
   - headers = @result.item_class.detail_headers
@@ -24,7 +24,7 @@
             - headers.each_value do |header|
               %th= header
         %tbody.thead-dark
-          - @clients.each.with_index do |client, i|
+          - @items.each.with_index do |client, i|
             %tr
               %th= i + 1
               - headers.each_key do |k|

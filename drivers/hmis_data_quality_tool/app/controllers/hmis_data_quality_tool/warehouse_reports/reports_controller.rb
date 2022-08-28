@@ -11,8 +11,8 @@ module HmisDataQualityTool::WarehouseReports
     include ArelHelper
     include BaseFilters
 
-    before_action :require_can_access_some_version_of_clients!, only: [:details, :clients]
-    before_action :set_report, only: [:show, :destroy, :details, :clients]
+    before_action :require_can_access_some_version_of_clients!, only: [:details, :items]
+    before_action :set_report, only: [:show, :destroy, :details, :items]
     # before_action :set_pdf_export, only: [:show]
 
     def index
@@ -77,13 +77,13 @@ module HmisDataQualityTool::WarehouseReports
       @comparison = @report.results_for_display[@category_name][:comparison][@key]
     end
 
-    def clients
+    def items
       @key = @report.known_keys.detect do |k|
         details_params[:key] == k.to_s
       end
 
       @result = @report.result_from_key(@key)
-      @clients = @report.clients_for(@key)
+      @items = @report.items_for(@key)
       respond_to do |format|
         format.html {}
         format.xlsx do

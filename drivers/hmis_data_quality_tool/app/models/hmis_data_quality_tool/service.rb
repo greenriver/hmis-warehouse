@@ -7,6 +7,7 @@
 module HmisDataQualityTool
   class Service < ::HudReports::ReportClientBase
     self.table_name = 'hmis_dqt_services'
+    include ArelHelper
     acts_as_paranoid
 
     has_many :hud_reports_universe_members, inverse_of: :universe_membership, class_name: 'HudReports::UniverseMember', foreign_key: :universe_membership_id

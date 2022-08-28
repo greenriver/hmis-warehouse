@@ -5,7 +5,7 @@ wb.add_worksheet(name: ws_title.slice(0, 30).gsub(':', ' ')) do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
   headers = @result.item_class.detail_headers
   sheet.add_row(headers.values, style: title)
-  @clients.each do |client|
+  @items.each do |client|
     row = []
     headers.each_key do |k|
       row << client.public_send(k)
