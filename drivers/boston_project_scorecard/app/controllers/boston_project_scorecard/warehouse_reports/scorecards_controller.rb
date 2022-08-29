@@ -9,6 +9,7 @@ module BostonProjectScorecard::WarehouseReports
     include WarehouseReportAuthorization
     include ArelHelper
     # TODO: what are the access rules?
+    # Maybe: "you've been granted access to the report and you have access to the projects or project groups included."
     before_action :set_filter, only: [:index, :create]
     before_action :set_projects_and_groups, :set_current_reports, only: [:index]
     before_action :set_report, only: [:show, :edit, :rewind, :complete, :update]
@@ -82,6 +83,7 @@ module BostonProjectScorecard::WarehouseReports
       redirect_to action: appropriate_action
     end
 
+    # TODO: Move workflow logic into the report
     def workflow_action
       case @report.status
       when 'pre-filled'

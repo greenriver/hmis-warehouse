@@ -42,6 +42,11 @@ module BostonProjectScorecard
       status == 'pending'
     end
 
+    def authorized?(_user)
+      # TODO: determine if the user is authorized to access the report
+      true
+    end
+
     def locked?(field, _user)
       # TODO: Implement field access rules for users
       case status
@@ -147,6 +152,7 @@ module BostonProjectScorecard
     end
 
     def project_name
+      # TODO: Do we need confidentialization logic here?
       return project.name if project.present?
 
       project_group.name

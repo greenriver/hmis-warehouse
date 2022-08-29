@@ -8,8 +8,7 @@ module BostonProjectScorecard::DocumentExports
   class ScorecardExport < ::GrdaWarehouse::DocumentExport
     include ApplicationHelper
     def authorized?
-      # TODO: What are the access rules?
-      true
+      report.authorized?(user)
     end
 
     protected def report
