@@ -30,13 +30,9 @@ module GrdaWarehouse::CasProjectClientCalculator
       end
     end
 
-    def description_for_column(column)
-      custom_descriptions[column] || GrdaWarehouse::Hud::Client.cas_columns_data.dig(column, :description)
-    end
-
     private def custom_descriptions
       {
-        disabling_condition: 'The client has a verification of disability on file, or a disability marked indefinite and impairing collected in the past 3 years, or the client\'s most-recent affirmative disability response has not been followed by a negative response.',
+        disabling_condition: 'The client has a verification of disability on file, or a disability marked indefinite and impairing collected in the past 3 years, or the client\'s most recent affirmative disability response has not been followed by a negative response.',
         family_member: 'Are there additional members in the household response from the most recent pathways assessment',
         child_in_household: 'Was anyone under 18 listed on the most recent pathways assessment',
         required_number_of_bedrooms: 'Number of bedrooms required from the most recent pathways assessment',
@@ -51,7 +47,7 @@ module GrdaWarehouse::CasProjectClientCalculator
         max_current_total_monthly_income: 'Estimated gross income from the most recent pathways assessment',
         contact_info_for_rrh_assessment: 'Client case manager contacts',
         cas_assessment_collected_at: 'Date the assessment was collected', # note this is really just assessment_collected_at
-        majority_sheltered: '',
+        majority_sheltered: 'Most recent current living situation was sheltered',
         assessment_score_for_cas: 'Days homeless in the past 3 years for pathways, score for transfer assessments',
         tie_breaker_date: 'Date pathways was collected, or Financial Assistance End Date for transfer assessments',
         financial_assistance_end_date: 'Latest Date Eligible for Financial Assistance response from the most recent pathways assessment',

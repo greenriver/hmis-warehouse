@@ -28,10 +28,11 @@ module GrdaWarehouse::CasProjectClientCalculator
         most_recent_vispdat_score: 'Client most recent VI-SPDAT score from the Eccovia API',
         assessment_score_for_cas: 'Client most recent VI-SPDAT score from the Eccovia API',
         contact_info_for_rrh_assessment: 'Assessor email from the Eccovia API',
-        cas_assessment_collected_at: 'Most-recent assessment completion date',
-        assessor_first_name: 'Most-recent assessment assessor\'s first name',
-        assessor_last_name: 'Most-recent assessment assessor\'s last name',
-        assessor_email: 'Most-recent assessment assessor\'s email',
+        cas_assessment_collected_at: 'Most recent assessment completion date',
+        assessor_first_name: 'Most recent assessment assessor\'s first name',
+        assessor_last_name: 'Most recent assessment assessor\'s last name',
+        assessor_email: 'Most recent assessment assessor\'s email',
+        match_group: 'Prioritization group',
       }.freeze
     end
 

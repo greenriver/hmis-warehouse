@@ -45,6 +45,8 @@ module GrdaWarehouse::CasProjectClientCalculator
         willing_case_management: 'Is the client willing to participate in case management response from the most recent TC-HAT',
         employed_three_months: 'Has the client been employed for at least three months response from the most recent TC-HAT',
         living_wage: 'Is the client making a living wage response from the most recent TC-HAT',
+        can_work_full_time: 'Is the client available to work full-time response from the most recent TC-HAT',
+        full_time_employed: 'Does the client have full-time employment response from the most recent TC-HAT',
       }.freeze
     end
 
