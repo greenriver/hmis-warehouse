@@ -99,11 +99,6 @@ module BostonProjectScorecard::WarehouseReports
     end
     helper_method :link_to_apr
 
-    def link_to_spm(text, measure)
-      helpers.link_to_if(current_user.can_view_hud_reports && @report.spm_id.present?, text, result_hud_reports_spm_measure_path(@report.spm_id || 0, measure), target: :blank)
-    end
-    helper_method :link_to_spm
-
     private def appropriate_action
       return :show if @report.status == 'completed'
 

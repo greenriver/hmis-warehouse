@@ -20,7 +20,9 @@
       %td.bg-info
     %tr
       %td 1.a. RRH: Exits RRH to PH (benchmark 80%)
-      %td APR Q23c Cell 46B
+      %td
+        = link_to_apr('APR Q23c', 'Question 23')
+        Cell 46B
       %td
         12 pts: 100-75%
         %br
@@ -35,9 +37,11 @@
     %tr
       %td 1.b. PSH: % of clients who remained in PSH or exited to PH (benchmark 80%) (stayers & leavers)
       %td
-        B1 from APR Q5a
+        B1 from
+        = link_to_apr('APR Q5a', 'Question 5')
         %br
-        B43, B44, B45 from APR Q23c
+        B43, B44, B45 from
+        = link_to_apr('APR Q23c', 'Question 23')
         %br
         %small (B1 - B43 + B44) / (B1 - B45)
       %td
@@ -52,7 +56,9 @@
       %td= @report.psh_stayers_or_to_ph_score
     %tr
       %td 2. % of clients who increased income through employment(Stayers- measured from start and annual assessment)
-      %td APR Table Q19a1, Cell J2
+      %td
+        = link_to_apr('APR Table Q19a1,', 'Question 19')
+        Cell J2
       %td
         6 pts: 100-75%
         %br
@@ -65,7 +71,9 @@
       %td= @report.increased_stayer_employment_income_score
     %tr
       %td 3. % of clients who increased non-earned income (ex. social benefits) (Stayers- measured from start and annual assessment)
-      %td APR Table Q19a1, Cell J4
+      %td
+        = link_to_apr('APR Table Q19a1,', 'Question 19')
+        Cell J4
       %td
         6 pts: 100-75%
         %br
@@ -78,7 +86,9 @@
       %td= @report.increased_stayer_other_income_score
     %tr
       %td 4. % of Clients who increased income growth through employment (Leavers – measured from start and exit)
-      %td APR Table Q19a2, Cell J2
+      %td
+        = link_to_apr('APR Table Q19a2,', 'Question 19')
+        Cell J2
       %td
         6 pts: 100-75%
         %br
@@ -91,7 +101,9 @@
       %td= @report.increased_leaver_employment_income_score
     %tr
       %td 5. % of clients who increased non-earned income (ex. social benefits) (Leavers – measured from start and exit)
-      %td APR Table Q19a2, Cell J4
+      %td
+        = link_to_apr('APR Table Q19a2,', 'Question 19')
+        Cell J4
       %td
         6 pts: 100-75%
         %br
@@ -104,7 +116,9 @@
       %td= @report.increased_leaver_other_income_score
     %tr
       %td 6. Time to Lease Up; avg days from project admit date to date housed- project
-      %td APR  Table 22c: Length of Time between Project Start Date and Housing Move-in Date, Row 11B: Average Length of time to Housing
+      %td
+        = link_to_apr('APR Table 22c:', 'Question 22')
+        Length of Time between Project Start Date and Housing Move-in Date, Row 11B: Average Length of time to Housing
       %td
         12 pts: 30 day or less
         %br

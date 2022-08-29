@@ -13,7 +13,9 @@
     %tr
       %th{rowspan: 3} HMIS data quality
       %td 7. Personal identifying information error rate
-      %td APR Table 6a: Data Quality: Personally Identifiable Information, Row 8f *100
+      %td
+        = link_to_apr('APR Table 6a:', 'Question 6')
+        Data Quality: Personally Identifiable Information, Row 8f *100
       %td
         5 pts: 20%-0
         %br
@@ -23,7 +25,9 @@
       %td= @report.pii_error_rate_score
     %tr
       %td 8. Universal data elements error rate
-      %td HMIS APR 6b Number of unique clients with errors divided by total number of clients served
+      %td
+        = link_to_apr('HMIS APR 6b', 'Question 6')
+        Number of unique clients with errors divided by total number of clients served
       %td
         5 pts: 20%-0
         %br
@@ -32,7 +36,9 @@
       %td= @report.ude_error_rate_score
     %tr
       %td 9. Income and housing data quality
-      %td HMIS APR 6c Number of unique clients with errors divided by total number of clients served
+      %td
+        = link_to_apr('HMIS APR 6c', 'Question 6')
+        Number of unique clients with errors divided by total number of clients served
       %td
         5 pts: 20%-0
         %br
