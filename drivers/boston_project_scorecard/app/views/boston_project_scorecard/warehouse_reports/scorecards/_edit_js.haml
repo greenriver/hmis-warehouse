@@ -3,17 +3,14 @@
     $(document).ready(function() {
       $('.report-form input').on('change', function(e){
         $('.report-form input, .report-form select').filter(function() {
-          console.log(!this.value);
           return !this.value;
         }).closest('td, th')
         .addClass('incomplete-field');
 
         $('.report-form input, .report-form select').filter(function() {
-          console.log(this.value);
           return this.value;
         }).closest('td, th')
         .removeClass('incomplete-field');
-        console.log('changed');
       });
       $('.report-form input').first().trigger('change');
     });
