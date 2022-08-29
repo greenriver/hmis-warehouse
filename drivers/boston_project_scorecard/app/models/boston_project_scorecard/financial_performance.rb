@@ -23,7 +23,7 @@ module BostonProjectScorecard
 
       def project_type_score
         return 6 if project_type == 3 # PSH
-        return unless project_type.in?(9, 10, 13)
+        return unless project_type.in?([9, 10, 13])
 
         3
       end
