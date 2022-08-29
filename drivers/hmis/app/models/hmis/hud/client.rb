@@ -104,7 +104,6 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     name_data_quality_enum_map: ::HUD.name_data_quality_options,
     ssn_data_quality_enum_map: ::HUD.ssn_data_quality_options,
     dob_data_quality_enum_map: ::HUD.dob_data_quality_options,
-    gender_enum_map: ::HUD.genders,
   }.each do |name, options_hash|
     use_enum(name, options_hash) do |hash|
       hash.map do |value, desc|
@@ -118,7 +117,26 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     end
   end
 
-  use_enum :race_enum_map, ::HUD.races.except('RaceNone'), include_base_null: true
+  use_enum(:gender_enum_map, ::HUD.genders) do |hash|
+    hash.map do |value, desc|
+      {
+        key: [8, 9, 99].include?(value) ? desc : ::HUD.gender_id_to_field_name[value],
+        value: value,
+        desc: desc,
+        null: [8, 9, 99].include?(value),
+      }
+    end
+  end
+
+  use_enum(:race_enum_map, ::HUD.races.except('RaceNone'), include_base_null: true) do |hash|
+    hash.map do |value, desc|
+      {
+        key: value,
+        value: value,
+        desc: desc,
+      }
+    end
+  end
   use_enum :ethnicity_enum_map, ::HUD.ethnicities.slice(0, 1), include_base_null: true
   use_common_enum :veteran_status_enum_map, :no_yes_reasons
 end
