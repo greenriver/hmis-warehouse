@@ -1541,19 +1541,7 @@ module HUD
   end
 
   def p_a_t_h_referral(id, reverse = false)
-    map = {
-      1 => 'Community mental health',
-      2 => 'Substance use treatment',
-      3 => 'Primary health/dental care',
-      4 => 'Job training',
-      5 => 'Educational services',
-      6 => 'Housing services',
-      7 => 'Permanent housing',
-      8 => 'Income assistance',
-      9 => 'Employment assistance',
-      10 => 'Medical insurance',
-      11 => 'Temporary housing',
-    }
+    map = p_a_t_h_referral_map
 
     _translate map, id, reverse
   end
