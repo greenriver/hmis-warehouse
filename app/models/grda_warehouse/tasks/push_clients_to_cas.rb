@@ -309,28 +309,30 @@ module GrdaWarehouse::Tasks
 
     private def title_override(column)
       @title_override = GrdaWarehouse::Hud::Client.cas_columns
-      @title_override.merge!(
+      @title_override.deep_merge!(
         {
-          home_phone: 'Home Phone',
-          cell_phone: 'Cell Phone',
-          work_phone: 'Work Phone',
-          hivaids_status: 'HIV/AIDS Status',
+          homephone: 'Phone, home ',
+          cellphone: 'Phone, cell',
+          workphone: 'Phone, work',
+          hivaids_status: 'HIV/AIDS status',
           consent_form_signed_on: _('Housing Release Signature Date'),
           ssvf_eligible: 'SSVF Eligible',
           rrh_desired: 'RRH Desired',
           youth_rrh_desired: 'Youth RRH Desired',
-          rrh_assessment_contact_info: 'RRH Assessment Contact',
-          rrh_assessment_collected_at: 'RRH Assessment Collected Date',
+          rrh_assessment_contact_info: 'Assessment contact',
+          rrh_assessment_collected_at: 'Assessment collection date',
           sro_ok: 'SRO OK',
           dv_rrh_desired: 'DV RRH Desired',
           rrh_th_desired: 'RRH TH Desired',
           active_cohort_ids: 'Active Cohorts',
           dv_date: 'Most recent date of DV',
           th_desired: 'TH Desired',
-          vispdat_score: 'VISPDAT Score',
-          vispdat_priority_score: 'VISPDAT Priority Score',
-          vispdat_length_homeless_in_days: 'Vispdat length homeless in days',
+          vispdat_score: 'VI-SPDAT Score',
+          vispdat_priority_score: 'VI-SPDAT Priority Score',
+          vispdat_length_homeless_in_days: 'VI-SPDAT length homeless in days',
           rrh_successful_exit: 'RRH successful exit:',
+          hmis_days_homeless_last_three_years: _('Days homeless in the last three years, from HMIS'),
+          hmis_days_homeless_all_time: _('Total days homeless, from HMIS'),
         },
       )
       @title_override[column]
