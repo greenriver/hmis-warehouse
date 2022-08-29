@@ -11,7 +11,6 @@ module BostonProjectScorecard
     has_paper_trail
 
     # Calculations for report sections
-    # TODO: includes
     include Header
     include TotalScore
     include ProjectPerformance
@@ -104,15 +103,15 @@ module BostonProjectScorecard
 
     private def percentage_string(value)
       v = value
-      v = 0 if value.nan?
-      v = 0 if value.infinite?
+      v = 0 if value.to_f.nan?
+      v = 0 if value.to_f.infinite?
 
       "#{v.round(2)}%"
     end
 
     private def percentage(value)
-      return 0 if value.nan?
-      return 0 if value.infinite?
+      return 0 if value.to_f.nan?
+      return 0 if value.to_f.infinite?
 
       (value * 100).round(2)
     end
