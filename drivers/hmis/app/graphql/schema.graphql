@@ -213,7 +213,7 @@ type Enrollment {
   entryDate: ISO8601DateTime
   events(limit: Int, offset: Int): EventsPaginated!
   exitDate: ISO8601DateTime
-  household: Household
+  household: Household!
   id: ID!
   project: Project!
   services(limit: Int, offset: Int): ServicesPaginated!
