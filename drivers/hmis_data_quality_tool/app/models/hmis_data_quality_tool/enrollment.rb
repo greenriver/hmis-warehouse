@@ -55,6 +55,10 @@ module HmisDataQualityTool
           living_situation_issues_slug,
           living_situation_issues_query,
         ],
+        [
+          exit_date_issues_slug,
+          exit_date_issues_query,
+        ],
       ].each do |slug, query|
         report_enrollments = calculate(
           report_enrollments: report_enrollments,
@@ -69,7 +73,7 @@ module HmisDataQualityTool
     def self.calculate(report_enrollments:, report:, slug:, query:)
       intermediate_report_enrollments = {}
       enrollment_scope(query, report).find_each do |enrollment|
-        intermediate_report_enrollments[enrollment.client] = report_enrollment_fields_from_enrollment(
+        intermediate_report_enrollments[enrollment] = report_enrollment_fields_from_enrollment(
           report_enrollments: report_enrollments,
           enrollment: enrollment,
           report: report,
@@ -95,6 +99,7 @@ module HmisDataQualityTool
 
     def self.enrollment_scope(scope, report)
       GrdaWarehouse::Hud::Enrollment.joins(:service_history_enrollment).
+        left_outer_joins(:exit).
         preload(:exit, :project, :services, :enrollment_coc_at_entry, client: :warehouse_client_source).
         merge(report.report_scope).distinct.
         where(scope)
@@ -102,7 +107,7 @@ module HmisDataQualityTool
 
     def self.report_enrollment_fields_from_enrollment(report_enrollments:, enrollment:, report:)
       client = enrollment.client
-      report_enrollment = report_enrollments[client] || new(
+      report_enrollment = report_enrollments[enrollment] || new(
         report_id: report.id,
         enrollment_id: enrollment.id,
       )
@@ -165,7 +170,15 @@ module HmisDataQualityTool
     end
 
     def self.living_situation_issues_query
-      e_t[:LivingSituation].eq(nil).or(e_t[:LivingSituation].not_in(HUD.valid_prior_living_situations))
+      e_t[:LivingSituation].not_in(HUD.valid_prior_living_situations).and(e_t[:LivingSituation].not_eq(nil))
+    end
+
+    def self.exit_date_issues_query
+      ex_t[:ExitDate].lt(e_t[:EntryDate])
+    end
+
+    def self.destination_issues_query
+      ex_t[:Destination].not_in(HUD.valid_destinations).and(e_t[:Destination].not_eq(nil))
     end
 
     def self.disabling_condition_issues_slug
@@ -178,6 +191,14 @@ module HmisDataQualityTool
 
     def self.living_situation_issues_slug
       'Living Situation'
+    end
+
+    def self.exit_date_issues_slug
+      'Exit before Entry'
+    end
+
+    def self.destination_issues_slug
+      'Destination'
     end
   end
 end

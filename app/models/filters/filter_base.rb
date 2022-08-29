@@ -25,7 +25,7 @@ module Filters
     attribute :household_type, Symbol, default: :all
     attribute :hoh_only, Boolean, default: false
     attribute :default_project_type_codes, Array, default: GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPE_CODES
-    attribute :project_type_codes, Array, default: ->(r, _) { r.default_project_type_codes }
+    attribute :project_type_codes, Array, lazy: true, default: ->(r, _) { r.default_project_type_codes }
     attribute :project_type_numbers, Array, default: ->(_r, _) { [] }
     attribute :veteran_statuses, Array, default: []
     attribute :age_ranges, Array, default: []
@@ -414,37 +414,37 @@ module Filters
     # NOTE: by default we use coc_codes, if you need to filter by the coc_code singular, make note
     def apply(scope, all_project_types: nil, use_coc_codes: true, use_coc_code: false)
       @filter = self
-      filter_for_user_access(scope)
-      filter_for_range(scope)
-      filter_for_cocs(scope) if use_coc_codes
-      filter_for_coc(scope) if use_coc_code
-      filter_for_household_type(scope)
-      filter_for_head_of_household(scope)
-      filter_for_age(scope)
-      filter_for_gender(scope)
-      filter_for_race(scope)
-      filter_for_ethnicity(scope)
-      filter_for_veteran_status(scope)
-      filter_for_project_type(scope, all_project_types: all_project_types)
-      filter_for_projects(scope)
-      filter_for_funders(scope)
-      filter_for_data_sources(scope)
-      filter_for_organizations(scope)
-      filter_for_sub_population(scope)
-      filter_for_prior_living_situation(scope)
-      filter_for_destination(scope)
-      filter_for_disabilities(scope)
-      filter_for_indefinite_disabilities(scope)
-      filter_for_dv_status(scope)
-      filter_for_dv_currently_fleeing(scope)
-      filter_for_chronic_at_entry(scope)
-      filter_for_chronic_status(scope)
-      filter_for_rrh_move_in(scope)
-      filter_for_psh_move_in(scope)
-      filter_for_first_time_homeless_in_past_two_years(scope)
-      filter_for_returned_to_homelessness_from_permanent_destination(scope)
-      filter_for_ca_homeless(scope)
-      filter_for_ce_cls_homeless(scope)
+      scope = filter_for_user_access(scope)
+      scope = filter_for_range(scope)
+      scope = filter_for_cocs(scope) if use_coc_codes
+      scope = filter_for_coc(scope) if use_coc_code
+      scope = filter_for_household_type(scope)
+      scope = filter_for_head_of_household(scope)
+      scope = filter_for_age(scope)
+      scope = filter_for_gender(scope)
+      scope = filter_for_race(scope)
+      scope = filter_for_ethnicity(scope)
+      scope = filter_for_veteran_status(scope)
+      scope = filter_for_project_type(scope, all_project_types: all_project_types)
+      scope = filter_for_projects(scope)
+      scope = filter_for_funders(scope)
+      scope = filter_for_data_sources(scope)
+      scope = filter_for_organizations(scope)
+      scope = filter_for_sub_population(scope)
+      scope = filter_for_prior_living_situation(scope)
+      scope = filter_for_destination(scope)
+      scope = filter_for_disabilities(scope)
+      scope = filter_for_indefinite_disabilities(scope)
+      scope = filter_for_dv_status(scope)
+      scope = filter_for_dv_currently_fleeing(scope)
+      scope = filter_for_chronic_at_entry(scope)
+      scope = filter_for_chronic_status(scope)
+      scope = filter_for_rrh_move_in(scope)
+      scope = filter_for_psh_move_in(scope)
+      scope = filter_for_first_time_homeless_in_past_two_years(scope)
+      scope = filter_for_returned_to_homelessness_from_permanent_destination(scope)
+      scope = filter_for_ca_homeless(scope)
+      scope = filter_for_ce_cls_homeless(scope)
       filter_for_times_homeless(scope)
     end
 

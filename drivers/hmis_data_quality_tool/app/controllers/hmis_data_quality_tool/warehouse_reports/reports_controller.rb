@@ -114,6 +114,11 @@ module HmisDataQualityTool::WarehouseReports
       HmisDataQualityTool::Report
     end
 
+    private def set_filter
+      @filter = filter_class.new(user_id: current_user.id, enforce_one_year_range: false, require_service_during_range: false)
+      @filter.update(filter_params[:filters]) if filter_params[:filters].present?
+    end
+
     def filter_params
       site_coc_codes = GrdaWarehouse::Config.get(:site_coc_codes).presence&.split(/,\s*/)
       default_options = {

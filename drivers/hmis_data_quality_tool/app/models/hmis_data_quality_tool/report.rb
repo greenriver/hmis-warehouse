@@ -95,8 +95,9 @@ module HmisDataQualityTool
         f = ::Filters::FilterBase.new(
           user_id: user_id,
           enforce_one_year_range: false,
+          require_service_during_range: false,
         )
-        f.update(options.with_indifferent_access.merge(enforce_one_year_range: false)) if options.present?
+        f.update(options.with_indifferent_access.merge(enforce_one_year_range: false, require_service_during_range: false)) if options.present?
         f
       end
     end
@@ -262,6 +263,26 @@ module HmisDataQualityTool
           item_class: HmisDataQualityTool::Enrollment,
         )
         slug = Enrollment.living_situation_issues_slug
+        count = universe(slug).count
+        r << OpenStruct.new(
+          title: slug,
+          category: 'Enrollment',
+          count: count,
+          total: overall_enrollment_count,
+          percent: percent(overall_enrollment_count, count),
+          item_class: HmisDataQualityTool::Enrollment,
+        )
+        slug = Enrollment.exit_date_issues_slug
+        count = universe(slug).count
+        r << OpenStruct.new(
+          title: slug,
+          category: 'Enrollment',
+          count: count,
+          total: overall_enrollment_count,
+          percent: percent(overall_enrollment_count, count),
+          item_class: HmisDataQualityTool::Enrollment,
+        )
+        slug = Enrollment.destination_issues_slug
         count = universe(slug).count
         r << OpenStruct.new(
           title: slug,

@@ -18,8 +18,6 @@
                 = report.describe_filter_as_html(report.known_params)
                 - opts = report.filter.to_h
                 - opts[:default_project_type_codes] = report.default_project_type_codes
-                = debug report.default_project_type_codes
-                = debug opts
                 .ml-auto.nobr= link_to 'View universe details', filter_path(filter: opts, selected_keys: report.known_params), data: { loads_in_ajax_modal: true }
 
               %td.text-nowrap
