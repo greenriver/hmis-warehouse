@@ -153,7 +153,7 @@ module BostonProjectScorecard
     end
 
     def title
-      'MA-500 Boston Continuum of Care FY21 Renewal Project Scoring Tool'
+      _('MA-500 Boston Continuum of Care FY21 Renewal Project Scoring Tool')
     end
 
     def url
