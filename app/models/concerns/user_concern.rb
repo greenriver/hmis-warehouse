@@ -419,11 +419,13 @@ module UserConcern
     end
 
     def team_mates
+      # find all of the team leads for any team this user is a member of
       team_leader_ids = Health::UserCareCoordinator.
         joins(:coordination_team).
         where(user_id: id).
         pluck(:team_coordinator_id)
 
+      # find all of the users on any team I lead, or which I'm a member of
       team_member_ids = Health::UserCareCoordinator.
         joins(:coordination_team).
         merge(Health::CoordinationTeam.lead_by(team_leader_ids + [id])).
