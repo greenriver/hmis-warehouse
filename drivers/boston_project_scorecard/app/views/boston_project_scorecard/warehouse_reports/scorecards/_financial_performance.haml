@@ -34,7 +34,7 @@
         3 pts: Usually on time, complete with few errors
         %br
         1 pt: Submitted quarterly/not monthly
-      %td= f.input :invoicing, collection: @report.invoicing_options, as: :radio_buttons, label: "Choose one:"
+      %td= f.input :invoicing, collection: @report.invoicing_options, as: :pretty_boolean_group, label: "Choose one:"
       %td= @report.invoicing_score
     %tr
       %td
