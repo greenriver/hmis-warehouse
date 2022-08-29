@@ -38,14 +38,14 @@ module BostonProjectScorecard
       end
 
       def vulnerable_subpopulations_served_options
-        [
+        {
           'Vulnerability to victimization (history of DV)' => 'Vulnerability to victimization (history of DV)',
           'Criminal histories' => 'Criminal histories',
           'Current or past substance abuse' => 'Current or past substance abuse',
           'Very little or no income at entry' => 'Very little or no income at entry',
           'Chronic homelessness' => 'Chronic homelessness',
           'Only project of its kind in the CoC, serving a special homeless population/sub-population' => 'Only project of its kind in the CoC, serving a special homeless population/sub-population',
-        ]
+        }
       end
 
       def vulnerable_subpopulations_served_value
