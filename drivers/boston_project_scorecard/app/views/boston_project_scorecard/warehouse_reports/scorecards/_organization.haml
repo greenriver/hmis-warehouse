@@ -31,8 +31,8 @@
         %tr
           %td<
             .c-checkbox.c-checkbox--square
-              = check_box_tag("project[#{project.id}]", 1, false, {class: 'j-child-select'})
-              %label{ for:"project_#{project.id}", tabindex: '1' }
+              = check_box_tag("project_ids[#{project.id}]", 1, false, {class: 'j-child-select'})
+              %label{ for:"project_ids_#{project.id}", tabindex: '1' }
           %td<
             = link_to project.name(current_user), history_boston_project_scorecard_warehouse_reports_scorecards_path(:filters => { project_ids: [project.id], start: 1.year.ago})
           %td<

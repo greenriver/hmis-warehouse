@@ -43,8 +43,8 @@ module BostonProjectScorecard::WarehouseReports
       @range.set_from_params(scorecard_filter_params)
       errors = @range.errors.messages.map { |k, v| "#{k}: #{v.join(', ')}".humanize }
 
-      @project_ids = params[:project]&.keys&.map(&:to_i) || []
-      @project_group_ids = params[:project_group]&.keys&.map(&:to_i) || []
+      @project_ids = params[:project_ids]&.keys&.map(&:to_i) || []
+      @project_group_ids = params[:project_group_ids]&.keys&.map(&:to_i) || []
       @project_ids = project_scope.where(id: @project_ids).pluck(:id) # viewability allowlist
       @project_group_ids = project_group_scope.where(id: @project_group_ids).pluck(:id) # viewability allowlist
 
