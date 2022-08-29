@@ -39,5 +39,11 @@ module Types
     def type_provided
       [object.record_type, object.type_provided].join(':')
     end
+
+    def sub_type_provided
+      return nil unless object.sub_type_provided.present?
+
+      [type_provided, object.sub_type_provided].join(':')
+    end
   end
 end
