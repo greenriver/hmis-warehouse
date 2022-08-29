@@ -9,9 +9,9 @@
   .warehouse-reports__completed.mt-2.d-flex
     = @report.filter.describe_filter_as_html([:start, :end, :comparison_pattern], inline: true)
   .d-flex.mb-4
-    %h2.ml-2= @report.clients_title(sub_population_title: @sub_population_title, vispdat_range: @vispdat_range, event_type: @event_type)
+    %h2.ml-2= @report.clients_title(sub_population_title: @sub_population_title, vispdat_range: @vispdat_range, vispdat_type: @vispdat_type, event_type: @event_type)
     .ml-auto
-      = link_to clients_ce_performance_warehouse_reports_report_path(@report, period: @period, sub_population: @sub_population, key: @key, category_name: @category_name, vispdat_range: @vispdat_range, format: :xlsx), class: ['btn', 'btn-secondary'] do
+      = link_to clients_ce_performance_warehouse_reports_report_path(@report, period: @period, sub_population: @sub_population, key: @key, category_name: @category_name, vispdat_range: @vispdat_range, vispdat_type: @vispdat_type, format: :xlsx), class: ['btn', 'btn-secondary'] do
         %i.icon-file-excel
         Download Excel
 - if @clients.blank?
@@ -35,7 +35,7 @@
                 - value = @report.client_value(client, k)
                 %td
                   - if k.to_s == 'client_id'
-                    = link_to appropriate_client_path(client[k]) do
+                    = link_to from_source_client_path(client[k]) do
                       = value
                     %a{href: '#', class: ['btn', 'btn-sm'], data: { toggle: :popover, title: 'Client Information', url: api_client_path(client.client_id), html: 'true' }}
                       %i.icon-info

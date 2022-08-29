@@ -8,7 +8,7 @@ type Client {
   Date of birth as format yyyy-mm-dd
   """
   dob: ISO8601Date
-  enrollments: [Enrollment!]!
+  enrollments(limit: Int, offset: Int, sortOrder: EnrollmentSortOption): EnrollmentsPaginated!
   firstName: String
   id: ID!
   lastName: String
@@ -151,6 +151,23 @@ type Enrollment {
   exitDate: ISO8601DateTime
   id: ID!
   project: Project!
+}
+
+"""
+HUD Enrollment Sorting Options
+"""
+enum EnrollmentSortOption {
+  MOST_RECENT
+}
+
+type EnrollmentsPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [Enrollment!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
 }
 
 """
@@ -391,6 +408,11 @@ enum ProjectType {
 }
 
 type Query {
+  """
+  Client lookup
+  """
+  client(id: ID!): Client
+
   """
   Search for clients
   """

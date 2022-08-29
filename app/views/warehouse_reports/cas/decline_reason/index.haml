@@ -7,13 +7,13 @@
     = render 'filter'
 
 .row
-  .col-sm-2.ml-auto.mb-2
+  .col-sm-2.ml-auto.mb-4
     = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary'}) do
       Download Excel
 .row
   .col-sm-12
-    .warehouse-reports
-      %table.table.table-hover
+    .warehouse-reports.card
+      %table.table.table-striped
         %thead
           %tr
             %th Program

@@ -6,7 +6,7 @@
 
 require 'memoist'
 module GrdaWarehouse::CasProjectClientCalculator
-  class Boston
+  class Boston < Default
     extend Memoist
     # A hook/wrapper to enable easily overriding how we get data for a given project client column
     # To use this efficiently, you'll probably want to preload a handful of data, see push_clients_to_cas.rb
@@ -22,14 +22,56 @@ module GrdaWarehouse::CasProjectClientCalculator
         return current_value unless current_value.nil?
       end
       # If calculator didn't return anything, ask the client for the answer
-      client.send(column)
+      # special case disabling_condition since it actually doesn't come from the pathways assessment
+      if column == :disabling_condition?
+        send(column, client)
+      else
+        client.send(column)
+      end
+    end
+
+    private def custom_descriptions
+      {
+        disabling_condition: 'The client has a verification of disability on file, or a disability marked indefinite and impairing collected in the past 3 years, or the client\'s most recent affirmative disability response has not been followed by a negative response.',
+        family_member: 'Are there additional members in the household response from the most recent pathways assessment',
+        child_in_household: 'Was anyone under 18 listed on the most recent pathways assessment',
+        required_number_of_bedrooms: 'Number of bedrooms required from the most recent pathways assessment',
+        youth_rrh_desired: 'Youth Choice response from the most recent pathways assessment',
+        dv_rrh_desired: 'Survivor Choice response from the most recent pathways assessment',
+        requires_elevator_access: 'Does the client need a first-floor or elevator accessible unit response from the most recent pathways assessment',
+        neighborhood_ids_for_cas: 'Neighborhoods chosen on the most recent pathways assessment',
+        default_shelter_agency_contacts: '',
+        days_homeless_in_last_three_years_cached: 'Boston total nights homeless in the past 3 years from the most recent pathways assessment',
+        literally_homeless_last_three_years_cached: 'Boston total nights homeless in the past 3 years from the most recent pathways assessment',
+        cas_assessment_name: '',
+        max_current_total_monthly_income: 'Estimated gross income from the most recent pathways assessment',
+        contact_info_for_rrh_assessment: 'Client case manager contacts',
+        cas_assessment_collected_at: 'Date the assessment was collected', # note this is really just assessment_collected_at
+        majority_sheltered: 'Most recent current living situation was sheltered',
+        assessment_score_for_cas: 'Days homeless in the past 3 years for pathways, score for transfer assessments',
+        tie_breaker_date: 'Date pathways was collected, or Financial Assistance End Date for transfer assessments',
+        financial_assistance_end_date: 'Latest Date Eligible for Financial Assistance response from the most recent pathways assessment',
+        assessor_first_name: 'First name of the user who completed the most recent pathways assessment',
+        assessor_last_name: 'Last name of the user who completed the most recent pathways assessment',
+        assessor_email: 'Email of the user who completed the most recent pathways assessment',
+        assessor_phone: 'Phone number of the user who completed the most recent pathways assessment',
+        cas_pregnancy_status: 'Has the client indicated they were pregnant within the past year in their responses to HMIS Health and DV questions',
+        most_recent_vispdat_score: 'Unused',
+        calculate_vispdat_priority_score: 'Unused',
+        days_homeless_for_vispdat_prioritization: 'Unused',
+        hiv_positive: 'HIV/AIDS response from the most recent pathways assessment',
+        meth_production_conviction: 'Meth production response from the most recent pathways assessment',
+        requires_wheelchair_accessibility: 'Does the client need a wheelchair accessible unit response from the most recent pathways assessment',
+        income_maximization_assistance_requested: 'Did the client request income maximization services response from the most recent pathways assessment',
+        sro_ok: 'Is the client ok with an SRO response from the most recent pathways assessment',
+        evicted: 'Has the client ever been evicted response from the most recent pathways assessment',
+      }.freeze
     end
 
     private def boolean_lookups
       {
         hiv_positive: 'c_housing_HIV',
         meth_production_conviction: 'c_transfer_barrier_meth',
-        requires_wheelchair_accessibility: 'c_disability_accomodations',
         income_maximization_assistance_requested: 'c_interest_income_max',
         sro_ok: 'c_singleadult_sro',
         evicted: 'c_pathways_barrier_eviction',
@@ -66,7 +108,7 @@ module GrdaWarehouse::CasProjectClientCalculator
         :most_recent_vispdat_score,
         :calculate_vispdat_priority_score,
         :days_homeless_for_vispdat_prioritization,
-        :disabling_condition,
+        :disabling_condition?,
       ]
     end
     # memoize :pathways_questions
@@ -310,7 +352,7 @@ module GrdaWarehouse::CasProjectClientCalculator
       client.processed_service_history&.days_homeless_last_three_years
     end
 
-    private def disabling_condition(client)
+    private def disabling_condition?(client)
       client.chronically_disabled? || client.disabling_condition?
     end
   end

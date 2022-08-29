@@ -9,6 +9,9 @@
         = f.input :section, as: :select_two, collection: BuiltForZeroReport.sections, selected: @section_key
 
   - content_for :filter_actions do
-    = f.submit 'Update Report', class: ['btn', 'btn-primary'], data: { disable_with: false }
+    .d-flex.w-100
+      = f.submit 'Update Report', class: ['btn', 'btn-primary'], data: { disable_with: false }
+      .ml-auto
+        = f.submit 'Submit Report', class: ['btn', 'btn-secondary'], data: { disable_with: false, confirm: 'Submitting this report will send data for all sections to Built For Zero via their submission API. Are you sure you would like to proceed?' }
 
   = render 'warehouse_reports/filters', f:f

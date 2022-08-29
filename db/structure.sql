@@ -1109,7 +1109,8 @@ CREATE TABLE public.roles (
     can_view_my_vprs boolean DEFAULT false,
     can_search_own_clients boolean DEFAULT false,
     can_view_confidential_project_names boolean DEFAULT false,
-    can_report_on_confidential_projects boolean DEFAULT false
+    can_report_on_confidential_projects boolean DEFAULT false,
+    can_edit_assigned_project_groups boolean DEFAULT false
 );
 
 
@@ -3008,6 +3009,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220613212850'),
 ('20220615155458'),
 ('20220621144511'),
-('20220714144937');
+('20220714144937'),
+('20220822134957');
 
 

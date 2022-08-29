@@ -285,7 +285,7 @@ module Admin::Health
       user_ids = Health::AgencyUser.where(user_id: User.active.pluck(:id)).pluck(:user_id)
       user_ids << currently_selected_id if currently_selected_id.present?
       User.where(id: user_ids).group_by do |u|
-        Health::AgencyUser.where(user_id: u.id).first.agency.name
+        Health::AgencyUser.where(user_id: u.id).first&.agency&.name || 'Unknown'
       end
     end
     helper_method :care_staff_grouped_by_agency

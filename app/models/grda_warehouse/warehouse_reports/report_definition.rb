@@ -63,7 +63,7 @@ module GrdaWarehouse::WarehouseReports
     end
 
     # Reports
-    def self.report_list
+    def self.report_list # rubocop:disable Metrics/AbcSize
       r_list = {
         'Public' => [],
         'Operational' => [
@@ -1256,6 +1256,13 @@ module GrdaWarehouse::WarehouseReports
           limitable: true,
           health: false,
         }
+        r_list['Performance'] << {
+          url: 'ce_performance/warehouse_reports/goal_configs',
+          name: 'Coordinated Entry Performance Goal Configurator',
+          description: 'Set per-CoC Coordinated Entry Performance Measurement Goals',
+          limitable: false,
+          health: false,
+        }
       end
 
       r_list
@@ -1314,7 +1321,10 @@ module GrdaWarehouse::WarehouseReports
       cleanup << 'start_date_dq/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:start_date_dq)
       cleanup << 'built_for_zero_report/warehouse_reports/bfz' unless RailsDrivers.loaded.include?(:built_for_zero_report)
       cleanup << 'health_ip_followup_report/warehouse_reports/followup_reports' unless RailsDrivers.loaded.include?(:health_ip_followup_report)
-      cleanup << 'ce_performance/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:ce_performance)
+      unless RailsDrivers.loaded.include?(:ce_performance)
+        cleanup << 'ce_performance/warehouse_reports/reports'
+        cleanup << 'ce_performance/warehouse_reports/goal_configs'
+      end
       cleanup.each do |url|
         GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: url).delete_all
       end

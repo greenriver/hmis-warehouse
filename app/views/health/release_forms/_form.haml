@@ -26,12 +26,8 @@
             %i.icon-download2
             Blank Directed Release Form
 
-  %div
-    .row
-      .col-sm-6.j-file-upload
-        = render 'upload_fields', f: f
-      .col-sm-6.my-auto
-        = f.input :verbal_approval, label: 'Patient gave verbal approval'
+  .j-file-upload= render 'upload_fields', f: f
+  = f.input :verbal_approval, label: 'Patient gave verbal approval'
 
   .row
     .col-sm-8

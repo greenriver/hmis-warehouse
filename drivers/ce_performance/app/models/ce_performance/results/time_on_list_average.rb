@@ -14,6 +14,7 @@ module CePerformance
         report_id: report.id,
         period: period,
         value: average(values),
+        goal: report.goal_for(goal_column),
       )
     end
 
@@ -22,16 +23,15 @@ module CePerformance
         where.not(days_on_list: nil)
     end
 
-    # TODO: move to goal configuration
-    def self.goal
-      30
+    def self.goal_column
+      :time_on_list
     end
 
     def self.title
       _('Average Length of Time on Prioritization List')
     end
 
-    def self.description
+    def description
       "Persons in the CoC will have an average length of time on the prioritization list of **no more than #{goal} days**."
     end
 
@@ -39,7 +39,7 @@ module CePerformance
       'Average number of days between CE Assessment and Exit Date, or Report Period End Date for Stayers'
     end
 
-    def category
+    def self.category
       'Time'
     end
 

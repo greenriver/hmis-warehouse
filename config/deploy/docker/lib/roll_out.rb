@@ -149,13 +149,17 @@ class RollOut
   end
 
   def bootstrap_databases!
-    name = target_group_name + '-bootstrap-dbs'
+    name = target_group_name + '-deploy-tasks'
+
+    environment = default_environment.dup
+    environment << { 'name' => 'BOOTSTRAP_DATABASES', 'value' => 'true' }
 
     _register_task!(
       soft_mem_limit_mb: DEFAULT_SOFT_RAM_MB,
-      image: image_base + '--dj',
+      image: image_base + '--deploy',
+      environment: environment,
       name: name,
-      command: ['bin/db_prep'],
+      command: ['bin/deploy_tasks.sh'],
     )
 
     _run_task!
@@ -522,6 +526,11 @@ class RollOut
         puts '[WARN] Errno:EIO error, but this probably just meams that the process has finished giving output'
         return false
       end
+    rescue Errno::ENOENT => e
+      # `aws logs tail` doesn't work in the dev container
+      # FIXME: should refactor to not use the cli
+      puts "[ERROR] #{e.message} (aws logs tail doesn't work inside our dev container)"
+      puts "[INFO] Run this manually: aws logs tail #{target_group_name} --follow --log-stream-names=#{log_stream_name}"
     rescue PTY::ChildExited
       puts '[WARN] The child process exited!'
       return false

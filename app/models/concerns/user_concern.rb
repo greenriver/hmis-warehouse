@@ -418,22 +418,25 @@ module UserConcern
       end
     end
 
-    def user_care_coordinators
-      Health::UserCareCoordinator.where(user_id: id)
+    def team_mates
+      # find all of the team leads for any team this user is a member of
+      team_leader_ids = Health::UserCareCoordinator.
+        joins(:coordination_team).
+        where(user_id: id).
+        pluck(:team_coordinator_id)
+
+      # find all of the users on any team I lead, or which I'm a member of
+      team_member_ids = Health::UserCareCoordinator.
+        joins(:coordination_team).
+        merge(Health::CoordinationTeam.lead_by(team_leader_ids + [id])).
+        pluck(:user_id)
+
+      User.where(id: team_member_ids)
     end
 
-    def care_coordinators
-      ids = user_care_coordinators.pluck(:care_coordinator_id)
-      User.where(id: ids)
-    end
-
-    def user_team_coordinators
-      Health::UserCareCoordinator.where(care_coordinator_id: id)
-    end
-
-    def team_coordinators
-      ids = user_team_coordinators.pluck(:user_id)
-      User.where(id: ids)
+    def patients
+      Health::Patient.where(care_coordinator_id: id).
+        or(Health::Patient.where(nurse_care_manager_id: id))
     end
 
     private def create_access_group

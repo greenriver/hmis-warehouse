@@ -158,6 +158,7 @@ module GrdaWarehouse::Tasks
         domestic_violence: :domestic_violence?,
         disability_verified_on: :disability_verified_on,
         sync_with_cas: :active_in_cas?,
+        force_remove_unavailable_fors: :force_remove_unavailable_fors,
         dmh_eligible: :dmh_eligible,
         va_eligible: :va_eligible,
         hues_eligible: :hues_eligible,
@@ -234,15 +235,15 @@ module GrdaWarehouse::Tasks
         assessor_email: :assessor_email,
         assessor_phone: :assessor_phone,
         match_group: :match_group,
+        encampment_decomissioned: :encampment_decomissioned,
       }
     end
 
     private def attributes_for_cas_project_client(client)
-      @calculator_instance ||= GrdaWarehouse::Config.get(:cas_calculator).constantize.new
       {}.tap do |options|
         project_client_columns.map do |destination, source|
           # puts "Processing: #{destination} from: #{source}"
-          options[destination] = @calculator_instance.value_for_cas_project_client(client: client, column: source)
+          options[destination] = calculator_instance.value_for_cas_project_client(client: client, column: source)
         end
       end
     end
@@ -254,6 +255,7 @@ module GrdaWarehouse::Tasks
         [
           title_display_for(k),
           value_display_for(k, value),
+          description_display_for(k),
         ]
       end.compact.sort_by(&:first)
     end
@@ -263,6 +265,10 @@ module GrdaWarehouse::Tasks
       return override if override.present?
 
       column.to_s.humanize
+    end
+
+    def description_display_for(column)
+      calculator_instance.description_for_column(column)
     end
 
     def value_display_for(key, value)
@@ -301,28 +307,30 @@ module GrdaWarehouse::Tasks
 
     private def title_override(column)
       @title_override = GrdaWarehouse::Hud::Client.cas_columns
-      @title_override.merge!(
+      @title_override.deep_merge!(
         {
-          home_phone: 'Home Phone',
-          cell_phone: 'Cell Phone',
-          work_phone: 'Work Phone',
-          hivaids_status: 'HIV/AIDS Status',
+          homephone: 'Phone, home ',
+          cellphone: 'Phone, cell',
+          workphone: 'Phone, work',
+          hivaids_status: 'HIV/AIDS status',
           consent_form_signed_on: _('Housing Release Signature Date'),
           ssvf_eligible: 'SSVF Eligible',
           rrh_desired: 'RRH Desired',
           youth_rrh_desired: 'Youth RRH Desired',
-          rrh_assessment_contact_info: 'RRH Assessment Contact',
-          rrh_assessment_collected_at: 'RRH Assessment Collected Date',
+          rrh_assessment_contact_info: 'Assessment contact',
+          rrh_assessment_collected_at: 'Assessment collection date',
           sro_ok: 'SRO OK',
           dv_rrh_desired: 'DV RRH Desired',
           rrh_th_desired: 'RRH TH Desired',
           active_cohort_ids: 'Active Cohorts',
           dv_date: 'Most recent date of DV',
           th_desired: 'TH Desired',
-          vispdat_score: 'VISPDAT Score',
-          vispdat_priority_score: 'VISPDAT Priority Score',
-          vispdat_length_homeless_in_days: 'Vispdat length homeless in days',
+          vispdat_score: 'VI-SPDAT Score',
+          vispdat_priority_score: 'VI-SPDAT Priority Score',
+          vispdat_length_homeless_in_days: 'VI-SPDAT length homeless in days',
           rrh_successful_exit: 'RRH successful exit:',
+          hmis_days_homeless_last_three_years: _('Days homeless in the last three years, from HMIS'),
+          hmis_days_homeless_all_time: _('Total days homeless, from HMIS'),
         },
       )
       @title_override[column]
@@ -340,6 +348,7 @@ module GrdaWarehouse::Tasks
           :date_of_birth,
           :dob_quality_code,
           :alternate_names,
+          :encampment_decomissioned,
         ].each do |k|
           keys << k
         end
@@ -351,6 +360,10 @@ module GrdaWarehouse::Tasks
         keys << :vispdat_length_homeless_in_days unless user.can_view_vspdat?
         keys << :vispdat_priority_score unless user.can_view_vspdat?
       end
+    end
+
+    private def calculator_instance
+      @calculator_instance ||= GrdaWarehouse::Config.get(:cas_calculator).constantize.new
     end
   end
 end

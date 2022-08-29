@@ -93,21 +93,35 @@ module CePerformance
       where(lgbtq_household_members: true).hoh
     end
 
+    scope :hiv, -> do
+      destination_clients_with_hiv_scope = GrdaWarehouse::Hud::Client.where(
+        id: GrdaWarehouse::WarehouseClient.joins(source: :disabilities).
+          merge(GrdaWarehouse::Hud::Disability.hiv).
+          select(:destination_id),
+      )
+      joins(:source_client).merge(destination_clients_with_hiv_scope)
+    end
+
     scope :race_am_ind_ak_native, -> do
       joins(:source_client).merge(GrdaWarehouse::Hud::Client.race_am_ind_ak_native)
     end
+
     scope :race_asian, -> do
       joins(:source_client).merge(GrdaWarehouse::Hud::Client.race_asian)
     end
+
     scope :race_black_af_american, -> do
       joins(:source_client).merge(GrdaWarehouse::Hud::Client.race_black_af_american)
     end
+
     scope :race_native_hi_other_pacific, -> do
       joins(:source_client).merge(GrdaWarehouse::Hud::Client.race_native_hi_other_pacific)
     end
+
     scope :race_white, -> do
       joins(:source_client).merge(GrdaWarehouse::Hud::Client.race_white)
     end
+
     scope :multi_racial, -> do
       joins(:source_client).merge(GrdaWarehouse::Hud::Client.multi_racial)
     end
@@ -115,6 +129,7 @@ module CePerformance
     scope :non_hispanic, -> do
       joins(:source_client).merge(GrdaWarehouse::Hud::Client.where(Ethnicity: 0))
     end
+
     scope :hispanic, -> do
       joins(:source_client).merge(GrdaWarehouse::Hud::Client.where(Ethnicity: 1))
     end
@@ -122,15 +137,19 @@ module CePerformance
     scope :female, -> do
       joins(:source_client).merge(GrdaWarehouse::Hud::Client.gender_female)
     end
+
     scope :male, -> do
       joins(:source_client).merge(GrdaWarehouse::Hud::Client.gender_male)
     end
+
     scope :agender, -> do
       joins(:source_client).merge(GrdaWarehouse::Hud::Client.no_single_gender)
     end
+
     scope :transgender, -> do
       joins(:source_client).merge(GrdaWarehouse::Hud::Client.gender_transgender)
     end
+
     scope :questioning, -> do
       joins(:source_client).merge(GrdaWarehouse::Hud::Client.questioning)
     end
@@ -163,6 +182,7 @@ module CePerformance
         'Under 18' => :children,
         'Over 55' => :over_55,
       }
+      pops['HIV/AIDS'] = :hiv if report.user&.can_view_hiv_status?
       if report.include_supplemental?
         pops['Survivor of Domestic Violence'] = :dv_survivor
         pops['LGBTQ'] = :client_lgbtq

@@ -268,6 +268,8 @@ module GrdaWarehouse
         :chronic_cohort,
         :adult_and_child_cohort,
         :adult_only_cohort,
+        :youth_hoh_cohort,
+        :youth_hoh_cohort_project_group_id,
         :enable_youth_hrp,
         :show_client_last_seen_info_in_client_details,
         :ineligible_uses_extrapolated_days,
