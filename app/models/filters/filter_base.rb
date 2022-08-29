@@ -174,6 +174,7 @@ module Filters
           races: races,
           ethnicities: ethnicities,
           project_group_ids: project_group_ids,
+          cohort_ids: cohort_ids,
           hoh_only: hoh_only,
           prior_living_situation_ids: prior_living_situation_ids,
           destination_ids: destination_ids,
@@ -247,6 +248,7 @@ module Filters
         project_ids: [],
         funder_ids: [],
         project_group_ids: [],
+        cohort_ids: [],
         disability_summary_ids: [],
         destination_ids: [],
         disabilities: [],
@@ -257,6 +259,10 @@ module Filters
         length_of_times: [],
         times_homeless_in_last_three_years: [],
       ]
+    end
+
+    def all_known_keys
+      known_params.map { |k| if k.is_a?(Hash) then k.keys else k end }.flatten
     end
 
     def selected_params_for_display(single_date: false)
@@ -597,7 +603,7 @@ module Filters
     end
 
     def cohorts_for_select(user:)
-      GrdaWarehouse::Cohort.viewable_by(user)
+      GrdaWarehouse::Cohort.viewable_by(user).distinct.order(name: :asc).pluck(:name, :id)
     end
     # End Select display options
 
@@ -847,6 +853,8 @@ module Filters
         'Times Homeless in Past 3 Years'
       when :lsa_scope
         'LSA Scope'
+      when :cohort_ids
+        'Cohorts'
       end
 
       return unless value.present?
@@ -914,6 +922,8 @@ module Filters
         chosen_times_homeless_in_last_three_years
       when :lsa_scope
         chosen_lsa_scope
+      when :cohort_ids
+        cohorts
       end
     end
 
@@ -1089,6 +1099,10 @@ module Filters
 
     def funder_names
       funder_options_for_select(user: user).select { |_, id| funder_ids.include?(id.to_i) }&.map(&:first)
+    end
+
+    def cohorts
+      cohorts_for_select(user: user).select { |_, id| cohort_ids.include?(id.to_i) }&.map(&:first)
     end
 
     def available_household_types

@@ -18,6 +18,8 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
+  has_many :enrollments, **hmis_relation(:PersonalID, 'Enrollment')
+  has_many :projects, through: :enrollments
   validates_with Hmis::Hud::Validators::ClientValidator
 
   scope :visible_to, ->(user) do
@@ -44,9 +46,6 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     self.SSN&.[](-4..-1)
   end
 
-  has_many :enrollments, **hmis_relation(:PersonalID, 'Enrollment')
-  has_many :projects, through: :enrollments
-
   SORT_OPTIONS = [:last_name_asc, :last_name_desc].freeze
 
   def self.client_search(input:, user: nil)
@@ -56,7 +55,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     return source_for(destination_id: input.warehouse_id, user: user) if input.warehouse_id
 
     # Build search scope
-    scope = GrdaWarehouse::Hud::Client.where(id: searchable_to(user).select(:id))
+    scope = Hmis::Hud::Client.where(id: searchable_to(user).select(:id))
     if input.text_search.present?
       scope = text_searcher(input.text_search) do |where|
         scope.where(where).pluck(:id)
@@ -82,8 +81,8 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     scope = scope.where(c_t[:SSN].matches("%#{input.ssn_serial}")) if input.ssn_serial.present?
     scope = scope.where(c_t[:DOB].eq(Date.parse(input.dob))) if input.dob.present?
 
-    # TODO: projects
-    # TODO: organizations
+    scope = scope.joins(:projects).merge(Hmis::Hud::Project.viewable_by(user).where(id: input.projects)) if input.projects.present?
+    scope = scope.joins(projects: :organization).merge(Hmis::Hud::Organization.viewable_by(user).where(id: input.organizations)) if input.organizations.present?
 
     Hmis::Hud::Client.where(id: scope.select(:id))
   end
