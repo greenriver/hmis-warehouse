@@ -16,7 +16,7 @@ module Types
     field :assessments, HmisSchema::Assessment.page_type, null: false
     field :events, HmisSchema::Event.page_type, null: false
     field :services, HmisSchema::Service.page_type, null: false
-    field :household, HmisSchema::Household, null: true
+    field :household, HmisSchema::Household, null: false
 
     def project
       load_ar_association(object, :project)
