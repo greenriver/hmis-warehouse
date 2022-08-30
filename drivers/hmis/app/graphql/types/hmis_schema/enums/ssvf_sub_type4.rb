@@ -7,10 +7,10 @@
 # frozen_string_literal: true
 
 module Types
-  class HmisSchema::Enums::Ethnicity < Types::BaseEnum
-    description 'HUD Ethnicity (3.05.1)'
-    graphql_name 'Ethnicity'
+  class HmisSchema::Enums::SSVFSubType4 < Types::BaseEnum
+    description 'HUD SSVFSubType4 (V2.B)'
+    graphql_name 'SSVFSubType4'
 
-    with_enum_map Hmis::Hud::Client.ethnicity_enum_map, prefix: 'ETHNICITY_'
+    with_enum_map Hmis::Hud::Service.s_s_v_f_sub_type4_enum_map
   end
 end

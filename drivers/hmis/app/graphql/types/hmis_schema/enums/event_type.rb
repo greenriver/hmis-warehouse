@@ -7,10 +7,10 @@
 # frozen_string_literal: true
 
 module Types
-  class HmisSchema::Enums::Ethnicity < Types::BaseEnum
-    description 'HUD Ethnicity (3.05.1)'
-    graphql_name 'Ethnicity'
+  class HmisSchema::Enums::EventType < Types::BaseEnum
+    description 'HUD EventType (4.20.2)'
+    graphql_name 'EventType'
 
-    with_enum_map Hmis::Hud::Client.ethnicity_enum_map, prefix: 'ETHNICITY_'
+    with_enum_map Hmis::Hud::Event.events_enum_map
   end
 end
