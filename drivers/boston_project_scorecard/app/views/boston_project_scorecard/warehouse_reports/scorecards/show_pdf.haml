@@ -1,0 +1,9 @@
+%h1
+  = render 'layouts/footer_seal'
+  #{@report.title}
+
+= simple_form_for @report, url: boston_project_scorecard_warehouse_reports_scorecard_path(@report), wrapper: :readonly do |f|
+  - if @report.archive.blank?
+    = render 'boston_project_scorecard/warehouse_reports/scorecards/form', f: f
+  - else
+    = @report.archive.html_safe

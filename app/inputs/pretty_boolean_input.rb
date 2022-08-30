@@ -25,6 +25,8 @@ class PrettyBooleanInput < SimpleForm::Inputs::BooleanInput
       end
     else
       merged_input_options = merge_wrapper_options(input_html_options, wrapper_options)
+      label_text = input_options[:label] if input_options[:label].present?
+      label_text = '' if input_options[:label] == false
       label_text_el = template.content_tag(:span, label_text)
       hint_text = template.content_tag(:span, options[:hint], class: 'c-checkbox__hint')
       label_and_hint = template.content_tag(:span, label_text_el + hint_text, class: 'c-checkbox__label')
