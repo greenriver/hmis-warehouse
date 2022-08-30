@@ -13,5 +13,9 @@ module Types
     field :full_message, String, null: true
     field :type, String, null: false
     field :options, JsonObject, null: true
+
+    def attribute
+      object.attribute.to_s.underscore.camelize(:lower)
+    end
   end
 end

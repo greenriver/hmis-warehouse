@@ -44,5 +44,13 @@ module Types
     def client(id:)
       Hmis::Hud::Client.visible_to(current_user).find_by(id: id)
     end
+
+    field :enrollment, Types::HmisSchema::Enrollment, 'Enrollment lookup', null: true do
+      argument :id, ID, required: true
+    end
+
+    def enrollment(id:)
+      Hmis::Hud::Enrollment.viewable_by(current_user).find_by(id: id)
+    end
   end
 end

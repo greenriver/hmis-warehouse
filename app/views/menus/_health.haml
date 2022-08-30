@@ -1,6 +1,5 @@
 - can_see_health_emergency_contact_tracing = can_edit_health_emergency_contact_tracing? && GrdaWarehouse::Config.get(:health_emergency_tracing).present?
 - can_see_healthcare = healthcare_available? && (can_view_aggregate_health? || can_view_patients_for_own_agency?)
-- member_of_team = current_user.user_care_coordinators.any? || current_user.user_team_coordinators.any?
 
 - if can_see_healthcare || can_see_health_emergency_contact_tracing
   %ul.o-menu__group.list-unstyled.d-none--empty<
@@ -13,7 +12,7 @@
       %li.o-menu__item
         = link_to health_patients_path, class: 'o-menu__link' do
           = _('My Agency\'s Patients')
-    - if member_of_team
+    - if current_user.team_mates.exists?
       %li.o-menu__item
         = link_to health_team_patients_path, class: 'o-menu__link' do
           = _('My Team\'s Patients')

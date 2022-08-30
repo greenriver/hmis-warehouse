@@ -1,14 +1,10 @@
-- description = GrdaWarehouse::Tasks::PushClientsToCas.new.description_display_for(:disability_verified_on)
-
 %section.o-section-card
   %h3 Disability Verification
   .c-card.c-card--block.c-card--padded.c-card--flush
-    - if description.present?
-      %p= description
     .d-flex.flex-wrap
       %p
+        - confirmed = @client.disability_verified_on.present?
         .mb-1
-          - confirmed = @client.disability_verified_on.present?
           = checkmark_or_x(confirmed)
         - if !confirmed
           No Disability Verification on File

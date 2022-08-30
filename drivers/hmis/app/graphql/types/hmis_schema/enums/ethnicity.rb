@@ -8,11 +8,9 @@
 
 module Types
   class HmisSchema::Enums::Ethnicity < Types::BaseEnum
-    description 'HUD Ethnicity'
+    description 'HUD Ethnicity (3.05.1)'
     graphql_name 'Ethnicity'
 
-    Hmis::Hud::Client.ethnicity_enum_map.members.each do |member|
-      value "ETHNICITY_#{to_enum_key(member[:key])}", member[:desc], value: member[:value]
-    end
+    with_enum_map Hmis::Hud::Client.ethnicity_enum_map, prefix: 'ETHNICITY_'
   end
 end
