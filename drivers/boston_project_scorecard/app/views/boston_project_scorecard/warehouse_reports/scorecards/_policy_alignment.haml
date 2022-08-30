@@ -33,8 +33,7 @@
         prevent them to enter housing due to the following barriers
       %td Project Application
       %td Up to 6 pts: 1 pts for each sub-population served
-      -# %td= f.input :vulnerable_subpopulations_served, collection: @report.vulnerable_subpopulations_served_options, as: :pretty_boolean_group, multiple: true, label: 'Select all sub-populations served:'
-      %td= f.input :vulnerable_subpopulations_served, collection: @report.vulnerable_subpopulations_served_options, as: :select_two, input_html: {multiple: true}, label: 'Select all sub-populations served:'
+      %td= f.input :vulnerable_subpopulations_served, collection: @report.vulnerable_subpopulations_served_options, as: :pretty_boolean_group, multiple: true, label: 'Select all sub-populations served:'
       %td= @report.vulnerable_subpopulations_served_score
     %tr
       %th{rowspan: 2}

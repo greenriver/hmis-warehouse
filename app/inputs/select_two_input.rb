@@ -13,20 +13,18 @@ class SelectTwoInput < CollectionSelectInput
     label_method, value_method = detect_collection_methods
 
     if @builder.options[:wrapper] == :readonly || input_options[:readonly] == true
-      selected_values = object.send(attribute_name)
-      Array.wrap(selected_values).each do |selected_value|
-        selected_object = collection.detect { |m| m.send(value_method).to_s == selected_value.to_s }
-        display_value = selected_object&.send(label_method)
-        next unless display_value.present?
-
-        existing_classes = label_html_options.try(:[], :class)
-        existing_classes << 'd-block'
-
-        if display_value.present?
-          template.concat(template.content_tag(:p, display_value, label_html_options.merge(class: existing_classes)))
-        else
-          template.concat(template.content_tag(:em, 'Blank', label_html_options.merge(class: existing_classes)))
-        end
+      label_method = detect_collection_methods.first
+      value_method = detect_collection_methods.last
+      selected_value = Array.wrap(object.send(attribute_name)).map(&:to_s)
+      selected_objects = collection.map { |m| [m.send(value_method).to_s, m.send(label_method)] }.to_h.select { |k, _| k.in?(selected_value) }
+      value = selected_objects.values.join(', ')
+      existing_classes = label_html_options.try(:[], :class)
+      existing_classes << 'd-block'
+      existing_classes << 'readonly-value'
+      if value.present?
+        template.label_tag('p', value, label_html_options.merge(class: existing_classes))
+      else
+        template.content_tag(:em, 'Blank', label_html_options)
       end
     else
       options = input_html_options
