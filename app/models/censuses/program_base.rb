@@ -81,7 +81,9 @@ module Censuses
 
       dimension_scope = census_data_scope(user: user).by_project_id(project_id)
       organization_id = project.organization&.id
-      dimension_label = "#{project.name} (#{project_type}) < #{project.organization&.name} < #{project.data_source&.short_name}"
+      name_and_type = project.name(user, include_project_type: true, ignore_confidential_status: user.can_edit_projects?)
+      organization_name = project.organization&.name(user, ignore_confidential_status: user.can_edit_organizations?)
+      dimension_label = "#{name_and_type} < #{organization_name} < #{project.data_source&.short_name}"
       compute_dimension(start_date, end_date, data_source_id, organization_id, project_id, dimension_label, dimension_scope)
     end
 
@@ -93,13 +95,13 @@ module Censuses
     end
 
     private def for_organization_id(start_date, end_date, data_source_id, organization_id, user: nil)
-      organization_name = GrdaWarehouse::Hud::Organization.find(organization_id).name
+      organization_name = GrdaWarehouse::Hud::Organization.find(organization_id).name(user, ignore_confidential_status: user.can_edit_organizations?)
       dimension_label = "All programs from #{organization_name}"
       dimension_scope = census_data_scope(user: user).by_organization_id(organization_id)
       compute_dimension(start_date, end_date, data_source_id, organization_id, 'all', dimension_label, dimension_scope)
     end
 
-    private def compute_dimension(start_date, end_date, data_source_id, organization_id, project_id, dimension_label, dimension_scope) # rubocop:disable Metrics/ParameterLists
+    private def compute_dimension(start_date, end_date, data_source_id, organization_id, project_id, dimension_label, dimension_scope)
       # Move the start of the range to include "yesterday"
       yesterday = 0
       adjusted_start_date = start_date.to_date - 1.day
@@ -120,7 +122,7 @@ module Censuses
       add_dimension(data_source_id, organization_id, project_id, client_data, bed_data, dimension_label) unless client_data.empty?
     end
 
-    private def add_dimension(data_source_id, organization_id, project_id, clients, beds, title) # rubocop:disable Metrics/ParameterLists
+    private def add_dimension(data_source_id, organization_id, project_id, clients, beds, title)
       @shape[data_source_id] ||= {}
       @shape[data_source_id][organization_id] ||= {}
       @shape[data_source_id][organization_id][project_id] ||= {}
@@ -135,21 +137,21 @@ module Censuses
 
     # Detail view
 
-    def detail_name(project_code)
+    def detail_name(project_code, user: nil)
       data_source_id, organization_id, project_id = project_code.split('-')
       return 'All Programs from All Sources on' if data_source_id == 'all'
 
       data_source_name = GrdaWarehouse::DataSource.find(data_source_id.to_i).name
       return "All Programs from #{data_source_name} on" if organization_id == 'all'
 
-      organization_name = GrdaWarehouse::Hud::Organization.find(organization_id.to_i).name
+      organization_name = GrdaWarehouse::Hud::Organization.find(organization_id.to_i).name(user)
       return "All Projects from #{organization_name} on" if project_id == 'all'
 
-      project_name = GrdaWarehouse::Hud::Project.find(project_id.to_i).name
+      project_name = GrdaWarehouse::Hud::Project.find(project_id.to_i).name(user)
       "#{project_name} at #{organization_name} on"
     end
 
-    def clients_for_date(date, data_source = nil, organization = nil, project = nil)
+    def clients_for_date(user, date, data_source = nil, organization = nil, project = nil)
       columns = {
         'LastName' => c_t[:LastName].to_sql,
         'FirstName' => c_t[:FirstName].to_sql,
@@ -157,6 +159,7 @@ module Censuses
         'short_name' => ds_t[:short_name].to_sql,
         'client_id' => she_t[:client_id].to_sql,
         'project_id' => p_t[:id].to_sql,
+        'confidential' => bool_or(p_t[:confidential], o_t[:confidential]),
       }
 
       base_scope = GrdaWarehouse::ServiceHistoryService.where(date: date)
@@ -173,10 +176,12 @@ module Censuses
           merge(GrdaWarehouse::Hud::Project.where(id: project.to_i))
       end
 
-      base_scope.joins(:client, service_history_enrollment: [:data_source, :project]).
+      base_scope.joins(:client, service_history_enrollment: [:data_source, project: :organization]).
         pluck(*columns.values).
         map do |row|
-          Hash[columns.keys.zip(row)]
+          h = Hash[columns.keys.zip(row)]
+          h['ProjectName'] = GrdaWarehouse::Hud::Project.confidential_project_name if h['confidential'] && !user.can_view_confidential_project_names?
+          h
         end
     end
 

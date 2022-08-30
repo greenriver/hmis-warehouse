@@ -22,5 +22,5 @@
         = render 'background_render', url: render_section_disability_summary_warehouse_reports_disability_summary_index_path, fetch_params: {partial: section, filters: @filter.for_params[:filters] } do
           .rollup
             .rollup-container.well
-
+        = render 'common/section_not_loading', path_to_section: section_disability_summary_warehouse_reports_disability_summary_index_path({partial: section}.merge(link_params))
 = render 'computation_description'

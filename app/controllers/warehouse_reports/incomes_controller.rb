@@ -12,7 +12,7 @@ module WarehouseReports
     def index
       filter_params = { user_id: current_user.id }
       filter_params.merge!(report_params[:filter]) if report_params[:filter].present?
-      @filter = ::Filters::DateRangeAndSources.new(filter_params)
+      @filter = ::Filters::FilterBase.new(filter_params)
 
       @start_date = @filter.start
       @end_date = @filter.end

@@ -62,7 +62,7 @@ module HudApr::Generators::Shared::Fy2021
         header_row: HEADER_ROW,
         row_labels: [
           'Total Households',
-          'For PSH & RRH – the total households served who moved into housing',
+          'For PSH & RRH - the total households served who moved into housing',
         ],
         first_column: 'B',
         last_column: 'F',
@@ -111,7 +111,8 @@ module HudApr::Generators::Shared::Fy2021
       ps_rrh_w_move_in = universe.members.where(
         a_t[:project_type].in([3, 13]).
           and(a_t[:head_of_household].eq(true)).
-          and(a_t[:move_in_date].not_eq(nil)),
+          and(a_t[:move_in_date].not_eq(nil).
+          and(a_t[:move_in_date].lteq(@report.end_date))),
       )
       answer = @report.answer(question: table_name, cell: 'B3')
       members = ps_rrh_w_move_in

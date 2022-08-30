@@ -22,4 +22,6 @@
 
 = content_for :page_js do
   :javascript
-    $('.jSSN').inputmask("999-99-9999");
+    $(document).ready(function(){
+      $('.jSSN').inputmask("999-99-9999");
+    });

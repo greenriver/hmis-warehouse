@@ -1,0 +1,24 @@
+- content_for :title,  'Coordination Teams'
+%h1= content_for :title
+
+= render 'menus/health_admin_tabs'
+
+%h3 Assign Team Coordinators to Teams
+%p
+  Team Coordinators will see all patients assigned to themselves and the care coordinators assigned to their teams on the
+  = link_to health_my_patients_path do
+    My Patients
+  page
+
+%h2 New Team
+.well
+  = render 'new_team'
+%h2 Existing Teams
+.well
+  .row
+    .col-sm-3 Team
+    .col-sm-3 Team Coordinator
+    .col-sm-3 Nurse Care Manager
+    .col-sm-3
+  - @teams.each do |team|
+    = render 'row', team: team

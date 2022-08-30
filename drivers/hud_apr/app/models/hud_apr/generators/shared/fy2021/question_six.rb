@@ -25,7 +25,7 @@ module HudApr::Generators::Shared::Fy2021
       metadata = {
         header_row: [
           'Data Element',
-          'Client Doesn’t Know/Refused',
+          'Client Doesn\'t Know/Refused',
           'Information Missing',
           'Data Issues',
           'Total',
@@ -339,12 +339,12 @@ module HudApr::Generators::Shared::Fy2021
           or(a_t[:disabling_condition].eq(nil)).
           or(a_t[:disabling_condition].eq(0).
             and(a_t[:indefinite_and_impairs].eq(true).
-              and(a_t[:developmental_disability].eq(true).
-                or(a_t[:hiv_aids].eq(true)).
-                or(a_t[:physical_disability].eq(true)).
-                or(a_t[:chronic_disability].eq(true)).
-                or(a_t[:mental_health_problem].eq(true)).
-                or(a_t[:substance_abuse].eq(true)).
+              and(a_t[:developmental_disability_latest].eq(true).
+                or(a_t[:hiv_aids_latest].eq(true)).
+                or(a_t[:physical_disability_latest].eq(true)).
+                or(a_t[:chronic_disability_latest].eq(true)).
+                or(a_t[:mental_health_problem_latest].eq(true)).
+                or(a_t[:substance_abuse_latest].eq(true)).
                 or(a_t[:indefinite_and_impairs].eq(true))))),
       )
       answer.add_members(members)
@@ -817,8 +817,8 @@ module HudApr::Generators::Shared::Fy2021
           '# % of Inactive Records',
         ],
         row_labels: [
-          'Contact (Adults and Heads of Household in Street Outreach or ES – NBN)',
-          'Bed Night (All clients in ES – NBN)',
+          'Contact (Adults and Heads of Household in Street Outreach or ES - NBN)',
+          'Bed Night (All clients in ES - NBN)',
         ],
         first_column: 'B',
         last_column: 'D',

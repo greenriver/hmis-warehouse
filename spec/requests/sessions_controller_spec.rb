@@ -40,8 +40,8 @@ RSpec.describe Users::SessionsController, type: :request do
 
   describe 'Account locked after 9 un-successful logins' do
     before(:each) do
-      # FIXME: this should be (Devise.maximum_attempts -1)  (not a hard coded 9, see bug above)
-      9.times do
+      # Devise.maximum_attempts is twice what it should be (see Devise 2FA bug above)
+      ((Devise.maximum_attempts / 2) - 1).times do
         post user_session_path(user: { email: user.email, password: 'incorrect' })
       end
     end
@@ -99,9 +99,16 @@ RSpec.describe Users::SessionsController, type: :request do
     end
 
     describe 'User remembers 2FA device' do
-      before(:each) do
+      before(:all) do
+        GrdaWarehouse::Config.first_or_create
         GrdaWarehouse::Config.update(bypass_2fa_duration: 30)
         GrdaWarehouse::Config.invalidate_cache
+      end
+      after(:all) do
+        GrdaWarehouse::Config.delete_all
+      end
+
+      before(:each) do
         post user_session_path(user: { otp_attempt: user_2fa.current_otp, remember_device: true, device_name: 'Test Device' })
         sign_out(user_2fa)
         post user_session_path(user: { email: user_2fa.email, password: user_2fa.password })

@@ -5,16 +5,9 @@
 ###
 
 FactoryBot.define do
-  factory :vpr_patient, class: 'Health::Patient' do
-    sequence(:id_in_source)
-    patient_referral
-    association :client, factory: :hud_client
-    sequence(:medicaid_id)
-  end
-
   factory :vpr, class: 'HealthFlexibleService::Vpr' do
     user
-    association :patient, factory: :vpr_patient
+    association :client, factory: :hud_client
     first_name { 'First' }
     sequence(:last_name) { |n| "Last#{n}" }
     dob { Date.current - rand(1000) }

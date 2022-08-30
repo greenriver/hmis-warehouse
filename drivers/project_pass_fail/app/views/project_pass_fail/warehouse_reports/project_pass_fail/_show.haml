@@ -1,6 +1,7 @@
 %h3 Selected Universe:
 .reports
-  = render 'filters/report_parameters', options: @report.options['filters'], report: @report
+  .report-parameters
+    = @report.filter.describe_filter_as_html(@report.known_params)
 
 - if @report.universal_data_element_threshold.present?
   .well
@@ -29,7 +30,7 @@
         .ml-2.mr-2
           %h4.title Overall Bed Utilization Rate
           .d-flex.justify-content-center
-            = embedded_svg(:group)
+            %i.icon-group
           .metric{class: status_class}
             = number_to_percentage @report.utilization_rate_as_percent, precision: 2
       .overall-unit-utilization-rate.chunk.mr-auto.ml-auto
@@ -37,7 +38,7 @@
         .ml-2.mr-2
           %h4.title Overall Unit Utilization Rate
           .d-flex.justify-content-center
-            = embedded_svg(:group)
+            %i.icon-group
           .metric{class: status_class}
             = number_to_percentage @report.unit_utilization_rate_as_percent, precision: 2
       .overall-universal-data-elements.chunk.mr-auto.ml-auto
@@ -45,7 +46,7 @@
         .ml-2.mr-2
           %h4.title Projects Failing Universal Data Elements
           .d-flex.justify-content-center
-            = embedded_svg('file-text')
+            %i.icon-file-text
           .metric{class: status_class}
             #{number_with_delimiter(@report.projects_failing_universal_data_elements)} of #{@report.projects.count} (#{@report.projects_failing_universal_data_elements_percent} %)
       .overall-timeliness.chunk.mr-4.ml-4
@@ -53,7 +54,7 @@
         .ml-2.mr-2
           %h4.title Average Days to Enter Enrollments
           .d-flex.justify-content-center
-            = embedded_svg(:calendar)
+            %i.icon-calendar
           .metric{class: status_class}
             = number_with_delimiter(@report.average_days_to_enter_entry_date.round)
   %h2 Project Summary

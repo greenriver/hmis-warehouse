@@ -27,23 +27,45 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
       pluck(:id)
   end
 
-  def self.update_cached_counts(client_ids: [])
-    new.update_cached_counts(client_ids: client_ids)
+  def self.update_cached_counts(client_ids: [], include_cas_and_cohorts: false, skip_expensive_calculations: false)
+    new.update_cached_counts(client_ids: client_ids, include_cas_and_cohorts: include_cas_and_cohorts, skip_expensive_calculations: skip_expensive_calculations)
   end
 
-  def update_cached_counts(client_ids: [])
+  # Only run if it's not already running or we have a specific set of client_ids
+  def update_cached_counts(client_ids: [], include_cas_and_cohorts: false, skip_expensive_calculations: false)
+    return internal_update_cached_counts(client_ids: client_ids, include_cas_and_cohorts: include_cas_and_cohorts, skip_expensive_calculations: skip_expensive_calculations) if client_ids.present?
+
+    # if we asked to update everyone, re-ask but with batches of 5,000 clients since that's our batch size later anyway
+    # but for subsequent batches, we want the shorter, faster processing
+    default_client_ids.each_slice(5_000).with_index do |batch, i|
+      include_cas_and_cohorts = i.zero? # catch cohorts and CAS clients on first batch
+      skip_expensive_calculations = i.positive?
+      self.class.delay(
+        queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running),
+        priority: 12,
+      ).update_cached_counts(
+        client_ids: batch,
+        include_cas_and_cohorts: include_cas_and_cohorts,
+        skip_expensive_calculations: skip_expensive_calculations,
+      )
+    end
+  end
+
+  private def internal_update_cached_counts(client_ids: [], include_cas_and_cohorts: false, skip_expensive_calculations: false)
     setup_notifier('WarehouseClientsProcessed')
-    extra_data = []
-    limited_data = []
+    extra_data = [] # client ids that will be processed for CAS and Cohorts (and client dashboards)
+    limited_data = [] # client ids that will be processed for client dashboards only
+
     # If we passed any client_ids in, then use them, otherwise,
     # process anyone active in the past year, or who is on a cohort or active in CAS
-    if client_ids.blank?
-      client_ids = default_client_ids
+    if include_cas_and_cohorts
       cohort_client_ids = GrdaWarehouse::CohortClient.joins(:cohort, :client).
         merge(GrdaWarehouse::Cohort.active).distinct.pluck(:client_id)
       cas_active_client_ids = GrdaWarehouse::Hud::Client.cas_active.pluck(:id)
       extra_data = (cohort_client_ids + cas_active_client_ids).uniq
       limited_data = client_ids - extra_data
+    elsif skip_expensive_calculations
+      limited_data = client_ids
     else
       extra_data = client_ids
     end
@@ -631,10 +653,10 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
       GrdaWarehouse::ServiceHistoryEnrollment.entry.ongoing.
         merge(GrdaWarehouse::Hud::Project.public_send(type)).
         where(client_id: @client_ids).
-        joins(:service_history_services, :project).
-        group(:client_id, :project_name, p_t[:confidential], p_t[:id]).
+        joins(:service_history_services, :project, :organization).
+        group(:client_id, :project_name, p_t[:id], bool_or(p_t[:confidential], o_t[:confidential])).
         maximum(shs_t[:date]).
-        each do |(client_id, project_name, confidential, project_id), date|
+        each do |(client_id, project_name, project_id, confidential), date|
           project_name = GrdaWarehouse::Hud::Project.confidential_project_name if confidential
           lsit[client_id] ||= []
           lsit[client_id] << {

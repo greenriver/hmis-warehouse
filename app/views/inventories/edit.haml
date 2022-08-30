@@ -1,5 +1,6 @@
+-# confidentiality status ignored because page is not visible to users who can't see confidential project names
 - content_for :modal_title do
-  "Edit Inventory for #{@project.name} at #{@project.organization.name}"
+  Edit Inventory for #{@project.name(ignore_confidential_status: true)} at #{@project.organization.name(ignore_confidential_status: true)}
 = simple_form_for @inventory, as: :inventory, url: inventory_path(@inventory) do |f|
   .row
     .col-sm-6

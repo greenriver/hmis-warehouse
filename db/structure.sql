@@ -151,6 +151,105 @@ ALTER SEQUENCE public.account_requests_id_seq OWNED BY public.account_requests.i
 
 
 --
+-- Name: active_storage_attachments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.active_storage_attachments (
+    id bigint NOT NULL,
+    name character varying NOT NULL,
+    record_type character varying NOT NULL,
+    record_id bigint NOT NULL,
+    blob_id bigint NOT NULL,
+    created_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: active_storage_attachments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.active_storage_attachments_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: active_storage_attachments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.active_storage_attachments_id_seq OWNED BY public.active_storage_attachments.id;
+
+
+--
+-- Name: active_storage_blobs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.active_storage_blobs (
+    id bigint NOT NULL,
+    key character varying NOT NULL,
+    filename character varying NOT NULL,
+    content_type character varying,
+    metadata text,
+    service_name character varying NOT NULL,
+    byte_size bigint NOT NULL,
+    checksum character varying NOT NULL,
+    created_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: active_storage_blobs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.active_storage_blobs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: active_storage_blobs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.active_storage_blobs_id_seq OWNED BY public.active_storage_blobs.id;
+
+
+--
+-- Name: active_storage_variant_records; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.active_storage_variant_records (
+    id bigint NOT NULL,
+    blob_id bigint NOT NULL,
+    variation_digest character varying NOT NULL
+);
+
+
+--
+-- Name: active_storage_variant_records_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.active_storage_variant_records_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: active_storage_variant_records_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.active_storage_variant_records_id_seq OWNED BY public.active_storage_variant_records.id;
+
+
+--
 -- Name: activity_logs; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -459,6 +558,40 @@ CREATE SEQUENCE public.glacier_vaults_id_seq
 --
 
 ALTER SEQUENCE public.glacier_vaults_id_seq OWNED BY public.glacier_vaults.id;
+
+
+--
+-- Name: hmis_roles; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_roles (
+    id bigint NOT NULL,
+    name character varying NOT NULL,
+    can_view_full_ssn boolean DEFAULT false NOT NULL,
+    can_view_clients boolean DEFAULT false NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: hmis_roles_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_roles_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_roles_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_roles_id_seq OWNED BY public.hmis_roles.id;
 
 
 --
@@ -929,7 +1062,6 @@ CREATE TABLE public.roles (
     can_edit_help boolean DEFAULT false,
     can_view_all_hud_reports boolean DEFAULT false,
     can_view_own_hud_reports boolean DEFAULT false,
-    can_view_confidential_enrollment_details boolean DEFAULT false,
     can_manage_ad_hoc_data_sources boolean DEFAULT false,
     can_manage_own_ad_hoc_data_sources boolean DEFAULT false,
     can_view_client_ad_hoc_data_sources boolean DEFAULT false,
@@ -974,7 +1106,11 @@ CREATE TABLE public.roles (
     can_edit_health_emergency_contact_tracing boolean DEFAULT false,
     health_role boolean DEFAULT false NOT NULL,
     can_view_all_vprs boolean DEFAULT false,
-    can_view_my_vprs boolean DEFAULT false
+    can_view_my_vprs boolean DEFAULT false,
+    can_search_own_clients boolean DEFAULT false,
+    can_view_confidential_project_names boolean DEFAULT false,
+    can_report_on_confidential_projects boolean DEFAULT false,
+    can_edit_assigned_project_groups boolean DEFAULT false
 );
 
 
@@ -1321,6 +1457,40 @@ ALTER SEQUENCE public.uploads_id_seq OWNED BY public.uploads.id;
 
 
 --
+-- Name: user_hmis_data_source_roles; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.user_hmis_data_source_roles (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    role_id bigint NOT NULL,
+    data_source_id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: user_hmis_data_source_roles_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.user_hmis_data_source_roles_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: user_hmis_data_source_roles_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.user_hmis_data_source_roles_id_seq OWNED BY public.user_hmis_data_source_roles.id;
+
+
+--
 -- Name: user_roles; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1540,6 +1710,27 @@ ALTER TABLE ONLY public.account_requests ALTER COLUMN id SET DEFAULT nextval('pu
 
 
 --
+-- Name: active_storage_attachments id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.active_storage_attachments ALTER COLUMN id SET DEFAULT nextval('public.active_storage_attachments_id_seq'::regclass);
+
+
+--
+-- Name: active_storage_blobs id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.active_storage_blobs ALTER COLUMN id SET DEFAULT nextval('public.active_storage_blobs_id_seq'::regclass);
+
+
+--
+-- Name: active_storage_variant_records id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.active_storage_variant_records ALTER COLUMN id SET DEFAULT nextval('public.active_storage_variant_records_id_seq'::regclass);
+
+
+--
 -- Name: activity_logs id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -1586,6 +1777,13 @@ ALTER TABLE ONLY public.glacier_archives ALTER COLUMN id SET DEFAULT nextval('pu
 --
 
 ALTER TABLE ONLY public.glacier_vaults ALTER COLUMN id SET DEFAULT nextval('public.glacier_vaults_id_seq'::regclass);
+
+
+--
+-- Name: hmis_roles id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_roles ALTER COLUMN id SET DEFAULT nextval('public.hmis_roles_id_seq'::regclass);
 
 
 --
@@ -1729,6 +1927,13 @@ ALTER TABLE ONLY public.uploads ALTER COLUMN id SET DEFAULT nextval('public.uplo
 
 
 --
+-- Name: user_hmis_data_source_roles id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_hmis_data_source_roles ALTER COLUMN id SET DEFAULT nextval('public.user_hmis_data_source_roles_id_seq'::regclass);
+
+
+--
 -- Name: user_roles id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -1778,6 +1983,30 @@ ALTER TABLE ONLY public.access_groups
 
 ALTER TABLE ONLY public.account_requests
     ADD CONSTRAINT account_requests_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: active_storage_attachments active_storage_attachments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.active_storage_attachments
+    ADD CONSTRAINT active_storage_attachments_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: active_storage_blobs active_storage_blobs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.active_storage_blobs
+    ADD CONSTRAINT active_storage_blobs_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: active_storage_variant_records active_storage_variant_records_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.active_storage_variant_records
+    ADD CONSTRAINT active_storage_variant_records_pkey PRIMARY KEY (id);
 
 
 --
@@ -1842,6 +2071,14 @@ ALTER TABLE ONLY public.glacier_archives
 
 ALTER TABLE ONLY public.glacier_vaults
     ADD CONSTRAINT glacier_vaults_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_roles hmis_roles_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_roles
+    ADD CONSTRAINT hmis_roles_pkey PRIMARY KEY (id);
 
 
 --
@@ -2013,6 +2250,14 @@ ALTER TABLE ONLY public.uploads
 
 
 --
+-- Name: user_hmis_data_source_roles user_hmis_data_source_roles_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_hmis_data_source_roles
+    ADD CONSTRAINT user_hmis_data_source_roles_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: user_roles user_roles_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2056,6 +2301,34 @@ CREATE INDEX delayed_jobs_priority ON public.delayed_jobs USING btree (priority,
 --
 
 CREATE INDEX index_account_requests_on_user_id ON public.account_requests USING btree (user_id);
+
+
+--
+-- Name: index_active_storage_attachments_on_blob_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_active_storage_attachments_on_blob_id ON public.active_storage_attachments USING btree (blob_id);
+
+
+--
+-- Name: index_active_storage_attachments_uniqueness; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_active_storage_attachments_uniqueness ON public.active_storage_attachments USING btree (record_type, record_id, name, blob_id);
+
+
+--
+-- Name: index_active_storage_blobs_on_key; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_active_storage_blobs_on_key ON public.active_storage_blobs USING btree (key);
+
+
+--
+-- Name: index_active_storage_variant_records_uniqueness; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_active_storage_variant_records_uniqueness ON public.active_storage_variant_records USING btree (blob_id, variation_digest);
 
 
 --
@@ -2325,6 +2598,27 @@ CREATE INDEX index_uploads_on_deleted_at ON public.uploads USING btree (deleted_
 
 
 --
+-- Name: index_user_hmis_data_source_roles_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_user_hmis_data_source_roles_on_data_source_id ON public.user_hmis_data_source_roles USING btree (data_source_id);
+
+
+--
+-- Name: index_user_hmis_data_source_roles_on_role_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_user_hmis_data_source_roles_on_role_id ON public.user_hmis_data_source_roles USING btree (role_id);
+
+
+--
+-- Name: index_user_hmis_data_source_roles_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_user_hmis_data_source_roles_on_user_id ON public.user_hmis_data_source_roles USING btree (user_id);
+
+
+--
 -- Name: index_user_roles_on_role_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -2462,11 +2756,27 @@ ALTER TABLE ONLY public.two_factors_memorized_devices
 
 
 --
+-- Name: active_storage_variant_records fk_rails_993965df05; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.active_storage_variant_records
+    ADD CONSTRAINT fk_rails_993965df05 FOREIGN KEY (blob_id) REFERENCES public.active_storage_blobs(id);
+
+
+--
 -- Name: reports fk_rails_b231202c9b; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.reports
     ADD CONSTRAINT fk_rails_b231202c9b FOREIGN KEY (report_results_summary_id) REFERENCES public.report_results_summaries(id);
+
+
+--
+-- Name: active_storage_attachments fk_rails_c3b3935057; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.active_storage_attachments
+    ADD CONSTRAINT fk_rails_c3b3935057 FOREIGN KEY (blob_id) REFERENCES public.active_storage_blobs(id);
 
 
 --
@@ -2692,6 +3002,14 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220127152605'),
 ('20220216174239'),
 ('20220309140327'),
-('20220314183405');
+('20220314183405'),
+('20220518143528'),
+('20220609133835'),
+('20220613211706'),
+('20220613212850'),
+('20220615155458'),
+('20220621144511'),
+('20220714144937'),
+('20220822134957');
 
 

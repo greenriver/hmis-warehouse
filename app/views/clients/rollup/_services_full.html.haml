@@ -1,4 +1,3 @@
-- show_confidential_programs = can_view_confidential_enrollment_details?
 = cache(['clients', 'services_full', @client, can_view_projects?, controller_path, current_user], expires_in: 1.hours) do
   :ruby
     services = @client.source_enrollment_services.
@@ -10,7 +9,7 @@
       preload( :client, :enrollment, project: :organization )
     projects = services.map(&:project).compact.uniq.
       sort_by do |m|
-        m.organization_and_name(include_confidential_names: show_confidential_programs)
+        m.organization_and_name(current_user)
       end.
       each_with_index.map{ |p, i| [ p, i ] }.to_h
   - if services.any?
@@ -22,20 +21,20 @@
             %th Locations
             %th
         %tbody
-          - services.group_by{ |s| l(s.DateProvided) }.each do |date, services|
+          - services.group_by{ |s| s.DateProvided }.each do |date, services|
             %tr
-              %td.date-cell= date
+              %td= date
               %td
                 - services.each do |service|
                   - project = service.project
                   .client__full-service-project
                     %span
                       .ds{class: "ds-color-#{service.data_source_id}"}= ds_short_name_for(service.client.id)
-                    %span{ data: { toggle: 'tooltip', title: project&.organization_and_name(include_confidential_names: show_confidential_programs), project: projects[project] } }
-                      = GrdaWarehouse::Hud::Project.confidentialize(name: project&.name) || 'Unable to determine project name'
+                    %span{ data: { toggle: 'tooltip', title: project&.organization_and_name(current_user), project: projects[project] } }
+                      = project&.name(current_user) || 'Unable to determine project name'
                   .text-right
                     - if @client.hmis_source_visible_by?(current_user)
-                      = link_to 'HMIS', hmi_path(service, type: 'Services'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis mb-2'
+                      = link_to 'HMIS', source_datum_path(service, type: 'Services'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis mb-2'
                       .text-teeny.font-weight-light
                         .text-nowrap
                           Created: #{service.DateCreated}

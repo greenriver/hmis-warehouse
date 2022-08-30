@@ -57,7 +57,7 @@ class ActiveClientReport
 
   def residential_service_history_source
     @project_types = @filter.project_type_ids
-    scope = history_scope(service_history_source(@user).residential, @filter.sub_population)
+    scope = history_scope(service_history_source(@user), @filter.sub_population)
     scope = filter_for_project_type(scope)
     scope = filter_for_organizations(scope)
     scope = filter_for_projects(scope)

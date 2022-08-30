@@ -1,0 +1,48 @@
+- markdown = Redcarpet::Markdown.new(::InlineHtml)
+.card.overflow-hidden
+  .m-4
+    %h2 Summary
+  %table.table.mb-0
+    %tbody
+      - @report.display_order.each.with_index do |sub_sections, i|
+        - sub_section_keys = sub_sections.map(&:keys).flatten
+        - rowspan = sub_section_keys.count + 1
+        - class_name = "performance-measurement--highlight-light-#{i + 1}"
+        - category = @report.detail_hash[sub_section_keys.first][:category]
+        %tr.c-table__row{ class: class_name }
+          %th.p-6{rowspan: rowspan}
+            %h2= category
+        - sub_sections.each do |keys|
+          - keys.each.with_index do |(key, _), idx|
+            - result = @report.result_for(key)
+            - if result
+              - row = @report.detail_hash[key]
+              - data = result.data_for_row
+              - status = result[:passed] ? 'success' : 'danger'
+              - icon = result[:passed] ? 'check' : 'cross'
+              - label = result[:passed] ? 'Passed' : 'Failed'
+              %tr
+                %td.j-summary-row{data: { target: "##{key}"}}
+                  .row
+                    .col-md-6
+                      %h4.mb-0= @report.detail_title_for(key)
+                      .d-flex
+                        .level-indicator.mb-2= @report.detail_words_for(row[:column])
+                        - if row[:measure].present?
+                          .font-weight-bold.ml-2.mr-2
+                            •
+                          .spm-measure.font-weight-bold= "SPM #{row[:measure]}"
+                    .col-md-3
+                      .muted.text-sm.text-uppercase
+                        Target:
+                        = data.goal_direction
+                        = data.goal.round
+                        = data.goal_unit
+                      .performance-measurement--target-guage{ style: "width: #{data.gauge_max}px;" }
+                        .performance-measurement--target-guage-foreground{ style: "width: #{data.gauge_value}px;", class: status }
+                        .performance-measurement--target-guage-target{ style: "margin-left: #{data.gauge_target}px;" }
+                      .muted.text-sm
+                        = data.number_for_goal
+                    .col-md-3.d-flex
+                      .ml-auto.mr-4= tagged(result[:passed], status, icon: icon, label: label)
+              - row = @report.detail_hash[key]

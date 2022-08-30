@@ -1,34 +1,55 @@
-- assessment_columms = (GrdaWarehouse::HmisForm.column_names - ['api_response', 'answers']).map(&:to_sym)
-- assessments = @client.source_hmis_forms.select(*assessment_columms).sort.group_by(&:assessment_type)
-- if @client.source_hmis_forms.any?
-  %table.table
-    %thead
-      %tr
-        %th Assessment Type
-        %th Collection Date
-        %th Location
-        %th Staff
-        %th.zero-width
-    %tbody
-      - any_buttons = assessments.values.any?(&:many?)
-      - assessments.each_with_index do |(type, (form, *rest)), i|
-        - cz = "assessment_type_#{i}"
-        %tr{ class: ( 'assessment__new-type' if any_buttons )}
-          %td= link_to type, assessment_client_path(id: form.id), class: 'btn btn-primary btn-muted btn-xs', data: { loads_in_pjax_modal: true }
-          %td= form.collected_at.to_date
-          %td= form.collection_location
-          %td= form.staff
-          %td.zero-width
-            - if rest.any?
-              %a.btn.btn-secondary.btn-xs.btn-icon-only.jAssessmentTypeToggle{ href: '#', data: { class: cz } }
-                %span.icon-plus
-        - rest.each do |form|
-          %tr{ class: cz, style: 'display:none;' }
+- hmis_forms_columms = (GrdaWarehouse::HmisForm.column_names - ['api_response', 'answers']).map(&:to_sym)
+- hmis_forms = @client.source_hmis_forms.select(*hmis_forms_columms).sort.group_by(&:assessment_type)
+- eccovia_assessments = []
+- if RailsDrivers.loaded.include?(:eccovia_data)
+  - eccovia_assessments = @client.source_eccovia_assessments
+- if hmis_forms.any? || eccovia_assessments.any?
+  - if hmis_forms.any?
+    %table.table
+      %thead
+        %tr
+          %th Assessment Type
+          %th Collection Date
+          %th Location
+          %th Staff
+          %th.zero-width
+      %tbody
+        - any_buttons = hmis_forms.values.any?(&:many?)
+        - hmis_forms.each_with_index do |(type, (form, *rest)), i|
+          - cz = "assessment_type_#{i}"
+          %tr{ class: ( 'assessment__new-type' if any_buttons )}
             %td= link_to type, assessment_client_path(id: form.id), class: 'btn btn-primary btn-muted btn-xs', data: { loads_in_pjax_modal: true }
             %td= form.collected_at.to_date
             %td= form.collection_location
             %td= form.staff
             %td.zero-width
+              - if rest.any?
+                %a.btn.btn-secondary.btn-xs.btn-icon-only.jAssessmentTypeToggle{ href: '#', data: { class: cz } }
+                  %span.icon-plus
+          - rest.each do |form|
+            %tr{ class: cz, style: 'display:none;' }
+              %td= link_to type, assessment_client_path(id: form.id), class: 'btn btn-primary btn-muted btn-xs', data: { loads_in_pjax_modal: true }
+              %td= form.collected_at.to_date
+              %td= form.collection_location
+              %td= form.staff
+              %td.zero-width
+  - if eccovia_assessments.any?
+    %table.table
+      %thead
+        %tr
+          %th Assessment Type
+          %th Score
+          %th Collection Date
+          %th Staff
+          %th.zero-width
+      %tbody
+        - eccovia_assessments.each do |assessment|
+          %tr
+            %td= assessment.assessment_type
+            %td= assessment.score
+            %td= assessment.assessed_at&.to_date
+            %td= assessment.assessor_name
+
 - else
   .no-data
     No assessments on file

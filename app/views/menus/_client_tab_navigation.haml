@@ -2,6 +2,8 @@
   can_see_always_visible = always_visible.map{|_,details| details[:permission]}.any?
   can_see_hmis = hmis.map{|_,details| details[:permission]}.any?
   can_see_health = health.map{|_,details| details[:permission]}.any?
+  can_see_health_for_client = Health::Patient.viewable_by_user(current_user).where(client_id: @client.id).exists?
+  can_see_health = can_see_health && can_see_health_for_client
   can_see_tabs = can_see_always_visible || can_see_hmis || can_see_health
   on_health = health.keys.include?(current) || @on_health
   on_hmis = ! on_hmis

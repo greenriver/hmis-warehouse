@@ -1,9 +1,10 @@
 - result = @report.result_for(key)
 - all_projects_class_name = "jAppProjectChart_#{key}"
-.p-4.mb-4{ class: "performance-measurement--highlight-light-#{@report.highlight_id(category)}" }
+.p-4.mb-0{ class: "performance-measurement--highlight-light-#{@report.highlight_id(category)}" }
   %h2 Project Level
-%h4 Project Comparison #{@report.filter.date_range_words}
-.c-chart--vertical-bar{ class: all_projects_class_name, data: { chart: result.data_for_projects_bar.to_json, include_percent: result.primary_unit.starts_with?('%').to_s }}
+.card.squared.mb-6.p-6.page-break-avoid
+  %h4 Project Comparison #{@report.filter.date_range_words}
+  .c-chart--vertical-bar.mb-6{ class: all_projects_class_name, data: { chart: result.data_for_projects_bar(current_user).to_json, include_percent: result.primary_unit.starts_with?('%').to_s }}
 - my_projects = @report.my_projects(current_user, key)
 - if my_projects.present?
   .well.no-break
@@ -13,52 +14,8 @@
       - next unless result.hud_project
 
       .page-break-avoid
-        %h3= result.hud_project.name_and_type
-        .d-flex.mb-6
-          .w-50= render 'warehouse_reports/indicator', indicator: result, link: performance_measurement_warehouse_reports_report_clients_path(report_id: @report.id, key: key, project_id: project_id)
-          .w-50
-            - class_name = "jProjectLevelPerformance_#{key}_#{project_id}"
-            .c-chart--vertical-bar{class: class_name, data: { chart: result.data_for_system_level_bar.to_json, include_percent: result.primary_unit.starts_with?('%').to_s }}
-            - label = @report.detail_denominator_label_for(key)
-            - if label.present?
-              .d-flex.text-center.ml-4
-                .w-50
-                  %strong= result.comparison_numerator
-                  of
-                  = label
-                  %strong= result.comparison_denominator
-                .w-50
-                  %strong= result.reporting_numerator
-                  of
-                  = label
-                  %strong= result.reporting_denominator
-            = content_for :page_js do
-              :javascript
-                $(document).ready(function(){
-                  var data = $('.#{class_name}').data('chart');
-                  var max = Math.max(...data.columns[1].slice(1));
-                  var include_percent = $('.#{class_name}').data('includePercent');
-                  data.labels['format'] = function (v, id, i, texts) {
-                    if(v < max * 0.15) {
-                      return '';
-                    }
-                    if(include_percent) {
-                      return d3.format(".0%")(v / 100)
-                    } else {
-                      return d3.format(",.2r")(v)
-                    }
-                  }
-                  var chart = bb.generate({
-                    data: data,
-                    axis: {
-                      x: { type: 'category' },
-                      y: { tick: { stepSize: 1, count: 3, format: d3.format('d') }}
-                    },
-                    size: { height: 150 },
-                    legend: { show: false },
-                    bindto: '.#{class_name}'
-                  });
-                });
+        %h3.mb-4= result.hud_project.name(current_user, include_project_type: true)
+        = render 'performance_measurement/warehouse_reports/reports/details_row', key: key, result: result, class_name: "jProjectLevelPerformance_#{key}_#{project_id}", show_label_detail: result.percentage?
 - other_projects = @report.other_projects(current_user, key)
 - if other_projects.present?
   .well.no-break
@@ -68,39 +25,8 @@
       - next unless result.hud_project
 
       .page-break-avoid
-        %h3= result.hud_project.name_and_type
-        .d-flex.mb-6
-          .w-50= render 'warehouse_reports/indicator', indicator: result
-          .w-50
-            - class_name = "jProjectLevelPerformance_#{key}_#{project_id}"
-            %div{class: class_name, data: { chart: result.data_for_system_level_bar.to_json, include_percent: result.primary_unit.starts_with?('%').to_s }}
-            = content_for :page_js do
-              :javascript
-                $(document).ready(function(){
-                  var data = $('.#{class_name}').data('chart');
-                  var max = Math.max(...data.columns[1].slice(1));
-                  var include_percent = $('.#{class_name}').data('includePercent');
-                  data.labels['format'] = function (v, id, i, texts) {
-                    if(v < max * 0.15) {
-                      return '';
-                    }
-                    if(include_percent) {
-                      return d3.format(".0%")(v / 100)
-                    } else {
-                      return d3.format(",.2r")(v)
-                    }
-                  }
-                  var chart = bb.generate({
-                    data: data,
-                    axis: {
-                      x: { type: 'category' },
-                      y: { tick: { stepSize: 1, count: 3, format: d3.format('d') }}
-                    },
-                    size: { height: 150 },
-                    legend: { show: false },
-                    bindto: '.#{class_name}'
-                  });
-                });
+        %h3.mb-4= result.hud_project.name(current_user, include_project_type: true)
+        = render 'performance_measurement/warehouse_reports/reports/details_row', key: key, result: result, class_name: "jProjectLevelPerformance_#{key}_#{project_id}", show_label_detail: result.percentage?
 
 = content_for :page_js do
   :javascript
@@ -116,7 +42,7 @@
         if(include_percent) {
           return d3.format(".0%")(v / 100)
         } else {
-          return d3.format(",.2r")(v)
+          return d3.format(',')(v)
         }
       }
       var all_project_chart = bb.generate({
@@ -140,7 +66,7 @@
             tick: {
               rotate: -35,
               autorotate: true,
-              format: function (x) { return d3.format(",.2r")(x); }
+              format: function(x) { return `${d3.format('d')(x)}${include_percent ? '%' : ''}`},
             },
           },
           x: {
@@ -167,7 +93,6 @@
         padding: {
           left: 300,
           top: 0,
-          bottom: 40,
         },
       });
 

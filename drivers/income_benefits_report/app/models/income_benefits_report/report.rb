@@ -44,6 +44,10 @@ module IncomeBenefitsReport
       order(updated_at: :desc)
     end
 
+    def default_project_types
+      [:ph]
+    end
+
     def run_and_save!
       update(started_at: Time.current)
       begin
@@ -67,7 +71,7 @@ module IncomeBenefitsReport
 
     def filter
       @filter ||= begin
-        f = ::Filters::FilterBase.new(user_id: user_id)
+        f = ::Filters::FilterBase.new(user_id: user_id, enforce_one_year_range: false)
         f.set_from_params(options['filters'].with_indifferent_access) if options.try(:[], 'filters')
         f
       end
@@ -327,7 +331,7 @@ module IncomeBenefitsReport
     end
 
     private def populate_clients!(range)
-      report_scope.preload(:client, :project, enrollment: :income_benefits).find_in_batches do |batch|
+      report_scope.preload(:client, project: :organization, enrollment: :income_benefits).find_in_batches do |batch|
         report_clients = []
         race_cache = GrdaWarehouse::Hud::Client.new
         client_ids = batch.map(&:client_id)
@@ -376,7 +380,7 @@ module IncomeBenefitsReport
         entry_date: enrollment.first_date_in_program,
         exit_date: enrollment.last_date_in_program,
         move_in_date: enrollment.move_in_date,
-        project_name: enrollment.project_name,
+        project_name: enrollment.project&.name(filter.user),
         project: enrollment.project,
       )
     end

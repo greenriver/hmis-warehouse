@@ -1,5 +1,5 @@
 wb = xlsx_package.workbook
-wb.add_worksheet(name: "CAS Decline Reasons") do |sheet|
+wb.add_worksheet(name: 'CAS Decline Reasons') do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
   columns = [
     'Client First Name',
@@ -12,15 +12,17 @@ wb.add_worksheet(name: "CAS Decline Reasons") do |sheet|
     'Previous Step Completed On',
     'Program',
     'Sub-Program',
-    "#{_('Shelter Agency Contacts')}",
-    "#{_('HSA Contacts')}",
+    'Program Type',
+    _('Shelter Agency Contacts'),
+    _('HSA Contacts'),
+    'Vacancy ID',
     'Link',
   ]
-  sheet.add_row([ 'Canceled or Declined' ] + GrdaWarehouse::CasReport.reason_attributes.values + columns, :style => title)
+  sheet.add_row(['Canceled or Declined'] + GrdaWarehouse::CasReport.decline_reason_attributes.values + columns, style: title)
   @report.cancels.each do |match|
-    previous_step = @report.all_steps[match.match_id].select{|row|row.decision_order < match.decision_order}.sort_by(&:decision_order).last
-    row = [ 'Canceled' ]
-    row += match.attributes.values_at(*match.class.reason_attributes.keys.map(&:to_s))
+    previous_step = @report.all_steps[match.match_id].select { |row| row.decision_order < match.decision_order }.max_by(&:decision_order)
+    row = ['Canceled']
+    row += match.attributes.values_at(*match.class.cancelation_reason_attributes.keys.map(&:to_s))
     row += [
       @report.clients[match.cas_client_id]&.first_name,
       @report.clients[match.cas_client_id]&.last_name,
@@ -32,16 +34,18 @@ wb.add_worksheet(name: "CAS Decline Reasons") do |sheet|
       previous_step&.updated_at&.to_date,
       match.program_name,
       match.sub_program_name,
-      match.shelter_agency_contacts.map{|contact| contact.values.join(' ')}.join('; '),
-      match.hsa_contacts.map{|contact| contact.values.join(' ')}.join('; '),
-      "#{GrdaWarehouse::Config.get(:cas_url)}/matches/#{match.match_id}"
+      match.program_type,
+      match.shelter_agency_contacts.map { |contact| contact.values.join(' ') }.join('; '),
+      match.hsa_contacts.map { |contact| contact.values.join(' ') }.join('; '),
+      match.vacancy_id,
+      "#{GrdaWarehouse::Config.get(:cas_url)}/matches/#{match.match_id}",
     ]
     sheet.add_row(row)
   end
   @report.declines.each do |match|
-    previous_step = @report.all_steps[match.match_id].select{|row|row.decision_order < match.decision_order}.sort_by(&:decision_order).last
-    row = [ 'Declined' ]
-    row += match.attributes.values_at(*match.class.reason_attributes.keys.map(&:to_s))
+    previous_step = @report.all_steps[match.match_id].select{|row|row.decision_order < match.decision_order}.max_by(&:decision_order)
+    row = ['Declined']
+    row += match.attributes.values_at(*match.class.decline_reason_attributes.keys.map(&:to_s))
     row += [
       @report.clients[match.cas_client_id]&.first_name,
       @report.clients[match.cas_client_id]&.last_name,
@@ -53,11 +57,12 @@ wb.add_worksheet(name: "CAS Decline Reasons") do |sheet|
       previous_step&.updated_at&.to_date,
       match.program_name,
       match.sub_program_name,
-      match.shelter_agency_contacts.map{|contact| contact.values.join(' ')}.join('; '),
-      match.hsa_contacts.map{|contact| contact.values.join(' ')}.join('; '),
-      "#{GrdaWarehouse::Config.get(:cas_url)}/matches/#{match.match_id}"
+      match.program_type,
+      match.shelter_agency_contacts.map { |contact| contact.values.join(' ') }.join('; '),
+      match.hsa_contacts.map { |contact| contact.values.join(' ') }.join('; '),
+      match.vacancy_id,
+      "#{GrdaWarehouse::Config.get(:cas_url)}/matches/#{match.match_id}",
     ]
     sheet.add_row(row)
-
   end
 end

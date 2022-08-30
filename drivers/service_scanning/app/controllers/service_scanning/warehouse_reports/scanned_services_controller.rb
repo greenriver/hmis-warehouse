@@ -76,14 +76,14 @@ module ServiceScanning::WarehouseReports
     end
     helper_method :most_recent_hmis_service
 
-    def most_recent_scan_service
-      @most_recent_scan_service ||= service_class.joins(:project).
-        where(client_id: @services.select(:client_id)).
-        order(provided_at: :asc).
-        pluck(:client_id, :provided_at, :ProjectName).
-        index_by(&:first)
-    end
-    helper_method :most_recent_scan_service
+    # def most_recent_scan_service
+    #   @most_recent_scan_service ||= service_class.joins(:project).
+    #     where(client_id: @services.select(:client_id)).
+    #     order(provided_at: :asc).
+    #     pluck(:client_id, :provided_at, :ProjectName).
+    #     index_by(&:first)
+    # end
+    # helper_method :most_recent_scan_service
 
     private def set_data
       @dates = begin

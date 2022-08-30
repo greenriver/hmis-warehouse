@@ -11,8 +11,8 @@
       .col-sm-3
         = f.input :end, as: :date_picker, label: 'End Date', required: true
       .col-sm-6
-        = f.input :coc_codes, collection: @filter.coc_code_options_for_select(user: current_user), as: :select_two, input_html: {multiple: true, placeholder: 'Choose CoCs', data: {'filter-projects-target' => 'cocCodes', 'action': 'change->filter-projects#update'}}, label: 'CoC Codes'
-    = render 'hud_reports/project_filter', f: f, project_types_collection: @report.project_type_options_for_select, api_projects_parameters: { project_types: GrdaWarehouse::Hud::Project::SPM_PROJECT_TYPE_CODES }, alert: alert
+        = f.input :coc_codes, collection: @filter.coc_code_options_for_select(user: current_user), as: :select_two, input_html: {multiple: true, placeholder: 'Choose CoCs', data: {'filter-projects-target' => 'cocCodes', 'action': 'change->filter-projects#update'}}, label: 'CoC Codes', required: true
+    = render 'hud_reports/project_filter', f: f, api_projects_parameters: { project_types: GrdaWarehouse::Hud::Project::SPM_PROJECT_TYPE_CODES }, alert: alert
     %h2 Limits
     .row.mt-4
       - @sections.in_groups(2).each do |sections|

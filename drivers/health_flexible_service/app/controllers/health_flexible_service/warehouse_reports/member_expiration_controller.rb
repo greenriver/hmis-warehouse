@@ -14,10 +14,10 @@ module HealthFlexibleService::WarehouseReports
       respond_to do |format|
         format.html do
           data = @report.data
-          @pagy, @patients = pagy(data, items: 50)
+          @pagy, @vprs = pagy(data, items: 50)
         end
         format.xlsx do
-          @patients = @report.data
+          @vprs = @report.data
           headers['Content-Disposition'] = "attachment; filename=#{@report.title} Report.xlsx"
         end
       end

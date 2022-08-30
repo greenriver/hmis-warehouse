@@ -1,0 +1,30 @@
+- markdown = Redcarpet::Markdown.new(::InlineHtml)
+- @report.display_order.each.with_index do |sub_sections, i|
+  .page-break-after
+    - sub_sections.each do |keys|
+      - keys.each.with_index do |(key, sub_keys), idx|
+        - class_name = "performance-measurement--highlight-light-#{i + 1}"
+        - row = @report.detail_hash[key]
+        - if idx.zero?
+          %h2.mt-6.mb-0.p-6{ class: class_name }= "#{row[:category]}: #{row[:sub_category]}"
+
+        .card.squared.mb-0.pb-0.page-break-avoid{id: key}
+          .p-4
+            = render 'row', key: key, row: row
+          - if sub_keys.present?
+            - title = 'Breakdowns'
+            - include_median = key.to_s.ends_with?('_average')
+            - title = 'Median Days' if include_median
+            - content_for "panel_collapse_content_#{sub_keys.first}".to_sym do
+              - sub_keys.each.with_index do |key, idx|
+                - if @report.show_row?(key)
+                  - row = @report.detail_hash[key]
+                  .ml-8.mt-4.border-bottom
+                    = render 'row', key: key, row: row
+            - content_for "panel_collapse_heading_#{sub_keys.first}".to_sym do
+              .d-flex.ml-6
+                %i.icon-angle-right.j-toggle-arrow
+                .j-toggle-text.ml-2.show Show #{title}
+                .j-toggle-text.ml-2.hide Hide #{title}
+            .minimal-collapse
+              = render 'common/panel_collapse', id: sub_keys.first.to_s, title: "Show #{title}", content: "_#{sub_keys.first}", panel_body_padded: 'n', wrapper_class: 'mb-0 performance-measurement__collapsiblePanel', default_open: pdf ? 'yes' : 'no', allow_toggle: pdf ? 'no' : 'yes', heading_slug: "_#{sub_keys.first}", arrow_icon: 'icon-angle'

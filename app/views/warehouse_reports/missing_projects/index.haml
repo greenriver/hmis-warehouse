@@ -3,22 +3,25 @@
 %h1= title
 = render '/warehouse_reports/breadcrumbs', tab: 'data-quality'
 
-.warehouse-reports__missing-projects
-  %p
-    The following
-    = @projects.size
-    project IDs are specified in
-    = @enrollments.size
-    Client Enrollments, but have no associated projects.
-    The newest enrollment of the group was on
-    = @newest
-  %table.table.table-sm.table-hover
-    %thead
-      %tr
-        %th Project ID
-        %th Data Source
-    %tbody
-      - @projects.sort_by{|m| m[:project_id].to_i}.each do |project|
+- if @projects.any?
+  .warehouse-reports__missing-projects
+    %p
+      The following
+      = @projects.size
+      project IDs are specified in
+      = @enrollments.size
+      Client Enrollments, but have no associated projects.
+      The newest enrollment of the group was on
+      = @newest
+    %table.table.table-sm.table-hover
+      %thead
         %tr
-          %td= project[:project_id]
-          %td= project[:data_source_name]
+          %th Project ID
+          %th Data Source
+      %tbody
+        - @projects.sort_by{|m| m[:project_id].to_i}.each do |project|
+          %tr
+            %td= project[:project_id]
+            %td= project[:data_source_name]
+- else
+  .none-found No missing projects.

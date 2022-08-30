@@ -60,11 +60,11 @@ app/mail_interceptors/sandbox_email_interceptor.rb
 node_modules
 *.swp
 TAGS
-yarn.lock
 untracked
 *.code-workspace
 .vscode
 docker-compose.dev.yml
+yarn-error.log
 
 # docker deployment
 docker/deploy/REVISION

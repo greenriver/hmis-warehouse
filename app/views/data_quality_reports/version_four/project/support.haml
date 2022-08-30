@@ -1,5 +1,5 @@
 = content_for :modal_title do
-  = "Project Data Quality Report for #{@project.name} - #{@details_title}"
+  = "Project Data Quality Report for #{@project.name(current_user)} - #{@details_title}"
 - if @data.any?
   .pull-right
     = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary ml-auto mb-2'}) do
@@ -13,11 +13,14 @@
     %thead
       %tr
         - @data[:headers].each do |t|
+          - next if t == 'Project ID'
           %th= t
     %tbody
+      - project_id_index = @data[:headers].find_index('Project ID')
       - @data[:counts].each do |row|
         %tr
           - row.each_with_index do |v, index|
+            - next if index == project_id_index
             %td
               - if @data[:headers].first == 'Client ID' && index == 0
                 = link_to(v, polymorphic_path(@client_path, {id: v}), target: '_blank')

@@ -47,6 +47,14 @@
     animation: highlight 2s;
   }
 }
+.minimal-collapse .c-card__content {
+  border: 0;
+}
+
+.no-border-radius-top .c-card__content {
+  border-top-right-radius: 0;
+  border-top-left-radius: 0;
+}
 
 .c-card__content-container {
   @include flex(1, 1, auto);
@@ -272,7 +280,7 @@
 }
 
 .c-card__content-block--danger {
-  background-color: lighten($brand-danger-l, 10%);
+  background-color: lighten($brand-danger-l, 5%);
   padding: space(4);
 }
 

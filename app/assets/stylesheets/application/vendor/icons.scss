@@ -2,12 +2,12 @@
 
 @font-face {
     font-family: 'icons';
-    src: font-url('icons.eot?811558');
-    src: font-url('icons.eot?811558#iefix') format('embedded-opentype'),
-         font-url('icons.woff2?811558') format('woff2'),
-         font-url('icons.ttf?811558') format('truetype'),
-         font-url('icons.woff?811558') format('woff'),
-         font-url('icons.svg?811558#icons') format('svg');
+    src: font-url('icons.eot?48685242');
+    src: font-url('icons.eot?48685242#iefix') format('embedded-opentype'),
+         font-url('icons.woff2?48685242') format('woff2'),
+         font-url('icons.ttf?48685242') format('truetype'),
+         font-url('icons.woff?48685242') format('woff'),
+         font-url('icons.svg?48685242#icons') format('svg');
     font-weight: normal;
     font-style: normal;
 }
@@ -36,10 +36,10 @@
     -moz-osx-font-smoothing: grayscale;
 }
 
-@each $name, $char-code in $icons {
+@each $name, $icon-code in $icons {
   .icon-#{$name} {
     &::before {
-      content: $char-code;
+      content: icon-char($icon-code);
     }
   }
 }

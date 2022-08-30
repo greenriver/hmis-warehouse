@@ -102,9 +102,6 @@ Rails.application.configure do
   # don't need email sandbox with letter opener
   config.sandbox_email_mode = true
 
-  # make the development log noisy so you can see request parameters, views rendered, etc.
-  config.lograge.enabled = false
-
   # do gzip compressing in dev mode to simulate nginx config in production
   config.middleware.insert_after ActionDispatch::Static, Rack::Deflater
 
@@ -131,8 +128,20 @@ Rails.application.configure do
   routes.default_url_options ||= {}
   routes.default_url_options[:script_name]= ''
 
-  slack_config = Rails.application.config_for(:exception_notifier)[:slack]
-  if slack_config.present?
+  config.log_level = ENV.fetch('LOG_LEVEL') { 'debug' }.to_sym
+  config.logger.formatter = ActiveSupport::Logger::SimpleFormatter.new
+  # Don't echo everything to STDOUT in the dev environment
+  config.lograge.logger = ActiveSupport::Logger.new("log/#{Rails.env}.log")
+  config.logger = ActiveSupport::Logger.new("log/#{Rails.env}.log")
+
+  # Disable CSRF origin check during development because the HMIS frontend has a different origin
+  if ENV.fetch('ENABLE_HMIS_API', false) == 'true'
+    config.action_controller.forgery_protection_origin_check = false
+  end
+
+  exception_notifier_config = Rails.application.config_for(:exception_notifier)
+  if exception_notifier_config&.[](:slack).present?
+    slack_config = exception_notifier_config[:slack]
     config.middleware.use(ExceptionNotification::Rack,
       slack: {
         webhook_url: slack_config[:webhook_url],

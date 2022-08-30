@@ -1,36 +1,23 @@
 .report-parameters__parameter
-  %label.label.label-default.parameter-label
-    Range
-  %label.label.label-primary.parameter-value
-    %strong
-      = "#{report.start.to_date} .. #{report.end.to_date}"
+  %label.label.label-default.parameter-label Range
+  %label.label.label-primary.parameter-value= "#{report.start.to_date} .. #{report.end.to_date}"
 
 .report-parameters__parameter
-  %label.label.label-default.parameter-label
-    Comparison Range
-  %label.label.label-primary.parameter-value
-    %strong
-      = "#{report.comparison_start.to_date} .. #{report.comparison_end.to_date}"
+  %label.label.label-default.parameter-label Comparison Range
+  %label.label.label-primary.parameter-value= "#{report.comparison_start.to_date} .. #{report.comparison_end.to_date}"
 
 .report-parameters__parameter
-  %label.label.label-default.parameter-label
-    Projects
+  %label.label.label-default.parameter-label Projects
   %label.label.label-primary.parameter-value
-    %strong
-      - project_names = GrdaWarehouse::Hud::Project.order(ProjectName: :asc).where(id: report.projects).pluck(:ProjectName)
-      - if project_names.empty? || project_names == @all_project_names
-        All
-      - else
-        - names = project_names.join(' ')
-        - if truncate
-          = names.truncate(50, separator: ' ')
-        - else
-          = names
+    - project_names = GrdaWarehouse::Hud::Project.order(ProjectName: :asc).where(id: report.projects).map { |project| project.name(current_user)}
+    - if project_names.empty?
+      All
+    - else
+      - names = project_names.join(' ')
+      = names
 
 .report-parameters__parameter
-  %label.label.label-default.parameter-label
-    Sub Population
+  %label.label.label-default.parameter-label Sub Population
   %label.label.label-primary.parameter-value
-    %strong
-      - sub_population = GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations.invert.try(:[], report.sub_population.to_sym)
-      = sub_population
+    - sub_population = GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations.invert.try(:[], report.sub_population.to_sym)
+    = sub_population

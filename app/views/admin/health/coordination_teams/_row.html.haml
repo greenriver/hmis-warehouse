@@ -1,0 +1,12 @@
+= simple_form_for team, url: admin_health_coordination_team_path(team), remote: true do |f|
+  .row{ class: "team-#{team.id}"}
+    .col-sm-3.pt-2= f.input :name, label: false
+    .col-sm-3= f.input :team_coordinator_id, as: :select_two, collection: User.can_manage_care_coordinators.diet.order(last_name: :asc, first_name: :asc).distinct, label: false, input_html: { id: "health_coordination_team_team_coordinator_id_#{team.id}" }
+    .col-sm-3= f.input :team_nurse_care_manager_id, as: :select_two, collection: User.nurse_care_managers.diet.order(last_name: :asc, first_name: :asc).distinct, label: false, input_html: { id: "health_coordination_team_team_nurse_care_manager_id_#{team.id}" }
+    .col-sm-3.pt-2
+      %button.btn.btn-primary{name: :submit}
+        %i.icon-pencil
+        Save
+      = link_to admin_health_coordination_team_path(team), method: :delete, class: 'btn btn-danger ml-4', data: { confirm: "Remove this team?" } do
+        %i.icon-cross
+        Remove

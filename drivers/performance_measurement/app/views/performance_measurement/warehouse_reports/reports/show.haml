@@ -9,7 +9,48 @@
     = render 'report_downloads/report_download', export: @pdf_export, excel_download_path: nil
 %p= "Created by #{@report.user.name_with_email} on #{@report.completed_at.to_date}"
 .well.report-listing.warehouse-reports__completed
-  %h3 Chosen Universe
-  .mt-4= @report.describe_filter_as_html
+  .row.justify-content-between
+    .col-10
+      - content_for :panel_collapse_content_universe, flush: true do
+        .d-flex
+          .d-flex
+            = @report.describe_filter_as_html
+          .ml-auto.nobr= link_to 'View universe details', filter_path(filter: @report.filter.to_h, selected_keys: @report.known_params), data: { loads_in_ajax_modal: true }
+      - content_for :panel_collapse_heading_universe do
+        .d-flex.pt-4
+          %h2.mb-4.mr-6 Chosen Universe
+          = @report.describe_filter_as_html([:start, :comparison_pattern, :coc_code], inline: true)
+          .ml-auto.d-flex
+            %i.icon-angle-right.j-toggle-arrow
+            .j-toggle-text.ml-2.show Show Details
+            .j-toggle-text.ml-2.hide Hide Details
+      .minimal-collapse
+        = render 'common/panel_collapse', id: 'universe', title: 'Chosen Universe', content: '_universe', heading_slug: '_universe', arrow_icon: 'icon-angle'
+    - if can_view_hud_reports? && @report.reporting_spm_id.present? && @report.comparison_spm_id.present?
+      .col-2
+        %h3.mb-4 SPMs
+        .mb-2
+          = link_to hud_reports_spm_path(@report.reporting_spm_id), class: 'btn btn-sm btn-secondary' do
+            Report Year
+        .mb-2
+          = link_to hud_reports_spm_path(@report.comparison_spm_id), class: 'btn btn-sm btn-secondary' do
+            Comparison Year
+= render 'summary'
+= render 'rows', pdf: false
 
-= render 'table', goal_popover: true, pdf: false
+= content_for :page_js do
+  :javascript
+    $(document).ready(function() {
+      $('.j-summary-row').addClass('cursor-pointer');
+      $('.j-summary-row').on('click', function(e) {
+        $('html, body').animate({
+          scrollTop: $($(this).data('target')).offset().top
+        }, 500);
+      });
+      $('.j-click-row').addClass('cursor-pointer');
+      $('.j-click-row').on('click', function(e) {
+        e.preventDefault();
+        var link = $(this).find('.j-click-row-source');
+        window.open(link.attr('href'), '_blank');
+      });
+    });

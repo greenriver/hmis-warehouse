@@ -1,71 +1,43 @@
 - markdown = Redcarpet::Markdown.new(::InlineHtml)
 - category = @report.detail_category_for(key)
-- title = "#{category} | #{@report.detail_title_for(key)}"
+- section = "#{category}: #{@report.detail_sub_category_for(key)}"
 - system_class_name = "jSystemLevelChart_#{key}"
 - result = @report.result_for(key)
+- label = @report.detail_denominator_label_for(key)
+- measure = @report.detail_measure_for(key)
 = content_for :crumbs do
   = link_to performance_measurement_warehouse_reports_report_path(@report) do
     &laquo; #{_('CoC Performance Measurement Dashboard')}
 .performance-measurement
-  .p-4{ class: "performance-measurement--highlight-#{@report.highlight_id(category)}" }
-    %h1= title
-    %p= @report.filter.date_range_words
-  .d-flex.m-4
-    .goal
+  %label.super-rounded.p-4.pl-6.pr-6{ class: "performance-measurement--highlight-#{@report.highlight_id(category)}" }
+    = section
+  %h1.ml-2= @report.detail_title_for(key)
+  .warehouse-reports__completed.mt-2.d-flex
+    = @report.filter.describe_filter_as_html([:start, :end, :comparison_pattern], inline: true)
+  .d-flex.mb-4.border-top.pt-4
+    .goal.col-4
       %h3 Goal
       %p= raw markdown.render(@report.detail_goal_description_for(key))
     .calculation.ml-6
-      %h3 Calculation
+      %h3.d-flex
+        Calculation
+        - if ! can_view_hud_reports? && measure.present?
+          .ml-auto
+            .badge.badge-secondary= "SPM #{measure}"
       %p= @report.detail_calculation_description_for(key)
+    - if can_view_hud_reports? && measure.present?
+      .col-2.ml-6.p-0
+        %h3.mb-4= "SPM #{measure}"
+        .mb-2
+          - if @report.reporting_spm_id.present?
+            = link_to 'Report Year', result_hud_reports_spm_measure_path(@report.reporting_spm_id, measure), class: 'btn btn-sm btn-secondary'
+        .mb-2
+          - if @report.comparison_spm_id.present?
+            = link_to 'Comparison Year', result_hud_reports_spm_measure_path(@report.comparison_spm_id, measure), class: 'btn btn-sm btn-secondary'
 
-  .p-4.mb-4{ class: "performance-measurement--highlight-light-#{@report.highlight_id(category)}" }
-    %h2 System Level
-  .d-flex
-    .w-50
-      = render 'warehouse_reports/indicator', indicator: @report.detail_indicator_result(result, key)
-    .w-50
-      .c-chart--vertical-bar{ class: system_class_name, data: { chart: result.data_for_system_level_bar.to_json }}
-      - label = @report.detail_denominator_label_for(key)
-      - if label.present?
-        .d-flex.text-center.ml-4
-          .w-50
-            %strong= result.comparison_numerator
-            of
-            = label
-            %strong= result.comparison_denominator
-          .w-50
-            %strong= result.reporting_numerator
-            of
-            = label
-            %strong= result.reporting_denominator
+  .p-4{ class: "performance-measurement--highlight-light-#{@report.highlight_id(category)}" }
+    %h2.p-4 System Level
+  .card.squared.mb-6.p-6.page-break-avoid
+    = render 'performance_measurement/warehouse_reports/reports/details_row', key: key, result: result, class_name: system_class_name, show_label_detail: true
   - if @report.detail_column_for(key) != :system
     = render 'performance_measurement/warehouse_reports/reports/projects', key: key, category: category
-
-
-= content_for :page_js do
-  :javascript
-    $(document).ready(function(){
-      var data = $('.#{system_class_name}').data('chart');
-      var max = Math.max(...data.columns[1].slice(1));
-      var include_percent = #{result.primary_unit.starts_with?('%')}
-      data.labels['format'] = function (v, id, i, texts) {
-        if(v < max * 0.15) {
-          return '';
-        }
-        if(include_percent) {
-          return d3.format(".0%")(v / 100)
-        } else {
-          return d3.format(",d")(v)
-        }
-      }
-      var chart = bb.generate({
-        data: data,
-        axis: {
-          x: { type: 'category' },
-          y: { tick: { stepSize: 1, count: 3, format: d3.format('d') }}
-        },
-        size: { height: 150 },
-        legend: { show: false },
-        bindto: '.#{system_class_name}'
-      });
-    });

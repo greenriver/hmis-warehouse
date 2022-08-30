@@ -23,14 +23,14 @@ $gray-light:             lighten($gray-base, 46.7%) !default; // #777
 $gray-lighter:           lighten($gray-base, 93.5%) !default; // #eee
 
 $brand-primary:         #457687 !default;
-$brand-primary-l:       #81adb9 !default;
+$brand-primary-l:       #C3D7DF !default;
 $brand-primary-ll:      #d8e7ea !default;
 $brand-primary-d:       darken($brand-primary, 5%) !default;
 $brand-secondary:       #7D5226 !default;
 $brand-secondary-l:     lighten($brand-secondary, 25%) !default;
 $brand-success:         #009f44 !default;
-$brand-success-l:       #81e7a7 !default;
-$brand-success-ll:      lighten($brand-success-l, 25%) !default;
+$brand-success-l:       #B1F2C4 !default;
+$brand-success-ll:      lighten($brand-success-l, 5%) !default;
 $brand-success-d:       #68c27f !default;
 $brand-positive:        $brand-success !default;
 $brand-positive-l:      $brand-success-l !default;
@@ -40,12 +40,13 @@ $brand-warning-l:       #ffcb9b !default;
 $brand-warning-d:       #e5b17e !default;
 $brand-danger:          #bb2716 !default;
 $brand-danger-d:        #df9489 !default;
-$brand-danger-l:        #ffa69b !default;
+$brand-danger-l:        #FFD1CC !default;
 
 // COB-sg colors
 $cob-sg-freedom-trail-red: rgb(251, 77, 66) !default; // #FB4D42
 $cob-sg-charles-blue: rgb(9, 31, 47) !default; // #091F2F
 $cob-sg-optimistic-blue: rgb(40, 139, 238) !default; // #288BE4
+
 // supporting blues
 $cob-sg-blue-002: #061622 !default;
 $cob-sg-blue-003: #0C2639 !default;
@@ -53,7 +54,7 @@ $cob-sg-blue-004: #45789C !default; // desaturated
 $cob-sg-blue-005: #51ACFF !default; // brightest for blue on dark bg
 $cob-sg-blue-006: #495F79 !default; // action button
 
-$link-blue: #288BEE !default; //rgb(40,139,238)
+$link-blue: #1275D9 !default;
 
 // initial cas colors from GR
 // $cas-blue: rgb(73, 95, 121); // #495F79
@@ -75,9 +76,9 @@ $vi-spdat: rgb(147, 12, 0) !default;
 
 // Tables
 $table-border-color: #DDDDDD !default;
-$table-cell-bg-positive: lighten($brand-success-l, 25%);
-$table-cell-bg-warning: lighten($brand-warning-l, 25%);
-$table-cell-bg-danger: lighten($brand-danger-l, 25%);
+$table-cell-bg-positive: lighten($brand-success-l, 5%);
+$table-cell-bg-warning: lighten($brand-warning-l, 5%);
+$table-cell-bg-danger: lighten($brand-danger-l, 5%);
 
 // Tabs
 $tab-bg: #88A6C9 !default; // Primary in HMIS

@@ -10,8 +10,8 @@ Dir.chdir APP_ROOT do
   system 'gem install bundler --conservative'
   system 'bundle check || bundle install --without seven_zip'
 
-  puts '== Installing NPM =='
-  system 'npm install'
+  puts '== Installing NPM dependencies =='
+  system 'yarn install'
 
   ymls = [
     'secrets.yml',
@@ -26,6 +26,10 @@ Dir.chdir APP_ROOT do
   unless File.exist?('.env.local')
     puts "\n== Creating .env.local"
     FileUtils.cp 'sample.env', '.env.local'
+  end
+  unless File.exist?('.env.development.local')
+    puts "\n== Creating .env.development.local"
+    FileUtils.touch '.env.development.local'
   end
 
   system 'bin/db_prep'

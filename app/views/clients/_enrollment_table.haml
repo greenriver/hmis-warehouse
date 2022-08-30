@@ -52,13 +52,15 @@
           .enrollment__project_type{class: e[:class]}
             %span.service-type__program-type{data: {toggle: :tooltip, title: HUD.project_type(e[:project_type_id])}}
               = e[:project_type]
-          - if e[:confidential_project] && can_view_confidential_enrollment_details?
+          - if e[:confidential_project] && can_view_confidential_project_names?
             .confidential_project{data: {toggle: :tooltip, title: GrdaWarehouse::Hud::Project.confidential_project_name}}
               CP
         %td
-          %span{data: @client.program_tooltip_data_for_enrollment(e)}
+          %span{data: @client.program_tooltip_data_for_enrollment(e, current_user)}
             - if include_links
-              = link_to e[:project_name], project_path(id: e[:project_id])
+              - can_view_project_page = current_user.can_edit_projects?
+              - can_view_project_page ||=  e[:project_name] != GrdaWarehouse::Hud::Project.confidential_project_name && current_user.can_view_projects?
+              = link_to_if can_view_project_page, e[:project_name], project_path(id: e[:project_id])
             - else
               = e[:project_name]
 
@@ -125,10 +127,10 @@
               - title = 'HMIS'
               - if e[:hmis_exit_id]
                 - title = title + ' Enrollment'
-              = link_to title, hmi_path(e[:hmis_id], type: 'Enrollment'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis mb-2'
+              = link_to title, source_datum_path(e[:hmis_id], type: 'Enrollment'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis mb-2'
             - if e[:hmis_exit_id]
               - title = 'HMIS Exit'
-              = link_to title, hmi_path(e[:hmis_exit_id], type: 'Exit'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis mb-2'
+              = link_to title, source_datum_path(e[:hmis_exit_id], type: 'Exit'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis mb-2'
             .text-teeny.font-weight-light
               .text-nowrap
                 Created: #{e[:created_at]}

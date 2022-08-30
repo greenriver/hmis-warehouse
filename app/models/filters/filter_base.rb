@@ -18,11 +18,13 @@ module Filters
     attribute :start, Date, lazy: true, default: ->(r, _) { r.default_start }
     attribute :end, Date, lazy: true, default: ->(r, _) { r.default_end }
     attribute :enforce_one_year_range, Boolean, default: true
+    attribute :require_service_during_range, Boolean, default: ->(_, _) { GrdaWarehouse::Config.get(:require_service_for_reporting_default) }
     attribute :sort
     attribute :heads_of_household, Boolean, default: false
     attribute :comparison_pattern, Symbol, default: ->(r, _) { r.default_comparison_pattern }
     attribute :household_type, Symbol, default: :all
     attribute :hoh_only, Boolean, default: false
+    attribute :default_project_type_codes, Array, default: GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPE_CODES
     attribute :project_type_codes, Array, default: ->(r, _) { r.default_project_type_codes }
     attribute :project_type_numbers, Array, default: ->(_r, _) { [] }
     attribute :veteran_statuses, Array, default: []
@@ -45,7 +47,7 @@ module Filters
     attribute :funder_ids, Array, default: []
     attribute :cohort_ids, Array, default: []
     attribute :coc_codes, Array, default: []
-    attribute :coc_code, String, default: GrdaWarehouse::Config.get(:site_coc_codes)
+    attribute :coc_code, String, default: ->(_, _) { GrdaWarehouse::Config.get(:site_coc_codes) }
     attribute :sub_population, Symbol, default: :clients
     attribute :start_age, Integer, default: 17
     attribute :end_age, Integer, default: 25
@@ -66,21 +68,13 @@ module Filters
     attribute :creator_id, Integer, default: nil
     attribute :report_version, Symbol
     attribute :inactivity_days, Integer, default: 365 * 2
+    attribute :lsa_scope, Integer, default: nil
 
     validates_presence_of :start, :end
 
-    # NOTE: keep this up-to-date if adding additional attributes
+    # Incorporate anything that might change the results
     def cache_key
-      [
-        user.id,
-        effective_project_ids,
-        cohort_ids,
-        coc_codes,
-        coc_code,
-        sub_population,
-        start_age,
-        end_age,
-      ]
+      to_h
     end
 
     # use incoming data, if not available, use previously set value, or default value
@@ -95,6 +89,8 @@ module Filters
       # Allow multi-year filters if we explicitly passed in something that isn't truthy
       enforce_range = filters.dig(:enforce_one_year_range)
       self.enforce_one_year_range = enforce_range.in?(['1', 'true', true]) unless enforce_range.nil?
+      require_service = filters.dig(:require_service_during_range)
+      self.require_service_during_range = require_service.in?(['1', 'true', true]) unless require_service.nil?
       self.comparison_pattern = clean_comparison_pattern(filters.dig(:comparison_pattern)&.to_sym)
       self.coc_codes = filters.dig(:coc_codes)&.select { |code| available_coc_codes&.include?(code) }.presence || coc_codes.presence || user.coc_codes
       self.coc_code = filters.dig(:coc_code) if available_coc_codes&.include?(filters.dig(:coc_code))
@@ -146,6 +142,7 @@ module Filters
       self.report_version = filters.dig(:report_version)&.to_sym
       self.creator_id = filters.dig(:creator_id).to_i unless filters.dig(:creator_id).nil?
       self.inactivity_days = filters.dig(:inactivity_days).to_i unless filters.dig(:inactivity_days).nil?
+      self.lsa_scope = filters.dig(:lsa_scope).to_i unless filters.dig(:lsa_scope).nil?
 
       ensure_dates_work if valid?
       self
@@ -193,11 +190,13 @@ module Filters
           ce_cls_as_homeless: ce_cls_as_homeless,
           limit_to_vispdat: limit_to_vispdat,
           enforce_one_year_range: enforce_one_year_range,
+          require_service_during_range: require_service_during_range,
           times_homeless_in_last_three_years: times_homeless_in_last_three_years,
           report_version: report_version,
           ph: ph,
           creator_id: creator_id,
           inactivity_days: inactivity_days,
+          lsa_scope: lsa_scope,
         },
       }
     end
@@ -226,10 +225,12 @@ module Filters
         :coc_code,
         :limit_to_vispdat,
         :enforce_one_year_range,
+        :require_service_during_range,
         :report_version,
         :ph,
         :creator_id,
         :inactivity_days,
+        :lsa_scope,
         coc_codes: [],
         project_types: [],
         project_type_codes: [],
@@ -334,28 +335,28 @@ module Filters
     end
 
     # Date that can be used to find the closest PIT date, either that contained in the range,
-    # or the most-recent PIT (third wednesday of January)
+    # or the most-recent PIT (last wednesday of January)
     # for simplicity, we'll just find the date in the january prior to the end date
+    # 3/10/2020 - 6/20/2020 -> last wed in 1/2020
+    # 10/1/2020 - 12/31/2020 -> last wed in 1/2020
+    # 10/1/2020 - 9/30/2021 -> last wed in 1/2021
+    # 10/1/2019 - 1/1/2020 -> last wed in 1/2019 (NOTE: end-date is before PIT date in 2020)
+    def self.pit_date(date)
+      wednesday = last_wednesday(date.year, 1)
+      # date occurred on or after PIT date in this year
+      return wednesday unless date.before?(wednesday)
+
+      # date is early in January (before the last wednesday), use PIT date from prior year
+      last_wednesday(date.year - 1, 1)
+    end
+
+    def self.last_wednesday(year, month)
+      d = Date.new(year, month, 1)
+      (d.beginning_of_month .. d.end_of_month).select(&:wednesday?).last
+    end
+
     def pit_date
       self.class.pit_date(last)
-    end
-
-    def self.pit_date(date)
-      third_wednesday_of_end_year = third_wednesday(date.year, 1)
-      return third_wednesday_of_end_year if date > third_wednesday_of_end_year
-
-      third_wednesday(date.year - 1, date.month)
-    end
-
-    private def third_wednesday(year, month)
-      self.class.third_wednesday(year, month)
-    end
-
-    def self.third_wednesday(year, month)
-      d = Date.new(year, month, 1)
-      d += 1.weeks if d.wday > 3 # if the first falls after Wednesday, move forward a week
-      d -= (d.wday - 3) % 7 # ensure the first Wednesday
-      d + 2.weeks # move to the 3rd Wednesday
     end
 
     def date_range_words
@@ -527,6 +528,10 @@ module Filters
       end
     end
 
+    def project_type_code_options_for_select
+      GrdaWarehouse::Hud::Project::PROJECT_GROUP_TITLES.select { |k, _| k.in?(default_project_type_codes) }.freeze.invert
+    end
+
     def project_options_for_select(user:)
       all_project_scope.options_for_select(user: user)
     end
@@ -560,6 +565,10 @@ module Filters
       GrdaWarehouse::Hud::Client.joins(:cohort_clients).
         merge(GrdaWarehouse::CohortClient.active.where(cohort_id: cohort_ids)).
         distinct
+    end
+
+    def available_project_types
+      GrdaWarehouse::Hud::Project::PROJECT_GROUP_TITLES.invert
     end
 
     def available_residential_project_types
@@ -695,25 +704,31 @@ module Filters
       comparison_pattern != :no_comparison_period
     end
 
-    def default_project_type_codes
-      GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPE_CODES
-    end
-
     def default_project_type_numbers
       GrdaWarehouse::Hud::Project::PROJECT_TYPES_WITH_INVENTORY
     end
 
-    def describe_filter_as_html(keys = nil)
+    def describe_filter_as_html(keys = nil, limited: true, inline: false)
       describe_filter(keys).uniq.map do |(k, v)|
-        content_tag(:div, class: 'report-parameters__parameter') do
-          label = content_tag(:label, k, class: 'label label-default parameter-label')
+        wrapper_classes = ['report-parameters__parameter']
+        label_text = k
+        if inline
+          wrapper_classes << 'd-flex'
+          label_text += ':'
+        end
+        content_tag(:div, class: wrapper_classes) do
+          label = content_tag(:label, label_text, class: 'label label-default parameter-label')
           if v.is_a?(Array)
-            count = v.count
-            v = v.first(5)
-            v << "#{count - 5} more" if count > 5
+            if limited
+              count = v.count
+              v = v.first(5)
+              v << "#{count - 5} more" if count > 5
+            end
             v = v.to_sentence
           end
-          label.concat(content_tag(:label, v, class: 'label label-primary parameter-value'))
+          value_classes = ['label', 'label-primary', 'parameter-value']
+          value_classes << 'pl-0' if inline
+          label.concat(content_tag(:label, v, class: value_classes))
         end
       end.join.html_safe
     end
@@ -790,6 +805,8 @@ module Filters
         'Client Limits'
       when :times_homeless_in_last_three_years
         'Times Homeless in Past 3 Years'
+      when :lsa_scope
+        'LSA Scope'
       end
 
       return unless value.present?
@@ -855,6 +872,8 @@ module Filters
         chosen_vispdat_limits
       when :times_homeless_in_last_three_years
         chosen_times_homeless_in_last_three_years
+      when :lsa_scope
+        chosen_lsa_scope
       end
     end
 
@@ -903,6 +922,8 @@ module Filters
     def chosen_projects
       return nil unless project_ids.reject(&:blank?).present?
 
+      # OK to use non-confidentialized ProjectName because confidential projects
+      # are only select-able if user has permission to view their names
       GrdaWarehouse::Hud::Project.where(id: project_ids).pluck(:ProjectName)
     end
 
@@ -984,6 +1005,17 @@ module Filters
       currently_fleeing.map do |id|
         available_currently_fleeing.invert[id]
       end.join(', ')
+    end
+
+    def chosen_lsa_scope
+      case lsa_scope.to_i
+      when 1
+        'System-Wide'
+      when 2
+        'Project-Focused'
+      else
+        'Auto Select'
+      end
     end
 
     def data_source_names

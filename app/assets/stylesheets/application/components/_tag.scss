@@ -30,7 +30,8 @@ $tag-icon-shadow: $white;
   align-items: center;
 }
 
-.c-tag__icon {
+.c-tag__icon,
+.c-tag__icon-svg {
   flex: 0 0 auto;
   height: $tag-height;
   width: $tag-height;
@@ -44,6 +45,14 @@ $tag-icon-shadow: $white;
   font-size: rem($tag-height - 15);
   &--sm {
     font-size: rem($tag-height - 21);
+  }
+}
+
+.c-tag__icon-svg {
+  .icon-svg--xs {
+    margin-bottom: 8px;
+    margin-right: 0;
+    margin-left: 8px;
   }
 }
 
@@ -69,6 +78,9 @@ $tag-icon-shadow: $white;
   margin-right: (-$tag-correction);
 
 }
+.c-tag__icon-svg + .c-tag__content {
+  padding-left: space(6);
+}
 
 .c-tag__content--shout {
   text-transform: uppercase;
@@ -83,14 +95,16 @@ $tag-icon-shadow: $white;
 }
 
 .c-tag__icon,
+.c-tag__icon-svg,
 .c-tag__content span,
 .c-tag__content a {
   color: rgba($black, .8);
 }
 
+// We sometimes need the light version of colors to make the tags look reasonable
 $tag-types: (
   success: $brand-success-l,
-  warning: $brand-warning-l,
+  warning: $brand-warning,
   danger: $brand-danger-l,
   info: $brand-info,
 );
@@ -110,7 +124,8 @@ $tag-types: (
 @each $type, $color in $tag-types {
   .c-tag--#{$type} {
     .c-tag__content,
-    .c-tag__icon {
+    .c-tag__icon,
+    .c-tag__icon-svg {
       background-color: $color;
     }
   }

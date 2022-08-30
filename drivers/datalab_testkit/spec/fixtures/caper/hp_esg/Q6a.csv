@@ -1,0 +1,8 @@
+"Data Element","Client Doesn't Know / Refused","Information Missing","Data Issues","Total","% of Error Rate"
+"Name",0,0,2,2,"0.0833"
+"Social Security Number",3,0,2,5,"0.2083"
+"Date of birth",4,6,5,15,"0.6250"
+"Race",1,5,0,6,"0.2500"
+"Ethnicity",2,7,0,9,"0.3750"
+"Gender",0,3,0,3,"0.1250"
+"Overall Score",,,,19,"0.7917"

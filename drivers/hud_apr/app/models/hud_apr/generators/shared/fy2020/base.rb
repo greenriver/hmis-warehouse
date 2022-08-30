@@ -45,6 +45,10 @@ module HudApr::Generators::Shared::Fy2020
         approximate_move_in_dates = {}
         enrollments_by_client_id.each do |_, enrollments|
           last_service_history_enrollment = enrollments.last
+          enrollment = last_service_history_enrollment.enrollment
+          source_client = enrollment.client
+          client_start_date = [@report.start_date, last_service_history_enrollment.first_date_in_program].max
+          age = source_client.age_on(client_start_date)
 
           hh_id = get_hh_id(last_service_history_enrollment)
           date = [
@@ -54,7 +58,7 @@ module HudApr::Generators::Shared::Fy2020
           household_types[hh_id] = household_makeup(hh_id, date)
           times_to_move_in[last_service_history_enrollment.client_id] = time_to_move_in(last_service_history_enrollment)
           move_in_dates[last_service_history_enrollment.client_id] = appropriate_move_in_date(last_service_history_enrollment)
-          approximate_move_in_dates[last_service_history_enrollment.client_id] = approximate_time_to_move_in(last_service_history_enrollment)
+          approximate_move_in_dates[last_service_history_enrollment.client_id] = approximate_time_to_move_in(last_service_history_enrollment, age)
         end
 
         pending_associations = {}
@@ -431,7 +435,7 @@ module HudApr::Generators::Shared::Fy2020
         },
         '8 or 9' => {
           order: 3,
-          label: 'Client Doesn’t Know/Client Refused',
+          label: 'Client Doesn\'t Know/Client Refused',
           clause: a_t[:ethnicity].in([8, 9]),
         },
         '99' => {
@@ -546,7 +550,7 @@ module HudApr::Generators::Shared::Fy2020
         'Unemployment Insurance' => { hud_report_apr_clients: { "income_sources_at_#{suffix}" => { Unemployment: 1 } } },
         'Supplemental Security Income (SSI)' => { hud_report_apr_clients: { "income_sources_at_#{suffix}" => { SSI: 1 } } },
         'Social Security Disability Insurance (SSDI)' => { hud_report_apr_clients: { "income_sources_at_#{suffix}" => { SSDI: 1 } } },
-        'VA Service – Connected Disability Compensation' => { hud_report_apr_clients: { "income_sources_at_#{suffix}" => { VADisabilityService: 1 } } },
+        'VA Service - Connected Disability Compensation' => { hud_report_apr_clients: { "income_sources_at_#{suffix}" => { VADisabilityService: 1 } } },
         'VA Non-Service Connected Disability Pension' => { hud_report_apr_clients: { "income_sources_at_#{suffix}" => { VADisabilityNonService: 1 } } },
         'Private Disability Insurance' => { hud_report_apr_clients: { "income_sources_at_#{suffix}" => { PrivateDisability: 1 } } },
         "Worker's Compensation" => { hud_report_apr_clients: { "income_sources_at_#{suffix}" => { WorkersComp: 1 } } },

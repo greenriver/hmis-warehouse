@@ -7,4 +7,4 @@
         %span= "#{time_ago_in_words(service.provided_at)} ago"
       %li
         %h4 Last Seen Location (HMIS Blackout)
-        %span=service.project.name
+        %span=service.project.name(current_user)

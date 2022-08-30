@@ -137,6 +137,8 @@ Rails.application.routes.draw do
   # obfuscation of links sent out via email
   resources :tokens, only: [:show]
 
+  resource :filter, only: [:show]
+
   resources :reports do
     resources :report_results, path: 'results', only: [:index, :show, :create, :update, :destroy] do
       get :download_support, on: :member
@@ -508,14 +510,12 @@ Rails.application.routes.draw do
     resources :files, controller: 'clients/files', except: [:edit] do
       get :preview, on: :member
       get :thumb, on: :member
-      get :has_thumb, on: :member
       get :show_delete_modal, on: :member
       post :batch_download, on: :collection
     end
     resources :releases, controller: 'clients/releases', except: [:edit] do
       get :preview, on: :member
       get :thumb, on: :member
-      get :has_thumb, on: :member
       get :show_delete_modal, on: :member
       post :batch_download, on: :collection
       get :pre_populated, on: :collection
@@ -655,7 +655,7 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :hmis, only: [:index, :show]
+  resources :source_data, only: [:index, :show]
 
   resources :weather, only: [:index]
 
@@ -683,6 +683,11 @@ Rails.application.routes.draw do
 
   namespace :health do
     resources :patients, only: [:index] do
+      collection do
+        post :detail
+      end
+    end
+    resources :team_patients, only: [:index] do
       collection do
         post :detail
       end
@@ -784,7 +789,8 @@ Rails.application.routes.draw do
     namespace :health do
       resources :admin, only: [:index]
       resources :agencies, except: [:show]
-      resources :team_coordinators, only: [:index, :create, :destroy]
+      resources :coordination_teams, only: [:index, :create, :update, :destroy]
+      resources :team_members, only: [:index, :create, :destroy]
       resources :patients, only: [:index] do
         post :update, on: :collection
       end
@@ -884,6 +890,8 @@ Rails.application.routes.draw do
     get :cache_status
     get :details
     get :actioncable
+    get :ping
   end
+
   root 'root#index'
 end

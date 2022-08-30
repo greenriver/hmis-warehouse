@@ -11,8 +11,8 @@ module HudApr::Generators::Shared::Fy2021
     def self.table_descriptions
       {
         'Question 22' => 'Length of participation',
-        'Q22a1' => 'Length of Participation – CoC Projects',
-        'Q22a2' => 'Length of Participation – ESG Projects',
+        'Q22a1' => 'Length of Participation - CoC Projects',
+        'Q22a2' => 'Length of Participation - ESG Projects',
         'Q22b' => 'Average and Median Length of Participation in Days',
         'Q22c' => 'Length of Time between Project Start Date and Housing Move-in Date',
         'Q22d' => 'Length of Participation by Household Type',

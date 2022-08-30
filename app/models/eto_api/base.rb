@@ -214,7 +214,7 @@ module EtoApi
         programs(site_id: site_id).keys
       end
       program_ids.flat_map do |p_id|
-        api_get_json("#{@endpoints[:forms]}/Forms/Sites/GetSiteDemographics/#{p_id.to_i}", creds).each do |r|
+        api_get_json("#{@endpoints[:forms]}/Forms/Sites/GetSiteDemographics/#{p_id.to_i}", creds)&.each do |r|
           r['ProgramID'] = p_id
         end
       end
@@ -229,7 +229,7 @@ module EtoApi
         programs(site_id: site_id).keys
       end
       program_ids.flat_map do |p_id|
-        api_get_json("#{@endpoints[:forms]}/Forms/POSList/#{p_id.to_i}", creds).each do |r|
+        api_get_json("#{@endpoints[:forms]}/Forms/POSList/#{p_id.to_i}", creds)&.each do |r|
           r['ProgramID'] = p_id
         end
       end
@@ -474,7 +474,7 @@ module EtoApi
     end
 
     def self.parse_date(str)
-      if md = %r{\A\/Date\((?<ms>-?[\d]+)(?<h>[-+]\d\d)(?<m>\d\d)\)\/\z}.match(str) # rubocop:disable Style/GuardClause, Lint/AssignmentInCondition
+      if md = %r{\A\/Date\((?<ms>-?[\d]+)(?<h>[-+]\d\d)(?<m>\d\d)\)\/\z}.match(str) # rubocop:disable Style/GuardClause, Lint/AssignmentInCondition, Style/RegexpLiteral
         tz = ActiveSupport::TimeZone.all.detect do |z|
           z.utc_offset == (md[:h].to_i * 60 * 60) + (md[:m].to_i * 60)
         end

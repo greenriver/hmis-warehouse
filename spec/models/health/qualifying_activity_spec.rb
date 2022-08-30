@@ -35,7 +35,7 @@ RSpec.describe Health::QualifyingActivity, type: :model do
     let!(:referral_ds) { create :referral_ds }
 
     before(:each) do
-      Timecop.travel(Date.current - 2.years) # Enrollment durations depend on time if there is no disenrollment date
+      travel_to(Date.current - 2.years) # Enrollment durations depend on time if there is no disenrollment date
       referral_args = {
         first_name: 'First',
         last_name: 'Last',
@@ -49,7 +49,7 @@ RSpec.describe Health::QualifyingActivity, type: :model do
     end
 
     after(:each) do
-      Timecop.return
+      travel_back
     end
 
     it 'makes outreach QAs payable until the cutoff' do
@@ -57,7 +57,7 @@ RSpec.describe Health::QualifyingActivity, type: :model do
       payable_outreach = create :qualifying_activity, patient: @patient, activity: :outreach, date_of_activity: enrollment_start_date + 30.days
       unpayable_outreach = create :qualifying_activity, patient: @patient, activity: :outreach, date_of_activity: enrollment_start_date + 120.days
 
-      Timecop.travel(enrollment_start_date + 240.days)
+      travel_to(enrollment_start_date + 240.days)
       aggregate_failures do
         expect(payable_outreach.compute_valid_unpayable?).to be false
         expect(unpayable_outreach.compute_valid_unpayable).to contain_exactly(:outreach_past_cutoff)
@@ -69,7 +69,7 @@ RSpec.describe Health::QualifyingActivity, type: :model do
       payable_qa = create :qualifying_activity, patient: @patient, activity: :community_connection, date_of_activity: enrollment_start_date + 120.days
       unpayable_qa = create :qualifying_activity, patient: @patient, activity: :community_connection, date_of_activity: enrollment_start_date + 180.days
 
-      Timecop.travel(enrollment_start_date + 240.days)
+      travel_to(enrollment_start_date + 240.days)
       aggregate_failures do
         expect(payable_qa.compute_valid_unpayable?).to be false
         expect(unpayable_qa.compute_valid_unpayable).to contain_exactly(:activity_outside_of_engagement_without_careplan)
@@ -89,7 +89,7 @@ RSpec.describe Health::QualifyingActivity, type: :model do
       )
       create :qualifying_activity, patient: @patient, activity: :pctp_signed, date_of_activity: enrollment_start_date + 30.days
 
-      Timecop.travel(enrollment_start_date + 240.days)
+      travel_to(enrollment_start_date + 240.days)
       expect(now_payable_qa.compute_valid_unpayable?).to be false
     end
 
@@ -107,10 +107,10 @@ RSpec.describe Health::QualifyingActivity, type: :model do
       Health::PatientReferral.create_referral(@patient, referral_args)
       @patient.reload
 
-      payable_outreach = create :qualifying_activity, patient: @patient, activity: :outreach, date_of_activity: re_enrollment_date + 15.days
+      payable_outreach = create :qualifying_activity, patient: @patient, activity: :outreach, date_of_activity: re_enrollment_date + 16.days
       unpayable_outreach = create :qualifying_activity, patient: @patient, activity: :outreach, date_of_activity: enrollment_start_date + 75.days
 
-      Timecop.travel(enrollment_start_date + 240.days)
+      travel_to(enrollment_start_date + 240.days)
       aggregate_failures do
         expect(payable_outreach.compute_valid_unpayable?).to be false
         expect(unpayable_outreach.compute_valid_unpayable).to contain_exactly(:outside_enrollment)
@@ -130,7 +130,7 @@ RSpec.describe Health::QualifyingActivity, type: :model do
       create :qualifying_activity, patient: @patient, activity: :pctp_signed, date_of_activity: enrollment_start_date + 30.days
       @patient.patient_referral.update(disenrollment_date: enrollment_start_date + 59.days)
       new_enrollment_date = careplan.expires_on + 1.day
-      Timecop.travel(new_enrollment_date)
+      travel_to(new_enrollment_date)
       referral_args = {
         first_name: @referral.first_name,
         last_name: @referral.last_name,
@@ -144,7 +144,7 @@ RSpec.describe Health::QualifyingActivity, type: :model do
       payable_outreach = create :qualifying_activity, patient: @patient, activity: :outreach, date_of_activity: new_enrollment_date + 60.days
       payable_qa = create :qualifying_activity, patient: @patient, activity: :community_connection, date_of_activity: enrollment_start_date + 30.days
 
-      Timecop.travel(new_enrollment_date + 240.days)
+      travel_to(new_enrollment_date + 240.days)
       aggregate_failures do
         expect(payable_outreach.compute_valid_unpayable?).to be false
         expect(payable_qa.compute_valid_unpayable?).to be false
@@ -164,7 +164,7 @@ RSpec.describe Health::QualifyingActivity, type: :model do
       create :qualifying_activity, patient: @patient, activity: :pctp_signed, date_of_activity: enrollment_start_date + 30.days
       @patient.patient_referral.update(disenrollment_date: enrollment_start_date + 59.days)
       new_enrollment_date = careplan.expires_on - 1.month
-      Timecop.travel(new_enrollment_date)
+      travel_to(new_enrollment_date)
       referral_args = {
         first_name: @referral.first_name,
         last_name: @referral.last_name,
@@ -190,7 +190,7 @@ RSpec.describe Health::QualifyingActivity, type: :model do
     let!(:referral_ds) { create :referral_ds }
 
     before(:each) do
-      Timecop.travel(Date.parse('2018-01-01')) # Enrollment durations depend on time if there is no disenrollment date
+      travel_to(Date.parse('2018-01-01')) # Enrollment durations depend on time if there is no disenrollment date
       referral_args = {
         first_name: 'First',
         last_name: 'Last',
@@ -204,7 +204,7 @@ RSpec.describe Health::QualifyingActivity, type: :model do
     end
 
     after(:each) do
-      Timecop.return
+      travel_back
     end
 
     it 'allows 3 outreach QAs before the cut-off, and not more than 1 per month' do
@@ -215,7 +215,7 @@ RSpec.describe Health::QualifyingActivity, type: :model do
       outreach_qa5 = create :qualifying_activity, patient: @patient, activity: :outreach, date_of_activity: Date.parse('2018-04-05')
       outreach_qa6 = create :qualifying_activity, patient: @patient, activity: :outreach, date_of_activity: Date.parse('2018-04-20')
 
-      Timecop.return
+      travel_back
       aggregate_failures do
         expect(outreach_qa1.compute_valid_unpayable?).to be false
         expect(outreach_qa2.compute_valid_unpayable).to contain_exactly(:limit_outreaches_per_month_exceeded)
@@ -236,7 +236,7 @@ RSpec.describe Health::QualifyingActivity, type: :model do
       other_qa7 = create :qualifying_activity, patient: @patient, activity: :community_connection, date_of_activity: Date.parse('2018-06-05')
       other_qa8 = create :qualifying_activity, patient: @patient, activity: :community_connection, date_of_activity: Date.parse('2018-06-25')
 
-      Timecop.return
+      travel_back
       aggregate_failures do
         expect(other_qa1.compute_valid_unpayable?).to be false
         expect(other_qa2.compute_valid_unpayable?).to be false
@@ -266,7 +266,7 @@ RSpec.describe Health::QualifyingActivity, type: :model do
       other_qa7 = create :qualifying_activity, patient: @patient, activity: :community_connection, date_of_activity: Date.parse('2018-06-05')
       other_qa8 = create :qualifying_activity, patient: @patient, activity: :community_connection, date_of_activity: Date.parse('2018-06-25')
 
-      Timecop.return
+      travel_back
       aggregate_failures do
         expect(outreach_qa1.compute_valid_unpayable?).to be false
         expect(outreach_qa2.compute_valid_unpayable).to contain_exactly(:limit_outreaches_per_month_exceeded)
@@ -290,7 +290,7 @@ RSpec.describe Health::QualifyingActivity, type: :model do
       create :qualifying_activity, patient: @patient, activity: :outreach, date_of_activity: Date.parse('2018-01-15'), naturally_payable: true, valid_unpayable: true
       outreach_qa = create :qualifying_activity, patient: @patient, activity: :outreach, date_of_activity: Date.parse('2018-01-20')
 
-      Timecop.return
+      travel_back
       expect(outreach_qa.compute_valid_unpayable?).to be false
     end
   end
