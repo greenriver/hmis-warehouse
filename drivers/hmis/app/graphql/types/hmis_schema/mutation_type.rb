@@ -9,5 +9,6 @@
 module Types
   class HmisSchema::MutationType < Types::BaseObject
     field :create_client, mutation: Mutations::CreateClient
+    field :create_enrollment, mutation: Mutations::CreateEnrollment
   end
 end
