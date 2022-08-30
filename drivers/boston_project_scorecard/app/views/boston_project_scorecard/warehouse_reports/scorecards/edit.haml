@@ -10,6 +10,7 @@
     - action = workflow_action
     .d-flex.mb-4
       %h1= @report.title
+    .d-flex
       .ml-auto
         - if @report.status != 'pre-filled' && @report.admin?(current_user)
           = f.submit 'Back', class: 'btn btn-secondary mr-2 mb-2'
@@ -18,16 +19,13 @@
         = f.submit 'Save Changes', class: 'btn btn-primary ml-2 mb-2'
 
     - if @report.status.in?(['pre-filled'])
-      - if @report.contacts.empty?
+      - if @report.secondary_reviewer.blank?
         %p.alert.alert-warning
           %i.icon-warning.mr-2
-          There are no contacts specified for this project or organization.  The report will not be emailed automatically.
+          There is no secondary reviewer specified, the report will not be emailed automatically.
       - else
         .well
-          %p This report will be sent to the following contacts when the current step is complete:
-          %ul
-            - @report.contacts.each do |contact|
-              %li #{contact.full_name_with_email}
+          %p This report will be sent to #{@report.secondary_reviewer&.name_with_email} when the current step is complete:
     - if @report.status.in?(['ready'])
       .well
         %p This report will be sent to #{@report.user&.name_with_email} when the current step is completed.

@@ -87,7 +87,7 @@ module BostonProjectScorecard::WarehouseReports
     def workflow_action
       case @report.status
       when 'pre-filled'
-        'Save & Send to Contacts'
+        'Save & Send to Secondary Reviewer'
       when 'ready'
         'Save & Submit'
       when 'completed'
@@ -124,7 +124,7 @@ module BostonProjectScorecard::WarehouseReports
       case @report.status
       when 'pre-filled'
         @report.update!(status: 'ready')
-        @report.send_email_to_contacts
+        @report.send_email_to_secondary_reviewer
       when 'ready'
         @report.update!(
           completed_at: Time.current,

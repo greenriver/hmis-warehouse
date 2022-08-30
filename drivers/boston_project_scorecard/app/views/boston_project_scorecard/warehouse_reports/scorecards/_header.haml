@@ -18,7 +18,7 @@
         - if @report.project.present?
           = @report.project.human_readable_project_type
         - else
-          = f.input :project_type, collection: @report.project_type_options, as: :select_two, **@report.field_input_options(:project_type, current_user)
+          = f.input :project_type, collection: @report.project_type_options, as: :select_two, label: false, **@report.field_input_options(:project_type, current_user)
     %tr
       %th Primary Reviewer Name
       %td= @report.user.name
@@ -26,4 +26,4 @@
       %td= @report.total_score_weighted_score
     %tr
       %th Secondary Reviewer Name
-      %td{colspan: 3}= f.input :secondary_reviewer_id, collection: @report.secondary_reviewer_options, as: :select_two, **@report.field_input_options(:secondary_reviewer_id, current_user)
+      %td{colspan: 3}= f.input :secondary_reviewer_id, collection: @report.secondary_reviewer_options, as: :select_two, label: false, **@report.field_input_options(:secondary_reviewer_id, current_user)

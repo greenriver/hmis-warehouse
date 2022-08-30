@@ -12,9 +12,9 @@ class BostonProjectScorecard::ScorecardMailer < ::DatabaseMailer
     mail(to: @contact.email, subject: "Scorecard For #{@report.project_name}")
   end
 
-  def scorecard_ready(report, contact)
+  def scorecard_ready(report)
     @report = report
-    @contact = contact
+    @contact = @report.secondary_contact
 
     mail(to: @contact.email, subject: "Scorecard For #{@report.project_name}")
   end

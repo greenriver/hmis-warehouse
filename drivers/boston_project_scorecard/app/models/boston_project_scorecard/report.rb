@@ -22,12 +22,8 @@ module BostonProjectScorecard
     belongs_to :project, class_name: 'GrdaWarehouse::Hud::Project', optional: true
     belongs_to :project_group, class_name: 'GrdaWarehouse::ProjectGroup', optional: true
     belongs_to :user, class_name: 'User', optional: true
+    belongs_to :secondary_reviewer, class_name: 'User', optional: true
     belongs_to :apr, class_name: 'HudReports::ReportInstance', optional: true
-
-    has_many :project_contacts, through: :project, source: :contacts
-    has_many :organization_contacts, through: :project
-    has_many :project_group_project_contacts, through: :project_group, source: :contacts
-    has_many :project_group_organization_contacts, through: :project_group, source: :organization_contacts
 
     scope :started_between, ->(start_date:, end_date:) do
       where(started_at: (start_date..end_date))
@@ -246,14 +242,8 @@ module BostonProjectScorecard
       update(assessment_answers)
     end
 
-    def send_email_to_contacts
-      contacts.index_by(&:email).each_value do |contact|
-        BostonProjectScorecard::ScorecardMailer.scorecard_ready(self, contact).deliver_later
-      end
-    end
-
-    def contacts
-      @contacts ||= (project_contacts + organization_contacts + project_group_project_contacts + project_group_organization_contacts).uniq
+    def send_email_to_secondary_reviewer
+      BostonProjectScorecard::ScorecardMailer.scorecard_ready(self).deliver_later
     end
 
     def send_email_to_owner
