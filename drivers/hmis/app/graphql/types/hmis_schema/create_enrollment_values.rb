@@ -17,13 +17,15 @@ module Types
     def to_enrollments_params
       result = []
       household_id = SecureRandom.uuid.gsub(/-/, '')
+      lookup = Hmis::Hud::Client.where(id: household_members.map(&:id)).pluck(:id, :personal_id).to_h
+      project = Hmis::Hud::Project.find_by(id: project_id)
 
       household_members.each do |household_member|
         result << {
-          personal_id: household_member.id,
+          personal_id: lookup[household_member.id.to_i],
           relationship_to_ho_h: household_member.relationship_to_ho_h,
-          entry_date: start_date,
-          project_id: project_id,
+          entry_date: Date.strptime(start_date, '%Y-%m-%d'),
+          project_id: project.project_id,
           household_id: household_id,
           in_progress: in_progress,
         }

@@ -14,13 +14,13 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   delegate :exit_date, to: :exit, allow_nil: true
 
-  belongs_to :project, **hmis_relation(:ProjectID, 'Project')
+  belongs_to :project, **hmis_relation(:ProjectID, 'Project'), optional: true
   has_one :exit, **hmis_relation(:EnrollmentID, 'Exit')
   has_many :services, **hmis_relation(:EnrollmentID, 'Service')
   has_many :events, **hmis_relation(:EnrollmentID, 'Event')
   has_many :assessments, **hmis_relation(:EnrollmentID, 'Assessment')
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
-  has_one :wip, class_name: '::Hmis::Wip', as: :source
+  has_one :wip, class_name: 'Hmis::Wip', as: :source
 
   use_enum :relationships_to_hoh_enum_map, ::HUD.relationships_to_hoh
 
@@ -57,11 +57,11 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   def maintain_wip
     if in_progress?
-      ::Hmis::Wip.find_or_create_by(
+      Hmis::Wip.find_or_create_by(
         {
           enrollment_id: id,
           project_id: project_id,
-          client_id: client_id,
+          client_id: personal_id,
           date: entry_date,
           source: self,
         },
