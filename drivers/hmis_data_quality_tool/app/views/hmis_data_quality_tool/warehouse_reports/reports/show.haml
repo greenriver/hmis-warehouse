@@ -30,6 +30,7 @@
       %tr
         %th Category
         %th Section
+        %th Description
         %th Invalid Values
     %tbody
       - @report.validations.each do |result|
@@ -42,6 +43,7 @@
       %tr
         %th Category
         %th Section
+        %th Description
         %th Invalid Values
     %tbody
       - @report.dq_checks.each do |result|

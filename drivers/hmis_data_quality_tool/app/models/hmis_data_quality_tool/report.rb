@@ -181,7 +181,7 @@ module HmisDataQualityTool
       report_clients = clients.map { |c| [c.client_id, c] }.to_h
       Client.calculate_issues(report_clients, self)
       report_enrollments = enrollments.map { |e| [e.enrollment_id, e] }.to_h
-      Enrollment.calculate_enrollment_issues(report_enrollments, self)
+      Enrollment.calculate_issues(report_enrollments, self)
     end
 
     def household(household_id)
@@ -222,81 +222,88 @@ module HmisDataQualityTool
 
     def validations
       @validations ||= [].tap do |r|
-        slug = Client.gender_issues_slug
-        count = universe(slug).count
-        r << OpenStruct.new(
-          title: slug,
-          category: 'Client',
-          count: count,
-          total: overall_client_count,
-          percent: percent(overall_client_count, count),
-          item_class: HmisDataQualityTool::Client,
-        )
-        slug = Client.race_issues_slug
-        count = universe(slug).count
-        r << OpenStruct.new(
-          title: slug,
-          category: 'Client',
-          count: count,
-          total: overall_client_count,
-          percent: percent(overall_client_count, count),
-          item_class: HmisDataQualityTool::Client,
-        )
-        slug = Enrollment.disabling_condition_issues_slug
-        count = universe(slug).count
-        r << OpenStruct.new(
-          title: slug,
-          category: 'Enrollment',
-          count: count,
-          total: overall_enrollment_count,
-          percent: percent(overall_enrollment_count, count),
-          item_class: HmisDataQualityTool::Enrollment,
-        )
-        slug = Enrollment.hoh_validation_issues_slug
-        count = universe(slug).count
-        r << OpenStruct.new(
-          title: slug,
-          category: 'Enrollment',
-          count: count,
-          total: overall_enrollment_count,
-          percent: percent(overall_enrollment_count, count),
-          item_class: HmisDataQualityTool::Enrollment,
-        )
-        slug = Enrollment.living_situation_issues_slug
-        count = universe(slug).count
-        r << OpenStruct.new(
-          title: slug,
-          category: 'Enrollment',
-          count: count,
-          total: overall_enrollment_count,
-          percent: percent(overall_enrollment_count, count),
-          item_class: HmisDataQualityTool::Enrollment,
-        )
-        slug = Enrollment.exit_date_issues_slug
-        count = universe(slug).count
-        r << OpenStruct.new(
-          title: slug,
-          category: 'Enrollment',
-          count: count,
-          total: overall_enrollment_count,
-          percent: percent(overall_enrollment_count, count),
-          item_class: HmisDataQualityTool::Enrollment,
-        )
-        slug = Enrollment.destination_issues_slug
-        count = universe(slug).count
-        r << OpenStruct.new(
-          title: slug,
-          category: 'Enrollment',
-          count: count,
-          total: overall_enrollment_count,
-          percent: percent(overall_enrollment_count, count),
-          item_class: HmisDataQualityTool::Enrollment,
-        )
+        {
+          [
+            'Client',
+            Client,
+          ] => [
+            :gender_issues,
+            :race_issues,
+          ],
+          [
+            'Enrollment',
+            Enrollment,
+          ] => [
+            :disabling_condition_issues,
+            :hoh_validation_issues,
+            :living_situation_issues,
+            :exit_date_issues,
+            :destination_issues,
+          ],
+        }.each do |(category, item_class), slugs|
+          slugs.each do |slug|
+            title = item_class.section_title(slug)
+            count = universe(title).count
+            r << OpenStruct.new(
+              title: title,
+              description: item_class.section_description(slug),
+              category: category,
+              count: count,
+              total: overall_client_count,
+              percent: percent(overall_client_count, count),
+              item_class: item_class,
+            )
+          end
+        end
       end
     end
 
     def dq_checks
       @dq_checks ||= [].tap do |r|
+        {
+          [
+            'Client',
+            Client,
+          ] => [
+            :dob_issues,
+          ],
+          [
+            'Enrollment',
+            Enrollment,
+          ] => [
+            :unaccompanied_youth_issues,
+            :no_hoh_issues,
+            :multiple_hoh_issues,
+            :hoh_client_location_issues,
+            :future_exit_date_issues,
+            :days_since_last_service_es_90_issues,
+            :days_since_last_service_es_180_issues,
+            :days_since_last_service_es_365_issues,
+            :days_since_last_service_so_90_issues,
+            :days_since_last_service_so_180_issues,
+            :days_since_last_service_so_365_issues,
+            :days_in_ph_prior_to_move_in_90_issues,
+            :days_in_ph_prior_to_move_in_180_issues,
+            :days_in_ph_prior_to_move_in_365_issues,
+            :move_in_prior_to_start_issues,
+            :move_in_post_exit_issues,
+            :enrollment_outside_project_operating_dates_issues,
+          ],
+        }.each do |(category, item_class), slugs|
+          slugs.each do |slug|
+            title = item_class.section_title(slug)
+            count = universe(title).count
+            r << OpenStruct.new(
+              title: title,
+              description: item_class.section_description(slug),
+              category: category,
+              count: count,
+              total: overall_client_count,
+              percent: percent(overall_client_count, count),
+              item_class: item_class,
+            )
+          end
+        end
       end
     end
 

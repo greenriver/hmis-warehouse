@@ -13113,7 +13113,8 @@ CREATE TABLE public.hmis_dqt_enrollments (
     days_since_last_service integer,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    project_type integer
 );
 
 
@@ -13290,7 +13291,14 @@ CREATE TABLE public.hmis_dqt_services (
     project_tracking_method integer,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    entry_date date,
+    exit_date date,
+    project_type integer,
+    overlapping_entry_exit integer,
+    overlapping_nbn integer,
+    overlapping_pre_move_in integer,
+    overlapping_post_move_in integer
 );
 
 
@@ -53393,6 +53401,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220816205217'),
 ('20220824150945'),
 ('20220825131554'),
-('20220826123607');
+('20220826123607'),
+('20220830131900'),
+('20220830142632');
 
 

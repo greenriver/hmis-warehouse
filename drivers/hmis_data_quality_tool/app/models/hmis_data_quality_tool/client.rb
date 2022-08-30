@@ -8,6 +8,7 @@ module HmisDataQualityTool
   class Client < ::HudReports::ReportClientBase
     self.table_name = 'hmis_dqt_clients'
     include ArelHelper
+    include DqConcern
     acts_as_paranoid
 
     has_many :hud_reports_universe_members, inverse_of: :universe_membership, class_name: 'HudReports::UniverseMember', foreign_key: :universe_membership_id
@@ -35,46 +36,54 @@ module HmisDataQualityTool
       }.freeze
     end
 
-    def self.calculate_issues(report_clients, report)
-      report_clients = calculate_gender_issues(report_clients, report)
-      calculate_race_issues(report_clients, report)
+    def self.calculate_issues(report_items, report)
+      sections.each do |_, opts|
+        report_items = calculate(**{ report_items: report_items, report: report }.merge(opts))
+      end
+      report_items
     end
 
-    def self.calculate_gender_issues(report_clients, report)
-      intermediate_report_clients = {}
+    def self.calculate(report_items:, report:, title:, query:, **_)
+      intermediate = {}
+      client_scope(query, report).find_each do |client|
+        item = report_item_fields_from_client(
+          report_items: report_items,
+          client: client,
+          report: report,
+        )
+
+        intermediate[client] = item
+      end
+
+      import_intermediate!(intermediate.values)
+      report.universe(title).add_universe_members(intermediate) if intermediate.present?
+
+      report_items.merge(intermediate)
+    end
+
+    def self.client_scope(scope, report)
       GrdaWarehouse::Hud::Client.joins(enrollments: :service_history_enrollment).
         preload(:warehouse_client_source).
         merge(report.report_scope).distinct.
-        where(gender_issues_query).
-        find_each do |client|
-          report_client = report_clients[client] || new(
-            report_id: report.id,
-            client_id: client.id,
-            destination_client_id: client.warehouse_client_source.destination_id,
-          )
-          report_client.first_name = client.FirstName
-          report_client.last_name = client.LastName
-          report_client.personal_id = client.PersonalID
-          report_client.data_source_id = client.data_source_id
-          report_client.male = client.Male
-          report_client.female = client.Female
-          report_client.no_single_gender = client.NoSingleGender
-          report_client.transgender = client.Transgender
-          report_client.questioning = client.Questioning
-          intermediate_report_clients[client] = report_client
-        end
+        where(scope)
+    end
 
-      import!(
-        intermediate_report_clients.values,
-        batch_size: 5_000,
-        on_duplicate_key_update: {
-          conflict_target: [:id],
-          columns: attribute_names.map(&:to_sym),
-        },
+    def self.report_item_fields_from_client(report_items:, client:, report:)
+      report_item = report_items[client] || new(
+        report_id: report.id,
+        client_id: client.id,
+        destination_client_id: client.warehouse_client_source.destination_id,
       )
-      report.universe(gender_issues_slug).add_universe_members(intermediate_report_clients) if intermediate_report_clients.present?
-
-      report_clients.merge(intermediate_report_clients)
+      report_item.first_name = client.FirstName
+      report_item.last_name = client.LastName
+      report_item.personal_id = client.PersonalID
+      report_item.data_source_id = client.data_source_id
+      report_item.male = client.Male
+      report_item.female = client.Female
+      report_item.no_single_gender = client.NoSingleGender
+      report_item.transgender = client.Transgender
+      report_item.questioning = client.Questioning
+      report_items[client] = report_item
     end
 
     def self.gender_issues_query
@@ -106,46 +115,6 @@ module HmisDataQualityTool
         )
     end
 
-    def self.calculate_race_issues(report_clients, report)
-      intermediate_report_clients = {}
-      GrdaWarehouse::Hud::Client.joins(enrollments: :service_history_enrollment).
-        preload(:warehouse_client_source).
-        merge(report.report_scope).distinct.
-        where(race_issues_query).
-        find_each do |client|
-          report_client = report_clients[client] || new(
-            report_id: report.id,
-            client_id: client.id,
-            destination_client_id: client.warehouse_client_source.destination_id,
-          )
-          report_client.first_name = client.FirstName
-          report_client.last_name = client.LastName
-          report_client.personal_id = client.PersonalID
-          report_client.data_source_id = client.data_source_id
-          report_client.male = client.Male
-          report_client.am_ind_ak_native = client.AmIndAKNative
-          report_client.asian = client.Asian
-          report_client.black_af_american = client.BlackAfAmerican
-          report_client.native_hi_pacific = client.NativeHIPacific
-          report_client.white = client.White
-          report_client.race_none = client.RaceNone
-          intermediate_report_clients[client] = report_client
-        end
-
-      import!(
-        intermediate_report_clients.values,
-        batch_size: 5_000,
-        on_duplicate_key_update: {
-          conflict_target: [:id],
-          columns: attribute_names.map(&:to_sym),
-        },
-      )
-
-      report.universe(race_issues_slug).add_universe_members(intermediate_report_clients) if intermediate_report_clients.present?
-
-      report_clients.merge(intermediate_report_clients)
-    end
-
     def self.race_issues_query
       yes = 1
       no_not_collected = [0, 99]
@@ -175,12 +144,31 @@ module HmisDataQualityTool
         )
     end
 
-    def self.gender_issues_slug
-      'Gender'
+    def self.dob_issues_query
+      # DOB is Blank, before 10/10/1910, or after entry date
+      c_t[:DOB].eq(nil).
+        or(c_t[:DOB].lteq('1910-10-10')).
+        or(c_t[:DOB].gt(she_t[:first_date_in_program]))
     end
 
-    def self.race_issues_slug
-      'Race'
+    def self.sections
+      {
+        gender_issues: {
+          title: 'Gender',
+          description: 'Gender fields and Gender None are incompatible, or invalid gender response was recorded',
+          query: gender_issues_query,
+        },
+        race_issues: {
+          title: 'Race',
+          description: 'Race fields and Race None are incompatible, or invalid race response was recorded',
+          query: race_issues_query,
+        },
+        dob_issues: {
+          title: 'DOB',
+          description: 'DOB is blank, before Oct. 10 1910, or after entry date',
+          query: dob_issues_query,
+        },
+      }
     end
   end
 end
