@@ -21,6 +21,7 @@ module BostonProjectScorecard
         end
       end
 
+      # Report is only functional for PSH, RRH and Joint TH-PH projects
       def project_type_score
         return 6 if project_type == 3 # PSH
         return unless project_type.in?([9, 10, 13])

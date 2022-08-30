@@ -16,7 +16,9 @@ class SelectTwoInput < CollectionSelectInput
       label_method = detect_collection_methods.first
       value_method = detect_collection_methods.last
       selected_value = Array.wrap(object.send(attribute_name)).map(&:to_s)
-      selected_objects = collection.map { |m| [m.send(value_method).to_s, m.send(label_method)] }.to_h.select { |k, _| k.in?(selected_value) }
+      selected_objects = collection.map do |m|
+        [m.send(value_method).to_s, m.send(label_method)]
+      end.to_h.select { |k, _| k.in?(selected_value) }
       value = selected_objects.values.join(', ')
       existing_classes = label_html_options.try(:[], :class)
       existing_classes << 'd-block'
