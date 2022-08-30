@@ -50,6 +50,19 @@ module Health
             patient_referrals: patient_ids,
             consented_patients: consented_patients,
             unconsented_patients: unconsented_patients,
+
+            initial_care_plan_due_soon: with_initial_careplan_due_in(without_signed_careplans, 28.days),
+            initial_care_plan_overdue: with_initial_careplan_overdue(without_signed_careplans),
+            annual_care_plan_due_soon: with_annual_careplan_due_in(patient_ids, 28.days),
+            annual_care_plan_overdue: with_annual_careplan_overdue(patient_ids),
+
+            # without_annual_well_visit:
+            # without_f2f_visit_6mos:
+
+            ### in the past month
+            # post_discharge_followups_completed:
+            # no_payable_qas
+
             with_ssms: with_ssms,
             without_ssms: without_ssms,
             with_chas: with_chas,
@@ -289,6 +302,17 @@ module Health
         group(:patient_id).minimum(:date_of_activity)
     end
 
+    private def latest_qa_signature_dates
+      # Note: using maximum will ensure the last PCTP, earlier ones don't matter
+      @latest_qa_signature_dates ||= Health::QualifyingActivity.
+        submittable.
+        during_current_enrollment.
+        where(patient_id: patient_referrals.keys). # limit to patients in scope
+        where(date_of_activity: @range).
+        where(activity: :pctp_signed).
+        group(:patient_id).maximum(:date_of_activity)
+    end
+
     private def with_careplans_in_122_days(patient_ids)
       patient_ids.select do |p_id|
         careplan_date = qa_signature_dates[p_id]&.to_date
@@ -306,6 +330,48 @@ module Health
         careplan_date = qa_signature_dates[p_id]&.to_date
         careplan_date.present? && careplan_date.between?(@range.first, @range.last)
       end
+    end
+
+    private def with_initial_careplan_due_in(patient_ids_without_careplans, days_diff)
+      due_dates_to_include = (Date.today..Date.today + days_diff)
+      patient_ids_without_careplans.select do |p_id|
+        enrollment_date = patient_referrals[p_id][0]&.to_date
+        return false unless enrollment_date.present?
+
+        due_date = enrollment_date + 122.days
+        due_dates_to_include.cover?(due_date)
+      end
+    end
+
+    private def with_initial_careplan_overdue(patient_ids_without_careplans)
+      patient_ids_without_careplans.select do |p_id|
+        enrollment_date = patient_referrals[p_id][0]&.to_date
+        return false unless enrollment_date.present?
+
+        due_date = enrollment_date + 122.days
+        due_date < Date.today
+      end
+    end
+  end
+
+  private def with_annual_careplan_due_in(patient_ids, days_diff)
+    due_dates_to_include = (Date.today..Date.today + days_diff)
+    patient_ids.select do |p_id|
+      latest_careplan_date = latest_qa_signature_dates[p_id]&.to_date
+      return false unless latest_careplan_date.present?
+
+      due_date = latest_careplan_date + 12.months
+      due_dates_to_include.cover?(due_date)
+    end
+  end
+
+  private def with_annual_careplan_overdue(patient_ids)
+    patient_ids.select do |p_id|
+      latest_careplan_date = latest_qa_signature_dates[p_id]&.to_date
+      return false unless latest_careplan_date.present?
+
+      due_date = latest_careplan_date + 12.months
+      due_date < Date.today
     end
   end
 end
