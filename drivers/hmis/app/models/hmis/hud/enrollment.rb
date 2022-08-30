@@ -10,6 +10,8 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   self.table_name = :Enrollment
   self.sequence_name = "public.\"#{table_name}_id_seq\""
 
+  attr_accessor :in_progress
+
   delegate :exit_date, to: :exit, allow_nil: true
 
   belongs_to :project, **hmis_relation(:ProjectID, 'Project')
@@ -18,6 +20,11 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   has_many :events, **hmis_relation(:EnrollmentID, 'Event')
   has_many :assessments, **hmis_relation(:EnrollmentID, 'Assessment')
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
+  has_one :wip, class_name: '::Hmis::Wip', as: :source
+
+  use_enum :relationships_to_hoh_enum_map, ::HUD.relationships_to_hoh
+
+  after_save :maintain_wip
 
   SORT_OPTIONS = [:most_recent].freeze
 
@@ -30,6 +37,8 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     where(RelationshipToHoH: 1)
   end
 
+  scope :in_progress, -> { where(project_id: nil) }
+
   def self.sort_by_option(option)
     raise NotImplementedError unless SORT_OPTIONS.include?(option)
 
@@ -41,5 +50,27 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     end
   end
 
-  use_enum :relationships_to_hoh_enum_map, ::HUD.relationships_to_hoh
+  def in_progress?
+    @in_progress = project_id.nil? if @in_progress.nil?
+    @in_progress
+  end
+
+  def maintain_wip
+    if in_progress?
+      ::Hmis::Wip.find_or_create_by(
+        {
+          enrollment_id: id,
+          project_id: project_id,
+          client_id: client_id,
+          date: entry_date,
+          source: self,
+        },
+      )
+    else
+      return if wip.blank?
+
+      update(project_id: wip.project_id)
+      wip.destroy
+    end
+  end
 end
