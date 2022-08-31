@@ -15,7 +15,22 @@ module Types
     field :options, JsonObject, null: true
 
     def attribute
-      object.attribute.to_s.underscore.camelize(:lower)
+      return object.attribute.to_s.underscore.camelize(:lower) if object.respond_to?(:attribute)
+    end
+
+    def options
+      return object.options if object.respond_to?(:options)
+    end
+
+    def full_message
+      return object.full_message if object.respond_to?(:full_message)
+    end
+
+    def type
+      return object.type if object.respond_to?(:type)
+      return object.class.name if object.is_a?(Exception)
+
+      'UnknownError'
     end
   end
 end

@@ -41,14 +41,23 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           createEnrollment(input: { input: $input }) {
             enrollments {
               id
+              entryDate
+              inProgress
+              client {
+                id
+              }
             }
             errors {
-              attribute
-              message
-              fullMessage
-              type
-              options
-              __typename
+              id
+              className
+              errors {
+                attribute
+                message
+                fullMessage
+                type
+                options
+                __typename
+              }
             }
           }
         }
@@ -56,27 +65,60 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     it 'should create an enrollment successfully' do
-      mutation_input = test_input
-
-      response, result = post_graphql(input: mutation_input) { mutation }
+      response, result = post_graphql(input: test_input) { mutation }
 
       expect(response.status).to eq 200
       enrollments = result.dig('data', 'createEnrollment', 'enrollments')
       errors = result.dig('data', 'createEnrollment', 'errors')
       expect(enrollments).to be_present
+      expect(enrollments.count).to eq(3)
       expect(errors).to be_empty
     end
 
-    # it 'should throw errors if the client is invalid' do
-    #   response, result = post_graphql(input: {}) { mutation }
+    describe 'In progress tests' do
+      it 'should set things to in progress if we tell it to' do
+        response, result = post_graphql(input: test_input.merge(in_progress: true)) { mutation }
+        expect(response.status).to eq 200
+        enrollments = result.dig('data', 'createEnrollment', 'enrollments')
+        errors = result.dig('data', 'createEnrollment', 'errors')
+        expect(enrollments).to be_present
+        expect(enrollments.count).to eq(3)
+        expect(enrollments.pluck('inProgress').uniq).to eq([true])
+        expect(errors).to be_empty
+      end
+    end
 
-    #   # client = result.dig('data', 'createClient', 'client')
-    #   # errors = result.dig('data', 'createClient', 'errors')
+    describe 'Validity tests' do
+      [
+        [
+          'should emit error if none of the clients are HoH',
+          ->(input) { input.merge(household_members: input[:household_members][1..]) },
+          'Exactly one client must be head of household',
+        ],
+        [
+          'should emit error if entry date is in the future',
+          ->(input) { input.merge(start_date: (Date.today + 1.day).strftime('%Y-%m-%d')) },
+          'Entry date cannot be in the future',
+        ],
+      ].each do |test_name, input_proc, error_message|
+        it test_name do
+          input = input_proc.call(test_input)
+          response, result = post_graphql(input: input) { mutation }
 
-    #   expect(response.status).to eq 200
-    #   # expect(client).to be_nil
-    #   expect(errors).to be_present
-    # end
+          enrollments = result.dig('data', 'createEnrollment', 'enrollments')
+          errors = result.dig('data', 'createEnrollment', 'errors')
+
+          expect(response.status).to eq 200
+          expect(enrollments).to be_empty
+          expect(errors).to contain_exactly(
+            include(
+              'id' => 'input',
+              'errors' => contain_exactly(include('message' => error_message)),
+            ),
+          )
+        end
+      end
+    end
   end
 end
 

@@ -17,7 +17,7 @@ module Mutations
         **input.to_params,
       )
 
-      errors = []
+      errors = ActiveModel::Errors.new(base: client, errors: [])
 
       if client.valid?
         client.save!
