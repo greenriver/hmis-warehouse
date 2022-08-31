@@ -3,20 +3,26 @@
     %thead
       %tr
         %th{colspan: 9} All enrolled patients
-        %th.agency-performance__date-effected{colspan: 3} Activity occurred between #{report.range.first} and #{report.range.last}
+        %th.agency-performance__date-effected{colspan: 2} Activity occurred between #{report.range.first} and #{report.range.last}
       %tr
         %th= entity_label
         %th Patients Assigned
         %th Consented
-        %th With CHA
-        %th.agency-performance__without Without CHA
-        %th With SSM
-        %th.agency-performance__without Without SSM
+        -# %th With CHA
+        -# %th.agency-performance__without Without CHA
+        -# %th With SSM
+        -# %th.agency-performance__without Without SSM
         %th With Signed Care Plan
-        %th.agency-performance__without Without Signed Care Plan
-        %th.agency-performance__date-effected Care Plans Signed
-        %th Care Plan Signed Within 122 Days of Enrollment
+        %th Initial care plan due in 29 days
+        %th Initial care plan overdue
+        %th Care plan renewal due in 28 days
+        %th Care plan renewal overdue
+        %th Without F2F in past 6 months
+        -# %th.agency-performance__without Without Signed Care Plan
+        -# %th.agency-performance__date-effected Care Plans Signed
+        -# %th Care Plan Signed Within 122 Days of Enrollment
         -#%th.agency-performance__without No QAa
+        %th.agency-performance__without 3-day discharge follow-ups completed
         %th.agency-performance__without No Payable QAs
     %tbody
       - entities.each do |entity|
@@ -26,131 +32,81 @@
           %td.text-right
             - scope = entity.patient_referrals
             - title = "#{pluralize(scope.size, 'Patient')} Assigned"
-            - if permission
-              = simple_form_for :entity, method: :post, url: detail_path, data: { submits_to_pjax_modal: true } do |f|
-                = f.input :entity_id, as: :hidden, input_html: {value: entity_slug}
-                = f.input :patient_ids, as: :hidden, input_html: {value: scope.join(',')}
-                = f.input :section, as: :hidden, input_html: {value: title}
-                = f.submit scope.size, class: 'btn btn-secondary btn-sm', data: { disable_with: false }
-            - else
-              = scope.size
+            =render 'warehouse_reports/health/agency_performance/table_cell', permission: permission, entity_slug: entity_slug, scope: scope, title: title, detail_path: detail_path
           %td.text-right
             - scope = entity.consented_patients
             - title = "#{pluralize(scope.size, 'Patient')} Consented"
-            - if permission
-              = simple_form_for :entity, method: :post, url: detail_path, data: { submits_to_pjax_modal: true } do |f|
-                = f.input :entity_id, as: :hidden, input_html: {value: entity_slug}
-                = f.input :patient_ids, as: :hidden, input_html: {value: scope.join(',')}
-                = f.input :section, as: :hidden, input_html: {value: title}
-                = f.submit scope.size, class: 'btn btn-secondary btn-sm', data: { disable_with: false }
-            - else
-              = scope.size
-          %td.text-right
-            - scope = entity.with_chas
-            - title = "#{pluralize(scope.size, 'Patient')} with CHAs"
-            - if permission
-              = simple_form_for :entity, method: :post, url: detail_path, data: { submits_to_pjax_modal: true } do |f|
-                = f.input :entity_id, as: :hidden, input_html: {value: entity_slug}
-                = f.input :patient_ids, as: :hidden, input_html: {value: scope.join(',')}
-                = f.input :section, as: :hidden, input_html: {value: title}
-                = f.submit scope.size, class: 'btn btn-secondary btn-sm', data: { disable_with: false }
-            - else
-              = scope.size
-          %td.agency-performance__without.text-right
-            - scope = entity.without_chas
-            - title = "#{pluralize(scope.size, 'Patient')} without CHAs"
-            - if permission
-              = simple_form_for :entity, method: :post, url: detail_path, data: { submits_to_pjax_modal: true } do |f|
-                = f.input :entity_id, as: :hidden, input_html: {value: entity_slug}
-                = f.input :patient_ids, as: :hidden, input_html: {value: scope.join(',')}
-                = f.input :section, as: :hidden, input_html: {value: title}
-                = f.submit scope.size, class: 'btn btn-secondary btn-sm', data: { disable_with: false }
-            - else
-              = scope.size
-          %td.text-right
-            - scope = entity.with_ssms
-            - title = "#{pluralize(scope.size, 'Patient')} with SSMs"
-            - if permission
-              = simple_form_for :entity, method: :post, url: detail_path, data: { submits_to_pjax_modal: true } do |f|
-                = f.input :entity_id, as: :hidden, input_html: {value: entity_slug}
-                = f.input :patient_ids, as: :hidden, input_html: {value: scope.join(',')}
-                = f.input :section, as: :hidden, input_html: {value: title}
-                = f.submit scope.size, class: 'btn btn-secondary btn-sm', data: { disable_with: false }
-            - else
-              = scope.size
-          %td.agency-performance__without.text-right
-            - scope = entity.without_ssms
-            - title = "#{pluralize(scope.size, 'Patient')} without SSMs"
-            - if permission
-              = simple_form_for :entity, method: :post, url: detail_path, data: { submits_to_pjax_modal: true } do |f|
-                = f.input :entity_id, as: :hidden, input_html: {value: entity_slug}
-                = f.input :patient_ids, as: :hidden, input_html: {value: scope.join(',')}
-                = f.input :section, as: :hidden, input_html: {value: title}
-                = f.submit scope.size, class: 'btn btn-secondary btn-sm', data: { disable_with: false }
-            - else
-              = scope.size
+            =render 'warehouse_reports/health/agency_performance/table_cell', permission: permission, entity_slug: entity_slug, scope: scope, title: title, detail_path: detail_path
+          -# %td.text-right
+          -#   - scope = entity.with_chas
+          -#   - title = "#{pluralize(scope.size, 'Patient')} with CHAs"
+          -#   =render 'warehouse_reports/health/agency_performance/table_cell', permission: permission, entity_slug: entity_slug, scope: scope, title: title, detail_path: detail_path
+          -# %td.agency-performance__without.text-right
+          -#   - scope = entity.without_chas
+          -#   - title = "#{pluralize(scope.size, 'Patient')} without CHAs"
+          -#   =render 'warehouse_reports/health/agency_performance/table_cell', permission: permission, entity_slug: entity_slug, scope: scope, title: title, detail_path: detail_path
+          -# %td.text-right
+          -#   - scope = entity.with_ssms
+          -#   - title = "#{pluralize(scope.size, 'Patient')} with SSMs"
+          -#   =render 'warehouse_reports/health/agency_performance/table_cell', permission: permission, entity_slug: entity_slug, scope: scope, title: title, detail_path: detail_path
+          -# %td.agency-performance__without.text-right
+          -#   - scope = entity.without_ssms
+          -#   - title = "#{pluralize(scope.size, 'Patient')} without SSMs"
+          -#   =render 'warehouse_reports/health/agency_performance/table_cell', permission: permission, entity_slug: entity_slug, scope: scope, title: title, detail_path: detail_path
 
           %td.text-right
             - scope = entity.with_signed_careplans
             - title = "#{pluralize(scope.size, 'Patient')} with Signed Care Plans"
-            - if permission
-              = simple_form_for :entity, method: :post, url: detail_path, data: { submits_to_pjax_modal: true } do |f|
-                = f.input :entity_id, as: :hidden, input_html: {value: entity_slug}
-                = f.input :patient_ids, as: :hidden, input_html: {value: scope.join(',')}
-                = f.input :section, as: :hidden, input_html: {value: title}
-                = f.submit scope.size, class: 'btn btn-secondary btn-sm', data: { disable_with: false }
-            - else
-              = scope.size
-          %td.agency-performance__without.text-right
-            - scope = entity.without_signed_careplans
-            - title = "#{pluralize(scope.size, 'Patient')} without Signed Care Plans"
-            - if permission
-              = simple_form_for :entity, method: :post, url: detail_path, data: { submits_to_pjax_modal: true } do |f|
-                = f.input :entity_id, as: :hidden, input_html: {value: entity_slug}
-                = f.input :patient_ids, as: :hidden, input_html: {value: scope.join(',')}
-                = f.input :section, as: :hidden, input_html: {value: title}
-                = f.submit scope.size, class: 'btn btn-secondary btn-sm', data: { disable_with: false }
-            - else
-              = scope.size
-          %td.agency-performance__date-effected.text-right
-            - scope = entity.with_careplans_signed_within_range
-            - title = "#{pluralize(scope.size, 'Patient')} with Care Plans Signed Within Period"
-            - if permission
-              = simple_form_for :entity, method: :post, url: detail_path, data: { submits_to_pjax_modal: true } do |f|
-                = f.input :entity_id, as: :hidden, input_html: {value: entity_slug}
-                = f.input :patient_ids, as: :hidden, input_html: {value: scope.join(',')}
-                = f.input :section, as: :hidden, input_html: {value: title}
-                = f.submit scope.size, class: 'btn btn-secondary btn-sm', data: { disable_with: false }
-            - else
-              = scope.size
+            =render 'warehouse_reports/health/agency_performance/table_cell', permission: permission, entity_slug: entity_slug, scope: scope, title: title, detail_path: detail_path
+
           %td.text-right
-            - scope = entity.with_careplans_in_122_days
-            - title = "#{pluralize(scope.size, 'Patient')} with Care Plans Signed During Period"
-            - numerator = scope.size
-            - denominator = entity.with_careplans_signed_within_range.size
-            - percentage = 0
-            - percentage = ((numerator/denominator.to_f) * 100).round if denominator.positive? && numerator.positive?
-            - link_text = "#{numerator}  (#{percentage}%)"
-            - if permission
-              = simple_form_for :entity, method: :post, url: detail_path, data: { submits_to_pjax_modal: true } do |f|
-                = f.input :entity_id, as: :hidden, input_html: {value: entity_slug}
-                = f.input :patient_ids, as: :hidden, input_html: {value: scope.join(',')}
-                = f.input :section, as: :hidden, input_html: {value: title}
-                = f.submit link_text, class: 'btn btn-secondary btn-sm', data: { disable_with: false }
-            - else
-              = link_text
+            - scope = entity.initial_careplan_due_soon
+            - title = "#{pluralize(scope.size, 'Patient')} with Initial Care Plan due within 28 days"
+            =render 'warehouse_reports/health/agency_performance/table_cell', permission: permission, entity_slug: entity_slug, scope: scope, title: title, detail_path: detail_path
+          %td.text-right
+            - scope = entity.initial_careplan_overdue
+            - title = "#{pluralize(scope.size, 'Patient')} with Initial Care Plan Overdue"
+            =render 'warehouse_reports/health/agency_performance/table_cell', permission: permission, entity_slug: entity_slug, scope: scope, title: title, detail_path: detail_path
+          %td.text-right
+            - scope = entity.annual_careplan_due_soon
+            - title = "#{pluralize(scope.size, 'Patient')} with Annual Care Plan due within 28 days"
+            =render 'warehouse_reports/health/agency_performance/table_cell', permission: permission, entity_slug: entity_slug, scope: scope, title: title, detail_path: detail_path
+          %td.text-right
+            - scope = entity.annual_careplan_overdue
+            - title = "#{pluralize(scope.size, 'Patient')} with Annual Care Plan Overdue"
+            =render 'warehouse_reports/health/agency_performance/table_cell', permission: permission, entity_slug: entity_slug, scope: scope, title: title, detail_path: detail_path
+          %td.text-right
+            - scope = entity.without_f2f_in_past_6_months
+            - title = "#{pluralize(scope.size, 'Patient')} without Face to Face visit in past 6 months"
+            =render 'warehouse_reports/health/agency_performance/table_cell', permission: permission, entity_slug: entity_slug, scope: scope, title: title, detail_path: detail_path
+
+          %td.agency-performance__without.text-right
+            - scope = entity.with_discharge_followup_completed_within_range
+            - title = "#{pluralize(scope.size, 'Patient')} with 3-day discharge follow-up completed"
+            =render 'warehouse_reports/health/agency_performance/table_cell', permission: permission, entity_slug: entity_slug, scope: scope, title: title, detail_path: detail_path
+
+          -# %td.agency-performance__without.text-right
+          -#   - scope = entity.without_signed_careplans
+          -#   - title = "#{pluralize(scope.size, 'Patient')} without Signed Care Plans"
+          -#   =render 'warehouse_reports/health/agency_performance/table_cell', permission: permission, entity_slug: entity_slug, scope: scope, title: title, detail_path: detail_path
+          -# %td.agency-performance__date-effected.text-right
+          -#   - scope = entity.with_careplans_signed_within_range
+          -#   - title = "#{pluralize(scope.size, 'Patient')} with Care Plans Signed Within Period"
+          -#   =render 'warehouse_reports/health/agency_performance/table_cell', permission: permission, entity_slug: entity_slug, scope: scope, title: title, detail_path: detail_path
+          -# %td.text-right
+          -#   - scope = entity.with_careplans_in_122_days
+          -#   - title = "#{pluralize(scope.size, 'Patient')} with Care Plans Signed During Period"
+          -#   - numerator = scope.size
+          -#   - denominator = entity.with_careplans_signed_within_range.size
+          -#   - percentage = 0
+          -#   - percentage = ((numerator/denominator.to_f) * 100).round if denominator.positive? && numerator.positive?
+          -#   - link_text = "#{numerator}  (#{percentage}%)"
+          -#   =render 'warehouse_reports/health/agency_performance/table_cell', permission: permission, entity_slug: entity_slug, scope: scope, title: title, detail_path: detail_path, link_text: link_text
 
           %td.agency-performance__without.text-right
             - scope = entity.without_payable_qualifying_activities_within_range
             - title = "#{pluralize(scope.size, 'Patient')} without Payable QAs in Chosen Date Range"
-            - if permission
-              = simple_form_for :entity, method: :post, url: detail_path, data: { submits_to_pjax_modal: true } do |f|
-                = f.input :entity_id, as: :hidden, input_html: {value: entity_slug}
-                = f.input :patient_ids, as: :hidden, input_html: {value: scope.join(',')}
-                = f.input :section, as: :hidden, input_html: {value: title}
-                = f.submit scope.size, class: 'btn btn-secondary btn-sm', data: { disable_with: false }
-            - else
-              = scope.size
+            =render 'warehouse_reports/health/agency_performance/table_cell', permission: permission, entity_slug: entity_slug, scope: scope, title: title, detail_path: detail_path
     - if entities.size > 1
       %tfoot
         %tr
