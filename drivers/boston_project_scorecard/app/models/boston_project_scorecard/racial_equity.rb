@@ -9,14 +9,14 @@ module BostonProjectScorecard
     extend ActiveSupport::Concern
     included do
       def barrier_id_process_score
-        return unless barrier_id_process.present?
+        return if barrier_id_process.nil?
         return 4 if barrier_id_process?
 
         0
       end
 
       def plan_to_address_barriers_score
-        return unless plan_to_address_barriers.present?
+        return if plan_to_address_barriers.nil?
         return 4 if plan_to_address_barriers?
 
         0

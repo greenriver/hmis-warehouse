@@ -21,7 +21,7 @@
       %td
         6: PSH
         %br
-        3: RRH/Joint TH-PH
+        3: RRH/Joint TH-RRH
       %th{rowspan: 6} #{@report.financial_performance_weight}%
       %td= @report.project_type_value
       %td= @report.project_type_score
@@ -61,20 +61,23 @@
         %p
         Was the match reported at end of operating year greater than the minimum required?
       %td
-        Project Application and spend
+        Project Application
         %p
-        Grant Year Spend Divided by Contract Budget value
+        "Most Recently Completed Grant Year Spend divided by the Contract Budget
       %td
         6 pts: > 25%
         %br
         0 pts: 0-25%
       %td
-        = f.input :contracted_budget
+        = f.input :contracted_budget, label: 'Contract Budget'
         = @report.required_match_value
       %td= @report.required_match_score
     %tr
-      %td 14. Project returns unobligated funds in most recent grant application year
-      %td ASPEND / DND budget tracking
+      %td
+        14. Project Returns
+        %p
+        What % of unobligated funds in the most recent grant application year were returned?
+      %td ost Recently Completed Grant Year Funds Returned (sourced from ASPEND) divided by the Contract Budge
       %td
         6 pts: 0 - 10% return
         %br
