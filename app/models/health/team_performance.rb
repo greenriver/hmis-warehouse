@@ -354,20 +354,14 @@ module Health
       due_dates_to_include = (Date.today..Date.today + days_diff)
       patient_ids_without_careplans.select do |p_id|
         enrollment_date = patient_referrals[p_id][0]&.to_date
-        return false unless enrollment_date.present?
-
-        due_date = enrollment_date + 150.days
-        due_dates_to_include.cover?(due_date)
+        enrollment_date.present? && due_dates_to_include.cover?(enrollment_date + 150.days)
       end
     end
 
     private def with_initial_careplan_overdue(patient_ids_without_careplans)
       patient_ids_without_careplans.select do |p_id|
         enrollment_date = patient_referrals[p_id][0]&.to_date
-        return false unless enrollment_date.present?
-
-        due_date = enrollment_date + 150.days
-        due_date < Date.today
+        enrollment_date.present? && enrollment_date + 150.days < Date.today
       end
     end
 
@@ -375,20 +369,14 @@ module Health
       due_dates_to_include = (Date.today..Date.today + days_diff)
       patient_ids.select do |p_id|
         latest_careplan_date = most_recent_qa_signature_dates[p_id]&.to_date
-        return false unless latest_careplan_date.present?
-
-        due_date = latest_careplan_date + 12.months
-        due_dates_to_include.cover?(due_date)
+        latest_careplan_date.present? && due_dates_to_include.cover?(latest_careplan_date + 12.months)
       end
     end
 
     private def with_annual_careplan_overdue(patient_ids)
       patient_ids.select do |p_id|
         latest_careplan_date = most_recent_qa_signature_dates[p_id]&.to_date
-        return false unless latest_careplan_date.present?
-
-        due_date = latest_careplan_date + 12.months
-        due_date < Date.today
+        latest_careplan_date.present? && latest_careplan_date + 12.months < Date.today
       end
     end
   end
