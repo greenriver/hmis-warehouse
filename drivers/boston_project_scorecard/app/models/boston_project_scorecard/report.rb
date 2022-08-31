@@ -98,18 +98,19 @@ module BostonProjectScorecard
     end
 
     private def percentage_string(value)
-      v = value
-      v = 0 if value.to_f.nan?
-      v = 0 if value.to_f.infinite?
+      v = value.to_f
+      v = 0 if v.nan?
+      v = 0 if v.infinite?
 
       "#{v.round(2)}%"
     end
 
     private def percentage(value)
-      return 0 if value.to_f.nan?
-      return 0 if value.to_f.infinite?
+      v = value.to_f
+      return 0 if v.nan?
+      return 0 if v.infinite?
 
-      (value * 100).round(2)
+      (v * 100).round(2)
     end
 
     def controlled_parameters
