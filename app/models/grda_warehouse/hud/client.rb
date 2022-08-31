@@ -1655,8 +1655,8 @@ module GrdaWarehouse::Hud
           (m.DueDate.present? && m.DueDate > Date.current - 3.months)
         )
       end.present?
-      vispdat_pregnancy = nil
-      eto_pregnancy = nil
+      vispdat_pregnancy = false
+      eto_pregnancy = false
       unless cas_calculator_instance.unrelated_columns.include?(:vispdat_score)
         vispdat_pregnancy = vispdats.completed.where(pregnant_answer: 1, submitted_at: in_last_year).exists?
         eto_pregnancy = source_hmis_forms.vispdat.
