@@ -23,10 +23,10 @@ module BostonProjectScorecard
 
       # Report is only functional for PSH, RRH and Joint TH-PH projects
       def project_type_score
-        return 6 if project_type == 3 # PSH
-        return unless project_type.in?([9, 10, 13])
+        return 6 if project_type.in?([3, 9, 10]) # PSH, PH - housing only, PH - with services
+        return 3 if project_type.in?([13]) # RRH
 
-        3
+        0
       end
 
       def invoicing_options
