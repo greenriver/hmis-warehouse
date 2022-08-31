@@ -292,24 +292,6 @@ module Health
         pluck(:patient_id, :date_of_activity).to_h
     end
 
-    private def with_discharge_followup
-      @with_discharge_followup ||= Health::QualifyingActivity.
-        submittable.
-        in_range(@range).
-        where(patient_id: patient_referrals.keys).
-        where(activity: :discharge_follow_up).
-        pluck(:patient_id).uniq
-    end
-
-    private def with_f2f_in_past_6_months
-      @with_f2f_in_past_6_months ||= Health::QualifyingActivity.
-        direct_contact.
-        face_to_face.
-        where(date_of_activity: (6.months.ago..Date.today)).
-        where(patient_id: patient_referrals.keys).
-        pluck(:patient_id).uniq
-    end
-
     def qa_signature_dates
       # Note: using minimum will ensure the first PCTP, subsequent don't matter
       @qa_signature_dates ||= Health::QualifyingActivity.
@@ -319,16 +301,6 @@ module Health
         where(date_of_activity: @range).
         where(activity: :pctp_signed).
         group(:patient_id).minimum(:date_of_activity)
-    end
-
-    private def most_recent_qa_signature_dates
-      # Note: using maximum will ensure the last PCTP, earlier ones don't matter
-      @most_recent_qa_signature_dates ||= Health::QualifyingActivity.
-        submittable.
-        during_current_enrollment.
-        where(patient_id: patient_referrals.keys).
-        where(activity: :pctp_signed).
-        group(:patient_id).maximum(:date_of_activity)
     end
 
     private def with_careplans_in_122_days(patient_ids)
@@ -348,6 +320,34 @@ module Health
         careplan_date = qa_signature_dates[p_id]&.to_date
         careplan_date.present? && careplan_date.between?(@range.first, @range.last)
       end
+    end
+
+    private def with_discharge_followup
+      @with_discharge_followup ||= Health::QualifyingActivity.
+        submittable.
+        in_range(@range).
+        where(patient_id: patient_referrals.keys).
+        where(activity: :discharge_follow_up).
+        pluck(:patient_id).uniq
+    end
+
+    private def with_f2f_in_past_6_months
+      @with_f2f_in_past_6_months ||= Health::QualifyingActivity.
+        direct_contact.
+        face_to_face.
+        where(date_of_activity: (6.months.ago..Date.today)).
+        where(patient_id: patient_referrals.keys).
+        pluck(:patient_id).uniq
+    end
+
+    private def most_recent_qa_signature_dates
+      # Note: using maximum will ensure the last PCTP, earlier ones don't matter
+      @most_recent_qa_signature_dates ||= Health::QualifyingActivity.
+        submittable.
+        during_current_enrollment.
+        where(patient_id: patient_referrals.keys).
+        where(activity: :pctp_signed).
+        group(:patient_id).maximum(:date_of_activity)
     end
 
     private def with_initial_careplan_due_in(patient_ids_without_careplans, days_diff)
