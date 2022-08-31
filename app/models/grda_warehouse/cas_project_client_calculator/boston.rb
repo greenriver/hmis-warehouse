@@ -11,7 +11,7 @@ module GrdaWarehouse::CasProjectClientCalculator
     # A hook/wrapper to enable easily overriding how we get data for a given project client column
     # To use this efficiently, you'll probably want to preload a handful of data, see push_clients_to_cas.rb
     def value_for_cas_project_client(client:, column:)
-      if client.most_recent_pathways_or_rrh_assessment_for_destination.present?
+      if most_recent_pathways_or_transfer(client).present?
         current_value = case column
         when *boolean_lookups.keys
           for_boolean(client, boolean_lookups[column])
@@ -23,11 +23,22 @@ module GrdaWarehouse::CasProjectClientCalculator
       end
       # If calculator didn't return anything, ask the client for the answer
       # special case disabling_condition since it actually doesn't come from the pathways assessment
+      # and we need to make it performant, so we can't just ask the client
       if column == :disabling_condition?
         send(column, client)
+      elsif column.in?(unrelated_columns)
       else
         client.send(column)
       end
+    end
+
+    def unrelated_columns
+      [
+        :vispdat_score,
+        :vispdat_length_homeless_in_days,
+        :vispdat_priority_score,
+        :vispdat_prioritization_days_homeless,
+      ].freeze
     end
 
     private def custom_descriptions
@@ -113,21 +124,26 @@ module GrdaWarehouse::CasProjectClientCalculator
     end
     # memoize :pathways_questions
 
+    private def most_recent_pathways_or_transfer(client)
+      client.most_recent_pathways_or_rrh_assessment_for_destination
+    end
+    memoize :most_recent_pathways_or_transfer
+
     private def for_boolean(client, key)
-      client.most_recent_pathways_or_rrh_assessment_for_destination.
+      most_recent_pathways_or_transfer(client).
         question_matching_requirement(key, '1').
         present?
     end
 
     private def family_member(client)
-      response = client.most_recent_pathways_or_rrh_assessment_for_destination.
+      response = most_recent_pathways_or_transfer(client).
         question_matching_requirement('c_additional_household_members')
       response&.AssessmentAnswer&.to_i&.positive?
     end
 
     private def child_in_household(client)
       ages = (1..5).map do |i|
-        client.most_recent_pathways_or_rrh_assessment_for_destination.
+        most_recent_pathways_or_transfer(client).
           question_matching_requirement("c_member#{i}_age")&.AssessmentAnswer.presence
       end.compact
       return false if ages.blank?
@@ -139,7 +155,7 @@ module GrdaWarehouse::CasProjectClientCalculator
       # c_youth_choice	1	Youth-specific only: (Youth-specific programs are with agencies who have a focus on young populations; they may be able to offer drop-in spaces for youth, as well as community-building and connections with other youth)
       # c_youth_choice	2	Adult programs only: (Adult programs serve youth who are 18-24, but may not have built in community space or activities to connect with other youth. They can help you find those opportunities. The adult RRH programs typically have more frequent openings)
       # c_youth_choice	3	Both Adult and youth-specific programs
-      client.most_recent_pathways_or_rrh_assessment_for_destination.
+      most_recent_pathways_or_transfer(client).
         question_matching_requirement('c_youth_choice')&.AssessmentAnswer.to_s.in?(['1', '3'])
     end
 
@@ -147,7 +163,7 @@ module GrdaWarehouse::CasProjectClientCalculator
       # c_survivor_choice	1	Domestic Violence (DV)-specific only: (agencies who have a focus on populations experiencing violence; they may be able to offer specialized services for survivors in-house, such as support groups, clinical services, and legal services)
       # c_survivor_choice	2	Non-DV programs only (serve people fleeing violence, but may need to link you to outside, specialized agencies for services such as DV support groups, clinical services and legal services. Non-DV RRH programs typically have more frequent openings)
       # c_survivor_choice	3	Both DV and non-DV programs
-      client.most_recent_pathways_or_rrh_assessment_for_destination.
+      most_recent_pathways_or_transfer(client).
         question_matching_requirement('c_survivor_choice')&.AssessmentAnswer.to_s.in?(['1', '3'])
     end
 
@@ -155,7 +171,7 @@ module GrdaWarehouse::CasProjectClientCalculator
     # as an integer of the number of rooms. For now we'll grab just the integer section of the looked up value
     # so that we get the right number in CAS
     private def required_number_of_bedrooms(client)
-      bedrooms = client.most_recent_pathways_or_rrh_assessment_for_destination.
+      bedrooms = most_recent_pathways_or_transfer(client).
         question_matching_requirement('c_larger_room_size')&.lookup&.response_text&.scan(/\d+/)&.first
       return unless bedrooms.present?
 
@@ -168,7 +184,7 @@ module GrdaWarehouse::CasProjectClientCalculator
       # c_disability_accomodations	5	Both Wheelchair accessible and First Floor/Elevator
       # c_disability_accomodations	3	Other accessibility
       # c_disability_accomodations	4	Not applicable
-      client.most_recent_pathways_or_rrh_assessment_for_destination.
+      most_recent_pathways_or_transfer(client).
         question_matching_requirement('c_disability_accomodations')&.AssessmentAnswer.to_s.in?(['2', '5'])
     end
 
@@ -178,7 +194,7 @@ module GrdaWarehouse::CasProjectClientCalculator
       # c_disability_accomodations	5	Both Wheelchair accessible and First Floor/Elevator
       # c_disability_accomodations	3	Other accessibility
       # c_disability_accomodations	4	Not applicable
-      client.most_recent_pathways_or_rrh_assessment_for_destination.
+      most_recent_pathways_or_transfer(client).
         question_matching_requirement('c_disability_accomodations')&.AssessmentAnswer.to_s.in?(['1', '5'])
     end
 
@@ -204,14 +220,14 @@ module GrdaWarehouse::CasProjectClientCalculator
         'c_neighborhood_westroxbury' => 'West Roxbury',
       }
       names = neighborhoods.map do |key, name|
-        name if client.most_recent_pathways_or_rrh_assessment_for_destination.
+        name if most_recent_pathways_or_transfer(client).
           question_matching_requirement(key, '1').present?
       end.compact
       Cas::Neighborhood.neighborhood_ids_from_names(names)
     end
 
     private def days_homeless_in_last_three_years_cached(client)
-      days = client.most_recent_pathways_or_rrh_assessment_for_destination.
+      days = most_recent_pathways_or_transfer(client).
         question_matching_requirement('c_new_boston_homeless_nights_total')&.AssessmentAnswer
       return days if days.present?
 
@@ -219,7 +235,7 @@ module GrdaWarehouse::CasProjectClientCalculator
     end
 
     private def literally_homeless_last_three_years_cached(client)
-      days = client.most_recent_pathways_or_rrh_assessment_for_destination.
+      days = most_recent_pathways_or_transfer(client).
         question_matching_requirement('c_new_boston_homeless_nights_total')&.AssessmentAnswer
       return days if days.present?
 
@@ -237,7 +253,7 @@ module GrdaWarehouse::CasProjectClientCalculator
     private def cas_assessment_name(client)
       # c_housing_assessment_name	1	Pathways
       # c_housing_assessment_name	2	RRH-PSH Transfer
-      value = client.most_recent_pathways_or_rrh_assessment_for_destination.
+      value = most_recent_pathways_or_transfer(client).
         question_matching_requirement('c_housing_assessment_name')&.AssessmentAnswer
       return 'IdentifiedClientAssessment' unless value.present?
 
@@ -248,7 +264,7 @@ module GrdaWarehouse::CasProjectClientCalculator
     end
 
     private def max_current_total_monthly_income(client)
-      amount = client.most_recent_pathways_or_rrh_assessment_for_destination.
+      amount = most_recent_pathways_or_transfer(client).
         question_matching_requirement('c_hh_estimated_annual_gross')&.AssessmentAnswer
       return nil if amount.blank?
 
@@ -259,16 +275,16 @@ module GrdaWarehouse::CasProjectClientCalculator
     end
 
     private def cas_assessment_collected_at(client)
-      client.most_recent_pathways_or_rrh_assessment_for_destination&.AssessmentDate
+      most_recent_pathways_or_transfer(client)&.AssessmentDate
     end
 
     private def assessment_score(client)
-      client.most_recent_pathways_or_rrh_assessment_for_destination&.
+      most_recent_pathways_or_transfer(client)&.
         results_matching_requirement('total')&.AssessmentResult
     end
 
     private def financial_assistance_end_date(client)
-      client.most_recent_pathways_or_rrh_assessment_for_destination.
+      most_recent_pathways_or_transfer(client).
         question_matching_requirement('c_latest_date_financial_assistance_eligibility_rrh')&.AssessmentAnswer
     end
 
@@ -311,21 +327,21 @@ module GrdaWarehouse::CasProjectClientCalculator
     end
 
     private def assessor_first_name(client)
-      client.most_recent_pathways_or_rrh_assessment_for_destination&.user&.UserFirstName
+      most_recent_pathways_or_transfer(client)&.user&.UserFirstName
     end
 
     private def assessor_last_name(client)
-      client.most_recent_pathways_or_rrh_assessment_for_destination&.user&.UserLastName
+      most_recent_pathways_or_transfer(client)&.user&.UserLastName
     end
 
     private def assessor_email(client)
-      client.most_recent_pathways_or_rrh_assessment_for_destination&.user&.UserEmail
+      most_recent_pathways_or_transfer(client)&.user&.UserEmail
     end
 
     private def assessor_phone(client)
       [
-        client.most_recent_pathways_or_rrh_assessment_for_destination&.user&.UserPhone,
-        client.most_recent_pathways_or_rrh_assessment_for_destination&.user&.UserExtension,
+        most_recent_pathways_or_transfer(client)&.user&.UserPhone,
+        most_recent_pathways_or_transfer(client)&.user&.UserExtension,
       ].compact.join('x')
     end
 
@@ -352,8 +368,22 @@ module GrdaWarehouse::CasProjectClientCalculator
       client.processed_service_history&.days_homeless_last_three_years
     end
 
+    private def cas_active_ids
+      @cas_active_ids ||= GrdaWarehouse::Hud::Client.cas_active.pluck(:id)
+    end
+
+    private def disabled_client_ids
+      @disabled_client_ids ||= GrdaWarehouse::Hud::Client.disabled_client_scope(client_ids: cas_active_ids).pluck(:id).to_set
+    end
+
+    private def chronically_disabled_ids
+      @chronically_disabled_ids ||= GrdaWarehouse::Hud::Client.chronically_disabled.where(id: cas_active_ids).pluck(:id).to_set
+    end
+
     private def disabling_condition?(client)
-      client.chronically_disabled? || client.disabling_condition?
+      # The following is equivalent to, but hopefully much faster in batches
+      # client.chronically_disabled? || client.disabling_condition?
+      chronically_disabled_ids.include?(client.id) || disabled_client_ids.include?(client.id)
     end
   end
 end
