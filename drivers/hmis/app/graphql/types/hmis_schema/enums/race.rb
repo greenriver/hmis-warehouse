@@ -8,11 +8,9 @@
 
 module Types
   class HmisSchema::Enums::Race < Types::BaseEnum
-    description 'HUD Race'
+    description 'HUD Race (1.7)'
     graphql_name 'Race'
 
-    Hmis::Hud::Client.race_enum_map.members.each do |member|
-      value "RACE_#{to_enum_key(member[:key])}", member[:desc], value: member[:value]
-    end
+    with_enum_map Hmis::Hud::Client.race_enum_map, prefix: 'RACE_'
   end
 end

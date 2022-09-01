@@ -8,11 +8,9 @@
 
 module Types
   class HmisSchema::Enums::Gender < Types::BaseEnum
-    description 'HUD Gender'
+    description 'HUD Gender (1.7)'
     graphql_name 'Gender'
 
-    Hmis::Hud::Client.gender_enum_map.members.each do |member|
-      value "GENDER_#{to_enum_key(member[:key])}", member[:desc], value: member[:value]
-    end
+    with_enum_map Hmis::Hud::Client.gender_enum_map, prefix: 'GENDER_'
   end
 end

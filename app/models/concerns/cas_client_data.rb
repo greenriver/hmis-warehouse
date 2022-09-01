@@ -23,6 +23,10 @@ module CasClientData
       where.not(hiv_positive: false)
     end
 
+    def cas_calculator_instance
+      @cas_calculator_instance ||= GrdaWarehouse::Config.get(:cas_calculator).constantize.new
+    end
+
     def self.cas_columns
       @cas_columns ||= cas_columns_data.transform_values { |v| v[:title] }
     end

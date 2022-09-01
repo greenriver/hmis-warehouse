@@ -17,6 +17,10 @@ module Health
     validates_presence_of :team_coordinator_id
     validates_presence_of :name
 
+    scope :lead_by, ->(user_id) do
+      where(team_coordinator_id: user_id)
+    end
+
     def patients
       user_care_coordinators&.
         map(&:patients)&.

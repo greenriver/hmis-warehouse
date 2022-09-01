@@ -14,6 +14,9 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   belongs_to :project, **hmis_relation(:ProjectID, 'Project')
   has_one :exit, **hmis_relation(:EnrollmentID, 'Exit')
+  has_many :services, **hmis_relation(:EnrollmentID, 'Service')
+  has_many :events, **hmis_relation(:EnrollmentID, 'Event')
+  has_many :assessments, **hmis_relation(:EnrollmentID, 'Assessment')
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
 
   SORT_OPTIONS = [:most_recent].freeze
@@ -21,6 +24,10 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   # A user can see any enrollment associated with a project they can access
   scope :viewable_by, ->(user) do
     joins(:project).merge(Hmis::Hud::Project.viewable_by(user))
+  end
+
+  scope :heads_of_households, -> do
+    where(RelationshipToHoH: 1)
   end
 
   def self.sort_by_option(option)
@@ -33,4 +40,6 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
       raise NotImplementedError
     end
   end
+
+  use_enum :relationships_to_hoh_enum_map, ::HUD.relationships_to_hoh
 end
