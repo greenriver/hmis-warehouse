@@ -24,6 +24,11 @@ module GrdaWarehouse
       where(percent_complete: 100)
     end
 
+    scope :unprocessed_s3_migration, -> do
+      migrated = ActiveStorage::Attachment.where(record_type: 'GrdaWarehouse::Upload').pluck(:record_id)
+      where.not(id: migrated)
+    end
+
     scope :viewable_by, ->(user) do
       where(data_source_id: GrdaWarehouse::DataSource.directly_viewable_by(user).select(:id))
     end
@@ -78,6 +83,8 @@ module GrdaWarehouse
       return unless content.present?
       return unless valid? # Ignore uploads that are already invalid (data source deleted?)
       return if hmis_zip.attached? # don't re-process
+
+      puts "Migrating #{file} to S3"
 
       Tempfile.create(binmode: true) do |tmp_file|
         tmp_file.write(content)

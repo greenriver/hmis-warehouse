@@ -4,7 +4,7 @@ namespace :storage do
     {
       GrdaWarehouse::Upload => :with_attached_hmis_zip,
     }.each do |klass, preload|
-      klass.send(preload).find_each(batch_size: 10, &:copy_to_s3!)
+      klass.unprocessed_s3_migration.send(preload).find_each(batch_size: 10, &:copy_to_s3!)
     end
   end
 end
