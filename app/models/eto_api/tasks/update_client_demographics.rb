@@ -178,7 +178,7 @@ module EtoApi::Tasks
 
         if @custom_config.present?
           @custom_config.demographic_fields.each do |key, label|
-            hmis_client[key] = defined_value(client: client, response: api_response, label: label)
+            hmis_client[key] = literal_value(response: api_response, label: label) || defined_value(client: client, response: api_response, label: label)
           end
 
           # cm = entity(client: client, response: api_response, entity_label: 'Case Manager/Advocate')
@@ -419,6 +419,11 @@ module EtoApi::Tasks
         address << "#{k}: #{address_hash[k]}" if address_hash[k].present?
       end
       address.join(";\n")
+    end
+
+    private def literal_value(response:, label:)
+      as_hash = JSON.parse(response)
+      as_hash[label]
     end
 
     private def entity(client:, response:, entity_label:)
