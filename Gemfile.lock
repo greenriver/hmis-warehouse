@@ -446,7 +446,7 @@ GEM
       sprockets (>= 2.0.0)
       tilt (>= 1.2)
     hashdiff (1.0.1)
-    hashie (4.1.0)
+    hashie (5.0.0)
     heapy (0.2.0)
       thor
     hellosign-ruby-sdk (3.7.7)
@@ -584,7 +584,7 @@ GEM
       multi_xml (~> 0.5)
       rack (>= 1.2, < 3)
     oj (3.13.10)
-    omniauth (1.9.1)
+    omniauth (1.9.2)
       hashie (>= 3.4.6)
       rack (>= 1.6.2, < 3)
     omniauth-oauth2 (1.7.1)
