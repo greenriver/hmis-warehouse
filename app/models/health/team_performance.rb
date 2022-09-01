@@ -58,9 +58,10 @@ module Health
             without_chas: without_chas,
             with_signed_careplans: with_signed_careplans,
             without_signed_careplans: without_signed_careplans,
-            initial_careplan_due_soon: with_initial_careplan_due_in(without_signed_careplans, 28.days),
-            initial_careplan_overdue: with_initial_careplan_overdue(without_signed_careplans),
-            annual_careplan_due_soon: with_annual_careplan_due_in(patient_ids, 28.days),
+            without_initial_careplan_90_122_days: filter_days_since_enrollment(without_signed_careplans, 90...122),
+            without_initial_careplan_122_150_days: filter_days_since_enrollment(without_signed_careplans, 122...150),
+            initial_careplan_overdue: filter_days_since_enrollment(without_signed_careplans, 150..),
+            annual_careplan_due_within_30_days: with_annual_careplan_due_within_30_days(patient_ids),
             annual_careplan_overdue: with_annual_careplan_overdue(patient_ids),
             without_f2f_in_past_6_months: without_f2f_in_past_6_months,
             with_discharge_followup_completed_within_range: with_discharge_followup,
@@ -89,9 +90,10 @@ module Health
           without_chas: team_counts.map(&:without_chas).reduce(&:+),
           with_signed_careplans: team_counts.map(&:with_signed_careplans).reduce(&:+),
           without_signed_careplans: team_counts.map(&:without_signed_careplans).reduce(&:+),
-          initial_careplan_due_soon: team_counts.map(&:initial_careplan_due_soon).reduce(&:+),
+          without_initial_careplan_90_122_days: team_counts.map(&:without_initial_careplan_90_122_days).reduce(&:+),
+          without_initial_careplan_122_150_days: team_counts.map(&:without_initial_careplan_122_150_days).reduce(&:+),
           initial_careplan_overdue: team_counts.map(&:initial_careplan_overdue).reduce(&:+),
-          annual_careplan_due_soon: team_counts.map(&:annual_careplan_due_soon).reduce(&:+),
+          annual_careplan_due_within_30_days: team_counts.map(&:annual_careplan_due_within_30_days).reduce(&:+),
           annual_careplan_overdue: team_counts.map(&:annual_careplan_overdue).reduce(&:+),
           without_f2f_in_past_6_months: team_counts.map(&:without_f2f_in_past_6_months).reduce(&:+),
           with_discharge_followup_completed_within_range: team_counts.map(&:with_discharge_followup_completed_within_range).reduce(&:+),
@@ -350,11 +352,10 @@ module Health
         group(:patient_id).maximum(:date_of_activity)
     end
 
-    private def with_initial_careplan_due_in(patient_ids_without_careplans, days_diff)
-      due_dates_to_include = (Date.today..Date.today + days_diff)
-      patient_ids_without_careplans.select do |p_id|
+    private def filter_days_since_enrollment(patient_ids, days_since_enrollment_range)
+      patient_ids.select do |p_id|
         enrollment_date = patient_referrals[p_id][0]&.to_date
-        enrollment_date.present? && due_dates_to_include.cover?(enrollment_date + 150.days)
+        enrollment_date.present? && days_since_enrollment_range.cover?((Date.today - enrollment_date).to_i)
       end
     end
 
@@ -365,8 +366,8 @@ module Health
       end
     end
 
-    private def with_annual_careplan_due_in(patient_ids, days_diff)
-      due_dates_to_include = (Date.today..Date.today + days_diff)
+    private def with_annual_careplan_due_within_30_days(patient_ids)
+      due_dates_to_include = (Date.today..Date.today + 30.days)
       patient_ids.select do |p_id|
         latest_careplan_date = most_recent_qa_signature_dates[p_id]&.to_date
         latest_careplan_date.present? && due_dates_to_include.cover?(latest_careplan_date + 12.months)
