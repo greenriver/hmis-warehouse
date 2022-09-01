@@ -126,7 +126,7 @@
           -#   - link_text = "#{numerator}  (#{percentage}%)"
           -#   =render 'warehouse_reports/health/agency_performance/table_cell', permission: permission, entity_slug: entity_slug, scope: scope, title: title, detail_path: detail_path, link_text: link_text
 
-          %td.agency-performance__without.text-right
+          %td.text-right
             - scope = entity.without_payable_qualifying_activities_within_range
             - title = "#{pluralize(scope.size, 'Patient')} without Payable QAs in Chosen Date Range"
             =render 'warehouse_reports/health/agency_performance/table_cell', permission: permission, entity_slug: entity_slug, scope: scope, title: title, detail_path: detail_path
@@ -136,22 +136,28 @@
           %td= totals.name
           %td.text-right= totals.patient_referrals.size
           %td.text-right= totals.consented_patients.size
-          %td.text-right= totals.with_chas.size
-          %td.agency-performance__without.text-right= totals.without_chas.size
-          %td.text-right= totals.with_ssms.size
-          %td.agency-performance__without.text-right= totals.without_ssms.size
           %td.text-right= totals.with_signed_careplans.size
-          %td.agency-performance__without.text-right= totals.without_signed_careplans.size
-          %td.agency-performance__date-effected.text-right= totals.with_careplans_signed_within_range.size
-          %td.text-right
-            - numerator = totals.with_careplans_in_122_days.size
-            - denominator = totals.with_careplans_signed_within_range.size
-            - percentage = 0
-            - percentage = ((numerator/denominator.to_f) * 100).round if denominator.positive? && numerator.positive?
-            = totals.with_careplans_in_122_days.size
-            (#{percentage}%)
+          %td.text-right= totals.without_initial_careplan_90_122_days.size
+          %td.text-right= totals.without_initial_careplan_122_150_days.size
+          %td.text-right= totals.initial_careplan_overdue.size
+          %td.text-right= totals.annual_careplan_due_within_30_days.size
+          %td.text-right= totals.annual_careplan_overdue.size
+          %td.text-right= totals.without_f2f_in_past_6_months.size
+          %td.text-right= totals.with_discharge_followup_completed_within_range.size
+          -# %td.agency-performance__without.text-right= totals.without_chas.size
+          -# %td.text-right= totals.with_ssms.size
+          -# %td.agency-performance__without.text-right= totals.without_ssms.size
+          -# %td.agency-performance__without.text-right= totals.without_signed_careplans.size
+          -# %td.agency-performance__date-effected.text-right= totals.with_careplans_signed_within_range.size
+          -# %td.text-right
+          -#   - numerator = totals.with_careplans_in_122_days.size
+          -#   - denominator = totals.with_careplans_signed_within_range.size
+          -#   - percentage = 0
+          -#   - percentage = ((numerator/denominator.to_f) * 100).round if denominator.positive? && numerator.positive?
+          -#   = totals.with_careplans_in_122_days.size
+          -#   (#{percentage}%)
           -#%td.agency-performance__without.text-right= totals.without_qualifying_activities_within_range.size
-          %td.agency-performance__without.text-right= totals.without_payable_qualifying_activities_within_range.size
+          %td.text-right= totals.without_payable_qualifying_activities_within_range.size
   = content_for :page_js do
     :javascript
       $(document).ready(function() {
