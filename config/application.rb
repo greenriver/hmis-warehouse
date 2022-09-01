@@ -110,5 +110,6 @@ module BostonHmis
     config.hmis_data_lake = nil
     config.custom_imports = []
     config.supplemental_enrollment_importers = {}
+    config.synthetic_youth_education_status_types = []
   end
 end

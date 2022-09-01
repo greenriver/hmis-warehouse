@@ -515,7 +515,11 @@ CREATE TABLE public."Client" (
     "NativeHIPacific" integer,
     "NoSingleGender" integer,
     tc_hat_additional_days_homeless integer DEFAULT 0,
-    health_housing_navigator_id bigint
+    health_housing_navigator_id bigint,
+    preferred_name character varying,
+    pronouns character varying,
+    sexual_orientation character varying,
+    encampment_decomissioned boolean DEFAULT false NOT NULL
 );
 
 
@@ -1812,7 +1816,8 @@ CREATE TABLE public."YouthEducationStatus" (
     "ExportID" character varying(32) NOT NULL,
     data_source_id integer,
     pending_date_deleted date,
-    source_hash character varying
+    source_hash character varying,
+    synthetic boolean DEFAULT false
 );
 
 
@@ -2191,6 +2196,83 @@ CREATE SEQUENCE public.bo_configs_id_seq
 --
 
 ALTER SEQUENCE public.bo_configs_id_seq OWNED BY public.bo_configs.id;
+
+
+--
+-- Name: boston_project_scorecard_reports; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.boston_project_scorecard_reports (
+    id bigint NOT NULL,
+    project_id bigint,
+    project_group_id bigint,
+    status character varying DEFAULT 'pending'::character varying,
+    user_id bigint,
+    start_date date NOT NULL,
+    end_date date NOT NULL,
+    apr_id bigint,
+    project_type integer,
+    period_start_date date,
+    period_end_date date,
+    secondary_reviewer_id bigint,
+    started_at timestamp without time zone,
+    completed_at timestamp without time zone,
+    sent_at timestamp without time zone,
+    deleted_at timestamp without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    initial_goals_pass boolean,
+    initial_goals_notes character varying,
+    timeliness_pass boolean,
+    timeliness_notes character varying,
+    independent_living_pass boolean,
+    independent_living_notes character varying,
+    management_oversight_pass boolean,
+    management_oversight_notes character varying,
+    prioritization_pass boolean,
+    prioritization_notes character varying,
+    rrh_exits_to_ph double precision,
+    psh_stayers_or_to_ph double precision,
+    increased_stayer_employment_income double precision,
+    increased_stayer_other_income double precision,
+    increased_leaver_employment_income double precision,
+    increased_leaver_other_income double precision,
+    days_to_lease_up integer,
+    pii_error_rate double precision,
+    ude_error_rate double precision,
+    income_and_housing_error_rate double precision,
+    invoicing integer,
+    actual_households_served integer,
+    amount_agency_spent double precision,
+    returned_funds double precision,
+    average_utilization_rate double precision,
+    subpopulations_served jsonb,
+    practices_housing_first boolean,
+    vulnerable_subpopulations_served jsonb,
+    barrier_id_process boolean,
+    plan_to_address_barriers boolean,
+    contracted_budget double precision,
+    archive character varying
+);
+
+
+--
+-- Name: boston_project_scorecard_reports_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.boston_project_scorecard_reports_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: boston_project_scorecard_reports_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.boston_project_scorecard_reports_id_seq OWNED BY public.boston_project_scorecard_reports.id;
 
 
 --
@@ -2643,6 +2725,197 @@ CREATE SEQUENCE public.ce_assessments_id_seq
 --
 
 ALTER SEQUENCE public.ce_assessments_id_seq OWNED BY public.ce_assessments.id;
+
+
+--
+-- Name: ce_performance_ce_aprs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.ce_performance_ce_aprs (
+    id bigint NOT NULL,
+    report_id bigint NOT NULL,
+    ce_apr_id bigint NOT NULL,
+    start_date date,
+    end_date date,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: ce_performance_ce_aprs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.ce_performance_ce_aprs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: ce_performance_ce_aprs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.ce_performance_ce_aprs_id_seq OWNED BY public.ce_performance_ce_aprs.id;
+
+
+--
+-- Name: ce_performance_clients; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.ce_performance_clients (
+    id bigint NOT NULL,
+    client_id bigint,
+    report_id bigint,
+    ce_apr_id bigint,
+    first_name character varying,
+    last_name character varying,
+    reporting_age integer,
+    head_of_household boolean,
+    prior_living_situation integer,
+    los_under_threshold integer,
+    previous_street_essh integer,
+    prevention_tool_score integer,
+    assessment_score integer,
+    events jsonb,
+    assessments jsonb,
+    diversion_event boolean,
+    diversion_successful boolean,
+    veteran boolean,
+    household_size integer,
+    household_ages jsonb,
+    chronically_homeless_at_entry boolean,
+    entry_date date,
+    exit_date date,
+    initial_assessment_date date,
+    latest_assessment_date date,
+    initial_housing_referral_date date,
+    housing_enrollment_entry_date date,
+    housing_enrollment_move_in_date date,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    ce_apr_client_id integer,
+    dob date,
+    move_in_date date,
+    period character varying,
+    household_type character varying,
+    days_before_assessment integer,
+    days_on_list integer,
+    days_in_project integer,
+    days_between_referral_and_housing integer,
+    q5a_b1 boolean DEFAULT false,
+    deleted_at timestamp without time zone,
+    assessment_type character varying,
+    days_between_entry_and_initial_referral integer,
+    cls_literally_homeless boolean DEFAULT false NOT NULL,
+    vispdat_type character varying,
+    vispdat_range character varying,
+    prioritization_tool_type character varying,
+    prioritization_tool_score integer,
+    community character varying,
+    lgbtq_household_members boolean DEFAULT false NOT NULL,
+    client_lgbtq boolean DEFAULT false NOT NULL,
+    dv_survivor boolean DEFAULT false NOT NULL
+);
+
+
+--
+-- Name: ce_performance_clients_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.ce_performance_clients_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: ce_performance_clients_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.ce_performance_clients_id_seq OWNED BY public.ce_performance_clients.id;
+
+
+--
+-- Name: ce_performance_goals; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.ce_performance_goals (
+    id bigint NOT NULL,
+    coc_code character varying NOT NULL,
+    screening integer DEFAULT 100 NOT NULL,
+    diversion integer DEFAULT 5 NOT NULL,
+    time_in_ce integer DEFAULT 30 NOT NULL,
+    time_to_referral integer DEFAULT 5 NOT NULL,
+    time_to_housing integer DEFAULT 5 NOT NULL,
+    time_on_list integer DEFAULT 30 NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: ce_performance_goals_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.ce_performance_goals_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: ce_performance_goals_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.ce_performance_goals_id_seq OWNED BY public.ce_performance_goals.id;
+
+
+--
+-- Name: ce_performance_results; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.ce_performance_results (
+    id bigint NOT NULL,
+    report_id bigint,
+    value double precision,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    type character varying,
+    period character varying,
+    numerator integer,
+    denominator integer,
+    deleted_at timestamp without time zone,
+    event_type integer,
+    goal integer
+);
+
+
+--
+-- Name: ce_performance_results_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.ce_performance_results_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: ce_performance_results_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.ce_performance_results_id_seq OWNED BY public.ce_performance_results.id;
 
 
 --
@@ -3722,7 +3995,14 @@ CREATE TABLE public.configs (
     youth_and_child_cohort boolean DEFAULT false NOT NULL,
     cas_sync_project_group_id integer,
     system_cohort_processing_date date,
-    system_cohort_date_window integer DEFAULT 1
+    system_cohort_date_window integer DEFAULT 1,
+    roi_model character varying DEFAULT 'explicit'::character varying,
+    client_dashboard character varying DEFAULT 'default'::character varying NOT NULL,
+    require_service_for_reporting_default boolean DEFAULT true NOT NULL,
+    verified_homeless_history_method character varying DEFAULT 'visible_in_window'::character varying,
+    supplemental_enrollment_importer character varying DEFAULT 'GrdaWarehouse::Tasks::EnrollmentExtrasImport'::character varying,
+    youth_hoh_cohort boolean DEFAULT false NOT NULL,
+    youth_hoh_cohort_project_group_id integer
 );
 
 
@@ -4091,7 +4371,8 @@ CREATE TABLE public.data_sources (
     service_scannable boolean DEFAULT false NOT NULL,
     import_aggregators jsonb DEFAULT '{}'::jsonb,
     import_cleanups jsonb DEFAULT '{}'::jsonb,
-    refuse_imports_with_errors boolean DEFAULT false
+    refuse_imports_with_errors boolean DEFAULT false,
+    hmis character varying
 );
 
 
@@ -4190,6 +4471,166 @@ ALTER SEQUENCE public.document_exports_id_seq OWNED BY public.document_exports.i
 
 
 --
+-- Name: eccovia_assessments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.eccovia_assessments (
+    id bigint NOT NULL,
+    client_id character varying,
+    data_source_id bigint,
+    assessment_id character varying,
+    score integer,
+    assessed_at timestamp without time zone,
+    assessor_id character varying,
+    assessor_name character varying,
+    assessor_email character varying,
+    last_fetched_at timestamp without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: eccovia_assessments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.eccovia_assessments_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: eccovia_assessments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.eccovia_assessments_id_seq OWNED BY public.eccovia_assessments.id;
+
+
+--
+-- Name: eccovia_case_managers; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.eccovia_case_managers (
+    id bigint NOT NULL,
+    client_id character varying,
+    data_source_id bigint,
+    case_manager_id character varying,
+    user_id character varying,
+    first_name character varying,
+    last_name character varying,
+    email character varying,
+    phone character varying,
+    cell character varying,
+    start_date date,
+    end_date date,
+    last_fetched_at timestamp without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: eccovia_case_managers_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.eccovia_case_managers_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: eccovia_case_managers_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.eccovia_case_managers_id_seq OWNED BY public.eccovia_case_managers.id;
+
+
+--
+-- Name: eccovia_client_contacts; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.eccovia_client_contacts (
+    id bigint NOT NULL,
+    client_id character varying,
+    data_source_id bigint,
+    email character varying,
+    phone character varying,
+    cell character varying,
+    street character varying,
+    street2 character varying,
+    city character varying,
+    state character varying,
+    zip character varying,
+    last_fetched_at timestamp without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: eccovia_client_contacts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.eccovia_client_contacts_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: eccovia_client_contacts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.eccovia_client_contacts_id_seq OWNED BY public.eccovia_client_contacts.id;
+
+
+--
+-- Name: eccovia_fetches; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.eccovia_fetches (
+    id bigint NOT NULL,
+    credentials_id bigint,
+    data_source_id bigint,
+    active boolean DEFAULT false NOT NULL,
+    last_fetched_at timestamp without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: eccovia_fetches_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.eccovia_fetches_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: eccovia_fetches_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.eccovia_fetches_id_seq OWNED BY public.eccovia_fetches.id;
+
+
+--
 -- Name: enrollment_change_histories; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -4238,7 +4679,26 @@ CREATE TABLE public.enrollment_extras (
     vispdat_ended_at date,
     source_tab character varying,
     created_at timestamp without time zone,
-    updated_at timestamp without time zone
+    updated_at timestamp without time zone,
+    file_id bigint,
+    data_source_id integer,
+    client_id character varying,
+    client_uid character varying,
+    hud_enrollment_id character varying,
+    enrollment_group_id character varying,
+    project_name character varying,
+    entry_date date,
+    exit_date date,
+    vispdat_type character varying,
+    vispdat_range character varying,
+    prioritization_tool_type character varying,
+    prioritization_tool_score integer,
+    agency_name character varying,
+    community character varying,
+    lgbtq_household_members boolean,
+    client_lgbtq boolean,
+    dv_survivor boolean,
+    prevention_tool_score integer
 );
 
 
@@ -4460,7 +4920,10 @@ CREATE TABLE public.exports (
     file character varying,
     delayed_job_id integer,
     version character varying,
-    confidential boolean DEFAULT false NOT NULL
+    confidential boolean DEFAULT false NOT NULL,
+    started_at timestamp without time zone,
+    completed_at timestamp without time zone,
+    options jsonb
 );
 
 
@@ -8464,6 +8927,87 @@ ALTER SEQUENCE public.hmis_assessments_id_seq OWNED BY public.hmis_assessments.i
 
 
 --
+-- Name: hmis_case_notes; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_case_notes (
+    id bigint NOT NULL,
+    client_id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    organization_id bigint,
+    project_id bigint,
+    enrollment_id bigint,
+    source_type character varying,
+    source_id bigint,
+    information_date date NOT NULL,
+    note text,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: hmis_case_notes_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_case_notes_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_case_notes_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_case_notes_id_seq OWNED BY public.hmis_case_notes.id;
+
+
+--
+-- Name: hmis_client_alerts; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_client_alerts (
+    id bigint NOT NULL,
+    client_id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    organization_id bigint,
+    project_id bigint,
+    coc_code character varying,
+    source_type character varying,
+    source_id bigint,
+    information_date date NOT NULL,
+    severity character varying NOT NULL,
+    note text,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: hmis_client_alerts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_client_alerts_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_client_alerts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_client_alerts_id_seq OWNED BY public.hmis_client_alerts.id;
+
+
+--
 -- Name: hmis_client_attributes_defined_text; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -11328,6 +11872,44 @@ ALTER SEQUENCE public.hmis_staff_x_clients_id_seq OWNED BY public.hmis_staff_x_c
 
 
 --
+-- Name: hmis_wips; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_wips (
+    id bigint NOT NULL,
+    client_id bigint NOT NULL,
+    project_id bigint,
+    enrollment_id bigint,
+    source_type character varying,
+    source_id bigint,
+    date date NOT NULL,
+    data jsonb,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: hmis_wips_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_wips_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_wips_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_wips_id_seq OWNED BY public.hmis_wips.id;
+
+
+--
 -- Name: homeless_summary_report_clients; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -11894,7 +12476,9 @@ CREATE TABLE public.hud_report_apr_clients (
     ce_event_referral_result integer,
     gender_multi character varying,
     bed_nights integer,
-    pit_enrollments jsonb DEFAULT '[]'::jsonb
+    pit_enrollments jsonb DEFAULT '[]'::jsonb,
+    source_enrollment_id integer,
+    los_under_threshold integer
 );
 
 
@@ -14768,7 +15352,8 @@ CREATE TABLE public.project_scorecard_reports (
     special_population_only character varying,
     project_less_than_two boolean,
     geographic_location character varying,
-    apr_id bigint
+    apr_id bigint,
+    spm_id integer
 );
 
 
@@ -15295,31 +15880,12 @@ ALTER SEQUENCE public.recurring_hmis_exports_id_seq OWNED BY public.recurring_hm
 CREATE TABLE public.remote_configs (
     id bigint NOT NULL,
     type character varying NOT NULL,
+    remote_credential_id bigint,
     active boolean DEFAULT false,
-    username character varying NOT NULL,
-    encrypted_password character varying NOT NULL,
-    encrypted_password_iv character varying,
-    region character varying,
-    bucket character varying,
-    path character varying,
-    endpoint character varying,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
 );
-
-
---
--- Name: COLUMN remote_configs.username; Type: COMMENT; Schema: public; Owner: -
---
-
-COMMENT ON COLUMN public.remote_configs.username IS 'username or equivalent eg. s3_access_key_id';
-
-
---
--- Name: COLUMN remote_configs.encrypted_password; Type: COMMENT; Schema: public; Owner: -
---
-
-COMMENT ON COLUMN public.remote_configs.encrypted_password IS 'password or equivalent eg. s3_secret_access_key';
 
 
 --
@@ -15339,6 +15905,60 @@ CREATE SEQUENCE public.remote_configs_id_seq
 --
 
 ALTER SEQUENCE public.remote_configs_id_seq OWNED BY public.remote_configs.id;
+
+
+--
+-- Name: remote_credentials; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.remote_credentials (
+    id bigint NOT NULL,
+    type character varying NOT NULL,
+    active boolean DEFAULT false,
+    username character varying NOT NULL,
+    encrypted_password character varying NOT NULL,
+    encrypted_password_iv character varying,
+    region character varying,
+    bucket character varying,
+    path character varying,
+    endpoint character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: COLUMN remote_credentials.username; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.remote_credentials.username IS 'username or equivalent eg. s3_access_key_id';
+
+
+--
+-- Name: COLUMN remote_credentials.encrypted_password; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.remote_credentials.encrypted_password IS 'password or equivalent eg. s3_secret_access_key';
+
+
+--
+-- Name: remote_credentials_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.remote_credentials_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: remote_credentials_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.remote_credentials_id_seq OWNED BY public.remote_credentials.id;
 
 
 --
@@ -17238,6 +17858,42 @@ ALTER SEQUENCE public.synthetic_events_id_seq OWNED BY public.synthetic_events.i
 
 
 --
+-- Name: synthetic_youth_education_statuses; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.synthetic_youth_education_statuses (
+    id bigint NOT NULL,
+    enrollment_id bigint,
+    client_id bigint,
+    type character varying,
+    source_type character varying,
+    source_id bigint,
+    hud_youth_education_status_youth_education_status_id character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: synthetic_youth_education_statuses_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.synthetic_youth_education_statuses_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: synthetic_youth_education_statuses_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.synthetic_youth_education_statuses_id_seq OWNED BY public.synthetic_youth_education_statuses.id;
+
+
+--
 -- Name: taggings; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -18572,6 +19228,13 @@ ALTER TABLE ONLY public.bo_configs ALTER COLUMN id SET DEFAULT nextval('public.b
 
 
 --
+-- Name: boston_project_scorecard_reports id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.boston_project_scorecard_reports ALTER COLUMN id SET DEFAULT nextval('public.boston_project_scorecard_reports_id_seq'::regclass);
+
+
+--
 -- Name: cas_availabilities id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -18639,6 +19302,34 @@ ALTER TABLE ONLY public.cas_vacancies ALTER COLUMN id SET DEFAULT nextval('publi
 --
 
 ALTER TABLE ONLY public.ce_assessments ALTER COLUMN id SET DEFAULT nextval('public.ce_assessments_id_seq'::regclass);
+
+
+--
+-- Name: ce_performance_ce_aprs id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ce_performance_ce_aprs ALTER COLUMN id SET DEFAULT nextval('public.ce_performance_ce_aprs_id_seq'::regclass);
+
+
+--
+-- Name: ce_performance_clients id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ce_performance_clients ALTER COLUMN id SET DEFAULT nextval('public.ce_performance_clients_id_seq'::regclass);
+
+
+--
+-- Name: ce_performance_goals id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ce_performance_goals ALTER COLUMN id SET DEFAULT nextval('public.ce_performance_goals_id_seq'::regclass);
+
+
+--
+-- Name: ce_performance_results id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ce_performance_results ALTER COLUMN id SET DEFAULT nextval('public.ce_performance_results_id_seq'::regclass);
 
 
 --
@@ -18870,6 +19561,34 @@ ALTER TABLE ONLY public.direct_financial_assistances ALTER COLUMN id SET DEFAULT
 --
 
 ALTER TABLE ONLY public.document_exports ALTER COLUMN id SET DEFAULT nextval('public.document_exports_id_seq'::regclass);
+
+
+--
+-- Name: eccovia_assessments id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.eccovia_assessments ALTER COLUMN id SET DEFAULT nextval('public.eccovia_assessments_id_seq'::regclass);
+
+
+--
+-- Name: eccovia_case_managers id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.eccovia_case_managers ALTER COLUMN id SET DEFAULT nextval('public.eccovia_case_managers_id_seq'::regclass);
+
+
+--
+-- Name: eccovia_client_contacts id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.eccovia_client_contacts ALTER COLUMN id SET DEFAULT nextval('public.eccovia_client_contacts_id_seq'::regclass);
+
+
+--
+-- Name: eccovia_fetches id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.eccovia_fetches ALTER COLUMN id SET DEFAULT nextval('public.eccovia_fetches_id_seq'::regclass);
 
 
 --
@@ -19419,6 +20138,20 @@ ALTER TABLE ONLY public.hmis_aggregated_exits ALTER COLUMN id SET DEFAULT nextva
 
 
 --
+-- Name: hmis_case_notes id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_case_notes ALTER COLUMN id SET DEFAULT nextval('public.hmis_case_notes_id_seq'::regclass);
+
+
+--
+-- Name: hmis_client_alerts id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_client_alerts ALTER COLUMN id SET DEFAULT nextval('public.hmis_client_alerts_id_seq'::regclass);
+
+
+--
 -- Name: hmis_client_attributes_defined_text id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -19808,6 +20541,13 @@ ALTER TABLE ONLY public.hmis_staff ALTER COLUMN id SET DEFAULT nextval('public.h
 --
 
 ALTER TABLE ONLY public.hmis_staff_x_clients ALTER COLUMN id SET DEFAULT nextval('public.hmis_staff_x_clients_id_seq'::regclass);
+
+
+--
+-- Name: hmis_wips id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_wips ALTER COLUMN id SET DEFAULT nextval('public.hmis_wips_id_seq'::regclass);
 
 
 --
@@ -20270,6 +21010,13 @@ ALTER TABLE ONLY public.recurring_hmis_exports ALTER COLUMN id SET DEFAULT nextv
 --
 
 ALTER TABLE ONLY public.remote_configs ALTER COLUMN id SET DEFAULT nextval('public.remote_configs_id_seq'::regclass);
+
+
+--
+-- Name: remote_credentials id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.remote_credentials ALTER COLUMN id SET DEFAULT nextval('public.remote_credentials_id_seq'::regclass);
 
 
 --
@@ -20763,6 +21510,13 @@ ALTER TABLE ONLY public.synthetic_events ALTER COLUMN id SET DEFAULT nextval('pu
 
 
 --
+-- Name: synthetic_youth_education_statuses id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.synthetic_youth_education_statuses ALTER COLUMN id SET DEFAULT nextval('public.synthetic_youth_education_statuses_id_seq'::regclass);
+
+
+--
 -- Name: taggings id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -21218,6 +21972,14 @@ ALTER TABLE ONLY public.bo_configs
 
 
 --
+-- Name: boston_project_scorecard_reports boston_project_scorecard_reports_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.boston_project_scorecard_reports
+    ADD CONSTRAINT boston_project_scorecard_reports_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: cas_availabilities cas_availabilities_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -21295,6 +22057,38 @@ ALTER TABLE ONLY public.cas_vacancies
 
 ALTER TABLE ONLY public.ce_assessments
     ADD CONSTRAINT ce_assessments_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: ce_performance_ce_aprs ce_performance_ce_aprs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ce_performance_ce_aprs
+    ADD CONSTRAINT ce_performance_ce_aprs_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: ce_performance_clients ce_performance_clients_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ce_performance_clients
+    ADD CONSTRAINT ce_performance_clients_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: ce_performance_goals ce_performance_goals_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ce_performance_goals
+    ADD CONSTRAINT ce_performance_goals_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: ce_performance_results ce_performance_results_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ce_performance_results
+    ADD CONSTRAINT ce_performance_results_pkey PRIMARY KEY (id);
 
 
 --
@@ -21559,6 +22353,38 @@ ALTER TABLE ONLY public.direct_financial_assistances
 
 ALTER TABLE ONLY public.document_exports
     ADD CONSTRAINT document_exports_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: eccovia_assessments eccovia_assessments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.eccovia_assessments
+    ADD CONSTRAINT eccovia_assessments_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: eccovia_case_managers eccovia_case_managers_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.eccovia_case_managers
+    ADD CONSTRAINT eccovia_case_managers_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: eccovia_client_contacts eccovia_client_contacts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.eccovia_client_contacts
+    ADD CONSTRAINT eccovia_client_contacts_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: eccovia_fetches eccovia_fetches_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.eccovia_fetches
+    ADD CONSTRAINT eccovia_fetches_pkey PRIMARY KEY (id);
 
 
 --
@@ -22186,6 +23012,22 @@ ALTER TABLE ONLY public.hmis_aggregated_exits
 
 
 --
+-- Name: hmis_case_notes hmis_case_notes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_case_notes
+    ADD CONSTRAINT hmis_case_notes_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_client_alerts hmis_client_alerts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_client_alerts
+    ADD CONSTRAINT hmis_client_alerts_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: hmis_client_attributes_defined_text hmis_client_attributes_defined_text_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -22631,6 +23473,14 @@ ALTER TABLE ONLY public.hmis_staff
 
 ALTER TABLE ONLY public.hmis_staff_x_clients
     ADD CONSTRAINT hmis_staff_x_clients_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_wips hmis_wips_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_wips
+    ADD CONSTRAINT hmis_wips_pkey PRIMARY KEY (id);
 
 
 --
@@ -23162,6 +24012,14 @@ ALTER TABLE ONLY public.remote_configs
 
 
 --
+-- Name: remote_credentials remote_credentials_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.remote_credentials
+    ADD CONSTRAINT remote_credentials_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: report_definitions report_definitions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -23311,6 +24169,14 @@ ALTER TABLE ONLY public.synthetic_assessments
 
 ALTER TABLE ONLY public.synthetic_events
     ADD CONSTRAINT synthetic_events_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: synthetic_youth_education_statuses synthetic_youth_education_statuses_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.synthetic_youth_education_statuses
+    ADD CONSTRAINT synthetic_youth_education_statuses_pkey PRIMARY KEY (id);
 
 
 --
@@ -23826,6 +24692,27 @@ CREATE INDEX disabilities_export_id ON public."Disabilities" USING btree ("Expor
 --
 
 CREATE UNIQUE INDEX dq_client_conflict_columns ON public.hud_report_dq_clients USING btree (client_id, data_source_id, report_instance_id);
+
+
+--
+-- Name: e_a_c_d_a_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX e_a_c_d_a_idx ON public.eccovia_assessments USING btree (client_id, data_source_id, assessment_id);
+
+
+--
+-- Name: e_c_C_c_d_a_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX "e_c_C_c_d_a_idx" ON public.eccovia_client_contacts USING btree (client_id, data_source_id);
+
+
+--
+-- Name: e_c_m_c_d_a_u_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX e_c_m_c_d_a_u_idx ON public.eccovia_case_managers USING btree (client_id, data_source_id, case_manager_id, user_id);
 
 
 --
@@ -38627,6 +39514,13 @@ CREATE INDEX idx_hmis_2020_users_imid_du ON public.hmis_2020_users USING btree (
 
 
 --
+-- Name: idx_tpc_uniqueness; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX idx_tpc_uniqueness ON public.enrollment_extras USING btree (hud_enrollment_id, entry_date, vispdat_ended_at, project_name, agency_name, community, data_source_id);
+
+
+--
 -- Name: income_benefits_date_created; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -39600,6 +40494,41 @@ CREATE INDEX index_assessment_answer_lookups_on_response_code ON public.assessme
 
 
 --
+-- Name: index_boston_project_scorecard_reports_on_apr_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_boston_project_scorecard_reports_on_apr_id ON public.boston_project_scorecard_reports USING btree (apr_id);
+
+
+--
+-- Name: index_boston_project_scorecard_reports_on_project_group_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_boston_project_scorecard_reports_on_project_group_id ON public.boston_project_scorecard_reports USING btree (project_group_id);
+
+
+--
+-- Name: index_boston_project_scorecard_reports_on_project_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_boston_project_scorecard_reports_on_project_id ON public.boston_project_scorecard_reports USING btree (project_id);
+
+
+--
+-- Name: index_boston_project_scorecard_reports_on_secondary_reviewer_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_boston_project_scorecard_reports_on_secondary_reviewer_id ON public.boston_project_scorecard_reports USING btree (secondary_reviewer_id);
+
+
+--
+-- Name: index_boston_project_scorecard_reports_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_boston_project_scorecard_reports_on_user_id ON public.boston_project_scorecard_reports USING btree (user_id);
+
+
+--
 -- Name: index_cas_availabilities_on_available_at; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -39772,6 +40701,48 @@ CREATE INDEX index_ce_assessments_on_type ON public.ce_assessments USING btree (
 --
 
 CREATE INDEX index_ce_assessments_on_user_id ON public.ce_assessments USING btree (user_id);
+
+
+--
+-- Name: index_ce_performance_ce_aprs_on_ce_apr_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ce_performance_ce_aprs_on_ce_apr_id ON public.ce_performance_ce_aprs USING btree (ce_apr_id);
+
+
+--
+-- Name: index_ce_performance_ce_aprs_on_report_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ce_performance_ce_aprs_on_report_id ON public.ce_performance_ce_aprs USING btree (report_id);
+
+
+--
+-- Name: index_ce_performance_clients_on_ce_apr_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ce_performance_clients_on_ce_apr_id ON public.ce_performance_clients USING btree (ce_apr_id);
+
+
+--
+-- Name: index_ce_performance_clients_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ce_performance_clients_on_client_id ON public.ce_performance_clients USING btree (client_id);
+
+
+--
+-- Name: index_ce_performance_clients_on_report_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ce_performance_clients_on_report_id ON public.ce_performance_clients USING btree (report_id);
+
+
+--
+-- Name: index_ce_performance_results_on_report_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ce_performance_results_on_report_id ON public.ce_performance_results USING btree (report_id);
 
 
 --
@@ -40265,10 +41236,66 @@ CREATE INDEX index_document_exports_on_user_id ON public.document_exports USING 
 
 
 --
+-- Name: index_eccovia_assessments_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_eccovia_assessments_on_data_source_id ON public.eccovia_assessments USING btree (data_source_id);
+
+
+--
+-- Name: index_eccovia_case_managers_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_eccovia_case_managers_on_data_source_id ON public.eccovia_case_managers USING btree (data_source_id);
+
+
+--
+-- Name: index_eccovia_client_contacts_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_eccovia_client_contacts_on_data_source_id ON public.eccovia_client_contacts USING btree (data_source_id);
+
+
+--
+-- Name: index_eccovia_fetches_on_credentials_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_eccovia_fetches_on_credentials_id ON public.eccovia_fetches USING btree (credentials_id);
+
+
+--
+-- Name: index_eccovia_fetches_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_eccovia_fetches_on_data_source_id ON public.eccovia_fetches USING btree (data_source_id);
+
+
+--
 -- Name: index_enrollment_change_histories_on_client_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_enrollment_change_histories_on_client_id ON public.enrollment_change_histories USING btree (client_id);
+
+
+--
+-- Name: index_enrollment_extras_on_client_id_and_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_enrollment_extras_on_client_id_and_data_source_id ON public.enrollment_extras USING btree (client_id, data_source_id);
+
+
+--
+-- Name: index_enrollment_extras_on_file_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_enrollment_extras_on_file_id ON public.enrollment_extras USING btree (file_id);
+
+
+--
+-- Name: index_enrollment_extras_on_hud_enrollment_id_and_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_enrollment_extras_on_hud_enrollment_id_and_data_source_id ON public.enrollment_extras USING btree (hud_enrollment_id, data_source_id);
 
 
 --
@@ -40909,6 +41936,83 @@ CREATE INDEX index_hmis_assessments_on_name ON public.hmis_assessments USING btr
 
 
 --
+-- Name: index_hmis_case_notes_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_case_notes_on_client_id ON public.hmis_case_notes USING btree (client_id);
+
+
+--
+-- Name: index_hmis_case_notes_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_case_notes_on_enrollment_id ON public.hmis_case_notes USING btree (enrollment_id);
+
+
+--
+-- Name: index_hmis_case_notes_on_organization_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_case_notes_on_organization_id ON public.hmis_case_notes USING btree (organization_id);
+
+
+--
+-- Name: index_hmis_case_notes_on_project_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_case_notes_on_project_id ON public.hmis_case_notes USING btree (project_id);
+
+
+--
+-- Name: index_hmis_case_notes_on_source; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_case_notes_on_source ON public.hmis_case_notes USING btree (source_type, source_id);
+
+
+--
+-- Name: index_hmis_case_notes_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_case_notes_on_user_id ON public.hmis_case_notes USING btree (user_id);
+
+
+--
+-- Name: index_hmis_client_alerts_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_client_alerts_on_client_id ON public.hmis_client_alerts USING btree (client_id);
+
+
+--
+-- Name: index_hmis_client_alerts_on_organization_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_client_alerts_on_organization_id ON public.hmis_client_alerts USING btree (organization_id);
+
+
+--
+-- Name: index_hmis_client_alerts_on_project_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_client_alerts_on_project_id ON public.hmis_client_alerts USING btree (project_id);
+
+
+--
+-- Name: index_hmis_client_alerts_on_source; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_client_alerts_on_source ON public.hmis_client_alerts USING btree (source_type, source_id);
+
+
+--
+-- Name: index_hmis_client_alerts_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_client_alerts_on_user_id ON public.hmis_client_alerts USING btree (user_id);
+
+
+--
 -- Name: index_hmis_client_attributes_defined_text_on_client_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -41354,6 +42458,34 @@ CREATE INDEX index_hmis_forms_on_name ON public.hmis_forms USING btree (name);
 --
 
 CREATE INDEX index_hmis_import_configs_on_data_source_id ON public.hmis_import_configs USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_wips_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_wips_on_client_id ON public.hmis_wips USING btree (client_id);
+
+
+--
+-- Name: index_hmis_wips_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_wips_on_enrollment_id ON public.hmis_wips USING btree (enrollment_id);
+
+
+--
+-- Name: index_hmis_wips_on_project_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_wips_on_project_id ON public.hmis_wips USING btree (project_id);
+
+
+--
+-- Name: index_hmis_wips_on_source; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_wips_on_source ON public.hmis_wips USING btree (source_type, source_id);
 
 
 --
@@ -42278,6 +43410,13 @@ CREATE UNIQUE INDEX index_recurring_hmis_exports_on_encrypted_s3_access_key_id_i
 --
 
 CREATE UNIQUE INDEX index_recurring_hmis_exports_on_encrypted_s3_secret_iv ON public.recurring_hmis_exports USING btree (encrypted_s3_secret_iv);
+
+
+--
+-- Name: index_remote_configs_on_remote_credential_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_remote_configs_on_remote_credential_id ON public.remote_configs USING btree (remote_credential_id);
 
 
 --
@@ -45767,6 +46906,27 @@ CREATE INDEX index_synthetic_events_on_source_type_and_source_id ON public.synth
 
 
 --
+-- Name: index_synthetic_youth_education_statuses_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_synthetic_youth_education_statuses_on_client_id ON public.synthetic_youth_education_statuses USING btree (client_id);
+
+
+--
+-- Name: index_synthetic_youth_education_statuses_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_synthetic_youth_education_statuses_on_enrollment_id ON public.synthetic_youth_education_statuses USING btree (enrollment_id);
+
+
+--
+-- Name: index_synthetic_youth_education_statuses_on_source; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_synthetic_youth_education_statuses_on_source ON public.synthetic_youth_education_statuses USING btree (source_type, source_id);
+
+
+--
 -- Name: index_taggings_on_context; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -49017,9 +50177,43 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220516171135'),
 ('20220523123830'),
 ('20220525125953'),
+('20220526203313'),
+('20220527144703'),
+('20220527144717'),
+('20220527191834'),
+('20220601122623'),
+('20220604181405'),
+('20220607155407'),
 ('20220610173543'),
+('20220612161111'),
+('20220617180748'),
 ('20220621180929'),
 ('20220621181125'),
-('20220630151129');
+('20220628162723'),
+('20220630151129'),
+('20220712164926'),
+('20220713150217'),
+('20220714190911'),
+('20220715194241'),
+('20220718185442'),
+('20220801135734'),
+('20220804160252'),
+('20220811205630'),
+('20220812193159'),
+('20220815134022'),
+('20220815140216'),
+('20220816194756'),
+('20220816204223'),
+('20220816205217'),
+('20220817193604'),
+('20220818155829'),
+('20220818173333'),
+('20220819184832'),
+('20220822182146'),
+('20220824150945'),
+('20220824155726'),
+('20220824194239'),
+('20220824202625'),
+('20220901142553');
 
 

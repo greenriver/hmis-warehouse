@@ -24,4 +24,14 @@ module GrdaWarehouse::Synthetic
     assessment_types << assessment_type
     Rails.application.config.synthetic_assessment_types = assessment_types
   end
+
+  def self.available_youth_education_status_types
+    Rails.application.config.synthetic_youth_education_status_types || []
+  end
+
+  def self.add_youth_education_status_type(youth_education_status_type)
+    youth_education_status_types = available_youth_education_status_types
+    youth_education_status_types << youth_education_status_type
+    Rails.application.config.synthetic_youth_education_status_types = youth_education_status_types
+  end
 end
