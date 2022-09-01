@@ -13089,7 +13089,12 @@ CREATE TABLE public.hmis_dqt_clients (
     race_none integer,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    gender_none integer,
+    overlapping_entry_exit integer,
+    overlapping_nbn integer,
+    overlapping_pre_move_in integer,
+    overlapping_post_move_in integer
 );
 
 
@@ -13126,7 +13131,7 @@ CREATE TABLE public.hmis_dqt_current_living_situations (
     destination_client_id integer,
     hmis_current_living_situation_id character varying,
     data_source_id integer,
-    current_living_situation integer,
+    situation integer,
     information_date date,
     project_operating_start_date date,
     project_operating_end_date date,
@@ -13306,96 +13311,6 @@ CREATE SEQUENCE public.hmis_dqt_inventories_id_seq
 --
 
 ALTER SEQUENCE public.hmis_dqt_inventories_id_seq OWNED BY public.hmis_dqt_inventories.id;
-
-
---
--- Name: hmis_dqt_projects; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.hmis_dqt_projects (
-    id bigint NOT NULL,
-    project_id bigint NOT NULL,
-    report_id bigint NOT NULL,
-    project_name character varying,
-    hmis_project_id character varying,
-    hmis_organization_id character varying,
-    data_source_id integer,
-    project_type integer,
-    project_operating_start_date date,
-    project_operating_end_date date,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone
-);
-
-
---
--- Name: hmis_dqt_projects_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.hmis_dqt_projects_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: hmis_dqt_projects_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.hmis_dqt_projects_id_seq OWNED BY public.hmis_dqt_projects.id;
-
-
---
--- Name: hmis_dqt_services; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.hmis_dqt_services (
-    id bigint NOT NULL,
-    service_id bigint NOT NULL,
-    enrollment_id bigint NOT NULL,
-    client_id bigint NOT NULL,
-    report_id bigint NOT NULL,
-    project_name character varying,
-    hmis_service_id character varying,
-    data_source_id integer,
-    destination_client_id integer,
-    date_provided date,
-    project_operating_start_date date,
-    project_operating_end_date date,
-    project_tracking_method integer,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone,
-    entry_date date,
-    exit_date date,
-    project_type integer,
-    overlapping_entry_exit integer,
-    overlapping_nbn integer,
-    overlapping_pre_move_in integer,
-    overlapping_post_move_in integer
-);
-
-
---
--- Name: hmis_dqt_services_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.hmis_dqt_services_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: hmis_dqt_services_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.hmis_dqt_services_id_seq OWNED BY public.hmis_dqt_services.id;
 
 
 --
@@ -25582,20 +25497,6 @@ ALTER TABLE ONLY public.hmis_dqt_inventories ALTER COLUMN id SET DEFAULT nextval
 
 
 --
--- Name: hmis_dqt_projects id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_dqt_projects ALTER COLUMN id SET DEFAULT nextval('public.hmis_dqt_projects_id_seq'::regclass);
-
-
---
--- Name: hmis_dqt_services id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_dqt_services ALTER COLUMN id SET DEFAULT nextval('public.hmis_dqt_services_id_seq'::regclass);
-
-
---
 -- Name: hmis_forms id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -28570,22 +28471,6 @@ ALTER TABLE ONLY public.hmis_dqt_events
 
 ALTER TABLE ONLY public.hmis_dqt_inventories
     ADD CONSTRAINT hmis_dqt_inventories_pkey PRIMARY KEY (id);
-
-
---
--- Name: hmis_dqt_projects hmis_dqt_projects_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_dqt_projects
-    ADD CONSTRAINT hmis_dqt_projects_pkey PRIMARY KEY (id);
-
-
---
--- Name: hmis_dqt_services hmis_dqt_services_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_dqt_services
-    ADD CONSTRAINT hmis_dqt_services_pkey PRIMARY KEY (id);
 
 
 --
@@ -37598,7 +37483,7 @@ CREATE INDEX "hmis_csv_validations-ONiu" ON public.hmis_csv_import_validations U
 -- Name: hmis_dqt_cls_cls_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX hmis_dqt_cls_cls_id ON public.hmis_dqt_current_living_situations USING btree (current_living_situation);
+CREATE INDEX hmis_dqt_cls_cls_id ON public.hmis_dqt_current_living_situations USING btree (situation);
 
 
 --
@@ -45708,48 +45593,6 @@ CREATE INDEX index_hmis_dqt_inventories_on_report_id ON public.hmis_dqt_inventor
 
 
 --
--- Name: index_hmis_dqt_projects_on_project_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_dqt_projects_on_project_id ON public.hmis_dqt_projects USING btree (project_id);
-
-
---
--- Name: index_hmis_dqt_projects_on_report_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_dqt_projects_on_report_id ON public.hmis_dqt_projects USING btree (report_id);
-
-
---
--- Name: index_hmis_dqt_services_on_client_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_dqt_services_on_client_id ON public.hmis_dqt_services USING btree (client_id);
-
-
---
--- Name: index_hmis_dqt_services_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_dqt_services_on_enrollment_id ON public.hmis_dqt_services USING btree (enrollment_id);
-
-
---
--- Name: index_hmis_dqt_services_on_report_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_dqt_services_on_report_id ON public.hmis_dqt_services USING btree (report_id);
-
-
---
--- Name: index_hmis_dqt_services_on_service_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_dqt_services_on_service_id ON public.hmis_dqt_services USING btree (service_id);
-
-
---
 -- Name: index_hmis_forms_on_assessment_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -53539,6 +53382,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220825131554'),
 ('20220826123607'),
 ('20220830131900'),
-('20220830142632');
+('20220830142632'),
+('20220831183303'),
+('20220901202643');
 
 
