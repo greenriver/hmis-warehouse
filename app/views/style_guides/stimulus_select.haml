@@ -3,6 +3,8 @@
 - form_defaults = { required: false }
 - collection = {'Choice 1 (ES)' => 'One', 'Choice 2 (SO)' => 'Two', 'Choice 3 (TH)' => 'Three',  'Choice 4 (RRH)' => 'Four', 'Choice 5' => 'Five'}
 - huge_collection = (0..20_000).map{|i| [number_to_human(i), i]}
+- @form.stimulus_select_readonly = collection.values.third
+- @form.stimulus_select_multi_readonly = collection.values.sample(2)
 .container.py-4
   %h1 Stimulus Select
   - if params[:mock_2]
@@ -66,3 +68,17 @@
               = f.input :stimulus_select, collection: collection, as: :select_two
 
           = f.submit 'Update'
+  .mt-6
+    %h3 Read-only form wrapper
+    = simple_form_for @form, as: :mock_2, defaults: form_defaults, method: :get, url: '#', wrapper: :readonly do |f|
+      - klass = if request.xhr? then 'col-12' else 'col-6' end
+      .row
+        %div{class: klass}
+          %h4 Disabled (single)
+          = f.input :stimulus_select_readonly, collection: collection, as: :select_two
+          %h4 Disabled (multiple)
+          = f.input :stimulus_select_multi_readonly, collection: collection, as: :select_two, input_html: { multiple: true }
+          %h4 Disabled - empty (single)
+          = f.input :stimulus_select_readonly_empty, collection: collection, as: :select_two
+          %h4 Disabled - empty (multiple)
+          = f.input :stimulus_select_multi_readonly_empty, collection: collection, as: :select_two, input_html: { multiple: true }

@@ -78,7 +78,7 @@ module Health
 
     def patient_scope
       population = if current_user.can_manage_care_coordinators?
-        ids = [current_user.id] + current_user.care_coordinators.pluck(:id)
+        ids = [current_user.id] + current_user.team_mates.pluck(:id)
         patient_source.
           where(care_coordinator_id: ids).
           or(patient_source.where(nurse_care_manager_id: ids))
