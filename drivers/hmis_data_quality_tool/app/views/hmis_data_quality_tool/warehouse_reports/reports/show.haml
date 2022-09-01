@@ -2,7 +2,7 @@
 
 - content_for :title, @report.title
 %h1= content_for :title
-
+= render 'warehouse_reports/beta_warning'
 .d-flex.mb-2
   %p= @report.description
   %p.ml-auto= "Created by #{@report.user.name_with_email} on #{@report.completed_at.to_date}"

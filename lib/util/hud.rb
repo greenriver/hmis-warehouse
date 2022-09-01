@@ -938,6 +938,13 @@ module HUD
     available_situations
   end
 
+  def valid_current_living_situations
+    homeless_situations(as: :current) +
+    institutional_situations(as: :current) +
+    temporary_and_permanent_housing_situations(as: :current) +
+    other_situations(as: :current)
+  end
+
   def valid_prior_living_situations
     homeless_situations(as: :prior) +
     institutional_situations(as: :prior) +

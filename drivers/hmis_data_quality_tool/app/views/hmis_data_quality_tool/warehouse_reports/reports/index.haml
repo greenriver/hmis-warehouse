@@ -2,5 +2,6 @@
 
 = render '/warehouse_reports/breadcrumbs', tab: 'performance'
 %h1.mb-5= @report.title
+= render 'warehouse_reports/beta_warning'
 = render 'form'
 = render 'history_table'

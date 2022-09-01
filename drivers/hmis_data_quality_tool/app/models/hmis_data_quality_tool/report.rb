@@ -140,7 +140,7 @@ module HmisDataQualityTool
     end
 
     def project_type_ids
-      filter.project_type_ids
+      GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING.values.flatten
     end
 
     def default_project_type_codes
@@ -182,6 +182,10 @@ module HmisDataQualityTool
       Client.calculate(report_items: report_clients, report: self)
       report_enrollments = enrollments.map { |e| [e.enrollment_id, e] }.to_h
       Enrollment.calculate(report_items: report_enrollments, report: self)
+      report_inventories = inventories.map { |i| [i.inventory_id, e] }.to_h
+      Inventory.calculate(report_items: report_inventories, report: self)
+      report_current_living_situations = current_living_situations.map { |e| [e.current_living_situation_id, e] }.to_h
+      CurrentLivingSituation.calculate(report_items: report_current_living_situations, report: self)
     end
 
     def household(household_id)
@@ -226,6 +230,7 @@ module HmisDataQualityTool
           [
             'Client',
             Client,
+            overall_client_count,
           ] => [
             :gender_issues,
             :race_issues,
@@ -233,6 +238,7 @@ module HmisDataQualityTool
           [
             'Enrollment',
             Enrollment,
+            overall_enrollment_count,
           ] => [
             :disabling_condition_issues,
             :hoh_validation_issues,
@@ -240,7 +246,14 @@ module HmisDataQualityTool
             :exit_date_issues,
             :destination_issues,
           ],
-        }.each do |(category, item_class), slugs|
+          [
+            'Current Living Situation',
+            CurrentLivingSituation,
+            overall_current_living_situation_count,
+          ] => [
+            :current_living_situation_issues,
+          ],
+        }.each do |(category, item_class, overall_count), slugs|
           slugs.each do |slug|
             title = item_class.section_title(slug)
             count = universe(title).count
@@ -249,8 +262,8 @@ module HmisDataQualityTool
               description: item_class.section_description(slug),
               category: category,
               count: count,
-              total: overall_client_count,
-              percent: percent(overall_client_count, count),
+              total: overall_count,
+              percent: percent(overall_count, count),
               item_class: item_class,
             )
           end
@@ -264,12 +277,14 @@ module HmisDataQualityTool
           [
             'Client',
             Client,
+            overall_client_count,
           ] => [
             :dob_issues,
           ],
           [
             'Enrollment',
             Enrollment,
+            overall_enrollment_count,
           ] => [
             :unaccompanied_youth_issues,
             :no_hoh_issues,
@@ -288,9 +303,25 @@ module HmisDataQualityTool
             :move_in_prior_to_start_issues,
             :move_in_post_exit_issues,
             :enrollment_outside_project_operating_dates_issues,
-            :overlapping_entry_exit_issues,
           ],
-        }.each do |(category, item_class), slugs|
+          [
+            'Service',
+            Client,
+            overall_client_count,
+          ] => [
+            :overlapping_entry_exit_issues,
+            :overlapping_post_move_in_issues,
+            :overlapping_nbn_issues,
+            :overlapping_pre_move_in_issues,
+          ],
+          [
+            'Inventory',
+            Inventory,
+            overall_inventory_count,
+          ] => [
+            :dedicated_bed_issues,
+          ],
+        }.each do |(category, item_class, overall_count), slugs|
           slugs.each do |slug|
             title = item_class.section_title(slug)
             count = universe(title).count
@@ -299,8 +330,8 @@ module HmisDataQualityTool
               description: item_class.section_description(slug),
               category: category,
               count: count,
-              total: overall_client_count,
-              percent: percent(overall_client_count, count),
+              total: overall_count,
+              percent: percent(overall_count, count),
               item_class: item_class,
             )
           end
@@ -309,16 +340,19 @@ module HmisDataQualityTool
     end
 
     def overall_client_count
-      @overall_client_count ||= GrdaWarehouse::Hud::Client.joins(enrollments: :service_history_enrollment).
-        preload(:warehouse_client_source).
-        merge(report_scope).
-        distinct.
-        select(:id).
-        count
+      @overall_client_count ||= Client.client_scope(self).count
     end
 
     def overall_enrollment_count
       @overall_enrollment_count ||= report_scope.count
+    end
+
+    def overall_inventory_count
+      @overall_inventory_count ||= Inventory.inventory_scope(self).count
+    end
+
+    def overall_current_living_situation_count
+      @overall_current_living_situation_count ||= CurrentLivingSituation.current_living_situation_scope(self).count
     end
 
     private def percent(total, partial)

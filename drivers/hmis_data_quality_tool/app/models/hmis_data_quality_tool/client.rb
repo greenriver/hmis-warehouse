@@ -35,7 +35,10 @@ module HmisDataQualityTool
         native_hi_pacific: 'Native Hawaiian or Pacific Islander',
         white: 'White',
         race_none: 'Race None',
-        overlapping_entry_exit: 'Overlapping Entry/Exits',
+        overlapping_entry_exit: 'Overlapping Entry/Exit enrollments in ES, SH, and TH',
+        overlapping_nbn: 'Overlapping Night-by-Night ES enrollments with other ES, SH, and TH',
+        overlapping_pre_move_in: 'Overlapping Homeless Service After Move-in in PH',
+        overlapping_post_move_in: 'Overlapping Moved-in PH',
       }.freeze
     end
 
@@ -68,8 +71,8 @@ module HmisDataQualityTool
     end
 
     def self.client_scope(report)
-      GrdaWarehouse::Hud::Client.joins(enrollments: [:services, :service_history_enrollment, :project]).
-        preload(:warehouse_client_source).
+      GrdaWarehouse::Hud::Client.joins(source_enrollments: :service_history_enrollment).
+        preload(:warehouse_client_source, source_enrollments: [:services, :exit, :project]).
         merge(report.report_scope).distinct
     end
 
@@ -82,7 +85,7 @@ module HmisDataQualityTool
       report_item = new(
         report_id: report.id,
         client_id: client.id,
-        destination_client_id: client.warehouse_client_source.destination_id,
+        destination_client_id: client.id, # to actually identify overlaps, we need to work against destination clients
       )
       report_item.first_name = client.FirstName
       report_item.last_name = client.LastName
@@ -102,43 +105,121 @@ module HmisDataQualityTool
       report_item.white = client.White
       report_item.race_none = client.RaceNone
       # we need these for calculations, but don't want to store them permanently
-      report_item.enrollments = client.enrollments
-      report_item.overlapping_entry_exit = overlapping_entry_exit(enrollments: client.enrollments, report: report)
+      report_item.enrollments = client.source_enrollments
+      report_item.overlapping_entry_exit = overlapping_entry_exit(enrollments: report_item.enrollments, report: report)
       # FIXME
-      report_item.overlapping_nbn
-      report_item.overlapping_pre_move_in
-      report_item.overlapping_post_move_in
+      report_item.overlapping_nbn = overlapping_nbn(enrollments: report_item.enrollments, report: report)
+      report_item.overlapping_pre_move_in = overlapping_homeless_post_move_in(enrollments: report_item.enrollments, report: report)
+      report_item.overlapping_post_move_in = overlapping_post_move_in(enrollments: report_item.enrollments, report: report)
       report_item
     end
 
     # check for overlapping ES entry exit, TH, SH
     def self.overlapping_entry_exit(enrollments:, report:)
       involved_enrollments = enrollments.select do |en|
-        project = en.project
-        project_type = project.project_type_to_use
-        project_type.in?(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es]) &&
-          ! project.bed_night_tracking? ||
-        project_type.in?(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:sh]) ||
-        project_type.in?(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:th])
+        (en.project.es? && ! en.project.bed_night_tracking?) || en.project.sh? || en.project.th?
       end
+
+      return 0 if involved_enrollments.blank? || involved_enrollments.count == 1
+
+      ranges_overlap(enrollments: involved_enrollments, report: report).count
+    end
+
+    # check for overlapping PH post-move-in
+    def self.overlapping_post_move_in(enrollments:, report:)
+      involved_enrollments = enrollments.select do |en|
+        en.project.ph?
+      end
+
+      return 0 if involved_enrollments.blank? || involved_enrollments.count == 1
+
+      ranges_overlap(enrollments: involved_enrollments, report: report, start_date_method: :MoveInDate).count
+    end
+
+    def self.overlapping_nbn(enrollments:, report:)
+      nbn_enrollments = enrollments.select do |en|
+        en.project.es? && en.project.bed_night_tracking?
+      end
+      return 0 if nbn_enrollments.blank?
+
+      involved_enrollments = enrollments.select do |en|
+        en.project.es? || en.project.sh? || en.project.th?
+      end
+      return 0 if involved_enrollments.blank?
+
       overlaps = Set.new
-      return overlaps.count if involved_enrollments.blank? || involved_enrollments.count == 1
+      # see if there are any dates of service within the other homeless enrollments
+      nbn_enrollments.each do |nbn_en|
+        involved_enrollments.each do |en|
+          next if nbn_en.id == en.id
 
-      # compare each enrollment to every other one and see if there are overlaps
-      involved_enrollments.product(involved_enrollments).each do |batch|
-        batch.each do |en|
-          start_date = en.EntryDate
-          end_date = en.service_history_enrollment.last_date_in_program || report.filter.end
-          batch.each do |en2|
-            next if en.id == en2.id
-
-            start_date2 = en2.EntryDate
-            end_date2 = en2.service_history_enrollment.last_date_in_program || report.filter.end
-            overlaps << [en.id, en2.id].sort if (start_date..end_date).overlaps?((start_date2..end_date2))
+          end_date = en.exit&.ExitDate || report.filter.end
+          nbn_en.services.each do |service|
+            overlaps << service.DateProvided if service.DateProvided.between?(en.EntryDate, end_date) && service.bed_night?
           end
         end
       end
       overlaps.count
+    end
+
+    def self.overlapping_homeless_post_move_in(enrollments:, report:)
+      homeless_enrollments = enrollments.select do |en|
+        en.project.es? || en.project.sh? || en.project.th?
+      end
+      return 0 if homeless_enrollments.blank?
+
+      involved_enrollments = enrollments.select do |en|
+        en.project.ph?
+      end
+      return 0 if involved_enrollments.blank?
+
+      overlaps = Set.new
+      # see if there are any dates of service within the housed date ranges
+      homeless_enrollments.each do |h_en|
+        involved_enrollments.each do |en|
+          # we're only looking for overlaps with housing
+          next unless en.MoveInDate.present?
+
+          end_date = en.exit&.ExitDate || report.filter.end
+          if h_en.project.es? && h_en.project.bed_night_tracking?
+            h_en.services.each do |service|
+              overlaps << service.DateProvided if service.DateProvided.between?(en.EntryDate, end_date) && service.bed_night?
+            end
+          else
+            homeless_range = (h_en.EntryDate..(h_en.exit&.ExitDate || report.filter.end))
+            housed_range = (en.MoveInDate..end_date)
+            homeless_range.to_a & housed_range.to_a.each do |d|
+              overlaps << d
+            end
+          end
+        end
+      end
+      overlaps.count
+    end
+
+    # compare each enrollment to every other one and see if there are overlaps
+    def self.ranges_overlap(enrollments:, report:, start_date_method: :EntryDate)
+      overlaps = Set.new
+      enrollments.product(enrollments).each do |batch|
+        batch.each do |en|
+          start_date = en.send(start_date_method)
+          # We may be checking move-in dates and may not have one.
+          next unless start_date.present?
+
+          end_date = en.exit&.ExitDate || report.filter.end
+          batch.each do |en2|
+            next if en.id == en2.id
+
+            start_date2 = en2.send(start_date_method)
+            # We may be checking move-in dates and may not have one.
+            next unless start_date2.present?
+
+            end_date2 = en2.exit&.ExitDate || report.filter.end
+            overlaps << [en.id, en2.id].sort if (start_date..end_date).overlaps?((start_date2..end_date2))
+          end
+        end
+      end
+      overlaps
     end
 
     def self.sections
@@ -206,10 +287,31 @@ module HmisDataQualityTool
           },
         },
         overlapping_entry_exit_issues: {
-          title: 'Overlapping Entry/Exits',
-          description: 'FIXME',
+          title: 'Overlapping Entry/Exit enrollments in ES, SH, and TH',
+          description: 'Homeless projects using Entry/Exit tracking methods should not have overlapping enrollments.',
           limiter: ->(item) {
             item.overlapping_entry_exit.positive?
+          },
+        },
+        overlapping_nbn_issues: {
+          title: 'Overlapping Night-by-Night ES enrollments with other ES, SH, and TH',
+          description: 'Client\'s receiving more than two overlapping ES NbN services are included.',
+          limiter: ->(item) {
+            item.overlapping_post_move_in > 2
+          },
+        },
+        overlapping_pre_move_in_issues: {
+          title: 'Overlapping Homeless Service After Move-in in PH',
+          description: 'Client\'s receiving more than two overlapping homeless nights are included.',
+          limiter: ->(item) {
+            item.overlapping_post_move_in > 2
+          },
+        },
+        overlapping_post_move_in_issues: {
+          title: 'Overlapping Moved-in PH',
+          description: 'Client\'s should not be housed in more than one project at a time.',
+          limiter: ->(item) {
+            item.overlapping_post_move_in.positive?
           },
         },
       }
