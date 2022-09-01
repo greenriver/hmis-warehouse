@@ -32,6 +32,9 @@ RSpec.describe CustomImportsBostonServices::ImportFile, type: :model do
     config
   end
 
+  after(:all) do
+    GrdaWarehouse::Utility.clear!
+  end
   after(:each) do
     GrdaWarehouse::CustomImports::Config.delete_all
     CustomImportsBostonServices::ImportFile.delete_all
@@ -39,7 +42,6 @@ RSpec.describe CustomImportsBostonServices::ImportFile, type: :model do
     GrdaWarehouse::Synthetic::Event.delete_all
     GrdaWarehouse::Generic::Service.delete_all
     GrdaWarehouse::Hud::Event.delete_all
-    GrdaWarehouse::Utility.clear!
   end
   describe 'after initial import' do
     before(:each) do
@@ -48,7 +50,6 @@ RSpec.describe CustomImportsBostonServices::ImportFile, type: :model do
       GrdaWarehouse::Synthetic::Event.delete_all
       GrdaWarehouse::Generic::Service.delete_all
       GrdaWarehouse::Hud::Event.delete_all
-      GrdaWarehouse::Utility.clear!
       import_custom_service('drivers/custom_imports_boston_services/spec/fixtures/first_service_export.csv', config, ds1)
     end
     it 'inserts 6 rows' do
