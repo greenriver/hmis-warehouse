@@ -1,0 +1,46 @@
+%h2 Project Score
+%table.table.table-bordered
+  %thead
+    %tr
+      %th Scoring Category
+      %th Points Achieved
+      %th Total Points Available
+      %th Category Weight
+      %th Weighted Points Achieved
+  %tbody
+    %tr
+      %th= link_to 'Project Performance', '#project-performance'
+      %td= @report.project_performance_score
+      %td= @report.project_performance_available
+      %td #{@report.project_performance_weight}%
+      %td= @report.project_performance_weighted_score
+    %tr
+      %th= link_to 'HMIS Data Quality', "#data-quality"
+      %td= @report.data_quality_score
+      %td= @report.data_quality_available
+      %td #{@report.data_quality_weight}%
+      %td= @report.data_quality_weighted_score
+    %tr
+      %th= link_to 'Project Financial Performance', '#financial-performance'
+      %td= @report.financial_performance_score
+      %td= @report.financial_performance_available
+      %td #{@report.financial_performance_weight}%
+      %td= @report.financial_performance_weighted_score
+    %tr
+      %th= link_to 'Alignment with CoC/HUD Policy Priorities', '#policy-alignment'
+      %td= @report.policy_alignment_score
+      %td= @report.policy_alignment_available
+      %td #{@report.policy_alignment_weight}%
+      %td= @report.policy_alignment_weighted_score
+    -#%tr
+    -#  %th= link_to 'Racial Equity', '#racial-equity'
+    -#  %td= @report.racial_equity_score
+    -#  %td= @report.racial_equity_available
+    -#  %td #{@report.racial_equity_weight}%
+    -#  %td= @report.racial_equity_weighted_score
+    %tr
+      %th Total Score
+      %td= @report.total_score_score
+      %td= @report.total_score_available
+      %td #{@report.total_score_weight}%
+      %td= @report.total_score_weighted_score

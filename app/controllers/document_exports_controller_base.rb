@@ -81,6 +81,7 @@ class DocumentExportsControllerBase < ApplicationController
       'Health::DocumentExports::HousingStatusChangesExport',
       'Health::DocumentExports::AgencyPerformanceExport',
       'ProjectScorecard::DocumentExports::ScorecardExport',
+      'BostonProjectScorecard::DocumentExports::ScorecardExport',
       'HudApr::DocumentExports::HudAprExport',
       'HudApr::DocumentExports::HudCaperExport',
       'HudApr::DocumentExports::HudCeAprExport',

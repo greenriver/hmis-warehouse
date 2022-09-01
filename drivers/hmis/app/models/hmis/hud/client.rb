@@ -18,6 +18,8 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
+  has_many :enrollments, **hmis_relation(:PersonalID, 'Enrollment')
+  has_many :projects, through: :enrollments
   validates_with Hmis::Hud::Validators::ClientValidator
 
   scope :visible_to, ->(user) do
@@ -44,9 +46,6 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     self.SSN&.[](-4..-1)
   end
 
-  has_many :enrollments, **hmis_relation(:PersonalID, 'Enrollment')
-  has_many :projects, through: :enrollments
-
   SORT_OPTIONS = [:last_name_asc, :last_name_desc].freeze
 
   def self.client_search(input:, user: nil)
@@ -56,7 +55,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     return source_for(destination_id: input.warehouse_id, user: user) if input.warehouse_id
 
     # Build search scope
-    scope = GrdaWarehouse::Hud::Client.where(id: searchable_to(user).select(:id))
+    scope = Hmis::Hud::Client.where(id: searchable_to(user).select(:id))
     if input.text_search.present?
       scope = text_searcher(input.text_search) do |where|
         scope.where(where).pluck(:id)
@@ -82,8 +81,8 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     scope = scope.where(c_t[:SSN].matches("%#{input.ssn_serial}")) if input.ssn_serial.present?
     scope = scope.where(c_t[:DOB].eq(Date.parse(input.dob))) if input.dob.present?
 
-    # TODO: projects
-    # TODO: organizations
+    scope = scope.joins(:projects).merge(Hmis::Hud::Project.viewable_by(user).where(id: input.projects)) if input.projects.present?
+    scope = scope.joins(projects: :organization).merge(Hmis::Hud::Organization.viewable_by(user).where(id: input.organizations)) if input.organizations.present?
 
     Hmis::Hud::Client.where(id: scope.select(:id))
   end
@@ -101,92 +100,43 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     end
   end
 
-  def self.data_quality_enum_map_for(type = :other)
-    desc_map = {
-      name: {
-        full: ::HUD.name_data_quality(1),
-        partial: ::HUD.name_data_quality(2),
-      },
-      ssn: {
-        full: ::HUD.ssn_data_quality(1),
-        partial: ::HUD.ssn_data_quality(2),
-      },
-      dob: {
-        full: ::HUD.dob_data_quality(1),
-        partial: ::HUD.dob_data_quality(1),
-      },
-      other: {
-        full: 'Full value reported',
-        partial: 'Partial value reported',
-      },
-    }
-    desc_text = desc_map[type] || desc_map[:other]
-
-    Hmis::FieldMap.new(
-      [
+  {
+    name_data_quality_enum_map: ::HUD.name_data_quality_options,
+    ssn_data_quality_enum_map: ::HUD.ssn_data_quality_options,
+    dob_data_quality_enum_map: ::HUD.dob_data_quality_options,
+  }.each do |name, options_hash|
+    use_enum(name, options_hash) do |hash|
+      hash.map do |value, desc|
         {
-          key: :full,
-          value: 1,
-          desc: desc_text[:full],
-        },
-        {
-          key: :partial,
-          value: 2,
-          desc: desc_text[:partial],
-        },
-      ],
-    )
-  end
-
-  def self.name_data_quality_enum_map
-    data_quality_enum_map_for(:name)
-  end
-
-  def self.ssn_data_quality_enum_map
-    data_quality_enum_map_for(:ssn)
-  end
-
-  def self.dob_data_quality_enum_map
-    data_quality_enum_map_for(:dob)
-  end
-
-  def self.race_enum_map
-    Hmis::FieldMap.new(
-      ::HUD.races.except('RaceNone').map do |field, desc|
-        {
-          key: field,
-          value: field,
-          desc: desc,
-        }
-      end,
-    )
-  end
-
-  def self.gender_enum_map
-    Hmis::FieldMap.new(
-      ::HUD.genders.except(8, 9, 99).map do |value, desc|
-        {
-          key: ::HUD.gender_id_to_field_name[value],
+          key: desc,
           value: value,
           desc: desc,
+          null: [8, 9, 99].include?(value),
         }
-      end,
-    )
+      end
+    end
   end
 
-  def self.ethnicity_enum_map
-    Hmis::FieldMap.new(
-      ::HUD.ethnicities.slice(0, 1).map do |value, desc|
-        {
-          key: desc.split('/').first,
-          value: value,
-          desc: desc,
-        }
-      end,
-    )
+  use_enum(:gender_enum_map, ::HUD.genders) do |hash|
+    hash.map do |value, desc|
+      {
+        key: [8, 9, 99].include?(value) ? desc : ::HUD.gender_id_to_field_name[value],
+        value: value,
+        desc: desc,
+        null: [8, 9, 99].include?(value),
+      }
+    end
   end
 
-  def self.veteran_status_enum_map
-    Hmis::FieldMap.no_yes
+  use_enum(:race_enum_map, ::HUD.races.except('RaceNone'), include_base_null: true) do |hash|
+    hash.map do |value, desc|
+      {
+        key: value,
+        value: value,
+        desc: desc,
+      }
+    end
   end
+  use_enum :ethnicity_enum_map, ::HUD.ethnicities.slice(0, 1), include_base_null: true
+  use_common_enum :veteran_status_enum_map, :no_yes_reasons
 end

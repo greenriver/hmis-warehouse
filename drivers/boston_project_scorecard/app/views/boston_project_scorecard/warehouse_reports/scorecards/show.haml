@@ -1,0 +1,29 @@
+= render 'breadcrumbs'
+
+= simple_form_for @report, url: boston_project_scorecard_warehouse_reports_scorecard_path(@report), wrapper: :readonly do |f|
+
+  .row
+    .col-sm-8
+      %h1
+        = render 'layouts/footer_seal'
+        = @report.title
+    .col-sm-4
+      .text-right
+        - if @report.status != 'pre-filled' && @report.admin?(current_user)
+          = link_to rewind_boston_project_scorecard_warehouse_reports_scorecard_path(@report), class: 'btn btn-secondary mr-2' do
+            Back
+        - if @report.status == 'completed'
+          %a.btn.btn-primary.j-document-exports{href: "#", data: @pdf_export.pdf_data}
+            %i.icon-download2
+            Download as PDF
+        - else
+          = link_to complete_boston_project_scorecard_warehouse_reports_scorecard_path(@report), class: 'btn btn-secondary mr-2' do
+            #{workflow_action}
+          = link_to edit_boston_project_scorecard_warehouse_reports_scorecard_path(@report), class: 'btn btn-primary' do
+            %i.icon.icon-pencil
+            Edit
+
+  - if true # @report.archive.blank?
+    = render 'form', f: f
+  - else
+    = @report.archive.html_safe

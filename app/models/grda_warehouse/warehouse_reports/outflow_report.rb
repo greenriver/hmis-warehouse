@@ -331,6 +331,7 @@ module GrdaWarehouse::WarehouseReports
       # NOTE: this is not exposed on the page, but is potentially called from the Performance Metrics report
       scope = filter_for_ca_homeless(scope)
       scope = filter_for_ce_cls_homeless(scope)
+      scope = filter_for_cohorts(scope)
       scope = filter_for_head_of_household(scope)
       scope = filter_for_age(scope)
       scope = filter_for_veteran_status(scope)
