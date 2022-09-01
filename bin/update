@@ -21,8 +21,8 @@ chdir APP_ROOT do
   puts "\n== Updating database schemas =="
   system! 'bundle exec rake db:migrate'
 
-  puts "\n== Updating NPM =="
-  system! 'npm install'
+  puts "\n== Updating NPM dependencies =="
+  system! 'yarn install'
 
   puts "\n== Removing old logs and tempfiles =="
   system! 'bundle exec rake log:clear tmp:clear'

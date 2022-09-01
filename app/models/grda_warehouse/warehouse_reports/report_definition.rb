@@ -63,7 +63,7 @@ module GrdaWarehouse::WarehouseReports
     end
 
     # Reports
-    def self.report_list
+    def self.report_list # rubocop:disable Metrics/AbcSize
       r_list = {
         'Public' => [],
         'Operational' => [
@@ -324,7 +324,7 @@ module GrdaWarehouse::WarehouseReports
           {
             url: 'warehouse_reports/missing_projects',
             name: 'Missing Projects ',
-            description: "Shows Project IDs for enrollment records where the project isn''t in the source data.",
+            description: "Shows Project IDs for enrollment records where the project isn't in the source data.",
             limitable: false,
             health: false,
           },
@@ -874,6 +874,15 @@ module GrdaWarehouse::WarehouseReports
           health: false,
         }
       end
+      if RailsDrivers.loaded.include?(:boston_project_scorecard)
+        r_list['Performance'] << {
+          url: 'boston_project_scorecard/warehouse_reports/scorecards',
+          name: 'Boston Project Scorecard',
+          description: 'Instrument for evaluating project performance.',
+          limitable: true,
+          health: false,
+        }
+      end
       if RailsDrivers.loaded.include?(:claims_reporting)
         r_list['Health: BH CP Claims/Payments'] << {
           url: 'claims_reporting/warehouse_reports/reconciliation',
@@ -1008,6 +1017,15 @@ module GrdaWarehouse::WarehouseReports
           health: false,
         }
       end
+      if RailsDrivers.loaded.include?(:longitudinal_spm)
+        r_list['Performance'] << {
+          url: 'longitudinal_spm/warehouse_reports/reports',
+          name: 'Longitudinal System Performance Measurement',
+          description: 'Compare quarterly System Performance Measurement Reports for length of time homeless, returns to homelessness, and successful placements.',
+          limitable: true,
+          health: false,
+        }
+      end
       if RailsDrivers.loaded.include?(:homeless_summary_report)
         r_list['Operational'] << {
           url: 'homeless_summary_report/warehouse_reports/reports',
@@ -1049,6 +1067,13 @@ module GrdaWarehouse::WarehouseReports
           url: 'tx_client_reports/warehouse_reports/attachment_three_client_data_reports',
           name: 'Attachment III - Client Data Report',
           description: 'Attachment III - Client Data Report',
+          limitable: true,
+          health: false,
+        }
+        r_list['Exports'] << {
+          url: 'tx_client_reports/warehouse_reports/research_exports',
+          name: _('Offline Research Export'),
+          description: 'Download enrollment data for offline research.',
           limitable: true,
           health: false,
         }
@@ -1223,6 +1248,22 @@ module GrdaWarehouse::WarehouseReports
           health: true,
         }
       end
+      if RailsDrivers.loaded.include?(:ce_performance)
+        r_list['Performance'] << {
+          url: 'ce_performance/warehouse_reports/reports',
+          name: _('Coordinated Entry Performance'),
+          description: _('A tool to track performance and utilization of Coordinated Entry resources.'),
+          limitable: true,
+          health: false,
+        }
+        r_list['Performance'] << {
+          url: 'ce_performance/warehouse_reports/goal_configs',
+          name: 'Coordinated Entry Performance Goal Configurator',
+          description: 'Set per-CoC Coordinated Entry Performance Measurement Goals',
+          limitable: false,
+          health: false,
+        }
+      end
 
       r_list
     end
@@ -1244,6 +1285,7 @@ module GrdaWarehouse::WarehouseReports
       cleanup << 'project_pass_fail/warehouse_reports/project_pass_fail' unless RailsDrivers.loaded.include?(:project_pass_fail)
       cleanup << 'health_flexible_service/warehouse_reports/member_lists' unless RailsDrivers.loaded.include?(:health_flexible_service)
       cleanup << 'project_scorecard/warehouse_reports/scorecards' unless RailsDrivers.loaded.include?(:project_scorecard)
+      cleanup << 'boston_project_scorecard/warehouse_reports/scorecards' unless RailsDrivers.loaded.include?(:boston_project_scorecard)
       cleanup << 'prior_living_situation/warehouse_reports/prior_living_situation' unless RailsDrivers.loaded.include?(:prior_living_situation)
       cleanup << 'destination_report/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:destination_report)
       cleanup << 'data_source_report/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:data_source_report)
@@ -1274,7 +1316,15 @@ module GrdaWarehouse::WarehouseReports
       cleanup << 'census_tracking/warehouse_reports/census_trackers' unless RailsDrivers.loaded.include?(:census_tracking)
       cleanup << 'income_benefits_report/warehouse_reports/report' unless RailsDrivers.loaded.include?(:income_benefits_report)
       cleanup << 'client_location_history/warehouse_reports/client_location_history' unless RailsDrivers.loaded.include?(:client_location_history)
-
+      cleanup << 'client_location_history/warehouse_reports/client_location_history' unless RailsDrivers.loaded.include?(:client_location_history)
+      cleanup << 'analysis_tool/warehouse_reports/analysis_tool' unless RailsDrivers.loaded.include?(:analysis_tool)
+      cleanup << 'start_date_dq/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:start_date_dq)
+      cleanup << 'built_for_zero_report/warehouse_reports/bfz' unless RailsDrivers.loaded.include?(:built_for_zero_report)
+      cleanup << 'health_ip_followup_report/warehouse_reports/followup_reports' unless RailsDrivers.loaded.include?(:health_ip_followup_report)
+      unless RailsDrivers.loaded.include?(:ce_performance)
+        cleanup << 'ce_performance/warehouse_reports/reports'
+        cleanup << 'ce_performance/warehouse_reports/goal_configs'
+      end
       cleanup.each do |url|
         GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: url).delete_all
       end

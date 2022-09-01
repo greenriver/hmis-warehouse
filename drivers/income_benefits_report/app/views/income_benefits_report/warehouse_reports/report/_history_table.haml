@@ -14,7 +14,7 @@
             %tr
               %td
                 = link_to_if(report.completed?, report.status, income_benefits_report_warehouse_reports_report_path(report))
-              %th= report.filter.describe_filter_as_html
+              %th.report-parameters= report.describe_filter_as_html
               %td.text-nowrap
                 = report.created_at
                 .text-sm.text-muted by #{report.user&.name}

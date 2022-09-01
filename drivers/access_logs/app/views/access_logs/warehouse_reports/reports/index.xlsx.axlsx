@@ -1,0 +1,12 @@
+wb = xlsx_package.workbook
+@report.data.each do |name, data|
+  next unless data.present?
+
+  wb.add_worksheet(name: name) do |sheet|
+    title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+    sheet.add_row(data.first, style: title)
+    data.drop(1).each do |row|
+      sheet.add_row(row)
+    end
+  end
+end

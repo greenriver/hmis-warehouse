@@ -39,6 +39,6 @@
           - @user.inherited_for_type(entity_type).each do |group_name, items|
             - items.each do |item|
               %li.c-columns__column-list-item--read-only
-                %span.d-block{data: {toggle: 'tooltip'}, title: "Access by through #{group_name} group"}
+                %span.d-block{data: {toggle: 'tooltip'}, title: "Access through #{group_name} group"}
                   = item
                   %em.d-block.text-small.c-columns__column-list-item-description=group_name

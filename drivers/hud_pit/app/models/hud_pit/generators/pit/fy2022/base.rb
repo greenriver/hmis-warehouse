@@ -34,6 +34,17 @@ module HudPit::Generators::Pit::Fy2022
       so: 4,
     }.freeze
 
+    def self.allowed_options
+      [
+        :on,
+        :coc_codes,
+        :project_ids,
+        :data_source_ids,
+        :project_type_codes,
+        :project_group_ids,
+      ]
+    end
+
     private def universe
       add unless populated?
 
@@ -144,7 +155,6 @@ module HudPit::Generators::Pit::Fy2022
             domestic_violence: health_and_dv&.DomesticViolenceVictim,
             domestic_violence_currently_fleeing: health_and_dv&.CurrentlyFleeing,
             hiv_aids: disabilities_latest.detect(&:hiv?)&.DisabilityResponse&.present?,
-            hiv_aids_indefinite_impairing: disabilities_latest.detect { |d| d.indefinite_and_impairs? && d.hiv? }&.DisabilityResponse.present?,
             mental_illness: disabilities_latest.detect(&:mental?)&.DisabilityResponse&.present?,
             mental_illness_indefinite_impairing: disabilities_latest.detect { |d| d.indefinite_and_impairs? && d.mental? }&.DisabilityResponse.present?,
             project_type: last_service_history_enrollment.computed_project_type,
@@ -292,7 +302,7 @@ module HudPit::Generators::Pit::Fy2022
           query: a_t[:pit_gender].eq('Transgender'),
         },
         gender_other: {
-          title: 'Gender Don’t identify as male, female, or transgender',
+          title: 'Gender Don\'t identify as male, female, or transgender',
           query: a_t[:pit_gender].eq('A gender other than singularly female or male (e.g., non-binary, genderfluid, agender, culturally specific gender)'),
         },
         non_latino: {

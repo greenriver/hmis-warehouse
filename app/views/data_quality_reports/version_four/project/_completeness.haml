@@ -13,6 +13,6 @@
         %strong #{@report.completeness_percentage}% complete
 
   - @report.projects.each_with_index do |project, index|
-    %h4= project.ProjectName
+    %h4= project.name(current_user)
     .completeness-chart.jChart{class: "completeness-chart-#{index}"}
       %p.jLoading Loading

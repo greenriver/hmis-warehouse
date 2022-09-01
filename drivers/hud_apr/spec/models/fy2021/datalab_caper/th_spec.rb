@@ -268,7 +268,8 @@ RSpec.describe 'Datalab 2021 CAPER - TH', type: :model do
     )
   end
 
-  it 'Q22e' do
+  # FIXME: this should be re-enabled when the new data set is implemented
+  xit 'Q22e' do
     compare_results(
       file_path: result_file_prefix + 'th',
       question: 'Q22e',

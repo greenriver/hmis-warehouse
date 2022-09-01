@@ -11,7 +11,7 @@
       %h3 Assessment Details
       %dl
         %dt Project
-        %dd= GrdaWarehouse::Hud::Project.confidentialize(name: @assessment.enrollment.project&.name)
+        %dd= @assessment.enrollment.project&.name(current_user)
         %dt Assessment Date
         %dd= @assessment.AssessmentDate
         %dt Assessment Level

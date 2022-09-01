@@ -68,10 +68,10 @@ module HudApr::Generators::Shared::Fy2021
         'Moved in with family/friends on a temporary basis' => a_t[:housing_assessment].eq(3),
         'Moved in with family/friends on a permanent basis' => a_t[:housing_assessment].eq(4),
         'Moved to a transitional or temporary housing facility or program' => a_t[:housing_assessment].eq(5),
-        'Client became homeless – moving to a shelter or other place unfit for human habitation' => a_t[:housing_assessment].eq(6),
+        'Client became homeless - moving to a shelter or other place unfit for human habitation' => a_t[:housing_assessment].eq(6),
         'Client went to jail/prison' => a_t[:housing_assessment].eq(7),
         'Client died' => a_t[:housing_assessment].eq(10),
-        'Client doesn’t know/Client refused' => a_t[:housing_assessment].in([8, 9]),
+        'Client doesn\'t know/Client refused' => a_t[:housing_assessment].in([8, 9]),
         'Data not collected (no exit interview completed)' => a_t[:housing_assessment].eq(99).or(leavers_clause.and(a_t[:housing_assessment].eq(nil))),
         'Total' => leavers_clause,
       }.freeze

@@ -1,7 +1,7 @@
 version: '3.8'
 
 x-app: &app
-  image: hmis-warehouse:3.1
+  image: hmis-warehouse:3.3
   build:
     context: .
     args:
@@ -22,7 +22,9 @@ x-app: &app
     CHROMEDRIVER_VERSION: 79.0.3945.36
     GROVER_NO_SANDBOX: 'true'
     BUNDLE_FORCE_RUBY_PLATFORM: 'true'
-  env_file: .env.local
+  env_file:
+    - .env.development.local
+    - .env.local
   tmpfs:
     - /tmp
 
@@ -41,7 +43,7 @@ services:
     profiles:
       - manual
     command: /bin/bash
-    entrypoint: ''
+    entrypoint: '/usr/bin/shell.entrypoint.sh'
     depends_on:
       - db
       - redis

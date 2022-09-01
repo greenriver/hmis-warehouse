@@ -22,7 +22,7 @@ wb.add_worksheet(name: 'Missing CoC Codes') do |sheet|
       c.PersonalID,
       c.FirstName,
       c.LastName,
-      project.name,
+      project.name(current_user),
       project.project_cocs&.map(&:effective_coc_code)&.join(', '),
       en.EntryDate,
       en.exit&.ExitDate,

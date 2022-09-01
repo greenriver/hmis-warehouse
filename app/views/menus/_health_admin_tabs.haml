@@ -37,9 +37,15 @@
       visible: can_administer_health? ,
     },
     {
-      title: 'Team Coordinators',
-      path: admin_health_team_coordinators_path,
-      controllers: ['team_coordinators'],
+      title: 'Care Coordination Teams',
+      path: admin_health_coordination_teams_path,
+      controllers: ['coordination_teams'],
+      visible: can_administer_health? ,
+    },
+    {
+      title: 'Care Coordination Team Members',
+      path: admin_health_team_members_path,
+      controllers: ['team_members'],
       visible: can_administer_health? ,
     },
     {

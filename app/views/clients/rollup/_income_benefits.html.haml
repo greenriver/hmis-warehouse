@@ -1,10 +1,12 @@
 = cache(['clients', 'income_benefits', @client, can_view_projects?, controller_path, current_user], expires_in: 1.hours) do
   :ruby
+    e_t = GrdaWarehouse::Hud::Enrollment.arel_table
+    ib_t = GrdaWarehouse::Hud::IncomeBenefit.arel_table
     incomes = @client.source_enrollment_income_benefits.
       joins(enrollment: :client).
       merge(GrdaWarehouse::Hud::Enrollment.visible_to(current_user)).
       preload( :enrollment, :project, :client ).
-      sort_by{ |b| b.enrollment.date }.reverse
+      order(e_t[:EntryDate].desc, ib_t[:InformationDate].desc)
   - if incomes.any?
     .table-responsive
       %table.table
@@ -23,8 +25,8 @@
             %tr
               %td
                 .ds{class: "ds-color-#{benefit.data_source_id}"}= ds_short_name_for(benefit.client.id)
-              %td= GrdaWarehouse::Hud::Project.confidentialize(name: project&.name)
-              %td= l benefit.enrollment.EntryDate
+              %td= project&.name(current_user)
+              %td= benefit.enrollment.EntryDate
               %td= benefit.InformationDate
               %td= HUD.data_collection_stage(benefit.DataCollectionStage)
               %td
@@ -33,7 +35,7 @@
                   = format('$%.2f', total)
               %td.text-right
                 - if @client.hmis_source_visible_by?(current_user)
-                  = link_to 'HMIS', hmi_path(benefit, type: 'IncomeBenefits'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis mb-2'
+                  = link_to 'HMIS', source_datum_path(benefit, type: 'IncomeBenefits'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis mb-2'
                   .text-teeny.font-weight-light
                     .text-nowrap
                       Created: #{benefit.DateCreated}

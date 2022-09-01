@@ -18,7 +18,7 @@
           - project = data[:project]
           %tr
             %td= date
-            %td= project.name
+            %td= project.name(current_user)
             %td= data[:clients].count
             %td
               = link_to(data[:services].count, detail_service_scanning_warehouse_reports_scanned_services_path(@filter.for_params.deep_merge(detail: :clients, filters: { start: date, project_ids: [project.id] })), data: { loads_in_pjax_modal: true })

@@ -1,7 +1,7 @@
 %tr
   %td
     .project__name.mb-2{id: "project-#{project.id}"}
-      = link_to_if can_view_projects?, project.name, project_path(project)
+      = link_to_if can_view_projects?, project.name(current_user, ignore_confidential_status: can_edit_projects?), project_path(project)
     %td
       .enrollment__project_type{class: "client__service_type_#{project.ProjectType}"}
         .service-type__program-type{data: {toggle: :tooltip, title: HUD.project_type(project.ProjectType)}}
@@ -15,10 +15,10 @@
       %span{data: {toggle: :tooltip, title: project.confidential_hint}}
         = checkmark project.confidential
 
-    %td
-      - if can_edit_projects?
+    - if can_edit_projects?
+      %td
         = link_to edit_project_path(project), class: ['btn', 'btn-sm', 'btn-secondary', 'btn-icon-only'] do
           %i.icon-pencil
     %td
       - if can_see_raw_hmis_data?
-        = link_to 'HMIS', hmi_path(project.id, type: 'Project'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis'
+        = link_to 'HMIS', source_datum_path(project.id, type: 'Project'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis'

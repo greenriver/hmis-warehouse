@@ -1,9 +1,11 @@
 :ruby
+  e_t = GrdaWarehouse::Hud::Enrollment.arel_table
+  hdv_t = GrdaWarehouse::Hud::HealthAndDv.arel_table
   special_populations = @client.
     source_enrollment_health_and_dvs.
     joins(enrollment: :client).
     merge(GrdaWarehouse::Hud::Enrollment.visible_to(current_user)).
-    sort_by{ |b| b.enrollment.date }.reverse
+    order(e_t[:EntryDate].desc, hdv_t[:InformationDate].desc)
 - if special_populations.any?
   .table-responsive
     %table.table
@@ -24,7 +26,7 @@
           %tr
             %td
               .ds{class: "ds-color-#{h.data_source_id}"}= ds_short_name_for(h.enrollment.client.id)
-            %td= GrdaWarehouse::Hud::Project.confidentialize(name: project&.name)
+            %td= project&.name(current_user)
             %td.date-cell= h.enrollment.EntryDate
             %td= h.InformationDate
             %td= hud_1_8 h.DomesticViolenceVictim
@@ -33,7 +35,7 @@
             %td= hud_1_8 h.DueDate
             %td.text-right
               - if @client.hmis_source_visible_by?(current_user)
-                = link_to 'HMIS', hmi_path(h, type: 'HealthAndDV'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis mb-2'
+                = link_to 'HMIS', source_datum_path(h, type: 'HealthAndDV'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis mb-2'
                 .text-teeny.font-weight-light
                   .text-nowrap
                     Created: #{h.DateCreated}

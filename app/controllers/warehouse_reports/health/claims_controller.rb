@@ -150,7 +150,7 @@ module WarehouseReports::Health
     end
 
     def destroy
-      Health::QualifyingActivity.where(claim_id: @report.id).update_all(claim_submitted_on: nil)
+      Health::QualifyingActivity.where(claim_id: @report.id).update_all(claim_id: nil, claim_submitted_on: nil)
       @report.destroy
       respond_with @report, location: warehouse_reports_health_claims_path
     end

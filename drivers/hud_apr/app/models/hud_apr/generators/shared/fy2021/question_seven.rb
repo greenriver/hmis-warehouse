@@ -23,10 +23,10 @@ module HudApr::Generators::Shared::Fy2021
         row_labels: [
           'Adults',
           'Children',
-          'Client Doesn’t Know/ Client Refused',
+          'Client Doesn\'t Know/ Client Refused',
           'Data Not Collected',
           'Total',
-          'For PSH & RRH – the total persons served who moved into housing',
+          'For PSH & RRH - the total persons served who moved into housing',
         ],
         first_column: 'B',
         last_column: 'F',
@@ -174,7 +174,8 @@ module HudApr::Generators::Shared::Fy2021
 
       ps_rrh_w_move_in = universe.members.where(
         a_t[:project_type].in([3, 13]).
-          and(a_t[:move_in_date].not_eq(nil)),
+          and(a_t[:move_in_date].not_eq(nil).
+          and(a_t[:move_in_date].lteq(@report.end_date))),
       )
       row_seven_cells.each do |cell|
         answer = @report.answer(question: table_name, cell: cell[:cell])

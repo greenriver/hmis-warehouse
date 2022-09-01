@@ -24,16 +24,27 @@
 /**
  * Determine whether to use dark or light text on top of given color.
  * Returns black for dark text and white for light text.
+ * Also returns the background color, modified such that it has sufficient contrast.
  */
 @function choose-contrast-color($color) {
   $lightContrast: contrast($color, white);
   $darkContrast: contrast($color, black);
 
   @if ($lightContrast > $darkContrast) {
-    @return white;
+    // WCAG AAA requires a contrast of 7:1
+    @while ($lightContrast < 10) {
+      $color: darken($color, 3%);
+      $lightContrast: contrast($color, white);
+    }
+    @return $color, white;
   }
   @else {
-    @return black;
+    // WCAG AAA requires a contrast of 7:1
+    @while ($darkContrast < 10) {
+      $color: lighten($color, 3%);
+      $darkContrast: contrast($color, black);
+    }
+    @return $color, black;
   }
 }
 
@@ -45,9 +56,13 @@
     @for $h from 1 through $n_hues {
       $i: ($s - 1 ) * $n_hues + $h;
       .#{ $scope }-#{ map-get($color-lookup, $i) } {
-        $color: hsl( ($h / $n_hues * 360) % 360, (50% - $s * 10), 55%);
-        background-color: $color;
-        color: choose-contrast-color($color);
+        // using 65% luminance will skew towards light bg and dark fg
+        $color: hsl( ($h / $n_hues * 360) % 360, (50% - $s * 10), 65%);
+
+        // choose text color and adjust bg for sufficient contrast
+        $colors: choose-contrast-color($color);
+        background-color: nth($colors, 1);
+        color: nth($colors, 2);
       }
     }
   }

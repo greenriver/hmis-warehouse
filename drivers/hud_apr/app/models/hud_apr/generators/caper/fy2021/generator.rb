@@ -20,6 +20,10 @@ module HudApr::Generators::Caper::Fy2021
       'CAPER'
     end
 
+    def self.default_project_type_codes
+      GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.keys
+    end
+
     def url
       hud_reports_caper_url(report, { host: ENV['FQDN'], protocol: 'https' })
     end
@@ -45,7 +49,7 @@ module HudApr::Generators::Caper::Fy2021
         HudApr::Generators::Caper::Fy2021::QuestionSixteen, #  Cash Income - Ranges
         HudApr::Generators::Caper::Fy2021::QuestionSeventeen, # Cash Income - Sources
         # No 18 for Caper
-        HudApr::Generators::Caper::Fy2021::QuestionNineteen, # Cash Income – Changes over Time
+        HudApr::Generators::Caper::Fy2021::QuestionNineteen, # Cash Income - Changes over Time
         HudApr::Generators::Caper::Fy2021::QuestionTwenty, # Non-Cash Benefits
         HudApr::Generators::Caper::Fy2021::QuestionTwentyOne, # Health Insurance
         HudApr::Generators::Caper::Fy2021::QuestionTwentyTwo, # Length of participation

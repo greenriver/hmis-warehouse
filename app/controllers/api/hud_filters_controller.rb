@@ -19,22 +19,25 @@ module Api
         @data = {}
         projects = GrdaWarehouse::Hud::Project.
           joins(:organization).
-          where(id: filter.effective_project_ids)
+          where(id: filter.effective_project_ids).
+          order(o_t[:OrganizationName], p_t[:ProjectName])
 
         projects = projects.with_hud_project_type(params[:supported_project_types].map(&:to_i)) if params[:supported_project_types].present?
 
         projects.pluck(
           :id,
           :ProjectName,
+          :confidential,
           :computed_project_type,
           o_t[:OrganizationName],
           o_t[:id],
-        ).each do |id, p_name, type, o_name, o_id|
-          name = GrdaWarehouse::Hud::Project.confidentialize(name: p_name)
-          name = p_name if can_view_confidential_enrollment_details?
-          @data[[o_id, o_name]] ||= []
-          @data[[o_id, o_name]] << [
-            "#{name} (#{HUD.project_type_brief(type)})",
+          o_t[:confidential],
+        ).each do |id, p_name, p_confidential, type, o_name, o_id, o_confidential|
+          project_name = GrdaWarehouse::Hud::Project.confidentialize_name(current_user, p_name, p_confidential || o_confidential)
+          organization_name = o_confidential ? GrdaWarehouse::Hud::Organization.confidential_organization_name : o_name
+          @data[[o_id, organization_name]] ||= []
+          @data[[o_id, organization_name]] << [
+            "#{project_name} (#{HUD.project_type_brief(type)})",
             id,
           ]
         end

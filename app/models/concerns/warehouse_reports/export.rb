@@ -11,13 +11,13 @@ module WarehouseReports::Export
     def key_for_display(key)
       case key
       when 'data_source_ids'
-        'data sources'
+        'Data Sources'
       when 'project_ids'
-        'projects'
+        'Projects'
       when 'organization_ids'
-        'organizations'
+        'Organizations'
       else
-        key.humanize.downcase
+        key.humanize.titleize
       end
     end
 
@@ -30,7 +30,9 @@ module WarehouseReports::Export
       when 'data_source_ids'
         GrdaWarehouse::DataSource.where(id: value).map(&:short_name)
       when 'project_ids'
-        GrdaWarehouse::Hud::Project.where(id: value).map(&:name_and_type)
+        # We can ignore confidential status here because this renders the selected project list,
+        # and confidential projects are only selectable for users who can view their names.
+        GrdaWarehouse::Hud::Project.where(id: value).map { |project| project.name_and_type(ignore_confidential_status: true) }
       when 'organization_ids'
         GrdaWarehouse::Hud::Organization.where(id: value).map(&:OrganizationName)
       else

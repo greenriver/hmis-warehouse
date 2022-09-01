@@ -16,12 +16,14 @@ module ArelHelper
     # that you can pass to Active Record count, etc.
     # See config/initializers/arel_attributes_attribute.rb
     # This has been re-implemented as to_sql
-    def qualified_column(arel_attribute)
+    def qualified_column(arel_attribute, alias_name: nil)
       table = arel_attribute.relation
-      connection = table.engine.connection
+      connection = table.class.engine.connection
       table_name = connection.quote_table_name table.table_name
       column_name = connection.quote_column_name arel_attribute.name
-      "#{table_name}.#{column_name}"
+      return "#{table_name}.#{column_name}" unless alias_name.present?
+
+      return "#{table_name}.#{column_name} as #{alias_name}"
     end
 
     # NOTE: quoted_table_name must be quoted, use something like User.quoted_table_name
@@ -144,6 +146,14 @@ module ArelHelper
 
     def checksum(*args)
       self.class.checksum(*args)
+    end
+
+    def confidentialized_project_name(column)
+      self.class.confidentialized_project_name column
+    end
+
+    def bool_or(*args)
+      self.class.bool_or(*args)
     end
 
     # Example
@@ -536,6 +546,21 @@ module ArelHelper
       exp = qt exp
       exp = lit exp.to_sql unless exp.respond_to?(:as)
       nf 'CAST', [exp.as(as)]
+    end
+
+    # NOTE: you must join project and organization for this to work.
+    def confidentialized_project_name(column)
+      conditions = [
+        [p_t[:confidential].eq(true).or(o_t[:confidential].eq(true)), GrdaWarehouse::Hud::Project.confidential_project_name],
+      ]
+      acase(conditions, elsewise: column)
+    end
+
+    def bool_or(field1, field2)
+      conditions = [
+        [field1.eq(true).or(field2.eq(true)), true],
+      ]
+      acase(conditions, elsewise: 'false')
     end
 
     # Some shortcuts for arel tables

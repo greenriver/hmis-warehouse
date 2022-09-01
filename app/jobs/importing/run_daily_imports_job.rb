@@ -94,7 +94,7 @@ module Importing
         # To keep this manageable, we'll just deal with clients we've seen in the past year
         # When we sanity check and rebuild using the per-client method, this gets correctly maintained
         @notifier.ping('Updating service history summaries') if @send_notifications
-        GrdaWarehouse::WarehouseClientsProcessed.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)).update_cached_counts
+        GrdaWarehouse::WarehouseClientsProcessed.update_cached_counts
 
         @notifier.ping('Updated service history summaries') if @send_notifications
 
@@ -148,7 +148,7 @@ module Importing
         Rails.cache.clear
         warm_cache
 
-        ReportingSetupJob.perform_later
+        ReportingSetupJob.set(priority: 15).perform_later
 
         @notifier.ping('Rebuilding reporting tables...') if @send_notifications
         GrdaWarehouse::Report::Base.update_fake_materialized_views
@@ -156,14 +156,14 @@ module Importing
 
         # Pre-calculate the dashboards
         @notifier.ping('Updating dashboards') if @send_notifications
-        Reporting::PopulationDashboardPopulateJob.perform_later(sub_population: 'all')
+        Reporting::PopulationDashboardPopulateJob.set(priority: 10).perform_later(sub_population: 'all')
 
         # Remove any expired export jobs
         PruneDocumentExportsJob.perform_later
         Health::PruneDocumentExportsJob.perform_later
 
-        YouthFollowUpsJob.perform_later
-        SystemCohortsJob.perform_later
+        YouthFollowUpsJob.set(priority: 10).perform_later
+        SystemCohortsJob.set(priority: 10).perform_later
         SyncSyntheticDataJob.perform_later if CasBase.db_exists?
 
         create_statistical_matches

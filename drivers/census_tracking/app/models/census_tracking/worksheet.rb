@@ -23,8 +23,8 @@ module CensusTracking
         map do |project|
           [
             HUD.project_type(project.computed_project_type) || 'Unknown Project Type',
-            project.organization.name,
-            project.name(include_confidential_names: @filter.user.can_view_confidential_enrollment_details?),
+            project.organization.name(@filter.user),
+            project.name(@filter.user),
             project.id,
           ]
         end.

@@ -19,6 +19,10 @@ module HudApr::Generators::Apr::Fy2021
       'APR'
     end
 
+    def self.default_project_type_codes
+      GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.keys
+    end
+
     def url
       hud_reports_apr_url(report, { host: ENV['FQDN'], protocol: 'https' })
     end
@@ -44,7 +48,7 @@ module HudApr::Generators::Apr::Fy2021
         HudApr::Generators::Apr::Fy2021::QuestionSixteen, #  Cash Income - Ranges
         HudApr::Generators::Apr::Fy2021::QuestionSeventeen, # Cash Income - Sources
         HudApr::Generators::Apr::Fy2021::QuestionEighteen, # Client Cash Income Category - Earned/Other Income Category - by Start and t/Exit Status
-        HudApr::Generators::Apr::Fy2021::QuestionNineteen, # Cash Income – Changes over Time
+        HudApr::Generators::Apr::Fy2021::QuestionNineteen, # Cash Income - Changes over Time
         HudApr::Generators::Apr::Fy2021::QuestionTwenty, # Non-Cash Benefits
         HudApr::Generators::Apr::Fy2021::QuestionTwentyOne, # Health Insurance
         HudApr::Generators::Apr::Fy2021::QuestionTwentyTwo, # Length of participation

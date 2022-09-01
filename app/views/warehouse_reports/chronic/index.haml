@@ -7,8 +7,8 @@
 = render 'filter'
 = render 'homeless_info'
 
-.warehouse-reports__completed
-  %table.table.table-hover
+.warehouse-reports__completed.card
+  %table.table.table-striped
     %thead
       %tr
         %th Run At
@@ -17,7 +17,7 @@
         %th Delete
     %tbody.report-listing
       = render 'reports'
-= link_to 'Reports', running_warehouse_reports_chronic_index_path, class: 'jReportBlock', remote: true 
+= link_to 'Reports', running_warehouse_reports_chronic_index_path, class: 'jReportBlock', remote: true
 
 = content_for :page_js do
   :javascript

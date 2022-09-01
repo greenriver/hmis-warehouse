@@ -1,7 +1,8 @@
+- safe_project_name = @project.name(current_user, ignore_confidential_status: can_edit_projects?)
 = content_for :crumbs do
   = link_to project_path(@project) do
-    = "« #{@project.ProjectName}"
-- content_for :title, "Project Data Quality Reports for #{@project.ProjectName} at #{@project.organization.OrganizationName}"
+    = "« #{safe_project_name}"
+- content_for :title, "Project Data Quality Reports for #{safe_project_name} at #{@project.organization.OrganizationName}"
 %h1= content_for :title
 
 - if @reports.any?

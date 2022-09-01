@@ -1,33 +1,45 @@
-- label = @report.detail_denominator_label_for(key)
-.d-flex.justify-content-around.mb-4
-  - if label.present? && show_label_detail
-    .col-4
-      = render 'warehouse_reports/indicator', indicator: @report.detail_indicator_result(result, key)
-    .col-8.d-flex.justify-content-end.pr-0
-      .col-6
-        .c-chart--vertical-bar{ class: class_name, data: { chart: result.data_for_system_level_bar.to_json }}
-      .col-5.d-flex.align-items-center.mb-6.pr-0
-        .card.p-3
-          .mb-6.d-flex
-            .mr-2 #{result.report_year}:
-            %div
-              %strong= result.reporting_numerator
-              of
-              = label
-              %strong= result.reporting_denominator
-          .mb-0.d-flex
-            .mr-2 #{result.comparison_year}:
-            %div
-              %strong= result.comparison_numerator
-              of
-              = label
-              %strong= result.comparison_denominator
-  - else
-    .col-6
-      = render 'warehouse_reports/indicator', indicator: @report.detail_indicator_result(result, key)
-    .col-5
-      .c-chart--vertical-bar{ class: class_name, data: { chart: result.data_for_system_level_bar.to_json }}
-    .col-1
+- denominator_label = @report.detail_denominator_label_for(key)
+- numerator_label = @report.detail_numerator_label_for(key)
+%h3.mb-6= @report.detail_title_for(key)
+.row
+  .col-6
+    - status = result.passed ? 'success' : 'danger'
+    - icon = result.passed ? 'check' : 'cross'
+    - label = result.passed ? 'Passed' : 'Failed'
+    .row
+      .col-sm-4
+        = tagged(result.passed, status, icon: icon, label: label)
+      .col-sm-4
+        .performance-measurement__result-number.font-weight-bold= "#{result.secondary_value} #{result.secondary_unit}"
+        .text-capitalize= sanitize(result.value_label)
+      .col-sm-4
+        - primary_value = result.primary_value.to_s
+        - primary_value += ' %' if result.percentage?
+        - primary_unit = result.primary_unit.sub('% ', '')
+        .performance-measurement__result-number.font-weight-bold= primary_value
+        .text-capitalize= primary_unit
+
+  .col-6
+    %div
+      .ml-auto.c-chart--vertical-bar{ class: class_name, data: { chart: result.data_for_system_level_bar.to_json }}
+    - if denominator_label.present? && show_label_detail
+      .card.p-3.mt-4
+        .mb-0.d-flex
+          .mr-2 #{result.report_year}:
+          .mb-0
+            %strong= result.reporting_numerator
+            = numerator_label
+            of
+            %strong= result.reporting_denominator
+            = denominator_label
+        .mb-0.d-flex
+          .mr-2 #{result.comparison_year}:
+          .mb-0
+            %strong= result.comparison_numerator
+            = numerator_label
+            of
+            %strong= result.comparison_denominator
+            = denominator_label
 
 = content_for :page_js do
   :javascript
@@ -35,8 +47,12 @@
       const data = $('.#{class_name}').data('chart');
       const max = Math.max(...data.columns[1].slice(1));
       const includePercent = #{result.percentage?};
+      const max_100 = #{result.max_100?};
       const goal = #{@report.detail_goal_for_reference_line(key).to_json};
-      const axisMax = max < goal && goal !== null ? goal : undefined;
+      let axisMax = max < goal && goal !== null ? goal : undefined;
+      if(max_100) {
+        axisMax = 100;
+      }
       const tooltipTitles = #{result.titles_for_system_level_bar_tooltip.to_json.html_safe}
 
       data.labels.format = function (v, id, i, texts) {
@@ -49,8 +65,7 @@
           return d3.format(",d")(v);
         }
       }
-
-      const chart = bb.generate({
+      options = {
         data: data,
         axis: {
           rotated: includePercent,
@@ -68,7 +83,36 @@
         legend: { show: false },
         tooltip: {
           contents: (d, defaultTitleFormat, defaultValueFormat, color) => {
-            return _tooltip(d, defaultTitleFormat, defaultValueFormat, color, tooltipTitles, goal)
+            const data = d[0];
+
+            // Build ratio description
+            let description = '';
+            const denominatorLabel = "#{@report.detail_denominator_label_for(key)}";
+            const numeratorLabel = "#{@report.detail_numerator_label_for(key)}";
+            if (denominatorLabel) {
+              const numer = data.index === 0 ? "#{result.reporting_numerator}" : "#{result.comparison_numerator}";
+              const denom = data.index === 0 ? "#{result.reporting_denominator}" : "#{result.comparison_denominator}";
+              description = ` (${numer} ${numeratorLabel} of ${denom} ${denominatorLabel})`;
+            }
+
+            let html = "<table class='bb-tooltip' style='opacity: 1;'>";
+            html += "<thead>";
+            html += `<tr><th colspan="3">${tooltipTitles[data.index]}</th></tr>`
+            if (goal) html += `<tr><th></th><th>Value</th><th>Goal</th></tr>`;
+            html += "</thead>";
+            html += "<tbody>";
+
+            const bg_color = color(data.id);
+            const box = `<td style='white-space: nowrap;'><svg><rect style='fill:${bg_color}' width='10' height='10'></rect></svg>${data.name}</td>`;
+            const value = `<td style='white-space: nowrap;'>${defaultValueFormat(data.value)}${description}</td>`;
+            html += box;
+            html += value;
+            if (goal)
+              html += `<td style='white-space: nowrap;'>${defaultValueFormat(goal)}</td>`;
+            html += "</tr>";
+            html += "</tbody>";
+            html += '</table>';
+            return html;
           },
         },
         ...(goal !== null && {
@@ -77,39 +121,11 @@
             y: { lines: [{ value: goal }] } }
         }),
         bindto: '.#{class_name}'
-      });
+      };
+      if(max_100) {
+        options.axis.y.padding = { top: 0, bottom: 0}
+      }
+      const chart = bb.generate(options);
       d3.select('.#{class_name} .bb-ygrid-line line').style('stroke-width', 2)
       d3.select('.#{class_name} .bb-ygrid-line line').style('stroke-dasharray', 2)
     });
-
-    function _tooltip(d, defaultTitleFormat, defaultValueFormat, color, tooltipTitles, goal) {
-      const data = d[0];
-
-      // Build ratio description
-      let description = '';
-      const denominatorLabel = "#{@report.detail_denominator_label_for(key)}";
-      if (denominatorLabel) {
-        const numer = data.index === 0 ? "#{result.reporting_numerator}" : "#{result.comparison_numerator}";
-        const denom = data.index === 0 ? "#{result.reporting_denominator}" : "#{result.comparison_denominator}";
-        description = ` (${numer} of ${denominatorLabel} ${denom})`;
-      }
-
-      let html = "<table class='bb-tooltip' style='opacity: 1;'>";
-      html += "<thead>";
-      html += `<tr><th colspan="3">${tooltipTitles[data.index]}</th></tr>`
-      if (goal) html += `<tr><th></th><th>Value</th><th>Goal</th></tr>`;
-      html += "</thead>";
-      html += "<tbody>";
-
-      const bg_color = color(data.id);
-      const box = `<td style='white-space: nowrap;'><svg><rect style='fill:${bg_color}' width='10' height='10'></rect></svg>${data.name}</td>`;
-      const value = `<td style='white-space: nowrap;'>${defaultValueFormat(data.value)}${description}</td>`;
-      html += box;
-      html += value;
-      if (goal)
-        html += `<td style='white-space: nowrap;'>${defaultValueFormat(goal)}</td>`;
-      html += "</tr>";
-      html += "</tbody>";
-      html += '</table>';
-      return html;
-    }

@@ -18,7 +18,7 @@
     - if client.DOB.present?
       = "#{client.DOB} (#{client.age})"
   %td= client.gender
-  %td= client.race_fields.map{ |f| HUD::race f }.join ', '
+  %td= client.race_description(include_missing_reason: true)
   %td= HUD::ethnicity client.Ethnicity
   %td= HUD::no_yes_reasons_for_missing_data client.VeteranStatus
   %td
@@ -26,7 +26,7 @@
       = link_to 'Edit', polymorphic_path([:edit] + source_client_path_generator, id: client.id), class: 'btn btn-sm btn-secondary', data: {loads_in_pjax_modal: true}
   %td.text-right
     - if @client.hmis_source_visible_by?(current_user) && ! authoritative_data_source_ids.include?(client.data_source_id)
-      = link_to 'HMIS', hmi_path(client.id, type: 'Client'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis mb-2'
+      = link_to 'HMIS', source_datum_path(client.id, type: 'Client'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis mb-2'
       .text-teeny.font-weight-light
         .text-nowrap
           Created: #{client.DateCreated}

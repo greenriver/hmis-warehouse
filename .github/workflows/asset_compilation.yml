@@ -28,20 +28,23 @@ jobs:
           - gha_staging_load_9
           - gha_staging_load_10
           - gha_staging_load_11
+          - gha_staging_load_12
+          - gha_staging_load_13
           - gha_production_load_1
           - gha_production_load_2
           - gha_production_load_3
           - gha_production_load_4
-          - gha_production_load_5
+          # client removed - gha_production_load_5
           - gha_production_load_6
           - gha_production_load_7
           - gha_production_load_8
           - gha_production_load_9
           - gha_production_load_10
           - gha_production_load_11
+          - gha_production_load_12
 
     runs-on: ubuntu-20.04
-    container: ruby:2.7.6-alpine
+    container: ruby:2.7.6-alpine3.15
 
     steps:
     - name: Checkout
@@ -67,7 +70,7 @@ jobs:
         REPORTING_DATABASE_DB_TEST: reporting_test
       run: |
         apk add --no-cache \
-          nodejs yarn npm \
+          nodejs yarn \
           tzdata \
           git \
           bash \
@@ -88,7 +91,7 @@ jobs:
         echo "postgres:5432:*:postgres:postgres" > ~/.pgpass
         chmod 600 ~/.pgpass
 
-        npm install
+        yarn install
         gem install bundler --version=2.3.8
 
     # According to https://www.jessesquires.com/blog/2021/08/23/caching-bundler-on-github-actions/
@@ -115,15 +118,9 @@ jobs:
         bundle config set --local without 'production staging development'
         bundle install --jobs 10 --retry 3
 
-    - name: 'App setup'
-      env:
-        SECRETS_FILE_SECRET_ARN: ${{ secrets.SECRETS_FILE_SECRET_ARN }}
-      run: |
-        # cp config/database.yml.ci config/database.yml
-        SECRET_ARN=$SECRETS_FILE_SECRET_ARN bundle exec bin/download_secrets.rb > config/deploy/docker/assets/secret.deploy.values.yml
-
     - name: Generate checksum and compile
       env:
+        SECRETS_YML_SECRET_ARN: ${{ secrets.SECRETS_YML_SECRET_ARN }}
         DATABASE_ADAPTER: postgresql
         DATABASE_HOST: postgres
         DATABASE_PASS: postgres

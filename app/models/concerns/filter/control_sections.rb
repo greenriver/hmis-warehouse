@@ -52,6 +52,12 @@ module
           )
         end
         section.add_control(
+          id: 'require_service_during_range',
+          label: 'Require Service?',
+          value: @filter.require_service_during_range,
+          hint: 'If checked, a client must have at least one service or contact during the chosen date range.  If unchecked, an overlapping enrollment will suffice.',
+        )
+        section.add_control(
           id: 'reporting_period',
           required: true,
           value: @filter.date_range_words,
@@ -110,6 +116,12 @@ module
           id: 'project_groups',
           value: @filter.project_groups,
         )
+        if GrdaWarehouse::Cohort.viewable_by(@filter.user).exists?
+          section.add_control(
+            id: 'cohorts',
+            value: @filter.cohorts,
+          )
+        end
       end
     end
 

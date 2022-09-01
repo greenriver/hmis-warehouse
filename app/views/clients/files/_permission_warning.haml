@@ -2,7 +2,7 @@
   .alert.alert--flex.alert-info
     %i.alert__icon.icon-info
     %p
-      - if can_manage_window_client_files? && @client.release_valid?
+      - if can_manage_window_client_files? && @client.release_valid?(coc_codes: current_user.coc_codes)
         = _("#{@client.name} has a consent form on file, you can see any client files.")
       - elsif can_manage_window_client_files?
         = _("#{@client.name} does not have a consent form on file, you can only see files you upload.")

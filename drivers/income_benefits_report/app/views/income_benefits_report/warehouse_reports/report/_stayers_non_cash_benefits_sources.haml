@@ -4,6 +4,10 @@
   - reports << @comparison
   - column_class = 'col-sm-6'
 %h3 Stayer Non-Cash Benefits Sources at Last Update
+%p
+  To be included below, clients must have an income assessment at entry
+  %strong and
+  a subsequent income assessment that occurred before the report end date (#{@report.options['filters']['end'].to_date}).
 .row
   - reports.each_with_index do |report, index|
     - comparison_class = ''

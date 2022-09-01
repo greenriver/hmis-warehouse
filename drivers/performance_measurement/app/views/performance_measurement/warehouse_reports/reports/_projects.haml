@@ -1,9 +1,10 @@
 - result = @report.result_for(key)
 - all_projects_class_name = "jAppProjectChart_#{key}"
-.p-4.mb-4{ class: "performance-measurement--highlight-light-#{@report.highlight_id(category)}" }
+.p-4.mb-0{ class: "performance-measurement--highlight-light-#{@report.highlight_id(category)}" }
   %h2 Project Level
-%h4 Project Comparison #{@report.filter.date_range_words}
-.c-chart--vertical-bar.mb-6{ class: all_projects_class_name, data: { chart: result.data_for_projects_bar.to_json, include_percent: result.primary_unit.starts_with?('%').to_s }}
+.card.squared.mb-6.p-6.page-break-avoid
+  %h4 Project Comparison #{@report.filter.date_range_words}
+  .c-chart--vertical-bar.mb-6{ class: all_projects_class_name, data: { chart: result.data_for_projects_bar(current_user).to_json, include_percent: result.primary_unit.starts_with?('%').to_s }}
 - my_projects = @report.my_projects(current_user, key)
 - if my_projects.present?
   .well.no-break
@@ -13,8 +14,8 @@
       - next unless result.hud_project
 
       .page-break-avoid
-        %h3.mb-4= result.hud_project.name_and_type
-        = render 'performance_measurement/warehouse_reports/reports/details_row', key: key, result: result, class_name: "jProjectLevelPerformance_#{key}_#{project_id}", show_label_detail: false
+        %h3.mb-4= result.hud_project.name(current_user, include_project_type: true)
+        = render 'performance_measurement/warehouse_reports/reports/details_row', key: key, result: result, class_name: "jProjectLevelPerformance_#{key}_#{project_id}", show_label_detail: result.percentage?
 - other_projects = @report.other_projects(current_user, key)
 - if other_projects.present?
   .well.no-break
@@ -24,8 +25,8 @@
       - next unless result.hud_project
 
       .page-break-avoid
-        %h3.mb-4= result.hud_project.name_and_type
-        = render 'performance_measurement/warehouse_reports/reports/details_row', key: key, result: result, class_name: "jProjectLevelPerformance_#{key}_#{project_id}", show_label_detail: false
+        %h3.mb-4= result.hud_project.name(current_user, include_project_type: true)
+        = render 'performance_measurement/warehouse_reports/reports/details_row', key: key, result: result, class_name: "jProjectLevelPerformance_#{key}_#{project_id}", show_label_detail: result.percentage?
 
 = content_for :page_js do
   :javascript
@@ -41,7 +42,7 @@
         if(include_percent) {
           return d3.format(".0%")(v / 100)
         } else {
-          return d3.format(",.2r")(v)
+          return d3.format(',')(v)
         }
       }
       var all_project_chart = bb.generate({

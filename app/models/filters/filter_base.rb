@@ -18,11 +18,13 @@ module Filters
     attribute :start, Date, lazy: true, default: ->(r, _) { r.default_start }
     attribute :end, Date, lazy: true, default: ->(r, _) { r.default_end }
     attribute :enforce_one_year_range, Boolean, default: true
+    attribute :require_service_during_range, Boolean, default: ->(_, _) { GrdaWarehouse::Config.get(:require_service_for_reporting_default) }
     attribute :sort
     attribute :heads_of_household, Boolean, default: false
     attribute :comparison_pattern, Symbol, default: ->(r, _) { r.default_comparison_pattern }
     attribute :household_type, Symbol, default: :all
     attribute :hoh_only, Boolean, default: false
+    attribute :default_project_type_codes, Array, default: GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPE_CODES
     attribute :project_type_codes, Array, default: ->(r, _) { r.default_project_type_codes }
     attribute :project_type_numbers, Array, default: ->(_r, _) { [] }
     attribute :veteran_statuses, Array, default: []
@@ -45,7 +47,7 @@ module Filters
     attribute :funder_ids, Array, default: []
     attribute :cohort_ids, Array, default: []
     attribute :coc_codes, Array, default: []
-    attribute :coc_code, String, default: GrdaWarehouse::Config.get(:site_coc_codes)
+    attribute :coc_code, String, default: ->(_, _) { GrdaWarehouse::Config.get(:site_coc_codes) }
     attribute :sub_population, Symbol, default: :clients
     attribute :start_age, Integer, default: 17
     attribute :end_age, Integer, default: 25
@@ -66,21 +68,13 @@ module Filters
     attribute :creator_id, Integer, default: nil
     attribute :report_version, Symbol
     attribute :inactivity_days, Integer, default: 365 * 2
+    attribute :lsa_scope, Integer, default: nil
 
     validates_presence_of :start, :end
 
-    # NOTE: keep this up-to-date if adding additional attributes
+    # Incorporate anything that might change the results
     def cache_key
-      [
-        user.id,
-        effective_project_ids,
-        cohort_ids,
-        coc_codes,
-        coc_code,
-        sub_population,
-        start_age,
-        end_age,
-      ]
+      to_h
     end
 
     # use incoming data, if not available, use previously set value, or default value
@@ -95,6 +89,8 @@ module Filters
       # Allow multi-year filters if we explicitly passed in something that isn't truthy
       enforce_range = filters.dig(:enforce_one_year_range)
       self.enforce_one_year_range = enforce_range.in?(['1', 'true', true]) unless enforce_range.nil?
+      require_service = filters.dig(:require_service_during_range)
+      self.require_service_during_range = require_service.in?(['1', 'true', true]) unless require_service.nil?
       self.comparison_pattern = clean_comparison_pattern(filters.dig(:comparison_pattern)&.to_sym)
       self.coc_codes = filters.dig(:coc_codes)&.select { |code| available_coc_codes&.include?(code) }.presence || coc_codes.presence || user.coc_codes
       self.coc_code = filters.dig(:coc_code) if available_coc_codes&.include?(filters.dig(:coc_code))
@@ -146,6 +142,7 @@ module Filters
       self.report_version = filters.dig(:report_version)&.to_sym
       self.creator_id = filters.dig(:creator_id).to_i unless filters.dig(:creator_id).nil?
       self.inactivity_days = filters.dig(:inactivity_days).to_i unless filters.dig(:inactivity_days).nil?
+      self.lsa_scope = filters.dig(:lsa_scope).to_i unless filters.dig(:lsa_scope).nil?
 
       ensure_dates_work if valid?
       self
@@ -176,6 +173,7 @@ module Filters
           races: races,
           ethnicities: ethnicities,
           project_group_ids: project_group_ids,
+          cohort_ids: cohort_ids,
           hoh_only: hoh_only,
           prior_living_situation_ids: prior_living_situation_ids,
           destination_ids: destination_ids,
@@ -193,11 +191,13 @@ module Filters
           ce_cls_as_homeless: ce_cls_as_homeless,
           limit_to_vispdat: limit_to_vispdat,
           enforce_one_year_range: enforce_one_year_range,
+          require_service_during_range: require_service_during_range,
           times_homeless_in_last_three_years: times_homeless_in_last_three_years,
           report_version: report_version,
           ph: ph,
           creator_id: creator_id,
           inactivity_days: inactivity_days,
+          lsa_scope: lsa_scope,
         },
       }
     end
@@ -226,10 +226,12 @@ module Filters
         :coc_code,
         :limit_to_vispdat,
         :enforce_one_year_range,
+        :require_service_during_range,
         :report_version,
         :ph,
         :creator_id,
         :inactivity_days,
+        :lsa_scope,
         coc_codes: [],
         project_types: [],
         project_type_codes: [],
@@ -244,6 +246,7 @@ module Filters
         project_ids: [],
         funder_ids: [],
         project_group_ids: [],
+        cohort_ids: [],
         disability_summary_ids: [],
         destination_ids: [],
         disabilities: [],
@@ -254,6 +257,10 @@ module Filters
         length_of_times: [],
         times_homeless_in_last_three_years: [],
       ]
+    end
+
+    def all_known_keys
+      known_params.map { |k| if k.is_a?(Hash) then k.keys else k end }.flatten
     end
 
     def selected_params_for_display(single_date: false)
@@ -527,6 +534,10 @@ module Filters
       end
     end
 
+    def project_type_code_options_for_select
+      GrdaWarehouse::Hud::Project::PROJECT_GROUP_TITLES.select { |k, _| k.in?(default_project_type_codes) }.freeze.invert
+    end
+
     def project_options_for_select(user:)
       all_project_scope.options_for_select(user: user)
     end
@@ -552,7 +563,7 @@ module Filters
     end
 
     def cohorts_for_select(user:)
-      GrdaWarehouse::Cohort.viewable_by(user)
+      GrdaWarehouse::Cohort.viewable_by(user).distinct.order(name: :asc).pluck(:name, :id)
     end
     # End Select display options
 
@@ -699,25 +710,31 @@ module Filters
       comparison_pattern != :no_comparison_period
     end
 
-    def default_project_type_codes
-      GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPE_CODES
-    end
-
     def default_project_type_numbers
       GrdaWarehouse::Hud::Project::PROJECT_TYPES_WITH_INVENTORY
     end
 
-    def describe_filter_as_html(keys = nil)
+    def describe_filter_as_html(keys = nil, limited: true, inline: false)
       describe_filter(keys).uniq.map do |(k, v)|
-        content_tag(:div, class: 'report-parameters__parameter') do
-          label = content_tag(:label, k, class: 'label label-default parameter-label')
+        wrapper_classes = ['report-parameters__parameter']
+        label_text = k
+        if inline
+          wrapper_classes << 'd-flex'
+          label_text += ':'
+        end
+        content_tag(:div, class: wrapper_classes) do
+          label = content_tag(:label, label_text, class: 'label label-default parameter-label')
           if v.is_a?(Array)
-            count = v.count
-            v = v.first(5)
-            v << "#{count - 5} more" if count > 5
+            if limited
+              count = v.count
+              v = v.first(5)
+              v << "#{count - 5} more" if count > 5
+            end
             v = v.to_sentence
           end
-          label.concat(content_tag(:label, v, class: 'label label-primary parameter-value'))
+          value_classes = ['label', 'label-primary', 'parameter-value']
+          value_classes << 'pl-0' if inline
+          label.concat(content_tag(:label, v, class: value_classes))
         end
       end.join.html_safe
     end
@@ -794,6 +811,10 @@ module Filters
         'Client Limits'
       when :times_homeless_in_last_three_years
         'Times Homeless in Past 3 Years'
+      when :lsa_scope
+        'LSA Scope'
+      when :cohort_ids
+        'Cohorts'
       end
 
       return unless value.present?
@@ -859,6 +880,10 @@ module Filters
         chosen_vispdat_limits
       when :times_homeless_in_last_three_years
         chosen_times_homeless_in_last_three_years
+      when :lsa_scope
+        chosen_lsa_scope
+      when :cohort_ids
+        cohorts
       end
     end
 
@@ -907,6 +932,8 @@ module Filters
     def chosen_projects
       return nil unless project_ids.reject(&:blank?).present?
 
+      # OK to use non-confidentialized ProjectName because confidential projects
+      # are only select-able if user has permission to view their names
       GrdaWarehouse::Hud::Project.where(id: project_ids).pluck(:ProjectName)
     end
 
@@ -990,6 +1017,17 @@ module Filters
       end.join(', ')
     end
 
+    def chosen_lsa_scope
+      case lsa_scope.to_i
+      when 1
+        'System-Wide'
+      when 2
+        'Project-Focused'
+      else
+        'Auto Select'
+      end
+    end
+
     def data_source_names
       data_source_options_for_select(user: user).
         select do |_, id|
@@ -1021,6 +1059,10 @@ module Filters
 
     def funder_names
       funder_options_for_select(user: user).select { |_, id| funder_ids.include?(id.to_i) }&.map(&:first)
+    end
+
+    def cohorts
+      cohorts_for_select(user: user).select { |_, id| cohort_ids.include?(id.to_i) }&.map(&:first)
     end
 
     def available_household_types

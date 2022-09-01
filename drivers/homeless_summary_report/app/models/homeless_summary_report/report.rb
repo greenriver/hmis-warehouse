@@ -14,6 +14,7 @@ module HomelessSummaryReport
     include Filter::ControlSections
     include Filter::FilterScopes
     include Reporting::Status
+    include SpmBasedReports
     include Rails.application.routes.url_helpers
     include ActionView::Helpers::NumberHelper
     include ArelHelper
@@ -98,6 +99,10 @@ module HomelessSummaryReport
       'homeless_summary_report/warehouse_reports/reports'
     end
 
+    def self.default_project_type_codes
+      GrdaWarehouse::Hud::Project::SPM_PROJECT_TYPE_CODES
+    end
+
     def url
       homeless_summary_report_warehouse_reports_report_url(host: ENV.fetch('FQDN'), id: id, protocol: 'https')
     end
@@ -112,24 +117,6 @@ module HomelessSummaryReport
 
     def multiple_project_types?
       true
-    end
-
-    def spm_project_types
-      GrdaWarehouse::Hud::Project::SPM_PROJECT_TYPE_CODES
-    end
-
-    def project_type_ids
-      spm_project_types.map { |s| GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING[s.to_sym] }.flatten
-    end
-
-    def project_type_options_for_select
-      GrdaWarehouse::Hud::Project::PROJECT_GROUP_TITLES.select { |k, _| k.in?(spm_project_types) }.freeze.invert
-    end
-
-    def project_options_for_select(user)
-      GrdaWarehouse::Hud::Project.viewable_by(user).
-        with_hud_project_type(project_type_ids).
-        options_for_select(user: user)
     end
 
     private def build_control_sections
@@ -615,10 +602,10 @@ module HomelessSummaryReport
     private def destination_buckets
       {
         'Client Count' => [],
-        'Homeless Destinations' => [16], # HUD.homeless_destinations,
+        'Homeless Destinations' => [16, 1, 18], # HUD.homeless_destinations,
         'Permanent Destinations' => HUD.permanent_destinations,
-        'Temporary Destinations' => [1, 14, 27, 18, 12, 13, 2, 32], # NOTE: this should probably be HUD.temporary_destinations, but HUD doesn't define homeless destinations, and some temporary destinations are also institutional, so we'll place them here.
-        'Institutional Destinations' => [7, 4, 5, 15, 25, 29], # HUD.institutional_destinations,
+        'Temporary Destinations' => [2, 12, 13, 14, 27, 29, 32], # NOTE: this should probably be HUD.temporary_destinations, but HUD doesn't define homeless destinations, and some temporary destinations are also institutional, so we'll place them here.
+        'Institutional Destinations' => [4, 5, 6, 7, 15, 25], # HUD.institutional_destinations,
         'Unknown, doesn\'t know, refused, or not collected' => HUD.other_destinations,
         'Remained housed' => [0], # include those who remained housed for 7b2
       }.freeze

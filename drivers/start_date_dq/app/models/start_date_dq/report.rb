@@ -38,27 +38,34 @@ module StartDateDq
         'Days Between Date Homelessness Started and Entry Date',
         'Date Homelessness Started (Self-Reported)',
         'Entry Date',
+        'Exit Date',
+        'Days between Date Homelessness Started and Exit Date (or report end)',
         'Personal ID',
         'Project',
         'Project Type',
       ]
     end
 
-    def column_values(row)
+    def column_values(row, user)
       date_to_street = row.enrollment.DateToStreetESSH
       entry_date = row.enrollment.EntryDate
+      exit_date = row.enrollment.exit&.ExitDate
+      days_between_start_and_exit = ([@filter.end, exit_date].compact.min - date_to_street).to_i
       {
         days_between: (entry_date - date_to_street).to_i,
         date_to_street: date_to_street,
         entry_date: entry_date,
+        exit_date: exit_date,
+        days_between_start_and_exit: days_between_start_and_exit,
         personal_id: row.enrollment.PersonalID,
-        project_name: GrdaWarehouse::Hud::Project.confidentialize(name: row.project&.name),
+        project_name: row.project&.name(user),
         project_type: HUD.project_type_brief(row.project_type),
       }
     end
 
     def data
       scope = report_scope.joins(:client, :project).
+        left_outer_joins(enrollment: :exit).
         where(e_t[:EntryDate].not_eq(nil).
           and(e_t[:DateToStreetESSH].not_eq(nil)))
 

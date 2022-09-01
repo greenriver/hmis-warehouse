@@ -919,6 +919,7 @@ class WarehouseReport::Outcomes::Base
   end
 
   # returns array of clients with id, first name, last name who match the metric
+  # project names are always confidentialized (see housed.rb) because we don't know who is running the report
   def support_for(metric, params = nil) # rubocop:disable Metrics/AbcSize
     columns = default_support_columns
     case metric

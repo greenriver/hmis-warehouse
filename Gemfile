@@ -8,14 +8,16 @@ gem 'sdoc', group: :doc
 
 gem 'nokogiri', '>= 1.13.6' # >= 1.13.6 due to CVE-2022-29181
 gem 'rubyzip',  '>= 1.2.1' # >= 1.2.1 due to CVE-2017-5946
+gem 'rails-html-sanitizer', '>= 1.4.3' # >= 1.4.3 due to CVE-2022-32209
 gem 'sshkit'
 gem 'paranoia', '~> 2.0'
-gem 'composite_primary_keys', '=13.0.0'
+gem 'composite_primary_keys', '=13.0.3'
 gem 'pg'
 gem 'activerecord-sqlserver-adapter'
 gem 'activerecord-import'
 gem 'order_as_specified'
 
+gem 'activerecord', '>= 6.1.6.1' # for CVE-2022-32224
 gem 'active_record_extended'
 gem 'active_median'
 
@@ -64,9 +66,7 @@ gem 'mimemagic'
 # since there are no tests for this
 # it should be tested manually
 gem 'acts-as-taggable-on', '~> 7.0'
-# this doesn't install cleanly on a Mac
-# We aren't currently using this anyway
-gem 'seven_zip_ruby'
+gem 'seven_zip_ruby' unless ENV['NO_7ZIP'] == '1'
 gem 'hellosign-ruby-sdk'
 
 gem 'devise', '~> 4'
@@ -74,6 +74,7 @@ gem 'devise_invitable', '~> 2.0'
 gem 'devise-pwned_password'
 gem 'devise-security'
 gem 'devise-two-factor'
+gem 'rack-cors'
 
 gem 'omniauth', '~> 1.9.1'
 gem 'omniauth-oauth2'
@@ -254,6 +255,8 @@ group :development do
   # boot time/memory profiling
   gem 'derailed_benchmarks', require: false
   gem 'bumbler', require: false
+
+  gem 'graphiql-rails'
 end
 
 group :test do
@@ -282,3 +285,5 @@ end
 gem "business_time", "~> 0.10.0"
 
 gem "cable_ready", "~> 4.5"
+
+gem "graphql", "~> 2.0"

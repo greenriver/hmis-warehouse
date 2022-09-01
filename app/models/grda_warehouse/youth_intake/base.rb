@@ -62,6 +62,11 @@ module GrdaWarehouse::YouthIntake
       end
     end
 
+    def hmis_client?
+      # If there is a client from a non-authoritative data source, it is from an HMIS upload
+      client&.source_clients&.any? { |client| ! client.data_source&.authoritative? }
+    end
+
     scope :served, -> do
       where(turned_away: false)
     end
@@ -89,6 +94,10 @@ module GrdaWarehouse::YouthIntake
     scope :opened_after, ->(start_date) do
       at = arel_table
       where(at[:engagement_date].gteq(start_date))
+    end
+
+    scope :only_most_recent_by_client, -> do
+      one_for_column(:engagement_date, source_arel_table: arel_table, group_on: :client_id)
     end
 
     scope :ordered, -> do
@@ -371,7 +380,7 @@ module GrdaWarehouse::YouthIntake
         RaceNone: compute_race_none,
         DateUpdated: Time.now,
       }
-      gender_column = HUD.gender_id_to_field_name[client_gender]
+      gender_column = ::HUD.gender_id_to_field_name[client_gender]
       data[gender_column] = 1 unless gender_column.nil?
       data[:FirstName] = first_name if first_name.present?
       data[:LastName] = last_name if last_name.present?

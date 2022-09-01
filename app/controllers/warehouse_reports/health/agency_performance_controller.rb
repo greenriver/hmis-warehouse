@@ -21,16 +21,16 @@ module WarehouseReports::Health
         end_date: @end_date,
       }.to_query
       @pdf_export = Health::DocumentExports::AgencyPerformanceExport.new(query_string: query_string)
-      @report = Health::AgencyPerformance.new(range: (@start_date..@end_date))
 
-      @agencies = @report.agency_counts
-      @totals = @report.total_counts
+      @agency_report = Health::AgencyPerformance.new(range: (@start_date..@end_date))
+      @agencies = @agency_report.agency_counts
+      @agency_totals = @agency_report.total_counts
     end
 
     def detail
-      @agency_id = params.require(:agency)[:agency_id]&.to_i
-      @section = params.require(:agency)[:section]
-      @patient_ids = params.require(:agency)[:patient_ids].split(',')&.map(&:to_i)
+      @agency_id = params.require(:entity)[:entity_id]&.to_i
+      @section = params.require(:entity)[:section]
+      @patient_ids = params.require(:entity)[:patient_ids].split(',')&.map(&:to_i)
       @patients = Health::Patient.bh_cp.where(id: @patient_ids).
         preload(:care_coordinator).
         order(last_name: :asc, first_name: :asc)

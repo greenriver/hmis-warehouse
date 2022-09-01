@@ -9,40 +9,21 @@ module WarehouseReports
     include WarehouseReportAuthorization
     include ArelHelper
     before_action :set_limited, only: [:index]
+    before_action :set_filter, only: [:index]
 
     def index
-      @project_types = params.dig(:filter, :project_types) || [2, 3, 13] # TH, PSH, RRH
-      @start_date = params.dig(:filter, :start) || Date.current - 30.days
-      @end_date = params.dig(:filter, :end) || Date.current
-      project_ids = params.dig(:filter, :project_ids) || []
-
-      @project_ids = project_ids.reject(&:blank?)
       @pagy, @clients = pagy(clients)
     end
-
-    def filtered_project_list
-      options = {}
-      GrdaWarehouse::Hud::Project.viewable_by(current_user).
-        merge(GrdaWarehouse::Hud::Project.with_project_type(@project_types)).
-        joins(:organization).
-        order(o_t[:OrganizationName].asc, ProjectName: :asc).
-        pluck(o_t[:OrganizationName].as('org_name').to_sql, :ProjectName, GrdaWarehouse::Hud::Project.project_type_column, :id).each do |org, project_name, project_type, id|
-        options[org] ||= []
-        options[org] << ["#{project_name} (#{HUD.project_type_brief(project_type)})", id]
-      end
-      options
-    end
-    helper_method :filtered_project_list
 
     def clients
       scope = client_scope.
         joins(enrollments: :project).
-        merge(GrdaWarehouse::Hud::Project.with_project_type(@project_types))
+        merge(GrdaWarehouse::Hud::Project.with_project_type(@filter.project_type_ids))
 
-      unless @project_ids.empty?
+      unless @filter.project_ids.empty?
         scope = client_scope.
           joins(enrollments: :project).
-          where(p_t[:id].in(@project_ids))
+          where(p_t[:id].in(@filter.project_ids))
       end
 
       scope.order(:FirstName, :LastName)
@@ -51,9 +32,27 @@ module WarehouseReports
     def client_scope
       GrdaWarehouse::Hud::Client.
         joins(:health_and_dvs, enrollments: :project).
-        where(hdv_t[:InformationDate].gteq(@start_date).and(hdv_t[:InformationDate].lteq(@end_date).and(hdv_t[:CurrentlyFleeing].eq(1)))).
+        where(hdv_t[:InformationDate].gteq(@filter.start).and(hdv_t[:InformationDate].lteq(@filter.end).and(hdv_t[:CurrentlyFleeing].eq(1)))).
         merge(GrdaWarehouse::Hud::Project.viewable_by(current_user)).
         distinct
+    end
+
+    private def set_filter
+      @filter = ::Filters::FilterBase.new(
+        filter_params.merge(
+          user_id: current_user.id,
+          default_start: Date.current - 1.month,
+          default_end: Date.current,
+        ),
+      )
+      # Default project type ids [2, 3, 10, 13]
+      @filter.project_type_codes = [:th, :psh, :rrh] unless filter_params[:project_type_codes].present?
+    end
+
+    private def filter_params
+      return {} unless params[:filters]
+
+      params.require(:filters).permit(::Filters::FilterBase.new(user_id: current_user.id).known_params)
     end
   end
 end
