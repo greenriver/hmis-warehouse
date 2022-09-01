@@ -179,9 +179,9 @@ module HmisDataQualityTool
 
     private def populate_universe
       report_clients = clients.map { |c| [c.client_id, c] }.to_h
-      Client.calculate_issues(report_clients, self)
+      Client.calculate(report_items: report_clients, report: self)
       report_enrollments = enrollments.map { |e| [e.enrollment_id, e] }.to_h
-      Enrollment.calculate_issues(report_enrollments, self)
+      Enrollment.calculate(report_items: report_enrollments, report: self)
     end
 
     def household(household_id)
@@ -288,6 +288,7 @@ module HmisDataQualityTool
             :move_in_prior_to_start_issues,
             :move_in_post_exit_issues,
             :enrollment_outside_project_operating_dates_issues,
+            :overlapping_entry_exit_issues,
           ],
         }.each do |(category, item_class), slugs|
           slugs.each do |slug|

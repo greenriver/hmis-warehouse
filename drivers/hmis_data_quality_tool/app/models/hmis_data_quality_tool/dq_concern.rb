@@ -25,5 +25,9 @@ module HmisDataQualityTool::DqConcern
     def self.section_description(slug)
       sections[slug].try(:[], :description)
     end
+
+    def self.calculate_issues(report_items, report)
+      calculate(report_items: report_items, report: report)
+    end
   end
 end

@@ -43,10 +43,6 @@ module HmisDataQualityTool
       }.freeze
     end
 
-    def self.calculate_issues(report_items, report)
-      calculate(report_items: report_items, report: report)
-    end
-
     # Because multiple of these calculations require inspecting unrelated enrollments
     # we're going to loop over the entire enrollment scope once rather than
     # load it multiple times
@@ -83,8 +79,13 @@ module HmisDataQualityTool
     end
 
     def self.report_item_fields_from_enrollment(report_items:, enrollment:, report:)
+      # we only need to do the calculations once, the values will be the same for any enrollment,
+      # no matter how many times we see it
+      report_item = report_items[enrollment]
+      return report_item if report_item.present?
+
       client = enrollment.client
-      report_item = report_items[enrollment] || new(
+      report_item = new(
         report_id: report.id,
         enrollment_id: enrollment.id,
       )
