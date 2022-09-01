@@ -20,5 +20,9 @@ module GrdaWarehouse::CasProjectClientCalculator
     private def custom_descriptions
       {}
     end
+
+    def unrelated_columns
+      []
+    end
   end
 end

@@ -1,0 +1,29 @@
+- if @pagy.count.positive?
+  = render 'common/pagination_top', item_name: 'scorecard'
+  .table-responsive.card
+    %table.table.table-striped
+      %thead
+        %tr
+          %th Report Name
+          %th Status
+          %th Run On
+          %th Completed On
+          %th Author
+      %tbody
+        - @reports.each do |report|
+          %tr
+            - if report.project.present?
+              %td= "#{report.project.organization_and_name(current_user)} (#{report.project.data_source.name})"
+            - else
+              %td= report.project_group.name
+            %td
+              - if report.completed?
+                = link_to report.status, boston_project_scorecard_warehouse_reports_scorecard_path(report)
+              - else
+                = link_to report.status, edit_boston_project_scorecard_warehouse_reports_scorecard_path(report)
+            %td= report.started_at
+            %td= report.completed_at
+            %td= report&.user&.name
+  = render 'common/pagination_bottom', item_name: 'scorecard'
+- else
+  .none-found No scorecards
