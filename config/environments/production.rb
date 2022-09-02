@@ -57,8 +57,6 @@ Rails.application.configure do
   # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
   config.force_ssl = true
 
-  config.log_level = ENV.fetch('LOG_LEVEL') { 'info' }.to_sym
-
   # Use a different cache store in production.
   # config.cache_store = :mem_cache_store
 

@@ -2,7 +2,7 @@
 = simple_form_for @client, as: :readiness, url: polymorphic_path(cas_readiness_path_generator, client_id: @client.id)  do |f|
   .row
     %section.o-section-card.col-lg-12.col-xl-10
-      = render 'attributes_table', f: f, title: 'Characteristics from Pathways Assessment'
+      = render 'attributes_table', f: f, title: 'Characteristics from CE Assessment'
 
   .row
     .col-lg-8.col-xl-6

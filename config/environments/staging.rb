@@ -77,8 +77,6 @@ Rails.application.configure do
   # Send deprecation notices to registered listeners.
   config.active_support.deprecation = :notify
 
-  config.log_level = ENV.fetch('LOG_LEVEL') { 'info' }.to_sym
-
   # Do not dump schema after migrations.
   config.active_record.dump_schema_after_migration = false
 
