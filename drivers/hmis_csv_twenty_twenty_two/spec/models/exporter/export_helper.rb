@@ -2,13 +2,6 @@ def csv_file_path(klass, exporter: @exporter)
   File.join(exporter.file_path, exporter.file_name_for(klass))
 end
 
-def cleanup_test_environment
-  HmisCsvImporter::Utility.clear!
-  GrdaWarehouse::Utility.clear!
-  User.delete_all
-  FactoryBot.reload
-end
-
 def setup_data
   @data_source = create :source_data_source
   @user = create :user

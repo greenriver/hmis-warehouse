@@ -33,7 +33,7 @@ RSpec.describe CustomImportsBostonServices::ImportFile, type: :model do
   end
 
   after(:all) do
-    GrdaWarehouse::Utility.clear!
+    cleanup_test_environment
   end
   after(:each) do
     GrdaWarehouse::CustomImports::Config.delete_all
