@@ -30,7 +30,7 @@ module GrdaWarehouse::SystemCohorts
     private def add_clients(client_ids, reason)
       system_user_id = User.setup_system_user.id
       client_ids -= cohort_clients.pluck(:client_id) # Do not touch existing clients
-      cohort_clients_by_client_id = cohort_clients.with_deleted.where(client_id: client_ids).index_by(&:client_id)
+      cohort_clients_by_client_id = cohort_clients.only_deleted.where(client_id: client_ids).index_by(&:client_id)
       cohort_client_batch = []
       client_ids.each do |client_id|
         # Create (or resurrect) added clients
