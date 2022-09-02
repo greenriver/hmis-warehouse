@@ -40,36 +40,54 @@ module GrdaWarehouse::SystemCohorts
         select(:client_id)
 
       candidate_enrollments = enrollment_source.
-        homeless.
-        ongoing.
-        with_service_between(start_date: inactive_date, end_date: @processing_date).
-        where.not(client_id: service_history_source.where(date: (@processing_date - @date_window .. @processing_date - 1.day), homeless: false).select(:client_id)).
-        where.not(client_id: moved_in_ph).
-        where.not(client_id: cohort_clients.select(:client_id)).
+        homeless. # homeless clients
+        ongoing. # who's enrollment is open today
+        with_service_between(start_date: inactive_date, end_date: @processing_date). # who received service in the past 90 days
+        where.not( # who didn't receive a non-homeless (housed) service recently (last day or two)
+          client_id: service_history_source.
+            where(date: (@processing_date - @date_window .. @processing_date - 1.day), homeless: false).
+            select(:client_id),
+        ).
+        where.not(client_id: moved_in_ph). # who aren't currently enrolled and moved-in to PH
+        where.not(client_id: cohort_clients.select(:client_id)). # who aren't on the cohort currently
         group(:client_id).minimum(:first_date_in_program)
 
+      # for candidate clients, find the most recent previously closed enrollment
       previous_enrollments = enrollment_source.
         where(client_id: candidate_enrollments.keys).
-        where.not(last_date_in_program: nil).
+        exit_within_date_range(start_date: 3.years.ago, end_date: @processing_date).
         order(last_date_in_program: :asc).
         pluck(:client_id, :last_date_in_program, :destination).
-        map { |client_id, *rest| [client_id, rest] }.to_h
+        map { |client_id, *rest| [client_id, rest] }.to_h # to_h picks the last, so ordering date asc gives most recent
 
       most_recent_service_dates = service_history_source.
         where(client_id: candidate_enrollments.keys).
-        group(:client_id).maximum(:date)
+        where(date: 3.years.ago..@processing_date).
+        order(date: :desc).
+        pluck(:client_id, :date, :homeless).
+        group_by(&:shift)
 
       newly_identified = []
       returned_from_housing = []
       returned_from_inactive = []
 
-      candidate_enrollments.each do |client_id, enrollment_date|
-        previous_service_date, previous_destination = previous_enrollments[client_id]
-        if previous_service_date.blank? || previous_service_date < enrollment_date - 2.years
+      candidate_enrollments.each do |client_id, entry_date|
+        previous_entry_date, previous_destination = previous_enrollments[client_id]
+        services = most_recent_service_dates[client_id]
+        most_recent_service = services&.map(&:first)&.max
+        # should return an hash of date => [true, false] for homeless on most-recent date prior to entry
+        last_services_prior_to_entry = services&.select { |date, _| date < entry_date }&.deep_dup&.group_by(&:shift)&.max_by(&:first)&.last
+        # all entries for prior day are not-homeless
+        last_services_prior_to_entry_was_housed = last_services_prior_to_entry&.flatten&.all?(false) || false
+
+        # if we've never seen you before, or it's been 2 years between enrollments
+        if previous_entry_date.blank? || previous_entry_date < entry_date - 2.years
           newly_identified << client_id
-        elsif HUD.permanent_destinations.include?(previous_destination) || previous_service_date < enrollment_date
+        # if we have seen you before, and your exit was to a permanent destination, or your most recent
+        elsif HUD.permanent_destinations.include?(previous_destination) || last_services_prior_to_entry_was_housed
           returned_from_housing << client_id
-        elsif most_recent_service_dates[client_id] && most_recent_service_dates[client_id] >= @processing_date - days_of_inactivity.days
+        # if you have service within the active window, you have returned
+        elsif most_recent_service.present? && most_recent_service >= @processing_date - days_of_inactivity.days
           returned_from_inactive << client_id
         end
       end
