@@ -49,15 +49,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             }
             errors {
               id
-              className
-              errors {
-                attribute
-                message
-                fullMessage
-                type
-                options
-                __typename
-              }
+              attribute
+              message
+              fullMessage
+              type
+              options
+              __typename
             }
           }
         }
@@ -100,6 +97,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           ->(input) { input.merge(start_date: (Date.today + 1.day).strftime('%Y-%m-%d')) },
           'Entry date cannot be in the future',
         ],
+        [
+          'should emit error if entry date is in the future',
+          ->(input) { input.merge(project_id: '0') },
+          'Entry date cannot be in the future',
+        ],
       ].each do |test_name, input_proc, error_message|
         it test_name do
           input = input_proc.call(test_input)
@@ -107,14 +109,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
           enrollments = result.dig('data', 'createEnrollment', 'enrollments')
           errors = result.dig('data', 'createEnrollment', 'errors')
-
           expect(response.status).to eq 200
           expect(enrollments).to be_empty
           expect(errors).to contain_exactly(
-            include(
-              'id' => 'input',
-              'errors' => contain_exactly(include('message' => error_message)),
-            ),
+            include('message' => error_message),
           )
         end
       end

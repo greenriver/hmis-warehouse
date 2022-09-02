@@ -3,37 +3,23 @@ module Mutations
     argument :input, Types::HmisSchema::CreateEnrollmentValues, required: true
 
     field :enrollments, [Types::HmisSchema::Enrollment], null: true
-    field :errors, [Types::HmisSchema::ErrorGroup], null: false
+    field :errors, [Types::HmisSchema::ValidationError], null: false
+
+    def validate_input(input)
+      errors = []
+      errors << ArgumentError.new('Exactly one client must be head of household') if input.household_members.select { |hm| hm.relationship_to_ho_h == 1 }.size != 1
+      errors << ArgumentError.new('Entry date cannot be in the future') if Date.parse(input.start_date) > Date.today
+      errors
+    end
 
     def resolve(input:)
       user = hmis_user
-      errors = []
+      errors = validate_input(input)
 
-      if input.household_members.select { |hm| hm.relationship_to_ho_h == 1 }.size != 1
+      if errors.present?
         return {
           enrollments: [],
-          errors: [
-            {
-              id: 'input',
-              errors: [
-                ArgumentError.new('Exactly one client must be head of household'),
-              ],
-            },
-          ],
-        }
-      end
-
-      if Date.parse(input.start_date) > Date.today
-        return {
-          enrollments: [],
-          errors: [
-            {
-              id: 'input',
-              errors: [
-                ArgumentError.new('Entry date cannot be in the future'),
-              ],
-            },
-          ],
+          errors: errors,
         }
       end
 
@@ -47,7 +33,7 @@ module Mutations
           enrollment.save(validate: false)
         end
 
-        errors << { id: enrollment.id, class_name: enrollment.class.name, errors: enrollment.errors } unless enrollment.errors.empty?
+        errors += enrollment.errors.errors unless enrollment.errors.empty?
 
         enrollment
       end

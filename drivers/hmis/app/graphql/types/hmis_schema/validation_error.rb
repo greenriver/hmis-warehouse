@@ -8,6 +8,7 @@
 
 module Types
   class HmisSchema::ValidationError < Types::BaseObject
+    field :id, String, null: true
     field :attribute, String, null: true
     field :message, String, null: false
     field :full_message, String, null: true
@@ -20,6 +21,10 @@ module Types
 
     def options
       return object.options if object.respond_to?(:options)
+    end
+
+    def id
+      return object.id if object.respond_to?(:id)
     end
 
     def full_message
