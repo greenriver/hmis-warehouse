@@ -185,8 +185,8 @@ module HmisDataQualityTool
               overlaps << service.DateProvided if service.DateProvided.between?(en.EntryDate, end_date) && service.bed_night?
             end
           else
-            homeless_range = (h_en.EntryDate..(h_en.exit&.ExitDate || report.filter.end))
-            housed_range = (en.MoveInDate..end_date)
+            homeless_range = (h_en.EntryDate...(h_en.exit&.ExitDate || report.filter.end))
+            housed_range = (en.MoveInDate...end_date)
             homeless_range.to_a & housed_range.to_a.each do |d|
               overlaps << d
             end
@@ -214,7 +214,8 @@ module HmisDataQualityTool
             next unless start_date2.present?
 
             end_date2 = en2.exit&.ExitDate || report.filter.end
-            overlaps << [en.id, en2.id].sort if (start_date..end_date).overlaps?((start_date2..end_date2))
+            # three dots because starting on the end date is allowed
+            overlaps << [en.id, en2.id].sort if (start_date...end_date).overlaps?((start_date2...end_date2))
           end
         end
       end
