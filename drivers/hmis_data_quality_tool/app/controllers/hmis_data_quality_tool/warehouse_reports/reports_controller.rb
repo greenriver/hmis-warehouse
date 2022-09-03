@@ -120,7 +120,7 @@ module HmisDataQualityTool::WarehouseReports
     end
 
     def filter_params
-      site_coc_codes = GrdaWarehouse::Config.get(:site_coc_codes).presence&.split(/,\s*/)
+      site_coc_codes = GrdaWarehouse::Config.default_site_coc_codes
       default_options = {
         sub_population: :clients,
         coc_codes: site_coc_codes,

@@ -411,13 +411,16 @@ module Filters
     end
 
     # Apply all known scopes
-    # NOTE: by default we use coc_codes, if you need to filter by the coc_code singular, make note
-    def apply(scope, all_project_types: nil, use_coc_codes: true, use_coc_code: false)
+    # NOTE: by default we use coc_codes, if you need to filter by the coc_code singular, take note
+    def apply(scope, all_project_types: nil, multi_coc_code_filter: true)
       @filter = self
       scope = filter_for_user_access(scope)
       scope = filter_for_range(scope)
-      scope = filter_for_cocs(scope) if use_coc_codes
-      scope = filter_for_coc(scope) if use_coc_code
+      scope = if multi_coc_code_filter
+        filter_for_cocs(scope)
+      else
+        filter_for_coc(scope)
+      end
       scope = filter_for_household_type(scope)
       scope = filter_for_head_of_household(scope)
       scope = filter_for_age(scope)

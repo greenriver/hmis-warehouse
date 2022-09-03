@@ -196,6 +196,10 @@ module GrdaWarehouse
       @settings.public_send(config)
     end
 
+    def self.default_site_coc_codes
+      et(:site_coc_codes).presence&.split(/,\s*/)
+    end
+
     def self.implicit_roi?
       get(:roi_model).to_s == 'implicit'
     end

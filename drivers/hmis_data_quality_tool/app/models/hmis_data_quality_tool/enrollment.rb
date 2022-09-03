@@ -123,7 +123,7 @@ module HmisDataQualityTool
 
       lot = if project_tracking_method == 3
         # count services <= min of report end and current date
-        en_services&.count || 0
+        en_services.select(&:bed_night?)&.count || 0
       else
         # count dates between entry and min of report end, current_date, exit_date
         max_date = [enrollment.exit&.ExitDate, report.filter.end, Date.current].compact.min
@@ -191,7 +191,7 @@ module HmisDataQualityTool
           title: 'Unaccompanied Youth < 12 Years Old',
           description: 'Youth under 12 are generally expected to be accompanied.  The presence of an unaccompanied youth under 12 may indicate an issue with household data collection',
           limiter: ->(item) {
-            item.household_max_age.present? && item.household_max_age <= 12
+            item.household_max_age.present? && item.household_max_age < 12
           },
         },
         no_hoh_issues: {
@@ -266,7 +266,7 @@ module HmisDataQualityTool
         },
         days_in_ph_prior_to_move_in_90_issues: {
           title: 'Possible Missed Move In Date - PH, Time in Enrollment 90 Days or More',
-          description: 'There is an expectation that clients in PH will eventually move into houseing, these clients have been in PH without a move-in date or with an invalid move-in date more than 90 days',
+          description: 'There is an expectation that clients in PH will eventually move into housing, these clients have been in PH without a move-in date more than 90 days, or have an invalid move-in date ',
           limiter: ->(item) {
             return false if item.move_in_date.present? && item.move_in_date >= item.entry_date && (item.exit_date.blank? || item.move_in_date <= item.exit_date)
 
@@ -275,7 +275,7 @@ module HmisDataQualityTool
         },
         days_in_ph_prior_to_move_in_180_issues: {
           title: 'Possible Missed Move In Date - PH, Time in Enrollment 180 Days or More',
-          description: 'There is an expectation that clients in PH will eventually move into houseing, these clients have been in PH without a move-in date or with an invalid move-in date more than 180 days',
+          description: 'There is an expectation that clients in PH will eventually move into housing, these clients have been in PH without a move-in date more than 180 days, or have an invalid move-in date',
           limiter: ->(item) {
             return false if item.move_in_date.present? && item.move_in_date >= item.entry_date && (item.exit_date.blank? || item.move_in_date <= item.exit_date)
 
@@ -284,7 +284,7 @@ module HmisDataQualityTool
         },
         days_in_ph_prior_to_move_in_365_issues: {
           title: 'Possible Missed Move In Date - PH, Time in Enrollment 365 Days or More',
-          description: 'There is an expectation that clients in PH will eventually move into houseing, these clients have been in PH without a move-in date or with an invalid move-in date more than 365 days',
+          description: 'There is an expectation that clients in PH will eventually move into housing, these clients have been in PH without a move-in date more than 365 days, or have an invalid move-in date',
           limiter: ->(item) {
             return false if item.move_in_date.present? && item.move_in_date >= item.entry_date && (item.exit_date.blank? || item.move_in_date <= item.exit_date)
 

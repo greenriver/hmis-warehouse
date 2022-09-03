@@ -107,7 +107,6 @@ module HmisDataQualityTool
       # we need these for calculations, but don't want to store them permanently
       report_item.enrollments = client.source_enrollments
       report_item.overlapping_entry_exit = overlapping_entry_exit(enrollments: report_item.enrollments, report: report)
-      # FIXME
       report_item.overlapping_nbn = overlapping_nbn(enrollments: report_item.enrollments, report: report)
       report_item.overlapping_pre_move_in = overlapping_homeless_post_move_in(enrollments: report_item.enrollments, report: report)
       report_item.overlapping_post_move_in = overlapping_post_move_in(enrollments: report_item.enrollments, report: report)
