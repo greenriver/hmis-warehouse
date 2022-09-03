@@ -197,7 +197,7 @@ module GrdaWarehouse
     end
 
     def self.default_site_coc_codes
-      et(:site_coc_codes).presence&.split(/,\s*/)
+      get(:site_coc_codes).presence&.split(/,\s*/)
     end
 
     def self.implicit_roi?
