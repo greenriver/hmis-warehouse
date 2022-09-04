@@ -33,15 +33,14 @@ module GrdaWarehouse::SystemCohorts
       # if exit was to permanent destination within 2 year range, or move in was within 2 year range  - Returned from housing
       # else Returned from inactive unless no service in INACTIVE period
 
-      moved_in_ph = enrollment_source.
-        ongoing.
-        ph.
+      moved_in_ph = enrollment_source.ph.
+        ongoing(on_date: @processing_date).
         where(she_t[:move_in_date].lt(@processing_date)).
         select(:client_id)
 
       candidate_enrollments = enrollment_source.
         homeless. # homeless clients
-        ongoing. # who's enrollment is open today
+        ongoing(on_date: @processing_date). # who's enrollment is open today
         with_service_between(start_date: inactive_date, end_date: @processing_date). # who received service in the past 90 days
         where.not( # who didn't receive a non-homeless (housed) service recently (last day or two)
           client_id: service_history_source.
@@ -130,10 +129,10 @@ module GrdaWarehouse::SystemCohorts
       # or ongoing homeless with overlapping PH move in
       no_ongoing = enrollment_source.
         homeless.
-        where(client_id: cohort_clients.where.not(client_id: enrollment_source.ongoing.homeless.select(:client_id)).select(:client_id)).
+        where(client_id: cohort_clients.where.not(client_id: enrollment_source.ongoing(on_date: @processing_date).homeless.select(:client_id)).select(:client_id)).
         where.not(destination: HUD.permanent_destinations).
         pluck(:client_id)
-      moved_in_ph = enrollment_source.ongoing.ph.
+      moved_in_ph = enrollment_source.ongoing(on_date: @processing_date).ph.
         where(client_id: cohort_clients.select(:client_id)).
         where(she_t[:move_in_date].lt(@processing_date)).
         pluck(:client_id)

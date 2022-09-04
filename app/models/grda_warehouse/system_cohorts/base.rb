@@ -6,6 +6,37 @@
 
 module GrdaWarehouse::SystemCohorts
   class Base < GrdaWarehouse::Cohort
+    # NOTE: This should now be possible to generate historic cohort changes
+    def self.update_system_cohort_changes(range: 6.months.ago.to_date .. Date.yesterday)
+      known_reasons = [
+        'Newly identified',
+        'Returned from housing',
+        'Returned from inactive',
+        'Inactive',
+        'No longer meets criteria',
+      ]
+      transaction do
+        range.each do |date|
+          cohort_classes.each do |config_key, klass|
+            next unless GrdaWarehouse::Config.get(config_key)
+
+            cohort = klass.first
+            next unless cohort
+
+            # remove any known changes that were added by the system
+            GrdaWarehouse::CohortClientChange.where(
+              cohort_id: cohort.id,
+              user_id: User.system_user.id,
+              reason: known_reasons,
+              changed_at: date.to_time .. (date + 1.days).to_time,
+            ).delete_all
+
+            cohort.sync(processing_date: date)
+          end
+        end
+      end
+    end
+
     # Factory
     def self.update_system_cohorts(processing_date: nil, date_window: nil)
       processing_date ||= ::GrdaWarehouse::Config.get(:system_cohort_processing_date) || Date.current
@@ -62,7 +93,7 @@ module GrdaWarehouse::SystemCohorts
           user_id: system_user_id,
           change: 'create',
           reason: reason,
-          changed_at: Time.current,
+          changed_at: @processing_date,
         )
       end
       cohort_client_changes_source.import(changes_batch)
@@ -82,7 +113,7 @@ module GrdaWarehouse::SystemCohorts
             user_id: system_user_id,
             change: 'destroy',
             reason: reason,
-            changed_at: Time.current,
+            changed_at: @processing_date,
           )
         end,
       )
