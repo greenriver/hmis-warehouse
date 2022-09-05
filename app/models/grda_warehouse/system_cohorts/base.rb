@@ -77,6 +77,8 @@ module GrdaWarehouse::SystemCohorts
             column.cohort = self
             cohort_client[column.column] = column.default_value(client_id)
           end
+          # Enforce that we added the client on the processing date
+          cohort_client[:date_added_to_cohort] = @processing_date
         end
 
         cohort_client_batch << cohort_client

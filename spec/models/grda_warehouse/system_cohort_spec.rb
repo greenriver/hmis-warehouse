@@ -41,6 +41,7 @@ RSpec.describe GrdaWarehouse::SystemCohorts::CurrentlyHomeless, type: :model do
     create(
       :hud_export,
       data_source_id: source_client.data_source_id,
+      ExportEndDate: Date.new(2021, 8, 3),
     )
   end
   let!(:es_source_project) do
@@ -130,7 +131,7 @@ RSpec.describe GrdaWarehouse::SystemCohorts::CurrentlyHomeless, type: :model do
       context 'prior to enrollment date' do
         before(:each) do
           travel_to Date.new(2021, 3, 30) do
-            GrdaWarehouse::SystemCohorts::Base.update_system_cohorts
+            rebuild_day
           end
         end
 
@@ -147,10 +148,10 @@ RSpec.describe GrdaWarehouse::SystemCohorts::CurrentlyHomeless, type: :model do
       before(:each) do
         config_setup
         travel_to Date.new(2021, 3, 30) do
-          GrdaWarehouse::SystemCohorts::Base.update_system_cohorts
+          rebuild_day
         end
         travel_to Date.new(2021, 4, 1) do
-          GrdaWarehouse::SystemCohorts::Base.update_system_cohorts
+          rebuild_day
         end
       end
 
@@ -172,15 +173,15 @@ RSpec.describe GrdaWarehouse::SystemCohorts::CurrentlyHomeless, type: :model do
       before(:each) do
         config_setup
         travel_to Date.new(2021, 3, 30) do
-          GrdaWarehouse::SystemCohorts::Base.update_system_cohorts
+          rebuild_day
         end
         travel_to Date.new(2021, 4, 1) do
-          GrdaWarehouse::SystemCohorts::Base.update_system_cohorts
+          rebuild_day
         end
         ph_source_enrollment.update(PersonalID: source_client.PersonalID)
         GrdaWarehouse::Tasks::ServiceHistory::Enrollment.all.each(&:rebuild_service_history!)
         travel_to Date.new(2021, 5, 30) do
-          GrdaWarehouse::SystemCohorts::Base.update_system_cohorts
+          rebuild_day
         end
       end
 
@@ -197,18 +198,18 @@ RSpec.describe GrdaWarehouse::SystemCohorts::CurrentlyHomeless, type: :model do
       before(:each) do
         config_setup
         travel_to Date.new(2021, 3, 30) do
-          GrdaWarehouse::SystemCohorts::Base.update_system_cohorts
+          rebuild_day
         end
         travel_to Date.new(2021, 4, 1) do
-          GrdaWarehouse::SystemCohorts::Base.update_system_cohorts
+          rebuild_day
         end
         ph_source_enrollment.update(PersonalID: source_client.PersonalID)
         GrdaWarehouse::Tasks::ServiceHistory::Enrollment.all.each(&:rebuild_service_history!)
         travel_to Date.new(2021, 5, 30) do
-          GrdaWarehouse::SystemCohorts::Base.update_system_cohorts
+          rebuild_day
         end
         travel_to Date.new(2021, 6, 2) do
-          GrdaWarehouse::SystemCohorts::Base.update_system_cohorts
+          rebuild_day
         end
       end
 
@@ -229,20 +230,17 @@ RSpec.describe GrdaWarehouse::SystemCohorts::CurrentlyHomeless, type: :model do
           GrdaWarehouse::SystemCohorts::Base.update_system_cohorts
         end
         travel_to Date.new(2021, 4, 1) do
-          GrdaWarehouse::SystemCohorts::Base.update_system_cohorts
+          rebuild_day
         end
         ph_source_enrollment.update(PersonalID: source_client.PersonalID)
-        GrdaWarehouse::Tasks::ServiceHistory::Enrollment.all.each(&:rebuild_service_history!)
         travel_to Date.new(2021, 5, 30) do
-          GrdaWarehouse::SystemCohorts::Base.update_system_cohorts
+          rebuild_day
         end
         travel_to Date.new(2021, 6, 2) do
-          GrdaWarehouse::SystemCohorts::Base.update_system_cohorts
+          rebuild_day
         end
         travel_to Date.new(2021, 7, 2) do
-          GrdaWarehouse::Tasks::ServiceHistory::Enrollment.update_all(processed_as: nil)
-          GrdaWarehouse::Tasks::ServiceHistory::Enrollment.all.each(&:rebuild_service_history!)
-          GrdaWarehouse::SystemCohorts::Base.update_system_cohorts
+          rebuild_day
         end
       end
 
@@ -257,8 +255,8 @@ RSpec.describe GrdaWarehouse::SystemCohorts::CurrentlyHomeless, type: :model do
       end
 
       it 'Notes the client has been removed' do
-        expect(GrdaWarehouse::CohortClientChange.where(reason: 'No longer meets criteria').count).to eq(1)
-        cohort_client_id = GrdaWarehouse::CohortClientChange.where(reason: 'No longer meets criteria').first.cohort_client_id
+        expect(GrdaWarehouse::CohortClientChange.where(reason: 'Housed').count).to eq(1)
+        cohort_client_id = GrdaWarehouse::CohortClientChange.where(reason: 'Housed').first.cohort_client_id
         deleted_cohort_client = GrdaWarehouse::CohortClient.only_deleted.find(cohort_client_id)
         expect(deleted_cohort_client.client_id).to eq(client.id)
       end
@@ -267,6 +265,7 @@ RSpec.describe GrdaWarehouse::SystemCohorts::CurrentlyHomeless, type: :model do
       before(:each) do
         ph_source_enrollment.update(PersonalID: source_client.PersonalID)
         config_setup
+        GrdaWarehouse::Tasks::ServiceHistory::Enrollment.update_all(processed_as: nil)
         GrdaWarehouse::Tasks::ServiceHistory::Enrollment.all.each(&:rebuild_service_history!)
         GrdaWarehouse::SystemCohorts::Base.update_system_cohort_changes(range: Date.new(2021, 3, 30)..Date.new(2021, 7, 2))
       end
@@ -281,12 +280,26 @@ RSpec.describe GrdaWarehouse::SystemCohorts::CurrentlyHomeless, type: :model do
         expect(GrdaWarehouse::CohortClientChange.where(reason: 'Newly identified').first.cohort_client.client_id).to eq(client.id)
       end
 
+      it 'Client addition occurred on entry date' do
+        expect(GrdaWarehouse::CohortClientChange.where(reason: 'Newly identified').first.changed_at.to_date).to eq(ch_source_enrollment.EntryDate)
+      end
+
       it 'Notes the client has been removed' do
-        expect(GrdaWarehouse::CohortClientChange.where(reason: 'No longer meets criteria').count).to eq(1)
-        cohort_client_id = GrdaWarehouse::CohortClientChange.where(reason: 'No longer meets criteria').first.cohort_client_id
+        expect(GrdaWarehouse::CohortClientChange.where(reason: 'Housed').count).to eq(1)
+        cohort_client_id = GrdaWarehouse::CohortClientChange.where(reason: 'Housed').first.cohort_client_id
         deleted_cohort_client = GrdaWarehouse::CohortClient.only_deleted.find(cohort_client_id)
         expect(deleted_cohort_client.client_id).to eq(client.id)
       end
+
+      it 'Client removal occurred on day after move-in date' do
+        expect(GrdaWarehouse::CohortClientChange.where(reason: 'Housed').first.changed_at.to_date).to eq(ph_source_enrollment.MoveInDate + 1.days)
+      end
     end
   end
+end
+
+def rebuild_day
+  GrdaWarehouse::Tasks::ServiceHistory::Enrollment.update_all(processed_as: nil)
+  GrdaWarehouse::Tasks::ServiceHistory::Enrollment.all.each(&:rebuild_service_history!)
+  GrdaWarehouse::SystemCohorts::Base.update_system_cohorts
 end
