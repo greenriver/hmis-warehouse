@@ -11,3 +11,33 @@
 #
 # use with caution!
 RailsDrivers.loaded << :performance_measurement
+
+Rails.application.config.help_links << {
+  controller_path: 'performance_measurement/warehouse_reports/reports',
+  action_name: 'index',
+  external_url: 'https://github.com/greenriver/hmis-warehouse/wiki/CoC-Performance-Measurement-Dashboard',
+}
+
+Rails.application.config.help_links << {
+  controller_path: 'performance_measurement/warehouse_reports/reports',
+  action_name: 'show',
+  external_url: 'https://github.com/greenriver/hmis-warehouse/wiki/CoC-Performance-Measurement-Dashboard',
+}
+
+Rails.application.config.help_links << {
+  controller_path: 'performance_measurement/warehouse_reports/reports',
+  action_name: 'details',
+  external_url: 'https://github.com/greenriver/hmis-warehouse/wiki/CoC-Performance-Measurement-Dashboard',
+}
+
+Rails.application.config.help_links << {
+  controller_path: 'performance_measurement/warehouse_reports/goal_configs',
+  action_name: 'index',
+  external_url: 'https://github.com/greenriver/hmis-warehouse/wiki/CoC-Performance-Measurement-Dashboard',
+}
+
+Rails.application.config.help_links << {
+  controller_path: 'performance_measurement/warehouse_reports/goal_configs',
+  action_name: 'edit',
+  external_url: 'https://github.com/greenriver/hmis-warehouse/wiki/CoC-Performance-Measurement-Dashboard',
+}

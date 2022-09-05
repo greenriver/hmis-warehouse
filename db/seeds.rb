@@ -283,10 +283,6 @@ def install_shapes
   end
 end
 
-def maintain_help_files
-
-end
-
 def maintain_zip_code_shapes
   GrdaWarehouse::Shape::ZipCode.calculate_states
   GrdaWarehouse::Shape::ZipCode.calculate_counties
@@ -330,5 +326,6 @@ GrdaWarehouse::WarehouseReports::ReportDefinition.maintain_report_definitions
 maintain_health_seeds
 # install_shapes() # run manually as needed
 maintain_lookups
+GrdaWarehouse::Help.setup_default_links
 maintain_system_groups
 maintain_zip_code_shapes
