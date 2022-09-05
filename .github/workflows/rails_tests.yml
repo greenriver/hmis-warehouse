@@ -161,4 +161,4 @@ jobs:
           MAX_FAILURES: 20
           LOG_LEVEL: INFO
         run: |
-          bundle exec rspec --color --format p -P "{spec/models/cohort_columns,drivers/custom_imports_boston_services,drivers/hmis_csv_twenty_twenty_two}/**/*_spec.rb"
+          bundle exec rspec --seed 1234 --bisect --color --format p -P "{spec/models/cohort_columns,drivers/custom_imports_boston_services,drivers/hmis_csv_twenty_twenty_two}/**/*_spec.rb"
