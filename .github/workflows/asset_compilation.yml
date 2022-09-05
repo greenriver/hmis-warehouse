@@ -1,147 +1,147 @@
-on:
-  push:
-    branches:
-      - '*'
-      - '**/*'
+# on:
+#   push:
+#     branches:
+#       - '*'
+#       - '**/*'
 
-name: Precompile any assets that have changed and push them to S3
+# name: Precompile any assets that have changed and push them to S3
 
-concurrency:
-  group: ${{ github.ref }}-asset-compilation
-  cancel-in-progress: true
+# concurrency:
+#   group: ${{ github.ref }}-asset-compilation
+#   cancel-in-progress: true
 
-jobs:
-  compile:
-    name: Compile
+# jobs:
+#   compile:
+#     name: Compile
 
-    strategy:
-      matrix:
-        client_group:
-          - gha_staging_load_1
-          - gha_staging_load_2
-          - gha_staging_load_3
-          - gha_staging_load_4
-          - gha_staging_load_5
-          - gha_staging_load_6
-          - gha_staging_load_7
-          - gha_staging_load_8
-          - gha_staging_load_9
-          - gha_staging_load_10
-          - gha_staging_load_11
-          - gha_staging_load_12
-          - gha_staging_load_13
-          - gha_production_load_1
-          - gha_production_load_2
-          - gha_production_load_3
-          - gha_production_load_4
-          # client removed - gha_production_load_5
-          - gha_production_load_6
-          - gha_production_load_7
-          - gha_production_load_8
-          - gha_production_load_9
-          - gha_production_load_10
-          - gha_production_load_11
-          - gha_production_load_12
+#     strategy:
+#       matrix:
+#         client_group:
+#           - gha_staging_load_1
+#           - gha_staging_load_2
+#           - gha_staging_load_3
+#           - gha_staging_load_4
+#           - gha_staging_load_5
+#           - gha_staging_load_6
+#           - gha_staging_load_7
+#           - gha_staging_load_8
+#           - gha_staging_load_9
+#           - gha_staging_load_10
+#           - gha_staging_load_11
+#           - gha_staging_load_12
+#           - gha_staging_load_13
+#           - gha_production_load_1
+#           - gha_production_load_2
+#           - gha_production_load_3
+#           - gha_production_load_4
+#           # client removed - gha_production_load_5
+#           - gha_production_load_6
+#           - gha_production_load_7
+#           - gha_production_load_8
+#           - gha_production_load_9
+#           - gha_production_load_10
+#           - gha_production_load_11
+#           - gha_production_load_12
 
-    runs-on: ubuntu-20.04
-    container: ruby:2.7.6-alpine3.15
+#     runs-on: ubuntu-20.04
+#     container: ruby:2.7.6-alpine3.15
 
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v3
+#     steps:
+#     - name: Checkout
+#       uses: actions/checkout@v3
 
-    - name: Install GNU tar (required by cache step and checksumming)
-      run: |
-        apk add --no-cache tar
+#     - name: Install GNU tar (required by cache step and checksumming)
+#       run: |
+#         apk add --no-cache tar
 
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v1
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: us-east-1
+#     - name: Configure AWS credentials
+#       uses: aws-actions/configure-aws-credentials@v1
+#       with:
+#         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#         aws-region: us-east-1
 
-    - name: Set up dependencies
-      env:
-        DATABASE_APP_DB_TEST: boston_hmis_test
-        WAREHOUSE_DATABASE_DB_TEST: warehouse_test
-        HEALTH_DATABASE_DB_TEST: health_test
-        DATABASE_DB_TEST: cas_test
-        REPORTING_DATABASE_DB_TEST: reporting_test
-      run: |
-        apk add --no-cache \
-          nodejs yarn \
-          tzdata \
-          git \
-          bash \
-          freetds-dev \
-          icu icu-dev \
-          curl libcurl curl-dev \
-          imagemagick \
-          libmagic file-dev file \
-          build-base libxml2-dev libxslt-dev postgresql-dev \
-          libgcc libstdc++ libx11 glib libxrender libxext libintl ttf-dejavu ttf-droid ttf-freefont ttf-liberation ttf-freefont \
-          chromium nss freetype freetype-dev harfbuzz ca-certificates ttf-freefont \
-          lftp postgresql tmux postgis geos geos-dev \
-          shared-mime-info \
-          python3 py3-pip
+#     - name: Set up dependencies
+#       env:
+#         DATABASE_APP_DB_TEST: boston_hmis_test
+#         WAREHOUSE_DATABASE_DB_TEST: warehouse_test
+#         HEALTH_DATABASE_DB_TEST: health_test
+#         DATABASE_DB_TEST: cas_test
+#         REPORTING_DATABASE_DB_TEST: reporting_test
+#       run: |
+#         apk add --no-cache \
+#           nodejs yarn \
+#           tzdata \
+#           git \
+#           bash \
+#           freetds-dev \
+#           icu icu-dev \
+#           curl libcurl curl-dev \
+#           imagemagick \
+#           libmagic file-dev file \
+#           build-base libxml2-dev libxslt-dev postgresql-dev \
+#           libgcc libstdc++ libx11 glib libxrender libxext libintl ttf-dejavu ttf-droid ttf-freefont ttf-liberation ttf-freefont \
+#           chromium nss freetype freetype-dev harfbuzz ca-certificates ttf-freefont \
+#           lftp postgresql tmux postgis geos geos-dev \
+#           shared-mime-info \
+#           python3 py3-pip
 
-        pip3 install awscli
+#         pip3 install awscli
 
-        echo "postgres:5432:*:postgres:postgres" > ~/.pgpass
-        chmod 600 ~/.pgpass
+#         echo "postgres:5432:*:postgres:postgres" > ~/.pgpass
+#         chmod 600 ~/.pgpass
 
-        yarn install
-        gem install bundler --version=2.3.8
+#         yarn install
+#         gem install bundler --version=2.3.8
 
-    # According to https://www.jessesquires.com/blog/2021/08/23/caching-bundler-on-github-actions/
-    # this is fragile and failure prone, but the step they recommend using instead (ruby/ruby-setup)
-    # isn't supported on Alpine.
-    - name: cache gems
-      uses: actions/cache@v3
-      id: gemcache
-      with:
-        path: |
-          vendor/bundle
-          /usr/local/bundle/
-        key: ${{ runner.os }}-gemcache-${{ hashFiles('**/Gemfile.lock') }}-${{ hashFiles('**/.ruby-version') }}
-        # restore-keys: |
-        #   ${{ runner.os }}-gem-bundler-
-    # - name: Ruby
-    #   uses: ruby/setup-ruby@v1
-    #   with:
-    #     bundler-cache: true
+#     # According to https://www.jessesquires.com/blog/2021/08/23/caching-bundler-on-github-actions/
+#     # this is fragile and failure prone, but the step they recommend using instead (ruby/ruby-setup)
+#     # isn't supported on Alpine.
+#     - name: cache gems
+#       uses: actions/cache@v3
+#       id: gemcache
+#       with:
+#         path: |
+#           vendor/bundle
+#           /usr/local/bundle/
+#         key: ${{ runner.os }}-gemcache-${{ hashFiles('**/Gemfile.lock') }}-${{ hashFiles('**/.ruby-version') }}
+#         # restore-keys: |
+#         #   ${{ runner.os }}-gem-bundler-
+#     # - name: Ruby
+#     #   uses: ruby/setup-ruby@v1
+#     #   with:
+#     #     bundler-cache: true
 
-    - name: Install gems
-      if: always()
-      run: |
-        bundle config set --local without 'production staging development'
-        bundle install --jobs 10 --retry 3
+#     - name: Install gems
+#       if: always()
+#       run: |
+#         bundle config set --local without 'production staging development'
+#         bundle install --jobs 10 --retry 3
 
-    - name: Generate checksum and compile
-      env:
-        SECRETS_YML_SECRET_ARN: ${{ secrets.SECRETS_YML_SECRET_ARN }}
-        DATABASE_ADAPTER: postgresql
-        DATABASE_HOST: postgres
-        DATABASE_PASS: postgres
-        DATABASE_USER: postgres
-        DEFAULT_FROM: greenriver.testing@mailinator.com
-        ENCRYPTION_KEY: strongEncryptionstrongEncryptionstrongEncryption
-        HEALTH_DATABASE_ADAPTER: postgresql
-        HEALTH_DATABASE_HOST: postgres
-        HEALTH_DATABASE_PASS: postgres
-        HEALTH_DATABASE_USER: postgres
-        HEALTH_FROM: greenriver.testing@mailinator.com
-        REPORTING_DATABASE_ADAPTER: postgresql
-        REPORTING_DATABASE_HOST: postgres
-        REPORTING_DATABASE_PASS: postgres
-        REPORTING_DATABASE_USER: postgres
-        WAREHOUSE_DATABASE_ADAPTER: postgis
-        WAREHOUSE_DATABASE_HOST: postgres
-        WAREHOUSE_DATABASE_PASS: postgres
-        WAREHOUSE_DATABASE_USER: postgres
-        WAREHOUSE_DATABASE_DB: warehouse_db
-        HEALTH_DATABASE_DB: health_db
-        REPORTING_DATABASE_DB: reporting_db
-      run: |
-        DEPLOY_PROTECT_SECRETS=true EXCEPTION_WEBHOOK_CHANNEL_OVERRIDE=gr-op-gha-except bundle exec bin/compile_assets.rb ${{ matrix.client_group }}
+#     - name: Generate checksum and compile
+#       env:
+#         SECRETS_YML_SECRET_ARN: ${{ secrets.SECRETS_YML_SECRET_ARN }}
+#         DATABASE_ADAPTER: postgresql
+#         DATABASE_HOST: postgres
+#         DATABASE_PASS: postgres
+#         DATABASE_USER: postgres
+#         DEFAULT_FROM: greenriver.testing@mailinator.com
+#         ENCRYPTION_KEY: strongEncryptionstrongEncryptionstrongEncryption
+#         HEALTH_DATABASE_ADAPTER: postgresql
+#         HEALTH_DATABASE_HOST: postgres
+#         HEALTH_DATABASE_PASS: postgres
+#         HEALTH_DATABASE_USER: postgres
+#         HEALTH_FROM: greenriver.testing@mailinator.com
+#         REPORTING_DATABASE_ADAPTER: postgresql
+#         REPORTING_DATABASE_HOST: postgres
+#         REPORTING_DATABASE_PASS: postgres
+#         REPORTING_DATABASE_USER: postgres
+#         WAREHOUSE_DATABASE_ADAPTER: postgis
+#         WAREHOUSE_DATABASE_HOST: postgres
+#         WAREHOUSE_DATABASE_PASS: postgres
+#         WAREHOUSE_DATABASE_USER: postgres
+#         WAREHOUSE_DATABASE_DB: warehouse_db
+#         HEALTH_DATABASE_DB: health_db
+#         REPORTING_DATABASE_DB: reporting_db
+#       run: |
+#         DEPLOY_PROTECT_SECRETS=true EXCEPTION_WEBHOOK_CHANNEL_OVERRIDE=gr-op-gha-except bundle exec bin/compile_assets.rb ${{ matrix.client_group }}

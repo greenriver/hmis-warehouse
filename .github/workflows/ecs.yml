@@ -1,155 +1,155 @@
-# This workflow will build and push a new container image to Amazon ECR,
-# and then will deploy a new task definition to Amazon ECS, on every push
-# to the production branch.
-#
-# To use this workflow, you will need to complete the following set-up steps:
-#
-# 1. Create an ECR repository to store your images.
-#    For example: `aws ecr create-repository --repository-name my-ecr-repo --region us-east-2`.
-#    Replace the value of `ECR_REPOSITORY` in the workflow below with your repository's name.
-#    Replace the value of `aws-region` in the workflow below with your repository's region.
-#
-# 2. Create an ECS task definition, an ECS cluster, and an ECS service.
-#    For example, follow the Getting Started guide on the ECS console:
-#      https://us-east-2.console.aws.amazon.com/ecs/home?region=us-east-2#/firstRun
-#    Replace the values for `service` and `cluster` in the workflow below with your service and cluster names.
-#
-# 3. Store your ECS task definition as a JSON file in your repository.
-#    The format should follow the output of `aws ecs register-task-definition --generate-cli-skeleton`.
-#    Replace the value of `task-definition` in the workflow below with your JSON file's name.
-#    Replace the value of `container-name` in the workflow below with the name of the container
-#    in the `containerDefinitions` section of the task definition.
-#
-# 4. Store an IAM user access key in GitHub Actions secrets named `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`.
-#    See the documentation for each action used below for the recommended IAM policies for this IAM user,
-#    and best practices on handling the access key credentials.
+# # This workflow will build and push a new container image to Amazon ECR,
+# # and then will deploy a new task definition to Amazon ECS, on every push
+# # to the production branch.
+# #
+# # To use this workflow, you will need to complete the following set-up steps:
+# #
+# # 1. Create an ECR repository to store your images.
+# #    For example: `aws ecr create-repository --repository-name my-ecr-repo --region us-east-2`.
+# #    Replace the value of `ECR_REPOSITORY` in the workflow below with your repository's name.
+# #    Replace the value of `aws-region` in the workflow below with your repository's region.
+# #
+# # 2. Create an ECS task definition, an ECS cluster, and an ECS service.
+# #    For example, follow the Getting Started guide on the ECS console:
+# #      https://us-east-2.console.aws.amazon.com/ecs/home?region=us-east-2#/firstRun
+# #    Replace the values for `service` and `cluster` in the workflow below with your service and cluster names.
+# #
+# # 3. Store your ECS task definition as a JSON file in your repository.
+# #    The format should follow the output of `aws ecs register-task-definition --generate-cli-skeleton`.
+# #    Replace the value of `task-definition` in the workflow below with your JSON file's name.
+# #    Replace the value of `container-name` in the workflow below with the name of the container
+# #    in the `containerDefinitions` section of the task definition.
+# #
+# # 4. Store an IAM user access key in GitHub Actions secrets named `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`.
+# #    See the documentation for each action used below for the recommended IAM policies for this IAM user,
+# #    and best practices on handling the access key credentials.
 
-on:
-  push:
-    branches:
-      - '*'
-      - '**/*'
+# on:
+#   push:
+#     branches:
+#       - '*'
+#       - '**/*'
 
-name: Build and Upload Container Image to ECR
+# name: Build and Upload Container Image to ECR
 
-concurrency:
-  group: ${{ github.ref }}-ecs
-  cancel-in-progress: true
+# concurrency:
+#   group: ${{ github.ref }}-ecs
+#   cancel-in-progress: true
 
-jobs:
-  deploy:
-    name: Deploy
-    runs-on: ubuntu-20.04
+# jobs:
+#   deploy:
+#     name: Deploy
+#     runs-on: ubuntu-20.04
 
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v3
+#     steps:
+#     - name: Checkout
+#       uses: actions/checkout@v3
 
-    - name: Install aws cli
-      id: install-aws-cli
-      uses: unfor19/install-aws-cli-action@v1.0.3
+#     - name: Install aws cli
+#       id: install-aws-cli
+#       uses: unfor19/install-aws-cli-action@v1.0.3
 
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v1
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: us-east-1
+#     - name: Configure AWS credentials
+#       uses: aws-actions/configure-aws-credentials@v1
+#       with:
+#         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#         aws-region: us-east-1
 
-    - name: Login to Amazon ECR
-      id: login-ecr
-      uses: aws-actions/amazon-ecr-login@v1
+#     - name: Login to Amazon ECR
+#       id: login-ecr
+#       uses: aws-actions/amazon-ecr-login@v1
 
-    - name: Prepare
-      id: prep
-      env:
-        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
-        SHA: ${{ github.sha }}
-        DOCKER_ASSETS_PATH: config/deploy/docker/assets
-      run: |
-        export GITHASH="${SHA::9}"
-        export IMAGE_TAG="githash-${GITHASH}"
-        export RUBY_VERSION=`cat .ruby-version`
-        export PRE_CACHE_VERSION=`cat .pre-cache-version`
-        export PRE_CACHE_TAG="${RUBY_VERSION}-${PRE_CACHE_VERSION}--pre-cache"
+#     - name: Prepare
+#       id: prep
+#       env:
+#         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+#         ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+#         SHA: ${{ github.sha }}
+#         DOCKER_ASSETS_PATH: config/deploy/docker/assets
+#       run: |
+#         export GITHASH="${SHA::9}"
+#         export IMAGE_TAG="githash-${GITHASH}"
+#         export RUBY_VERSION=`cat .ruby-version`
+#         export PRE_CACHE_VERSION=`cat .pre-cache-version`
+#         export PRE_CACHE_TAG="${RUBY_VERSION}-${PRE_CACHE_VERSION}--pre-cache"
 
-        echo $SHA > $DOCKER_ASSETS_PATH/REVISION
+#         echo $SHA > $DOCKER_ASSETS_PATH/REVISION
 
-        echo "::set-output name=pre_cache_tag::$PRE_CACHE_TAG"
-        echo "::set-output name=githash::$GITHASH"
-        echo "::set-output name=ruby_version::$RUBY_VERSION"
-        echo "::set-output name=docker_assets_path::$DOCKER_ASSETS_PATH"
-        echo "::set-output name=image_tag::$IMAGE_TAG"
+#         echo "::set-output name=pre_cache_tag::$PRE_CACHE_TAG"
+#         echo "::set-output name=githash::$GITHASH"
+#         echo "::set-output name=ruby_version::$RUBY_VERSION"
+#         echo "::set-output name=docker_assets_path::$DOCKER_ASSETS_PATH"
+#         echo "::set-output name=image_tag::$IMAGE_TAG"
 
-        GITHASH=${GITHASH} VARIANT='base' bin/error_if_githash_is_latest
-        GITHASH=${GITHASH} VARIANT='web' bin/error_if_githash_is_latest
-        GITHASH=${GITHASH} VARIANT='dj' bin/error_if_githash_is_latest
-        GITHASH=${GITHASH} VARIANT='deploy' bin/error_if_githash_is_latest
+#         GITHASH=${GITHASH} VARIANT='base' bin/error_if_githash_is_latest
+#         GITHASH=${GITHASH} VARIANT='web' bin/error_if_githash_is_latest
+#         GITHASH=${GITHASH} VARIANT='dj' bin/error_if_githash_is_latest
+#         GITHASH=${GITHASH} VARIANT='deploy' bin/error_if_githash_is_latest
 
-    # git commit --allow-empty -m "[gh:rebuild]"
-    - name: (Maybe) Rebuild pre-cache image
-      id: pre-cache
-      env:
-        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        DOCKER_ASSETS_PATH: ${{ steps.prep.outputs.docker_assets_path }}
-        ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
-        RUBY_VERSION: ${{ steps.prep.outputs.ruby_version }}
-        PRE_CACHE_TAG: ${{ steps.prep.outputs.pre_cache_tag }}
-      run: |
-        if git log -1 | fgrep '[gh:rebuild]' ;
-        then
-          echo Building pre-cache image
-          docker build --file=$DOCKER_ASSETS_PATH/Dockerfile.${ECR_REPOSITORY}.pre-cache --build-arg RUBY_VERSION=${RUBY_VERSION} -t $ECR_REGISTRY/$ECR_REPOSITORY:${PRE_CACHE_TAG} .
-          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:${PRE_CACHE_TAG} ${ECR_REPOSITORY}:latest--pre-cache
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:${PRE_CACHE_TAG}
-        else
-          docker pull $ECR_REGISTRY/$ECR_REPOSITORY:${PRE_CACHE_TAG}
-          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:${PRE_CACHE_TAG} ${ECR_REPOSITORY}:latest--pre-cache
-        fi
+#     # git commit --allow-empty -m "[gh:rebuild]"
+#     - name: (Maybe) Rebuild pre-cache image
+#       id: pre-cache
+#       env:
+#         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+#         DOCKER_ASSETS_PATH: ${{ steps.prep.outputs.docker_assets_path }}
+#         ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+#         RUBY_VERSION: ${{ steps.prep.outputs.ruby_version }}
+#         PRE_CACHE_TAG: ${{ steps.prep.outputs.pre_cache_tag }}
+#       run: |
+#         if git log -1 | fgrep '[gh:rebuild]' ;
+#         then
+#           echo Building pre-cache image
+#           docker build --file=$DOCKER_ASSETS_PATH/Dockerfile.${ECR_REPOSITORY}.pre-cache --build-arg RUBY_VERSION=${RUBY_VERSION} -t $ECR_REGISTRY/$ECR_REPOSITORY:${PRE_CACHE_TAG} .
+#           docker tag $ECR_REGISTRY/$ECR_REPOSITORY:${PRE_CACHE_TAG} ${ECR_REPOSITORY}:latest--pre-cache
+#           docker push $ECR_REGISTRY/$ECR_REPOSITORY:${PRE_CACHE_TAG}
+#         else
+#           docker pull $ECR_REGISTRY/$ECR_REPOSITORY:${PRE_CACHE_TAG}
+#           docker tag $ECR_REGISTRY/$ECR_REPOSITORY:${PRE_CACHE_TAG} ${ECR_REPOSITORY}:latest--pre-cache
+#         fi
 
-    - name: Build, tag, and push image to Amazon ECR
-      id: build-image
-      env:
-        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
-        DOCKER_ASSETS_PATH: ${{ steps.prep.outputs.docker_assets_path }}
-        GITHASH: ${{ steps.prep.outputs.githash }}
-        PRE_CACHE_TAG: ${{ steps.prep.outputs.pre_cache_tag }}
-        IMAGE_TAG: ${{ steps.prep.outputs.image_tag }}
-        RUBY_VERSION: ${{ steps.prep.outputs.ruby_version }}
-      run: |
-        echo $SHA > $DOCKER_ASSETS_PATH/REVISION
-        echo 'no tag generated' > image-tag.txt
+#     - name: Build, tag, and push image to Amazon ECR
+#       id: build-image
+#       env:
+#         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+#         ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+#         DOCKER_ASSETS_PATH: ${{ steps.prep.outputs.docker_assets_path }}
+#         GITHASH: ${{ steps.prep.outputs.githash }}
+#         PRE_CACHE_TAG: ${{ steps.prep.outputs.pre_cache_tag }}
+#         IMAGE_TAG: ${{ steps.prep.outputs.image_tag }}
+#         RUBY_VERSION: ${{ steps.prep.outputs.ruby_version }}
+#       run: |
+#         echo $SHA > $DOCKER_ASSETS_PATH/REVISION
+#         echo 'no tag generated' > image-tag.txt
 
-        echo Building base
-        docker build --file=$DOCKER_ASSETS_PATH/Dockerfile.${ECR_REPOSITORY}.base --build-arg GITHASH=${GITHASH} --build-arg RUBY_VERSION=${RUBY_VERSION} -t ${ECR_REPOSITORY}:latest--base .
-        docker tag ${ECR_REPOSITORY}:latest--base $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--base
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--base
+#         echo Building base
+#         docker build --file=$DOCKER_ASSETS_PATH/Dockerfile.${ECR_REPOSITORY}.base --build-arg GITHASH=${GITHASH} --build-arg RUBY_VERSION=${RUBY_VERSION} -t ${ECR_REPOSITORY}:latest--base .
+#         docker tag ${ECR_REPOSITORY}:latest--base $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--base
+#         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--base
 
-        echo Building web
-        docker build --file=$DOCKER_ASSETS_PATH/Dockerfile.${ECR_REPOSITORY}.web -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--web .
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--web
+#         echo Building web
+#         docker build --file=$DOCKER_ASSETS_PATH/Dockerfile.${ECR_REPOSITORY}.web -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--web .
+#         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--web
 
-        echo Building dj
-        docker build --file=$DOCKER_ASSETS_PATH/Dockerfile.${ECR_REPOSITORY}.dj -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--dj .
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--dj
+#         echo Building dj
+#         docker build --file=$DOCKER_ASSETS_PATH/Dockerfile.${ECR_REPOSITORY}.dj -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--dj .
+#         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--dj
 
-        echo Building deploy
-        docker build --file=$DOCKER_ASSETS_PATH/Dockerfile.${ECR_REPOSITORY}.deploy -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--deploy .
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--deploy
+#         echo Building deploy
+#         docker build --file=$DOCKER_ASSETS_PATH/Dockerfile.${ECR_REPOSITORY}.deploy -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--deploy .
+#         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--deploy
 
-        echo $IMAGE_TAG--base > image-tag.txt
-        echo $IMAGE_TAG--web >> image-tag.txt
-        echo $IMAGE_TAG--dj >> image-tag.txt
-        echo $IMAGE_TAG--deploy >> image-tag.txt
-        echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--base"
-        echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--web"
-        echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--dj"
-        echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--deploy"
+#         echo $IMAGE_TAG--base > image-tag.txt
+#         echo $IMAGE_TAG--web >> image-tag.txt
+#         echo $IMAGE_TAG--dj >> image-tag.txt
+#         echo $IMAGE_TAG--deploy >> image-tag.txt
+#         echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--base"
+#         echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--web"
+#         echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--dj"
+#         echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--deploy"
 
-    - name: Show image tag
-      uses: actions/upload-artifact@v1
-      with:
-        name: Last Image Tag
-        path: image-tag.txt
+#     - name: Show image tag
+#       uses: actions/upload-artifact@v1
+#       with:
+#         name: Last Image Tag
+#         path: image-tag.txt
