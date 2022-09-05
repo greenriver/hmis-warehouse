@@ -20,18 +20,21 @@ module GrdaWarehouse::SystemCohorts
           cohort_classes.each do |config_key, klass|
             next unless GrdaWarehouse::Config.get(config_key)
 
-            cohort = klass.first
-            next unless cohort
+            system_cohort = klass.first_or_create! do |cohort|
+              cohort.name = cohort.cohort_name
+              cohort.system_cohort = true
+              cohort.days_of_inactivity = 90
+            end
 
             # remove any known changes that were added by the system
             GrdaWarehouse::CohortClientChange.where(
-              cohort_id: cohort.id,
+              cohort_id: system_cohort.id,
               user_id: User.system_user.id,
               reason: known_reasons,
               changed_at: date.to_time .. (date + 1.days).to_time,
             ).delete_all
 
-            cohort.sync(processing_date: date)
+            system_cohort.sync(processing_date: date)
           end
         end
       end
@@ -104,12 +107,13 @@ module GrdaWarehouse::SystemCohorts
       return unless client_ids
 
       system_user_id = User.setup_system_user.id
+      cc_ids = cohort_clients.where(client_id: client_ids).pluck(:id)
       cohort_clients.where(client_id: client_ids).update_all(deleted_at: Time.current)
       cohort_client_changes_source.import(
-        client_ids.map do |client_id|
+        cc_ids.map do |cc_id|
           cohort_client_changes_source.new(
             cohort_id: id,
-            cohort_client_id: client_id,
+            cohort_client_id: cc_id,
             user_id: system_user_id,
             change: 'destroy',
             reason: reason,
