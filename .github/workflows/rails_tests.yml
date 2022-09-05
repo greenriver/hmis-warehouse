@@ -161,6 +161,4 @@ jobs:
           MAX_FAILURES: 20
           LOG_LEVEL: INFO
         run: |
-          bundle exec rspec --bisect --seed 1234 --color --format p -P "drivers/**/*_spec.rb"
-        # bundle exec rspec --fail-fast=$MAX_FAILURES --color --format p -P "{spec,drivers}/**/*_spec.rb"
-        # OKTA_DOMAIN=localhost OKTA_CLIENT_ID=x OKTA_CLIENT_SECRET=x bundle exec rspec --fail-fast=$MAX_FAILURES --color -fd spec/requests/omniauth_spec.rb # this one test needs a different ENV
+          bundle exec rspec --color --format p drivers/custom_imports_boston_services/spec/models/import_file_spec.rb drivers/hmis_csv_twenty_twenty_two/spec/models/exporter/date_range_exports_spec.rb
