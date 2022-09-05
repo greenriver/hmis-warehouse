@@ -10,9 +10,9 @@ on:
   #   branches:
   #     - '*'
   #     - '**/*'
-concurrency:
-  group: ${{ github.ref }}-tests
-  cancel-in-progress: false # true
+# concurrency:
+#   group: ${{ github.ref }}-tests
+#   cancel-in-progress: true
 
 jobs:
   # Label of the container job
