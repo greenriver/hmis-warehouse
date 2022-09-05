@@ -87,5 +87,6 @@ module BostonHmis
     config.hmis_data_lake = nil
     config.custom_imports = []
     config.supplemental_enrollment_importers = {}
+    config.help_links = []
   end
 end
