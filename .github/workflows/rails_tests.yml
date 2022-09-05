@@ -161,4 +161,4 @@ jobs:
           MAX_FAILURES: 20
           LOG_LEVEL: INFO
         run: |
-          bundle exec rspec --order defined --bisect --color --format p -P "drivers/**/*_spec.rb"
+          bundle exec rspec --order defined --bisect --color --format p -P "{spec,drivers}/**/*_spec.rb"
