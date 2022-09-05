@@ -283,6 +283,10 @@ def install_shapes
   end
 end
 
+def maintain_help_files
+
+end
+
 def maintain_zip_code_shapes
   GrdaWarehouse::Shape::ZipCode.calculate_states
   GrdaWarehouse::Shape::ZipCode.calculate_counties

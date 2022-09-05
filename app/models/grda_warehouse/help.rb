@@ -38,4 +38,32 @@ class GrdaWarehouse::Help < GrdaWarehouseBase
       'Link to an external site (add a url)' => :external,
     }
   end
+
+  def self.known_defaults
+    []
+  end
+
+  # Allow drivers to inject their help files
+  def self.active_defaults
+    known_defaults + Rails.application.config.help_links
+  end
+
+  def self.setup_default_links
+    existing = where(controller_path: active_defaults.map { |m| m[:controller_path] }).pluck(:controller_path, :action_name).to_h
+    batch = []
+    active_defaults.each do |help|
+      next if existing[help[:controller_path]] == help[:action_name]
+
+      batch << new(
+        location: :external,
+        controller_path: help[:controller_path],
+        action_name: help[:action_name],
+        external_url: help[:external_url],
+        title: '',
+        content: '',
+      )
+    end
+
+    import(batch)
+  end
 end
