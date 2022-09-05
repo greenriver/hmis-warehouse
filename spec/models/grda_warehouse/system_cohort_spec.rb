@@ -165,7 +165,74 @@ RSpec.describe GrdaWarehouse::SystemCohorts::CurrentlyHomeless, type: :model do
 
         it 'Notes the client has been added' do
           expect(GrdaWarehouse::CohortClientChange.where(reason: 'Newly identified').count).to eq(1)
-          expect(GrdaWarehouse::CohortClientChange.where(reason: 'Newly identified').client_id).to eq(client.id)
+          expect(GrdaWarehouse::CohortClientChange.where(reason: 'Newly identified', client_id: client.id)).to be_present
+        end
+        context 'pre-PH enrollment date' do
+          before(:each) do
+            ph_source_enrollment.update(PersonalID: source_client.PersonalID)
+            GrdaWarehouse::Tasks::ServiceHistory::Enrollment.all.each(&:rebuild_service_history!)
+            travel_to Date.new(2021, 5, 30)
+            SystemCohortsJob.set(priority: 10).perform_now
+          end
+
+          after(:each) do
+            travel_back
+          end
+
+          it 'Currently homeless system cohort contains one client' do
+            expect(GrdaWarehouse::SystemCohorts::CurrentlyHomeless.first.cohort_clients.count).to eq(1)
+          end
+
+          it 'Notes the client has been added' do
+            expect(GrdaWarehouse::CohortClientChange.where(reason: 'Newly identified').count).to eq(1)
+            expect(GrdaWarehouse::CohortClientChange.where(reason: 'Newly identified', client_id: client.id)).to be_present
+          end
+          context 'post-PH enrollment date' do
+            before(:each) do
+              travel_to Date.new(2021, 6, 2)
+              SystemCohortsJob.set(priority: 10).perform_now
+            end
+
+            after(:each) do
+              travel_back
+            end
+
+            it 'Currently homeless system cohort contains one client' do
+              expect(GrdaWarehouse::SystemCohorts::CurrentlyHomeless.first.cohort_clients.count).to eq(1)
+            end
+
+            it 'Notes the client has been added' do
+              expect(GrdaWarehouse::CohortClientChange.where(reason: 'Newly identified').count).to eq(1)
+              expect(GrdaWarehouse::CohortClientChange.where(reason: 'Newly identified', client_id: client.id)).to be_present
+            end
+            context 'post-PH move-in enrollment date' do
+              before(:each) do
+                travel_to Date.new(2021, 7, 2)
+                GrdaWarehouse::Tasks::ServiceHistory::Enrollment.update_all(processed_as: nil)
+                GrdaWarehouse::Tasks::ServiceHistory::Enrollment.all.each(&:rebuild_service_history!)
+                SystemCohortsJob.set(priority: 10).perform_now
+              end
+
+              after(:each) do
+                travel_back
+              end
+
+              it 'Currently homeless system cohort contains no clients' do
+                expect(GrdaWarehouse::SystemCohorts::CurrentlyHomeless.first.cohort_clients.count).to eq(0)
+              end
+
+              it 'Notes the client has been added' do
+                expect(GrdaWarehouse::CohortClientChange.where(reason: 'Newly identified').count).to eq(1)
+                expect(GrdaWarehouse::CohortClientChange.where(reason: 'Newly identified', client_id: client.id)).to be_present
+              end
+
+              it 'Notes the client has been removed' do
+                # FIXME: why are there no SHS for the PH enrollment?
+                expect(GrdaWarehouse::CohortClientChange.where(reason: 'No longer meets criteria').count).to eq(1)
+                expect(GrdaWarehouse::CohortClientChange.where(reason: 'No longer meets criteria', client_id: client.id)).to be_present
+              end
+            end
+          end
         end
       end
     end
