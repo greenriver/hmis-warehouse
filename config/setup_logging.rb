@@ -34,6 +34,12 @@ class SetupLogging
       block.call
     end
 
+    def current_tags
+      # We use our object ID here to avoid conflicting with other instances
+      thread_key = @thread_key ||= "activesupport_tagged_logging_tags:#{object_id}"
+      Thread.current[thread_key] ||= []
+    end
+
     def clear_tags!
       @tags = {}
     end
