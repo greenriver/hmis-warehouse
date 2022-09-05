@@ -99,8 +99,6 @@ module GrdaWarehouse::SystemCohorts
     private def remove_housed_clients
       # Housed (received a move-in date in a PH project prior to the processing date,
       #   or exited to a Permanent destination from one of their homeless projects).
-      # Limit to enrollments started after date added to cohort where the exit occurred before the processing date
-
       housed_service_on_processing_date = service_history_source.on_date(@processing_date).
         where(
           client_id: cohort_clients.select(:client_id),
@@ -117,9 +115,7 @@ module GrdaWarehouse::SystemCohorts
         distinct.
         pluck(:client_id)
 
-      # moved-in to PH (anyone with a move-in date prior to processing date and an SHS homeless false on the processing date)
-      # NOTE: we are only looking for move-in dates that occurred after the client was added to the cohort.
-      # A back-dated move-in date from before the client was added would generate a no-longer eligible instead of a "housed" event
+      # moved-in to PH - anyone with a move-in date prior to processing date and an SHS homeless false on the processing date
       moved_in = cohort_clients.joins(client: :service_history_enrollments).
         merge(
           enrollment_source.ph.
@@ -128,13 +124,11 @@ module GrdaWarehouse::SystemCohorts
         ).
         pluck(:client_id) & housed_service_on_processing_date
 
-      # Exited to a permanent destination (anyone with an exit date prior to the processing date - PH destination and no SHS homeless true on the processing date)
-      # NOTE: we are only looking for exit dates that occurred after the client was added to the cohort.
-      # A back-dated PH exit from before the client was added would generate a no-longer eligible instead of a "housed" event
+      # Exited to a permanent destination and no SHS homeless true on the processing date
       with_permanent_destination = cohort_clients.joins(client: :service_history_enrollments).
         merge(
           enrollment_source.
-            where(she_t[:last_date_in_program].gt(c_client_t[:date_added_to_cohort])).
+            # where(she_t[:last_date_in_program].gt(c_client_t[:date_added_to_cohort])).
             where(she_t[:last_date_in_program].lt(@processing_date)).
             where(destination: HUD.permanent_destinations),
         ).pluck(:client_id)
@@ -149,6 +143,7 @@ module GrdaWarehouse::SystemCohorts
       # only look up until the processing date.
       active_client_ids = enrollment_source.
         homeless.
+        ongoing(on_date: @processing_date).
         where(client_id: cohort_clients.select(:client_id)).
         joins(:service_history_services).
         where(shs_t[:date].between(inactive_date..@processing_date)).
@@ -167,13 +162,9 @@ module GrdaWarehouse::SystemCohorts
         ongoing(on_date: @processing_date)
 
       # clients who have a homeless enrollment with an exit that wasn't to a permanent destination
-      # and who exited since they were added to the cohort,
       # and who don't have an ongoing homeless enrollment
       no_ongoing = cohort_clients.joins(client: :service_history_enrollments).
-        where(
-          she_t[:last_date_in_program].gt(c_client_t[:date_added_to_cohort]).
-          and(she_t[:last_date_in_program].lt(@processing_date)),
-        ).
+        where(she_t[:last_date_in_program].lt(@processing_date)).
         where.not(client_id: with_homeless_enrollment.select(:client_id)).
         merge(enrollment_source.where.not(destination: HUD.permanent_destinations)).
         pluck(:client_id)
@@ -182,6 +173,7 @@ module GrdaWarehouse::SystemCohorts
         where(client_id: cohort_clients.select(:client_id)).
         where(she_t[:move_in_date].lt(@processing_date)).
         pluck(:client_id)
+
       remove_clients(no_ongoing | currently_moved_in_ph, 'No longer meets criteria')
     end
 
