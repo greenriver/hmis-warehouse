@@ -137,6 +137,7 @@ module BostonProjectScorecard
         :practices_housing_first,
         :barrier_id_process,
         :plan_to_address_barriers,
+        :required_match_percent_met,
       ].freeze
     end
 
