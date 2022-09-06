@@ -56,13 +56,13 @@ RSpec.describe CustomImportsBostonServices::ImportFile, type: :model do
       expect(CustomImportsBostonServices::Row.count).to eq(6)
     end
 
-    # it 'creates 6 custom services' do
-    #   expect(GrdaWarehouse::Generic::Service.count).to eq(6)
-    # end
+    it 'creates 6 custom services' do
+      expect(GrdaWarehouse::Generic::Service.count).to eq(6)
+    end
 
-    # it 'creates 0 synthetic events' do
-    #   expect(GrdaWarehouse::Synthetic::Event.count).to eq(0)
-    # end
+    it 'creates 0 synthetic events' do
+      expect(GrdaWarehouse::Synthetic::Event.count).to eq(0)
+    end
 
     # describe 'after hud processing' do
     #   before do
