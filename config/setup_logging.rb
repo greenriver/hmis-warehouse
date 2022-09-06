@@ -25,15 +25,20 @@ class SetupLogging
 
   class OpenPathLogFormatter < ::Logger::Formatter
     def tagged(*args, &block)
-      tags = Array.wrap(args)
+      tags = Array.wrap(args).flatten
 
       @tags ||= {}
       if tags[0].is_a?(Hash)
-        @tags.merge!(tags)
+        tags.each do |t|
+          @tags.merge!(t)
+        end
       elsif tags.present?
         @tags.merge!(tags.map { |x| [x, true] }.to_h)
       end
+
       block.call
+
+      clear_tags!
     end
 
     def current_tags
