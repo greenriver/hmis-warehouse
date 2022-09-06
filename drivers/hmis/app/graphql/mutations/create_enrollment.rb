@@ -9,6 +9,7 @@ module Mutations
       errors = []
       errors << ArgumentError.new('Exactly one client must be head of household') if input.household_members.select { |hm| hm.relationship_to_ho_h == 1 }.size != 1
       errors << ArgumentError.new('Entry date cannot be in the future') if Date.parse(input.start_date) > Date.today
+      errors << ArgumentError.new("Project with id '#{input.project_id}' does not exist") unless Hmis::Hud::Project.viewable_by(current_user).exists?(id: input.project_id)
       errors
     end
 
@@ -27,10 +28,9 @@ module Mutations
         enrollment = Hmis::Hud::Enrollment.new(data_source_id: user.data_source_id, **attrs)
 
         if enrollment.valid? && !enrollment.in_progress?
-          enrollment.save!
+          enrollment.save_not_in_progress
         else
-          enrollment.in_progress = true
-          enrollment.save(validate: false)
+          enrollment.save_in_progress
         end
 
         errors += enrollment.errors.errors unless enrollment.errors.empty?

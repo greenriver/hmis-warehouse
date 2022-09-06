@@ -82,6 +82,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(enrollments.count).to eq(3)
         expect(enrollments.pluck('inProgress').uniq).to eq([true])
         expect(errors).to be_empty
+        expect(Hmis::Hud::Enrollment.count).to eq(3)
+        expect(Hmis::Hud::Enrollment.in_progress.count).to eq(3)
+        expect(Hmis::Hud::Enrollment.where(project_id: nil).count).to eq(3)
       end
     end
 
@@ -90,19 +93,28 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         [
           'should emit error if none of the clients are HoH',
           ->(input) { input.merge(household_members: input[:household_members][1..]) },
-          'Exactly one client must be head of household',
+          {
+            'message' => 'Exactly one client must be head of household',
+            'attribute' => 'relationshipToHoH',
+          },
         ],
         [
           'should emit error if entry date is in the future',
           ->(input) { input.merge(start_date: (Date.today + 1.day).strftime('%Y-%m-%d')) },
-          'Entry date cannot be in the future',
+          {
+            'message' => 'Entry date cannot be in the future',
+            'attribute' => 'startDate',
+          },
         ],
         [
-          'should emit error if entry date is in the future',
+          'should emit error if project doesn\'t exist',
           ->(input) { input.merge(project_id: '0') },
-          'Entry date cannot be in the future',
+          {
+            'message' => "Project with id '0' does not exist",
+            'attribute' => 'projectId',
+          },
         ],
-      ].each do |test_name, input_proc, error_message|
+      ].each do |test_name, input_proc, error_attrs|
         it test_name do
           input = input_proc.call(test_input)
           response, result = post_graphql(input: input) { mutation }
@@ -112,7 +124,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           expect(response.status).to eq 200
           expect(enrollments).to be_empty
           expect(errors).to contain_exactly(
-            include('message' => error_message),
+            include(**error_attrs),
           )
         end
       end

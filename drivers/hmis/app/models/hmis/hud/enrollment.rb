@@ -24,8 +24,6 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   use_enum :relationships_to_hoh_enum_map, ::HUD.relationships_to_hoh
 
-  after_save :maintain_wip
-
   SORT_OPTIONS = [:most_recent].freeze
 
   # A user can see any enrollment associated with a project they can access
@@ -50,27 +48,29 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     end
   end
 
+  def save_in_progress
+    self.wip = Hmis::Wip.find_or_create_by(
+      {
+        enrollment_id: id,
+        project_id: project_id,
+        client_id: personal_id,
+        date: entry_date,
+      },
+    )
+    self.project_id = nil
+    save!(validate: false)
+  end
+
+  def save_not_in_progress
+    transaction do
+      self.project_id = project_id || wip&.project_id
+      wip&.destroy
+      save!
+    end
+  end
+
   def in_progress?
     @in_progress = project_id.nil? if @in_progress.nil?
     @in_progress
-  end
-
-  def maintain_wip
-    if in_progress?
-      Hmis::Wip.find_or_create_by(
-        {
-          enrollment_id: id,
-          project_id: project_id,
-          client_id: personal_id,
-          date: entry_date,
-          source: self,
-        },
-      )
-    else
-      return if wip.blank?
-
-      update(project_id: wip.project_id)
-      wip.destroy
-    end
   end
 end
