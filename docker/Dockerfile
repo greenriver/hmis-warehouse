@@ -42,8 +42,6 @@ RUN apk add --no-cache \
   && git config --global --add safe.directory /app \
   && ln -s $(ls -1r /usr/lib/libproj.so.* | head -1) /usr/lib/libproj.so.25
 
-RUN pip3 install awscliv2
-
 RUN mkdir /app
 WORKDIR /app
 
