@@ -1,7 +1,7 @@
 %h2{id: 'financial-performance'}  Project Financial Performance
 %table.table.table-bordered
   %thead
-    %tr
+    %tr.bg-info
       %th{style: 'width:10%'} Criteria Topic
       %th{style: 'width:15%'} Scored Criteria
       %th{style: 'width:15%'} Criteria Source
@@ -11,7 +11,7 @@
       %th Score
   %tbody
     %tr
-      %th{rowspan: 6}
+      %th.bg-info.align-middle.text-center{rowspan: 6}
         Project financial performance based on CoC/DND monitoring and invoicing
         %br
         .text-danger
@@ -22,7 +22,9 @@
         6: PSH
         %br
         3: RRH/Joint TH-RRH
-      %th{rowspan: 6} #{@report.financial_performance_weight}%
+      %th.align-middle.text-center{rowspan: 6}
+        Weight
+        #{@report.financial_performance_weight}%
       %td= @report.project_type_value
       %td= @report.project_type_score
     %tr
@@ -63,7 +65,7 @@
       %td
         Project Application
         %p
-        "Most Recently Completed Grant Year Spend divided by the Contract Budget
+        Most Recently Completed Grant Year Spend divided by the Contract Budget
       %td
         6 pts: > 25%
         %br
@@ -77,7 +79,7 @@
         14. Project Returns
         %p
         What % of unobligated funds in the most recent grant application year were returned?
-      %td ost Recently Completed Grant Year Funds Returned (sourced from ASPEND) divided by the Contract Budge
+      %td Most Recently Completed Grant Year Funds Returned (sourced from ASPEND) divided by the Contract Budget
       %td
         6 pts: 0 - 10% return
         %br
@@ -90,9 +92,10 @@
       %td 15. Project utilization rate from current project operating year
       %td
         APR (quarterly average for operating year)
-        %br
-        = link_to_apr('APR, Q8b', 'Question 8')
-        Average of cells B2, B3, B4, B5 / Total Listed on Grant application
+        %p
+          APR Table
+        = link_to_apr('Q8b', 'Question 8')
+        Average of cells B2, B3, B4, B5 / Total Number of Households Served
       %td
         6 pts: 85 -over 100%
         %br
