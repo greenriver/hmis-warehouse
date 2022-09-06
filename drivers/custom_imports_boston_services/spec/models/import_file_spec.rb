@@ -107,13 +107,13 @@ RSpec.describe CustomImportsBostonServices::ImportFile, type: :model do
         #   expect(CustomImportsBostonServices::Synthetic::Event.where(source_id: CustomImportsBostonServices::Row.where(service_id: 'S-7').select(:id)).count).to eq(1)
         # end
 
-        it 'creates 4 HUD events' do
-          expect(GrdaWarehouse::Synthetic::Event.count).to eq(4)
-          expect(GrdaWarehouse::Hud::Event.count).to eq(4)
-          expect(GrdaWarehouse::Hud::Event.where(Event: 4).count).to eq(3)
-          expect(GrdaWarehouse::Hud::Event.where(Event: 9).count).to eq(0)
-          expect(GrdaWarehouse::Hud::Event.where(Event: 10).count).to eq(1)
-        end
+        # it 'creates 4 HUD events' do
+        #   expect(GrdaWarehouse::Synthetic::Event.count).to eq(4)
+        #   expect(GrdaWarehouse::Hud::Event.count).to eq(4)
+        #   expect(GrdaWarehouse::Hud::Event.where(Event: 4).count).to eq(3)
+        #   expect(GrdaWarehouse::Hud::Event.where(Event: 9).count).to eq(0)
+        #   expect(GrdaWarehouse::Hud::Event.where(Event: 10).count).to eq(1)
+        # end
       end
     end
   end
