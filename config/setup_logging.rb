@@ -10,11 +10,11 @@ class SetupLogging
   def run!
     _configure_lograge
 
-    if Rails.env.development?
+    if Rails.env.development? || ENV['TEST_DEVELOPMENT_LOGGING_CONFIG'] == 'true'
       _development
     elsif Rails.env.test?
       _test
-    elsif Rails.env.staging?
+    elsif Rails.env.staging? || ENV['TEST_STAGING_LOGGING_CONFIG'] == 'true'
       _staging
     elsif Rails.env.production?
       _production
@@ -24,12 +24,14 @@ class SetupLogging
   end
 
   class OpenPathLogFormatter < ::Logger::Formatter
-    def tagged(tag, &block)
+    def tagged(*args, &block)
+      tags = Array.wrap(args)
+
       @tags ||= {}
-      if tag.is_a?(Hash)
-        @tags.merge!(tag)
-      elsif tag.present?
-        @tags.merge!({ tag => true })
+      if tags[0].is_a?(Hash)
+        @tags.merge!(tags)
+      elsif tags.present?
+        @tags.merge!(tags.map { |x| [x, true] }.to_h)
       end
       block.call
     end
@@ -37,7 +39,7 @@ class SetupLogging
     def current_tags
       # We use our object ID here to avoid conflicting with other instances
       thread_key = @thread_key ||= "activesupport_tagged_logging_tags:#{object_id}"
-      Thread.current[thread_key] ||= []
+      Thread.current[thread_key] ||= @tags.keys
     end
 
     def clear_tags!

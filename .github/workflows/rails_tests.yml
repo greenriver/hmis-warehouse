@@ -163,3 +163,13 @@ jobs:
         run: |
           bundle exec rspec --fail-fast=$MAX_FAILURES --color --format p -P "{spec,drivers}/**/*_spec.rb"
           OKTA_DOMAIN=localhost OKTA_CLIENT_ID=x OKTA_CLIENT_SECRET=x bundle exec rspec --fail-fast=$MAX_FAILURES --color -fd spec/requests/omniauth_spec.rb # this one test needs a different ENV
+
+      - name: Run logging tests
+        env:
+          LOG_LEVEL: INFO
+        run: |
+          TEST_DEVELOPMENT_LOGGING_CONFIG=true RAILS_LOG_TO_STDOUT=true LOGRAGE=true bundle exec rspec --color --format p spec/models/logging_spec.rb
+          TEST_DEVELOPMENT_LOGGING_CONFIG=true RAILS_LOG_TO_STDOUT=true LOGRAGE=false bundle exec rspec --color --format p spec/models/logging_spec.rb
+          TEST_DEVELOPMENT_LOGGING_CONFIG=true RAILS_LOG_TO_STDOUT=false LOGRAGE=true bundle exec rspec --color --format p spec/models/logging_spec.rb
+          TEST_DEVELOPMENT_LOGGING_CONFIG=true RAILS_LOG_TO_STDOUT=false LOGRAGE=false bundle exec rspec --color --format p spec/models/logging_spec.rb
+          TEST_STAGING_LOGGING_CONFIG=true bundle exec rspec --color --format p spec/models/logging_spec.rb

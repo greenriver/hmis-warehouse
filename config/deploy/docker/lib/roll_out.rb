@@ -513,9 +513,17 @@ class RollOut
       _tail_logs
     end
     begin
-      cmd = "aws logs tail #{target_group_name} --follow --log-stream-names=#{log_stream_name}"
+      chars_written = 0
+      cmd = "docker run \
+        -e AWS_REGION=#{ENV['AWS_REGION']} \
+        -e AWS_ACCESS_KEY_ID=#{ENV['AWS_ACCESS_KEY_ID']} \
+        -e AWS_SECRET_ACCESS_KEY=#{ENV['AWS_SECRET_ACCESS_KEY']} \
+        -e AWS_SECURITY_TOKEN=#{ENV['AWS_SECURITY_TOKEN']} \
+        -e AWS_SESSION_TOKEN=#{ENV['AWS_SESSION_TOKEN']} \
+        --rm -it amazon/aws-cli logs tail #{target_group_name} --follow --log-stream-names=#{log_stream_name}"
       PTY.spawn(cmd) do |stdout, _stdin, _pid|
         stdout.each do |line|
+          chars_written += line.length
           print line
           if line.match?(/---DONE---/)
             puts 'found ---DONE---, exiting'
@@ -523,14 +531,16 @@ class RollOut
           end
         end
       rescue Errno::EIO
-        puts '[WARN] Errno:EIO error, but this probably just meams that the process has finished giving output'
-        return false
+        if chars_written > 500
+          puts '[WARN] Errno:EIO error, but this probably just meams that the process has finished giving output'
+          return false
+        else
+          raise '[FATAL] Errno:EIO error. Too few lines output from logs before it was done tailing'
+        end
       end
     rescue Errno::ENOENT => e
-      # `aws logs tail` doesn't work in the dev container
-      # FIXME: should refactor to not use the cli
-      puts "[ERROR] #{e.message} (aws logs tail doesn't work inside our dev container)"
-      puts "[INFO] Run this manually: aws logs tail #{target_group_name} --follow --log-stream-names=#{log_stream_name}"
+      puts "[FATAL] Run this manually: aws logs tail #{target_group_name} --follow --log-stream-names=#{log_stream_name}"
+      raise e
     rescue PTY::ChildExited
       puts '[WARN] The child process exited!'
       return false
