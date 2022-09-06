@@ -183,7 +183,14 @@ input CreateEnrollmentInput {
   A unique identifier for the client performing the mutation.
   """
   clientMutationId: String
-  input: CreateEnrollmentValues!
+  householdMembers: [EnrollmentHouseholdMemberInput!]!
+  inProgress: Boolean
+  projectId: ID!
+
+  """
+  Start date with format yyyy-mm-dd
+  """
+  startDate: String!
 }
 
 """
@@ -195,21 +202,7 @@ type CreateEnrollmentPayload {
   """
   clientMutationId: String
   enrollments: [Enrollment!]
-  errors: [ErrorGroup!]!
-}
-
-"""
-HMIS Enrollment creation input
-"""
-input CreateEnrollmentValues {
-  householdMembers: [EnrollmentHouseholdMemberInput!]!
-  inProgress: Boolean
-  projectId: ID!
-
-  """
-  Start date with format yyyy-mm-dd
-  """
-  startDate: String!
+  errors: [ValidationError!]!
 }
 
 """
@@ -281,12 +274,6 @@ type EnrollmentsPaginated {
   nodesCount: Int!
   offset: Int!
   pagesCount: Int!
-}
-
-type ErrorGroup {
-  className: String
-  errors: [ValidationError!]!
-  id: ID!
 }
 
 """
@@ -1624,6 +1611,7 @@ type ServicesPaginated {
 type ValidationError {
   attribute: String
   fullMessage: String
+  id: String
   message: String!
   options: JsonObject
   type: String!
