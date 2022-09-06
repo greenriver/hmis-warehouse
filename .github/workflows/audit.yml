@@ -1,52 +1,52 @@
-# name: Bundle Audit and Brakeman
-# on:
-#   push:
-#     branches:
-#       - '*'
-#       - '**/*'
-# concurrency:
-#   group: ${{ github.ref }}-audit
-#   cancel-in-progress: true
+name: Bundle Audit and Brakeman
+on:
+  push:
+    branches:
+      - '*'
+      - '**/*'
+concurrency:
+  group: ${{ github.ref }}-audit
+  cancel-in-progress: true
 
-# jobs:
-#   # Label of the container job
-#   audit:
-#     # Containers must run in Linux based operating systems
-#     runs-on: ubuntu-20.04
+jobs:
+  # Label of the container job
+  audit:
+    # Containers must run in Linux based operating systems
+    runs-on: ubuntu-20.04
 
-#     # Docker Hub image that the job executes in
-#     container: ruby:2.7.6-alpine3.15
-#     steps:
-#       - name: Checkout
-#         uses: actions/checkout@v3
-#       - name: Set up dependencies
-#         run: |
-#           apk add --no-cache \
-#             nodejs yarn npm \
-#             tzdata \
-#             git \
-#             bash \
-#             freetds-dev \
-#             icu icu-dev \
-#             curl libcurl curl-dev \
-#             imagemagick \
-#             libmagic file-dev file \
-#             build-base libxml2-dev libxslt-dev postgresql-dev \
-#             libgcc libstdc++ libx11 glib libxrender libxext libintl ttf-dejavu ttf-droid ttf-freefont ttf-liberation ttf-freefont \
-#             chromium nss freetype freetype-dev harfbuzz ca-certificates ttf-freefont \
-#             lftp postgresql postgis geos geos-dev \
-#             shared-mime-info
-#           gem install bundler --version=2.3.8
+    # Docker Hub image that the job executes in
+    container: ruby:2.7.6-alpine3.15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Set up dependencies
+        run: |
+          apk add --no-cache \
+            nodejs yarn npm \
+            tzdata \
+            git \
+            bash \
+            freetds-dev \
+            icu icu-dev \
+            curl libcurl curl-dev \
+            imagemagick \
+            libmagic file-dev file \
+            build-base libxml2-dev libxslt-dev postgresql-dev \
+            libgcc libstdc++ libx11 glib libxrender libxext libintl ttf-dejavu ttf-droid ttf-freefont ttf-liberation ttf-freefont \
+            chromium nss freetype freetype-dev harfbuzz ca-certificates ttf-freefont \
+            lftp postgresql postgis geos geos-dev \
+            shared-mime-info
+          gem install bundler --version=2.3.8
 
-#       - name: Install gems
-#         run: |
-#           bundle config set --local without 'production staging development'
-#           bundle install --jobs 4 --retry 3
+      - name: Install gems
+        run: |
+          bundle config set --local without 'production staging development'
+          bundle install --jobs 4 --retry 3
 
-#       - name: Run bundle-audit
-#         run: |
-#           bundle exec bundle-audit check --update --ignore CVE-2015-9284 CVE-2019-16676 CVE-2017-1002201
+      - name: Run bundle-audit
+        run: |
+          bundle exec bundle-audit check --update --ignore CVE-2015-9284 CVE-2019-16676 CVE-2017-1002201
 
-#       - name: Run brakeman
-#         run: |
-#           bundle exec brakeman -q --no-pager --except PermitAttributes,Render
+      - name: Run brakeman
+        run: |
+          bundle exec brakeman -q --no-pager --except PermitAttributes,Render
