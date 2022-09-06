@@ -71,6 +71,8 @@ class GrdaWarehouse::Utility
       HudReports::ReportCell,
       GrdaWarehouse::WarehouseReports::ReportDefinition,
       HmisCsvValidation::Validation,
+      GrdaWarehouse::Synthetic::Event,
+      GrdaWarehouse::CustomImports::ImportFile,
     ]
     if RailsDrivers.loaded.include?(:hud_apr)
       tables << HudApr::Fy2020::AprClient
@@ -85,6 +87,13 @@ class GrdaWarehouse::Utility
     if RailsDrivers.loaded.include?(:hud_data_quality_report)
       tables << HudDataQualityReport::Fy2020::DqClient
       tables << HudDataQualityReport::Fy2020::DqLivingSituation
+    end
+
+    tables << CustomImportsBostonServices::Row if RailsDrivers.loaded.include?(:custom_imports_boston_services)
+
+    if RailsDrivers.loaded.include?(:cas_ce_data)
+      tables << CasCeData::GrdaWarehouse::CasReferralEvent
+      tables << CasCeData::Synthetic::Assessment
     end
 
     # Remove reports after associated clients

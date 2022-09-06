@@ -19,11 +19,11 @@ RSpec.describe HmisCsvTwentyTwentyTwo::Exporter::Base, type: :model do
     setup_data
 
     # Move 2 enrollments out of the range
-    @enrollments.last(2).each { |m| m.update(EntryDate: 2.days.ago) }
+    @enrollments.sort_by(&:id).last(2).each { |m| m.update(EntryDate: 2.days.ago) }
     # Move 3 exits into the range
-    @exits.first(3).each { |m| m.update(ExitDate: 2.weeks.ago) }
+    @exits.sort_by(&:id).first(3).each { |m| m.update(ExitDate: 2.weeks.ago) }
     # Move 3 assessments into range
-    @assessments.first(3).each { |m| m.update(AssessmentDate: 2.weeks.ago) }
+    @assessments.sort_by(&:id).first(3).each { |m| m.update(AssessmentDate: 2.weeks.ago) }
 
     @involved_project_ids = @projects.map(&:id)
     @exporter = HmisCsvTwentyTwentyTwo::Exporter::Base.new(

@@ -75,7 +75,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
       routine: :service_history,
     ).index_by(&:client_id)
 
-    @notifier.ping("Updating Cache Details for #{limited_data.uniq.count} active clients #{Time.current}")
+    @notifier.ping("Updating Cache Details for #{limited_data.uniq.count} active clients #{Time.current}") if client_ids.count > 10 && limited_data.uniq.count.positive?
     limited_data.uniq.each_slice(5_000) do |client_id_batch|
       # puts "starting batch #{Time.current}"
       calcs = StatsCalculator.new(client_ids: client_id_batch)
@@ -172,7 +172,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
 
     # Anyone on a cohort, or who will sync with CAS gets some extra data
     # This is more expensive to calculate, so we limit who is included
-    @notifier.ping("Updating Cache Details for #{extra_data.uniq.count} clients on cohorts or in CAS #{Time.current}")
+    @notifier.ping("Updating Cache Details for #{extra_data.uniq.count} clients on cohorts or in CAS #{Time.current}") if client_ids.count > 10
     extra_data.uniq.each_slice(1_000) do |client_id_batch|
       # puts "starting extra batch #{Time.current}"
       calcs = StatsCalculator.new(client_ids: client_id_batch)
@@ -265,7 +265,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
         GrdaWarehouse::Hud::Client.destination.clear_view_cache(client_id)
       end
     end
-    @notifier.ping("Done Updating Cache Details #{Time.current}")
+    @notifier.ping("Done Updating Cache Details #{Time.current}") if client_ids.count > 10
     nil
   end
 

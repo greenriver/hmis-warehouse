@@ -57,7 +57,7 @@ module HmisCsvFixtures
   end
 
   def process_imported_fixtures(user: User.setup_system_user)
-    puts "Start post processing: #{Time.now}"
+    # puts "Start post processing: #{Time.now}"
     GrdaWarehouse::Tasks::ProjectCleanup.new.run!
     GrdaWarehouse::Tasks::ServiceHistory::Enrollment.batch_process_unprocessed!
     AccessGroup.maintain_system_groups
