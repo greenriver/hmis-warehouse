@@ -36,10 +36,8 @@ module Mutations
       end
     end
 
-    private
-
-    def _create_validation_error(message:, attribute:, **kwargs)
-      InputValidationError.new(message: message, attribute: attribute, **kwargs)
+    def self.date_string_argument(name, description, **kwargs)
+      argument name, String, description, validates: { format: { with: /\d{4}-\d{2}-\d{2}/ } }, **kwargs
     end
   end
 end
