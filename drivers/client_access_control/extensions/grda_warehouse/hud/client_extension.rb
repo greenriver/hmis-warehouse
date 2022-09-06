@@ -124,7 +124,7 @@ module ClientAccessControl::GrdaWarehouse::Hud
           total_enrollment_count = en_scope.joins(:project, :source_client, :enrollment).count
           en_scope = en_scope.joins(:enrollment).merge(::GrdaWarehouse::Hud::Enrollment.visible_to(user)) unless user == User.setup_system_user
           enrollments = en_scope.joins(:project, :source_client, :enrollment).
-            includes(:organization, :source_client, project: :project_cocs, enrollment: [:enrollment_cocs, :exit]).
+            includes(:organization, :source_client, project: :project_cocs, enrollment: [:enrollment_cocs, :exit, :ch_enrollment]).
             order(first_date_in_program: :desc)
           visible_enrollment_count = enrollments.count
           enrollments.map do |entry|
@@ -161,6 +161,7 @@ module ClientAccessControl::GrdaWarehouse::Hud
               confidential_project: project.confidential,
               entry_date: entry.first_date_in_program,
               living_situation: entry.enrollment.LivingSituation,
+              chronically_homeless_at_start: entry.enrollment.ch_enrollment&.chronically_homeless_at_entry,
               exit_date: entry.last_date_in_program,
               destination: entry.destination,
               move_in_date_inherited: entry.enrollment.MoveInDate.blank? && entry.move_in_date.present?,
