@@ -64,22 +64,22 @@ RSpec.describe CustomImportsBostonServices::ImportFile, type: :model do
       expect(GrdaWarehouse::Synthetic::Event.count).to eq(0)
     end
 
-    # describe 'after hud processing' do
-    #   before do
-    #     GrdaWarehouse::Synthetic::Event.hud_sync
-    #   end
+    describe 'after hud processing' do
+      before do
+        GrdaWarehouse::Synthetic::Event.hud_sync
+      end
 
-    #   it 'creates 4 synthetic events' do
-    #     expect(GrdaWarehouse::Synthetic::Event.count).to eq(4)
-    #   end
+      it 'creates 4 synthetic events' do
+        expect(GrdaWarehouse::Synthetic::Event.count).to eq(4)
+      end
 
-    #   it 'creates 4 HUD events' do
-    #     expect(GrdaWarehouse::Hud::Event.count).to eq(4)
-    #     expect(GrdaWarehouse::Hud::Event.where(Event: 4).count).to eq(2)
-    #     expect(GrdaWarehouse::Hud::Event.where(Event: 9).count).to eq(1)
-    #     expect(GrdaWarehouse::Hud::Event.where(Event: 10).count).to eq(1)
-    #   end
-    # end
+      it 'creates 4 HUD events' do
+        expect(GrdaWarehouse::Hud::Event.count).to eq(4)
+        expect(GrdaWarehouse::Hud::Event.where(Event: 4).count).to eq(2)
+        expect(GrdaWarehouse::Hud::Event.where(Event: 9).count).to eq(1)
+        expect(GrdaWarehouse::Hud::Event.where(Event: 10).count).to eq(1)
+      end
+    end
 
     # describe 'after second import' do
     #   before(:each) do
