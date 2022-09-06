@@ -21,7 +21,7 @@ module Types
     field :in_progress, Boolean, null: false
 
     def project
-      load_ar_association(object, :project)
+      load_ar_association(object.in_progress? ? object.wip : object, :project)
     end
 
     def exit_date

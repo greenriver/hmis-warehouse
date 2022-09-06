@@ -46,6 +46,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               client {
                 id
               }
+              project {
+                id
+              }
             }
             errors {
               id
@@ -81,6 +84,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(enrollments).to be_present
         expect(enrollments.count).to eq(3)
         expect(enrollments.pluck('inProgress').uniq).to eq([true])
+        expect(enrollments.pluck('project')).to all(be_present)
         expect(errors).to be_empty
         expect(Hmis::Hud::Enrollment.count).to eq(3)
         expect(Hmis::Hud::Enrollment.in_progress.count).to eq(3)
