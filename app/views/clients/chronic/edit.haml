@@ -7,13 +7,14 @@
 
 .mb-6
   = render 'clients/chronic_flags', client: @client
-.row
-  .col-sm-6
+.row.mb-8
+  .col-sm-8
     - if GrdaWarehouse::Config.get(:chronic_definition).to_sym == :chronics
       %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: :chronic_days}}
         %header
           %h1.h3 Chronic Days
     = render "chronic_calculator", date: @date
+.row
   .col-sm-6
     =render "clients/note_form"
     %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: :chronic_notes}}
