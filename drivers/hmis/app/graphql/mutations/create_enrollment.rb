@@ -7,9 +7,9 @@ module Mutations
 
     def validate_input(input)
       errors = []
-      errors << ArgumentError.new('Exactly one client must be head of household') if input.household_members.select { |hm| hm.relationship_to_ho_h == 1 }.size != 1
-      errors << ArgumentError.new('Entry date cannot be in the future') if Date.parse(input.start_date) > Date.today
-      errors << ArgumentError.new("Project with id '#{input.project_id}' does not exist") unless Hmis::Hud::Project.viewable_by(current_user).exists?(id: input.project_id)
+      errors << InputValidationError.new('Exactly one client must be head of household', attribute: 'relationship_to_ho_h') if input.household_members.select { |hm| hm.relationship_to_ho_h == 1 }.size != 1
+      errors << InputValidationError.new('Entry date cannot be in the future', attribute: 'start_date') if Date.parse(input.start_date) > Date.today
+      errors << InputValidationError.new("Project with id '#{input.project_id}' does not exist", attribute: 'project_id') unless Hmis::Hud::Project.viewable_by(current_user).exists?(id: input.project_id)
       errors
     end
 

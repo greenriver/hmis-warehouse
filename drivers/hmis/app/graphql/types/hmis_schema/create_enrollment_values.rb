@@ -10,7 +10,7 @@ module Types
     description 'HMIS Enrollment creation input'
 
     argument :project_id, ID, required: true
-    argument :start_date, String, 'Start date with format yyyy-mm-dd', required: true
+    date_string_argument :start_date, 'Start date with format yyyy-mm-dd', required: true
     argument :household_members, [HmisSchema::EnrollmentHouseholdMemberInput], required: true
     argument :in_progress, Boolean, required: false
 
