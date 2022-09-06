@@ -52,6 +52,48 @@ module GrdaWarehouse::Tasks
       @debug = debug
     end
 
+    def chronic_on_date(client_id)
+      debug_log "Calculating chronicity for #{client_id}"
+      # All chronically homeless must also be disabled
+      return false unless disabled?(client_id)
+
+      # remove any cached calculations from the previous client
+      reset_for_batch
+      adjusted_homeless_dates_served = residential_history_for_client(client_id: client_id)
+      homeless_months = adjusted_months_served(dates: adjusted_homeless_dates_served)
+      homeless_months_size = if homeless_months.size > 36 then 36 else homeless_months.size end
+      # debug_log homeless_months.inspect
+      debug_log "Found #{homeless_months.size} homeless months"
+      if homeless_months.size >= 12
+        # load the client.  This is expensive, but we need some related data
+        # that's not easy to do without calculations
+        client = GrdaWarehouse::Hud::Client.find(client_id)
+        # If we've been homeless in all of the last 12 months, we're chronic
+        if homeless_in_all_last_12_months?(months: homeless_months)
+          @chronically_homeless << client_id
+          @chronic_trigger = "All previous 12 months, #{homeless_months.size} in last 36"
+          @chronic = true
+        else
+          # If we've been homeless for 12 of 36 months, we need to see if we've had 4 episodes in that time
+          #   Get any enrollments for the client in the last 36 months and then count new episodes
+          episodes = client.homeless_episodes_between(start_date: (@date - 3.years), end_date: @date)
+          debug_log "Episodes: #{episodes.inspect}"
+          if episodes > 3
+            @chronically_homeless << client_id
+            @chronic_trigger = "#{homeless_months.size} of last 36 months in #{episodes} episodes"
+            @chronic = true
+          end
+        end
+        if @chronic
+          debug_log 'Chronic Triggers: '
+          debug_log @chronic_trigger.inspect
+          # Add details for any chronically homeless client
+          add_client_details(client: client, days_served: adjusted_homeless_dates_served, months_homeless: homeless_months_size, chronic_trigger: @chronic_trigger)
+        end
+      end
+      return @chronic
+    end
+
     def run!
       logger.info "====DRY RUN====" if @dry_run
       logger.info "Updating status of chronically homeless clients on #{@date}"
@@ -61,48 +103,8 @@ module GrdaWarehouse::Tasks
       @chronically_homeless = []
       @client_details = {}
       extra_work = 0
-      @clients.each_with_index do |client_id, index|
-        debug_log "Calculating chronicity for #{client_id}"
-        # All chronically homeless must also be disabled
-        next unless disabled?(client_id)
-        # remove any cached calculations from the previous client
-        reset_for_batch()
-        adjusted_homeless_dates_served = residential_history_for_client(client_id: client_id)
-        homeless_months = adjusted_months_served(dates: adjusted_homeless_dates_served)
-        homeless_months_size = if homeless_months.size > 36 then 36 else homeless_months.size end
-        # debug_log homeless_months.inspect
-        debug_log "Found #{homeless_months.size} homeless months"
-        if homeless_months.size >= 12
-          disabled = disabled?(client_id)
-          debug_log "Client disabled? #{disabled.inspect}"
-          if disabled
-            # load the client.  This is expensive, but we need some related data
-            # that's not easy to do without calculations
-            client = GrdaWarehouse::Hud::Client.find(client_id)
-            # If we've been homeless in all of the last 12 months, we're chronic
-            if homeless_in_all_last_12_months?(months: homeless_months)
-              @chronically_homeless << client_id
-              @chronic_trigger = "All previous 12 months, #{homeless_months.size} in last 36"
-              @chronic = true
-            else
-              # If we've been homeless for 12 of 36 months, we need to see if we've had 4 episodes in that time
-              #   Get any enrollments for the client in the last 36 months and then count new episodes
-              episodes = client.homeless_episodes_between(start_date: (@date - 3.years), end_date: @date)
-              debug_log "Episodes: #{episodes.inspect}"
-              if episodes > 3
-                @chronically_homeless << client_id
-                @chronic_trigger = "#{homeless_months.size} of last 36 months in #{episodes} episodes"
-                @chronic = true
-              end
-            end
-            if @chronic
-              debug_log "Chronic Triggers: "
-              debug_log @chronic_trigger.inspect
-              # Add details for any chronically homeless client
-              add_client_details(client: client, days_served: adjusted_homeless_dates_served, months_homeless: homeless_months.size, chronic_trigger: @chronic_trigger)
-            end
-          end
-        end
+      @clients.each do |client_id|
+        chronic_on_date(client_id)
       end
       logger.info "Found #{@chronically_homeless.size} chronically homeless clients"
       if @dry_run
