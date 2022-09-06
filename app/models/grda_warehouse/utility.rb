@@ -90,6 +90,11 @@ class GrdaWarehouse::Utility
 
     tables << CustomImportsBostonServices::Row if RailsDrivers.loaded.include?(:custom_imports_boston_services)
 
+    if RailsDrivers.loaded.include?(:cas_ce_data)
+      tables << CasCeData::GrdaWarehouse::CasReferralEvent
+      tables << CasCeData::Synthetic::Assessment
+    end
+
     # Remove reports after associated clients
     tables << HudReports::ReportInstance
     tables << SimpleReports::ReportInstance
