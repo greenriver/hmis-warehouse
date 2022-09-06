@@ -14,33 +14,33 @@ RSpec.describe GrdaWarehouse::SystemCohorts::CurrentlyHomeless, type: :model do
     let!(:service_1) { create :service_history_service, client_id: new_client.id, service_history_enrollment_id: enrollment_1.id, record_type: 'service', date: date }
 
     it 'finds the client' do
-      Timecop.travel('2020-01-01'.to_date) do
+      travel_to('2020-01-01'.to_date) do
         currently_homeless_cohort.sync
         expect(currently_homeless_cohort.cohort_clients.count).to eq(1)
       end
     end
 
     it "doesn't find the client when it is inactive" do
-      Timecop.travel('2020-04-01'.to_date) do
+      travel_to('2020-04-01'.to_date) do
         currently_homeless_cohort.sync
         expect(currently_homeless_cohort.cohort_clients.count).to eq(0)
       end
     end
 
     it 'removes the client when it becomes inactive' do
-      Timecop.travel('2020-01-01'.to_date) do
+      travel_to('2020-01-01'.to_date) do
         currently_homeless_cohort.sync
         expect(currently_homeless_cohort.cohort_clients.count).to eq(1)
       end
 
-      Timecop.travel('2020-04-01'.to_date) do
+      travel_to('2020-04-01'.to_date) do
         currently_homeless_cohort.sync
         expect(currently_homeless_cohort.cohort_clients.count).to eq(0)
       end
     end
 
     it 'removes the client when they exit' do
-      Timecop.travel('2020-02-01'.to_date) do
+      travel_to('2020-02-01'.to_date) do
         currently_homeless_cohort.sync
         expect(currently_homeless_cohort.cohort_clients.count).to eq(1)
 
@@ -58,7 +58,7 @@ RSpec.describe GrdaWarehouse::SystemCohorts::CurrentlyHomeless, type: :model do
     let!(:service_1) { create :service_history_service, client_id: new_client.id, service_history_enrollment_id: enrollment_1.id, record_type: 'service', date: first_date }
 
     it 'first it finds the client' do
-      Timecop.travel('2020-01-01'.to_date) do
+      travel_to('2020-01-01'.to_date) do
         currently_homeless_cohort.sync
         expect(currently_homeless_cohort.cohort_clients.count).to eq(1)
       end
@@ -69,7 +69,7 @@ RSpec.describe GrdaWarehouse::SystemCohorts::CurrentlyHomeless, type: :model do
       let!(:housed_enrollment) { create :she_entry, client_id: new_client.id, computed_project_type: 3, date: second_date, first_date_in_program: second_date, move_in_date: second_date }
 
       it 'removes the client' do
-        Timecop.travel('2020-02-01'.to_date) do
+        travel_to('2020-02-01'.to_date) do
           currently_homeless_cohort.sync
           expect(currently_homeless_cohort.cohort_clients.count).to eq(0)
         end

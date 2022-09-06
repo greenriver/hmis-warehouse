@@ -55,6 +55,7 @@ class GrdaWarehouse::Utility
       GrdaWarehouse::WarehouseReports::Project::DataQuality::Base,
       GrdaWarehouse::WarehouseReports::Base,
       GrdaWarehouse::Cohort,
+      GrdaWarehouse::CohortClientChange,
       Reporting::MonthlyReports::Base,
       Reporting::DataQualityReports::Enrollment,
       Reporting::DataQualityReports::Project,
