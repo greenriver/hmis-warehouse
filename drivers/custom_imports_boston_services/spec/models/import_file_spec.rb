@@ -96,25 +96,25 @@ RSpec.describe CustomImportsBostonServices::ImportFile, type: :model do
         expect(CustomImportsBostonServices::Row.count).to eq(12)
       end
 
-      # describe 'after hud processing' do
-      #   before(:each) do
-      #     GrdaWarehouse::Synthetic::Event.hud_sync
-      #   end
+      describe 'after hud processing' do
+        before(:each) do
+          GrdaWarehouse::Synthetic::Event.hud_sync
+        end
 
-      #   it 'adds and removes 1 synthetic event' do
-      #     expect(GrdaWarehouse::Synthetic::Event.count).to eq(4)
-      #     expect(CustomImportsBostonServices::Synthetic::Event.where(source_id: CustomImportsBostonServices::Row.where(service_id: 'S-1').select(:id)).count).to eq(0)
-      #     expect(CustomImportsBostonServices::Synthetic::Event.where(source_id: CustomImportsBostonServices::Row.where(service_id: 'S-7').select(:id)).count).to eq(1)
-      #   end
+        it 'adds and removes 1 synthetic event' do
+          expect(GrdaWarehouse::Synthetic::Event.count).to eq(4)
+          expect(CustomImportsBostonServices::Synthetic::Event.where(source_id: CustomImportsBostonServices::Row.where(service_id: 'S-1').select(:id)).count).to eq(0)
+          expect(CustomImportsBostonServices::Synthetic::Event.where(source_id: CustomImportsBostonServices::Row.where(service_id: 'S-7').select(:id)).count).to eq(1)
+        end
 
-      #   it 'creates 4 HUD events' do
-      #     expect(GrdaWarehouse::Synthetic::Event.count).to eq(4)
-      #     expect(GrdaWarehouse::Hud::Event.count).to eq(4)
-      #     expect(GrdaWarehouse::Hud::Event.where(Event: 4).count).to eq(3)
-      #     expect(GrdaWarehouse::Hud::Event.where(Event: 9).count).to eq(0)
-      #     expect(GrdaWarehouse::Hud::Event.where(Event: 10).count).to eq(1)
-      #   end
-      # end
+        it 'creates 4 HUD events' do
+          expect(GrdaWarehouse::Synthetic::Event.count).to eq(4)
+          expect(GrdaWarehouse::Hud::Event.count).to eq(4)
+          expect(GrdaWarehouse::Hud::Event.where(Event: 4).count).to eq(3)
+          expect(GrdaWarehouse::Hud::Event.where(Event: 9).count).to eq(0)
+          expect(GrdaWarehouse::Hud::Event.where(Event: 10).count).to eq(1)
+        end
+      end
     end
   end
 
