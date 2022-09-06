@@ -110,9 +110,8 @@ module GrdaWarehouse::CustomImports
       headers = clean_headers(file.first)
       file.drop(1).each_slice(batch_size) do |lines|
         loaded_rows += lines.count
-        rows.klass.import(headers.reject { |h| h == 'do_not_import' }, clean_rows(headers, lines))
+        rows.klass.import!(headers.reject { |h| h == 'do_not_import' }, clean_rows(headers, lines))
       end
-
       summary << "Loaded #{loaded_rows} rows"
     end
 
