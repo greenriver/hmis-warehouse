@@ -10,11 +10,11 @@ class SetupLogging
   def run!
     _configure_lograge
 
-    if Rails.env.development?
+    if Rails.env.development? || ENV['TEST_DEVELOPMENT_LOGGING_CONFIG'] == 'true'
       _development
     elsif Rails.env.test?
       _test
-    elsif Rails.env.staging?
+    elsif Rails.env.staging? || ENV['TEST_STAGING_LOGGING_CONFIG'] == 'true'
       _staging
     elsif Rails.env.production?
       _production
