@@ -282,15 +282,15 @@ App.StimulusApp.register('stimulus-select', class extends Stimulus.Controller {
       .attr('data-action', 'click->stimulus-select#toggleAll')
     $select.on('change', (e) => {
       const option_count = $select.find('option').length
-      let hide_select_all_text = $select.data('disableSelectAll') || option_count > 75
-      this._updateSelectAllText(hide_select_all_text)
+      let hideSelectAllText = $select.data('disableSelectAll') || option_count > 75
+      this._updateSelectAllText(hideSelectAllText)
     })
     $select.trigger('change')
   }
 
-  _selectAllText(hide_select_all_text) {
+  _selectAllText(hideSelectAllText) {
     let text = 'Select all'
-    if (hide_select_all_text) {
+    if (hideSelectAllText) {
       text = ''
     }
     if (this._anySourceOptionSelected()) {
@@ -299,7 +299,7 @@ App.StimulusApp.register('stimulus-select', class extends Stimulus.Controller {
     return text
   }
 
-  _updateSelectAllText(hide_select_all_text) {
-    $(this.selectAllTarget).find('a').text(this._selectAllText(hide_select_all_text))
+  _updateSelectAllText(hideSelectAllText) {
+    $(this.selectAllTarget).find('a').text(this._selectAllText(hideSelectAllText))
   }
 })
