@@ -11,3 +11,9 @@
 #
 # use with caution!
 RailsDrivers.loaded << :core_demographics_report
+
+Rails.application.config.help_links << {
+  controller_path: 'core_demographics_report/warehouse_reports/core',
+  action_name: 'index',
+  external_url: 'https://github.com/greenriver/hmis-warehouse/wiki/Core-Demographics',
+}
