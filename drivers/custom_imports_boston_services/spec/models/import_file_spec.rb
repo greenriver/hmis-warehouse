@@ -92,13 +92,17 @@ RSpec.describe CustomImportsBostonServices::ImportFile, type: :model do
         import_custom_service('drivers/custom_imports_boston_services/spec/fixtures/second_service_export.csv', config, ds1)
       end
 
-      it 'adds 6 rows' do
+      it 'adds 12 rows' do
         expect(CustomImportsBostonServices::Row.count).to eq(12)
       end
 
       describe 'after hud processing' do
         before(:each) do
           GrdaWarehouse::Synthetic::Event.hud_sync
+        end
+
+        after(:all) do
+          cleanup_test_environment
         end
 
         it 'adds and removes 1 synthetic event' do
