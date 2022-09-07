@@ -27,7 +27,7 @@ class SetupLogging
     def tagged(*args, &block)
       tags = Array.wrap(args).flatten
 
-      @tags ||= {}
+      @tags = {}
       if tags[0].is_a?(Hash)
         tags.each do |t|
           @tags.merge!(t)
@@ -37,8 +37,6 @@ class SetupLogging
       end
 
       block.call
-
-      clear_tags!
     end
 
     def current_tags
