@@ -252,7 +252,7 @@ module CasClientData
           end
         end
       # Are any tags that should be added based on HmisForms
-      Cas::Tag.where(rrh_assessment_trigger: true).each do |tag|
+      Cas::Tag.where(rrh_assessment_trigger: true)&.each do |tag|
         @cas_tags[tag.id] = assessment_score_for_cas
       end
       @cas_tags
