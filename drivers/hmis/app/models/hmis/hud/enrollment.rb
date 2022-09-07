@@ -49,16 +49,18 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   end
 
   def save_in_progress
+    wip_project_id = project.id || wip.project_id
+
+    self.project_id = nil
+    save!(validate: false)
     self.wip = Hmis::Wip.find_or_create_by(
       {
         enrollment_id: id,
-        project_id: project_id,
-        client_id: personal_id,
+        project_id: wip_project_id,
+        client_id: client.id,
         date: entry_date,
       },
     )
-    self.project_id = nil
-    save!(validate: false)
   end
 
   def save_not_in_progress

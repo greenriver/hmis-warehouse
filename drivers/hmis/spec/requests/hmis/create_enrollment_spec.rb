@@ -89,6 +89,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(Hmis::Hud::Enrollment.count).to eq(3)
         expect(Hmis::Hud::Enrollment.in_progress.count).to eq(3)
         expect(Hmis::Hud::Enrollment.where(project_id: nil).count).to eq(3)
+        expect(Hmis::Wip.count).to eq(3)
+        # byebug
+        expect(Hmis::Wip.all).to include(*enrollments.map { |e| have_attributes(enrollment_id: e['id'].to_i, project_id: test_input[:project_id], client_id: e['client']['id'].to_i) })
       end
     end
 
