@@ -5,18 +5,19 @@ namespace :maintenance do
     include Rails.application.routes.url_helpers
     destination = 'public/maintenance.html'
 
-    warden_proxy = Warden::Proxy.new({}, Warden::Manager.new({})).tap do |i|
-      i.set_user(nil, scope: :user, store: false, run_callbacks: false)
+    # This will only run if the web server is accessible
+    source = if Rails.env.development?
+      'https://qa-warehouse.openpath.host/maintenance_saver'
+    else
+      maintenance_saver_index_url(host: ENV['FQDN'], protocol: 'https')
     end
-    renderer = MaintenanceController.renderer.new(
-      'warden' => warden_proxy,
-    )
-    source = renderer.render(
-      template: 'maintenance/index',
-      layout: 'maintenance',
-      assigns: { maintenance: true },
-    )
-    premailer = Premailer.new(source, with_html_string: true)
+
+    # catch first deployments, we'll build on subsequent calls
+    uri = URI(source)
+    res = Net::HTTP.get_response(uri)
+    exit unless res.code.to_s == '200'
+
+    premailer = Premailer.new(source)
 
     client = Aws::S3::Client.new
     bucket = ENV.fetch('ASSETS_BUCKET_NAME')
