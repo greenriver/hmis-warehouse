@@ -83,7 +83,7 @@ module GrdaWarehouse::SystemCohorts
         # if we have seen you before, and your exit was to a permanent destination, or your most recent
         elsif HUD.permanent_destinations.include?(previous_destination) || last_services_prior_to_processing_date_was_housed
           returned_from_housing << client_id
-        # if you have service within the active window, you have returned
+        # if you have service within the active window, you have returned from inactivity
         elsif most_recent_service.present? && most_recent_service >= @processing_date - days_of_inactivity.days
           returned_from_inactive << client_id
         end
