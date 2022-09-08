@@ -422,8 +422,7 @@ module EtoApi::Tasks
     end
 
     private def literal_value(response:, label:)
-      as_hash = JSON.parse(response)
-      as_hash[label]
+      response[label]
     end
 
     private def entity(client:, response:, entity_label:)
