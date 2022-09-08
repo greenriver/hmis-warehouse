@@ -80,7 +80,8 @@ module GrdaWarehouse::SystemCohorts
         # if we've never seen you before, or it's been 2 years between enrollments
         if previous_entry_date.blank? || previous_entry_date < entry_date - 2.years
           newly_identified << client_id
-        # if we have seen you before, and your exit was to a permanent destination, or your most recent
+        # if we have seen you before, and your exit was to a permanent destination, or you had prior
+        # housed service, then you are returning from housing
         elsif HUD.permanent_destinations.include?(previous_destination) || last_services_prior_to_processing_date_was_housed
           returned_from_housing << client_id
         # if you have service within the active window, you have returned from inactivity
