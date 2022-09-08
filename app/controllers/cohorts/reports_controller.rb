@@ -14,6 +14,7 @@ module Cohorts
       end_date = report_params[:range].try(:[], :end) || Date.tomorrow
       @range = ::Filters::DateRange.new(start: start, end: end_date)
       @changes = cohort_client_change_scope.where(changed_at: @range.range).
+        order(changed_at: :desc).
         preload(:user, cohort_client: :client)
       respond_to do |format|
         format.html
