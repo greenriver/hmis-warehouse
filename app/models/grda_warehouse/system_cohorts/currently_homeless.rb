@@ -106,33 +106,39 @@ module GrdaWarehouse::SystemCohorts
         distinct.
         pluck(:client_id)
 
-      homeless_service_on_processing_date = service_history_source.on_date(@processing_date).
-        where(
-          client_id: cohort_clients.select(:client_id),
-          homeless: true,
-        ).
+      # Anyone with an ongoing homeless enrollment that is still "active" (seen in past 90 days)
+      # used to prevent people from getting marked as housed when their exit destination is Permanent
+      # but they are still active in a homeless project
+      # NOTE: alternate approach would be to pull last 90 days of homeless service and look for
+      # any after the exit date with a permanent destination.
+      # As written, the client won't be marked housed until the homeless enrollment is exited, or
+      # 90 days has elapsed since they received service.
+      active_ongoing_homeless_enrollments = enrollment_source.
+        homeless. # homeless clients
+        ongoing(on_date: @processing_date).
+        with_service_between(start_date: inactive_date, end_date: @processing_date, service_scope: :homeless).
+        where(client_id: cohort_clients.select(:client_id)).
         distinct.
         pluck(:client_id)
 
       # moved-in to PH - anyone with a move-in date prior to processing date and an SHS homeless false on the processing date
       moved_in = cohort_clients.joins(client: :service_history_enrollments).
-        merge(
-          enrollment_source.ph.
-            where(she_t[:move_in_date].gt(c_client_t[:date_added_to_cohort])).
-            where(she_t[:move_in_date].lt(@processing_date)),
-        ).
+        merge(enrollment_source.ph.where(she_t[:move_in_date].lt(@processing_date))).
         pluck(:client_id) & housed_service_on_processing_date
 
-      # Most-recent exit was to a permanent destination, and no SHS homeless true on the processing date
+      # Most-recent exit was to a permanent destination, and no open homeless enrollments on the processing date with # SHS homeless true within 90 days of the processing date
       with_permanent_destination = cohort_clients.joins(client: :service_history_enrollments).
-        merge(enrollment_source.where(she_t[:last_date_in_program].lt(@processing_date))).
+        merge(
+          enrollment_source.where(she_t[:last_date_in_program].lteq(@processing_date)).
+          exit_within_date_range(start_date: (@processing_date - 2.years).to_date, end_date: @processing_date),
+        ).
         pluck(:client_id, she_t[:last_date_in_program], she_t[:destination]).
         group_by(&:shift).
         select { |_, exits| exits.max_by(&:first).last.in?(HUD.permanent_destinations) }.
         keys
 
       # keep anyone who is still receiving homeless service on the cohort
-      with_permanent_destination.reject! { |id| id.in?(homeless_service_on_processing_date) }
+      with_permanent_destination.reject! { |id| id.in?(active_ongoing_homeless_enrollments) }
       remove_clients(moved_in | with_permanent_destination, 'Housed')
     end
 
