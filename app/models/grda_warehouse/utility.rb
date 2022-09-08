@@ -63,6 +63,7 @@ class GrdaWarehouse::Utility
       Reporting::Housed,
       Reporting::MonthlyClientIds,
       Reporting::Return,
+      PaperTrail::Version,
       ReportResult,
       AccessGroup,
       AccessGroupMember,
@@ -73,6 +74,7 @@ class GrdaWarehouse::Utility
       HmisCsvValidation::Validation,
       GrdaWarehouse::Synthetic::Event,
       GrdaWarehouse::CustomImports::ImportFile,
+      GrdaWarehouse::Upload,
     ]
     if RailsDrivers.loaded.include?(:hud_apr)
       tables << HudApr::Fy2020::AprClient

@@ -34,17 +34,17 @@ module GrdaWarehouse::SystemCohorts
       # else Returned from inactive unless no service in INACTIVE period
 
       moved_in_ph = enrollment_source.ph.
-        ongoing(on_date: @processing_date).
-        where(she_t[:move_in_date].lt(@processing_date)).
+        ongoing(on_date: @processing_date + 1.days).
+        where(she_t[:move_in_date].lteq(@processing_date)).
         select(:client_id)
 
       candidate_enrollments = enrollment_source.
         homeless. # homeless clients
         ongoing(on_date: @processing_date). # who's enrollment is open today
         with_service_between(start_date: inactive_date, end_date: @processing_date). # who received service in the past 90 days
-        where.not( # who didn't receive a non-homeless (housed) service recently (last day or two)
+        where.not( # who didn't receive a non-homeless (housed) service on the processing date
           client_id: service_history_source.
-            where(date: (@processing_date - @date_window .. @processing_date - 1.day), homeless: false).
+            where(date: @processing_date, homeless: false).
             select(:client_id),
         ).
         where.not(client_id: moved_in_ph). # who aren't currently enrolled and moved-in to PH
@@ -54,14 +54,14 @@ module GrdaWarehouse::SystemCohorts
       # for candidate clients, find the most recent previously closed enrollment
       previous_enrollments = enrollment_source.
         where(client_id: candidate_enrollments.keys).
-        exit_within_date_range(start_date: 3.years.ago, end_date: @processing_date).
+        exit_within_date_range(start_date: (@processing_date - 2.years).to_date, end_date: @processing_date).
         order(last_date_in_program: :asc).
         pluck(:client_id, :last_date_in_program, :destination).
         map { |client_id, *rest| [client_id, rest] }.to_h # to_h picks the last, so ordering date asc gives most recent
 
       most_recent_service_dates = service_history_source.
         where(client_id: candidate_enrollments.keys).
-        where(date: 3.years.ago..@processing_date).
+        where(date: (@processing_date - 2.years).to_date..@processing_date).
         order(date: :desc).
         pluck(:client_id, :date, :homeless).
         group_by(&:shift)
@@ -69,23 +69,22 @@ module GrdaWarehouse::SystemCohorts
       newly_identified = []
       returned_from_housing = []
       returned_from_inactive = []
-
       candidate_enrollments.each do |client_id, entry_date|
         previous_entry_date, previous_destination = previous_enrollments[client_id]
         services = most_recent_service_dates[client_id]
         most_recent_service = services&.map(&:first)&.max
-        # should return an hash of date => [true, false] for homeless on most-recent date prior to entry
-        last_services_prior_to_entry = services&.select { |date, _| date < entry_date }&.deep_dup&.group_by(&:shift)&.max_by(&:first)&.last
-        # all entries for prior day are not-homeless
-        last_services_prior_to_entry_was_housed = last_services_prior_to_entry&.flatten&.all?(false) || false
-
+        # should return an hash of date => [true, false] for homeless on most-recent date prior to the processing date
+        last_services_prior_to_processing_date = services&.select { |date, _| date < @processing_date }&.deep_dup&.group_by(&:shift)&.max_by(&:first)&.last
+        # if on the day prior, you had any housed service, we'll count you as having returned from housing
+        last_services_prior_to_processing_date_was_housed = last_services_prior_to_processing_date&.flatten&.any?(false) || false
         # if we've never seen you before, or it's been 2 years between enrollments
         if previous_entry_date.blank? || previous_entry_date < entry_date - 2.years
           newly_identified << client_id
-        # if we have seen you before, and your exit was to a permanent destination, or your most recent
-        elsif HUD.permanent_destinations.include?(previous_destination) || last_services_prior_to_entry_was_housed
+        # if we have seen you before, and your exit was to a permanent destination, or you had prior
+        # housed service, then you are returning from housing
+        elsif HUD.permanent_destinations.include?(previous_destination) || last_services_prior_to_processing_date_was_housed
           returned_from_housing << client_id
-        # if you have service within the active window, you have returned
+        # if you have service within the active window, you have returned from inactivity
         elsif most_recent_service.present? && most_recent_service >= @processing_date - days_of_inactivity.days
           returned_from_inactive << client_id
         end
@@ -124,17 +123,16 @@ module GrdaWarehouse::SystemCohorts
         ).
         pluck(:client_id) & housed_service_on_processing_date
 
-      # Exited to a permanent destination and no SHS homeless true on the processing date
+      # Most-recent exit was to a permanent destination, and no SHS homeless true on the processing date
       with_permanent_destination = cohort_clients.joins(client: :service_history_enrollments).
-        merge(
-          enrollment_source.
-            # where(she_t[:last_date_in_program].gt(c_client_t[:date_added_to_cohort])).
-            where(she_t[:last_date_in_program].lt(@processing_date)).
-            where(destination: HUD.permanent_destinations),
-        ).pluck(:client_id)
+        merge(enrollment_source.where(she_t[:last_date_in_program].lt(@processing_date))).
+        pluck(:client_id, she_t[:last_date_in_program], she_t[:destination]).
+        group_by(&:shift).
+        select { |_, exits| exits.max_by(&:first).last.in?(HUD.permanent_destinations) }.
+        keys
+
       # keep anyone who is still receiving homeless service on the cohort
       with_permanent_destination.reject! { |id| id.in?(homeless_service_on_processing_date) }
-
       remove_clients(moved_in | with_permanent_destination, 'Housed')
     end
 
@@ -149,8 +147,8 @@ module GrdaWarehouse::SystemCohorts
         where(shs_t[:date].between(inactive_date..@processing_date)).
         distinct.
         pluck(:client_id)
-      inactive_client_ids = cohort_clients.pluck(:client_id) - active_client_ids
 
+      inactive_client_ids = cohort_clients.pluck(:client_id) - active_client_ids
       remove_clients(inactive_client_ids, 'Inactive')
     end
 
@@ -173,7 +171,6 @@ module GrdaWarehouse::SystemCohorts
         where(client_id: cohort_clients.select(:client_id)).
         where(she_t[:move_in_date].lt(@processing_date)).
         pluck(:client_id)
-
       remove_clients(no_ongoing | currently_moved_in_ph, 'No longer meets criteria')
     end
 
