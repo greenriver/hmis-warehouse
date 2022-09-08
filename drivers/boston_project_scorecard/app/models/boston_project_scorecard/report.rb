@@ -98,18 +98,19 @@ module BostonProjectScorecard
     end
 
     private def percentage_string(value)
-      v = value
-      v = 0 if value.to_f.nan?
-      v = 0 if value.to_f.infinite?
+      v = value.to_f
+      v = 0 if v.nan?
+      v = 0 if v.infinite?
 
       "#{v.round(2)}%"
     end
 
     private def percentage(value)
-      return 0 if value.to_f.nan?
-      return 0 if value.to_f.infinite?
+      v = value.to_f
+      return 0 if v.nan?
+      return 0 if v.infinite?
 
-      (value * 100).round(2)
+      (v * 100).round(2)
     end
 
     def controlled_parameters
@@ -136,6 +137,7 @@ module BostonProjectScorecard
         :practices_housing_first,
         :barrier_id_process,
         :plan_to_address_barriers,
+        :required_match_percent_met,
       ].freeze
     end
 
@@ -154,7 +156,7 @@ module BostonProjectScorecard
     end
 
     def title
-      _('MA-500 Boston Continuum of Care FY21 Renewal Project Scoring Tool')
+      _('MA-500 Boston Continuum of Care FY2022 Renewal Project Scoring Tool')
     end
 
     def url
@@ -188,19 +190,19 @@ module BostonProjectScorecard
       if apr.present?
         # Project Performance
         # 1a / 1b
-        assessment_answers.merge!(rrh_exits_to_ph: answer(apr, 'Q23c', 'B46') * 100) if rrh?
+        assessment_answers.merge!(rrh_exits_to_ph: percentage(answer(apr, 'Q23c', 'B46'))) if rrh?
         if psh?
-          value = ((answer(apr, 'Q5a', 'B1') - answer(apr, 'Q23c', 'B43') + answer(apr, 'Q23c', 'B43')) /
-            (answer(apr, 'Q5a', 'B1') - answer(apr, 'Q23c', 'B45')).to_f) * 100
+          value = percentage((answer(apr, 'Q5a', 'B1') - answer(apr, 'Q23c', 'B43') + answer(apr, 'Q23c', 'B44')) /
+            (answer(apr, 'Q5a', 'B1') - answer(apr, 'Q23c', 'B45')).to_f)
           assessment_answers.merge!(psh_stayers_or_to_ph: value)
         end
         assessment_answers.merge!(
           {
             apr_id: apr.id,
-            increased_stayer_employment_income: answer(apr, 'Q19a1', 'J2') * 100,
-            increased_stayer_other_income: answer(apr, 'Q19a1', 'J4') * 100,
-            increased_leaver_employment_income: answer(apr, 'Q19a2', 'J2') * 100,
-            increased_leaver_other_income: answer(apr, 'Q19a2', 'J4') * 100,
+            increased_stayer_employment_income: percentage(answer(apr, 'Q19a1', 'J2')),
+            increased_stayer_other_income: percentage(answer(apr, 'Q19a1', 'J4')),
+            increased_leaver_employment_income: percentage(answer(apr, 'Q19a2', 'J2')),
+            increased_leaver_other_income: percentage(answer(apr, 'Q19a2', 'J4')),
             days_to_lease_up: answer(apr, 'Q22c', 'B11').round,
           },
         )
@@ -217,7 +219,7 @@ module BostonProjectScorecard
         percent_income_and_housing_errors = percentage(total_income_and_housing_errors / denominator.to_f)
         assessment_answers.merge!(
           {
-            pii_error_rate: answer(apr, 'Q6a', 'F8') * 100,
+            pii_error_rate: percentage(answer(apr, 'Q6a', 'F8')),
             ude_error_rate: percent_ude_errors,
             income_and_housing_error_rate: percent_income_and_housing_errors,
           },
@@ -230,7 +232,7 @@ module BostonProjectScorecard
           answer(apr, 'Q8b', 'B4'),
           answer(apr, 'Q8b', 'B5'),
         ].compact
-        assessment_answers.merge!(average_utilization_rate: percentage(utilization_values.sum / utilization_values.count.to_f))
+        assessment_answers.merge!(average_utilization_rate: utilization_values.sum / utilization_values.count.to_f)
       end
 
       assessment_answers.merge!(

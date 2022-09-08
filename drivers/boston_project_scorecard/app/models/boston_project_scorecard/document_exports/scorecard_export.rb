@@ -49,9 +49,12 @@ module BostonProjectScorecard::DocumentExports
     end
 
     def pdf_data
+      # DocumentExport uses the query string to determine if it has already generated the PDF for a document
+      # Include a hash of the report to detect edits
+      hash = Digest::MD5.hexdigest(report.to_json)
       {
         type: type,
-        query_string: query_string,
+        query_string: query_string + "&hash=#{hash}",
       }
     end
 

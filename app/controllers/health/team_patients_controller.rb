@@ -11,7 +11,14 @@ module Health
     include HealthPatientDashboard
 
     before_action :require_can_view_patients_for_own_agency!
+    before_action :require_has_team_or_admin!
     before_action :set_dates
+
+    def require_has_team_or_admin!
+      return if current_user.can_administer_health? || current_user.team_mates.exists?
+
+      not_authorized!
+    end
 
     def index
       @team_name = params[:entity_id]
