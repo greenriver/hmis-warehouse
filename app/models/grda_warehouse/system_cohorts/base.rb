@@ -6,55 +6,56 @@
 
 module GrdaWarehouse::SystemCohorts
   class Base < GrdaWarehouse::Cohort
+    # Because it can take time for HMIS data to arrive in the warehouse,
+    # Each day we'll re-run calculations for the prior week to smooth out back-dated data entry
+    def self.update_all_system_cohorts(range: 1.weeks.ago.to_date .. Date.yesterday, date_window: nil)
+      cohort_classes.each_value do |klass|
+        klass.update_system_cohort(range: range, date_window: date_window)
+      end
+    end
+
     # NOTE: This should now be possible to generate historic cohort changes
-    def self.update_system_cohort_changes(range: 6.months.ago.to_date .. Date.yesterday)
+    def self.update_system_cohort(range: 1.weeks.ago.to_date .. Date.yesterday, date_window: nil)
+      date_window ||= ::GrdaWarehouse::Config.get(:system_cohort_date_window) || 1.day
       known_reasons = [
         'Newly identified',
         'Returned from housing',
         'Returned from inactive',
         'Inactive',
         'No longer meets criteria',
+        'Housed',
       ]
+
+      config_key = cohort_classes.invert[self]
+      raise 'Unknown System Cohort Class' unless config_key
+
       transaction do
         range.each do |date|
-          cohort_classes.each do |config_key, klass|
-            next unless GrdaWarehouse::Config.get(config_key)
+          next unless GrdaWarehouse::Config.get(config_key)
 
-            system_cohort = klass.first_or_create! do |cohort|
-              cohort.name = cohort.cohort_name
-              cohort.system_cohort = true
-              cohort.days_of_inactivity = 90
-            end
+          system_cohort = ensure_system_cohort(self)
 
-            # remove any known changes that were added by the system
-            GrdaWarehouse::CohortClientChange.where(
-              cohort_id: system_cohort.id,
-              user_id: User.system_user.id,
-              reason: known_reasons,
-              changed_at: date.to_time .. (date + 1.days).to_time,
-            ).delete_all
+          # remove any known changes that were added by the system
+          GrdaWarehouse::CohortClientChange.where(
+            cohort_id: system_cohort.id,
+            user_id: User.system_user.id,
+            reason: known_reasons,
+            changed_at: date.to_time .. (date + 1.days).to_time,
+          ).delete_all
 
-            system_cohort.sync(processing_date: date)
-          end
+          system_cohort.sync(processing_date: date, date_window: date_window)
         end
       end
     end
 
-    # Factory
-    def self.update_system_cohorts(processing_date: nil, date_window: nil)
-      processing_date ||= ::GrdaWarehouse::Config.get(:system_cohort_processing_date) || Date.current
-      date_window ||= ::GrdaWarehouse::Config.get(:system_cohort_date_window) || 1.day
-      cohort_classes.each do |config_key, klass|
-        next unless GrdaWarehouse::Config.get(config_key)
-
-        system_cohort = klass.first_or_create! do |cohort|
-          cohort.name = cohort.cohort_name
-          cohort.system_cohort = true
-          cohort.days_of_inactivity = 90
-        end
-        system_cohort.update(name: system_cohort.cohort_name)
-        system_cohort.sync(processing_date: processing_date, date_window: date_window)
+    def self.ensure_system_cohort(klass)
+      system_cohort = klass.first_or_create! do |cohort|
+        cohort.name = cohort.cohort_name
+        cohort.system_cohort = true
+        cohort.days_of_inactivity = 90
       end
+      system_cohort.update(name: system_cohort.cohort_name)
+      system_cohort
     end
 
     def self.find_system_cohort(cohort_key)
