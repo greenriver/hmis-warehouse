@@ -938,6 +938,20 @@ module HUD
     available_situations
   end
 
+  def valid_current_living_situations
+    homeless_situations(as: :current) +
+    institutional_situations(as: :current) +
+    temporary_and_permanent_housing_situations(as: :current) +
+    other_situations(as: :current)
+  end
+
+  def valid_prior_living_situations
+    homeless_situations(as: :prior) +
+    institutional_situations(as: :prior) +
+    temporary_and_permanent_housing_situations(as: :prior) +
+    other_situations(as: :prior)
+  end
+
   def available_situations
     {
       1 => 'Emergency shelter, including hotel or motel paid for with emergency shelter voucher, or RHY-funded Host Home shelter ',

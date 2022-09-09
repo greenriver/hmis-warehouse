@@ -19,19 +19,20 @@ module BostonProjectScorecard
       end
 
       def subpopulations_served_value
-        return unless subpopulations_served.present?
+        return if subpopulations_served.nil?
 
         subpopulations_served.reject(&:blank?)
       end
 
       def subpopulations_served_score
-        return unless subpopulations_served_value.present?
+        return if subpopulations_served_value.nil?
 
-        subpopulations_served_value.length * (6 / subpopulations_served_options.length.to_f)
+        # 6 points, divided by nuumber of options, round to one decimal place
+        (subpopulations_served_value.length * (6 / subpopulations_served_options.length.to_f)).round(1)
       end
 
       def practices_housing_first_score
-        return unless practices_housing_first.present?
+        return if practices_housing_first.nil?
         return 6 if practices_housing_first?
 
         0
@@ -49,15 +50,16 @@ module BostonProjectScorecard
       end
 
       def vulnerable_subpopulations_served_value
-        return unless vulnerable_subpopulations_served.present?
+        return if vulnerable_subpopulations_served.nil?
 
         vulnerable_subpopulations_served.reject(&:blank?)
       end
 
       def vulnerable_subpopulations_served_score
-        return unless vulnerable_subpopulations_served_value.present?
+        return if vulnerable_subpopulations_served_value.nil?
 
-        vulnerable_subpopulations_served_value.length * (6 / vulnerable_subpopulations_served_options.length.to_f)
+        # 6 points, divided by nuumber of options, round to 1 decimal place
+        (vulnerable_subpopulations_served_value.length * (6 / vulnerable_subpopulations_served_options.length.to_f)).round(1)
       end
     end
   end

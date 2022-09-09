@@ -12,4 +12,4 @@
 # use with caution!
 RailsDrivers.loaded << :vispdats
 
-GrdaWarehouse::Synthetic.add_assessment_type('Vispdats::Synthetic::Base')
+Rails.application.config.synthetic_assessment_types << 'Vispdats::Synthetic::Base'

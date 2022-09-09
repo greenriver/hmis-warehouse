@@ -19,7 +19,7 @@ class SystemCohortsJob < BaseJob
 
     @notifier.ping('Processing system cohorts') if @send_notifications
 
-    GrdaWarehouse::SystemCohorts::Base.update_system_cohorts
+    GrdaWarehouse::SystemCohorts::Base.update_all_system_cohorts
 
     @notifier.ping('Processed system cohorts') if @send_notifications
   end

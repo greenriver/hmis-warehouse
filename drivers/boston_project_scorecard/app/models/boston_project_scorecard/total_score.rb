@@ -156,7 +156,7 @@ module BostonProjectScorecard
           financial_performance_weighted_score,
           policy_alignment_weighted_score,
           # racial_equity_weighted_score, # Rolled into Policy Alignment
-        ].compact.sum
+        ].compact.sum.round(2)
       end
     end
   end

@@ -1,7 +1,7 @@
 %h2{id: 'policy-alignment'}  Alignment with CoC/HUD Policy Priorities
-%table.table.table-bordered
+%table.table.table-bordered{style: 'max-width: 99%'}
   %thead
-    %tr
+    %tr.bg-info
       %th{style: 'width:10%'} Criteria Topic
       %th{style: 'width:15%'} Scored Criteria
       %th{style: 'width:15%'} Criteria Source
@@ -11,11 +11,13 @@
       %th Score
   %tbody
     %tr
-      %th{rowspan: 3} Alignment with HUD and  Boston CoC system-wide policy priorities
+      %th.bg-info.align-middle.text-center{rowspan: 3} Alignment with HUD and  Boston CoC system-wide policy priorities
       %td 16. Serving sub-populations in line with HUD and Boston CoC priorities
       %td Project Application
       %td Up to 6 pts: 1.2 pts for each sub-population served
-      %th{rowspan: 5} #{@report.policy_alignment_weight}%
+      %th.align-middle.text-center{rowspan: 5}
+        Weight
+        #{@report.policy_alignment_weight}%
       %td= f.input :subpopulations_served, collection: @report.subpopulations_served_options, as: :pretty_boolean_group, multiple: true, label: 'Select all sub-populations served:'
       %td= @report.subpopulations_served_score
     %tr
@@ -36,15 +38,15 @@
       %td= f.input :vulnerable_subpopulations_served, collection: @report.vulnerable_subpopulations_served_options, as: :pretty_boolean_group, multiple: true, label: 'Select all sub-populations served:'
       %td= @report.vulnerable_subpopulations_served_score
     %tr
-      %th{rowspan: 2}
-        Racial Equity
+      %th.bg-info.align-middle{rowspan: 2}
+        .text-center Racial Equity
         %p
-        To answer “yes” under this element, projects must submit evidence or an attestation that satisfies the scoring element criteria.
+        To answer "yes" under this element, projects must submit evidence or an attestation that satisfies the scoring element criteria.
         %p
         To qualify, the actions must have been taken within the last three years.
       %td
         19. The project applicant currently has a process to identify whether participants over-represented in the
-        homeless system (e.g., Black, Latinx, LGBQIA, people of color) face barriers to equitably accessing or
+        homeless system (e.g., Black, Latinx, LGBTQIA, people of color) face barriers to equitably accessing or
         receiving services from their organization.
       %td City Application
       %td
@@ -57,7 +59,7 @@
     %tr
       %td
         20. The project applicant currently has a plan to address or eliminate barriers identified to participants
-        over-represented in the homeless system (e.g., Black, Latinx, LGBQIA, people of color), OR no barriers were
+        over-represented in the homeless system (e.g., Black, Latinx, LGBTQIA, people of color), OR no barriers were
         identified in the assessment above.
       %td City Application
       %td

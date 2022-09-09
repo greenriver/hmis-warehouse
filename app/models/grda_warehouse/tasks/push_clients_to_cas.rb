@@ -49,7 +49,15 @@ module GrdaWarehouse::Tasks
               :source_disabilities,
               :source_health_and_dvs,
               :source_exits,
-              source_clients: { most_recent_pathways_or_rrh_assessment: [:assessment_questions, :user] },
+              source_clients: [
+                :most_recent_current_living_situation,
+                {
+                  most_recent_pathways_or_rrh_assessment: [
+                    :assessment_questions,
+                    :user,
+                  ],
+                },
+              ],
               cohort_clients: :cohort,
               source_enrollments: [:income_benefits, :exit],
             ]
@@ -300,6 +308,8 @@ module GrdaWarehouse::Tasks
         value&.join(', ')&.titleize
       elsif value.is_a?(Array)
         value.join(', ')
+      elsif key == :assessment_name
+        value&.titleize
       else
         value
       end

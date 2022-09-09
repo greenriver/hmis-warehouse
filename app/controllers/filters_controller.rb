@@ -14,6 +14,7 @@ class FiltersController < ApplicationController
   private def filter_params
     params.require(:filter).permit(filter.known_params)
   end
+  helper_method :filter_params
 
   private def selected_keys
     @selected_keys ||= params[:selected_keys].presence&.map(&:to_sym) || []

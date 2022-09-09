@@ -1,7 +1,7 @@
 %h2{id: 'financial-performance'}  Project Financial Performance
-%table.table.table-bordered
+%table.table.table-bordered{style: 'max-width: 99%'}
   %thead
-    %tr
+    %tr.bg-info
       %th{style: 'width:10%'} Criteria Topic
       %th{style: 'width:15%'} Scored Criteria
       %th{style: 'width:15%'} Criteria Source
@@ -11,7 +11,7 @@
       %th Score
   %tbody
     %tr
-      %th{rowspan: 6}
+      %th.bg-info.align-middle.text-center{rowspan: 6}
         Project financial performance based on CoC/DND monitoring and invoicing
         %br
         .text-danger
@@ -21,8 +21,10 @@
       %td
         6: PSH
         %br
-        3: RRH/Joint TH-PH
-      %th{rowspan: 6} #{@report.financial_performance_weight}%
+        3: RRH/Joint TH-RRH
+      %th.align-middle.text-center{rowspan: 6}
+        Weight
+        #{@report.financial_performance_weight}%
       %td= @report.project_type_value
       %td= @report.project_type_score
     %tr
@@ -61,25 +63,27 @@
         %p
         Was the match reported at end of operating year greater than the minimum required?
       %td
-        Project Application and spend
+        Project Spend
         %p
-        Grant Year Spend Divided by Contract Budget value
+        Evaluate the project applicant dollar amount match for the most recently completed grant period. Does it exceed 25% of the project budget?
       %td
         6 pts: > 25%
         %br
         0 pts: 0-25%
-      %td
-        = f.input :contracted_budget
-        = @report.required_match_value
+      %td= f.input :required_match_percent_met, as: :pretty_boolean, label: 'Exceeds 25% of the project budget'
       %td= @report.required_match_score
     %tr
-      %td 14. Project returns unobligated funds in most recent grant application year
-      %td ASPEND / DND budget tracking
+      %td
+        14. Project Returns
+        %p
+        What % of unobligated funds in the most recent grant application year were returned?
+      %td Most Recently Completed Grant Year Funds Returned (sourced from ASPEND) divided by the Contract Budget
       %td
         6 pts: 0 - 10% return
         %br
         0 pts: 11 - 20%
       %td
+        = f.input :contracted_budget, label: 'Contract Budget'
         = f.input :returned_funds
         = @report.returned_funds_value
       %td= @report.returned_funds_score
@@ -87,9 +91,10 @@
       %td 15. Project utilization rate from current project operating year
       %td
         APR (quarterly average for operating year)
-        %br
-        = link_to_apr('APR, Q8b', 'Question 8')
-        Average of cells B2, B3, B4, B5 / Total Listed on Grant application
+        %p
+          APR Table
+        = link_to_apr('Q8b', 'Question 8')
+        Average of cells B2, B3, B4, B5 / Total Number of Households Served
       %td
         6 pts: 85 -over 100%
         %br

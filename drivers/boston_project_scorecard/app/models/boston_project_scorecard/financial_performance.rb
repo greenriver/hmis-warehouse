@@ -23,10 +23,10 @@ module BostonProjectScorecard
 
       # Report is only functional for PSH, RRH and Joint TH-PH projects
       def project_type_score
-        return 6 if project_type == 3 # PSH
-        return unless project_type.in?([9, 10, 13])
+        return 6 if project_type.in?([3, 9, 10]) # PSH, PH - housing only, PH - with services
+        return 3 if project_type.in?([13]) # RRH
 
-        3
+        0
       end
 
       def invoicing_options
@@ -55,21 +55,9 @@ module BostonProjectScorecard
         0
       end
 
-      def required_match_percent
-        return unless contracted_budget.present?
-
-        percentage(amount_agency_spent / contracted_budget.to_f)
-      end
-
-      def required_match_value
-        return unless required_match_percent.present?
-
-        percentage_string(required_match_percent)
-      end
-
       def required_match_score
-        return unless required_match_percent.present?
-        return 6 if required_match_percent >= 25
+        return unless required_match_percent_met.present?
+        return 6 if required_match_percent_met?
 
         0
       end
@@ -81,7 +69,7 @@ module BostonProjectScorecard
       end
 
       def returned_funds_value
-        return unless required_match_percent.present?
+        return unless returned_funds_percent.present?
 
         percentage_string(returned_funds_percent)
       end
