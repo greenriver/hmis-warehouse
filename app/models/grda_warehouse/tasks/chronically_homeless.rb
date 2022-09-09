@@ -61,7 +61,6 @@ module GrdaWarehouse::Tasks
       reset_for_batch
       adjusted_homeless_dates_served = residential_history_for_client(client_id: client_id)
       homeless_months = adjusted_months_served(dates: adjusted_homeless_dates_served)
-      homeless_months_size = if homeless_months.size > 36 then 36 else homeless_months.size end
       # debug_log homeless_months.inspect
       debug_log "Found #{homeless_months.size} homeless months"
       if homeless_months.size >= 12
@@ -88,7 +87,7 @@ module GrdaWarehouse::Tasks
           debug_log 'Chronic Triggers: '
           debug_log @chronic_trigger.inspect
           # Add details for any chronically homeless client
-          add_client_details(client: client, days_served: adjusted_homeless_dates_served, months_homeless: homeless_months_size, chronic_trigger: @chronic_trigger)
+          add_client_details(client: client, days_served: adjusted_homeless_dates_served, months_homeless: homeless_months.size, chronic_trigger: @chronic_trigger)
         end
       end
       return @chronic
