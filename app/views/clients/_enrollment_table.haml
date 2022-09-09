@@ -78,8 +78,7 @@
             - title += ";<br /><b>Move-in Date:</b> No move-in date"
           %span{data: { toggle: :tooltip, title: title.html_safe, html: 'true' }}
             = e[:entry_date]
-          - is_residential = true # FIXME how do I get this
-          - if is_residential && e[:chronically_homeless_at_start]
+          - if e[:residential] && e[:chronically_homeless_at_start]
             %div
               %i.icon-passport{data: {toggle: :tooltip, title: 'Chronically homeless at entry'}}
           - if move_in_date.present?

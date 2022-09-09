@@ -168,6 +168,7 @@ module ClientAccessControl::GrdaWarehouse::Hud
               move_in_date: entry.move_in_date,
               days: dates_served.count,
               homeless: entry.computed_project_type.in?(::GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES),
+              residential: entry.computed_project_type.in?(::GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS),
               homeless_days: homeless_dates_for_enrollment.count,
               adjusted_days: adjusted_dates_for_similar_programs.count,
               months_served: adjusted_months_served(dates: adjusted_dates_for_similar_programs),

@@ -29,7 +29,7 @@
               %span.font-italic Please note:
               %span Chronic calculations are done using the Project Type Overrides.
           .mb-0= link_to 'The HUD HMIS Glossary definition of Chronically Homeless can be found here.', 'https://www.hudexchange.info/resource/4489/hmis-standard-reporting-terminology-glossary'
-        %td.font-weight-bold= ApplicationController.helpers.yes_no(@client.hud_chronic?(on_date: date))
+        %td.font-weight-bold= ApplicationController.helpers.yes_no(@client.hud_chronic?(on_date: date) || false)
       %tr
         %td
           .mb-1.font-weight-bold Potentially Chronic
