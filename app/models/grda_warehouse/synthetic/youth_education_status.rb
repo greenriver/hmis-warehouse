@@ -17,7 +17,7 @@ module GrdaWarehouse::Synthetic
     validates_presence_of :client
 
     # Subclasess must define
-    #   information_date, data_collection_stage
+    #   information_date, data_collection_stage, data_source
 
     # Subclasses may override
     # The HUD spec allows for nil here, but doesn't define what it would mean -- guessing data not collected

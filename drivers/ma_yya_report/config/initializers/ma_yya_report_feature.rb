@@ -5,3 +5,5 @@
 #
 # use with caution!
 RailsDrivers.loaded << :ma_yya_report
+
+GrdaWarehouse::Synthetic.add_assessment_type('MaYyaReport::Synthetic::Assessment')
