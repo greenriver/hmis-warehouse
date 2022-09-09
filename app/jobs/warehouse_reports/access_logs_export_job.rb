@@ -25,7 +25,7 @@ module WarehouseReports
         file_data: @report.as_excel.to_stream.read,
         version: 1,
         status: :completed,
-        mime_type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        mime_type: GrdaWarehouse::DocumentExport::EXCEL_MIME_TYPE,
       )
       NotifyUser.report_completed(current_user_id, @report).deliver_now
     end
