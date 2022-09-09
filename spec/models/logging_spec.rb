@@ -7,15 +7,15 @@ RSpec.describe 'Logging', type: :model do
 
   it 'works with key/value tags' do
     Rails.logger.tagged({process_name: "nightly-process-1"}) do
-      Rails.logger.info('Test one tag')
+      Rails.logger.info('Test hash passed')
     end
 
     Rails.logger.tagged(process_name: "nightly-process-1") do
-      Rails.logger.info('Test one tag')
+      Rails.logger.info('Test named args passed')
     end
 
     Rails.logger.tagged([{process_name: "nightly-process-1"}]) do
-      Rails.logger.info('Test one tag')
+      Rails.logger.info('Test array of hash pased')
     end
   end
 
@@ -31,17 +31,17 @@ RSpec.describe 'Logging', type: :model do
     end
 
     Rails.logger.tagged(['Test', 'Test2']) do
-      Rails.logger.info('Test two tags')
+      Rails.logger.info('Test two tags as array')
     end
 
     Rails.logger.tagged(*['Test', 'Test2']) do
-      Rails.logger.info('Test two tags')
+      Rails.logger.info('Test two tags passed with splat')
     end
   end
 
   it 'works with no tags' do
     Rails.logger.tagged do
-      Rails.logger.info('Test no tags')
+      Rails.logger.info('Test empty set of tags')
     end
   end
 

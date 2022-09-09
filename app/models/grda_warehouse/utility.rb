@@ -55,6 +55,7 @@ class GrdaWarehouse::Utility
       GrdaWarehouse::WarehouseReports::Project::DataQuality::Base,
       GrdaWarehouse::WarehouseReports::Base,
       GrdaWarehouse::Cohort,
+      GrdaWarehouse::CohortClientChange,
       Reporting::MonthlyReports::Base,
       Reporting::DataQualityReports::Enrollment,
       Reporting::DataQualityReports::Project,
@@ -62,6 +63,7 @@ class GrdaWarehouse::Utility
       Reporting::Housed,
       Reporting::MonthlyClientIds,
       Reporting::Return,
+      PaperTrail::Version,
       ReportResult,
       AccessGroup,
       AccessGroupMember,
@@ -72,6 +74,7 @@ class GrdaWarehouse::Utility
       HmisCsvValidation::Validation,
       GrdaWarehouse::Synthetic::Event,
       GrdaWarehouse::CustomImports::ImportFile,
+      GrdaWarehouse::Upload,
     ]
     if RailsDrivers.loaded.include?(:hud_apr)
       tables << HudApr::Fy2020::AprClient

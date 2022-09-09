@@ -6,21 +6,56 @@
 
 module GrdaWarehouse::SystemCohorts
   class Base < GrdaWarehouse::Cohort
-    # Factory
-    def self.update_system_cohorts(processing_date: nil, date_window: nil)
-      processing_date ||= ::GrdaWarehouse::Config.get(:system_cohort_processing_date) || Date.current
-      date_window ||= ::GrdaWarehouse::Config.get(:system_cohort_date_window) || 1.day
-      cohort_classes.each do |config_key, klass|
-        next unless GrdaWarehouse::Config.get(config_key)
-
-        system_cohort = klass.first_or_create! do |cohort|
-          cohort.name = cohort.cohort_name
-          cohort.system_cohort = true
-          cohort.days_of_inactivity = 90
-        end
-        system_cohort.update(name: system_cohort.cohort_name)
-        system_cohort.sync(processing_date: processing_date, date_window: date_window)
+    # Because it can take time for HMIS data to arrive in the warehouse,
+    # Each day we'll re-run calculations for the prior week to smooth out back-dated data entry
+    def self.update_all_system_cohorts(range: 1.weeks.ago.to_date .. Date.yesterday, date_window: nil)
+      cohort_classes.each_value do |klass|
+        klass.update_system_cohort(range: range, date_window: date_window)
       end
+    end
+
+    # NOTE: This should now be possible to generate historic cohort changes
+    def self.update_system_cohort(range: 1.weeks.ago.to_date .. Date.yesterday, date_window: nil)
+      date_window ||= ::GrdaWarehouse::Config.get(:system_cohort_date_window) || 1.day
+      known_reasons = [
+        'Newly identified',
+        'Returned from housing',
+        'Returned from inactive',
+        'Inactive',
+        'No longer meets criteria',
+        'Housed',
+      ]
+
+      config_key = cohort_classes.invert[self]
+      raise 'Unknown System Cohort Class' unless config_key
+
+      transaction do
+        range.each do |date|
+          next unless GrdaWarehouse::Config.get(config_key)
+
+          system_cohort = ensure_system_cohort(self)
+
+          # remove any known changes that were added by the system
+          GrdaWarehouse::CohortClientChange.where(
+            cohort_id: system_cohort.id,
+            user_id: User.system_user.id,
+            reason: known_reasons,
+            changed_at: date.to_time .. (date + 1.days).to_time,
+          ).delete_all
+
+          system_cohort.sync(processing_date: date, date_window: date_window)
+        end
+      end
+    end
+
+    def self.ensure_system_cohort(klass)
+      system_cohort = klass.first_or_create! do |cohort|
+        cohort.name = cohort.cohort_name
+        cohort.system_cohort = true
+        cohort.days_of_inactivity = 90
+      end
+      system_cohort.update(name: system_cohort.cohort_name)
+      system_cohort
     end
 
     def self.find_system_cohort(cohort_key)
@@ -30,7 +65,7 @@ module GrdaWarehouse::SystemCohorts
     private def add_clients(client_ids, reason)
       system_user_id = User.setup_system_user.id
       client_ids -= cohort_clients.pluck(:client_id) # Do not touch existing clients
-      cohort_clients_by_client_id = cohort_clients.with_deleted.where(client_id: client_ids).index_by(&:client_id)
+      cohort_clients_by_client_id = cohort_clients.only_deleted.where(client_id: client_ids).index_by(&:client_id)
       cohort_client_batch = []
       client_ids.each do |client_id|
         # Create (or resurrect) added clients
@@ -43,6 +78,8 @@ module GrdaWarehouse::SystemCohorts
             column.cohort = self
             cohort_client[column.column] = column.default_value(client_id)
           end
+          # Enforce that we added the client on the processing date
+          cohort_client[:date_added_to_cohort] = @processing_date
         end
 
         cohort_client_batch << cohort_client
@@ -62,7 +99,7 @@ module GrdaWarehouse::SystemCohorts
           user_id: system_user_id,
           change: 'create',
           reason: reason,
-          changed_at: Time.current,
+          changed_at: @processing_date,
         )
       end
       cohort_client_changes_source.import(changes_batch)
@@ -73,16 +110,17 @@ module GrdaWarehouse::SystemCohorts
       return unless client_ids
 
       system_user_id = User.setup_system_user.id
+      cc_ids = cohort_clients.where(client_id: client_ids).pluck(:id)
       cohort_clients.where(client_id: client_ids).update_all(deleted_at: Time.current)
       cohort_client_changes_source.import(
-        client_ids.map do |client_id|
+        cc_ids.map do |cc_id|
           cohort_client_changes_source.new(
             cohort_id: id,
-            cohort_client_id: client_id,
+            cohort_client_id: cc_id,
             user_id: system_user_id,
             change: 'destroy',
             reason: reason,
-            changed_at: Time.current,
+            changed_at: @processing_date,
           )
         end,
       )

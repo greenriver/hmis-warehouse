@@ -13,4 +13,4 @@
 RailsDrivers.loaded << :custom_imports_boston_services
 
 Rails.application.config.custom_imports << 'CustomImportsBostonServices::ImportFile'
-GrdaWarehouse::Synthetic.add_event_type('CustomImportsBostonServices::Synthetic::Event')
+Rails.application.config.synthetic_event_types << 'CustomImportsBostonServices::Synthetic::Event'

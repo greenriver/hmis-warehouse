@@ -1,5 +1,5 @@
 %h2{id: 'financial-performance'}  Project Financial Performance
-%table.table.table-bordered
+%table.table.table-bordered{style: 'max-width: 99%'}
   %thead
     %tr.bg-info
       %th{style: 'width:10%'} Criteria Topic
@@ -63,16 +63,14 @@
         %p
         Was the match reported at end of operating year greater than the minimum required?
       %td
-        Project Application
+        Project Spend
         %p
-        Most Recently Completed Grant Year Spend divided by the Contract Budget
+        Evaluate the project applicant dollar amount match for the most recently completed grant period. Does it exceed 25% of the project budget?
       %td
         6 pts: > 25%
         %br
         0 pts: 0-25%
-      %td
-        = f.input :contracted_budget, label: 'Contract Budget'
-        = @report.required_match_value
+      %td= f.input :required_match_percent_met, as: :pretty_boolean, label: 'Exceeds 25% of the project budget'
       %td= @report.required_match_score
     %tr
       %td
@@ -85,6 +83,7 @@
         %br
         0 pts: 11 - 20%
       %td
+        = f.input :contracted_budget, label: 'Contract Budget'
         = f.input :returned_funds
         = @report.returned_funds_value
       %td= @report.returned_funds_score
