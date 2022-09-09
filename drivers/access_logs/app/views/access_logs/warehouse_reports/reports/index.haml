@@ -7,16 +7,19 @@
 
 %h2 Recently Requested Files
 %p Please note, these files will be removed after 30 days.
-.card
-  %table.table.table-striped
-    %thead
-      %tr
-        %th Export
-        %th Date Requested
-        %th Status
-    %tbody
-      - @exports.each do |item|
+- if @exports.any?
+  .card
+    %table.table.table-striped
+      %thead
         %tr
-          %td= link_to_if item.completed?, item.download_title, item.download_url, download: 'download'
-          %td= item.created_at.to_s(:long)
-          %td= item.status
+          %th Export
+          %th Date Requested
+          %th Status
+      %tbody
+        - @exports.each do |item|
+          %tr
+            %td= link_to_if item.completed?, item.download_title, item.download_url, download: 'download'
+            %td= item.created_at.to_s(:long)
+            %td= item.status
+- else
+  %p.none-found No prior exports.

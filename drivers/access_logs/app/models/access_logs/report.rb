@@ -6,6 +6,7 @@
 
 class AccessLogs::Report < OpenStruct
   include ArelHelper
+  include Rails.application.routes.url_helpers
   attr_accessor :filter
   attr_writer :cas_user_id
 
@@ -16,6 +17,14 @@ class AccessLogs::Report < OpenStruct
 
   def self.url
     'access_logs/warehouse_reports/reports'
+  end
+
+  def url
+    access_logs_warehouse_reports_reports_url(host: ENV.fetch('FQDN'), protocol: 'https')
+  end
+
+  def title
+    'User Access Logs Export'
   end
 
   def filter # rubocop:disable Lint/DuplicateMethods

@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module Reporting
+module WarehouseReports
   class AccessLogsExportJob < BaseJob
     queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
     def max_attempts
@@ -27,6 +27,7 @@ module Reporting
         status: :completed,
         mime_type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       )
+      NotifyUser.report_completed(current_user_id, @report).deliver_now
     end
   end
 end

@@ -10,7 +10,7 @@ module AccessLogs::WarehouseReports
     include BaseFilters
 
     def index
-      @exports = AccessLogs::Export.where(user_id: current_user.id).
+      @exports = AccessLogs::Export.diet_select.where(user_id: current_user.id).
         order(created_at: :desc)
     end
 
@@ -23,7 +23,7 @@ module AccessLogs::WarehouseReports
         filename: filename,
       )
 
-      Reporting::AccessLogsExportJob.perform_later(
+      ::WarehouseReports::AccessLogsExportJob.perform_later(
         filter_params: @filter.to_h,
         filter_user_id: filter_params[:filters][:user_id],
         current_user_id: current_user.id,
