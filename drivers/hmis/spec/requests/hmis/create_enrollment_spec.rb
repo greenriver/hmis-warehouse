@@ -73,6 +73,17 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(enrollments).to be_present
       expect(enrollments.count).to eq(3)
       expect(errors).to be_empty
+      expect(Hmis::Hud::Enrollment.count).to eq(3)
+      expect(Hmis::Hud::Enrollment.in_progress.count).to eq(0)
+      expect(Hmis::Hud::Enrollment.all).to include(
+        *enrollments.map do |e|
+          have_attributes(
+            enrollment_id: be_present,
+            project_id: Hmis::Hud::Project.find(test_input[:project_id]).project_id,
+            personal_id: Hmis::Hud::Client.find(e['client']['id'].to_i).personal_id,
+          )
+        end,
+      )
     end
 
     describe 'In progress tests' do
