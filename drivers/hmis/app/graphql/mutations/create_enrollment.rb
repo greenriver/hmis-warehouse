@@ -30,7 +30,7 @@ module Mutations
           entry_date: Date.strptime(start_date, '%Y-%m-%d'),
           project_id: project&.project_id,
           household_id: household_id,
-          enrollment_id: enrollment_id,
+          enrollment_id: SecureRandom.uuid.gsub(/-/, ''),
           in_progress: in_progress,
         }
       end
