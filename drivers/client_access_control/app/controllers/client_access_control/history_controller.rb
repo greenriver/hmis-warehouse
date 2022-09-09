@@ -62,7 +62,7 @@ module ClientAccessControl
       @organization_counts = @dates.values.flatten.group_by { |en| HUD.project_type en[:organization_name] }.transform_values(&:count)
       @project_type_counts = @dates.values.flatten.group_by { |en| HUD.project_type en[:project_type] }.transform_values(&:count)
 
-      chronic = GrdaWarehouse::Config.get(:chronic_definition).to_sym == :chronics ? @client.potentially_chronic?(on_date: Date.today) : @client.hud_chronic?(on_date: Date.today)
+      chronic = ::GrdaWarehouse::Config.get(:chronic_definition).to_sym == :chronics ? @client.potentially_chronic?(on_date: Date.today) : @client.hud_chronic?(on_date: Date.today)
 
       file_name = 'service_history.pdf'
 
