@@ -7,9 +7,8 @@
 
 .mb-6
   = render 'clients/chronic_flags', client: @client
-.row.mb-8
-  .col-sm-8
-    = render "chronic_calculator", date: @date
+
+= render "chronic_calculator", date: @date
 .row
   .col-sm-6
     =render "clients/note_form"
