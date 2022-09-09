@@ -141,6 +141,8 @@ module BuiltForZeroReport
     private def source_scope
       mrc_t = Arel::Table.new(:most_recent_changes)
       join = c_c_change_t.join(mrc_t).on(c_c_change_t[:id].eq(mrc_t[:current_id]))
+      join_cc = c_t.join(c_client_t).on(c_t[:id].eq(c_client_t[:client_id]))
+      join_cc_changes = c_client_t.join(c_c_change_t).on(c_client_t[:id].eq(c_c_change_t[:cohort_client_id]))
 
       GrdaWarehouse::Hud::Client.
         with(
@@ -151,7 +153,8 @@ module BuiltForZeroReport
               where(cohort_id: @cohort_id).
               where(c_c_change_t[:changed_at].lteq(@end_date)),
         ).
-        joins(cohort_clients: :cohort_client_changes).
+        joins(join_cc.join_sources).
+        joins(join_cc_changes.join_sources).
         joins(join.join_sources)
     end
 
