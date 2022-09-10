@@ -12,5 +12,5 @@
 # use with caution!
 RailsDrivers.loaded << :cas_ce_data
 
-GrdaWarehouse::Synthetic.add_event_type('CasCeData::Synthetic::Event')
-GrdaWarehouse::Synthetic.add_assessment_type('CasCeData::Synthetic::Assessment')
+Rails.application.config.synthetic_event_types << 'CasCeData::Synthetic::Event'
+Rails.application.config.synthetic_assessment_types << 'CasCeData::Synthetic::Assessment'

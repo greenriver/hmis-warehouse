@@ -17,6 +17,7 @@ module LongitudinalSpm::WarehouseReports
 
     def index
       @filter.default_project_type_codes = report_class.default_project_type_codes
+
       @pagy, @reports = pagy(report_scope.ordered)
       @report = report_class.new(user_id: current_user.id)
       previous_report = report_scope.last
@@ -25,6 +26,7 @@ module LongitudinalSpm::WarehouseReports
       else
         @filter['project_type_codes'] = []
       end
+      @filter.project_type_codes = report_class.default_project_type_codes if @filter.project_type_codes.blank?
       # Make sure the form will work
       filters
     end

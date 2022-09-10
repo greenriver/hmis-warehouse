@@ -252,7 +252,7 @@ module CasClientData
           end
         end
       # Are any tags that should be added based on HmisForms
-      Cas::Tag.where(rrh_assessment_trigger: true).each do |tag|
+      Cas::Tag.where(rrh_assessment_trigger: true)&.each do |tag|
         @cas_tags[tag.id] = assessment_score_for_cas
       end
       @cas_tags
@@ -354,9 +354,9 @@ module CasClientData
       processed_service_history&.homeless_days
     end
 
-    # Default to the original assessment, identified since it comes from HMIS
+    # Default to a generic CE assessment, identified since it comes from HMIS
     private def cas_assessment_name
-      'IdentifiedClientAssessment'
+      'IdentifedCeAssessment'
     end
 
     def self.ongoing_enrolled_project_details(client_ids)

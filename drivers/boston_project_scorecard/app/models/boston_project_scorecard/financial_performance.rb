@@ -42,7 +42,7 @@ module BostonProjectScorecard
       end
 
       def cost_efficiency_value
-        return unless actual_households_served&.positive?
+        return unless amount_agency_spent.present? && actual_households_served&.positive?
 
         (amount_agency_spent / actual_households_served.to_f).round(2)
       end
@@ -63,7 +63,7 @@ module BostonProjectScorecard
       end
 
       def returned_funds_percent
-        return unless contracted_budget.present?
+        return unless returned_funds.present? && contracted_budget.present?
 
         percentage(returned_funds / contracted_budget.to_f)
       end
@@ -75,14 +75,14 @@ module BostonProjectScorecard
       end
 
       def returned_funds_score
-        return unless contracted_budget.present?
+        return unless returned_funds_percent.present?
         return 6 if returned_funds_percent <= 10
 
         0
       end
 
       def utilization_rate_percent
-        return unless actual_households_served.present?
+        return unless average_utilization_rate.present? && actual_households_served.present?
 
         percentage(average_utilization_rate / actual_households_served.to_f)
       end
