@@ -33,6 +33,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     before(:each) do
       user.add_viewable(ds1)
       post hmis_user_session_path(hmis_user: { email: user.email, password: user.password })
+
+      @hmis_user = Hmis::User.find(user.id)
+      @hmis_user.hmis_data_source_id = ds1.id
     end
 
     let(:mutation) do
@@ -101,8 +104,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(Hmis::Hud::Enrollment.in_progress.count).to eq(3)
         expect(Hmis::Hud::Enrollment.where(project_id: nil).count).to eq(3)
         expect(Hmis::Wip.count).to eq(3)
-        # byebug
         expect(Hmis::Wip.all).to include(*enrollments.map { |e| have_attributes(enrollment_id: e['id'].to_i, project_id: test_input[:project_id], client_id: e['client']['id'].to_i) })
+        expect(Hmis::Hud::Enrollment.viewable_by(@hmis_user).count).to eq(3)
       end
     end
 
