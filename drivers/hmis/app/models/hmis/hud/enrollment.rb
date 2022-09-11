@@ -28,7 +28,10 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   # A user can see any enrollment associated with a project they can access
   scope :viewable_by, ->(user) do
-    joins(:project).merge(Hmis::Hud::Project.viewable_by(user))
+    e_t = Hmis::Hud::Enrollment.arel_table
+    p_t = Hmis::Hud::Project.arel_table
+    project_ids = Hmis::Hud::Project.viewable_by(user).pluck(:ProjectID)
+    Hmis::Hud::Enrollment.left_joins(wip: :project).where(p_t[:project_id].in(project_ids).or(e_t[:project_id].in(project_ids)))
   end
 
   scope :heads_of_households, -> do
@@ -56,7 +59,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     self.wip = Hmis::Wip.find_or_create_by(
       {
         enrollment_id: id,
-        project_id: wip_project_id,
+        project_id: wip_project_id, # this is the project's database ID, not the ProjectID
         client_id: client.id,
         date: entry_date,
       },
