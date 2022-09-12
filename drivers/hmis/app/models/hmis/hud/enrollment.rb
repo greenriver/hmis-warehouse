@@ -31,7 +31,9 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     e_t = Hmis::Hud::Enrollment.arel_table
     p_t = Hmis::Hud::Project.arel_table
     project_ids = Hmis::Hud::Project.viewable_by(user).pluck(:ProjectID)
-    Hmis::Hud::Enrollment.left_joins(wip: :project).where(p_t[:project_id].in(project_ids).or(e_t[:project_id].in(project_ids)))
+    vieawable_wip = p_t[:project_id].in(project_ids)
+    viewable_enrollment = e_t[:project_id].not_eq(nil).and(e_t[:project_id].in(project_ids))
+    left_joins(wip: :project).where(vieawable_wip.or(viewable_enrollment))
   end
 
   scope :heads_of_households, -> do
