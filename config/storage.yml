@@ -8,8 +8,8 @@ local:
 
 amazon:
   service: S3
-  access_key_id: <%= ENV.fetch('AWS_ACCESS_KEY_ID', 'unknown') %>
-  secret_access_key: <%= ENV.fetch('AWS_SECRET_ACCESS_KEY', 'unknown') %>
+  access_key_id: <%= ENV.fetch('AWS_ACCESS_KEY_ID', '') %>
+  secret_access_key: <%= ENV.fetch('AWS_SECRET_ACCESS_KEY', '') %>
   region: <%= ENV.fetch('AWS_REGION', 'us-east-1') %>
   bucket: <%= ENV.fetch('ACTIVE_STORAGE_BUCKET', "#{ENV['AWS_CLIENT_NAME']}-#{ENV['AWS_APP_NAME']}-#{Rails.env}-files") %>
   http_open_timeout: 60
