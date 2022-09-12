@@ -3473,7 +3473,8 @@ CREATE TABLE public.boston_project_scorecard_reports (
     barrier_id_process boolean,
     plan_to_address_barriers boolean,
     contracted_budget double precision,
-    archive character varying
+    archive character varying,
+    required_match_percent_met boolean
 );
 
 
@@ -53384,6 +53385,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220830131900'),
 ('20220830142632'),
 ('20220831183303'),
-('20220901202643');
+('20220901202643'),
+('20220906182407');
 
 

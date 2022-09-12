@@ -35,6 +35,9 @@ msgstr ""
 msgid "A summary of SPMs 1, 2, and 7 with sub-population and demographic details"
 msgstr ""
 
+msgid "A tool to track performance and utilization of Coordinated Entry resources."
+msgstr ""
+
 msgid "Able to pass a drug test"
 msgstr ""
 
@@ -86,7 +89,34 @@ msgstr ""
 msgid "Available for matching in CAS"
 msgstr ""
 
+msgid "Average Family VI-SPDAT Score"
+msgstr ""
+
 msgid "Average Household Size"
+msgstr ""
+
+msgid "Average Length of Time from CE Project Entry to Housing Referral"
+msgstr ""
+
+msgid "Average Length of Time from Housing Referral to Housing Start"
+msgstr ""
+
+msgid "Average Length of Time in CE"
+msgstr ""
+
+msgid "Average Length of Time on Prioritization List"
+msgstr ""
+
+msgid "Average Length of time from Access to Assessment"
+msgstr ""
+
+msgid "Average Single VI-SPDAT Score"
+msgstr ""
+
+msgid "Average VI-SPDAT Score"
+msgstr ""
+
+msgid "Average Youth VI-SPDAT Score"
 msgstr ""
 
 msgid "Average length of stay"
@@ -3512,6 +3542,9 @@ msgstr ""
 msgid "Client does not have a community preference."
 msgstr ""
 
+msgid "Clients Screened for Prevention"
+msgstr ""
+
 msgid "Clients Served"
 msgstr ""
 
@@ -3551,6 +3584,18 @@ msgstr ""
 msgid "Coordinated Entry Assessments"
 msgstr ""
 
+msgid "Coordinated Entry Performance"
+msgstr ""
+
+msgid "Coordinated Entry Performance Goal"
+msgstr ""
+
+msgid "Coordinated Entry Performance Goal Configurator"
+msgstr ""
+
+msgid "Coordinated Entry Performance Goal Goal Configurator"
+msgstr ""
+
 msgid "Coordinated Entry System Particpation 20%"
 msgstr ""
 
@@ -3576,6 +3621,9 @@ msgid "Date Housed"
 msgstr ""
 
 msgid "Date of Return"
+msgstr ""
+
+msgid "Days homeless in the last three years, from HMIS"
 msgstr ""
 
 msgid "Days to Return"
@@ -3806,6 +3854,9 @@ msgstr ""
 msgid "It is important to HUD that programs show agency capacity to spend funds allocated in a timely manner and in full and allows for potential fund reallocation of unspent funds during the HUD CoC Competition."
 msgstr ""
 
+msgid "LSA Reports"
+msgstr ""
+
 msgid "Length of Stay is measured to determine if clients are moving through the programs in an appropriate length of time and are efficiently moving towards a permanent and stable home. It also assists community system modeling efforts."
 msgstr ""
 
@@ -3830,7 +3881,25 @@ msgstr ""
 msgid "Location Option 4"
 msgstr ""
 
+msgid "MA-500 Boston Continuum of Care FY2022 Renewal Project Scoring Tool"
+msgstr ""
+
 msgid "Manually entered date at which the client became document ready"
+msgstr ""
+
+msgid "Median Length of Time from CE Project Entry to Housing Referral"
+msgstr ""
+
+msgid "Median Length of Time from Housing Referral to Housing Start"
+msgstr ""
+
+msgid "Median Length of Time in CE"
+msgstr ""
+
+msgid "Median Length of Time on Prioritization List"
+msgstr ""
+
+msgid "Median Length of time from Access to Assessment"
 msgstr ""
 
 msgid "Meth Production Conviction"
@@ -3863,6 +3932,9 @@ msgstr ""
 msgid "My Patients"
 msgstr ""
 
+msgid "My Team's Patients"
+msgstr ""
+
 msgid "Name of Staff Assisting with Form Completion"
 msgstr ""
 
@@ -3881,7 +3953,25 @@ msgstr ""
 msgid "Number Housed Report Generator"
 msgstr ""
 
+msgid "Number and Types of CE Events "
+msgstr ""
+
+msgid "Number of Clients Who Were Literally Homeless"
+msgstr ""
+
+msgid "Number of Clients Who Were Not Literally Homeless"
+msgstr ""
+
+msgid "Number of Households Who Were Literally Homeless"
+msgstr ""
+
+msgid "Number of Households Who Were Not Literally Homeless"
+msgstr ""
+
 msgid "Number of participants who exited to or remained in permanent supportive housing during the reporting period"
+msgstr ""
+
+msgid "Number of persons successfully Diverted"
 msgstr ""
 
 msgid "Offline Research Export"
@@ -4163,6 +4253,9 @@ msgstr ""
 msgid "Total People Experiencing Homelessness"
 msgstr ""
 
+msgid "Total days homeless, from HMIS"
+msgstr ""
+
 msgid "Type of Housing"
 msgstr ""
 
@@ -4209,9 +4302,6 @@ msgid "Veterans"
 msgstr ""
 
 msgid "View Report"
-msgstr ""
-
-msgid "View Reports"
 msgstr ""
 
 msgid "Warehouse Project ID"

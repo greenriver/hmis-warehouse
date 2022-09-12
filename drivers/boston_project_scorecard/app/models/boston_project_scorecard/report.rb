@@ -137,6 +137,7 @@ module BostonProjectScorecard
         :practices_housing_first,
         :barrier_id_process,
         :plan_to_address_barriers,
+        :required_match_percent_met,
       ].freeze
     end
 
@@ -155,7 +156,7 @@ module BostonProjectScorecard
     end
 
     def title
-      _('MA-500 Boston Continuum of Care FY21 Renewal Project Scoring Tool')
+      _('MA-500 Boston Continuum of Care FY2022 Renewal Project Scoring Tool')
     end
 
     def url

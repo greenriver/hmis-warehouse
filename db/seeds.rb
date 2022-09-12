@@ -326,6 +326,7 @@ GrdaWarehouse::WarehouseReports::ReportDefinition.maintain_report_definitions
 maintain_health_seeds
 # install_shapes() # run manually as needed
 maintain_lookups
+GrdaWarehouse::Help.setup_default_links
 maintain_system_groups
 maintain_zip_code_shapes
 Rake::Task['storage:move_to_s3'].invoke

@@ -149,6 +149,7 @@ Rails.application.routes.draw do
   resources :secure_files, only: [:show, :create, :index, :destroy]
   resources :help
   resources :maintenance, only: [:index]
+  resources :maintenance_saver, only: [:index], controller: 'maintenance'
 
   namespace :reports do
     namespace :hic do

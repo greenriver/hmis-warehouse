@@ -59,5 +59,9 @@ module GrdaWarehouse::Hud
         :EnrollmentID,
       ]
     end
+
+    def bed_night?
+      self.RecordType.to_s == '200'
+    end
   end
 end

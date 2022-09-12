@@ -78,6 +78,9 @@
             - title += ";<br /><b>Move-in Date:</b> No move-in date"
           %span{data: { toggle: :tooltip, title: title.html_safe, html: 'true' }}
             = e[:entry_date]
+          - if e[:residential] && e[:chronically_homeless_at_start]
+            %div
+              %i.icon-passport{data: {toggle: :tooltip, title: 'Chronically homeless at entry'}}
           - if move_in_date.present?
             - title = "<b>Move-in Date:</b> #{move_in_date}"
             - if e[:move_in_date_inherited]
