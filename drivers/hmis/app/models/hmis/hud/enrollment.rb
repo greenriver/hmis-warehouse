@@ -7,6 +7,8 @@
 class Hmis::Hud::Enrollment < Hmis::Hud::Base
   include ::HmisStructure::Enrollment
   include ::Hmis::Hud::Shared
+  include ArelHelper
+
   self.table_name = :Enrollment
   self.sequence_name = "public.\"#{table_name}_id_seq\""
 
@@ -28,12 +30,11 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   # A user can see any enrollment associated with a project they can access
   scope :viewable_by, ->(user) do
-    e_t = Hmis::Hud::Enrollment.arel_table
-    p_t = Hmis::Hud::Project.arel_table
-    project_ids = Hmis::Hud::Project.viewable_by(user).pluck(:ProjectID)
-    vieawable_wip = p_t[:project_id].in(project_ids)
-    viewable_enrollment = e_t[:project_id].not_eq(nil).and(e_t[:project_id].in(project_ids))
-    left_joins(wip: :project).where(vieawable_wip.or(viewable_enrollment))
+    project_ids = Hmis::Hud::Project.viewable_by(user).pluck(:id, :ProjectID)
+    vieawable_wip = wip_t[:project_id].in(project_ids.map(&:first))
+    viewable_enrollment = e_t[:ProjectID].in(project_ids.map(&:second))
+
+    left_outer_joins(:wip).where(vieawable_wip.or(viewable_enrollment))
   end
 
   scope :heads_of_households, -> do
