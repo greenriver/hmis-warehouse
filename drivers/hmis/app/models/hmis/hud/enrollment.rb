@@ -7,6 +7,8 @@
 class Hmis::Hud::Enrollment < Hmis::Hud::Base
   include ::HmisStructure::Enrollment
   include ::Hmis::Hud::Shared
+  include ArelHelper
+
   self.table_name = :Enrollment
   self.sequence_name = "public.\"#{table_name}_id_seq\""
 
@@ -28,7 +30,11 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   # A user can see any enrollment associated with a project they can access
   scope :viewable_by, ->(user) do
-    joins(:project).merge(Hmis::Hud::Project.viewable_by(user))
+    project_ids = Hmis::Hud::Project.viewable_by(user).pluck(:id, :ProjectID)
+    vieawable_wip = wip_t[:project_id].in(project_ids.map(&:first))
+    viewable_enrollment = e_t[:ProjectID].in(project_ids.map(&:second))
+
+    left_outer_joins(:wip).where(vieawable_wip.or(viewable_enrollment))
   end
 
   scope :heads_of_households, -> do
@@ -42,7 +48,11 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
     case option
     when :most_recent
-      order(EntryDate: :desc)
+      left_outer_joins(:exit).order(
+        e_t[:ProjectID].eq(nil).desc, # work-in-progress enrollments
+        ex_t[:ExitDate].eq(nil).desc, # active enrollments
+        EntryDate: :desc,
+      )
     else
       raise NotImplementedError
     end
@@ -56,7 +66,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     self.wip = Hmis::Wip.find_or_create_by(
       {
         enrollment_id: id,
-        project_id: wip_project_id,
+        project_id: wip_project_id, # this is the project's database ID, not the ProjectID
         client_id: client.id,
         date: entry_date,
       },
