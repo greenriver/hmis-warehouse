@@ -11,7 +11,7 @@ amazon:
   access_key_id: <%= ENV.fetch('AWS_ACCESS_KEY_ID', 'unknown') %>
   secret_access_key: <%= ENV.fetch('AWS_SECRET_ACCESS_KEY', 'unknown') %>
   region: <%= ENV.fetch('AWS_REGION', 'us-east-1') %>
-  bucket: <%= ENV.fetch('ACTIVE_STORAGE_BUCKET', 'active-storage') %>
+  bucket: <%= ENV.fetch('ACTIVE_STORAGE_BUCKET', "#{ENV['AWS_CLIENT_NAME']}-#{ENV['AWS_APP_NAME']}-#{Rails.env}-files") %>
   http_open_timeout: 60
   http_read_timeout: 60
   retry_limit: 5
