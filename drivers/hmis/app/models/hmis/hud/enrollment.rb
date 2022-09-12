@@ -48,7 +48,11 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
     case option
     when :most_recent
-      order(EntryDate: :desc)
+      left_outer_joins(:exit).order(
+        e_t[:ProjectID].eq(nil).desc, # work-in-progress enrollments
+        ex_t[:ExitDate].eq(nil).desc, # active enrollments
+        EntryDate: :desc,
+      )
     else
       raise NotImplementedError
     end
