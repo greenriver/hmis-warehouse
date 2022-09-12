@@ -9,6 +9,3 @@ module CustomImportsBostonServices
     'custom_imports_boston_service_'
   end
 end
-
-module CustomImportsBostonServices::Synthetic
-end
