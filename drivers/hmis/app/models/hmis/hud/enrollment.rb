@@ -12,6 +12,8 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   self.table_name = :Enrollment
   self.sequence_name = "public.\"#{table_name}_id_seq\""
 
+  belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
+
   attr_accessor :in_progress
 
   delegate :exit_date, to: :exit, allow_nil: true

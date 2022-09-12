@@ -11,16 +11,16 @@ module Mutations
       errors = []
       errors << InputValidationError.new('Entry date cannot be in the future', attribute: 'start_date') if Date.parse(start_date) > Date.today
 
-      has_hoh_enrollment = Hmis::Hud::Enrollment.viewable_by(hmis_user).exists?(household_id: household_id, relationship_to_ho_h: 1)
+      has_hoh_enrollment = Hmis::Hud::Enrollment.viewable_by(current_user).exists?(household_id: household_id, relationship_to_ho_h: 1)
       errors << InputValidationError.new("Cannot find Enrollment for household with id '#{household_id}'", attribute: 'household_id') unless has_hoh_enrollment
       errors << InputValidationError.new('Enrollment already has a head of household designated', attribute: 'household_members') if has_hoh_enrollment && household_members.find { |hm| hm.relationship_to_ho_h == 1 }
 
       errors
     end
 
-    def resolve(project_id:, start_date:, household_members:)
-      user = hmis_user
-      errors = validate_input(project_id: project_id, start_date: start_date, household_members: household_members)
+    def resolve(household_id:, start_date:, household_members:)
+      user = current_user
+      errors = validate_input(household_id: household_id, start_date: start_date, household_members: household_members)
 
       if errors.present?
         return {
@@ -29,24 +29,27 @@ module Mutations
         }
       end
 
-      hoh_enrollment = Hmis::Hud::Enrollment.viewable_by(hmis_user).find_by(household_id: household_id, relationship_to_ho_h: 1)
-      lookup = Hmis::Hud::Client.where(id: household_members.map(&:id)).pluck(:id, :personal_id).to_h
+      hoh_enrollment = Hmis::Hud::Enrollment.viewable_by(user).find_by(household_id: household_id, relationship_to_ho_h: 1)
+      lookup = Hmis::Hud::Client.where(id: household_members.map(&:id)).map { |client| [client.id, client] }.to_h
       project = hoh_enrollment.project
 
       enrollments = household_members.map do |household_member|
-        enrollment = household_member.enrollments.viewable_by(hmis_user).find_by(household_id: household_id)
+        enrollment = lookup[household_member.id.to_i].enrollments.viewable_by(user).find_by(household_id: household_id)
 
         next enrollment if enrollment.present?
 
-        Hmis::Hud::Enrollment.new(
-          data_source_id: user.data_source_id,
-          personal_id: lookup[household_member.id.to_i],
+        enrollment = Hmis::Hud::Enrollment.new(
+          data_source_id: hmis_user.data_source_id,
+          personal_id: lookup[household_member.id.to_i].personal_id,
           relationship_to_ho_h: household_member.relationship_to_ho_h,
           entry_date: Date.strptime(start_date, '%Y-%m-%d'),
           project_id: project&.project_id,
           household_id: household_id,
           enrollment_id: SecureRandom.uuid.gsub(/-/, ''),
-        ).save_in_progress
+        )
+        enrollment.save_in_progress
+
+        enrollment
       end
 
       enrollments.each(&:valid?).each do |enrollment|

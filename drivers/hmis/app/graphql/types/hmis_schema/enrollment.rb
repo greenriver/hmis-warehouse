@@ -18,6 +18,7 @@ module Types
     field :services, HmisSchema::Service.page_type, null: false
     field :household, HmisSchema::Household, null: false
     field :client, HmisSchema::Client, null: false
+    field :relationship_to_ho_h, HmisSchema::Enums::RelationshipToHoH, null: false
     field :in_progress, Boolean, null: false
 
     def project
