@@ -12,23 +12,25 @@
 # use with caution!
 RailsDrivers.loaded << :non_veterans_sub_pop
 
-AvailableSubPopulations.add_sub_population(
-  'Non-Veteran',
-  :non_veterans,
-  'NonVeteransSubPop::GrdaWarehouse::WarehouseReports::Dashboard::NonVeterans',
-)
+Rails.application.reloader.to_prepare do
+  AvailableSubPopulations.add_sub_population(
+    'Non-Veteran',
+    :non_veterans,
+    'NonVeteransSubPop::GrdaWarehouse::WarehouseReports::Dashboard::NonVeterans',
+  )
 
-GrdaWarehouse::Census.add_population(
-  population: :non_veterans,
-  factory: 'NonVeteransSubPop::GrdaWarehouse::Census::NonVeteransFactory',
-)
+  GrdaWarehouse::Census.add_population(
+    population: :non_veterans,
+    factory: 'NonVeteransSubPop::GrdaWarehouse::Census::NonVeteransFactory',
+  )
 
-SubpopulationHistoryScope.add_sub_population(
-  :non_veterans,
-  :non_veterans,
-)
+  SubpopulationHistoryScope.add_sub_population(
+    :non_veterans,
+    :non_veterans,
+  )
 
-Reporting::MonthlyReports::Base.add_available_type(
-  :non_veterans,
-  'NonVeteransSubPop::Reporting::MonthlyReports::NonVeterans',
-)
+  Reporting::MonthlyReports::Base.add_available_type(
+    :non_veterans,
+    'NonVeteransSubPop::Reporting::MonthlyReports::NonVeterans',
+  )
+end

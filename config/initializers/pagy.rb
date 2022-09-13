@@ -1,4 +1,4 @@
-Rails.logger.debug "Running initializer in #{__FILE__}"
+# Rails.logger.debug "Running initializer in #{__FILE__}"
 require 'pagy/extras/bootstrap'
 require 'pagy/extras/array'
 
