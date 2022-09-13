@@ -1,0 +1,29 @@
+%table.table.table-bordered{style: 'max-width: 99%'}
+  %tbody
+    %tr
+      %th Project Sponsor
+      %td= @report.project_sponsor
+      %th HMIS Data Period
+      %td= "#{@report.start_date} to #{@report.end_date}"
+    %tr
+      %th Project Name
+      %td= @report.project_name
+      %th Most Recently Completed Grant Application Period
+      %td
+        = f.input :period_start_date, as: :date_picker, label: 'Start Date', **@report.field_input_options(:period_start_date, current_user)
+        = f.input :period_end_date, as: :date_picker, label: 'End Date', **@report.field_input_options(:period_end_date, current_user)
+    %tr
+      %th Project Type
+      %td{colspan: 3}
+        - if @report.project.present?
+          = @report.project.human_readable_project_type
+        - else
+          = f.input :project_type, collection: @report.project_type_options, as: :select_two, label: false, **@report.field_input_options(:project_type, current_user)
+    %tr
+      %th Primary Reviewer Name
+      %td= @report.user.name
+      %th Final Reviewer Score
+      %td= @report.total_score_weighted_score
+    %tr
+      %th Secondary Reviewer Name
+      %td{colspan: 3}= f.input :secondary_reviewer_id, collection: @report.secondary_reviewer_options, as: :select_two, label: false, **@report.field_input_options(:secondary_reviewer_id, current_user)

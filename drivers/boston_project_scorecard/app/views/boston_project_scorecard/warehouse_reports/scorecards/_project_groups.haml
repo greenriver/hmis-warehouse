@@ -1,0 +1,42 @@
+- if project_groups.any?
+  - select_scope = 'projectGroups'
+  %div{id: select_scope}
+    .mb-5
+      .c-card.c-card--linked.c-card--row.j-parent
+        .c-card__content.d-flex.align-items-center
+          -#.c-checkbox.c-checkbox.mr-4
+          -#  = check_box_tag("organization-toggle[project_groups]", 1, false, {class: 'j-select-children'})
+          -#  %label{for: "organization-toggle_project_groups", data: {toggle: 'tooltip'}, title: 'Select/Deselect all projects in group'}
+          %h3.mb-0.mt-0 Project Groups
+      %table.table.c-table.j-children.d-none
+        %thead
+          %tr
+            %th
+            %th Project Group
+            %th Report
+            %th Last Run
+            %th Last Sent On
+            - if can_edit_project_groups?
+              %th Contacts
+        %tbody
+          - project_groups.each do |group|
+            - id = group.id
+            - last_report = @current_project_group_reports[id]
+            %tr.jProject.jProject{data: {organization_id: :project_groups}}
+              %td
+                .c-checkbox.c-checkbox
+                  = check_box_tag("project_group_ids[#{id}]", 1, false, {class: 'j-child-select'})
+                  %label{ for:"project_group_ids_#{id}", tabindex:'1' }
+              %td= link_to group.name, history_boston_project_scorecard_warehouse_reports_scorecards_path(:filters => { project_group_ids: [id], start: 1.year.ago})
+              %td
+                - if last_status = last_report&.status
+                  = link_to last_status, edit_boston_project_scorecard_warehouse_reports_scorecard_path(last_report)
+                -else
+                  = content_tag( :em, 'not available')
+              %td= last_report&.completed_at
+              %td= last_report&.sent_at&.to_date
+              - if can_edit_project_groups?
+                %td
+                  = link_to edit_project_group_path(group), class: 'btn btn-secondary' do
+                    %i.icon-pencil
+                    Manage Contacts

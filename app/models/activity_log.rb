@@ -59,15 +59,14 @@ class ActivityLog < ApplicationRecord
     }
     scope = where(created_at: range).left_outer_joins(user: :agency)
     scope = scope.where(user_id: user_id) if user_id.present?
-    data = pluck_to_hash(columns, scope)
-    data = scrub(data)
-
-    rows = []
-    rows << columns.values
-    data.each do |row|
-      rows << row.values
+    rows = [columns.values]
+    scope.in_batches do |batch|
+      data = pluck_to_hash(columns, batch)
+      data = scrub(data)
+      data.each do |row|
+        rows << row.values
+      end
     end
-
     rows
   end
 

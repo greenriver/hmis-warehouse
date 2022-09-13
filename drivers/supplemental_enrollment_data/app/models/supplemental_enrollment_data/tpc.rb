@@ -89,11 +89,16 @@ module SupplementalEnrollmentData
           # skip the header line
           next if i.zero?
 
+          enrollment_id = enrollment_ids[row[:hud_enrollment_id].to_s]
+          # skip any where we didn't find an enrollment
+          # we won't be able to attach the record
+          next unless enrollment_id.present?
+
           batch << new(
             row.merge(
               data_source_id: data_source_id,
               file_id: upload_id,
-              enrollment_id: enrollment_ids[row[:hud_enrollment_id].to_s],
+              enrollment_id: enrollment_id,
             ),
           )
         end

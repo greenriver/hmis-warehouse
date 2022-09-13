@@ -149,13 +149,17 @@ class RollOut
   end
 
   def bootstrap_databases!
-    name = target_group_name + '-bootstrap-dbs'
+    name = target_group_name + '-deploy-tasks'
+
+    environment = default_environment.dup
+    environment << { 'name' => 'BOOTSTRAP_DATABASES', 'value' => 'true' }
 
     _register_task!(
       soft_mem_limit_mb: DEFAULT_SOFT_RAM_MB,
-      image: image_base + '--dj',
+      image: image_base + '--deploy',
+      environment: environment,
       name: name,
-      command: ['bin/db_prep'],
+      command: ['bin/deploy_tasks.sh'],
     )
 
     _run_task!
@@ -509,9 +513,17 @@ class RollOut
       _tail_logs
     end
     begin
-      cmd = "aws logs tail #{target_group_name} --follow --log-stream-names=#{log_stream_name}"
+      chars_written = 0
+      cmd = "docker run \
+        -e AWS_REGION=#{ENV['AWS_REGION']} \
+        -e AWS_ACCESS_KEY_ID=#{ENV['AWS_ACCESS_KEY_ID']} \
+        -e AWS_SECRET_ACCESS_KEY=#{ENV['AWS_SECRET_ACCESS_KEY']} \
+        -e AWS_SECURITY_TOKEN=#{ENV['AWS_SECURITY_TOKEN']} \
+        -e AWS_SESSION_TOKEN=#{ENV['AWS_SESSION_TOKEN']} \
+        --rm -it amazon/aws-cli logs tail #{target_group_name} --follow --log-stream-names=#{log_stream_name}"
       PTY.spawn(cmd) do |stdout, _stdin, _pid|
         stdout.each do |line|
+          chars_written += line.length
           print line
           if line.match?(/---DONE---/)
             puts 'found ---DONE---, exiting'
@@ -519,9 +531,16 @@ class RollOut
           end
         end
       rescue Errno::EIO
-        puts '[WARN] Errno:EIO error, but this probably just meams that the process has finished giving output'
-        return false
+        if chars_written > 500
+          puts '[WARN] Errno:EIO error, but this probably just meams that the process has finished giving output'
+          return false
+        else
+          raise '[FATAL] Errno:EIO error. Too few lines output from logs before it was done tailing'
+        end
       end
+    rescue Errno::ENOENT => e
+      puts "[FATAL] Run this manually: aws logs tail #{target_group_name} --follow --log-stream-names=#{log_stream_name}"
+      raise e
     rescue PTY::ChildExited
       puts '[WARN] The child process exited!'
       return false

@@ -172,6 +172,12 @@
   border-left: 4px solid $gray-050;
 }
 
+.agency-performance__category
+{
+  font-weight: 400;
+  font-style: italic;
+}
+
 .agency-performance__without
 {
   background-color: lighten($brand-primary-ll, 5%);

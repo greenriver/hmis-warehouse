@@ -65,6 +65,7 @@ services:
     <<: *backend
     profiles:
       - manual
+    # entrypoint: ''
     stdin_open: true
     tty: true
     command: bundle exec rails console
@@ -87,6 +88,10 @@ services:
     stdin_open: true
     tty: true
     command: bundle exec rails server -b 0.0.0.0
+    labels:
+      - "traefik.http.routers.op.rule=Host(`open-path-warehouse.127.0.0.1.nip.io`)"
+      - "traefik.http.routers.op.tls=true"
+      - "traefik.http.services.op.loadbalancer.server.port=3000"
     ports:
       - "3000"
     expose:

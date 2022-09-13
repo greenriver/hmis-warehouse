@@ -2,7 +2,9 @@
 - validate_html = { input_html: {class: 'validate'}}
 - form_defaults = { required: false }
 - collection = {'Choice 1 (ES)' => 'One', 'Choice 2 (SO)' => 'Two', 'Choice 3 (TH)' => 'Three',  'Choice 4 (RRH)' => 'Four', 'Choice 5' => 'Five'}
-- huge_collection = (0..20_000).map{|i| [number_to_human(i), i]}
+- huge_collection = (0..500).map{|i| [number_to_human(i), i]}
+- @form.stimulus_select_readonly = collection.values.third
+- @form.stimulus_select_multi_readonly = collection.values.sample(2)
 .container.py-4
   %h1 Stimulus Select
   - if params[:mock_2]
@@ -47,6 +49,9 @@
           %h4 Select 2 - Ajax load of Options for Projects Multiple with pre-selected projects (warehouse)
           = f.input :huge_collection_options_multi, collection: [], as: :select_two, input_html: { data: { 'collection-path' => api_projects_path(selected_project_ids: GrdaWarehouse::Hud::Project.pluck(:id).sample(2)) }, multiple: true, placeholder: 'Any Project'}, label: 'Projects'
 
+          %h4 Simple Huge selection
+          = f.input :huge_collection_options_multi_simple, collection: huge_collection, as: :select_two, input_html: { multiple: true, placeholder: 'Any Number'}, label: 'Numbers'
+
           %h4 Dependent Ajax Loaded Select
           = f.input :project_type_codes, collection: GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.invert, as: :select_two, input_html: { multiple: true, data: { 'stimulus-select-target' => 'projectTypes', action: 'change->stimulus-select#updateDependentProjectList' }}
           = f.input :organization_ids, collection: GrdaWarehouse::Hud::Organization.options_for_select(user: current_user), as: :grouped_select_two, group_method: :last, input_html: { multiple: true, data: { 'stimulus-select-target' => 'organizations', action: 'change->stimulus-select#updateDependentProjectList' }, placeholder: 'Any Organization'}, label: 'Organizations', required: false
@@ -66,3 +71,17 @@
               = f.input :stimulus_select, collection: collection, as: :select_two
 
           = f.submit 'Update'
+  .mt-6
+    %h3 Read-only form wrapper
+    = simple_form_for @form, as: :mock_2, defaults: form_defaults, method: :get, url: '#', wrapper: :readonly do |f|
+      - klass = if request.xhr? then 'col-12' else 'col-6' end
+      .row
+        %div{class: klass}
+          %h4 Disabled (single)
+          = f.input :stimulus_select_readonly, collection: collection, as: :select_two
+          %h4 Disabled (multiple)
+          = f.input :stimulus_select_multi_readonly, collection: collection, as: :select_two, input_html: { multiple: true }
+          %h4 Disabled - empty (single)
+          = f.input :stimulus_select_readonly_empty, collection: collection, as: :select_two
+          %h4 Disabled - empty (multiple)
+          = f.input :stimulus_select_multi_readonly_empty, collection: collection, as: :select_two, input_html: { multiple: true }

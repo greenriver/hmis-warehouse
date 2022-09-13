@@ -1,0 +1,7 @@
+= render 'breadcrumbs'
+
+- content_for :title, 'Project Scorecards'
+%h1= content_for :title
+
+= render 'history_filter'
+= render 'report_list'

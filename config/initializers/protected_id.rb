@@ -1,4 +1,4 @@
-Rails.logger.debug "Running initializer in #{__FILE__}"
+# Rails.logger.debug "Running initializer in #{__FILE__}"
 
 ###
 # Copyright 2016 - 2022 Green River Data Analysis, LLC

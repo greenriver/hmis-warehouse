@@ -41,6 +41,7 @@ module WarehouseReports
 
       reports['ProjectPassFail::ProjectPassFail'] = ProjectPassFail::ProjectPassFail if RailsDrivers.loaded.include?(:project_pass_fail)
       reports['ProjectScorecard::Report'] = ProjectScorecard::Report if RailsDrivers.loaded.include?(:project_scorecard)
+      reports['BostonProjectScorecard::Report'] = BostonProjectScorecard::Report if RailsDrivers.loaded.include?(:boston_project_scorecard)
       if RailsDrivers.loaded.include?(:public_reports)
         reports['PublicReports::PointInTime'] = PublicReports::PointInTime
         reports['PublicReports::PitByMonth'] = PublicReports::PitByMonth
@@ -62,6 +63,7 @@ module WarehouseReports
       reports['LongitudinalSpm::Report'] = LongitudinalSpm::Report if RailsDrivers.loaded.include?(:longitudinal_spm)
       reports['CePerformance::Report'] = CePerformance::Report if RailsDrivers.loaded.include?(:ce_performance)
       reports['TxClientReports::ResearchExport'] = TxClientReports::ResearchExport if RailsDrivers.loaded.include?(:tx_client_reports)
+      reports['HmisDataQualityTool::Report'] = HmisDataQualityTool::Report if RailsDrivers.loaded.include?(:hmis_data_quality_tool)
       reports
     end
   end

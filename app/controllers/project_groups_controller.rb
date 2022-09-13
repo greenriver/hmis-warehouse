@@ -5,7 +5,7 @@
 ###
 
 class ProjectGroupsController < ApplicationController
-  before_action :require_can_edit_project_groups!
+  before_action :require_can_edit_some_project_groups!
   before_action :require_can_import_project_groups!, only: [:maintenance, :import]
   before_action :set_project_group, only: [:edit, :update, :destroy]
   before_action :set_access, only: [:edit, :update]
@@ -28,8 +28,11 @@ class ProjectGroupsController < ApplicationController
       @project_group.options = ::Filters::HudFilterBase.new(user_id: current_user.id, project_type_numbers: []).update(filter_params).to_h
       @project_group.save
       users = user_params[:users]&.reject(&:empty?)
+      # If the user can't edit all project groups, make sure we add the user so they can access it later
+      users << current_user.id
       @project_group.update_access(users.map(&:to_i)) if users.present?
       @project_group.maintain_projects!
+      AccessGroup.maintain_system_groups
     rescue Exception => e
       flash[:error] = e.message
       render action: :new
@@ -62,6 +65,7 @@ class ProjectGroupsController < ApplicationController
 
   def destroy
     @project_group.destroy
+    AccessGroup.maintain_system_groups
     respond_with(@project_group, location: project_groups_path)
   end
 

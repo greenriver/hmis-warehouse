@@ -8,7 +8,7 @@
     - btn_classes = ['btn', 'btn-secondary']
     - if agency.id == @active_agency.id
       - btn_classes.push(['active', 'btn-light'])
-    = link_to agency.name, health_patients_path(agency_id: agency.id), class: btn_classes
+    = link_to agency.name, health_patients_path(entity_id: agency.id), class: btn_classes
 
 %h2.mb-4 Patient Activity Summary
 = render 'summary'
@@ -31,28 +31,4 @@
 - else
   .none-found No patients
 
-
-= content_for :page_js do
-  :javascript
-    $('.jCareCoordinator, .jNurseCareManager').on('change', function(e){
-      $(this).closest('form').trigger('submit');
-    });
-    var $appointments = $('.jAppointments');
-    $appointments.each(function(app){
-      var $app = $($appointments[app])
-      $app.load($app.data('path'), function(response, status, xhr) {
-        if (status == 'error') {
-          error_message(response, status, xhr, this)
-        } else {
-          add_data_table($app.find('.datatable'));
-        }
-      });
-    });
-    var add_data_table = function(element) {
-      $(element).DataTable({
-        ordering: false,
-        pageLength: 15,
-        lengthChange: false,
-        pagingType: 'simple'
-      });
-    };
+= render 'assignment_js'

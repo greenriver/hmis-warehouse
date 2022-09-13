@@ -116,6 +116,12 @@ module
           id: 'project_groups',
           value: @filter.project_groups,
         )
+        if GrdaWarehouse::Cohort.viewable_by(@filter.user).exists?
+          section.add_control(
+            id: 'cohorts',
+            value: @filter.cohorts,
+          )
+        end
       end
     end
 

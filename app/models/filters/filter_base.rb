@@ -25,7 +25,7 @@ module Filters
     attribute :household_type, Symbol, default: :all
     attribute :hoh_only, Boolean, default: false
     attribute :default_project_type_codes, Array, default: GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPE_CODES
-    attribute :project_type_codes, Array, default: ->(r, _) { r.default_project_type_codes }
+    attribute :project_type_codes, Array, lazy: true, default: ->(r, _) { r.default_project_type_codes }
     attribute :project_type_numbers, Array, default: ->(_r, _) { [] }
     attribute :veteran_statuses, Array, default: []
     attribute :age_ranges, Array, default: []
@@ -100,6 +100,7 @@ module Filters
         self.heads_of_household = filter_hoh
         self.hoh_only = filter_hoh
       end
+      self.default_project_type_codes = Array.wrap(filters.dig(:default_project_type_codes))&.reject(&:blank?) if filters.key?(:default_project_type_codes)
       if filters.key?(:project_type_codes)
         self.project_type_codes = Array.wrap(filters.dig(:project_type_codes))&.reject(&:blank?)
       elsif filters.key?(:project_type_numbers)
@@ -173,6 +174,7 @@ module Filters
           races: races,
           ethnicities: ethnicities,
           project_group_ids: project_group_ids,
+          cohort_ids: cohort_ids,
           hoh_only: hoh_only,
           prior_living_situation_ids: prior_living_situation_ids,
           destination_ids: destination_ids,
@@ -232,6 +234,7 @@ module Filters
         :inactivity_days,
         :lsa_scope,
         coc_codes: [],
+        default_project_type_codes: [],
         project_types: [],
         project_type_codes: [],
         project_type_numbers: [],
@@ -245,6 +248,7 @@ module Filters
         project_ids: [],
         funder_ids: [],
         project_group_ids: [],
+        cohort_ids: [],
         disability_summary_ids: [],
         destination_ids: [],
         disabilities: [],
@@ -255,6 +259,10 @@ module Filters
         length_of_times: [],
         times_homeless_in_last_three_years: [],
       ]
+    end
+
+    def all_known_keys
+      known_params.map { |k| if k.is_a?(Hash) then k.keys else k end }.flatten
     end
 
     def selected_params_for_display(single_date: false)
@@ -400,6 +408,47 @@ module Filters
       ids << effective_project_ids_from_coc_codes
       ids << effective_project_ids_from_project_types
       ids.reject(&:empty?).reduce(&:&)
+    end
+
+    # Apply all known scopes
+    # NOTE: by default we use coc_codes, if you need to filter by the coc_code singular, take note
+    def apply(scope, all_project_types: nil, multi_coc_code_filter: true)
+      @filter = self
+      scope = filter_for_user_access(scope)
+      scope = filter_for_range(scope)
+      scope = if multi_coc_code_filter
+        filter_for_cocs(scope)
+      else
+        filter_for_coc(scope)
+      end
+      scope = filter_for_household_type(scope)
+      scope = filter_for_head_of_household(scope)
+      scope = filter_for_age(scope)
+      scope = filter_for_gender(scope)
+      scope = filter_for_race(scope)
+      scope = filter_for_ethnicity(scope)
+      scope = filter_for_veteran_status(scope)
+      scope = filter_for_project_type(scope, all_project_types: all_project_types)
+      scope = filter_for_projects(scope)
+      scope = filter_for_funders(scope)
+      scope = filter_for_data_sources(scope)
+      scope = filter_for_organizations(scope)
+      scope = filter_for_sub_population(scope)
+      scope = filter_for_prior_living_situation(scope)
+      scope = filter_for_destination(scope)
+      scope = filter_for_disabilities(scope)
+      scope = filter_for_indefinite_disabilities(scope)
+      scope = filter_for_dv_status(scope)
+      scope = filter_for_dv_currently_fleeing(scope)
+      scope = filter_for_chronic_at_entry(scope)
+      scope = filter_for_chronic_status(scope)
+      scope = filter_for_rrh_move_in(scope)
+      scope = filter_for_psh_move_in(scope)
+      scope = filter_for_first_time_homeless_in_past_two_years(scope)
+      scope = filter_for_returned_to_homelessness_from_permanent_destination(scope)
+      scope = filter_for_ca_homeless(scope)
+      scope = filter_for_ce_cls_homeless(scope)
+      filter_for_times_homeless(scope)
     end
 
     def all_projects?
@@ -557,7 +606,7 @@ module Filters
     end
 
     def cohorts_for_select(user:)
-      GrdaWarehouse::Cohort.viewable_by(user)
+      GrdaWarehouse::Cohort.viewable_by(user).distinct.order(name: :asc).pluck(:name, :id)
     end
     # End Select display options
 
@@ -807,6 +856,8 @@ module Filters
         'Times Homeless in Past 3 Years'
       when :lsa_scope
         'LSA Scope'
+      when :cohort_ids
+        'Cohorts'
       end
 
       return unless value.present?
@@ -874,6 +925,8 @@ module Filters
         chosen_times_homeless_in_last_three_years
       when :lsa_scope
         chosen_lsa_scope
+      when :cohort_ids
+        cohorts
       end
     end
 
@@ -1049,6 +1102,10 @@ module Filters
 
     def funder_names
       funder_options_for_select(user: user).select { |_, id| funder_ids.include?(id.to_i) }&.map(&:first)
+    end
+
+    def cohorts
+      cohorts_for_select(user: user).select { |_, id| cohort_ids.include?(id.to_i) }&.map(&:first)
     end
 
     def available_household_types

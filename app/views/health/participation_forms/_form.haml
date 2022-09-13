@@ -33,12 +33,8 @@
               %i.icon-download2
               Blank Directed Participation Form
 
-    %div
-      .row
-        .col-sm-6.j-file-upload
-          = render 'upload_fields', f: f
-        .col-sm-6.my-auto
-          = f.input :verbal_approval, label: 'Patient gave verbal approval'
+    .j-file-upload= render 'upload_fields', f: f
+    = f.input :verbal_approval, label: 'Patient gave verbal approval'
 
     %input{ name: 'authenticity_token', type: 'hidden', value: form_authenticity_token }
 

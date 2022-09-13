@@ -1,0 +1,52 @@
+%h2{id: 'data-quality'}  HMIS Data Quality
+%table.table.table-bordered{style: 'max-width: 99%'}
+  %thead
+    %tr.bg-info
+      %th{style: 'width:10%'} Criteria Topic
+      %th{style: 'width:15%'} Scored Criteria
+      %th{style: 'width:15%'} Criteria Source
+      %th{style: 'width:15%'} Point Scale
+      %th Weight
+      %th Source Value
+      %th Score
+  %tbody
+    %tr
+      %th.bg-info.align-middle.text-center{rowspan: 3} HMIS data quality
+      %td 7. Personal identifying information error rate
+      %td
+        APR Table
+        = link_to_apr('Q6a:', 'Question 6')
+        Data Quality: Personally Identifiable Information, Row 8f *100
+      %td
+        5 pts: 20%-0
+        %br
+        0 pts: 21% and above
+      %th.align-middle.text-center{rowspan: 3}
+        Weight
+        #{@report.data_quality_weight}%
+      %td= @report.pii_error_rate_value
+      %td= @report.pii_error_rate_score
+    %tr
+      %td 8. Universal data elements error rate
+      %td
+        APR Table
+        = link_to_apr('Q6b', 'Question 6')
+        Number of unique clients with errors divided by total number of clients served
+      %td
+        5 pts: 20%-0
+        %br
+        0 pts: 21% and above
+      %td= @report.ude_error_rate_value
+      %td= @report.ude_error_rate_score
+    %tr
+      %td 9. Income and housing data quality
+      %td
+        APR Table
+        = link_to_apr('Q6c', 'Question 6')
+        Number of unique clients with errors divided by total number of clients served
+      %td
+        5 pts: 20%-0
+        %br
+        0 pts: 21% and above
+      %td= @report.income_and_housing_error_rate_value
+      %td= @report.income_and_housing_error_rate_score

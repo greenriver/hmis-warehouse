@@ -51,36 +51,7 @@ module DestinationReport::WarehouseReports
     end
 
     def filter_params
-      params.permit(
-        filters: [
-          :start,
-          :end,
-          :comparison_pattern,
-          :household_type,
-          :hoh_only,
-          :sub_population,
-          :chronic_status,
-          :coordinated_assessment_living_situation_homeless,
-          coc_codes: [],
-          project_types: [],
-          project_type_codes: [],
-          veteran_statuses: [],
-          age_ranges: [],
-          genders: [],
-          races: [],
-          ethnicities: [],
-          data_source_ids: [],
-          organization_ids: [],
-          project_ids: [],
-          funder_ids: [],
-          project_group_ids: [],
-          destination_report_ids: [],
-          destination_ids: [],
-          disabilities: [],
-          indefinite_disabilities: [],
-          dv_status: [],
-        ],
-      )
+      params.permit(filters: @filter.known_params)
     end
     helper_method :filter_params
 

@@ -8,11 +8,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       middle_name: 'Joseph',
       preferred_name: 'Johnny',
       name_suffix: 'jr',
-      name_quality: Hmis::Hud::Client.name_data_quality_enum_map.lookup(key: :partial)&.[](:value),
+      name_data_quality: Hmis::Hud::Client.name_data_quality_enum_map.lookup(key: 'Partial, street name, or code name reported')&.[](:value),
       dob: '2022-06-15',
-      dob_quality: Hmis::Hud::Client.dob_data_quality_enum_map.lookup(key: :full)&.[](:value),
+      dob_data_quality: Hmis::Hud::Client.dob_data_quality_enum_map.lookup(key: 'Full DOB reported')&.[](:value),
       ssn: '123-45-6789',
-      ssn_quality: Hmis::Hud::Client.ssn_data_quality_enum_map.lookup(key: :full)&.[](:value),
+      ssn_data_quality: Hmis::Hud::Client.ssn_data_quality_enum_map.lookup(key: 'Full SSN reported')&.[](:value),
       ethnicity: Hmis::Hud::Client.ethnicity_enum_map.values.first,
       veteran_status: Hmis::Hud::Client.veteran_status_enum_map.values.first,
       gender: [Hmis::Hud::Client.gender_enum_map.base_members.first[:value]],
@@ -30,15 +30,15 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(result).to eq(
         {
           'DOB' => input.dob,
-          'DOBDataQuality' => input.dob_quality,
+          'DOBDataQuality' => input.dob_data_quality,
           'Ethnicity' => input.ethnicity,
           'FirstName' => input.first_name,
           'LastName' => input.last_name,
           'MiddleName' => input.middle_name,
-          'NameDataQuality' => input.name_quality,
+          'NameDataQuality' => input.name_data_quality,
           'NameSuffix' => input.name_suffix,
           'SSN' => input.ssn.gsub(/\D+/, ''),
-          'SSNDataQuality' => input.ssn_quality,
+          'SSNDataQuality' => input.ssn_data_quality,
           'VeteranStatus' => input.veteran_status,
           'preferred_name' => input.preferred_name,
         },
@@ -46,9 +46,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     [
-      [:gender, Hmis::Hud::Client.gender_enum_map, :GenderNone],
-      [:race, Hmis::Hud::Client.race_enum_map, :RaceNone],
-    ].each do |field, enum_map, none_field|
+      [:gender, Hmis::Hud::Client.gender_enum_map, 'Data not collected', :GenderNone],
+      [:race, Hmis::Hud::Client.race_enum_map, :not_collected, :RaceNone],
+    ].each do |field, enum_map, not_collected_key, none_field|
       describe "when transforming #{field}" do
         it 'should set fields as expected when non-null values are provided' do
           value = test_input[field].first
@@ -68,7 +68,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
         it 'should set fields as expected when a null value is provided' do
           value = enum_map.null_members.first[:value]
-          not_collected_value = enum_map.lookup(key: :not_collected)[:value]
+          not_collected_value = enum_map.lookup(key: not_collected_key)[:value]
           input = OpenStruct.new(field => [value])
 
           result = transformer.new(input).to_params
@@ -83,7 +83,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
         it 'should set fields as expected when value is empty' do
           result = transformer.new(OpenStruct.new(field => [])).to_params
-          not_collected_value = enum_map.lookup(key: :not_collected)[:value]
+          not_collected_value = enum_map.lookup(key: not_collected_key)[:value]
 
           expect(result).to include(
             {
@@ -155,9 +155,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       mutation_input = test_input
 
       [
-        [:name_quality, Types::HmisSchema::Enums::NameDataQuality],
-        [:dob_quality, Types::HmisSchema::Enums::DOBDataQuality],
-        [:ssn_quality, Types::HmisSchema::Enums::SSNDataQuality],
+        [:name_data_quality, Types::HmisSchema::Enums::NameDataQuality],
+        [:dob_data_quality, Types::HmisSchema::Enums::DOBDataQuality],
+        [:ssn_data_quality, Types::HmisSchema::Enums::SSNDataQuality],
         [:ethnicity, Types::HmisSchema::Enums::Ethnicity],
         [:veteran_status, Types::HmisSchema::Enums::VeteranStatus],
         [:gender, Types::HmisSchema::Enums::Gender],
@@ -168,7 +168,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             enum.values.find { |_k, v| v.value == val }.first
           end
         else
-          mutation_input[field] = enum.values.find { |_k, v| v.value == test_input[field] }.first
+          value = enum.values.find { |_k, v| v.value == test_input[field] }
+          mutation_input[field] = value.first
         end
       end
 
@@ -177,7 +178,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(response.status).to eq 200
       client = result.dig('data', 'createClient', 'client')
       errors = result.dig('data', 'createClient', 'errors')
-
       expect(client['id']).to be_present
       expect(errors).to be_empty
     end

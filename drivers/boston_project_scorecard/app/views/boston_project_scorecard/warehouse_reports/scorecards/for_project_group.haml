@@ -1,0 +1,6 @@
+= render 'breadcrumbs'
+
+- content_for :title, "Project Scorecards for #{@name}"
+%h1= content_for :title
+
+= render 'report_list'

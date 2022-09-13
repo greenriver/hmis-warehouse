@@ -149,6 +149,7 @@ Rails.application.routes.draw do
   resources :secure_files, only: [:show, :create, :index, :destroy]
   resources :help
   resources :maintenance, only: [:index]
+  resources :maintenance_saver, only: [:index], controller: 'maintenance'
 
   namespace :reports do
     namespace :hic do
@@ -687,6 +688,11 @@ Rails.application.routes.draw do
         post :detail
       end
     end
+    resources :team_patients, only: [:index] do
+      collection do
+        post :detail
+      end
+    end
     resources :my_patients, only: [:index]
     namespace :he do
       get :search
@@ -784,7 +790,8 @@ Rails.application.routes.draw do
     namespace :health do
       resources :admin, only: [:index]
       resources :agencies, except: [:show]
-      resources :team_coordinators, only: [:index, :create, :destroy]
+      resources :coordination_teams, only: [:index, :create, :update, :destroy]
+      resources :team_members, only: [:index, :create, :destroy]
       resources :patients, only: [:index] do
         post :update, on: :collection
       end

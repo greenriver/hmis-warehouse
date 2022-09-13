@@ -242,6 +242,13 @@ class Role < ApplicationRecord
           'Data Sources & Inventory',
         ],
       },
+      can_edit_assigned_project_groups: {
+        description: 'Setup groupings of projects, limited to those assigned to the user',
+        administrative: false,
+        categories: [
+          'Data Sources & Inventory',
+        ],
+      },
       can_view_organizations: {
         description: 'Read-only access to organization attributes',
         administrative: false,
