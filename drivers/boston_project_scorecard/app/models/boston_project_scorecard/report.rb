@@ -189,16 +189,15 @@ module BostonProjectScorecard
 
       if apr.present?
         # Project Performance
-        # 1a / 1b
-        assessment_answers.merge!(rrh_exits_to_ph: percentage(answer(apr, 'Q23c', 'B46'))) if rrh?
-        if psh?
-          value = percentage((answer(apr, 'Q5a', 'B1') - answer(apr, 'Q23c', 'B43') + answer(apr, 'Q23c', 'B44')) /
-            (answer(apr, 'Q5a', 'B1') - answer(apr, 'Q23c', 'B45')).to_f)
-          assessment_answers.merge!(psh_stayers_or_to_ph: value)
-        end
+        one_a_value = percentage(answer(apr, 'Q23c', 'B46'))
+        one_b_value = percentage((answer(apr, 'Q5a', 'B1') - answer(apr, 'Q23c', 'B43') + answer(apr, 'Q23c', 'B44')) /
+          (answer(apr, 'Q5a', 'B1') - answer(apr, 'Q23c', 'B45')).to_f)
+
         assessment_answers.merge!(
           {
             apr_id: apr.id,
+            rrh_exits_to_ph: one_a_value,
+            psh_stayers_or_to_ph: one_b_value,
             increased_stayer_employment_income: percentage(answer(apr, 'Q19a1', 'J2')),
             increased_stayer_other_income: percentage(answer(apr, 'Q19a1', 'J4')),
             increased_leaver_employment_income: percentage(answer(apr, 'Q19a2', 'J2')),
