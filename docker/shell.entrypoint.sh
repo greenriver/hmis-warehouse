@@ -7,7 +7,7 @@ then
 
   bundle exec gem uninstall seven_zip_ruby
 
-  bundle install
+  bundle install --quiet
 
   if [ -e /usr/local/lib/ruby/site_ruby/2.7.0/x86_64-linux-musl/seven_zip_ruby/7z.so ]
   then

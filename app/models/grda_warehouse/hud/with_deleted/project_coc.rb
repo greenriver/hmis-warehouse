@@ -7,7 +7,7 @@
 # NOTE: This provides an unscoped duplicate of ProjectCoc for use with exports
 # that should ignore acts as paranoid completely
 module GrdaWarehouse::Hud::WithDeleted
-  class ProjectCoc < GrdaWarehouse::Hud::Project
+  class ProjectCoc < GrdaWarehouse::Hud::ProjectCoc
     default_scope { unscope where: paranoia_column }
   end
 end
