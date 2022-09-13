@@ -346,11 +346,9 @@ module Health
     end
 
     private def with_annual_well_care_visit_in_12_months
-      # range is a 12 month period ending 3 months ago, because claims data is always 3 months behind
-      service_range = (Date.current - 15.months...Date.current - 3.months)
       @with_annual_well_care_visit_in_12_months ||= ClaimsReporting::MedicalClaim.
         annual_well_care_visits.
-        service_in(service_range).
+        service_in(Date.today - 12.months...Date.today).
         joins(:patient).
         where(hp_t[:id].in(patient_referrals.keys)).
         pluck(hp_t[:id]).uniq
