@@ -4,8 +4,14 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module CustomImportsBostonServices
-  def self.table_name_prefix
-    'custom_imports_boston_service_'
+module AccessLogs
+  class Export < ::GrdaWarehouse::DocumentExport
+    def authorized?
+      true
+    end
+
+    def report_class
+      AccessLogs::Report
+    end
   end
 end
