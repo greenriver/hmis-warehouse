@@ -159,13 +159,6 @@ module GrdaWarehouse::WarehouseReports
             health: false,
           },
           {
-            url: 'warehouse_reports/initiatives',
-            name: 'Initiatives',
-            description: 'Standard reporting for initiatives, RRH, Youth, Vets...',
-            limitable: true,
-            health: false,
-          },
-          {
             url: 'warehouse_reports/touch_point_exports',
             name: 'Export Touch Points',
             description: 'Export CSVs of ETO TouchPoints.',
@@ -1284,6 +1277,7 @@ module GrdaWarehouse::WarehouseReports
         'warehouse_reports/veteran_details/exits',
         'performance_dashboards/household',
         'claims_reporting/warehouse_reports/performance',
+        'warehouse_reports/initiatives',
       ]
       cleanup << 'service_scanning/warehouse_reports/scanned_services' unless RailsDrivers.loaded.include?(:service_scanning)
       cleanup << 'core_demographics_report/warehouse_reports/core' unless RailsDrivers.loaded.include?(:core_demographics_report)
