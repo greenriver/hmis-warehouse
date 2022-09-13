@@ -4,7 +4,6 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-require_relative '../synthetic/event' # Rspec can't find this for some reason
 module CustomImportsBostonServices
   class ImportFile < GrdaWarehouse::CustomImports::ImportFile
     has_many :rows
