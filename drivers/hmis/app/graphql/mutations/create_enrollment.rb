@@ -26,7 +26,7 @@ module Mutations
         result << {
           personal_id: lookup[household_member.id.to_i],
           relationship_to_ho_h: household_member.relationship_to_ho_h,
-          entry_date: Date.strptime(start_date, '%Y-%m-%d'),
+          entry_date: start_date,
           project_id: project&.project_id,
           household_id: household_id,
           enrollment_id: SecureRandom.uuid.gsub(/-/, ''),

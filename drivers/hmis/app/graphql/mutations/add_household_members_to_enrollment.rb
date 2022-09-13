@@ -43,7 +43,7 @@ module Mutations
           data_source_id: hmis_user.data_source_id,
           personal_id: client.personal_id,
           relationship_to_ho_h: household_member.relationship_to_ho_h,
-          entry_date: Date.strptime(start_date, '%Y-%m-%d'),
+          entry_date: start_date,
           project_id: project&.project_id,
           household_id: household_id,
           enrollment_id: SecureRandom.uuid.gsub(/-/, ''),
