@@ -11,3 +11,11 @@ format used for Warehouse HUD report tests from the Excel file:
 <pre>
 DatalabTestkit::TestkitSpmXlsxToCsv.new(<i>directory</i>).convert(<i>excel_filename.xlsx</i>)
 </pre>
+
+In addition, as of version 2.0, the test kit comes with two dozen HMIS zip files that need to be imported to run.  To speed up the test process, we merge them with the following command.  Note, you'll need to manually extract all of the zip files into folders in var/csvs/ first.
+
+<pre>
+source_dirs = Dir.glob('var/csvs/*')
+destination_dir = 'drivers/datalab_testkit/spec/fixtures/inputs/merged/source'
+DatalabTestkit::TestkitCsvMerge.new(source_dirs, destination_dir).merge_dirs
+</pre>
