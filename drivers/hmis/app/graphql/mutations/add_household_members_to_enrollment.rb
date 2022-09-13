@@ -41,7 +41,7 @@ module Mutations
 
         enrollment = Hmis::Hud::Enrollment.new(
           data_source_id: hmis_user.data_source_id,
-          personal_id: lookup[household_member.id.to_i].personal_id,
+          personal_id: client.personal_id,
           relationship_to_ho_h: household_member.relationship_to_ho_h,
           entry_date: Date.strptime(start_date, '%Y-%m-%d'),
           project_id: project&.project_id,
