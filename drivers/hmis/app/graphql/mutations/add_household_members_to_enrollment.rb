@@ -34,7 +34,8 @@ module Mutations
       project = hoh_enrollment.project
 
       enrollments = household_members.map do |household_member|
-        enrollment = lookup[household_member.id.to_i].enrollments.viewable_by(user).find_by(household_id: household_id)
+        client = lookup[household_member.id.to_i]
+        enrollment = client.enrollments.viewable_by(user).find_by(household_id: household_id)
 
         next enrollment if enrollment.present?
 
