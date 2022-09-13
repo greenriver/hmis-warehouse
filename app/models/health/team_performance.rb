@@ -44,6 +44,7 @@ module Health
         without_payable_qualifying_activities_within_range = patient_ids - with_payable_qualifying_activities_within_range
 
         without_f2f_in_past_6_months = patient_ids - with_f2f_in_past_6_months
+        without_annual_well_care_visit_in_12_months = patient_ids - with_annual_well_care_visit_in_12_months
 
         OpenStruct.new(
           {
@@ -63,6 +64,7 @@ module Health
             initial_careplan_overdue: filter_days_since_enrollment(without_signed_careplans, 150..),
             annual_careplan_due_within_30_days: with_annual_careplan_due_within_30_days(patient_ids),
             annual_careplan_overdue: with_annual_careplan_overdue(patient_ids),
+            without_annual_well_care_visit_in_12_months: without_annual_well_care_visit_in_12_months,
             without_f2f_in_past_6_months: without_f2f_in_past_6_months,
             with_discharge_followup_completed_within_range: with_discharge_followup,
             with_careplans_in_122_days: with_careplans_in_122_days(patient_ids),
@@ -95,6 +97,7 @@ module Health
           initial_careplan_overdue: team_counts.map(&:initial_careplan_overdue).reduce(&:+),
           annual_careplan_due_within_30_days: team_counts.map(&:annual_careplan_due_within_30_days).reduce(&:+),
           annual_careplan_overdue: team_counts.map(&:annual_careplan_overdue).reduce(&:+),
+          without_annual_well_care_visit_in_12_months: team_counts.map(&:without_annual_well_care_visit_in_12_months).reduce(&:+),
           without_f2f_in_past_6_months: team_counts.map(&:without_f2f_in_past_6_months).reduce(&:+),
           with_discharge_followup_completed_within_range: team_counts.map(&:with_discharge_followup_completed_within_range).reduce(&:+),
           with_careplans_in_122_days: team_counts.map(&:with_careplans_in_122_days).reduce(&:+),
@@ -340,6 +343,17 @@ module Health
         where(date_of_activity: (6.months.ago..Date.today)).
         where(patient_id: patient_referrals.keys).
         pluck(:patient_id).uniq
+    end
+
+    private def with_annual_well_care_visit_in_12_months
+      # range is a 12 month period ending 3 months ago, because claims data is always 3 months behind
+      service_range = (Date.current - 15.months...Date.current - 3.months)
+      @with_annual_well_care_visit_in_12_months ||= ClaimsReporting::MedicalClaim.
+        annual_well_care_visits.
+        service_in(service_range).
+        joins(:patient).
+        where(hp_t[:id].in(patient_referrals.keys)).
+        pluck(hp_t[:id]).uniq
     end
 
     private def most_recent_qa_signature_dates
