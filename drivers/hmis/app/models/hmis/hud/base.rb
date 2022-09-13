@@ -24,4 +24,8 @@ class Hmis::Hud::Base < ::GrdaWarehouseBase
     h.merge! class_name: "Hmis::Hud::#{model_name}" if model_name
     h
   end
+
+  def self.generate_uuid
+    SecureRandom.uuid.gsub(/-/, '')
+  end
 end
