@@ -31,10 +31,4 @@ module Hmis::Hud::Shared
       define_singleton_method(name) { Hmis::FieldMap.send(type) }
     end
   end
-
-  included do
-    hmis_configuration(version: '2022').keys.each do |col|
-      alias_attribute col.to_s.underscore.to_sym, col
-    end
-  end
 end

@@ -10,6 +10,10 @@ module HmisStructure::Base
   included do
     class_attribute :hud_key
 
+    hmis_configuration(version: '2022').keys.each do |col|
+      alias_attribute col.to_s.underscore.to_sym, col
+    end
+
     scope :delete_pending, -> do
       where.not(pending_date_deleted: nil)
     end
