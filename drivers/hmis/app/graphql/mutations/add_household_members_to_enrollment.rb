@@ -30,9 +30,9 @@ module Mutations
         }
       end
 
-      hoh_enrollment = Hmis::Hud::Enrollment.viewable_by(user).find_by(household_id: household_id, relationship_to_ho_h: 1)
+      existing_enrollment = Hmis::Hud::Enrollment.viewable_by(user).find_by(household_id: household_id)
       lookup = Hmis::Hud::Client.where(id: household_members.map(&:id)).index_by(&:id)
-      project = hoh_enrollment.project
+      project = existing_enrollment.project
 
       enrollments = household_members.map do |household_member|
         client = lookup[household_member.id.to_i]
