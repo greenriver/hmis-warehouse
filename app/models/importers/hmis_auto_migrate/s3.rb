@@ -106,15 +106,20 @@ module Importers::HmisAutoMigrate
     end
 
     private def previous_imports
-      GrdaWarehouse::Upload.where(data_source_id: @data_source_id, user_id: User.setup_system_user.id).select(:id, :file).order(id: :desc).limit(10)
+      GrdaWarehouse::Upload.
+        where(data_source_id: @data_source_id, user_id: User.setup_system_user.id).
+        with_attached_hmis_zip.
+        select(:id).
+        order(id: :desc).
+        limit(10)
     end
 
     def recently_imported?(file)
       incoming_filename = File.basename(file, File.extname(file)).gsub(' ', '_')
       previous_import_filenames = previous_imports.map do |pi|
-        name = pi&.file&.file&.filename || 'none.zip'
+        name = pi&.hmis_zip&.filename || 'none.zip'
         # Remove the name change made if the file was an encrypted zip
-        name = name.gsub('_decrypted.zip', '.zip').gsub(' ', '_')
+        name = name.to_s.gsub('_decrypted.zip', '.zip').gsub(' ', '_')
         File.basename(name, File.extname(name))
       end
       return unless incoming_filename.in?(previous_import_filenames)
