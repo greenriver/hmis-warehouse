@@ -11,8 +11,9 @@ module Mutations
       errors = []
       errors << InputValidationError.new('Entry date cannot be in the future', attribute: 'start_date') if Date.parse(start_date) > Date.today
 
+      has_enrollment = Hmis::Hud::Enrollment.viewable_by(current_user).exists?(household_id: household_id)
       has_hoh_enrollment = Hmis::Hud::Enrollment.viewable_by(current_user).exists?(household_id: household_id, relationship_to_ho_h: 1)
-      errors << InputValidationError.new("Cannot find Enrollment for household with id '#{household_id}'", attribute: 'household_id') unless has_hoh_enrollment
+      errors << InputValidationError.new("Cannot find Enrollment for household with id '#{household_id}'", attribute: 'household_id') unless has_enrollment
       errors << InputValidationError.new('Enrollment already has a head of household designated', attribute: 'household_members') if has_hoh_enrollment && household_members.find { |hm| hm.relationship_to_ho_h == 1 }
 
       errors
