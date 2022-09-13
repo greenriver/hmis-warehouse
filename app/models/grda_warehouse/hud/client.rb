@@ -14,6 +14,7 @@ module GrdaWarehouse::Hud
     include HealthCharts
     include ApplicationHelper
     include ::HmisStructure::Client
+    include ::HmisStructure::Shared
     include HudSharedScopes
     include HudChronicDefinition
     include SiteChronic

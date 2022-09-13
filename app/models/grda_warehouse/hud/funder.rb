@@ -8,6 +8,7 @@ module GrdaWarehouse::Hud
   class Funder < Base
     include HudSharedScopes
     include ::HmisStructure::Funder
+    include ::HmisStructure::Shared
     include RailsDrivers::Extensions
 
     attr_accessor :source_id

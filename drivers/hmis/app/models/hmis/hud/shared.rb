@@ -31,4 +31,6 @@ module Hmis::Hud::Shared
       define_singleton_method(name) { Hmis::FieldMap.send(type) }
     end
   end
+
+  include ::HmisStructure::Shared
 end
