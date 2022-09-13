@@ -60,6 +60,14 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     end
   end
 
+  def self.generate_household_id
+    generate_uuid
+  end
+
+  def self.generate_enrollment_id
+    generate_uuid
+  end
+
   def save_in_progress
     wip_project_id = project.id || wip.project_id
 

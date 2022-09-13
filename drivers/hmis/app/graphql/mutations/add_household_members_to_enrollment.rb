@@ -46,7 +46,7 @@ module Mutations
           entry_date: start_date,
           project_id: project&.project_id,
           household_id: household_id,
-          enrollment_id: SecureRandom.uuid.gsub(/-/, ''),
+          enrollment_id: Hmis::Hud::Enrollment.generate_enrollment_id,
         )
         enrollment.save_in_progress
 

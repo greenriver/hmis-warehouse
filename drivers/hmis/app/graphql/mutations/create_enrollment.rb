@@ -18,7 +18,7 @@ module Mutations
 
     def to_enrollments_params(project_id:, start_date:, household_members:, in_progress: false)
       result = []
-      household_id = SecureRandom.uuid.gsub(/-/, '')
+      household_id = Hmis::Hud::Enrollment.generate_household_id
       lookup = Hmis::Hud::Client.where(id: household_members.map(&:id)).pluck(:id, :personal_id).to_h
       project = Hmis::Hud::Project.viewable_by(context[:current_user]).find_by(id: project_id)
 
@@ -29,7 +29,7 @@ module Mutations
           entry_date: start_date,
           project_id: project&.project_id,
           household_id: household_id,
-          enrollment_id: SecureRandom.uuid.gsub(/-/, ''),
+          enrollment_id: Hmis::Hud::Enrollment.generate_enrollment_id,
           in_progress: in_progress,
         }
       end
