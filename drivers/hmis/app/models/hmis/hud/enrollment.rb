@@ -12,6 +12,8 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   self.table_name = :Enrollment
   self.sequence_name = "public.\"#{table_name}_id_seq\""
 
+  belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
+
   attr_accessor :in_progress
 
   delegate :exit_date, to: :exit, allow_nil: true
@@ -56,6 +58,14 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     else
       raise NotImplementedError
     end
+  end
+
+  def self.generate_household_id
+    generate_uuid
+  end
+
+  def self.generate_enrollment_id
+    generate_uuid
   end
 
   def save_in_progress
