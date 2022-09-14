@@ -11,7 +11,3 @@
 #
 # use with caution!
 RailsDrivers.loaded << :project_scorecard
-
-Rails.application.reloader.to_prepare do
-  require_dependency 'project_scorecard/document_exports/scorecard_export' if Rails.env.development?
-end

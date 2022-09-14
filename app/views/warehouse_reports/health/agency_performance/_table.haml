@@ -2,7 +2,7 @@
   %table.table.table-bordered.table-striped
     %thead
       %tr
-        %th{colspan: 10} All enrolled patients
+        %th{colspan: 11} All enrolled patients
         %th.agency-performance__date-effected{colspan: 2} Activity occurred between #{report.range.first} and #{report.range.last}
       %tr.agency-performance__labels
         %th= entity_label
@@ -30,6 +30,9 @@
         %th
           .agency-performance__category.mb-1 Quality
           Care plan renewal overdue
+        %th
+          .agency-performance__category.mb-1 Quality
+          No annual well care visits in 12 months
         %th
           .agency-performance__category.mb-1 Quality
           No F2F visit in past 6 months
@@ -99,6 +102,12 @@
             - title = "#{pluralize(scope.size, 'Patient')} with Care Plan Renewal Overdue"
             =render 'warehouse_reports/health/agency_performance/table_cell', permission: permission, entity_slug: entity_slug, scope: scope, title: title, detail_path: detail_path
           %td.text-right
+            - scope = entity.without_annual_well_care_visit_in_12_months
+            - start_date = (Date.today - 12.months).strftime "%m/%d/%Y"
+            - end_date = ClaimsReporting::MedicalClaim.maximum(:service_end_date)&.strftime "%m/%d/%Y"
+            - title = "#{pluralize(scope.size, 'Patient')} with no Annual Well Care visit in range #{start_date}-#{end_date}"
+            =render 'warehouse_reports/health/agency_performance/table_cell', permission: permission, entity_slug: entity_slug, scope: scope, title: title, detail_path: detail_path
+          %td.text-right
             - scope = entity.without_f2f_in_past_6_months
             - title = "#{pluralize(scope.size, 'Patient')} with no Face to Face visit in past 6 months"
             =render 'warehouse_reports/health/agency_performance/table_cell', permission: permission, entity_slug: entity_slug, scope: scope, title: title, detail_path: detail_path
@@ -142,6 +151,7 @@
           %td.text-right= totals.initial_careplan_overdue.size
           %td.text-right= totals.annual_careplan_due_within_30_days.size
           %td.text-right= totals.annual_careplan_overdue.size
+          %td.text-right= totals.without_annual_well_care_visit_in_12_months.size
           %td.text-right= totals.without_f2f_in_past_6_months.size
           %td.agency-performance__date-effected.text-right= totals.with_discharge_followup_completed_within_range.size
           -# %td.agency-performance__without.text-right= totals.without_chas.size

@@ -27,6 +27,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     }
   end
 
+  before(:all) do
+    cleanup_test_environment
+  end
+  after(:all) do
+    cleanup_test_environment
+  end
+
   describe 'enrollment creation tests' do
     before(:each) do
       user.add_viewable(ds1)
@@ -94,6 +101,25 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           )
         end,
       )
+    end
+
+    it 'should add members to an in-progress enrollment correctly' do
+      enrollment.save_in_progress
+
+      response, result = post_graphql(input: test_input) { mutation }
+
+      expect(response.status).to eq 200
+      enrollments = result.dig('data', 'addHouseholdMembersToEnrollment', 'enrollments')
+      errors = result.dig('data', 'addHouseholdMembersToEnrollment', 'errors')
+      expect(errors).to be_empty
+      expect(enrollments).to be_present
+      expect(enrollments.count).to eq(2)
+      expect(Hmis::Hud::Enrollment.count).to eq(3)
+      expect(Hmis::Hud::Enrollment.in_progress.count).to eq(3)
+
+      # change enrollment back to non-WIP again
+      enrollment.project = p1
+      enrollment.save_not_in_progress
     end
 
     describe 'Validity tests' do
