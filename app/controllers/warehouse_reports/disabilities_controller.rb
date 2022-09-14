@@ -12,8 +12,15 @@ module WarehouseReports
     before_action :set_report, only: [:show, :destroy]
 
     def index
-      @filter = ::Filters::DisabilitiesReportFilter.new(filter_params)
       @reports = report_source.ordered.limit(50)
+
+      # Set default filter to prior run
+      options = if filter_params.present?
+        filter_params[:filter]
+      else
+        @reports&.last&.parameters.try(:[], 'filter')&.with_indifferent_access
+      end
+      @filter = ::Filters::DisabilitiesReportFilter.new(options)
     end
 
     def create
