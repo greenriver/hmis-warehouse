@@ -31,7 +31,7 @@ module ProjectPassFail::WarehouseReports
 
       # Set default filter to prior run
       previous_report = report_scope.last
-      @filter.update(previous_report.options) if previous_report
+      @filter.update(previous_report.options['filters'].with_indifferent_access) if previous_report
 
       @pagy, @reports = pagy(report_scope.ordered)
     end
