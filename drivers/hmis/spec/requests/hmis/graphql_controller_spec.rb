@@ -10,6 +10,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:p3) { create :hud_project, ProjectName: 'DDD', data_source_id: ds1.id, OrganizationID: o2.OrganizationID }
   let!(:p4) { create :hud_project, ProjectName: 'CCC', data_source_id: ds1.id, OrganizationID: o2.OrganizationID }
 
+  before(:all) do
+    cleanup_test_environment
+  end
+  after(:all) do
+    cleanup_test_environment
+  end
+
   before(:each) do
     user.add_viewable(ds1)
     post hmis_user_session_path(hmis_user: { email: user.email, password: user.password })
