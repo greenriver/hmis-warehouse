@@ -29,6 +29,10 @@ module ProjectPassFail::WarehouseReports
       # Handle arriving from the Document Export list
       redirect_to(action: :show, id: params[:id]) if params[:id]
 
+      # Set default filter to prior run
+      previous_report = report_scope.last
+      @filter.update(previous_report.options) if previous_report
+
       @pagy, @reports = pagy(report_scope.ordered)
     end
 
