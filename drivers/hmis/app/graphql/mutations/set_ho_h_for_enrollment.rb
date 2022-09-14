@@ -10,10 +10,10 @@ module Mutations
       errors = []
       enrollment = nil
 
-      client = Hmis::Hud::Client.viewable_by(current_user).find_by(id: client_id)
+      client = Hmis::Hud::Client.find_by(id: client_id)
 
       if client
-        household_enrollments = Hims::Hud::Enrollment.viewable_by(current_user).where(household_id: household_id)
+        household_enrollments = Hmis::Hud::Enrollment.viewable_by(current_user).where(household_id: household_id)
         hoh_enrollment = household_enrollments.find_by(relationship_to_ho_h: 1)
         new_hoh_enrollment = household_enrollments.find_by(personal_id: client&.personal_id)
         if new_hoh_enrollment
