@@ -45,14 +45,8 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   scope :in_progress, -> { where(project_id: nil) }
 
-  # Project database ID, including for WIP enrollments
-  def wip_project_database_id
-    project&.id || wip.project_id
-  end
-
-  # Project ID for enrollment, including for WIP enrollments
-  def wip_project_id
-    project&.project_id || Hmis::Hud::Project.find(wip.project_id).project_id
+  def project
+    super || Hmis::Hud::Project.find(wip.project_id)
   end
 
   def self.sort_by_option(option)
@@ -79,7 +73,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   end
 
   def save_in_progress
-    saved_project_id = wip_project_database_id
+    saved_project_id = project.id
 
     self.project_id = nil
     save!(validate: false)

@@ -32,7 +32,7 @@ module Mutations
 
       existing_enrollment = Hmis::Hud::Enrollment.viewable_by(user).find_by(household_id: household_id)
       lookup = Hmis::Hud::Client.where(id: household_members.map(&:id)).index_by(&:id)
-      project_id = existing_enrollment.wip_project_id
+      project_id = existing_enrollment.project.project_id
 
       enrollments = household_members.map do |household_member|
         client = lookup[household_member.id.to_i]
