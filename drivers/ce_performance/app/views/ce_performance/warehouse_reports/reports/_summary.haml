@@ -38,3 +38,7 @@
                       = result.goal_progress(comparison)
                   .col-md-3.d-flex
                     .ml-auto.mr-4= tagged(passed, status, icon: icon, label: label)
+                - else
+                  .col-md-3
+                    .performance-measurement__result-number.font-weight-bold.mt-4= result.value.round
+                    .text-capitalize= result.unit

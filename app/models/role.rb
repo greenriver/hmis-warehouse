@@ -102,6 +102,13 @@ class Role < ApplicationRecord
           'Client Access',
         ],
       },
+      can_view_chronic_tab: {
+        description: 'Provides the ability to view the chronic tab for a client.',
+        administrative: false,
+        categories: [
+          'Client Access',
+        ],
+      },
       can_view_full_client_dashboard: {
         description: 'Given access to a client\'s enrollments, user is able to see all sections of a client dashboard',
         administrative: false,
