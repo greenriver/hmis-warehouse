@@ -4,8 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module HudHic
+module HudLsa
   def self.table_name_prefix
-    'hud_hic_'
+    'hud_lsa_'
   end
 end
