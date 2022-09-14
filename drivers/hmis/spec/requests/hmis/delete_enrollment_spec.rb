@@ -8,7 +8,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let(:c1) { create :hmis_hud_client, data_source: ds1 }
   let(:c2) { create :hmis_hud_client, data_source: ds1 }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, relationship_to_ho_h: 1, household_id: '1' }
-  let!(:e2) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c2, relationship_to_ho_h: 2, household_id: '1' }
+  let!(:e2) do
+    enrollment = create(:hmis_hud_enrollment, data_source: ds1, project: p1, client: c2, relationship_to_ho_h: 2, household_id: '1')
+    enrollment.save_in_progress
+    enrollment
+  end
   let(:new_entry_date) { Date.today - 7.days }
 
   before(:each) do
@@ -21,8 +25,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   let(:mutation) do
     <<~GRAPHQL
-      mutation UpdateEnrollment($input: UpdateEnrollmentInput!) {
-        updateEnrollment(input: $input) {
+      mutation DeleteEnrollment($input: DeleteEnrollmentInput!) {
+        deleteEnrollment(input: $input) {
           enrollment {
             id
             entryDate
@@ -45,29 +49,30 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     GRAPHQL
   end
 
-  it 'should update enrollment correctly' do
-    response, result = post_graphql(
-      input: {
-        id: e2.id,
-        relationship_to_ho_h: Types::HmisSchema::Enums::RelationshipToHoH.enum_member_for_value(3).first,
-        entry_date: new_entry_date.strftime('%Y-%m-%d'),
-      },
-    ) { mutation }
+  it 'should not delete an enrollment that is not in progress' do
+    response, result = post_graphql(input: { id: e1.id }) { mutation }
 
     expect(response.status).to eq 200
-    enrollment = result.dig('data', 'updateEnrollment', 'enrollment')
-    errors = result.dig('data', 'updateEnrollment', 'errors')
+    enrollment = result.dig('data', 'deleteEnrollment', 'enrollment')
+    errors = result.dig('data', 'deleteEnrollment', 'errors')
+    expect(enrollment).to be_present
+    expect(errors).to contain_exactly(include('message' => 'Only in-progress enrollments can be deleted'))
+    expect(Hmis::Hud::Enrollment.all).to contain_exactly(
+      have_attributes(id: e1.id),
+      have_attributes(id: e2.id),
+    )
+  end
+
+  it 'should delete an enrollment that is in progress' do
+    response, result = post_graphql(input: { id: e2.id }) { mutation }
+
+    expect(response.status).to eq 200
+    enrollment = result.dig('data', 'deleteEnrollment', 'enrollment')
+    errors = result.dig('data', 'deleteEnrollment', 'errors')
     expect(enrollment).to be_present
     expect(errors).to be_empty
-    expect(enrollment).to include(
-      'id' => e2.id.to_s,
-      'entryDate' => new_entry_date.strftime('%Y-%m-%d'),
-      'relationshipToHoH' => Types::HmisSchema::Enums::RelationshipToHoH.enum_member_for_value(3).first,
-      'client' => include('id' => c2.id.to_s),
-    )
     expect(Hmis::Hud::Enrollment.all).to contain_exactly(
-      have_attributes(id: e1.id, personal_id: c1.personal_id, relationship_to_ho_h: 1, entry_date: e1.entry_date),
-      have_attributes(id: e2.id, personal_id: c2.personal_id, relationship_to_ho_h: 3, entry_date: new_entry_date),
+      have_attributes(id: e1.id),
     )
   end
 end
