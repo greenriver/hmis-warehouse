@@ -2,7 +2,7 @@ module Mutations
   class UpdateEnrollment < BaseMutation
     argument :id, ID, required: true
     date_string_argument :entry_date, 'Entry date with format yyyy-mm-dd', required: false
-    argument :relationship_to_ho_h, HmisSchema::Enums::RelationshipToHoH, required: false
+    argument :relationship_to_ho_h, Types::HmisSchema::Enums::RelationshipToHoH, required: false
 
     field :enrollment, Types::HmisSchema::Enrollment, null: true
     field :errors, [Types::HmisSchema::ValidationError], null: false

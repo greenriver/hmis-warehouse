@@ -30,12 +30,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             client {
               id
             }
-            household {
-              householdClients {
-                id
-                relationshipToHoH
-              }
-            }
           }
           errors {
             id
