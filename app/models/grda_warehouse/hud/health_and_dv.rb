@@ -9,6 +9,7 @@ module GrdaWarehouse::Hud
   class HealthAndDv < Base
     include HudSharedScopes
     include ::HmisStructure::HealthAndDv
+    include ::HmisStructure::Shared
     include RailsDrivers::Extensions
 
     attr_accessor :source_id
