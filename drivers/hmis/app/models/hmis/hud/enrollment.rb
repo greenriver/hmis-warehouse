@@ -69,7 +69,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   end
 
   def save_in_progress
-    wip_project_id = project.id || wip.project_id
+    wip_project_id = project&.id || wip&.project_id
 
     self.project_id = nil
     save!(validate: false)
