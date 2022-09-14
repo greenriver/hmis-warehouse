@@ -15,6 +15,8 @@ module Mutations
         enrollment.entry_date = entry_date if entry_date.present?
         enrollment.relationship_to_ho_h = relationship_to_ho_h if relationship_to_ho_h.present?
         enrollment.save!
+
+        errors << enrollment.errors.errors unless enrollment.valid?
       else
         errors << InputValidationError.new("No enrollment found with ID '#{id}'", attribute: 'id')
       end
