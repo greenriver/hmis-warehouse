@@ -93,19 +93,59 @@ module MaYyaReport
         A4c: nil,
 
         A5a: a_t[:direct_assistance].eq(true),
-        A5b: nil,
-        A5c: nil,
-        A5d: nil,
-        A5e: nil,
-        A5f: nil,
-        A5g: nil,
-        A5h: nil,
-        A5i: nil,
-        A5j: nil,
-        A5k: nil,
-        A5l: nil,
-        A5m: nil,
-        A5n: nil,
+        # FIXME: Check that the labels match those in ETO
+        A5b: a_t[:direct_assistance].eq(true).
+          and(Arel.sql(
+                json_contains_text(:flex_funds, 'Move-in'),
+              )),
+        A5c: a_t[:direct_assistance].eq(true).
+          and(Arel.sql(
+                json_contains_text(:flex_funds, 'Rent'),
+              )),
+        A5d: a_t[:direct_assistance].eq(true).
+          and(Arel.sql(
+                json_contains_text(:flex_funds, 'Rent arrears'),
+              )),
+        A5e: a_t[:direct_assistance].eq(true).
+          and(Arel.sql(
+                json_contains_text(:flex_funds, 'Utilities'),
+              )),
+        A5f: a_t[:direct_assistance].eq(true).
+          and(Arel.sql(
+                json_contains_text(:flex_funds, 'Transportation'),
+              )),
+        A5g: a_t[:direct_assistance].eq(true).
+          and(Arel.sql(
+                json_contains_text(:flex_funds, 'Education'),
+              )),
+        A5h: a_t[:direct_assistance].eq(true).
+          and(Arel.sql(
+                json_contains_text(:flex_funds, 'Legal'),
+              )),
+        A5i: a_t[:direct_assistance].eq(true).
+          and(Arel.sql(
+                json_contains_text(:flex_funds, 'Child-care'),
+              )),
+        A5j: a_t[:direct_assistance].eq(true).
+          and(Arel.sql(
+                json_contains_text(:flex_funds, 'Work'),
+              )),
+        A5k: a_t[:direct_assistance].eq(true).
+          and(Arel.sql(
+                json_contains_text(:flex_funds, 'Medical'),
+              )),
+        A5l: a_t[:direct_assistance].eq(true).
+          and(Arel.sql(
+                json_contains_text(:flex_funds, 'Cell phone'),
+              )),
+        A5m: a_t[:direct_assistance].eq(true).
+          and(Arel.sql(
+                json_contains_text(:flex_funds, 'Food/groceries'),
+              )),
+        A5n: a_t[:direct_assistance].eq(true).
+          and(Arel.sql(
+                json_contains_text(:flex_funds, 'Other'),
+              )),
 
         TotalYYAServed: a_t[:currently_homeless].eq(true).or(a_t[:at_risk_of_homelessness].eq(true)),
 
@@ -161,7 +201,7 @@ module MaYyaReport
         F2c: f2_population.
           and(a_t[:rehoused_on].not_eq(nil)).
           and(Arel.sql(json_contains(:subsequent_current_living_situations, [19, 3, 31, 33, 34, 10, 20, 21, 11]))),
-        F2d: nil,
+        F2d: nil, # Handled as a special case in
 
         G1a: g_population.and(a_t[:age].lt(18)),
         G1b: g_population.and(a_t[:gender].eq(1)),
@@ -190,14 +230,23 @@ module MaYyaReport
       contents.map { |val| "#{field} @> '#{val}'" }.join(' OR ')
     end
 
+    private def json_contains_text(field, text)
+      "#{field} ? '#{text}'"
+    end
+
     private def report_results
       calculators.each do |cell_name, query|
         cell = report_cells.create(name: cell_name)
-        next if query.nil? # Create a cell for a Non-HMIS query, but leave it blank
+        case cell_name
+        when 'F2d' # a list of zipcodes
+          cell.update(structured_data: universe.members.pluck(a_t[:zip_code]))
+        else
+          next if query.nil? # Create a cell for a Non-HMIS query, but leave it blank
 
-        clients = universe.members.where(query)
-        cell.add_members(clients)
-        cell.update!(summary: clients.count)
+          clients = universe.members.where(query)
+          cell.add_members(clients)
+          cell.update!(summary: clients.count)
+        end
       end
     end
 
@@ -211,6 +260,10 @@ module MaYyaReport
 
     def answer(cell_name)
       cell(cell_name)&.summary
+    end
+
+    def list_answer(cell_name)
+      cell(cell_name)&.structured_data&.join(', ')
     end
 
     def self.yya_projects(user)

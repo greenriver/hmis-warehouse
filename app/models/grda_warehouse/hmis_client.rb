@@ -59,6 +59,10 @@ class GrdaWarehouse::HmisClient < GrdaWarehouseBase
     processed_fields.try(:[], 'hud_last_permanent_zip')
   end
 
+  def processed_youth_current_zip
+    processed_fields.try(:[], 'youth_current_zip')
+  end
+
   def self.maintain_client_consent
     return unless GrdaWarehouse::Config.get(:release_duration) == 'Use Expiration Date'
 

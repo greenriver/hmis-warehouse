@@ -2252,7 +2252,8 @@ CREATE TABLE public.boston_project_scorecard_reports (
     barrier_id_process boolean,
     plan_to_address_barriers boolean,
     contracted_budget double precision,
-    archive character varying
+    archive character varying,
+    required_match_percent_met boolean
 );
 
 
@@ -11661,6 +11662,303 @@ ALTER SEQUENCE public.hmis_csv_loader_logs_id_seq OWNED BY public.hmis_csv_loade
 
 
 --
+-- Name: hmis_dqt_assessments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_dqt_assessments (
+    id bigint NOT NULL,
+    assessment_id bigint NOT NULL,
+    enrollment_id bigint NOT NULL,
+    client_id bigint NOT NULL,
+    report_id bigint NOT NULL,
+    project_name character varying,
+    destination_client_id integer,
+    hmis_assessment_id character varying,
+    data_source_id integer,
+    assessment_type integer,
+    assessment_level integer,
+    prioritization_status integer,
+    assessment_date date,
+    project_operating_start_date date,
+    project_operating_end_date date,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: hmis_dqt_assessments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_dqt_assessments_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_dqt_assessments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_dqt_assessments_id_seq OWNED BY public.hmis_dqt_assessments.id;
+
+
+--
+-- Name: hmis_dqt_clients; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_dqt_clients (
+    id bigint NOT NULL,
+    client_id bigint NOT NULL,
+    report_id bigint NOT NULL,
+    destination_client_id integer,
+    first_name character varying,
+    last_name character varying,
+    personal_id character varying,
+    data_source_id integer,
+    dob date,
+    dob_data_quality integer,
+    male integer,
+    female integer,
+    no_single_gender integer,
+    transgender integer,
+    questioning integer,
+    am_ind_ak_native integer,
+    asian integer,
+    black_af_american integer,
+    native_hi_pacific integer,
+    white integer,
+    race_none integer,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone,
+    gender_none integer,
+    overlapping_entry_exit integer,
+    overlapping_nbn integer,
+    overlapping_pre_move_in integer,
+    overlapping_post_move_in integer
+);
+
+
+--
+-- Name: hmis_dqt_clients_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_dqt_clients_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_dqt_clients_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_dqt_clients_id_seq OWNED BY public.hmis_dqt_clients.id;
+
+
+--
+-- Name: hmis_dqt_current_living_situations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_dqt_current_living_situations (
+    id bigint NOT NULL,
+    current_living_situation_id bigint NOT NULL,
+    enrollment_id bigint NOT NULL,
+    client_id bigint NOT NULL,
+    report_id bigint NOT NULL,
+    project_name character varying,
+    destination_client_id integer,
+    hmis_current_living_situation_id character varying,
+    data_source_id integer,
+    situation integer,
+    information_date date,
+    project_operating_start_date date,
+    project_operating_end_date date,
+    project_tracking_method integer,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: hmis_dqt_current_living_situations_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_dqt_current_living_situations_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_dqt_current_living_situations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_dqt_current_living_situations_id_seq OWNED BY public.hmis_dqt_current_living_situations.id;
+
+
+--
+-- Name: hmis_dqt_enrollments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_dqt_enrollments (
+    id bigint NOT NULL,
+    enrollment_id bigint NOT NULL,
+    client_id bigint NOT NULL,
+    report_id bigint NOT NULL,
+    personal_id character varying,
+    project_name character varying,
+    destination_client_id integer,
+    hmis_enrollment_id character varying,
+    exit_id character varying,
+    data_source_id integer,
+    entry_date date,
+    move_in_date date,
+    exit_date date,
+    age integer,
+    household_max_age integer,
+    household_id character varying,
+    head_of_household_count integer,
+    disabling_condition integer,
+    living_situation integer,
+    relationship_to_hoh integer,
+    coc_code character varying,
+    destination integer,
+    project_operating_start_date date,
+    project_operating_end_date date,
+    project_tracking_method integer,
+    lot integer,
+    days_since_last_service integer,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone,
+    project_type integer
+);
+
+
+--
+-- Name: hmis_dqt_enrollments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_dqt_enrollments_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_dqt_enrollments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_dqt_enrollments_id_seq OWNED BY public.hmis_dqt_enrollments.id;
+
+
+--
+-- Name: hmis_dqt_events; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_dqt_events (
+    id bigint NOT NULL,
+    event_id bigint NOT NULL,
+    enrollment_id bigint NOT NULL,
+    client_id bigint NOT NULL,
+    report_id bigint NOT NULL,
+    project_name character varying,
+    destination_client_id integer,
+    hmis_event_id character varying,
+    data_source_id integer,
+    event integer,
+    event_date date,
+    project_operating_start_date date,
+    project_operating_end_date date,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: hmis_dqt_events_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_dqt_events_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_dqt_events_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_dqt_events_id_seq OWNED BY public.hmis_dqt_events.id;
+
+
+--
+-- Name: hmis_dqt_inventories; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_dqt_inventories (
+    id bigint NOT NULL,
+    inventory_id bigint NOT NULL,
+    project_id bigint NOT NULL,
+    report_id bigint NOT NULL,
+    project_name character varying,
+    hmis_inventory_id character varying,
+    data_source_id integer,
+    project_type integer,
+    project_operating_start_date date,
+    project_operating_end_date date,
+    unit_inventory integer,
+    bed_inventory integer,
+    ch_vet_bed_inventory integer,
+    youth_vet_bed_inventory integer,
+    vet_bed_inventory integer,
+    ch_youth_bed_inventory integer,
+    youth_bed_inventory integer,
+    ch_bed_inventory integer,
+    other_bed_inventory integer,
+    inventory_start_date integer,
+    inventory_end_date integer,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: hmis_dqt_inventories_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_dqt_inventories_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_dqt_inventories_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_dqt_inventories_id_seq OWNED BY public.hmis_dqt_inventories.id;
+
+
+--
 -- Name: hmis_forms; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -13012,7 +13310,8 @@ CREATE TABLE public.hud_report_instances (
     build_for_questions jsonb,
     remaining_questions jsonb,
     coc_codes jsonb,
-    manual boolean DEFAULT true NOT NULL
+    manual boolean DEFAULT true NOT NULL,
+    failed_at timestamp without time zone
 );
 
 
@@ -14085,7 +14384,9 @@ CREATE TABLE public.ma_yya_report_clients (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     education_status_date date,
-    rehoused_on date
+    rehoused_on date,
+    zip_code character varying,
+    flex_funds jsonb DEFAULT '[]'::jsonb
 );
 
 
@@ -17688,7 +17989,8 @@ CREATE TABLE public.simple_report_cells (
     summary integer,
     deleted_at timestamp without time zone,
     created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
+    updated_at timestamp without time zone NOT NULL,
+    structured_data jsonb
 );
 
 
@@ -20513,6 +20815,48 @@ ALTER TABLE ONLY public.hmis_csv_load_errors ALTER COLUMN id SET DEFAULT nextval
 --
 
 ALTER TABLE ONLY public.hmis_csv_loader_logs ALTER COLUMN id SET DEFAULT nextval('public.hmis_csv_loader_logs_id_seq'::regclass);
+
+
+--
+-- Name: hmis_dqt_assessments id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_dqt_assessments ALTER COLUMN id SET DEFAULT nextval('public.hmis_dqt_assessments_id_seq'::regclass);
+
+
+--
+-- Name: hmis_dqt_clients id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_dqt_clients ALTER COLUMN id SET DEFAULT nextval('public.hmis_dqt_clients_id_seq'::regclass);
+
+
+--
+-- Name: hmis_dqt_current_living_situations id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_dqt_current_living_situations ALTER COLUMN id SET DEFAULT nextval('public.hmis_dqt_current_living_situations_id_seq'::regclass);
+
+
+--
+-- Name: hmis_dqt_enrollments id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_dqt_enrollments ALTER COLUMN id SET DEFAULT nextval('public.hmis_dqt_enrollments_id_seq'::regclass);
+
+
+--
+-- Name: hmis_dqt_events id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_dqt_events ALTER COLUMN id SET DEFAULT nextval('public.hmis_dqt_events_id_seq'::regclass);
+
+
+--
+-- Name: hmis_dqt_inventories id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_dqt_inventories ALTER COLUMN id SET DEFAULT nextval('public.hmis_dqt_inventories_id_seq'::regclass);
 
 
 --
@@ -23441,6 +23785,54 @@ ALTER TABLE ONLY public.hmis_csv_load_errors
 
 ALTER TABLE ONLY public.hmis_csv_loader_logs
     ADD CONSTRAINT hmis_csv_loader_logs_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_dqt_assessments hmis_dqt_assessments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_dqt_assessments
+    ADD CONSTRAINT hmis_dqt_assessments_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_dqt_clients hmis_dqt_clients_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_dqt_clients
+    ADD CONSTRAINT hmis_dqt_clients_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_dqt_current_living_situations hmis_dqt_current_living_situations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_dqt_current_living_situations
+    ADD CONSTRAINT hmis_dqt_current_living_situations_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_dqt_enrollments hmis_dqt_enrollments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_dqt_enrollments
+    ADD CONSTRAINT hmis_dqt_enrollments_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_dqt_events hmis_dqt_events_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_dqt_events
+    ADD CONSTRAINT hmis_dqt_events_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_dqt_inventories hmis_dqt_inventories_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_dqt_inventories
+    ADD CONSTRAINT hmis_dqt_inventories_pkey PRIMARY KEY (id);
 
 
 --
@@ -35398,6 +35790,13 @@ CREATE INDEX "hmis_csv_validations-ONiu" ON public.hmis_csv_import_validations U
 
 
 --
+-- Name: hmis_dqt_cls_cls_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis_dqt_cls_cls_id ON public.hmis_dqt_current_living_situations USING btree (situation);
+
+
+--
 -- Name: hmisaggregatedenrollments_0XsD; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -42423,6 +42822,139 @@ CREATE INDEX index_hmis_csv_loader_logs_on_importer_log_id ON public.hmis_csv_lo
 --
 
 CREATE INDEX index_hmis_csv_loader_logs_on_updated_at ON public.hmis_csv_loader_logs USING btree (updated_at);
+
+
+--
+-- Name: index_hmis_dqt_assessments_on_assessment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_dqt_assessments_on_assessment_id ON public.hmis_dqt_assessments USING btree (assessment_id);
+
+
+--
+-- Name: index_hmis_dqt_assessments_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_dqt_assessments_on_client_id ON public.hmis_dqt_assessments USING btree (client_id);
+
+
+--
+-- Name: index_hmis_dqt_assessments_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_dqt_assessments_on_enrollment_id ON public.hmis_dqt_assessments USING btree (enrollment_id);
+
+
+--
+-- Name: index_hmis_dqt_assessments_on_report_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_dqt_assessments_on_report_id ON public.hmis_dqt_assessments USING btree (report_id);
+
+
+--
+-- Name: index_hmis_dqt_clients_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_dqt_clients_on_client_id ON public.hmis_dqt_clients USING btree (client_id);
+
+
+--
+-- Name: index_hmis_dqt_clients_on_report_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_dqt_clients_on_report_id ON public.hmis_dqt_clients USING btree (report_id);
+
+
+--
+-- Name: index_hmis_dqt_current_living_situations_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_dqt_current_living_situations_on_client_id ON public.hmis_dqt_current_living_situations USING btree (client_id);
+
+
+--
+-- Name: index_hmis_dqt_current_living_situations_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_dqt_current_living_situations_on_enrollment_id ON public.hmis_dqt_current_living_situations USING btree (enrollment_id);
+
+
+--
+-- Name: index_hmis_dqt_current_living_situations_on_report_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_dqt_current_living_situations_on_report_id ON public.hmis_dqt_current_living_situations USING btree (report_id);
+
+
+--
+-- Name: index_hmis_dqt_enrollments_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_dqt_enrollments_on_client_id ON public.hmis_dqt_enrollments USING btree (client_id);
+
+
+--
+-- Name: index_hmis_dqt_enrollments_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_dqt_enrollments_on_enrollment_id ON public.hmis_dqt_enrollments USING btree (enrollment_id);
+
+
+--
+-- Name: index_hmis_dqt_enrollments_on_report_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_dqt_enrollments_on_report_id ON public.hmis_dqt_enrollments USING btree (report_id);
+
+
+--
+-- Name: index_hmis_dqt_events_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_dqt_events_on_client_id ON public.hmis_dqt_events USING btree (client_id);
+
+
+--
+-- Name: index_hmis_dqt_events_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_dqt_events_on_enrollment_id ON public.hmis_dqt_events USING btree (enrollment_id);
+
+
+--
+-- Name: index_hmis_dqt_events_on_event_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_dqt_events_on_event_id ON public.hmis_dqt_events USING btree (event_id);
+
+
+--
+-- Name: index_hmis_dqt_events_on_report_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_dqt_events_on_report_id ON public.hmis_dqt_events USING btree (report_id);
+
+
+--
+-- Name: index_hmis_dqt_inventories_on_inventory_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_dqt_inventories_on_inventory_id ON public.hmis_dqt_inventories USING btree (inventory_id);
+
+
+--
+-- Name: index_hmis_dqt_inventories_on_project_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_dqt_inventories_on_project_id ON public.hmis_dqt_inventories USING btree (project_id);
+
+
+--
+-- Name: index_hmis_dqt_inventories_on_report_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_dqt_inventories_on_report_id ON public.hmis_dqt_inventories USING btree (report_id);
 
 
 --
@@ -50214,6 +50746,16 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220824155726'),
 ('20220824194239'),
 ('20220824202625'),
-('20220901142553');
+('20220825131554'),
+('20220826123607'),
+('20220830131900'),
+('20220830142632'),
+('20220831183303'),
+('20220901142553'),
+('20220901202643'),
+('20220906182407'),
+('20220915132815'),
+('20220915133927'),
+('20220915141020');
 
 

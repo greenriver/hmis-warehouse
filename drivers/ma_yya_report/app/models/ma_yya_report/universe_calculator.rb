@@ -61,6 +61,8 @@ module MaYyaReport
             health_insurance: enrollment.enrollment.income_benefits_at_entry&.InsuranceFromAnySource == 1,
             rehoused_on: rehoused_on(enrollment.enrollment),
             subsequent_current_living_situations: subsequent_current_living_situations(enrollment.enrollment),
+            zip_code: zip_code(client),
+            flex_funds: flex_funds(client),
           )
         end
       end
@@ -188,6 +190,16 @@ module MaYyaReport
           cls.InformationDate >= enrollment.EntryDate + 90.days
       end.
         map(&:CurrentLivingSituation)
+    end
+
+    private def zip_code(client)
+      client.hmis_client&.processed_youth_current_zip
+    end
+
+    private def flex_funds(client)
+      client.source_hmis_forms.
+        within_range(@filter.start_date .. @filter.end_date).
+        map(&:flex_funds).flatten.uniq
     end
   end
 end
