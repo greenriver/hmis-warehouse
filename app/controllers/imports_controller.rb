@@ -19,71 +19,34 @@ class ImportsController < ApplicationController
     @pagy, @imports = pagy(@imports)
   end
 
-  # GET /imports/new
-  def new
-    @import = import_source.new
-  end
-
   def show
   end
 
   def download
     return unless (@upload = @import.upload)
 
-    filename = @upload.file&.file&.filename&.to_s || 'import'
-    send_data(@upload.content, type: @upload.content_type, filename: filename) if @upload.content.present?
+    zip = @upload.hmis_zip
+    filename = zip.filename&.to_s.presence || 'import'
+    send_data(zip.download, type: zip.content_type, filename: filename) if zip.present?
   end
 
   def download_upload
     @upload = GrdaWarehouse::Upload.viewable_by(current_user).find(params[:id].to_i)
-    filename = @upload.file&.file&.filename&.to_s || 'import'
-    send_data(@upload.content, type: @upload.content_type, filename: filename) if @upload.content.present?
+    zip = @upload.hmis_zip
+    filename = zip.filename&.to_s.presence || 'import'
+    send_data(zip.download, type: zip.content_type, filename: filename) if zip.present?
   end
 
-  # POST /imports
-  def create
-    run_import = false
-    @import = import_source.new(import_params.merge(percent_complete: 0.0))
-    if @import.save
-      run_import = true
-      flash[:notice] = _('Import queued to start.')
-      redirect_to action: :index
-    else
-      flash[:alert] = _('Import failed to queue.')
-      render :new
-    end
-    Importing::RunImportHudZipJob.perform_later(@import.id) if run_import
-  end
-
-  # PATCH/PUT /imports/1
-  def update
-    if @import.update(import_params)
-      redirect_to action: :index
-      flash[:notice] = _('Import was successfully updated.')
-    else
-      render :edit
-    end
-  end
-
-  # DELETE /imports/1
-  def destroy
-    @import.destroy
-    flash[:notice] = _('Import was successfully removed.')
-    redirect_to imports_url
-  end
-
-  private
-
-  def import_source
+  private def import_source
     Import
   end
 
-  def import_scope
+  private def import_scope
     GrdaWarehouse::ImportLog.viewable_by(current_user)
   end
 
   # Use callbacks to share common setup or constraints between actions.
-  def set_import
+  private def set_import
     sti_col = import_scope.inheritance_column
     @import = import_scope.find(params.require(:id))
   rescue ActiveRecord::SubclassNotFound
@@ -95,20 +58,11 @@ class ImportsController < ApplicationController
     import_scope.inheritance_column = sti_col
   end
 
-  # Only allow a trusted parameter "white list" through.
-  def import_params
-    params.require(:import).permit(
-      :file,
-      :source,
-      :import_type,
-    )
-  end
-
-  def sort_column
+  private def sort_column
     import_source.column_names.include?(params[:sort]) ? params[:sort] : 'created_at'
   end
 
-  def sort_direction
+  private def sort_direction
     ['asc', 'desc'].include?(params[:direction]) ? params[:direction] : 'desc'
   end
 end
