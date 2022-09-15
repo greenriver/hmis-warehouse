@@ -12,6 +12,9 @@ module HapReport::WarehouseReports
     def index
       @pagy, @reports = pagy(report_scope)
       @filter = HapReport::HapFilter.new(user_id: current_user.id)
+      # Set default filter to prior run
+      previous_report = @reports.last
+      @filter.update(previous_report.options.with_indifferent_access) if previous_report
     end
 
     def create
