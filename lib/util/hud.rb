@@ -2354,7 +2354,7 @@ module HUD
   end
 
   # C1.1 WellbeingAgreement
-  def wellbeing_agreement
+  def wellbeing_agreement(id, reverse = false)
     map = {
       0 => 'Strongly disagree',
       1 => 'Somewhat disagree',
@@ -2369,7 +2369,7 @@ module HUD
   end
 
   # C1.2 FeelingFrequency
-  def feeling_frequency
+  def feeling_frequency(id, reverse = false)
     map = {
       0 => 'Not at all',
       1 => 'Once a month',
@@ -2384,7 +2384,7 @@ module HUD
   end
 
   # C2.2 MovingOnAssistance
-  def moving_on_assistance
+  def moving_on_assistance(id, reverse = false)
     map = {
       1 => 'Subsidized housing application assistance',
       2 => 'Financial assistance for Moving On (e.g., security deposit, moving expenses)',
@@ -2396,7 +2396,7 @@ module HUD
   end
 
   # C3.2 CurrentSchoolAttend
-  def current_school_attended
+  def current_school_attended(id, reverse = false)
     map = {
       0 => 'Not currently enrolled in any school or educational course',
       1 => 'Currently enrolled but NOT attending regularly (when school or the course is in session)',
@@ -2409,7 +2409,7 @@ module HUD
   end
 
   # C3.A MostRecentEdStatus
-  def most_recent_ed_status
+  def most_recent_ed_status(id, reverse = false)
     map = {
       0 => 'K12: Graduated from high school',
       1 => 'K12: Obtained GED',
@@ -2427,7 +2427,7 @@ module HUD
   end
 
   # C3.B CurrentEdStatus
-  def current_ed_status
+  def current_ed_status(id, reverse = false)
     map = {
       0 => 'Pursuing a high school diploma or GED',
       1 => 'Pursuing Associate\'s Degree',
