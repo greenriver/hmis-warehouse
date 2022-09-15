@@ -21,6 +21,12 @@ module WarehouseReports
       @reports = report_source.ordered.
         select(report_source.column_names - ['data']).
         limit(50)
+      # Set default filter to prior run
+      previous_report = @reports.last
+      return unless filter_params.blank? && previous_report
+
+      options = previous_report.parameters['filter'].with_indifferent_access
+      @filter = @filter.class.new(options)
     end
 
     def destroy

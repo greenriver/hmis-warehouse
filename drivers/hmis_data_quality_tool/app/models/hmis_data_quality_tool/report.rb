@@ -52,11 +52,11 @@ module HmisDataQualityTool
     end
 
     def start
-      update(started_at: Time.current)
+      update(started_at: Time.current, state: 'Started')
     end
 
     def complete
-      update(completed_at: Time.current)
+      update(completed_at: Time.current, state: 'Completed')
     end
 
     def describe_filter_as_html(keys = nil, inline: false)

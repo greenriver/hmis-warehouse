@@ -71,8 +71,8 @@ module HmisDataQualityTool
     end
 
     def self.client_scope(report)
-      GrdaWarehouse::Hud::Client.joins(source_enrollments: :service_history_enrollment).
-        preload(:warehouse_client_source, source_enrollments: [:services, :exit, :project]).
+      GrdaWarehouse::Hud::Client.joins(source_enrollments: [:service_history_enrollment, :project]).
+        preload(:warehouse_client_source, source_enrollments: [:exit, :project]).
         merge(report.report_scope).distinct
     end
 
@@ -116,7 +116,7 @@ module HmisDataQualityTool
     # check for overlapping ES entry exit, TH, SH
     def self.overlapping_entry_exit(enrollments:, report:)
       involved_enrollments = enrollments.select do |en|
-        (en.project.es? && ! en.project.bed_night_tracking?) || en.project.sh? || en.project.th?
+        (en.project&.es? && ! en.project&.bed_night_tracking?) || en.project&.sh? || en.project&.th?
       end
 
       return 0 if involved_enrollments.blank? || involved_enrollments.count == 1
@@ -127,7 +127,7 @@ module HmisDataQualityTool
     # check for overlapping PH post-move-in
     def self.overlapping_post_move_in(enrollments:, report:)
       involved_enrollments = enrollments.select do |en|
-        en.project.ph?
+        en.project&.ph?
       end
 
       return 0 if involved_enrollments.blank? || involved_enrollments.count == 1
@@ -137,12 +137,12 @@ module HmisDataQualityTool
 
     def self.overlapping_nbn(enrollments:, report:)
       nbn_enrollments = enrollments.select do |en|
-        en.project.es? && en.project.bed_night_tracking?
+        en.project&.es? && en.project&.bed_night_tracking?
       end
       return 0 if nbn_enrollments.blank?
 
       involved_enrollments = enrollments.select do |en|
-        en.project.es? || en.project.sh? || en.project.th?
+        en.project&.es? || en.project&.sh? || en.project&.th?
       end
       return 0 if involved_enrollments.blank?
 
@@ -153,9 +153,10 @@ module HmisDataQualityTool
           next if nbn_en.id == en.id
 
           end_date = en.exit&.ExitDate || report.filter.end
-          nbn_en.services.each do |service|
-            overlaps << service.DateProvided if service.DateProvided.between?(en.EntryDate, end_date) && service.bed_night?
-          end
+          overlaps += nbn_en.services.where(RecordType: 200, DateProvided: [en.EntryDate, end_date]).pluck(:DateProvided)
+          # nbn_en.services.each do |service|
+          #   overlaps << service.DateProvided if service.DateProvided.between?(en.EntryDate, end_date) && service.bed_night?
+          # end
         end
       end
       overlaps.count
@@ -163,12 +164,12 @@ module HmisDataQualityTool
 
     def self.overlapping_homeless_post_move_in(enrollments:, report:)
       homeless_enrollments = enrollments.select do |en|
-        en.project.es? || en.project.sh? || en.project.th?
+        en.project&.es? || en.project&.sh? || en.project&.th?
       end
       return 0 if homeless_enrollments.blank?
 
       involved_enrollments = enrollments.select do |en|
-        en.project.ph?
+        en.project&.ph?
       end
       return 0 if involved_enrollments.blank?
 
@@ -180,10 +181,11 @@ module HmisDataQualityTool
           next unless en.MoveInDate.present?
 
           end_date = en.exit&.ExitDate || report.filter.end
-          if h_en.project.es? && h_en.project.bed_night_tracking?
-            h_en.services.each do |service|
-              overlaps << service.DateProvided if service.DateProvided.between?(en.EntryDate, end_date) && service.bed_night?
-            end
+          if h_en.project&.es? && h_en.project&.bed_night_tracking?
+            overlaps += h_en.services.where(RecordType: 200, DateProvided: [en.MoveInDate, end_date]).pluck(:DateProvided)
+            # h_en.services.each do |service|
+            #   overlaps << service.DateProvided if service.DateProvided.between?(en.MoveInDate, end_date) && service.bed_night?
+            # end
           else
             homeless_range = (h_en.EntryDate...(h_en.exit&.ExitDate || report.filter.end))
             housed_range = (en.MoveInDate...end_date)

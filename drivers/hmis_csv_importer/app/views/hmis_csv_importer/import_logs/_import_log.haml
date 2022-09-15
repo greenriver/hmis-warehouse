@@ -35,9 +35,9 @@
           %tr
             %th Files Found
             %td
-              #{@import.files.try(:count)} in #{@import.upload.file.to_s.split('/').last}
+              = "#{@import.files.try(:count)} in #{@import.upload.hmis_zip.filename}" if @import&.upload&.hmis_zip.present?
               .mt-4
-                - if @import&.upload&.content.present?
+                - if @import&.upload&.hmis_zip.present?
                   = link_to download_import_path(@import), class: 'btn btn-sm btn-secondary' do
                     %i.icon-download2
                     Download Original
