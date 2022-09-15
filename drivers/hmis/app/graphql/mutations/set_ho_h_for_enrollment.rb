@@ -14,13 +14,10 @@ module Mutations
 
       if client
         household_enrollments = Hmis::Hud::Enrollment.viewable_by(current_user).where(household_id: household_id)
-        hoh_enrollment = household_enrollments.find_by(relationship_to_ho_h: 1)
         new_hoh_enrollment = household_enrollments.find_by(personal_id: client&.personal_id)
         if new_hoh_enrollment
-          hoh_enrollment.relationship_to_ho_h = 99
+          household_enrollments.where(relationship_to_ho_h: 1).update_all(relationship_to_ho_h: 99)
           new_hoh_enrollment.relationship_to_ho_h = 1
-
-          hoh_enrollment.save!
           new_hoh_enrollment.save!
 
           enrollment = new_hoh_enrollment
