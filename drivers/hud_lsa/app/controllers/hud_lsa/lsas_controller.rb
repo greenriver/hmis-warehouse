@@ -11,6 +11,10 @@ module HudLsa
     before_action :set_report, only: [:show, :destroy, :running, :download]
     before_action :set_reports, except: [:index, :running_all_questions]
 
+    # Override default behavior, LSAs are different.
+    def history
+    end
+
     def available_report_versions
       {
         'FY 2022' => { slug: :fy2022, active: true },

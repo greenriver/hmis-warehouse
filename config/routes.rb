@@ -165,16 +165,7 @@ Rails.application.routes.draw do
   end
   namespace :hud_reports do
     resources :historic_pits, only: [:index]
-    resources :lsas, only: [:index]
-    namespace :ahar do
-      namespace :fy_2017 do
-        resources :base, only: [:create]
-        resources :data_source, only: [:create]
-        resources :project, only: [:create]
-        resources :veteran, only: [:create]
-        get :support
-      end
-    end
+    resources :historic_lsas, only: [:index], controller: 'lsas'
   end
   resources :report_results_summary, only: [:show]
   resources :warehouse_reports, only: [:index] do
