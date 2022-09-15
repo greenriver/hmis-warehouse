@@ -39,8 +39,8 @@
           - else
             = total_adjusted_days
         %th.num-cell= total_months
-        - if @client.hmis_source_visible_by?(current_user)
-          %th
+        -# - if @client.hmis_source_visible_by?(current_user)
+        %th
     %tbody
     - enrollments.each do |e|
       - episode_class = ''
@@ -124,8 +124,9 @@
                     Age:
                     = c['age']
                 %br
-        - if @client.hmis_source_visible_by?(current_user)
-          %td
+        
+        %td
+          - if @client.hmis_source_visible_by?(current_user)
             - if e[:hmis_id]
               - title = 'HMIS'
               - if e[:hmis_exit_id]
@@ -139,6 +140,7 @@
                 Created: #{e[:created_at]}
               .text-nowrap
                 Updated: #{e[:updated_at]}
+          = link_to 'Chronic at Entry Info', client_enrollment_path(@client.id, e[:hmis_id]), class: 'mb-2 text-teeny'
 - else
   %p.ml-3.mt-3
     No enrollments on file

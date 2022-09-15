@@ -1,0 +1,23 @@
+- title = "Enrollment #{@client.name} at X"
+- content_for :title, title
+%h4= title
+.mb-1
+  %em.text-muted
+    Client ID:
+    %strong= @client.id
+.mb-1
+  %em.text-muted
+    Enrollment ID:
+    %strong= @enrollment.id
+.mb-1
+  prior living situation:
+  = @enrollment.LivingSituation
+.mb-1
+  entry date:
+  = @service_history_enrollment.first_date_in_program
+  = @service_history_enrollment.last_date_in_program
+  = @service_history_enrollment.move_in_date
+.mb-1
+  chronic at entry:
+  = @enrollment.chronically_homeless_at_start
+  = @enrollment.chronically_homeless_at_start?
