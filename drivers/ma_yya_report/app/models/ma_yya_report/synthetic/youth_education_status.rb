@@ -23,36 +23,9 @@ module MaYyaReport::Synthetic
       2
     end
 
-    # TODO: When updated in ETO, redo mapping of touchpoint entries (source.api_response[...]) to values
-    def current_school_attendance
-      response = source.api_response['ResponseElements'].first['Value']
-      return 2 if response.contains?('YYA is currently enrolled in college|') # Assume attending if enrolled
-      return 0 if response.contains?('YYA has completed high school or GED/HISET|') # If completed, but not in college, assume not enrolled
-
-      nil
-    rescue Exception
-      nil
-    end
-
-    def most_recent_educational_status
-      response = source.api_response['ResponseElements'].first['Value']
-      return nil if response.contains?('YYA is currently enrolled in college|') # Enrolled, so use current_educational_status
-      return 0 if response.contains?('YYA has completed high school or GED/HISET|') # Treating completion or GED as graduated
-
-      nil
-    rescue Exception
-      nil
-    end
-
-    def current_educational_status
-      response = source.api_response['ResponseElements'].first['Value']
-      return 2 if response.contains?('YYA is currently enrolled in college|') # If they are in college, call it a 4-year
-      return nil if response.contains?('YYA has completed high school or GED/HISET|') # reported in most_recent_educational_status
-
-      nil
-    rescue Exception
-      nil
-    end
+    delegate :current_school_attendance, to: :source
+    delegate :most_recent_educational_status, to: :source
+    delegate :current_educational_status, to: :source
 
     def data_source
       'Youth Education Status'
