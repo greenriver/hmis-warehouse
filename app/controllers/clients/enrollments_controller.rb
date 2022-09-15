@@ -16,6 +16,7 @@ module Clients
     def show
       # TODO create matrix of all the things
       # get service history enrollment
+      @chronic_at_entry_matrix = GrdaWarehouse::ChEnrollment.ch_at_entry_matrix(@enrollment)
     end
 
     private

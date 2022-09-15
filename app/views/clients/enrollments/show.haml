@@ -1,6 +1,6 @@
 - title = "Enrollment #{@client.name} at X"
 - content_for :title, title
-%h4= title
+%h1= title
 .mb-1
   %em.text-muted
     Client ID:
@@ -21,3 +21,28 @@
   chronic at entry:
   = @enrollment.chronically_homeless_at_start
   = @enrollment.chronically_homeless_at_start?
+
+- @chronic_at_entry_matrix
+.table-responsive
+  %table.table.table-striped
+    %thead
+      %tr
+        %th Line
+        %th Field
+        %th Value
+        %th Result
+        %th HUD Decision Logic
+    %tbody
+      - @chronic_at_entry_matrix.each do |number, title, result, value, descriptions|
+        %tr
+          %td= number
+          %td= title
+          %td= value
+          %td
+            - if result
+              %strong= result
+            - else
+              %em.text-muted continue
+          %td
+            - descriptions.each do |s|
+              .mb-1= s
