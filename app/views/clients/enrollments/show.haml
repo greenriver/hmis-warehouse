@@ -1,34 +1,47 @@
-- title = "Enrollment #{@client.name} at X"
+- title = "Enrollment for #{@client.name} at #{@enrollment.project&.name(current_user)}"
 - content_for :title, title
+= render 'clients/anomalies/breadcrumbs'
 %h1= title
-.mb-1
-  %em.text-muted
-    Client ID:
-    %strong= @client.id
 .mb-1
   %em.text-muted
     Enrollment ID:
     %strong= @enrollment.id
-.mb-1
-  prior living situation:
-  = @enrollment.LivingSituation
-.mb-1
-  entry date:
-  = @service_history_enrollment.first_date_in_program
-  = @service_history_enrollment.last_date_in_program
-  = @service_history_enrollment.move_in_date
-.mb-1
-  chronic at entry:
-  = @enrollment.chronically_homeless_at_start
-  = @enrollment.chronically_homeless_at_start?
 
-- @chronic_at_entry_matrix
+.row.mb-6.mt-4
+  .col-6
+    .table-responsive
+      %table.table.table-striped.table-sm
+        %tbody
+          %tr
+            %td Project Type
+            %td= ::HUD.project_type_brief(@service_history_enrollment.computed_project_type)
+          %tr
+            %td Entry Date
+            %td= @enrollment.EntryDate || '-'
+          %tr
+            %td Chronic at Entry
+            %td= yes_no(@enrollment.chronically_homeless_at_start?)
+          %tr
+            %td Prior Living Situation
+            %td= ::HUD.living_situation(@enrollment.LivingSituation) || '-'
+          %tr
+            %td Exit Date
+            %td= @service_history_enrollment.last_date_in_program || '-'
+          - if @service_history_enrollment.move_in_date.present? || @service_history_enrollment.computed_project_type.in?(GrdaWarehouse::Hud::Project::WITH_MOVE_IN_DATES)
+            - move_in_date_inherited = @enrollment.MoveInDate.blank? && @service_history_enrollment.move_in_date.present?
+            %tr
+              %td Move-in Date
+              %td= "#{@service_history_enrollment.move_in_date || '-'} #{move_in_date_inherited ? '(inherited from HoH)' : ''}"
+
+%h2 Chronic at Entry
+.mb-4
+  Calculation used to determine whether the client was chronic at entry.
 .table-responsive
   %table.table.table-striped
     %thead
       %tr
         %th Line
-        %th Field
+        %th Field / Condition
         %th Value
         %th Result
         %th HUD Decision Logic
@@ -36,13 +49,15 @@
       - @chronic_at_entry_matrix.each do |number, title, result, value, descriptions|
         %tr
           %td= number
-          %td= title
-          %td= value
+          %td{style: 'max-width: 300px;'}= title
+          %td{style: 'max-width: 300px;'}= value
           %td
-            - if result
-              %strong= result
-            - else
+            - if result.in? [true, false]
+              %em.text-muted= result ? 'continue' : 'skip'
+            - elsif result.nil?
               %em.text-muted continue
+            - else
+              %strong= result.upcase
           %td
             - descriptions.each do |s|
               .mb-1= s

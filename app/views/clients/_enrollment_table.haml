@@ -77,10 +77,9 @@
           - elsif e[:project_type_id].in?(GrdaWarehouse::Hud::Project::WITH_MOVE_IN_DATES)
             - title += ";<br /><b>Move-in Date:</b> No move-in date"
           %span{data: { toggle: :tooltip, title: title.html_safe, html: 'true' }}
-            = e[:entry_date]
+            = link_to e[:entry_date], client_enrollment_path(@client.id, e[:hmis_id])
           - if e[:residential] && e[:chronically_homeless_at_start]
-            %div
-              %i.icon-passport{data: {toggle: :tooltip, title: 'Chronically homeless at entry'}}
+            %i.icon-passport{data: {toggle: :tooltip, title: 'Chronic at entry'}}
           - if move_in_date.present?
             - title = "<b>Move-in Date:</b> #{move_in_date}"
             - if e[:move_in_date_inherited]
@@ -140,7 +139,6 @@
                 Created: #{e[:created_at]}
               .text-nowrap
                 Updated: #{e[:updated_at]}
-          = link_to 'Chronic at Entry Info', client_enrollment_path(@client.id, e[:hmis_id]), class: 'mb-2 text-teeny'
 - else
   %p.ml-3.mt-3
     No enrollments on file
