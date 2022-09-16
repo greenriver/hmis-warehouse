@@ -20,19 +20,21 @@ module LsaSqlServer
       'ch_Episodes.csv' => LsaSqlServer::ChEpisodes,
       'ch_Exclude.csv' => LsaSqlServer::ChExclude,
       'ch_Include.csv' => LsaSqlServer::ChInclude,
-      'dq_Enrollment.csv' => LsaSqlServer::DqEnrollment,
       'ref_Calendar.csv' => LsaSqlServer::RefCalendar,
       'ref_RowPopulations.csv' => LsaSqlServer::RefRowPopulations,
       'ref_RowValues.csv' => LsaSqlServer::RefRowValues,
       'ref_PopHHTypes.csv' => LsaSqlServer::RefPopHhTypes,
       'sys_Time.csv' => LsaSqlServer::SysTime,
       'sys_TimePadded.csv' => LsaSqlServer::SysTimePadded,
-      'tlsa_CohortDates.csv' => LsaSqlServer::TlsaCohortDates,
-      'tlsa_Enrollment.csv' => LsaSqlServer::TlsaEnrollment,
       'tlsa_Exit.csv' => LsaSqlServer::TlsaExit,
       'tlsa_HHID.csv' => LsaSqlServer::TlsaHHID,
-      'tlsa_Household.csv' => LsaSqlServer::TlsaHousehold,
       'tlsa_Person.csv' => LsaSqlServer::TlsaPerson,
+      'tlsa_CountPops.csv' => LsaSqlServer::TlsaCountPops,
+      'tlsa_Household.csv' => LsaSqlServer::TlsaHousehold,
+      'tlsa_Enrollment.csv' => LsaSqlServer::TlsaEnrollment,
+      'tlsa_AveragePops.csv' => LsaSqlServer::TlsaAveragePops,
+      'tlsa_CohortDates.csv' => LsaSqlServer::TlsaCohortDates,
+      'tlsa_ExitHoHAdult.csv' => LsaSqlServer::TlsaExitHohAdult,
     }.freeze
   end
 
@@ -72,57 +74,27 @@ module LsaSqlServer
         :VendorContact,
         :VendorEmail,
         :LSAScope,
-        :UnduplicatedClient1,
-        :UnduplicatedClient3,
-        :UnduplicatedAdult1,
-        :UnduplicatedAdult3,
-        :AdultHoHEntry1,
-        :AdultHoHEntry3,
-        :ClientEntry1,
-        :ClientEntry3,
-        :ClientExit1,
-        :ClientExit3,
-        :Household1,
-        :Household3,
-        :HoHPermToPH1,
-        :HoHPermToPH3,
+        :LookbackDate,
         :NoCoC,
+        :NotOneHoH,
+        :RelationshipToHoH,
+        :MoveInDate,
+        :UnduplicatedClient,
+        :HouseholdEntry,
+        :ClientEntry,
+        :AdultHoHEntry,
+        :ClientExit,
         :SSNNotProvided,
         :SSNMissingOrInvalid,
         :ClientSSNNotUnique,
         :DistinctSSNValueNotUnique,
-        :DOB1,
-        :DOB3,
-        :Gender1,
-        :Gender3,
-        :Race1,
-        :Race3,
-        :Ethnicity1,
-        :Ethnicity3,
-        :VetStatus1,
-        :VetStatus3,
-        :RelationshipToHoH1,
-        :RelationshipToHoH3,
-        :DisablingCond1,
-        :DisablingCond3,
-        :LivingSituation1,
-        :LivingSituation3,
-        :LengthOfStay1,
-        :LengthOfStay3,
-        :HomelessDate1,
-        :HomelessDate3,
-        :TimesHomeless1,
-        :TimesHomeless3,
-        :MonthsHomeless1,
-        :MonthsHomeless3,
-        :DV1,
-        :DV3,
-        :Destination1,
-        :Destination3,
-        :NotOneHoH1,
-        :NotOneHoH3,
-        :MoveInDate1,
-        :MoveInDate3,
+        :DisablingCond,
+        :LivingSituation,
+        :LengthOfStay,
+        :HomelessDate,
+        :TimesHomeless,
+        :MonthsHomeless,
+        :Destination,
       ]
     end
   end
@@ -387,10 +359,6 @@ module LsaSqlServer
     self.table_name = :ch_Include
   end
 
-  class LsaSqlServer::DqEnrollment < SqlServerBase
-    self.table_name = :dq_Enrollment
-  end
-
   class LsaSqlServer::RefCalendar < SqlServerBase
     self.table_name = :ref_Calendar
 
@@ -449,5 +417,17 @@ module LsaSqlServer
 
   class LsaSqlServer::TlsaPerson < SqlServerBase
     self.table_name = :tlsa_Person
+  end
+
+  class LsaSqlServer::TlsaCountPops < SqlServerBase
+    self.table_name = :tlsa_CountPops
+  end
+
+  class LsaSqlServer::TlsaAveragePops < SqlServerBase
+    self.table_name = :tlsa_AveragePops
+  end
+
+  class LsaSqlServer::TlsaExitHohAdult < SqlServerBase
+    self.table_name = :tlsa_ExitHoHAdult
   end
 end

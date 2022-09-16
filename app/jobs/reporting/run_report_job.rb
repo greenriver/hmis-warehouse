@@ -11,10 +11,11 @@ module Reporting
 
     queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
 
-    def initialize(report:, result_id:, options:)
+    def initialize(report:, result_id:, options:, generator_class_name:)
       @report = report
       @result_id = result_id
       @options = options
+      @generator_class_name = generator_class_name
     end
 
     # Only try once, if we try again it erases previous failures since it doesn't bother to try since the previous run
@@ -25,7 +26,9 @@ module Reporting
 
     def perform
       # Find the associated report generator
-      if @options.present?
+      if @generator_class_name.present?
+        @generator_class_name.constantize.new(@result_id).run!
+      elsif @options.present?
         @report.class.name.gsub('Reports::', 'ReportGenerators::').constantize.new(@options).run!
       else
         @report.class.name.gsub('Reports::', 'ReportGenerators::').constantize.new.run!

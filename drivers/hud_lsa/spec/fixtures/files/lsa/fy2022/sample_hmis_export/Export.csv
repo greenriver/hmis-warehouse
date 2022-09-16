@@ -1,0 +1,2 @@
+ExportID,SourceType,SourceID,SourceName,SourceContactFirst,SourceContactLast,SourceContactPhone,SourceContactExtension,SourceContactEmail,ExportDate,ExportStartDate,ExportEndDate,SoftwareName,SoftwareVersion,CSVVersion,ExportPeriodType,ExportDirective,HashStatus
+E79AAC483B90809B4FDFFB272AA252BD,3,VESTA,VESTA,Some,User,5555555555,,,2022-05-05T11:42:16Z,2021-10-01,2022-09-30,VESTA,2022,FY2022,3,2,1

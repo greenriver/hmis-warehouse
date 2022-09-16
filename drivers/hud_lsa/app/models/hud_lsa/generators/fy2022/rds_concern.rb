@@ -8,7 +8,7 @@ module HudLsa::Generators::Fy2022::RdsConcern
   extend ActiveSupport::Concern
 
   def sql_server_identifier
-    "#{ENV.fetch('CLIENT')&.gsub(/[^0-9a-z]/i, '')}-#{Rails.env}-LSA-#{@report.id}".downcase
+    "#{ENV.fetch('CLIENT')&.gsub(/[^0-9a-z]/i, '')}-#{Rails.env}-LSA-#{id}".downcase
   end
 
   def sql_server_database

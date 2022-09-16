@@ -9,45 +9,58 @@ if ENV['RDS_AWS_ACCESS_KEY_ID'].present? && !ENV['NO_LSA_RDS'].present?
 end
 
 module HudLsa::Generators::Fy2022
-  class Lsa < ::HudReports::GeneratorBase
+  class Lsa < ::HudReports::ReportInstance
     include TsqlImport
     include NotifierConfig
     include ActionView::Helpers::DateHelper
     include ArelHelper
     include TableConcern
     include RdsConcern
-    attr_accessor :report,  :send_notifications, :notifier_config
+    include MissingDataConcern
+    include ViewRelatedConcern
+    include StatusProgressionConcern
+    attr_accessor :report, :send_notifications, :notifier_config, :destroy_rds, :hmis_export_id, :test
+    has_one_attached :result_file
+    has_one_attached :intermediate_file
 
-    def initialize(options: {})
-      @user = User.find(options[:user_id].to_i)
-      selected_options = { options: options }
+    # FIXME: maybe some of this becomes a after_initialize hook
+    # def initialize(options: {})
+    #   @user = User.find(options[:user_id].to_i)
+    #   selected_options = { options: options }
 
-      destroy_rds = options.delete(:destroy_rds)
-      selected_options.merge!(destroy_rds: destroy_rds) unless destroy_rds.nil?
+    #   destroy_rds = options.delete(:destroy_rds)
+    #   selected_options.merge!(destroy_rds: destroy_rds) unless destroy_rds.nil?
 
-      hmis_export_id = options.delete(:hmis_export_id)
-      selected_options.merge!(hmis_export_id: hmis_export_id) if hmis_export_id
+    #   hmis_export_id = options.delete(:hmis_export_id)
+    #   selected_options.merge!(hmis_export_id: hmis_export_id) if hmis_export_id
 
-      @destroy_rds = destroy_rds
-      @hmis_export_id = hmis_export_id
-      @user = User.find(options[:user_id].to_i) if options[:user_id].present?
-      @test = options[:test].present?
+    #   @destroy_rds = destroy_rds
+    #   @hmis_export_id = hmis_export_id
+    #   @user = User.find(options[:user_id].to_i) if options[:user_id].present?
+    #   @test = options[:test].present?
+    # end
+
+    def self.find_report(user)
+      where(user_id: user.id).order(created_at: :desc).first
     end
 
-    def self.generic_title
-      'Longitudinal System Analysis'
+    # def queue
+    #   state = 'Waiting'
+    #   question_names = self.class.questions.keys
+    #   save!
+    #   Reporting::Hud::RunReportJob.perform_later(self.class.name, id)
+    # end
+
+    def filter
+      @filter ||= HudLsa::Filters::LsaFilter.new(user_id: user_id).update(options)
     end
 
-    def self.short_name
-      'LSA'
+    def self.valid_project_types
+      [1, 2, 3, 8, 13]
     end
 
-    def self.fiscal_year
-      'FY 2022'
-    end
-
-    def self.questions
-      []
+    def lookback_stop_date
+      filter.start - 7.years
     end
 
     def run!
@@ -60,64 +73,60 @@ module HudLsa::Generators::Fy2022
     end
 
     def calculate
-      if start_report(HudLsa::Fy2022::Report.first)
-        setup_filters
-        @report_start ||= @report.options['report_start'].to_date
-        @report_end ||= @report.options['report_end'].to_date
-        log_and_ping("Starting report #{@report.report.name}")
-        begin
-          create_hmis_csv_export
-          update_report_progress(percent: 15)
-          log_and_ping('HMIS Export complete')
-          setup_temporary_rds
-          update_report_progress(percent: 20)
-          log_and_ping('RDS DB Setup')
-          setup_hmis_table_structure
-          update_report_progress(percent: 22)
-          log_and_ping('HMIS Table Structure')
-          setup_lsa_table_structure
-          update_report_progress(percent: 25)
-          log_and_ping('LSA Table Structure')
-          update_report_progress(percent: 27)
-          setup_lsa_table_indexes
-          log_and_ping('LSA Indexes Setup')
-          update_report_progress(percent: 29)
-          setup_lsa_report
-          log_and_ping('LSA Report Setup')
+      # FIXME? we might not need this
+      filter.coc_code = 'XX-500' if test?
 
-          populate_hmis_tables
-          update_report_progress(percent: 30)
-          log_and_ping('HMIS tables populated')
+      log_and_ping('Starting')
+      begin
+        create_hmis_csv_export
+        update_report_progress(percent: 15)
+        log_and_ping('HMIS Export complete')
+        setup_temporary_rds
+        update_report_progress(percent: 20)
+        log_and_ping('RDS DB Setup')
+        setup_hmis_table_structure
+        update_report_progress(percent: 22)
+        log_and_ping('HMIS Table Structure')
+        setup_lsa_table_structure
+        update_report_progress(percent: 25)
+        log_and_ping('LSA Table Structure')
+        update_report_progress(percent: 27)
+        setup_lsa_table_indexes
+        log_and_ping('LSA Indexes Setup')
+        update_report_progress(percent: 29)
+        setup_lsa_report
+        log_and_ping('LSA Report Setup')
 
-          run_lsa_queries
-          update_report_progress(percent: 90)
-          log_and_ping('LSA Queries complete')
-          # Fetch data
-          # HUD has chosen not to give some tables identity columns, rails needs these
-          # to be able to fetch in batches, so we'll add them here
-          add_missing_identity_columns
-          fetch_results
-          fetch_summary_results
-          zip_report_folder
-          attach_report_zip
-          remove_report_files
-          # Fetch supporting data
-          fetch_intermediate_results
-          zip_report_folder
-          attach_intermediate_report_zip
-          remove_report_files
+        populate_hmis_tables
+        update_report_progress(percent: 30)
+        log_and_ping('HMIS tables populated')
 
-          # Remove identity columns so it works again even against the same db
-          remove_missing_identity_columns
-          update_report_progress(percent: 100)
-          log_and_ping('LSA Complete')
-        ensure
-          remove_temporary_rds
-        end
-        finish_report
-      else
-        log_and_ping('No LSA Report Queued')
+        run_lsa_queries
+        update_report_progress(percent: 90)
+        log_and_ping('LSA Queries complete')
+        # Fetch data
+        # HUD has chosen not to give some tables identity columns, rails needs these
+        # to be able to fetch in batches, so we'll add them here
+        add_missing_identity_columns
+        fetch_results
+        fetch_summary_results
+        zip_report_folder
+        attach_file(:result_file)
+        remove_report_files
+        # Fetch supporting data
+        fetch_intermediate_results
+        zip_report_folder
+        attach_file(:intermediate_file)
+        remove_report_files
+
+        # Remove identity columns so it works again even against the same db
+        remove_missing_identity_columns
+        update_report_progress(percent: 100)
+        log_and_ping('LSA Complete')
+      ensure
+        remove_temporary_rds
       end
+      finish_report
     end
 
     def run_lsa_queries
@@ -127,7 +136,7 @@ module HudLsa::Generators::Fy2022
       load 'lib/rds_sql_server/lsa/fy2022/lsa_queries.rb'
       rep = LsaSqlServer::LSAQueries.new
       rep.test_run = test?
-      rep.project_ids = @project_ids unless @lsa_scope == 1 # Non-System wide
+      rep.project_ids = filter.effective_project_ids
 
       # some setup
       if test?
@@ -151,18 +160,20 @@ module HudLsa::Generators::Fy2022
     end
 
     def fetch_summary_results
-      load 'lib/rds_sql_server/lsa/fy2022/lsa_report_summary.rb'
-      summary = LsaSqlServer::LSAReportSummary.new
-      @report.results = { summary: summary.fetch_summary }
-      @report.save
+      # FIXME: we need to save these somewhere
+      # load 'lib/rds_sql_server/lsa/fy2022/lsa_report_summary.rb'
+      # summary = LsaSqlServer::LSAReportSummary.new
+      # results = { summary: summary.fetch_summary }
+      # save
     end
 
     def create_hmis_csv_export
       return if test?
 
       if @hmis_export_id && GrdaWarehouse::HmisExport.where(id: @hmis_export_id).exists?
-        @report.export_id = @hmis_export_id
-        return GrdaWarehouse::HmisExport.find(@hmis_export_id)
+        @hmis_export = GrdaWarehouse::HmisExport.find(@hmis_export_id)
+        update(export_id: @hmis_export.id)
+        return
       end
 
       # All LSA reports should have the same HMIS export scope, so reuse the file if available from today
@@ -171,44 +182,45 @@ module HudLsa::Generators::Fy2022
         existing_export = GrdaWarehouse::HmisExport.order(created_at: :desc).limit(1).
           where(
             created_at: Time.zone.now.beginning_of_day..Time.zone.now.end_of_day,
-            start_date: '2012-10-01',
+            start_date: lookback_stop_date,
             version: 2022,
             period_type: 3,
             directive: 2,
             hash_status: 1,
             include_deleted: false,
           ).
-          where('project_ids @> ?', @project_ids.to_json).
+          where('project_ids @> ?', filter.effective_project_ids.to_json).
           where.not(file: nil)&.first
         if existing_export.present?
           @hmis_export = existing_export
+          update(export_id: @hmis_export.id)
           return
         end
       end
 
       @hmis_export = HmisCsvTwentyTwentyTwo::Exporter::Base.new(
         version: '2022',
-        start_date: '2012-10-01', # using 10/1/2012 so we can determine continuous homelessness
-        end_date: @report_end,
-        projects: @project_ids,
-        coc_codes: @coc_code,
+        start_date: lookback_stop_date,
+        end_date: filter.end,
+        projects: filter.effective_project_ids,
+        coc_codes: filter.coc_code,
         period_type: 3,
         directive: 2,
         hash_status: 1,
         include_deleted: false,
-        user_id: @report.user_id,
+        user_id: user_id,
       ).export!
-      @report.export_id = @hmis_export.id
+      update(export_id: @hmis_export.id)
     end
 
     def unzip_path
-      path = File.join('tmp', 'lsa', @report.id.to_s)
+      path = File.join('tmp', 'lsa', id.to_s)
       FileUtils.mkdir_p(path) unless Dir.exist?(path)
       path
     end
 
     def zip_path
-      File.join(unzip_path, "#{@report.id}.zip")
+      File.join(unzip_path, "#{id}.zip")
     end
 
     def zip_report_folder
@@ -223,24 +235,14 @@ module HudLsa::Generators::Fy2022
       end
     end
 
-    def attach_report_zip
-      report_file = GrdaWarehouse::ReportResultFile.new(user_id: @report.user_id)
-      file = Pathname.new(zip_path).open
-      report_file.content = file.read
-      report_file.content_type = 'application/zip'
-      report_file.save!
-      @report.file_id = report_file.id
-      @report.save!
-    end
-
-    def attach_intermediate_report_zip
-      report_file = GrdaWarehouse::ReportResultFile.new(user_id: @report.user_id)
-      file = Pathname.new(zip_path).open
-      report_file.content = file.read
-      report_file.content_type = 'application/zip'
-      report_file.save!
-      @report.support_file_id = report_file.id
-      @report.save!
+    def attach_file(file_type)
+      path = Pathname.new(zip_path)
+      send(file_type).attach(
+        io: path.open,
+        filename: path.basename,
+        content_type: 'application/zip',
+        identify: false,
+      )
     end
 
     def remove_report_files
@@ -250,7 +252,7 @@ module HudLsa::Generators::Fy2022
     def populate_hmis_tables
       load 'lib/rds_sql_server/lsa/fy2022/hmis_sql_server.rb' # provides thin wrappers to all HMIS tables
       extract_path = if test?
-        source = Rails.root.join('spec/fixtures/files/lsa/fy2022/sample_hmis_export/')
+        source = Rails.root.join('drivers/hud_lsa/spec/fixtures/files/lsa/fy2022/sample_hmis_export/')
         existing = Dir.glob(File.join(unzip_path, '*.csv'))
         FileUtils.rm(existing) if existing
         Dir.glob(File.join(source, '*.csv')).each do |f|
@@ -371,9 +373,10 @@ module HudLsa::Generators::Fy2022
         LsaSqlServer::LSAReport.create!(
           ReportID: Time.now.to_i,
           ReportDate: Date.current,
-          ReportStart: @report_start,
-          ReportEnd: @report_end,
-          ReportCoC: @coc_code,
+          ReportStart: filter.start,
+          ReportEnd: filter.end,
+          LookbackDate: lookback_stop_date,
+          ReportCoC: filter.coc_code,
           SoftwareVendor: 'Green River Data Analysis',
           SoftwareName: 'OpenPath HMIS Data Warehouse',
           VendorContact: 'Elliot Anders',
@@ -383,100 +386,18 @@ module HudLsa::Generators::Fy2022
       end
     end
 
-    def log_and_ping msg
-      msg = "#{msg} (ReportResult: #{@report&.id}, percent_complete: #{@report&.percent_complete})"
-      Rails.logger.info msg
-      @notifier.ping(msg) if @send_notifications
-    end
-
-    def setup_filters
-      # convert various inputs to project ids for the HUD HMIS export
-      project_group_ids = @report.options['project_group_ids'].delete_if(&:blank?).map(&:to_i)
-      if project_group_ids.any?
-        project_group_project_ids = GrdaWarehouse::ProjectGroup.where(id: project_group_ids).map(&:project_ids).flatten.compact
-        @report.options['project_id'] |= project_group_project_ids
-      end
-      data_source_ids = @report.options['data_source_ids']&.select(&:present?)&.map(&:to_i) || []
-      @report.options['project_id'] |= GrdaWarehouse::Hud::Project.where(data_source_id: data_source_ids).pluck(:id) if data_source_ids.present?
-      if test?
-        @coc_code = 'XX-500'
-      else
-        @coc_code = @report.options['coc_code']
-      end
-      if @report.options['project_id'].delete_if(&:blank?).any?
-        @project_ids = @report.options['project_id'].delete_if(&:blank?).map(&:to_i)
-        # Limit to only those projects the user who queued the report can see
-        # and to only those that the LSA can handle
-        @project_ids &= GrdaWarehouse::Hud::Project.viewable_by(@report.user).
-          in_coc(coc_code: @coc_code).
-          with_hud_project_type([1, 2, 3, 8, 9, 10, 13]).
-          coc_funded.
-          pluck(:id)
-      else
-        # Confirmed with HUD only project types 1, 2, 3, 8, 9, 10, 13 need to be included in hmis_ tables.
-        @project_ids = system_wide_project_ids
-      end
-    end
-
-    def system_wide_project_ids
-      @system_wide_project_ids ||= GrdaWarehouse::Hud::Project.viewable_by(@user).
-        in_coc(coc_code: @coc_code).
-        with_hud_project_type([1, 2, 3, 8, 9, 10, 13]).
-        coc_funded.
-        pluck(:id).sort
-    end
-
     private def lsa_scope
-      return @report.options['lsa_scope'].to_i if @report.options['lsa_scope'].present?
+      return filter.lsa_scope.to_i if filter.lsa_scope.present?
 
-      if @report.options['project_id'].delete_if(&:blank?).any?
+      if filter.project_ids.any?
         2
       else
         1
       end
     end
 
-    def set_report_start_and_end
-      @report_start ||= @report.options['report_start'].to_date
-      @report_end ||= @report.options['report_end'].to_date # rubocop:disable Naming/MemoizedInstanceVariableName
-    end
-
     def update_report_progress percent:
-      @report.update(
-        percent_complete: percent,
-      )
-    end
-
-    def start_report(report)
-      # Find the first queued report
-      @report = ReportResult.where(
-        report: report,
-        percent_complete: 0,
-      ).first
-
-      # Debugging
-      # @report = ReportResult.find(902)
-
-      return unless @report.present?
-
-      Rails.logger.info "Starting report #{@report.report.name}"
-      @report.update(percent_complete: 0.01)
-    end
-
-    def finish_report
-      @report.update(
-        percent_complete: 100,
-        completed_at: Time.now,
-      )
-    end
-
-    def household_types
-      @household_types ||= {
-        nil: 'All',
-        1 => 'AO',
-        2 => 'AC',
-        3 => 'CO',
-      }
+      update(percent_complete: percent)
     end
 
     def test?

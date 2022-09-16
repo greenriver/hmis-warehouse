@@ -35,3 +35,5 @@
                 = link_to path_for_report(report), method: :delete, class: 'btn btn-sm btn-danger btn-icon-only', data: { confirm: 'Are you sure you want to delete this report?' }  do
                   %i.icon-cross
   = render 'common/pagination_bottom', item_name: 'report'
+- else
+  %p.none-found No reports found

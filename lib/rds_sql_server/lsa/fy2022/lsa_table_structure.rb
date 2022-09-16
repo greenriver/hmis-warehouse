@@ -1,6 +1,6 @@
 steps = [
-  'lib/rds_sql_server/lsa/fy2021/sample_code/01 Temp Reporting and Reference Tables.sql',
-  'lib/rds_sql_server/lsa/fy2021/sample_code/02 LSA Output Tables.sql',
+  'lib/rds_sql_server/lsa/fy2022/sample_code/01 Temp Reporting and Reference Tables.sql',
+  'lib/rds_sql_server/lsa/fy2022/sample_code/02 LSA Output Tables.sql',
 ]
 SqlServerBase.connection.execute <<~SQL
   SET ANSI_NULLS ON

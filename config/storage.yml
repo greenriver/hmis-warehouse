@@ -16,6 +16,8 @@ amazon:
   http_read_timeout: 60
   retry_limit: 5
 
+# Note, you'll probably need to run the following before the new file uploads will work
+# awslocal s3api create-bucket --bucket <your-bucket-name>
 localstack:
   service: S3
   force_path_style: true # don't force dns hoop jumping

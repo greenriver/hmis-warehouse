@@ -10,7 +10,7 @@ module HudLsa::Generators::Fy2022::TableConcern
   def setup_hmis_table_structure
     ::Rds.identifier = sql_server_identifier unless Rds.static_rds?
     ::Rds.database = sql_server_database
-    load 'lib/rds_sql_server/lsa/fy2021/hmis_sql_server.rb'
+    load 'lib/rds_sql_server/lsa/fy2022/hmis_sql_server.rb'
     HmisSqlServer.models_by_hud_filename.each do |_, klass|
       klass.hmis_table_create!(version: '2022')
       klass.hmis_table_create_indices!(version: '2022')
@@ -20,7 +20,7 @@ module HudLsa::Generators::Fy2022::TableConcern
   def setup_lsa_table_structure
     ::Rds.identifier = sql_server_identifier unless Rds.static_rds?
     ::Rds.database = sql_server_database
-    load 'lib/rds_sql_server/lsa/fy2021/lsa_table_structure.rb'
+    load 'lib/rds_sql_server/lsa/fy2022/lsa_table_structure.rb'
   end
 
   def add_missing_identity_columns
@@ -44,7 +44,7 @@ module HudLsa::Generators::Fy2022::TableConcern
   def tables_needing_identity_columns
     @tables_needing_identity_columns ||= begin
       load 'lib/rds_sql_server/rds.rb'
-      load 'lib/rds_sql_server/lsa/fy2021/lsa_sql_server.rb'
+      load 'lib/rds_sql_server/lsa/fy2022/lsa_sql_server.rb'
       tables = LsaSqlServer.models_by_filename.values.map(&:table_name)
       tables += LsaSqlServer.intermediate_models_by_filename.values.map(&:table_name)
       tables -= [] # these already have identity columns
