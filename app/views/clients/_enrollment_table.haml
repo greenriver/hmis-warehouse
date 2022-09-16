@@ -39,8 +39,8 @@
           - else
             = total_adjusted_days
         %th.num-cell= total_months
-        -# - if @client.hmis_source_visible_by?(current_user)
-        %th
+        - if @client.hmis_source_visible_by?(current_user)
+          %th
     %tbody
     - enrollments.each do |e|
       - episode_class = ''
@@ -123,9 +123,8 @@
                     Age:
                     = c['age']
                 %br
-        
-        %td
-          - if @client.hmis_source_visible_by?(current_user)
+        - if @client.hmis_source_visible_by?(current_user)
+          %td
             - if e[:hmis_id]
               - title = 'HMIS'
               - if e[:hmis_exit_id]

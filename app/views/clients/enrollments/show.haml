@@ -1,4 +1,4 @@
-- title = "Enrollment for #{@client.name} at #{@enrollment.project&.name(current_user)}"
+- title = "#{@client.name} enrollment at #{@enrollment.project&.name(current_user)}"
 - content_for :title, title
 = render 'clients/anomalies/breadcrumbs'
 %h1= title
@@ -46,7 +46,7 @@
         %th Result
         %th HUD Decision Logic
     %tbody
-      - @chronic_at_entry_matrix.each do |number, title, result, value, descriptions|
+      - @chronic_at_entry_matrix.each do |number, title, value, result, descriptions|
         %tr
           %td= number
           %td{style: 'max-width: 300px;'}= title

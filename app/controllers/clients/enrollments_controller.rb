@@ -10,12 +10,9 @@ module Clients
     include ClientPathGenerator
     include ClientDependentControllers
 
-    # before_action :require_can_edit_clients!
     before_action :set_enrollment
 
     def show
-      # TODO create matrix of all the things
-      # get service history enrollment
       @chronic_at_entry_matrix = GrdaWarehouse::ChEnrollment.ch_at_entry_matrix(@enrollment)
     end
 
@@ -26,10 +23,6 @@ module Clients
       @service_history_enrollment = @enrollment.service_history_enrollment
       @client = @enrollment.destination_client
       raise ActiveRecord::RecordNotFound if @client.id != params[:client_id].to_i
-    end
-
-    def title_for_show
-      "#{@client.name} - Enrollment at X"
     end
   end
 end
