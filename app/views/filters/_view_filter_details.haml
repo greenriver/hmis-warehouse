@@ -1,0 +1,7 @@
+= simple_form_for :filter, url: filter_path, data: { submits_to_ajax_modal: true } do |f|
+  - local_assigns[:filter_hash].each do |key, value|
+    = f.hidden_field key, value: value
+  - local_assigns[:selected_keys].each do |value|
+    = hidden_field_tag 'selected_keys[]', value
+  %button.btn.btn-link.btn-sm{type: :submit}
+    View universe details
