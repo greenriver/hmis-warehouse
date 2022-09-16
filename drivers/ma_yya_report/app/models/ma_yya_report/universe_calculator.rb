@@ -199,6 +199,7 @@ module MaYyaReport
     private def flex_funds(client)
       client.source_hmis_forms.
         within_range(@filter.start_date .. @filter.end_date).
+        where(name: 'Flex Funds').
         map(&:flex_funds).flatten.uniq
     end
   end

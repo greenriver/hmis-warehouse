@@ -28,7 +28,7 @@ module MaYyaReport
         # First look for the HUD questions
         answers[:sections].each do |s|
           s[:questions].each do |q|
-            return HUD.most_recent_ed_status(q[:answer], true) if q[:answer].present? && q[:question] == 'TBD' # FIXME
+            return HUD.most_recent_ed_status(q[:answer], true) if q[:answer].present? && q[:question] == 'C3.A'
           end
         end
 
@@ -49,7 +49,7 @@ module MaYyaReport
         # First look for the HUD questions
         answers[:sections].each do |s|
           s[:questions].each do |q|
-            return HUD.current_ed_status(q[:answer], true) if q[:answer].present? && q[:question] == 'TBD' # FIXME
+            return HUD.current_ed_status(q[:answer], true) if q[:answer].present? && q[:question] == 'C3.B'
           end
         end
 
