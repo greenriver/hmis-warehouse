@@ -33,31 +33,4 @@
               %td Move-in Date
               %td= "#{@service_history_enrollment.move_in_date || '-'} #{move_in_date_inherited ? '(inherited from HoH)' : ''}"
 
-%h2 Chronic at Entry
-.mb-4
-  Calculation used to determine whether the client was chronic at entry.
-.table-responsive
-  %table.table.table-striped
-    %thead
-      %tr
-        %th Line
-        %th Field / Condition
-        %th Value
-        %th Result
-        %th HUD Decision Logic
-    %tbody
-      - @chronic_at_entry_matrix.each do |number, title, value, result, descriptions|
-        %tr
-          %td= number
-          %td{style: 'max-width: 300px;'}= title
-          %td{style: 'max-width: 300px;'}= value
-          %td
-            - if result.in? [true, false]
-              %em.text-muted= result ? 'continue' : 'skip'
-            - elsif result.nil?
-              %em.text-muted continue
-            - else
-              %strong= result.upcase
-          %td
-            - descriptions.each do |s|
-              .mb-1= s
+= render 'chronic_at_entry' if @service_history_enrollment.computed_project_type.in?(::GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS)
