@@ -393,13 +393,6 @@ module GrdaWarehouse::Hud
       GrdaWarehouse::ChEnrollment.chronically_homeless_at_start(self, date: date)
     end
 
-    private def dates_in_enrollment_between(start_date, end_date)
-      @dates_in_enrollment_between ||= service_history_services.
-        service_between(start_date: start_date, end_date: end_date).
-        distinct.
-        pluck(:date)
-    end
-
     # NOTE: this must be included at the end of the class so that scopes can override correctly
     include RailsDrivers::Extensions
   end # End Enrollment

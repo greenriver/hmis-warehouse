@@ -227,6 +227,12 @@ module GrdaWarehouse
       rows
     end
 
+    # Accept an optional date which will be used for extending the homeless
+    # range if the project is a homeless project
+    def self.chronically_homeless_at_start?(enrollment, date: enrollment.EntryDate)
+      chronically_homeless_at_start(enrollment, date: date) == :yes
+    end
+
     # Was the client chronically homeless at the start of this enrollment?
     # Optionally accepts a date to use for "CH at a point-in-time" calculation.
     #
@@ -238,8 +244,19 @@ module GrdaWarehouse
     # Was the client chronically homeless at the start of this enrollment?
     # Optionally accepts a date to use for "CH at a point-in-time" calculation.
     #
-    # @return [Symbol] :yes, :no, :dk_or_r, or :missing
-    # @return [Array] all steps evaluated
+    # @return [Array] all steps evaluated with result and display values.
+    #
+    # Each item in the array has this shape:
+    # {
+    #    result: Symbol, true, false, or nil
+    #    display_value: value to display in chronic-at-entry explanation table
+    #    line: [Number] line number in HUD calculation
+    # }
+    #
+    # Result "nil" means continue processing
+    # Result "false" means continue processing and skip branch
+    # Result "true" means continue processing and enter branch
+    # The last item in the array will have one of (:yes, :no, :dk_or_r, or :missing) as the result
     def self.chronically_homeless_at_start_steps(enrollment, date: enrollment.EntryDate)
       steps = []
       # Line 1
@@ -297,12 +314,6 @@ module GrdaWarehouse
       steps
     end
 
-    # Accept an optional date which will be used for extending the homeless
-    # range if the project is a homeless project
-    def self.chronically_homeless_at_start?(enrollment, date: enrollment.EntryDate)
-      chronically_homeless_at_start(enrollment, date: date) == :yes
-    end
-
     def self.dk_or_r_or_missing(value)
       return :dk_or_r if [8, 9].include?(value)
       return :missing if [nil, 99].include?(value)
@@ -318,7 +329,7 @@ module GrdaWarehouse
       ch_start_date = [enrollment.DateToStreetESSH, enrollment.EntryDate].compact.min
       project = enrollment.project
       days = if date != enrollment.EntryDate && (project.so? || project.es? && project.bed_night_tracking?)
-        dates_in_enrollment_between(enrollment.EntryDate, date).count + (enrollment.EntryDate - ch_start_date).to_i
+        dates_in_enrollment_between(enrollment, enrollment.EntryDate, date).count + (enrollment.EntryDate - ch_start_date).to_i
       else
         (date - ch_start_date).to_i
       end
@@ -352,7 +363,7 @@ module GrdaWarehouse
       if date != enrollment.EntryDate && enrollment.MonthsHomelessPastThreeYears.present? && enrollment.MonthsHomelessPastThreeYears > 100
         project = enrollment.project
         months_in_enrollment = if project.so? || project.es? && project.bed_night_tracking?
-          dates_in_enrollment_between(enrollment.EntryDate, date).map do |d|
+          dates_in_enrollment_between(enrollment, enrollment.EntryDate, date).map do |d|
             [d.month, d.year]
           end.uniq.count
         else
@@ -391,6 +402,13 @@ module GrdaWarehouse
 
       steps.push({ result: is_no?(enrollment.PreviousStreetESSH), display_value: enrollment.PreviousStreetESSH })
       steps
+    end
+
+    def self.dates_in_enrollment_between(enrollment, start_date, end_date)
+      @dates_in_enrollment_between ||= enrollment.service_history_services.
+        service_between(start_date: start_date, end_date: end_date).
+        distinct.
+        pluck(:date)
     end
   end
 end
