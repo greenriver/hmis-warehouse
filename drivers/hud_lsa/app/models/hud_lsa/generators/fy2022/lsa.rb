@@ -22,34 +22,11 @@ module HudLsa::Generators::Fy2022
     attr_accessor :report, :send_notifications, :notifier_config, :destroy_rds, :hmis_export_id, :test
     has_one_attached :result_file
     has_one_attached :intermediate_file
-
-    # FIXME: maybe some of this becomes a after_initialize hook
-    # def initialize(options: {})
-    #   @user = User.find(options[:user_id].to_i)
-    #   selected_options = { options: options }
-
-    #   destroy_rds = options.delete(:destroy_rds)
-    #   selected_options.merge!(destroy_rds: destroy_rds) unless destroy_rds.nil?
-
-    #   hmis_export_id = options.delete(:hmis_export_id)
-    #   selected_options.merge!(hmis_export_id: hmis_export_id) if hmis_export_id
-
-    #   @destroy_rds = destroy_rds
-    #   @hmis_export_id = hmis_export_id
-    #   @user = User.find(options[:user_id].to_i) if options[:user_id].present?
-    #   @test = options[:test].present?
-    # end
+    has_one :summary_result, class_name: 'HudLsa::Fy2022::SummaryResult', foreign_key: :hud_report_instance_id
 
     def self.find_report(user)
       where(user_id: user.id).order(created_at: :desc).first
     end
-
-    # def queue
-    #   state = 'Waiting'
-    #   question_names = self.class.questions.keys
-    #   save!
-    #   Reporting::Hud::RunReportJob.perform_later(self.class.name, id)
-    # end
 
     def filter
       @filter ||= HudLsa::Filters::LsaFilter.new(user_id: user_id).update(options)
@@ -160,11 +137,9 @@ module HudLsa::Generators::Fy2022
     end
 
     def fetch_summary_results
-      # FIXME: we need to save these somewhere
-      # load 'lib/rds_sql_server/lsa/fy2022/lsa_report_summary.rb'
-      # summary = LsaSqlServer::LSAReportSummary.new
-      # results = { summary: summary.fetch_summary }
-      # save
+      load 'lib/rds_sql_server/lsa/fy2022/lsa_report_summary.rb'
+      summary = LsaSqlServer::LSAReportSummary.new
+      create_summary_result(summary: summary.fetch_summary)
     end
 
     def create_hmis_csv_export
@@ -397,15 +372,12 @@ module HudLsa::Generators::Fy2022
     end
 
     def update_report_progress percent:
-      update(percent_complete: percent)
+      self.update(percent_complete: percent) # rubocop:disable Style/RedundantSelf:
     end
 
     def test?
+      @test = false if @test.nil?
       @test
-    end
-
-    def destroy_rds?
-      @destroy_rds
     end
   end
 end

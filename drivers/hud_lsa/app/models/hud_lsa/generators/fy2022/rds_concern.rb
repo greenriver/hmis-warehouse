@@ -43,4 +43,9 @@ module HudLsa::Generators::Fy2022::RdsConcern
       end
     end
   end
+
+  def destroy_rds?
+    @destroy_rds = true if @destroy_rds.nil?
+    @destroy_rds
+  end
 end

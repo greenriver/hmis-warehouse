@@ -8,7 +8,7 @@ module HudLsa::Generators::Fy2022::StatusProgressionConcern
   extend ActiveSupport::Concern
 
   def start_report
-    update(
+    self.update( # rubocop:disable Style/RedundantSelf:
       started_at: Time.current,
       percent_complete: 0.01,
       state: 'Started',
@@ -22,7 +22,7 @@ module HudLsa::Generators::Fy2022::StatusProgressionConcern
   end
 
   def finish_report
-    update(
+    self.update( # rubocop:disable Style/RedundantSelf:
       percent_complete: 100,
       completed_at: Time.now,
     )
