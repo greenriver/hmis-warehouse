@@ -7,8 +7,7 @@
 module HudLsa
   class LsasController < ::HudReports::BaseController
     before_action :filter
-    before_action :generator, only: [:download]
-    before_action :set_report, only: [:show, :destroy, :running, :download]
+    before_action :set_report, only: [:show, :destroy, :running, :download, :download_intermediate]
     before_action :set_reports, except: [:index, :running_all_questions]
 
     def new
@@ -29,6 +28,28 @@ module HudLsa
         redirect_to(path_for_history(filter: @filter.to_h))
       else
         render :new
+      end
+    end
+
+    def download
+      respond_to do |format|
+        format.html {}
+        format.zip do
+          file = @report.result_file
+          filename = "#{@report.class.generic_title}-#{@report.created_at.to_s(:db)}.zip"
+          send_data file.download, filename: filename, type: file.content_type, disposition: 'attachment'
+        end
+      end
+    end
+
+    def download_intermediate
+      respond_to do |format|
+        format.html {}
+        format.zip do
+          file = @report.intermediate_file
+          filename = "Support for #{@report.class.generic_title}-#{@report.created_at.to_s(:db)}.zip"
+          send_data file.download, filename: filename, type: file.content_type, disposition: 'attachment'
+        end
       end
     end
 

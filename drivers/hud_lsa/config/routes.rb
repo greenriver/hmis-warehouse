@@ -5,11 +5,12 @@ BostonHmis::Application.routes.draw do
       get :running_all_questions, on: :collection
       get :history, on: :collection
       get :download, on: :member
-      resources :questions, only: [:show, :create] do
-        get :result, on: :member
-        get :running, on: :member
-        resources :cells, only: :show
-      end
+      get :download_intermediate, on: :member
+      # resources :questions, only: [:show, :create] do
+      #   get :result, on: :member
+      #   get :running, on: :member
+      #   resources :cells, only: :show
+      # end
     end
   end
 end

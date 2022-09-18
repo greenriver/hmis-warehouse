@@ -57,7 +57,7 @@ services:
     depends_on:
       - db
       - redis
-      - localstack
+      - minio
     env_file:
       - .env.local
       - .env.test
@@ -74,7 +74,7 @@ services:
       - db
       - redis
       - mailhog
-      - localstack
+      - minio
 
   dj:
     <<: *backend
@@ -83,7 +83,7 @@ services:
     depends_on:
       - db
       - redis
-      - localstack
+      - minio
 
   web:
     <<: *backend
@@ -107,7 +107,7 @@ services:
       - db
       - redis
       - mailhog
-      - localstack
+      - minio
 
   db:
     image: postgis/postgis:12-3.1-alpine
@@ -147,22 +147,22 @@ services:
       - ./tmp:/home/user/sftp
       - ./spec/support/sftp.conf:/etc/sftp/users.conf:ro
 
-  localstack:
-    container_name: op-localstack
-    image: localstack/localstack
-    environment:
-      - HOSTNAME_EXTERNAL=op-localstack
-      - S3_PORT_EXTERNAL=4566
-      - DEBUG=${DEBUG-}
-      - DATA_DIR=/data
-      - HOST_TMP_FOLDER=${TMPDIR:-/tmp/}localstack
-      - DOCKER_HOST=unix:///var/run/docker.sock
+  # See config/storage.yml for setup
+  minio:
+    container_name: s3
+    image: minio/minio
     volumes:
-      - localstack:/data
-      - "${TMPDIR:-/tmp}/localstack:/tmp/localstack" # accessible on host at /tmp/localstack
-      - "/var/run/docker.sock:/var/run/docker.sock"
+      - ~/minio/data:/data
+    hostname: s3
+    environment:
+      - MINIO_ACCESS_KEY=local_access_key
+      - MINIO_SECRET_KEY=local_secret_key
+      - MINIO_ROOT_USER=local_access_key
+      - MINIO_ROOT_PASSWORD=local_secret_key
     ports:
-      - "4566:4566"
+      - 9000:9000
+      - 9001:9001 # enable for UI access
+    command: server ~/minio/data
 
 volumes:
   bundle_alpine:
@@ -170,7 +170,6 @@ volumes:
   rails_cache_alpine:
   dbdata:
   redis:
-  localstack:
 
 networks:
   default:

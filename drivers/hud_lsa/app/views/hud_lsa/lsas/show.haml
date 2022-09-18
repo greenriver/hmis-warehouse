@@ -1,0 +1,22 @@
+- content_for :title, report_class.generic_title
+%header.mb-3
+  %h1= content_for :title
+.d-flex
+  .mb-2.reports.warehouse-reports__completed.d-flex
+    - filter = Filters::FilterBase.new(user_id: @report.user_id).update(@report.options.with_indifferent_access)
+    = filter.describe_filter_as_html(@generator.allowed_options, limited: false)
+  .ml-auto
+    - if @report.summary_result.present?
+      = link_to({action: :download, format: :zip},{class: 'btn btn-primary'}) do
+        %span.icon-download2
+        Download
+    - if @report.intermediate_file.attached?
+      .mt-2
+        = link_to({ action: :download_intermediate, format: :zip}, {class: 'btn btn-secondary'}) do
+          %span.icon-download2
+          Supporting Files
+    - if @report.export_id
+      .mt-2
+        = link_to(warehouse_reports_hmis_export_path(@report.export_id), {class: 'btn btn-secondary'}) do
+          %span.icon-download2
+          Source HMIS Data

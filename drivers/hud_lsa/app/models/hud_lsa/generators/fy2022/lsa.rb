@@ -23,6 +23,7 @@ module HudLsa::Generators::Fy2022
     has_one_attached :result_file
     has_one_attached :intermediate_file
     has_one :summary_result, class_name: 'HudLsa::Fy2022::SummaryResult', foreign_key: :hud_report_instance_id
+    belongs_to :export, class_name: 'GrdaWarehouse::HmisExport', optional: true
 
     def self.find_report(user)
       where(user_id: user.id).order(created_at: :desc).first
