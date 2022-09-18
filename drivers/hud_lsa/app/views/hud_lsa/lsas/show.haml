@@ -1,3 +1,6 @@
+= content_for :crumbs do
+  = link_to history_hud_reports_lsas_path do
+    = '« LSA Reports'
 - content_for :title, report_class.generic_title
 %header.mb-3
   %h1= content_for :title
@@ -20,3 +23,11 @@
         = link_to(warehouse_reports_hmis_export_path(@report.export_id), {class: 'btn btn-secondary'}) do
           %span.icon-download2
           Source HMIS Data
+- if @report.summary_result
+  %h2 Summary Results
+  .card
+    %table.table.table-striped
+      - @report.summary_result.summary&.each do |header, value|
+        %tr
+          %th= header
+          %td= value

@@ -103,6 +103,7 @@ module HudLsa::Generators::Fy2022
         log_and_ping('LSA Complete')
       ensure
         remove_temporary_rds
+        FileUtils.rm_rf(unzip_path)
       end
       finish_report
     end

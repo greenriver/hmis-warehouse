@@ -162,7 +162,7 @@ services:
     ports:
       - 9000:9000
       - 9001:9001 # enable for UI access
-    command: server ~/minio/data
+    command: server /data
 
 volumes:
   bundle_alpine:

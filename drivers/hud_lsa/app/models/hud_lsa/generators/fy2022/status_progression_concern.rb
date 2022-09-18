@@ -25,6 +25,7 @@ module HudLsa::Generators::Fy2022::StatusProgressionConcern
     self.update( # rubocop:disable Style/RedundantSelf:
       percent_complete: 100,
       completed_at: Time.now,
+      remaining_questions: [],
     )
   end
 end

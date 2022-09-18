@@ -25,6 +25,10 @@ module HudLsa::Generators::Fy2022::ViewRelatedConcern
       'Longitudinal System Analysis'
     end
 
+    def report_filename
+      "#{generic_title} #{filter.coc_code}"
+    end
+
     def short_name
       'LSA'
     end
