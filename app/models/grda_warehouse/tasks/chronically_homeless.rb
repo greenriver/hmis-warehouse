@@ -152,6 +152,7 @@ module GrdaWarehouse::Tasks
     end
 
     def add_client_details(client:, days_served:, months_homeless:, chronic_trigger:, dmh: false)
+      @client_details ||= {}
       @client_details[client.id] ||= {}
       @client_details[client.id][:date] = @date
       @client_details[client.id][:client_id] = client.id
