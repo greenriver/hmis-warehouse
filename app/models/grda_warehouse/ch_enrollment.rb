@@ -223,12 +223,14 @@ module GrdaWarehouse
       { result: result, display_value: "#{days} days" }
     end
 
+    THREE_OR_FEWER_TIMES_HOMELESS = [1, 2, 3].freeze
+    TWELVE_OR_MORE_MONTHS_HOMELESS = [112, 113].freeze # 112 = 12 months, 113 = 13+ months
+
     # Lines 5, 11, 18, and 25 (3.917.4)
     def self.num_times_homeless(enrollment)
-      @three_or_fewer_times_homeless ||= [1, 2, 3].freeze
       value = enrollment.TimesHomelessPastThreeYears
 
-      result = if @three_or_fewer_times_homeless.include?(value)
+      result = if THREE_OR_FEWER_TIMES_HOMELESS.include?(value)
         :no
       elsif dk_or_r_or_missing(value)
         dk_or_r_or_missing(value)
@@ -239,9 +241,8 @@ module GrdaWarehouse
 
     # Lines 6, 12, 19, and 26 (3.917.4)
     def self.total_months_homeless(enrollment, date: enrollment.EntryDate)
-      @twelve_or_more_months_homeless ||= [112, 113].freeze # 112 = 12 months, 113 = 13+ months
       value = enrollment.MonthsHomelessPastThreeYears
-      return { result: :yes, display_value: value - 100 } if @twelve_or_more_months_homeless.include?(value)
+      return { result: :yes, display_value: value - 100 } if TWELVE_OR_MORE_MONTHS_HOMELESS.include?(value)
 
       # If you don't have time prior to entry, day calculation above will catch any days during the enrollment
       # If you have time prior to entry and we are looking at an arbitrary date, we need to add
@@ -291,7 +292,7 @@ module GrdaWarehouse
     end
 
     def self.dates_in_enrollment_between(enrollment, start_date, end_date)
-      @dates_in_enrollment_between ||= enrollment.service_history_services.
+      enrollment.service_history_services.
         service_between(start_date: start_date, end_date: end_date).
         distinct.
         pluck(:date)
