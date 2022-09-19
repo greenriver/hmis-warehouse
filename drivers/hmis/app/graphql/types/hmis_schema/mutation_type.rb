@@ -14,5 +14,6 @@ module Types
     field :set_ho_h_for_enrollment, mutation: Mutations::SetHoHForEnrollment
     field :update_enrollment, mutation: Mutations::UpdateEnrollment
     field :delete_enrollment, mutation: Mutations::DeleteEnrollment
+    field :create_organization, mutation: Mutations::CreateOrganization
   end
 end
