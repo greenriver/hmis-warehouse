@@ -75,6 +75,7 @@ module MaYyaReport
 
             parts = response.split('|')
             parts.each do |part|
+              part = 'Move-in' if part.start_with?('Move-in')
               part = 'Other' if part.start_with?('Other')
               flex_funds << part
             end

@@ -124,7 +124,7 @@ module MaYyaReport
               )),
         A5i: a_t[:direct_assistance].eq(true).
           and(Arel.sql(
-                json_contains_text(:flex_funds, 'Child-care'),
+                json_contains_text(:flex_funds, 'Child care'),
               )),
         A5j: a_t[:direct_assistance].eq(true).
           and(Arel.sql(
@@ -140,7 +140,7 @@ module MaYyaReport
               )),
         A5m: a_t[:direct_assistance].eq(true).
           and(Arel.sql(
-                json_contains_text(:flex_funds, 'Food/groceries'),
+                json_contains_text(:flex_funds, 'Food/Groceries'),
               )),
         A5n: a_t[:direct_assistance].eq(true).
           and(Arel.sql(
