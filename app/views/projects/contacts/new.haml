@@ -28,5 +28,5 @@
 
 - content_for :modal_footer do
   .form__actions.form__actions--right.mt-2
-    = link_to "Manage Orgnaization Contacts (#{@entity.organization.OrganizationName})", new_organization_contact_path(@entity.organization, remote_submit: remote_submit), data: {loads_in_pjax_modal: true}, class: 'btn btn-secondary'
+    = link_to "Manage Organization Contacts (#{@entity.organization.OrganizationName})", new_organization_contact_path(@entity.organization, remote_submit: remote_submit), data: {loads_in_pjax_modal: true}, class: 'btn btn-secondary'
     %button.btn.btn-primary(aria-label="Close" pjax-modal-close type="button") Done
