@@ -21,9 +21,23 @@ module Types
     field :tracking_method, Types::HmisSchema::Enums::TrackingMethod, null: true
     field :target_population, HmisSchema::Enums::TargetPopulation, null: true
     field :HOPWAMedAssistedLivingFac, HmisSchema::Enums::HOPWAMedAssistedLivingFac, null: true
-    field :continuum_project, Int, null: true
-    field :residential_affiliation, Int, null: true
-    field :HMISParticipatingProject, Int, null: true
+    yes_no_missing_field :continuum_project
+    yes_no_missing_field :residential_affiliation
+    yes_no_missing_field :HMISParticipatingProject
+
+    # rubocop:disable Naming/MethodName
+    def HMISParticipatingProject
+      resolve_yes_no_missing(object.HMISParticipatingProject)
+    end
+    # rubocop:enable Naming/MethodName
+
+    def continuum_project
+      resolve_yes_no_missing(object.continuum_project)
+    end
+
+    def residential_affiliation
+      resolve_yes_no_missing(object.residential_affiliation)
+    end
 
     def organization
       load_ar_association(object, :organization)

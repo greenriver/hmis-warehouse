@@ -30,7 +30,7 @@ module Types
         Boolean,
         description,
         **kwargs,
-        prepare: ->(value) do
+        prepare: ->(value, _ctx) do
           case value
           when true
             yes_value
