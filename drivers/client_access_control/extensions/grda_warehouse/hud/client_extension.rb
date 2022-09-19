@@ -124,7 +124,7 @@ module ClientAccessControl::GrdaWarehouse::Hud
           total_enrollment_count = en_scope.joins(:project, :source_client, :enrollment).count
           en_scope = en_scope.joins(:enrollment).merge(::GrdaWarehouse::Hud::Enrollment.visible_to(user)) unless user == User.setup_system_user
           enrollments = en_scope.joins(:project, :source_client, :enrollment).
-            includes(:organization, :source_client, project: :project_cocs, enrollment: [:enrollment_cocs, :exit]).
+            includes(:organization, :source_client, project: :project_cocs, enrollment: [:enrollment_cocs, :exit, :ch_enrollment]).
             order(first_date_in_program: :desc)
           visible_enrollment_count = enrollments.count
           enrollments.map do |entry|
@@ -161,12 +161,14 @@ module ClientAccessControl::GrdaWarehouse::Hud
               confidential_project: project.confidential,
               entry_date: entry.first_date_in_program,
               living_situation: entry.enrollment.LivingSituation,
+              chronically_homeless_at_start: entry.enrollment.ch_enrollment&.chronically_homeless_at_entry,
               exit_date: entry.last_date_in_program,
               destination: entry.destination,
               move_in_date_inherited: entry.enrollment.MoveInDate.blank? && entry.move_in_date.present?,
               move_in_date: entry.move_in_date,
               days: dates_served.count,
               homeless: entry.computed_project_type.in?(::GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES),
+              residential: entry.computed_project_type.in?(::GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS),
               homeless_days: homeless_dates_for_enrollment.count,
               adjusted_days: adjusted_dates_for_similar_programs.count,
               months_served: adjusted_months_served(dates: adjusted_dates_for_similar_programs),

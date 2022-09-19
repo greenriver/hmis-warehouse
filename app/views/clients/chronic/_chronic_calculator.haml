@@ -10,37 +10,74 @@
     .o-filtration.ml-auto
       %button.btn.btn-secondary{type: :submit} Re-calculate
 
-%table.table.table-striped.mt-3
-  %tbody
-    %tr
-      %td Months in ES, SH, SO, or TH in the last 3 years
-      %td
-        = @client.months_homeless_in_last_three_years(on_date: date)
-    %tr
-      %td Months in ES, SH, SO, or TH in the last year
-      %td
-        = @client.months_homeless_in_last_year(on_date: date)
-    %tr
-      %td Homeless episodes in the last 3 years
-      %td= @client.homeless_episodes_between(start_date: (date - 3.years), end_date: date)
-    %tr
-      %td
-        Days homeless in the last 3 years
-        %span.icon-info{data: { toggle: 'tooltip', title: "Using the chronic calculator algorithm for #{date}" } }
-      %td= @client.homeless_dates_for_chronic_in_past_three_years(date: date).count
-    %tr
-      %td
-        Disabled?
-        %td= @client.disabled?(on_date: date) ? 'Yes' : 'No'
-    %tr
-      %td
-        Days literally homeless (ES, SO, or SH) in the past 3 years
-        %td= @client.literally_homeless_last_three_years(on_date: date)
-    %tr
-      %td
-        Months literally homeless (ES, SO, or SH) in the past 3 years
-        %td= @client.months_literally_homeless_in_last_three_years(on_date: date)
-    %tr
-      %td
-        Months literally homeless (ES, SO, or SH) in the past 1 year
-        %td= @client.months_literally_homeless_in_last_year(on_date: date)
+.card.mt-3.mb-6
+  %table.table.table-striped
+    %tbody
+      %tr
+        %td{colspan: 2}
+          .mb-1.d-flex
+            .font-weight-bold Experiencing Chronic Homelessness (HUD)
+            .ml-auto.font-weight-bold= ApplicationController.helpers.yes_no(@client.hud_chronic?(on_date: date) || false)
+          .mb-0 Clients are considered to be experiencing chronic homelessness by HUD if they...
+
+          %ol
+            %li are currently homeless in ES (1), SH (8) or SO (4) and not currently housed (other residential types)
+            %li have a disability that is indefinite and impairing
+            %li have reported being homeless in 12 of the last 36 months.
+            %li have reported being homeless continuously for the past 12 months, or reported 4 or more episodes of homelessness in the past three years.
+
+          - if GrdaWarehouse::Config.get(:project_type_override)
+            .mb-1
+              %span.font-italic Please note:
+              %span Chronic calculations are done using the Project Type Overrides.
+          .mb-0= link_to 'The HUD HMIS Glossary definition of Chronically Homeless can be found here.', 'https://www.hudexchange.info/resource/4489/hmis-standard-reporting-terminology-glossary'
+
+
+      %tr
+        %td{colspan: 2}
+          .mb-1.d-flex
+            .font-weight-bold Potentially Experiencing Chronic Homelessness (data-based)
+            .ml-auto.font-weight-bold= ApplicationController.helpers.yes_no(@client.potentially_chronic?(on_date: date))
+          .mb-0 Clients are considered to be potentially experiencing chronic homelessness if they...
+          %ol
+            %li are currently homeless in ES (1), SH (8) or SO (4) and not currently housed (other residential types)
+            %li have a disability that is indefinite and impairing
+            %li have been homeless in 12 of the last 36 months.
+            %li have had 4 or more episodes of homelessness if they haven't been continuously homeless for the last 12 months.
+
+          %div
+            %span.font-italic Please note:
+            %ul
+              %li A single Street Outreach day within a month counts the entire month of days toward the days homeless
+      %tr
+        %td
+          Client has a diabling condition
+          %td= @client.disabled?(on_date: date) ? 'Yes' : 'No'
+      %tr
+        %td Months in ES, SH, SO, or TH in the last 3 years
+        %td
+          = @client.months_homeless_in_last_three_years(on_date: date)
+      %tr
+        %td Months in ES, SH, SO, or TH in the last year
+        %td
+          = @client.months_homeless_in_last_year(on_date: date)
+      %tr
+        %td Homeless episodes in the last 3 years
+        %td= @client.homeless_episodes_between(start_date: (date - 3.years), end_date: date)
+      %tr
+        %td
+          Days homeless in the last 3 years
+          %span.icon-info{data: { toggle: 'tooltip', title: "Using the chronic calculator algorithm for #{date}" } }
+        %td= @client.homeless_dates_for_chronic_in_past_three_years(date: date).count
+      %tr
+        %td
+          Days literally homeless (ES, SO, or SH) in the past 3 years
+          %td= @client.literally_homeless_last_three_years(on_date: date)
+      %tr
+        %td
+          Months literally homeless (ES, SO, or SH) in the past 3 years
+          %td= @client.months_literally_homeless_in_last_three_years(on_date: date)
+      %tr
+        %td
+          Months literally homeless (ES, SO, or SH) in the past 1 year
+          %td= @client.months_literally_homeless_in_last_year(on_date: date)

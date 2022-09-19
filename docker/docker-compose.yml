@@ -57,6 +57,7 @@ services:
     depends_on:
       - db
       - redis
+      - localstack
     env_file:
       - .env.local
       - .env.test
@@ -65,6 +66,7 @@ services:
     <<: *backend
     profiles:
       - manual
+    # entrypoint: ''
     stdin_open: true
     tty: true
     command: bundle exec rails console
@@ -142,14 +144,31 @@ services:
       - ./tmp:/home/user/sftp
       - ./spec/support/sftp.conf:/etc/sftp/users.conf:ro
 
+  localstack:
+    container_name: op-localstack
+    image: localstack/localstack
+    environment:
+      - HOSTNAME_EXTERNAL=op-localstack
+      - S3_PORT_EXTERNAL=4566
+      - DEBUG=${DEBUG-}
+      - DATA_DIR=/data
+      - HOST_TMP_FOLDER=${TMPDIR:-/tmp/}localstack
+      - DOCKER_HOST=unix:///var/run/docker.sock
+    volumes:
+      - localstack:/data
+      - "${TMPDIR:-/tmp}/localstack:/tmp/localstack" # accessible on host at /tmp/localstack
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    ports:
+      - "4566:4566"
+
 volumes:
   bundle_alpine:
   node_modules_alpine:
   rails_cache_alpine:
   dbdata:
   redis:
+  localstack:
 
 networks:
   default:
-    external:
-      name: nginx-proxy
+    name: nginx-proxy

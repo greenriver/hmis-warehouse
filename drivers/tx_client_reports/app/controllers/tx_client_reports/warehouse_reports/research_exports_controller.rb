@@ -17,6 +17,11 @@ module TxClientReports::WarehouseReports
         format.html do
           @reports = report_class.viewable_by(current_user).ordered
           show_validations
+
+          # Set default filter to prior run
+          previous_report = @reports.last
+          @filter.update(previous_report.options['filters'].with_indifferent_access) if previous_report
+
           @pagy, @reports = pagy(@reports)
         end
         format.xlsx do

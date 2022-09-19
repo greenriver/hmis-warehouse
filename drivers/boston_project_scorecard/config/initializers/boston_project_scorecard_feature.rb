@@ -11,5 +11,3 @@
 #
 # use with caution!
 RailsDrivers.loaded << :boston_project_scorecard
-
-require_dependency 'boston_project_scorecard/document_exports/scorecard_export' if Rails.env.development?

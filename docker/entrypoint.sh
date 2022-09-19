@@ -6,8 +6,8 @@ rm -f /app/tmp/pids/server.pid
 
 cd /app
 bundle config --global set build.sassc --disable-march-tune-native
-bundle install
-yarn install
+bundle install --quiet
+yarn install --silent
 
 if [ ! -e /bundle/ruby/2.7.0/gems/seven_zip_ruby-1.3.0/lib/seven_zip_ruby/7z.so ]
 then
@@ -20,6 +20,10 @@ then
   if [ -e /usr/local/lib/ruby/site_ruby/2.7.0/x86_64-linux-musl/seven_zip_ruby/7z.so ]
   then
     cp /usr/local/lib/ruby/site_ruby/2.7.0/x86_64-linux-musl/seven_zip_ruby/7z.so \
+      /bundle/ruby/2.7.0/gems/seven_zip_ruby-1.3.0/lib/seven_zip_ruby/7z.so
+  elif  [ -e /usr/local/lib/ruby/site_ruby/2.7.0/aarch64-linux-musl/seven_zip_ruby/7z.so ]
+  then
+    cp /usr/local/lib/ruby/site_ruby/2.7.0/aarch64-linux-musl/seven_zip_ruby/7z.so \
       /bundle/ruby/2.7.0/gems/seven_zip_ruby-1.3.0/lib/seven_zip_ruby/7z.so
   fi
 fi

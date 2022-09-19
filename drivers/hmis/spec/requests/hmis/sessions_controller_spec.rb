@@ -5,6 +5,12 @@ RSpec.describe Hmis::SessionsController, type: :request do
   let(:user_2fa) { create :user_2fa }
   let(:email) { ActionMailer::Base.deliveries.last }
 
+  before(:all) do
+    cleanup_test_environment
+  end
+  after(:all) do
+    cleanup_test_environment
+  end
   describe 'Successful login' do
     before(:each) do
       post hmis_user_session_path(hmis_user: { email: user.email, password: user.password })
