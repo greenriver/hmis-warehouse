@@ -15,5 +15,6 @@ module Types
     field :update_enrollment, mutation: Mutations::UpdateEnrollment
     field :delete_enrollment, mutation: Mutations::DeleteEnrollment
     field :create_organization, mutation: Mutations::CreateOrganization
+    field :update_organization, mutation: Mutations::UpdateOrganization
   end
 end
