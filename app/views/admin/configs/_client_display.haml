@@ -2,3 +2,4 @@
   %h3 Client Display
   .c-card.c-card--flush.c-card--padded.flex-wrap
     = f.input :client_dashboard, collection: GrdaWarehouse::Config.available_client_dashboards, as: :select_two
+    = f.input :chronic_tab_justifications, label: 'Show chronic justification notes on the chronic tab'

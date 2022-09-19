@@ -289,6 +289,8 @@ module GrdaWarehouse
         :require_service_for_reporting_default,
         :supplemental_enrollment_importer,
         :verified_homeless_history_method,
+        :chronic_tab_justifications,
+        :chronic_tab_roi,
         client_details: [],
       ]
     end

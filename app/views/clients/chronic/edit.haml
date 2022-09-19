@@ -5,30 +5,35 @@
 %h1= content_for :title
 = render 'clients/breadcrumbs'
 
-.mb-6
-  = render 'clients/chronic_flags', client: @client
+- if GrdaWarehouse::Config.get(:chronic_tab_roi) && !@client.active_confirmed_consent_in_cocs?(current_user.coc_codes)
+  Unable to show details due to client release status:
+  %strong= @client.release_current_status
+- else
+  .mb-6
+    = render 'clients/chronic_flags', client: @client
 
-= render "chronic_calculator", date: @date
-.row
-  .col-sm-6
-    =render "clients/note_form"
-    %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: :chronic_notes}}
-      %header
-        %h1.h3 Notes
-%article.o-dashboard__block.o-dashboard__block--secondary.rollup{data: {partial: :residential_enrollments}}
-  %header
-    %h1.h3 Residential Enrollments
-    .c-color-key.ml-auto
-      %span.c-color-key__swatch.c-color-key__swatch--positive
-      %span.c-color-key__title New Episode
+  = render "chronic_calculator", date: @date
+  - if GrdaWarehouse::Config.get(:chronic_tab_justifications)
+    .row
+      .col-sm-6
+        =render "clients/note_form"
+        %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: :chronic_notes}}
+          %header
+            %h1.h3 Notes
+  %article.o-dashboard__block.o-dashboard__block--secondary.rollup{data: {partial: :residential_enrollments}}
+    %header
+      %h1.h3 Residential Enrollments
+      .c-color-key.ml-auto
+        %span.c-color-key__swatch.c-color-key__swatch--positive
+        %span.c-color-key__title New Episode
 
--# load in all the bits of aggregate statistics via ajax
-= content_for :page_js do
-  - source_clients = @client.source_clients.preload(:data_source, :organizations)
-  :javascript
-    var rollupPath = #{rollup_client_path(@client, partial: '').to_json.html_safe};
-    var clients = #{source_clients.each_with_index.map{ |c, i| [ c.id, [ i, c.uuid, c.data_source&.short_name, c.organizations.map(&:name).to_sentence ] ] }.to_h.to_json.html_safe};
-    var manyClients = #{source_clients.many?.to_json.html_safe};
-    var high = #{@client.source_clients.size + 1};
-    var rollups = new App.Rollups.Loader($('.rollup'), rollupPath, manyClients, clients, high);
-    rollups.collapsible('.jAssessmentTypeToggle');
+  -# load in all the bits of aggregate statistics via ajax
+  = content_for :page_js do
+    - source_clients = @client.source_clients.preload(:data_source, :organizations)
+    :javascript
+      var rollupPath = #{rollup_client_path(@client, partial: '').to_json.html_safe};
+      var clients = #{source_clients.each_with_index.map{ |c, i| [ c.id, [ i, c.uuid, c.data_source&.short_name, c.organizations.map(&:name).to_sentence ] ] }.to_h.to_json.html_safe};
+      var manyClients = #{source_clients.many?.to_json.html_safe};
+      var high = #{@client.source_clients.size + 1};
+      var rollups = new App.Rollups.Loader($('.rollup'), rollupPath, manyClients, clients, high);
+      rollups.collapsible('.jAssessmentTypeToggle');
