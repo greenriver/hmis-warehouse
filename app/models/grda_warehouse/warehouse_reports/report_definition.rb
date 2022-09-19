@@ -883,6 +883,15 @@ module GrdaWarehouse::WarehouseReports
           health: false,
         }
       end
+      if RailsDrivers.loaded.include?(:boston_project_scorecard)
+        r_list['Performance'] << {
+          url: 'boston_project_scorecard/warehouse_reports/scorecards',
+          name: 'Boston Project Scorecard',
+          description: 'Instrument for evaluating project performance.',
+          limitable: true,
+          health: false,
+        }
+      end
       if RailsDrivers.loaded.include?(:claims_reporting)
         r_list['Health: BH CP Claims/Payments'] << {
           url: 'claims_reporting/warehouse_reports/reconciliation',
@@ -1264,6 +1273,15 @@ module GrdaWarehouse::WarehouseReports
           health: false,
         }
       end
+      if RailsDrivers.loaded.include?(:hmis_data_quality_tool)
+        r_list['Data Quality'] << {
+          url: 'hmis_data_quality_tool/warehouse_reports/reports',
+          name: HmisDataQualityTool::Report.new.title,
+          description: HmisDataQualityTool::Report.new.description,
+          limitable: true,
+          health: false,
+        }
+      end
 
       r_list
     end
@@ -1286,6 +1304,7 @@ module GrdaWarehouse::WarehouseReports
       cleanup << 'project_pass_fail/warehouse_reports/project_pass_fail' unless RailsDrivers.loaded.include?(:project_pass_fail)
       cleanup << 'health_flexible_service/warehouse_reports/member_lists' unless RailsDrivers.loaded.include?(:health_flexible_service)
       cleanup << 'project_scorecard/warehouse_reports/scorecards' unless RailsDrivers.loaded.include?(:project_scorecard)
+      cleanup << 'boston_project_scorecard/warehouse_reports/scorecards' unless RailsDrivers.loaded.include?(:boston_project_scorecard)
       cleanup << 'prior_living_situation/warehouse_reports/prior_living_situation' unless RailsDrivers.loaded.include?(:prior_living_situation)
       cleanup << 'destination_report/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:destination_report)
       cleanup << 'data_source_report/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:data_source_report)
@@ -1325,6 +1344,8 @@ module GrdaWarehouse::WarehouseReports
         cleanup << 'ce_performance/warehouse_reports/reports'
         cleanup << 'ce_performance/warehouse_reports/goal_configs'
       end
+      cleanup << 'hmis_data_quality_tool/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:hmis_data_quality_tool)
+
       cleanup.each do |url|
         GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: url).delete_all
       end

@@ -6,7 +6,7 @@
 
 require 'memoist'
 module GrdaWarehouse::CasProjectClientCalculator
-  class Mdha
+  class Mdha < Default
     def value_for_cas_project_client(client:, column:)
       current_value = case column.to_sym
       when :match_group
@@ -17,6 +17,23 @@ module GrdaWarehouse::CasProjectClientCalculator
       return current_value unless current_value.nil?
 
       client.send(column)
+    end
+
+    private def custom_descriptions
+      {
+        email: 'Client email from the Eccovia API',
+        home_phone: 'Client home phone from the Eccovia API',
+        cell_phone: 'Client cell phone from the Eccovia API',
+        default_shelter_agency_contacts: 'Client shelter agency contacts from the Eccovia API',
+        most_recent_vispdat_score: 'Client most recent VI-SPDAT score from the Eccovia API',
+        assessment_score_for_cas: 'Client most recent VI-SPDAT score from the Eccovia API',
+        contact_info_for_rrh_assessment: 'Assessor email from the Eccovia API',
+        cas_assessment_collected_at: 'Most recent assessment completion date',
+        assessor_first_name: 'Most recent assessment assessor\'s first name',
+        assessor_last_name: 'Most recent assessment assessor\'s last name',
+        assessor_email: 'Most recent assessment assessor\'s email',
+        match_group: 'Prioritization group',
+      }.freeze
     end
 
     private def eccovia_columns
@@ -38,8 +55,9 @@ module GrdaWarehouse::CasProjectClientCalculator
     end
 
     private def match_group(client)
-      # TODO: return 1 if client has encampment decomissioning flag, once we have that data
-      if client.veteran?
+      if client.encampment_decomissioned?
+        1
+      elsif client.veteran?
         2
       else
         3

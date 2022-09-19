@@ -13,6 +13,10 @@ module Types
     field :project, Types::HmisSchema::Project, null: false
     field :entry_date, GraphQL::Types::ISO8601DateTime, null: true
     field :exit_date, GraphQL::Types::ISO8601DateTime, null: true
+    field :assessments, HmisSchema::Assessment.page_type, null: false
+    field :events, HmisSchema::Event.page_type, null: false
+    field :services, HmisSchema::Service.page_type, null: false
+    field :household, HmisSchema::Household, null: false
 
     def project
       load_ar_association(object, :project)
@@ -24,6 +28,12 @@ module Types
 
     def exit
       load_ar_association(object, :exit)
+    end
+
+    def household
+      return nil unless object.household_id.present?
+
+      Hmis::Hud::Enrollment.where(household_id: object.household_id).preload(:client)
     end
   end
 end

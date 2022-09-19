@@ -23,49 +23,62 @@ module CasClientData
       where.not(hiv_positive: false)
     end
 
+    def cas_calculator_instance
+      @cas_calculator_instance ||= GrdaWarehouse::Config.get(:cas_calculator).constantize.new
+    end
+
     def self.cas_columns
-      @cas_columns ||= {
-        disability_verified_on: _('Disability Verification on File'),
-        housing_release_status: _('Housing Release Status'),
-        full_housing_release: _('Full HAN Release on File'),
-        limited_cas_release: _('Limited CAS Release on File'),
-        sync_with_cas: _('Available for matching in CAS'),
-        dmh_eligible: _('DMH Eligible'),
-        va_eligible: _('VA Eligible'),
-        hues_eligible: _('HUES Eligible'),
-        hiv_positive: _('HIV+'),
-        chronically_homeless_for_cas: _('Chronically Homeless for CAS'),
-        us_citizen: _('U.S Citizen or Permanent Resident'),
-        asylee: _('Asylee, Refugee'),
-        ineligible_immigrant: _('Ineligible Immigrant (Including Undocumented)'),
-        lifetime_sex_offender: _('Life-Time Sex Offender'),
-        meth_production_conviction: _('Meth Production Conviction'),
-        family_member: _('Part of a family'),
-        child_in_household: _('Children under age 18 in household'),
-        ha_eligible: _('Housing Authority Eligible'),
-        cspech_eligible: _('CSPECH Eligible'),
-        congregate_housing: _('Willing to live in congregate housing'),
-        sober_housing: _('Appropriate for sober supportive housing'),
-        requires_wheelchair_accessibility: _('Requires wheelchair accessible unit'),
-        required_number_of_bedrooms: _('Minimum number of bedrooms'),
-        required_minimum_occupancy: _('Minimum occupancy'),
-        requires_elevator_access: _('Requires ground floor unit or elevator access'),
-        cas_match_override: _('Override CAS Match Date'),
-        vash_eligible: _('VASH Eligible'),
-        health_prioritized: _('Health Priority'),
-        tie_breaker_date: _('Tie Breaker Date'),
-        financial_assistance_end_date: _('Financial Assistance End Date'),
-        strengths: _('Strengths'),
-        challenges: _('Challenges'),
-        foster_care: _('Foster care as youth'),
-        open_case: _('Current open case'),
-        housing_for_formerly_homeless: _('Prefers housing for formerly homeless'),
-        drug_test: _('Able to pass a drug test'),
-        heavy_drug_use: _('History of heavy drug use'),
-        sober: _('Clean/sober for at least one year'),
-        willing_case_management: _('Willing to engage with housing case management'),
-        employed_three_months: _('Employed for 3 or more months'),
-        living_wage: _('Earning a living wage ($13 or more)'),
+      @cas_columns ||= cas_columns_data.transform_values { |v| v[:title] }
+    end
+
+    def self.cas_columns_data
+      @cas_columns_data ||= {
+        disability_verified_on: { title: _('Disability Verification on File'), description: 'Date disability verification file was uploaded' },
+        housing_release_status: { title: _('Housing Release Status'), description: 'Release status is governed by uploaded files' },
+        full_housing_release: { title: _('Full HAN Release on File'), description: 'Does the client have a full release on file?' },
+        limited_cas_release: { title: _('Limited CAS Release on File'), description: 'Does the client have a partial release on file?' },
+        sync_with_cas: { title: _('Available for matching in CAS'), description: "Based on the chosen method for sending clients to CAS. Curently: #{GrdaWarehouse::Config.available_cas_methods.invert[GrdaWarehouse::Config.get(:cas_available_method).to_sym]}" },
+        dmh_eligible: { title: _('DMH Eligible'), description: 'Unused' },
+        va_eligible: { title: _('VA Eligible'), description: 'Unused' },
+        hues_eligible: { title: _('HUES Eligible'), description: 'Unused' },
+        hiv_positive: { title: _('HIV+'), description: 'Unused' },
+        chronically_homeless_for_cas: { title: _('Chronically Homeless for CAS'), description: 'Unused' },
+        us_citizen: { title: _('U.S Citizen or Permanent Resident'), description: 'Unused' },
+        asylee: { title: _('Asylee, Refugee'), description: 'Unused' },
+        ineligible_immigrant: { title: _('Ineligible Immigrant (Including Undocumented)'), description: 'Unused' },
+        lifetime_sex_offender: { title: _('Life-Time Sex Offender'), description: 'Unused' },
+        meth_production_conviction: { title: _('Meth Production Conviction'), description: 'Unused' },
+        family_member: { title: _('Part of a family'), description: 'Unused' },
+        child_in_household: { title: _('Children under age 18 in household'), description: 'Unused' },
+        ha_eligible: { title: _('Housing Authority Eligible'), description: 'Unused' },
+        cspech_eligible: { title: _('CSPECH Eligible'), description: 'Unused' },
+        congregate_housing: { title: _('Willing to live in congregate housing'), description: 'Unused' },
+        sober_housing: { title: _('Appropriate for sober supportive housing'), description: 'Unused' },
+        requires_wheelchair_accessibility: { title: _('Requires wheelchair accessible unit'), description: 'Unused' },
+        required_number_of_bedrooms: { title: _('Minimum number of bedrooms'), description: 'Unused' },
+        required_minimum_occupancy: { title: _('Minimum occupancy'), description: 'Unused' },
+        requires_elevator_access: { title: _('Requires ground floor unit or elevator access'), description: 'Unused' },
+        cas_match_override: { title: _('Override CAS Match Date'), description: 'Unused' },
+        vash_eligible: { title: _('VASH Eligible'), description: 'Unused' },
+        health_prioritized: { title: _('Health Priority'), description: 'Unused' },
+        tie_breaker_date: { title: _('Tie Breaker Date'), description: 'Unused' },
+        financial_assistance_end_date: { title: _('Financial Assistance End Date'), description: 'Unused' },
+        strengths: { title: _('Strengths'), description: 'Unused' },
+        challenges: { title: _('Challenges'), description: 'Unused' },
+        foster_care: { title: _('Foster care as youth'), description: 'Unused' },
+        open_case: { title: _('Current open case'), description: 'Unused' },
+        housing_for_formerly_homeless: { title: _('Prefers housing for formerly homeless'), description: 'Unused' },
+        drug_test: { title: _('Able to pass a drug test'), description: 'Unused' },
+        heavy_drug_use: { title: _('History of heavy drug use'), description: 'Unused' },
+        sober: { title: _('Clean/sober for at least one year'), description: 'Unused' },
+        willing_case_management: { title: _('Willing to engage with housing case management'), description: 'Unused' },
+        employed_three_months: { title: _('Employed for 3 or more months'), description: 'Unused' },
+        living_wage: { title: _('Earning a living wage ($13 or more)'), description: 'Unused' },
+        match_group: { title: 'Match group', description: 'Unused' },
+        can_work_full_time: { title: 'Can the client work full time?', description: 'Unused' },
+        full_time_employed: { title: 'Is the client employed full time?', description: 'Unused' },
+        force_remove_unavailable_fors: { title: 'Force the client to be active in CAS', description: 'Unused' },
+        majority_sheltered: { title: 'Sheltered recently', description: 'Unused' },
       }
     end
 
@@ -92,7 +105,7 @@ module CasClientData
     end
 
     def self.manual_cas_columns
-      cas_columns.except(:hiv_positive, :dmh_eligible, :chronically_homeless_for_cas, :full_housing_release, :limited_cas_release, :housing_release_status, :sync_with_cas, :hues_eligible, :disability_verified_on, :required_number_of_bedrooms, :required_minimum_occupancy, :cas_match_override, :health_prioritized, :tie_breaker_date).
+      cas_columns.except(:hiv_positive, :dmh_eligible, :chronically_homeless_for_cas, :full_housing_release, :limited_cas_release, :housing_release_status, :sync_with_cas, :hues_eligible, :disability_verified_on, :required_number_of_bedrooms, :required_minimum_occupancy, :cas_match_override, :health_prioritized, :tie_breaker_date, :vispdat_length_homeless_in_days).
         keys
     end
 
@@ -110,6 +123,7 @@ module CasClientData
         :rrh_desired,
         :youth_rrh_desired,
         :tc_hat_additional_days_homeless,
+        :encampment_decomissioned,
         neighborhood_interests: [],
       ]
     end
@@ -238,7 +252,7 @@ module CasClientData
           end
         end
       # Are any tags that should be added based on HmisForms
-      Cas::Tag.where(rrh_assessment_trigger: true).each do |tag|
+      Cas::Tag.where(rrh_assessment_trigger: true)&.each do |tag|
         @cas_tags[tag.id] = assessment_score_for_cas
       end
       @cas_tags
@@ -340,9 +354,9 @@ module CasClientData
       processed_service_history&.homeless_days
     end
 
-    # Default to the original assessment, identified since it comes from HMIS
+    # Default to a generic CE assessment, identified since it comes from HMIS
     private def cas_assessment_name
-      'IdentifiedClientAssessment'
+      'IdentifedCeAssessment'
     end
 
     def self.ongoing_enrolled_project_details(client_ids)

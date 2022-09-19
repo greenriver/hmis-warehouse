@@ -1,0 +1,158 @@
+%h2{id: 'project-performance'}  Project Performance
+%table.table.table-bordered{style: 'max-width: 99%'}
+  %thead
+    %tr.bg-info
+      %th{style: 'width:10%'} Criteria Topic
+      %th{style: 'width:15%'} Scored Criteria
+      %th{style: 'width:15%'} Criteria Source
+      %th{style: 'width:15%'} Point Scale
+      %th Weight
+      %th Source Value
+      %th Score
+  %tbody
+    %tr
+      %th.bg-info.align-middle.text-center{rowspan: 9} Project Performance
+      %td 1. Exits from RRH and retention in PSH
+      %td See individual calculations for 1.a. and 1.b.
+      %td.bg-info
+      %td.bg-info
+      %td.bg-info
+      %td.bg-info
+    %tr
+      %td
+        1.a.
+        %b RRH:
+        Exits RRH to PH (benchmark 80%)
+      %td
+        APR Table
+        = link_to_apr('Q23c', 'Question 23')
+        Cell 46B
+      %td
+        12 pts: 100-75%
+        %br
+        6 pts: 74-55%
+        %br
+        4 pts: 54-25%
+        %br
+        0 pts: 24% - 0%
+      %th.align-middle.text-center{rowspan: 8}
+        Weight
+        %br
+        #{@report.project_performance_weight}%
+      %td= @report.rrh_exits_to_ph_value
+      %td= @report.rrh_exits_to_ph_score
+    %tr
+      %td
+        1.b.
+        %b PSH:
+        = "% of clients who remained in PSH or exited to PH (benchmark 80%) (stayers & leavers)"
+      %td
+        B1 from APR Table
+        = link_to_apr('Q5a', 'Question 5')
+        %br
+        B43, B44, B45 from APR Table
+        = link_to_apr('Q23c', 'Question 23')
+        %br
+        %small (B1 - B43 + B44) / (B1 - B45)
+      %td
+        12 pts: 100-75%
+        %br
+        6 pts: 74-55%
+        %br
+        4 pts: 54-25%
+        %br
+        0 pts: 24% - 0%
+      %td= @report.psh_stayers_or_to_ph_value
+      %td= @report.psh_stayers_or_to_ph_score
+    %tr
+      %td
+        2. % of clients who increased income through
+        %b employment
+        (Stayers- measured from start and annual assessment)
+      %td
+        APR Table
+        = link_to_apr('Q19a1,', 'Question 19')
+        Cell J2
+      %td
+        6 pts: 100-75%
+        %br
+        3 pts: 74-55%
+        %br
+        2 pts: 54-25%
+        %br
+        0 pts: 24% - 0%
+      %td= @report.increased_stayer_employment_income_value
+      %td= @report.increased_stayer_employment_income_score
+    %tr
+      %td
+        3. % of clients who increased non-earned income
+        %b (ex. social benefits)
+        (Stayers- measured from start and annual assessment)
+      %td
+        APR Table
+        = link_to_apr('Q19a1,', 'Question 19')
+        Cell J4
+      %td
+        6 pts: 100-75%
+        %br
+        3 pts: 74-55%
+        %br
+        2 pts: 54-25%
+        %br
+        0 pts: 24% - 0%
+      %td= @report.increased_stayer_other_income_value
+      %td= @report.increased_stayer_other_income_score
+    %tr
+      %td
+        4. % of Clients who increased income growth through
+        %b employment
+        (Leavers - measured from start and exit)
+      %td
+        APR Table
+        = link_to_apr('Q19a2,', 'Question 19')
+        Cell J2
+      %td
+        6 pts: 100-75%
+        %br
+        3 pts: 74-55%
+        %br
+        2 pts: 54-25%
+        %br
+        0 pts: 24% - 0%
+      %td= @report.increased_leaver_employment_income_value
+      %td= @report.increased_leaver_employment_income_score
+    %tr
+      %td
+        5. % of clients who increased non-earned income
+        %b (ex. social benefits)
+        (Leavers - measured from start and exit)
+      %td
+        APR Table
+        = link_to_apr('Q19a2,', 'Question 19')
+        Cell J4
+      %td
+        6 pts: 100-75%
+        %br
+        3 pts: 74-55%
+        %br
+        2 pts: 54-25%
+        %br
+        0 pts: 24% - 0%
+      %td= @report.increased_leaver_other_income_value
+      %td= @report.increased_leaver_other_income_score
+    %tr
+      %td 6. Time to Lease Up; avg days from project admit date to date housed- project
+      %td
+        APR Table
+        = link_to_apr('Q22c:', 'Question 22')
+        Length of Time between Project Start Date and Housing Move-in Date, Row 11B: Average Length of time to Housing
+      %td
+        12 pts: 30 day or less
+        %br
+        6 pts: 31-60 day
+        %br
+        4 pts: 61-180 days
+        %br
+        0 pts: over 180 days
+      %td= @report.days_to_lease_up_value
+      %td= @report.days_to_lease_up_score

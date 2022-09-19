@@ -23,7 +23,7 @@ module WarehouseReports
         NotifyUser.report_completed(user_id, report).deliver_later
       else
         setup_notifier('Generic Report Runner')
-        msg = "Unable to run report, #{report_class} is not included in the white list."
+        msg = "Unable to run report, #{report_class} is not included in the allowed list of reports."
         @notifier.ping(msg) if @send_notifications
       end
     end
@@ -41,6 +41,7 @@ module WarehouseReports
 
       reports['ProjectPassFail::ProjectPassFail'] = ProjectPassFail::ProjectPassFail if RailsDrivers.loaded.include?(:project_pass_fail)
       reports['ProjectScorecard::Report'] = ProjectScorecard::Report if RailsDrivers.loaded.include?(:project_scorecard)
+      reports['BostonProjectScorecard::Report'] = BostonProjectScorecard::Report if RailsDrivers.loaded.include?(:boston_project_scorecard)
       if RailsDrivers.loaded.include?(:public_reports)
         reports['PublicReports::PointInTime'] = PublicReports::PointInTime
         reports['PublicReports::PitByMonth'] = PublicReports::PitByMonth
@@ -59,7 +60,10 @@ module WarehouseReports
       reports['PerformanceMetrics::Report'] = PerformanceMetrics::Report if RailsDrivers.loaded.include?(:performance_metrics)
       reports['HomelessSummaryReport::Report'] = HomelessSummaryReport::Report if RailsDrivers.loaded.include?(:homeless_summary_report)
       reports['PerformanceMeasurement::Report'] = PerformanceMeasurement::Report if RailsDrivers.loaded.include?(:performance_measurement)
-      reports['MaYyaReport::Report'] = MaYyaReport::Report if RailsDrivers.loaded.include?(:ma_yya_report)
+      reports['LongitudinalSpm::Report'] = LongitudinalSpm::Report if RailsDrivers.loaded.include?(:longitudinal_spm)
+      reports['CePerformance::Report'] = CePerformance::Report if RailsDrivers.loaded.include?(:ce_performance)
+      reports['TxClientReports::ResearchExport'] = TxClientReports::ResearchExport if RailsDrivers.loaded.include?(:tx_client_reports)
+      reports['HmisDataQualityTool::Report'] = HmisDataQualityTool::Report if RailsDrivers.loaded.include?(:hmis_data_quality_tool)
       reports
     end
   end

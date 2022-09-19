@@ -22,7 +22,7 @@ class Hmis::FieldMap
 
   attr_reader :members, :base_members, :null_members
 
-  def initialize(members, include_base_null: true)
+  def initialize(members, include_base_null: false)
     @base_members = members.reject { |v| v[:null] }
     @null_members = members.select { |v| v[:null] }
     @null_members = [*@null_members, *BASE_NULL_VALUES] if include_base_null
@@ -60,6 +60,31 @@ class Hmis::FieldMap
   def self.no_yes
     Hmis::FieldMap.new(
       ::HUD.no_yes_reasons_for_missing_data_options.slice(0, 1).map do |value, desc|
+        {
+          key: desc,
+          value: value,
+          desc: desc,
+        }
+      end,
+      include_base_null: true,
+    )
+  end
+
+  def self.no_yes_reasons
+    Hmis::FieldMap.new(
+      ::HUD.no_yes_reasons_for_missing_data_options.map do |value, desc|
+        {
+          key: desc,
+          value: value,
+          desc: desc,
+        }
+      end,
+    )
+  end
+
+  def self.yes_no_missing
+    Hmis::FieldMap.new(
+      ::HUD.yes_no_missing_options.map do |value, desc|
         {
           key: desc,
           value: value,

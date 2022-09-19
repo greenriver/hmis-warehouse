@@ -1,0 +1,50 @@
+%h2 Project Quality Threshold Criteria
+%table.table.table-bordered{style: 'max-width: 99%'}
+  %thead
+    %tr.bg-info
+      %th{style: 'width:10%'} Criteria Topic
+      %th{style: 'width: 20%'} Scored Criteria
+      %th{style: 'width: 10%'} Pass / Fail
+      %th Notes
+  %tbody
+    %tr
+      %th.bg-info.align-middle{rowspan: 5}
+        .text-center Project Quality Threshold Criteria
+        %p
+        HUD will review information in eLOCCS, APRs, CAS warehouse data, Core
+        Demographics / racial equity dashboard data and information provided from the local HUD CPD field office;
+        including monitoring reports and audit reports, and performance standards on prior grants, and will assess
+        projects using the following criteria on a pass/fail basis:
+      %td
+        Applicant's performance met the plans and goals established in the initial application.
+      %td= f.input :initial_goals_pass, as: :pretty_boolean, label: false, **@report.field_input_options(:initial_goals_pass, current_user)
+      %td= f.input :initial_goals_notes, as: :text, label: false, **@report.field_input_options(:initial_goals_notes, current_user)
+    %tr
+      %td
+        Applicant demonstrated all timeliness standards for grants being renewed, including those standards for the
+        expenditure of grant funds that have been met.
+      %td= f.input :timeliness_pass, as: :pretty_boolean, label: false, **@report.field_input_options(:timeliness_pass, current_user)
+      %td= f.input :timeliness_notes, as: :text, label: false, **@report.field_input_options(:timeliness_notes, current_user)
+    %tr
+      %td
+        Applicant's performance in assisting program participants to achieve and maintain independent living and records of success.
+      %td= f.input :independent_living_pass, as: :pretty_boolean, label: false, **@report.field_input_options(:independent_living_pass, current_user)
+      %td= f.input :independent_living_notes, as: :text, label: false, **@report.field_input_options(:independent_living_notes, current_user)
+    %tr
+      %td
+        Applicant has been willing to accept technical assistance if one of the following has been an issue; a history
+        of inadequate financial accounting practices, indications of project mismanagement, a drastic reduction in the
+        population served, made program changes without prior HUD approval, or has lost a project site.
+        (Pass if the applicant has not had issues and no technical assistance was needed.)
+      %td= f.input :management_oversight_pass, as: :pretty_boolean, label: false, **@report.field_input_options(:management_oversight_pass, current_user)
+      %td= f.input :management_oversight_notes, as: :text, label: false, **@report.field_input_options(:management_oversight_notes, current_user)
+    %tr
+      %td
+        Prioritizes households with the  longest time homeless  and highest barriers to  housing, through the  CoCs CE system.
+      %td= f.input :prioritization_pass, as: :pretty_boolean, label: false, **@report.field_input_options(:prioritization_pass, current_user)
+      %td= f.input :prioritization_notes, as: :text, label: false, **@report.field_input_options(:prioritization_notes, current_user)
+    %tr
+      %td{colspan: 5}
+        .text-danger
+          If project does not have a "pass" in ALL of the above criteria, the project application does not meet minimum
+          CoC and HUD threshold for funding and is not eligible for inclusion in the Boston CoC 2022 application to HUD.

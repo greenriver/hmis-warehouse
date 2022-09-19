@@ -752,7 +752,11 @@ module GrdaWarehouse::Hud
 
     def source_clients_searchable_to(user)
       @source_clients_searchable_to = {}.tap do |clients|
-        clients[user.id] ||= self.class.searchable_to(user, client_ids: source_client_ids).preload(:data_source).to_a
+        clients[user.id] ||= if source_client_ids.present?
+          self.class.searchable_to(user, client_ids: source_client_ids).preload(:data_source).to_a
+        else
+          []
+        end
       end
       @source_clients_searchable_to[user.id]
     end
@@ -1612,11 +1616,15 @@ module GrdaWarehouse::Hud
           (m.DueDate.present? && m.DueDate > Date.current - 3.months)
         )
       end.present?
-      vispdat_pregnancy = vispdats.completed.where(pregnant_answer: 1, submitted_at: in_last_year).exists?
-      eto_pregnancy = source_hmis_forms.vispdat.
-        vispdat_pregnant.
-        where(collected_at: in_last_year).
-        exists?
+      vispdat_pregnancy = false
+      eto_pregnancy = false
+      unless cas_calculator_instance.unrelated_columns.include?(:vispdat_score)
+        vispdat_pregnancy = vispdats.completed.where(pregnant_answer: 1, submitted_at: in_last_year).exists?
+        eto_pregnancy = source_hmis_forms.vispdat.
+          vispdat_pregnant.
+          where(collected_at: in_last_year).
+          exists?
+      end
 
       hmis_pregnancy || vispdat_pregnancy || eto_pregnancy
     end
@@ -2433,6 +2441,8 @@ module GrdaWarehouse::Hud
     end
 
     def most_recent_vispdat
+      return if cas_calculator_instance.unrelated_columns.include?(:vispdat_score)
+
       vispdats.completed.first
     end
 
@@ -2441,6 +2451,8 @@ module GrdaWarehouse::Hud
     # The ETO VI-SPDAT are prioritized by max score on the most recent assessment
     # NOTE: if we have more than one VI-SPDAT on the same day, the calculation is complicated
     def most_recent_vispdat_score
+      return if cas_calculator_instance.unrelated_columns.include?(:vispdat_score)
+
       vispdats.completed.scores.first&.score ||
         source_hmis_forms.vispdat.newest_first.
           pluck(
@@ -2460,6 +2472,8 @@ module GrdaWarehouse::Hud
 
     # NOTE: if we have more than one VI-SPDAT on the same day, the calculation is complicated
     def most_recent_vispdat_length_homeless_in_days
+      return if cas_calculator_instance.unrelated_columns.include?(:vispdat_score)
+
       vispdats.completed.order(submitted_at: :desc).limit(1).first&.days_homeless ||
         source_hmis_forms.vispdat.newest_first.
           map { |m| [m.collected_at, m.vispdat_days_homeless] }&.
@@ -2476,6 +2490,8 @@ module GrdaWarehouse::Hud
 
     # Determine which vi-spdat to use based on dates
     def most_recent_vispdat_object
+      return if cas_calculator_instance.unrelated_columns.include?(:vispdat_score)
+
       internal = most_recent_vispdat
       external = source_hmis_forms.vispdat.newest_first.first
       vispdats = []
@@ -2486,6 +2502,8 @@ module GrdaWarehouse::Hud
     end
 
     def most_recent_vispdat_family_vispdat?
+      return if cas_calculator_instance.unrelated_columns.include?(:vispdat_score)
+
       # From local warehouse VI-SPDAT
       return most_recent_vispdat_object.family? if most_recent_vispdat_object.respond_to?(:family?)
 
@@ -2494,6 +2512,8 @@ module GrdaWarehouse::Hud
     end
 
     def calculate_vispdat_priority_score
+      return if cas_calculator_instance.unrelated_columns.include?(:vispdat_score)
+
       vispdat_score = most_recent_vispdat_score
       return nil unless vispdat_score.present?
 
