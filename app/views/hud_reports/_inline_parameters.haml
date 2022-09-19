@@ -1,8 +1,17 @@
-.mb-2.reports.warehouse-reports__completed.d-flex
-  - # NOTE: this is not ideal, we need to figure out which filter type we're actually using
-  - # but for displaying the items chosen, it's probably fine
-  - filter = Filters::FilterBase.new(user_id: report.user_id).update(report.options.with_indifferent_access)
-  = filter.describe_filter_as_html(@generator.allowed_options)
-.d-flex
-  .ml-auto
-    = render 'filters/view_filter_details', filter_hash: filter.to_h, selected_keys: @generator.allowed_options
+.row
+  .col-sm-8
+    %h3 Universe
+    .mb-2.reports.warehouse-reports__completed
+      - # NOTE: this is not ideal, we need to figure out which filter type we're actually using
+      - # but for displaying the items chosen, it's probably fine
+      - filter = Filters::FilterBase.new(user_id: report.user_id).update(report.options.with_indifferent_access)
+      = filter.describe_filter_as_html(@generator.allowed_options)
+      = render 'filters/view_filter_details', filter_hash: filter.to_h, selected_keys: @generator.allowed_options
+
+  .col-sm-4.border-left
+    - if @report&.completed_questions && @report.completed_questions.count > 1
+      %h3 Jump to
+      - @generator.questions.keys.each do |item|
+        - if item != @question && @report&.completed_questions.include?(item)
+          = link_to path_for_question_result(item, report: @report), class: 'btn btn-sm btn-secondary mb-2 ml-2' do
+            = item
