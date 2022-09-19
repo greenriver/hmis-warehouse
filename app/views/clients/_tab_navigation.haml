@@ -45,7 +45,7 @@
     hmis.merge!({
       polymorphic_path(client_chronic_path_generator, client_id: @client) => {
         title: 'Chronic',
-        permission: can_edit_clients? && show_demographic,
+        permission: can_view_chronic_tab? && show_demographic,
       },
       client_hud_lots_path(@client) => {
         title: 'HUD LOT',

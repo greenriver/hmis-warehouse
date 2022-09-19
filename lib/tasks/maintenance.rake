@@ -4,11 +4,12 @@ namespace :maintenance do
     require 'aws-sdk-s3'
     include Rails.application.routes.url_helpers
     destination = 'public/maintenance.html'
+
     # This will only run if the web server is accessible
     source = if Rails.env.development?
-      'https://qa-warehouse.openpath.host/maintenance'
+      'https://qa-warehouse.openpath.host/maintenance_saver'
     else
-      maintenance_index_url(host: ENV['FQDN'], protocol: 'https')
+      maintenance_saver_index_url(host: ENV['FQDN'], protocol: 'https')
     end
 
     # catch first deployments, we'll build on subsequent calls
@@ -17,10 +18,6 @@ namespace :maintenance do
     exit unless res.code.to_s == '200'
 
     premailer = Premailer.new(source)
-
-    # File.open(destination, 'wb') do |file|
-    #   file.puts(premailer.to_inline_css)
-    # end
 
     client = Aws::S3::Client.new
     bucket = ENV.fetch('ASSETS_BUCKET_NAME')

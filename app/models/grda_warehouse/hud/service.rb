@@ -8,6 +8,7 @@ module GrdaWarehouse::Hud
   class Service < Base
     include HudSharedScopes
     include ::HmisStructure::Service
+    include ::HmisStructure::Shared
     include RailsDrivers::Extensions
 
     attr_accessor :source_id

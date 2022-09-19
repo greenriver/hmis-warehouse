@@ -149,6 +149,7 @@ Rails.application.routes.draw do
   resources :secure_files, only: [:show, :create, :index, :destroy]
   resources :help
   resources :maintenance, only: [:index]
+  resources :maintenance_saver, only: [:index], controller: 'maintenance'
 
   namespace :reports do
     namespace :hic do
@@ -609,7 +610,7 @@ Rails.application.routes.draw do
     resource :copy, only: [:new, :create], controller: 'cohorts/copy'
   end
 
-  resources :imports do
+  resources :imports, only: [:index, :show] do
     get :download, on: :member
     get :download_upload, on: :member
   end

@@ -106,6 +106,11 @@ module UserConcern
       )
     end
 
+    scope :care_coordinators, -> do
+      care_coordinator_ids = Health::Patient.pluck(:care_coordinator_id)
+      where(id: care_coordinator_ids)
+    end
+
     scope :nurse_care_managers, -> do
       joins(:roles).merge(Role.nurse_care_manager)
     end

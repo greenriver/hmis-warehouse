@@ -1,10 +1,7 @@
-Rails.logger.debug "Running initializer in #{__FILE__}"
+# Rails.logger.debug "Running initializer in #{__FILE__}"
 
 # Use this hook to configure impressionist parameters
 #Impressionist.setup do |config|
   # Define ORM. Could be :active_record (default), :mongo_mapper or :mongoid
   # config.orm = :active_record
 #end
-
-
-

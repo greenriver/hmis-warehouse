@@ -6,7 +6,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:ds2) { create :hmis_data_source, hmis: nil, id: 2 }
 
   before(:all) do
-    GrdaWarehouse::Utility.clear!
+    cleanup_test_environment
+  end
+  after(:all) do
+    cleanup_test_environment
   end
 
   before(:each) do
