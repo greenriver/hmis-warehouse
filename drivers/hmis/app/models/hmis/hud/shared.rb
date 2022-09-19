@@ -32,9 +32,5 @@ module Hmis::Hud::Shared
     end
   end
 
-  included do
-    hmis_configuration(version: '2022').keys.each do |col|
-      alias_attribute col.to_s.underscore.to_sym, col
-    end
-  end
+  include ::HmisStructure::Shared
 end

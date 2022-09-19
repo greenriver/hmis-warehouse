@@ -8,9 +8,10 @@ module GrdaWarehouse::Hud
   class Export < Base
     include HudSharedScopes
     include ::HmisStructure::Export
+    include ::HmisStructure::Shared
     include RailsDrivers::Extensions
 
-    attr_accessor :source_id
+    # attr_accessor :source_id
 
     self.table_name = 'Export'
     self.sequence_name = "public.\"#{table_name}_id_seq\""

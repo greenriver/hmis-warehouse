@@ -13,6 +13,7 @@
     %ul
       %li= "Days Homeless in the past three years: #{@client.days_homeless_in_last_three_years} (seen in ES, SO, SH, TH with no overlapping PH)"
       %li= "Days Literally Homeless in the past three years: #{@client.literally_homeless_last_three_years} (seen in ES, SO, SH with no overlapping TH or PH)"
+      %li= "Chronically homeless: #{@chronic ? 'Yes' : 'No' }"
       %li= "Does not include any possible current Rapid Re-Housing enrollment"
     .history__counts
       .history__counts-by-org

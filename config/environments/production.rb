@@ -34,6 +34,9 @@ Rails.application.configure do
   config.assets.digest = true
   config.assets.check_precompiled_asset = false
 
+  # Store files on Amazon S3.
+  config.active_storage.service = :amazon
+
   # `config.assets.precompile` and `config.assets.version` have moved to config/initializers/assets.rb
 
   # Enable serving of images, stylesheets, and JavaScripts from an asset server.

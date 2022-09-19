@@ -20,6 +20,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     }
   end
 
+  before(:all) do
+    cleanup_test_environment
+  end
+  after(:all) do
+    cleanup_test_environment
+  end
+
   describe 'Client input transformer' do
     let(:transformer) { Types::HmisSchema::Transformers::ClientInputTransformer }
 
