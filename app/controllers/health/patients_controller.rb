@@ -120,5 +120,13 @@ module Health
 
       not_authorized!
     end
+
+    def describe_computations
+      path = 'app/views/warehouse_reports/health/agency_performance/README.md'
+      description = File.read(path)
+      markdown = Redcarpet::Markdown.new(::TranslatedHtml)
+      markdown.render(description)
+    end
+    helper_method :describe_computations
   end
 end

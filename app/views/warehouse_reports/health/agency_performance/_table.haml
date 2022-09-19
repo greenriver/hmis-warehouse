@@ -175,3 +175,7 @@
           $(this).removeAttr('data-disable-with');
         });
       });
+
+- default_open ||= 'no'
+.mt-4
+  = render 'warehouse_reports/outcomes/shared/computation_description', default_open: default_open
