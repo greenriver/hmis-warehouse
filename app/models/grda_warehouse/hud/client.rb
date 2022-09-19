@@ -14,6 +14,7 @@ module GrdaWarehouse::Hud
     include HealthCharts
     include ApplicationHelper
     include ::HmisStructure::Client
+    include ::HmisStructure::Shared
     include HudSharedScopes
     include HudChronicDefinition
     include SiteChronic
@@ -942,11 +943,6 @@ module GrdaWarehouse::Hud
     attr_accessor :merge
     attr_accessor :unmerge
     attr_accessor :bypass_search # Used for creating new clients
-
-    alias_attribute :last_name, :LastName
-    alias_attribute :first_name, :FirstName
-    alias_attribute :dob, :DOB
-    alias_attribute :ssn, :SSN
 
     def appropriate_path_for?(user)
       return false if user.blank?

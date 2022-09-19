@@ -6,7 +6,7 @@
 
 module Mutations
   class InputValidationError
-    def initialize(message, attribute:, **kwargs)
+    def initialize(message, attribute: nil, **kwargs)
       {
         message: message,
         attribute: attribute,

@@ -8,6 +8,7 @@ module GrdaWarehouse::Hud
   class ProjectCoc < Base
     include HudSharedScopes
     include ::HmisStructure::ProjectCoc
+    include ::HmisStructure::Shared
     include ArelHelper
     include RailsDrivers::Extensions
     require 'csv'

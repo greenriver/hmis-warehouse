@@ -137,7 +137,8 @@ Rails.application.routes.draw do
   # obfuscation of links sent out via email
   resources :tokens, only: [:show]
 
-  resource :filter, only: [:show]
+  match 'filter', to: 'filters#show', via: [:post]
+
 
   resources :reports do
     resources :report_results, path: 'results', only: [:index, :show, :create, :update, :destroy] do
@@ -610,7 +611,7 @@ Rails.application.routes.draw do
     resource :copy, only: [:new, :create], controller: 'cohorts/copy'
   end
 
-  resources :imports do
+  resources :imports, only: [:index, :show] do
     get :download, on: :member
     get :download_upload, on: :member
   end

@@ -21,6 +21,10 @@ then
   then
     cp /usr/local/lib/ruby/site_ruby/2.7.0/x86_64-linux-musl/seven_zip_ruby/7z.so \
       /bundle/ruby/2.7.0/gems/seven_zip_ruby-1.3.0/lib/seven_zip_ruby/7z.so
+  elif  [ -e /usr/local/lib/ruby/site_ruby/2.7.0/aarch64-linux-musl/seven_zip_ruby/7z.so ]
+  then
+    cp /usr/local/lib/ruby/site_ruby/2.7.0/aarch64-linux-musl/seven_zip_ruby/7z.so \
+      /bundle/ruby/2.7.0/gems/seven_zip_ruby-1.3.0/lib/seven_zip_ruby/7z.so
   fi
 fi
 

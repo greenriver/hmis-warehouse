@@ -5,7 +5,7 @@
   %tr{class: 'jIncompleteReport'}
     %td= job.run_at
     %td= render 'spinner'
-    %td= render 'parameters', report: report
+    %td.warehouse-reports__completed.report-parameters= render 'parameters', report: report
     %td
       - if report.user_id
         = User.find(report.user_id)&.name

@@ -4,4 +4,5 @@
   - filter = Filters::FilterBase.new(user_id: report.user_id).update(report.options.with_indifferent_access)
   = filter.describe_filter_as_html(@generator.allowed_options)
 .d-flex
-  .ml-auto= link_to 'View universe details', filter_path(filter: filter.to_h, selected_keys: @generator.allowed_options), data: { loads_in_ajax_modal: true }
+  .ml-auto
+    = render 'filters/view_filter_details', filter_hash: filter.to_h, selected_keys: @generator.allowed_options
