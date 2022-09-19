@@ -7,21 +7,3 @@
         Add Case Note
   .c-card__content.c-card__content--flush
     = render 'sdh_case_management_notes'
-    .mr-4.ml-4.mt-4.mb-4
-      - if status = @client.api_status
-        - eto_api_path = polymorphic_path(client_path_generator + [:eto_api])
-        - if status[:updating]
-          .row
-            .col-sm-10
-              .api-status-status.jApiStatus
-                Updating since
-                = status[:started_at]
-            .col-sm-2.pull-right
-              = render 'spinner'
-        - else
-          .row
-            .col-sm-8
-              Last updated:
-              = status[:updated_at]
-            .col-sm-4
-              = link_to 'Update', eto_api_path ,method: :patch, class: 'btn btn-sm btn-secondary', data: {confirm: "Updating assessment data can take a few minutes. During this time, assessments for this client may not be available Are you sure you want to proceed?"}

@@ -523,7 +523,6 @@ Rails.application.routes.draw do
     resources :notes, only: [:index, :destroy, :create], controller: 'clients/notes' do
       get :alerts, on: :collection
     end
-    resource :eto_api, only: [:show, :update], controller: 'clients/eto_api'
     resources :users, only: [:index, :create, :update, :destroy], controller: 'clients/users'
     resources :anomalies, except: [:show], controller: 'clients/anomalies'
     resources :audits, only: [:index], controller: 'clients/audits'

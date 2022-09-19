@@ -78,7 +78,6 @@ module GrdaWarehouse::Hud
     has_one :processed_service_history, -> { where(routine: 'service_history') }, class_name: 'GrdaWarehouse::WarehouseClientsProcessed'
     has_one :first_service_history, -> { where record_type: 'first' }, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment'
 
-    has_one :api_id, class_name: 'GrdaWarehouse::ApiClientDataSourceId'
     has_many :eto_client_lookups, class_name: 'GrdaWarehouse::EtoQaaws::ClientLookup'
     has_many :eto_touch_point_lookups, class_name: 'GrdaWarehouse::EtoQaaws::TouchPointLookup'
     has_one :hmis_client, class_name: 'GrdaWarehouse::HmisClient'
@@ -151,7 +150,6 @@ module GrdaWarehouse::Hud
     has_many :source_client_attributes_defined_text, through: :source_clients, source: :client_attributes_defined_text
     has_many :staff_x_clients, class_name: 'GrdaWarehouse::HMIS::StaffXClient', inverse_of: :client
     has_many :staff, class_name: 'GrdaWarehouse::HMIS::Staff', through: :staff_x_clients
-    has_many :source_api_ids, through: :source_clients, source: :api_id
     has_many :source_eto_client_lookups, through: :source_clients, source: :eto_client_lookups
     has_many :source_eto_touch_point_lookups, through: :source_clients, source: :eto_touch_point_lookups
     has_many :source_hmis_clients, through: :source_clients, source: :hmis_client
@@ -1507,32 +1505,6 @@ module GrdaWarehouse::Hud
       end
     end
 
-    def accessible_via_api?
-      GrdaWarehouse::Config.get(:eto_api_available) && source_hmis_clients.exists?
-    end
-
-    # If we have source_eto_client_lookups, but are lacking hmis_clients
-    # or our hmis_clients are out of date
-    def requires_api_update?(check_period: 1.day)
-      return false unless accessible_via_api?
-
-      return true if source_eto_client_lookups.distinct.count(:enterprise_guid) > source_hmis_clients.count
-
-      last_updated = source_hmis_clients.pluck(:updated_at).max
-      return last_updated < check_period.ago if last_updated.present?
-
-      true
-    end
-
-    def update_via_api
-      return nil unless accessible_via_api?
-
-      client_ids = source_eto_client_lookups.distinct.pluck(:client_id)
-      if client_ids.any? # rubocop:disable Style/IfUnlessModifier, Style/GuardClause
-        Importing::RunEtoApiUpdateForClientJob.perform_later(destination_id: id, client_ids: client_ids.uniq)
-      end
-    end
-
     def accessible_via_qaaws?
       GrdaWarehouse::Config.get(:eto_api_available) && source_eto_client_lookups.exists?
     end
@@ -1587,21 +1559,6 @@ module GrdaWarehouse::Hud
           EtoApi::Tasks::UpdateEtoData.new.fetch_touch_point(options)
         end
       end.compact
-    end
-
-    def api_status
-      return nil unless accessible_via_api?
-
-      most_recent_update = (source_hmis_clients.pluck(:updated_at) + [api_last_updated_at]).compact.max
-      updating = api_update_in_process
-      # if we think we're updating, but we've been at it for more than 15 minutes
-      # something probably got stuck
-      updating = api_update_started_at < 15.minutes.ago if updating
-      {
-        started_at: api_update_started_at,
-        updated_at: most_recent_update,
-        updating: updating,
-      }
     end
 
     # A useful array of hashes from API data
