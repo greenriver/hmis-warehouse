@@ -106,6 +106,9 @@ class GrdaWarehouse::Utility
       klass.connection.execute("TRUNCATE TABLE #{klass.quoted_table_name} #{modifier(klass)}")
     end
 
+    # Clear the materialized view
+    GrdaWarehouse::ServiceHistoryServiceMaterialized.rebuild!
+
     nil
   end
 

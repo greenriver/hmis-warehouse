@@ -444,7 +444,12 @@ module HudApr::Generators::Shared::Fy2021
       scope = GrdaWarehouse::ServiceHistoryEnrollment.
         entry.
         open_between(start_date: @report.start_date, end_date: @report.end_date).
-        joins(:enrollment)
+        joins(:enrollment).
+        left_outer_joins(enrollment: :enrollment_coc_at_entry).
+        merge(
+          GrdaWarehouse::Hud::EnrollmentCoc.where(CoCCode: @report.coc_codes).
+          or(GrdaWarehouse::Hud::EnrollmentCoc.where(CoCCode: nil)),
+        )
       scope = scope.in_project(@report.project_ids) if @report.project_ids.present? # for consistency with client_scope
       scope
     end

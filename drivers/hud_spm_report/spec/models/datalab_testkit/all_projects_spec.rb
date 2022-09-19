@@ -21,7 +21,7 @@ RSpec.describe 'Datalab Testkit SPM All-Projects', type: :model do
   end
 
   # Pending AAQ
-  xit 'Measure 1a' do
+  it 'Measure 1a' do
     compare_results(
       file_path: result_file_prefix + 'spm',
       question: '1a',
