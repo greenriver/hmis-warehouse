@@ -90,8 +90,8 @@ module BostonProjectScorecard
 
       def days_to_lease_up_score
         return 12 if days_to_lease_up <= 30
-        return 3 if days_to_lease_up <= 60
-        return 2 if days_to_lease_up <= 180
+        return 6 if days_to_lease_up <= 60
+        return 4 if days_to_lease_up <= 180
 
         0
       end

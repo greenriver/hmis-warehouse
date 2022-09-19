@@ -137,7 +137,8 @@ Rails.application.routes.draw do
   # obfuscation of links sent out via email
   resources :tokens, only: [:show]
 
-  resource :filter, only: [:show]
+  match 'filter', to: 'filters#show', via: [:post]
+
 
   resources :reports do
     resources :report_results, path: 'results', only: [:index, :show, :create, :update, :destroy] do
