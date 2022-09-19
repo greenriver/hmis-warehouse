@@ -1619,7 +1619,9 @@ CREATE TABLE public."Project" (
     target_population_override integer,
     tracking_method_override integer,
     operating_end_date_override date,
-    "HOPWAMedAssistedLivingFac" integer
+    "HOPWAMedAssistedLivingFac" integer,
+    description character varying,
+    contact_information character varying
 );
 
 
