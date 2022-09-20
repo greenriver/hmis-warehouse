@@ -284,7 +284,7 @@ module GrdaWarehouse
             consent_form_id: id,
             consented_coc_codes: coc_codes_chosen,
           )
-        elsif no_other_confirmed_consent_files
+        elsif no_other_confirmed_consent_files || consent_form_ids.blank?
           client.invalidate_consent!
         end
       end
