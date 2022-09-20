@@ -1,0 +1,36 @@
+- title = "Enrollment at #{@enrollment.project&.name(current_user)} for #{@client.name} "
+- content_for :title, title
+= render 'clients/anomalies/breadcrumbs'
+%h1= title
+.mb-1
+  %em.text-muted
+    Enrollment ID:
+    %strong= @enrollment.id
+
+.row.mb-6.mt-4
+  .col-6
+    .table-responsive
+      %table.table.table-striped.table-sm
+        %tbody
+          %tr
+            %td Project Type
+            %td= ::HUD.project_type_brief(@service_history_enrollment.computed_project_type)
+          %tr
+            %td Entry Date
+            %td= @enrollment.EntryDate || '-'
+          %tr
+            %td Chronic at Entry
+            %td= yes_no(@enrollment.chronically_homeless_at_start?)
+          %tr
+            %td Prior Living Situation
+            %td= ::HUD.living_situation(@enrollment.LivingSituation) || '-'
+          %tr
+            %td Exit Date
+            %td= @service_history_enrollment.last_date_in_program || '-'
+          - if @service_history_enrollment.move_in_date.present? || @service_history_enrollment.computed_project_type.in?(GrdaWarehouse::Hud::Project::WITH_MOVE_IN_DATES)
+            - move_in_date_inherited = @enrollment.MoveInDate.blank? && @service_history_enrollment.move_in_date.present?
+            %tr
+              %td Move-in Date
+              %td= "#{@service_history_enrollment.move_in_date || '-'} #{move_in_date_inherited ? '(inherited from HoH)' : ''}"
+
+= render 'chronic_at_entry' if @service_history_enrollment.computed_project_type.in?(::GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS)

@@ -170,7 +170,7 @@ module ClientAccessControl::GrdaWarehouse::Hud
               confidential_project: project.confidential,
               entry_date: entry.first_date_in_program,
               living_situation: entry.enrollment.LivingSituation,
-              chronically_homeless_at_start: entry.enrollment.ch_enrollment&.chronically_homeless_at_entry,
+              chronically_homeless_at_start: entry.enrollment.chronically_homeless_at_start?,
               exit_date: entry.last_date_in_program,
               destination: entry.destination,
               move_in_date_inherited: entry.enrollment.MoveInDate.blank? && entry.move_in_date.present?,
