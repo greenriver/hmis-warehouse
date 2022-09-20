@@ -1109,7 +1109,9 @@ CREATE TABLE public.roles (
     can_view_my_vprs boolean DEFAULT false,
     can_search_own_clients boolean DEFAULT false,
     can_view_confidential_project_names boolean DEFAULT false,
-    can_report_on_confidential_projects boolean DEFAULT false
+    can_report_on_confidential_projects boolean DEFAULT false,
+    can_edit_assigned_project_groups boolean DEFAULT false,
+    can_view_chronic_tab boolean DEFAULT false
 );
 
 
