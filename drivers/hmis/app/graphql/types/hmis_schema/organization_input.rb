@@ -3,7 +3,7 @@ module Types
     description 'HMIS Organization input'
 
     argument :organization_name, String, required: false
-    argument :victim_service_provider, Boolean, required: false
+    yes_no_missing_argument :victim_service_provider, required: false
     argument :description, String, required: false
     argument :contact_information, String, required: false
 
