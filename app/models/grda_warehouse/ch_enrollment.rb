@@ -276,7 +276,6 @@ module GrdaWarehouse
       { result: :continue, display_value: value - 100 }
     end
 
-    # TODO: test boundaries days/months for entry/exit, NbN, and SO
     def self.homeless_duration_sufficient(enrollment, date: enrollment.EntryDate)
       steps = [approximate_start_date(enrollment, date: date)]
       return steps if terminating?(steps.last[:result])
