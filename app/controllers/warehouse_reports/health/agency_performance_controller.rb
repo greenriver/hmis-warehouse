@@ -38,6 +38,14 @@ module WarehouseReports::Health
       @agency = Health::Agency.find(@agency_id)
     end
 
+    def describe_computations
+      path = 'app/views/warehouse_reports/health/agency_performance/README.md'
+      description = File.read(path)
+      markdown = Redcarpet::Markdown.new(::TranslatedHtml)
+      markdown.render(description)
+    end
+    helper_method :describe_computations
+
     def set_dates
       @start_date = Date.current.beginning_of_month.to_date
       @end_date = @start_date.end_of_month

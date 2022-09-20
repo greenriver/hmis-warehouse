@@ -96,6 +96,7 @@ module Health
           initial_careplan_overdue: agency_counts.map(&:initial_careplan_overdue).reduce(&:+),
           annual_careplan_due_within_30_days: agency_counts.map(&:annual_careplan_due_within_30_days).reduce(&:+),
           annual_careplan_overdue: agency_counts.map(&:annual_careplan_overdue).reduce(&:+),
+          without_annual_well_care_visit_in_12_months: agency_counts.map(&:without_annual_well_care_visit_in_12_months).reduce(&:+),
           without_f2f_in_past_6_months: agency_counts.map(&:without_f2f_in_past_6_months).reduce(&:+),
           with_discharge_followup_completed_within_range: agency_counts.map(&:with_discharge_followup_completed_within_range).reduce(&:+),
           with_careplans_in_122_days: agency_counts.map(&:with_careplans_in_122_days).reduce(&:+),
