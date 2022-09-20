@@ -26,9 +26,11 @@ module Filter::FilterScopes
       #   merge(GrdaWarehouse::Hud::ProjectCoc.in_coc(coc_code: @filter.coc_codes))
       scope.joins(project: :project_cocs, enrollment: :enrollment_coc_at_entry).
         merge(GrdaWarehouse::Hud::ProjectCoc.in_coc(coc_code: @filter.coc_codes)).
+        # limit enrollment coc to the cocs chosen, and any random thing that's not a valid coc
         merge(
           GrdaWarehouse::Hud::EnrollmentCoc.where(CoCCode: @filter.coc_codes).
-          or(GrdaWarehouse::Hud::EnrollmentCoc.where(CoCCode: nil)),
+          or(GrdaWarehouse::Hud::EnrollmentCoc.where(CoCCode: nil)).
+          or(GrdaWarehouse::Hud::EnrollmentCoc.where.not(CoCCode: HUD.cocs.keys)),
         )
     end
 

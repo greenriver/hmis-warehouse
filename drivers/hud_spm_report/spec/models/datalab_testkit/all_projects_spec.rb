@@ -25,6 +25,15 @@ RSpec.describe 'Datalab Testkit SPM All-Projects', type: :model do
     compare_results(
       file_path: result_file_prefix + 'spm',
       question: '1a',
+      detail_columns: [
+        :last_name,
+        :first_name,
+        :m1a_es_sh_days,
+        :m1a_es_sh_th_days,
+        :m1b_es_sh_ph_days,
+        :m1b_es_sh_th_ph_days,
+        :m1_history,
+      ],
     )
   end
 

@@ -39,7 +39,7 @@ def compare_columns(goal:, question:, column_names:)
   end
 end
 
-def compare_results(goal: nil, file_path:, question:, skip: [])
+def compare_results(goal: nil, file_path:, question:, skip: [], detail_columns: [])
   goal ||= goals(file_path: file_path, question: question)
 
   aggregate_failures 'comparing cells' do
@@ -55,8 +55,16 @@ def compare_results(goal: nil, file_path:, question:, skip: [])
         expected = normalize(raw_expected)
         raw_actual = report_result.answer(question: question, cell: cell_name).summary
         actual = normalize(raw_actual)
-
-        expect(actual).to eq(expected), "#{cell_name}: expected '#{expected}' (#{raw_expected}), got '#{actual}' (#{raw_actual})"
+        error_message = "#{cell_name}: expected '#{expected}' (#{raw_expected}), got '#{actual}' (#{raw_actual})"
+        if detail_columns.present?
+          rows = report_result.answer(question: question, cell: cell_name).
+            members.
+            map(&:universe_membership).
+            map { |m| detail_columns.map { |c| m[c] } }
+          table = [detail_columns] + rows
+          error_message += " details: #{table}"
+        end
+        expect(actual).to eq(expected), error_message
       end
     end
   end
