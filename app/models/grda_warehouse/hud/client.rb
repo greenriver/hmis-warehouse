@@ -2041,7 +2041,7 @@ module GrdaWarehouse::Hud
     end
 
     def ever_veteran?
-      source_clients.map(&:veteran?).include?(true)
+      veteran_override? || source_clients.map(&:veteran?).include?(true)
     end
 
     def adjust_veteran_status
