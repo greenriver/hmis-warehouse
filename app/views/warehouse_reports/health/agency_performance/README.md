@@ -10,7 +10,7 @@
 
 **Care plan renewal overdue**: Patients with annual care plan overdue. Annual care plans are due 12 months after the patient's most recent care plan.
 
-**No annual well care visits in 12 months**: Patients that did not have a comprehensive well-care visit with a PCP or an OB/GYN practicioner in the past 12 months. Such visits are identified by paid claims, as specified by the Mathematica Annual Well-Care Visits Measure calculation. *NOTE:* Claims data is always ~3 months out of date, so any annual well care visits that occured in the past 3 months are not considered.
+**No annual well care visits in 12 months**: Patients that did not have a comprehensive well-care visit with a PCP or an OB/GYN practicioner in the past 12 months. Such visits are identified by paid claims, as specified by the Mathematica Annual Well-Care Visits Measure calculation. *NOTE:* Claims data is approximately 3 months out of date, so any annual well care visits that occured in the past 3 months may not be included.
 
 **No F2F visit in past 6 months**: Patients without QAs for direct face-to-face visits in the past 6 months.
 
