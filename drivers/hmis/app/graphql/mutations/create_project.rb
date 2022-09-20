@@ -8,10 +8,8 @@ module Mutations
     def resolve(input:)
       user = hmis_user
 
-      params = input.to_params
-
       project = Hmis::Hud::Project.new(
-        **params,
+        **input.to_params,
         project_id: Hmis::Hud::Project.generate_project_id,
         data_source_id: user.data_source_id,
         user_id: user.user_id,
