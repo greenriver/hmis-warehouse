@@ -17,12 +17,10 @@
           %td{style: 'max-width: 300px;'}= title
           %td{style: 'max-width: 300px;'}= value
           %td
-            - if result.in? [true, false]
-              %em.text-muted= result ? 'continue' : 'skip'
-            - elsif result.nil?
-              %em.text-muted continue
+            - if result&.in? [:continue, :skip]
+              %em.text-muted= result
             - else
-              %strong= result.upcase
+              %strong= result&.upcase
           %td
             - descriptions.each do |s|
               .mb-1= s

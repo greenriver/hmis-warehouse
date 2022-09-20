@@ -96,68 +96,68 @@ module GrdaWarehouse
     #
     # Each step in the array has this shape:
     # {
-    #    result: Symbol, true, false, or nil
+    #    result: Symbol [:yes, :no, :dk_or_r, :missing, :continue, :skip]
     #    display_value: value to display in chronic-at-entry explanation table
     #    line: [Number] line number in HUD calculation
     # }
     #
-    # Result "nil" means continue processing
-    # Result "false" means continue processing and skip branch
-    # Result "true" means continue processing and enter branch
-    # The last item in the array will have one of (:yes, :no, :dk_or_r, or :missing) as the result
+    # Result :continue means continue processing (and enter branch, if applicable)
+    # Result :skip means continue processing but skip branch
+    # Results :yes, :no, :dk_or_r, or :missing are the final CH status. Only the last step should have one of these as the result.
     def self.chronically_homeless_at_start_steps(enrollment, date: enrollment.EntryDate)
       steps = []
       # Line 1
       steps.push(disabling_condition(enrollment))
-      return steps if steps.last[:result]
+      return steps if terminating?(steps.last[:result])
 
       # Line 3
       steps.push(project_type(enrollment))
-      if steps.last[:result]
+      if steps.last[:result] == :continue
         # Lines 4 - 6
         time_steps = homeless_duration_sufficient(enrollment, date: date)
         steps.push(*time_steps.each_with_index { |s, i| s[:line] = 4 + i })
-        return steps if steps.last[:result]
+        return steps if terminating?(steps.last[:result])
       end
 
       # Line 9
       steps.push(prior_living_sitation_homeless(enrollment))
-      if steps.last[:result]
+      if steps.last[:result] == :continue
         # Lines 10 - 12
         time_steps = homeless_duration_sufficient(enrollment)
         steps.push(*time_steps.each_with_index { |s, i| s[:line] = 10 + i })
-        return steps if steps.last[:result]
+        return steps if terminating?(steps.last[:result])
       end
 
       # Line 14
       steps.push(prior_living_sitation_institutional(enrollment))
-      if steps.last[:result]
+      if steps.last[:result] == :continue
         # Lines 15-16
         los_steps = length_of_stay_previous_sufficient(enrollment)
         steps.push(*los_steps.each_with_index { |s, i| s[:line] = 15 + i })
-        return steps if steps.last[:result]
+        return steps if terminating?(steps.last[:result])
 
         # Lines 17 - 19
         time_steps = homeless_duration_sufficient(enrollment)
         steps.push(*time_steps.each_with_index { |s, i| s[:line] = 17 + i })
-        return steps if steps.last[:result]
+        return steps if terminating?(steps.last[:result])
       end
 
       # Line 21
       steps.push(prior_living_sitation_other(enrollment))
-      if steps.last[:result]
+      if steps.last[:result] == :continue
         # Lines 22-23
         los_steps = length_of_stay_previous_sufficient(enrollment)
         steps.push(*los_steps.each_with_index { |s, i| s[:line] = 22 + i })
-        return steps if steps.last[:result]
+        return steps if terminating?(steps.last[:result])
 
         # Lines 24 - 26
         time_steps = homeless_duration_sufficient(enrollment)
         steps.push(*time_steps.each_with_index { |s, i| s[:line] = 24 + i })
-        return steps if steps.last[:result]
+        return steps if terminating?(steps.last[:result])
       end
 
-      # This matches the last step (26) for clients who were homeless 4-11 months, since 'homeless_duration_sufficient' doesn't check for that
+      # If we got this far, the client is not considered CH.
+      # This also matches the last step (26) for clients who were homeless 4-11 months, since 'homeless_duration_sufficient' doesn't check for that.
       steps.last[:result] = :no
       steps
     end
@@ -171,12 +171,18 @@ module GrdaWarehouse
       return :no if value&.zero?
     end
 
+    def self.terminating?(sym)
+      sym.in?([:yes, :no, :dk_or_r, :missing])
+    end
+
     # Line 1 (3.08)
     def self.disabling_condition(enrollment)
       result = if is_no?(enrollment.DisablingCondition)
         :no
       elsif dk_or_r_or_missing(enrollment.DisablingCondition)
         dk_or_r_or_missing(enrollment.DisablingCondition)
+      else
+        :continue
       end
 
       { result: result, display_value: enrollment.DisablingCondition, line: 1 }
@@ -185,29 +191,29 @@ module GrdaWarehouse
     # Line 3 (2.02.6)
     def self.project_type(enrollment)
       ptype = enrollment.project.computed_project_type
-      result = GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES.include?(ptype)
+      result = GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES.include?(ptype) ? :continue : :skip
       { result: result, display_value: "#{ptype} (#{::HUD.project_type_brief(ptype)})", line: 3 }
     end
 
     # Line 9  (3.917.1)
     def self.prior_living_sitation_homeless(enrollment)
       value = enrollment.LivingSituation
-      result = HUD.homeless_situations(as: :prior).include?(value)
+      result = HUD.homeless_situations(as: :prior).include?(value) ? :continue : :skip
       { result: result, display_value: "#{value} (#{::HUD.living_situation(value)})", line: 9 }
     end
 
     # Line 14 (3.917.1)
     def self.prior_living_sitation_institutional(enrollment)
       value = enrollment.LivingSituation
-      result = HUD.institutional_situations(as: :prior).include?(value)
+      result = HUD.institutional_situations(as: :prior).include?(value) ? :continue : :skip
       { result: result, display_value: "#{value} (#{::HUD.living_situation(value)})", line: 14 }
     end
 
     # Line 21 (3.917.1)
     def self.prior_living_sitation_other(enrollment)
       value = enrollment.LivingSituation
-      result = (HUD.temporary_and_permanent_housing_situations(as: :prior) + HUD.other_situations(as: :prior)).include?(value)
-      { result: result, display_value: "#{value} (#{::HUD.living_situation(value)})", line: 21 }
+      is_other = (HUD.temporary_and_permanent_housing_situations(as: :prior) + HUD.other_situations(as: :prior)).include?(value)
+      { result: is_other ? :continue : :skip, display_value: "#{value} (#{::HUD.living_situation(value)})", line: 21 }
     end
 
     # Lines 4, 10, 17, and 24 (3.917.3)
@@ -219,8 +225,8 @@ module GrdaWarehouse
       else
         (date - ch_start_date).to_i
       end
-      result = days > 365 ? :yes : nil
-      { result: result, display_value: "#{days} days" }
+      result = days > 365 ? :yes : :continue
+      { result: result, display_value: "#{days} days  (#{ch_start_date.strftime('%m/%d/%Y')} - #{date.strftime('%m/%d/%Y')})" }
     end
 
     THREE_OR_FEWER_TIMES_HOMELESS = [1, 2, 3].freeze
@@ -234,6 +240,8 @@ module GrdaWarehouse
         :no
       elsif dk_or_r_or_missing(value)
         dk_or_r_or_missing(value)
+      else
+        :continue
       end
 
       { result: result, display_value: value }
@@ -266,16 +274,16 @@ module GrdaWarehouse
 
       return { result: dk_or_r_or_missing(value), display_value: value } if dk_or_r_or_missing(value)
 
-      { result: nil, display_value: value - 100 }
+      { result: :continue, display_value: value - 100 }
     end
 
     # TODO: test boundaries days/months for entry/exit, NbN, and SO
     def self.homeless_duration_sufficient(enrollment, date: enrollment.EntryDate)
       steps = [approximate_start_date(enrollment, date: date)]
-      return steps if steps.last[:result]
+      return steps if terminating?(steps.last[:result])
 
       steps.push(num_times_homeless(enrollment))
-      return steps if steps.last[:result]
+      return steps if terminating?(steps.last[:result])
 
       steps.push(total_months_homeless(enrollment, date: date))
       steps
@@ -284,10 +292,10 @@ module GrdaWarehouse
     # Add steps for lines 15-16 and lines 22-23
     def self.length_of_stay_previous_sufficient(enrollment)
       steps = []
-      steps.push({ result: is_no?(enrollment.LOSUnderThreshold), display_value: enrollment.LOSUnderThreshold })
-      return steps if steps.last[:result]
+      steps.push({ result: is_no?(enrollment.LOSUnderThreshold) || :continue, display_value: enrollment.LOSUnderThreshold })
+      return steps if terminating?(steps.last[:result])
 
-      steps.push({ result: is_no?(enrollment.PreviousStreetESSH), display_value: enrollment.PreviousStreetESSH })
+      steps.push({ result: is_no?(enrollment.PreviousStreetESSH) || :continue, display_value: enrollment.PreviousStreetESSH })
       steps
     end
 
