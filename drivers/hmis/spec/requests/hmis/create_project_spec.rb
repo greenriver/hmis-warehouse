@@ -27,7 +27,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       'HOPWAMedAssistedLivingFac' => Types::HmisSchema::Enums::HOPWAMedAssistedLivingFac.enum_member_for_value(1).first,
       continuum_project: false,
       residential_affiliation: true,
-      'HMISParticipatingProject' => true,
+      'HMISParticipatingProject' => nil,
     }
   end
 

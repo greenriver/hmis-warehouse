@@ -4,7 +4,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let(:test_input) do
     {
       organization_name: 'Organization 1',
-      victim_service_provider: true,
+      victim_service_provider: nil,
       description: 'A sample organization',
       contact_information: 'Contact for contact information',
     }

@@ -46,9 +46,5 @@ module Types
     def to_params
       self.class.transformer.new(self).to_params
     end
-
-    def trim_keys(hash)
-      hash.transform_keys { |k| k.to_s.gsub(/^_+/, '').to_sym }
-    end
   end
 end

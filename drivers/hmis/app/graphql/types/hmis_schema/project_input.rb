@@ -18,7 +18,7 @@ module Types
     yes_no_missing_argument :HMISParticipatingProject, required: false
 
     def to_params
-      result = trim_keys(to_h.except(:organization_id))
+      result = to_h.except(:organization_id)
 
       result[:organization_id] = Hmis::Hud::Organization.viewable_by(current_user).find_by(id: organization_id)&.organization_id if organization_id.present?
 
