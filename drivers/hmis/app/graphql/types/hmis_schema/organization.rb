@@ -22,6 +22,10 @@ module Types
       resolve_projects_with_loader(:projects, **args)
     end
 
+    def victim_service_provider
+      resolve_yes_no_missing(object.victim_service_provider)
+    end
+
     def self.organizations(scope = Hmis::Hud::Organization.all, user:)
       scope.viewable_by(user)
     end
