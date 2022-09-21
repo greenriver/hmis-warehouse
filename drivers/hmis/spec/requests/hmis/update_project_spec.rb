@@ -101,7 +101,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   it 'should allow nulls, and correctly nullify fields' do
-    p1.update(description: 'foo', operating_end_date: '2022-01-01', housing_type: 3, continuum_project: 1, residential_affiliation: 1, HMISParticipatingProject: 99)
+    p1.update(description: 'foo', operating_end_date: '2022-01-01', housing_type: 3, continuum_project: 0, residential_affiliation: 1, HMISParticipatingProject: 99)
     input = {
       operating_end_date: nil,
       description: nil,
@@ -118,7 +118,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     expect(errors).to be_empty
     expect(project).to include(
       'id' => p1.id.to_s,
-      'organization' => { 'id' => o1.id.to_s },
       'HMISParticipatingProject' => input['HMISParticipatingProject'],
       'continuumProject' => input[:continuum_project],
       'description' => input[:description],
