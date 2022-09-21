@@ -520,7 +520,7 @@ CREATE TABLE public."Client" (
     pronouns character varying,
     sexual_orientation character varying,
     encampment_decomissioned boolean DEFAULT false NOT NULL,
-    "va_verified_veteran?" boolean DEFAULT false
+    va_verified_veteran boolean DEFAULT false
 );
 
 

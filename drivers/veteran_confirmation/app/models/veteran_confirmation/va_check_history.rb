@@ -11,5 +11,9 @@ module VeteranConfirmation
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
 
     scope :recent, -> { order(check_date: :desc).limit(1) }
+
+    def occured_within(days)
+      check_date <= Date.current - days
+    end
   end
 end
