@@ -10,7 +10,7 @@ module VeteranConfirmation
     before_action :set_client
 
     def show
-      @client.check_va_veteran_status
+      @client.check_va_veteran_status(user: current_user)
 
       redirect_to client_path(@client.id)
     end

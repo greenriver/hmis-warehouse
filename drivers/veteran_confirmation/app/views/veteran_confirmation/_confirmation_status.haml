@@ -1,6 +1,6 @@
 &nbsp;
 - if @client.va_check_enabled?
   = link_to 'Query VA', clients_veteran_confirmation_path(@client), class: 'btn btn-secondary btn-sm'
-- if @client.va_check_date.present?
+- if @client.recent_va_check.present?
   %br
-  %em.small VA Checked #{@client.va_check_date}
+  %em.small VA Checked #{@client.recent_va_check.check_date}
