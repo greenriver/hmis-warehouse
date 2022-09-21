@@ -29,16 +29,7 @@ module VeteranConfirmation::GrdaWarehouse::Hud
     end
 
     def check_va_veteran_status(user: nil)
-      checker = VeteranConfirmation::Checker.new
-      query_results = checker.check(GrdaWarehouse::Hud::Client.where(id: id))
-      result = query_results[id] == VeteranConfirmation::Checker::CONFIRMED
-      update(va_verified_veteran: va_verified_veteran? || result)
-      va_check_histories.create(
-        response: query_results[id],
-        check_date: Date.current,
-        user_id: user&.id,
-      )
-      adjust_veteran_status
+      va_check_histories.create(user_id: user&.id).check
     end
   end
 end
