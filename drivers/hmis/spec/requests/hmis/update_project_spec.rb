@@ -96,8 +96,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       'targetPopulation' => test_input[:target_population],
       'trackingMethod' => test_input[:tracking_method],
     )
-    p1.reload
-    expect(p1.description).to eq(test_input[:description])
   end
 
   it 'should allow nulls, and correctly nullify fields' do
