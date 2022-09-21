@@ -520,7 +520,7 @@ CREATE TABLE public."Client" (
     pronouns character varying,
     sexual_orientation character varying,
     encampment_decomissioned boolean DEFAULT false NOT NULL,
-    veteran_override boolean DEFAULT false
+    "va_verified_veteran?" boolean DEFAULT false
 );
 
 
@@ -50822,6 +50822,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220915133927'),
 ('20220915141020'),
 ('20220920192149'),
-('20220921141010');
+('20220921141010'),
+('20220921182035');
 
 

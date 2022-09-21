@@ -22,6 +22,7 @@ module VeteranConfirmation::GrdaWarehouse::Hud
 
     def va_check_enabled?
       return false if veteran?
+      return false if va_verified_veteran?
       return false unless VeteranConfirmation::Credential.exists?
 
       return recent_va_check&.check_date.nil? || recent_va_check.check_date <= Date.current - MIN_DAYS
@@ -31,7 +32,7 @@ module VeteranConfirmation::GrdaWarehouse::Hud
       checker = VeteranConfirmation::Checker.new
       query_results = checker.check(GrdaWarehouse::Hud::Client.where(id: id))
       result = query_results[id] == VeteranConfirmation::Checker::CONFIRMED
-      update(veteran_override: veteran_override || result)
+      update(va_verified_veteran: va_verified_veteran || result)
       va_check_histories.create(
         response: query_results[id],
         check_date: Date.current,
