@@ -7,7 +7,7 @@
 # frozen_string_literal: true
 
 module Types
-  class HmisSchema::ProjectType < Types::BaseEnum
+  class HmisSchema::Enums::ProjectType < Types::BaseEnum
     description 'HUD Project Types'
     graphql_name 'ProjectType'
 

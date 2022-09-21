@@ -1549,7 +1549,9 @@ CREATE TABLE public."Organization" (
     pending_date_deleted timestamp without time zone,
     "VictimServicesProvider" integer,
     "VictimServiceProvider" integer,
-    confidential boolean DEFAULT false NOT NULL
+    confidential boolean DEFAULT false NOT NULL,
+    description character varying,
+    contact_information character varying
 );
 
 
@@ -1617,7 +1619,9 @@ CREATE TABLE public."Project" (
     target_population_override integer,
     tracking_method_override integer,
     operating_end_date_override date,
-    "HOPWAMedAssistedLivingFac" integer
+    "HOPWAMedAssistedLivingFac" integer,
+    description character varying,
+    contact_information character varying
 );
 
 
@@ -53386,6 +53390,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220830142632'),
 ('20220831183303'),
 ('20220901202643'),
-('20220906182407');
+('20220906182407'),
+('20220919161059');
 
 
