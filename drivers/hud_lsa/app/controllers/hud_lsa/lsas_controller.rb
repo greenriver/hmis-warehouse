@@ -23,8 +23,6 @@ module HudLsa
         @report.save!
         HudLsa::RunReportJob.perform_later(@report.id)
 
-        # @report = report_source.from_filter(@filter, report_name, build_for_questions: generator.questions.keys)
-        # generator.new(report: @report).queue
         redirect_to(path_for_history(filter: @filter.to_h))
       else
         render :new
