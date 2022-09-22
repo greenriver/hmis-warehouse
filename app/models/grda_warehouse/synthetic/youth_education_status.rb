@@ -39,7 +39,7 @@ module GrdaWarehouse::Synthetic
     alias CurrentEdStatus current_educational_status
 
     def self.hud_sync
-      # Import synthetic events
+      # Import synthetic youth education status records
       GrdaWarehouse::Synthetic.available_youth_education_status_types.each do |class_name|
         class_name.constantize.sync
       end
