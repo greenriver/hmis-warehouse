@@ -26,7 +26,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       target_population: Types::HmisSchema::Enums::TargetPopulation.enum_member_for_value(4).first,
       'HOPWAMedAssistedLivingFac' => Types::HmisSchema::Enums::HOPWAMedAssistedLivingFac.enum_member_for_value(0).first,
       continuum_project: false,
-      residential_affiliation: false,
+      residential_affiliation: true,
       'HMISParticipatingProject' => false,
     }
   end
@@ -72,12 +72,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     GRAPHQL
   end
 
-  it 'should create a project successfully' do
+  it 'should update a project successfully' do
     response, result = post_graphql(id: p1.id, input: test_input) { mutation }
 
     expect(response.status).to eq 200
     project = result.dig('data', 'updateProject', 'project')
     errors = result.dig('data', 'updateProject', 'errors')
+    expect(errors).to be_empty
     expect(project).to include(
       'id' => p1.id.to_s,
       'organization' => { 'id' => o1.id.to_s },
@@ -95,7 +96,41 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       'targetPopulation' => test_input[:target_population],
       'trackingMethod' => test_input[:tracking_method],
     )
+  end
+
+  it 'should allow nulls, and correctly nullify fields' do
+    p1.update(description: 'foo', operating_end_date: '2022-01-01', housing_type: 3, continuum_project: 0, residential_affiliation: 1, HMISParticipatingProject: 99)
+    input = {
+      operating_end_date: nil,
+      description: nil,
+      housing_type: nil,
+      continuum_project: nil,
+      residential_affiliation: nil,
+      'HMISParticipatingProject' => nil,
+    }
+    response, result = post_graphql(id: p1.id, input: input) { mutation }
+
+    expect(response.status).to eq 200
+    project = result.dig('data', 'updateProject', 'project')
+    errors = result.dig('data', 'updateProject', 'errors')
     expect(errors).to be_empty
+    expect(project).to include(
+      'id' => p1.id.to_s,
+      'HMISParticipatingProject' => input['HMISParticipatingProject'],
+      'continuumProject' => input[:continuum_project],
+      'description' => input[:description],
+      'housingType' => input[:housing_type],
+      'operatingEndDate' => input[:operating_end_date],
+      'residentialAffiliation' => input[:residential_affiliation],
+    )
+
+    p1.reload
+    expect(p1.operating_end_date).to be_nil
+    expect(p1.description).to be_nil
+    expect(p1.housing_type).to be_nil
+    expect(p1.continuum_project).to eq(99)
+    expect(p1.residential_affiliation).to eq(99)
+    expect(p1.HMISParticipatingProject).to eq(99)
   end
 end
 

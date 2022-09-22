@@ -972,9 +972,19 @@ type Query {
   enrollment(id: ID!): Enrollment
 
   """
+  Organization lookup
+  """
+  organization(id: ID!): Organization
+
+  """
   Get a list of organizations
   """
   organizations(sortOrder: OrganizationSortOption): [Organization!]!
+
+  """
+  Project lookup
+  """
+  project(id: ID!): Project
 
   """
   Get a list of projects
