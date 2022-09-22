@@ -9,7 +9,7 @@ module UserPermissionReport::WarehouseReports
     before_action :set_group_associations
 
     def index
-      @users = User.active.
+      @users = User.
         order(:last_name, :first_name).
         includes(:roles, access_groups: @group_associations.keys)
       respond_to do |format|
