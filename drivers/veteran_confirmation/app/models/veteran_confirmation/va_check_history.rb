@@ -6,6 +6,8 @@
 
 module VeteranConfirmation
   class VaCheckHistory < GrdaWarehouseBase
+    include NotifierConfig
+
     self.table_name = :va_check_histories
 
     # Response values
@@ -75,7 +77,10 @@ module VeteranConfirmation
       json_result = JSON.parse(http_response.read_body)
 
       json_result['veteran_status']
-    rescue Exception
+    rescue Exception => e
+      VaCheckHistory.new.
+        setup_notifier('VA Checker').
+        ping(e)
       nil # return no result if there are API problems
     end
 
