@@ -27,7 +27,7 @@
             %td= link_to_if can_view_clients?, client.name, appropriate_client_path(client)
             - @report.column_values(row, current_user).each do |key, value|
               - next if key == :project_type
-              - if key == :days_between
+              - if key.in?([:days_between, :days_between_start_and_exit])
                 %td= number_with_delimiter(value)
               - else
                 %td= value
