@@ -15,12 +15,14 @@
             = link_to '#add-issue', class: 'jAddIssue btn btn-secondary btn-sm ml-auto' do
               %i.icon-plus
               Add Issue
-    - else
+    - elsif @careplan.future_issues?
       %ol.m-4
         - (0..10).each do |i|
           - issue = @careplan["future_issues_#{i}"]
           - if issue.present?
             %li.mb-2= issue
+    - else
+      .l-print__missing No issues provided.
 
 = content_for :page_js do
   :javascript

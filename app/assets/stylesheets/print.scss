@@ -9,6 +9,17 @@
   font-size: 14px;
   font-weight: bold;
 }
+
+.muted {
+  color: #454545;
+}
+
+.l-print__missing,
+.no-data {
+  color: $gray-light;
+  font-style: italic;
+}
+
 // .ssm-print wrapper for ssm from epic to force print styles
 .ssm-print .client__assessment-question {
   padding-bottom: 0.5em;
@@ -146,16 +157,16 @@ footer {
 
 
 $print-layout-header-height: 50px;
-$pdf-default-font-size: 12px;
+$pdf-default-font-size: 14px;
 $pdf-h1-font-size: 20px;
-$pdf-text-line-height: 1.25em;
+$pdf-text-line-height: 1.5em;
 $pdf-table-border-color: darken(#f9f9f9, 3%);
 
 @mixin pdf-heading {
   font-size: $pdf-h1-font-size;
-  border-bottom: 3px solid #CCC;
+  border-bottom: 2px solid #E7E7E7;
   padding-bottom: 5px;
-  color: #091F2F;
+  color: #454545;
   margin-top: 5px;
 }
 
@@ -243,7 +254,7 @@ $pdf-table-border-color: darken(#f9f9f9, 3%);
   }
   dd {
     margin-bottom: 3px;
-    margin-left: 5px;
+    margin-left: 0px;
     &:empty {
       display: none;
     }
@@ -290,9 +301,7 @@ $pdf-table-border-color: darken(#f9f9f9, 3%);
   padding: 0;
   list-style-type: none;
   li {
-
-      margin-right: 50px;
-
+    margin-right: 50px;
   }
 }
 
@@ -323,26 +332,14 @@ $pdf-table-border-color: darken(#f9f9f9, 3%);
   }
 }
 
-.l-print__header,
-.l-print__footer {
-  max-height: $print-layout-header-height;
-  font-family: sans-serif;
+.l-print__coverSheetHeader h1 {
+  font-size: 24px;
+  width: 50%;
+  margin: auto;
+  text-align: center;
+  color: #091F2F;
+  border-bottom: unset;
 }
-
-.l-print__header h1 {
-  font-size: 16px;
-}
-
-.l-print__footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.l-print__footer-page-number {
-  margin-left: auto;
-}
-
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Specific to Care Plan PDF
@@ -510,5 +507,13 @@ $pdf-table-border-color: darken(#f9f9f9, 3%);
 .health__care-hub-note
 {
   padding: 1em;
-  background-color: $gray-025;
+  background-color: #F5F5F5;
+  border: 1px solid #B0B0B0;
+  text-align: center;
+  font-size: 1rem;
+  line-height: 1.5rem;
+  &__content {
+    width: 75%;
+    margin: auto;
+  }
 }

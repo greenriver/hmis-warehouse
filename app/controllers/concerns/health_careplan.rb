@@ -72,15 +72,15 @@ module HealthCareplan
       grover_options = {
         display_url: root_url,
         display_header_footer: true,
-        header_template: header,
+        header_template: header, # spacing????
         footer_template: footer,
         timeout: 50_000,
         format: 'Letter',
         emulate_media: 'print',
         style_tag_options: [{ content: inline_stylesheet_link_tag('print') }],
         margin: {
-          top: '1.5in',
-          bottom: '1.5in',
+          top: '1in',
+          bottom: '1in',
           left: '.4in',
           right: '.4in',
         },
@@ -171,9 +171,9 @@ module HealthCareplan
       # render layout: false
 
       # render(
-      #   pdf: file_name,
+      #   pdf: pdf,
       #   layout: false,
-      #   encoding: "UTF-8",
+      #   encoding: 'UTF-8',
       #   page_size: 'Letter',
       #   header: { html: { template: 'health/careplans/_pdf_header' }, spacing: 1 },
       #   footer: { html: { template: 'health/careplans/_pdf_footer'}, spacing: 5 },
@@ -183,9 +183,9 @@ module HealthCareplan
 
       pdf << careplan_pdf_full
 
-      pdf << CombinePDF.parse(@careplan.health_file.content, allow_optional_content: true) if @careplan.health_file.present?
-      pdf << CombinePDF.parse(@cha.health_file.content, allow_optional_content: true) if @cha.present? && @cha.health_file.present? && @cha.health_file.content_type == 'application/pdf'
-      pdf << CombinePDF.parse(@form.health_file.content, allow_optional_content: true) if @form.present? && @form.is_a?(Health::SelfSufficiencyMatrixForm) && @form.health_file.present?
+      # pdf << CombinePDF.parse(@careplan.health_file.content, allow_optional_content: true) if @careplan.health_file.present?
+      # pdf << CombinePDF.parse(@cha.health_file.content, allow_optional_content: true) if @cha.present? && @cha.health_file.present? && @cha.health_file.content_type == 'application/pdf'
+      # pdf << CombinePDF.parse(@form.health_file.content, allow_optional_content: true) if @form.present? && @form.is_a?(Health::SelfSufficiencyMatrixForm) && @form.health_file.present?
       pdf
     end
   end

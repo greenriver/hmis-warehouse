@@ -16,29 +16,35 @@
 
 = render 'health/careplans/team_members_table'
 
-%article.health-care-plan__about-me.l-print__section--page
+%article.health-care-plan__about-me.l-print__section
   %h1 Strengths and Barriers
   .l-print__item
     %h4 My Health Problems
+    .l-print__missing= 'No answer provided' unless @careplan.patient_health_problems.present?
     = simple_format @careplan.patient_health_problems
   .l-print__item
     %h4 My Strengths (including interests, preferences, and cultural considerations and available informal, caregiver, or social supports, peer supports)
+    .l-print__missing= 'No answer provided' unless @careplan.patient_strengths.present?
+    = @careplan.patient_strengths
     = simple_format @careplan.patient_strengths
   .l-print__item
     %h4 My Barriers
+    .l-print__missing= 'No answer provided' unless @careplan.patient_barriers.present?
     = simple_format @careplan.patient_barriers
-= render 'health/careplans/goals_table'
 
-%article.health-care-plan__issues.l-print__section--page
+%article.health-care-plan__goals.l-print__section.no-break
+  = render 'health/careplans/goals_table'
+
+%article.health-care-plan__issues.l-print__section.no-break
   = render 'health/careplans/future_issues'
 
-%article.health-care-plan__services.l-print__section--page
+%article.health-care-plan__services.l-print__section.no-break
   = render 'health/careplans/service_list'
 
-%article.health-care-plan__equipments.l-print__section--page
+%article.health-care-plan__equipments.l-print__section.no-break
   = render 'health/careplans/equipment_list'
 
-%section.health-care-plan__backup_plans.l-print__section--page.no-break
+%section.health-care-plan__backup_plans.l-print__section.no-break
   %strong
     -if  @careplan.member_understands_contingency
       _X_
