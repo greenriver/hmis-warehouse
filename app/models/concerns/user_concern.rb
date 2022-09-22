@@ -456,9 +456,15 @@ module UserConcern
       User.where(id: team_member_ids)
     end
 
+    # patients with CC or NCM relationship to this user
     def patients
       Health::Patient.where(care_coordinator_id: id).
         or(Health::Patient.where(nurse_care_manager_id: id))
+    end
+
+    # patients with CC relationship to this user
+    def care_coordination_patients
+      Health::Patient.where(care_coordinator_id: id)
     end
 
     private def create_access_group
