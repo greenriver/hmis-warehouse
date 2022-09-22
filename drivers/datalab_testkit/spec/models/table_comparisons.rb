@@ -55,7 +55,7 @@ def compare_results(goal: nil, file_path:, question:, skip: [], detail_columns: 
         expected = normalize(raw_expected)
         raw_actual = report_result.answer(question: question, cell: cell_name).summary
         actual = normalize(raw_actual)
-        error_message = "#{cell_name}: expected '#{expected}' (#{raw_expected}), got '#{actual}' (#{raw_actual})"
+        error_message = "#{question} #{cell_name}: expected '#{expected}' (#{raw_expected}), got '#{actual}' (#{raw_actual})"
         if detail_columns.present?
           rows = report_result.answer(question: question, cell: cell_name).
             members.

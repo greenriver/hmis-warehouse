@@ -150,8 +150,9 @@ module HudApr::Generators::Shared::Fy2021
               apr_client = member.universe_membership
               disability_truths = [
                 apr_client["mental_health_problem_#{suffix}".to_sym] == 1,
-                apr_client["alcohol_abuse_#{suffix}".to_sym],
-                apr_client["drug_abuse_#{suffix}".to_sym],
+                apr_client["alcohol_abuse_#{suffix}".to_sym] && !apr_client["drug_abuse_#{suffix}".to_sym],
+                apr_client["drug_abuse_#{suffix}".to_sym] && !apr_client["alcohol_abuse_#{suffix}".to_sym],
+                apr_client["drug_abuse_#{suffix}".to_sym] && apr_client["alcohol_abuse_#{suffix}".to_sym],
                 apr_client["chronic_disability_#{suffix}".to_sym] == 1,
                 apr_client["hiv_aids_#{suffix}".to_sym] == 1,
                 apr_client["developmental_disability_#{suffix}".to_sym] == 1,
