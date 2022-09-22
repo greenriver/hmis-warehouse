@@ -47,7 +47,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/hud/project.rb",
-      "line": 351,
+      "line": 361,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "where(\"#{access_to_project_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_organization(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_data_source(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_coc_codes(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_project_access_groups(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)}\")",
       "render_path": null,
@@ -57,26 +57,6 @@
         "method": null
       },
       "user_input": "access_to_project_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)",
-      "confidence": "Medium",
-      "note": ""
-    },
-    {
-      "warning_type": "SQL Injection",
-      "warning_code": 0,
-      "fingerprint": "0c076fd1676094a84d9b397a3d82e3fd0e934c358a743c3fee3b3935abfa2e4e",
-      "check_name": "SQL",
-      "message": "Possible SQL injection",
-      "file": "lib/rds_sql_server/lsa/fy2021/lsa_queries.rb",
-      "line": 82,
-      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
-      "code": "SqlServerBase.connection.execute((\"        -- 4.1 Get Project Records for Export\\n        delete from lsa_Project\\n\\n        insert into lsa_Project\\n          (ProjectID, OrganizationID, ProjectName\\n          , OperatingStartDate, OperatingEndDate\\n          , ContinuumProject, ProjectType, HousingType\\n          , TrackingMethod, HMISParticipatingProject\\n          , TargetPopulation\\n          , HOPWAMedAssistedLivingFac\\n          , DateCreated, DateUpdated, ExportID)\\n        select distinct\\n          hp.ProjectID, hp.OrganizationID, left(hp.ProjectName, 100)\\n          , format(hp.OperatingStartDate, 'yyyy-MM-dd')\\n          , case when hp.OperatingEndDate is not null then format(hp.OperatingEndDate, 'yyyy-MM-dd') else null end\\n          , hp.ContinuumProject, hp.ProjectType, hp.HousingType\\n          , hp.TrackingMethod, hp.HMISParticipatingProject\\n          , hp.TargetPopulation\\n          , hp.HOPWAMedAssistedLivingFac\\n          , format(hp.DateCreated, 'yyyy-MM-dd hh:mm:ss')\\n          , format(hp.DateUpdated, 'yyyy-MM-dd hh:mm:ss')\\n          , rpt.ReportID\\n        from hmis_Project hp\\n        inner join lsa_Report rpt on hp.OperatingStartDate <= rpt.ReportEnd\\n        inner join hmis_ProjectCoC coc on coc.CoCCode = rpt.ReportCoC\\n          and coc.ProjectID = hp.ProjectID\\n          and coc.DateDeleted is null\\n        where hp.DateDeleted is null\\n          and hp.ContinuumProject = 1\\n          and hp.ProjectType in (1,2,3,8,9,10,13)\\n          and hp.OperatingStartDate <= rpt.ReportEnd\\n          and (hp.OperatingEndDate is null\\n            or\\t(hp.OperatingEndDate >= '10/1/2012'\\n              and hp.OperatingEndDate > hp.OperatingStartDate)\\n            )\\n\" + \"and hp.ProjectID in(#{project_ids.join(\",\")})\"))",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "LsaSqlServer::LSAQueries",
-        "method": "insert_projects"
-      },
-      "user_input": "project_ids.join(\",\")",
       "confidence": "Medium",
       "note": ""
     },
@@ -167,7 +147,7 @@
       "check_name": "FileAccess",
       "message": "Parameter value used in file name",
       "file": "drivers/client_access_control/app/controllers/client_access_control/history_controller.rb",
-      "line": 88,
+      "line": 97,
       "link": "https://brakemanscanner.org/docs/warning_types/file_access/",
       "code": "File.open(Rails.root.join(\"tmp\", \"service_history_pdf_#{::GrdaWarehouse::Hud::Client.destination.find(params[:client_id].to_i).id}.pdf\"), \"wb\")",
       "render_path": null,
@@ -345,7 +325,7 @@
           "type": "controller",
           "class": "ImportsController",
           "method": "show",
-          "line": 29,
+          "line": 24,
           "file": "app/controllers/imports_controller.rb",
           "rendered": {
             "name": "imports/show",
@@ -424,10 +404,10 @@
     {
       "warning_type": "SQL Injection",
       "warning_code": 0,
-      "fingerprint": "272577b25ace5d12aad5795f8022c11e5257a7e060bf3005e821efebdcc4acfd",
+      "fingerprint": "25d28895cd8c28107ce7787e8a0d20c3123f46547dcb6a29559bb11780b3c84e",
       "check_name": "SQL",
       "message": "Possible SQL injection",
-      "file": "lib/rds_sql_server/lsa/fy2021/lsa_queries.rb",
+      "file": "lib/rds_sql_server/lsa/fy2022/lsa_queries.rb",
       "line": 24,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "SqlServerBase.connection.execute(\"#{File.read(step)}\\n\")",
@@ -753,6 +733,26 @@
       "note": ""
     },
     {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "5138cf31b12ce1475723ea4c463eaa7cc227aec34b5ad5bce812072603f3f606",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "lib/rds_sql_server/lsa/fy2022/lsa_queries.rb",
+      "line": 82,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "SqlServerBase.connection.execute((\"        -- 4.1 Get Project Records for Export\\n        delete from lsa_Project\\n\\n        insert into lsa_Project\\n          (ProjectID, OrganizationID, ProjectName\\n          , OperatingStartDate, OperatingEndDate\\n          , ContinuumProject, ProjectType, HousingType\\n          , TrackingMethod, HMISParticipatingProject\\n          , TargetPopulation\\n          , HOPWAMedAssistedLivingFac\\n          , DateCreated, DateUpdated, ExportID)\\n        select distinct\\n          hp.ProjectID, hp.OrganizationID, left(hp.ProjectName, 100)\\n          , format(hp.OperatingStartDate, 'yyyy-MM-dd')\\n          , case when hp.OperatingEndDate is not null then format(hp.OperatingEndDate, 'yyyy-MM-dd') else null end\\n          , hp.ContinuumProject, hp.ProjectType, hp.HousingType\\n          , hp.TrackingMethod, hp.HMISParticipatingProject\\n          , hp.TargetPopulation\\n          , hp.HOPWAMedAssistedLivingFac\\n          , format(hp.DateCreated, 'yyyy-MM-dd hh:mm:ss')\\n          , format(hp.DateUpdated, 'yyyy-MM-dd hh:mm:ss')\\n          , rpt.ReportID\\n        from hmis_Project hp\\n        inner join lsa_Report rpt on hp.OperatingStartDate <= rpt.ReportEnd\\n        inner join hmis_ProjectCoC coc on coc.CoCCode = rpt.ReportCoC\\n          and coc.ProjectID = hp.ProjectID\\n          and coc.DateDeleted is null\\n        where hp.DateDeleted is null\\n          and hp.ContinuumProject = 1\\n          and hp.ProjectType in (1,2,3,8,9,10,13)\\n          and hp.OperatingStartDate <= rpt.ReportEnd\\n          and (hp.OperatingEndDate is null\\n            or\\t(hp.OperatingEndDate >= '10/1/2012'\\n              and hp.OperatingEndDate > hp.OperatingStartDate)\\n            )\\n\" + \"and hp.ProjectID in(#{project_ids.join(\",\")})\"))",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "LsaSqlServer::LSAQueries",
+        "method": "insert_projects"
+      },
+      "user_input": "project_ids.join(\",\")",
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
       "warning_type": "Cross-Site Scripting",
       "warning_code": 2,
       "fingerprint": "51ec304bfb996e9d40ff69207ead86771b77a085b4a1bee4454fa4821f70fa70",
@@ -968,7 +968,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "drivers/claims_reporting/app/models/claims_reporting/medical_claim.rb",
-      "line": 210,
+      "line": 217,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "connection.execute(\"UPDATE #{quoted_table_name}\\nSET enrolled_days=t.enrolled_days, engaged_days=t.engaged_days\\nFROM (VALUES #{[\"(#{connection.quote(claim.id)},#{connection.quote((enrolled_dates[claim.service_start_date] or 0))},#{connection.quote((if (nil or claim.service_start_date) then\n  if (claim.service_start_date < (nil or claim.service_start_date)) then\n    raise(\"claim data out of order\")\n  end\n  previous_day = ((nil or claim.service_start_date) - 1.day)\n  pre_engaged_enrolled_days = (enrolled_dates[((nil or claim.service_start_date) - 1.day)] or 0)\n  ((enrolled_dates[claim.service_start_date] or 0) - (enrolled_dates[((nil or claim.service_start_date) - 1.day)] or 0)).clamp(0, (enrolled_dates[claim.service_start_date] or 0))\nelse\n  0\nend))})\"].join(\",\")}) AS t (id, enrolled_days, engaged_days)\\nWHERE #{quoted_table_name}.id = t.id\\n\")",
       "render_path": null,
@@ -1350,7 +1350,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/hud/organization.rb",
-      "line": 66,
+      "line": 67,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "where(\"#{has_access_to_organization_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_organization_through_data_source(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)}\")",
       "render_path": null,
@@ -1470,7 +1470,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/hud/organization.rb",
-      "line": 54,
+      "line": 55,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "where(\"#{has_access_to_organization_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_organization_through_data_source(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_organization_through_projects(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)}\")",
       "render_path": null,
@@ -2603,6 +2603,6 @@
       "note": ""
     }
   ],
-  "updated": "2022-08-08 20:24:44 +0000",
+  "updated": "2022-09-16 20:10:21 +0000",
   "brakeman_version": "5.0.4"
 }
