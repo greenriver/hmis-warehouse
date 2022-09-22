@@ -7,6 +7,9 @@ wb.add_worksheet(name: 'User Permissions') do |sheet|
   sheet.add_row([
     'Name',
     'Email',
+    'Status',
+    'Agency',
+    'Last Login',
     'Roles',
     'Access Groups',
     *@group_associations.keys.map { |ga| ga.to_s.humanize.titleize }
@@ -16,6 +19,9 @@ wb.add_worksheet(name: 'User Permissions') do |sheet|
     row = [
       user.name,
       user.email,
+      user.overall_status(current_user).join('; '),
+      user.agency_name,
+      user.last_sign_in_at&.to_time&.to_s(:db),
       user.roles.map(&:name).join(', '),
       user.access_groups.filter(&:general?).map(&:name).join(', '),
       *@group_associations.keys.map { |ga| associated_items(user, ga)[:names].join(', ') }
