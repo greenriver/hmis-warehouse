@@ -1,3 +1,4 @@
+- f ||= ''
 - enabled = @careplan.editable?
 .c-card
   .c-card__header.c-card__header--external
@@ -6,6 +7,10 @@
       = link_to polymorphic_path([:new] + health_path_generator + [:backup_plan]), class: 'btn btn-secondary btn-sm ml-auto', data: { loads_in_pjax_modal: true } do
         %i.icon-plus
         Add Backup Plan
+  - if enabled && f.present?
+    = f.input :member_understands_contingency, label: 'Member understands contingency plan described below if care coordinator is needed but not available', disabled: @careplan.locked?
+  - else
+    .l-print__item= "#{@careplan.member_understands_contingency ? '_X_' : '____'} Member understands contingency plan described below if care coordinator is needed but not available"
   .c-card__content.c-card__content--flush
     - if enabled
       = render 'health/backup_plans/backup_plan_list'

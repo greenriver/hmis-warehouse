@@ -517,3 +517,10 @@ $pdf-table-border-color: darken(#f9f9f9, 3%);
     margin: auto;
   }
 }
+
+.health-care-plan__services,
+.health-care-plan__equipments {
+  h3 {
+    margin-bottom: 0px
+  }
+}
