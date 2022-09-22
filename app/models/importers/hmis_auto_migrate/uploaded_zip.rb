@@ -88,7 +88,7 @@ module Importers::HmisAutoMigrate
             }
 
             set timeout -1
-            spawn zipcloak -d --output-file #{Rails.root.join(dest_file)} #{Rails.root.join(zip_file)}
+            spawn zipcloak -d --output-file "#{Rails.root.join(dest_file)}" "#{Rails.root.join(zip_file)}"
             match_max 100000
             expect -exact "Enter password: "
             send -- "#{@file_password}\r"
