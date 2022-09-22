@@ -59,7 +59,7 @@ module GrdaWarehouse::Synthetic
         youth_education_status_source.import(
           to_import.compact,
           on_duplicate_key_update: {
-            conflict_target: ['"YouthEducationStatusID"', :data_source_id],
+            conflict_target: [connection.quote_column_name('YouthEducationStatusID'), :data_source_id],
             columns: youth_education_status_source.hmis_configuration(version: '2022').keys,
           },
         )
