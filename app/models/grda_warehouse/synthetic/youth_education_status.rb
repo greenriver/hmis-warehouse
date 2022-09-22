@@ -48,7 +48,7 @@ module GrdaWarehouse::Synthetic
 
       # Clean up orphans in HUD table
       GrdaWarehouse::Hud::YouthEducationStatus.
-        where(synthetic: true).
+        synthetic.
         where.not(YouthEducationStatusID: select(:hud_youth_education_status_youth_education_status_id)).
         delete_all
     end
