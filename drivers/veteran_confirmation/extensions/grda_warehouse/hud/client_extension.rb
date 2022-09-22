@@ -14,7 +14,7 @@ module VeteranConfirmation::GrdaWarehouse::Hud
     included do
       has_many :va_check_histories, class_name: 'VeteranConfirmation::VaCheckHistory'
       has_one :recent_va_check, -> do
-        merge(VeteranConfirmation::VaCheckHistory.recent)
+        merge(VeteranConfirmation::VaCheckHistory.most_recent_first.limit(1))
       end, class_name: 'VeteranConfirmation::VaCheckHistory'
     end
 
@@ -29,7 +29,7 @@ module VeteranConfirmation::GrdaWarehouse::Hud
     end
 
     def check_va_veteran_status(user: nil)
-      va_check_histories.create(user_id: user&.id).check
+      va_check_histories.new(user_id: user&.id).check
     end
   end
 end

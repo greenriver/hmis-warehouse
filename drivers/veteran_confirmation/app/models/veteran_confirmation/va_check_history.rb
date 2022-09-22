@@ -14,20 +14,24 @@ module VeteranConfirmation
 
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
 
-    scope :recent, -> { order(check_date: :desc).limit(1) }
+    scope :most_recent_first, -> { order(check_date: :desc) }
+
+    validates :response, presence: true
 
     def occured_within(days)
       check_date.present? && check_date <= Date.current - days
     end
 
     def check
-      query_results = self.class.check(::GrdaWarehouse::Hud::Client.where(id: client_id))
+      query_result = self.class.check(::GrdaWarehouse::Hud::Client.where(id: client_id))[client_id]
+      return unless query_result.present?
+
       update!(
-        response: query_results[client_id],
+        response: query_result,
         check_date: Date.current,
       )
 
-      result = query_results[id] == CONFIRMED
+      result = query_result == CONFIRMED
       client.update!(va_verified_veteran: client.va_verified_veteran? || result)
       client.adjust_veteran_status
     end
@@ -42,7 +46,8 @@ module VeteranConfirmation
           limiter = RateLimiter.new
           batch.each do |client|
             client_id = client.id
-            results[client_id] = status(client)
+            result = status(client)
+            results[client_id] = result if result.present?
           end
           # Avoid rate limiting at the end of the run
           limiter.drain if client_id != last_client_id
@@ -70,6 +75,8 @@ module VeteranConfirmation
       json_result = JSON.parse(http_response.read_body)
 
       json_result['veteran_status']
+    rescue Exception
+      nil # return no result if there are API problems
     end
 
     def self.credentials
