@@ -15,7 +15,8 @@
         .d-flex
           .d-flex
             = @report.describe_filter_as_html
-          .ml-auto.nobr= link_to 'View universe details', filter_path(filter: @report.filter.to_h, selected_keys: @report.known_params), data: { loads_in_ajax_modal: true }
+          .ml-auto.nobr
+            = render 'filters/view_filter_details', filter_hash: @report.filter.to_h, selected_keys: @report.known_params
       - content_for :panel_collapse_heading_universe do
         .d-flex.pt-4
           %h2.mb-4.mr-6 Chosen Universe

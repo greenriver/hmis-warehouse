@@ -17,13 +17,13 @@
           With Signed Care Plan
         %th
           .agency-performance__category.mb-1 Quality
-          Initial care plan due within 31 days
+          Initial care plan due within 30 days to meet Quality Metric
         %th
           .agency-performance__category.mb-1 Payment
-          Initial care plan due within 28 days
+          Initial care plan due within 30 days for payment
         %th
           .agency-performance__category.mb-1 Payment
-          Initial care plan overdue
+          Initial care plan overdue - no payment
         %th
           .agency-performance__category.mb-1 Quality
           Annual care plan due within 30 days
@@ -83,15 +83,15 @@
 
           %td.text-right
             - scope = entity.without_initial_careplan_90_122_days
-            - title = "#{pluralize(scope.size, 'Patient')} with Initial Care Plan due within 31 days (90-121 days since enrollment)"
+            - title = "#{pluralize(scope.size, 'Patient')} with Initial care plan due within 30 days to meet Quality Metric"
             =render 'warehouse_reports/health/agency_performance/table_cell', permission: permission, entity_slug: entity_slug, scope: scope, title: title, detail_path: detail_path
           %td.text-right
             - scope = entity.without_initial_careplan_122_150_days
-            - title = "#{pluralize(scope.size, 'Patient')} with Initial Care Plan due within 28 days (122-149 days since enrollment)"
+            - title = "#{pluralize(scope.size, 'Patient')} with Initial care plan due within 30 days for payment"
             =render 'warehouse_reports/health/agency_performance/table_cell', permission: permission, entity_slug: entity_slug, scope: scope, title: title, detail_path: detail_path
           %td.text-right
             - scope = entity.initial_careplan_overdue
-            - title = "#{pluralize(scope.size, 'Patient')} with Initial Care Plan Overdue"
+            - title = "#{pluralize(scope.size, 'Patient')} with Initial Care Plan Overdue - no payment"
             =render 'warehouse_reports/health/agency_performance/table_cell', permission: permission, entity_slug: entity_slug, scope: scope, title: title, detail_path: detail_path
           %td.text-right
             - scope = entity.annual_careplan_due_within_30_days
@@ -175,3 +175,7 @@
           $(this).removeAttr('data-disable-with');
         });
       });
+
+- default_open ||= 'no'
+.mt-4
+  = render 'warehouse_reports/outcomes/shared/computation_description', default_open: default_open

@@ -52,5 +52,21 @@ module Types
     def enrollment(id:)
       Hmis::Hud::Enrollment.viewable_by(current_user).find_by(id: id)
     end
+
+    field :organization, Types::HmisSchema::Organization, 'Organization lookup', null: true do
+      argument :id, ID, required: true
+    end
+
+    def organization(id:)
+      Hmis::Hud::Organization.viewable_by(current_user).find_by(id: id)
+    end
+
+    field :project, Types::HmisSchema::Project, 'Project lookup', null: true do
+      argument :id, ID, required: true
+    end
+
+    def project(id:)
+      Hmis::Hud::Project.viewable_by(current_user).find_by(id: id)
+    end
   end
 end
