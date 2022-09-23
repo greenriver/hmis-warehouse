@@ -2,17 +2,18 @@
 - content_for :title, title
 
 .l-print.hide-blank-page
-  =render 'health/careplans/pctp'
+  .l-print__section--page
+    =render 'health/careplans/pctp'
 
-  %article.health-care-plan__cha.l-print__section--page
+  %article.l-print__section--page.health-care-plan__cha
     %h1 Comprehensive Health Assessment
     = render 'health/comprehensive_health_assessments/show'
 
-  = render 'health/careplans/pctp_signatures'
-
-  %article.health-care-plan__ssm
+  %article.l-print__section--page.health-care-plan__ssm
     %h1 Self-Sufficiency Matrix
     - if @form.is_a? GrdaWarehouse::HmisForm
       .ssm-print= render @ssm_partial
     - elsif @ssm_partial
       = render @ssm_partial
+
+  = render 'health/careplans/pctp_signatures'

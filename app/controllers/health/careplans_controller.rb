@@ -57,7 +57,6 @@ module Health
     def show
       @pdf = true
       @html = false
-
       # if careplan is editable, we need these variables used by list partials
       if @careplan.editable?
         @services = @patient.services

@@ -1,4 +1,4 @@
-@import 'application/_settings/colors';
+@import 'application/modules/_ssm';
 
 .cha__section .cha__help-text,
 .cha__section .client__assessment-question,
@@ -9,7 +9,7 @@
   font-weight: bold;
 }
 
-.muted {
+.muted, .gray {
   color: #454545;
 }
 
@@ -365,6 +365,20 @@ $pdf-table-border-color: darken(#f9f9f9, 3%);
   }
 }
 
+.l-print .ssm__metadata {
+  dd.breaker {
+    display: inline !important;
+    margin-left: 10%;
+  }
+}
+.l-print .ssm__row {
+  border-bottom: 1px solid $gray-020;
+}
+.l-print .ssm__row__question-answer {
+  font-size: $pdf-default-font-size;
+  line-height: $pdf-text-line-height;
+}
+
 .l-print .client__assessment-question,
 .l-print .client__assessment-answer {
   margin-bottom: 2px;
@@ -400,29 +414,6 @@ $pdf-table-border-color: darken(#f9f9f9, 3%);
   margin-top: 0;
   padding-left: 10px;
   page-break-inside: avoid;
-}
-
-
-.l-print .client__assessment-totals {
-  padding-top: 5px;
-  page-break-inside: avoid;
-}
-
-.l-print .client__assessment-total {
-  display: inline-block;
-  vertical-align: top;
-  margin-right: 50px;
-  &:last-of-type {
-    margin: 0
-  }
-  .client__assessment-question {
-    font-weight: bold;
-    white-space: nowrap;
-  }
-  .client__assessment-answer {
-    font-weight: bold;
-    font-size: 20px;
-  }
 }
 
 .l-print .health-care-plan__cha {
