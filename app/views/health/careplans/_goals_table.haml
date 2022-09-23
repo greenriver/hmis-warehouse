@@ -11,18 +11,18 @@
       %dl
         %dt Goal Description
         %dd
-          .l-print__missing= 'No answer provided' unless goal.goal_details&.strip&.present?
+          .no-data= 'No answer provided' unless goal.goal_details&.strip&.present?
           =simple_format goal.goal_details
 
         %dt Start Date
         %dd
-          .l-print__missing= 'No answer provided' unless goal.start_date.present?
+          .no-data= 'No answer provided' unless goal.start_date.present?
           =goal.start_date
 
         %dt Responsible Care Team Member
         - responsible_team_member = @patient.available_team_members.to_h.invert[goal[:responsible_team_member_id]]
         %dd
-          .l-print__missing= 'No responsible team member' unless responsible_team_member.present?
+          .no-data= 'No responsible team member' unless responsible_team_member.present?
           = responsible_team_member
       %table.table.table-sm.datatable-goal
         %thead
@@ -33,7 +33,7 @@
           - if !goal.action_steps?
             %tr
               %td{colspan: 2}
-                .l-print__missing No action steps provided
+                .no-data No action steps provided
           - else
             - (0..9).each do |i|
               - action_step = goal["action_step_#{i}"]

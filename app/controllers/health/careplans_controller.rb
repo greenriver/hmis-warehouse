@@ -55,12 +55,16 @@ module Health
     end
 
     def show
+      @pdf = true
+      @html = false
       pdf = careplan_combine_pdf_object
-      file_name = 'care_plan'
+      file_name = "care_plan_#{DateTime.current.to_s(:db)}"
       send_data pdf.to_pdf, filename: "#{file_name}.pdf", type: 'application/pdf'
     end
 
     def edit
+      @pdf = false
+      @html = true
       @modal_size = :xl
       @form_url = polymorphic_path(careplan_path_generator)
       @form_button = 'Save Care Plan'

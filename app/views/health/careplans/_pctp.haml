@@ -20,16 +20,16 @@
   %h1 Strengths and Barriers
   .l-print__item
     %h4 My Health Problems
-    .l-print__missing= 'No answer provided' unless @careplan.patient_health_problems.present?
+    .no-data= 'No answer provided' unless @careplan.patient_health_problems.present?
     = simple_format @careplan.patient_health_problems
   .l-print__item
     %h4 My Strengths (including interests, preferences, and cultural considerations and available informal, caregiver, or social supports, peer supports)
-    .l-print__missing= 'No answer provided' unless @careplan.patient_strengths.present?
+    .no-data= 'No answer provided' unless @careplan.patient_strengths.present?
     = @careplan.patient_strengths
     = simple_format @careplan.patient_strengths
   .l-print__item
     %h4 My Barriers
-    .l-print__missing= 'No answer provided' unless @careplan.patient_barriers.present?
+    .no-data= 'No answer provided' unless @careplan.patient_barriers.present?
     = simple_format @careplan.patient_barriers
 
 %article.health-care-plan__goals.l-print__section.no-break

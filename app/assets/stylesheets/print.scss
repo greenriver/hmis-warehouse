@@ -1,5 +1,4 @@
-@import
-  'application/_settings/colors';
+@import 'application/_settings/colors';
 
 .cha__section .cha__help-text,
 .cha__section .client__assessment-question,
@@ -14,7 +13,6 @@
   color: #454545;
 }
 
-.l-print__missing,
 .no-data {
   color: $gray-light;
   font-style: italic;
