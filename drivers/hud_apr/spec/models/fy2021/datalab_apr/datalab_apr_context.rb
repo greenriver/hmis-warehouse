@@ -14,11 +14,6 @@ RSpec.shared_context 'datalab apr context', shared_context: :metadata do
     ::Filters::HudFilterBase.new(shared_filter_spec.merge(project_ids: Array.wrap(project_ids)))
   end
 
-  def rrh_1_filter
-    project_id = GrdaWarehouse::Hud::Project.find_by(ProjectID: '808').id
-    project_ids_filter(project_id)
-  end
-
   def run(filter)
     generator = HudApr::Generators::Apr::Fy2021::Generator
     generator.new(::HudReports::ReportInstance.from_filter(filter, generator.title, build_for_questions: generator.questions.keys)).run!(email: false)

@@ -5,9 +5,11 @@
 ###
 
 require 'rails_helper'
+require_relative '../../../../../datalab_testkit/spec/models/datalab_testkit_context'
 require_relative 'datalab_ce_apr_context'
 
 RSpec.describe 'Datalab 2021 CE APR - CE and ES', type: :model do
+  include_context 'datalab testkit context'
   include_context 'datalab ce apr context'
 
   before(:all) do
@@ -22,7 +24,7 @@ RSpec.describe 'Datalab 2021 CE APR - CE and ES', type: :model do
   it 'Q4a' do
     question = 'Q4a'
     goals = goals(
-      file_path: result_file_prefix + 'ce_and_es',
+      file_path: result_file_prefix + 'ce_apr/ce_and_es_ee_esg_2',
       question: question,
     )
     compare_columns(goal: goals, question: question, column_names: ['C', 'D'])
@@ -30,14 +32,14 @@ RSpec.describe 'Datalab 2021 CE APR - CE and ES', type: :model do
 
   it 'Q5a' do
     compare_results(
-      file_path: result_file_prefix + 'ce_and_es',
+      file_path: result_file_prefix + 'ce_apr/ce_and_es_ee_esg_2',
       question: 'Q5a',
     )
   end
 
   it 'Q6a' do
     compare_results(
-      file_path: result_file_prefix + 'ce_and_es',
+      file_path: result_file_prefix + 'ce_apr/ce_and_es_ee_esg_2',
       question: 'Q6a',
       skip: [ # Pending AAQ
         'D3',
@@ -51,42 +53,42 @@ RSpec.describe 'Datalab 2021 CE APR - CE and ES', type: :model do
 
   it 'Q7a' do
     compare_results(
-      file_path: result_file_prefix + 'ce_and_es',
+      file_path: result_file_prefix + 'ce_apr/ce_and_es_ee_esg_2',
       question: 'Q7a',
     )
   end
 
   it 'Q8a' do
     compare_results(
-      file_path: result_file_prefix + 'ce_and_es',
+      file_path: result_file_prefix + 'ce_apr/ce_and_es_ee_esg_2',
       question: 'Q8a',
     )
   end
 
   it 'Q9a' do
     compare_results(
-      file_path: result_file_prefix + 'ce_and_es',
+      file_path: result_file_prefix + 'ce_apr/ce_and_es_ee_esg_2',
       question: 'Q9a',
     )
   end
 
   it 'Q9b' do
     compare_results(
-      file_path: result_file_prefix + 'ce_and_es',
+      file_path: result_file_prefix + 'ce_apr/ce_and_es_ee_esg_2',
       question: 'Q9b',
     )
   end
 
   it 'Q9c' do
     compare_results(
-      file_path: result_file_prefix + 'ce_and_es',
+      file_path: result_file_prefix + 'ce_apr/ce_and_es_ee_esg_2',
       question: 'Q9c',
     )
   end
 
   it 'Q9d' do
     compare_results(
-      file_path: result_file_prefix + 'ce_and_es',
+      file_path: result_file_prefix + 'ce_apr/ce_and_es_ee_esg_2',
       question: 'Q9d',
       skip: [
         'B23', # Rounding difference
@@ -96,7 +98,7 @@ RSpec.describe 'Datalab 2021 CE APR - CE and ES', type: :model do
 
   it 'Q10' do
     compare_results(
-      file_path: result_file_prefix + 'ce_and_es',
+      file_path: result_file_prefix + 'ce_apr/ce_and_es_ee_esg_2',
       question: 'Q10',
     )
   end

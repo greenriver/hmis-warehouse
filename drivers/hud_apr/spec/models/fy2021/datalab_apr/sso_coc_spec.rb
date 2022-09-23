@@ -14,7 +14,9 @@ RSpec.describe 'Datalab 2021 APR - services_only', type: :model do
 
   before(:all) do
     setup
-    run(project_type_filter(GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING[:services_only]))
+    # Current version only runs against one project
+    project_ids = GrdaWarehouse::Hud::Project.where(ProjectName: 'DataLab - SSO CoC').pluck(:id)
+    run(project_ids_filter(project_ids))
   end
 
   after(:all) do
