@@ -57,6 +57,14 @@ module Health
     def show
       @pdf = true
       @html = false
+
+      # if careplan is editable, we need these variables used by list partials
+      if @careplan.editable?
+        @services = @patient.services
+        @equipments = @patient.equipments
+        @backup_plans = @careplan.backup_plans
+      end
+
       pdf = careplan_combine_pdf_object
       file_name = "care_plan_#{DateTime.current.to_s(:db)}"
       send_data pdf.to_pdf, filename: "#{file_name}.pdf", type: 'application/pdf'
@@ -70,6 +78,7 @@ module Health
       @form_button = 'Save Care Plan'
       @services = @patient.services
       @equipments = @patient.equipments
+      @backup_plans = @careplan.backup_plans
       @disable_goal_actions = @careplan.locked?
       # make sure we have the most recent-services and DME if
       # the plan is editable
@@ -78,6 +87,9 @@ module Health
       @careplan.archive_services
       @careplan.archive_equipment
       @careplan.archive_backup_plans
+      # what about goals?
+      # archive_goals
+      # archive_team_members
       @careplan.save
     end
 

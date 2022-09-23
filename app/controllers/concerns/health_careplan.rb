@@ -149,6 +149,7 @@ module HealthCareplan
         @careplan.archive_services
         @careplan.archive_equipment
         @careplan.archive_goals
+        @careplan.archive_backup_plans
         @careplan.archive_team_members
         @careplan.save
       end

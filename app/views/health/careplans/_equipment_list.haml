@@ -8,8 +8,10 @@
         Add Equipment Item
   .c-card__content.c-card__content--flush
     - if enabled
+      -# Show all equipment for this patient
       = render 'health/durable_equipments/equipment_list'
     - else
+      -# Show archived equipment for this care plan
       - if @careplan.equipment_archive.any?
         %table.table.health-care-plan__equipment-list
           %thead

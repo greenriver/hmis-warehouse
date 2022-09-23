@@ -1,6 +1,6 @@
 %h1 Goals
 %p
-  %em *Include at least one member health improvement goal.
+  %em Include at least one member health improvement goal.
 .l-print__item-wrapper
   - if @careplan.locked?
     - goals = @careplan.goals_archive.map{|m| m['type'].safe_constantize.new(m)}
