@@ -199,21 +199,24 @@ module GrdaWarehouse
     def self.prior_living_sitation_homeless(enrollment)
       value = enrollment.LivingSituation
       result = HUD.homeless_situations(as: :prior).include?(value) ? :continue : :skip
-      { result: result, display_value: "#{value} (#{::HUD.living_situation(value)})", line: 9 }
+      display_value = value ? "#{value} (#{::HUD.living_situation(value)})" : ''
+      { result: result, display_value: display_value, line: 9 }
     end
 
     # Line 14 (3.917.1)
     def self.prior_living_sitation_institutional(enrollment)
       value = enrollment.LivingSituation
       result = HUD.institutional_situations(as: :prior).include?(value) ? :continue : :skip
-      { result: result, display_value: "#{value} (#{::HUD.living_situation(value)})", line: 14 }
+      display_value = value ? "#{value} (#{::HUD.living_situation(value)})" : ''
+      { result: result, display_value: display_value, line: 14 }
     end
 
     # Line 21 (3.917.1)
     def self.prior_living_sitation_other(enrollment)
       value = enrollment.LivingSituation
       is_other = (HUD.temporary_and_permanent_housing_situations(as: :prior) + HUD.other_situations(as: :prior)).include?(value)
-      { result: is_other ? :continue : :skip, display_value: "#{value} (#{::HUD.living_situation(value)})", line: 21 }
+      display_value = value ? "#{value} (#{::HUD.living_situation(value)})" : ''
+      { result: is_other ? :continue : :skip, display_value: display_value, line: 21 }
     end
 
     # Lines 4, 10, 17, and 24 (3.917.3)
