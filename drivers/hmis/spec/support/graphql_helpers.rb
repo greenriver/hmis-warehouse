@@ -5,7 +5,7 @@ module GraphqlHelpers
   HMIS_HOSTNAME = 'hmis.dev.test'
 
   def post_graphql(variables = {})
-    variables = variables.deep_transform_keys { |k| k.to_s.camelize(:lower) }
+    variables = variables.deep_transform_keys { |k| k.is_a?(Symbol) ? k.to_s.camelize(:lower) : k }
     headers = { 'CONTENT_TYPE' => 'application/json', 'ORIGIN' => HMIS_ORIGIN }
     post '/hmis/hmis-gql', params: { query: yield, variables: variables }.to_json, headers: headers
     # puts response.body

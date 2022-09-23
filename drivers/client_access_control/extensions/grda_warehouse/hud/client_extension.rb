@@ -91,15 +91,24 @@ module ClientAccessControl::GrdaWarehouse::Hud
         visible_because_of_enrollments || visible_because_of_data_sources
       end
 
+      def active_confirmed_consent_in_cocs?(coc_codes)
+        consent_form_valid? && valid_in_coc(coc_codes)
+      end
+
+      # whether a release is valid in any of the provided CoC codes
+      private def valid_in_coc(coc_codes)
+        valid_in_any_coc = consented_coc_codes == [] || consented_coc_codes.include?('All CoCs')
+        user_client_coc_codes_match = (consented_coc_codes & coc_codes).present?
+        valid_in_any_coc || user_client_coc_codes_match
+      end
+
       private def visible_because_of_release?(user)
         return false unless user.can_view_clients?
         # access isn't governed by release if a client can only search their assigned clients
         return false if user.can_search_own_clients?
         return unless release_valid?
 
-        valid_in_any_coc = consented_coc_codes == [] || consented_coc_codes.include?('All CoCs')
-        user_client_coc_codes_match = (consented_coc_codes & user.coc_codes).present?
-        valid_in_any_coc || user_client_coc_codes_match
+        valid_in_coc(user.coc_codes)
       end
 
       private def visible_because_of_relationship?(user)
@@ -161,7 +170,7 @@ module ClientAccessControl::GrdaWarehouse::Hud
               confidential_project: project.confidential,
               entry_date: entry.first_date_in_program,
               living_situation: entry.enrollment.LivingSituation,
-              chronically_homeless_at_start: entry.enrollment.ch_enrollment&.chronically_homeless_at_entry,
+              chronically_homeless_at_start: entry.enrollment.chronically_homeless_at_start?,
               exit_date: entry.last_date_in_program,
               destination: entry.destination,
               move_in_date_inherited: entry.enrollment.MoveInDate.blank? && entry.move_in_date.present?,

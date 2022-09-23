@@ -1,0 +1,5 @@
+- content_for :title, "Run #{report_class.generic_title}"
+%header.mb-3
+  %h1= content_for :title
+= render 'missing_data'
+= render 'form'

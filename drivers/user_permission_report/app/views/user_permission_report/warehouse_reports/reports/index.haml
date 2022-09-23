@@ -36,6 +36,18 @@
               = link_to_if can_edit_users?, user.name, edit_admin_user_path(user)
               %br
               = user.email
+              %p= user.agency_name
+              %p
+                %em
+                  - if user.active?
+                    Active
+                  - else
+                    = render 'admin/inactive_users/user_status', user: user
+                %br
+                - if user.last_sign_in_at.present?
+                  Last login: #{user.last_sign_in_at}
+                - else
+                  Never logged in
             %td
               = link_to user_permission_report_warehouse_reports_user_path(user), data: {loads_in_pjax_modal: true}, class: 'btn btn-xs btn-primary btn-muted btn-hmis' do
                 View Details
