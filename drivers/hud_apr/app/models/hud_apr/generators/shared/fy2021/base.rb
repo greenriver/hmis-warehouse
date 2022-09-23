@@ -114,6 +114,9 @@ module HudApr::Generators::Shared::Fy2021
           exit_record = last_service_history_enrollment.enrollment if exit_date.present? && exit_date <= @report.end_date
 
           income_at_start = enrollment.income_benefits_at_entry
+          # Only include income at start if the information date matches entry date
+          # per Datalab test kit
+          income_at_start = nil unless income_at_start&.InformationDate == enrollment.EntryDate
           income_at_annual_assessment = annual_assessment(enrollment, hoh_enrollment.first_date_in_program)
           income_at_exit = exit_record&.income_benefits_at_exit
 
@@ -125,9 +128,13 @@ module HudApr::Generators::Shared::Fy2021
             map(&:InformationDate).max
           disabilities_latest = enrollment.disabilities.select { |d| d.InformationDate == max_disability_date }
 
+          # Need to sort by information date, then DateUpdated to catch the most-recent
+          # added for the Datalab test kit
           health_and_dv = enrollment.health_and_dvs.
-            select { |h| h.InformationDate <= @report.end_date && !h.DomesticViolenceVictim.nil? }.
-            max_by(&:InformationDate)
+            select do |h|
+              h.InformationDate <= @report.end_date && !h.DomesticViolenceVictim.nil?
+            end.
+            max_by { |h| [h.InformationDate, h.DateUpdated] }
 
           last_bed_night = enrollment.services.select do |s|
             s.RecordType == 200 && s.DateProvided < @report.end_date

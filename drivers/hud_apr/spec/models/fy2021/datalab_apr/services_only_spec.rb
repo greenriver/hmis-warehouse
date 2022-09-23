@@ -5,9 +5,11 @@
 ###
 
 require 'rails_helper'
+require_relative '../../../../../datalab_testkit/spec/models/datalab_testkit_context'
 require_relative 'datalab_apr_context'
 
 RSpec.describe 'Datalab 2021 APR - services_only', type: :model do
+  include_context 'datalab testkit context'
   include_context 'datalab apr context'
 
   before(:all) do
