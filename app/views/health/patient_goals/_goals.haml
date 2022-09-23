@@ -13,11 +13,12 @@
           %p
             %em= sub_title
       .c-card__content.health-care-plan__goal-list
-        - if !enabled
-          -# FIXMEGIG should render archived goials here
-          = @careplan.goals_archive
-        - if @patient.hpc_goals.any?
-          - @patient.hpc_goals.each_with_index do |goal, index|
+        - if enabled
+          - goals = @patient.hpc_goals
+        - else
+          - goals = @careplan.goals_archive.map{|m| m['type'].safe_constantize.new(m)}
+        - if goals.any?
+          - goals.each_with_index do |goal, index|
             = render goal, readonly: true, index: (index + 1)
         - else
           .jEmpty

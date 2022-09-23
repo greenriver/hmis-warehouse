@@ -1,11 +1,12 @@
 %h1 Goals
-%p
-  %em Include at least one member health improvement goal.
+
 .l-print__item-wrapper
   - if @careplan.locked?
     - goals = @careplan.goals_archive.map{|m| m['type'].safe_constantize.new(m)}
   - else
-    - goals = @patient.goals
+    - goals = @patient.hpc_goals
+  - unless goals.any?
+    .no-data No goals provided
   - goals.each do |goal|
     .l-print__item.l-print__item--bordered
       %dl
