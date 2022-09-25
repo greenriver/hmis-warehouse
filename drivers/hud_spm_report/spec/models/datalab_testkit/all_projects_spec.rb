@@ -20,7 +20,6 @@ RSpec.describe 'Datalab Testkit SPM All-Projects', type: :model do
     puts "Finished SPM Run Data Lab TestKit #{Time.current}"
   end
 
-  # Pending AAQ
   it 'Measure 1a' do
     compare_results(
       file_path: result_file_prefix + 'spm',
@@ -28,11 +27,18 @@ RSpec.describe 'Datalab Testkit SPM All-Projects', type: :model do
       detail_columns: [
         :last_name,
         :first_name,
+        :ssn,
+        :data_lab_public_id,
         :m1a_es_sh_days,
         :m1a_es_sh_th_days,
         :m1b_es_sh_ph_days,
         :m1b_es_sh_th_ph_days,
         :m1_history,
+      ],
+      # Pending AAQ "Question Subject: SPM DataLab test kit Measure 1a.1"
+      skip: [
+        'E2',
+        'H2',
       ],
     )
   end

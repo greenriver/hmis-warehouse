@@ -24,7 +24,8 @@ module Filter::FilterScopes
 
       # scope.joins(project: :project_cocs).
       #   merge(GrdaWarehouse::Hud::ProjectCoc.in_coc(coc_code: @filter.coc_codes))
-      scope.joins(project: :project_cocs, enrollment: :enrollment_coc_at_entry).
+      scope.joins(project: :project_cocs).
+        left_outer_joins(enrollment: :enrollment_coc_at_entry).
         merge(GrdaWarehouse::Hud::ProjectCoc.in_coc(coc_code: @filter.coc_codes)).
         # limit enrollment coc to the cocs chosen, and any random thing that's not a valid coc
         merge(

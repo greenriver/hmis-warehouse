@@ -134,6 +134,7 @@ module HudSpmReport::Generators::Fy2020
       client_scope(start_date: start_date, end_date: end_date).where(id: scope.select(:client_id)).select(
         :id,
         :PersonalID, # for debugging
+        :SSN, # for debugging
         :data_source_id, # for add_universe_members
         :DOB, # for add_universe_members
         :first_name, # for add_universe_members
@@ -187,11 +188,18 @@ module HudSpmReport::Generators::Fy2020
       raise ArgmentError, 'wrong client type' unless client.is_a? ::GrdaWarehouse::Hud::Client
       raise ArgmentError, 'data needs to be Hash-like' unless data.respond_to?(:merge)
 
+      data_lab_public_id = if client.SSN.blank?
+        nil
+      else
+        "#{client.first_name}#{client.SSN[-4..]}"
+      end
       report_client_universe.new data.merge(
         report_instance_id: @report.id,
         client_id: client.id,
         data_source_id: client.data_source_id,
         dob: client.DOB,
+        personal_id: client.PersonalID, # for debugging
+        data_lab_public_id: data_lab_public_id,
         first_name: client.first_name,
         last_name: client.last_name,
       )
@@ -393,6 +401,7 @@ module HudSpmReport::Generators::Fy2020
         client_id: she_t[:client_id],
         DOB: c_t[:DOB],
         PersonalID: c_t[:PersonalID],
+        SSN: c_t[:SSN],
         first_date_in_program: she_t[:first_date_in_program],
         last_date_in_program: she_t[:last_date_in_program],
         project_id: p_t[:id],

@@ -14953,7 +14953,9 @@ CREATE TABLE public.hud_report_spm_clients (
     m4_project_id integer,
     m5_project_id integer,
     m7a1_project_id integer,
-    m7b_project_id integer
+    m7b_project_id integer,
+    personal_id character varying,
+    data_lab_public_id character varying
 );
 
 
@@ -61117,6 +61119,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220916182057'),
 ('20220916234039'),
 ('20220919161059'),
-('20220919185042');
+('20220919185042'),
+('20220925175719');
 
 
