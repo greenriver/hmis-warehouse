@@ -33,4 +33,4 @@
               %td Move-in Date
               %td= "#{@service_history_enrollment.move_in_date || '-'} #{move_in_date_inherited ? '(inherited from HoH)' : ''}"
 
-= render 'chronic_at_entry' if @service_history_enrollment.computed_project_type.in?(::GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS)
+= render 'chronic_at_entry'
