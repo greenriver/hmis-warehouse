@@ -31,26 +31,40 @@ RSpec.describe 'Datalab Testkit SPM All-Projects', type: :model do
         :data_lab_public_id,
         :m1a_es_sh_days,
         :m1a_es_sh_th_days,
-        :m1b_es_sh_ph_days,
-        :m1b_es_sh_th_ph_days,
         :m1_history,
       ],
       # Pending AAQ "Question Subject: SPM DataLab test kit Measure 1a.1"
       skip: [
         'E2',
         'H2',
+        'E3',
+        'H3',
       ],
     )
   end
 
-  xit 'Measure 1b' do
+  it 'Measure 1b' do
     compare_results(
       file_path: result_file_prefix + 'spm',
       question: '1b',
+      detail_columns: [
+        :last_name,
+        :first_name,
+        :ssn,
+        :data_lab_public_id,
+        :m1b_es_sh_ph_days,
+        :m1b_es_sh_th_ph_days,
+        :m1_history,
+      ],
+      # # Pending AAQ "Question Subject: SPM DataLab test kit Measure 1a.1"
+      # skip: [
+      #   'E3',
+      #   'H3',
+      # ],
     )
   end
 
-  xit 'Measure 2' do
+  it 'Measure 2' do
     compare_results(
       file_path: result_file_prefix + 'spm',
       question: '2',

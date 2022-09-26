@@ -41,6 +41,10 @@ module HudSpmReport::Generators::Fy2020
     PERMANENT_DESTINATIONS = [26, 11, 21, 3, 10, 28, 20, 19, 22, 23, 31, 33, 34].freeze
     PERMANENT_DESTINATIONS_OR_STAYER = (PERMANENT_DESTINATIONS + [0]).freeze
 
+    HOMELESS_LIVING_SITUATIONS = [16, 1, 18].freeze
+    INSTITUTIONAL_LIVING_SITUATIONS = [15, 6, 7, 25, 4, 5].freeze
+    HOUSED_LIVING_SITUATIONS = [29, 14, 2, 32, 36, 35, 28, 19, 3, 31, 33, 34, 10, 20, 21, 11, 8, 9, 99].freeze
+
     ES_SH = ES + SH
     ES_SH_TH = ES + SH + TH
     ES_SH_PH = ES + SH + PH
@@ -168,7 +172,6 @@ module HudSpmReport::Generators::Fy2020
       end
     end
 
-    # TODO?: move to :HudReports::QuestionBase
     private def age_for_report(dob:, entry_date:, age:)
       # Age should be calculated at report start or enrollment start, whichever is greater
       return age if dob.blank?
@@ -297,10 +300,15 @@ module HudSpmReport::Generators::Fy2020
         project_id: p_t[:id],
         first_date_in_program: she_t[:first_date_in_program],
         last_date_in_program: she_t[:last_date_in_program],
+        HouseholdID: e_t[:HouseholdID],
         DateToStreetESSH: e_t[:DateToStreetESSH],
+        LivingSituation: e_t[:LivingSituation],
+        LOSUnderThreshold: e_t[:LOSUnderThreshold], # [Did you stay less than 90 days?]
+        PreviousStreetESSH: e_t[:PreviousStreetESSH], # [On the night before did you stay on the streets, ES or SH]
         MoveInDate: she_t[:move_in_date],
         age: shs_t[:age],
         head_of_household: she_t[:head_of_household],
+        data_source_id: e_t[:data_source_id],
       }
 
       updated_columns = [
@@ -334,18 +342,24 @@ module HudSpmReport::Generators::Fy2020
           m1_history = nights.group_by do |n|
             n[:enrollment_id]
           end.map do |enrollment_id, dates|
+            first_date = dates.first
             {
               enrollment_id: enrollment_id,
-              project_id: dates.first[:project_id],
-              DateToStreetESSH: dates.first[:DateToStreetESSH]&.iso8601,
-              first_date_in_program: dates.first[:first_date_in_program]&.iso8601,
-              last_date_in_program: dates.first[:last_date_in_program]&.iso8601,
-              MoveInDate: dates.first[:MoveInDate]&.iso8601,
+              project_id: first_date[:project_id],
+              DateToStreetESSH: first_date[:DateToStreetESSH]&.iso8601,
+              first_date_in_program: first_date[:first_date_in_program]&.iso8601,
+              last_date_in_program: first_date[:last_date_in_program]&.iso8601,
+              MoveInDate: first_date[:MoveInDate]&.iso8601,
+              LivingSituation: first_date[:LivingSituation],
+              LOSUnderThreshold: first_date[:LOSUnderThreshold],
+              PreviousStreetESSH: first_date[:PreviousStreetESSH],
+              HouseholdID: first_date[:HouseholdID],
               project_types: dates.map { |n| n[:project_type] }.uniq,
               pre_entry: date_ranges(dates.select { |n| n[:pre_entry] }),
               service: date_ranges(dates.reject { |n| n[:pre_move_in] || n[:pre_entry] }),
               pre_move_in: date_ranges(dates.select { |n| n[:pre_move_in] }),
-              head_of_household: dates.first[:head_of_household],
+              head_of_household: first_date[:head_of_household],
+              data_source_id: first_date[:data_source_id],
             }
           end
 
@@ -353,10 +367,10 @@ module HudSpmReport::Generators::Fy2020
           report_client = build_report_client(
             client,
             m1_history: { enrollments: m1_history },
-            m1a_es_sh_days: calculate_valid_days_in_project_type(nights, ES_SH, PH_TH, false),
-            m1a_es_sh_th_days: calculate_valid_days_in_project_type(nights, ES_SH_TH, PH, false),
-            m1b_es_sh_ph_days: calculate_valid_days_in_project_type(nights, ES_SH_PH, PH_TH, true),
-            m1b_es_sh_th_ph_days: calculate_valid_days_in_project_type(nights, ES_SH_TH_PH, PH, true),
+            m1a_es_sh_days: calculate_valid_days_in_project_type(nights, project_types: ES_SH, stop_project_types: PH_TH, include_pre_entry: false),
+            m1a_es_sh_th_days: calculate_valid_days_in_project_type(nights, project_types: ES_SH_TH, stop_project_types: PH, include_pre_entry: false),
+            m1b_es_sh_ph_days: calculate_valid_days_in_project_type(nights, project_types: ES_SH_PH, stop_project_types: PH_TH, include_pre_entry: true),
+            m1b_es_sh_th_ph_days: calculate_valid_days_in_project_type(nights, project_types: ES_SH_TH_PH, stop_project_types: PH, include_pre_entry: true),
             m1_reporting_age: age_for_report(dob: client.DOB, entry_date: m1_history.last[:last_date_in_program], age: m1_history.first[:age]),
             veteran: client.veteran?,
             m1_head_of_household: m1_history.last[:head_of_household] || false,
@@ -1444,12 +1458,31 @@ module HudSpmReport::Generators::Fy2020
     # Measure 1a / Metric 2: Persons in ES, SH, and TH – do not include data from element 3.917.
     # Measure 1b / Metric 1: Persons in ES, SH, and PH – include data from element 3.917 and time between [project start] and [housing move-in].
     # Measure 1b / Metric 2: Persons in ES, SH, TH, and PH – include data from element 3.917 and time between [project start] and [housing move-in].
-    def calculate_valid_days_in_project_type(all_nights, project_types, stop_project_types, include_pre_entry)
+    # Measure 1b: Lines 1 and 2 include clients active in any permanent housing project (project types 3, 9, 10, 13) where all of the following are true: The [living situation] is “literally homeless” as defined above
+    #  And (
+    #  ( [project start date] >= [report start date] and [project start date] <= [report end date] ) Or
+    #  ( [housing move-in date] >= [report start date] and [housing move-in date] <= [report end date] )
+    #  Or
+    #  ( [housing move-in date] is null and [project exit date] >= [report start date] and [project exit date] <= [report end date])
+
+    def calculate_valid_days_in_project_type(all_nights, project_types:, stop_project_types:, include_pre_entry:)
+      # include_pre_entry is a proxy for 1b (which include data from 3.917)
+      # for any situation where include_pre_entry is true, we need to throw out any nights in project types 3, 9, 10, 13 where the enrollment
+      # didn't indicate the client was literally homeless at entry
+
+      # FIXME
+      # if include_pre_entry
+      #   all_nights = all_nights.select do |night|
+      #     next true if night
+
+      #   end
+      # end
+      # END FIXME
       days_in_selected_project_types = filter_days_for_days_in_project_types(
         all_nights,
-        project_types,
-        stop_project_types,
-        include_pre_entry,
+        project_types: project_types,
+        stop_project_types: stop_project_types,
+        include_pre_entry: include_pre_entry,
       )
 
       if days_in_selected_project_types.any?
@@ -1494,7 +1527,7 @@ module HudSpmReport::Generators::Fy2020
     #    A night between the self-reported DateToStreetESSH (Question 3.917.3) clamped
     #    to be on or after LOOKBACK_STOP_DATE and DOB and before first_date_in_program
     #  pre_move_in:
-    #    A night between am entry into a PH program and the move-in date
+    #    A night between an entry into a PH program and the move-in date
     #
     def generate_non_service_dates(nights)
       # Add fake records for every day between DateToStreetESSH and first_date_in_program.
@@ -1502,15 +1535,15 @@ module HudSpmReport::Generators::Fy2020
       # force these days to be ES since that's included in all 1b measures
       non_service_project_type = 1
 
-      # Find the first entry for each enrollment based on unique project type and first_date in program
+      # Find the first entry for each enrollment based on unique project and first_date in program
       entries = nights.index_by do |m|
-        [m[:project_type], m[:first_date_in_program]]
+        [m[:project_id], m[:first_date_in_program]]
       end
 
       entries.each do |_, entry|
         next unless literally_homeless?(entry)
 
-        # 3.917.3 - add any days prior to project entry
+        # 3.917.3 - add any days prior to project entry only if client was literally homeless at entry
         if entry[:DateToStreetESSH].present? && entry[:first_date_in_program] > entry[:DateToStreetESSH]
           start_date = [entry[:DateToStreetESSH]&.to_date, LOOKBACK_STOP_DATE, entry[:DOB]&.to_date].compact.max
           new_nights = (start_date..entry[:first_date_in_program]).map do |date|
@@ -1575,7 +1608,7 @@ module HudSpmReport::Generators::Fy2020
 
     # Applies logic described in the Programming Specifications to limit the entries
     # for each day to one, and only those that should be considered based on the project types
-    def filter_days_for_days_in_project_types(dates, project_types, stop_project_types, include_pre_entry)
+    def filter_days_for_days_in_project_types(dates, project_types:, stop_project_types:, include_pre_entry:)
       consider_move_in_dates = true
 
       filtered_days = []
@@ -1638,141 +1671,63 @@ module HudSpmReport::Generators::Fy2020
       # If client_id and enrollment_id are in set, return true
       # else if client is > 17 return false
       # else figure out if HoH is in group
+      # [project type] = 1, 4, 8
+      # Or (
+      # [project type] = 2, 3, 9, 10 13 And (
+      # [living situation] = 16, 1, 18
+      # Or (
+      # [living situation] = 15, 6, 7, 25, 4, 5
+      # And [Did you stay less than 90 days?] = 1 # LOSUnderThreshold (3.917.2A)
+      # And [On the night before did you stay on the streets, ES or SH] = 1 # PreviousStreetESSH (3.917.2C)
+      # )
+      # Or (
+      # [living situation] = 29, 14, 2, 32, 36, 35, 28, 19, 3, 31, 33, 34, 10, 20, 21, 11, 8, 9, 99
+      # And [Did you stay less than 7 nights?] = 1 # LOSUnderThreshold (3.917.2A)
+      # And [On the night before did you stay on the streets, ES or SH] = 1 # PreviousStreetESSH (3.917.2C)
+      # ) )
+      # )
 
-      client_id = night[:client_id]
-      enrollment_id = night[:enrollment_id]
+      return true if night[:project_type].in?(ES + SH + SO)
 
-      @literally_homeless ||= begin
-        # Literally HUD homeless
-        # Clients from ES, SO SH
-        es_so_sh_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
-          hud_project_type(ES + SO + SH).
-          open_between(start_date: @report.start_date - 1.day, end_date: @report.end_date).
-          with_service_between(start_date: @report.start_date - 1.day, end_date: @report.end_date).
-          distinct.
-          select(:client_id)
+      th_ph = night[:project_type].in?(TH + PH)
+      return true if th_ph && night[:LivingSituation].in?(HOMELESS_LIVING_SITUATIONS)
 
-        es_so_sh_ids = add_filters(es_so_sh_scope).distinct.pluck(:client_id, she_t[:id])
+      on_streets_and_under_threshold = night[:LOSUnderThreshold] == 1 && night[:PreviousStreetESSH] == 1
+      return true if th_ph && on_streets_and_under_threshold && night[:LivingSituation].in?(INSTITUTIONAL_LIVING_SITUATIONS + HOUSED_LIVING_SITUATIONS)
 
-        # Clients from PH & TH under certain conditions
-        homeless_living_situations = [16, 1, 18]
-        institutional_living_situations = [15, 6, 7, 25, 4, 5]
-        housed_living_situations = [29, 14, 2, 32, 36, 35, 28, 19, 3, 31, 33, 34, 10, 20, 21, 11, 8, 9, 99]
-
-        ph_th_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
-          hud_project_type(PH + TH).
-          open_between(start_date: @report.start_date - 1.day, end_date: @report.end_date).
-          with_service_between(start_date: @report.start_date - 1.day, end_date: @report.end_date).
-          joins(:enrollment).
-          where(
-            e_t[:LivingSituation].in(homeless_living_situations).
-              or(
-                e_t[:LivingSituation].in(institutional_living_situations).
-                  and(e_t[:LOSUnderThreshold].eq(1)).
-                  and(e_t[:PreviousStreetESSH].eq(1)),
-              ).
-              or(
-                e_t[:LivingSituation].in(housed_living_situations).
-                  and(e_t[:LOSUnderThreshold].eq(1)).
-                  and(e_t[:PreviousStreetESSH].eq(1)),
-              ),
-          ).
-          distinct.
-          select(:client_id)
-
-        ph_th_ids = add_filters(ph_th_scope).distinct.pluck(:client_id, she_t[:id])
-
-        es_so_sh_ids + ph_th_ids
-      end
-
-      return true if @literally_homeless.include?([client_id, enrollment_id])
-      return false if night[:age].blank? || night[:age] > 17
+      # Stop, since we can't calculate further for adults, HoH, or anyone without a household id
+      return false if night[:HouseholdID].blank? || night[:age].blank? || night[:age] > 17 || night[:head_of_household]
 
       # Children may inherit living the living situation from their HoH
-      hoh_client = hoh_for_children_without_living_situation(PH + TH, client_id, enrollment_id)
-      return false unless hoh_client.present?
+      hoh_enrollment = hoh_enrollment_for(night)
+      return false unless hoh_enrollment.present?
 
-      @literally_homeless.include?([hoh_client[:client_id], hoh_client[:enrollment_id]])
+      literally_homeless?(hoh_enrollment)
     end
 
-    private def children_without_living_situation(project_types)
-      # PERF: batch reduce SQL queries
-
-      @child_ids ||= {}
-      @child_ids[project_types] ||= begin
-        # 99 = Not collected
-        living_situation_not_collected = [99]
-
-        child_candidates_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
-          hud_project_type(project_types).
-          open_between(start_date: @report.start_date - 1.day, end_date: @report.end_date).
-          with_service_between(start_date: @report.start_date - 1.day, end_date: @report.end_date).
-          joins(:enrollment, :client).
-          where(
-            e_t[:LivingSituation].in(living_situation_not_collected).or(e_t[:LivingSituation].eq(nil)),
-            c_t[:DOB].not_eq(nil).and(c_t[:DOB].lteq(@report.start_date - 17.years)),
-          ).
-          distinct.
-          select(:client_id)
-
-        child_candidates = add_filters(child_candidates_scope).
-          pluck(
-            :client_id,
-            c_t[:DOB],
-            e_t[:EntryDate],
-            :age,
-            :head_of_household_id,
-            she_household_column,
-            :enrollment_group_id,
-          )
-
-        child_id_to_hoh = {}
-        child_candidates.each do |(client_id, dob, entry_date, age, hoh_id, household_id, enrollment_group_id)|
-          age = age_for_report dob: dob, entry_date: entry_date, age: age
-          child_id_to_hoh[[client_id, enrollment_group_id]] = head_of_household_for(project_types, hoh_id, household_id, entry_date) if age.present? && age <= 17
-        end
-        child_id_to_hoh
+    private def hoh_enrollment_for(night)
+      @hoh_enrollment_for ||= begin
+        columns = {
+          enrollment_id: she_t[:id],
+          project_type: she_t[:computed_project_type],
+          project_id: p_t[:id],
+          first_date_in_program: she_t[:first_date_in_program],
+          last_date_in_program: she_t[:last_date_in_program],
+          HouseholdID: e_t[:HouseholdID],
+          DateToStreetESSH: e_t[:DateToStreetESSH],
+          LivingSituation: e_t[:LivingSituation],
+          LOSUnderThreshold: e_t[:LOSUnderThreshold], # [Did you stay less than 90 days?]
+          PreviousStreetESSH: e_t[:PreviousStreetESSH], # [On the night before did you stay on the streets, ES or SH]
+          MoveInDate: she_t[:move_in_date],
+          head_of_household: she_t[:head_of_household],
+          data_source_id: e_t[:data_source_id],
+        }
+        pluck_to_hash(
+          columns,
+          active_enrollments_scope.heads_of_households,
+        ).index_by { |row| [row[:HouseholdID], row[:project_id], row[:data_source_id]] }
       end
-    end
-
-    private def head_of_household_for(project_types, client_id, household_id, entry_date)
-      hoh_client_ids(project_types)[[client_id, household_id, entry_date]]
-    end
-
-    private def hoh_client_ids(project_types)
-      @hoh_to_client_id ||= {}
-      @hoh_to_client_id[project_types] ||= GrdaWarehouse::ServiceHistoryEnrollment.entry.
-        hud_project_type(project_types).
-        open_between(start_date: @report.start_date - 1.day, end_date: @report.end_date).
-        with_service_between(start_date: @report.start_date - 1.day, end_date: @report_end).
-        joins(:client).
-        where(she_t[:head_of_household].eq(true)).
-        distinct.
-        pluck(
-          :head_of_household_id,
-          :client_id,
-          :enrollment_group_id,
-          she_household_column,
-          :first_date_in_program,
-          :destination,
-        ).map do |(hoh_id, client_id, enrollment_id, household_id, entry_date, destination)|
-          [
-            [
-              hoh_id,
-              household_id,
-              entry_date,
-            ],
-            {
-              client_id: client_id,
-              enrollment_id: enrollment_id,
-              destination: destination,
-            },
-          ]
-        end.to_h
-    end
-
-    private def hoh_for_children_without_living_situation(project_types, client_id, enrollment_id)
-      children_without_living_situation(project_types)[[client_id, enrollment_id]]
+      @hoh_enrollment_for[[night[:HouseholdID], night[:project_id], night[:data_source_id]]]
     end
   end
 end
