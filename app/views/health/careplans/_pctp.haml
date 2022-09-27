@@ -3,15 +3,21 @@
     %li
       %dl
         %dt Patient DOB
-        %dd= @patient.birthdate&.to_date
+        %dd
+          = @patient.birthdate&.to_date
+          .no-data= 'Not provided' unless @patient.birthdate&.to_date
     %li
       %dl
         %dt Initial Date
-        %dd= @careplan.initial_date&.to_date
+        %dd
+          = @careplan.initial_date&.to_date
+          .no-data= 'Not provided' unless @careplan.initial_date&.to_date
     %li
       %dl
         %dt Review Date
-        %dd= @careplan.review_date&.to_date
+        %dd
+          = @careplan.review_date&.to_date
+          .no-data= 'Not provided' unless @careplan.review_date&.to_date
 
 
 = render 'health/careplans/team_members_table'
