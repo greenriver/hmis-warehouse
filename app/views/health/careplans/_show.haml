@@ -2,12 +2,15 @@
 - content_for :title, title
 
 .l-print.hide-blank-page
-  -# .l-print__section--page
-  -#   =render 'health/careplans/pctp'
+  .l-print__section--page
+    =render 'health/careplans/pctp'
 
   %article.l-print__section--page.health-care-plan__cha
     %h1 Comprehensive Health Assessment
-    = render 'health/comprehensive_health_assessments/show'
+    - if @cha.present?
+      = render 'health/comprehensive_health_assessments/show'
+    - else
+      .no-data No Comprehensive Health Assessment on file.
 
   %article.l-print__section--page.health-care-plan__ssm
     %h1 Self-Sufficiency Matrix
@@ -15,5 +18,7 @@
       .ssm-print= render @ssm_partial
     - elsif @ssm_partial
       = render @ssm_partial
+    - else
+      .no-data No Self-Sufficiency Assessment on file.
 
-  -# = render 'health/careplans/pctp_signatures'
+  = render 'health/careplans/pctp_signatures'

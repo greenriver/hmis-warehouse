@@ -1,5 +1,20 @@
 @import 'application/modules/_ssm';
 
+.client__assessment-section-summary.cha__section > div:not(.row) {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  margin-top: 5px;
+  padding-bottom: 5px;
+}
+.client__assessment-section-summary.cha__section > div:not(:last-child) {
+  border-bottom: 1px solid $gray-020;
+}
+.client__assessment-section-summary.cha__section > * {
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
 .cha__section .client__assessment-question,
 .cha__section .cha__help-text,
 .cha__section h6,
@@ -9,6 +24,47 @@
   font-size: 14px;
   font-weight: bold;
   font-family: "Open Sans", sans-serif;
+}
+
+.cha__section {
+  .row {
+    margin: 0;
+  }
+  h3 {
+    margin: 10px 0;
+  }
+  h4, h5, h6 {
+    flex-basis: 100%;
+    margin: 4px 0 10px 0;
+  }
+  .cha__help-text {
+    font-weight: normal;
+    margin-bottom: 10px;
+    flex-basis: 100%;
+  }
+  .client__assessment-question,
+  .client__assessment-answer {
+    width: 48%;
+    padding: 0;
+    margin: 0 !important;
+    line-height: 1.5;
+    font-family: "Open Sans", sans-serif;
+  }
+  .client__assessment-answer {
+    text-indent: 0 !important;
+    padding-left: 15px !important;
+  }
+  h1:empty, h2:empty, h3:empty, h4:empty, h5:empty,
+  .cha__help-text:empty {
+    display: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .slab {
+    padding-left: 0;
+    padding-right: 0;
+  }
 }
 
 .muted, .gray {
@@ -43,6 +99,9 @@
   }
   .col-sm-4 {
     width: 33%;
+  }
+  .client__assessment-question, .client__assessment-answer {
+    width: 100%;
   }
 }
 
@@ -397,7 +456,9 @@ $pdf-table-border-color: darken(#f9f9f9, 3%);
 
 .l-print .client__assessment-question,
 .l-print .client__assessment-answer {
-  margin-bottom: 2px;
+  align-self: flex-start;
+  margin: 0;
+  padding: 0;
 }
 
 .l-print .client__assessment-question--title {
@@ -460,12 +521,12 @@ $pdf-table-border-color: darken(#f9f9f9, 3%);
 .l-print .cha__section {
   clear: left;
   page-break-inside: avoid;
-  border: 1px solid $gray-lighter;
-  border-radius: 4px;
-  padding: 1em 1em 0 1em;
+  border: 1px solid $gray-020;
+  border-radius: 4px;  
+  padding: 5px 0 5px 0;
   margin-bottom: 20px !important;
   h3 {
-    margin: 0;
+    margin-bottom: 20px;
   }
 }
 

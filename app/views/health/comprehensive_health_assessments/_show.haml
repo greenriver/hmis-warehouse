@@ -1,5 +1,4 @@
 - content_for :modal_title, 'Comprehensive Health Assessment'
-
 - if @cha.present?
   .d-flex
     .cha__summary.mb-2.d-flex.flex-column
@@ -82,6 +81,8 @@
             - if code == 'i_q2a1'
               %h4= _('CHA I_Q2_HEADER')
               - ('a'..'z').each do |letter|
+                - has_contents = (1..3).any? { |n| section_hash['answers']["i_q2#{letter}#{n}"].try(:[], 'answer').present? }
+                - next unless has_contents
                 .row.cha__section-columns
                   - (1..3).each do |number|
                     - code = "i_q2#{letter}#{number}"
