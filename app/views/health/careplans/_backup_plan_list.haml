@@ -7,7 +7,7 @@
         %i.icon-plus
         Add Backup Plan
   - if @pdf
-    .l-print__item= "#{@careplan.member_understands_contingency ? '_X_' : '____'} Member understands contingency plan described below if care coordinator is needed but not available"
+    .l-print__item= "#{@careplan.member_understands_contingency ? '_X_' : '____'} Member understands contingency plan described below if care coordinator is needed but not available" if @careplan.backup_plan_archive&.any? || @backup_plans&.any?
   - else
     = f.input :member_understands_contingency, label: 'Member understands contingency plan described below if care coordinator is needed but not available', disabled: @careplan.locked?, wrapper_html: {style: 'margin-bottom: 1em;'}
   .c-card__content.c-card__content--flush
