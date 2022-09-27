@@ -62,7 +62,6 @@ module Health
     end
 
     def show
-      @careplan = @patient&.careplans&.sorted&.first
       render :show
     end
 

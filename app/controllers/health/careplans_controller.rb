@@ -85,10 +85,9 @@ module Health
 
       @careplan.archive_services
       @careplan.archive_equipment
+      @careplan.archive_goals
       @careplan.archive_backup_plans
-      # what about goals?
-      # archive_goals
-      # archive_team_members
+      @careplan.archive_team_members
       @careplan.save
     end
 

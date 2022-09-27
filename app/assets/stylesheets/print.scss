@@ -351,15 +351,6 @@ $pdf-table-border-color: darken(#f9f9f9, 3%);
     &:empty {
       display: none;
     }
-    &.l-print__signature {
-      display: block;
-      margin-top: 15px;
-      margin-bottom: 15px;
-      margin-left: 0;
-      width: 500px;
-      height: 50px;
-      border-bottom: 1px solid #000;
-    }
     &.breaker {
       display: block !important;
       margin-bottom: 5px;
