@@ -1,28 +1,32 @@
 - content_for :modal_title, 'Self-Sufficiency Matrix'
 - if @form.present?
-  - if @form.editable_by?(current_user)
-    .pull-right
-      = link_to 'Edit', polymorphic_path([:edit] + self_sufficiency_matrix_form_path_generator, id: @form.id), class: 'btn btn-secondary btn-sm', disabled: @claim_submitted, data: { toggle: 'tooltip' }, title: (_('A claim was submitted for this SSM; it is no longer editable.') if @claim_submitted)
-
-  %dl.ssm__metadata
-    %dt.inline Name:
-    %dd.inline= @client.name
-    %dd.breaker
-    %dt.inline Date Completed:
-    %dd.inline= @form.completed_at&.to_date || 'in progress'
-    %dd.breaker
-    %dt.inline Case Worker:
-    %dd.inline= @form.user&.name
-  %dl
-    %dt.inline Point at which this assessment was completed:
-    - if @form.point_completed.present?
-      %dd.inline= @form.point_completed
-    - else
-      %dd.inline.font-italic.gray Not provided
-    %dd.breaker
-    - if @form.health_file.present?
-      %dt.inline File (see attached):
-      %dd.inline= link_to @form.health_file&.name, polymorphic_path([:download] + self_sufficiency_matrix_form_path_generator, client_id: @client.id, id: @form)
+  .d-flex
+    %div
+      .ssm__summary.d-flex.flex-column
+        .mb-2
+          %dt.inline Name:
+          %dd.inline= @client.name
+        .mb-2
+          %dt.inline Date Completed:
+          %dd.inline= @form.completed_at&.to_date || 'in progress'
+        .mb-2
+          %dt.inline Case Worker:
+          %dd.inline= @form.user&.name
+      %dl
+        %dt.inline Point at which this assessment was completed:
+        - if @form.point_completed.present?
+          %dd.inline= @form.point_completed
+        - else
+          %dd.inline.font-italic.gray Not provided
+        %dd.breaker
+        - if @form.health_file.present?
+          %dt.inline File (see attached):
+          %dd.inline= link_to @form.health_file&.name, polymorphic_path([:download] + self_sufficiency_matrix_form_path_generator, client_id: @client.id, id: @form)
+    - if @form.editable_by?(current_user)
+      .ml-auto
+        = link_to polymorphic_path([:edit] + self_sufficiency_matrix_form_path_generator, id: @form.id), class: 'btn btn-secondary btn-sm', disabled: @claim_submitted, data: { toggle: 'tooltip' }, title: (_('A claim was submitted for this SSM; it is no longer editable.') if @claim_submitted) do
+          %i.icon-pencil
+          Edit SSM
 
   %p.text-right.gray(style="font-size:smaller;font-style:italic;")
     Only answered questions are shown.

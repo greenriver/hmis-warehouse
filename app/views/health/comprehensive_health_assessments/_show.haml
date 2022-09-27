@@ -2,23 +2,23 @@
 
 - if @cha.present?
   .d-flex
-    .cha__summary
-      %dl.mb-2
+    .cha__summary.mb-2.d-flex.flex-column
+      .mb-2
         %dt.inline Name:
         %dd.inline= @client.name
-        %dd.breaker
+      .mb-2
         %dt.inline Date Completed:
         %dd.inline= @cha.completed_at&.to_date || 'in progress'
-        %dd.breaker
+      .mb-2
         %dt.inline Completed By:
         %dd.inline= @cha.user&.name
-        %dd.breaker
-        - if @cha.health_file.present?
+      - if @cha.health_file.present?
+        .mb-2
           %dt.inline File (see attached):
           %dd.inline= link_to @cha.health_file&.name, polymorphic_path([:download] + cha_path_generator, client_id: @client.id, id: @cha)
 
-        - if @cha.reviewed_by
-          %dd.breaker
+      - if @cha.reviewed_by
+        .mb-2
           %dt.inline Reviewed By:
           %dd.inline= @cha.reviewer
     - if @cha.editable_by?(current_user)
@@ -39,8 +39,8 @@
     Only answered questions are shown.
 
   - @cha.answers.each do |section, section_hash|
-    .client__assessment-section-summary.cha__section
-      - unless cha_section_is_blank?(section_hash['answers'])
+    - unless cha_section_is_blank?(section_hash['answers'])
+      .client__assessment-section-summary.cha__section
         -#= "Testing: #{cha_section_is_test(section_hash['answers'])}"
         %h3= section_hash['title']
         - section_hash['answers'].each do |code, question_answer|
@@ -142,9 +142,11 @@
                     =l answer&.to_date
                   - else
                     = answer
-      - if section == 'I' && @problems.present?
+    - if section == 'I' && @problems.present?
+      .client__assessment-section-summary.cha__section
         %h4 Epic Problems
         = render 'health/problems/problems_table', problems: @problems
-      - if section == 'L' && @medications.present?
+    - if section == 'L' && @medications.present?
+      .client__assessment-section-summary.cha__section
         %h4 Epic Medications
         = render 'health/medications/medications_table', medications: @medications

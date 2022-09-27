@@ -1,12 +1,14 @@
 @import 'application/modules/_ssm';
 
-.cha__section .cha__help-text,
 .cha__section .client__assessment-question,
+.cha__section .cha__help-text,
+.cha__section h6,
 .cha__section h5,
 .cha__section h4,
 .ssm-print .client__assessment-question {
   font-size: 14px;
   font-weight: bold;
+  font-family: "Open Sans", sans-serif;
 }
 
 .muted, .gray {
@@ -365,12 +367,26 @@ $pdf-table-border-color: darken(#f9f9f9, 3%);
   }
 }
 
-.l-print .ssm__metadata {
-  dd.breaker {
+.l-print .cha__summary,
+.l-print .ssm__summary {
+  display: flex;
+  flex-direction: row !important;
+  flex-wrap: wrap;
+  width: 100%;
+  > div {
+    width: 33%;
+    margin-bottom: 0.5em;
+  }
+  dt {
+    font-weight: 600;
     display: inline !important;
-    margin-left: 10%;
+  }
+  dd {
+    display: inline !important;
+    margin: 0;
   }
 }
+
 .l-print .ssm__row {
   border-bottom: 1px solid $gray-020;
 }
@@ -444,10 +460,12 @@ $pdf-table-border-color: darken(#f9f9f9, 3%);
 .l-print .cha__section {
   clear: left;
   page-break-inside: avoid;
-  &::after {
-    content: '';
-    display: block;
-    clear: both;
+  border: 1px solid $gray-lighter;
+  border-radius: 4px;
+  padding: 1em 1em 0 1em;
+  margin-bottom: 20px !important;
+  h3 {
+    margin: 0;
   }
 }
 

@@ -2,8 +2,8 @@
 - content_for :title, title
 
 .l-print.hide-blank-page
-  .l-print__section--page
-    =render 'health/careplans/pctp'
+  -# .l-print__section--page
+  -#   =render 'health/careplans/pctp'
 
   %article.l-print__section--page.health-care-plan__cha
     %h1 Comprehensive Health Assessment
@@ -16,4 +16,4 @@
     - elsif @ssm_partial
       = render @ssm_partial
 
-  = render 'health/careplans/pctp_signatures'
+  -# = render 'health/careplans/pctp_signatures'
