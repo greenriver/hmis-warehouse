@@ -134,6 +134,7 @@ module HealthCareplan
 
     # The logic for creating the CarePlan PDF is fairly complicated and needs to be used in both the careplan controllers and the signable document controllers
     def careplan_combine_pdf_object
+      @pdf = true
       @goal = Health::Goal::Base.new
       @readonly = false
       # If we already have a document with a signature, use that to try and avoid massive duplication
