@@ -10241,6 +10241,62 @@ ALTER SEQUENCE public.hmis_aggregated_exits_id_seq OWNED BY public.hmis_aggregat
 
 
 --
+-- Name: hmis_assessment_details; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_assessment_details (
+    id bigint NOT NULL,
+    assessment_id bigint,
+    definition_id bigint,
+    data_collection_stage integer NOT NULL,
+    role character varying NOT NULL,
+    status character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: COLUMN hmis_assessment_details.data_collection_stage; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.hmis_assessment_details.data_collection_stage IS 'One of the HMIS 5.03.1 or 99 for local use';
+
+
+--
+-- Name: COLUMN hmis_assessment_details.role; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.hmis_assessment_details.role IS 'Usually one of INTAKE, UPDATE, ANNUAL, EXIT, POST_EXIT, CE, CUSTOM';
+
+
+--
+-- Name: COLUMN hmis_assessment_details.status; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.hmis_assessment_details.status IS 'Usually one of submitted, draft';
+
+
+--
+-- Name: hmis_assessment_details_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_assessment_details_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_assessment_details_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_assessment_details_id_seq OWNED BY public.hmis_assessment_details.id;
+
+
+--
 -- Name: hmis_assessments; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -13319,6 +13375,95 @@ CREATE SEQUENCE public.hmis_dqt_inventories_id_seq
 --
 
 ALTER SEQUENCE public.hmis_dqt_inventories_id_seq OWNED BY public.hmis_dqt_inventories.id;
+
+
+--
+-- Name: hmis_form_definitions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_form_definitions (
+    id bigint NOT NULL,
+    version integer NOT NULL,
+    identifier character varying NOT NULL,
+    role character varying NOT NULL,
+    status character varying NOT NULL,
+    definition jsonb,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: COLUMN hmis_form_definitions.role; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.hmis_form_definitions.role IS 'Usually one of INTAKE, UPDATE, ANNUAL, EXIT, POST_EXIT, CE, CUSTOM';
+
+
+--
+-- Name: COLUMN hmis_form_definitions.status; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.hmis_form_definitions.status IS 'Usually one of active, draft, retired';
+
+
+--
+-- Name: COLUMN hmis_form_definitions.definition; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.hmis_form_definitions.definition IS 'Based on FHIR format';
+
+
+--
+-- Name: hmis_form_definitions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_form_definitions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_form_definitions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_form_definitions_id_seq OWNED BY public.hmis_form_definitions.id;
+
+
+--
+-- Name: hmis_form_instances; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_form_instances (
+    id bigint NOT NULL,
+    entity_type character varying,
+    entity_id bigint,
+    definition_identifier character varying NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: hmis_form_instances_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_form_instances_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_form_instances_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_form_instances_id_seq OWNED BY public.hmis_form_instances.id;
 
 
 --
@@ -21467,6 +21612,13 @@ ALTER TABLE ONLY public.hmis_aggregated_exits ALTER COLUMN id SET DEFAULT nextva
 
 
 --
+-- Name: hmis_assessment_details id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_assessment_details ALTER COLUMN id SET DEFAULT nextval('public.hmis_assessment_details_id_seq'::regclass);
+
+
+--
 -- Name: hmis_assessments id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -21891,6 +22043,20 @@ ALTER TABLE ONLY public.hmis_dqt_events ALTER COLUMN id SET DEFAULT nextval('pub
 --
 
 ALTER TABLE ONLY public.hmis_dqt_inventories ALTER COLUMN id SET DEFAULT nextval('public.hmis_dqt_inventories_id_seq'::regclass);
+
+
+--
+-- Name: hmis_form_definitions id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_form_definitions ALTER COLUMN id SET DEFAULT nextval('public.hmis_form_definitions_id_seq'::regclass);
+
+
+--
+-- Name: hmis_form_instances id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_form_instances ALTER COLUMN id SET DEFAULT nextval('public.hmis_form_instances_id_seq'::regclass);
 
 
 --
@@ -24390,6 +24556,14 @@ ALTER TABLE ONLY public.hmis_aggregated_exits
 
 
 --
+-- Name: hmis_assessment_details hmis_assessment_details_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_assessment_details
+    ADD CONSTRAINT hmis_assessment_details_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: hmis_assessments hmis_assessments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -24875,6 +25049,22 @@ ALTER TABLE ONLY public.hmis_dqt_events
 
 ALTER TABLE ONLY public.hmis_dqt_inventories
     ADD CONSTRAINT hmis_dqt_inventories_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_form_definitions hmis_form_definitions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_form_definitions
+    ADD CONSTRAINT hmis_form_definitions_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_form_instances hmis_form_instances_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_form_instances
+    ADD CONSTRAINT hmis_form_instances_pkey PRIMARY KEY (id);
 
 
 --
@@ -41354,6 +41544,20 @@ CREATE INDEX index_hmis_2022_youth_education_statuses_on_importer_log_id ON publ
 
 
 --
+-- Name: index_hmis_assessment_details_on_assessment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_assessment_details_on_assessment_id ON public.hmis_assessment_details USING btree (assessment_id);
+
+
+--
+-- Name: index_hmis_assessment_details_on_definition_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_assessment_details_on_definition_id ON public.hmis_assessment_details USING btree (definition_id);
+
+
+--
 -- Name: index_hmis_assessments_on_assessment_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -42002,6 +42206,13 @@ CREATE INDEX index_hmis_dqt_inventories_on_project_id ON public.hmis_dqt_invento
 --
 
 CREATE INDEX index_hmis_dqt_inventories_on_report_id ON public.hmis_dqt_inventories USING btree (report_id);
+
+
+--
+-- Name: index_hmis_form_instances_on_entity; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_form_instances_on_entity ON public.hmis_form_instances USING btree (entity_type, entity_id);
 
 
 --
@@ -49818,6 +50029,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220919161059'),
 ('20220919185042'),
 ('20220925175719'),
-('20220928132603');
+('20220928132603'),
+('20220928164029');
 
 
