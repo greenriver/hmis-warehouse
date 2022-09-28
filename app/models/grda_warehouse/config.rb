@@ -156,6 +156,12 @@ module GrdaWarehouse
       }
     end
 
+    def self.available_filter_date_span_years
+      (1..5).map do |i|
+        ["#{i} #{'Year'.pluralize(i)}", i]
+      end.to_h
+    end
+
     def self.client_search_available?
       get(:pii_encryption_type).to_sym.in?([:none])
     end
@@ -291,6 +297,7 @@ module GrdaWarehouse
         :verified_homeless_history_method,
         :chronic_tab_justifications,
         :chronic_tab_roi,
+        :filter_date_span_years,
         client_details: [],
       ]
     end
