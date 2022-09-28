@@ -13,7 +13,6 @@
             %th Project-CoC CoC Code
             %th Geocode
             %th GeographyType
-            %th Funder
             %th Zipcode
             %th Inventory Start Date
             %th Inventory CoC Code
@@ -27,7 +26,6 @@
               %td= yes_no(! missing_data[:missing_coc_codes].include?(project))
               %td= yes_no(! missing_data[:missing_geocode].include?(project))
               %td= yes_no(! missing_data[:missing_geography_type].include?(project))
-              %td= yes_no(! missing_data[:invalid_funders].include?(project))
               %td= yes_no(! missing_data[:missing_zip].include?(project))
               %td= yes_no(! missing_data[:missing_inventory_start_dates].include?(project))
               %td= yes_no(! missing_data[:missing_inventory_coc_codes].include?(project))
