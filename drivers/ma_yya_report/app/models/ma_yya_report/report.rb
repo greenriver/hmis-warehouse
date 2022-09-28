@@ -254,6 +254,116 @@ module MaYyaReport
       calculators.keys
     end
 
+    def section_label(label)
+      @section_label ||= {
+        'A' => 'A. Core Services',
+        'C' => 'C. College Student Services (all regions)',
+        'D' => 'D. Demographics',
+        'E' => 'E. Youth Action Board/Youth Engagement Activity',
+        'F' => 'F. Outcomes',
+        'G' => 'G. Demographics of Rehousing Outcomes: youth who transitioned into stabilized housing (YTD should be unduplicated and match D2a)',
+      }
+      @section_label[label]
+    end
+
+    def subsection_label(label)
+      @subsection_label ||= {
+        'A1' => { text: '1. Street Outreach/Colaboration', rows: 2 },
+        'A2' => { text: '2. Referrals Received', rows: 2 },
+        'A3' => { text: '3. Assessment/Case Management/Case Coordination - Prevention', rows: 3 },
+        'A4' => { text: '4. Assessment/Case Management/Case Coordination - Rehousing', rows: 3 },
+        'A5' => { text: '5. Direct Financial Assistance (Flex Funds)', rows: 14 },
+        'C1' => { text: '1. Transitional Housing & Case Management (enrolled students)', rows: 1 },
+        'C3' => { text: '2. Number College students', rows: 1 },
+        'D1' => { text: '1. Age and Gender', rows: 5 },
+        'D2' => { text: '2. Race, Ethnicity, and Language', rows: 10 },
+        'D3' => { text: '3. Disability', rows: 4 },
+        'D4' => { text: '4. Other', rows: 4 },
+        'F1' => { text: '1. Prevention / Diversion/ Problem Solving Outcomes (Follow up)', rows: 2 },
+        'F2' => { text: '2. Rehousing Outcomes', rows: 4 },
+        'G1' => { text: '1. Age and Gender', rows: 5 },
+        'G2' => { text: '2. Race, Ethnicity, and Language', rows: 7 },
+        'G3' => { text: '3. Other', rows: 1 },
+      }
+      @subsection_label[label] || { text: '', rows: 1 }
+    end
+
+    def cell_label(label)
+      @text_label ||= {
+        A1a: 'Unduplicated number of outreach contacts with YYA experiencing homelessness',
+        A1b: 'Unduplicated number of outreach contacts with YYA considered "at-risk" of homelessness',
+        A2a: 'Number of initial contacts: YYA experiencing homelessness',
+        A2b: 'Number of initial contacts: YYA considered "at-risk" of homelessness',
+        A3a: 'Number of YYA completing new intake: YYA considered "at-risk" of homelessness',
+        A3b: 'Number of YYA continuing in case management',
+        A3c: 'Number of YYA turned away',
+        A4a: 'Number of YYA completing new intake: YYA experiencing homelessness',
+        A4b: 'Number of YYA continuing in case management',
+        A4c: 'Number of YYA turned away',
+        A5a: 'Total number of YYA who received direct financial assistance/flex funds',
+        A5b: 'Number of YYA who received assistance with Move-in costs',
+        A5c: 'Number of YYA who received assistance with Rent',
+        A5d: 'Number of YYA who received assistance with Rent arrears',
+        A5e: 'Number of YYA who received assistance with Utilities',
+        A5f: 'Number of YYA who received assistance with Transportation-related costs',
+        A5g: 'Number of YYA who received assistance with Education-related costs',
+        A5h: 'Number of YYA who received assistance with Legal costs',
+        A5i: 'Number of YYA who received assistance with Child care',
+        A5j: 'Number of YYA who received assistance with Work-related costs',
+        A5k: 'Number of YYA who received assistance with Medical costs',
+        A5l: 'Number of YYA who received assistance with Cell phone costs',
+        A5m: 'Number of YYA who received assistance with Food/groceries',
+        A5n: 'Number of YYA who received assistance with Other costs',
+        C1: 'Number of Pilot Program  students receiving Transitional Housing & Case Management services',
+        C3: 'Number of College students not officially enrolled in the campus pilot program that are receiving services',
+        D1a: 'Number of YYA  served who were Under 18',
+        D1b: 'Number of YYA  served who identified as Male',
+        D1c: 'Number of YYA  served who identified as Female',
+        D1d: 'Number of YYA  served who identified as Transgender',
+        D1e: 'Number of YYA  served who identified as Other',
+        D2a: 'Number of YYA  served who identified as White (race)',
+        D2b: 'Number of YYA  served who identified as African American (race)',
+        D2c: 'Number of YYA  served who identified as Asian (race)',
+        D2d: 'Number of YYA  served who identified as American Indian/Alaska Native (race)',
+        D2e: 'Number of YYA  served who identified as Native Hawaiian/Pacific Islander',
+        D2f: 'Number of YYA  served who identified as Other/Multi-racial (race)',
+        D2g: 'Number of YYA  served who identified as Hispanic (ethnicity)',
+        D2h: 'Number of YYA  served whose primary language was English (language)',
+        D2i: 'Number of YYA  served whose primary language was Spanish (language)',
+        D2j: 'Number of YYA  served whose primary language was Other (language)',
+        D3a: 'Number of YYA served who reported having a Mental Health Disorder',
+        D3b: 'Number of YYA served who reported having a Substance Use Disorder',
+        D3c: 'Number of YYA served who reported having a Medical/Physical Disability (disability)',
+        D3d: 'Number of YYA served who reported having a Developmental Disability (disability)',
+        D4a: 'Number of YYA served who were Pregnant or Custodial Parenting',
+        D4b: 'Number of YYA served who were LGBTQ+',
+        D4c: 'Number of YYA served who had Completed high school or GED/HiSET',
+        D4d: 'Number of YYA served who had Health insurance at intake',
+        Ea: 'Number of Meetings',
+        Eb: 'Number of unduplicated participants',
+        F1a: 'Number of YYA contacted for follow up 3 mos. after receiving prevention services',
+        F1b: 'Number of YYA who remain housed 3 mos. after receiving prevention services',
+        F2a: 'The number of  YYA who transition into stabilized housing',
+        F2b: 'Number of YYA contacted for follow up 3 mos. after receiving rehousing services',
+        F2c: 'Number of YYA who are in housing 3 mos. after receiving rehousing services',
+        F2d: 'Zip codes of stabilized housing (please list)',
+        G1a: 'Number of YYA  served who were Under 18',
+        G1b: 'Number of YYA  served who identified as Male',
+        G1c: 'Number of YYA  served who identified as Female',
+        G1d: 'Number of YYA  served who identified as Transgender',
+        G1e: 'Number of YYA  served who identified as Other',
+        G2a: 'Number of YYA  served who identified as White (race)',
+        G2b: 'Number of YYA  served who identified as African American (race)',
+        G2c: 'Number of YYA  served who identified as Asian (race)',
+        G2d: 'Number of YYA  served who identified as American Indian/Alaska Native (race)',
+        G2e: 'Number of YYA served who identified as Native Hawaiian/Pacific Islander',
+        G2f: 'Number of YYA  served who identified as Other/Multi racial (race)',
+        G2g: 'Number of YYA  served who identified as Hispanic (ethnicity)',
+        G3a: 'Number of YYA served who were LGBTQ+',
+      }
+      @text_label[label]
+    end
+
     def cell(cell_name)
       report_cells.find_by(name: cell_name)
     end
