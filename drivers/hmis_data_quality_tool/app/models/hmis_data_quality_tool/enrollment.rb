@@ -114,8 +114,8 @@ module HmisDataQualityTool
       report_item.age = enrollment.client.age_on(report_age_date)
 
       hh = report.household(enrollment.HouseholdID)
-      report_item.household_max_age = hh.map { |en| en[:age] }.compact.max
-      report_item.head_of_household_count = hh.select { |en| en[:relationship_to_hoh] == 1 }.count
+      report_item.household_max_age = hh&.map { |en| en[:age] }&.compact&.max || report_item.age
+      report_item.head_of_household_count = hh&.select { |en| en[:relationship_to_hoh] == 1 }&.count || 0
 
       max_date = [report.filter.end, Date.current].min
       en_services = enrollment.services&.select { |s| s.DateProvided <= max_date }
