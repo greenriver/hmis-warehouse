@@ -2,6 +2,7 @@
   %h3 Reporting Options
   .c-card.c-card--flush.c-card--padded.flex-wrap
     = f.input :dashboard_lookback, as: :date_picker, label: 'Dashboard Lookback Date'
+    = f.input :filter_date_span_years, as: :select_two, label: 'Maximum range for Live Reports', hint: 'This controls the maximum duration of the universe for live reports such as the core demographics report.', collection: GrdaWarehouse::Config.available_filter_date_span_years
     = f.input :require_service_for_reporting_default, label: 'Should we require service during the reporting range by default?', hint: 'This is not implemented on all reports'
     %h4 Project Data Quality Report
     = f.input :completeness_goal, label: 'Completeness Goal', hint: 'Percent'

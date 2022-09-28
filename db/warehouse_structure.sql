@@ -5406,7 +5406,8 @@ CREATE TABLE public.configs (
     youth_hoh_cohort boolean DEFAULT false NOT NULL,
     youth_hoh_cohort_project_group_id integer,
     chronic_tab_justifications boolean DEFAULT true,
-    chronic_tab_roi boolean
+    chronic_tab_roi boolean,
+    filter_date_span_years integer DEFAULT 1 NOT NULL
 );
 
 
@@ -14953,7 +14954,9 @@ CREATE TABLE public.hud_report_spm_clients (
     m4_project_id integer,
     m5_project_id integer,
     m7a1_project_id integer,
-    m7b_project_id integer
+    m7b_project_id integer,
+    personal_id character varying,
+    data_lab_public_id character varying
 );
 
 
@@ -19362,6 +19365,18 @@ CREATE SEQUENCE public.temp_export_affiliation_100s_id_seq
 
 
 --
+-- Name: temp_export_affiliation_101s_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.temp_export_affiliation_101s_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
 -- Name: temp_export_affiliation_56s_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -19890,6 +19905,18 @@ CREATE SEQUENCE public.temp_export_assessment_100s_id_seq
 
 
 --
+-- Name: temp_export_assessment_101s_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.temp_export_assessment_101s_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
 -- Name: temp_export_assessment_58s_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -20386,6 +20413,18 @@ CREATE SEQUENCE public.temp_export_assessment_99s_id_seq
 --
 
 CREATE SEQUENCE public.temp_export_assessmentquestions_100s_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: temp_export_assessmentquestions_101s_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.temp_export_assessmentquestions_101s_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -20898,6 +20937,18 @@ CREATE SEQUENCE public.temp_export_assessmentresults_100s_id_seq
 
 
 --
+-- Name: temp_export_assessmentresults_101s_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.temp_export_assessmentresults_101s_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
 -- Name: temp_export_assessmentresults_58s_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -21394,6 +21445,18 @@ CREATE SEQUENCE public.temp_export_assessmentresults_99s_id_seq
 --
 
 CREATE SEQUENCE public.temp_export_client_100s_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: temp_export_client_101s_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.temp_export_client_101s_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -21930,6 +21993,18 @@ CREATE SEQUENCE public.temp_export_currentlivingsituation_100s_id_seq
 
 
 --
+-- Name: temp_export_currentlivingsituation_101s_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.temp_export_currentlivingsituation_101s_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
 -- Name: temp_export_currentlivingsituation_58s_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -22426,6 +22501,18 @@ CREATE SEQUENCE public.temp_export_currentlivingsituation_99s_id_seq
 --
 
 CREATE SEQUENCE public.temp_export_disabilities_100s_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: temp_export_disabilities_101s_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.temp_export_disabilities_101s_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -22938,6 +23025,18 @@ CREATE SEQUENCE public.temp_export_employmenteducation_100s_id_seq
 
 
 --
+-- Name: temp_export_employmenteducation_101s_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.temp_export_employmenteducation_101s_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
 -- Name: temp_export_employmenteducation_58s_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -23434,6 +23533,18 @@ CREATE SEQUENCE public.temp_export_employmenteducation_99s_id_seq
 --
 
 CREATE SEQUENCE public.temp_export_enrollment_100s_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: temp_export_enrollment_101s_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.temp_export_enrollment_101s_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -23970,6 +24081,18 @@ CREATE SEQUENCE public.temp_export_enrollmentcoc_100s_id_seq
 
 
 --
+-- Name: temp_export_enrollmentcoc_101s_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.temp_export_enrollmentcoc_101s_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
 -- Name: temp_export_enrollmentcoc_58s_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -24474,6 +24597,18 @@ CREATE SEQUENCE public.temp_export_event_100s_id_seq
 
 
 --
+-- Name: temp_export_event_101s_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.temp_export_event_101s_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
 -- Name: temp_export_event_58s_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -24970,6 +25105,18 @@ CREATE SEQUENCE public.temp_export_event_99s_id_seq
 --
 
 CREATE SEQUENCE public.temp_export_exit_100s_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: temp_export_exit_101s_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.temp_export_exit_101s_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -25486,6 +25633,18 @@ CREATE SEQUENCE public.temp_export_exit_99s_id_seq
 --
 
 CREATE SEQUENCE public.temp_export_funder_100s_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: temp_export_funder_101s_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.temp_export_funder_101s_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -26022,6 +26181,18 @@ CREATE SEQUENCE public.temp_export_healthanddv_100s_id_seq
 
 
 --
+-- Name: temp_export_healthanddv_101s_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.temp_export_healthanddv_101s_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
 -- Name: temp_export_healthanddv_58s_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -26526,6 +26697,18 @@ CREATE SEQUENCE public.temp_export_incomebenefits_100s_id_seq
 
 
 --
+-- Name: temp_export_incomebenefits_101s_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.temp_export_incomebenefits_101s_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
 -- Name: temp_export_incomebenefits_58s_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -27022,6 +27205,18 @@ CREATE SEQUENCE public.temp_export_incomebenefits_99s_id_seq
 --
 
 CREATE SEQUENCE public.temp_export_inventory_100s_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: temp_export_inventory_101s_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.temp_export_inventory_101s_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -27550,6 +27745,18 @@ CREATE SEQUENCE public.temp_export_inventory_99s_id_seq
 --
 
 CREATE SEQUENCE public.temp_export_organization_100s_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: temp_export_organization_101s_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.temp_export_organization_101s_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -28098,6 +28305,18 @@ CREATE SEQUENCE public.temp_export_project_100s_id_seq
 
 
 --
+-- Name: temp_export_project_101s_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.temp_export_project_101s_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
 -- Name: temp_export_project_56s_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -28618,6 +28837,18 @@ CREATE SEQUENCE public.temp_export_project_99s_id_seq
 --
 
 CREATE SEQUENCE public.temp_export_projectcoc_100s_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: temp_export_projectcoc_101s_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.temp_export_projectcoc_101s_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -29154,6 +29385,18 @@ CREATE SEQUENCE public.temp_export_services_100s_id_seq
 
 
 --
+-- Name: temp_export_services_101s_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.temp_export_services_101s_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
 -- Name: temp_export_services_58s_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -29658,6 +29901,18 @@ CREATE SEQUENCE public.temp_export_user_100s_id_seq
 
 
 --
+-- Name: temp_export_user_101s_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.temp_export_user_101s_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
 -- Name: temp_export_user_58s_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -30154,6 +30409,18 @@ CREATE SEQUENCE public.temp_export_user_99s_id_seq
 --
 
 CREATE SEQUENCE public.temp_export_youtheducationstatus_100s_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: temp_export_youtheducationstatus_101s_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.temp_export_youtheducationstatus_101s_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -61117,6 +61384,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220916182057'),
 ('20220916234039'),
 ('20220919161059'),
-('20220919185042');
+('20220919185042'),
+('20220925175719'),
+('20220928132603');
 
 
