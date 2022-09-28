@@ -96,7 +96,7 @@ module GrdaWarehouse::Synthetic
     end
 
     private def user_id
-      @user_id ||= User.setup_system_user.name
+      @user_id ||= User.system_user.name
     end
 
     def self.youth_education_status_source

@@ -120,8 +120,7 @@ module MaYyaReport
     private def direct_assistance?(enrollment)
       enrollment.
         events.
-        select { |event| event.EventDate.between?(@filter.start_date, @filter.end_date) }.
-        any? { |event| event.Event == 16 }
+        detect { |event| event.EventDate.between?(@filter.start_date, @filter.end_date) && event.Event == 16 }.present?
     end
 
     private def gender(client)
