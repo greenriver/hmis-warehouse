@@ -8,13 +8,15 @@
 
 module Types
   class HmisSchema::Enrollment < Types::BaseObject
+    include Types::HmisSchema::HasEvents
+
     description 'HUD Enrollment'
     field :id, ID, null: false
     field :project, Types::HmisSchema::Project, null: false
     field :entry_date, GraphQL::Types::ISO8601Date, null: true
     field :exit_date, GraphQL::Types::ISO8601Date, null: true
     field :assessments, HmisSchema::Assessment.page_type, null: false
-    field :events, HmisSchema::Event.page_type, null: false
+    events_field :events, type: HmisSchema::Event.page_type, null: false
     field :services, HmisSchema::Service.page_type, null: false
     field :household, HmisSchema::Household, null: false
     field :client, HmisSchema::Client, null: false
@@ -41,6 +43,10 @@ module Types
 
     def in_progress
       object.in_progress?
+    end
+
+    def events(**args)
+      resolve_events(:events, **args)
     end
   end
 end
