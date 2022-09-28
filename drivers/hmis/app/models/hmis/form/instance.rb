@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class Hmis::Form::Definition < ApplicationRecord
+class Hmis::Form::Instance < ApplicationRecord
   self.table_name = :hmis_form_instances
 
   belongs_to :entity, polymorphic: true, optional: true
