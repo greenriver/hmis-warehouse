@@ -32,7 +32,7 @@ module Types
 
       private
 
-      def apply_service_arguments(scope, user: current_user, sort_order: :date)
+      def apply_service_arguments(scope, user: current_user, sort_order: :date_provided)
         services_scope = scope.viewable_by(user)
         services_scope.sort_by_option(sort_order) if sort_order.present?
       end
