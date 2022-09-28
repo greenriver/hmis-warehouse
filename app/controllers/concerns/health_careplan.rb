@@ -79,8 +79,8 @@ module HealthCareplan
         emulate_media: 'print',
         style_tag_options: [{ content: inline_stylesheet_link_tag('print') }],
         margin: {
-          top: '1.5in',
-          bottom: '1.5in',
+          top: '1in',
+          bottom: '1in',
           left: '.4in',
           right: '.4in',
         },
@@ -149,6 +149,7 @@ module HealthCareplan
         @careplan.archive_services
         @careplan.archive_equipment
         @careplan.archive_goals
+        @careplan.archive_backup_plans
         @careplan.archive_team_members
         @careplan.save
       end
