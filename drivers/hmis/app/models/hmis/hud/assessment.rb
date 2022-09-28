@@ -15,4 +15,17 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
   use_enum :assessment_types_enum_map, ::HUD.assessment_types
   use_enum :assessment_levels_enum_map, ::HUD.assessment_levels
   use_enum :prioritization_statuses_enum_map, ::HUD.prioritization_statuses
+
+  SORT_OPTIONS = [:date].freeze
+
+  def self.sort_by_option(option)
+    raise NotImplementedError unless SORT_OPTIONS.include?(option)
+
+    case option
+    when :date
+      order(AssessmentDate: :desc)
+    else
+      raise NotImplementedError
+    end
+  end
 end

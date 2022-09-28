@@ -16,7 +16,7 @@ module Types
     field :project, Types::HmisSchema::Project, null: false
     field :entry_date, GraphQL::Types::ISO8601Date, null: true
     field :exit_date, GraphQL::Types::ISO8601Date, null: true
-    field :assessments, HmisSchema::Assessment.page_type, null: false
+    assessments_field :assessments, type: HmisSchema::Assessment.page_type, null: false
     events_field :events, type: HmisSchema::Event.page_type, null: false
     services_field :services, type: HmisSchema::Service.page_type, null: false
     field :household, HmisSchema::Household, null: false
@@ -52,6 +52,10 @@ module Types
 
     def services(**args)
       resolve_services(:services, **args)
+    end
+
+    def assessments(**args)
+      resolve_assessments(:assessments, **args)
     end
   end
 end
