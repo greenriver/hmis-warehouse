@@ -60,6 +60,13 @@ enum AssessmentLevel {
 }
 
 """
+HUD Assessment Sorting Options
+"""
+enum AssessmentSortOption {
+  DATE
+}
+
+"""
 HUD AssessmentType (4.19.3)
 """
 enum AssessmentType {
@@ -337,17 +344,17 @@ type DeleteEnrollmentPayload {
 HUD Enrollment
 """
 type Enrollment {
-  assessments(limit: Int, offset: Int): AssessmentsPaginated!
+  assessments(limit: Int, offset: Int, sortOrder: AssessmentSortOption): AssessmentsPaginated!
   client: Client!
   entryDate: ISO8601Date
-  events(limit: Int, offset: Int): EventsPaginated!
+  events(limit: Int, offset: Int, sortOrder: EventSortOption): EventsPaginated!
   exitDate: ISO8601Date
   household: Household!
   id: ID!
   inProgress: Boolean!
   project: Project!
   relationshipToHoH: RelationshipToHoH!
-  services(limit: Int, offset: Int): ServicesPaginated!
+  services(limit: Int, offset: Int, sortOrder: ServiceSortOption): ServicesPaginated!
 }
 
 """
@@ -422,6 +429,13 @@ type Event {
   referralCaseManageAfter: ReferralCaseManageAfter
   referralResult: ReferralResult
   resultDate: ISO8601DateTime
+}
+
+"""
+HUD Event Sorting Options
+"""
+enum EventSortOption {
+  DATE
 }
 
 """
@@ -1220,6 +1234,13 @@ type Service {
   referralOutcome: PATHReferralOutcome
   subTypeProvided: ServiceSubTypeProvided
   typeProvided: ServiceTypeProvided!
+}
+
+"""
+HUD Service Sorting Options
+"""
+enum ServiceSortOption {
+  DATE
 }
 
 """
