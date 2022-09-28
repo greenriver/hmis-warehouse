@@ -5,6 +5,10 @@
     .signature__section__row
       .signature__label Patient:
       .signature__value= @patient.name
+    - if @careplan.representative&.full_name
+      .signature__section__row
+        .signature__label Representative:
+        .signature__value= @careplan.representative&.full_name
     .signature__section__row
       .signature__section__signature
         .signature__label Patient Signature:
@@ -18,21 +22,6 @@
           .signature__value= @careplan.patient_signed_on&.to_date
         - else
           .signature__line
-
-  .signature__section
-    .signature__section__row
-      .signature__label Representative:
-      - if @careplan.representative&.full_name
-        .signature__value= @careplan.representative&.full_name
-      - else
-        .signature__line.signature__line-name
-    .signature__section__row
-      .signature__section__signature
-        .signature__label Representative Signature:
-        .signature__line
-      .signature__section__signedOn
-        .signature__label Signed On:
-        .signature__line
 
   - has_provider_signature = @careplan.provider&.full_name && @careplan.provider_signed_on.present?
   .signature__section

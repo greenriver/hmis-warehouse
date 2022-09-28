@@ -608,12 +608,14 @@ footer {
   .signature__section {
     padding: 40px 0;
     border-bottom: 1px solid $gray-020;
-    .signature__section__col,
+
     .signature__section__row {
       display: flex;
+      margin-bottom: 15px;
     }
-    .signature__section__row:first-child {
-      margin-bottom: 20px;
+
+    .signature__section__row:last-child {
+      padding-top: 20px;
     }
     .signature__label {
       font-weight: bold;
