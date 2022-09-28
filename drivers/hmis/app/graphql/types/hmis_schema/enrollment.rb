@@ -9,6 +9,7 @@
 module Types
   class HmisSchema::Enrollment < Types::BaseObject
     include Types::HmisSchema::HasEvents
+    include Types::HmisSchema::HasServices
 
     description 'HUD Enrollment'
     field :id, ID, null: false
@@ -17,7 +18,7 @@ module Types
     field :exit_date, GraphQL::Types::ISO8601Date, null: true
     field :assessments, HmisSchema::Assessment.page_type, null: false
     events_field :events, type: HmisSchema::Event.page_type, null: false
-    field :services, HmisSchema::Service.page_type, null: false
+    services_field :services, type: HmisSchema::Service.page_type, null: false
     field :household, HmisSchema::Household, null: false
     field :client, HmisSchema::Client, null: false
     field :relationship_to_ho_h, HmisSchema::Enums::RelationshipToHoH, null: false
@@ -47,6 +48,10 @@ module Types
 
     def events(**args)
       resolve_events(:events, **args)
+    end
+
+    def services(**args)
+      resolve_services(:services, **args)
     end
   end
 end
