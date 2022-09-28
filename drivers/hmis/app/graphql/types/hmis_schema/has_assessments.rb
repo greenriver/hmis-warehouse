@@ -32,9 +32,8 @@ module Types
 
       private
 
-      def apply_assessment_arguments(scope, user: current_user, sort_order: :assessment_date)
-        assessments_scope = scope.viewable_by(user)
-        assessments_scope.sort_by_option(sort_order) if sort_order.present?
+      def apply_assessment_arguments(scope, sort_order: :assessment_date)
+        scope.sort_by_option(sort_order) if sort_order.present?
       end
     end
   end
