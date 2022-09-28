@@ -32,7 +32,7 @@ module Types
 
       private
 
-      def apply_event_arguments(scope, user: current_user, sort_order: nil)
+      def apply_event_arguments(scope, user: current_user, sort_order: :date)
         events_scope = scope.viewable_by(user)
         events_scope.sort_by_option(sort_order) if sort_order.present?
       end
