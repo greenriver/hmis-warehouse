@@ -128,6 +128,7 @@ module GrdaWarehouse::CasProjectClientCalculator
         :dv_date,
         :va_eligible,
         :vash_eligible,
+        :rrh_desired,
       ]
     end
 
@@ -235,6 +236,19 @@ module GrdaWarehouse::CasProjectClientCalculator
         merge(GrdaWarehouse::Cohort.active).
         where(vash_eligible: true).
         exists?
+    end
+
+    private def rrh_desired(client)
+      section_title = 'Section C'
+      question_title = 'currently working a full time job'
+
+      form = client.most_recent_tc_hat_for_destination
+      relevant_section = form.section_starts_with(section_title)
+      full_time_employed = form.answer_from_section(relevant_section, question_title) == 'Yes'
+
+      question_title = 'successfully exit 12-24 month RRH'
+      rrh_successful_exit = form.answer_from_section(relevant_section, question_title) == 'Yes'
+      full_time_employed || rrh_successful_exit
     end
   end
 end

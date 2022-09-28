@@ -137,7 +137,8 @@ Rails.application.routes.draw do
   # obfuscation of links sent out via email
   resources :tokens, only: [:show]
 
-  resource :filter, only: [:show]
+  match 'filter', to: 'filters#show', via: [:post]
+
 
   resources :reports do
     resources :report_results, path: 'results', only: [:index, :show, :create, :update, :destroy] do
@@ -165,16 +166,7 @@ Rails.application.routes.draw do
   end
   namespace :hud_reports do
     resources :historic_pits, only: [:index]
-    resources :lsas, only: [:index]
-    namespace :ahar do
-      namespace :fy_2017 do
-        resources :base, only: [:create]
-        resources :data_source, only: [:create]
-        resources :project, only: [:create]
-        resources :veteran, only: [:create]
-        get :support
-      end
-    end
+    resources :historic_lsas, only: [:index], controller: 'lsas'
   end
   resources :report_results_summary, only: [:show]
   resources :warehouse_reports, only: [:index] do
@@ -524,6 +516,7 @@ Rails.application.routes.draw do
     resources :notes, only: [:index, :destroy, :create], controller: 'clients/notes' do
       get :alerts, on: :collection
     end
+    resources :enrollments, only: [:show], controller: 'clients/enrollments'
     resource :eto_api, only: [:show, :update], controller: 'clients/eto_api'
     resources :users, only: [:index, :create, :update, :destroy], controller: 'clients/users'
     resources :anomalies, except: [:show], controller: 'clients/anomalies'

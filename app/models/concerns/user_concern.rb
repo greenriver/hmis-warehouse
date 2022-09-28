@@ -277,6 +277,23 @@ module UserConcern
       end
     end
 
+    # @return [Array] an array of text that describes the status of the account
+    def overall_status(current_user)
+      return ['Active'] if active?
+      return ['Pending invitation confirmation'] if invitation_status == :pending_confirmation
+
+      text = []
+      text << 'Invitation expired' if invitation_status == :invitation_expired
+      if expired_at?
+        text << "Account expired on #{expired_at}"
+      elsif expired?
+        text << "Account expired due to inactivity. Last activity on #{last_activity_at}"
+      else
+        text << deactivation_status(current_user)
+      end
+      text
+    end
+
     def deactivation_status(user)
       return unless inactive?
 
@@ -439,9 +456,15 @@ module UserConcern
       User.where(id: team_member_ids)
     end
 
+    # patients with CC or NCM relationship to this user
     def patients
       Health::Patient.where(care_coordinator_id: id).
         or(Health::Patient.where(nurse_care_manager_id: id))
+    end
+
+    # patients with CC relationship to this user
+    def care_coordination_patients
+      Health::Patient.where(care_coordinator_id: id)
     end
 
     private def create_access_group

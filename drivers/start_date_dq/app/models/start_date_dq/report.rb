@@ -39,7 +39,7 @@ module StartDateDq
         'Date Homelessness Started (Self-Reported)',
         'Entry Date',
         'Exit Date',
-        'Days between Date Homelessness Started and Exit Date (or report end)',
+        'Days between Entry Date and Exit Date (or report end)',
         'Personal ID',
         'Project',
         'Project Type',
@@ -50,7 +50,7 @@ module StartDateDq
       date_to_street = row.enrollment.DateToStreetESSH
       entry_date = row.enrollment.EntryDate
       exit_date = row.enrollment.exit&.ExitDate
-      days_between_start_and_exit = ([@filter.end, exit_date].compact.min - date_to_street).to_i
+      days_between_start_and_exit = ([@filter.end, exit_date].compact.min - entry_date).to_i
       {
         days_between: (entry_date - date_to_street).to_i,
         date_to_street: date_to_street,

@@ -18,8 +18,14 @@ module Health
 
     validates_presence_of :user_id
 
+    # patients with CC or NCM relationship to this user
     def patients
       user&.patients
+    end
+
+    # patients with CC relationship to this user
+    def care_coordination_patients
+      user&.care_coordination_patients
     end
   end
 end
