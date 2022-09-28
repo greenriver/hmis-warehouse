@@ -17,14 +17,17 @@ module Types
     argument :other_type_provided, String, required: false
     argument :moving_on_other_type, String, required: false
     argument :sub_type_provided, HmisSchema::Enums::ServiceSubTypeProvided, required: false
-    argument :faa_amount, Float, required: false
+    argument 'FAAmount', Float, required: false
     argument :referral_outcome, HmisSchema::Enums::PATHReferralOutcome, required: false
 
     def to_params
-      result = to_h.except(:type_provided, :sub_type_provided)
+      result = to_h.except(:type_provided, :sub_type_provided, :enrollment_id, :client_id, :faa_amount)
 
       result[:type_provided] = type_provided.split(':').last&.to_i if type_provided.present?
       result[:sub_type_provided] = sub_type_provided.split(':').last&.to_i if sub_type_provided.present?
+
+      result[:enrollment_id] = Hmis::Hud::Enrollment.viewable_by(current_user).find_by(id: enrollment_id)&.enrollment_id if enrollment_id.present?
+      result[:personal_id] = Hmis::Hud::Client.find_by(id: client_id)&.personal_id if client_id.present?
 
       result
     end

@@ -1,14 +1,15 @@
 module Mutations
   class CreateService < BaseMutation
-    argument :input, [Types::HmisSchema::ServiceInput], required: true
+    argument :input, Types::HmisSchema::ServiceInput, required: true
 
     field :service, Types::HmisSchema::Service, null: true
     field :errors, [Types::HmisSchema::ValidationError], null: false
 
-    def validate_input(input:)
+    def validate_input(input)
       errors = []
-      errors << InputValidationError.new("Enrollment with id '#{input.enrollment_id}' does not exist", attribute: 'enrollment_id') unless Hmis::Hud::Enrollment.viewable_by(current_user).exists?(id: input.enrollment_id)
-      errors << InputValidationError.new("Client with id '#{input.client_id}' does not exist", attribute: 'client_id') unless Hmis::Hud::Client.viewable_by(current_user).exists?(id: input.client_id)
+      params = input.to_params
+      errors << InputValidationError.new("Enrollment with id '#{input.enrollment_id}' does not exist", attribute: 'enrollment_id') unless Hmis::Hud::Enrollment.viewable_by(current_user).exists?(enrollment_id: params[:enrollment_id].to_i)
+      errors << InputValidationError.new("Client with id '#{input.client_id}' does not exist", attribute: 'client_id') unless Hmis::Hud::Client.exists?(personal_id: params[:personal_id])
       errors
     end
 
