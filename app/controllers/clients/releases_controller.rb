@@ -30,13 +30,13 @@ module Clients
     end
 
     def new
-      @file = file_source.new
+      @file = GrdaWarehouse::ClientFile.new
       @group_name = 'Release of Information'
       @consent_file_types = file_source.available_tags[@group_name]
     end
 
     def create
-      @file = file_source.new
+      @file = GrdaWarehouse::ClientFile.new
       @group_name = 'Release of Information'
       @consent_file_types = file_source.available_tags[@group_name]
       @file.errors.add :tag_list, 'You must specify file contents' if file_params[:tag_list].blank?

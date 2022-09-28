@@ -163,6 +163,8 @@ module Health
         'Comprehensive Health Assessment'
       when 'Person-Centered Treatment Plan Signed'
         'Person-Centered Treatment Plan signed'
+      when 'Follow-up within 3 days of hospital discharge (with client)'
+        'Follow-up from inpatient hospital discharge (with client)'
       else
         activity
       end
