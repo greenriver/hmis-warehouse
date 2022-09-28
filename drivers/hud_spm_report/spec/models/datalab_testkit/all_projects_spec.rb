@@ -52,11 +52,11 @@ RSpec.describe 'Datalab Testkit SPM All-Projects', type: :model do
         :m1b_es_sh_ph_days,
         :m1b_es_sh_th_ph_days,
       ],
-      # # Pending AAQ "Question Subject: SPM DataLab test kit Measure 1a.1"
-      # skip: [
-      #   'E3',
-      #   'H3',
-      # ],
+      # Pending AAQ "Question Subject: SPM DataLab test kit Measure 1a.1"
+      skip: [
+        'E2',
+        'H2',
+      ],
     )
   end
 

@@ -335,7 +335,7 @@ module HudSpmReport::Generators::Fy2020
           r.fetch(:client_id)
         end.map do |client_id, nights|
           client = clients_by_id.fetch(client_id)
-          debug = false # "#{client.first_name} #{client.last_name}" == "Oregano Eventual"
+          # debug = "#{client.first_name} #{client.last_name}" == "Purity Pyrotechnics"
           # binding.pry if debug
           # note if the night is housed and if the enrollment is literally homeless
           nights.each do |night|
@@ -382,7 +382,7 @@ module HudSpmReport::Generators::Fy2020
             client,
             m1_history: { enrollments: m1_history },
             m1a_es_sh_days: calculate_valid_days_in_project_type(nights.dup, project_types: ES_SH, line: :m1a1),
-            m1a_es_sh_th_days: calculate_valid_days_in_project_type(nights.dup, project_types: ES_SH_TH, line: :m1a2, debug: debug),
+            m1a_es_sh_th_days: calculate_valid_days_in_project_type(nights.dup, project_types: ES_SH_TH, line: :m1a2),
             m1b_es_sh_ph_days: calculate_valid_days_in_project_type(nights.dup, project_types: ES_SH_PH, line: :m1b1),
             m1b_es_sh_th_ph_days: calculate_valid_days_in_project_type(nights.dup, project_types: ES_SH_TH_PH, line: :m1b2),
             m1_reporting_age: age_for_report(dob: client.DOB, entry_date: m1_history.last[:last_date_in_program], age: m1_history.first[:age]),
@@ -1478,7 +1478,7 @@ module HudSpmReport::Generators::Fy2020
     #  Or
     #  ( [housing move-in date] is null and [project exit date] >= [report start date] and [project exit date] <= [report end date])
 
-    def calculate_valid_days_in_project_type(all_nights, project_types:, line:, debug: false) # rubocop:disable Lint/UnusedMethodArgument
+    def calculate_valid_days_in_project_type(all_nights, project_types:, line:, debug: false) # rubocop:disable Lint/UnusedMethodArgument,Metrics/PerceivedComplexity
       # we need to throw out any nights in PH projects where the enrollment
       # doesn't meet these critera (not homeless during the reporting period)
       # And (
@@ -1493,6 +1493,8 @@ module HudSpmReport::Generators::Fy2020
       # binding.pry if debug
       # if 1a, remove any pre-entry days
       all_nights.reject! { |night| night[:pre_entry] } if line.in?([:m1a1, :m1a2])
+      # reject any nights where move-in date is totally invalid
+      all_nights.reject! { |night| night[:MoveInDate].present? && night[:MoveInDate] < night[:first_date_in_program] }
 
       nights_for_negation = all_nights.deep_dup
       nights_for_negation = nights_for_negation.group_by { |night| night[:date] }
@@ -1517,11 +1519,26 @@ module HudSpmReport::Generators::Fy2020
             night[:literally_homeless] &&
             night[:project_type].in?(PH) &&
             # opened during report range
-            (night[:first_date_in_program].present? && night[:first_date_in_program] >= @report.start_date && night[:first_date_in_program] <= @report.end_date) ||
-            # moved in during report range
-            (night[:MoveInDate].present? && night[:MoveInDate] >= @report.start_date && night[:MoveInDate] <= @report.end_date) ||
-            # exited during report range without moving in
-            (night[:MoveInDate].blank? && night[:last_date_in_program].present? && night[:last_date_in_program] >= @report.start_date && night[:last_date_in_program] <= @report.end_date)
+            (
+              (
+                night[:first_date_in_program].present? &&
+                night[:first_date_in_program] >= @report.start_date &&
+                night[:first_date_in_program] <= @report.end_date
+              ) ||
+              # moved in during report range
+              (
+                night[:MoveInDate].present? &&
+                night[:MoveInDate] > @report.start_date &&
+                night[:MoveInDate] <= @report.end_date
+              ) ||
+              # exited during report range without moving in
+              (
+                night[:MoveInDate].blank? &&
+                night[:last_date_in_program].present? &&
+                night[:last_date_in_program] >= @report.start_date &&
+                night[:last_date_in_program] <= @report.end_date
+              )
+            )
           )
         end
       end
@@ -1531,8 +1548,12 @@ module HudSpmReport::Generators::Fy2020
       # remove any days with a stop project type
       all_nights.each do |date, nights|
         if line.in?([:m1a1, :m1b1])
-          remove_es_sh_if = nights_for_negation[date].any? { |night| night[:project_type].in?(TH) || (night[:project_type].in?(PH) && night[:housed]) }
-          nights.reject! { |night| night[:project_type].in?(ES_SH) } if remove_es_sh_if
+          remove_homeless_if = nights_for_negation[date].any? { |night| night[:project_type].in?(TH) || (night[:project_type].in?(PH) && night[:housed]) }
+          nights.reject! { |night| night[:project_type].in?(ES_SH) } if remove_homeless_if
+          # NOTE: the spec says:
+          # a. For measures 1a.1 and 1b.1, time spent by clients housed in TH or PH projects negates overlapping time spent in ES and SH projects.
+          # data labe test kit seems to reject any homeless time
+          nights.reject! { |night| night[:project_type].in?(PH) && (night[:pre_move_in] || night[:pre_entry]) } if remove_homeless_if
         else
           remove_th_if = nights_for_negation[date].any? { |night| night[:project_type].in?(PH) && night[:housed] }
           nights.reject! { |night| night[:project_type].in?(TH) } if remove_th_if
@@ -1667,6 +1688,12 @@ module HudSpmReport::Generators::Fy2020
 
       # Stop, since we can't calculate further for adults, HoH, or anyone without a household id
       if night[:HouseholdID].blank? || night[:age].blank? || night[:age] > 17 || night[:head_of_household]
+        @literally_homeless[night[:enrollment_id]] = false
+        return @literally_homeless[night[:enrollment_id]]
+      end
+
+      # Don't calculate for children if they have some value on their record
+      if night[:LOSUnderThreshold].present?
         @literally_homeless[night[:enrollment_id]] = false
         return @literally_homeless[night[:enrollment_id]]
       end
