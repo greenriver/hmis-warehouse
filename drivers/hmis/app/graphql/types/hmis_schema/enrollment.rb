@@ -10,6 +10,7 @@ module Types
   class HmisSchema::Enrollment < Types::BaseObject
     include Types::HmisSchema::HasEvents
     include Types::HmisSchema::HasServices
+    include Types::HmisSchema::HasAssessments
 
     description 'HUD Enrollment'
     field :id, ID, null: false
