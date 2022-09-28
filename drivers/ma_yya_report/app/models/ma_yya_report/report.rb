@@ -239,7 +239,7 @@ module MaYyaReport
         cell = report_cells.create(name: cell_name)
         case cell_name
         when 'F2d' # a list of zipcodes
-          cell.update(structured_data: universe.members.pluck(a_t[:zip_code]))
+          cell.update(structured_data: universe.members.pluck(a_t[:zip_codes]).flatten)
         else
           next if query.nil? # Create a cell for a Non-HMIS query, but leave it blank
 

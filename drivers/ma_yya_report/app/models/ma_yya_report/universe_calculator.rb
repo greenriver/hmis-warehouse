@@ -28,6 +28,8 @@ module MaYyaReport
         batch.each do |client|
           client_id = client.id
           enrollment = enrollments_by_client_id[client_id].last
+          next if enrollment.blank?
+
           enrollment_cls = enrollment.enrollment.current_living_situations.detect { |cls| cls.InformationDate == enrollment.first_date_in_program }
           education_status = enrollment.enrollment.youth_education_statuses.max_by(&:InformationDate)
           health_and_dv = enrollment.enrollment.health_and_dvs.max_by(&:InformationDate)
@@ -61,7 +63,7 @@ module MaYyaReport
             health_insurance: enrollment.enrollment.income_benefits_at_entry&.InsuranceFromAnySource == 1,
             rehoused_on: rehoused_on(enrollment.enrollment),
             subsequent_current_living_situations: subsequent_current_living_situations(enrollment.enrollment),
-            zip_code: zip_code(client),
+            zip_codes: zip_codes(client),
             flex_funds: flex_funds(client),
           )
         end
@@ -69,9 +71,6 @@ module MaYyaReport
     end
 
     private def client_scope
-      enrollment_scope = GrdaWarehouse::ServiceHistoryEnrollment.open_between(start_date: @filter.start_date, end_date: @filter.end_date)
-      enrollment_scope = filter_for_projects(enrollment_scope)
-
       GrdaWarehouse::Hud::Client.
         distinct.
         joins(:service_history_enrollments).
@@ -79,7 +78,7 @@ module MaYyaReport
     end
 
     private def clients_with_enrollments(batch)
-      enrollment_scope.
+      enrollment_scope_with_preloads.
         where(client_id: batch.map(&:id)).
         order(first_date_in_program: :asc).
         group_by(&:client_id)
@@ -88,14 +87,18 @@ module MaYyaReport
     private def enrollment_scope
       scope = GrdaWarehouse::ServiceHistoryEnrollment.
         entry.
+        open_between(start_date: @filter.start_date, end_date: @filter.end_date)
+
+      filter_for_projects(scope)
+    end
+
+    private def enrollment_scope_with_preloads
+      enrollment_scope.
         preload(
           :client,
           enrollment: [:client, :current_living_situations, :events, :youth_education_statuses, :disabilities, :health_and_dvs, :income_benefits_at_entry],
           household_enrollments: [:client, :exit],
-        ).
-        open_between(start_date: @filter.start_date, end_date: @filter.end_date)
-
-      filter_for_projects(scope)
+        )
     end
 
     private def currently_homeless?(cls)
@@ -191,8 +194,8 @@ module MaYyaReport
         map(&:CurrentLivingSituation)
     end
 
-    private def zip_code(client)
-      client.hmis_client&.processed_youth_current_zip
+    private def zip_codes(client)
+      client.source_hmis_clients.map(&:processed_youth_current_zip).compact.uniq || []
     end
 
     private def flex_funds(client)
