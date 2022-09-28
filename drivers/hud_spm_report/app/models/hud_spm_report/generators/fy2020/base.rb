@@ -328,12 +328,26 @@ module HudSpmReport::Generators::Fy2020
             where(shs_t[:date].between(LOOKBACK_STOP_DATE..@report.end_date)).
             where(client_id: clients_by_id.keys).
             order(client_id: :asc, date: :asc),
-        )
+        ).uniq
 
         # transform them into per client metrics
         pending_associations = nights_for_batch.group_by do |r|
           r.fetch(:client_id)
         end.map do |client_id, nights|
+          client = clients_by_id.fetch(client_id)
+          debug = false # "#{client.first_name} #{client.last_name}" == "Oregano Eventual"
+          # binding.pry if debug
+          # note if the night is housed and if the enrollment is literally homeless
+          nights.each do |night|
+            if PH.include?(night[:project_type])
+              night[:housed] = night[:MoveInDate].present? && night[:MoveInDate] <= night[:date]
+              night[:pre_move_in] = night[:MoveInDate].blank? || night[:MoveInDate] > night[:date]
+            else
+              night[:housed] = false
+              night[:pre_move_in] = false
+            end
+            night[:literally_homeless] = literally_homeless?(night)
+          end
           nights = generate_non_service_dates(nights)
 
           # after resolving the non_service dates
@@ -363,14 +377,14 @@ module HudSpmReport::Generators::Fy2020
             }
           end
 
-          client = clients_by_id.fetch(client_id)
+          # puts "processing #{client.first_name} #{client.last_name}"
           report_client = build_report_client(
             client,
             m1_history: { enrollments: m1_history },
-            m1a_es_sh_days: calculate_valid_days_in_project_type(nights, project_types: ES_SH, stop_project_types: PH_TH, include_pre_entry: false),
-            m1a_es_sh_th_days: calculate_valid_days_in_project_type(nights, project_types: ES_SH_TH, stop_project_types: PH, include_pre_entry: false),
-            m1b_es_sh_ph_days: calculate_valid_days_in_project_type(nights, project_types: ES_SH_PH, stop_project_types: PH_TH, include_pre_entry: true),
-            m1b_es_sh_th_ph_days: calculate_valid_days_in_project_type(nights, project_types: ES_SH_TH_PH, stop_project_types: PH, include_pre_entry: true),
+            m1a_es_sh_days: calculate_valid_days_in_project_type(nights.dup, project_types: ES_SH, line: :m1a1),
+            m1a_es_sh_th_days: calculate_valid_days_in_project_type(nights.dup, project_types: ES_SH_TH, line: :m1a2, debug: debug),
+            m1b_es_sh_ph_days: calculate_valid_days_in_project_type(nights.dup, project_types: ES_SH_PH, line: :m1b1),
+            m1b_es_sh_th_ph_days: calculate_valid_days_in_project_type(nights.dup, project_types: ES_SH_TH_PH, line: :m1b2),
             m1_reporting_age: age_for_report(dob: client.DOB, entry_date: m1_history.last[:last_date_in_program], age: m1_history.first[:age]),
             veteran: client.veteran?,
             m1_head_of_household: m1_history.last[:head_of_household] || false,
@@ -1451,7 +1465,6 @@ module HudSpmReport::Generators::Fy2020
     # project_types: Array(HUD.project_types.keys)
     # stop_project_types: Array(HUD.project_types.keys)
     # include_pre_entry: boolean true to include days before entry
-    # consider_move_in_date: boolean handle time between [project start] and [housing move-in].
     #
     # The flags are set like so
     # Measure 1a / Metric 1: Persons in ES and SH – do not include data from element 3.917.
@@ -1465,35 +1478,80 @@ module HudSpmReport::Generators::Fy2020
     #  Or
     #  ( [housing move-in date] is null and [project exit date] >= [report start date] and [project exit date] <= [report end date])
 
-    def calculate_valid_days_in_project_type(all_nights, project_types:, stop_project_types:, include_pre_entry:)
-      # include_pre_entry is a proxy for 1b (which include data from 3.917)
-      # for any situation where include_pre_entry is true, we need to throw out any nights in project types 3, 9, 10, 13 where the enrollment
-      # didn't indicate the client was literally homeless at entry
+    def calculate_valid_days_in_project_type(all_nights, project_types:, line:, debug: false) # rubocop:disable Lint/UnusedMethodArgument
+      # we need to throw out any nights in PH projects where the enrollment
+      # doesn't meet these critera (not homeless during the reporting period)
+      # And (
+      # ( [project start date] >= [report start date] and [project start date] <= [report end date] ) Or
+      # ( [housing move-in date] >= [report start date] and [housing move-in date] <= [report end date] )
+      # Or
+      # ( [housing move-in date] is null and [project exit date] >= [report start date] and [project exit date] <= [report end date])
 
-      # FIXME
-      # if include_pre_entry
-      #   all_nights = all_nights.select do |night|
-      #     next true if night
+      # For measures 1a.1 and 1b.1, time spent by clients housed in TH or PH projects negates overlapping time spent in ES and SH projects.
+      # b. For measures 1a.2 and 1b.2, time spent by clients housed in PH projects negates overlapping time spent in TH projects.
+      # c. For all PH projects (project types 3, 9, 10, 13) – use clients’ [housing move-in date] to negate overlapping time spent homeless. Records where the [housing move-in date] is null (i.e. the client is not physically in permanent housing) or > the [report end date] should not negate the client’s time homeless.
+      # binding.pry if debug
+      # if 1a, remove any pre-entry days
+      all_nights.reject! { |night| night[:pre_entry] } if line.in?([:m1a1, :m1a2])
 
-      #   end
-      # end
-      # END FIXME
-      days_in_selected_project_types = filter_days_for_days_in_project_types(
-        all_nights,
-        project_types: project_types,
-        stop_project_types: stop_project_types,
-        include_pre_entry: include_pre_entry,
-      )
+      nights_for_negation = all_nights.deep_dup
+      nights_for_negation = nights_for_negation.group_by { |night| night[:date] }
 
-      if days_in_selected_project_types.any?
+      # Remove any project not in the project types we care about
+      # Ignore nights in a project that are on the date of exit
+      # never count days after move-in
+      all_nights.reject! do |night|
+        not_in_project_type = ! night[:project_type].in?(project_types)
+        on_exit_date = night[:date] == night[:last_date_in_program]
+        not_in_project_type || on_exit_date || night[:housed]
+      end
+
+      # if 1b, remove any non-literally homeless at entry enrollments
+      # and any PH enrollment where entry, move-in, and exit is outside of report range
+      if line.in?([:m1b1, :m1b2])
+        all_nights.select! do |night|
+          # non-PH projects
+          (night[:literally_homeless] && !night[:project_type].in?(PH)) ||
+          # PH literally homeless and with something during the range
+          (
+            night[:literally_homeless] &&
+            night[:project_type].in?(PH) &&
+            # opened during report range
+            (night[:first_date_in_program].present? && night[:first_date_in_program] >= @report.start_date && night[:first_date_in_program] <= @report.end_date) ||
+            # moved in during report range
+            (night[:MoveInDate].present? && night[:MoveInDate] >= @report.start_date && night[:MoveInDate] <= @report.end_date) ||
+            # exited during report range without moving in
+            (night[:MoveInDate].blank? && night[:last_date_in_program].present? && night[:last_date_in_program] >= @report.start_date && night[:last_date_in_program] <= @report.end_date)
+          )
+        end
+      end
+
+      # group by date so we can reject dates where stop-projects are present
+      all_nights = all_nights.group_by { |night| night[:date] }
+      # remove any days with a stop project type
+      all_nights.each do |date, nights|
+        if line.in?([:m1a1, :m1b1])
+          remove_es_sh_if = nights_for_negation[date].any? { |night| night[:project_type].in?(TH) || (night[:project_type].in?(PH) && night[:housed]) }
+          nights.reject! { |night| night[:project_type].in?(ES_SH) } if remove_es_sh_if
+        else
+          remove_th_if = nights_for_negation[date].any? { |night| night[:project_type].in?(PH) && night[:housed] }
+          nights.reject! { |night| night[:project_type].in?(TH) } if remove_th_if
+        end
+        all_nights[date] = nights
+        all_nights.delete(date) if nights.blank?
+      end
+
+      dates = all_nights.keys.sort
+
+      if dates.any?
         # Find the latest bed night (stopping at the report date end)
-        client_end_date = [days_in_selected_project_types.last.to_date, @report.end_date].min
+        client_end_date = [dates.last.to_date, @report.end_date].min
         # logger.info "Latest Homeless Bed Night: #{client_end_date}"
 
         # Determine the client's start date
         client_start_date = [client_end_date.to_date - 365.days, LOOKBACK_STOP_DATE].max
         # logger.info "Client's initial start date: #{client_start_date}"
-        days_before_client_start_date = days_in_selected_project_types.select do |d|
+        days_before_client_start_date = dates.select do |d|
           d.to_date < client_start_date.to_date
         end
         # Move new start date back based on contiguous homelessness before the start date above
@@ -1510,14 +1568,15 @@ module HudSpmReport::Generators::Fy2020
         # logger.info "Client's new start date: #{client_start_date}"
 
         # Remove any days outside of client_start_date and client_end_date
-        # logger.info "Days homeless before limits #{days_in_selected_project_types.count}"
-        days_in_selected_project_types.delete_if { |d| d.to_date < client_start_date.to_date || d.to_date > client_end_date.to_date }
-        # logger.info "Days homeless after limits #{days_in_selected_project_types.count}"
+        # logger.info "Days homeless before limits #{dates.count}"
+        dates.delete_if { |d| d.to_date < client_start_date.to_date || d.to_date > client_end_date.to_date }
+        # logger.info "Days homeless after limits #{dates.count}"
       end
+      # binding.pry if debug
       # If the client doesn't have any days within the report range in the appropriate project types, exclude them
-      return nil unless days_in_selected_project_types.any? { |d| d >= @report.start_date }
+      return nil if dates.all? { |d| d < @report.start_date || d > @report.end_date }
 
-      days_in_selected_project_types.uniq.count
+      dates.uniq.count
     end
 
     # The SPM reports need to consider nights that are not recorded
@@ -1532,9 +1591,6 @@ module HudSpmReport::Generators::Fy2020
     def generate_non_service_dates(nights)
       # Add fake records for every day between DateToStreetESSH and first_date_in_program.
 
-      # force these days to be ES since that's included in all 1b measures
-      non_service_project_type = 1
-
       # Find the first entry for each enrollment based on unique project and first_date in program
       entries = nights.index_by do |m|
         [m[:project_id], m[:first_date_in_program]]
@@ -1544,121 +1600,22 @@ module HudSpmReport::Generators::Fy2020
         next unless literally_homeless?(entry)
 
         # 3.917.3 - add any days prior to project entry only if client was literally homeless at entry
-        if entry[:DateToStreetESSH].present? && entry[:first_date_in_program] > entry[:DateToStreetESSH]
-          start_date = [entry[:DateToStreetESSH]&.to_date, LOOKBACK_STOP_DATE, entry[:DOB]&.to_date].compact.max
-          new_nights = (start_date..entry[:first_date_in_program]).map do |date|
-            {
-              date: date,
-              pre_entry: true,
-              project_type: non_service_project_type,
-              enrollment_id: entry[:enrollment_id],
-              first_date_in_program: entry[:first_date_in_program],
-              DateToStreetESSH: entry[:DateToStreetESSH],
-              MoveInDate: entry[:MoveInDate],
-            }
-          end
-          nights += new_nights
-        end
+        next unless entry[:DateToStreetESSH].present? && entry[:first_date_in_program] > entry[:DateToStreetESSH]
 
-        # move in date adjustments - These dates will exist as PH, but we want to make sure they get
-        # included in the acceptable project types.  Convert the project type of any days pre-move-in
-        # for PH to a project type we will be counting
-        next unless PH.include?(entry[:project_type])
-
-        start_date = [entry[:first_date_in_program].to_date, entry[:DOB]&.to_date].compact.max
-        stop_date = if entry[:MoveInDate].present? && entry[:MoveInDate] > entry[:first_date_in_program]
-          [entry[:MoveInDate], @report.end_date + 1.day].min
-        elsif entry[:MoveInDate].blank?
-          begin
-            [entry[:last_date_in_program] - 1.day, @report.end_date].min
-          rescue StandardError
-            @report.end_date
-          end
+        start_date = [entry[:DateToStreetESSH]&.to_date, LOOKBACK_STOP_DATE, entry[:DOB]&.to_date].compact.max
+        new_nights = (start_date..entry[:first_date_in_program]).map do |date|
+          new_night = entry.dup
+          new_night[:date] = date
+          new_night[:pre_entry] = true
+          new_night[:housed] = false
+          new_night[:literally_homeless] = true
+          new_night
         end
-        next unless stop_date.present?
-
-        date_range = (start_date...stop_date)
-        date_range.each do |date|
-          matching_night = nights.detect do |night|
-            night[:enrollment_id] == entry[:enrollment_id] && night[:date] == date
-          end
-          if matching_night.present?
-            # convert date to homeless night
-            matching_night[:project_type] = non_service_project_type
-            matching_night[:pre_move_in] = true
-          else
-            # add a pre_move_in "homeless night"
-            nights << {
-              enrollment_id: entry[:enrollment_id],
-              date: date,
-              project_type: non_service_project_type,
-              pre_move_in: true,
-              first_date_in_program: entry[:first_date_in_program],
-              last_date_in_program: entry[:last_date_in_program],
-              DateToStreetESSH: entry[:DateToStreetESSH],
-              MoveInDate: entry[:MoveInDate],
-            }
-          end
-        end
+        nights += new_nights
       end
 
       # re-sort them
       nights.sort_by { |m| m[:date] }
-    end
-
-    # Applies logic described in the Programming Specifications to limit the entries
-    # for each day to one, and only those that should be considered based on the project types
-    def filter_days_for_days_in_project_types(dates, project_types:, stop_project_types:, include_pre_entry:)
-      consider_move_in_dates = true
-
-      filtered_days = []
-      # build a useful hash of arrays
-      days = dates.group_by { |d| d[:date] }
-
-      # puts "Processing #{dates.count} dates" if @debug
-      days.each do |k, bed_nights|
-        # ignore any days where not one of the bed_nights is in selected project types
-        next unless (bed_nights.map { |n| n[:project_type] } & project_types).any?
-
-        # puts "Looking at: #{bed_nights.count} bed nights on #{k}" if @debug
-        # process current day
-
-        # If any entries in the current day have stop_project_types, and move in date is before
-        # the current date, or all of the entries have stop_project_types, throw out the entire day
-        in_stop_project = false
-        has_countable_project = false
-        bed_nights.each do |night|
-          # ignore pre_entry/move_in nights if the metric wants us to
-          next if night[:pre_entry] && !include_pre_entry
-          next if night[:pre_move_in] && !include_pre_entry
-
-          # Ignore nights in a project that are on the date of exit
-          next if on_exit_night?(night, k)
-
-          has_countable_project ||= countable_project_on?(night, stop_project_types)
-          in_stop_project ||= in_stop_project_on?(night, k, stop_project_types, consider_move_in_dates)
-        end
-        filtered_days << k if has_countable_project && ! in_stop_project
-      end
-      # puts "Found: #{filtered_days.count}" if @debug
-      # puts filtered_days.map { |day| [day.month, day.year] }.uniq.to_s if @debug
-      return filtered_days.sort
-    end
-
-    private def countable_project_on?(night, stop_project_types)
-      ! stop_project_types.include?(night[:project_type])
-    end
-
-    private def in_stop_project_on?(night, date, stop_project_types, consider_move_in_dates)
-      if consider_move_in_dates && PH.include?(night[:project_type]) # rubocop:disable Style/GuardClause
-        return (stop_project_types.include?(night[:project_type]) && (night[:MoveInDate].present? && night[:MoveInDate] <= date))
-      else
-        return (stop_project_types.include?(night[:project_type]) && (night[:MoveInDate].blank? || night[:MoveInDate] <= date))
-      end
-    end
-
-    private def on_exit_night?(night, date)
-      night[:last_date_in_program] == date
     end
 
     private def permanent_destination?(dest)
@@ -1666,6 +1623,10 @@ module HudSpmReport::Generators::Fy2020
     end
 
     private def literally_homeless?(night)
+      # use the cache if we have it
+      @literally_homeless ||= {}
+      return @literally_homeless[night[:enrollment_id]] unless @literally_homeless[night[:enrollment_id]].nil?
+
       # Get client_id, enrollment_id pairs for es_so_sh for all enrollments open during range (filter applied)
       # Get client_id, enrollment_id pairs for ph_th for all enrollments open during range (filter applied)
       # If client_id and enrollment_id are in set, return true
@@ -1687,22 +1648,44 @@ module HudSpmReport::Generators::Fy2020
       # ) )
       # )
 
-      return true if night[:project_type].in?(ES + SH + SO)
+      if night[:project_type].in?(ES + SH + SO)
+        @literally_homeless[night[:enrollment_id]] = true
+        return @literally_homeless[night[:enrollment_id]]
+      end
 
       th_ph = night[:project_type].in?(TH + PH)
-      return true if th_ph && night[:LivingSituation].in?(HOMELESS_LIVING_SITUATIONS)
+      if th_ph && night[:LivingSituation].in?(HOMELESS_LIVING_SITUATIONS)
+        @literally_homeless[night[:enrollment_id]] = true
+        return @literally_homeless[night[:enrollment_id]]
+      end
 
       on_streets_and_under_threshold = night[:LOSUnderThreshold] == 1 && night[:PreviousStreetESSH] == 1
-      return true if th_ph && on_streets_and_under_threshold && night[:LivingSituation].in?(INSTITUTIONAL_LIVING_SITUATIONS + HOUSED_LIVING_SITUATIONS)
+      if th_ph && on_streets_and_under_threshold && night[:LivingSituation].in?(INSTITUTIONAL_LIVING_SITUATIONS + HOUSED_LIVING_SITUATIONS)
+        @literally_homeless[night[:enrollment_id]] = true
+        return @literally_homeless[night[:enrollment_id]]
+      end
 
       # Stop, since we can't calculate further for adults, HoH, or anyone without a household id
-      return false if night[:HouseholdID].blank? || night[:age].blank? || night[:age] > 17 || night[:head_of_household]
+      if night[:HouseholdID].blank? || night[:age].blank? || night[:age] > 17 || night[:head_of_household]
+        @literally_homeless[night[:enrollment_id]] = false
+        return @literally_homeless[night[:enrollment_id]]
+      end
 
       # Children may inherit living the living situation from their HoH
       hoh_enrollment = hoh_enrollment_for(night)
-      return false unless hoh_enrollment.present?
+      if hoh_enrollment.blank?
+        @literally_homeless[night[:enrollment_id]] = false
+        return @literally_homeless[night[:enrollment_id]]
+      end
 
-      literally_homeless?(hoh_enrollment)
+      # don't assume anything if they arrived at a different time
+      if hoh_enrollment[:first_date_in_program] != night[:first_date_in_program]
+        @literally_homeless[night[:enrollment_id]] = false
+        return @literally_homeless[night[:enrollment_id]]
+      end
+
+      @literally_homeless[night[:enrollment_id]] = literally_homeless?(hoh_enrollment)
+      @literally_homeless[night[:enrollment_id]]
     end
 
     private def hoh_enrollment_for(night)

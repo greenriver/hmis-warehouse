@@ -52,7 +52,7 @@ RSpec.shared_context 'datalab testkit context', shared_context: :metadata do
       end
       process_imported_fixtures
       store_fixpoint :datalab_2_0_app, exclude_tables: ['versions']
-      exclude_tables = ['versions'] +
+      exclude_tables = ['versions', 'spatial_ref_sys', 'homeless_summary_report_clients', 'homeless_summary_report_results', 'hmis_csv_importer_logs', 'hap_report_clients', 'simple_report_cells', 'simple_report_universe_members', 'whitelisted_projects_for_clients', 'hmis_csv_import_validations', 'uploads', 'hmis_csv_loader_logs', 'import_logs'] +
         HmisCsvImporter::Loader::Loader.loadable_files.values.map(&:table_name) +
         HmisCsvImporter::Importer::Importer.importable_files.values.map(&:table_name)
       store_fixpoint :datalab_2_0_warehouse, connection: warehouse, exclude_tables: exclude_tables
