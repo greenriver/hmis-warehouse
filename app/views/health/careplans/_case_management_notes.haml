@@ -7,10 +7,10 @@
         Add Case Note
   .c-card__content.c-card__content--flush
     = render 'sdh_case_management_notes'
-    .mr-4.ml-4.mt-4.mb-4
-      - if status = @client.api_status
-        - eto_api_path = polymorphic_path(client_path_generator + [:eto_api])
-        - if status[:updating]
+    - if status = @client.api_status
+      - eto_api_path = polymorphic_path(client_path_generator + [:eto_api])
+      - if status[:updating]
+        .mr-4.ml-4.mt-4.mb-4
           .row
             .col-sm-10
               .api-status-status.jApiStatus
@@ -18,7 +18,8 @@
                 = status[:started_at]
             .col-sm-2.pull-right
               = render 'spinner'
-        - else
+      - else
+        .mr-4.ml-4.mt-4.mb-4
           .row
             .col-sm-8
               Last updated:

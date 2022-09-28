@@ -1,9 +1,19 @@
 @import 'application/modules/_ssm';
+@import 'application/vendor/icons_embedded';
+@import 'application/vendor/icons';
 
-.ssm-print .client__assessment-question {
-  font-size: 14px;
-  font-weight: bold;
-  font-family: "Open Sans", sans-serif;
+$print-layout-header-height: 50px;
+$pdf-default-font-size: 14px;
+$pdf-h1-font-size: 20px;
+$pdf-text-line-height: 1.5em;
+$pdf-table-border-color: darken(#f9f9f9, 3%);
+
+@mixin pdf-heading {
+  font-size: $pdf-h1-font-size;
+  border-bottom: 2px solid #E7E7E7;
+  padding-bottom: 5px;
+  color: #454545;
+  margin-top: 5px;
 }
 
 .muted, .gray {
@@ -15,9 +25,19 @@
   font-style: italic;
 }
 
+.d-flex {
+  display: flex;
+}
+.w-100 {
+  width: 100%;
+}
+
 // .ssm-print wrapper for ssm from epic to force print styles
 .ssm-print .client__assessment-question {
   padding-bottom: 0.5em;
+  font-size: 14px;
+  font-weight: bold;
+  font-family: "Open Sans", sans-serif;
 }
 
 .ssm-print .client__assessment-answer {
@@ -132,21 +152,6 @@ footer {
   }
   thead { display: table-header-group; }
   tfoot { display: table-footer-group; }
-}
-
-
-$print-layout-header-height: 50px;
-$pdf-default-font-size: 14px;
-$pdf-h1-font-size: 20px;
-$pdf-text-line-height: 1.5em;
-$pdf-table-border-color: darken(#f9f9f9, 3%);
-
-@mixin pdf-heading {
-  font-size: $pdf-h1-font-size;
-  border-bottom: 2px solid #E7E7E7;
-  padding-bottom: 5px;
-  color: #454545;
-  margin-top: 5px;
 }
 
 .l-print {

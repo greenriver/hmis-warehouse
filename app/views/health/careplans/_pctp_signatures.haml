@@ -8,7 +8,10 @@
     .signature__section__row
       .signature__section__signature
         .signature__label Patient Signature:
-        .signature__line
+        - if @careplan.patient_signed_on&.to_date
+          .signature__value.muted= '[DIGITALLY SIGNED]'
+        - else
+          .signature__line
       .signature__section__signedOn
         .signature__label Signed On:
         - if @careplan.patient_signed_on&.to_date
@@ -29,33 +32,36 @@
         .signature__line
       .signature__section__signedOn
         .signature__label Signed On:
-        - if @careplan.representative_signed_on
-          .signature__value= @careplan.representative_signed_on
-        - else
-          .signature__line
+        .signature__line
 
+  - has_provider_signature = @careplan.provider&.full_name && @careplan.provider_signed_on.present?
   .signature__section
     .signature__section__row
       .signature__label Provider:
-      - if @careplan.provider&.full_name && @careplan.provider_signed_on.present?
-        .signature__value= @careplan.provider&.full_name
+      - if has_provider_signature
+        .signature__value= @careplan.provider.full_name
       - else
         .signature__line.signature__line-name
     .signature__section__row
       .signature__section__signature
         .signature__label Provider Signature:
-        .signature__line
+        - if has_provider_signature
+          .signature__value.muted= '[DIGITALLY SIGNED]'
+        - else
+          .signature__line
       .signature__section__signedOn
         .signature__label Signed On:
-        - if @careplan.provider_signed_on&.to_date
-          .signature__value= @careplan.provider_signed_on&.to_date
+        - if has_provider_signature
+          .signature__value= @careplan.provider_signed_on.to_date
         - else
           .signature__line
 
   .signature__section.signature__understanding
     %strong
-      -if @careplan.member_verbalizes_understanding
-        _X_
+      - if @careplan.member_verbalizes_understanding
+        [
+        = checkmark_or_x(true)
+        ]
       - else
         ______
       Member verbalizes understanding and accepts care plan.

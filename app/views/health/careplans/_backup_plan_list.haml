@@ -1,4 +1,5 @@
 - enabled = @careplan.editable?
+- contingency_label = 'Member understands contingency plan described below if care coordinator is needed but not available'
 .c-card
   .c-card__header.c-card__header--external
     %h3 Backup Plan
@@ -7,9 +8,17 @@
         %i.icon-plus
         Add Backup Plan
   - if @pdf
-    .l-print__item= "#{@careplan.member_understands_contingency ? '_X_' : '____'} Member understands contingency plan described below if care coordinator is needed but not available" if @careplan.backup_plan_archive&.any? || @backup_plans&.any?
+    - if @careplan.backup_plan_archive&.any? || @backup_plans&.any?
+      .l-print__item
+        - if @careplan.member_understands_contingency
+          [
+          = checkmark_or_x(true)
+          ]
+        - else
+          ______
+        = contingency_label
   - else
-    = f.input :member_understands_contingency, label: 'Member understands contingency plan described below if care coordinator is needed but not available', disabled: @careplan.locked?, wrapper_html: {style: 'margin-bottom: 1em;'}
+    = f.input :member_understands_contingency, label: contingency_label, disabled: @careplan.locked?, wrapper_html: {style: 'margin-bottom: 1em;'}
   .c-card__content.c-card__content--flush
     - if enabled
       -# Show all backup plans for this patient
