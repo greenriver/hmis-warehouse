@@ -16,7 +16,7 @@ module Types
           default_field_options = { type: [Types::HmisSchema::Project], null: false, description: description }
           field_options = default_field_options.merge(override_options)
           field(name, **field_options) do
-            argument :project_types, [Types::HmisSchema::ProjectType], required: false unless without_args.include? :project_types
+            argument :project_types, [Types::HmisSchema::Enums::ProjectType], required: false unless without_args.include? :project_types
             argument :sort_order, Types::HmisSchema::ProjectSortOption, required: false
             instance_eval(&block) if block_given?
           end

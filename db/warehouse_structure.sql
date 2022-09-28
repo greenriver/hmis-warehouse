@@ -1538,7 +1538,9 @@ CREATE TABLE public."Organization" (
     pending_date_deleted timestamp without time zone,
     "VictimServicesProvider" integer,
     "VictimServiceProvider" integer,
-    confidential boolean DEFAULT false NOT NULL
+    confidential boolean DEFAULT false NOT NULL,
+    description character varying,
+    contact_information character varying
 );
 
 
@@ -1606,7 +1608,9 @@ CREATE TABLE public."Project" (
     target_population_override integer,
     tracking_method_override integer,
     operating_end_date_override date,
-    "HOPWAMedAssistedLivingFac" integer
+    "HOPWAMedAssistedLivingFac" integer,
+    description character varying,
+    contact_information character varying
 );
 
 
@@ -4004,7 +4008,10 @@ CREATE TABLE public.configs (
     verified_homeless_history_method character varying DEFAULT 'visible_in_window'::character varying,
     supplemental_enrollment_importer character varying DEFAULT 'GrdaWarehouse::Tasks::EnrollmentExtrasImport'::character varying,
     youth_hoh_cohort boolean DEFAULT false NOT NULL,
-    youth_hoh_cohort_project_group_id integer
+    youth_hoh_cohort_project_group_id integer,
+    chronic_tab_justifications boolean DEFAULT true,
+    chronic_tab_roi boolean,
+    filter_date_span_years integer DEFAULT 1 NOT NULL
 );
 
 
@@ -12582,6 +12589,38 @@ ALTER SEQUENCE public.hud_create_logs_id_seq OWNED BY public.hud_create_logs.id;
 
 
 --
+-- Name: hud_lsa_summary_results; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hud_lsa_summary_results (
+    id bigint NOT NULL,
+    hud_report_instance_id bigint,
+    summary jsonb,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: hud_lsa_summary_results_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hud_lsa_summary_results_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hud_lsa_summary_results_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hud_lsa_summary_results_id_seq OWNED BY public.hud_lsa_summary_results.id;
+
+
+--
 -- Name: hud_report_apr_ce_assessments; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -13312,7 +13351,10 @@ CREATE TABLE public.hud_report_instances (
     remaining_questions jsonb,
     coc_codes jsonb,
     manual boolean DEFAULT true NOT NULL,
-    failed_at timestamp without time zone
+    failed_at timestamp without time zone,
+    percent_complete double precision,
+    export_id bigint,
+    type character varying DEFAULT 'HudReports::ReportInstance'::character varying NOT NULL
 );
 
 
@@ -20965,6 +21007,13 @@ ALTER TABLE ONLY public.hud_create_logs ALTER COLUMN id SET DEFAULT nextval('pub
 
 
 --
+-- Name: hud_lsa_summary_results id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hud_lsa_summary_results ALTER COLUMN id SET DEFAULT nextval('public.hud_lsa_summary_results_id_seq'::regclass);
+
+
+--
 -- Name: hud_report_apr_ce_assessments id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -23955,6 +24004,14 @@ ALTER TABLE ONLY public.hud_chronics
 
 ALTER TABLE ONLY public.hud_create_logs
     ADD CONSTRAINT hud_create_logs_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hud_lsa_summary_results hud_lsa_summary_results_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hud_lsa_summary_results
+    ADD CONSTRAINT hud_lsa_summary_results_pkey PRIMARY KEY (id);
 
 
 --
@@ -43162,6 +43219,13 @@ CREATE INDEX index_hud_dq_client_liv_sit ON public.hud_report_dq_living_situatio
 
 
 --
+-- Name: index_hud_lsa_summary_results_on_hud_report_instance_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_lsa_summary_results_on_hud_report_instance_id ON public.hud_lsa_summary_results USING btree (hud_report_instance_id);
+
+
+--
 -- Name: index_hud_report_apr_ce_assessments_on_hud_report_apr_client_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -43264,6 +43328,13 @@ CREATE INDEX index_hud_report_hic_projects_on_data_source_id ON public.hud_repor
 --
 
 CREATE INDEX index_hud_report_hic_projects_on_report_instance_id ON public.hud_report_hic_projects USING btree (report_instance_id);
+
+
+--
+-- Name: index_hud_report_instances_on_export_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_report_instances_on_export_id ON public.hud_report_instances USING btree (export_id);
 
 
 --
@@ -50821,9 +50892,15 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220915132815'),
 ('20220915133927'),
 ('20220915141020'),
+('20220916152205'),
+('20220916182057'),
+('20220916234039'),
+('20220919161059'),
+('20220919185042'),
 ('20220920192149'),
 ('20220921141010'),
 ('20220921182035'),
+('20220928132603'),
 ('20220928150112');
 
 

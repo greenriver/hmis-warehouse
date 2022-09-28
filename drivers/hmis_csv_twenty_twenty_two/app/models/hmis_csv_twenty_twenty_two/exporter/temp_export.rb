@@ -32,6 +32,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
           self.table_name = opts[:table_name]
           def self.drop
             GrdaWarehouseBase.connection.execute "DROP TABLE #{GrdaWarehouseBase.connection.quote_table_name(table_name)};"
+            GrdaWarehouseBase.connection.execute "DROP SEQUENCE IF EXISTS \"#{table_name}_id_seq\";"
             Object.send(:remove_const, name.to_sym)
           end
         end,

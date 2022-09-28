@@ -33,7 +33,8 @@
             %td.warehouse-reports__completed.d-flex
               .options
                 = @report.describe_filter_as_html(result)
-              .ml-auto.nobr= link_to 'View universe details', filter_path(filter: @report.filter_from_result(result).to_h, selected_keys: @report.allowed_options(result)), data: { loads_in_ajax_modal: true }
+              .ml-auto.nobr
+                = render 'filters/view_filter_details', filter_hash: @report.filter_from_result(result).to_h, selected_keys: @report.allowed_options(result)
           %td= result.user.name
           %td= result.completed_in
           %td
