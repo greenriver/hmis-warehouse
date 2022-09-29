@@ -196,6 +196,7 @@ module HudReports::Incomes
         responses.merge!(
           {
             'Adults with Missing Income Information' => a_t[:annual_assessment_expected].eq(true).
+              and(a_t[:annual_assessment_in_window].eq(true)).
               and(a_t["income_from_any_source_at_#{suffix}"].eq(99).
                 or(a_t["income_from_any_source_at_#{suffix}"].eq(nil)).
                 and(a_t["income_sources_at_#{suffix}"].not_eq(nil))),

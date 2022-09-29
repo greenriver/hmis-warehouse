@@ -255,11 +255,6 @@ RSpec.describe 'Datalab 2021 APR - th', type: :model do
     compare_results(
       file_path: result_file_prefix + 'apr/th_coc',
       question: 'Q18',
-      # Pending AAQ, Linen Chemical is a stayer with no annual income assessment (same as Q16)
-      skip: [
-        'C7',
-        'C11',
-      ],
     )
   end
 
@@ -267,15 +262,6 @@ RSpec.describe 'Datalab 2021 APR - th', type: :model do
     compare_results(
       file_path: result_file_prefix + 'apr/th_coc',
       question: 'Q19a1',
-      # Pending AAQ, Linen Chemical is a stayer with no annual income assessment (same as Q16)
-      # possibly should be excluded since income wasn't collected at annual
-      skip: [
-        'B2',
-        'H2',
-        'B3',
-        'G4',
-        'H4',
-      ],
     )
   end
 
@@ -336,7 +322,7 @@ RSpec.describe 'Datalab 2021 APR - th', type: :model do
   end
 
   # FIXME: this should be re-enabled when the new data set is implemented
-  xit 'Q22e' do
+  it 'Q22e' do
     compare_results(
       file_path: result_file_prefix + 'apr/th_coc',
       question: 'Q22e',

@@ -31,7 +31,7 @@ RSpec.describe 'Datalab 2021 APR - services_only', type: :model do
         'B2', # expected is a name not and ID?
         'L2', # Is the generator name, so not expected to match
 
-        'H2', # FIXME pending AAQ response
+        # 'H2', # FIXME pending AAQ response
       ],
     )
   end
