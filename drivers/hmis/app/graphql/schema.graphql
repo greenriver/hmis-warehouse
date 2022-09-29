@@ -63,7 +63,7 @@ enum AssessmentLevel {
 HUD Assessment Sorting Options
 """
 enum AssessmentSortOption {
-  DATE
+  ASSESSMENT_DATE
 }
 
 """
@@ -435,7 +435,7 @@ type Event {
 HUD Event Sorting Options
 """
 enum EventSortOption {
-  DATE
+  EVENT_DATE
 }
 
 """
@@ -1240,7 +1240,7 @@ type Service {
 HUD Service Sorting Options
 """
 enum ServiceSortOption {
-  DATE
+  DATE_PROVIDED
 }
 
 """
