@@ -7,9 +7,9 @@
       = link_to polymorphic_path([:new] + careplan_path_generator), class: 'btn btn-secondary btn-sm' do
         %i.icon-plus
         Create a Care Plan
-  .c-card__content.c-card__content--flush.table-responsive
+  .c-card__content.c-card__content--flush
     - if @careplans.present?
-      %table.table
+      %table.table.table-responsive
         %thead
           %tr
             %th{style: 'width: 10em;'}

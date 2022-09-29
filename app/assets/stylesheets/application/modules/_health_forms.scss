@@ -93,23 +93,16 @@
   clear: left;
 }
 
-.cha-form, .cha__section {
-  h4, h5, h6 {
-    font-size: 14px;
-    font-family: "Open Sans", sans-serif;
-  }
-  label.control-label,
-  .cha__help-text, // bold because it's sometimes used as a label
-  .client__assessment-question {
-    font-weight: bold;
-    font-size: 14px;
-  }
-}
-
-.cha-form {
-  h4 {
-    font-size: 14px;
-  }
+.cha-form .cha__help-text,
+.cha-form h4,
+.cha-form label.control-label,
+.cha__section .cha__help-text,
+.cha__section .client__assessment-question,
+.cha__section h5,
+.cha__section h4 {
+  font-size: 14px;
+  font-weight: bold;
+  font-family: "Open Sans", sans-serif;
 }
 
 .cha__section .client__assessment-question {
@@ -118,6 +111,11 @@
 
 .cha__section .client__assessment-answer {
   text-indent: 0;
+}
+
+.cha__help-text
+{
+  font-weight: bold;
 }
 
 .g_q,
