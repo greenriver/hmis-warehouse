@@ -21,9 +21,10 @@ module Health
       where(team_coordinator_id: user_id)
     end
 
+    # A Patient is included in the team if their Care Coordinator is assigned to this team.
     def patients
       user_care_coordinators&.
-        map(&:patients)&.
+        map(&:care_coordination_patients)&.
         reduce(&:or) ||
         Health::Patient.none
     end

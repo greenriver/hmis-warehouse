@@ -10,7 +10,11 @@ class Hmis::Hud::Organization < Hmis::Hud::Base
   self.table_name = :Organization
   self.sequence_name = "public.\"#{table_name}_id_seq\""
 
+  attr_writer :skip_validations
+
   has_many :projects, **hmis_relation(:OrganizationID, 'Project')
+
+  validates_with Hmis::Hud::Validators::OrganizationValidator
 
   # Any organizations the user has been assigned, limited to the data source the HMIS is connected to
   scope :viewable_by, ->(user) do
@@ -19,6 +23,10 @@ class Hmis::Hud::Organization < Hmis::Hud::Base
   end
 
   SORT_OPTIONS = [:name].freeze
+
+  def skip_validations
+    @skip_validations ||= []
+  end
 
   def self.sort_by_option(option)
     raise NotImplementedError unless SORT_OPTIONS.include?(option)
@@ -29,5 +37,9 @@ class Hmis::Hud::Organization < Hmis::Hud::Base
     else
       raise NotImplementedError
     end
+  end
+
+  def self.generate_organization_id
+    generate_uuid
   end
 end

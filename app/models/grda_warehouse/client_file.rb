@@ -271,11 +271,12 @@ module GrdaWarehouse
             consent_form_signed_on: consent_form_signed_on,
             consent_form_id: id,
             consented_coc_codes: coc_codes_chosen,
+            consent_expires_on: expiration_date,
           )
         end
       else
         consent_form_ids = self.class.consent_forms.confirmed.where(client_id: client_id).pluck(:id)
-        no_other_confirmed_consent_files = consent_form_ids.count.zero? && ! consent_form_confirmed || consent_form_ids.count == 1 && consent_form_ids.first == id
+        no_other_confirmed_consent_files = (consent_form_ids.count.zero? && ! consent_form_confirmed) || (consent_form_ids.count == 1 && consent_form_ids.first == id)
 
         if consent_form_confirmed && consent_revoked_at.blank?
           client.update_columns(
@@ -283,6 +284,7 @@ module GrdaWarehouse
             consent_form_signed_on: consent_form_signed_on,
             consent_form_id: id,
             consented_coc_codes: coc_codes_chosen,
+            consent_expires_on: expiration_date,
           )
         elsif no_other_confirmed_consent_files
           client.invalidate_consent!

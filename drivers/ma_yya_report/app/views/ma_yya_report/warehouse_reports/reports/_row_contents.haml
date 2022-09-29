@@ -1,0 +1,10 @@
+%td
+  = label.to_s.underscore.titleize
+  - text = @report.cell_label(label)
+  - if text.present?
+    = ": #{text}"
+- if label == 'F2d'
+  %td= @report.list_answer(label)
+- else
+  - count = @report.answer(label)
+  %td= link_to_if(count&.positive?, number_with_delimiter(count), details_ma_yya_report_warehouse_reports_report_path(@report, cell: label))

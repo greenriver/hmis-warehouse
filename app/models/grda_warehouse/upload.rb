@@ -25,8 +25,13 @@ module GrdaWarehouse
     end
 
     scope :unprocessed_s3_migration, -> do
+      # plucking these seems to be 100x faster than where.not(id: migrated)
       migrated = ActiveStorage::Attachment.where(record_type: 'GrdaWarehouse::Upload').pluck(:record_id)
-      where.not(id: migrated)
+      all = pluck(:id)
+      unmigrated = migrated - all
+      return none if unmigrated.blank?
+
+      where(id: unmigrated)
     end
 
     scope :viewable_by, ->(user) do

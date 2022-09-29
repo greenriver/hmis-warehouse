@@ -383,104 +383,14 @@ module GrdaWarehouse::Hud
     # Accept an optional date which will be used for extending the homeless
     # range if the project is a homeless project
     def chronically_homeless_at_start?(date: self.EntryDate)
-      chronically_homeless_at_start(date: date) == :yes
+      GrdaWarehouse::ChEnrollment.chronically_homeless_at_start?(self, date: date)
     end
 
     # Was the client chronically homeless at the start of this enrollment?
     #
     # @return [Symbol] :yes, :no, :dk_or_r, or :missing
     def chronically_homeless_at_start(date: self.EntryDate)
-      # Line 1
-      return :no if is_no?(self.DisablingCondition)
-      return dk_or_r_or_missing(self.DisablingCondition) if dk_or_r_or_missing(self.DisablingCondition)
-
-      # Line 3
-      if Project::CHRONIC_PROJECT_TYPES.include?(project.computed_project_type)
-        # Lines 4 - 6
-        return homeless_duration_sufficient(date: date) if homeless_duration_sufficient(date: date)
-      end
-
-      # Line 9
-      if HUD.homeless_situations(as: :prior).include?(self.LivingSituation)
-        # Lines 10 - 12
-        return homeless_duration_sufficient if homeless_duration_sufficient
-      end
-
-      # Line 14
-      if HUD.institutional_situations(as: :prior).include?(self.LivingSituation)
-        # Line 15
-        return :no if is_no?(self.LOSUnderThreshold)
-        # Line 16
-        return :no if is_no?(self.PreviousStreetESSH)
-        # Lines 17 - 19
-        return homeless_duration_sufficient if homeless_duration_sufficient
-      end
-
-      # Line 21
-      if (HUD.temporary_and_permanent_housing_situations(as: :prior) + HUD.other_situations(as: :prior)).include?(self.LivingSituation)
-        # Line 22
-        return :no if is_no?(self.LOSUnderThreshold)
-        # Line 23
-        return :no if is_no?(self.PreviousStreetESSH)
-        # Lines 24 - 26
-        return homeless_duration_sufficient if homeless_duration_sufficient
-      end
-
-      return :no # Not included in flow -- added as fail safe
-    end
-
-    def is_no?(value) # rubocop:disable Naming/PredicateName
-      return :no if value&.zero?
-    end
-
-    def dk_or_r_or_missing(value)
-      return :dk_or_r if [8, 9].include?(value)
-      return :missing if [nil, 99].include?(value)
-    end
-
-    # TODO: test boundaries days/months for entry/exit, NbN, and SO
-    def homeless_duration_sufficient(date: self.EntryDate)
-      ch_start_date = [self.DateToStreetESSH, self.EntryDate].compact.min
-      days = if date != self.EntryDate && (project.so? || project.es? && project.bed_night_tracking?)
-        dates_in_enrollment_between(self.EntryDate, date).count + (self.EntryDate - ch_start_date).to_i
-      else
-        (date - ch_start_date).to_i
-      end
-      return :yes if days > 365
-
-      @three_or_fewer_times_homeless ||= [1, 2, 3].freeze
-      return :no if @three_or_fewer_times_homeless.include?(self.TimesHomelessPastThreeYears)
-      return dk_or_r_or_missing(self.TimesHomelessPastThreeYears) if dk_or_r_or_missing(self.TimesHomelessPastThreeYears)
-
-      @twelve_or_more_months_homeless ||= [112, 113].freeze # 112 = 12 months, 113 = 13+ months
-      return :yes if @twelve_or_more_months_homeless.include?(self.MonthsHomelessPastThreeYears)
-
-      # If you don't have time prior to entry, day calculation above will catch any days during the enrollment
-      # If you have time prior to entry and we are looking at an arbitrary date, we need to add
-      # the months served
-      if date != self.EntryDate && self.MonthsHomelessPastThreeYears.present? && self.MonthsHomelessPastThreeYears > 100
-        months_in_enrollment = if project.so? || project.es? && project.bed_night_tracking?
-          dates_in_enrollment_between(self.EntryDate, date).map do |d|
-            [d.month, d.year]
-          end.uniq.count
-        else
-          month_count = (date.year * 12 + date.month) - (self.EntryDate.year * 12 + self.EntryDate.month)
-          # Subtract 1 from this number if the [project start date] does not fall on the first of the month.
-          month_count -= 1 if month_count.positive? && self.EntryDate.day != 1
-          month_count
-        end
-        months_prior_to_enrollment = self.MonthsHomelessPastThreeYears - 100
-        return :yes if (months_prior_to_enrollment + months_in_enrollment) > 11
-      end
-
-      return dk_or_r_or_missing(self.MonthsHomelessPastThreeYears) if dk_or_r_or_missing(self.MonthsHomelessPastThreeYears)
-    end
-
-    private def dates_in_enrollment_between(start_date, end_date)
-      @dates_in_enrollment_between ||= service_history_services.
-        service_between(start_date: start_date, end_date: end_date).
-        distinct.
-        pluck(:date)
+      GrdaWarehouse::ChEnrollment.chronically_homeless_at_start(self, date: date)
     end
 
     # NOTE: this must be included at the end of the class so that scopes can override correctly
