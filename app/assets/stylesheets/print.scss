@@ -1,38 +1,48 @@
-@import
-  'application/_settings/colors';
+@import 'application/modules/_ssm';
+@import 'application/vendor/icons_embedded';
+@import 'application/vendor/icons';
 
-.cha__section .cha__help-text,
-.cha__section .client__assessment-question,
-.cha__section h5,
-.cha__section h4,
-.ssm-print .client__assessment-question {
-  font-size: 14px;
-  font-weight: bold;
+$print-layout-header-height: 50px;
+$pdf-default-font-size: 14px;
+$pdf-h1-font-size: 20px;
+$pdf-text-line-height: 1.5em;
+$pdf-table-border-color: darken(#f9f9f9, 3%);
+
+@mixin pdf-heading {
+  font-size: $pdf-h1-font-size;
+  border-bottom: 2px solid #E7E7E7;
+  padding-bottom: 5px;
+  color: #454545;
+  margin-top: 5px;
 }
+
+.muted, .gray {
+  color: #454545;
+}
+
+.no-data {
+  color: $gray-light;
+  font-style: italic;
+}
+
+.d-flex {
+  display: flex;
+}
+.w-100 {
+  width: 100%;
+}
+
 // .ssm-print wrapper for ssm from epic to force print styles
 .ssm-print .client__assessment-question {
   padding-bottom: 0.5em;
+  font-size: 14px;
+  font-weight: bold;
+  font-family: "Open Sans", sans-serif;
 }
 
 .ssm-print .client__assessment-answer {
   padding-bottom: 1.5em;
   margin-left: 1em;
-}
-
-.row.cha__section-columns {
-  display: table;
-  table-layout: fixed;
-  width: 100%;
-  .col-sm-6,
-  .col-sm-4 {
-    display: table-cell;
-  }
-  .col-sm-6 {
-    width: 50%;
-  }
-  .col-sm-4 {
-    width: 33%;
-  }
 }
 
 #vsm-container {
@@ -137,26 +147,11 @@ footer {
   font-size: 0.7rem;
   tr
   {
-    page-break-inside: avoid;
+    break-inside: avoid-page;
     page-break-after: auto;
   }
   thead { display: table-header-group; }
   tfoot { display: table-footer-group; }
-}
-
-
-$print-layout-header-height: 50px;
-$pdf-default-font-size: 12px;
-$pdf-h1-font-size: 20px;
-$pdf-text-line-height: 1.25em;
-$pdf-table-border-color: darken(#f9f9f9, 3%);
-
-@mixin pdf-heading {
-  font-size: $pdf-h1-font-size;
-  border-bottom: 3px solid #CCC;
-  padding-bottom: 5px;
-  color: #091F2F;
-  margin-top: 5px;
 }
 
 .l-print {
@@ -188,7 +183,7 @@ $pdf-table-border-color: darken(#f9f9f9, 3%);
 }
 .l-print tr
 {
-  page-break-inside: avoid;
+  break-inside: avoid-page;
   page-break-after: auto;
 }
 .l-print thead {
@@ -243,18 +238,9 @@ $pdf-table-border-color: darken(#f9f9f9, 3%);
   }
   dd {
     margin-bottom: 3px;
-    margin-left: 5px;
+    margin-left: 0px;
     &:empty {
       display: none;
-    }
-    &.l-print__signature {
-      display: block;
-      margin-top: 15px;
-      margin-bottom: 15px;
-      margin-left: 0;
-      width: 500px;
-      height: 50px;
-      border-bottom: 1px solid #000;
     }
     &.breaker {
       display: block !important;
@@ -273,7 +259,7 @@ $pdf-table-border-color: darken(#f9f9f9, 3%);
 }
 
 .l-print .no-break {
-  page-break-inside: avoid;
+  break-inside: avoid-page;
 }
 
 .l-print .minor-text {
@@ -288,11 +274,10 @@ $pdf-table-border-color: darken(#f9f9f9, 3%);
 .l-print__summary-items {
   display: flex;
   padding: 0;
+  margin-top: 0;
   list-style-type: none;
   li {
-
-      margin-right: 50px;
-
+    margin-right: 50px;
   }
 }
 
@@ -323,26 +308,25 @@ $pdf-table-border-color: darken(#f9f9f9, 3%);
   }
 }
 
-.l-print__header,
-.l-print__footer {
-  max-height: $print-layout-header-height;
-  font-family: sans-serif;
-}
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Specific to cover sheet
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.l-print__header h1 {
-  font-size: 16px;
+.coverSheet {
+  h1 {
+    font-size: 24px;
+    width: 50%;
+    margin: auto;
+    text-align: center;
+    color: #091F2F;
+    border-bottom: unset;
+  }
+  &__details {
+    p {
+      margin-bottom: 10px;
+    }
+  }
 }
-
-.l-print__footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.l-print__footer-page-number {
-  margin-left: auto;
-}
-
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Specific to Care Plan PDF
@@ -370,9 +354,40 @@ $pdf-table-border-color: darken(#f9f9f9, 3%);
   }
 }
 
+.l-print .cha__summary,
+.l-print .ssm__summary {
+  display: flex;
+  flex-direction: row !important;
+  flex-wrap: wrap;
+  width: 100%;
+  > div {
+    width: 33%;
+    margin-bottom: 0.5em;
+  }
+  dt {
+    font-weight: 600;
+    display: inline !important;
+  }
+  dd {
+    display: inline !important;
+    margin: 0;
+  }
+}
+
+.l-print .ssm__row {
+  break-inside: avoid;
+  border-bottom: 1px solid $gray-020;
+}
+.l-print .ssm__row__question-answer {
+  font-size: $pdf-default-font-size;
+  line-height: $pdf-text-line-height;
+}
+
 .l-print .client__assessment-question,
 .l-print .client__assessment-answer {
-  margin-bottom: 2px;
+  align-self: flex-start;
+  margin: 0;
+  padding: 0;
 }
 
 .l-print .client__assessment-question--title {
@@ -398,36 +413,13 @@ $pdf-table-border-color: darken(#f9f9f9, 3%);
 }
 
 .l-print .client__assessment-section-summary {
-  page-break-inside: avoid;
+  break-inside: avoid-page;
 }
 
 .l-print .client__assessment-question-summary {
   margin-top: 0;
   padding-left: 10px;
-  page-break-inside: avoid;
-}
-
-
-.l-print .client__assessment-totals {
-  padding-top: 5px;
-  page-break-inside: avoid;
-}
-
-.l-print .client__assessment-total {
-  display: inline-block;
-  vertical-align: top;
-  margin-right: 50px;
-  &:last-of-type {
-    margin: 0
-  }
-  .client__assessment-question {
-    font-weight: bold;
-    white-space: nowrap;
-  }
-  .client__assessment-answer {
-    font-weight: bold;
-    font-size: 20px;
-  }
+  break-inside: avoid-page;
 }
 
 .l-print .health-care-plan__cha {
@@ -455,44 +447,6 @@ $pdf-table-border-color: darken(#f9f9f9, 3%);
   }
 }
 
-.l-print .cha__section {
-  clear: left;
-  page-break-inside: avoid;
-  &::after {
-    content: '';
-    display: block;
-    clear: both;
-  }
-}
-
-.l-print .g_q,
-.l-print .i_q,
-.l-print .l_q {
-  float: left;
-  page-break-inside: avoid;
-  margin-bottom: 10px;
-  .client__assessment-answer {
-    text-indent: 0;
-    padding-right: 5px;
-  }
-  &.clear-left {
-    clear: left;
-  }
-}
-.g_q2a
-{
-  clear: left;
-}
-
-
-.l-print .i_q {
-  width: 30%;
-}
-
-.l-print .l_q {
-  width: 30%;
-}
-
 .row
 {
   clear: both;
@@ -510,5 +464,195 @@ $pdf-table-border-color: darken(#f9f9f9, 3%);
 .health__care-hub-note
 {
   padding: 1em;
-  background-color: $gray-025;
+  background-color: #F5F5F5;
+  border: 1px solid #B0B0B0;
+  text-align: center;
+  font-size: 1rem;
+  line-height: 1.5rem;
+  &__content {
+    width: 75%;
+    margin: auto;
+  }
+}
+
+.health-care-plan__services,
+.health-care-plan__equipments {
+  h3 {
+    margin-bottom: 0px
+  }
+}
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Specific to CHA page
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.cha__section {
+  clear: left;
+  break-inside: avoid;
+  border: 1px solid $gray-020;
+  border-radius: 4px;
+  padding: 5px 0;
+  margin-bottom: 20px !important;
+
+  > div:not(.row) {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin-top: 5px;
+    padding-bottom: 5px;
+    break-inside: avoid;
+  }
+  > div:not(:last-child) {
+    border-bottom: 1px solid $gray-020;
+  }
+  > * {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .client__assessment-question,
+  .cha__help-text,
+  h6,
+  h5,
+  h4 {
+    font-size: 14px;
+    font-weight: bold;
+    font-family: "Open Sans", sans-serif;
+  }
+  h3 {
+    margin: 10px 0;
+  }
+  h4, h5, h6 {
+    flex-basis: 100%;
+    margin: 4px 0 10px 0;
+  }
+  .cha__help-text {
+    font-weight: normal;
+    margin-bottom: 10px;
+    flex-basis: 100%;
+  }
+  .client__assessment-question,
+  .client__assessment-answer {
+    width: 48%; // two-column flex layout
+    padding: 0;
+    margin: 0 !important;
+    line-height: 1.5;
+  }
+  .client__assessment-answer {
+    text-indent: 0 !important;
+    padding-left: 15px !important;
+    font-family: "Open Sans", sans-serif;
+  }
+  h1:empty,
+  h2:empty,
+  h3:empty,
+  h4:empty,
+  h5:empty,
+  .cha__help-text:empty {
+    display: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  &.epicTable {
+    break-inside: avoid-page;
+    .slab {
+      padding-left: 0;
+      padding-right: 0;
+    }
+  }
+
+  // row with table layout is used for certain questions
+  .row {
+    margin: 0;
+  }
+  .row.cha__section-columns {
+    display: table;
+    table-layout: fixed;
+    width: 100%;
+    .col-sm-6,
+    .col-sm-4 {
+      display: table-cell;
+    }
+    .col-sm-6 {
+      width: 50%;
+    }
+    .col-sm-4 {
+      width: 33%;
+    }
+    .client__assessment-question, .client__assessment-answer {
+      width: 100%;
+    }
+  }
+
+  // custom styling per questions
+  .g_q,
+  .i_q,
+  .l_q {
+    float: left;
+    break-inside: avoid-page;
+    margin-bottom: 10px;
+  }
+  .l_q, .i_q {
+    width: 30%;
+    margin-top: 15px;
+    min-height: 80px;
+  }
+}
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Specific to signature page
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+ .health-care-plan__responsible-parties {
+  .signature__section {
+    padding: 40px 0;
+    border-bottom: 1px solid $gray-020;
+
+    .signature__section__row {
+      display: flex;
+      margin-bottom: 15px;
+    }
+
+    .signature__section__row:last-child {
+      padding-top: 20px;
+    }
+    .signature__label {
+      font-weight: bold;
+      margin-right: 8px;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+    .signature__line {
+      border: 0;
+      border-bottom: 1px solid black;
+      width: 300px;
+    }
+    .signature__section__signature {
+      width: 100%;
+      display: flex;
+      padding-right: 8px;
+    }
+    .signature__section__signedOn {
+      display: flex;
+      width: 50%;
+      .signature__line {
+        width: 160px;
+      }
+    }
+    .signature__line-name {
+      margin-bottom: 30px;
+      &::after {
+        content: 'Please print name';
+        position: relative;
+        top: 20px;
+        font-size: 12px;
+        font-style: italic;
+        color: $gray-light;
+      }
+    }
+  }
+  .signature__understanding {
+    padding: 50px 0;
+  }
 }

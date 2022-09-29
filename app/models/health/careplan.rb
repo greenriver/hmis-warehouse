@@ -263,6 +263,14 @@ module Health
       end
     end
 
+    def future_issues?
+      (0..10).each do |i|
+        future_issues = self["future_issues_#{i}"]
+        return true if future_issues&.strip&.present?
+      end
+      false
+    end
+
     def signature_modes
       @signature_modes ||= {
         in_person: 'In Person',

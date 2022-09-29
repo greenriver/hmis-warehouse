@@ -1,0 +1,72 @@
+@import 'application/_settings/colors';
+
+.ssm__row__question {
+  line-height: 1.2;
+}
+
+.ssm__row__question--title {
+  font-weight: bold;
+  font-size: 16px;
+  width: 240px;
+  min-width: 240px;
+  align-items: center;
+  display: flex;
+  padding-bottom: 0;
+}
+
+.ssm__row__question-summary {
+  display: flex;
+  margin-left: 2rem;
+}
+
+.ssm__row__question--scoreLabel {
+  justify-content: center;
+  display: flex;
+  padding-bottom: 4px;
+  color: $gray-light;
+  font-size: 12px;
+  font-weight: normal;
+}
+
+.ssm__row__question--scoreValue {
+  justify-content: center;
+  display: flex;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.ssm__row__question-answer {
+  margin-left: 2em;
+  margin-right: 1em;
+  align-items: center;
+  display: flex;
+}
+
+.ssm__row {
+  border-bottom: 1px solid $gray-040;
+  padding: .8em;
+}
+
+.ssm__row__question-notes {
+  display: flex;
+  padding-top: 1em;
+  padding-bottom: 0.5em;
+  p {
+    margin: 0;
+  }
+}
+
+.ssm__totals {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  > div {
+    margin: 1em 3em;
+    .ssm__row__question.ssm__row__question--scoreLabel {
+      font-size: 14px;
+    }
+    .ssm__row__question.ssm__row__question--scoreValue {
+      font-size: 24px;
+    }
+  }
+}
