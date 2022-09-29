@@ -241,10 +241,6 @@ RSpec.describe 'Datalab 2021 APR - th', type: :model do
     compare_results(
       file_path: result_file_prefix + 'apr/th_coc',
       question: 'Q16',
-      # Pending AAQ, Linen Chemical is a stayer with no annual income assessment
-      skip: [
-        'C11',
-      ],
     )
   end
 
