@@ -1,41 +1,30 @@
-%h1 Goals
+%article.health-care-plan__goals.l-print__section--page
+  %h1 Goals
+  %p
+    %em *Include at least one member health improvement goal.
+  .l-print__item-wrapper
+    - if @careplan.locked?
+      - goals = @careplan.goals_archive.map{|m| m['type'].safe_constantize.new(m)}
+    - else
+      - goals = @patient.goals
+    - goals.each do |goal|
+      .l-print__item.l-print__item--bordered
+        %dl
+          %dt Goal Description
+          %dd= simple_format goal.goal_details
 
-.l-print__item-wrapper
-  - if @careplan.locked?
-    - goals = @careplan.goals_archive.map{|m| m['type'].safe_constantize.new(m)}
-  - else
-    - goals = @patient.hpc_goals
-  - unless goals.any?
-    .no-data No goals provided
-  - goals.each do |goal|
-    .l-print__item.l-print__item--bordered
-      %dl
-        %dt Goal Description
-        %dd
-          .no-data= 'No answer provided' unless goal.goal_details&.strip&.present?
-          =simple_format goal.goal_details
+          %dt Start Date
+          %dd= goal.start_date
 
-        %dt Start Date
-        %dd
-          .no-data= 'No answer provided' unless goal.start_date.present?
-          =goal.start_date
-
-        %dt Responsible Care Team Member
-        - responsible_team_member = @patient.available_team_members.to_h.invert[goal[:responsible_team_member_id]]
-        %dd
-          .no-data= 'No responsible team member' unless responsible_team_member.present?
-          = responsible_team_member
-      %table.table.table-sm.datatable-goal
-        %thead
-          %tr
-            %th Recommended Action Steps and any needed accommodations
-            %th Timeframe
-        %tbody
-          - if !goal.action_steps?
+          %dt Responsible Care Team Member
+          - responsible_team_member = @patient.available_team_members.to_h.invert[goal[:responsible_team_member_id]] || 'No responsible team member'
+          %dd{class: ('minor-text' unless responsible_team_member)}= responsible_team_member
+        %table.table.table-sm.datatable-goal
+          %thead
             %tr
-              %td{colspan: 2}
-                .no-data No action steps provided
-          - else
+              %th Recommended Action Steps and any needed accommodations
+              %th Timeframe
+          %tbody
             - (0..9).each do |i|
               - action_step = goal["action_step_#{i}"]
               - timeframe = goal["timeframe_#{i}"]

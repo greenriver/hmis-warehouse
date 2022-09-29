@@ -9,13 +9,5 @@
       ordering: false,
       pageLength: 20,
       lengthChange: false,
-      pagingType: 'simple',
-      fnDrawCallback: function() {
-        // hide pagination if there is only 1 page of results
-        [0, 1, 2].forEach(i => {
-          if ($(`#DataTables_Table_${i}.datatable-ssm tr`).length < 21) {
-            $(`#DataTables_Table_${i}_wrapper .row:last-of-type`).hide();
-          }
-        })
-      }
+      pagingType: 'simple'
     })

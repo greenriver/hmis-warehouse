@@ -17,7 +17,7 @@
         %tr
           %td
             = link_to url, data: { loads_in_pjax_modal: true } do
-              %h4.mb-1.mt-0= form[:title].presence || 'Title Missing'
+              %h4= form[:title].presence || 'Title Missing'
               .pl-2= form[:sub_title]
           %td= form[:date]
           %td= form[:user]

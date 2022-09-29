@@ -1,57 +1,31 @@
 %article.health-care-plan__responsible-parties.l-print__section--page
   %h1 Responsible Parties Signatures
 
-  .signature__section
-    .signature__section__row
-      .signature__label Patient:
-      .signature__value= @patient.name
-    - if @careplan.representative&.full_name
-      .signature__section__row
-        .signature__label Representative:
-        .signature__value= @careplan.representative&.full_name
-    .signature__section__row
-      .signature__section__signature
-        .signature__label Patient Signature:
-        - if @careplan.patient_signed_on&.to_date
-          .signature__value.muted= '[DIGITALLY SIGNED]'
-        - else
-          .signature__line
-      .signature__section__signedOn
-        .signature__label Signed On:
-        - if @careplan.patient_signed_on&.to_date
-          .signature__value= @careplan.patient_signed_on&.to_date
-        - else
-          .signature__line
+  %dl.l-print__item
+    %dt.inline Patient:
+    %dd.inline= @patient.name
+    %dd.l-print__signature &nbsp;
+    %dt.inline Signed On:
+    %dd.inline= @careplan.patient_signed_on&.to_date
 
-  - has_provider_signature = @careplan.provider&.full_name && @careplan.provider_signed_on.present?
-  .signature__section
-    .signature__section__row
-      .signature__label Provider:
-      - if has_provider_signature
-        .signature__value= @careplan.provider.full_name
-      - else
-        .signature__line.signature__line-name
-    .signature__section__row
-      .signature__section__signature
-        .signature__label Provider Signature:
-        - if has_provider_signature
-          .signature__value.muted= '[DIGITALLY SIGNED]'
-        - else
-          .signature__line
-      .signature__section__signedOn
-        .signature__label Signed On:
-        - if has_provider_signature
-          .signature__value= @careplan.provider_signed_on.to_date
-        - else
-          .signature__line
+  %dl.l-print__item
+    %dt.inline Representative:
+    %dd.inline= @careplan.representative&.full_name
+    %dd.l-print__signature &nbsp;
+    %dt.inline Signed On:
+    %dd.inline= @careplan.representative_signed_on
 
-  .signature__section.signature__understanding
-    %strong
-      - if @careplan.member_verbalizes_understanding
-        [
-        = checkmark_or_x(true)
-        ]
-      - else
-        ______
-      Member verbalizes understanding and accepts care plan.
-    (Note: signature needed within 3 mos. of verbal approval.)
+  %dl.l-print__item
+    %dt.inline Provider:
+    %dd.inline
+      - if @careplan.provider_signed_on.present?
+        = @careplan.provider&.full_name
+    %dd.l-print__signature &nbsp;
+    %dt.inline Signed On:
+    %dd.inline= @careplan.provider_signed_on&.to_date
+  %strong
+    -if  @careplan.member_verbalizes_understanding
+      _X_
+    - else
+      ___
+  Member verbalizes understanding and accepts care plan. (Note: signature needed within 3 mos. of verbal approval.)
