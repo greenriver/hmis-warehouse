@@ -76,7 +76,7 @@ def normalize(value)
   return '0' if value.blank? # Treat 0 and blank as the same for comparison
 
   value = value[1..] if money?(value) # Remove dollar signs
-  value = value.to_i.to_s if float?(value) # do comparisons of floats at the rounded level (to_i instead of to_f)
+  value = value.to_f.to_s if float?(value)
   value = '0' if normalize_zero?(value) # Treat all zeros as '0'
 
   value
