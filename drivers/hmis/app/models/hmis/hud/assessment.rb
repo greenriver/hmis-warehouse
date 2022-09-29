@@ -22,7 +22,7 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
     raise NotImplementedError unless SORT_OPTIONS.include?(option)
 
     case option
-    when :date
+    when :assessment_date
       order(AssessmentDate: :desc)
     else
       raise NotImplementedError
