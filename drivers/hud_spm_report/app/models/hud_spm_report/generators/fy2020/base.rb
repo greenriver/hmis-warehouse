@@ -335,7 +335,7 @@ module HudSpmReport::Generators::Fy2020
           r.fetch(:client_id)
         end.map do |client_id, nights|
           client = clients_by_id.fetch(client_id)
-          # debug = "#{client.first_name} #{client.last_name}" == "Purity Pyrotechnics"
+          # debug = "#{client.first_name} #{client.last_name}" == "Amber Majestic"
           # binding.pry if debug
           # note if the night is housed and if the enrollment is literally homeless
           nights.each do |night|
@@ -384,7 +384,7 @@ module HudSpmReport::Generators::Fy2020
             m1a_es_sh_days: calculate_valid_days_in_project_type(nights.dup, project_types: ES_SH, line: :m1a1),
             m1a_es_sh_th_days: calculate_valid_days_in_project_type(nights.dup, project_types: ES_SH_TH, line: :m1a2),
             m1b_es_sh_ph_days: calculate_valid_days_in_project_type(nights.dup, project_types: ES_SH_PH, line: :m1b1),
-            m1b_es_sh_th_ph_days: calculate_valid_days_in_project_type(nights.dup, project_types: ES_SH_TH_PH, line: :m1b2),
+            m1b_es_sh_th_ph_days: calculate_valid_days_in_project_type(nights.dup, project_types: ES_SH_TH_PH, line: :m1b2, debug: false),
             m1_reporting_age: age_for_report(dob: client.DOB, entry_date: m1_history.last[:last_date_in_program], age: m1_history.first[:age]),
             veteran: client.veteran?,
             m1_head_of_household: m1_history.last[:head_of_household] || false,
@@ -1494,7 +1494,7 @@ module HudSpmReport::Generators::Fy2020
       # if 1a, remove any pre-entry days
       all_nights.reject! { |night| night[:pre_entry] } if line.in?([:m1a1, :m1a2])
       # reject any nights where move-in date is totally invalid
-      all_nights.reject! { |night| night[:MoveInDate].present? && night[:MoveInDate] < night[:first_date_in_program] }
+      all_nights.reject! { |night| night[:project_type].in?(PH) && night[:MoveInDate].present? && night[:MoveInDate] < night[:first_date_in_program] }
 
       nights_for_negation = all_nights.deep_dup
       nights_for_negation = nights_for_negation.group_by { |night| night[:date] }
@@ -1513,7 +1513,8 @@ module HudSpmReport::Generators::Fy2020
       if line.in?([:m1b1, :m1b2])
         all_nights.select! do |night|
           # non-PH projects
-          (night[:literally_homeless] && !night[:project_type].in?(PH)) ||
+          # (night[:literally_homeless] && !night[:project_type].in?(PH)) ||
+          ! night[:project_type].in?(PH) ||
           # PH literally homeless and with something during the range
           (
             night[:literally_homeless] &&
@@ -1522,7 +1523,7 @@ module HudSpmReport::Generators::Fy2020
             (
               (
                 night[:first_date_in_program].present? &&
-                night[:first_date_in_program] >= @report.start_date &&
+                night[:first_date_in_program] > @report.start_date &&
                 night[:first_date_in_program] <= @report.end_date
               ) ||
               # moved in during report range

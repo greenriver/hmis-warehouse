@@ -56,6 +56,8 @@ RSpec.describe 'Datalab Testkit SPM All-Projects', type: :model do
       skip: [
         'E2',
         'H2',
+        'E3',
+        'H3',
       ],
     )
   end
