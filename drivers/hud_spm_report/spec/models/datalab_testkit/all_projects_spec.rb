@@ -114,35 +114,35 @@ RSpec.describe 'Datalab Testkit SPM All-Projects', type: :model do
     )
   end
 
-  xit 'Measure 5.1' do
+  it 'Measure 5.1' do
     compare_results(
       file_path: result_file_prefix + 'spm',
       question: '5.1',
     )
   end
 
-  xit 'Measure 5.2' do
+  it 'Measure 5.2' do
     compare_results(
       file_path: result_file_prefix + 'spm',
       question: '5.2',
     )
   end
 
-  xit 'Measure 7a.1' do
+  it 'Measure 7a.1' do
     compare_results(
       file_path: result_file_prefix + 'spm',
       question: '7a.1',
     )
   end
 
-  xit 'Measure 7b.1' do
+  it 'Measure 7b.1' do
     compare_results(
       file_path: result_file_prefix + 'spm',
       question: '7b.1',
     )
   end
 
-  xit 'Measure 7b.2' do
+  it 'Measure 7b.2' do
     compare_results(
       file_path: result_file_prefix + 'spm',
       question: '7b.2',

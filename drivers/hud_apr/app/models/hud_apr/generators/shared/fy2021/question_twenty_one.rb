@@ -97,8 +97,7 @@ module HudApr::Generators::Shared::Fy2021
         'Other' => { hud_report_apr_clients: { "income_sources_at_#{suffix}" => { OtherInsurance: 1 } } },
 
         'No Health Insurance' => a_t["insurance_from_any_source_at_#{suffix}"].in([0, 1]).
-          and(insurance_jsonb_clause(1, a_t["income_sources_at_#{suffix}"].to_sql, negation: true)).
-          and(insurance_jsonb_clause(99, a_t["income_sources_at_#{suffix}"].to_sql, negation: true)),
+          and(insurance_jsonb_clause(1, a_t["income_sources_at_#{suffix}"].to_sql, negation: true)),
         "Client Doesn't Know/Client Refused" => a_t["insurance_from_any_source_at_#{suffix}"].in([8, 9]).
           and(insurance_jsonb_clause(1, a_t["income_sources_at_#{suffix}"].to_sql, negation: true)),
         'Data not Collected' => a_t["insurance_from_any_source_at_#{suffix}"].eq(99).
