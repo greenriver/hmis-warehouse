@@ -6,4 +6,4 @@
 # use with caution!
 RailsDrivers.loaded << :ma_yya_report
 
-GrdaWarehouse::Synthetic.add_assessment_type('MaYyaReport::Synthetic::Assessment')
+GrdaWarehouse::Synthetic.add_youth_education_status_type('MaYyaReport::Synthetic::YouthEducationStatus')
