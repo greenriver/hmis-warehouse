@@ -21,6 +21,7 @@ module Health
     before_action :require_doc_not_expired!, only: [:update, :download_careplan]
     before_action :set_form_url, only: [:edit, :update]
     before_action :set_careplan_download_url, only: [:edit, :update]
+    before_action :set_live_services_equipment_backup, only: [:edit, :update]
 
     # This supports signing without logging in:
     skip_before_action :authenticate_user!, only: [:edit, :update, :download_careplan]

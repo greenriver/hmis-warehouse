@@ -16,6 +16,7 @@ module Health
     before_action :set_client
     before_action :set_hpc_patient
     before_action :set_careplan, only: [:show, :edit, :update, :revise, :destroy, :download, :remove_file, :upload, :pctp]
+    before_action :set_live_services_equipment_backup, only: [:show, :pctp, :edit]
     before_action :set_medications, only: [:show]
     before_action :set_problems, only: [:show]
     before_action :set_upload_object, only: [:edit, :update, :revise, :remove_file, :download, :upload]
@@ -55,17 +56,8 @@ module Health
     end
 
     def show
-      @pdf = true
-      @html = false
-      # if careplan is editable, we need these variables used by list partials
-      if @careplan.editable?
-        @services = @patient.services
-        @equipments = @patient.equipments
-        @backup_plans = @careplan.backup_plans
-      end
-
       pdf = careplan_combine_pdf_object
-      file_name = "care_plan_#{DateTime.current.to_s(:db)}"
+      file_name = "care_plan_#{@careplan.updated_at.to_s(:db)}"
       send_data pdf.to_pdf, filename: "#{file_name}.pdf", type: 'application/pdf'
     end
 
@@ -75,20 +67,7 @@ module Health
       @modal_size = :xl
       @form_url = polymorphic_path(careplan_path_generator)
       @form_button = 'Save Care Plan'
-      @services = @patient.services
-      @equipments = @patient.equipments
-      @backup_plans = @careplan.backup_plans
       @disable_goal_actions = @careplan.locked?
-      # make sure we have the most recent-services and DME if
-      # the plan is editable
-      return unless @careplan.editable?
-
-      @careplan.archive_services
-      @careplan.archive_equipment
-      @careplan.archive_goals
-      @careplan.archive_backup_plans
-      @careplan.archive_team_members
-      @careplan.save
     end
 
     def new
@@ -134,7 +113,7 @@ module Health
 
     def coversheet
       pdf = careplan_pdf_coversheet
-      file_name = 'care_plan_coversheet'
+      file_name = "care_plan_coversheet_#{@careplan.updated_at.to_s(:db)}"
       send_data pdf.to_pdf, filename: "#{file_name}.pdf", type: 'application/pdf'
     end
 
@@ -142,7 +121,7 @@ module Health
       @document = 'pctp'
       pdf = careplan_pdf_coversheet
       pdf << careplan_pdf_pctp
-      file_name = 'care_plan_pctp'
+      file_name = "care_plan_pctp_#{@careplan.updated_at.to_s(:db)}"
       send_data pdf.to_pdf, filename: "#{file_name}.pdf", type: 'application/pdf'
     end
 
@@ -167,20 +146,8 @@ module Health
       @careplan = careplan_source.find(params[:id].to_i)
     end
 
-    def set_medications
-      @medications = @patient.medications.order(start_date: :desc, ordered_date: :desc)
-    end
-
-    def set_problems
-      @problems = @patient.problems.order(onset_date: :desc)
-    end
-
     def set_epic_goals
       @epic_goals = @patient&.epic_goals&.visible
-    end
-
-    def careplan_source
-      Health::Careplan
     end
 
     def careplan_params
