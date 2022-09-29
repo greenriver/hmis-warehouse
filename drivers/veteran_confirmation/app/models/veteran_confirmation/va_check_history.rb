@@ -25,6 +25,8 @@ module VeteranConfirmation
     end
 
     def check
+      return if client.va_verified_veteran?
+
       query_result = self.class.check(::GrdaWarehouse::Hud::Client.where(id: client_id))[client_id]
       return unless query_result.present?
 
@@ -34,7 +36,7 @@ module VeteranConfirmation
       )
 
       result = query_result == CONFIRMED
-      client.update!(va_verified_veteran: client.va_verified_veteran? || result)
+      client.update!(va_verified_veteran: result)
       client.adjust_veteran_status
     end
 
