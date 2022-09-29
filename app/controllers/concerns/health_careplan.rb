@@ -157,17 +157,6 @@ module HealthCareplan
           return CombinePDF.parse(health_file.content, allow_optional_content: true)
         end
       end
-      # If we haven't sent this for signatures, build out the PDF
-      # make sure we have the most recent-services, DME, team members, and goals if
-      # the plan is editable
-      if @careplan.editable?
-        @careplan.archive_services
-        @careplan.archive_equipment
-        @careplan.archive_goals
-        @careplan.archive_backup_plans
-        @careplan.archive_team_members
-        @careplan.save
-      end
 
       # Include most-recent SSM & CHA
       # @form = @patient.self_sufficiency_matrix_forms.recent.first
