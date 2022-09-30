@@ -24,7 +24,14 @@ module Mutations
         }
       end
 
-      service = Hmis::Hud::Service.new(data_source_id: user.data_source_id, **input.to_params)
+      service = Hmis::Hud::Service.new(
+        services_id: Hmis::Hud::Service.generate_services_id,
+        data_source_id: user.data_source_id,
+        user_id: user.user_id,
+        date_updated: DateTime.current,
+        date_created: DateTime.current,
+        **input.to_params,
+      )
 
       if service.valid?
         service.save!

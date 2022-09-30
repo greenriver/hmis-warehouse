@@ -96,46 +96,39 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   describe 'Validity tests' do
     [
-      # [
-      #   'should emit error if organization ID is not provided',
-      #   ->(input) { input.except(:organization_id) },
-      #   {
-      #     'fullMessage' => 'Organization must exist',
-      #     'attribute' => 'organization',
-      #   },
-      #   {
-      #     'fullMessage' => 'Organizationid must exist',
-      #     'attribute' => 'organizationId',
-      #   },
-      # ],
-      # [
-      #   'should emit error if name is not provided',
-      #   ->(input) { input.except(:project_name) },
-      #   {
-      #     'fullMessage' => 'Projectname must exist',
-      #     'attribute' => 'projectName',
-      #   },
-      # ],
-      # [
-      #   'should emit error if name is not provided',
-      #   ->(input) { input.except(:operating_start_date) },
-      #   {
-      #     'fullMessage' => 'Operatingstartdate must exist',
-      #     'attribute' => 'operatingStartDate',
-      #   },
-      # ],
-      # [
-      #   'should emit error if project type is not provided and project is not a continuum project',
-      #   ->(input) { input.except(:project_type) },
-      #   {
-      #     'fullMessage' => 'Project type must exist',
-      #     'attribute' => 'projectType',
-      #   },
-      # ],
-      # [
-      #   'should not emit error if project type is not provided and project is a continuum project',
-      #   ->(input) { input.except(:project_type).merge(continuum_project: true) },
-      # ],
+      [
+        'should emit error if enrollment ID is not provided',
+        ->(input) { input.except(:enrollment_id) },
+        {
+          'message' => "Enrollment with id '' does not exist",
+          'attribute' => 'enrollmentId',
+        },
+      ],
+      [
+        'should emit error if enrollment does not exist',
+        ->(input) { input.merge(enrollment_id: '0') },
+        {
+          'message' => "Enrollment with id '0' does not exist",
+          'attribute' => 'enrollmentId',
+        },
+      ],
+      [
+        'should emit error if client ID is not provided',
+        ->(input) { input.except(:client_id) },
+        {
+          'message' => "Client with id '' does not exist",
+          'attribute' => 'clientId',
+        },
+      ],
+      [
+        'should emit error if client does not exist',
+        ->(input) { input.merge(client_id: '0') },
+        {
+          'message' => "Client with id '0' does not exist",
+          'attribute' => 'clientId',
+        },
+      ],
+      # TODO: Left off here, add more tests for service validator
     ].each do |test_name, input_proc, *expected_errors|
       it test_name do
         input = input_proc.call(test_input)
