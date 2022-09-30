@@ -390,39 +390,12 @@ footer {
   padding: 0;
 }
 
-.l-print .client__assessment-question--title {
-  margin-bottom: 5px;
-  font-size: 15px;
-  font-weight: bold;
-}
-
-.l-print .client__assessment-answer--text {
-  margin-top: 3px;
-}
-
-.l-print .client__assessment-answer--notes {
-  p {
-    margin-top: 3px;
-    margin-bottom: 20px;
-  }
-}
-
-.l-print .client__assessment-overall-summary {
-  margin-top: 15px;
-  margin-bottom: 20px;
-}
-
 .l-print .client__assessment-section-summary {
   break-inside: avoid-page;
 }
 
-.l-print .client__assessment-question-summary {
-  margin-top: 0;
-  padding-left: 10px;
-  break-inside: avoid-page;
-}
-
-.l-print .health-care-plan__cha {
+.l-print .health-careplan__cha,
+.l-print .health-careplan__hmisForm {
   .client__assessment-section-summary {
     margin-bottom: 45px;
     page-break-inside: auto;
@@ -444,6 +417,14 @@ footer {
     margin-bottom: 10px;
     font-size: 15px;
     font-weight: bold;
+  }
+}
+
+.l-print .health-careplan__hmisForm {
+  h4 {
+    border-bottom: 1px solid $gray-020;
+    margin-right: 20px;
+    padding-bottom: 5px;
   }
 }
 

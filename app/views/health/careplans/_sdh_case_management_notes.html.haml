@@ -31,5 +31,13 @@
       ordering: false,
       pageLength: 10,
       lengthChange: false,
-      pagingType: 'simple'
+      pagingType: 'simple',
+      fnDrawCallback: function() {
+        // hide pagination if there is only 1 page of results
+        [0, 1, 2].forEach(i => {
+          if ($(`#DataTables_Table_0.datatable-sdh tr`).length < 11) {
+            $(`#DataTables_Table_0_wrapper .row:last-of-type`).hide();
+          }
+        })
+      }
     })
