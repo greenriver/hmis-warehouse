@@ -840,6 +840,15 @@ module GrdaWarehouse::WarehouseReports
         ],
         'Population Dashboards' => [],
       }
+      if RailsDrivers.loaded.include?(:ma_yya_report)
+        r_list['Operational'] << {
+          url: 'ma_yya_report/warehouse_reports/reports',
+          name: 'MA Homeless Youth Program Report',
+          description: 'Downloadable MA YYA report.',
+          limitable: true,
+          health: false,
+        }
+      end
       if RailsDrivers.loaded.include?(:service_scanning)
         r_list['Operational'] << {
           url: 'service_scanning/warehouse_reports/scanned_services',
@@ -1279,6 +1288,7 @@ module GrdaWarehouse::WarehouseReports
         'claims_reporting/warehouse_reports/performance',
         'warehouse_reports/initiatives',
       ]
+      cleanup << 'ma_yya_report/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:ma_yya_report)
       cleanup << 'service_scanning/warehouse_reports/scanned_services' unless RailsDrivers.loaded.include?(:service_scanning)
       cleanup << 'core_demographics_report/warehouse_reports/core' unless RailsDrivers.loaded.include?(:core_demographics_report)
       unless RailsDrivers.loaded.include?(:claims_reporting)

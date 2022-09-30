@@ -32,4 +32,17 @@ class Hmis::Hud::Service < Hmis::Hud::Base
   use_enum :s_s_v_f_sub_type3_enum_map, ::HUD.s_s_v_f_sub_type3_map
   use_enum :s_s_v_f_sub_type4_enum_map, ::HUD.s_s_v_f_sub_type4_map
   use_enum :s_s_v_f_sub_type5_enum_map, ::HUD.s_s_v_f_sub_type5_map
+
+  SORT_OPTIONS = [:date_provided].freeze
+
+  def self.sort_by_option(option)
+    raise NotImplementedError unless SORT_OPTIONS.include?(option)
+
+    case option
+    when :date_provided
+      order(DateProvided: :desc)
+    else
+      raise NotImplementedError
+    end
+  end
 end
