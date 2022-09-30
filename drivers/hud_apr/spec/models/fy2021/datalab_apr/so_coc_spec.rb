@@ -60,6 +60,9 @@ RSpec.describe 'Datalab 2021 APR - so', type: :model do
         'D3',
         'E3',
         'E8',
+        'F3',
+        'F6',
+        'F8',
       ],
     )
   end
@@ -68,6 +71,10 @@ RSpec.describe 'Datalab 2021 APR - so', type: :model do
     compare_results(
       file_path: result_file_prefix + 'apr/so_coc',
       question: 'Q6b',
+      # Pending AAQ: Datalab Test Kit 2.0 APR Q5 - submitted 9/29/2022
+      skip: [
+        'C6',
+      ],
     )
   end
 
@@ -78,6 +85,7 @@ RSpec.describe 'Datalab 2021 APR - so', type: :model do
       # Pending AAQ: Datalab Test Kit 2.0 APR Q5 - submitted 9/29/2022
       skip: [
         'B4',
+        'C3',
       ],
     )
   end
@@ -91,6 +99,8 @@ RSpec.describe 'Datalab 2021 APR - so', type: :model do
         'B2',
         'E2',
         'B5',
+        'H2',
+        'H5',
       ],
     )
   end
@@ -113,6 +123,7 @@ RSpec.describe 'Datalab 2021 APR - so', type: :model do
       # Pending AAQ:  Datalab test Kit 2.0 APR Q6f details file - submitted 9/29/2022
       skip: [
         'B2',
+        'D2',
       ],
     )
   end
@@ -359,12 +370,6 @@ RSpec.describe 'Datalab 2021 APR - so', type: :model do
     compare_results(
       file_path: result_file_prefix + 'apr/so_coc',
       question: 'Q23c',
-      # skip: [ # pending AAQ
-      #   'B44',
-      #   'F44',
-      #   'B46',
-      #   'F46',
-      # ],
     )
   end
 
