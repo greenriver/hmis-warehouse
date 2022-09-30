@@ -8,14 +8,14 @@ require 'rails_helper'
 require_relative '../../../../../datalab_testkit/spec/models/datalab_testkit_context'
 require_relative 'datalab_apr_context'
 
-RSpec.describe 'Datalab 2021 APR - RRH CoC II projects', type: :model do
+RSpec.describe 'Datalab 2021 APR - RRH CoC II and DataLab - RRH CoC Iprojects', type: :model do
   include_context 'datalab testkit context'
   include_context 'datalab apr context'
 
   before(:all) do
     setup
     # Current version only runs against one project
-    project_ids = GrdaWarehouse::Hud::Project.where(ProjectName: 'DataLab - RRH CoC II').pluck(:id)
+    project_ids = GrdaWarehouse::Hud::Project.where(ProjectName: ['DataLab - RRH CoC II', 'DataLab - RRH CoC I']).pluck(:id)
     run(project_ids_filter(project_ids))
   end
 
@@ -92,6 +92,10 @@ RSpec.describe 'Datalab 2021 APR - RRH CoC II projects', type: :model do
     compare_results(
       file_path: result_file_prefix + 'apr/rrh_coc_2',
       question: 'Q7b',
+      detail_columns: [
+        :last_name,
+        :first_name,
+      ],
     )
   end
 
@@ -313,7 +317,7 @@ RSpec.describe 'Datalab 2021 APR - RRH CoC II projects', type: :model do
   end
 
   # FIXME: this should be re-enabled when the new data set is implemented
-  xit 'Q22e' do
+  it 'Q22e' do
     compare_results(
       file_path: result_file_prefix + 'apr/rrh_coc_2',
       question: 'Q22e',

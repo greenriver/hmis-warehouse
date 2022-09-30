@@ -38,7 +38,7 @@ RSpec.describe 'Datalab 2021 APR - so', type: :model do
     compare_results(
       file_path: result_file_prefix + 'apr/so_coc',
       question: 'Q5a',
-      # Pending AAQ: Datalab Test Kit 2.0 APR Q5 - submitted 9/29/2022
+      # Pending AAQ: Datalab Test Kit 2.0 APR Q5 - submitted 9/29/2022, test kit is using engagement date, which isn't appropriate until 1/1/2023 when the spec changes
       skip: [
         'B1',
         'B2',

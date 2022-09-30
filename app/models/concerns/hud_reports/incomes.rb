@@ -58,8 +58,8 @@ module HudReports::Incomes
       total_amount = total_amount(universe_client, suffix)
       return 0 unless total_amount.present? && total_amount.positive?
 
-      earned = earned_amount(universe_client, suffix).presence || 0
-      total_amount.to_i - earned.to_i
+      earned = earned_amount(universe_client, suffix) || 0
+      total_amount.to_f - earned.to_f
     end
 
     private def total_amount(universe_client, suffix)
@@ -70,8 +70,7 @@ module HudReports::Incomes
     private def earned_income?(universe_client, suffix)
       return false unless universe_client["income_sources_at_#{suffix}"]['Earned'] == 1
 
-      earned_amt = earned_amount(universe_client, suffix)
-      earned_amt.present? && earned_amt.to_i.positive?
+      earned_amount(universe_client, suffix).to_f.positive?
     end
 
     # We have other income if the total is positive and not equal to the earned amount
@@ -79,7 +78,7 @@ module HudReports::Incomes
       total_amount = total_amount(universe_client, suffix)
       return false unless total_amount.present? && total_amount.positive?
 
-      total_amount != earned_amount(universe_client, suffix).to_i
+      total_amount.to_f != earned_amount(universe_client, suffix).to_f
     end
 
     private def total_income?(universe_client, suffix)

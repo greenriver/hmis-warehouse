@@ -30,7 +30,9 @@ module HudReports::LengthOfStays
       a_t[:last_date_in_program].lteq(report_end_date)
     end
 
-    # Heads of Household who have been enrolled for at least 365 days
+    # Heads of households and adult stayers in the project 365 days or more (Row 16)
+    # should include any adult stayer present when the head of household’s stay is 365 days or more,
+    # even if that adult has not been in the household that long.
     private def hoh_lts_stayer_ids
       @hoh_lts_stayer_ids ||= universe.members.where(
         hoh_clause.
@@ -74,9 +76,12 @@ module HudReports::LengthOfStays
     private def stay_length(enrollment)
       end_date = [
         enrollment.last_date_in_program,
-        report_end_date + 1.day,
+        report_end_date,
       ].compact.min
-      (end_date - enrollment.first_date_in_program).to_i
+      days = (end_date - enrollment.first_date_in_program).to_i
+      # no bed night on last day of residential service, but yes service on non-residential projects
+      days += 1 unless enrollment.computed_project_type.in?(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS)
+      days
     end
 
     private def bed_nights(enrollment)
