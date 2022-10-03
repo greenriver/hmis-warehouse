@@ -128,7 +128,61 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           'attribute' => 'clientId',
         },
       ],
-      # TODO: Left off here, add more tests for service validator
+      [
+        'should emit error if type provided is not valid for the provided record type',
+        ->(input) do
+          input = input.merge(
+            record_type: Types::HmisSchema::Enums::RecordType.enum_member_for_value(200).first,
+            type_provided: Types::HmisSchema::Enums::ServiceTypeProvided.enum_member_for_value('144:3').first,
+          )
+          input[:sub_type_provided] = nil
+          input
+        end,
+        {
+          'message' => 'Invalid TypeProvided for RecordType',
+          'attribute' => 'typeProvided',
+        },
+      ],
+      [
+        'should emit error if sub type provided provided when not record type 144',
+        ->(input) do
+          input.merge(
+            record_type: Types::HmisSchema::Enums::RecordType.enum_member_for_value(141).first,
+            type_provided: Types::HmisSchema::Enums::ServiceTypeProvided.enum_member_for_value('141:1').first,
+          )
+        end,
+        {
+          'message' => 'Invalid SubTypeProvided for RecordType',
+          'attribute' => 'subTypeProvided',
+        },
+      ],
+      [
+        'should emit error if sub type provided provided when record type is 144 but type provided is not 3, 4 or 5',
+        ->(input) do
+          input.merge(
+            record_type: Types::HmisSchema::Enums::RecordType.enum_member_for_value(144).first,
+            type_provided: Types::HmisSchema::Enums::ServiceTypeProvided.enum_member_for_value('144:1').first,
+          )
+        end,
+        {
+          'message' => 'Invalid SubTypeProvided for TypeProvided',
+          'attribute' => 'subTypeProvided',
+        },
+      ],
+      [
+        'should emit error if sub type provided provided does not match type provided',
+        ->(input) do
+          input.merge(
+            record_type: Types::HmisSchema::Enums::RecordType.enum_member_for_value(144).first,
+            type_provided: Types::HmisSchema::Enums::ServiceTypeProvided.enum_member_for_value('144:3').first,
+            sub_type_provided: Types::HmisSchema::Enums::ServiceSubTypeProvided.enum_member_for_value('144:5:7').first,
+          )
+        end,
+        {
+          'message' => 'Invalid SubTypeProvided for TypeProvided',
+          'attribute' => 'subTypeProvided',
+        },
+      ],
     ].each do |test_name, input_proc, *expected_errors|
       it test_name do
         input = input_proc.call(test_input)
