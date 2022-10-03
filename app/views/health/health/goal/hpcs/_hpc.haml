@@ -91,7 +91,7 @@
             Add
     .row
       .col-sm-6
-        = f.input :responsible_team_member_id, collection: @patient.available_team_members, label: 'Responsible Care Team Member', as: :select_two
+        = f.input :responsible_team_member_id, collection: @patient.available_team_members, label: 'Responsible Care Team Member'
     .d-flex
       .c-btn-group.ml-auto
         = f.submit value: 'Save Goal', class: 'btn btn-primary', data: { disable_with: 'Saving ...' }
