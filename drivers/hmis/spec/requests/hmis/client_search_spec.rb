@@ -1,16 +1,16 @@
 require 'rails_helper'
 
 RSpec.describe Hmis::GraphqlController, type: :request do
-  let(:user) { create :user }
-  let!(:ds1) { create :hmis_data_source }
-  let!(:ds2) { create :hmis_data_source, hmis: nil, id: 2 }
-
   before(:all) do
     cleanup_test_environment
   end
   after(:all) do
     cleanup_test_environment
   end
+
+  let(:user) { create :user }
+  let!(:ds1) { create :hmis_data_source }
+  let!(:ds2) { create :hmis_data_source, hmis: nil }
 
   before(:each) do
     user.add_viewable(ds1)

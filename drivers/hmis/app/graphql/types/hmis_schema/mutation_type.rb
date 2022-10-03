@@ -19,5 +19,6 @@ module Types
     field :create_project, mutation: Mutations::CreateProject
     field :update_project, mutation: Mutations::UpdateProject
     field :create_service, mutation: Mutations::CreateService
+    field :update_service, mutation: Mutations::UpdateService
   end
 end
