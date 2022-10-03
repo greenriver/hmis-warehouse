@@ -23,6 +23,7 @@ class SyncSyntheticDataJob < BaseJob
     Cas::NonHmisClient.find_exact_matches
     GrdaWarehouse::Synthetic::Assessment.hud_sync
     GrdaWarehouse::Synthetic::Event.hud_sync
+    GrdaWarehouse::Synthetic::YouthEducationStatus.hud_sync
 
     @notifier.ping('Updated synthetic data') if @send_notifications
   end
