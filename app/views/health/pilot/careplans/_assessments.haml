@@ -1,26 +1,3 @@
 .client__assessments.slab
   %h3.section-expander-block__header Assessments
-  - if status = @client.api_status
-    - eto_api_path = polymorphic_path(client_path_generator + [:eto_api])
-    - if status[:updating]
-      .row
-        .col-sm-10
-          .api-status-status.jApiStatus
-            Updating since
-            = status[:started_at]
-        .col-sm-2.pull-right
-          = render 'spinner'
-    - else
-      .row
-        .col-sm-8
-          Last updated: 
-          = status[:updated_at]
-        .col-sm-4
-          = link_to 'Update', eto_api_path ,method: :patch, class: 'btn btn-sm btn-secondary', data: {confirm: "Updating assessment data can take a few minutes. During this time, assessments for this client won't be available Are you sure you want to proceed?"}
-
   = render 'touch_points_table'
-
-= content_for :page_js do
-  :javascript
-    var status_class = '.jApiStatus'
-    var refresher = new App.Clients.EtoApiRefresher($(status_class), "#{eto_api_path}", document.URL, '.client__assessments');

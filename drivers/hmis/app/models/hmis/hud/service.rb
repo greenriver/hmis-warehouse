@@ -37,7 +37,7 @@ class Hmis::Hud::Service < Hmis::Hud::Base
   use_enum :s_s_v_f_sub_type4_enum_map, ::HUD.s_s_v_f_sub_type4_map # If type provded 4
   use_enum :s_s_v_f_sub_type5_enum_map, ::HUD.s_s_v_f_sub_type5_map # If type provded 5
 
-  SORT_OPTIONS = [:date].freeze
+  SORT_OPTIONS = [:date_provided].freeze
 
   def skip_validations
     @skip_validations ||= []
@@ -51,7 +51,7 @@ class Hmis::Hud::Service < Hmis::Hud::Base
     raise NotImplementedError unless SORT_OPTIONS.include?(option)
 
     case option
-    when :date
+    when :date_provided
       order(DateProvided: :desc)
     else
       raise NotImplementedError

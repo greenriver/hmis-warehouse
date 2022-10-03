@@ -17,13 +17,13 @@ class Hmis::Hud::Event < Hmis::Hud::Base
   use_common_enum :prob_sol_div_rr_result_enum_map, :yes_no_missing
   use_common_enum :referral_case_manage_after_enum_map, :yes_no_missing
 
-  SORT_OPTIONS = [:date].freeze
+  SORT_OPTIONS = [:event_date].freeze
 
   def self.sort_by_option(option)
     raise NotImplementedError unless SORT_OPTIONS.include?(option)
 
     case option
-    when :date
+    when :event_date
       order(EventDate: :desc)
     else
       raise NotImplementedError

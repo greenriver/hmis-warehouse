@@ -48,15 +48,15 @@ module Types
     end
 
     def events(**args)
-      resolve_events(:events, **args)
+      resolve_events(**args)
     end
 
     def services(**args)
-      resolve_services(:services, **args)
+      resolve_services(**args)
     end
 
     def assessments(**args)
-      resolve_assessments(:assessments, **args)
+      resolve_assessments(**args)
     end
   end
 end
