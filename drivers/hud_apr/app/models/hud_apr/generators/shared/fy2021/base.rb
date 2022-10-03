@@ -71,8 +71,8 @@ module HudApr::Generators::Shared::Fy2021
           household_types[hh_id] = household_makeup(hh_id, date)
           times_to_move_in[last_service_history_enrollment.client_id] = time_to_move_in(last_service_history_enrollment)
           move_in_dates[last_service_history_enrollment.client_id] = appropriate_move_in_date(last_service_history_enrollment)
-          approximate_move_in_dates[last_service_history_enrollment.client_id] = approximate_time_to_move_in(last_service_history_enrollment, age)
-          dates_to_street[last_service_history_enrollment.client_id] = date_to_street(last_service_history_enrollment, age)
+          approximate_move_in_dates[last_service_history_enrollment.client_id] = approximate_time_to_move_in(last_service_history_enrollment, age, hoh_enrollment)
+          dates_to_street[last_service_history_enrollment.client_id] = date_to_street(last_service_history_enrollment, age, hoh_enrollment)
         end
 
         pending_associations = {}

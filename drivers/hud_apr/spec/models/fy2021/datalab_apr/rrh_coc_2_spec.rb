@@ -36,6 +36,10 @@ RSpec.describe 'Datalab 2021 APR - RRH CoC II and DataLab - RRH CoC Iprojects', 
     compare_results(
       file_path: result_file_prefix + 'apr/rrh_coc_2',
       question: 'Q5a',
+      # Pending AAQ: [APR] DataLab - RRH CoC I & DataLab - RRH CoC II (D) Q5 B16
+      skip: [
+        'B16',
+      ],
     )
   end
 
@@ -321,6 +325,17 @@ RSpec.describe 'Datalab 2021 APR - RRH CoC II and DataLab - RRH CoC Iprojects', 
     compare_results(
       file_path: result_file_prefix + 'apr/rrh_coc_2',
       question: 'Q22e',
+      # Pending AAQ: [APR] DataLab - RRH CoC I & DataLab - RRH CoC II (D) Q22e - submitted 10/2/2022
+      skip: [
+        'B4', # child Bubble Eventual should inherit from HoH
+        'D4',
+        'B7', # child Hepzibah Providence should inherit from HoH
+        'D7',
+        'B11',
+        'D11',
+        'B13',
+        'D13',
+      ],
     )
   end
 

@@ -51,8 +51,8 @@ module HudDataQualityReport::Generators::Fy2022
           household_types[hh_id] = household_makeup(hh_id, date)
           times_to_move_in[last_service_history_enrollment.client_id] = time_to_move_in(last_service_history_enrollment)
           move_in_dates[last_service_history_enrollment.client_id] = appropriate_move_in_date(last_service_history_enrollment)
-          approximate_move_in_dates[last_service_history_enrollment.client_id] = approximate_time_to_move_in(last_service_history_enrollment, age)
-          dates_to_street[last_service_history_enrollment.client_id] = date_to_street(last_service_history_enrollment, age)
+          approximate_move_in_dates[last_service_history_enrollment.client_id] = approximate_time_to_move_in(last_service_history_enrollment, age, hoh_enrollment)
+          dates_to_street[last_service_history_enrollment.client_id] = date_to_street(last_service_history_enrollment, age, hoh_enrollment)
         end
 
         pending_associations = {}
@@ -186,6 +186,7 @@ module HudDataQualityReport::Generators::Fy2022
             last_date_in_program: last_service_history_enrollment.last_date_in_program,
             last_name: source_client.LastName,
             length_of_stay: stay_length(last_service_history_enrollment),
+
             mental_health_problem_entry: disabilities_at_entry.detect(&:mental?)&.DisabilityResponse,
             mental_health_problem_exit: disabilities_at_exit.detect(&:mental?)&.DisabilityResponse,
             mental_health_problem_latest: disabilities_latest.detect(&:mental?)&.DisabilityResponse,

@@ -352,6 +352,10 @@ RSpec.describe 'Datalab 2021 APR - PSH', type: :model do
     compare_results(
       file_path: result_file_prefix + 'apr/psh_coc_1',
       question: 'Q21',
+      # Pending AAQ: [APR] DataLab - RRH CoC I (D) Q21 C14 - submitted 10/2/2022
+      skip: [
+        'C14',
+      ],
     )
   end
 
