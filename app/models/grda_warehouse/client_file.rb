@@ -271,6 +271,7 @@ module GrdaWarehouse
             consent_form_signed_on: consent_form_signed_on,
             consent_form_id: id,
             consented_coc_codes: coc_codes_chosen,
+            consent_expires_on: expiration_date,
           )
         end
       else
@@ -283,6 +284,7 @@ module GrdaWarehouse
             consent_form_signed_on: consent_form_signed_on,
             consent_form_id: id,
             consented_coc_codes: coc_codes_chosen,
+            consent_expires_on: expiration_date,
           )
         elsif no_other_confirmed_consent_files
           client.invalidate_consent!

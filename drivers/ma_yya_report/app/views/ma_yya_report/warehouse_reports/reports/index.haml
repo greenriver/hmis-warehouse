@@ -1,0 +1,9 @@
+- title = _('MA YYA Report')
+- content_for :title, title
+
+= render '/warehouse_reports/breadcrumbs', tab: 'operational'
+%h1.mb-5= title
+
+= render 'filter'
+
+= render 'table'
