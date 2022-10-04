@@ -58,7 +58,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     GRAPHQL
   end
 
-  it 'should create a service successfully' do
+  it 'should delete a service successfully' do
     response, result = post_graphql(id: s1.id) { mutation }
 
     expect(response.status).to eq 200
