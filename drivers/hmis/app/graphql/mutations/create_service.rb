@@ -9,7 +9,6 @@ module Mutations
       errors = []
       params = input.to_params
       errors << InputValidationError.new("Enrollment with id '#{input.enrollment_id}' does not exist", attribute: 'enrollment_id') unless Hmis::Hud::Enrollment.viewable_by(current_user).exists?(enrollment_id: params[:enrollment_id].to_i)
-      errors << InputValidationError.new("Client with id '#{input.client_id}' does not exist", attribute: 'client_id') unless Hmis::Hud::Client.exists?(personal_id: params[:personal_id])
       errors
     end
 

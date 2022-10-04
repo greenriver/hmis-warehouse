@@ -14,7 +14,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:p1) { create :hmis_hud_project, data_source_id: ds1.id, organization: o1 }
   let!(:c1) { create :hmis_hud_client, data_source: ds1 }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, client: c1, project: p1 }
-  let!(:s1) { create :hmis_hud_service, data_source_id: ds1.id, client: c1, enrollment: e1 }
+  let!(:s1) { create :hmis_hud_service, data_source_id: ds1.id, client: c1, enrollment: e1, date_updated: Date.today - 1.day }
 
   let(:test_input) do
     {
@@ -57,6 +57,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             movingOnOtherType
             FAAmount
             referralOutcome
+            dateUpdated
           }
           errors {
             attribute
@@ -88,6 +89,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       'FAAmount' => test_input['FAAmount'],
       'referralOutcome' => test_input[:referral_outcome],
     )
+    expect(Date.parse(service['dateUpdated'])).to eq(Date.today)
     expect(errors).to be_empty
   end
 end

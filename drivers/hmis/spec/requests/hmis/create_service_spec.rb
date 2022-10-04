@@ -18,7 +18,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let(:test_input) do
     {
       enrollment_id: e1.id,
-      client_id: c1.id,
       date_provided: Date.today.strftime('%Y-%m-%d'),
       record_type: Types::HmisSchema::Enums::RecordType.enum_member_for_value(144).first,
       type_provided: Types::HmisSchema::Enums::ServiceTypeProvided.enum_member_for_value('144:3').first,
@@ -110,22 +109,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         {
           'message' => "Enrollment with id '0' does not exist",
           'attribute' => 'enrollmentId',
-        },
-      ],
-      [
-        'should emit error if client ID is not provided',
-        ->(input) { input.except(:client_id) },
-        {
-          'message' => "Client with id '' does not exist",
-          'attribute' => 'clientId',
-        },
-      ],
-      [
-        'should emit error if client does not exist',
-        ->(input) { input.merge(client_id: '0') },
-        {
-          'message' => "Client with id '0' does not exist",
-          'attribute' => 'clientId',
         },
       ],
       [

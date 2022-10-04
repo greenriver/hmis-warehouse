@@ -47,11 +47,14 @@ class Hmis::Hud::Validators::ServiceValidator < Hmis::Hud::Validators::BaseValid
   end
 
   def validate_sub_type_provided(record)
-    return unless record.record_type == 144 && record.sub_type_provided.present?
-    return record.errors.add :sub_type_provided, :invalid, message: 'Invalid SubTypeProvided for RecordType', full_message: "SubTypeProvided must be null unless RecordType = 144. RecordType is #{record.record_type}" if record.sub_type_provided.present? && record.record_type != 144
-    return record.errors.add :sub_type_provided, :invalid, message: 'Invalid SubTypeProvided for TypeProvided', full_message: "SubTypeProvided must be null unless TypeProvided is 3, 4 or 5. TypeProvided is #{record.type_provided}" unless SUB_TYPE_PROVIDED_MAP.keys.include?(record.type_provided)
-    return if SUB_TYPE_PROVIDED_MAP.any? { |rt, tp_map| record.type_provided == rt && tp_map.keys.include?(record.sub_type_provided) }
-
-    record.errors.add :sub_type_provided, :invalid, message: 'Invalid SubTypeProvided for TypeProvided', full_message: "Value for SubTypeProvided '#{record.sub_type_provided}' does not match TypeProvided '#{record.type_provided}'"
+    if record.record_type == 144
+      if SUB_TYPE_PROVIDED_MAP.keys.include?(record.type_provided)
+        record.errors.add :sub_type_provided, :invalid, message: 'Invalid SubTypeProvided for TypeProvided', full_message: "Value for SubTypeProvided '#{record.sub_type_provided}' does not match TypeProvided '#{record.type_provided}'" unless SUB_TYPE_PROVIDED_MAP.any? { |tp, stp_map| record.type_provided == tp && stp_map.keys.include?(record.sub_type_provided) }
+      else
+        record.errors.add :sub_type_provided, :invalid, message: 'Invalid SubTypeProvided for TypeProvided', full_message: "SubTypeProvided must be null unless TypeProvided is 3, 4 or 5. TypeProvided is #{record.type_provided}"
+      end
+    elsif record.sub_type_provided.present?
+      record.errors.add :sub_type_provided, :invalid, message: 'Invalid SubTypeProvided for RecordType', full_message: "SubTypeProvided must be null unless RecordType = 144. RecordType is #{record.record_type}"
+    end
   end
 end
