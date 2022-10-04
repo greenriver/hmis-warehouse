@@ -323,7 +323,7 @@ RSpec.describe 'Datalab 2021 APR - RRH CoC I', type: :model do
   end
 
   # FIXME: this should be re-enabled when the new data set is implemented
-  xit 'Q22e' do
+  it 'Q22e' do
     compare_results(
       file_path: result_file_prefix + 'apr/rrh_coc_1',
       question: 'Q22e',

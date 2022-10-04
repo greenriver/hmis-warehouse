@@ -14,8 +14,8 @@ RSpec.describe 'Datalab 2021 CAPER - NBN ES', type: :model do
 
   before(:all) do
     setup
-    # Current version only runs against one project
-    project_ids = GrdaWarehouse::Hud::Project.where(ProjectName: 'DataLab - ES-NbN ESG').pluck(:id)
+    # Current version only runs against one project, note space at end of name
+    project_ids = GrdaWarehouse::Hud::Project.where(ProjectName: 'DataLab - ES-NbN ESG ').pluck(:id)
     run(project_ids_filter(project_ids))
   end
 
@@ -34,10 +34,16 @@ RSpec.describe 'Datalab 2021 CAPER - NBN ES', type: :model do
     )
   end
 
+  # Q5 B11 - needs to look at disabilities to determine if the client has a disabling condition
+  # save as a calculated field any disabilities at entry
+  # Pending AAQ: [CAPER] DataLab - ES-NbN ESG (D) Q5a Number of chronically homeless persons - submitted 10/4/2022
   it 'Q5a' do
     compare_results(
       file_path: result_file_prefix + 'caper/es_nbn_esg',
       question: 'Q5a',
+      skip: [
+        'B11',
+      ],
     )
   end
 
@@ -268,7 +274,7 @@ RSpec.describe 'Datalab 2021 CAPER - NBN ES', type: :model do
     )
   end
 
-  xit 'Q22a2' do # pending AAQ
+  it 'Q22a2' do # pending AAQ
     compare_results(
       file_path: result_file_prefix + 'caper/es_nbn_esg',
       question: 'Q22a2',
@@ -282,7 +288,7 @@ RSpec.describe 'Datalab 2021 CAPER - NBN ES', type: :model do
     )
   end
 
-  xit 'Q22d' do # pending AAQ
+  it 'Q22d' do # pending AAQ
     compare_results(
       file_path: result_file_prefix + 'caper/es_nbn_esg',
       question: 'Q22d',
@@ -290,7 +296,7 @@ RSpec.describe 'Datalab 2021 CAPER - NBN ES', type: :model do
   end
 
   # FIXME: this should be re-enabled when the new data set is implemented
-  xit 'Q22e' do
+  it 'Q22e' do
     compare_results(
       file_path: result_file_prefix + 'caper/es_nbn_esg',
       question: 'Q22e',

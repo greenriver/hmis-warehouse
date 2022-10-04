@@ -290,7 +290,7 @@ RSpec.describe 'Datalab 2021 CAPER - HP', type: :model do
     )
   end
 
-  xit 'Q24' do # pending AAQ
+  it 'Q24' do # pending AAQ
     compare_results(
       file_path: result_file_prefix + 'caper/hp_esg',
       question: 'Q24',
