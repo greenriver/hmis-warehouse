@@ -121,6 +121,7 @@ RSpec.describe 'Datalab 2021 APR - so', type: :model do
       file_path: result_file_prefix + 'apr/so_coc',
       question: 'Q6f',
       # Pending AAQ:  Datalab test Kit 2.0 APR Q6f details file - submitted 9/29/2022
+      # We include Libya Phinger, date of engagement isn't relevant until 1/1/2023
       skip: [
         'B2',
         'D2',
