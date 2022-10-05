@@ -407,16 +407,39 @@ module HudApr::Generators::Shared::Fy2021
         where(client_id: batch.map(&:id)).
         order(first_date_in_program: :asc).
         group_by(&:client_id).
-        transform_values { |enrollments| enrollments.reject { |enrollment| nbn_with_no_service?(enrollment) } }.
+        transform_values do |enrollments|
+          enrollments.select do |enrollment|
+            nbn_or_so_with_service?(enrollment)
+          end
+        end.
         reject { |_, enrollments| enrollments.empty? }
     end
 
-    private def nbn_with_no_service?(enrollment)
-      enrollment.project_tracking_method == 3 &&
-        ! enrollment.service_history_services.
-          bed_night.
-          service_within_date_range(start_date: @report.start_date, end_date: @report.end_date).
-          exists?
+    private def nbn_or_so_with_service?(enrollment)
+      return true unless enrollment.nbn?
+
+      @with_service ||= GrdaWarehouse::ServiceHistoryService.bed_night.
+        service_excluding_extrapolated.
+        service_within_date_range(start_date: @report.start_date, end_date: @report.end_date).
+        where(service_history_enrollment_id: enrollment_scope_without_preloads.select(:id)).
+        pluck(:service_history_enrollment_id).to_set
+
+      @with_service.include?(enrollment.id)
+    end
+
+    private def engaged?(enrollment)
+      return true unless enrollment.so?
+      return false if enrollment.enrollment.DateOfEngagement.blank?
+
+      enrollment.enrollment.DateOfEngagement < @report.end_date
+    end
+
+    private def engaged_clause
+      a_t[:project_type].not_eq(4).or(
+        a_t[:project_type].eq(4).
+        and(a_t[:date_of_engagement].lt(@report.end_date).
+        and(a_t[:date_of_engagement].not_eq(nil))),
+      )
     end
 
     private def enrollment_scope

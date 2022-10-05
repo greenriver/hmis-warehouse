@@ -27,32 +27,14 @@ RSpec.shared_context 'datalab so coc apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'apr/so_coc',
         question: 'Q5a',
-        # Pending AAQ: Datalab Test Kit 2.0 APR Q5 - submitted 9/29/2022, test kit is using engagement date, which isn't appropriate until 1/1/2023 when the spec changes
-        skip: [
-          'B1',
-          'B2',
-          'B8',
-          'B9',
-          'B11',
-          'B14',
-          'B16',
-        ],
       )
     end
 
-    it 'Q6a' do
+    # AAQ submitted, 99 in SSNDQ should put client in missing
+    xit 'Q6a' do
       compare_results(
         file_path: result_file_prefix + 'apr/so_coc',
         question: 'Q6a',
-        # Pending AAQ: Datalab Test Kit 2.0 APR Q5 - submitted 9/29/2022
-        skip: [
-          'D3',
-          'E3',
-          'E8',
-          'F3',
-          'F6',
-          'F8',
-        ],
       )
     end
 
@@ -60,10 +42,6 @@ RSpec.shared_context 'datalab so coc apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'apr/so_coc',
         question: 'Q6b',
-        # Pending AAQ: Datalab Test Kit 2.0 APR Q5 - submitted 9/29/2022
-        skip: [
-          'C6',
-        ],
       )
     end
 
@@ -71,11 +49,6 @@ RSpec.shared_context 'datalab so coc apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'apr/so_coc',
         question: 'Q6c',
-        # Pending AAQ: Datalab Test Kit 2.0 APR Q5 - submitted 9/29/2022
-        skip: [
-          'B4',
-          'C3',
-        ],
       )
     end
 
@@ -83,14 +56,6 @@ RSpec.shared_context 'datalab so coc apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'apr/so_coc',
         question: 'Q6d',
-        # Pending AAQ: Datalab Test Kit 2.0 APR Q5 - submitted 9/29/2022
-        skip: [
-          'B2',
-          'E2',
-          'B5',
-          'H2',
-          'H5',
-        ],
       )
     end
 
@@ -98,10 +63,6 @@ RSpec.shared_context 'datalab so coc apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'apr/so_coc',
         question: 'Q6e',
-        # Pending AAQ: Datalab Test Kit 2.0 APR Q5 - submitted 9/29/2022
-        skip: [
-          'B6',
-        ],
       )
     end
 
@@ -110,9 +71,9 @@ RSpec.shared_context 'datalab so coc apr', shared_context: :metadata do
         file_path: result_file_prefix + 'apr/so_coc',
         question: 'Q6f',
         # Pending AAQ:  Datalab test Kit 2.0 APR Q6f details file - submitted 9/29/2022
-        # We include Libya Phinger, date of engagement isn't relevant until 1/1/2023
         skip: [
           'B2',
+          'C2',
           'D2',
         ],
       )

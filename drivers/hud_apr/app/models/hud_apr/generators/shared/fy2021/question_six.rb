@@ -20,6 +20,10 @@ module HudApr::Generators::Shared::Fy2021
       }.freeze
     end
 
+    private def dq_universe_members
+      universe.members.where(engaged_clause)
+    end
+
     private def q6a_pii
       table_name = 'Q6a'
       metadata = {
@@ -57,19 +61,19 @@ module HudApr::Generators::Shared::Fy2021
 
       count = clients.distinct.count
       @report.answer(question: table_name, cell: 'E8').update(summary: count)
-      @report.answer(question: table_name, cell: 'F8').update(summary: percentage(count / universe.members.count.to_f))
+      @report.answer(question: table_name, cell: 'F8').update(summary: percentage(count / dq_universe_members.count.to_f))
     end
 
     private def name_quality(table_name:)
       # Name DK/R
       answer = @report.answer(question: table_name, cell: 'B2')
-      dkr_members = universe.members.where(a_t[:name_quality].in([8, 9]))
+      dkr_members = dq_universe_members.where(a_t[:name_quality].in([8, 9]))
       answer.add_members(dkr_members)
       answer.update(summary: dkr_members.count)
 
       # Name missing
       answer = @report.answer(question: table_name, cell: 'C2')
-      m_members = universe.members.where(
+      m_members = dq_universe_members.where(
         a_t[:name_quality].not_in([8, 9]).
           and(
             a_t[:first_name].eq(nil).
@@ -81,7 +85,7 @@ module HudApr::Generators::Shared::Fy2021
 
       # Name quality
       answer = @report.answer(question: table_name, cell: 'D2')
-      q_members = universe.members.where(a_t[:name_quality].eq(2))
+      q_members = dq_universe_members.where(a_t[:name_quality].eq(2))
       answer.add_members(q_members)
       answer.update(summary: q_members.count)
 
@@ -93,7 +97,7 @@ module HudApr::Generators::Shared::Fy2021
 
       # Percentage
       answer = @report.answer(question: table_name, cell: 'F2')
-      answer.update(summary: percentage(total_members.count / universe.members.count.to_f))
+      answer.update(summary: percentage(total_members.count / dq_universe_members.count.to_f))
 
       total_members
     end
@@ -101,13 +105,13 @@ module HudApr::Generators::Shared::Fy2021
     private def ssn_quality(table_name:)
       # SSN DK/R
       answer = @report.answer(question: table_name, cell: 'B3')
-      dkr_members = universe.members.where(a_t[:ssn_quality].in([8, 9]))
+      dkr_members = dq_universe_members.where(a_t[:ssn_quality].in([8, 9]))
       answer.add_members(dkr_members)
       answer.update(summary: dkr_members.count)
 
       # SSN missing
       answer = @report.answer(question: table_name, cell: 'C3')
-      m_members = universe.members.where(
+      m_members = dq_universe_members.where(
         a_t[:ssn].eq(nil).and(a_t[:ssn_quality].not_in([8, 9])).
           or(a_t[:ssn_quality].eq(99)),
       )
@@ -117,12 +121,12 @@ module HudApr::Generators::Shared::Fy2021
       # SSN quality
       answer = @report.answer(question: table_name, cell: 'D3')
       q_member_ids = []
-      universe.members.preload(:universe_membership).find_each do |u_member|
+      dq_universe_members.preload(:universe_membership).find_each do |u_member|
         member = u_member.universe_membership
         q_member_ids << u_member.id if member.ssn_quality == 2 ||
           (member.ssn_quality == 1 && !HUD.valid_social?(member.ssn))
       end
-      q_members = universe.members.where(id: q_member_ids)
+      q_members = dq_universe_members.where(id: q_member_ids)
       answer.add_members(q_members)
       answer.update(summary: q_members.count)
 
@@ -134,7 +138,7 @@ module HudApr::Generators::Shared::Fy2021
 
       # Percentage
       answer = @report.answer(question: table_name, cell: 'F3')
-      answer.update(summary: percentage(total_members.count / universe.members.count.to_f))
+      answer.update(summary: percentage(total_members.count / dq_universe_members.count.to_f))
 
       total_members
     end
@@ -142,13 +146,13 @@ module HudApr::Generators::Shared::Fy2021
     private def dob_quality(table_name:)
       # DOB DK/R
       answer = @report.answer(question: table_name, cell: 'B4')
-      dkr_members = universe.members.where(a_t[:dob_quality].in([8, 9]))
+      dkr_members = dq_universe_members.where(a_t[:dob_quality].in([8, 9]))
       answer.add_members(dkr_members)
       answer.update(summary: dkr_members.count)
 
       # DOB missing
       answer = @report.answer(question: table_name, cell: 'C4')
-      m_members = universe.members.where(
+      m_members = dq_universe_members.where(
         a_t[:dob].eq(nil).and(a_t[:dob_quality].not_in([8, 9])),
       )
       answer.add_members(m_members)
@@ -157,13 +161,13 @@ module HudApr::Generators::Shared::Fy2021
       # DOB quality
       answer = @report.answer(question: table_name, cell: 'D4')
       q_member_ids = []
-      universe.members.find_each do |u_member|
+      dq_universe_members.find_each do |u_member|
         member = u_member.universe_membership
         q_member_ids << u_member.id if member.dob_quality == 2 ||
           (member.dob_quality == 1 && !valid_dob?(member)) ||
           (member.dob_quality.in?([8, 9, 99]) && member.dob.present?)
       end
-      q_members = universe.members.where(id: q_member_ids)
+      q_members = dq_universe_members.where(id: q_member_ids)
       answer.add_members(q_members)
       answer.update(summary: q_members.count)
 
@@ -175,7 +179,7 @@ module HudApr::Generators::Shared::Fy2021
 
       # Percentage
       answer = @report.answer(question: table_name, cell: 'F4')
-      answer.update(summary: percentage(total_members.count / universe.members.count.to_f))
+      answer.update(summary: percentage(total_members.count / dq_universe_members.count.to_f))
 
       total_members
     end
@@ -194,14 +198,14 @@ module HudApr::Generators::Shared::Fy2021
       # Race DK/R / compute missing
       answer = @report.answer(question: table_name, cell: 'B5')
 
-      dkr_members = universe.members.where(a_t[:race].in([8, 9]))
+      dkr_members = dq_universe_members.where(a_t[:race].in([8, 9]))
       answer.add_members(dkr_members)
       answer.update(summary: dkr_members.count)
 
       # Race missing
       answer = @report.answer(question: table_name, cell: 'C5')
-      # m_members = universe.members.where(id: m_member_ids)
-      m_members = universe.members.where(a_t[:race].eq(99))
+      # m_members = dq_universe_members.where(id: m_member_ids)
+      m_members = dq_universe_members.where(a_t[:race].eq(99))
       answer.add_members(m_members)
       answer.update(summary: m_members.count)
 
@@ -213,7 +217,7 @@ module HudApr::Generators::Shared::Fy2021
 
       # Percentage
       answer = @report.answer(question: table_name, cell: 'F5')
-      answer.update(summary: percentage(total_members.count / universe.members.count.to_f))
+      answer.update(summary: percentage(total_members.count / dq_universe_members.count.to_f))
 
       total_members
     end
@@ -222,13 +226,13 @@ module HudApr::Generators::Shared::Fy2021
       row_label = row.to_s
       # DK/R
       answer = @report.answer(question: table_name, cell: 'B' + row_label)
-      dkr_members = universe.members.where(a_t[attr].in([8, 9]))
+      dkr_members = dq_universe_members.where(a_t[attr].in([8, 9]))
       answer.add_members(dkr_members)
       answer.update(summary: dkr_members.count)
 
       # Missing
       answer = @report.answer(question: table_name, cell: 'C' + row_label)
-      m_members = universe.members.where(
+      m_members = dq_universe_members.where(
         a_t[attr].eq(nil).
           or(a_t[attr].eq(99)),
       )
@@ -243,7 +247,7 @@ module HudApr::Generators::Shared::Fy2021
 
       # Percentage
       answer = @report.answer(question: table_name, cell: 'F' + row_label)
-      answer.update(summary: percentage(total_members.count / universe.members.count.to_f))
+      answer.update(summary: percentage(total_members.count / dq_universe_members.count.to_f))
 
       total_members
     end
@@ -272,7 +276,7 @@ module HudApr::Generators::Shared::Fy2021
 
       # veteran status
       answer = @report.answer(question: table_name, cell: 'B2')
-      members = universe.members.where(
+      members = dq_universe_members.where(
         adult_clause.and(a_t[:veteran_status].in([8, 9, 99]).or(a_t[:veteran_status].eq(nil))). # no veteran status data
           or(a_t[:veteran_status].eq(1).and(a_t[:age].lt(18))), # you can't be a veteran and under 18
       )
@@ -282,31 +286,31 @@ module HudApr::Generators::Shared::Fy2021
       answer = @report.answer(question: table_name, cell: 'C2')
       # Only adults are in the population of possible veterans
       # Add the minors who claim veteran status to ensure that the error rate cannot be greater than 100%
-      veteran_denominator = universe.members.where(adult_clause.or(a_t[:veteran_status].eq(1).and(a_t[:age].lt(18))))
+      veteran_denominator = dq_universe_members.where(adult_clause.or(a_t[:veteran_status].eq(1).and(a_t[:age].lt(18))))
       answer.update(summary: percentage(members.count / veteran_denominator.count.to_f))
 
       # project start date
       answer = @report.answer(question: table_name, cell: 'B3')
-      members = universe.members.where(a_t[:overlapping_enrollments].not_eq([]))
+      members = dq_universe_members.where(a_t[:overlapping_enrollments].not_eq([]))
       answer.add_members(members)
       answer.update(summary: members.count)
 
       answer = @report.answer(question: table_name, cell: 'C3')
-      answer.update(summary: percentage(members.count / universe.members.count.to_f))
+      answer.update(summary: percentage(members.count / dq_universe_members.count.to_f))
 
       # relationship to head of household
       answer = @report.answer(question: table_name, cell: 'B4')
       households_with_multiple_hohs = []
       households_with_no_hoh = []
 
-      universe.members.preload(:universe_membership).find_each do |member|
+      dq_universe_members.preload(:universe_membership).find_each do |member|
         apr_client = member.universe_membership
         count_of_heads = apr_client.household_members.select { |household_member| household_member['relationship_to_hoh'] == 1 }.count
         households_with_multiple_hohs << apr_client.household_id if count_of_heads > 1
         households_with_no_hoh << apr_client.household_id if count_of_heads.zero?
       end
 
-      members = universe.members.where(
+      members = dq_universe_members.where(
         a_t[:relationship_to_hoh].not_in((1..5).to_a).
           or(a_t[:relationship_to_hoh].eq(nil)).
           or(a_t[:household_id].in(households_with_multiple_hohs)).
@@ -316,11 +320,11 @@ module HudApr::Generators::Shared::Fy2021
       answer.update(summary: members.count)
 
       answer = @report.answer(question: table_name, cell: 'C4')
-      answer.update(summary: percentage(members.count / universe.members.count.to_f))
+      answer.update(summary: percentage(members.count / dq_universe_members.count.to_f))
 
       # client location
       answer = @report.answer(question: table_name, cell: 'B5')
-      members = universe.members.
+      members = dq_universe_members.
         where(hoh_clause).
         where(
           a_t[:enrollment_coc].eq(nil).
@@ -330,12 +334,12 @@ module HudApr::Generators::Shared::Fy2021
       answer.update(summary: members.count)
 
       answer = @report.answer(question: table_name, cell: 'C5')
-      hoh_denominator = universe.members.where(hoh_clause)
+      hoh_denominator = dq_universe_members.where(hoh_clause)
       answer.update(summary: percentage(members.count / hoh_denominator.count.to_f))
 
       # disabling condition
       answer = @report.answer(question: table_name, cell: 'B6')
-      members = universe.members.where(
+      members = dq_universe_members.where(
         a_t[:disabling_condition].in([8, 9, 99]).
           or(a_t[:disabling_condition].eq(nil)).
           or(a_t[:disabling_condition].eq(0).
@@ -352,7 +356,7 @@ module HudApr::Generators::Shared::Fy2021
       answer.update(summary: members.count)
 
       answer = @report.answer(question: table_name, cell: 'C6')
-      answer.update(summary: percentage(members.count / universe.members.count.to_f))
+      answer.update(summary: percentage(members.count / dq_universe_members.count.to_f))
     end
 
     private def q6c_income_and_housing # rubocop:disable Metrics/AbcSize
@@ -377,7 +381,7 @@ module HudApr::Generators::Shared::Fy2021
       @report.answer(question: table_name).update(metadata: metadata)
 
       # destinations
-      leavers = universe.members.where(leavers_clause)
+      leavers = dq_universe_members.where(leavers_clause)
 
       answer = @report.answer(question: table_name, cell: 'B2')
       members = leavers.where(
@@ -391,7 +395,7 @@ module HudApr::Generators::Shared::Fy2021
       answer.update(summary: percentage(members.count / leavers.count.to_f))
 
       # incomes
-      adults_and_hohs = universe.members.where(adult_or_hoh_clause)
+      adults_and_hohs = dq_universe_members.where(adult_or_hoh_clause)
       # income at start
       answer = @report.answer(question: table_name, cell: 'B3')
       members = adults_and_hohs.where(
@@ -480,7 +484,7 @@ module HudApr::Generators::Shared::Fy2021
       }
       @report.answer(question: table_name).update(metadata: metadata)
 
-      adults_and_hohs = universe.members.where(
+      adults_and_hohs = dq_universe_members.where(
         a_t[:project_type].in([1, 4, 8, 2, 3, 9, 10, 13]).
           and(a_t[:first_date_in_program].gt(Date.parse('2016-10-01')).
             and(a_t[:age].gteq(18).
@@ -731,7 +735,7 @@ module HudApr::Generators::Shared::Fy2021
       }
       @report.answer(question: table_name).update(metadata: metadata)
 
-      arrivals = universe.members.where(a_t[:first_date_in_program].gteq(@report.start_date))
+      arrivals = dq_universe_members.where(a_t[:first_date_in_program].gteq(@report.start_date))
 
       [
         # entry on date
@@ -769,7 +773,7 @@ module HudApr::Generators::Shared::Fy2021
         answer.update(summary: members.count)
       end
 
-      leavers = universe.members.where.not(a_t[:last_date_in_program].eq(nil))
+      leavers = dq_universe_members.where.not(a_t[:last_date_in_program].eq(nil))
 
       [
         # exit on date

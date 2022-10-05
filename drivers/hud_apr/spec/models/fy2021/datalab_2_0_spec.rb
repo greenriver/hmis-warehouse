@@ -16,8 +16,8 @@ require_relative 'datalab_caper/es_ee_esg'
 require_relative 'datalab_caper/es_nbn_esg'
 require_relative 'datalab_caper/hp_esg'
 require_relative 'datalab_caper/rrh_esg'
-# require_relative 'datalab_caper/so'
-# require_relative 'datalab_caper/th'
+# require_relative 'datalab_caper/so_esg'
+# require_relative 'datalab_caper/th_esg'
 
 RSpec.describe 'Datalab 2021', type: :model do
   include_context 'datalab testkit context'
@@ -49,6 +49,7 @@ RSpec.describe 'Datalab 2021', type: :model do
   include_context 'datalab es nbn esg caper'
   include_context 'datalab hp esg caper'
   include_context 'datalab rrh esg caper'
+  # include_context 'datalab so esg caper'
 
   after(:all) do
     cleanup
