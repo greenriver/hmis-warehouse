@@ -229,6 +229,13 @@ RSpec.describe 'Datalab 2021 CAPER - NBN ES', type: :model do
     compare_results(
       file_path: result_file_prefix + 'caper/es_nbn_esg',
       question: 'Q15',
+      # Pending AAQ: [CAPER] DataLab - ES-NbN ESG (D) - Q15 B33 - submitted 10/4/2022
+      skip: [
+        'B33',
+        'C33',
+        'B34',
+        'C34',
+      ],
     )
   end
 
