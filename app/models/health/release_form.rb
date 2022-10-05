@@ -29,6 +29,7 @@ module Health
     include HealthFiles
 
     validates :signature_on, presence: true
+    validates :participation_signature_on, presence: true
     validate :file_or_location
 
     scope :recent, -> { order(signature_on: :desc).limit(1) }

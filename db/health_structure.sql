@@ -3768,7 +3768,8 @@ CREATE TABLE public.release_forms (
     reviewed_by_id integer,
     reviewed_at timestamp without time zone,
     reviewer character varying,
-    verbal_approval boolean DEFAULT false
+    verbal_approval boolean DEFAULT false,
+    participation_signature_on date
 );
 
 
@@ -7628,6 +7629,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220623172328'),
 ('20220721163813'),
 ('20220721165009'),
-('20220812184231');
+('20220812184231'),
+('20221005142152'),
+('20221005145830');
 
 

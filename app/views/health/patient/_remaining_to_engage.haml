@@ -5,7 +5,6 @@
 
   - calculator = Health::EngagementCalculator.new(patient)
   %ul.list-unstyled
-    = render 'health/patient/engagement_item', link: link, form_status: calculator.participation_form_status
     = render 'health/patient/engagement_item', link: link, form_status: calculator.release_form_status
     = render 'health/patient/engagement_item', link: link, form_status: calculator.ssm_status
     = render 'health/patient/engagement_item', link: link, form_status: calculator.cha_status

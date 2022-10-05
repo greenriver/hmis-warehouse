@@ -24,11 +24,11 @@ module Health
 
     def release_form_status
       signed_release_form = @patient.release_forms.recent.first
-      return [:no_signed_form, 'Release of Information form', new_client_health_release_form_path(@client), true, nil] if signed_release_form.blank?
-      return [:too_old, 'Release of Information form', new_client_health_release_form_path(@client), true, "Last signed on #{signed_release_form.signature_on}"] if signed_release_form.signature_on < @valid_after
-      return [:expired, 'Release of Information form', new_client_health_release_form_path(@client), true, "Expired on #{signed_release_form.signature_on + 2.years}"] if signed_release_form.signature_on + 2.years <= Date.current
+      return [:no_signed_form, 'Participation and Release of Information', new_client_health_release_form_path(@client), true, nil] if signed_release_form.blank?
+      return [:too_old, 'Participation and Release of Information', new_client_health_release_form_path(@client), true, "Last signed on #{signed_release_form.signature_on}"] if signed_release_form.signature_on < @valid_after
+      return [:expired, 'Participation and Release of Information', new_client_health_release_form_path(@client), true, "Expired on #{signed_release_form.signature_on + 2.years}"] if signed_release_form.signature_on + 2.years <= Date.current
 
-      [:valid, 'Release of Information form', edit_client_health_release_form_path(@client, signed_release_form), true, nil]
+      [:valid, 'Participation and Release of Information', edit_client_health_release_form_path(@client, signed_release_form), true, nil]
     end
 
     def ssm_status
