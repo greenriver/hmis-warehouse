@@ -103,8 +103,7 @@ module HudApr::Generators::Shared::Fy2021
         'Data not Collected' => a_t["insurance_from_any_source_at_#{suffix}"].eq(99).
           or(a_t["insurance_from_any_source_at_#{suffix}"].eq(nil)).
           and(insurance_jsonb_clause(1, a_t["income_sources_at_#{suffix}"].to_sql, negation: true)),
-        'Number of Stayers not yet Required To Have an Annual Assessment' => a_t[:annual_assessment_expected].eq(false).
-          and(a_t[:head_of_household].eq(true)), # Annual assessments are only expected for HoHs
+        'Number of Stayers not yet Required To Have an Annual Assessment' => a_t[:annual_assessment_expected].eq(false),
         '1 Source of Health Insurance' => :one,
         'More than 1 Source of Health Insurance' => :more_than_one,
       }

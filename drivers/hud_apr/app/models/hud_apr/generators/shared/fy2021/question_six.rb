@@ -160,7 +160,8 @@ module HudApr::Generators::Shared::Fy2021
       universe.members.find_each do |u_member|
         member = u_member.universe_membership
         q_member_ids << u_member.id if member.dob_quality == 2 ||
-          (member.dob_quality == 1 && !valid_dob?(member))
+          (member.dob_quality == 1 && !valid_dob?(member)) ||
+          (member.dob_quality.in?([8, 9, 99]) && member.dob.present?)
       end
       q_members = universe.members.where(id: q_member_ids)
       answer.add_members(q_members)
