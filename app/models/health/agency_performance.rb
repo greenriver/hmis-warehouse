@@ -98,7 +98,6 @@ module Health
           annual_careplan_overdue: agency_counts.map(&:annual_careplan_overdue).reduce(&:+),
           without_annual_well_care_visit_in_12_months: agency_counts.map(&:without_annual_well_care_visit_in_12_months).reduce(&:+),
           without_f2f_in_past_6_months: agency_counts.map(&:without_f2f_in_past_6_months).reduce(&:+),
-          without_annual_well_care_visit_in_12_months: agency_counts.map(&:without_annual_well_care_visit_in_12_months).reduce(&:+),
           with_discharge_followup_completed_within_range: agency_counts.map(&:with_discharge_followup_completed_within_range).reduce(&:+),
           with_careplans_in_122_days: agency_counts.map(&:with_careplans_in_122_days).reduce(&:+),
           with_careplans_signed_within_range: agency_counts.map(&:with_careplans_signed_within_range).reduce(&:+),
@@ -143,10 +142,13 @@ module Health
     # end
 
     def consent_dates
+      # Participation signature was moved into ReleaseForm
       @consent_dates ||= Health::Patient.
-        has_signed_participation_form.
-        # where(hpf_t[:signature_on].between(@range)).
-        pluck(:patient_id, hpf_t[:signature_on].to_sql).to_h
+        joins(:release_forms).
+        pluck(:patient_id, hrf_t[:participation_signature_on].to_sql).to_h
+      # has_signed_participation_form.
+      # # where(hpf_t[:signature_on].between(@range)).
+      # pluck(:patient_id, hpf_t[:signature_on].to_sql).to_h
     end
 
     # accepts an array of hashes, returns a single hash with most-recent values per key

@@ -14,6 +14,7 @@ module Health
       @valid_after = patient.contributing_enrollment_start_date - 1.year
     end
 
+    # TODO 10/4/22 Participation form is no longer used, left here for now
     def participation_form_status
       signed_participation_form = @patient.participation_forms.recent.first
       return [:no_signed_form, 'Participation Form', new_client_health_participation_form_path(@client), true, nil] if signed_participation_form.blank?
