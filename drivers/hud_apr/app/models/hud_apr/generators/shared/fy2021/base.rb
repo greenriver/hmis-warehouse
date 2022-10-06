@@ -346,7 +346,17 @@ module HudApr::Generators::Shared::Fy2021
         client_living_situations = []
         apr_clients.each do |apr_client|
           last_enrollment = enrollments_by_client_id[apr_client.destination_client_id].last.enrollment
-          last_enrollment.current_living_situations.each do |living_situation|
+          situations = last_enrollment.current_living_situations
+          engagement_date = last_enrollment.DateOfEngagement
+          # If we're looking at SO and don't have a CLS on the engagement date,
+          # add one
+          if last_enrollment.project.so? && engagement_date.present? && ! situations.detect { |cls| cls.InformationDate == engagement_date }
+            client_living_situations << apr_client.hud_report_apr_living_situations.build(
+              information_date: engagement_date,
+              living_situation: 37,
+            )
+          end
+          situations.each do |living_situation|
             client_living_situations << apr_client.hud_report_apr_living_situations.build(
               information_date: living_situation.InformationDate,
               living_situation: living_situation.CurrentLivingSituation,
