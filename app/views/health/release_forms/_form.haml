@@ -25,7 +25,7 @@
 
   .row
     .col
-      = f.input :verbal_approval, label: 'Patient gave verbal approval'
+      = f.input :mode_of_contact, as: :radio_buttons, collection: @release_form.modes_of_contact
 
   .row
     .col-sm-8
@@ -44,4 +44,17 @@
 
     .col-6
       .form__actions--right
+        %button.btn.btn-secondary(aria-label="Cancel" pjax-modal-close type="button") Cancel
         = f.button :submit, 'Save', class: 'btn btn-primary'
+
+:javascript
+  $('#form_participation_signature_on').on('change', function(event) {
+    if ($('#form_signature_on').val() == '') {
+      $('#form_signature_on').datepicker('setDate', $('#form_participation_signature_on').val())
+    }
+  });
+  $('#form_signature_on').on('change', function(event) {
+    if ($('#form_participation_signature_on').val() == '') {
+      $('#form_participation_signature_on').datepicker('setDate', $('#form_signature_on').val())
+    }
+  });

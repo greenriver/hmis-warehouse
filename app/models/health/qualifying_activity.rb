@@ -134,10 +134,15 @@ module Health
           code: 'U3',
           weight: 30,
         },
+        verbal: {
+          title: 'Verbal',
+          code: 'U3',
+          weight: 40,
+        },
         other: {
           title: 'Other',
           code: '',
-          weight: 40,
+          weight: 50,
         },
       }.sort_by { |_, m| m[:weight] }.to_h
     end
