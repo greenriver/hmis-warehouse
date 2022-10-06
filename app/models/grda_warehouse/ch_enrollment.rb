@@ -228,7 +228,7 @@ module GrdaWarehouse
       else
         (date - ch_start_date).to_i
       end
-      result = days > 365 ? :yes : :continue
+      result = days >= 365 ? :yes : :continue
       { result: result, display_value: "#{days} days  (#{ch_start_date.strftime('%m/%d/%Y')} - #{date.strftime('%m/%d/%Y')})" }
     end
 
@@ -322,7 +322,7 @@ module GrdaWarehouse
       },
       4 => {
         title: 'Days since approximate start date',
-        descriptions: ['If > 365 days, CH = YES. STOP processing.', 'If missing or less than 365 days before [project start date], CONTINUE processing on line 5.'],
+        descriptions: ['If >= 365 days, CH = YES. STOP processing.', 'If missing or less than 365 days before [project start date], CONTINUE processing on line 5.'],
       },
       5 => {
         title: 'Number of times homeless',
@@ -338,7 +338,7 @@ module GrdaWarehouse
       },
       10 => {
         title: 'Days since approximate start date',
-        descriptions: ['If > 365 days, CH = YES. STOP processing.', 'If missing or less than 365 days before [project start date], CONTINUE processing on line 11.'],
+        descriptions: ['If >= 365 days, CH = YES. STOP processing.', 'If missing or less than 365 days before [project start date], CONTINUE processing on line 11.'],
       },
       11 => {
         title: 'Number of times homeless',
@@ -362,7 +362,7 @@ module GrdaWarehouse
       },
       17 => {
         title: 'Days since approximate start date',
-        descriptions: ['If > 365 days, CH = YES. STOP processing.', 'If missing or less than 365 days before [project start date], CONTINUE processing on line 18.'],
+        descriptions: ['If >= 365 days, CH = YES. STOP processing.', 'If missing or less than 365 days before [project start date], CONTINUE processing on line 18.'],
       },
       18 => {
         title: 'Number of times homeless',
@@ -386,7 +386,7 @@ module GrdaWarehouse
       },
       24 => {
         title: 'Days since approximate start date',
-        descriptions: ['If > 365 days, CH = YES. STOP processing.', 'If missing or less than 365 days before [project start date], CONTINUE processing on line 25.'],
+        descriptions: ['If >= 365 days, CH = YES. STOP processing.', 'If missing or less than 365 days before [project start date], CONTINUE processing on line 25.'],
       },
       25 => {
         title: 'Number of times homeless',

@@ -27,6 +27,12 @@ RSpec.shared_context 'datalab th esg caper', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'caper/th_esg',
         question: 'Q5a',
+        # Q5 B11 - needs to look at disabilities to determine if the client has a disabling condition
+        # save as a calculated field any disabilities at entry
+        # Pending AAQ: [CAPER] DataLab - ES-NbN ESG (D) Q5a Number of chronically homeless persons - submitted 10/4/2022
+        skip: [
+          'B11',
+        ],
       )
     end
 
@@ -261,11 +267,23 @@ RSpec.shared_context 'datalab th esg caper', shared_context: :metadata do
       )
     end
 
-    # FIXME: this should be re-enabled when the new data set is implemented
     it 'Q22e' do
       compare_results(
         file_path: result_file_prefix + 'caper/th_esg',
         question: 'Q22e',
+        # Pending AAQ: [APR] DataLab - RRH CoC I & DataLab - RRH CoC II (D) Q22e - submitted 10/2/2022
+        skip: [
+          'B7', # children Rhododendron Phosphorescent and Avocada Pugnacious should inherit from HoH
+          'D7',
+          'B8', # Cashew Patriarch and Prosper Dainty should inherit from HoH
+          'D8',
+          'B9',
+          'D9',
+          'B11',
+          'D11',
+          'B13',
+          'D13',
+        ],
       )
     end
 
@@ -294,6 +312,15 @@ RSpec.shared_context 'datalab th esg caper', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'caper/th_esg',
         question: 'Q26b',
+        # Q5 B11 - needs to look at disabilities to determine if the client has a disabling condition
+        # save as a calculated field any disabilities at entry
+        # Pending AAQ: [CAPER] DataLab - ES-NbN ESG (D) Q5a Number of chronically homeless persons - submitted 10/4/2022
+        skip: [
+          'B2',
+          'D2',
+          'B3',
+          'D3',
+        ],
       )
     end
   end
