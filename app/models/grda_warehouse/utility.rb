@@ -75,17 +75,17 @@ class GrdaWarehouse::Utility
       GrdaWarehouse::Synthetic::Event,
       GrdaWarehouse::CustomImports::ImportFile,
       GrdaWarehouse::Upload,
-      # 'homeless_summary_report_clients',
-      # 'homeless_summary_report_results',
-      # 'hmis_csv_importer_logs',
-      # 'hap_report_clients',
-      # 'simple_report_cells',
-      # 'simple_report_universe_members',
-      # 'whitelisted_projects_for_clients',
-      # 'hmis_csv_import_validations',
-      # 'uploads',
-      # 'hmis_csv_loader_logs',
-      # 'import_logs'
+      HomelessSummaryReport::Client,
+      HomelessSummaryReport::Result,
+      HmisCsvImporter::Importer::ImporterLog,
+      HapReport::HapClient,
+      SimpleReports::ReportCell,
+      SimpleReports::UniverseMember,
+      GrdaWarehouse::WhitelistedProjectsForClients,
+      HmisCsvImporter::HmisCsvValidation::Base,
+      GrdaWarehouse::Upload,
+      HmisCsvImporter::Loader::LoaderLog,
+      GrdaWarehouse::ImportLog,
     ]
     if RailsDrivers.loaded.include?(:hud_apr)
       tables << HudApr::Fy2020::AprClient
