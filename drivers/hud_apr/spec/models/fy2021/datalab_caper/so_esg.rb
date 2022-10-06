@@ -30,7 +30,8 @@ RSpec.shared_context 'datalab so esg caper', shared_context: :metadata do
       )
     end
 
-    it 'Q6a' do
+    # AAQ submitted, 99 in SSNDQ should put client in missing
+    xit 'Q6a' do
       compare_results(
         file_path: result_file_prefix + 'caper/so_esg',
         question: 'Q6a',
