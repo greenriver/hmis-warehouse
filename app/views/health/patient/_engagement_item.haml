@@ -1,6 +1,7 @@
 %li
   - status, label, url, modal, tooltip = form_status
-  = if_link_to(link, url, data: { loads_in_pjax_modal: modal }) do
+  - data = {data: { loads_in_pjax_modal: true }} if modal
+  = if_link_to(link, url, data) do
     - case status
     - when :no_signed_form, :in_progress
       %span.icon-checkmark.mr-1.o-color--gray-l{data: {toggle: :tooltip, title:tooltip}}
