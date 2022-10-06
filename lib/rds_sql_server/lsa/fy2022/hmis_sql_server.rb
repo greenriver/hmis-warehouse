@@ -113,6 +113,13 @@ module HmisSqlServer
   class Funder < LsaBase
     self.table_name = :hmis_Funder
     include ::HmisStructure::Funder
+
+    def clean_row_for_import(row:, headers:)
+      # GrantID isn't used for LSA, but required by HMIS
+      field_index = headers.index('GrantID')
+      row[field_index] = row[field_index].presence || 'unknown'
+      super(row: row, headers: headers)
+    end
   end
 
   class HealthAndDv < LsaBase

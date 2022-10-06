@@ -200,7 +200,7 @@ module Health
           weight: 40,
         },
         discharge_follow_up: {
-          title: 'Follow-up within 3 days of hospital discharge (with client)',
+          title: 'Follow-up from inpatient hospital discharge (with client)',
           code: 'G9007>U5',
           weight: 50,
         },

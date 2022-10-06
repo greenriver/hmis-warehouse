@@ -1832,7 +1832,8 @@ CREATE TABLE public."YouthEducationStatus" (
     "ExportID" character varying(32) NOT NULL,
     data_source_id integer,
     pending_date_deleted date,
-    source_hash character varying
+    source_hash character varying,
+    synthetic boolean DEFAULT false
 );
 
 
@@ -15838,6 +15839,68 @@ ALTER SEQUENCE public.lsa_rds_state_logs_id_seq OWNED BY public.lsa_rds_state_lo
 
 
 --
+-- Name: ma_yya_report_clients; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.ma_yya_report_clients (
+    id bigint NOT NULL,
+    client_id bigint,
+    service_history_enrollment_id bigint,
+    entry_date date,
+    referral_source integer,
+    currently_homeless boolean,
+    at_risk_of_homelessness boolean,
+    initial_contact boolean,
+    direct_assistance boolean,
+    current_school_attendance integer,
+    current_educational_status integer,
+    age integer,
+    gender integer,
+    race integer,
+    ethnicity integer,
+    mental_health_disorder boolean,
+    substance_use_disorder boolean,
+    physical_disability boolean,
+    developmental_disability boolean,
+    pregnant boolean,
+    due_date date,
+    head_of_household boolean,
+    household_ages jsonb,
+    sexual_orientation integer,
+    most_recent_education_status integer,
+    health_insurance boolean,
+    subsequent_current_living_situations jsonb,
+    reported_previous_period boolean,
+    deleted_at timestamp without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    education_status_date date,
+    rehoused_on date,
+    flex_funds jsonb DEFAULT '[]'::jsonb,
+    zip_codes jsonb DEFAULT '[]'::jsonb
+);
+
+
+--
+-- Name: ma_yya_report_clients_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.ma_yya_report_clients_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: ma_yya_report_clients_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.ma_yya_report_clients_id_seq OWNED BY public.ma_yya_report_clients.id;
+
+
+--
 -- Name: new_service_history; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -19198,7 +19261,8 @@ CREATE TABLE public.simple_report_cells (
     summary integer,
     deleted_at timestamp without time zone,
     created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
+    updated_at timestamp without time zone NOT NULL,
+    structured_data jsonb
 );
 
 
@@ -19365,6 +19429,42 @@ CREATE SEQUENCE public.synthetic_events_id_seq
 --
 
 ALTER SEQUENCE public.synthetic_events_id_seq OWNED BY public.synthetic_events.id;
+
+
+--
+-- Name: synthetic_youth_education_statuses; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.synthetic_youth_education_statuses (
+    id bigint NOT NULL,
+    enrollment_id bigint,
+    client_id bigint,
+    type character varying,
+    source_type character varying,
+    source_id bigint,
+    hud_youth_education_status_youth_education_status_id character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: synthetic_youth_education_statuses_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.synthetic_youth_education_statuses_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: synthetic_youth_education_statuses_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.synthetic_youth_education_statuses_id_seq OWNED BY public.synthetic_youth_education_statuses.id;
 
 
 --
@@ -22389,6 +22489,13 @@ ALTER TABLE ONLY public.lsa_rds_state_logs ALTER COLUMN id SET DEFAULT nextval('
 
 
 --
+-- Name: ma_yya_report_clients id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ma_yya_report_clients ALTER COLUMN id SET DEFAULT nextval('public.ma_yya_report_clients_id_seq'::regclass);
+
+
+--
 -- Name: new_service_history id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -23058,6 +23165,13 @@ ALTER TABLE ONLY public.synthetic_assessments ALTER COLUMN id SET DEFAULT nextva
 --
 
 ALTER TABLE ONLY public.synthetic_events ALTER COLUMN id SET DEFAULT nextval('public.synthetic_events_id_seq'::regclass);
+
+
+--
+-- Name: synthetic_youth_education_statuses id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.synthetic_youth_education_statuses ALTER COLUMN id SET DEFAULT nextval('public.synthetic_youth_education_statuses_id_seq'::regclass);
 
 
 --
@@ -25444,6 +25558,14 @@ ALTER TABLE ONLY public.lsa_rds_state_logs
 
 
 --
+-- Name: ma_yya_report_clients ma_yya_report_clients_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ma_yya_report_clients
+    ADD CONSTRAINT ma_yya_report_clients_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: new_service_history new_service_history_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -25801,6 +25923,14 @@ ALTER TABLE ONLY public.synthetic_assessments
 
 ALTER TABLE ONLY public.synthetic_events
     ADD CONSTRAINT synthetic_events_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: synthetic_youth_education_statuses synthetic_youth_education_statuses_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.synthetic_youth_education_statuses
+    ADD CONSTRAINT synthetic_youth_education_statuses_pkey PRIMARY KEY (id);
 
 
 --
@@ -42860,6 +42990,20 @@ CREATE INDEX index_lookups_yes_no_etcs_on_value ON public.lookups_yes_no_etcs US
 
 
 --
+-- Name: index_ma_yya_report_clients_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ma_yya_report_clients_on_client_id ON public.ma_yya_report_clients USING btree (client_id);
+
+
+--
+-- Name: index_ma_yya_report_clients_on_service_history_enrollment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ma_yya_report_clients_on_service_history_enrollment_id ON public.ma_yya_report_clients USING btree (service_history_enrollment_id);
+
+
+--
 -- Name: index_new_service_history_on_first_date_in_program; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -46703,6 +46847,27 @@ CREATE INDEX index_synthetic_events_on_source_type_and_source_id ON public.synth
 
 
 --
+-- Name: index_synthetic_youth_education_statuses_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_synthetic_youth_education_statuses_on_client_id ON public.synthetic_youth_education_statuses USING btree (client_id);
+
+
+--
+-- Name: index_synthetic_youth_education_statuses_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_synthetic_youth_education_statuses_on_enrollment_id ON public.synthetic_youth_education_statuses USING btree (enrollment_id);
+
+
+--
+-- Name: index_synthetic_youth_education_statuses_on_source; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_synthetic_youth_education_statuses_on_source ON public.synthetic_youth_education_statuses USING btree (source_type, source_id);
+
+
+--
 -- Name: index_taggings_on_context; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -49979,6 +50144,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220427144200'),
 ('20220511171233'),
 ('20220512174700'),
+('20220516171135'),
 ('20220523123830'),
 ('20220525125953'),
 ('20220526203313'),
@@ -49993,6 +50159,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220617180748'),
 ('20220621180929'),
 ('20220628162723'),
+('20220630151129'),
 ('20220712164926'),
 ('20220713150217'),
 ('20220714190911'),
@@ -50021,8 +50188,12 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220830131900'),
 ('20220830142632'),
 ('20220831183303'),
+('20220901142553'),
 ('20220901202643'),
 ('20220906182407'),
+('20220915132815'),
+('20220915133927'),
+('20220915141020'),
 ('20220916152205'),
 ('20220916182057'),
 ('20220916234039'),
@@ -50030,6 +50201,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220919185042'),
 ('20220925175719'),
 ('20220928132603'),
+('20220928150112'),
 ('20220928164029'),
 ('20220930194814');
 

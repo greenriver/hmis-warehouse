@@ -11,6 +11,8 @@ module EtoApi::Tasks
     include ActionView::Helpers::DateHelper
     include NotifierConfig
     attr_accessor :send_notifications, :notifier_config, :notifier
+    # Local accessors for processed_fields-only data
+    attr_accessor :phone, :email, :language_1, :language_2, :youth_current_zip
 
     def initialize(
       batch_time: 45.minutes,
@@ -259,7 +261,8 @@ module EtoApi::Tasks
 
         if @custom_config.present?
           @custom_config.demographic_fields.each do |key, label|
-            hmis_client.assign_attributes(key => defined_value(api: api, site_id: site_id, response: api_response, label: label))
+            hmis_client.assign_attributes(key => literal_value(response: api_response, label: label) ||
+                defined_value(api: api, site_id: site_id, response: api_response, label: label))
           end
 
           @custom_config.demographic_fields_with_attributes.each do |key, details|
@@ -302,6 +305,11 @@ module EtoApi::Tasks
           consent_confirmed_on: hmis_client&.consent_confirmed_on,
           consent_expires_on: hmis_client&.consent_expires_on,
           sexual_orientation: hmis_client&.sexual_orientation,
+          phone: hmis_client&.phone,
+          email: hmis_client&.email,
+          language_1: hmis_client&.language_1,
+          language_2: hmis_client&.language_2,
+          youth_current_zip: hmis_client&.youth_current_zip,
         }
         hmis_client.eto_last_updated = api.parse_date(api_response['AuditDate'])
       end
@@ -509,6 +517,10 @@ module EtoApi::Tasks
         address << "#{k}: #{address_hash[k]}" if address_hash[k].present?
       end
       address.join(";\n")
+    end
+
+    private def literal_value(response:, label:)
+      response[label]
     end
 
     private def entity(api:, site_id:, response:, entity_label:)
