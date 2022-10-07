@@ -3,6 +3,7 @@ require 'rails_helper'
 RSpec.describe GrdaWarehouse::ServiceHistoryService, type: :model do
   describe 'when including extrapolated enrollments' do
     before(:all) do
+      GrdaWarehouse::Utility.clear!
       @config = GrdaWarehouse::Config.first_or_create
       @config.update(
         so_day_as_month: true,

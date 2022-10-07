@@ -46,6 +46,7 @@ RSpec.shared_context 'datalab so esg caper', shared_context: :metadata do
     end
 
     it 'Q6c' do
+      # binding.pry
       compare_results(
         file_path: result_file_prefix + 'caper/so_esg',
         question: 'Q6c',

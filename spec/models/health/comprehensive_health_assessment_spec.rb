@@ -1,6 +1,10 @@
 require 'rails_helper'
 
 RSpec.describe Health::ComprehensiveHealthAssessment, type: :model do
+  before(:all) do
+    GrdaWarehouse::Utility.clear!
+  end
+
   let(:client) { create :fixed_destination_client }
   let(:patient) { create :patient, client: client }
   let(:prior_referral) { create :prior_referral }

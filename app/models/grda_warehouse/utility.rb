@@ -109,12 +109,14 @@ class GrdaWarehouse::Utility
       tables << CasCeData::Synthetic::Assessment
     end
 
+    HmisCsvImporter::Utility.clear! if RailsDrivers.loaded.include?(:hmis_csv_importer)
+
     # Remove reports after associated clients
     tables << HudReports::ReportInstance
     tables << SimpleReports::ReportInstance
 
     tables.each do |klass|
-      klass.connection.execute("TRUNCATE TABLE #{klass.quoted_table_name} #{modifier(klass)}")
+      klass.connection.execute("TRUNCATE TABLE #{klass.quoted_table_name} RESTART IDENTITY #{modifier(klass)}")
     end
 
     # Clear the materialized view

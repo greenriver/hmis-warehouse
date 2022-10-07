@@ -93,7 +93,6 @@ RSpec.configure do |config|
 end
 
 def cleanup_test_environment
-  HmisCsvImporter::Utility.clear!
   GrdaWarehouse::Utility.clear!
   User.delete_all
   FactoryBot.reload
