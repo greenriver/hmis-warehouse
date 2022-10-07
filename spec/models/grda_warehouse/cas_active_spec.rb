@@ -70,7 +70,7 @@ RSpec.describe GrdaWarehouse::ServiceHistoryService, type: :model do
   end
 
   describe 'when syncing by project group' do
-    let!(:data_source) { create :data_source_fixed_id, source_type: nil, authoritative: false }
+    let!(:data_source) { create :grda_warehouse_data_source, source_type: nil, authoritative: false }
     let!(:project) { create :hud_project, data_source_id: data_source.id }
     let!(:client) { create :hud_client, data_source: data_source, data_source_id: data_source.id }
     let!(:enrollment) { create :hud_enrollment, ProjectID: project.ProjectID, data_source_id: data_source.id }
