@@ -19,6 +19,17 @@ module Health
       'warehouse_reports/health/agency_performance'
     end
 
+    DESCRIPTIONS = {
+      without_initial_careplan_90_122_days: 'Patients 90-120 days into an enrollment without an initial care plan. To meet the quality metric, initial care plan must be completed within the first 122 days of an enrollment.',
+      without_initial_careplan_122_150_days: 'Patients 121-150 days into an enrollment without an initial care plan. For payment, initial care plan must be completed within the first 150 days of an enrollment.',
+      initial_careplan_overdue: 'Patients >150 days into an enrollment without an initial care plan.',
+      annual_careplan_due_within_30_days: 'Patients with annual care plan due within 30 days. Annual care plans are due 12 months after the patient\'s most recent care plan.',
+      annual_careplan_overdue: 'Patients with annual care plan overdue. Annual care plans are due 12 months after the patient\'s most recent care plan.',
+      without_annual_well_care_visit_in_12_months: 'Patients that did not have a comprehensive well-care visit with a PCP or an OB/GYN practicioner in the past 12 months. Such visits are identified by paid claims, as specified by the Mathematica Annual Well-Care Visits Measure calculation. *NOTE:* Claims data is approximately 3 months out of date, so any annual well care visits that occured in the past 3 months may not be included.',
+      without_f2f_in_past_6_months: 'Patients without QAs for direct face-to-face visits in the past 6 months.',
+      with_discharge_followup_completed_within_range: 'Patients with QAs for post-discharge follow ups within the specified date range.',
+    }.freeze
+
     def team_counts
       @team_counts ||= teams.map do |name|
         patient_ids = patient_referrals.select do |_, (_, _, team_name)|
@@ -46,6 +57,8 @@ module Health
         without_f2f_in_past_6_months = patient_ids - with_f2f_in_past_6_months
         without_annual_well_care_visit_in_12_months = patient_ids - with_annual_well_care_visit_in_12_months
 
+        with_discharge_followup_within_range = with_discharge_followup.select { |p_id| p_id.in?(patient_ids) }
+
         OpenStruct.new(
           {
             id: nil,
@@ -66,7 +79,7 @@ module Health
             annual_careplan_overdue: with_annual_careplan_overdue(patient_ids),
             without_annual_well_care_visit_in_12_months: without_annual_well_care_visit_in_12_months,
             without_f2f_in_past_6_months: without_f2f_in_past_6_months,
-            with_discharge_followup_completed_within_range: with_discharge_followup,
+            with_discharge_followup_completed_within_range: with_discharge_followup_within_range,
             with_careplans_in_122_days: with_careplans_in_122_days(patient_ids),
             with_careplans_signed_within_range: with_careplans_signed_within_range(patient_ids),
             with_qualifying_activities_within_range: with_qualifying_activities_within_range,
@@ -83,29 +96,7 @@ module Health
         {
           id: nil,
           name: 'Totals',
-          patient_referrals: team_counts.map(&:patient_referrals).reduce(&:+),
-          consented_patients: team_counts.map(&:consented_patients).reduce(&:+),
-          unconsented_patients: team_counts.map(&:unconsented_patients).reduce(&:+),
-          with_ssms: team_counts.map(&:with_ssms).reduce(&:+),
-          without_ssms: team_counts.map(&:without_ssms).reduce(&:+),
-          with_chas: team_counts.map(&:with_chas).reduce(&:+),
-          without_chas: team_counts.map(&:without_chas).reduce(&:+),
-          with_signed_careplans: team_counts.map(&:with_signed_careplans).reduce(&:+),
-          without_signed_careplans: team_counts.map(&:without_signed_careplans).reduce(&:+),
-          without_initial_careplan_90_122_days: team_counts.map(&:without_initial_careplan_90_122_days).reduce(&:+),
-          without_initial_careplan_122_150_days: team_counts.map(&:without_initial_careplan_122_150_days).reduce(&:+),
-          initial_careplan_overdue: team_counts.map(&:initial_careplan_overdue).reduce(&:+),
-          annual_careplan_due_within_30_days: team_counts.map(&:annual_careplan_due_within_30_days).reduce(&:+),
-          annual_careplan_overdue: team_counts.map(&:annual_careplan_overdue).reduce(&:+),
-          without_annual_well_care_visit_in_12_months: team_counts.map(&:without_annual_well_care_visit_in_12_months).reduce(&:+),
-          without_f2f_in_past_6_months: team_counts.map(&:without_f2f_in_past_6_months).reduce(&:+),
-          with_discharge_followup_completed_within_range: team_counts.map(&:with_discharge_followup_completed_within_range).reduce(&:+),
-          with_careplans_in_122_days: team_counts.map(&:with_careplans_in_122_days).reduce(&:+),
-          with_careplans_signed_within_range: team_counts.map(&:with_careplans_signed_within_range).reduce(&:+),
-          with_qualifying_activities_within_range: team_counts.map(&:with_qualifying_activities_within_range).reduce(&:+),
-          without_qualifying_activities_within_range: team_counts.map(&:without_qualifying_activities_within_range).reduce(&:+),
-          with_payable_qualifying_activities_within_range: team_counts.map(&:with_payable_qualifying_activities_within_range).reduce(&:+),
-          without_payable_qualifying_activities_within_range: team_counts.map(&:without_payable_qualifying_activities_within_range).reduce(&:+),
+          **team_counts.first&.to_h&.keys&.drop(2)&.map { |key| [key, team_counts.map { |o| o[key] }.reduce(&:+)] }.to_h,
         },
       )
     end
