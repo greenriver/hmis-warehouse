@@ -81,8 +81,7 @@ RSpec.describe GrdaWarehouse::ServiceHistoryService, type: :model do
     end
 
     before(:all) do
-      @cas_project_group = GrdaWarehouse::ProjectGroup.new(name: 'test')
-      @cas_project_group.save!
+      @cas_project_group = GrdaWarehouse::ProjectGroup.create!(name: 'test')
       @config = GrdaWarehouse::Config.first_or_create
       @config.update(
         so_day_as_month: true,
@@ -103,7 +102,10 @@ RSpec.describe GrdaWarehouse::ServiceHistoryService, type: :model do
     end
 
     it 'finds no client who is active for CAS' do
-      expect(GrdaWarehouse::Hud::Client.destination.map(&:active_in_cas?).count(true)).to eq(0)
+      @cas_project_group.projects = []
+      clients = GrdaWarehouse::Hud::Client.destination.select(&:active_in_cas?)
+      error_message = "Clients: #{clients.map(&:FirstName).join('; ')}"
+      expect(clients.count).to eq(0), error_message
     end
 
     it 'finds one client who is active for CAS' do
