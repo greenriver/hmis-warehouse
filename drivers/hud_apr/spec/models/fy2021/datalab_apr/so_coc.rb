@@ -49,6 +49,14 @@ RSpec.shared_context 'datalab so coc apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'apr/so_coc',
         question: 'Q6c',
+        detail_columns: [
+          :last_name,
+          :first_name,
+          :income_sources_at_exit,
+          :income_date_at_exit,
+          :last_date_in_program,
+          :income_from_any_source_at_exit,
+        ],
       )
     end
 
