@@ -55,23 +55,23 @@ module GrdaWarehouse::Hud
 
     # Income benefits at various stages
     has_one :income_benefits_at_entry, -> do
-      at_entry.joins(:enrollment)
+      at_entry.joins(:enrollment).where(ib_t[:InformationDate].eq(e_t[:EntryDate]))
     end, **hud_enrollment_belongs('IncomeBenefit')
     has_one :income_benefits_at_entry_all_sources_refused, -> do
-      at_entry.all_sources_refused.joins(:enrollment)
+      at_entry.all_sources_refused.joins(:enrollment).where(ib_t[:InformationDate].eq(e_t[:EntryDate]))
     end, **hud_enrollment_belongs('IncomeBenefit')
     has_one :income_benefits_at_entry_all_sources_missing, -> do
-      at_entry.all_sources_missing.joins(:enrollment)
+      at_entry.all_sources_missing.joins(:enrollment).where(ib_t[:InformationDate].eq(e_t[:EntryDate]))
     end, **hud_enrollment_belongs('IncomeBenefit')
 
     has_one :income_benefits_at_exit, -> do
-      at_exit.joins(:exit)
+      at_exit.joins(:exit).where(ib_t[:InformationDate].eq(ex_t[:ExitDate]))
     end, **hud_enrollment_belongs('IncomeBenefit')
     has_one :income_benefits_at_exit_all_sources_refused, -> do
-      at_exit.all_sources_refused.joins(:exit)
+      at_exit.all_sources_refused.joins(:exit).where(ib_t[:InformationDate].eq(ex_t[:ExitDate]))
     end, **hud_enrollment_belongs('IncomeBenefit')
     has_one :income_benefits_at_exit_all_sources_missing, -> do
-      at_exit.all_sources_missing.joins(:exit)
+      at_exit.all_sources_missing.joins(:exit).where(ib_t[:InformationDate].eq(ex_t[:ExitDate]))
     end, **hud_enrollment_belongs('IncomeBenefit')
     has_many :income_benefits_annual_update, -> do
       at_annual_update
