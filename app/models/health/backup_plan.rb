@@ -12,12 +12,12 @@ module Health
     acts_as_paranoid
 
     phi_patient :patient_id
-    phi_attr :plan_created_on, Phi::Date, "Date of plan creation"
-    phi_attr :description, Phi::FreeText, "Description of backup plan"
-    phi_attr :backup_plan, Phi::FreeText, "Name of backup plan"
-    phi_attr :phone, Phi::Telephone, "Phone number of patient"
-    phi_attr :address, Phi::Location, "Address of patient"
-    phi_attr :person, Phi::Name, "Name of patient"
+    phi_attr :plan_created_on, Phi::Date, 'Date of plan creation'
+    phi_attr :description, Phi::FreeText, 'Description of backup plan'
+    phi_attr :backup_plan, Phi::FreeText, 'Name of backup plan'
+    phi_attr :phone, Phi::Telephone, 'Phone number of patient'
+    phi_attr :address, Phi::Location, 'Address of patient'
+    phi_attr :person, Phi::Name, 'Name of patient'
 
     belongs_to :patient
     has_many :careplans, through: :patient
@@ -29,6 +29,5 @@ module Health
         source: 'Warehouse',
       }
     end
-
   end
 end

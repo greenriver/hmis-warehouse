@@ -48,7 +48,10 @@
 
       %li
         %h4 Veteran
-        %span= yes_no @client.veteran?
+        %span
+          = yes_no @client.veteran?
+          - if RailsDrivers.loaded.include?(:veteran_confirmation)
+            = render '/veteran_confirmation/confirmation_status'
 
       %li
         %h4 Disabled
