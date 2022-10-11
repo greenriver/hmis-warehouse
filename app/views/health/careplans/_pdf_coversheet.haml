@@ -1,5 +1,6 @@
 - title = "MassHealth Behavioral Health Community Partners Program"
 - content_for :title, title
+- not_provided = '<span class="no-data">Not provided</span>'.html_safe
 
 .l-print.coverSheet
   .l-print__section
@@ -35,22 +36,22 @@
         %i Client Details
       %p
         %strong Name of Member:
-        = @patient.name
+        = @patient.name&.presence || not_provided
       %p
         %strong Member MassHealth ID:
-        = @patient.medicaid_id
+        = @patient.medicaid_id&.presence || not_provided
       %p
         %strong Member DOB:
-        = @patient.birthdate&.to_date || 'Not Provided'
+        = @patient.birthdate&.to_date || not_provided
     %div
       %p.muted
         %i For questions, contact:
       %p
         %strong Care Coordinator:
-        = @patient.care_coordinator&.name || 'Not Provided'
+        = @patient.care_coordinator&.name&.presence || not_provided
       %p
         %strong Email:
-        = @patient.care_coordinator&.email || 'Not Provided'
+        = @patient.care_coordinator&.email&.presence || not_provided
       %p
         %strong Phone:
-        = @patient.care_coordinator&.phone || 'Not Provided'
+        = @patient.care_coordinator&.phone&.presence || not_provided

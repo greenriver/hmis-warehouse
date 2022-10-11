@@ -151,3 +151,5 @@
       .client__assessment-section-summary.cha__section.epicTable
         %h4 Epic Medications
         = render 'health/medications/medications_table', medications: @medications
+- else
+  .no-data No Comprehensive Health Assessment on file

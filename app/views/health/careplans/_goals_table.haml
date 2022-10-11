@@ -12,12 +12,12 @@
       %dl
         %dt Goal Description
         %dd
-          .no-data= 'No answer provided' unless goal.goal_details&.strip&.present?
+          .no-data= 'Not provided' unless goal.goal_details&.strip&.present?
           =simple_format goal.goal_details
 
         %dt Start Date
         %dd
-          .no-data= 'No answer provided' unless goal.start_date.present?
+          .no-data= 'Not provided' unless goal.start_date.present?
           =goal.start_date
 
         %dt Responsible Care Team Member

@@ -5,17 +5,17 @@
   .l-print__section--page{style: 'padding: 0;'}
     =render 'health/careplans/pctp'
 
-  - if @cha.present?
-    %article.l-print__section--page.health-careplan__cha
-      %h1 Comprehensive Health Assessment
-      = render 'health/comprehensive_health_assessments/show'
+  %article.health-careplan__cha{ class: @cha.present? ? 'l-print__section--page' : ['l-print__section', 'no-break']}
+    %h1 Comprehensive Health Assessment
+    = render 'health/comprehensive_health_assessments/show'
 
-  - if @ssm_partial
-    %article.l-print__section--page.health-care-plan__ssm
-      %h1 Self-Sufficiency Matrix
-      - if @form.is_a? GrdaWarehouse::HmisForm
-        .ssm-print= render @ssm_partial
-      - else
-        = render @ssm_partial
+  %article.l-print__section--page.health-care-plan__ssm
+    %h1 Self-Sufficiency Matrix
+    - if @form.is_a? GrdaWarehouse::HmisForm
+      .ssm-print= render @ssm_partial
+    - elsif @ssm_partial.present?
+      = render @ssm_partial
+    - else
+      .no-data No Self-Sufficiency Matrix on file
 
   = render 'health/careplans/pctp_signatures'

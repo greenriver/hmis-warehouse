@@ -25,6 +25,10 @@ $pdf-table-border-color: darken(#f9f9f9, 3%);
   font-style: italic;
 }
 
+.mt-2 {
+  margin-top: 16px;
+}
+
 .d-flex {
   display: flex;
 }
@@ -376,7 +380,7 @@ footer {
 
 .l-print .ssm__row {
   break-inside: avoid;
-  border-bottom: 1px solid $gray-020;
+  border-bottom: 1px solid $gray-040;
 }
 .l-print .ssm__row__question-answer {
   font-size: $pdf-default-font-size;
@@ -422,7 +426,7 @@ footer {
 
 .l-print .health-careplan__hmisForm {
   h4 {
-    border-bottom: 1px solid $gray-020;
+    border-bottom: 1px solid $gray-040;
     margin-right: 20px;
     padding-bottom: 5px;
   }
@@ -470,7 +474,7 @@ footer {
 .cha__section {
   clear: left;
   break-inside: avoid;
-  border: 1px solid $gray-020;
+  border: 1px solid $gray-040;
   border-radius: 4px;
   padding: 5px 0;
   margin-bottom: 20px !important;
@@ -484,7 +488,7 @@ footer {
     break-inside: avoid;
   }
   > div:not(:last-child) {
-    border-bottom: 1px solid $gray-020;
+    border-bottom: 1px solid $gray-040;
   }
   > * {
     padding-left: 10px;
@@ -588,7 +592,7 @@ footer {
  .health-care-plan__responsible-parties {
   .signature__section {
     padding: 40px 0;
-    border-bottom: 1px solid $gray-020;
+    border-bottom: 1px solid $gray-040;
 
     .signature__section__row {
       display: flex;
