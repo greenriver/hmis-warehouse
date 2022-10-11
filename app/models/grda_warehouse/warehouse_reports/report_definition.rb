@@ -1280,6 +1280,7 @@ module GrdaWarehouse::WarehouseReports
         'performance_dashboards/household',
         'claims_reporting/warehouse_reports/performance',
         'warehouse_reports/initiatives',
+        'warehouse_reports/client_details/last_permanent_zips',
       ]
       cleanup << 'ma_yya_report/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:ma_yya_report)
       cleanup << 'service_scanning/warehouse_reports/scanned_services' unless RailsDrivers.loaded.include?(:service_scanning)
