@@ -96,6 +96,8 @@ module Health
         {
           id: nil,
           name: 'Totals',
+          # Sum numeric columns
+          # drop(2) removes id and name
           **team_counts.first&.to_h&.keys&.drop(2)&.map { |key| [key, team_counts.map { |o| o[key] }.reduce(&:+)] }.to_h,
         },
       )
