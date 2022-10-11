@@ -13,38 +13,28 @@
         -# %th With SSM
         -# %th.agency-performance__without Without SSM
         %th
-          .agency-performance__category.mb-1 Payment
           With Signed Care Plan
-        %th
-          .agency-performance__category.mb-1 Quality
+        %th{data: {toggle: :tooltip, title: Health::TeamPerformance::DESCRIPTIONS[:without_initial_careplan_90_122_days]}}
           Initial care plan due within 30 days to meet Quality Metric
-        %th
-          .agency-performance__category.mb-1 Payment
+        %th{data: {toggle: :tooltip, title: Health::TeamPerformance::DESCRIPTIONS[:without_initial_careplan_122_150_days]}}
           Initial care plan due within 30 days for payment
-        %th
-          .agency-performance__category.mb-1 Payment
+        %th{data: {toggle: :tooltip, title: Health::TeamPerformance::DESCRIPTIONS[:initial_careplan_overdue]}}
           Initial care plan overdue - no payment
-        %th
-          .agency-performance__category.mb-1 Quality
-          Annual care plan due within 30 days
-        %th
-          .agency-performance__category.mb-1 Quality
+        %th{data: {toggle: :tooltip, title: Health::TeamPerformance::DESCRIPTIONS[:annual_careplan_due_within_30_days]}}
+          Annual care plan due within 30 days to meet Quality Metric
+        %th{data: {toggle: :tooltip, title: Health::TeamPerformance::DESCRIPTIONS[:annual_careplan_overdue]}}
           Care plan renewal overdue
-        %th
-          .agency-performance__category.mb-1 Quality
+        %th{data: {toggle: :tooltip, title: Health::TeamPerformance::DESCRIPTIONS[:without_annual_well_care_visit_in_12_months]}}
           No annual well care visits in 12 months
-        %th
-          .agency-performance__category.mb-1 Quality
+        %th{data: {toggle: :tooltip, title: Health::TeamPerformance::DESCRIPTIONS[:without_f2f_in_past_6_months]}}
           No F2F visit in past 6 months
         -# %th.agency-performance__without Without Signed Care Plan
         -# %th.agency-performance__date-effected Care Plans Signed
         -# %th Care Plan Signed Within 122 Days of Enrollment
         -#%th.agency-performance__without No QAa
-        %th.agency-performance__date-effected
-          .agency-performance__category.mb-1 Quality
+        %th.agency-performance__date-effected{data: {toggle: :tooltip, title: Health::TeamPerformance::DESCRIPTIONS[:with_discharge_followup_completed_within_range]}}
           3 day post-discharge follow ups completed
         %th
-          .agency-performance__category.mb-1 Payment
           No Payable QAs
     %tbody
       - entities.each do |entity|
@@ -95,7 +85,7 @@
             =render 'warehouse_reports/health/agency_performance/table_cell', permission: permission, entity_slug: entity_slug, scope: scope, title: title, detail_path: detail_path
           %td.text-right
             - scope = entity.annual_careplan_due_within_30_days
-            - title = "#{pluralize(scope.size, 'Patient')} with Annual Care Plan due within 30 days"
+            - title = "#{pluralize(scope.size, 'Patient')} with Annual Care Plan due within 30 days to meet Quality Metric"
             =render 'warehouse_reports/health/agency_performance/table_cell', permission: permission, entity_slug: entity_slug, scope: scope, title: title, detail_path: detail_path
           %td.text-right
             - scope = entity.annual_careplan_overdue

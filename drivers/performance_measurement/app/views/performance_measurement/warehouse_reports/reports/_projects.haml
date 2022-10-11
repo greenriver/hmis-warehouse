@@ -66,7 +66,7 @@
             tick: {
               rotate: -35,
               autorotate: true,
-              format: function(x) { return `${d3.format('d')(x)}${include_percent ? '%' : ''}`},
+              format: function(x) { return `${d3.format(',d')(x)}${include_percent ? '%' : ''}`},
             },
           },
           x: {
