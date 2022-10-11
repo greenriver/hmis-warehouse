@@ -17,12 +17,14 @@ FY2022 Changes
 
 		(Detailed revision history maintained at https://github.com/HMIS/LSASampleCode)
 
-This script drops (if tables exist) and creates the following temp reporting tables:
+It is not necessary to execute this code every time the LSA is run -- only 
+if/when there are changes to it.   It drops (if tables exist) and creates
+the following temp reporting tables:
 
 	tlsa_CohortDates - based on ReportStart and ReportEnd, all cohorts and dates used in the LSA
 	tlsa_HHID - 'master' table of HMIS HouseholdIDs active in continuum ES/SH/TH/RRH/PSH projects 
-			between 10/1/2012 and ReportEnd.  Used to store adjusted move-in and exit dates, 
-			household types, and other frequently-referenced data 
+			between LookbackDate (ReportStart - 7 years)  and ReportEnd.  Used to store adjusted move-in 
+			and exit dates, household types, and other frequently-referenced data 
 	tlsa_Enrollment - a 'master' table of enrollments associated with the HouseholdIDs in tlsa_HHID
 			with enrollment ages and other frequently-referenced data
 
@@ -39,9 +41,9 @@ This script drops (if tables exist) and creates the following temp reporting tab
 		based on LSAHousehold and LSAExit.
 	tlsa_CountPops - used to identify people/households in various populations for AHAR counts in section 9.
 
-This script drops (if tables exist), creates, and populates the following 
+This script also drops (if tables exist), creates, and populates the following 
 reference tables used in the sample code:  
-	ref_Calendar - table of dates between 10/1/2012 and 9/30/2022
+	ref_Calendar - table of dates between 10/1/2012 and 9/30/2023  
 	ref_RowValues - required combinations of Cohort, Universe, and SystemPath values for each ReportRow in LSACalculated
 	ref_RowPopulations - the populations required for each ReportRow in LSACalculated
 	ref_PopHHTypes - the household types associated with each population 
@@ -94,6 +96,9 @@ create table tlsa_HHID (
 	, Step varchar(10) not NULL
 	, constraint pk_tlsa_HHID primary key clustered (HouseholdID)
 	)
+	;
+
+	create index ix_tlsa_HHID_HoHID_ActiveHHType on tlsa_HHID (HoHID, ActiveHHType) include (EntryDate, EnrollmentID)
 
 if object_id ('tlsa_Enrollment') is not NULL drop table tlsa_Enrollment 
 

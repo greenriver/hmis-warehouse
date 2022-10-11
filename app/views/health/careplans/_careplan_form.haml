@@ -19,7 +19,8 @@
     = render 'health/careplans/equipment_list'
 
   %section.health-care-plan__backup_plans
-    = render 'health/careplans/backup_plan_list', f: f
+    = f.input :member_understands_contingency, label: 'Member understands contingency plan described below if care coordinator is needed but not available', disabled: @careplan.locked?
+    = render 'health/careplans/backup_plan_list'
 
   %section.c-card
     .c-card__header.c-card__header--external

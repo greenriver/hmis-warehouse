@@ -2031,11 +2031,6 @@ module GrdaWarehouse::Hud
       ::HUD.ethnicity(self.Ethnicity)
     end
 
-    def cas_primary_race_code
-      race_text = ::HUD.race(race_fields.first)
-      Cas::PrimaryRace.find_by_text(race_text).try(:numeric)
-    end
-
     def pit_race
       return 'RaceNone' if race_fields.count.zero?
       return 'MultiRacial' if race_fields.count > 1
@@ -2081,6 +2076,46 @@ module GrdaWarehouse::Hud
         return 'Not Collected'
       end
       'RaceNone'
+    end
+
+    def cas_race_am_ind_ak_native
+      self.AmIndAKNative == 1
+    end
+
+    def cas_race_asian
+      self.Asian == 1
+    end
+
+    def cas_race_black_af_american
+      self.BlackAfAmerican == 1
+    end
+
+    def cas_race_native_hi_pacific
+      self.NativeHIPacific == 1
+    end
+
+    def cas_race_white
+      self.White == 1
+    end
+
+    def cas_gender_female
+      self.Female == 1
+    end
+
+    def cas_gender_male
+      self.Male == 1
+    end
+
+    def cas_gender_no_single_gender
+      self.NoSingleGender == 1
+    end
+
+    def cas_gender_transgender
+      self.Transgender == 1
+    end
+
+    def cas_gender_questioning
+      self.Questioning == 1
     end
 
     def self_and_sources

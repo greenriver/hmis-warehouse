@@ -20,7 +20,8 @@ class App.WarehouseReports.Rrh.Returns
         # format:
         #   title: (i) =>
         #     'Time to Return ' + @data.labels[i]
-
+      padding:
+        left: 40
       color:
         pattern: ["#fb4d42", "#288be4", "#091f2f", "#58585b", "#9E788F", "#A4B494", "#F3B3A6", "#F18F01", "#E59F71", "#ACADBC", "#D0F1BF"]
       bindto: @wrapper

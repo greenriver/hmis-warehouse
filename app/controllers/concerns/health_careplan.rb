@@ -79,8 +79,8 @@ module HealthCareplan
         emulate_media: 'print',
         style_tag_options: [{ content: inline_stylesheet_link_tag('print') }],
         margin: {
-          top: '1in',
-          bottom: '1in',
+          top: '1.5in',
+          bottom: '1.5in',
           left: '.4in',
           right: '.4in',
         },
@@ -134,7 +134,6 @@ module HealthCareplan
 
     # The logic for creating the CarePlan PDF is fairly complicated and needs to be used in both the careplan controllers and the signable document controllers
     def careplan_combine_pdf_object
-      @pdf = true
       @goal = Health::Goal::Base.new
       @readonly = false
       # If we already have a document with a signature, use that to try and avoid massive duplication
@@ -150,7 +149,6 @@ module HealthCareplan
         @careplan.archive_services
         @careplan.archive_equipment
         @careplan.archive_goals
-        @careplan.archive_backup_plans
         @careplan.archive_team_members
         @careplan.save
       end

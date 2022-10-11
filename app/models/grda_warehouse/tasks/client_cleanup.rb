@@ -363,6 +363,7 @@ module GrdaWarehouse::Tasks
         if best_name_client.present?
           dest_attr[:FirstName] = best_name_client[:FirstName]
           dest_attr[:LastName] = best_name_client[:LastName]
+          dest_attr[:NameDataQuality] = best_name_client[:NameDataQuality]
         end
       end
       dest_attr
@@ -372,15 +373,18 @@ module GrdaWarehouse::Tasks
       # Get the best SSN (has value and quality is full or partial, oldest breaks the tie)
       non_blank_ssn = source_clients.select { |sc| sc[:SSN].present? }
       if non_blank_ssn.any?
-        dest_attr[:SSN] = non_blank_ssn.max do |a, b|
+        best = non_blank_ssn.max do |a, b|
           comp = b[:SSNDataQuality] <=> a[:SSNDataQuality] # Desc
           if comp == 0 # rubocop:disable Style/NumericPredicate
             comp = b[:DateCreated] <=> a[:DateCreated] # Desc
           end
           comp
-        end[:SSN]
+        end
+        dest_attr[:SSN] = best[:SSN]
+        dest_attr[:SSNDataQuality] = best[:SSNDataQuality]
       elsif dest_attr[:SSN].present?
         dest_attr[:SSN] = nil
+        dest_attr[:SSNDataQuality] = 99
       end
       dest_attr
     end
@@ -395,15 +399,18 @@ module GrdaWarehouse::Tasks
       # Get the best DOB (has value and quality is full or partial, oldest breaks the tie)
       non_blank_dob = source_clients.select { |sc| sc[:DOB].present? }
       if non_blank_dob.any?
-        dest_attr[:DOB] = non_blank_dob.max do |a, b|
+        best = non_blank_dob.max do |a, b|
           comp = b[:DOBDataQuality] <=> a[:DOBDataQuality] # Desc
           if comp == 0 # rubocop:disable Style/NumericPredicate
             comp = b[:DateCreated] <=> a[:DateCreated] # Desc
           end
           comp
-        end[:DOB]
+        end
+        dest_attr[:DOB] = best[:DOB]
+        dest_attr[:DOBDataQuality] = best[:DOBDataQuality]
       elsif dest_attr[:DOB].present?
         dest_attr[:DOB] = nil
+        dest_attr[:DOBDataQuality] = 99
       end
       dest_attr
     end
@@ -555,6 +562,7 @@ module GrdaWarehouse::Tasks
         batch.each do |dest_id|
           dest = client_source.find(dest_id)
           source_clients = dest.source_clients.
+            joins(:data_source). # Don't consider deleted data sources
             pluck(*client_columns.values.map { |column| Arel.sql(column) }).
             map do |row|
               Hash[client_columns.keys.zip(row)]

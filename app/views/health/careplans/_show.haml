@@ -2,23 +2,17 @@
 - content_for :title, title
 
 .l-print.hide-blank-page
-  .l-print__section--page{style: 'padding: 0;'}
-    =render 'health/careplans/pctp'
+  =render 'health/careplans/pctp'
 
-  %article.l-print__section--page.health-care-plan__cha
+  %article.health-care-plan__cha.l-print__section--page
     %h1 Comprehensive Health Assessment
-    - if @cha.present?
-      = render 'health/comprehensive_health_assessments/show'
-    - else
-      .no-data No Comprehensive Health Assessment on file.
+    = render 'health/comprehensive_health_assessments/show'
 
-  %article.l-print__section--page.health-care-plan__ssm
+  = render 'health/careplans/pctp_signatures'
+
+  %article.health-care-plan__ssm
     %h1 Self-Sufficiency Matrix
     - if @form.is_a? GrdaWarehouse::HmisForm
       .ssm-print= render @ssm_partial
     - elsif @ssm_partial
       = render @ssm_partial
-    - else
-      .no-data No Self-Sufficiency Assessment on file.
-
-  = render 'health/careplans/pctp_signatures'

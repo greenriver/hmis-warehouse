@@ -28,7 +28,7 @@ module HmisCsvImporter::Importer
 
       if completed_at && started_at
         seconds = ((completed_at - started_at) / 1.minute).round * 60
-        distance_of_time_in_words(seconds)
+        "#{distance_of_time_in_words(seconds)} -#{started_at.strftime('%l:%M %P')} to #{completed_at.strftime('%l:%M %P')}"
       else
         'processing...'
       end

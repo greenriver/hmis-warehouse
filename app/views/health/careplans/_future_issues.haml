@@ -1,9 +1,10 @@
+- f ||= ''
 - sized_input_html = {class: 'sized'}
 .c-card
   .c-card__header.c-card__header--external
     %h3 Issue(s) to consider later
   .c-card__content.c-card__content--flush.mb-4
-    - if @careplan.editable? && @html
+    - if @careplan.editable? && f.present?
       - (0..10).each do |i|
         .row.m-4.jIssueRow
           .col-1.text-right.pt-2
@@ -14,14 +15,12 @@
             = link_to '#add-issue', class: 'jAddIssue btn btn-secondary btn-sm ml-auto' do
               %i.icon-plus
               Add Issue
-    - elsif @careplan.future_issues?
+    - else
       %ol.m-4
         - (0..10).each do |i|
           - issue = @careplan["future_issues_#{i}"]
           - if issue.present?
             %li.mb-2= issue
-    - else
-      .no-data No issues provided
 
 = content_for :page_js do
   :javascript

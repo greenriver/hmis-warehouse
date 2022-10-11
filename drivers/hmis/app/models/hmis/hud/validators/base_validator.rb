@@ -25,7 +25,7 @@ class Hmis::Hud::Validators::BaseValidator < ActiveModel::Validator
   private
 
   def too_long?(key, record, limit = nil)
-    limit.present? && record.send(key).present? && record.send(key).size > limit
+    limit.present? && record.send(key).present? && record.send(key).to_s.size > limit
   end
 
   def missing?(key, record, null = nil)
