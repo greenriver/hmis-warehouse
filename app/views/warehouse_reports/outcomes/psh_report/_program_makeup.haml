@@ -4,19 +4,19 @@
   .rrh__exiting_pre-placement.chunk.pr-4.mr-4
     - content_for :panel_collapse_content, flush: true do
       .percentExitingPrePlacementChart.mb-2
-      .percentExitingPrePlacementChartLegend.d-flex{style: 'max-width: 100%; overflow: auto;'}
+      .percentExitingPrePlacementChartLegend.d-flex{style: 'max-width: 100%; overflow-x: auto; overflow-y: hidden;'}
       %p.mb-4.text-center.description
         Percentage of clients exiting #{_('search')} to #{_('housing')} out of those who exited #{_('search')}.
     = render 'common/panel_collapse', id: 'percentExitingPrePlacementChart', title: 'Percentage Exiting Search to Housing', default_open: 'yes'
     - content_for :panel_collapse_content, flush: true do
       .percentInStabilizationChart.mb-2
-      .percentInStabilizationChartLegend.d-flex{style: 'max-width: 100%; overflow: auto;'}
+      .percentInStabilizationChartLegend.d-flex{style: 'max-width: 100%; overflow-x: auto; overflow-y: hidden;'}
       %p.mb-4.text-center.description
         Percentage of clients enrolled in #{_('housing')} out of those enrolled in either #{_('search')} or #{_('housing')}.
     = render 'common/panel_collapse', id: 'percentInStabilizationChart', title: 'Percentage of Participants Enrolled in Housing', default_open: 'yes'
     - content_for :panel_collapse_content, flush: true do
       .percentExitingStabilizationChart.mb-2
-      .percentExitingStabilizationChartLegend.d-flex{style: 'max-width: 100%; overflow: auto;'}
+      .percentExitingStabilizationChartLegend.d-flex{style: 'max-width: 100%; overflow-x: auto; overflow-y: hidden;'}
       %p.mb-4.text-center.description
         Percentage of clients exiting #{_('housing')} to a permanent destination out of those who exited #{_('housing')}.
     = render 'common/panel_collapse', id: 'percentExitingStabilizationChart', title: 'Percentage Exiting Housing', default_open: 'yes'
