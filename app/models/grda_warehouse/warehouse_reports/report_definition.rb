@@ -215,13 +215,6 @@ module GrdaWarehouse::WarehouseReports
             health: false,
           },
           {
-            url: 'warehouse_reports/client_details/last_permanent_zips',
-            name: 'Last Permanent Zip Report',
-            description: 'List open enrollments within a date range and the zip codes of last permanent residence.',
-            limitable: true,
-            health: false,
-          },
-          {
             url: 'warehouse_reports/enrolled_project_type',
             name: 'Enrollments per project type',
             description: 'A list of clients who were enrolled in a set of project types for a given date range.',
