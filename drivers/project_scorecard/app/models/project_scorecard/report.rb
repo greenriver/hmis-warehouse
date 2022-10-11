@@ -23,6 +23,7 @@ module ProjectScorecard
     belongs_to :project_group, class_name: 'GrdaWarehouse::ProjectGroup', optional: true
     belongs_to :user, class_name: 'User', optional: true
     belongs_to :apr, class_name: 'HudReports::ReportInstance', optional: true
+    belongs_to :spm, class_name: 'HudReports::ReportInstance', optional: true
 
     has_many :project_contacts, through: :project, source: :contacts
     has_many :organization_contacts, through: :project
@@ -165,13 +166,14 @@ module ProjectScorecard
     end
 
     def key_project
-      return project if project.present?
-
-      candidate = project_group.projects.detect(&:rrh?)
-      candidate = project_group.projects.detect(&:psh?) if candidate.blank?
-      candidate = project_group.projects.detect(&:sh?) if candidate.blank?
-      candidate = project_group.projects.first if candidate.blank?
-      candidate
+      @key_project ||= begin
+        candidate = project if project.present?
+        candidate = project_group.projects.detect(&:rrh?) if candidate.blank?
+        candidate = project_group.projects.detect(&:psh?) if candidate.blank?
+        candidate = project_group.projects.detect(&:sh?) if candidate.blank?
+        candidate = project_group.projects.first if candidate.blank?
+        candidate
+      end
     end
 
     def title
@@ -283,6 +285,7 @@ module ProjectScorecard
 
       assessment_answers.merge!(
         {
+          spm_id: spm_report(project_ids).id,
           percent_returns_to_homelessness: percent_returns_to_homelessness_from_spm(project_ids),
           clients_with_vispdats: clients_with_vispdats_fom_hmis(project_ids).count,
           average_vispdat_score: average_vispdat_score_fom_hmis(project_ids),
@@ -314,30 +317,49 @@ module ProjectScorecard
       ProjectScorecard::ScorecardMailer.scorecard_complete(self).deliver_later
     end
 
+    private def spm_report(project_ids)
+      @spm_report ||= begin
+        # Generate SPM
+        filter = ::Filters::HudFilterBase.new(user_id: user_id)
+        # NOTE: we need to include all homeless projects visible to this user, plus the chosen scope,
+        # so that the returns calculation will work.
+        filter.set_from_params(
+          {
+            start: start_date,
+            end: end_date,
+            project_ids: project_ids,
+            project_type_codes: [:es, :so, :sh, :th],
+          },
+        )
+        questions = [
+          'Measure 2',
+        ]
+        generator = HudSpmReport::Generators::Fy2020::Generator
+        spm_instance = HudReports::ReportInstance.from_filter(filter, generator.title, build_for_questions: questions)
+        generator.new(spm_instance).run!(email: false, manual: false)
+        spm_instance
+      end
+    end
+
     private def percent_returns_to_homelessness_from_spm(project_ids)
       return unless RailsDrivers.loaded.include?(:hud_spm_report)
 
-      # Generate SPM
-      filter = ::Filters::HudFilterBase.new(user_id: user_id)
-      # NOTE: we need to include all homeless projects visible to this user, plus the chosen scope,
-      # so that the returns calculation will work.
-      filter.set_from_params(
-        {
-          start: start_date,
-          end: end_date,
-          project_ids: project_ids,
-          project_type_codes: [:es, :so, :sh, :th],
-        },
-      )
-      questions = [
-        'Measure 2',
-      ]
-      generator = HudSpmReport::Generators::Fy2020::Generator
-      spm = HudReports::ReportInstance.from_filter(filter, generator.title, build_for_questions: questions)
-      generator.new(spm).run!(email: false, manual: false)
+      project_row = if key_project.so?
+        '2'
+      elsif key_project.es?
+        '3'
+      elsif key_project.th?
+        '4'
+      elsif key_project.sh?
+        '5'
+      elsif key_project.ph?
+        '6'
+      else
+        '7'
+      end
 
-      number_of_exits = answer(spm, '2', 'B7')
-      number_of_returns = answer(spm, '2', 'I7')
+      number_of_exits = answer(spm_report(project_ids), '2', 'B' + project_row)
+      number_of_returns = answer(spm_report(project_ids), '2', 'I' + project_row)
 
       return nil if number_of_exits.blank? || number_of_exits.zero?
 

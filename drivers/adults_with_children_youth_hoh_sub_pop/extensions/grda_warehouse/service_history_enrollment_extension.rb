@@ -17,7 +17,7 @@ module AdultsWithChildrenYouthHohSubPop::GrdaWarehouse
               and(she_t[:head_of_household].eq(true)).
               and(she_t[:other_clients_under_18].gt(0)).
               and(she_t[:household_id].not_eq(nil)),
-            ).select(she_t[:household_id]),
+            ).pluck(she_t[:household_id]),
         )
       end
     end

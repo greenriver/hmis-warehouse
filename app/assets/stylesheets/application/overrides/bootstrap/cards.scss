@@ -3,3 +3,8 @@
 .card {
   overflow: auto;
 }
+
+.card.squared {
+  border-radius: 0;
+  border-top-width: 0;
+}

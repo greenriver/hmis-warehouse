@@ -1,4 +1,4 @@
 - if @report&.report_group_name.present?
   = content_for :crumbs do
-    = link_to reports_path(anchor: @report.report_group_name.parameterize.dasherize) do
-      = "«" +  _("View Reports")
+    = link_to hud_reports_lsas_path do
+      = "« " +  _('LSA Reports')

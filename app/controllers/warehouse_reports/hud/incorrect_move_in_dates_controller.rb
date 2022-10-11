@@ -63,7 +63,7 @@ module WarehouseReports::Hud
     helper_method :project_types_requiring_move_in
 
     def set_filter
-      @filter = ::Filters::DateRangeAndSources.new(filter_params.merge(user_id: current_user.id))
+      @filter = ::Filters::FilterBase.new(filter_params.merge(user_id: current_user.id))
     end
 
     def filter_params

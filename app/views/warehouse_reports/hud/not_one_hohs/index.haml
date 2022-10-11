@@ -48,7 +48,7 @@
                 Not yet Processed
             %td= project.name(current_user)
             %td
-              = link_to_if destination_client&.hmis_source_visible_by?(current_user), en.EntryDate, hmi_path(en.id, type: 'Enrollment')
+              = link_to_if destination_client&.hmis_source_visible_by?(current_user), en.EntryDate, source_datum_path(en.id, type: 'Enrollment')
             %td= en.exit&.ExitDate
             %td= en.HouseholdID
             %td

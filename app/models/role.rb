@@ -102,6 +102,13 @@ class Role < ApplicationRecord
           'Client Access',
         ],
       },
+      can_view_chronic_tab: {
+        description: 'Provides the ability to view the chronic tab for a client.',
+        administrative: false,
+        categories: [
+          'Client Access',
+        ],
+      },
       can_view_full_client_dashboard: {
         description: 'Given access to a client\'s enrollments, user is able to see all sections of a client dashboard',
         administrative: false,
@@ -238,6 +245,13 @@ class Role < ApplicationRecord
       can_edit_project_groups: {
         description: 'Setup groupings of projects, mostly for reporting',
         administrative: true,
+        categories: [
+          'Data Sources & Inventory',
+        ],
+      },
+      can_edit_assigned_project_groups: {
+        description: 'Setup groupings of projects, limited to those assigned to the user',
+        administrative: false,
         categories: [
           'Data Sources & Inventory',
         ],
@@ -686,7 +700,7 @@ class Role < ApplicationRecord
         ],
       },
       can_upload_dashboard_extras: {
-        description: 'Access to upload the non-HMIS files for use in the Tableau dashboard export',
+        description: 'Access to upload the supplemental enrollment data for a data source',
         administrative: false,
         categories: [
           'Data Sources & Inventory',
@@ -749,11 +763,20 @@ class Role < ApplicationRecord
           'Reporting',
         ],
       },
-      can_view_confidential_enrollment_details: {
-        description: 'Anyone with this permission will see the name of confidential projects in locations where it is associated with a client or enrollment.',
+      can_view_confidential_project_names: {
+        description: 'Anyone with this permission will see the name of confidential projects when displayed within reports or on client dashboards. To include confidential projects in reports, users must also be able to Report on Confidential Projects.',
         administrative: true,
         categories: [
           'Client Extras',
+          'Confidentiality',
+        ],
+      },
+      can_report_on_confidential_projects: {
+        description: 'Reports for users with this permission will include confidential projects.  The names of confidential projects will not be exposed unless the user an also view confidential project names.  Users without this permission will exclude any confidential projects.',
+        administrative: true,
+        categories: [
+          'Reporting',
+          'Confidentiality',
         ],
       },
       can_manage_ad_hoc_data_sources: {

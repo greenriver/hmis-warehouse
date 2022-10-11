@@ -1,4 +1,4 @@
-Rails.logger.debug "Running initializer in #{__FILE__}"
+# Rails.logger.debug "Running initializer in #{__FILE__}"
 
 # Use this setup block to configure all options available in SimpleForm.
 SimpleForm.setup do |config|

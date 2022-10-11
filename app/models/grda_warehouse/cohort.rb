@@ -229,6 +229,7 @@ module GrdaWarehouse
         ::CohortColumns::FirstName.new,
         ::CohortColumns::Rank.new,
         ::CohortColumns::Age.new,
+        ::CohortColumns::Dob.new,
         ::CohortColumns::Gender.new,
         ::CohortColumns::Ssn.new,
         ::CohortColumns::ClientId.new,

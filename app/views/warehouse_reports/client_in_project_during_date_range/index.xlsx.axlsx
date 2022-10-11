@@ -2,7 +2,7 @@ wb = xlsx_package.workbook
 wb.add_worksheet(name: "Enrolled Clients") do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
   sheet.add_row([
-   "Clients in #{@project.ProjectName} between #{@start} and #{@end}"
+   "Clients in #{@project.name(current_user)} between #{@start} and #{@end}"
   ])
   sheet.merge_cells("A1:F1")
   sheet.add_row([

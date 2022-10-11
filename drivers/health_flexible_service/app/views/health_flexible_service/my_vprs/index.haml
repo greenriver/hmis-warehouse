@@ -10,8 +10,8 @@
 
 - if @pagy.count.positive?
   = render 'common/pagination_top', item_name: 'patient'
-  - @patients.each do |patient|
-    = render 'patient_card', patient: patient, vpr: patient.flexible_services.last
+  - @clients.each do |client|
+    = render 'patient_card', client: client, vpr: client.health_flexible_services.last
   = render 'common/pagination_bottom', item_name: 'patient'
 - else
   .none-found No patients

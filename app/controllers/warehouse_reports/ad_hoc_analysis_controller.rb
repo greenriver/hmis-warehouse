@@ -14,6 +14,11 @@ module WarehouseReports
     def index
       @reports = report_scope.order(created_at: :desc).
         select(*report_source.index_columns)
+
+      # Set default filter to prior run
+      previous_report = report_scope.last
+      @filter.update(previous_report.options.with_indifferent_access) if previous_report
+
       @pagy, @reports = pagy(@reports)
     end
 

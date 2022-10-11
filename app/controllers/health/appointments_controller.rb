@@ -15,7 +15,7 @@ module Health
 
     def index
       set_hpc_patient
-      set_patient if @patient.blank?
+      # set_patient if @patient.blank?
       a_t = Health::Appointment.arel_table
       @appointments = @patient.appointments.order(appointment_time: :desc)
       @upcoming = @appointments.limited.where(a_t[:appointment_time].gt(Time.now)).order(appointment_time: :asc)
@@ -25,7 +25,7 @@ module Health
 
     def upcoming
       set_hpc_patient
-      set_patient if @patient.blank?
+      # set_patient if @patient.blank?
       start_date = Date.current.to_time
       if params[:end_date].present?
         end_date = begin
@@ -45,8 +45,8 @@ module Health
 
     def calendar
       set_hpc_patient
-      set_patient if @patient.blank?
-      start_date = Date.current.beginning_of_week(start_day = :sunday)
+      # set_patient if @patient.blank?
+      start_date = Date.current.beginning_of_week(:sunday)
       end_date = Date.current + 2.weeks
 
       appointments = @patient.appointments.

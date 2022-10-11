@@ -55,6 +55,32 @@ module Reports::Lsa::Fy2021
       }
     end
 
+    # This is somewhat circular until the LSA is re-written to use the standard filter set
+    def allowed_options(result)
+      options_from_result(result).keys.map(&:to_sym)
+    end
+
+    def filter_from_result(result)
+      # LSA doesn't actually use a filter yet, but the HudFilterBase will handle things appropriately.
+      f = ::Filters::HudFilterBase.new(user_id: result.user_id)
+      f.update(options_from_result(result).with_indifferent_access)
+      f
+    end
+
+    def describe_filter_as_html(result)
+      f = filter_from_result(result)
+      f.describe_filter_as_html(allowed_options(result))
+    end
+
+    private def options_from_result(result)
+      options = result.options.deep_dup
+      # Cleanup some discrepancies
+      options[:project_ids] = options.delete('project_id')
+      options[:start] = options.delete('report_start')
+      options[:end] = options.delete('report_end')
+      options
+    end
+
     def value_for_options options
       return '' unless options.present?
 
@@ -200,11 +226,12 @@ module Reports::Lsa::Fy2021
     private def invalid_funders(user)
       missing_data_rows(
         GrdaWarehouse::Hud::Project.viewable_by(user).coc_funded.joins(:organization).
+        references(:funders).
         includes(:funders).
         distinct.
         # merge(GrdaWarehouse::Hud::Project.viewable_by(user).coc_funded.hud_residential).
         where(ProjectID: GrdaWarehouse::Hud::Enrollment.open_during_range(@range).select(:ProjectID)).
-        where(f_t[:Funder].not_in(::HUD.funding_sources.keys)),
+        where(f_t[:Funder].not_in(::HUD.funding_sources.keys).or(f_t[:GrantID].eq(nil))),
       )
     end
 

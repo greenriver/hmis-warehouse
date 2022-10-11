@@ -4,7 +4,7 @@
     .col-sm-6
       = render 'warehouse_reports/date_range_filters', f: f
     .col-sm-3
-      = f.input :project_ids, collection: @filter.project_options_for_select(user: current_user), as: :grouped_select_two, group_method: :last, selected: @filter.project_ids, label: 'Project', input_html: {multiple: true }
+      = f.input :project_ids, collection: [], as: :select_two, input_html: { multiple: true, data: { 'collection-path' => api_projects_path(selected_project_ids: @filter.project_ids) }, placeholder: 'Choose a Project'}, label: 'Projects'
     .col-sm-3
       = f.input :project_group_ids, collection: @filter.project_groups_options_for_select(user: current_user), selected: @filter.project_group_ids, label: 'Project Group', as: :select_two, include_blank: 'None'
 

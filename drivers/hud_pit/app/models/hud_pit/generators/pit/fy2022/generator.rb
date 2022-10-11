@@ -18,6 +18,10 @@ module  HudPit::Generators::Pit::Fy2022
       'PIT'
     end
 
+    def self.default_project_type_codes
+      GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.keys
+    end
+
     def url
       hud_reports_pit_url(report, { host: ENV['FQDN'], protocol: 'https' })
     end

@@ -241,9 +241,7 @@ module Reporting
     end
 
     def populate!
-      return if Reporting::Housed.advisory_lock_exists?(ADVISORY_LOCK_KEY)
-
-      Reporting::Housed.with_advisory_lock(ADVISORY_LOCK_KEY) do
+      Reporting::Housed.with_advisory_lock(ADVISORY_LOCK_KEY, timeout_seconds: 0) do
         remove_no_longer_used
         client_ids.each_slice(1_000) do |client_id_batch|
           cache_client = GrdaWarehouse::Hud::Client.new
@@ -412,7 +410,7 @@ module Reporting
     def two_project_residential_data(client_id_batch)
       GrdaWarehouse::ServiceHistoryEnrollment.entry.
         where(client_id: client_id_batch).
-        joins(:project, :enrollment, :client).
+        joins(:enrollment, :client, project: :organization).
         merge(GrdaWarehouse::Hud::Project.where(id: two_project_ids)).
         where(
           she_t[:first_date_in_program].lt(Date.current).
@@ -434,7 +432,7 @@ module Reporting
         housing_exit: she_t[:last_date_in_program],
         project_type: she_t[GrdaWarehouse::ServiceHistoryEnrollment.project_type_column],
         destination: she_t[:destination],
-        residential_project: she_t[:project_name].as('residential_project'),
+        residential_project: confidentialized_project_name(she_t[:project_name]).as('residential_project'),
         client_id: she_t[:client_id],
         presented_as_individual: she_t[:presented_as_individual],
         children_only: she_t[:children_only],
@@ -448,7 +446,7 @@ module Reporting
     def two_project_service_data(client_id_batch)
       GrdaWarehouse::ServiceHistoryEnrollment.entry.
         where(client_id: client_id_batch).
-        joins(:project, :enrollment, :client).
+        joins(:enrollment, :client, project: :organization).
         merge(GrdaWarehouse::Hud::Project.where(id: affiliated_projects.values)).
         open_between(start_date: lookback_date, end_date: Date.current).
         order(she_t[:first_date_in_program].desc).
@@ -473,7 +471,7 @@ module Reporting
         service_project_id: p_t[:id],
         search_start: she_t[:first_date_in_program],
         search_end: she_t[:last_date_in_program].as('search_end'),
-        service_project: she_t[:project_name].as('service_project'),
+        service_project: confidentialized_project_name(she_t[:project_name]).as('service_project'),
         client_id: she_t[:client_id],
         enrollment_id: she_t[:id],
       }.freeze
@@ -530,7 +528,7 @@ module Reporting
     def one_project_data(client_id_batch)
       GrdaWarehouse::ServiceHistoryEnrollment.entry.
         where(client_id: client_id_batch).
-        joins(:project, :enrollment, :client).
+        joins(:enrollment, :client, project: :organization).
         merge(GrdaWarehouse::Hud::Project.where(id: one_project_ids)).
         open_between(start_date: lookback_date, end_date: Date.current).
         pluck(*one_project_columns.values).
@@ -565,8 +563,8 @@ module Reporting
         housing_exit: she_t[:last_date_in_program],
         project_type: she_t[GrdaWarehouse::ServiceHistoryEnrollment.project_type_column],
         destination: she_t[:destination],
-        service_project: she_t[:project_name].as('service_project'),
-        residential_project: she_t[:project_name].as('residential_project'),
+        service_project: confidentialized_project_name(she_t[:project_name]).as('service_project'),
+        residential_project: confidentialized_project_name(she_t[:project_name]).as('residential_project'),
         client_id: she_t[:client_id],
         presented_as_individual: she_t[:presented_as_individual],
         children_only: she_t[:children_only],

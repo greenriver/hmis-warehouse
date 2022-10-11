@@ -73,13 +73,14 @@ module GrdaWarehouse::WarehouseReports
           )
         end
         # Layer on the first enrollment in PH if it is earlier
-        clients_with_housed_enrollments.order(e_t[:MoveInDate].asc).pluck(:id, e_t[:MoveInDate], p_t[:ProjectName]).each do |client_id, date, project_name|
+        clients_with_housed_enrollments.order(e_t[:MoveInDate].asc).pluck(:id, e_t[:MoveInDate], p_t[:ProjectName], bool_or(p_t[:confidential], o_t[:confidential])).each do |client_id, date, project_name, confidential|
           next unless dates[client_id].blank? || date < dates[client_id].exit_date
 
+          safe_project_name = GrdaWarehouse::Hud::Project.confidentialize_name(filter.user, project_name, confidential)
           dates[client_id] = OpenStruct.new(
             {
               exit_date: date,
-              destination: project_name,
+              destination: safe_project_name,
             },
           )
         end
@@ -92,16 +93,17 @@ module GrdaWarehouse::WarehouseReports
         # if there are overlapping homeless enrollments, go to the beginning of the first in the
         # overlapping bunch
         homeless_entries.order(she_t[:first_date_in_program].desc).
-          pluck(:id, she_t[:first_date_in_program], she_t[:last_date_in_program], p_t[:ProjectName], p_t[:id]).
-          each do |client_id, entry_date, exit_date, project_name, project_id|
+          pluck(:id, she_t[:first_date_in_program], she_t[:last_date_in_program], p_t[:ProjectName], p_t[:id], bool_or(p_t[:confidential], o_t[:confidential])).
+          each do |client_id, entry_date, exit_date, project_name, project_id, confidential|
             next if client_housed_dates[client_id].exit_date < entry_date
 
+            safe_project_name = GrdaWarehouse::Hud::Project.confidentialize_name(filter.user, project_name, confidential)
             existing_date = dates[client_id]
             # first-time through
             if existing_date.blank?
               dates[client_id] = OpenStruct.new(
                 entry_date: entry_date,
-                project_name: project_name,
+                project_name: safe_project_name,
                 project_id: project_id,
               )
               next
@@ -112,7 +114,7 @@ module GrdaWarehouse::WarehouseReports
 
             dates[client_id] = OpenStruct.new(
               entry_date: entry_date,
-              project_name: project_name,
+              project_name: safe_project_name,
               project_id: project_id,
             )
           end
@@ -121,7 +123,7 @@ module GrdaWarehouse::WarehouseReports
 
     private def homeless_entries
       # Require some recent-ish service to avoid joining in completely empty enrollments
-      client_source.joins(service_history_enrollments: [:project, :enrollment]).
+      client_source.joins(service_history_enrollments: [:project, :enrollment, :organization]).
         merge(
           GrdaWarehouse::ServiceHistoryEnrollment.homeless.
           entry.
@@ -147,7 +149,7 @@ module GrdaWarehouse::WarehouseReports
     private def client_scope
       scope = client_source.destination_visible_to(filter.user).
         send(filter.sub_population).
-        joins(source_enrollments: :project).
+        joins(source_enrollments: [:project, :organization]).
         merge(GrdaWarehouse::Hud::Project.viewable_by(filter.user))
       scope = scope.merge(GrdaWarehouse::Hud::Project.where(id: filter.effective_project_ids)) if filter.effective_project_ids.reject(&:zero?).any?
       scope = scope.where(id: cohort_client_scope.select(:client_id)) if filter.cohort_ids.any?

@@ -173,7 +173,7 @@ module TxClientReports
         end
         {
           project_id: project.id,
-          project_name: project.ProjectName,
+          project_name: project.name(@filter.user),
           service_date: enrollment.first_date_in_program,
           report_start: @filter.start,
           entry_after_start: enrollment.first_date_in_program > @filter.start,

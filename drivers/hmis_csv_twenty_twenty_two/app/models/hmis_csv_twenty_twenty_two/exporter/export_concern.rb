@@ -18,6 +18,10 @@ module HmisCsvTwentyTwentyTwo::Exporter::ExportConcern
       test_exporter.hmis_class_for(self)
     end
 
+    def self.temp_model_name
+      "#{name.demodulize}Temp"
+    end
+
     def self.test_exporter
       raise 'Only available for testing' unless Rails.env.test?
 

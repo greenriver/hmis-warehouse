@@ -27,16 +27,24 @@
   .row
     .col-3
       - if file.visible_in_window
-        %em This file is visible in the window
-      .jThumb.mt-2{data: {file: file.id}}
+        .font-italic.mb-2 This file is visible in the window
+      - if file.content_type != 'image/jpeg'
+        .mb-2
+          = link_to preview_client_file_path(id: file.id), class: 'btn btn-secondary btn-sm', target: '_blank' do
+            %span.icon-eye
+            Preview
+      - else
+        .jThumb.mb-2{data: {file: file.id}}
       - if file.content.present?
-        = link_to appropriate_file_path(id: file.id), class: 'btn btn-icon-only btn-secondary icon-lg mt-2' do
-          %i.icon-download2
+        %div
+          = link_to appropriate_file_path(id: file.id), class: 'btn btn-secondary btn-sm' do
+            %span.icon-download2
+            Download
     .col-4
       - file.tag_list.each do |tag|
         - included_info = @available_tags[tag]&.included_info
         .client__file-tags.mb-2
-          - if included_info
+          - if included_info.present?
             .files-included-info
               %em Contains:
               = included_info
@@ -57,14 +65,18 @@
             %i.icon-flag
             Active
         - if @consent_editable
-          = simple_form_for file, remote: true, url: appropriate_file_path(id: file.id) do |f|
-            = f.input :consent_form_signed_on, as: :date_picker, label: 'Effective Date/Signed On', input_html: { disabled: true, class: 'submit-on-change enable-on-load' }
+          - unless GrdaWarehouse::Config.get(:release_duration) == 'Use Expiration Date'
+            = simple_form_for file, remote: true, url: appropriate_file_path(id: file.id) do |f|
+              = f.input :consent_form_signed_on, as: :date_picker, label: 'Effective Date/Signed On', input_html: { disabled: true, class: 'submit-on-change enable-on-load' }
           - if can_confirm_housing_release? && ! GrdaWarehouse::Config.get(:auto_confirm_consent)
             = simple_form_for file, remote: true, url: appropriate_file_path(id: file.id) do |f|
               .mt-2
                 = f.input :consent_form_confirmed, as: :boolean, input_html: { class: 'submit-on-change' }, label: _('Consent form confirmed')
           = simple_form_for file, remote: true, url: appropriate_file_path(id: file.id) do |f|
             = f.input :consent_revoked_at, as: :date_picker, label: 'Revoked or Refused On', input_html: { disabled: true, class: 'submit-on-change enable-on-load' }
+          - if GrdaWarehouse::Config.get(:release_duration) == 'Use Expiration Date'
+            = simple_form_for file, remote: true, url: appropriate_file_path(id: file.id) do |f|
+              = f.input :expiration_date, as: :date_picker, label: 'Expiration Date', input_html: { disabled: true, class: 'submit-on-change enable-on-load' }
         - else
           - if file.consent_form_confirmed
             %dl

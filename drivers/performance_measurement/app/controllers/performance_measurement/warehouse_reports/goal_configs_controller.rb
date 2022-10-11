@@ -43,7 +43,7 @@ module PerformanceMeasurement::WarehouseReports
     end
 
     def goal_params
-      params.require(:goal).permit(
+      p = params.require(:goal).permit(
         :coc_code,
         :people,
         :capacity,
@@ -55,6 +55,8 @@ module PerformanceMeasurement::WarehouseReports
         :recidivism_24_months,
         :income,
       )
+      p[:coc_code] = :default if p[:coc_code].blank?
+      p
     end
 
     private def flash_interpolation_options

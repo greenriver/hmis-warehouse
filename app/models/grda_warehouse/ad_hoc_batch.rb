@@ -48,9 +48,7 @@ class GrdaWarehouse::AdHocBatch < GrdaWarehouseBase
   end
 
   def self.process!
-    return if advisory_lock_exists?('ad_hoc_processing')
-
-    with_advisory_lock('ad_hoc_processing') do
+    with_advisory_lock('ad_hoc_processing', timeout_seconds: 0) do
       un_started.each(&:process!)
     end
   end

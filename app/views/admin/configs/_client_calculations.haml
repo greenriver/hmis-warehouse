@@ -4,6 +4,7 @@
     = f.input :project_type_override, label: 'Override ALL project types?', hint: 'Treat the Project Type Override as a global override instead of just an override for federal reporting.'
     = f.input :so_day_as_month, label: 'Extrapolate all street outreach contacts to cover the entire month?'
     = f.input :chronic_definition, collection: GrdaWarehouse::Config.available_chronic_definitions, as: :select_two
+    = f.input :verified_homeless_history_method, collection: GrdaWarehouse::Config.available_verified_homeless_history_methods, as: :select_two, label: 'Which enrollments should be included when generating a verified homeless history file?'
     = f.input :verified_homeless_history_visible_to_all, label: 'Should everyone with client file access be able to see all verified homeless history files?'
     = f.input :allow_multiple_file_tags, label: 'Should client files be allowed to have more than one tag?'
     = f.input :vispdat_prioritization_scheme, collection: GrdaWarehouse::Config.available_vispdat_prioritization_schemes, label: 'How should we prioritize VI-SPDAT scores for CAS', include_blank: false, as: :select_two
@@ -14,3 +15,4 @@
     = f.input :enable_youth_hrp, label: 'Enable Youth Housing Resolution Plans'
     = f.input :enable_youth_unstably_housed, label: 'Enable youth Unstably Housed option'
     = f.input :warehouse_client_name_order, label: 'How should the names on clients be calculated?', collection: GrdaWarehouse::Config.available_warehouse_client_name_orders, as: :select_two
+    = f.input :supplemental_enrollment_importer, label: 'What version of the supplemental enrollment importer should we use.', collection: GrdaWarehouse::Config.available_supplemental_enrollment_importers, as: :select_two

@@ -7,7 +7,8 @@
 module GrdaWarehouse::Hud
   class User < Base
     include HudSharedScopes
-    include ::HMIS::Structure::User
+    include ::HmisStructure::User
+    include ::HmisStructure::Shared
     include RailsDrivers::Extensions
 
     attr_accessor :source_id

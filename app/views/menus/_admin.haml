@@ -10,9 +10,9 @@
           = _('Data Sources')
     - if current_user.can_see_raw_hmis_data?
       %li.o-menu__item
-        = link_to hmis_path, class: 'o-menu__link' do
+        = link_to source_data_path, class: 'o-menu__link' do
           = _('HMIS Source Data')
-    - if can_edit_project_groups?
+    - if can_edit_some_project_groups?
       %li.o-menu__item
         = link_to project_groups_path, class: 'o-menu__link' do
           = _('Project Groups')

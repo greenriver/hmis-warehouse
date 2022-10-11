@@ -6,7 +6,7 @@
 
 module HmisCsvTwentyTwentyTwo::Importer
   class CurrentLivingSituation < GrdaWarehouse::Hud::Base
-    include ::HMIS::Structure::CurrentLivingSituation
+    include ::HmisStructure::CurrentLivingSituation
     include ImportConcern
 
     # Because GrdaWarehouse::Hud::* defines the table name, we can't use table_name_prefix :(

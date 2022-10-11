@@ -23,7 +23,7 @@ module CensusTracking
         map do |project|
           [
             HUD.project_type(project.computed_project_type) || 'Unknown Project Type',
-            project.organization.name,
+            project.organization.name(@filter.user),
             project.name(@filter.user),
             project.id,
           ]

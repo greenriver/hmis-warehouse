@@ -57,7 +57,7 @@ module HudPathReport::Generators::Fy2021
       ['Deceased', 24],
       ['Other', 17],
       ['No exit interview completed', 30],
-      ['Client doesn’t know', 8],
+      ['Client doesn\'t know', 8],
       ['Client refused', 9],
       ['Data not collected', 99],
       ['Subtotal', :subtotal],

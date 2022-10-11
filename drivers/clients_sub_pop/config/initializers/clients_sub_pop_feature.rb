@@ -12,23 +12,25 @@
 # use with caution!
 RailsDrivers.loaded << :clients_sub_pop
 
-AvailableSubPopulations.add_sub_population(
-  'All Clients',
-  :clients,
-  'ClientsSubPop::GrdaWarehouse::WarehouseReports::Dashboard::Clients',
-)
+Rails.application.reloader.to_prepare do
+  AvailableSubPopulations.add_sub_population(
+    'All Clients',
+    :clients,
+    'ClientsSubPop::GrdaWarehouse::WarehouseReports::Dashboard::Clients',
+  )
 
-GrdaWarehouse::Census.add_population(
-  population: :all_clients,
-  factory: 'ClientsSubPop::GrdaWarehouse::Census::ClientsFactory',
-)
+  GrdaWarehouse::Census.add_population(
+    population: :all_clients,
+    factory: 'ClientsSubPop::GrdaWarehouse::Census::ClientsFactory',
+  )
 
-SubpopulationHistoryScope.add_sub_population(
-  :clients,
-  :clients,
-)
+  SubpopulationHistoryScope.add_sub_population(
+    :clients,
+    :clients,
+  )
 
-Reporting::MonthlyReports::Base.add_available_type(
-  :clients,
-  'ClientsSubPop::Reporting::MonthlyReports::Clients',
-)
+  Reporting::MonthlyReports::Base.add_available_type(
+    :clients,
+    'ClientsSubPop::Reporting::MonthlyReports::Clients',
+  )
+end

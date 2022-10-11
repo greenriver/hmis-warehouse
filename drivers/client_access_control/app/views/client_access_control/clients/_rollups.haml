@@ -17,7 +17,7 @@
     %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: :other_enrollments}}
       %header
         %h1.h3 Other Enrollments
-    - if GrdaWarehouse::Config.get(:eto_api_available)
+    - if GrdaWarehouse::Config.get(:eto_api_available) || RailsDrivers.loaded.include?(:eccovia_data) && @client.source_eccovia_case_managers.exists?
       %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: :assessments}}
         %header
           %h1.h3 Assessments
@@ -28,7 +28,7 @@
 
 %section.row.o-dashboard__block--primary
   .col-sm-6
-    - if GrdaWarehouse::Config.get(:eto_api_available)
+    - if GrdaWarehouse::Config.get(:eto_api_available) || RailsDrivers.loaded.include?(:eccovia_data) && @client.source_eccovia_case_managers.exists?
       %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: :contact_information}}
         %header
           %h1.h3 Contact Information
@@ -39,7 +39,7 @@
         .ml-auto.text-small
           = link_to 'details', enrollment_details_client_path(@client, anchor: 'full_services')
   .col-sm-6
-    - if GrdaWarehouse::Config.get(:eto_api_available)
+    - if GrdaWarehouse::Config.get(:eto_api_available) || RailsDrivers.loaded.include?(:eccovia_data) && @client.source_eccovia_case_managers.exists?
       %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: 'case_manager'}}
         %header
           %h1.h3 Case Manager

@@ -31,21 +31,27 @@ module HmisCsvTwentyTwentyTwo::Exporter
       row
     end
 
-    def self.export_scope(enrollment_scope:, export:, hmis_class:, **_)
+    def self.export_scope(enrollment_scope:, export:, hmis_class:, temp_class:, **_)
       join_tables = enrollment_related_join_tables(export)
-      export_scope = hmis_class.joins(join_tables).preload([join_tables] + [:user])
+      intermediate_scope = hmis_class.joins(join_tables)
 
-      export_scope = case export.period_type
+      intermediate_scope = case export.period_type
       when 3
-        export_scope.merge(enrollment_scope).
+        intermediate_scope.merge(enrollment_scope).
           where(hmis_class.arel_table[:AssessmentDate].lteq(export.end_date))
       when 1
-        export_scope.merge(enrollment_scope).
+        intermediate_scope.merge(enrollment_scope).
           modified_within_range(range: (export.start_date..export.end_date))
       end
+
+      ids = intermediate_scope.distinct.pluck(:id)
+      temp_class.import([:source_id], ids.map { |id| [id] }, batch_size: 50_000)
+      tmp_export_table = temp_class.arel_table
+      export_scope = hmis_class.joins(hmis_class.arel_table.join(tmp_export_table).on(hmis_class.arel_table[:id].eq(tmp_export_table[:source_id])).join_sources)
+
       note_involved_user_ids(scope: export_scope, export: export)
 
-      export_scope.distinct
+      export_scope.preload([join_tables] + [:user]).distinct
     end
 
     def self.transforms

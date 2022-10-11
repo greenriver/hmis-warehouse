@@ -1,6 +1,6 @@
 .well.warehouse-reports__completed
   %p This report was generated on #{@report.completed_at.to_date} by #{@report.user&.name} with the following limits.
-  .report-parameters.parameter-label= @report.filter_object.describe_filter_as_html
+  .report-parameters.parameter-label= @report.filter_object.describe_filter_as_html(@report.known_params)
   = simple_form_for(@report, url: path_to_report, as: :public_report) do |f|
     %p You can optionally specify a sub-folder to make this report unique from others.  This often takes the form of a CoC code, or version number.  If you only expect to have one published version of the report, you can leave it blank.
     .d-flex

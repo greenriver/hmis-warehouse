@@ -6,7 +6,7 @@
 
 module HmisCsvTwentyTwentyTwo::Importer
   class HealthAndDv < GrdaWarehouse::Hud::Base
-    include ::HMIS::Structure::HealthAndDv
+    include ::HmisStructure::HealthAndDv
     include ImportConcern
 
     # Because GrdaWarehouse::Hud::* defines the table name, we can't use table_name_prefix :(

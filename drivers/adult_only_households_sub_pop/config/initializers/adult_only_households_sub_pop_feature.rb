@@ -11,25 +11,26 @@
 #
 # use with caution!
 RailsDrivers.loaded << :adult_only_households_sub_pop
+Rails.application.reloader.to_prepare do
+  AvailableSubPopulations.add_sub_population(
+    'Adult only Households',
+    :adult_only_households,
+    'AdultOnlyHouseholdsSubPop::GrdaWarehouse::WarehouseReports::Dashboard::AdultOnlyHouseholds',
+  )
 
-AvailableSubPopulations.add_sub_population(
-  'Adult only Households',
-  :adult_only_households,
-  'AdultOnlyHouseholdsSubPop::GrdaWarehouse::WarehouseReports::Dashboard::AdultOnlyHouseholds',
-)
+  # GrdaWarehouse::Census.add_population(
+  #   population: :adult_only_households,
+  #   scope: GrdaWarehouse::ServiceHistoryEnrollment.adult_only_households,
+  #   factory: AdultOnlyHouseholdsSubPop::GrdaWarehouse::Census::AdultOnlyHouseholdsFactory,
+  # )
 
-# GrdaWarehouse::Census.add_population(
-#   population: :adult_only_households,
-#   scope: GrdaWarehouse::ServiceHistoryEnrollment.adult_only_households,
-#   factory: AdultOnlyHouseholdsSubPop::GrdaWarehouse::Census::AdultOnlyHouseholdsFactory,
-# )
+  SubpopulationHistoryScope.add_sub_population(
+    :adult_only_households,
+    :adult_only_households,
+  )
 
-SubpopulationHistoryScope.add_sub_population(
-  :adult_only_households,
-  :adult_only_households,
-)
-
-Reporting::MonthlyReports::Base.add_available_type(
-  :adult_only_households,
-  'AdultOnlyHouseholdsSubPop::Reporting::MonthlyReports::AdultOnlyHouseholds',
-)
+  Reporting::MonthlyReports::Base.add_available_type(
+    :adult_only_households,
+    'AdultOnlyHouseholdsSubPop::Reporting::MonthlyReports::AdultOnlyHouseholds',
+  )
+end

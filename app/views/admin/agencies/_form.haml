@@ -4,7 +4,7 @@
       = f.error_notification
       .form-inputs
         = f.input :name
-        = f.association :consent_limits, label: 'CoC Codes', collection: ConsentLimit.available_cocs, as: :select_two
+        = f.association :consent_limits, label: 'CoC Codes', collection: ConsentLimit.available_cocs, as: :select_two, input_html: { multiple: true }
         = f.input :expose_publically, label: 'Include this agency in a publicly available list of agencies'
 
       .form_actions

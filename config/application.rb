@@ -21,6 +21,9 @@ module BostonHmis
     config.action_cable.url = ENV.fetch('ACTION_CABLE_URL') { "wss://#{ENV['FQDN']}/cable" }
 
     Rails.application.config.active_record.belongs_to_required_by_default = true
+    # https://discuss.rubyonrails.org/t/cve-2022-32224-possible-rce-escalation-bug-with-serialized-columns-in-active-record/81017
+    # config.active_record.yaml_column_permitted_classes = [Symbol, Date, Time]
+    config.active_record.use_yaml_unsafe_load = true
 
     # Use the responders controller from the responders gem
     config.app_generators.scaffold_controller :responders_controller
@@ -50,18 +53,9 @@ module BostonHmis
       generate.test_framework :rspec
     end
 
-    config.lograge.enabled = true
-    config.lograge.custom_options = ->(event) do
-      {
-        server_protocol: event.payload[:server_protocol],
-        remote_ip: event.payload[:remote_ip],
-        session_id: event.payload[:session_id],
-        user_id: event.payload[:user_id],
-        pid: event.payload[:pid],
-        request_id: event.payload[:request_id],
-        request_start: event.payload[:request_start]
-      }
-    end
+    require_relative("setup_logging")
+    setup_logging = SetupLogging.new(config)
+    setup_logging.run!
 
     # default to not be sandbox email mode
     config.sandbox_email_mode = false
@@ -88,9 +82,12 @@ module BostonHmis
     config.hmis_exporters = []
     config.synthetic_event_types = []
     config.synthetic_assessment_types = []
+    config.synthetic_youth_education_status_types = []
     config.patient_dashboards = []
     config.hmis_migrations = {}
     config.hmis_data_lake = nil
     config.custom_imports = []
+    config.supplemental_enrollment_importers = {}
+    config.help_links = []
   end
 end

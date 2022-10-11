@@ -3,10 +3,10 @@
 %h1= content_for :title
 = render '/warehouse_reports/breadcrumbs', tab: 'data-quality'
 .well
-  Calculate the length of stay in days for clients in the respective programs whose enrollment
+  Calculate the length of stay in days for clients in the respective projects whose enrollment
   periods overlap the interval in question. Days prior to the beginning of the interval are included but not
   those after. Only those days are included for which there is a record of the client receiving service from
-  the program.
+  the project.
 
 .jFormContainer
   = render 'form'
@@ -24,9 +24,9 @@
 %table.table.table-sm.table-hover.length-table
   %thead
     %tr
-      %th Program
+      %th Project
       - @headers.each_with_index do |header, i|
-        %th{ class: ( 'lightest-gray' if i % 2 == 0 ), data: ( { toggle: 'tooltip', title: 'days in program' } if header == 'average' ) }
+        %th{ class: ( 'lightest-gray' if i % 2 == 0 ), data: ( { toggle: 'tooltip', title: 'days in project' } if header == 'average' ) }
           = header
   %tbody
 

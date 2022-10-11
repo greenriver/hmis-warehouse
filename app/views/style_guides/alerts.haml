@@ -78,7 +78,7 @@
 .mb-6
   = render 'buttons'
 
-%div
+.mb-6
   .d-flex.mr-3.mb-5
     .c-tag.c-tag--warning.client-flag
       .c-tag__wrapper
@@ -104,13 +104,16 @@
           .icon-house
         .c-tag__content
           %span Housed in CAS on #{Date.current}
+.mb-6
+  .label.label-success 44
+  .label.label-warning 44
+  .label.label-danger 44
+  .label.label-info 44
 
-.label.label-success 44
-.label.label-warning 44
-.label.label-danger 44
-.label.label-info 44
+.mb-6
+  = render 'tags'
 
-.cohorts
+.cohorts.mb-6
   %h3 Cohort Table
   %table.table-sm.table-striped.table-right-border
     %thead
@@ -154,26 +157,3 @@
         %td Test
         %td
           %a{href: '#'} This goes no where.
-
-.enrollments
-  %div
-    %span.id-sq
-      .rollup__square.c-tag-pill{style: 'display: inline-block; min-height: 10px; min-width: 10px; background-color: rgb(0, 179, 71); margin: auto;'}GRDA
-    .client__service_type_4.enrollment__project_type
-      %em.service-type__program-type{data: {title: 'Street Outreach', toggle: :tooltip}} SO
-  %div
-    %span.id-sq
-      .c-tag-pill.rollup__square{style: 'display: inline-block; min-height: 10px; min-width: 10px; background-color: rgb(179, 0, 0); margin: auto;'}BM
-    .client__service_type_8.enrollment__project_type
-      %em.service-type__program-type{data: {title: 'Street Outreach', toggle: :tooltip}} SH
-  %div
-    %span.id-sq
-      .rollup__square{style: 'display: inline-block; min-height: 10px; min-width: 10px; background-color: rgb(0, 71, 179); margin: auto;'}BL
-    .client__service_type_1.enrollment__project_type
-      %em.c-tag-pill.service-type__program-type{data: {title: 'Street Outreach', toggle: :tooltip}} ES
-    .confidential_project{data: {title: 'Confidential Project', toggle: :tooltip}} CP
-
-  .c-tag-pill.c-tag-pill--info RD
-  .c-tag-pill.c-tag-pill--success TGH
-  .c-tag-pill.c-tag-pill--warning RD
-  .c-tag-pill.c-tag-pill--danger RD

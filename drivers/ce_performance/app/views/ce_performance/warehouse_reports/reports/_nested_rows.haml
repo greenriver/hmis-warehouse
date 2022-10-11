@@ -1,0 +1,11 @@
+- content_for "panel_collapse_content_#{result_class.name.demodulize.underscore}".to_sym do
+  - result.nested_results.each do |sub_result_class|
+    - sub_result = @report.results_for_display[category_name][:reporting][sub_result_class]
+    = render sub_result, category_name: category_name, result_class: sub_result_class, result: sub_result, pdf: pdf
+- content_for "panel_collapse_heading_#{result_class.name.demodulize.underscore}".to_sym do
+  .d-flex.ml-6
+    %i.icon-angle-right.j-toggle-arrow
+    .j-toggle-text.ml-2.show Show #{result.nested_header}
+    .j-toggle-text.ml-2.hide Hide #{result.nested_header}
+.minimal-collapse
+  = render 'common/panel_collapse', id: result_class.name.demodulize.underscore, title: "Show #{result.nested_header}", content: "_#{result_class.name.demodulize.underscore}", panel_body_padded: 'n', wrapper_class: 'mb-0 performance-measurement__collapsiblePanel', default_open: pdf ? 'yes' : 'no', allow_toggle: pdf ? 'no' : 'yes', heading_slug: "_#{result_class.name.demodulize.underscore}", arrow_icon: 'icon-angle'

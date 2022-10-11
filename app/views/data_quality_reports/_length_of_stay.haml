@@ -24,7 +24,7 @@
           - p_class = "client__service_type_#{p_type}"
           %tr
             %td
-              = project.ProjectName
+              = project.name(current_user)
             %td
               %span{class: "client__service_type_#{project.ProjectType}"}
                 .enrollment__project_type{class: p_class}

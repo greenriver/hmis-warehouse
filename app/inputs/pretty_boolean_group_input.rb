@@ -9,6 +9,7 @@ class PrettyBooleanGroupInput < SimpleForm::Inputs::CollectionRadioButtonsInput
     merged_input_options = merge_wrapper_options(input_html_options, wrapper_options)
     radio_group = template.content_tag(:div) do
       current_value = object.send(attribute_name)
+      template.concat(@builder.hidden_field(attribute_name, name: "#{object_name}[#{attribute_name}][]", value: ''))
       collection.each do |label, value, _|
         name = "#{object_name}[#{attribute_name}]"
         if options[:multiple]

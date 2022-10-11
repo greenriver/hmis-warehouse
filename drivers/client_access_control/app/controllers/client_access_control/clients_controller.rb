@@ -56,6 +56,7 @@ class ClientAccessControl::ClientsController < ApplicationController
 
     @clients = @clients.
       distinct.
+      destination.
       preload(preloads)
 
     @pagy, @clients = pagy(@clients)

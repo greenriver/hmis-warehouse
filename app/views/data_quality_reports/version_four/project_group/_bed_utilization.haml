@@ -5,7 +5,7 @@
       %h3 Bed Inventory
       %ul.list-unstyled
         - @report.report_projects.each do |rp|
-          %li #{rp.project_name}: #{pluralize(rp.bed_inventory, 'bed')}
+          %li #{rp.safe_project_name(current_user)}: #{pluralize(rp.bed_inventory, 'bed')}
         %li
           %strong= pluralize(@report.report_project_group.bed_inventory, 'bed')
       %hr
@@ -13,7 +13,7 @@
 
       %ul.list-unstyled
         - @report.report_projects.each do |rp|
-          %li #{rp.project_name}: #{pluralize(rp.average_nightly_clients, 'client')}
+          %li #{rp.safe_project_name(current_user)}: #{pluralize(rp.average_nightly_clients, 'client')}
         %li
           %strong Overall: #{pluralize(@report.report_project_group.average_nightly_clients, 'client')}
       %hr
@@ -21,7 +21,7 @@
 
       %ul.list-unstyled
         - @report.report_projects.each do |rp|
-          %li #{rp.project_name}: #{rp.average_bed_utilization}%
+          %li #{rp.safe_project_name(current_user)}: #{rp.average_bed_utilization}%
 
         %li
           %strong Overall: #{@report.report_project_group.average_bed_utilization}%

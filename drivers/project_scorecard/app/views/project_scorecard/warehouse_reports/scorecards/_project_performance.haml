@@ -234,6 +234,7 @@
         Returns to Homelessness
       %th
         = simple_format(_('Reducing returns to homelessness is one of the most important measures of program success and is HUD System Performance Measure 2a.'))
+        = link_to_spm('SPM Measure 2', 'Measure 2')
       %th
 
       %td.text-center= f.input :percent_returns_to_homelessness, label: false, as: :read_only

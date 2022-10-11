@@ -1,4 +1,4 @@
 .mb-4
   = render 'warehouse_reports/health/agency_performance/form'
 .mb-6
-  = render 'warehouse_reports/health/agency_performance/table', detail_path: [:detail, :health, :patients], permission: current_user.has_some_patient_access?
+  = render 'warehouse_reports/health/agency_performance/table', report: @report, entities: @agencies, entity_label: 'Agency', totals: @total, detail_path: [:detail, :health, :patients], permission: current_user.has_some_patient_access?

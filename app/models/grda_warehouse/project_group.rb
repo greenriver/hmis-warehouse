@@ -34,7 +34,17 @@ module GrdaWarehouse
       end
     end
     scope :editable_by, ->(user) do
-      viewable_by(user)
+      if user.can_edit_project_groups?
+        current_scope
+      elsif user.can_edit_assigned_project_groups?
+        if current_scope.present?
+          current_scope.merge(user.project_groups)
+        else
+          user.project_groups
+        end
+      else
+        none
+      end
     end
 
     scope :text_search, ->(text) do
@@ -179,6 +189,10 @@ module GrdaWarehouse
         'ProjectID',
         'data_source_id',
       ]
+    end
+
+    def effective_project_ids
+      filter.effective_project_ids
     end
 
     def project_ids

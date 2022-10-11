@@ -15,7 +15,7 @@ wb.add_worksheet(name: 'Report Info') do |sheet|
     [@report.title],
     style: header_style,
   )
-  @filter.selected_params_for_display.each do |title, value|
+  @report.filter.selected_params_for_display.each do |title, value|
     value = value.join(', ') if value.is_a?(Array)
     sheet.add_row(
       [

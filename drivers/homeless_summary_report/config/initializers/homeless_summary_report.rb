@@ -11,3 +11,15 @@
 #
 # use with caution!
 RailsDrivers.loaded << :homeless_summary_report
+
+Rails.application.config.help_links << {
+  controller_path: 'homeless_summary_report/warehouse_reports/reports',
+  action_name: 'index',
+  external_url: 'https://github.com/greenriver/hmis-warehouse/wiki/System-Performance-Measures-by-Sub-Population',
+}
+
+Rails.application.config.help_links << {
+  controller_path: 'homeless_summary_report/warehouse_reports/reports',
+  action_name: 'show',
+  external_url: 'https://github.com/greenriver/hmis-warehouse/wiki/System-Performance-Measures-by-Sub-Population',
+}

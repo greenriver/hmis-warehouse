@@ -5,6 +5,6 @@ class AddCanSeeConfidentialEnrollmentDetails < ActiveRecord::Migration[4.2]
   end
 
   def down
-    remove_column :roles, :can_view_confidential_enrollment_details
+    remove_column :roles, :can_view_confidential_project_names
   end
 end

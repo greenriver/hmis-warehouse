@@ -1,17 +1,21 @@
-- url = client_health_flexible_service_vprs_path(patient.client)
+- url = client_health_flexible_service_vprs_path(client)
 
 .card.c-card-overflow-inherit.d-block
   .card-content.px-4.pt-4.pb-2
     %header.d-flex.flex-wrap.row
       .col-md-12.col-lg-3.pr-0
         %h1.flex-grow-1
-          = link_to_if patient.client.present?, patient.name, url
+          = link_to client.name, url
         .mb-4
           .c-detail-block
             .c-detail-block__title
               DOB
             .c-detail-block__value
-              = "#{patient.birthdate} (#{patient.age(on_date: Date.current)})"
+              - if client.patient.present?
+                - patient = client.patient
+                = "#{patient.birthdate} (#{patient.age(on_date: Date.current)})"
+              - else
+                = "#{client.DOB} (#{client.age})"
       .col-md-12.col-lg-9
         .row.align-items-stretch.justify-content-end.row--internal
           .col-md-4.card-wrapper
@@ -43,11 +47,8 @@
         .card.c-card-overflow-inherit.c-card--internal.c-card--form
           .card-content.p-4
             %h2.h4.card-title Staff
-            - if patient.client.present?
-              = simple_form_for patient, as: :patient, url: client_health_patient_url(patient.client, patient), remote: true do |f|
-                = f.input :housing_navigator_id, collection: patient.available_housing_navigators, input_html: {class: [:jHousingNavigator], id: "patient_housing_navigator_id_#{patient.id}"}, as: :select_two
-            - else
-              Patient record is not correctly assigned
+            = simple_form_for client, url: client_health_flexible_service_staff_path(client), remote: true do |f|
+              = f.input :health_housing_navigator_id, label: 'Housing Navigator', collection: client.available_health_housing_navigators, input_html: {class: [:jHousingNavigator], id: "patient_housing_navigator_id_#{client.id}"}, as: :select_two
       .col-md-9.card-wrapper
         .card.c-card--internal
           .card-content.p-4

@@ -25,17 +25,36 @@
       = f.submit value: 'Save Site Configuration', class: 'btn btn-primary'
 = content_for :page_js do
   :javascript
-    additionalInputSelectors = {
-      'active_clients': '.jCasSyncMonths',
-      'project_group': '.jCasSyncProjectGroup',
-    }
-    $('.jSyncMethod').on('change', function(e) {
-      for (const method of Object.keys(additionalInputSelectors)) {
-        if ($('.jSyncMethod').val() == method) {
-          $(additionalInputSelectors[method]).show();
-        } else {
-          $(additionalInputSelectors[method]).hide();
+    // Conditionally show certain input elements
+    const conditionalSelectors = {
+      '.jSyncMethod': [
+        {
+          value: 'active_clients',
+          show: '.jCasSyncMonths',
+        },
+        {
+          value: 'project_group',
+          show: '.jCasSyncProjectGroup',
         }
-      }
-    });
-    $('.jSyncMethod').trigger('change');
+      ],
+      '.jYouthHohCohort': [
+        {
+          value: true,
+          show: '.jYouthHohProjectGroup',
+        },
+      ]
+    };
+    for (const conditionClass of Object.keys(conditionalSelectors)) {
+      $(conditionClass).on('change', function(e) {
+        const selectors = conditionalSelectors[conditionClass]
+        selectors.forEach(({ value, show}) => {
+          const currentValue = typeof value === 'boolean' ? $(conditionClass).is(":checked") : $(conditionClass).val();
+          if (currentValue == value) {
+            $(show).show();
+          } else {
+            $(show).hide();
+          }
+        })
+      });
+      $(conditionClass).trigger('change');
+    }

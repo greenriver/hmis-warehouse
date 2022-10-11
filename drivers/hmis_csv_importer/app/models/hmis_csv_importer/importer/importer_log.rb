@@ -34,6 +34,10 @@ module HmisCsvImporter::Importer
       end
     end
 
+    def any_errors_or_validations?
+      import_errors.exists? || import_validations.exists?
+    end
+
     def import_validations_count(filename, files)
       validation_classes = HmisCsvImporter::HmisCsvValidation::Base.validation_classes.map(&:to_s)
       loader_class = files.to_h.invert[filename]

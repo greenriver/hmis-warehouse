@@ -7,7 +7,7 @@
 module HudHic::Fy2022
   class Funder < ::GrdaWarehouseBase
     self.table_name = 'hud_report_hic_funders'
-    include ::HMIS::Structure::Funder
+    include ::HmisStructure::Funder
     acts_as_paranoid
 
     has_many :report_funders, as: :universe_membership, dependent: :destroy

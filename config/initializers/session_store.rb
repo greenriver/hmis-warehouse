@@ -1,4 +1,4 @@
-Rails.logger.debug "Running initializer in #{__FILE__}"
+# Rails.logger.debug "Running initializer in #{__FILE__}"
 
 # Be sure to restart your server when you modify this file.
 

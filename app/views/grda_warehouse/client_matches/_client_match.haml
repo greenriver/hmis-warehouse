@@ -113,10 +113,10 @@
                 = enrollments.join('<br />').html_safe
     .client-match--actions
       - if match.candidate?
-        = link_to('Accept', client_match_path(match, format: :json, client_match: {status: 'accepted'}), {remote: true, data: {disable_with: 'Saving...', toggle: :tooltip, title: "Merge proposed: <br />#{client_b.full_name} #{client_b.uuid} <br />into existing: <br />#{client_a.full_name} #{client_a.uuid}".html_safe, placement: :right, html: :true}, method: :patch, class: 'btn btn-xs btn-success pull-left'})
-        = link_to 'Reject', client_match_path(match, format: :json, client_match: {status: 'rejected'}), remote: true, data: {disable_with: 'Saving...'}, method: :patch, class: 'btn btn-xs btn-danger pull-right'
-        .text-center
+        .d-flex
+          = link_to 'Reject', client_match_path(match, format: :json, client_match: {status: 'rejected'}), remote: true, data: {disable_with: 'Saving...'}, method: :patch, class: 'btn btn-xs btn-danger mr-auto'
           = link_to 'Defer', defer_client_match_path(match), method: :post, class: 'btn btn-xs btn-default'
+          = link_to('Accept', client_match_path(match, format: :json, client_match: {status: 'accepted'}), {remote: true, data: {disable_with: 'Saving...', toggle: :tooltip, title: "Merge proposed: <br />#{client_b.full_name} #{client_b.uuid} <br />into existing: <br />#{client_a.full_name} #{client_a.uuid}".html_safe, placement: :right, html: :true}, method: :patch, class: 'btn btn-xs btn-success  ml-auto'})
 
       - elsif match.accepted?
         = "Accepted: #{match.updated_at} by #{match.updated_by.try(:name)}"

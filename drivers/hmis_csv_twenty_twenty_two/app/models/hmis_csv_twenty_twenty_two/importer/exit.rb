@@ -6,7 +6,7 @@
 
 module HmisCsvTwentyTwentyTwo::Importer
   class Exit < GrdaWarehouse::Hud::Base
-    include ::HMIS::Structure::Exit
+    include ::HmisStructure::Exit
     include ImportConcern
     include ArelHelper
 

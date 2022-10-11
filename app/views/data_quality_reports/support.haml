@@ -1,5 +1,5 @@
 = content_for :modal_title do
-  = "Project Data Quality Report for #{@project.ProjectName} at #{@project.organization.OrganizationName} - Supporting Data"
+  = "Project Data Quality Report for #{@project.name(current_user)} at #{@project.organization_name(current_user)} - Supporting Data"
 - if @data.any?
   - client_link = [:window, :client]
   - if can_view_clients?
@@ -13,11 +13,13 @@
     %thead
       %tr
         - @data[:headers].each do |t|
+          - next if t == 'Project ID'
           %th= t
     %tbody
       - @data[:counts].each do |row|
         %tr
           - row.each_with_index do |v, index|
+            - next if index == @data[:headers].find_index('Project ID')
             %td
               - if @data[:headers].first == 'Client ID' && index == 0
                 = link_to(v, polymorphic_path(client_link, {id: v}), target: '_blank')

@@ -179,6 +179,12 @@ module Filter::FilterScopes
       scope.in_project(@filter.project_ids).merge(GrdaWarehouse::Hud::Project.viewable_by(@filter.user))
     end
 
+    private def filter_for_cohorts(scope)
+      return scope if @filter.cohort_ids.blank?
+
+      scope.on_cohort(cohort_id: @filter.cohort_ids)
+    end
+
     private def filter_for_funders(scope)
       return scope if @filter.funder_ids.blank?
       return scope unless @filter.user.report_filter_visible?(:funder_ids)

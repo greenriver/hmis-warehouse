@@ -1,0 +1,33 @@
+- title = _('Coordinated Entry Performance Goal')
+- report = CePerformance::Report.new(user: current_user)
+- content_for :title, title
+
+= content_for :crumbs do
+  = link_to ce_performance_warehouse_reports_goal_configs_path do
+    &laquo; #{_('Coordinated Entry Performance Goal Configurator')}
+%h1.mb-5= title
+
+= simple_form_for @goal, url: ce_performance_warehouse_reports_goal_config_path(@goal), as: :goal do |f|
+  = f.input :coc_code, label: 'CoC Code', collection: @goal.available_cocs, as: :select_two, include_blank: 'Default'
+  .card
+    %table.table.c-table--indicator.mb-0
+      %tbody
+        - report.goal_configurations.each.with_index do |(title, group), i|
+          - rowspan = group.keys.count + group.values.map(&:keys).flatten.count + 1
+          %tr.c-table__row{ class: "c-table__row--highlight-#{i + 1}" }
+            %th.level.w-20{rowspan: rowspan}
+              %h2= title
+          - group.each do |result_title, sub_group|
+            %tr.c-table__row{ class: "c-table__row--highlight-#{i + 1}" }
+              %th.level{colspan: 2}
+                %h3.text-center= result_title
+            - sub_group.each do |key, titles|
+              %tr
+                %td
+                  .d-flex
+                    .w-30= f.input key, label: 'Goal value'
+                  - titles.each do |_, description|
+                    .mb-4
+                      = description % { goal: @goal[key] }
+  .d-flex
+    .ml-auto.mt-4= f.submit 'Update Goal'

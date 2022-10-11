@@ -6,7 +6,7 @@
 
 module HmisCsvTwentyTwenty::Importer
   class Client < GrdaWarehouse::Hud::Base
-    include ::HMIS::Structure::Client
+    include ::HmisStructure::Client
     include ImportConcern
 
     # Because GrdaWarehouse::Hud::* defines the table name, we can't use table_name_prefix :(

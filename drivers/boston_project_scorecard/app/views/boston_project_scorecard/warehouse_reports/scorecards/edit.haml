@@ -1,0 +1,41 @@
+= render 'breadcrumbs'
+- if @report.pending?
+  %h1
+    = render 'layouts/footer_seal'
+    = @report.title
+  .alert.alert-info
+    %p This report is being pre-populated with data, please check back later.
+- else
+  = simple_form_for @report, url: boston_project_scorecard_warehouse_reports_scorecard_path(@report), html: { class: 'report-form' } do |f|
+    - action = workflow_action
+    .d-flex.mb-4
+      %h1= @report.title
+    .d-flex
+      .ml-auto
+        - if @report.status != 'pre-filled' && @report.admin?(current_user)
+          = f.submit 'Back', class: 'btn btn-secondary mr-2 mb-2'
+        - if action.present?
+          = f.submit action, class: 'btn btn-secondary mb-2'
+        = f.submit 'Save Changes', class: 'btn btn-primary ml-2 mb-2'
+
+    - if @report.status.in?(['pre-filled'])
+      - if @report.secondary_reviewer.blank?
+        %p.alert.alert-warning
+          %i.icon-warning.mr-2
+          There is no secondary reviewer specified, the report will not be emailed automatically.
+      - else
+        .well
+          %p This report will be sent to #{@report.secondary_reviewer&.name_with_email} when the current step is complete:
+    - if @report.status.in?(['ready'])
+      .well
+        %p This report will be sent to #{@report.user&.name_with_email} when the current step is completed.
+
+    = render 'form', f: f
+
+    .d-flex
+      .ml-auto
+        - if action.present?
+          = f.submit action, class: 'btn btn-secondary mb-2'
+        = f.submit 'Save Changes', class: 'btn btn-primary ml-2 mb-2'
+
+  = render 'edit_js'

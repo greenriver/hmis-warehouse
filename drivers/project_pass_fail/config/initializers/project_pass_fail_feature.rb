@@ -11,3 +11,14 @@
 #
 # use with caution!
 RailsDrivers.loaded << :project_pass_fail
+
+Rails.application.config.help_links << {
+  controller_path: 'project_pass_fail/warehouse_reports/project_pass_fail',
+  action_name: 'index',
+  external_url: 'https://github.com/greenriver/hmis-warehouse/wiki/Project-Pass-Fail',
+}
+Rails.application.config.help_links << {
+  controller_path: 'project_pass_fail/warehouse_reports/project_pass_fail',
+  action_name: 'show',
+  external_url: 'https://github.com/greenriver/hmis-warehouse/wiki/Project-Pass-Fail',
+}

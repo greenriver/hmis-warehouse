@@ -13,9 +13,15 @@ module WarehouseReports
     before_action :set_report, only: [:show, :destroy]
 
     def index
-      @range = ::Filters::DateRangeAndProject.new(report_params[:range])
       WarehouseReports::RunActiveVeteransJob.perform_later(report_params.merge(current_user_id: current_user.id)) if params[:commit].present?
       @reports = report_scope.select(report_scope.column_names - ['data']).ordered.limit(50)
+      # Set default filter to prior run
+      options = if report_params[:range].present?
+        report_params[:range]
+      else
+        @reports&.last&.parameters.try(:[], 'range')&.with_indifferent_access
+      end
+      @range = ::Filters::DateRangeAndProject.new(options)
     end
 
     def show

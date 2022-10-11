@@ -20,8 +20,9 @@
     .c-columns
       = render 'entity_column', entity: @data_sources, f: f
       = render 'entity_column', entity: @organizations, f: f
-      = render 'entity_column', entity: @projects, associations: [:data_source, :organization, :coc_code], f: f
+      = render 'entity_column', entity: @project_access_groups, f: f
       = render 'entity_column', entity: @cocs, f: f
+      = render 'entity_column', entity: @projects, associations: [:data_source, :organization, :coc_code, :project_access_group], f: f
 
   .tab-pane.fade#reports-cohorts{role: 'tabpanel', aria: {labelledby: 'reports-cohorts'}}
     .c-columns

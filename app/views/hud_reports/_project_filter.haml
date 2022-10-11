@@ -1,4 +1,3 @@
-- project_types_collection = local_assigns[:project_types_collection] || @filter.available_residential_project_types
 - api_projects_parameters = local_assigns[:api_projects_parameters] || {}
 %h2 Projects to Include
 %p.alert.alert-info
@@ -15,7 +14,7 @@
         = f.input :data_source_ids, collection: @filter.data_source_options_for_select(user: current_user), as: :select_two, input_html: {multiple: true, placeholder: 'Choose Data Sources', data: { 'filter-projects-target' => 'dataSources', action: 'change->filter-projects#update' }}, label: 'Data Sources'
     .row
       .col-sm-6
-        = f.input :project_type_codes, collection: project_types_collection, input_html: { multiple: true, placeholder: 'Choose Project Types', data: { 'filter-projects-target' => 'projectTypes', action: 'change->filter-projects#update' } }, label: 'Project Types', as: :select_two
+        = f.input :project_type_codes, collection: @filter.project_type_code_options_for_select, input_html: { multiple: true, placeholder: 'Choose Project Types', data: { 'filter-projects-target' => 'projectTypes', action: 'change->filter-projects#update' } }, label: 'Project Types', as: :select_two
       .col-sm-6
         = f.input :project_group_ids, collection: @filter.project_groups_options_for_select(user: current_user), as: :select_two, input_html: {multiple: true, placeholder: 'Choose Project Groups', data: { 'filter-projects-target' => 'projectGroups', action: 'change->filter-projects#update' }}, label: 'Project Groups'
   .col-md-4

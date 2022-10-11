@@ -22,8 +22,7 @@ module HudReports::Incomes
   extend ActiveSupport::Concern
 
   included do
-    private def annual_assessment(enrollment)
-      enrollment_date = enrollment.EntryDate
+    private def annual_assessment(enrollment, hoh_entry_date)
       # Anniversary date needs to be calculated thusly:
       # Calculate the head of household’s number of years in the project. This can be done using the same
       # algorithm as for calculating a client’s age as of a certain date. Use the client’s [project start date] and the [report end date] as the two dates of comparison. It is important to use the “age” method of determining client anniversaries due to leap years; using “one year = 365 days” will eventually incorrectly offset the calculated anniversaries of long-term stayers.
@@ -32,7 +31,7 @@ module HudReports::Incomes
       #   a. 30 days prior to the [anniversary date] (even if this date falls before the [report start date])
       #   b. and the lesser of (30 days after the [anniversary date], [report end date])
 
-      anniversary_date = anniversary_date(entry_date: enrollment_date, report_end_date: @report.end_date)
+      anniversary_date = anniversary_date(entry_date: hoh_entry_date, report_end_date: @report.end_date)
 
       enrollment.income_benefits_annual_update.
         where(InformationDate: anniversary_date - 30.days .. [anniversary_date + 30.days, @report.end_date].min).
@@ -185,26 +184,47 @@ module HudReports::Incomes
     end
 
     private def income_responses(suffix)
-      {
+      responses = {
         'Adults with Only Earned Income (i.e., Employment Income)' => :earned,
         'Adults with Only Other Income' => :other,
         'Adults with Both Earned and Other Income' => :both,
         'Adults with No Income' => :none,
         'Adults with Client Doesn\'t Know/Client Refused Income Information' => a_t["income_from_any_source_at_#{suffix}"].in([8, 9]),
-        'Adults with Missing Income Information' => a_t["income_from_any_source_at_#{suffix}"].eq(99).
-          or(a_t["income_from_any_source_at_#{suffix}"].eq(nil)).
-          and(a_t["income_sources_at_#{suffix}"].not_eq(nil)),
-        'Number of adult stayers not yet required to have an annual assessment' => adult_clause.
-          and(stayers_clause).
-          and(a_t[:annual_assessment_expected].eq(false)),
-        'Number of adult stayers without required annual assessment' => adult_clause.
-          and(stayers_clause).
-          and(a_t[:annual_assessment_expected].eq(true)).
-          and(a_t[:income_from_any_source_at_annual_assessment].eq(nil)),
-        'Total Adults' => Arel.sql('1=1'),
-        '1 or more source of income' => a_t["income_total_at_#{suffix}"].gt(0),
-        'Adults with Income Information at Start and Annual Assessment/Exit' => a_t['income_from_any_source_at_start'].in([0, 1]).and(a_t["income_from_any_source_at_#{suffix}"].in([0, 1])),
       }
+
+      if suffix == :annual_assessment
+        responses.merge!(
+          {
+            'Adults with Missing Income Information' => a_t[:annual_assessment_expected].eq(true).
+              and(a_t["income_from_any_source_at_#{suffix}"].eq(99).
+                or(a_t["income_from_any_source_at_#{suffix}"].eq(nil)).
+                and(a_t["income_sources_at_#{suffix}"].not_eq(nil))),
+          },
+        )
+      else
+        responses.merge!(
+          {
+            'Adults with Missing Income Information' => a_t["income_from_any_source_at_#{suffix}"].eq(99).
+              or(a_t["income_from_any_source_at_#{suffix}"].eq(nil)).
+              and(a_t["income_sources_at_#{suffix}"].not_eq(nil)),
+          },
+        )
+      end
+      responses.merge!(
+        {
+          'Number of adult stayers not yet required to have an annual assessment' => adult_clause.
+            and(stayers_clause).
+            and(a_t[:annual_assessment_expected].eq(false)),
+          'Number of adult stayers without required annual assessment' => adult_clause.
+            and(stayers_clause).
+            and(a_t[:annual_assessment_expected].eq(true)).
+            and(a_t[:income_from_any_source_at_annual_assessment].eq(nil)),
+          'Total Adults' => Arel.sql('1=1'),
+          '1 or more source of income' => a_t["income_total_at_#{suffix}"].gt(0),
+          'Adults with Income Information at Start and Annual Assessment/Exit' => a_t['income_from_any_source_at_start'].in([0, 1]).and(a_t["income_from_any_source_at_#{suffix}"].in([0, 1])),
+        },
+      )
+      responses
     end
   end
 end

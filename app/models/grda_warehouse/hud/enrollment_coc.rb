@@ -7,7 +7,8 @@
 module GrdaWarehouse::Hud
   class EnrollmentCoc < Base
     include HudSharedScopes
-    include ::HMIS::Structure::EnrollmentCoc
+    include ::HmisStructure::EnrollmentCoc
+    include ::HmisStructure::Shared
     include RailsDrivers::Extensions
     attr_accessor :source_id
 

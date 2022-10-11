@@ -63,7 +63,7 @@ module GrdaWarehouse::WarehouseReports
     end
 
     # Reports
-    def self.report_list
+    def self.report_list # rubocop:disable Metrics/AbcSize
       r_list = {
         'Public' => [],
         'Operational' => [
@@ -159,13 +159,6 @@ module GrdaWarehouse::WarehouseReports
             health: false,
           },
           {
-            url: 'warehouse_reports/initiatives',
-            name: 'Initiatives',
-            description: 'Standard reporting for initiatives, RRH, Youth, Vets...',
-            limitable: true,
-            health: false,
-          },
-          {
             url: 'warehouse_reports/touch_point_exports',
             name: 'Export Touch Points',
             description: 'Export CSVs of ETO TouchPoints.',
@@ -218,13 +211,6 @@ module GrdaWarehouse::WarehouseReports
             url: 'warehouse_reports/youth_activity',
             name: 'Youth Activity',
             description: 'Review data youth entered within a selected time period.',
-            limitable: true,
-            health: false,
-          },
-          {
-            url: 'warehouse_reports/client_details/last_permanent_zips',
-            name: 'Last Permanent Zip Report',
-            description: 'List open enrollments within a date range and the zip codes of last permanent residence.',
             limitable: true,
             health: false,
           },
@@ -847,6 +833,15 @@ module GrdaWarehouse::WarehouseReports
         ],
         'Population Dashboards' => [],
       }
+      if RailsDrivers.loaded.include?(:ma_yya_report)
+        r_list['Operational'] << {
+          url: 'ma_yya_report/warehouse_reports/reports',
+          name: 'MA Homeless Youth Program Report',
+          description: 'Downloadable MA YYA report.',
+          limitable: true,
+          health: false,
+        }
+      end
       if RailsDrivers.loaded.include?(:service_scanning)
         r_list['Operational'] << {
           url: 'service_scanning/warehouse_reports/scanned_services',
@@ -869,6 +864,15 @@ module GrdaWarehouse::WarehouseReports
         r_list['Performance'] << {
           url: 'project_scorecard/warehouse_reports/scorecards',
           name: 'Project Scorecard',
+          description: 'Instrument for evaluating project performance.',
+          limitable: true,
+          health: false,
+        }
+      end
+      if RailsDrivers.loaded.include?(:boston_project_scorecard)
+        r_list['Performance'] << {
+          url: 'boston_project_scorecard/warehouse_reports/scorecards',
+          name: 'Boston Project Scorecard',
           description: 'Instrument for evaluating project performance.',
           limitable: true,
           health: false,
@@ -1239,6 +1243,31 @@ module GrdaWarehouse::WarehouseReports
           health: true,
         }
       end
+      if RailsDrivers.loaded.include?(:ce_performance)
+        r_list['Performance'] << {
+          url: 'ce_performance/warehouse_reports/reports',
+          name: _('Coordinated Entry Performance'),
+          description: _('A tool to track performance and utilization of Coordinated Entry resources.'),
+          limitable: true,
+          health: false,
+        }
+        r_list['Performance'] << {
+          url: 'ce_performance/warehouse_reports/goal_configs',
+          name: 'Coordinated Entry Performance Goal Configurator',
+          description: 'Set per-CoC Coordinated Entry Performance Measurement Goals',
+          limitable: false,
+          health: false,
+        }
+      end
+      if RailsDrivers.loaded.include?(:hmis_data_quality_tool)
+        r_list['Data Quality'] << {
+          url: 'hmis_data_quality_tool/warehouse_reports/reports',
+          name: HmisDataQualityTool::Report.new.title,
+          description: HmisDataQualityTool::Report.new.description,
+          limitable: true,
+          health: false,
+        }
+      end
 
       r_list
     end
@@ -1250,7 +1279,10 @@ module GrdaWarehouse::WarehouseReports
         'warehouse_reports/veteran_details/exits',
         'performance_dashboards/household',
         'claims_reporting/warehouse_reports/performance',
+        'warehouse_reports/initiatives',
+        'warehouse_reports/client_details/last_permanent_zips',
       ]
+      cleanup << 'ma_yya_report/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:ma_yya_report)
       cleanup << 'service_scanning/warehouse_reports/scanned_services' unless RailsDrivers.loaded.include?(:service_scanning)
       cleanup << 'core_demographics_report/warehouse_reports/core' unless RailsDrivers.loaded.include?(:core_demographics_report)
       unless RailsDrivers.loaded.include?(:claims_reporting)
@@ -1260,6 +1292,7 @@ module GrdaWarehouse::WarehouseReports
       cleanup << 'project_pass_fail/warehouse_reports/project_pass_fail' unless RailsDrivers.loaded.include?(:project_pass_fail)
       cleanup << 'health_flexible_service/warehouse_reports/member_lists' unless RailsDrivers.loaded.include?(:health_flexible_service)
       cleanup << 'project_scorecard/warehouse_reports/scorecards' unless RailsDrivers.loaded.include?(:project_scorecard)
+      cleanup << 'boston_project_scorecard/warehouse_reports/scorecards' unless RailsDrivers.loaded.include?(:boston_project_scorecard)
       cleanup << 'prior_living_situation/warehouse_reports/prior_living_situation' unless RailsDrivers.loaded.include?(:prior_living_situation)
       cleanup << 'destination_report/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:destination_report)
       cleanup << 'data_source_report/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:data_source_report)
@@ -1290,6 +1323,16 @@ module GrdaWarehouse::WarehouseReports
       cleanup << 'census_tracking/warehouse_reports/census_trackers' unless RailsDrivers.loaded.include?(:census_tracking)
       cleanup << 'income_benefits_report/warehouse_reports/report' unless RailsDrivers.loaded.include?(:income_benefits_report)
       cleanup << 'client_location_history/warehouse_reports/client_location_history' unless RailsDrivers.loaded.include?(:client_location_history)
+      cleanup << 'client_location_history/warehouse_reports/client_location_history' unless RailsDrivers.loaded.include?(:client_location_history)
+      cleanup << 'analysis_tool/warehouse_reports/analysis_tool' unless RailsDrivers.loaded.include?(:analysis_tool)
+      cleanup << 'start_date_dq/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:start_date_dq)
+      cleanup << 'built_for_zero_report/warehouse_reports/bfz' unless RailsDrivers.loaded.include?(:built_for_zero_report)
+      cleanup << 'health_ip_followup_report/warehouse_reports/followup_reports' unless RailsDrivers.loaded.include?(:health_ip_followup_report)
+      unless RailsDrivers.loaded.include?(:ce_performance)
+        cleanup << 'ce_performance/warehouse_reports/reports'
+        cleanup << 'ce_performance/warehouse_reports/goal_configs'
+      end
+      cleanup << 'hmis_data_quality_tool/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:hmis_data_quality_tool)
 
       cleanup.each do |url|
         GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: url).delete_all

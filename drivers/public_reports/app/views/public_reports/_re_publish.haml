@@ -1,7 +1,7 @@
 .well.warehouse-reports__completed.d-flex
   .mr-2
     %p This report was published on #{@report.published_at.to_date} with the following limits.
-    .report-parameters.parameter-label= @report.filter_object.describe_filter_as_html
+    .report-parameters.parameter-label= @report.filter_object.describe_filter_as_html(@report.known_params)
     %p
       The report is publicly available.
   .ml-auto

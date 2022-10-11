@@ -1,5 +1,7 @@
-- associated_items ||= @group.associated_by(associations: associations) rescue []
+- associated_items = []
+- associated_items = @group.associated_by(associations: associations) if defined?(associations)
 - name = entity[:label] || entity[:placeholder]
+- id = entity[:id] || name.parameterize(separator: '_').to_sym
 - locked = @group.entities_locked?
 
 .c-columns__column.j-column{data: {title: name.pluralize}}
@@ -14,7 +16,7 @@
 
   .c-columns__column-actions
     .c-columns__column-action.c-columns__column-action--add.hide.j-column-actions-add
-      = f.input name.parameterize(separator: '_').to_sym,  **entity, label: false
+      = f.input id,  **entity, label: false
     .c-columns__column-action.c-columns__column-action--remove.hide.j-column-actions-remove
       .d-flex.align-items-center
         %p.mr-2.mb-0 Are you sure you want to remove all the <b>#{name.pluralize}</b>?

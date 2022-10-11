@@ -12,24 +12,26 @@
 # use with caution!
 RailsDrivers.loaded << :child_only_households_sub_pop
 
-AvailableSubPopulations.add_sub_population(
-  'Child only Households',
-  :child_only_households,
-  'ChildOnlyHouseholdsSubPop::GrdaWarehouse::WarehouseReports::Dashboard::ChildOnlyHouseholds',
-)
+Rails.application.reloader.to_prepare do
+  AvailableSubPopulations.add_sub_population(
+    'Child only Households',
+    :child_only_households,
+    'ChildOnlyHouseholdsSubPop::GrdaWarehouse::WarehouseReports::Dashboard::ChildOnlyHouseholds',
+  )
 
-# GrdaWarehouse::Census.add_population(
-#   population: :child_only_households,
-#   scope: GrdaWarehouse::ServiceHistoryEnrollment.child_only_households,
-#   factory: ChildOnlyHouseholdsSubPop::GrdaWarehouse::Census::ChildOnlyHouseholdsFactory,
-# )
+  # GrdaWarehouse::Census.add_population(
+  #   population: :child_only_households,
+  #   scope: GrdaWarehouse::ServiceHistoryEnrollment.child_only_households,
+  #   factory: ChildOnlyHouseholdsSubPop::GrdaWarehouse::Census::ChildOnlyHouseholdsFactory,
+  # )
 
-SubpopulationHistoryScope.add_sub_population(
-  :child_only_households,
-  :child_only_households,
-)
+  SubpopulationHistoryScope.add_sub_population(
+    :child_only_households,
+    :child_only_households,
+  )
 
-Reporting::MonthlyReports::Base.add_available_type(
-  :child_only_households,
-  'ChildOnlyHouseholdsSubPop::Reporting::MonthlyReports::ChildOnlyHouseholds',
-)
+  Reporting::MonthlyReports::Base.add_available_type(
+    :child_only_households,
+    'ChildOnlyHouseholdsSubPop::Reporting::MonthlyReports::ChildOnlyHouseholds',
+  )
+end

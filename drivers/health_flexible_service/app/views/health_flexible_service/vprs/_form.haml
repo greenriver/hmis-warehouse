@@ -12,6 +12,7 @@
       = f.input :first_name, label: 'Member first name'
       = f.input :middle_name, label: 'Member middle initial'
       = f.input :last_name, label: 'Member last name'
+      = f.input :medicaid_id, label: "MassHealth ID"
       = f.input :dob, as: :date_picker, label: 'Member date of birth'
     = f.input :accommodations_needed
     %h3 Contact Information
@@ -52,6 +53,7 @@
         = f.input :member_agrees_to_plan, as: :pretty_boolean
         = f.input :member_agreement_notes
       .col-sm-6
+        = f.input :aco_id, as: :select_two, collection: Health::AccountableCareOrganization.active, label: 'Accountable Care Organization'
         = f.input :aco_approved, as: :pretty_boolean, label: 'ACO approved'
         = f.input :aco_approved_on, as: :date_picker, label: 'ACO approved on'
         = f.input :aco_rejection_notes, label: 'If no, why not?', hint: 'Optional'

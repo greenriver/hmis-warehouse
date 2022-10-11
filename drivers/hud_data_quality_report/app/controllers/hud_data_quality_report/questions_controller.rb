@@ -17,6 +17,7 @@ module HudDataQualityReport
     end
 
     def show
+      @filter.default_project_type_codes = generator.default_project_type_codes
       @path_for_running = path_for_running_question
     end
 

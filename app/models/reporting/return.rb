@@ -14,15 +14,11 @@ module Reporting
       setup_notifier('ReportingSetupJob')
       return unless enrollment_data(client_ids).exists?
 
-      already_running = Reporting::Return.advisory_lock_exists?(Reporting::Housed::ADVISORY_LOCK_KEY)
-      if already_running
-        @notifier.ping('Skipping reporting database returns, already running')
-        return
-      end
-
-      Reporting::Return.with_advisory_lock(Reporting::Housed::ADVISORY_LOCK_KEY) do
+      status = Reporting::Return.with_advisory_lock(Reporting::Housed::ADVISORY_LOCK_KEY, timeout_seconds: 0) do
         stays
+        true
       end
+      @notifier.ping('Skipping reporting database returns, already running') unless status
     end
 
     def service_data(enrollment_ids)
@@ -145,7 +141,7 @@ module Reporting
         project_id: p_t[:id],
         hmis_project_id: p_t[:ProjectID],
         destination: she_t[:destination],
-        project_name: she_t[:project_name],
+        project_name: confidentialized_project_name(she_t[:project_name]),
         organization_id: o_t[:id],
         unaccompanied_youth: she_t[:unaccompanied_youth],
         parenting_youth: she_t[:parenting_youth],

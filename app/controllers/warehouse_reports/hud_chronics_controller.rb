@@ -21,6 +21,13 @@ module WarehouseReports
       end
       @jobs = Delayed::Job.jobs_for_class('RunHudChronicJob').order(run_at: :desc)
       @reports = report_source.ordered.limit(50)
+
+      # Set default filter to prior run
+      previous_report = @reports.last
+      return unless filter_params.blank? && previous_report
+
+      options = previous_report.parameters['filter'].with_indifferent_access
+      @filter = @filter.class.new(options)
     end
 
     def show

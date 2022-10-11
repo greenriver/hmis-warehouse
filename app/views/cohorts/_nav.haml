@@ -50,7 +50,7 @@
         %i.icon-users
         Add Clients
 
-  - if can_download_cohorts? || can_manage_cohorts?
+  - if can_download_cohorts?
     %li.nav-item
       = link_to({format: :xlsx}.merge(link_params),{class: 'nav-link'}) do
         %i.icon-download2

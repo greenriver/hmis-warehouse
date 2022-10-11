@@ -2,10 +2,7 @@
 = render 'index_title'
 - unless GrdaWarehouse::Config.get(:multi_coc_installation)
   = render 'housed_overall'
-- if @html
-  = render 'report_picker'
-- else
-  = render 'report_options'
+= render 'report_picker'
 
 .rollup{data: {partial: :overview}}
   %p.well.text-center.jRemoveWhenComplete Loading...

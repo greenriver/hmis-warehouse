@@ -7,7 +7,7 @@
 module GrdaWarehouse::Hud
   class Site < Base
     include HudSharedScopes
-    include ::HMIS::Structure::Base
+    include ::HmisStructure::Base
     include RailsDrivers::Extensions
     acts_as_paranoid column: :DateDeleted
 

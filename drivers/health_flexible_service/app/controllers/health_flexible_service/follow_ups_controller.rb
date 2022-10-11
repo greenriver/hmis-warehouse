@@ -10,14 +10,13 @@ module HealthFlexibleService
     include ArelHelper
     include ClientPathGenerator
     before_action :set_client
-    before_action :set_hpc_patient
     before_action :set_vpr
     before_action :set_follow_up, only: [:edit, :update, :destroy]
 
     def new
       @pdf = false
       @html = true
-      @follow_up = follow_up_source.new(user: current_user, patient: @patient)
+      @follow_up = follow_up_source.new(user: current_user, vpr: @vpr)
       @follow_up.set_defaults
     end
 
@@ -71,7 +70,7 @@ module HealthFlexibleService
     end
 
     def create
-      options = permitted_params.merge(user: current_user, patient: @patient, vpr: @vpr)
+      options = permitted_params.merge(user: current_user, vpr: @vpr)
       @follow_up = follow_up_source.create(options)
       @vpr.update(end_date: vpr_end_date + 6.months, open: most_recent_follow_up.additional_flex_services_requested?)
       respond_with(@follow_up, location: client_health_flexible_service_vprs_path(@client))

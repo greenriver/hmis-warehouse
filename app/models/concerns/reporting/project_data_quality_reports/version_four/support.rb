@@ -299,6 +299,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Support
         'Entry Date' => :entry_date,
         'Exit Date' => :exit_date,
         'Project' => :project_name,
+        'Project ID' => :project_id,
         'Most Recent Service' => :most_recent_service_within_range,
         'Days of Service' => :days_of_service,
         'Destination' => :destination_id,
@@ -315,6 +316,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Support
         'Days to Move-in' => :days_to_move_in_date,
         'Exit Date' => :exit_date,
         'Project' => :project_name,
+        'Project ID' => :project_id,
         'Most Recent Service' => :most_recent_service_within_range,
         'Destination' => :destination_id,
       }
@@ -331,6 +333,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Support
         'Gender 2022' => :gender_multi,
         'Entry Date' => :entry_date,
         'Project' => :project_name,
+        'Project ID' => :project_id,
       }
     end
 
@@ -376,6 +379,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Support
         'Entry Date' => :entry_date,
         'Exit Date' => :exit_date,
         'Project' => :project_name,
+        'Project ID' => :project_id,
         'Entry Earned' => :income_at_entry_earned,
         'Entry Non-Employment' => :income_at_entry_non_employment_cash,
         'Entry Overall' => :income_at_entry_overall,
@@ -396,6 +400,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Support
         'Entry Date' => :entry_date,
         'Exit Date' => :exit_date,
         'Project' => :project_name,
+        'Project ID' => :project_id,
         'Entry Response' => :income_at_entry_response,
         'Entry Earned' => :income_at_entry_earned,
         'Entry Non-Employment' => :income_at_entry_non_employment_cash,
@@ -419,6 +424,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Support
         'Exit Date Entered' => :exit_date_created,
         'Days to Exit' => :days_to_add_exit_date,
         'Project' => :project_name,
+        'Project ID' => :project_id,
       }
     end
   end

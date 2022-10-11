@@ -8,9 +8,7 @@ module Health::Tasks
   class CalculateValidUnpayableQas < ActiveJob::Base
     def run!
       advisory_lock_key = 'calculate_valid_unpayable_qas'
-      return if Health::QualifyingActivity.advisory_lock_exists?(advisory_lock_key)
-
-      Health::QualifyingActivity.with_advisory_lock(advisory_lock_key) do
+      Health::QualifyingActivity.with_advisory_lock(advisory_lock_key, timeout_seconds: 0) do
         # Only calculate on unsubmitted QAs to prevent changes to status after submission, and limit to 180 days
         # to avoid very old QAs
         date_range = (Date.current - 180.days..Date.current)

@@ -1,0 +1,16 @@
+- comparison = @report.results_for_display[category_name][:comparison][result_class]
+- status = result.passed?(comparison) ? 'success' : 'danger'
+- icon = result.passed?(comparison) ? 'check' : 'cross'
+- label = result.passed?(comparison) ? 'Passed' : 'Failed'
+
+
+.card.mb-0.pb-0.page-break-avoid
+  .row.m-0.mb-4.p-4.performance-measurement__row.j-click-row
+    = render 'row_contents', result: result, result_class: result_class, comparison: comparison, category_name: category_name
+
+    .col-sm-2.ml-auto
+      .mb-4.d-flex.font-size-md
+
+      .d-flex
+        .font-size-sm.ml-auto
+          = link_to result.detail_link_text, details_ce_performance_warehouse_reports_report_path(@report, key: result_class, category_name: category_name, target: :_blank), class: 'j-click-row-source'

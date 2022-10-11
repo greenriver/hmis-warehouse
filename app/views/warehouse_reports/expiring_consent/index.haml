@@ -6,66 +6,67 @@
 .warehouse-reports__expiring-consent
   %h3
     Clients with Unconfirmed Consent
-  %table.table.table-sm.table-hover
-    %thead
-      %tr
-        %th Client
-        %th Expiration Date
-        %th Related Users
-
-    %tbody
-      - @unconfirmed.each do |client|
+  .card.mb-6
+    %table.table.table-striped
+      %thead
         %tr
-          %td
-            = link_to_if can_view_clients?, client.full_name, appropriate_client_path(client)
-          %td
-            = client.consent_form_signed_on + client.class.consent_validity_period
-          %td
-            - if @users[client.id].present?
-              - @users[client.id].each do |user|
-                = user.name_with_email
-                %br
-  %hr
+          %th Client
+          %th Expiration Date
+          %th Related Users
+
+      %tbody
+        - @unconfirmed.each do |client|
+          %tr
+            %td
+              = link_to_if can_view_clients?, client.full_name, appropriate_client_path(client)
+            %td
+              = client.consent_form_signed_on + client.class.consent_validity_period
+            %td
+              - if @users[client.id].present?
+                - @users[client.id].each do |user|
+                  = user.name_with_email
+                  %br
   %h3
     Clients with Consent Expiring Within 30 Days
-  %table.table.table-sm.table-hover
-    %thead
-      %tr
-        %th Client
-        %th Expiration Date
-        %th Related Users
-
-    %tbody
-      - @expiring_clients.each do |client|
+  .card.mb-6
+    %table.table.table-striped
+      %thead
         %tr
-          %td
-            = link_to_if can_view_clients?, client.full_name, appropriate_client_path(client)
-          %td
-            = client.consent_form_signed_on + client.class.consent_validity_period
-          %td
-            - if @users[client.id].present?
-              - @users[client.id].each do |user|
-                = user.name_with_email
-                %br
-  %hr
+          %th Client
+          %th Expiration Date
+          %th Related Users
+
+      %tbody
+        - @expiring_clients.each do |client|
+          %tr
+            %td
+              = link_to_if can_view_clients?, client.full_name, appropriate_client_path(client)
+            %td
+              = client.consent_form_signed_on + client.class.consent_validity_period
+            %td
+              - if @users[client.id].present?
+                - @users[client.id].each do |user|
+                  = user.name_with_email
+                  %br
   %h3
     Clients with Expired Consent
-  %table.table.table-sm.table-hover
-    %thead
-      %tr
-        %th Client
-        %th Expiration Date
-        %th Related Users
-
-    %tbody
-      - @expired_clients.each do |client|
+  .card.mb-6
+    %table.table.table-striped
+      %thead
         %tr
-          %td
-            = link_to_if can_view_clients?, client.full_name, appropriate_client_path(client)
-          %td
-            = client.consent_form_signed_on + client.class.consent_validity_period
-          %td
-            - if @users[client.id].present?
-              - @users[client.id].each do |user|
-                = user.name_with_email
-                %br
+          %th Client
+          %th Expiration Date
+          %th Related Users
+
+      %tbody
+        - @expired_clients.each do |client|
+          %tr
+            %td
+              = link_to_if can_view_clients?, client.full_name, appropriate_client_path(client)
+            %td
+              = client.consent_form_signed_on + client.class.consent_validity_period
+            %td
+              - if @users[client.id].present?
+                - @users[client.id].each do |user|
+                  = user.name_with_email
+                  %br

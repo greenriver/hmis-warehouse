@@ -67,7 +67,7 @@ module WarehouseReports
     end
 
     private def set_filter
-      @filter = ::Filters::DateRangeAndSources.new(filter_params)
+      @filter = ::Filters::FilterBase.new(filter_params)
     end
 
     private def filter_params

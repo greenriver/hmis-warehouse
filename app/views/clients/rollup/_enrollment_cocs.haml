@@ -32,7 +32,7 @@
             %td= HUD.data_collection_stage enrollment_coc.DataCollectionStage
             %td.text-right
               - if @client.hmis_source_visible_by?(current_user)
-                = link_to 'HMIS', hmi_path(enrollment_coc, type: 'EnrollmentCoC'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis mb-2'
+                = link_to 'HMIS', source_datum_path(enrollment_coc, type: 'EnrollmentCoC'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis mb-2'
                 .text-teeny.font-weight-light
                   .text-nowrap
                     Created: #{enrollment_coc.DateCreated}

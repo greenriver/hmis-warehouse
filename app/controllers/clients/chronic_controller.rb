@@ -9,7 +9,7 @@ module Clients
     include ClientPathGenerator
     include ClientDependentControllers
 
-    before_action :require_can_edit_clients!
+    before_action :require_can_view_chronic_tab!
     before_action :set_client
     after_action :log_client
 

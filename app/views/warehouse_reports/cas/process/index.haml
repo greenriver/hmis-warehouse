@@ -19,30 +19,31 @@
         %strong #{@step_range.first_step}
         and
         %strong #{@step_range.second_step}.
-    .col-sm-2.ml-auto
+    .col-sm-2.ml-auto.mb-4
       = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary'}) do
         Download Excel
-  %table.table.table-hover
-    %thead
-      %tr
-        %th Program
-        %th Sub-Program
-        %th Days Between Steps
-        %th Route
-        %th Terminal Step
-        %th Terminal Date
-        %th Result
-        %th Match
-    %tbody
-      - @matches.each do |_,match|
-        - terminal_step = @all_steps[match.id.to_i]&.last
+  .card
+    %table.table.table-striped
+      %thead
         %tr
-          %td= match.program_name
-          %td= match.sub_program_name
-          %td= match.days
-          %td= match.match_route
-          %td= terminal_step&.match_step
-          %td= terminal_step&.updated_at&.to_date
-          %td= terminal_step&.terminal_status
-          %td
-            = link_to match.id, "#{GrdaWarehouse::Config.get(:cas_url)}/matches/#{match.id}", target: "_blank"
+          %th Program
+          %th Sub-Program
+          %th Days Between Steps
+          %th Route
+          %th Terminal Step
+          %th Terminal Date
+          %th Result
+          %th Match
+      %tbody
+        - @matches.each do |_,match|
+          - terminal_step = @all_steps[match.id.to_i]&.last
+          %tr
+            %td= match.program_name
+            %td= match.sub_program_name
+            %td= match.days
+            %td= match.match_route
+            %td= terminal_step&.match_step
+            %td= terminal_step&.updated_at&.to_date
+            %td= terminal_step&.terminal_status
+            %td
+              = link_to match.id, "#{GrdaWarehouse::Config.get(:cas_url)}/matches/#{match.id}", target: "_blank"

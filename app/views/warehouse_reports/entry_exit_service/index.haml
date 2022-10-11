@@ -11,27 +11,30 @@
         Download Excel
 - if @enrollments.any?
   = render 'warehouse_reports/limited_by_project_note'
-  %table.table.table-sm.table-hover
-    %thead
-      %tr
-        %th Last Name
-        %th First Name
-        %th Entry Date
-        %th Exit Date
-        %th Date of Service
-        %th Project
-        %th Project Type
-        %th Record Type
-    %tbody
-      - @enrollments.sort_by{|m| [m[:LastName], m[:FirstName]]}.each do |e|
+  = render 'common/pagination_top', item_name: 'enrollment'
+  .table-responsive
+    %table.table.table-sm.table-striped
+      %thead
         %tr
-          %td= link_to_if can_view_clients?, e[:LastName], appropriate_client_path(id: e[:destination_id]) if e[:destination_id].present?
-          %td= link_to_if can_view_clients?, e[:FirstName], appropriate_client_path(id: e[:destination_id]) if e[:destination_id].present?
-          %td= e[:EntryDate]
-          %td= e[:ExitDate]
-          %td= e[:DateProvided]
-          %td= link_to e[:ProjectName], project_path(id: e[:ProjectID])
-          %td= HUD.project_type e[:project_type]
-          %td= HUD.record_type e[:RecordType]
+          %th Last Name
+          %th First Name
+          %th Entry Date
+          %th Exit Date
+          %th Date of Service
+          %th Project
+          %th Project Type
+          %th Record Type
+      %tbody
+        - @data.sort_by{|m| [m[:LastName], m[:FirstName]]}.each do |e|
+          %tr
+            %td= link_to_if can_view_clients?, e[:LastName], appropriate_client_path(id: e[:destination_id]) if e[:destination_id].present?
+            %td= link_to_if can_view_clients?, e[:FirstName], appropriate_client_path(id: e[:destination_id]) if e[:destination_id].present?
+            %td= e[:EntryDate]
+            %td= e[:ExitDate]
+            %td= e[:DateProvided]
+            %td= link_to_if e[:project_name] != GrdaWarehouse::Hud::Project.confidential_project_name, e[:project_name], project_path(id: e[:project_id])
+            %td= HUD.project_type e[:project_type]
+            %td= HUD.record_type e[:RecordType]
+  = render 'common/pagination_bottom', item_name: 'enrollment'
 - else
-  %p None found.
+  .none-found None found.

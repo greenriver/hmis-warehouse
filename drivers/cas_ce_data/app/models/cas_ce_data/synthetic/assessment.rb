@@ -40,7 +40,7 @@ module CasCeData::Synthetic
         next unless assessment.assessment_date.present?
 
         enrollment = find_enrollment(assessment)
-        create(enrollment: enrollment, client: assessment.client, source: assessment) if enrollment.present?
+        create!(enrollment: enrollment, client: assessment.client, source: assessment) if enrollment.present?
       end
     end
 
@@ -52,7 +52,7 @@ module CasCeData::Synthetic
         order(EntryDate: :desc)
       if assessment.projects.exists?
         scope = scope.joins(:project).
-          where(p_t[:id].in(assessment.projects.pluck(:project_id)))
+          where(p_t[:id].in(assessment.projects.pluck(:id)))
       end
       scope.first
     end

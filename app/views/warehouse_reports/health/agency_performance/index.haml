@@ -1,4 +1,4 @@
-- title = "Partner Dashboard - #{@report.range.first} to #{@report.range.last}"
+- title = "Partner Dashboard - #{@agency_report.range.first} to #{@agency_report.range.last}"
 - content_for :title, title
 %h1= content_for :title
 = render '/warehouse_reports/breadcrumbs', tab: 'health-partner-performance'
@@ -7,4 +7,4 @@
 
 = render 'report_download', export: @pdf_export
 
-= render 'table', detail_path: [:detail, :warehouse_reports, :health_agency_performance, :index], permission: current_user.has_some_patient_access?
+= render 'table', report: @agency_report, entities: @agencies, entity_label: 'Agency', totals: @agency_totals, detail_path: [:detail, :warehouse_reports, :health_agency_performance, :index], permission: current_user.has_some_patient_access?

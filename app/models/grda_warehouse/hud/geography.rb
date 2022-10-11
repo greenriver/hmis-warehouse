@@ -9,8 +9,8 @@ module GrdaWarehouse::Hud
     include HudSharedScopes
     # Since this Geography is no longer included in the HMIS spec, we're not creating
     # the struture file
-    # include ::HMIS::Structure::Geography
-    include ::HMIS::Structure::Base
+    # include ::HmisStructure::Geography
+    include ::HmisStructure::Base
     include RailsDrivers::Extensions
 
     self.table_name = 'Geography'

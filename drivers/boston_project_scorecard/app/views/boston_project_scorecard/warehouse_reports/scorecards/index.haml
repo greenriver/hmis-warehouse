@@ -1,0 +1,43 @@
+- content_for :title, _('Project Scorecards')
+.d-flex
+  %h1= content_for :title
+  .ml-auto
+    = link_to history_boston_project_scorecard_warehouse_reports_scorecards_path, class: 'btn btn-secondary' do
+      %i.icon-settings_backup_restore
+      View Previous Reports
+
+= content_for :crumbs do
+  = link_to warehouse_reports_path(anchor: 'performance') do
+    &laquo; Performance
+
+%section.o-container.mb-6
+  %p Generating Project Scorecards is a multi-step process.
+  #scorecard-accordion.panel-group.panel-collapsible
+    - content_for :panel_collapse_content, flush: true do
+      %p Step one is to select a set of projects or project groups on which you would like to run reports.
+      = render 'filter'
+  = render 'common/panel_collapse', id: 'scorecard-info', title: 'Project Search', default_open: if @projects.blank? then 'yes' else 'no' end
+- if @projects.present?
+  %p Step two is to choose the projects and queue the reports.
+  = simple_form_for :scorecard, url: boston_project_scorecard_warehouse_reports_scorecards_path(@filter.for_params) do |f|
+    - select_scope = 'allOrgsProjects'
+    %div{id: select_scope}
+      %section.mb-6
+        .d-flex.mb-5.ml-4
+          .header.d-flex.align-items-center.justify-content-center
+            %button.c-btn-select.j-select-all.not-checked.mr-3{data: {state: true, toggle: 'tooltip', 'scope': "##{select_scope}"}, type: 'button', title: 'Select/Deselect all organizations & projects'}
+            %h2.mb-0.mt-0 Organizations and Projects
+          .ml-auto!= pagy_bootstrap_nav(@pagy) if @pagy.pages > 1
+        - @projects.each do |(data_source, organization), projects|
+          = render 'organization', f: f, data_source: data_source, organization: organization, projects: projects
+
+      %section.mb-6
+        = render 'project_groups', f: f, project_groups: @project_groups
+
+    = render 'actions', f: f
+
+= content_for :page_js do
+  :javascript
+    new App.SelectableList({
+      title: 'Organizations & Projects'
+    })

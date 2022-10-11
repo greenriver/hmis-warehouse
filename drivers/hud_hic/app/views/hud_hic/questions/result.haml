@@ -6,4 +6,6 @@
 
 %h1= content_for :title
 
+.well.mt-6
+  = render 'hud_reports/inline_parameters', report: @report
 = render 'hud_reports/tables', report: @report, question: @question, show_link: false

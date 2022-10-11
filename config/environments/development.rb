@@ -43,6 +43,8 @@ Rails.application.configure do
 
   # Store uploaded files on the local file system (see config/storage.yml for options).
   # config.active_storage.service = :local
+  # Store files on local Amazon S3.
+  config.active_storage.service = :minio
 
   if ENV['SMTP_SERVER']
     config.action_mailer.delivery_method = :smtp
@@ -102,9 +104,6 @@ Rails.application.configure do
   # don't need email sandbox with letter opener
   config.sandbox_email_mode = true
 
-  # make the development log noisy so you can see request parameters, views rendered, etc.
-  config.lograge.enabled = false
-
   # do gzip compressing in dev mode to simulate nginx config in production
   config.middleware.insert_after ActionDispatch::Static, Rack::Deflater
 
@@ -136,8 +135,9 @@ Rails.application.configure do
     config.action_controller.forgery_protection_origin_check = false
   end
 
-  slack_config = Rails.application.config_for(:exception_notifier)[:slack]
-  if slack_config.present?
+  exception_notifier_config = Rails.application.config_for(:exception_notifier)
+  if exception_notifier_config&.[](:slack).present?
+    slack_config = exception_notifier_config[:slack]
     config.middleware.use(ExceptionNotification::Rack,
       slack: {
         webhook_url: slack_config[:webhook_url],

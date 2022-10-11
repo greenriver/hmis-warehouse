@@ -34,7 +34,7 @@
             = link_to_if can_view_clients?, client.name, appropriate_client_path(client.id)
           - enrollments.each do |enrollment|
             %tr
-              %td= enrollment.project_name
+              %td= enrollment.project&.name(current_user)
               %td= enrollment.service_type_brief
               %td= enrollment.first_date_in_program
               %td= enrollment.last_date_in_program

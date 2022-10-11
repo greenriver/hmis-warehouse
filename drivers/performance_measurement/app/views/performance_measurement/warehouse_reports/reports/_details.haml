@@ -1,6 +1,6 @@
 - markdown = Redcarpet::Markdown.new(::InlineHtml)
 - category = @report.detail_category_for(key)
-- title = "#{category}: #{@report.detail_title_for(key)}"
+- section = "#{category}: #{@report.detail_sub_category_for(key)}"
 - system_class_name = "jSystemLevelChart_#{key}"
 - result = @report.result_for(key)
 - label = @report.detail_denominator_label_for(key)
@@ -9,11 +9,12 @@
   = link_to performance_measurement_warehouse_reports_report_path(@report) do
     &laquo; #{_('CoC Performance Measurement Dashboard')}
 .performance-measurement
-  .p-4{ class: "performance-measurement--highlight-#{@report.highlight_id(category)}" }
-    %h1= title
-  .warehouse-reports__completed.mt-2.ml-2.d-flex
-    = @report.filter.describe_filter_as_html([:start, :end, :comparison_pattern])
-  .d-flex.mb-4
+  %label.super-rounded.p-4.pl-6.pr-6{ class: "performance-measurement--highlight-#{@report.highlight_id(category)}" }
+    = section
+  %h1.ml-2= @report.detail_title_for(key)
+  .warehouse-reports__completed.mt-2.d-flex
+    = @report.filter.describe_filter_as_html([:start, :end, :comparison_pattern], inline: true)
+  .d-flex.mb-4.border-top.pt-4
     .goal.col-4
       %h3 Goal
       %p= raw markdown.render(@report.detail_goal_description_for(key))
@@ -34,8 +35,9 @@
           - if @report.comparison_spm_id.present?
             = link_to 'Comparison Year', result_hud_reports_spm_measure_path(@report.comparison_spm_id, measure), class: 'btn btn-sm btn-secondary'
 
-  .p-4.mb-4{ class: "performance-measurement--highlight-light-#{@report.highlight_id(category)}" }
-    %h2 System Level
-  = render 'performance_measurement/warehouse_reports/reports/details_row', key: key, result: result, class_name: system_class_name, show_label_detail: true
+  .p-4{ class: "performance-measurement--highlight-light-#{@report.highlight_id(category)}" }
+    %h2.p-4 System Level
+  .card.squared.mb-6.p-6.page-break-avoid
+    = render 'performance_measurement/warehouse_reports/reports/details_row', key: key, result: result, class_name: system_class_name, show_label_detail: true
   - if @report.detail_column_for(key) != :system
     = render 'performance_measurement/warehouse_reports/reports/projects', key: key, category: category

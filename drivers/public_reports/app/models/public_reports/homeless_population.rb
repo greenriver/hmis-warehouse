@@ -250,11 +250,16 @@ module PublicReports
 
     private def pit_counts(population)
       data = quarter_dates.map do |date|
+        enforcement_threshold = if population == :hoh_from_adults_with_children
+          'hoh_pit_chart'
+        else
+          'pit_chart'
+        end
         [
           date.iso8601,
           {
-            homeless_count: enforce_min_threshold(client_count_for_date(date, population, :homeless), 'pit_chart'),
-            housed_count: enforce_min_threshold(client_count_for_date(date, population, :residential_non_homeless), 'pit_chart'),
+            homeless_count: enforce_min_threshold(client_count_for_date(date, population, :homeless), enforcement_threshold),
+            housed_count: enforce_min_threshold(client_count_for_date(date, population, :residential_non_homeless), enforcement_threshold),
           },
         ]
       end.to_h
@@ -533,7 +538,12 @@ module PublicReports
           data['Unknown'] ||= 0
           counts = data.values
           # Set the total string for the middle before we do cleanup
-          word = word_for(population)
+          # Special case for families because we're actually showing ethnicity for all clients, not HoH
+          word = if population == :adults_with_children
+            word_for(nil)
+          else
+            word_for(population)
+          end
           total = with_service_in_quarter(report_scope, date, population).select(:client_id).distinct.count
           total = if total < 100
             "less than #{pluralize(100, word)}"

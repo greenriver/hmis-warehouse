@@ -19,7 +19,7 @@ module Exporters::Tableau::Vispdat
       vispdat_1_grand_total: null,
       vispdat_2_recordset_id: enx_t[:id],
       vispdat_2_provider: o_t[:OrganizationName],
-      _pn: p_t[:ProjectName],
+      _pn: confidentialized_project_name(p_t[:ProjectName]),
       _pid: p_t[:ProjectID],
       vispdat_2_start_date: enx_t[:vispdat_started_at],
       vispdat_2_grand_total: enx_t[:vispdat_grand_total],

@@ -9,7 +9,7 @@
         = f.input :end, as: :date_picker, label: 'End date of period', required: true
       .col-sm-3
         = f.input :coc_code, collection: @filter.coc_code_options_for_select(user: current_user), required: false, input_html: { class: ['select2-id-when-selected'], placeholder: 'Please Choose', data: {'filter-projects-target' => 'cocCodes', 'action': 'change->filter-projects#update'} }, label: 'CoC Code', as: :select_two, placeholder: 'Please Choose', required: true
-    = render 'hud_reports/project_filter', f: f, project_types_collection: @report.project_type_options_for_select, api_projects_parameters: { project_types: GrdaWarehouse::Hud::Project::SPM_PROJECT_TYPE_CODES }, alert: alert
+    = render 'hud_reports/project_filter', f: f, api_projects_parameters: { project_types: GrdaWarehouse::Hud::Project::SPM_PROJECT_TYPE_CODES }, alert: alert
   - content_for :filter_actions do
     = f.submit 'Queue Report', class: ['btn', 'btn-primary'], data: { 'filter-projects-target' => 'submitButton' }
 

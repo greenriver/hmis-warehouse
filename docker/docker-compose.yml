@@ -1,7 +1,7 @@
 version: '3.8'
 
 x-app: &app
-  image: hmis-warehouse:3.1
+  image: hmis-warehouse:3.3
   build:
     context: .
     args:
@@ -22,7 +22,9 @@ x-app: &app
     CHROMEDRIVER_VERSION: 79.0.3945.36
     GROVER_NO_SANDBOX: 'true'
     BUNDLE_FORCE_RUBY_PLATFORM: 'true'
-  env_file: .env.local
+  env_file:
+    - .env.development.local
+    - .env.local
   tmpfs:
     - /tmp
 
@@ -41,7 +43,7 @@ services:
     profiles:
       - manual
     command: /bin/bash
-    entrypoint: ''
+    entrypoint: '/usr/bin/shell.entrypoint.sh'
     depends_on:
       - db
       - redis
@@ -55,6 +57,7 @@ services:
     depends_on:
       - db
       - redis
+      - minio
     env_file:
       - .env.local
       - .env.test
@@ -63,6 +66,7 @@ services:
     <<: *backend
     profiles:
       - manual
+    # entrypoint: ''
     stdin_open: true
     tty: true
     command: bundle exec rails console
@@ -70,6 +74,7 @@ services:
       - db
       - redis
       - mailhog
+      - minio
 
   dj:
     <<: *backend
@@ -78,6 +83,7 @@ services:
     depends_on:
       - db
       - redis
+      - minio
 
   web:
     <<: *backend
@@ -85,6 +91,10 @@ services:
     stdin_open: true
     tty: true
     command: bundle exec rails server -b 0.0.0.0
+    labels:
+      - "traefik.http.routers.op.rule=Host(`open-path-warehouse.127.0.0.1.nip.io`)"
+      - "traefik.http.routers.op.tls=true"
+      - "traefik.http.services.op.loadbalancer.server.port=3000"
     ports:
       - "3000"
     expose:
@@ -97,6 +107,7 @@ services:
       - db
       - redis
       - mailhog
+      - minio
 
   db:
     image: postgis/postgis:12-3.1-alpine
@@ -136,6 +147,23 @@ services:
       - ./tmp:/home/user/sftp
       - ./spec/support/sftp.conf:/etc/sftp/users.conf:ro
 
+  # See config/storage.yml for setup
+  minio:
+    container_name: s3
+    image: minio/minio
+    volumes:
+      - ~/minio/data:/data
+    hostname: s3
+    environment:
+      - MINIO_ACCESS_KEY=local_access_key
+      - MINIO_SECRET_KEY=local_secret_key
+      - MINIO_ROOT_USER=local_access_key
+      - MINIO_ROOT_PASSWORD=local_secret_key
+    ports:
+      - 9000:9000
+      - 9001:9001 # enable for UI access
+    command: server /data
+
 volumes:
   bundle_alpine:
   node_modules_alpine:
@@ -145,5 +173,4 @@ volumes:
 
 networks:
   default:
-    external:
-      name: nginx-proxy
+    name: nginx-proxy

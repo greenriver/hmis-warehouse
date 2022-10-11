@@ -9,6 +9,9 @@ module ClaimsReporting
   class MedicalClaim < HealthBase
     extend Memoist
 
+    ANNUAL_WELLCARE_PROCEDURE_CODES = [(99381...99387).to_a, (99391...99397).to_a, 99461, 'G0438', 'G0439', 'T1015'].flatten.map(&:to_s).freeze
+    ANNUAL_WELLCARE_DIAGNOSIS_CODE_PREFIXES = ['Z00', 'Z02', 'Z76'].freeze
+
     phi_patient :member_id
     belongs_to :patient, foreign_key: :member_id, class_name: 'Health::Patient', primary_key: :medicaid_id, optional: true
 
@@ -41,11 +44,14 @@ module ClaimsReporting
       where(claim_status: 'P')
     end
 
+    scope :annual_well_care_visits, -> do
+      regex_str = "^(#{ANNUAL_WELLCARE_DIAGNOSIS_CODE_PREFIXES.join('|')})"
+      matching_icd10cm(regex_str).or(where(icd_version: 10, procedure_code: ANNUAL_WELLCARE_PROCEDURE_CODES))
+    end
+
     scope :matching_icd10cm, ->(pg_regexp_str) do
-      # Tip: pg_trgm gist or gin index can make ~ operators fast
-      # this will otherwise be slow!
-      where <<~SQL.squish, pattern: pg_regexp_str
-        COALESCE(icd_version. '10') AND (
+      where(icd_version: 10).and(
+        where(<<~SQL.squish, pattern: pg_regexp_str
           dx_1 ~ :pattern
           OR dx_2 ~ :pattern
           OR dx_3 ~ :pattern
@@ -66,8 +72,9 @@ module ClaimsReporting
           OR dx_18 ~ :pattern
           OR dx_19 ~ :pattern
           OR dx_20 ~ :pattern
-        )
-      SQL
+        SQL
+        ), # rubocop:disable Layout/MultilineMethodCallBraceLayout
+      )
     end
 
     scope :matching_icd10pcs, ->(pg_regexp_str) do

@@ -1,0 +1,51 @@
+- id = organization.id
+.mb-5
+  .c-card.c-card--linked.c-card--row.j-parent
+    .c-card__content.d-flex.align-items-center
+      .c-checkbox.c-checkbox--square.mr-4
+        = check_box_tag("organization-toggle[#{id}]", 1, false, {class: 'j-select-children'})
+        %label{for: "organization-toggle_#{id}", data: {toggle: 'tooltip'}, title: 'Select/Deselect all projects of organization'}
+      .data-source
+        %em.ds.mr-4{class: "ds-color-#{projects.first.data_source_id}"}= data_source
+      %h3.mb-0.mt-0= organization.OrganizationName
+      %div.ml-auto.d-flex.align-items-center
+        = link_to new_organization_contact_path(organization, remote_submit: true), data: {loads_in_pjax_modal: true}, class: 'btn btn-secondary mr-2 c-card__primary-action mr-0' do
+          = "Manage contacts (#{organization.contacts.count})"
+        .jToggle.closed.c-card__toggle
+
+  %table.table.c-table.j-children.d-none
+    %thead
+      %tr.c-table__header.c-table__header--all-caps{data: {organization_id: id}}
+        %th{colspan: 7} Projects
+      %tr.c-table__header.c-table__header--secondary{data: {organization_id: id}}
+        %th
+        %th Project
+        %th Type
+        %th Report
+        %th Last Run
+        %th Last Sent On
+        %th
+    %tbody
+      - projects.each do |project|
+        - last_report = @current_reports[project.id]
+        %tr
+          %td<
+            .c-checkbox.c-checkbox--square
+              = check_box_tag("project_ids[#{project.id}]", 1, false, {class: 'j-child-select'})
+              %label{ for:"project_ids_#{project.id}", tabindex: '1' }
+          %td<
+            = link_to project.name(current_user), history_boston_project_scorecard_warehouse_reports_scorecards_path(:filters => { project_ids: [project.id], start: 1.year.ago})
+          %td<
+            = HUD.project_type_brief(project[GrdaWarehouse::Hud::Project.project_type_column])
+          %td<
+            - if last_status = last_report&.status
+              = link_to last_status, edit_boston_project_scorecard_warehouse_reports_scorecard_path(last_report)
+            -else
+              = content_tag( :em, 'not available')
+          %td<
+            = last_report&.completed_at
+          %td<
+            = last_report&.sent_at&.to_date
+          %td.text-right<
+            = link_to new_project_contact_path(project), data: {loads_in_pjax_modal: true}, class: 'btn btn-secondary btn-sm' do
+              = "Manage contacts (#{project.contacts.count})"

@@ -1,4 +1,4 @@
-- if can_view_confidential_enrollment_details?
+- if can_view_confidential_project_names?
   - seen_before = ( projects = @client.last_projects_served_by(include_confidential_names: true).select(&:present?) ).any?
 - else
   - seen_before = ( projects = @client.last_projects_served_by.map(&:presence).compact ).any?

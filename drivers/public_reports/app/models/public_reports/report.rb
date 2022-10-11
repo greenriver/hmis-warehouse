@@ -83,6 +83,19 @@ module PublicReports
       end
     end
 
+    def known_params
+      [
+        :start,
+        :end,
+        :coc_codes,
+        :project_ids,
+        :organization_ids,
+        :data_source_ids,
+        :project_type_numbers,
+        :hoh_only,
+      ]
+    end
+
     def published?
       published_url.present?
     end
@@ -217,6 +230,11 @@ module PublicReports
         return data if data > 100
 
         100
+      when 'hoh_pit_chart'
+        return data if data.zero?
+        return data if data > 20
+
+        20
       when 'location'
         # return percentages for each instead of raw counts
         (sheltered, unsheltered) = data

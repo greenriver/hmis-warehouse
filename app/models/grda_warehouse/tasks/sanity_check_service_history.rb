@@ -46,6 +46,7 @@ module GrdaWarehouse::Tasks
 
     def sanity_check
       messages = []
+      processed_ids = Set.new
       @destinations.each do |id, counts|
         next if counts[:service_history].except(:service) == counts[:source].except(:service) || clients_still_processing?(client_ids: id)
 
@@ -53,6 +54,7 @@ module GrdaWarehouse::Tasks
         logger.warn msg
         messages << msg
         client_source.find(id).invalidate_service_history
+        processed_ids << id
         add_attempt(id)
       end
       update_attempts
@@ -68,6 +70,7 @@ module GrdaWarehouse::Tasks
       end
       logger.info rebuilding_message
       GrdaWarehouse::Tasks::ServiceHistory::Add.new(force_sequential_processing: true).run!
+      GrdaWarehouse::WarehouseClientsProcessed.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running), priority: 12).update_cached_counts(client_ids: processed_ids.to_a)
     end
 
     def attempts
@@ -101,17 +104,20 @@ module GrdaWarehouse::Tasks
         max_attempts_reached(id)
       end
       @destinations = destinations.map do |m|
-        [m, {
-          service_history: {
-            enrollments: 0,
-            exits: 0,
+        [
+          m,
+          {
+            service_history: {
+              enrollments: 0,
+              exits: 0,
+            },
+            source: {
+              enrollments: 0,
+              exits: 0,
+            },
+            source_personal_ids: [],
           },
-          source: {
-            enrollments: 0,
-            exits: 0,
-          },
-          source_personal_ids: [],
-        }]
+        ]
       end.to_h
     end
 

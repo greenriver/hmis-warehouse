@@ -105,5 +105,21 @@ module Reporting::DataQualityReports
       ((self.average_nightly_households / self.unit_inventory.to_f) * 100).round rescue 0
     end
 
+    def safe_project_name(user)
+      return project_name if user&.can_view_confidential_project_names?
+
+      if confidential_project_ids.include?(project_id)
+        GrdaWarehouse::Hud::Project.confidential_project_name
+      else
+        project_name
+      end
+    end
+
+    def confidential_project_ids
+      cached_confidential_project_ids = Rails.cache.fetch('report_project_confidential_project_ids', expires_in: 1.minute) do
+        GrdaWarehouse::Hud::Project.confidential.pluck(:id).to_set
+      end
+      cached_confidential_project_ids
+    end
   end
 end

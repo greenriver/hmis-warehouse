@@ -6,7 +6,7 @@
       .col-sm-3
         = f.input :end, as: :date_picker, label: 'End'
       .col-sm-6
-        = f.input :project_ids, as: :grouped_select_two, group_method: :last, collection: @filter.project_options_for_select(user: current_user), input_html: {multiple: true, data: {placeholder: 'All' }}, include_blank: false, label: 'Projects'
+        = f.input :project_ids, collection: [], as: :select_two, input_html: { multiple: true, data: { 'collection-path' => api_projects_path(selected_project_ids: @filter.project_ids) }, placeholder: 'Any Project'}, label: 'Projects'
     .row
       .col-sm-3
         = f.input :service_type, collection: ServiceScanning::Service.available_types, input_html: { class: 'jType' }, label: 'Service Provided', include_blank: false, as: :select_two

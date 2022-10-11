@@ -175,7 +175,7 @@ module ReportGenerators::Lsa::Fy2021
     end
 
     def setup_temporary_rds
-      ::Rds.identifier = sql_server_identifier unless Rds.static_rds?
+      ::Rds.identifier = sql_server_identifier unless ::Rds.static_rds?
       ::Rds.database = sql_server_database
       ::Rds.timeout = 60_000_000
       @rds = ::Rds.new

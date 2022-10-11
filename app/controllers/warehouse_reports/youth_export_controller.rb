@@ -13,6 +13,11 @@ module WarehouseReports
     def index
       @reports = report_scope.order(created_at: :desc).
         select(:id, :user_id, :options, :client_count, :started_at, :completed_at, :created_at)
+
+      # Set default filter to prior run
+      previous_report = @reports.last
+      @filter.update(previous_report.options.with_indifferent_access) if previous_report
+
       @pagy, @reports = pagy(@reports)
     end
 
@@ -45,7 +50,7 @@ module WarehouseReports
     end
 
     private def set_filter
-      @filter = ::Filters::DateRangeAndSources.new(filter_params)
+      @filter = ::Filters::FilterBase.new(filter_params)
     end
 
     private def filter_params

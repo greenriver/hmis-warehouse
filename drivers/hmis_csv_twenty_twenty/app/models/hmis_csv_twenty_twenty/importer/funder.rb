@@ -6,7 +6,7 @@
 
 module HmisCsvTwentyTwenty::Importer
   class Funder < GrdaWarehouse::Hud::Base
-    include ::HMIS::Structure::Funder
+    include ::HmisStructure::Funder
     include ImportConcern
 
     # Because GrdaWarehouse::Hud::* defines the table name, we can't use table_name_prefix :(

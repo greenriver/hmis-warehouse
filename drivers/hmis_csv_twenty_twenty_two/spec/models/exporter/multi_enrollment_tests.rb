@@ -10,7 +10,7 @@ RSpec.shared_context '2022 multi-enrollment tests', shared_context: :metadata do
   end
 
   def involved_enrollments
-    GrdaWarehouse::Hud::Enrollment.where(ProjectID: involved_projects.select(:ProjectID))
+    GrdaWarehouse::Hud::Enrollment.order(id: :asc).where(ProjectID: involved_projects.select(:ProjectID))
   end
 
   def involved_clients
@@ -32,7 +32,7 @@ RSpec.shared_context '2022 multi-enrollment tests', shared_context: :metadata do
       it 'EnrollmentIDs from CSV file match the ids of first three enrollments' do
         csv = CSV.read(csv_file_path(@enrollment_class), headers: true)
         csv_ids = csv.map { |m| m['EnrollmentID'] }.sort
-        source_ids = involved_enrollments.map(&:id).map(&:to_s).sort.first(3)
+        source_ids = involved_enrollments.map(&:id).sort.map(&:to_s).first(3)
         expect(csv_ids).to eq source_ids
       end
       it 'PersonalID from CSV should not be blank' do
@@ -55,7 +55,7 @@ RSpec.shared_context '2022 multi-enrollment tests', shared_context: :metadata do
         csv = CSV.read(csv_file_path(@client_class), headers: true)
 
         csv_ids = csv.map { |m| m['PersonalID'] }.sort
-        source_ids = involved_clients.map(&:destination_client).map(&:id).map(&:to_s).sort.first(3)
+        source_ids = involved_clients.map(&:destination_client).map(&:id).sort.map(&:to_s).first(3)
         expect(csv_ids).to eq source_ids
       end
     end
@@ -69,22 +69,30 @@ RSpec.shared_context '2022 multi-enrollment tests', shared_context: :metadata do
           csv = CSV.read(csv_file_path(klass), headers: true)
           expect(csv.count).to eq 3
         end
-        it 'hud keys in CSV should match ids of first three items in list' do
+        it "hud keys in #{klass.hud_csv_file_name} CSV should match ids of first three items in list" do
           csv = CSV.read(csv_file_path(klass), headers: true)
           hmis_class = klass.hmis_class
           csv_ids = csv.map { |m| m[hmis_class.hud_key.to_s] }.sort
           involved_enrollment_project_entry_ids = involved_enrollments.pluck(:EnrollmentID)
           source_ids = instance_variable_get("@#{items}").select do |m|
             involved_enrollment_project_entry_ids.include? m.EnrollmentID
-          end.map(&:id).map(&:to_s).sort.first(3)
-          expect(csv_ids).to eq source_ids
+          end.map(&:id).
+            sort. # Sort by number, because export chose first 3 enrollments and related items before converting to strings
+            map(&:to_s)
+          test_data = instance_variable_get("@#{items}").select do |m|
+            involved_enrollment_project_entry_ids.include? m.EnrollmentID
+          end.map { |m| [m.id, m.EnrollmentID, m.data_source_id] }
+          puts klass.hud_csv_file_name
+          # expecting ids are 2 larger than originally expected
+          puts test_data.inspect
+          expect(csv_ids).to eq source_ids.first(3)
         end
         if klass.hmis_class.column_names.include?('EnrollmentID')
           it 'EnrollmentIDs from CSV file match the ids of first three enrollments' do
             # binding.pry if items == :exits
             csv = CSV.read(csv_file_path(klass), headers: true)
             csv_ids = csv.map { |m| m['EnrollmentID'] }.sort
-            source_ids = involved_enrollments.map(&:id).map(&:to_s).sort.first(3)
+            source_ids = involved_enrollments.map(&:id).sort.map(&:to_s).first(3)
             expect(csv_ids).to eq source_ids
           end
         end

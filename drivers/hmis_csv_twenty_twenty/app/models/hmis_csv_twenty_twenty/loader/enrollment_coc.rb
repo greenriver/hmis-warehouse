@@ -7,7 +7,7 @@
 module HmisCsvTwentyTwenty::Loader
   class EnrollmentCoc < GrdaWarehouse::Hud::Base
     include LoaderConcern
-    include ::HMIS::Structure::EnrollmentCoc
+    include ::HmisStructure::EnrollmentCoc
     # Because GrdaWarehouse::Hud::* defines the table name, we can't use table_name_prefix :(
     self.table_name = 'hmis_csv_2020_enrollment_cocs'
   end

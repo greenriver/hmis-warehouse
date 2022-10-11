@@ -7,7 +7,7 @@ style = {
 wb.add_worksheet name: 'Organization' do |sheet|
   title = sheet.styles.add_style **style
   sheet.add_row ['Organization Name', 'OrganizationID', 'Data Source', 'Start', 'End'], style: title
-  sheet.add_row [@filter.organization.name, @filter.organization.OrganizationID, @filter.organization.data_source.name, l(@filter.start), l(@filter.end) ]
+  sheet.add_row [@filter.organization.name(current_user), @filter.organization.OrganizationID, @filter.organization.data_source.name, l(@filter.start), l(@filter.end) ]
 end
 wb.add_worksheet name: 'Length of Stay' do |sheet|
   title = sheet.styles.add_style **style

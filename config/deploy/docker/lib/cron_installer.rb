@@ -59,7 +59,7 @@ class CronInstaller
   def _spot_capacity_provider_strategy
     [
       {
-        capacity_provider: _spot_capacity_provider_name,
+        capacity_provider: _spot_capacity_provider_name(target_group_name),
         weight: 1,
         base: 1,
       },
@@ -69,7 +69,7 @@ class CronInstaller
   def _on_demand_capacity_provider_strategy
     [
       {
-        capacity_provider: _on_demand_capacity_provider_name,
+        capacity_provider: _on_demand_capacity_provider_name(target_group_name),
         weight: 1,
         base: 1,
       },

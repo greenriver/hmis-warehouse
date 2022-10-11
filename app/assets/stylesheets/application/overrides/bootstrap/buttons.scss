@@ -215,9 +215,8 @@ input[type=submit].btn-secondary:focus,
   &.disabled {
     background: desaturate($brand-primary-l, 80%);
     border-color: desaturate($brand-primary, 80%);
-    color: rgba($black, .55);
+    color: rgba($black, .85);
     outline: 0;
-    color: $white;
   }
   &.active,
   &:active,

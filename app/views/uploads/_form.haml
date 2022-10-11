@@ -12,12 +12,12 @@
         = simple_form_for @upload, url: data_source_uploads_path(@data_source) do |f|
           = f.error_notification
           .form-inputs
-            = f.input :file, as: :file
+            .mb-4
+              = f.file_field :hmis_zip
             - if can_upload_deidentified_hud_hmis_files?
               = f.input :deidentified, as: :boolean, label: "Are all of the Client Names in Client.csv blank?"
             - if can_upload_whitelisted_hud_hmis_files?
               = f.input :project_whitelist, as: :boolean, label: "Limit clients to whitelisted projects?"
-            = f.hidden_field :file_cache
             = f.hidden_field :import_type, value: :hmis_migrate
           .form-actions
             = f.button :submit, value: 'Upload Zip'

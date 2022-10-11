@@ -1,0 +1,9 @@
+- link_text = if local_assigns[:link_text].nil? then scope.size else local_assigns[:link_text] end
+- if permission
+  = simple_form_for :entity, method: :post, url: detail_path, data: { submits_to_pjax_modal: true } do |f|
+    = f.input :entity_id, as: :hidden, input_html: {value: entity_slug}
+    = f.input :patient_ids, as: :hidden, input_html: {value: scope.join(',')}
+    = f.input :section, as: :hidden, input_html: {value: title}
+    = f.submit link_text, class: 'btn btn-secondary btn-sm', data: { disable_with: false }
+- else
+  = link_text

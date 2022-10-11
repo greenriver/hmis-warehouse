@@ -10,7 +10,7 @@ module Export::Exporter
 
   included do
     def setup_export
-      @export ||= GrdaWarehouse::HmisExport.create(options)
+      @export ||= GrdaWarehouse::HmisExport.create(options.merge(started_at: Time.current))
       @export.fake_data ||= GrdaWarehouse::FakeData.where(environment: @faked_environment).first_or_create
     end
 
@@ -27,6 +27,7 @@ module Export::Exporter
         project_ids: @projects,
         include_deleted: @include_deleted,
         version: @version,
+        options: @selected_options,
       }
       @options[:export_id] ||= Digest::MD5.hexdigest(@options.to_s)[0..31]
       @options

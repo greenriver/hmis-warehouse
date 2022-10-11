@@ -27,8 +27,8 @@ module HmisCsvTwentyTwentyTwo::Exporter
     def self.apply_overrides(row, export:)
       # Don't actually do this, identify duplicates and client cleanup should handle this, just use the destination client
       # row = pick_best_source_client_data(row)
-      row = apply_hash_status(row, export)
       row = apply_length_limits(row)
+      row = apply_hash_status(row, export)
       row = enforce_gender_none(row)
       [
         :NameDataQuality,

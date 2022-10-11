@@ -27,12 +27,18 @@ RSpec.describe HmisCsvTwentyTwenty, type: :model do
       )
       tmp_path = path.gsub('source', data_source.id.to_s)
       FileUtils.cp_r(path, tmp_path)
-      upload = GrdaWarehouse::Upload.create!(
+      upload = GrdaWarehouse::Upload.new(
         user_id: User.first,
         data_source_id: data_source.id,
         percent_complete: 0.0,
-        file: file,
+        file: 'See S3',
       )
+
+      upload.hmis_zip.attach(
+        io: file,
+        filename: file.path,
+      )
+      upload.save!
       log = HmisCsvTwentyTwenty.import!(
         tmp_path,
         data_source.id,

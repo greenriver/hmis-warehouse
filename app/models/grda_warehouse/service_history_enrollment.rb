@@ -332,6 +332,10 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
     one_for_column(column, source_arel_table: arel_table, group_on: :client_id, direction: :desc, scope: scope)
   end
 
+  scope :on_cohort, ->(cohort_id:) do
+    where(client_id: GrdaWarehouse::CohortClient.active.where(cohort_id: cohort_id).select(:client_id))
+  end
+
   #################################
   # Standard Cohort Scopes
 

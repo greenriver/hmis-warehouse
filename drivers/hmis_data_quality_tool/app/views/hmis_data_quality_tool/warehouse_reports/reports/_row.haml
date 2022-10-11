@@ -1,0 +1,7 @@
+%tr
+  %th= result.category
+  %th= result.title
+  %td= result.description
+  %td
+    = link_to items_hmis_data_quality_tool_warehouse_reports_report_path(@report, key: result.title) do
+      #{result.count} (#{result.percent}% of #{result.total})

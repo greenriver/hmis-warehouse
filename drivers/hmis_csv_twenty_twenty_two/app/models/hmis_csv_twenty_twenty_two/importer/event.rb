@@ -6,7 +6,7 @@
 
 module HmisCsvTwentyTwentyTwo::Importer
   class Event < GrdaWarehouse::Hud::Base
-    include ::HMIS::Structure::Event
+    include ::HmisStructure::Event
     include ImportConcern
 
     # Because GrdaWarehouse::Hud::* defines the table name, we can't use table_name_prefix :(

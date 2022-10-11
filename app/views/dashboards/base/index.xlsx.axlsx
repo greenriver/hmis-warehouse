@@ -27,8 +27,8 @@ wb.add_worksheet(name: "#{@report.sub_population_title} Dashboard"[0,30]) do |sh
   ] + GrdaWarehouse::Hud::Client.race_fields.map { |m| HUD.race(m).gsub('None', 'Race None') }, style: title)
   @enrollments.each do |en|
     client = @clients[en.client_id]
-    project_name = @projects[en[:project_id]]
-    organization_name = @organizations[en[:organization_id]]
+    project_name = @projects[en[:project_id]]&.name(current_user)
+    organization_name = @organizations[en[:organization_id]]&.name(current_user)
 
     sheet.add_row(
       [

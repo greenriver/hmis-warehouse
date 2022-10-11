@@ -17,6 +17,10 @@ module PerformanceMetrics::WarehouseReports
 
     def index
       @pagy, @reports = pagy(report_scope.ordered)
+
+      previous_report = report_scope.last
+      @filter.update(previous_report.options) if previous_report&.options
+
       @report = report_class.new(user_id: current_user.id)
       # Make sure the form will work
       filters

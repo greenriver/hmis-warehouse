@@ -1,0 +1,32 @@
+wb = xlsx_package.workbook
+@validations.each do |file, validations|
+  filename = file.split('::').last
+  sheet_title = "#{filename} Validation Flags"
+
+  wb.add_worksheet(name: sheet_title[0..30]) do |sheet|
+    title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
+    row = ['Message'] + validations.first.source.class.hmis_structure.keys
+    sheet.add_row(row, style: title)
+    validations.each do |error|
+      source = error.source
+      row = [error.status] + source.hmis_data.values
+      sheet.add_row(row)
+    end
+  end
+end
+@errors.each do |file, errors|
+  filename = file.split('::').last
+  sheet_title = "#{filename} Error Flags"
+
+  wb.add_worksheet(name: sheet_title[0..30]) do |sheet|
+    title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
+    hmis_keys = errors.first.source.class.hmis_structure.keys
+    row = ['Message'] + hmis_keys
+    sheet.add_row(row, style: title)
+    errors.each do |error|
+      source = error.source
+      row = [error.details] + source.values_at(hmis_keys)
+      sheet.add_row(row)
+    end
+  end
+end

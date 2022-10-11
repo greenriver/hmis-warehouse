@@ -13,7 +13,7 @@
           - @clients.each do |service|
             %tr
               %td
-                - if ! @project.confidential? || can_edit_projects? || can_view_confidential_enrollment_details?
+                - if ! @project.confidential? || can_edit_projects? || can_view_confidential_project_names?
                   = link_to_if can_view_clients?, service.client.name, client_path(service.client)
                 - else
                   Confidential Client

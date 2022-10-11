@@ -40,7 +40,8 @@
             %td= @report.max_pathways_date(@client_page, client.id)
             %td
               - if enrollment.present?
-                #{enrollment.project_name} (#{HUD.project_type_brief(enrollment.computed_project_type)})
+                - safe_project_name = GrdaWarehouse::Hud::Project.confidentialize_name(current_user, enrollment.project_name, enrollment.confidential)
+                #{safe_project_name} (#{HUD.project_type_brief(enrollment.computed_project_type)})
                 %br
                 #{enrollment.first_date_in_program} - #{enrollment.last_date_in_program}
   = render 'common/pagination_bottom', item_name: 'assessment'

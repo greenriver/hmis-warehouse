@@ -61,6 +61,15 @@ module HudReports::LengthOfStays
       end
     end
 
+    private def hoh_date_to_street_dates
+      @hoh_date_to_street_dates ||= {}.tap do |entries|
+        enrollment_scope.where(client_id: client_scope).heads_of_households.
+          find_each do |enrollment|
+          entries[enrollment[:head_of_household_id]] ||= enrollment.enrollment.DateToStreetESSH
+        end
+      end
+    end
+
     # Given the reporting period, how long has the client been in the enrollment
     private def stay_length(enrollment)
       end_date = [
@@ -81,16 +90,24 @@ module HudReports::LengthOfStays
       (move_in_date - enrollment.first_date_in_program).to_i
     end
 
-    private def approximate_time_to_move_in(enrollment)
+    private def date_to_street(enrollment, reporting_age)
+      return hoh_date_to_street_dates[enrollment[:head_of_household_id]] if reporting_age.present? && reporting_age <= 17
+
+      enrollment.enrollment.DateToStreetESSH
+    end
+
+    private def approximate_time_to_move_in(enrollment, reporting_age)
       move_in_date = if enrollment.computed_project_type.in?(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph])
         appropriate_move_in_date(enrollment) || enrollment.first_date_in_program
       else
         enrollment.first_date_in_program
       end
-      date_to_street = enrollment.enrollment.DateToStreetESSH
-      return nil if date_to_street.blank? || date_to_street > move_in_date
+      # DateToStreetESSH needs to be pulled from HoH if not available on client
+      # This applies to any household member whose age is <= 17 (calculated according to the HMIS Reporting Glossary), regardless of their relationship to the head of household, but not clients of unknown age.
+      dts = date_to_street(enrollment, reporting_age)
+      return nil if dts.blank? || dts > move_in_date
 
-      (move_in_date - date_to_street).to_i
+      (move_in_date - dts).to_i
     end
 
     # Household members already in the household when the head of household moves into housing have the same [housing move-in date] as the head of household. For household members joining the household after it is already in housing, use the person’s [project start date] as their [housing move-in date].
@@ -99,7 +116,7 @@ module HudReports::LengthOfStays
       move_in_date = enrollment.move_in_date
       return move_in_date if move_in_date.present?
 
-      hoh_move_in_date = hoh_entry_dates[enrollment[:head_of_household]]
+      hoh_move_in_date = hoh_entry_dates[enrollment[:head_of_household_id]]
       return nil unless hoh_move_in_date.present?
       return hoh_move_in_date if enrollment.first_date_in_program < hoh_move_in_date
 

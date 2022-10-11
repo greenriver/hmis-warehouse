@@ -5,7 +5,7 @@
 ###
 
 module Filters
-  class HmisExport < ::ModelForm
+  class HmisExport < FilterBase
     include ArelHelper
     attribute :start_date, Date, default: 1.years.ago.to_date
     attribute :end_date, Date, default: Date.current
@@ -14,11 +14,6 @@ module Filters
     attribute :period_type, Integer, default: 3
     attribute :directive, Integer, default: 2
     attribute :include_deleted, Boolean, default: false
-    attribute :project_ids, Array, default: []
-    attribute :project_group_ids, Array, default: []
-    attribute :organization_ids, Array, default: []
-    attribute :data_source_ids, Array, default: []
-    attribute :user_id, Integer, default: nil
     attribute :faked_pii, Boolean, default: false
     attribute :confidential, Boolean, default: false
 
@@ -35,6 +30,7 @@ module Filters
     attribute :s3_prefix, String
     attribute :zip_password, String
     attribute :encryption_type, String
+    attribute :_aj_symbol_keys, String
 
     validates_presence_of :start_date, :end_date
 
@@ -42,6 +38,62 @@ module Filters
       if end_date.present? && start_date.present?
         errors.add :end_date, 'must follow start date' if end_date < start_date
       end
+    end
+
+    def update(filters)
+      return self unless filters.present?
+
+      filters = filters.to_h.with_indifferent_access
+
+      self.start_date = filters.dig(:start_date)&.to_date || start_date
+      self.end_date = filters.dig(:end_date)&.to_date || end_date
+      self.version = filters.dig(:version) if self.class.available_versions&.include?(filters.dig(:version))
+      self.hash_status = filters.dig(:hash_status).to_i unless filters.dig(:hash_status).nil?
+      self.period_type = filters.dig(:period_type).to_i unless filters.dig(:period_type).nil?
+      self.directive = filters.dig(:directive).to_i unless filters.dig(:directive).nil?
+      self.include_deleted = filters.dig(:include_deleted).in?(['1', 'true', true]) unless filters.dig(:include_deleted).nil?
+      self.faked_pii = filters.dig(:faked_pii).in?(['1', 'true', true]) unless filters.dig(:faked_pii).nil?
+      self.confidential = filters.dig(:confidential).in?(['1', 'true', true]) unless filters.dig(:confidential).nil?
+      self.every_n_days = filters.dig(:every_n_days).to_i unless filters.dig(:every_n_days).nil?
+      self.reporting_range = filters.dig(:reporting_range) unless filters.dig(:reporting_range).nil?
+      self.reporting_range_days = filters.dig(:reporting_range_days).to_i unless filters.dig(:reporting_range_days).nil?
+      self.recurring_hmis_export_id = filters.dig(:recurring_hmis_export_id).to_i unless filters.dig(:recurring_hmis_export_id).nil?
+      self.s3_access_key_id = filters.dig(:s3_access_key_id) unless filters.dig(:s3_access_key_id).nil?
+      self.s3_secret_access_key = filters.dig(:s3_secret_access_key) unless filters.dig(:s3_secret_access_key).nil?
+      self.s3_region = filters.dig(:s3_region) unless filters.dig(:s3_region).nil?
+      self.s3_bucket = filters.dig(:s3_bucket) unless filters.dig(:s3_bucket).nil?
+      self.s3_prefix = filters.dig(:s3_prefix) unless filters.dig(:s3_prefix).nil?
+      self.zip_password = filters.dig(:zip_password) unless filters.dig(:zip_password).nil?
+      self.encryption_type = filters.dig(:encryption_type) unless filters.dig(:encryption_type).nil?
+
+      super(filters)
+    end
+
+    def for_params
+      super.deep_merge(
+        filters: {
+          start_date: start_date,
+          end_date: end_date,
+          version: version,
+          hash_status: hash_status,
+          period_type: period_type,
+          directive: directive,
+          include_deleted: include_deleted,
+          faked_pii: faked_pii,
+          confidential: confidential,
+          every_n_days: every_n_days,
+          reporting_range: reporting_range,
+          reporting_range_days: reporting_range_days,
+          recurring_hmis_export_id: recurring_hmis_export_id,
+          s3_access_key_id: s3_access_key_id,
+          s3_secret_access_key: s3_secret_access_key,
+          s3_region: s3_region,
+          s3_bucket: s3_bucket,
+          s3_prefix: s3_prefix,
+          zip_password: zip_password,
+          encryption_type: encryption_type,
+        },
+      )
     end
 
     # Add to the list of available HMIS exports
@@ -92,6 +144,7 @@ module Filters
         user_id: user_id,
         confidential: confidential,
         recurring_hmis_export_id: recurring_hmis_export_id,
+        options: to_h,
       }
     end
 
@@ -110,21 +163,21 @@ module Filters
 
     def effective_project_ids_from_project_groups
       GrdaWarehouse::ProjectGroup.joins(:projects).
-        merge(GrdaWarehouse::ProjectGroup.viewable_by(user)).
+        merge(viewable_project_scope).
         where(id: project_group_ids.reject(&:blank?).map(&:to_i)).
         pluck(p_t[:id].as('project_id').to_sql)
     end
 
     def effective_project_ids_from_organizations
       GrdaWarehouse::Hud::Organization.joins(:projects).
-        merge(GrdaWarehouse::Hud::Project.viewable_by(user)).
+        merge(viewable_project_scope).
         where(id: organization_ids.reject(&:blank?).map(&:to_i)).
         pluck(p_t[:id].as('project_id').to_sql)
     end
 
     def effective_project_ids_from_data_sources
       GrdaWarehouse::DataSource.joins(:projects).
-        merge(GrdaWarehouse::Hud::Project.viewable_by(user)).
+        merge(viewable_project_scope).
         where(id: data_source_ids.reject(&:blank?).map(&:to_i)).
         pluck(p_t[:id].as('project_id').to_sql)
     end
@@ -147,8 +200,14 @@ module Filters
       end
     end
 
+    def viewable_project_scope
+      return GrdaWarehouse::Hud::Project.non_confidential.viewable_by(user) unless user.can_view_confidential_project_names?
+
+      GrdaWarehouse::Hud::Project.viewable_by(user)
+    end
+
     def all_project_ids
-      GrdaWarehouse::Hud::Project.viewable_by(user).pluck(:id)
+      viewable_project_scope.pluck(:id)
     end
 
     def user

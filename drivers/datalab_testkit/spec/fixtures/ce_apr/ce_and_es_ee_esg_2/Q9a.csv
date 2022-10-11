@@ -1,0 +1,5 @@
+" ","Total","a. Without children","b. With children and adults","c. With only children","d. Unknown household type"
+"Phone",3,3,0,0,0
+"Virtual",1,1,0,0,0
+"In-person",7,6,0,0,1
+"Total Households Assessed",11,10,0,0,1

@@ -7,28 +7,28 @@
         %ul.list-unstyled
           - @report.report_projects.preload(:project).each do |p|
             %li
-              #{p.project.ProjectName}:
+              #{p.project.name(current_user)}:
               %strong #{p.operating_start_date || 'blank'}
       .col-sm-3
         %h4 CoC Code
         %ul.list-unstyled
           - @report.report_projects.preload(:project).each do |p|
             %li
-              #{p.project.ProjectName}:
+              #{p.project.name(current_user)}:
               %strong #{p.coc_code || 'blank'}
       .col-sm-3
         %h4 Funder
         %ul.list-unstyled
           - @report.report_projects.preload(:project).each do |p|
             %li
-              #{p.project.ProjectName}:
+              #{p.project.name(current_user)}:
               %strong #{p.funder.presence || 'blank'}
       .col-sm-3
         %h4 Inventory Information Date
         %ul.list-unstyled
           - @report.report_projects.preload(:project).each do |p|
             %li
-              #{p.project.ProjectName}:
+              #{p.project.name(current_user)}:
               %strong #{p.inventory_information_dates.presence || 'blank'}
     - else
       .col-sm-4
@@ -36,21 +36,21 @@
         %ul.list-unstyled
           - @report.report_projects.preload(:project).each do |p|
             %li
-              #{p.project.ProjectName}:
+              #{p.project.name(current_user)}:
               %strong #{p.operating_start_date || 'blank'}
       .col-sm-4
         %h4 CoC Code
         %ul.list-unstyled
           - @report.report_projects.preload(:project).each do |p|
             %li
-              #{p.project.ProjectName}:
+              #{p.project.name(current_user)}:
               %strong #{p.coc_code || 'blank'}
       .col-sm-4
         %h4 Funder
         %ul.list-unstyled
           - @report.report_projects.preload(:project).each do |p|
             %li
-              #{p.project.ProjectName}:
+              #{p.project.name(current_user)}:
               %strong #{p.funder.presence || 'blank'}
   .row
     - if ! @report.hide_beds_and_units
@@ -59,21 +59,21 @@
         %ul.list-unstyled
           - @report.report_projects.preload(:project).each do |p|
             %li
-              #{p.project.ProjectName}:
+              #{p.project.name(current_user)}:
               %strong #{p.geocode.presence || 'blank'}
       .col-sm-3
         %h4 Geography Type
         %ul.list-unstyled
           - @report.report_projects.preload(:project).each do |p|
             %li
-              #{p.project.ProjectName}:
+              #{p.project.name(current_user)}:
               %strong #{p.geography_type.presence || 'blank'}
       .col-sm-3
         %h4 Unit Inventory
         %ul.list-unstyled
           - @report.report_projects.preload(:project).each do |p|
             %li
-              #{p.project.ProjectName}:
+              #{p.project.name(current_user)}:
               %strong #{pluralize(p.unit_inventory, 'unit')}
           %li
             Total:
@@ -83,7 +83,7 @@
         %ul.list-unstyled
           - @report.report_projects.preload(:project).each do |p|
             %li
-              #{p.project.ProjectName}:
+              #{p.project.name(current_user)}:
               %strong #{pluralize(p.bed_inventory, 'bed')}
           %li
             Total:
@@ -94,14 +94,14 @@
         %ul.list-unstyled
           - @report.report_projects.preload(:project).each do |p|
             %li
-              #{p.project.ProjectName}:
+              #{p.project.name(current_user)}:
               %strong #{p.geocode.presence || 'blank'}
       .col-sm-6
         %h4 Geography Type
         %ul.list-unstyled
           - @report.report_projects.preload(:project).each do |p|
             %li
-              #{p.project.ProjectName}:
+              #{p.project.name(current_user)}:
               %strong #{p.geography_type.presence || 'blank'}
   .row
     - if ! @report.hide_beds_and_units
@@ -110,14 +110,14 @@
         %ul.list-unstyled
           - @report.report_projects.preload(:project).each do |p|
             %li
-              #{p.project.ProjectName}:
+              #{p.project.name(current_user)}:
               %strong #{HUD.housing_type(p.housing_type.presence) || 'blank'}
       .col-sm-6
         %h4 Project Types
         %ul.list-unstyled
           - @report.report_projects.preload(:project).each do |p|
             %li
-              #{p.project.ProjectName}:
+              #{p.project.name(current_user)}:
               %strong #{HUD.project_type p.project_type.presence}
     - else
       .col-sm-12
@@ -125,5 +125,5 @@
         %ul.list-unstyled
           - @report.report_projects.preload(:project).each do |p|
             %li
-              #{p.project.ProjectName}:
+              #{p.project.name(current_user)}:
               %strong #{HUD.project_type p.project_type.presence}

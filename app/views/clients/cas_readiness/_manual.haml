@@ -47,8 +47,8 @@
             .mr-10
               = f.input :disability_verified_on, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:disability_verified_on], input_html: {checked: @client.disability_verified_on.present?}
             .mr-10.pt-2
-              - tags = GrdaWarehouse::AvailableFileTag.tag_includes('Verification of Disability').map(&:name)
-              - file = @client.client_files.tagged_with(tags, any: true).order(:created_at).last
+              - tags = @client.cas_attributes_file_tag_map[:disability_verified_on]
+              - file = @client.client_files.tagged_with(tags, any: true).order(updated_at: :desc).first
               - if file.present?
                 File:
                 - if file.tag_list.present?

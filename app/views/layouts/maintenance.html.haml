@@ -1,0 +1,48 @@
+!!!
+%html(lang="en")
+  %head
+    %meta{name: "openpath-server", content: @op_hostname}
+    %meta{:content => "text/html; charset=UTF-8", "http-equiv" => "Content-Type"}/
+    - if enable_responsive?
+      %meta{:name=>"viewport", :content=>"width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0"}
+    %meta{:content => "IE=edge", "http-equiv" => "X-UA-Compatible"}
+    = action_cable_meta_tag
+    %title= [(strip_tags content_for(:title)).presence, _('Boston DND Warehouse')].compact.join(' :: ')
+    %link{rel: :icon, type: 'image/png', href: 'data:;base64,iVBORw0KGgo='}
+    %link{href: '//fonts.googleapis.com/css?family=Open+Sans:300,400,400italic,600,700|Open+Sans+Condensed:700|Poppins:400,300,500,700', rel: 'stylesheet', type: 'text/css'}
+    = stylesheet_link_tag 'application', media: 'all'
+    = stylesheet_link_tag 'print', media: 'print'
+
+    - Dir.glob('app/assets/stylesheets/theme/styles/*.scss') do |stylesheet|
+      - theme_styles = "theme/styles/#{File.basename(stylesheet, '.scss')}"
+      = stylesheet_link_tag(theme_styles, media: 'all')
+
+    = render 'layouts/favicon'
+    = csrf_meta_tags
+  - data = {}
+  - data.merge!({ spy: :scroll, target: '.scrollspy' }) if content_for(:body_data_scrollspy)
+  %body{class: body_classes, data: data}
+    %header.o-header--page
+      .container-fluid.d-flex.align-items-center{class: container_classes}
+        .site-name.d-flex
+          .o-header--page__title.site-title
+            = _('Boston DND Warehouse')
+        .o-header--page__sub-title.tagline
+          = _('Ending Veteran & Chronic Homelessness in Boston')
+    .l-main__wrapper
+      .l-main__content
+        %main
+          .container-fluid.mb-4{class: container_classes}
+            .utility<
+            = yield
+
+    %footer
+      .container-fluid.w-100{class: container_classes}
+        .d-flex.align-items-center.pt-4.pb-6
+          = render 'layouts/footer_seal'
+          %p.site-description
+            = _('The Boston DND Warehouse is operated by the Department of Neighborhood Development as the lead agency of the Boston Continuum of Care.')
+          - if GrdaWarehouse::Config.get(:support_contact_email)
+            .ml-4.custom-footer-content
+              .text-right
+                = mail_to GrdaWarehouse::Config.get(:support_contact_email), _('Contact Support'), subject: "#{_('Boston DND Warehouse')} Support Request"

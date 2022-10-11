@@ -6,7 +6,7 @@
 
 module HmisCsvTwentyTwentyTwo::Importer
   class Affiliation < GrdaWarehouse::Hud::Base
-    include ::HMIS::Structure::Affiliation
+    include ::HmisStructure::Affiliation
     include ImportConcern
 
     # Because GrdaWarehouse::Hud::* defines the table name, we can't use table_name_prefix :(

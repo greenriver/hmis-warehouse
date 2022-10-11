@@ -1,4 +1,4 @@
-- content_for :title, "Project Data Quality Report for #{@project.ProjectName} at #{@project.organization.OrganizationName}"
+- content_for :title, "Project Data Quality Report for #{@project.name(current_user)} at #{@project.organization_name(current_user)}"
 %h1= content_for :title
 
 - support_path = [:support, :project, :data_quality_report]

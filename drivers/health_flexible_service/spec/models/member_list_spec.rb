@@ -14,10 +14,10 @@ RSpec.describe HealthFlexibleService::MemberList, type: :model do
   let!(:vpr_4) { create :vpr, :in_range, :pre_tenancy_1, :pre_tenancy_2 }
 
   before(:each) do
-    vpr_1.patient.patient_referral.update(accountable_care_organization_id: aco.id)
-    vpr_2.patient.patient_referral.update(accountable_care_organization_id: aco.id)
-    vpr_3.patient.patient_referral.update(accountable_care_organization_id: aco.id)
-    vpr_4.patient.patient_referral.update(accountable_care_organization_id: aco.id)
+    vpr_1.update(aco_id: aco.id)
+    vpr_2.update(aco_id: aco.id)
+    vpr_3.update(aco_id: aco.id)
+    vpr_4.update(aco_id: aco.id)
   end
 
   it 'excludes out of range services' do

@@ -17,6 +17,7 @@ module DocumentExportBehavior
   MIME_TYPES = [
     BINARY_MIME_TYPE = 'application/octet-stream'.freeze,
     PDF_MIME_TYPE = 'application/pdf'.freeze,
+    EXCEL_MIME_TYPE = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'.freeze,
   ].freeze
 
   EXPIRES_AFTER = 30.days

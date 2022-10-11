@@ -11,21 +11,22 @@
 = render 'warehouse_reports/limited_by_project_note'
 
 - if @projects.any?
-  %table.table.table-sm
-    %thead
-      %tr
-        %th Data Source
-        %th Organization
-        %th Project
-        %th Project Type
-        %th Act As Project Type
-    %tbody
-      - @projects.each do |project|
+  .table-responsive
+    %table.table.table-sm.table-striped
+      %thead
         %tr
-          %td= project.data_source.short_name
-          %td= project.organization.OrganizationName
-          %td= project.ProjectName
-          %td= HUD.project_type(project.ProjectType)
-          %td= HUD.project_type(project.act_as_project_type)
+          %th Data Source
+          %th Organization
+          %th Project
+          %th Project Type
+          %th Act As Project Type
+      %tbody
+        - @projects.each do |project|
+          %tr
+            %td= project.data_source.short_name
+            %td= project.organization.name(current_user)
+            %td= project.name(current_user)
+            %td= HUD.project_type(project.ProjectType)
+            %td= HUD.project_type(project.act_as_project_type)
 - else
   .none-found All project types match.

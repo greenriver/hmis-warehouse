@@ -1,4 +1,5 @@
-- content_for :title, 'Dashboard Extras Uploads'
+- importer_class = GrdaWarehouse::Config.active_supplemental_enrollment_importer_class
+- content_for :title, "#{importer_class.title} Uploads"
 = render 'uploads/breadcrumbs'
 .row.mb-4
   .col-sm-8
@@ -7,11 +8,11 @@
     .pull-right
       = link_to new_data_source_non_hmis_upload_path, class: 'btn btn-primary pull-right' do
         %span.icon-plus
-        Upload Dashboard Extras
+        Upload #{importer_class.title}
 - if @pagy.count.positive?
   = render 'common/pagination_top', item_name: 'upload'
   .table-responsive
-    %table.table.table-striped.table-sm
+    %table.table.table-striped
       %thead
         %tr
           %th Filename

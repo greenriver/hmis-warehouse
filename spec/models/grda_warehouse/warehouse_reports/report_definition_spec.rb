@@ -38,16 +38,21 @@ RSpec.describe model, type: :model do
         end
       end
 
-      describe 'user assigned a report' do
+      describe 'user assigned a report without a role granting access' do
         before :each do
           user.add_viewable(r1)
         end
         it 'still sees nothing without role' do
           expect(model.viewable_by(user).exists?).to be false
         end
-        it 'sees r1 with proper role' do
+      end
+
+      describe 'user assigned a report with a role granting access' do
+        before :each do
           user.roles << assigned_report_viewer
-          user.save
+          user.add_viewable(r1)
+        end
+        it 'sees r1 with proper role' do
           expect(user_ids[user]).to eq ids[r1]
         end
       end

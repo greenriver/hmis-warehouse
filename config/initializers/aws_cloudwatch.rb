@@ -1,4 +1,4 @@
-Rails.logger.debug "Running initializer in #{__FILE__}"
+# Rails.logger.debug "Running initializer in #{__FILE__}"
 
 def find_log_stream_name
   log_group = ENV.fetch('TARGET_GROUP_NAME', nil)

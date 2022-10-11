@@ -77,12 +77,14 @@ module Health
     end
 
     def patient_scope
-      population = if current_user.can_manage_care_coordinators?
-        ids = [current_user.id] + current_user.user_care_coordinators.pluck(:care_coordinator_id)
+      population = if current_user.can_administer_health?
+        patient_source # Can see all clients
+      elsif current_user.can_manage_care_coordinators? # Can see clients and those of team mates
+        ids = [current_user.id] + current_user.team_mates.pluck(:id)
         patient_source.
           where(care_coordinator_id: ids).
           or(patient_source.where(nurse_care_manager_id: ids))
-      else
+      else # Can see your own clients
         patient_source.
           where(care_coordinator_id: current_user.id).
           or(patient_source.where(nurse_care_manager_id: current_user.id))

@@ -12,7 +12,7 @@ module Health
     helper ChaHelper
 
     before_action :set_client, except: [:signature, :signed]
-    before_action :set_patient, except: [:signature, :signed]
+    before_action :set_hpc_patient, except: [:signature, :signed]
     before_action :set_careplan, except: [:signature, :signed]
     before_action :set_medications, except: [:signature, :signed]
     before_action :set_problems, except: [:signature, :signed]

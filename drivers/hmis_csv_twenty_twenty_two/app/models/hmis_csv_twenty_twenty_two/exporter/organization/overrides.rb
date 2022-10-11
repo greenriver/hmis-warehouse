@@ -31,7 +31,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
     end
 
     def self.ensure_reasonable_name(row, confidential: false)
-      if confidential
+      if confidential && row.confidential?
         row.OrganizationName = GrdaWarehouse::Hud::Organization.confidential_organization_name
         row.OrganizationCommonName = row.OrganizationName
       end

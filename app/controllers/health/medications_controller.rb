@@ -15,7 +15,7 @@ module Health
 
     def index
       set_hpc_patient
-      set_patient if @patient.blank?
+      # set_patient if @patient.blank?
       @medications = @patient.medications.order(start_date: :desc, ordered_date: :desc)
 
       render layout: !request.xhr?

@@ -65,9 +65,8 @@ module CustomImportsBostonServices
         GrdaWarehouse::Generic::Service.where(data_source_id: data_source_id, date: period_started_on..period_ended_on).delete_all
         rows.preload(:enrollment, client: :destination_client).find_in_batches do |batch|
           service_batch = []
-          # event_batch = []
           batch.each do |row|
-            next unless row.client
+            next unless row.client.present?
 
             matched += 1
             service_batch << {
@@ -79,11 +78,6 @@ module CustomImportsBostonServices
               title: row.service_name,
               category: row.service_category,
             }
-            # if enrollment.blank?
-            #   # custom service for client
-            # else
-            #   # synthetic referral Event on enrollment
-            # end
           end
           GrdaWarehouse::Generic::Service.import(
             service_batch,

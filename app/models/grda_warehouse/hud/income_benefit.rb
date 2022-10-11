@@ -7,7 +7,8 @@
 module GrdaWarehouse::Hud
   class IncomeBenefit < Base
     include HudSharedScopes
-    include ::HMIS::Structure::IncomeBenefit
+    include ::HmisStructure::IncomeBenefit
+    include ::HmisStructure::Shared
     include RailsDrivers::Extensions
 
     attr_accessor :source_id

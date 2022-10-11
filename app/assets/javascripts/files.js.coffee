@@ -2,15 +2,10 @@ $('.jThumb').each (e) ->
   thumb = this
   file_id = $(this).data('file')
   url_base = window.location.pathname + '/' + file_id
-  url = url_base + '/has_thumb'
-  $.get url, (data, textStatus, jqXHR) ->
-    thumb_url = url_base + '/thumb'
-    preview_url = url_base + '/preview'
-    if(textStatus == 'success')
-      link = '<a href="' + preview_url + '" target="_blank"><div style="background-image: url(' + thumb_url + ')" class="file-thumbnail file-thumbnail--image"></div></a>'
-    else
-      link = '<a href="' + preview_url + '" target="_blank"><div class="file-thumbnail"></div></a>'
-    $(thumb).html(link)
+  thumb_url = url_base + '/thumb'
+  preview_url = url_base + '/preview'
+  link = '<a href="' + preview_url + '" target="_blank"><div style="background-image: url(' + thumb_url + ')" class="file-thumbnail file-thumbnail--image"></div></a>'
+  $(thumb).html(link)
 
 $(document).on 'change', '.jFileTag', (e) ->
   # Show notes

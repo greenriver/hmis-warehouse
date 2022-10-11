@@ -9,15 +9,14 @@ module HealthFlexibleService
     before_action :require_can_view_some_vprs!
 
     def index
-      @pagy, @patients = pagy(vpr_patient_scope)
+      @pagy, @clients = pagy(vpr_patient_scope)
     end
 
     private def vpr_patient_scope
-      scope = ::Health::Patient.
-        joins(:flexible_services).
-        merge(Vpr.active).
+      scope = ::GrdaWarehouse::Hud::Client.destination.
+        where(id: Vpr.active.pluck(:client_id)).
         distinct
-      scope = scope.where(housing_navigator_id: current_user.id) unless current_user.can_view_all_vprs?
+      scope = scope.where(health_housing_navigator_id: current_user.id) unless current_user.can_view_all_vprs?
       scope
     end
   end

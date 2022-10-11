@@ -91,3 +91,10 @@ RSpec.configure do |config|
   Dir[Rails.root.join('drivers/*/lib')].each { |x| config.project_source_dirs << x }
   Dir[Rails.root.join('drivers/*/app')].each { |x| config.project_source_dirs << x }
 end
+
+def cleanup_test_environment
+  HmisCsvImporter::Utility.clear!
+  GrdaWarehouse::Utility.clear!
+  User.delete_all
+  FactoryBot.reload
+end

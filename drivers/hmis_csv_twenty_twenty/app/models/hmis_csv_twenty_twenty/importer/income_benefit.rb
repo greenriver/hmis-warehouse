@@ -6,7 +6,7 @@
 
 module HmisCsvTwentyTwenty::Importer
   class IncomeBenefit < GrdaWarehouse::Hud::Base
-    include ::HMIS::Structure::IncomeBenefit
+    include ::HmisStructure::IncomeBenefit
     include ImportConcern
 
     # Because GrdaWarehouse::Hud::* defines the table name, we can't use table_name_prefix :(

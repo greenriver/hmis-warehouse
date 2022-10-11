@@ -7,7 +7,8 @@
 module GrdaWarehouse::Hud
   class AssessmentQuestion < Base
     include HudSharedScopes
-    include ::HMIS::Structure::AssessmentQuestion
+    include ::HmisStructure::AssessmentQuestion
+    include ::HmisStructure::Shared
     include RailsDrivers::Extensions
 
     attr_accessor :source_id

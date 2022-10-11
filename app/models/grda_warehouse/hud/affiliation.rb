@@ -7,7 +7,8 @@
 module GrdaWarehouse::Hud
   class Affiliation < Base
     include HudSharedScopes
-    include ::HMIS::Structure::Affiliation
+    include ::HmisStructure::Affiliation
+    include ::HmisStructure::Shared
     include RailsDrivers::Extensions
 
     attr_accessor :source_id

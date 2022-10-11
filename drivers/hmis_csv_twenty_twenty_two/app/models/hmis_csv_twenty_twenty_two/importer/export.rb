@@ -6,7 +6,7 @@
 
 module HmisCsvTwentyTwentyTwo::Importer
   class Export < GrdaWarehouse::Hud::Base
-    include ::HMIS::Structure::Export
+    include ::HmisStructure::Export
     include ImportConcern
 
     # Because GrdaWarehouse::Hud::* defines the table name, we can't use table_name_prefix :(

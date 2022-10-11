@@ -6,7 +6,7 @@
 
 module HmisCsvTwentyTwentyTwo::Importer
   class YouthEducationStatus < GrdaWarehouse::Hud::Base
-    include ::HMIS::Structure::YouthEducationStatus
+    include ::HmisStructure::YouthEducationStatus
     include ImportConcern
 
     # Because GrdaWarehouse::Hud::* defines the table name, we can't use table_name_prefix :(

@@ -21,6 +21,12 @@ module WarehouseReports
       @reports = report_source.ordered.
         select(report_source.column_names - ['data']).
         limit(50)
+      # Set default filter to prior run
+      previous_report = @reports.last
+      return unless filter_params.blank? && previous_report
+
+      options = previous_report.parameters['filter'].with_indifferent_access
+      @filter = @filter.class.new(options)
     end
 
     def destroy
@@ -88,7 +94,7 @@ module WarehouseReports
       chronic_sort = @column.split('.')
       @clients = @clients.sort_by do |client|
         if chronic_sort.size == 2
-          client['chronic'][chronic_sort.last]
+          client['chronic'][chronic_sort.last] || ''
         else
           client[@column]
         end

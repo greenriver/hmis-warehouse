@@ -133,18 +133,16 @@ class Deployer
   def roll_out
     @roll_out ||=
       RollOut.new(
-        {
-          dj_options: dj_options,
-          image_base: _remote_tag_base,
-          secrets_arn: secrets_arn,
-          target_group_arn: _target_group_arn,
-          target_group_name: target_group_name,
-          execution_role: execution_role,
-          fqdn: fqdn,
-          task_role: task_role,
-          web_options: web_options,
-          capacity_providers: _capacity_providers,
-        },
+        dj_options: dj_options,
+        image_base: _remote_tag_base,
+        secrets_arn: secrets_arn,
+        target_group_arn: _target_group_arn,
+        target_group_name: target_group_name,
+        execution_role: execution_role,
+        fqdn: fqdn,
+        task_role: task_role,
+        web_options: web_options,
+        capacity_providers: _capacity_providers,
       )
   end
 
@@ -161,7 +159,7 @@ class Deployer
 
   def _check_that_you_pushed_to_remote!
     branch = `git rev-parse --abbrev-ref HEAD`.chomp
-    remote = `git ls-remote origin | grep #{branch}`.chomp
+    remote = `git ls-remote origin | grep refs/heads/#{branch}$`.chomp
     our_commit = `git rev-parse #{branch}`.chomp
 
     raise '[FATAL] Push or pull your branch first!' unless remote.start_with?(our_commit)

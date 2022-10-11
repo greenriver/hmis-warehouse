@@ -1,14 +1,10 @@
 wb = xlsx_package.workbook
 wb.add_worksheet(name: @report.title[0, 30]) do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
-  sheet.add_row([
-   "Enrollments between #{@filter.start} and #{@filter.end}"
-  ])
+  sheet.add_row(["Enrollments between #{@filter.start} and #{@filter.end}"])
   sheet.add_row(
     [
       'Warehouse Client ID',
-      'First Name',
-      'Last Name',
     ] + @report.column_names,
     style: title,
   )
@@ -16,8 +12,6 @@ wb.add_worksheet(name: @report.title[0, 30]) do |sheet|
     client = row.client
     sheet.add_row([
       client.id,
-      client.FirstName,
-      client.LastName,
     ] + @report.column_values(row, current_user).values)
   end
 end

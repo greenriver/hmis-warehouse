@@ -28,9 +28,8 @@ class DataSourcesController < ApplicationController
     p_t = GrdaWarehouse::Hud::Project.arel_table
     o_t = GrdaWarehouse::Hud::Organization.arel_table
     @organizations = @data_source.organizations.
-      includes(:projects).
-      merge(GrdaWarehouse::Hud::Project.viewable_by(current_user)).
-      references(:projects).
+      eager_load(:projects).
+      merge(GrdaWarehouse::Hud::Project.viewable_by(current_user, confidential_scope_limiter: :all)).
       order(o_t[:OrganizationName].asc, p_t[:ProjectName].asc)
   end
 

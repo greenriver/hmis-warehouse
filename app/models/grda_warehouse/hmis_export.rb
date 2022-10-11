@@ -6,6 +6,7 @@
 
 module GrdaWarehouse
   class HmisExport < GrdaWarehouseBase
+    include ActionView::Helpers::DateHelper
     self.table_name = :exports
     attr_accessor :fake_data
     attr_accessor :recurring_hmis_export_id
@@ -30,6 +31,38 @@ module GrdaWarehouse
     scope :for_list, -> do
       has_content.
         select(column_names - ['content', 'file'])
+    end
+
+    def runtime
+      return unless started_at.present? && completed_at.present?
+
+      seconds = ((completed_at - started_at) / 1.minute).round * 60
+      "Completed in #{distance_of_time_in_words(seconds)}"
+    end
+
+    def describe_filter_as_html
+      keys ||= [
+        # Ignore a bunch of options because we manually show them for backwards compatibility
+        # :start_date,
+        # :end_date,
+        # :version,
+        # :hash_status,
+        # :period_type,
+        # :directive,
+        # :include_deleted,
+        # :faked_pii,
+        # :confidential,
+        :project_ids,
+        :project_group_ids,
+        :organization_ids,
+        :data_source_ids,
+        :coc_codes,
+      ]
+      filter.describe_filter_as_html(keys)
+    end
+
+    def filter
+      ::Filters::HmisExport.new(options)
     end
 
     def save_zip_to(path)

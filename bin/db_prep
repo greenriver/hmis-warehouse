@@ -17,14 +17,16 @@ def run_or_exit(cmd)
   exit(1)
 end
 
+dont_create_databases = (ARGV[0] == '--no-create-databases')
+
 Dir.chdir APP_ROOT do
   puts "\n== Preparing Database =="
-  run_or_exit 'bundle exec rake db:create:primary'
+  run_or_exit('bundle exec rake db:create:primary') unless dont_create_databases
   run_or_exit 'bundle exec rake db:schema:conditional_load'
   run_or_exit 'bundle exec rake db:migrate:primary'
 
   puts "\n== Preparing Warehouse =="
-  run_or_exit 'bundle exec rake db:create:warehouse'
+  run_or_exit('bundle exec rake db:create:warehouse') unless dont_create_databases
 
   # DB has objects that can't be tracked with schema.rb: types, materialized views, and triggers
   if ENV['RAILS_ENV'] == 'test'
@@ -37,12 +39,12 @@ Dir.chdir APP_ROOT do
   run_or_exit 'bundle exec rake db:migrate:warehouse'
 
   puts "\n== Preparing Health Database =="
-  run_or_exit 'bundle exec rake db:create:health'
+  run_or_exit('bundle exec rake db:create:health') unless dont_create_databases
   run_or_exit 'bundle exec rake health:db:schema:conditional_load'
   run_or_exit 'bundle exec rake db:migrate:health'
 
   puts "\n== Preparing Reporting Database =="
-  run_or_exit 'bundle exec rake db:create:reporting'
+  run_or_exit('bundle exec rake db:create:reporting') unless dont_create_databases
   run_or_exit 'bundle exec rake reporting:db:schema:conditional_load'
   run_or_exit 'bundle exec rake db:migrate:reporting'
   # Force a rebuild of this table
@@ -52,6 +54,7 @@ Dir.chdir APP_ROOT do
     puts "\n== Seeding Database =="
     run_or_exit 'bundle exec rake db:seed'
     run_or_exit 'bundle exec rake grda_warehouse:seed_grades'
+    run_or_exit 'bundle exec rake grda_warehouse:seed_file_types'
   else
     puts "\n== NOT Seeding test Database =="
   end

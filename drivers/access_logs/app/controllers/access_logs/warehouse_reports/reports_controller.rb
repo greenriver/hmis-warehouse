@@ -10,20 +10,29 @@ module AccessLogs::WarehouseReports
     include BaseFilters
 
     def index
-      respond_to do |format|
-        format.html {}
-        format.xlsx do
-          # BaseFilters tries really hard to set the user_id, but in this case, sometimes
-          # we don't want it
-          @filter.user_id = filter_params[:filters][:user_id]
-          @report = AccessLogs::Report.new(filter: @filter)
-          # Set the CAS user ID on the report because it's not on the filter object
-          @report.cas_user_id = filter_params[:filters]['cas_user_id']
+      @exports = AccessLogs::Export.diet_select.where(user_id: current_user.id).
+        order(created_at: :desc)
+    end
 
-          filename = "Access Logs #{Time.current.to_s(:db)}"
-          headers['Content-Disposition'] = "attachment; filename=#{filename}.xlsx"
-        end
-      end
+    def create
+      filename = "Access Logs for #{@filter.start.to_s(:db)} to #{@filter.end.to_s(:db)} generated #{Time.current.to_s(:db)}"
+      file = AccessLogs::Export.create!(
+        user_id: current_user.id,
+        status: 'pending',
+        version: 1,
+        filename: filename,
+      )
+
+      ::WarehouseReports::AccessLogsExportJob.perform_later(
+        filter_params: @filter.to_h,
+        filter_user_id: filter_params[:filters][:user_id],
+        current_user_id: current_user.id,
+        cas_user_id: filter_params[:filters]['cas_user_id'],
+        file_id: file.id,
+      )
+      flash[:notice] = 'Access Log file generation queued'
+      redirect_to access_logs_warehouse_reports_reports_path
+      # respond_with(file, location: access_logs_warehouse_reports_reports_path)
     end
 
     private def filter_class

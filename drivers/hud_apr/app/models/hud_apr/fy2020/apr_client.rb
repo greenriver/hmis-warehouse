@@ -13,6 +13,7 @@ module HudApr::Fy2020
     has_many :hud_report_apr_living_situations, class_name: 'HudApr::Fy2020::AprLivingSituation', foreign_key: :hud_report_apr_client_id, inverse_of: :apr_client
     has_many :hud_report_ce_assessments, class_name: 'HudApr::Fy2020::CeAssessment', foreign_key: :hud_report_apr_client_id, inverse_of: :apr_client
     has_many :hud_report_ce_events, class_name: 'HudApr::Fy2020::CeEvent', foreign_key: :hud_report_apr_client_id, inverse_of: :apr_client
+    belongs_to :source_enrollment, class_name: 'GrdaWarehouse::Hud::Enrollment', optional: true
 
     # Hide ID, move client_id, and name to the front
     def self.detail_headers

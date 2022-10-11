@@ -1,0 +1,4 @@
+#!/usr/bin/env ruby
+
+cmd = "aws-vault exec openpath -- docker-compose run shell bundle exec ./bin/bootstrap_databases #{ARGV.join(' ')}"
+system(cmd)

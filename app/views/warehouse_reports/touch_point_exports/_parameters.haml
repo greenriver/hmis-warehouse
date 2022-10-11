@@ -2,8 +2,5 @@
   - options.each do |k,v|
     - next if v.blank? || v == ['']
     .report-parameters__parameter
-      %label.label.label-default.parameter-label
-        = k.humanize.downcase
-      %label.label.label-primary.parameter-value
-        %strong
-          = beautify_option(k, v)
+      %label.label.label-default.parameter-label= k.humanize.titleize
+      %label.label.label-primary.parameter-value= beautify_option(k, v)

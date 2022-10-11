@@ -68,27 +68,27 @@ module HmisSqlServer
 
   class Affiliation < LsaBase
     self.table_name = :hmis_Affiliation
-    include ::HMIS::Structure::Affiliation
+    include ::HmisStructure::Affiliation
   end
 
   class Client < LsaBase
     self.table_name = :hmis_Client
-    include ::HMIS::Structure::Client
+    include ::HmisStructure::Client
   end
 
   class Disability < LsaBase
     self.table_name = :hmis_Disabilities
-    include ::HMIS::Structure::Disability
+    include ::HmisStructure::Disability
   end
 
   class EmploymentEducation < LsaBase
     self.table_name = :hmis_EmploymentEducation
-    include ::HMIS::Structure::EmploymentEducation
+    include ::HmisStructure::EmploymentEducation
   end
 
   class Enrollment < LsaBase
     self.table_name = :hmis_Enrollment
-    include ::HMIS::Structure::Enrollment
+    include ::HmisStructure::Enrollment
 
     private def useful_date_column
       'EntryDate'
@@ -97,37 +97,37 @@ module HmisSqlServer
 
   class EnrollmentCoc < LsaBase
     self.table_name = :hmis_EnrollmentCoC
-    include ::HMIS::Structure::EnrollmentCoc
+    include ::HmisStructure::EnrollmentCoc
   end
 
   class Exit < LsaBase
     self.table_name = :hmis_Exit
-    include ::HMIS::Structure::Exit
+    include ::HmisStructure::Exit
   end
 
   class Export < LsaBase
     self.table_name = :hmis_Export
-    include ::HMIS::Structure::Export
+    include ::HmisStructure::Export
   end
 
   class Funder < LsaBase
     self.table_name = :hmis_Funder
-    include ::HMIS::Structure::Funder
+    include ::HmisStructure::Funder
   end
 
   class HealthAndDv < LsaBase
     self.table_name = :hmis_HealthAndDV
-    include ::HMIS::Structure::HealthAndDv
+    include ::HmisStructure::HealthAndDv
   end
 
   class IncomeBenefit < LsaBase
     self.table_name = :hmis_IncomeBenefits
-    include ::HMIS::Structure::IncomeBenefit
+    include ::HmisStructure::IncomeBenefit
   end
 
   class Inventory < LsaBase
     self.table_name = :hmis_Inventory
-    include ::HMIS::Structure::Inventory
+    include ::HmisStructure::Inventory
 
     def clean_row_for_import(row:, headers:)
       return nil unless row[headers.index('InventoryStartDate')].present?
@@ -152,12 +152,12 @@ module HmisSqlServer
 
   class Organization < LsaBase
     self.table_name = :hmis_Organization
-    include ::HMIS::Structure::Organization
+    include ::HmisStructure::Organization
   end
 
   class Project < LsaBase
     self.table_name = :hmis_Project
-    include ::HMIS::Structure::Project
+    include ::HmisStructure::Project
 
     def clean_row_for_import(row:, headers:)
       # Fixes for LSA idiosyncrasies
@@ -176,7 +176,7 @@ module HmisSqlServer
 
   class ProjectCoc < LsaBase
     self.table_name = :hmis_ProjectCoC
-    include ::HMIS::Structure::ProjectCoc
+    include ::HmisStructure::ProjectCoc
 
     def clean_row_for_import(row:, headers:)
       field_index = headers.index('Zip')
@@ -191,7 +191,7 @@ module HmisSqlServer
 
   class Service < LsaBase
     self.table_name = :hmis_Services
-    include ::HMIS::Structure::Service
+    include ::HmisStructure::Service
 
     private def useful_date_column
       'DateProvided'
@@ -200,7 +200,7 @@ module HmisSqlServer
 
   class User < LsaBase
     self.table_name = :hmis_User
-    include ::HMIS::Structure::User
+    include ::HmisStructure::User
 
     private def useful_date(row:, headers:) # rubocop:disable Lint/UnusedMethodArgument
       Time.current
@@ -209,31 +209,31 @@ module HmisSqlServer
 
   class CurrentLivingSituation < LsaBase
     self.table_name = :hmis_CurrentLivingSituation
-    include ::HMIS::Structure::CurrentLivingSituation
+    include ::HmisStructure::CurrentLivingSituation
   end
 
   class Assessment < LsaBase
     self.table_name = :hmis_Assessment
-    include ::HMIS::Structure::Assessment
+    include ::HmisStructure::Assessment
   end
 
   class AssessmentQuestion < LsaBase
     self.table_name = :hmis_AssessmentQuestions
-    include ::HMIS::Structure::AssessmentQuestion
+    include ::HmisStructure::AssessmentQuestion
   end
 
   class AssessmentResult < LsaBase
     self.table_name = :hmis_AssessmentResults
-    include ::HMIS::Structure::AssessmentResult
+    include ::HmisStructure::AssessmentResult
   end
 
   class Event < LsaBase
     self.table_name = :hmis_Event
-    include ::HMIS::Structure::Event
+    include ::HmisStructure::Event
   end
 
   class YouthEducationStatus < LsaBase
     self.table_name = :hmis_YouthEducationStatus
-    include ::HMIS::Structure::YouthEducationStatus
+    include ::HmisStructure::YouthEducationStatus
   end
 end

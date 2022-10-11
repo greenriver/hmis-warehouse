@@ -7,7 +7,7 @@
 module HudHic::Fy2022
   class Project < ::GrdaWarehouseBase
     self.table_name = 'hud_report_hic_projects'
-    include ::HMIS::Structure::Project
+    include ::HmisStructure::Project
     acts_as_paranoid
 
     has_many :report_projects, as: :universe_membership, dependent: :destroy

@@ -1,0 +1,10 @@
+= simple_form_for :health_coordination_team, url: admin_health_coordination_teams_path do |f|
+  .row
+    .col-sm-3= f.input :name, label: 'Team'
+    .col-sm-3= f.input :team_coordinator_id, collection: User.can_manage_care_coordinators.diet.order(last_name: :asc, first_name: :asc).distinct, as: :select_two, label: 'Team Coordinator'
+    .col-sm-3= f.input :team_nurse_care_manager_id, collection: User.nurse_care_managers.diet.order(last_name: :asc, first_name: :asc).distinct, as: :select_two, label: 'Nurse Care Manager'
+    .col-sm-3
+      %button.mt-no-label.btn.btn-primary{name: :submit}
+        %i.icon-plus
+        Add
+    .col-sm-2

@@ -98,6 +98,7 @@ module DestinationReport
       scope = filter_for_chronic_at_entry(scope)
       scope = filter_for_ca_homeless(scope)
       scope = filter_for_ce_cls_homeless(scope)
+      scope = filter_for_cohorts(scope)
       scope = filter_for_prior_living_situation(scope)
       scope = filter_for_destination(scope)
       scope = filter_for_times_homeless(scope)

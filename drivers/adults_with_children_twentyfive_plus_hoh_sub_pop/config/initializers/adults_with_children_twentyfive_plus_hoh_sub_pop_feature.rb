@@ -11,25 +11,26 @@
 #
 # use with caution!
 RailsDrivers.loaded << :adults_with_children_twentyfive_plus_hoh_sub_pop
+Rails.application.reloader.to_prepare do
+  AvailableSubPopulations.add_sub_population(
+    'Adult and Child Households With HoH 25+',
+    :adults_with_children_twentyfive_plus_hoh,
+    'AdultsWithChildrenTwentyfivePlusHohSubPop::GrdaWarehouse::WarehouseReports::Dashboard::AdultsWithChildrenTwentyfivePlusHoh',
+  )
 
-AvailableSubPopulations.add_sub_population(
-  'Adult and Child Households With HoH 25+',
-  :adults_with_children_twentyfive_plus_hoh,
-  'AdultsWithChildrenTwentyfivePlusHohSubPop::GrdaWarehouse::WarehouseReports::Dashboard::AdultsWithChildrenTwentyfivePlusHoh',
-)
+  # GrdaWarehouse::Census.add_population(
+  #   population: :adults_with_children_twentyfive_plus_hoh,
+  #   scope: GrdaWarehouse::ServiceHistoryEnrollment.adults_with_children_twentyfive_plus_hoh,
+  #   factory: AdultsWithChildrenTwentyfivePlusHohSubPop::GrdaWarehouse::Census::AdultsWithChildrenTwentyfivePlusHohFactory,
+  # )
 
-# GrdaWarehouse::Census.add_population(
-#   population: :adults_with_children_twentyfive_plus_hoh,
-#   scope: GrdaWarehouse::ServiceHistoryEnrollment.adults_with_children_twentyfive_plus_hoh,
-#   factory: AdultsWithChildrenTwentyfivePlusHohSubPop::GrdaWarehouse::Census::AdultsWithChildrenTwentyfivePlusHohFactory,
-# )
+  SubpopulationHistoryScope.add_sub_population(
+    :adults_with_children_twentyfive_plus_hoh,
+    :adults_with_children_twentyfive_plus_hoh,
+  )
 
-SubpopulationHistoryScope.add_sub_population(
-  :adults_with_children_twentyfive_plus_hoh,
-  :adults_with_children_twentyfive_plus_hoh,
-)
-
-# Reporting::MonthlyReports::Base.add_available_type(
-#   :adults_with_children_twentyfive_plus_hoh,
-#   'AdultsWithChildrenTwentyfivePlusHohSubPop::Reporting::MonthlyReports::AdultsWithChildrenTwentyfivePlusHoh',
-# )
+  # Reporting::MonthlyReports::Base.add_available_type(
+  #   :adults_with_children_twentyfive_plus_hoh,
+  #   'AdultsWithChildrenTwentyfivePlusHohSubPop::Reporting::MonthlyReports::AdultsWithChildrenTwentyfivePlusHoh',
+  # )
+end

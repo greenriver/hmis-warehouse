@@ -16,12 +16,22 @@ module GrdaWarehouse
     belongs_to :delayed_job, optional: true, class_name: '::Delayed::Job'
     has_one :import_log, class_name: 'GrdaWarehouse::ImportLog', required: false
 
-    mount_uploader :file, ImportUploader
+    has_one_attached :hmis_zip
     validates :data_source, presence: true
-    validates :file, presence: true, on: :create
+    validates :hmis_zip, presence: true, on: :create
 
     scope :completed, -> do
       where(percent_complete: 100)
+    end
+
+    scope :unprocessed_s3_migration, -> do
+      # plucking these seems to be 100x faster than where.not(id: migrated)
+      migrated = ActiveStorage::Attachment.where(record_type: 'GrdaWarehouse::Upload').pluck(:record_id)
+      all = pluck(:id)
+      unmigrated = migrated - all
+      return none if unmigrated.blank?
+
+      where(id: unmigrated)
     end
 
     scope :viewable_by, ->(user) do
@@ -73,6 +83,21 @@ module GrdaWarehouse
         end
       end
     end
+
+    def copy_to_s3!
+      return unless content.present?
+      return unless valid? # Ignore uploads that are already invalid (data source deleted?)
+      return if hmis_zip.attached? # don't re-process
+
+      puts "Migrating #{file} to S3"
+
+      Tempfile.create(binmode: true) do |tmp_file|
+        tmp_file.write(content)
+        tmp_file.rewind
+        hmis_zip.attach(io: tmp_file, content_type: content_type, filename: file, identify: false)
+      end
+    end
+
     # Overrides some methods, so must be included at the end
     include RailsDrivers::Extensions
   end

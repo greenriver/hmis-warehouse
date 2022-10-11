@@ -61,6 +61,7 @@ module Admin
         data_sources: [],
         organizations: [],
         projects: [],
+        project_access_groups: [],
         reports: [],
         cohorts: [],
         project_groups: [],
@@ -92,6 +93,7 @@ module Admin
           order(:name).
           preload(:data_source).
           group_by { |o| o.data_source&.name },
+        label_method: ->(organization) { organization.name(ignore_confidential_status: true) },
         placeholder: 'Organization',
         multiple: true,
         input_html: {
@@ -107,12 +109,27 @@ module Admin
         collection: GrdaWarehouse::Hud::Project.
           order(:name).
           preload(:organization, :data_source).
-          group_by { |p| "#{p.data_source&.name} / #{p.organization&.name}" },
+          group_by { |p| "#{p.data_source&.name} / #{p.organization&.name(ignore_confidential_status: true)}" },
+        label_method: ->(project) { project.name(ignore_confidential_status: true) },
         placeholder: 'Project',
         multiple: true,
         input_html: {
           class: 'jUserViewable jProjects',
           name: 'access_group[projects][]',
+        },
+      }
+
+      @project_access_groups = {
+        selected: @group&.project_access_groups&.map(&:id) || [],
+        collection: GrdaWarehouse::ProjectAccessGroup.
+          order(:name).
+          pluck(:name, :id),
+        id: :project_access_groups,
+        placeholder: 'Project Group',
+        multiple: true,
+        input_html: {
+          class: 'jUserViewable jProjectAccessGroups',
+          name: 'access_group[project_access_groups][]',
         },
       }
 

@@ -1,0 +1,43 @@
+= content_for :crumbs do
+  = link_to details_ce_performance_warehouse_reports_report_path(@report, key: @key, category_name: @category_name) do
+    &laquo; #{@report.title}
+.ce-performance
+  %label.super-rounded.p-4.pl-6.pr-6{ class: "performance-measurement--highlight-#{@report.highlight_id(@category_name)}" }
+    = @category_name
+
+  %h1.ml-2= @result.class.title
+  .warehouse-reports__completed.mt-2.d-flex
+    = @report.filter.describe_filter_as_html([:start, :end, :comparison_pattern], inline: true)
+  .d-flex.mb-4
+    %h2.ml-2= @report.clients_title(sub_population_title: @sub_population_title, vispdat_range: @vispdat_range, vispdat_type: @vispdat_type, event_type: @event_type)
+    .ml-auto
+      = link_to clients_ce_performance_warehouse_reports_report_path(@report, period: @period, sub_population: @sub_population, key: @key, category_name: @category_name, vispdat_range: @vispdat_range, vispdat_type: @vispdat_type, format: :xlsx), class: ['btn', 'btn-secondary'] do
+        %i.icon-file-excel
+        Download Excel
+- if @clients.blank?
+  .none-found No records found.
+- else
+  - headers = @report.detail_headers(key: @key)
+  .card
+    .overflow-x-scroll{style: "height: 800px"}
+      %table.table.table-sm.table-bordered.table-fixed
+        %thead.thead-dark
+          %tr
+            %th
+
+            - headers.each_value do |header|
+              %th= header
+        %tbody.thead-dark
+          - @clients.each.with_index do |client, i|
+            %tr
+              %th= i + 1
+              - headers.each_key do |k|
+                - value = @report.client_value(client, k)
+                %td
+                  - if k.to_s == 'client_id'
+                    = link_to from_source_client_path(client[k]) do
+                      = value
+                    %a{href: '#', class: ['btn', 'btn-sm'], data: { toggle: :popover, title: 'Client Information', url: api_client_path(client.client_id), html: 'true' }}
+                      %i.icon-info
+                  - else
+                    = formatted_cell(value)

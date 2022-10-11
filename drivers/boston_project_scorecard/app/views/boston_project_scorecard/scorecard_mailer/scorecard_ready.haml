@@ -1,0 +1,8 @@
+%h2 Scorecard Ready
+%p
+  A project scorecard was recently prepared for
+  = "#{@report.project_name} in the #{_('Boston DND HMIS Warehouse')}."
+  You can review and respond to this scorecard by following this link:
+  %br
+  = link_to edit_boston_project_scorecard_warehouse_reports_scorecard_url(@report.id) do
+    = "Scorecard for #{@report.project_name}."

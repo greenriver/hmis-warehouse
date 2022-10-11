@@ -7,7 +7,8 @@
 module GrdaWarehouse::Hud
   class Event < Base
     include HudSharedScopes
-    include ::HMIS::Structure::Event
+    include ::HmisStructure::Event
+    include ::HmisStructure::Shared
     include RailsDrivers::Extensions
 
     attr_accessor :source_id

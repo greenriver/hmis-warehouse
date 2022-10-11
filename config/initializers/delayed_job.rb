@@ -1,4 +1,4 @@
-Rails.logger.debug "Running initializer in #{__FILE__}"
+# Rails.logger.debug "Running initializer in #{__FILE__}"
 
 Delayed::Worker.destroy_failed_jobs = false
 Delayed::Worker.sleep_delay = 5

@@ -66,8 +66,6 @@ module Clients::Youth
     def create
       @intake = intake_source.new(user_id: current_user.id, client_id: @client.id)
       @intake.assign_attributes(intake_params)
-      @intake.client_race = intake_params[:client_race].select(&:present?)
-      @intake.disabilities = intake_params[:disabilities].select(&:present?)
 
       set_other_options
       @intake.save
@@ -154,6 +152,14 @@ module Clients::Youth
     private def set_other_options
       @intake.client_primary_language = @intake.other_language if @intake.client_primary_language == 'Other...'
       @intake.how_hear = @intake.other_how_hear if @intake.other_referral?
+
+      # Clean arrays to remove blanks
+      @intake.client_race = intake_params[:client_race].select(&:present?)
+      @intake.client_race = ['RaceNone'] if @intake.client_race.empty?
+      @intake.disabilities = intake_params[:disabilities].select(&:present?)
+      @intake.disabilities = ['Unknown'] if @intake.disabilities.empty?
+      @intake.other_agency_involvements = intake_params[:other_agency_involvements].select(&:present?)
+      @intake.other_agency_involvements = ['Unknown'] if @intake.other_agency_involvements.empty?
     end
 
     private def intake_params

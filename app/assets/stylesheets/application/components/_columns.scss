@@ -48,8 +48,8 @@ $columns-breakpoint: lg;
   @include media-breakpoint-up($columns-breakpoint) {
     flex-grow: 1;
     flex-shrink: 1;
-    flex-basis: 25%;
-    min-width: 25%;
+    flex-basis: 20%;
+    min-width: 20%;
   }
 }
 

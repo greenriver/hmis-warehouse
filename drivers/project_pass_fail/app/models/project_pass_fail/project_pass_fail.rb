@@ -35,6 +35,20 @@ module ProjectPassFail
       end
     end
 
+    def known_params
+      [
+        :start,
+        :end,
+        :coc_codes,
+        :project_types,
+        :project_type_numbers,
+        :data_source_ids,
+        :organization_ids,
+        :project_ids,
+        :project_group_ids,
+      ]
+    end
+
     def title
       'Project Pass/Fail Report'
     end
@@ -230,19 +244,6 @@ module ProjectPassFail
       return 0 if projects_failing_universal_data_elements.zero?
 
       (projects_failing_universal_data_elements.to_f / projects.count * 100).round
-    end
-
-    def value_for_display(key, value)
-      case key.to_sym
-      when :start, :end
-        Date.parse(value)
-      when :coc_codes
-        filter.chosen(key.to_sym)
-      when :project_type_numbers, :data_source_ids, :organization_ids, :project_ids, :project_group_ids
-        filter.chosen(key.to_sym).join(', ')
-      else
-        value
-      end
     end
 
     private def store_thresholds

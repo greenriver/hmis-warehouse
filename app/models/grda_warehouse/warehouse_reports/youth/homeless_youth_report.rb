@@ -383,6 +383,10 @@ module GrdaWarehouse::WarehouseReports::Youth
         where(client_id: total_client_ids_served)
     end
 
+    def all_served_last_assessment
+      all_served.only_most_recent_by_client
+    end
+
     def all_served_ids_by_agency
       user_id_to_agency_name = User.joins(:agency).pluck(:id, Agency.arel_table[:name]).to_h
       all_served.group_by { |client| user_id_to_agency_name[client.user_id] }.
@@ -416,89 +420,89 @@ module GrdaWarehouse::WarehouseReports::Youth
     # D. Demographics
     def d_one_a
       at = GrdaWarehouse::YouthIntake::Base.arel_table
-      @d_one_a ||= get_client_ids(all_served.
+      @d_one_a ||= get_client_ids(all_served_last_assessment.
         where(at[:client_dob].gteq(@start_date - 18.years)))
     end
 
     def d_one_b
-      @d_one_b ||= get_client_ids(all_served.
+      @d_one_b ||= get_client_ids(all_served_last_assessment.
         where(client_gender: 1)) # HUD.gender male
     end
 
     def d_one_c
-      @d_one_c ||= get_client_ids(all_served.
+      @d_one_c ||= get_client_ids(all_served_last_assessment.
           where(client_gender: 0)) # HUD.gender female
     end
 
     def d_one_d
-      @d_one_d ||= get_client_ids(all_served.
+      @d_one_d ||= get_client_ids(all_served_last_assessment.
           where(client_gender: [2, 3])) # HUD.gender trans
     end
 
     def d_one_e
-      @d_one_e ||= get_client_ids(all_served.
+      @d_one_e ||= get_client_ids(all_served_last_assessment.
           where(client_gender: 4)) # HUD.gender non-binary
     end
 
     def d_two_a
-      @d_two_a ||= get_client_ids(all_served.
+      @d_two_a ||= get_client_ids(all_served_last_assessment.
           where('client_race ?| array[:race] AND jsonb_array_length(client_race) = 1', race: 'White'))
     end
 
     def d_two_b
-      @d_two_b ||= get_client_ids(all_served.
+      @d_two_b ||= get_client_ids(all_served_last_assessment.
           where('client_race ?| array[:race] AND jsonb_array_length(client_race) = 1', race: 'BlackAfAmerican'))
     end
 
     def d_two_c
-      @d_two_c ||= get_client_ids(all_served.
+      @d_two_c ||= get_client_ids(all_served_last_assessment.
           where('client_race ?| array[:race] AND jsonb_array_length(client_race) = 1', race: 'Asian'))
     end
 
     def d_two_d
-      @d_two_d ||= get_client_ids(all_served.
+      @d_two_d ||= get_client_ids(all_served_last_assessment.
           where('client_race ?| array[:race] AND jsonb_array_length(client_race) = 1', race: 'AmIndAKNative'))
     end
 
     def d_two_e
-      @d_two_e ||= get_client_ids(all_served.
+      @d_two_e ||= get_client_ids(all_served_last_assessment.
         where('client_race ?| array[:race] AND jsonb_array_length(client_race) = 1', race: 'NativeHIPacific'))
     end
 
     def d_two_f
-      @d_two_f ||= get_client_ids(all_served.
+      @d_two_f ||= get_client_ids(all_served_last_assessment.
         where('client_race ?| array[:race] OR jsonb_array_length(client_race) > 1', race: 'RaceNone'))
     end
 
     def d_two_g
-      @d_two_g ||= get_client_ids(all_served.
+      @d_two_g ||= get_client_ids(all_served_last_assessment.
           where(client_ethnicity: 1)) # HUD.ethnicity Hispanic/Latino
     end
 
     def d_two_h
-      @d_two_h ||= get_client_ids(all_served.
+      @d_two_h ||= get_client_ids(all_served_last_assessment.
         where(client_primary_language: 'English'))
     end
 
     def d_two_i
-      @d_two_i ||= get_client_ids(all_served.
+      @d_two_i ||= get_client_ids(all_served_last_assessment.
           where(client_primary_language: 'Spanish'))
     end
 
     def d_two_j
-      @d_two_j ||= get_client_ids(all_served.
+      @d_two_j ||= get_client_ids(all_served_last_assessment.
           where.not(client_primary_language: ['English', 'Spanish', 'Unknown']))
     end
 
     def d_three_a
-      @d_three_a ||= get_client_ids(all_served.
+      @d_three_a ||= get_client_ids(all_served_last_assessment.
         where('lower( disabilities::text )::jsonb ?| array[:disability]', disability: 'mental / emotional disability'))
     end
 
     def d_three_b
       # Include clients who do not have this recorded as a disability, but do have a referral
       @d_three_b ||= (
-        get_client_ids(all_served.
+        get_client_ids(all_served_last_assessment.
         where('lower( disabilities::text )::jsonb ?| array[:disability]', disability: 'substance abuse disorder')) +
         get_client_ids(referral_in_range_scope.
           where(referred_to: 'Referred for substance use services'))
@@ -506,54 +510,54 @@ module GrdaWarehouse::WarehouseReports::Youth
     end
 
     def d_three_c
-      @d_three_c ||= get_client_ids(all_served.
+      @d_three_c ||= get_client_ids(all_served_last_assessment.
         where('lower( disabilities::text )::jsonb ?| array[:disability]', disability: 'medical / physical disability'))
     end
 
     def d_three_d
-      @d_three_d ||= get_client_ids(all_served.
+      @d_three_d ||= get_client_ids(all_served_last_assessment.
         where('lower( disabilities::text )::jsonb ?| array[:disability]', disability: 'developmental disability'))
     end
 
     def d_four_a
-      @d_four_a ||= get_client_ids(all_served.
+      @d_four_a ||= get_client_ids(all_served_last_assessment.
           where(pregnant_or_parenting: ['Pregnant', 'Parenting', 'Pregnant and Parenting']))
     end
 
     def d_four_b
-      @d_four_b ||= get_client_ids(all_served.
+      @d_four_b ||= get_client_ids(all_served_last_assessment.
           where(client_lgbtq: 'Yes'))
     end
 
     def d_four_c
-      @d_four_c ||= get_client_ids(all_served.
+      @d_four_c ||= get_client_ids(all_served_last_assessment.
         where(secondary_education: ['Completed High School', 'Completed GED/HiSET']))
     end
 
     def d_four_d
-      @d_four_d ||= get_client_ids(all_served.
+      @d_four_d ||= get_client_ids(all_served_last_assessment.
           where(secondary_education: 'Currently attending High School'))
     end
 
     def d_four_e
-      @d_four_e ||= get_client_ids(all_served.
+      @d_four_e ||= get_client_ids(all_served_last_assessment.
           where(attending_college: 'Yes'))
     end
 
     def d_four_f
       @d_four_f ||= get_client_ids(
-        all_served.
+        all_served_last_assessment.
         where(Arel.sql("not other_agency_involvements::jsonb ?| array['No', 'Unknown'] and other_agency_involvements::jsonb != '[]'")),
       )
     end
 
     def d_four_g
-      @d_four_g ||= get_client_ids(all_served.
+      @d_four_g ||= get_client_ids(all_served_last_assessment.
           where(health_insurance: 'Yes'))
     end
 
     def d_four_h
-      @d_four_h ||= get_client_ids(all_served.
+      @d_four_h ||= get_client_ids(all_served_last_assessment.
           where(owns_cell_phone: 'Yes'))
     end
 
@@ -607,79 +611,81 @@ module GrdaWarehouse::WarehouseReports::Youth
 
     def g_one_a
       at = GrdaWarehouse::YouthIntake::Base.arel_table
-      @g_one_a ||= get_client_ids(all_served.
+      @g_one_a ||= get_client_ids(all_served_last_assessment.
         joins(:youth_follow_ups).merge(transitioned_to_stabilized_housing_scope).
         where(at[:client_dob].gteq(@start_date - 18.years)))
     end
 
     def g_one_b
-      @g_one_b ||= get_client_ids(all_served.
+      @g_one_b ||= get_client_ids(all_served_last_assessment.
         joins(:youth_follow_ups).merge(transitioned_to_stabilized_housing_scope).
         where(client_gender: 1)) # HUD.gender male
     end
 
     def g_one_c
-      @g_one_c ||= get_client_ids(all_served.
+      @g_one_c ||= get_client_ids(all_served_last_assessment.
         joins(:youth_follow_ups).merge(transitioned_to_stabilized_housing_scope).
           where(client_gender: 0)) # HUD.gender female
     end
 
     def g_one_d
-      @g_one_d ||= get_client_ids(all_served.
+      @g_one_d ||= get_client_ids(all_served_last_assessment.
         joins(:youth_follow_ups).merge(transitioned_to_stabilized_housing_scope).
           where(client_gender: [2, 3])) # HUD.gender trans
     end
 
     def g_one_e
-      @g_one_e ||= get_client_ids(all_served.
+      @g_one_e ||= get_client_ids(all_served_last_assessment.
         joins(:youth_follow_ups).merge(transitioned_to_stabilized_housing_scope).
           where(client_gender: 4)) # HUD.gender non-binary
     end
 
     def g_two_a
-      @g_two_a ||= get_client_ids(all_served.
+      @g_two_a ||= get_client_ids(all_served_last_assessment.
         joins(:youth_follow_ups).merge(transitioned_to_stabilized_housing_scope).
           where('client_race ?| array[:race] AND jsonb_array_length(client_race) = 1', race: 'White'))
     end
 
     def g_two_b
-      @g_two_b ||= get_client_ids(all_served.
+      @g_two_b ||= get_client_ids(all_served_last_assessment.
         joins(:youth_follow_ups).merge(transitioned_to_stabilized_housing_scope).
           where('client_race ?| array[:race] AND jsonb_array_length(client_race) = 1', race: 'BlackAfAmerican'))
     end
 
     def g_two_c
-      @g_two_c ||= get_client_ids(all_served.
+      @g_two_c ||= get_client_ids(all_served_last_assessment.
         joins(:youth_follow_ups).merge(transitioned_to_stabilized_housing_scope).
           where('client_race ?| array[:race] AND jsonb_array_length(client_race) = 1', race: 'Asian'))
     end
 
     def g_two_d
-      @g_two_d ||= get_client_ids(all_served.
+      @g_two_d ||= get_client_ids(all_served_last_assessment.
         joins(:youth_follow_ups).merge(transitioned_to_stabilized_housing_scope).
           where('client_race ?| array[:race] AND jsonb_array_length(client_race) = 1', race: 'AmIndAKNative'))
     end
 
     def g_two_e
-      @g_two_e ||= get_client_ids(all_served.
+      @g_two_e ||= get_client_ids(all_served_last_assessment.
         joins(:youth_follow_ups).merge(transitioned_to_stabilized_housing_scope).
           where('client_race ?| array[:race] AND jsonb_array_length(client_race) = 1', race: 'NativeHIPacific'))
     end
 
     def g_two_f
-      @g_two_f ||= get_client_ids(all_served.
+      @g_two_f ||= get_client_ids(all_served_last_assessment.
         joins(:youth_follow_ups).merge(transitioned_to_stabilized_housing_scope).
           where('client_race ?| array[:race] OR jsonb_array_length(client_race) > 1', race: 'RaceNone'))
     end
 
     def g_two_g
-      @g_two_g ||= get_client_ids(all_served.
+      @g_two_g ||= get_client_ids(all_served_last_assessment.
+        only_most_recent_by_client.
         joins(:youth_follow_ups).merge(transitioned_to_stabilized_housing_scope).
           where(client_ethnicity: 1)) # HUD.ethnicity Hispanic/Latino
     end
 
     def g_three_b
-      @g_three_b ||= get_client_ids(all_served.
+      @g_three_b ||= get_client_ids(all_served_last_assessment.
+        only_most_recent_by_client.
         joins(:youth_follow_ups).
         merge(transitioned_to_stabilized_housing_scope).
         where(client_lgbtq: 1))
@@ -687,79 +693,79 @@ module GrdaWarehouse::WarehouseReports::Youth
 
     def h_one_a
       at = GrdaWarehouse::YouthIntake::Base.arel_table
-      @h_one_a ||= get_client_ids(all_served.
+      @h_one_a ||= get_client_ids(all_served_last_assessment.
         joins(:youth_follow_ups).merge(follow_up_from_at_risk).
         where(at[:client_dob].gteq(@start_date - 18.years)))
     end
 
     def h_one_b
-      @h_one_b ||= get_client_ids(all_served.
+      @h_one_b ||= get_client_ids(all_served_last_assessment.
         joins(:youth_follow_ups).merge(follow_up_from_at_risk).
         where(client_gender: 1)) # HUD.gender male
     end
 
     def h_one_c
-      @h_one_c ||= get_client_ids(all_served.
+      @h_one_c ||= get_client_ids(all_served_last_assessment.
         joins(:youth_follow_ups).merge(follow_up_from_at_risk).
           where(client_gender: 0)) # HUD.gender female
     end
 
     def h_one_d
-      @h_one_d ||= get_client_ids(all_served.
+      @h_one_d ||= get_client_ids(all_served_last_assessment.
         joins(:youth_follow_ups).merge(follow_up_from_at_risk).
           where(client_gender: [2, 3])) # HUD.gender trans
     end
 
     def h_one_e
-      @h_one_e ||= get_client_ids(all_served.
+      @h_one_e ||= get_client_ids(all_served_last_assessment.
         joins(:youth_follow_ups).merge(follow_up_from_at_risk).
           where(client_gender: 4)) # HUD.gender non-binary
     end
 
     def h_two_a
-      @h_two_a ||= get_client_ids(all_served.
+      @h_two_a ||= get_client_ids(all_served_last_assessment.
         joins(:youth_follow_ups).merge(follow_up_from_at_risk).
           where('client_race ?| array[:race] AND jsonb_array_length(client_race) = 1', race: 'White'))
     end
 
     def h_two_b
-      @h_two_b ||= get_client_ids(all_served.
+      @h_two_b ||= get_client_ids(all_served_last_assessment.
         joins(:youth_follow_ups).merge(follow_up_from_at_risk).
           where('client_race ?| array[:race] AND jsonb_array_length(client_race) = 1', race: 'BlackAfAmerican'))
     end
 
     def h_two_c
-      @h_two_c ||= get_client_ids(all_served.
+      @h_two_c ||= get_client_ids(all_served_last_assessment.
         joins(:youth_follow_ups).merge(follow_up_from_at_risk).
           where('client_race ?| array[:race] AND jsonb_array_length(client_race) = 1', race: 'Asian'))
     end
 
     def h_two_d
-      @h_two_d ||= get_client_ids(all_served.
+      @h_two_d ||= get_client_ids(all_served_last_assessment.
         joins(:youth_follow_ups).merge(follow_up_from_at_risk).
           where('client_race ?| array[:race] AND jsonb_array_length(client_race) = 1', race: 'AmIndAKNative'))
     end
 
     def h_two_e
-      @h_two_e ||= get_client_ids(all_served.
+      @h_two_e ||= get_client_ids(all_served_last_assessment.
         joins(:youth_follow_ups).merge(follow_up_from_at_risk).
           where('client_race ?| array[:race] AND jsonb_array_length(client_race) = 1', race: 'NativeHIPacific'))
     end
 
     def h_two_f
-      @h_two_f ||= get_client_ids(all_served.
+      @h_two_f ||= get_client_ids(all_served_last_assessment.
         joins(:youth_follow_ups).merge(follow_up_from_at_risk).
           where('client_race ?| array[:race] OR jsonb_array_length(client_race) > 1', race: 'RaceNone'))
     end
 
     def h_two_g
-      @h_two_g ||= get_client_ids(all_served.
+      @h_two_g ||= get_client_ids(all_served_last_assessment.
         joins(:youth_follow_ups).merge(follow_up_from_at_risk).
           where(client_ethnicity: 1)) # HUD.ethnicity Hispanic/Latino
     end
 
     def h_three_b
-      @h_three_b ||= get_client_ids(all_served.
+      @h_three_b ||= get_client_ids(all_served_last_assessment.
         joins(:youth_follow_ups).
         merge(follow_up_from_at_risk).
           where(client_lgbtq: 1))

@@ -36,7 +36,7 @@
                 %span.badge.badge-success.ml-3{data: {toggle: :tooltip, title: "Used for syncing clients to CAS"}}
                   CAS
             %th= group.projects.count
-            %td.reports
+            %td.reports.report-parameters-all
               = group.describe_filter_as_html
   = render 'common/pagination_bottom', item_name: 'project group'
 - else

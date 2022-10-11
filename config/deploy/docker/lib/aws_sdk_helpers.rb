@@ -81,35 +81,38 @@ module AwsSdkHelpers
       @capacity_providers ||= AwsSdkHelpers::Helpers.capacity_providers(cluster)
     end
 
-    def self.get_capacity_provider_name(which = 'Spot')
+    def self.get_capacity_provider_name(which = 'Spot', target_group_name = '')
       default_path = "/OpenPath/CapacityProviders/#{which}"
+      override_path = "/#{target_group_name}/CapacityProviders/#{which}"
 
       params = AwsSdkHelpers::ClientMethods.ssm.get_parameters(
         {
           names: [
             default_path,
+            override_path,
           ],
           with_decryption: true,
         },
       )
 
-      if params.parameters.empty?
-        if defined?(Rails)
-          Rails.logger.warn "No capacity provider name found: #{which}"
-        else
-          puts "❗ No capacity provider name found: #{which}"
-        end
+      if params.parameters.count == 2
+        params.parameters.find { |p| p[:name] == override_path }[:value]
+      elsif params.parameters.count == 1
+        params.parameters[0][:value]
+      else
+        Rails.logger.warn "No capacity provider name found: #{which}" if defined?(Rails)
+        puts "❗ No capacity provider name found: #{which}"
       end
-
-      params.parameters.any? ? params.parameters[0][:value] : ''
     end
 
-    def _spot_capacity_provider_name
-      @_spot_capacity_provider_name ||= AwsSdkHelpers::Helpers.get_capacity_provider_name('Spot')
+    def _spot_capacity_provider_name(target_group_name = false)
+      target_group_name ||= self.respond_to?(:target_group_name) ? self.target_group_name : ENV.fetch('TARGET_GROUP_NAME', '') # rubocop:disable Style/RedundantSelf
+      @_spot_capacity_provider_name ||= AwsSdkHelpers::Helpers.get_capacity_provider_name('Spot', target_group_name)
     end
 
-    def _on_demand_capacity_provider_name
-      @_on_demand_capacity_provider_name ||= AwsSdkHelpers::Helpers.get_capacity_provider_name('OnDemand')
+    def _on_demand_capacity_provider_name(target_group_name = false)
+      target_group_name ||= self.respond_to?(:target_group_name) ? self.target_group_name : ENV.fetch('TARGET_GROUP_NAME', '') # rubocop:disable Style/RedundantSelf
+      @_on_demand_capacity_provider_name ||= AwsSdkHelpers::Helpers.get_capacity_provider_name('OnDemand', target_group_name)
     end
 
     def self.get_secret(secret_arn)

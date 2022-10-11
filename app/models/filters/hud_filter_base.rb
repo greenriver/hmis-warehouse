@@ -10,8 +10,18 @@ module Filters
     validates_presence_of :coc_codes
 
     # Force people to choose project types because they are additive with projects
-    def default_project_type_codes
-      []
+    attribute :default_project_type_codes, Array, default: []
+
+    def params_for_display
+      params = known_params.flat_map do |k|
+        if k.is_a?(Hash)
+          k.keys
+        else
+          k
+        end
+      end
+      # All HUD reports accept multiple CoC Codes (except the LSA, which doesn't currently use this)
+      params - [:coc_code]
     end
 
     # NOTE: This differs from the base filter class because it doesn't include any projects based on CoCCode

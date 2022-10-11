@@ -6,7 +6,7 @@
 
 require 'memoist'
 module GrdaWarehouse::CasProjectClientCalculator
-  class TcHat
+  class TcHat < Default
     include ArelHelper
     extend Memoist
     # A hook/wrapper to enable easily overriding how we get data for a given project client column
@@ -26,6 +26,28 @@ module GrdaWarehouse::CasProjectClientCalculator
       end
       # by default, just attempt to fetch the data from the client
       current_value
+    end
+
+    private def custom_descriptions
+      {
+        lifetime_sex_offender: 'Life-Time Sex Offender response from the most recent TC-HAT',
+        family_member: 'Household Type response from the most recent TC-HAT',
+        vash_eligible: 'Client is marked as VASH Eligible on a cohort',
+        health_prioritized: 'Client is marked for Health Prioritization',
+        strengths: 'Strengths response from the most recent TC-HAT',
+        challenges: 'Challenges response from the most recent TC-HAT',
+        foster_care: 'Was the client in foster care as a youth response from the most recent TC-HAT',
+        open_case: 'Does the client have a current open case response from the most recent TC-HAT',
+        housing_for_formerly_homeless: 'Housing preference response from the most recent TC-HAT',
+        drug_test: 'Can the client pass a drug test response from the most recent TC-HAT',
+        heavy_drug_use: 'Is the client a heavy drug user response from the most recent TC-HAT',
+        sober: 'Has the client been sober at least one year response from the most recent TC-HAT',
+        willing_case_management: 'Is the client willing to participate in case management response from the most recent TC-HAT',
+        employed_three_months: 'Has the client been employed for at least three months response from the most recent TC-HAT',
+        living_wage: 'Is the client making a living wage response from the most recent TC-HAT',
+        can_work_full_time: 'Is the client available to work full-time response from the most recent TC-HAT',
+        full_time_employed: 'Does the client have full-time employment response from the most recent TC-HAT',
+      }.freeze
     end
 
     private def boolean_lookups
@@ -106,6 +128,7 @@ module GrdaWarehouse::CasProjectClientCalculator
         :dv_date,
         :va_eligible,
         :vash_eligible,
+        :rrh_desired,
       ]
     end
 
@@ -213,6 +236,19 @@ module GrdaWarehouse::CasProjectClientCalculator
         merge(GrdaWarehouse::Cohort.active).
         where(vash_eligible: true).
         exists?
+    end
+
+    private def rrh_desired(client)
+      section_title = 'Section C'
+      question_title = 'currently working a full time job'
+
+      form = client.most_recent_tc_hat_for_destination
+      relevant_section = form.section_starts_with(section_title)
+      full_time_employed = form.answer_from_section(relevant_section, question_title) == 'Yes'
+
+      question_title = 'successfully exit 12-24 month RRH'
+      rrh_successful_exit = form.answer_from_section(relevant_section, question_title) == 'Yes'
+      full_time_employed || rrh_successful_exit
     end
   end
 end

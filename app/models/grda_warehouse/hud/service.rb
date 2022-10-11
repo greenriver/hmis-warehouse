@@ -7,7 +7,8 @@
 module GrdaWarehouse::Hud
   class Service < Base
     include HudSharedScopes
-    include ::HMIS::Structure::Service
+    include ::HmisStructure::Service
+    include ::HmisStructure::Shared
     include RailsDrivers::Extensions
 
     attr_accessor :source_id
@@ -58,6 +59,10 @@ module GrdaWarehouse::Hud
         :PersonalID,
         :EnrollmentID,
       ]
+    end
+
+    def bed_night?
+      self.RecordType.to_s == '200'
     end
   end
 end

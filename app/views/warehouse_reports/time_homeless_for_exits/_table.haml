@@ -20,4 +20,4 @@
           %td= client.entry_date
           %td= client.exit_date
           %td= client.destination
-          %td= link_to client.project_name, project_path(client.project_id)
+          %td= link_to_if client.project_name != GrdaWarehouse::Hud::Project.confidential_project_name, client.project_name, project_path(client.project_id)

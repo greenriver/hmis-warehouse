@@ -51,12 +51,13 @@ class WorkoffArbiter
   end
 
   def add_worker!
+    target_group_name = ENV.fetch('TARGET_GROUP_NAME', false)
     payload = {
       cluster: ENV.fetch('CLUSTER_NAME'),
       task_definition: _task_definition,
       capacity_provider_strategy: [
         {
-          capacity_provider: _on_demand_capacity_provider_name,
+          capacity_provider: _on_demand_capacity_provider_name(target_group_name),
           weight: 1,
           base: 1,
         },

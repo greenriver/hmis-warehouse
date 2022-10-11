@@ -4,6 +4,11 @@
 - work_phones = @client.source_clients.map(&:work_phone).compact.reject(&:blank?).uniq
 - assessment = @client.most_recent_pathways_assessment
 - client_contacts = @client.client_contacts.newest_first
+- if RailsDrivers.loaded.include?(:eccovia_data)
+  - contact_records = @client.source_eccovia_client_contacts
+  - home_phones += contact_records.map(&:phone).reject(&:blank?).compact.uniq
+  - cell_phones += contact_records.map(&:cell).reject(&:blank?).compact.uniq
+  - emails += contact_records.map(&:email).reject(&:blank?).compact.uniq
 - # Show contacts from Pathways assessment only if full release on file
 - if (home_phones + cell_phones + emails + work_phones).present? || (assessment&.contains_contact_info? && @client.consent_confirmed?) || client_contacts.any? && @client.full_or_partial_release?
   %table.table

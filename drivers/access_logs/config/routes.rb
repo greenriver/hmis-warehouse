@@ -11,7 +11,7 @@ BostonHmis::Application.routes.draw do
   end
   namespace :access_logs do
     namespace :warehouse_reports do
-      resources :reports, only: [:index]
+      resources :reports, only: [:index, :create]
     end
   end
 end

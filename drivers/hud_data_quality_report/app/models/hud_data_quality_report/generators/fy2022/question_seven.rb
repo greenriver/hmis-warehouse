@@ -34,8 +34,8 @@ module HudDataQualityReport::Generators::Fy2022
           '% of Inactive Records',
         ],
         row_labels: [
-          'Contact (Adults and Heads of Household in Street Outreach or ES – NBN)',
-          'Bed Night (All clients in ES – NBN)',
+          'Contact (Adults and Heads of Household in Street Outreach or ES - NBN)',
+          'Bed Night (All clients in ES - NBN)',
         ],
         first_column: 'B',
         last_column: 'D',

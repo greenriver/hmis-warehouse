@@ -23,6 +23,17 @@ RSpec.shared_context 'visibility test context', shared_context: :metadata do
       EntryDate: 1.months.ago.to_date,
     )
   end
+  let!(:window_service_history_enrollment) do
+    create(
+      :grda_warehouse_service_history,
+      :service_history_entry,
+      project_id: window_project.ProjectID,
+      client_id: window_source_client.id,
+      enrollment_group_id: window_enrollment.EnrollmentID,
+      first_date_in_program: window_enrollment.EntryDate,
+      data_source_id: window_visible_data_source.id,
+    )
+  end
   let(:window_destination_client) { create :grda_warehouse_hud_client, data_source_id: warehouse_data_source.id }
   let!(:window_warehouse_client) do
     create(
@@ -53,6 +64,17 @@ RSpec.shared_context 'visibility test context', shared_context: :metadata do
       PersonalID: non_window_source_client.PersonalID,
       ProjectID: non_window_project.ProjectID,
       EntryDate: 1.months.ago.to_date,
+    )
+  end
+  let!(:non_window_service_history_enrollment) do
+    create(
+      :grda_warehouse_service_history,
+      :service_history_entry,
+      project_id: non_window_project.ProjectID,
+      client_id: non_window_source_client.id,
+      enrollment_group_id: non_window_enrollment.EnrollmentID,
+      first_date_in_program: non_window_enrollment.EntryDate,
+      data_source_id: non_window_visible_data_source.id,
     )
   end
   let(:non_window_destination_client) { create :grda_warehouse_hud_client, data_source_id: warehouse_data_source.id }

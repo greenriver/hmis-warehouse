@@ -137,6 +137,9 @@ Rails.application.routes.draw do
   # obfuscation of links sent out via email
   resources :tokens, only: [:show]
 
+  match 'filter', to: 'filters#show', via: [:post]
+
+
   resources :reports do
     resources :report_results, path: 'results', only: [:index, :show, :create, :update, :destroy] do
       get :download_support, on: :member
@@ -147,6 +150,7 @@ Rails.application.routes.draw do
   resources :secure_files, only: [:show, :create, :index, :destroy]
   resources :help
   resources :maintenance, only: [:index]
+  resources :maintenance_saver, only: [:index], controller: 'maintenance'
 
   namespace :reports do
     namespace :hic do
@@ -162,16 +166,7 @@ Rails.application.routes.draw do
   end
   namespace :hud_reports do
     resources :historic_pits, only: [:index]
-    resources :lsas, only: [:index]
-    namespace :ahar do
-      namespace :fy_2017 do
-        resources :base, only: [:create]
-        resources :data_source, only: [:create]
-        resources :project, only: [:create]
-        resources :veteran, only: [:create]
-        get :support
-      end
-    end
+    resources :historic_lsas, only: [:index], controller: 'lsas'
   end
   resources :report_results_summary, only: [:show]
   resources :warehouse_reports, only: [:index] do
@@ -320,7 +315,6 @@ Rails.application.routes.draw do
         post :render_section, on: :collection
         get :section, on: :collection
       end
-      resources :last_permanent_zips, only: [:index]
     end
     resources :re_entry, only: [:index]
     resources :open_enrollments_no_service, only: [:index]
@@ -508,14 +502,12 @@ Rails.application.routes.draw do
     resources :files, controller: 'clients/files', except: [:edit] do
       get :preview, on: :member
       get :thumb, on: :member
-      get :has_thumb, on: :member
       get :show_delete_modal, on: :member
       post :batch_download, on: :collection
     end
     resources :releases, controller: 'clients/releases', except: [:edit] do
       get :preview, on: :member
       get :thumb, on: :member
-      get :has_thumb, on: :member
       get :show_delete_modal, on: :member
       post :batch_download, on: :collection
       get :pre_populated, on: :collection
@@ -523,6 +515,7 @@ Rails.application.routes.draw do
     resources :notes, only: [:index, :destroy, :create], controller: 'clients/notes' do
       get :alerts, on: :collection
     end
+    resources :enrollments, only: [:show], controller: 'clients/enrollments'
     resource :eto_api, only: [:show, :update], controller: 'clients/eto_api'
     resources :users, only: [:index, :create, :update, :destroy], controller: 'clients/users'
     resources :anomalies, except: [:show], controller: 'clients/anomalies'
@@ -609,7 +602,7 @@ Rails.application.routes.draw do
     resource :copy, only: [:new, :create], controller: 'cohorts/copy'
   end
 
-  resources :imports do
+  resources :imports, only: [:index, :show] do
     get :download, on: :member
     get :download_upload, on: :member
   end
@@ -655,7 +648,7 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :hmis, only: [:index, :show]
+  resources :source_data, only: [:index, :show]
 
   resources :weather, only: [:index]
 
@@ -683,6 +676,11 @@ Rails.application.routes.draw do
 
   namespace :health do
     resources :patients, only: [:index] do
+      collection do
+        post :detail
+      end
+    end
+    resources :team_patients, only: [:index] do
       collection do
         post :detail
       end
@@ -784,7 +782,8 @@ Rails.application.routes.draw do
     namespace :health do
       resources :admin, only: [:index]
       resources :agencies, except: [:show]
-      resources :team_coordinators, only: [:index, :create, :destroy]
+      resources :coordination_teams, only: [:index, :create, :update, :destroy]
+      resources :team_members, only: [:index, :create, :destroy]
       resources :patients, only: [:index] do
         post :update, on: :collection
       end
@@ -884,23 +883,7 @@ Rails.application.routes.draw do
     get :cache_status
     get :details
     get :actioncable
-  end
-
-  # Routes for the HMIS API
-  # NOTE: current omniauthable setup doesn't play nicely with multiple models.
-  # If we need to use Okta and the HMIS API together, see https://stackoverflow.com/a/13591797
-  if ENV['ENABLE_HMIS_API'] == 'true' && !ENV['OKTA_DOMAIN'].present?
-    namespace :hmis_api, path: 'hmis-api', defaults: { format: :json } do
-      devise_for :users, class_name: 'HmisApiUser',
-                         skip: [:registrations, :invitations, :passwords, :confirmations, :unlocks, :password_expired],
-                         path: '', path_names: { sign_in: 'login', sign_out: 'logout' }
-
-      resources :user, only: [:none] do
-        get :index, on: :collection
-      end
-
-      post 'hmis-gql', to: "graphql#execute", defaults: { schema: :hmis }
-    end
+    get :ping
   end
 
   root 'root#index'

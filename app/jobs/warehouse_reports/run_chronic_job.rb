@@ -73,7 +73,7 @@ module WarehouseReports
         end.map(&:disability_type_text).uniq.join('<br />').html_safe
 
         source_clients = client.source_clients.map do |sc|
-          sc.attributes.merge(data_source_short_name: sc.data_source.short_name)
+          sc.attributes.merge(data_source_short_name: sc.data_source&.short_name)
         end
 
         client.attributes.merge(

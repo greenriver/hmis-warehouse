@@ -15,8 +15,8 @@ module HudPathReport::Generators::Fy2020
     TABLE_HEADER = [
       'Outcomes',
       'At PATH project Start',
-      'AT PATH project exit (for clients who were exited from PATH this year – leavers)',
-      'At report end date (for clients who were still active in PATH as of report end date – stayers)',
+      'AT PATH project exit (for clients who were exited from PATH this year - leavers)',
+      'At report end date (for clients who were still active in PATH as of report end date - stayers)',
     ].freeze
 
     ROW_LABELS = [
@@ -33,7 +33,7 @@ module HudPathReport::Generators::Fy2020
       '21. Non-cash benefits from any source',
       'Yes',
       'No',
-      'Client doesn’t know',
+      'Client doesn\'t know',
       'Client refused',
       'Data not collected',
       'Total',

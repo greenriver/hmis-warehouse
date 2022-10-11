@@ -3,6 +3,11 @@
 .panel-body {
   border-top: 2px solid $gray-200;
 }
+.minimal-collapse {
+  .panel-body {
+    border-top: 1px solid $gray-200;
+  }
+}
 
 .panel-heading {
   min-height: 50px;
@@ -15,6 +20,19 @@
   background: lighten($tab-bg, 30%);
   .panel-title {
     color: $black;
+  }
+}
+.minimal-collapse {
+  .panel-heading {
+    border-bottom: 1px solid $gray-025;
+    color: $gray-darker;
+    .j-toggle-arrow {
+      margin-bottom: 1rem;
+    }
+  }
+  .panel-heading[aria-expanded=true] {
+    background-color: transparent;
+    border-bottom: 0;
   }
 }
 

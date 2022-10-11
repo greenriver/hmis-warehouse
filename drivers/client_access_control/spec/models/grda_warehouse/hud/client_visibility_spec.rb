@@ -658,4 +658,126 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
       end
     end
   end
+
+  context 'enrollments included in verified homeless history' do
+    before do
+      GrdaWarehouse::Config.delete_all
+      GrdaWarehouse::Config.invalidate_cache
+    end
+    let!(:config) { create :config }
+    describe 'when all_enrollments config selected' do
+      before do
+        config.update(verified_homeless_history_method: :all_enrollments)
+      end
+      it 'all enrollments included' do
+        scope = window_source_client.enrollments_for_verified_homeless_history
+        expect(scope.count).to eq 1
+
+        scope = non_window_source_client.enrollments_for_verified_homeless_history
+        expect(scope.count).to eq 1
+      end
+    end
+    describe 'when visible_in_window config selected' do
+      before do
+        config.update(verified_homeless_history_method: :visible_in_window)
+      end
+      it 'enrollments visible in the window are included' do
+        scope = window_source_client.enrollments_for_verified_homeless_history
+        expect(scope.count).to eq 1
+
+        scope = non_window_source_client.enrollments_for_verified_homeless_history
+        expect(scope.count).to eq 0
+      end
+    end
+    describe 'when visible_to_user config selected' do
+      let!(:user) { create :user }
+      before do
+        config.update(verified_homeless_history_method: :visible_to_user)
+        user.roles << can_view_clients
+      end
+      it 'enrollments visible to user are included' do
+        # confirm client has 1 enrollment, but it's not included because it's not visible
+        expect(non_window_source_client.service_history_enrollments.count).to eq 1
+        expect(non_window_source_client.enrollments_for_verified_homeless_history(user: user).count).to eq 0
+
+        # add visibility and confirm it's included
+        user.add_viewable(non_window_project)
+        expect(non_window_source_client.enrollments_for_verified_homeless_history(user: user).count).to eq 1
+      end
+    end
+
+    describe 'when release config selected' do
+      let!(:user) { create :user }
+      before do
+        config.update(verified_homeless_history_method: :release)
+      end
+      describe 'and client has valid release in users CoC' do
+        before do
+          user.coc_codes = ['ZZ-999']
+          non_window_source_client.update(
+            housing_release_status: non_window_source_client.class.full_release_string,
+            consent_form_signed_on: 5.days.ago,
+            consent_expires_on: Date.current + 1.years,
+            consented_coc_codes: ['ZZ-999'],
+          )
+        end
+        it 'all enrollments included' do
+          expect(non_window_source_client.enrollments_for_verified_homeless_history(user: user).count).to eq 1
+        end
+      end
+
+      describe 'and client has valid release, but user does not have assigned coc_codes' do
+        before do
+          user.coc_codes = []
+          user.roles << can_view_clients
+          non_window_source_client.update(
+            housing_release_status: non_window_source_client.class.full_release_string,
+            consent_form_signed_on: 5.days.ago,
+            consent_expires_on: Date.current + 1.years,
+            consented_coc_codes: ['ZZ-999'],
+          )
+        end
+        it 'enrollments visible to user included' do
+          expect(non_window_source_client.enrollments_for_verified_homeless_history(user: user).count).to eq 0
+
+          # add visibility and confirm it gets included
+          user.add_viewable(non_window_project)
+          expect(non_window_source_client.enrollments_for_verified_homeless_history(user: user).count).to eq 1
+        end
+      end
+
+      describe 'and client has valid release in a different CoC' do
+        before do
+          user.roles << can_view_clients
+          user.coc_codes = ['ZZ-100']
+          non_window_source_client.update(
+            housing_release_status: non_window_source_client.class.full_release_string,
+            consent_form_signed_on: 5.days.ago,
+            consent_expires_on: Date.current + 1.years,
+            consented_coc_codes: ['ZZ-999'],
+          )
+        end
+        it 'enrollments visible to user included' do
+          expect(non_window_source_client.enrollments_for_verified_homeless_history(user: user).count).to eq 0
+
+          # add visibility and confirm it gets included
+          user.add_viewable(non_window_project)
+          expect(non_window_source_client.enrollments_for_verified_homeless_history(user: user).count).to eq 1
+        end
+      end
+
+      describe 'and client does not have a valid release' do
+        before do
+          user.roles << can_view_clients
+        end
+        it 'enrollments visible to user included' do
+          expect(non_window_source_client.enrollments_for_verified_homeless_history(user: user).count).to eq 0
+
+          # add visibility and confirm it gets included
+          user.add_viewable(non_window_project)
+          expect(non_window_source_client.enrollments_for_verified_homeless_history(user: user).count).to eq 1
+        end
+      end
+    end
+  end
 end

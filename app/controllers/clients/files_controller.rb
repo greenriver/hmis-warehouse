@@ -14,7 +14,7 @@ module Clients
     before_action :set_client
     before_action :set_files, only: [:index]
     before_action :set_window
-    before_action :set_file, only: [:show, :update, :preview, :thumb, :has_thumb]
+    before_action :set_file, only: [:show, :update, :preview, :thumb]
 
     # before_action :require_can_manage_client_files!, only: [:update]
     after_action :log_client
@@ -184,15 +184,6 @@ module Clients
         send_data @thumb, filename: @file.name, disposition: :inline, content_type: @file.content_type
       else
         logger.debug 'used browser cache'
-      end
-    end
-
-    def has_thumb # rubocop:disable Naming/PredicateName
-      @thumb = @file.content_type == 'image/jpeg'
-      if @thumb
-        head(:ok)
-      else
-        head(:no_content)
       end
     end
 

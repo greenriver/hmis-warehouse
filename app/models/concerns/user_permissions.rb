@@ -48,6 +48,7 @@ module UserPermissions
         :can_delete_projects_or_data_sources,
         :can_manage_some_ad_hoc_ds,
         :can_view_some_vprs,
+        :can_edit_some_project_groups,
       ].freeze
     end
 
@@ -190,6 +191,10 @@ module UserPermissions
 
     def can_view_some_vprs
       can_view_all_vprs? || can_view_my_vprs?
+    end
+
+    def can_edit_some_project_groups
+      can_edit_assigned_project_groups? || can_edit_project_groups?
     end
 
     # Allow all methods above to respond with or without a ?

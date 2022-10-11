@@ -1,0 +1,8 @@
+.fixed-bottom.pdq_actions
+  .d-flex
+    .mr-2
+      = f.input :start, as: :date_picker, input_html: {class: 'form-control', value: @range.start}
+    .mr-2
+      = f.input :end, as: :date_picker, input_html: {class: 'form-control', value: @range.end}
+    .mr-auto.mt-no-label
+      = f.button :submit, value: 'Run Selected Scorecards'

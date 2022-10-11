@@ -77,6 +77,10 @@ module IncomeBenefitsReport
       end
     end
 
+    def describe_filter_as_html
+      filter.describe_filter_as_html(filter.all_known_keys.reject { |k| k.in?([:on, :lsa_scope]) })
+    end
+
     def to_comparison
       comparison = dup
       comparison.filter = filter.to_comparison
@@ -212,6 +216,7 @@ module IncomeBenefitsReport
       scope = filter_for_chronic_at_entry(scope)
       scope = filter_for_ca_homeless(scope)
       scope = filter_for_ce_cls_homeless(scope)
+      scope = filter_for_cohorts(scope)
       scope = filter_for_times_homeless(scope)
 
       # Limit to most recently started enrollment per client
@@ -331,7 +336,7 @@ module IncomeBenefitsReport
     end
 
     private def populate_clients!(range)
-      report_scope.preload(:client, :project, enrollment: :income_benefits).find_in_batches do |batch|
+      report_scope.preload(:client, project: :organization, enrollment: :income_benefits).find_in_batches do |batch|
         report_clients = []
         race_cache = GrdaWarehouse::Hud::Client.new
         client_ids = batch.map(&:client_id)
@@ -380,7 +385,7 @@ module IncomeBenefitsReport
         entry_date: enrollment.first_date_in_program,
         exit_date: enrollment.last_date_in_program,
         move_in_date: enrollment.move_in_date,
-        project_name: enrollment.project_name,
+        project_name: enrollment.project&.name(filter.user),
         project: enrollment.project,
       )
     end

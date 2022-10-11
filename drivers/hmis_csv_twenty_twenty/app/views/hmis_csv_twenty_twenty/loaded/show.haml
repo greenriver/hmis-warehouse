@@ -17,7 +17,7 @@
           - @data.each do |row|
             %tr
               - row.hmis_data.each do |key, value|
-                %td= link_to_if key.to_sym == @klass.hud_key, value, hmis_path(search: {type: entry_name, id: value, data_source_id: row.data_source_id })
+                %td= link_to_if key.to_sym == @klass.hud_key, value, source_data_path(search: {type: entry_name, id: value, data_source_id: row.data_source_id })
   = render 'common/pagination_bottom', item_name: entry_name
 - else
   .none-found No data found.

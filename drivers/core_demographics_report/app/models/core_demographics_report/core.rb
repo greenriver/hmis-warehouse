@@ -136,6 +136,7 @@ module CoreDemographicsReport
       scope = filter_for_times_homeless(scope)
       scope = filter_for_ca_homeless(scope)
       scope = filter_for_ce_cls_homeless(scope)
+      scope = filter_for_cohorts(scope)
       scope
     end
 

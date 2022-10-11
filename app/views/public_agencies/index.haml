@@ -1,18 +1,25 @@
 - content_for :title, 'Agencies'
 %h1= content_for :title
 %p= _('This list of agencies will change over time.  Please revisit this page for the updated list.')
-.card.pt-2
+
+.public-agencies
   %table.table.datatable.agency-list
     %thead
       %tr
         %th Agency
-        %th CoC
+        - if GrdaWarehouse::Config.get(:multi_coc_installation)
+          %th CoC
     %tbody
-      - @agencies.each do |agency|
-        - agency.consent_limits.each do |coc|
+      - if GrdaWarehouse::Config.get(:multi_coc_installation)
+        - @agencies.each do |agency|
+          - agency.consent_limits.each do |coc|
+            %tr
+              %td= agency.name
+              %td= coc.description_and_coc_code
+      - else
+        - @agencies.each do |agency|
           %tr
             %td= agency.name
-            %td= coc.description_and_coc_code
 
 - if @coc_map.present?
   .coc-map

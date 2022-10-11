@@ -3,15 +3,17 @@
 - allow_toggle ||= 'yes'
 - heading_attrs = allow_toggle == 'yes' ? { data: {toggle: 'collapse'}, href: "##{id}" } : {}
 - panel_body_padded ||= 'y'
+- heading_slug ||= ''
 - content ||= ''
 - default_open ||= 'no'
 - wrapper_class ||= ''
+- arrow_icon ||= 'icon-arrow-circled'
 
 .c-card.panel-group.panel-collapsible{class: (wrapper_class if wrapper_class.present?)}
-  .panel.panel-default.c-card__content.c-card__content--flush
+  .panel.panel-default.c-card__content.c-card__content--flush{data: { arrow_icon: arrow_icon }}
     %a.panel-heading.py-0.px-4.d-block{**heading_attrs}
-      - if content_for?(:panel_collapse_heading)
-        = yield :panel_collapse_heading
+      - if content_for?("panel_collapse_heading#{heading_slug}".to_sym)
+        = yield "panel_collapse_heading#{heading_slug}".to_sym
       - else
         .d-flex.align-items-center
           .d-flex.panel-title-wrapper.flex-wrap.align-items-center

@@ -22,6 +22,10 @@ module  HudHic::Generators::Hic::Fy2022
       "#{short_name} #{fiscal_year}"
     end
 
+    def self.default_project_type_codes
+      GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.keys
+    end
+
     def url
       hud_reports_hic_url(report, { host: ENV['FQDN'], protocol: 'https' })
     end

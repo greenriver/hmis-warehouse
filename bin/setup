@@ -27,6 +27,10 @@ Dir.chdir APP_ROOT do
     puts "\n== Creating .env.local"
     FileUtils.cp 'sample.env', '.env.local'
   end
+  unless File.exist?('.env.development.local')
+    puts "\n== Creating .env.development.local"
+    FileUtils.touch '.env.development.local'
+  end
 
   system 'bin/db_prep'
 

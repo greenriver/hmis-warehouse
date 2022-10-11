@@ -31,10 +31,10 @@ module Dashboards
           ).index_by(&:id)
           @projects = GrdaWarehouse::Hud::Project.where(
             id: @enrollments.distinct.pluck(:project_id),
-          ).pluck(:id, :ProjectName).to_h
+          ).index_by(&:id)
           @organizations = GrdaWarehouse::Hud::Organization.where(
             id: @enrollments.distinct.pluck(:organization_id),
-          ).pluck(:id, :OrganizationName).to_h
+          ).index_by(&:id)
         end
         format.pdf do
           render_pdf!

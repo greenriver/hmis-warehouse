@@ -7,7 +7,8 @@
 module GrdaWarehouse::Hud
   class CurrentLivingSituation < Base
     include HudSharedScopes
-    include ::HMIS::Structure::CurrentLivingSituation
+    include ::HmisStructure::CurrentLivingSituation
+    include ::HmisStructure::Shared
     include RailsDrivers::Extensions
 
     attr_accessor :source_id

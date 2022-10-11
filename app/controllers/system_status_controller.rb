@@ -7,6 +7,12 @@
 class SystemStatusController < ApplicationController
   skip_before_action :authenticate_user!
 
+  def ping
+    Rails.logger.info 'Ping [info]'
+    Rails.logger.debug 'Ping [debug]'
+    render status: 200, plain: 'Ping'
+  end
+
   # Provide a path for nagios or other system checker to determine if the system is
   # operational
   def operational
@@ -14,8 +20,10 @@ class SystemStatusController < ApplicationController
     data_source_count = GrdaWarehouse::DataSource.count
     patient_count = Health::Patient.count
     if user_count.present? && data_source_count.present? && patient_count.present?
+      Rails.logger.info 'Operating system is operational'
       render plain: 'OK'
     else
+      Rails.logger.info 'Operating system is not operational'
       render status: 500, plain: 'FAIL'
     end
   end
@@ -26,8 +34,10 @@ class SystemStatusController < ApplicationController
     pulled_value = Rails.cache.read('cache-test')
 
     if set_value == pulled_value
+      Rails.logger.info 'Cache is operational'
       render plain: 'OK'
     else
+      Rails.logger.info 'Cache is not operational'
       render status: 500, plain: 'FAIL'
     end
   end

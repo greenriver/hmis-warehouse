@@ -10,18 +10,16 @@ module HealthFlexibleService
     include ArelHelper
     include ClientPathGenerator
     before_action :set_client
-    before_action :set_hpc_patient
     before_action :set_vpr, only: [:show, :edit, :update, :destroy]
 
     def index
-      @vprs = @patient.flexible_services
-      @follow_ups = @patient # .flexible_service_follow_ups
+      @vprs = @client.health_flexible_services
     end
 
     def new
       @pdf = false
       @html = true
-      @vpr = vpr_source.new(user: current_user, patient: @patient)
+      @vpr = vpr_source.new(user: current_user, client: @client)
       @vpr.set_defaults
     end
 
@@ -75,14 +73,14 @@ module HealthFlexibleService
     end
 
     def create
-      options = permitted_params.merge(user: current_user, patient: @patient)
+      options = permitted_params.merge(user: current_user, client: @client)
       options[:end_date] = options[:planned_on].to_date + 6.months if options[:planned_on].present?
       @vpr = vpr_source.create(options)
       respond_with(@vpr, location: client_health_flexible_service_vprs_path(@client))
     end
 
     def update
-      options = permitted_params.merge(user: current_user, patient: @patient)
+      options = permitted_params.merge(user: current_user, client: @client)
       options[:end_date] = options[:planned_on].to_date + 6.months if options[:planned_on].present?
       @vpr = @vpr.update(options)
       respond_with(@vpr, location: client_health_flexible_service_vprs_path(@client))
@@ -111,6 +109,7 @@ module HealthFlexibleService
         :first_name,
         :middle_name,
         :last_name,
+        :medicaid_id,
         :dob,
         :accommodations_needed,
         :contact_type,
@@ -134,6 +133,7 @@ module HealthFlexibleService
         :representative_email,
         :member_agrees_to_plan,
         :member_agreement_notes,
+        :aco_id,
         :aco_approved,
         :aco_approved_on,
         :aco_rejection_notes,
