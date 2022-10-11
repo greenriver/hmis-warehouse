@@ -37,7 +37,7 @@ module HmisCsvTwentyTwenty::GrdaWarehouse
 
           begin
             seconds = ((completed_at - created_at) / 1.minute).round * 60
-            distance_of_time_in_words(seconds)
+            "#{distance_of_time_in_words(seconds)} -#{created_at.strftime('%l:%M %P')} to #{completed_at.strftime('%l:%M %P')}"
           rescue StandardError
             'unknown'
           end

@@ -1,0 +1,12 @@
+%section.o-section-card
+  %h3 Schedule
+  .c-card.c-card--flush.c-card--padded.flex-wrap
+    .d-flex.mb-4
+      .mr-2 Export schedule
+      .ml-auto.mr-4= ENV['DAILY_EXPORT_SCHEDULE'].presence || 'unset'
+    .d-flex.mb-4
+      .mr-2 Nightly processing timing
+      .ml-auto.mr-4= ENV['DAILY_SCHEDULE'].presence || 'unset'
+    .d-flex.mb-4
+      .mr-2 Nightly import timing
+      .ml-auto.mr-4= ENV['IMPORT_SCHEDULE'].presence || 'unset'
