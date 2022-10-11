@@ -74,11 +74,23 @@ module HmisDataQualityTool
     def self.enrollment_scope(report)
       GrdaWarehouse::Hud::Enrollment.joins(:service_history_enrollment).
         left_outer_joins(:exit).
-        preload(:exit, :project, :services, :current_living_situations, :enrollment_coc_at_entry, client: :warehouse_client_source).
+        preload(
+          :exit,
+          :project,
+          :services,
+          :current_living_situations,
+          :enrollment_coc_at_entry,
+          :disabilities_at_entry,
+          :health_and_dvs_at_entry,
+          :income_benefits_at_entry,
+          :income_benefits_at_exit,
+          :income_benefits_annual_update,
+          client: :warehouse_client_source,
+        ).
         merge(report.report_scope).distinct
     end
 
-    def self.report_item_fields_from_enrollment(report_items:, enrollment:, report:)
+    def self.report_item_fields_from_enrollment(report_items:, enrollment:, report:) # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
       # we only need to do the calculations once, the values will be the same for any enrollment,
       # no matter how many times we see it
       report_item = report_items[enrollment]
@@ -95,6 +107,7 @@ module HmisDataQualityTool
       report_item.hmis_enrollment_id = enrollment.EnrollmentID
       report_item.exit_id = enrollment.exit&.ExitID
       report_item.data_source_id = enrollment.data_source_id
+      report_item.project_id = enrollment.project.id
       report_item.project_name = enrollment.project.name(report.user)
       report_item.project_type = enrollment.project.project_type_to_use
       report_item.entry_date = enrollment.EntryDate
@@ -115,7 +128,56 @@ module HmisDataQualityTool
 
       hh = report.household(enrollment.HouseholdID)
       report_item.household_max_age = hh&.map { |en| en[:age] }&.compact&.max || report_item.age
+      report_item.household_min_age = hh&.map { |en| en[:age] }&.compact&.min || report_item.age
+      adult_or_hoh = enrollment.RelationshipToHoH == 1 || report_item.age.present? && report_item.age >= 18
       report_item.head_of_household_count = hh&.select { |en| en[:relationship_to_hoh] == 1 }&.count || 0
+      report_item.household_type = household_type(min_age, max_age)
+
+      report_item.ch_details_expected = adult_or_hoh
+      report_item.health_dv_at_entry_expected = adult_or_hoh
+      report_item.income_at_entry_expected = adult_or_hoh
+
+      report_item.los_under_threshold = enrollment.LOSUnderThreshold
+      report_item.date_to_street_essh = enrollment.DateToStreetESSH
+      report_item.times_homeless_past_three_years = enrollment.TimesHomelessPastThreeYears
+      report_item.months_homeless_past_three_years = enrollment.MonthsHomelessPastThreeYears
+      report_item.enrollment_coc = enrollment.enrollment_coc_at_entry&.CoCCode
+      report_item.has_disability = enrollment.disabilities_at_entry&.indefinite_and_impairs?&.any?
+      report_item.days_between_entry_and_create = (enrollment.EntryDate - enrollment.DateCreated.to_date).to_i
+
+      report_item.health_dv_at_entry_collected = enrollment.health_and_dvs_at_entry.any?
+
+      entry_income_assessment = enrollment.income_benefits_at_entry
+      # Find one within the report range
+      # potentially we want to limit this to within +- 30 days of the anniversary
+      annual_income_assessment = enrollment.income_benefits_annual_update.detect do |ib|
+        ib.InformationDate.between?(report.filter.start, report.filter.end)
+      end
+      exit_income_assessment = enrollment.income_benefits_at_exit
+
+      report_item.earned_income_collected_at_start = entry_income_assessment&.Earned&.present? && entry_income_assessment.Earned != 99
+      report_item.earned_income_collected_at_annual = annual_income_assessment&.Earned&.present? && annual_income_assessment.Earned != 99
+      report_item.earned_income_collected_at_exit = exit_income_assessment&.Earned&.present? && exit_income_assessment.Earned != 99
+      report_item.earned_income_as_expected_at_entry = income_at_entry_expected == false || income_at_entry_expected && earned_income_collected_at_start
+      report_item.earned_amounts_as_expected_at_entry = earned_income_as_expected_at_entry == false ||
+        earned_income_as_expected_at_entry &&
+          (
+            entry_income_assessment&.Earned == 1 &&
+            entry_income_assessment&.EarnedAmount&.positive? ||
+            entry_income_assessment&.Earned&.zero? &&
+            entry_income_assessment&.EarnedAmount&.zero?
+          )
+
+      # TODO
+      # report_item.ncb_income_collected_at_start
+      # report_item.ncb_income_collected_at_annual
+      # report_item.ncb_income_collected_at_exit
+      # report_item.ncb_income_as_expected_at_entry
+
+      # report_item.insurance_collected_at_start
+      # report_item.insurance_collected_at_annual
+      # report_item.insurance_collected_at_exit
+      # report_item.insurance_as_expected_at_entry
 
       max_date = [report.filter.end, Date.current].min
       en_services = enrollment.services&.select { |s| s.DateProvided <= max_date }
@@ -144,6 +206,14 @@ module HmisDataQualityTool
       # count the days between the end of the earlier of the reporting end date or exit date and the most-recent service or the entry date
       report_item.days_since_last_service = (end_date - max_service).to_i
       report_item
+    end
+
+    def self.household_type(min_age, max_age)
+      return 'Unknown' if min_age.blank? || max_age.blank?
+      return 'Adult Only' if min_age >= 18
+      return 'Child Only' if max_age < 18
+
+      'Adult and Child'
     end
 
     def self.sections

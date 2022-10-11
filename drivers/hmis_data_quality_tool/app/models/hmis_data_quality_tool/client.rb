@@ -35,6 +35,10 @@ module HmisDataQualityTool
         native_hi_pacific: 'Native Hawaiian or Pacific Islander',
         white: 'White',
         race_none: 'Race None',
+        ethnicity: 'Ethnicity',
+        veteran_status: 'Veteran Status',
+        ssn: 'SSN',
+        ssn_data_quality: 'SSN Data Quality',
         overlapping_entry_exit: 'Overlapping Entry/Exit enrollments in ES, SH, and TH',
         overlapping_nbn: 'Overlapping Night-by-Night ES enrollments with other ES, SH, and TH',
         overlapping_pre_move_in: 'Overlapping Homeless Service After Move-in in PH',
@@ -104,6 +108,10 @@ module HmisDataQualityTool
       report_item.native_hi_pacific = client.NativeHIPacific
       report_item.white = client.White
       report_item.race_none = client.RaceNone
+      report_item.ethnicity = client.Ethnicity
+      report_item.veteran_status = client.VeteranStatus
+      report_item.ssn = client.SSN
+      report_item.ssn_data_quality = client.SSNDataQuality
       # we need these for calculations, but don't want to store them permanently
       report_item.enrollments = client.source_enrollments
       report_item.overlapping_entry_exit = overlapping_entry_exit(enrollments: report_item.enrollments, report: report)

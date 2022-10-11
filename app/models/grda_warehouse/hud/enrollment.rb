@@ -92,6 +92,13 @@ module GrdaWarehouse::Hud
       at_update.all_sources_missing
     end, **hud_enrollment_belongs('IncomeBenefit')
 
+    has_many :disabilities_at_entry, -> do
+      at_entry
+    end, **hud_enrollment_belongs('Disability')
+    has_many :health_and_dvs_at_entry, -> do
+      at_entry
+    end, **hud_enrollment_belongs('HealthAndDv')
+
     # NOTE: you will want to limit this to a particular record_type
     has_one :service_history_enrollment, -> { where(record_type: :entry) }, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment', foreign_key: [:data_source_id, :enrollment_group_id, :project_id], primary_key: [:data_source_id, :EnrollmentID, :ProjectID], autosave: false
 
