@@ -26543,6 +26543,13 @@ CREATE UNIQUE INDEX en_en_id_p_id_ds_id ON public."Enrollment" USING btree ("Enr
 
 
 --
+-- Name: en_tt; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX en_tt ON public.hmis_2022_enrollments USING btree ("EnrollmentID", "PersonalID", importer_log_id, data_source_id);
+
+
+--
 -- Name: enrollment_coc_date_created; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -32794,6 +32801,13 @@ CREATE INDEX "hmis_2022_disabilities-7712" ON public.hmis_2022_disabilities USIN
 
 
 --
+-- Name: hmis_2022_disabilities_hk_l_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis_2022_disabilities_hk_l_id ON public.hmis_2022_disabilities USING btree ("DisabilitiesID", importer_log_id);
+
+
+--
 -- Name: hmis_2022_employment_educations-3032; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -32847,6 +32861,20 @@ CREATE INDEX "hmis_2022_events-48bf" ON public.hmis_2022_events USING btree (sou
 --
 
 CREATE INDEX "hmis_2022_events-9f9c" ON public.hmis_2022_events USING btree ("EventID", data_source_id);
+
+
+--
+-- Name: hmis_2022_events_hk_l_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis_2022_events_hk_l_id ON public.hmis_2022_events USING btree ("EventID", importer_log_id);
+
+
+--
+-- Name: hmis_2022_exit_e_id_compound; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis_2022_exit_e_id_compound ON public.hmis_2022_exits USING btree ("EnrollmentID", "PersonalID", importer_log_id, data_source_id);
 
 
 --
@@ -32906,6 +32934,13 @@ CREATE INDEX "hmis_2022_health_and_dvs-e384" ON public.hmis_2022_health_and_dvs 
 
 
 --
+-- Name: hmis_2022_health_and_dvs_hk_l_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis_2022_health_and_dvs_hk_l_id ON public.hmis_2022_health_and_dvs USING btree ("HealthAndDVID", importer_log_id);
+
+
+--
 -- Name: hmis_2022_income_benefits-200d; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -32917,6 +32952,13 @@ CREATE INDEX "hmis_2022_income_benefits-200d" ON public.hmis_2022_income_benefit
 --
 
 CREATE INDEX "hmis_2022_income_benefits-48bf" ON public.hmis_2022_income_benefits USING btree (source_type, source_id);
+
+
+--
+-- Name: hmis_2022_income_benefits_hk_l_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis_2022_income_benefits_hk_l_id ON public.hmis_2022_income_benefits USING btree ("IncomeBenefitsID", importer_log_id);
 
 
 --
@@ -32987,6 +33029,13 @@ CREATE INDEX "hmis_2022_services-48bf" ON public.hmis_2022_services USING btree 
 --
 
 CREATE INDEX "hmis_2022_services-7a57" ON public.hmis_2022_services USING btree ("ServicesID", data_source_id);
+
+
+--
+-- Name: hmis_2022_services_hk_l_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_hk_l_id ON public.hmis_2022_services USING btree ("ServicesID", importer_log_id);
 
 
 --
@@ -47564,6 +47613,13 @@ CREATE UNIQUE INDEX test_shs ON public.service_history_services_2000 USING btree
 
 
 --
+-- Name: tt; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX tt ON public.hmis_2022_exits USING btree ("EnrollmentID", "PersonalID", importer_log_id, data_source_id);
+
+
+--
 -- Name: uniq_hud_report_universe_members; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -50235,6 +50291,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220928150112'),
 ('20220928164029'),
 ('20220930194814'),
-('20221006193112');
+('20221006193112'),
+('20221007152924');
 
 
