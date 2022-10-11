@@ -315,7 +315,6 @@ Rails.application.routes.draw do
         post :render_section, on: :collection
         get :section, on: :collection
       end
-      resources :last_permanent_zips, only: [:index]
     end
     resources :re_entry, only: [:index]
     resources :open_enrollments_no_service, only: [:index]
