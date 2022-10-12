@@ -10,6 +10,10 @@ FY2022 Changes
 		(Detailed revision history maintained at https://github.com/HMIS/LSASampleCode)
 
 
+	It is not necessary to execute this code every time the LSA is run -- only 
+	if/when there are changes to it.  It creates tables in the structure of the 
+	LSA CSV files.
+	
 	There are some deliberate differences from data typing and nullability as defined by 
 	the HMIS CSV/LSA specs and the CREATE statements here. 
 

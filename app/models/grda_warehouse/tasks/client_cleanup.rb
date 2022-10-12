@@ -11,7 +11,10 @@ module GrdaWarehouse::Tasks
   class ClientCleanup
     include NotifierConfig
     include ArelHelper
+    include VeteranStatusCalculator
+
     attr_accessor :logger, :send_notifications, :notifier_config
+
     def initialize(max_allowed = 1_000, _bogus_notifier = false, changed_client_date: 2.weeks.ago.to_date, debug: false, dry_run: false)
       @max_allowed = max_allowed
       setup_notifier('Client Cleanup')
@@ -360,6 +363,7 @@ module GrdaWarehouse::Tasks
         if best_name_client.present?
           dest_attr[:FirstName] = best_name_client[:FirstName]
           dest_attr[:LastName] = best_name_client[:LastName]
+          dest_attr[:NameDataQuality] = best_name_client[:NameDataQuality]
         end
       end
       dest_attr
@@ -369,31 +373,24 @@ module GrdaWarehouse::Tasks
       # Get the best SSN (has value and quality is full or partial, oldest breaks the tie)
       non_blank_ssn = source_clients.select { |sc| sc[:SSN].present? }
       if non_blank_ssn.any?
-        dest_attr[:SSN] = non_blank_ssn.max do |a, b|
+        best = non_blank_ssn.max do |a, b|
           comp = b[:SSNDataQuality] <=> a[:SSNDataQuality] # Desc
           if comp == 0 # rubocop:disable Style/NumericPredicate
             comp = b[:DateCreated] <=> a[:DateCreated] # Desc
           end
           comp
-        end[:SSN]
+        end
+        dest_attr[:SSN] = best[:SSN]
+        dest_attr[:SSNDataQuality] = best[:SSNDataQuality]
       elsif dest_attr[:SSN].present?
         dest_attr[:SSN] = nil
+        dest_attr[:SSNDataQuality] = 99
       end
       dest_attr
     end
 
     def choose_best_veteran_status dest_attr, source_clients
-      # Get the best Veteran status (has 0/1, newest breaks the tie)
-      # As of 2/16/2019 calculate using if ever yes, override with verified_veteran_status == non_veteran
-      if dest_attr[:verified_veteran_status] == 'non_veteran'
-        dest_attr[:VeteranStatus] = 0
-      elsif source_clients.map { |sc| sc[:VeteranStatus] }.include?(1)
-        dest_attr[:VeteranStatus] = 1
-      else
-        dest_attr[:VeteranStatus] = source_clients.max do |a, b|
-          a[:DateUpdated] <=> b[:DateUpdated]
-        end[:VeteranStatus]
-      end
+      dest_attr[:VeteranStatus] = calculate_best_veteran_status(dest_attr[:verified_veteran_status], dest_attr[:va_verified_veteran], source_clients)
 
       dest_attr
     end
@@ -402,15 +399,18 @@ module GrdaWarehouse::Tasks
       # Get the best DOB (has value and quality is full or partial, oldest breaks the tie)
       non_blank_dob = source_clients.select { |sc| sc[:DOB].present? }
       if non_blank_dob.any?
-        dest_attr[:DOB] = non_blank_dob.max do |a, b|
+        best = non_blank_dob.max do |a, b|
           comp = b[:DOBDataQuality] <=> a[:DOBDataQuality] # Desc
           if comp == 0 # rubocop:disable Style/NumericPredicate
             comp = b[:DateCreated] <=> a[:DateCreated] # Desc
           end
           comp
-        end[:DOB]
+        end
+        dest_attr[:DOB] = best[:DOB]
+        dest_attr[:DOBDataQuality] = best[:DOBDataQuality]
       elsif dest_attr[:DOB].present?
         dest_attr[:DOB] = nil
+        dest_attr[:DOBDataQuality] = 99
       end
       dest_attr
     end
@@ -562,6 +562,7 @@ module GrdaWarehouse::Tasks
         batch.each do |dest_id|
           dest = client_source.find(dest_id)
           source_clients = dest.source_clients.
+            joins(:data_source). # Don't consider deleted data sources
             pluck(*client_columns.values.map { |column| Arel.sql(column) }).
             map do |row|
               Hash[client_columns.keys.zip(row)]
@@ -613,6 +614,7 @@ module GrdaWarehouse::Tasks
         GenderNone: c_t[:GenderNone].to_sql,
         VeteranStatus: c_t[:VeteranStatus].to_sql,
         verified_veteran_status: c_t[:verified_veteran_status].to_sql,
+        va_verified_veteran: c_t[:va_verified_veteran].to_sql,
         NameDataQuality: cl(c_t[:NameDataQuality], 99).as('NameDataQuality').to_sql,
         SSNDataQuality: cl(c_t[:SSNDataQuality], 99).as('SSNDataQuality').to_sql,
         DOBDataQuality: cl(c_t[:DOBDataQuality], 99).as('DOBDataQuality').to_sql,

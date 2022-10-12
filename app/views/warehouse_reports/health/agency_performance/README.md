@@ -6,7 +6,7 @@
 
 **Initial care plan overdue - no payment**: Patients >150 days into an enrollment without an initial care plan.
 
-**Annual care plan due within 30 days**: Patients with annual care plan due within 30 days. Annual care plans are due 12 months after the patient's most recent care plan.
+**Annual care plan due within 30 days to meet Quality Metric**: Patients with annual care plan due within 30 days. Annual care plans are due 12 months after the patient's most recent care plan.
 
 **Care plan renewal overdue**: Patients with annual care plan overdue. Annual care plans are due 12 months after the patient's most recent care plan.
 
