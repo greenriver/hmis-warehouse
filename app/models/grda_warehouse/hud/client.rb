@@ -22,6 +22,7 @@ module GrdaWarehouse::Hud
     include ::Youth::Intake
     include CasClientData
     include ClientSearch
+    include VeteranStatusCalculator
     has_paper_trail
 
     attr_accessor :source_id
@@ -1998,17 +1999,11 @@ module GrdaWarehouse::Hud
     end
 
     def ever_veteran?
-      source_clients.map(&:veteran?).include?(true)
+      va_verified_veteran? || source_clients.map(&:veteran?).include?(true)
     end
 
     def adjust_veteran_status
-      self.VeteranStatus = if verified_veteran_status == 'non_veteran'
-        0
-      elsif ever_veteran?
-        1
-      else
-        source_clients.order(DateUpdated: :desc).limit(1).pluck(:VeteranStatus).first
-      end
+      self.VeteranStatus = calculate_best_veteran_status(verified_veteran_status, va_verified_veteran, source_clients)
       save
       self.class.clear_view_cache(self.id) # rubocop:disable Style/RedundantSelf
     end
@@ -2034,11 +2029,6 @@ module GrdaWarehouse::Hud
 
     def ethnicity_description
       ::HUD.ethnicity(self.Ethnicity)
-    end
-
-    def cas_primary_race_code
-      race_text = ::HUD.race(race_fields.first)
-      Cas::PrimaryRace.find_by_text(race_text).try(:numeric)
     end
 
     def pit_race
@@ -2086,6 +2076,46 @@ module GrdaWarehouse::Hud
         return 'Not Collected'
       end
       'RaceNone'
+    end
+
+    def cas_race_am_ind_ak_native
+      self.AmIndAKNative == 1
+    end
+
+    def cas_race_asian
+      self.Asian == 1
+    end
+
+    def cas_race_black_af_american
+      self.BlackAfAmerican == 1
+    end
+
+    def cas_race_native_hi_pacific
+      self.NativeHIPacific == 1
+    end
+
+    def cas_race_white
+      self.White == 1
+    end
+
+    def cas_gender_female
+      self.Female == 1
+    end
+
+    def cas_gender_male
+      self.Male == 1
+    end
+
+    def cas_gender_no_single_gender
+      self.NoSingleGender == 1
+    end
+
+    def cas_gender_transgender
+      self.Transgender == 1
+    end
+
+    def cas_gender_questioning
+      self.Questioning == 1
     end
 
     def self_and_sources

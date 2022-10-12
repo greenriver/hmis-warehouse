@@ -531,7 +531,8 @@ CREATE TABLE public."Client" (
     pronouns character varying,
     sexual_orientation character varying,
     health_housing_navigator_id bigint,
-    encampment_decomissioned boolean DEFAULT false NOT NULL
+    encampment_decomissioned boolean DEFAULT false NOT NULL,
+    va_verified_veteran boolean DEFAULT false
 );
 
 
@@ -13159,7 +13160,11 @@ CREATE TABLE public.hmis_dqt_clients (
     overlapping_entry_exit integer,
     overlapping_nbn integer,
     overlapping_pre_move_in integer,
-    overlapping_post_move_in integer
+    overlapping_post_move_in integer,
+    veteran_status integer,
+    ssn integer,
+    ssn_data_quality integer,
+    ethnicity integer
 );
 
 
@@ -13261,7 +13266,34 @@ CREATE TABLE public.hmis_dqt_enrollments (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     deleted_at timestamp without time zone,
-    project_type integer
+    project_type integer,
+    project_id integer,
+    household_type character varying,
+    ch_details_expected boolean DEFAULT false,
+    los_under_threshold integer,
+    date_to_street_essh date,
+    times_homeless_past_three_years integer,
+    months_homeless_past_three_years integer,
+    enrollment_coc character varying,
+    has_disability boolean DEFAULT false,
+    days_between_entry_and_create integer,
+    health_dv_at_entry_expected boolean DEFAULT false,
+    health_dv_at_entry_collected integer,
+    income_at_entry_expected boolean DEFAULT false,
+    insurance_at_entry_expected boolean DEFAULT false,
+    earned_income_collected_at_start integer,
+    earned_income_collected_at_annual integer,
+    earned_income_collected_at_exit integer,
+    earned_income_as_expected_at_entry boolean DEFAULT false,
+    earned_amounts_as_expected_at_entry boolean DEFAULT false,
+    ncb_income_collected_at_start integer,
+    ncb_income_collected_at_annual integer,
+    ncb_income_collected_at_exit integer,
+    ncb_income_as_expected_at_entry boolean DEFAULT false,
+    insurance_collected_at_start integer,
+    insurance_collected_at_annual integer,
+    insurance_collected_at_exit integer,
+    insurance_as_expected_at_entry boolean DEFAULT false
 );
 
 
@@ -19929,6 +19961,40 @@ ALTER SEQUENCE public.user_viewable_entities_id_seq OWNED BY public.user_viewabl
 
 
 --
+-- Name: va_check_histories; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.va_check_histories (
+    id bigint NOT NULL,
+    client_id bigint,
+    response character varying,
+    check_date date,
+    user_id bigint,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: va_check_histories_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.va_check_histories_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: va_check_histories_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.va_check_histories_id_seq OWNED BY public.va_check_histories.id;
+
+
+--
 -- Name: verification_sources; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -23259,6 +23325,13 @@ ALTER TABLE ONLY public.user_viewable_entities ALTER COLUMN id SET DEFAULT nextv
 
 
 --
+-- Name: va_check_histories id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.va_check_histories ALTER COLUMN id SET DEFAULT nextval('public.va_check_histories_id_seq'::regclass);
+
+
+--
 -- Name: verification_sources id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -26030,6 +26103,14 @@ ALTER TABLE ONLY public.user_viewable_entities
 
 
 --
+-- Name: va_check_histories va_check_histories_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.va_check_histories
+    ADD CONSTRAINT va_check_histories_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: verification_sources verification_sources_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -26509,6 +26590,13 @@ CREATE INDEX employment_education_export_id ON public."EmploymentEducation" USIN
 --
 
 CREATE UNIQUE INDEX en_en_id_p_id_ds_id ON public."Enrollment" USING btree ("EnrollmentID", "PersonalID", data_source_id);
+
+
+--
+-- Name: en_tt; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX en_tt ON public.hmis_2022_enrollments USING btree ("EnrollmentID", "PersonalID", importer_log_id, data_source_id);
 
 
 --
@@ -32763,6 +32851,13 @@ CREATE INDEX "hmis_2022_disabilities-7712" ON public.hmis_2022_disabilities USIN
 
 
 --
+-- Name: hmis_2022_disabilities_hk_l_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis_2022_disabilities_hk_l_id ON public.hmis_2022_disabilities USING btree ("DisabilitiesID", importer_log_id);
+
+
+--
 -- Name: hmis_2022_employment_educations-3032; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -32816,6 +32911,20 @@ CREATE INDEX "hmis_2022_events-48bf" ON public.hmis_2022_events USING btree (sou
 --
 
 CREATE INDEX "hmis_2022_events-9f9c" ON public.hmis_2022_events USING btree ("EventID", data_source_id);
+
+
+--
+-- Name: hmis_2022_events_hk_l_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis_2022_events_hk_l_id ON public.hmis_2022_events USING btree ("EventID", importer_log_id);
+
+
+--
+-- Name: hmis_2022_exit_e_id_compound; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis_2022_exit_e_id_compound ON public.hmis_2022_exits USING btree ("EnrollmentID", "PersonalID", importer_log_id, data_source_id);
 
 
 --
@@ -32875,6 +32984,13 @@ CREATE INDEX "hmis_2022_health_and_dvs-e384" ON public.hmis_2022_health_and_dvs 
 
 
 --
+-- Name: hmis_2022_health_and_dvs_hk_l_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis_2022_health_and_dvs_hk_l_id ON public.hmis_2022_health_and_dvs USING btree ("HealthAndDVID", importer_log_id);
+
+
+--
 -- Name: hmis_2022_income_benefits-200d; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -32886,6 +33002,13 @@ CREATE INDEX "hmis_2022_income_benefits-200d" ON public.hmis_2022_income_benefit
 --
 
 CREATE INDEX "hmis_2022_income_benefits-48bf" ON public.hmis_2022_income_benefits USING btree (source_type, source_id);
+
+
+--
+-- Name: hmis_2022_income_benefits_hk_l_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis_2022_income_benefits_hk_l_id ON public.hmis_2022_income_benefits USING btree ("IncomeBenefitsID", importer_log_id);
 
 
 --
@@ -32956,6 +33079,13 @@ CREATE INDEX "hmis_2022_services-48bf" ON public.hmis_2022_services USING btree 
 --
 
 CREATE INDEX "hmis_2022_services-7a57" ON public.hmis_2022_services USING btree ("ServicesID", data_source_id);
+
+
+--
+-- Name: hmis_2022_services_hk_l_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_hk_l_id ON public.hmis_2022_services USING btree ("ServicesID", importer_log_id);
 
 
 --
@@ -47057,6 +47187,20 @@ CREATE INDEX index_user_clients_on_user_id ON public.user_clients USING btree (u
 
 
 --
+-- Name: index_va_check_histories_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_va_check_histories_on_client_id ON public.va_check_histories USING btree (client_id);
+
+
+--
+-- Name: index_va_check_histories_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_va_check_histories_on_user_id ON public.va_check_histories USING btree (user_id);
+
+
+--
 -- Name: index_vispdats_on_client_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -47530,6 +47674,13 @@ CREATE INDEX taggings_idy ON public.taggings USING btree (taggable_id, taggable_
 --
 
 CREATE UNIQUE INDEX test_shs ON public.service_history_services_2000 USING btree (service_history_enrollment_id, date);
+
+
+--
+-- Name: tt; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX tt ON public.hmis_2022_exits USING btree ("EnrollmentID", "PersonalID", importer_log_id, data_source_id);
 
 
 --
@@ -50199,10 +50350,15 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220916234039'),
 ('20220919161059'),
 ('20220919185042'),
+('20220920192149'),
+('20220921141010'),
+('20220921182035'),
 ('20220925175719'),
 ('20220928132603'),
 ('20220928150112'),
 ('20220928164029'),
-('20220930194814');
+('20220930194814'),
+('20221006193112'),
+('20221007152924');
 
 

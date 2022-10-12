@@ -6,4 +6,4 @@
 # use with caution!
 RailsDrivers.loaded << :ma_yya_report
 
-GrdaWarehouse::Synthetic.add_youth_education_status_type('MaYyaReport::Synthetic::YouthEducationStatus')
+Rails.application.config.synthetic_youth_education_status_types << 'MaYyaReport::Synthetic::YouthEducationStatus'

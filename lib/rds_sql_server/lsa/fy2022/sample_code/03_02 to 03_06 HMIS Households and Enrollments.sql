@@ -41,7 +41,7 @@ FY2022 Changes
 		, rpt.ReportID
 	from lsa_Report rpt
 
-	insert into tlsa_CohortDates (Cohort, CohortStart, CohortEnd, ReportID)
+	insert into tlsa_CohortDates (Cohort, CohortStart, CohortEnd, LookbackDate, ReportID)
 	select distinct case cal.mm 
 		when 10 then 10
 		when 1 then 11 
@@ -49,6 +49,7 @@ FY2022 Changes
 		else 13 end
 		, cal.theDate
 		, cal.theDate
+		, rpt.LookbackDate
 		, rpt.ReportID
 	from lsa_Report rpt 
 	inner join ref_Calendar cal 

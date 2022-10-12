@@ -11,13 +11,14 @@
         = link_to 'Public Files', admin_public_files_path, class: 'nav-item nav-link'
         = link_to 'TalentLMS', admin_talentlms_path, class: 'nav-item nav-link'
     .col-sm-4
+      = render 'schedule'
+      = render 'security', f: f
       = render 'roi', f: f
       = render 'client_calculations', f: f
       = render 'client_display', f: f
       = render 'system_cohorts', f: f
     .col-sm-4
       = render 'connections', f: f
-      = render 'security', f: f
       = render 'reporting_options', f: f
       = render 'healthcare', f: f
       = render 'cas', f: f
