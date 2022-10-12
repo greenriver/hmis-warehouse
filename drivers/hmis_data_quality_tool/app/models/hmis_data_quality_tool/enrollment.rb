@@ -168,8 +168,7 @@ module HmisDataQualityTool
             entry_income_assessment&.EarnedAmount&.zero?
           )
 
-      # TODO
-      # report_item.ncb_income_collected_at_start
+      # report_item.ncb_income_collected_at_start = entry_income_assessment.values_at(*GrdaWarehouse::Hud::IncomeBenefit::NON_CASH_BENEFIT_TYPES).any? { |v| v.in?([0, 1]) }
       # report_item.ncb_income_collected_at_annual
       # report_item.ncb_income_collected_at_exit
       # report_item.ncb_income_as_expected_at_entry
