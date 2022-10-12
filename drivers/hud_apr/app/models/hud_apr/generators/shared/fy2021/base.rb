@@ -346,7 +346,7 @@ module HudApr::Generators::Shared::Fy2021
           situations = last_enrollment.current_living_situations
           engagement_date = last_enrollment.DateOfEngagement
           # If we're looking at SO and don't have a CLS on the engagement date,
-          # add one
+          # add one of type "37" - "Worker unable to determine" because it doesn't count as missing.
           if last_enrollment.project.so? && engagement_date.present? && ! situations.detect { |cls| cls.InformationDate == engagement_date }
             client_living_situations << apr_client.hud_report_apr_living_situations.build(
               information_date: engagement_date,
