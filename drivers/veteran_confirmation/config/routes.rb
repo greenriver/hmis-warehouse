@@ -1,6 +1,5 @@
 BostonHmis::Application.routes.draw do
-  scope :veteran_confirmation do
-    # TODO
-    # get '/my_path', to: 'veteran_confirmation/my_controller'
+  namespace :clients do
+    resources :veteran_confirmations, only: [:show], controller: '/veteran_confirmation/veteran_confirmations'
   end
 end

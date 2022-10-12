@@ -47,7 +47,7 @@ module HmisCsvFixtures
       raise "Unsupported CSV version #{version}"
     end
 
-    puts "Starting import: #{Time.now}"
+    # puts "Starting import: #{Time.now}"
     importer.import!
     FileUtils.rm_rf(tmp_path) if tmp_path
     process_imported_fixtures(user: user) if run_jobs

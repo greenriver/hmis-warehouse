@@ -113,6 +113,11 @@ module GrdaWarehouse::Hud
     end
 
     def indefinite_and_impairs?
+      return false unless self.DisabilityResponse.in?(self.class.positive_responses)
+
+      # HIV/AIDS and developmental disabilities are always indefinite and impairing
+      return true if self.DisabilityType.in?([6, 8])
+
       self.DisabilityType.in?([5, 7, 9, 10]) && self.IndefiniteAndImpairs == 1
     end
 

@@ -9,11 +9,11 @@ class HmisCsvImporter::Utility
     raise 'Refusing to wipe a production warehouse' if Rails.env.production?
 
     HmisCsvImporter::Importer::Importer.importable_files.each do |_, klass|
-      klass.connection.execute("TRUNCATE TABLE #{klass.quoted_table_name}")
+      klass.connection.execute("TRUNCATE TABLE #{klass.quoted_table_name} RESTART IDENTITY")
     end
 
     HmisCsvImporter::Loader::Loader.loadable_files.each do |_, klass|
-      klass.connection.execute("TRUNCATE TABLE #{klass.quoted_table_name}")
+      klass.connection.execute("TRUNCATE TABLE #{klass.quoted_table_name} RESTART IDENTITY")
     end
 
     [
@@ -25,7 +25,7 @@ class HmisCsvImporter::Utility
       HmisCsvImporter::Importer::ImportError,
       HmisCsvImporter::HmisCsvValidation::Base,
     ].each do |klass|
-      klass.connection.execute("TRUNCATE TABLE #{klass.quoted_table_name}")
+      klass.connection.execute("TRUNCATE TABLE #{klass.quoted_table_name} RESTART IDENTITY")
     end
 
     nil

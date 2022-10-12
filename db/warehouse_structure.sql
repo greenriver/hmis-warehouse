@@ -531,7 +531,8 @@ CREATE TABLE public."Client" (
     pronouns character varying,
     sexual_orientation character varying,
     health_housing_navigator_id bigint,
-    encampment_decomissioned boolean DEFAULT false NOT NULL
+    encampment_decomissioned boolean DEFAULT false NOT NULL,
+    va_verified_veteran boolean DEFAULT false
 );
 
 
@@ -19960,6 +19961,40 @@ ALTER SEQUENCE public.user_viewable_entities_id_seq OWNED BY public.user_viewabl
 
 
 --
+-- Name: va_check_histories; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.va_check_histories (
+    id bigint NOT NULL,
+    client_id bigint,
+    response character varying,
+    check_date date,
+    user_id bigint,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: va_check_histories_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.va_check_histories_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: va_check_histories_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.va_check_histories_id_seq OWNED BY public.va_check_histories.id;
+
+
+--
 -- Name: verification_sources; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -23290,6 +23325,13 @@ ALTER TABLE ONLY public.user_viewable_entities ALTER COLUMN id SET DEFAULT nextv
 
 
 --
+-- Name: va_check_histories id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.va_check_histories ALTER COLUMN id SET DEFAULT nextval('public.va_check_histories_id_seq'::regclass);
+
+
+--
 -- Name: verification_sources id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -26058,6 +26100,14 @@ ALTER TABLE ONLY public.user_clients
 
 ALTER TABLE ONLY public.user_viewable_entities
     ADD CONSTRAINT user_viewable_entities_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: va_check_histories va_check_histories_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.va_check_histories
+    ADD CONSTRAINT va_check_histories_pkey PRIMARY KEY (id);
 
 
 --
@@ -47137,6 +47187,20 @@ CREATE INDEX index_user_clients_on_user_id ON public.user_clients USING btree (u
 
 
 --
+-- Name: index_va_check_histories_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_va_check_histories_on_client_id ON public.va_check_histories USING btree (client_id);
+
+
+--
+-- Name: index_va_check_histories_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_va_check_histories_on_user_id ON public.va_check_histories USING btree (user_id);
+
+
+--
 -- Name: index_vispdats_on_client_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -50286,6 +50350,9 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220916234039'),
 ('20220919161059'),
 ('20220919185042'),
+('20220920192149'),
+('20220921141010'),
+('20220921182035'),
 ('20220925175719'),
 ('20220928132603'),
 ('20220928150112'),

@@ -30,7 +30,9 @@ module HudReports::LengthOfStays
       a_t[:last_date_in_program].lteq(report_end_date)
     end
 
-    # Heads of Household who have been enrolled for at least 365 days
+    # Heads of households and adult stayers in the project 365 days or more (Row 16)
+    # should include any adult stayer present when the head of household’s stay is 365 days or more,
+    # even if that adult has not been in the household that long.
     private def hoh_lts_stayer_ids
       @hoh_lts_stayer_ids ||= universe.members.where(
         hoh_clause.
@@ -61,20 +63,16 @@ module HudReports::LengthOfStays
       end
     end
 
-    private def hoh_date_to_street_dates
-      @hoh_date_to_street_dates ||= {}.tap do |entries|
-        enrollment_scope.where(client_id: client_scope).heads_of_households.
-          find_each do |enrollment|
-          entries[enrollment[:head_of_household_id]] ||= enrollment.enrollment.DateToStreetESSH
-        end
-      end
-    end
-
     # Given the reporting period, how long has the client been in the enrollment
+    # Method 1 – Using Start/Exit Dates
+    # Use when ( [project type] = 1 and [emergency shelter tracking method] = 0 ) Or ( [project type] = 2 or 8 ). Bed nights = [minimum of ( [project exit date], [report end date] + 1) ]
+    # – [maximum of ( [project start date], [report start date] ) ]
+    # Remove [report start date] from above formula if the count of bed nights extends prior to the report date range, i.e.
+    # determining Length of Stay from the beginning of the client’s stay in the project.
     private def stay_length(enrollment)
       end_date = [
         enrollment.last_date_in_program,
-        report_end_date + 1.day,
+        report_end_date + 1.days,
       ].compact.min
       (end_date - enrollment.first_date_in_program).to_i
     end
@@ -90,13 +88,14 @@ module HudReports::LengthOfStays
       (move_in_date - enrollment.first_date_in_program).to_i
     end
 
-    private def date_to_street(enrollment, reporting_age)
-      return hoh_date_to_street_dates[enrollment[:head_of_household_id]] if reporting_age.present? && reporting_age <= 17
+    private def date_to_street(enrollment, reporting_age, hoh_enrollment)
+      return enrollment.enrollment.DateToStreetESSH unless hoh_enrollment&.first_date_in_program == enrollment.first_date_in_program
+      return hoh_enrollment&.enrollment&.DateToStreetESSH if reporting_age.present? && reporting_age <= 17
 
       enrollment.enrollment.DateToStreetESSH
     end
 
-    private def approximate_time_to_move_in(enrollment, reporting_age)
+    private def approximate_time_to_move_in(enrollment, reporting_age, hoh_enrollment)
       move_in_date = if enrollment.computed_project_type.in?(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph])
         appropriate_move_in_date(enrollment) || enrollment.first_date_in_program
       else
@@ -104,7 +103,7 @@ module HudReports::LengthOfStays
       end
       # DateToStreetESSH needs to be pulled from HoH if not available on client
       # This applies to any household member whose age is <= 17 (calculated according to the HMIS Reporting Glossary), regardless of their relationship to the head of household, but not clients of unknown age.
-      dts = date_to_street(enrollment, reporting_age)
+      dts = date_to_street(enrollment, reporting_age, hoh_enrollment)
       return nil if dts.blank? || dts > move_in_date
 
       (move_in_date - dts).to_i

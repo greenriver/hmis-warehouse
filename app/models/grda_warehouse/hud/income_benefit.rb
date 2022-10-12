@@ -6,6 +6,7 @@
 
 module GrdaWarehouse::Hud
   class IncomeBenefit < Base
+    include ArelHelper
     include HudSharedScopes
     include ::HmisStructure::IncomeBenefit
     include ::HmisStructure::Shared
@@ -27,6 +28,7 @@ module GrdaWarehouse::Hud
 
     has_one :client, through: :enrollment, inverse_of: :income_benefits
     has_one :project, through: :enrollment
+    has_one :exit, through: :enrollment
 
     scope :any_benefits, -> {
       at = arel_table
@@ -37,11 +39,12 @@ module GrdaWarehouse::Hud
     }
 
     scope :at_entry, -> do
-      where(DataCollectionStage: 1)
+      # NOTE: the join enrollment here seems to work only sometimes, so it is also in Enrollment
+      where(DataCollectionStage: 1).joins(:enrollment).where(ib_t[:InformationDate].eq(e_t[:EntryDate]))
     end
 
     scope :at_exit, -> do
-      where(DataCollectionStage: 3)
+      where(DataCollectionStage: 3).joins(:exit).where(ib_t[:InformationDate].eq(ex_t[:ExitDate]))
     end
 
     scope :at_annual_update, -> do

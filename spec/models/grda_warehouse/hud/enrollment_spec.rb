@@ -83,9 +83,9 @@ RSpec.describe model, type: :model do
     describe 'chronically homeless at start' do
       it 'ES NbN because of days prior' do
         en = GrdaWarehouse::Hud::Enrollment.find_by(EnrollmentID: 'ESNbN')
-        en.DateToStreetESSH = en.EntryDate - 365.days
+        en.DateToStreetESSH = en.EntryDate - 364.days
         expect(en.chronically_homeless_at_start?).to be(false)
-        en.DateToStreetESSH = en.EntryDate - 366.days
+        en.DateToStreetESSH = en.EntryDate - 365.days
         expect(en.chronically_homeless_at_start?).to be(true)
       end
 
@@ -100,9 +100,9 @@ RSpec.describe model, type: :model do
 
       it 'ES because of days prior' do
         en = GrdaWarehouse::Hud::Enrollment.find_by(EnrollmentID: 'ES')
-        en.DateToStreetESSH = en.EntryDate - 365.days
+        en.DateToStreetESSH = en.EntryDate - 364.days
         expect(en.chronically_homeless_at_start?).to be(false)
-        en.DateToStreetESSH = en.EntryDate - 366.days
+        en.DateToStreetESSH = en.EntryDate - 365.days
         expect(en.chronically_homeless_at_start?).to be(true)
       end
 
@@ -115,9 +115,9 @@ RSpec.describe model, type: :model do
 
       it 'SO because of days prior' do
         en = GrdaWarehouse::Hud::Enrollment.find_by(EnrollmentID: 'SO')
-        en.DateToStreetESSH = en.EntryDate - 365.days
+        en.DateToStreetESSH = en.EntryDate - 364.days
         expect(en.chronically_homeless_at_start?).to be(false)
-        en.DateToStreetESSH = en.EntryDate - 366.days
+        en.DateToStreetESSH = en.EntryDate - 365.days
         expect(en.chronically_homeless_at_start?).to be(true)
       end
 

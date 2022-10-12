@@ -22,6 +22,7 @@ module GrdaWarehouse::Hud
     include ::Youth::Intake
     include CasClientData
     include ClientSearch
+    include VeteranStatusCalculator
     has_paper_trail
 
     attr_accessor :source_id
@@ -1998,17 +1999,11 @@ module GrdaWarehouse::Hud
     end
 
     def ever_veteran?
-      source_clients.map(&:veteran?).include?(true)
+      va_verified_veteran? || source_clients.map(&:veteran?).include?(true)
     end
 
     def adjust_veteran_status
-      self.VeteranStatus = if verified_veteran_status == 'non_veteran'
-        0
-      elsif ever_veteran?
-        1
-      else
-        source_clients.order(DateUpdated: :desc).limit(1).pluck(:VeteranStatus).first
-      end
+      self.VeteranStatus = calculate_best_veteran_status(verified_veteran_status, va_verified_veteran, source_clients)
       save
       self.class.clear_view_cache(self.id) # rubocop:disable Style/RedundantSelf
     end
