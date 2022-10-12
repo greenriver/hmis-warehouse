@@ -651,10 +651,11 @@ FY2022 Changes
 	--  active in the six days prior to First Entry. 
 	update hh
 	set hh.LastInactive = case 
-			when dateadd(dd, -1, hh.FirstEntry) < '9/30/2012' then '9/30/2012'
+			when dateadd(dd, -1, hh.FirstEntry) < dateadd(dd, -1, rpt.LookbackDate) then dateadd(dd, -1, rpt.LookbackDate)
 			else dateadd(dd, -1, hh.FirstEntry) end
 		, hh.Step = '6.12.1'
 	from tlsa_Household hh 
+	inner join lsa_Report rpt on rpt.ReportStart >= hh.FirstEntry
 	where hh.Stat <> 5 
 		or (select top 1 hhid.EnrollmentID 
 			from tlsa_HHID hhid
@@ -684,7 +685,7 @@ FY2022 Changes
 	inner join tlsa_HHID hhid on hhid.HoHID = hh.HoHID and hhid.ActiveHHType = hh.HHType
 		and (hhid.Active = 1 or hhid.ExitDate < rpt.ReportStart) 
 	inner join hmis_Services bn on bn.EnrollmentID = hhid.EnrollmentID 
-		and bn.DateProvided between '10/1/2012' and rpt.ReportEnd
+		and bn.DateProvided between rpt.LookbackDate and rpt.ReportEnd
 		and bn.DateProvided >= hhid.EntryDate
 		and (bn.DateProvided < hhid.ExitDate or hhid.ExitDate is null)
 		and bn.RecordType = 200 and bn.DateDeleted is null
@@ -692,15 +693,16 @@ FY2022 Changes
 	where hh.LastInactive is null
 		
 	update hh
-	set hh.LastInactive = coalesce(lastDay.inactive, '9/30/2012')
+	set hh.LastInactive = coalesce(lastDay.inactive, dateadd(dd, -1, rpt.LookbackDate))
 		, hh.Step = '6.12.3'
 	from tlsa_Household hh
+	inner join lsa_Report rpt on rpt.ReportStart >= hh.FirstEntry
 	left outer join 
 		(select hh.HoHID, hh.HHType, max(cal.theDate) as inactive
 		  from tlsa_Household hh
 		  inner join lsa_Report rpt on rpt.ReportID = hh.ReportID
 		  inner join ref_Calendar cal on cal.theDate <= rpt.ReportEnd
-			and cal.theDate >= '10/1/2012'
+			and cal.theDate >= rpt.LookbackDate
 		  left outer join
 			 sys_TimePadded stp on stp.HoHID = hh.HoHID and stp.HHType = hh.HHType
 			  and cal.theDate between stp.StartDate and stp.EndDate

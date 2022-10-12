@@ -152,8 +152,16 @@ module GrdaWarehouse::Tasks
         workphone: :work_phone,
         email: :email,
         substance_abuse_problem: :cas_substance_response,
-        primary_race: :cas_primary_race_code,
-        gender: :gender_binary,
+        am_ind_ak_native: :cas_race_am_ind_ak_native,
+        asian: :cas_race_asian,
+        black_af_american: :cas_race_black_af_american,
+        native_hi_pacific: :cas_race_native_hi_pacific,
+        white: :cas_race_white,
+        female: :cas_gender_female,
+        male: :cas_gender_male,
+        no_single_gender: :cas_gender_no_single_gender,
+        transgender: :cas_gender_transgender,
+        questioning: :cas_gender_questioning,
         ethnicity: :Ethnicity,
         disabling_condition: :disabling_condition?,
         hivaids_status: :hiv_response?,
@@ -282,12 +290,8 @@ module GrdaWarehouse::Tasks
     def value_display_for(key, value)
       if value.in?([true, false])
         ApplicationController.helpers.yes_no(value)
-      elsif key == :gender
-        HUD.gender(value)
       elsif key == :ethnicity
         HUD.ethnicity(value)
-      elsif key == :primary_race
-        Cas::PrimaryRace.find_by_numeric(value).try(&:text)
       elsif key.in?([:veteran_status])
         HUD.no_yes_reasons_for_missing_data(value)
       elsif key == :neighborhood_interests
@@ -341,6 +345,16 @@ module GrdaWarehouse::Tasks
           rrh_successful_exit: 'RRH successful exit:',
           hmis_days_homeless_last_three_years: _('Days homeless in the last three years, from HMIS'),
           hmis_days_homeless_all_time: _('Total days homeless, from HMIS'),
+          am_ind_ak_native: "Race: #{::HUD.race('AmIndAKNative')}",
+          asian: "Race: #{::HUD.race('Asian')}",
+          black_af_american: "Race: #{::HUD.race('BlackAfAmerican')}",
+          native_hi_pacific: "Race: #{::HUD.race('NativeHIPacific')}",
+          white: "Race: #{::HUD.race('White')}",
+          female: "Gender: #{::HUD.gender(0)}",
+          male: "Gender: #{::HUD.gender(1)}",
+          no_single_gender: "Gender: #{::HUD.gender(4)}",
+          transgender: "Gender: #{::HUD.gender(5)}",
+          questioning: "Gender: #{::HUD.gender(6)}",
         },
       )
       @title_override[column]
