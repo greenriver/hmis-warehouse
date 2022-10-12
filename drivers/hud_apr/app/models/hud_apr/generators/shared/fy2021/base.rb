@@ -416,13 +416,13 @@ module HudApr::Generators::Shared::Fy2021
         group_by(&:client_id).
         transform_values do |enrollments|
           enrollments.select do |enrollment|
-            nbn_or_so_with_service?(enrollment)
+            nbn_with_service?(enrollment)
           end
         end.
         reject { |_, enrollments| enrollments.empty? }
     end
 
-    private def nbn_or_so_with_service?(enrollment)
+    private def nbn_with_service?(enrollment)
       return true unless enrollment.nbn?
 
       @with_service ||= GrdaWarehouse::ServiceHistoryService.bed_night.
