@@ -39,6 +39,7 @@ module GrdaWarehouse::Hud
     }
 
     scope :at_entry, -> do
+      # NOTE: the join enrollment here seems to work only sometimes, so it is also in Enrollment
       where(DataCollectionStage: 1).joins(:enrollment).where(ib_t[:InformationDate].eq(e_t[:EntryDate]))
     end
 

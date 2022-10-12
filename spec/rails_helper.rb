@@ -70,7 +70,7 @@ RSpec.configure do |config|
 
   config.before(:suite) do
     Dir.glob('{drivers,spec}/**/fixpoints/*.yml').each do |filename|
-      # FileUtils.rm(filename)
+      FileUtils.rm(filename)
     end
 
     GrdaWarehouse::Utility.clear!

@@ -55,6 +55,7 @@ module GrdaWarehouse::Hud
 
     # Income benefits at various stages
     has_one :income_benefits_at_entry, -> do
+      # NOTE: the join enrollment here seems to work only sometimes, so it is also in IncomeBenefit
       at_entry.joins(:enrollment).where(ib_t[:InformationDate].eq(e_t[:EntryDate]))
     end, **hud_enrollment_belongs('IncomeBenefit')
     has_one :income_benefits_at_entry_all_sources_refused, -> do

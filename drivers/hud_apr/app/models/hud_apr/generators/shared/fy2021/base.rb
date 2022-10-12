@@ -114,9 +114,6 @@ module HudApr::Generators::Shared::Fy2021
           exit_record = last_service_history_enrollment.enrollment if exit_date.present? && exit_date <= @report.end_date
 
           income_at_start = enrollment.income_benefits_at_entry
-          # Only include income at start if the information date matches entry date
-          # per Datalab test kit
-          income_at_start = nil unless income_at_start&.InformationDate == enrollment.EntryDate
           income_at_annual_assessment = annual_assessment(enrollment, hoh_enrollment.first_date_in_program)
           income_at_exit = exit_record&.income_benefits_at_exit
 

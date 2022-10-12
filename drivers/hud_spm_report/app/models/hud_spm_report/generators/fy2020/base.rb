@@ -335,8 +335,6 @@ module HudSpmReport::Generators::Fy2020
           r.fetch(:client_id)
         end.map do |client_id, nights|
           client = clients_by_id.fetch(client_id)
-          # debug = "#{client.first_name} #{client.last_name}" == "Amber Majestic"
-          # binding.pry if debug
           # note if the night is housed and if the enrollment is literally homeless
           nights.each do |night|
             if PH.include?(night[:project_type])
@@ -1551,9 +1549,10 @@ module HudSpmReport::Generators::Fy2020
         if line.in?([:m1a1, :m1b1])
           remove_homeless_if = nights_for_negation[date].any? { |night| night[:project_type].in?(TH) || (night[:project_type].in?(PH) && night[:housed]) }
           nights.reject! { |night| night[:project_type].in?(ES_SH) } if remove_homeless_if
-          # NOTE: the spec says:
-          # a. For measures 1a.1 and 1b.1, time spent by clients housed in TH or PH projects negates overlapping time spent in ES and SH projects.
-          # data labe test kit seems to reject any homeless time
+          # Negate any time earlier in the Continuum
+          # Specifically, 6.a.vi says "Apply the same logic as described in step 2 above which may negate some nights that would otherwise be included" and 6.b.vi says "Apply the same logic as described in step 2 above which may negate some nights that would otherwise be included. This logic applies when including bed nights between the [project start date] and the [project exit date] as well as bed nights included because of data in element [3.917.3]."
+
+          # Steps 2.a and 2.b are intended to provide an order of operations for determining which type of bed night takes precedence when enrollments of different types overlap. The important part for the purposes of determining this particular client's bed night is the line "Bed night dates selected in step 1 can be negated by overlapping HMIS records indicating more definitively that the client is in another type of housing “further along” in the CoC" in step 2, which also applies to bed nights based on a client's homelessness start date.
           nights.reject! { |night| night[:project_type].in?(PH) && (night[:pre_move_in] || night[:pre_entry]) } if remove_homeless_if
         else
           remove_th_if = nights_for_negation[date].any? { |night| night[:project_type].in?(PH) && night[:housed] }
