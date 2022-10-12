@@ -86,11 +86,6 @@ Rails.application.configure do
   # Highlight code that triggered database queries in logs.
   config.active_record.verbose_query_logs = true
 
-  config.assets.js_compressor = :terser
-  config.assets.compile = true
-  config.assets.digest = true
-  config.assets.check_precompiled_asset = false
-
   # Debug mode disables concatenation and preprocessing of assets.
   # This option may cause significant delays in view rendering with a large
   # number of complex assets.
