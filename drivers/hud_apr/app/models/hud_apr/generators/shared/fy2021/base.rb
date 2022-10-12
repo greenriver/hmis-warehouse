@@ -499,7 +499,7 @@ module HudApr::Generators::Shared::Fy2021
           hh_id = get_hh_id(enrollment)
           hoh_enrollment = hoh_enrollments[get_hoh_id(hh_id)]
           # If the HoH exited and no one else was designed as the HoH, and the client doesn't have an exit date, use the HoH exit date
-          enrollment.last_date_in_program ||= hoh_enrollment.last_date_in_program
+          enrollment.last_date_in_program ||= hoh_enrollment&.last_date_in_program
           enrolled = case enrollment.computed_project_type
           when 3, 13 # PSH/RRH
             enrollment.first_date_in_program <= pit_date &&

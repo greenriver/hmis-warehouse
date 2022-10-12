@@ -251,9 +251,9 @@ module HudDataQualityReport::Generators::Fy2022
           situations = last_enrollment.current_living_situations
           engagement_date = last_enrollment.DateOfEngagement
           # If we're looking at SO and don't have a CLS on the engagement date,
-          # add one
+          # add one of type "37" - "Worker unable to determine" because it doesn't count as missing.
           if last_enrollment.project.so? && engagement_date.present? && ! situations.detect { |cls| cls.InformationDate == engagement_date }
-            client_living_situations << apr_client.hud_report_apr_living_situations.build(
+            client_living_situations << dq_client.hud_report_dq_living_situations.build(
               information_date: engagement_date,
               living_situation: 37,
             )
@@ -261,7 +261,7 @@ module HudDataQualityReport::Generators::Fy2022
           situations.each do |living_situation|
             client_living_situations << dq_client.hud_report_dq_living_situations.build(
               information_date: living_situation.InformationDate,
-              living_situation: living_situation.CurrentLivingSituation,
+              living_situation: 37,
             )
           end
         end
