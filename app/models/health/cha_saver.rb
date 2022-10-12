@@ -13,7 +13,6 @@ module Health
       @complete = complete
       @reviewed = reviewed
       @create_qa = create_qa
-      @qualifying_activity = setup_qualifying_activity
 
       @cha.completed_at = Time.current if @complete
       @cha.reviewed_by = @user if @reviewed
@@ -38,7 +37,10 @@ module Health
       @cha.class.transaction do
         @cha.completed_at = nil unless @complete
         @cha.save!
-        @qualifying_activity.save if @complete && @reviewed && @create_qa && @cha.patient.recent_ssm_form.completed_at.present?
+        if @complete && @reviewed && @create_qa && @cha.patient.recent_ssm_form.completed_at.present?
+          qualifying_activity = setup_qualifying_activity
+          qualifying_activity.save
+        end
       end
     end
 
@@ -48,7 +50,7 @@ module Health
         source_id: @cha.id,
         user_id: @user.id,
         user_full_name: @user.name_with_email,
-        date_of_activity: @cha.completed_at.date,
+        date_of_activity: @cha.completed_at.to_date,
         activity: :cha,
         follow_up: 'This writer completed CHA and SSM with patient.',
         reached_client: :yes,

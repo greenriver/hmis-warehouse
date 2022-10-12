@@ -44,10 +44,10 @@ $(document).on 'change', '.jMarkComplete', (e) ->
   # console.log $(e.target)
   if $(e.target).is(':checked')
     # console.log('enabling')
-    $('.jMarkReviewed').removeProp('disabled')
+    $('.jMarkReviewed').removeAttr('disabled')
   else
     # console.log('disabling')
-    $('.jMarkReviewed').prop('disabled', 'disabled')
+    $('.jMarkReviewed').attr('disabled', true)
 
 $(document).on 'change', '.jSetReviewer', (e) ->
   if $(e.target).is(':checked')
@@ -63,7 +63,7 @@ if ! $('.jCollectionMethod:checked').val()
 # disable the review box when we load.  Usually we'd call trigger on the
 # .jMarkComplete, but that triggers a save
 if $('.jMarkComplete').is(':not(:checked)')
-  $('.jMarkReviewed').prop('disabled', 'disabled')
+  $('.jMarkReviewed').attr('disabled', true)
 
 # Scroll to element with id that matches hash
 # https://css-tricks.com/snippets/jquery/smooth-scrolling/
