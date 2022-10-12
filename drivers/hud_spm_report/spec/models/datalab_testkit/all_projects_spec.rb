@@ -20,20 +20,49 @@ RSpec.describe 'Datalab Testkit SPM All-Projects', type: :model do
     puts "Finished SPM Run Data Lab TestKit #{Time.current}"
   end
 
-  xit 'Measure 1a' do
+  it 'Measure 1a' do
     compare_results(
       file_path: result_file_prefix + 'spm',
       question: '1a',
+      detail_columns: [
+        :last_name,
+        :first_name,
+        :data_lab_public_id,
+        :m1a_es_sh_days,
+        :m1a_es_sh_th_days,
+      ],
+      # Pending AAQ "Question Subject: SPM DataLab test kit Measure 1a.1"
+      skip: [
+        'E2',
+        'H2',
+        'E3',
+        'H3',
+      ],
     )
   end
 
-  xit 'Measure 1b' do
+  it 'Measure 1b' do
     compare_results(
       file_path: result_file_prefix + 'spm',
       question: '1b',
+      detail_columns: [
+        :last_name,
+        :first_name,
+        :data_lab_public_id,
+        :m1b_es_sh_ph_days,
+        :m1b_es_sh_th_ph_days,
+      ],
+      # Pending AAQ "Question Subject: SPM DataLab test kit Measure 1a.1"
+      skip: [
+        'E2',
+        'H2',
+        'E3',
+        'H3',
+      ],
     )
   end
 
+  # Pending AAQ: [SPM] All Projects - Data lab test kit Measures 2 and 5 - historic data missing - submitted 10/4/2022
   xit 'Measure 2' do
     compare_results(
       file_path: result_file_prefix + 'spm',
@@ -41,10 +70,15 @@ RSpec.describe 'Datalab Testkit SPM All-Projects', type: :model do
     )
   end
 
-  xit 'Measure 3.2' do
+  it 'Measure 3.2' do
     compare_results(
       file_path: result_file_prefix + 'spm',
       question: '3.2',
+      # Pending AAQ: [SPM] All Projects - Data lab test kit Measure 3 - missing client - submitted 10/4/2022
+      skip: [
+        'C2',
+        'C5',
+      ],
     )
   end
 
@@ -86,38 +120,60 @@ RSpec.describe 'Datalab Testkit SPM All-Projects', type: :model do
     )
   end
 
-  xit 'Measure 5.1' do
+  it 'Measure 5.1' do
     compare_results(
       file_path: result_file_prefix + 'spm',
       question: '5.1',
+      # Pending AAQ: [SPM] All Projects - Data lab test kit Measures 2 and 5 - historic data missing - submitted 10/4/2022
+      skip: [
+        'C3',
+        'C4',
+      ],
     )
   end
 
-  xit 'Measure 5.2' do
+  it 'Measure 5.2' do
     compare_results(
       file_path: result_file_prefix + 'spm',
       question: '5.2',
+      # Pending AAQ: [SPM] All Projects - Data lab test kit Measures 2 and 5 - historic data missing - submitted 10/4/2022
+      skip: [
+        'C3',
+        'C4',
+      ],
     )
   end
 
-  xit 'Measure 7a.1' do
+  it 'Measure 7a.1' do
     compare_results(
       file_path: result_file_prefix + 'spm',
       question: '7a.1',
+      # Not included in test file since it's an internal calculation
+      skip: [
+        'C5',
+      ],
     )
   end
 
-  xit 'Measure 7b.1' do
+  it 'Measure 7b.1' do
     compare_results(
       file_path: result_file_prefix + 'spm',
       question: '7b.1',
+      # Not included in test file since it's an internal calculation
+      skip: [
+        'C4',
+      ],
     )
   end
 
-  xit 'Measure 7b.2' do
+  it 'Measure 7b.2' do
     compare_results(
       file_path: result_file_prefix + 'spm',
       question: '7b.2',
+      # Not included in test file since it's an internal calculation
+      skip: [
+        'C4',
+      ],
     )
   end
 end

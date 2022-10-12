@@ -35,12 +35,14 @@ module HudApr::Generators::Shared::Fy2021
       contacted_ids += adults_and_hohs.joins(apr_client: :hud_report_apr_living_situations).
         where(
           ls_t[:information_date].between(@report.start_date..@report.end_date).
-            and(a_t[:date_of_engagement].gteq(ls_t[:information_date]).
-              or(a_t[:date_of_engagement].eq(nil))),
+            and(
+              ls_t[:information_date].lteq(a_t[:date_of_engagement]).
+              or(a_t[:date_of_engagement].eq(nil)),
+            ),
         ).
         pluck(a_t[:id])
 
-      populate_table(table_name, 6, 'Contacted', 'Times', contacted_ids)
+      populate_table(table_name, 6, 'Contacted', 'Times', contacted_ids.uniq)
     end
 
     private def q9b_engaged(contact_counts)
@@ -88,10 +90,10 @@ module HudApr::Generators::Shared::Fy2021
       }
       @report.answer(question: table_name).update(metadata: metadata)
 
-      engagement_dates = universe.members.
+      clients = universe.members.
         where(a_t[:id].in(client_ids)).
-        pluck(a_t[:id], a_t[:date_of_engagement]).
-        to_h
+        map(&:universe_membership).
+        index_by(&:id)
 
       situations = report_living_situation_universe.
         where(hud_report_apr_client_id: client_ids).
@@ -119,31 +121,25 @@ module HudApr::Generators::Shared::Fy2021
         buckets.each do |row, (_, range)|
           cell = "#{col[:column]}#{row}"
           answer = @report.answer(question: table_name, cell: cell)
-
-          # If an enrollment has an engagement date, the engagement date counts as a contact, even if
-          # no contact was recorded on that date, and only contacts before the engagment date are counted.
-          situations.each do |client_id, clses|
-            engagement_date = engagement_dates[client_id]
-            next unless engagement_date.present?
-
-            # Only include contacts before the engagement date
-            situations[client_id].select! { |cls| cls[:information_date] <= engagement_date }
-            # If there is a contact on the engagement date, do not add a separate contact
-            next if clses.any? { |cls| cls[:information_date] == engagement_date }
-
-            # If the engagement date needs to be counted as a contact, add it as an unknown living situation, and make sure the contacts are in the right order
-            situations[client_id] = (situations[client_id] << { information_date: engagement_date, living_situation: 99 }).sort_by { |cls| cls[:information_date] }
-          end
-
-          # Add situations for enrollments with an engagement date but no contacts
-          situations.merge!(
-            (engagement_dates.keys - situations.keys).map { |k| [k, [{ information_date: engagement_dates[k], living_situation: 99 }]] }.to_h,
-          )
-
           # Filter by column type
           candidates = situations.select { |_, v| col[:situations].include?(v.first[:living_situation]) }
 
-          member_ids = candidates.select { |_, v| range.cover?(v.select { |cls| cls[:information_date].between?(@report.start_date, @report.end_date) }.length) }.keys
+          # Filter for:
+          # Include all contacts in each clients’ count where all of the following are true. Note that contacts prior to the [report start date] are included in each person’s total count, provided those contacts are attached to the client’s latest relevant project stay. Contacts dated after the [date of engagement], [project exit date], and [report end date] are all excluded.
+          #   a. [date of contact] >= [project start date]
+          #   b. [project exit date] is null or [date of contact] <= [project exit date]
+          #   c. [current living situation] <= [date of engagement] (or the [date of engagement] is null)
+          #   d. [current living situation] <= [report end date]
+          member_ids = candidates.select do |client_id, v|
+            client = clients[client_id]
+            clses = v.select do |cls|
+              cls[:information_date] >= client.first_date_in_program &&
+              (client.last_date_in_program.blank? || cls[:information_date] <= client.last_date_in_program) &&
+              (client.date_of_engagement.blank? || cls[:information_date] <= client.date_of_engagement) &&
+              cls[:information_date] <= @report.end_date
+            end
+            range.cover?(clses.count)
+          end.keys
           members = universe.members.where(a_t[:id].in(member_ids))
           answer.add_members(members)
           count = members.count

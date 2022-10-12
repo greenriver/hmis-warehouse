@@ -120,6 +120,7 @@ module HudApr::CellDetailsConcern
         :income_from_any_source_at_start,
         :income_sources_at_start,
         :income_date_at_annual_assessment,
+        :annual_assessment_in_window,
         :income_from_any_source_at_annual_assessment,
         :income_sources_at_annual_assessment,
         :income_date_at_exit,
