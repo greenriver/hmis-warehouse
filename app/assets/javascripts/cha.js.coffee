@@ -37,6 +37,9 @@ $(document).on 'click', '.remove-medication', (e) ->
   inputs.first().change()
   row.addClass('hidden')
 
+$(document).on 'click', '.jCollectionMethod', (e) ->
+  $('.jMarkComplete').removeAttr('disabled')
+
 $(document).on 'change', '.jMarkComplete', (e) ->
   # console.log $(e.target)
   if $(e.target).is(':checked')
@@ -53,6 +56,9 @@ $(document).on 'change', '.jSetReviewer', (e) ->
       $('.jReviewer').val(name)
   else
     $('.jReviewer').val('')
+
+if ! $('.jCollectionMethod:checked').val()
+  $('.jMarkComplete').attr('disabled', true)
 
 # disable the review box when we load.  Usually we'd call trigger on the
 # .jMarkComplete, but that triggers a save

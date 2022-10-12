@@ -1605,7 +1605,8 @@ CREATE TABLE public.comprehensive_health_assessments (
     completed_at timestamp without time zone,
     reviewed_at timestamp without time zone,
     reviewer character varying,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    collection_method character varying
 );
 
 
@@ -7634,6 +7635,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20221005142152'),
 ('20221005145830'),
 ('20221005201423'),
-('20221005201553');
+('20221005201553'),
+('20221006205522');
 
 
