@@ -27,6 +27,8 @@ module HudSpmReport
         [col, HudSpmReport::Fy2020::SpmClient.human_attribute_name(col)]
       end.to_h
 
+      @headers.except!('first_name', 'last_name', 'dob', 'ssn') unless GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+
       @clients = HudSpmReport::Fy2020::SpmClient.
         joins(hud_reports_universe_members: { report_cell: :report_instance }).
         merge(::HudReports::ReportCell.for_table(@table).for_cell(@cell)).
