@@ -21,4 +21,11 @@ namespace :test do
     }
     TestJob.perform_now
   end
+
+  desc 'Test Sentry'
+  task :sentry, [] => [:environment] do |t, args|
+    msg = "Testing Sentry from #{Rails.env} for hmis-warehouse"
+    puts msg
+    raise Exception.new(msg)
+  end
 end

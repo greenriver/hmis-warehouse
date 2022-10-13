@@ -353,9 +353,6 @@ GEM
     encryptor (3.0.0)
     erubi (1.10.0)
     erubis (2.7.0)
-    exception_notification (4.4.3)
-      actionmailer (>= 4.0, < 7)
-      activesupport (>= 4.0, < 7)
     execjs (2.8.1)
     factory_bot (6.2.0)
       activesupport (>= 5.0.0)
@@ -985,7 +982,6 @@ DEPENDENCIES
   dotenv-rails
   email_check
   encryptor
-  exception_notification
   execjs
   factory_bot_rails
   faker (>= 1.7.2)

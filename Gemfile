@@ -156,7 +156,6 @@ gem 'whenever', require: false
 gem 'progress_bar', require: false
 
 gem 'slack-notifier'
-gem 'exception_notification'
 
 gem 'puma', '~> 4.3.11'
 

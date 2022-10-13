@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-if ENV['SENTRY_DSN'].present?
+if ENV['WAREHOUSE_SENTRY_DSN'].present?
   Sentry.init do |config|
-    config.dsn = ENV['SENTRY_DSN']
+    config.dsn = ENV['WAREHOUSE_SENTRY_DSN']
     config.breadcrumbs_logger = [:active_support_logger, :http_logger]
 
     # config.enabled_environments = %w[production staging]
@@ -27,4 +27,11 @@ if ENV['SENTRY_DSN'].present?
     # config.excluded_exceptions += ['ActionController::UnknownHttpMethod']
     # config.traces_sample_rate = 0
   end
+end
+
+Sentry.configure_scope do |scope|
+  log_stream_url = ENV.fetch('LOG_STREAM_URL', '[no log stream url found]')
+  scope.set_context('extra', {
+    log_stream_url: log_stream_url
+  })
 end

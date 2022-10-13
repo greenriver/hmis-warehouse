@@ -81,12 +81,9 @@ class BaseJob < ApplicationJob
     ].join("\n")
 
     attachment = "```\n #{Rails.backtrace_cleaner.clean(exception.backtrace).join("\n")} \n```"
-    begin
-      @notifier.insert_log_url = true
-      @notifier.post(text: msg, attachments: { text: attachment })
-    rescue Exception # rubocop:disable Lint/SuppressedException
-    end
-    ExceptionNotifier.notify_exception(exception)
+
+    @notifier.insert_log_url = true
+    @notifier.post(text: msg, attachments: { text: attachment })
   end
 
   def expected_path
