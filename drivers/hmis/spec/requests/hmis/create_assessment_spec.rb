@@ -38,6 +38,31 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         createAssessment(input: { enrollmentId: $enrollmentId, assessmentRole: $assessmentRole }) {
           assessment {
             id
+            enrollment {
+              id
+            }
+            assessmentDate
+            assessmentLocation
+            assessmentType
+            assessmentLevel
+            prioritizationStatus
+            dateCreated
+            dateUpdated
+            dateDeleted
+            assessmentDetail {
+              id
+              definition {
+                id
+                version
+                role
+                status
+                identifier
+                definition
+              }
+              dataCollectionStage
+              role
+              status
+            }
           }
           errors {
             attribute

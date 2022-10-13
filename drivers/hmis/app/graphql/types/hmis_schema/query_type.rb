@@ -68,5 +68,13 @@ module Types
     def project(id:)
       Hmis::Hud::Project.viewable_by(current_user).find_by(id: id)
     end
+
+    field :assessment, Types::HmisSchema::Assessment, 'Assessment lookup', null: true do
+      argument :id, ID, required: true
+    end
+
+    def assessment(id:)
+      Hmis::Hud::Assessment.find_by(id: id)
+    end
   end
 end
