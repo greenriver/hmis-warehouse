@@ -9,7 +9,7 @@ class Hmis::Form::Instance < ::GrdaWarehouseBase
 
   # ! If entity is ProjectType, then using this association directly might cause issues since the ID points to an enum value, not an actual AR entity
   belongs_to :entity, polymorphic: true, optional: true
-  belongs_to :definition, foreign_key: :identifier, primary_key: :form_definition_identifier
+  belongs_to :definition, foreign_key: :definition_identifier, primary_key: :identifier, class_name: 'Hmis::Form::Definition'
 
   scope :for_projects, -> { where(entity_type: 'Hmis::Hud::Project') }
   scope :for_organizations, -> { where(entity_type: 'Hmis::Hud::Organization') }

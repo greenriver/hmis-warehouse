@@ -10,8 +10,8 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   has_many :instances, foreign_key: :identifier, primary_key: :form_definition_identifier
   has_many :assessment_details
 
-  def self.find_definition_for_project(project, role:)
-    instance = nil
+  def self.definitions_for_project(project, role: nil)
+    instance_scope = Hmis::Form::Instance.none
 
     [
       Hmis::Form::Instance.for_project(project.id),
@@ -19,11 +19,20 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
       Hmis::Form::Instance.for_project_type(project.project_type),
       Hmis::Form::Instance.defaults,
     ].each do |scope|
-      next if instance.present?
+      next if instance_scope.present?
 
-      instance = scope.find_by(role: role)
+      instance_scope = scope unless scope.empty?
     end
 
-    instance?.definition
+    definitions = where(identifier: instance_scope.pluck(:definition_identifier))
+    definitions = definitions.where(role: role) if role.present?
+
+    definitions
+  end
+
+  def self.find_definition_for_project(project, role:, version: nil)
+    definitions = definitions_for_project(project, role: role)
+    definitions = definitions.where(version: version) if version.present?
+    definitions.order(version: :asc).first
   end
 end
