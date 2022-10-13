@@ -8,6 +8,7 @@ class Hmis::UserController < Hmis::BaseController
   skip_before_action :verify_authenticity_token, only: [:index]
   skip_before_action :authenticate_user!, only: [:index]
   prepend_before_action :skip_timeout, only: [:index]
+  before_action :clear_etag, only: [:index]
 
   # Endpoint to retrieve the currently logged-in user.
   #
@@ -20,7 +21,6 @@ class Hmis::UserController < Hmis::BaseController
   # We set a CSRF cookie *prior* to authentication, because the frontend
   # needs a valid CSRF token to hit POST /hmis/login.
   def index
-    response.headers['Etag'] = '' # clear etags to prevent caching
     set_csrf_cookie
     authenticate_hmis_user!
     render json: {
@@ -32,5 +32,10 @@ class Hmis::UserController < Hmis::BaseController
   # Don't extend the users session, because we use this for polling
   def skip_timeout
     request.env['devise.skip_trackable'] = true
+  end
+
+  # clear etag to prevent caching
+  def clear_etag
+    response.headers['Etag'] = nil
   end
 end
