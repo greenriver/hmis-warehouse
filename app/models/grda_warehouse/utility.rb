@@ -75,6 +75,17 @@ class GrdaWarehouse::Utility
       GrdaWarehouse::Synthetic::Event,
       GrdaWarehouse::CustomImports::ImportFile,
       GrdaWarehouse::Upload,
+      HomelessSummaryReport::Client,
+      HomelessSummaryReport::Result,
+      HmisCsvImporter::Importer::ImporterLog,
+      HapReport::HapClient,
+      SimpleReports::ReportCell,
+      SimpleReports::UniverseMember,
+      GrdaWarehouse::WhitelistedProjectsForClients,
+      HmisCsvImporter::HmisCsvValidation::Base,
+      GrdaWarehouse::Upload,
+      HmisCsvImporter::Loader::LoaderLog,
+      GrdaWarehouse::ImportLog,
     ]
     if RailsDrivers.loaded.include?(:hud_apr)
       tables << HudApr::Fy2020::AprClient
@@ -98,15 +109,46 @@ class GrdaWarehouse::Utility
       tables << CasCeData::Synthetic::Assessment
     end
 
+    HmisCsvImporter::Utility.clear! if RailsDrivers.loaded.include?(:hmis_csv_importer)
+
     # Remove reports after associated clients
     tables << HudReports::ReportInstance
     tables << SimpleReports::ReportInstance
 
     tables.each do |klass|
-      klass.connection.execute("TRUNCATE TABLE #{klass.quoted_table_name} #{modifier(klass)}")
+      klass.connection.execute("TRUNCATE TABLE #{klass.quoted_table_name} RESTART IDENTITY #{modifier(klass)}")
     end
+    # fix_sequences
+
+    # Clear the materialized view
+    GrdaWarehouse::ServiceHistoryServiceMaterialized.rebuild!
 
     nil
+  end
+
+  def self.fix_sequences
+    query = <<~SQL
+      SELECT 'SELECT SETVAL(' ||
+        quote_literal(quote_ident(PGT.schemaname) || '.' || quote_ident(S.relname)) ||
+        ', COALESCE(MAX(' ||quote_ident(C.attname)|| '), 1) ) FROM ' ||
+        quote_ident(PGT.schemaname)|| '.'||quote_ident(T.relname)|| ';'
+      FROM pg_class AS S,
+          pg_depend AS D,
+          pg_class AS T,
+          pg_attribute AS C,
+          pg_tables AS PGT
+      WHERE S.relkind = 'S'
+          AND S.oid = D.objid
+          AND D.refobjid = T.oid
+          AND D.refobjid = C.attrelid
+          AND D.refobjsubid = C.attnum
+          AND T.relname = PGT.tablename
+      ORDER BY S.relname;
+    SQL
+    result = GrdaWarehouseBase.connection.select_all(query)
+    result.rows.flatten.each do |q|
+      GrdaWarehouseBase.connection.execute(q)
+    end
   end
 
   def self.modifier(model)

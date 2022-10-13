@@ -3,6 +3,9 @@ require_relative '../../../app/models/grda_warehouse/client_notes/base'
 require_relative '../../../app/models/grda_warehouse/client_notes/chronic_justification'
 
 RSpec.describe Clients::NotesController, type: :request do
+  before(:all) do
+    GrdaWarehouse::Utility.clear!
+  end
   let!(:admin) { create :user }
   let!(:admin_role) { create :admin_role }
   let!(:source_client) { create :authoritative_hud_client }

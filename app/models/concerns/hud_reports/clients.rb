@@ -34,9 +34,9 @@ module HudReports::Clients
 
     # Assessments are expected if:
     # You are the head of household.
-    # If the enrollment lasted more than one year
-    # and the reporting period end is more than a year since the beginning of the enrollment
-    # and the enrollment started more than one year ago
+    # If the enrollment lasted 365 days or more
+    # and the reporting period end is 365 days or more since the beginning of the enrollment
+    # and the enrollment started 365 days ago
     private def annual_assessment_expected?(enrollment)
       return false unless enrollment.present? && enrollment.head_of_household?
 
@@ -44,12 +44,12 @@ module HudReports::Clients
       enough_days = if enrollment.project.bed_night_tracking?
         enrollment.enrollment.services.
           bed_night.between(start_date: enrollment.first_date_in_program, end_date: end_date).
-          count > 365
+          count >= 365
       else
         true
       end
 
-      enrollment.first_date_in_program + 1.years < end_date && enough_days
+      enrollment.first_date_in_program + 365.days <= end_date && enough_days
     end
 
     private def annual_assessment_in_window?(enrollment, assessment_date)
