@@ -13,11 +13,13 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   def self.definitions_for_project(project, role: nil)
     instance_scope = Hmis::Form::Instance.none
 
+    base_scope = Hmis::Form::Instance.joins(:definition)
+    base_scope = base_scope.where(definition: { role: role }) if role.present?
     [
-      Hmis::Form::Instance.for_project(project.id),
-      Hmis::Form::Instance.for_organization(project.organization.id),
-      Hmis::Form::Instance.for_project_type(project.project_type),
-      Hmis::Form::Instance.defaults,
+      base_scope.for_project(project.id),
+      base_scope.for_organization(project.organization.id),
+      base_scope.for_project_type(project.project_type),
+      base_scope.defaults,
     ].each do |scope|
       next if instance_scope.present?
 
@@ -33,6 +35,6 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   def self.find_definition_for_project(project, role:, version: nil)
     definitions = definitions_for_project(project, role: role)
     definitions = definitions.where(version: version) if version.present?
-    definitions.order(version: :asc).first
+    definitions.order(version: :desc).first
   end
 end
