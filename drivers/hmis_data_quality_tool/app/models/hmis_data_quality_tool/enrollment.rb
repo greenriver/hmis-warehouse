@@ -164,7 +164,7 @@ module HmisDataQualityTool
       report_item.times_homeless_past_three_years = enrollment.TimesHomelessPastThreeYears
       report_item.months_homeless_past_three_years = enrollment.MonthsHomelessPastThreeYears
       report_item.enrollment_coc = enrollment.enrollment_coc_at_entry&.CoCCode
-      report_item.has_disability = enrollment.disabilities_at_entry&.indefinite_and_impairs?&.any?
+      report_item.has_disability = enrollment.disabilities_at_entry&.map(&:indefinite_and_impairs?)&.any?
       report_item.days_between_entry_and_create = (enrollment.EntryDate - enrollment.DateCreated.to_date).to_i
 
       report_item.domestic_violence_victim_at_entry = enrollment.health_and_dvs_at_entry&.first&.DomesticViolenceVictim
@@ -265,6 +265,7 @@ module HmisDataQualityTool
 
     private def income_as_expected?(expected, assessment)
       return true unless expected
+      return false if assessment.blank?
 
       valid = true
       assessment.all_sources_and_responses.each do |k, response|
@@ -277,6 +278,7 @@ module HmisDataQualityTool
 
     private def ncb_as_expected?(expected, assessment)
       return true unless expected
+      return false if assessment.blank?
 
       responses = assessment.values_at(*assessment.class::NON_CASH_BENEFIT_TYPES)
       return true if assessment.BenefitsFromAnySource == 1 && responses.include?(1)
@@ -287,6 +289,7 @@ module HmisDataQualityTool
 
     private def insurance_as_expected?(expected, assessment)
       return true unless expected
+      return false if assessment.blank?
 
       responses = assessment.values_at(*assessment.class::INSURANCE_TYPES)
       return true if assessment.BenefitsFromAnySource == 1 && responses.include?(1)
