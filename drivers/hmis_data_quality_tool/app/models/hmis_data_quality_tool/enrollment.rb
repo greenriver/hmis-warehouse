@@ -9,7 +9,12 @@ module HmisDataQualityTool
     self.table_name = 'hmis_dqt_enrollments'
     include ArelHelper
     include DqConcern
+    include HudReports::Util
+    include HudReports::Incomes
+    include HudReports::Clients
     acts_as_paranoid
+
+    attr_accessor :report_end_date
 
     has_many :hud_reports_universe_members, inverse_of: :universe_membership, class_name: 'HudReports::UniverseMember', foreign_key: :universe_membership_id
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', optional: true
@@ -47,10 +52,11 @@ module HmisDataQualityTool
     # we're going to loop over the entire enrollment scope once rather than
     # load it multiple times
     def self.calculate(report_items:, report:)
+      enrollment_cache = new
       enrollment_scope(report).find_in_batches do |batch|
         intermediate = {}
         batch.each do |enrollment|
-          item = report_item_fields_from_enrollment(
+          item = enrollment_cache.report_item_fields_from_enrollment(
             report_items: report_items,
             enrollment: enrollment,
             report: report,
@@ -90,14 +96,19 @@ module HmisDataQualityTool
         merge(report.report_scope).distinct
     end
 
-    def self.report_item_fields_from_enrollment(report_items:, enrollment:, report:) # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
+    # Instance method so we can take advantage of caching
+    def report_item_fields_from_enrollment(report_items:, enrollment:, report:) # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
       # we only need to do the calculations once, the values will be the same for any enrollment,
       # no matter how many times we see it
       report_item = report_items[enrollment]
       return report_item if report_item.present?
 
+      # To make the HudReport includes work
+      @report = report
+      self.report_end_date = report.filter.end_date
+
       client = enrollment.client
-      report_item = new(
+      report_item = self.class.new(
         report_id: report.id,
         enrollment_id: enrollment.id,
       )
@@ -127,15 +138,26 @@ module HmisDataQualityTool
       report_item.age = enrollment.client.age_on(report_age_date)
 
       hh = report.household(enrollment.HouseholdID)
-      report_item.household_max_age = hh&.map { |en| en[:age] }&.compact&.max || report_item.age
-      report_item.household_min_age = hh&.map { |en| en[:age] }&.compact&.min || report_item.age
+      hoh = hh.detect(&:head_of_household?) || enrollment
+      # anniversary_date = anniversary_date(entry_date: hoh.first_date_in_program, report_end_date: report.end_date)
+      hoh_annual_expected = annual_assessment_expected?(hoh)
+
+      report_item.household_max_age = hh&.map(&:age)&.compact&.max || report_item.age
+      report_item.household_min_age = hh&.map(&:age)&.compact&.min || report_item.age
       adult_or_hoh = enrollment.RelationshipToHoH == 1 || report_item.age.present? && report_item.age >= 18
-      report_item.head_of_household_count = hh&.select { |en| en[:relationship_to_hoh] == 1 }&.count || 0
-      report_item.household_type = household_type(min_age, max_age)
+      report_item.head_of_household_count = hh&.select(&:head_of_household?)&.count || 0
+      report_item.household_type = household_type(report_item.household_min_age, report_item.household_max_age)
 
       report_item.ch_details_expected = adult_or_hoh
       report_item.health_dv_at_entry_expected = adult_or_hoh
+
       report_item.income_at_entry_expected = adult_or_hoh
+      report_item.income_at_annual_expected = adult_or_hoh && hoh_annual_expected
+      report_item.income_at_exit_expected = adult_or_hoh && enrollment&.exit&.ExitDate.present?
+
+      report_item.insurance_at_entry_expected = true
+      report_item.insurance_at_annual_expected = hoh_annual_expected
+      report_item.insurance_at_exit_expected = enrollment&.exit&.ExitDate.present?
 
       report_item.los_under_threshold = enrollment.LOSUnderThreshold
       report_item.date_to_street_essh = enrollment.DateToStreetESSH
@@ -145,38 +167,64 @@ module HmisDataQualityTool
       report_item.has_disability = enrollment.disabilities_at_entry&.indefinite_and_impairs?&.any?
       report_item.days_between_entry_and_create = (enrollment.EntryDate - enrollment.DateCreated.to_date).to_i
 
-      report_item.health_dv_at_entry_collected = enrollment.health_and_dvs_at_entry.any?
+      report_item.domestic_violence_victim_at_entry = enrollment.health_and_dvs_at_entry&.first&.DomesticViolenceVictim
 
       entry_income_assessment = enrollment.income_benefits_at_entry
-      # Find one within the report range
-      # potentially we want to limit this to within +- 30 days of the anniversary
-      annual_income_assessment = enrollment.income_benefits_annual_update.detect do |ib|
-        ib.InformationDate.between?(report.filter.start, report.filter.end)
-      end
+      annual_income_assessment = annual_assessment(enrollment, hoh.first_date_in_program)
       exit_income_assessment = enrollment.income_benefits_at_exit
 
-      report_item.earned_income_collected_at_start = entry_income_assessment&.Earned&.present? && entry_income_assessment.Earned != 99
-      report_item.earned_income_collected_at_annual = annual_income_assessment&.Earned&.present? && annual_income_assessment.Earned != 99
-      report_item.earned_income_collected_at_exit = exit_income_assessment&.Earned&.present? && exit_income_assessment.Earned != 99
-      report_item.earned_income_as_expected_at_entry = income_at_entry_expected == false || income_at_entry_expected && earned_income_collected_at_start
-      report_item.earned_amounts_as_expected_at_entry = earned_income_as_expected_at_entry == false ||
-        earned_income_as_expected_at_entry &&
-          (
-            entry_income_assessment&.Earned == 1 &&
-            entry_income_assessment&.EarnedAmount&.positive? ||
-            entry_income_assessment&.Earned&.zero? &&
-            entry_income_assessment&.EarnedAmount&.zero?
-          )
+      report_item.income_from_any_source_at_entry = entry_income_assessment&.IncomeFromAnySource
+      report_item.income_from_any_source_at_annual = annual_income_assessment&.IncomeFromAnySource
+      report_item.income_from_any_source_at_exit = exit_income_assessment&.IncomeFromAnySource
 
-      # report_item.ncb_income_collected_at_start = entry_income_assessment.values_at(*GrdaWarehouse::Hud::IncomeBenefit::NON_CASH_BENEFIT_TYPES).any? { |v| v.in?([0, 1]) }
-      # report_item.ncb_income_collected_at_annual
-      # report_item.ncb_income_collected_at_exit
-      # report_item.ncb_income_as_expected_at_entry
+      report_item.cash_income_as_expected_at_entry = income_as_expected?(
+        report_item.income_at_entry_expected,
+        entry_income_assessment,
+      )
+      report_item.cash_income_as_expected_at_annual = income_as_expected?(
+        report_item.income_at_annual_expected,
+        annual_income_assessment,
+      )
+      report_item.cash_income_as_expected_at_exit = income_as_expected?(
+        report_item.income_at_exit_expected,
+        exit_income_assessment,
+      )
 
-      # report_item.insurance_collected_at_start
-      # report_item.insurance_collected_at_annual
-      # report_item.insurance_collected_at_exit
-      # report_item.insurance_as_expected_at_entry
+      report_item.ncb_from_any_source_at_entry = entry_income_assessment&.BenefitsFromAnySource
+      report_item.ncb_from_any_source_at_annual = annual_income_assessment&.BenefitsFromAnySource
+      report_item.ncb_from_any_source_at_exit = exit_income_assessment&.BenefitsFromAnySource
+
+      report_item.ncb_as_expected_at_entry = ncb_as_expected?(
+        report_item.income_at_entry_expected,
+        entry_income_assessment,
+      )
+      report_item.ncb_as_expected_at_annual = ncb_as_expected?(
+        report_item.income_at_entry_expected,
+        annual_income_assessment,
+      )
+      report_item.ncb_as_expected_at_exit = ncb_as_expected?(
+        report_item.income_at_entry_expected,
+        exit_income_assessment,
+      )
+
+      report_item.insurance_from_any_source_at_entry = entry_income_assessment&.InsuranceFromAnySource
+      report_item.insurance_from_any_source_at_annual = annual_income_assessment&.InsuranceFromAnySource
+      report_item.insurance_from_any_source_at_exit = exit_income_assessment&.InsuranceFromAnySource
+
+      report_item.insurance_as_expected_at_entry = insurance_as_expected?(
+        report_item.income_at_entry_expected,
+        entry_income_assessment,
+      )
+      report_item.insurance_as_expected_at_annual = insurance_as_expected?(
+        report_item.income_at_entry_expected,
+        annual_income_assessment,
+      )
+      report_item.insurance_as_expected_at_exit = insurance_as_expected?(
+        report_item.income_at_entry_expected,
+        exit_income_assessment,
+      )
+
+      report_item.disability_at_entry_collected = enrollment.disabilities_at_entry&.map(&:DisabilityResponse)&.all? { |dr| dr.in?([0, 1]) } || false
 
       max_date = [report.filter.end, Date.current].min
       en_services = enrollment.services&.select { |s| s.DateProvided <= max_date }
@@ -207,12 +255,44 @@ module HmisDataQualityTool
       report_item
     end
 
-    def self.household_type(min_age, max_age)
+    private def household_type(min_age, max_age)
       return 'Unknown' if min_age.blank? || max_age.blank?
       return 'Adult Only' if min_age >= 18
       return 'Child Only' if max_age < 18
 
       'Adult and Child'
+    end
+
+    private def income_as_expected?(expected, assessment)
+      return true unless expected
+
+      valid = true
+      assessment.all_sources_and_responses.each do |k, response|
+        amount = assessment.all_sources_and_amounts[k]
+        return false if response == 1 && ! amount.to_i.positive?
+        return false if response&.zero? && amount.to_i.positive?
+      end
+      valid
+    end
+
+    private def ncb_as_expected?(expected, assessment)
+      return true unless expected
+
+      responses = assessment.values_at(*assessment.class::NON_CASH_BENEFIT_TYPES)
+      return true if assessment.BenefitsFromAnySource == 1 && responses.include?(1)
+      return true if assessment.BenefitsFromAnySource&.zero? && responses.all?(0)
+
+      false
+    end
+
+    private def insurance_as_expected?(expected, assessment)
+      return true unless expected
+
+      responses = assessment.values_at(*assessment.class::INSURANCE_TYPES)
+      return true if assessment.BenefitsFromAnySource == 1 && responses.include?(1)
+      return true if assessment.BenefitsFromAnySource&.zero? && responses.all?(0)
+
+      false
     end
 
     def self.sections

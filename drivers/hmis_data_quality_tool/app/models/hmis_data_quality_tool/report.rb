@@ -102,6 +102,15 @@ module HmisDataQualityTool
       end
     end
 
+    # for compatability with HudReport Logic
+    def start_date
+      @start_date ||= filter.start
+    end
+
+    def end_date
+      @end_date ||= filter.end
+    end
+
     def self.viewable_by(user)
       GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: url).
         viewable_by(user).exists?
@@ -199,10 +208,10 @@ module HmisDataQualityTool
           find_each do |enrollment|
             report_age_date = [enrollment.EntryDate, filter.start].max
             households[enrollment.HouseholdID] ||= []
-            households[enrollment.HouseholdID] << {
-              age: enrollment.client.age_on(report_age_date),
-              relationship_to_hoh: enrollment.RelationshipToHoH,
-            }
+            she = enrollment.service_history_enrollment
+            # Make sure the age reflects the reporting age
+            she.age = enrollment.client.age_on(report_age_date)
+            households[enrollment.HouseholdID] << she
           end
       end
       @household[household_id]
