@@ -287,3 +287,5 @@ gem "business_time", "~> 0.10.0"
 gem "cable_ready", "~> 4.5"
 
 gem "graphql", "~> 2.0"
+
+gem "sentry-rails", "~> 5.5"
