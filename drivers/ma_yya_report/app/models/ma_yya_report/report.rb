@@ -58,6 +58,10 @@ module MaYyaReport
       ).update(options)
     end
 
+    def describe_filter_as_html
+      filter.describe_filter_as_html(self.class.report_options)
+    end
+
     private def a_t
       MaYyaReport::Client.arel_table
     end
@@ -221,6 +225,15 @@ module MaYyaReport
       }.freeze
     end
 
+    def label(key)
+      case key
+      when :TotalYYAServed
+        'Total YYA Served'
+      else
+        key.to_s.underscore.titleize
+      end
+    end
+
     private def custodial_parent_query
       'jsonb_array_length(household_ages) > 1' +
         'AND EXISTS(SELECT jsonb_array_elements(household_ages) AS age WHERE age < 18)'
@@ -377,7 +390,7 @@ module MaYyaReport
     end
 
     def self.yya_projects(user)
-      GrdaWarehouse::Hud::Project.options_for_select(user: user)
+      ::GrdaWarehouse::Hud::Project.options_for_select(user: user)
     end
 
     def self.report_options
