@@ -104,7 +104,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           'attribute' => 'organization',
         },
         {
-          'fullMessage' => 'Organizationid must exist',
+          'fullMessage' => 'Organization id must exist',
           'attribute' => 'organizationId',
         },
       ],
@@ -112,7 +112,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         'should emit error if name is not provided',
         ->(input) { input.except(:project_name) },
         {
-          'fullMessage' => 'Projectname must exist',
+          'fullMessage' => 'Project name must exist',
           'attribute' => 'projectName',
         },
       ],
@@ -120,7 +120,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         'should emit error if name is not provided',
         ->(input) { input.except(:operating_start_date) },
         {
-          'fullMessage' => 'Operatingstartdate must exist',
+          'fullMessage' => 'Operating start date must exist',
           'attribute' => 'operatingStartDate',
         },
       ],
