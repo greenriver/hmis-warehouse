@@ -16,7 +16,9 @@ module HmisCsvImporter::HmisCsvCleanup
         e_t[:MoveInDate].lt(e_t[:EntryDate]).
           or(ex_t[:ExitDate].not_eq(nil).and(e_t[:MoveInDate].gt(ex_t[:ExitDate]))),
       )
-
+      # for some reason this query can be really slow if not analyzed prior to run
+      conn = enrollment_source.connection
+      conn.execute("ANALYZE #{conn.quote_table_name(e_t.name)}, #{conn.quote_table_name(ex_t.name)}")
       invalid_move_in_dates.find_each do |enrollment|
         enrollment.MoveInDate = nil
         enrollment.set_source_hash
