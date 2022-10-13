@@ -4,8 +4,8 @@
 %h1.mb-5
   MA YYA Report
 
-.warehouse-reports__completed
-  = render 'filters/report_parameters', options: @report.options, report: @report
+.warehouse-reports__completed.d-flex
+  = @report.describe_filter_as_html
 .card
   %table.table.table-striped
     %tbody
@@ -30,4 +30,3 @@
         - else
           %tr
             = render 'row_contents', label: label
-

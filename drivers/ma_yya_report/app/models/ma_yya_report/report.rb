@@ -58,6 +58,10 @@ module MaYyaReport
       ).update(options)
     end
 
+    def describe_filter_as_html
+      filter.describe_filter_as_html(self.class.report_options)
+    end
+
     private def a_t
       MaYyaReport::Client.arel_table
     end
@@ -219,6 +223,15 @@ module MaYyaReport
 
         G3a: g_population.and(a_t[:sexual_orientation].in([2, 3, 4, 5]).or(a_t[:gender].eq(5))),
       }.freeze
+    end
+
+    def label(key)
+      case key
+      when :TotalYYAServed
+        'Total YYA Served'
+      else
+        key.to_s.underscore.titleize
+      end
     end
 
     private def custodial_parent_query
