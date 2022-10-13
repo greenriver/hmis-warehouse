@@ -377,7 +377,7 @@ module MaYyaReport
     end
 
     def self.yya_projects(user)
-      GrdaWarehouse::Hud::Project.options_for_select(user: user)
+      ::GrdaWarehouse::Hud::Project.options_for_select(user: user)
     end
 
     def self.report_options
