@@ -62,16 +62,37 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     expect(errors).to be_empty
   end
 
-  # it 'should throw errors if the organization is invalid' do
-  #   response, result = post_graphql(input: {}) { mutation }
-
-  #   organization = result.dig('data', 'createOrganization', 'organization')
-  #   errors = result.dig('data', 'createOrganization', 'errors')
-
-  #   expect(response.status).to eq 200
-  #   expect(organization).to be_nil
-  #   expect(errors).to be_present
-  # end
+  describe 'Validity tests' do
+    [
+      [
+        'should emit error if enrollment doesn\'t exist',
+        ->(input) { input.merge(enrollment_id: '999') },
+        {
+          'message' => 'Enrollment must exist',
+          'attribute' => 'enrollmentId',
+        },
+      ],
+      [
+        'should emit error if cannot find form defition',
+        ->(input) do
+          Hmis::Form::Instance.all.destroy_all
+          input
+        end,
+        {
+          'message' => 'Cannot get definition for assessment role',
+          'attribute' => 'assessmentRole',
+        },
+      ],
+    ].each do |test_name, input_proc, *expected_errors|
+      it test_name do
+        input = input_proc.call(test_input)
+        response, result = post_graphql(input) { mutation }
+        errors = result.dig('data', 'createAssessment', 'errors')
+        expect(response.status).to eq 200
+        expect(errors).to contain_exactly(*expected_errors.map { |error_attrs| include(**error_attrs) })
+      end
+    end
+  end
 end
 
 RSpec.configure do |c|

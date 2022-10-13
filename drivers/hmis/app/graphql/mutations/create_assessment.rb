@@ -6,28 +6,37 @@ module Mutations
     field :assessment, Types::HmisSchema::Assessment, null: true
     field :errors, [Types::HmisSchema::ValidationError], null: false
 
+    def validate_input(enrollment: nil, definition: nil)
+      errors = []
+      errors << InputValidationError.new('Enrollment must exist', attribute: 'enrollment_id') unless enrollment.present?
+      errors << InputValidationError.new('Cannot get definition for assessment role', attribute: 'assessment_role') if enrollment.present? && definition.nil?
+      errors
+    end
+
     def resolve(enrollment_id:, assessment_role:)
       user = hmis_user
 
       enrollment = Hmis::Hud::Enrollment.find_by(id: enrollment_id)
-      form_definition = Hmis::Form::Definition.find_definition_for_project(enrollment.project, role: assessment_role)
+      form_definition = enrollment&.project&.present? ? Hmis::Form::Definition.find_definition_for_project(enrollment.project, role: assessment_role) : nil
 
-      errors = []
+      errors = validate_input(enrollment: enrollment, definition: form_definition)
 
-      errors << 'Form Definition not found' unless form_definition.present?
+      return { assessment: nil, errors: errors } if errors.present?
 
       assessment_attrs = {
         data_source_id: user.data_source_id,
         user_id: user.user_id,
         personal_id: enrollment.personal_id,
         assessment_id: Hmis::Hud::Assessment.generate_assessment_id,
-        assessment_date: Date.parse('2019-01-01'),
+        # START These values will probably end up being nullable, but aren't now
+        assessment_date: Date.today,
         assessment_location: 'Test Location',
         assessment_type: 1,
         assessment_level: 1,
         prioritization_status: 1,
-        date_created: Date.parse('2019-01-01'),
-        date_updated: Date.parse('2019-01-01'),
+        # END These values will probably end up being nullable, but aren't now
+        date_created: Date.today,
+        date_updated: Date.today,
       }
 
       assessment = enrollment.assessments.new(**assessment_attrs)
@@ -48,7 +57,7 @@ module Mutations
 
       return {
         assessment: assessment,
-        errors: [],
+        errors: errors,
       }
     end
   end
