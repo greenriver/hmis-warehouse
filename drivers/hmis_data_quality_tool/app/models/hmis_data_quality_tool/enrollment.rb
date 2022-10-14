@@ -45,6 +45,41 @@ module HmisDataQualityTool
         project_tracking_method: 'Project Tracking Method',
         lot: 'Length of Time in Project',
         days_since_last_service: 'Days Since Last Service',
+        ch_details_expected: 'Chronic related fields (3.917) expected?',
+        health_dv_at_entry_expected: 'Health and DV expected?',
+        disability_at_entry_collected: 'Disabilities collected at entry?',
+        income_at_entry_expected: 'Income at entry expected?',
+        income_at_annual_expected: 'Income at annual assessment expected?',
+        income_at_exit_expected: 'Income at exit expected?',
+        insurance_at_entry_expected: 'Insurance at entry expected?',
+        insurance_at_annual_expected: 'Insurance at annual expected?',
+        insurance_at_exit_expected: 'Insurance at exti expected?',
+        los_under_threshold: 'Length of time under threshold (3.917.2A & 2B)',
+        date_to_street_essh: 'Approximate start of episode (3.917.3)',
+        times_homeless_past_three_years: 'Times homelessin the past 3 years (3.917.4)',
+        months_homeless_past_three_years: 'Months homeless in the past 3 years (3.917.5)',
+        enrollment_coc: 'Enrollment CoC Code',
+        has_disability: 'At least one disability?',
+        days_between_entry_and_create: 'Days between entry date and date added to HMIS',
+        domestic_violence_victim_at_entry: 'Domestic violence victim response at entry',
+        income_from_any_source_at_entry: 'Income from any source at entry',
+        income_from_any_source_at_annual: 'Income from any source at annual assessment',
+        income_from_any_source_at_exit: 'Income from any source at exit',
+        cash_income_as_expected_at_entry: 'Cash income reported as expected at entry',
+        cash_income_as_expected_at_annual: 'Cash income reported as expected at annual assessment',
+        cash_income_as_expected_at_exit: 'Cash income reported as expected at exit',
+        ncb_from_any_source_at_entry: 'Non-cash benefits from any source at entry',
+        ncb_from_any_source_at_annual: 'Non-cash benefits from any source at annual assessment',
+        ncb_from_any_source_at_exit: 'Non-cash benefits from any source at exit',
+        ncb_as_expected_at_entry: 'Non-cash benefits as expected at entry',
+        ncb_as_expected_at_annual: 'Non-cash benefits as expected at annual assessment',
+        ncb_as_expected_at_exit: 'Non-cash benefits as expected at exit',
+        insurance_from_any_source_at_entry: 'Insurance from any source at entry',
+        insurance_from_any_source_at_annual: 'Insurance from any source at annual assessment',
+        insurance_from_any_source_at_exit: 'Insurance from any source at exit',
+        insurance_as_expected_at_entry: 'Insurance as expected at entry',
+        insurance_as_expected_at_annual: 'Insurance as expected at annual assessment',
+        insurance_as_expected_at_exit: 'Insurance as expected at exit',
       }.freeze
     end
 
@@ -165,7 +200,7 @@ module HmisDataQualityTool
       report_item.months_homeless_past_three_years = enrollment.MonthsHomelessPastThreeYears
       report_item.enrollment_coc = enrollment.enrollment_coc_at_entry&.CoCCode
       report_item.has_disability = enrollment.disabilities_at_entry&.map(&:indefinite_and_impairs?)&.any?
-      report_item.days_between_entry_and_create = (enrollment.EntryDate - enrollment.DateCreated.to_date).to_i
+      report_item.days_between_entry_and_create = (enrollment.DateCreated.to_date - enrollment.EntryDate).to_i
 
       report_item.domestic_violence_victim_at_entry = enrollment.health_and_dvs_at_entry&.first&.DomesticViolenceVictim
 
