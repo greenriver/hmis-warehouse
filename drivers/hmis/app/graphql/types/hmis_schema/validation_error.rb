@@ -28,7 +28,7 @@ module Types
     end
 
     def full_message
-      return object.full_message if object.respond_to?(:full_message)
+      return object.full_message.gsub(object.attribute.to_s.downcase.capitalize, readable_attribute) if object.respond_to?(:full_message)
     end
 
     def type
@@ -36,6 +36,11 @@ module Types
       return object.class.name if object.is_a?(Exception)
 
       'UnknownError'
+    end
+
+    # Convert 'operatingStartDate' => 'Operating start date'
+    private def readable_attribute
+      object.attribute.to_s.underscore.gsub('_', ' ').capitalize
     end
   end
 end

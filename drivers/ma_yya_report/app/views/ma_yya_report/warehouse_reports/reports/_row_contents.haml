@@ -1,5 +1,5 @@
 %td
-  = label.to_s.underscore.titleize
+  = @report.label(label)
   - text = @report.cell_label(label)
   - if text.present?
     = ": #{text}"

@@ -377,11 +377,12 @@ module HudApr::Generators::Shared::Fy2021
               and(a_t[:move_in_date].lteq(@report.end_date).and(a_t[:date_to_street].lteq(a_t[:move_in_date]))))),
         'Not yet moved into housing' => a_t[:project_type].not_in(move_in_projects).
           and(a_t[:date_to_street].not_eq(nil).
+            and(a_t[:date_to_street].lteq(a_t[:first_date_in_program])).
             and(a_t[:approximate_time_to_move_in].eq(nil))).
           or(a_t[:project_type].in(move_in_projects).
             and(a_t[:move_in_date].eq(nil).or(a_t[:move_in_date].gt(@report.end_date)))),
         'Data not collected' => a_t[:project_type].not_in(move_in_projects).
-          and(a_t[:date_to_street].eq(nil)).
+          and(a_t[:date_to_street].eq(nil).or(a_t[:date_to_street].gt(a_t[:first_date_in_program]))).
           or(a_t[:project_type].in(move_in_projects).
             and(a_t[:move_in_date].lteq(@report.end_date).
               and(a_t[:date_to_street].eq(nil).or(a_t[:date_to_street].gt(a_t[:move_in_date]))))),

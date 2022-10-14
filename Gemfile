@@ -101,7 +101,7 @@ gem 'activerecord-session_store'
 gem 'attribute_normalizer'
 gem 'delayed_job'
 gem 'delayed_job_active_record'
-gem 'uglifier'
+gem 'terser'
 gem 'daemons'
 
 gem 'simple_form'
@@ -261,7 +261,7 @@ end
 
 group :test do
   gem 'capybara'
-  gem 'fixpoints'
+  gem 'fixpoints', '>= 0.2.6'
   gem 'minitest-reporters'
   gem 'rspec-mocks'
   gem 'shoulda'

@@ -16,6 +16,7 @@ ASSETS_BUCKET_NAME=openpath-ecs-assets UPDATE_ONLY=false ./bin/sync_app_assets.r
 # Use tar to create a content hash of the assets folder and the client secrets.
 # The below flags are intended to strip or normalize all metadata so that we're only hashing on contents.
 # This has been adapted from several different StackOverflow suggestions for no-metadata tarring.
+# NOTE: you can force a checksum change by updateing assets/version.js
 tar -cf - --sort=name `# Force sorting` \
   --mtime='UTC 2019-01-01' `# Normalize modified time.` \
   --group=0 `# Normalize group owner.` \

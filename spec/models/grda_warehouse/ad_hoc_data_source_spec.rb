@@ -2,6 +2,12 @@ require 'rails_helper'
 
 model = GrdaWarehouse::AdHocDataSource
 RSpec.describe model, type: :model do
+  before(:all) do
+    GrdaWarehouse::Utility.clear!
+  end
+  after(:all) do
+    GrdaWarehouse::Utility.clear!
+  end
   let!(:data_source) { create :ad_hoc_data_source }
   let!(:valid_batch) { create :ad_hoc_batch_valid }
   let!(:invalid_batch) { create :ad_hoc_batch_invalid }

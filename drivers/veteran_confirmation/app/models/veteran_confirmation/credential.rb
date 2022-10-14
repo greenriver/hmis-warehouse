@@ -5,7 +5,7 @@
 ###
 
 module VeteranConfirmation
-  class Credential < GrdaWarehouse::RemoteCredential
+  class Credential < ::GrdaWarehouse::RemoteCredential
     alias_attribute :apikey, :password
   end
 end

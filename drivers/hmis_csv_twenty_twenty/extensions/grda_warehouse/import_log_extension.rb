@@ -19,7 +19,7 @@ module HmisCsvTwentyTwenty::GrdaWarehouse
           return 'Paused for error review' if has_attribute?('importer_log_id') && importer_log&.paused?
 
           seconds = ((completed_at - created_at) / 1.minute).round * 60
-          distance_of_time_in_words(seconds)
+          "#{distance_of_time_in_words(seconds)} -#{created_at.strftime('%l:%M %P')} to #{completed_at.strftime('%l:%M %P')}"
         elsif upload.present?
           upload.import_time(details: details)
         else
