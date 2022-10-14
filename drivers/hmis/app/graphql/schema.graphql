@@ -31,7 +31,7 @@ type AddHouseholdMembersToEnrollmentPayload {
 HUD Assessment
 """
 type Assessment {
-  assessmentDate: ISO8601DateTime!
+  assessmentDate: ISO8601Date!
   assessmentDetail: AssessmentDetail
   assessmentLevel: AssessmentLevel
   assessmentLocation: String!
@@ -52,7 +52,7 @@ type AssessmentDetail {
   dataCollectionStage: DataCollectionStage
   definition: FormDefinition!
   id: ID!
-  role: String!
+  role: AssessmentRole!
   status: String!
 }
 
@@ -69,6 +69,19 @@ enum AssessmentLevel {
   (2) Housing Needs Assessment
   """
   HOUSING_NEEDS_ASSESSMENT
+}
+
+"""
+Assessment Role
+"""
+enum AssessmentRole {
+  ANNUAL
+  CE
+  CUSTOM
+  EXIT
+  INTAKE
+  POST_EXIT
+  UPDATE
 }
 
 """
@@ -207,7 +220,7 @@ input CreateAssessmentInput {
   Date with format yyyy-mm-dd
   """
   assessmentDate: String
-  assessmentRole: String!
+  assessmentRole: AssessmentRole!
 
   """
   A unique identifier for the client performing the mutation.
@@ -668,7 +681,7 @@ type FormDefinition {
   definition: JsonObject!
   id: ID!
   identifier: String!
-  role: String!
+  role: AssessmentRole!
   status: String!
   version: Int!
 }
