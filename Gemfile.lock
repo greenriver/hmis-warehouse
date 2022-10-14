@@ -987,7 +987,7 @@ DEPENDENCIES
   fast_gettext
   ffi
   ffi-geos
-  fixpoints
+  fixpoints (>= 0.2.6)
   flamegraph
   geocoder
   get_process_mem

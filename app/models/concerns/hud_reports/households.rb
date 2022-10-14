@@ -52,7 +52,6 @@ module HudReports::Households
 
     # Chronic status should come from the HoH if they are chronically homeless
     # if not, use any other adult who is,
-    # if no adults are, look for an adult who is not chronically homeless
     # if no adults are either yes or no, use  self for adults, and the HoH enrollment for children
     # from glossary:
     # In cases where the head of household as well as all other adult household members have an indeterminate CH status (don’t know, refused, missing), any child household members should carry the same CH status as the head of household.
@@ -71,22 +70,16 @@ module HudReports::Households
       # if not, use any other adult who is
       return chronic_adult if chronic_adult.present?
 
-      non_chronic_adult = household_members.detect do |hm|
-        next false unless hm[:age].present?
-
-        hm[:age] >= 18 && hm[:chronic_detail] == :no
-      end
-      # if no adults are, look for an adult who is not chronically homeless
-      return non_chronic_adult if non_chronic_adult.present?
-
       current_member = household_members.detect { |hm| hm[:client_id] == client_id }
       # if no adults are either yes or no, use  self for adults
       return current_member if current_member[:age].present? && current_member[:age] >= 18
       # if the data is bad and we don't have an HoH, use our own record
       return current_member if hoh.blank?
 
-      # and the HoH enrollment for children
-      hoh
+      # and the HoH enrollment for children if HoH status is unknown
+      return hoh if hoh[:chronic_detail].in?([:dk_or_r, :missing])
+
+      current_member
     end
 
     private def calculate_households

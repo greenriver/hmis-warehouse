@@ -419,10 +419,18 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
     date
   end
 
+  def so?
+    self[self.class.project_type_column] == 4
+  end
+
+  def nbn?
+    project_tracking_method == 3
+  end
+
   # How many distinct bed nights does the client have in this enrollment?
   # For entry/exit this is span, for night by night, this is service days.
   def bed_nights(end_date: nil)
-    if project_tracking_method == 3
+    if nbn?
       end_date = [
         last_date_in_program.try(:-, 1.day), # Don't count a bed night that falls on the exit day
         end_date + 1.day, # Include a bed night that falls on the end date

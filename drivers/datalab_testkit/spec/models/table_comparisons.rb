@@ -39,11 +39,12 @@ def compare_columns(goal:, question:, column_names:)
   end
 end
 
-def compare_results(goal: nil, file_path:, question:, skip: [])
+def compare_results(goal: nil, file_path:, question:, skip: [], detail_columns: [])
   goal ||= goals(file_path: file_path, question: question)
 
   aggregate_failures 'comparing cells' do
     results_metadata = report_result.answer(question: question).metadata
+    expect(results_metadata['last_row']).to eq(goal.count), "expected #{results_metadata['last_row']} total rows, got #{goal.count} rows"
     (results_metadata['first_row'] .. results_metadata['last_row']).each do |row_number|
       (results_metadata['first_column'] .. results_metadata['last_column']).each do |column_name|
         cell_name = column_name + row_number.to_s
@@ -54,8 +55,16 @@ def compare_results(goal: nil, file_path:, question:, skip: [])
         expected = normalize(raw_expected)
         raw_actual = report_result.answer(question: question, cell: cell_name).summary
         actual = normalize(raw_actual)
-
-        expect(actual).to eq(expected), "#{cell_name}: expected '#{expected}' (#{raw_expected}), got '#{actual}' (#{raw_actual})"
+        error_message = "#{question} #{cell_name}: expected '#{expected}' (#{raw_expected}), got '#{actual}' (#{raw_actual})"
+        if detail_columns.present?
+          rows = report_result.answer(question: question, cell: cell_name).
+            members.
+            map(&:universe_membership).
+            map { |m| detail_columns.map { |c| m[c] } }
+          table = [detail_columns] + rows
+          error_message += " details: #{table}"
+        end
+        expect(actual).to eq(expected), error_message
       end
     end
   end
@@ -67,7 +76,7 @@ def normalize(value)
   return '0' if value.blank? # Treat 0 and blank as the same for comparison
 
   value = value[1..] if money?(value) # Remove dollar signs
-  value = value.to_f.to_s if float?(value)
+  value = value.to_f.truncate(2).to_s if float?(value) # only compare 2 significant digits
   value = '0' if normalize_zero?(value) # Treat all zeros as '0'
 
   value

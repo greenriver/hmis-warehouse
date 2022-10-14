@@ -79,12 +79,10 @@ RSpec.shared_context '2022 multi-enrollment tests', shared_context: :metadata do
           end.map(&:id).
             sort. # Sort by number, because export chose first 3 enrollments and related items before converting to strings
             map(&:to_s)
-          test_data = instance_variable_get("@#{items}").select do |m|
+          instance_variable_get("@#{items}").select do |m|
             involved_enrollment_project_entry_ids.include? m.EnrollmentID
           end.map { |m| [m.id, m.EnrollmentID, m.data_source_id] }
-          puts klass.hud_csv_file_name
           # expecting ids are 2 larger than originally expected
-          puts test_data.inspect
           expect(csv_ids).to eq source_ids.first(3)
         end
         if klass.hmis_class.column_names.include?('EnrollmentID')

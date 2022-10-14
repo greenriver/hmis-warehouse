@@ -115,7 +115,7 @@
                   - tooltip += "Move-in-Date: #{c['move_in_date']}<br />"
                 - if c['last_date_in_program']
                   - tooltip += "Exit: #{c['last_date_in_program']}<br />"
-                .mb-0{data: { toggle: :tooltip, title: tooltip, html: 'true' }}
+                .mb-2.mt-2{ data: { toggle: :tooltip, title: tooltip, html: 'true', boundary: :window } }
                   = link_to client_path(c['client_id']), class: 'd-block' do
                     #{c['FirstName']} #{c['LastName']}
                     - if c['head_of_household']

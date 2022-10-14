@@ -39,6 +39,7 @@ module HudApr::Generators::Shared::Fy2021
             else
               adults = adults.where(income_clause(stage: :start, measure: income_category, positive: true))
             end
+            adults = adults.where(column[:additional]) if column[:additional]
           when :zero
             if income_category == :total
               adults = adults.where(a_t[:income_total_at_start].eq(0))
@@ -91,7 +92,9 @@ module HudApr::Generators::Shared::Fy2021
       # All adult stayers where the head of household has been in the project 365 days or more
       inclusion_clause = a_t[:head_of_household_id].in(hoh_lts_stayer_ids).
         and(adult_clause).
-        and(stayers_clause)
+        and(stayers_clause).
+        # limited to those whose annual assessment was collected
+        and(a_t[:annual_assessment_in_window].eq(true))
 
       q19a(
         table_name,
@@ -378,7 +381,7 @@ module HudApr::Generators::Shared::Fy2021
 
     private def income_stati_stayers
       {
-        'Had Income Category at Start and Did Not Have It at Annual Assessment' => { column: 'B', amount_at_start: :positive },
+        'Had Income Category at Start and Did Not Have It at Annual Assessment' => { column: 'B', amount_at_start: :positive, additional: a_t[:annual_assessment_in_window].eq(true) },
         'Retained Income Category But Had Less $ at Annual Assessment Than at Start' => { column: 'C', amount_at_start: :positive },
         'Retained Income Category and Same $ at Annual Assessment as at Start' => { column: 'D', amount_at_start: :positive },
         'Retained Income Category and Increased $ at Annual Assessment' => { column: 'E', amount_at_start: :positive },
