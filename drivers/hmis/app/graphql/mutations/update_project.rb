@@ -18,7 +18,7 @@ module Mutations
       end
 
       {
-        project: project,
+        project: project&.valid? ? project : nil,
         errors: errors,
       }
     end
