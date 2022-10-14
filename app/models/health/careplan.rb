@@ -235,13 +235,19 @@ module Health
       return attributes
     end
 
+    def completed_on
+      return unless completed?
+
+      [
+        provider_signed_on,
+        patient_signed_on,
+      ].compact.max
+    end
+
     def expires_on
       return unless completed?
 
-      ([
-        provider_signed_on,
-        patient_signed_on,
-      ].compact.max + 12.months).to_date
+      (completed_on + 12.months).to_date
     end
 
     def active?
