@@ -48,15 +48,17 @@ module HmisDataQualityTool
           )
           sections.each do |_, calc|
             section_title = calc[:title]
-            intermediate[section_title] ||= {}
-            intermediate[section_title][inventory] = item if calc[:limiter].call(item)
+            intermediate[section_title] ||= { denominator: {}, invalid: {} }
+            intermediate[section_title][:denominator][inventory] = item if calc[:denominator].call(item)
+            intermediate[section_title][:invalid][inventory] = item if calc[:limiter].call(item)
           end
         end
-        intermediate.each do |section_title, inventory_batch|
-          import_intermediate!(inventory_batch.values)
-          report.universe(section_title).add_universe_members(inventory_batch) if inventory_batch.present?
+        intermediate.each do |section_title, item_batch|
+          import_intermediate!(item_batch[:denominator].values)
+          report.universe("#{section_title}__denominator").add_universe_members(item_batch[:denominator]) if item_batch[:denominator].present?
+          report.universe("#{section_title}__invalid").add_universe_members(item_batch[:invalid]) if item_batch[:invalid].present?
 
-          report_items.merge!(inventory_batch)
+          report_items.merge!(item_batch)
         end
       end
       report_items
@@ -104,6 +106,10 @@ module HmisDataQualityTool
         dedicated_bed_issues: {
           title: 'Sum of Dedicated Beds does not Equal Total Beds',
           description: 'Dedicated beds count must be equal to the total beds available',
+          required_for: 'All',
+          denominator: ->(_item) {
+            true
+          },
           limiter: ->(item) {
             sum_dedicated_beds = [
               item.ch_vet_bed_inventory,

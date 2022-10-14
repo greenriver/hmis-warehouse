@@ -53,7 +53,7 @@ module HmisDataQualityTool
         income_at_exit_expected: 'Income at exit expected?',
         insurance_at_entry_expected: 'Insurance at entry expected?',
         insurance_at_annual_expected: 'Insurance at annual expected?',
-        insurance_at_exit_expected: 'Insurance at exti expected?',
+        insurance_at_exit_expected: 'Insurance at exit expected?',
         los_under_threshold: 'Length of time under threshold (3.917.2A & 2B)',
         date_to_street_essh: 'Approximate start of episode (3.917.3)',
         times_homeless_past_three_years: 'Times homelessin the past 3 years (3.917.4)',
@@ -61,7 +61,7 @@ module HmisDataQualityTool
         enrollment_coc: 'Enrollment CoC Code',
         has_disability: 'At least one disability?',
         days_between_entry_and_create: 'Days between entry date and date added to HMIS',
-        domestic_violence_victim_at_entry: 'Domestic violence victim response at entry',
+        domestic_violence_victim_at_entry: 'Survivor of domestic violence response at entry',
         income_from_any_source_at_entry: 'Income from any source at entry',
         income_from_any_source_at_annual: 'Income from any source at annual assessment',
         income_from_any_source_at_exit: 'Income from any source at exit',
@@ -98,15 +98,17 @@ module HmisDataQualityTool
           )
           sections.each do |_, calc|
             section_title = calc[:title]
-            intermediate[section_title] ||= {}
-            intermediate[section_title][enrollment] = item if calc[:limiter].call(item)
+            intermediate[section_title] ||= { denominator: {}, invalid: {} }
+            intermediate[section_title][:denominator][enrollment] = item if calc[:denominator].call(item)
+            intermediate[section_title][:invalid][enrollment] = item if calc[:limiter].call(item)
           end
         end
-        intermediate.each do |section_title, enrollment_batch|
-          import_intermediate!(enrollment_batch.values)
-          report.universe(section_title).add_universe_members(enrollment_batch) if enrollment_batch.present?
+        intermediate.each do |section_title, item_batch|
+          import_intermediate!(item_batch[:denominator].values)
+          report.universe("#{section_title}__denominator").add_universe_members(item_batch[:denominator]) if item_batch[:denominator].present?
+          report.universe("#{section_title}__invalid").add_universe_members(item_batch[:invalid]) if item_batch[:invalid].present?
 
-          report_items.merge!(enrollment_batch)
+          report_items.merge!(item_batch)
         end
       end
       report_items
@@ -333,11 +335,17 @@ module HmisDataQualityTool
       false
     end
 
-    def self.sections
+    def self.hoh_or_adult?(item)
+      item.age.present? && item.age > 18 || item.relationship_to_hoh == 1
+    end
+
+    def self.sections # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
       {
         disabling_condition_issues: {
           title: 'Disabling Condition',
           description: 'Disabling condition is an invalid value',
+          required_for: 'All',
+          denominator: ->(_item) { true },
           limiter: ->(item) {
             ! HUD.no_yes_reasons_for_missing_data_options.key?(item.disabling_condition)
           },
@@ -345,6 +353,8 @@ module HmisDataQualityTool
         hoh_validation_issues: {
           title: 'Relationship to Head of Household',
           description: 'Relashionship to head of household is an invalid value',
+          required_for: 'All',
+          denominator: ->(_item) { true },
           limiter: ->(item) {
             ! HUD.relationships_to_hoh.key?(item.relationship_to_hoh)
           },
@@ -352,7 +362,10 @@ module HmisDataQualityTool
         living_situation_issues: {
           title: 'Living Situation',
           description: 'Living situation is an invalid value',
+          required_for: 'Adults and HoH',
+          denominator: ->(item) { hoh_or_adult?(item) },
           limiter: ->(item) {
+            return false unless hoh_or_adult?(item)
             return false if item.living_situation.blank?
 
             ! item.living_situation.in?(HUD.valid_prior_living_situations)
@@ -361,6 +374,8 @@ module HmisDataQualityTool
         exit_date_issues: {
           title: 'Exit before Entry',
           description: 'Enrollment exit date must occur after entry date',
+          required_for: 'All',
+          denominator: ->(_item) { true },
           limiter: ->(item) {
             item.exit_date.present? && item.exit_date < item.entry_date
           },
@@ -368,8 +383,15 @@ module HmisDataQualityTool
         destination_issues: {
           title: 'Destination',
           description: 'Destination is an invalid value',
+          required_for: 'Adults and HoH at Exit',
+          denominator: ->(item) {
+            return false unless item.exit_date.present?
+
+            hoh_or_adult?(item)
+          },
           limiter: ->(item) {
-            return false if item.exit_date.blank?
+            return false unless hoh_or_adult?(item)
+            return false unless item.exit_date.present?
 
             ! HUD.valid_destinations.key?(item.destination)
           },
@@ -377,6 +399,12 @@ module HmisDataQualityTool
         unaccompanied_youth_issues: {
           title: 'Unaccompanied Youth < 12 Years Old',
           description: 'Youth under 12 are generally expected to be accompanied.  The presence of an unaccompanied youth under 12 may indicate an issue with household data collection',
+          required_for: 'Children under 12',
+          denominator: ->(item) {
+            return false if item.age.blank? || item.age > 12
+
+            true
+          },
           limiter: ->(item) {
             item.household_max_age.present? && item.household_max_age < 12
           },
@@ -384,6 +412,8 @@ module HmisDataQualityTool
         no_hoh_issues: {
           title: 'No Head of Household',
           description: 'Every household must have exactly one head of household',
+          required_for: 'All',
+          denominator: ->(_item) { true },
           limiter: ->(item) {
             item.head_of_household_count.zero?
           },
@@ -391,48 +421,89 @@ module HmisDataQualityTool
         multiple_hoh_issues: {
           title: 'Multiple Heads of Household',
           description: 'Every household must have exactly one head of household',
+          required_for: 'All',
+          denominator: ->(_item) { true },
           limiter: ->(item) {
             item.head_of_household_count > 1
           },
         },
         hoh_client_location_issues: {
           title: 'Head of Household is Missing Client Location',
-          description: 'Client location (CoC Code) is collection is required for all heads of household',
+          description: 'Client location (CoC Code) is missing or invalid, but collection is required for all adults and heads of household',
+          required_for: 'Adults and HoH',
+          denominator: ->(item) { hoh_or_adult?(item) },
           limiter: ->(item) {
             item.relationship_to_hoh == 1 && item.coc_code.blank? && HUD.valid_coc?(item.coc_code)
           },
         },
         future_exit_date_issues: {
           title: 'Future Exit Date',
-          description: 'Exit dates should be entered on or after the exit date',
+          description: 'Exit date occurred before entry date, but should occur on or after the entry date',
+          required_for: 'All',
+          denominator: ->(_item) { true },
           limiter: ->(item) {
             item.exit_date.present? && item.exit_date > Date.current
           },
         },
-        days_since_last_service_es_90_issues: {
+        lot_es_90_issues: {
           title: 'Possible Missed Exit - ES, Time in Enrollment 90 Days or More',
           description: 'There is an expectation that clients will not stay indefinitely in emergency shelter, these clients have been in shelter more than 90 days',
+          required_for: 'All in ES',
+          denominator: ->(item) { GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type) },
           limiter: ->(item) {
             item.lot > 90 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
           },
         },
-        days_since_last_service_es_180_issues: {
+        lot_es_180_issues: {
           title: 'Possible Missed Exit - ES, Time in Enrollment 180 Days or More',
           description: 'There is an expectation that clients will not stay indefinitely in emergency shelter, these clients have been in shelter more than 180 days',
+          required_for: 'All in ES',
+          denominator: ->(item) { GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type) },
           limiter: ->(item) {
             item.lot > 180 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
           },
         },
-        days_since_last_service_es_365_issues: {
+        lot_es_365_issues: {
           title: 'Possible Missed Exit - ES, Time in Enrollment 365 Days or More',
           description: 'There is an expectation that clients will not stay indefinitely in emergency shelter, these clients have been in shelter more than 365 days',
+          required_for: 'All in ES',
+          denominator: ->(item) { GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type) },
           limiter: ->(item) {
             item.lot > 365 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
+          },
+        },
+        days_since_last_service_es_90_issues: {
+          title: 'Possible Missed Exit - ES, No Service in 90 Days or More',
+          description: 'There is an expectation that clients will not stay indefinitely in emergency shelter, these clients have been in shelter more than 90 days',
+          required_for: 'All in ES',
+          denominator: ->(item) { GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type) },
+          limiter: ->(item) {
+            item.days_since_last_service > 90 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
+          },
+        },
+        days_since_last_service_es_180_issues: {
+          title: 'Possible Missed Exit - ES, No Service in 180 Days or More',
+          description: 'There is an expectation that clients will not stay indefinitely in emergency shelter, these clients have been in shelter more than 180 days',
+          required_for: 'All in ES',
+          denominator: ->(item) { GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type) },
+          limiter: ->(item) {
+            item.days_since_last_service > 180 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
+          },
+        },
+        days_since_last_service_es_365_issues: {
+          title: 'Possible Missed Exit - ES, No Service in 365 Days or More',
+          description: 'There is an expectation that clients will not stay indefinitely in emergency shelter, these clients have been in shelter more than 365 days',
+          required_for: 'All in ES',
+          denominator: ->(item) { GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type) },
+          limiter: ->(item) {
+            item.days_since_last_service > 365 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
           },
         },
         days_since_last_service_so_90_issues: {
           title: 'Possible Missed Exit - SO, Time in Enrollment 90 Days or More',
           description: 'There is an expectation that clients will not stay indefinitely in street outreach, these clients have been in street outreach with no current living situation collected for more than 90 days',
+          required_for: 'All in SO',
+          denominator: ->(item) { GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:so].include?(item.project_type) },
           limiter: ->(item) {
             item.days_since_last_service > 90 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:so].include?(item.project_type)
           },
@@ -440,6 +511,8 @@ module HmisDataQualityTool
         days_since_last_service_so_180_issues: {
           title: 'Possible Missed Exit - SO, Time in Enrollment 180 Days or More',
           description: 'There is an expectation that clients will not stay indefinitely in street outreach, these clients have been in street outreach with no current living situation collected for more than 180 days',
+          required_for: 'All in SO',
+          denominator: ->(item) { GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:so].include?(item.project_type) },
           limiter: ->(item) {
             item.days_since_last_service > 180 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:so].include?(item.project_type)
           },
@@ -447,6 +520,8 @@ module HmisDataQualityTool
         days_since_last_service_so_365_issues: {
           title: 'Possible Missed Exit - SO, Time in Enrollment 365 Days or More',
           description: 'There is an expectation that clients will not stay indefinitely in street outreach, these clients have been in street outreach with no current living situation collected for more than 365 days',
+          required_for: 'All in SO',
+          denominator: ->(item) { GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:so].include?(item.project_type) },
           limiter: ->(item) {
             item.days_since_last_service > 365 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:so].include?(item.project_type)
           },
@@ -454,7 +529,12 @@ module HmisDataQualityTool
         days_in_ph_prior_to_move_in_90_issues: {
           title: 'Possible Missed Move In Date - PH, Time in Enrollment 90 Days or More',
           description: 'There is an expectation that clients in PH will eventually move into housing, these clients have been in PH without a move-in date more than 90 days, or have an invalid move-in date ',
+          required_for: 'Adults and HoH in PH',
+          denominator: ->(item) {
+            hoh_or_adult?(item) && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
+          },
           limiter: ->(item) {
+            return false unless hoh_or_adult?(item)
             return false if item.move_in_date.present? && item.move_in_date >= item.entry_date && (item.exit_date.blank? || item.move_in_date <= item.exit_date)
 
             item.lot > 90 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
@@ -463,7 +543,12 @@ module HmisDataQualityTool
         days_in_ph_prior_to_move_in_180_issues: {
           title: 'Possible Missed Move In Date - PH, Time in Enrollment 180 Days or More',
           description: 'There is an expectation that clients in PH will eventually move into housing, these clients have been in PH without a move-in date more than 180 days, or have an invalid move-in date',
+          required_for: 'Adults and HoH in PH',
+          denominator: ->(item) {
+            hoh_or_adult?(item) && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
+          },
           limiter: ->(item) {
+            return false unless hoh_or_adult?(item)
             return false if item.move_in_date.present? && item.move_in_date >= item.entry_date && (item.exit_date.blank? || item.move_in_date <= item.exit_date)
 
             item.lot > 180 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
@@ -472,7 +557,12 @@ module HmisDataQualityTool
         days_in_ph_prior_to_move_in_365_issues: {
           title: 'Possible Missed Move In Date - PH, Time in Enrollment 365 Days or More',
           description: 'There is an expectation that clients in PH will eventually move into housing, these clients have been in PH without a move-in date more than 365 days, or have an invalid move-in date',
+          required_for: 'Adults and HoH in PH',
+          denominator: ->(item) {
+            hoh_or_adult?(item) && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
+          },
           limiter: ->(item) {
+            return false unless hoh_or_adult?(item)
             return false if item.move_in_date.present? && item.move_in_date >= item.entry_date && (item.exit_date.blank? || item.move_in_date <= item.exit_date)
 
             item.lot > 365 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
@@ -481,7 +571,12 @@ module HmisDataQualityTool
         move_in_prior_to_start_issues: {
           title: 'Move-In Before Entry Date',
           description: 'Move-in date must be on or after the entry date, only checked for PH projects',
+          required_for: 'Adults and HoH in PH',
+          denominator: ->(item) {
+            hoh_or_adult?(item) && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
+          },
           limiter: ->(item) {
+            return false unless hoh_or_adult?(item)
             return false if item.move_in_date.blank?
             return false unless GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
 
@@ -491,7 +586,12 @@ module HmisDataQualityTool
         move_in_post_exit_issues: {
           title: 'Move-In After Exit Date',
           description: 'Move-in date must be on or before the exit date, only checked for PH projects',
+          required_for: 'Adults and HoH in PH',
+          denominator: ->(item) {
+            hoh_or_adult?(item) && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
+          },
           limiter: ->(item) {
+            return false unless hoh_or_adult?(item)
             return false if item.move_in_date.blank? || item.exit_date.blank?
             return false unless GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
 
@@ -501,11 +601,189 @@ module HmisDataQualityTool
         enrollment_outside_project_operating_dates_issues: {
           title: 'Enrollment Active Outside of Project Operating Dates',
           description: 'Entry and exit dates must occur while a project is in operation',
+          required_for: 'All',
+          denominator: ->(_item) { true },
           limiter: ->(item) {
             start_date = item.project_operating_start_date || '2000-01-01'.to_date
             end_date = item.project_operating_end_date || Date.current
             ! item.entry_date.between?(start_date, end_date) &&
             (item.exit_date.present? && ! item.exit_date.between?(start_date, end_date))
+          },
+        },
+        dv_at_entry: {
+          title: 'Survivor of Domestic Violence',
+          description: 'DV data at entry is not 99 or blank',
+          required_for: 'Adults and HoH',
+          denominator: ->(item) { hoh_or_adult?(item) },
+          limiter: ->(item) {
+            return false unless hoh_or_adult?(item)
+
+            item.domestic_violence_victim_at_entry.blank? || item.domestic_violence_victim_at_entry == 99
+          },
+        },
+        income_from_any_source_at_entry: {
+          title: 'Income From Any Source at Entry',
+          description: 'Income from any source at entry is not 99 or blank',
+          required_for: 'Adults and HoH',
+          denominator: ->(item) { item.income_at_entry_expected },
+          limiter: ->(item) {
+            return false unless item.income_at_entry_expected
+
+            item.income_from_any_source_at_entry.blank? || item.income_from_any_source_at_entry == 99
+          },
+        },
+        income_from_any_source_at_annual: {
+          title: 'Income From Any Source at Annual Assessment',
+          description: 'Income from any source at annual assessment is not 99 or blank',
+          required_for: 'Adults and HoH staying longer than 1 year',
+          denominator: ->(item) { item.income_at_annual_expected },
+          limiter: ->(item) {
+            return false unless item.income_at_annual_expected
+
+            item.income_from_any_source_at_annual.blank? || item.income_from_any_source_at_annual == 99
+          },
+        },
+        income_from_any_source_at_exit: {
+          title: 'Income From Any Source at Exit',
+          description: 'Income from any source at exit is not 99 or blank',
+          required_for: 'Adults and HoH exiting during report range',
+          denominator: ->(item) { item.income_at_exit_expected },
+          limiter: ->(item) {
+            return false unless item.income_at_exit_expected
+
+            item.income_from_any_source_at_exit.blank? || item.income_from_any_source_at_exit == 99
+          },
+        },
+        insurance_from_any_source_at_entry: {
+          title: 'Insurance From Any Source at Entry',
+          description: 'Insurance from any source at entry is not 99 or blank',
+          required_for: 'All',
+          denominator: ->(item) { item.insurance_at_entry_expected },
+          limiter: ->(item) {
+            return false unless item.insurance_at_entry_expected
+
+            item.insurance_from_any_source_at_entry.blank? || item.insurance_from_any_source_at_entry == 99
+          },
+        },
+        insurance_from_any_source_at_annual: {
+          title: 'Insurance From Any Source at Annual Assessment',
+          description: 'Insurance from any source at annual assessment is not 99 or blank',
+          required_for: 'All staying longer than 1 year',
+          denominator: ->(item) { item.insurance_at_annual_expected },
+          limiter: ->(item) {
+            return false unless item.insurance_at_annual_expected
+
+            item.insurance_from_any_source_at_annual.blank? || item.insurance_from_any_source_at_annual == 99
+          },
+        },
+        insurance_from_any_source_at_exit: {
+          title: 'Insurance From Any Source at Exit',
+          description: 'Insurance from any source at exit is not 99 or blank',
+          required_for: 'All exiting during report range',
+          denominator: ->(item) { item.insurance_at_exit_expected },
+          limiter: ->(item) {
+            return false unless item.insurance_at_exit_expected
+
+            item.insurance_from_any_source_at_exit.blank? || item.insurance_from_any_source_at_exit == 99
+          },
+        },
+        cash_income_as_expected_at_entry: {
+          title: 'Cash Income Matches Expected Value at Entry',
+          description: 'Cash income should be present if income from any source was indicated at entry',
+          required_for: 'Adults and HoH',
+          denominator: ->(item) { item.income_at_entry_expected },
+          limiter: ->(item) {
+            return false unless item.income_at_entry_expected
+
+            ! item.cash_income_as_expected_at_entry
+          },
+        },
+        cash_income_as_expected_at_annual: {
+          title: 'Cash Income Matches Expected Value at Annual Assessment',
+          description: 'Cash income should be present if income from any source was indicated at annual assessment',
+          required_for: 'Adults and HoH staying longer than 1 year',
+          denominator: ->(item) { item.income_at_annual_expected },
+          limiter: ->(item) {
+            return false unless item.income_at_annual_expected
+
+            ! item.cash_income_as_expected_at_annual
+          },
+        },
+        cash_income_as_expected_at_exit: {
+          title: 'Cash Income Matches Expected Value at Exit',
+          description: 'Cash income should be present if income from any source was indicated at exit',
+          required_for: 'Adults and HoH exiting during report range',
+          denominator: ->(item) { item.income_at_exit_expected },
+          limiter: ->(item) {
+            return false unless item.income_at_exit_expected
+
+            ! item.cash_income_as_expected_at_exit
+          },
+        },
+        ncb_as_expected_at_entry: {
+          title: 'Non-Cash Benefits Matches Expected Value at Entry',
+          description: 'Non-cash benefits should be present if NCB from any source indicated at entry',
+          required_for: 'Adults and HoH',
+          denominator: ->(item) { item.income_at_entry_expected },
+          limiter: ->(item) {
+            return false unless item.income_at_entry_expected
+
+            ! item.ncb_as_expected_at_entry
+          },
+        },
+        ncb_as_expected_at_annual: {
+          title: 'Non-Cash Benefits Matches Expected Value at Annual Assessment',
+          description: 'Income from any source at annual assessment is not 99 or blank',
+          required_for: 'Adults and HoH staying longer than 1 year',
+          denominator: ->(item) { item.income_at_annual_expected },
+          limiter: ->(item) {
+            return false unless item.income_at_annual_expected
+
+            ! item.ncb_as_expected_at_annual
+          },
+        },
+        ncb_as_expected_at_exit: {
+          title: 'Non-Cash Benefits Matches Expected Value at Exit',
+          description: 'Income from any source at exit is not 99 or blank',
+          required_for: 'Adults and HoH exiting during report range',
+          denominator: ->(item) { item.income_at_exit_expected },
+          limiter: ->(item) {
+            return false unless item.income_at_exit_expected
+
+            ! item.ncb_as_expected_at_exit
+          },
+        },
+        insurance_as_expected_at_entry: {
+          title: 'Insurance Matches Expected Value at Entry',
+          description: 'Income from any source at entry is not 99 or blank',
+          required_for: 'Adults and HoH',
+          denominator: ->(item) { item.insurance_at_entry_expected },
+          limiter: ->(item) {
+            return false unless item.insurance_at_entry_expected
+
+            ! item.insurance_as_expected_at_entry
+          },
+        },
+        insurance_as_expected_at_annual: {
+          title: 'Insurance Matches Expected Value at Annual Assessment',
+          description: 'Income from any source at annual assessment is not 99 or blank',
+          required_for: 'Adults and HoH staying longer than 1 year',
+          denominator: ->(item) { item.insurance_at_annual_expected },
+          limiter: ->(item) {
+            return false unless item.insurance_at_annual_expected
+
+            ! item.insurance_as_expected_at_annual
+          },
+        },
+        insurance_as_expected_at_exit: {
+          title: 'Insurance Matches Expected Value at Exit',
+          description: 'Income from any source at exit is not 99 or blank',
+          required_for: 'Adults and HoH exiting during report range',
+          denominator: ->(item) { item.insurance_at_exit_expected },
+          limiter: ->(item) {
+            return false unless item.insurance_at_exit_expected
+
+            ! item.insurance_as_expected_at_exit
           },
         },
       }.freeze

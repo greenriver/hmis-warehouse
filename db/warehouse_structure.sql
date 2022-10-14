@@ -13165,7 +13165,9 @@ CREATE TABLE public.hmis_dqt_clients (
     veteran_status integer,
     ssn integer,
     ssn_data_quality integer,
-    ethnicity integer
+    name_data_quality integer,
+    ethnicity integer,
+    reporting_age integer
 );
 
 

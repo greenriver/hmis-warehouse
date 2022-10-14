@@ -23,28 +23,19 @@
           .j-toggle-text.ml-2.hide Hide Details
     .minimal-collapse
       = render 'common/panel_collapse', id: 'universe', title: 'Chosen Universe', content: '_universe', heading_slug: '_universe', arrow_icon: 'icon-angle'
-%h2 Validations
-.card.mb-6
-  %table.table.table-striped
-    %thead
-      %tr
-        %th Category
-        %th Section
-        %th Description
-        %th Invalid Values
-    %tbody
-      - @report.validations.each do |result|
-        = render 'row', result: result
 
-%h2 Data Quality Checks
-.card
-  %table.table.table-striped
-    %thead
-      %tr
-        %th Category
-        %th Section
-        %th Description
-        %th Invalid Values
-    %tbody
-      - @report.dq_checks.each do |result|
-        = render 'row', result: result
+- @report.results.group_by(&:category).each do |category, results|
+  %h2= category
+  .card.mb-6
+    %table.table.table-striped
+      %thead
+        %tr
+          %th Section
+          %th Description
+          %th Required for
+          %th Overall Number in Universe
+          %th Number of Invalid Values
+          %th Percent Valid
+      %tbody
+        - results.each do |result|
+          = render 'row', result: result
