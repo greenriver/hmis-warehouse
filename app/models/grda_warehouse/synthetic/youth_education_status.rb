@@ -79,7 +79,7 @@ module GrdaWarehouse::Synthetic
       unique_key = [enrollment.EnrollmentID, enrollment.PersonalID, information_date, enrollment.data_source_id, source.id]
       youth_education_status_id = hud_youth_education_status&.YouthEducationStatusID || Digest::MD5.hexdigest(unique_key.join('_'))
       {
-        AssessmentID: youth_education_status_id,
+        YouthEducationStatusID: youth_education_status_id,
         EnrollmentID: enrollment.EnrollmentID,
         PersonalID: enrollment.PersonalID,
         InformationDate: information_date,
