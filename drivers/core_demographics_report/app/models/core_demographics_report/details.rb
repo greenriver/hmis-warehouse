@@ -71,7 +71,7 @@ module
     end
 
     def detail_columns_for_export(key)
-      return header_for(key) if GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+      return columns_for(key) if GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
 
       columns_for(key) - [c_t[:FirstName], c_t[:LastName], c_t[:DOB]]
     end
