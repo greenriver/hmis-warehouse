@@ -17,7 +17,7 @@ module MaYyaReport::Synthetic
     def data_collection_stage
       # TODO: How loose do these need to be?
       return 1 if information_date == enrollment.EntryDate
-      return 3 if information_date == enrollment.exit.ExitDate
+      return 3 if information_date == enrollment.exit&.ExitDate
 
       # TODO: do we need annual assessments?
       2
