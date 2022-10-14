@@ -36,8 +36,7 @@ module Health
     end
 
     def signature
-      try(:release_form).try(:participation_signature_on) || try(:release_form).try(:signature_on)
-      # try(:participation_form).try(:signature_on) || try(:release_form).try(:signature_on)
+      return nil
     end
 
     def valid_for_current_enrollment
