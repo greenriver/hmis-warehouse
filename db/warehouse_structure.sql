@@ -1830,7 +1830,7 @@ CREATE TABLE public."YouthEducationStatus" (
     "DateUpdated" timestamp without time zone NOT NULL,
     "UserID" character varying(32) NOT NULL,
     "DateDeleted" timestamp without time zone,
-    "ExportID" character varying(32) NOT NULL,
+    "ExportID" character varying(32),
     data_source_id integer,
     pending_date_deleted date,
     source_hash character varying,
@@ -13165,7 +13165,9 @@ CREATE TABLE public.hmis_dqt_clients (
     veteran_status integer,
     ssn integer,
     ssn_data_quality integer,
-    ethnicity integer
+    name_data_quality integer,
+    ethnicity integer,
+    reporting_age integer
 );
 
 
@@ -50372,6 +50374,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220930194814'),
 ('20221006193112'),
 ('20221007152924'),
-('20221013195245');
+('20221013195245'),
+('20221014144316');
 
 
