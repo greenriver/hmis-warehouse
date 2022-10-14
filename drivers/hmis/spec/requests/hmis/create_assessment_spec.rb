@@ -29,13 +29,14 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     {
       enrollment_id: e1.id.to_s,
       assessment_role: 'INTAKE',
+      assessment_date: (Date.today - 2.days).strftime('%Y-%m-%d'),
     }
   end
 
   let(:mutation) do
     <<~GRAPHQL
-      mutation CreateAssessment($enrollmentId: ID!, $assessmentRole: String!) {
-        createAssessment(input: { enrollmentId: $enrollmentId, assessmentRole: $assessmentRole }) {
+      mutation CreateAssessment($enrollmentId: ID!, $assessmentRole: String!, $assessmentDate: String) {
+        createAssessment(input: { enrollmentId: $enrollmentId, assessmentRole: $assessmentRole, assessmentDate: $assessmentDate }) {
           assessment {
             id
             enrollment {
@@ -78,7 +79,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   it 'should create an assessment successfully' do
-    response, result = post_graphql(test_input) { mutation }
+    response, result = post_graphql(**test_input) { mutation }
 
     expect(response.status).to eq 200
     assessment = result.dig('data', 'createAssessment', 'assessment')

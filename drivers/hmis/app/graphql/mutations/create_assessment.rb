@@ -1,7 +1,8 @@
 module Mutations
   class CreateAssessment < BaseMutation
-    argument :enrollment_id, ID, required: false
+    argument :enrollment_id, ID, required: true
     argument :assessment_role, String, required: true
+    date_string_argument :assessment_date, 'Date with format yyyy-mm-dd', required: false
 
     field :assessment, Types::HmisSchema::Assessment, null: true
     field :errors, [Types::HmisSchema::ValidationError], null: false
@@ -13,7 +14,7 @@ module Mutations
       errors
     end
 
-    def resolve(enrollment_id:, assessment_role:)
+    def resolve(enrollment_id:, assessment_role:, assessment_date: nil)
       user = hmis_user
 
       enrollment = Hmis::Hud::Enrollment.find_by(id: enrollment_id)
@@ -28,13 +29,11 @@ module Mutations
         user_id: user.user_id,
         personal_id: enrollment.personal_id,
         assessment_id: Hmis::Hud::Assessment.generate_assessment_id,
-        # START These values will probably end up being nullable, but aren't now
-        assessment_date: Date.today,
-        assessment_location: 'Test Location',
-        assessment_type: 1,
-        assessment_level: 1,
-        prioritization_status: 1,
-        # END These values will probably end up being nullable, but aren't now
+        assessment_date: assessment_date ? Date.strptime(assessment_date) : Date.today,
+        assessment_location: enrollment.project.project_name,
+        assessment_type: ::HUD.ignored_enum_value,
+        assessment_level: ::HUD.ignored_enum_value,
+        prioritization_status: ::HUD.ignored_enum_value,
         date_created: Date.today,
         date_updated: Date.today,
       }
