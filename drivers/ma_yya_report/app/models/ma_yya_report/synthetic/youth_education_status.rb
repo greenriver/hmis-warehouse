@@ -17,7 +17,7 @@ module MaYyaReport::Synthetic
     def data_collection_stage
       # TODO: How loose do these need to be?
       return 1 if information_date == enrollment.EntryDate
-      return 3 if information_date == enrollment.exit.ExitDate
+      return 3 if information_date == enrollment.exit&.ExitDate
 
       # TODO: do we need annual assessments?
       2
@@ -58,7 +58,7 @@ module MaYyaReport::Synthetic
 
     def self.find_enrollment(status)
       date = Date.strptime(status.api_response['ResponseCreatedDateAsString'], '%m/%d/%Y')
-      scope = status.client.source_enrollments.
+      scope = status.client.enrollments.
         where(ProjectID: status.api_response['ProgramID']).
         open_on_date(date).
         order(EntryDate: :desc)

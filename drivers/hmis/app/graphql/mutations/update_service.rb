@@ -18,7 +18,7 @@ module Mutations
       end
 
       {
-        service: service,
+        service: service&.valid? ? service : nil,
         errors: errors,
       }
     end
