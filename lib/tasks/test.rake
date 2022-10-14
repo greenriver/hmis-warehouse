@@ -22,10 +22,15 @@ namespace :test do
     TestJob.perform_now
   end
 
+  desc 'Test generating an Exception'
+  task :exception, [] => [:environment] do |t, args|
+    raise Exception.new('An Exception has been raised from within a Rake task.')
+  end
+
   desc 'Test Sentry'
   task :sentry, [] => [:environment] do |t, args|
     msg = "Testing Sentry from #{Rails.env} for hmis-warehouse"
-    puts msg
-    raise Exception.new(msg)
+    Sentry.capture_message(msg)
+    Sentry.capture_exception(Exception.new(msg))
   end
 end

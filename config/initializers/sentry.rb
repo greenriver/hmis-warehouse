@@ -1,18 +1,20 @@
 # frozen_string_literal: true
 
+# ENV['SENTRY_DSN'] is reserved by Sentry and its use seems to prevent this initializer from being recognized.
+# Hence, we use WAREHOUSE_SENTRY_DSN. Any other alternate key should also be fine.
 if ENV['WAREHOUSE_SENTRY_DSN'].present?
   Sentry.init do |config|
     config.dsn = ENV['WAREHOUSE_SENTRY_DSN']
     config.breadcrumbs_logger = [:active_support_logger, :http_logger]
 
-    # config.enabled_environments = %w[production staging]
+    config.enabled_environments = %w[production staging development] # Remove development when dev is done.
     config.environment = Rails.env
 
-    # if config.enabled_environments.include?(config.environment) && config.dsn.to_s.match?(/sentry\.io/)
-    #   Rails.logger.info 'Looks like sentry is enabled'
-    # else
-    #   Rails.logger.info 'Looks like sentry is NOT enabled'
-    # end
+    if config.enabled_environments.include?(config.environment) && config.dsn.to_s.match?(/sentry\.io/)
+      Rails.logger.info "Enabling Sentry for environment #{config.environment}"
+    else
+      Rails.logger.error "Cannot enable Sentry for environment #{config.environment}"
+    end
 
     config.release = File.read('REVISION') if File.exist?('REVISION')
 
@@ -23,9 +25,6 @@ if ENV['WAREHOUSE_SENTRY_DSN'].present?
     config.before_send = ->(event, hint) do
       filter.filter(event.to_hash)
     end
-
-    # config.excluded_exceptions += ['ActionController::UnknownHttpMethod']
-    # config.traces_sample_rate = 0
   end
 end
 
