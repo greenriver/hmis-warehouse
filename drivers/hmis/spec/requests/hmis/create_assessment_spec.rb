@@ -35,7 +35,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   let(:mutation) do
     <<~GRAPHQL
-      mutation CreateAssessment($enrollmentId: ID!, $assessmentRole: String!, $assessmentDate: String) {
+      mutation CreateAssessment($enrollmentId: ID!, $assessmentRole: AssessmentRole!, $assessmentDate: String) {
         createAssessment(input: { enrollmentId: $enrollmentId, assessmentRole: $assessmentRole, assessmentDate: $assessmentDate }) {
           assessment {
             id

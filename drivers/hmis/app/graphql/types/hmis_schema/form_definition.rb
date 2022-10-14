@@ -11,7 +11,7 @@ module Types
     description 'HUD FormDefinition'
     field :id, ID, null: false
     field :version, Int, null: false
-    field :role, String, null: false
+    field :role, HmisSchema::Enums::AssessmentRole, null: false
     field :status, String, null: false
     field :identifier, String, null: false
     field :definition, JsonObject, null: false

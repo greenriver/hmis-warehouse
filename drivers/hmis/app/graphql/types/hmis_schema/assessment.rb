@@ -11,7 +11,7 @@ module Types
     description 'HUD Assessment'
     field :id, ID, null: false
     field :enrollment, HmisSchema::Enrollment, null: false
-    field :assessment_date, GraphQL::Types::ISO8601DateTime, null: false
+    field :assessment_date, GraphQL::Types::ISO8601Date, null: false
     field :assessment_location, String, null: false
     field :assessment_type, HmisSchema::Enums::AssessmentType, null: true
     field :assessment_level, HmisSchema::Enums::AssessmentLevel, null: true

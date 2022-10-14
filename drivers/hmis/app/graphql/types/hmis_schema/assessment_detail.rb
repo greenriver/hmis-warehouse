@@ -13,7 +13,7 @@ module Types
     field :definition, HmisSchema::FormDefinition, null: false
     field :assessment, HmisSchema::Assessment, null: false
     field :data_collection_stage, HmisSchema::Enums::DataCollectionStage, null: true
-    field :role, String, null: false
+    field :role, HmisSchema::Enums::AssessmentRole, null: false
     field :status, String, null: false
 
     def assessment

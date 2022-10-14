@@ -1,7 +1,7 @@
 module Mutations
   class CreateAssessment < BaseMutation
     argument :enrollment_id, ID, required: true
-    argument :assessment_role, String, required: true
+    argument :assessment_role, Types::HmisSchema::Enums::AssessmentRole, required: true
     date_string_argument :assessment_date, 'Date with format yyyy-mm-dd', required: false
 
     field :assessment, Types::HmisSchema::Assessment, null: true
