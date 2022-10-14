@@ -3,7 +3,7 @@ ws_title = "#{@result.category} #{@result.title}"
 
 wb.add_worksheet(name: ws_title.slice(0, 30).gsub(':', ' ').gsub('/', '-')) do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
-  headers = @result.item_class.detail_headers
+  headers = @result.item_class.detail_headers_for_export
   sheet.add_row(headers.values, style: title)
   @items.each do |client|
     row = []

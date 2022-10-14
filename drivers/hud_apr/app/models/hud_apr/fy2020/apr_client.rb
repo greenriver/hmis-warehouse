@@ -24,5 +24,11 @@ module HudApr::Fy2020
         [h, h.humanize]
       end.to_h
     end
+
+    def self.detail_headers_for_export
+      return detail_headers if GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+
+      detail_headers.except('first_name', 'last_name', 'dob', 'ssn')
+    end
   end
 end
