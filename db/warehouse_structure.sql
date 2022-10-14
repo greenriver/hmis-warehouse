@@ -5409,7 +5409,8 @@ CREATE TABLE public.configs (
     youth_hoh_cohort_project_group_id integer,
     chronic_tab_justifications boolean DEFAULT true,
     chronic_tab_roi boolean,
-    filter_date_span_years integer DEFAULT 1 NOT NULL
+    filter_date_span_years integer DEFAULT 1 NOT NULL,
+    include_pii_in_detail_downloads boolean DEFAULT true
 );
 
 
@@ -50370,6 +50371,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220928164029'),
 ('20220930194814'),
 ('20221006193112'),
-('20221007152924');
+('20221007152924'),
+('20221013195245');
 
 
