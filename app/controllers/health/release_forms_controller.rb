@@ -78,6 +78,7 @@ module Health
 
     private def form_params
       local_params = params.require(:form).permit(
+        :participation_signature_on,
         :signature_on,
         :reviewed_by_supervisor,
         :verbal_approval,
