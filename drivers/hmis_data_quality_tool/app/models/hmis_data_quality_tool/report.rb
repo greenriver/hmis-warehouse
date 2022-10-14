@@ -257,6 +257,8 @@ module HmisDataQualityTool
             exit_date_issues: Enrollment,
             enrollment_outside_project_operating_dates_issues: Enrollment,
             dv_at_entry: Enrollment,
+          },
+          'Enrollment Length' => {
             lot_es_90_issues: Enrollment,
             lot_es_180_issues: Enrollment,
             lot_es_365_issues: Enrollment,
