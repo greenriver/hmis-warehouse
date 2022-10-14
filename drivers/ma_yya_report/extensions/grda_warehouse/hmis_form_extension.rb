@@ -10,8 +10,8 @@ module MaYyaReport
 
         # If we didn't find one, try the older format
         legacy_answers = answer_from_section(section_starts_with('First Page'), 'Level of education')
-        return 2 if legacy_answers&.contains?('YYA is currently enrolled in college|') # Assume attending if enrolled
-        return 0 if legacy_answers&.contains?('YYA has completed high school or GED/HISET|') # If completed, but not in college, assume not enrolled
+        return 2 if legacy_answers&.include?('YYA is currently enrolled in college|') # Assume attending if enrolled
+        return 0 if legacy_answers&.include?('YYA has completed high school or GED/HISET|') # If completed, but not in college, assume not enrolled
 
         # Finally, give up
         nil
@@ -24,8 +24,8 @@ module MaYyaReport
 
         # If we didn't find one, try the older format
         legacy_answers = answer_from_section(section_starts_with('First Page'), 'Level of education')
-        return 2 if legacy_answers&.contains?('YYA is currently enrolled in college|') # Assume attending if enrolled
-        return 0 if legacy_answers&.contains?('YYA has completed high school or GED/HISET|') # If completed, but not in college, assume not enrolled
+        return 2 if legacy_answers&.include?('YYA is currently enrolled in college|') # Assume attending if enrolled
+        return 0 if legacy_answers&.include?('YYA has completed high school or GED/HISET|') # If completed, but not in college, assume not enrolled
 
         # Finally, give up
         nil
@@ -38,8 +38,8 @@ module MaYyaReport
 
         # If we didn't find one, try the older format
         legacy_answers = answer_from_section(section_starts_with('First Page'), 'Level of education')
-        return 2 if legacy_answers&.contains?('YYA is currently enrolled in college|') # If they are in college, call it a 4-year
-        return nil if legacy_answers&.contains?('YYA has completed high school or GED/HISET|') # reported in most_recent_educational_status
+        return 2 if legacy_answers&.include?('YYA is currently enrolled in college|') # If they are in college, call it a 4-year
+        return nil if legacy_answers&.include?('YYA has completed high school or GED/HISET|') # reported in most_recent_educational_status
 
         # Finally, give up
         nil
