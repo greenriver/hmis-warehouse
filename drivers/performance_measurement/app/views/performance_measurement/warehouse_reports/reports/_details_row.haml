@@ -87,7 +87,6 @@
         tooltip: {
           contents: (d, defaultTitleFormat, defaultValueFormat, color) => {
             const data = d[0];
-
             // Build ratio description
             let description = '';
             const denominatorLabel = "#{@report.detail_denominator_label_for(key)}";
@@ -105,13 +104,18 @@
             html += "</thead>";
             html += "<tbody>";
 
-            const bg_color = color(data.id);
-            const box = `<td style='white-space: nowrap;'><svg><rect style='fill:${bg_color}' width='10' height='10'></rect></svg>${data.name}</td>`;
-            const value = `<td style='white-space: nowrap;'>${defaultValueFormat(data.value)}${description}</td>`;
-            html += box;
-            html += value;
-            if (goal)
-              html += `<td style='white-space: nowrap;'>${defaultValueFormat(goal)}</td>`;
+            d.forEach((row, index, arr) => {
+              html += "<tr>";
+              let bg_color = color(d[index].id);
+              let box = `<td style='white-space: nowrap;'><svg><rect style='fill:${bg_color}' width='10' height='10'></rect></svg>${d[index].name}</td>`;
+              let value = `<td style='white-space: nowrap;'>${defaultValueFormat(d[index].value)}${description}</td>`;
+              html += box;
+              html += value;
+              if (goal)
+                html += `<td style='white-space: nowrap;'>${defaultValueFormat(goal)}</td>`;
+            });
+
+
             html += "</tr>";
             html += "</tbody>";
             html += '</table>';

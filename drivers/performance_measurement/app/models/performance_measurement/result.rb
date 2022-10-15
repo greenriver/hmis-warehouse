@@ -74,15 +74,28 @@ module PerformanceMeasurement
     end
 
     def data_for_system_level_bar
+      average_metric = field.to_s.ends_with?('_average')
+      unit = if average_metric
+        'average days'
+      else
+        primary_unit
+      end
       columns = if percentage?
         [
           ['x', report_year, comparison_year],
-          [primary_unit, primary_value, comparison_primary_value],
+          [unit, primary_value, comparison_primary_value],
         ]
       else
         [
           ['x', comparison_year, report_year],
-          [primary_unit, comparison_primary_value, primary_value],
+          [unit, comparison_primary_value, primary_value],
+        ]
+      end
+      if average_metric
+        columns << [
+          'median days',
+          related_median.primary_value,
+          related_median.comparison_primary_value,
         ]
       end
       {
@@ -94,6 +107,10 @@ module PerformanceMeasurement
           centered: true,
         },
       }
+    end
+
+    def related_median
+      @related_median ||= report.results.find_by(field: field.gsub('_average', '_median'))
     end
 
     def data_for_projects_bar(user, period: :reporting)

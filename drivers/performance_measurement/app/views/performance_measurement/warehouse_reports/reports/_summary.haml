@@ -43,6 +43,7 @@
                         .performance-measurement--target-guage-target{ style: "margin-left: #{data.gauge_target}px;" }
                       .muted.text-sm
                         = data.number_for_goal
+                        = data.goal_unit
                     .col-md-3.d-flex
                       .ml-auto.mr-4= tagged(result[:passed], status, icon: icon, label: label)
               - row = @report.detail_hash[key]
