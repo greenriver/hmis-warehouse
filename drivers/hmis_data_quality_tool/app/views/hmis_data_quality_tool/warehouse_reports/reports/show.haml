@@ -11,8 +11,11 @@
   .justify-content-between
     - content_for :panel_collapse_content_universe, flush: true do
       .d-flex
-        .d-flex
-          = @report.describe_filter_as_html(@report.known_params)
+        = @report.describe_filter_as_html(@report.known_params)
+      %h3 Projects Included
+      %ul
+        - @report.filter.effective_projects.each do |project|
+          %li= link_to_if can_view_projects?, project.name(current_user), project_path(project)
     - content_for :panel_collapse_heading_universe do
       .d-flex.pt-4
         %h2.mb-4.mr-6 Chosen Universe

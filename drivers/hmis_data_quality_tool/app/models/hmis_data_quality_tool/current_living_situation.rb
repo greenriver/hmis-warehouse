@@ -18,16 +18,20 @@ module HmisDataQualityTool
 
     def self.detail_headers
       {
-        destination_client_id: 'Warehouse Client ID',
-        current_living_situation_id: 'Current Living Situation ID',
-        hmis_current_living_situation_id: 'HMIS Current Living Situation ID',
-        current_living_situation: 'Current Living Situation',
-        project_name: 'Project Name',
-        enrollment_id: 'Enrollment ID',
-        information_date: 'Information Date',
-        project_operating_start_date: 'Project Operating Start Date',
-        project_operating_end_date: 'Project Operating End Date',
+        destination_client_id: { title: 'Warehouse Client ID' },
+        current_living_situation_id: { title: 'Current Living Situation ID' },
+        hmis_current_living_situation_id: { title: 'HMIS Current Living Situation ID' },
+        current_living_situation: { title: 'Current Living Situation', translator: ->(v) { HUD.living_situation(v) } },
+        project_name: { title: 'Project Name' },
+        enrollment_id: { title: 'Enrollment ID' },
+        information_date: { title: 'Information Date' },
+        project_operating_start_date: { title: 'Project Operating Start Date' },
+        project_operating_end_date: { title: 'Project Operating End Date' },
       }.freeze
+    end
+
+    def self.detail_headers_for_export
+      detail_headers
     end
 
     # Because multiple of these calculations require inspecting unrelated enrollments
