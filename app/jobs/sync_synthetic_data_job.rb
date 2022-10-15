@@ -17,14 +17,10 @@ class SyncSyntheticDataJob < BaseJob
   def perform
     return unless CasBase.db_exists?
 
-    @notifier.ping('Processing synthetic data') if @send_notifications
-
     # Find CAS Non HMIS clients that should be connected to warehouse clients
     Cas::NonHmisClient.find_exact_matches
     GrdaWarehouse::Synthetic::Assessment.hud_sync
     GrdaWarehouse::Synthetic::Event.hud_sync
     GrdaWarehouse::Synthetic::YouthEducationStatus.hud_sync
-
-    @notifier.ping('Updated synthetic data') if @send_notifications
   end
 end

@@ -5,8 +5,11 @@
 ###
 
 class BaseJob < ApplicationJob
+  include ActionView::Helpers::DateHelper
   STARTING_PATH = File.realpath(FileUtils.pwd)
   include NotifierConfig
+
+  around_perform :log_start_done
 
   if ENV['ECS'] != 'true'
     # When called through Active::Job, uses this hook
@@ -50,11 +53,50 @@ class BaseJob < ApplicationJob
   end
 
   def notify_on_restart(msg)
-    Rails.logger.info msg
-    return unless File.exist?('config/exception_notifier.yml')
+    Rails.logger.tagged('DelayedJobRestarter') do
+      Rails.logger.info(msg)
+    end
+    # TODO: Prometheus metric
+  end
 
-    setup_notifier('DelayedJobRestarter')
-    @notifier.ping(msg) if @send_notifications
+  def start_message
+    "Starting job #{self.class}"
+  end
+
+  def done_message(elapsed_time = nil)
+    msg = "Done with job #{self.class}"
+    msg += " in #{elapsed_time}" if elapsed_time.present?
+    return msg
+  end
+
+  def progress_message(step, elapsed_time = nil)
+    msg = "Job #{self.class} completed: #{step}"
+    msg += " in #{elapsed_time}" if elapsed_time.present?
+    return msg
+  end
+
+  def log_start_done
+    Rails.logger.tagged(job: self.class) do
+      Rails.logger.tagged(job_status: 'starting') do
+        Rails.logger.info start_message
+      end
+
+      @start_time = Time.current
+
+      yield
+
+      @done_time = Time.current
+      Rails.logger.tagged(job_status: 'done', elapsed_time: @done_time - @start_time) do
+        Rails.logger.info done_message(distance_of_time_in_words(@start_time, @done_time))
+      end
+    end
+  end
+
+  def log_progress(step)
+    @last_step_time = Time.current
+    Rails.logger.tagged(job_status: 'in_progress', elapsed_time: @last_step_time - @start_time) do
+      Rails.logger.info progress_message(step, distance_of_time_in_words(@start_time, @last_step_time))
+    end
   end
 
   def expected_path

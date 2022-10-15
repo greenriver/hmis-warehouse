@@ -72,9 +72,12 @@ class Weather::NoaaService
     url = "#{@endpoint}#{path}?#{query_args.to_param}"
     begin
       JSON.parse(RestClient.get(url, token: @token).body)
-    rescue StandardError
-      setup_notifier('WeatherWarning')
-      @notifier.ping("Error contacting the weather API at #{url}") if @send_notifications
+    rescue StandardError => e
+      Sentry.with_scope do |scope|
+        scope.set_context('extra', { url: url })
+        Sentry.capture_exception(e)
+        Sentry.capture_message("Error contacting the weather API at #{url}")
+      end
     end
   end
 end

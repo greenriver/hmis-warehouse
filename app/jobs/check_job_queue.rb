@@ -13,11 +13,10 @@ class CheckJobQueue
   end
 
   def notify_of_hung_jobs
-    return unless File.exist?('config/exception_notifier.yml')
-
-    setup_notifier('DelayedJobQueue')
-    msg = 'One or more jobs have been queued for more than 24 hours'
-    @notifier.ping(msg) if @send_notifications
+    Rails.logger.tagged('DelayedJobQueue') do
+      Rails.logger.info('One or more jobs have been queued for more than 24 hours')
+    end
+    # TODO: Prometheus metric
   end
 
   def hung_job

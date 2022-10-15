@@ -17,10 +17,6 @@ class SystemCohortsJob < BaseJob
   def perform
     return unless GrdaWarehouse::Config.get(:enable_system_cohorts)
 
-    @notifier.ping('Processing system cohorts') if @send_notifications
-
     GrdaWarehouse::SystemCohorts::Base.update_all_system_cohorts
-
-    @notifier.ping('Processed system cohorts') if @send_notifications
   end
 end

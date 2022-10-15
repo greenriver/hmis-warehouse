@@ -298,9 +298,12 @@ module GrdaWarehouse::Hud
         return { address: address, lat: result.lat, lon: result.lon, boundingbox: result.boundingbox } if result.present?
       rescue NominatimApiPaused
         # Ignore errors if we are paused
-      rescue StandardError
-        setup_notifier('NominatimWarning')
-        @notifier.ping("Error contacting the OSM Nominatim API. Looking address for enrollment id: #{id}") if @send_notifications
+      rescue StandardError => e
+        Sentry.with_scope do |scope|
+          scope.set_context('extra', { enrollment_id: id })
+          Sentry.capture_exception(e)
+          Sentry.capture_message("Error contacting the OSM Nominatim API. Looking address for enrollment id: #{id}")
+        end
       end
       return nil
     end

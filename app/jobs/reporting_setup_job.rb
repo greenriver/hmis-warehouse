@@ -8,16 +8,14 @@ class ReportingSetupJob < BaseJob
   include ActionView::Helpers::DateHelper
   queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
 
+  def start_message; 'Reporting database updating' end
+
+  def done_message(t); "Reporting database updated in #{t}" end
+
   def perform
-    setup_notifier('ReportingSetupJob')
-    started_at = Time.current
-    @notifier.ping('Reporting database updating') if @send_notifications
     Reporting::Housed.new.populate!
-    elapsed = distance_of_time_in_words(started_at, Time.current)
-    @notifier.ping("Reporting database Housed completed in #{elapsed}, starting Return") if @send_notifications
+    log_progress('Housed done, starting Return')
     Reporting::Return.new.populate!
-    elapsed = distance_of_time_in_words(started_at, Time.current)
-    @notifier.ping("Reporting database updated in #{elapsed}") if @send_notifications
   end
 
   def max_attempts
