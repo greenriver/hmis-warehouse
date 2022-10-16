@@ -10,7 +10,7 @@ class TestJob < BaseJob
   def perform(length_in_seconds: 10, memory_bloat_per_second: 10_000_000)
     a = Time.now
 
-    log_progress("Testing!")
+    log_progress('Testing!')
 
     bloater = {}
 
