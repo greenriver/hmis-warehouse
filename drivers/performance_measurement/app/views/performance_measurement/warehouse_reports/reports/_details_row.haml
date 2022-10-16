@@ -54,7 +54,6 @@
         axisMax = 100;
       }
       const tooltipTitles = #{result.titles_for_system_level_bar_tooltip.to_json.html_safe}
-
       data.labels.format = function (v, id, i, texts) {
         if (v < (axisMax || max) * 0.15) {
           return '';
@@ -83,7 +82,7 @@
         padding: {
           top: 1,
         },
-        legend: { show: false },
+        legend: { show: data.columns.length > 2 },
         tooltip: {
           contents: (d, defaultTitleFormat, defaultValueFormat, color) => {
             const data = d[0];

@@ -80,17 +80,10 @@ module PerformanceMeasurement
       else
         primary_unit
       end
-      columns = if percentage?
-        [
-          ['x', report_year, comparison_year],
-          [unit, primary_value, comparison_primary_value],
-        ]
-      else
-        [
-          ['x', comparison_year, report_year],
-          [unit, comparison_primary_value, primary_value],
-        ]
-      end
+      columns = [
+        ['x', comparison_year, report_year],
+        [unit, comparison_primary_value, primary_value],
+      ]
       if average_metric
         columns << [
           'median days',
