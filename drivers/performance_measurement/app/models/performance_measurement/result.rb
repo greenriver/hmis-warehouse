@@ -145,5 +145,15 @@ module PerformanceMeasurement
       ]
       chart
     end
+
+    def tagged?
+      # For now, all system-level need tagging
+      return true if system_level
+
+      untagged = report.detail_for(field)[:untagged]
+      return false if untagged
+
+      true
+    end
   end
 end

@@ -19,7 +19,7 @@ module PerformanceMeasurement::Details
     end
 
     def detail_for(key)
-      detail_hash[key]
+      detail_hash[key&.to_sym]
     end
 
     def detail_title_for(key)
@@ -309,6 +309,7 @@ module PerformanceMeasurement::Details
           goal_direction: '-',
           goal_unit: '%',
           goal_calculation: :people,
+          untagged: true,
           denominator_label: '',
           calculation_description: 'The difference (as a percentage) between the total unduplicated number of persons who are sheltered homeless as reported in HMIS (in ES and TH projects) and seen within the report range and comparison range.',
           calculation_column: :served_on_pit_date_sheltered,
@@ -330,6 +331,7 @@ module PerformanceMeasurement::Details
           goal_direction: '-',
           goal_unit: '%',
           goal_calculation: :people,
+          untagged: true,
           denominator_label: '',
           calculation_description: 'The difference (as a percentage) between the total unduplicated number of persons who are unsheltered homeless as reported in HMIS (via SO projects) and seen within the report range and comparison range.',
           calculation_column: :served_in_range_unsheltered,
