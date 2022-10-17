@@ -1,7 +1,7 @@
 class AddSummaryFieldsToDqtReport < ActiveRecord::Migration[6.1]
   def change
     add_column :hmis_dqt_clients, :veteran_status, :integer
-    add_column :hmis_dqt_clients, :ssn, :integer
+    add_column :hmis_dqt_clients, :ssn, :string
     add_column :hmis_dqt_clients, :ssn_data_quality, :integer
     add_column :hmis_dqt_clients, :name_data_quality, :integer
     add_column :hmis_dqt_clients, :ethnicity, :integer
