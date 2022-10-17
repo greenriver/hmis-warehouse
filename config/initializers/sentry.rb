@@ -23,6 +23,7 @@ if ENV['WAREHOUSE_SENTRY_DSN'].present?
     # And: https://github.com/getsentry/sentry-ruby/issues/1140
     filter = ActiveSupport::ParameterFilter.new(Rails.application.config.filter_parameters)
     config.before_send = ->(event, hint) do
+      event.user = { id: current_user.id } if event.user.empty? && defined?(current_user)
       filter.filter(event.to_hash)
     end
   end
