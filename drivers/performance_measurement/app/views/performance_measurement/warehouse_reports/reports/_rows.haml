@@ -12,9 +12,8 @@
           .p-4
             = render 'row', key: key, row: row
           - if sub_keys.present?
+            - next if @report.result_includes_median?(key)
             - title = 'Breakdowns'
-            - include_median = key.to_s.ends_with?('_average')
-            - title = 'Median Days' if include_median
             - content_for "panel_collapse_content_#{sub_keys.first}".to_sym do
               - sub_keys.each.with_index do |key, idx|
                 - if @report.show_row?(key)
