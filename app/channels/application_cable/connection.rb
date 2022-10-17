@@ -9,6 +9,7 @@ module ApplicationCable
     identified_by :current_user
     def connect
       self.current_user = find_verified_user
+      Sentry.configure_scope { |scope| scope.set_user(id: self.current_user.id ) }
       logger.add_tags "ActionCable", current_user.id
     end
 
