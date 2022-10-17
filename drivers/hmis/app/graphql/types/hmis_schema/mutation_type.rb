@@ -18,6 +18,15 @@ module Types
     field :update_organization, mutation: Mutations::UpdateOrganization
     field :create_project, mutation: Mutations::CreateProject
     field :update_project, mutation: Mutations::UpdateProject
+    field :create_project_coc, mutation: Mutations::CreateProjectCoc
+    field :update_project_coc, mutation: Mutations::UpdateProjectCoc
+    field :delete_project_coc, mutation: Mutations::DeleteProjectCoc
+    field :create_funder, mutation: Mutations::CreateFunder
+    field :update_funder, mutation: Mutations::UpdateFunder
+    field :delete_funder, mutation: Mutations::DeleteFunder
+    field :create_inventory, mutation: Mutations::CreateInventory
+    field :update_inventory, mutation: Mutations::UpdateInventory
+    field :delete_inventory, mutation: Mutations::DeleteInventory
     field :create_service, mutation: Mutations::CreateService
     field :update_service, mutation: Mutations::UpdateService
     field :delete_service, mutation: Mutations::DeleteService

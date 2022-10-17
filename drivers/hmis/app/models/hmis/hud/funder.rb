@@ -15,4 +15,9 @@ class Hmis::Hud::Funder < Hmis::Hud::Base
   use_enum :funding_source_enum_map, ::HUD.funding_sources
 
   # TODO validate other_funder Required if 2.06.1 = 46
+
+  scope :viewable_by, ->(user) do
+    viewable_projects = Hmis::Hud::Project.viewable_by(user).pluck(:id)
+    where(project_id: viewable_projects, data_source_id: user.hmis_data_source_id)
+  end
 end

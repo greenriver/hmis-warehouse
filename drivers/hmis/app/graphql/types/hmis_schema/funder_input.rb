@@ -1,9 +1,9 @@
 module Types
-  class HmisSchema::ProjectInput < BaseInputObject
-    description 'HMIS Project CoC input'
+  class HmisSchema::FunderInput < BaseInputObject
+    description 'HMIS Funder input'
 
     argument :project_id, ID, required: false
-    argument :funder, HmisSchema::Enums::Funder, required: false
+    argument :funder, HmisSchema::Enums::FundingSource, required: false
     argument :other_funder, String, required: false
     argument :grant_id, String, required: false
     argument :start_date, GraphQL::Types::ISO8601Date, required: false
