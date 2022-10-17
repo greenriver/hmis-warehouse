@@ -1,5 +1,3 @@
-- if @client.requires_api_update?
-  - @client.update_via_api
 - caseworkers = @client.caseworkers(can_view_client_user_assignments: current_user.can_view_client_user_assignments)
 - eccovia_case_managers = []
 - if RailsDrivers.loaded.include?(:eccovia_data)

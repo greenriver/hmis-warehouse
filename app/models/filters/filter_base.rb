@@ -740,9 +740,11 @@ module Filters
 
     def ensure_date_span
       return unless enforce_one_year_range
-      return if last - first < 365
 
-      self.end = first + 1.years - 1.days
+      span = GrdaWarehouse::Config.get(:filter_date_span_years) || 1
+      return if last - first < span.years.in_days
+
+      self.end = first + span.years - 1.days
     end
 
     def default_comparison_pattern

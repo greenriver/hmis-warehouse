@@ -5,3 +5,4 @@
       = f.input :start, as: :date_picker, label: 'Start date of period'
     %div
       = f.input :end, as: :date_picker, label: 'End date of period'
+  %small.form-text The report period is limited to #{pluralize(GrdaWarehouse::Config.get(:filter_date_span_years), 'years')} and will automtically adjust the end date if you choose a larger time span.

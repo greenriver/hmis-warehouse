@@ -74,10 +74,12 @@ module HmisCsvImporter::Importer
       GrdaWarehouse::DataSource.with_advisory_lock("hud_import_#{data_source.id}") do
         start_import
         @import_log = import_log
+        log_timing :analyze_tables
         log_timing :pre_process!
         log_timing :validate_data_set!
         log_timing :aggregate!
         log_timing :cleanup_data_set!
+        log_timing :analyze_tables
         # refuse to proceed with the import if there are any errors and that setting is in effect
         if should_pause?
           pause_import
@@ -120,6 +122,13 @@ module HmisCsvImporter::Importer
       )
 
       loader_errors.positive? || db_errors.count.positive? || validation_errors.count.positive?
+    end
+
+    private def analyze_tables
+      importable_files.each_value do |klass|
+        query = "ANALYZE #{klass.quoted_table_name}"
+        klass.connection.execute(query)
+      end
     end
 
     # Move all data from the data lake to either the structured, or aggregated tables

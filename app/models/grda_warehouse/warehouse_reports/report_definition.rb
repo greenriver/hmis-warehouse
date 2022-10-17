@@ -215,13 +215,6 @@ module GrdaWarehouse::WarehouseReports
             health: false,
           },
           {
-            url: 'warehouse_reports/client_details/last_permanent_zips',
-            name: 'Last Permanent Zip Report',
-            description: 'List open enrollments within a date range and the zip codes of last permanent residence.',
-            limitable: true,
-            health: false,
-          },
-          {
             url: 'warehouse_reports/enrolled_project_type',
             name: 'Enrollments per project type',
             description: 'A list of clients who were enrolled in a set of project types for a given date range.',
@@ -840,6 +833,15 @@ module GrdaWarehouse::WarehouseReports
         ],
         'Population Dashboards' => [],
       }
+      if RailsDrivers.loaded.include?(:ma_yya_report)
+        r_list['Operational'] << {
+          url: 'ma_yya_report/warehouse_reports/reports',
+          name: 'MA Homeless Youth Program Report',
+          description: 'Downloadable MA YYA report.',
+          limitable: true,
+          health: false,
+        }
+      end
       if RailsDrivers.loaded.include?(:service_scanning)
         r_list['Operational'] << {
           url: 'service_scanning/warehouse_reports/scanned_services',
@@ -1278,7 +1280,9 @@ module GrdaWarehouse::WarehouseReports
         'performance_dashboards/household',
         'claims_reporting/warehouse_reports/performance',
         'warehouse_reports/initiatives',
+        'warehouse_reports/client_details/last_permanent_zips',
       ]
+      cleanup << 'ma_yya_report/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:ma_yya_report)
       cleanup << 'service_scanning/warehouse_reports/scanned_services' unless RailsDrivers.loaded.include?(:service_scanning)
       cleanup << 'core_demographics_report/warehouse_reports/core' unless RailsDrivers.loaded.include?(:core_demographics_report)
       unless RailsDrivers.loaded.include?(:claims_reporting)

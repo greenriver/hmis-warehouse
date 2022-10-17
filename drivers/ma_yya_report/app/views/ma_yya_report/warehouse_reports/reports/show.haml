@@ -1,0 +1,32 @@
+= content_for :crumbs do
+  = link_to ma_yya_report_warehouse_reports_reports_path do
+    = "« MA YYA Reports"
+%h1.mb-5
+  MA YYA Report
+
+.warehouse-reports__completed.d-flex
+  = @report.describe_filter_as_html
+.card
+  %table.table.table-striped
+    %tbody
+      - last_section = nil
+      - last_subsection = nil
+      - @report.labels.each do |label|
+        - section = label.to_s[0]
+        - subsection = label.to_s[0..1]
+        - if section != last_section
+          - last_section = section
+          %tr
+            %th{colspan: 3}
+              = @report.section_label(section)
+
+        - if subsection != last_subsection
+          - last_subsection = subsection
+          %tr
+            - subsection_label = @report.subsection_label(subsection)
+            %td{rowspan: "#{subsection_label[:rows]}", width: '20%'}
+              %i= subsection_label[:text]
+            = render 'row_contents', label: label
+        - else
+          %tr
+            = render 'row_contents', label: label

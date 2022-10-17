@@ -38,6 +38,7 @@ RSpec.shared_context 'path context FY2021', shared_context: :metadata do
   end
 
   def default_setup
+    GrdaWarehouse::Utility.clear!
     # Will use stored fixed point if one exists, instead of reprocessing the fixture, delete the fixpoint to regenerate
     warehouse = GrdaWarehouseBase.connection
 
@@ -45,17 +46,11 @@ RSpec.shared_context 'path context FY2021', shared_context: :metadata do
       restore_fixpoint :path_2021_hmis_export_app
       restore_fixpoint :path_2021_hmis_export_warehouse, connection: warehouse
     else
-      setup(default_setup_path)
+      import_hmis_csv_fixture(default_setup_path, version: 'AutoMigrate')
       store_fixpoint :path_2021_hmis_export_app
       store_fixpoint :path_2021_hmis_export_warehouse, connection: warehouse
       store_fixpoint :path_2021_hmis_export_warehouse, connection: warehouse
     end
-  end
-
-  def setup(file_path)
-    HmisCsvImporter::Utility.clear!
-    GrdaWarehouse::Utility.clear!
-    import_hmis_csv_fixture(file_path, version: 'AutoMigrate')
   end
 
   def cleanup

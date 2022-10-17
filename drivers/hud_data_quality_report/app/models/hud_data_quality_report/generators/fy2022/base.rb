@@ -51,8 +51,8 @@ module HudDataQualityReport::Generators::Fy2022
           household_types[hh_id] = household_makeup(hh_id, date)
           times_to_move_in[last_service_history_enrollment.client_id] = time_to_move_in(last_service_history_enrollment)
           move_in_dates[last_service_history_enrollment.client_id] = appropriate_move_in_date(last_service_history_enrollment)
-          approximate_move_in_dates[last_service_history_enrollment.client_id] = approximate_time_to_move_in(last_service_history_enrollment, age)
-          dates_to_street[last_service_history_enrollment.client_id] = date_to_street(last_service_history_enrollment, age)
+          approximate_move_in_dates[last_service_history_enrollment.client_id] = approximate_time_to_move_in(last_service_history_enrollment, age, hoh_enrollment)
+          dates_to_street[last_service_history_enrollment.client_id] = date_to_street(last_service_history_enrollment, age, hoh_enrollment)
         end
 
         pending_associations = {}
@@ -89,9 +89,13 @@ module HudDataQualityReport::Generators::Fy2022
             map(&:InformationDate).max
           disabilities_latest = enrollment.disabilities.select { |d| d.InformationDate == max_disability_date }
 
+          # Need to sort by information date, then DateUpdated to catch the most-recent
+          # added for the Datalab test kit
           health_and_dv = enrollment.health_and_dvs.
-            select { |h| h.InformationDate <= report_end_date && !h.DomesticViolenceVictim.nil? }.
-            max_by(&:InformationDate)
+            select do |h|
+              h.InformationDate <= @report.end_date && !h.DomesticViolenceVictim.nil?
+            end.
+            max_by { |h| [h.InformationDate, h.DateUpdated] }
 
           last_bed_night = enrollment.services.select do |s|
             s.RecordType == 200 && s.DateProvided < report_end_date
@@ -179,13 +183,14 @@ module HudDataQualityReport::Generators::Fy2022
             income_total_at_exit: income_at_exit&.hud_total_monthly_income,
             income_total_at_start: income_at_start&.hud_total_monthly_income,
             # NOTE: this is used for data quality, and should only look at the most recent disability
-            indefinite_and_impairs: disabilities_latest.detect(&:indefinite_and_impairs?).present?,
+            indefinite_and_impairs: disabilities_latest.detect(&:indefinite_and_impairs?),
             insurance_from_any_source_at_annual_assessment: income_at_annual_assessment&.InsuranceFromAnySource,
             insurance_from_any_source_at_exit: income_at_exit&.InsuranceFromAnySource,
             insurance_from_any_source_at_start: income_at_start&.InsuranceFromAnySource,
             last_date_in_program: last_service_history_enrollment.last_date_in_program,
             last_name: source_client.LastName,
             length_of_stay: stay_length(last_service_history_enrollment),
+
             mental_health_problem_entry: disabilities_at_entry.detect(&:mental?)&.DisabilityResponse,
             mental_health_problem_exit: disabilities_at_exit.detect(&:mental?)&.DisabilityResponse,
             mental_health_problem_latest: disabilities_latest.detect(&:mental?)&.DisabilityResponse,
@@ -243,10 +248,20 @@ module HudDataQualityReport::Generators::Fy2022
         client_living_situations = []
         clients.each do |dq_client|
           last_enrollment = enrollments_by_client_id[dq_client.destination_client_id].last.enrollment
-          last_enrollment.current_living_situations.each do |living_situation|
+          situations = last_enrollment.current_living_situations
+          engagement_date = last_enrollment.DateOfEngagement
+          # If we're looking at SO and don't have a CLS on the engagement date,
+          # add one of type "37" - "Worker unable to determine" because it doesn't count as missing.
+          if last_enrollment.project.so? && engagement_date.present? && ! situations.detect { |cls| cls.InformationDate == engagement_date }
+            client_living_situations << dq_client.hud_report_dq_living_situations.build(
+              information_date: engagement_date,
+              living_situation: 37,
+            )
+          end
+          situations.each do |living_situation|
             client_living_situations << dq_client.hud_report_dq_living_situations.build(
               information_date: living_situation.InformationDate,
-              living_situation: living_situation.CurrentLivingSituation,
+              living_situation: 37,
             )
           end
         end
@@ -263,8 +278,40 @@ module HudDataQualityReport::Generators::Fy2022
       enrollment_scope.
         where(client_id: batch.map(&:id)).
         order(first_date_in_program: :asc).
-        reject { |shs| shs.project_type == 4 && shs.enrollment.DateOfEngagement >= report_end_date }.
-        group_by(&:client_id)
+        group_by(&:client_id).
+        transform_values do |enrollments|
+          enrollments.select do |enrollment|
+            nbn_with_service?(enrollment)
+          end
+        end.
+        reject { |_, enrollments| enrollments.empty? }
+    end
+
+    private def nbn_with_service?(enrollment)
+      return true unless enrollment.nbn?
+
+      @with_service ||= GrdaWarehouse::ServiceHistoryService.bed_night.
+        service_excluding_extrapolated.
+        service_within_date_range(start_date: @report.start_date, end_date: @report.end_date).
+        where(service_history_enrollment_id: enrollment_scope_without_preloads.select(:id)).
+        pluck(:service_history_enrollment_id).to_set
+
+      @with_service.include?(enrollment.id)
+    end
+
+    private def engaged?(enrollment)
+      return true unless enrollment.so?
+      return false if enrollment.enrollment.DateOfEngagement.blank?
+
+      enrollment.enrollment.DateOfEngagement < @report.end_date
+    end
+
+    private def engaged_clause
+      a_t[:project_type].not_eq(4).or(
+        a_t[:project_type].eq(4).
+        and(a_t[:date_of_engagement].lt(@report.end_date).
+        and(a_t[:date_of_engagement].not_eq(nil))),
+      )
     end
 
     private def enrollment_scope
@@ -290,14 +337,13 @@ module HudDataQualityReport::Generators::Fy2022
     private def enrollment_scope_without_preloads
       scope = GrdaWarehouse::ServiceHistoryEnrollment.
         entry.
-        open_between(start_date: @report.start_date, end_date: report_end_date).
-        joins(:enrollment, :project).
-        where(
-          p_t[:ProjectType].not_eq(4).
-          or(
-            p_t[:ProjectType].eq(4).
-              and(e_t[:DateOfEngagement].lt(report_end_date)),
-          ),
+        open_between(start_date: @report.start_date, end_date: @report.end_date).
+        joins(:enrollment).
+        left_outer_joins(enrollment: :enrollment_coc_at_entry).
+        merge(
+          GrdaWarehouse::Hud::EnrollmentCoc.where(CoCCode: @report.coc_codes).
+          or(GrdaWarehouse::Hud::EnrollmentCoc.where(CoCCode: nil)).
+          or(GrdaWarehouse::Hud::EnrollmentCoc.where.not(CoCCode: HUD.cocs.keys)),
         )
       scope = scope.in_project(@report.project_ids) if @report.project_ids.present? # for consistency with client_scope
       scope
