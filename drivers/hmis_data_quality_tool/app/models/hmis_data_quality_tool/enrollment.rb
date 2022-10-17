@@ -80,6 +80,7 @@ module HmisDataQualityTool
         insurance_as_expected_at_entry: { title: 'Insurance as expected at entry' },
         insurance_as_expected_at_annual: { title: 'Insurance as expected at annual assessment' },
         insurance_as_expected_at_exit: { title: 'Insurance as expected at exit' },
+        ch_at_entry: { title: 'Chronically Homeless at Entry' },
       }.freeze
     end
 
@@ -177,6 +178,7 @@ module HmisDataQualityTool
       report_item.project_tracking_method = project_tracking_method
       report_age_date = [enrollment.EntryDate, report.filter.start].max
       report_item.age = enrollment.client.age_on(report_age_date)
+      report_item.ch_at_entry = enrollment.chronically_homeless_at_start?
 
       hh = report.household(enrollment.HouseholdID)
       hoh = hh.detect(&:head_of_household?) || enrollment

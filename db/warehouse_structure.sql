@@ -13167,7 +13167,9 @@ CREATE TABLE public.hmis_dqt_clients (
     ssn_data_quality integer,
     name_data_quality integer,
     ethnicity integer,
-    reporting_age integer
+    reporting_age integer,
+    ch_at_most_recent_entry boolean DEFAULT false,
+    ch_at_any_entry boolean DEFAULT false
 );
 
 
@@ -13307,7 +13309,8 @@ CREATE TABLE public.hmis_dqt_enrollments (
     insurance_as_expected_at_entry boolean DEFAULT false,
     insurance_as_expected_at_annual boolean DEFAULT false,
     insurance_as_expected_at_exit boolean DEFAULT false,
-    disability_at_entry_collected boolean DEFAULT false
+    disability_at_entry_collected boolean DEFAULT false,
+    ch_at_entry boolean DEFAULT false
 );
 
 
@@ -50375,6 +50378,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20221006193112'),
 ('20221007152924'),
 ('20221013195245'),
-('20221014144316');
+('20221014144316'),
+('20221017180229');
 
 

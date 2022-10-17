@@ -44,6 +44,8 @@ module HmisDataQualityTool
         overlapping_nbn: { title: 'Overlapping Night-by-Night ES enrollments with other ES, SH, and TH' },
         overlapping_pre_move_in: { title: 'Overlapping Homeless Service After Move-in in PH' },
         overlapping_post_move_in: { title: 'Overlapping Moved-in PH' },
+        ch_at_most_recent_entry: { title: 'Chronically Homeless at Most-Recent Entry' },
+        ch_at_any_entry: { title: 'Chronically Homeless at Any Entry' },
       }.freeze
     end
 
@@ -124,12 +126,17 @@ module HmisDataQualityTool
       report_item.veteran_status = client.VeteranStatus
       report_item.ssn = client.SSN
       report_item.ssn_data_quality = client.SSNDataQuality
-      # we need these for calculations, but don't want to store them permanently
-      report_item.enrollments = client.source_enrollments
+      # we need these for calculations, but don't want to store them permanently,
+      # also, limit them to those that overlap the projects included and the date range of the report
+      report_item.enrollments = client.source_enrollments.select do |en|
+        en.open_during_range?(report.filter.range) && en.project.id.in?(report.filter.effective_project_ids)
+      end
       report_item.overlapping_entry_exit = overlapping_entry_exit(enrollments: report_item.enrollments, report: report)
       report_item.overlapping_nbn = overlapping_nbn(enrollments: report_item.enrollments, report: report)
       report_item.overlapping_pre_move_in = overlapping_homeless_post_move_in(enrollments: report_item.enrollments, report: report)
       report_item.overlapping_post_move_in = overlapping_post_move_in(enrollments: report_item.enrollments, report: report)
+      report_item.ch_at_most_recent_entry = report_item.enrollments&.max_by(&:EntryDate)&.chronically_homeless_at_start?
+      report_item.ch_at_any_entry = report_item.enrollments.map(&:chronically_homeless_at_start?)&.any?
       report_item
     end
 

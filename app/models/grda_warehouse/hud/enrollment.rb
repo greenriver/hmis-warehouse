@@ -251,6 +251,10 @@ module GrdaWarehouse::Hud
       update_all(processed_as: nil, processed_hash: nil)
     end
 
+    def open_during_range?(range)
+      self.EntryDate <= range.last && exit&.ExitDate.blank? || exit.ExitDate > range.first
+    end
+
     # attempt to collect something like an address out of the LastX fields
     def address
       @address ||= begin
