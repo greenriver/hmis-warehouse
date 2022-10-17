@@ -6,7 +6,7 @@ module MaYyaReport
       def current_school_attendance
         # First look for the HUD questions
         hud_answer = answer_from_section(section_starts_with('First Page'), 'Current school enrollment')
-        return HUD.most_recent_ed_status(hud_answer, true) if hud_answer.present?
+        return HUD.current_school_attended(hud_answer, true) if hud_answer.present?
 
         # If we didn't find one, try the older format
         legacy_answers = answer_from_section(section_starts_with('First Page'), 'Level of education')
