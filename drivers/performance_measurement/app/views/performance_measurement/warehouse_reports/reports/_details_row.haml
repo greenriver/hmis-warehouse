@@ -6,6 +6,13 @@
     - status = result.passed ? 'success' : 'danger'
     - icon = result.passed ? 'check' : 'cross'
     - label = result.passed ? 'Passed' : 'Failed'
+    - primary_value = result.primary_value.to_s
+    - primary_value += ' %' if result.percentage?
+    - primary_unit = result.primary_unit.sub('% ', '')
+    - if @report.result_includes_median?(result.field)
+      - primary_unit = "Average #{primary_unit}"
+      - median = result.related_median
+      - median_unit = "Median #{median.primary_unit}"
     .row
       .col-sm-4
         - if result.tagged?
@@ -13,12 +20,15 @@
       .col-sm-4
         .performance-measurement__result-number.font-weight-bold= "#{result.secondary_value} #{result.secondary_unit}"
         .text-capitalize= sanitize(result.value_label)
+        - if @report.result_includes_median?(result.field)
+          .performance-measurement__result-number.font-weight-bold.mt-4= "#{median.secondary_value} #{median.secondary_unit}"
+          .text-capitalize= sanitize(median.value_label)
       .col-sm-4
-        - primary_value = result.primary_value.to_s
-        - primary_value += ' %' if result.percentage?
-        - primary_unit = result.primary_unit.sub('% ', '')
         .performance-measurement__result-number.font-weight-bold= primary_value
         .text-capitalize= primary_unit
+        - if @report.result_includes_median?(result.field)
+          .performance-measurement__result-number.font-weight-bold.mt-4= median.primary_value.to_s
+          .text-capitalize= median_unit
 
   .col-6
     %div

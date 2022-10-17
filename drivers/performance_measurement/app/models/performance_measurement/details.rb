@@ -34,6 +34,10 @@ module PerformanceMeasurement::Details
       detail_for(key)[:sub_category]
     end
 
+    def result_includes_median?(key)
+      key.to_s.ends_with?('_average')
+    end
+
     def detail_words_for(column)
       if column == :both
         'System & Project Level'
