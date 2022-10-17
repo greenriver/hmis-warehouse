@@ -1,6 +1,5 @@
 module Mutations
   class UpdateInventory < BaseMutation
-    # includes InventoryMutation
     argument :id, ID, required: true
     argument :input, Types::HmisSchema::InventoryInput, required: true
 

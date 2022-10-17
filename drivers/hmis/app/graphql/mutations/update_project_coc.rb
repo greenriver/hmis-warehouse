@@ -1,6 +1,5 @@
 module Mutations
   class UpdateProjectCoc < BaseMutation
-    # includes InventoryMutation
     argument :id, ID, required: true
     argument :input, Types::HmisSchema::ProjectCocInput, required: true
 

@@ -1,6 +1,5 @@
 module Mutations
   class UpdateFunder < BaseMutation
-    # includes InventoryMutation
     argument :id, ID, required: true
     argument :input, Types::HmisSchema::FunderInput, required: true
 
