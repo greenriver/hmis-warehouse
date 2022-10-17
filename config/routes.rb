@@ -884,7 +884,6 @@ Rails.application.routes.draw do
     get :details
     get :actioncable
     get :ping
-    get :exception
   end
 
   root 'root#index'

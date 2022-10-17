@@ -7,10 +7,6 @@
 class SystemStatusController < ApplicationController
   skip_before_action :authenticate_user!
 
-  def exception
-    raise 'A forced exception for testing purposes.'
-  end
-
   def ping
     Rails.logger.info 'Ping [info]'
     Rails.logger.debug 'Ping [debug]'
