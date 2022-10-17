@@ -727,6 +727,272 @@ type FormDefinition {
 }
 
 """
+HUD Funder
+"""
+type Funder {
+  dateCreated: ISO8601DateTime!
+  dateDeleted: ISO8601DateTime
+  dateUpdated: ISO8601DateTime!
+  endDate: ISO8601Date
+  funder: FundingSource!
+  grantId: String!
+  id: ID!
+  otherFunder: String
+  project: Project!
+  startDate: ISO8601Date!
+}
+
+"""
+HUD Funding Source (2.06.1)
+"""
+enum FundingSource {
+  """
+  (21) HHS: PATH - Street Outreach & Supportive Services Only
+  """
+  HHS_PATH_STREET_OUTREACH_SUPPORTIVE_SERVICES_ONLY
+
+  """
+  (22) HHS: RHY - Basic Center Program (prevention and shelter)
+  """
+  HHS_RHY_BASIC_CENTER_PROGRAM_PREVENTION_AND_SHELTER_
+
+  """
+  (26) HHS: RHY - Demonstration Project
+  """
+  HHS_RHY_DEMONSTRATION_PROJECT
+
+  """
+  (23) HHS: RHY - Maternity Group Home for Pregnant and Parenting Youth
+  """
+  HHS_RHY_MATERNITY_GROUP_HOME_FOR_PREGNANT_AND_PARENTING_YOUTH
+
+  """
+  (25) HHS: RHY - Street Outreach Project
+  """
+  HHS_RHY_STREET_OUTREACH_PROJECT
+
+  """
+  (24) HHS: RHY - Transitional Living Program
+  """
+  HHS_RHY_TRANSITIONAL_LIVING_PROGRAM
+
+  """
+  (1) HUD: CoC - Homelessness Prevention (High Performing Communities Only)
+  """
+  HUD_COC_HOMELESSNESS_PREVENTION_HIGH_PERFORMING_COMMUNITIES_ONLY_
+
+  """
+  (49) HUD: CoC - Joint Component RRH/PSH 
+  """
+  HUD_COC_JOINT_COMPONENT_RRH_PSH_
+
+  """
+  (44) HUD: CoC - Joint Component TH/RRH
+  """
+  HUD_COC_JOINT_COMPONENT_TH_RRH
+
+  """
+  (2) HUD: CoC - Permanent Supportive Housing
+  """
+  HUD_COC_PERMANENT_SUPPORTIVE_HOUSING
+
+  """
+  (3) HUD: CoC - Rapid Re-Housing
+  """
+  HUD_COC_RAPID_RE_HOUSING
+
+  """
+  (6) HUD: CoC - Safe Haven
+  """
+  HUD_COC_SAFE_HAVEN
+
+  """
+  (7) HUD: CoC - Single Room Occupancy (SRO)
+  """
+  HUD_COC_SINGLE_ROOM_OCCUPANCY_SRO_
+
+  """
+  (4) HUD: CoC - Supportive Services Only
+  """
+  HUD_COC_SUPPORTIVE_SERVICES_ONLY
+
+  """
+  (5) HUD: CoC - Transitional Housing
+  """
+  HUD_COC_TRANSITIONAL_HOUSING
+
+  """
+  (43) HUD: CoC - Youth Homeless Demonstration Program (YHDP)
+  """
+  HUD_COC_YOUTH_HOMELESS_DEMONSTRATION_PROGRAM_YHDP_
+
+  """
+  (47) HUD: ESG - CV
+  """
+  HUD_ESG_CV
+
+  """
+  (8) HUD: ESG - Emergency Shelter (operating and/or essential services)
+  """
+  HUD_ESG_EMERGENCY_SHELTER_OPERATING_AND_OR_ESSENTIAL_SERVICES_
+
+  """
+  (9) HUD: ESG - Homelessness Prevention 
+  """
+  HUD_ESG_HOMELESSNESS_PREVENTION_
+
+  """
+  (10) HUD: ESG - Rapid Rehousing
+  """
+  HUD_ESG_RAPID_REHOUSING
+
+  """
+  (11) HUD: ESG - Street Outreach
+  """
+  HUD_ESG_STREET_OUTREACH
+
+  """
+  (50) HUD: HOME
+  """
+  HUD_HOME
+
+  """
+  (51) HUD: HOME (ARP)
+  """
+  HUD_HOME_ARP_
+
+  """
+  (48) HUD: HOPWA - CV
+  """
+  HUD_HOPWA_CV
+
+  """
+  (13) HUD: HOPWA - Hotel/Motel Vouchers
+  """
+  HUD_HOPWA_HOTEL_MOTEL_VOUCHERS
+
+  """
+  (14) HUD: HOPWA - Housing Information
+  """
+  HUD_HOPWA_HOUSING_INFORMATION
+
+  """
+  (15) HUD: HOPWA - Permanent Housing (facility based or TBRA)
+  """
+  HUD_HOPWA_PERMANENT_HOUSING_FACILITY_BASED_OR_TBRA_
+
+  """
+  (16) HUD: HOPWA - Permanent Housing Placement
+  """
+  HUD_HOPWA_PERMANENT_HOUSING_PLACEMENT
+
+  """
+  (17) HUD: HOPWA - Short-Term Rent, Mortgage, Utility assistance
+  """
+  HUD_HOPWA_SHORT_TERM_RENT_MORTGAGE_UTILITY_ASSISTANCE
+
+  """
+  (18) HUD: HOPWA - Short-Term Supportive Facility
+  """
+  HUD_HOPWA_SHORT_TERM_SUPPORTIVE_FACILITY
+
+  """
+  (19) HUD: HOPWA - Transitional Housing (facility based or TBRA)
+  """
+  HUD_HOPWA_TRANSITIONAL_HOUSING_FACILITY_BASED_OR_TBRA_
+
+  """
+  (20) HUD: HUD/VASH
+  """
+  HUD_HUD_VASH
+
+  """
+  (35) HUD: Pay for Success
+  """
+  HUD_PAY_FOR_SUCCESS
+
+  """
+  (52) HUD: PIH (Emergency Housing Voucher)
+  """
+  HUD_PIH_EMERGENCY_HOUSING_VOUCHER_
+
+  """
+  (36) HUD: Public and Indian Housing (PIH) Programs
+  """
+  HUD_PUBLIC_AND_INDIAN_HOUSING_PIH_PROGRAMS
+
+  """
+  (12) HUD: Rural Housing Stability Assistance Program 
+  """
+  HUD_RURAL_HOUSING_STABILITY_ASSISTANCE_PROGRAM_
+
+  """
+  (46) Local or Other Funding Source
+  """
+  LOCAL_OR_OTHER_FUNDING_SOURCE
+
+  """
+  (34) N/A
+  """
+  N_A
+
+  """
+  (30) VA: Community Contract Safe Haven Program
+  """
+  VA_COMMUNITY_CONTRACT_SAFE_HAVEN_PROGRAM
+
+  """
+  (32) VA: Compensated Work Therapy Transitional Residence
+  """
+  VA_COMPENSATED_WORK_THERAPY_TRANSITIONAL_RESIDENCE
+
+  """
+  (27) VA: CRS Contract Residential Services
+  """
+  VA_CRS_CONTRACT_RESIDENTIAL_SERVICES
+
+  """
+  (37) VA: Grant Per Diem - Bridge Housing
+  """
+  VA_GRANT_PER_DIEM_BRIDGE_HOUSING
+
+  """
+  (45) VA: Grant Per Diem - Case Management/Housing Retention
+  """
+  VA_GRANT_PER_DIEM_CASE_MANAGEMENT_HOUSING_RETENTION
+
+  """
+  (40) VA: Grant Per Diem - Clinical Treatment
+  """
+  VA_GRANT_PER_DIEM_CLINICAL_TREATMENT
+
+  """
+  (39) VA: Grant Per Diem - Hospital to Housing
+  """
+  VA_GRANT_PER_DIEM_HOSPITAL_TO_HOUSING
+
+  """
+  (38) VA: Grant Per Diem - Low Demand
+  """
+  VA_GRANT_PER_DIEM_LOW_DEMAND
+
+  """
+  (41) VA: Grant Per Diem - Service Intensive Transitional Housing
+  """
+  VA_GRANT_PER_DIEM_SERVICE_INTENSIVE_TRANSITIONAL_HOUSING
+
+  """
+  (42) VA: Grant Per Diem - Transition in Place
+  """
+  VA_GRANT_PER_DIEM_TRANSITION_IN_PLACE
+
+  """
+  (33) VA: Supportive Services for Veteran Families
+  """
+  VA_SUPPORTIVE_SERVICES_FOR_VETERAN_FAMILIES
+}
+
+"""
 HUD Gender (1.7)
 """
 enum Gender {
@@ -1288,6 +1554,11 @@ type Query {
   Enrollment lookup
   """
   enrollment(id: ID!): Enrollment
+
+  """
+  Funder lookup
+  """
+  funder(id: ID!): Funder
 
   """
   Inventory lookup

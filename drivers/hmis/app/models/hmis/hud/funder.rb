@@ -11,4 +11,8 @@ class Hmis::Hud::Funder < Hmis::Hud::Base
   self.sequence_name = "public.\"#{table_name}_id_seq\""
 
   belongs_to :project, **hmis_relation(:ProjectID, 'Project')
+
+  use_enum :funding_source_enum_map, ::HUD.funding_sources
+
+  # TODO validate other_funder Required if 2.06.1 = 46
 end

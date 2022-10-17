@@ -92,5 +92,13 @@ module Types
     def project_coc(id:)
       Hmis::Hud::ProjectCoc.find_by(id: id)
     end
+
+    field :funder, Types::HmisSchema::Funder, 'Funder lookup', null: true do
+      argument :id, ID, required: true
+    end
+
+    def funder(id:)
+      Hmis::Hud::Funder.find_by(id: id)
+    end
   end
 end
