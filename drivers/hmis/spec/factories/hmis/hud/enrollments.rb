@@ -1,8 +1,9 @@
 FactoryBot.define do
   factory :hmis_hud_enrollment, class: 'Hmis::Hud::Enrollment' do
-    association :data_source, factory: :hmis_data_source
-    association :project, factory: :hmis_hud_project
-    association :client, factory: :hmis_hud_client
+    data_source { association :hmis_data_source }
+    user { association :hmis_hud_user, data_source: data_source }
+    project { association :hmis_hud_project, data_source: data_source }
+    client { association :hmis_hud_client, data_source: data_source }
     RelationshipToHoH { 1 }
     HouseholdID { SecureRandom.uuid.gsub(/-/, '') }
     sequence(:EnrollmentID, 1)

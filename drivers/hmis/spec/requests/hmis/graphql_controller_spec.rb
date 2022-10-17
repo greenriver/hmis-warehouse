@@ -1,14 +1,16 @@
 require 'rails_helper'
 
 RSpec.describe Hmis::GraphqlController, type: :request do
-  let(:user) { create :user }
-  let!(:ds1) { create :source_data_source, id: 1, hmis: GraphqlHelpers::HMIS_HOSTNAME }
-  let!(:o1) { create :hud_organization, OrganizationName: 'ZZZ', data_source_id: ds1.id }
-  let!(:p1) { create :hud_project, ProjectName: 'BBB', data_source_id: ds1.id, OrganizationID: o1.OrganizationID }
-  let!(:p2) { create :hud_project, ProjectName: 'AAA', data_source_id: ds1.id, OrganizationID: o1.OrganizationID }
-  let!(:o2) { create :hud_organization, OrganizationName: 'XXX', data_source_id: ds1.id }
-  let!(:p3) { create :hud_project, ProjectName: 'DDD', data_source_id: ds1.id, OrganizationID: o2.OrganizationID }
-  let!(:p4) { create :hud_project, ProjectName: 'CCC', data_source_id: ds1.id, OrganizationID: o2.OrganizationID }
+  let!(:ds1) { create :hmis_data_source }
+  let!(:user) { create(:user).tap { |u| u.add_viewable(ds1) } }
+  let(:hmis_user) { Hmis::User.find(user.id)&.tap { |u| u.update(hmis_data_source_id: ds1.id) } }
+  let(:u1) { Hmis::Hud::User.from_user(hmis_user) }
+  let!(:o1) { create :hmis_hud_organization, OrganizationName: 'ZZZ', data_source: ds1 }
+  let!(:p1) { create :hmis_hud_project, ProjectName: 'BBB', data_source: ds1, organization: o1 }
+  let!(:p2) { create :hmis_hud_project, ProjectName: 'AAA', data_source: ds1, organization: o1 }
+  let!(:o2) { create :hmis_hud_organization, OrganizationName: 'XXX', data_source: ds1 }
+  let!(:p3) { create :hmis_hud_project, ProjectName: 'DDD', data_source: ds1, organization: o2 }
+  let!(:p4) { create :hmis_hud_project, ProjectName: 'CCC', data_source: ds1, organization: o2 }
 
   before(:all) do
     cleanup_test_environment
@@ -18,7 +20,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   before(:each) do
-    user.add_viewable(ds1)
     post hmis_user_session_path(hmis_user: { email: user.email, password: user.password })
   end
 

@@ -20,7 +20,7 @@ module Types
     field :date_updated, GraphQL::Types::ISO8601DateTime, null: false
     field :date_deleted, GraphQL::Types::ISO8601DateTime, null: true
     field :assessment_detail, HmisSchema::AssessmentDetail, null: true
-    # field :user, HmisSchema::User, null: false
+    field :user, HmisSchema::User, null: false
 
     [
       :assessment_level,
@@ -38,9 +38,8 @@ module Types
       load_ar_association(object, :assessment_detail)
     end
 
-    # TODO: Add user type?
-    # def user
-    #   load_ar_association(object, :user)
-    # end
+    def user
+      load_ar_association(object, :user)
+    end
   end
 end
