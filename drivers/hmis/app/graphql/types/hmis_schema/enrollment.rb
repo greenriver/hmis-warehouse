@@ -24,6 +24,8 @@ module Types
     field :client, HmisSchema::Client, null: false
     field :relationship_to_ho_h, HmisSchema::Enums::RelationshipToHoH, null: false
     field :in_progress, Boolean, null: false
+    field :date_updated, GraphQL::Types::ISO8601DateTime, null: true
+    field :date_created, GraphQL::Types::ISO8601DateTime, null: true
 
     def project
       load_ar_association(object.in_progress? ? object.wip : object, :project)

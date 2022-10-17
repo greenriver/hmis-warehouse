@@ -38,11 +38,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   describe 'enrollment creation tests' do
     before(:each) do
-      user.add_viewable(ds1)
       post hmis_user_session_path(hmis_user: { email: user.email, password: user.password })
-
-      @hmis_user = Hmis::User.find(user.id)
-      @hmis_user.hmis_data_source_id = ds1.id
     end
 
     let(:mutation) do

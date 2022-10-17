@@ -40,6 +40,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             enrollment {
               id
             }
+            user {
+              id
+            }
             assessmentDate
             assessmentLocation
             assessmentType

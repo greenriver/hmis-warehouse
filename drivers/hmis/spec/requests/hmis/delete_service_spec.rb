@@ -34,6 +34,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             client {
               id
             }
+            user{
+              id
+            }
             dateProvided
             recordType
             typeProvided

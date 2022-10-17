@@ -12,11 +12,16 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:user) { create(:user).tap { |u| u.add_viewable(ds1) } }
   let(:hmis_user) { Hmis::User.find(user.id)&.tap { |u| u.update(hmis_data_source_id: ds1.id) } }
   let(:u1) { Hmis::Hud::User.from_user(hmis_user) }
+  let(:u2) do
+    user2 = create(:user).tap { |u| u.add_viewable(ds1) }
+    hmis_user2 = Hmis::User.find(user2.id)&.tap { |u| u.update(hmis_data_source_id: ds1.id) }
+    Hmis::Hud::User.from_user(hmis_user2)
+  end
   let!(:o1) { create :hmis_hud_organization, data_source: ds1, user: u1 }
   let!(:p1) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1 }
   let!(:c1) { create :hmis_hud_client, data_source: ds1, user: u1 }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, client: c1, project: p1, user: u1 }
-  let!(:s1) { create :hmis_hud_service, data_source: ds1, client: c1, enrollment: e1, date_updated: Date.today - 1.day, user: u1 }
+  let!(:s1) { create :hmis_hud_service, data_source: ds1, client: c1, enrollment: e1, date_updated: Date.today - 1.day, user: u2 }
 
   let(:test_input) do
     {
@@ -71,11 +76,16 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   it 'should update a service successfully' do
+    prev_date_updated = s1.date_updated
+    expect(s1.user_id).to eq(u2.user_id)
+
     response, result = post_graphql(input: test_input, id: s1.id) { mutation }
 
     expect(response.status).to eq 200
     service = result.dig('data', 'updateService', 'service')
     errors = result.dig('data', 'updateService', 'errors')
+    expect(s1.reload.date_updated > prev_date_updated).to eq(true)
+    expect(s1.user_id).to eq(u1.user_id)
     expect(service).to include(
       'id' => s1.id.to_s,
       'dateProvided' => test_input[:date_provided],

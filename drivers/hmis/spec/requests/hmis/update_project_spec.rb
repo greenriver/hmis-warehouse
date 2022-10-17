@@ -12,8 +12,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:user) { create(:user).tap { |u| u.add_viewable(ds1) } }
   let(:hmis_user) { Hmis::User.find(user.id)&.tap { |u| u.update(hmis_data_source_id: ds1.id) } }
   let(:u1) { Hmis::Hud::User.from_user(hmis_user) }
+  let(:u2) do
+    user2 = create(:user).tap { |u| u.add_viewable(ds1) }
+    hmis_user2 = Hmis::User.find(user2.id)&.tap { |u| u.update(hmis_data_source_id: ds1.id) }
+    Hmis::Hud::User.from_user(hmis_user2)
+  end
   let!(:o1) { create :hmis_hud_organization, data_source: ds1, user: u1 }
-  let!(:p1) { create :hmis_hud_project, organization: o1, data_source: ds1, user: u1 }
+  let!(:p1) { create :hmis_hud_project, organization: o1, data_source: ds1, user: u2 }
 
   let(:test_input) do
     {
@@ -74,11 +79,15 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   it 'should update a project successfully' do
+    prev_date_updated = p1.date_updated
+    expect(p1.user_id).to eq(u2.user_id)
     response, result = post_graphql(id: p1.id, input: test_input) { mutation }
 
     expect(response.status).to eq 200
     project = result.dig('data', 'updateProject', 'project')
     errors = result.dig('data', 'updateProject', 'errors')
+    expect(p1.reload.date_updated > prev_date_updated).to eq(true)
+    expect(p1.user_id).to eq(u1.user_id)
     expect(errors).to be_empty
     expect(project).to include(
       'id' => p1.id.to_s,

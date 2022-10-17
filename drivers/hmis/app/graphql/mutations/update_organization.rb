@@ -11,7 +11,7 @@ module Mutations
       organization = Hmis::Hud::Organization.viewable_by(current_user).find_by(id: id)
 
       if organization.present?
-        organization.update(**input.to_params)
+        organization.update(**input.to_params, date_updated: DateTime.current, user_id: hmis_user.user_id)
         errors += organization.errors.errors unless organization.valid?
       else
         errors << InputValidationError.new("No organization found with ID '#{id}'", attribute: 'id') unless organization.present?

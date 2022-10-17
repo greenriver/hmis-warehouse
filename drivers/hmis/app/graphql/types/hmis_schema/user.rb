@@ -11,5 +11,11 @@ module Types
     description 'HUD User'
     field :id, ID, null: false
     field :name, String, null: false
+    field :date_updated, GraphQL::Types::ISO8601DateTime, null: true
+    field :date_created, GraphQL::Types::ISO8601DateTime, null: true
+
+    def name
+      [user_first_name, user_last_name].compact.join(' ')
+    end
   end
 end

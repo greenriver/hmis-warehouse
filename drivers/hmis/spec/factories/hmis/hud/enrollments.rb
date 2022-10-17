@@ -5,6 +5,8 @@ FactoryBot.define do
     project { association :hmis_hud_project, data_source: data_source }
     client { association :hmis_hud_client, data_source: data_source }
     RelationshipToHoH { 1 }
+    DateCreated { DateTime.current }
+    DateUpdated { DateTime.current }
     HouseholdID { SecureRandom.uuid.gsub(/-/, '') }
     sequence(:EnrollmentID, 1)
     sequence(:EntryDate) do |n|

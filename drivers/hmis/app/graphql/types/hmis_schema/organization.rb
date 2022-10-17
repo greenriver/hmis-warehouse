@@ -17,6 +17,8 @@ module Types
     field :victim_service_provider, Boolean, null: true
     field :description, String, null: true
     field :contact_information, String, null: true
+    field :date_updated, GraphQL::Types::ISO8601DateTime, null: true
+    field :date_created, GraphQL::Types::ISO8601DateTime, null: true
 
     def projects(**args)
       resolve_projects_with_loader(:projects, **args)
