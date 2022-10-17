@@ -38,5 +38,5 @@ Sentry.configure_scope do |scope|
       target_group_name: ENV.fetch('TARGET_GROUP_NAME', '[TARGET_GROUP_NAME not found]'),
     },
   )
-  scope.set_user(email: current_user.email, id: current_user.id) if defined?(current_user)
+  scope.set_user(id: current_user.id) if defined?(current_user)
 end
