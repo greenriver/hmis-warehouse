@@ -24,6 +24,7 @@ module Types
     yes_no_missing_field :continuum_project
     yes_no_missing_field :residential_affiliation
     yes_no_missing_field :HMISParticipatingProject
+    field :inventory, Types::HmisSchema::Inventory, null: true
 
     # rubocop:disable Naming/MethodName
     def HMISParticipatingProject
@@ -41,6 +42,10 @@ module Types
 
     def organization
       load_ar_association(object, :organization)
+    end
+
+    def inventory
+      load_ar_association(object, :inventory)
     end
   end
 end

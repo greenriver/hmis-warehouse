@@ -76,5 +76,21 @@ module Types
     def assessment(id:)
       Hmis::Hud::Assessment.find_by(id: id)
     end
+
+    field :inventory, Types::HmisSchema::Inventory, 'Inventory lookup', null: true do
+      argument :id, ID, required: true
+    end
+
+    def inventory(id:)
+      Hmis::Hud::Inventory.find_by(id: id)
+    end
+
+    field :project_coc, Types::HmisSchema::ProjectCoc, 'Project CoC lookup', null: true do
+      argument :id, ID, required: true
+    end
+
+    def project_coc(id:)
+      Hmis::Hud::ProjectCoc.find_by(id: id)
+    end
   end
 end

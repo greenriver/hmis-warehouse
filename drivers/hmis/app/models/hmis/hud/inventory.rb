@@ -11,4 +11,8 @@ class Hmis::Hud::Inventory < Hmis::Hud::Base
   self.sequence_name = "public.\"#{table_name}_id_seq\""
 
   belongs_to :project, **hmis_relation(:ProjectID, 'Project')
+
+  use_enum :household_type_enum_map, ::HUD.household_types
+  use_enum :availability_enum_map, ::HUD.availabilities
+  use_enum :bed_type_enum_map, ::HUD.bed_types
 end

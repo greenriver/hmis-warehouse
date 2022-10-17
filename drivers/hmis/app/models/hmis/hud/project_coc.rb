@@ -11,4 +11,6 @@ class Hmis::Hud::ProjectCoc < Hmis::Hud::Base
   self.sequence_name = "public.\"#{table_name}_id_seq\""
 
   belongs_to :project, **hmis_relation(:ProjectID, 'Project')
+
+  use_enum :geography_type_enum_map, ::HUD.geography_types
 end
