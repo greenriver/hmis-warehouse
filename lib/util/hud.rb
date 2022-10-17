@@ -2957,4 +2957,9 @@ module HUD
 
     cocs.select { |code, _| code.starts_with?(state) }
   end
+
+  # This value indicates that the field is null if the column is non-nullable
+  def ignored_enum_value
+    999
+  end
 end
