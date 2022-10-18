@@ -126,8 +126,9 @@ type AssessmentsPaginated {
 HUD Client
 """
 type Client {
-  dateCreated: ISO8601DateTime
-  dateUpdated: ISO8601DateTime
+  dateCreated: ISO8601DateTime!
+  dateDeleted: ISO8601DateTime
+  dateUpdated: ISO8601DateTime!
 
   """
   Date of birth as format yyyy-mm-dd
@@ -479,8 +480,9 @@ HUD Enrollment
 type Enrollment {
   assessments(limit: Int, offset: Int, sortOrder: AssessmentSortOption): AssessmentsPaginated!
   client: Client!
-  dateCreated: ISO8601DateTime
-  dateUpdated: ISO8601DateTime
+  dateCreated: ISO8601DateTime!
+  dateDeleted: ISO8601DateTime
+  dateUpdated: ISO8601DateTime!
   entryDate: ISO8601Date
   events(limit: Int, offset: Int, sortOrder: EventSortOption): EventsPaginated!
   exitDate: ISO8601Date
@@ -931,8 +933,9 @@ HUD Organization
 """
 type Organization {
   contactInformation: String
-  dateCreated: ISO8601DateTime
-  dateUpdated: ISO8601DateTime
+  dateCreated: ISO8601DateTime!
+  dateDeleted: ISO8601DateTime
+  dateUpdated: ISO8601DateTime!
   description: String
   id: ID!
   organizationName: String!
@@ -1024,8 +1027,9 @@ type Project {
   HOPWAMedAssistedLivingFac: HOPWAMedAssistedLivingFac
   contactInformation: String
   continuumProject: Boolean
-  dateCreated: ISO8601DateTime
-  dateUpdated: ISO8601DateTime
+  dateCreated: ISO8601DateTime!
+  dateDeleted: ISO8601DateTime
+  dateUpdated: ISO8601DateTime!
   description: String
   housingType: HousingType
   id: ID!
@@ -2244,8 +2248,9 @@ type UpdateServicePayload {
 HUD User
 """
 type User {
-  dateCreated: ISO8601DateTime
-  dateUpdated: ISO8601DateTime
+  dateCreated: ISO8601DateTime!
+  dateDeleted: ISO8601DateTime
+  dateUpdated: ISO8601DateTime!
   id: ID!
   name: String!
 }
