@@ -325,12 +325,22 @@ module HmisStructure::Exit
       {
         [:DateCreated] => nil,
         [:DateUpdated] => nil,
-        [:DateDeleted] => nil,
+        [:DateDeleted] => {
+          include: [
+            :EnrollmentID,
+            :ExitDate,
+          ],
+        },
         [:EnrollmentID] => nil,
         [:ExitDate] => nil,
         [:PersonalID] => nil,
         [:ExitID] => nil,
         [:ExportID] => nil,
+        [:ExitDate, :Destination] => {
+          include: [
+            :EnrollmentID,
+          ],
+        },
       }
     end
   end
