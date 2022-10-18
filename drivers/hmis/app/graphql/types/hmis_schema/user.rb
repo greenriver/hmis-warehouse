@@ -16,7 +16,7 @@ module Types
     field :date_deleted, GraphQL::Types::ISO8601DateTime, null: true
 
     def name
-      [user_first_name, user_last_name].compact.join(' ')
+      [object.user_first_name, object.user_last_name].compact.join(' ')
     end
   end
 end
