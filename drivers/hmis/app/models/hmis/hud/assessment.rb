@@ -11,8 +11,10 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
   self.sequence_name = "public.\"#{table_name}_id_seq\""
 
   belongs_to :enrollment, **hmis_relation(:EnrollmentID, 'Enrollment')
+  belongs_to :client, **hmis_relation(:PersonalID, 'Client')
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :assessments
   has_one :assessment_detail, class_name: 'Hmis::Form::AssessmentDetail'
+  belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
   use_enum :assessment_types_enum_map, ::HUD.assessment_types
   use_enum :assessment_levels_enum_map, ::HUD.assessment_levels
