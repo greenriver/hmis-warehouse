@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+require_relative '../../lib/util/git'
+
 module ApplicationHelper
   include Pagy::Frontend
   include AssetHelper
@@ -274,9 +276,7 @@ module ApplicationHelper
   end
 
   def git_revision
-    ENV['DEPLOYMENT_ID']&.split('::').try(:[], 2)
-  rescue StandardError
-    'unknown revision'
+    Git.revision
   end
 
   def impersonating?

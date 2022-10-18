@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative '../../lib/util/git'
+
 # ENV['SENTRY_DSN'] is reserved by Sentry and its use seems to prevent this initializer from being recognized.
 # Hence, we use WAREHOUSE_SENTRY_DSN. Any other alternate key should also be fine.
 if ENV['WAREHOUSE_SENTRY_DSN'].present?
@@ -16,7 +18,7 @@ if ENV['WAREHOUSE_SENTRY_DSN'].present?
       Rails.logger.error "Cannot enable Sentry for environment #{config.environment}"
     end
 
-    config.release = File.read('REVISION') if File.exist?('REVISION')
+    config.release = Git.revision
 
     # Replacement for Raven's: `config.sanitize_fields`
     # See: https://stackoverflow.com/questions/68867756/missing-piece-in-sentry-raven-to-sentry-ruby-guide
@@ -35,7 +37,6 @@ if ENV['WAREHOUSE_SENTRY_DSN'].present?
         client: ENV.fetch('CLIENT', '[CLIENT not found]'),
         container_variant: ENV.fetch('CONTAINER_VARIANT', '[CONTAINER_VARIANT not found]'),
         target_group_name: ENV.fetch('TARGET_GROUP_NAME', '[TARGET_GROUP_NAME not found]'),
-        application: 'warehouse',
       },
     )
   end
