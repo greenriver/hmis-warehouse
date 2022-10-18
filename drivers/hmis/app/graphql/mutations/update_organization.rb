@@ -18,7 +18,7 @@ module Mutations
       end
 
       {
-        organization: organization,
+        organization: organization&.valid? ? organization : nil,
         errors: errors,
       }
     end
