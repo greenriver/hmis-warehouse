@@ -7,9 +7,6 @@ FactoryBot.define do
     DateCreated { Date.parse('2019-01-01') }
     DateUpdated { Date.parse('2019-01-01') }
     CoCCode { 'CA-001' }
-    # OperatingStartDate { Date.parse('2019-01-01') }
-    # ContinuumProject { 0 }
-    # HMISParticipatingProject { 1 }
-    # ProjectType { 1 }
+    Geocode { '123123' }
   end
 end
