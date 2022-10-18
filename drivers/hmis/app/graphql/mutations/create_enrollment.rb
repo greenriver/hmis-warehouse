@@ -49,7 +49,13 @@ module Mutations
       end
 
       enrollments = to_enrollments_params(project_id: project_id, start_date: start_date, household_members: household_members, in_progress: in_progress).map do |attrs|
-        enrollment = Hmis::Hud::Enrollment.new(data_source_id: user.data_source_id, **attrs)
+        enrollment = Hmis::Hud::Enrollment.new(
+          user_id: user.user_id,
+          date_updated: DateTime.current,
+          date_created: DateTime.current,
+          data_source_id: user.data_source_id,
+          **attrs,
+        )
 
         if enrollment.valid? && !enrollment.in_progress?
           enrollment.save_not_in_progress

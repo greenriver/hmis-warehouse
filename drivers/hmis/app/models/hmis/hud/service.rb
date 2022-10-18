@@ -14,6 +14,8 @@ class Hmis::Hud::Service < Hmis::Hud::Base
 
   belongs_to :enrollment, **hmis_relation(:EnrollmentID, 'Enrollment')
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
+  belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :services
+  belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
   validates_with Hmis::Hud::Validators::ServiceValidator
 

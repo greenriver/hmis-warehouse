@@ -19,6 +19,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
   has_many :enrollments, **hmis_relation(:PersonalID, 'Enrollment')
+  belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :clients
   has_many :projects, through: :enrollments
   validates_with Hmis::Hud::Validators::ClientValidator
 

@@ -42,6 +42,7 @@ type Assessment {
   enrollment: Enrollment!
   id: ID!
   prioritizationStatus: PrioritizationStatus
+  user: User!
 }
 
 """
@@ -165,6 +166,8 @@ enum BedType {
 HUD Client
 """
 type Client {
+  dateCreated: ISO8601DateTime!
+  dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
 
   """
@@ -655,6 +658,9 @@ HUD Enrollment
 type Enrollment {
   assessments(limit: Int, offset: Int, sortOrder: AssessmentSortOption): AssessmentsPaginated!
   client: Client!
+  dateCreated: ISO8601DateTime!
+  dateDeleted: ISO8601DateTime
+  dateUpdated: ISO8601DateTime!
   entryDate: ISO8601Date
   events(limit: Int, offset: Int, sortOrder: EventSortOption): EventsPaginated!
   exitDate: ISO8601Date
@@ -738,6 +744,7 @@ type Event {
   referralCaseManageAfter: ReferralCaseManageAfter
   referralResult: ReferralResult
   resultDate: ISO8601DateTime
+  user: User!
 }
 
 """
@@ -1565,6 +1572,9 @@ HUD Organization
 """
 type Organization {
   contactInformation: String
+  dateCreated: ISO8601DateTime!
+  dateDeleted: ISO8601DateTime
+  dateUpdated: ISO8601DateTime!
   description: String
   id: ID!
   organizationName: String!
@@ -1656,6 +1666,9 @@ type Project {
   HOPWAMedAssistedLivingFac: HOPWAMedAssistedLivingFac
   contactInformation: String
   continuumProject: Boolean
+  dateCreated: ISO8601DateTime!
+  dateDeleted: ISO8601DateTime
+  dateUpdated: ISO8601DateTime!
   description: String
   funders(limit: Int, offset: Int, sortOrder: FunderSortOption): FundersPaginated!
   housingType: HousingType
@@ -2107,6 +2120,7 @@ type Service {
   referralOutcome: PATHReferralOutcome
   subTypeProvided: ServiceSubTypeProvided
   typeProvided: ServiceTypeProvided!
+  user: User!
 }
 
 """
@@ -3001,6 +3015,17 @@ type UpdateServicePayload {
   clientMutationId: String
   errors: [ValidationError!]!
   service: Service
+}
+
+"""
+HUD User
+"""
+type User {
+  dateCreated: ISO8601DateTime!
+  dateDeleted: ISO8601DateTime
+  dateUpdated: ISO8601DateTime!
+  id: ID!
+  name: String!
 }
 
 type ValidationError {

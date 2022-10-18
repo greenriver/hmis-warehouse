@@ -23,18 +23,11 @@ module Types
     field :date_created, GraphQL::Types::ISO8601DateTime, null: false
     field :date_updated, GraphQL::Types::ISO8601DateTime, null: false
     field :date_deleted, GraphQL::Types::ISO8601DateTime, null: true
-    # field :user, HmisSchema::User, null: false
-    # field :export, HmisSchema::Export, null: false
+    field :user, HmisSchema::User, null: false
 
-    # TODO: Add user type?
-    # def user
-    #   load_ar_association(object, :user)
-    # end
-
-    # TODO: Add export type?
-    # def export
-    #   load_ar_association(object, :export)
-    # end
+    def user
+      load_ar_association(object, :user)
+    end
 
     def type_provided
       [object.record_type, object.type_provided].join(':')

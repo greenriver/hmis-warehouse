@@ -8,12 +8,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     cleanup_test_environment
   end
 
-  let(:user) { create :user }
   let!(:ds1) { create :hmis_data_source }
+  let!(:user) { create(:user).tap { |u| u.add_viewable(ds1) } }
   let!(:ds2) { create :hmis_data_source, hmis: nil }
 
   before(:each) do
-    user.add_viewable(ds1)
     post hmis_user_session_path(hmis_user: { email: user.email, password: user.password })
   end
 

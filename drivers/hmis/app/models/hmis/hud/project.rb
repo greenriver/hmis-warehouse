@@ -13,7 +13,9 @@ class Hmis::Hud::Project < Hmis::Hud::Base
 
   attr_writer :skip_validations
 
+  belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   belongs_to :organization, **hmis_relation(:OrganizationID, 'Organization')
+  belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :projects
 
   has_many :project_cocs, **hmis_relation(:ProjectID, 'ProjectCoc'), inverse_of: :project
   has_many :inventories, **hmis_relation(:ProjectID, 'Inventory'), inverse_of: :project
