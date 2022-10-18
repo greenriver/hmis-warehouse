@@ -351,6 +351,18 @@ module HmisDataQualityTool
           title: 'Disabling Condition',
           description: 'Disabling condition is an invalid value',
           required_for: 'All',
+          detail_columns: [
+            :destination_client_id,
+            :hmis_enrollment_id,
+            :personal_id,
+            :project_name,
+            :exit_id,
+            :entry_date,
+            :move_in_date,
+            :exit_date,
+            :age,
+            :disabling_condition,
+          ],
           denominator: ->(_item) { true },
           limiter: ->(item) {
             ! HUD.no_yes_reasons_for_missing_data_options.key?(item.disabling_condition)
@@ -360,6 +372,18 @@ module HmisDataQualityTool
           title: 'Relationship to Head of Household',
           description: 'Relashionship to head of household is an invalid value',
           required_for: 'All',
+          detail_columns: [
+            :destination_client_id,
+            :hmis_enrollment_id,
+            :personal_id,
+            :project_name,
+            :exit_id,
+            :entry_date,
+            :move_in_date,
+            :exit_date,
+            :age,
+            :relationship_to_hoh,
+          ],
           denominator: ->(_item) { true },
           limiter: ->(item) {
             ! HUD.relationships_to_hoh.key?(item.relationship_to_hoh)
@@ -369,6 +393,19 @@ module HmisDataQualityTool
           title: 'Living Situation',
           description: 'Living situation is an invalid value',
           required_for: 'Adults and HoH',
+          detail_columns: [
+            :destination_client_id,
+            :hmis_enrollment_id,
+            :personal_id,
+            :project_name,
+            :exit_id,
+            :entry_date,
+            :move_in_date,
+            :exit_date,
+            :age,
+            :relationship_to_hoh,
+            :living_situation,
+          ],
           denominator: ->(item) { hoh_or_adult?(item) },
           limiter: ->(item) {
             return false unless hoh_or_adult?(item)
@@ -381,6 +418,18 @@ module HmisDataQualityTool
           title: 'Exit before Entry',
           description: 'Enrollment exit date must occur after entry date',
           required_for: 'All',
+          detail_columns: [
+            :destination_client_id,
+            :hmis_enrollment_id,
+            :personal_id,
+            :project_name,
+            :exit_id,
+            :entry_date,
+            :move_in_date,
+            :exit_date,
+            :age,
+            :relationship_to_hoh,
+          ],
           denominator: ->(_item) { true },
           limiter: ->(item) {
             item.exit_date.present? && item.exit_date < item.entry_date
@@ -390,6 +439,19 @@ module HmisDataQualityTool
           title: 'Destination',
           description: 'Destination is an invalid value',
           required_for: 'Adults and HoH at Exit',
+          detail_columns: [
+            :destination_client_id,
+            :hmis_enrollment_id,
+            :personal_id,
+            :project_name,
+            :exit_id,
+            :entry_date,
+            :move_in_date,
+            :exit_date,
+            :age,
+            :relationship_to_hoh,
+            :destination,
+          ],
           denominator: ->(item) {
             return false unless item.exit_date.present?
 
@@ -406,6 +468,19 @@ module HmisDataQualityTool
           title: 'Unaccompanied Youth < 12 Years Old',
           description: 'Youth under 12 are generally expected to be accompanied.  The presence of an unaccompanied youth under 12 may indicate an issue with household data collection',
           required_for: 'Children under 12',
+          detail_columns: [
+            :destination_client_id,
+            :hmis_enrollment_id,
+            :personal_id,
+            :project_name,
+            :exit_id,
+            :entry_date,
+            :move_in_date,
+            :exit_date,
+            :age,
+            :relationship_to_hoh,
+            :household_max_age,
+          ],
           denominator: ->(item) {
             return false if item.age.blank? || item.age > 12
 
@@ -419,6 +494,19 @@ module HmisDataQualityTool
           title: 'No Head of Household',
           description: 'Every household must have exactly one head of household',
           required_for: 'All',
+          detail_columns: [
+            :destination_client_id,
+            :hmis_enrollment_id,
+            :personal_id,
+            :project_name,
+            :exit_id,
+            :entry_date,
+            :move_in_date,
+            :exit_date,
+            :age,
+            :relationship_to_hoh,
+            :head_of_household_count,
+          ],
           denominator: ->(_item) { true },
           limiter: ->(item) {
             item.head_of_household_count.zero?
@@ -428,6 +516,19 @@ module HmisDataQualityTool
           title: 'Multiple Heads of Household',
           description: 'Every household must have exactly one head of household',
           required_for: 'All',
+          detail_columns: [
+            :destination_client_id,
+            :hmis_enrollment_id,
+            :personal_id,
+            :project_name,
+            :exit_id,
+            :entry_date,
+            :move_in_date,
+            :exit_date,
+            :age,
+            :relationship_to_hoh,
+            :head_of_household_count,
+          ],
           denominator: ->(_item) { true },
           limiter: ->(item) {
             item.head_of_household_count > 1
@@ -437,6 +538,19 @@ module HmisDataQualityTool
           title: 'Head of Household is Missing Client Location',
           description: 'Client location (CoC Code) is missing or invalid, but collection is required for all adults and heads of household',
           required_for: 'Adults and HoH',
+          detail_columns: [
+            :destination_client_id,
+            :hmis_enrollment_id,
+            :personal_id,
+            :project_name,
+            :exit_id,
+            :entry_date,
+            :move_in_date,
+            :exit_date,
+            :age,
+            :relationship_to_hoh,
+            :coc_code,
+          ],
           denominator: ->(item) { hoh_or_adult?(item) },
           limiter: ->(item) {
             item.relationship_to_hoh == 1 && item.coc_code.blank? && HUD.valid_coc?(item.coc_code)
@@ -446,6 +560,17 @@ module HmisDataQualityTool
           title: 'Future Exit Date',
           description: 'Exit date occurred before entry date, but should occur on or after the entry date',
           required_for: 'All',
+          detail_columns: [
+            :destination_client_id,
+            :hmis_enrollment_id,
+            :personal_id,
+            :project_name,
+            :exit_id,
+            :entry_date,
+            :move_in_date,
+            :exit_date,
+            :age,
+          ],
           denominator: ->(_item) { true },
           limiter: ->(item) {
             item.exit_date.present? && item.exit_date > Date.current
@@ -455,6 +580,19 @@ module HmisDataQualityTool
           title: 'Possible Missed Exit - ES, Time in Enrollment 90 Days or More',
           description: 'There is an expectation that clients will not stay indefinitely in emergency shelter, these clients have been in shelter more than 90 days',
           required_for: 'All in ES',
+          detail_columns: [
+            :destination_client_id,
+            :hmis_enrollment_id,
+            :personal_id,
+            :project_name,
+            :exit_id,
+            :entry_date,
+            :move_in_date,
+            :exit_date,
+            :age,
+            :project_type,
+            :lot,
+          ],
           denominator: ->(item) { GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type) },
           limiter: ->(item) {
             item.lot > 90 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
@@ -464,6 +602,19 @@ module HmisDataQualityTool
           title: 'Possible Missed Exit - ES, Time in Enrollment 180 Days or More',
           description: 'There is an expectation that clients will not stay indefinitely in emergency shelter, these clients have been in shelter more than 180 days',
           required_for: 'All in ES',
+          detail_columns: [
+            :destination_client_id,
+            :hmis_enrollment_id,
+            :personal_id,
+            :project_name,
+            :exit_id,
+            :entry_date,
+            :move_in_date,
+            :exit_date,
+            :age,
+            :project_type,
+            :lot,
+          ],
           denominator: ->(item) { GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type) },
           limiter: ->(item) {
             item.lot > 180 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
@@ -473,6 +624,19 @@ module HmisDataQualityTool
           title: 'Possible Missed Exit - ES, Time in Enrollment 365 Days or More',
           description: 'There is an expectation that clients will not stay indefinitely in emergency shelter, these clients have been in shelter more than 365 days',
           required_for: 'All in ES',
+          detail_columns: [
+            :destination_client_id,
+            :hmis_enrollment_id,
+            :personal_id,
+            :project_name,
+            :exit_id,
+            :entry_date,
+            :move_in_date,
+            :exit_date,
+            :age,
+            :project_type,
+            :lot,
+          ],
           denominator: ->(item) { GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type) },
           limiter: ->(item) {
             item.lot > 365 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
@@ -482,6 +646,19 @@ module HmisDataQualityTool
           title: 'Possible Missed Exit - ES, No Service in 90 Days or More',
           description: 'There is an expectation that clients will not stay indefinitely in emergency shelter, these clients have been in shelter more than 90 days',
           required_for: 'All in ES',
+          detail_columns: [
+            :destination_client_id,
+            :hmis_enrollment_id,
+            :personal_id,
+            :project_name,
+            :exit_id,
+            :entry_date,
+            :move_in_date,
+            :exit_date,
+            :age,
+            :project_type,
+            :days_since_last_service,
+          ],
           denominator: ->(item) { GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type) },
           limiter: ->(item) {
             item.days_since_last_service > 90 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
@@ -491,6 +668,19 @@ module HmisDataQualityTool
           title: 'Possible Missed Exit - ES, No Service in 180 Days or More',
           description: 'There is an expectation that clients will not stay indefinitely in emergency shelter, these clients have been in shelter more than 180 days',
           required_for: 'All in ES',
+          detail_columns: [
+            :destination_client_id,
+            :hmis_enrollment_id,
+            :personal_id,
+            :project_name,
+            :exit_id,
+            :entry_date,
+            :move_in_date,
+            :exit_date,
+            :age,
+            :project_type,
+            :days_since_last_service,
+          ],
           denominator: ->(item) { GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type) },
           limiter: ->(item) {
             item.days_since_last_service > 180 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
@@ -500,6 +690,19 @@ module HmisDataQualityTool
           title: 'Possible Missed Exit - ES, No Service in 365 Days or More',
           description: 'There is an expectation that clients will not stay indefinitely in emergency shelter, these clients have been in shelter more than 365 days',
           required_for: 'All in ES',
+          detail_columns: [
+            :destination_client_id,
+            :hmis_enrollment_id,
+            :personal_id,
+            :project_name,
+            :exit_id,
+            :entry_date,
+            :move_in_date,
+            :exit_date,
+            :age,
+            :project_type,
+            :days_since_last_service,
+          ],
           denominator: ->(item) { GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type) },
           limiter: ->(item) {
             item.days_since_last_service > 365 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
@@ -509,6 +712,19 @@ module HmisDataQualityTool
           title: 'Possible Missed Exit - SO, Time in Enrollment 90 Days or More',
           description: 'There is an expectation that clients will not stay indefinitely in street outreach, these clients have been in street outreach with no current living situation collected for more than 90 days',
           required_for: 'All in SO',
+          detail_columns: [
+            :destination_client_id,
+            :hmis_enrollment_id,
+            :personal_id,
+            :project_name,
+            :exit_id,
+            :entry_date,
+            :move_in_date,
+            :exit_date,
+            :age,
+            :project_type,
+            :days_since_last_service,
+          ],
           denominator: ->(item) { GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:so].include?(item.project_type) },
           limiter: ->(item) {
             item.days_since_last_service > 90 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:so].include?(item.project_type)
@@ -518,6 +734,19 @@ module HmisDataQualityTool
           title: 'Possible Missed Exit - SO, Time in Enrollment 180 Days or More',
           description: 'There is an expectation that clients will not stay indefinitely in street outreach, these clients have been in street outreach with no current living situation collected for more than 180 days',
           required_for: 'All in SO',
+          detail_columns: [
+            :destination_client_id,
+            :hmis_enrollment_id,
+            :personal_id,
+            :project_name,
+            :exit_id,
+            :entry_date,
+            :move_in_date,
+            :exit_date,
+            :age,
+            :project_type,
+            :days_since_last_service,
+          ],
           denominator: ->(item) { GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:so].include?(item.project_type) },
           limiter: ->(item) {
             item.days_since_last_service > 180 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:so].include?(item.project_type)
@@ -527,6 +756,19 @@ module HmisDataQualityTool
           title: 'Possible Missed Exit - SO, Time in Enrollment 365 Days or More',
           description: 'There is an expectation that clients will not stay indefinitely in street outreach, these clients have been in street outreach with no current living situation collected for more than 365 days',
           required_for: 'All in SO',
+          detail_columns: [
+            :destination_client_id,
+            :hmis_enrollment_id,
+            :personal_id,
+            :project_name,
+            :exit_id,
+            :entry_date,
+            :move_in_date,
+            :exit_date,
+            :age,
+            :project_type,
+            :days_since_last_service,
+          ],
           denominator: ->(item) { GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:so].include?(item.project_type) },
           limiter: ->(item) {
             item.days_since_last_service > 365 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:so].include?(item.project_type)
@@ -536,6 +778,20 @@ module HmisDataQualityTool
           title: 'Possible Missed Move In Date - PH, Time in Enrollment 90 Days or More',
           description: 'There is an expectation that clients in PH will eventually move into housing, these clients have been in PH without a move-in date more than 90 days, or have an invalid move-in date ',
           required_for: 'Adults and HoH in PH',
+          detail_columns: [
+            :destination_client_id,
+            :hmis_enrollment_id,
+            :personal_id,
+            :project_name,
+            :exit_id,
+            :entry_date,
+            :move_in_date,
+            :exit_date,
+            :age,
+            :project_type,
+            :relationship_to_hoh,
+            :lot,
+          ],
           denominator: ->(item) {
             hoh_or_adult?(item) && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
           },
@@ -550,6 +806,20 @@ module HmisDataQualityTool
           title: 'Possible Missed Move In Date - PH, Time in Enrollment 180 Days or More',
           description: 'There is an expectation that clients in PH will eventually move into housing, these clients have been in PH without a move-in date more than 180 days, or have an invalid move-in date',
           required_for: 'Adults and HoH in PH',
+          detail_columns: [
+            :destination_client_id,
+            :hmis_enrollment_id,
+            :personal_id,
+            :project_name,
+            :exit_id,
+            :entry_date,
+            :move_in_date,
+            :exit_date,
+            :age,
+            :project_type,
+            :relationship_to_hoh,
+            :lot,
+          ],
           denominator: ->(item) {
             hoh_or_adult?(item) && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
           },
@@ -564,6 +834,20 @@ module HmisDataQualityTool
           title: 'Possible Missed Move In Date - PH, Time in Enrollment 365 Days or More',
           description: 'There is an expectation that clients in PH will eventually move into housing, these clients have been in PH without a move-in date more than 365 days, or have an invalid move-in date',
           required_for: 'Adults and HoH in PH',
+          detail_columns: [
+            :destination_client_id,
+            :hmis_enrollment_id,
+            :personal_id,
+            :project_name,
+            :exit_id,
+            :entry_date,
+            :move_in_date,
+            :exit_date,
+            :age,
+            :project_type,
+            :relationship_to_hoh,
+            :lot,
+          ],
           denominator: ->(item) {
             hoh_or_adult?(item) && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
           },
@@ -578,6 +862,19 @@ module HmisDataQualityTool
           title: 'Move-In Before Entry Date',
           description: 'Move-in date must be on or after the entry date, only checked for PH projects',
           required_for: 'Adults and HoH in PH',
+          detail_columns: [
+            :destination_client_id,
+            :hmis_enrollment_id,
+            :personal_id,
+            :project_name,
+            :exit_id,
+            :entry_date,
+            :move_in_date,
+            :exit_date,
+            :age,
+            :project_type,
+            :relationship_to_hoh,
+          ],
           denominator: ->(item) {
             hoh_or_adult?(item) && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
           },
@@ -593,6 +890,19 @@ module HmisDataQualityTool
           title: 'Move-In After Exit Date',
           description: 'Move-in date must be on or before the exit date, only checked for PH projects',
           required_for: 'Adults and HoH in PH',
+          detail_columns: [
+            :destination_client_id,
+            :hmis_enrollment_id,
+            :personal_id,
+            :project_name,
+            :exit_id,
+            :entry_date,
+            :move_in_date,
+            :exit_date,
+            :age,
+            :project_type,
+            :relationship_to_hoh,
+          ],
           denominator: ->(item) {
             hoh_or_adult?(item) && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
           },
@@ -608,6 +918,20 @@ module HmisDataQualityTool
           title: 'Enrollment Active Outside of Project Operating Dates',
           description: 'Entry and exit dates must occur while a project is in operation',
           required_for: 'All',
+          detail_columns: [
+            :destination_client_id,
+            :hmis_enrollment_id,
+            :personal_id,
+            :project_name,
+            :exit_id,
+            :entry_date,
+            :move_in_date,
+            :exit_date,
+            :age,
+            :project_type,
+            :project_operating_start_date,
+            :project_operating_end_date,
+          ],
           denominator: ->(_item) { true },
           limiter: ->(item) {
             start_date = item.project_operating_start_date || '2000-01-01'.to_date
