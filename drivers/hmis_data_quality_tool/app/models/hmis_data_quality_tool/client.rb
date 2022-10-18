@@ -20,7 +20,7 @@ module HmisDataQualityTool
         destination_client_id: { title: 'Warehouse Client ID' },
         first_name: { title: 'First Name' },
         last_name: { title: 'Last Name' },
-        name_data_quality: { title: 'Name Data Quality' },
+        name_data_quality: { title: 'Name Data Quality', translator: ->(v) { HUD.name_data_quality(v) } },
         personal_id: { title: 'HMIS Personal ID' },
         dob: { title: 'DOB' },
         dob_data_quality: { title: 'DOB Data Quality', translator: ->(v) { HUD.dob_data_quality(v) } },
@@ -261,6 +261,7 @@ module HmisDataQualityTool
             :destination_client_id,
             :first_name,
             :last_name,
+            :reporting_age,
             :male,
             :female,
             :no_single_gender,
@@ -293,6 +294,18 @@ module HmisDataQualityTool
           title: 'Race',
           description: 'Race fields and Race None are incompatible, or invalid race response was recorded',
           required_for: 'All',
+          detail_columns: [
+            :destination_client_id,
+            :first_name,
+            :last_name,
+            :reporting_age,
+            :am_ind_ak_native,
+            :asian,
+            :black_af_american,
+            :native_hi_pacific,
+            :white,
+            :race_none,
+          ],
           denominator: ->(_item) { true },
           limiter: ->(item) {
             # any fall outside accepted options
@@ -318,6 +331,14 @@ module HmisDataQualityTool
           title: 'DOB',
           description: 'DOB is blank, before Oct. 10 1910, or after entry date',
           required_for: 'All',
+          detail_columns: [
+            :destination_client_id,
+            :first_name,
+            :last_name,
+            :reporting_age,
+            :dob,
+            :dob_data_quality,
+          ],
           denominator: ->(_item) { true },
           limiter: ->(item) {
             # DOB is Blank
@@ -336,6 +357,14 @@ module HmisDataQualityTool
           title: 'Social Security Number',
           description: 'SSN is blank but SSN Data Quality is 1, SSN is present but SSN Data Quality is not 1, or SSN Data Quality is 99 or blank, or SSN is all zeros',
           required_for: 'All',
+          detail_columns: [
+            :destination_client_id,
+            :first_name,
+            :last_name,
+            :reporting_age,
+            :ssn,
+            :ssn_data_quality,
+          ],
           denominator: ->(_item) { true },
           limiter: ->(item) {
             # SSN DQ is 99
@@ -354,6 +383,13 @@ module HmisDataQualityTool
           title: 'Name',
           description: 'Fist or last name is blank but Name Data Quality is 1, name is present but Name Data Quality is not 1, or Name Data Quality is 99 or blank',
           required_for: 'All',
+          detail_columns: [
+            :destination_client_id,
+            :first_name,
+            :last_name,
+            :reporting_age,
+            :name_data_quality,
+          ],
           denominator: ->(_item) { true },
           limiter: ->(item) {
             # Name DQ is 99
@@ -374,6 +410,7 @@ module HmisDataQualityTool
             :destination_client_id,
             :first_name,
             :last_name,
+            :reporting_age,
             :ethnicity,
           ],
           denominator: ->(_item) { true },
@@ -387,6 +424,13 @@ module HmisDataQualityTool
           title: 'Veteran Status',
           description: 'Veteran Status is 99 or blank for adults',
           required_for: 'Adults (as of report end)',
+          detail_columns: [
+            :destination_client_id,
+            :first_name,
+            :last_name,
+            :reporting_age,
+            :veteran_status,
+          ],
           denominator: ->(item) { item.reporting_age.present? && item.reporting_age > 18 },
           limiter: ->(item) {
             return false if item.reporting_age.blank? || item.reporting_age < 18
@@ -399,6 +443,13 @@ module HmisDataQualityTool
           title: 'Overlapping Entry/Exit enrollments in ES, SH, and TH',
           description: 'Homeless projects using Entry/Exit tracking methods should not have overlapping enrollments.',
           required_for: 'All',
+          detail_columns: [
+            :destination_client_id,
+            :first_name,
+            :last_name,
+            :reporting_age,
+            :overlapping_entry_exit,
+          ],
           denominator: ->(_item) { true },
           limiter: ->(item) {
             item.overlapping_entry_exit.positive?
@@ -408,26 +459,47 @@ module HmisDataQualityTool
           title: 'Overlapping Night-by-Night ES enrollments with other ES, SH, and TH',
           description: 'Client\'s receiving more than two overlapping ES NbN services are included.',
           required_for: 'All',
+          detail_columns: [
+            :destination_client_id,
+            :first_name,
+            :last_name,
+            :reporting_age,
+            :overlapping_nbn,
+          ],
           denominator: ->(_item) { true },
           limiter: ->(item) {
-            item.overlapping_post_move_in > 2
+            item.overlapping_nbn > 1
           },
         },
         overlapping_pre_move_in_issues: {
           title: 'Overlapping Homeless Service After Move-in in PH',
           description: 'Client\'s receiving more than two overlapping homeless nights are included.',
           required_for: 'Adults',
+          detail_columns: [
+            :destination_client_id,
+            :first_name,
+            :last_name,
+            :reporting_age,
+            :overlapping_pre_move_in,
+          ],
           denominator: ->(item) { item.reporting_age.present? && item.reporting_age > 18 },
           limiter: ->(item) {
             return false unless item.reporting_age.present? && item.reporting_age > 18
 
-            item.overlapping_post_move_in > 2
+            item.overlapping_pre_move_in > 2
           },
         },
         overlapping_post_move_in_issues: {
           title: 'Overlapping Moved-in PH',
           description: 'Client\'s should not be housed in more than one project at a time.',
           required_for: 'Adults',
+          detail_columns: [
+            :destination_client_id,
+            :first_name,
+            :last_name,
+            :reporting_age,
+            :overlapping_post_move_in,
+          ],
           denominator: ->(item) { item.reporting_age.present? && item.reporting_age > 18 },
           limiter: ->(item) {
             return false unless item.reporting_age.present? && item.reporting_age > 18

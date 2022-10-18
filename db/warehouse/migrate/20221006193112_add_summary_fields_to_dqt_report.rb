@@ -24,6 +24,7 @@ class AddSummaryFieldsToDqtReport < ActiveRecord::Migration[6.1]
     add_column :hmis_dqt_enrollments, :income_at_entry_expected, :boolean, default: false
     add_column :hmis_dqt_enrollments, :income_at_annual_expected, :boolean, default: false
     add_column :hmis_dqt_enrollments, :income_at_exit_expected, :boolean, default: false
+
     add_column :hmis_dqt_enrollments, :insurance_at_entry_expected, :boolean, default: false
     add_column :hmis_dqt_enrollments, :insurance_at_annual_expected, :boolean, default: false
     add_column :hmis_dqt_enrollments, :insurance_at_exit_expected, :boolean, default: false
@@ -36,17 +37,17 @@ class AddSummaryFieldsToDqtReport < ActiveRecord::Migration[6.1]
     add_column :hmis_dqt_enrollments, :cash_income_as_expected_at_annual, :boolean, default: false
     add_column :hmis_dqt_enrollments, :cash_income_as_expected_at_exit, :boolean, default: false
 
-    add_column :hmis_dqt_enrollments, :ncb_from_any_source_at_entry, :boolean, default: false
-    add_column :hmis_dqt_enrollments, :ncb_from_any_source_at_annual, :boolean, default: false
-    add_column :hmis_dqt_enrollments, :ncb_from_any_source_at_exit, :boolean, default: false
+    add_column :hmis_dqt_enrollments, :ncb_from_any_source_at_entry, :integer
+    add_column :hmis_dqt_enrollments, :ncb_from_any_source_at_annual, :integer
+    add_column :hmis_dqt_enrollments, :ncb_from_any_source_at_exit, :integer
 
     add_column :hmis_dqt_enrollments, :ncb_as_expected_at_entry, :boolean, default: false
     add_column :hmis_dqt_enrollments, :ncb_as_expected_at_annual, :boolean, default: false
     add_column :hmis_dqt_enrollments, :ncb_as_expected_at_exit, :boolean, default: false
 
-    add_column :hmis_dqt_enrollments, :insurance_from_any_source_at_entry, :boolean, default: false
-    add_column :hmis_dqt_enrollments, :insurance_from_any_source_at_annual, :boolean, default: false
-    add_column :hmis_dqt_enrollments, :insurance_from_any_source_at_exit, :boolean, default: false
+    add_column :hmis_dqt_enrollments, :insurance_from_any_source_at_entry, :integer
+    add_column :hmis_dqt_enrollments, :insurance_from_any_source_at_annual, :integer
+    add_column :hmis_dqt_enrollments, :insurance_from_any_source_at_exit, :integer
 
     add_column :hmis_dqt_enrollments, :insurance_as_expected_at_entry, :boolean, default: false
     add_column :hmis_dqt_enrollments, :insurance_as_expected_at_annual, :boolean, default: false
