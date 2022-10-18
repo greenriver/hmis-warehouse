@@ -7,7 +7,7 @@ if ENV['WAREHOUSE_SENTRY_DSN'].present?
     config.dsn = ENV['WAREHOUSE_SENTRY_DSN']
     config.breadcrumbs_logger = [:active_support_logger, :http_logger]
 
-    config.enabled_environments = %w[production staging development] # Remove development when dev is done.
+    config.enabled_environments = ['production', 'staging', 'development'] # Remove development when dev is done.
     config.environment = Rails.env
 
     if config.enabled_environments.include?(config.environment) && config.dsn.to_s.match?(/sentry\.io/)
@@ -22,8 +22,7 @@ if ENV['WAREHOUSE_SENTRY_DSN'].present?
     # See: https://stackoverflow.com/questions/68867756/missing-piece-in-sentry-raven-to-sentry-ruby-guide
     # And: https://github.com/getsentry/sentry-ruby/issues/1140
     filter = ActiveSupport::ParameterFilter.new(Rails.application.config.filter_parameters)
-    config.before_send = ->(event, hint) do
-      event.user = { id: current_user.id } if event.user.empty? && defined?(current_user)
+    config.before_send = ->(event, _hint) do
       filter.filter(event.to_hash)
     end
   end
