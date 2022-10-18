@@ -16,7 +16,7 @@ class Hmis::Hud::ProjectCoc < Hmis::Hud::Base
   use_enum :geography_type_enum_map, ::HUD.geography_types
 
   scope :viewable_by, ->(user) do
-    viewable_projects = Hmis::Hud::Project.viewable_by(user).pluck(:id)
+    viewable_projects = Hmis::Hud::Project.viewable_by(user).pluck(:project_id)
     where(project_id: viewable_projects, data_source_id: user.hmis_data_source_id)
   end
 

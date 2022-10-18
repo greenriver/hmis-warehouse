@@ -66,7 +66,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       GRAPHQL
     end
 
-    it 'creates inventory successfully' do
+    it 'updates inventory successfully' do
       response, result = post_graphql(id: i1.id, input: valid_input) { mutation }
 
       expect(response.status).to eq 200

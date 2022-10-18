@@ -16,10 +16,10 @@ module Types
     field :delete_enrollment, mutation: Mutations::DeleteEnrollment
     field :create_organization, mutation: Mutations::CreateOrganization
     field :update_organization, mutation: Mutations::UpdateOrganization
-    # field :delete_organization, mutation: Mutations::DeleteOrganization
+    field :delete_organization, mutation: Mutations::DeleteOrganization
     field :create_project, mutation: Mutations::CreateProject
     field :update_project, mutation: Mutations::UpdateProject
-    # field :delete_project, mutation: Mutations::DeleteProject
+    field :delete_project, mutation: Mutations::DeleteProject
     field :create_project_coc, mutation: Mutations::CreateProjectCoc
     field :update_project_coc, mutation: Mutations::UpdateProjectCoc
     field :delete_project_coc, mutation: Mutations::DeleteProjectCoc

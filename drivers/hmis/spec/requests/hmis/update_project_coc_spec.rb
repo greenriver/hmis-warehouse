@@ -14,6 +14,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let(:u1) { Hmis::Hud::User.from_user(hmis_user) }
   let!(:o1) { create :hmis_hud_organization, data_source_id: ds1.id, user: u1 }
   let!(:p1) { create :hmis_hud_project, data_source_id: ds1.id, organization: o1, user: u1 }
+
   let(:valid_input) do
     {
       project_id: p1.id,
@@ -25,15 +26,17 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     }
   end
 
-  describe 'project_coc creation' do
+  describe 'projectCoc update' do
+    let!(:pc1) { create :hmis_hud_project_coc, data_source_id: ds1.id, project: p1, coc_code: 'AZ-123' }
+
     before(:each) do
       post hmis_user_session_path(hmis_user: { email: user.email, password: user.password })
     end
 
     let(:mutation) do
       <<~GRAPHQL
-        mutation CreateProjectCoc($input: ProjectCocInput!) {
-          createProjectCoc(input: { input: $input }) {
+        mutation UpdateProjectCoc($id: ID!, $input: ProjectCocInput!) {
+          updateProjectCoc(input: { input: $input, id: $id }) {
             projectCoc {
               id
               cocCode
@@ -57,33 +60,29 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       GRAPHQL
     end
 
-    it 'creates project_coc successfully' do
-      response, result = post_graphql(input: valid_input) { mutation }
+    it 'updates project coc successfully' do
+      response, result = post_graphql(id: pc1.id, input: valid_input) { mutation }
 
       expect(response.status).to eq 200
-      record = result.dig('data', 'createProjectCoc', 'projectCoc')
-      errors = result.dig('data', 'createProjectCoc', 'errors')
+      record = result.dig('data', 'updateProjectCoc', 'projectCoc')
+      errors = result.dig('data', 'updateProjectCoc', 'errors')
       expect(errors).to be_empty
       expect(record['id']).to be_present
-
-      project_coc = Hmis::Hud::ProjectCoc.find(record['id'])
-      expect(project_coc.coc_code).to be_present
-      expect(project_coc.project).to eq(p1)
+      record = Hmis::Hud::ProjectCoc.find(record['id'])
+      expect(record.coc_code).to eq valid_input[:coc_code]
     end
 
-    it 'fails if coc code or geocode is missing' do
-      [:coc_code, :geocode].each do |field|
-        response, result = post_graphql(input: { **valid_input, field => nil }) { mutation }
+    it 'fails if coc code is null' do
+      response, result = post_graphql(id: pc1.id, input: { **valid_input, coc_code: nil }) { mutation }
 
-        record = result.dig('data', 'createProjectCoc', 'projectCoc')
-        errors = result.dig('data', 'createProjectCoc', 'errors')
+      record = result.dig('data', 'updateProjectCoc', 'projectCoc')
+      errors = result.dig('data', 'updateProjectCoc', 'errors')
 
-        expect(response.status).to eq 200
-        expect(record).to be_nil
-        expect(errors).to be_present
-        expect(errors[0]['attribute']).to eq field.to_s.camelize(:lower)
-        expect(errors[0]['type']).to eq 'required'
-      end
+      expect(response.status).to eq 200
+      expect(record).to be_nil
+      expect(errors).to be_present
+      expect(errors[0]['attribute']).to eq 'cocCode'
+      expect(errors[0]['type']).to eq 'required'
     end
   end
 end

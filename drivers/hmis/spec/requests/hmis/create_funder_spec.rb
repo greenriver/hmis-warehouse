@@ -46,6 +46,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             errors {
               attribute
               type
+              fullMessage
+              message
             }
           }
         }

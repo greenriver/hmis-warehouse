@@ -11,6 +11,5 @@ FactoryBot.define do
     InventoryStartDate { '2020-12-01' }
     DateCreated { Date.parse('2019-01-01') }
     DateUpdated { Date.parse('2019-01-01') }
-    # CoCCode { 'CA-001' }
   end
 end
