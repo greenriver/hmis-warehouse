@@ -11,7 +11,7 @@ class Git
     else
       ENV['DEPLOYMENT_ID']&.split('::').try(:[], 2)
     end
-    revision || 'unknown revision'
+    revision.presence || 'unknown revision'
   rescue StandardError
     'unknown revision'
   end
