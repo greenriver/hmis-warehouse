@@ -40,5 +40,9 @@ module GrdaWarehouse::Hud
     scope :currently_fleeing, -> do
       where(CurrentlyFleeing: 1)
     end
+
+    scope :at_entry, -> do
+      where(DataCollectionStage: 1)
+    end
   end
 end

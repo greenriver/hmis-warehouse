@@ -102,6 +102,15 @@ module HmisDataQualityTool
       end
     end
 
+    # for compatability with HudReport Logic
+    def start_date
+      @start_date ||= filter.start
+    end
+
+    def end_date
+      @end_date ||= filter.end
+    end
+
     def self.viewable_by(user)
       GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: url).
         viewable_by(user).exists?
@@ -199,10 +208,10 @@ module HmisDataQualityTool
           find_each do |enrollment|
             report_age_date = [enrollment.EntryDate, filter.start].max
             households[enrollment.HouseholdID] ||= []
-            households[enrollment.HouseholdID] << {
-              age: enrollment.client.age_on(report_age_date),
-              relationship_to_hoh: enrollment.RelationshipToHoH,
-            }
+            she = enrollment.service_history_enrollment
+            # Make sure the age reflects the reporting age
+            she.age = enrollment.client.age_on(report_age_date)
+            households[enrollment.HouseholdID] << she
           end
       end
       @household[household_id]
@@ -217,122 +226,96 @@ module HmisDataQualityTool
     end
 
     def items_for(key)
-      universe(key).universe_members.map(&:universe_membership)
+      universe("#{key}__invalid").universe_members.map(&:universe_membership)
     end
 
     def results
-      @results || validations + dq_checks
-    end
-
-    def validations
-      @validations ||= [].tap do |r|
+      @results ||= [].tap do |r|
         {
-          [
-            'Client',
-            Client,
-            overall_client_count,
-          ] => [
-            :gender_issues,
-            :race_issues,
-          ],
-          [
-            'Enrollment',
-            Enrollment,
-            overall_enrollment_count,
-          ] => [
-            :disabling_condition_issues,
-            :hoh_validation_issues,
-            :living_situation_issues,
-            :exit_date_issues,
-            :destination_issues,
-          ],
-          [
-            'Current Living Situation',
-            CurrentLivingSituation,
-            overall_current_living_situation_count,
-          ] => [
-            :current_living_situation_issues,
-          ],
-        }.each do |(category, item_class, overall_count), slugs|
-          slugs.each do |slug|
+          'Clients' => {
+            name_issues: Client,
+            ssn_issues: Client,
+            dob_issues: Client,
+            race_issues: Client,
+            ethnicity_issues: Client,
+            gender_issues: Client,
+            veteran_issues: Client,
+          },
+          'Enrollments' => {
+            disabling_condition_issues: Enrollment,
+            living_situation_issues: Enrollment,
+            hoh_validation_issues: Enrollment,
+            no_hoh_issues: Enrollment,
+            multiple_hoh_issues: Enrollment,
+            hoh_client_location_issues: Enrollment,
+            destination_issues: Enrollment,
+            current_living_situation_issues: CurrentLivingSituation,
+            unaccompanied_youth_issues: Enrollment,
+            future_exit_date_issues: Enrollment,
+            move_in_prior_to_start_issues: Enrollment,
+            move_in_post_exit_issues: Enrollment,
+            exit_date_issues: Enrollment,
+            enrollment_outside_project_operating_dates_issues: Enrollment,
+            dv_at_entry: Enrollment,
+          },
+          'Enrollment Length' => {
+            lot_es_90_issues: Enrollment,
+            lot_es_180_issues: Enrollment,
+            lot_es_365_issues: Enrollment,
+            days_since_last_service_so_90_issues: Enrollment,
+            days_since_last_service_so_180_issues: Enrollment,
+            days_since_last_service_so_365_issues: Enrollment,
+            days_in_ph_prior_to_move_in_90_issues: Enrollment,
+            days_in_ph_prior_to_move_in_180_issues: Enrollment,
+            days_in_ph_prior_to_move_in_365_issues: Enrollment,
+          },
+          'Income and Benefits' => {
+            income_from_any_source_at_entry: Enrollment,
+            income_from_any_source_at_annual: Enrollment,
+            income_from_any_source_at_exit: Enrollment,
+            cash_income_as_expected_at_entry: Enrollment,
+            cash_income_as_expected_at_annual: Enrollment,
+            cash_income_as_expected_at_exit: Enrollment,
+            ncb_as_expected_at_entry: Enrollment,
+            ncb_as_expected_at_annual: Enrollment,
+            ncb_as_expected_at_exit: Enrollment,
+          },
+          'Insurance' => {
+            insurance_from_any_source_at_entry: Enrollment,
+            insurance_from_any_source_at_annual: Enrollment,
+            insurance_from_any_source_at_exit: Enrollment,
+            insurance_as_expected_at_entry: Enrollment,
+            insurance_as_expected_at_annual: Enrollment,
+            insurance_as_expected_at_exit: Enrollment,
+          },
+          'Services' => {
+            overlapping_entry_exit_issues: Client,
+            overlapping_post_move_in_issues: Client,
+            overlapping_nbn_issues: Client,
+            overlapping_pre_move_in_issues: Client,
+            days_since_last_service_es_90_issues: Enrollment,
+            days_since_last_service_es_180_issues: Enrollment,
+            days_since_last_service_es_365_issues: Enrollment,
+          },
+          'Inventory' => {
+            dedicated_bed_issues: Inventory,
+          },
+        }.each do |category, slugs|
+          slugs.each do |slug, item_class|
             title = item_class.section_title(slug)
-            count = universe(title).count
+            overall_count = universe("#{title}__denominator").count
+            invalid_count = universe("#{title}__invalid").count
             r << OpenStruct.new(
               title: title,
               description: item_class.section_description(slug),
+              required_for: item_class.required_for(slug),
               category: category,
-              count: count,
+              count: invalid_count,
               total: overall_count,
-              percent: percent(overall_count, count),
+              percent_invalid: percent(overall_count, invalid_count),
+              percent_valid: percent(overall_count, overall_count - invalid_count),
               item_class: item_class,
-            )
-          end
-        end
-      end
-    end
-
-    def dq_checks
-      @dq_checks ||= [].tap do |r|
-        {
-          [
-            'Client',
-            Client,
-            overall_client_count,
-          ] => [
-            :dob_issues,
-          ],
-          [
-            'Enrollment',
-            Enrollment,
-            overall_enrollment_count,
-          ] => [
-            :unaccompanied_youth_issues,
-            :no_hoh_issues,
-            :multiple_hoh_issues,
-            :hoh_client_location_issues,
-            :future_exit_date_issues,
-            :days_since_last_service_es_90_issues,
-            :days_since_last_service_es_180_issues,
-            :days_since_last_service_es_365_issues,
-            :days_since_last_service_so_90_issues,
-            :days_since_last_service_so_180_issues,
-            :days_since_last_service_so_365_issues,
-            :days_in_ph_prior_to_move_in_90_issues,
-            :days_in_ph_prior_to_move_in_180_issues,
-            :days_in_ph_prior_to_move_in_365_issues,
-            :move_in_prior_to_start_issues,
-            :move_in_post_exit_issues,
-            :enrollment_outside_project_operating_dates_issues,
-          ],
-          [
-            'Service',
-            Client,
-            overall_client_count,
-          ] => [
-            :overlapping_entry_exit_issues,
-            :overlapping_post_move_in_issues,
-            :overlapping_nbn_issues,
-            :overlapping_pre_move_in_issues,
-          ],
-          [
-            'Inventory',
-            Inventory,
-            overall_inventory_count,
-          ] => [
-            :dedicated_bed_issues,
-          ],
-        }.each do |(category, item_class, overall_count), slugs|
-          slugs.each do |slug|
-            title = item_class.section_title(slug)
-            count = universe(title).count
-            r << OpenStruct.new(
-              title: title,
-              description: item_class.section_description(slug),
-              category: category,
-              count: count,
-              total: overall_count,
-              percent: percent(overall_count, count),
-              item_class: item_class,
+              detail_columns: item_class.detail_headers_for(slug),
             )
           end
         end

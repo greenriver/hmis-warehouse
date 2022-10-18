@@ -26,8 +26,31 @@ module HmisDataQualityTool::DqConcern
       sections[slug].try(:[], :description)
     end
 
+    def self.required_for(slug)
+      sections[slug].try(:[], :required_for)
+    end
+
     def self.calculate_issues(report_items, report)
       calculate(report_items: report_items, report: report)
+    end
+
+    def self.detail_headers_for(slug)
+      section = sections[slug.to_sym]
+      return detail_headers unless section
+
+      columns = section[:detail_columns]
+      return detail_headers unless columns.present?
+
+      detail_headers.select { |k, _| k.in?(columns) }
+    end
+
+    def download_value(key)
+      translator = self.class.detail_headers[key][:translator]
+      value = public_send(key)
+      return translator.call(value) if translator.present?
+      return value == true ? 'Yes' : 'No' if value.in?([true, false])
+
+      value
     end
   end
 end

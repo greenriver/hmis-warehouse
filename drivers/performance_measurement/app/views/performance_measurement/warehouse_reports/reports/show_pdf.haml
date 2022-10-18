@@ -1,12 +1,10 @@
-- title = _("CoC Performance Measurement Dashboard")
-- content_for :title, title
-
-%h1= content_for :title
-
-%p= "Created by #{@report.user.name_with_email} on #{@report.completed_at.to_date}"
-.well.report-listing.warehouse-reports__completed
-  = @report.filter.describe_filter_as_html
-
+- content_for :title, @title
+%p.mb-0= "Created by #{@report.user.name_with_email} on #{@report.completed_at.to_date}"
+.well.report-listing.warehouse-reports__completed.mb-0
+  .d-flex
+    = @report.filter.describe_filter_as_html
+.page-break-after
+  = render 'performance_measurement/warehouse_reports/reports/summary'
 = render 'performance_measurement/warehouse_reports/reports/rows', pdf: true
 
 - @report.summary_table.each.with_index do |(title, group), i|
