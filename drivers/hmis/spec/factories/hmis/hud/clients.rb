@@ -1,6 +1,7 @@
 FactoryBot.define do
   factory :hmis_hud_client, class: 'Hmis::Hud::Client' do
-    association :data_source, factory: :hmis_data_source
+    data_source { association :hmis_data_source }
+    user { association :hmis_hud_user, data_source: data_source }
     skip_validations { [:all] }
     sequence(:PersonalID, 100)
     FirstName { 'Bob' }
@@ -9,7 +10,8 @@ FactoryBot.define do
   end
 
   factory :hmis_hud_client_complete, class: 'Hmis::Hud::Client' do
-    association :data_source, factory: :hmis_data_source
+    data_source { association :hmis_data_source }
+    user { association :hmis_hud_user, data_source: data_source }
     sequence(:PersonalID, 100)
     FirstName { 'Bob' }
     LastName { 'Ross' }
@@ -33,6 +35,5 @@ FactoryBot.define do
     VeteranStatus { 0 }
     DateCreated { DateTime.current }
     DateUpdated { DateTime.current }
-    UserID { 1 }
   end
 end

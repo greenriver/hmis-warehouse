@@ -1,26 +1,24 @@
 require 'rails_helper'
 
 RSpec.describe Hmis::GraphqlController, type: :request do
-  let(:user) { create :user }
-  let(:ds1) { create :hmis_data_source }
-  let(:o1) { create :hmis_hud_organization, data_source_id: ds1.id }
-  let(:p1) { create :hmis_hud_project, data_source_id: ds1.id, OrganizationID: o1.OrganizationID }
-  let(:c1) { create :hmis_hud_client, data_source: ds1 }
-  let(:c2) { create :hmis_hud_client, data_source: ds1 }
-  let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, relationship_to_ho_h: 1, household_id: '1' }
+  let!(:ds1) { create :hmis_data_source }
+  let!(:user) { create(:user).tap { |u| u.add_viewable(ds1) } }
+  let(:hmis_user) { Hmis::User.find(user.id)&.tap { |u| u.update(hmis_data_source_id: ds1.id) } }
+  let(:u1) { Hmis::Hud::User.from_user(hmis_user) }
+  let(:o1) { create :hmis_hud_organization, data_source: ds1, user: u1 }
+  let(:p1) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1 }
+  let(:c1) { create :hmis_hud_client, data_source: ds1, user: u1 }
+  let(:c2) { create :hmis_hud_client, data_source: ds1, user: u1 }
+  let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, relationship_to_ho_h: 1, household_id: '1', user: u1 }
   let!(:e2) do
-    enrollment = create(:hmis_hud_enrollment, data_source: ds1, project: p1, client: c2, relationship_to_ho_h: 2, household_id: '1')
+    enrollment = create(:hmis_hud_enrollment, data_source: ds1, project: p1, client: c2, relationship_to_ho_h: 2, household_id: '1', user: u1)
     enrollment.save_in_progress
     enrollment
   end
   let(:new_entry_date) { Date.today - 7.days }
 
   before(:each) do
-    user.add_viewable(ds1)
     post hmis_user_session_path(hmis_user: { email: user.email, password: user.password })
-
-    @hmis_user = Hmis::User.find(user.id)
-    @hmis_user.hmis_data_source_id = ds1.id
   end
 
   let(:mutation) do

@@ -24,6 +24,9 @@ module Types
     yes_no_missing_field :continuum_project
     yes_no_missing_field :residential_affiliation
     yes_no_missing_field :HMISParticipatingProject
+    field :date_updated, GraphQL::Types::ISO8601DateTime, null: false
+    field :date_created, GraphQL::Types::ISO8601DateTime, null: false
+    field :date_deleted, GraphQL::Types::ISO8601DateTime, null: true
 
     # rubocop:disable Naming/MethodName
     def HMISParticipatingProject

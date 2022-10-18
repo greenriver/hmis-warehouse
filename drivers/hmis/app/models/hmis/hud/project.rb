@@ -13,7 +13,9 @@ class Hmis::Hud::Project < Hmis::Hud::Base
 
   attr_writer :skip_validations
 
+  belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   belongs_to :organization, **hmis_relation(:OrganizationID, 'Organization')
+  belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :projects
 
   use_enum :housing_type_enum_map, ::HUD.housing_types
   use_enum :tracking_methods_enum_map, ::HUD.tracking_methods.except(nil)
