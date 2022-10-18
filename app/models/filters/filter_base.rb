@@ -382,6 +382,10 @@ module Filters
       0
     end
 
+    def effective_projects
+      all_project_scope.where(id: effective_project_ids)
+    end
+
     def effective_project_ids
       @effective_project_ids = effective_project_ids_from_projects
       @effective_project_ids += effective_project_ids_from_project_groups

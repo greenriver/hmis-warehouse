@@ -145,6 +145,18 @@ module GrdaWarehouse::Hud
       sources_and_amounts.values
     end
 
+    def all_sources
+      @all_sources ||= SOURCES.keys
+    end
+
+    def all_sources_and_amounts
+      @all_sources_and_amounts ||= all_sources.map { |s| [s, send(SOURCES[s])] }.to_h
+    end
+
+    def all_sources_and_responses
+      @all_sources_and_responses ||= all_sources.map { |s| [s, send(s)] }.to_h
+    end
+
     def self.income_ranges
       {
         no_income: { name: 'No income (less than $150)', range: (0..150) },

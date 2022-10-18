@@ -41,6 +41,10 @@ module GrdaWarehouse::Hud
       disabled.where(IndefiniteAndImpairs: 1)
     end
 
+    scope :at_entry, -> do
+      where(DataCollectionStage: 1)
+    end
+
     #################################
     # Standard Cohort Scopes
     scope :veteran, -> do

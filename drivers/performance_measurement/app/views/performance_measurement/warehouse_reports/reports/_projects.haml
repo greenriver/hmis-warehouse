@@ -31,10 +31,10 @@
 = content_for :page_js do
   :javascript
     $(document).ready(function(){
-      var all_project_data = $('.#{all_projects_class_name}').data('chart');
-      var all_project_height = 35 * all_project_data.columns[0].length;
-      var max = Math.max(...all_project_data.columns[1].slice(1));
-      var include_percent = $('.#{all_projects_class_name}').data('includePercent');
+      let all_project_data = $('.#{all_projects_class_name}').data('chart');
+      let all_project_height = 35 * all_project_data.columns[0].length * (all_project_data.columns.length - 1);
+      let max = Math.max(...all_project_data.columns[1].slice(1));
+      let include_percent = $('.#{all_projects_class_name}').data('includePercent');
       all_project_data.labels['format'] = function (v, id, i, texts) {
         if(v < max * 0.15) {
           return '';
@@ -45,7 +45,7 @@
           return d3.format(',')(v)
         }
       }
-      var all_project_chart = bb.generate({
+      let all_project_chart = bb.generate({
         data: all_project_data,
         size: { height: all_project_height },
         legend: { show: false },

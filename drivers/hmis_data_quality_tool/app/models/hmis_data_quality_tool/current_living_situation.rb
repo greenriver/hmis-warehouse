@@ -18,16 +18,20 @@ module HmisDataQualityTool
 
     def self.detail_headers
       {
-        destination_client_id: 'Warehouse Client ID',
-        current_living_situation_id: 'Current Living Situation ID',
-        hmis_current_living_situation_id: 'HMIS Current Living Situation ID',
-        current_living_situation: 'Current Living Situation',
-        project_name: 'Project Name',
-        enrollment_id: 'Enrollment ID',
-        information_date: 'Information Date',
-        project_operating_start_date: 'Project Operating Start Date',
-        project_operating_end_date: 'Project Operating End Date',
+        destination_client_id: { title: 'Warehouse Client ID' },
+        current_living_situation_id: { title: 'Current Living Situation ID' },
+        hmis_current_living_situation_id: { title: 'HMIS Current Living Situation ID' },
+        current_living_situation: { title: 'Current Living Situation', translator: ->(v) { HUD.living_situation(v) } },
+        project_name: { title: 'Project Name' },
+        enrollment_id: { title: 'Enrollment ID' },
+        information_date: { title: 'Information Date' },
+        project_operating_start_date: { title: 'Project Operating Start Date' },
+        project_operating_end_date: { title: 'Project Operating End Date' },
       }.freeze
+    end
+
+    def self.detail_headers_for_export
+      detail_headers
     end
 
     # Because multiple of these calculations require inspecting unrelated enrollments
@@ -44,15 +48,17 @@ module HmisDataQualityTool
           )
           sections.each do |_, calc|
             section_title = calc[:title]
-            intermediate[section_title] ||= {}
-            intermediate[section_title][current_living_situation] = item if calc[:limiter].call(item)
+            intermediate[section_title] ||= { denominator: {}, invalid: {} }
+            intermediate[section_title][:denominator][current_living_situation] = item if calc[:denominator].call(item)
+            intermediate[section_title][:invalid][current_living_situation] = item if calc[:limiter].call(item)
           end
         end
-        intermediate.each do |section_title, current_living_situation_batch|
-          import_intermediate!(current_living_situation_batch.values)
-          report.universe(section_title).add_universe_members(current_living_situation_batch) if current_living_situation_batch.present?
+        intermediate.each do |section_title, item_batch|
+          import_intermediate!(item_batch[:denominator].values)
+          report.universe("#{section_title}__denominator").add_universe_members(item_batch[:denominator]) if item_batch[:denominator].present?
+          report.universe("#{section_title}__invalid").add_universe_members(item_batch[:invalid]) if item_batch[:invalid].present?
 
-          report_items.merge!(current_living_situation_batch)
+          report_items.merge!(item_batch)
         end
       end
       report_items
@@ -95,6 +101,8 @@ module HmisDataQualityTool
         current_living_situation_issues: {
           title: 'Current Living Situation',
           description: 'Current Living Situation is an invalid value',
+          required_for: 'All',
+          denominator: ->(_item) { true },
           limiter: ->(item) {
             ! HUD.valid_current_living_situations.include?(item.situation)
           },

@@ -1,0 +1,23 @@
+%h2 Informational
+.card.mb-6
+  %table.table.table-striped
+    %thead
+      %tr
+        %th Most-Recent Enrollment Chronic at Entry
+        %th Any Enrollment Chronic at Entry
+        %th Total Enrollments Chronic at Entry
+    %tbody
+      %tr
+        %td= @report.clients.where(ch_at_most_recent_entry: true).select(:client_id).distinct.count
+        %td= @report.clients.where(ch_at_any_entry: true).select(:client_id).distinct.count
+        %td= @report.enrollments.where(ch_at_entry: true).select(:enrollment_id).distinct.count
+
+.card.mb-6
+  %table.table.table-striped
+    %thead
+      %tr
+        %th Projects
+    %tbody
+      - @report.filter.effective_projects.each do |project|
+        %tr
+          %td= link_to_if can_view_projects?, project.name(current_user), project_path(project)
