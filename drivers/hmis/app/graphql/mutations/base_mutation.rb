@@ -51,7 +51,7 @@ module Mutations
         )
         errors += record.errors.errors unless record.valid?
       else
-        errors << InputValidationError.new("#{field_name} record not found", attribute: 'id') unless record.present?
+        errors << InputValidationError.new("#{field_name.to_s.humanize} record not found", attribute: 'id') unless record.present?
       end
 
       {
@@ -92,7 +92,7 @@ module Mutations
       if record.present?
         record.destroy
       else
-        errors << InputValidationError.new("#{field_name} record not found", attribute: 'id') unless record.present?
+        errors << InputValidationError.new("#{field_name.to_s.humanize} record not found", attribute: 'id') unless record.present?
       end
 
       {

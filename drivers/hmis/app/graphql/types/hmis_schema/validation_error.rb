@@ -40,7 +40,7 @@ module Types
 
     # Convert 'operatingStartDate' => 'Operating start date'
     private def readable_attribute
-      object.attribute.to_s.underscore.gsub('_', ' ').capitalize
+      object.attribute.to_s.underscore.humanize
     end
   end
 end
