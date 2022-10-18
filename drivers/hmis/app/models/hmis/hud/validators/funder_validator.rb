@@ -10,7 +10,7 @@ class Hmis::Hud::Validators::FunderValidator < Hmis::Hud::Validators::BaseValida
   def validate(record)
     super(record) do
       # Other funder is required if 46 (other) is selected for funder
-      record.errors.add :other_funder, :required, message: 'Other funder must exist' if record.funder == 46 && !record.other_funder.present?
+      record.errors.add :other_funder, :required, message: 'must exist' if record.funder == 46 && !record.other_funder.present?
     end
   end
 end

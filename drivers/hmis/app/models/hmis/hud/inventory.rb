@@ -11,6 +11,7 @@ class Hmis::Hud::Inventory < Hmis::Hud::Base
   self.sequence_name = "public.\"#{table_name}_id_seq\""
   validates_with Hmis::Hud::Validators::InventoryValidator
 
+  belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   belongs_to :project, **hmis_relation(:ProjectID, 'Project')
 
   use_enum :household_type_enum_map, ::HUD.household_types
@@ -18,8 +19,8 @@ class Hmis::Hud::Inventory < Hmis::Hud::Base
   use_enum :bed_type_enum_map, ::HUD.bed_types
 
   scope :viewable_by, ->(user) do
-    viewable_projects = Hmis::Hud::Project.viewable_by(user).pluck(:id)
-    where(project_id: viewable_projects, data_source_id: user.hmis_data_source_id)
+    viewable_projects = Hmis::Hud::Project.viewable_by(user).pluck(:project_id)
+    where(project_id: viewable_projects)
   end
 
   SORT_OPTIONS = [:start_date].freeze

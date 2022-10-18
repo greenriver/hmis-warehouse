@@ -21,8 +21,7 @@ module Types
     argument :inventory_end_date, GraphQL::Types::ISO8601Date, required: false
 
     def to_params
-      result = to_h.except(:project_id)
-
+      result = to_h
       result[:project_id] = Hmis::Hud::Project.viewable_by(current_user).find_by(id: project_id)&.project_id if project_id.present?
 
       result
