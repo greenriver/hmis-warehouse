@@ -26,17 +26,17 @@ if ENV['WAREHOUSE_SENTRY_DSN'].present?
       filter.filter(event.to_hash)
     end
   end
-end
 
-Sentry.configure_scope do |scope|
-  log_stream_url = ENV.fetch('LOG_STREAM_URL', '[LOG_STREAM_URL not found]')
-  scope.set_context('extra', { log_stream_url: log_stream_url })
-  scope.set_tags(
-    {
-      client: ENV.fetch('CLIENT', '[CLIENT not found]'),
-      container_variant: ENV.fetch('CONTAINER_VARIANT', '[CONTAINER_VARIANT not found]'),
-      target_group_name: ENV.fetch('TARGET_GROUP_NAME', '[TARGET_GROUP_NAME not found]'),
-    },
-  )
-  scope.set_user(id: current_user.id, email: 'initializer@example.com') if defined?(current_user)
+  Sentry.configure_scope do |scope|
+    log_stream_url = ENV.fetch('LOG_STREAM_URL', '[LOG_STREAM_URL not found]')
+    scope.set_context('extra', { log_stream_url: log_stream_url })
+    scope.set_tags(
+      {
+        client: ENV.fetch('CLIENT', '[CLIENT not found]'),
+        container_variant: ENV.fetch('CONTAINER_VARIANT', '[CONTAINER_VARIANT not found]'),
+        target_group_name: ENV.fetch('TARGET_GROUP_NAME', '[TARGET_GROUP_NAME not found]'),
+        application: 'warehouse',
+      },
+    )
+  end
 end
