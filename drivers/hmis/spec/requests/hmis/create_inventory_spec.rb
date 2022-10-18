@@ -8,10 +8,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     cleanup_test_environment
   end
 
-  let(:user) { create :user }
-  let!(:ds1) { create :source_data_source, hmis: GraphqlHelpers::HMIS_HOSTNAME }
-  let!(:o1) { create :hmis_hud_organization, data_source_id: ds1.id }
-  let!(:p1) { create :hmis_hud_project, data_source_id: ds1.id, organization: o1 }
+  let!(:ds1) { create :hmis_data_source }
+  let!(:user) { create(:user).tap { |u| u.add_viewable(ds1) } }
+  let(:hmis_user) { Hmis::User.find(user.id)&.tap { |u| u.update(hmis_data_source_id: ds1.id) } }
+  let(:u1) { Hmis::Hud::User.from_user(hmis_user) }
+  let!(:o1) { create :hmis_hud_organization, data_source_id: ds1.id, user: u1 }
+  let!(:p1) { create :hmis_hud_project, data_source_id: ds1.id, organization: o1, user: u1 }
   let!(:pc1) { create :hmis_hud_project_coc, data_source_id: ds1.id, project: p1, coc_code: 'AZ-123' }
   let(:valid_input) do
     {
@@ -26,10 +28,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   describe 'inventory creation' do
-    # let(:user) { create :user }
-    # let!(:ds1) { create :source_data_source, id: 1, hmis: GraphqlHelpers::HMIS_HOSTNAME }
     before(:each) do
-      user.add_viewable(ds1)
       post hmis_user_session_path(hmis_user: { email: user.email, password: user.password })
     end
 

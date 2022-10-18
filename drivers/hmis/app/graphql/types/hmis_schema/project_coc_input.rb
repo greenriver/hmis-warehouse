@@ -3,13 +3,13 @@ module Types
     description 'HMIS Project CoC input'
 
     argument :project_id, ID, required: false
-    argument :coc_code, String, required: false, validates: { length: { is: 6 } }
-    argument :geocode, String, required: false, validates: { length: { is: 6 } }
+    argument :coc_code, String, required: false
+    argument :geocode, String, required: false
     argument :address1, String, required: false
     argument :address2, String, required: false
     argument :city, String, required: false
-    argument :state, String, required: false, validates: { length: { is: 2 } }
-    argument :zip, String, required: false, validates: { length: { is: 5 } }
+    argument :state, String, required: false
+    argument :zip, String, required: false
     argument :geography_type, HmisSchema::Enums::GeographyType, required: false
 
     def to_params

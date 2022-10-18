@@ -105,7 +105,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           'attribute' => 'organization',
         },
         {
-          'fullMessage' => 'Organization id must exist',
+          'fullMessage' => 'Organization must exist',
           'attribute' => 'organizationId',
         },
       ],

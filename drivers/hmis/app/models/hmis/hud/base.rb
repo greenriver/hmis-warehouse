@@ -32,12 +32,13 @@ class Hmis::Hud::Base < ::GrdaWarehouseBase
     SecureRandom.uuid.gsub(/-/, '')
   end
 
-  # Fields that should be skipped during validation
+  # Fields that should be skipped during validation.
   def skip_validations
     @skip_validations ||= []
   end
 
-  # Fields that should be validated as required during validation
+  # Fields that should be validated as required during validation.
+  # NOTE: No need to add fields here if they are not already required by the warehouse validator.
   def required_fields
     @required_fields ||= []
   end

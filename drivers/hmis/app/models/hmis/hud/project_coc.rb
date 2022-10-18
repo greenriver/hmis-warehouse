@@ -9,6 +9,7 @@ class Hmis::Hud::ProjectCoc < Hmis::Hud::Base
   include ::Hmis::Hud::Shared
   self.table_name = :ProjectCoC
   self.sequence_name = "public.\"#{table_name}_id_seq\""
+  validates_with Hmis::Hud::Validators::ProjectCocValidator
 
   belongs_to :project, **hmis_relation(:ProjectID, 'Project')
 
@@ -17,5 +18,13 @@ class Hmis::Hud::ProjectCoc < Hmis::Hud::Base
   scope :viewable_by, ->(user) do
     viewable_projects = Hmis::Hud::Project.viewable_by(user).pluck(:id)
     where(project_id: viewable_projects, data_source_id: user.hmis_data_source_id)
+  end
+
+  def required_fields
+    @required_fields ||= [
+      :ProjectID,
+      :CoCCode,
+      :Geocode,
+    ]
   end
 end
