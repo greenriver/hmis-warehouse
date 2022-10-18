@@ -26,15 +26,21 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let(:test_input) do
     {
       enrollment_id: e1.id.to_s,
-      assessment_role: 'INTAKE',
+      form_definition_id: fd1.id,
       assessment_date: (Date.today - 2.days).strftime('%Y-%m-%d'),
+      values: { key: 'value' },
     }
   end
 
   let(:mutation) do
     <<~GRAPHQL
-      mutation CreateAssessment($enrollmentId: ID!, $assessmentRole: AssessmentRole!, $assessmentDate: String) {
-        createAssessment(input: { enrollmentId: $enrollmentId, assessmentRole: $assessmentRole, assessmentDate: $assessmentDate }) {
+      mutation CreateAssessment($enrollmentId: ID!, $formDefinitionId: ID!, $values: JsonObject!, $assessmentDate: String) {
+        createAssessment(input: {
+          enrollmentId: $enrollmentId,
+          formDefinitionId: $formDefinitionId,
+          assessmentDate: $assessmentDate,
+          values: $values,
+        }) {
           assessment {
             id
             enrollment {
@@ -64,6 +70,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               dataCollectionStage
               role
               status
+              values
             }
           }
           errors {
@@ -101,13 +108,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       ],
       [
         'should emit error if cannot find form defition',
-        ->(input) do
-          Hmis::Form::Instance.all.destroy_all
-          input
-        end,
+        ->(input) { input.merge(form_definition_id: '999') },
         {
-          'message' => 'Cannot get definition for assessment role',
-          'attribute' => 'assessmentRole',
+          'message' => 'Cannot get definition',
+          'attribute' => 'formDefinitionId',
         },
       ],
     ].each do |test_name, input_proc, *expected_errors|

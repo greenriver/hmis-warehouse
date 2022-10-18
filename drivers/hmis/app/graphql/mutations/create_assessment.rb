@@ -1,7 +1,8 @@
 module Mutations
   class CreateAssessment < BaseMutation
     argument :enrollment_id, ID, required: true
-    argument :assessment_role, Types::HmisSchema::Enums::AssessmentRole, required: true
+    argument :form_definition_id, ID, required: true
+    argument :values, Types::JsonObject, required: true
     date_string_argument :assessment_date, 'Date with format yyyy-mm-dd', required: false
 
     field :assessment, Types::HmisSchema::Assessment, null: true
@@ -10,15 +11,15 @@ module Mutations
     def validate_input(enrollment: nil, definition: nil)
       errors = []
       errors << InputValidationError.new('Enrollment must exist', attribute: 'enrollment_id') unless enrollment.present?
-      errors << InputValidationError.new('Cannot get definition for assessment role', attribute: 'assessment_role') if enrollment.present? && definition.nil?
+      errors << InputValidationError.new('Cannot get definition', attribute: 'form_definition_id') if enrollment.present? && definition.nil?
       errors
     end
 
-    def resolve(enrollment_id:, assessment_role:, assessment_date: nil)
+    def resolve(enrollment_id:, form_definition_id:, values:, assessment_date: nil)
       user = hmis_user
 
       enrollment = Hmis::Hud::Enrollment.find_by(id: enrollment_id)
-      form_definition = enrollment&.project&.present? ? Hmis::Form::Definition.find_definition_for_project(enrollment.project, role: assessment_role) : nil
+      form_definition = Hmis::Form::Definition.find_by(id: form_definition_id)
 
       errors = validate_input(enrollment: enrollment, definition: form_definition)
 
@@ -42,8 +43,9 @@ module Mutations
       assessment.assessment_detail = Hmis::Form::AssessmentDetail.new(
         definition: form_definition,
         data_collection_stage: 1,
-        role: assessment_role,
+        role: form_definition.role,
         status: 'draft',
+        values: values,
       )
 
       if assessment.valid? && assessment.assessment_detail.valid?
