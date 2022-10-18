@@ -20,7 +20,7 @@ module HmisDataQualityTool
         destination_client_id: { title: 'Warehouse Client ID' },
         first_name: { title: 'First Name' },
         last_name: { title: 'Last Name' },
-        name_data_quality: { title: 'Name Data Quality' },
+        name_data_quality: { title: 'Name Data Quality', translator: ->(v) { HUD.name_data_quality(v) } },
         personal_id: { title: 'HMIS Personal ID' },
         dob: { title: 'DOB' },
         dob_data_quality: { title: 'DOB Data Quality', translator: ->(v) { HUD.dob_data_quality(v) } },
@@ -464,11 +464,11 @@ module HmisDataQualityTool
             :first_name,
             :last_name,
             :reporting_age,
-            :overlapping_post_move_in,
+            :overlapping_nbn,
           ],
           denominator: ->(_item) { true },
           limiter: ->(item) {
-            item.overlapping_post_move_in > 2
+            item.overlapping_nbn > 1
           },
         },
         overlapping_pre_move_in_issues: {
@@ -480,13 +480,13 @@ module HmisDataQualityTool
             :first_name,
             :last_name,
             :reporting_age,
-            :overlapping_post_move_in,
+            :overlapping_pre_move_in,
           ],
           denominator: ->(item) { item.reporting_age.present? && item.reporting_age > 18 },
           limiter: ->(item) {
             return false unless item.reporting_age.present? && item.reporting_age > 18
 
-            item.overlapping_post_move_in > 2
+            item.overlapping_pre_move_in > 2
           },
         },
         overlapping_post_move_in_issues: {
