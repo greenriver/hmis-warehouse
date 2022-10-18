@@ -1431,6 +1431,7 @@ input SaveAssessmentInput {
   A unique identifier for the client performing the mutation.
   """
   clientMutationId: String
+  inProgress: Boolean
   values: JsonObject!
 }
 
