@@ -104,8 +104,8 @@ module HmisDataQualityTool
           sections.each do |_, calc|
             section_title = calc[:title]
             intermediate[section_title] ||= { denominator: {}, invalid: {} }
-            intermediate[section_title][:denominator][enrollment] = item if calc[:denominator].call(item)
-            intermediate[section_title][:invalid][enrollment] = item if calc[:limiter].call(item)
+            intermediate[section_title][:denominator][enrollment] = item if calc[:denominator].call(item) == true
+            intermediate[section_title][:invalid][enrollment] = item if calc[:limiter].call(item) == true
           end
         end
         intermediate.each do |section_title, item_batch|
@@ -1011,7 +1011,7 @@ module HmisDataQualityTool
           limiter: ->(item) {
             return false unless item.income_at_annual_expected == true
 
-            item.income_at_annual_expected == true && (item.income_from_any_source_at_annual.blank? || item.income_from_any_source_at_annual == 99)
+            item.income_from_any_source_at_annual.blank? || item.income_from_any_source_at_annual == 99
           },
         },
         income_from_any_source_at_exit: {
