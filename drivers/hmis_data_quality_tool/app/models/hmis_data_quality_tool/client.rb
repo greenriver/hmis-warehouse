@@ -257,6 +257,17 @@ module HmisDataQualityTool
           title: 'Gender',
           description: 'Gender fields and Gender None are incompatible, or invalid gender response was recorded',
           required_for: 'All',
+          detail_columns: [
+            :destination_client_id,
+            :first_name,
+            :last_name,
+            :male,
+            :female,
+            :no_single_gender,
+            :transgender,
+            :questioning,
+            :gender_none,
+          ],
           denominator: ->(_item) { true },
           limiter: ->(item) {
             # any fall outside accepted options
@@ -359,6 +370,12 @@ module HmisDataQualityTool
           title: 'Ethnicity',
           description: 'Ethnicity is 99 or blank',
           required_for: 'All',
+          detail_columns: [
+            :destination_client_id,
+            :first_name,
+            :last_name,
+            :ethnicity,
+          ],
           denominator: ->(_item) { true },
           limiter: ->(item) {
             return true if item.ethnicity == 99 || item.ethnicity.blank?

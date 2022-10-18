@@ -315,6 +315,7 @@ module HmisDataQualityTool
               percent_invalid: percent(overall_count, invalid_count),
               percent_valid: percent(overall_count, overall_count - invalid_count),
               item_class: item_class,
+              detail_columns: item_class.detail_headers_for(slug),
             )
           end
         end
