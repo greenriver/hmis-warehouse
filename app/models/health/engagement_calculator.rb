@@ -42,7 +42,7 @@ module Health
 
         [:valid, 'Self-Sufficiency Matrix', client_health_self_sufficiency_matrix_form_path(@client, ssm_form), true, nil]
       else
-        return [:too_old, 'Self-Sufficiency Matrix', new_client_health_self_sufficiency_matrix_form_path(@client), false, "Last completed on #{ssm_form.completed_at.to_date}"] if ssm_form.created_at < @valid_after
+        return [:too_old, 'Self-Sufficiency Matrix', new_client_health_self_sufficiency_matrix_form_path(@client), false, "Last completed on #{ssm_form.completed_at.to_date}"] if ssm_form.completed_at.present? && ssm_form.completed_at < @valid_after
 
         prior_forms = @patient.self_sufficiency_matrix_forms.count > 1
         return [:being_updated, 'Self-Sufficiency Matrix', client_health_self_sufficiency_matrix_form_path(@client, ssm_form), true, "Started on #{ssm_form.created_at.to_date}"] if prior_forms
@@ -54,7 +54,7 @@ module Health
     def cha_status
       cha_form = @patient.comprehensive_health_assessments.recent.first
       return [:no_signed_form, 'Comprehensive Health Assessment', new_client_health_cha_path(@client), false, nil] if cha_form.blank?
-      return [:too_old, 'Comprehensive Health Assessment', new_client_health_cha_path(@client), false, "Last completed on #{cha_form.completed_at.to_date}"] if cha_form.completed_at < @valid_after
+      return [:too_old, 'Comprehensive Health Assessment', new_client_health_cha_path(@client), false, "Last completed on #{cha_form.completed_at.to_date}"] if cha_form.completed_at.present? && cha_form.completed_at < @valid_after
 
       if cha_form.completed?
         return [:expired, 'Comprehensive Health Assessment', new_client_health_cha_path(@client), false, "Last completed on #{cha_form.completed_at.to_date}"] unless cha_form.active?

@@ -123,11 +123,9 @@ module Health
     #     pluck(:patient_id, :agency_id).to_h
     # end
 
+    # Consent dates for patients are their earliest participation signature dates
     def consent_dates
-      @consent_dates ||= Health::Patient.
-        has_signed_participation_form.
-        # where(hpf_t[:signature_on].between(@range)).
-        pluck(:patient_id, hpf_t[:signature_on].to_sql).to_h
+      @consent_dates ||= Health::Patient.joins(:release_forms).group(:patient_id).minimum(:participation_signature_on)
     end
 
     # accepts an array of hashes, returns a single hash with most-recent values per key

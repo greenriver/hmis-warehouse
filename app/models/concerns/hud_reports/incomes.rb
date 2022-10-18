@@ -22,7 +22,7 @@ module HudReports::Incomes
   extend ActiveSupport::Concern
 
   included do
-    private def annual_assessment(enrollment, hoh_entry_date)
+    private def annual_assessment(enrollment, hoh_entry_date, assessment_relation: :income_benefits_annual_update)
       # Anniversary date needs to be calculated thusly:
       # Calculate the head of household’s number of years in the project. This can be done using the same
       # algorithm as for calculating a client’s age as of a certain date. Use the client’s [project start date] and the [report end date] as the two dates of comparison. It is important to use the “age” method of determining client anniversaries due to leap years; using “one year = 365 days” will eventually incorrectly offset the calculated anniversaries of long-term stayers.
@@ -33,7 +33,7 @@ module HudReports::Incomes
 
       anniversary_date = anniversary_date(entry_date: hoh_entry_date, report_end_date: @report.end_date)
 
-      enrollment.income_benefits_annual_update.
+      enrollment.send(assessment_relation).
         where(InformationDate: anniversary_date - 30.days .. [anniversary_date + 30.days, @report.end_date].min).
         select do |i|
         i.InformationDate <= report_end_date
@@ -58,8 +58,8 @@ module HudReports::Incomes
       total_amount = total_amount(universe_client, suffix)
       return 0 unless total_amount.present? && total_amount.positive?
 
-      earned = earned_amount(universe_client, suffix).presence || 0
-      total_amount.to_i - earned.to_i
+      earned = earned_amount(universe_client, suffix) || 0
+      total_amount.to_f - earned.to_f
     end
 
     private def total_amount(universe_client, suffix)
@@ -70,8 +70,7 @@ module HudReports::Incomes
     private def earned_income?(universe_client, suffix)
       return false unless universe_client["income_sources_at_#{suffix}"]['Earned'] == 1
 
-      earned_amt = earned_amount(universe_client, suffix)
-      earned_amt.present? && earned_amt.to_i.positive?
+      earned_amount(universe_client, suffix).to_f.positive?
     end
 
     # We have other income if the total is positive and not equal to the earned amount
@@ -79,7 +78,7 @@ module HudReports::Incomes
       total_amount = total_amount(universe_client, suffix)
       return false unless total_amount.present? && total_amount.positive?
 
-      total_amount != earned_amount(universe_client, suffix).to_i
+      total_amount.to_f != earned_amount(universe_client, suffix).to_f
     end
 
     private def total_income?(universe_client, suffix)
@@ -196,6 +195,7 @@ module HudReports::Incomes
         responses.merge!(
           {
             'Adults with Missing Income Information' => a_t[:annual_assessment_expected].eq(true).
+              and(a_t[:annual_assessment_in_window].eq(true)).
               and(a_t["income_from_any_source_at_#{suffix}"].eq(99).
                 or(a_t["income_from_any_source_at_#{suffix}"].eq(nil)).
                 and(a_t["income_sources_at_#{suffix}"].not_eq(nil))),

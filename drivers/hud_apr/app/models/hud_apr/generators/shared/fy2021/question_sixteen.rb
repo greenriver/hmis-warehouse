@@ -67,6 +67,13 @@ module HudApr::Generators::Shared::Fy2021
     end
 
     private def income_levels(suffix)
+      not_collected = a_t["income_total_at_#{suffix}".to_sym].eq(nil).
+        and(
+          a_t["income_from_any_source_at_#{suffix}".to_sym].eq(99).
+          or(a_t["income_from_any_source_at_#{suffix}".to_sym].eq(nil)),
+        )
+      # for annual assessments, only count as missing if the annual assessment actually happened
+      not_collected = not_collected.and(a_t[:annual_assessment_in_window].eq(true)) if suffix == :annual_assessment
       {
         'No Income' => a_t["income_total_at_#{suffix}".to_sym].eq(0),
         '$1 - $150' => a_t["income_total_at_#{suffix}".to_sym].between(1..150),
@@ -78,11 +85,7 @@ module HudApr::Generators::Shared::Fy2021
         '$2,001+' => a_t["income_total_at_#{suffix}".to_sym].gt(2_000),
         'Client Doesn\'t Know/Client Refused' => a_t["income_total_at_#{suffix}".to_sym].eq(nil).
           and(a_t["income_from_any_source_at_#{suffix}".to_sym].in([8, 9])),
-        'Data Not Collected' => a_t["income_total_at_#{suffix}".to_sym].eq(nil).
-          and(
-            a_t["income_from_any_source_at_#{suffix}".to_sym].eq(99).
-            or(a_t["income_from_any_source_at_#{suffix}".to_sym].eq(nil)),
-          ),
+        'Data Not Collected' => not_collected,
         'Number of adult stayers not yet required to have an annual assessment' => adult_clause.
           and(stayers_clause).
           and(a_t[:annual_assessment_expected].eq(false)),

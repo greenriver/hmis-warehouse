@@ -298,6 +298,7 @@ module GrdaWarehouse
         :chronic_tab_justifications,
         :chronic_tab_roi,
         :filter_date_span_years,
+        :include_pii_in_detail_downloads,
         client_details: [],
       ]
     end

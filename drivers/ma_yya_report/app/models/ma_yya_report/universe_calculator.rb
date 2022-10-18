@@ -28,7 +28,7 @@ module MaYyaReport
         batch.each do |client|
           client_id = client.id
           enrollment = enrollments_by_client_id[client_id].last
-          next if enrollment.blank?
+          next if enrollment.blank? || enrollment.enrollment.blank?
 
           enrollment_cls = enrollment.enrollment.current_living_situations.detect { |cls| cls.InformationDate == enrollment.first_date_in_program }
           education_status = enrollment.enrollment.youth_education_statuses.max_by(&:InformationDate)
@@ -85,7 +85,7 @@ module MaYyaReport
     end
 
     private def enrollment_scope
-      scope = GrdaWarehouse::ServiceHistoryEnrollment.
+      scope = ::GrdaWarehouse::ServiceHistoryEnrollment.
         entry.
         open_between(start_date: @filter.start_date, end_date: @filter.end_date)
 

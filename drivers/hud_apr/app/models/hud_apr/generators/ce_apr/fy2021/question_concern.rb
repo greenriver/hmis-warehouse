@@ -21,7 +21,7 @@ module HudApr::Generators::CeApr::Fy2021::QuestionConcern
         where(client_id: client_ids).
         order(as_t[:AssessmentDate].asc).
         group_by(&:client_id).
-        transform_values { |enrollments| enrollments.reject { |enrollment| nbn_with_no_service?(enrollment) } }.
+        transform_values { |enrollments| enrollments.select { |enrollment| nbn_with_service?(enrollment) } }.
         reject { |_, enrollments| enrollments.empty? }
 
       other_client_ids = client_ids - assessed_clients.keys
@@ -34,7 +34,7 @@ module HudApr::Generators::CeApr::Fy2021::QuestionConcern
         where(client_id: other_client_ids, household_id: household_ids).
         order(first_date_in_program: :asc).
         group_by(&:client_id).
-        transform_values { |enrollments| enrollments.reject { |enrollment| nbn_with_no_service?(enrollment) } }.
+        transform_values { |enrollments| enrollments.select { |enrollment| nbn_with_service?(enrollment) } }.
         reject { |_, enrollments| enrollments.empty? }
 
       non_household_client_ids = other_client_ids - other_household_members.keys
@@ -45,7 +45,7 @@ module HudApr::Generators::CeApr::Fy2021::QuestionConcern
         where(client_id: non_household_client_ids).
         order(first_date_in_program: :asc).
         group_by(&:client_id).
-        transform_values { |enrollments| enrollments.reject { |enrollment| nbn_with_no_service?(enrollment) } }.
+        transform_values { |enrollments| enrollments.select { |enrollment| nbn_with_service?(enrollment) } }.
         reject { |_, enrollments| enrollments.empty? }
 
       assessed_clients.

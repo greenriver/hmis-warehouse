@@ -1,9 +1,12 @@
 require 'rails_helper'
 
 RSpec.describe GrdaWarehouse::ChEnrollment, type: :model do
+  before(:all) do
+    GrdaWarehouse::Utility.clear!
+  end
   # need destination and source client, source enrollment and source disability
   let!(:client) { create :grda_warehouse_hud_client }
-  let!(:ds) { create :data_source_fixed_id }
+  let!(:ds) { create :grda_warehouse_data_source }
   let!(:source_client) do
     create(
       :grda_warehouse_hud_client,

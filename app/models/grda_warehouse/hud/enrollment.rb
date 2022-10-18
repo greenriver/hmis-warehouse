@@ -55,23 +55,24 @@ module GrdaWarehouse::Hud
 
     # Income benefits at various stages
     has_one :income_benefits_at_entry, -> do
-      at_entry
+      # NOTE: the join enrollment here seems to work only sometimes, so it is also in IncomeBenefit
+      at_entry.joins(:enrollment).where(ib_t[:InformationDate].eq(e_t[:EntryDate]))
     end, **hud_enrollment_belongs('IncomeBenefit')
     has_one :income_benefits_at_entry_all_sources_refused, -> do
-      at_entry.all_sources_refused
+      at_entry.all_sources_refused.joins(:enrollment).where(ib_t[:InformationDate].eq(e_t[:EntryDate]))
     end, **hud_enrollment_belongs('IncomeBenefit')
     has_one :income_benefits_at_entry_all_sources_missing, -> do
-      at_entry.all_sources_missing
+      at_entry.all_sources_missing.joins(:enrollment).where(ib_t[:InformationDate].eq(e_t[:EntryDate]))
     end, **hud_enrollment_belongs('IncomeBenefit')
 
     has_one :income_benefits_at_exit, -> do
-      GrdaWarehouse::Hud::IncomeBenefit.at_exit
+      at_exit.joins(:exit).where(ib_t[:InformationDate].eq(ex_t[:ExitDate]))
     end, **hud_enrollment_belongs('IncomeBenefit')
     has_one :income_benefits_at_exit_all_sources_refused, -> do
-      GrdaWarehouse::Hud::IncomeBenefit.at_exit.all_sources_refused
+      at_exit.all_sources_refused.joins(:exit).where(ib_t[:InformationDate].eq(ex_t[:ExitDate]))
     end, **hud_enrollment_belongs('IncomeBenefit')
     has_one :income_benefits_at_exit_all_sources_missing, -> do
-      GrdaWarehouse::Hud::IncomeBenefit.at_exit.all_sources_missing
+      at_exit.all_sources_missing.joins(:exit).where(ib_t[:InformationDate].eq(ex_t[:ExitDate]))
     end, **hud_enrollment_belongs('IncomeBenefit')
     has_many :income_benefits_annual_update, -> do
       at_annual_update
@@ -91,6 +92,13 @@ module GrdaWarehouse::Hud
     has_many :income_benefits_update_all_sources_missing, -> do
       at_update.all_sources_missing
     end, **hud_enrollment_belongs('IncomeBenefit')
+
+    has_many :disabilities_at_entry, -> do
+      at_entry
+    end, **hud_enrollment_belongs('Disability')
+    has_many :health_and_dvs_at_entry, -> do
+      at_entry
+    end, **hud_enrollment_belongs('HealthAndDv')
 
     # NOTE: you will want to limit this to a particular record_type
     has_one :service_history_enrollment, -> { where(record_type: :entry) }, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment', foreign_key: [:data_source_id, :enrollment_group_id, :project_id], primary_key: [:data_source_id, :EnrollmentID, :ProjectID], autosave: false
@@ -241,6 +249,10 @@ module GrdaWarehouse::Hud
 
     def self.invalidate_processing!
       update_all(processed_as: nil, processed_hash: nil)
+    end
+
+    def open_during_range?(range)
+      self.EntryDate <= range.last && (exit&.ExitDate.blank? || exit.ExitDate > range.first)
     end
 
     # attempt to collect something like an address out of the LastX fields

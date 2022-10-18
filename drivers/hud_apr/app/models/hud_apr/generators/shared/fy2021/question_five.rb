@@ -141,13 +141,13 @@ module HudApr::Generators::Shared::Fy2021
 
       # Total clients
       answer = @report.answer(question: table_name, cell: 'B1')
-      members = universe.universe_members
+      members = universe.members.where(engaged_clause)
       answer.add_members(members)
       answer.update(summary: members.count)
 
       active_questions.each do |cell|
         answer = @report.answer(question: table_name, cell: cell[:cell])
-        members = universe.members.where(cell[:clause])
+        members = universe.members.where(engaged_clause).where(cell[:clause])
         answer.add_members(members)
         answer.update(summary: members.count)
       end
@@ -158,10 +158,12 @@ module HudApr::Generators::Shared::Fy2021
       return if 'B16'.in?(intentionally_blank)
 
       answer = @report.answer(question: table_name, cell: 'B16')
-      members = universe.members.where(
-        a_t[:head_of_household_id].in(hoh_lts_stayer_ids).
-        and(adult_clause.or(a_t[:head_of_household].eq(true))),
-      )
+      members = universe.members.
+        where(engaged_clause).
+        where(
+          a_t[:head_of_household_id].in(hoh_lts_stayer_ids).
+          and(adult_clause.or(a_t[:head_of_household].eq(true))),
+        )
       answer.add_members(members)
       answer.update(summary: members.count)
     end

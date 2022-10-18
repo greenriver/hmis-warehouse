@@ -382,7 +382,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
 
     # These rely on a set_project_calculated_fields being called first
-    private def set_project_average_fields(report_project:) # rubocop:disable Naming/AccessorMethodName
+    private def set_project_average_fields(report_project:)
       report_project.average_nightly_clients = report_project.calculate_average_nightly_clients(report_range: report_range)
       report_project.average_nightly_households = report_project.calculate_average_nightly_households(report_range: report_range)
       report_project.average_bed_utilization = report_project.calculate_average_bed_utilization
@@ -542,7 +542,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     def incomes_at_exit_by_enrollment
       @incomes_at_exit_by_enrollment ||= begin
         incomes = {}
-        source_enrollments.joins(:income_benefits_at_exit).
+        source_enrollments.joins(:exit, :income_benefits_at_exit).
           preload(:income_benefits_at_exit).find_each do |enrollment|
             incomes[enrollment.id] = enrollment.income_benefits_at_exit
           end

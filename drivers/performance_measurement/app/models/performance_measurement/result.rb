@@ -74,15 +74,29 @@ module PerformanceMeasurement
     end
 
     def data_for_system_level_bar
-      columns = if percentage?
-        [
-          ['x', report_year, comparison_year],
-          [primary_unit, primary_value, comparison_primary_value],
-        ]
+      average_metric = field.to_s.ends_with?('_average')
+      unit = if average_metric
+        'average days'
       else
+        primary_unit
+      end
+      columns = [
         [
-          ['x', comparison_year, report_year],
-          [primary_unit, comparison_primary_value, primary_value],
+          'x',
+          comparison_year,
+          report_year,
+        ],
+        [
+          unit,
+          comparison_primary_value,
+          primary_value,
+        ],
+      ]
+      if average_metric
+        columns << [
+          'median days',
+          related_median.comparison_primary_value,
+          related_median.primary_value,
         ]
       end
       {
@@ -96,12 +110,19 @@ module PerformanceMeasurement
       }
     end
 
-    def data_for_projects_bar(user, period: :reporting)
-      value_column = if period == :reporting
-        :primary_value
-      else
-        :comparison_primary_value
-      end
+    def includes_median?
+      field.to_s.ends_with?('_average')
+    end
+
+    def related_median
+      @related_median = report.results.find_by(field: related_median_field, project_id: project_id)
+    end
+
+    private def related_median_field
+      field.gsub('_average', '_median')
+    end
+
+    def data_for_projects_bar(user)
       chart = {
         x: 'x',
         type: 'bar',
@@ -111,13 +132,17 @@ module PerformanceMeasurement
         },
       }
       projects = ['x']
-      counts = [primary_unit]
+      unit = primary_unit
+      unit = "Average #{unit}" if includes_median?
+      counts = [unit]
+      median_counts = ["Median #{primary_unit}"] if includes_median?
       project_intermediate = []
+      median_intermediate = {}
       self.class.joins(:hud_project).
         preload(:hud_project).
         for_field(field).
         where(report_id: report_id).find_each do |result|
-          count = result[value_column].round
+          count = result[:primary_value].round
           if count.positive?
             project_intermediate << [
               "#{result.hud_project.name(user, include_project_type: true)} (#{result.hud_project.id})",
@@ -125,15 +150,39 @@ module PerformanceMeasurement
             ]
           end
         end
+      if includes_median?
+        self.class.joins(:hud_project).
+          preload(:hud_project).
+          for_field(related_median_field).
+          where(report_id: report_id).find_each do |result|
+            count = result[:primary_value].round
+            if count.positive?
+              project_name = "#{result.hud_project.name(user, include_project_type: true)} (#{result.hud_project.id})"
+              median_intermediate[project_name] = count
+            end
+          end
+      end
       project_intermediate.sort_by(&:first).each do |project, count|
         projects << project
         counts << count
+        median_counts << median_intermediate[project] if includes_median?
       end
       chart[:columns] = [
         projects,
         counts,
       ]
+      chart[:columns] << median_counts if includes_median?
       chart
+    end
+
+    def tagged?
+      # For now, all system-level need tagging
+      return true if system_level
+
+      untagged = report.detail_for(field)[:untagged]
+      return false if untagged
+
+      true
     end
   end
 end

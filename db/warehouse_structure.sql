@@ -1830,7 +1830,7 @@ CREATE TABLE public."YouthEducationStatus" (
     "DateUpdated" timestamp without time zone NOT NULL,
     "UserID" character varying(32) NOT NULL,
     "DateDeleted" timestamp without time zone,
-    "ExportID" character varying(32) NOT NULL,
+    "ExportID" character varying(32),
     data_source_id integer,
     pending_date_deleted date,
     source_hash character varying,
@@ -5409,7 +5409,8 @@ CREATE TABLE public.configs (
     youth_hoh_cohort_project_group_id integer,
     chronic_tab_justifications boolean DEFAULT true,
     chronic_tab_roi boolean,
-    filter_date_span_years integer DEFAULT 1 NOT NULL
+    filter_date_span_years integer DEFAULT 1 NOT NULL,
+    include_pii_in_detail_downloads boolean DEFAULT true
 );
 
 
@@ -13161,10 +13162,14 @@ CREATE TABLE public.hmis_dqt_clients (
     overlapping_nbn integer,
     overlapping_pre_move_in integer,
     overlapping_post_move_in integer,
+    ch_at_most_recent_entry boolean DEFAULT false,
+    ch_at_any_entry boolean DEFAULT false,
     veteran_status integer,
-    ssn integer,
+    ssn character varying,
     ssn_data_quality integer,
-    ethnicity integer
+    name_data_quality integer,
+    ethnicity integer,
+    reporting_age integer
 );
 
 
@@ -13267,8 +13272,10 @@ CREATE TABLE public.hmis_dqt_enrollments (
     updated_at timestamp(6) without time zone NOT NULL,
     deleted_at timestamp without time zone,
     project_type integer,
+    ch_at_entry boolean DEFAULT false,
     project_id integer,
     household_type character varying,
+    household_min_age integer,
     ch_details_expected boolean DEFAULT false,
     los_under_threshold integer,
     date_to_street_essh date,
@@ -13278,22 +13285,32 @@ CREATE TABLE public.hmis_dqt_enrollments (
     has_disability boolean DEFAULT false,
     days_between_entry_and_create integer,
     health_dv_at_entry_expected boolean DEFAULT false,
-    health_dv_at_entry_collected integer,
+    domestic_violence_victim_at_entry integer,
     income_at_entry_expected boolean DEFAULT false,
+    income_at_annual_expected boolean DEFAULT false,
+    income_at_exit_expected boolean DEFAULT false,
     insurance_at_entry_expected boolean DEFAULT false,
-    earned_income_collected_at_start integer,
-    earned_income_collected_at_annual integer,
-    earned_income_collected_at_exit integer,
-    earned_income_as_expected_at_entry boolean DEFAULT false,
-    earned_amounts_as_expected_at_entry boolean DEFAULT false,
-    ncb_income_collected_at_start integer,
-    ncb_income_collected_at_annual integer,
-    ncb_income_collected_at_exit integer,
-    ncb_income_as_expected_at_entry boolean DEFAULT false,
-    insurance_collected_at_start integer,
-    insurance_collected_at_annual integer,
-    insurance_collected_at_exit integer,
-    insurance_as_expected_at_entry boolean DEFAULT false
+    insurance_at_annual_expected boolean DEFAULT false,
+    insurance_at_exit_expected boolean DEFAULT false,
+    income_from_any_source_at_entry integer,
+    income_from_any_source_at_annual integer,
+    income_from_any_source_at_exit integer,
+    cash_income_as_expected_at_entry boolean DEFAULT false,
+    cash_income_as_expected_at_annual boolean DEFAULT false,
+    cash_income_as_expected_at_exit boolean DEFAULT false,
+    ncb_from_any_source_at_entry boolean DEFAULT false,
+    ncb_from_any_source_at_annual boolean DEFAULT false,
+    ncb_from_any_source_at_exit boolean DEFAULT false,
+    ncb_as_expected_at_entry boolean DEFAULT false,
+    ncb_as_expected_at_annual boolean DEFAULT false,
+    ncb_as_expected_at_exit boolean DEFAULT false,
+    insurance_from_any_source_at_entry boolean DEFAULT false,
+    insurance_from_any_source_at_annual boolean DEFAULT false,
+    insurance_from_any_source_at_exit boolean DEFAULT false,
+    insurance_as_expected_at_entry boolean DEFAULT false,
+    insurance_as_expected_at_annual boolean DEFAULT false,
+    insurance_as_expected_at_exit boolean DEFAULT false,
+    disability_at_entry_collected boolean DEFAULT false
 );
 
 
@@ -50359,6 +50376,9 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220928164029'),
 ('20220930194814'),
 ('20221006193112'),
-('20221007152924');
+('20221007152924'),
+('20221013195245'),
+('20221014144316'),
+('20221017180229');
 
 
