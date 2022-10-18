@@ -893,6 +893,23 @@ input FunderInput {
 }
 
 """
+HUD Funder Sorting Options
+"""
+enum FunderSortOption {
+  START_DATE
+}
+
+type FundersPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [Funder!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
+}
+
+"""
 HUD Funding Source (2.06.1)
 """
 enum FundingSource {
@@ -1300,6 +1317,16 @@ An ISO 8601-encoded datetime
 """
 scalar ISO8601DateTime
 
+type InventoriesPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [Inventory!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
+}
+
 """
 HUD Inventory
 """
@@ -1348,6 +1375,13 @@ input InventoryInput {
   vetBedInventory: Float
   youthBedInventory: Float
   youthVetBedInventory: Float
+}
+
+"""
+HUD Inventory Sorting Options
+"""
+enum InventorySortOption {
+  START_DATE
 }
 
 """
@@ -1623,12 +1657,14 @@ type Project {
   contactInformation: String
   continuumProject: Boolean
   description: String
+  funders(limit: Int, offset: Int, sortOrder: FunderSortOption): FundersPaginated!
   housingType: HousingType
   id: ID!
-  inventory: Inventory
+  inventories(limit: Int, offset: Int, sortOrder: InventorySortOption): InventoriesPaginated!
   operatingEndDate: ISO8601Date
   operatingStartDate: ISO8601Date!
   organization: Organization!
+  projectCocs(limit: Int, offset: Int): ProjectCocsPaginated!
   projectName: String!
   projectType: ProjectType
   residentialAffiliation: Boolean
@@ -1668,6 +1704,16 @@ input ProjectCocInput {
   projectId: ID
   state: String
   zip: String
+}
+
+type ProjectCocsPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [ProjectCoc!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
 }
 
 """

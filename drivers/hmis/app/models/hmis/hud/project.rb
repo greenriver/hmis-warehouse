@@ -15,6 +15,10 @@ class Hmis::Hud::Project < Hmis::Hud::Base
 
   belongs_to :organization, **hmis_relation(:OrganizationID, 'Organization')
 
+  has_many :project_cocs, **hmis_relation(:ProjectID, 'ProjectCoc'), inverse_of: :project
+  has_many :inventories, **hmis_relation(:ProjectID, 'Inventory'), inverse_of: :project
+  has_many :funders, **hmis_relation(:ProjectID, 'Funder'), inverse_of: :project
+
   use_enum :housing_type_enum_map, ::HUD.housing_types
   use_enum :tracking_methods_enum_map, ::HUD.tracking_methods.except(nil)
   use_enum :target_population_enum_map, ::HUD.target_populations

@@ -32,7 +32,10 @@ module Types
     end
 
     def type
-      return object.type if object.respond_to?(:type)
+      if object.respond_to?(:type)
+        return object.type == :blank ? :required : object.type
+      end
+      # return object.type if object.respond_to?(:type)
       return object.class.name if object.is_a?(Exception)
 
       'UnknownError'

@@ -9,6 +9,7 @@ class Hmis::Hud::Inventory < Hmis::Hud::Base
   include ::Hmis::Hud::Shared
   self.table_name = :Inventory
   self.sequence_name = "public.\"#{table_name}_id_seq\""
+  validates_with Hmis::Hud::Validators::InventoryValidator
 
   belongs_to :project, **hmis_relation(:ProjectID, 'Project')
 
@@ -21,5 +22,27 @@ class Hmis::Hud::Inventory < Hmis::Hud::Base
     where(project_id: viewable_projects, data_source_id: user.hmis_data_source_id)
   end
 
-  # TODO add custom validator to check that CoC Code is valid (exists in Project CoC table)
+  SORT_OPTIONS = [:start_date].freeze
+
+  def self.sort_by_option(option)
+    raise NotImplementedError unless SORT_OPTIONS.include?(option)
+
+    case option
+    when :start_date
+      order(inventory_start_date: :desc)
+    else
+      raise NotImplementedError
+    end
+  end
+
+  def required_fields
+    @required_fields ||= [
+      :ProjectID,
+      :CoCCode,
+      :InventoryStartDate,
+      :HouseholdType,
+      :UnitInventory,
+      :BedInventory,
+    ]
+  end
 end

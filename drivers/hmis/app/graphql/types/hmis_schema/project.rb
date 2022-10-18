@@ -8,11 +8,20 @@
 
 module Types
   class HmisSchema::Project < Types::BaseObject
+    include Types::HmisSchema::HasInventories
+    include Types::HmisSchema::HasProjectCocs
+    include Types::HmisSchema::HasFunders
+
     description 'HUD Project'
     field :id, ID, null: false
     field :project_name, String, method: :ProjectName, null: false
     field :project_type, Types::HmisSchema::Enums::ProjectType, method: :ProjectType, null: true
     field :organization, Types::HmisSchema::Organization, null: false
+
+    inventories_field null: false
+    project_cocs_field null: false
+    funders_field null: false
+
     field :operating_start_date, GraphQL::Types::ISO8601Date, null: false
     field :operating_end_date, GraphQL::Types::ISO8601Date, null: true
     field :description, String, null: true
@@ -24,7 +33,6 @@ module Types
     yes_no_missing_field :continuum_project
     yes_no_missing_field :residential_affiliation
     yes_no_missing_field :HMISParticipatingProject
-    field :inventory, Types::HmisSchema::Inventory, null: true
 
     # rubocop:disable Naming/MethodName
     def HMISParticipatingProject
@@ -44,8 +52,8 @@ module Types
       load_ar_association(object, :organization)
     end
 
-    def inventory
-      load_ar_association(object, :inventory)
+    def inventories(**args)
+      resolve_inventories(**args)
     end
   end
 end

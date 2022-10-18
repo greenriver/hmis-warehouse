@@ -11,7 +11,7 @@ module Types
     description 'HUD Funder'
     field :id, ID, null: false
     field :project, Types::HmisSchema::Project, null: false
-    field :funder, HmisSchema::Enums::FundingSource, null: false
+    field :funder, Types::HmisSchema::Enums::FundingSource, null: false
     field :other_funder, String, null: true
     field :grant_id, String, null: false
     field :start_date, GraphQL::Types::ISO8601Date, null: false

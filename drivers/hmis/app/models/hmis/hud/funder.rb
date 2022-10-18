@@ -9,6 +9,7 @@ class Hmis::Hud::Funder < Hmis::Hud::Base
   include ::Hmis::Hud::Shared
   self.table_name = :Funder
   self.sequence_name = "public.\"#{table_name}_id_seq\""
+  validates_with Hmis::Hud::Validators::FunderValidator
 
   belongs_to :project, **hmis_relation(:ProjectID, 'Project')
 
@@ -19,5 +20,32 @@ class Hmis::Hud::Funder < Hmis::Hud::Base
   scope :viewable_by, ->(user) do
     viewable_projects = Hmis::Hud::Project.viewable_by(user).pluck(:id)
     where(project_id: viewable_projects, data_source_id: user.hmis_data_source_id)
+  end
+
+  SORT_OPTIONS = [:start_date].freeze
+
+  # Convert funder string to int #183572073
+  def Funder # rubocop:disable Naming/MethodName
+    super&.to_i
+  end
+
+  def self.sort_by_option(option)
+    raise NotImplementedError unless SORT_OPTIONS.include?(option)
+
+    case option
+    when :start_date
+      order(start_date: :desc)
+    else
+      raise NotImplementedError
+    end
+  end
+
+  def required_fields
+    @required_fields ||= [
+      :ProjectID,
+      :Funder,
+      :GrantID,
+      :StartDate,
+    ]
   end
 end
