@@ -10,8 +10,6 @@ class Hmis::Hud::Service < Hmis::Hud::Base
   self.table_name = :Services
   self.sequence_name = "public.\"#{table_name}_id_seq\""
 
-  attr_writer :skip_validations
-
   belongs_to :enrollment, **hmis_relation(:EnrollmentID, 'Enrollment')
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :services
@@ -40,10 +38,6 @@ class Hmis::Hud::Service < Hmis::Hud::Base
   use_enum :s_s_v_f_sub_type5_enum_map, ::HUD.s_s_v_f_sub_type5_map # If type provded 5
 
   SORT_OPTIONS = [:date_provided].freeze
-
-  def skip_validations
-    @skip_validations ||= []
-  end
 
   def self.generate_services_id
     generate_uuid

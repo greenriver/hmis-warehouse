@@ -11,7 +11,6 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   include ClientSearch
 
   attr_accessor :gender, :race
-  attr_writer :skip_validations
 
   self.table_name = :Client
   self.sequence_name = "public.\"#{table_name}_id_seq\""
@@ -30,10 +29,6 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   scope :searchable_to, ->(user) do
     # TODO: additional access control rules go here
     visible_to(user)
-  end
-
-  def skip_validations
-    @skip_validations ||= []
   end
 
   def self.source_for(destination_id:, user:)

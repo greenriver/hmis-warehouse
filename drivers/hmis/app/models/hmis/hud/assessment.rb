@@ -18,13 +18,7 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
   use_enum :assessment_levels_enum_map, ::HUD.assessment_levels
   use_enum :prioritization_statuses_enum_map, ::HUD.prioritization_statuses
 
-  attr_writer :skip_validations
-
   validates_with Hmis::Hud::Validators::AssessmentValidator
-
-  def skip_validations
-    @skip_validations ||= []
-  end
 
   SORT_OPTIONS = [:assessment_date].freeze
 
