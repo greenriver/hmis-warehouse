@@ -944,6 +944,19 @@ module HmisDataQualityTool
           title: 'Survivor of Domestic Violence',
           description: 'DV data at entry is not 99 or blank',
           required_for: 'Adults and HoH',
+          detail_columns: [
+            :destination_client_id,
+            :hmis_enrollment_id,
+            :personal_id,
+            :project_name,
+            :exit_id,
+            :entry_date,
+            :move_in_date,
+            :exit_date,
+            :age,
+            :relationship_to_hoh,
+            :domestic_violence_victim_at_entry,
+          ],
           denominator: ->(item) { hoh_or_adult?(item) },
           limiter: ->(item) {
             return false unless hoh_or_adult?(item)
@@ -955,9 +968,23 @@ module HmisDataQualityTool
           title: 'Income From Any Source at Entry',
           description: 'Income from any source at entry is not 99 or blank',
           required_for: 'Adults and HoH',
-          denominator: ->(item) { item.income_at_entry_expected },
+          detail_columns: [
+            :destination_client_id,
+            :hmis_enrollment_id,
+            :personal_id,
+            :project_name,
+            :exit_id,
+            :entry_date,
+            :move_in_date,
+            :exit_date,
+            :age,
+            :relationship_to_hoh,
+            :income_at_entry_expected,
+            :income_from_any_source_at_entry,
+          ],
+          denominator: ->(item) { item.income_at_entry_expected == true },
           limiter: ->(item) {
-            return false unless item.income_at_entry_expected
+            return false unless item.income_at_entry_expected == true
 
             item.income_from_any_source_at_entry.blank? || item.income_from_any_source_at_entry == 99
           },
@@ -966,20 +993,48 @@ module HmisDataQualityTool
           title: 'Income From Any Source at Annual Assessment',
           description: 'Income from any source at annual assessment is not 99 or blank',
           required_for: 'Adults and HoH staying longer than 1 year',
-          denominator: ->(item) { item.income_at_annual_expected },
+          detail_columns: [
+            :destination_client_id,
+            :hmis_enrollment_id,
+            :personal_id,
+            :project_name,
+            :exit_id,
+            :entry_date,
+            :move_in_date,
+            :exit_date,
+            :age,
+            :relationship_to_hoh,
+            :income_at_annual_expected,
+            :income_from_any_source_at_annual,
+          ],
+          denominator: ->(item) { item.income_at_annual_expected == true },
           limiter: ->(item) {
-            return false unless item.income_at_annual_expected
+            return false unless item.income_at_annual_expected == true
 
-            item.income_from_any_source_at_annual.blank? || item.income_from_any_source_at_annual == 99
+            item.income_at_annual_expected == true && (item.income_from_any_source_at_annual.blank? || item.income_from_any_source_at_annual == 99)
           },
         },
         income_from_any_source_at_exit: {
           title: 'Income From Any Source at Exit',
           description: 'Income from any source at exit is not 99 or blank',
           required_for: 'Adults and HoH exiting during report range',
-          denominator: ->(item) { item.income_at_exit_expected },
+          detail_columns: [
+            :destination_client_id,
+            :hmis_enrollment_id,
+            :personal_id,
+            :project_name,
+            :exit_id,
+            :entry_date,
+            :move_in_date,
+            :exit_date,
+            :age,
+            :relationship_to_hoh,
+            :income_at_exit_expected,
+            :income_from_any_source_at_exit,
+          ],
+          denominator: ->(item) { item.income_at_exit_expected == true },
           limiter: ->(item) {
-            return false unless item.income_at_exit_expected
+            return false unless item.income_at_exit_expected == true
 
             item.income_from_any_source_at_exit.blank? || item.income_from_any_source_at_exit == 99
           },
@@ -988,9 +1043,23 @@ module HmisDataQualityTool
           title: 'Insurance From Any Source at Entry',
           description: 'Insurance from any source at entry is not 99 or blank',
           required_for: 'All',
-          denominator: ->(item) { item.insurance_at_entry_expected },
+          detail_columns: [
+            :destination_client_id,
+            :hmis_enrollment_id,
+            :personal_id,
+            :project_name,
+            :exit_id,
+            :entry_date,
+            :move_in_date,
+            :exit_date,
+            :age,
+            :relationship_to_hoh,
+            :insurance_at_entry_expected,
+            :insurance_from_any_source_at_entry,
+          ],
+          denominator: ->(item) { item.insurance_at_entry_expected == true },
           limiter: ->(item) {
-            return false unless item.insurance_at_entry_expected
+            return false unless item.insurance_at_entry_expected == true
 
             item.insurance_from_any_source_at_entry.blank? || item.insurance_from_any_source_at_entry == 99
           },
@@ -999,9 +1068,23 @@ module HmisDataQualityTool
           title: 'Insurance From Any Source at Annual Assessment',
           description: 'Insurance from any source at annual assessment is not 99 or blank',
           required_for: 'All staying longer than 1 year',
-          denominator: ->(item) { item.insurance_at_annual_expected },
+          detail_columns: [
+            :destination_client_id,
+            :hmis_enrollment_id,
+            :personal_id,
+            :project_name,
+            :exit_id,
+            :entry_date,
+            :move_in_date,
+            :exit_date,
+            :age,
+            :relationship_to_hoh,
+            :insurance_at_annual_expected,
+            :insurance_from_any_source_at_annual,
+          ],
+          denominator: ->(item) { item.insurance_at_annual_expected == true },
           limiter: ->(item) {
-            return false unless item.insurance_at_annual_expected
+            return false unless item.insurance_at_annual_expected == true
 
             item.insurance_from_any_source_at_annual.blank? || item.insurance_from_any_source_at_annual == 99
           },
@@ -1010,9 +1093,23 @@ module HmisDataQualityTool
           title: 'Insurance From Any Source at Exit',
           description: 'Insurance from any source at exit is not 99 or blank',
           required_for: 'All exiting during report range',
-          denominator: ->(item) { item.insurance_at_exit_expected },
+          detail_columns: [
+            :destination_client_id,
+            :hmis_enrollment_id,
+            :personal_id,
+            :project_name,
+            :exit_id,
+            :entry_date,
+            :move_in_date,
+            :exit_date,
+            :age,
+            :relationship_to_hoh,
+            :insurance_at_exit_expected,
+            :insurance_from_any_source_at_exit,
+          ],
+          denominator: ->(item) { item.insurance_at_exit_expected == true },
           limiter: ->(item) {
-            return false unless item.insurance_at_exit_expected
+            return false unless item.insurance_at_exit_expected == true
 
             item.insurance_from_any_source_at_exit.blank? || item.insurance_from_any_source_at_exit == 99
           },
@@ -1021,9 +1118,23 @@ module HmisDataQualityTool
           title: 'Cash Income Matches Expected Value at Entry',
           description: 'Cash income should be present if income from any source was indicated at entry',
           required_for: 'Adults and HoH',
-          denominator: ->(item) { item.income_at_entry_expected },
+          detail_columns: [
+            :destination_client_id,
+            :hmis_enrollment_id,
+            :personal_id,
+            :project_name,
+            :exit_id,
+            :entry_date,
+            :move_in_date,
+            :exit_date,
+            :age,
+            :relationship_to_hoh,
+            :income_at_entry_expected,
+            :cash_income_as_expected_at_entry,
+          ],
+          denominator: ->(item) { item.income_at_entry_expected == true },
           limiter: ->(item) {
-            return false unless item.income_at_entry_expected
+            return false unless item.income_at_entry_expected == true
 
             ! item.cash_income_as_expected_at_entry
           },
@@ -1032,9 +1143,23 @@ module HmisDataQualityTool
           title: 'Cash Income Matches Expected Value at Annual Assessment',
           description: 'Cash income should be present if income from any source was indicated at annual assessment',
           required_for: 'Adults and HoH staying longer than 1 year',
-          denominator: ->(item) { item.income_at_annual_expected },
+          detail_columns: [
+            :destination_client_id,
+            :hmis_enrollment_id,
+            :personal_id,
+            :project_name,
+            :exit_id,
+            :entry_date,
+            :move_in_date,
+            :exit_date,
+            :age,
+            :relationship_to_hoh,
+            :income_at_annual_expected,
+            :cash_income_as_expected_at_annual,
+          ],
+          denominator: ->(item) { item.income_at_annual_expected == true },
           limiter: ->(item) {
-            return false unless item.income_at_annual_expected
+            return false unless item.income_at_annual_expected == true
 
             ! item.cash_income_as_expected_at_annual
           },
@@ -1043,9 +1168,23 @@ module HmisDataQualityTool
           title: 'Cash Income Matches Expected Value at Exit',
           description: 'Cash income should be present if income from any source was indicated at exit',
           required_for: 'Adults and HoH exiting during report range',
-          denominator: ->(item) { item.income_at_exit_expected },
+          detail_columns: [
+            :destination_client_id,
+            :hmis_enrollment_id,
+            :personal_id,
+            :project_name,
+            :exit_id,
+            :entry_date,
+            :move_in_date,
+            :exit_date,
+            :age,
+            :relationship_to_hoh,
+            :income_at_exit_expected,
+            :cash_income_as_expected_at_exit,
+          ],
+          denominator: ->(item) { item.income_at_exit_expected == true },
           limiter: ->(item) {
-            return false unless item.income_at_exit_expected
+            return false unless item.income_at_exit_expected == true
 
             ! item.cash_income_as_expected_at_exit
           },
@@ -1054,9 +1193,23 @@ module HmisDataQualityTool
           title: 'Non-Cash Benefits Matches Expected Value at Entry',
           description: 'Non-cash benefits should be present if NCB from any source indicated at entry',
           required_for: 'Adults and HoH',
-          denominator: ->(item) { item.income_at_entry_expected },
+          detail_columns: [
+            :destination_client_id,
+            :hmis_enrollment_id,
+            :personal_id,
+            :project_name,
+            :exit_id,
+            :entry_date,
+            :move_in_date,
+            :exit_date,
+            :age,
+            :relationship_to_hoh,
+            :income_at_entry_expected,
+            :ncb_as_expected_at_entry,
+          ],
+          denominator: ->(item) { item.income_at_entry_expected == true },
           limiter: ->(item) {
-            return false unless item.income_at_entry_expected
+            return false unless item.income_at_entry_expected == true
 
             ! item.ncb_as_expected_at_entry
           },
@@ -1065,9 +1218,23 @@ module HmisDataQualityTool
           title: 'Non-Cash Benefits Matches Expected Value at Annual Assessment',
           description: 'Income from any source at annual assessment is not 99 or blank',
           required_for: 'Adults and HoH staying longer than 1 year',
-          denominator: ->(item) { item.income_at_annual_expected },
+          detail_columns: [
+            :destination_client_id,
+            :hmis_enrollment_id,
+            :personal_id,
+            :project_name,
+            :exit_id,
+            :entry_date,
+            :move_in_date,
+            :exit_date,
+            :age,
+            :relationship_to_hoh,
+            :income_at_annual_expected,
+            :ncb_as_expected_at_annual,
+          ],
+          denominator: ->(item) { item.income_at_annual_expected == true },
           limiter: ->(item) {
-            return false unless item.income_at_annual_expected
+            return false unless item.income_at_annual_expected == true
 
             ! item.ncb_as_expected_at_annual
           },
@@ -1076,9 +1243,23 @@ module HmisDataQualityTool
           title: 'Non-Cash Benefits Matches Expected Value at Exit',
           description: 'Income from any source at exit is not 99 or blank',
           required_for: 'Adults and HoH exiting during report range',
-          denominator: ->(item) { item.income_at_exit_expected },
+          detail_columns: [
+            :destination_client_id,
+            :hmis_enrollment_id,
+            :personal_id,
+            :project_name,
+            :exit_id,
+            :entry_date,
+            :move_in_date,
+            :exit_date,
+            :age,
+            :relationship_to_hoh,
+            :income_at_exit_expected,
+            :ncb_as_expected_at_exit,
+          ],
+          denominator: ->(item) { item.income_at_exit_expected == true },
           limiter: ->(item) {
-            return false unless item.income_at_exit_expected
+            return false unless item.income_at_exit_expected == true
 
             ! item.ncb_as_expected_at_exit
           },
@@ -1087,9 +1268,23 @@ module HmisDataQualityTool
           title: 'Insurance Matches Expected Value at Entry',
           description: 'Income from any source at entry is not 99 or blank',
           required_for: 'Adults and HoH',
-          denominator: ->(item) { item.insurance_at_entry_expected },
+          detail_columns: [
+            :destination_client_id,
+            :hmis_enrollment_id,
+            :personal_id,
+            :project_name,
+            :exit_id,
+            :entry_date,
+            :move_in_date,
+            :exit_date,
+            :age,
+            :relationship_to_hoh,
+            :insurance_at_entry_expected,
+            :insurance_as_expected_at_entry,
+          ],
+          denominator: ->(item) { item.insurance_at_entry_expected == true },
           limiter: ->(item) {
-            return false unless item.insurance_at_entry_expected
+            return false unless item.insurance_at_entry_expected == true
 
             ! item.insurance_as_expected_at_entry
           },
@@ -1098,9 +1293,23 @@ module HmisDataQualityTool
           title: 'Insurance Matches Expected Value at Annual Assessment',
           description: 'Income from any source at annual assessment is not 99 or blank',
           required_for: 'Adults and HoH staying longer than 1 year',
-          denominator: ->(item) { item.insurance_at_annual_expected },
+          detail_columns: [
+            :destination_client_id,
+            :hmis_enrollment_id,
+            :personal_id,
+            :project_name,
+            :exit_id,
+            :entry_date,
+            :move_in_date,
+            :exit_date,
+            :age,
+            :relationship_to_hoh,
+            :insurance_at_annual_expected,
+            :insurance_as_expected_at_annual,
+          ],
+          denominator: ->(item) { item.insurance_at_annual_expected == true },
           limiter: ->(item) {
-            return false unless item.insurance_at_annual_expected
+            return false unless item.insurance_at_annual_expected == true
 
             ! item.insurance_as_expected_at_annual
           },
@@ -1109,9 +1318,23 @@ module HmisDataQualityTool
           title: 'Insurance Matches Expected Value at Exit',
           description: 'Income from any source at exit is not 99 or blank',
           required_for: 'Adults and HoH exiting during report range',
-          denominator: ->(item) { item.insurance_at_exit_expected },
+          detail_columns: [
+            :destination_client_id,
+            :hmis_enrollment_id,
+            :personal_id,
+            :project_name,
+            :exit_id,
+            :entry_date,
+            :move_in_date,
+            :exit_date,
+            :age,
+            :relationship_to_hoh,
+            :insurance_at_exit_expected,
+            :insurance_as_expected_at_exit,
+          ],
+          denominator: ->(item) { item.insurance_at_exit_expected == true },
           limiter: ->(item) {
-            return false unless item.insurance_at_exit_expected
+            return false unless item.insurance_at_exit_expected == true
 
             ! item.insurance_as_expected_at_exit
           },
