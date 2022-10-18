@@ -293,6 +293,17 @@ module HmisDataQualityTool
           title: 'Race',
           description: 'Race fields and Race None are incompatible, or invalid race response was recorded',
           required_for: 'All',
+          detail_columns: [
+            :destination_client_id,
+            :first_name,
+            :last_name,
+            :am_ind_ak_native,
+            :asian,
+            :black_af_american,
+            :native_hi_pacific,
+            :white,
+            :race_none,
+          ],
           denominator: ->(_item) { true },
           limiter: ->(item) {
             # any fall outside accepted options
