@@ -21,6 +21,8 @@ module Types
     field :date_deleted, GraphQL::Types::ISO8601DateTime, null: true
     field :assessment_detail, HmisSchema::AssessmentDetail, null: true
     field :user, HmisSchema::User, null: false
+    field :client, HmisSchema::Client, null: false
+    field :in_progress, Boolean, null: false
 
     [
       :assessment_level,
@@ -28,6 +30,10 @@ module Types
       :prioritization_status,
     ].each do |field_name|
       define_method(field_name) { resolve_null_enum(object.send(field_name)) }
+    end
+
+    def in_progress
+      object.in_progress?
     end
 
     def enrollment
