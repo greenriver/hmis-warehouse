@@ -6,12 +6,7 @@
 
 class Git
   def self.revision
-    revision = if File.exist?('REVISION')
-      File.read('REVISION')
-    else
-      ENV['DEPLOYMENT_ID']&.split('::').try(:[], 2)
-    end
-    revision.presence || 'unknown revision'
+    ENV['DEPLOYMENT_ID']&.split('::').try(:[], 2)
   rescue StandardError
     'unknown revision'
   end
