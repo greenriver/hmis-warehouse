@@ -20,8 +20,10 @@ module Types
     field :ssn_serial, String, null: true
     field :dob, GraphQL::Types::ISO8601Date, 'Date of birth as format yyyy-mm-dd', null: true
     field :pronouns, String, null: true
-    field :date_updated, GraphQL::Types::ISO8601DateTime, null: false
     enrollments_field :enrollments, type: Types::HmisSchema::Enrollment.page_type
+    field :date_updated, GraphQL::Types::ISO8601DateTime, null: false
+    field :date_created, GraphQL::Types::ISO8601DateTime, null: false
+    field :date_deleted, GraphQL::Types::ISO8601DateTime, null: true
 
     def enrollments(**args)
       resolve_enrollments(**args)

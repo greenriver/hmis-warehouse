@@ -14,6 +14,8 @@ module Mutations
       if enrollment
         enrollment.entry_date = entry_date if entry_date.present?
         enrollment.relationship_to_ho_h = relationship_to_ho_h if relationship_to_ho_h.present?
+        enrollment.date_updated = DateTime.current
+        enrollment.user_id = hmis_user.user_id
         enrollment.save!
 
         errors << enrollment.errors.errors unless enrollment.valid?

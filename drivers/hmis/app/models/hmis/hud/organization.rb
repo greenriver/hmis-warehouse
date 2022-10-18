@@ -12,7 +12,9 @@ class Hmis::Hud::Organization < Hmis::Hud::Base
 
   attr_writer :skip_validations
 
+  belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   has_many :projects, **hmis_relation(:OrganizationID, 'Project')
+  belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :organizations
 
   validates_with Hmis::Hud::Validators::OrganizationValidator
 
