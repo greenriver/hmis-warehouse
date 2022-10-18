@@ -22,7 +22,7 @@ Populates and references:
 */
 -- 
 
-	delete from tlsa_AveragePops
+	truncate table tlsa_AveragePops
 
 	insert into tlsa_AveragePops (PopID, Cohort, Step)
 	select 0, Cohort, '8.3.1'
@@ -245,7 +245,7 @@ Populates and references:
 	8.4-8.7 Average Days from LSAHousehold 
  */
 
-	delete from lsa_Calculated where ReportRow between 1 and 16
+	truncate table lsa_Calculated 
 
 	insert into lsa_Calculated (Value, Cohort, Universe, HHType
 		, Population, SystemPath, ReportRow, ReportID, Step)
@@ -309,7 +309,6 @@ Populates and references:
 	8.8-8.11 Average Days from LSAExit 
 */
 
-	delete from lsa_Calculated where ReportRow between 18 and 52 or ReportRow in (63,64) 
 
 	insert into lsa_Calculated (Value, Cohort, Universe, HHType
 		, Population, SystemPath, ReportRow, ReportID, Step)

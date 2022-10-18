@@ -329,7 +329,7 @@ module HmisDataQualityTool
         },
         dob_issues: {
           title: 'DOB',
-          description: 'DOB is blank, before Oct. 10 1910, or after entry date',
+          description: 'DOB is blank, before Oct. 10 1910, DOB is after an entry date, or DOB Data Quality is not collected, but DOB is present',
           required_for: 'All',
           detail_columns: [
             :destination_client_id,
@@ -343,6 +343,8 @@ module HmisDataQualityTool
           limiter: ->(item) {
             # DOB is Blank
             return true if item.dob.blank?
+            # DOB Quality is 99 or blank but dob is present?
+            return true if item.dob.present? && (item.dob_data_quality.blank? || item.dob_data_quality == 99)
             # before 10/10/1910
             return true if item.dob <= '1910-10-10'.to_date
             # in the future
