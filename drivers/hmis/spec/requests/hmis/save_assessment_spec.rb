@@ -43,14 +43,16 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   let(:mutation) do
     <<~GRAPHQL
-      mutation SaveAssessment($assessmentId: ID!, $values: JsonObject!, $assessmentDate: String) {
+      mutation SaveAssessment($assessmentId: ID!, $values: JsonObject!, $assessmentDate: String, $inProgress: Boolean) {
         saveAssessment(input: {
           assessmentId: $assessmentId,
           assessmentDate: $assessmentDate,
           values: $values,
+          inProgress: $inProgress,
         }) {
           assessment {
             id
+            inProgress
             enrollment {
               id
             }
@@ -108,6 +110,25 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       ),
     )
     expect(errors).to be_empty
+  end
+
+  describe 'In progress tests' do
+    it 'should set things to in progress if we tell it to' do
+      response, result = post_graphql(**test_input.merge(in_progress: true)) { mutation }
+      expect(response.status).to eq 200
+      assessment = result.dig('data', 'saveAssessment', 'assessment')
+      errors = result.dig('data', 'saveAssessment', 'errors')
+      expect(assessment).to be_present
+      expect(assessment['inProgress']).to eq(true)
+      expect(assessment['enrollment']).to be_present
+      expect(errors).to be_empty
+      expect(Hmis::Hud::Assessment.count).to eq(1)
+      expect(Hmis::Hud::Assessment.in_progress.count).to eq(1)
+      expect(Hmis::Hud::Assessment.where(enrollment_id: 'WIP').count).to eq(1)
+      expect(Hmis::Wip.count).to eq(1)
+      expect(Hmis::Wip.first).to have_attributes(enrollment_id: e1.id, client_id: c1.id, project_id: nil)
+      expect(Hmis::Hud::Assessment.viewable_by(hmis_user).count).to eq(1)
+    end
   end
 
   describe 'Validity tests' do

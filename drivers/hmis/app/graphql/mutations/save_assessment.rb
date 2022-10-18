@@ -2,6 +2,7 @@ module Mutations
   class SaveAssessment < BaseMutation
     argument :assessment_id, ID, required: true
     argument :values, Types::JsonObject, required: true
+    argument :in_progress, Boolean, required: false
     date_string_argument :assessment_date, 'Date with format yyyy-mm-dd', required: false
 
     field :assessment, Types::HmisSchema::Assessment, null: true
@@ -13,7 +14,7 @@ module Mutations
       errors
     end
 
-    def resolve(assessment_id:, values:, assessment_date: nil)
+    def resolve(assessment_id:, values:, assessment_date: nil, in_progress: false)
       user = hmis_user
 
       assessment = Hmis::Hud::Assessment.find_by(id: assessment_id)
@@ -29,7 +30,7 @@ module Mutations
       assessment.assessment_detail.update(values: values)
 
       if assessment.valid? && assessment.assessment_detail.valid?
-        assessment.save!
+        in_progress ? assessment.save_in_progress : assessment.save_not_in_progress
       else
         errors << assessment.errors
         errors << assessment.assessment_detail.errors
