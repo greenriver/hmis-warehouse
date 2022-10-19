@@ -36,7 +36,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let(:test_input) do
     {
       assessment_id: a1.id,
-      assessment_date: (Date.today - 2.days).strftime('%Y-%m-%d'),
+      assessment_date: '2022-10-16',
       values: { key: 'newValue' },
     }
   end
@@ -124,7 +124,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(errors).to be_empty
       expect(Hmis::Hud::Assessment.count).to eq(1)
       expect(Hmis::Hud::Assessment.in_progress.count).to eq(1)
-      expect(Hmis::Hud::Assessment.where(enrollment_id: 'WIP').count).to eq(1)
+      expect(Hmis::Hud::Assessment.where(enrollment_id: Hmis::Hud::Assessment::WIP_ID).count).to eq(1)
       expect(Hmis::Wip.count).to eq(1)
       expect(Hmis::Wip.first).to have_attributes(enrollment_id: e1.id, client_id: c1.id, project_id: nil)
       expect(Hmis::Hud::Assessment.viewable_by(hmis_user).count).to eq(1)

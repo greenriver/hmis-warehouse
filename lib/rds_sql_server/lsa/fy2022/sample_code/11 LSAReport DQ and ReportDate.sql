@@ -250,7 +250,7 @@ set rpt.Destination = (select count(distinct n.EnrollmentID)
 		and x.DateDeleted is null
 	where n.Active = 1 and n.ExitDate is not null
 		and (x.Destination is null
-			or x.Destination in (8,9,17,27,30,99))
+			or x.Destination in (8,9,17,30,99))
 	)
 from lsa_Report rpt
 

@@ -14,6 +14,9 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
   self.table_name = :Assessment
   self.sequence_name = "public.\"#{table_name}_id_seq\""
 
+  SORT_OPTIONS = [:assessment_date].freeze
+  WIP_ID = 'WIP'.freeze
+
   belongs_to :enrollment, **hmis_relation(:EnrollmentID, 'Enrollment')
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :assessments
@@ -31,9 +34,9 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
   validates_with Hmis::Hud::Validators::AssessmentValidator
 
   scope :viewable_by, ->(user) do
-    enrollment_ids = Hmis::Hud::Enrollment.viewable_by(user).pluck(:EnrollmentID)
-    vieawable_wip = wip_t[:enrollment_id].in(enrollment_ids)
-    viewable_enrollment = as_t[:EnrollmentID].in(enrollment_ids)
+    enrollment_ids = Hmis::Hud::Enrollment.viewable_by(user).pluck(:id, :EnrollmentID)
+    vieawable_wip = wip_t[:enrollment_id].in(enrollment_ids.map(&:first))
+    viewable_enrollment = as_t[:EnrollmentID].in(enrollment_ids.map(&:second))
 
     left_outer_joins(:wip).where(vieawable_wip.or(viewable_enrollment))
   end
@@ -47,8 +50,6 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
   def skip_validations
     @skip_validations ||= []
   end
-
-  SORT_OPTIONS = [:assessment_date].freeze
 
   def self.generate_assessment_id
     generate_uuid

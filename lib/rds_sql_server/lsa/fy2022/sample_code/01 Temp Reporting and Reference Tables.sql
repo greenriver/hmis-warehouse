@@ -413,7 +413,7 @@ create table tlsa_Household(
 
 	--Populate ref_Calendar
 	declare @start date = '2012-10-01'
-	declare @end date = '2022-09-30'
+	declare @end date = '2023-09-30'
 	declare @i int = 0
 	declare @total_days int = DATEDIFF(d, @start, @end) 
 

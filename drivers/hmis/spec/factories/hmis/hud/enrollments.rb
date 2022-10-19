@@ -8,7 +8,7 @@ FactoryBot.define do
     DateCreated { DateTime.current }
     DateUpdated { DateTime.current }
     HouseholdID { SecureRandom.uuid.gsub(/-/, '') }
-    sequence(:EnrollmentID, 1)
+    sequence(:EnrollmentID, 500)
     sequence(:EntryDate) do |n|
       dates = [
         Date.current,

@@ -12,7 +12,7 @@ FY2022 Changes
 
 	3.2 Cohort Dates 
 */
-	delete from tlsa_CohortDates
+	truncate table tlsa_CohortDates
 
 	insert into tlsa_CohortDates (Cohort, CohortStart, CohortEnd, LookbackDate, ReportID)
 	select 1, rpt.ReportStart, rpt.ReportEnd, rpt.LookbackDate, rpt.ReportID
@@ -62,7 +62,7 @@ FY2022 Changes
 /*
 	3.3 HMIS HouseholdIDs 
 */
-delete from tlsa_HHID
+truncate table tlsa_HHID
 -- Note:  Code here and elsewhere 
 			-- Uses LSAProjectType = 0 when ProjectType = 1 and TrackingMethod = 0 (ES entry/exit)	
 --				and LSAProjectType = 1 when ProjectType = 1 and TrackingMethod = 3 (ES night-by-night); this differs from the
@@ -183,7 +183,7 @@ where hoh.DateDeleted is null
 /*
 	3.4  HMIS Client Enrollments 
 */
-	delete from tlsa_Enrollment
+	truncate table tlsa_Enrollment
 
 	--all project types except ES night-by-night
 	insert into tlsa_Enrollment 

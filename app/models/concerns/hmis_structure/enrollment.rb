@@ -737,7 +737,15 @@ module HmisStructure::Enrollment
         [:DateDeleted] => nil,
         [:DateUpdated] => nil,
         [:EnrollmentID] => nil,
-        [:EntryDate] => nil,
+        [:EntryDate] => {
+          include: [
+            :EnrollmentID,
+            :ProjectID,
+            :HouseholdID,
+            :RelationshipToHoH,
+            :DateDeleted,
+          ],
+        },
         [:PersonalID] => nil,
         [:ProjectID] => nil,
         [:HouseholdID] => nil,
@@ -745,7 +753,7 @@ module HmisStructure::Enrollment
         [:ProjectID, :HouseholdID] => nil,
         [:EnrollmentID, :PersonalID] => nil,
         [:EnrollmentID, :ProjectID, :EntryDate] => nil,
-        [:RelationshipToHoH] => {
+        [:RelationshipToHoH, :DateDeleted] => {
           include: [
             :EnrollmentID,
             :PersonalID,
@@ -756,7 +764,7 @@ module HmisStructure::Enrollment
             :DisablingCondition,
           ],
         },
-        [:ProjectID, :RelationshipToHoH] => {
+        [:ProjectID, :RelationshipToHoH, :DateDeleted] => {
           include: [
             :EnrollmentID,
             :PersonalID,
@@ -765,9 +773,71 @@ module HmisStructure::Enrollment
             :MoveInDate,
           ],
         },
-        [:LivingSituation] => nil,
+        [:LivingSituation] => {
+          include: [
+            :EnrollmentID,
+          ],
+        },
         [:PreviousStreetESSH, :LengthOfStay] => nil,
-        [:TimesHomelessPastThreeYears, :MonthsHomelessPastThreeYears] => nil,
+        [:TimesHomelessPastThreeYears, :MonthsHomelessPastThreeYears] => {
+          include: [
+            :EnrollmentID,
+          ],
+        },
+        [:DateDeleted, :EntryDate] => {
+          include: [
+            :EnrollmentID,
+            :HouseholdID,
+            :ProjectID,
+            :RelationshipToHoH,
+          ],
+        },
+        [:HouseholdID, :DateDeleted, :EntryDate, :RelationshipToHoH] => {
+          include: [
+            :EnrollmentID,
+            :PersonalID,
+            :DisablingCondition,
+          ],
+        },
+        [:DateDeleted, :RelationshipToHoH] => {
+          include: [
+            :EnrollmentID,
+            :PersonalID,
+            :EntryDate,
+            :HouseholdID,
+            :DisablingCondition,
+          ],
+        },
+        [:HouseholdID, :DateDeleted, :RelationshipToHoH] => {
+          include: [
+            :EnrollmentID,
+            :PersonalID,
+            :EntryDate,
+            :DisablingCondition,
+          ],
+        },
+        [:MoveInDate] => {
+          include: [
+            :EnrollmentID,
+          ],
+        },
+        [:LengthOfStay] => {
+          include: [
+            :EnrollmentID,
+          ],
+        },
+        [:HouseholdID, :RelationshipToHoH, :DateDeleted] => {
+          include: [
+            :EnrollmentID,
+          ],
+        },
+        [:MonthsHomelessPastThreeYears] => {
+          include: [
+            :EnrollmentID,
+            :LivingSituation,
+            :PreviousStreetESSH,
+          ],
+        },
       }
     end
   end
