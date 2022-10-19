@@ -6,7 +6,7 @@ FactoryBot.define do
     sequence(:UserID, 100)
     DateCreated { Date.parse('2019-01-01') }
     DateUpdated { Date.parse('2019-01-01') }
-    CoCCode { 'CA-001' }
+    CoCCode { 'XX-500' }
     Geocode { '123123' }
   end
 end

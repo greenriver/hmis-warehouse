@@ -14,7 +14,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let(:u1) { Hmis::Hud::User.from_user(hmis_user) }
   let!(:o1) { create :hmis_hud_organization, data_source_id: ds1.id, user: u1 }
   let!(:p1) { create :hmis_hud_project, data_source_id: ds1.id, organization: o1, user: u1 }
-  let!(:pc1) { create :hmis_hud_project_coc, data_source_id: ds1.id, project: p1, coc_code: 'AZ-123' }
+  let!(:pc1) { create :hmis_hud_project_coc, data_source_id: ds1.id, project: p1, coc_code: 'CO-500' }
   let(:valid_input) do
     {
       project_id: p1.id,
@@ -73,7 +73,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     it 'fails if coc code is invalid' do
-      response, result = post_graphql(input: { **valid_input, coc_code: '999999' }) { mutation }
+      response, result = post_graphql(input: { **valid_input, coc_code: 'FL-501' }) { mutation }
 
       record = result.dig('data', 'createInventory', 'inventory')
       errors = result.dig('data', 'createInventory', 'errors')

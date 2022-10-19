@@ -18,7 +18,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let(:valid_input) do
     {
       project_id: p1.id,
-      coc_code: 'VT-001',
+      coc_code: 'CO-500',
       geocode: '123456',
       city: 'test',
       state: 'VT',
@@ -27,7 +27,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   describe 'projectCoc update' do
-    let!(:pc1) { create :hmis_hud_project_coc, data_source_id: ds1.id, project: p1, coc_code: 'AZ-123' }
+    let!(:pc1) { create :hmis_hud_project_coc, data_source_id: ds1.id, project: p1, coc_code: 'CO-503' }
 
     before(:each) do
       post hmis_user_session_path(hmis_user: { email: user.email, password: user.password })

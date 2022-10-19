@@ -17,7 +17,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let(:valid_input) do
     {
       project_id: p1.id,
-      coc_code: 'VT-001',
+      coc_code: 'CO-500',
       geocode: '123456',
       city: 'test',
       state: 'VT',
