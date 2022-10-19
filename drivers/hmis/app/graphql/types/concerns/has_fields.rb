@@ -1,17 +1,10 @@
 module Types::Concerns::HasFields
   extend ActiveSupport::Concern
 
-  TYPE_MAP = {
-    string: String,
-    integer: Integer,
-    datetime: GraphQL::Types::ISO8601DateTime,
-    date: GraphQL::Types::ISO8601Date,
-  }.freeze
-
   class_methods do
     def add_fields
-      config = configuration.transform_keys { |k| k.to_s.gsub('ID', '').underscore }
-
+      config = configuration.transform_keys { |k| k.to_s.underscore }
+      puts config
       type_fields.map do |key, options|
         next if options[:field].nil?
 
@@ -20,12 +13,12 @@ module Types::Concerns::HasFields
         # Warehouse field configuration
         config_options = config.dig(key.to_s)
 
-        type = field_options[:type] || TYPE_MAP[config_options[:type]]
+        type = field_options[:type] || hud_to_gql_type_map[config_options&.dig(:type)]
+        nullable = field_options[:null].nil? ? config_options&.dig(:null) : field_options[:null]
+
         raise "No type for #{key}" unless type.present?
 
-        nullable = field_options[:null].nil? ? config_options&.dig(:null) : field_options[:null]
         args = field_options.except(:type, :null)
-
         field key, type: type, null: nullable, **args
       end
     end

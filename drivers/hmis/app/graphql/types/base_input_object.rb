@@ -43,6 +43,18 @@ module Types
       )
     end
 
+    def self.hud_argument(name, type = nil, **kwargs)
+      return field name, type, **kwargs unless configuration.present?
+
+      config = configuration.transform_keys { |k| k.to_s.underscore }[name.to_s]
+      type ||= Types::BaseObject.hud_to_gql_type_map[config[:type]] if config.present?
+      raise "No type for #{name}" unless type.present?
+
+      required = kwargs[:required] || false
+      args = kwargs.except(:required)
+      argument name, type, required: required, **args
+    end
+
     def to_params
       self.class.transformer.new(self).to_params
     end

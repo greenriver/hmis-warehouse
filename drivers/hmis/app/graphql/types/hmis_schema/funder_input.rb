@@ -1,13 +1,12 @@
 module Types
   class HmisSchema::FunderInput < BaseInputObject
-    description 'HMIS Funder input'
+    include Types::Concerns::HasInputArguments
 
-    argument :project_id, ID, required: false
-    argument :funder, HmisSchema::Enums::FundingSource, required: false
-    argument :other_funder, String, required: false
-    argument :grant_id, String, required: false
-    argument :start_date, GraphQL::Types::ISO8601Date, required: false
-    argument :end_date, GraphQL::Types::ISO8601Date, required: false
+    def self.source_type
+      Types::HmisSchema::Funder
+    end
+
+    add_input_arguments
 
     def to_params
       result = to_h

@@ -917,9 +917,6 @@ type FormDefinition {
   version: Int!
 }
 
-"""
-HUD Funder
-"""
 type Funder {
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
@@ -933,9 +930,6 @@ type Funder {
   startDate: ISO8601Date!
 }
 
-"""
-HMIS Funder input
-"""
 input FunderInput {
   endDate: ISO8601Date
   funder: FundingSource
@@ -1708,9 +1702,6 @@ enum ProbSolDivRRResult {
   YES
 }
 
-"""
-HUD Project
-"""
 type Project {
   HMISParticipatingProject: Boolean
   HOPWAMedAssistedLivingFac: HOPWAMedAssistedLivingFac
@@ -1735,9 +1726,6 @@ type Project {
   trackingMethod: TrackingMethod
 }
 
-"""
-HUD Project CoC
-"""
 type ProjectCoc {
   address1: String
   address2: String
@@ -1754,9 +1742,6 @@ type ProjectCoc {
   zip: String
 }
 
-"""
-HMIS Project CoC input
-"""
 input ProjectCocInput {
   address1: String
   address2: String
@@ -1779,9 +1764,6 @@ type ProjectCocsPaginated {
   pagesCount: Int!
 }
 
-"""
-HMIS Project input
-"""
 input ProjectInput {
   HMISParticipatingProject: Boolean
   HOPWAMedAssistedLivingFac: HOPWAMedAssistedLivingFac

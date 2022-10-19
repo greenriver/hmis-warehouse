@@ -20,7 +20,7 @@ module Types
           field: { type: ID, null: false },
         },
         project: {
-          field: { type: Types::HmisSchema::Project },
+          field: { type: Types::HmisSchema::Project, null: false },
           argument: { name: :project_id, type: ID },
         },
         coc_code: {

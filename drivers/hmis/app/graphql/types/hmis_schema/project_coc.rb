@@ -8,19 +8,65 @@
 
 module Types
   class HmisSchema::ProjectCoc < Types::BaseObject
-    description 'HUD Project CoC'
-    field :id, ID, null: false
-    field :project, Types::HmisSchema::Project, null: false
-    field :coc_code, String, null: false
-    field :geocode, String, null: false
-    field :address1, String, null: true
-    field :address2, String, null: true
-    field :city, String, null: true
-    field :state, String, null: true
-    field :zip, String, null: true
-    field :geography_type, HmisSchema::Enums::GeographyType, null: true
-    field :date_created, GraphQL::Types::ISO8601DateTime, null: false
-    field :date_updated, GraphQL::Types::ISO8601DateTime, null: false
-    field :date_deleted, GraphQL::Types::ISO8601DateTime, null: true
+    include Types::Concerns::HasFields
+
+    def self.configuration
+      Hmis::Hud::ProjectCoc.hmis_configuration(version: '2022')
+    end
+
+    def self.type_fields
+      {
+        id: {
+          field: { type: ID, null: false },
+        },
+        project: {
+          field: { type: Types::HmisSchema::Project, null: false },
+          argument: { name: :project_id, type: ID },
+        },
+        coc_code: {
+          field: {},
+          argument: {},
+        },
+        geocode: {
+          field: {},
+          argument: {},
+        },
+        address1: {
+          field: {},
+          argument: {},
+        },
+        address2: {
+          field: {},
+          argument: {},
+        },
+        city: {
+          field: {},
+          argument: {},
+        },
+        state: {
+          field: {},
+          argument: {},
+        },
+        zip: {
+          field: {},
+          argument: {},
+        },
+        geography_type: {
+          field: { type: HmisSchema::Enums::GeographyType },
+          argument: {},
+        },
+        date_created: {
+          field: {},
+        },
+        date_updated: {
+          field: {},
+        },
+        date_deleted: {
+          field: {},
+        },
+      }.freeze
+    end
+
+    add_fields
   end
 end

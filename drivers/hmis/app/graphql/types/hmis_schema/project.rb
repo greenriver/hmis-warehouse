@@ -12,30 +12,31 @@ module Types
     include Types::HmisSchema::HasProjectCocs
     include Types::HmisSchema::HasFunders
 
-    description 'HUD Project'
-    field :id, ID, null: false
-    field :project_name, String, method: :ProjectName, null: false
-    field :project_type, Types::HmisSchema::Enums::ProjectType, method: :ProjectType, null: true
-    field :organization, Types::HmisSchema::Organization, null: false
+    def self.configuration
+      Hmis::Hud::Project.hmis_configuration(version: '2022')
+    end
 
+    hud_field :id, ID, null: false
+    hud_field :project_name
+    hud_field :project_type, Types::HmisSchema::Enums::ProjectType
+    hud_field :organization, Types::HmisSchema::Organization, null: false
     inventories_field null: false
     project_cocs_field null: false
     funders_field null: false
-
-    field :operating_start_date, GraphQL::Types::ISO8601Date, null: false
-    field :operating_end_date, GraphQL::Types::ISO8601Date, null: true
-    field :description, String, null: true
-    field :contact_information, String, null: true
-    field :housing_type, Types::HmisSchema::Enums::HousingType, null: true
-    field :tracking_method, Types::HmisSchema::Enums::TrackingMethod, null: true
-    field :target_population, HmisSchema::Enums::TargetPopulation, null: true
-    field :HOPWAMedAssistedLivingFac, HmisSchema::Enums::HOPWAMedAssistedLivingFac, null: true
+    hud_field :operating_start_date
+    hud_field :operating_end_date
+    hud_field :description, String, null: true
+    hud_field :contact_information, String, null: true
+    hud_field :housing_type, Types::HmisSchema::Enums::HousingType
+    hud_field :tracking_method, Types::HmisSchema::Enums::TrackingMethod
+    hud_field :target_population, HmisSchema::Enums::TargetPopulation
+    hud_field :HOPWAMedAssistedLivingFac, HmisSchema::Enums::HOPWAMedAssistedLivingFac
     yes_no_missing_field :continuum_project
     yes_no_missing_field :residential_affiliation
     yes_no_missing_field :HMISParticipatingProject
-    field :date_updated, GraphQL::Types::ISO8601DateTime, null: false
-    field :date_created, GraphQL::Types::ISO8601DateTime, null: false
-    field :date_deleted, GraphQL::Types::ISO8601DateTime, null: true
+    hud_field :date_updated
+    hud_field :date_created
+    hud_field :date_deleted
 
     # rubocop:disable Naming/MethodName
     def HMISParticipatingProject

@@ -8,16 +8,53 @@
 
 module Types
   class HmisSchema::Funder < Types::BaseObject
-    description 'HUD Funder'
-    field :id, ID, null: false
-    field :project, Types::HmisSchema::Project, null: false
-    field :funder, Types::HmisSchema::Enums::FundingSource, null: false
-    field :other_funder, String, null: true
-    field :grant_id, String, null: false
-    field :start_date, GraphQL::Types::ISO8601Date, null: false
-    field :end_date, GraphQL::Types::ISO8601Date, null: true
-    field :date_created, GraphQL::Types::ISO8601DateTime, null: false
-    field :date_updated, GraphQL::Types::ISO8601DateTime, null: false
-    field :date_deleted, GraphQL::Types::ISO8601DateTime, null: true
+    include Types::Concerns::HasFields
+
+    def self.configuration
+      Hmis::Hud::Funder.hmis_configuration(version: '2022')
+    end
+
+    def self.type_fields
+      {
+        id: {
+          field: { type: ID, null: false },
+        },
+        project: {
+          field: { type: Types::HmisSchema::Project, null: false },
+          argument: { name: :project_id, type: ID },
+        },
+        funder: {
+          field: { type: HmisSchema::Enums::FundingSource },
+          argument: {},
+        },
+        other_funder: {
+          field: {},
+          argument: {},
+        },
+        grant_id: {
+          field: {},
+          argument: {},
+        },
+        start_date: {
+          field: { null: false },
+          argument: {},
+        },
+        end_date: {
+          field: {},
+          argument: {},
+        },
+        date_created: {
+          field: {},
+        },
+        date_updated: {
+          field: {},
+        },
+        date_deleted: {
+          field: {},
+        },
+      }.freeze
+    end
+
+    add_fields
   end
 end

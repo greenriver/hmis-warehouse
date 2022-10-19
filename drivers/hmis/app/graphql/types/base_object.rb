@@ -18,6 +18,18 @@ module Types
       @page_type ||= BasePaginated.create(self)
     end
 
+    def self.hud_field(name, type = nil, **kwargs)
+      return field name, type, **kwargs unless configuration.present?
+
+      config = configuration.transform_keys { |k| k.to_s.underscore }[name.to_s]
+      type ||= hud_to_gql_type_map[config[:type]] if config.present?
+      raise "No type for #{name}" unless type.present?
+
+      nullable = kwargs[:null].nil? && config.present? ? config[:null] : kwargs[:null]
+      args = kwargs.except(:null)
+      field name, type, null: nullable, **args
+    end
+
     def self.yes_no_missing_field(name, description = nil, **kwargs)
       field name, Boolean, description, **kwargs
     end
@@ -39,6 +51,19 @@ module Types
 
     def load_ar_association(object, association, scope: nil)
       dataloader.with(Sources::ActiveRecordAssociation, association, scope).load(object)
+    end
+
+    def self.hud_to_gql_type_map
+      {
+        string: String,
+        integer: Integer,
+        datetime: GraphQL::Types::ISO8601DateTime,
+        date: GraphQL::Types::ISO8601Date,
+      }.freeze
+    end
+
+    def self.configuration
+      nil
     end
   end
 end

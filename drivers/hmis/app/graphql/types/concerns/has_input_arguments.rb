@@ -1,17 +1,9 @@
 module Types::Concerns::HasInputArguments
   extend ActiveSupport::Concern
 
-  TYPE_MAP = {
-    string: String,
-    integer: Integer,
-    datetime: GraphQL::Types::ISO8601DateTime,
-    date: GraphQL::Types::ISO8601Date,
-  }.freeze
-
   class_methods do
     def add_input_arguments
-      config = source_type.configuration.transform_keys { |k| k.to_s.gsub('ID', '').underscore }
-
+      config = source_type.configuration.transform_keys { |k| k.to_s.underscore }
       source_type.type_fields.map do |key, options|
         next if options[:argument].nil?
 
@@ -22,13 +14,13 @@ module Types::Concerns::HasInputArguments
         config_options = config.dig(key.to_s)
 
         name = argument_options[:name] || key
-        type = argument_options[:type] || field_options[:type] || TYPE_MAP[config_options[:type]]
+        type = argument_options[:type] || field_options[:type] || Types::BaseObject.hud_to_gql_type_map[config_options&.dig(:type)]
         required = options[:argument][:required] || false
 
         raise "No type for #{key}" unless type.present?
 
         args = options[:argument].except(:name, :type, :required)
-        argument(name.to_sym, type, required: required, **args)
+        argument name.to_sym, type, required: required, **args
       end
     end
   end

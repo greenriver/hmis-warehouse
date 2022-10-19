@@ -1,16 +1,12 @@
 module Types
   class HmisSchema::ProjectCocInput < BaseInputObject
-    description 'HMIS Project CoC input'
+    include Types::Concerns::HasInputArguments
 
-    argument :project_id, ID, required: false
-    argument :coc_code, String, required: false
-    argument :geocode, String, required: false
-    argument :address1, String, required: false
-    argument :address2, String, required: false
-    argument :city, String, required: false
-    argument :state, String, required: false
-    argument :zip, String, required: false
-    argument :geography_type, HmisSchema::Enums::GeographyType, required: false
+    def self.source_type
+      Types::HmisSchema::ProjectCoc
+    end
+
+    add_input_arguments
 
     def to_params
       result = to_h
