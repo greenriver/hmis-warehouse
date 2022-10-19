@@ -1,12 +1,15 @@
 module Types
   class HmisSchema::FunderInput < BaseInputObject
-    include Types::Concerns::HasInputArguments
-
     def self.source_type
       Types::HmisSchema::Funder
     end
 
-    add_input_arguments
+    hud_argument :project_id, ID, required: false
+    hud_argument :funder, HmisSchema::Enums::FundingSource
+    hud_argument :other_funder
+    hud_argument :grant_id
+    hud_argument :start_date
+    hud_argument :end_date
 
     def to_params
       result = to_h

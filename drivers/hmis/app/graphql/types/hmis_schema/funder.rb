@@ -8,53 +8,19 @@
 
 module Types
   class HmisSchema::Funder < Types::BaseObject
-    include Types::Concerns::HasFields
-
     def self.configuration
       Hmis::Hud::Funder.hmis_configuration(version: '2022')
     end
 
-    def self.type_fields
-      {
-        id: {
-          field: { type: ID, null: false },
-        },
-        project: {
-          field: { type: Types::HmisSchema::Project, null: false },
-          argument: { name: :project_id, type: ID },
-        },
-        funder: {
-          field: { type: HmisSchema::Enums::FundingSource },
-          argument: {},
-        },
-        other_funder: {
-          field: {},
-          argument: {},
-        },
-        grant_id: {
-          field: {},
-          argument: {},
-        },
-        start_date: {
-          field: { null: false },
-          argument: {},
-        },
-        end_date: {
-          field: {},
-          argument: {},
-        },
-        date_created: {
-          field: {},
-        },
-        date_updated: {
-          field: {},
-        },
-        date_deleted: {
-          field: {},
-        },
-      }.freeze
-    end
-
-    add_fields
+    hud_field :id, ID, null: false
+    hud_field :project, Types::HmisSchema::Project, null: false
+    hud_field :funder, HmisSchema::Enums::FundingSource
+    hud_field :other_funder
+    hud_field :grant_id
+    hud_field :start_date, null: false
+    hud_field :end_date
+    hud_field :date_updated
+    hud_field :date_created
+    hud_field :date_deleted
   end
 end

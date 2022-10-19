@@ -8,93 +8,29 @@
 
 module Types
   class HmisSchema::Inventory < Types::BaseObject
-    include Types::Concerns::HasFields
-
     def self.configuration
       Hmis::Hud::Inventory.hmis_configuration(version: '2022')
     end
 
-    def self.type_fields
-      {
-        id: {
-          field: { type: ID, null: false },
-        },
-        project: {
-          field: { type: Types::HmisSchema::Project, null: false },
-          argument: { name: :project_id, type: ID },
-        },
-        coc_code: {
-          field: { type: String },
-          argument: {},
-        },
-        household_type: {
-          field: { type: HmisSchema::Enums::HouseholdType },
-          argument: {},
-        },
-        availability: {
-          field: { type: HmisSchema::Enums::Availability },
-          argument: {},
-        },
-        unit_inventory: {
-          field: {},
-          argument: {},
-        },
-        bed_inventory: {
-          field: {},
-          argument: {},
-        },
-        ch_vet_bed_inventory: {
-          field: {},
-          argument: {},
-        },
-        youth_vet_bed_inventory: {
-          field: {},
-          argument: {},
-        },
-        vet_bed_inventory: {
-          field: {},
-          argument: {},
-        },
-        ch_youth_bed_inventory: {
-          field: {},
-          argument: {},
-        },
-        youth_bed_inventory: {
-          field: {},
-          argument: {},
-        },
-        ch_bed_inventory: {
-          field: {},
-          argument: {},
-        },
-        other_bed_inventory: {
-          field: {},
-          argument: {},
-        },
-        es_bed_type: {
-          field: { type: HmisSchema::Enums::BedType },
-          argument: {},
-        },
-        inventory_start_date: {
-          field: { null: false },
-          argument: {},
-        },
-        inventory_end_date: {
-          field: {},
-          argument: {},
-        },
-        date_created: {
-          field: {},
-        },
-        date_updated: {
-          field: {},
-        },
-        date_deleted: {
-          field: {},
-        },
-      }.freeze
-    end
-
-    add_fields
+    hud_field :id, ID, null: false
+    hud_field :project, Types::HmisSchema::Project, null: false
+    hud_field :coc_code
+    hud_field :household_type, HmisSchema::Enums::HouseholdType
+    hud_field :availability, HmisSchema::Enums::Availability
+    hud_field :unit_inventory
+    hud_field :bed_inventory
+    hud_field :ch_vet_bed_inventory
+    hud_field :youth_vet_bed_inventory
+    hud_field :vet_bed_inventory
+    hud_field :ch_youth_bed_inventory
+    hud_field :youth_bed_inventory
+    hud_field :ch_bed_inventory
+    hud_field :other_bed_inventory
+    hud_field :es_bed_type, HmisSchema::Enums::BedType
+    hud_field :inventory_start_date, null: false
+    hud_field :inventory_end_date
+    hud_field :date_updated
+    hud_field :date_created
+    hud_field :date_deleted
   end
 end

@@ -18,18 +18,6 @@ module Types
       @page_type ||= BasePaginated.create(self)
     end
 
-    def self.hud_field(name, type = nil, **kwargs)
-      return field name, type, **kwargs unless configuration.present?
-
-      config = configuration.transform_keys { |k| k.to_s.underscore }[name.to_s]
-      type ||= hud_to_gql_type_map[config[:type]] if config.present?
-      raise "No type for #{name}" unless type.present?
-
-      nullable = kwargs[:null].nil? && config.present? ? config[:null] : kwargs[:null]
-      args = kwargs.except(:null)
-      field name, type, null: nullable, **args
-    end
-
     def self.yes_no_missing_field(name, description = nil, **kwargs)
       field name, Boolean, description, **kwargs
     end
@@ -53,6 +41,23 @@ module Types
       dataloader.with(Sources::ActiveRecordAssociation, association, scope).load(object)
     end
 
+    # Infers type and nullability from warehouse configuration
+    def self.hud_field(name, type = nil, **kwargs)
+      return field name, type, **kwargs unless configuration.present?
+
+      config = configuration.transform_keys { |k| k.to_s.underscore }[name.to_s]
+      type ||= hud_to_gql_type_map[config[:type]] if config.present?
+      raise "No type for #{name}" unless type.present?
+
+      nullable = kwargs[:null].nil? && config.present? ? config[:null] : kwargs[:null]
+      args = kwargs.except(:null)
+      field name, type, null: nullable, **args
+    end
+
+    def self.configuration
+      nil
+    end
+
     def self.hud_to_gql_type_map
       {
         string: String,
@@ -60,10 +65,6 @@ module Types
         datetime: GraphQL::Types::ISO8601DateTime,
         date: GraphQL::Types::ISO8601Date,
       }.freeze
-    end
-
-    def self.configuration
-      nil
     end
   end
 end

@@ -1,12 +1,18 @@
 module Types
   class HmisSchema::ProjectCocInput < BaseInputObject
-    include Types::Concerns::HasInputArguments
-
     def self.source_type
       Types::HmisSchema::ProjectCoc
     end
 
-    add_input_arguments
+    hud_argument :project_id, ID
+    hud_argument :coc_code, validates: { length: { is: 6 } }
+    hud_argument :geocode, validates: { length: { is: 6 } }
+    hud_argument :address1
+    hud_argument :address2
+    hud_argument :city
+    hud_argument :state, validates: { length: { is: 2 } }
+    hud_argument :zip, validates: { length: { is: 5 } }
+    hud_argument :geography_type, HmisSchema::Enums::GeographyType
 
     def to_params
       result = to_h

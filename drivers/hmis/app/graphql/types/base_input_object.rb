@@ -43,10 +43,11 @@ module Types
       )
     end
 
+    # Infers type from warehouse configuration
     def self.hud_argument(name, type = nil, **kwargs)
-      return field name, type, **kwargs unless configuration.present?
+      return field name, type, **kwargs unless source_type&.configuration.present?
 
-      config = configuration.transform_keys { |k| k.to_s.underscore }[name.to_s]
+      config = source_type.configuration.transform_keys { |k| k.to_s.underscore }[name.to_s]
       type ||= Types::BaseObject.hud_to_gql_type_map[config[:type]] if config.present?
       raise "No type for #{name}" unless type.present?
 

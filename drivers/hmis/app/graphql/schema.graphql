@@ -2134,9 +2134,6 @@ enum SSNDataQuality {
   SSN_FULL_SSN_REPORTED
 }
 
-"""
-HUD Service
-"""
 type Service {
   FAAmount: Float
   client: Client!

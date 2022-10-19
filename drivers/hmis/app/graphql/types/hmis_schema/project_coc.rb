@@ -8,65 +8,22 @@
 
 module Types
   class HmisSchema::ProjectCoc < Types::BaseObject
-    include Types::Concerns::HasFields
-
     def self.configuration
       Hmis::Hud::ProjectCoc.hmis_configuration(version: '2022')
     end
 
-    def self.type_fields
-      {
-        id: {
-          field: { type: ID, null: false },
-        },
-        project: {
-          field: { type: Types::HmisSchema::Project, null: false },
-          argument: { name: :project_id, type: ID },
-        },
-        coc_code: {
-          field: {},
-          argument: {},
-        },
-        geocode: {
-          field: {},
-          argument: {},
-        },
-        address1: {
-          field: {},
-          argument: {},
-        },
-        address2: {
-          field: {},
-          argument: {},
-        },
-        city: {
-          field: {},
-          argument: {},
-        },
-        state: {
-          field: {},
-          argument: {},
-        },
-        zip: {
-          field: {},
-          argument: {},
-        },
-        geography_type: {
-          field: { type: HmisSchema::Enums::GeographyType },
-          argument: {},
-        },
-        date_created: {
-          field: {},
-        },
-        date_updated: {
-          field: {},
-        },
-        date_deleted: {
-          field: {},
-        },
-      }.freeze
-    end
-
-    add_fields
+    hud_field :id, ID, null: false
+    hud_field :project, Types::HmisSchema::Project, null: false
+    hud_field :coc_code
+    hud_field :geocode
+    hud_field :address1
+    hud_field :address2
+    hud_field :city
+    hud_field :state
+    hud_field :zip
+    hud_field :geography_type, HmisSchema::Enums::GeographyType
+    hud_field :date_updated
+    hud_field :date_created
+    hud_field :date_deleted
   end
 end

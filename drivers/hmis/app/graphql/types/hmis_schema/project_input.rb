@@ -1,7 +1,7 @@
 module Types
   class HmisSchema::ProjectInput < BaseInputObject
-    def self.configuration
-      Hmis::Hud::Project.hmis_configuration(version: '2022')
+    def self.source_type
+      HmisSchema::Project
     end
 
     hud_argument :organization_id, ID
