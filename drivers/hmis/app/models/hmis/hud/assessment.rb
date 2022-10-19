@@ -29,15 +29,15 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
   validates_with Hmis::Hud::Validators::AssessmentValidator
 
   scope :viewable_by, ->(user) do
-    enrollment_ids = Hmis::Hud::Enrollment.viewable_by(user).pluck(:EnrollmentID)
-    vieawable_wip = wip_t[:enrollment_id].in(enrollment_ids)
-    viewable_enrollment = as_t[:EnrollmentID].in(enrollment_ids)
+    enrollment_ids = Hmis::Hud::Enrollment.viewable_by(user).pluck(:id, :EnrollmentID)
+    vieawable_wip = wip_t[:enrollment_id].in(enrollment_ids.map(&:first))
+    viewable_enrollment = as_t[:EnrollmentID].in(enrollment_ids.map(&:second))
 
     left_outer_joins(:wip).where(vieawable_wip.or(viewable_enrollment))
   end
 
   def enrollment
-    super || Hmis::Hud::Enrollment.find_by(enrollment_id: wip.enrollment_id)
+    super || Hmis::Hud::Enrollment.find(wip.enrollment_id)
   end
 
   scope :in_progress, -> { where(enrollment_id: 'WIP') }

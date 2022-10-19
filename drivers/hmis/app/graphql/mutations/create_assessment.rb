@@ -30,7 +30,7 @@ module Mutations
         data_source_id: user.data_source_id,
         user_id: user.user_id,
         personal_id: enrollment.personal_id,
-        enrollment_id: enrollment.id,
+        enrollment_id: enrollment.enrollment_id,
         assessment_id: Hmis::Hud::Assessment.generate_assessment_id,
         assessment_date: assessment_date ? Date.strptime(assessment_date) : Date.today,
         assessment_location: enrollment.project.project_name,
