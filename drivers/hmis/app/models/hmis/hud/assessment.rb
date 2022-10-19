@@ -12,6 +12,9 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
   self.table_name = :Assessment
   self.sequence_name = "public.\"#{table_name}_id_seq\""
 
+  SORT_OPTIONS = [:assessment_date].freeze
+  WIP_ID = 'WIP'.freeze
+
   belongs_to :enrollment, **hmis_relation(:EnrollmentID, 'Enrollment')
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :assessments
@@ -40,13 +43,11 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
     super || Hmis::Hud::Enrollment.find(wip.enrollment_id)
   end
 
-  scope :in_progress, -> { where(enrollment_id: 'WIP') }
+  scope :in_progress, -> { where(enrollment_id: WIP_ID) }
 
   def skip_validations
     @skip_validations ||= []
   end
-
-  SORT_OPTIONS = [:assessment_date].freeze
 
   def self.generate_assessment_id
     generate_uuid
@@ -66,7 +67,7 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
   def save_in_progress
     saved_enrollment_id = enrollment.id
 
-    self.enrollment_id = 'WIP'
+    self.enrollment_id = WIP_ID
     save!(validate: false)
     self.wip = Hmis::Wip.find_or_create_by(
       {
@@ -79,14 +80,14 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
 
   def save_not_in_progress
     transaction do
-      self.enrollment_id = enrollment_id == 'WIP' ? wip&.enrollment_id : enrollment_id
+      self.enrollment_id = enrollment_id == WIP_ID ? wip&.enrollment_id : enrollment_id
       wip&.destroy
       save!
     end
   end
 
   def in_progress?
-    @in_progress = enrollment_id == 'WIP' if @in_progress.nil?
+    @in_progress = enrollment_id == WIP_ID if @in_progress.nil?
     @in_progress
   end
 end
