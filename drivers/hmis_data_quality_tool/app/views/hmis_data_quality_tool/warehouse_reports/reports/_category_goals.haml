@@ -1,0 +1,18 @@
+- goal_config = @report.goal_config
+.card.mb-4
+  %table.table.table-striped
+    %tbody
+      - @report.results.group_by(&:category).each do |category, results|
+        - overall_percent = @report.overall_percent(results.map(&:percent_valid))
+        - if goal_config.present? && goal_config.active?
+          - background_color = "background-color: #{goal_config.color_for(overall_percent.to_i)};"
+          - name = goal_config.name_for(overall_percent.to_i)
+          - if name.present?
+            %tr
+              %th= category
+              %th{ style: background_color}= name
+              %td{ style: background_color} #{overall_percent}%
+        - else
+          %tr
+            %th= category
+            %td #{overall_percent}%

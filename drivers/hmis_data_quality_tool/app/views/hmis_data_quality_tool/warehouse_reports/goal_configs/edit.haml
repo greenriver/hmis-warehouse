@@ -3,11 +3,20 @@
 
 = content_for :crumbs do
   = link_to hmis_data_quality_tool_warehouse_reports_goal_configs_path do
-    &laquo; #{_('Performance Measurement Goal Configurator')}
+    &laquo; #{@report.title} Goal Configurator
 %h1.mb-5= title
 
 = simple_form_for @goal, url: hmis_data_quality_tool_warehouse_reports_goal_config_path(@goal), as: :goal do |f|
-  = f.input :coc_code, label: 'CoC Code', collection: @goal.available_cocs, as: :select_two, include_blank: 'Default'
+  .row
+    .col-sm-6
+      = f.input :coc_code, label: 'CoC Code', collection: @goal.available_cocs, as: :select_two, include_blank: 'Default'
+      %p Setting the following stay length goals will limit the report to displaying and calculating grades for categories that match the chosen number only.
+      = f.input :es_stay_length, label: 'Maximum length of time in ES expected', as: :select_two, collection: HmisDataQualityTool::Goal.stay_length_options
+      = f.input :es_missed_exit_length, label: 'Maximum length of time in ES without service', as: :select_two, collection: HmisDataQualityTool::Goal.stay_length_options
+      = f.input :so_missed_exit_length, label: 'Maximum length of time in SO without contact', as: :select_two, collection: HmisDataQualityTool::Goal.stay_length_options
+      = f.input :ph_missed_exit_length, label: 'Maximum length of time in PH pre-move-in', as: :select_two, collection: HmisDataQualityTool::Goal.stay_length_options
+  %p The following section can be used to setup a grading scale for the #{@report.title}.  The name will be displayed with a background of the chosen color for any percentage that falls within the low and high values provided.  For example, you could set "Good" to be green for any percentage between 90 and 100, and "OK" to be yellow for any range between 50 and 89, and "Bad" to be any percentage between 0 and 49.
+  %p Because the colors are used as background colors, you probably want to choose colors with fairly low saturation such as #ceebd7.
   .card
     %table.table.table-striped
       %thead

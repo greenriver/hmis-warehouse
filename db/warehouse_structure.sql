@@ -13458,6 +13458,10 @@ CREATE TABLE public.hmis_dqt_goals (
     segment_9_color character varying,
     segment_9_low integer,
     segment_9_high integer,
+    es_stay_length integer,
+    es_missed_exit_length integer,
+    so_missed_exit_length integer,
+    ph_missed_exit_length integer,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     deleted_at timestamp without time zone

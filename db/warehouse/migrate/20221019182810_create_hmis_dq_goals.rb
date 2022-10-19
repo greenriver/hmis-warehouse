@@ -8,6 +8,10 @@ class CreateHmisDqGoals < ActiveRecord::Migration[6.1]
         t.integer "segment_#{num}_low"
         t.integer "segment_#{num}_high"
       end
+      t.integer :es_stay_length
+      t.integer :es_missed_exit_length
+      t.integer :so_missed_exit_length
+      t.integer :ph_missed_exit_length
 
       t.timestamps
       t.datetime :deleted_at

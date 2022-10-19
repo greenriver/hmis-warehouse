@@ -601,6 +601,7 @@ module HmisDataQualityTool
 
             item.lot > 90 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
           },
+          es_stay_length: 90,
         },
         lot_es_180_issues: {
           title: 'Possible Missed Exit - ES, Time in Enrollment 180 Days or More',
@@ -627,6 +628,7 @@ module HmisDataQualityTool
 
             item.lot > 180 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
           },
+          es_stay_length: 180,
         },
         lot_es_365_issues: {
           title: 'Possible Missed Exit - ES, Time in Enrollment 365 Days or More',
@@ -653,6 +655,7 @@ module HmisDataQualityTool
 
             item.lot > 365 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
           },
+          es_stay_length: 365,
         },
         days_since_last_service_es_90_issues: {
           title: 'Possible Missed Exit - ES, No Service in 90 Days or More',
@@ -679,6 +682,7 @@ module HmisDataQualityTool
 
             item.days_since_last_service > 90 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
           },
+          es_missed_exit_length: 90,
         },
         days_since_last_service_es_180_issues: {
           title: 'Possible Missed Exit - ES, No Service in 180 Days or More',
@@ -705,6 +709,7 @@ module HmisDataQualityTool
 
             item.days_since_last_service > 180 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
           },
+          es_missed_exit_length: 180,
         },
         days_since_last_service_es_365_issues: {
           title: 'Possible Missed Exit - ES, No Service in 365 Days or More',
@@ -731,6 +736,7 @@ module HmisDataQualityTool
 
             item.days_since_last_service > 365 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
           },
+          es_missed_exit_length: 365,
         },
         days_since_last_service_so_90_issues: {
           title: 'Possible Missed Exit - SO, Time in Enrollment 90 Days or More',
@@ -757,6 +763,7 @@ module HmisDataQualityTool
 
             item.days_since_last_service > 90 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:so].include?(item.project_type)
           },
+          so_missed_exit_length: 90,
         },
         days_since_last_service_so_180_issues: {
           title: 'Possible Missed Exit - SO, Time in Enrollment 180 Days or More',
@@ -783,6 +790,7 @@ module HmisDataQualityTool
 
             item.days_since_last_service > 180 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:so].include?(item.project_type)
           },
+          so_missed_exit_length: 180,
         },
         days_since_last_service_so_365_issues: {
           title: 'Possible Missed Exit - SO, Time in Enrollment 365 Days or More',
@@ -809,6 +817,7 @@ module HmisDataQualityTool
 
             item.days_since_last_service > 365 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:so].include?(item.project_type)
           },
+          so_missed_exit_length: 365,
         },
         days_in_ph_prior_to_move_in_90_issues: {
           title: 'Possible Missed Move In Date - PH, Time in Enrollment 90 Days or More',
@@ -837,6 +846,7 @@ module HmisDataQualityTool
 
             item.lot > 90 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
           },
+          ph_missed_exit_length: 90,
         },
         days_in_ph_prior_to_move_in_180_issues: {
           title: 'Possible Missed Move In Date - PH, Time in Enrollment 180 Days or More',
@@ -865,6 +875,7 @@ module HmisDataQualityTool
 
             item.lot > 180 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
           },
+          ph_missed_exit_length: 180,
         },
         days_in_ph_prior_to_move_in_365_issues: {
           title: 'Possible Missed Move In Date - PH, Time in Enrollment 365 Days or More',
@@ -893,6 +904,7 @@ module HmisDataQualityTool
 
             item.lot > 365 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
           },
+          ph_missed_exit_length: 365,
         },
         move_in_prior_to_start_issues: {
           title: 'Move-In Before Entry Date',

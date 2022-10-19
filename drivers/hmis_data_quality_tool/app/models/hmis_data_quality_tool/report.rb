@@ -242,6 +242,16 @@ module HmisDataQualityTool
       universe("#{key}__invalid").universe_members.map(&:universe_membership)
     end
 
+    def overall_percent(values)
+      count = values.count
+      return 0 if values.count.zero?
+
+      sum = values.sum
+      return 0 if sum.zero?
+
+      (sum.to_f / count).round(1)
+    end
+
     def results
       @results ||= [].tap do |r|
         {
@@ -315,6 +325,14 @@ module HmisDataQualityTool
           },
         }.each do |category, slugs|
           slugs.each do |slug, item_class|
+            stay_length_category, stay_length_limit = item_class.stay_length_limit(slug)
+            # If we're looking at a result with a stay category option and we have a goal setup with stay lengths
+            # only include those that match the goal, include all for a given category if no goal was set for that category
+            next if stay_length_category.present? &&
+              goal_config.stay_lengths.present? &&
+              goal_config.stay_lengths.detect { |k, _| k == stay_length_category }.present? &&
+              ! goal_config.stay_lengths.include?([stay_length_category, stay_length_limit])
+
             title = item_class.section_title(slug)
             overall_count = universe("#{title}__denominator").count
             invalid_count = universe("#{title}__invalid").count

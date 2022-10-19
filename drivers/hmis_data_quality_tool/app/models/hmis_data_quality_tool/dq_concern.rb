@@ -52,5 +52,20 @@ module HmisDataQualityTool::DqConcern
 
       value
     end
+
+    # returns [stay_length_category, stay_length_limit]
+    def self.stay_length_limit(key)
+      section = sections[key]
+      # To maintain compatibility with the API
+      values = [nil, nil]
+      return values unless section.present?
+
+      limits = HmisDataQualityTool::Goal.stay_length_categories.map do |stay_length_category|
+        [stay_length_category, section[stay_length_category]] if section[stay_length_category].present?
+      end.compact
+      return values unless limits.present?
+
+      limits.first
+    end
   end
 end
