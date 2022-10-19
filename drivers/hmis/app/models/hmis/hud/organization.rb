@@ -10,8 +10,6 @@ class Hmis::Hud::Organization < Hmis::Hud::Base
   self.table_name = :Organization
   self.sequence_name = "public.\"#{table_name}_id_seq\""
 
-  attr_writer :skip_validations
-
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   has_many :projects, **hmis_relation(:OrganizationID, 'Project')
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :organizations
@@ -25,10 +23,6 @@ class Hmis::Hud::Organization < Hmis::Hud::Base
   end
 
   SORT_OPTIONS = [:name].freeze
-
-  def skip_validations
-    @skip_validations ||= []
-  end
 
   def self.sort_by_option(option)
     raise NotImplementedError unless SORT_OPTIONS.include?(option)

@@ -26,10 +26,11 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
   use_enum :assessment_levels_enum_map, ::HUD.assessment_levels
   use_enum :prioritization_statuses_enum_map, ::HUD.prioritization_statuses
 
-  attr_writer :skip_validations
   attr_accessor :in_progress
 
   validates_with Hmis::Hud::Validators::AssessmentValidator
+
+  scope :in_progress, -> { where(enrollment_id: WIP_ID) }
 
   scope :viewable_by, ->(user) do
     enrollment_ids = Hmis::Hud::Enrollment.viewable_by(user).pluck(:id, :EnrollmentID)
@@ -41,12 +42,6 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
 
   def enrollment
     super || Hmis::Hud::Enrollment.find(wip.enrollment_id)
-  end
-
-  scope :in_progress, -> { where(enrollment_id: WIP_ID) }
-
-  def skip_validations
-    @skip_validations ||= []
   end
 
   def self.generate_assessment_id

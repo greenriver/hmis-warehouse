@@ -1,18 +1,20 @@
 module Types
   class HmisSchema::ProjectInput < BaseInputObject
-    description 'HMIS Project input'
+    def self.source_type
+      HmisSchema::Project
+    end
 
-    argument :organization_id, ID, required: false
-    argument :project_name, String, required: false
+    hud_argument :organization_id, ID
+    hud_argument :project_name
     date_string_argument :operating_start_date, 'Date with format yyyy-mm-dd', required: false
     date_string_argument :operating_end_date, 'Date with format yyyy-mm-dd', required: false
-    argument :description, String, required: false
-    argument :contact_information, String, required: false
-    argument :project_type, Types::HmisSchema::Enums::ProjectType, required: false
-    argument :housing_type, Types::HmisSchema::Enums::HousingType, required: false
-    argument :tracking_method, Types::HmisSchema::Enums::TrackingMethod, required: false
-    argument :target_population, HmisSchema::Enums::TargetPopulation, required: false
-    argument :HOPWAMedAssistedLivingFac, HmisSchema::Enums::HOPWAMedAssistedLivingFac, required: false
+    hud_argument :description, String
+    hud_argument :contact_information, String
+    hud_argument :project_type, Types::HmisSchema::Enums::ProjectType
+    hud_argument :housing_type, Types::HmisSchema::Enums::HousingType
+    hud_argument :tracking_method, Types::HmisSchema::Enums::TrackingMethod
+    hud_argument :target_population, HmisSchema::Enums::TargetPopulation
+    hud_argument :HOPWAMedAssistedLivingFac, HmisSchema::Enums::HOPWAMedAssistedLivingFac
     yes_no_missing_argument :continuum_project, required: false
     yes_no_missing_argument :residential_affiliation, required: false
     yes_no_missing_argument :HMISParticipatingProject, required: false

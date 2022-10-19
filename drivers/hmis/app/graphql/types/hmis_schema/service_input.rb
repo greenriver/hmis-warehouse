@@ -20,7 +20,7 @@ module Types
     argument :referral_outcome, HmisSchema::Enums::PATHReferralOutcome, required: false
 
     def to_params
-      result = to_h.except(:type_provided, :sub_type_provided, :enrollment_id, :client_id)
+      result = to_h
 
       result[:type_provided] = type_provided.split(':').last&.to_i if type_provided.present?
       result[:sub_type_provided] = sub_type_provided.split(':').last&.to_i if sub_type_provided.present?

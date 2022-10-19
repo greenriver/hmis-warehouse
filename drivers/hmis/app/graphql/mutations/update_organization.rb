@@ -7,20 +7,12 @@ module Mutations
     field :errors, [Types::HmisSchema::ValidationError], null: false
 
     def resolve(id:, input:)
-      errors = []
-      organization = Hmis::Hud::Organization.viewable_by(current_user).find_by(id: id)
-
-      if organization.present?
-        organization.update(**input.to_params, date_updated: DateTime.current, user_id: hmis_user.user_id)
-        errors += organization.errors.errors unless organization.valid?
-      else
-        errors << InputValidationError.new("No organization found with ID '#{id}'", attribute: 'id') unless organization.present?
-      end
-
-      {
-        organization: organization&.valid? ? organization : nil,
-        errors: errors,
-      }
+      record = Hmis::Hud::Organization.viewable_by(current_user).find_by(id: id)
+      default_update_record(
+        record: record,
+        field_name: :organization,
+        input: input,
+      )
     end
   end
 end

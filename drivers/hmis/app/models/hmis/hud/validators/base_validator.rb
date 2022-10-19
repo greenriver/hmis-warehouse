@@ -11,11 +11,16 @@ class Hmis::Hud::Validators::BaseValidator < ActiveModel::Validator
     {}
   end
 
+  def required_fields(record)
+    record.required_fields
+  end
+
   def validate(record)
     return if skip_all_validations?(record)
 
     configuration.except(*skipped_attributes(record)).each do |key, options|
-      record.errors.add(key, :required) if missing?(key, record, options[:null])
+      required = options[:null] == false || required_fields(record).include?(key.to_sym)
+      record.errors.add(key, :required) if required && missing?(key, record)
       record.errors.add(key, :too_long, count: options[:limit]) if too_long?(key, record, options[:limit])
     end
 
@@ -28,7 +33,7 @@ class Hmis::Hud::Validators::BaseValidator < ActiveModel::Validator
     limit.present? && record.send(key).present? && record.send(key).to_s.size > limit
   end
 
-  def missing?(key, record, null = nil)
-    null == false && record.send(key).blank?
+  def missing?(key, record)
+    record.send(key).blank?
   end
 end
