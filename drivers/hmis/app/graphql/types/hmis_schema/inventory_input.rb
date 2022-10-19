@@ -1,24 +1,12 @@
 module Types
   class HmisSchema::InventoryInput < BaseInputObject
-    description 'HMIS Inventory input'
+    include Types::Concerns::HasInputArguments
 
-    argument :project_id, ID, required: false
-    argument :coc_code, String, required: false
-    argument :household_type, HmisSchema::Enums::HouseholdType, required: false
-    argument :availability, HmisSchema::Enums::Availability, required: false
-    argument :unit_inventory, Integer, required: false
-    argument :bed_inventory, Integer, required: false
-    argument :ch_vet_bed_inventory, Integer, required: false
-    argument :youth_vet_bed_inventory, Integer, required: false
-    argument :ch_youth_vet_bed_inventory, Integer, required: false
-    argument :vet_bed_inventory, Integer, required: false
-    argument :ch_youth_bed_inventory, Integer, required: false
-    argument :youth_bed_inventory, Integer, required: false
-    argument :ch_bed_inventory, Integer, required: false
-    argument :other_bed_inventory, Integer, required: false
-    argument :es_bed_type, HmisSchema::Enums::BedType, required: false
-    argument :inventory_start_date, GraphQL::Types::ISO8601Date, required: false
-    argument :inventory_end_date, GraphQL::Types::ISO8601Date, required: false
+    def self.source_type
+      Types::HmisSchema::Inventory
+    end
+
+    add_input_arguments
 
     def to_params
       result = to_h

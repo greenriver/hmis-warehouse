@@ -1380,9 +1380,6 @@ type InventoriesPaginated {
   pagesCount: Int!
 }
 
-"""
-HUD Inventory
-"""
 type Inventory {
   availability: Availability
   bedInventory: Int!
@@ -1407,9 +1404,6 @@ type Inventory {
   youthVetBedInventory: Int
 }
 
-"""
-HMIS Inventory input
-"""
 input InventoryInput {
   availability: Availability
   bedInventory: Int
