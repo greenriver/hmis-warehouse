@@ -4904,6 +4904,41 @@ ALTER SEQUENCE public.coc_codes_id_seq OWNED BY public.coc_codes.id;
 
 
 --
+-- Name: coc_pit_counts; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.coc_pit_counts (
+    id bigint NOT NULL,
+    goal_id bigint,
+    pit_date date,
+    sheltered integer,
+    unsheltered integer,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: coc_pit_counts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.coc_pit_counts_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: coc_pit_counts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.coc_pit_counts_id_seq OWNED BY public.coc_pit_counts.id;
+
+
+--
 -- Name: cohort_client_changes; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -13377,6 +13412,78 @@ ALTER SEQUENCE public.hmis_dqt_events_id_seq OWNED BY public.hmis_dqt_events.id;
 
 
 --
+-- Name: hmis_dqt_goals; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_dqt_goals (
+    id bigint NOT NULL,
+    coc_code character varying,
+    segment_0_name character varying,
+    segment_0_color character varying,
+    segment_0_low integer,
+    segment_0_high integer,
+    segment_1_name character varying,
+    segment_1_color character varying,
+    segment_1_low integer,
+    segment_1_high integer,
+    segment_2_name character varying,
+    segment_2_color character varying,
+    segment_2_low integer,
+    segment_2_high integer,
+    segment_3_name character varying,
+    segment_3_color character varying,
+    segment_3_low integer,
+    segment_3_high integer,
+    segment_4_name character varying,
+    segment_4_color character varying,
+    segment_4_low integer,
+    segment_4_high integer,
+    segment_5_name character varying,
+    segment_5_color character varying,
+    segment_5_low integer,
+    segment_5_high integer,
+    segment_6_name character varying,
+    segment_6_color character varying,
+    segment_6_low integer,
+    segment_6_high integer,
+    segment_7_name character varying,
+    segment_7_color character varying,
+    segment_7_low integer,
+    segment_7_high integer,
+    segment_8_name character varying,
+    segment_8_color character varying,
+    segment_8_low integer,
+    segment_8_high integer,
+    segment_9_name character varying,
+    segment_9_color character varying,
+    segment_9_low integer,
+    segment_9_high integer,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: hmis_dqt_goals_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_dqt_goals_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_dqt_goals_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_dqt_goals_id_seq OWNED BY public.hmis_dqt_goals.id;
+
+
+--
 -- Name: hmis_dqt_inventories; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -21102,6 +21209,13 @@ ALTER TABLE ONLY public.coc_codes ALTER COLUMN id SET DEFAULT nextval('public.co
 
 
 --
+-- Name: coc_pit_counts id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.coc_pit_counts ALTER COLUMN id SET DEFAULT nextval('public.coc_pit_counts_id_seq'::regclass);
+
+
+--
 -- Name: cohort_client_changes id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -22219,6 +22333,13 @@ ALTER TABLE ONLY public.hmis_dqt_enrollments ALTER COLUMN id SET DEFAULT nextval
 --
 
 ALTER TABLE ONLY public.hmis_dqt_events ALTER COLUMN id SET DEFAULT nextval('public.hmis_dqt_events_id_seq'::regclass);
+
+
+--
+-- Name: hmis_dqt_goals id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_dqt_goals ALTER COLUMN id SET DEFAULT nextval('public.hmis_dqt_goals_id_seq'::regclass);
 
 
 --
@@ -23968,6 +24089,14 @@ ALTER TABLE ONLY public.coc_codes
 
 
 --
+-- Name: coc_pit_counts coc_pit_counts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.coc_pit_counts
+    ADD CONSTRAINT coc_pit_counts_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: cohort_client_changes cohort_client_changes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -25248,6 +25377,14 @@ ALTER TABLE ONLY public.hmis_dqt_events
 
 
 --
+-- Name: hmis_dqt_goals hmis_dqt_goals_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_dqt_goals
+    ADD CONSTRAINT hmis_dqt_goals_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: hmis_dqt_inventories hmis_dqt_inventories_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -26320,6 +26457,90 @@ CREATE INDEX "Disabilities_DateDeleted_data_source_id_idx1" ON public."Disabilit
 --
 
 CREATE INDEX "Disabilities_DateDeleted_idx" ON public."Disabilities" USING btree ("DateDeleted") WHERE ("DateDeleted" IS NULL);
+
+
+--
+-- Name: Enrollment_2735; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "Enrollment_2735" ON public."Enrollment" USING btree ("ProjectID", "HouseholdID");
+
+
+--
+-- Name: Enrollment_3085; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "Enrollment_3085" ON public."Enrollment" USING btree ("PreviousStreetESSH", "LengthOfStay");
+
+
+--
+-- Name: Enrollment_34e3; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "Enrollment_34e3" ON public."Enrollment" USING btree ("EnrollmentID", "ProjectID", "EntryDate");
+
+
+--
+-- Name: Enrollment_42af; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "Enrollment_42af" ON public."Enrollment" USING btree ("ProjectID");
+
+
+--
+-- Name: Enrollment_42d5; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "Enrollment_42d5" ON public."Enrollment" USING btree ("DateUpdated");
+
+
+--
+-- Name: Enrollment_4337; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "Enrollment_4337" ON public."Enrollment" USING btree ("EnrollmentID");
+
+
+--
+-- Name: Enrollment_5328; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "Enrollment_5328" ON public."Enrollment" USING btree ("HouseholdID");
+
+
+--
+-- Name: Enrollment_603f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "Enrollment_603f" ON public."Enrollment" USING btree ("PersonalID");
+
+
+--
+-- Name: Enrollment_634d; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "Enrollment_634d" ON public."Enrollment" USING btree ("ExportID");
+
+
+--
+-- Name: Enrollment_c548; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "Enrollment_c548" ON public."Enrollment" USING btree ("EnrollmentID", "PersonalID");
+
+
+--
+-- Name: Enrollment_d381; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "Enrollment_d381" ON public."Enrollment" USING btree ("DateCreated");
+
+
+--
+-- Name: Enrollment_f3a2; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "Enrollment_f3a2" ON public."Enrollment" USING btree ("DateDeleted");
 
 
 --
@@ -40869,6 +41090,13 @@ CREATE INDEX index_coc_codes_on_coc_code ON public.coc_codes USING btree (coc_co
 
 
 --
+-- Name: index_coc_pit_counts_on_goal_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_coc_pit_counts_on_goal_id ON public.coc_pit_counts USING btree (goal_id);
+
+
+--
 -- Name: index_cohort_client_changes_on_change; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -50379,6 +50607,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20221007152924'),
 ('20221013195245'),
 ('20221014144316'),
-('20221017180229');
+('20221017180229'),
+('20221019122456'),
+('20221019182810');
 
 

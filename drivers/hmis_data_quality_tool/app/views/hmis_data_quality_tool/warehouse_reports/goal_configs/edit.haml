@@ -1,0 +1,28 @@
+- title = "Configure #{@report.title} Goal"
+- content_for :title, title
+
+= content_for :crumbs do
+  = link_to hmis_data_quality_tool_warehouse_reports_goal_configs_path do
+    &laquo; #{_('Performance Measurement Goal Configurator')}
+%h1.mb-5= title
+
+= simple_form_for @goal, url: hmis_data_quality_tool_warehouse_reports_goal_config_path(@goal), as: :goal do |f|
+  = f.input :coc_code, label: 'CoC Code', collection: @goal.available_cocs, as: :select_two, include_blank: 'Default'
+  .card
+    %table.table.table-striped
+      %thead
+        %tr
+          %th Name
+          %th Color
+          %th Low
+          %th High
+      %tbody
+        - @goal.class.segment_numbers.each do |num|
+          %tr
+            %td= f.input "segment_#{num}_name", label: false
+            %td= f.input "segment_#{num}_color", label: false, input_html: {class: 'colorpicker'}
+            %td= f.input "segment_#{num}_low", label: false
+            %td= f.input "segment_#{num}_high", label: false
+
+  .d-flex
+    .ml-auto.mt-4= f.submit 'Update Goal'
