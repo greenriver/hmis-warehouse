@@ -36,7 +36,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let(:test_input) do
     {
       assessment_id: a1.id,
-      assessment_date: (Date.today - 2.days).strftime('%Y-%m-%d'),
+      assessment_date: '2022-10-16',
       values: { key: 'newValue' },
     }
   end
@@ -104,7 +104,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     errors = result.dig('data', 'saveAssessment', 'errors')
     expect(assessment['id']).to be_present
     expect(assessment).to include(
-      'assessmentDate' => '2022-10-16',
+      'assessmentDate' => test_input[:assessment_date],
       'assessmentDetail' => include(
         'values' => { 'key' => 'newValue' },
       ),
