@@ -102,6 +102,19 @@ module HmisDataQualityTool
       end
     end
 
+    private def coc_code
+      if filter.coc_codes.count == 1
+        filter.coc_codes.first
+      else
+        :default
+      end
+    end
+
+    # The goal config will reflect the CoC if only one CoC was chosen, otherwise we'll use the default.
+    def goal_config
+      @goal_config ||= HmisDataQualityTool::Goal.for_coc(coc_code)
+    end
+
     # for compatability with HudReport Logic
     def start_date
       @start_date ||= filter.start

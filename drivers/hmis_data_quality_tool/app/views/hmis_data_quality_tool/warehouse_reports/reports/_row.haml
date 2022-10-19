@@ -1,7 +1,9 @@
+- goal_config = @report.goal_config
+- background_color = if goal_config.present? then "background-color: #{goal_config.color_for(result.percent_valid.to_i)};" else '' end
 %tr
   %th= result.title
   %td= result.description
   %th= result.required_for
   %td= result.total
   %td= link_to result.count, items_hmis_data_quality_tool_warehouse_reports_report_path(@report, key: result.title)
-  %td #{result.percent_valid}%
+  %td{ style: background_color } #{result.percent_valid}%

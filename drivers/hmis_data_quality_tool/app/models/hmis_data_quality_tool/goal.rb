@@ -76,5 +76,59 @@ module HmisDataQualityTool
     def deleteable?
       ! default?
     end
+
+    def active_segments
+      @active_segments ||= {}.tap do |segments|
+        self.class.segment_numbers.each do |num|
+          low = send("segment_#{num}_low")
+          high = send("segment_#{num}_high")
+          next if low.blank? && high.blank?
+
+          segments[num] = range(low, high)
+        end
+      end
+    end
+
+    def range(low, high)
+      return nil unless low.present? || high.present?
+
+      (low || 0)..(high || 100)
+    end
+
+    private def segment_number_for(value)
+      return unless active_segments.present?
+
+      # segment will be an array of [num, range], or nil
+      segment = active_segments.detect { |_, range| range.cover?(value.to_i) }
+      segment&.first
+    end
+
+    def color_for(value)
+      return unless active_segments.present?
+
+      segment_number = segment_number_for(value.to_i)
+      return unless segment_number.present?
+
+      send("segment_#{segment_number}_color")
+    end
+
+    def name_for(value)
+      return unless active_segments.present?
+
+      segment_number = segment_number_for(value.to_i)
+      return unless segment_number.present?
+
+      send("segment_#{segment_number}_name")
+    end
+
+    def overall_percent(values)
+      count = values.count
+      return 0 if values.count.zero?
+
+      sum = values.sum
+      return 0 if sum.zero?
+
+      (sum.to_f / count).round(1)
+    end
   end
 end

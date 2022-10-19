@@ -1,5 +1,5 @@
 = render 'breadcrumbs'
-
+- goal_config = @report.goal_config
 - content_for :title, @report.title
 %h1= content_for :title
 = render 'warehouse_reports/beta_warning'
@@ -25,6 +25,9 @@
 
 - @report.results.group_by(&:category).each do |category, results|
   %h2= category
+
+  - if goal_config.present?
+    = render 'goals', goal_config: goal_config, results: results
   .card.mb-6
     %table.table.table-striped
       %thead

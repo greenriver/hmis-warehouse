@@ -1,0 +1,13 @@
+- if goal_config.present?
+  - overall_percent = goal_config.overall_percent(results.map(&:percent_valid))
+  - background_color = "background-color: #{goal_config.color_for(overall_percent.to_i)};"
+  - name = goal_config.name_for(overall_percent.to_i)
+  - if name.present?
+    .card.mb-4
+      %table.table
+        %thead
+          %tr
+            %th{ style: background_color}= name
+        %tbody
+          %tr
+            %td #{overall_percent}%
