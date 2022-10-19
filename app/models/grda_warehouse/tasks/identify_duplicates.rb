@@ -117,8 +117,15 @@ module GrdaWarehouse::Tasks
         begin
           destination.merge_from(source, reviewed_by: user, reviewed_at: DateTime.current)
         rescue Exception => e
-          @notifier.ping("Unable to merge #{source.id} with #{destination.id}") if @send_notifications
           Rails.logger.error(e.to_s)
+          Sentry.capture_exception_with_data(
+            e,
+            "Unable to merge #{source.id} with #{destination.id}",
+            {
+              source_id: source.id,
+              destination_id: destination.id,
+            },
+          )
         end
         Rails.logger.info "merged #{source.id} into #{destination.id}"
       end

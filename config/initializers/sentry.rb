@@ -41,3 +41,22 @@ if ENV['WAREHOUSE_SENTRY_DSN'].present?
     )
   end
 end
+
+module Sentry
+
+  module_function
+
+  def capture_exception_with_data(e, msg, data = {})
+    return unless Sentry.initialized?
+
+    Sentry.with_scope do |scope|
+      scope.set_context(
+        'errorInfo',
+        {
+          message: msg,
+        }.merge(data)
+      )
+      Sentry.capture_exception(e)
+    end
+  end
+end

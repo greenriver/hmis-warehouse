@@ -285,6 +285,6 @@ class ApplicationController < ActionController::Base
   end
 
   def set_sentry_user
-    Sentry.configure_scope { |scope| scope.set_user(id: current_user.id, email: current_user.email) } if ENV['WAREHOUSE_SENTRY_DSN'].present? && defined?(current_user) && current_user.present?
+    Sentry.configure_scope { |scope| scope.set_user(id: current_user.id, email: current_user.email) } if Sentry.initialized? && defined?(current_user) && current_user.present?
   end
 end

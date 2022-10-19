@@ -33,5 +33,6 @@ namespace :test do
     exception = StandardError.new(msg)
     Sentry.capture_exception(exception)
     Sentry.capture_message(msg)
+    Sentry.capture_exception_with_data(exception, 'Testing custom error message', { with: 'data' })
   end
 end
