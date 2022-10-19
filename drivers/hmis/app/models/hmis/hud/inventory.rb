@@ -37,12 +37,7 @@ class Hmis::Hud::Inventory < Hmis::Hud::Base
 
   def required_fields
     @required_fields ||= [
-      :ProjectID,
-      :CoCCode,
       :InventoryStartDate,
-      :HouseholdType,
-      :UnitInventory,
-      :BedInventory,
     ]
   end
 end

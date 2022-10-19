@@ -1386,7 +1386,6 @@ type Inventory {
   chBedInventory: Int
   chVetBedInventory: Int
   chYouthBedInventory: Int
-  chYouthVetBedInventory: Int
   cocCode: String!
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
@@ -1410,7 +1409,6 @@ input InventoryInput {
   chBedInventory: Int
   chVetBedInventory: Int
   chYouthBedInventory: Int
-  chYouthVetBedInventory: Int
   cocCode: String
   esBedType: BedType
   householdType: HouseholdType
