@@ -9,8 +9,6 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
   include ::Hmis::Hud::Shared
   include ArelHelper
 
-  WIP_ID = 'WIP'.freeze
-
   self.table_name = :Assessment
   self.sequence_name = "public.\"#{table_name}_id_seq\""
 
