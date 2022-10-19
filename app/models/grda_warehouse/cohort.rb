@@ -53,6 +53,8 @@ module GrdaWarehouse
     end
 
     scope :viewable_by, ->(user) do
+      return none unless user.present?
+
       if user.can_edit_cohort_clients? || user.can_manage_cohorts?
         current_scope
       elsif user.can_view_assigned_cohorts? || user.can_edit_assigned_cohorts?
