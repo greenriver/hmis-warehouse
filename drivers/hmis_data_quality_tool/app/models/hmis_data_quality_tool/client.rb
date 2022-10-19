@@ -106,6 +106,7 @@ module HmisDataQualityTool
       report_item.last_name = client.LastName
       report_item.name_data_quality = client.NameDataQuality
       report_item.dob = client.DOB
+      report_item.dob_data_quality = client.DOBDataQuality
       # for simplicity, since we don't have a specific enrollment, calculate age as of the end of the reporting period
       report_item.reporting_age = client.age_on(report.filter.end)
       report_item.personal_id = client.PersonalID
