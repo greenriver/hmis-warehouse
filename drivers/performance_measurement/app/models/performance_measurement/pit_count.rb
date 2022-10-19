@@ -6,6 +6,7 @@
 
 module PerformanceMeasurement
   class PitCount < GrdaWarehouseBase
+    self.table_name = :coc_pit_counts
     acts_as_paranoid
 
     belongs_to :goal
