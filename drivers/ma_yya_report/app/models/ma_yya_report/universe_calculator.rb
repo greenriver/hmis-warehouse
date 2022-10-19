@@ -37,7 +37,7 @@ module MaYyaReport
           education_status = enrollment.enrollment.youth_education_statuses.max_by(&:InformationDate)
           health_and_dv = enrollment.enrollment.health_and_dvs.max_by(&:InformationDate)
 
-          clients[client_id] = Client.new(
+          clients[client] = ::MaYyaReport::Client.new(
             client_id: client_id,
             service_history_enrollment_id: enrollment.id,
             entry_date: enrollment.first_date_in_program,
