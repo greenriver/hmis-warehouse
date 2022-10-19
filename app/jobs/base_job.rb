@@ -23,11 +23,6 @@ class BaseJob < ApplicationJob
       end
     end
   end
-  # when queued with perform_later (active job, this gets used)
-  # This works in both situations
-  rescue_from Exception do |e|
-    notify_on_exception(e)
-  end
 
   if ENV['ECS'] != 'true'
     # When called through Delayed::Job, uses this hook
@@ -46,12 +41,6 @@ class BaseJob < ApplicationJob
     end
   end
 
-  # when queued with Delayed::Job.enqueue TestJob.new (this gets used)
-  # This will send two notifications for each error, probably
-  def error(_job, exception)
-    notify_on_exception(exception)
-  end
-
   private
 
   def running_in_correct_path?
@@ -66,27 +55,6 @@ class BaseJob < ApplicationJob
 
     setup_notifier('DelayedJobRestarter')
     @notifier.ping(msg) if @send_notifications
-  end
-
-  def notify_on_exception(exception)
-    raise exception if Rails.env.test? # Without this, exceptions are really hard to track down in tests
-    return unless File.exist?('config/exception_notifier.yml')
-
-    setup_notifier('DelayedJobFailure')
-    return unless @send_notifications
-
-    msg = [
-      "*#{self.class.name}* `FAILED` with the following error:",
-      "```\n #{exception.inspect} \n```",
-    ].join("\n")
-
-    attachment = "```\n #{Rails.backtrace_cleaner.clean(exception.backtrace).join("\n")} \n```"
-    begin
-      @notifier.insert_log_url = true
-      @notifier.post(text: msg, attachments: { text: attachment })
-    rescue Exception # rubocop:disable Lint/SuppressedException
-    end
-    ExceptionNotifier.notify_exception(exception)
   end
 
   def expected_path

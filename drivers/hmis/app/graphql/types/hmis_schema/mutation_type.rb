@@ -33,5 +33,6 @@ module Types
     field :update_service, mutation: Mutations::UpdateService
     field :delete_service, mutation: Mutations::DeleteService
     field :create_assessment, mutation: Mutations::CreateAssessment
+    field :save_assessment, mutation: Mutations::SaveAssessment
   end
 end

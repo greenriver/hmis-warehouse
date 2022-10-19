@@ -7,20 +7,42 @@
 class Hmis::Hud::Assessment < Hmis::Hud::Base
   include ::HmisStructure::Assessment
   include ::Hmis::Hud::Shared
+  include ArelHelper
+
   self.table_name = :Assessment
   self.sequence_name = "public.\"#{table_name}_id_seq\""
 
+  SORT_OPTIONS = [:assessment_date].freeze
+  WIP_ID = 'WIP'.freeze
+
   belongs_to :enrollment, **hmis_relation(:EnrollmentID, 'Enrollment')
+  belongs_to :client, **hmis_relation(:PersonalID, 'Client')
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :assessments
   has_one :assessment_detail, class_name: 'Hmis::Form::AssessmentDetail'
+  belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
+  has_one :wip, class_name: 'Hmis::Wip', as: :source
 
   use_enum :assessment_types_enum_map, ::HUD.assessment_types
   use_enum :assessment_levels_enum_map, ::HUD.assessment_levels
   use_enum :prioritization_statuses_enum_map, ::HUD.prioritization_statuses
 
+  attr_accessor :in_progress
+
   validates_with Hmis::Hud::Validators::AssessmentValidator
 
-  SORT_OPTIONS = [:assessment_date].freeze
+  scope :in_progress, -> { where(enrollment_id: WIP_ID) }
+
+  scope :viewable_by, ->(user) do
+    enrollment_ids = Hmis::Hud::Enrollment.viewable_by(user).pluck(:id, :EnrollmentID)
+    vieawable_wip = wip_t[:enrollment_id].in(enrollment_ids.map(&:first))
+    viewable_enrollment = as_t[:EnrollmentID].in(enrollment_ids.map(&:second))
+
+    left_outer_joins(:wip).where(vieawable_wip.or(viewable_enrollment))
+  end
+
+  def enrollment
+    super || Hmis::Hud::Enrollment.find(wip.enrollment_id)
+  end
 
   def self.generate_assessment_id
     generate_uuid
@@ -35,5 +57,32 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
     else
       raise NotImplementedError
     end
+  end
+
+  def save_in_progress
+    saved_enrollment_id = enrollment.id
+
+    self.enrollment_id = WIP_ID
+    save!(validate: false)
+    self.wip = Hmis::Wip.find_or_create_by(
+      {
+        enrollment_id: saved_enrollment_id,
+        client_id: client.id,
+        date: assessment_date,
+      },
+    )
+  end
+
+  def save_not_in_progress
+    transaction do
+      self.enrollment_id = enrollment_id == WIP_ID ? wip&.enrollment_id : enrollment_id
+      wip&.destroy
+      save!
+    end
+  end
+
+  def in_progress?
+    @in_progress = enrollment_id == WIP_ID if @in_progress.nil?
+    @in_progress
   end
 end
