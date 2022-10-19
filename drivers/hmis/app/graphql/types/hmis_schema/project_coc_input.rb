@@ -5,13 +5,13 @@ module Types
     end
 
     hud_argument :project_id, ID
-    hud_argument :coc_code, validates: { length: { is: 6 } }
-    hud_argument :geocode, validates: { length: { is: 6 } }
+    hud_argument :coc_code
+    hud_argument :geocode
     hud_argument :address1
     hud_argument :address2
     hud_argument :city
-    hud_argument :state, validates: { length: { is: 2 } }
-    hud_argument :zip, validates: { length: { is: 5 } }
+    hud_argument :state
+    hud_argument :zip
     hud_argument :geography_type, HmisSchema::Enums::GeographyType
 
     def to_params
