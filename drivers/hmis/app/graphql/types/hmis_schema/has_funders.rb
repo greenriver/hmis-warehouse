@@ -32,7 +32,7 @@ module Types
 
       private
 
-      def apply_funder_arguments(scope, sort_order:)
+      def apply_funder_arguments(scope, sort_order: nil)
         scope = scope.sort_by_option(sort_order) if sort_order.present?
         scope
       end
