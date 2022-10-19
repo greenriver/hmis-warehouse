@@ -529,7 +529,7 @@ module HmisDataQualityTool
             :relationship_to_hoh,
             :head_of_household_count,
           ],
-          denominator: ->(_item) { item.relationship_to_hoh == 1 },
+          denominator: ->(item) { item.relationship_to_hoh == 1 },
           limiter: ->(item) {
             item.relationship_to_hoh == 1 && item.head_of_household_count > 1
           },
