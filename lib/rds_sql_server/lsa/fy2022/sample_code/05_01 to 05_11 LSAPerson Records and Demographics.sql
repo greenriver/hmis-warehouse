@@ -78,7 +78,7 @@ FY2022 Changes
 	5.3 Get Active Clients for LSAPerson 
 	5.4 LSAPerson Demographics 
 */
-	delete from tlsa_Person
+	truncate table tlsa_Person
 
 	insert into tlsa_Person (PersonalID, HoHAdult, 
 		Ethnicity, VetStatus, DisabilityStatus, DVStatus, Gender, Race, ReportID, Step)
@@ -207,7 +207,7 @@ FY2022 Changes
 
 	-- ch_Exclude identifies dates between CHStart and LastActive when client was enrolled in TH
 	-- or housed in RRH/PSH.
-	delete from ch_Exclude
+	truncate table ch_Exclude
 
 	insert into ch_Exclude (PersonalID, excludeDate, Step)
 	select distinct lp.PersonalID, cal.theDate, '5.7'
@@ -229,7 +229,7 @@ FY2022 Changes
 	--	 HMIS entry/exit dates for enrollments in those project types
 	--   Responses to DE 3.917 when EntryDate > CHStart
 	--   Bed nights in nbn ES
-	delete from ch_Include
+	truncate table ch_Include
 
 	--Dates enrolled in ES entry/exit or SH
 	insert into ch_Include (PersonalID, ESSHStreetDate, Step)
@@ -321,7 +321,7 @@ FY2022 Changes
 /*
 	5.9 Get ES/SH/Street Episodes
 */
-	delete from ch_Episodes
+	truncate table ch_Episodes
 
 	-- For any given PersonalID:
 	-- Any ESSHStreetDate in ch_Include without a record for the day before is the start of an episode (episodeStart).

@@ -130,7 +130,7 @@ module HmisDataQualityTool
       # also, limit them to those that overlap the projects included and the date range of the report
       report_item.enrollments = client.source_enrollments.select do |en|
         en.open_during_range?(report.filter.range) && en.project.id.in?(report.filter.effective_project_ids)
-      end
+      end.uniq
       report_item.overlapping_entry_exit = overlapping_entry_exit(enrollments: report_item.enrollments, report: report)
       report_item.overlapping_nbn = overlapping_nbn(enrollments: report_item.enrollments, report: report)
       report_item.overlapping_pre_move_in = overlapping_homeless_post_move_in(enrollments: report_item.enrollments, report: report)
@@ -329,7 +329,7 @@ module HmisDataQualityTool
         },
         dob_issues: {
           title: 'DOB',
-          description: 'DOB is blank, before Oct. 10 1910, or after entry date',
+          description: 'DOB is blank, before Oct. 10 1910, DOB is after an entry date, or DOB Data Quality is not collected, but DOB is present',
           required_for: 'All',
           detail_columns: [
             :destination_client_id,
@@ -343,6 +343,8 @@ module HmisDataQualityTool
           limiter: ->(item) {
             # DOB is Blank
             return true if item.dob.blank?
+            # DOB Quality is 99 or blank but dob is present?
+            return true if item.dob.present? && (item.dob_data_quality.blank? || item.dob_data_quality == 99)
             # before 10/10/1910
             return true if item.dob <= '1910-10-10'.to_date
             # in the future
