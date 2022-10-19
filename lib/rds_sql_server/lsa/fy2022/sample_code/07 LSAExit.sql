@@ -44,7 +44,7 @@ Name:  07 LSAExit.sql
 /*
 	7.2 Select Reportable Exits
 */
-	delete from tlsa_Exit
+	truncate table tlsa_Exit
 
 	insert into tlsa_Exit (Cohort, HoHID, HHType, ReportID, Step)
 	select distinct hhid.ExitCohort, hhid.HoHID
@@ -165,7 +165,7 @@ inner join tlsa_HHID qx on qx.HouseholdID = ex.QualifyingExitHHID
 	7.5 Get Dates to Exclude from Counts of ES/SH/Street Days
 */
 
-	delete from ch_Exclude
+	truncate table ch_Exclude
 
 	insert into ch_Exclude (PersonalID, excludeDate, Step)
 	select distinct ha.PersonalID, cal.theDate, '7.5'
@@ -185,7 +185,7 @@ inner join tlsa_HHID qx on qx.HouseholdID = ex.QualifyingExitHHID
 */
 	--ch_Include identifies dates on which a client was in ES/SH or on the street 
 	-- (excluding any dates in ch_Exclude) 
-	delete from ch_Include
+	truncate table ch_Include
 
 	--Dates enrolled in ES entry/exit or SH
 	insert into ch_Include (PersonalID, ESSHStreetDate, Step)
@@ -285,7 +285,7 @@ inner join tlsa_HHID qx on qx.HouseholdID = ex.QualifyingExitHHID
 /*
 	7.7 Get ES/SH/Street Episodes
 */
-	delete from ch_Episodes
+	truncate table ch_Episodes
 
 	-- For any given PersonalID:
 	--	Any ESSHStreetDate in ch_Include without a record for the day before is the start of an episode (episodeStart).
@@ -522,7 +522,7 @@ from tlsa_Exit ex
 				else prior.ActiveHHType end = ex.HHType
 			and dateadd(dd, 6, prior.ExitDate) >= hhid.EntryDate) is null
 
-	delete from sys_TimePadded
+	truncate table sys_TimePadded
 
 	insert into sys_TimePadded (HoHID, HHType, Cohort, StartDate, EndDate, Step)
 	select distinct ex.HoHID, ex.HHType, ex.Cohort
@@ -763,7 +763,7 @@ where ex.Cohort = -2 and ex.SystemPath is null
 	7.13 Select Data for Export to LSAExit
 */
 
-delete from lsa_Exit
+truncate table lsa_Exit
 insert into lsa_Exit (RowTotal
 	, Cohort, Stat, ExitFrom, ExitTo, ReturnTime, HHType
 	, HHVet, HHChronic, HHDisability, HHFleeingDV, HoHRace, HoHEthnicity
