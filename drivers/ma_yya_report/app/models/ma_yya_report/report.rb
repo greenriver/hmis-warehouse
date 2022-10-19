@@ -398,6 +398,7 @@ module MaYyaReport
         :start,
         :end,
         :project_ids,
+        :youth,
       ].freeze
     end
   end

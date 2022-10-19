@@ -30,6 +30,9 @@ module MaYyaReport
           enrollment = enrollments_by_client_id[client_id].last
           next if enrollment.blank? || enrollment.enrollment.blank?
 
+          age = enrollment.client.age_on([@filter.start_date, enrollment.first_date_in_program].max)
+          next if age > 24 || (age < 18 && @filter.youth)
+
           enrollment_cls = enrollment.enrollment.current_living_situations.detect { |cls| cls.InformationDate == enrollment.first_date_in_program }
           education_status = enrollment.enrollment.youth_education_statuses.max_by(&:InformationDate)
           health_and_dv = enrollment.enrollment.health_and_dvs.max_by(&:InformationDate)
@@ -46,7 +49,7 @@ module MaYyaReport
             education_status_date: education_status&.InformationDate,
             current_school_attendance: education_status&.CurrentSchoolAttend,
             current_educational_status: education_status&.CurrentEdStatus,
-            age: enrollment.client.age_on([@filter.start_date, enrollment.first_date_in_program].max),
+            age: age,
             gender: gender(enrollment.client),
             race: race(enrollment.client),
             ethnicity: enrollment.client.Ethnicity,

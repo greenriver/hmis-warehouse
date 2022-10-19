@@ -59,6 +59,7 @@ module MaYyaReport::WarehouseReports
       params.require(:filter).permit(
         :start,
         :end,
+        :youth,
         project_ids: [],
       )
     end
