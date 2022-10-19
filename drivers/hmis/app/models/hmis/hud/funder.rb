@@ -16,8 +16,7 @@ class Hmis::Hud::Funder < Hmis::Hud::Base
   use_enum :funding_source_enum_map, ::HUD.funding_sources
 
   scope :viewable_by, ->(user) do
-    viewable_projects = Hmis::Hud::Project.viewable_by(user).pluck(:project_id)
-    where(project_id: viewable_projects, data_source_id: user.hmis_data_source_id)
+    joins(:project).merge(Hmis::Hud::Project.viewable_by(user))
   end
 
   SORT_OPTIONS = [:start_date].freeze

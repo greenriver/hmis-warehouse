@@ -39,6 +39,10 @@ class Hmis::Hud::Service < Hmis::Hud::Base
 
   SORT_OPTIONS = [:date_provided].freeze
 
+  scope :viewable_by, ->(user) do
+    joins(:enrollment).merge(Hmis::Hud::Enrollment.viewable_by(user))
+  end
+
   def self.generate_services_id
     generate_uuid
   end

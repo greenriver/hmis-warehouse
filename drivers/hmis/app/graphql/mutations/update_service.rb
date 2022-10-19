@@ -7,8 +7,7 @@ module Mutations
     field :errors, [Types::HmisSchema::ValidationError], null: false
 
     def resolve(id:, input:)
-      # TODO should do viewability check
-      record = Hmis::Hud::Service.find_by(id: id)
+      record = Hmis::Hud::Service.viewable_by(current_user).find_by(id: id)
       default_update_record(
         record: record,
         field_name: :service,

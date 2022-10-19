@@ -19,8 +19,7 @@ class Hmis::Hud::Inventory < Hmis::Hud::Base
   use_enum :bed_type_enum_map, ::HUD.bed_types
 
   scope :viewable_by, ->(user) do
-    viewable_projects = Hmis::Hud::Project.viewable_by(user).pluck(:project_id)
-    where(project_id: viewable_projects)
+    joins(:project).merge(Hmis::Hud::Project.viewable_by(user))
   end
 
   SORT_OPTIONS = [:start_date].freeze

@@ -82,7 +82,7 @@ module Types
     end
 
     def inventory(id:)
-      Hmis::Hud::Inventory.find_by(id: id)
+      Hmis::Hud::Inventory.viewable_by(current_user).find_by(id: id)
     end
 
     field :project_coc, Types::HmisSchema::ProjectCoc, 'Project CoC lookup', null: true do
@@ -90,7 +90,7 @@ module Types
     end
 
     def project_coc(id:)
-      Hmis::Hud::ProjectCoc.find_by(id: id)
+      Hmis::Hud::ProjectCoc.viewable_by(current_user).find_by(id: id)
     end
 
     field :funder, Types::HmisSchema::Funder, 'Funder lookup', null: true do
@@ -98,7 +98,7 @@ module Types
     end
 
     def funder(id:)
-      Hmis::Hud::Funder.find_by(id: id)
+      Hmis::Hud::Funder.viewable_by(current_user).find_by(id: id)
     end
   end
 end
