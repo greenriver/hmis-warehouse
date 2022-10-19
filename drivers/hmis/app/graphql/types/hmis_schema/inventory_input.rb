@@ -6,16 +6,16 @@ module Types
     argument :coc_code, String, required: false
     argument :household_type, HmisSchema::Enums::HouseholdType, required: false
     argument :availability, HmisSchema::Enums::Availability, required: false
-    argument :unit_inventory, Float, required: false
-    argument :bed_inventory, Float, required: false
-    argument :ch_vet_bed_inventory, Float, required: false
-    argument :youth_vet_bed_inventory, Float, required: false
-    argument :ch_youth_vet_bed_inventory, Float, required: false
-    argument :vet_bed_inventory, Float, required: false
-    argument :ch_youth_bed_inventory, Float, required: false
-    argument :youth_bed_inventory, Float, required: false
-    argument :ch_bed_inventory, Float, required: false
-    argument :other_bed_inventory, Float, required: false
+    argument :unit_inventory, Integer, required: false
+    argument :bed_inventory, Integer, required: false
+    argument :ch_vet_bed_inventory, Integer, required: false
+    argument :youth_vet_bed_inventory, Integer, required: false
+    argument :ch_youth_vet_bed_inventory, Integer, required: false
+    argument :vet_bed_inventory, Integer, required: false
+    argument :ch_youth_bed_inventory, Integer, required: false
+    argument :youth_bed_inventory, Integer, required: false
+    argument :ch_bed_inventory, Integer, required: false
+    argument :other_bed_inventory, Integer, required: false
     argument :es_bed_type, HmisSchema::Enums::BedType, required: false
     argument :inventory_start_date, GraphQL::Types::ISO8601Date, required: false
     argument :inventory_end_date, GraphQL::Types::ISO8601Date, required: false

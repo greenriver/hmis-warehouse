@@ -14,16 +14,16 @@ module Types
     field :coc_code, String, null: false
     field :household_type, HmisSchema::Enums::HouseholdType, null: false
     field :availability, HmisSchema::Enums::Availability, null: true
-    field :unit_inventory, Float, null: false
-    field :bed_inventory, Float, null: false
-    field :ch_vet_bed_inventory, Float, null: true
-    field :youth_vet_bed_inventory, Float, null: true
-    field :ch_youth_vet_bed_inventory, Float, null: true
-    field :vet_bed_inventory, Float, null: true
-    field :ch_youth_bed_inventory, Float, null: true
-    field :youth_bed_inventory, Float, null: true
-    field :ch_bed_inventory, Float, null: true
-    field :other_bed_inventory, Float, null: true
+    field :unit_inventory, Integer, null: false
+    field :bed_inventory, Integer, null: false
+    field :ch_vet_bed_inventory, Integer, null: true
+    field :youth_vet_bed_inventory, Integer, null: true
+    field :ch_youth_vet_bed_inventory, Integer, null: true
+    field :vet_bed_inventory, Integer, null: true
+    field :ch_youth_bed_inventory, Integer, null: true
+    field :youth_bed_inventory, Integer, null: true
+    field :ch_bed_inventory, Integer, null: true
+    field :other_bed_inventory, Integer, null: true
     field :es_bed_type, HmisSchema::Enums::BedType, null: true
     field :inventory_start_date, GraphQL::Types::ISO8601Date, null: false
     field :inventory_end_date, GraphQL::Types::ISO8601Date, null: true

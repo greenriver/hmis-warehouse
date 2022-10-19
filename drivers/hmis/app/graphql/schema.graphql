@@ -1385,11 +1385,11 @@ HUD Inventory
 """
 type Inventory {
   availability: Availability
-  bedInventory: Float!
-  chBedInventory: Float
-  chVetBedInventory: Float
-  chYouthBedInventory: Float
-  chYouthVetBedInventory: Float
+  bedInventory: Int!
+  chBedInventory: Int
+  chVetBedInventory: Int
+  chYouthBedInventory: Int
+  chYouthVetBedInventory: Int
   cocCode: String!
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
@@ -1399,12 +1399,12 @@ type Inventory {
   id: ID!
   inventoryEndDate: ISO8601Date
   inventoryStartDate: ISO8601Date!
-  otherBedInventory: Float
+  otherBedInventory: Int
   project: Project!
-  unitInventory: Float!
-  vetBedInventory: Float
-  youthBedInventory: Float
-  youthVetBedInventory: Float
+  unitInventory: Int!
+  vetBedInventory: Int
+  youthBedInventory: Int
+  youthVetBedInventory: Int
 }
 
 """
@@ -1412,22 +1412,22 @@ HMIS Inventory input
 """
 input InventoryInput {
   availability: Availability
-  bedInventory: Float
-  chBedInventory: Float
-  chVetBedInventory: Float
-  chYouthBedInventory: Float
-  chYouthVetBedInventory: Float
+  bedInventory: Int
+  chBedInventory: Int
+  chVetBedInventory: Int
+  chYouthBedInventory: Int
+  chYouthVetBedInventory: Int
   cocCode: String
   esBedType: BedType
   householdType: HouseholdType
   inventoryEndDate: ISO8601Date
   inventoryStartDate: ISO8601Date
-  otherBedInventory: Float
+  otherBedInventory: Int
   projectId: ID
-  unitInventory: Float
-  vetBedInventory: Float
-  youthBedInventory: Float
-  youthVetBedInventory: Float
+  unitInventory: Int
+  vetBedInventory: Int
+  youthBedInventory: Int
+  youthVetBedInventory: Int
 }
 
 """
