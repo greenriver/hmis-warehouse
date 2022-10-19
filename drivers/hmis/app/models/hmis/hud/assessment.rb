@@ -9,6 +9,8 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
   include ::Hmis::Hud::Shared
   include ArelHelper
 
+  WIP_ID = 'WIP'.freeze
+
   self.table_name = :Assessment
   self.sequence_name = "public.\"#{table_name}_id_seq\""
 
@@ -37,10 +39,10 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
   end
 
   def enrollment
-    super || Hmis::Hud::Enrollment.find_by(enrollment_id: wip.enrollment_id)
+    super || Hmis::Hud::Enrollment.find(wip.enrollment_id)
   end
 
-  scope :in_progress, -> { where(enrollment_id: 'WIP') }
+  scope :in_progress, -> { where(enrollment_id: WIP_ID) }
 
   def skip_validations
     @skip_validations ||= []
@@ -66,7 +68,7 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
   def save_in_progress
     saved_enrollment_id = enrollment.id
 
-    self.enrollment_id = 'WIP'
+    self.enrollment_id = WIP_ID
     save!(validate: false)
     self.wip = Hmis::Wip.find_or_create_by(
       {
@@ -79,14 +81,14 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
 
   def save_not_in_progress
     transaction do
-      self.enrollment_id = enrollment_id == 'WIP' ? wip&.enrollment_id : enrollment_id
+      self.enrollment_id = enrollment_id == WIP_ID ? wip&.enrollment_id : enrollment_id
       wip&.destroy
       save!
     end
   end
 
   def in_progress?
-    @in_progress = enrollment_id == 'WIP' if @in_progress.nil?
+    @in_progress = enrollment_id == WIP_ID if @in_progress.nil?
     @in_progress
   end
 end

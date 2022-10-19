@@ -104,7 +104,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     errors = result.dig('data', 'saveAssessment', 'errors')
     expect(assessment['id']).to be_present
     expect(assessment).to include(
-      'assessmentDate' => '2022-10-16',
+      'assessmentDate' => test_input[:assessment_date],
       'assessmentDetail' => include(
         'values' => { 'key' => 'newValue' },
       ),
