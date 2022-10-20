@@ -41,7 +41,7 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
   end
 
   scope :with_role, ->(role) do
-    joins(:assessment_detail).where(assessment_detail: { role: role })
+    joins(:assessment_detail).merge(Hmis::Form::AssessmentDetail.with_role(role))
   end
 
   def enrollment
