@@ -31,7 +31,7 @@ module MaYyaReport
           next if enrollment.blank? || enrollment.enrollment.blank?
 
           age = enrollment.client.age_on([@filter.start_date, enrollment.first_date_in_program].max)
-          next if age > 24 || (age < 18 && @filter.youth)
+          next unless age_in_range?(age) # We don't use the filter_for_age from FilterScopes because we need to consider enrollment date
 
           enrollment_cls = enrollment.enrollment.current_living_situations.detect { |cls| cls.InformationDate == enrollment.first_date_in_program }
           education_status = enrollment.enrollment.youth_education_statuses.max_by(&:InformationDate)
@@ -71,6 +71,21 @@ module MaYyaReport
           )
         end
       end
+    end
+
+    private def age_in_range?(age)
+      @age_range ||= begin
+        range = 0 .. 17 if @filter.age_ranges.include?(:under_eighteen)
+        range = merge_ranges(range, 18 .. 24) if @filter.age_ranges.include?(:eighteen_to_twenty_four)
+        range
+      end
+      @age_range.include?(age)
+    end
+
+    private def merge_ranges(source, constraint)
+      return constraint if source.nil?
+
+      [source.begin, constraint.begin].min .. [source.end, constraint.end].max
     end
 
     private def client_scope

@@ -69,7 +69,6 @@ module Filters
     attribute :report_version, Symbol
     attribute :inactivity_days, Integer, default: 365 * 2
     attribute :lsa_scope, Integer, default: nil
-    attribute :youth, Boolean, default: false
 
     validates_presence_of :start, :end
 
@@ -145,7 +144,6 @@ module Filters
       self.creator_id = filters.dig(:creator_id).to_i unless filters.dig(:creator_id).nil?
       self.inactivity_days = filters.dig(:inactivity_days).to_i unless filters.dig(:inactivity_days).nil?
       self.lsa_scope = filters.dig(:lsa_scope).to_i unless filters.dig(:lsa_scope).nil?
-      self.youth = filters.dig(:youth).in?(['1', 'true', true]) unless filters.dig(:youth).nil?
 
       ensure_dates_work if valid?
       self
@@ -201,7 +199,6 @@ module Filters
           creator_id: creator_id,
           inactivity_days: inactivity_days,
           lsa_scope: lsa_scope,
-          youth: youth,
         },
       }
     end
@@ -308,7 +305,6 @@ module Filters
         opts['Current Living Situation Homeless'] = 'Yes' if ce_cls_as_homeless
         opts['Client Limits'] = chosen_vispdat_limits if limit_to_vispdat != :all_clients
         opts['Times Homeless in Past 3 Years'] = chosen_times_homeless_in_last_three_years if times_homeless_in_last_three_years.any?
-        opts['Youth Only'] = 'Yes' if youth
       end
     end
 
@@ -868,8 +864,6 @@ module Filters
         'LSA Scope'
       when :cohort_ids
         'Cohorts'
-      when :youth
-        'Youth Only'
       end
 
       return unless value.present?
@@ -939,8 +933,6 @@ module Filters
         chosen_lsa_scope
       when :cohort_ids
         cohorts
-      when :youth
-        'Yes' if youth
       end
     end
 

@@ -393,12 +393,19 @@ module MaYyaReport
       ::GrdaWarehouse::Hud::Project.options_for_select(user: user)
     end
 
+    def self.available_age_ranges
+      {
+        under_eighteen: '< 18',
+        eighteen_to_twenty_four: '18 - 24',
+      }
+    end
+
     def self.report_options
       [
         :start,
         :end,
         :project_ids,
-        :youth,
+        :age_ranges,
       ].freeze
     end
   end

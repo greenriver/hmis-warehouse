@@ -8,8 +8,8 @@
       .col-sm-6
         = f.input :project_ids, as: :grouped_select_two, collection: MaYyaReport::Report.yya_projects(current_user), group_method: :last, input_html: { multiple: true }, label: 'Projects'
     .row
-      .col
-        = f.input :youth, as: :boolean, label: 'Limit to clients aged 18-24'
+      .col-sm-2
+        = f.input :age_ranges, collection: MaYyaReport::Report.available_age_ranges.invert, as: :select_two, input_html: { multiple: true }, required: false
   - content_for :filter_actions do
     = f.submit 'Queue Report', class: ['btn', 'btn-primary']
 
