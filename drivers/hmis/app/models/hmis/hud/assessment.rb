@@ -40,6 +40,10 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
     left_outer_joins(:wip).where(viewable_wip.or(viewable_completed))
   end
 
+  scope :with_role, ->(role) do
+    joins(:assessment_detail).where(assessment_detail: { role: role })
+  end
+
   def enrollment
     super || Hmis::Hud::Enrollment.find(wip.enrollment_id)
   end
