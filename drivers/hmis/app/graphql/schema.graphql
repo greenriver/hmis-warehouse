@@ -1633,11 +1633,7 @@ type Organization {
   description: String
   id: ID!
   organizationName: String!
-
-  """
-  Get a list of projects for this organization
-  """
-  projects(projectTypes: [ProjectType!], sortOrder: ProjectSortOption): [Project!]!
+  projects(limit: Int, offset: Int, projectTypes: [ProjectType!], sortOrder: ProjectSortOption): ProjectsPaginated!
   victimServiceProvider: Boolean
 }
 
@@ -1656,6 +1652,16 @@ HUD Organization Sorting Options
 """
 enum OrganizationSortOption {
   NAME
+}
+
+type OrganizationsPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [Organization!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
 }
 
 """
@@ -1878,6 +1884,16 @@ enum ProjectType {
   TH
 }
 
+type ProjectsPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [Project!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
+}
+
 type Query {
   """
   Assessment lookup
@@ -1922,7 +1938,7 @@ type Query {
   """
   Get a list of organizations
   """
-  organizations(sortOrder: OrganizationSortOption): [Organization!]!
+  organizations(limit: Int, offset: Int, sortOrder: OrganizationSortOption): OrganizationsPaginated!
 
   """
   Project lookup
@@ -1937,7 +1953,7 @@ type Query {
   """
   Get a list of projects
   """
-  projects(projectTypes: [ProjectType!], sortOrder: ProjectSortOption): [Project!]!
+  projects(limit: Int, offset: Int, projectTypes: [ProjectType!], sortOrder: ProjectSortOption): ProjectsPaginated!
 }
 
 """
