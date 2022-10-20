@@ -24,7 +24,7 @@ namespace :test do
 
   desc 'Test generating an Exception'
   task :exception, [] => [:environment] do |_t, _args|
-    raise StandardError, 'An Exception has been raised from within a Rake task.'
+    raise StandardError.new('An Exception has been raised from within a Rake task.')
   end
 
   desc 'Test Sentry'
