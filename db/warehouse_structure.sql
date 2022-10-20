@@ -4904,6 +4904,41 @@ ALTER SEQUENCE public.coc_codes_id_seq OWNED BY public.coc_codes.id;
 
 
 --
+-- Name: coc_pit_counts; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.coc_pit_counts (
+    id bigint NOT NULL,
+    goal_id bigint,
+    pit_date date,
+    sheltered integer,
+    unsheltered integer,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: coc_pit_counts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.coc_pit_counts_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: coc_pit_counts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.coc_pit_counts_id_seq OWNED BY public.coc_pit_counts.id;
+
+
+--
 -- Name: cohort_client_changes; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -21102,6 +21137,13 @@ ALTER TABLE ONLY public.coc_codes ALTER COLUMN id SET DEFAULT nextval('public.co
 
 
 --
+-- Name: coc_pit_counts id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.coc_pit_counts ALTER COLUMN id SET DEFAULT nextval('public.coc_pit_counts_id_seq'::regclass);
+
+
+--
 -- Name: cohort_client_changes id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -23968,6 +24010,14 @@ ALTER TABLE ONLY public.coc_codes
 
 
 --
+-- Name: coc_pit_counts coc_pit_counts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.coc_pit_counts
+    ADD CONSTRAINT coc_pit_counts_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: cohort_client_changes cohort_client_changes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -26320,6 +26370,90 @@ CREATE INDEX "Disabilities_DateDeleted_data_source_id_idx1" ON public."Disabilit
 --
 
 CREATE INDEX "Disabilities_DateDeleted_idx" ON public."Disabilities" USING btree ("DateDeleted") WHERE ("DateDeleted" IS NULL);
+
+
+--
+-- Name: Enrollment_2735; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "Enrollment_2735" ON public."Enrollment" USING btree ("ProjectID", "HouseholdID");
+
+
+--
+-- Name: Enrollment_3085; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "Enrollment_3085" ON public."Enrollment" USING btree ("PreviousStreetESSH", "LengthOfStay");
+
+
+--
+-- Name: Enrollment_34e3; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "Enrollment_34e3" ON public."Enrollment" USING btree ("EnrollmentID", "ProjectID", "EntryDate");
+
+
+--
+-- Name: Enrollment_42af; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "Enrollment_42af" ON public."Enrollment" USING btree ("ProjectID");
+
+
+--
+-- Name: Enrollment_42d5; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "Enrollment_42d5" ON public."Enrollment" USING btree ("DateUpdated");
+
+
+--
+-- Name: Enrollment_4337; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "Enrollment_4337" ON public."Enrollment" USING btree ("EnrollmentID");
+
+
+--
+-- Name: Enrollment_5328; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "Enrollment_5328" ON public."Enrollment" USING btree ("HouseholdID");
+
+
+--
+-- Name: Enrollment_603f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "Enrollment_603f" ON public."Enrollment" USING btree ("PersonalID");
+
+
+--
+-- Name: Enrollment_634d; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "Enrollment_634d" ON public."Enrollment" USING btree ("ExportID");
+
+
+--
+-- Name: Enrollment_c548; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "Enrollment_c548" ON public."Enrollment" USING btree ("EnrollmentID", "PersonalID");
+
+
+--
+-- Name: Enrollment_d381; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "Enrollment_d381" ON public."Enrollment" USING btree ("DateCreated");
+
+
+--
+-- Name: Enrollment_f3a2; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "Enrollment_f3a2" ON public."Enrollment" USING btree ("DateDeleted");
 
 
 --
@@ -40869,6 +41003,13 @@ CREATE INDEX index_coc_codes_on_coc_code ON public.coc_codes USING btree (coc_co
 
 
 --
+-- Name: index_coc_pit_counts_on_goal_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_coc_pit_counts_on_goal_id ON public.coc_pit_counts USING btree (goal_id);
+
+
+--
 -- Name: index_cohort_client_changes_on_change; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -50379,6 +50520,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20221007152924'),
 ('20221013195245'),
 ('20221014144316'),
-('20221017180229');
+('20221017180229'),
+('20221019122456');
 
 

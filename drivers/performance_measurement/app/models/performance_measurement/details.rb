@@ -126,6 +126,10 @@ module PerformanceMeasurement::Details
       detail_for(key.to_sym).try(:[], :goal_unit) || ''
     end
 
+    def detail_pit_types(key)
+      detail_for(key.to_sym).try(:[], :pit_types)
+    end
+
     def my_projects(user, key)
       project_details(user, key).select do |project_id, _|
         user.viewable_project_ids.include?(project_id)
@@ -281,6 +285,7 @@ module PerformanceMeasurement::Details
             'served_on_pit_date_sheltered',
             'served_on_pit_date_unsheltered',
           ],
+          pit_types: [:unsheltered, :sheltered],
         },
         count_of_homeless_clients_in_range: {
           category: 'Rare',
@@ -301,6 +306,7 @@ module PerformanceMeasurement::Details
             'served_on_pit_date_sheltered',
             'served_on_pit_date_unsheltered',
           ],
+          pit_types: [:unsheltered, :sheltered],
         },
         count_of_sheltered_homeless_clients: {
           category: 'Rare',
@@ -323,6 +329,7 @@ module PerformanceMeasurement::Details
             'served_on_pit_date_sheltered',
             'served_on_pit_date_unsheltered',
           ],
+          pit_types: [:sheltered],
         },
         count_of_unsheltered_homeless_clients: {
           category: 'Rare',
@@ -344,6 +351,7 @@ module PerformanceMeasurement::Details
             'served_on_pit_date_sheltered',
             'served_in_range_unsheltered',
           ],
+          pit_types: [:unsheltered],
         },
         first_time_homeless_clients: {
           category: 'Rare',
