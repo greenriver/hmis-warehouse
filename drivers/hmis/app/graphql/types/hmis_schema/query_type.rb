@@ -74,7 +74,7 @@ module Types
     end
 
     def assessment(id:)
-      Hmis::Hud::Assessment.find_by(id: id)
+      Hmis::Hud::Assessment.viewable_by(current_user).find_by(id: id)
     end
 
     field :inventory, Types::HmisSchema::Inventory, 'Inventory lookup', null: true do

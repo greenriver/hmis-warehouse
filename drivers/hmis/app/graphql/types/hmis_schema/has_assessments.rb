@@ -30,6 +30,10 @@ module Types
         apply_assessment_arguments(scope, **args)
       end
 
+      def resolve_assessments_including_wip(scope = object.assessments_including_wip, **args)
+        apply_assessment_arguments(scope, **args)
+      end
+
       private
 
       def apply_assessment_arguments(scope, sort_order: :assessment_date)

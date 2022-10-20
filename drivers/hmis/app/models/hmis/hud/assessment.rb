@@ -34,10 +34,10 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
 
   scope :viewable_by, ->(user) do
     enrollment_ids = Hmis::Hud::Enrollment.viewable_by(user).pluck(:id, :EnrollmentID)
-    vieawable_wip = wip_t[:enrollment_id].in(enrollment_ids.map(&:first))
-    viewable_enrollment = as_t[:EnrollmentID].in(enrollment_ids.map(&:second))
+    viewable_wip = wip_t[:enrollment_id].in(enrollment_ids.map(&:first))
+    viewable_completed = as_t[:EnrollmentID].in(enrollment_ids.map(&:second))
 
-    left_outer_joins(:wip).where(vieawable_wip.or(viewable_enrollment))
+    left_outer_joins(:wip).where(viewable_wip.or(viewable_completed))
   end
 
   def enrollment
@@ -66,6 +66,7 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
     save!(validate: false)
     self.wip = Hmis::Wip.find_or_create_by(
       {
+        source: self,
         enrollment_id: saved_enrollment_id,
         client_id: client.id,
         date: assessment_date,
