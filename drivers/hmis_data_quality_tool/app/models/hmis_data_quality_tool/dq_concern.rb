@@ -36,12 +36,7 @@ module HmisDataQualityTool::DqConcern
 
     def self.detail_headers_for(slug)
       section = sections[slug.to_sym]
-      headers = detail_headers.map do |k, v|
-        [
-          k,
-          v.except(:translator),
-        ]
-      end.to_h
+      headers = detail_headers.transform_values { |v| v.except(:translator) }
       return headers unless section
 
       columns = section[:detail_columns]
