@@ -16,8 +16,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:p1) { create :hmis_hud_project, data_source_id: ds1.id, organization: o1, user: u1 }
   let!(:pc1) { create :hmis_hud_project_coc, data_source_id: ds1.id, project: p1, coc_code: 'CO-500' }
   let!(:pc2) { create :hmis_hud_project_coc, data_source_id: ds1.id, project: p1, coc_code: 'CO-503' }
-  let!(:i1) { create :hmis_hud_inventory, data_source: ds1, project: p1, coc_code: pc1.coc_code }
-  let!(:i2) { create :hmis_hud_inventory, data_source: ds1, project: p1, coc_code: pc2.coc_code }
+  let!(:i1) { create :hmis_hud_inventory, data_source: ds1, project: p1, coc_code: pc1.coc_code, inventory_start_date: '2020-01-01' }
+  let!(:i2) { create :hmis_hud_inventory, data_source: ds1, project: p1, coc_code: pc2.coc_code, inventory_start_date: '2022-01-01' }
   let!(:f1) { create :hmis_hud_funder, data_source_id: ds1.id, project: p1 }
   let!(:f2) { create :hmis_hud_funder, data_source_id: ds1.id, project: p1 }
 
@@ -44,7 +44,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             residentialAffiliation
             targetPopulation
             trackingMethod
-            inventories(limit: 10, offset: 0) {
+            inventories(limit: 1, offset: 1, sortOrder: START_DATE) {
               nodesCount
               nodes {
                 id
@@ -56,7 +56,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
                 id
               }
             }
-            funders(limit: 10, offset: 0) {
+            funders {
               nodesCount
               nodes {
                 id
@@ -81,11 +81,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       record = result.dig('data', 'project')
       expect(record['id']).to be_present
       to_id = proc { |x| x['id'].to_i }
-      expect(record.dig('inventories', 'nodesCount')).to eq(2)
-      expect(record.dig('inventories', 'nodes').map(&to_id)).to contain_exactly(i1.id, i2.id)
-      expect(record.dig('projectCocs', 'nodesCount')).to eq(2)
+      expect(record.dig('inventories', 'nodesCount').to_i).to eq(2)
+      expect(record.dig('inventories', 'nodes').map(&to_id)).to contain_exactly(i1.id)
+      expect(record.dig('projectCocs', 'nodesCount').to_i).to eq(2)
       expect(record.dig('projectCocs', 'nodes').map(&to_id)).to contain_exactly(pc1.id, pc2.id)
-      expect(record.dig('funders', 'nodesCount')).to eq(2)
+      expect(record.dig('funders', 'nodesCount').to_i).to eq(2)
       expect(record.dig('funders', 'nodes').map(&to_id)).to contain_exactly(f1.id, f2.id)
       expect(record.dig('organization', 'id').to_i).to eq(o1.id)
     end
