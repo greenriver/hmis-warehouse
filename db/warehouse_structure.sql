@@ -13248,7 +13248,8 @@ CREATE TABLE public.hmis_dqt_current_living_situations (
     project_tracking_method integer,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    project_id integer
 );
 
 
@@ -50613,6 +50614,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20221014144316'),
 ('20221017180229'),
 ('20221019122456'),
-('20221019182810');
+('20221019182810'),
+('20221020113634');
 
 

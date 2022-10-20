@@ -2,17 +2,31 @@
 .card.mb-4
   %table.table.table-striped
     %tbody
+      - overall_percent_invalid = @report.percent(@report.results.map(&:total).sum, @report.results.map(&:invalid_count).sum)
+      - overall_percent_valid = 100 - overall_percent_invalid
+      - if goal_config.present? && goal_config.active?
+        - background_color = "background-color: #{goal_config.color_for(overall_percent_valid.to_i)};"
+        - name = goal_config.name_for(overall_percent_valid.to_i)
+        %tr
+          %th Overall
+          %th{ style: background_color}= name
+          %td{ style: background_color} #{overall_percent_valid}%
+      - else
+        %tr
+          %th Overall
+          %td #{overall_percent_valid}%
       - @report.results.group_by(&:category).each do |category, results|
-        - overall_percent = @report.overall_percent(results.map(&:percent_valid))
+        - category_percent_invalid = @report.percent(results.map(&:total).sum, results.map(&:invalid_count).sum)
+        - category_percent_valid = 100 - category_percent_invalid
         - if goal_config.present? && goal_config.active?
-          - background_color = "background-color: #{goal_config.color_for(overall_percent.to_i)};"
-          - name = goal_config.name_for(overall_percent.to_i)
+          - background_color = "background-color: #{goal_config.color_for(category_percent_valid.to_i)};"
+          - name = goal_config.name_for(category_percent_valid.to_i)
           - if name.present?
             %tr
               %th= category
               %th{ style: background_color}= name
-              %td{ style: background_color} #{overall_percent}%
+              %td{ style: background_color} #{category_percent_valid}%
         - else
           %tr
             %th= category
-            %td #{overall_percent}%
+            %td #{category_percent_valid}%

@@ -5,5 +5,5 @@
   %td= result.description
   %th= result.required_for
   %td= result.total
-  %td= link_to result.count, items_hmis_data_quality_tool_warehouse_reports_report_path(@report, key: result.title)
+  %td= link_to result.invalid_count, items_hmis_data_quality_tool_warehouse_reports_report_path(@report, key: result.title)
   %td{ style: background_color } #{result.percent_valid}%

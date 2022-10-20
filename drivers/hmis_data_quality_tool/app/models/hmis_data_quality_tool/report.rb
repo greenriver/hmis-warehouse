@@ -22,7 +22,6 @@ module HmisDataQualityTool
     has_many :events
     has_many :services
     has_many :current_living_situations
-    has_many :projects
     has_many :inventories
 
     after_initialize :filter
@@ -242,16 +241,6 @@ module HmisDataQualityTool
       universe("#{key}__invalid").universe_members.map(&:universe_membership)
     end
 
-    def overall_percent(values)
-      count = values.count
-      return 0 if values.count.zero?
-
-      sum = values.sum
-      return 0 if sum.zero?
-
-      (sum.to_f / count).round(1)
-    end
-
     def results
       @results ||= [].tap do |r|
         {
@@ -334,20 +323,56 @@ module HmisDataQualityTool
               ! goal_config.stay_lengths.include?([stay_length_category, stay_length_limit])
 
             title = item_class.section_title(slug)
-            overall_count = universe("#{title}__denominator").count
-            invalid_count = universe("#{title}__invalid").count
-            r << OpenStruct.new(
+            denominator_cell = universe("#{title}__denominator")
+            overall_count = denominator_cell.count
+            numerator_cell = universe("#{title}__invalid")
+            invalid_count = numerator_cell.count
+            this_result = OpenStruct.new(
               title: title,
               description: item_class.section_description(slug),
               required_for: item_class.required_for(slug),
               category: category,
-              count: invalid_count,
+              invalid_count: invalid_count,
               total: overall_count,
               percent_invalid: percent(overall_count, invalid_count),
               percent_valid: percent(overall_count, overall_count - invalid_count),
               item_class: item_class,
               detail_columns: item_class.detail_headers_for(slug),
+              projects: {},
+              project_types: {},
             )
+            filter.effective_projects.each do |project|
+              # Because some metrics don't include project_id, we need to
+              # use client_id for those, currently those based off the Client class
+              if item_class == Client
+                overall_count = denominator_cell.
+                  members.
+                  where(item_class.arel_table[:client_id].in(client_ids_for_project(project))).
+                  count
+                invalid_count = numerator_cell.
+                  members.
+                  where(item_class.arel_table[:client_id].in(client_ids_for_project(project))).
+                  count
+              else
+                overall_count = denominator_cell.
+                  members.
+                  where(item_class.arel_table[:project_id].eq(project.id)).
+                  count
+                invalid_count = numerator_cell.
+                  members.
+                  where(item_class.arel_table[:project_id].eq(project.id)).
+                  count
+              end
+              this_result[:projects][project.id] = {
+                project_name: project.name(user),
+                invalid_count: invalid_count,
+                total: overall_count,
+              }
+              this_result[:project_types][project.project_type_to_use] ||= { invalid_count: 0, total: 0 }
+              this_result[:project_types][project.project_type_to_use][:invalid_count] += invalid_count
+              this_result[:project_types][project.project_type_to_use][:total] += overall_count
+            end
+            r << this_result
           end
         end
       end
@@ -369,10 +394,31 @@ module HmisDataQualityTool
       @overall_current_living_situation_count ||= CurrentLivingSituation.current_living_situation_scope(self).count
     end
 
-    private def percent(total, partial)
+    def percent(total, partial)
       return 0 if total.blank? || total.zero? || partial.blank? || partial.zero?
 
-      ((partial / total.to_f) * 100).round
+      ((partial / total.to_f) * 100).round(1)
+    end
+
+    private def client_ids_for_project(project)
+      @client_ids_per_project ||= enrollments.pluck(:project_id, :destination_client_id).group_by(&:shift)
+      @client_ids_per_project[project.id]
+    end
+
+    # { project_name: { overall: %, clients: %, enrollments: % ...}}
+    def per_project_results
+      @per_project_results ||= {}.tap do |r|
+        results.each do |result|
+          result.projects.each do |project_id, data|
+            r[project_id] ||= { 'Overall' => { invalid_count: 0, total: 0 } }
+            r[project_id][result.title] ||= { invalid_count: 0, total: 0 }
+            r[project_id][result.title][:invalid_count] += data[:invalid_count]
+            r[project_id][result.title][:total] += data[:total]
+            r[project_id]['Overall'][:invalid_count] += data[:invalid_count]
+            r[project_id]['Overall'][:total] += data[:total]
+          end
+        end
+      end
     end
   end
 end
