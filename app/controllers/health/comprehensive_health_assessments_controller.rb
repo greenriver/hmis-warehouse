@@ -32,7 +32,7 @@ module Health
 
     def update
       @cha.assign_attributes(form_params)
-      Health::ChaSaver.new(cha: @cha, user: current_user, complete: completed?, reviewed: reviewed?).update
+      Health::ChaSaver.new(cha: @cha, user: current_user, complete: completed?, reviewed: reviewed?, create_qa: true).update
       respond_with @cha, location: polymorphic_path(careplans_path_generator) unless request.xhr?
     end
 
@@ -109,6 +109,7 @@ module Health
         :reviewed_by_supervisor,
         :reviewer,
         :completed,
+        :collection_method,
         *Health::ComprehensiveHealthAssessment::PERMITTED_PARAMS,
       )
       local_params

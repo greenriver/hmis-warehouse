@@ -31,6 +31,7 @@ module Health
     validates :signature_on, presence: true
     validates :participation_signature_on, presence: true
     validate :file_or_location
+    validates :mode_of_contact, presence: true
 
     scope :recent, -> { order(signature_on: :desc).limit(1) }
     scope :reviewed, -> { where.not(reviewed_by_id: nil) }
@@ -97,6 +98,14 @@ module Health
     def file_or_location
       errors.add :file_location, 'Please upload a release of information form.' if health_file.blank? && file_location.blank?
       errors.add :health_file, health_file.errors.messages.try(:[], :file)&.uniq&.join('; ') if health_file.present? && health_file.invalid?
+    end
+
+    def modes_of_contact
+      @modes_of_contact ||=
+        {
+          verbal: 'Verbal (Directed Signature)',
+          in_person: 'In-Person',
+        }.invert
     end
 
     def self.encounter_report_details

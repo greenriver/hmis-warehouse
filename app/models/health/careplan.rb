@@ -176,7 +176,12 @@ module Health
       patient.import_epic_team_members
     end
 
-    # We need both signatures, and one of must have just been assigned
+    # If we have the patient signature, and they just signed, it was just finished
+    def just_finished?
+      patient_signed_on.present? && patient_signed_on_changed?
+    end
+
+    # We need both signatures, and one of must have just been done
     def just_signed?
       (patient_signed_on.present? && provider_signed_on.present?) && (patient_signed_on_changed? || provider_signed_on_changed?)
     end
