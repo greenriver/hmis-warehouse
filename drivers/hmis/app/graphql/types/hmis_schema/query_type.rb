@@ -16,13 +16,13 @@ module Types
     include Types::HmisSchema::HasOrganizations
     include Types::HmisSchema::HasClients
 
-    projects_field :projects, description: 'Get a list of projects'
+    projects_field :projects, type: Types::HmisSchema::Project.page_type, description: 'Get a list of projects'
 
     def projects(**args)
       resolve_projects(Hmis::Hud::Project.all, **args)
     end
 
-    organizations_field :organizations, description: 'Get a list of organizations'
+    organizations_field :organizations, type: Types::HmisSchema::Organization.page_type, description: 'Get a list of organizations'
 
     def organizations(**args)
       resolve_organizations(Hmis::Hud::Organization.all, **args)
