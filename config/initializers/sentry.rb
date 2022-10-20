@@ -9,7 +9,7 @@ if ENV['WAREHOUSE_SENTRY_DSN'].present?
     config.dsn = ENV['WAREHOUSE_SENTRY_DSN']
     config.breadcrumbs_logger = [:active_support_logger, :http_logger]
 
-    config.enabled_environments = ['production', 'staging', 'development'] # Remove development when dev is done.
+    config.enabled_environments = ['production', 'staging', 'development']
     config.environment = Rails.env
 
     if config.enabled_environments.include?(config.environment) && config.dsn.to_s.match?(/sentry\.io/)

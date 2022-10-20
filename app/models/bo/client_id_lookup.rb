@@ -160,14 +160,18 @@ module Bo
           rescue Bo::Soap::RequestFailed => e
             msg = "FAILED to fetch batch #{start_time} .. #{end_time} for TP: #{tp_id} \n #{e.message} for data source #{@data_source_id}"
             Rails.logger.info msg
-            Sentry.capture_exception_with_data(
-              e,
-              msg,
-              {
-                tp_id: tp_id,
-                data_source_id: @data_source_id,
-              },
-            )
+            if send_notifications && msg.present?
+              @notifier.ping(
+                msg,
+                {
+                  exception: e,
+                  info: {
+                    tp_id: tp_id,
+                    data_source_id: @data_source_id,
+                  }
+                }
+              )
+            end
 
             response = nil
           end
