@@ -429,11 +429,10 @@ module HmisDataQualityTool
     end
 
     private def count_category_setup
-      setup = { 'Overall' => { invalid_count: 0, total: 0 } }
+      {}.tap do |setup|
       categories.each do |cat|
         setup[cat] = { invalid_count: 0, total: 0 }
       end
-      setup
     end
 
     # { project_name: { overall: %, clients: %, enrollments: % ...}}
