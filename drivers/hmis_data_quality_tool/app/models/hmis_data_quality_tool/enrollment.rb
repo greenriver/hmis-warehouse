@@ -578,7 +578,7 @@ module HmisDataQualityTool
         },
         lot_es_90_issues: {
           title: 'Possible Missed Exit - ES, Time in Enrollment 90 Days or More',
-          description: 'There is an expectation that clients will not stay indefinitely in emergency shelter, these clients have been in shelter more than 90 days',
+          description: 'There is an expectation that clients will not stay indefinitely in emergency shelter, these clients have been in shelter 90 days or more',
           required_for: 'All in ES',
           detail_columns: [
             :destination_client_id,
@@ -599,13 +599,13 @@ module HmisDataQualityTool
           limiter: ->(item) {
             return false if item.exit_date.present?
 
-            item.lot > 90 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
+            item.lot >= 90 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
           },
           es_stay_length: 90,
         },
         lot_es_180_issues: {
           title: 'Possible Missed Exit - ES, Time in Enrollment 180 Days or More',
-          description: 'There is an expectation that clients will not stay indefinitely in emergency shelter, these clients have been in shelter more than 180 days',
+          description: 'There is an expectation that clients will not stay indefinitely in emergency shelter, these clients have been in shelter 180 days or more',
           required_for: 'All in ES',
           detail_columns: [
             :destination_client_id,
@@ -626,13 +626,13 @@ module HmisDataQualityTool
           limiter: ->(item) {
             return false if item.exit_date.present?
 
-            item.lot > 180 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
+            item.lot >= 180 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
           },
           es_stay_length: 180,
         },
         lot_es_365_issues: {
           title: 'Possible Missed Exit - ES, Time in Enrollment 365 Days or More',
-          description: 'There is an expectation that clients will not stay indefinitely in emergency shelter, these clients have been in shelter more than 365 days',
+          description: 'There is an expectation that clients will not stay indefinitely in emergency shelter, these clients have been in shelter 365 days or more',
           required_for: 'All in ES',
           detail_columns: [
             :destination_client_id,
@@ -653,13 +653,13 @@ module HmisDataQualityTool
           limiter: ->(item) {
             return false if item.exit_date.present?
 
-            item.lot > 365 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
+            item.lot >= 365 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
           },
           es_stay_length: 365,
         },
         days_since_last_service_es_90_issues: {
           title: 'Possible Missed Exit - ES, No Service in 90 Days or More',
-          description: 'There is an expectation that clients will not stay indefinitely in emergency shelter, these clients have been in shelter more than 90 days',
+          description: 'There is an expectation that clients will be exited from emergency shelter if they haven\'t been seen, these clients have been in shelter for 90 days or more',
           required_for: 'All in ES',
           detail_columns: [
             :destination_client_id,
@@ -680,13 +680,13 @@ module HmisDataQualityTool
           limiter: ->(item) {
             return false if item.exit_date.present?
 
-            item.days_since_last_service > 90 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
+            item.days_since_last_service >= 90 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
           },
           es_missed_exit_length: 90,
         },
         days_since_last_service_es_180_issues: {
           title: 'Possible Missed Exit - ES, No Service in 180 Days or More',
-          description: 'There is an expectation that clients will not stay indefinitely in emergency shelter, these clients have been in shelter more than 180 days',
+          description: 'There is an expectation that clients will be exited from emergency shelter if they haven\'t been seen, these clients have been in shelter for 180 days or more',
           required_for: 'All in ES',
           detail_columns: [
             :destination_client_id,
@@ -707,13 +707,13 @@ module HmisDataQualityTool
           limiter: ->(item) {
             return false if item.exit_date.present?
 
-            item.days_since_last_service > 180 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
+            item.days_since_last_service >= 180 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
           },
           es_missed_exit_length: 180,
         },
         days_since_last_service_es_365_issues: {
           title: 'Possible Missed Exit - ES, No Service in 365 Days or More',
-          description: 'There is an expectation that clients will not stay indefinitely in emergency shelter, these clients have been in shelter more than 365 days',
+          description: 'There is an expectation that clients will be exited from emergency shelter if they haven\'t been seen, these clients have been in shelter for 365 days or more',
           required_for: 'All in ES',
           detail_columns: [
             :destination_client_id,
@@ -734,13 +734,13 @@ module HmisDataQualityTool
           limiter: ->(item) {
             return false if item.exit_date.present?
 
-            item.days_since_last_service > 365 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
+            item.days_since_last_service >= 365 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
           },
           es_missed_exit_length: 365,
         },
         days_since_last_service_so_90_issues: {
           title: 'Possible Missed Exit - SO, Time in Enrollment 90 Days or More',
-          description: 'There is an expectation that clients will not stay indefinitely in street outreach, these clients have been in street outreach with no current living situation collected for more than 90 days',
+          description: 'There is an expectation that clients will not stay indefinitely in street outreach, these clients have been in street outreach with no current living situation collected for 90 days or more',
           required_for: 'All in SO',
           detail_columns: [
             :destination_client_id,
@@ -761,13 +761,13 @@ module HmisDataQualityTool
           limiter: ->(item) {
             return false if item.exit_date.present?
 
-            item.days_since_last_service > 90 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:so].include?(item.project_type)
+            item.days_since_last_service >= 90 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:so].include?(item.project_type)
           },
           so_missed_exit_length: 90,
         },
         days_since_last_service_so_180_issues: {
           title: 'Possible Missed Exit - SO, Time in Enrollment 180 Days or More',
-          description: 'There is an expectation that clients will not stay indefinitely in street outreach, these clients have been in street outreach with no current living situation collected for more than 180 days',
+          description: 'There is an expectation that clients will not stay indefinitely in street outreach, these clients have been in street outreach with no current living situation collected for 180 days or more',
           required_for: 'All in SO',
           detail_columns: [
             :destination_client_id,
@@ -788,13 +788,13 @@ module HmisDataQualityTool
           limiter: ->(item) {
             return false if item.exit_date.present?
 
-            item.days_since_last_service > 180 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:so].include?(item.project_type)
+            item.days_since_last_service >= 180 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:so].include?(item.project_type)
           },
           so_missed_exit_length: 180,
         },
         days_since_last_service_so_365_issues: {
           title: 'Possible Missed Exit - SO, Time in Enrollment 365 Days or More',
-          description: 'There is an expectation that clients will not stay indefinitely in street outreach, these clients have been in street outreach with no current living situation collected for more than 365 days',
+          description: 'There is an expectation that clients will not stay indefinitely in street outreach, these clients have been in street outreach with no current living situation collected for 365 days or more',
           required_for: 'All in SO',
           detail_columns: [
             :destination_client_id,
@@ -815,13 +815,13 @@ module HmisDataQualityTool
           limiter: ->(item) {
             return false if item.exit_date.present?
 
-            item.days_since_last_service > 365 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:so].include?(item.project_type)
+            item.days_since_last_service >= 365 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:so].include?(item.project_type)
           },
           so_missed_exit_length: 365,
         },
         days_in_ph_prior_to_move_in_90_issues: {
           title: 'Possible Missed Move In Date - PH, Time in Enrollment 90 Days or More',
-          description: 'There is an expectation that clients in PH will eventually move into housing, these clients have been in PH without a move-in date more than 90 days, or have an invalid move-in date ',
+          description: 'There is an expectation that clients in PH will eventually move into housing, these clients have been in PH without a move-in date 90 days ore more, or have an invalid move-in date ',
           required_for: 'Adults and HoH in PH',
           detail_columns: [
             :destination_client_id,
@@ -844,13 +844,13 @@ module HmisDataQualityTool
             return false unless hoh_or_adult?(item)
             return false if item.move_in_date.present? && item.move_in_date >= item.entry_date && (item.exit_date.blank? || item.move_in_date <= item.exit_date)
 
-            item.lot > 90 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
+            item.lot >= 90 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
           },
           ph_missed_exit_length: 90,
         },
         days_in_ph_prior_to_move_in_180_issues: {
           title: 'Possible Missed Move In Date - PH, Time in Enrollment 180 Days or More',
-          description: 'There is an expectation that clients in PH will eventually move into housing, these clients have been in PH without a move-in date more than 180 days, or have an invalid move-in date',
+          description: 'There is an expectation that clients in PH will eventually move into housing, these clients have been in PH without a move-in date 180 days ore more, or have an invalid move-in date',
           required_for: 'Adults and HoH in PH',
           detail_columns: [
             :destination_client_id,
@@ -873,13 +873,13 @@ module HmisDataQualityTool
             return false unless hoh_or_adult?(item)
             return false if item.move_in_date.present? && item.move_in_date >= item.entry_date && (item.exit_date.blank? || item.move_in_date <= item.exit_date)
 
-            item.lot > 180 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
+            item.lot >= 180 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
           },
           ph_missed_exit_length: 180,
         },
         days_in_ph_prior_to_move_in_365_issues: {
           title: 'Possible Missed Move In Date - PH, Time in Enrollment 365 Days or More',
-          description: 'There is an expectation that clients in PH will eventually move into housing, these clients have been in PH without a move-in date more than 365 days, or have an invalid move-in date',
+          description: 'There is an expectation that clients in PH will eventually move into housing, these clients have been in PH without a move-in date 365 days or more, or have an invalid move-in date',
           required_for: 'Adults and HoH in PH',
           detail_columns: [
             :destination_client_id,
@@ -902,7 +902,7 @@ module HmisDataQualityTool
             return false unless hoh_or_adult?(item)
             return false if item.move_in_date.present? && item.move_in_date >= item.entry_date && (item.exit_date.blank? || item.move_in_date <= item.exit_date)
 
-            item.lot > 365 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
+            item.lot >= 365 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
           },
           ph_missed_exit_length: 365,
         },

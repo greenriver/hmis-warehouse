@@ -326,6 +326,7 @@ module HmisDataQualityTool
       Rails.cache.delete(cache_key)
     end
 
+    # FIXME: this should run at the end of the run and cache the results in redis
     def results
       @results ||= Rails.cache.fetch(cache_key, expires_in: 1.months) do
         [].tap do |r|
@@ -429,8 +430,9 @@ module HmisDataQualityTool
 
     private def count_category_setup
       {}.tap do |setup|
-      categories.each do |cat|
-        setup[cat] = { invalid_count: 0, total: 0 }
+        categories.each do |cat|
+          setup[cat] = { invalid_count: 0, total: 0 }
+        end
       end
     end
 
