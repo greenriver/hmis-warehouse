@@ -1633,11 +1633,7 @@ type Organization {
   description: String
   id: ID!
   organizationName: String!
-
-  """
-  Get a list of projects for this organization
-  """
-  projects(projectTypes: [ProjectType!], sortOrder: ProjectSortOption): [Project!]!
+  projects(limit: Int, offset: Int, projectTypes: [ProjectType!], sortOrder: ProjectSortOption): ProjectsPaginated!
   victimServiceProvider: Boolean
 }
 
