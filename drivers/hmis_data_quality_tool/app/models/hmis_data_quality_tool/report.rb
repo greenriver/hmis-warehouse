@@ -326,7 +326,6 @@ module HmisDataQualityTool
       Rails.cache.delete(cache_key)
     end
 
-    # FIXME: this should run at the end of the run and cache the results in redis
     def results
       @results ||= Rails.cache.fetch(cache_key, expires_in: 1.months) do
         [].tap do |r|
