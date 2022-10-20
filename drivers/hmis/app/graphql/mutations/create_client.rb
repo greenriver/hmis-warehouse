@@ -11,7 +11,7 @@ module Mutations
       client = Hmis::Hud::Client.new(
         data_source_id: user.data_source_id,
         user_id: user.user_id,
-        personal_id: SecureRandom.uuid.gsub(/-/, ''),
+        personal_id: Hmis::Hud::Base.generate_uuid,
         date_updated: DateTime.current,
         date_created: DateTime.current,
         **input.to_params,

@@ -76,5 +76,40 @@ module Types
     def assessment(id:)
       Hmis::Hud::Assessment.find_by(id: id)
     end
+
+    field :inventory, Types::HmisSchema::Inventory, 'Inventory lookup', null: true do
+      argument :id, ID, required: true
+    end
+
+    def inventory(id:)
+      Hmis::Hud::Inventory.viewable_by(current_user).find_by(id: id)
+    end
+
+    field :project_coc, Types::HmisSchema::ProjectCoc, 'Project CoC lookup', null: true do
+      argument :id, ID, required: true
+    end
+
+    def project_coc(id:)
+      Hmis::Hud::ProjectCoc.viewable_by(current_user).find_by(id: id)
+    end
+
+    field :funder, Types::HmisSchema::Funder, 'Funder lookup', null: true do
+      argument :id, ID, required: true
+    end
+
+    def funder(id:)
+      Hmis::Hud::Funder.viewable_by(current_user).find_by(id: id)
+    end
+
+    field :get_form_definition, Types::HmisSchema::FormDefinition, 'Get form assessment for enrollment & assessment role', null: true do
+      argument :enrollment_id, ID, required: true
+      argument :assessment_role, Types::HmisSchema::Enums::AssessmentRole, required: true
+    end
+
+    def get_form_definition(enrollment_id:, assessment_role:)
+      enrollment = Hmis::Hud::Enrollment.find_by(id: enrollment_id)
+
+      enrollment&.project&.present? ? Hmis::Form::Definition.find_definition_for_project(enrollment.project, role: assessment_role) : nil
+    end
   end
 end

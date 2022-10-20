@@ -7,20 +7,12 @@ module Mutations
     field :errors, [Types::HmisSchema::ValidationError], null: false
 
     def resolve(id:, input:)
-      errors = []
-      service = Hmis::Hud::Service.find_by(id: id)
-
-      if service.present?
-        service.update(**input.to_params, date_updated: DateTime.current, user_id: hmis_user.user_id)
-        errors += service.errors.errors unless service.valid?
-      else
-        errors << InputValidationError.new("No service found with ID '#{id}'", attribute: 'id') unless service.present?
-      end
-
-      {
-        service: service&.valid? ? service : nil,
-        errors: errors,
-      }
+      record = Hmis::Hud::Service.viewable_by(current_user).find_by(id: id)
+      default_update_record(
+        record: record,
+        field_name: :service,
+        input: input,
+      )
     end
   end
 end

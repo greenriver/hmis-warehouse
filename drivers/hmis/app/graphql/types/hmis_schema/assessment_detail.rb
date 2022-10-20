@@ -15,6 +15,7 @@ module Types
     field :data_collection_stage, HmisSchema::Enums::DataCollectionStage, null: true
     field :role, HmisSchema::Enums::AssessmentRole, null: false
     field :status, String, null: false
+    field :values, JsonObject, null: true
 
     def assessment
       load_ar_association(object, :assessment)

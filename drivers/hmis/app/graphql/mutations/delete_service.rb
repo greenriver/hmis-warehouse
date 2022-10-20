@@ -6,19 +6,8 @@ module Mutations
     field :errors, [Types::HmisSchema::ValidationError], null: false
 
     def resolve(id:)
-      errors = []
-      service = Hmis::Hud::Service.find_by(id: id)
-
-      if service.present?
-        service.destroy
-      else
-        errors << InputValidationError.new("No service found with ID '#{id}'", attribute: 'id')
-      end
-
-      {
-        service: service,
-        errors: errors,
-      }
+      record = Hmis::Hud::Service.viewable_by(current_user).find_by(id: id)
+      default_delete_record(record: record, field_name: :service)
     end
   end
 end
