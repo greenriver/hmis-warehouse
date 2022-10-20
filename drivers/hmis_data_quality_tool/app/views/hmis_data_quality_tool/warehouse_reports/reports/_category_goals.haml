@@ -17,7 +17,7 @@
           %td #{overall_percent_valid}%
       - @report.results.group_by(&:category).each do |category, results|
         - category_percent_invalid = @report.percent(results.map(&:total).sum, results.map(&:invalid_count).sum)
-        - category_percent_valid = 100 - category_percent_invalid
+        - category_percent_valid = (100 - category_percent_invalid).round(1)
         - if goal_config.present? && goal_config.active?
           - background_color = "background-color: #{goal_config.color_for(category_percent_valid.to_i)};"
           - name = goal_config.name_for(category_percent_valid.to_i)

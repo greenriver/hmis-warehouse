@@ -36,12 +36,18 @@ module HmisDataQualityTool::DqConcern
 
     def self.detail_headers_for(slug)
       section = sections[slug.to_sym]
-      return detail_headers unless section
+      headers = detail_headers.map do |k, v|
+        [
+          k,
+          v.except(:translator),
+        ]
+      end.to_h
+      return headers unless section
 
       columns = section[:detail_columns]
-      return detail_headers unless columns.present?
+      return headers unless columns.present?
 
-      detail_headers.select { |k, _| k.in?(columns) }
+      headers.select { |k, _| k.in?(columns) }
     end
 
     def download_value(key)
