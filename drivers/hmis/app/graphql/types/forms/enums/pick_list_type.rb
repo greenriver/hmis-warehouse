@@ -7,7 +7,13 @@
 # frozen_string_literal: true
 
 module Types
-  class Forms::FormDefinitionJson < Types::BaseObject
-    field :item, [Types::Forms::FormItem], 'Nested items', null: false
+  class Forms::Enums::PickListType < Types::BaseEnum
+    graphql_name 'PickListType'
+
+    value 'COC'
+    value 'PROJECT'
+    value 'ORGANIZATION'
+    # value 'GEOCODE'
+    # value 'LIVING_SITUATION'
   end
 end

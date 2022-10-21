@@ -111,5 +111,12 @@ module Types
 
       enrollment&.project&.present? ? Hmis::Form::Definition.find_definition_for_project(enrollment.project, role: assessment_role) : nil
     end
+
+    field :pick_list, [Types::Forms::PickListOption], 'Get list of options for pick list', null: false do
+      argument :pick_list_type, Types::Forms::Enums::PickListType, required: true
+    end
+    def pick_list(pick_list_type:)
+      Types::Forms::PickListOption.options_for_type(pick_list_type, user: current_user)
+    end
   end
 end
