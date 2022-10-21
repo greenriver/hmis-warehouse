@@ -59,7 +59,7 @@ module Types
     end
 
     def assessments(**args)
-      resolve_assessments(**args)
+      resolve_assessments_including_wip(**args)
     end
   end
 end
