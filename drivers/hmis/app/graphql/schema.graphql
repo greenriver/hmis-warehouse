@@ -48,7 +48,7 @@ type Assessment {
 }
 
 """
-HUD AssessmentDetail
+AssessmentDetail
 """
 type AssessmentDetail {
   assessment: Assessment!
@@ -911,15 +911,69 @@ type EventsPaginated {
 }
 
 """
-HUD FormDefinition
+FormDefinition
 """
 type FormDefinition {
-  definition: JsonObject!
+  definition: FormDefinitionJson!
   id: ID!
   identifier: String!
   role: AssessmentRole!
   status: String!
   version: Int!
+}
+
+type FormDefinitionJson {
+  """
+  Nested items
+  """
+  item: [FormItem!]
+}
+
+"""
+Item representing a question of group in a FormDefinition
+"""
+type FormItem {
+  """
+  Reference to value set of possible answer options
+  """
+  answerValueSet: String
+
+  """
+  Whether the item should always be hidden
+  """
+  hidden: Boolean
+
+  """
+  Nested items
+  """
+  item: [FormItem!]
+
+  """
+  Unique identifier for item
+  """
+  linkId: String!
+  prefix: String
+
+  """
+  Whether human editing is allowed
+  """
+  readOnly: Boolean
+
+  """
+  Whether the item may repeat (for choice types, this means multiple choice)
+  """
+  repeats: Boolean
+
+  """
+  Whether the item must be included in data results
+  """
+  required: Boolean
+
+  """
+  Primary text for the item
+  """
+  text: String
+  type: ItemType!
 }
 
 type Funder {
@@ -1428,6 +1482,18 @@ enum InventorySortOption {
   START_DATE
 }
 
+enum ItemType {
+  BOOLEAN
+  CHOICE
+  DATE
+  DISPLAY
+  GROUP
+  INTEGER
+  OPEN_CHOICE
+  STRING
+  TEXT
+}
+
 """
 Arbitrary JSON Type
 """
@@ -1921,7 +1987,7 @@ type Query {
   funder(id: ID!): Funder
 
   """
-  Get form assessment for enrollment & assessment role
+  Get form definition for enrollment & assessment role
   """
   getFormDefinition(assessmentRole: AssessmentRole!, enrollmentId: ID!): FormDefinition
 

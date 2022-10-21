@@ -101,7 +101,7 @@ module Types
       Hmis::Hud::Funder.viewable_by(current_user).find_by(id: id)
     end
 
-    field :get_form_definition, Types::HmisSchema::FormDefinition, 'Get form assessment for enrollment & assessment role', null: true do
+    field :get_form_definition, Types::Forms::FormDefinition, 'Get form definition for enrollment & assessment role', null: true do
       argument :enrollment_id, ID, required: true
       argument :assessment_role, Types::HmisSchema::Enums::AssessmentRole, required: true
     end

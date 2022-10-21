@@ -7,13 +7,17 @@
 # frozen_string_literal: true
 
 module Types
-  class HmisSchema::FormDefinition < Types::BaseObject
-    description 'HUD FormDefinition'
+  class Forms::FormDefinition < Types::BaseObject
+    description 'FormDefinition'
     field :id, ID, null: false
     field :version, Int, null: false
     field :role, HmisSchema::Enums::AssessmentRole, null: false
     field :status, String, null: false
     field :identifier, String, null: false
-    field :definition, JsonObject, null: false
+    field :definition, Forms::FormDefinitionJson, null: false
+
+    def definition
+      JSON.parse(object.definition)
+    end
   end
 end
