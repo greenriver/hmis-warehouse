@@ -211,6 +211,7 @@ module HudPit::Generators::Pit::Fy2022
     private def enrollment_scope
       preloads = {
         enrollment: [
+          :client,
           :disabilities,
           :project,
           :enrollment_coc_at_entry,

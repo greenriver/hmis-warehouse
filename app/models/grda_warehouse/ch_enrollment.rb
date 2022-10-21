@@ -105,6 +105,23 @@ module GrdaWarehouse
     # Result :skip means continue processing but skip branch
     # Results :yes, :no, :dk_or_r, or :missing are the final CH status. Only the last step should have one of these as the result.
     def self.chronically_homeless_at_start_steps(enrollment, date: enrollment.EntryDate)
+      # If client is a child, and not an HoH
+      # if HoH is CH, return yes
+      # if any other adult is CH, return yes
+      # if any adult or HoH is No, return no
+      # if any adult or HoH is DK/R, return DK/R
+      # return missing
+      # if client.child? && ! enrollment.RelationshipToHoH == 1
+      #   # get household, do calculations in RAM
+      #   hoh_enrollment =
+      #   hoh_ch_steps =
+      #   return hoh_ch_steps if chronically_homeless_at_start?(hoh_enrollment)
+
+      #   other_adult_enrollments =
+      #   other_adult_ch_steps = other_adult_enrollments.map { |en| chronically_homeless_at_start_steps(en) }
+      #   if other_adult_enrollments.any?()
+      # end
+
       steps = []
       # Line 1
       steps.push(disabling_condition(enrollment))
@@ -120,7 +137,7 @@ module GrdaWarehouse
       end
 
       # Line 9
-      steps.push(prior_living_sitation_homeless(enrollment))
+      steps.push(prior_living_situation_homeless(enrollment))
       if steps.last[:result] == :continue
         # Lines 10 - 12
         time_steps = homeless_duration_sufficient(enrollment)
@@ -129,7 +146,7 @@ module GrdaWarehouse
       end
 
       # Line 14
-      steps.push(prior_living_sitation_institutional(enrollment))
+      steps.push(prior_living_situation_institutional(enrollment))
       if steps.last[:result] == :continue
         # Lines 15-16
         los_steps = length_of_stay_previous_sufficient(enrollment)
@@ -143,7 +160,7 @@ module GrdaWarehouse
       end
 
       # Line 21
-      steps.push(prior_living_sitation_other(enrollment))
+      steps.push(prior_living_situation_other(enrollment))
       if steps.last[:result] == :continue
         # Lines 22-23
         los_steps = length_of_stay_previous_sufficient(enrollment)
@@ -196,7 +213,7 @@ module GrdaWarehouse
     end
 
     # Line 9  (3.917.1)
-    def self.prior_living_sitation_homeless(enrollment)
+    def self.prior_living_situation_homeless(enrollment)
       value = enrollment.LivingSituation
       result = HUD.homeless_situations(as: :prior).include?(value) ? :continue : :skip
       display_value = value ? "#{value} (#{::HUD.living_situation(value)})" : ''
@@ -204,7 +221,7 @@ module GrdaWarehouse
     end
 
     # Line 14 (3.917.1)
-    def self.prior_living_sitation_institutional(enrollment)
+    def self.prior_living_situation_institutional(enrollment)
       value = enrollment.LivingSituation
       result = HUD.institutional_situations(as: :prior).include?(value) ? :continue : :skip
       display_value = value ? "#{value} (#{::HUD.living_situation(value)})" : ''
@@ -212,7 +229,7 @@ module GrdaWarehouse
     end
 
     # Line 21 (3.917.1)
-    def self.prior_living_sitation_other(enrollment)
+    def self.prior_living_situation_other(enrollment)
       value = enrollment.LivingSituation
       is_other = (HUD.temporary_and_permanent_housing_situations(as: :prior) + HUD.other_situations(as: :prior)).include?(value)
       display_value = value ? "#{value} (#{::HUD.living_situation(value)})" : ''

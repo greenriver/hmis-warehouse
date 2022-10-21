@@ -133,7 +133,7 @@ module ClientAccessControl::GrdaWarehouse::Hud
           total_enrollment_count = en_scope.joins(:project, :source_client, :enrollment).count
           en_scope = en_scope.joins(:enrollment).merge(::GrdaWarehouse::Hud::Enrollment.visible_to(user)) unless user == User.setup_system_user
           enrollments = en_scope.joins(:project, :source_client, :enrollment).
-            includes(:organization, :source_client, project: :project_cocs, enrollment: [:enrollment_cocs, :exit, :ch_enrollment]).
+            includes(:organization, :source_client, project: :project_cocs, enrollment: [:enrollment_cocs, :exit, :ch_enrollment, :client]).
             order(first_date_in_program: :desc)
           visible_enrollment_count = enrollments.count
           enrollments.map do |entry|

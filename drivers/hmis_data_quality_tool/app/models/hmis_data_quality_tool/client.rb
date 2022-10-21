@@ -87,7 +87,7 @@ module HmisDataQualityTool
 
     def self.client_scope(report)
       GrdaWarehouse::Hud::Client.joins(source_enrollments: [:service_history_enrollment, :project]).
-        preload(:warehouse_client_source, source_enrollments: [:exit, :project]).
+        preload(:warehouse_client_source, source_enrollments: [:exit, :project, :client]).
         merge(report.report_scope).distinct
     end
 
