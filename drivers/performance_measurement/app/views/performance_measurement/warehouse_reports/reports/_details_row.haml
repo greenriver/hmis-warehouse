@@ -33,9 +33,10 @@
       - if pit_count_types.present?
         .col-sm-4
         - pit_count_types.each do |type|
-          .col-sm-4
-            .performance-measurement__result-number.font-weight-bold.mt-4= result.pit_count.public_send(type)
-            .text-capitalize #{type.to_s.humanize} PIT Count
+          - if result.pit_count.present?
+            .col-sm-4
+              .performance-measurement__result-number.font-weight-bold.mt-4= result.pit_count.public_send(type)
+              .text-capitalize #{type.to_s.humanize} PIT Count
 
   .col-6
     %div
