@@ -107,7 +107,7 @@ module AwsSdkHelpers
 
     def _short_term_capacity_provider_name(target_group_name = false)
       target_group_name ||= self.respond_to?(:target_group_name) ? self.target_group_name : ENV.fetch('TARGET_GROUP_NAME', '') # rubocop:disable Style/RedundantSelf
-      @_short_term_capacity_provider_name ||= AwsSdkHelpers::Helpers.get_capacity_provider_name('ShortTerm', target_group_name)
+      @_short_term_capacity_provider_name ||= AwsSdkHelpers::Helpers.get_capacity_provider_name('Short-term', target_group_name)
     end
 
     def _long_term_capacity_provider_name(target_group_name = false)
