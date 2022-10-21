@@ -81,7 +81,7 @@ module AwsSdkHelpers
       @capacity_providers ||= AwsSdkHelpers::Helpers.capacity_providers(cluster)
     end
 
-    def self.get_capacity_provider_name(which = 'ShortTerm', target_group_name = '')
+    def self.get_capacity_provider_name(which = 'Short-term', target_group_name = '')
       default_path = "/OpenPath/CapacityProviders/#{which}"
       override_path = "/#{target_group_name}/CapacityProviders/#{which}"
 
@@ -112,7 +112,7 @@ module AwsSdkHelpers
 
     def _long_term_capacity_provider_name(target_group_name = false)
       target_group_name ||= self.respond_to?(:target_group_name) ? self.target_group_name : ENV.fetch('TARGET_GROUP_NAME', '') # rubocop:disable Style/RedundantSelf
-      @_long_term_capacity_provider_name ||= AwsSdkHelpers::Helpers.get_capacity_provider_name('LongTerm', target_group_name)
+      @_long_term_capacity_provider_name ||= AwsSdkHelpers::Helpers.get_capacity_provider_name('Long-term', target_group_name)
     end
 
     def self.get_secret(secret_arn)
