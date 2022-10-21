@@ -128,12 +128,8 @@ class App.D3Chart.ClaimsStackedBar extends App.D3Chart.VerticalStackedBar
 
   _loadClaims: (claims)->
     bars = claims.map((bar) => @_loadBar(bar))
-    byYear = d3.nest()
-      .key((d) -> d.date.getFullYear())
-      .entries(bars)
-    byDate = d3.nest()
-      .key((d) -> d.date)
-      .map(bars)
+    byYear = d3.group(bars, (d) -> d.date.getFullYear())
+    byDate = d3.group(bars, (d) -> d.date)
     {
       byYear: byYear,
       byDate: byDate,
