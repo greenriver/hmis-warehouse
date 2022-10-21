@@ -86,6 +86,7 @@ module HmisDataQualityTool
       report_item.situation = current_living_situation.CurrentLivingSituation
       report_item.enrollment_id = current_living_situation.enrollment.id
       report_item.project_name = project.name(report.user)
+      report_item.project_id = project.id
       report_item.destination_client_id = client.warehouse_client_source.destination_id
       report_item.hmis_current_living_situation_id = current_living_situation.CurrentLivingSitID
       report_item.data_source_id = current_living_situation.data_source_id

@@ -22,7 +22,6 @@ module HmisDataQualityTool
     has_many :events
     has_many :services
     has_many :current_living_situations
-    has_many :projects
     has_many :inventories
 
     after_initialize :filter
@@ -48,6 +47,8 @@ module HmisDataQualityTool
         update(state: 'Failed', failed_at: Time.current)
         raise e
       end
+      # Run results to cache them for later
+      results
       complete
     end
 
@@ -92,7 +93,7 @@ module HmisDataQualityTool
 
     def filter
       @filter ||= begin
-        f = ::Filters::FilterBase.new(
+        f = ::Filters::HudFilterBase.new(
           user_id: user_id,
           enforce_one_year_range: false,
           require_service_during_range: false,
@@ -100,6 +101,19 @@ module HmisDataQualityTool
         f.update(options.with_indifferent_access.merge(enforce_one_year_range: false, require_service_during_range: false)) if options.present?
         f
       end
+    end
+
+    private def coc_code
+      if filter.coc_codes.count == 1
+        filter.coc_codes.first
+      else
+        :default
+      end
+    end
+
+    # The goal config will reflect the CoC if only one CoC was chosen, otherwise we'll use the default.
+    def goal_config
+      @goal_config ||= HmisDataQualityTool::Goal.for_coc(coc_code)
     end
 
     # for compatability with HudReport Logic
@@ -179,6 +193,8 @@ module HmisDataQualityTool
 
     # @return filtered scope
     def report_scope
+      # To maintain functionality with HudFilterBase
+      filter.project_ids = filter.effective_project_ids
       filter.apply(report_scope_source)
     end
 
@@ -229,97 +245,160 @@ module HmisDataQualityTool
       universe("#{key}__invalid").universe_members.map(&:universe_membership)
     end
 
+    private def result_groups
+      {
+        'Clients' => {
+          name_issues: Client,
+          ssn_issues: Client,
+          dob_issues: Client,
+          race_issues: Client,
+          ethnicity_issues: Client,
+          gender_issues: Client,
+          veteran_issues: Client,
+        },
+        'Enrollments' => {
+          disabling_condition_issues: Enrollment,
+          living_situation_issues: Enrollment,
+          hoh_validation_issues: Enrollment,
+          no_hoh_issues: Enrollment,
+          multiple_hoh_issues: Enrollment,
+          hoh_client_location_issues: Enrollment,
+          destination_issues: Enrollment,
+          current_living_situation_issues: CurrentLivingSituation,
+          unaccompanied_youth_issues: Enrollment,
+          future_exit_date_issues: Enrollment,
+          move_in_prior_to_start_issues: Enrollment,
+          move_in_post_exit_issues: Enrollment,
+          exit_date_issues: Enrollment,
+          enrollment_outside_project_operating_dates_issues: Enrollment,
+          dv_at_entry: Enrollment,
+        },
+        'Enrollment Length' => {
+          lot_es_90_issues: Enrollment,
+          lot_es_180_issues: Enrollment,
+          lot_es_365_issues: Enrollment,
+          days_since_last_service_so_90_issues: Enrollment,
+          days_since_last_service_so_180_issues: Enrollment,
+          days_since_last_service_so_365_issues: Enrollment,
+          days_in_ph_prior_to_move_in_90_issues: Enrollment,
+          days_in_ph_prior_to_move_in_180_issues: Enrollment,
+          days_in_ph_prior_to_move_in_365_issues: Enrollment,
+        },
+        'Income and Benefits' => {
+          income_from_any_source_at_entry: Enrollment,
+          income_from_any_source_at_annual: Enrollment,
+          income_from_any_source_at_exit: Enrollment,
+          cash_income_as_expected_at_entry: Enrollment,
+          cash_income_as_expected_at_annual: Enrollment,
+          cash_income_as_expected_at_exit: Enrollment,
+          ncb_as_expected_at_entry: Enrollment,
+          ncb_as_expected_at_annual: Enrollment,
+          ncb_as_expected_at_exit: Enrollment,
+        },
+        'Insurance' => {
+          insurance_from_any_source_at_entry: Enrollment,
+          insurance_from_any_source_at_annual: Enrollment,
+          insurance_from_any_source_at_exit: Enrollment,
+          insurance_as_expected_at_entry: Enrollment,
+          insurance_as_expected_at_annual: Enrollment,
+          insurance_as_expected_at_exit: Enrollment,
+        },
+        'Services' => {
+          overlapping_entry_exit_issues: Client,
+          overlapping_post_move_in_issues: Client,
+          overlapping_nbn_issues: Client,
+          overlapping_pre_move_in_issues: Client,
+          days_since_last_service_es_90_issues: Enrollment,
+          days_since_last_service_es_180_issues: Enrollment,
+          days_since_last_service_es_365_issues: Enrollment,
+        },
+        'Inventory' => {
+          dedicated_bed_issues: Inventory,
+        },
+      }
+    end
+
+    private def cache_key
+      [self.class.name, id]
+    end
+
+    def uncache!
+      Rails.cache.delete(cache_key)
+    end
+
+    # FIXME: this should run at the end of the run and cache the results in redis
     def results
-      @results ||= [].tap do |r|
-        {
-          'Clients' => {
-            name_issues: Client,
-            ssn_issues: Client,
-            dob_issues: Client,
-            race_issues: Client,
-            ethnicity_issues: Client,
-            gender_issues: Client,
-            veteran_issues: Client,
-          },
-          'Enrollments' => {
-            disabling_condition_issues: Enrollment,
-            living_situation_issues: Enrollment,
-            hoh_validation_issues: Enrollment,
-            no_hoh_issues: Enrollment,
-            multiple_hoh_issues: Enrollment,
-            hoh_client_location_issues: Enrollment,
-            destination_issues: Enrollment,
-            current_living_situation_issues: CurrentLivingSituation,
-            unaccompanied_youth_issues: Enrollment,
-            future_exit_date_issues: Enrollment,
-            move_in_prior_to_start_issues: Enrollment,
-            move_in_post_exit_issues: Enrollment,
-            exit_date_issues: Enrollment,
-            enrollment_outside_project_operating_dates_issues: Enrollment,
-            dv_at_entry: Enrollment,
-          },
-          'Enrollment Length' => {
-            lot_es_90_issues: Enrollment,
-            lot_es_180_issues: Enrollment,
-            lot_es_365_issues: Enrollment,
-            days_since_last_service_so_90_issues: Enrollment,
-            days_since_last_service_so_180_issues: Enrollment,
-            days_since_last_service_so_365_issues: Enrollment,
-            days_in_ph_prior_to_move_in_90_issues: Enrollment,
-            days_in_ph_prior_to_move_in_180_issues: Enrollment,
-            days_in_ph_prior_to_move_in_365_issues: Enrollment,
-          },
-          'Income and Benefits' => {
-            income_from_any_source_at_entry: Enrollment,
-            income_from_any_source_at_annual: Enrollment,
-            income_from_any_source_at_exit: Enrollment,
-            cash_income_as_expected_at_entry: Enrollment,
-            cash_income_as_expected_at_annual: Enrollment,
-            cash_income_as_expected_at_exit: Enrollment,
-            ncb_as_expected_at_entry: Enrollment,
-            ncb_as_expected_at_annual: Enrollment,
-            ncb_as_expected_at_exit: Enrollment,
-          },
-          'Insurance' => {
-            insurance_from_any_source_at_entry: Enrollment,
-            insurance_from_any_source_at_annual: Enrollment,
-            insurance_from_any_source_at_exit: Enrollment,
-            insurance_as_expected_at_entry: Enrollment,
-            insurance_as_expected_at_annual: Enrollment,
-            insurance_as_expected_at_exit: Enrollment,
-          },
-          'Services' => {
-            overlapping_entry_exit_issues: Client,
-            overlapping_post_move_in_issues: Client,
-            overlapping_nbn_issues: Client,
-            overlapping_pre_move_in_issues: Client,
-            days_since_last_service_es_90_issues: Enrollment,
-            days_since_last_service_es_180_issues: Enrollment,
-            days_since_last_service_es_365_issues: Enrollment,
-          },
-          'Inventory' => {
-            dedicated_bed_issues: Inventory,
-          },
-        }.each do |category, slugs|
-          slugs.each do |slug, item_class|
-            title = item_class.section_title(slug)
-            overall_count = universe("#{title}__denominator").count
-            invalid_count = universe("#{title}__invalid").count
-            r << OpenStruct.new(
-              title: title,
-              description: item_class.section_description(slug),
-              required_for: item_class.required_for(slug),
-              category: category,
-              count: invalid_count,
-              total: overall_count,
-              percent_invalid: percent(overall_count, invalid_count),
-              percent_valid: percent(overall_count, overall_count - invalid_count),
-              item_class: item_class,
-              detail_columns: item_class.detail_headers_for(slug),
-            )
+      @results ||= Rails.cache.fetch(cache_key, expires_in: 1.months) do
+        [].tap do |r|
+          result_groups.each do |category, slugs|
+            slugs.each do |slug, item_class|
+              stay_length_category, stay_length_limit = item_class.stay_length_limit(slug)
+              # If we're looking at a result with a stay category option and we have a goal setup with stay lengths
+              # only include those that match the goal, include all for a given category if no goal was set for that category
+              next if stay_length_category.present? &&
+                goal_config.stay_lengths.present? &&
+                goal_config.stay_lengths.detect { |k, _| k == stay_length_category }.present? &&
+                ! goal_config.stay_lengths.include?([stay_length_category, stay_length_limit])
+
+              title = item_class.section_title(slug)
+              denominator_cell = universe("#{title}__denominator")
+              overall_count = denominator_cell.count
+              numerator_cell = universe("#{title}__invalid")
+              invalid_count = numerator_cell.count
+              this_result = OpenStruct.new(
+                title: title,
+                description: item_class.section_description(slug),
+                required_for: item_class.required_for(slug),
+                category: category,
+                invalid_count: invalid_count,
+                total: overall_count,
+                percent_invalid: percent(overall_count, invalid_count),
+                percent_valid: percent(overall_count, overall_count - invalid_count),
+                item_class: item_class.name,
+                detail_columns: item_class.detail_headers_for(slug),
+                projects: {},
+                project_types: {},
+              )
+              filter.effective_projects.each do |project|
+                # Because some metrics don't include project_id, we need to
+                # use client_id for those, currently those based off the Client class
+                if item_class == Client
+                  overall_count = denominator_cell.
+                    members.
+                    where(item_class.arel_table[:client_id].in(client_ids_for_project(project))).
+                    count
+                  invalid_count = numerator_cell.
+                    members.
+                    where(item_class.arel_table[:client_id].in(client_ids_for_project(project))).
+                    count
+                else
+                  overall_count = denominator_cell.
+                    members.
+                    where(item_class.arel_table[:project_id].eq(project.id)).
+                    count
+                  invalid_count = numerator_cell.
+                    members.
+                    where(item_class.arel_table[:project_id].eq(project.id)).
+                    count
+                end
+                this_result[:projects][project.id] = {
+                  project_name: project.name(user),
+                  invalid_count: invalid_count,
+                  total: overall_count,
+                }
+                this_result[:project_types][project.project_type_to_use] ||= { invalid_count: 0, total: 0 }
+                this_result[:project_types][project.project_type_to_use][:invalid_count] += invalid_count
+                this_result[:project_types][project.project_type_to_use][:total] += overall_count
+              end
+              r << this_result
+            end
           end
         end
       end
+    end
+
+    def categories
+      @categories ||= ['Overall'] + result_groups.keys
     end
 
     def overall_client_count
@@ -338,10 +417,53 @@ module HmisDataQualityTool
       @overall_current_living_situation_count ||= CurrentLivingSituation.current_living_situation_scope(self).count
     end
 
-    private def percent(total, partial)
+    def percent(total, partial)
       return 0 if total.blank? || total.zero? || partial.blank? || partial.zero?
 
-      ((partial / total.to_f) * 100).round
+      ((partial / total.to_f) * 100).round(1)
+    end
+
+    private def client_ids_for_project(project)
+      @client_ids_per_project ||= enrollments.pluck(:project_id, :destination_client_id).group_by(&:shift)
+      @client_ids_per_project[project.id]&.flatten
+    end
+
+    private def count_category_setup
+      {}.tap do |setup|
+        categories.each do |cat|
+          setup[cat] = { invalid_count: 0, total: 0 }
+        end
+      end
+    end
+
+    # { project_name: { overall: %, clients: %, enrollments: % ...}}
+    def per_project_results
+      @per_project_results ||= {}.tap do |r|
+        results.each do |result|
+          result.projects.each do |project_id, data|
+            r[project_id] ||= count_category_setup.deep_dup
+            r[project_id][result.category][:invalid_count] += data[:invalid_count]
+            r[project_id][result.category][:total] += data[:total]
+            r[project_id]['Overall'][:invalid_count] += data[:invalid_count]
+            r[project_id]['Overall'][:total] += data[:total]
+          end
+        end
+      end
+    end
+
+    # { project_type: { overall: %, clients: %, enrollments: % ...}}
+    def per_project_type
+      @per_project_type ||= {}.tap do |r|
+        results.each do |result|
+          result.project_types.each do |project_type_id, data|
+            r[project_type_id] ||= count_category_setup.deep_dup
+            r[project_type_id][result.category][:invalid_count] += data[:invalid_count]
+            r[project_type_id][result.category][:total] += data[:total]
+            r[project_type_id]['Overall'][:invalid_count] += data[:invalid_count]
+            r[project_type_id]['Overall'][:total] += data[:total]
+          end
+        end
+      end
     end
   end
 end
