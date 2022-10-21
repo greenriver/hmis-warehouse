@@ -387,15 +387,17 @@ module EtoApi
       @programs_by_site[site_id] = nil if refresh
       @programs_by_site[site_id] ||= begin
         data = api_get_json "#{@endpoints[:forms]}/Forms/Program/GetPrograms/#{site_id}", creds
-        Hash[data.map do |p|
-          [p['ID'], p['Name']]
-        end]
+        if data.present?
+          Hash[data.map do |p|
+            [p['ID'], p['Name']]
+          end]
+        end
       end
     end
     memoize :programs
 
     def program(site_id:, id:)
-      programs(site_id: site_id)[id] if id
+      programs(site_id: site_id).try(:[], id) if id
     end
 
     # "HUD Assessment (Entry/Update/Annual/Exit)" is TouchPointID: 75, it doesn't show up in the lists
