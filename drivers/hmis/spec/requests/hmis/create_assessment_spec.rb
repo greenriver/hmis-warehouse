@@ -91,6 +91,22 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     GRAPHQL
   end
 
+  let(:get_enrollment_query) do
+    <<~GRAPHQL
+      query GetEnrollment($id: ID!) {
+        enrollment(id: $id) {
+          assessments {
+            nodesCount
+            nodes {
+              id
+              inProgress
+            }
+          }
+        }
+      }
+    GRAPHQL
+  end
+
   it 'should create an assessment successfully' do
     response, result = post_graphql(**test_input) { mutation }
 
@@ -99,10 +115,17 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     errors = result.dig('data', 'createAssessment', 'errors')
     expect(assessment['id']).to be_present
     expect(errors).to be_empty
+
+    # assessment should appear on enrollment query
+    response, result = post_graphql(id: e1.id) { get_enrollment_query }
+    expect(response.status).to eq 200
+    enrollment = result.dig('data', 'enrollment')
+    expect(enrollment).to be_present
+    expect(enrollment.dig('assessments', 'nodes', 0, 'id')).to eq(assessment['id'])
   end
 
   describe 'In progress tests' do
-    it 'should set things to in progress if we tell it to' do
+    it 'should create WIP assessment' do
       response, result = post_graphql(**test_input.merge(in_progress: true)) { mutation }
       expect(response.status).to eq 200
       assessment = result.dig('data', 'createAssessment', 'assessment')
@@ -117,6 +140,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(Hmis::Wip.count).to eq(1)
       expect(Hmis::Wip.first).to have_attributes(enrollment_id: e1.id, client_id: c1.id, project_id: nil)
       expect(Hmis::Hud::Assessment.viewable_by(hmis_user).count).to eq(1)
+
+      # WIP assessment should appear on enrollment query
+      response, result = post_graphql(id: e1.id) { get_enrollment_query }
+      expect(response.status).to eq 200
+      enrollment = result.dig('data', 'enrollment')
+      expect(enrollment).to be_present
+      expect(enrollment.dig('assessments', 'nodes', 0, 'id')).to eq(assessment['id'])
     end
   end
 
