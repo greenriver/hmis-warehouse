@@ -18,7 +18,7 @@ class CronInstaller
 
     each_cron_entry do |cron_expression, command|
       capacity_provider_strategy = _choose_capacity_provider_strategy(command)
-      command.delete('#capacity_provider:spot')
+      command.delete('#capacity_provider:short-term')
       description = command.join(' ').sub(/ --silent/, '').sub(/bundle exec /, '')[0, MAX_DESCRIPTION_LENGTH]
 
       params = {
@@ -51,25 +51,25 @@ class CronInstaller
   end
 
   def _choose_capacity_provider_strategy(command)
-    return _spot_capacity_provider_strategy if command.include?('#capacity_provider:spot')
+    return _short_term_capacity_provider_strategy if command.include?('#capacity_provider:short-term')
 
-    _on_demand_capacity_provider_strategy
+    _long_term_capacity_provider_strategy
   end
 
-  def _spot_capacity_provider_strategy
+  def _short_term_capacity_provider_strategy
     [
       {
-        capacity_provider: _spot_capacity_provider_name(target_group_name),
+        capacity_provider: _short_term_capacity_provider_name(target_group_name),
         weight: 1,
         base: 1,
       },
     ]
   end
 
-  def _on_demand_capacity_provider_strategy
+  def _long_term_capacity_provider_strategy
     [
       {
-        capacity_provider: _on_demand_capacity_provider_name(target_group_name),
+        capacity_provider: _long_term_capacity_provider_name(target_group_name),
         weight: 1,
         base: 1,
       },

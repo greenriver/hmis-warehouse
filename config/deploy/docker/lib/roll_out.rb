@@ -51,8 +51,6 @@ class RollOut
 
   DEFAULT_CPU_SHARES = 256
 
-  NOT_SPOT = 'not-spot'.freeze
-
   def initialize(image_base:, target_group_name:, target_group_arn:, secrets_arn:, execution_role:, task_role:, dj_options: nil, web_options:, fqdn:, capacity_providers:)
     self.cluster             = _cluster_name
     self.image_base          = image_base
@@ -243,9 +241,9 @@ class RollOut
 
     minimum, maximum = _get_min_max_from_desired(web_options['container_count'])
 
-    # Keep production web containers on on-demand providers
+    # Keep production web containers on long-term providers
     _start_service!(
-      capacity_provider: _on_demand_capacity_provider_name,
+      capacity_provider: _long_term_capacity_provider_name,
       name: name + '-2', # version bump for change from port 443 -> 3000
       load_balancers: lb,
       desired_count: web_options['container_count'] || 1,
@@ -280,7 +278,7 @@ class RollOut
 
     _start_service!(
       name: name,
-      capacity_provider: _on_demand_capacity_provider_name,
+      capacity_provider: _long_term_capacity_provider_name,
       desired_count: dj_options['container_count'] || 1,
       maximum_percent: maximum,
       minimum_healthy_percent: minimum,
@@ -417,10 +415,10 @@ class RollOut
     }
 
     if _capacity_providers.length.positive?
-      puts "[INFO] Using spot capacity provider: #{_spot_capacity_provider_name} #{target_group_name}"
+      puts "[INFO] Using short-term capacity provider: #{_short_term_capacity_provider_name} #{target_group_name}"
       run_task_payload[:capacity_provider_strategy] = [
         {
-          capacity_provider: _spot_capacity_provider_name,
+          capacity_provider: _short_term_capacity_provider_name,
           weight: 1,
           base: 1,
         },
@@ -531,12 +529,10 @@ class RollOut
           end
         end
       rescue Errno::EIO
-        if chars_written > 500
-          puts '[WARN] Errno:EIO error, but this probably just meams that the process has finished giving output'
-          return false
-        else
-          raise '[FATAL] Errno:EIO error. Too few lines output from logs before it was done tailing'
-        end
+        raise '[FATAL] Errno:EIO error. Too few lines output from logs before it was done tailing' unless chars_written > 500
+
+        puts '[WARN] Errno:EIO error, but this probably just means that the process has finished giving output'
+        return false
       end
     rescue Errno::ENOENT => e
       puts "[FATAL] Run this manually: aws logs tail #{target_group_name} --follow --log-stream-names=#{log_stream_name}"
