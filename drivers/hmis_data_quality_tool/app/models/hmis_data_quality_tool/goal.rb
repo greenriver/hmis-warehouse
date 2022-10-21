@@ -5,7 +5,7 @@
 ###
 
 module HmisDataQualityTool
-  class Goal < ::HudReports::ReportClientBase
+  class Goal < ::GrdaWarehouseBase
     self.table_name = 'hmis_dqt_goals'
     acts_as_paranoid
 

@@ -12,13 +12,13 @@ module HmisDataQualityTool::WarehouseReports
     before_action :set_goal, only: [:edit, :update, :destroy]
 
     def index
-      @report = HmisDataQualityTool::Report.new(user: current_user)
+      @report = ::HmisDataQualityTool::Report.new(user: current_user)
       goal_source.ensure_default
       @goals = goal_source.default_first
     end
 
     def edit
-      @report = HmisDataQualityTool::Report.new(user: current_user)
+      @report = ::HmisDataQualityTool::Report.new(user: current_user)
     end
 
     def create
@@ -41,11 +41,11 @@ module HmisDataQualityTool::WarehouseReports
     end
 
     private def goal_source
-      HmisDataQualityTool::Goal
+      ::HmisDataQualityTool::Goal
     end
 
     def goal_params
-      p = params.require(:goal).permit(HmisDataQualityTool::Goal.known_params)
+      p = params.require(:goal).permit(goal_source.known_params)
       p[:coc_code] = :default if p[:coc_code].blank?
       p
     end
