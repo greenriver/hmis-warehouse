@@ -267,7 +267,8 @@ module HmisDataQualityTool
         exit_income_assessment,
       )
 
-      report_item.disability_at_entry_collected = enrollment.disabilities_at_entry&.map(&:DisabilityResponse)&.all? { |dr| dr.in?([0, 1]) } || false
+      # NOTE: we may want to exclude HIV/AIDS from this calculation as it may not be asked everywhere
+      report_item.disability_at_entry_collected = enrollment.disabilities_at_entry&.map(&:DisabilityResponse)&.all? { |dr| dr.in?([0, 1, 2, 3]) } || false
 
       max_date = [report.filter.end, Date.current].min
       en_services = enrollment.services&.select { |s| s.DateProvided <= max_date }
@@ -1386,6 +1387,28 @@ module HmisDataQualityTool
 
             ! item.insurance_as_expected_at_exit
           },
+        },
+        disability_at_entry_collected: {
+          title: 'Disability at entry',
+          description: 'None of the disabilities collected at entry were missing or 99.',
+          required_for: 'All',
+          detail_columns: [
+            :destination_client_id,
+            :hmis_enrollment_id,
+            :personal_id,
+            :project_name,
+            :exit_id,
+            :entry_date,
+            :move_in_date,
+            :exit_date,
+            :age,
+            :relationship_to_hoh,
+            :disability_at_entry_collected,
+            :disabling_condition,
+            :has_disability,
+          ],
+          denominator: ->(_item) { true },
+          limiter: ->(item) { ! item.disability_at_entry_collected },
         },
       }.freeze
     end

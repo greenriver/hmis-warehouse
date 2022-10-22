@@ -258,6 +258,7 @@ module HmisDataQualityTool
         },
         'Enrollments' => {
           disabling_condition_issues: Enrollment,
+          disability_at_entry_collected: Enrollment,
           living_situation_issues: Enrollment,
           hoh_validation_issues: Enrollment,
           no_hoh_issues: Enrollment,
