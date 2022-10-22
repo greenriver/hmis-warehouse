@@ -44,20 +44,20 @@
     - if denominator_label.present? && show_label_detail
       .card.p-3.mt-4
         .mb-0.d-flex
-          .mr-2 #{result.report_year}:
-          .mb-0
-            %strong= result.reporting_numerator
-            = numerator_label
-            of
-            %strong= result.reporting_denominator
-            = denominator_label
-        .mb-0.d-flex
           .mr-2 #{result.comparison_year}:
           .mb-0
             %strong= result.comparison_numerator
             = numerator_label
             of
             %strong= result.comparison_denominator
+            = denominator_label
+        .mb-0.d-flex
+          .mr-2 #{result.report_year}:
+          .mb-0
+            %strong= result.reporting_numerator
+            = numerator_label
+            of
+            %strong= result.reporting_denominator
             = denominator_label
 
 = content_for :page_js do
