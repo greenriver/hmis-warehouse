@@ -5,7 +5,7 @@
 ###
 
 module HmisDataQualityTool
-  class Goal < ::HudReports::ReportClientBase
+  class Goal < ::GrdaWarehouseBase
     self.table_name = 'hmis_dqt_goals'
     acts_as_paranoid
 
@@ -26,11 +26,11 @@ module HmisDataQualityTool
     end
 
     scope :default, -> do
-      where(coc_code: :default)
+      where(coc_code: 'Un-Set')
     end
 
     scope :coc, -> do
-      where.not(coc_code: :default)
+      where.not(coc_code: 'Un-Set')
     end
 
     def self.for_coc(coc_code)
@@ -71,7 +71,7 @@ module HmisDataQualityTool
     end
 
     def default?
-      coc_code.to_s == 'default'
+      coc_code.to_s == 'Un-Set'
     end
 
     def deleteable?

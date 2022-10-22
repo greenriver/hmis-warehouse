@@ -5192,7 +5192,8 @@ CREATE TABLE public.cohort_clients (
     user_date_27 character varying,
     user_date_28 character varying,
     user_date_29 character varying,
-    user_date_30 character varying
+    user_date_30 character varying,
+    most_recent_date_to_street date
 );
 
 
@@ -50617,6 +50618,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20221018164204'),
 ('20221019122456'),
 ('20221019182810'),
-('20221020113634');
+('20221020113634'),
+('20221021205724');
 
 

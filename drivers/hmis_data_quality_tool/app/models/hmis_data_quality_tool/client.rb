@@ -358,7 +358,7 @@ module HmisDataQualityTool
         },
         ssn_issues: {
           title: 'Social Security Number',
-          description: 'SSN is blank but SSN Data Quality is 1, SSN is present but SSN Data Quality is not 1, or SSN Data Quality is 99 or blank, or SSN is all zeros',
+          description: 'SSN is blank but SSN Data Quality is 1, SSN is present but SSN Data Quality is not 1 or 2, or SSN Data Quality is 99 or blank, or SSN is all zeros',
           required_for: 'All',
           detail_columns: [
             :destination_client_id,
@@ -375,7 +375,7 @@ module HmisDataQualityTool
             # SSN is Blank, but indicated it should be there
             return true if item.ssn.blank? && item.ssn_data_quality == 1
             # SSN is present but DQ indicates it shouldn't be
-            return true if item.ssn.present? && ![1, 2].include?(item.ssn_data_quality)
+            return true if item.ssn.present? && ! item.ssn_data_quality.in?([1, 2])
             # SSN all zeros
             return true if (item.ssn =~ /^0+$/).present?
 
@@ -384,7 +384,7 @@ module HmisDataQualityTool
         },
         name_issues: {
           title: 'Name',
-          description: 'Fist or last name is blank but Name Data Quality is 1, name is present but Name Data Quality is not 1, or Name Data Quality is 99 or blank',
+          description: 'Fist or last name is blank but Name Data Quality is 1, name is present but Name Data Quality is not 1 or 2, or Name Data Quality is 99 or blank',
           required_for: 'All',
           detail_columns: [
             :destination_client_id,
@@ -400,7 +400,7 @@ module HmisDataQualityTool
             # Name is Blank, but indicated it should be there
             return true if [item.first_name, item.last_name].any?(nil) && item.name_data_quality == 1
             # Name is present but DQ indicates it shouldn't be
-            return true if [item.first_name, item.last_name].all?(&:present?) && item.name_data_quality != 1
+            return true if [item.first_name, item.last_name].all?(&:present?) && ! item.name_data_quality.in?([1, 2])
 
             false
           },
