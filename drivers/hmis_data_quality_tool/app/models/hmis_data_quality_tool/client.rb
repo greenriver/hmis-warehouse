@@ -134,6 +134,7 @@ module HmisDataQualityTool
       end.uniq
       report_item.overlapping_entry_exit = overlapping_entry_exit(enrollments: report_item.enrollments, report: report)
       report_item.overlapping_nbn = overlapping_nbn(enrollments: report_item.enrollments, report: report)
+      # NOTE: this is incorrectly named, this is homeless overlapping PH post move-in
       report_item.overlapping_pre_move_in = overlapping_homeless_post_move_in(enrollments: report_item.enrollments, report: report)
       report_item.overlapping_post_move_in = overlapping_post_move_in(enrollments: report_item.enrollments, report: report)
       report_item.ch_at_most_recent_entry = report_item.enrollments&.max_by(&:EntryDate)&.chronically_homeless_at_start?
@@ -201,29 +202,25 @@ module HmisDataQualityTool
       end
       return 0 if involved_enrollments.blank?
 
-      overlaps = Set.new
-      # see if there are any dates of service within the housed date ranges
-      homeless_enrollments.each do |h_en|
-        involved_enrollments.each do |en|
-          # we're only looking for overlaps with housing
-          next unless en.MoveInDate.present?
-
-          end_date = en.exit&.ExitDate || report.filter.end
-          if h_en.project&.es? && h_en.project&.bed_night_tracking?
-            overlaps += h_en.services.where(RecordType: 200, DateProvided: [en.MoveInDate, end_date]).pluck(:DateProvided)
-            # h_en.services.each do |service|
-            #   overlaps << service.DateProvided if service.DateProvided.between?(en.MoveInDate, end_date) && service.bed_night?
-            # end
-          else
-            homeless_range = (h_en.EntryDate...(h_en.exit&.ExitDate || report.filter.end))
-            housed_range = (en.MoveInDate...end_date)
-            homeless_range.to_a & housed_range.to_a.each do |d|
-              overlaps << d
-            end
-          end
+      homeless_dates = homeless_enrollments.map do |h_en|
+        homeless_end_date = h_en.exit&.ExitDate || report.filter.end
+        if h_en.project&.es? && h_en.project&.bed_night_tracking?
+          h_en.services.where(RecordType: 200, DateProvided: [h_en.EntryDate, homeless_end_date]).pluck(:DateProvided)
+        else
+          h_en.EntryDate...homeless_end_date
         end
-      end
-      overlaps.count
+      end.map(&:to_a).flatten.uniq
+
+      housed_dates = involved_enrollments.map do |en|
+        # we're only looking for overlaps with housing
+        next nil unless en.MoveInDate.present?
+
+        end_date = en.exit&.ExitDate || report.filter.end
+        en.MoveInDate...end_date
+      end.compact.map(&:to_a).flatten.uniq
+
+      # Return the count of dates that exist in both homeless history and housed history
+      (homeless_dates & housed_dates).count
     end
 
     # compare each enrollment to every other one and see if there are overlaps
@@ -474,9 +471,10 @@ module HmisDataQualityTool
             item.overlapping_nbn > 1
           },
         },
+        # NOTE: this is incorrectly named, this is homeless overlapping PH post move-in
         overlapping_pre_move_in_issues: {
           title: 'Overlapping Homeless Service After Move-in in PH',
-          description: 'Client\'s receiving more than two overlapping homeless nights are included.',
+          description: 'Bed nights in ES, SH or TH must not overlap with days housed in RRH, PSH or OPH. Client\'s receiving more than two overlapping homeless nights are included.',
           required_for: 'Adults',
           detail_columns: [
             :destination_client_id,
