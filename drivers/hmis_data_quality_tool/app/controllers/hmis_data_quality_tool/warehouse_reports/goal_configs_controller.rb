@@ -46,7 +46,7 @@ module HmisDataQualityTool::WarehouseReports
 
     def goal_params
       p = params.require(:goal).permit(goal_source.known_params)
-      p[:coc_code] = :default if p[:coc_code].blank?
+      p[:coc_code] = 'Un-Set' if p[:coc_code].blank?
       p
     end
 
