@@ -255,15 +255,15 @@ module HmisDataQualityTool
       report_item.insurance_from_any_source_at_exit = exit_income_assessment&.InsuranceFromAnySource
 
       report_item.insurance_as_expected_at_entry = insurance_as_expected?(
-        report_item.income_at_entry_expected,
+        report_item.insurance_at_entry_expected,
         entry_income_assessment,
       )
       report_item.insurance_as_expected_at_annual = insurance_as_expected?(
-        report_item.income_at_entry_expected,
+        report_item.insurance_at_entry_expected,
         annual_income_assessment,
       )
       report_item.insurance_as_expected_at_exit = insurance_as_expected?(
-        report_item.income_at_entry_expected,
+        report_item.insurance_at_entry_expected,
         exit_income_assessment,
       )
 
@@ -335,8 +335,8 @@ module HmisDataQualityTool
       return false if assessment.blank?
 
       responses = assessment.values_at(*assessment.class::INSURANCE_TYPES)
-      return true if assessment.BenefitsFromAnySource == 1 && responses.include?(1)
-      return true if assessment.BenefitsFromAnySource&.zero? && responses.all?(0)
+      return true if assessment.InsuranceFromAnySource == 1 && responses.include?(1)
+      return true if assessment.InsuranceFromAnySource&.zero? && responses.all?(0)
 
       false
     end
