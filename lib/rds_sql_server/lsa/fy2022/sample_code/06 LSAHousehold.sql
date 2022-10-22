@@ -655,7 +655,7 @@ FY2022 Changes
 			else dateadd(dd, -1, hh.FirstEntry) end
 		, hh.Step = '6.12.1'
 	from tlsa_Household hh 
-	inner join lsa_Report rpt on rpt.ReportStart >= hh.FirstEntry
+	inner join lsa_Report rpt on rpt.ReportEnd >= hh.FirstEntry
 	where hh.Stat <> 5 
 		or (select top 1 hhid.EnrollmentID 
 			from tlsa_HHID hhid
@@ -696,7 +696,7 @@ FY2022 Changes
 	set hh.LastInactive = coalesce(lastDay.inactive, dateadd(dd, -1, rpt.LookbackDate))
 		, hh.Step = '6.12.3'
 	from tlsa_Household hh
-	inner join lsa_Report rpt on rpt.ReportStart >= hh.FirstEntry
+	inner join lsa_Report rpt on rpt.ReportEnd >= hh.FirstEntry
 	left outer join 
 		(select hh.HoHID, hh.HHType, max(cal.theDate) as inactive
 		  from tlsa_Household hh

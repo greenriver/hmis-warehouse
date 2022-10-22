@@ -275,6 +275,7 @@ where hoh.DateDeleted is null
 			inner join hmis_HealthAndDV dv on dv.EnrollmentID = n.EnrollmentID 
 				 and dv.DateDeleted is null
 				 and dv.InformationDate <= rpt.ReportEnd
+				 and dv.InformationDate >= n.EntryDate
 				 and (dv.InformationDate <= n.ExitDate or n.ExitDate is null))
 		, n.Step = '3.4.5'
 	from tlsa_Enrollment n
