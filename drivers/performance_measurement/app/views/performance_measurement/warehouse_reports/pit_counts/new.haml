@@ -1,0 +1,8 @@
+- title = _('Add a PIT Count')
+- content_for :modal_title, title
+= simple_form_for @pit_count, as: :pit_count, url: performance_measurement_warehouse_reports_goal_config_pit_counts_path(@goal)  do |f|
+  = f.input :pit_date, as: :date_picker, label: 'PIT Date'
+  = f.input :unsheltered, label: 'Unsheltered Count'
+  = f.input :sheltered, label: 'Sheltered Count'
+
+  = f.button :submit, 'Add PIT Date'

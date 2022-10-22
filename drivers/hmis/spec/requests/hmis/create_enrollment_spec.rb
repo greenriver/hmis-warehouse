@@ -72,6 +72,22 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       GRAPHQL
     end
 
+    let(:get_client_query) do
+      <<~GRAPHQL
+        query GetClient($id: ID!) {
+          client(id: $id) {
+            enrollments {
+              nodesCount
+              nodes {
+                id
+                inProgress
+              }
+            }
+          }
+        }
+      GRAPHQL
+    end
+
     it 'should create an enrollment successfully' do
       response, result = post_graphql(input: test_input) { mutation }
 
@@ -92,10 +108,17 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           )
         end,
       )
+
+      # enrollment should appear on client query
+      response, result = post_graphql(id: c1.id) { get_client_query }
+      expect(response.status).to eq 200
+      client = result.dig('data', 'client')
+      expect(client).to be_present
+      expect(client.dig('enrollments', 'nodesCount')).to eq(1)
     end
 
     describe 'In progress tests' do
-      it 'should set things to in progress if we tell it to' do
+      it 'should create WIP enrollment' do
         response, result = post_graphql(input: test_input.merge(in_progress: true)) { mutation }
         expect(response.status).to eq 200
         enrollments = result.dig('data', 'createEnrollment', 'enrollments')
@@ -111,6 +134,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(Hmis::Wip.count).to eq(3)
         expect(Hmis::Wip.all).to include(*enrollments.map { |e| have_attributes(project_id: test_input[:project_id], client_id: e['client']['id'].to_i) })
         expect(Hmis::Hud::Enrollment.viewable_by(hmis_user).count).to eq(3)
+
+        # WIP enrollment should appear on client query
+        response, result = post_graphql(id: c1.id) { get_client_query }
+        expect(response.status).to eq 200
+        client = result.dig('data', 'client')
+        expect(client).to be_present
+        expect(client.dig('enrollments', 'nodesCount')).to eq(1)
       end
     end
 

@@ -11,7 +11,9 @@ BostonHmis::Application.routes.draw do
         get 'details/:key', to: 'reports#details', as: :details
         get 'clients/:key/:project_id', to: 'reports#clients', as: :clients
       end
-      resources :goal_configs, except: [:show]
+      resources :goal_configs, except: [:show] do
+        resources :pit_counts, only: [:new, :create, :destroy]
+      end
     end
   end
 end

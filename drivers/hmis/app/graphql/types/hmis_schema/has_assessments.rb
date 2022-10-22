@@ -17,6 +17,7 @@ module Types
           field_options = default_field_options.merge(override_options)
           field(name, **field_options) do
             argument :sort_order, Types::HmisSchema::AssessmentSortOption, required: false
+            argument :role, HmisSchema::Enums::AssessmentRole, required: false
             instance_eval(&block) if block_given?
           end
         end
@@ -30,10 +31,16 @@ module Types
         apply_assessment_arguments(scope, **args)
       end
 
+      def resolve_assessments_including_wip(scope = object.assessments_including_wip, **args)
+        apply_assessment_arguments(scope, **args)
+      end
+
       private
 
-      def apply_assessment_arguments(scope, sort_order: :assessment_date)
-        scope.sort_by_option(sort_order) if sort_order.present?
+      def apply_assessment_arguments(scope, sort_order: nil, role: nil)
+        scope = scope.sort_by_option(sort_order) if sort_order.present?
+        scope = scope.with_role(role) if role.present?
+        scope
       end
     end
   end

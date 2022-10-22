@@ -4,6 +4,7 @@ BostonHmis::Application.routes.draw do
       resources :reports, only: [:index, :create, :show, :destroy] do
         get :items, on: :member
       end
+      resources :goal_configs, except: [:show]
     end
   end
 end

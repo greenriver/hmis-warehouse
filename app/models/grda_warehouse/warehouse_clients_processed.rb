@@ -172,7 +172,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
 
     # Anyone on a cohort, or who will sync with CAS gets some extra data
     # This is more expensive to calculate, so we limit who is included
-    @notifier.ping("Updating Cache Details for #{extra_data.uniq.count} clients on cohorts or in CAS #{Time.current}") if client_ids.count > 10
+    @notifier.ping("Updating Cache Details for #{extra_data.uniq.count} clients on cohorts or in CAS #{Time.current}") if client_ids.count > 10 && extra_data.uniq.count.positive?
     extra_data.uniq.each_slice(1_000) do |client_id_batch|
       # puts "starting extra batch #{Time.current}"
       calcs = StatsCalculator.new(client_ids: client_id_batch)

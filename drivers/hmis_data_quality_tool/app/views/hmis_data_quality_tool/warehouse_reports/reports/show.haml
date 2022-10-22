@@ -1,5 +1,4 @@
 = render 'breadcrumbs'
-
 - content_for :title, @report.title
 %h1= content_for :title
 = render 'warehouse_reports/beta_warning'
@@ -23,6 +22,7 @@
     .minimal-collapse
       = render 'common/panel_collapse', id: 'universe', title: 'Chosen Universe', content: '_universe', heading_slug: '_universe', arrow_icon: 'icon-angle'
 
+= render 'summary'
 - @report.results.group_by(&:category).each do |category, results|
   %h2= category
   .card.mb-6
@@ -38,4 +38,5 @@
       %tbody
         - results.each do |result|
           = render 'row', result: result
+
 = render 'informational'
