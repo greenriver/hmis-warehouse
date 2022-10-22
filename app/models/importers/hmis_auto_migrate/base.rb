@@ -32,7 +32,7 @@ module Importers::HmisAutoMigrate
       import_log
     rescue Exception => e
       Rails.logger.info(e.message)
-      Sentry.capture_exception(e)
+      @notifier.ping(e.message, { exception: e })
       import_log.import_errors = [{ 'message' => e.to_s }] if import_log.present?
       raise e
     ensure

@@ -32,7 +32,13 @@ class GrdaWarehouse::ServiceHistoryServiceMaterialized < GrdaWarehouseBase
     return if incorrect_dates.blank?
 
     msg = "Found a discrepency (#{incorrect_dates.count}) in SHS and Materialized View #{incorrect_dates.inspect}"
-    Sentry.capture_exception_with_data(e, msg, { incorrect_dates_count: incorrect_dates.count })
+    @notifier.ping(
+      msg,
+      {
+        exception: e,
+        info: { incorrect_dates_count: incorrect_dates.count },
+      },
+    )
   end
 
   def self.project_type_column

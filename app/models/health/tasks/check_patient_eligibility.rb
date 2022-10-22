@@ -48,7 +48,7 @@ module Health::Tasks
         rescue StandardError => e
           msg = 'Error communicating with MassHealth'
           Rails.logger.error "#{msg}: #{e}"
-          Sentry.capture_exception_with_data(e, msg)
+          @notifier.ping(msg, { exception: e }) if @send_notifications
 
           Health::EligibilityResponse.create(
             eligibility_inquiry: inquiry,

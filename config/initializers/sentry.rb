@@ -47,7 +47,7 @@ module Sentry
 
   module_function
 
-  def capture_exception_with_data(e, msg, data = {})
+  def capture_exception_with_info(e, msg, info = {})
     return unless Sentry.initialized?
 
     Sentry.with_scope do |scope|
@@ -55,7 +55,7 @@ module Sentry
         'errorInfo',
         {
           message: msg,
-        }.merge(data)
+        }.merge(info)
       )
       Sentry.capture_exception(e)
     end
