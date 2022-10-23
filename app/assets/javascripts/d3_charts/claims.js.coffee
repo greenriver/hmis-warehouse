@@ -7,15 +7,15 @@ class App.D3Chart.Claims
     @keys = ['ip', 'emerg', 'respite', 'op', 'rx', 'other']
     @keyLabels = ['Inpatient', 'Emergency', 'BMH', 'Outpatient', 'Pharmacy', 'Other (includes transportation, home care, etc)']
     @colors = ['#002A45', '#2C9CFF', '#B9DEFF', '#32DEFF', '#008DA8', '#B9B098']
-    
+
     @container = d3.select('#'+selector)
     @legendSelector = '.'+selector+'__legend'
     @legend = new App.D3Chart.StackedLegend(@legendSelector, @keyLabels, @colors)
     @charts = @container.selectAll('.'+selector+'__chart')
     @date = @container.select('.'+selector+'__dates')
-  
+
   _loadTickFormat: (id) ->
-    if id == '#claims__amount_paid' 
+    if id == '#claims__amount_paid'
       '$.2s'
     else
       '.2s'
@@ -54,24 +54,24 @@ class App.D3Chart.Claims
       id = '#'+$(@).attr('id')
       $.get(url, (data) ->
         if date && data.length > 0
-          dates = d3.extent(data, (d) -> 
+          dates = d3.extent(data, (d) ->
             [year, month, day] = d.date.split('-')
             new Date(year, month-1, day)
           )
           date.text(' ('+that._loadMonthName(dates[0])+' '+dates[0].getFullYear()+' - '+that._loadMonthName(dates[1])+' '+dates[1].getFullYear()+') ')
-          date = null 
+          date = null
         if data.length > 0
           attrs = {
-            margin: that.margin, 
+            margin: that.margin,
             keys: that.keys,
-            keyLabels: that.keyLabels, 
+            keyLabels: that.keyLabels,
             yTickFormat: that._loadTickFormat(id),
             tooltipFormat: that._loadTooltipFormat(id),
             colors: that.colors
           }
-          chart = new App.D3Chart.ClaimsStackedBar(id, data, attrs)
-          chart.draw()
-          
+          # chart = new App.D3Chart.ClaimsStackedBar(id, data, attrs)
+          # chart.draw()
+
         else
           d3.select(id)
             .style('height', 'auto')
@@ -83,7 +83,7 @@ class App.D3Chart.Claims
 
 
 class App.D3Chart.ClaimsStackedBar extends App.D3Chart.VerticalStackedBar
-  constructor: (container_selector, claims, attrs) ->  
+  constructor: (container_selector, claims, attrs) ->
     super(container_selector, attrs.margin, attrs.keys, 'date')
     @keyLabels = attrs.keyLabels
     @yTickFormat = attrs.yTickFormat
@@ -137,7 +137,7 @@ class App.D3Chart.ClaimsStackedBar extends App.D3Chart.VerticalStackedBar
     }
 
   _loadBar: (bar) ->
-    [year, month, day] = bar.date.split('-') 
+    [year, month, day] = bar.date.split('-')
     bar.date = new Date(year, month-1, day)
     bar
 
@@ -148,10 +148,10 @@ class App.D3Chart.ClaimsStackedBar extends App.D3Chart.VerticalStackedBar
       color: @colors
     }
 
-  _loadDomain: -> 
+  _loadDomain: ->
     domain = {
       x: @claims.bars.map((claim) -> claim.date),
-      y: [0, d3.max(@claims.bars, (d) -> d.total)], 
+      y: [0, d3.max(@claims.bars, (d) -> d.total)],
       color: @keys,
     }
     domain.year = {}
@@ -204,7 +204,7 @@ class App.D3Chart.ClaimsStackedBar extends App.D3Chart.VerticalStackedBar
     @chart.selectAll('g.x-axis .domain').remove()
     ticks = @chart.selectAll('g.x-axis g.tick')
     tickR = @.scale.x.bandwidth()/2
-    tickR = if tickR > 9 then 9 else tickR 
+    tickR = if tickR > 9 then 9 else tickR
     ticks.each((tick) ->
       tickEle = d3.select(this)
       tickEle.selectAll('line').remove()
@@ -246,10 +246,10 @@ class App.D3Chart.ClaimsStackedBar extends App.D3Chart.VerticalStackedBar
         .attr('stroke', '#d2d2d2')
         .attr('stroke-width', '0.5px')
     )
-  
+
   _drawAxes: ->
     xAxis = d3.axisBottom()
-      .tickFormat((tick) -> 
+      .tickFormat((tick) ->
         tick.getMonth()+1
       ).scale(@scale.x)
     yAxis = d3. axisLeft()
@@ -277,5 +277,3 @@ class App.D3Chart.ClaimsStackedBar extends App.D3Chart.VerticalStackedBar
     super
     @chart.selectAll('g.bar rect')
       .attr('opacity', 0.6)
-
-    

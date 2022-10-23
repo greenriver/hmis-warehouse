@@ -75,7 +75,7 @@ class App.D3Chart.Severity extends App.D3Chart.VerticalStackedBar
     @chart.selectAll('g.y-axis__right .domain').remove()
     @chart.selectAll('g.y-axis__right .tick:first-child text').remove()
     @chart.selectAll('g.y-axis__right g.tick line').remove()
-    
+
     @chart.selectAll('g.y-axis .domain').remove()
     @chart.selectAll('g.y-axis .tick:first-child text').remove()
     ticks = @chart.selectAll('g.y-axis g.tick')
@@ -83,7 +83,7 @@ class App.D3Chart.Severity extends App.D3Chart.VerticalStackedBar
     step = @scale.x.step()
     width = @scale.x.bandwidth()
     x1 = @scale.x('Baseline') - (step-width) + 5
-    x22 = @scale.x('Implementation') + (width+(step-width)) - 5 
+    x22 = @scale.x('Implementation') + (width+(step-width)) - 5
     ticks.each((tick) ->
       tickEle = d3.select(this)
       tickEle.selectAll('line').remove()
@@ -183,12 +183,8 @@ class App.D3Chart.Severity extends App.D3Chart.VerticalStackedBar
     # custom styles for tooltips go here
 
   draw: ->
-    @_drawAxes()
-    @_styleAxisText()
-    super
-    @_drawConnectors()
-    @legend.draw()
-
-
-
-
+    # @_drawAxes()
+    # @_styleAxisText()
+    # super
+    # @_drawConnectors()
+    # @legend.draw()
