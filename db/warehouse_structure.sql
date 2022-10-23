@@ -5192,7 +5192,8 @@ CREATE TABLE public.cohort_clients (
     user_date_27 character varying,
     user_date_28 character varying,
     user_date_29 character varying,
-    user_date_30 character varying
+    user_date_30 character varying,
+    most_recent_date_to_street date
 );
 
 
@@ -10290,7 +10291,8 @@ CREATE TABLE public.hmis_assessment_details (
     role character varying NOT NULL,
     status character varying,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    "values" jsonb
 );
 
 
@@ -50613,8 +50615,10 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20221013195245'),
 ('20221014144316'),
 ('20221017180229'),
+('20221018164204'),
 ('20221019122456'),
 ('20221019182810'),
-('20221020113634');
+('20221020113634'),
+('20221021205724');
 
 
