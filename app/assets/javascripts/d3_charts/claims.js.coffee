@@ -34,6 +34,7 @@ class App.D3Chart.Claims
       "November", "December"
     ]
     months[date.getMonth()]
+    # 'January'
 
   _customizeLegend: () ->
     d3.select(@legendSelector)
@@ -69,8 +70,8 @@ class App.D3Chart.Claims
             tooltipFormat: that._loadTooltipFormat(id),
             colors: that.colors
           }
-          # chart = new App.D3Chart.ClaimsStackedBar(id, data, attrs)
-          # chart.draw()
+          chart = new App.D3Chart.ClaimsStackedBar(id, data, attrs)
+          chart.draw()
 
         else
           d3.select(id)
@@ -105,26 +106,31 @@ class App.D3Chart.ClaimsStackedBar extends App.D3Chart.VerticalStackedBar
     ]
     months[date.getMonth()]
 
-  _showTooltip: (data) ->
+  _showTooltip: (event, data, keys, labels) ->
     keys = @keys.slice().reverse()
     keys.push('total')
     keys.unshift('date')
     labels = ['total', 'date']
     format = d3.format(@tooltipFormat)
-    super(data, keys, labels)
+    super(event, data, keys, labels)
     @tooltip.selectAll('.d3-tooltip__item')
       .append('span')
-      .text((d) =>
+      .text((e, d, f) =>
+        # console.log(e, d, f)
         if d == 'date'
-          @_loadMonthName(data[d]) + ' ' + data[d].getFullYear()
+          # console.log(event, data, d, keys, labels)
+          # @_loadMonthName(data[d]) + ' ' + data[d].getFullYear()
+          d
         else if d == 'total'
-          'Total: '+format(data[d])
+          # 'Total: '+format(data[d])
+          d
         else
-          format(data[d])
+          d
+          # format(data[d])
       )
     @tooltip.selectAll('.d3-tooltip__swatch')
       .style('opacity', '0.6')
-    @_positionTooltip()
+    @_positionTooltip(event)
 
   _loadClaims: (claims)->
     bars = claims.map((bar) => @_loadBar(bar))
@@ -156,7 +162,7 @@ class App.D3Chart.ClaimsStackedBar extends App.D3Chart.VerticalStackedBar
     }
     domain.year = {}
     @claims.byYear.forEach((year) =>
-      months = d3.extent(year.values, (v) -> v.date)
+      months = d3.extent(year.values(), (v) -> v.date)
       domain.year[year.key] = months
     )
     domain

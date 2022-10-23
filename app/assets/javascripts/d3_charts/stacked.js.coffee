@@ -46,16 +46,15 @@ class App.D3Chart.VerticalStackedBar extends App.D3Chart.Base
       color: d3.scaleOrdinal().domain(@domain.color).range(@range.color)
     }
 
-  _positionTooltip: () ->
+  _positionTooltip: (event) ->
     rect = @tooltip.node().getBoundingClientRect()
     height = rect.bottom - rect.top
     width = rect.width/2
 
-    @tooltip.style('top', (d3.event.pageY-height)+'px')
-    @tooltip.style('left', (d3.event.pageX-width)+'px')
+    @tooltip.style('top', (event.pageY-height)+'px')
+    @tooltip.style('left', (event.pageX-width)+'px')
 
-  _showTooltip: (data, keys, labels) ->
-    event = d3.event
+  _showTooltip: (event, data, keys, labels) ->
     @tooltip
       .style('left', event.pageX+'px')
       .style('top', event.pageY+'px')
@@ -96,8 +95,8 @@ class App.D3Chart.VerticalStackedBar extends App.D3Chart.Base
       .keys(@keys)
       .order(d3.stackOrderNone)
       .offset(d3.stackOffsetNone)
-    console.log(@stackData)
-    console.log(stackGenerator(@stackData))
+    # console.log(@stackData)
+    # console.log(stackGenerator(@stackData))
     if @scale && @stackData
       @chart.selectAll('g.bar')
         .data(stackGenerator(@stackData))
@@ -113,7 +112,7 @@ class App.D3Chart.VerticalStackedBar extends App.D3Chart.Base
               .attr('y', (d) => @scale.y(d[1]))
               .attr('height', (d) => @scale.y(d[0]) - @scale.y(d[1]))
               .attr('width', (d) => @scale.x.bandwidth())
-              .on('mouseover', (d) => @_showTooltip(d.data))
+              .on('mouseover', (ev, d) => @_showTooltip(ev, d))
               .on('mouseout', (d) => @_removeTooltip(d.data))
     else
       console.log('Please add data & scale!')

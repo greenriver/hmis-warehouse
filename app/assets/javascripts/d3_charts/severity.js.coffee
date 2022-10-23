@@ -18,17 +18,17 @@ class App.D3Chart.Severity extends App.D3Chart.VerticalStackedBar
     @scale.icon = d3.scaleOrdinal().domain(@domain.icon).range(@range.icon)
     @stackData = @claims
 
-  _showTooltip: (data) ->
+  _showTooltip: (event, data) ->
     keys = @keys.slice().reverse()
     keys.unshift('group')
     labels = ['group']
-    super(data, keys, labels)
+    super(event, data, keys, labels)
     @tooltip.selectAll('.d3-tooltip__item')
       .append('span')
       .text((d) =>
         if d == 'group' then data[d] else Math.round(data[d])+'%'
       )
-    @_positionTooltip()
+    @_positionTooltip(event)
 
   _loadClaims: (claims)->
     result = []
@@ -82,17 +82,19 @@ class App.D3Chart.Severity extends App.D3Chart.VerticalStackedBar
     that = @
     step = @scale.x.step()
     width = @scale.x.bandwidth()
-    x1 = @scale.x('Baseline') - (step-width) + 5
-    x22 = @scale.x('Implementation') + (width+(step-width)) - 5
+    x1 = @scale.x('Baseline') - (step - width) + 5
+    x22 = @scale.x('Implementation') + (width + (step - width)) - 5
+    # console.log(@scale, step, width)
     ticks.each((tick) ->
       tickEle = d3.select(this)
       tickEle.selectAll('line').remove()
       tickEle.selectAll('text')
         .attr('x', 0)
-      tickEle.append('path')
-        .attr('d', generateLine([[x1, 0], [x22, 0]]))
-        .attr('stroke', '#d2d2d2')
-        .attr('stroke-width', '0.5px')
+      # console.log(tickEle)
+      # tickEle.append('path')
+      #   .attr('d', generateLine([[x1, 0], [x22, 0]]))
+      #   .attr('stroke', '#d2d2d2')
+      #   .attr('stroke-width', '0.5px')
     )
 
   _customizeXaxis: ->
@@ -157,7 +159,6 @@ class App.D3Chart.Severity extends App.D3Chart.VerticalStackedBar
       .keys(this.keys)
       .order(d3.stackOrderNone)
       .offset(d3.stackOffsetNone)
-    lineGenerator = d3.line()
     connectorSize = 2
     @chart.selectAll('path.connect')
       .data(stackGenerator(@stackData))
@@ -171,7 +172,7 @@ class App.D3Chart.Severity extends App.D3Chart.VerticalStackedBar
             y1 = @scale.y(d[0][1])
             y2 = @scale.y(d[1][1])
             line = [[x1-0.5, y1+connectorSize], [x2+0.5, y2+connectorSize]]
-            lineGenerator(line)
+            d3.line()(line)
           else
             ''
         )
@@ -183,8 +184,8 @@ class App.D3Chart.Severity extends App.D3Chart.VerticalStackedBar
     # custom styles for tooltips go here
 
   draw: ->
-    # @_drawAxes()
-    # @_styleAxisText()
-    # super
-    # @_drawConnectors()
-    # @legend.draw()
+    @_drawAxes()
+    @_styleAxisText()
+    super
+    @_drawConnectors()
+    @legend.draw()
