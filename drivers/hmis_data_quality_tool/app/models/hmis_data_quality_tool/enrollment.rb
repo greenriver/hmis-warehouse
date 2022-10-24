@@ -255,19 +255,20 @@ module HmisDataQualityTool
       report_item.insurance_from_any_source_at_exit = exit_income_assessment&.InsuranceFromAnySource
 
       report_item.insurance_as_expected_at_entry = insurance_as_expected?(
-        report_item.income_at_entry_expected,
+        report_item.insurance_at_entry_expected,
         entry_income_assessment,
       )
       report_item.insurance_as_expected_at_annual = insurance_as_expected?(
-        report_item.income_at_entry_expected,
+        report_item.insurance_at_entry_expected,
         annual_income_assessment,
       )
       report_item.insurance_as_expected_at_exit = insurance_as_expected?(
-        report_item.income_at_entry_expected,
+        report_item.insurance_at_entry_expected,
         exit_income_assessment,
       )
 
-      report_item.disability_at_entry_collected = enrollment.disabilities_at_entry&.map(&:DisabilityResponse)&.all? { |dr| dr.in?([0, 1]) } || false
+      # NOTE: we may want to exclude HIV/AIDS from this calculation as it may not be asked everywhere
+      report_item.disability_at_entry_collected = enrollment.disabilities_at_entry&.map(&:DisabilityResponse)&.all? { |dr| dr.in?([0, 1, 2, 3]) } || false
 
       max_date = [report.filter.end, Date.current].min
       en_services = enrollment.services&.select { |s| s.DateProvided <= max_date }
@@ -335,8 +336,8 @@ module HmisDataQualityTool
       return false if assessment.blank?
 
       responses = assessment.values_at(*assessment.class::INSURANCE_TYPES)
-      return true if assessment.BenefitsFromAnySource == 1 && responses.include?(1)
-      return true if assessment.BenefitsFromAnySource&.zero? && responses.all?(0)
+      return true if assessment.InsuranceFromAnySource == 1 && responses.include?(1)
+      return true if assessment.InsuranceFromAnySource&.zero? && responses.all?(0)
 
       false
     end
@@ -382,6 +383,7 @@ module HmisDataQualityTool
             :move_in_date,
             :exit_date,
             :age,
+            :household_id,
             :relationship_to_hoh,
           ],
           denominator: ->(_item) { true },
@@ -415,7 +417,7 @@ module HmisDataQualityTool
           },
         },
         exit_date_issues: {
-          title: 'Exit before Entry',
+          title: 'Exit Before Entry',
           description: 'Enrollment exit date must occur after entry date',
           required_for: 'All',
           detail_columns: [
@@ -526,6 +528,7 @@ module HmisDataQualityTool
             :move_in_date,
             :exit_date,
             :age,
+            :household_id,
             :relationship_to_hoh,
             :head_of_household_count,
           ],
@@ -984,8 +987,10 @@ module HmisDataQualityTool
           limiter: ->(item) {
             start_date = item.project_operating_start_date || '2000-01-01'.to_date
             end_date = item.project_operating_end_date || Date.current
-            ! item.entry_date.between?(start_date, end_date) &&
-            (item.exit_date.present? && ! item.exit_date.between?(start_date, end_date))
+            entry_date_in_range = item.entry_date.between?(start_date, end_date)
+            exit_date_blank_or_in_range = item.exit_date.blank? || item.exit_date.between?(start_date, end_date)
+            # if either occurs outside of the range, flag the enrollment
+            ! entry_date_in_range || ! exit_date_blank_or_in_range
           },
         },
         dv_at_entry: {
@@ -1386,6 +1391,28 @@ module HmisDataQualityTool
 
             ! item.insurance_as_expected_at_exit
           },
+        },
+        disability_at_entry_collected: {
+          title: 'Disability at entry',
+          description: 'None of the disabilities collected at entry were missing or 99.',
+          required_for: 'All',
+          detail_columns: [
+            :destination_client_id,
+            :hmis_enrollment_id,
+            :personal_id,
+            :project_name,
+            :exit_id,
+            :entry_date,
+            :move_in_date,
+            :exit_date,
+            :age,
+            :relationship_to_hoh,
+            :disability_at_entry_collected,
+            :disabling_condition,
+            :has_disability,
+          ],
+          denominator: ->(_item) { true },
+          limiter: ->(item) { ! item.disability_at_entry_collected },
         },
       }.freeze
     end
