@@ -383,6 +383,7 @@ module HmisDataQualityTool
             :move_in_date,
             :exit_date,
             :age,
+            :household_id,
             :relationship_to_hoh,
           ],
           denominator: ->(_item) { true },
@@ -416,7 +417,7 @@ module HmisDataQualityTool
           },
         },
         exit_date_issues: {
-          title: 'Exit before Entry',
+          title: 'Exit Before Entry',
           description: 'Enrollment exit date must occur after entry date',
           required_for: 'All',
           detail_columns: [
@@ -527,6 +528,7 @@ module HmisDataQualityTool
             :move_in_date,
             :exit_date,
             :age,
+            :household_id,
             :relationship_to_hoh,
             :head_of_household_count,
           ],
@@ -985,8 +987,10 @@ module HmisDataQualityTool
           limiter: ->(item) {
             start_date = item.project_operating_start_date || '2000-01-01'.to_date
             end_date = item.project_operating_end_date || Date.current
-            ! item.entry_date.between?(start_date, end_date) &&
-            (item.exit_date.present? && ! item.exit_date.between?(start_date, end_date))
+            entry_date_in_range = item.entry_date.between?(start_date, end_date)
+            exit_date_blank_or_in_range = item.exit_date.blank? || item.exit_date.between?(start_date, end_date)
+            # if either occurs outside of the range, flag the enrollment
+            ! entry_date_in_range || ! exit_date_blank_or_in_range
           },
         },
         dv_at_entry: {

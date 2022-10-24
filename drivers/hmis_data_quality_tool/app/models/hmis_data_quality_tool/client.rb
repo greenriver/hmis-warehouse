@@ -30,11 +30,11 @@ module HmisDataQualityTool
         transgender: { title: 'Transgender', translator: ->(v) { HUD.no_yes_missing(v) } },
         questioning: { title: 'Questioning', translator: ->(v) { HUD.no_yes_missing(v) } },
         gender_none: { title: 'Gender None', translator: ->(v) { HUD.gender_none(v) } },
-        am_ind_ak_native: { title: 'American Indian, Alaska Native, or Indigenous', translator: ->(v) { HUD.no_yes_missing(v) } },
-        asian: { title: 'Asian or Asian American', translator: ->(v) { HUD.no_yes_missing(v) } },
-        black_af_american: { title: 'Black, African American, or African', translator: ->(v) { HUD.no_yes_missing(v) } },
-        native_hi_pacific: { title: 'Native Hawaiian or Pacific Islander', translator: ->(v) { HUD.no_yes_missing(v) } },
-        white: { title: 'White', translator: ->(v) { HUD.no_yes_missing(v) } },
+        am_ind_ak_native: { title: 'American Indian, Alaska Native, or Indigenous', translator: ->(v) { HUD.no_yes_missing(v&.to_i) } },
+        asian: { title: 'Asian or Asian American', translator: ->(v) { HUD.no_yes_missing(v&.to_i) } },
+        black_af_american: { title: 'Black, African American, or African', translator: ->(v) { HUD.no_yes_missing(v&.to_i) } },
+        native_hi_pacific: { title: 'Native Hawaiian or Pacific Islander', translator: ->(v) { HUD.no_yes_missing(v&.to_i) } },
+        white: { title: 'White', translator: ->(v) { HUD.no_yes_missing(v&.to_i) } },
         race_none: { title: 'Race None', translator: ->(v) { HUD.race_none(v) } },
         ethnicity: { title: 'Ethnicity', translator: ->(v) { HUD.ethnicity(v) } },
         veteran_status: { title: 'Veteran Status', translator: ->(v) { HUD.no_yes_reasons_for_missing_data(v) } },
@@ -279,8 +279,8 @@ module HmisDataQualityTool
             ]
             return true if (values - HUD.yes_no_missing_options.keys).any?
 
-            # any are yes and GenderNone is present
-            return true if values.include?(1) && item.gender_none.present?
+            # any are yes and GenderNone is present and not 99
+            return true if values.include?(1) && item.gender_none.present? && item.gender_none != 99
 
             # all are no or not collected and GenderNone is not in 8, 9, 99
             return true if values.all? { |m| m.in?([0, 99]) } && ! item.gender_none.in?([8, 9, 99])
@@ -316,8 +316,8 @@ module HmisDataQualityTool
             ]
             return true if (values - HUD.yes_no_missing_options.keys).any?
 
-            # any are yes and RaceNone is present
-            return true if values.include?(1) && item.race_none.present?
+            # any are yes and RaceNone is present and isn't "not collected"
+            return true if values.include?(1) && item.race_none.present? && item.race_none != 99
 
             # all are no or not collected and RaceNone is not in 8, 9, 99
             return true if values.all? { |m| m.in?([0, 99]) } && ! item.race_none.in?([8, 9, 99])
