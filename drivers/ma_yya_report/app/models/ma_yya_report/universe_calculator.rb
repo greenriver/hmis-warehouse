@@ -85,7 +85,7 @@ module MaYyaReport
     end
 
     private def enrollment_scope
-      scope = GrdaWarehouse::ServiceHistoryEnrollment.
+      scope = ::GrdaWarehouse::ServiceHistoryEnrollment.
         entry.
         open_between(start_date: @filter.start_date, end_date: @filter.end_date)
 

@@ -19,6 +19,7 @@ module PerformanceMeasurement::DocumentExports
       {
         report: report,
         filter: filter,
+        title: _('CoC Performance Measurement Dashboard'),
         pdf: true,
       }
     end

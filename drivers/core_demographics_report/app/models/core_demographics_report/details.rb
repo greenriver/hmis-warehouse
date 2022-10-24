@@ -56,12 +56,24 @@ module
       detail[:headers]
     end
 
+    def detail_headers_for_export(key)
+      return header_for(key) if GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+
+      header_for(key) - pii_headers
+    end
+
     def columns_for(key)
       detail = detail_hash[key]
 
       return '' unless detail
 
       detail[:columns]
+    end
+
+    def detail_columns_for_export(key)
+      return columns_for(key) if GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+
+      columns_for(key) - pii_columns
     end
 
     def detail_column_display(header:, column:)
@@ -90,6 +102,22 @@ module
         'Transgender',
         'Questioning',
         'Unknown Gender',
+      ]
+    end
+
+    private def pii_headers
+      [
+        'First Name',
+        'Last Name',
+        'DOB',
+      ]
+    end
+
+    private def pii_columns
+      [
+        c_t[:FirstName],
+        c_t[:LastName],
+        c_t[:DOB],
       ]
     end
 

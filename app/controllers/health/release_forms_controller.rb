@@ -36,10 +36,10 @@ module Health
       @release_form.user = current_user
 
       if ! request.xhr?
-        Health::ReleaseSaver.new(form: @release_form, user: current_user).create
+        Health::ReleaseSaver.new(form: @release_form, user: current_user, create_qa: true).create
         respond_with @release_form, location: polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id)
       elsif @release_form.valid?
-        Health::ReleaseSaver.new(form: @release_form, user: current_user).create
+        Health::ReleaseSaver.new(form: @release_form, user: current_user, create_qa: true).create
       end
     end
 
@@ -78,9 +78,10 @@ module Health
 
     private def form_params
       local_params = params.require(:form).permit(
+        :participation_signature_on,
         :signature_on,
         :reviewed_by_supervisor,
-        :verbal_approval,
+        :mode_of_contact,
         health_file_attributes: [
           :id,
           :file,

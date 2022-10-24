@@ -1605,7 +1605,8 @@ CREATE TABLE public.comprehensive_health_assessments (
     completed_at timestamp without time zone,
     reviewed_at timestamp without time zone,
     reviewer character varying,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    collection_method character varying
 );
 
 
@@ -3768,7 +3769,9 @@ CREATE TABLE public.release_forms (
     reviewed_by_id integer,
     reviewed_at timestamp without time zone,
     reviewer character varying,
-    verbal_approval boolean DEFAULT false
+    verbal_approval boolean DEFAULT false,
+    participation_signature_on date,
+    mode_of_contact character varying
 );
 
 
@@ -7628,6 +7631,11 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220623172328'),
 ('20220721163813'),
 ('20220721165009'),
-('20220812184231');
+('20220812184231'),
+('20221005142152'),
+('20221005145830'),
+('20221005201423'),
+('20221005201553'),
+('20221006205522');
 
 
