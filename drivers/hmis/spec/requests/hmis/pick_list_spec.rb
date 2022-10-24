@@ -60,7 +60,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     expect(response.status).to eq 200
     options = result.dig('data', 'pickList')
     expect(options[0]['code']).to eq(o1.id.to_s)
-    expect(options[0]['label']).to eq(p1.organization_name)
+    expect(options[0]['label']).to eq(o1.organization_name)
     expect(options[0]['groupLabel']).to be_nil
   end
 end
