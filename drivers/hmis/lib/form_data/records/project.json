@@ -82,7 +82,7 @@
               "pick_list_reference": "TrackingMethod",
 
               "query_field": "trackingMethod",
-              "enable_behavior": "all",
+              "enable_behavior": "ALL",
               "enable_when": [
                 {
                   "question": "2.02.6",
@@ -98,7 +98,7 @@
               "text": "Residential Affiliation?",
 
               "query_field": "residentialAffiliation",
-              "enable_behavior": "all",
+              "enable_behavior": "ALL",
               "enable_when": [
                 {
                   "question": "2.02.6",

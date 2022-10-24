@@ -9,7 +9,7 @@
           "link_id": "3.16",
           "prefix": "3.16",
           "text": "CoC Code for Client Location",
-          "enable_behavior": "all",
+          "enable_behavior": "ALL",
           "pick_list_reference": "COC",
           "data_collected_about": "HOH"
         },
@@ -105,7 +105,7 @@
               "link_id": "4.12-A",
               "text": "Is client going to have to leave their current living situation within 14 days?",
               "pick_list_reference": "yesNoMissing",
-              "enable_behavior": "any",
+              "enable_behavior": "ANY",
               "enable_when": []
             },
             {
@@ -113,7 +113,7 @@
               "link_id": "4.12-B",
               "text": "Has a subsequent residence been identified?",
               "pick_list_reference": "yesNoMissing",
-              "enable_behavior": "any",
+              "enable_behavior": "ANY",
               "enable_when": []
             },
             {
@@ -121,7 +121,7 @@
               "link_id": "4.12-C",
               "text": "Does individual or family have resources or support networks to obtain other permanent housing?",
               "pick_list_reference": "yesNoMissing",
-              "enable_behavior": "any",
+              "enable_behavior": "ANY",
               "enable_when": []
             },
             {
@@ -129,7 +129,7 @@
               "link_id": "4.12-D",
               "text": "Has the client had a lease or ownership interest in a permanent housing unit in the last 60 days?",
               "pick_list_reference": "yesNoMissing",
-              "enable_behavior": "any",
+              "enable_behavior": "ANY",
               "enable_when": [
                 {
                   "question": "4.12-A",
@@ -143,7 +143,7 @@
               "link_id": "4.12-E",
               "text": "Has the client moved 2 or more times in the last 60 days?",
               "pick_list_reference": "yesNoMissing",
-              "enable_behavior": "any",
+              "enable_behavior": "ANY",
               "enable_when": [
                 {
                   "question": "4.12-A",
@@ -177,7 +177,7 @@
           "type": "CHOICE",
           "link_id": "4.11-A",
           "text": "When did the experience occur?",
-          "enable_behavior": "all",
+          "enable_behavior": "ALL",
           "enable_when": [
             {
               "question": "4.11-2",
@@ -192,7 +192,7 @@
           "text": "Are you currently fleeing?",
           "pick_list_reference": "yesNoMissing",
           "helper_text": "Currently fleeing should be indicated as “Yes” if the person is fleeing, or is attempting to flee, the domestic violence situation or is afraid to return to their primary nighttime residence.",
-          "enable_behavior": "all",
+          "enable_behavior": "ALL",
           "enable_when": [
             {
               "question": "4.11-2",
@@ -218,26 +218,14 @@
           "type": "CHOICE",
           "link_id": "health-insurance",
           "text": "Health Insurance",
-          "pick_list_option": [
+          "pick_list_options": [
             {
-              "valueCoding": {
-                "code": "0",
-                "display": "Medicaid"
-              }
+              "code": "0",
+              "label": "Medicaid"
             },
             {
-              "valueCoding": {
-                "code": "1",
-                "display": "Medicare"
-              }
-            }
-          ],
-          "enable_behavior": "all",
-          "enable_when": [
-            {
-              "question": "4.04-2",
-              "operator": "EQUAL",
-              "answer_code": "1"
+              "code": "1",
+              "label": "Medicare"
             }
           ]
         },
@@ -252,7 +240,7 @@
           "link_id": "4.05-A",
           "text": "Is this a disabling condition?",
           "pick_list_reference": "yesNoMissing",
-          "enable_behavior": "all",
+          "enable_behavior": "ALL",
           "enable_when": [
             {
               "question": "4.05-2",
@@ -282,7 +270,7 @@
               "link_id": "4.07-A",
               "text": "Is this a disabling condition?",
               "pick_list_reference": "yesNoMissing",
-              "enable_behavior": "all",
+              "enable_behavior": "ALL",
               "enable_when": [
                 {
                   "question": "4.07-2",
@@ -314,7 +302,7 @@
               "link_id": "4.09-A",
               "text": "Is this a disabling condition?",
               "pick_list_reference": "yesNoMissing",
-              "enable_behavior": "all",
+              "enable_behavior": "ALL",
               "enable_when": [
                 {
                   "question": "4.09-2",
@@ -329,51 +317,7 @@
         {
           "type": "CHOICE",
           "link_id": "4.10-2",
-          "text": "Substance Use Disorder",
-          "pick_list_option": [
-            {
-              "valueCoding": {
-                "code": "0",
-                "display": "No"
-              }
-            },
-            {
-              "valueCoding": {
-                "code": "1",
-                "display": "Alcohol use disorder"
-              }
-            },
-            {
-              "valueCoding": {
-                "code": "2",
-                "display": "Drug use disorder"
-              }
-            },
-            {
-              "valueCoding": {
-                "code": "3",
-                "display": "Both alcohol and drug use disorder"
-              }
-            },
-            {
-              "valueCoding": {
-                "code": "8",
-                "display": "Client doesn't know"
-              }
-            },
-            {
-              "valueCoding": {
-                "code": "9",
-                "display": "Client refused"
-              }
-            },
-            {
-              "valueCoding": {
-                "code": "99",
-                "display": "Data not collected"
-              }
-            }
-          ]
+          "text": "Substance Use Disorder"
         },
         {
           "type": "GROUP",
@@ -387,7 +331,7 @@
               "link_id": "4.10-A",
               "text": "Is this a disabling condition?",
               "pick_list_reference": "yesNoMissing",
-              "enable_behavior": "any",
+              "enable_behavior": "ANY",
               "enable_when": [
                 {
                   "question": "4.10-2",
