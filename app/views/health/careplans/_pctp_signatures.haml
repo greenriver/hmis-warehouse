@@ -23,6 +23,18 @@
         - else
           .signature__line
 
+  .signature__section
+    .signature__section__row
+      .signature__label Representative:
+      .signature__value= @careplan.representative&.full_name
+    .signature__section__row
+      .signature__section__signature
+        .signature__label Representative Signature:
+        .signature__line
+      .signature__section__signedOn
+        .signature__label Signed On:
+        .signature__line
+
   - has_provider_signature = @careplan.provider&.full_name && @careplan.provider_signed_on.present?
   .signature__section
     .signature__section__row
