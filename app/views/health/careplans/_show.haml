@@ -2,10 +2,7 @@
 - content_for :title, title
 
 .l-print.hide-blank-page
-  .l-print__section--page{style: 'padding: 0;'}
-    =render 'health/careplans/pctp'
-
-  %article.health-careplan__cha{ class: @cha.present? ? 'l-print__section--page' : ['l-print__section', 'no-break']}
+  %article.l-print__section--page.health-careplan__cha
     %h1 Comprehensive Health Assessment
     = render 'health/comprehensive_health_assessments/show'
 
@@ -17,5 +14,8 @@
       = render @ssm_partial
     - else
       .no-data No Self-Sufficiency Matrix on file
+
+  .l-print__section--page{style: 'padding: 0;'}
+    = render 'health/careplans/pctp'
 
   = render 'health/careplans/pctp_signatures'
