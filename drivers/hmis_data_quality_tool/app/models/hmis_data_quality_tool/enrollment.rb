@@ -181,7 +181,7 @@ module HmisDataQualityTool
       report_item.ch_at_entry = enrollment.chronically_homeless_at_start?
 
       hh = report.household(enrollment.HouseholdID)
-      hoh = hh.detect(&:head_of_household?) || enrollment.service_history_enrollment
+      hoh = hh&.detect(&:head_of_household?) || enrollment.service_history_enrollment
       # anniversary_date = anniversary_date(entry_date: hoh.first_date_in_program, report_end_date: report.end_date)
       hoh_annual_expected = annual_assessment_expected?(hoh)
 
