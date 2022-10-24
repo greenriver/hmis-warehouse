@@ -116,8 +116,10 @@ module Types
 
     def get_form_definition(enrollment_id:, assessment_role:)
       enrollment = Hmis::Hud::Enrollment.find_by(id: enrollment_id)
+      definition = enrollment&.project&.present? ? Hmis::Form::Definition.find_definition_for_project(enrollment.project, role: assessment_role) : nil
 
-      enrollment&.project&.present? ? Hmis::Form::Definition.find_definition_for_project(enrollment.project, role: assessment_role) : nil
+      definition.apply_conditionals(enrollment) if definition.present?
+      definition
     end
 
     field :pick_list, [Types::Forms::PickListOption], 'Get list of options for pick list', null: false do

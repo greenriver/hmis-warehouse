@@ -9,7 +9,6 @@
           "link_id": "3.16",
           "prefix": "3.16",
           "text": "CoC Code for Client Location",
-          "enable_behavior": "ALL",
           "pick_list_reference": "COC",
           "data_collected_about": "HOH"
         },
