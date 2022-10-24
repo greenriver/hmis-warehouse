@@ -2094,6 +2094,11 @@ type Query {
   enrollment(id: ID!): Enrollment
 
   """
+  Form definition lookup by identifier
+  """
+  formDefinition(identifier: String!): FormDefinition
+
+  """
   Funder lookup
   """
   funder(id: ID!): Funder

@@ -1,0 +1,414 @@
+{
+  "item": [
+    {
+      "type": "GROUP",
+      "link_id": "initial-group",
+      "item": [
+        {
+          "type": "CHOICE",
+          "link_id": "3.16",
+          "prefix": "3.16",
+          "text": "CoC Code for Client Location",
+          "enable_behavior": "all",
+          "pick_list_reference": "COC",
+          "data_collected_about": "HOH"
+        },
+        {
+          "type": "DATE",
+          "link_id": "4.13",
+          "prefix": "4.13",
+          "text": "Date of Engagement",
+          "data_collected_about": "HOH_AND_ADULTS"
+        },
+        {
+          "type": "DATE",
+          "link_id": "4.14",
+          "prefix": "4.14",
+          "text": "Bed-Night Date"
+        }
+      ]
+    },
+    {
+      "type": "GROUP",
+      "link_id": "3.917-group",
+      "text": "Prior Living Situation (3.917)",
+      "data_collected_about": "HOH_AND_ADULTS",
+      "item": [
+        {
+          "type": "DISPLAY",
+          "link_id": "3.917-instruction",
+          "text": "Where did the client spend last night? Select the category that most closely matches the client's response."
+        },
+        {
+          "type": "CHOICE",
+          "required": false,
+          "link_id": "3.917",
+          "text": "Prior Living Situation",
+          "pick_list_reference": "LivingSituation"
+        },
+        {
+          "type": "CHOICE",
+          "link_id": "3.917-2",
+          "text": "Length of stay in prior living situation"
+        },
+        {
+          "type": "BOOLEAN",
+          "link_id": "3.917-A",
+          "text": "Did the client stay less than 90 days?"
+        },
+        {
+          "type": "BOOLEAN",
+          "link_id": "3.917-B",
+          "text": "Did the client stay less than 7 nights?"
+        },
+        {
+          "type": "BOOLEAN",
+          "link_id": "3.917-C",
+          "text": "On the night before, did the client stay on the streets, ES or SH?"
+        },
+        {
+          "type": "DATE",
+          "link_id": "3.917-3",
+          "text": "Date homelessness started"
+        },
+        {
+          "type": "CHOICE",
+          "link_id": "3.917-4",
+          "text": "Number of times the client has been on the streets, in ES, or SH in the past three years"
+        },
+        {
+          "type": "CHOICE",
+          "link_id": "3.917-5",
+          "text": "Total number of months homeless on the street, in ES, or SH in the past three years"
+        }
+      ]
+    },
+    {
+      "type": "GROUP",
+      "link_id": "4.12-group",
+      "text": "Current Living Situation (4.12)",
+      "data_collected_about": "HOH_AND_ADULTS",
+      "item": [
+        {
+          "type": "CHOICE",
+          "required": false,
+          "link_id": "4.12",
+          "text": "Current Living Situation",
+          "valueSetReference": "LivingSituation"
+        },
+        {
+          "type": "GROUP",
+          "link_id": "4.12-conditionals",
+          "item": [
+            {
+              "type": "CHOICE",
+              "link_id": "4.12-A",
+              "text": "Is client going to have to leave their current living situation within 14 days?",
+              "pick_list_reference": "yesNoMissing",
+              "enable_behavior": "any",
+              "enable_when": []
+            },
+            {
+              "type": "CHOICE",
+              "link_id": "4.12-B",
+              "text": "Has a subsequent residence been identified?",
+              "pick_list_reference": "yesNoMissing",
+              "enable_behavior": "any",
+              "enable_when": []
+            },
+            {
+              "type": "CHOICE",
+              "link_id": "4.12-C",
+              "text": "Does individual or family have resources or support networks to obtain other permanent housing?",
+              "pick_list_reference": "yesNoMissing",
+              "enable_behavior": "any",
+              "enable_when": []
+            },
+            {
+              "type": "CHOICE",
+              "link_id": "4.12-D",
+              "text": "Has the client had a lease or ownership interest in a permanent housing unit in the last 60 days?",
+              "pick_list_reference": "yesNoMissing",
+              "enable_behavior": "any",
+              "enable_when": [
+                {
+                  "question": "4.12-A",
+                  "operator": "EQUAL",
+                  "answer_code": "1"
+                }
+              ]
+            },
+            {
+              "type": "CHOICE",
+              "link_id": "4.12-E",
+              "text": "Has the client moved 2 or more times in the last 60 days?",
+              "pick_list_reference": "yesNoMissing",
+              "enable_behavior": "any",
+              "enable_when": [
+                {
+                  "question": "4.12-A",
+                  "operator": "EQUAL",
+                  "answer_code": "1"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "TEXT",
+          "link_id": "4.12-4",
+          "text": "Location details"
+        }
+      ]
+    },
+    {
+      "type": "GROUP",
+      "link_id": "4.11-group",
+      "text": "4.11",
+      "item": [
+        {
+          "type": "CHOICE",
+          "link_id": "4.11-2",
+          "text": "Domestic Violence Victim/Survivor",
+          "pick_list_reference": "yesNoMissing",
+          "helper_text": "Domestic Violence Victim/Survivor should be indicated as “Yes” if the person has experienced any domestic violence, dating violence, sexual assault, stalking or other dangerous or life-threatening conditions that relate to violence against the individual or a family member, including a child, that has either taken place within the individual's or family's primary nighttime residence."
+        },
+        {
+          "type": "CHOICE",
+          "link_id": "4.11-A",
+          "text": "When did the experience occur?",
+          "enable_behavior": "all",
+          "enable_when": [
+            {
+              "question": "4.11-2",
+              "operator": "EQUAL",
+              "answer_code": "1"
+            }
+          ]
+        },
+        {
+          "type": "CHOICE",
+          "link_id": "4.11-B",
+          "text": "Are you currently fleeing?",
+          "pick_list_reference": "yesNoMissing",
+          "helper_text": "Currently fleeing should be indicated as “Yes” if the person is fleeing, or is attempting to flee, the domestic violence situation or is afraid to return to their primary nighttime residence.",
+          "enable_behavior": "all",
+          "enable_when": [
+            {
+              "question": "4.11-2",
+              "operator": "EQUAL",
+              "answer_code": "1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "GROUP",
+      "link_id": "health-group",
+      "text": "Health",
+      "item": [
+        {
+          "type": "CHOICE",
+          "link_id": "4.04-2",
+          "text": "Covered by Health Insurance",
+          "pick_list_reference": "yesNoMissing"
+        },
+        {
+          "type": "CHOICE",
+          "link_id": "health-insurance",
+          "text": "Health Insurance",
+          "pick_list_option": [
+            {
+              "valueCoding": {
+                "code": "0",
+                "display": "Medicaid"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "1",
+                "display": "Medicare"
+              }
+            }
+          ],
+          "enable_behavior": "all",
+          "enable_when": [
+            {
+              "question": "4.04-2",
+              "operator": "EQUAL",
+              "answer_code": "1"
+            }
+          ]
+        },
+        {
+          "type": "CHOICE",
+          "link_id": "4.05-2",
+          "text": "Physical Disability",
+          "pick_list_reference": "yesNoMissing"
+        },
+        {
+          "type": "CHOICE",
+          "link_id": "4.05-A",
+          "text": "Is this a disabling condition?",
+          "pick_list_reference": "yesNoMissing",
+          "enable_behavior": "all",
+          "enable_when": [
+            {
+              "question": "4.05-2",
+              "operator": "EQUAL",
+              "answer_code": "1"
+            }
+          ]
+        },
+        {
+          "type": "CHOICE",
+          "link_id": "4.06-2",
+          "text": "Developmental Disability",
+          "pick_list_reference": "yesNoMissing"
+        },
+        {
+          "type": "CHOICE",
+          "link_id": "4.07-2",
+          "text": "Chronic Health Condition",
+          "pick_list_reference": "yesNoMissing"
+        },
+        {
+          "type": "GROUP",
+          "link_id": "4.07-2-conditional",
+          "item": [
+            {
+              "type": "CHOICE",
+              "link_id": "4.07-A",
+              "text": "Is this a disabling condition?",
+              "pick_list_reference": "yesNoMissing",
+              "enable_behavior": "all",
+              "enable_when": [
+                {
+                  "question": "4.07-2",
+                  "operator": "EQUAL",
+                  "answer_code": "1"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "CHOICE",
+          "link_id": "4.08-2",
+          "text": "HIV/AIDS",
+          "pick_list_reference": "yesNoMissing"
+        },
+        {
+          "type": "CHOICE",
+          "link_id": "4.09-2",
+          "text": "Mental Health Disorder",
+          "pick_list_reference": "yesNoMissing"
+        },
+        {
+          "type": "GROUP",
+          "link_id": "4.09-group",
+          "item": [
+            {
+              "type": "CHOICE",
+              "link_id": "4.09-A",
+              "text": "Is this a disabling condition?",
+              "pick_list_reference": "yesNoMissing",
+              "enable_behavior": "all",
+              "enable_when": [
+                {
+                  "question": "4.09-2",
+                  "operator": "EQUAL",
+                  "answer_code": "1"
+                }
+              ]
+            }
+          ]
+        },
+
+        {
+          "type": "CHOICE",
+          "link_id": "4.10-2",
+          "text": "Substance Use Disorder",
+          "pick_list_option": [
+            {
+              "valueCoding": {
+                "code": "0",
+                "display": "No"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "1",
+                "display": "Alcohol use disorder"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "2",
+                "display": "Drug use disorder"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "3",
+                "display": "Both alcohol and drug use disorder"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "8",
+                "display": "Client doesn't know"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "9",
+                "display": "Client refused"
+              }
+            },
+            {
+              "valueCoding": {
+                "code": "99",
+                "display": "Data not collected"
+              }
+            }
+          ]
+        },
+        {
+          "type": "GROUP",
+          "link_id": "4.10-group",
+          "display": {
+            "direction": "row"
+          },
+          "item": [
+            {
+              "type": "CHOICE",
+              "link_id": "4.10-A",
+              "text": "Is this a disabling condition?",
+              "pick_list_reference": "yesNoMissing",
+              "enable_behavior": "any",
+              "enable_when": [
+                {
+                  "question": "4.10-2",
+                  "operator": "EQUAL",
+                  "answer_code": "1"
+                },
+                {
+                  "question": "4.10-2",
+                  "operator": "EQUAL",
+                  "answer_code": "2"
+                },
+                {
+                  "question": "4.10-2",
+                  "operator": "EQUAL",
+                  "answer_code": "3"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
