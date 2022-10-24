@@ -54,7 +54,7 @@ class App.D3Chart.VerticalStackedBar extends App.D3Chart.Base
     @tooltip.style('top', (event.pageY-height)+'px')
     @tooltip.style('left', (event.pageX-width)+'px')
 
-  _showTooltip: (event, data, keys, labels) ->
+  _showTooltip: (event, data, i, keys, labels) ->
     @tooltip
       .style('left', event.pageX+'px')
       .style('top', event.pageY+'px')
@@ -98,21 +98,26 @@ class App.D3Chart.VerticalStackedBar extends App.D3Chart.Base
     # console.log(@stackData)
     # console.log(stackGenerator(@stackData))
     if @scale && @stackData
-      @chart.selectAll('g.bar')
+      selection = @chart.selectAll('g.bar')
         .data(stackGenerator(@stackData))
         .enter()
         .append('g')
-          .attr('class','bar')
-          .attr('fill', (d) => @scale.color(d.key))
-          .selectAll('rect')
-            .data((d) => d)
-            .enter()
-            .append('rect')
-              .attr('x', (d) => @scale.x(d.data[@xKey]))
-              .attr('y', (d) => @scale.y(d[1]))
-              .attr('height', (d) => @scale.y(d[0]) - @scale.y(d[1]))
-              .attr('width', (d) => @scale.x.bandwidth())
-              .on('mouseover', (ev, d) => @_showTooltip(ev, d))
-              .on('mouseout', (d) => @_removeTooltip(d.data))
+        .attr('class','bar')
+        .attr('fill', (d) => @scale.color(d.key))
+        .selectAll('rect')
+        .data((d) => d)
+        .enter()
+        .append('rect')
+        .attr('x', (d) => @scale.x(d.data[@xKey]))
+        .attr('y', (d) => @scale.y(d[1]))
+        .attr('height', (d) => @scale.y(d[0]) - @scale.y(d[1]))
+        .attr('width', (d) => @scale.x.bandwidth())
+
+      selection.on('mouseover', (ev, d) =>
+        el = selection.nodes()
+        i = el.indexOf(ev.currentTarget)
+        @_showTooltip(ev, d.data, i)
+      )
+      .on('mouseout', (d) => @_removeTooltip(d.data))
     else
       console.log('Please add data & scale!')

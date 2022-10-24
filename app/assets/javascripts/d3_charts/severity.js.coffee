@@ -18,11 +18,11 @@ class App.D3Chart.Severity extends App.D3Chart.VerticalStackedBar
     @scale.icon = d3.scaleOrdinal().domain(@domain.icon).range(@range.icon)
     @stackData = @claims
 
-  _showTooltip: (event, data) ->
+  _showTooltip: (event, data, i) ->
     keys = @keys.slice().reverse()
     keys.unshift('group')
     labels = ['group']
-    super(event, data, keys, labels)
+    super(event, data, i, keys, labels)
     @tooltip.selectAll('.d3-tooltip__item')
       .append('span')
       .text((d) =>
@@ -82,19 +82,19 @@ class App.D3Chart.Severity extends App.D3Chart.VerticalStackedBar
     that = @
     step = @scale.x.step()
     width = @scale.x.bandwidth()
-    x1 = @scale.x('Baseline') - (step - width) + 5
-    x22 = @scale.x('Implementation') + (width + (step - width)) - 5
-    # console.log(@scale, step, width)
+    domains = @scale.x.domain()
+    x1 = @scale.x(domains[0]) - (step - width) + 5
+    x22 = @scale.x(domains[1]) + (width + (step - width)) - 5
+    # console.log(@scale, @scale.x.domain(), step, width, x1, x22)
     ticks.each((tick) ->
       tickEle = d3.select(this)
       tickEle.selectAll('line').remove()
       tickEle.selectAll('text')
         .attr('x', 0)
-      # console.log(tickEle)
-      # tickEle.append('path')
-      #   .attr('d', generateLine([[x1, 0], [x22, 0]]))
-      #   .attr('stroke', '#d2d2d2')
-      #   .attr('stroke-width', '0.5px')
+      tickEle.append('path')
+        .attr('d', generateLine([[x1, 0], [x22, 0]]))
+        .attr('stroke', '#d2d2d2')
+        .attr('stroke-width', '0.5px')
     )
 
   _customizeXaxis: ->

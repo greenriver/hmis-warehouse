@@ -106,28 +106,23 @@ class App.D3Chart.ClaimsStackedBar extends App.D3Chart.VerticalStackedBar
     ]
     months[date.getMonth()]
 
-  _showTooltip: (event, data, keys, labels) ->
+  _showTooltip: (event, data, i) ->
     keys = @keys.slice().reverse()
     keys.push('total')
     keys.unshift('date')
     labels = ['total', 'date']
     format = d3.format(@tooltipFormat)
-    super(event, data, keys, labels)
+    super(event, data, i, keys, labels)
     @tooltip.selectAll('.d3-tooltip__item')
       .append('span')
-      .text((e, d, f) =>
-        # console.log(e, d, f)
-        if d == 'date'
-          # console.log(event, data, d, keys, labels)
-          # @_loadMonthName(data[d]) + ' ' + data[d].getFullYear()
-          d
-        else if d == 'total'
-          # 'Total: '+format(data[d])
-          d
-        else
-          d
-          # format(data[d])
-      )
+      .text((d) =>
+         if d == 'date'
+           @_loadMonthName(data[d]) + ' ' + data[d].getFullYear()
+         else if d == 'total'
+          'Total: '+format(data[d])
+         else
+          format(data[d])
+       )
     @tooltip.selectAll('.d3-tooltip__swatch')
       .style('opacity', '0.6')
     @_positionTooltip(event)
