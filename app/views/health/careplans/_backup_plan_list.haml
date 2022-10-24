@@ -8,15 +8,14 @@
         %i.icon-plus
         Add Backup Plan
   - if @pdf
-    - if @careplan.backup_plan_archive&.any? || @backup_plans&.any?
-      .l-print__item
-        - if @careplan.member_understands_contingency
-          [
-          = checkmark_or_x(true)
-          ]
-        - else
-          ______
-        = contingency_label
+    .l-print__item
+      - if @careplan.member_understands_contingency
+        [
+        = checkmark_or_x(true)
+        ]
+      - else
+        ______
+      = contingency_label
   - else
     = f.input :member_understands_contingency, label: contingency_label, disabled: @careplan.locked?, wrapper_html: {style: 'margin-bottom: 1em;'}
   .c-card__content.c-card__content--flush
