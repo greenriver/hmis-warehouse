@@ -48,7 +48,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   it 'returns project pick list' do
     response, result = post_graphql(pick_list_type: 'PROJECT') { query }
     expect(response.status).to eq 200
-    puts Hmis::Hud::Project.viewable_by(hmis_user).count
     options = result.dig('data', 'pickList')
     expect(options[0]['code']).to eq(p1.id.to_s)
     expect(options[0]['label']).to eq(p1.project_name)
