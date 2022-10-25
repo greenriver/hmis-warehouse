@@ -23,7 +23,7 @@ module Types
     field :household, HmisSchema::Household, null: false
     field :client, HmisSchema::Client, null: false
     field :relationship_to_ho_h, HmisSchema::Enums::RelationshipToHoH, null: false
-    field :living_situation, HmisSchema::Enums::LivingSituation, null: true
+    # field :living_situation, HmisSchema::Enums::LivingSituation, null: true
     field :length_of_stay, HmisSchema::Enums::LengthOfStay, null: true
     field :times_homeless_past_three_years, HmisSchema::Enums::TimesHomelessPastThreeYears, null: true
     field :months_homeless_past_three_years, HmisSchema::Enums::MonthsHomelessPastThreeYears, null: true
