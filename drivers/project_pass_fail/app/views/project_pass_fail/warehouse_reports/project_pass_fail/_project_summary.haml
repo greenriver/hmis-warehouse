@@ -1,5 +1,10 @@
 - accordion_class = if @pdf then '' else '' end
-%h3= link_to_if can_view_projects?, project.project&.name(current_user), project_path(project.project)
+.d-flex
+  %h3= link_to_if can_view_projects?, project.project&.name(current_user), project_path(project.project)
+  - if can_view_hud_reports? && project.apr_id.present?
+    .ml-auto.mb-4
+      = link_to 'APR', hud_reports_apr_path(project.apr_id), class: 'btn btn-sm btn-secondary'
+
 .well.page-break-after
   .d-flex.text-center.justify-content-center.mt-4
     .overall-utilization-rate.chunk.mr-auto.ml-4
