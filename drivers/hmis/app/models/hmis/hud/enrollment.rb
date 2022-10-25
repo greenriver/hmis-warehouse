@@ -22,6 +22,8 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   has_one :exit, **hmis_relation(:EnrollmentID, 'Exit')
   has_many :services, **hmis_relation(:EnrollmentID, 'Service')
   has_many :events, **hmis_relation(:EnrollmentID, 'Event')
+
+  # NOTE: this does not include WIP assessments
   has_many :assessments, **hmis_relation(:EnrollmentID, 'Assessment')
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :enrollments
@@ -38,6 +40,13 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     viewable_enrollment = e_t[:ProjectID].in(project_ids.map(&:second))
 
     left_outer_joins(:wip).where(viewable_wip.or(viewable_enrollment))
+  end
+
+  def assessments_including_wip
+    completed_assessments = as_t[:enrollment_id].eq(enrollment_id)
+    wip_assessments = wip_t[:enrollment_id].eq(id)
+
+    Hmis::Hud::Assessment.left_outer_joins(:wip).where(completed_assessments.or(wip_assessments))
   end
 
   scope :heads_of_households, -> do
@@ -80,6 +89,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     save!(validate: false)
     self.wip = Hmis::Wip.find_or_create_by(
       {
+        source: self,
         project_id: saved_project_id,
         client_id: client.id,
         date: entry_date,

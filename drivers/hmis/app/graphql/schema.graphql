@@ -707,7 +707,7 @@ type DeleteServicePayload {
 HUD Enrollment
 """
 type Enrollment {
-  assessments(limit: Int, offset: Int, sortOrder: AssessmentSortOption): AssessmentsPaginated!
+  assessments(limit: Int, offset: Int, role: AssessmentRole, sortOrder: AssessmentSortOption): AssessmentsPaginated!
   client: Client!
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime

@@ -19,6 +19,8 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
   has_many :enrollments, **hmis_relation(:PersonalID, 'Enrollment')
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :clients
+
+  # NOTE: this does not include project where the enrollment is WIP
   has_many :projects, through: :enrollments
   validates_with Hmis::Hud::Validators::ClientValidator
 

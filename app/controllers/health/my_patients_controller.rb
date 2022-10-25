@@ -11,6 +11,7 @@ module Health
     before_action :set_patients
     include ClientPathGenerator
     include HealthPatientDashboard
+    include ArelHelper
 
     def index
       @q = @patients.ransack(params[:q])
@@ -92,16 +93,25 @@ module Health
 
       patient_ids_with_payable_qas_in_month = population.
         joins(:qualifying_activities).
-        merge(Health::QualifyingActivity.payable.in_range(Date.current.beginning_of_month..Date.tomorrow)).
+        merge(Health::QualifyingActivity.payable.in_range(Date.current.beginning_of_month..Date.current.end_of_month)).
         pluck(:id)
 
       population.
+        # Assigned, and enrolled
         joins(:patient_referral).
         merge(Health::PatientReferral.assigned.not_disenrolled).
         or(
+          # Have an un-confirmed MassHealth pending disenrollment in the current month
           population.
             joins(:patient_referral).
             merge(Health::PatientReferral.pending_disenrollment.not_confirmed_rejected).
+            where(Arel.sql(datepart(Health::PatientReferral, 'month', hpr_t[:pending_disenrollment_date]).to_sql).eq(Date.current.month)),
+        ).
+        or(
+          # Have an un-confirmed rejection without a QA in the current month
+          population.
+            joins(:patient_referral).
+            merge(Health::PatientReferral.rejected.not_confirmed_rejected).
             where.not(id: patient_ids_with_payable_qas_in_month),
         )
     end

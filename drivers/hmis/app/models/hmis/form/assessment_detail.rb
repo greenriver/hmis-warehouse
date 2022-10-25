@@ -11,4 +11,8 @@ class Hmis::Form::AssessmentDetail < ::GrdaWarehouseBase
   belongs_to :definition
 
   use_enum :data_collection_stage_enum_map, ::HUD.data_collection_stages
+
+  scope :with_role, ->(role) do
+    where(role: role)
+  end
 end
