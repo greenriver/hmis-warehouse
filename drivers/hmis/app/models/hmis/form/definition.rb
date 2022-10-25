@@ -37,4 +37,36 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     definitions = definitions.where(version: version) if version.present?
     definitions.order(version: :desc).first
   end
+
+  def apply_conditionals(enrollment)
+    parsed = JSON.parse(definition)
+    client = enrollment.client
+    parsed['item'].delete_if { |item| irrelevant_item?(item, enrollment, client) }
+    self.definition = parsed.to_json
+  end
+
+  private def irrelevant_item?(item, enrollment, client)
+    condition = item['data_collected_about']
+    return !matches_condition(condition, enrollment, client) if condition.present?
+
+    # TODO: check project type condition
+    # TODO: check funder condition
+
+    item['item'].delete_if { |child| irrelevant_item?(child, enrollment, client) } if item['item'].present?
+
+    false
+  end
+
+  private def matches_condition(condition, enrollment, client)
+    case condition
+    when 'ALL_CLIENTS'
+      true
+    when 'HOH'
+      enrollment.RelationshipToHoH == 1
+    when 'HOH_AND_ADULTS'
+      enrollment.RelationshipToHoH == 1 || client.age >= 18
+    else
+      raise NotImplementedError
+    end
+  end
 end

@@ -39,7 +39,38 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           role
           status
           identifier
-          definition
+          definition {
+            item {
+              linkId
+              prefix
+              text
+              helperText
+              required
+              hidden
+              readOnly
+              repeats
+              queryField
+              pickListReference
+              pickListOptions {
+                code
+                label
+                secondaryLabel
+                groupLabel
+                initialSelected
+              }
+              enableBehavior
+              enableWhen {
+                question
+                operator
+                answerCode
+                answerNumber
+                answerBoolean
+              }
+              item {
+                linkId
+              }
+            }
+          }
         }
       }
     GRAPHQL

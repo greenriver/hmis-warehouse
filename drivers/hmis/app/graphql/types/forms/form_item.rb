@@ -1,0 +1,30 @@
+###
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
+module Types
+  class Forms::FormItem < Types::BaseObject
+    description 'A question or group of questions'
+
+    field :link_id, String, 'Unique identifier for item', null: false
+    field :data_collected_about, Types::Forms::Enums::DataCollectedAbout, 'HUD Data Collected About condition for this question or group', null: true
+    field :type, Types::Forms::Enums::ItemType, null: false
+    field :text, String, 'Primary text for the item', null: true
+    field :prefix, String, 'Prefix for the item label', null: true
+    field :helper_text, String, 'Helper text for the item', null: true
+    field :required, Boolean, 'Whether the item must be included in data results', null: true
+    field :hidden, Boolean, 'Whether the item should always be hidden', null: true
+    field :read_only, Boolean, 'Whether human editing is allowed', null: true
+    field :repeats, Boolean, 'Whether the item may repeat (for choice types, this means multiple choice)', null: true
+    field :pick_list_reference, String, 'Reference to value set of possible answer options', null: true
+    field :pick_list_options, [Forms::PickListOption], 'Permitted answers, for choice items', null: true
+    field :enable_behavior, Forms::Enums::EnableBehavior, null: true
+    field :enable_when, [Forms::EnableWhen], null: true
+    field :item, ['Types::Forms::FormItem'], 'Nested items', null: true
+    field :query_field, String, 'Name of the query input field that corresponds to this item. Only used for record creation/update forms, not for assessments.', null: true
+  end
+end

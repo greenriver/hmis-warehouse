@@ -88,6 +88,7 @@ jobs:
       WAREHOUSE_DATABASE_DB: warehouse_db
       HEALTH_DATABASE_DB: health_db
       REPORTING_DATABASE_DB: reporting_db
+      PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
 
     steps:
       - name: Checkout
