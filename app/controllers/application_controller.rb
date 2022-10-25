@@ -20,8 +20,10 @@ class ApplicationController < ActionController::Base
   include Pagy::Backend
   protect_from_forgery with: :exception
 
-  before_action :authenticate_user!, :set_sentry_user
+  before_action :authenticate_user!
   auto_session_timeout User.timeout_in
+
+  before_action :set_sentry_user
 
   before_action :set_paper_trail_whodunnit
   before_action :set_notification
@@ -285,6 +287,8 @@ class ApplicationController < ActionController::Base
   end
 
   def set_sentry_user
-    Sentry.configure_scope { |scope| scope.set_user(id: current_user.id, email: current_user.email) } if ENV['WAREHOUSE_SENTRY_DSN'].present? && defined?(current_user) && current_user.present?
+    return unless ENV['WAREHOUSE_SENTRY_DSN'].present?
+
+    Sentry.configure_scope { |scope| scope.set_user(id: current_user.id, email: current_user.email) } if Sentry.initialized? && defined?(current_user) && current_user.is_a?(User)
   end
 end

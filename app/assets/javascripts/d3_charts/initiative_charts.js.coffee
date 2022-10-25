@@ -100,11 +100,10 @@ class App.D3Chart.ZipMap extends App.D3Chart.ResponsiveBase
       @zoom.scaleBy(@svg, 1/2);
     )
     d3.json(@json_path, (error, us) =>
-      groupedTopo = d3.nest()
-        .key((d) => 
-          d.properties.ZIP
-        )
-        .entries(topojson.feature(us, us.objects.zip3).features)
+      groupedTopo = d3.group(
+        topojson.feature(us, us.objects.zip3).features,
+        (d) => d.properties.ZIP
+      );
       @zipData = []
       groupedTopo.forEach((d) =>
         matches = @zip3Data.filter((z) ->
@@ -215,8 +214,7 @@ class App.D3Chart.Pie extends App.D3Chart.ResponsiveBase
         )
       d
     )
-    @outerKeys = d3.nest().key((d) => d[0])
-      .entries(@bucket_totals)
+    @outerKeys = d3.group(@bucket_totals, (d) => d[0])
       .map((d) => d.key)
 
   _loadHelpers: () ->
@@ -352,8 +350,7 @@ class App.D3Chart.InitiativeLine extends App.D3Chart.ResponsiveBase
       d.push(date)
       @data.push(d)
     )
-    @grouped = d3.nest().key((d) => d[0])
-      .entries(@data)
+    @grouped = d3.group(@data, (d) => d[0])
     @rainbowFillScale = d3.scaleSequential().domain([0, @grouped.length]).interpolator(d3.interpolateViridis)
     @keys = @grouped.map((d) => d.key)
 
