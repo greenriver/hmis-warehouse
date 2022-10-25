@@ -139,18 +139,6 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   use_common_enum :veteran_status_enum_map, :no_yes_reasons
 
   def age(date = Date.current)
-    return unless self.DOB.present?
-
-    date = date.to_date
-    dob = self.DOB.to_date
-    self.class.age(date: date, dob: dob)
-  end
-
-  def self.age(date:, dob:)
-    return nil unless date.present? && dob.present?
-
-    age = date.year - dob.year
-    age -= 1 if dob > date.years_ago(age)
-    age
+    GrdaWarehouse::Hud::Client.age(date: date, dob: self.DOB)
   end
 end

@@ -64,7 +64,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     when 'HOH'
       enrollment.RelationshipToHoH == 1
     when 'HOH_AND_ADULTS'
-      enrollment.RelationshipToHoH == 1 || client.age > 18
+      enrollment.RelationshipToHoH == 1 || client.age >= 18
     else
       raise NotImplementedError
     end
