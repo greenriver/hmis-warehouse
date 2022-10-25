@@ -145,7 +145,6 @@ module Importing
         # GrdaWarehouse::DataSource.data_spans_by_id()
         # @notifier.ping('Data source date spans set') if @send_notifications
 
-        Rails.cache.clear
         warm_cache
 
         ReportingSetupJob.set(priority: 15).perform_later

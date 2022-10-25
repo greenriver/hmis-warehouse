@@ -20,7 +20,7 @@ module LongitudinalSpm::WarehouseReports
 
       @pagy, @reports = pagy(report_scope.ordered)
       @report = report_class.new(user_id: current_user.id)
-      previous_report = report_scope.last
+      previous_report = report_scope.where(user_id: current_user.id).last
       if previous_report
         @filter.update(previous_report.options)
       else
