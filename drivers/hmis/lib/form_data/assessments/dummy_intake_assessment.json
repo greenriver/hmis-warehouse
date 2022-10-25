@@ -325,8 +325,7 @@
             },
             {
               "question": "4.04.2",
-              "operator": "EQUAL",
-              "answer_code": null
+              "operator": "NOT_EXISTS"
             }
           ],
           "item": [
@@ -388,7 +387,7 @@
               "enable_when": [
                 {
                   "question": "4.04.12",
-                  "answerBoolean": true,
+                  "answer_boolean": true,
                   "operator": "EQUAL"
                 }
               ]
