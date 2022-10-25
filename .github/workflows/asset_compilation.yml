@@ -68,9 +68,6 @@ jobs:
         HEALTH_DATABASE_DB_TEST: health_test
         DATABASE_DB_TEST: cas_test
         REPORTING_DATABASE_DB_TEST: reporting_test
-        # Tell Puppeteer to skip installing Chrome. We'll be using the installed package.
-        PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
-        PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium-browser
       run: |
         apk add --no-cache \
           nodejs yarn \
