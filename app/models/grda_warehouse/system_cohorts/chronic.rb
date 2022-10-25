@@ -27,8 +27,6 @@ module GrdaWarehouse::SystemCohorts
         age_group(start_age: 0, end_age: 17).
         merge(GrdaWarehouse::Hud::Enrollment.where(HouseholdID: adult_ids.map(&:last) + hoh_ids.map(&:last))).
         pluck(:id)
-      GrdaWarehouse::Hud::Client.destination.joins(source_enrollments: :ch_enrollment).
-        merge(GrdaWarehouse::ChEnrollment.chronically_homeless)
       GrdaWarehouse::ServiceHistoryEnrollment.entry.where(client_id: adult_ids.map(&:first) + hoh_ids.map(&:first) + children_ids)
     end
   end
