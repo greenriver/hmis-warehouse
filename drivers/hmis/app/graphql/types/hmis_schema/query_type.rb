@@ -101,15 +101,32 @@ module Types
       Hmis::Hud::Funder.viewable_by(current_user).find_by(id: id)
     end
 
-    field :get_form_definition, Types::HmisSchema::FormDefinition, 'Get form assessment for enrollment & assessment role', null: true do
+    field :form_definition, Types::Forms::FormDefinition, 'Form definition lookup by identifier', null: true do
+      argument :identifier, String, required: true
+    end
+
+    def form_definition(identifier:)
+      Hmis::Form::Definition.where(identifier: identifier).order(version: :desc).first
+    end
+
+    field :get_form_definition, Types::Forms::FormDefinition, 'Get form definition for enrollment & assessment role', null: true do
       argument :enrollment_id, ID, required: true
       argument :assessment_role, Types::HmisSchema::Enums::AssessmentRole, required: true
     end
 
     def get_form_definition(enrollment_id:, assessment_role:)
       enrollment = Hmis::Hud::Enrollment.find_by(id: enrollment_id)
+      definition = enrollment&.project&.present? ? Hmis::Form::Definition.find_definition_for_project(enrollment.project, role: assessment_role) : nil
 
-      enrollment&.project&.present? ? Hmis::Form::Definition.find_definition_for_project(enrollment.project, role: assessment_role) : nil
+      definition.apply_conditionals(enrollment) if definition.present?
+      definition
+    end
+
+    field :pick_list, [Types::Forms::PickListOption], 'Get list of options for pick list', null: false do
+      argument :pick_list_type, Types::Forms::Enums::PickListType, required: true
+    end
+    def pick_list(pick_list_type:)
+      Types::Forms::PickListOption.options_for_type(pick_list_type, user: current_user)
     end
   end
 end

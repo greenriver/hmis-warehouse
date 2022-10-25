@@ -75,7 +75,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
                 role
                 status
                 identifier
-                definition
+                definition {
+                  item {
+                    linkId
+                  }
+                }
               }
               dataCollectionStage
               role
