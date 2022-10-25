@@ -181,7 +181,7 @@ module HmisDataQualityTool
       report_item.ch_at_entry = enrollment.chronically_homeless_at_start?
 
       hh = report.household(enrollment.HouseholdID)
-      hoh = hh.detect(&:head_of_household?) || enrollment.service_history_enrollment
+      hoh = hh&.detect(&:head_of_household?) || enrollment.service_history_enrollment
       # anniversary_date = anniversary_date(entry_date: hoh.first_date_in_program, report_end_date: report.end_date)
       hoh_annual_expected = annual_assessment_expected?(hoh)
 
@@ -242,11 +242,11 @@ module HmisDataQualityTool
         entry_income_assessment,
       )
       report_item.ncb_as_expected_at_annual = ncb_as_expected?(
-        report_item.income_at_entry_expected,
+        report_item.income_at_annual_expected,
         annual_income_assessment,
       )
       report_item.ncb_as_expected_at_exit = ncb_as_expected?(
-        report_item.income_at_entry_expected,
+        report_item.income_at_exit_expected,
         exit_income_assessment,
       )
 
@@ -255,19 +255,20 @@ module HmisDataQualityTool
       report_item.insurance_from_any_source_at_exit = exit_income_assessment&.InsuranceFromAnySource
 
       report_item.insurance_as_expected_at_entry = insurance_as_expected?(
-        report_item.income_at_entry_expected,
+        report_item.insurance_at_entry_expected,
         entry_income_assessment,
       )
       report_item.insurance_as_expected_at_annual = insurance_as_expected?(
-        report_item.income_at_entry_expected,
+        report_item.insurance_at_annual_expected,
         annual_income_assessment,
       )
       report_item.insurance_as_expected_at_exit = insurance_as_expected?(
-        report_item.income_at_entry_expected,
+        report_item.insurance_at_exit_expected,
         exit_income_assessment,
       )
 
-      report_item.disability_at_entry_collected = enrollment.disabilities_at_entry&.map(&:DisabilityResponse)&.all? { |dr| dr.in?([0, 1]) } || false
+      # NOTE: we may want to exclude HIV/AIDS from this calculation as it may not be asked everywhere
+      report_item.disability_at_entry_collected = enrollment.disabilities_at_entry&.map(&:DisabilityResponse)&.all? { |dr| dr.in?([0, 1, 2, 3]) } || false
 
       max_date = [report.filter.end, Date.current].min
       en_services = enrollment.services&.select { |s| s.DateProvided <= max_date }
@@ -335,8 +336,8 @@ module HmisDataQualityTool
       return false if assessment.blank?
 
       responses = assessment.values_at(*assessment.class::INSURANCE_TYPES)
-      return true if assessment.BenefitsFromAnySource == 1 && responses.include?(1)
-      return true if assessment.BenefitsFromAnySource&.zero? && responses.all?(0)
+      return true if assessment.InsuranceFromAnySource == 1 && responses.include?(1)
+      return true if assessment.InsuranceFromAnySource&.zero? && responses.all?(0)
 
       false
     end
@@ -382,6 +383,7 @@ module HmisDataQualityTool
             :move_in_date,
             :exit_date,
             :age,
+            :household_id,
             :relationship_to_hoh,
           ],
           denominator: ->(_item) { true },
@@ -415,7 +417,7 @@ module HmisDataQualityTool
           },
         },
         exit_date_issues: {
-          title: 'Exit before Entry',
+          title: 'Exit Before Entry',
           description: 'Enrollment exit date must occur after entry date',
           required_for: 'All',
           detail_columns: [
@@ -526,6 +528,7 @@ module HmisDataQualityTool
             :move_in_date,
             :exit_date,
             :age,
+            :household_id,
             :relationship_to_hoh,
             :head_of_household_count,
           ],
@@ -578,7 +581,7 @@ module HmisDataQualityTool
         },
         lot_es_90_issues: {
           title: 'Possible Missed Exit - ES, Time in Enrollment 90 Days or More',
-          description: 'There is an expectation that clients will not stay indefinitely in emergency shelter, these clients have been in shelter more than 90 days',
+          description: 'There is an expectation that clients will not stay indefinitely in emergency shelter, these clients have been in shelter 90 days or more',
           required_for: 'All in ES',
           detail_columns: [
             :destination_client_id,
@@ -599,12 +602,13 @@ module HmisDataQualityTool
           limiter: ->(item) {
             return false if item.exit_date.present?
 
-            item.lot > 90 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
+            item.lot >= 90 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
           },
+          es_stay_length: 90,
         },
         lot_es_180_issues: {
           title: 'Possible Missed Exit - ES, Time in Enrollment 180 Days or More',
-          description: 'There is an expectation that clients will not stay indefinitely in emergency shelter, these clients have been in shelter more than 180 days',
+          description: 'There is an expectation that clients will not stay indefinitely in emergency shelter, these clients have been in shelter 180 days or more',
           required_for: 'All in ES',
           detail_columns: [
             :destination_client_id,
@@ -625,12 +629,13 @@ module HmisDataQualityTool
           limiter: ->(item) {
             return false if item.exit_date.present?
 
-            item.lot > 180 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
+            item.lot >= 180 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
           },
+          es_stay_length: 180,
         },
         lot_es_365_issues: {
           title: 'Possible Missed Exit - ES, Time in Enrollment 365 Days or More',
-          description: 'There is an expectation that clients will not stay indefinitely in emergency shelter, these clients have been in shelter more than 365 days',
+          description: 'There is an expectation that clients will not stay indefinitely in emergency shelter, these clients have been in shelter 365 days or more',
           required_for: 'All in ES',
           detail_columns: [
             :destination_client_id,
@@ -651,12 +656,13 @@ module HmisDataQualityTool
           limiter: ->(item) {
             return false if item.exit_date.present?
 
-            item.lot > 365 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
+            item.lot >= 365 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
           },
+          es_stay_length: 365,
         },
         days_since_last_service_es_90_issues: {
           title: 'Possible Missed Exit - ES, No Service in 90 Days or More',
-          description: 'There is an expectation that clients will not stay indefinitely in emergency shelter, these clients have been in shelter more than 90 days',
+          description: 'There is an expectation that clients will be exited from emergency shelter if they haven\'t been seen, these clients have been in shelter for 90 days or more',
           required_for: 'All in ES',
           detail_columns: [
             :destination_client_id,
@@ -677,12 +683,13 @@ module HmisDataQualityTool
           limiter: ->(item) {
             return false if item.exit_date.present?
 
-            item.days_since_last_service > 90 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
+            item.days_since_last_service >= 90 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
           },
+          es_missed_exit_length: 90,
         },
         days_since_last_service_es_180_issues: {
           title: 'Possible Missed Exit - ES, No Service in 180 Days or More',
-          description: 'There is an expectation that clients will not stay indefinitely in emergency shelter, these clients have been in shelter more than 180 days',
+          description: 'There is an expectation that clients will be exited from emergency shelter if they haven\'t been seen, these clients have been in shelter for 180 days or more',
           required_for: 'All in ES',
           detail_columns: [
             :destination_client_id,
@@ -703,12 +710,13 @@ module HmisDataQualityTool
           limiter: ->(item) {
             return false if item.exit_date.present?
 
-            item.days_since_last_service > 180 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
+            item.days_since_last_service >= 180 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
           },
+          es_missed_exit_length: 180,
         },
         days_since_last_service_es_365_issues: {
           title: 'Possible Missed Exit - ES, No Service in 365 Days or More',
-          description: 'There is an expectation that clients will not stay indefinitely in emergency shelter, these clients have been in shelter more than 365 days',
+          description: 'There is an expectation that clients will be exited from emergency shelter if they haven\'t been seen, these clients have been in shelter for 365 days or more',
           required_for: 'All in ES',
           detail_columns: [
             :destination_client_id,
@@ -729,12 +737,13 @@ module HmisDataQualityTool
           limiter: ->(item) {
             return false if item.exit_date.present?
 
-            item.days_since_last_service > 365 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
+            item.days_since_last_service >= 365 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
           },
+          es_missed_exit_length: 365,
         },
         days_since_last_service_so_90_issues: {
           title: 'Possible Missed Exit - SO, Time in Enrollment 90 Days or More',
-          description: 'There is an expectation that clients will not stay indefinitely in street outreach, these clients have been in street outreach with no current living situation collected for more than 90 days',
+          description: 'There is an expectation that clients will not stay indefinitely in street outreach, these clients have been in street outreach with no current living situation collected for 90 days or more',
           required_for: 'All in SO',
           detail_columns: [
             :destination_client_id,
@@ -755,12 +764,13 @@ module HmisDataQualityTool
           limiter: ->(item) {
             return false if item.exit_date.present?
 
-            item.days_since_last_service > 90 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:so].include?(item.project_type)
+            item.days_since_last_service >= 90 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:so].include?(item.project_type)
           },
+          so_missed_exit_length: 90,
         },
         days_since_last_service_so_180_issues: {
           title: 'Possible Missed Exit - SO, Time in Enrollment 180 Days or More',
-          description: 'There is an expectation that clients will not stay indefinitely in street outreach, these clients have been in street outreach with no current living situation collected for more than 180 days',
+          description: 'There is an expectation that clients will not stay indefinitely in street outreach, these clients have been in street outreach with no current living situation collected for 180 days or more',
           required_for: 'All in SO',
           detail_columns: [
             :destination_client_id,
@@ -781,12 +791,13 @@ module HmisDataQualityTool
           limiter: ->(item) {
             return false if item.exit_date.present?
 
-            item.days_since_last_service > 180 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:so].include?(item.project_type)
+            item.days_since_last_service >= 180 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:so].include?(item.project_type)
           },
+          so_missed_exit_length: 180,
         },
         days_since_last_service_so_365_issues: {
           title: 'Possible Missed Exit - SO, Time in Enrollment 365 Days or More',
-          description: 'There is an expectation that clients will not stay indefinitely in street outreach, these clients have been in street outreach with no current living situation collected for more than 365 days',
+          description: 'There is an expectation that clients will not stay indefinitely in street outreach, these clients have been in street outreach with no current living situation collected for 365 days or more',
           required_for: 'All in SO',
           detail_columns: [
             :destination_client_id,
@@ -807,12 +818,13 @@ module HmisDataQualityTool
           limiter: ->(item) {
             return false if item.exit_date.present?
 
-            item.days_since_last_service > 365 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:so].include?(item.project_type)
+            item.days_since_last_service >= 365 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:so].include?(item.project_type)
           },
+          so_missed_exit_length: 365,
         },
         days_in_ph_prior_to_move_in_90_issues: {
           title: 'Possible Missed Move In Date - PH, Time in Enrollment 90 Days or More',
-          description: 'There is an expectation that clients in PH will eventually move into housing, these clients have been in PH without a move-in date more than 90 days, or have an invalid move-in date ',
+          description: 'There is an expectation that clients in PH will eventually move into housing, these clients have been in PH without a move-in date 90 days ore more, or have an invalid move-in date ',
           required_for: 'Adults and HoH in PH',
           detail_columns: [
             :destination_client_id,
@@ -835,12 +847,13 @@ module HmisDataQualityTool
             return false unless hoh_or_adult?(item)
             return false if item.move_in_date.present? && item.move_in_date >= item.entry_date && (item.exit_date.blank? || item.move_in_date <= item.exit_date)
 
-            item.lot > 90 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
+            item.lot >= 90 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
           },
+          ph_missed_exit_length: 90,
         },
         days_in_ph_prior_to_move_in_180_issues: {
           title: 'Possible Missed Move In Date - PH, Time in Enrollment 180 Days or More',
-          description: 'There is an expectation that clients in PH will eventually move into housing, these clients have been in PH without a move-in date more than 180 days, or have an invalid move-in date',
+          description: 'There is an expectation that clients in PH will eventually move into housing, these clients have been in PH without a move-in date 180 days ore more, or have an invalid move-in date',
           required_for: 'Adults and HoH in PH',
           detail_columns: [
             :destination_client_id,
@@ -863,12 +876,13 @@ module HmisDataQualityTool
             return false unless hoh_or_adult?(item)
             return false if item.move_in_date.present? && item.move_in_date >= item.entry_date && (item.exit_date.blank? || item.move_in_date <= item.exit_date)
 
-            item.lot > 180 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
+            item.lot >= 180 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
           },
+          ph_missed_exit_length: 180,
         },
         days_in_ph_prior_to_move_in_365_issues: {
           title: 'Possible Missed Move In Date - PH, Time in Enrollment 365 Days or More',
-          description: 'There is an expectation that clients in PH will eventually move into housing, these clients have been in PH without a move-in date more than 365 days, or have an invalid move-in date',
+          description: 'There is an expectation that clients in PH will eventually move into housing, these clients have been in PH without a move-in date 365 days or more, or have an invalid move-in date',
           required_for: 'Adults and HoH in PH',
           detail_columns: [
             :destination_client_id,
@@ -891,8 +905,9 @@ module HmisDataQualityTool
             return false unless hoh_or_adult?(item)
             return false if item.move_in_date.present? && item.move_in_date >= item.entry_date && (item.exit_date.blank? || item.move_in_date <= item.exit_date)
 
-            item.lot > 365 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
+            item.lot >= 365 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
           },
+          ph_missed_exit_length: 365,
         },
         move_in_prior_to_start_issues: {
           title: 'Move-In Before Entry Date',
@@ -972,8 +987,10 @@ module HmisDataQualityTool
           limiter: ->(item) {
             start_date = item.project_operating_start_date || '2000-01-01'.to_date
             end_date = item.project_operating_end_date || Date.current
-            ! item.entry_date.between?(start_date, end_date) &&
-            (item.exit_date.present? && ! item.exit_date.between?(start_date, end_date))
+            entry_date_in_range = item.entry_date.between?(start_date, end_date)
+            exit_date_blank_or_in_range = item.exit_date.blank? || item.exit_date.between?(start_date, end_date)
+            # if either occurs outside of the range, flag the enrollment
+            ! entry_date_in_range || ! exit_date_blank_or_in_range
           },
         },
         dv_at_entry: {
@@ -1152,7 +1169,7 @@ module HmisDataQualityTool
         },
         cash_income_as_expected_at_entry: {
           title: 'Cash Income Matches Expected Value at Entry',
-          description: 'Cash income should be present if income from any source was indicated at entry',
+          description: 'Cash Income from any source at entry is yes, but no cash income sources are identified, or cash income form any source is no, but cash income sources are identified, or cash income information is missing.',
           required_for: 'Adults and HoH',
           detail_columns: [
             :destination_client_id,
@@ -1177,7 +1194,7 @@ module HmisDataQualityTool
         },
         cash_income_as_expected_at_annual: {
           title: 'Cash Income Matches Expected Value at Annual Assessment',
-          description: 'Cash income should be present if income from any source was indicated at annual assessment',
+          description: 'Cash Income from any source at annual assessment is yes, but no cash income sources are identified, or cash income form any source is no, but cash income sources are identified, or cash income information is missing.',
           required_for: 'Adults and HoH staying longer than 1 year',
           detail_columns: [
             :destination_client_id,
@@ -1202,7 +1219,7 @@ module HmisDataQualityTool
         },
         cash_income_as_expected_at_exit: {
           title: 'Cash Income Matches Expected Value at Exit',
-          description: 'Cash income should be present if income from any source was indicated at exit',
+          description: 'Cash Income from any source at exit is yes, but no cash income sources are identified, or cash income form any source is no, but cash income sources are identified, or cash income information is missing.',
           required_for: 'Adults and HoH exiting during report range',
           detail_columns: [
             :destination_client_id,
@@ -1227,7 +1244,7 @@ module HmisDataQualityTool
         },
         ncb_as_expected_at_entry: {
           title: 'Non-Cash Benefits Matches Expected Value at Entry',
-          description: 'Non-cash benefits should be present if NCB from any source indicated at entry',
+          description: 'Non-cash benefits from any source at entry is yes, but no Non-cash benefit sources are identified, or Non-cash benefit form any source is no, but Non-cash benefit sources are identified, or Non-cash benefit information is missing.',
           required_for: 'Adults and HoH',
           detail_columns: [
             :destination_client_id,
@@ -1252,7 +1269,7 @@ module HmisDataQualityTool
         },
         ncb_as_expected_at_annual: {
           title: 'Non-Cash Benefits Matches Expected Value at Annual Assessment',
-          description: 'Income from any source at annual assessment is not 99 or blank',
+          description: 'Non-cash benefits from any source at annual assessment is yes, but no Non-cash benefit sources are identified, or Non-cash benefit form any source is no, but Non-cash benefit sources are identified, or Non-cash benefit information is missing.',
           required_for: 'Adults and HoH staying longer than 1 year',
           detail_columns: [
             :destination_client_id,
@@ -1277,7 +1294,7 @@ module HmisDataQualityTool
         },
         ncb_as_expected_at_exit: {
           title: 'Non-Cash Benefits Matches Expected Value at Exit',
-          description: 'Income from any source at exit is not 99 or blank',
+          description: 'Non-cash benefits from any source at exit is yes, but no Non-cash benefit sources are identified, or Non-cash benefit form any source is no, but Non-cash benefit sources are identified, or Non-cash benefit information is missing.',
           required_for: 'Adults and HoH exiting during report range',
           detail_columns: [
             :destination_client_id,
@@ -1302,8 +1319,8 @@ module HmisDataQualityTool
         },
         insurance_as_expected_at_entry: {
           title: 'Insurance Matches Expected Value at Entry',
-          description: 'Income from any source at entry is not 99 or blank',
-          required_for: 'Adults and HoH',
+          description: 'Insurance from any source at entry is yes, but no insurance sources are identified, or insurance form any source is no, but insurance sources are identified, or insurance information is missing.',
+          required_for: 'All',
           detail_columns: [
             :destination_client_id,
             :hmis_enrollment_id,
@@ -1327,8 +1344,8 @@ module HmisDataQualityTool
         },
         insurance_as_expected_at_annual: {
           title: 'Insurance Matches Expected Value at Annual Assessment',
-          description: 'Income from any source at annual assessment is not 99 or blank',
-          required_for: 'Adults and HoH staying longer than 1 year',
+          description: 'Insurance from any source at annual assessment is yes, but no insurance sources are identified, or insurance form any source is no, but insurance sources are identified, or insurance information is missing.',
+          required_for: 'All staying longer than 1 year',
           detail_columns: [
             :destination_client_id,
             :hmis_enrollment_id,
@@ -1352,8 +1369,8 @@ module HmisDataQualityTool
         },
         insurance_as_expected_at_exit: {
           title: 'Insurance Matches Expected Value at Exit',
-          description: 'Income from any source at exit is not 99 or blank',
-          required_for: 'Adults and HoH exiting during report range',
+          description: 'Insurance from any source at exit is yes, but no insurance sources are identified, or insurance form any source is no, but insurance sources are identified, or insurance information is missing.',
+          required_for: 'All exiting during report range',
           detail_columns: [
             :destination_client_id,
             :hmis_enrollment_id,
@@ -1374,6 +1391,28 @@ module HmisDataQualityTool
 
             ! item.insurance_as_expected_at_exit
           },
+        },
+        disability_at_entry_collected: {
+          title: 'Disability at entry',
+          description: 'None of the disabilities collected at entry were missing or 99.',
+          required_for: 'All',
+          detail_columns: [
+            :destination_client_id,
+            :hmis_enrollment_id,
+            :personal_id,
+            :project_name,
+            :exit_id,
+            :entry_date,
+            :move_in_date,
+            :exit_date,
+            :age,
+            :relationship_to_hoh,
+            :disability_at_entry_collected,
+            :disabling_condition,
+            :has_disability,
+          ],
+          denominator: ->(_item) { true },
+          limiter: ->(item) { ! item.disability_at_entry_collected },
         },
       }.freeze
     end

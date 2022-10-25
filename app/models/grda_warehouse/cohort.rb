@@ -335,6 +335,7 @@ module GrdaWarehouse
         ::CohortColumns::DateAddedToCohort.new,
         ::CohortColumns::PreviousRemovalReason.new,
         ::CohortColumns::HealthPrioritized.new,
+        ::CohortColumns::MostRecentDateToStreet.new,
         ::CohortColumns::UserString1.new,
         ::CohortColumns::UserString2.new,
         ::CohortColumns::UserString3.new,
@@ -492,6 +493,7 @@ module GrdaWarehouse
           missing_documents: missing_documents(cc.client),
           days_homeless_plus_overrides: days_homeless_plus_overrides(cc.client),
           individual_in_most_recent_homeless_enrollment: individual_in_most_recent_homeless_enrollment(cc.client),
+          most_recent_date_to_street: most_recent_date_to_street(cc.client),
         }
         cc.update(data)
       end
@@ -533,6 +535,11 @@ module GrdaWarehouse
     private def individual_in_most_recent_homeless_enrollment(client)
       most_recent_enrollment = client.service_history_enrollments.entry.homeless.order(first_date_in_program: :desc).first
       most_recent_enrollment&.presented_as_individual
+    end
+
+    private def most_recent_date_to_street(client)
+      most_recent_enrollment = client.service_history_enrollments.entry.homeless.order(first_date_in_program: :desc).first
+      most_recent_enrollment&.enrollment&.DateToStreetESSH
     end
 
     private def related_users(client)

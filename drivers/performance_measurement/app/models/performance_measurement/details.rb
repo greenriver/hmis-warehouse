@@ -126,6 +126,10 @@ module PerformanceMeasurement::Details
       detail_for(key.to_sym).try(:[], :goal_unit) || ''
     end
 
+    def detail_pit_types(key)
+      detail_for(key.to_sym).try(:[], :pit_types)
+    end
+
     def my_projects(user, key)
       project_details(user, key).select do |project_id, _|
         user.viewable_project_ids.include?(project_id)
@@ -281,6 +285,7 @@ module PerformanceMeasurement::Details
             'served_on_pit_date_sheltered',
             'served_on_pit_date_unsheltered',
           ],
+          pit_types: [:unsheltered, :sheltered],
         },
         count_of_homeless_clients_in_range: {
           category: 'Rare',
@@ -301,6 +306,7 @@ module PerformanceMeasurement::Details
             'served_on_pit_date_sheltered',
             'served_on_pit_date_unsheltered',
           ],
+          pit_types: [:unsheltered, :sheltered],
         },
         count_of_sheltered_homeless_clients: {
           category: 'Rare',
@@ -323,6 +329,7 @@ module PerformanceMeasurement::Details
             'served_on_pit_date_sheltered',
             'served_on_pit_date_unsheltered',
           ],
+          pit_types: [:sheltered],
         },
         count_of_unsheltered_homeless_clients: {
           category: 'Rare',
@@ -344,6 +351,7 @@ module PerformanceMeasurement::Details
             'served_on_pit_date_sheltered',
             'served_in_range_unsheltered',
           ],
+          pit_types: [:unsheltered],
         },
         first_time_homeless_clients: {
           category: 'Rare',
@@ -502,7 +510,7 @@ module PerformanceMeasurement::Details
           year_over_year_change: false,
           title: 'Length of Time Homeless in ES, SH and TH',
           goal_description: 'Persons in the CoC will have an average combined length of time homeless in ES, SH, and TH of **no more than %{goal} days**.',
-          goal_description_brief: 'average days',
+          goal_description_brief: 'days',
           goal_direction: '< ',
           goal_unit: '',
           goal_calculation: :time_time,
@@ -522,7 +530,7 @@ module PerformanceMeasurement::Details
           year_over_year_change: false,
           title: 'Length of Time Homeless in ES, SH and TH',
           goal_description: 'Persons in the CoC will have a median combined length of time homeless in ES, SH, and TH of **no more than %{goal} days**.',
-          goal_description_brief: 'median days',
+          goal_description_brief: 'days',
           goal_direction: '< ',
           goal_unit: '',
           goal_calculation: :time_time,
@@ -542,6 +550,7 @@ module PerformanceMeasurement::Details
           year_over_year_change: false,
           title: 'Length of Time Homeless in ES, SH, TH, and PH',
           goal_description: 'Persons in the CoC will have an average combined length of time homeless in ES, SH, TH and PH prior to move-in of **no more than %{goal} days**.',
+          goal_description_brief: 'days',
           goal_direction: '< ',
           goal_unit: '',
           goal_calculation: :time_time,
@@ -580,7 +589,7 @@ module PerformanceMeasurement::Details
           year_over_year_change: false,
           title: 'Length of Homeless Stay',
           goal_description: 'Persons in the CoC will have an average combined length of stay of **no more than %{goal} days** in a homeless project (SO, ES, SH, or TH).',
-          goal_description_brief: 'average days',
+          goal_description_brief: 'days',
           goal_direction: '< ',
           goal_unit: '',
           goal_calculation: :time_stay,
@@ -617,7 +626,7 @@ module PerformanceMeasurement::Details
           year_over_year_change: false,
           title: 'Length of Homeless Stay',
           goal_description: 'Persons in the CoC will have a median combined length of stay of **no more than %{goal} days** in a homeless project (SO, ES, SH, or TH).',
-          goal_description_brief: 'median days',
+          goal_description_brief: 'days',
           goal_direction: '< ',
           goal_unit: '',
           goal_calculation: :time_stay,
@@ -654,7 +663,7 @@ module PerformanceMeasurement::Details
           year_over_year_change: false,
           title: 'Length of Time to Move-In',
           goal_description: 'Persons in the CoC will have an average length of time in PH prior to move-in of **no more than %{goal} days**.',
-          goal_description_brief: 'average days',
+          goal_description_brief: 'days',
           goal_direction: '< ',
           goal_unit: '',
           goal_calculation: :time_move_in,
@@ -672,7 +681,7 @@ module PerformanceMeasurement::Details
           year_over_year_change: false,
           title: 'Length of Time to Move-In',
           goal_description: 'Persons in the CoC will have a median length of time in PH prior to move-in of **no more than %{goal} days**.',
-          goal_description_brief: 'median days',
+          goal_description_brief: 'days',
           goal_direction: '< ',
           goal_unit: '',
           goal_calculation: :time_move_in,

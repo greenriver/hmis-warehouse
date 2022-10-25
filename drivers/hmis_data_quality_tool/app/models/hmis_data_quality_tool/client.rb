@@ -30,11 +30,11 @@ module HmisDataQualityTool
         transgender: { title: 'Transgender', translator: ->(v) { HUD.no_yes_missing(v) } },
         questioning: { title: 'Questioning', translator: ->(v) { HUD.no_yes_missing(v) } },
         gender_none: { title: 'Gender None', translator: ->(v) { HUD.gender_none(v) } },
-        am_ind_ak_native: { title: 'American Indian, Alaska Native, or Indigenous', translator: ->(v) { HUD.no_yes_missing(v) } },
-        asian: { title: 'Asian or Asian American', translator: ->(v) { HUD.no_yes_missing(v) } },
-        black_af_american: { title: 'Black, African American, or African', translator: ->(v) { HUD.no_yes_missing(v) } },
-        native_hi_pacific: { title: 'Native Hawaiian or Pacific Islander', translator: ->(v) { HUD.no_yes_missing(v) } },
-        white: { title: 'White', translator: ->(v) { HUD.no_yes_missing(v) } },
+        am_ind_ak_native: { title: 'American Indian, Alaska Native, or Indigenous', translator: ->(v) { HUD.no_yes_missing(v&.to_i) } },
+        asian: { title: 'Asian or Asian American', translator: ->(v) { HUD.no_yes_missing(v&.to_i) } },
+        black_af_american: { title: 'Black, African American, or African', translator: ->(v) { HUD.no_yes_missing(v&.to_i) } },
+        native_hi_pacific: { title: 'Native Hawaiian or Pacific Islander', translator: ->(v) { HUD.no_yes_missing(v&.to_i) } },
+        white: { title: 'White', translator: ->(v) { HUD.no_yes_missing(v&.to_i) } },
         race_none: { title: 'Race None', translator: ->(v) { HUD.race_none(v) } },
         ethnicity: { title: 'Ethnicity', translator: ->(v) { HUD.ethnicity(v) } },
         veteran_status: { title: 'Veteran Status', translator: ->(v) { HUD.no_yes_reasons_for_missing_data(v) } },
@@ -106,6 +106,7 @@ module HmisDataQualityTool
       report_item.last_name = client.LastName
       report_item.name_data_quality = client.NameDataQuality
       report_item.dob = client.DOB
+      report_item.dob_data_quality = client.DOBDataQuality
       # for simplicity, since we don't have a specific enrollment, calculate age as of the end of the reporting period
       report_item.reporting_age = client.age_on(report.filter.end)
       report_item.personal_id = client.PersonalID
@@ -129,10 +130,12 @@ module HmisDataQualityTool
       # we need these for calculations, but don't want to store them permanently,
       # also, limit them to those that overlap the projects included and the date range of the report
       report_item.enrollments = client.source_enrollments.select do |en|
-        en.open_during_range?(report.filter.range) && en.project.id.in?(report.filter.effective_project_ids)
+        # sometimes this loads source enrollments that are missing a project
+        en.open_during_range?(report.filter.range) && en.project&.id&.in?(report.filter.effective_project_ids)
       end.uniq
       report_item.overlapping_entry_exit = overlapping_entry_exit(enrollments: report_item.enrollments, report: report)
       report_item.overlapping_nbn = overlapping_nbn(enrollments: report_item.enrollments, report: report)
+      # NOTE: this is incorrectly named, this is homeless overlapping PH post move-in
       report_item.overlapping_pre_move_in = overlapping_homeless_post_move_in(enrollments: report_item.enrollments, report: report)
       report_item.overlapping_post_move_in = overlapping_post_move_in(enrollments: report_item.enrollments, report: report)
       report_item.ch_at_most_recent_entry = report_item.enrollments&.max_by(&:EntryDate)&.chronically_homeless_at_start?
@@ -200,29 +203,25 @@ module HmisDataQualityTool
       end
       return 0 if involved_enrollments.blank?
 
-      overlaps = Set.new
-      # see if there are any dates of service within the housed date ranges
-      homeless_enrollments.each do |h_en|
-        involved_enrollments.each do |en|
-          # we're only looking for overlaps with housing
-          next unless en.MoveInDate.present?
-
-          end_date = en.exit&.ExitDate || report.filter.end
-          if h_en.project&.es? && h_en.project&.bed_night_tracking?
-            overlaps += h_en.services.where(RecordType: 200, DateProvided: [en.MoveInDate, end_date]).pluck(:DateProvided)
-            # h_en.services.each do |service|
-            #   overlaps << service.DateProvided if service.DateProvided.between?(en.MoveInDate, end_date) && service.bed_night?
-            # end
-          else
-            homeless_range = (h_en.EntryDate...(h_en.exit&.ExitDate || report.filter.end))
-            housed_range = (en.MoveInDate...end_date)
-            homeless_range.to_a & housed_range.to_a.each do |d|
-              overlaps << d
-            end
-          end
+      homeless_dates = homeless_enrollments.map do |h_en|
+        homeless_end_date = h_en.exit&.ExitDate || report.filter.end
+        if h_en.project&.es? && h_en.project&.bed_night_tracking?
+          h_en.services.where(RecordType: 200, DateProvided: [h_en.EntryDate, homeless_end_date]).pluck(:DateProvided)
+        else
+          h_en.EntryDate...homeless_end_date
         end
-      end
-      overlaps.count
+      end.map(&:to_a).flatten.uniq
+
+      housed_dates = involved_enrollments.map do |en|
+        # we're only looking for overlaps with housing
+        next nil unless en.MoveInDate.present?
+
+        end_date = en.exit&.ExitDate || report.filter.end
+        en.MoveInDate...end_date
+      end.compact.map(&:to_a).flatten.uniq
+
+      # Return the count of dates that exist in both homeless history and housed history
+      (homeless_dates & housed_dates).count
     end
 
     # compare each enrollment to every other one and see if there are overlaps
@@ -281,8 +280,8 @@ module HmisDataQualityTool
             ]
             return true if (values - HUD.yes_no_missing_options.keys).any?
 
-            # any are yes and GenderNone is present
-            return true if values.include?(1) && item.gender_none.present?
+            # any are yes and GenderNone is present and not 99
+            return true if values.include?(1) && item.gender_none.present? && item.gender_none != 99
 
             # all are no or not collected and GenderNone is not in 8, 9, 99
             return true if values.all? { |m| m.in?([0, 99]) } && ! item.gender_none.in?([8, 9, 99])
@@ -318,8 +317,8 @@ module HmisDataQualityTool
             ]
             return true if (values - HUD.yes_no_missing_options.keys).any?
 
-            # any are yes and RaceNone is present
-            return true if values.include?(1) && item.race_none.present?
+            # any are yes and RaceNone is present and isn't "not collected"
+            return true if values.include?(1) && item.race_none.present? && item.race_none != 99
 
             # all are no or not collected and RaceNone is not in 8, 9, 99
             return true if values.all? { |m| m.in?([0, 99]) } && ! item.race_none.in?([8, 9, 99])
@@ -357,7 +356,7 @@ module HmisDataQualityTool
         },
         ssn_issues: {
           title: 'Social Security Number',
-          description: 'SSN is blank but SSN Data Quality is 1, SSN is present but SSN Data Quality is not 1, or SSN Data Quality is 99 or blank, or SSN is all zeros',
+          description: 'SSN is blank but SSN Data Quality is 1, SSN is present but SSN Data Quality is not 1 or 2, or SSN Data Quality is 99 or blank, or SSN is all zeros',
           required_for: 'All',
           detail_columns: [
             :destination_client_id,
@@ -374,7 +373,7 @@ module HmisDataQualityTool
             # SSN is Blank, but indicated it should be there
             return true if item.ssn.blank? && item.ssn_data_quality == 1
             # SSN is present but DQ indicates it shouldn't be
-            return true if item.ssn.present? && ![1, 2].include?(item.ssn_data_quality)
+            return true if item.ssn.present? && ! item.ssn_data_quality.in?([1, 2])
             # SSN all zeros
             return true if (item.ssn =~ /^0+$/).present?
 
@@ -383,7 +382,7 @@ module HmisDataQualityTool
         },
         name_issues: {
           title: 'Name',
-          description: 'Fist or last name is blank but Name Data Quality is 1, name is present but Name Data Quality is not 1, or Name Data Quality is 99 or blank',
+          description: 'Fist or last name is blank but Name Data Quality is 1, name is present but Name Data Quality is not 1 or 2, or Name Data Quality is 99 or blank',
           required_for: 'All',
           detail_columns: [
             :destination_client_id,
@@ -399,7 +398,7 @@ module HmisDataQualityTool
             # Name is Blank, but indicated it should be there
             return true if [item.first_name, item.last_name].any?(nil) && item.name_data_quality == 1
             # Name is present but DQ indicates it shouldn't be
-            return true if [item.first_name, item.last_name].all?(&:present?) && item.name_data_quality != 1
+            return true if [item.first_name, item.last_name].all?(&:present?) && ! item.name_data_quality.in?([1, 2])
 
             false
           },
@@ -473,9 +472,10 @@ module HmisDataQualityTool
             item.overlapping_nbn > 1
           },
         },
+        # NOTE: this is incorrectly named, this is homeless overlapping PH post move-in
         overlapping_pre_move_in_issues: {
           title: 'Overlapping Homeless Service After Move-in in PH',
-          description: 'Client\'s receiving more than two overlapping homeless nights are included.',
+          description: 'Bed nights in ES, SH or TH must not overlap with days housed in RRH, PSH or OPH. Client\'s receiving more than two overlapping homeless nights are included.',
           required_for: 'Adults',
           detail_columns: [
             :destination_client_id,

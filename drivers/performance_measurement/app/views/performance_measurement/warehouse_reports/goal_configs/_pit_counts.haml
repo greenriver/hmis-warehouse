@@ -1,0 +1,25 @@
+.d-flex
+  .ml-auto.mb-4
+    = link_to new_performance_measurement_warehouse_reports_goal_config_pit_count_path(@goal), class: 'btn btn-secondary', data: { loads_in_ajax_modal: true } do
+      %i.icon-plus
+      Add PIT Count
+%p
+  You can optionally provide information from historic PIT counts.  These will be shown alongside the unsheltered and sheltered counts on the #{_('CoC Performance Measurement Dashboard')} report using the most-recently available PIT date that falls within the report range.
+- if @pit_counts.present?
+  .card.mb-4
+    %table.table.table-striped
+      %thead
+        %tr
+          %th PIT Date
+          %th Unsheltered Count
+          %th Sheltered Count
+          %th
+      %tbody
+        - @pit_counts.each do |pit|
+          %tr
+            %td= pit.pit_date
+            %td= pit.unsheltered
+            %td= pit.sheltered
+            %td
+              = link_to performance_measurement_warehouse_reports_goal_config_pit_count_path(@goal, pit), method: :delete, class: 'btn btn-sm btn-icon-only btn-danger', data: { confirm: "Are you sure you want to remove the PIT count from #{pit.pit_date}?"} do
+                %i.icon-cross

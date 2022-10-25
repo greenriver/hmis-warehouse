@@ -1,5 +1,6 @@
 - denominator_label = @report.detail_denominator_label_for(key)
 - numerator_label = @report.detail_numerator_label_for(key)
+- pit_count_types = @report.detail_pit_types(key)
 %h3.mb-6= @report.detail_title_for(key)
 .row
   .col-6
@@ -29,6 +30,13 @@
         - if @report.result_includes_median?(result.field)
           .performance-measurement__result-number.font-weight-bold.mt-4= median.primary_value.to_s
           .text-capitalize= median_unit
+      - if pit_count_types.present?
+        .col-sm-4
+        - pit_count_types.each do |type|
+          - if result.pit_count.present?
+            .col-sm-4
+              .performance-measurement__result-number.font-weight-bold.mt-4= result.pit_count.public_send(type)
+              .text-capitalize #{type.to_s.humanize} PIT Count
 
   .col-6
     %div
@@ -36,20 +44,20 @@
     - if denominator_label.present? && show_label_detail
       .card.p-3.mt-4
         .mb-0.d-flex
-          .mr-2 #{result.report_year}:
-          .mb-0
-            %strong= result.reporting_numerator
-            = numerator_label
-            of
-            %strong= result.reporting_denominator
-            = denominator_label
-        .mb-0.d-flex
           .mr-2 #{result.comparison_year}:
           .mb-0
             %strong= result.comparison_numerator
             = numerator_label
             of
             %strong= result.comparison_denominator
+            = denominator_label
+        .mb-0.d-flex
+          .mr-2 #{result.report_year}:
+          .mb-0
+            %strong= result.reporting_numerator
+            = numerator_label
+            of
+            %strong= result.reporting_denominator
             = denominator_label
 
 = content_for :page_js do
