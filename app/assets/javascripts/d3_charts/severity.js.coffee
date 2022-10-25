@@ -18,17 +18,17 @@ class App.D3Chart.Severity extends App.D3Chart.VerticalStackedBar
     @scale.icon = d3.scaleOrdinal().domain(@domain.icon).range(@range.icon)
     @stackData = @claims
 
-  _showTooltip: (data) ->
+  _showTooltip: (event, data, i) ->
     keys = @keys.slice().reverse()
     keys.unshift('group')
     labels = ['group']
-    super(data, keys, labels)
+    super(event, data, i, keys, labels)
     @tooltip.selectAll('.d3-tooltip__item')
       .append('span')
       .text((d) =>
         if d == 'group' then data[d] else Math.round(data[d])+'%'
       )
-    @_positionTooltip()
+    @_positionTooltip(event)
 
   _loadClaims: (claims)->
     result = []
@@ -75,15 +75,17 @@ class App.D3Chart.Severity extends App.D3Chart.VerticalStackedBar
     @chart.selectAll('g.y-axis__right .domain').remove()
     @chart.selectAll('g.y-axis__right .tick:first-child text').remove()
     @chart.selectAll('g.y-axis__right g.tick line').remove()
-    
+
     @chart.selectAll('g.y-axis .domain').remove()
     @chart.selectAll('g.y-axis .tick:first-child text').remove()
     ticks = @chart.selectAll('g.y-axis g.tick')
     that = @
     step = @scale.x.step()
     width = @scale.x.bandwidth()
-    x1 = @scale.x('Baseline') - (step-width) + 5
-    x22 = @scale.x('Implementation') + (width+(step-width)) - 5 
+    domains = @scale.x.domain()
+    x1 = @scale.x(domains[0]) - (step - width) + 5
+    x22 = @scale.x(domains[1]) + (width + (step - width)) - 5
+    # console.log(@scale, @scale.x.domain(), step, width, x1, x22)
     ticks.each((tick) ->
       tickEle = d3.select(this)
       tickEle.selectAll('line').remove()
@@ -157,7 +159,6 @@ class App.D3Chart.Severity extends App.D3Chart.VerticalStackedBar
       .keys(this.keys)
       .order(d3.stackOrderNone)
       .offset(d3.stackOffsetNone)
-    lineGenerator = d3.line()
     connectorSize = 2
     @chart.selectAll('path.connect')
       .data(stackGenerator(@stackData))
@@ -171,7 +172,7 @@ class App.D3Chart.Severity extends App.D3Chart.VerticalStackedBar
             y1 = @scale.y(d[0][1])
             y2 = @scale.y(d[1][1])
             line = [[x1-0.5, y1+connectorSize], [x2+0.5, y2+connectorSize]]
-            lineGenerator(line)
+            d3.line()(line)
           else
             ''
         )
@@ -188,7 +189,3 @@ class App.D3Chart.Severity extends App.D3Chart.VerticalStackedBar
     super
     @_drawConnectors()
     @legend.draw()
-
-
-
-

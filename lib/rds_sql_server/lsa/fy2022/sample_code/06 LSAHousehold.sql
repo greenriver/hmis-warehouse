@@ -10,7 +10,7 @@ FY2022 Changes
 
 	6.1 Get Unique Households and Population Identifiers for tlsa_Household
 */
-	delete from tlsa_Household
+	truncate table tlsa_Household
 
 	insert into tlsa_Household (HoHID, HHType
 		, HHChronic, HHVet, HHDisability, HHFleeingDV
@@ -626,7 +626,7 @@ FY2022 Changes
 /*
 	6.11 Get Dates Housed in PSH or RRH
 */
-	delete from sys_Time
+	truncate table sys_Time
 
 	insert into sys_Time (HoHID, HHType, sysDate, sysStatus, Step)
 	select distinct hhid.HoHID, hhid.ActiveHHType, cal.theDate
@@ -655,7 +655,7 @@ FY2022 Changes
 			else dateadd(dd, -1, hh.FirstEntry) end
 		, hh.Step = '6.12.1'
 	from tlsa_Household hh 
-	inner join lsa_Report rpt on rpt.ReportStart >= hh.FirstEntry
+	inner join lsa_Report rpt on rpt.ReportEnd >= hh.FirstEntry
 	where hh.Stat <> 5 
 		or (select top 1 hhid.EnrollmentID 
 			from tlsa_HHID hhid
@@ -696,7 +696,7 @@ FY2022 Changes
 	set hh.LastInactive = coalesce(lastDay.inactive, dateadd(dd, -1, rpt.LookbackDate))
 		, hh.Step = '6.12.3'
 	from tlsa_Household hh
-	inner join lsa_Report rpt on rpt.ReportStart >= hh.FirstEntry
+	inner join lsa_Report rpt on rpt.ReportEnd >= hh.FirstEntry
 	left outer join 
 		(select hh.HoHID, hh.HHType, max(cal.theDate) as inactive
 		  from tlsa_Household hh
@@ -982,7 +982,7 @@ from tlsa_Household hh
 	6.19 LSAHousehold
 */
 
-delete from lsa_Household
+truncate table lsa_Household
 insert into lsa_Household(RowTotal
 	, Stat, ReturnTime
 	, HHType, HHChronic, HHVet, HHDisability, HHFleeingDV, HoHRace, HoHEthnicity

@@ -20,7 +20,7 @@ module IncomeBenefitsReport::WarehouseReports
       @report = report_class.new(user_id: current_user.id)
       @report.filter = @filter
 
-      previous_report = report_scope.last
+      previous_report = report_scope.where(user_id: current_user.id).last
       if previous_report&.options&.key?('filters')
         @filter.update(previous_report.options['filters'])
       else

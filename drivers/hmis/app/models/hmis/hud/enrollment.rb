@@ -24,6 +24,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   has_many :events, **hmis_relation(:EnrollmentID, 'Event')
   has_many :assessments, **hmis_relation(:EnrollmentID, 'Assessment')
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
+  belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :enrollments
   has_one :wip, class_name: 'Hmis::Wip', as: :source
 
   use_enum :relationships_to_hoh_enum_map, ::HUD.relationships_to_hoh

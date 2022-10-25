@@ -89,12 +89,22 @@ module HmisStructure::EnrollmentCoc
       {
         [:DateCreated] => nil,
         [:DateUpdated] => nil,
-        [:DateDeleted] => nil,
         [:EnrollmentID] => nil,
         [:PersonalID] => nil,
         [:EnrollmentCoCID] => nil,
         [:CoCCode] => nil,
         [:ExportID] => nil,
+        [:DateDeleted, :InformationDate] => {
+          include: [
+            :HouseholdID,
+            :CoCCode,
+          ],
+        },
+        [:EnrollmentID, :InformationDate, :DateDeleted] => {
+          include: [
+            :CoCCode,
+          ],
+        },
       }
     end
   end

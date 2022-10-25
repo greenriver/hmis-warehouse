@@ -193,9 +193,7 @@ class App.D3Chart.RRHOverview extends App.D3Chart.RRHBase
     }
 
   _loadDomain: ->
-    years = d3.nest()
-      .key((d) -> d.month_year.getFullYear())
-      .entries(@allData)
+    years = d3.group(@allData, (d) -> d.month_year.getFullYear())
       .map((d) -> new Date(d.key, 0, 1))
       .sort((a, b) -> (b - a) * -1)
       .map((d) -> d.getFullYear())
@@ -283,9 +281,7 @@ class App.D3Chart.RRHOutcome extends App.D3Chart.RRHBase
 
   _loadDomain: ->
     {
-      color: d3.nest()
-        .key((d) -> d.outcome)
-        .entries(@allData)
+      color: d3.group(@allData, (d) -> d.outcome)
         .map((d) -> d.key)
     }
 
@@ -357,9 +353,7 @@ class App.D3Chart.RRHDemographics extends App.D3Chart.RRHBase
 
   _loadDomain: ->
     {
-      x: d3.nest()
-        .key((d) -> d.race)
-        .entries(@allData)
+      x: d3.group(@allData, (d) -> d.race)
         .map((d) -> d.key)
       y:[0, d3.max(@allData, (d) -> d.freq)],
       color: ['full-population', 'housed']

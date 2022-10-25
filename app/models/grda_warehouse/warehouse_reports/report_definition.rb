@@ -1267,6 +1267,13 @@ module GrdaWarehouse::WarehouseReports
           limitable: true,
           health: false,
         }
+        r_list['Data Quality'] << {
+          url: 'hmis_data_quality_tool/warehouse_reports/goal_configs',
+          name: "#{HmisDataQualityTool::Report.new.title} Configurator",
+          description: 'Set per-CoC HMIS Data Quality Goals',
+          limitable: false,
+          health: false,
+        }
       end
 
       r_list
@@ -1332,7 +1339,10 @@ module GrdaWarehouse::WarehouseReports
         cleanup << 'ce_performance/warehouse_reports/reports'
         cleanup << 'ce_performance/warehouse_reports/goal_configs'
       end
-      cleanup << 'hmis_data_quality_tool/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:hmis_data_quality_tool)
+      unless RailsDrivers.loaded.include?(:hmis_data_quality_tool)
+        cleanup << 'hmis_data_quality_tool/warehouse_reports/reports'
+        cleanup << 'hmis_data_quality_tool/warehouse_reports/goal_configs'
+      end
 
       cleanup.each do |url|
         GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: url).delete_all

@@ -1,8 +1,8 @@
 FactoryBot.define do
   factory :hmis_hud_project, class: 'Hmis::Hud::Project' do
-    association :data_source, factory: :hmis_data_source
+    data_source { association :hmis_data_source }
+    user { association :hmis_hud_user, data_source: data_source }
     sequence(:ProjectID, 200)
-    sequence(:UserID, 100)
     DateCreated { Date.parse('2019-01-01') }
     DateUpdated { Date.parse('2019-01-01') }
     ProjectName { 'Project' }

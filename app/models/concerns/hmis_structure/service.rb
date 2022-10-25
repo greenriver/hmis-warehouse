@@ -169,6 +169,16 @@ module HmisStructure::Service
         [:EnrollmentID] => nil,
         [:EnrollmentID, :PersonalID] => nil,
         [:EnrollmentID, :RecordType, :DateDeleted, :DateProvided] => nil,
+        [:EnrollmentID, :RecordType, :DateDeleted] => {
+          include: [
+            :DateProvided,
+          ],
+        },
+        [:RecordType, :DateDeleted, :DateProvided] => {
+          include: [
+            :EnrollmentID,
+          ],
+        },
         [:PersonalID] => nil,
         [:PersonalID, :RecordType, :EnrollmentID, :DateProvided] => nil,
         [:ServicesID] => nil,
