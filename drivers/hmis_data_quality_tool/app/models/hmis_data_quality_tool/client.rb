@@ -130,7 +130,8 @@ module HmisDataQualityTool
       # we need these for calculations, but don't want to store them permanently,
       # also, limit them to those that overlap the projects included and the date range of the report
       report_item.enrollments = client.source_enrollments.select do |en|
-        en.open_during_range?(report.filter.range) && en.project.id.in?(report.filter.effective_project_ids)
+        # sometimes this loads source enrollments that are missing a project
+        en.open_during_range?(report.filter.range) && en.project&.id&.in?(report.filter.effective_project_ids)
       end.uniq
       report_item.overlapping_entry_exit = overlapping_entry_exit(enrollments: report_item.enrollments, report: report)
       report_item.overlapping_nbn = overlapping_nbn(enrollments: report_item.enrollments, report: report)

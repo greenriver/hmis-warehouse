@@ -19,7 +19,7 @@ module CePerformance::WarehouseReports
       @pagy, @reports = pagy(report_scope.ordered)
       @report = report_class.new(user_id: current_user.id)
       @filter.default_project_type_codes = @report.default_project_type_codes
-      previous_report = report_scope.last
+      previous_report = report_scope.where(user_id: current_user.id).last
       @filter.update(previous_report.options) if previous_report
 
       # Make sure the form will work

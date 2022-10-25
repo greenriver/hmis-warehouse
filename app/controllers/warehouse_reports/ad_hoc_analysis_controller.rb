@@ -16,7 +16,7 @@ module WarehouseReports
         select(*report_source.index_columns)
 
       # Set default filter to prior run
-      previous_report = report_scope.last
+      previous_report = report_scope.where(user_id: current_user.id).last
       @filter.update(previous_report.options.with_indifferent_access) if previous_report
 
       @pagy, @reports = pagy(@reports)

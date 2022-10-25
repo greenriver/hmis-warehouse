@@ -181,7 +181,7 @@ module HmisDataQualityTool
       report_item.ch_at_entry = enrollment.chronically_homeless_at_start?
 
       hh = report.household(enrollment.HouseholdID)
-      hoh = hh.detect(&:head_of_household?) || enrollment.service_history_enrollment
+      hoh = hh&.detect(&:head_of_household?) || enrollment.service_history_enrollment
       # anniversary_date = anniversary_date(entry_date: hoh.first_date_in_program, report_end_date: report.end_date)
       hoh_annual_expected = annual_assessment_expected?(hoh)
 
@@ -242,11 +242,11 @@ module HmisDataQualityTool
         entry_income_assessment,
       )
       report_item.ncb_as_expected_at_annual = ncb_as_expected?(
-        report_item.income_at_entry_expected,
+        report_item.income_at_annual_expected,
         annual_income_assessment,
       )
       report_item.ncb_as_expected_at_exit = ncb_as_expected?(
-        report_item.income_at_entry_expected,
+        report_item.income_at_exit_expected,
         exit_income_assessment,
       )
 
@@ -259,11 +259,11 @@ module HmisDataQualityTool
         entry_income_assessment,
       )
       report_item.insurance_as_expected_at_annual = insurance_as_expected?(
-        report_item.insurance_at_entry_expected,
+        report_item.insurance_at_annual_expected,
         annual_income_assessment,
       )
       report_item.insurance_as_expected_at_exit = insurance_as_expected?(
-        report_item.insurance_at_entry_expected,
+        report_item.insurance_at_exit_expected,
         exit_income_assessment,
       )
 
@@ -1169,7 +1169,7 @@ module HmisDataQualityTool
         },
         cash_income_as_expected_at_entry: {
           title: 'Cash Income Matches Expected Value at Entry',
-          description: 'Cash income should be present if income from any source was indicated at entry',
+          description: 'Cash Income from any source at entry is yes, but no cash income sources are identified, or cash income form any source is no, but cash income sources are identified, or cash income information is missing.',
           required_for: 'Adults and HoH',
           detail_columns: [
             :destination_client_id,
@@ -1194,7 +1194,7 @@ module HmisDataQualityTool
         },
         cash_income_as_expected_at_annual: {
           title: 'Cash Income Matches Expected Value at Annual Assessment',
-          description: 'Cash income should be present if income from any source was indicated at annual assessment',
+          description: 'Cash Income from any source at annual assessment is yes, but no cash income sources are identified, or cash income form any source is no, but cash income sources are identified, or cash income information is missing.',
           required_for: 'Adults and HoH staying longer than 1 year',
           detail_columns: [
             :destination_client_id,
@@ -1219,7 +1219,7 @@ module HmisDataQualityTool
         },
         cash_income_as_expected_at_exit: {
           title: 'Cash Income Matches Expected Value at Exit',
-          description: 'Cash income should be present if income from any source was indicated at exit',
+          description: 'Cash Income from any source at exit is yes, but no cash income sources are identified, or cash income form any source is no, but cash income sources are identified, or cash income information is missing.',
           required_for: 'Adults and HoH exiting during report range',
           detail_columns: [
             :destination_client_id,
@@ -1244,7 +1244,7 @@ module HmisDataQualityTool
         },
         ncb_as_expected_at_entry: {
           title: 'Non-Cash Benefits Matches Expected Value at Entry',
-          description: 'Non-cash benefits should be present if NCB from any source indicated at entry',
+          description: 'Non-cash benefits from any source at entry is yes, but no Non-cash benefit sources are identified, or Non-cash benefit form any source is no, but Non-cash benefit sources are identified, or Non-cash benefit information is missing.',
           required_for: 'Adults and HoH',
           detail_columns: [
             :destination_client_id,
@@ -1269,7 +1269,7 @@ module HmisDataQualityTool
         },
         ncb_as_expected_at_annual: {
           title: 'Non-Cash Benefits Matches Expected Value at Annual Assessment',
-          description: 'Income from any source at annual assessment is not 99 or blank',
+          description: 'Non-cash benefits from any source at annual assessment is yes, but no Non-cash benefit sources are identified, or Non-cash benefit form any source is no, but Non-cash benefit sources are identified, or Non-cash benefit information is missing.',
           required_for: 'Adults and HoH staying longer than 1 year',
           detail_columns: [
             :destination_client_id,
@@ -1294,7 +1294,7 @@ module HmisDataQualityTool
         },
         ncb_as_expected_at_exit: {
           title: 'Non-Cash Benefits Matches Expected Value at Exit',
-          description: 'Income from any source at exit is not 99 or blank',
+          description: 'Non-cash benefits from any source at exit is yes, but no Non-cash benefit sources are identified, or Non-cash benefit form any source is no, but Non-cash benefit sources are identified, or Non-cash benefit information is missing.',
           required_for: 'Adults and HoH exiting during report range',
           detail_columns: [
             :destination_client_id,
@@ -1319,8 +1319,8 @@ module HmisDataQualityTool
         },
         insurance_as_expected_at_entry: {
           title: 'Insurance Matches Expected Value at Entry',
-          description: 'Income from any source at entry is not 99 or blank',
-          required_for: 'Adults and HoH',
+          description: 'Insurance from any source at entry is yes, but no insurance sources are identified, or insurance form any source is no, but insurance sources are identified, or insurance information is missing.',
+          required_for: 'All',
           detail_columns: [
             :destination_client_id,
             :hmis_enrollment_id,
@@ -1344,8 +1344,8 @@ module HmisDataQualityTool
         },
         insurance_as_expected_at_annual: {
           title: 'Insurance Matches Expected Value at Annual Assessment',
-          description: 'Income from any source at annual assessment is not 99 or blank',
-          required_for: 'Adults and HoH staying longer than 1 year',
+          description: 'Insurance from any source at annual assessment is yes, but no insurance sources are identified, or insurance form any source is no, but insurance sources are identified, or insurance information is missing.',
+          required_for: 'All staying longer than 1 year',
           detail_columns: [
             :destination_client_id,
             :hmis_enrollment_id,
@@ -1369,8 +1369,8 @@ module HmisDataQualityTool
         },
         insurance_as_expected_at_exit: {
           title: 'Insurance Matches Expected Value at Exit',
-          description: 'Income from any source at exit is not 99 or blank',
-          required_for: 'Adults and HoH exiting during report range',
+          description: 'Insurance from any source at exit is yes, but no insurance sources are identified, or insurance form any source is no, but insurance sources are identified, or insurance information is missing.',
+          required_for: 'All exiting during report range',
           detail_columns: [
             :destination_client_id,
             :hmis_enrollment_id,

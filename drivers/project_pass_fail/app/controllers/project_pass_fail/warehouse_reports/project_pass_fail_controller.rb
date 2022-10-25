@@ -30,7 +30,7 @@ module ProjectPassFail::WarehouseReports
       redirect_to(action: :show, id: params[:id]) if params[:id]
 
       # Set default filter to prior run
-      previous_report = report_scope.last
+      previous_report = report_scope.where(user_id: current_user.id).last
       @filter.update(previous_report.options['filters'].with_indifferent_access) if previous_report
 
       @pagy, @reports = pagy(report_scope.ordered)

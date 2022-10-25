@@ -17,7 +17,8 @@ module Health::Tasks
       offset = 0
       loop do
         batch = patients.limit(batch_size).offset(offset)
-        break if batch.count == 0 # No more patients
+        break if batch.count.zero? # No more patients
+
         offset += batch_size
 
         inquiry = Health::EligibilityInquiry.create(service_date: eligibility_date, internal: true, batch: batch, batch_id: owner_id)
@@ -45,9 +46,9 @@ module Health::Tasks
             )
           end
         rescue StandardError => e
-          msg = "Error communicating with MassHealth: #{e}"
-          Rails.logger.error msg
-          @notifier.ping msg if @send_notifications
+          msg = 'Error communicating with MassHealth'
+          Rails.logger.error "#{msg}: #{e}"
+          @notifier.ping(msg, { exception: e }) if @send_notifications
 
           Health::EligibilityResponse.create(
             eligibility_inquiry: inquiry,

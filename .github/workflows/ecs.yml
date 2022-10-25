@@ -82,10 +82,7 @@ jobs:
         echo "::set-output name=docker_assets_path::$DOCKER_ASSETS_PATH"
         echo "::set-output name=image_tag::$IMAGE_TAG"
 
-        GITHASH=${GITHASH} VARIANT='base' bin/error_if_githash_is_latest
-        GITHASH=${GITHASH} VARIANT='web' bin/error_if_githash_is_latest
-        GITHASH=${GITHASH} VARIANT='dj' bin/error_if_githash_is_latest
-        GITHASH=${GITHASH} VARIANT='deploy' bin/error_if_githash_is_latest
+        bin/error_if_githash_is_latest.rb base,web,dj
 
     # git commit --allow-empty -m "[gh:rebuild]"
     - name: (Maybe) Rebuild pre-cache image
