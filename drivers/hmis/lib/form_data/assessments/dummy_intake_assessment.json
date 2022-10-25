@@ -32,7 +32,7 @@
           "required": false,
           "link_id": "3.917-1",
           "text": "Prior Living Situation",
-          "pick_list_reference": "LivingSituation"
+          "pick_list_reference": "PRIOR_LIVING_SITUATION"
         },
         {
           "type": "CHOICE",
@@ -41,37 +41,113 @@
           "pick_list_reference": "LengthOfStay"
         },
         {
-          "type": "BOOLEAN",
-          "link_id": "3.917-A",
-          "text": "Did the client stay less than 90 days?",
-          "project_types": [],
-          "enable_behavior": "ALL",
-          "enable_when": null
-        },
-        {
-          "type": "BOOLEAN",
-          "link_id": "3.917-B",
-          "text": "Did the client stay less than 7 nights?"
-        },
-        {
-          "type": "BOOLEAN",
-          "link_id": "3.917-C",
-          "text": "On the night before, did the client stay on the streets, ES or SH?"
+          "type": "GROUP",
+          "link_id": "pls-conditionals",
+          "item": [
+            {
+              "type": "BOOLEAN",
+              "link_id": "3.917-A",
+              "text": "Did the client stay less than 90 days?",
+              "project_types_excluded": ["ES", "SERVICES_ONLY", "SH"],
+              "enable_behavior": "ALL",
+              "enable_when": [
+                {
+                  "question": "3.917-1",
+                  "operator": "EQUAL",
+                  "answer_group_label": "Institutional"
+                }
+              ]
+            },
+            {
+              "type": "BOOLEAN",
+              "link_id": "3.917-B",
+              "text": "Did the client stay less than 7 nights?",
+              "project_types_excluded": ["ES", "SERVICES_ONLY", "SH"],
+              "enable_behavior": "ALL",
+              "enable_when": [
+                {
+                  "question": "3.917-1",
+                  "operator": "EQUAL",
+                  "answer_group_label": "Temporary, Permanent, or Other"
+                }
+              ]
+            },
+            {
+              "type": "BOOLEAN",
+              "link_id": "3.917-C",
+              "text": "On the night before, did the client stay on the streets, ES or SH?",
+              "project_types_excluded": ["ES", "SERVICES_ONLY", "SH"],
+              "enable_behavior": "ANY",
+              "enable_when": [
+                {
+                  "question": "3.917-A",
+                  "operator": "EQUAL",
+                  "answer_boolean": true
+                },
+                {
+                  "question": "3.917-B",
+                  "operator": "EQUAL",
+                  "answer_boolean": true
+                }
+              ]
+            }
+          ]
         },
         {
           "type": "DATE",
           "link_id": "3.917-3",
-          "text": "Date homelessness started"
+          "text": "Date homelessness started",
+          "enable_behavior": "ALL",
+          "enable_when": [
+            {
+              "question": "3.917-A",
+              "operator": "NOT_EQUAL",
+              "answer_boolean": false
+            },
+            {
+              "question": "3.917-B",
+              "operator": "NOT_EQUAL",
+              "answer_boolean": false
+            }
+          ]
         },
         {
           "type": "CHOICE",
           "link_id": "3.917-4",
-          "text": "Number of times the client has been on the streets, in ES, or SH in the past three years"
+          "text": "Number of times the client has been on the streets, in ES, or SH in the past three years",
+          "pick_list_reference": "TimesHomelessPastThreeYears",
+          "enable_behavior": "ALL",
+          "enable_when": [
+            {
+              "question": "3.917-A",
+              "operator": "NOT_EQUAL",
+              "answer_boolean": false
+            },
+            {
+              "question": "3.917-B",
+              "operator": "NOT_EQUAL",
+              "answer_boolean": false
+            }
+          ]
         },
         {
           "type": "CHOICE",
           "link_id": "3.917-5",
-          "text": "Total number of months homeless on the street, in ES, or SH in the past three years"
+          "text": "Total number of months homeless on the street, in ES, or SH in the past three years",
+          "pick_list_reference": "MonthsHomelessPastThreeYears",
+          "enable_behavior": "ALL",
+          "enable_when": [
+            {
+              "question": "3.917-A",
+              "operator": "NOT_EQUAL",
+              "answer_boolean": false
+            },
+            {
+              "question": "3.917-B",
+              "operator": "NOT_EQUAL",
+              "answer_boolean": false
+            }
+          ]
         }
       ]
     },
@@ -95,54 +171,27 @@
             {
               "type": "CHOICE",
               "link_id": "4.12-A",
-              "text": "Is client going to have to leave their current living situation within 14 days?",
-              "pick_list_reference": "yesNoMissing",
-              "enable_behavior": "ANY",
-              "enable_when": []
+              "text": "Is client going to have to leave their current living situation within 14 days?"
             },
             {
               "type": "CHOICE",
               "link_id": "4.12-B",
-              "text": "Has a subsequent residence been identified?",
-              "pick_list_reference": "yesNoMissing",
-              "enable_behavior": "ANY",
-              "enable_when": []
+              "text": "Has a subsequent residence been identified?"
             },
             {
               "type": "CHOICE",
               "link_id": "4.12-C",
-              "text": "Does individual or family have resources or support networks to obtain other permanent housing?",
-              "pick_list_reference": "yesNoMissing",
-              "enable_behavior": "ANY",
-              "enable_when": []
+              "text": "Does individual or family have resources or support networks to obtain other permanent housing?"
             },
             {
               "type": "CHOICE",
               "link_id": "4.12-D",
-              "text": "Has the client had a lease or ownership interest in a permanent housing unit in the last 60 days?",
-              "pick_list_reference": "yesNoMissing",
-              "enable_behavior": "ANY",
-              "enable_when": [
-                {
-                  "question": "4.12-A",
-                  "operator": "EQUAL",
-                  "answer_code": "1"
-                }
-              ]
+              "text": "Has the client had a lease or ownership interest in a permanent housing unit in the last 60 days?"
             },
             {
               "type": "CHOICE",
               "link_id": "4.12-E",
-              "text": "Has the client moved 2 or more times in the last 60 days?",
-              "pick_list_reference": "yesNoMissing",
-              "enable_behavior": "ANY",
-              "enable_when": [
-                {
-                  "question": "4.12-A",
-                  "operator": "EQUAL",
-                  "answer_code": "1"
-                }
-              ]
+              "text": "Has the client moved 2 or more times in the last 60 days?"
             }
           ]
         },
@@ -155,15 +204,18 @@
     },
     {
       "type": "GROUP",
-      "link_id": "4.11-group",
-      "text": "4.11",
+      "link_id": "health-and-dv",
+      "text": "Health and DV",
       "item": [
+        {
+          "type": "DISPLAY",
+          "link_id": "4.11-2-display",
+          "text": "Domestic Violence Victim/Survivor should be indicated as “Yes” if the person has experienced any domestic violence, dating violence, sexual assault, stalking or other dangerous or life-threatening conditions that relate to violence against the individual or a family member, including a child, that has either taken place within the individual's or family's primary nighttime residence."
+        },
         {
           "type": "CHOICE",
           "link_id": "4.11-2",
-          "text": "Domestic Violence Victim/Survivor",
-          "pick_list_reference": "yesNoMissing",
-          "helper_text": "Domestic Violence Victim/Survivor should be indicated as “Yes” if the person has experienced any domestic violence, dating violence, sexual assault, stalking or other dangerous or life-threatening conditions that relate to violence against the individual or a family member, including a child, that has either taken place within the individual's or family's primary nighttime residence."
+          "text": "Domestic Violence Victim/Survivor"
         },
         {
           "type": "CHOICE",

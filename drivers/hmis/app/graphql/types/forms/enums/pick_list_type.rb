@@ -14,6 +14,7 @@ module Types
     value 'PROJECT'
     value 'ORGANIZATION'
     # value 'GEOCODE'
-    # value 'LIVING_SITUATION'
+    value 'PRIOR_LIVING_SITUATION'
+    value 'CURRENT_LIVING_SITUATION'
   end
 end

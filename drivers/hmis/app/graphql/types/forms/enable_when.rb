@@ -11,7 +11,8 @@ module Types
     field :question, String, 'The linkId of question that determines whether item is enabled/disabled', null: false
     field :operator, Forms::Enums::EnableOperator, 'How to evaluate the question\'s answer', null: false
     field :answer_code, String, 'Value for question comparison based on operator, if question is string or choice type', null: true
-    field :answer_number, String, 'Value for question comparison based on operator, if question is numeric', null: true
-    field :answer_boolean, String, 'Value for question comparison based on operator, if question is boolean', null: true
+    field :answer_group_label, String, 'Value for question comparison based on operator, if question is string or choice type. Group label of selected option is compared.', null: true
+    field :answer_number, Integer, 'Value for question comparison based on operator, if question is numeric', null: true
+    field :answer_boolean, Boolean, 'Value for question comparison based on operator, if question is boolean', null: true
   end
 end

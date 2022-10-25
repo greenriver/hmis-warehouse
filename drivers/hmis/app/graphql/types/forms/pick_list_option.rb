@@ -15,11 +15,30 @@ module Types
     field :initial_selected, Boolean, 'Whether option is selected by default', null: true
 
     def self.options_for_type(pick_list_type, user:)
+      to_option = ->(group) { proc { |id| { code: id, label: ::HUD.living_situation(id), group_label: group } } }
+
       case pick_list_type
       when 'COC'
         ::HUD.cocs_in_state(ENV['RELEVANT_COC_STATE']).sort.map do |code, name|
           { code: code, label: name, secondary_label: code }
         end
+
+      when 'PRIOR_LIVING_SITUATION'
+        homeless = ::HUD.homeless_situations(as: :prior).map(&to_option.call('Homeless'))
+        institutional = ::HUD.institutional_situations(as: :prior).map(&to_option.call('Institutional'))
+        temporary = ::HUD.temporary_and_permanent_housing_situations(as: :prior).map(&to_option.call('Temporary, Permanent, or Other'))
+        missing_reasons = ::HUD.other_situations(as: :prior).map(&to_option.call('Other'))
+
+        homeless + institutional + temporary + missing_reasons
+
+      when 'CURRENT_LIVING_SITUATION'
+        homeless = ::HUD.homeless_situations(as: :current).map(&to_option.call('Homeless'))
+        institutional = ::HUD.institutional_situations(as: :current).map(&to_option.call('Institutional'))
+        temporary = ::HUD.temporary_and_permanent_housing_situations(as: :current).map(&to_option.call('Temporary, Permanent, or Other'))
+        missing_reasons = ::HUD.other_situations(as: :current).map(&to_option.call('Other'))
+
+        homeless + institutional + temporary + missing_reasons
+
       when 'PROJECT'
         Hmis::Hud::Project.viewable_by(user).
           joins(:organization).
@@ -32,6 +51,7 @@ module Types
             group_label: project.organization.organization_name,
           }
         end
+
       when 'ORGANIZATION'
         Hmis::Hud::Organization.viewable_by(user).
           sort_by_option(:name).

@@ -732,7 +732,7 @@ type EnableWhen {
   """
   Value for question comparison based on operator, if question is boolean
   """
-  answerBoolean: String
+  answerBoolean: Boolean
 
   """
   Value for question comparison based on operator, if question is string or choice type
@@ -740,9 +740,15 @@ type EnableWhen {
   answerCode: String
 
   """
+  Value for question comparison based on operator, if question is string or
+  choice type. Group label of selected option is compared.
+  """
+  answerGroupLabel: String
+
+  """
   Value for question comparison based on operator, if question is numeric
   """
-  answerNumber: String
+  answerNumber: Int
 
   """
   How to evaluate the question's answer
@@ -2193,7 +2199,9 @@ type PickListOption {
 
 enum PickListType {
   COC
+  CURRENT_LIVING_SITUATION
   ORGANIZATION
+  PRIOR_LIVING_SITUATION
   PROJECT
 }
 
