@@ -59,6 +59,7 @@ module MaYyaReport::WarehouseReports
       params.require(:filter).permit(
         :start,
         :end,
+        age_ranges: [],
         project_ids: [],
       )
     end
@@ -70,6 +71,7 @@ module MaYyaReport::WarehouseReports
         start: day_in_last_quarter.beginning_of_quarter,
         end: day_in_last_quarter.end_of_quarter,
         project_ids: prior_project_ids,
+        age_ranges: MaYyaReport::Report.available_age_ranges.keys,
       }
     end
 
