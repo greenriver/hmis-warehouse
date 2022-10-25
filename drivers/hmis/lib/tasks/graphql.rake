@@ -49,6 +49,8 @@ end
 def seed_assessment_form_definitions
   file = File.read('drivers/hmis/lib/form_data/assessments/dummy_intake_assessment.json')
   form_definition = JSON.parse(file)
+  Hmis::Form::Definition.validate_json(form_definition)
+
   identifier = 'dummy-intake-assessment'
   definition = Hmis::Form::Definition.find_or_create_by(
     identifier: identifier,
