@@ -3,6 +3,7 @@
     {
       "type": "GROUP",
       "link_id": "initial-group",
+      "text": "Client Location (HoH only)",
       "item": [
         {
           "type": "CHOICE",
@@ -11,19 +12,6 @@
           "text": "CoC Code for Client Location",
           "pick_list_reference": "COC",
           "data_collected_about": "HOH"
-        },
-        {
-          "type": "DATE",
-          "link_id": "4.13",
-          "prefix": "4.13",
-          "text": "Date of Engagement",
-          "data_collected_about": "HOH_AND_ADULTS"
-        },
-        {
-          "type": "DATE",
-          "link_id": "4.14",
-          "prefix": "4.14",
-          "text": "Bed-Night Date"
         }
       ]
     },
@@ -32,6 +20,7 @@
       "link_id": "3.917-group",
       "text": "Prior Living Situation (3.917)",
       "data_collected_about": "HOH_AND_ADULTS",
+      "reference_link": "https://files.hudexchange.info/resources/documents/FY-2022-HMIS-Data-Standards-Manual.pdf#page=104",
       "item": [
         {
           "type": "DISPLAY",
@@ -41,19 +30,23 @@
         {
           "type": "CHOICE",
           "required": false,
-          "link_id": "3.917",
+          "link_id": "3.917-1",
           "text": "Prior Living Situation",
           "pick_list_reference": "LivingSituation"
         },
         {
           "type": "CHOICE",
           "link_id": "3.917-2",
-          "text": "Length of stay in prior living situation"
+          "text": "Length of stay in prior living situation",
+          "pick_list_reference": "LengthOfStay"
         },
         {
           "type": "BOOLEAN",
           "link_id": "3.917-A",
-          "text": "Did the client stay less than 90 days?"
+          "text": "Did the client stay less than 90 days?",
+          "project_types": [],
+          "enable_behavior": "ALL",
+          "enable_when": null
         },
         {
           "type": "BOOLEAN",
