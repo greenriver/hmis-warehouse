@@ -102,12 +102,20 @@
             {
               "question": "3.917-A",
               "operator": "NOT_EQUAL",
-              "answer_boolean": false
+              "answer_boolean": false,
+              "_comment": "Stop data collection if false"
             },
             {
               "question": "3.917-B",
               "operator": "NOT_EQUAL",
-              "answer_boolean": false
+              "answer_boolean": false,
+              "_comment": "Stop data collection if false"
+            },
+            {
+              "question": "3.917-C",
+              "operator": "NOT_EQUAL",
+              "answer_boolean": false,
+              "_comment": "Stop data collection if false"
             }
           ]
         },
@@ -121,12 +129,20 @@
             {
               "question": "3.917-A",
               "operator": "NOT_EQUAL",
-              "answer_boolean": false
+              "answer_boolean": false,
+              "_comment": "Stop data collection if false"
             },
             {
               "question": "3.917-B",
               "operator": "NOT_EQUAL",
-              "answer_boolean": false
+              "answer_boolean": false,
+              "_comment": "Stop data collection if false"
+            },
+            {
+              "question": "3.917-C",
+              "operator": "NOT_EQUAL",
+              "answer_boolean": false,
+              "_comment": "Stop data collection if false"
             }
           ]
         },
@@ -140,12 +156,20 @@
             {
               "question": "3.917-A",
               "operator": "NOT_EQUAL",
-              "answer_boolean": false
+              "answer_boolean": false,
+              "_comment": "Stop data collection if false"
             },
             {
               "question": "3.917-B",
               "operator": "NOT_EQUAL",
-              "answer_boolean": false
+              "answer_boolean": false,
+              "_comment": "Stop data collection if false"
+            },
+            {
+              "question": "3.917-C",
+              "operator": "NOT_EQUAL",
+              "answer_boolean": false,
+              "_comment": "Stop data collection if false"
             }
           ]
         }
