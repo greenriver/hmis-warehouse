@@ -17,26 +17,26 @@
     },
     {
       "type": "GROUP",
-      "link_id": "3.917-group",
+      "link_id": "3.917.group",
       "text": "Prior Living Situation (3.917)",
       "data_collected_about": "HOH_AND_ADULTS",
       "reference_link": "https://files.hudexchange.info/resources/documents/FY-2022-HMIS-Data-Standards-Manual.pdf#page=104",
       "item": [
         {
           "type": "DISPLAY",
-          "link_id": "3.917-instruction",
+          "link_id": "3.917.instruction",
           "text": "Where did the client spend last night? Select the category that most closely matches the client's response."
         },
         {
           "type": "CHOICE",
           "required": false,
-          "link_id": "3.917-1",
+          "link_id": "3.917.1",
           "text": "Prior Living Situation",
           "pick_list_reference": "PRIOR_LIVING_SITUATION"
         },
         {
           "type": "CHOICE",
-          "link_id": "3.917-2",
+          "link_id": "3.917.2",
           "text": "Length of stay in prior living situation",
           "pick_list_reference": "LengthOfStay"
         },
@@ -46,13 +46,13 @@
           "item": [
             {
               "type": "BOOLEAN",
-              "link_id": "3.917-A",
+              "link_id": "3.917.A",
               "text": "Did the client stay less than 90 days?",
               "project_types_excluded": ["ES", "SERVICES_ONLY", "SH"],
               "enable_behavior": "ALL",
               "enable_when": [
                 {
-                  "question": "3.917-1",
+                  "question": "3.917.1",
                   "operator": "EQUAL",
                   "answer_group_code": "INSTITUTIONAL"
                 }
@@ -60,13 +60,13 @@
             },
             {
               "type": "BOOLEAN",
-              "link_id": "3.917-B",
+              "link_id": "3.917.B",
               "text": "Did the client stay less than 7 nights?",
               "project_types_excluded": ["ES", "SERVICES_ONLY", "SH"],
               "enable_behavior": "ALL",
               "enable_when": [
                 {
-                  "question": "3.917-1",
+                  "question": "3.917.1",
                   "operator": "EQUAL",
                   "answer_group_code": "TEMPORARY_PERMANENT_OTHER"
                 }
@@ -74,18 +74,18 @@
             },
             {
               "type": "BOOLEAN",
-              "link_id": "3.917-C",
+              "link_id": "3.917.C",
               "text": "On the night before, did the client stay on the streets, ES or SH?",
               "project_types_excluded": ["ES", "SERVICES_ONLY", "SH"],
               "enable_behavior": "ANY",
               "enable_when": [
                 {
-                  "question": "3.917-A",
+                  "question": "3.917.A",
                   "operator": "EQUAL",
                   "answer_boolean": true
                 },
                 {
-                  "question": "3.917-B",
+                  "question": "3.917.B",
                   "operator": "EQUAL",
                   "answer_boolean": true
                 }
@@ -95,24 +95,24 @@
         },
         {
           "type": "DATE",
-          "link_id": "3.917-3",
+          "link_id": "3.917.3",
           "text": "Date homelessness started",
           "enable_behavior": "ALL",
           "enable_when": [
             {
-              "question": "3.917-A",
+              "question": "3.917.A",
               "operator": "NOT_EQUAL",
               "answer_boolean": false,
               "_comment": "Stop data collection if false"
             },
             {
-              "question": "3.917-B",
+              "question": "3.917.B",
               "operator": "NOT_EQUAL",
               "answer_boolean": false,
               "_comment": "Stop data collection if false"
             },
             {
-              "question": "3.917-C",
+              "question": "3.917.C",
               "operator": "NOT_EQUAL",
               "answer_boolean": false,
               "_comment": "Stop data collection if false"
@@ -121,25 +121,25 @@
         },
         {
           "type": "CHOICE",
-          "link_id": "3.917-4",
+          "link_id": "3.917.4",
           "text": "Number of times the client has been on the streets, in ES, or SH in the past three years",
           "pick_list_reference": "TimesHomelessPastThreeYears",
           "enable_behavior": "ALL",
           "enable_when": [
             {
-              "question": "3.917-A",
+              "question": "3.917.A",
               "operator": "NOT_EQUAL",
               "answer_boolean": false,
               "_comment": "Stop data collection if false"
             },
             {
-              "question": "3.917-B",
+              "question": "3.917.B",
               "operator": "NOT_EQUAL",
               "answer_boolean": false,
               "_comment": "Stop data collection if false"
             },
             {
-              "question": "3.917-C",
+              "question": "3.917.C",
               "operator": "NOT_EQUAL",
               "answer_boolean": false,
               "_comment": "Stop data collection if false"
@@ -148,25 +148,25 @@
         },
         {
           "type": "CHOICE",
-          "link_id": "3.917-5",
+          "link_id": "3.917.5",
           "text": "Total number of months homeless on the street, in ES, or SH in the past three years",
           "pick_list_reference": "MonthsHomelessPastThreeYears",
           "enable_behavior": "ALL",
           "enable_when": [
             {
-              "question": "3.917-A",
+              "question": "3.917.A",
               "operator": "NOT_EQUAL",
               "answer_boolean": false,
               "_comment": "Stop data collection if false"
             },
             {
-              "question": "3.917-B",
+              "question": "3.917.B",
               "operator": "NOT_EQUAL",
               "answer_boolean": false,
               "_comment": "Stop data collection if false"
             },
             {
-              "question": "3.917-C",
+              "question": "3.917.C",
               "operator": "NOT_EQUAL",
               "answer_boolean": false,
               "_comment": "Stop data collection if false"
