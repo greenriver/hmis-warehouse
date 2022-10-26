@@ -40,4 +40,10 @@ class Hmis::Hud::Inventory < Hmis::Hud::Base
       :InventoryStartDate,
     ]
   end
+
+  def active
+    return true unless inventory_end_date.present?
+
+    inventory_end_date >= Date.today
+  end
 end

@@ -9,7 +9,7 @@ if ENV['WAREHOUSE_SENTRY_DSN'].present?
     config.dsn = ENV['WAREHOUSE_SENTRY_DSN']
     config.breadcrumbs_logger = [:active_support_logger, :http_logger]
 
-    config.enabled_environments = ['production', 'staging', 'development'] # Remove development when dev is done.
+    config.enabled_environments = ['production', 'staging', 'development']
     config.environment = Rails.env
 
     if config.enabled_environments.include?(config.environment) && config.dsn.to_s.match?(/sentry\.io/)
@@ -37,7 +37,27 @@ if ENV['WAREHOUSE_SENTRY_DSN'].present?
         client: ENV.fetch('CLIENT', '[CLIENT not found]'),
         container_variant: ENV.fetch('CONTAINER_VARIANT', '[CONTAINER_VARIANT not found]'),
         target_group_name: ENV.fetch('TARGET_GROUP_NAME', '[TARGET_GROUP_NAME not found]'),
-      },
+        dev_user: (ENV.fetch('SENTRY_DEV_USER', '[DEV_USER not found]') if Rails.env.development?),
+      }.compact,
     )
+  end
+end
+
+module Sentry
+
+  module_function
+
+  def capture_exception_with_info(e, msg, info = {})
+    return unless Sentry.initialized?
+
+    Sentry.with_scope do |scope|
+      scope.set_context(
+        'errorInfo',
+        {
+          message: msg,
+        }.merge(info || {})
+      )
+      Sentry.capture_exception(e)
+    end
   end
 end

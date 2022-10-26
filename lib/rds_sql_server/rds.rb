@@ -184,6 +184,8 @@ class Rds
   end
 
   def wait!
+    return if ENV['LSA_DB_HOST'].present? || exists?
+
     status = instance_data.db_instance_status
 
     # rubocop:disable Style/IfUnlessModifier
@@ -199,6 +201,9 @@ class Rds
         # puts "no host yet"
         sleep 5
       end
+    rescue Aws::RDS::Errors::ServiceUnavailable
+      # Sometimes RDS just decides to throw an error, usually around the time it transitions from
+      # not there to there
     end
 
     sleep 2

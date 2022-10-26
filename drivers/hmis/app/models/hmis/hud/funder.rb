@@ -45,4 +45,10 @@ class Hmis::Hud::Funder < Hmis::Hud::Base
       :StartDate,
     ]
   end
+
+  def active
+    return true unless end_date.present?
+
+    end_date >= Date.today
+  end
 end

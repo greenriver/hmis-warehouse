@@ -31,7 +31,8 @@ module Importers::HmisAutoMigrate
 
       import_log
     rescue Exception => e
-      log(e.message)
+      Rails.logger.info(e.message)
+      @notifier.ping(e.message, { exception: e })
       import_log.import_errors = [{ 'message' => e.to_s }] if import_log.present?
       raise e
     ensure
@@ -43,8 +44,8 @@ module Importers::HmisAutoMigrate
     end
 
     def log(message)
-      @notifier&.ping(message)
       Rails.logger.info(message)
+      @notifier.ping(message)
     end
 
     private def import(file_path, data_source_id, upload, deidentified:)

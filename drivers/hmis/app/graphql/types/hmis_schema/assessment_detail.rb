@@ -8,9 +8,9 @@
 
 module Types
   class HmisSchema::AssessmentDetail < Types::BaseObject
-    description 'HUD AssessmentDetail'
+    description 'AssessmentDetail'
     field :id, ID, null: false
-    field :definition, HmisSchema::FormDefinition, null: false
+    field :definition, Forms::FormDefinition, null: false
     field :assessment, HmisSchema::Assessment, null: false
     field :data_collection_stage, HmisSchema::Enums::DataCollectionStage, null: true
     field :role, HmisSchema::Enums::AssessmentRole, null: false

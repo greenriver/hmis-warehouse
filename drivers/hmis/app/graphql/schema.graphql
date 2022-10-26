@@ -48,7 +48,7 @@ type Assessment {
 }
 
 """
-HUD AssessmentDetail
+AssessmentDetail
 """
 type AssessmentDetail {
   assessment: Assessment!
@@ -512,6 +512,16 @@ enum DOBDataQuality {
   DOB_FULL_DOB_REPORTED
 }
 
+enum DataCollectedAbout {
+  ALL_CLIENTS
+  ALL_CLIENTS_RECEIVING_SSVF_FINANCIAL_ASSISTANCE
+  ALL_CLIENTS_RECEIVING_SSVF_SERVICES
+  ALL_VETERANS
+  HOH
+  HOH_AND_ADULTS
+  VETERAN_HOH
+}
+
 """
 HUD Data Collection Stage (5.03.1)
 """
@@ -701,6 +711,48 @@ type DeleteServicePayload {
   clientMutationId: String
   errors: [ValidationError!]!
   service: Service
+}
+
+enum EnableBehavior {
+  ALL
+  ANY
+}
+
+enum EnableOperator {
+  EQUAL
+  EXISTS
+  GREATER_THAN
+  GREATER_THAN_EQUAL
+  LESS_THAN
+  LESS_THAN_EQUAL
+  NOT_EQUAL
+}
+
+type EnableWhen {
+  """
+  Value for question comparison based on operator, if question is boolean
+  """
+  answerBoolean: String
+
+  """
+  Value for question comparison based on operator, if question is string or choice type
+  """
+  answerCode: String
+
+  """
+  Value for question comparison based on operator, if question is numeric
+  """
+  answerNumber: String
+
+  """
+  How to evaluate the question's answer
+  """
+  operator: EnableOperator!
+
+  """
+  The linkId of question that determines whether item is enabled/disabled
+  """
+  question: String!
 }
 
 """
@@ -911,10 +963,10 @@ type EventsPaginated {
 }
 
 """
-HUD FormDefinition
+FormDefinition
 """
 type FormDefinition {
-  definition: JsonObject!
+  definition: FormDefinitionJson!
   id: ID!
   identifier: String!
   role: AssessmentRole!
@@ -922,7 +974,89 @@ type FormDefinition {
   version: Int!
 }
 
+type FormDefinitionJson {
+  """
+  Nested items
+  """
+  item: [FormItem!]!
+}
+
+"""
+A question or group of questions
+"""
+type FormItem {
+  """
+  HUD Data Collected About condition for this question or group
+  """
+  dataCollectedAbout: DataCollectedAbout
+  enableBehavior: EnableBehavior
+  enableWhen: [EnableWhen!]
+
+  """
+  Helper text for the item
+  """
+  helperText: String
+
+  """
+  Whether the item should always be hidden
+  """
+  hidden: Boolean
+
+  """
+  Nested items
+  """
+  item: [FormItem!]
+
+  """
+  Unique identifier for item
+  """
+  linkId: String!
+
+  """
+  Permitted answers, for choice items
+  """
+  pickListOptions: [PickListOption!]
+
+  """
+  Reference to value set of possible answer options
+  """
+  pickListReference: String
+
+  """
+  Prefix for the item label
+  """
+  prefix: String
+
+  """
+  Name of the query input field that corresponds to this item. Only used for
+  record creation/update forms, not for assessments.
+  """
+  queryField: String
+
+  """
+  Whether human editing is allowed
+  """
+  readOnly: Boolean
+
+  """
+  Whether the item may repeat (for choice types, this means multiple choice)
+  """
+  repeats: Boolean
+
+  """
+  Whether the item must be included in data results
+  """
+  required: Boolean
+
+  """
+  Primary text for the item
+  """
+  text: String
+  type: ItemType!
+}
+
 type Funder {
+  active: Boolean!
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
@@ -1380,6 +1514,7 @@ type InventoriesPaginated {
 }
 
 type Inventory {
+  active: Boolean!
   availability: Availability
   bedInventory: Int!
   chBedInventory: Int
@@ -1426,6 +1561,18 @@ HUD Inventory Sorting Options
 """
 enum InventorySortOption {
   START_DATE
+}
+
+enum ItemType {
+  BOOLEAN
+  CHOICE
+  DATE
+  DISPLAY
+  GROUP
+  INTEGER
+  OPEN_CHOICE
+  STRING
+  TEXT
 }
 
 """
@@ -1684,6 +1831,39 @@ enum PATHReferralOutcome {
   UNKNOWN
 }
 
+type PickListOption {
+  """
+  Code for the option
+  """
+  code: String!
+
+  """
+  Label for group that option belongs to, if grouped
+  """
+  groupLabel: String
+
+  """
+  Whether option is selected by default
+  """
+  initialSelected: Boolean
+
+  """
+  Label for the option
+  """
+  label: String
+
+  """
+  Secondary label, such as project type or CoC code
+  """
+  secondaryLabel: String
+}
+
+enum PickListType {
+  COC
+  ORGANIZATION
+  PROJECT
+}
+
 """
 HUD PrioritizationStatus (4.19.7)
 """
@@ -1722,6 +1902,7 @@ enum ProbSolDivRRResult {
 type Project {
   HMISParticipatingProject: Boolean
   HOPWAMedAssistedLivingFac: HOPWAMedAssistedLivingFac
+  active: Boolean!
   contactInformation: String
   continuumProject: Boolean
   dateCreated: ISO8601DateTime!
@@ -1916,12 +2097,17 @@ type Query {
   enrollment(id: ID!): Enrollment
 
   """
+  Form definition lookup by identifier
+  """
+  formDefinition(identifier: String!): FormDefinition
+
+  """
   Funder lookup
   """
   funder(id: ID!): Funder
 
   """
-  Get form assessment for enrollment & assessment role
+  Get form definition for enrollment & assessment role
   """
   getFormDefinition(assessmentRole: AssessmentRole!, enrollmentId: ID!): FormDefinition
 
@@ -1939,6 +2125,11 @@ type Query {
   Get a list of organizations
   """
   organizations(limit: Int, offset: Int, sortOrder: OrganizationSortOption): OrganizationsPaginated!
+
+  """
+  Get list of options for pick list
+  """
+  pickList(pickListType: PickListType!): [PickListOption!]!
 
   """
   Project lookup
