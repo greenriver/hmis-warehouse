@@ -10,8 +10,9 @@ module Types
   class Forms::EnableWhen < Types::BaseObject
     field :question, String, 'The linkId of question that determines whether item is enabled/disabled', null: false
     field :operator, Forms::Enums::EnableOperator, 'How to evaluate the question\'s answer', null: false
-    field :answer_code, String, 'Value for question comparison based on operator, if question is string or choice type', null: true
-    field :answer_number, String, 'Value for question comparison based on operator, if question is numeric', null: true
-    field :answer_boolean, String, 'Value for question comparison based on operator, if question is boolean', null: true
+    field :answer_code, String, 'If question is CHOICE type, value for comparison', null: true
+    field :answer_group_code, String, 'If question is CHOICE type and has grouped options, value for comparison', null: true
+    field :answer_number, Integer, 'If question is numeric, value for comparison', null: true
+    field :answer_boolean, Boolean, 'If question is BOOLEAN type, value for comparison', null: true
   end
 end

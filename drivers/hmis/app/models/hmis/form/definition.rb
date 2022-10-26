@@ -38,6 +38,25 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     definitions.order(version: :desc).first
   end
 
+  # Validate JSON definition when loading, to ensure no duplicate link IDs
+  def self.validate_json(json)
+    seen_link_ids = Set.new
+
+    recur_check = lambda do |item|
+      (item['item'] || []).each do |child_item|
+        link_id = child_item['link_id']
+        raise "Missing link ID: #{child_item}" unless link_id.present?
+
+        raise "Duplicate link ID: #{link_id}" if seen_link_ids.include?(link_id)
+
+        seen_link_ids.add(link_id)
+        recur_check.call(child_item)
+      end
+    end
+
+    recur_check.call(json)
+  end
+
   def apply_conditionals(enrollment)
     parsed = JSON.parse(definition)
     client = enrollment.client

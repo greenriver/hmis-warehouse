@@ -81,10 +81,19 @@ Assessment Role
 enum AssessmentRole {
   ANNUAL
   CE
+
+  """
+  Custom HMIS Assessment
+  """
   CUSTOM
   EXIT
   INTAKE
   POST_EXIT
+
+  """
+  Form for creating or editing resources directly
+  """
+  RESOURCE
   UPDATE
 }
 
@@ -726,23 +735,29 @@ enum EnableOperator {
   LESS_THAN
   LESS_THAN_EQUAL
   NOT_EQUAL
+  NOT_EXISTS
 }
 
 type EnableWhen {
   """
-  Value for question comparison based on operator, if question is boolean
+  If question is BOOLEAN type, value for comparison
   """
-  answerBoolean: String
+  answerBoolean: Boolean
 
   """
-  Value for question comparison based on operator, if question is string or choice type
+  If question is CHOICE type, value for comparison
   """
   answerCode: String
 
   """
-  Value for question comparison based on operator, if question is numeric
+  If question is CHOICE type and has grouped options, value for comparison
   """
-  answerNumber: String
+  answerGroupCode: String
+
+  """
+  If question is numeric, value for comparison
+  """
+  answerNumber: Int
 
   """
   How to evaluate the question's answer
@@ -770,9 +785,12 @@ type Enrollment {
   household: Household!
   id: ID!
   inProgress: Boolean!
+  lengthOfStay: LengthOfStay
+  monthsHomelessPastThreeYears: MonthsHomelessPastThreeYears
   project: Project!
   relationshipToHoH: RelationshipToHoH!
   services(limit: Int, offset: Int, sortOrder: ServiceSortOption): ServicesPaginated!
+  timesHomelessPastThreeYears: TimesHomelessPastThreeYears
 }
 
 """
@@ -986,11 +1004,16 @@ A question or group of questions
 """
 type FormItem {
   """
-  HUD Data Collected About condition for this question or group
+  Include this item only if the Client meets this HUD DataCollectedAbout condition
   """
   dataCollectedAbout: DataCollectedAbout
   enableBehavior: EnableBehavior
   enableWhen: [EnableWhen!]
+
+  """
+  Include this item only for the listed funders
+  """
+  funders: [FundingSource!]
 
   """
   Helper text for the item
@@ -1026,6 +1049,16 @@ type FormItem {
   Prefix for the item label
   """
   prefix: String
+
+  """
+  Exclude this item for the listed project types
+  """
+  projectTypesExcluded: [ProjectType!]
+
+  """
+  Include this item only for the listed project types
+  """
+  projectTypesIncluded: [ProjectType!]
 
   """
   Name of the query input field that corresponds to this item. Only used for
@@ -1566,6 +1599,7 @@ enum InventorySortOption {
 enum ItemType {
   BOOLEAN
   CHOICE
+  CURRENCY
   DATE
   DISPLAY
   GROUP
@@ -1579,6 +1613,141 @@ enum ItemType {
 Arbitrary JSON Type
 """
 scalar JsonObject
+
+"""
+HUD Length of Stay in Prior living situation (3.917.2)
+"""
+enum LengthOfStay {
+  """
+  (4) 90 days or more but less than one year
+  """
+  LOS_90_DAYS_OR_MORE_BUT_LESS_THAN_ONE_YEAR
+
+  """
+  (8) Client doesn't know
+  """
+  LOS_CLIENT_DOESN_T_KNOW
+
+  """
+  (9) Client refused
+  """
+  LOS_CLIENT_REFUSED
+
+  """
+  (99) Data not collected
+  """
+  LOS_DATA_NOT_COLLECTED
+
+  """
+  (3) One month or more, but less than 90 days
+  """
+  LOS_ONE_MONTH_OR_MORE_BUT_LESS_THAN_90_DAYS
+
+  """
+  (10) One night or less
+  """
+  LOS_ONE_NIGHT_OR_LESS
+
+  """
+  (2) One week or more, but less than one month
+  """
+  LOS_ONE_WEEK_OR_MORE_BUT_LESS_THAN_ONE_MONTH
+
+  """
+  (5) One year or longer
+  """
+  LOS_ONE_YEAR_OR_LONGER
+
+  """
+  (11) Two to six nights
+  """
+  LOS_TWO_TO_SIX_NIGHTS
+}
+
+"""
+HUD MonthsHomelessPastThreeYears (3.917.5)
+"""
+enum MonthsHomelessPastThreeYears {
+  """
+  (101) 1
+  """
+  MONTHS_1
+
+  """
+  (110) 10
+  """
+  MONTHS_10
+
+  """
+  (111) 11
+  """
+  MONTHS_11
+
+  """
+  (112) 12
+  """
+  MONTHS_12
+
+  """
+  (102) 2
+  """
+  MONTHS_2
+
+  """
+  (103) 3
+  """
+  MONTHS_3
+
+  """
+  (104) 4
+  """
+  MONTHS_4
+
+  """
+  (105) 5
+  """
+  MONTHS_5
+
+  """
+  (106) 6
+  """
+  MONTHS_6
+
+  """
+  (107) 7
+  """
+  MONTHS_7
+
+  """
+  (108) 8
+  """
+  MONTHS_8
+
+  """
+  (109) 9
+  """
+  MONTHS_9
+
+  """
+  (8) Client doesn't know
+  """
+  MONTHS_CLIENT_DOESN_T_KNOW
+
+  """
+  (9) Client refused
+  """
+  MONTHS_CLIENT_REFUSED
+
+  """
+  (99) Data not collected
+  """
+  MONTHS_DATA_NOT_COLLECTED
+
+  """
+  (113) More than 12 months
+  """
+  MONTHS_MORE_THAN_12_MONTHS
+}
 
 type Mutation {
   addHouseholdMembersToEnrollment(
@@ -1838,6 +2007,11 @@ type PickListOption {
   code: String!
 
   """
+  Code for group that option belongs to, if grouped
+  """
+  groupCode: String
+
+  """
   Label for group that option belongs to, if grouped
   """
   groupLabel: String
@@ -1860,7 +2034,9 @@ type PickListOption {
 
 enum PickListType {
   COC
+  CURRENT_LIVING_SITUATION
   ORGANIZATION
+  PRIOR_LIVING_SITUATION
   PROJECT
 }
 
@@ -3110,6 +3286,46 @@ enum TargetPopulation {
   (3) Persons with HIV/AIDS
   """
   PERSONS_WITH_HIV_AIDS
+}
+
+"""
+HUD TimesHomelessPastThreeYears (3.917.4)
+"""
+enum TimesHomelessPastThreeYears {
+  """
+  (8) Client doesn't know
+  """
+  TIMES_CLIENT_DOESN_T_KNOW
+
+  """
+  (9) Client refused
+  """
+  TIMES_CLIENT_REFUSED
+
+  """
+  (99) Data not collected
+  """
+  TIMES_DATA_NOT_COLLECTED
+
+  """
+  (4) Four or more times
+  """
+  TIMES_FOUR_OR_MORE_TIMES
+
+  """
+  (1) One time
+  """
+  TIMES_ONE_TIME
+
+  """
+  (3) Three times
+  """
+  TIMES_THREE_TIMES
+
+  """
+  (2) Two times
+  """
+  TIMES_TWO_TIMES
 }
 
 """
