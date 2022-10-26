@@ -43,6 +43,11 @@ module Importers::HmisAutoMigrate
       end
     end
 
+    def log(message)
+      Rails.logger.info(message)
+      @notifier.ping(message)
+    end
+
     private def import(file_path, data_source_id, upload, deidentified:)
       log = ::HmisCsvImporter::ImportLog.create(
         created_at: Time.current,
