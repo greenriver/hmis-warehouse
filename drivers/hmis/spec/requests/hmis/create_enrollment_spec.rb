@@ -156,7 +156,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         ],
         [
           'should emit error if entry date is in the future',
-          ->(input) { input.merge(start_date: (Date.today + 1.day).strftime('%Y-%m-%d')) },
+          ->(input) { input.merge(start_date: (Date.today + 1.week).strftime('%Y-%m-%d')) },
           {
             'message' => 'Entry date cannot be in the future',
             'attribute' => 'startDate',

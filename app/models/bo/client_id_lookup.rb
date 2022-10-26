@@ -168,8 +168,8 @@ module Bo
                   info: {
                     tp_id: tp_id,
                     data_source_id: @data_source_id,
-                  }
-                }
+                  },
+                },
               )
             end
 
