@@ -55,7 +55,7 @@ module Sentry
         'errorInfo',
         {
           message: msg,
-        }.merge(info)
+        }.merge(info || {})
       )
       Sentry.capture_exception(e)
     end

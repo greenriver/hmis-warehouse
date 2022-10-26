@@ -87,9 +87,9 @@ class ApplicationNotifier < Slack::Notifier
 
     if options.key?(:exception)
       Sentry.capture_exception_with_info(
-        options[:exception],
+        options[:exception].presence || {},
         message,
-        options[:info],
+        options[:info].presence || {},
       )
     elsif @redis.nil? || message.is_a?(Hash) || options.present?
       # fallback on hard cases or if Redis is not available
