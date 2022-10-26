@@ -129,6 +129,7 @@ module GrdaWarehouse::CasProjectClientCalculator
         :va_eligible,
         :vash_eligible,
         :rrh_desired,
+        :ssvf_eligible,
       ]
     end
 
@@ -249,6 +250,12 @@ module GrdaWarehouse::CasProjectClientCalculator
       question_title = 'successfully exit 12-24 month RRH'
       rrh_successful_exit = form.answer_from_section(relevant_section, question_title) == 'Yes'
       full_time_employed || rrh_successful_exit
+    end
+
+    private def ssvf_eligible(client)
+      # ssvf_eligible only _looks_ like a boolean
+      client.active_cohort_clients.map(&:ssvf_eligible).
+        any?('true')
     end
   end
 end
