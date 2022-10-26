@@ -13,6 +13,8 @@ module GrdaWarehouse::CasProjectClientCalculator
     # To use this efficiently, you'll probably want to preload a handful of data, see push_clients_to_cas.rb
     def value_for_cas_project_client(client:, column:)
       current_value = client.send(column)
+      # override ssvf_eligible even if we don't have a TC HAT
+      current_value = send(column, client) if column == :ssvf_eligible
       # Return existing value if we don't have anything in the new format
       return current_value unless client.most_recent_tc_hat_for_destination.present?
 
@@ -129,7 +131,6 @@ module GrdaWarehouse::CasProjectClientCalculator
         :va_eligible,
         :vash_eligible,
         :rrh_desired,
-        :ssvf_eligible,
       ]
     end
 
