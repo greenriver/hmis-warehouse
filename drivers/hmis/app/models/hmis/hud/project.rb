@@ -55,4 +55,10 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   def self.generate_project_id
     generate_uuid
   end
+
+  def active
+    return true unless operating_end_date.present?
+
+    operating_end_date >= Date.today
+  end
 end

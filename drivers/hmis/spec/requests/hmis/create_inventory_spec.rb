@@ -23,7 +23,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       availability: Types::HmisSchema::Enums::Availability.enum_member_for_value(2).first,
       unit_inventory: 2,
       bed_inventory: 2,
-      inventory_start_date: '2022-01-01',
+      inventory_start_date: Date.today.strftime('%Y-%m-%d'),
+      inventory_end_date: (Date.today + 1.year).strftime('%Y-%m-%d'),
     }
   end
 
@@ -50,6 +51,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               dateCreated
               dateUpdated
               dateDeleted
+              active
             }
             errors {
               attribute
@@ -68,6 +70,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       errors = result.dig('data', 'createInventory', 'errors')
       expect(errors).to be_empty
       expect(record['id']).to be_present
+      expect(record['active']).to eq(true)
       inventory = Hmis::Hud::Inventory.find(record['id'])
       expect(inventory.inventory_start_date).to be_present
     end

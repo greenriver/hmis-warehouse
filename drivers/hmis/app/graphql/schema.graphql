@@ -1089,6 +1089,7 @@ type FormItem {
 }
 
 type Funder {
+  active: Boolean!
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
@@ -1546,6 +1547,7 @@ type InventoriesPaginated {
 }
 
 type Inventory {
+  active: Boolean!
   availability: Availability
   bedInventory: Int!
   chBedInventory: Int
@@ -2076,6 +2078,7 @@ enum ProbSolDivRRResult {
 type Project {
   HMISParticipatingProject: Boolean
   HOPWAMedAssistedLivingFac: HOPWAMedAssistedLivingFac
+  active: Boolean!
   contactInformation: String
   continuumProject: Boolean
   dateCreated: ISO8601DateTime!

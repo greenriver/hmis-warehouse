@@ -186,7 +186,7 @@ module HmisSqlServer
     include ::HmisStructure::ProjectCoc
 
     def clean_row_for_import(row:, headers:)
-      field_index = headers.index('Zip')
+      field_index = headers.map(&:downcase).index('zip')
       row[field_index] = row[field_index].presence || '0' * 5
       field_index = headers.index('Geocode')
       row[field_index] = row[field_index].presence || '0' * 6
