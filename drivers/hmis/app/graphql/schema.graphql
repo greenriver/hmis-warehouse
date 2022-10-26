@@ -81,10 +81,19 @@ Assessment Role
 enum AssessmentRole {
   ANNUAL
   CE
+
+  """
+  Custom HMIS Assessment
+  """
   CUSTOM
   EXIT
   INTAKE
   POST_EXIT
+
+  """
+  Form for creating or editing resources directly
+  """
+  RESOURCE
   UPDATE
 }
 
@@ -731,23 +740,22 @@ enum EnableOperator {
 
 type EnableWhen {
   """
-  Value for question comparison based on operator, if question is boolean
+  If question is BOOLEAN type, value for comparison
   """
   answerBoolean: Boolean
 
   """
-  Value for question comparison based on operator, if question is string or choice type
+  If question is CHOICE type, value for comparison
   """
   answerCode: String
 
   """
-  Value for question comparison based on operator, if question is string or
-  choice type. Group label of selected option is compared.
+  If question is CHOICE type and has grouped options, value for comparison
   """
-  answerGroupLabel: String
+  answerGroupCode: String
 
   """
-  Value for question comparison based on operator, if question is numeric
+  If question is numeric, value for comparison
   """
   answerNumber: Int
 
@@ -996,11 +1004,16 @@ A question or group of questions
 """
 type FormItem {
   """
-  HUD Data Collected About condition for this question or group
+  Include this item only if the Client meets this HUD DataCollectedAbout condition
   """
   dataCollectedAbout: DataCollectedAbout
   enableBehavior: EnableBehavior
   enableWhen: [EnableWhen!]
+
+  """
+  Include this item only for the listed funders
+  """
+  funders: [FundingSource!]
 
   """
   Helper text for the item
@@ -1036,6 +1049,16 @@ type FormItem {
   Prefix for the item label
   """
   prefix: String
+
+  """
+  Exclude this item for the listed project types
+  """
+  projectTypesExcluded: [ProjectType!]
+
+  """
+  Include this item only for the listed project types
+  """
+  projectTypesIncluded: [ProjectType!]
 
   """
   Name of the query input field that corresponds to this item. Only used for
@@ -1980,6 +2003,11 @@ type PickListOption {
   Code for the option
   """
   code: String!
+
+  """
+  Code for group that option belongs to, if grouped
+  """
+  groupCode: String
 
   """
   Label for group that option belongs to, if grouped

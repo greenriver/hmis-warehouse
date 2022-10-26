@@ -36,7 +36,7 @@ def seed_record_form_definitions
     definition = Hmis::Form::Definition.find_or_create_by(
       identifier: identifier,
       version: 0,
-      role: 'CUSTOM',
+      role: 'RESOURCE',
       status: 'draft',
     )
     definition.definition = form_definition.to_json

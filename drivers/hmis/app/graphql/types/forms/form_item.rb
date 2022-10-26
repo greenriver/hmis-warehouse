@@ -11,7 +11,10 @@ module Types
     description 'A question or group of questions'
 
     field :link_id, String, 'Unique identifier for item', null: false
-    field :data_collected_about, Types::Forms::Enums::DataCollectedAbout, 'HUD Data Collected About condition for this question or group', null: true
+    field :data_collected_about, Types::Forms::Enums::DataCollectedAbout, 'Include this item only if the Client meets this HUD DataCollectedAbout condition', null: true
+    field :funders, [HmisSchema::Enums::FundingSource], 'Include this item only for the listed funders', null: true
+    field :project_types_included, [HmisSchema::Enums::ProjectType], 'Include this item only for the listed project types', null: true
+    field :project_types_excluded, [HmisSchema::Enums::ProjectType], 'Exclude this item for the listed project types', null: true
     field :type, Types::Forms::Enums::ItemType, null: false
     field :text, String, 'Primary text for the item', null: true
     field :prefix, String, 'Prefix for the item label', null: true
