@@ -9,8 +9,9 @@
 module Types
   class Forms::Enums::EnableOperator < Types::BaseEnum
     graphql_name 'EnableOperator'
-    # exists | = | != | > | < | >= | <=
+
     value 'EXISTS'
+    value 'NOT_EXISTS'
     value 'EQUAL'
     value 'NOT_EQUAL'
     value 'GREATER_THAN'

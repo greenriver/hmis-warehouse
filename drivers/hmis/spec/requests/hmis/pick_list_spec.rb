@@ -32,6 +32,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           label
           secondaryLabel
           groupLabel
+          groupCode
           initialSelected
         }
       }
@@ -61,6 +62,16 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     expect(options[0]['code']).to eq(o1.id.to_s)
     expect(options[0]['label']).to eq(o1.organization_name)
     expect(options[0]['groupLabel']).to be_nil
+  end
+
+  it 'returns grouped living situation pick list' do
+    response, result = post_graphql(pick_list_type: 'PRIOR_LIVING_SITUATION') { query }
+    expect(response.status).to eq 200
+    options = result.dig('data', 'pickList')
+    expect(options[0]['code']).to eq(::HUD.homeless_situations(as: :prior).first.to_s)
+    expect(options[0]['label']).to eq(::HUD.living_situation(options[0]['code'].to_i))
+    expect(options[0]['groupCode']).to eq('HOMELESS')
+    expect(options[0]['groupLabel']).to eq('Homeless')
   end
 end
 

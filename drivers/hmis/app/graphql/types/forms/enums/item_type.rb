@@ -15,6 +15,7 @@ module Types
     value 'GROUP'
     value 'DISPLAY'
     value 'BOOLEAN'
+    value 'CURRENCY'
     # value 'DECIMAL'
     value 'INTEGER'
     value 'DATE'

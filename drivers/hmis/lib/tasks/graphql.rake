@@ -33,11 +33,13 @@ def seed_record_form_definitions
     form_definition = JSON.parse(file)
     forms.push(identifier)
 
-    definition = Hmis::Form::Definition.find_or_create_by(identifier: identifier)
+    definition = Hmis::Form::Definition.find_or_create_by(
+      identifier: identifier,
+      version: 0,
+      role: 'RESOURCE',
+      status: 'draft',
+    )
     definition.definition = form_definition.to_json
-    definition.version = 0
-    definition.role = 'CUSTOM'
-    definition.status = 'draft'
     definition.save!
   end
   puts "Saved definitions with these identifiers: #{forms}"
@@ -47,12 +49,16 @@ end
 def seed_assessment_form_definitions
   file = File.read('drivers/hmis/lib/form_data/assessments/dummy_intake_assessment.json')
   form_definition = JSON.parse(file)
+  Hmis::Form::Definition.validate_json(form_definition)
+
   identifier = 'dummy-intake-assessment'
-  definition = Hmis::Form::Definition.find_or_create_by(identifier: identifier)
+  definition = Hmis::Form::Definition.find_or_create_by(
+    identifier: identifier,
+    version: 0,
+    role: 'INTAKE',
+    status: 'draft',
+  )
   definition.definition = form_definition.to_json
-  definition.version = 0
-  definition.role = 'INTAKE'
-  definition.status = 'draft'
   definition.save!
 
   # Make this form the fallback instance for all intake assessments
