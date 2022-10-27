@@ -69,6 +69,24 @@ module ProjectPassFail
       ude
     end
 
+    def universal_data_element_table_cell(label)
+      @universal_data_element_table_cell ||= {
+        'Name' => ['Q6a', 'F2'],
+        'SSN' => ['Q6a', 'F3'],
+        'DOB' => ['Q6a', 'F4'],
+        'Race' => ['Q6a', 'F5'],
+        'Ethnicity' => ['Q6a', 'F6'],
+        'Gender' => ['Q6a', 'F7'],
+        'Veteran' => ['Q6b', 'C2'],
+        'Entry Date' => ['Q6b', 'C3'],
+        'Relationship to HoH' => ['Q6b', 'C4'],
+        'Location' => ['Q6b', 'C5'],
+        'Disabling Condition' => ['Q6b', 'C6'],
+        'Income at Entry' => ['Q6c', 'C3'],
+      }
+      @universal_data_element_table_cell[label]
+    end
+
     def calculate_utilization_rate
       self.utilization_rate = if available_beds.positive? && clients.exists?
         clients.sum(:days_served).to_f / project_pass_fail.filter.range.count / available_beds
