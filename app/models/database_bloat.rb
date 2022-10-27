@@ -29,7 +29,9 @@ class DatabaseBloat
   end
 
   def self.all_databases!(meth, dry_run: false)
-    [ApplicationRecord, GrdaWarehouseBase, HealthBase, ReportingBase, CasBase].each do |ar_base_class|
+    dbs = [ApplicationRecord, GrdaWarehouseBase, HealthBase, ReportingBase]
+    dbs << CasBase if CasBase.db_exists?
+    dbs.each do |ar_base_class|
       Rails.logger.tagged({ 'dba' => true, 'base_class' => ar_base_class.to_s, 'method' => meth.to_s }) do
         db = DatabaseBloat.new(ar_base_class: ar_base_class, dry_run: dry_run)
         db.send(meth)
