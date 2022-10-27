@@ -162,9 +162,9 @@ module HudPathReport::Generators::Fy2021
         next unless active_in_path(enrollment) && enrollment.ClientEnrolledInPATH == 1 && enrollment.DateOfPATHStatus&.between?(@report.start_date, @report.end_date)
 
         contacts += enrollment.current_living_situations.between(start_date: @report.start_date, end_date: @report.end_date).pluck(:InformationDate)
-        contacts += [enrollment.DateOfEngagement] if enrollment.DateOfEngagement.present? && enrollment.DateOfEngagement.between?(@report.start_date, @report.end_date)
-        contacts += [enrollment.DateOfPATHStatus] if enrollment.ClientEnrolledInPATH == 1 && enrollment.DateOfPATHStatus.between?(@report.start_date, @report.end_date)
-        contacts += enrollment.services.path_service.between(start_date: @report.start_date, end_date: @report.end_date).pluck(:DateProvided)
+        contacts += [enrollment.DateOfEngagement] if enrollment.DateOfEngagement.present? && enrollment.DateOfEngagement.between?(@report.start_date, @report.end_date) && ! contacts.include?(enrollment.DateOfEngagement)
+        contacts += [enrollment.DateOfPATHStatus] if enrollment.ClientEnrolledInPATH == 1 && enrollment.DateOfPATHStatus.between?(@report.start_date, @report.end_date) && ! contacts.include?(enrollment.DateOfPATHStatus)
+        contacts += enrollment.services.path_service.between(start_date: @report.start_date, end_date: @report.end_date).pluck(:DateProvided).reject { |d| d.in?(contacts) }
       end
       contacts
     end
