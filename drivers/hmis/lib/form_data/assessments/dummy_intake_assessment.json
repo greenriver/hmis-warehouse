@@ -107,6 +107,41 @@
           ]
         },
         {
+          "type": "DISPLAY",
+          "link_id": "3.917.C.message",
+          "text": "Stopping data collection for 3.917 Prior Living Situation.",
+          "project_types_excluded": ["ES", "SERVICES_ONLY", "SH"],
+          "_comment": "FIXME: If 2.917 B or C were enabled, we shouldnt show this unless B/C have been answered?",
+          "enable_behavior": "ALL",
+          "enable_when": [
+            {
+              "question": "3.917.C",
+              "operator": "EQUAL",
+              "answer_boolean": false
+            },
+            {
+              "question": "3.917.1",
+              "operator": "EXISTS",
+              "answer_boolean": true
+            },
+            {
+              "question": "3.917.2",
+              "operator": "EXISTS",
+              "answer_boolean": true
+            },
+            {
+              "question": "3.917.A",
+              "operator": "ENABLED",
+              "answer_boolean": false
+            },
+            {
+              "question": "3.917.B",
+              "operator": "ENABLED",
+              "answer_boolean": false
+            }
+          ]
+        },
+        {
           "type": "DATE",
           "link_id": "3.917.3",
           "text": "Date homelessness started",
@@ -119,6 +154,11 @@
             },
             {
               "question": "3.917.B",
+              "operator": "ENABLED",
+              "answer_boolean": false
+            },
+            {
+              "question": "3.917.C.message",
               "operator": "ENABLED",
               "answer_boolean": false
             }
@@ -140,6 +180,11 @@
               "question": "3.917.B",
               "operator": "ENABLED",
               "answer_boolean": false
+            },
+            {
+              "question": "3.917.C.message",
+              "operator": "ENABLED",
+              "answer_boolean": false
             }
           ]
         },
@@ -157,6 +202,11 @@
             },
             {
               "question": "3.917.B",
+              "operator": "ENABLED",
+              "answer_boolean": false
+            },
+            {
+              "question": "3.917.C.message",
               "operator": "ENABLED",
               "answer_boolean": false
             }
