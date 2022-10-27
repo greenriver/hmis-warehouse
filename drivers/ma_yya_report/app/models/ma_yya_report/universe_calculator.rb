@@ -6,6 +6,7 @@
 
 module MaYyaReport
   class UniverseCalculator
+    include ArelHelper
     include Filter::FilterScopes
 
     def initialize(filter)
@@ -30,11 +31,12 @@ module MaYyaReport
           enrollment = enrollments_by_client_id[client_id].last
           next if enrollment.blank? || enrollment.enrollment.blank?
 
+          age = enrollment.client.age_on([@filter.start_date, enrollment.first_date_in_program].max)
           enrollment_cls = enrollment.enrollment.current_living_situations.detect { |cls| cls.InformationDate == enrollment.first_date_in_program }
           education_status = enrollment.enrollment.youth_education_statuses.max_by(&:InformationDate)
           health_and_dv = enrollment.enrollment.health_and_dvs.max_by(&:InformationDate)
 
-          clients[client_id] = Client.new(
+          clients[client] = ::MaYyaReport::Client.new(
             client_id: client_id,
             service_history_enrollment_id: enrollment.id,
             entry_date: enrollment.first_date_in_program,
@@ -46,7 +48,7 @@ module MaYyaReport
             education_status_date: education_status&.InformationDate,
             current_school_attendance: education_status&.CurrentSchoolAttend,
             current_educational_status: education_status&.CurrentEdStatus,
-            age: enrollment.client.age_on([@filter.start_date, enrollment.first_date_in_program].max),
+            age: age,
             gender: gender(enrollment.client),
             race: race(enrollment.client),
             ethnicity: enrollment.client.Ethnicity,
@@ -89,7 +91,8 @@ module MaYyaReport
         entry.
         open_between(start_date: @filter.start_date, end_date: @filter.end_date)
 
-      filter_for_projects(scope)
+      scope = filter_for_projects(scope)
+      filter_for_age(scope)
     end
 
     private def enrollment_scope_with_preloads

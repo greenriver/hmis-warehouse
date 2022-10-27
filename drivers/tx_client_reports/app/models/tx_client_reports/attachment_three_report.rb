@@ -160,6 +160,8 @@ module TxClientReports
 
       client_scope.map do |client|
         enrollment = enrollments[client.id]
+        next unless enrollment.present?
+
         project = enrollment.project
         hoh_income = enrollment.
           service_history_enrollment_for_head_of_household&.
@@ -196,7 +198,7 @@ module TxClientReports
           child_in_household: household.map(&:age).any? { |age| age.present? && age < 18 },
           disability_in_household: enrollment.household_enrollments.map(&:DisablingCondition).any?(1),
         }
-      end.sort_by { |row| row[:service_date] }
+      end.compact.sort_by { |row| row[:service_date] }
     end
 
     private def client_disabled?(client)
