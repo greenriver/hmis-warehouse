@@ -963,6 +963,10 @@ module Health
     end
     alias completed? complete?
 
+    def reviewed?
+      reviewed_at.present?
+    end
+
     def active?
       completed_at && completed_at >= 1.years.ago
     end
