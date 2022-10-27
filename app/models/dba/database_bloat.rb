@@ -34,6 +34,11 @@ class DBA::DatabaseBloat
 
   def self.all_databases!(meth, dry_run: false)
     [ApplicationRecord, GrdaWarehouseBase, HealthBase, ReportingBase, CasBase].each do |ar_base_class|
+      if ar_base_class == CasBase && !CasBase.db_exists?
+        Rails.logger.info "Skipping CAS which doesn't exist"
+        next
+      end
+
       Rails.logger.tagged({ 'dba' => true, 'base_class' => ar_base_class.to_s, 'method' => meth.to_s }) do
         db = DBA::DatabaseBloat.new(ar_base_class: ar_base_class, dry_run: dry_run)
         db.send(meth)
