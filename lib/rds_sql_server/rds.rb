@@ -184,7 +184,7 @@ class Rds
   end
 
   def wait!
-    return if ENV['LSA_DB_HOST'].present? || exists?
+    # return if ENV['LSA_DB_HOST'].present? || exists?
 
     status = instance_data.db_instance_status
 
