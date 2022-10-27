@@ -164,7 +164,7 @@ module HmisSqlServer
     def clean_row_for_import(row:, headers:)
       # The LSA doesn't believe it should be unknown if you are a victim service provider
       field_index = headers.index('VictimServiceProvider')
-      row[field_index] = 0 if row[field_index] == 99 || row[field_index].blank?
+      row[field_index] = 0 if row[field_index].to_s == '99' || row[field_index].blank?
       super(row: row, headers: headers)
     end
   end
