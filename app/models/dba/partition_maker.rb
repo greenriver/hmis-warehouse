@@ -9,7 +9,8 @@ class DBA::PartitionMaker
   attr_accessor :partitioned_table
   attr_accessor :schema
 
-  # Create a normal, non-partitioned table/model first, and pass in the class
+  # Create a normal, non-partitioned table/model first, and pass in the table name
+  # schema is where we'll "hide" all the partitions
   def initialize(num_partitions: 71, partition_column: nil, schema: 'hmis', table_name:)
     self.klass = klass
     self.num_partitions = num_partitions
@@ -31,7 +32,7 @@ class DBA::PartitionMaker
   def run!
     _schema
     _main_table
-    _sub_tables
+    _make_partitions
     _copy
   end
 
@@ -55,6 +56,7 @@ class DBA::PartitionMaker
     return if table_exists?(old_table)
 
     base_class.transaction do
+      # backup the non-partitioned table
       p(<<~SQL)
         ALTER TABLE "#{partitioned_table}" RENAME TO "#{old_table}";
       SQL
@@ -65,6 +67,9 @@ class DBA::PartitionMaker
         DROP TABLE IF EXISTS "#{temp}"
       SQL
 
+      # Build out a table with the same shape, but with the partition column
+      # added to all unique indexes/constraints. ActiveRecord may need
+      # adjustments to understand the primary key is really just the ID.
       p(<<~SQL)
         CREATE TABLE "#{temp}" (LIKE "#{old_table}" INCLUDING ALL)
       SQL
@@ -97,22 +102,22 @@ class DBA::PartitionMaker
     end
   end
 
-  def _sub_tables
+  def _make_partitions
     0.upto(num_partitions - 1).each do |partnum|
-      _one_sub_table(partnum)
+      _make_one_partition(partnum)
     end
   end
 
   def _copy
     results = Benchmark.measure do
       p(<<~SQL)
-        INSERT INTO "#{partitioned_table}" select * from "#{old_table}"
+        INSERT INTO "#{partitioned_table}" SELECT * FROM "#{old_table}"
       SQL
     end
     Rails.logger.info "Copy of #{partitioned_table} to partitioned version took #{results.real} seconds"
   end
 
-  def _one_sub_table(partnum)
+  def _make_one_partition(partnum)
     p(<<~SQL)
       CREATE TABLE IF NOT EXISTS #{schema}.#{partitioned_table}_#{partnum}
         PARTITION OF #{partitioned_table}
