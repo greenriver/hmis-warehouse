@@ -1,7 +1,6 @@
 # Reduces bloat in tables and indexes
 #
-# Test nd
-# with this:
+# Test with this:
 # DBA_MIN_ROWS=200  DBA_MIN_UNUSED_INDEX_SIZE=10000 DBA_BLOAT_CUTOFF=1 DBA_SIZE_CUTOFF=100000 ./bin/rake dba:dry_run
 class DBA::DatabaseBloat
   attr_accessor :ar_base_class
