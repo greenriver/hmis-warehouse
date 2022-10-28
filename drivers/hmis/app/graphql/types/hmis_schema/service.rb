@@ -8,22 +8,25 @@
 
 module Types
   class HmisSchema::Service < Types::BaseObject
-    description 'HUD Service'
-    field :id, ID, null: false
-    field :enrollment, Types::HmisSchema::Enrollment, null: false
-    field :client, HmisSchema::Client, null: false
-    field :date_provided, GraphQL::Types::ISO8601Date, null: false
-    field :record_type, HmisSchema::Enums::RecordType, null: false
-    field :type_provided, HmisSchema::Enums::ServiceTypeProvided, null: false
-    field :other_type_provided, String, null: true
-    field :moving_on_other_type, String, null: true
-    field :sub_type_provided, HmisSchema::Enums::ServiceSubTypeProvided, null: true
+    def self.configuration
+      Hmis::Hud::Service.hmis_configuration(version: '2022')
+    end
+
+    hud_field :id, ID, null: false
+    hud_field :enrollment, Types::HmisSchema::Enrollment, null: false
+    hud_field :client, HmisSchema::Client, null: false
+    hud_field :date_provided
+    hud_field :record_type, HmisSchema::Enums::RecordType
+    hud_field :type_provided, HmisSchema::Enums::ServiceTypeProvided
+    hud_field :other_type_provided
+    hud_field :moving_on_other_type
+    hud_field :sub_type_provided, HmisSchema::Enums::ServiceSubTypeProvided
     field 'FAAmount', Float, null: true
-    field :referral_outcome, HmisSchema::Enums::PATHReferralOutcome, null: true
-    field :date_created, GraphQL::Types::ISO8601DateTime, null: false
-    field :date_updated, GraphQL::Types::ISO8601DateTime, null: false
-    field :date_deleted, GraphQL::Types::ISO8601DateTime, null: true
-    field :user, HmisSchema::User, null: false
+    hud_field :referral_outcome, HmisSchema::Enums::PATHReferralOutcome
+    hud_field :date_updated
+    hud_field :date_created
+    hud_field :date_deleted
+    hud_field :user, HmisSchema::User, null: false
 
     def user
       load_ar_association(object, :user)

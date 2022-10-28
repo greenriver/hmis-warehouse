@@ -85,7 +85,13 @@ class ApplicationNotifier < Slack::Notifier
   def ping(message, options = {})
     return unless @endpoint&.host
 
-    if @redis.nil? || message.is_a?(Hash) || options.present?
+    if options.key?(:exception)
+      Sentry.capture_exception_with_info(
+        options[:exception].presence || {},
+        message,
+        options[:info].presence || {},
+      )
+    elsif @redis.nil? || message.is_a?(Hash) || options.present?
       # fallback on hard cases or if Redis is not available
       super
     else

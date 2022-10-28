@@ -20,11 +20,17 @@
         %tr
           %th Metric
           %th Error Rate
+          %th.border-left APR Table
+          %th APR Cell
         - project.universal_data_element_rates.each do |label, value|
           - if value
             %tr
               %th= label
               %td= number_to_percentage(value * 100, precision: 2)
+              - table, cell = project.universal_data_element_table_cell(label)
+              %td.border-left= table
+              %td= cell
+
     %p Error rates are based on Q6 APR logic.
   .col-sm-3
     %dl

@@ -1,5 +1,3 @@
-require "#{Rails.root}/lib/util/exception_notifier.rb"
-
 I18n.config.available_locales = :en
 
 Rails.application.configure do
@@ -133,23 +131,5 @@ Rails.application.configure do
   # Disable CSRF origin check during development because the HMIS frontend has a different origin
   if ENV.fetch('ENABLE_HMIS_API', false) == 'true'
     config.action_controller.forgery_protection_origin_check = false
-  end
-
-  exception_notifier_config = Rails.application.config_for(:exception_notifier)
-  if exception_notifier_config&.[](:slack).present?
-    slack_config = exception_notifier_config[:slack]
-    config.middleware.use(ExceptionNotification::Rack,
-      slack: {
-        webhook_url: slack_config[:webhook_url],
-        channel: slack_config[:channel],
-        pre_callback: proc { |opts, _notifier, _backtrace, _message, message_opts|
-          ExceptionNotifierLib.insert_log_url!(message_opts)
-        },
-        additional_parameters: {
-          mrkdwn: true,
-          icon_url: slack_config[:icon_url]
-        }
-      }
-    )
   end
 end

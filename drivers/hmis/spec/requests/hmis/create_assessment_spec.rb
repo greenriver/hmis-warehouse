@@ -13,7 +13,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let(:hmis_user) { Hmis::User.find(user.id)&.tap { |u| u.update(hmis_data_source_id: ds1.id) } }
   let(:u1) { Hmis::Hud::User.from_user(hmis_user) }
   let(:o1) { create :hmis_hud_organization, data_source: ds1, user: u1 }
-  let(:p1) { create :hmis_hud_project, data_source: ds1, OrganizationID: o1.OrganizationID, user: u1 }
+  let(:p1) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1 }
   let(:c1) { create :hmis_hud_client, data_source: ds1, user: u1 }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1 }
   let!(:fd1) { create :hmis_form_definition }
@@ -26,21 +26,32 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let(:test_input) do
     {
       enrollment_id: e1.id.to_s,
-      assessment_role: 'INTAKE',
+      form_definition_id: fd1.id,
       assessment_date: (Date.today - 2.days).strftime('%Y-%m-%d'),
+      values: { key: 'value' },
     }
   end
 
   let(:mutation) do
     <<~GRAPHQL
-      mutation CreateAssessment($enrollmentId: ID!, $assessmentRole: AssessmentRole!, $assessmentDate: String) {
-        createAssessment(input: { enrollmentId: $enrollmentId, assessmentRole: $assessmentRole, assessmentDate: $assessmentDate }) {
+      mutation CreateAssessment($enrollmentId: ID!, $formDefinitionId: ID!, $values: JsonObject!, $assessmentDate: String, $inProgress: Boolean) {
+        createAssessment(input: {
+          enrollmentId: $enrollmentId,
+          formDefinitionId: $formDefinitionId,
+          assessmentDate: $assessmentDate,
+          values: $values,
+          inProgress: $inProgress,
+        }) {
           assessment {
             id
+            inProgress
             enrollment {
               id
             }
             user {
+              id
+            }
+            client {
               id
             }
             assessmentDate
@@ -59,11 +70,16 @@ RSpec.describe Hmis::GraphqlController, type: :request do
                 role
                 status
                 identifier
-                definition
+                definition {
+                  item {
+                    linkId
+                  }
+                }
               }
               dataCollectionStage
               role
               status
+              values
             }
           }
           errors {
@@ -79,6 +95,22 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     GRAPHQL
   end
 
+  let(:get_enrollment_query) do
+    <<~GRAPHQL
+      query GetEnrollment($id: ID!) {
+        enrollment(id: $id) {
+          assessments {
+            nodesCount
+            nodes {
+              id
+              inProgress
+            }
+          }
+        }
+      }
+    GRAPHQL
+  end
+
   it 'should create an assessment successfully' do
     response, result = post_graphql(**test_input) { mutation }
 
@@ -87,6 +119,39 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     errors = result.dig('data', 'createAssessment', 'errors')
     expect(assessment['id']).to be_present
     expect(errors).to be_empty
+
+    # assessment should appear on enrollment query
+    response, result = post_graphql(id: e1.id) { get_enrollment_query }
+    expect(response.status).to eq 200
+    enrollment = result.dig('data', 'enrollment')
+    expect(enrollment).to be_present
+    expect(enrollment.dig('assessments', 'nodes', 0, 'id')).to eq(assessment['id'])
+  end
+
+  describe 'In progress tests' do
+    it 'should create WIP assessment' do
+      response, result = post_graphql(**test_input.merge(in_progress: true)) { mutation }
+      expect(response.status).to eq 200
+      assessment = result.dig('data', 'createAssessment', 'assessment')
+      errors = result.dig('data', 'createAssessment', 'errors')
+      expect(assessment).to be_present
+      expect(assessment['inProgress']).to eq(true)
+      expect(assessment['enrollment']).to be_present
+      expect(errors).to be_empty
+      expect(Hmis::Hud::Assessment.count).to eq(1)
+      expect(Hmis::Hud::Assessment.in_progress.count).to eq(1)
+      expect(Hmis::Hud::Assessment.where(enrollment_id: Hmis::Hud::Assessment::WIP_ID).count).to eq(1)
+      expect(Hmis::Wip.count).to eq(1)
+      expect(Hmis::Wip.first).to have_attributes(enrollment_id: e1.id, client_id: c1.id, project_id: nil)
+      expect(Hmis::Hud::Assessment.viewable_by(hmis_user).count).to eq(1)
+
+      # WIP assessment should appear on enrollment query
+      response, result = post_graphql(id: e1.id) { get_enrollment_query }
+      expect(response.status).to eq 200
+      enrollment = result.dig('data', 'enrollment')
+      expect(enrollment).to be_present
+      expect(enrollment.dig('assessments', 'nodes', 0, 'id')).to eq(assessment['id'])
+    end
   end
 
   describe 'Validity tests' do
@@ -101,13 +166,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       ],
       [
         'should emit error if cannot find form defition',
-        ->(input) do
-          Hmis::Form::Instance.all.destroy_all
-          input
-        end,
+        ->(input) { input.merge(form_definition_id: '999') },
         {
-          'message' => 'Cannot get definition for assessment role',
-          'attribute' => 'assessmentRole',
+          'message' => 'Cannot get definition',
+          'attribute' => 'formDefinitionId',
         },
       ],
     ].each do |test_name, input_proc, *expected_errors|

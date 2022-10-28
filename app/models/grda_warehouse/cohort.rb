@@ -475,6 +475,9 @@ module GrdaWarehouse
 
     def self.prepare_active_cohorts
       client_ids = GrdaWarehouse::CohortClient.joins(:cohort, :client).merge(GrdaWarehouse::Cohort.active).distinct.pluck(:client_id)
+      # Don't do anything if we don't have any clients on cohorts
+      return unless client_ids.present?
+
       GrdaWarehouse::WarehouseClientsProcessed.update_cached_counts(client_ids: client_ids)
       GrdaWarehouse::Cohort.active.each(&:refresh_time_dependant_client_data)
     end

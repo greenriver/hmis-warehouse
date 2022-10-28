@@ -23,6 +23,8 @@ class ApplicationController < ActionController::Base
   before_action :authenticate_user!
   auto_session_timeout User.timeout_in
 
+  before_action :set_sentry_user
+
   before_action :set_paper_trail_whodunnit
   before_action :set_notification
   before_action :set_hostname
@@ -282,5 +284,11 @@ class ApplicationController < ActionController::Base
       current_user: current_user&.email || 'none',
       current_user_browser: browser.to_s,
     }
+  end
+
+  def set_sentry_user
+    return unless ENV['WAREHOUSE_SENTRY_DSN'].present?
+
+    Sentry.configure_scope { |scope| scope.set_user(id: current_user.id, email: current_user.email) } if Sentry.initialized? && defined?(current_user) && current_user.is_a?(User)
   end
 end

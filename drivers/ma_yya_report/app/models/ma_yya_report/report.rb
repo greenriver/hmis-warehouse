@@ -240,7 +240,7 @@ module MaYyaReport
     end
 
     private def json_contains(field, contents)
-      contents.map { |val| "#{field} @> '#{val}'" }.join(' OR ')
+      "(#{contents.map { |val| "#{field} @> '#{val}'" }.join(' OR ')})"
     end
 
     private def json_contains_text(field, text)

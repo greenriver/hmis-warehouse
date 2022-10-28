@@ -47,7 +47,7 @@ RSpec.shared_context 'datalab testkit context', shared_context: :metadata do
       restore_fixpoint :datalab_2_0_warehouse, connection: warehouse
     else
       Dir.glob(hmis_file_prefix).select { |f| File.directory? f }.each do |file_path|
-        puts "*** #{file_path} ***"
+        # puts "*** #{file_path} ***"
         import_hmis_csv_fixture(file_path, run_jobs: false)
       end
       process_imported_fixtures

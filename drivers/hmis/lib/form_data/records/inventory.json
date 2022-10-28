@@ -1,0 +1,66 @@
+{
+  "name": "inventory",
+  "item": [
+    {
+      "type": "GROUP",
+      "link_id": "name",
+      "text": "Details",
+      "required": false,
+      "item": [
+        {
+          "type": "CHOICE",
+          "required": true,
+          "link_id": "coc",
+          "text": "CoC Code",
+          "pick_list_reference": "COC",
+          "query_field": "cocCode"
+        },
+        {
+          "type": "CHOICE",
+          "required": true,
+          "link_id": "hhtype",
+          "text": "Household Type",
+          "pick_list_reference": "HouseholdType",
+          "query_field": "householdType"
+        },
+        {
+          "type": "INTEGER",
+          "required": true,
+          "link_id": "units",
+          "text": "Unit Inventory",
+          "query_field": "unitInventory"
+        },
+        {
+          "type": "INTEGER",
+          "required": true,
+          "link_id": "beds",
+          "text": "Bed Inventory",
+          "query_field": "bedInventory"
+        }
+      ]
+    },
+    {
+      "type": "GROUP",
+      "link_id": "dates",
+      "text": "Operating Period",
+      "required": false,
+
+      "item": [
+        {
+          "type": "DATE",
+          "required": true,
+          "link_id": "2.02.3",
+          "text": "Start Date",
+          "query_field": "inventoryStartDate"
+        },
+        {
+          "type": "DATE",
+          "required": false,
+          "link_id": "2.02.4",
+          "text": "End Date",
+          "query_field": "inventoryEndDate"
+        }
+      ]
+    }
+  ]
+}

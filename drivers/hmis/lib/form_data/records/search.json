@@ -1,0 +1,48 @@
+{
+  "item": [
+    {
+      "type": "STRING",
+      "required": false,
+      "link_id": "1",
+      "text": "Personal ID",
+      "query_field": "personalId"
+    },
+    {
+      "type": "STRING",
+      "required": false,
+      "link_id": "2",
+      "text": "First Name",
+      "query_field": "firstName"
+    },
+    {
+      "type": "STRING",
+      "required": false,
+      "link_id": "3",
+      "text": "Last Name",
+      "query_field": "lastName"
+    },
+    {
+      "type": "STRING",
+      "required": false,
+      "link_id": "4",
+      "text": "SSN",
+      "query_field": "ssnSerial"
+    },
+    {
+      "type": "DATE",
+      "required": false,
+      "link_id": "5",
+      "text": "Date of Birth",
+      "query_field": "dob"
+    },
+    {
+      "type": "CHOICE",
+      "required": false,
+      "link_id": "6",
+      "text": "Organizations",
+      "repeats": true,
+      "pick_list_reference": "ORGANIZATION",
+      "query_field": "organizations"
+    }
+  ]
+}

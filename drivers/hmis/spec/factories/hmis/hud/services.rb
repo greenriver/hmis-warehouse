@@ -4,7 +4,7 @@ FactoryBot.define do
     user { association :hmis_hud_user, data_source: data_source }
     enrollment { association :hmis_hud_enrollment, data_source: data_source }
     client { association :hmis_hud_client, data_source: data_source }
-    sequence(:ServicesID, 7)
+    sequence(:ServicesID, 500)
     DateCreated { Date.parse('2019-01-01') }
     DateUpdated { Date.parse('2019-01-01') }
     DateProvided { Date.today }

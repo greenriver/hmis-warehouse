@@ -549,7 +549,7 @@ module HUD
       1 => 'Facility-based',
       2 => 'Voucher',
       3 => 'Other',
-    }
+    }.freeze
   end
 
   # 2.7.4

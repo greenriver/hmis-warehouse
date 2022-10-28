@@ -160,6 +160,13 @@ module HmisSqlServer
   class Organization < LsaBase
     self.table_name = :hmis_Organization
     include ::HmisStructure::Organization
+
+    def clean_row_for_import(row:, headers:)
+      # The LSA doesn't believe it should be unknown if you are a victim service provider
+      field_index = headers.index('VictimServiceProvider')
+      row[field_index] = 0 if row[field_index].to_s == '99' || row[field_index].blank?
+      super(row: row, headers: headers)
+    end
   end
 
   class Project < LsaBase
@@ -186,7 +193,7 @@ module HmisSqlServer
     include ::HmisStructure::ProjectCoc
 
     def clean_row_for_import(row:, headers:)
-      field_index = headers.index('Zip')
+      field_index = headers.map(&:downcase).index('zip')
       row[field_index] = row[field_index].presence || '0' * 5
       field_index = headers.index('Geocode')
       row[field_index] = row[field_index].presence || '0' * 6

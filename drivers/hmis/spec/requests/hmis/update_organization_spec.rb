@@ -40,7 +40,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               id
               organizationName
               projects {
-                id
+                nodes {
+                  id
+                }
               }
               victimServiceProvider
               description

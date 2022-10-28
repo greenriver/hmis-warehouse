@@ -16,8 +16,12 @@ module Mutations
         household_enrollments = Hmis::Hud::Enrollment.viewable_by(current_user).where(household_id: household_id)
         new_hoh_enrollment = household_enrollments.find_by(personal_id: client&.personal_id)
         if new_hoh_enrollment
-          household_enrollments.where(relationship_to_ho_h: 1).update_all(relationship_to_ho_h: 99)
-          new_hoh_enrollment.relationship_to_ho_h = 1
+          update_params = {
+            user_id: hmis_user.user_id,
+            date_updated: DateTime.current,
+          }
+          household_enrollments.where(relationship_to_ho_h: 1).update_all(relationship_to_ho_h: 99, **update_params)
+          new_hoh_enrollment.update(relationship_to_ho_h: 1, **update_params)
           new_hoh_enrollment.save!
 
           enrollment = new_hoh_enrollment

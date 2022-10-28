@@ -9,6 +9,21 @@ class Hmis::Hud::ProjectCoc < Hmis::Hud::Base
   include ::Hmis::Hud::Shared
   self.table_name = :ProjectCoC
   self.sequence_name = "public.\"#{table_name}_id_seq\""
+  validates_with Hmis::Hud::Validators::ProjectCocValidator
 
   belongs_to :project, **hmis_relation(:ProjectID, 'Project')
+
+  use_enum :geography_type_enum_map, ::HUD.geography_types
+
+  scope :viewable_by, ->(user) do
+    joins(:project).merge(Hmis::Hud::Project.viewable_by(user))
+  end
+
+  def required_fields
+    @required_fields ||= [
+      :ProjectID,
+      :CoCCode,
+      :Geocode,
+    ]
+  end
 end
