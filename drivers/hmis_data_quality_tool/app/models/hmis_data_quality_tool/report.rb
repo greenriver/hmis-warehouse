@@ -192,10 +192,13 @@ module HmisDataQualityTool
     end
 
     # @return filtered scope
+    # NOTE: you'll need to apply a date range filter in the sub-classes that merge this in
     def report_scope
       # To maintain functionality with HudFilterBase
       filter.project_ids = filter.effective_project_ids
-      filter.apply(report_scope_source)
+      scope = report_scope_source
+      scope = filter_for_range(scope)
+      filter.apply(scope)
     end
 
     def can_see_client_details?(user)
@@ -419,7 +422,8 @@ module HmisDataQualityTool
     end
 
     def percent(total, partial)
-      return 0 if total.blank? || total.zero? || partial.blank? || partial.zero?
+      return 100 if total.blank? || total.zero?
+      return 0 if partial.blank? || partial.zero?
 
       ((partial / total.to_f) * 100).round(1)
     end

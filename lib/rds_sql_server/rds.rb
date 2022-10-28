@@ -184,7 +184,7 @@ class Rds
   end
 
   def wait!
-    return if ENV['LSA_DB_HOST'].present? || exists?
+    # return if ENV['LSA_DB_HOST'].present? || exists?
 
     status = instance_data.db_instance_status
 
@@ -274,6 +274,8 @@ class Rds
     sqlservers.find do |server|
       server.db_instance_identifier == identifier
     end
+  rescue Aws::RDS::Errors::ServiceUnavailable
+    false
   end
 
   def current_state

@@ -11,7 +11,7 @@ module VeteranStatusCalculator
   #
   # @param verified_veteran_status [String]
   # @param va_verified_veteran [Boolean]
-  # @param source_clients [Array<Hash>] Sources clients are treated as a hash to allow loading outside of ActiveRecprd
+  # @param source_clients [Array<Hash>] Sources clients are treated as a hash to allow loading outside of ActiveRecord
   def calculate_best_veteran_status(verified_veteran_status, va_verified_veteran, source_clients)
     # Get the best Veteran status (has 0/1, newest breaks the tie)
     # As of 2/16/2019 calculate using if ever yes, override with verified_veteran_status == non_veteran
@@ -21,7 +21,9 @@ module VeteranStatusCalculator
 
     # Will return No or DK/R/NC
     source_clients.max do |a, b|
-      a[:DateUpdated] <=> b[:DateUpdated]
+      a_updated = a[:DateUpdated].presence || 10.years.ago
+      b_updated = b[:DateUpdated].presence || 10.years.ago
+      a_updated <=> b_updated
     end[:VeteranStatus]
   end
 end
