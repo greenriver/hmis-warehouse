@@ -3,12 +3,12 @@ ws_title = "#{@result.category} #{@result.title}"
 
 wb.add_worksheet(name: ws_title.slice(0, 30).gsub(':', ' ').gsub('/', '-')) do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
-  headers = @result.item_class.detail_headers
-  sheet.add_row(headers.values, style: title)
-  @items.each do |client|
+  headers = @result.item_class.constantize.detail_headers_for_export
+  sheet.add_row(headers.values.map { |h| h[:title] }, style: title)
+  @items.each do |item|
     row = []
     headers.each_key do |k|
-      row << client.public_send(k)
+      row << item.download_value(k)
     end
     sheet.add_row(row)
   end

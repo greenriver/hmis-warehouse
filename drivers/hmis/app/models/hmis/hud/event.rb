@@ -11,6 +11,7 @@ class Hmis::Hud::Event < Hmis::Hud::Base
   self.sequence_name = "public.\"#{table_name}_id_seq\""
 
   belongs_to :enrollment, **hmis_relation(:EnrollmentID, 'Enrollment')
+  belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :events
 
   use_enum :events_enum_map, ::HUD.events
   use_enum :referral_result_enum_map, ::HUD.referral_results

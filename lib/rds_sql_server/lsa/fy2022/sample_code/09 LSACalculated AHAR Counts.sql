@@ -18,7 +18,7 @@ Populates and references:
 	
   9 Populations for AHAR Counts 
 */
-	delete from tlsa_CountPops 
+	truncate table tlsa_CountPops 
 
 	insert into tlsa_CountPops (PopID, Step)
 	values (0, '9.1.0')

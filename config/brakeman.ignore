@@ -2326,6 +2326,26 @@
     {
       "warning_type": "SQL Injection",
       "warning_code": 0,
+      "fingerprint": "e3ce0a7baa215616359faf56fd7e7ad420a3ca38669ed5fe226f241626597710",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "app/models/concerns/hmis_structure/base.rb",
+      "line": 153,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "connection.execute(\"CREATE INDEX #{((table_name.gsub(/[^0-9a-z ]/i, \"\") + \"_\") + Digest::MD5.hexdigest(columns.join(\"_\"))[0, 4])} ON #{connection.quote_table_name(table_name)} (#{columns.map do\n connection.quote_column_name(c)\n end.join(\", \")}) INCLUDE (#{details[:include].map do\n connection.quote_column_name(c)\n end.join(\", \")})\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "HmisStructure::Base::ClassMethods",
+        "method": "hmis_table_create_indices!"
+      },
+      "user_input": "table_name.gsub(/[^0-9a-z ]/i, \"\")",
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
       "fingerprint": "e4f8ccf26e1fd69bcd4fa892bf2291f93f3312d115e805626e4e9984335f08a4",
       "check_name": "SQL",
       "message": "Possible SQL injection",
@@ -2603,6 +2623,6 @@
       "note": ""
     }
   ],
-  "updated": "2022-09-16 20:10:21 +0000",
+  "updated": "2022-10-19 10:59:26 +0000",
   "brakeman_version": "5.0.4"
 }

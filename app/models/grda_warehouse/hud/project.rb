@@ -403,6 +403,8 @@ module GrdaWarehouse::Hud
     end
 
     def self.access_to_project_through_viewable_entities(user, quoted_string, quoted_column)
+      return '(1=0)' unless user.present?
+
       viewability_table = GrdaWarehouse::GroupViewableEntity.quoted_table_name
       project_table     = quoted_table_name
       viewability_deleted_column_name = GrdaWarehouse::GroupViewableEntity.paranoia_column
@@ -436,12 +438,14 @@ module GrdaWarehouse::Hud
     end
 
     def self.access_to_project_through_organization(user, quoted_string, quoted_column)
+      return '(1=0)' unless user.present?
+
       viewability_table   = GrdaWarehouse::GroupViewableEntity.quoted_table_name
       project_table       = quoted_table_name
       organization_table  = GrdaWarehouse::Hud::Organization.quoted_table_name
       viewability_deleted_column_name = GrdaWarehouse::GroupViewableEntity.paranoia_column
       group_ids = Rails.cache.fetch([user, 'access_groups'], expires_in: 1.minutes) do
-        user.access_groups.pluck(:id)
+        user.access_groups.pluck(:id) || []
       end
       group_id_query = if group_ids.empty?
         '0=1'
@@ -476,6 +480,8 @@ module GrdaWarehouse::Hud
     end
 
     def self.access_to_project_through_data_source(user, quoted_string, quoted_column)
+      return '(1=0)' unless user.present?
+
       data_source_table = GrdaWarehouse::DataSource.quoted_table_name
       viewability_table = GrdaWarehouse::GroupViewableEntity.quoted_table_name
       project_table     = quoted_table_name
@@ -514,7 +520,7 @@ module GrdaWarehouse::Hud
     end
 
     def self.access_to_project_through_coc_codes(user, quoted_string, quoted_column)
-      return '(1=0)' unless user.coc_codes.any?
+      return '(1=0)' unless user.present? && user.coc_codes.any?
 
       project_coc_table = GrdaWarehouse::Hud::ProjectCoc.quoted_table_name
       project_table     = quoted_table_name
@@ -555,7 +561,7 @@ module GrdaWarehouse::Hud
     end
 
     def self.access_to_project_through_project_access_groups(user, _, _)
-      return '(1=0)' unless user.project_access_groups.any?
+      return '(1=0)' unless user.present? && user.project_access_groups.any?
 
       project_ids = Rails.cache.fetch([user, 'project_access_group_project_ids'], expires_in: 1.minutes) do
         user.project_access_groups.flat_map(&:projects).map(&:id)
@@ -622,7 +628,7 @@ module GrdaWarehouse::Hud
     # - Override Summary Report
     # - HMIS Cross Walks Report
     # - User Permission Report
-    # - Project and Organizaton assignment for Users and Groups
+    # - Project and Organization assignment for Users and Groups
     # - View Project page (because it already requires can_view_confidential_project_names)
     # - Edit Project page and other pages that require can_edit_projects (because users who can edit projects can change their confidentiality status)
     # - Edit Project Group

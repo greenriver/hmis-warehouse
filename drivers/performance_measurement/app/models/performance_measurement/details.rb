@@ -19,7 +19,7 @@ module PerformanceMeasurement::Details
     end
 
     def detail_for(key)
-      detail_hash[key]
+      detail_hash[key&.to_sym]
     end
 
     def detail_title_for(key)
@@ -32,6 +32,10 @@ module PerformanceMeasurement::Details
 
     def detail_sub_category_for(key)
       detail_for(key)[:sub_category]
+    end
+
+    def result_includes_median?(key)
+      key.to_s.ends_with?('_average')
     end
 
     def detail_words_for(column)
@@ -120,6 +124,10 @@ module PerformanceMeasurement::Details
 
     def detail_goal_unit(key)
       detail_for(key.to_sym).try(:[], :goal_unit) || ''
+    end
+
+    def detail_pit_types(key)
+      detail_for(key.to_sym).try(:[], :pit_types)
     end
 
     def my_projects(user, key)
@@ -260,7 +268,7 @@ module PerformanceMeasurement::Details
         count_of_homeless_clients: {
           category: 'Rare',
           sub_category: 'Homelessness',
-          column: :both,
+          column: :system,
           year_over_year_change: true,
           title: "Number of Homeless People Seen on #{filter.pit_date}",
           goal_description: 'The CoC will reduce total homelessness by **%{goal}%% annually** (as reported during a single Point in Time)',
@@ -271,11 +279,13 @@ module PerformanceMeasurement::Details
           denominator_label: '',
           calculation_description: 'The difference (as a percentage) between the total number of persons who are sheltered and unsheltered homeless and seen by ES, TH and SO on the last Wednesday of January within the report range and the last Wednesday of January in the comparison range.',
           calculation_column: :served_on_pit_date,
+          measure: 'Measure 3',
           detail_columns: [
             'served_on_pit_date',
             'served_on_pit_date_sheltered',
             'served_on_pit_date_unsheltered',
           ],
+          pit_types: [:unsheltered, :sheltered],
         },
         count_of_homeless_clients_in_range: {
           category: 'Rare',
@@ -291,10 +301,12 @@ module PerformanceMeasurement::Details
           denominator_label: '',
           calculation_description: 'The difference (as a percentage) between the total number of persons who are sheltered and unsheltered homeless and seen within the report range and comparison range.',
           calculation_column: :seen_in_range,
+          measure: 'Measure 3',
           detail_columns: [
             'served_on_pit_date_sheltered',
             'served_on_pit_date_unsheltered',
           ],
+          pit_types: [:unsheltered, :sheltered],
         },
         count_of_sheltered_homeless_clients: {
           category: 'Rare',
@@ -307,6 +319,7 @@ module PerformanceMeasurement::Details
           goal_direction: '-',
           goal_unit: '%',
           goal_calculation: :people,
+          untagged: true,
           denominator_label: '',
           calculation_description: 'The difference (as a percentage) between the total unduplicated number of persons who are sheltered homeless as reported in HMIS (in ES and TH projects) and seen within the report range and comparison range.',
           calculation_column: :served_on_pit_date_sheltered,
@@ -316,6 +329,7 @@ module PerformanceMeasurement::Details
             'served_on_pit_date_sheltered',
             'served_on_pit_date_unsheltered',
           ],
+          pit_types: [:sheltered],
         },
         count_of_unsheltered_homeless_clients: {
           category: 'Rare',
@@ -328,6 +342,7 @@ module PerformanceMeasurement::Details
           goal_direction: '-',
           goal_unit: '%',
           goal_calculation: :people,
+          untagged: true,
           denominator_label: '',
           calculation_description: 'The difference (as a percentage) between the total unduplicated number of persons who are unsheltered homeless as reported in HMIS (via SO projects) and seen within the report range and comparison range.',
           calculation_column: :served_in_range_unsheltered,
@@ -336,6 +351,7 @@ module PerformanceMeasurement::Details
             'served_on_pit_date_sheltered',
             'served_in_range_unsheltered',
           ],
+          pit_types: [:unsheltered],
         },
         first_time_homeless_clients: {
           category: 'Rare',
@@ -456,14 +472,14 @@ module PerformanceMeasurement::Details
           sub_category: 'Capacity',
           column: :both,
           year_over_year_change: false,
-          title: 'Average Bed Utilization in Permanent Supportive Housing',
-          goal_description: 'The CoC will maintain Permanent Supportive Housing utilization rates **higher than %{goal}%%**.',
+          title: 'Average Bed Utilization in Permanent Housing',
+          goal_description: 'The CoC will maintain Permanent Housing utilization rates **higher than %{goal}%%**.',
           goal_description_brief: 'utilization rate',
           goal_direction: '> ',
           goal_unit: '%',
           goal_calculation: :capacity,
           denominator_label: 'Average Capacity',
-          calculation_description: 'The average number of persons occupying a bed each night divided by the system\'s total bed capacity for Permanent Supportive Housing during the reporting range.',
+          calculation_description: 'The average number of persons occupying a bed each night divided by the system\'s total bed capacity for Permanent Housing during the reporting range.',
           calculation_column: :days_in_psh_bed_in_period,
           detail_columns: [
             'days_in_psh_bed_in_period',
@@ -492,9 +508,9 @@ module PerformanceMeasurement::Details
           sub_category: 'Time',
           column: :system,
           year_over_year_change: false,
-          title: 'Average Length of Time Homeless in ES, SH and TH (Average Days)',
+          title: 'Length of Time Homeless in ES, SH and TH',
           goal_description: 'Persons in the CoC will have an average combined length of time homeless in ES, SH, and TH of **no more than %{goal} days**.',
-          goal_description_brief: 'average days',
+          goal_description_brief: 'days',
           goal_direction: '< ',
           goal_unit: '',
           goal_calculation: :time_time,
@@ -512,9 +528,9 @@ module PerformanceMeasurement::Details
           sub_category: 'Time',
           column: :system,
           year_over_year_change: false,
-          title: 'Average Length of Time Homeless in ES, SH and TH (Median Days)',
+          title: 'Length of Time Homeless in ES, SH and TH',
           goal_description: 'Persons in the CoC will have a median combined length of time homeless in ES, SH, and TH of **no more than %{goal} days**.',
-          goal_description_brief: 'median days',
+          goal_description_brief: 'days',
           goal_direction: '< ',
           goal_unit: '',
           goal_calculation: :time_time,
@@ -532,8 +548,9 @@ module PerformanceMeasurement::Details
           sub_category: 'Time',
           column: :system,
           year_over_year_change: false,
-          title: 'Length of Time Homeless in ES, SH, TH, and PH (Average Days)',
+          title: 'Length of Time Homeless in ES, SH, TH, and PH',
           goal_description: 'Persons in the CoC will have an average combined length of time homeless in ES, SH, TH and PH prior to move-in of **no more than %{goal} days**.',
+          goal_description_brief: 'days',
           goal_direction: '< ',
           goal_unit: '',
           goal_calculation: :time_time,
@@ -551,7 +568,7 @@ module PerformanceMeasurement::Details
           sub_category: 'Time',
           column: :system,
           year_over_year_change: false,
-          title: 'Length of Time Homeless in ES, SH, TH, and PH (Median Days)',
+          title: 'Length of Time Homeless in ES, SH, TH, and PH',
           goal_description: 'Persons in the CoC will have a median combined length of time homeless in ES, SH, TH and PH prior to move-in of **no more than %{goal} days**.',
           goal_direction: '< ',
           goal_unit: '',
@@ -570,9 +587,9 @@ module PerformanceMeasurement::Details
           sub_category: 'Time',
           column: :project,
           year_over_year_change: false,
-          title: 'Length of Homeless Stay (Average Days)',
+          title: 'Length of Homeless Stay',
           goal_description: 'Persons in the CoC will have an average combined length of stay of **no more than %{goal} days** in a homeless project (SO, ES, SH, or TH).',
-          goal_description_brief: 'average days',
+          goal_description_brief: 'days',
           goal_direction: '< ',
           goal_unit: '',
           goal_calculation: :time_stay,
@@ -607,9 +624,9 @@ module PerformanceMeasurement::Details
           sub_category: 'Time',
           column: :project,
           year_over_year_change: false,
-          title: 'Length of Homeless Stay (Median Days)',
+          title: 'Length of Homeless Stay',
           goal_description: 'Persons in the CoC will have a median combined length of stay of **no more than %{goal} days** in a homeless project (SO, ES, SH, or TH).',
-          goal_description_brief: 'median days',
+          goal_description_brief: 'days',
           goal_direction: '< ',
           goal_unit: '',
           goal_calculation: :time_stay,
@@ -644,9 +661,9 @@ module PerformanceMeasurement::Details
           sub_category: 'Time',
           column: :project,
           year_over_year_change: false,
-          title: 'Length of Time to Move-In (Average Days)',
+          title: 'Length of Time to Move-In',
           goal_description: 'Persons in the CoC will have an average length of time in PH prior to move-in of **no more than %{goal} days**.',
-          goal_description_brief: 'average days',
+          goal_description_brief: 'days',
           goal_direction: '< ',
           goal_unit: '',
           goal_calculation: :time_move_in,
@@ -662,9 +679,9 @@ module PerformanceMeasurement::Details
           sub_category: 'Time',
           column: :project,
           year_over_year_change: false,
-          title: 'Length of Time to Move-In (Median Days)',
+          title: 'Length of Time to Move-In',
           goal_description: 'Persons in the CoC will have a median length of time in PH prior to move-in of **no more than %{goal} days**.',
-          goal_description_brief: 'median days',
+          goal_description_brief: 'days',
           goal_direction: '< ',
           goal_unit: '',
           goal_calculation: :time_move_in,
@@ -680,15 +697,16 @@ module PerformanceMeasurement::Details
           sub_category: 'Destination',
           column: :system,
           year_over_year_change: false,
-          title: 'Number of People with a Successful Placement or Retention of Housing',
+          title: 'Percentage of People with a Successful Placement or Retention of Housing',
           goal_description: '**At least %{goal}%%** of persons will exit to a “positive” destination (as defined by HUD) or will retain housing.',
           goal_description_brief: 'positive destinations',
           goal_direction: '> ',
-          goal_unit: '',
+          goal_unit: '%',
           goal_calculation: :destination,
           denominator_label: 'Total Exits',
           calculation_description: 'Data is from all successful exits in SPM Measure 7.',
           calculation_column: [:retention_or_positive_destination],
+          measure: 'Measure 7',
           detail_columns: [
             'retention_or_positive_destination',
           ],
@@ -698,12 +716,12 @@ module PerformanceMeasurement::Details
           sub_category: 'Destination',
           column: :both,
           year_over_year_change: false,
-          title: 'Number of People Exiting SO to a Positive Destination',
+          title: 'Percentage of People Exiting SO to a Positive Destination',
           goal_description: '**At least %{goal}%%** of persons in SO will exit to a “positive” destination (as defined by HUD)',
           goal_calculation: :destination,
           goal_description_brief: 'positive destinations',
           goal_direction: '> ',
-          goal_unit: '',
+          goal_unit: '%',
           denominator_label: 'Total Exits',
           calculation_description: 'The number of persons who exited SO to a positive destination divided by the total number of persons who exited SO.',
           calculation_column: :so_destination_positive,
@@ -717,12 +735,12 @@ module PerformanceMeasurement::Details
           sub_category: 'Destination',
           column: :both,
           year_over_year_change: false,
-          title: 'Number of People Exits from ES, SH, TH, RRH to a Positive Destination, or PH with No Move-in',
+          title: 'Percentage of People Exits from ES, SH, TH, RRH to a Positive Destination, or PH with No Move-in',
           goal_description: '**At least %{goal}%%** of persons housed in ES, SH, TH, and RRH projects will move into permanent housing at exit',
           goal_calculation: :destination,
           goal_description_brief: 'positive destinations',
           goal_direction: '> ',
-          goal_unit: '',
+          goal_unit: '%',
           denominator_label: 'Total Exits',
           calculation_description: 'The number of persons who exited to permanent housing destination divided by the number of persons who exited ES, SH, TH, RRH, plus persons in other PH projects who exited without moving into housing.',
           calculation_column: :es_sh_th_rrh_destination_positive,
@@ -736,12 +754,12 @@ module PerformanceMeasurement::Details
           sub_category: 'Destination',
           column: :both,
           year_over_year_change: false,
-          title: 'Number of People in RRH or PH with Move-in or Permanent Exit',
+          title: 'Percentage of People in RRH or PH with Move-in or Permanent Exit',
           goal_description: '**At least %{goal}%%** of persons remain housed in PH projects or exit to a permanent housing destination',
           goal_calculation: :destination,
           goal_description_brief: 'positive destinations',
           goal_direction: '> ',
-          goal_unit: '',
+          goal_unit: '%',
           denominator_label: 'Total Exits/Move-ins',
           calculation_description: 'The number of persons with a Housing Move-In Date that either exited to a permanent destination after moving into housing or remained in the PH project divided by the number of persons housed by PH projects.',
           calculation_column: :moved_in_destination_positive,
@@ -755,11 +773,11 @@ module PerformanceMeasurement::Details
           sub_category: 'Recidivism',
           column: :both,
           year_over_year_change: false,
-          title: 'Number of People Who Returned to Homelessness Within Six Months',
+          title: 'Percentage of People Who Returned to Homelessness Within Six Months',
           goal_description: 'The CoC will have **no more than %{goal}%%** of adults who exited to permanent destinations return to ES, SH, TH, or SO within six months of exit',
           goal_description_brief: 'returns',
           goal_direction: '< ',
-          goal_unit: '',
+          goal_unit: '%',
           goal_calculation: :recidivism_6_months,
           numerator_label: 'returned to homelessness',
           denominator_label: 'Total exits to permanent destinations',
@@ -775,11 +793,11 @@ module PerformanceMeasurement::Details
           sub_category: 'Recidivism',
           column: :both,
           year_over_year_change: false,
-          title: 'Number of People Who Returned to Homelessness Within Two Years',
+          title: 'Percentage of People Who Returned to Homelessness Within Two Years',
           goal_description: 'The CoC will have **no more than %{goal}%%** of adults who exited to permanent destinations return to ES, SH, TH, or SO within two years of exit',
           goal_description_brief: 'returns',
           goal_direction: '< ',
-          goal_unit: '',
+          goal_unit: '%',
           goal_calculation: :recidivism_24_months,
           numerator_label: 'returned to homelessness',
           denominator_label: 'Total exits to permanent destinations',
@@ -795,7 +813,7 @@ module PerformanceMeasurement::Details
           sub_category: 'Income',
           column: :both,
           year_over_year_change: true,
-          title: 'Number of Clients with Increased Income',
+          title: 'Number of People with Increased Income',
           goal_description: 'CoC-funded projects will increase the percentage of adults  who increase total income by **%{goal}%% annually**',
           goal_description_brief: 'income',
           goal_direction: '+',
@@ -803,6 +821,7 @@ module PerformanceMeasurement::Details
           goal_calculation: :income,
           denominator_label: 'Total Stayers',
           calculation_description: 'The number of adults in CoC-funded projects with an increased total income divided by the number of adults in CoC-funded projects.',
+          measure: 'Measure 4',
           calculation_column: [
             :increased_income__income_stayer,
             :increased_income__income_leaver,
@@ -845,6 +864,7 @@ module PerformanceMeasurement::Details
           denominator_label: 'Total Stayers',
           calculation_description: 'The number of adult stayers in CoC-funded projects with an increased earned income divided by the number of adult stayers in CoC-funded projects.',
           calculation_column: :increased_earned_income__income_stayer,
+          measure: 'Measure 4',
           detail_columns: [
             'income_stayer',
             'earned_income_stayer',
@@ -864,6 +884,7 @@ module PerformanceMeasurement::Details
           denominator_label: 'Total Stayers',
           calculation_description: 'The number of adult stayers in CoC-funded projects with an increased non-cash income divided by the number of adult stayers in CoC-funded projects.',
           calculation_column: :increased_non_cash_income__income_stayer,
+          measure: 'Measure 4',
           detail_columns: [
             'income_stayer',
             'non_employment_income_stayer',
@@ -903,6 +924,7 @@ module PerformanceMeasurement::Details
           denominator_label: 'Total Leavers',
           calculation_description: 'The number of adult leavers in CoC-funded projects with an increased earned income divided by the number of adult leavers in CoC-funded projects.',
           calculation_column: :increased_earned_income__income_leaver,
+          measure: 'Measure 4',
           detail_columns: [
             'income_leaver',
             'earned_income_leaver',
@@ -922,6 +944,7 @@ module PerformanceMeasurement::Details
           denominator_label: 'Total Leavers',
           calculation_description: 'The number of adult leavers in CoC-funded projects with an increased non-cash income divided by the number of adult leavers in CoC-funded projects.',
           calculation_column: :increased_non_cash_income__income_leaver,
+          measure: 'Measure 4',
           detail_columns: [
             'income_leaver',
             'non_employment_income_leaver',

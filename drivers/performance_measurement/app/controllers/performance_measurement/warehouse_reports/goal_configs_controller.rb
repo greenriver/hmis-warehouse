@@ -17,6 +17,7 @@ module PerformanceMeasurement::WarehouseReports
     end
 
     def edit
+      @pit_counts = @goal.pit_counts.order(pit_date: :desc)
     end
 
     def create

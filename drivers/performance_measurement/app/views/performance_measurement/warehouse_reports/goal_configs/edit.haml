@@ -1,14 +1,15 @@
-- title = _('Configure Performance Measurement Goal')
+- title = "Configure #{_('CoC Performance Measurement Dashboard')} Goal"
 - report = PerformanceMeasurement::Report.new(user: current_user)
 - content_for :title, title
 
 = content_for :crumbs do
   = link_to performance_measurement_warehouse_reports_goal_configs_path do
-    &laquo; #{_('Performance Measurement Goal Configurator')}
+    &laquo; #{_('CoC Performance Measurement Dashboard')} Configurator
 %h1.mb-5= title
 
 = simple_form_for @goal, url: performance_measurement_warehouse_reports_goal_config_path(@goal), as: :goal do |f|
   = f.input :coc_code, label: 'CoC Code', collection: @goal.available_cocs, as: :select_two, include_blank: 'Default'
+  = render 'pit_counts'
   .card
     %table.table.c-table--indicator.mb-0
       %tbody

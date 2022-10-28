@@ -15,7 +15,7 @@ module HudLsa::Generators::Fy2022::MissingDataConcern
     @missing_data[:missing_geography_type] = geography_types(user)
     @missing_data[:missing_zip] = missing_zips(user)
     @missing_data[:missing_operating_start_date] = operating_start_dates(user)
-    # @missing_data[:invalid_funders] = invalid_funders(user)
+    @missing_data[:invalid_funders] = invalid_funders(user)
     @missing_data[:missing_coc_codes] = missing_coc_codes(user)
     @missing_data[:missing_inventory_coc_codes] = missing_inventory_coc_codes(user)
     @missing_data[:missing_inventory_start_dates] = missing_inventory_start_dates(user)
@@ -102,17 +102,15 @@ module HudLsa::Generators::Fy2022::MissingDataConcern
     )
   end
 
-  # private def invalid_funders(user)
-  #   missing_data_rows(
-  #     GrdaWarehouse::Hud::Project.viewable_by(user).coc_funded.joins(:organization).
-  #     references(:funders).
-  #     includes(:funders).
-  #     distinct.
-  #     # merge(GrdaWarehouse::Hud::Project.viewable_by(user).coc_funded.hud_residential).
-  #     where(ProjectID: GrdaWarehouse::Hud::Enrollment.open_during_range(@range).select(:ProjectID)).
-  #     where(f_t[:Funder].not_in(::HUD.funding_sources.keys).or(f_t[:GrantID].eq(nil))),
-  #   )
-  # end
+  private def invalid_funders(user)
+    missing_data_rows(
+      GrdaWarehouse::Hud::Project.viewable_by(user).coc_funded.joins(:organization).
+      joins(:funders).
+      distinct.
+      where(ProjectID: GrdaWarehouse::Hud::Enrollment.open_during_range(@range).select(:ProjectID)).
+      where(f_t[:StartDate].eq(nil)),
+    )
+  end
 
   private def missing_coc_codes(user)
     missing_data_rows(

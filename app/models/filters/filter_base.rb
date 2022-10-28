@@ -143,7 +143,7 @@ module Filters
       self.report_version = filters.dig(:report_version)&.to_sym
       self.creator_id = filters.dig(:creator_id).to_i unless filters.dig(:creator_id).nil?
       self.inactivity_days = filters.dig(:inactivity_days).to_i unless filters.dig(:inactivity_days).nil?
-      self.lsa_scope = filters.dig(:lsa_scope).to_i unless filters.dig(:lsa_scope).nil?
+      self.lsa_scope = filters.dig(:lsa_scope).to_i unless filters.dig(:lsa_scope).blank?
 
       ensure_dates_work if valid?
       self
@@ -380,6 +380,10 @@ module Filters
       (self.end - start).to_i
     rescue StandardError
       0
+    end
+
+    def effective_projects
+      all_project_scope.where(id: effective_project_ids)
     end
 
     def effective_project_ids
@@ -1063,7 +1067,7 @@ module Filters
     end
 
     def chosen_lsa_scope
-      case lsa_scope.to_i
+      case lsa_scope&.to_i
       when 1
         'System-Wide'
       when 2

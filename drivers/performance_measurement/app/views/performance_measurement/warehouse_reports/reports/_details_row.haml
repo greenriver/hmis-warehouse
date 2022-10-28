@@ -1,23 +1,42 @@
 - denominator_label = @report.detail_denominator_label_for(key)
 - numerator_label = @report.detail_numerator_label_for(key)
+- pit_count_types = @report.detail_pit_types(key)
 %h3.mb-6= @report.detail_title_for(key)
 .row
   .col-6
     - status = result.passed ? 'success' : 'danger'
     - icon = result.passed ? 'check' : 'cross'
     - label = result.passed ? 'Passed' : 'Failed'
+    - primary_value = result.primary_value.to_s
+    - primary_value += ' %' if result.percentage?
+    - primary_unit = result.primary_unit.sub('% ', '')
+    - if @report.result_includes_median?(result.field)
+      - primary_unit = "Average #{primary_unit}"
+      - median = result.related_median
+      - median_unit = "Median #{median.primary_unit}"
     .row
       .col-sm-4
-        = tagged(result.passed, status, icon: icon, label: label)
+        - if result.tagged?
+          = tagged(result.passed, status, icon: icon, label: label)
       .col-sm-4
         .performance-measurement__result-number.font-weight-bold= "#{result.secondary_value} #{result.secondary_unit}"
         .text-capitalize= sanitize(result.value_label)
+        - if @report.result_includes_median?(result.field)
+          .performance-measurement__result-number.font-weight-bold.mt-4= "#{median.secondary_value} #{median.secondary_unit}"
+          .text-capitalize= sanitize(median.value_label)
       .col-sm-4
-        - primary_value = result.primary_value.to_s
-        - primary_value += ' %' if result.percentage?
-        - primary_unit = result.primary_unit.sub('% ', '')
         .performance-measurement__result-number.font-weight-bold= primary_value
         .text-capitalize= primary_unit
+        - if @report.result_includes_median?(result.field)
+          .performance-measurement__result-number.font-weight-bold.mt-4= median.primary_value.to_s
+          .text-capitalize= median_unit
+      - if pit_count_types.present?
+        .col-sm-4
+        - pit_count_types.each do |type|
+          - if result.pit_count.present?
+            .col-sm-4
+              .performance-measurement__result-number.font-weight-bold.mt-4= result.pit_count.public_send(type)
+              .text-capitalize #{type.to_s.humanize} PIT Count
 
   .col-6
     %div
@@ -25,20 +44,20 @@
     - if denominator_label.present? && show_label_detail
       .card.p-3.mt-4
         .mb-0.d-flex
-          .mr-2 #{result.report_year}:
-          .mb-0
-            %strong= result.reporting_numerator
-            = numerator_label
-            of
-            %strong= result.reporting_denominator
-            = denominator_label
-        .mb-0.d-flex
           .mr-2 #{result.comparison_year}:
           .mb-0
             %strong= result.comparison_numerator
             = numerator_label
             of
             %strong= result.comparison_denominator
+            = denominator_label
+        .mb-0.d-flex
+          .mr-2 #{result.report_year}:
+          .mb-0
+            %strong= result.reporting_numerator
+            = numerator_label
+            of
+            %strong= result.reporting_denominator
             = denominator_label
 
 = content_for :page_js do
@@ -54,7 +73,6 @@
         axisMax = 100;
       }
       const tooltipTitles = #{result.titles_for_system_level_bar_tooltip.to_json.html_safe}
-
       data.labels.format = function (v, id, i, texts) {
         if (v < (axisMax || max) * 0.15) {
           return '';
@@ -83,11 +101,10 @@
         padding: {
           top: 1,
         },
-        legend: { show: false },
+        legend: { show: data.columns.length > 2 },
         tooltip: {
           contents: (d, defaultTitleFormat, defaultValueFormat, color) => {
             const data = d[0];
-
             // Build ratio description
             let description = '';
             const denominatorLabel = "#{@report.detail_denominator_label_for(key)}";
@@ -105,13 +122,18 @@
             html += "</thead>";
             html += "<tbody>";
 
-            const bg_color = color(data.id);
-            const box = `<td style='white-space: nowrap;'><svg><rect style='fill:${bg_color}' width='10' height='10'></rect></svg>${data.name}</td>`;
-            const value = `<td style='white-space: nowrap;'>${defaultValueFormat(data.value)}${description}</td>`;
-            html += box;
-            html += value;
-            if (goal)
-              html += `<td style='white-space: nowrap;'>${defaultValueFormat(goal)}</td>`;
+            d.forEach((row, index, arr) => {
+              html += "<tr>";
+              let bg_color = color(d[index].id);
+              let box = `<td style='white-space: nowrap;'><svg><rect style='fill:${bg_color}' width='10' height='10'></rect></svg>${d[index].name}</td>`;
+              let value = `<td style='white-space: nowrap;'>${defaultValueFormat(d[index].value)}${description}</td>`;
+              html += box;
+              html += value;
+              if (goal)
+                html += `<td style='white-space: nowrap;'>${defaultValueFormat(goal)}</td>`;
+            });
+
+
             html += "</tr>";
             html += "</tbody>";
             html += '</table>';

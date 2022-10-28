@@ -1,7 +1,9 @@
+- goal_config = @report.goal_config
+- background_color = if goal_config.present? then "background-color: #{goal_config.color_for(result.percent_valid.to_i)};" else '' end
 %tr
-  %th= result.category
   %th= result.title
   %td= result.description
-  %td
-    = link_to items_hmis_data_quality_tool_warehouse_reports_report_path(@report, key: result.title) do
-      #{result.count} (#{result.percent}% of #{result.total})
+  %th= result.required_for
+  %td= number_with_delimiter result.total
+  %td= link_to number_with_delimiter(result.invalid_count), items_hmis_data_quality_tool_warehouse_reports_report_path(@report, key: result.title)
+  %td{ style: background_color } #{result.percent_valid}%

@@ -11,14 +11,14 @@ module Mutations
       service = Hmis::Hud::Service.find_by(id: id)
 
       if service.present?
-        service.update(date_updated: Date.today, **input.to_params)
+        service.update(**input.to_params, date_updated: DateTime.current, user_id: hmis_user.user_id)
         errors += service.errors.errors unless service.valid?
       else
         errors << InputValidationError.new("No service found with ID '#{id}'", attribute: 'id') unless service.present?
       end
 
       {
-        service: service,
+        service: service&.valid? ? service : nil,
         errors: errors,
       }
     end

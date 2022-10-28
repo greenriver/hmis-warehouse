@@ -212,11 +212,14 @@ module ProjectPassFail
     private def run_apr(p_id)
       return unless RailsDrivers.loaded.include?(:hud_apr)
 
+      coc_codes = filter[:coc_codes].presence || filter[:coc_code]
       apr_filter = ::Filters::HudFilterBase.new(
         start: filter.start,
         end: filter.end,
         user_id: user_id,
         project_ids: [p_id],
+        coc_codes: coc_codes,
+        enforce_one_year_range: false,
       )
 
       questions = [
