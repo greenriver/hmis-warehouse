@@ -42665,6 +42665,13 @@ CREATE INDEX index_hmis_dqt_enrollments_on_enrollment_id ON public.hmis_dqt_enro
 
 
 --
+-- Name: index_hmis_dqt_enrollments_on_project_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_dqt_enrollments_on_project_id ON public.hmis_dqt_enrollments USING btree (project_id);
+
+
+--
 -- Name: index_hmis_dqt_enrollments_on_report_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -43089,6 +43096,13 @@ CREATE INDEX index_hud_report_pit_clients_on_report_instance_id ON public.hud_re
 --
 
 CREATE INDEX index_hud_report_universe_members_on_client_id ON public.hud_report_universe_members USING btree (client_id);
+
+
+--
+-- Name: index_hud_report_universe_members_on_report_cell_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_report_universe_members_on_report_cell_id ON public.hud_report_universe_members USING btree (report_cell_id) WHERE (deleted_at IS NULL);
 
 
 --
@@ -50619,6 +50633,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20221019122456'),
 ('20221019182810'),
 ('20221020113634'),
-('20221021205724');
+('20221021205724'),
+('20221028172017');
 
 
