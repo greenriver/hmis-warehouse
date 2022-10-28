@@ -27,6 +27,7 @@ module Types
     field :pick_list_options, [Forms::PickListOption], 'Permitted answers, for choice items', null: true
     field :enable_behavior, Forms::Enums::EnableBehavior, null: true
     field :enable_when, [Forms::EnableWhen], null: true
+    field :initial, [Forms::InitialValue], 'Initial value(s) when item is first rendered', null: true
     field :item, ['Types::Forms::FormItem'], 'Nested items', null: true
     field :query_field, String, 'Name of the query input field that corresponds to this item. Only used for record creation/update forms, not for assessments.', null: true
   end
