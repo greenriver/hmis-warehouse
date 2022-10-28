@@ -5,6 +5,8 @@
 ###
 
 class AccessGroup < ApplicationRecord
+  include RailsDrivers::Extensions
+
   acts_as_paranoid
   has_paper_trail
 
@@ -125,7 +127,7 @@ class AccessGroup < ApplicationRecord
     return unless persisted?
 
     GrdaWarehouse::GroupViewableEntity.transaction do
-      [
+      list = [
         :data_sources,
         :organizations,
         :projects,
@@ -133,7 +135,9 @@ class AccessGroup < ApplicationRecord
         :reports,
         :cohorts,
         :project_groups,
-      ].each do |type|
+      ]
+      list += [:hmis_projects, :hmis_organizations] if ENV['ENABLE_HMIS_API'] == 'true'
+      list.each do |type|
         ids = (viewables[type] || []).map(&:to_i)
         scope = GrdaWarehouse::GroupViewableEntity.where(
           access_group_id: id,
@@ -203,6 +207,13 @@ class AccessGroup < ApplicationRecord
             pag.projects.map(&:ProjectName),
           ]
         end
+      when :hmis_organization
+        hmis_organizations.preload(:hmis_projects).map do |org|
+          [
+            org.OrganizationName,
+            org.projects.map(&:ProjectName),
+          ]
+        end
       else
         []
       end
@@ -210,14 +221,21 @@ class AccessGroup < ApplicationRecord
   end
 
   private def viewable_types
-    @viewable_types ||= {
-      data_sources: 'GrdaWarehouse::DataSource',
-      organizations: 'GrdaWarehouse::Hud::Organization',
-      projects: 'GrdaWarehouse::Hud::Project',
-      project_access_groups: 'GrdaWarehouse::ProjectAccessGroup',
-      reports: 'GrdaWarehouse::WarehouseReports::ReportDefinition',
-      project_groups: 'GrdaWarehouse::ProjectGroup',
-      cohorts: 'GrdaWarehouse::Cohort',
-    }.freeze
+    @viewable_types ||= begin
+      types = {
+        data_sources: 'GrdaWarehouse::DataSource',
+        organizations: 'GrdaWarehouse::Hud::Organization',
+        projects: 'GrdaWarehouse::Hud::Project',
+        project_access_groups: 'GrdaWarehouse::ProjectAccessGroup',
+        reports: 'GrdaWarehouse::WarehouseReports::ReportDefinition',
+        project_groups: 'GrdaWarehouse::ProjectGroup',
+        cohorts: 'GrdaWarehouse::Cohort',
+      }
+      if ENV['ENABLE_HMIS_API'] == 'true'
+        types[:hmis_organizations] = 'Hmis::Hud::Organization'
+        types[:hmis_projects] = 'Hmis::Hud::Project'
+      end
+      types.freeze
+    end
   end
 end
