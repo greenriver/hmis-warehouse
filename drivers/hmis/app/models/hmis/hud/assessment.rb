@@ -80,7 +80,7 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
 
   def save_not_in_progress
     transaction do
-      self.enrollment_id = enrollment_id == WIP_ID ? wip&.enrollment_id : enrollment_id
+      self.enrollment_id = enrollment_id == WIP_ID ? enrollment.enrollment_id : enrollment_id
       wip&.destroy
       save!
     end
