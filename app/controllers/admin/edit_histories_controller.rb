@@ -28,7 +28,7 @@ module Admin
     private
 
     def get_changes_to(version)
-      if version.object_changes.blank?
+      if version.changeset.blank?
         compute_changes_to(version)
       else
         version.changeset
