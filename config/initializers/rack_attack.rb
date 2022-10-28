@@ -110,7 +110,6 @@ end
 #   [ 429, headers, ["Throttled\n"]]
 # end
 
-
 ActiveSupport::Notifications.subscribe(/rack_attack/) do |name, start, finish, request_id, payload|
   request =  payload[:request]
 
@@ -146,12 +145,12 @@ ActiveSupport::Notifications.subscribe(/rack_attack/) do |name, start, finish, r
   # ... get a record on disk
   Rails.logger.warn JSON::generate(data)
 
-  # ... and now try to send ot somewhere useful
+  # ... and now try to send to somewhere useful
   if defined?(Slack::Notifier) && ENV['EXCEPTION_WEBHOOK_URL'].present?
     notifier_config = Rails.application.config_for(:exception_notifier).fetch(:slack, nil)
-    notifier  = Slack::Notifier.new(
-      notifier_config['webhook_url'],
-      channel: notifier_config['channel'],
+    notifier = Slack::Notifier.new(
+      notifier_config[:webhook_url],
+      channel: notifier_config[:channel],
       username: 'Rack-Attack',
     )
 
