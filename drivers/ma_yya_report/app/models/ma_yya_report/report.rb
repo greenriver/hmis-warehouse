@@ -240,7 +240,7 @@ module MaYyaReport
     end
 
     private def json_contains(field, contents)
-      contents.map { |val| "#{field} @> '#{val}'" }.join(' OR ')
+      "(#{contents.map { |val| "#{field} @> '#{val}'" }.join(' OR ')})"
     end
 
     private def json_contains_text(field, text)
@@ -393,11 +393,19 @@ module MaYyaReport
       ::GrdaWarehouse::Hud::Project.options_for_select(user: user)
     end
 
+    def self.available_age_ranges
+      {
+        under_eighteen: '< 18',
+        eighteen_to_twenty_four: '18 - 24',
+      }
+    end
+
     def self.report_options
       [
         :start,
         :end,
         :project_ids,
+        :age_ranges,
       ].freeze
     end
   end

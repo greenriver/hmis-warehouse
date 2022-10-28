@@ -250,7 +250,7 @@ module HmisDataQualityTool
       overlaps
     end
 
-    def self.sections
+    def self.sections # rubocop:disable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
       {
         gender_issues: {
           title: 'Gender',
@@ -345,7 +345,7 @@ module HmisDataQualityTool
             # DOB Quality is 99 or blank but dob is present?
             return true if item.dob.present? && (item.dob_data_quality.blank? || item.dob_data_quality == 99)
             # before 10/10/1910
-            return true if item.dob <= '1910-10-10'.to_date
+            return true if item.dob.present? && item.dob <= '1910-10-10'.to_date
             # in the future
             return true if item.dob >= Date.tomorrow
             # after any entry date

@@ -597,7 +597,7 @@ module HmisDataQualityTool
             :lot,
           ],
           denominator: ->(item) {
-            item.exit_date.blank? && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
+            GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
           },
           limiter: ->(item) {
             return false if item.exit_date.present?
@@ -624,7 +624,7 @@ module HmisDataQualityTool
             :lot,
           ],
           denominator: ->(item) {
-            item.exit_date.blank? && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
+            GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
           },
           limiter: ->(item) {
             return false if item.exit_date.present?
@@ -651,7 +651,7 @@ module HmisDataQualityTool
             :lot,
           ],
           denominator: ->(item) {
-            item.exit_date.blank? && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
+            GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
           },
           limiter: ->(item) {
             return false if item.exit_date.present?
@@ -678,7 +678,7 @@ module HmisDataQualityTool
             :days_since_last_service,
           ],
           denominator: ->(item) {
-            item.exit_date.blank? && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
+            GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
           },
           limiter: ->(item) {
             return false if item.exit_date.present?
@@ -705,7 +705,7 @@ module HmisDataQualityTool
             :days_since_last_service,
           ],
           denominator: ->(item) {
-            item.exit_date.blank? && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
+            GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
           },
           limiter: ->(item) {
             return false if item.exit_date.present?
@@ -732,7 +732,7 @@ module HmisDataQualityTool
             :days_since_last_service,
           ],
           denominator: ->(item) {
-            item.exit_date.blank? && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
+            GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
           },
           limiter: ->(item) {
             return false if item.exit_date.present?
@@ -759,7 +759,7 @@ module HmisDataQualityTool
             :days_since_last_service,
           ],
           denominator: ->(item) {
-            item.exit_date.blank? && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:so].include?(item.project_type)
+            GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:so].include?(item.project_type)
           },
           limiter: ->(item) {
             return false if item.exit_date.present?
@@ -786,7 +786,7 @@ module HmisDataQualityTool
             :days_since_last_service,
           ],
           denominator: ->(item) {
-            item.exit_date.blank? && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:so].include?(item.project_type)
+            GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:so].include?(item.project_type)
           },
           limiter: ->(item) {
             return false if item.exit_date.present?
@@ -813,7 +813,7 @@ module HmisDataQualityTool
             :days_since_last_service,
           ],
           denominator: ->(item) {
-            item.exit_date.blank? && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:so].include?(item.project_type)
+            GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:so].include?(item.project_type)
           },
           limiter: ->(item) {
             return false if item.exit_date.present?
