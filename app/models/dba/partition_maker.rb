@@ -20,9 +20,9 @@ class DBA::PartitionMaker
     self.schema = schema
     self.partition_column = partition_column
 
-    if table_exists?(partitioned_table)
-      self.partition_column ||= _default_column
-    end
+    return unless table_exists?(partitioned_table)
+
+    self.partition_column ||= _default_column
   end
 
   def start_over!
@@ -31,9 +31,8 @@ class DBA::PartitionMaker
 
   def run!
     _schema
-    _main_table
-    _make_partitions
-    _copy
+    _make_table_and_partitions_transactionally
+    # _copy
   end
 
   def done?
@@ -52,7 +51,7 @@ class DBA::PartitionMaker
     SQL
   end
 
-  def _main_table
+  def _make_table_and_partitions_transactionally
     return if table_exists?(old_table)
 
     base_class.transaction do
@@ -96,9 +95,13 @@ class DBA::PartitionMaker
           PARTITION BY HASH ("#{partition_column}")
       SQL
 
+      _make_partitions
+
       p(<<~SQL)
         DROP TABLE "#{temp}"
       SQL
+
+      _copy
     end
   end
 
@@ -131,14 +134,17 @@ class DBA::PartitionMaker
     # Just checking if the table is there.
     return unless table_has_column?(old_table, 'id')
 
+    # 0.upto(num_partitions - 1).each do |partnum|
+    #   p "drop table if exists #{schema}.#{partitioned_table}_#{partnum}"
+    # end
+
     p "DROP TABLE IF EXISTS #{partitioned_table}"
 
     p "ALTER TABLE IF EXISTS #{old_table} RENAME TO #{partitioned_table}"
-
   end
 
   def _compare
-    [partitioned_table, old_table].each do |schema|
+    [partitioned_table, old_table].each do |_schema|
       p(<<~SQL)
         EXPLAIN (ANALZYE, BUFFERS, COSTS, VERBOSE)
         select * from ...
@@ -147,7 +153,7 @@ class DBA::PartitionMaker
   end
 
   def p(str, logit: true)
-    Rails.logger.info(str) if logit
+    Rails.logger.info(str.gsub(/\n/, ' ').squeeze(' ')) if logit
     base_class.connection.exec_query(str)
   end
 
