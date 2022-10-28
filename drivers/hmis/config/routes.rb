@@ -19,5 +19,14 @@ BostonHmis::Application.routes.draw do
       post 'hmis-gql', to: 'graphql#execute', defaults: { schema: :hmis }
       mount GraphiQL::Rails::Engine, at: '/graphiql', graphql_path: '/hmis/hmis-gql', defaults: { format: :html } if Rails.env.development?
     end
+    namespace :hmis_admin do
+      resources :users
+      resources :roles do
+        resources :users, only: [:create, :destroy]
+      end
+      resources :groups do
+        resources :users, only: [:create, :destroy]
+      end
+    end
   end
 end

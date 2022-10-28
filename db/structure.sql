@@ -571,7 +571,10 @@ CREATE TABLE public.hmis_roles (
     can_view_clients boolean DEFAULT false NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    can_administer_hmis boolean DEFAULT false,
+    can_delete_assigned_project_data boolean DEFAULT false,
+    can_delete_enrollments boolean DEFAULT false
 );
 
 
@@ -3012,6 +3015,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220621144511'),
 ('20220714144937'),
 ('20220822134957'),
-('20220914124822');
+('20220914124822'),
+('20221028165550');
 
 
