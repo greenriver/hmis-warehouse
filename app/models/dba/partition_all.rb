@@ -8,11 +8,24 @@ class DBA::PartitionAll
     t.sort
   end
 
+  def add_explicit_primary_key!
+    tables.each do |t|
+      # Find the file behind the table (couldn't get source_location to work)
+      cmd = "egrep -R 'table_name..*#{t}' drivers/hmis_csv_twenty_twenty_two/app/models/hmis_csv_twenty_twenty_two | cut -d: -f1"
+      path = `#{cmd}`
+
+      # Add the primary_key line below the table_name line
+      cmd = %(sed -i -e "/self.table_name/a\\    self.primary_key = 'id'" #{path})
+      puts cmd
+      system(cmd)
+    end
+  end
+
   # 6716 partitions.
   def run!
-    Rails.logger.warn "Making #{71 * TABLES.length} partitions"
+    Rails.logger.warn "Making #{71 * tables.length} partitions"
 
-    TABLES.each do |table|
+    tables.each do |table|
       Rails.logger.info "==== Partitioning #{table} ===="
       pm = DBA::PartitionMaker.new(table_name: table)
       if pm.no_table?
@@ -30,7 +43,7 @@ class DBA::PartitionAll
   def remove_saved_tables!
     raise 'Aborting. You must set DELETE_THEM=true in your environment' unless ENV['DELETE_THEM'] == 'true'
 
-    TABLES.each do |table|
+    tables.each do |table|
       GrdaWarehouseBase.connection.execute(<<~SQL)
         DROP TABLE "#{table}_saved"
       SQL
