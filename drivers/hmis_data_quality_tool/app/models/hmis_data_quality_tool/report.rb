@@ -330,7 +330,6 @@ module HmisDataQualityTool
       Rails.cache.delete(cache_key)
     end
 
-    # FIXME: this should run at the end of the run and cache the results in redis
     def results
       @results ||= Rails.cache.fetch(cache_key, expires_in: 1.months) do
         [].tap do |r|
@@ -369,11 +368,11 @@ module HmisDataQualityTool
                 if item_class == Client
                   overall_count = denominator_cell.
                     members.
-                    where(item_class.arel_table[:client_id].in(client_ids_for_project(project))).
+                    where(item_class.arel_table[:destination_client_id].in(client_ids_for_project(project))).
                     count
                   invalid_count = numerator_cell.
                     members.
-                    where(item_class.arel_table[:client_id].in(client_ids_for_project(project))).
+                    where(item_class.arel_table[:destination_client_id].in(client_ids_for_project(project))).
                     count
                 else
                   overall_count = denominator_cell.
