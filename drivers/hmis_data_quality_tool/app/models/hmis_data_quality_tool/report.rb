@@ -48,7 +48,7 @@ module HmisDataQualityTool
       end
       complete
       # Run results to cache them for later
-      results
+      self.class.find(id).results
     end
 
     def start
