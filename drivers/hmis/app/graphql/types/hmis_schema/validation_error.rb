@@ -32,15 +32,19 @@ module Types
     end
 
     def type
-      return object.type if object.respond_to?(:type)
+      if object.respond_to?(:type)
+        return object.type == :blank ? :required : object.type
+      end
+
       return object.class.name if object.is_a?(Exception)
 
       'UnknownError'
     end
 
     # Convert 'operatingStartDate' => 'Operating start date'
+    # Convert 'organizationId' => 'Organization'
     private def readable_attribute
-      object.attribute.to_s.underscore.gsub('_', ' ').capitalize
+      object.attribute.to_s.underscore.humanize
     end
   end
 end

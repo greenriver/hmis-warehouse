@@ -1,0 +1,57 @@
+{
+  "name": "funder-edit",
+  "item": [
+    {
+      "type": "GROUP",
+      "link_id": "name",
+      "required": false,
+      "item": [
+        {
+          "type": "CHOICE",
+          "required": true,
+          "link_id": "funder",
+          "text": "Funding Source",
+          "pick_list_reference": "FundingSource",
+          "query_field": "funder"
+        },
+        {
+          "type": "STRING",
+          "required": false,
+          "link_id": "other",
+          "text": "Other Funder",
+          "query_field": "otherFunder"
+        },
+        {
+          "type": "STRING",
+          "required": true,
+          "link_id": "grant-id",
+          "text": "Grant Identifier",
+          "query_field": "grantId"
+        }
+      ]
+    },
+    {
+      "type": "GROUP",
+      "link_id": "dates",
+      "text": "Operating Period",
+      "required": false,
+      "display": { "direction": "row" },
+      "item": [
+        {
+          "type": "DATE",
+          "required": true,
+          "link_id": "start",
+          "text": "Start Date",
+          "query_field": "startDate"
+        },
+        {
+          "type": "DATE",
+          "required": false,
+          "link_id": "end",
+          "text": "End Date",
+          "query_field": "endDate"
+        }
+      ]
+    }
+  ]
+}

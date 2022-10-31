@@ -36,6 +36,8 @@ module Health
           team_name == name
         end.keys
 
+        next unless patient_ids.any?
+
         consented_patients = consent_dates.select { |p_id, _| p_id.in?(patient_ids) }.keys
         unconsented_patients = patient_ids - consented_patients
 
@@ -88,7 +90,7 @@ module Health
             without_payable_qualifying_activities_within_range: without_payable_qualifying_activities_within_range,
           },
         )
-      end
+      end.compact
     end
 
     def total_counts

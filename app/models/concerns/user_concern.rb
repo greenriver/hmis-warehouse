@@ -279,7 +279,7 @@ module UserConcern
 
     # @return [Array] an array of text that describes the status of the account
     def overall_status(current_user)
-      return ['Active'] if active?
+      return ['Active'] if active_for_authentication?
       return ['Pending invitation confirmation'] if invitation_status == :pending_confirmation
 
       text = []

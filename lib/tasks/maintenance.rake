@@ -14,8 +14,14 @@ namespace :maintenance do
 
     # catch first deployments, we'll build on subsequent calls
     uri = URI(source)
-    res = Net::HTTP.get_response(uri)
-    exit unless res.code.to_s == '200'
+    begin
+      res = Net::HTTP.get_response(uri)
+      exit unless res.code.to_s == '200'
+    rescue SocketError => e
+      # Something went wrong, notify us, but don't block the deployment
+      Sentry.capture_exception(e)
+      exit
+    end
 
     premailer = Premailer.new(source)
 

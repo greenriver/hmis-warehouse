@@ -41,7 +41,12 @@ module MaYyaReport::WarehouseReports
     end
 
     def details
-      @cell = params[:cell].humanize
+      cell = params[:cell].to_sym
+      @cell = @report.label(cell)
+
+      text = @report.cell_label(cell)
+      @cell = "#{@cell}: #{text}" if text.present?
+
       @members = @report.cell(params[:cell]).members
     end
 

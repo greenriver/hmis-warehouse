@@ -13,7 +13,7 @@ module Types
     description 'HUD Organization'
     field :id, ID, null: false
     field :organization_name, String, null: false
-    projects_field :projects, 'Get a list of projects for this organization'
+    projects_field :projects, type: Types::HmisSchema::Project.page_type
     field :victim_service_provider, Boolean, null: true
     field :description, String, null: true
     field :contact_information, String, null: true

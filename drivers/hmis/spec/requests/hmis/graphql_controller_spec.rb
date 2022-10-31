@@ -29,14 +29,16 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         <<~GRAPHQL
           query {
             projects(sortOrder: NAME) {
-              projectName
+              nodes {
+                projectName
+              }
             }
           }
         GRAPHQL
       end
 
       expect(response.status).to eq 200
-      project_names = result.dig('data', 'projects').map { |d| d['projectName'] }
+      project_names = result.dig('data', 'projects', 'nodes').map { |d| d['projectName'] }
       expect(project_names).to eq ['AAA', 'BBB', 'CCC', 'DDD']
     end
 
@@ -45,18 +47,20 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         <<~GRAPHQL
           query {
             projects(sortOrder: ORGANIZATION_AND_NAME) {
-              projectName
-              organization {
-                organizationName
+              nodes {
+                projectName
+                organization {
+                  organizationName
+                }
               }
             }
           }
         GRAPHQL
       end
       expect(response.status).to eq 200
-      organization_names = result.dig('data', 'projects').map { |d| d['organization']['organizationName'] }
+      organization_names = result.dig('data', 'projects', 'nodes').map { |d| d['organization']['organizationName'] }
       expect(organization_names).to eq ['XXX', 'XXX', 'ZZZ', 'ZZZ']
-      project_names = result.dig('data', 'projects').map { |d| d['projectName'] }
+      project_names = result.dig('data', 'projects', 'nodes').map { |d| d['projectName'] }
       expect(project_names).to eq ['CCC', 'DDD', 'AAA', 'BBB']
     end
 

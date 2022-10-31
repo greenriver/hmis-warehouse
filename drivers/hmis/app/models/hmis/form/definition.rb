@@ -37,4 +37,55 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     definitions = definitions.where(version: version) if version.present?
     definitions.order(version: :desc).first
   end
+
+  # Validate JSON definition when loading, to ensure no duplicate link IDs
+  def self.validate_json(json)
+    seen_link_ids = Set.new
+
+    recur_check = lambda do |item|
+      (item['item'] || []).each do |child_item|
+        link_id = child_item['link_id']
+        raise "Missing link ID: #{child_item}" unless link_id.present?
+
+        raise "Duplicate link ID: #{link_id}" if seen_link_ids.include?(link_id)
+
+        seen_link_ids.add(link_id)
+        recur_check.call(child_item)
+      end
+    end
+
+    recur_check.call(json)
+  end
+
+  def apply_conditionals(enrollment)
+    parsed = JSON.parse(definition)
+    client = enrollment.client
+    parsed['item'].delete_if { |item| irrelevant_item?(item, enrollment, client) }
+    self.definition = parsed.to_json
+  end
+
+  private def irrelevant_item?(item, enrollment, client)
+    condition = item['data_collected_about']
+    return !matches_condition(condition, enrollment, client) if condition.present?
+
+    # TODO: check project type condition
+    # TODO: check funder condition
+
+    item['item'].delete_if { |child| irrelevant_item?(child, enrollment, client) } if item['item'].present?
+
+    false
+  end
+
+  private def matches_condition(condition, enrollment, client)
+    case condition
+    when 'ALL_CLIENTS'
+      true
+    when 'HOH'
+      enrollment.RelationshipToHoH == 1
+    when 'HOH_AND_ADULTS'
+      enrollment.RelationshipToHoH == 1 || client.age >= 18
+    else
+      raise NotImplementedError
+    end
+  end
 end

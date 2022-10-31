@@ -10,8 +10,6 @@ class CheckJobQueue
 
   def perform
     notify_of_hung_jobs if hung_job.exists?
-  rescue Exception => e
-    notify_on_exception(e)
   end
 
   def notify_of_hung_jobs
@@ -19,15 +17,6 @@ class CheckJobQueue
 
     setup_notifier('DelayedJobQueue')
     msg = 'One or more jobs have been queued for more than 24 hours'
-    @notifier.ping(msg) if @send_notifications
-  end
-
-  # From BaseJob
-  def notify_on_exception(exception)
-    return unless File.exist?('config/exception_notifier.yml')
-
-    setup_notifier('DelayedJobQueue')
-    msg = "*#{self.class.name}* `FAILED` with the following error: \n ```#{exception.inspect}```"
     @notifier.ping(msg) if @send_notifications
   end
 

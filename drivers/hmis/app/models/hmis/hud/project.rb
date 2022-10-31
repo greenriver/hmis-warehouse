@@ -11,11 +11,13 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   self.table_name = :Project
   self.sequence_name = "public.\"#{table_name}_id_seq\""
 
-  attr_writer :skip_validations
-
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   belongs_to :organization, **hmis_relation(:OrganizationID, 'Organization')
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :projects
+
+  has_many :project_cocs, **hmis_relation(:ProjectID, 'ProjectCoc'), inverse_of: :project
+  has_many :inventories, **hmis_relation(:ProjectID, 'Inventory'), inverse_of: :project
+  has_many :funders, **hmis_relation(:ProjectID, 'Funder'), inverse_of: :project
 
   use_enum :housing_type_enum_map, ::HUD.housing_types
   use_enum :tracking_methods_enum_map, ::HUD.tracking_methods.except(nil)
@@ -37,10 +39,6 @@ class Hmis::Hud::Project < Hmis::Hud::Base
 
   SORT_OPTIONS = [:organization_and_name, :name].freeze
 
-  def skip_validations
-    @skip_validations ||= []
-  end
-
   def self.sort_by_option(option)
     raise NotImplementedError unless SORT_OPTIONS.include?(option)
 
@@ -56,5 +54,11 @@ class Hmis::Hud::Project < Hmis::Hud::Base
 
   def self.generate_project_id
     generate_uuid
+  end
+
+  def active
+    return true unless operating_end_date.present?
+
+    operating_end_date >= Date.today
   end
 end

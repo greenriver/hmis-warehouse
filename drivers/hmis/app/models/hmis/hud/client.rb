@@ -11,7 +11,6 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   include ClientSearch
 
   attr_accessor :gender, :race
-  attr_writer :skip_validations
 
   self.table_name = :Client
   self.sequence_name = "public.\"#{table_name}_id_seq\""
@@ -20,6 +19,8 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
   has_many :enrollments, **hmis_relation(:PersonalID, 'Enrollment')
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :clients
+
+  # NOTE: this does not include project where the enrollment is WIP
   has_many :projects, through: :enrollments
   validates_with Hmis::Hud::Validators::ClientValidator
 
@@ -30,10 +31,6 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   scope :searchable_to, ->(user) do
     # TODO: additional access control rules go here
     visible_to(user)
-  end
-
-  def skip_validations
-    @skip_validations ||= []
   end
 
   def self.source_for(destination_id:, user:)
@@ -140,4 +137,8 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   end
   use_enum :ethnicity_enum_map, ::HUD.ethnicities.slice(0, 1), include_base_null: true
   use_common_enum :veteran_status_enum_map, :no_yes_reasons
+
+  def age(date = Date.current)
+    GrdaWarehouse::Hud::Client.age(date: date, dob: self.DOB)
+  end
 end

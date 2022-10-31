@@ -18,8 +18,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     {
       project_name: 'Project 1',
       organization_id: o1.id,
-      operating_start_date: Date.today.strftime('%Y-%m-%d'),
-      operating_end_date: (Date.today - 1.day).strftime('%Y-%m-%d'),
+      operating_start_date: 1.year.ago.strftime('%Y-%m-%d'),
+      operating_end_date: 1.week.ago.strftime('%Y-%m-%d'),
       description: 'This is a test project',
       contact_information: 'Contact for contact information',
       project_type: Types::HmisSchema::Enums::ProjectType.enum_member_for_value(1).first,
@@ -59,6 +59,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             residentialAffiliation
             targetPopulation
             trackingMethod
+            active
           }
           errors {
             attribute
@@ -81,6 +82,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     project = result.dig('data', 'createProject', 'project')
     errors = result.dig('data', 'createProject', 'errors')
     expect(project['id']).to be_present
+    expect(project['active']).to eq(false)
     expect(errors).to be_empty
   end
 
@@ -105,7 +107,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           'attribute' => 'organization',
         },
         {
-          'fullMessage' => 'Organization id must exist',
+          'fullMessage' => 'Organization must exist',
           'attribute' => 'organizationId',
         },
       ],

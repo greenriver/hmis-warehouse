@@ -192,10 +192,13 @@ module HmisDataQualityTool
     end
 
     # @return filtered scope
+    # NOTE: you'll need to apply a date range filter in the sub-classes that merge this in
     def report_scope
       # To maintain functionality with HudFilterBase
       filter.project_ids = filter.effective_project_ids
-      filter.apply(report_scope_source)
+      scope = report_scope_source
+      scope = filter_for_range(scope)
+      filter.apply(scope)
     end
 
     def can_see_client_details?(user)
@@ -327,7 +330,6 @@ module HmisDataQualityTool
       Rails.cache.delete(cache_key)
     end
 
-    # FIXME: this should run at the end of the run and cache the results in redis
     def results
       @results ||= Rails.cache.fetch(cache_key, expires_in: 1.months) do
         [].tap do |r|
@@ -366,11 +368,11 @@ module HmisDataQualityTool
                 if item_class == Client
                   overall_count = denominator_cell.
                     members.
-                    where(item_class.arel_table[:client_id].in(client_ids_for_project(project))).
+                    where(item_class.arel_table[:destination_client_id].in(client_ids_for_project(project))).
                     count
                   invalid_count = numerator_cell.
                     members.
-                    where(item_class.arel_table[:client_id].in(client_ids_for_project(project))).
+                    where(item_class.arel_table[:destination_client_id].in(client_ids_for_project(project))).
                     count
                 else
                   overall_count = denominator_cell.
@@ -419,7 +421,8 @@ module HmisDataQualityTool
     end
 
     def percent(total, partial)
-      return 0 if total.blank? || total.zero? || partial.blank? || partial.zero?
+      return 100 if total.blank? || total.zero?
+      return 0 if partial.blank? || partial.zero?
 
       ((partial / total.to_f) * 100).round(1)
     end
