@@ -8,6 +8,7 @@ class DBA::PartitionMaker
   attr_accessor :partition_column
   attr_accessor :partitioned_table
   attr_accessor :schema
+  attr_accessor :table_name
 
   # Create a normal, non-partitioned table/model first, and pass in the table name
   # schema is where we'll "hide" all the partitions
@@ -15,12 +16,13 @@ class DBA::PartitionMaker
     self.klass = klass
     self.num_partitions = num_partitions
     self.old_table = "#{table_name}_saved"
-    self.partitioned_table = table_name
+    self.partitioned_table = "#{table_name}_partitioned"
+    self.table_name = table_name
     self.base_class = GrdaWarehouseBase
     self.schema = schema
     self.partition_column = partition_column
 
-    return unless table_exists?(partitioned_table)
+    return unless table_exists?(table_name)
 
     self.partition_column ||= _default_column
   end
@@ -32,11 +34,11 @@ class DBA::PartitionMaker
   def run!
     _schema
     _make_table_and_partitions_transactionally
-    # _copy
+    _switch_them
   end
 
   def done?
-    table_exists?(old_table)
+    table_exists?(old_table) && !table_exists?(partitioned_table)
   end
 
   def no_table?
@@ -53,13 +55,9 @@ class DBA::PartitionMaker
 
   def _make_table_and_partitions_transactionally
     return if table_exists?(old_table)
+    return if table_exists?(partitioned_table)
 
     base_class.transaction do
-      # backup the non-partitioned table
-      p(<<~SQL)
-        ALTER TABLE "#{partitioned_table}" RENAME TO "#{old_table}";
-      SQL
-
       temp = "#{partitioned_table}_temp"
 
       p(<<~SQL)
@@ -70,7 +68,7 @@ class DBA::PartitionMaker
       # added to all unique indexes/constraints. ActiveRecord may need
       # adjustments to understand the primary key is really just the ID.
       p(<<~SQL)
-        CREATE TABLE "#{temp}" (LIKE "#{old_table}" INCLUDING ALL)
+        CREATE TABLE "#{temp}" (LIKE "#{table_name}" INCLUDING ALL)
       SQL
 
       p(<<~SQL)
@@ -105,6 +103,19 @@ class DBA::PartitionMaker
     end
   end
 
+  def _switch_them
+    base_class.transaction do
+      # backup the non-partitioned table
+      p(<<~SQL)
+        ALTER TABLE "#{table_name}" RENAME TO "#{old_table}";
+      SQL
+
+      p(<<~SQL)
+        ALTER TABLE "#{partitioned_table}" RENAME TO "#{table_name}";
+      SQL
+    end
+  end
+
   def _make_partitions
     0.upto(num_partitions - 1).each do |partnum|
       _make_one_partition(partnum)
@@ -114,10 +125,10 @@ class DBA::PartitionMaker
   def _copy
     results = Benchmark.measure do
       p(<<~SQL)
-        INSERT INTO "#{partitioned_table}" SELECT * FROM "#{old_table}"
+        INSERT INTO "#{partitioned_table}" SELECT * FROM "#{table_name}"
       SQL
     end
-    Rails.logger.info "Copy of #{partitioned_table} to partitioned version took #{results.real} seconds"
+    Rails.logger.info "Copy of #{table_name} to #{partitioned_table} version took #{results.real} seconds"
   end
 
   def _make_one_partition(partnum)
@@ -161,18 +172,18 @@ class DBA::PartitionMaker
     base_class.connection.table_exists?(name)
   end
 
-  def table_has_column?(table_name, column_name)
+  def table_has_column?(table, column_name)
     r = p(<<~SQL, logit: false)
       SELECT count(*) AS num
       FROM information_schema.columns
       WHERE table_schema = 'public'
-      AND table_name = '#{table_name}'
+      AND table_name = '#{table}'
       AND column_name = '#{column_name}'
     SQL
     r.first['num'] == 1
   end
 
-  def unique_indexes(table_name)
+  def unique_indexes(table)
     p(<<~SQL, logit: false)
       SELECT a.indexrelid, a.relname, a.indexrelname AS "index_name", c.indexdef
       FROM
@@ -180,16 +191,16 @@ class DBA::PartitionMaker
         JOIN pg_index b ON (b.indexrelid = a.indexrelid)
         JOIN pg_indexes c ON ( c.indexname = a.indexrelname )
       WHERE
-        relname = '#{table_name}'
+        relname = '#{table}'
         AND b.indisunique
         AND indexrelname not like '%_pkey'
     SQL
   end
 
   def _default_column
-    if table_has_column?(partitioned_table, 'importer_log_id')
+    if table_has_column?(table_name, 'importer_log_id')
       'importer_log_id'
-    elsif table_has_column?(partitioned_table, 'loader_id')
+    elsif table_has_column?(table_name, 'loader_id')
       'loader_id'
     else
       raise 'could not figure out default partitioning column'
