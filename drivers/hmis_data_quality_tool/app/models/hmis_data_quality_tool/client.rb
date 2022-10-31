@@ -382,7 +382,7 @@ module HmisDataQualityTool
         },
         name_issues: {
           title: 'Name',
-          description: 'Fist or last name is blank but Name Data Quality is 1, name is present but Name Data Quality is not 1 or 2, or Name Data Quality is 99 or blank',
+          description: 'First or last name is blank but Name Data Quality is 1, name is present but Name Data Quality is not 1 or 2, or Name Data Quality is 99 or blank',
           required_for: 'All',
           detail_columns: [
             :destination_client_id,

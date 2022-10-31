@@ -42,14 +42,13 @@ module HmisDataQualityTool
       start
       begin
         populate_universe
-        # calculate_results
       rescue Exception => e
         update(state: 'Failed', failed_at: Time.current)
         raise e
       end
+      complete
       # Run results to cache them for later
       results
-      complete
     end
 
     def start
