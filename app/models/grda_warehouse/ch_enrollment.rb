@@ -59,6 +59,8 @@ module GrdaWarehouse
         batch = []
         ch_enrollments.each do |ch_enrollment|
           enrollment = ch_enrollment.enrollment
+          next unless enrollment.present?
+
           batch << {
             id: ch_enrollment.id,
             processed_as: enrollment.processed_as,
