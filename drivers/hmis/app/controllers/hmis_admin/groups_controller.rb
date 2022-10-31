@@ -4,13 +4,12 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class HmisAdmin::UsersController < ApplicationController
+class HmisAdmin::GroupsController < ApplicationController
   include ViewableEntities
   include EnforceHmisEnabled
 
   before_action :require_hmis_admin_access!
-  before_action :set_user, only: [:edit, :update]
-  after_action :log_user, only: [:edit, :update]
+  before_action :set_role, only: [:edit, :update, :destroy]
 
   def index
   end
@@ -19,5 +18,8 @@ class HmisAdmin::UsersController < ApplicationController
   end
 
   def update
+  end
+
+  def destroy
   end
 end

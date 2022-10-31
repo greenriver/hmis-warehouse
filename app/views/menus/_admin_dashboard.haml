@@ -1,12 +1,6 @@
 - show_admin = can_edit_users? || can_edit_translations? || can_view_imports?
 - show_health = GrdaWarehouse::Config.get(:healthcare_available) && (can_administer_health? || can_manage_health_agency? || current_user.has_patient_referral_review_access?)
-- show_hmis_admin = ENV['ENABLE_HMIS_API'] == 'true' && RailsDrivers.loaded.include?(:hmis)
-- if show_hmis_admin
-  - # If the HMIS is enabled, figure out if this user can administer it
-  - hmis_ds = GrdaWarehouse::DataSource.hmis.pluck(:id).first
-  - hmis_user = Hmis::User.find_by(id: current_user.id)
-  - hmis_user.hmis_data_source_id = hmis_ds
-  - show_hmis_admin = hmis_user&.can_administer_hmis?
+- show_hmis_admin = hmis_admin_visible?
 - if show_admin || show_health || show_hmis_admin
   %ul.o-menu__group.list-unstyled
     - if show_admin

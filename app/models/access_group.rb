@@ -6,6 +6,7 @@
 
 class AccessGroup < ApplicationRecord
   include RailsDrivers::Extensions
+  include HmisEnabled
 
   acts_as_paranoid
   has_paper_trail
@@ -136,7 +137,7 @@ class AccessGroup < ApplicationRecord
         :cohorts,
         :project_groups,
       ]
-      list += [:hmis_projects, :hmis_organizations] if ENV['ENABLE_HMIS_API'] == 'true'
+      list += [:hmis_projects, :hmis_organizations] if hmis_enabled?
       list.each do |type|
         ids = (viewables[type] || []).map(&:to_i)
         scope = GrdaWarehouse::GroupViewableEntity.where(
@@ -231,7 +232,7 @@ class AccessGroup < ApplicationRecord
         project_groups: 'GrdaWarehouse::ProjectGroup',
         cohorts: 'GrdaWarehouse::Cohort',
       }
-      if ENV['ENABLE_HMIS_API'] == 'true'
+      if hmis_enabled?
         types[:hmis_organizations] = 'Hmis::Hud::Organization'
         types[:hmis_projects] = 'Hmis::Hud::Project'
       end
