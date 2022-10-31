@@ -114,6 +114,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       ),
     )
     expect(errors).to be_empty
+    expect(Hmis::Hud::Assessment.count).to eq(1)
+    expect(Hmis::Hud::Assessment.in_progress.count).to eq(0)
+    assessment = Hmis::Hud::Assessment.first
+    expect(assessment.enrollment_id).to eq(e1.enrollment_id)
   end
 
   describe 'In progress tests' do
@@ -132,6 +136,20 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(Hmis::Wip.count).to eq(1)
       expect(Hmis::Wip.first).to have_attributes(enrollment_id: e1.id, client_id: c1.id, project_id: nil)
       expect(Hmis::Hud::Assessment.viewable_by(hmis_user).count).to eq(1)
+    end
+
+    it 'set enrollment ID correctly when WIP assessment is saved as non-WIP' do
+      response, = post_graphql(**test_input.merge(in_progress: true)) { mutation }
+      expect(response.status).to eq 200
+      expect(Hmis::Hud::Assessment.count).to eq(1)
+      expect(Hmis::Hud::Assessment.in_progress.count).to eq(1)
+
+      response, = post_graphql(test_input) { mutation }
+      expect(response.status).to eq 200
+      expect(Hmis::Hud::Assessment.count).to eq(1)
+      expect(Hmis::Hud::Assessment.in_progress.count).to eq(0)
+      assessment = Hmis::Hud::Assessment.first
+      expect(assessment.enrollment_id).to eq(e1.enrollment_id)
     end
   end
 

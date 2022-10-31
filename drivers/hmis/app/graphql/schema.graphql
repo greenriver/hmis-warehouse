@@ -728,29 +728,46 @@ enum EnableBehavior {
 }
 
 enum EnableOperator {
+  """
+  Use with answerBoolean to specify is the item should be enabled or not.
+  """
+  ENABLED
   EQUAL
+
+  """
+  Use with answerBoolean to specify if an answer should exist or not.
+  """
   EXISTS
   GREATER_THAN
   GREATER_THAN_EQUAL
+
+  """
+  Whether the value is in the answerCodes array.
+  """
+  IN
   LESS_THAN
   LESS_THAN_EQUAL
   NOT_EQUAL
-  NOT_EXISTS
 }
 
 type EnableWhen {
   """
-  If question is BOOLEAN type, value for comparison
+  If question is boolean type, value for comparison
   """
   answerBoolean: Boolean
 
   """
-  If question is CHOICE type, value for comparison
+  If question is choice type, value for comparison
   """
   answerCode: String
 
   """
-  If question is CHOICE type and has grouped options, value for comparison
+  If question is choice type, and operator is IN, values for comparison
+  """
+  answerCodes: [String!]
+
+  """
+  If question is choice type and has grouped options, value for comparison
   """
   answerGroupCode: String
 
@@ -1024,6 +1041,11 @@ type FormItem {
   Whether the item should always be hidden
   """
   hidden: Boolean
+
+  """
+  Initial value(s) when item is first rendered
+  """
+  initial: [InitialValue!]
 
   """
   Nested items
@@ -1535,6 +1557,26 @@ scalar ISO8601Date
 An ISO 8601-encoded datetime
 """
 scalar ISO8601DateTime
+
+"""
+Initial value when item is first rendered
+"""
+type InitialValue {
+  """
+  If question is boolean type, initial value
+  """
+  valueBoolean: Boolean
+
+  """
+  If question is choice type, initial value
+  """
+  valueCode: String
+
+  """
+  If question is numeric, initial value
+  """
+  valueNumber: Int
+}
 
 type InventoriesPaginated {
   hasMoreAfter: Boolean!
