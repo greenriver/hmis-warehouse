@@ -18,6 +18,7 @@ module Types
     field :id, ID, null: false
     hud_field :personal_id
     hud_field :first_name
+    hud_field :middle_name
     hud_field :last_name
     field :preferred_name, String, null: true
     hud_field :name_suffix

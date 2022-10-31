@@ -147,6 +147,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               gender
               id
               lastName
+              middleName
               nameDataQuality
               nameSuffix
               personalId
