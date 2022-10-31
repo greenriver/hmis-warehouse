@@ -41,7 +41,7 @@ module Types
     end
 
     def gender
-      selected_genders = ::HUD.gender_id_to_field_name.except(8, 9, 99).select { |_id, f| object.send(f).to_i == 1 }.keys
+      selected_genders = ::HUD.gender_field_name_to_id.except(:GenderNone).select { |f| object.send(f).to_i == 1 }.values
       selected_genders << object.GenderNone if object.GenderNone
       selected_genders
     end
