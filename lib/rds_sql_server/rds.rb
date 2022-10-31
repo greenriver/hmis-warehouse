@@ -275,7 +275,7 @@ class Rds
       server.db_instance_identifier == identifier
     end
   rescue Aws::RDS::Errors::ServiceUnavailable
-    false
+    nil
   end
 
   def current_state
