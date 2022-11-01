@@ -1,0 +1,62 @@
+[
+  {
+    "geocode": "509001",
+    "name": "Addison County"
+  },
+  {
+    "geocode": "509003",
+    "name": "Bennington County"
+  },
+  {
+    "geocode": "500288",
+    "name": "Burlington"
+  },
+  {
+    "geocode": "509005",
+    "name": "Caledonia County"
+  },
+  {
+    "geocode": "509007",
+    "name": "Chittenden County"
+  },
+  {
+    "geocode": "509009",
+    "name": "Essex County"
+  },
+  {
+    "geocode": "509011",
+    "name": "Franklin County"
+  },
+  {
+    "geocode": "509013",
+    "name": "Grand Isle County"
+  },
+  {
+    "geocode": "509015",
+    "name": "Lamoille County"
+  },
+  {
+    "geocode": "509017",
+    "name": "Orange County"
+  },
+  {
+    "geocode": "509019",
+    "name": "Orleans County"
+  },
+  {
+    "geocode": "509021",
+    "name": "Rutland County"
+  },
+  {
+    "geocode": "509023",
+    "name": "Washington County"
+  },
+  {
+    "geocode": "509025",
+    "name": "Windham County"
+  },
+  {
+    "geocode": "509027",
+    "name": "Windsor County"
+  }
+]

@@ -1,0 +1,86 @@
+[
+  {
+    "geocode": "239001",
+    "name": "Androscoggin County"
+  },
+  {
+    "geocode": "239003",
+    "name": "Aroostook County"
+  },
+  {
+    "geocode": "230120",
+    "name": "Auburn"
+  },
+  {
+    "geocode": "230162",
+    "name": "Bangor"
+  },
+  {
+    "geocode": "230252",
+    "name": "Biddeford"
+  },
+  {
+    "geocode": "239005",
+    "name": "Cumberland County"
+  },
+  {
+    "geocode": "239007",
+    "name": "Franklin County"
+  },
+  {
+    "geocode": "239009",
+    "name": "Hancock County"
+  },
+  {
+    "geocode": "239011",
+    "name": "Kennebec County"
+  },
+  {
+    "geocode": "239013",
+    "name": "Knox County"
+  },
+  {
+    "geocode": "231602",
+    "name": "Lewiston"
+  },
+  {
+    "geocode": "239015",
+    "name": "Lincoln County"
+  },
+  {
+    "geocode": "239017",
+    "name": "Oxford County"
+  },
+  {
+    "geocode": "239019",
+    "name": "Penobscot County"
+  },
+  {
+    "geocode": "239021",
+    "name": "Piscataquis County"
+  },
+  {
+    "geocode": "232484",
+    "name": "Portland City"
+  },
+  {
+    "geocode": "239023",
+    "name": "Sagadahoc County"
+  },
+  {
+    "geocode": "239025",
+    "name": "Somerset County"
+  },
+  {
+    "geocode": "239027",
+    "name": "Waldo County"
+  },
+  {
+    "geocode": "239029",
+    "name": "Washington County"
+  },
+  {
+    "geocode": "239031",
+    "name": "York County"
+  }
+]

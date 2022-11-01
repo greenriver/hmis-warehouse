@@ -1,0 +1,322 @@
+[
+  {
+    "geocode": "010072",
+    "name": "Anniston"
+  },
+  {
+    "geocode": "010144",
+    "name": "Auburn"
+  },
+  {
+    "geocode": "019001",
+    "name": "Autauga County"
+  },
+  {
+    "geocode": "019003",
+    "name": "Baldwin County"
+  },
+  {
+    "geocode": "019005",
+    "name": "Barbour County"
+  },
+  {
+    "geocode": "010216",
+    "name": "Bessemer"
+  },
+  {
+    "geocode": "019007",
+    "name": "Bibb County"
+  },
+  {
+    "geocode": "010228",
+    "name": "Birmingham"
+  },
+  {
+    "geocode": "019009",
+    "name": "Blount County"
+  },
+  {
+    "geocode": "019011",
+    "name": "Bullock County"
+  },
+  {
+    "geocode": "019013",
+    "name": "Butler County"
+  },
+  {
+    "geocode": "019015",
+    "name": "Calhoun County"
+  },
+  {
+    "geocode": "019017",
+    "name": "Chambers County"
+  },
+  {
+    "geocode": "019019",
+    "name": "Cherokee County"
+  },
+  {
+    "geocode": "019021",
+    "name": "Chilton County"
+  },
+  {
+    "geocode": "019023",
+    "name": "Choctaw County"
+  },
+  {
+    "geocode": "019025",
+    "name": "Clarke County"
+  },
+  {
+    "geocode": "019027",
+    "name": "Clay County"
+  },
+  {
+    "geocode": "019029",
+    "name": "Cleburne County"
+  },
+  {
+    "geocode": "019031",
+    "name": "Coffee County"
+  },
+  {
+    "geocode": "019033",
+    "name": "Colbert County"
+  },
+  {
+    "geocode": "019035",
+    "name": "Conecuh County"
+  },
+  {
+    "geocode": "019037",
+    "name": "Coosa County"
+  },
+  {
+    "geocode": "019039",
+    "name": "Covington County"
+  },
+  {
+    "geocode": "019041",
+    "name": "Crenshaw County"
+  },
+  {
+    "geocode": "019043",
+    "name": "Cullman County"
+  },
+  {
+    "geocode": "019045",
+    "name": "Dale County"
+  },
+  {
+    "geocode": "019047",
+    "name": "Dallas County"
+  },
+  {
+    "geocode": "010594",
+    "name": "Decatur"
+  },
+  {
+    "geocode": "019049",
+    "name": "DeKalb County"
+  },
+  {
+    "geocode": "010624",
+    "name": "Dothan"
+  },
+  {
+    "geocode": "019051",
+    "name": "Elmore County"
+  },
+  {
+    "geocode": "019053",
+    "name": "Escambia County"
+  },
+  {
+    "geocode": "019055",
+    "name": "Etowah County"
+  },
+  {
+    "geocode": "019057",
+    "name": "Fayette County"
+  },
+  {
+    "geocode": "010810",
+    "name": "Florence"
+  },
+  {
+    "geocode": "019059",
+    "name": "Franklin County"
+  },
+  {
+    "geocode": "010882",
+    "name": "Gadsden"
+  },
+  {
+    "geocode": "019061",
+    "name": "Geneva County"
+  },
+  {
+    "geocode": "019063",
+    "name": "Greene County"
+  },
+  {
+    "geocode": "019065",
+    "name": "Hale County"
+  },
+  {
+    "geocode": "019067",
+    "name": "Henry County"
+  },
+  {
+    "geocode": "019069",
+    "name": "Houston County"
+  },
+  {
+    "geocode": "011218",
+    "name": "Huntsville"
+  },
+  {
+    "geocode": "019071",
+    "name": "Jackson County"
+  },
+  {
+    "geocode": "019073",
+    "name": "Jefferson County"
+  },
+  {
+    "geocode": "019075",
+    "name": "Lamar County"
+  },
+  {
+    "geocode": "019077",
+    "name": "Lauderdale County"
+  },
+  {
+    "geocode": "019079",
+    "name": "Lawrence County"
+  },
+  {
+    "geocode": "019081",
+    "name": "Lee County"
+  },
+  {
+    "geocode": "019083",
+    "name": "Limestone County"
+  },
+  {
+    "geocode": "019085",
+    "name": "Lowndes County"
+  },
+  {
+    "geocode": "019087",
+    "name": "Macon County"
+  },
+  {
+    "geocode": "019089",
+    "name": "Madison County"
+  },
+  {
+    "geocode": "019091",
+    "name": "Marengo County"
+  },
+  {
+    "geocode": "019093",
+    "name": "Marion County"
+  },
+  {
+    "geocode": "019095",
+    "name": "Marshall County"
+  },
+  {
+    "geocode": "011542",
+    "name": "Mobile"
+  },
+  {
+    "geocode": "019097",
+    "name": "Mobile County"
+  },
+  {
+    "geocode": "019099",
+    "name": "Monroe County"
+  },
+  {
+    "geocode": "011560",
+    "name": "Montgomery"
+  },
+  {
+    "geocode": "019101",
+    "name": "Montgomery County"
+  },
+  {
+    "geocode": "019103",
+    "name": "Morgan County"
+  },
+  {
+    "geocode": "011740",
+    "name": "Opelika"
+  },
+  {
+    "geocode": "019105",
+    "name": "Perry County"
+  },
+  {
+    "geocode": "019107",
+    "name": "Pickens County"
+  },
+  {
+    "geocode": "019109",
+    "name": "Pike County"
+  },
+  {
+    "geocode": "019111",
+    "name": "Randolph County"
+  },
+  {
+    "geocode": "019113",
+    "name": "Russell County"
+  },
+  {
+    "geocode": "019117",
+    "name": "Shelby County"
+  },
+  {
+    "geocode": "019115",
+    "name": "St. Clair County"
+  },
+  {
+    "geocode": "019119",
+    "name": "Sumter County"
+  },
+  {
+    "geocode": "019121",
+    "name": "Talladega County"
+  },
+  {
+    "geocode": "019123",
+    "name": "Tallapoosa County"
+  },
+  {
+    "geocode": "012268",
+    "name": "Tuscaloosa"
+  },
+  {
+    "geocode": "019125",
+    "name": "Tuscaloosa County"
+  },
+  {
+    "geocode": "019127",
+    "name": "Walker County"
+  },
+  {
+    "geocode": "019129",
+    "name": "Washington County"
+  },
+  {
+    "geocode": "019131",
+    "name": "Wilcox County"
+  },
+  {
+    "geocode": "019133",
+    "name": "Winston County"
+  }
+]

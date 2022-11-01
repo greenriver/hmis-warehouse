@@ -1,0 +1,490 @@
+[
+  {
+    "geocode": "269001",
+    "name": "Alcona County"
+  },
+  {
+    "geocode": "269003",
+    "name": "Alger County"
+  },
+  {
+    "geocode": "269005",
+    "name": "Allegan County"
+  },
+  {
+    "geocode": "269007",
+    "name": "Alpena County"
+  },
+  {
+    "geocode": "269009",
+    "name": "Antrim County"
+  },
+  {
+    "geocode": "269011",
+    "name": "Arenac County"
+  },
+  {
+    "geocode": "269013",
+    "name": "Baraga County"
+  },
+  {
+    "geocode": "269015",
+    "name": "Barry County"
+  },
+  {
+    "geocode": "260432",
+    "name": "Battle Creek"
+  },
+  {
+    "geocode": "260444",
+    "name": "Bay City"
+  },
+  {
+    "geocode": "269017",
+    "name": "Bay County"
+  },
+  {
+    "geocode": "260570",
+    "name": "Benton Harbor"
+  },
+  {
+    "geocode": "269019",
+    "name": "Benzie County"
+  },
+  {
+    "geocode": "269021",
+    "name": "Berrien County"
+  },
+  {
+    "geocode": "269023",
+    "name": "Branch County"
+  },
+  {
+    "geocode": "269025",
+    "name": "Calhoun County"
+  },
+  {
+    "geocode": "261074",
+    "name": "Canton Twp"
+  },
+  {
+    "geocode": "269027",
+    "name": "Cass County"
+  },
+  {
+    "geocode": "269029",
+    "name": "Charlevoix County"
+  },
+  {
+    "geocode": "269031",
+    "name": "Cheboygan County"
+  },
+  {
+    "geocode": "269033",
+    "name": "Chippewa County"
+  },
+  {
+    "geocode": "269035",
+    "name": "Clare County"
+  },
+  {
+    "geocode": "269037",
+    "name": "Clinton County"
+  },
+  {
+    "geocode": "261410",
+    "name": "Clinton Twp"
+  },
+  {
+    "geocode": "269039",
+    "name": "Crawford County"
+  },
+  {
+    "geocode": "261638",
+    "name": "Dearborn"
+  },
+  {
+    "geocode": "261644",
+    "name": "Dearborn Heights"
+  },
+  {
+    "geocode": "269041",
+    "name": "Delta County"
+  },
+  {
+    "geocode": "261698",
+    "name": "Detroit"
+  },
+  {
+    "geocode": "269043",
+    "name": "Dickinson County"
+  },
+  {
+    "geocode": "261848",
+    "name": "East Lansing"
+  },
+  {
+    "geocode": "269045",
+    "name": "Eaton County"
+  },
+  {
+    "geocode": "269047",
+    "name": "Emmet County"
+  },
+  {
+    "geocode": "262096",
+    "name": "Farmington Hills"
+  },
+  {
+    "geocode": "262172",
+    "name": "Flint"
+  },
+  {
+    "geocode": "269049",
+    "name": "Genesee County"
+  },
+  {
+    "geocode": "269051",
+    "name": "Gladwin County"
+  },
+  {
+    "geocode": "269053",
+    "name": "Gogebic County"
+  },
+  {
+    "geocode": "262544",
+    "name": "Grand Rapids"
+  },
+  {
+    "geocode": "269055",
+    "name": "Grand Traverse County"
+  },
+  {
+    "geocode": "269057",
+    "name": "Gratiot County"
+  },
+  {
+    "geocode": "269059",
+    "name": "Hillsdale County"
+  },
+  {
+    "geocode": "262940",
+    "name": "Holland"
+  },
+  {
+    "geocode": "269061",
+    "name": "Houghton County"
+  },
+  {
+    "geocode": "269063",
+    "name": "Huron County"
+  },
+  {
+    "geocode": "269065",
+    "name": "Ingham County"
+  },
+  {
+    "geocode": "269067",
+    "name": "Ionia County"
+  },
+  {
+    "geocode": "269069",
+    "name": "Iosco County"
+  },
+  {
+    "geocode": "269071",
+    "name": "Iron County"
+  },
+  {
+    "geocode": "269073",
+    "name": "Isabella County"
+  },
+  {
+    "geocode": "263174",
+    "name": "Jackson"
+  },
+  {
+    "geocode": "269075",
+    "name": "Jackson County"
+  },
+  {
+    "geocode": "263222",
+    "name": "Kalamazoo"
+  },
+  {
+    "geocode": "269077",
+    "name": "Kalamazoo County"
+  },
+  {
+    "geocode": "269079",
+    "name": "Kalkaska County"
+  },
+  {
+    "geocode": "269081",
+    "name": "Kent County"
+  },
+  {
+    "geocode": "269083",
+    "name": "Keweenaw County"
+  },
+  {
+    "geocode": "269085",
+    "name": "Lake County"
+  },
+  {
+    "geocode": "263456",
+    "name": "Lansing"
+  },
+  {
+    "geocode": "269087",
+    "name": "Lapeer County"
+  },
+  {
+    "geocode": "269089",
+    "name": "Leelanau County"
+  },
+  {
+    "geocode": "269091",
+    "name": "Lenawee County"
+  },
+  {
+    "geocode": "263588",
+    "name": "Lincoln Park"
+  },
+  {
+    "geocode": "269093",
+    "name": "Livingston County"
+  },
+  {
+    "geocode": "263648",
+    "name": "Livonia"
+  },
+  {
+    "geocode": "269095",
+    "name": "Luce County"
+  },
+  {
+    "geocode": "269097",
+    "name": "Mackinac County"
+  },
+  {
+    "geocode": "269099",
+    "name": "Macomb County"
+  },
+  {
+    "geocode": "269101",
+    "name": "Manistee County"
+  },
+  {
+    "geocode": "269103",
+    "name": "Marquette County"
+  },
+  {
+    "geocode": "269105",
+    "name": "Mason County"
+  },
+  {
+    "geocode": "269107",
+    "name": "Mecosta County"
+  },
+  {
+    "geocode": "269109",
+    "name": "Menominee County"
+  },
+  {
+    "geocode": "264086",
+    "name": "Midland"
+  },
+  {
+    "geocode": "269111",
+    "name": "Midland County"
+  },
+  {
+    "geocode": "269113",
+    "name": "Missaukee County"
+  },
+  {
+    "geocode": "264164",
+    "name": "Monroe"
+  },
+  {
+    "geocode": "269115",
+    "name": "Monroe County"
+  },
+  {
+    "geocode": "269117",
+    "name": "Montcalm County"
+  },
+  {
+    "geocode": "269119",
+    "name": "Montmorency County"
+  },
+  {
+    "geocode": "264296",
+    "name": "Muskegon"
+  },
+  {
+    "geocode": "269121",
+    "name": "Muskegon County"
+  },
+  {
+    "geocode": "264302",
+    "name": "Muskegon Hts"
+  },
+  {
+    "geocode": "269123",
+    "name": "Newaygo County"
+  },
+  {
+    "geocode": "264386",
+    "name": "Niles"
+  },
+  {
+    "geocode": "264452",
+    "name": "Norton Shores"
+  },
+  {
+    "geocode": "269125",
+    "name": "Oakland County"
+  },
+  {
+    "geocode": "269127",
+    "name": "Oceana County"
+  },
+  {
+    "geocode": "269129",
+    "name": "Ogemaw County"
+  },
+  {
+    "geocode": "269131",
+    "name": "Ontonagon County"
+  },
+  {
+    "geocode": "269133",
+    "name": "Osceola County"
+  },
+  {
+    "geocode": "269135",
+    "name": "Oscoda County"
+  },
+  {
+    "geocode": "269137",
+    "name": "Otsego County"
+  },
+  {
+    "geocode": "269139",
+    "name": "Ottawa County"
+  },
+  {
+    "geocode": "264962",
+    "name": "Pontiac"
+  },
+  {
+    "geocode": "265010",
+    "name": "Port Huron"
+  },
+  {
+    "geocode": "264974",
+    "name": "Portage"
+  },
+  {
+    "geocode": "269141",
+    "name": "Presque Isle County"
+  },
+  {
+    "geocode": "265148",
+    "name": "Redford"
+  },
+  {
+    "geocode": "269143",
+    "name": "Roscommon County"
+  },
+  {
+    "geocode": "265286",
+    "name": "Roseville"
+  },
+  {
+    "geocode": "265304",
+    "name": "Royal Oak"
+  },
+  {
+    "geocode": "265340",
+    "name": "Saginaw"
+  },
+  {
+    "geocode": "269145",
+    "name": "Saginaw County"
+  },
+  {
+    "geocode": "269151",
+    "name": "Sanilac County"
+  },
+  {
+    "geocode": "269153",
+    "name": "Schoolcraft County"
+  },
+  {
+    "geocode": "269155",
+    "name": "Shiawassee County"
+  },
+  {
+    "geocode": "265664",
+    "name": "Southfield"
+  },
+  {
+    "geocode": "265370",
+    "name": "St Clair Shores"
+  },
+  {
+    "geocode": "269147",
+    "name": "St. Clair County"
+  },
+  {
+    "geocode": "269149",
+    "name": "St. Joseph County"
+  },
+  {
+    "geocode": "265814",
+    "name": "Sterling Heights"
+  },
+  {
+    "geocode": "265934",
+    "name": "Taylor"
+  },
+  {
+    "geocode": "269157",
+    "name": "Tuscola County"
+  },
+  {
+    "geocode": "269159",
+    "name": "Van Buren County"
+  },
+  {
+    "geocode": "266252",
+    "name": "Warren"
+  },
+  {
+    "geocode": "269161",
+    "name": "Washtenaw County"
+  },
+  {
+    "geocode": "266267",
+    "name": "Waterford Township"
+  },
+  {
+    "geocode": "269163",
+    "name": "Wayne County"
+  },
+  {
+    "geocode": "266378",
+    "name": "Westland"
+  },
+  {
+    "geocode": "269165",
+    "name": "Wexford County"
+  },
+  {
+    "geocode": "266624",
+    "name": "Wyoming"
+  }
+]

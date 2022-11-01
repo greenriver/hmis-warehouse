@@ -1,0 +1,274 @@
+[
+  {
+    "geocode": "539001",
+    "name": "Adams County"
+  },
+  {
+    "geocode": "530036",
+    "name": "Anacortes"
+  },
+  {
+    "geocode": "539003",
+    "name": "Asotin County"
+  },
+  {
+    "geocode": "530054",
+    "name": "Auburn"
+  },
+  {
+    "geocode": "530084",
+    "name": "Bellevue"
+  },
+  {
+    "geocode": "530090",
+    "name": "Bellingham"
+  },
+  {
+    "geocode": "539005",
+    "name": "Benton County"
+  },
+  {
+    "geocode": "530132",
+    "name": "Bremerton"
+  },
+  {
+    "geocode": "530166",
+    "name": "Burien"
+  },
+  {
+    "geocode": "539007",
+    "name": "Chelan County"
+  },
+  {
+    "geocode": "539009",
+    "name": "Clallam County"
+  },
+  {
+    "geocode": "539011",
+    "name": "Clark County"
+  },
+  {
+    "geocode": "539013",
+    "name": "Columbia County"
+  },
+  {
+    "geocode": "539015",
+    "name": "Cowlitz County"
+  },
+  {
+    "geocode": "539017",
+    "name": "Douglas County"
+  },
+  {
+    "geocode": "530396",
+    "name": "East Wenatchee City"
+  },
+  {
+    "geocode": "530480",
+    "name": "Everett"
+  },
+  {
+    "geocode": "530514",
+    "name": "Federal Way"
+  },
+  {
+    "geocode": "539019",
+    "name": "Ferry County"
+  },
+  {
+    "geocode": "539021",
+    "name": "Franklin County"
+  },
+  {
+    "geocode": "539023",
+    "name": "Garfield County"
+  },
+  {
+    "geocode": "539025",
+    "name": "Grant County"
+  },
+  {
+    "geocode": "539027",
+    "name": "Grays Harbor County"
+  },
+  {
+    "geocode": "539029",
+    "name": "Island County"
+  },
+  {
+    "geocode": "539031",
+    "name": "Jefferson County"
+  },
+  {
+    "geocode": "530720",
+    "name": "Kennewick"
+  },
+  {
+    "geocode": "530726",
+    "name": "Kent City"
+  },
+  {
+    "geocode": "539033",
+    "name": "King County"
+  },
+  {
+    "geocode": "530738",
+    "name": "Kirkland City"
+  },
+  {
+    "geocode": "539035",
+    "name": "Kitsap County"
+  },
+  {
+    "geocode": "539037",
+    "name": "Kittitas County"
+  },
+  {
+    "geocode": "539039",
+    "name": "Klickitat County"
+  },
+  {
+    "geocode": "530795",
+    "name": "Lakewood"
+  },
+  {
+    "geocode": "539041",
+    "name": "Lewis County"
+  },
+  {
+    "geocode": "539043",
+    "name": "Lincoln County"
+  },
+  {
+    "geocode": "530840",
+    "name": "Longview"
+  },
+  {
+    "geocode": "530906",
+    "name": "Marysville"
+  },
+  {
+    "geocode": "539045",
+    "name": "Mason County"
+  },
+  {
+    "geocode": "531020",
+    "name": "Mount Vernon"
+  },
+  {
+    "geocode": "539047",
+    "name": "Okanogan County"
+  },
+  {
+    "geocode": "531134",
+    "name": "Olympia"
+  },
+  {
+    "geocode": "539049",
+    "name": "Pacific County"
+  },
+  {
+    "geocode": "531188",
+    "name": "Pasco"
+  },
+  {
+    "geocode": "539051",
+    "name": "Pend Oreille County"
+  },
+  {
+    "geocode": "539053",
+    "name": "Pierce County"
+  },
+  {
+    "geocode": "531296",
+    "name": "Redmond"
+  },
+  {
+    "geocode": "531302",
+    "name": "Renton City"
+  },
+  {
+    "geocode": "531314",
+    "name": "Richland"
+  },
+  {
+    "geocode": "539055",
+    "name": "San Juan County"
+  },
+  {
+    "geocode": "531392",
+    "name": "Seattle"
+  },
+  {
+    "geocode": "531420",
+    "name": "Shoreline"
+  },
+  {
+    "geocode": "539057",
+    "name": "Skagit County"
+  },
+  {
+    "geocode": "539059",
+    "name": "Skamania County"
+  },
+  {
+    "geocode": "539061",
+    "name": "Snohomish County"
+  },
+  {
+    "geocode": "531488",
+    "name": "Spokane"
+  },
+  {
+    "geocode": "539063",
+    "name": "Spokane County"
+  },
+  {
+    "geocode": "539065",
+    "name": "Stevens County"
+  },
+  {
+    "geocode": "531554",
+    "name": "Tacoma"
+  },
+  {
+    "geocode": "539067",
+    "name": "Thurston County"
+  },
+  {
+    "geocode": "531668",
+    "name": "Vancouver"
+  },
+  {
+    "geocode": "539069",
+    "name": "Wahkiakum County"
+  },
+  {
+    "geocode": "531680",
+    "name": "Walla Walla City"
+  },
+  {
+    "geocode": "539071",
+    "name": "Walla Walla County"
+  },
+  {
+    "geocode": "531728",
+    "name": "Wenatchee"
+  },
+  {
+    "geocode": "539073",
+    "name": "Whatcom County"
+  },
+  {
+    "geocode": "539075",
+    "name": "Whitman County"
+  },
+  {
+    "geocode": "531830",
+    "name": "Yakima"
+  },
+  {
+    "geocode": "539077",
+    "name": "Yakima County"
+  }
+]

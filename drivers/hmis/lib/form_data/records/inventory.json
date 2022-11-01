@@ -44,7 +44,6 @@
       "link_id": "dates",
       "text": "Operating Period",
       "required": false,
-
       "item": [
         {
           "type": "DATE",

@@ -1,0 +1,118 @@
+[
+  {
+    "geocode": "029013",
+    "name": "Aleutians East Borough"
+  },
+  {
+    "geocode": "029016",
+    "name": "Aleutians West Census Area"
+  },
+  {
+    "geocode": "020078",
+    "name": "Anchorage"
+  },
+  {
+    "geocode": "029050",
+    "name": "Bethel Census Area"
+  },
+  {
+    "geocode": "029060",
+    "name": "Bristol Bay Borough"
+  },
+  {
+    "geocode": "029068",
+    "name": "Denali Borough"
+  },
+  {
+    "geocode": "029070",
+    "name": "Dillingham Census Area"
+  },
+  {
+    "geocode": "029090",
+    "name": "Fairbanks North Star Borough"
+  },
+  {
+    "geocode": "029100",
+    "name": "Haines Borough"
+  },
+  {
+    "geocode": "029105",
+    "name": "Hoonah-Angoon Census Area"
+  },
+  {
+    "geocode": "029110",
+    "name": "Juneau City and Borough"
+  },
+  {
+    "geocode": "029122",
+    "name": "Kenai Peninsula Borough"
+  },
+  {
+    "geocode": "029130",
+    "name": "Ketchikan Gateway Borough"
+  },
+  {
+    "geocode": "029150",
+    "name": "Kodiak Island Borough"
+  },
+  {
+    "geocode": "029158",
+    "name": "Kusilvak Census Area"
+  },
+  {
+    "geocode": "029164",
+    "name": "Lake and Peninsula Borough"
+  },
+  {
+    "geocode": "029170",
+    "name": "Matanuska-Susitna Borough"
+  },
+  {
+    "geocode": "029180",
+    "name": "Nome Census Area"
+  },
+  {
+    "geocode": "029185",
+    "name": "North Slope Borough"
+  },
+  {
+    "geocode": "029188",
+    "name": "Northwest Arctic Borough"
+  },
+  {
+    "geocode": "029195",
+    "name": "Petersburg Borough"
+  },
+  {
+    "geocode": "029198",
+    "name": "Prince of Wales-Hyder Census Area"
+  },
+  {
+    "geocode": "029220",
+    "name": "Sitka City and Borough"
+  },
+  {
+    "geocode": "029230",
+    "name": "Skagway Municipality"
+  },
+  {
+    "geocode": "029240",
+    "name": "Southeast Fairbanks Census Area"
+  },
+  {
+    "geocode": "029261",
+    "name": "Valdez-Cordova Census Area"
+  },
+  {
+    "geocode": "029275",
+    "name": "Wrangell City and Borough"
+  },
+  {
+    "geocode": "029282",
+    "name": "Yakutat City and Borough"
+  },
+  {
+    "geocode": "029290",
+    "name": "Yukon-Koyukuk Census Area"
+  }
+]

@@ -1,0 +1,230 @@
+[
+  {
+    "geocode": "459001",
+    "name": "Abbeville County"
+  },
+  {
+    "geocode": "450012",
+    "name": "Aiken"
+  },
+  {
+    "geocode": "459003",
+    "name": "Aiken County"
+  },
+  {
+    "geocode": "459005",
+    "name": "Allendale County"
+  },
+  {
+    "geocode": "450030",
+    "name": "Anderson"
+  },
+  {
+    "geocode": "459007",
+    "name": "Anderson County"
+  },
+  {
+    "geocode": "459009",
+    "name": "Bamberg County"
+  },
+  {
+    "geocode": "459011",
+    "name": "Barnwell County"
+  },
+  {
+    "geocode": "459013",
+    "name": "Beaufort County"
+  },
+  {
+    "geocode": "459015",
+    "name": "Berkeley County"
+  },
+  {
+    "geocode": "459017",
+    "name": "Calhoun County"
+  },
+  {
+    "geocode": "450300",
+    "name": "Charleston"
+  },
+  {
+    "geocode": "459019",
+    "name": "Charleston County"
+  },
+  {
+    "geocode": "459021",
+    "name": "Cherokee County"
+  },
+  {
+    "geocode": "459023",
+    "name": "Chester County"
+  },
+  {
+    "geocode": "459025",
+    "name": "Chesterfield County"
+  },
+  {
+    "geocode": "459027",
+    "name": "Clarendon County"
+  },
+  {
+    "geocode": "459029",
+    "name": "Colleton County"
+  },
+  {
+    "geocode": "450372",
+    "name": "Columbia"
+  },
+  {
+    "geocode": "459031",
+    "name": "Darlington County"
+  },
+  {
+    "geocode": "459033",
+    "name": "Dillon County"
+  },
+  {
+    "geocode": "459035",
+    "name": "Dorchester County"
+  },
+  {
+    "geocode": "459037",
+    "name": "Edgefield County"
+  },
+  {
+    "geocode": "459039",
+    "name": "Fairfield County"
+  },
+  {
+    "geocode": "450534",
+    "name": "Florence"
+  },
+  {
+    "geocode": "459041",
+    "name": "Florence County"
+  },
+  {
+    "geocode": "459043",
+    "name": "Georgetown County"
+  },
+  {
+    "geocode": "450648",
+    "name": "Greenville"
+  },
+  {
+    "geocode": "459045",
+    "name": "Greenville County"
+  },
+  {
+    "geocode": "459047",
+    "name": "Greenwood County"
+  },
+  {
+    "geocode": "459049",
+    "name": "Hampton County"
+  },
+  {
+    "geocode": "450716",
+    "name": "Hilton Head Island"
+  },
+  {
+    "geocode": "459051",
+    "name": "Horry County"
+  },
+  {
+    "geocode": "459053",
+    "name": "Jasper County"
+  },
+  {
+    "geocode": "459055",
+    "name": "Kershaw County"
+  },
+  {
+    "geocode": "459057",
+    "name": "Lancaster County"
+  },
+  {
+    "geocode": "459059",
+    "name": "Laurens County"
+  },
+  {
+    "geocode": "459061",
+    "name": "Lee County"
+  },
+  {
+    "geocode": "459063",
+    "name": "Lexington County"
+  },
+  {
+    "geocode": "459067",
+    "name": "Marion County"
+  },
+  {
+    "geocode": "459069",
+    "name": "Marlboro County"
+  },
+  {
+    "geocode": "459065",
+    "name": "McCormick County"
+  },
+  {
+    "geocode": "459071",
+    "name": "Newberry County"
+  },
+  {
+    "geocode": "459073",
+    "name": "Oconee County"
+  },
+  {
+    "geocode": "459075",
+    "name": "Orangeburg County"
+  },
+  {
+    "geocode": "459077",
+    "name": "Pickens County"
+  },
+  {
+    "geocode": "459079",
+    "name": "Richland County"
+  },
+  {
+    "geocode": "451386",
+    "name": "Rock Hill"
+  },
+  {
+    "geocode": "459081",
+    "name": "Saluda County"
+  },
+  {
+    "geocode": "451554",
+    "name": "Spartanburg"
+  },
+  {
+    "geocode": "459083",
+    "name": "Spartanburg County"
+  },
+  {
+    "geocode": "451608",
+    "name": "Summerville"
+  },
+  {
+    "geocode": "451620",
+    "name": "Sumter"
+  },
+  {
+    "geocode": "459085",
+    "name": "Sumter County"
+  },
+  {
+    "geocode": "459087",
+    "name": "Union County"
+  },
+  {
+    "geocode": "459089",
+    "name": "Williamsburg County"
+  },
+  {
+    "geocode": "459091",
+    "name": "York County"
+  }
+]

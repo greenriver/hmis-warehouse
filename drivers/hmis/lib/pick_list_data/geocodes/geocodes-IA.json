@@ -1,0 +1,442 @@
+[
+  {
+    "geocode": "199001",
+    "name": "Adair County"
+  },
+  {
+    "geocode": "199003",
+    "name": "Adams County"
+  },
+  {
+    "geocode": "199005",
+    "name": "Allamakee County"
+  },
+  {
+    "geocode": "190138",
+    "name": "Ames"
+  },
+  {
+    "geocode": "199007",
+    "name": "Appanoose County"
+  },
+  {
+    "geocode": "199009",
+    "name": "Audubon County"
+  },
+  {
+    "geocode": "199011",
+    "name": "Benton County"
+  },
+  {
+    "geocode": "199013",
+    "name": "Black Hawk County"
+  },
+  {
+    "geocode": "199015",
+    "name": "Boone County"
+  },
+  {
+    "geocode": "199017",
+    "name": "Bremer County"
+  },
+  {
+    "geocode": "199019",
+    "name": "Buchanan County"
+  },
+  {
+    "geocode": "199021",
+    "name": "Buena Vista County"
+  },
+  {
+    "geocode": "199023",
+    "name": "Butler County"
+  },
+  {
+    "geocode": "199025",
+    "name": "Calhoun County"
+  },
+  {
+    "geocode": "199027",
+    "name": "Carroll County"
+  },
+  {
+    "geocode": "199029",
+    "name": "Cass County"
+  },
+  {
+    "geocode": "199031",
+    "name": "Cedar County"
+  },
+  {
+    "geocode": "190798",
+    "name": "Cedar Falls"
+  },
+  {
+    "geocode": "190804",
+    "name": "Cedar Rapids"
+  },
+  {
+    "geocode": "199033",
+    "name": "Cerro Gordo County"
+  },
+  {
+    "geocode": "199035",
+    "name": "Cherokee County"
+  },
+  {
+    "geocode": "199037",
+    "name": "Chickasaw County"
+  },
+  {
+    "geocode": "199039",
+    "name": "Clarke County"
+  },
+  {
+    "geocode": "199041",
+    "name": "Clay County"
+  },
+  {
+    "geocode": "199043",
+    "name": "Clayton County"
+  },
+  {
+    "geocode": "199045",
+    "name": "Clinton County"
+  },
+  {
+    "geocode": "191134",
+    "name": "Council Bluffs"
+  },
+  {
+    "geocode": "199047",
+    "name": "Crawford County"
+  },
+  {
+    "geocode": "199049",
+    "name": "Dallas County"
+  },
+  {
+    "geocode": "191254",
+    "name": "Davenport"
+  },
+  {
+    "geocode": "199051",
+    "name": "Davis County"
+  },
+  {
+    "geocode": "199053",
+    "name": "Decatur County"
+  },
+  {
+    "geocode": "199055",
+    "name": "Delaware County"
+  },
+  {
+    "geocode": "191362",
+    "name": "Des Moines"
+  },
+  {
+    "geocode": "199057",
+    "name": "Des Moines County"
+  },
+  {
+    "geocode": "199059",
+    "name": "Dickinson County"
+  },
+  {
+    "geocode": "191464",
+    "name": "Dubuque"
+  },
+  {
+    "geocode": "199061",
+    "name": "Dubuque County"
+  },
+  {
+    "geocode": "199063",
+    "name": "Emmet County"
+  },
+  {
+    "geocode": "199065",
+    "name": "Fayette County"
+  },
+  {
+    "geocode": "199067",
+    "name": "Floyd County"
+  },
+  {
+    "geocode": "199069",
+    "name": "Franklin County"
+  },
+  {
+    "geocode": "199071",
+    "name": "Fremont County"
+  },
+  {
+    "geocode": "199073",
+    "name": "Greene County"
+  },
+  {
+    "geocode": "199075",
+    "name": "Grundy County"
+  },
+  {
+    "geocode": "199077",
+    "name": "Guthrie County"
+  },
+  {
+    "geocode": "199079",
+    "name": "Hamilton County"
+  },
+  {
+    "geocode": "199081",
+    "name": "Hancock County"
+  },
+  {
+    "geocode": "199083",
+    "name": "Hardin County"
+  },
+  {
+    "geocode": "199085",
+    "name": "Harrison County"
+  },
+  {
+    "geocode": "199087",
+    "name": "Henry County"
+  },
+  {
+    "geocode": "199089",
+    "name": "Howard County"
+  },
+  {
+    "geocode": "199091",
+    "name": "Humboldt County"
+  },
+  {
+    "geocode": "199093",
+    "name": "Ida County"
+  },
+  {
+    "geocode": "192466",
+    "name": "Iowa City"
+  },
+  {
+    "geocode": "199095",
+    "name": "Iowa County"
+  },
+  {
+    "geocode": "199097",
+    "name": "Jackson County"
+  },
+  {
+    "geocode": "199099",
+    "name": "Jasper County"
+  },
+  {
+    "geocode": "199101",
+    "name": "Jefferson County"
+  },
+  {
+    "geocode": "199103",
+    "name": "Johnson County"
+  },
+  {
+    "geocode": "199105",
+    "name": "Jones County"
+  },
+  {
+    "geocode": "199107",
+    "name": "Keokuk County"
+  },
+  {
+    "geocode": "199109",
+    "name": "Kossuth County"
+  },
+  {
+    "geocode": "199111",
+    "name": "Lee County"
+  },
+  {
+    "geocode": "199113",
+    "name": "Linn County"
+  },
+  {
+    "geocode": "199115",
+    "name": "Louisa County"
+  },
+  {
+    "geocode": "199117",
+    "name": "Lucas County"
+  },
+  {
+    "geocode": "199119",
+    "name": "Lyon County"
+  },
+  {
+    "geocode": "199121",
+    "name": "Madison County"
+  },
+  {
+    "geocode": "199123",
+    "name": "Mahaska County"
+  },
+  {
+    "geocode": "199125",
+    "name": "Marion County"
+  },
+  {
+    "geocode": "199127",
+    "name": "Marshall County"
+  },
+  {
+    "geocode": "199129",
+    "name": "Mills County"
+  },
+  {
+    "geocode": "199131",
+    "name": "Mitchell County"
+  },
+  {
+    "geocode": "199133",
+    "name": "Monona County"
+  },
+  {
+    "geocode": "199135",
+    "name": "Monroe County"
+  },
+  {
+    "geocode": "199137",
+    "name": "Montgomery County"
+  },
+  {
+    "geocode": "199139",
+    "name": "Muscatine County"
+  },
+  {
+    "geocode": "199141",
+    "name": "O'Brien County"
+  },
+  {
+    "geocode": "199143",
+    "name": "Osceola County"
+  },
+  {
+    "geocode": "199145",
+    "name": "Page County"
+  },
+  {
+    "geocode": "199147",
+    "name": "Palo Alto County"
+  },
+  {
+    "geocode": "199149",
+    "name": "Plymouth County"
+  },
+  {
+    "geocode": "199151",
+    "name": "Pocahontas County"
+  },
+  {
+    "geocode": "199153",
+    "name": "Polk County"
+  },
+  {
+    "geocode": "199155",
+    "name": "Pottawattamie County"
+  },
+  {
+    "geocode": "199157",
+    "name": "Poweshiek County"
+  },
+  {
+    "geocode": "199159",
+    "name": "Ringgold County"
+  },
+  {
+    "geocode": "199161",
+    "name": "Sac County"
+  },
+  {
+    "geocode": "199163",
+    "name": "Scott County"
+  },
+  {
+    "geocode": "199165",
+    "name": "Shelby County"
+  },
+  {
+    "geocode": "194812",
+    "name": "Sioux City"
+  },
+  {
+    "geocode": "199167",
+    "name": "Sioux County"
+  },
+  {
+    "geocode": "199169",
+    "name": "Story County"
+  },
+  {
+    "geocode": "199171",
+    "name": "Tama County"
+  },
+  {
+    "geocode": "199173",
+    "name": "Taylor County"
+  },
+  {
+    "geocode": "199175",
+    "name": "Union County"
+  },
+  {
+    "geocode": "199177",
+    "name": "Van Buren County"
+  },
+  {
+    "geocode": "199179",
+    "name": "Wapello County"
+  },
+  {
+    "geocode": "199181",
+    "name": "Warren County"
+  },
+  {
+    "geocode": "199183",
+    "name": "Washington County"
+  },
+  {
+    "geocode": "195394",
+    "name": "Waterloo"
+  },
+  {
+    "geocode": "199185",
+    "name": "Wayne County"
+  },
+  {
+    "geocode": "199187",
+    "name": "Webster County"
+  },
+  {
+    "geocode": "195508",
+    "name": "West Des Moines"
+  },
+  {
+    "geocode": "199189",
+    "name": "Winnebago County"
+  },
+  {
+    "geocode": "199191",
+    "name": "Winneshiek County"
+  },
+  {
+    "geocode": "199193",
+    "name": "Woodbury County"
+  },
+  {
+    "geocode": "199195",
+    "name": "Worth County"
+  },
+  {
+    "geocode": "199197",
+    "name": "Wright County"
+  }
+]

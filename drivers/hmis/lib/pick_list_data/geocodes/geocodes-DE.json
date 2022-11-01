@@ -1,0 +1,22 @@
+[
+  {
+    "geocode": "100090",
+    "name": "Dover"
+  },
+  {
+    "geocode": "109001",
+    "name": "Kent County"
+  },
+  {
+    "geocode": "109003",
+    "name": "New Castle County"
+  },
+  {
+    "geocode": "109005",
+    "name": "Sussex County"
+  },
+  {
+    "geocode": "100336",
+    "name": "Wilmington"
+  }
+]

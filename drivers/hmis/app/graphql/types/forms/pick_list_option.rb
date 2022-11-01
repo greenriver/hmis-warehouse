@@ -19,7 +19,26 @@ module Types
       case pick_list_type
       when 'COC'
         ::HUD.cocs_in_state(ENV['RELEVANT_COC_STATE']).sort.map do |code, name|
-          { code: code, label: name, secondary_label: code }
+          { code: code, label: "#{code} - #{name}" }
+        end
+
+      when 'STATE'
+        states = JSON.parse(File.read('drivers/hmis/lib/pick_list_data/states.json'))
+        states.map do |obj|
+          {
+            code: obj['abbreviation'],
+            label: "#{obj['abbreviation']} - #{obj['name']}",
+            initial_selected: obj['abbreviation'] == ENV['RELEVANT_COC_STATE'],
+          }
+        end
+
+      when 'GEOCODE'
+        geocodes = JSON.parse(File.read("drivers/hmis/lib/pick_list_data/geocodes/geocodes-#{ENV['RELEVANT_COC_STATE']}.json"))
+        geocodes.map do |obj|
+          {
+            code: obj['geocode'],
+            label: "#{obj['geocode']} - #{obj['name']}",
+          }
         end
 
       when 'PRIOR_LIVING_SITUATION'

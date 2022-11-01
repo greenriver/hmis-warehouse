@@ -1,0 +1,526 @@
+[
+  {
+    "geocode": "519001",
+    "name": "Accomack County"
+  },
+  {
+    "geocode": "519003",
+    "name": "Albemarle County"
+  },
+  {
+    "geocode": "510024",
+    "name": "Alexandria"
+  },
+  {
+    "geocode": "519005",
+    "name": "Alleghany County"
+  },
+  {
+    "geocode": "519007",
+    "name": "Amelia County"
+  },
+  {
+    "geocode": "519009",
+    "name": "Amherst County"
+  },
+  {
+    "geocode": "519011",
+    "name": "Appomattox County"
+  },
+  {
+    "geocode": "519013",
+    "name": "Arlington County"
+  },
+  {
+    "geocode": "519015",
+    "name": "Augusta County"
+  },
+  {
+    "geocode": "519017",
+    "name": "Bath County"
+  },
+  {
+    "geocode": "519019",
+    "name": "Bedford County"
+  },
+  {
+    "geocode": "510114",
+    "name": "Blacksburg"
+  },
+  {
+    "geocode": "519021",
+    "name": "Bland County"
+  },
+  {
+    "geocode": "519023",
+    "name": "Botetourt County"
+  },
+  {
+    "geocode": "510186",
+    "name": "Bristol"
+  },
+  {
+    "geocode": "519025",
+    "name": "Brunswick County"
+  },
+  {
+    "geocode": "519027",
+    "name": "Buchanan County"
+  },
+  {
+    "geocode": "519029",
+    "name": "Buckingham County"
+  },
+  {
+    "geocode": "519530",
+    "name": "Buena Vista city"
+  },
+  {
+    "geocode": "519031",
+    "name": "Campbell County"
+  },
+  {
+    "geocode": "519033",
+    "name": "Caroline County"
+  },
+  {
+    "geocode": "519035",
+    "name": "Carroll County"
+  },
+  {
+    "geocode": "519036",
+    "name": "Charles City County"
+  },
+  {
+    "geocode": "519037",
+    "name": "Charlotte County"
+  },
+  {
+    "geocode": "510264",
+    "name": "Charlottesville"
+  },
+  {
+    "geocode": "510288",
+    "name": "Chesapeake"
+  },
+  {
+    "geocode": "519041",
+    "name": "Chesterfield County"
+  },
+  {
+    "geocode": "510312",
+    "name": "Christiansburg"
+  },
+  {
+    "geocode": "519043",
+    "name": "Clarke County"
+  },
+  {
+    "geocode": "510384",
+    "name": "Colonial Heights"
+  },
+  {
+    "geocode": "519580",
+    "name": "Covington city"
+  },
+  {
+    "geocode": "519045",
+    "name": "Craig County"
+  },
+  {
+    "geocode": "519047",
+    "name": "Culpeper County"
+  },
+  {
+    "geocode": "519049",
+    "name": "Cumberland County"
+  },
+  {
+    "geocode": "510450",
+    "name": "Danville"
+  },
+  {
+    "geocode": "519051",
+    "name": "Dickenson County"
+  },
+  {
+    "geocode": "519053",
+    "name": "Dinwiddie County"
+  },
+  {
+    "geocode": "519595",
+    "name": "Emporia city"
+  },
+  {
+    "geocode": "519057",
+    "name": "Essex County"
+  },
+  {
+    "geocode": "519059",
+    "name": "Fairfax County"
+  },
+  {
+    "geocode": "519061",
+    "name": "Fauquier County"
+  },
+  {
+    "geocode": "519063",
+    "name": "Floyd County"
+  },
+  {
+    "geocode": "519065",
+    "name": "Fluvanna County"
+  },
+  {
+    "geocode": "519620",
+    "name": "Franklin city"
+  },
+  {
+    "geocode": "519067",
+    "name": "Franklin County"
+  },
+  {
+    "geocode": "519069",
+    "name": "Frederick County"
+  },
+  {
+    "geocode": "510612",
+    "name": "Fredericksburg"
+  },
+  {
+    "geocode": "519640",
+    "name": "Galax city"
+  },
+  {
+    "geocode": "519071",
+    "name": "Giles County"
+  },
+  {
+    "geocode": "519073",
+    "name": "Gloucester County"
+  },
+  {
+    "geocode": "519075",
+    "name": "Goochland County"
+  },
+  {
+    "geocode": "519077",
+    "name": "Grayson County"
+  },
+  {
+    "geocode": "519079",
+    "name": "Greene County"
+  },
+  {
+    "geocode": "519081",
+    "name": "Greensville County"
+  },
+  {
+    "geocode": "519083",
+    "name": "Halifax County"
+  },
+  {
+    "geocode": "510720",
+    "name": "Hampton"
+  },
+  {
+    "geocode": "519085",
+    "name": "Hanover County"
+  },
+  {
+    "geocode": "510726",
+    "name": "Harrisonburg"
+  },
+  {
+    "geocode": "519087",
+    "name": "Henrico County"
+  },
+  {
+    "geocode": "519089",
+    "name": "Henry County"
+  },
+  {
+    "geocode": "519091",
+    "name": "Highland County"
+  },
+  {
+    "geocode": "510780",
+    "name": "Hopewell"
+  },
+  {
+    "geocode": "519093",
+    "name": "Isle of Wight County"
+  },
+  {
+    "geocode": "519095",
+    "name": "James City County"
+  },
+  {
+    "geocode": "519097",
+    "name": "King and Queen County"
+  },
+  {
+    "geocode": "519099",
+    "name": "King George County"
+  },
+  {
+    "geocode": "519101",
+    "name": "King William County"
+  },
+  {
+    "geocode": "519103",
+    "name": "Lancaster County"
+  },
+  {
+    "geocode": "519105",
+    "name": "Lee County"
+  },
+  {
+    "geocode": "519678",
+    "name": "Lexington city"
+  },
+  {
+    "geocode": "519107",
+    "name": "Loudoun County"
+  },
+  {
+    "geocode": "519109",
+    "name": "Louisa County"
+  },
+  {
+    "geocode": "519111",
+    "name": "Lunenburg County"
+  },
+  {
+    "geocode": "510960",
+    "name": "Lynchburg"
+  },
+  {
+    "geocode": "519113",
+    "name": "Madison County"
+  },
+  {
+    "geocode": "519690",
+    "name": "Martinsville city"
+  },
+  {
+    "geocode": "519115",
+    "name": "Mathews County"
+  },
+  {
+    "geocode": "519117",
+    "name": "Mecklenburg County"
+  },
+  {
+    "geocode": "519119",
+    "name": "Middlesex County"
+  },
+  {
+    "geocode": "519121",
+    "name": "Montgomery County"
+  },
+  {
+    "geocode": "519125",
+    "name": "Nelson County"
+  },
+  {
+    "geocode": "519127",
+    "name": "New Kent County"
+  },
+  {
+    "geocode": "511098",
+    "name": "Newport News"
+  },
+  {
+    "geocode": "511116",
+    "name": "Norfolk"
+  },
+  {
+    "geocode": "519131",
+    "name": "Northampton County"
+  },
+  {
+    "geocode": "519133",
+    "name": "Northumberland County"
+  },
+  {
+    "geocode": "519720",
+    "name": "Norton city"
+  },
+  {
+    "geocode": "519135",
+    "name": "Nottoway County"
+  },
+  {
+    "geocode": "519137",
+    "name": "Orange County"
+  },
+  {
+    "geocode": "519139",
+    "name": "Page County"
+  },
+  {
+    "geocode": "519141",
+    "name": "Patrick County"
+  },
+  {
+    "geocode": "511200",
+    "name": "Petersburg"
+  },
+  {
+    "geocode": "519143",
+    "name": "Pittsylvania County"
+  },
+  {
+    "geocode": "519735",
+    "name": "Poquoson city"
+  },
+  {
+    "geocode": "511236",
+    "name": "Portsmouth"
+  },
+  {
+    "geocode": "519145",
+    "name": "Powhatan County"
+  },
+  {
+    "geocode": "519147",
+    "name": "Prince Edward County"
+  },
+  {
+    "geocode": "519149",
+    "name": "Prince George County"
+  },
+  {
+    "geocode": "519153",
+    "name": "Prince William County"
+  },
+  {
+    "geocode": "519155",
+    "name": "Pulaski County"
+  },
+  {
+    "geocode": "511272",
+    "name": "Radford"
+  },
+  {
+    "geocode": "519157",
+    "name": "Rappahannock County"
+  },
+  {
+    "geocode": "511308",
+    "name": "Richmond"
+  },
+  {
+    "geocode": "519159",
+    "name": "Richmond County"
+  },
+  {
+    "geocode": "511320",
+    "name": "Roanoke"
+  },
+  {
+    "geocode": "519161",
+    "name": "Roanoke County"
+  },
+  {
+    "geocode": "519163",
+    "name": "Rockbridge County"
+  },
+  {
+    "geocode": "519165",
+    "name": "Rockingham County"
+  },
+  {
+    "geocode": "519167",
+    "name": "Russell County"
+  },
+  {
+    "geocode": "519775",
+    "name": "Salem city"
+  },
+  {
+    "geocode": "519169",
+    "name": "Scott County"
+  },
+  {
+    "geocode": "519171",
+    "name": "Shenandoah County"
+  },
+  {
+    "geocode": "519173",
+    "name": "Smyth County"
+  },
+  {
+    "geocode": "519175",
+    "name": "Southampton County"
+  },
+  {
+    "geocode": "519177",
+    "name": "Spotsylvania County"
+  },
+  {
+    "geocode": "519179",
+    "name": "Stafford County"
+  },
+  {
+    "geocode": "511446",
+    "name": "Staunton"
+  },
+  {
+    "geocode": "511488",
+    "name": "Suffolk"
+  },
+  {
+    "geocode": "519181",
+    "name": "Surry County"
+  },
+  {
+    "geocode": "519183",
+    "name": "Sussex County"
+  },
+  {
+    "geocode": "519185",
+    "name": "Tazewell County"
+  },
+  {
+    "geocode": "511590",
+    "name": "Virginia Beach"
+  },
+  {
+    "geocode": "519187",
+    "name": "Warren County"
+  },
+  {
+    "geocode": "519191",
+    "name": "Washington County"
+  },
+  {
+    "geocode": "511632",
+    "name": "Waynesboro City"
+  },
+  {
+    "geocode": "519193",
+    "name": "Westmoreland County"
+  },
+  {
+    "geocode": "519830",
+    "name": "Williamsburg city"
+  },
+  {
+    "geocode": "511674",
+    "name": "Winchester"
+  },
+  {
+    "geocode": "519195",
+    "name": "Wise County"
+  },
+  {
+    "geocode": "519197",
+    "name": "Wythe County"
+  },
+  {
+    "geocode": "519199",
+    "name": "York County"
+  }
+]

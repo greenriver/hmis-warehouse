@@ -1,0 +1,154 @@
+[
+  {
+    "geocode": "350012",
+    "name": "Albuquerque"
+  },
+  {
+    "geocode": "359001",
+    "name": "Bernalillo County"
+  },
+  {
+    "geocode": "359003",
+    "name": "Catron County"
+  },
+  {
+    "geocode": "359005",
+    "name": "Chaves County"
+  },
+  {
+    "geocode": "359006",
+    "name": "Cibola County"
+  },
+  {
+    "geocode": "359007",
+    "name": "Colfax County"
+  },
+  {
+    "geocode": "359009",
+    "name": "Curry County"
+  },
+  {
+    "geocode": "359011",
+    "name": "De Baca County"
+  },
+  {
+    "geocode": "359013",
+    "name": "Doña Ana County"
+  },
+  {
+    "geocode": "359015",
+    "name": "Eddy County"
+  },
+  {
+    "geocode": "350204",
+    "name": "Farmington"
+  },
+  {
+    "geocode": "359017",
+    "name": "Grant County"
+  },
+  {
+    "geocode": "359019",
+    "name": "Guadalupe County"
+  },
+  {
+    "geocode": "359021",
+    "name": "Harding County"
+  },
+  {
+    "geocode": "359023",
+    "name": "Hidalgo County"
+  },
+  {
+    "geocode": "350336",
+    "name": "Las Cruces"
+  },
+  {
+    "geocode": "359025",
+    "name": "Lea County"
+  },
+  {
+    "geocode": "359027",
+    "name": "Lincoln County"
+  },
+  {
+    "geocode": "359028",
+    "name": "Los Alamos County"
+  },
+  {
+    "geocode": "359029",
+    "name": "Luna County"
+  },
+  {
+    "geocode": "359031",
+    "name": "McKinley County"
+  },
+  {
+    "geocode": "359033",
+    "name": "Mora County"
+  },
+  {
+    "geocode": "359035",
+    "name": "Otero County"
+  },
+  {
+    "geocode": "359037",
+    "name": "Quay County"
+  },
+  {
+    "geocode": "359039",
+    "name": "Rio Arriba County"
+  },
+  {
+    "geocode": "350479",
+    "name": "Rio Rancho"
+  },
+  {
+    "geocode": "359041",
+    "name": "Roosevelt County"
+  },
+  {
+    "geocode": "359045",
+    "name": "San Juan County"
+  },
+  {
+    "geocode": "359047",
+    "name": "San Miguel County"
+  },
+  {
+    "geocode": "359043",
+    "name": "Sandoval County"
+  },
+  {
+    "geocode": "350534",
+    "name": "Santa Fe"
+  },
+  {
+    "geocode": "359049",
+    "name": "Santa Fe County"
+  },
+  {
+    "geocode": "359051",
+    "name": "Sierra County"
+  },
+  {
+    "geocode": "359053",
+    "name": "Socorro County"
+  },
+  {
+    "geocode": "359055",
+    "name": "Taos County"
+  },
+  {
+    "geocode": "359057",
+    "name": "Torrance County"
+  },
+  {
+    "geocode": "359059",
+    "name": "Union County"
+  },
+  {
+    "geocode": "359061",
+    "name": "Valencia County"
+  }
+]

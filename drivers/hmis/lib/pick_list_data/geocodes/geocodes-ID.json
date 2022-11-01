@@ -1,0 +1,214 @@
+[
+  {
+    "geocode": "169001",
+    "name": "Ada County"
+  },
+  {
+    "geocode": "169003",
+    "name": "Adams County"
+  },
+  {
+    "geocode": "169005",
+    "name": "Bannock County"
+  },
+  {
+    "geocode": "169007",
+    "name": "Bear Lake County"
+  },
+  {
+    "geocode": "169009",
+    "name": "Benewah County"
+  },
+  {
+    "geocode": "169011",
+    "name": "Bingham County"
+  },
+  {
+    "geocode": "169013",
+    "name": "Blaine County"
+  },
+  {
+    "geocode": "160102",
+    "name": "Boise"
+  },
+  {
+    "geocode": "169015",
+    "name": "Boise County"
+  },
+  {
+    "geocode": "169017",
+    "name": "Bonner County"
+  },
+  {
+    "geocode": "169019",
+    "name": "Bonneville County"
+  },
+  {
+    "geocode": "169021",
+    "name": "Boundary County"
+  },
+  {
+    "geocode": "169023",
+    "name": "Butte County"
+  },
+  {
+    "geocode": "160138",
+    "name": "Caldwell City"
+  },
+  {
+    "geocode": "169025",
+    "name": "Camas County"
+  },
+  {
+    "geocode": "169027",
+    "name": "Canyon County"
+  },
+  {
+    "geocode": "169029",
+    "name": "Caribou County"
+  },
+  {
+    "geocode": "169031",
+    "name": "Cassia County"
+  },
+  {
+    "geocode": "169033",
+    "name": "Clark County"
+  },
+  {
+    "geocode": "169035",
+    "name": "Clearwater County"
+  },
+  {
+    "geocode": "160198",
+    "name": "Coeur D'Alene"
+  },
+  {
+    "geocode": "169037",
+    "name": "Custer County"
+  },
+  {
+    "geocode": "169039",
+    "name": "Elmore County"
+  },
+  {
+    "geocode": "169041",
+    "name": "Franklin County"
+  },
+  {
+    "geocode": "169043",
+    "name": "Fremont County"
+  },
+  {
+    "geocode": "169045",
+    "name": "Gem County"
+  },
+  {
+    "geocode": "169047",
+    "name": "Gooding County"
+  },
+  {
+    "geocode": "169049",
+    "name": "Idaho County"
+  },
+  {
+    "geocode": "160510",
+    "name": "Idaho Falls"
+  },
+  {
+    "geocode": "169051",
+    "name": "Jefferson County"
+  },
+  {
+    "geocode": "169053",
+    "name": "Jerome County"
+  },
+  {
+    "geocode": "169055",
+    "name": "Kootenai County"
+  },
+  {
+    "geocode": "169057",
+    "name": "Latah County"
+  },
+  {
+    "geocode": "169059",
+    "name": "Lemhi County"
+  },
+  {
+    "geocode": "169061",
+    "name": "Lewis County"
+  },
+  {
+    "geocode": "160618",
+    "name": "Lewiston"
+  },
+  {
+    "geocode": "169063",
+    "name": "Lincoln County"
+  },
+  {
+    "geocode": "169065",
+    "name": "Madison County"
+  },
+  {
+    "geocode": "160684",
+    "name": "Meridian"
+  },
+  {
+    "geocode": "169067",
+    "name": "Minidoka County"
+  },
+  {
+    "geocode": "160762",
+    "name": "Nampa"
+  },
+  {
+    "geocode": "169069",
+    "name": "Nez Perce County"
+  },
+  {
+    "geocode": "169071",
+    "name": "Oneida County"
+  },
+  {
+    "geocode": "169073",
+    "name": "Owyhee County"
+  },
+  {
+    "geocode": "169075",
+    "name": "Payette County"
+  },
+  {
+    "geocode": "160906",
+    "name": "Pocatello"
+  },
+  {
+    "geocode": "169077",
+    "name": "Power County"
+  },
+  {
+    "geocode": "169079",
+    "name": "Shoshone County"
+  },
+  {
+    "geocode": "169081",
+    "name": "Teton County"
+  },
+  {
+    "geocode": "161128",
+    "name": "Twin Falls"
+  },
+  {
+    "geocode": "169083",
+    "name": "Twin Falls County"
+  },
+  {
+    "geocode": "169085",
+    "name": "Valley County"
+  },
+  {
+    "geocode": "169087",
+    "name": "Washington County"
+  }
+]

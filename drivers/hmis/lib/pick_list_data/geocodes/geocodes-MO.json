@@ -1,0 +1,506 @@
+[
+  {
+    "geocode": "299001",
+    "name": "Adair County"
+  },
+  {
+    "geocode": "299003",
+    "name": "Andrew County"
+  },
+  {
+    "geocode": "299005",
+    "name": "Atchison County"
+  },
+  {
+    "geocode": "299007",
+    "name": "Audrain County"
+  },
+  {
+    "geocode": "299009",
+    "name": "Barry County"
+  },
+  {
+    "geocode": "299011",
+    "name": "Barton County"
+  },
+  {
+    "geocode": "299013",
+    "name": "Bates County"
+  },
+  {
+    "geocode": "299015",
+    "name": "Benton County"
+  },
+  {
+    "geocode": "290534",
+    "name": "Blue Springs"
+  },
+  {
+    "geocode": "299017",
+    "name": "Bollinger County"
+  },
+  {
+    "geocode": "299019",
+    "name": "Boone County"
+  },
+  {
+    "geocode": "299021",
+    "name": "Buchanan County"
+  },
+  {
+    "geocode": "299023",
+    "name": "Butler County"
+  },
+  {
+    "geocode": "299025",
+    "name": "Caldwell County"
+  },
+  {
+    "geocode": "299027",
+    "name": "Callaway County"
+  },
+  {
+    "geocode": "299029",
+    "name": "Camden County"
+  },
+  {
+    "geocode": "299031",
+    "name": "Cape Girardeau County"
+  },
+  {
+    "geocode": "299033",
+    "name": "Carroll County"
+  },
+  {
+    "geocode": "299035",
+    "name": "Carter County"
+  },
+  {
+    "geocode": "299037",
+    "name": "Cass County"
+  },
+  {
+    "geocode": "299039",
+    "name": "Cedar County"
+  },
+  {
+    "geocode": "299041",
+    "name": "Chariton County"
+  },
+  {
+    "geocode": "299043",
+    "name": "Christian County"
+  },
+  {
+    "geocode": "299045",
+    "name": "Clark County"
+  },
+  {
+    "geocode": "299047",
+    "name": "Clay County"
+  },
+  {
+    "geocode": "299049",
+    "name": "Clinton County"
+  },
+  {
+    "geocode": "299051",
+    "name": "Cole County"
+  },
+  {
+    "geocode": "291152",
+    "name": "Columbia"
+  },
+  {
+    "geocode": "299053",
+    "name": "Cooper County"
+  },
+  {
+    "geocode": "299055",
+    "name": "Crawford County"
+  },
+  {
+    "geocode": "299057",
+    "name": "Dade County"
+  },
+  {
+    "geocode": "299059",
+    "name": "Dallas County"
+  },
+  {
+    "geocode": "299061",
+    "name": "Daviess County"
+  },
+  {
+    "geocode": "299063",
+    "name": "DeKalb County"
+  },
+  {
+    "geocode": "299065",
+    "name": "Dent County"
+  },
+  {
+    "geocode": "299067",
+    "name": "Douglas County"
+  },
+  {
+    "geocode": "299069",
+    "name": "Dunklin County"
+  },
+  {
+    "geocode": "291806",
+    "name": "Florissant"
+  },
+  {
+    "geocode": "299071",
+    "name": "Franklin County"
+  },
+  {
+    "geocode": "299073",
+    "name": "Gasconade County"
+  },
+  {
+    "geocode": "299075",
+    "name": "Gentry County"
+  },
+  {
+    "geocode": "299077",
+    "name": "Greene County"
+  },
+  {
+    "geocode": "299079",
+    "name": "Grundy County"
+  },
+  {
+    "geocode": "299081",
+    "name": "Harrison County"
+  },
+  {
+    "geocode": "299083",
+    "name": "Henry County"
+  },
+  {
+    "geocode": "299085",
+    "name": "Hickory County"
+  },
+  {
+    "geocode": "299087",
+    "name": "Holt County"
+  },
+  {
+    "geocode": "299089",
+    "name": "Howard County"
+  },
+  {
+    "geocode": "299091",
+    "name": "Howell County"
+  },
+  {
+    "geocode": "292562",
+    "name": "Independence"
+  },
+  {
+    "geocode": "299093",
+    "name": "Iron County"
+  },
+  {
+    "geocode": "299095",
+    "name": "Jackson County"
+  },
+  {
+    "geocode": "299097",
+    "name": "Jasper County"
+  },
+  {
+    "geocode": "292628",
+    "name": "Jefferson City"
+  },
+  {
+    "geocode": "299099",
+    "name": "Jefferson County"
+  },
+  {
+    "geocode": "299101",
+    "name": "Johnson County"
+  },
+  {
+    "geocode": "292652",
+    "name": "Joplin"
+  },
+  {
+    "geocode": "292670",
+    "name": "Kansas City"
+  },
+  {
+    "geocode": "299103",
+    "name": "Knox County"
+  },
+  {
+    "geocode": "299105",
+    "name": "Laclede County"
+  },
+  {
+    "geocode": "299107",
+    "name": "Lafayette County"
+  },
+  {
+    "geocode": "299109",
+    "name": "Lawrence County"
+  },
+  {
+    "geocode": "292958",
+    "name": "Lees Summit"
+  },
+  {
+    "geocode": "299111",
+    "name": "Lewis County"
+  },
+  {
+    "geocode": "299113",
+    "name": "Lincoln County"
+  },
+  {
+    "geocode": "299115",
+    "name": "Linn County"
+  },
+  {
+    "geocode": "299117",
+    "name": "Livingston County"
+  },
+  {
+    "geocode": "299121",
+    "name": "Macon County"
+  },
+  {
+    "geocode": "299123",
+    "name": "Madison County"
+  },
+  {
+    "geocode": "299125",
+    "name": "Maries County"
+  },
+  {
+    "geocode": "299127",
+    "name": "Marion County"
+  },
+  {
+    "geocode": "299119",
+    "name": "McDonald County"
+  },
+  {
+    "geocode": "299129",
+    "name": "Mercer County"
+  },
+  {
+    "geocode": "299131",
+    "name": "Miller County"
+  },
+  {
+    "geocode": "299133",
+    "name": "Mississippi County"
+  },
+  {
+    "geocode": "299135",
+    "name": "Moniteau County"
+  },
+  {
+    "geocode": "299137",
+    "name": "Monroe County"
+  },
+  {
+    "geocode": "299139",
+    "name": "Montgomery County"
+  },
+  {
+    "geocode": "299141",
+    "name": "Morgan County"
+  },
+  {
+    "geocode": "299143",
+    "name": "New Madrid County"
+  },
+  {
+    "geocode": "299145",
+    "name": "Newton County"
+  },
+  {
+    "geocode": "299147",
+    "name": "Nodaway County"
+  },
+  {
+    "geocode": "293852",
+    "name": "O'Fallon"
+  },
+  {
+    "geocode": "299149",
+    "name": "Oregon County"
+  },
+  {
+    "geocode": "299151",
+    "name": "Osage County"
+  },
+  {
+    "geocode": "299153",
+    "name": "Ozark County"
+  },
+  {
+    "geocode": "299155",
+    "name": "Pemiscot County"
+  },
+  {
+    "geocode": "299157",
+    "name": "Perry County"
+  },
+  {
+    "geocode": "299159",
+    "name": "Pettis County"
+  },
+  {
+    "geocode": "299161",
+    "name": "Phelps County"
+  },
+  {
+    "geocode": "299163",
+    "name": "Pike County"
+  },
+  {
+    "geocode": "299165",
+    "name": "Platte County"
+  },
+  {
+    "geocode": "299167",
+    "name": "Polk County"
+  },
+  {
+    "geocode": "299169",
+    "name": "Pulaski County"
+  },
+  {
+    "geocode": "299171",
+    "name": "Putnam County"
+  },
+  {
+    "geocode": "299173",
+    "name": "Ralls County"
+  },
+  {
+    "geocode": "299175",
+    "name": "Randolph County"
+  },
+  {
+    "geocode": "299177",
+    "name": "Ray County"
+  },
+  {
+    "geocode": "299179",
+    "name": "Reynolds County"
+  },
+  {
+    "geocode": "299181",
+    "name": "Ripley County"
+  },
+  {
+    "geocode": "299195",
+    "name": "Saline County"
+  },
+  {
+    "geocode": "299197",
+    "name": "Schuyler County"
+  },
+  {
+    "geocode": "299199",
+    "name": "Scotland County"
+  },
+  {
+    "geocode": "299201",
+    "name": "Scott County"
+  },
+  {
+    "geocode": "299203",
+    "name": "Shannon County"
+  },
+  {
+    "geocode": "299205",
+    "name": "Shelby County"
+  },
+  {
+    "geocode": "294884",
+    "name": "Springfield"
+  },
+  {
+    "geocode": "294614",
+    "name": "St Joseph"
+  },
+  {
+    "geocode": "294626",
+    "name": "St Louis"
+  },
+  {
+    "geocode": "299189",
+    "name": "St Louis County"
+  },
+  {
+    "geocode": "299183",
+    "name": "St. Charles County"
+  },
+  {
+    "geocode": "299185",
+    "name": "St. Clair County"
+  },
+  {
+    "geocode": "299187",
+    "name": "St. Francois County"
+  },
+  {
+    "geocode": "299186",
+    "name": "Ste. Genevieve County"
+  },
+  {
+    "geocode": "299207",
+    "name": "Stoddard County"
+  },
+  {
+    "geocode": "299209",
+    "name": "Stone County"
+  },
+  {
+    "geocode": "299211",
+    "name": "Sullivan County"
+  },
+  {
+    "geocode": "299213",
+    "name": "Taney County"
+  },
+  {
+    "geocode": "299215",
+    "name": "Texas County"
+  },
+  {
+    "geocode": "299217",
+    "name": "Vernon County"
+  },
+  {
+    "geocode": "299219",
+    "name": "Warren County"
+  },
+  {
+    "geocode": "299221",
+    "name": "Washington County"
+  },
+  {
+    "geocode": "299223",
+    "name": "Wayne County"
+  },
+  {
+    "geocode": "299225",
+    "name": "Webster County"
+  },
+  {
+    "geocode": "299227",
+    "name": "Worth County"
+  },
+  {
+    "geocode": "299229",
+    "name": "Wright County"
+  }
+]

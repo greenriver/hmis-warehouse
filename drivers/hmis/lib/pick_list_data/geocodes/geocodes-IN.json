@@ -1,0 +1,462 @@
+[
+  {
+    "geocode": "189001",
+    "name": "Adams County"
+  },
+  {
+    "geocode": "189003",
+    "name": "Allen County"
+  },
+  {
+    "geocode": "180084",
+    "name": "Anderson"
+  },
+  {
+    "geocode": "189005",
+    "name": "Bartholomew County"
+  },
+  {
+    "geocode": "189007",
+    "name": "Benton County"
+  },
+  {
+    "geocode": "189009",
+    "name": "Blackford County"
+  },
+  {
+    "geocode": "180246",
+    "name": "Bloomington"
+  },
+  {
+    "geocode": "189011",
+    "name": "Boone County"
+  },
+  {
+    "geocode": "189013",
+    "name": "Brown County"
+  },
+  {
+    "geocode": "180450",
+    "name": "Carmel"
+  },
+  {
+    "geocode": "189015",
+    "name": "Carroll County"
+  },
+  {
+    "geocode": "189017",
+    "name": "Cass County"
+  },
+  {
+    "geocode": "189019",
+    "name": "Clark County"
+  },
+  {
+    "geocode": "189021",
+    "name": "Clay County"
+  },
+  {
+    "geocode": "189023",
+    "name": "Clinton County"
+  },
+  {
+    "geocode": "180624",
+    "name": "Columbus"
+  },
+  {
+    "geocode": "189025",
+    "name": "Crawford County"
+  },
+  {
+    "geocode": "189027",
+    "name": "Daviess County"
+  },
+  {
+    "geocode": "189029",
+    "name": "Dearborn County"
+  },
+  {
+    "geocode": "189031",
+    "name": "Decatur County"
+  },
+  {
+    "geocode": "189033",
+    "name": "DeKalb County"
+  },
+  {
+    "geocode": "189035",
+    "name": "Delaware County"
+  },
+  {
+    "geocode": "189037",
+    "name": "Dubois County"
+  },
+  {
+    "geocode": "180846",
+    "name": "East Chicago"
+  },
+  {
+    "geocode": "180912",
+    "name": "Elkhart"
+  },
+  {
+    "geocode": "189039",
+    "name": "Elkhart County"
+  },
+  {
+    "geocode": "180954",
+    "name": "Evansville"
+  },
+  {
+    "geocode": "189041",
+    "name": "Fayette County"
+  },
+  {
+    "geocode": "189043",
+    "name": "Floyd County"
+  },
+  {
+    "geocode": "181014",
+    "name": "Fort Wayne"
+  },
+  {
+    "geocode": "189045",
+    "name": "Fountain County"
+  },
+  {
+    "geocode": "189047",
+    "name": "Franklin County"
+  },
+  {
+    "geocode": "189049",
+    "name": "Fulton County"
+  },
+  {
+    "geocode": "181104",
+    "name": "Gary"
+  },
+  {
+    "geocode": "189051",
+    "name": "Gibson County"
+  },
+  {
+    "geocode": "181158",
+    "name": "Goshen"
+  },
+  {
+    "geocode": "189053",
+    "name": "Grant County"
+  },
+  {
+    "geocode": "189055",
+    "name": "Greene County"
+  },
+  {
+    "geocode": "181230",
+    "name": "Greenwood"
+  },
+  {
+    "geocode": "189057",
+    "name": "Hamilton County"
+  },
+  {
+    "geocode": "181272",
+    "name": "Hammond"
+  },
+  {
+    "geocode": "189059",
+    "name": "Hancock County"
+  },
+  {
+    "geocode": "189061",
+    "name": "Harrison County"
+  },
+  {
+    "geocode": "189063",
+    "name": "Hendricks County"
+  },
+  {
+    "geocode": "189065",
+    "name": "Henry County"
+  },
+  {
+    "geocode": "189067",
+    "name": "Howard County"
+  },
+  {
+    "geocode": "189069",
+    "name": "Huntington County"
+  },
+  {
+    "geocode": "181404",
+    "name": "Indianapolis"
+  },
+  {
+    "geocode": "189071",
+    "name": "Jackson County"
+  },
+  {
+    "geocode": "189073",
+    "name": "Jasper County"
+  },
+  {
+    "geocode": "189075",
+    "name": "Jay County"
+  },
+  {
+    "geocode": "189077",
+    "name": "Jefferson County"
+  },
+  {
+    "geocode": "189079",
+    "name": "Jennings County"
+  },
+  {
+    "geocode": "189081",
+    "name": "Johnson County"
+  },
+  {
+    "geocode": "189083",
+    "name": "Knox County"
+  },
+  {
+    "geocode": "181536",
+    "name": "Kokomo"
+  },
+  {
+    "geocode": "189085",
+    "name": "Kosciusko County"
+  },
+  {
+    "geocode": "181602",
+    "name": "La Porte"
+  },
+  {
+    "geocode": "181566",
+    "name": "Lafayette"
+  },
+  {
+    "geocode": "189087",
+    "name": "LaGrange County"
+  },
+  {
+    "geocode": "189089",
+    "name": "Lake County"
+  },
+  {
+    "geocode": "189091",
+    "name": "LaPorte County"
+  },
+  {
+    "geocode": "189093",
+    "name": "Lawrence County"
+  },
+  {
+    "geocode": "189095",
+    "name": "Madison County"
+  },
+  {
+    "geocode": "189097",
+    "name": "Marion County"
+  },
+  {
+    "geocode": "189099",
+    "name": "Marshall County"
+  },
+  {
+    "geocode": "189101",
+    "name": "Martin County"
+  },
+  {
+    "geocode": "189103",
+    "name": "Miami County"
+  },
+  {
+    "geocode": "181884",
+    "name": "Michigan City"
+  },
+  {
+    "geocode": "181950",
+    "name": "Mishawaka"
+  },
+  {
+    "geocode": "189105",
+    "name": "Monroe County"
+  },
+  {
+    "geocode": "189107",
+    "name": "Montgomery County"
+  },
+  {
+    "geocode": "189109",
+    "name": "Morgan County"
+  },
+  {
+    "geocode": "182100",
+    "name": "Muncie"
+  },
+  {
+    "geocode": "182130",
+    "name": "New Albany"
+  },
+  {
+    "geocode": "189111",
+    "name": "Newton County"
+  },
+  {
+    "geocode": "189113",
+    "name": "Noble County"
+  },
+  {
+    "geocode": "189115",
+    "name": "Ohio County"
+  },
+  {
+    "geocode": "189117",
+    "name": "Orange County"
+  },
+  {
+    "geocode": "189119",
+    "name": "Owen County"
+  },
+  {
+    "geocode": "189121",
+    "name": "Parke County"
+  },
+  {
+    "geocode": "189123",
+    "name": "Perry County"
+  },
+  {
+    "geocode": "189125",
+    "name": "Pike County"
+  },
+  {
+    "geocode": "189127",
+    "name": "Porter County"
+  },
+  {
+    "geocode": "189129",
+    "name": "Posey County"
+  },
+  {
+    "geocode": "189131",
+    "name": "Pulaski County"
+  },
+  {
+    "geocode": "189133",
+    "name": "Putnam County"
+  },
+  {
+    "geocode": "189135",
+    "name": "Randolph County"
+  },
+  {
+    "geocode": "189137",
+    "name": "Ripley County"
+  },
+  {
+    "geocode": "189139",
+    "name": "Rush County"
+  },
+  {
+    "geocode": "189143",
+    "name": "Scott County"
+  },
+  {
+    "geocode": "189145",
+    "name": "Shelby County"
+  },
+  {
+    "geocode": "182886",
+    "name": "South Bend"
+  },
+  {
+    "geocode": "189147",
+    "name": "Spencer County"
+  },
+  {
+    "geocode": "189141",
+    "name": "St. Joseph County"
+  },
+  {
+    "geocode": "189149",
+    "name": "Starke County"
+  },
+  {
+    "geocode": "189151",
+    "name": "Steuben County"
+  },
+  {
+    "geocode": "189153",
+    "name": "Sullivan County"
+  },
+  {
+    "geocode": "189155",
+    "name": "Switzerland County"
+  },
+  {
+    "geocode": "183042",
+    "name": "Terre Haute"
+  },
+  {
+    "geocode": "189157",
+    "name": "Tippecanoe County"
+  },
+  {
+    "geocode": "189159",
+    "name": "Tipton County"
+  },
+  {
+    "geocode": "189161",
+    "name": "Union County"
+  },
+  {
+    "geocode": "189163",
+    "name": "Vanderburgh County"
+  },
+  {
+    "geocode": "189165",
+    "name": "Vermillion County"
+  },
+  {
+    "geocode": "189167",
+    "name": "Vigo County"
+  },
+  {
+    "geocode": "189169",
+    "name": "Wabash County"
+  },
+  {
+    "geocode": "189171",
+    "name": "Warren County"
+  },
+  {
+    "geocode": "189173",
+    "name": "Warrick County"
+  },
+  {
+    "geocode": "189175",
+    "name": "Washington County"
+  },
+  {
+    "geocode": "189177",
+    "name": "Wayne County"
+  },
+  {
+    "geocode": "189179",
+    "name": "Wells County"
+  },
+  {
+    "geocode": "183282",
+    "name": "West Lafayette"
+  },
+  {
+    "geocode": "189181",
+    "name": "White County"
+  },
+  {
+    "geocode": "189183",
+    "name": "Whitley County"
+  }
+]

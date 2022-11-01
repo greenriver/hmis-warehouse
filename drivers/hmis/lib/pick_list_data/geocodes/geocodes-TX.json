@@ -1,0 +1,1290 @@
+[
+  {
+    "geocode": "480018",
+    "name": "Abilene"
+  },
+  {
+    "geocode": "480090",
+    "name": "Allen"
+  },
+  {
+    "geocode": "480132",
+    "name": "Amarillo"
+  },
+  {
+    "geocode": "489001",
+    "name": "Anderson County"
+  },
+  {
+    "geocode": "489003",
+    "name": "Andrews County"
+  },
+  {
+    "geocode": "489005",
+    "name": "Angelina County"
+  },
+  {
+    "geocode": "489007",
+    "name": "Aransas County"
+  },
+  {
+    "geocode": "489009",
+    "name": "Archer County"
+  },
+  {
+    "geocode": "480222",
+    "name": "Arlington"
+  },
+  {
+    "geocode": "489011",
+    "name": "Armstrong County"
+  },
+  {
+    "geocode": "489013",
+    "name": "Atascosa County"
+  },
+  {
+    "geocode": "480264",
+    "name": "Austin"
+  },
+  {
+    "geocode": "489015",
+    "name": "Austin County"
+  },
+  {
+    "geocode": "489017",
+    "name": "Bailey County"
+  },
+  {
+    "geocode": "489019",
+    "name": "Bandera County"
+  },
+  {
+    "geocode": "489021",
+    "name": "Bastrop County"
+  },
+  {
+    "geocode": "489023",
+    "name": "Baylor County"
+  },
+  {
+    "geocode": "480390",
+    "name": "Baytown City"
+  },
+  {
+    "geocode": "480402",
+    "name": "Beaumont"
+  },
+  {
+    "geocode": "489025",
+    "name": "Bee County"
+  },
+  {
+    "geocode": "489027",
+    "name": "Bell County"
+  },
+  {
+    "geocode": "489029",
+    "name": "Bexar County"
+  },
+  {
+    "geocode": "489031",
+    "name": "Blanco County"
+  },
+  {
+    "geocode": "489033",
+    "name": "Borden County"
+  },
+  {
+    "geocode": "489035",
+    "name": "Bosque County"
+  },
+  {
+    "geocode": "489037",
+    "name": "Bowie County"
+  },
+  {
+    "geocode": "489039",
+    "name": "Brazoria County"
+  },
+  {
+    "geocode": "489041",
+    "name": "Brazos County"
+  },
+  {
+    "geocode": "489043",
+    "name": "Brewster County"
+  },
+  {
+    "geocode": "489045",
+    "name": "Briscoe County"
+  },
+  {
+    "geocode": "489047",
+    "name": "Brooks County"
+  },
+  {
+    "geocode": "489049",
+    "name": "Brown County"
+  },
+  {
+    "geocode": "480726",
+    "name": "Brownsville"
+  },
+  {
+    "geocode": "480738",
+    "name": "Bryan"
+  },
+  {
+    "geocode": "489051",
+    "name": "Burleson County"
+  },
+  {
+    "geocode": "489053",
+    "name": "Burnet County"
+  },
+  {
+    "geocode": "489055",
+    "name": "Caldwell County"
+  },
+  {
+    "geocode": "489057",
+    "name": "Calhoun County"
+  },
+  {
+    "geocode": "489059",
+    "name": "Callahan County"
+  },
+  {
+    "geocode": "489061",
+    "name": "Cameron County"
+  },
+  {
+    "geocode": "489063",
+    "name": "Camp County"
+  },
+  {
+    "geocode": "480900",
+    "name": "Carrollton"
+  },
+  {
+    "geocode": "489065",
+    "name": "Carson County"
+  },
+  {
+    "geocode": "489067",
+    "name": "Cass County"
+  },
+  {
+    "geocode": "489069",
+    "name": "Castro County"
+  },
+  {
+    "geocode": "489071",
+    "name": "Chambers County"
+  },
+  {
+    "geocode": "489073",
+    "name": "Cherokee County"
+  },
+  {
+    "geocode": "489075",
+    "name": "Childress County"
+  },
+  {
+    "geocode": "489077",
+    "name": "Clay County"
+  },
+  {
+    "geocode": "489079",
+    "name": "Cochran County"
+  },
+  {
+    "geocode": "489081",
+    "name": "Coke County"
+  },
+  {
+    "geocode": "489083",
+    "name": "Coleman County"
+  },
+  {
+    "geocode": "481104",
+    "name": "College Station"
+  },
+  {
+    "geocode": "489085",
+    "name": "Collin County"
+  },
+  {
+    "geocode": "489087",
+    "name": "Collingsworth County"
+  },
+  {
+    "geocode": "489089",
+    "name": "Colorado County"
+  },
+  {
+    "geocode": "489091",
+    "name": "Comal County"
+  },
+  {
+    "geocode": "489093",
+    "name": "Comanche County"
+  },
+  {
+    "geocode": "489095",
+    "name": "Concho County"
+  },
+  {
+    "geocode": "481158",
+    "name": "Conroe"
+  },
+  {
+    "geocode": "489097",
+    "name": "Cooke County"
+  },
+  {
+    "geocode": "481206",
+    "name": "Corpus Christi"
+  },
+  {
+    "geocode": "489099",
+    "name": "Coryell County"
+  },
+  {
+    "geocode": "489101",
+    "name": "Cottle County"
+  },
+  {
+    "geocode": "489103",
+    "name": "Crane County"
+  },
+  {
+    "geocode": "489105",
+    "name": "Crockett County"
+  },
+  {
+    "geocode": "489107",
+    "name": "Crosby County"
+  },
+  {
+    "geocode": "489109",
+    "name": "Culberson County"
+  },
+  {
+    "geocode": "489111",
+    "name": "Dallam County"
+  },
+  {
+    "geocode": "481338",
+    "name": "Dallas"
+  },
+  {
+    "geocode": "489113",
+    "name": "Dallas County"
+  },
+  {
+    "geocode": "489115",
+    "name": "Dawson County"
+  },
+  {
+    "geocode": "489117",
+    "name": "Deaf Smith County"
+  },
+  {
+    "geocode": "489119",
+    "name": "Delta County"
+  },
+  {
+    "geocode": "481410",
+    "name": "Denison"
+  },
+  {
+    "geocode": "481416",
+    "name": "Denton"
+  },
+  {
+    "geocode": "489121",
+    "name": "Denton County"
+  },
+  {
+    "geocode": "481434",
+    "name": "Desoto"
+  },
+  {
+    "geocode": "489123",
+    "name": "DeWitt County"
+  },
+  {
+    "geocode": "489125",
+    "name": "Dickens County"
+  },
+  {
+    "geocode": "489127",
+    "name": "Dimmit County"
+  },
+  {
+    "geocode": "489129",
+    "name": "Donley County"
+  },
+  {
+    "geocode": "489131",
+    "name": "Duval County"
+  },
+  {
+    "geocode": "489133",
+    "name": "Eastland County"
+  },
+  {
+    "geocode": "489135",
+    "name": "Ector County"
+  },
+  {
+    "geocode": "481608",
+    "name": "Edinburg"
+  },
+  {
+    "geocode": "489137",
+    "name": "Edwards County"
+  },
+  {
+    "geocode": "481680",
+    "name": "El Paso"
+  },
+  {
+    "geocode": "489141",
+    "name": "El Paso County"
+  },
+  {
+    "geocode": "489139",
+    "name": "Ellis County"
+  },
+  {
+    "geocode": "489143",
+    "name": "Erath County"
+  },
+  {
+    "geocode": "481722",
+    "name": "Euless City"
+  },
+  {
+    "geocode": "489145",
+    "name": "Falls County"
+  },
+  {
+    "geocode": "489147",
+    "name": "Fannin County"
+  },
+  {
+    "geocode": "489149",
+    "name": "Fayette County"
+  },
+  {
+    "geocode": "489151",
+    "name": "Fisher County"
+  },
+  {
+    "geocode": "481824",
+    "name": "Flower Mound Town"
+  },
+  {
+    "geocode": "489153",
+    "name": "Floyd County"
+  },
+  {
+    "geocode": "489155",
+    "name": "Foard County"
+  },
+  {
+    "geocode": "489157",
+    "name": "Fort Bend County"
+  },
+  {
+    "geocode": "481896",
+    "name": "Fort Worth"
+  },
+  {
+    "geocode": "489159",
+    "name": "Franklin County"
+  },
+  {
+    "geocode": "489161",
+    "name": "Freestone County"
+  },
+  {
+    "geocode": "489163",
+    "name": "Frio County"
+  },
+  {
+    "geocode": "481944",
+    "name": "Frisco"
+  },
+  {
+    "geocode": "489165",
+    "name": "Gaines County"
+  },
+  {
+    "geocode": "481986",
+    "name": "Galveston"
+  },
+  {
+    "geocode": "489167",
+    "name": "Galveston County"
+  },
+  {
+    "geocode": "481998",
+    "name": "Garland"
+  },
+  {
+    "geocode": "489169",
+    "name": "Garza County"
+  },
+  {
+    "geocode": "489171",
+    "name": "Gillespie County"
+  },
+  {
+    "geocode": "489173",
+    "name": "Glasscock County"
+  },
+  {
+    "geocode": "489175",
+    "name": "Goliad County"
+  },
+  {
+    "geocode": "489177",
+    "name": "Gonzales County"
+  },
+  {
+    "geocode": "482142",
+    "name": "Grand Prairie"
+  },
+  {
+    "geocode": "482178",
+    "name": "Grapevine"
+  },
+  {
+    "geocode": "489179",
+    "name": "Gray County"
+  },
+  {
+    "geocode": "489181",
+    "name": "Grayson County"
+  },
+  {
+    "geocode": "489183",
+    "name": "Gregg County"
+  },
+  {
+    "geocode": "489185",
+    "name": "Grimes County"
+  },
+  {
+    "geocode": "489187",
+    "name": "Guadalupe County"
+  },
+  {
+    "geocode": "489189",
+    "name": "Hale County"
+  },
+  {
+    "geocode": "489191",
+    "name": "Hall County"
+  },
+  {
+    "geocode": "489193",
+    "name": "Hamilton County"
+  },
+  {
+    "geocode": "489195",
+    "name": "Hansford County"
+  },
+  {
+    "geocode": "489197",
+    "name": "Hardeman County"
+  },
+  {
+    "geocode": "489199",
+    "name": "Hardin County"
+  },
+  {
+    "geocode": "482304",
+    "name": "Harlingen"
+  },
+  {
+    "geocode": "489201",
+    "name": "Harris County"
+  },
+  {
+    "geocode": "489203",
+    "name": "Harrison County"
+  },
+  {
+    "geocode": "489205",
+    "name": "Hartley County"
+  },
+  {
+    "geocode": "489207",
+    "name": "Haskell County"
+  },
+  {
+    "geocode": "489209",
+    "name": "Hays County"
+  },
+  {
+    "geocode": "489211",
+    "name": "Hemphill County"
+  },
+  {
+    "geocode": "489213",
+    "name": "Henderson County"
+  },
+  {
+    "geocode": "489215",
+    "name": "Hidalgo County"
+  },
+  {
+    "geocode": "489217",
+    "name": "Hill County"
+  },
+  {
+    "geocode": "489219",
+    "name": "Hockley County"
+  },
+  {
+    "geocode": "489221",
+    "name": "Hood County"
+  },
+  {
+    "geocode": "489223",
+    "name": "Hopkins County"
+  },
+  {
+    "geocode": "482514",
+    "name": "Houston"
+  },
+  {
+    "geocode": "489225",
+    "name": "Houston County"
+  },
+  {
+    "geocode": "489227",
+    "name": "Howard County"
+  },
+  {
+    "geocode": "489229",
+    "name": "Hudspeth County"
+  },
+  {
+    "geocode": "489231",
+    "name": "Hunt County"
+  },
+  {
+    "geocode": "489233",
+    "name": "Hutchinson County"
+  },
+  {
+    "geocode": "489235",
+    "name": "Irion County"
+  },
+  {
+    "geocode": "482628",
+    "name": "Irving"
+  },
+  {
+    "geocode": "489237",
+    "name": "Jack County"
+  },
+  {
+    "geocode": "489239",
+    "name": "Jackson County"
+  },
+  {
+    "geocode": "489241",
+    "name": "Jasper County"
+  },
+  {
+    "geocode": "489243",
+    "name": "Jeff Davis County"
+  },
+  {
+    "geocode": "489245",
+    "name": "Jefferson County"
+  },
+  {
+    "geocode": "489247",
+    "name": "Jim Hogg County"
+  },
+  {
+    "geocode": "489249",
+    "name": "Jim Wells County"
+  },
+  {
+    "geocode": "489251",
+    "name": "Johnson County"
+  },
+  {
+    "geocode": "489253",
+    "name": "Jones County"
+  },
+  {
+    "geocode": "489255",
+    "name": "Karnes County"
+  },
+  {
+    "geocode": "489257",
+    "name": "Kaufman County"
+  },
+  {
+    "geocode": "489259",
+    "name": "Kendall County"
+  },
+  {
+    "geocode": "489261",
+    "name": "Kenedy County"
+  },
+  {
+    "geocode": "489263",
+    "name": "Kent County"
+  },
+  {
+    "geocode": "489265",
+    "name": "Kerr County"
+  },
+  {
+    "geocode": "482820",
+    "name": "Killeen"
+  },
+  {
+    "geocode": "489267",
+    "name": "Kimble County"
+  },
+  {
+    "geocode": "489269",
+    "name": "King County"
+  },
+  {
+    "geocode": "489271",
+    "name": "Kinney County"
+  },
+  {
+    "geocode": "489273",
+    "name": "Kleberg County"
+  },
+  {
+    "geocode": "489275",
+    "name": "Knox County"
+  },
+  {
+    "geocode": "489283",
+    "name": "La Salle County"
+  },
+  {
+    "geocode": "489277",
+    "name": "Lamar County"
+  },
+  {
+    "geocode": "489279",
+    "name": "Lamb County"
+  },
+  {
+    "geocode": "489281",
+    "name": "Lampasas County"
+  },
+  {
+    "geocode": "483042",
+    "name": "Laredo"
+  },
+  {
+    "geocode": "489285",
+    "name": "Lavaca County"
+  },
+  {
+    "geocode": "483084",
+    "name": "League City"
+  },
+  {
+    "geocode": "489287",
+    "name": "Lee County"
+  },
+  {
+    "geocode": "489289",
+    "name": "Leon County"
+  },
+  {
+    "geocode": "483132",
+    "name": "Lewisville"
+  },
+  {
+    "geocode": "489291",
+    "name": "Liberty County"
+  },
+  {
+    "geocode": "489293",
+    "name": "Limestone County"
+  },
+  {
+    "geocode": "489295",
+    "name": "Lipscomb County"
+  },
+  {
+    "geocode": "489297",
+    "name": "Live Oak County"
+  },
+  {
+    "geocode": "489299",
+    "name": "Llano County"
+  },
+  {
+    "geocode": "483246",
+    "name": "Longview"
+  },
+  {
+    "geocode": "489301",
+    "name": "Loving County"
+  },
+  {
+    "geocode": "483288",
+    "name": "Lubbock"
+  },
+  {
+    "geocode": "489303",
+    "name": "Lubbock County"
+  },
+  {
+    "geocode": "489305",
+    "name": "Lynn County"
+  },
+  {
+    "geocode": "489313",
+    "name": "Madison County"
+  },
+  {
+    "geocode": "483396",
+    "name": "Mansfield"
+  },
+  {
+    "geocode": "489315",
+    "name": "Marion County"
+  },
+  {
+    "geocode": "483438",
+    "name": "Marshall"
+  },
+  {
+    "geocode": "489317",
+    "name": "Martin County"
+  },
+  {
+    "geocode": "489319",
+    "name": "Mason County"
+  },
+  {
+    "geocode": "489321",
+    "name": "Matagorda County"
+  },
+  {
+    "geocode": "489323",
+    "name": "Maverick County"
+  },
+  {
+    "geocode": "483330",
+    "name": "Mc Allen"
+  },
+  {
+    "geocode": "489307",
+    "name": "McCulloch County"
+  },
+  {
+    "geocode": "483348",
+    "name": "Mckinney City"
+  },
+  {
+    "geocode": "489309",
+    "name": "McLennan County"
+  },
+  {
+    "geocode": "489311",
+    "name": "McMullen County"
+  },
+  {
+    "geocode": "489325",
+    "name": "Medina County"
+  },
+  {
+    "geocode": "489327",
+    "name": "Menard County"
+  },
+  {
+    "geocode": "483546",
+    "name": "Mesquite"
+  },
+  {
+    "geocode": "483564",
+    "name": "Midland"
+  },
+  {
+    "geocode": "489329",
+    "name": "Midland County"
+  },
+  {
+    "geocode": "489331",
+    "name": "Milam County"
+  },
+  {
+    "geocode": "489333",
+    "name": "Mills County"
+  },
+  {
+    "geocode": "483606",
+    "name": "Mission"
+  },
+  {
+    "geocode": "483612",
+    "name": "Missouri City"
+  },
+  {
+    "geocode": "489335",
+    "name": "Mitchell County"
+  },
+  {
+    "geocode": "489337",
+    "name": "Montague County"
+  },
+  {
+    "geocode": "489339",
+    "name": "Montgomery County"
+  },
+  {
+    "geocode": "489341",
+    "name": "Moore County"
+  },
+  {
+    "geocode": "489343",
+    "name": "Morris County"
+  },
+  {
+    "geocode": "489345",
+    "name": "Motley County"
+  },
+  {
+    "geocode": "489347",
+    "name": "Nacogdoches County"
+  },
+  {
+    "geocode": "489349",
+    "name": "Navarro County"
+  },
+  {
+    "geocode": "483798",
+    "name": "New Braunfels"
+  },
+  {
+    "geocode": "489351",
+    "name": "Newton County"
+  },
+  {
+    "geocode": "489353",
+    "name": "Nolan County"
+  },
+  {
+    "geocode": "483888",
+    "name": "North Richland Hills"
+  },
+  {
+    "geocode": "489355",
+    "name": "Nueces County"
+  },
+  {
+    "geocode": "489357",
+    "name": "Ochiltree County"
+  },
+  {
+    "geocode": "483924",
+    "name": "Odessa"
+  },
+  {
+    "geocode": "489359",
+    "name": "Oldham County"
+  },
+  {
+    "geocode": "483966",
+    "name": "Orange"
+  },
+  {
+    "geocode": "489361",
+    "name": "Orange County"
+  },
+  {
+    "geocode": "489363",
+    "name": "Palo Pinto County"
+  },
+  {
+    "geocode": "489365",
+    "name": "Panola County"
+  },
+  {
+    "geocode": "489367",
+    "name": "Parker County"
+  },
+  {
+    "geocode": "489369",
+    "name": "Parmer County"
+  },
+  {
+    "geocode": "484068",
+    "name": "Pasadena"
+  },
+  {
+    "geocode": "484080",
+    "name": "Pearland"
+  },
+  {
+    "geocode": "489371",
+    "name": "Pecos County"
+  },
+  {
+    "geocode": "484140",
+    "name": "Pflugerville City"
+  },
+  {
+    "geocode": "484146",
+    "name": "Pharr"
+  },
+  {
+    "geocode": "484206",
+    "name": "Plano"
+  },
+  {
+    "geocode": "489373",
+    "name": "Polk County"
+  },
+  {
+    "geocode": "484248",
+    "name": "Port Arthur"
+  },
+  {
+    "geocode": "489375",
+    "name": "Potter County"
+  },
+  {
+    "geocode": "489377",
+    "name": "Presidio County"
+  },
+  {
+    "geocode": "489379",
+    "name": "Rains County"
+  },
+  {
+    "geocode": "489381",
+    "name": "Randall County"
+  },
+  {
+    "geocode": "489383",
+    "name": "Reagan County"
+  },
+  {
+    "geocode": "489385",
+    "name": "Real County"
+  },
+  {
+    "geocode": "489387",
+    "name": "Red River County"
+  },
+  {
+    "geocode": "489389",
+    "name": "Reeves County"
+  },
+  {
+    "geocode": "489391",
+    "name": "Refugio County"
+  },
+  {
+    "geocode": "489393",
+    "name": "Roberts County"
+  },
+  {
+    "geocode": "489395",
+    "name": "Robertson County"
+  },
+  {
+    "geocode": "489397",
+    "name": "Rockwall County"
+  },
+  {
+    "geocode": "484674",
+    "name": "Round Rock"
+  },
+  {
+    "geocode": "484686",
+    "name": "Rowlett"
+  },
+  {
+    "geocode": "489399",
+    "name": "Runnels County"
+  },
+  {
+    "geocode": "489401",
+    "name": "Rusk County"
+  },
+  {
+    "geocode": "489403",
+    "name": "Sabine County"
+  },
+  {
+    "geocode": "484752",
+    "name": "San Angelo"
+  },
+  {
+    "geocode": "484758",
+    "name": "San Antonio"
+  },
+  {
+    "geocode": "489405",
+    "name": "San Augustine County"
+  },
+  {
+    "geocode": "484770",
+    "name": "San Benito"
+  },
+  {
+    "geocode": "489407",
+    "name": "San Jacinto County"
+  },
+  {
+    "geocode": "484812",
+    "name": "San Marcos"
+  },
+  {
+    "geocode": "489409",
+    "name": "San Patricio County"
+  },
+  {
+    "geocode": "489411",
+    "name": "San Saba County"
+  },
+  {
+    "geocode": "489413",
+    "name": "Schleicher County"
+  },
+  {
+    "geocode": "489415",
+    "name": "Scurry County"
+  },
+  {
+    "geocode": "489417",
+    "name": "Shackelford County"
+  },
+  {
+    "geocode": "489419",
+    "name": "Shelby County"
+  },
+  {
+    "geocode": "484962",
+    "name": "Sherman"
+  },
+  {
+    "geocode": "489421",
+    "name": "Sherman County"
+  },
+  {
+    "geocode": "489423",
+    "name": "Smith County"
+  },
+  {
+    "geocode": "489425",
+    "name": "Somervell County"
+  },
+  {
+    "geocode": "489427",
+    "name": "Starr County"
+  },
+  {
+    "geocode": "489429",
+    "name": "Stephens County"
+  },
+  {
+    "geocode": "489431",
+    "name": "Sterling County"
+  },
+  {
+    "geocode": "489433",
+    "name": "Stonewall County"
+  },
+  {
+    "geocode": "489435",
+    "name": "Sutton County"
+  },
+  {
+    "geocode": "489437",
+    "name": "Swisher County"
+  },
+  {
+    "geocode": "489439",
+    "name": "Tarrant County"
+  },
+  {
+    "geocode": "489441",
+    "name": "Taylor County"
+  },
+  {
+    "geocode": "485316",
+    "name": "Temple"
+  },
+  {
+    "geocode": "489443",
+    "name": "Terrell County"
+  },
+  {
+    "geocode": "489445",
+    "name": "Terry County"
+  },
+  {
+    "geocode": "485340",
+    "name": "Texarkana"
+  },
+  {
+    "geocode": "485346",
+    "name": "Texas City"
+  },
+  {
+    "geocode": "489447",
+    "name": "Throckmorton County"
+  },
+  {
+    "geocode": "489449",
+    "name": "Titus County"
+  },
+  {
+    "geocode": "489451",
+    "name": "Tom Green County"
+  },
+  {
+    "geocode": "489453",
+    "name": "Travis County"
+  },
+  {
+    "geocode": "489455",
+    "name": "Trinity County"
+  },
+  {
+    "geocode": "485496",
+    "name": "Tyler"
+  },
+  {
+    "geocode": "489457",
+    "name": "Tyler County"
+  },
+  {
+    "geocode": "489459",
+    "name": "Upshur County"
+  },
+  {
+    "geocode": "489461",
+    "name": "Upton County"
+  },
+  {
+    "geocode": "489463",
+    "name": "Uvalde County"
+  },
+  {
+    "geocode": "489465",
+    "name": "Val Verde County"
+  },
+  {
+    "geocode": "489467",
+    "name": "Van Zandt County"
+  },
+  {
+    "geocode": "485580",
+    "name": "Victoria"
+  },
+  {
+    "geocode": "489469",
+    "name": "Victoria County"
+  },
+  {
+    "geocode": "485592",
+    "name": "Waco"
+  },
+  {
+    "geocode": "489471",
+    "name": "Walker County"
+  },
+  {
+    "geocode": "489473",
+    "name": "Waller County"
+  },
+  {
+    "geocode": "489475",
+    "name": "Ward County"
+  },
+  {
+    "geocode": "489477",
+    "name": "Washington County"
+  },
+  {
+    "geocode": "489479",
+    "name": "Webb County"
+  },
+  {
+    "geocode": "489481",
+    "name": "Wharton County"
+  },
+  {
+    "geocode": "489483",
+    "name": "Wheeler County"
+  },
+  {
+    "geocode": "489485",
+    "name": "Wichita County"
+  },
+  {
+    "geocode": "485826",
+    "name": "Wichita Falls"
+  },
+  {
+    "geocode": "489487",
+    "name": "Wilbarger County"
+  },
+  {
+    "geocode": "489489",
+    "name": "Willacy County"
+  },
+  {
+    "geocode": "489491",
+    "name": "Williamson County"
+  },
+  {
+    "geocode": "489493",
+    "name": "Wilson County"
+  },
+  {
+    "geocode": "489495",
+    "name": "Winkler County"
+  },
+  {
+    "geocode": "489497",
+    "name": "Wise County"
+  },
+  {
+    "geocode": "489499",
+    "name": "Wood County"
+  },
+  {
+    "geocode": "489501",
+    "name": "Yoakum County"
+  },
+  {
+    "geocode": "489503",
+    "name": "Young County"
+  },
+  {
+    "geocode": "489505",
+    "name": "Zapata County"
+  },
+  {
+    "geocode": "489507",
+    "name": "Zavala County"
+  }
+]

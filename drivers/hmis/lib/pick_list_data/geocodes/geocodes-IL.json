@@ -1,0 +1,578 @@
+[
+  {
+    "geocode": "179001",
+    "name": "Adams County"
+  },
+  {
+    "geocode": "179003",
+    "name": "Alexander County"
+  },
+  {
+    "geocode": "170126",
+    "name": "Alton City"
+  },
+  {
+    "geocode": "170222",
+    "name": "Arlington Heights"
+  },
+  {
+    "geocode": "170342",
+    "name": "Aurora"
+  },
+  {
+    "geocode": "170522",
+    "name": "Belleville"
+  },
+  {
+    "geocode": "170606",
+    "name": "Berwyn"
+  },
+  {
+    "geocode": "170660",
+    "name": "Bloomington"
+  },
+  {
+    "geocode": "170690",
+    "name": "Bolingbrook"
+  },
+  {
+    "geocode": "179005",
+    "name": "Bond County"
+  },
+  {
+    "geocode": "179007",
+    "name": "Boone County"
+  },
+  {
+    "geocode": "179009",
+    "name": "Brown County"
+  },
+  {
+    "geocode": "179011",
+    "name": "Bureau County"
+  },
+  {
+    "geocode": "179013",
+    "name": "Calhoun County"
+  },
+  {
+    "geocode": "179015",
+    "name": "Carroll County"
+  },
+  {
+    "geocode": "179017",
+    "name": "Cass County"
+  },
+  {
+    "geocode": "171218",
+    "name": "Champaign"
+  },
+  {
+    "geocode": "179019",
+    "name": "Champaign County"
+  },
+  {
+    "geocode": "171296",
+    "name": "Chicago"
+  },
+  {
+    "geocode": "171302",
+    "name": "Chicago Heights"
+  },
+  {
+    "geocode": "179021",
+    "name": "Christian County"
+  },
+  {
+    "geocode": "171332",
+    "name": "Cicero"
+  },
+  {
+    "geocode": "179023",
+    "name": "Clark County"
+  },
+  {
+    "geocode": "179025",
+    "name": "Clay County"
+  },
+  {
+    "geocode": "179027",
+    "name": "Clinton County"
+  },
+  {
+    "geocode": "179029",
+    "name": "Coles County"
+  },
+  {
+    "geocode": "179031",
+    "name": "Cook County"
+  },
+  {
+    "geocode": "179033",
+    "name": "Crawford County"
+  },
+  {
+    "geocode": "179035",
+    "name": "Cumberland County"
+  },
+  {
+    "geocode": "171692",
+    "name": "Danville"
+  },
+  {
+    "geocode": "179039",
+    "name": "De Witt County"
+  },
+  {
+    "geocode": "171716",
+    "name": "Decatur"
+  },
+  {
+    "geocode": "171746",
+    "name": "Dekalb"
+  },
+  {
+    "geocode": "179037",
+    "name": "DeKalb County"
+  },
+  {
+    "geocode": "171776",
+    "name": "Des Plaines"
+  },
+  {
+    "geocode": "179041",
+    "name": "Douglas County"
+  },
+  {
+    "geocode": "171878",
+    "name": "Downers Grove"
+  },
+  {
+    "geocode": "179043",
+    "name": "Du Page County"
+  },
+  {
+    "geocode": "172022",
+    "name": "East St Louis"
+  },
+  {
+    "geocode": "179045",
+    "name": "Edgar County"
+  },
+  {
+    "geocode": "179047",
+    "name": "Edwards County"
+  },
+  {
+    "geocode": "179049",
+    "name": "Effingham County"
+  },
+  {
+    "geocode": "172094",
+    "name": "Elgin"
+  },
+  {
+    "geocode": "172238",
+    "name": "Evanston"
+  },
+  {
+    "geocode": "179051",
+    "name": "Fayette County"
+  },
+  {
+    "geocode": "179053",
+    "name": "Ford County"
+  },
+  {
+    "geocode": "179055",
+    "name": "Franklin County"
+  },
+  {
+    "geocode": "179057",
+    "name": "Fulton County"
+  },
+  {
+    "geocode": "179059",
+    "name": "Gallatin County"
+  },
+  {
+    "geocode": "172814",
+    "name": "Granite City"
+  },
+  {
+    "geocode": "179061",
+    "name": "Greene County"
+  },
+  {
+    "geocode": "179063",
+    "name": "Grundy County"
+  },
+  {
+    "geocode": "179065",
+    "name": "Hamilton County"
+  },
+  {
+    "geocode": "179067",
+    "name": "Hancock County"
+  },
+  {
+    "geocode": "179069",
+    "name": "Hardin County"
+  },
+  {
+    "geocode": "179071",
+    "name": "Henderson County"
+  },
+  {
+    "geocode": "179073",
+    "name": "Henry County"
+  },
+  {
+    "geocode": "173228",
+    "name": "Hoffman Estates"
+  },
+  {
+    "geocode": "179075",
+    "name": "Iroquois County"
+  },
+  {
+    "geocode": "179077",
+    "name": "Jackson County"
+  },
+  {
+    "geocode": "179079",
+    "name": "Jasper County"
+  },
+  {
+    "geocode": "179081",
+    "name": "Jefferson County"
+  },
+  {
+    "geocode": "179083",
+    "name": "Jersey County"
+  },
+  {
+    "geocode": "179085",
+    "name": "Jo Daviess County"
+  },
+  {
+    "geocode": "179087",
+    "name": "Johnson County"
+  },
+  {
+    "geocode": "173480",
+    "name": "Joliet"
+  },
+  {
+    "geocode": "179089",
+    "name": "Kane County"
+  },
+  {
+    "geocode": "173540",
+    "name": "Kankakee"
+  },
+  {
+    "geocode": "179091",
+    "name": "Kankakee County"
+  },
+  {
+    "geocode": "179093",
+    "name": "Kendall County"
+  },
+  {
+    "geocode": "179095",
+    "name": "Knox County"
+  },
+  {
+    "geocode": "179097",
+    "name": "Lake County"
+  },
+  {
+    "geocode": "179099",
+    "name": "LaSalle County"
+  },
+  {
+    "geocode": "179101",
+    "name": "Lawrence County"
+  },
+  {
+    "geocode": "179103",
+    "name": "Lee County"
+  },
+  {
+    "geocode": "179105",
+    "name": "Livingston County"
+  },
+  {
+    "geocode": "179107",
+    "name": "Logan County"
+  },
+  {
+    "geocode": "179115",
+    "name": "Macon County"
+  },
+  {
+    "geocode": "179117",
+    "name": "Macoupin County"
+  },
+  {
+    "geocode": "179119",
+    "name": "Madison County"
+  },
+  {
+    "geocode": "179121",
+    "name": "Marion County"
+  },
+  {
+    "geocode": "179123",
+    "name": "Marshall County"
+  },
+  {
+    "geocode": "179125",
+    "name": "Mason County"
+  },
+  {
+    "geocode": "179127",
+    "name": "Massac County"
+  },
+  {
+    "geocode": "179109",
+    "name": "McDonough County"
+  },
+  {
+    "geocode": "179111",
+    "name": "McHenry County"
+  },
+  {
+    "geocode": "179113",
+    "name": "McLean County"
+  },
+  {
+    "geocode": "179129",
+    "name": "Menard County"
+  },
+  {
+    "geocode": "179131",
+    "name": "Mercer County"
+  },
+  {
+    "geocode": "174596",
+    "name": "Moline"
+  },
+  {
+    "geocode": "179133",
+    "name": "Monroe County"
+  },
+  {
+    "geocode": "179135",
+    "name": "Montgomery County"
+  },
+  {
+    "geocode": "179137",
+    "name": "Morgan County"
+  },
+  {
+    "geocode": "179139",
+    "name": "Moultrie County"
+  },
+  {
+    "geocode": "174734",
+    "name": "Mount Prospect"
+  },
+  {
+    "geocode": "174806",
+    "name": "Naperville"
+  },
+  {
+    "geocode": "175010",
+    "name": "Normal"
+  },
+  {
+    "geocode": "175052",
+    "name": "North Chicago"
+  },
+  {
+    "geocode": "175148",
+    "name": "Oak Lawn"
+  },
+  {
+    "geocode": "175154",
+    "name": "Oak Park"
+  },
+  {
+    "geocode": "179141",
+    "name": "Ogle County"
+  },
+  {
+    "geocode": "175364",
+    "name": "Palatine Village"
+  },
+  {
+    "geocode": "175520",
+    "name": "Pekin"
+  },
+  {
+    "geocode": "175526",
+    "name": "Peoria"
+  },
+  {
+    "geocode": "179143",
+    "name": "Peoria County"
+  },
+  {
+    "geocode": "179145",
+    "name": "Perry County"
+  },
+  {
+    "geocode": "179147",
+    "name": "Piatt County"
+  },
+  {
+    "geocode": "179149",
+    "name": "Pike County"
+  },
+  {
+    "geocode": "179151",
+    "name": "Pope County"
+  },
+  {
+    "geocode": "179153",
+    "name": "Pulaski County"
+  },
+  {
+    "geocode": "179155",
+    "name": "Putnam County"
+  },
+  {
+    "geocode": "179157",
+    "name": "Randolph County"
+  },
+  {
+    "geocode": "175808",
+    "name": "Rantoul"
+  },
+  {
+    "geocode": "179159",
+    "name": "Richland County"
+  },
+  {
+    "geocode": "176006",
+    "name": "Rock Island"
+  },
+  {
+    "geocode": "179161",
+    "name": "Rock Island County"
+  },
+  {
+    "geocode": "176000",
+    "name": "Rockford"
+  },
+  {
+    "geocode": "179165",
+    "name": "Saline County"
+  },
+  {
+    "geocode": "179167",
+    "name": "Sangamon County"
+  },
+  {
+    "geocode": "176300",
+    "name": "Schaumburg Village"
+  },
+  {
+    "geocode": "179169",
+    "name": "Schuyler County"
+  },
+  {
+    "geocode": "179171",
+    "name": "Scott County"
+  },
+  {
+    "geocode": "179173",
+    "name": "Shelby County"
+  },
+  {
+    "geocode": "176498",
+    "name": "Skokie"
+  },
+  {
+    "geocode": "176648",
+    "name": "Springfield"
+  },
+  {
+    "geocode": "179163",
+    "name": "St Clair County"
+  },
+  {
+    "geocode": "179175",
+    "name": "Stark County"
+  },
+  {
+    "geocode": "179177",
+    "name": "Stephenson County"
+  },
+  {
+    "geocode": "179179",
+    "name": "Tazewell County"
+  },
+  {
+    "geocode": "179181",
+    "name": "Union County"
+  },
+  {
+    "geocode": "177122",
+    "name": "Urbana"
+  },
+  {
+    "geocode": "179183",
+    "name": "Vermilion County"
+  },
+  {
+    "geocode": "179185",
+    "name": "Wabash County"
+  },
+  {
+    "geocode": "179187",
+    "name": "Warren County"
+  },
+  {
+    "geocode": "179189",
+    "name": "Washington County"
+  },
+  {
+    "geocode": "177404",
+    "name": "Waukegan"
+  },
+  {
+    "geocode": "179191",
+    "name": "Wayne County"
+  },
+  {
+    "geocode": "177548",
+    "name": "Wheaton City"
+  },
+  {
+    "geocode": "179193",
+    "name": "White County"
+  },
+  {
+    "geocode": "179195",
+    "name": "Whiteside County"
+  },
+  {
+    "geocode": "179197",
+    "name": "Will County"
+  },
+  {
+    "geocode": "179199",
+    "name": "Williamson County"
+  },
+  {
+    "geocode": "179201",
+    "name": "Winnebago County"
+  },
+  {
+    "geocode": "179203",
+    "name": "Woodford County"
+  }
+]

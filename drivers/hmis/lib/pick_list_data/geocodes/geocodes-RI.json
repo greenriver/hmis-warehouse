@@ -1,0 +1,46 @@
+[
+  {
+    "geocode": "449001",
+    "name": "Bristol County"
+  },
+  {
+    "geocode": "440054",
+    "name": "Cranston"
+  },
+  {
+    "geocode": "440072",
+    "name": "East Providence"
+  },
+  {
+    "geocode": "449003",
+    "name": "Kent County"
+  },
+  {
+    "geocode": "449005",
+    "name": "Newport County"
+  },
+  {
+    "geocode": "440210",
+    "name": "Pawtucket"
+  },
+  {
+    "geocode": "440222",
+    "name": "Providence"
+  },
+  {
+    "geocode": "449007",
+    "name": "Providence County"
+  },
+  {
+    "geocode": "440276",
+    "name": "Warwick"
+  },
+  {
+    "geocode": "449009",
+    "name": "Washington County"
+  },
+  {
+    "geocode": "440306",
+    "name": "Woonsocket"
+  }
+]

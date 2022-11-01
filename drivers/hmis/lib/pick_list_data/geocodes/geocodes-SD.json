@@ -1,0 +1,274 @@
+[
+  {
+    "geocode": "469003",
+    "name": "Aurora County"
+  },
+  {
+    "geocode": "469005",
+    "name": "Beadle County"
+  },
+  {
+    "geocode": "469007",
+    "name": "Bennett County"
+  },
+  {
+    "geocode": "469009",
+    "name": "Bon Homme County"
+  },
+  {
+    "geocode": "469011",
+    "name": "Brookings County"
+  },
+  {
+    "geocode": "469013",
+    "name": "Brown County"
+  },
+  {
+    "geocode": "469015",
+    "name": "Brule County"
+  },
+  {
+    "geocode": "469017",
+    "name": "Buffalo County"
+  },
+  {
+    "geocode": "469019",
+    "name": "Butte County"
+  },
+  {
+    "geocode": "469021",
+    "name": "Campbell County"
+  },
+  {
+    "geocode": "469023",
+    "name": "Charles Mix County"
+  },
+  {
+    "geocode": "469025",
+    "name": "Clark County"
+  },
+  {
+    "geocode": "469027",
+    "name": "Clay County"
+  },
+  {
+    "geocode": "469029",
+    "name": "Codington County"
+  },
+  {
+    "geocode": "469031",
+    "name": "Corson County"
+  },
+  {
+    "geocode": "469033",
+    "name": "Custer County"
+  },
+  {
+    "geocode": "469035",
+    "name": "Davison County"
+  },
+  {
+    "geocode": "469037",
+    "name": "Day County"
+  },
+  {
+    "geocode": "469039",
+    "name": "Deuel County"
+  },
+  {
+    "geocode": "469041",
+    "name": "Dewey County"
+  },
+  {
+    "geocode": "469043",
+    "name": "Douglas County"
+  },
+  {
+    "geocode": "469045",
+    "name": "Edmunds County"
+  },
+  {
+    "geocode": "469047",
+    "name": "Fall River County"
+  },
+  {
+    "geocode": "469049",
+    "name": "Faulk County"
+  },
+  {
+    "geocode": "469051",
+    "name": "Grant County"
+  },
+  {
+    "geocode": "469053",
+    "name": "Gregory County"
+  },
+  {
+    "geocode": "469055",
+    "name": "Haakon County"
+  },
+  {
+    "geocode": "469057",
+    "name": "Hamlin County"
+  },
+  {
+    "geocode": "469059",
+    "name": "Hand County"
+  },
+  {
+    "geocode": "469061",
+    "name": "Hanson County"
+  },
+  {
+    "geocode": "469063",
+    "name": "Harding County"
+  },
+  {
+    "geocode": "469065",
+    "name": "Hughes County"
+  },
+  {
+    "geocode": "469067",
+    "name": "Hutchinson County"
+  },
+  {
+    "geocode": "469069",
+    "name": "Hyde County"
+  },
+  {
+    "geocode": "469071",
+    "name": "Jackson County"
+  },
+  {
+    "geocode": "469073",
+    "name": "Jerauld County"
+  },
+  {
+    "geocode": "469075",
+    "name": "Jones County"
+  },
+  {
+    "geocode": "469077",
+    "name": "Kingsbury County"
+  },
+  {
+    "geocode": "469079",
+    "name": "Lake County"
+  },
+  {
+    "geocode": "469081",
+    "name": "Lawrence County"
+  },
+  {
+    "geocode": "469083",
+    "name": "Lincoln County"
+  },
+  {
+    "geocode": "469085",
+    "name": "Lyman County"
+  },
+  {
+    "geocode": "469091",
+    "name": "Marshall County"
+  },
+  {
+    "geocode": "469087",
+    "name": "McCook County"
+  },
+  {
+    "geocode": "469089",
+    "name": "McPherson County"
+  },
+  {
+    "geocode": "469093",
+    "name": "Meade County"
+  },
+  {
+    "geocode": "469095",
+    "name": "Mellette County"
+  },
+  {
+    "geocode": "469097",
+    "name": "Miner County"
+  },
+  {
+    "geocode": "469099",
+    "name": "Minnehaha County"
+  },
+  {
+    "geocode": "469101",
+    "name": "Moody County"
+  },
+  {
+    "geocode": "469102",
+    "name": "Oglala Lakota County"
+  },
+  {
+    "geocode": "469103",
+    "name": "Pennington County"
+  },
+  {
+    "geocode": "469105",
+    "name": "Perkins County"
+  },
+  {
+    "geocode": "469107",
+    "name": "Potter County"
+  },
+  {
+    "geocode": "461392",
+    "name": "Rapid City"
+  },
+  {
+    "geocode": "469109",
+    "name": "Roberts County"
+  },
+  {
+    "geocode": "469111",
+    "name": "Sanborn County"
+  },
+  {
+    "geocode": "461518",
+    "name": "Sioux Falls"
+  },
+  {
+    "geocode": "469115",
+    "name": "Spink County"
+  },
+  {
+    "geocode": "469117",
+    "name": "Stanley County"
+  },
+  {
+    "geocode": "469119",
+    "name": "Sully County"
+  },
+  {
+    "geocode": "469121",
+    "name": "Todd County"
+  },
+  {
+    "geocode": "469123",
+    "name": "Tripp County"
+  },
+  {
+    "geocode": "469125",
+    "name": "Turner County"
+  },
+  {
+    "geocode": "469127",
+    "name": "Union County"
+  },
+  {
+    "geocode": "469129",
+    "name": "Walworth County"
+  },
+  {
+    "geocode": "469135",
+    "name": "Yankton County"
+  },
+  {
+    "geocode": "469137",
+    "name": "Ziebach County"
+  }
+]
