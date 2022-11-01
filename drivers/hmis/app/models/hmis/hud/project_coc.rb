@@ -16,7 +16,7 @@ class Hmis::Hud::ProjectCoc < Hmis::Hud::Base
   use_enum :geography_type_enum_map, ::HUD.geography_types
 
   scope :viewable_by, ->(user) do
-    joins(:project).merge(Hmis::Hmis::Project.viewable_by(user))
+    joins(:project).merge(Hmis::Hud::Project.viewable_by(user))
   end
 
   def required_fields

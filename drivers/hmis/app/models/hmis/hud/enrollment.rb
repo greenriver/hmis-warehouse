@@ -39,7 +39,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   # A user can see any enrollment associated with a project they can access
   scope :viewable_by, ->(user) do
-    project_ids = Hmis::Hmis::Project.viewable_by(user).pluck(:id, :ProjectID)
+    project_ids = Hmis::Hud::Project.viewable_by(user).pluck(:id, :ProjectID)
     viewable_wip = wip_t[:project_id].in(project_ids.map(&:first))
     viewable_enrollment = e_t[:ProjectID].in(project_ids.map(&:second))
 

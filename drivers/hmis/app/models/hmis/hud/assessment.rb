@@ -33,7 +33,7 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
   scope :in_progress, -> { where(enrollment_id: WIP_ID) }
 
   scope :viewable_by, ->(user) do
-    enrollment_ids = Hmis::Hmis::Enrollment.viewable_by(user).pluck(:id, :EnrollmentID)
+    enrollment_ids = Hmis::Hud::Enrollment.viewable_by(user).pluck(:id, :EnrollmentID)
     viewable_wip = wip_t[:enrollment_id].in(enrollment_ids.map(&:first))
     viewable_completed = as_t[:EnrollmentID].in(enrollment_ids.map(&:second))
 
