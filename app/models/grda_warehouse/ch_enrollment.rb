@@ -62,12 +62,13 @@ module GrdaWarehouse
           next unless enrollment.present?
 
           batch << {
-            id: ch_enrollment.id,
+            id: ch_enrollment.id, # Updates existing record
+            enrollment_id: enrollment.id, # Not actually in the import, but required for well-formedness
             processed_as: enrollment.processed_as,
             chronically_homeless_at_entry: chronically_homeless_at_start?(enrollment, date: Date.current),
           }
         end
-        import(
+        import!(
           batch,
           on_duplicate_key_update: {
             conflict_target: [:id],
