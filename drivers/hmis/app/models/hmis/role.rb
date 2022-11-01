@@ -32,7 +32,7 @@ class Hmis::Role < ::ApplicationRecord
     permissions_with_descriptions.values.map { |perm| perm[:categories] }.flatten.uniq
   end
 
-  def self.permissions
+  def self.permissions(*) # * for backwards compatibility in the view
     permissions_with_descriptions.keys
   end
 
@@ -80,5 +80,16 @@ class Hmis::Role < ::ApplicationRecord
         ],
       },
     }
+  end
+
+  def add(users)
+    hmis_ds = GrdaWarehouse::DataSource.hmis.first
+    Array.wrap(users).each do |u|
+      u.user_hmis_data_sources_roles.create(role: self, data_source_id: hmis_ds.id)
+    end
+  end
+
+  def remove(users)
+    self.users = (self.users - Array.wrap(users))
   end
 end

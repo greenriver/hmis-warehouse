@@ -1,0 +1,9 @@
+= render 'breadcrumbs'
+.row
+  .col-sm-12
+    %h1 New Role
+  .col-sm-8
+    = simple_form_for @role, url: hmis_admin_role_path(@role) do |f|
+      = render 'admin/roles/new_form', f: f
+      .form-actions
+        = f.button :submit, class: 'btn btn-primary', value: 'New Role'

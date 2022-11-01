@@ -22,10 +22,10 @@ BostonHmis::Application.routes.draw do
     namespace :hmis_admin do
       resources :users
       resources :roles do
-        resources :users, only: [:create, :destroy]
+        resources :users, only: [:create, :destroy], controller: 'roles/users'
       end
       resources :groups do
-        resources :users, only: [:create, :destroy]
+        resources :users, only: [:create, :destroy], controller: 'groups/users'
       end
     end
   end

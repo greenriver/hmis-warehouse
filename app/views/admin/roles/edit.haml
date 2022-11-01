@@ -3,7 +3,10 @@
 %h1
   Edit Role:
   = @role.name
-  = render 'new_form'
+  = simple_form_for [:admin, @role] do |f|
+    = render 'new_form', f: f
+    .form-actions
+      = f.button :submit, class: 'btn btn-primary'
 
 .mt-4
   = render 'users/user_members_table', item: @role, path_to_add_users: admin_role_users_path(@role), path_to_delete_item: admin_role_path(@role), delete_user_lambda: ->(user) { admin_role_user_path(@role, user) }
