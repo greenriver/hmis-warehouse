@@ -2,7 +2,7 @@
 - content_for :title, title
 
 = content_for :crumbs do
-  = link_to admin_groups_path do
+  = link_to hmis_admin_groups_path do
     &laquo; Manage Groups
 
 .o-page
@@ -10,7 +10,7 @@
     %h1= content_for :title
 .row
   .col-sm-12
-    = simple_form_for @group, url: admin_groups_path do |f|
+    = simple_form_for @group, url: hmis_admin_groups_path do |f|
       = f.error_notification
       .form-inputs
         = render 'form', f: f

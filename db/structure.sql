@@ -561,6 +561,39 @@ ALTER SEQUENCE public.glacier_vaults_id_seq OWNED BY public.glacier_vaults.id;
 
 
 --
+-- Name: hmis_access_group_members; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_access_group_members (
+    id bigint NOT NULL,
+    access_group_id bigint,
+    user_id bigint,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: hmis_access_group_members_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_access_group_members_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_access_group_members_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_access_group_members_id_seq OWNED BY public.hmis_access_group_members.id;
+
+
+--
 -- Name: hmis_access_groups; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1816,6 +1849,13 @@ ALTER TABLE ONLY public.glacier_vaults ALTER COLUMN id SET DEFAULT nextval('publ
 
 
 --
+-- Name: hmis_access_group_members id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_access_group_members ALTER COLUMN id SET DEFAULT nextval('public.hmis_access_group_members_id_seq'::regclass);
+
+
+--
 -- Name: hmis_access_groups id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -2114,6 +2154,14 @@ ALTER TABLE ONLY public.glacier_archives
 
 ALTER TABLE ONLY public.glacier_vaults
     ADD CONSTRAINT glacier_vaults_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_access_group_members hmis_access_group_members_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_access_group_members
+    ADD CONSTRAINT hmis_access_group_members_pkey PRIMARY KEY (id);
 
 
 --
@@ -2471,6 +2519,20 @@ CREATE UNIQUE INDEX index_glacier_archives_on_upload_id ON public.glacier_archiv
 --
 
 CREATE UNIQUE INDEX index_glacier_vaults_on_name ON public.glacier_vaults USING btree (name);
+
+
+--
+-- Name: index_hmis_access_group_members_on_access_group_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_access_group_members_on_access_group_id ON public.hmis_access_group_members USING btree (access_group_id);
+
+
+--
+-- Name: index_hmis_access_group_members_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_access_group_members_on_user_id ON public.hmis_access_group_members USING btree (user_id);
 
 
 --
@@ -3064,6 +3126,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220822134957'),
 ('20220914124822'),
 ('20221028165550'),
-('20221101155734');
+('20221101155734'),
+('20221101182012');
 
 

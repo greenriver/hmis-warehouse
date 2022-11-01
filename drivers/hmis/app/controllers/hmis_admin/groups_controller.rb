@@ -9,7 +9,7 @@ class HmisAdmin::GroupsController < ApplicationController
   include EnforceHmisEnabled
 
   before_action :require_hmis_admin_access!
-  before_action :set_role, only: [:edit, :update, :destroy]
+  before_action :set_group, only: [:edit, :update, :destroy]
   before_action :set_entities, only: [:new, :edit, :create, :update]
 
   def index
@@ -26,7 +26,7 @@ class HmisAdmin::GroupsController < ApplicationController
     @group.update(group_params)
     @group.set_viewables(viewable_params)
     @group.save
-    respond_with(@group, location: admin_groups_path)
+    respond_with(@group, location: hmis_admin_groups_path)
   end
 
   def edit
@@ -46,7 +46,7 @@ class HmisAdmin::GroupsController < ApplicationController
   end
 
   private def access_group_scope
-    Hmis::AccessGroup.all
+    Hmis::AccessGroup
   end
 
   private def group_params

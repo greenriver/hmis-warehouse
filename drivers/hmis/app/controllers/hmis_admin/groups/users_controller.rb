@@ -30,7 +30,7 @@ module HmisAdmin::Groups
     end
 
     private def access_group_scope
-      AccessGroup.general
+      Hmis::AccessGroup
     end
 
     private def clean_params

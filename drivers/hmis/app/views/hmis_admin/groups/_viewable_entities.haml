@@ -11,9 +11,6 @@
   %li.nav-item
     %a.nav-link.active{href: '#data-access-assignments', role: "presentation", data: {toggle: :tab}, aria: {controls:"data-access-assignments", selected:"true"}}
       Data Access Assignments
-  %li.nav-item
-    %a.nav-link{href: '#reports-cohorts', role: "presentation", data: {toggle: :tab}, aria: {controls:"reports-cohorts", selected:"false"}}
-      Reports &amp; Cohorts
 
 .tab-content
   .tab-pane.show.active.fade#data-access-assignments{role: 'tabpanel', aria: {labelledby: 'data-access-assignments'}}
@@ -21,14 +18,7 @@
       = render 'entity_column', entity: @data_sources, f: f
       = render 'entity_column', entity: @organizations, f: f
       = render 'entity_column', entity: @project_access_groups, f: f
-      = render 'entity_column', entity: @cocs, f: f
-      = render 'entity_column', entity: @projects, associations: [:data_source, :organization, :coc_code, :project_access_group], f: f
-
-  .tab-pane.fade#reports-cohorts{role: 'tabpanel', aria: {labelledby: 'reports-cohorts'}}
-    .c-columns
-      = render 'entity_column', entity: @reports, f: f
-      = render 'entity_column', entity: @project_groups, f: f
-      = render 'entity_column', entity: @cohorts, f: f
+      = render 'entity_column', entity: @projects, associations: [:data_source, :organization, :project_access_group], f: f
 
 - content_for :page_js do
   :javascript

@@ -66,7 +66,7 @@ class HmisAdmin::RolesController < ApplicationController
   end
 
   private def role_params
-    params.require(:hmis_role).
+    params.require(:role).
       permit(
         :name,
         Hmis::Role.permissions,
