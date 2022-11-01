@@ -42,7 +42,11 @@
           "required": true,
           "link_id": "2.02.3",
           "text": "Start Date",
-          "query_field": "operatingStartDate"
+          "query_field": "operatingStartDate",
+          "bounds": [{
+            "type": "MAX",
+            "question": "2.02.4"
+          }]
         },
         {
           "type": "DATE",
@@ -52,7 +56,7 @@
           "query_field": "operatingEndDate",
           "bounds": [{
             "type": "MIN",
-            "question": "2.02.4"
+            "question": "2.02.3"
           }]
         }
       ]

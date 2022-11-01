@@ -50,14 +50,22 @@
           "required": true,
           "link_id": "start",
           "text": "Start Date",
-          "query_field": "startDate"
+          "query_field": "startDate",
+          "bounds": [{
+            "type": "MAX",
+            "question": "end"
+          }]
         },
         {
           "type": "DATE",
           "required": false,
           "link_id": "end",
           "text": "End Date",
-          "query_field": "endDate"
+          "query_field": "endDate",
+          "bounds": [{
+            "type": "MIN",
+            "question": "start"
+          }]
         }
       ]
     }
