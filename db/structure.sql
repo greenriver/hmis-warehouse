@@ -561,6 +561,38 @@ ALTER SEQUENCE public.glacier_vaults_id_seq OWNED BY public.glacier_vaults.id;
 
 
 --
+-- Name: hmis_access_groups; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_access_groups (
+    id bigint NOT NULL,
+    name character varying NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: hmis_access_groups_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_access_groups_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_access_groups_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_access_groups_id_seq OWNED BY public.hmis_access_groups.id;
+
+
+--
 -- Name: hmis_roles; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1784,6 +1816,13 @@ ALTER TABLE ONLY public.glacier_vaults ALTER COLUMN id SET DEFAULT nextval('publ
 
 
 --
+-- Name: hmis_access_groups id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_access_groups ALTER COLUMN id SET DEFAULT nextval('public.hmis_access_groups_id_seq'::regclass);
+
+
+--
 -- Name: hmis_roles id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -2075,6 +2114,14 @@ ALTER TABLE ONLY public.glacier_archives
 
 ALTER TABLE ONLY public.glacier_vaults
     ADD CONSTRAINT glacier_vaults_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_access_groups hmis_access_groups_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_access_groups
+    ADD CONSTRAINT hmis_access_groups_pkey PRIMARY KEY (id);
 
 
 --
@@ -3016,6 +3063,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220714144937'),
 ('20220822134957'),
 ('20220914124822'),
-('20221028165550');
+('20221028165550'),
+('20221101155734');
 
 

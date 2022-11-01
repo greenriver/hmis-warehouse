@@ -72,4 +72,8 @@ class HmisAdmin::RolesController < ApplicationController
         Hmis::Role.permissions,
       )
   end
+
+  def flash_interpolation_options
+    { resource_name: 'Role' }
+  end
 end

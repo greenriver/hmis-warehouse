@@ -1,0 +1,19 @@
+- title = "New Group"
+- content_for :title, title
+
+= content_for :crumbs do
+  = link_to admin_groups_path do
+    &laquo; Manage Groups
+
+.o-page
+  .o-page__title
+    %h1= content_for :title
+.row
+  .col-sm-12
+    = simple_form_for @group, url: admin_groups_path do |f|
+      = f.error_notification
+      .form-inputs
+        = render 'form', f: f
+
+      .form_actions.mt-4
+        = f.button :submit, value: 'Create Group'

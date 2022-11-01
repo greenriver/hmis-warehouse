@@ -1,7 +1,4 @@
 %ul.nav.nav-tabs
-  - nav_class = if active_tab == :users then 'active' else '' end
-  %li.nav-item{class: nav_class}
-    = link_to 'Accounts', hmis_admin_users_path, class: 'nav-link'
   - nav_class = if active_tab == :roles then 'active' else '' end
   %li.nav-item{class: nav_class}
     = link_to 'Roles', hmis_admin_roles_path, class: 'nav-link'

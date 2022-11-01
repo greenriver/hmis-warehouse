@@ -1,0 +1,6 @@
+.row
+  .col-12
+    = f.input :name, disabled: @group.must_exist?
+.row
+  .col-12
+    = render 'viewable_entities', f: f

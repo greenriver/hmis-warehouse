@@ -4,8 +4,10 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class AccessGroup < ApplicationRecord
+class Hmis::AccessGroup < ApplicationRecord
+  self.table_name = :hmis_access_groups
   include RailsDrivers::Extensions
+  include HmisEnabled
 
   acts_as_paranoid
   has_paper_trail
@@ -18,27 +20,8 @@ class AccessGroup < ApplicationRecord
   has_many :organizations, through: :group_viewable_entities, source: :entity, source_type: 'GrdaWarehouse::Hud::Organization'
   has_many :projects, through: :group_viewable_entities, source: :entity, source_type: 'GrdaWarehouse::Hud::Project'
   has_many :project_access_groups, through: :group_viewable_entities, source: :entity, source_type: 'GrdaWarehouse::ProjectAccessGroup'
-  has_many :reports, through: :group_viewable_entities, source: :entity, source_type: 'GrdaWarehouse::WarehouseReports::ReportDefinition'
-  has_many :project_groups, through: :group_viewable_entities, source: :entity, source_type: 'GrdaWarehouse::ProjectGroup'
-  has_many :cohorts, through: :group_viewable_entities, source: :entity, source_type: 'GrdaWarehouse::Cohort'
 
-  belongs_to :user, optional: true
-
-  validates_presence_of :name, unless: :user_id
-
-  scope :general, -> do
-    where(user_id: nil)
-  end
-
-  scope :user, -> do
-    joins(:user)
-  end
-
-  scope :for_user, ->(user) do
-    return none unless user.id
-
-    where(user_id: user.id)
-  end
+  validates_presence_of :name
 
   scope :contains, ->(entity) do
     where(
@@ -47,18 +30,6 @@ class AccessGroup < ApplicationRecord
         entity_id: entity.id,
       ).pluck(:access_group_id),
     )
-  end
-
-  def name
-    if user_id.blank?
-      super
-    else
-      user.name
-    end
-  end
-
-  def general?
-    user_id.blank?
   end
 
   def add(users)
@@ -72,57 +43,6 @@ class AccessGroup < ApplicationRecord
     end
   end
 
-  def self.delayed_system_group_maintenance(group: nil)
-    delay.maintain_system_groups(group: group)
-    Delayed::Worker.new.work_off if Rails.env.test?
-  end
-
-  def self.maintain_system_groups(group: nil)
-    system_user = User.setup_system_user
-    if group.blank? || group == :reports
-      # Reports
-      all_reports = GrdaWarehouse::WarehouseReports::ReportDefinition.enabled
-
-      all_hmis_reports = AccessGroup.where(name: 'All HMIS Reports').first_or_create
-      all_hmis_reports.update(system: ['Entities'], must_exist: true)
-      ids = all_reports.where(health: false).pluck(:id)
-      all_hmis_reports.set_viewables({ reports: ids })
-
-      all_health_reports = AccessGroup.where(name: 'All Health Reports').first_or_create
-      all_health_reports.update(system: ['Entities'], must_exist: true)
-      ids = all_reports.where(health: true).pluck(:id)
-      all_health_reports.set_viewables({ reports: ids })
-      all_health_reports.add(system_user)
-    end
-
-    if group.blank? || group == :cohorts
-      # Cohorts
-      all_cohorts = AccessGroup.where(name: 'All Cohorts').first_or_create
-      all_cohorts.update(system: ['Entities'], must_exist: true)
-      ids = GrdaWarehouse::Cohort.pluck(:id)
-      all_cohorts.set_viewables({ cohorts: ids })
-      all_cohorts.add(system_user)
-    end
-
-    if group.blank? || group == :project_groups
-      # Project Groups
-      all_project_groups = AccessGroup.where(name: 'All Project Groups').first_or_create
-      all_project_groups.update(system: ['Entities'], must_exist: true)
-      ids = GrdaWarehouse::ProjectGroup.pluck(:id)
-      all_project_groups.set_viewables({ project_groups: ids })
-      all_project_groups.add(system_user)
-    end
-
-    if group.blank? || group == :data_sources # rubocop:disable Style/GuardClause
-      # Data Sources
-      all_data_sources = AccessGroup.where(name: 'All Data Sources').first_or_create
-      all_data_sources.update(system: ['Entities'], must_exist: true)
-      ids = GrdaWarehouse::DataSource.pluck(:id)
-      all_data_sources.set_viewables({ data_sources: ids })
-      all_data_sources.add(system_user)
-    end
-  end
-
   def set_viewables(viewables) # rubocop:disable Naming/AccessorMethodName
     return unless persisted?
 
@@ -132,9 +52,6 @@ class AccessGroup < ApplicationRecord
         :organizations,
         :projects,
         :project_access_groups,
-        :reports,
-        :cohorts,
-        :project_groups,
       ]
       list.each do |type|
         ids = (viewables[type] || []).map(&:to_i)
@@ -168,23 +85,12 @@ class AccessGroup < ApplicationRecord
     ).destroy_all
   end
 
-  def entities_locked?
-    system.include?('Entities')
-  end
-
   # Provides a means of showing projects associated through other entities
   def associated_by(associations:)
     return [] unless associations.present?
 
     associations.flat_map do |association|
       case association
-      when :coc_code
-        coc_codes.map do |code|
-          [
-            code,
-            GrdaWarehouse::Hud::Project.project_names_for_coc(code),
-          ]
-        end
       when :organization
         organizations.preload(:projects).map do |org|
           [
@@ -218,9 +124,6 @@ class AccessGroup < ApplicationRecord
       organizations: 'GrdaWarehouse::Hud::Organization',
       projects: 'GrdaWarehouse::Hud::Project',
       project_access_groups: 'GrdaWarehouse::ProjectAccessGroup',
-      reports: 'GrdaWarehouse::WarehouseReports::ReportDefinition',
-      project_groups: 'GrdaWarehouse::ProjectGroup',
-      cohorts: 'GrdaWarehouse::Cohort',
     }.freeze
   end
 end
