@@ -8,11 +8,11 @@ module HmisEnabled
   extend ActiveSupport::Concern
   included do
     def self.hmis_enabled?
-      ENV['ENABLE_HMIS_API'] == 'true' && RailsDrivers.loaded.include?(:hmis)
+      HmisEnforcement.hmis_enabled?
     end
 
     def hmis_enabled?
-      self.class.hmis_enabled?
+      HmisEnforcement.hmis_enabled?
     end
   end
 end

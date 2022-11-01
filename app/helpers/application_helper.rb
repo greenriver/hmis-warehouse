@@ -383,16 +383,10 @@ module ApplicationHelper
   end
 
   def hmis_enabled?
-    ENV['ENABLE_HMIS_API'] == 'true' && RailsDrivers.loaded.include?(:hmis)
+    HmisEnforcement.hmis_enabled?
   end
 
   def hmis_admin_visible?
-    return false unless hmis_enabled?
-
-    # If the HMIS is enabled, figure out if this user can administer it
-    hmis_ds = GrdaWarehouse::DataSource.hmis.pluck(:id).first
-    hmis_user = Hmis::User.find_by(id: current_user.id)
-    hmis_user.hmis_data_source_id = hmis_ds
-    hmis_user&.can_administer_hmis?
+    HmisEnforcement.hmis_admin_visible?(current_user)
   end
 end

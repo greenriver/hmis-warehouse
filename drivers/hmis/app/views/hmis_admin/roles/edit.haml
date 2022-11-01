@@ -1,11 +1,7 @@
 = render 'breadcrumbs'
 
-%h1
-  Edit Role:
-  = @role.name
-  = simple_form_for @role, as: :role, url: hmis_admin_role_path(@role) do |f|
-    = render 'admin/roles/new_form', f: f
-    .form-actions
-      = f.button :submit, class: 'btn btn-primary', value: 'Update Role'
+%h1 Edit Role: #{@role.name}
+= simple_form_for @role, as: :role, url: hmis_admin_role_path(@role) do |f|
+  = render 'admin/roles/new_form', f: f, submit_text: 'Update Role'
 .mt-4
   = render 'users/user_members_table', item: @role, path_to_add_users: hmis_admin_role_users_path(@role), path_to_delete_item: hmis_admin_role_path(@role), delete_user_lambda: ->(user) { hmis_admin_role_user_path(@role, user) }

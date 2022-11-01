@@ -14,21 +14,15 @@ module EnforceHmisEnabled
     end
 
     def hmis_admin_visible?
-      return false unless hmis_enabled?
-
-      # If the HMIS is enabled, figure out if this user can administer it
-      hmis_ds = GrdaWarehouse::DataSource.hmis.pluck(:id).first
-      hmis_user = Hmis::User.find_by(id: current_user.id)
-      hmis_user.hmis_data_source_id = hmis_ds
-      hmis_user&.can_administer_hmis?
+      HmisEnforcement.hmis_admin_visible?(current_user)
     end
 
     def require_hmis_enabled!
-      return not_authorized! unless hmis_enabled?
+      return not_authorized! unless HmisEnforcement.hmis_enabled?
     end
 
     def require_hmis_admin_access!
-      return not_authorized! unless hmis_admin_visible?
+      return not_authorized! unless HmisEnforcement.hmis_admin_visible?(current_user)
     end
   end
 end
