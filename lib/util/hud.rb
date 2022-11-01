@@ -726,6 +726,10 @@ module HUD
     gender_id_to_field_name.values.uniq.freeze
   end
 
+  def gender_field_name_to_id
+    gender_id_to_field_name.invert.freeze
+  end
+
   def gender_id_to_field_name
     {
       0 => :Female,
