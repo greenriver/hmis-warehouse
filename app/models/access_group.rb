@@ -5,8 +5,6 @@
 ###
 
 class AccessGroup < ApplicationRecord
-  include RailsDrivers::Extensions
-
   acts_as_paranoid
   has_paper_trail
 
@@ -127,7 +125,7 @@ class AccessGroup < ApplicationRecord
     return unless persisted?
 
     GrdaWarehouse::GroupViewableEntity.transaction do
-      list = [
+      [
         :data_sources,
         :organizations,
         :projects,
@@ -135,8 +133,7 @@ class AccessGroup < ApplicationRecord
         :reports,
         :cohorts,
         :project_groups,
-      ]
-      list.each do |type|
+      ].each do |type|
         ids = (viewables[type] || []).map(&:to_i)
         scope = GrdaWarehouse::GroupViewableEntity.where(
           access_group_id: id,
