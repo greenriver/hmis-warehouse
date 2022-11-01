@@ -61,4 +61,16 @@ class Hmis::User < ApplicationRecord
   def lock_access!(opts = {})
     super opts.merge({ send_instructions: false })
   end
+
+  def viewable_project_ids
+    @viewable_project_ids ||= GrdaWarehouse::Hmis::Project.viewable_by(self).pluck(:id)
+  end
+
+  private def cached_viewable_project_ids(force_calculation: false)
+    key = [self.class.name, __method__, id]
+    Rails.cache.delete(key) if force_calculation
+    Rails.cache.fetch(key, expires_in: 1.minutes) do
+      GrdaWarehouse::Hmis::Project.viewable_by(self).pluck(:id).to_set
+    end
+  end
 end

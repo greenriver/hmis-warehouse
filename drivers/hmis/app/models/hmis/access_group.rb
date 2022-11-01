@@ -23,6 +23,10 @@ class Hmis::AccessGroup < ApplicationRecord
 
   validates_presence_of :name
 
+  scope :general, -> do
+    all
+  end
+
   scope :contains, ->(entity) do
     where(
       id: GrdaWarehouse::GroupViewableEntity.where(
@@ -30,6 +34,11 @@ class Hmis::AccessGroup < ApplicationRecord
         entity_id: entity.id,
       ).pluck(:access_group_id),
     )
+  end
+
+  # For compatibility, doesn't actually do anything here
+  def coc_codes
+    []
   end
 
   def add(users)
