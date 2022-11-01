@@ -16,10 +16,18 @@
         },
         {
           "type": "STRING",
-          "required": false,
+          "required": true,
           "link_id": "other",
           "text": "Other Funder",
-          "query_field": "otherFunder"
+          "query_field": "otherFunder",
+          "enable_behavior": "ALL",
+          "enable_when": [
+            {
+              "question": "funder",
+              "operator": "EQUAL",
+              "answer_code": "LOCAL_OR_OTHER_FUNDING_SOURCE"
+            }
+          ]
         },
         {
           "type": "STRING",
