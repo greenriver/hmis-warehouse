@@ -16,25 +16,25 @@ module Types
     field :initial_selected, Boolean, 'Whether option is selected by default', null: true
 
     def self.options_for_type(pick_list_type, user:)
+      relevant_state = ENV['RELEVANT_COC_STATE']
+
       case pick_list_type
       when 'COC'
-        ::HUD.cocs_in_state(ENV['RELEVANT_COC_STATE']).sort.map do |code, name|
+        ::HUD.cocs_in_state(relevant_state).sort.map do |code, name|
           { code: code, label: "#{code} - #{name}" }
         end
 
       when 'STATE'
-        states = JSON.parse(File.read('drivers/hmis/lib/pick_list_data/states.json'))
-        states.map do |obj|
+        state_options.map do |obj|
           {
             code: obj['abbreviation'],
             label: "#{obj['abbreviation']} - #{obj['name']}",
-            initial_selected: obj['abbreviation'] == ENV['RELEVANT_COC_STATE'],
+            initial_selected: obj['abbreviation'] == relevant_state,
           }
         end
 
       when 'GEOCODE'
-        geocodes = JSON.parse(File.read("drivers/hmis/lib/pick_list_data/geocodes/geocodes-#{ENV['RELEVANT_COC_STATE']}.json"))
-        geocodes.map do |obj|
+        geocodes_in_state(relevant_state).map do |obj|
           {
             code: obj['geocode'],
             label: "#{obj['geocode']} - #{obj['name']}",
@@ -70,6 +70,18 @@ module Types
             label: organization.organization_name,
           }
         end
+      end
+    end
+
+    def self.geocodes_in_state(state)
+      Rails.cache.fetch(['GEOCODES', state], expires_in: 1.days) do
+        JSON.parse(File.read("drivers/hmis/lib/pick_list_data/geocodes/geocodes-#{state}.json"))
+      end
+    end
+
+    def self.state_options
+      Rails.cache.fetch('STATE_OPTION_LIST', expires_in: 1.days) do
+        JSON.parse(File.read('drivers/hmis/lib/pick_list_data/states.json'))
       end
     end
 
