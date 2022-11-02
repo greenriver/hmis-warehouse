@@ -67,6 +67,7 @@ module MaYyaReport
             subsequent_current_living_situations: subsequent_current_living_situations(enrollment.enrollment),
             zip_codes: zip_codes(client),
             flex_funds: flex_funds(client),
+            language: language(client),
           )
         end
       end
@@ -206,6 +207,10 @@ module MaYyaReport
         within_range(@filter.start_date .. @filter.end_date).
         where(name: 'Flex Funds').
         map(&:flex_funds).flatten.uniq
+    end
+
+    private def language(client)
+      client.source_hmis_clients.map(&:primary_language).detect(&:present?)
     end
   end
 end

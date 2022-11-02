@@ -171,9 +171,9 @@ module MaYyaReport
         D2e: a_t[:race].eq(4),
         D2f: a_t[:race].in([6, 8, 9, 99]),
         D2g: a_t[:ethnicity].eq(1),
-        D2h: nil,
-        D2i: nil,
-        D2j: nil,
+        D2h: a_t[:language].eq('English'),
+        D2i: a_t[:language].eq('Spanish'),
+        D2j: a_t[:language].not_eq(nil).and(a_t[:language].not_eq('English').and(a_t[:language].not_eq('Spanish'))),
 
         D3a: a_t[:mental_health_disorder].eq(true),
         D3b: a_t[:substance_use_disorder].eq(true),
