@@ -10,7 +10,6 @@
           "required": true,
           "link_id": "2.02.2",
           "text": "Project Name",
-
           "query_field": "projectName"
         },
         {
@@ -18,7 +17,6 @@
           "required": false,
           "link_id": "description",
           "text": "Description",
-
           "query_field": "description"
         },
         {
@@ -26,7 +24,6 @@
           "required": false,
           "link_id": "contact",
           "text": "Contact Information",
-
           "query_field": "contactInformation"
         }
       ]
@@ -72,7 +69,6 @@
           "link_id": "2.02.6",
           "text": "Project Type",
           "pick_list_reference": "ProjectType",
-
           "query_field": "projectType"
         },
         {
@@ -85,7 +81,6 @@
               "link_id": "2.02.C",
               "text": "Tracking Method",
               "pick_list_reference": "TrackingMethod",
-
               "query_field": "trackingMethod",
               "enable_behavior": "ALL",
               "enable_when": [
@@ -101,7 +96,6 @@
               "required": false,
               "link_id": "2.02.A",
               "text": "Residential Affiliation?",
-
               "query_field": "residentialAffiliation",
               "enable_behavior": "ALL",
               "enable_when": [
@@ -120,7 +114,6 @@
           "link_id": "2.02.D",
           "text": "Housing Type",
           "pick_list_reference": "HousingType",
-
           "query_field": "housingType"
         },
         {
@@ -129,7 +122,6 @@
           "link_id": "2.02.8",
           "text": "Target Population",
           "pick_list_reference": "TargetPopulation",
-
           "query_field": "targetPopulation"
         },
         {
@@ -138,7 +130,6 @@
           "link_id": "2.02.9",
           "text": "HOPWA Assisted Living Facility",
           "pick_list_reference": "HOPWAMedAssistedLivingFac",
-
           "query_field": "HOPWAMedAssistedLivingFac"
         },
         {
@@ -146,7 +137,6 @@
           "required": false,
           "link_id": "2.02.5",
           "text": "Continuum Project?",
-
           "query_field": "continuumProject"
         },
         {
@@ -154,7 +144,6 @@
           "required": false,
           "link_id": "2.02.7",
           "text": "HMIS Participating Project?",
-
           "query_field": "HMISParticipatingProject"
         }
       ]

@@ -39,11 +39,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     GRAPHQL
   end
 
-  it 'returns CoC pick list' do
-    response, result = post_graphql(pick_list_type: 'COC') { query }
-    expect(response.status).to eq 200
-    options = result.dig('data', 'pickList')
-    expect(options[0]['code']).to be_present
+  before do
+    # Mock RELEVANT_COC_STATE response
+    allow(ENV).to receive(:[]).and_call_original
+    allow(ENV).to receive(:[]).with('RELEVANT_COC_STATE').and_return('VT')
   end
 
   it 'returns project pick list' do
@@ -72,6 +71,27 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     expect(options[0]['label']).to eq(::HUD.living_situation(options[0]['code'].to_i))
     expect(options[0]['groupCode']).to eq('HOMELESS')
     expect(options[0]['groupLabel']).to eq('Homeless')
+  end
+
+  it 'returns CoC pick list for RELEVANT_COC_STATE' do
+    response, result = post_graphql(pick_list_type: 'COC') { query }
+    expect(response.status).to eq 200
+    options = result.dig('data', 'pickList')
+    expect(options[0]['code']).to eq('VT-500')
+  end
+
+  it 'returns states with RELEVANT_COC_STATE selected' do
+    response, result = post_graphql(pick_list_type: 'STATE') { query }
+    expect(response.status).to eq 200
+    options = result.dig('data', 'pickList')
+    expect(options.detect { |o| o['initialSelected'] }['code']).to eq('VT')
+  end
+
+  it 'returns geocodes for RELEVANT_COC_STATE' do
+    response, result = post_graphql(pick_list_type: 'GEOCODE') { query }
+    expect(response.status).to eq 200
+    options = result.dig('data', 'pickList')
+    expect(options[0]['code']).to eq('509001')
   end
 end
 
