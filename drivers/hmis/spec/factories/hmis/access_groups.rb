@@ -1,5 +1,5 @@
 FactoryBot.define do
-  factory :view_only_access_group, class: 'Hmis::AccessGroup' do
+  factory :view_access_group, class: 'Hmis::AccessGroup' do
     sequence(:name) { |n| "Group #{n}" }
     scope { 'view' }
   end

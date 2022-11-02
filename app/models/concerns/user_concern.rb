@@ -365,6 +365,10 @@ module UserConcern
       viewable GrdaWarehouse::Hud::Project
     end
 
+    def project_access_groups
+      viewable GrdaWarehouse::ProjectAccessGroup
+    end
+
     def reports
       viewable GrdaWarehouse::WarehouseReports::ReportDefinition
     end
@@ -375,10 +379,6 @@ module UserConcern
 
     def project_groups
       viewable GrdaWarehouse::ProjectGroup
-    end
-
-    def project_access_groups
-      viewable GrdaWarehouse::ProjectAccessGroup
     end
 
     def associated_by(associations:)

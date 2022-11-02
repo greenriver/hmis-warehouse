@@ -1,4 +1,6 @@
 require 'rails_helper'
+require_relative 'login_and_permissions'
+require_relative 'hmis_base_setup'
 
 RSpec.describe Hmis::GraphqlController, type: :request do
   before(:all) do
@@ -13,7 +15,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:ds2) { create :hmis_data_source, hmis: nil }
 
   before(:each) do
-    post hmis_user_session_path(hmis_user: { email: user.email, password: user.password })
+    hmis_login(user)
   end
 
   let(:query) do
@@ -107,10 +109,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     ].each do |desc, input, match|
       it "should search by #{desc}" do
         response, result = post_graphql(input: input) { query }
-        expect(response.status).to eq 200
-        clients = result.dig('data', 'clientSearch', 'nodes')
-        matcher = include({ 'id' => client.id.to_s })
-        match ? expect(clients).to(matcher) : expect(clients).not_to(matcher)
+        aggregate_failures 'checking response' do
+          expect(response.status).to eq 200
+          clients = result.dig('data', 'clientSearch', 'nodes')
+          matcher = include({ 'id' => client.id.to_s })
+          match ? expect(clients).to(matcher) : expect(clients).not_to(matcher)
+        end
       end
     end
   end

@@ -1,4 +1,6 @@
 require 'rails_helper'
+require_relative 'login_and_permissions'
+require_relative 'hmis_base_setup'
 
 RSpec.describe Hmis::GraphqlController, type: :request do
   before(:all) do
@@ -19,7 +21,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
   let!(:o1) { create :hmis_hud_organization, data_source: ds1, user: u1 }
   let!(:p1) { create :hmis_hud_project, organization: o1, data_source: ds1, user: u2 }
-  let(:access_group) { create :edit_access_group }
+  let(:edit_access_group) { create :edit_access_group }
+  let(:view_access_group) { create :view_access_group }
 
   let(:test_input) do
     {
@@ -37,12 +40,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       residential_affiliation: true,
       'HMISParticipatingProject' => false,
     }
-  end
-
-  before(:each) do
-    post hmis_user_session_path(hmis_user: { email: user.email, password: user.password })
-    access_group.add_viewable(p1.as_warehouse)
-    access_group.add(hmis_user)
   end
 
   let(:mutation) do
@@ -81,69 +78,96 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     GRAPHQL
   end
 
-  it 'should update a project successfully' do
-    prev_date_updated = p1.date_updated
-    expect(p1.user_id).to eq(u2.user_id)
-    response, result = post_graphql(id: p1.id, input: test_input) { mutation }
+  describe 'with edit access' do
+    before(:each) do
+      hmis_login(user)
+      assign_viewable(edit_access_group, p1.as_warehouse, hmis_user)
+    end
 
-    expect(response.status).to eq 200
-    project = result.dig('data', 'updateProject', 'project')
-    errors = result.dig('data', 'updateProject', 'errors')
-    expect(p1.reload.date_updated > prev_date_updated).to eq(true)
-    expect(p1.user_id).to eq(u1.user_id)
-    expect(errors).to be_empty
-    expect(project).to include(
-      'id' => p1.id.to_s,
-      'organization' => { 'id' => o1.id.to_s },
-      'projectName' => test_input[:project_name],
-      'projectType' => test_input[:project_type],
-      'HMISParticipatingProject' => test_input['HMISParticipatingProject'],
-      'HOPWAMedAssistedLivingFac' => test_input['HOPWAMedAssistedLivingFac'],
-      'contactInformation' => test_input[:contact_information],
-      'continuumProject' => test_input[:continuum_project],
-      'description' => test_input[:description],
-      'housingType' => test_input[:housing_type],
-      'operatingEndDate' => test_input[:operating_end_date],
-      'operatingStartDate' => test_input[:operating_start_date],
-      'residentialAffiliation' => test_input[:residential_affiliation],
-      'targetPopulation' => test_input[:target_population],
-      'trackingMethod' => test_input[:tracking_method],
-    )
+    it 'should update a project successfully' do
+      prev_date_updated = p1.date_updated
+      aggregate_failures 'checking response' do
+        expect(p1.user_id).to eq(u2.user_id)
+        response, result = post_graphql(id: p1.id, input: test_input) { mutation }
+
+        expect(response.status).to eq 200
+        project = result.dig('data', 'updateProject', 'project')
+        errors = result.dig('data', 'updateProject', 'errors')
+        expect(p1.reload.date_updated > prev_date_updated).to eq(true)
+        expect(p1.user_id).to eq(u1.user_id)
+        expect(errors).to be_empty
+        expect(project).to include(
+          'id' => p1.id.to_s,
+          'organization' => { 'id' => o1.id.to_s },
+          'projectName' => test_input[:project_name],
+          'projectType' => test_input[:project_type],
+          'HMISParticipatingProject' => test_input['HMISParticipatingProject'],
+          'HOPWAMedAssistedLivingFac' => test_input['HOPWAMedAssistedLivingFac'],
+          'contactInformation' => test_input[:contact_information],
+          'continuumProject' => test_input[:continuum_project],
+          'description' => test_input[:description],
+          'housingType' => test_input[:housing_type],
+          'operatingEndDate' => test_input[:operating_end_date],
+          'operatingStartDate' => test_input[:operating_start_date],
+          'residentialAffiliation' => test_input[:residential_affiliation],
+          'targetPopulation' => test_input[:target_population],
+          'trackingMethod' => test_input[:tracking_method],
+        )
+      end
+    end
+
+    it 'should allow nulls, and correctly nullify fields' do
+      p1.update(description: 'foo', operating_end_date: '2022-01-01', housing_type: 3, continuum_project: 0, residential_affiliation: 1, HMISParticipatingProject: 99)
+      input = {
+        operating_end_date: nil,
+        description: nil,
+        housing_type: nil,
+        continuum_project: nil,
+        residential_affiliation: nil,
+        'HMISParticipatingProject' => nil,
+      }
+      response, result = post_graphql(id: p1.id, input: input) { mutation }
+
+      aggregate_failures 'checking response' do
+        expect(response.status).to eq 200
+        project = result.dig('data', 'updateProject', 'project')
+        errors = result.dig('data', 'updateProject', 'errors')
+        expect(errors).to be_empty
+        expect(project).to include(
+          'id' => p1.id.to_s,
+          'HMISParticipatingProject' => input['HMISParticipatingProject'],
+          'continuumProject' => input[:continuum_project],
+          'description' => input[:description],
+          'housingType' => input[:housing_type],
+          'operatingEndDate' => input[:operating_end_date],
+          'residentialAffiliation' => input[:residential_affiliation],
+        )
+        p1.reload
+        expect(p1.operating_end_date).to be_nil
+        expect(p1.description).to be_nil
+        expect(p1.housing_type).to be_nil
+        expect(p1.continuum_project).to eq(99)
+        expect(p1.residential_affiliation).to eq(99)
+        expect(p1.HMISParticipatingProject).to eq(99)
+      end
+    end
   end
 
-  it 'should allow nulls, and correctly nullify fields' do
-    p1.update(description: 'foo', operating_end_date: '2022-01-01', housing_type: 3, continuum_project: 0, residential_affiliation: 1, HMISParticipatingProject: 99)
-    input = {
-      operating_end_date: nil,
-      description: nil,
-      housing_type: nil,
-      continuum_project: nil,
-      residential_affiliation: nil,
-      'HMISParticipatingProject' => nil,
-    }
-    response, result = post_graphql(id: p1.id, input: input) { mutation }
+  describe 'with view access' do
+    before(:each) do
+      hmis_login(user)
+      assign_viewable(view_access_group, p1.as_warehouse, hmis_user)
+    end
 
-    expect(response.status).to eq 200
-    project = result.dig('data', 'updateProject', 'project')
-    errors = result.dig('data', 'updateProject', 'errors')
-    expect(errors).to be_empty
-    expect(project).to include(
-      'id' => p1.id.to_s,
-      'HMISParticipatingProject' => input['HMISParticipatingProject'],
-      'continuumProject' => input[:continuum_project],
-      'description' => input[:description],
-      'housingType' => input[:housing_type],
-      'operatingEndDate' => input[:operating_end_date],
-      'residentialAffiliation' => input[:residential_affiliation],
-    )
-
-    p1.reload
-    expect(p1.operating_end_date).to be_nil
-    expect(p1.description).to be_nil
-    expect(p1.housing_type).to be_nil
-    expect(p1.continuum_project).to eq(99)
-    expect(p1.residential_affiliation).to eq(99)
-    expect(p1.HMISParticipatingProject).to eq(99)
+    it 'should not be able to update a project' do
+      prev_date_updated = p1.date_updated
+      aggregate_failures 'checking response' do
+        expect(p1.user_id).to eq(u2.user_id)
+        response, = post_graphql(id: p1.id, input: test_input) { mutation }
+        expect(response.status).to eq 200
+        expect(p1.reload.date_updated > prev_date_updated).to eq(false)
+      end
+    end
   end
 end
 

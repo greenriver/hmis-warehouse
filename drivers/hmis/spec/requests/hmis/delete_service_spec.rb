@@ -1,4 +1,6 @@
 require 'rails_helper'
+require_relative 'login_and_permissions'
+require_relative 'hmis_base_setup'
 
 RSpec.describe Hmis::GraphqlController, type: :request do
   before(:all) do
@@ -8,21 +10,14 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     cleanup_test_environment
   end
 
-  let!(:ds1) { create :hmis_data_source }
-  let!(:user) { create(:user).tap { |u| u.add_viewable(ds1) } }
-  let(:hmis_user) { Hmis::User.find(user.id)&.tap { |u| u.update(hmis_data_source_id: ds1.id) } }
-  let(:u1) { Hmis::Hud::User.from_user(hmis_user) }
-  let!(:o1) { create :hmis_hud_organization, data_source: ds1, user: u1 }
-  let!(:p1) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1 }
+  include_context 'hmis base setup'
   let!(:c1) { create :hmis_hud_client, data_source: ds1, user: u1 }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, client: c1, project: p1, user: u1 }
   let!(:s1) { create :hmis_hud_service, data_source: ds1, client: c1, enrollment: e1, user: u1 }
-  let(:access_group) { create :edit_access_group }
 
   before(:each) do
-    post hmis_user_session_path(hmis_user: { email: user.email, password: user.password })
-    access_group.add_viewable(p1.as_warehouse)
-    access_group.add(hmis_user)
+    hmis_login(user)
+    assign_viewable(edit_access_group, p1.as_warehouse, hmis_user)
   end
 
   let(:mutation) do
@@ -65,20 +60,24 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   it 'should delete a service successfully' do
     response, result = post_graphql(id: s1.id) { mutation }
 
-    expect(response.status).to eq 200
-    errors = result.dig('data', 'deleteService', 'errors')
-    expect(errors).to be_empty
-    expect(Hmis::Hud::Service.count).to eq(0)
+    aggregate_failures 'checking response' do
+      expect(response.status).to eq 200
+      errors = result.dig('data', 'deleteService', 'errors')
+      expect(errors).to be_empty
+      expect(Hmis::Hud::Service.count).to eq(0)
+    end
   end
 
   it 'should error if a service does not exist' do
     response, result = post_graphql(id: '0') { mutation }
 
-    expect(response.status).to eq 200
-    service = result.dig('data', 'deleteService', 'service')
-    errors = result.dig('data', 'deleteService', 'errors')
-    expect(service).to be_nil
-    expect(errors).to contain_exactly(include('message' => 'Service record not found', 'attribute' => 'id'))
+    aggregate_failures 'checking response' do
+      expect(response.status).to eq 200
+      service = result.dig('data', 'deleteService', 'service')
+      errors = result.dig('data', 'deleteService', 'errors')
+      expect(service).to be_nil
+      expect(errors).to contain_exactly(include('message' => 'Service record not found', 'attribute' => 'id'))
+    end
   end
 end
 

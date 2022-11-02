@@ -1,4 +1,6 @@
 require 'rails_helper'
+require_relative 'login_and_permissions'
+require_relative 'hmis_base_setup'
 
 RSpec.describe Hmis::GraphqlController, type: :request do
   let(:test_input) do
@@ -116,7 +118,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     let!(:ds1) { create :hmis_data_source }
     let!(:user) { create(:user).tap { |u| u.add_viewable(ds1) } }
     before(:each) do
-      post hmis_user_session_path(hmis_user: { email: user.email, password: user.password })
+      hmis_login(user)
     end
 
     let(:mutation) do
@@ -181,11 +183,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
       response, result = post_graphql(input: mutation_input) { mutation }
 
-      expect(response.status).to eq 200
-      client = result.dig('data', 'createClient', 'client')
-      errors = result.dig('data', 'createClient', 'errors')
-      expect(client['id']).to be_present
-      expect(errors).to be_empty
+      aggregate_failures 'checking response' do
+        expect(response.status).to eq 200
+        client = result.dig('data', 'createClient', 'client')
+        errors = result.dig('data', 'createClient', 'errors')
+        expect(client['id']).to be_present
+        expect(errors).to be_empty
+      end
     end
 
     it 'should throw errors if the client is invalid' do
@@ -194,9 +198,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       client = result.dig('data', 'createClient', 'client')
       errors = result.dig('data', 'createClient', 'errors')
 
-      expect(response.status).to eq 200
-      expect(client).to be_nil
-      expect(errors).to be_present
+      aggregate_failures 'checking response' do
+        expect(response.status).to eq 200
+        expect(client).to be_nil
+        expect(errors).to be_present
+      end
     end
   end
 end

@@ -1,4 +1,6 @@
 require 'rails_helper'
+require_relative 'login_and_permissions'
+require_relative 'hmis_base_setup'
 
 RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:ds1) { create :hmis_data_source }
@@ -11,7 +13,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:o2) { create :hmis_hud_organization, OrganizationName: 'XXX', data_source: ds1 }
   let!(:p3) { create :hmis_hud_project, ProjectName: 'DDD', data_source: ds1, organization: o2 }
   let!(:p4) { create :hmis_hud_project, ProjectName: 'CCC', data_source: ds1, organization: o2 }
-  let(:access_group) { create :edit_access_group }
+  let(:edit_access_group) { create :edit_access_group }
 
   before(:all) do
     cleanup_test_environment
@@ -21,9 +23,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   before(:each) do
-    post hmis_user_session_path(hmis_user: { email: user.email, password: user.password })
-    access_group.add_viewable(ds1)
-    access_group.add(hmis_user)
+    hmis_login(user)
+    assign_viewable(edit_access_group, ds1, hmis_user)
   end
 
   describe 'Projects query' do
@@ -60,27 +61,31 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           }
         GRAPHQL
       end
-      expect(response.status).to eq 200
-      organization_names = result.dig('data', 'projects', 'nodes').map { |d| d['organization']['organizationName'] }
-      expect(organization_names).to eq ['XXX', 'XXX', 'ZZZ', 'ZZZ']
-      project_names = result.dig('data', 'projects', 'nodes').map { |d| d['projectName'] }
-      expect(project_names).to eq ['CCC', 'DDD', 'AAA', 'BBB']
+      aggregate_failures 'checking response' do
+        expect(response.status).to eq 200
+        organization_names = result.dig('data', 'projects', 'nodes').map { |d| d['organization']['organizationName'] }
+        expect(organization_names).to eq ['XXX', 'XXX', 'ZZZ', 'ZZZ']
+        project_names = result.dig('data', 'projects', 'nodes').map { |d| d['projectName'] }
+        expect(project_names).to eq ['CCC', 'DDD', 'AAA', 'BBB']
+      end
     end
 
     it 'responds with 401 if not authenticated' do
       delete destroy_hmis_user_session_path
-      expect(response.status).to eq 204
-      response, body = post_graphql do
-        <<~GRAPHQL
-          query {
-            projects {
-              projectName
+      aggregate_failures 'checking response' do
+        expect(response.status).to eq 204
+        response, body = post_graphql do
+          <<~GRAPHQL
+            query {
+              projects {
+                projectName
+              }
             }
-          }
-        GRAPHQL
+          GRAPHQL
+        end
+        expect(response.status).to eq 401
+        expect(body.dig('error', 'type')).to eq 'unauthenticated'
       end
-      expect(response.status).to eq 401
-      expect(body.dig('error', 'type')).to eq 'unauthenticated'
     end
   end
 end

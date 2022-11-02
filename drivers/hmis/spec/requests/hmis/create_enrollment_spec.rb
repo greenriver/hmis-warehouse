@@ -1,16 +1,12 @@
 require 'rails_helper'
+require_relative 'login_and_permissions'
+require_relative 'hmis_base_setup'
 
 RSpec.describe Hmis::GraphqlController, type: :request do
-  let!(:ds1) { create :hmis_data_source }
-  let!(:user) { create(:user).tap { |u| u.add_viewable(ds1) } }
-  let(:hmis_user) { Hmis::User.find(user.id)&.tap { |u| u.update(hmis_data_source_id: ds1.id) } }
-  let(:u1) { Hmis::Hud::User.from_user(hmis_user) }
-  let(:o1) { create :hmis_hud_organization, data_source: ds1, user: u1 }
-  let(:p1) { create :hmis_hud_project, data_source: ds1, OrganizationID: o1.OrganizationID, user: u1 }
+  include_context 'hmis base setup'
   let(:c1) { create :hmis_hud_client, data_source: ds1, user: u1 }
   let(:c2) { create :hmis_hud_client, data_source: ds1, user: u1 }
   let(:c3) { create :hmis_hud_client, data_source: ds1, user: u1 }
-  let(:access_group) { create :edit_access_group }
   let(:test_input) do
     {
       project_id: p1.id,
@@ -41,9 +37,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   describe 'enrollment creation tests' do
     before(:each) do
-      post hmis_user_session_path(hmis_user: { email: user.email, password: user.password })
-      access_group.add_viewable(p1.as_warehouse)
-      access_group.add(hmis_user)
+      hmis_login(user)
+      assign_viewable(edit_access_group, p1.as_warehouse, hmis_user)
     end
 
     let(:mutation) do
@@ -94,56 +89,60 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     it 'should create an enrollment successfully' do
       response, result = post_graphql(input: test_input) { mutation }
 
-      expect(response.status).to eq 200
-      enrollments = result.dig('data', 'createEnrollment', 'enrollments')
-      errors = result.dig('data', 'createEnrollment', 'errors')
-      expect(enrollments).to be_present
-      expect(enrollments.count).to eq(3)
-      expect(errors).to be_empty
-      expect(Hmis::Hud::Enrollment.count).to eq(3)
-      expect(Hmis::Hud::Enrollment.in_progress.count).to eq(0)
-      expect(Hmis::Hud::Enrollment.all).to include(
-        *enrollments.map do |e|
-          have_attributes(
-            enrollment_id: be_present,
-            project_id: Hmis::Hud::Project.find(test_input[:project_id]).project_id,
-            personal_id: Hmis::Hud::Client.find(e['client']['id'].to_i).personal_id,
-          )
-        end,
-      )
-
-      # enrollment should appear on client query
-      response, result = post_graphql(id: c1.id) { get_client_query }
-      expect(response.status).to eq 200
-      client = result.dig('data', 'client')
-      expect(client).to be_present
-      expect(client.dig('enrollments', 'nodesCount')).to eq(1)
-    end
-
-    describe 'In progress tests' do
-      it 'should create WIP enrollment' do
-        response, result = post_graphql(input: test_input.merge(in_progress: true)) { mutation }
+      aggregate_failures 'checking response' do
         expect(response.status).to eq 200
         enrollments = result.dig('data', 'createEnrollment', 'enrollments')
         errors = result.dig('data', 'createEnrollment', 'errors')
         expect(enrollments).to be_present
         expect(enrollments.count).to eq(3)
-        expect(enrollments.pluck('inProgress').uniq).to eq([true])
-        expect(enrollments.pluck('project')).to all(be_present)
         expect(errors).to be_empty
         expect(Hmis::Hud::Enrollment.count).to eq(3)
-        expect(Hmis::Hud::Enrollment.in_progress.count).to eq(3)
-        expect(Hmis::Hud::Enrollment.where(project_id: nil).count).to eq(3)
-        expect(Hmis::Wip.count).to eq(3)
-        expect(Hmis::Wip.all).to include(*enrollments.map { |e| have_attributes(project_id: test_input[:project_id], client_id: e['client']['id'].to_i) })
-        expect(Hmis::Hud::Enrollment.viewable_by(hmis_user).count).to eq(3)
+        expect(Hmis::Hud::Enrollment.in_progress.count).to eq(0)
+        expect(Hmis::Hud::Enrollment.all).to include(
+          *enrollments.map do |e|
+            have_attributes(
+              enrollment_id: be_present,
+              project_id: Hmis::Hud::Project.find(test_input[:project_id]).project_id,
+              personal_id: Hmis::Hud::Client.find(e['client']['id'].to_i).personal_id,
+            )
+          end,
+        )
 
-        # WIP enrollment should appear on client query
+        # enrollment should appear on client query
         response, result = post_graphql(id: c1.id) { get_client_query }
         expect(response.status).to eq 200
         client = result.dig('data', 'client')
         expect(client).to be_present
         expect(client.dig('enrollments', 'nodesCount')).to eq(1)
+      end
+    end
+
+    describe 'In progress tests' do
+      it 'should create WIP enrollment' do
+        response, result = post_graphql(input: test_input.merge(in_progress: true)) { mutation }
+        aggregate_failures 'checking response' do
+          expect(response.status).to eq 200
+          enrollments = result.dig('data', 'createEnrollment', 'enrollments')
+          errors = result.dig('data', 'createEnrollment', 'errors')
+          expect(enrollments).to be_present
+          expect(enrollments.count).to eq(3)
+          expect(enrollments.pluck('inProgress').uniq).to eq([true])
+          expect(enrollments.pluck('project')).to all(be_present)
+          expect(errors).to be_empty
+          expect(Hmis::Hud::Enrollment.count).to eq(3)
+          expect(Hmis::Hud::Enrollment.in_progress.count).to eq(3)
+          expect(Hmis::Hud::Enrollment.where(project_id: nil).count).to eq(3)
+          expect(Hmis::Wip.count).to eq(3)
+          expect(Hmis::Wip.all).to include(*enrollments.map { |e| have_attributes(project_id: test_input[:project_id], client_id: e['client']['id'].to_i) })
+          expect(Hmis::Hud::Enrollment.viewable_by(hmis_user).count).to eq(3)
+
+          # WIP enrollment should appear on client query
+          response, result = post_graphql(id: c1.id) { get_client_query }
+          expect(response.status).to eq 200
+          client = result.dig('data', 'client')
+          expect(client).to be_present
+          expect(client.dig('enrollments', 'nodesCount')).to eq(1)
+        end
       end
     end
 
@@ -180,11 +179,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
           enrollments = result.dig('data', 'createEnrollment', 'enrollments')
           errors = result.dig('data', 'createEnrollment', 'errors')
-          expect(response.status).to eq 200
-          expect(enrollments).to be_empty
-          expect(errors).to contain_exactly(
-            include(**error_attrs),
-          )
+          aggregate_failures 'checking response' do
+            expect(response.status).to eq 200
+            expect(enrollments).to be_empty
+            expect(errors).to contain_exactly(
+              include(**error_attrs),
+            )
+          end
         end
       end
     end

@@ -1,4 +1,6 @@
 require 'rails_helper'
+require_relative 'login_and_permissions'
+require_relative 'hmis_base_setup'
 
 RSpec.describe Hmis::GraphqlController, type: :request do
   before(:all) do
@@ -19,12 +21,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
   let!(:o1) { create :hmis_hud_organization, data_source: ds1, user: u1 }
   let!(:p1) { create :hmis_hud_project, organization: o1, data_source: ds1, user: u2 }
-  let(:access_group) { create :edit_access_group }
+  let(:edit_access_group) { create :edit_access_group }
 
   before(:each) do
-    post hmis_user_session_path(hmis_user: { email: user.email, password: user.password })
-    access_group.add_viewable(o1.as_warehouse)
-    access_group.add(hmis_user)
+    hmis_login(user)
+    assign_viewable(edit_access_group, o1.as_warehouse, hmis_user)
   end
 
   let(:query) do
@@ -44,37 +45,45 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   it 'returns CoC pick list' do
     response, result = post_graphql(pick_list_type: 'COC') { query }
-    expect(response.status).to eq 200
-    options = result.dig('data', 'pickList')
-    expect(options[0]['code']).to be_present
+    aggregate_failures 'checking response' do
+      expect(response.status).to eq 200
+      options = result.dig('data', 'pickList')
+      expect(options[0]['code']).to be_present
+    end
   end
 
   it 'returns project pick list' do
     response, result = post_graphql(pick_list_type: 'PROJECT') { query }
-    expect(response.status).to eq 200
-    options = result.dig('data', 'pickList')
-    expect(options[0]['code']).to eq(p1.id.to_s)
-    expect(options[0]['label']).to eq(p1.project_name)
-    expect(options[0]['groupLabel']).to eq(o1.organization_name)
+    aggregate_failures 'checking response' do
+      expect(response.status).to eq 200
+      options = result.dig('data', 'pickList')
+      expect(options[0]['code']).to eq(p1.id.to_s)
+      expect(options[0]['label']).to eq(p1.project_name)
+      expect(options[0]['groupLabel']).to eq(o1.organization_name)
+    end
   end
 
   it 'returns organization pick list' do
     response, result = post_graphql(pick_list_type: 'ORGANIZATION') { query }
-    expect(response.status).to eq 200
-    options = result.dig('data', 'pickList')
-    expect(options[0]['code']).to eq(o1.id.to_s)
-    expect(options[0]['label']).to eq(o1.organization_name)
-    expect(options[0]['groupLabel']).to be_nil
+    aggregate_failures 'checking response' do
+      expect(response.status).to eq 200
+      options = result.dig('data', 'pickList')
+      expect(options[0]['code']).to eq(o1.id.to_s)
+      expect(options[0]['label']).to eq(o1.organization_name)
+      expect(options[0]['groupLabel']).to be_nil
+    end
   end
 
   it 'returns grouped living situation pick list' do
     response, result = post_graphql(pick_list_type: 'PRIOR_LIVING_SITUATION') { query }
-    expect(response.status).to eq 200
-    options = result.dig('data', 'pickList')
-    expect(options[0]['code']).to eq(::HUD.homeless_situations(as: :prior).first.to_s)
-    expect(options[0]['label']).to eq(::HUD.living_situation(options[0]['code'].to_i))
-    expect(options[0]['groupCode']).to eq('HOMELESS')
-    expect(options[0]['groupLabel']).to eq('Homeless')
+    aggregate_failures 'checking response' do
+      expect(response.status).to eq 200
+      options = result.dig('data', 'pickList')
+      expect(options[0]['code']).to eq(::HUD.homeless_situations(as: :prior).first.to_s)
+      expect(options[0]['label']).to eq(::HUD.living_situation(options[0]['code'].to_i))
+      expect(options[0]['groupCode']).to eq('HOMELESS')
+      expect(options[0]['groupLabel']).to eq('Homeless')
+    end
   end
 end
 
