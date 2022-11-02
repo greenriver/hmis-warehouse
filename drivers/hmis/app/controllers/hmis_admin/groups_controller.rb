@@ -50,7 +50,7 @@ class HmisAdmin::GroupsController < ApplicationController
   end
 
   private def group_params
-    params.require(:hmis_access_group).permit(
+    params.require(:access_group).permit(
       :name,
     )
   end

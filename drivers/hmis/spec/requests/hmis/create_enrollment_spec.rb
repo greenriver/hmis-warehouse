@@ -10,6 +10,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let(:c1) { create :hmis_hud_client, data_source: ds1, user: u1 }
   let(:c2) { create :hmis_hud_client, data_source: ds1, user: u1 }
   let(:c3) { create :hmis_hud_client, data_source: ds1, user: u1 }
+  let(:access_group) { create :hmis_access_group }
   let(:test_input) do
     {
       project_id: p1.id,
@@ -41,6 +42,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   describe 'enrollment creation tests' do
     before(:each) do
       post hmis_user_session_path(hmis_user: { email: user.email, password: user.password })
+      access_group.add_viewable(p1.as_warehouse)
+      access_group.add(hmis_user)
     end
 
     let(:mutation) do
