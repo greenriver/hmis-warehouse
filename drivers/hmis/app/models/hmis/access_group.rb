@@ -27,6 +27,15 @@ class Hmis::AccessGroup < ApplicationRecord
     all
   end
 
+  # If you can edit, you can also view
+  scope :viewable, -> do
+    where(scope: ['view', 'edit'])
+  end
+
+  scope :editable, -> do
+    where(scope: ['edit'])
+  end
+
   scope :contains, ->(entity) do
     where(
       id: GrdaWarehouse::GroupViewableEntity.where(
@@ -36,9 +45,20 @@ class Hmis::AccessGroup < ApplicationRecord
     )
   end
 
+  def self.available_scopes
+    {
+      'Viewable' => 'view',
+      'Viewable and Editable' => 'edit',
+    }.freeze
+  end
+
   # For compatibility, doesn't actually do anything here
   def coc_codes
     []
+  end
+
+  def permission_scope
+    self.class.available_scopes.invert[scope]
   end
 
   def add(users)

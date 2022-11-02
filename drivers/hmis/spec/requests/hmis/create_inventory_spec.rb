@@ -15,7 +15,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:o1) { create :hmis_hud_organization, data_source_id: ds1.id, user: u1 }
   let!(:p1) { create :hmis_hud_project, data_source_id: ds1.id, organization: o1, user: u1 }
   let!(:pc1) { create :hmis_hud_project_coc, data_source_id: ds1.id, project: p1, coc_code: 'CO-500' }
-  let(:access_group) { create :hmis_access_group }
+  let(:access_group) { create :edit_access_group }
   let(:valid_input) do
     {
       project_id: p1.id,

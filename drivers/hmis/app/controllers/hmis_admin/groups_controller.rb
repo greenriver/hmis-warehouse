@@ -52,6 +52,7 @@ class HmisAdmin::GroupsController < ApplicationController
   private def group_params
     params.require(:access_group).permit(
       :name,
+      :scope,
     )
   end
 
@@ -85,7 +86,8 @@ class HmisAdmin::GroupsController < ApplicationController
       as: :grouped_select,
       group_method: :last,
       selected: @group&.organizations&.map(&:id) || [],
-      collection: GrdaWarehouse::Hud::Organization.
+      collection: GrdaWarehouse::Hud::Organization.joins(:data_source).
+        merge(GrdaWarehouse::DataSource.hmis).
         order(:name).
         preload(:data_source).
         group_by { |o| o.data_source&.name },
@@ -102,7 +104,8 @@ class HmisAdmin::GroupsController < ApplicationController
       as: :grouped_select,
       group_method: :last,
       selected: @group&.projects&.map(&:id) || [],
-      collection: GrdaWarehouse::Hud::Project.
+      collection: GrdaWarehouse::Hud::Project.joins(:data_source).
+        merge(GrdaWarehouse::DataSource.hmis).
         order(:name).
         preload(:organization, :data_source).
         group_by { |p| "#{p.data_source&.name} / #{p.organization&.name(ignore_confidential_status: true)}" },

@@ -20,7 +20,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:i2) { create :hmis_hud_inventory, data_source: ds1, project: p1, coc_code: pc2.coc_code, inventory_start_date: '2022-01-01' }
   let!(:f1) { create :hmis_hud_funder, data_source_id: ds1.id, project: p1 }
   let!(:f2) { create :hmis_hud_funder, data_source_id: ds1.id, project: p1 }
-  let(:access_group) { create :hmis_access_group }
+  let(:access_group) { create :edit_access_group }
 
   describe 'project query' do
     before(:each) do

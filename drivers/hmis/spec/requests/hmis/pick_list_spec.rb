@@ -19,7 +19,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
   let!(:o1) { create :hmis_hud_organization, data_source: ds1, user: u1 }
   let!(:p1) { create :hmis_hud_project, organization: o1, data_source: ds1, user: u2 }
-  let(:access_group) { create :hmis_access_group }
+  let(:access_group) { create :edit_access_group }
 
   before(:each) do
     post hmis_user_session_path(hmis_user: { email: user.email, password: user.password })

@@ -602,7 +602,8 @@ CREATE TABLE public.hmis_access_groups (
     name character varying NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    scope character varying DEFAULT 'view'::character varying
 );
 
 
@@ -3127,6 +3128,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220914124822'),
 ('20221028165550'),
 ('20221101155734'),
-('20221101182012');
+('20221101182012'),
+('20221102141424');
 
 

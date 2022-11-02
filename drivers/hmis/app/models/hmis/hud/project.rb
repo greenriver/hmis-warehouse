@@ -28,12 +28,21 @@ class Hmis::Hud::Project < Hmis::Hud::Base
 
   # Any projects the user has been assigned, limited to the data source the HMIS is connected to
   scope :viewable_by, ->(user) do
-    viewable_ids = user.projects.pluck(:id)
-    viewable_ids += user.organizations.joins(:projects).pluck(p_t[:id])
-    viewable_ids += user.data_sources.joins(:projects).pluck(p_t[:id])
-    viewable_ids += user.project_access_groups.joins(:projects).pluck(p_t[:id])
+    ids = user.viewable_projects.pluck(:id)
+    ids += user.viewable_organizations.joins(:projects).pluck(p_t[:id])
+    ids += user.viewable_data_sources.joins(:projects).pluck(p_t[:id])
+    ids += user.viewable_project_access_groups.joins(:projects).pluck(p_t[:id])
 
-    where(id: viewable_ids, data_source_id: user.hmis_data_source_id)
+    where(id: ids, data_source_id: user.hmis_data_source_id)
+  end
+
+  scope :editable_by, ->(user) do
+    ids = user.editable_projects.pluck(:id)
+    ids += user.organizations.joins(:projects).pluck(p_t[:id])
+    ids += user.data_sources.joins(:projects).pluck(p_t[:id])
+    ids += user.project_access_groups.joins(:projects).pluck(p_t[:id])
+
+    where(id: ids, data_source_id: user.hmis_data_source_id)
   end
 
   # Always use ProjectType, we shouldn't need overrides since we can change the source data

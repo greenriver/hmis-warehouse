@@ -29,7 +29,7 @@ module Types
         living_situation_options(as: :current)
 
       when 'PROJECT'
-        Hmis::Hud::Project.viewable_by(user).
+        Hmis::Hud::Project.editable_by(user).
           joins(:organization).
           sort_by_option(:organization_and_name).
           map do |project|
@@ -43,7 +43,7 @@ module Types
         end
 
       when 'ORGANIZATION'
-        Hmis::Hud::Organization.viewable_by(user).
+        Hmis::Hud::Organization.editable_by(user).
           sort_by_option(:name).
           map do |organization|
           {

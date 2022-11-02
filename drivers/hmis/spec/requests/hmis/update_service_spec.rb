@@ -22,7 +22,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:c1) { create :hmis_hud_client, data_source: ds1, user: u1 }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, client: c1, project: p1, user: u1 }
   let!(:s1) { create :hmis_hud_service, data_source: ds1, client: c1, enrollment: e1, date_updated: Date.today - 1.week, user: u2 }
-  let(:access_group) { create :hmis_access_group }
+  let(:access_group) { create :edit_access_group }
 
   let(:test_input) do
     {

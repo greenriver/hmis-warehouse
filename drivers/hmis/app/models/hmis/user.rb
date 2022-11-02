@@ -62,6 +62,31 @@ class Hmis::User < ApplicationRecord
     super opts.merge({ send_instructions: false })
   end
 
+  private def viewable(model)
+    model.where(
+      id: GrdaWarehouse::GroupViewableEntity.where(
+        access_group_id: access_groups.viewable.pluck(:id),
+        entity_type: model.sti_name,
+      ).select(:entity_id),
+    )
+  end
+
+  def viewable_data_sources
+    viewable GrdaWarehouse::DataSource
+  end
+
+  def viewable_organizations
+    viewable GrdaWarehouse::Hud::Organization
+  end
+
+  def viewable_projects
+    viewable GrdaWarehouse::Hud::Project
+  end
+
+  def viewable_project_access_groups
+    viewable GrdaWarehouse::ProjectAccessGroup
+  end
+
   def viewable_project_ids
     @viewable_project_ids ||= Hmis::Hud::Project.viewable_by(self).pluck(:id)
   end
@@ -72,5 +97,34 @@ class Hmis::User < ApplicationRecord
     Rails.cache.fetch(key, expires_in: 1.minutes) do
       Hmis::Hud::Project.viewable_by(self).pluck(:id).to_set
     end
+  end
+
+  private def editable(model)
+    model.where(
+      id: GrdaWarehouse::GroupViewableEntity.where(
+        access_group_id: access_groups.editable.pluck(:id),
+        entity_type: model.sti_name,
+      ).select(:entity_id),
+    )
+  end
+
+  def editable_data_sources
+    editable GrdaWarehouse::DataSource
+  end
+
+  def editable_organizations
+    editable GrdaWarehouse::Hud::Organization
+  end
+
+  def editable_projects
+    editable GrdaWarehouse::Hud::Project
+  end
+
+  def editable_project_access_groups
+    editable GrdaWarehouse::ProjectAccessGroup
+  end
+
+  def editable_project_ids
+    @editable_project_ids ||= Hmis::Hud::Project.editable_by(self).pluck(:id)
   end
 end

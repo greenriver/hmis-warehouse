@@ -16,12 +16,14 @@
       %thead
         %tr
           %th Name
+          %th Permission Scope
           %th.text-center Assigned Users
           %th
       %tbody
         - @groups.each do |group|
           %tr
             %td= link_to group.name, edit_hmis_admin_group_path(group)
+            %td= group.permission_scope
             %td.text-center= group.users.count
             %td
               - unless group.users.count.positive?

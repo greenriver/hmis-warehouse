@@ -9,7 +9,7 @@
   .o-page__title
     %h1= content_for :title
 
-= simple_form_for @group, url: hmis_admin_group_path do |f|
+= simple_form_for @group, as: :access_group, url: hmis_admin_group_path do |f|
   = f.error_notification
   .form-inputs
     = render 'form', f: f

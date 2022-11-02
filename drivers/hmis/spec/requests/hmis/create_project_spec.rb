@@ -13,7 +13,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let(:hmis_user) { Hmis::User.find(user.id)&.tap { |u| u.update(hmis_data_source_id: ds1.id) } }
   let(:u1) { Hmis::Hud::User.from_user(hmis_user) }
   let!(:o1) { create :hmis_hud_organization, data_source: ds1, user: u1 }
-  let(:access_group) { create :hmis_access_group }
+  let(:access_group) { create :edit_access_group }
 
   let(:test_input) do
     {
