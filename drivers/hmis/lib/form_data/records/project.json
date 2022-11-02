@@ -36,23 +36,28 @@
       "link_id": "dates",
       "text": "Operating Period",
       "required": false,
-      "display": { "direction": "row" },
       "item": [
         {
           "type": "DATE",
           "required": true,
           "link_id": "2.02.3",
           "text": "Start Date",
-
-          "query_field": "operatingStartDate"
+          "query_field": "operatingStartDate",
+          "bounds": [{
+            "type": "MAX",
+            "question": "2.02.4"
+          }]
         },
         {
           "type": "DATE",
           "required": false,
           "link_id": "2.02.4",
           "text": "End Date",
-
-          "query_field": "operatingEndDate"
+          "query_field": "operatingEndDate",
+          "bounds": [{
+            "type": "MIN",
+            "question": "2.02.3"
+          }]
         }
       ]
     },

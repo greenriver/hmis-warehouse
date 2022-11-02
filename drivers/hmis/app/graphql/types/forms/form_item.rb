@@ -22,6 +22,7 @@ module Types
     field :required, Boolean, 'Whether the item must be included in data results', null: true
     field :hidden, Boolean, 'Whether the item should always be hidden', null: true
     field :read_only, Boolean, 'Whether human editing is allowed', null: true
+    field :bounds, [Forms::ValueBound], null: true
     field :repeats, Boolean, 'Whether the item may repeat (for choice types, this means multiple choice)', null: true
     field :pick_list_reference, String, 'Reference to value set of possible answer options', null: true
     field :pick_list_options, [Forms::PickListOption], 'Permitted answers, for choice items', null: true
