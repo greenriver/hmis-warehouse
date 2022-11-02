@@ -36,7 +36,8 @@ module Health
       @totals = @report.total_counts
 
       @patients = if @active_team.present?
-        patient_source.where(id: @report.team_counts.detect { |counts| counts.name == @active_team.name }.patient_referrals)
+        referrals = @report.team_counts.detect { |counts| counts.name == @active_team.name }&.patient_referrals
+        patient_source.where(id: referrals)
       else
         patient_source.where(id: @report.total_counts.patient_referrals)
       end
