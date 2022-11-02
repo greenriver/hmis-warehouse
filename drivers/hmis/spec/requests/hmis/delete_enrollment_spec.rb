@@ -16,9 +16,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     enrollment
   end
   let(:new_entry_date) { Date.today - 7.days }
+  let(:access_group) { create :hmis_access_group }
 
   before(:each) do
     post hmis_user_session_path(hmis_user: { email: user.email, password: user.password })
+    access_group.add_viewable(p1.as_warehouse)
+    access_group.add(hmis_user)
   end
 
   let(:mutation) do

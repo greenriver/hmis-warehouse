@@ -28,9 +28,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     )
   end
   let!(:ad1) { create(:hmis_form_assessment_detail, definition: fd1, assessment: a1) }
+  let(:access_group) { create :hmis_access_group }
 
   before(:each) do
     post hmis_user_session_path(hmis_user: { email: user.email, password: user.password })
+    access_group.add_viewable(p1.as_warehouse)
+    access_group.add(hmis_user)
   end
 
   let(:test_input) do

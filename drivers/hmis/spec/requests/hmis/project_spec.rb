@@ -20,10 +20,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:i2) { create :hmis_hud_inventory, data_source: ds1, project: p1, coc_code: pc2.coc_code, inventory_start_date: '2022-01-01' }
   let!(:f1) { create :hmis_hud_funder, data_source_id: ds1.id, project: p1 }
   let!(:f2) { create :hmis_hud_funder, data_source_id: ds1.id, project: p1 }
+  let(:access_group) { create :hmis_access_group }
 
   describe 'project query' do
     before(:each) do
       post hmis_user_session_path(hmis_user: { email: user.email, password: user.password })
+      access_group.add_viewable(p1.as_warehouse)
+      access_group.add(hmis_user)
     end
 
     let(:query) do
