@@ -18,4 +18,7 @@
           %td= member[:last_name]
           - client_details = member.universe_membership
           - attributes.each do |attribute|
-            %td= client_details[attribute]
+            - if attribute == 'client_id'
+              %td= link_to client_details[attribute], client_path(client_details[attribute]), target: '_blank'
+            - else
+              %td= client_details[attribute]
