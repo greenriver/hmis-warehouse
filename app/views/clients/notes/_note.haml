@@ -5,6 +5,9 @@
   %p= simple_format note.note
   .row
     .col-sm-8
+      - if note.recipient_info
+        %p.small.text-muted
+          = note.recipient_info
       %p.small.text-muted
         Posted by #{content_tag(:strong, note.user&.name)} on #{content_tag(:strong, note.created_at)}
     - if show_destroy
