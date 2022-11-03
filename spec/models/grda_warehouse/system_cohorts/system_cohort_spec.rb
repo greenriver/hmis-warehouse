@@ -25,35 +25,13 @@ RSpec.describe GrdaWarehouse::SystemCohorts::CurrentlyHomeless, type: :model do
   # 8/11/2021 - no change
   # 11/15/2021 - Inactive
 
-  let(:config_setup) do
-    config = GrdaWarehouse::Config.where(id: 1).first_or_create
-    config.update(currently_homeless_cohort: true, enable_system_cohorts: true)
-    GrdaWarehouse::ChEnrollment.maintain!
-  end
-
   context 'When populating system cohorts' do
-    before(:each) do
-      warehouse_fixture = PgFixtures.new(
-        directory: 'spec/fixpoints',
-        excluded_tables: default_excluded_tables,
-        model: GrdaWarehouseBase,
-      )
-      app_fixture = PgFixtures.new(
-        directory: 'spec/fixpoints',
-        excluded_tables: ['versions'],
-        model: ApplicationRecord,
-      )
-      if warehouse_fixture.exists? && app_fixture.exists?
-        cleanup_test_environment
-        app_fixture.restore
-        warehouse_fixture.restore
-      else
-        import_hmis_csv_fixture('spec/fixtures/files/system_cohorts')
-        config_setup
-        GrdaWarehouse::SystemCohorts::Base.update_all_system_cohorts(range: Date.new(2021, 3, 30)..Date.new(2021, 12, 2))
-        warehouse_fixture.store
-        app_fixture.store
-      end
+    before(:all) do
+      import_hmis_csv_fixture('spec/fixtures/files/system_cohorts')
+      config = GrdaWarehouse::Config.where(id: 1).first_or_create
+      config.update(currently_homeless_cohort: true, enable_system_cohorts: true)
+      GrdaWarehouse::ChEnrollment.maintain!
+      GrdaWarehouse::SystemCohorts::Base.update_all_system_cohorts(range: Date.new(2021, 3, 30)..Date.new(2021, 12, 2))
     end
 
     after(:all) do
