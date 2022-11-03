@@ -33,17 +33,26 @@ RSpec.describe GrdaWarehouse::SystemCohorts::CurrentlyHomeless, type: :model do
 
   context 'When populating system cohorts' do
     before(:each) do
-      warehouse = GrdaWarehouseBase.connection
-      if Fixpoint.exists?(:system_cohorts_app) && Fixpoint.exists?(:system_cohorts_warehouse)
+      warehouse_fixture = PgFixtures.new(
+        directory: 'spec/fixpoints',
+        excluded_tables: default_excluded_tables,
+        model: GrdaWarehouseBase,
+      )
+      app_fixture = PgFixtures.new(
+        directory: 'spec/fixpoints',
+        excluded_tables: ['versions'],
+        model: ApplicationRecord,
+      )
+      if warehouse_fixture.exists? && app_fixture.exists?
         cleanup_test_environment
-        restore_fixpoint :system_cohorts_app
-        restore_fixpoint :system_cohorts_warehouse, connection: warehouse
+        app_fixture.restore
+        warehouse_fixture.restore
       else
         import_hmis_csv_fixture('spec/fixtures/files/system_cohorts')
         config_setup
         GrdaWarehouse::SystemCohorts::Base.update_all_system_cohorts(range: Date.new(2021, 3, 30)..Date.new(2021, 12, 2))
-        store_fixpoint_unless_present :system_cohorts_app, exclude_tables: ['versions']
-        store_fixpoint_unless_present :system_cohorts_warehouse, connection: warehouse, exclude_tables: ['spatial_ref_sys', 'versions']
+        warehouse_fixture.store
+        app_fixture.store
       end
     end
 

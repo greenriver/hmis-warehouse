@@ -14,6 +14,12 @@ GIT
     census_api (2.0.1)
       http
 
+GIT
+  remote: https://github.com/greenriver/pg_fixtures.git
+  revision: 179d20ed9bfcc23f1bc3ff890442c992aa64f260
+  specs:
+    pg_fixtures (0.1.0)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -387,9 +393,6 @@ GEM
       rake
     ffi-geos (2.2.0)
       ffi (>= 1.0.0)
-    fixpoints (0.2.6)
-      activerecord (>= 5.0.0)
-      rspec
     flamegraph (0.9.5)
     formatador (0.3.0)
     geocoder (1.7.0)
@@ -988,7 +991,6 @@ DEPENDENCIES
   fast_gettext
   ffi
   ffi-geos
-  fixpoints (>= 0.2.6)
   flamegraph
   geocoder
   get_process_mem
@@ -1037,6 +1039,7 @@ DEPENDENCIES
   parallel
   paranoia (~> 2.0)
   pg
+  pg_fixtures!
   premailer
   pretender
   progress_bar
