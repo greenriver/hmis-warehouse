@@ -3,4 +3,5 @@
   .col-sm-12
     %h1 New Role
   .col-sm-8
-    = render 'new_form'
+    = simple_form_for [:admin, @role] do |f|
+      = render 'new_form', f: f, submit_text: 'Create Role'

@@ -19,6 +19,10 @@ class Hmis::Hud::Funder < Hmis::Hud::Base
     joins(:project).merge(Hmis::Hud::Project.viewable_by(user))
   end
 
+  scope :editable_by, ->(user) do
+    joins(:project).merge(Hmis::Hud::Project.editable_by(user))
+  end
+
   SORT_OPTIONS = [:start_date].freeze
 
   # Convert funder string to int #183572073

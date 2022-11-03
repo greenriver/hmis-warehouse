@@ -1,0 +1,20 @@
+- title = "Edit Group #{@group.name}"
+- content_for :title, title
+
+= content_for :crumbs do
+  = link_to hmis_admin_groups_path do
+    &laquo; Manage Groups
+
+.o-page
+  .o-page__title
+    %h1= content_for :title
+
+= simple_form_for @group, as: :access_group, url: hmis_admin_group_path do |f|
+  = f.error_notification
+  .form-inputs
+    = render 'form', f: f
+  .form_actions.mt-4
+    = f.button :submit, value: 'Update Group'
+
+.mt-4
+  = render 'users/user_members_table', item: @group, path_to_add_users: hmis_admin_group_users_path(@group), path_to_delete_item: hmis_admin_group_path(@group), delete_user_lambda: ->(user) { hmis_admin_group_user_path(@group, user)}

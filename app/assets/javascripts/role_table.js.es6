@@ -49,9 +49,9 @@ window.App.RoleTable = class RoleTable {
     })
 
     // Register events
-    $(submitActionSelector).click(this.submitChanges.bind(this))
+    $(submitActionSelector).on('click', this.submitChanges.bind(this))
     $(`${tableSelector} input`).on('change', this.changeDirtyState.bind(this, true))
-    $(tableCancelChange).click(() => {
+    $(tableCancelChange).on('click', () => {
       this.isDirty = false
       return
     })
@@ -63,7 +63,7 @@ window.App.RoleTable = class RoleTable {
   }
 
   submitChanges() {
-    $(this.submitActionSelector).blur()
+    $(this.submitActionSelector).trigger('blur')
     if (this.isSaving) return
     this.saving()
     const {

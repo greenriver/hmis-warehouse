@@ -1266,6 +1266,11 @@ enum FundingSource {
   HUD_ESG_RAPID_REHOUSING
 
   """
+  (53) HUD: ESG - RUSH
+  """
+  HUD_ESG_RUSH
+
+  """
   (11) HUD: ESG - Street Outreach
   """
   HUD_ESG_STREET_OUTREACH

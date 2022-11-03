@@ -21,6 +21,8 @@
         = link_to 'Site Config', admin_configs_path, class: 'nav-link'
       %li.nav-item{role: 'presentation', class: ('active' if current_page?(admin_translation_keys_path))}
         = link_to 'Translations', admin_translation_keys_path, class: 'nav-link'
+      %li.nav-item{role: 'presentation', class: ('active' if current_page?(admin_links_path))}
+        = link_to 'Links', admin_links_path, class: 'nav-link'
     - if can_manage_auto_client_de_duplication?
       %li.nav-item{role: 'presentation', class: ('active' if current_page?(admin_de_duplication_index_path))}
         = link_to 'Client De-Duplication', admin_de_duplication_index_path, class: 'nav-link'

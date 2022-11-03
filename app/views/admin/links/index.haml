@@ -1,0 +1,40 @@
+- title = "Links"
+- content_for :title, title
+
+.o-page
+  .o-page__title
+    %h1= content_for :title
+    = render partial: 'menus/admin_tabs'
+
+  .row.mb-4
+    .col-8
+      %p The following links will be displayed on every page.  If a subject is included, the URL should be an email address and will be shown as a link to send an email.  If no subject is included, the URL should be a fully qualified web address.
+    .col-4.text-right
+      = link_to new_admin_link_path, class: 'btn btn-primary mb-2' do
+        %span.icon-plus
+        Add a Link
+  - if @pagy.count.positive?
+    = render 'common/pagination_top', item_name: 'link'
+    .table-responsive
+      %table.table.table-striped
+        %thead
+          %tr
+            %th Label
+            %th URL
+            %th Subject
+            %th Location
+            %th
+        %tbody
+          - @links.each do |link|
+            %tr
+              %td= link_to link.label, edit_admin_link_path(link)
+              %td= link.url
+              %td= link.subject
+              %td= link.available_locations.invert[link.location.to_s]
+              %td
+                = link_to admin_link_path(link),  method: :delete, data: {confirm: "Would you really like to delete the link #{link.label}?"}, class: ['btn', 'btn-sm', 'btn-danger'] do
+                  %span.icon-cross
+                  Delete
+    = render 'common/pagination_bottom', item_name: 'link'
+  - else
+    .none-found No links found.
