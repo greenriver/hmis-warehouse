@@ -779,6 +779,7 @@ Rails.application.routes.draw do
         patch :update
       end
     end
+    resources :links
     namespace :health do
       resources :admin, only: [:index]
       resources :agencies, except: [:show]

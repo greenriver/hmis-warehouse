@@ -62,10 +62,16 @@
           = render 'layouts/footer_seal'
           %p.site-description
             = _('The Boston DND Warehouse is operated by the Department of Neighborhood Development as the lead agency of the Boston Continuum of Care.')
-          - if GrdaWarehouse::Config.get(:support_contact_email)
+          - links = Link.for(:footer)
+          - if links.present?
             .ml-4.custom-footer-content
               .text-right
-                = mail_to GrdaWarehouse::Config.get(:support_contact_email), _('Contact Support'), subject: "#{_('Boston DND Warehouse')} Support Request"
+                - links.each do |link|
+                  .ml-auto
+                    - if link.subject.present?
+                      = mail_to link.url, link.label, subject: link.subject
+                    - else
+                      = link_to link.label, link.url
 
 
     #d3-tooltip
