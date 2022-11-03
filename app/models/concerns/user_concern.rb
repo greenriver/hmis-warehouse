@@ -571,11 +571,11 @@ module UserConcern
     # end
 
     def health_agencies
-      agency_users.map(&:agency)
+      agency_users.map(&:agency).compact
     end
 
     def health_agency_names
-      health_agencies.map(&:name)
+      health_agencies.map(&:name).compact
     end
 
     def agency_users
