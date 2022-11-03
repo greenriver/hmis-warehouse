@@ -15,13 +15,20 @@ module Types
     field :group_label, String, 'Label for group that option belongs to, if grouped', null: true
     field :initial_selected, Boolean, 'Whether option is selected by default', null: true
 
-    def self.options_for_type(pick_list_type, user:)
+    def self.options_for_type(pick_list_type, user:, project_id: nil)
       relevant_state = ENV['RELEVANT_COC_STATE']
 
       case pick_list_type
       when 'COC'
-        ::HUD.cocs_in_state(relevant_state).sort.map do |code, name|
-          { code: code, label: "#{code} - #{name}" }
+        selected_project = Hmis::Hud::Project.viewable_by(user).find_by(id: project_id) if project_id.present?
+        available_codes = if selected_project.present?
+          selected_project.project_cocs.pluck(:CoCCode)
+        else
+          ::HUD.cocs_in_state(relevant_state)
+        end
+
+        available_codes.sort.map do |code, name|
+          { code: code, label: "#{code} - #{name}", initial_selected: available_codes.length == 1 }
         end
 
       when 'STATE'
