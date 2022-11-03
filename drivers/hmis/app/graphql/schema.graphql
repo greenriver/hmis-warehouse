@@ -2366,7 +2366,7 @@ type Query {
   """
   Get list of options for pick list
   """
-  pickList(pickListType: PickListType!): [PickListOption!]!
+  pickList(pickListType: PickListType!, projectId: ID): [PickListOption!]!
 
   """
   Project lookup
