@@ -12,7 +12,7 @@ module Mutations
       errors = []
       errors << InputValidationError.new('Exactly one client must be head of household', attribute: 'relationship_to_ho_h') if household_members.select { |hm| hm.relationship_to_ho_h == 1 }.size != 1
       errors << InputValidationError.new('Entry date cannot be in the future', attribute: 'start_date') if Date.parse(start_date) > Date.today
-      errors << InputValidationError.new("Project with id '#{project_id}' does not exist", attribute: 'project_id') unless Hmis::Hud::Project.viewable_by(current_user).exists?(id: project_id)
+      errors << InputValidationError.new("Project with id '#{project_id}' does not exist", attribute: 'project_id') unless Hmis::Hud::Project.editable_by(current_user).exists?(id: project_id)
       errors
     end
 
@@ -20,7 +20,7 @@ module Mutations
       result = []
       household_id = Hmis::Hud::Enrollment.generate_household_id
       lookup = Hmis::Hud::Client.where(id: household_members.map(&:id)).pluck(:id, :personal_id).to_h
-      project = Hmis::Hud::Project.viewable_by(context[:current_user]).find_by(id: project_id)
+      project = Hmis::Hud::Project.editable_by(context[:current_user]).find_by(id: project_id)
 
       household_members.each do |household_member|
         result << {

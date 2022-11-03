@@ -32,18 +32,25 @@ class Hmis::Role < ::ApplicationRecord
     permissions_with_descriptions.values.map { |perm| perm[:categories] }.flatten.uniq
   end
 
-  def self.permissions
+  def self.permissions(*) # * for backwards compatibility in the view
     permissions_with_descriptions.keys
   end
 
   def self.ensure_permissions_exist
-    Role.permissions.each do |permission|
+    permissions.each do |permission|
       ActiveRecord::Migration.add_column(table_name, permission, :boolean, default: false) unless ActiveRecord::Base.connection.column_exists?(table_name, permission)
     end
   end
 
   def self.permissions_with_descriptions
     {
+      can_administer_hmis: {
+        description: 'Grants access to the administration section for HMIS',
+        administrative: true,
+        categories: [
+          'Administration',
+        ],
+      },
       can_view_full_ssn: {
         description: 'Allow the user to see client\'s full SSN.',
         administrative: false,
@@ -58,6 +65,31 @@ class Hmis::Role < ::ApplicationRecord
           'Client Access',
         ],
       },
+      can_delete_assigned_project_data: {
+        description: 'Grants access to delete project related data for projects the user can see',
+        administrative: false,
+        categories: [
+          'Projects',
+        ],
+      },
+      can_delete_enrollments: {
+        description: 'Grants the ability to delete enrollments for clients the user has access to',
+        administrative: false,
+        categories: [
+          'Client Access',
+        ],
+      },
     }
+  end
+
+  def add(users)
+    hmis_ds = GrdaWarehouse::DataSource.hmis.first
+    Array.wrap(users).each do |u|
+      u.user_hmis_data_sources_roles.create(role: self, data_source_id: hmis_ds.id)
+    end
+  end
+
+  def remove(users)
+    self.users = (self.users - Array.wrap(users))
   end
 end

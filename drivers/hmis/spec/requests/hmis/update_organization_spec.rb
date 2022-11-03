@@ -1,4 +1,6 @@
 require 'rails_helper'
+require_relative 'login_and_permissions'
+require_relative 'hmis_base_setup'
 
 RSpec.describe Hmis::GraphqlController, type: :request do
   let(:test_input) do
@@ -28,9 +30,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
     let!(:ds1) { create :hmis_data_source }
     let!(:o1) { create :hmis_hud_organization, data_source: ds1, user: u2 }
-    before(:each) do
-      post hmis_user_session_path(hmis_user: { email: user.email, password: user.password })
-    end
+    let(:edit_access_group) { create :edit_access_group }
 
     let(:mutation) do
       <<~GRAPHQL
@@ -61,25 +61,32 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       GRAPHQL
     end
 
+    before(:each) do
+      hmis_login(user)
+      assign_viewable(edit_access_group, o1.as_warehouse, hmis_user)
+    end
+
     it 'should update a organization successfully' do
       prev_date_updated = o1.date_updated
-      expect(o1.user_id).to eq(u2.user_id)
+      aggregate_failures 'checking response' do
+        expect(o1.user_id).to eq(u2.user_id)
 
-      response, result = post_graphql(id: o1.id, input: test_input) { mutation }
+        response, result = post_graphql(id: o1.id, input: test_input) { mutation }
 
-      expect(response.status).to eq 200
-      organization = result.dig('data', 'updateOrganization', 'organization')
-      errors = result.dig('data', 'updateOrganization', 'errors')
-      expect(o1.reload.date_updated > prev_date_updated).to eq(true)
-      expect(o1.user_id).to eq(u1.user_id)
-      expect(organization).to include(
-        'id' => o1.id.to_s,
-        'organizationName' => test_input[:organization_name],
-        'victimServiceProvider' => test_input[:victim_service_provider],
-        'description' => test_input[:description],
-        'contactInformation' => test_input[:contact_information],
-      )
-      expect(errors).to be_empty
+        expect(response.status).to eq 200
+        organization = result.dig('data', 'updateOrganization', 'organization')
+        errors = result.dig('data', 'updateOrganization', 'errors')
+        expect(o1.reload.date_updated > prev_date_updated).to eq(true)
+        expect(o1.user_id).to eq(u1.user_id)
+        expect(organization).to include(
+          'id' => o1.id.to_s,
+          'organizationName' => test_input[:organization_name],
+          'victimServiceProvider' => test_input[:victim_service_provider],
+          'description' => test_input[:description],
+          'contactInformation' => test_input[:contact_information],
+        )
+        expect(errors).to be_empty
+      end
     end
   end
 end

@@ -1,4 +1,6 @@
 require 'rails_helper'
+require_relative 'login_and_permissions'
+require_relative 'hmis_base_setup'
 
 RSpec.describe Hmis::SessionsController, type: :request do
   let(:user) { create :user }
@@ -13,7 +15,7 @@ RSpec.describe Hmis::SessionsController, type: :request do
   end
   describe 'Successful login' do
     before(:each) do
-      post hmis_user_session_path(hmis_user: { email: user.email, password: user.password })
+      hmis_login(user)
     end
 
     it 'user failed_attempts should not increment' do
@@ -23,13 +25,15 @@ RSpec.describe Hmis::SessionsController, type: :request do
 
   describe 'Successful logout' do
     before(:each) do
-      post hmis_user_session_path(hmis_user: { email: user.email, password: user.password })
+      hmis_login(user)
     end
 
     it 'has correct response code' do
-      expect(response.status).to eq 200
-      delete destroy_hmis_user_session_path
-      expect(response.status).to eq 204
+      aggregate_failures 'checking response' do
+        expect(response.status).to eq 200
+        delete destroy_hmis_user_session_path
+        expect(response.status).to eq 204
+      end
     end
   end
 
@@ -47,7 +51,7 @@ RSpec.describe Hmis::SessionsController, type: :request do
 
     describe 'followed by a successful login' do
       before(:each) do
-        post hmis_user_session_path(hmis_user: { email: user.email, password: user.password })
+        hmis_login(user)
       end
 
       it 'user failed_attempts should return to 0' do
@@ -64,7 +68,7 @@ RSpec.describe Hmis::SessionsController, type: :request do
       ActionController::Base.allow_forgery_protection = false
     end
     it 'has correct response code' do
-      post hmis_user_session_path(hmis_user: { email: user.email, password: user.password })
+      hmis_login(user)
       expect(response.status).to eq 401
     end
   end
@@ -77,9 +81,11 @@ RSpec.describe Hmis::SessionsController, type: :request do
       user.update(active: true)
     end
     it 'has correct response' do
-      post hmis_user_session_path(hmis_user: { email: user.email, password: user.password })
-      expect(response.status).to eq 401
-      expect(response.body).to include 'inactive'
+      hmis_login(user)
+      aggregate_failures 'checking response' do
+        expect(response.status).to eq 401
+        expect(response.body).to include 'inactive'
+      end
     end
   end
 
@@ -109,21 +115,27 @@ RSpec.describe Hmis::SessionsController, type: :request do
     end
 
     it 'user is expected to enter 2fa' do
-      expect(response.status).to eq 403
-      expect(response.body).to include 'mfa_required'
+      aggregate_failures 'checking response' do
+        expect(response.status).to eq 403
+        expect(response.body).to include 'mfa_required'
+      end
     end
 
     it 'user logs in when correct 2fa entered' do
       post hmis_user_session_path(hmis_user: { otp_attempt: user_2fa.current_otp })
-      expect(response.status).to eq 200
-      expect(user_2fa.reload.failed_attempts).to eq 0
+      aggregate_failures 'checking response' do
+        expect(response.status).to eq 200
+        expect(user_2fa.reload.failed_attempts).to eq 0
+      end
     end
 
     it 'user does not log in when incorrect 2fa entered' do
       post hmis_user_session_path(hmis_user: { otp_attempt: '-1' })
-      expect(response.status).to eq 403
-      expect(response.body).to include 'invalid_code'
-      expect(user_2fa.reload.failed_attempts).to eq 2 # double increment bug
+      aggregate_failures 'checking response' do
+        expect(response.status).to eq 403
+        expect(response.body).to include 'invalid_code'
+        expect(user_2fa.reload.failed_attempts).to eq 2 # double increment bug
+      end
     end
 
     describe 'User does not remember 2FA device' do
@@ -134,8 +146,10 @@ RSpec.describe Hmis::SessionsController, type: :request do
       end
 
       it 'user is expected to enter 2fa' do
-        expect(response.status).to eq 403
-        expect(response.body).to include 'mfa_required'
+        aggregate_failures 'checking response' do
+          expect(response.status).to eq 403
+          expect(response.body).to include 'mfa_required'
+        end
       end
 
       it 'user has zero memorized device' do
@@ -168,43 +182,55 @@ RSpec.describe Hmis::SessionsController, type: :request do
       end
 
       it 'user failed_attempts should not increment' do
-        expect(response.status).to eq 200
-        expect(user_2fa.reload.failed_attempts).to eq 0
+        aggregate_failures 'checking response' do
+          expect(response.status).to eq 200
+          expect(user_2fa.reload.failed_attempts).to eq 0
+        end
       end
 
       it 'user does not have to enter 2fa on log in' do
-        expect(response.status).to eq 200
-        expect(response.body).to_not include 'mfa_required'
+        aggregate_failures 'checking response' do
+          expect(response.status).to eq 200
+          expect(response.body).to_not include 'mfa_required'
+        end
       end
 
       it 'user has one memorized device' do
-        expect(response.status).to eq 200
-        expect(user_2fa.two_factors_memorized_devices.count).to eq 1
+        aggregate_failures 'checking response' do
+          expect(response.status).to eq 200
+          expect(user_2fa.two_factors_memorized_devices.count).to eq 1
+        end
       end
 
       it 'user has something in memorized device cookie' do
-        expect(response.status).to eq 200
-        device_uuid = user_2fa.two_factors_memorized_devices.first.uuid
-        jar = ActionDispatch::Cookies::CookieJar.build(request, cookies.to_hash)
-        expect(jar.encrypted[:memorized_device]).to eq device_uuid
+        aggregate_failures 'checking response' do
+          expect(response.status).to eq 200
+          device_uuid = user_2fa.two_factors_memorized_devices.first.uuid
+          jar = ActionDispatch::Cookies::CookieJar.build(request, cookies.to_hash)
+          expect(jar.encrypted[:memorized_device]).to eq device_uuid
+        end
       end
 
       it 'user does not have to enter 2fa on log in before device expires' do
         travel_to Time.current + 30.days do
           delete destroy_hmis_user_session_path
-          expect(response.status).to eq 204
-          post hmis_user_session_path(hmis_user: { email: user_2fa.email, password: user_2fa.password })
-          expect(response.status).to eq 200
+          aggregate_failures 'checking response' do
+            expect(response.status).to eq 204
+            post hmis_user_session_path(hmis_user: { email: user_2fa.email, password: user_2fa.password })
+            expect(response.status).to eq 200
+          end
         end
       end
 
       it 'user has to reenter 2fa after device expires' do
         travel_to Time.current + 31.days do
           delete destroy_hmis_user_session_path
-          expect(response.status).to eq 204
-          post hmis_user_session_path(hmis_user: { email: user_2fa.email, password: user_2fa.password })
-          expect(response.status).to eq 403
-          expect(response.body).to include 'mfa_required'
+          aggregate_failures 'checking response' do
+            expect(response.status).to eq 204
+            post hmis_user_session_path(hmis_user: { email: user_2fa.email, password: user_2fa.password })
+            expect(response.status).to eq 403
+            expect(response.body).to include 'mfa_required'
+          end
         end
       end
     end

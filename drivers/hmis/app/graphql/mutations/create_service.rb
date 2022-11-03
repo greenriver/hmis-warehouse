@@ -8,7 +8,7 @@ module Mutations
     def validate_input(input)
       errors = []
       params = input.to_params
-      errors << InputValidationError.new("Enrollment with id '#{input.enrollment_id}' does not exist", attribute: 'enrollment_id') unless Hmis::Hud::Enrollment.viewable_by(current_user).exists?(enrollment_id: params[:enrollment_id].to_i)
+      errors << InputValidationError.new("Enrollment with id '#{input.enrollment_id}' does not exist", attribute: 'enrollment_id') unless Hmis::Hud::Enrollment.editable_by(current_user).exists?(enrollment_id: params[:enrollment_id].to_i)
       errors
     end
 
