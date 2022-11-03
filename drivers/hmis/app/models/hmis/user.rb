@@ -16,6 +16,7 @@ class Hmis::User < ApplicationRecord
   has_many :user_hmis_data_sources_roles, class_name: '::Hmis::UserHmisDataSourceRole', dependent: :destroy, inverse_of: :user # join table with user_id, data_source_id, role_id
   has_many :roles, through: :user_hmis_data_sources_roles, source: :role
   has_many :hmis_data_sources, through: :user_hmis_data_sources_roles, source: :data_source
+  has_many :groups, class_name: '::Hmis::AccessGroup'
   attr_accessor :hmis_data_source_id # stores the data_source_id of the currently logged in HMIS
 
   def skip_session_limitable?
@@ -59,5 +60,71 @@ class Hmis::User < ApplicationRecord
 
   def lock_access!(opts = {})
     super opts.merge({ send_instructions: false })
+  end
+
+  private def viewable(model)
+    model.where(
+      id: GrdaWarehouse::GroupViewableEntity.where(
+        access_group_id: access_groups.viewable.pluck(:id),
+        entity_type: model.sti_name,
+      ).select(:entity_id),
+    )
+  end
+
+  def viewable_data_sources
+    viewable GrdaWarehouse::DataSource
+  end
+
+  def viewable_organizations
+    viewable GrdaWarehouse::Hud::Organization
+  end
+
+  def viewable_projects
+    viewable GrdaWarehouse::Hud::Project
+  end
+
+  def viewable_project_access_groups
+    viewable GrdaWarehouse::ProjectAccessGroup
+  end
+
+  def viewable_project_ids
+    @viewable_project_ids ||= Hmis::Hud::Project.viewable_by(self).pluck(:id)
+  end
+
+  private def cached_viewable_project_ids(force_calculation: false)
+    key = [self.class.name, __method__, id]
+    Rails.cache.delete(key) if force_calculation
+    Rails.cache.fetch(key, expires_in: 1.minutes) do
+      Hmis::Hud::Project.viewable_by(self).pluck(:id).to_set
+    end
+  end
+
+  private def editable(model)
+    model.where(
+      id: GrdaWarehouse::GroupViewableEntity.where(
+        access_group_id: access_groups.editable.pluck(:id),
+        entity_type: model.sti_name,
+      ).select(:entity_id),
+    )
+  end
+
+  def editable_data_sources
+    editable GrdaWarehouse::DataSource
+  end
+
+  def editable_organizations
+    editable GrdaWarehouse::Hud::Organization
+  end
+
+  def editable_projects
+    editable GrdaWarehouse::Hud::Project
+  end
+
+  def editable_project_access_groups
+    editable GrdaWarehouse::ProjectAccessGroup
+  end
+
+  def editable_project_ids
+    @editable_project_ids ||= Hmis::Hud::Project.editable_by(self).pluck(:id)
   end
 end

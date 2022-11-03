@@ -5,6 +5,7 @@
 ###
 
 class Hmis::Hud::Organization < Hmis::Hud::Base
+  include ArelHelper
   include ::HmisStructure::Organization
   include ::Hmis::Hud::Shared
   self.table_name = :Organization
@@ -18,8 +19,15 @@ class Hmis::Hud::Organization < Hmis::Hud::Base
 
   # Any organizations the user has been assigned, limited to the data source the HMIS is connected to
   scope :viewable_by, ->(user) do
-    viewable_ids = GrdaWarehouse::Hud::Organization.viewable_by(user).pluck(:id)
-    where(id: viewable_ids, data_source_id: user.hmis_data_source_id)
+    ids = user.viewable_organizations.pluck(:id)
+    ids += user.viewable_data_sources.joins(:organizations).pluck(o_t[:id])
+    where(id: ids, data_source_id: user.hmis_data_source_id)
+  end
+
+  scope :editable_by, ->(user) do
+    ids = user.editable_organizations.pluck(:id)
+    ids += user.editable_data_sources.joins(:organizations).pluck(o_t[:id])
+    where(id: ids, data_source_id: user.hmis_data_source_id)
   end
 
   SORT_OPTIONS = [:name].freeze

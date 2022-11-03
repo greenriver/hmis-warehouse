@@ -318,12 +318,28 @@ def setup_fake_health_data
   Health::AgencyUserSaver.new(user_id: u.id, agency_ids: Health::Agency.pluck(:id)).save
 end
 
+def setup_hmis_admin_access
+  return unless ENV['HMIS_HOSTNAME'].present?
+
+  hmis_ds = GrdaWarehouse::DataSource.source.where.not(hmis: nil).first_or_create do |ds|
+    ds.hmis = ENV['HMIS_HOSTNAME']
+    ds.name = 'HMIS Data Source'
+  end
+  return if Hmis::Role.where(can_administer_hmis: true).exists?
+
+  role = Hmis::Role.create(name: 'HMIS Administrator', can_administer_hmis: true)
+  user = Hmis::User.not_system.first
+  user.hmis_data_source_id = hmis_ids.id
+  user.user_hmis_data_sources_roles.create(role: role, data_source_id: user.hmis_data_source_id)
+end
+
 ensure_db_triggers_and_functions
 setup_fake_user if Rails.env.development?
 setup_fake_health_data
 maintain_data_sources
 GrdaWarehouse::WarehouseReports::ReportDefinition.maintain_report_definitions
 maintain_health_seeds
+setup_hmis_admin_access
 # install_shapes() # run manually as needed
 maintain_lookups
 GrdaWarehouse::Help.setup_default_links

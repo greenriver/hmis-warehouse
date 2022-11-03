@@ -381,4 +381,12 @@ module ApplicationHelper
   def inline_asset_base64(path)
     AssetHelper.wicked_pdf_asset_base64(path)
   end
+
+  def hmis_enabled?
+    HmisEnforcement.hmis_enabled?
+  end
+
+  def hmis_admin_visible?
+    HmisEnforcement.hmis_admin_visible?(current_user)
+  end
 end

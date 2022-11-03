@@ -43,6 +43,10 @@ class Hmis::Hud::Service < Hmis::Hud::Base
     joins(:enrollment).merge(Hmis::Hud::Enrollment.viewable_by(user))
   end
 
+  scope :editable_by, ->(user) do
+    joins(:enrollment).merge(Hmis::Hud::Enrollment.editable_by(user))
+  end
+
   def self.generate_services_id
     generate_uuid
   end

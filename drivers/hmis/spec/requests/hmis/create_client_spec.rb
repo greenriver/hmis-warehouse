@@ -1,4 +1,6 @@
 require 'rails_helper'
+require_relative 'login_and_permissions'
+require_relative 'hmis_base_setup'
 
 RSpec.describe Hmis::GraphqlController, type: :request do
   let(:test_input) do
@@ -129,7 +131,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     before(:each) do
-      post hmis_user_session_path(hmis_user: { email: user.email, password: user.password })
+      hmis_login(user)
     end
 
     let(:mutation) do
@@ -201,13 +203,15 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
       response, result = post_graphql(input: mutation_input) { mutation }
 
-      expect(response.status).to eq 200
-      client = result.dig('data', 'createClient', 'client')
-      errors = result.dig('data', 'createClient', 'errors')
-      expect(errors).to be_empty
-      expect(client['id']).to be_present
-      expect(client['race']).to contain_exactly('RACE_REFUSED')
-      expect(client['gender']).to contain_exactly('GENDER_DATA_NOT_COLLECTED')
+      aggregate_failures 'checking response' do
+        expect(response.status).to eq 200
+        client = result.dig('data', 'createClient', 'client')
+        errors = result.dig('data', 'createClient', 'errors')
+        expect(errors).to be_empty
+        expect(client['id']).to be_present
+        expect(client['race']).to contain_exactly('RACE_REFUSED')
+        expect(client['gender']).to contain_exactly('GENDER_DATA_NOT_COLLECTED')
+      end
     end
 
     it 'should save and resolve race and gender correctly when multiple present' do
@@ -220,13 +224,15 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       }
       response, result = post_graphql(input: mutation_input) { mutation }
 
-      expect(response.status).to eq 200
-      client = result.dig('data', 'createClient', 'client')
-      errors = result.dig('data', 'createClient', 'errors')
-      expect(errors).to be_empty
-      expect(client['id']).to be_present
-      expect(client['race']).to contain_exactly(*races)
-      expect(client['gender']).to contain_exactly(*genders)
+      aggregate_failures 'checking response' do
+        expect(response.status).to eq 200
+        client = result.dig('data', 'createClient', 'client')
+        errors = result.dig('data', 'createClient', 'errors')
+        expect(errors).to be_empty
+        expect(client['id']).to be_present
+        expect(client['race']).to contain_exactly(*races)
+        expect(client['gender']).to contain_exactly(*genders)
+      end
     end
 
     it 'should throw errors if the client is invalid' do
@@ -235,9 +241,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       client = result.dig('data', 'createClient', 'client')
       errors = result.dig('data', 'createClient', 'errors')
 
-      expect(response.status).to eq 200
-      expect(client).to be_nil
-      expect(errors).to be_present
+      aggregate_failures 'checking response' do
+        expect(response.status).to eq 200
+        expect(client).to be_nil
+        expect(errors).to be_present
+      end
     end
   end
 end
