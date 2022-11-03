@@ -40,7 +40,7 @@ module GrdaWarehouse
       enrollment_ids = GrdaWarehouse::Hud::Enrollment.processed.pluck(:id)
       to_add = enrollment_ids - ch_enrollment_ids
       GrdaWarehouse::Hud::Enrollment.processed.
-        preload(:project).
+        preload(:project, :disabilities_at_entry).
         where(id: to_add).find_in_batches do |enrollments|
           batch = []
           enrollments.each do |enrollment|
@@ -55,7 +55,7 @@ module GrdaWarehouse
     end
 
     def self.update_existing!
-      needs_processing.preload(enrollment: :project).find_in_batches do |ch_enrollments|
+      needs_processing.preload(enrollment: [:project, :disabilities_at_entry]).find_in_batches do |ch_enrollments|
         batch = []
         ch_enrollments.each do |ch_enrollment|
           enrollment = ch_enrollment.enrollment
@@ -179,10 +179,14 @@ module GrdaWarehouse
 
     # Line 1 (3.08)
     def self.disabling_condition(enrollment)
-      result = if is_no?(enrollment.DisablingCondition)
-        :no
-      elsif dk_or_r_or_missing(enrollment.DisablingCondition)
-        dk_or_r_or_missing(enrollment.DisablingCondition)
+      # if we don't have a yes from DisablingCondition, look to the disability entry records
+      # if none of the disabilities are indefinite and impairing, then return the DisablingCondition
+      result = if (is_no?(enrollment.DisablingCondition) || dk_or_r_or_missing(enrollment.DisablingCondition)) && enrollment.disabilities_at_entry&.map(&:indefinite_and_impairs?)&.none?(true)
+        if is_no?(enrollment.DisablingCondition)
+          :no
+        elsif dk_or_r_or_missing(enrollment.DisablingCondition)
+          dk_or_r_or_missing(enrollment.DisablingCondition)
+        end
       else
         :continue
       end
