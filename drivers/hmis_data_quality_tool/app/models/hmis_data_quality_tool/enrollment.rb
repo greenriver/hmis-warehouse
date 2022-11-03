@@ -14,6 +14,12 @@ module HmisDataQualityTool
     include HudReports::Clients
     acts_as_paranoid
 
+    # These should probably live somewhere else, but for now, they live here
+    # they come from the HUD DQ report Q5
+    HOMELESS_LIVING_SITUATIONS = [16, 1, 18].freeze
+    INSTITUTIONAL_LIVING_SITUATIONS = [15, 6, 7, 25, 4, 5].freeze
+    HOUSED_LIVING_SITUATIONS = [29, 14, 2, 32, 36, 35, 28, 19, 3, 31, 33, 34, 10, 20, 21, 11, 8, 9, 99].freeze
+
     attr_accessor :report_end_date
 
     has_many :hud_reports_universe_members, inverse_of: :universe_membership, class_name: 'HudReports::UniverseMember', foreign_key: :universe_membership_id
@@ -39,6 +45,10 @@ module HmisDataQualityTool
         relationship_to_hoh: { title: 'Relationship to Head of Household', translator: ->(v) { HUD.relationship_to_hoh(v) } },
         coc_code: { title: 'CoC Code' },
         destination: { title: 'Exit Destination', translator: ->(v) { HUD.destination(v) } },
+        entry_date_entered_at: { title: 'Entry Date Added' },
+        exit_date_entered_at: { title: 'Exit Date Added' },
+        days_to_enter_entry_date: { title: 'Days to Add Entry Date' },
+        days_to_enter_exit_date: { title: 'Days to Add Exit Date' },
         project_operating_start_date: { title: 'Project Operating Start Date' },
         project_operating_end_date: { title: 'Project Operating End Date' },
         project_type: { title: 'Project Type', translator: ->(v) { HUD.project_type(v) } },
@@ -55,6 +65,7 @@ module HmisDataQualityTool
         insurance_at_annual_expected: { title: 'Insurance at annual expected?' },
         insurance_at_exit_expected: { title: 'Insurance at exit expected?' },
         los_under_threshold: { title: 'Length of time under threshold (3.917.2A & 2B)' },
+        previous_street_es_sh: { title: 'On the night before, did you stay on the streets, ES, or SH (3.917.2C)' },
         date_to_street_essh: { title: 'Approximate start of episode (3.917.3)' },
         times_homeless_past_three_years: { title: 'Times homelessin the past 3 years (3.917.4)' },
         months_homeless_past_three_years: { title: 'Months homeless in the past 3 years (3.917.5)' },
@@ -166,6 +177,10 @@ module HmisDataQualityTool
       report_item.entry_date = enrollment.EntryDate
       report_item.move_in_date = enrollment.MoveInDate
       report_item.exit_date = enrollment.exit&.ExitDate
+      report_item.entry_date_entered_at = enrollment.DateCreated
+      report_item.exit_date_entered_at = enrollment.exit&.DateCreated
+      report_item.days_to_enter_entry_date = (enrollment.DateCreated.to_date || Date.current) - enrollment.EntryDate
+      report_item.days_to_enter_exit_date = enrollment.exit.DateCreated.to_date - enrollment.exit.ExitDate if enrollment.exit&.DateCreated.present? && enrollment.exit&.ExitDate.present?
       report_item.disabling_condition = enrollment.DisablingCondition
       report_item.household_id = enrollment.HouseholdID
       report_item.living_situation = enrollment.LivingSituation
@@ -204,6 +219,7 @@ module HmisDataQualityTool
 
       report_item.los_under_threshold = enrollment.LOSUnderThreshold
       report_item.date_to_street_essh = enrollment.DateToStreetESSH
+      report_item.previous_street_es_sh = enrollment.PreviousStreetESSH
       report_item.times_homeless_past_three_years = enrollment.TimesHomelessPastThreeYears
       report_item.months_homeless_past_three_years = enrollment.MonthsHomelessPastThreeYears
       report_item.enrollment_coc = enrollment.enrollment_coc_at_entry&.CoCCode
@@ -1413,6 +1429,176 @@ module HmisDataQualityTool
           ],
           denominator: ->(_item) { true },
           limiter: ->(item) { ! item.disability_at_entry_collected },
+        },
+        date_to_street_issues: {
+          title: 'Approximate Date Homeless',
+          description: 'Approximate Date Homeless (Date to Street ES SH 3.917.3) is required in some situations',
+          required_for: 'Adults and HoH in ES, SH, SO, TH, or PH, further restricted by living situation and project type',
+          detail_columns: [
+            :destination_client_id,
+            :hmis_enrollment_id,
+            :personal_id,
+            :project_name,
+            :exit_id,
+            :entry_date,
+            :move_in_date,
+            :exit_date,
+            :age,
+            :relationship_to_hoh,
+            :date_to_street_essh,
+            :previous_street_es_sh,
+            :los_under_threshold,
+            :times_homeless_past_three_years,
+            :months_homeless_past_three_years,
+          ],
+          denominator: ->(item) {
+            return false unless hoh_or_adult?(item) && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS.include?(item.project_type)
+            # required for HoH and Adults in ES, SO, SH
+            return true if GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES.include?(item.project_type)
+
+            return true if item.living_situation.in?(HOMELESS_LIVING_SITUATIONS)
+            return true if item.living_situation.in?(INSTITUTIONAL_LIVING_SITUATIONS) && item.los_under_threshold == 1 && item.previous_street_es_sh
+            return true if item.living_situation.in?(HOUSED_LIVING_SITUATIONS) && item.los_under_threshold == 1 && item.previous_street_es_sh
+
+            false
+          },
+          limiter: ->(item) {
+            return false unless hoh_or_adult?(item)
+            return false unless GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS.include?(item.project_type)
+
+            item.date_to_street_essh.blank?
+          },
+        },
+        times_homeless_issues: {
+          title: 'Number Times Homeless',
+          description: 'The number of times someone was previously homeless is required in some situations.',
+          required_for: 'Adults and HoH in ES, SH, SO, TH, or PH, further restricted by living situation and project type',
+          detail_columns: [
+            :destination_client_id,
+            :hmis_enrollment_id,
+            :personal_id,
+            :project_name,
+            :exit_id,
+            :entry_date,
+            :move_in_date,
+            :exit_date,
+            :age,
+            :relationship_to_hoh,
+            :date_to_street_essh,
+            :previous_street_es_sh,
+            :los_under_threshold,
+            :times_homeless_past_three_years,
+            :months_homeless_past_three_years,
+          ],
+          denominator: ->(item) {
+            return false unless hoh_or_adult?(item) && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS.include?(item.project_type)
+            # required for HoH and Adults in ES, SO, SH
+            return true if GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES.include?(item.project_type)
+
+            return true if item.living_situation.in?(HOMELESS_LIVING_SITUATIONS)
+            return true if item.living_situation.in?(INSTITUTIONAL_LIVING_SITUATIONS) && item.los_under_threshold == 1 && item.previous_street_es_sh
+            return true if item.living_situation.in?(HOUSED_LIVING_SITUATIONS) && item.los_under_threshold == 1 && item.previous_street_es_sh
+
+            false
+          },
+          limiter: ->(item) {
+            return false unless hoh_or_adult?(item)
+            return false unless GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS.include?(item.project_type)
+
+            item.times_homeless_past_three_years.blank? && item.times_homeless_past_three_years != 99
+          },
+        },
+        months_homeless_issues: {
+          title: 'Number of Months Homeless',
+          description: 'The number of months someone was previously homeless is required in some situations.',
+          required_for: 'Adults and HoH in ES, SH, SO, TH, or PH, further restricted by living situation and project type',
+          detail_columns: [
+            :destination_client_id,
+            :hmis_enrollment_id,
+            :personal_id,
+            :project_name,
+            :exit_id,
+            :entry_date,
+            :move_in_date,
+            :exit_date,
+            :age,
+            :relationship_to_hoh,
+            :date_to_street_essh,
+            :previous_street_es_sh,
+            :los_under_threshold,
+            :times_homeless_past_three_years,
+            :months_homeless_past_three_years,
+          ],
+          denominator: ->(item) {
+            return false unless hoh_or_adult?(item) && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS.include?(item.project_type)
+            # required for HoH and Adults in ES, SO, SH
+            return true if GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES.include?(item.project_type)
+
+            return true if item.living_situation.in?(HOMELESS_LIVING_SITUATIONS)
+            return true if item.living_situation.in?(INSTITUTIONAL_LIVING_SITUATIONS) && item.los_under_threshold == 1 && item.previous_street_es_sh
+            return true if item.living_situation.in?(HOUSED_LIVING_SITUATIONS) && item.los_under_threshold == 1 && item.previous_street_es_sh
+
+            false
+          },
+          limiter: ->(item) {
+            return false unless hoh_or_adult?(item)
+            return false unless GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS.include?(item.project_type)
+
+            item.months_homeless_past_three_years.blank? && item.months_homeless_past_three_years != 99
+          },
+        },
+        entry_date_entry_0_days_issues: {
+          title: 'Time for Record Entry of Entry Date (0 days)',
+          description: 'Timely data entry is critical to ensuring data accuracy and completeness, these records were entered on the same day as the enrollment start date.',
+          required_for: 'All',
+          detail_columns: [
+            :destination_client_id,
+            :hmis_enrollment_id,
+            :personal_id,
+            :project_name,
+            :exit_id,
+            :entry_date,
+            :move_in_date,
+            :exit_date,
+            :age,
+            :relationship_to_hoh,
+            :entry_date_entered_at,
+            :days_to_enter_entry_date,
+          ],
+          denominator: ->(_) {
+            true
+          },
+          limiter: ->(item) {
+            ! item.entry_date_entered_at&.zero?
+          },
+        },
+
+        exit_date_entry_0_days_issues: {
+          title: 'Time for Record Entry of Exit Date (0 days)',
+          description: 'Timely data entry is critical to ensuring data accuracy and completeness, these records were entered on the same day as the enrollment exit date.',
+          required_for: 'All exiting during report range',
+          detail_columns: [
+            :destination_client_id,
+            :hmis_enrollment_id,
+            :personal_id,
+            :project_name,
+            :exit_id,
+            :entry_date,
+            :move_in_date,
+            :exit_date,
+            :age,
+            :relationship_to_hoh,
+            :exit_date_entered_at,
+            :days_to_enter_exit_date,
+          ],
+          denominator: ->(item) {
+            item.exit_date.present?
+          },
+          limiter: ->(item) {
+            return false unless item.exit_date.present?
+
+            ! item.days_to_enter_exit_date&.zero?
+          },
         },
       }.freeze
     end

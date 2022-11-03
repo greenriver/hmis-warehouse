@@ -766,6 +766,40 @@ ALTER SEQUENCE public.letsencrypt_plugin_settings_id_seq OWNED BY public.letsenc
 
 
 --
+-- Name: links; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.links (
+    id bigint NOT NULL,
+    location character varying,
+    url character varying,
+    label character varying,
+    subject character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: links_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.links_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: links_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.links_id_seq OWNED BY public.links.id;
+
+
+--
 -- Name: login_activities; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1892,6 +1926,13 @@ ALTER TABLE ONLY public.letsencrypt_plugin_settings ALTER COLUMN id SET DEFAULT 
 
 
 --
+-- Name: links id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.links ALTER COLUMN id SET DEFAULT nextval('public.links_id_seq'::regclass);
+
+
+--
 -- Name: login_activities id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -2203,6 +2244,14 @@ ALTER TABLE ONLY public.letsencrypt_plugin_challenges
 
 ALTER TABLE ONLY public.letsencrypt_plugin_settings
     ADD CONSTRAINT letsencrypt_plugin_settings_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: links links_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.links
+    ADD CONSTRAINT links_pkey PRIMARY KEY (id);
 
 
 --
@@ -3129,6 +3178,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20221028165550'),
 ('20221101155734'),
 ('20221101182012'),
-('20221102141424');
+('20221102141424'),
+('20221103165106'),
+('20221103165625');
 
 

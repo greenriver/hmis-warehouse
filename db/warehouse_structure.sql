@@ -13348,7 +13348,12 @@ CREATE TABLE public.hmis_dqt_enrollments (
     insurance_as_expected_at_entry boolean DEFAULT false,
     insurance_as_expected_at_annual boolean DEFAULT false,
     insurance_as_expected_at_exit boolean DEFAULT false,
-    disability_at_entry_collected boolean DEFAULT false
+    disability_at_entry_collected boolean DEFAULT false,
+    previous_street_es_sh integer,
+    entry_date_entered_at timestamp without time zone,
+    exit_date_entered_at timestamp without time zone,
+    days_to_enter_entry_date integer,
+    days_to_enter_exit_date integer
 );
 
 
@@ -50634,6 +50639,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20221019182810'),
 ('20221020113634'),
 ('20221021205724'),
-('20221028172017');
+('20221028172017'),
+('20221103201310');
 
 
