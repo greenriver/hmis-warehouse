@@ -12,7 +12,7 @@ on:
   #     - '**/*'
 concurrency:
   group: ${{ github.ref }}-tests
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   # Label of the container job
