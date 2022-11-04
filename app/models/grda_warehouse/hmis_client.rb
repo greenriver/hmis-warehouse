@@ -63,6 +63,10 @@ class GrdaWarehouse::HmisClient < GrdaWarehouseBase
     processed_fields.try(:[], 'youth_current_zip')
   end
 
+  def primary_language
+    processed_fields.try(:[], 'language_1') || processed_fields.try(:[], 'language_2')
+  end
+
   def self.maintain_client_consent
     return unless GrdaWarehouse::Config.get(:release_duration) == 'Use Expiration Date'
 
