@@ -151,6 +151,29 @@ module HmisDataQualityTool
         merge(report.report_scope).distinct
     end
 
+    def self.detail_headers_for(slug, report)
+      # Months homeless has the same detail columns we need for the CH questions
+      slug = :months_homeless_issues unless sections(report).key?(slug.to_sym)
+
+      section = sections(report)[slug.to_sym]
+      headers = detail_headers.transform_values { |v| v.except(:translator) }
+      return headers unless section
+
+      columns = section[:detail_columns]
+      return headers unless columns.present?
+
+      headers.select { |k, _| k.in?(columns) }
+    end
+
+    def download_value(key)
+      translator = self.class.detail_headers[key][:translator]
+      value = public_send(key)
+      return translator.call(value) if translator.present?
+      return value == true ? 'Yes' : 'No' if value.in?([true, false])
+
+      value
+    end
+
     # Instance method so we can take advantage of caching
     def report_item_fields_from_enrollment(report_items:, enrollment:, report:) # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
       # we only need to do the calculations once, the values will be the same for any enrollment,

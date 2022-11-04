@@ -55,6 +55,29 @@ module HmisDataQualityTool
       detail_headers.except(:first_name, :last_name, :dob, :ssn)
     end
 
+    def self.detail_headers_for(slug, report)
+      headers = detail_headers.transform_values { |v| v.except(:translator) }
+      if sections(report).key?(slug.to_sym)
+        section = sections(report)[slug.to_sym]
+        return headers unless section
+
+        columns = section[:detail_columns]
+        return headers unless columns.present?
+      else
+        # Handle CH details
+        columns = [
+          :destination_client_id,
+          :first_name,
+          :last_name,
+          :personal_id,
+          :ch_at_most_recent_entry,
+          :ch_at_any_entry,
+        ]
+      end
+
+      headers.select { |k, _| k.in?(columns) }
+    end
+
     # Because multiple of these calculations require inspecting all client enrollments
     # we're going to loop over the entire client scope once rather than
     # load it multiple times

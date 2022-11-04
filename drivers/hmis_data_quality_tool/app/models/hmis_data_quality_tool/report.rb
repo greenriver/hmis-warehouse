@@ -237,15 +237,59 @@ module HmisDataQualityTool
     end
 
     def known_keys
-      results.map(&:title)
+      results.map(&:title) + ch_keys
+    end
+
+    private def ch_keys
+      ['client_ch_most_recent', 'client_ch_any', 'enrollment_any_ch'].freeze
     end
 
     def result_from_key(key)
-      results.detect { |r| r.title == key }
+      return results.detect { |r| r.title == key } unless key.to_s.in?(ch_keys)
+
+      slug = key.to_sym
+      # CH calculations are done live
+      case key.to_s
+      when 'client_ch_most_recent'
+        title = 'Most-Recent Enrollment Chronic at Entry'
+        item_class = Client
+      when 'client_ch_any'
+        title = 'Any Enrollment Chronic at Entry'
+        item_class = Client
+      when 'enrollment_any_ch'
+        title = 'Total Enrollments Chronic at Entry'
+        # Months homeless has the same detail columns we need
+        slug = :months_homeless_issues
+        item_class = Enrollment
+      end
+      OpenStruct.new(
+        title: title,
+        description: '',
+        required_for: '',
+        category: 'Chronic Homelessness',
+        invalid_count: 0,
+        total: 0,
+        percent_invalid: 0,
+        percent_valid: 0,
+        item_class: item_class.name,
+        detail_columns: item_class.detail_headers_for(slug, self),
+        projects: {},
+        project_types: {},
+      )
     end
 
     def items_for(key)
-      universe("#{key}__invalid").universe_members.map(&:universe_membership)
+      return universe("#{key}__invalid").universe_members.map(&:universe_membership) unless key.to_s.in?(ch_keys)
+
+      # CH calculations are done live
+      case key.to_s
+      when 'client_ch_most_recent'
+        clients.where(ch_at_most_recent_entry: true)
+      when 'client_ch_any'
+        clients.where(ch_at_any_entry: true)
+      when 'enrollment_any_ch'
+        enrollments.where(ch_at_entry: true)
+      end
     end
 
     private def result_groups
