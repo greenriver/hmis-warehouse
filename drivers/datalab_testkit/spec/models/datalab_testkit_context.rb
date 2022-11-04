@@ -49,11 +49,11 @@ RSpec.shared_context 'datalab testkit context', shared_context: :metadata do
       warehouse_fixture.restore
       app_fixture.restore
     else
-      # Dir.glob(hmis_file_prefix).select { |f| File.directory? f }.each do |file_path|
-      #   # puts "*** #{file_path} ***"
-      #   import_hmis_csv_fixture(file_path, run_jobs: false)
-      # end
-      # process_imported_fixtures
+      Dir.glob(hmis_file_prefix).select { |f| File.directory? f }.each do |file_path|
+        # puts "*** #{file_path} ***"
+        import_hmis_csv_fixture(file_path, run_jobs: false)
+      end
+      process_imported_fixtures
       warehouse_fixture.store
       app_fixture.store
     end
