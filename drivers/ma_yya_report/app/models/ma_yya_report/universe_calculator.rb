@@ -13,10 +13,6 @@ module MaYyaReport
       @filter = filter
     end
 
-    def client_ids
-      client_scope.distinct.pluck(:id)
-    end
-
     def calculate(&post_processor)
       client_scope.find_in_batches do |batch|
         post_processor.call(for_batch(batch))
@@ -74,7 +70,7 @@ module MaYyaReport
     end
 
     private def client_scope
-      GrdaWarehouse::Hud::Client.
+      ::GrdaWarehouse::Hud::Client.
         distinct.
         joins(:service_history_enrollments).
         merge(enrollment_scope)

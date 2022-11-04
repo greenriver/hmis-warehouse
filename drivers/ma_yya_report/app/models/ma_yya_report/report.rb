@@ -38,17 +38,28 @@ module MaYyaReport
       previous_period_filter.start = previous_period_filter.start - 1.year
 
       previous_period_calculator = UniverseCalculator.new(previous_period_filter)
-      previous_period_clients = previous_period_calculator.client_ids
+      previous_period_clients = []
+      previous_period_calculator.calculate { |clients| previous_period_clients += clients.values }
+
+      previous_period_client_ids = previous_period_clients.map { |client| client[:client_id] }
+      previous_period_followup_clients_ids = find_previous_period_followup_client_ids(previous_period_clients)
 
       universe_calculator = UniverseCalculator.new(filter)
       universe_calculator.calculate do |clients|
         clients.transform_values do |client|
-          client[:reported_previous_period] = previous_period_clients.include?(client[:client_id])
+          client[:reported_previous_period] = previous_period_client_ids.include?(client[:client_id])
+          client[:followup_previous_period] = previous_period_followup_clients_ids.include?(client[:client_id])
         end
 
         Client.import(clients.values)
         universe.add_universe_members(clients)
       end
+    end
+
+    private def find_previous_period_followup_client_ids(previous_period_clients)
+      previous_period_clients.select do |client|
+        client[:subsequent_current_living_situations].count.positive?
+      end.map { |client| client[:client_id] }
     end
 
     private def filter
@@ -70,16 +81,15 @@ module MaYyaReport
       report_start_date = filter.start
       report_end_date = filter.end
 
-      f2_population = a_t[:reported_previous_period].eq(false).and(a_t[:currently_homeless].eq(true))
       g_population = a_t[:reported_previous_period].eq(false).and(
         a_t[:at_risk_of_homelessness].eq(true).
           and(Arel.sql(
                 json_contains(:subsequent_current_living_situations,
                               [15, 6, 7, 25, 4, 5, 29, 14, 32, 36, 35, 28, 19, 3, 31, 33, 34, 10, 20, 21, 11]),
-              )).
-          or(a_t[:currently_homeless].eq(true).and(a_t[:rehoused_on].between(report_start_date..report_end_date)).
-            and(a_t[:subsequent_current_living_situations].not_eq('[]'))),
-      )
+              )),
+      ).
+        or(a_t[:currently_homeless].eq(true).and(a_t[:rehoused_on].between(report_start_date..report_end_date)).
+          and(a_t[:subsequent_current_living_situations].not_eq('[]')))
 
       {
         A1a: a_t[:currently_homeless].eq(true),
@@ -190,20 +200,21 @@ module MaYyaReport
         Ea: nil,
         Eb: nil,
 
-        F1a: a_t[:subsequent_current_living_situations].not_eq('[]').and(a_t[:reported_previous_period].eq(false)),
-        F1b: a_t[:reported_previous_period].eq(false).
+        F1a: a_t[:subsequent_current_living_situations].not_eq('[]').and(a_t[:followup_previous_period].eq(false)),
+        F1b: a_t[:followup_previous_period].eq(false).
           and(Arel.sql(
                 json_contains(:subsequent_current_living_situations,
                               [15, 6, 7, 25, 4, 5, 29, 14, 32, 36, 35, 28, 19, 3, 31, 33, 34, 10, 20, 21, 11]),
               )),
 
-        F2a: f2_population.
-          and(a_t[:rehoused_on].between(report_start_date..report_end_date)),
-        F2b: f2_population.
+        F2a: a_t[:currently_homeless].eq(true).
+          and(a_t[:rehoused_on].between(report_start_date..report_end_date)), # "Report Once" should handled because reporting periods don't overlap
+        F2b: a_t[:currently_homeless].eq(true).
           and(a_t[:rehoused_on].between(report_start_date..report_end_date)).
           and(a_t[:subsequent_current_living_situations].not_eq('[]')),
-        F2c: f2_population.
+        F2c: a_t[:currently_homeless].eq(true).
           and(a_t[:rehoused_on].not_eq(nil)).
+          and(a_t[:followup_previous_period].eq(false)).
           and(Arel.sql(json_contains(:subsequent_current_living_situations, [19, 3, 31, 33, 34, 10, 20, 21, 11]))),
         F2d: nil, # Handled as a special case in
 

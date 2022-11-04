@@ -14739,7 +14739,8 @@ CREATE TABLE public.ma_yya_report_clients (
     rehoused_on date,
     flex_funds jsonb DEFAULT '[]'::jsonb,
     zip_codes jsonb DEFAULT '[]'::jsonb,
-    language character varying
+    language character varying,
+    followup_previous_period boolean
 );
 
 
@@ -51649,6 +51650,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20221020113634'),
 ('20221021205724'),
 ('20221028172017'),
-('20221102194234');
+('20221102194234'),
+('20221103144659');
 
 
