@@ -184,7 +184,7 @@ module GrdaWarehouse
       result = if (is_no?(enrollment.DisablingCondition) || dk_or_r_or_missing(enrollment.DisablingCondition)) && enrollment.disabilities_at_entry&.map(&:indefinite_and_impairs?)&.none?(true)
         if is_no?(enrollment.DisablingCondition)
           :no
-        elsif dk_or_r_or_missing(enrollment.DisablingCondition)
+        else
           dk_or_r_or_missing(enrollment.DisablingCondition)
         end
       else
