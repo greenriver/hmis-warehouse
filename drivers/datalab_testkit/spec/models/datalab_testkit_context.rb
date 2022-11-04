@@ -42,7 +42,7 @@ RSpec.shared_context 'datalab testkit context', shared_context: :metadata do
     )
     app_fixture = PgFixtures.new(
       directory: 'drivers/datalab_testkit/spec/fixpoints',
-      excluded_tables: [],
+      excluded_tables: ['versions', 'active_storage_blobs'],
       model: ApplicationRecord,
     )
     if warehouse_fixture.exists? && app_fixture.exists?
