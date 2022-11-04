@@ -595,7 +595,7 @@ module PerformanceMeasurement::Details
           goal_unit: '',
           goal_calculation: :time_stay,
           denominator_label: '',
-          calculation_description: 'The average count of unique dates persons are homeless per enrollment.',
+          calculation_description: 'The average count of unique dates persons are homeless.  At the system level, average is for days homeless per client.  At the project level, average is for days homeless for the client within that project.  A client\'s LOT in multiple enrollments are summed before taking the average.',
           calculation_column: :days_in_homeless_bed,
           detail_columns: [
             'days_in_homeless_bed',
