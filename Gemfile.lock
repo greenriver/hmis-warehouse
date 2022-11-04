@@ -16,7 +16,7 @@ GIT
 
 GIT
   remote: https://github.com/greenriver/pg_fixtures.git
-  revision: 1e8c787144ddbaaa4267f03453230e3b8c6f0921
+  revision: 1658b58c06b555d04cc7308d2c3471298849041d
   specs:
     pg_fixtures (0.1.0)
 
