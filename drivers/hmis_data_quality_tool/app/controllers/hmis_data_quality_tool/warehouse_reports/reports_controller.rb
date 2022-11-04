@@ -78,6 +78,7 @@ module HmisDataQualityTool::WarehouseReports
     end
 
     def items
+      # FIXME: allow for CH enrollment
       @key = @report.known_keys.detect do |k|
         details_params[:key] == k.to_s
       end

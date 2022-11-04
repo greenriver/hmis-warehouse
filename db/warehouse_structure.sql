@@ -13472,7 +13472,10 @@ CREATE TABLE public.hmis_dqt_goals (
     ph_missed_exit_length integer,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    entry_date_entered_length integer DEFAULT 6,
+    exit_date_entered_length integer DEFAULT 6,
+    expose_ch_calculations boolean DEFAULT true NOT NULL
 );
 
 
@@ -50640,6 +50643,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20221020113634'),
 ('20221021205724'),
 ('20221028172017'),
-('20221103201310');
+('20221103201310'),
+('20221104134752');
 
 

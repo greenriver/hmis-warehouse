@@ -20,7 +20,7 @@ module HmisDataQualityTool
     INSTITUTIONAL_LIVING_SITUATIONS = [15, 6, 7, 25, 4, 5].freeze
     HOUSED_LIVING_SITUATIONS = [29, 14, 2, 32, 36, 35, 28, 19, 3, 31, 33, 34, 10, 20, 21, 11, 8, 9, 99].freeze
 
-    attr_accessor :report_end_date
+    attr_accessor :report_end_date, :entry_threshold, :exit_threshold
 
     has_many :hud_reports_universe_members, inverse_of: :universe_membership, class_name: 'HudReports::UniverseMember', foreign_key: :universe_membership_id
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', optional: true
@@ -40,19 +40,19 @@ module HmisDataQualityTool
         household_max_age: { title: 'Age of Oldest Household Member' },
         household_id: { title: 'Household ID' },
         head_of_household_count: { title: 'Count of Heads of Household' },
-        disabling_condition: { title: 'Disabling Condition', translator: ->(v) { HUD.no_yes_reasons_for_missing_data(v) } },
-        living_situation: { title: 'Living Situation', translator: ->(v) { HUD.living_situation(v) } },
-        relationship_to_hoh: { title: 'Relationship to Head of Household', translator: ->(v) { HUD.relationship_to_hoh(v) } },
+        disabling_condition: { title: 'Disabling Condition', translator: ->(v) { "#{HUD.no_yes_reasons_for_missing_data(v)} (#{v})" } },
+        living_situation: { title: 'Living Situation', translator: ->(v) { "#{HUD.living_situation(v)} (#{v})" } },
+        relationship_to_hoh: { title: 'Relationship to Head of Household', translator: ->(v) { "#{HUD.relationship_to_hoh(v)} (#{v})" } },
         coc_code: { title: 'CoC Code' },
-        destination: { title: 'Exit Destination', translator: ->(v) { HUD.destination(v) } },
+        destination: { title: 'Exit Destination', translator: ->(v) { "#{HUD.destination(v)} (#{v})" } },
         entry_date_entered_at: { title: 'Entry Date Added' },
         exit_date_entered_at: { title: 'Exit Date Added' },
         days_to_enter_entry_date: { title: 'Days to Add Entry Date' },
         days_to_enter_exit_date: { title: 'Days to Add Exit Date' },
         project_operating_start_date: { title: 'Project Operating Start Date' },
         project_operating_end_date: { title: 'Project Operating End Date' },
-        project_type: { title: 'Project Type', translator: ->(v) { HUD.project_type(v) } },
-        project_tracking_method: { title: 'Project Tracking Method', translator: ->(v) { HUD.tracking_method(v) } },
+        project_type: { title: 'Project Type', translator: ->(v) { "#{HUD.project_type(v)} (#{v})" } },
+        project_tracking_method: { title: 'Project Tracking Method', translator: ->(v) { "#{HUD.tracking_method(v)} (#{v})" } },
         lot: { title: 'Length of Time in Project' },
         days_since_last_service: { title: 'Days Since Last Service' },
         ch_details_expected: { title: 'Chronic related fields (3.917) expected?' },
@@ -72,22 +72,22 @@ module HmisDataQualityTool
         enrollment_coc: { title: 'Enrollment CoC Code' },
         has_disability: { title: 'At least one disability?' },
         days_between_entry_and_create: { title: 'Days between entry date and date added to HMIS' },
-        domestic_violence_victim_at_entry: { title: 'Survivor of domestic violence response at entry', translator: ->(v) { HUD.no_yes_reasons_for_missing_data(v) } },
-        income_from_any_source_at_entry: { title: 'Income from any source at entry', translator: ->(v) { HUD.no_yes_reasons_for_missing_data(v) } },
-        income_from_any_source_at_annual: { title: 'Income from any source at annual assessment', translator: ->(v) { HUD.no_yes_reasons_for_missing_data(v) } },
-        income_from_any_source_at_exit: { title: 'Income from any source at exit', translator: ->(v) { HUD.no_yes_reasons_for_missing_data(v) } },
+        domestic_violence_victim_at_entry: { title: 'Survivor of domestic violence response at entry', translator: ->(v) { "#{HUD.no_yes_reasons_for_missing_data(v)} (#{v})" } },
+        income_from_any_source_at_entry: { title: 'Income from any source at entry', translator: ->(v) { "#{HUD.no_yes_reasons_for_missing_data(v)} (#{v})" } },
+        income_from_any_source_at_annual: { title: 'Income from any source at annual assessment', translator: ->(v) { "#{HUD.no_yes_reasons_for_missing_data(v)} (#{v})" } },
+        income_from_any_source_at_exit: { title: 'Income from any source at exit', translator: ->(v) { "#{HUD.no_yes_reasons_for_missing_data(v)} (#{v})" } },
         cash_income_as_expected_at_entry: { title: 'Cash income reported as expected at entry' },
         cash_income_as_expected_at_annual: { title: 'Cash income reported as expected at annual assessment' },
         cash_income_as_expected_at_exit: { title: 'Cash income reported as expected at exit' },
-        ncb_from_any_source_at_entry: { title: 'Non-cash benefits from any source at entry', translator: ->(v) { HUD.no_yes_reasons_for_missing_data(v) } },
-        ncb_from_any_source_at_annual: { title: 'Non-cash benefits from any source at annual assessment', translator: ->(v) { HUD.no_yes_reasons_for_missing_data(v) } },
-        ncb_from_any_source_at_exit: { title: 'Non-cash benefits from any source at exit', translator: ->(v) { HUD.no_yes_reasons_for_missing_data(v) } },
+        ncb_from_any_source_at_entry: { title: 'Non-cash benefits from any source at entry', translator: ->(v) { "#{HUD.no_yes_reasons_for_missing_data(v)} (#{v})" } },
+        ncb_from_any_source_at_annual: { title: 'Non-cash benefits from any source at annual assessment', translator: ->(v) { "#{HUD.no_yes_reasons_for_missing_data(v)} (#{v})" } },
+        ncb_from_any_source_at_exit: { title: 'Non-cash benefits from any source at exit', translator: ->(v) { "#{HUD.no_yes_reasons_for_missing_data(v)} (#{v})" } },
         ncb_as_expected_at_entry: { title: 'Non-cash benefits as expected at entry' },
         ncb_as_expected_at_annual: { title: 'Non-cash benefits as expected at annual assessment' },
         ncb_as_expected_at_exit: { title: 'Non-cash benefits as expected at exit' },
-        insurance_from_any_source_at_entry: { title: 'Insurance from any source at entry', translator: ->(v) { HUD.no_yes_reasons_for_missing_data(v) } },
-        insurance_from_any_source_at_annual: { title: 'Insurance from any source at annual assessment', translator: ->(v) { HUD.no_yes_reasons_for_missing_data(v) } },
-        insurance_from_any_source_at_exit: { title: 'Insurance from any source at exit', translator: ->(v) { HUD.no_yes_reasons_for_missing_data(v) } },
+        insurance_from_any_source_at_entry: { title: 'Insurance from any source at entry', translator: ->(v) { "#{HUD.no_yes_reasons_for_missing_data(v)} (#{v})" } },
+        insurance_from_any_source_at_annual: { title: 'Insurance from any source at annual assessment', translator: ->(v) { "#{HUD.no_yes_reasons_for_missing_data(v)} (#{v})" } },
+        insurance_from_any_source_at_exit: { title: 'Insurance from any source at exit', translator: ->(v) { "#{HUD.no_yes_reasons_for_missing_data(v)} (#{v})" } },
         insurance_as_expected_at_entry: { title: 'Insurance as expected at entry' },
         insurance_as_expected_at_annual: { title: 'Insurance as expected at annual assessment' },
         insurance_as_expected_at_exit: { title: 'Insurance as expected at exit' },
@@ -112,7 +112,9 @@ module HmisDataQualityTool
             enrollment: enrollment,
             report: report,
           )
-          sections.each do |_, calc|
+          item.entry_threshold = report.goal_config.entry_date_entered_length
+          item.exit_threshold = report.goal_config.exit_date_entered_length
+          sections(report).each do |_, calc|
             section_title = calc[:title]
             intermediate[section_title] ||= { denominator: {}, invalid: {} }
             intermediate[section_title][:denominator][enrollment] = item if calc[:denominator].call(item) == true
@@ -362,7 +364,7 @@ module HmisDataQualityTool
       item.age.present? && item.age > 18 || item.relationship_to_hoh == 1
     end
 
-    def self.sections # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
+    def self.sections(report) # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
       {
         disabling_condition_issues: {
           title: 'Disabling Condition',
@@ -1011,7 +1013,7 @@ module HmisDataQualityTool
         },
         dv_at_entry: {
           title: 'Survivor of Domestic Violence',
-          description: 'DV data at entry is not 99 or blank',
+          description: 'DV data at entry is not "Data not collected" (99) or blank',
           required_for: 'Adults and HoH',
           detail_columns: [
             :destination_client_id,
@@ -1035,7 +1037,7 @@ module HmisDataQualityTool
         },
         income_from_any_source_at_entry: {
           title: 'Income From Any Source at Entry',
-          description: 'Income from any source at entry is not 99 or blank',
+          description: 'Income from any source at entry is not "Data not collected" (99) or blank',
           required_for: 'Adults and HoH',
           detail_columns: [
             :destination_client_id,
@@ -1060,7 +1062,7 @@ module HmisDataQualityTool
         },
         income_from_any_source_at_annual: {
           title: 'Income From Any Source at Annual Assessment',
-          description: 'Income from any source at annual assessment is not 99 or blank',
+          description: 'Income from any source at annual assessment is not "Data not collected" (99) or blank',
           required_for: 'Adults and HoH staying longer than 1 year',
           detail_columns: [
             :destination_client_id,
@@ -1085,7 +1087,7 @@ module HmisDataQualityTool
         },
         income_from_any_source_at_exit: {
           title: 'Income From Any Source at Exit',
-          description: 'Income from any source at exit is not 99 or blank',
+          description: 'Income from any source at exit is not "Data not collected" (99) or blank',
           required_for: 'Adults and HoH exiting during report range',
           detail_columns: [
             :destination_client_id,
@@ -1110,7 +1112,7 @@ module HmisDataQualityTool
         },
         insurance_from_any_source_at_entry: {
           title: 'Insurance From Any Source at Entry',
-          description: 'Insurance from any source at entry is not 99 or blank',
+          description: 'Insurance from any source at entry is not "Data not collected" (99) or blank',
           required_for: 'All',
           detail_columns: [
             :destination_client_id,
@@ -1135,7 +1137,7 @@ module HmisDataQualityTool
         },
         insurance_from_any_source_at_annual: {
           title: 'Insurance From Any Source at Annual Assessment',
-          description: 'Insurance from any source at annual assessment is not 99 or blank',
+          description: 'Insurance from any source at annual assessment is not "Data not collected" (99) or blank',
           required_for: 'All staying longer than 1 year',
           detail_columns: [
             :destination_client_id,
@@ -1160,7 +1162,7 @@ module HmisDataQualityTool
         },
         insurance_from_any_source_at_exit: {
           title: 'Insurance From Any Source at Exit',
-          description: 'Insurance from any source at exit is not 99 or blank',
+          description: 'Insurance from any source at exit is not "Data not collected" (99) or blank',
           required_for: 'All exiting during report range',
           detail_columns: [
             :destination_client_id,
@@ -1410,7 +1412,7 @@ module HmisDataQualityTool
         },
         disability_at_entry_collected: {
           title: 'Disability at entry',
-          description: 'None of the disabilities collected at entry were missing or 99.',
+          description: 'None of the disabilities collected at entry were missing or "Data not collected" (99).',
           required_for: 'All',
           detail_columns: [
             :destination_client_id,
@@ -1547,9 +1549,9 @@ module HmisDataQualityTool
             item.months_homeless_past_three_years.blank? && item.months_homeless_past_three_years != 99
           },
         },
-        entry_date_entry_0_days_issues: {
-          title: 'Time for Record Entry of Entry Date (0 days)',
-          description: 'Timely data entry is critical to ensuring data accuracy and completeness, these records were entered on the same day as the enrollment start date.',
+        entry_date_entry_issues: {
+          title: 'Time for Record Entry of Entry Date',
+          description: "Timely data entry is critical to ensuring data accuracy and completeness, valid records were added to HMIS within #{report.goal_config.entry_date_entered_length} days.",
           required_for: 'All',
           detail_columns: [
             :destination_client_id,
@@ -1565,17 +1567,16 @@ module HmisDataQualityTool
             :entry_date_entered_at,
             :days_to_enter_entry_date,
           ],
-          denominator: ->(_) {
+          denominator: ->(_item) {
             true
           },
           limiter: ->(item) {
-            ! item.entry_date_entered_at&.zero?
+            item.entry_date_entered_at.present? && item.entry_date_entered_at <= item.entry_threshold
           },
         },
-
-        exit_date_entry_0_days_issues: {
-          title: 'Time for Record Entry of Exit Date (0 days)',
-          description: 'Timely data entry is critical to ensuring data accuracy and completeness, these records were entered on the same day as the enrollment exit date.',
+        exit_date_entry_issues: {
+          title: 'Time for Record Entry of Exit Date',
+          description: "Timely data entry is critical to ensuring data accuracy and completeness, valid records were added to HMIS within #{report.goal_config.exit_date_entered_length} days.",
           required_for: 'All exiting during report range',
           detail_columns: [
             :destination_client_id,
@@ -1597,7 +1598,7 @@ module HmisDataQualityTool
           limiter: ->(item) {
             return false unless item.exit_date.present?
 
-            ! item.days_to_enter_exit_date&.zero?
+            item.days_to_enter_exit_date.present? && item.days_to_enter_exit_date <= item.exit_threshold
           },
         },
       }.freeze
