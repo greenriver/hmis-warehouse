@@ -37,12 +37,12 @@ RSpec.shared_context 'datalab testkit context', shared_context: :metadata do
     # Will use stored fixed point if one exists, instead of reprocessing the fixture, delete the pg_fixture to regenerate
     warehouse_fixture = PgFixtures.new(
       directory: 'drivers/datalab_testkit/spec/fixpoints',
-      excluded_tables: default_excluded_tables,
+      excluded_tables: [],
       model: GrdaWarehouseBase,
     )
     app_fixture = PgFixtures.new(
       directory: 'drivers/datalab_testkit/spec/fixpoints',
-      excluded_tables: ['versions'],
+      excluded_tables: [],
       model: ApplicationRecord,
     )
     if warehouse_fixture.exists? && app_fixture.exists?
