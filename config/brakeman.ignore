@@ -1605,6 +1605,26 @@
     {
       "warning_type": "Command Injection",
       "warning_code": 14,
+      "fingerprint": "a2e9719b373c8183f5b8151f3e1b0de7143066d3a6ae0798ba540c390ecc85a5",
+      "check_name": "Execute",
+      "message": "Possible command injection",
+      "file": "app/models/dba/database_bloat.rb",
+      "line": 136,
+      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
+      "code": "system(\"pg_repack #{\"--no-superuser-check -U #{ar_base_class.connection_db_config.configuration_hash[:username]} -d #{ar_base_class.connection_db_config.configuration_hash[:database]} -h #{(CGI.escape(ar_base_class.connection_db_config.configuration_hash[:host]) or ar_base_class.connection_db_config.configuration_hash[:host])} -p #{(ar_base_class.connection_db_config.configuration_hash[:port].presence or \"5432\")} -t #{row[\"schemaname\"]}.#{row[\"tblname\"]}\"}\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "DBA::DatabaseBloat",
+        "method": "repack!"
+      },
+      "user_input": "ar_base_class.connection_db_config.configuration_hash[:username]",
+      "confidence": "Medium",
+      "note": "Internal sources of injected values"
+    },
+    {
+      "warning_type": "Command Injection",
+      "warning_code": 14,
       "fingerprint": "a5ae0e19f1c215e30af6286dee8a557c5215860d59a3a4c4ca3a914e2aadb58e",
       "check_name": "Execute",
       "message": "Possible command injection",
@@ -2204,26 +2224,6 @@
       "note": ""
     },
     {
-      "warning_type": "Command Injection",
-      "warning_code": 14,
-      "fingerprint": "e6b537e27d7e35c0fa7bdd62bda2ab1b1b75415d3549a913ed8da6b8aeed8159",
-      "check_name": "Execute",
-      "message": "Possible command injection",
-      "file": "app/models/database_bloat.rb",
-      "line": 110,
-      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
-      "code": "system(\"pg_repack #{\"--no-superuser-check -U #{ar_base_class.connection_db_config.configuration_hash[:username]} -d #{ar_base_class.connection_db_config.configuration_hash[:database]} -h #{(CGI.escape(ar_base_class.connection_db_config.configuration_hash[:host]) or ar_base_class.connection_db_config.configuration_hash[:host])} -p #{(ar_base_class.connection_db_config.configuration_hash[:port].presence or \"5432\")} -t #{row[\"schemaname\"]}.#{row[\"tblname\"]}\"}\")",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "DatabaseBloat",
-        "method": "repack!"
-      },
-      "user_input": "ar_base_class.connection_db_config.configuration_hash[:username]",
-      "confidence": "Medium",
-      "note": "Internal sources for injected values"
-    },
-    {
       "warning_type": "SQL Injection",
       "warning_code": 0,
       "fingerprint": "ec2a88a0a4dbf17f841d1ed086b8c4e0132b485f2ceea48c39e2fa1715aa2c9a",
@@ -2444,6 +2444,6 @@
       "note": ""
     }
   ],
-  "updated": "2022-10-26 19:59:49 +0000",
+  "updated": "2022-10-27 21:00:55 +0000",
   "brakeman_version": "5.0.4"
 }

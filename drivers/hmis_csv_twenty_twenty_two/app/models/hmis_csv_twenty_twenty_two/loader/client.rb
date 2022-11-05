@@ -10,5 +10,6 @@ module HmisCsvTwentyTwentyTwo::Loader
     include ::HmisStructure::Client
     # Because GrdaWarehouse::Hud::* defines the table name, we can't use table_name_prefix :(
     self.table_name = 'hmis_csv_2022_clients'
+    self.primary_key = 'id'
   end
 end
