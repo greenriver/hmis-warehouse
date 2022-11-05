@@ -1,0 +1,9 @@
+- links = Link.for(:menu)
+- if links.present?
+  %ul.o-menu__group.list-unstyled
+    - links.each do |link|
+      %li.o-menu__item
+        - if link.subject.present?
+          = mail_to link.url, link.label, subject: link.subject, class: 'o-menu__link'
+        - else
+          = link_to link.label, link.url, class: 'o-menu__link'

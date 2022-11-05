@@ -288,6 +288,10 @@
           "link_id": "4.02.A",
           "text": "Monthly Amount",
           "enable_behavior": "ALL",
+          "bounds": [{
+            "type": "MIN",
+            "value_number": 0
+          }],
           "enable_when": [
             {
               "question": "4.02.3",

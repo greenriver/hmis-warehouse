@@ -7,7 +7,7 @@ module Mutations
     field :errors, [Types::HmisSchema::ValidationError], null: false
 
     def resolve(id:, input:)
-      record = Hmis::Hud::Organization.viewable_by(current_user).find_by(id: id)
+      record = Hmis::Hud::Organization.editable_by(current_user).find_by(id: id)
       default_update_record(
         record: record,
         field_name: :organization,

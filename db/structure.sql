@@ -561,6 +561,72 @@ ALTER SEQUENCE public.glacier_vaults_id_seq OWNED BY public.glacier_vaults.id;
 
 
 --
+-- Name: hmis_access_group_members; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_access_group_members (
+    id bigint NOT NULL,
+    access_group_id bigint,
+    user_id bigint,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: hmis_access_group_members_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_access_group_members_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_access_group_members_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_access_group_members_id_seq OWNED BY public.hmis_access_group_members.id;
+
+
+--
+-- Name: hmis_access_groups; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_access_groups (
+    id bigint NOT NULL,
+    name character varying NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone,
+    scope character varying DEFAULT 'view'::character varying
+);
+
+
+--
+-- Name: hmis_access_groups_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_access_groups_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_access_groups_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_access_groups_id_seq OWNED BY public.hmis_access_groups.id;
+
+
+--
 -- Name: hmis_roles; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -571,7 +637,10 @@ CREATE TABLE public.hmis_roles (
     can_view_clients boolean DEFAULT false NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    can_administer_hmis boolean DEFAULT false,
+    can_delete_assigned_project_data boolean DEFAULT false,
+    can_delete_enrollments boolean DEFAULT false
 );
 
 
@@ -694,6 +763,40 @@ CREATE SEQUENCE public.letsencrypt_plugin_settings_id_seq
 --
 
 ALTER SEQUENCE public.letsencrypt_plugin_settings_id_seq OWNED BY public.letsencrypt_plugin_settings.id;
+
+
+--
+-- Name: links; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.links (
+    id bigint NOT NULL,
+    location character varying,
+    url character varying,
+    label character varying,
+    subject character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: links_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.links_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: links_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.links_id_seq OWNED BY public.links.id;
 
 
 --
@@ -1781,6 +1884,20 @@ ALTER TABLE ONLY public.glacier_vaults ALTER COLUMN id SET DEFAULT nextval('publ
 
 
 --
+-- Name: hmis_access_group_members id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_access_group_members ALTER COLUMN id SET DEFAULT nextval('public.hmis_access_group_members_id_seq'::regclass);
+
+
+--
+-- Name: hmis_access_groups id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_access_groups ALTER COLUMN id SET DEFAULT nextval('public.hmis_access_groups_id_seq'::regclass);
+
+
+--
 -- Name: hmis_roles id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -1806,6 +1923,13 @@ ALTER TABLE ONLY public.letsencrypt_plugin_challenges ALTER COLUMN id SET DEFAUL
 --
 
 ALTER TABLE ONLY public.letsencrypt_plugin_settings ALTER COLUMN id SET DEFAULT nextval('public.letsencrypt_plugin_settings_id_seq'::regclass);
+
+
+--
+-- Name: links id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.links ALTER COLUMN id SET DEFAULT nextval('public.links_id_seq'::regclass);
 
 
 --
@@ -2075,6 +2199,22 @@ ALTER TABLE ONLY public.glacier_vaults
 
 
 --
+-- Name: hmis_access_group_members hmis_access_group_members_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_access_group_members
+    ADD CONSTRAINT hmis_access_group_members_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_access_groups hmis_access_groups_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_access_groups
+    ADD CONSTRAINT hmis_access_groups_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: hmis_roles hmis_roles_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2104,6 +2244,14 @@ ALTER TABLE ONLY public.letsencrypt_plugin_challenges
 
 ALTER TABLE ONLY public.letsencrypt_plugin_settings
     ADD CONSTRAINT letsencrypt_plugin_settings_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: links links_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.links
+    ADD CONSTRAINT links_pkey PRIMARY KEY (id);
 
 
 --
@@ -2421,6 +2569,20 @@ CREATE UNIQUE INDEX index_glacier_archives_on_upload_id ON public.glacier_archiv
 --
 
 CREATE UNIQUE INDEX index_glacier_vaults_on_name ON public.glacier_vaults USING btree (name);
+
+
+--
+-- Name: index_hmis_access_group_members_on_access_group_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_access_group_members_on_access_group_id ON public.hmis_access_group_members USING btree (access_group_id);
+
+
+--
+-- Name: index_hmis_access_group_members_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_access_group_members_on_user_id ON public.hmis_access_group_members USING btree (user_id);
 
 
 --
@@ -3012,6 +3174,12 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220621144511'),
 ('20220714144937'),
 ('20220822134957'),
-('20220914124822');
+('20220914124822'),
+('20221028165550'),
+('20221101155734'),
+('20221101182012'),
+('20221102141424'),
+('20221103165106'),
+('20221103165625');
 
 

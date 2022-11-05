@@ -1,4 +1,6 @@
 require 'rails_helper'
+require_relative 'login_and_permissions'
+require_relative 'hmis_base_setup'
 
 RSpec.describe Hmis::GraphqlController, type: :request do
   before(:all) do
@@ -13,6 +15,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let(:hmis_user) { Hmis::User.find(user.id)&.tap { |u| u.update(hmis_data_source_id: ds1.id) } }
   let(:u1) { Hmis::Hud::User.from_user(hmis_user) }
   let!(:o1) { create :hmis_hud_organization, data_source: ds1, user: u1 }
+  let(:edit_access_group) { create :edit_access_group }
 
   let(:test_input) do
     {
@@ -34,7 +37,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   before(:each) do
-    post hmis_user_session_path(hmis_user: { email: user.email, password: user.password })
+    hmis_login(user)
+    assign_viewable(edit_access_group, o1.as_warehouse, hmis_user)
   end
 
   let(:mutation) do
@@ -78,12 +82,14 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     mutation_input = test_input
     response, result = post_graphql(input: mutation_input) { mutation }
 
-    expect(response.status).to eq 200
-    project = result.dig('data', 'createProject', 'project')
-    errors = result.dig('data', 'createProject', 'errors')
-    expect(project['id']).to be_present
-    expect(project['active']).to eq(false)
-    expect(errors).to be_empty
+    aggregate_failures 'checking response' do
+      expect(response.status).to eq 200
+      project = result.dig('data', 'createProject', 'project')
+      errors = result.dig('data', 'createProject', 'errors')
+      expect(project['id']).to be_present
+      expect(project['active']).to eq(false)
+      expect(errors).to be_empty
+    end
   end
 
   it 'should throw errors if the project is invalid' do
@@ -92,9 +98,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     project = result.dig('data', 'createProject', 'project')
     errors = result.dig('data', 'createProject', 'errors')
 
-    expect(response.status).to eq 200
-    expect(project).to be_nil
-    expect(errors).to be_present
+    aggregate_failures 'checking response' do
+      expect(response.status).to eq 200
+      expect(project).to be_nil
+      expect(errors).to be_present
+    end
   end
 
   describe 'Validity tests' do
@@ -144,8 +152,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         input = input_proc.call(test_input)
         response, result = post_graphql(input: input) { mutation }
         errors = result.dig('data', 'createProject', 'errors')
-        expect(response.status).to eq 200
-        expect(errors).to contain_exactly(*expected_errors.map { |error_attrs| include(**error_attrs) })
+        aggregate_failures 'checking response' do
+          expect(response.status).to eq 200
+          expect(errors).to contain_exactly(*expected_errors.map { |error_attrs| include(**error_attrs) })
+        end
       end
     end
   end

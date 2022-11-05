@@ -40,6 +40,14 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
     left_outer_joins(:wip).where(viewable_wip.or(viewable_completed))
   end
 
+  scope :editable_by, ->(user) do
+    enrollment_ids = Hmis::Hud::Enrollment.editable_by(user).pluck(:id, :EnrollmentID)
+    editable_wip = wip_t[:enrollment_id].in(enrollment_ids.map(&:first))
+    editable_completed = as_t[:EnrollmentID].in(enrollment_ids.map(&:second))
+
+    left_outer_joins(:wip).where(editable_wip.or(editable_completed))
+  end
+
   scope :with_role, ->(role) do
     joins(:assessment_detail).merge(Hmis::Form::AssessmentDetail.with_role(role))
   end
