@@ -405,7 +405,7 @@ module HmisDataQualityTool
         },
         name_issues: {
           title: 'Name',
-          description: 'Fist or last name is blank but Name Data Quality is "Full name reported" (1), name is present but Name Data Quality is not 1 or "Partial, street name, or code name reported" (2), or Name Data Quality is "Data not collected" (99) or blank',
+          description: 'First or last name is blank but Name Data Quality is "Full name reported" (1), name is present but Name Data Quality is not 1 or "Partial, street name, or code name reported" (2), or Name Data Quality is "Data not collected" (99) or blank',
           required_for: 'All',
           detail_columns: [
             :destination_client_id,
