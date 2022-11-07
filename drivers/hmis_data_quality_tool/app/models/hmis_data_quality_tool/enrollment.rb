@@ -1596,7 +1596,7 @@ module HmisDataQualityTool
             true
           },
           limiter: ->(item) {
-            item.entry_date_entered_at.present? && item.days_to_enter_entry_date >= item.entry_threshold
+            item.entry_date_entered_at.present? && item.days_to_enter_entry_date > item.entry_threshold
           },
         },
         exit_date_entry_issues: {
@@ -1623,7 +1623,7 @@ module HmisDataQualityTool
           limiter: ->(item) {
             return false unless item.exit_date.present?
 
-            item.days_to_enter_exit_date.present? && item.days_to_enter_exit_date >= item.exit_threshold
+            item.days_to_enter_exit_date.present? && item.days_to_enter_exit_date > item.exit_threshold
           },
         },
       }.freeze
