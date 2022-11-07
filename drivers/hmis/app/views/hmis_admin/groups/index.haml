@@ -1,0 +1,35 @@
+- content_for :title, 'HMIS Group Administration'
+%h1= content_for :title
+= render 'hmis_admin/tabs', active_tab: :groups
+
+.alert.alert-info
+  %i.icon-warning.mr-4
+  %p Groups can be used to assign access to particular sets of data.  Users are assigned groups and inherit data access from the group.  Roles are then assigned to users to grant access to sections of the warehouse.  When used in combination a user can be given access to a sub-set of warehouse data within a specified limited context.
+.text-right
+  = link_to new_hmis_admin_group_path, class: 'btn btn-primary mb-2' do
+    %span.icon-plus
+    Add a Group
+- if @pagy.count.positive?
+  = render 'common/pagination_top', item_name: 'group'
+  .table-responsive
+    %table.table.table-striped
+      %thead
+        %tr
+          %th Name
+          %th Permission Scope
+          %th.text-center Assigned Users
+          %th
+      %tbody
+        - @groups.each do |group|
+          %tr
+            %td= link_to group.name, edit_hmis_admin_group_path(group)
+            %td= group.permission_scope
+            %td.text-center= group.users.count
+            %td
+              - unless group.users.count.positive?
+                = link_to hmis_admin_group_path(group),  method: :delete, data: {confirm: "Would you really like to delete the group #{group.name}?"}, class: ['btn', 'btn-sm', 'btn-danger'] do
+                  %span.icon-cross
+                  Delete
+  = render 'common/pagination_bottom', item_name: 'group'
+- else
+  .none-found No groups found.

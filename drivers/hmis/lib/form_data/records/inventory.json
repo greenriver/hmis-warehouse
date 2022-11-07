@@ -44,21 +44,28 @@
       "link_id": "dates",
       "text": "Operating Period",
       "required": false,
-
       "item": [
         {
           "type": "DATE",
           "required": true,
-          "link_id": "2.02.3",
+          "link_id": "2.07.1",
           "text": "Start Date",
-          "query_field": "inventoryStartDate"
+          "query_field": "inventoryStartDate",
+          "bounds": [{
+            "type": "MAX",
+            "question": "2.07.2"
+          }]
         },
         {
           "type": "DATE",
           "required": false,
-          "link_id": "2.02.4",
+          "link_id": "2.07.2",
           "text": "End Date",
-          "query_field": "inventoryEndDate"
+          "query_field": "inventoryEndDate",
+          "bounds": [{
+            "type": "MIN",
+            "question": "2.07.1"
+          }]
         }
       ]
     }

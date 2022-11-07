@@ -1,17 +1,18 @@
 - goal_config = @report.goal_config
 %h2 Informational
-.card.mb-6
-  %table.table.table-striped
-    %thead
-      %tr
-        %th Most-Recent Enrollment Chronic at Entry
-        %th Any Enrollment Chronic at Entry
-        %th Total Enrollments Chronic at Entry
-    %tbody
-      %tr
-        %td= number_with_delimiter @report.clients.where(ch_at_most_recent_entry: true).select(:client_id).distinct.count
-        %td= number_with_delimiter @report.clients.where(ch_at_any_entry: true).select(:client_id).distinct.count
-        %td= number_with_delimiter @report.enrollments.where(ch_at_entry: true).select(:enrollment_id).distinct.count
+- if goal_config.expose_ch_calculations
+  .card.mb-6
+    %table.table.table-striped
+      %thead
+        %tr
+          %th Most-Recent Enrollment Chronic at Entry
+          %th Any Enrollment Chronic at Entry
+          %th Total Enrollments Chronic at Entry
+      %tbody
+        %tr
+          %td= link_to number_with_delimiter(@report.items_for(:client_ch_most_recent).select(:client_id).distinct.count), items_hmis_data_quality_tool_warehouse_reports_report_path(@report, key: :client_ch_most_recent)
+          %td= link_to number_with_delimiter(@report.items_for(:client_ch_any).select(:client_id).distinct.count), items_hmis_data_quality_tool_warehouse_reports_report_path(@report, key: :client_ch_any)
+          %td= link_to number_with_delimiter(@report.items_for(:enrollment_any_ch).select(:enrollment_id).distinct.count), items_hmis_data_quality_tool_warehouse_reports_report_path(@report, key: :enrollment_any_ch)
 
 .card.mb-6
   %table.table.table-striped
@@ -26,12 +27,13 @@
         %tr
           %td= link_to_if can_view_projects?, project.name(current_user), project_path(project)
           - @report.categories.each do |cat|
-            - valid_percent = (100 - @report.percent(data[cat][:total], data[cat][:invalid_count])).round(1)
+            - valid_count = data[cat][:total] - data[cat][:invalid_count]
+            - valid_percent =  @report.percent(data[cat][:total], valid_count).round(1)
             - if goal_config.present? && goal_config.active?
               - name = goal_config.name_for(valid_percent.to_i)
               - if name.present?
                 - background_color = "background-color: #{goal_config.color_for(valid_percent.to_i)};"
-                %td{ style: background_color} #{valid_percent}%
+                %td{ style: background_color, data: { toggle: :tooltip, title: "#{valid_count} of #{data[cat][:total]}" }} #{valid_percent}%
             - else
               %td #{valid_percent}%
 

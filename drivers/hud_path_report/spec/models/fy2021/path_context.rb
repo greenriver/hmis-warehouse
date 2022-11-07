@@ -4,10 +4,6 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-RSpec.configure do |config|
-  config.fixpoints_path = 'drivers/hud_path_report/spec/fixpoints' # Doesn't seem to work in CI?
-end
-
 RSpec.shared_context 'path context FY2021', shared_context: :metadata do
   def shared_filter
     {
@@ -40,16 +36,23 @@ RSpec.shared_context 'path context FY2021', shared_context: :metadata do
   def default_setup
     GrdaWarehouse::Utility.clear!
     # Will use stored fixed point if one exists, instead of reprocessing the fixture, delete the fixpoint to regenerate
-    warehouse = GrdaWarehouseBase.connection
-
-    if Fixpoint.exists? :path_2021_hmis_export_app
-      restore_fixpoint :path_2021_hmis_export_app
-      restore_fixpoint :path_2021_hmis_export_warehouse, connection: warehouse
+    warehouse_fixture = PgFixtures.new(
+      directory: 'drivers/hud_path_report/spec/fixpoints',
+      excluded_tables: default_excluded_tables,
+      model: GrdaWarehouseBase,
+    )
+    app_fixture = PgFixtures.new(
+      directory: 'drivers/hud_path_report/spec/fixpoints',
+      excluded_tables: ['versions'],
+      model: ApplicationRecord,
+    )
+    if warehouse_fixture.exists? && app_fixture.exists?
+      warehouse_fixture.restore
+      app_fixture.restore
     else
       import_hmis_csv_fixture(default_setup_path, version: 'AutoMigrate')
-      store_fixpoint :path_2021_hmis_export_app
-      store_fixpoint :path_2021_hmis_export_warehouse, connection: warehouse
-      store_fixpoint :path_2021_hmis_export_warehouse, connection: warehouse
+      warehouse_fixture.store
+      app_fixture.store
     end
   end
 

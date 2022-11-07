@@ -13348,7 +13348,12 @@ CREATE TABLE public.hmis_dqt_enrollments (
     insurance_as_expected_at_entry boolean DEFAULT false,
     insurance_as_expected_at_annual boolean DEFAULT false,
     insurance_as_expected_at_exit boolean DEFAULT false,
-    disability_at_entry_collected boolean DEFAULT false
+    disability_at_entry_collected boolean DEFAULT false,
+    previous_street_es_sh integer,
+    entry_date_entered_at timestamp without time zone,
+    exit_date_entered_at timestamp without time zone,
+    days_to_enter_entry_date integer,
+    days_to_enter_exit_date integer
 );
 
 
@@ -13467,7 +13472,10 @@ CREATE TABLE public.hmis_dqt_goals (
     ph_missed_exit_length integer,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    entry_date_entered_length integer DEFAULT 6,
+    exit_date_entered_length integer DEFAULT 6,
+    expose_ch_calculations boolean DEFAULT true NOT NULL
 );
 
 
@@ -42665,6 +42673,13 @@ CREATE INDEX index_hmis_dqt_enrollments_on_enrollment_id ON public.hmis_dqt_enro
 
 
 --
+-- Name: index_hmis_dqt_enrollments_on_project_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_dqt_enrollments_on_project_id ON public.hmis_dqt_enrollments USING btree (project_id);
+
+
+--
 -- Name: index_hmis_dqt_enrollments_on_report_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -43089,6 +43104,13 @@ CREATE INDEX index_hud_report_pit_clients_on_report_instance_id ON public.hud_re
 --
 
 CREATE INDEX index_hud_report_universe_members_on_client_id ON public.hud_report_universe_members USING btree (client_id);
+
+
+--
+-- Name: index_hud_report_universe_members_on_report_cell_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_report_universe_members_on_report_cell_id ON public.hud_report_universe_members USING btree (report_cell_id) WHERE (deleted_at IS NULL);
 
 
 --
@@ -50619,6 +50641,9 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20221019122456'),
 ('20221019182810'),
 ('20221020113634'),
-('20221021205724');
+('20221021205724'),
+('20221028172017'),
+('20221103201310'),
+('20221104134752');
 
 

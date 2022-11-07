@@ -1,12 +1,10 @@
 require 'rails_helper'
+require_relative 'login_and_permissions'
+require_relative 'hmis_base_setup'
 
 RSpec.describe Hmis::GraphqlController, type: :request do
-  let!(:ds1) { create :hmis_data_source }
-  let!(:user) { create(:user).tap { |u| u.add_viewable(ds1) } }
-  let(:hmis_user) { Hmis::User.find(user.id)&.tap { |u| u.update(hmis_data_source_id: ds1.id) } }
-  let(:u1) { Hmis::Hud::User.from_user(hmis_user) }
-  let(:o1) { create :hmis_hud_organization, data_source: ds1, user: u1 }
-  let(:p1) { create :hmis_hud_project, data_source: ds1, OrganizationID: o1.OrganizationID, user: u1 }
+  include_context 'hmis base setup'
+
   let(:c1) { create :hmis_hud_client, data_source: ds1, user: u1 }
   let(:c2) { create :hmis_hud_client, data_source: ds1, user: u1 }
   let(:c3) { create :hmis_hud_client, data_source: ds1, user: u1 }
@@ -38,7 +36,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   describe 'enrollment creation tests' do
     before(:each) do
-      post hmis_user_session_path(hmis_user: { email: user.email, password: user.password })
+      assign_viewable(edit_access_group, p1.as_warehouse, hmis_user)
+      hmis_login(user)
     end
 
     let(:mutation) do
@@ -80,25 +79,27 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     it 'should add members to an enrollment correctly' do
       response, result = post_graphql(input: test_input) { mutation }
 
-      expect(response.status).to eq 200
-      enrollments = result.dig('data', 'addHouseholdMembersToEnrollment', 'enrollments')
-      errors = result.dig('data', 'addHouseholdMembersToEnrollment', 'errors')
-      expect(enrollments).to be_present
-      expect(enrollments.count).to eq(2)
-      expect(errors).to be_empty
-      expect(Hmis::Hud::Enrollment.count).to eq(3)
-      expect(Hmis::Hud::Enrollment.in_progress.count).to eq(2)
-      expect(Hmis::Hud::Enrollment.in_progress).to include(
-        *enrollments.map do |e|
-          have_attributes(
-            enrollment_id: be_present,
-            household_id: test_input[:household_id],
-            relationship_to_ho_h: Hmis::Hud::Enrollment.find(e['id']).relationship_to_ho_h,
-            project_id: nil,
-            personal_id: Hmis::Hud::Client.find(e['client']['id'].to_i).personal_id,
-          )
-        end,
-      )
+      aggregate_failures 'checking response' do
+        expect(response.status).to eq 200
+        enrollments = result.dig('data', 'addHouseholdMembersToEnrollment', 'enrollments')
+        errors = result.dig('data', 'addHouseholdMembersToEnrollment', 'errors')
+        expect(enrollments).to be_present
+        expect(enrollments.count).to eq(2)
+        expect(errors).to be_empty
+        expect(Hmis::Hud::Enrollment.count).to eq(3)
+        expect(Hmis::Hud::Enrollment.in_progress.count).to eq(2)
+        expect(Hmis::Hud::Enrollment.in_progress).to include(
+          *enrollments.map do |e|
+            have_attributes(
+              enrollment_id: be_present,
+              household_id: test_input[:household_id],
+              relationship_to_ho_h: Hmis::Hud::Enrollment.find(e['id']).relationship_to_ho_h,
+              project_id: nil,
+              personal_id: Hmis::Hud::Client.find(e['client']['id'].to_i).personal_id,
+            )
+          end,
+        )
+      end
     end
 
     it 'should add members to an in-progress enrollment correctly' do
@@ -106,14 +107,16 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
       response, result = post_graphql(input: test_input) { mutation }
 
-      expect(response.status).to eq 200
-      enrollments = result.dig('data', 'addHouseholdMembersToEnrollment', 'enrollments')
-      errors = result.dig('data', 'addHouseholdMembersToEnrollment', 'errors')
-      expect(errors).to be_empty
-      expect(enrollments).to be_present
-      expect(enrollments.count).to eq(2)
-      expect(Hmis::Hud::Enrollment.count).to eq(3)
-      expect(Hmis::Hud::Enrollment.in_progress.count).to eq(3)
+      aggregate_failures 'checking response' do
+        expect(response.status).to eq 200
+        enrollments = result.dig('data', 'addHouseholdMembersToEnrollment', 'enrollments')
+        errors = result.dig('data', 'addHouseholdMembersToEnrollment', 'errors')
+        expect(errors).to be_empty
+        expect(enrollments).to be_present
+        expect(enrollments.count).to eq(2)
+        expect(Hmis::Hud::Enrollment.count).to eq(3)
+        expect(Hmis::Hud::Enrollment.in_progress.count).to eq(3)
+      end
 
       # change enrollment back to non-WIP again
       enrollment.project = p1
@@ -156,11 +159,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
           enrollments = result.dig('data', 'addHouseholdMembersToEnrollment', 'enrollments')
           errors = result.dig('data', 'addHouseholdMembersToEnrollment', 'errors')
-          expect(response.status).to eq 200
-          expect(enrollments).to be_empty
-          expect(errors).to contain_exactly(
-            include(**error_attrs),
-          )
+          aggregate_failures 'checking response' do
+            expect(response.status).to eq 200
+            expect(enrollments).to be_empty
+            expect(errors).to contain_exactly(
+              include(**error_attrs),
+            )
+          end
         end
       end
     end

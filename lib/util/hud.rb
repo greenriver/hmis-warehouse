@@ -513,6 +513,7 @@ module HUD
       50 => 'HUD: HOME',
       51 => 'HUD: HOME (ARP)',
       52 => 'HUD: PIH (Emergency Housing Voucher)',
+      53 => 'HUD: ESG - RUSH',
     }
   end
 
@@ -724,6 +725,10 @@ module HUD
 
   def gender_fields
     gender_id_to_field_name.values.uniq.freeze
+  end
+
+  def gender_field_name_to_id
+    gender_id_to_field_name.invert.freeze
   end
 
   def gender_id_to_field_name

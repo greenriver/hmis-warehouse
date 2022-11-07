@@ -32,8 +32,8 @@ FY2022 Changes
 		, hp.TrackingMethod, hp.HMISParticipatingProject
 		, hp.TargetPopulation 
 		, hp.HOPWAMedAssistedLivingFac
-		, format(hp.DateCreated, 'yyyy-MM-dd hh:mm:ss')
-		, format(hp.DateUpdated, 'yyyy-MM-dd hh:mm:ss')
+		, format(hp.DateCreated, 'yyyy-MM-dd HH:mm:ss')
+		, format(hp.DateUpdated, 'yyyy-MM-dd HH:mm:ss')
 		, rpt.ReportID
 	from hmis_Project hp
 	inner join lsa_Report rpt on rpt.ReportEnd >= hp.OperatingStartDate 

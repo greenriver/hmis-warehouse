@@ -7,14 +7,26 @@
 %h1.mb-5= title
 
 = simple_form_for @goal, url: hmis_data_quality_tool_warehouse_reports_goal_config_path(@goal), as: :goal do |f|
-  .row
+  = f.input :coc_code, label: 'CoC Code', collection: @goal.available_cocs, as: :select_two, include_blank: 'Un-Set', hint: 'If a CoC is chosen, reports run for only that CoC will follow the configuration options below, if un-set, this will apply to any report run that includes more than one CoC or for which no specific goal configuration has been setup.'
+  .d-flex
     .col-sm-6
-      = f.input :coc_code, label: 'CoC Code', collection: @goal.available_cocs, as: :select_two, include_blank: 'Default'
-      %p Setting the following stay length goals will limit the report to displaying and calculating grades for categories that match the chosen number only.
-      = f.input :es_stay_length, label: 'Maximum length of time in ES expected', as: :select_two, collection: HmisDataQualityTool::Goal.stay_length_options
-      = f.input :es_missed_exit_length, label: 'Maximum length of time in ES without service', as: :select_two, collection: HmisDataQualityTool::Goal.stay_length_options
-      = f.input :so_missed_exit_length, label: 'Maximum length of time in SO without contact', as: :select_two, collection: HmisDataQualityTool::Goal.stay_length_options
-      = f.input :ph_missed_exit_length, label: 'Maximum length of time in PH pre-move-in', as: :select_two, collection: HmisDataQualityTool::Goal.stay_length_options
+      %h3 Lenth of Time Thresholds
+      .well
+        %p Setting the following stay length goals will limit the report to displaying and calculating grades for categories that match the chosen number only.
+        = f.input :es_stay_length, label: 'Maximum length of time in ES expected', as: :select_two, collection: HmisDataQualityTool::Goal.stay_length_options, include_blank: 'Show All'
+        = f.input :es_missed_exit_length, label: 'Maximum length of time in ES without service', as: :select_two, collection: HmisDataQualityTool::Goal.stay_length_options, include_blank: 'Show All'
+        = f.input :so_missed_exit_length, label: 'Maximum length of time in SO without contact', as: :select_two, collection: HmisDataQualityTool::Goal.stay_length_options, include_blank: 'Show All'
+        = f.input :ph_missed_exit_length, label: 'Maximum length of time in PH pre-move-in', as: :select_two, collection: HmisDataQualityTool::Goal.stay_length_options, include_blank: 'Show All'
+    .col-sm-6
+      %h3 Timeliness Thresholds
+      .well
+        %p Setting the following thresholds will change what's considered passing when looking at time to enter entry date and exit date.  If set to disabled, the sections will be left off of the report.
+        = f.input :entry_date_entered_length, label: 'Maximum days to add entry date', as: :select_two, collection: HmisDataQualityTool::Goal.timeliness_categories, include_blank: false
+        = f.input :exit_date_entered_length, label: 'Maximum days to add exit date', as: :select_two, collection: HmisDataQualityTool::Goal.timeliness_categories, include_blank: false
+      %H3 Chronically Homeless Section
+      .well
+        = f.input :expose_ch_calculations, label: 'Expose the chronic calculations?', as: :pretty_boolean
+
   %p The following section can be used to setup a grading scale for the #{@report.title}.  The name will be displayed with a background of the chosen color for any percentage that falls within the low and high values provided.  For example, you could set "Good" to be green for any percentage between 90 and 100, and "OK" to be yellow for any range between 50 and 89, and "Bad" to be any percentage between 0 and 49.  High and low values should not overlap and should not leave any gaps and should cover 0 to 100 as in the previous example (0-49, 50-89, 90-100).
   %p Because the colors are used as background colors, you probably want to choose colors with fairly low saturation such as #ceebd7.
   .card

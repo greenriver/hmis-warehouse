@@ -191,8 +191,7 @@ FY2022 Changes
 		, lp.AC3PlusEST = (select sum(distinct case when hhid.AC3Plus = 1 then 1 else 0 end)
 				from tlsa_Enrollment n
 				inner join tlsa_HHID hhid on hhid.HouseholdID = n.HouseholdID
-				where n.PersonalID = lp.PersonalID and n.Active = 1 and n.LSAProjectType in (0,1,2,8)
-					and hhid.AC3Plus = 1)
+				where n.PersonalID = lp.PersonalID and n.Active = 1 and n.LSAProjectType in (0,1,2,8))
 		, lp.HHTypeRRH = (select sum(distinct case hhid.ActiveHHType 
 					when 1 then 1000
 					when 2 then 200
@@ -293,8 +292,7 @@ FY2022 Changes
 		, lp.AC3PlusRRH = (select sum(distinct case when hhid.AC3Plus = 1 then 1 else 0 end)
 				from tlsa_Enrollment n
 				inner join tlsa_HHID hhid on hhid.HouseholdID = n.HouseholdID
-				where n.PersonalID = lp.PersonalID and n.Active = 1 and n.LSAProjectType = 13
-					and hhid.AC3Plus = 1)
+				where n.PersonalID = lp.PersonalID and n.Active = 1 and n.LSAProjectType = 13)
 		, lp.HHTypePSH = (select sum(distinct case hhid.ActiveHHType 
 					when 1 then 1000
 					when 2 then 200
@@ -395,8 +393,7 @@ FY2022 Changes
 		, lp.AC3PlusPSH = (select sum(distinct case when hhid.AC3Plus = 1 then 1 else 0 end)
 				from tlsa_Enrollment n
 				inner join tlsa_HHID hhid on hhid.HouseholdID = n.HouseholdID
-				where n.PersonalID = lp.PersonalID and n.Active = 1 and n.LSAProjectType = 3
-					and hhid.AC3Plus = 1)
+				where n.PersonalID = lp.PersonalID and n.Active = 1 and n.LSAProjectType = 3)
 		, lp.Step = '5.13'
 	from tlsa_Person lp
 

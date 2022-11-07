@@ -4,10 +4,6 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-RSpec.configure do
-  RSpec.configuration.fixpoints_path = 'drivers/hud_data_quality_report/spec/fixpoints'
-end
-
 RSpec.shared_context 'dq context FY2022', shared_context: :metadata do
   def shared_filter
     {
@@ -60,17 +56,25 @@ RSpec.shared_context 'dq context FY2022', shared_context: :metadata do
   end
 
   def default_setup
-    warehouse = GrdaWarehouseBase.connection
-
     # Will use stored fixed point if one exists, instead of reprocessing the fixture, delete the fixpoint to regenerate
-    if Fixpoint.exists? :hud_hmis_export_2022_app
+    warehouse_fixture = PgFixtures.new(
+      directory: 'drivers/hud_data_quality_report/spec/fixpoints',
+      excluded_tables: default_excluded_tables,
+      model: GrdaWarehouseBase,
+    )
+    app_fixture = PgFixtures.new(
+      directory: 'drivers/hud_data_quality_report/spec/fixpoints',
+      excluded_tables: ['versions'],
+      model: ApplicationRecord,
+    )
+    if warehouse_fixture.exists? && app_fixture.exists?
       GrdaWarehouse::Utility.clear!
-      restore_fixpoint :hud_hmis_export_2022_hud_dq_app
-      restore_fixpoint :hud_hmis_export_2022_hud_dq_warehouse, connection: warehouse
+      warehouse_fixture.restore
+      app_fixture.restore
     else
       setup(default_setup_path)
-      store_fixpoint :hud_hmis_export_2022_hud_dq_app
-      store_fixpoint :hud_hmis_export_2022_hud_dq_warehouse, connection: warehouse
+      warehouse_fixture.store
+      app_fixture.store
     end
   end
 

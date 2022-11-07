@@ -10,8 +10,9 @@ module Types
   class Forms::Enums::EnableOperator < Types::BaseEnum
     graphql_name 'EnableOperator'
 
-    value 'EXISTS'
-    value 'NOT_EXISTS'
+    value 'ENABLED', 'Use with answerBoolean to specify is the item should be enabled or not.'
+    value 'EXISTS', 'Use with answerBoolean to specify if an answer should exist or not.'
+    value 'IN', 'Whether the value is in the answerCodes array.'
     value 'EQUAL'
     value 'NOT_EQUAL'
     value 'GREATER_THAN'

@@ -15,11 +15,37 @@ module Types
     field :group_label, String, 'Label for group that option belongs to, if grouped', null: true
     field :initial_selected, Boolean, 'Whether option is selected by default', null: true
 
-    def self.options_for_type(pick_list_type, user:)
+    def self.options_for_type(pick_list_type, user:, project_id: nil)
+      relevant_state = ENV['RELEVANT_COC_STATE']
+
       case pick_list_type
       when 'COC'
-        ::HUD.cocs_in_state(ENV['RELEVANT_COC_STATE']).sort.map do |code, name|
-          { code: code, label: name, secondary_label: code }
+        selected_project = Hmis::Hud::Project.viewable_by(user).find_by(id: project_id) if project_id.present?
+        available_codes = if selected_project.present?
+          selected_project.project_cocs.pluck(:CoCCode)
+        else
+          ::HUD.cocs_in_state(relevant_state)
+        end
+
+        available_codes.sort.map do |code, name|
+          { code: code, label: "#{code} - #{name}", initial_selected: available_codes.length == 1 }
+        end
+
+      when 'STATE'
+        state_options.map do |obj|
+          {
+            code: obj['abbreviation'],
+            label: "#{obj['abbreviation']} - #{obj['name']}",
+            initial_selected: obj['abbreviation'] == relevant_state,
+          }
+        end
+
+      when 'GEOCODE'
+        geocodes_in_state(relevant_state).map do |obj|
+          {
+            code: obj['geocode'],
+            label: "#{obj['geocode']} - #{obj['name']}",
+          }
         end
 
       when 'PRIOR_LIVING_SITUATION'
@@ -29,7 +55,7 @@ module Types
         living_situation_options(as: :current)
 
       when 'PROJECT'
-        Hmis::Hud::Project.viewable_by(user).
+        Hmis::Hud::Project.editable_by(user).
           joins(:organization).
           sort_by_option(:organization_and_name).
           map do |project|
@@ -43,7 +69,7 @@ module Types
         end
 
       when 'ORGANIZATION'
-        Hmis::Hud::Organization.viewable_by(user).
+        Hmis::Hud::Organization.editable_by(user).
           sort_by_option(:name).
           map do |organization|
           {
@@ -51,6 +77,18 @@ module Types
             label: organization.organization_name,
           }
         end
+      end
+    end
+
+    def self.geocodes_in_state(state)
+      Rails.cache.fetch(['GEOCODES', state], expires_in: 1.days) do
+        JSON.parse(File.read("drivers/hmis/lib/pick_list_data/geocodes/geocodes-#{state}.json"))
+      end
+    end
+
+    def self.state_options
+      Rails.cache.fetch('STATE_OPTION_LIST', expires_in: 1.days) do
+        JSON.parse(File.read('drivers/hmis/lib/pick_list_data/states.json'))
       end
     end
 

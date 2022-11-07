@@ -9,7 +9,7 @@ namespace :dba do
 
   # Useful in development to get something to paste
   task :show_bloated_sql_statements, [] => :environment do
-    db = DatabaseBloat.new(ar_base_class: GrdaWarehouseBase)
+    db = DBA::DatabaseBloat.new(ar_base_class: GrdaWarehouseBase)
     puts '-----------------'
     puts '-----------------'
     puts '-- indexes'
@@ -29,22 +29,22 @@ namespace :dba do
   task :unbloat, [] => [:unbloat_indexes, :repack_tables, :index_drops, :show_cache_hits]
 
   task :unbloat_indexes, [] => :environment do
-    DatabaseBloat.all_databases!(:reindex!, dry_run: @dry_run)
+    DBA::DatabaseBloat.all_databases!(:reindex!, dry_run: @dry_run)
   end
 
   task :vacuum_tables, [] => :environment do
-    DatabaseBloat.all_databases!(:vacuum_full!, dry_run: @dry_run)
+    DBA::DatabaseBloat.all_databases!(:vacuum_full!, dry_run: @dry_run)
   end
 
   task :repack_tables, [] => :environment do
-    DatabaseBloat.all_databases!(:repack!, dry_run: @dry_run)
+    DBA::DatabaseBloat.all_databases!(:repack!, dry_run: @dry_run)
   end
 
   task :index_drops, [] => :environment do
-    DatabaseBloat.all_databases!(:index_drops!, dry_run: @dry_run)
+    DBA::DatabaseBloat.all_databases!(:index_drops!, dry_run: @dry_run)
   end
 
   task :show_cache_hits, [] => :environment do
-    DatabaseBloat.all_databases!(:show_cache_hits!, dry_run: @dry_run)
+    DBA::DatabaseBloat.all_databases!(:show_cache_hits!, dry_run: @dry_run)
   end
 end

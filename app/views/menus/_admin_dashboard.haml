@@ -1,6 +1,7 @@
 - show_admin = can_edit_users? || can_edit_translations? || can_view_imports?
 - show_health = GrdaWarehouse::Config.get(:healthcare_available) && (can_administer_health? || can_manage_health_agency? || current_user.has_patient_referral_review_access?)
-- if show_admin || show_health
+- show_hmis_admin = hmis_admin_visible?
+- if show_admin || show_health || show_hmis_admin
   %ul.o-menu__group.list-unstyled
     - if show_admin
       %li.o-menu__item
@@ -14,7 +15,12 @@
           - path = review_admin_health_patient_referrals_path
         - elsif (can_manage_health_agency? || can_manage_patients_for_own_agency?) && current_user.health_agencies.any?
           - path = review_admin_health_agency_patient_referrals_path
-        
+
         = link_to path, class: 'o-menu__link' do
           .o-menu__link--description
             Healthcare Admin
+    - if show_hmis_admin
+      %li.o-menu__item
+        = link_to hmis_admin_roles_path, class: 'o-menu__link' do
+          .o-menu__link--description
+            HMIS Admin

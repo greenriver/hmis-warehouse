@@ -22,11 +22,13 @@ module Types
     field :required, Boolean, 'Whether the item must be included in data results', null: true
     field :hidden, Boolean, 'Whether the item should always be hidden', null: true
     field :read_only, Boolean, 'Whether human editing is allowed', null: true
+    field :bounds, [Forms::ValueBound], null: true
     field :repeats, Boolean, 'Whether the item may repeat (for choice types, this means multiple choice)', null: true
     field :pick_list_reference, String, 'Reference to value set of possible answer options', null: true
     field :pick_list_options, [Forms::PickListOption], 'Permitted answers, for choice items', null: true
     field :enable_behavior, Forms::Enums::EnableBehavior, null: true
     field :enable_when, [Forms::EnableWhen], null: true
+    field :initial, [Forms::InitialValue], 'Initial value(s) when item is first rendered', null: true
     field :item, ['Types::Forms::FormItem'], 'Nested items', null: true
     field :query_field, String, 'Name of the query input field that corresponds to this item. Only used for record creation/update forms, not for assessments.', null: true
   end
