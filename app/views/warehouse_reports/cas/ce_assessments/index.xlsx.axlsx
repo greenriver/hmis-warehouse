@@ -2,7 +2,7 @@ wb = xlsx_package.workbook
 wb.add_worksheet(name: "CE Assessment Status") do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
   columns = [
-    'Warehouse ID',
+    'Warehouse Client ID',
     'First Name',
     'Last Name',
     'SSN',

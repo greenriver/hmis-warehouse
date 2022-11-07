@@ -2,7 +2,7 @@ wb = xlsx_package.workbook
 wb.add_worksheet(name: 'Missing CoC Codes') do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
   headers = [
-    'Warehouse ID',
+    'Warehouse Client ID',
     'PersonalID (HMIS)',
     'First Name (HMIS)',
     'Last Name (HMIS)',

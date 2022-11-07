@@ -10,7 +10,7 @@ wb.add_worksheet(name: "Changes to #{@cohort.sanitized_name}".slice(0,30)) do |s
   title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
   sheet.add_row(
     [
-      'Client ID',
+      'Warehouse Client ID',
       'Client',
       'Change',
       'Reason',

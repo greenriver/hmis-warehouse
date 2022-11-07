@@ -6,7 +6,7 @@ style = {
 }
 wb.add_worksheet name: 'Recidivism' do |sheet|
   title = sheet.styles.add_style **style
-  sheet.add_row ['Client ID', 'First Name', 'Last Name', 'PH Project', 'PH Entry Date', 'PH Exit Date', 'ES/SO Project', 'ES/SO Entry Date', 'ES/SO Exit Date', 'ES/SO Last Service', 'ES/SO Days Served'], style: title
+  sheet.add_row ['Warehouse Client ID', 'First Name', 'Last Name', 'PH Project', 'PH Entry Date', 'PH Exit Date', 'ES/SO Project', 'ES/SO Entry Date', 'ES/SO Exit Date', 'ES/SO Last Service', 'ES/SO Days Served'], style: title
   @clients.each do |client|
     @ph_clients[client.id].each do |ph_enrollment|
       @homeless_clients[client.id].each do |enrollment|

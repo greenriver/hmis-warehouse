@@ -3,7 +3,7 @@ wb.add_worksheet(name: 'Client Lookup') do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
   sheet.add_row(
     [
-      'Warehouse ID',
+      'Warehouse Client ID',
       'Personal ID (from HMIS)',
       'First Name (from HMIS)',
       'Last Name (from HMIS)',
