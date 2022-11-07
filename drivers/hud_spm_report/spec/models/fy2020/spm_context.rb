@@ -4,10 +4,6 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-RSpec.configure do
-  RSpec.configuration.fixpoints_path = 'drivers/hud_spm_report/spec/fixpoints'
-end
-
 SPM_USER_EMAIL = 'spm_reporter@example.com'.freeze
 
 RSpec.shared_context 'HudSpmReport context', shared_context: :metadata do
