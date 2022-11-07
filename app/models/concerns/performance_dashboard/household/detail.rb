@@ -66,7 +66,7 @@ module PerformanceDashboard::Household::Detail
 
   private def detail_columns(options)
     columns = {
-      'Client ID' => she_t[:client_id],
+      'Warehouse Client ID' => she_t[:client_id],
       'First Name' => c_t[:FirstName],
       'Last Name' => c_t[:LastName],
       'Household ID' => she_t[:household_id],
