@@ -43,88 +43,86 @@ module HudApr::Generators::Shared::Fy2023
       [
         # Number of adults
         {
-          cell: 'B3',
+          row: '3',
           clause: adult_clause,
         },
         # Number of children
         {
-          cell: 'B4',
+          row: '4',
           clause: child_clause,
         },
         # Number of unknown ages
         {
-          cell: 'B5',
+          row: '5',
           clause: a_t[:age].eq(nil).or(a_t[:age].lt(0)),
         },
         # Number of leavers
         {
-          cell: 'B6',
+          row: '6',
           clause: leavers_clause,
         },
         # Number of adult leavers
         {
-          cell: 'B7',
+          row: '7',
           clause: leavers_clause.and(adult_clause),
         },
         # Number of adult and HoH leavers
         {
-          cell: 'B8',
+          row: '8',
           clause: leavers_clause.
             and(adult_clause.
               or(a_t[:head_of_household].eq(true))),
         },
         # Number of stayers
         {
-          cell: 'B9',
+          row: '9',
           clause: stayers_clause,
         },
         # Number of adult stayers
         # must match Q16-C14
         {
-          cell: 'B10',
+          row: '10',
           clause: stayers_clause.
             and(adult_clause),
         },
         # Number of veterans
         {
-          cell: 'B11',
+          row: '11',
           clause: veteran_clause,
         },
         # Number of chronically homeless
         {
-          cell: 'B12',
+          row: '12',
           clause: a_t[:chronically_homeless].eq(true),
         },
         # Number of youth under 25
         {
-          cell: 'B13',
+          row: '13',
           clause: a_t[:age].lt(25).
             and(a_t[:age].gteq(12)).
             and(a_t[:other_clients_over_25].eq(false)),
         },
         # Number of parenting youth under 25 with children
         {
-          cell: 'B14',
+          row: '14',
           clause: a_t[:age].lt(25).
             and(a_t[:age].gteq(12)).
             and(a_t[:parenting_youth].eq(true)),
         },
         # Number of adult HoH
         {
-          cell: 'B15',
+          row: '15',
           clause: adult_clause.
             and(a_t[:head_of_household].eq(true)),
         },
         # Number of child and unknown age HoH
         {
-          cell: 'B16',
+          row: '16',
           clause: a_t[:age].lt(18).
             or(a_t[:age].eq(nil)).
             and(a_t[:head_of_household].eq(true)),
         },
-      ].reject do |q|
-        q[:cell].in?(intentionally_blank)
-      end
+      ]
     end
 
     private def q5_validations
@@ -139,33 +137,43 @@ module HudApr::Generators::Shared::Fy2023
       }
       @report.answer(question: table_name).update(metadata: metadata)
 
-      # Total clients
-      answer = @report.answer(question: table_name, cell: 'B2')
-      members = universe.members.where(engaged_clause)
-      answer.add_members(members)
-      answer.update(summary: members.count)
+      ['B', 'C'].each do |col|
+        # Column B is limited to engaged clients for SO, column C is not
+        inclusion_clause = if col == 'B'
+          engaged_clause
+        else
+          Arel.sql('1=1')
+        end
+        # Total clients
+        cell = "#{col}2"
+        answer = @report.answer(question: table_name, cell: cell)
 
-      active_questions.each do |cell|
-        answer = @report.answer(question: table_name, cell: cell[:cell])
-        members = universe.members.where(engaged_clause).where(cell[:clause])
+        members = universe.members.where(inclusion_clause)
+        answer.add_members(members)
+        answer.update(summary: members.count)
+
+        active_questions.each do |data|
+          cell = "#{col}#{data[:row]}"
+          answer = @report.answer(question: table_name, cell: cell)
+          members = universe.members.where(inclusion_clause).where(data[:clause])
+          answer.add_members(members)
+          answer.update(summary: members.count)
+        end
+
+        # HoH and adult stayers in project 365 days or more
+        # "...any adult stayer present when the head of household’s stay is 365 days or more,
+        # even if that adult has not been in the household that long"
+        cell = "#{col}17"
+        answer = @report.answer(question: table_name, cell: cell)
+        members = universe.members.
+          where(inclusion_clause).
+          where(
+            a_t[:head_of_household_id].in(hoh_lts_stayer_ids).
+            and(adult_clause.or(a_t[:head_of_household].eq(true))),
+          )
         answer.add_members(members)
         answer.update(summary: members.count)
       end
-
-      # HoH and adult stayers in project 365 days or more
-      # "...any adult stayer present when the head of household’s stay is 365 days or more,
-      # even if that adult has not been in the household that long"
-      return if 'B17'.in?(intentionally_blank)
-
-      answer = @report.answer(question: table_name, cell: 'B17')
-      members = universe.members.
-        where(engaged_clause).
-        where(
-          a_t[:head_of_household_id].in(hoh_lts_stayer_ids).
-          and(adult_clause.or(a_t[:head_of_household].eq(true))),
-        )
-      answer.add_members(members)
-      answer.update(summary: members.count)
     end
   end
 end

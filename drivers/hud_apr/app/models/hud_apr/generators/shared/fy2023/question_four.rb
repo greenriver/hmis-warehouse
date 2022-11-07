@@ -73,13 +73,13 @@ module HudApr::Generators::Shared::Fy2023
         # Note cells O and P (active clients and active households)
         cell = "O#{cell_row}"
         answer = @report.answer(question: table_name, cell: cell)
-        members = universe.members.where(project_id: project.id)
+        members = universe.members.where(a_t[:project_id].eq(project.id))
         answer.add_members(members)
         answer.update(summary: members.count)
 
         cell = "P#{cell_row}"
         answer = @report.answer(question: table_name, cell: cell)
-        members = universe.members.where(hoh_clause).where(project_id: project.id)
+        members = universe.members.where(hoh_clause).where(a_t[:project_id].eq(project.id))
         answer.add_members(members)
         answer.update(summary: members.count)
       end
