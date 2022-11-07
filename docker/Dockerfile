@@ -59,6 +59,8 @@ ENV BUNDLE_PATH=/bundle
 ENV PATH=$PATH:/app/bin
 COPY docker/entrypoint.sh /usr/bin/
 COPY docker/shell.entrypoint.sh /usr/bin/
+COPY docker/spec.entrypoint.sh /usr/bin/
 RUN chmod +x /usr/bin/entrypoint.sh
 RUN chmod +x /usr/bin/shell.entrypoint.sh
+RUN chmod +x /usr/bin/spec.entrypoint.sh
 ENTRYPOINT ["entrypoint.sh"]

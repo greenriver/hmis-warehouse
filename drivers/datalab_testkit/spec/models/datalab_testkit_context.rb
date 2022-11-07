@@ -4,10 +4,6 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-RSpec.configure do
-  RSpec.configuration.fixpoints_path = 'drivers/datalab_testkit/spec/fixpoints'
-end
-
 RSpec.shared_context 'datalab testkit context', shared_context: :metadata do
   def shared_filter_spec
     {
@@ -38,24 +34,28 @@ RSpec.shared_context 'datalab testkit context', shared_context: :metadata do
     HmisCsvImporter::Utility.clear!
     GrdaWarehouse::Utility.clear!
 
-    warehouse = GrdaWarehouseBase.connection
-
-    # Will use stored fixed point if one exists, instead of reprocessing the fixture, delete the fixpoint to regenerate
-    # Fixpoints runs out of memory reloading this, so it is disabled for now
-    if Fixpoint.exists? :datalab_2_0_app
-      restore_fixpoint :datalab_2_0_app
-      restore_fixpoint :datalab_2_0_warehouse, connection: warehouse
+    # Will use stored fixed point if one exists, instead of reprocessing the fixture, delete the pg_fixture to regenerate
+    warehouse_fixture = PgFixtures.new(
+      directory: 'drivers/datalab_testkit/spec/fixpoints',
+      excluded_tables: default_excluded_tables,
+      model: GrdaWarehouseBase,
+    )
+    app_fixture = PgFixtures.new(
+      directory: 'drivers/datalab_testkit/spec/fixpoints',
+      excluded_tables: ['versions'],
+      model: ApplicationRecord,
+    )
+    if warehouse_fixture.exists? && app_fixture.exists?
+      warehouse_fixture.restore
+      app_fixture.restore
     else
       Dir.glob(hmis_file_prefix).select { |f| File.directory? f }.each do |file_path|
         # puts "*** #{file_path} ***"
         import_hmis_csv_fixture(file_path, run_jobs: false)
       end
       process_imported_fixtures
-      store_fixpoint :datalab_2_0_app, exclude_tables: ['versions']
-      exclude_tables = ['versions', 'spatial_ref_sys', 'homeless_summary_report_clients', 'homeless_summary_report_results', 'hmis_csv_importer_logs', 'hap_report_clients', 'simple_report_cells', 'simple_report_universe_members', 'whitelisted_projects_for_clients', 'hmis_csv_import_validations', 'uploads', 'hmis_csv_loader_logs', 'import_logs'] +
-        HmisCsvImporter::Loader::Loader.loadable_files.values.map(&:table_name) +
-        HmisCsvImporter::Importer::Importer.importable_files.values.map(&:table_name)
-      store_fixpoint :datalab_2_0_warehouse, connection: warehouse, exclude_tables: exclude_tables
+      warehouse_fixture.store
+      app_fixture.store
     end
   end
 

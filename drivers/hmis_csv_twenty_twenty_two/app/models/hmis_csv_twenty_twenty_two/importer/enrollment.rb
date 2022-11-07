@@ -11,6 +11,7 @@ module HmisCsvTwentyTwentyTwo::Importer
 
     # Because GrdaWarehouse::Hud::* defines the table name, we can't use table_name_prefix :(
     self.table_name = 'hmis_2022_enrollments'
+    self.primary_key = 'id'
 
     has_one :destination_record, **hud_assoc(:EnrollmentID, 'Enrollment')
     has_one :exit, primary_key: [:EnrollmentID, :PersonalID, :data_source_id, :importer_log_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id, :importer_log_id], class_name: 'HmisCsvTwentyTwentyTwo::Importer::Exit', autosave: false
