@@ -202,10 +202,12 @@ module HmisDataQualityTool
       report_item.entry_date = enrollment.EntryDate
       report_item.move_in_date = enrollment.MoveInDate
       report_item.exit_date = enrollment.exit&.ExitDate
-      report_item.entry_date_entered_at = enrollment.DateCreated
-      report_item.exit_date_entered_at = enrollment.exit&.DateCreated
-      report_item.days_to_enter_entry_date = (enrollment.DateCreated.to_date || Date.current) - enrollment.EntryDate
-      report_item.days_to_enter_exit_date = enrollment.exit.DateCreated.to_date - enrollment.exit.ExitDate if enrollment.exit&.DateCreated.present? && enrollment.exit&.ExitDate.present?
+      enrollment_created_at = enrollment.DateCreated
+      exit_created_at = enrollment.exit&.DateCreated
+      report_item.entry_date_entered_at = enrollment_created_at
+      report_item.exit_date_entered_at = exit_created_at
+      report_item.days_to_enter_entry_date = if enrollment_created_at.present? then enrollment_created_at.to_date - enrollment.EntryDate else 0 end
+      report_item.days_to_enter_exit_date = if exit_created_at.present? && enrollment.exit&.ExitDate.present? then exit_created_at.to_date - enrollment.exit.ExitDate else 0 end
       report_item.disabling_condition = enrollment.DisablingCondition
       report_item.household_id = enrollment.HouseholdID
       report_item.living_situation = enrollment.LivingSituation

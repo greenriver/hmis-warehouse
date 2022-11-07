@@ -57,12 +57,9 @@ module HmisDataQualityTool
 
     def self.detail_headers_for(slug, report)
       headers = detail_headers.transform_values { |v| v.except(:translator) }
-      if sections(report).key?(slug.to_sym)
-        section = sections(report)[slug.to_sym]
-        return headers unless section
-
-        columns = section[:detail_columns]
-        return headers unless columns.present?
+      section = sections(report)[slug.to_sym]
+      columns = if section.present?
+        section[:detail_columns]
       else
         # Handle CH details
         columns = [
@@ -74,6 +71,7 @@ module HmisDataQualityTool
           :ch_at_any_entry,
         ]
       end
+      return headers unless columns.present?
 
       headers.select { |k, _| k.in?(columns) }
     end
