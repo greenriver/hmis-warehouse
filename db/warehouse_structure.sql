@@ -13348,7 +13348,12 @@ CREATE TABLE public.hmis_dqt_enrollments (
     insurance_as_expected_at_entry boolean DEFAULT false,
     insurance_as_expected_at_annual boolean DEFAULT false,
     insurance_as_expected_at_exit boolean DEFAULT false,
-    disability_at_entry_collected boolean DEFAULT false
+    disability_at_entry_collected boolean DEFAULT false,
+    previous_street_es_sh integer,
+    entry_date_entered_at timestamp without time zone,
+    exit_date_entered_at timestamp without time zone,
+    days_to_enter_entry_date integer,
+    days_to_enter_exit_date integer
 );
 
 
@@ -13467,7 +13472,10 @@ CREATE TABLE public.hmis_dqt_goals (
     ph_missed_exit_length integer,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    entry_date_entered_length integer DEFAULT 6,
+    exit_date_entered_length integer DEFAULT 6,
+    expose_ch_calculations boolean DEFAULT true NOT NULL
 );
 
 
@@ -14480,7 +14488,8 @@ CREATE TABLE public.hud_report_apr_clients (
     bed_nights integer,
     pit_enrollments jsonb DEFAULT '[]'::jsonb,
     source_enrollment_id integer,
-    los_under_threshold integer
+    los_under_threshold integer,
+    project_id integer
 );
 
 
@@ -16040,7 +16049,9 @@ CREATE TABLE public.ma_yya_report_clients (
     education_status_date date,
     rehoused_on date,
     flex_funds jsonb DEFAULT '[]'::jsonb,
-    zip_codes jsonb DEFAULT '[]'::jsonb
+    zip_codes jsonb DEFAULT '[]'::jsonb,
+    language character varying,
+    followup_previous_period boolean
 );
 
 
@@ -50634,6 +50645,11 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20221019182810'),
 ('20221020113634'),
 ('20221021205724'),
-('20221028172017');
+('20221028172017'),
+('20221102194234'),
+('20221103144659'),
+('20221103201310'),
+('20221104134752'),
+('20221107144111');
 
 
