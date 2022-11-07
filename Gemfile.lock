@@ -415,7 +415,7 @@ GEM
       sprockets-rails
     graphql (2.0.9)
     grosser-pomo (0.5.1)
-    grover (1.1.1)
+    grover (1.1.2)
       combine_pdf (~> 1.0)
       nokogiri (~> 1.0)
     guard (2.18.0)
