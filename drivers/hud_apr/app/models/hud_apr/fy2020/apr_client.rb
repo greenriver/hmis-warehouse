@@ -21,7 +21,13 @@ module HudApr::Fy2020
       remove = ['id', 'created_at', 'updated_at']
       cols = special + (column_names - special - remove)
       cols.map do |h|
-        [h, h.humanize]
+        label = case h
+        when 'destination_client_id'
+          'Warehouse Client ID'
+        else
+          h.humanize
+        end
+        [h, label]
       end.to_h
     end
 
