@@ -38,7 +38,7 @@ module HmisDataQualityTool
         race_none: { title: 'Race None', translator: ->(v) { "#{HUD.race_none(v)} (#{v})" } },
         ethnicity: { title: 'Ethnicity', translator: ->(v) { "#{HUD.ethnicity(v)} (#{v})" } },
         veteran_status: { title: 'Veteran Status', translator: ->(v) { "#{HUD.no_yes_reasons_for_missing_data(v)} (#{v})" } },
-        ssn: { title: 'SSN' },
+        ssn: { title: 'SSN', translator: ->(v) { masked_ssn(v) } },
         ssn_data_quality: { title: 'SSN Data Quality', translator: ->(v) { "#{HUD.ssn_data_quality(v)} (#{v})" } },
         overlapping_entry_exit: { title: 'Overlapping Entry/Exit enrollments in ES, SH, and TH' },
         overlapping_nbn: { title: 'Overlapping Night-by-Night ES enrollments with other ES, SH, and TH' },
@@ -47,6 +47,12 @@ module HmisDataQualityTool
         ch_at_most_recent_entry: { title: 'Chronically Homeless at Most-Recent Entry' },
         ch_at_any_entry: { title: 'Chronically Homeless at Any Entry' },
       }.freeze
+    end
+
+    def self.masked_ssn(number)
+      # pad with leading 0s if we don't have enough characters
+      number = number.to_s.rjust(9, '0') if number.present?
+      number.to_s.gsub(/(\d{3})[^\d]?(\d{2})[^\d]?(\d{4})/, 'XXX-XX-\3')
     end
 
     def self.detail_headers_for_export

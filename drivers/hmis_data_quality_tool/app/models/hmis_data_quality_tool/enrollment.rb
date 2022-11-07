@@ -1532,7 +1532,7 @@ module HmisDataQualityTool
             return false unless hoh_or_adult?(item)
             return false unless GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS.include?(item.project_type)
 
-            item.times_homeless_past_three_years.blank? && item.times_homeless_past_three_years != 99
+            item.times_homeless_past_three_years.blank? || item.times_homeless_past_three_years == 99
           },
         },
         months_homeless_issues: {
@@ -1571,7 +1571,7 @@ module HmisDataQualityTool
             return false unless hoh_or_adult?(item)
             return false unless GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS.include?(item.project_type)
 
-            item.months_homeless_past_three_years.blank? && item.months_homeless_past_three_years != 99
+            item.months_homeless_past_three_years.blank? || item.months_homeless_past_three_years == 99
           },
         },
         entry_date_entry_issues: {
@@ -1596,7 +1596,7 @@ module HmisDataQualityTool
             true
           },
           limiter: ->(item) {
-            item.entry_date_entered_at.present? && item.entry_date_entered_at <= item.entry_threshold
+            item.entry_date_entered_at.present? && item.entry_date_entered_at >= item.entry_threshold
           },
         },
         exit_date_entry_issues: {
@@ -1623,7 +1623,7 @@ module HmisDataQualityTool
           limiter: ->(item) {
             return false unless item.exit_date.present?
 
-            item.days_to_enter_exit_date.present? && item.days_to_enter_exit_date <= item.exit_threshold
+            item.days_to_enter_exit_date.present? && item.days_to_enter_exit_date >= item.exit_threshold
           },
         },
       }.freeze
