@@ -21,7 +21,7 @@ module HmisDataQualityTool
         destination_client_id: { title: 'Warehouse Client ID' },
         current_living_situation_id: { title: 'Current Living Situation ID' },
         hmis_current_living_situation_id: { title: 'HMIS Current Living Situation ID' },
-        current_living_situation: { title: 'Current Living Situation', translator: ->(v) { HUD.living_situation(v) } },
+        current_living_situation: { title: 'Current Living Situation', translator: ->(v) { "#{HUD.living_situation(v)} (#{v})" } },
         project_name: { title: 'Project Name' },
         enrollment_id: { title: 'Enrollment ID' },
         information_date: { title: 'Information Date' },
@@ -46,7 +46,7 @@ module HmisDataQualityTool
             current_living_situation: current_living_situation,
             report: report,
           )
-          sections.each do |_, calc|
+          sections(report).each do |_, calc|
             section_title = calc[:title]
             intermediate[section_title] ||= { denominator: {}, invalid: {} }
             intermediate[section_title][:denominator][current_living_situation] = item if calc[:denominator].call(item)
@@ -97,7 +97,7 @@ module HmisDataQualityTool
       report_item
     end
 
-    def self.sections
+    def self.sections(_)
       {
         current_living_situation_issues: {
           title: 'Current Living Situation',

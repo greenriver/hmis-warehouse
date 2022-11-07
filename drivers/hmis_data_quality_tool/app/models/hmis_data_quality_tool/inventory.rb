@@ -50,7 +50,7 @@ module HmisDataQualityTool
             inventory: inventory,
             report: report,
           )
-          sections.each do |_, calc|
+          sections(report).each do |_, calc|
             section_title = calc[:title]
             intermediate[section_title] ||= { denominator: {}, invalid: {} }
             intermediate[section_title][:denominator][inventory] = item if calc[:denominator].call(item)
@@ -105,7 +105,7 @@ module HmisDataQualityTool
       report_item
     end
 
-    def self.sections
+    def self.sections(_)
       {
         dedicated_bed_issues: {
           title: 'Sum of Dedicated Beds does not Equal Total Beds',
