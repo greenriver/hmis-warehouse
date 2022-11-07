@@ -15,7 +15,13 @@ module HudPathReport::Fy2020
       remove = ['id', 'created_at', 'updated_at']
       cols = special + (column_names - special - remove)
       cols.map do |h|
-        [h, h.humanize]
+        label = case h
+        when 'client_id'
+          'Warehouse Source Client ID'
+        else
+          h.humanize
+        end
+        [h, label]
       end.to_h
     end
 
