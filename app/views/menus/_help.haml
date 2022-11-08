@@ -10,6 +10,3 @@
           = link_to 'Add Help Here', new_help_path(controller_path: controller_path, action_name: action_name), class: 'o-menu__link', data: { loads_in_pjax_modal: true }
     %li.o-menu__item
       = help_link
-    - if GrdaWarehouse::Config.get(:support_contact_email)
-      %li.o-menu__item
-        = mail_to GrdaWarehouse::Config.get(:support_contact_email), _('Contact Support'), subject: "#{_('Boston DND Warehouse')} Support Request", class: 'o-menu__link'
