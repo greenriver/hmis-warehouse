@@ -3,7 +3,7 @@ wb.add_worksheet(name: 'Projects') do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
   sheet.add_row(
     [
-      'Warehouse Client ID',
+      'Warehouse ID',
       'HMIS ProjectID',
       'ProjectName',
       'HMIS OrganizationID',
@@ -30,7 +30,7 @@ wb.add_worksheet(name: 'Organizations') do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
   sheet.add_row(
     [
-      'Warehouse Client ID',
+      'Warehouse ID',
       'HMIS OrganizationID',
       'OrganizationName',
       'Data Source',
@@ -53,7 +53,7 @@ wb.add_worksheet(name: 'Inventory') do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
   sheet.add_row(
     [
-      'Warehouse Client ID',
+      'Warehouse ID',
       'HMIS InventoryID',
       'HMIS ProjectID',
       'ProjectName',
@@ -78,7 +78,7 @@ wb.add_worksheet(name: 'Funders') do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
   sheet.add_row(
     [
-      'Warehouse Client ID',
+      'Warehouse ID',
       'HMIS FunderID',
       'HMIS ProjectID',
       'ProjectName',
@@ -103,7 +103,7 @@ wb.add_worksheet(name: 'ProjectCoCs') do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
   sheet.add_row(
     [
-      'Warehouse Client ID',
+      'Warehouse ID',
       'HMIS ProjectCoCID',
       'HMIS ProjectID',
       'ProjectName',
