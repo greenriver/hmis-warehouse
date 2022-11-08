@@ -24,6 +24,8 @@ module HudApr::Fy2020
         label = case h
         when 'destination_client_id'
           'Warehouse Client ID'
+        when 'client_id'
+          'Warehouse Source Client ID'
         else
           h.humanize
         end
