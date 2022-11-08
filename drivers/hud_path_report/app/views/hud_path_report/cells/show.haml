@@ -34,6 +34,10 @@
                       = client[k]
                     %a{href: '#', class: ['btn', 'btn-sm'], data: { toggle: :popover, title: 'Client Information', url: api_client_path(client.client_id), html: 'true' }}
                       %i.icon-info
+                  - elsif k == 'destination_client_id' && client[k].present?
+                    = link_to client[k], appropriate_client_path(client[k])
+                    %a{href: '#', class: ['btn', 'btn-sm'], data: { toggle: :popover, title: 'Client Information', url: api_client_path(client.client_id), html: 'true' }}
+                      %i.icon-info
                   - elsif k == 'contacts'
                     = count_dates(client[k])
                   - else
