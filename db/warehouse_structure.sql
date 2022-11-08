@@ -14488,7 +14488,8 @@ CREATE TABLE public.hud_report_apr_clients (
     bed_nights integer,
     pit_enrollments jsonb DEFAULT '[]'::jsonb,
     source_enrollment_id integer,
-    los_under_threshold integer
+    los_under_threshold integer,
+    project_id integer
 );
 
 
@@ -16048,7 +16049,9 @@ CREATE TABLE public.ma_yya_report_clients (
     education_status_date date,
     rehoused_on date,
     flex_funds jsonb DEFAULT '[]'::jsonb,
-    zip_codes jsonb DEFAULT '[]'::jsonb
+    zip_codes jsonb DEFAULT '[]'::jsonb,
+    language character varying,
+    followup_previous_period boolean
 );
 
 
@@ -50643,7 +50646,10 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20221020113634'),
 ('20221021205724'),
 ('20221028172017'),
+('20221102194234'),
+('20221103144659'),
 ('20221103201310'),
-('20221104134752');
+('20221104134752'),
+('20221107144111');
 
 

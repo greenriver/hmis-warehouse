@@ -50,11 +50,12 @@
         %tr
           %td= project_type
           - @report.categories.each do |cat|
-            - valid_percent = (100 - @report.percent(data[cat][:total], data[cat][:invalid_count])).round(1)
+            - valid_count = data[cat][:total] - data[cat][:invalid_count]
+            - valid_percent =  @report.percent(data[cat][:total], valid_count).round(1)
             - if goal_config.present? && goal_config.active?
               - name = goal_config.name_for(valid_percent.to_i)
               - if name.present?
                 - background_color = "background-color: #{goal_config.color_for(valid_percent.to_i)};"
-                %td{ style: background_color} #{valid_percent}%
+                %td{ style: background_color, data: { toggle: :tooltip, title: "#{valid_count} of #{data[cat][:total]}" }} #{valid_percent}%
             - else
               %td #{valid_percent}%
