@@ -486,7 +486,7 @@ module CePerformance
       @detail_headers ||= {}.tap do |headers|
         headers.merge!(
           {
-            'client_id' => 'Warehouse Client ID',
+            'client_id' => 'Warehouse Source Client ID',
             'dob' => 'DOB',
             'veteran' => 'Veteran Status',
             'first_name' => 'First Name',
