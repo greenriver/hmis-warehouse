@@ -89,7 +89,7 @@ module MaYyaReport
               )),
       ).
         or(a_t[:currently_homeless].eq(true).and(a_t[:rehoused_on].between(report_start_date..report_end_date)).
-          and(a_t[:subsequent_current_living_situations].not_eq('[]')))
+          and(a_t[:subsequent_current_living_situations].not_eq([])))
 
       {
         A1a: a_t[:currently_homeless].eq(true),
@@ -200,7 +200,7 @@ module MaYyaReport
         Ea: nil,
         Eb: nil,
 
-        F1a: a_t[:subsequent_current_living_situations].not_eq('[]').and(a_t[:followup_previous_period].eq(false)),
+        F1a: a_t[:subsequent_current_living_situations].not_eq([]).and(a_t[:followup_previous_period].eq(false)),
         F1b: a_t[:followup_previous_period].eq(false).
           and(Arel.sql(
                 json_contains(:subsequent_current_living_situations,
@@ -211,7 +211,7 @@ module MaYyaReport
           and(a_t[:rehoused_on].between(report_start_date..report_end_date)), # "Report Once" should handled because reporting periods don't overlap
         F2b: a_t[:currently_homeless].eq(true).
           and(a_t[:rehoused_on].between(report_start_date..report_end_date)).
-          and(a_t[:subsequent_current_living_situations].not_eq('[]')),
+          and(a_t[:subsequent_current_living_situations].not_eq([])),
         F2c: a_t[:currently_homeless].eq(true).
           and(a_t[:rehoused_on].not_eq(nil)).
           and(a_t[:followup_previous_period].eq(false)).
