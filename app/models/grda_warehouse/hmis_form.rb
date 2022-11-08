@@ -17,7 +17,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
 
   delegate :details_in_window_with_release?, to: :hmis_assessment
 
-  scope :viewable_by, -> (user) do
+  scope :viewable_by, ->(_user) do
     # FIXME: we need a site_id to ProjectID lookup table
     none
   end
@@ -44,24 +44,24 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
 
   scope :interested_in_some_rrh, -> do
     where.not(rrh_desired: nil).
-    or(
-      where.not(rrh_th_desired: nil)
-    ).
-    or(
-      where.not(dv_rrh_aggregate: nil)
-    ).
-    or(
-      where.not(youth_rrh_desired: nil)
-    ).
-    or(
-      where.not(adult_rrh_desired: nil)
-    ).
-    or(
-      where.not(youth_rrh_aggregate: nil)
-    ).
-    or(
-      where.not(veteran_rrh_desired: nil)
-    )
+      or(
+        where.not(rrh_th_desired: nil),
+      ).
+      or(
+        where.not(dv_rrh_aggregate: nil),
+      ).
+      or(
+        where.not(youth_rrh_desired: nil),
+      ).
+      or(
+        where.not(adult_rrh_desired: nil),
+      ).
+      or(
+        where.not(youth_rrh_aggregate: nil),
+      ).
+      or(
+        where.not(veteran_rrh_desired: nil),
+      )
   end
 
   scope :confidential, -> do
@@ -101,7 +101,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   end
 
   scope :has_unprocessed_qualifying_activities, -> do
-    processed_ids = Health::QualifyingActivity.where(source_type: self.name).
+    processed_ids = Health::QualifyingActivity.where(source_type: name).
       distinct.
       pluck(:source_id)
     has_qualifying_activities.where.not(id: processed_ids)
@@ -133,7 +133,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
     where.not(housing_status: [nil, '']).where.not(collected_at: nil)
   end
 
-  scope :within_range, -> (range) do
+  scope :within_range, ->(range) do
     where(collected_at: range)
   end
 
@@ -159,7 +159,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
     ids = vispdat.oldest_first.
       where(
         arel_table[:vispdat_total_score].eq(nil).
-        or(arel_table[:collected_at].gt(arel_table[:vispdat_score_updated_at]))
+        or(arel_table[:collected_at].gt(arel_table[:vispdat_score_updated_at])),
       ).pluck(:id)
     # loop over those records in batches of 100
     ids.each_slice(100) do |batch|
@@ -174,7 +174,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
         hmis_form.vispdat_times_homeless = hmis_form.vispdat_homeless_times
         hmis_form.vispdat_score_updated_at = Time.now
 
-        if hmis_form.changed? && hmis_form&.destination_client
+        if hmis_form&.changed? && hmis_form&.destination_client
           hmis_form.save
           hmis_form.destination_client.update(vispdat_prioritization_days_homeless: hmis_form.vispdat_days_homeless)
         end
@@ -188,7 +188,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
     ids = vispdat.oldest_first.
       where(
         arel_table[:vispdat_pregnant].eq(nil).
-          or(arel_table[:collected_at].gt(arel_table[:vispdat_pregnant_updated_at]))
+          or(arel_table[:collected_at].gt(arel_table[:vispdat_pregnant_updated_at])),
       ).pluck(:id)
     # loop over those records in batches of 100
     ids.each_slice(100) do |batch|
@@ -199,9 +199,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
         hmis_form.vispdat_pregnant = hmis_form.vispdat_pregnancy_status
         hmis_form.vispdat_pregnant_updated_at = Time.now
 
-        if hmis_form.changed?
-          hmis_form.save
-        end
+        hmis_form.save if hmis_form.changed?
       end
     end
   end
@@ -212,7 +210,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
     ids = vispdat.oldest_first.
       where(
         arel_table[:vispdat_physical_disability_answer].eq(nil).
-          or(arel_table[:collected_at].gt(arel_table[:vispdat_physical_disability_updated_at]))
+          or(arel_table[:collected_at].gt(arel_table[:vispdat_physical_disability_updated_at])),
       ).pluck(:id)
 
     # loop over those records in batches of 100
@@ -224,9 +222,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
         hmis_form.vispdat_physical_disability_answer = hmis_form.vispdat_physical_disability
         hmis_form.vispdat_physical_disability_updated_at = Time.now
 
-        if hmis_form.changed?
-          hmis_form.save
-        end
+        hmis_form.save if hmis_form.changed?
       end
     end
   end
@@ -234,8 +230,8 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   def self.set_missing_housing_status
     ids = case_management_notes.where(
       arel_table[:housing_status].eq(nil).
-        or(arel_table[:collected_at].gt(arel_table[:housing_status_updated_at]))
-      ).pluck(:id)
+        or(arel_table[:collected_at].gt(arel_table[:housing_status_updated_at])),
+    ).pluck(:id)
     ids.each_slice(100) do |batch|
       case_management_notes.where(id: batch).preload(:destination_client).oldest_first.to_a.each do |hmis_form|
         next unless hmis_form.destination_client.present?
@@ -301,8 +297,8 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
     else
       pathways.where(
         arel_table[:pathways_updated_at].eq(nil).
-          or(arel_table[:collected_at].gt(arel_table[:pathways_updated_at]))
-        ).pluck(:id)
+          or(arel_table[:collected_at].gt(arel_table[:pathways_updated_at])),
+      ).pluck(:id)
     end
     ids.each_slice(100) do |batch|
       pathways.where(id: batch).preload(:destination_client).oldest_first.to_a.each do |hmis_form|
@@ -355,8 +351,8 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
     else
       covid_19_impact_assessments.where(
         arel_table[:covid_impact_updated_at].eq(nil).
-          or(arel_table[:collected_at].gt(arel_table[:covid_impact_updated_at]))
-        ).pluck(:id)
+          or(arel_table[:collected_at].gt(arel_table[:covid_impact_updated_at])),
+      ).pluck(:id)
     end
     ids.each_slice(100) do |batch|
       covid_19_impact_assessments.where(id: batch).preload(:destination_client).oldest_first.to_a.each do |hmis_form|
@@ -378,10 +374,11 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
 
   def primary_language
     return 'Unknown' unless answers.present?
+
     answers = self.answers.with_indifferent_access
     answers[:sections].each do |m|
-      m[:questions].each do |m|
-        return m[:answer] if m[:answer].present? && m[:question] == 'A-2. Primary Language Spoken'
+      m[:questions].each do |q|
+        return q[:answer] if q[:answer].present? && q[:question] == 'A-2. Primary Language Spoken'
       end
     end
     'Unknown'
@@ -393,6 +390,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
 
   def veteran_score
     return nil unless name&.downcase == self.class.rrh_assessment_name.downcase
+
     relevant_section = answers[:sections].select do |section|
       section[:section_title].downcase.include?('assessment score') && section[:questions].present?
     end&.first
@@ -406,10 +404,12 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
 
   def rrh_desired?
     return false unless name&.downcase == self.class.rrh_assessment_name.downcase
+
     relevant_section = answers[:sections].select do |section|
       section[:section_title].downcase == 'section 8: housing resource assessment'.downcase
     end&.first
     return false unless relevant_section.present?
+
     relevant_question = relevant_section[:questions].select do |question|
       question[:question].downcase.starts_with?('would you like to be considered for rapid re-housing')
     end&.first.try(:[], :answer)
@@ -418,6 +418,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
 
   def rrh_assessment_score
     return nil unless name&.downcase == self.class.rrh_assessment_name.downcase
+
     relevant_section = answers[:sections].select do |section|
       section[:section_title].downcase.include?('assessment score') && section[:questions].present?
     end&.first
@@ -431,26 +432,28 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
 
   def youth_rrh_desired?
     return false unless name&.downcase == self.class.rrh_assessment_name.downcase
+
     relevant_section = answers[:sections].select do |section|
       section[:section_title].downcase == 'section 8: housing resource assessment'.downcase
     end&.first
     return false unless relevant_section.present?
 
     relevant_question = relevant_section[:questions].select do |question|
-      question[:question].downcase.include? "it looks like you have a head of household who is 24 years old"
+      question[:question].downcase.include? 'it looks like you have a head of household who is 24 years old'
     end&.first.try(:[], :answer)
     relevant_question&.downcase&.include?('youth') || false
   end
 
   def income_maximization_assistance_requested?
     return false unless name&.downcase == self.class.rrh_assessment_name.downcase
+
     relevant_section = answers[:sections].select do |section|
       section[:section_title].downcase == 'section 8: housing resource assessment'.downcase
     end&.first
     return false unless relevant_section.present?
 
     relevant_question = relevant_section[:questions].select do |question|
-      question[:question].downcase.include? "increase and maximize all income sources"
+      question[:question].downcase.include? 'increase and maximize all income sources'
     end&.first.try(:[], :answer)
     relevant_question&.downcase == 'yes' || false
   end
@@ -458,10 +461,12 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   def rrh_contact_info
     return nil unless name&.downcase == self.class.rrh_assessment_name.downcase
     return nil unless income_maximization_assistance_requested?
+
     relevant_section = answers[:sections].select do |section|
       section[:section_title].downcase == 'next steps and contact information' && section[:questions].present?
     end&.first
     return nil unless relevant_section.present?
+
     relevant_section[:questions].map do |question|
       "<div><strong>#{question[:question]}</strong> #{question[:answer]}</div>"
     end.join(' ')
@@ -555,6 +560,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
 
   def vispdat_days_homeless
     return 0 unless vispdat_months_homeless.present?
+
     vispdat_months_homeless * 30
   end
 
@@ -574,12 +580,12 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
     Health::QualifyingActivity.where(source_type: self.class.name, source_id: id)
   end
 
-  def has_eto_qualifying_activities?
+  def has_eto_qualifying_activities? # rubocop:disable Naming/PredicateName
     name.in?(['Case Management Daily Note']) && eto_qualifying_activities.any?
   end
 
   def eto_qualifying_activities
-    @eto_qualifying_activities ||= answers[:sections].select{|m| m[:section_title].include?('Qualifying Activity') && m[:questions].first[:answer].present?}
+    @eto_qualifying_activities ||= answers[:sections].select { |m| m[:section_title].include?('Qualifying Activity') && m[:questions].first[:answer].present? }
   end
 
   def create_qualifying_activity!
@@ -590,10 +596,12 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
     return true if Health::QualifyingActivity.where(source_type: self.class.name, source_id: id).exists?
 
     return true unless client&.destination_client.present?
-    # Don't add qualifying activities if we can't find a patient with a referral
-    return true unless patient = Health::Patient.joins(:patient_referral).where(client_id: client.destination_client.id)&.first
 
-    user = User.setup_system_user()
+    # Don't add qualifying activities if we can't find a patient with a referral
+    patient = Health::Patient.joins(:patient_referral).where(client_id: client.destination_client.id)&.first
+    return true unless patient.present?
+
+    user = User.setup_system_user
     Health::QualifyingActivity.transaction do
       eto_qualifying_activities.each do |qa|
         activity = {
@@ -604,6 +612,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
           follow_up: follow_up(qa),
         }
         next unless activity[:follow_up] && activity[:mode_of_contact] && activity[:activity] && activity[:reached_client]
+
         qualifying_activity = Health::QualifyingActivity.new(
           patient_id: patient.id,
           date_of_activity: collected_at.to_date,
@@ -615,7 +624,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
           follow_up: activity[:follow_up],
           source_type: self.class.name,
           source_id: id,
-          user_id: user.id
+          user_id: user.id,
         )
         qualifying_activity.save if qualifying_activity.valid?
       end
@@ -623,11 +632,11 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   end
 
   def follow_up qa
-    qa[:questions].select{|m| m[:question] == 'Notes and follow-up'}.first.try(:[], :answer)
+    qa[:questions].select { |m| m[:question] == 'Notes and follow-up' }.first.try(:[], :answer)
   end
 
   def collateral_contact qa
-    qa[:questions].select{|m| m[:question] == 'Collateral contact - with whom?'}.first.try(:[], :answer)
+    qa[:questions].select { |m| m[:question] == 'Collateral contact - with whom?' }.first.try(:[], :answer)
   end
 
   def care_hub_reached_key qa
@@ -638,9 +647,8 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   end
 
   def clean_reached_title qa
-    qa[:questions].select{|m| m[:question] == 'Reached client?'}.first.try(:[], :answer)
+    qa[:questions].select { |m| m[:question] == 'Reached client?' }.first.try(:[], :answer)
   end
-
 
   def care_hub_mode_key qa
     @care_hub_modes_of_contact ||= Health::QualifyingActivity.modes_of_contact.map do |k, mode|
@@ -650,7 +658,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   end
 
   def clean_mode_title qa
-    qa[:questions].select{|m| m[:question] == 'Mode of contact'}.first.try(:[], :answer)
+    qa[:questions].select { |m| m[:question] == 'Mode of contact' }.first.try(:[], :answer)
   end
 
   def care_hub_activity_key qa
@@ -661,7 +669,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   end
 
   def clean_activity_title qa
-    activity = qa[:questions].select{|m| m[:question] == 'Which of these activities took place?'}.first.try(:[], :answer)
+    activity = qa[:questions].select { |m| m[:question] == 'Which of these activities took place?' }.first.try(:[], :answer)
     case activity&.downcase
     when 'comprehensive assessment', 'health assessment'
       'Comprehensive Health Assessment'
@@ -690,8 +698,9 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
     if triage? ^ other.triage?
       return triage? ? -1 : 1
     end
+
     c = assessment_type <=> other.assessment_type
-    c = other.collected_at <=> collected_at if c == 0
+    c = other.collected_at <=> collected_at if c.zero?
     c
   end
 
