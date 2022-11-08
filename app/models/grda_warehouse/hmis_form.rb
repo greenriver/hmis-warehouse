@@ -718,6 +718,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   #
   def answer_from_section(section, question_string)
     return unless section
+
     section[:questions].select do |question|
       question[:question].downcase.include?(question_string.downcase)
     end&.first.try(:[], :answer)
