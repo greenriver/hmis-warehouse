@@ -20,6 +20,9 @@ module HudApr::Generators::Apr::Fy2023
       q27g_youth_income_sources
       q27h_youth_earned_income
       q27i_youth_disabling_conditions
+      q27j_average_length_of_participation
+      q27k_start_to_move_in
+      q27l_time_prior_to_housing
 
       @report.complete(QUESTION_NUMBER)
     end

@@ -20,6 +20,9 @@ module HudApr::Generators::Shared::Fy2023
         'Q27g' => 'Cash Income - Sources - Youth',
         'Q27h' => 'Client Cash Income Category - Earned/Other Income Category - by Start and Annual Assessment/Exit Status - Youth',
         'Q27i' => 'Disabling Conditions and Income for Youth at Exit',
+        'Q27j' => 'Average and Median Length of Participation in Days - Youth',
+        'Q27k' => 'Length of Time between Project Start Date and Housing Move-in Date - Youth',
+        'Q27l' => 'Length of Time Prior to Housing - based on 3.917 Date Homelessness Started - Youth',
       }.freeze
     end
 
@@ -533,6 +536,147 @@ module HudApr::Generators::Shared::Fy2023
           'Unduplicated Total Youth' => Arel.sql('1=1'),
         },
       )
+    end
+
+    private def q27j_average_length_of_participation
+      table_name = 'Q27j'
+      metadata = {
+        header_row: [' '] + q27j_populations.keys,
+        row_labels: q27j_lengths.keys,
+        first_column: 'B',
+        last_column: 'C',
+        first_row: 2,
+        last_row: 3,
+      }
+      @report.answer(question: table_name).update(metadata: metadata)
+
+      cols = (metadata[:first_column]..metadata[:last_column]).to_a
+      rows = (metadata[:first_row]..metadata[:last_row]).to_a
+      q27j_populations.values.each_with_index do |population_clause, col_index|
+        q27j_lengths.values.each_with_index do |method, row_index|
+          cell = "#{cols[col_index]}#{rows[row_index]}"
+          next if intentionally_blank.include?(cell)
+
+          answer = @report.answer(question: table_name, cell: cell)
+
+          members = universe.members.where(population_clause)
+          stay_lengths = members.pluck(a_t[:length_of_stay]).compact
+          value = 0
+          case method
+          when :average
+            value = (stay_lengths.sum(0.0) / stay_lengths.count).round if stay_lengths.any?
+          when :median
+            if stay_lengths.any?
+              sorted = stay_lengths.sort
+              length = stay_lengths.count
+              value = ((sorted[(length - 1) / 2] + sorted[length / 2]) / 2.0).round
+            end
+          end
+
+          answer.add_members(members)
+          answer.update(summary: value)
+        end
+      end
+    end
+
+    private def q27k_start_to_move_in
+      table_name = 'Q27k'
+      metadata = {
+        header_row: [' '] + q27k_populations.keys,
+        row_labels: q27k_lengths.keys,
+        first_column: 'B',
+        last_column: 'F',
+        first_row: 2,
+        last_row: 13,
+      }
+      @report.answer(question: table_name).update(metadata: metadata)
+
+      cols = (metadata[:first_column]..metadata[:last_column]).to_a
+      rows = (metadata[:first_row]..metadata[:last_row]).to_a
+      relevant_members = universe.members.where(a_t[:project_type].in([3, 13]))
+      q27k_populations.values.each_with_index do |population_clause, col_index|
+        q27k_lengths.values.each_with_index do |length_clause, row_index|
+          cell = "#{cols[col_index]}#{rows[row_index]}"
+          next if intentionally_blank.include?(cell)
+
+          answer = @report.answer(question: table_name, cell: cell)
+
+          # Universe: All active clients where the head of household had a move-in date in the report date range plus leavers who exited in the date range and never had a move-in date.
+          members = relevant_members.where(population_clause).
+            where(
+              a_t[:move_in_date].between(@report.start_date..@report.end_date).
+              or(leavers_clause.and(a_t[:move_in_date].eq(nil))),
+            )
+
+          if length_clause.is_a?(Symbol)
+            case length_clause
+            when :average
+              value = 0
+              members = members.where(a_t[:move_in_date].between(@report.start_date..@report.end_date))
+              stay_lengths = members.pluck(a_t[:time_to_move_in])
+              value = (stay_lengths.sum(0.0) / stay_lengths.count).round(2) if stay_lengths.any?
+            end
+          else
+            members = members.where(length_clause)
+            value = members.count
+          end
+
+          answer.add_members(members)
+          answer.update(summary: value)
+        end
+      end
+    end
+
+    private def q27l_time_prior_to_housing
+      table_name = 'Q27l'
+      metadata = {
+        header_row: [' '] + q22d_populations.keys,
+        row_labels: q27l_lengths.keys,
+        first_column: 'B',
+        last_column: 'F',
+        first_row: 2,
+        last_row: 14,
+      }
+      @report.answer(question: table_name).update(metadata: metadata)
+
+      cols = (metadata[:first_column]..metadata[:last_column]).to_a
+      rows = (metadata[:first_row]..metadata[:last_row]).to_a
+      relevant_members = universe.members.where(a_t[:project_type].in([1, 2, 3, 8, 9, 13]))
+      q27l_populations.values.each_with_index do |population_clause, col_index|
+        q27l_lengths.values.each_with_index do |length_clause, row_index|
+          cell = "#{cols[col_index]}#{rows[row_index]}"
+          next if intentionally_blank.include?(cell)
+
+          answer = @report.answer(question: table_name, cell: cell)
+
+          members = relevant_members.where(population_clause).where(length_clause)
+
+          answer.add_members(members)
+          answer.update(summary: members.count)
+        end
+      end
+    end
+
+    private def q27j_populations
+      {
+        'Leavers' => leavers_clause,
+        'Stayers' => stayers_clause,
+      }
+    end
+
+    private def q27k_populations
+      sub_populations
+    end
+
+    private def q27l_populations
+      sub_populations
+    end
+
+    private def q27j_lengths
+      {
+        'Average Length' => :average,
+        'Median Length' => :median,
+      }
     end
 
     private def q27_populations
