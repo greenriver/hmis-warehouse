@@ -118,6 +118,8 @@ module Api
     end
 
     private def project_scope
+      return project_source.none unless current_user.present?
+
       @project_scope ||= begin
         scope = project_source.viewable_by(current_user)
         scope = scope.merge(project_source.non_confidential) unless current_user.can_view_confidential_project_names?
