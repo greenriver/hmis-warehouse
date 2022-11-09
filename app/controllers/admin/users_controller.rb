@@ -164,6 +164,7 @@ module Admin
       ).tap do |result|
         result[:coc_codes] ||= []
         # re-add system groups so we don't remove them here
+        result[:access_group_ids] ||= []
         result[:access_group_ids] += @user.access_groups.system.pluck(:id).map(&:to_s)
       end
     end
