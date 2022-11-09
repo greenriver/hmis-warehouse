@@ -18,6 +18,7 @@ module VeteranStatusCalculator
     return 0 if verified_veteran_status == 'non_veteran'
     return 1 if va_verified_veteran
     return 1 if source_clients.map { |sc| sc[:VeteranStatus] }.include?(1)
+    return 0 if source_clients.map { |sc| sc[:VeteranStatus] }.include?(0)
 
     # Will return No or DK/R/NC
     source_clients.max do |a, b|

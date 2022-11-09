@@ -346,24 +346,34 @@ module GrdaWarehouse::Tasks
     end
 
     def choose_best_name dest_attr, source_clients
-      # Get the best name (has name and quality is full or partial, oldest breaks the tie)
       non_blank_names = source_clients.select { |sc| (sc[:FirstName].present? or sc[:LastName].present?) }
       if non_blank_names.any?
-        best_name_client = non_blank_names.max do |a, b|
-          comp = b[:NameDataQuality] <=> a[:NameDataQuality] # Desc
-          if comp == 0 # rubocop:disable Style/NumericPredicate
-            comp = if GrdaWarehouse::Config.get(:warehouse_client_name_order).to_s == 'latest'
-              a[:DateCreated] <=> b[:DateCreated] # asc (newer names win)
-            else
-              b[:DateCreated] <=> a[:DateCreated] # desc (original name wins)
-            end
+        # find any with NameDataQuality with 1, pick the oldest/newest from those
+        # find any with NameDataQuality with 2, pick the oldest/newest from those
+        # else, pick the oldest/newest from those
+        best = nil
+        [1, 2, 8, 9, 99].each do |dq_value|
+          temp_clients = non_blank_names.select { |sc| sc[:NameDataQuality] == dq_value }
+          best = if GrdaWarehouse::Config.get(:warehouse_client_name_order).to_s == 'latest'
+            temp_clients.max_by { |sc| sc[:DateCreated] }
+          else
+            temp_clients.min_by { |sc| sc[:DateCreated] }
           end
-          comp
+          break if best.present?
         end
-        if best_name_client.present?
-          dest_attr[:FirstName] = best_name_client[:FirstName]
-          dest_attr[:LastName] = best_name_client[:LastName]
-          dest_attr[:NameDataQuality] = best_name_client[:NameDataQuality]
+
+        if best.blank?
+          best = if GrdaWarehouse::Config.get(:warehouse_client_name_order).to_s == 'latest'
+            non_blank_names.max_by { |sc| sc[:DateCreated] }
+          else
+            non_blank_names.min_by { |sc| sc[:DateCreated] }
+          end
+        end
+
+        if best.present?
+          dest_attr[:FirstName] = best[:FirstName]
+          dest_attr[:LastName] = best[:LastName]
+          dest_attr[:NameDataQuality] = best[:NameDataQuality]
         end
       end
       dest_attr
@@ -373,13 +383,13 @@ module GrdaWarehouse::Tasks
       # Get the best SSN (has value and quality is full or partial, oldest breaks the tie)
       non_blank_ssn = source_clients.select { |sc| sc[:SSN].present? }
       if non_blank_ssn.any?
-        best = non_blank_ssn.max do |a, b|
-          comp = b[:SSNDataQuality] <=> a[:SSNDataQuality] # Desc
-          if comp == 0 # rubocop:disable Style/NumericPredicate
-            comp = b[:DateCreated] <=> a[:DateCreated] # Desc
-          end
-          comp
+        best = nil
+        [1, 2, 8, 9, 99].each do |dq_value|
+          best = non_blank_ssn.select { |sc| sc[:SSNDataQuality] == dq_value }.min_by { |sc| sc[:DateCreated] }
+          break if best.present?
         end
+        best = non_blank_ssn.min_by { |sc| sc[:DateCreated] } if best.blank?
+
         dest_attr[:SSN] = best[:SSN]
         dest_attr[:SSNDataQuality] = best[:SSNDataQuality]
       elsif dest_attr[:SSN].present?
@@ -399,13 +409,13 @@ module GrdaWarehouse::Tasks
       # Get the best DOB (has value and quality is full or partial, oldest breaks the tie)
       non_blank_dob = source_clients.select { |sc| sc[:DOB].present? }
       if non_blank_dob.any?
-        best = non_blank_dob.max do |a, b|
-          comp = b[:DOBDataQuality] <=> a[:DOBDataQuality] # Desc
-          if comp == 0 # rubocop:disable Style/NumericPredicate
-            comp = b[:DateCreated] <=> a[:DateCreated] # Desc
-          end
-          comp
+        best = nil
+        [1, 2, 8, 9, 99].each do |dq_value|
+          best = non_blank_dob.select { |sc| sc[:DOBDataQuality] == dq_value }.min_by { |sc| sc[:DateCreated] }
+          break if best.present?
         end
+        best = non_blank_dob.min_by { |sc| sc[:DateCreated] } if best.blank?
+
         dest_attr[:DOB] = best[:DOB]
         dest_attr[:DOBDataQuality] = best[:DOBDataQuality]
       elsif dest_attr[:DOB].present?
@@ -421,7 +431,7 @@ module GrdaWarehouse::Tasks
       # Valid responses for GenderNone are [8, 9, 99] -- should be null if any other gender field contains a 1
       known_values = [0, 1]
       # Sort in reverse chronological order (newest first)
-      sorted_source_clients = source_clients.sort_by.sort { |a, b| b[:DateUpdated] <=> a[:DateUpdated] }
+      sorted_source_clients = source_clients.sort { |a, b| b[:DateUpdated] <=> a[:DateUpdated] }
 
       gender_columns.each do |col|
         sorted_source_clients.each do |source_client|
@@ -465,7 +475,7 @@ module GrdaWarehouse::Tasks
       # Valid responses for RaceNone are [8, 9, 99] -- should be null if all other fields are 0 or 99
       known_values = [0, 1]
       # Sort in reverse chronological order (newest first)
-      sorted_source_clients = source_clients.sort_by.sort { |a, b| b[:DateUpdated] <=> a[:DateUpdated] }
+      sorted_source_clients = source_clients.sort { |a, b| b[:DateUpdated] <=> a[:DateUpdated] }
 
       race_columns.each do |col|
         sorted_source_clients.each do |source_client|
@@ -506,7 +516,7 @@ module GrdaWarehouse::Tasks
       # Most recent 0 or 1 if no 0 or 1 use the most recent value
       known_values = [0, 1]
       # Sort in reverse chronological order (newest first)
-      sorted_source_clients = source_clients.sort_by.sort { |a, b| b[:DateUpdated] <=> a[:DateUpdated] }
+      sorted_source_clients = source_clients.sort { |a, b| b[:DateUpdated] <=> a[:DateUpdated] }
       col = :Ethnicity
       sorted_source_clients.each do |source_client|
         value = source_client[col]
