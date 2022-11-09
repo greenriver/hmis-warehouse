@@ -2,7 +2,7 @@ wb = xlsx_package.workbook
 wb.add_worksheet(name: 'Health Prioritization') do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
   row = [
-    'Warehouse ID',
+    'Warehouse Client ID',
     'Client',
     'Age',
     'HMIS Physical Disability?',

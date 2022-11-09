@@ -3,7 +3,7 @@ wb = xlsx_package.workbook
 wb.add_worksheet(name: 'Average Length of Time') do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
   sheet.add_row([
-    'Warehouse ID',
+    'Warehouse Client ID',
     'First Name',
     'Last Name',
     'Days Homeless',

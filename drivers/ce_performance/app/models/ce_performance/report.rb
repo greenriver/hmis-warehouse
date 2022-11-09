@@ -214,6 +214,7 @@ module CePerformance
         report_client = report_clients[ce_apr_client[:client_id]] || Client.new(
           report_id: id,
           client_id: ce_apr_client[:client_id],
+          destination_client_id: ce_apr_client.destination_client_id,
           ce_apr_id: ce_apr.id,
           ce_apr_client_id: ce_apr_client.id,
         )
@@ -486,7 +487,8 @@ module CePerformance
       @detail_headers ||= {}.tap do |headers|
         headers.merge!(
           {
-            'client_id' => 'Warehouse Client ID',
+            'destination_client_id' => 'Warehouse Client ID',
+            'client_id' => 'Warehouse Source Client ID',
             'dob' => 'DOB',
             'veteran' => 'Veteran Status',
             'first_name' => 'First Name',
