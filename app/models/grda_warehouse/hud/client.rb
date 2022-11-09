@@ -2357,13 +2357,13 @@ module GrdaWarehouse::Hud
         end
         # clean up the previous destination
         if prev_destination_client
-
           # move any CAS column data
           previous_cas_columns = prev_destination_client.attributes.slice(*self.class.cas_columns.keys.map(&:to_s))
           current_cas_columns = self.attributes.slice(*self.class.cas_columns.keys.map(&:to_s)) # rubocop:disable Style/RedundantSelf
           current_cas_columns.merge!(previous_cas_columns) { |_k, old, new| old.presence || new }
           self.update(current_cas_columns) # rubocop:disable Style/RedundantSelf
           self.save # rubocop:disable Style/RedundantSelf
+
           prev_destination_client.force_full_service_history_rebuild
           prev_destination_client.source_clients.reload
           if prev_destination_client.source_clients.empty?
@@ -2373,19 +2373,11 @@ module GrdaWarehouse::Hud
           end
 
           move_dependent_items(prev_destination_client.id, self.id) # rubocop:disable Style/RedundantSelf
-
         end
         # and invalidate our own service history
         force_full_service_history_rebuild
         # and invalidate any cache for these clients
         self.class.clear_view_cache(prev_destination_client.id)
-      rescue Health::MedicaidIdConflict => e
-        @notifier.ping(
-          'Non-matching Medicaid IDs on patient merge',
-          {
-            exception: e,
-          },
-        )
       end
       self.class.clear_view_cache(self.id) # rubocop:disable Style/RedundantSelf
       self.class.clear_view_cache(other_client.id)
@@ -2397,6 +2389,13 @@ module GrdaWarehouse::Hud
           where(destination_client_id: m.id).destroy_all
       end
       moved
+    rescue Health::MedicaidIdConflict => e
+      @notifier.ping(
+        'Non-matching Medicaid IDs on patient merge',
+        {
+          exception: e,
+        },
+      )
     end
 
     def move_dependent_hmis_items(previous_id, new_id)
