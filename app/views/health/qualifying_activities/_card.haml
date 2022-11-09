@@ -74,7 +74,11 @@
           %td
             = qa.describe_validity_reasons.join(', ').humanize
 
-
+  - if can_administer_health? && qa.claim_submitted_on.blank?
+    .text-right
+      = link_to polymorphic_path(health_path_generator + [:qualifying_activity], {id: qa.id}), method: :delete, data: {confirm: "Are you sure you want to delete this QA?"}, class: 'btn btn-sm btn-icon-only btn-danger' do
+        %i.icon-cross
+          Delete
   - if can_unsubmit_submitted_claims? && qa.claim_submitted_on.present?
     .text-right
       = link_to polymorphic_path(health_path_generator + [:qualifying_activity], {id: qa.id}), method: :delete, data: {confirm: "Are you sure you want to un-submit the claim for this QA?"}, class: 'btn btn-sm btn-icon-only btn-danger' do
