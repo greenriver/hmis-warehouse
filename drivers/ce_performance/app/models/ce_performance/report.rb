@@ -347,7 +347,7 @@ module CePerformance
         end&.map { |e| e.with_indifferent_access[:date] }&.min&.to_date
         report_client.initial_housing_referral_date = initial_referral_date
         if initial_referral_date.present?
-          report_client.days_between_entry_and_initial_referral = initial_referral_date - report_client.entry_date
+          report_client.days_between_entry_and_initial_referral = initial_referral_date - ce_apr_client.first_date_in_program if ce_apr_client.first_date_in_program.present?
           dates = ph_enrollments[ce_apr_client.destination_client_id]
           housing_entry_date = dates&.
             map(&:first)&.
