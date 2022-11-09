@@ -23,6 +23,7 @@ module GrdaWarehouse::Hud
     include CasClientData
     include ClientSearch
     include VeteranStatusCalculator
+    include NotifierConfig
     has_paper_trail
 
     attr_accessor :source_id
@@ -2324,6 +2325,7 @@ module GrdaWarehouse::Hud
     def merge_from(other_client, reviewed_by:, reviewed_at:, client_match_id: nil)
       raise 'only works for destination_clients' unless self.destination? # rubocop:disable Style/RedundantSelf
 
+      setup_notifier('PatientMerger') unless @notifier
       moved = []
       transaction do
         # get the existing destination client for other_client
@@ -2377,6 +2379,13 @@ module GrdaWarehouse::Hud
         force_full_service_history_rebuild
         # and invalidate any cache for these clients
         self.class.clear_view_cache(prev_destination_client.id)
+      rescue Health::MedicaidIdConflict => e
+        @notifier.ping(
+          'Non-matching Medicaid IDs on patient merge',
+          {
+            exception: e,
+          },
+        )
       end
       self.class.clear_view_cache(self.id) # rubocop:disable Style/RedundantSelf
       self.class.clear_view_cache(other_client.id)
@@ -2391,6 +2400,8 @@ module GrdaWarehouse::Hud
     end
 
     def move_dependent_hmis_items(previous_id, new_id)
+      return if previous_id == new_id
+
       hmis_dependent_items.each do |klass|
         klass.where(client_id: previous_id).
           update_all(client_id: new_id)
@@ -2398,6 +2409,23 @@ module GrdaWarehouse::Hud
     end
 
     def move_dependent_health_items(previous_id, new_id)
+      return if previous_id == new_id
+
+      # If we are merging 2 existing patients...
+      previous_patient = Health::Patient.find_by(client_id: previous_id)
+      new_patient = Health::Patient.find_by(client_id: new_id)
+      if previous_patient.present? && new_patient.present?
+        # Confirm their MedicaidIDs match
+        raise Health::MedicaidIdConflict, "Cannot merge #{previous_patient.id} and #{new_patient.id}" if previous_patient.medicaid_id != new_patient.medicaid_id
+
+        # Move the referrals
+        previous_patient.patient_referrals.update_all(patient_id: new_patient.id)
+        new_patient.cleanup_referrals
+
+        # There can only be one patient with an client_id, so clean up the old one
+        previous_patient.destroy
+      end
+
       health_dependent_items.each do |klass|
         klass.where(client_id: previous_id).
           update_all(client_id: new_id)
@@ -2405,14 +2433,8 @@ module GrdaWarehouse::Hud
     end
 
     def move_dependent_items previous_id, new_id
-      dependent_items.each do |klass|
-        klass.where(client_id: previous_id).
-          update_all(client_id: new_id)
-      end
-    end
-
-    private def dependent_items
-      hmis_dependent_items + health_dependent_items
+      move_dependent_hmis_items(previous_id, new_id)
+      move_dependent_health_items(previous_id, new_id)
     end
 
     private def hmis_dependent_items
