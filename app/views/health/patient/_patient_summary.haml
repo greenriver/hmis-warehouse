@@ -28,9 +28,7 @@
       %h4 Communication
       .ho-patient__detail
         %span Preferred Communication:
-        = @patient.preferred_communication
-      .patient__phone-status
-        = @patient.phone_message_ok
+        = "#{@patient.preferred_communication}#{@patient.phone_message_ok}"
       - if phone = @patient.most_recent_phone
         .ho-patient__detail
           %span Phone:
