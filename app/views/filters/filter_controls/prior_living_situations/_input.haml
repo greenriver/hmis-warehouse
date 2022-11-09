@@ -1,1 +1,1 @@
-= f.input :prior_living_situation_ids, collection: @filter.available_prior_living_situations, required: false, input_html: { multiple: true }, label: control.label, as: :select_two
+= f.input :prior_living_situation_ids, collection: @filter.available_prior_living_situations(grouped: true), required: false, input_html: { multiple: true }, label: control.label, as: :grouped_select_two, group_method: :last
