@@ -4046,7 +4046,8 @@ CREATE TABLE public.ce_performance_clients (
     community character varying,
     lgbtq_household_members boolean DEFAULT false NOT NULL,
     client_lgbtq boolean DEFAULT false NOT NULL,
-    dv_survivor boolean DEFAULT false NOT NULL
+    dv_survivor boolean DEFAULT false NOT NULL,
+    destination_client_id integer
 );
 
 
@@ -16049,7 +16050,9 @@ CREATE TABLE public.ma_yya_report_clients (
     education_status_date date,
     rehoused_on date,
     flex_funds jsonb DEFAULT '[]'::jsonb,
-    zip_codes jsonb DEFAULT '[]'::jsonb
+    zip_codes jsonb DEFAULT '[]'::jsonb,
+    language character varying,
+    followup_previous_period boolean
 );
 
 
@@ -50435,8 +50438,11 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20221020113634'),
 ('20221021205724'),
 ('20221028172017'),
+('20221102194234'),
+('20221103144659'),
 ('20221103201310'),
 ('20221104134752'),
-('20221108134143');
+('20221108134143'),
+('20221109155552');
 
 
