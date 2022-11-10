@@ -2211,7 +2211,8 @@ CREATE TABLE public.warehouse_clients (
     deleted_at timestamp without time zone,
     source_id integer,
     destination_id integer,
-    client_match_id integer
+    client_match_id integer,
+    source_hash character varying
 );
 
 
@@ -50650,6 +50651,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20221103144659'),
 ('20221103201310'),
 ('20221104134752'),
-('20221107144111');
+('20221107144111'),
+('20221110133236');
 
 

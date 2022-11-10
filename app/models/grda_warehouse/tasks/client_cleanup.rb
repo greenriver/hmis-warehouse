@@ -15,14 +15,20 @@ module GrdaWarehouse::Tasks
 
     attr_accessor :logger, :send_notifications, :notifier_config
 
-    def initialize(max_allowed = 1_000, _bogus_notifier = false, changed_client_date: 2.weeks.ago.to_date, debug: false, dry_run: false)
+    def initialize(
+      max_allowed = 1_000,
+      _bogus_notifier = false,
+      debug: false,
+      dry_run: false,
+      demographic_ids: []
+    )
       @max_allowed = max_allowed
       setup_notifier('Client Cleanup')
       self.logger = Rails.logger
       @debug = debug
       @soft_delete_date = Time.now
-      @changed_client_date = changed_client_date
       @dry_run = dry_run
+      @demographic_ids = Array.wrap(demographic_ids)
     end
 
     def run!
@@ -599,7 +605,9 @@ module GrdaWarehouse::Tasks
           changed[:new_vets] << dest.id if dest.VeteranStatus != 1 && dest_attr[:VeteranStatus] == 1
           changed[:newly_not_vets] << dest.id if dest.VeteranStatus == 1 && dest_attr[:VeteranStatus] == 0 # rubocop:disable Style/NumericPredicate
         end
-        processed += batch_size
+
+        update_source_hashes(batch)
+        processed += batch.count
         logger.debug "Updated demographics for #{processed} destination clients"
       end
       return unless @debug
@@ -608,6 +616,19 @@ module GrdaWarehouse::Tasks
       logger.debug changed.map { |k, ids| [k, ids.count] }.to_h.inspect
       logger.debug changed.inspect
       logger.debug '=========== End Changed Counts ============'
+    end
+
+    private def update_source_hashes(batch)
+      source_client_ids = GrdaWarehouse::Hud::Client.where(id: batch).joins(:warehouse_client_destination).pluck(wc_t[:source_id])
+      updates = GrdaWarehouse::Hud::Client.where(id: source_client_ids).joins(:warehouse_client_source).pluck(wc_t[:id], wc_t[:id_in_source], :source_hash)
+      GrdaWarehouse::WarehouseClient.import(
+        [:id, :id_in_source, :source_hash],
+        updates,
+        on_duplicate_key_update: {
+          conflict_target: [:id],
+          columns: [:source_hash],
+        },
+      )
     end
 
     def client_columns
@@ -641,16 +662,12 @@ module GrdaWarehouse::Tasks
     end
 
     def clients_to_munge
-      log "Check any client who's source has been updated in the past week"
-      wc_t = GrdaWarehouse::WarehouseClient.arel_table
-      updated_client_ids = GrdaWarehouse::Hud::Client.source.where(c_t[:DateUpdated].gt(@changed_client_date)).select(:id).pluck(:id)
-      @to_update = GrdaWarehouse::WarehouseClientsProcessed.service_history.
-        joins(:warehouse_client).
-        where(wc_t[:source_id].in(updated_client_ids)).
-        distinct.
-        pluck(:client_id)
-      log "...found #{@to_update.size}."
-      @to_update
+      return @demographic_ids if @demographic_ids.present?
+
+      log "Check any client who's source has changed"
+      to_update = GrdaWarehouse::WarehouseClient.destination_needs_cleanup.pluck(:destination_id)
+      log "...found #{to_update.size}."
+      to_update
     end
 
     def log message

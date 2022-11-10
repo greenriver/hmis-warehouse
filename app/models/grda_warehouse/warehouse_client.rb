@@ -5,6 +5,7 @@
 ###
 
 class GrdaWarehouse::WarehouseClient < GrdaWarehouseBase
+  include ArelHelper
   has_paper_trail
   # acts_as_paranoid
 
@@ -15,4 +16,13 @@ class GrdaWarehouse::WarehouseClient < GrdaWarehouseBase
 
   belongs_to :data_source, optional: true
   belongs_to :client_match, optional: true
+
+  scope :destination_needs_cleanup, -> do
+    joins(:source).where(
+      c_t[:source_hash].not_eq(nil).and(
+        arel_table[:source_hash].not_eq(c_t[:source_hash]).
+        or(arel_table[:source_hash].eq(nil)),
+      ),
+    )
+  end
 end
