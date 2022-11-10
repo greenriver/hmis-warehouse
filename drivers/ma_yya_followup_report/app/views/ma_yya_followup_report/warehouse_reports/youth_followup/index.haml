@@ -1,0 +1,13 @@
+- title = _('MA YYA Follow Up Report')
+- content_for :title, title
+
+= render '/warehouse_reports/breadcrumbs', tab: 'operational'
+%h1.mb-5= title
+
+= render 'filter'
+
+- if @report.clients.present?
+  %p.alert.alert-info The following clients have not had a youth interaction, including three-month follow-ups, since #{@report.start_date}. Anyone with a last seen date before #{@report.late_date} is over due for a three month follow-up.
+  = render 'table'
+- else
+  .none-found No Clients found.

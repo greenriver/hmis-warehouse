@@ -1,0 +1,13 @@
+= simple_form_for @filter, as: :filter, url: ma_yya_followup_report_warehouse_reports_youth_followup_index_path, method: :get do |f|
+  - content_for :filters_col_full do
+    .row
+      .col-sm-3
+        = f.input :on, as: :date_picker
+      .col-sm-6
+        = f.input :project_ids, as: :grouped_select_two, collection: MaYyaFollowupReport::Report.yya_projects(current_user), group_method: :last, input_html: { multiple: true }, label: 'Projects'
+      .col-sm-3
+        = f.input :age_ranges, collection: MaYyaFollowupReport::Report.available_age_ranges.invert, as: :select_two, input_html: { multiple: true }, required: true
+  - content_for :filter_actions do
+    = f.submit 'Update Report', class: ['btn', 'btn-primary']
+
+  = render 'warehouse_reports/filters', f:f

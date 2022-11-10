@@ -842,6 +842,15 @@ module GrdaWarehouse::WarehouseReports
           health: false,
         }
       end
+      if RailsDrivers.loaded.include?(:ma_yya_followup_report)
+        r_list['Operational'] << {
+          url: 'ma_yya_followup_report/warehouse_reports/youth_followup',
+          name: 'MA Homeless Youth Follow Up Report',
+          description: 'Youth who require a three month follow up.',
+          limitable: true,
+          health: false,
+        }
+      end
       if RailsDrivers.loaded.include?(:service_scanning)
         r_list['Operational'] << {
           url: 'service_scanning/warehouse_reports/scanned_services',
