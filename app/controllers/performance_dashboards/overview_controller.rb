@@ -31,7 +31,6 @@ module PerformanceDashboards
     end
 
     def download
-      @options[:export] = true
       render xlsx: 'xlsx_download', filename: "#{@report.performance_type} Performance.xlsx"
     end
 
