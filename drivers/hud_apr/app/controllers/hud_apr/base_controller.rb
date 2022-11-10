@@ -12,6 +12,7 @@ module HudApr
       {
         'FY 2020' => { slug: :fy2020, active: false },
         'FY 2022 (current)' => { slug: :fy2021, active: true },
+        'FY 2023 (effective 1/1/2023)' => { slug: :fy2023, active: true },
       }.freeze
     end
     helper_method :available_report_versions
