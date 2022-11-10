@@ -8,7 +8,11 @@ module HudApr::Generators::Shared::Fy2023
   class QuestionFive < Base
     QUESTION_NUMBER = 'Question 5'.freeze
 
-    TABLE_HEADER = [].freeze
+    TABLE_HEADER = [
+      'Category',
+      'Count of Clients for DQ',
+      'Count of Clients',
+    ].freeze
     ROW_LABELS = [
       'Total number of persons served',
       'Number of adults (age 18 or over)',
@@ -122,6 +126,14 @@ module HudApr::Generators::Shared::Fy2023
             or(a_t[:age].eq(nil)).
             and(a_t[:head_of_household].eq(true)),
         },
+        # HoH and adult stayers in project 365 days or more
+        # "...any adult stayer present when the head of household’s stay is 365 days or more,
+        # even if that adult has not been in the household that long"
+        {
+          row: '17',
+          clause: a_t[:head_of_household_id].in(hoh_lts_stayer_ids).
+            and(adult_clause.or(a_t[:head_of_household].eq(true))),
+        },
       ]
     end
 
@@ -159,20 +171,6 @@ module HudApr::Generators::Shared::Fy2023
           answer.add_members(members)
           answer.update(summary: members.count)
         end
-
-        # HoH and adult stayers in project 365 days or more
-        # "...any adult stayer present when the head of household’s stay is 365 days or more,
-        # even if that adult has not been in the household that long"
-        cell = "#{col}17"
-        answer = @report.answer(question: table_name, cell: cell)
-        members = universe.members.
-          where(inclusion_clause).
-          where(
-            a_t[:head_of_household_id].in(hoh_lts_stayer_ids).
-            and(adult_clause.or(a_t[:head_of_household].eq(true))),
-          )
-        answer.add_members(members)
-        answer.update(summary: members.count)
       end
     end
   end

@@ -630,7 +630,7 @@ module HudApr::Generators::Shared::Fy2023
     private def q27l_time_prior_to_housing
       table_name = 'Q27l'
       metadata = {
-        header_row: [' '] + q22d_populations.keys,
+        header_row: [' '] + q27k_populations.keys,
         row_labels: q27l_lengths.keys,
         first_column: 'B',
         last_column: 'F',
@@ -657,6 +657,48 @@ module HudApr::Generators::Shared::Fy2023
       end
     end
 
+    private def q27l_lengths
+      move_in_projects = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph]
+      move_in_for_psh = a_t[:project_type].not_in(move_in_projects).
+        or(a_t[:project_type].in(move_in_projects).and(a_t[:move_in_date].lteq(@report.end_date)))
+      {
+        '7 days or less' => a_t[:approximate_time_to_move_in].between(0..7).
+          and(move_in_for_psh),
+        '8 to 14 days' => a_t[:approximate_time_to_move_in].between(8..14).
+          and(move_in_for_psh),
+        '15 to 21 days' => a_t[:approximate_time_to_move_in].between(15..21).
+          and(move_in_for_psh),
+        '22 to 30 days' => a_t[:approximate_time_to_move_in].between(22..30).
+          and(move_in_for_psh),
+        '31 to 60 days' => a_t[:approximate_time_to_move_in].between(31..60).
+          and(move_in_for_psh),
+        '61 to 180 days' => a_t[:approximate_time_to_move_in].between(61..180).
+          and(move_in_for_psh),
+        '181 to 365 days' => a_t[:approximate_time_to_move_in].between(181..365).
+          and(move_in_for_psh),
+        '366 to 730 days (1-2 Yrs)' => a_t[:approximate_time_to_move_in].between(366..730).
+          and(move_in_for_psh),
+        '731 days or more' => a_t[:approximate_time_to_move_in].gteq(731).
+          and(move_in_for_psh),
+        'Total (persons moved into housing)' => a_t[:approximate_time_to_move_in].not_eq(nil).
+          and(a_t[:project_type].not_in(move_in_projects).
+            or(a_t[:project_type].in(move_in_projects).
+              and(a_t[:move_in_date].lteq(@report.end_date).and(a_t[:date_to_street].lteq(a_t[:move_in_date]))))),
+        'Not yet moved into housing' => a_t[:project_type].not_in(move_in_projects).
+          and(a_t[:date_to_street].not_eq(nil).
+            and(a_t[:date_to_street].lteq(a_t[:first_date_in_program])).
+            and(a_t[:approximate_time_to_move_in].eq(nil))).
+          or(a_t[:project_type].in(move_in_projects).
+            and(a_t[:move_in_date].eq(nil).or(a_t[:move_in_date].gt(@report.end_date)))),
+        'Data not collected' => a_t[:project_type].not_in(move_in_projects).
+          and(a_t[:date_to_street].eq(nil).or(a_t[:date_to_street].gt(a_t[:first_date_in_program]))).
+          or(a_t[:project_type].in(move_in_projects).
+            and(a_t[:move_in_date].lteq(@report.end_date).
+              and(a_t[:date_to_street].eq(nil).or(a_t[:date_to_street].gt(a_t[:move_in_date]))))),
+        'Total persons' => Arel.sql('1=1'),
+      }.freeze
+    end
+
     private def q27j_populations
       {
         'Leavers' => leavers_clause,
@@ -677,6 +719,28 @@ module HudApr::Generators::Shared::Fy2023
         'Average Length' => :average,
         'Median Length' => :median,
       }
+    end
+
+    private def q27k_lengths
+      {
+        '0 to 7 days' => '7 days or less',
+        '8 to 14 days' => '8 to 14 days',
+        '15 to 21 days' => '15 to 21 days',
+        '22 to 30 days' => '22 to 30 days',
+        '31 to 60 days' => '31 to 60 days',
+        '61 to 90 days' => '61 to 90 days',
+        '91 to 180 days' => '91 to 180 days',
+        '181 to 365 days' => '181 to 365 days',
+        '366 to 730 days (1-2 Yrs)' => '366 to 730 days (1-2 Yrs)',
+        '731 to 1,095 days (2-3 Yrs)' => '731 to 1,095 days (2-3 Yrs)',
+        '1,096 to 1,460 days (3-4 Yrs)' => '1,096 to 1,460 days (3-4 Yrs)',
+        '1,461 to 1,825 days (4-5 Yrs)' => '1,461 to 1,825 days (4-5 Yrs)',
+        'More than 1,825 days (> 5 Yrs)' => 'More than 1,825 days (> 5 Yrs)',
+        'Data Not Collected' => 'Data Not Collected',
+        'Total' => 'Total',
+      }.map do |k, label|
+        [label, lengths[k]]
+      end.to_h
     end
 
     private def q27_populations
