@@ -60,6 +60,8 @@ module WarehouseReports
           enrollment_ids = @homeless_clients.values_at(*client_ids).flatten.map { |m| m[:id] }
           @homeless_service = service_materialized_source.where(service_history_enrollment_id: enrollment_ids).group(:service_history_enrollment_id).count
           @homeless_service_dates = service_materialized_source.where(service_history_enrollment_id: enrollment_ids).group(:service_history_enrollment_id).maximum(:date)
+          @headers_for_export = headers_for_export
+          @rows_for_export = rows_for_export
           filename = "Recidivism-#{@filter.start.strftime('%Y-%m-%d')}-to-#{@filter.end.strftime('%Y-%m-%d')}.xlsx"
           headers['Content-Disposition'] = "attachment; filename=#{filename}"
         end
@@ -75,6 +77,36 @@ module WarehouseReports
       h = Hash[columns[0...-1].zip(row)]
       h[:project_name] = GrdaWarehouse::Hud::Project.confidentialize_name(current_user, h[:project_name], confidential)
       h
+    end
+
+    private def headers_for_export
+      headers = ['Warehouse Client ID', 'First Name', 'Last Name', 'PH Project', 'PH Entry Date', 'PH Exit Date', 'ES/SO Project', 'ES/SO Entry Date', 'ES/SO Exit Date', 'ES/SO Last Service', 'ES/SO Days Served']
+      headers = headers.excluding('First Name', 'Last Name') unless ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+      headers
+    end
+
+    private def rows_for_export
+      rows = []
+      @clients.each do |client|
+        @ph_clients[client.id].each do |ph_enrollment|
+          @homeless_clients[client.id].each do |enrollment|
+            row = [client.id]
+            row += [client.FirstName, client.LastName] if ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+            row += [
+              ph_enrollment[:project_name],
+              ph_enrollment[:first_date_in_program],
+              ph_enrollment[:last_date_in_program],
+              enrollment[:project_name],
+              enrollment[:first_date_in_program],
+              enrollment[:last_date_in_program],
+              @homeless_service_dates[enrollment[:id]],
+              @homeless_service[enrollment[:id]],
+            ]
+            rows << row
+          end
+        end
+      end
+      rows
     end
 
     def ph_source

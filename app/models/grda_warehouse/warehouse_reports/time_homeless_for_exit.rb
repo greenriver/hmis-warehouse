@@ -159,5 +159,37 @@ module GrdaWarehouse::WarehouseReports
     private def cohort_client_scope
       GrdaWarehouse::CohortClient.where(cohort_id: filter.cohort_ids)
     end
+
+    def headers_for_export
+      headers = [
+        'Warehouse Client ID',
+        'First Name',
+        'Last Name',
+        'Days Homeless',
+        'Entry Date',
+        'Exit Date/Move-in-Date',
+        'Destination/PH Project',
+        'Homeless Project',
+      ]
+      headers = headers.excluding('First Name', 'Last Name') unless ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+      headers
+    end
+
+    def rows_for_export
+      rows = []
+      data.each do |client|
+        row = [client.client.id]
+        row += [client.client.FirstName, client.client.LastName] if ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+        row += [
+          client.days,
+          client.entry_date,
+          client.exit_date,
+          client.destination,
+          client.project_name,
+        ]
+        rows << row
+      end
+      rows
+    end
   end
 end
