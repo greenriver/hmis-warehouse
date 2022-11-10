@@ -112,6 +112,7 @@ Naming/MethodParameterName:
     - by
     - io
     - to
+    - qa
 
 Style/MixinUsage:
   Enabled: false
