@@ -2211,7 +2211,8 @@ CREATE TABLE public.warehouse_clients (
     deleted_at timestamp without time zone,
     source_id integer,
     destination_id integer,
-    client_match_id integer
+    client_match_id integer,
+    source_hash character varying
 );
 
 
@@ -4046,7 +4047,8 @@ CREATE TABLE public.ce_performance_clients (
     community character varying,
     lgbtq_household_members boolean DEFAULT false NOT NULL,
     client_lgbtq boolean DEFAULT false NOT NULL,
-    dv_survivor boolean DEFAULT false NOT NULL
+    dv_survivor boolean DEFAULT false NOT NULL,
+    destination_client_id integer
 );
 
 
@@ -15105,7 +15107,8 @@ CREATE TABLE public.hud_report_path_clients (
     destination integer,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
-    gender_multi character varying
+    gender_multi character varying,
+    destination_client_id integer
 );
 
 
@@ -50650,6 +50653,9 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20221103144659'),
 ('20221103201310'),
 ('20221104134752'),
-('20221107144111');
+('20221107144111'),
+('20221108134143'),
+('20221109155552'),
+('20221110133236');
 
 

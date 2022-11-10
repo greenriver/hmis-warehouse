@@ -8,4 +8,4 @@
 //= require_directory ./dashboards
 //= require_directory ./dashboards/clients
 
-//= require puppeteer
+//= require puppeteer/cjs-entry

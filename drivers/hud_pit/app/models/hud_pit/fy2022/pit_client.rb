@@ -21,10 +21,10 @@ module HudPit::Fy2022
       cols = special + (column_names - special - remove)
       cols.map do |h|
         title = case h
-        when 'destination client'
-          'Client'
+        when 'destination_client'
+          'Warehouse Client ID'
         when 'client_id'
-          'Source Client'
+          'Warehouse Source Client ID'
         when 'PersonalID'
           'Personal ID'
         else

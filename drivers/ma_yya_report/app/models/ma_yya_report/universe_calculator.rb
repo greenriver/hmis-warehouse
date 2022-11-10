@@ -13,10 +13,6 @@ module MaYyaReport
       @filter = filter
     end
 
-    def client_ids
-      client_scope.distinct.pluck(:id)
-    end
-
     def calculate(&post_processor)
       client_scope.find_in_batches do |batch|
         post_processor.call(for_batch(batch))
@@ -67,13 +63,14 @@ module MaYyaReport
             subsequent_current_living_situations: subsequent_current_living_situations(enrollment.enrollment),
             zip_codes: zip_codes(client),
             flex_funds: flex_funds(client),
+            language: language(client),
           )
         end
       end
     end
 
     private def client_scope
-      GrdaWarehouse::Hud::Client.
+      ::GrdaWarehouse::Hud::Client.
         distinct.
         joins(:service_history_enrollments).
         merge(enrollment_scope)
@@ -206,6 +203,10 @@ module MaYyaReport
         within_range(@filter.start_date .. @filter.end_date).
         where(name: 'Flex Funds').
         map(&:flex_funds).flatten.uniq
+    end
+
+    private def language(client)
+      client.source_hmis_clients.map(&:primary_language).detect(&:present?)
     end
   end
 end

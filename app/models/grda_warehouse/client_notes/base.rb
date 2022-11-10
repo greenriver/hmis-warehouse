@@ -91,7 +91,7 @@ module GrdaWarehouse::ClientNotes
     end
 
     private def notification_contacts
-      ids = recipients.reject(&:blank?)
+      ids = recipients&.reject(&:blank?)
       return unless ids.present?
 
       @notification_contacts ||= User.where(id: ids).map(&:name_with_email)

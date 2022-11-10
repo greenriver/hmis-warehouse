@@ -86,7 +86,7 @@ module PerformanceDashboard::Overview::Detail
 
   private def detail_columns(options)
     columns = {
-      'Client ID' => she_t[:client_id],
+      'Warehouse Client ID' => she_t[:client_id],
       'First Name' => c_t[:FirstName],
       'Last Name' => c_t[:LastName],
       'Project' => she_t[:project_name],
