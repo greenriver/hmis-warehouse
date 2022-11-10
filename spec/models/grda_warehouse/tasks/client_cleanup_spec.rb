@@ -26,6 +26,7 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
         data_source: source_data_source,
         DateUpdated: 1.day.ago,
         DateCreated: 2.days.ago,
+        source_hash: 'abc',
       )
     end
     let!(:source_2) do
@@ -35,6 +36,7 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
         data_source: source_data_source,
         DateUpdated: 2.day.ago,
         DateCreated: 3.days.ago,
+        source_hash: 'bcd',
       )
     end
 
