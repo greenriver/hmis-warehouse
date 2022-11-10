@@ -124,6 +124,12 @@ module GrdaWarehouse::CasProjectClientCalculator
     end
     # memoize :pathways_questions
 
+    def most_recent_assessment_for_destination(client)
+      return unless client.present?
+
+      client.most_recent_pathways_or_rrh_assessment_for_destination&.AssessmentDate&.to_date&.to_s
+    end
+
     private def most_recent_pathways_or_transfer(client)
       client.most_recent_pathways_or_rrh_assessment_for_destination
     end

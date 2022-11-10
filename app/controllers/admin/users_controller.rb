@@ -76,10 +76,11 @@ module Admin
           @user.skip_reconfirmation!
           # Associations don't play well with acts_as_paranoid, so manually clean up user roles
           @user.user_roles.where.not(role_id: user_params[:role_ids]&.select(&:present?)).destroy_all
-          @user.access_groups.
-            where.not(
-              id: user_params[:access_group_ids]&.select(&:present?),
-            ).each do |g|
+          @user.access_groups.not_system.
+            where.not(id: user_params[:access_group_ids]&.select(&:present?)).each do |g|
+              # Don't remove or add system groups
+              next if g.system?
+
               g.remove(@user)
             end
           @user.disable_2fa! if user_params[:otp_required_for_login] == 'false'
@@ -162,6 +163,9 @@ module Admin
         contact_attributes: [:id, :first_name, :last_name, :phone, :email, :role],
       ).tap do |result|
         result[:coc_codes] ||= []
+        # re-add system groups so we don't remove them here
+        result[:access_group_ids] ||= []
+        result[:access_group_ids] += @user.access_groups.system.pluck(:id).map(&:to_s)
       end
     end
 

@@ -28,6 +28,14 @@ class AccessGroup < ApplicationRecord
     where(user_id: nil)
   end
 
+  scope :not_system, -> do
+    where(AccessGroup.arel_table[:system].eq([]))
+  end
+
+  scope :system, -> do
+    where(AccessGroup.arel_table[:system].not_eq([]))
+  end
+
   scope :user, -> do
     joins(:user)
   end
