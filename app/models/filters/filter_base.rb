@@ -1162,7 +1162,7 @@ module Filters
     end
 
     def available_destinations(grouped: false)
-      return HUD.valid_destinations unless grouped
+      return HUD.valid_destinations.invert unless grouped
 
       {
         'Homeless' => HUD.homeless_situation_options(as: :destination).map do |id, title|
