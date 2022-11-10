@@ -19,12 +19,7 @@ module CohortColumns
     end
 
     def value(cohort_client) # OK
-      case GrdaWarehouse::Config.get(:cas_calculator)
-      when 'GrdaWarehouse::CasProjectClientCalculator::Boston'
-        cohort_client.client&.most_recent_pathways_or_rrh_assessment_for_destination&.AssessmentDate&.to_date&.to_s
-      when 'GrdaWarehouse::CasProjectClientCalculator::TcHat'
-        cohort_client.client&.most_recent_tc_hat_for_destination&.collected_at&.to_date&.to_s
-      end
+      GrdaWarehouse::Config.get(:cas_calculator).constantize.new.most_recent_assessment_for_destination(cohort_client.client)
     end
   end
 end

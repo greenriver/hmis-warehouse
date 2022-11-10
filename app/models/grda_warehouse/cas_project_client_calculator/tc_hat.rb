@@ -134,6 +134,12 @@ module GrdaWarehouse::CasProjectClientCalculator
       ]
     end
 
+    def most_recent_assessment_for_destination(client)
+      return unless client.present?
+
+      cas_assessment_collected_at(client)&.to_date&.to_s
+    end
+
     private def for_boolean(client, key)
       section_title = section_titles[key]
       question_title = boolean_lookups[key]
