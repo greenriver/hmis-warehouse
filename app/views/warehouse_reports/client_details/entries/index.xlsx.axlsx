@@ -23,8 +23,8 @@ wb.add_worksheet(name: "Entry Detail #{GrdaWarehouse::WarehouseReports::Dashboar
         project = enrollment.project
         row = [
           client_id,
-          client.FirstName,
-          client.LastName,
+          ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client.FirstName : 'Redacted',
+          ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client.LastName : 'Redacted',
           enrollment.first_date_in_program,
           enrollment.last_date_in_program,
           project.name(current_user),

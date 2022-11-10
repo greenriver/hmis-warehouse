@@ -20,8 +20,8 @@ wb.add_worksheet(name: 'Missing CoC Codes') do |sheet|
     values = [
       dc&.id || 'Not yet Processed',
       c.PersonalID,
-      c.FirstName,
-      c.LastName,
+      ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? c.FirstName : 'Redacted',
+      ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? c.LastName : 'Redacted',
       project.name(current_user),
       project.project_cocs&.map(&:effective_coc_code)&.join(', '),
       en.EntryDate,

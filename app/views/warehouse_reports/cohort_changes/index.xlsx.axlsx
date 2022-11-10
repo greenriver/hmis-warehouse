@@ -40,8 +40,8 @@ wb.add_worksheet(name: "Youth #{@filter.start}-#{@filter.end}"[0,30]) do |sheet|
     sheet.add_row(
       [
         client.id,
-        client.FirstName,
-        client.LastName,
+        ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client.FirstName : 'Redacted',
+        ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client.LastName : 'Redacted',
         client.age_on(c_en.entry_date.to_date),
         client.gender,
         client.source_clients.map(&:race_fields)&.flatten&.uniq&.sort&.join(' '),

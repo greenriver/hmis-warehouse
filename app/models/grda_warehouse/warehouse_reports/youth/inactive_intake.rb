@@ -39,7 +39,7 @@ module GrdaWarehouse::WarehouseReports::Youth
               referral: referral&.to_date,
               follow_up: follow_up&.to_date,
               max_date: dates.max&.to_date,
-            }
+            },
           )
         end
       end.compact.uniq
@@ -89,5 +89,33 @@ module GrdaWarehouse::WarehouseReports::Youth
         where(client_id: open_intakes.select(:client_id))
     end
 
+    def headers_for_export
+      headers = [
+        'Warehouse Client ID',
+        'First Name',
+        'Last Name',
+        'Intake Start',
+        'Last Case Management Note',
+        'Last Referral',
+        'Last Direct Financial Assistance',
+        'Last Follow-Up',
+      ]
+      headers = headers.excluding('First Name', 'Last Name') unless ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+      headers
+    end
+
+    def rows_for_export
+      clients.map do |client|
+        row = [client.client.id]
+        row += [client.client.FirstName, client.client.LastName] if ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+        row + [
+          client.intake.engagement_date,
+          client.case_mangement&.to_date,
+          client.referral&.to_date,
+          client.dfa&.to_date,
+          client.follow_up&.to_date,
+        ]
+      end
+    end
   end
 end

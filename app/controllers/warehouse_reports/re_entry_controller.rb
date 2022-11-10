@@ -43,6 +43,8 @@ module WarehouseReports
         format.html do
         end
         format.xlsx do
+          @rows_for_export = rows_for_export
+          @headers_for_export = headers_for_export
           require_can_view_clients!
         end
       end
@@ -55,6 +57,50 @@ module WarehouseReports
 
     def reporting_class
       @reporting_class ||= Reporting::MonthlyReports::Base.class_for(@filter.sub_population)
+    end
+
+    private def headers_for_export
+      headers = [
+        'Warehouse Client ID',
+        'First Name',
+        'Last Name',
+        'Veteran Status',
+        'Entry Date',
+        'Project Type',
+        'Project',
+        'Organization',
+        'Days Since Previous Exit',
+        'Previous Project Type',
+        'Previous Destination',
+        'Ethnicity',
+      ] + GrdaWarehouse::Hud::Client.race_fields.map { |m| HUD.race(m).gsub('None', 'Race None') }
+
+      headers = headers.excluding('First Name', 'Last Name') unless ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+      headers
+    end
+
+    private def rows_for_export
+      rows = []
+      @enrollments.each do |enrollment|
+        client = enrollment.client
+        re_entry = @re_entries[enrollment.id]
+        project = enrollment.project
+        row = [client.id]
+        row += [client.FirstName, client.LastName] if ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+        row += [
+          HUD.no_yes_reasons_for_missing_data(client.VeteranStatus),
+          enrollment.first_date_in_program,
+          HUD.project_type(enrollment.computed_project_type),
+          project.name(current_user),
+          project.organization_name(current_user),
+          re_entry.days_since_last_exit,
+          HUD.project_type(re_entry.prior_exit_project_type),
+          HUD.destination(re_entry.prior_exit_destination_id),
+          ::HUD.ethnicity(client.Ethnicity),
+        ] + client.attributes.slice(*GrdaWarehouse::Hud::Client.race_fields).values.map { |m| ::HUD.no_yes_reasons_for_missing_data(m&.to_i) }
+        rows << row
+      end
+      rows
     end
   end
 end

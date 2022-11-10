@@ -21,7 +21,7 @@
             %th= h
       %tbody
         - @clients.support_rows.each do |row|
-          - client_id = row['Warehouse ID']
+          - client_id = row['Warehouse Client ID']
           %tr
             - row.each do |header, v|
               - if @clients.client_headers.include?(header)

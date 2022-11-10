@@ -78,6 +78,8 @@ module PerformanceDashboard::ProjectType::Detail
       'Entry Date' => she_t[:first_date_in_program],
       'Exit Date' => she_t[:last_date_in_program],
     }
+    columns = columns.except('First Name', 'Last Name') if options[:export] && !::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+
     # Add any additional columns
     columns['Living Situation'] = e_t[:LivingSituation] if options[:living_situation]
     columns['Destination'] = she_t[:destination] if options[:destination]

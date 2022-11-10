@@ -33,6 +33,46 @@ module WarehouseReports
       end
     end
 
+    def headers_for_export
+      headers = [
+        'Warehouse Client ID',
+        'First Name',
+        'Last Name',
+      ] +
+          GrdaWarehouse::Hud::IncomeBenefit::SOURCES.keys.map { |source| "#{source.to_s.titleize} at Entry"  } +
+          GrdaWarehouse::Hud::IncomeBenefit::SOURCES.keys.map { |source| "#{source.to_s.titleize} at Update" } +
+      [
+        'Gender',
+        'Race',
+        'Ethnicity',
+      ]
+      headers = headers.excluding('First Name', 'Last Name') unless ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+      headers
+    end
+    helper_method :headers_for_export
+
+    def rows_for_export
+      @enrollments.map do |record|
+        row = [record.client.id]
+        row += [record.client.FirstName, record.client.LastName] if ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+
+        at_entry = record.enrollment.income_benefits_at_entry
+        GrdaWarehouse::Hud::IncomeBenefit::SOURCES.values.each do |field|
+          row << at_entry&.send(field) || field
+        end
+        at_update = record.enrollment.income_benefits_update.last
+        GrdaWarehouse::Hud::IncomeBenefit::SOURCES.values.each do |field|
+          row << at_update&.send(field) || field
+        end
+        row + [
+          record.client.gender,
+          record.client.race_description,
+          HUD.ethnicity(record.client.Ethnicity),
+        ]
+      end
+    end
+    helper_method :rows_for_export
+
     private def report_params
       params.permit(
         filter: [
