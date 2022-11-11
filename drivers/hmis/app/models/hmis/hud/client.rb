@@ -136,7 +136,6 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     end
   end
   use_enum :ethnicity_enum_map, ::HUD.ethnicities.slice(0, 1), include_base_null: true
-  use_common_enum :veteran_status_enum_map, :no_yes_reasons
 
   def age(date = Date.current)
     GrdaWarehouse::Hud::Client.age(date: date, dob: self.DOB)

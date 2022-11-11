@@ -16,7 +16,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       ssn: '123-45-6789',
       ssn_data_quality: Hmis::Hud::Client.ssn_data_quality_enum_map.lookup(key: 'Full SSN reported')&.[](:value),
       ethnicity: Hmis::Hud::Client.ethnicity_enum_map.values.first,
-      veteran_status: Hmis::Hud::Client.veteran_status_enum_map.values.first,
+      veteran_status: Hmis::FieldMap.no_yes_reasons.values.first,
       gender: [Hmis::Hud::Client.gender_enum_map.base_members.first[:value]],
       race: [Hmis::Hud::Client.race_enum_map.base_members.first[:value]],
     }
@@ -124,7 +124,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         dob_data_quality: Types::HmisSchema::Enums::DOBDataQuality.values.first[0],
         ssn_data_quality: Types::HmisSchema::Enums::SSNDataQuality.values.first[0],
         ethnicity: Types::HmisSchema::Enums::Ethnicity.values.first[0],
-        veteran_status: Types::HmisSchema::Enums::VeteranStatus.values.first[0],
+        veteran_status: Types::HmisSchema::Enums::YesNoMissingReason.values.first[0],
         gender: [Types::HmisSchema::Enums::Gender.values.first[0]],
         race: [Types::HmisSchema::Enums::Race.values.first[0]],
       }
