@@ -19,6 +19,6 @@ module Types
     argument :gender, [Types::HmisSchema::Enums::Gender], required: false
     argument :race, [Types::HmisSchema::Enums::Race], required: false
     argument :ethnicity, Types::HmisSchema::Enums::Ethnicity, required: false
-    argument :veteran_status, Types::HmisSchema::Enums::VeteranStatus, required: false
+    argument :veteran_status, Types::HmisSchema::Enums::YesNoMissingReason, required: false
   end
 end
