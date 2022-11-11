@@ -45,7 +45,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
       @debug = debug
       @range = ::Filters::DateRange.new(start: start_date, end: end_date)
       @projects = if coc_codes.present?
-        GrdaWarehouse::Hud::Project.where(id: projects).in_coc(coc_code: coc_codes)
+        GrdaWarehouse::Hud::Project.where(id: projects).in_coc(coc_code: coc_codes).pluck(:id)
       else
         projects
       end
