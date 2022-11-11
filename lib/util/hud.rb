@@ -1188,6 +1188,30 @@ module HUD
     homeless_situations(as: :destination, version: version)
   end
 
+  def homeless_situation_options(as:)
+    available_situations.select { |id, _| id.in?(homeless_situations(as: as)) }.to_h
+  end
+
+  def institutional_situation_options(as:)
+    available_situations.select { |id, _| id.in?(institutional_situations(as: as)) }.to_h
+  end
+
+  def temporary_and_permanent_housing_situation_options(as:)
+    available_situations.select { |id, _| id.in?(temporary_and_permanent_housing_situations(as: as)) }.to_h
+  end
+
+  def other_situation_options(as:)
+    available_situations.select { |id, _| id.in?(other_situations(as: as)) }.to_h
+  end
+
+  def temporary_destination_options(version: nil)
+    available_situations.select { |id, _| id.in?(temporary_destinations(version: version)) }.to_h
+  end
+
+  def permanent_destination_options(version: nil)
+    available_situations.select { |id, _| id.in?(permanent_destinations(version: version)) }.to_h
+  end
+
   # 3.15.1
   def relationship_to_hoh(id, reverse = false)
     map = relationships_to_hoh
