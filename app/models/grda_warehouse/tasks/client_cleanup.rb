@@ -20,7 +20,7 @@ module GrdaWarehouse::Tasks
       _bogus_notifier = false,
       debug: false,
       dry_run: false,
-      demographic_ids: []
+      destination_ids: []
     )
       @max_allowed = max_allowed
       setup_notifier('Client Cleanup')
@@ -28,7 +28,7 @@ module GrdaWarehouse::Tasks
       @debug = debug
       @soft_delete_date = Time.now
       @dry_run = dry_run
-      @demographic_ids = Array.wrap(demographic_ids)
+      @destination_ids = Array.wrap(destination_ids)
     end
 
     def run!
@@ -662,7 +662,7 @@ module GrdaWarehouse::Tasks
     end
 
     def clients_to_munge
-      return @demographic_ids if @demographic_ids.present?
+      return @destination_ids if @destination_ids.present?
 
       log "Check any client who's source has changed"
       to_update = GrdaWarehouse::WarehouseClient.destination_needs_cleanup.pluck(:destination_id)
