@@ -556,7 +556,7 @@ module GrdaWarehouse::Tasks
     #     e. Veteran Status (if yes or no)
     #   3. Never remove attribute unless it doesn't exist in any of the sources (never remove name)
     def update_client_demographics_based_on_sources
-      batch_size = 1_000
+      batch_size = 500
       processed = 0
       changed = {
         dobs: Set.new,
@@ -575,14 +575,27 @@ module GrdaWarehouse::Tasks
       log "Munging #{munge_clients.size} clients"
       batches = munge_clients.each_slice(batch_size)
       batches.each do |batch|
-        batch.each do |dest_id|
-          dest = client_source.find(dest_id)
-          source_clients = dest.source_clients.
-            joins(:data_source). # Don't consider deleted data sources
-            pluck(*client_columns.values.map { |column| Arel.sql(column) }).
-            map do |row|
-              Hash[client_columns.keys.zip(row)]
-            end
+        client_batch = client_source.distinct.where(id: batch).
+          joins(source_clients: :data_source). # Don't consider deleted data sources
+          preload(:source_clients)
+        changed_batch = []
+        client_batch.each do |dest|
+          source_clients = dest.source_clients.map do |sc|
+            # Set some defaults
+            sc.NameDataQuality ||= 99
+            sc.SSNDataQuality ||= 99
+            sc.DOBDataQuality ||= 99
+            sc.AmIndAKNative ||= 99
+            sc.Asian ||= 99
+            sc.BlackAfAmerican ||= 99
+            sc.NativeHIPacific ||= 99
+            sc.White ||= 99
+            sc.RaceNone ||= 99
+            sc.Ethnicity ||= 99
+            sc.DateCreated ||= 10.years.ago.to_date
+            sc.DateUpdated ||= 10.years.ago.to_date
+            sc
+          end
           dest_attr = dest.attributes.with_indifferent_access.slice(*client_columns.keys)
           dest_attr = choose_attributes_from_sources(dest_attr, source_clients)
 
@@ -593,7 +606,8 @@ module GrdaWarehouse::Tasks
           end
           # We can speed this up if we want later.  If there's only one source client and the
           # updated dates match, there's no need to update the destination
-          dest.update(dest_attr) unless @dry_run
+          dest.assign_attributes(dest_attr)
+          changed_batch << dest if dest.changed? && ! @dry_run
           changed[:dobs] << dest.id if dest.DOB != dest_attr[:DOB]
           changed[:females] << dest.id if dest.Female != dest_attr[:Female]
           changed[:males] << dest.id if dest.Male != dest_attr[:Male]
@@ -606,6 +620,7 @@ module GrdaWarehouse::Tasks
           changed[:newly_not_vets] << dest.id if dest.VeteranStatus == 1 && dest_attr[:VeteranStatus] == 0 # rubocop:disable Style/NumericPredicate
         end
 
+        update_destination_clients(changed_batch)
         update_source_hashes(batch)
         processed += batch.count
         logger.debug "Updated demographics for #{processed} destination clients"
@@ -616,6 +631,18 @@ module GrdaWarehouse::Tasks
       logger.debug changed.map { |k, ids| [k, ids.count] }.to_h.inspect
       logger.debug changed.inspect
       logger.debug '=========== End Changed Counts ============'
+    end
+
+    private def update_destination_clients(batch)
+      return unless batch.present?
+
+      GrdaWarehouse::Hud::Client.import(
+        batch,
+        on_duplicate_key_update: {
+          conflict_target: [:id],
+          columns: client_columns.keys,
+        },
+      )
     end
 
     private def update_source_hashes(batch)
@@ -665,7 +692,7 @@ module GrdaWarehouse::Tasks
       return @destination_ids if @destination_ids.present?
 
       log "Check any client who's source has changed"
-      to_update = GrdaWarehouse::WarehouseClient.destination_needs_cleanup.pluck(:destination_id)
+      to_update = GrdaWarehouse::WarehouseClient.destination_needs_cleanup.distinct.pluck(:destination_id)
       log "...found #{to_update.size}."
       to_update
     end
