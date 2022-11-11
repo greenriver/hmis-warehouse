@@ -407,6 +407,24 @@
             },
             {
               "type": "BOOLEAN",
+              "link_id": "4.03.5",
+              "component": "CHECKBOX",
+              "text": "TANF Child Care services"
+            },
+            {
+              "type": "BOOLEAN",
+              "link_id": "4.03.6",
+              "component": "CHECKBOX",
+              "text": "TANF transportation services"
+            },
+            {
+              "type": "BOOLEAN",
+              "link_id": "4.03.7",
+              "component": "CHECKBOX",
+              "text": "Other TANF-funded services"
+            },
+            {
+              "type": "BOOLEAN",
               "link_id": "4.03.8",
               "component": "CHECKBOX",
               "text": "Other source"
