@@ -278,12 +278,13 @@ type ClientsPaginated {
 
 enum Component {
   """
-  Boolean input component
+  Component to render a boolean input item as a checkbox
   """
   CHECKBOX
 
   """
-  Group of inputs, optionally with a summary item (must be first)
+  Component to render a group that contains children of the same type (eg all
+  booleans). Optionally has a choice item, which must be the first item.
   """
   INPUT_GROUP
 }
