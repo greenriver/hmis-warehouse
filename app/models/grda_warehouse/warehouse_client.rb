@@ -25,4 +25,8 @@ class GrdaWarehouse::WarehouseClient < GrdaWarehouseBase
       ),
     )
   end
+
+  def self.reset_source_hashes!
+    update_all(source_hash: nil)
+  end
 end
