@@ -576,11 +576,13 @@ module GrdaWarehouse::Tasks
       batches = munge_clients.each_slice(batch_size)
       batches.each do |batch|
         client_batch = client_source.distinct.where(id: batch).
-          joins(source_clients: :data_source). # Don't consider deleted data sources
-          preload(:source_clients)
+          joins(source_clients: :data_source).
+          preload(source_clients: :data_source)
         changed_batch = []
         client_batch.each do |dest|
           source_clients = dest.source_clients.map do |sc|
+            next nil unless sc.data_source.present? # Don't consider deleted data sources
+
             # Set some defaults
             sc.NameDataQuality ||= 99
             sc.SSNDataQuality ||= 99
@@ -595,7 +597,7 @@ module GrdaWarehouse::Tasks
             sc.DateCreated ||= 10.years.ago.to_date
             sc.DateUpdated ||= 10.years.ago.to_date
             sc
-          end
+          end.compact
           dest_attr = dest.attributes.with_indifferent_access.slice(*client_columns.keys)
           dest_attr = choose_attributes_from_sources(dest_attr, source_clients)
 
