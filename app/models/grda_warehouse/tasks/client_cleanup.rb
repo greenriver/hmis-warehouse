@@ -555,9 +555,12 @@ module GrdaWarehouse::Tasks
     #     d. LastName
     #     e. Veteran Status (if yes or no)
     #   3. Never remove attribute unless it doesn't exist in any of the sources (never remove name)
+    # TODO: this currently doesn't cleanly handle the situation where a data source is deleted
+    # but no other source client is changed
     def update_client_demographics_based_on_sources
       batch_size = 500
       processed = 0
+      changed_count = 0
       changed = {
         dobs: Set.new,
         females: Set.new,
@@ -626,8 +629,9 @@ module GrdaWarehouse::Tasks
         update_destination_clients(changed_batch)
         update_source_hashes(batch)
         processed += batch.count
-        logger.debug "Updated demographics for #{processed} destination clients"
+        changed_count += changed_batch.count
       end
+      log "Updated demographics for #{processed} destination clients, #{changed_count} changed" if processed.positive?
       return unless @debug
 
       logger.debug '=========== Changed Counts ============'
