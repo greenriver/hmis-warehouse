@@ -606,10 +606,11 @@ module GrdaWarehouse::Tasks
             logger.debug "Invalidating service history for #{dest.id}"
             dest.invalidate_service_history unless @dry_run
           end
-          # We can speed this up if we want later.  If there's only one source client and the
-          # updated dates match, there's no need to update the destination
           dest.assign_attributes(dest_attr)
-          changed_batch << dest if dest.changed? && ! @dry_run
+          if dest.changed? && ! @dry_run
+            changed_batch << dest
+            dest.clear_view_cache
+          end
           changed[:dobs] << dest.id if dest.DOB != dest_attr[:DOB]
           changed[:females] << dest.id if dest.Female != dest_attr[:Female]
           changed[:males] << dest.id if dest.Male != dest_attr[:Male]
