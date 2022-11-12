@@ -87,10 +87,19 @@ module HmisDataQualityTool
     # load it multiple times
     def self.calculate(report_items:, report:)
       destinations_counted = {}
+      # We need to obey visibility restrictions on the source clients
+      all_source_client_ids = report.report_scope.joins(client: :warehouse_client_destination).
+        pluck(wc_t[:source_id])
+      visible_source_client_ids = GrdaWarehouse::Hud::Client.source_visible_to(
+        report.user,
+        client_ids: all_source_client_ids,
+      ).pluck(:id).to_set
       client_scope(report).find_in_batches do |batch|
         intermediate = {}
         batch.each do |client|
           client.source_clients.each do |sc|
+            next unless visible_source_client_ids.include?(sc.id)
+
             item = report_item_fields_from_client(
               report_items: report_items,
               destination_client: client,
