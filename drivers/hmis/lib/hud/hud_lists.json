@@ -158,7 +158,7 @@
   {
     "method_name": "tracking_method",
     "name": "TrackingMethod",
-    "code": "2.5.1",
+    "code": "2.02.C",
     "values": [
       { "key": 0, "description": "Entry/Exit Date" },
       { "key": 3, "description": "Night-by-Night" }
@@ -326,7 +326,7 @@
   {
     "method_name": "housing_type",
     "name": "HousingType",
-    "code": "2.8.8",
+    "code": "2.02.D",
     "values": [
       { "key": 1, "description": "Site-based - single site" },
       { "key": 2, "description": "Site-based - clustered / multiple sites" },
@@ -336,7 +336,7 @@
   {
     "method_name": "target_population",
     "name": "TargetPopulation",
-    "code": "2.9.1",
+    "code": "2.02.8",
     "values": [
       { "key": 1, "description": "Domestic violence victims" },
       { "key": 3, "description": "Persons with HIV/AIDS" },
@@ -1395,7 +1395,7 @@
   {
     "method_name": "p_a_t_h_referral_outcome",
     "name": "PATHReferralOutcome",
-    "code": "4.16.A1",
+    "code": "P2.A",
     "values": [
       { "key": 1, "description": "Attained" },
       { "key": 2, "description": "Not attained" },

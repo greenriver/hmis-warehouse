@@ -10,7 +10,7 @@
 
 module Types
   class HmisSchema::Enums::Hud::PATHReferralOutcome < Types::BaseEnum
-    description '4.16.A1'
+    description 'P2.A'
     graphql_name 'PATHReferralOutcome'
     value 'ATTAINED', '(1) Attained', value: 1
     value 'NOT_ATTAINED', '(2) Not attained', value: 2

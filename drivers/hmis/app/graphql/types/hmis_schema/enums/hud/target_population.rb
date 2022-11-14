@@ -10,7 +10,7 @@
 
 module Types
   class HmisSchema::Enums::Hud::TargetPopulation < Types::BaseEnum
-    description '2.9.1'
+    description '2.02.8'
     graphql_name 'TargetPopulation'
     value 'DOMESTIC_VIOLENCE_VICTIMS', '(1) Domestic violence victims', value: 1
     value 'PERSONS_WITH_HIV_AIDS', '(3) Persons with HIV/AIDS', value: 3
