@@ -22,6 +22,9 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
   # NOTE: this does not include project where the enrollment is WIP
   has_many :projects, through: :enrollments
+  has_many :income_benefits, through: :enrollments
+  has_many :disabilities, through: :enrollments
+
   validates_with Hmis::Hud::Validators::ClientValidator
 
   scope :visible_to, ->(user) do

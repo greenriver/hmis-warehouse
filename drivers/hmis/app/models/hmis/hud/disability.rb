@@ -11,7 +11,7 @@ class Hmis::Hud::Disability < Hmis::Hud::Base
   self.sequence_name = "public.\"#{table_name}_id_seq\""
 
   belongs_to :enrollment, **hmis_relation(:EnrollmentID, 'Enrollment')
-
-  use_enum :disability_type_enum_map, ::HUD.disability_types
-  use_enum :disability_responses_enum_map, ::HUD.disability_responses
+  belongs_to :client, **hmis_relation(:PersonalID, 'Client')
+  belongs_to :user, **hmis_relation(:UserID, 'User')
+  belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 end
