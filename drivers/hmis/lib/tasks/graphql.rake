@@ -28,16 +28,17 @@ desc 'Generate GraphQL Enums'
 task generate_graphql_enums: [:environment, 'log:info_to_stdout'] do
   source = File.read('drivers/hmis/lib/hud/hud_lists.json')
   skipped = ['race', 'gender']
-  output_dir = 'drivers/hmis/app/graphql/types/hmis_schema/enums/generated'
+  output_dir = 'drivers/hmis/app/graphql/types/hmis_schema/enums/hud'
 
   JSON.parse(source).each do |element|
     next if skipped.include?(element['code'].to_s)
 
     name = element['name']
     arr = []
-    arr.push '# header'
+    arr.push "###\n# Copyright 2016 - 2022 Green River Data Analysis, LLC\n#\n# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md\n###\n\n# frozen_string_literal: true\n"
+    arr.push "# THIS FILE IS GENERATED, DO NOT EDIT DIRECTLY\n"
     arr.push 'module Types'
-    arr.push "  class HmisSchema::Enums::#{name} < Types::BaseEnum"
+    arr.push "  class HmisSchema::Enums::Hud::#{name} < Types::BaseEnum"
     arr.push "    description '#{element['code'] || name}'"
     arr.push "    graphql_name '#{name}'"
     element['values'].each do |obj|
