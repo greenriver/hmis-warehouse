@@ -144,4 +144,26 @@ RSpec.describe Health::Patient, type: :model do
       end
     end
   end
+
+  describe 'merge scenarios' do
+    let!(:first_patient) { create :patient }
+    let!(:second_patient) { create :patient }
+
+    it "doesn't merge patients with different medicaid ids" do
+      first_patient.update(medicaid_id: 'SAME')
+      second_patient.update(medicaid_id: 'DIFFERENT')
+
+      expect { first_patient.client.move_dependent_health_items(first_patient.client_id, second_patient.client_id) }.to raise_exception(Health::MedicaidIdConflict)
+    end
+
+    it 'moves referrals to second patient when the ids match' do
+      first_patient.update(medicaid_id: 'SAME')
+      second_patient.update(medicaid_id: 'SAME')
+
+      # Client#move_from moves data from the first id to the second
+      second_patient.client.move_dependent_health_items(first_patient.client_id, second_patient.client_id)
+
+      expect(second_patient.patient_referrals.count).to be 2
+    end
+  end
 end
