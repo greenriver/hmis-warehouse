@@ -220,6 +220,14 @@ module HmisSqlServer
     private def useful_date_column
       'DateProvided'
     end
+
+    def clean_row_for_import(row:, headers:)
+      field_index = headers.map(&:downcase).index('othertypeprovided')
+      row[field_index] = row[field_index].to_s[0..49]
+      field_index = headers.map(&:downcase).index('movingonothertype')
+      row[field_index] = row[field_index].to_s[0..49]
+      super(row: row, headers: headers)
+    end
   end
 
   class User < LsaBase
