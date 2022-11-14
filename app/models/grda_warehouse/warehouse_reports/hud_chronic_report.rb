@@ -7,8 +7,9 @@
 module GrdaWarehouse::WarehouseReports
   class HudChronicReport < Base
     def headers_for_export
-      headers = ['Warehouse Client ID', 'First Name', 'Last Name', 'DOB', 'Homeless Since', 'Days Homeless in last three years', 'Months Homeless in last three years', 'Chronic Trigger', 'Involved Projects', 'Last Homeless Service', 'Disability', 'DMH Client', 'Veteran', 'Current SO Enrollment', 'Data Sources']
-      headers = headers.excluding('First Name', 'Last Name', 'DOB') unless ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+      headers = ['Warehouse Client ID']
+      headers += ['First Name', 'Last Name', 'DOB'] if ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+      headers += ['Homeless Since', 'Days Homeless in last three years', 'Months Homeless in last three years', 'Chronic Trigger', 'Involved Projects', 'Last Homeless Service', 'Disability', 'DMH Client', 'Veteran', 'Current SO Enrollment', 'Data Sources']
       headers
     end
 
