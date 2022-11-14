@@ -80,8 +80,9 @@ module WarehouseReports
     end
 
     private def headers_for_export
-      headers = ['Warehouse Client ID', 'First Name', 'Last Name', 'PH Project', 'PH Entry Date', 'PH Exit Date', 'ES/SO Project', 'ES/SO Entry Date', 'ES/SO Exit Date', 'ES/SO Last Service', 'ES/SO Days Served']
-      headers = headers.excluding('First Name', 'Last Name') unless ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+      headers = ['Warehouse Client ID']
+      headers += ['First Name', 'Last Name'] if ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+      headers += ['PH Project', 'PH Entry Date', 'PH Exit Date', 'ES/SO Project', 'ES/SO Entry Date', 'ES/SO Exit Date', 'ES/SO Last Service', 'ES/SO Days Served']
       headers
     end
 

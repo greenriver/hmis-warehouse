@@ -60,10 +60,9 @@ module WarehouseReports
     end
 
     private def headers_for_export
-      headers = [
-        'Warehouse Client ID',
-        'First Name',
-        'Last Name',
+      headers = ['Warehouse Client ID']
+      headers += ['First Name', 'Last Name'] if ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+      headers += [
         'Veteran Status',
         'Entry Date',
         'Project Type',
@@ -74,8 +73,6 @@ module WarehouseReports
         'Previous Destination',
         'Ethnicity',
       ] + GrdaWarehouse::Hud::Client.race_fields.map { |m| HUD.race(m).gsub('None', 'Race None') }
-
-      headers = headers.excluding('First Name', 'Last Name') unless ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
       headers
     end
 

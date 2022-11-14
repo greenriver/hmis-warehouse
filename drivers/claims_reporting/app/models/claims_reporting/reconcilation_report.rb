@@ -118,7 +118,7 @@ module ClaimsReporting
     end
 
     def patients_without_payments_columns
-      headers = [
+      [
         'Medicaid ID',
         'Last Name',
         'First Name',
@@ -129,16 +129,14 @@ module ClaimsReporting
         'Careplan PCP signatures',
         'Was Enrolled?',
       ]
-      return headers if ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
-
-      headers.excluding('Last Name', 'First Name')
     end
 
     def patients_without_payments_rows
       patients_without_payments.map do |patient|
-        rows = [patient.medicaid_id]
-        rows += [patient.last_name, patient.first_name] if ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
-        rows += [
+        [
+          patient.medicaid_id,
+          patient.last_name,
+          patient.first_name,
           qa_count_for_patient(patient),
           qa_missing_enrollment_count_for_patient(patient),
           qa_missing_careplan_count_for_patient(patient),
@@ -146,7 +144,6 @@ module ClaimsReporting
           careplan_dates_for_patient(patient),
           enrolled(patient),
         ]
-        rows
       end
     end
 

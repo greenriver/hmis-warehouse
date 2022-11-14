@@ -90,17 +90,15 @@ module GrdaWarehouse::WarehouseReports::Youth
     end
 
     def headers_for_export
-      headers = [
-        'Warehouse Client ID',
-        'First Name',
-        'Last Name',
+      headers = ['Warehouse Client ID']
+      headers += ['First Name', 'Last Name'] if ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+      headers += [
         'Intake Start',
         'Last Case Management Note',
         'Last Referral',
         'Last Direct Financial Assistance',
         'Last Follow-Up',
       ]
-      headers = headers.excluding('First Name', 'Last Name') unless ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
       headers
     end
 
