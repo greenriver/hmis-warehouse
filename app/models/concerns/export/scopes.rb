@@ -43,7 +43,16 @@ module Export::Scopes
         else # rubocop:disable Style/EmptyElse
           # Used for tests to count things
         end
-        e_scope = e_scope.joins(:enrollment_cocs).where(ec_t[:CoCCode].in(Array(@coc_codes))) if @coc_codes.present?
+
+        # limit enrollment coc to the cocs chosen, and any random thing that's not a valid coc
+        if @coc_codes.present?
+          e_scope = e_scope.left_outer_joins(:enrollment_coc_at_entry).
+            merge(
+              GrdaWarehouse::Hud::EnrollmentCoc.where(CoCCode: Array(@coc_codes)).
+              or(GrdaWarehouse::Hud::EnrollmentCoc.where(CoCCode: nil)).
+              or(GrdaWarehouse::Hud::EnrollmentCoc.where.not(CoCCode: HUD.cocs.keys)),
+            )
+        end
         e_scope.distinct.preload(:project, :client)
       end
     end

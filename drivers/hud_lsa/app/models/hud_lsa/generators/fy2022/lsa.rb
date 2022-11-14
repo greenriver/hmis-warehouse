@@ -186,6 +186,7 @@ module HudLsa::Generators::Fy2022
         hash_status: 1,
         include_deleted: false,
         user_id: user_id,
+        options: filter.to_h,
       ).export!
       update(export_id: @hmis_export.id)
     end

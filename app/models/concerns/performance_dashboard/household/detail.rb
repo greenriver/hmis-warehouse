@@ -74,10 +74,14 @@ module PerformanceDashboard::Household::Detail
       'Entry Date' => she_t[:first_date_in_program],
       'Exit Date' => she_t[:last_date_in_program],
     }
+
+    exclude_pii = options[:export] && !::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+    columns = columns.except('First Name', 'Last Name') if exclude_pii
+
     # Add any additional columns
     if options[:household]
       columns['Reporting Age'] = age_calculation
-      columns['DOB'] = c_t[:DOB] if options[:age]
+      columns['DOB'] = c_t[:DOB] if options[:age] && !exclude_pii
       columns['Other Clients Under 18'] = she_t[:other_clients_under_18]
       columns['Other Clients 18 to 25'] = she_t[:other_clients_between_18_and_25]
       columns['Other Clients over 25'] = she_t[:other_clients_over_25]

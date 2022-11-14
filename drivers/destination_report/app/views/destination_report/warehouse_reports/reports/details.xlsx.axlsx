@@ -1,5 +1,5 @@
 wb = xlsx_package.workbook
-headers = @report.header_for(@key)
+headers = @report.headers_for_export(@key)
 scope = @report.detail_scope_from_key(@key)
 title = @report.support_title(@key).gsub(/[^-a-z0-9 ]/i, '')
 
@@ -14,7 +14,7 @@ wb.add_worksheet name: title[0..30] do |sheet|
   ]
   sheet.add_row(summary, style: title_style)
   sheet.add_row(headers, style: title_style)
-  scope.pluck(*@report.columns_for(@key)).each do |row|
+  scope.pluck(*@report.columns_for_export(@key)).each do |row|
     values = row.each_with_index.map do |col, i|
       @report.detail_column_display(header: headers[i], column: col)
     end

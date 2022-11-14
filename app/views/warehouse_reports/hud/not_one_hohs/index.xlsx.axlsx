@@ -21,8 +21,8 @@ wb.add_worksheet(name: 'Not One Head of Household') do |sheet|
     values = [
       dc&.id || 'Not yet Processed',
       c.PersonalID,
-      c.FirstName,
-      c.LastName,
+      ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? c.FirstName : 'Redacted',
+      ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? c.LastName : 'Redacted',
       project.name(current_user),
       en.EntryDate,
       en.exit&.ExitDate,

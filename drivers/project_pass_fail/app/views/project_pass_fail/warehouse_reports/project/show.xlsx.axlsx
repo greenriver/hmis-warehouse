@@ -1,10 +1,10 @@
 wb = xlsx_package.workbook
 wb.add_worksheet(name: @project.project&.name.slice(0,30)) do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
-  sheet.add_row(['Warehouse Client ID'] + ProjectPassFail::Client.detail_headers.values, :style => title)
+  sheet.add_row(['Warehouse Client ID'] + ProjectPassFail::Client.detail_headers_for_export.values, :style => title)
   @clients.each.with_index do |client, i|
     row = [client.client.destination_client&.id]
-    ProjectPassFail::Client.detail_headers.each_key do |k|
+    ProjectPassFail::Client.detail_headers_for_export.each_key do |k|
       row << client[k]
     end
     sheet.add_row(row)

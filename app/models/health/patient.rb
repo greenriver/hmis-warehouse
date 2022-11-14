@@ -1184,6 +1184,10 @@ module Health
       end
     end
 
+    def cleanup_referrals
+      Health::PatientReferral.cleanup_referrals(id)
+    end
+
     def self.sort_options
       [
         { title: 'Patient Last name A-Z', column: :patient_last_name, direction: 'asc' },

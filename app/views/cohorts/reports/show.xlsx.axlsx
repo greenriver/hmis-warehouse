@@ -25,7 +25,7 @@ wb.add_worksheet(name: "Changes to #{@cohort.sanitized_name}".slice(0,30)) do |s
     sheet.add_row(
       [
         client.id,
-        client.full_name,
+        ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client.full_name : 'Redacted',
         change.change,
         change.reason,
         change.changed_at.to_date,
