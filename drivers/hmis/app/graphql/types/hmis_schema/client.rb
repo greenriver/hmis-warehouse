@@ -30,7 +30,7 @@ module Types
     field :gender, [Types::HmisSchema::Enums::Gender], null: false
     field :race, [Types::HmisSchema::Enums::Race], null: false
     hud_field :ethnicity, Types::HmisSchema::Enums::Ethnicity
-    hud_field :veteran_status, Types::HmisSchema::Enums::VeteranStatus
+    hud_field :veteran_status, Types::HmisSchema::Enums::YesNoMissingReason
     field :pronouns, String, null: true
     enrollments_field :enrollments, type: Types::HmisSchema::Enrollment.page_type
     hud_field :date_updated
