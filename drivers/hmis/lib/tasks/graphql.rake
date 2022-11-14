@@ -46,7 +46,7 @@ task generate_graphql_enums: [:environment, 'log:info_to_stdout'] do
       description = obj['description'].strip
       key = Types::BaseEnum.to_enum_key(description)
       description = "(#{value}) #{obj['description']}"
-      arr.push "    value #{key}, \"#{description}\", value: #{value.to_json}"
+      arr.push "    value '#{key}', \"#{description}\", value: #{value.to_json}"
     end
     arr.push '  end'
     arr.push 'end'
