@@ -21,7 +21,7 @@ end
 desc 'Generate GraphQL Enums'
 task generate_graphql_enums: [:environment, 'log:info_to_stdout'] do
   source = File.read('drivers/hmis/lib/hud/hud_lists.json')
-  skipped = ['race', 'gender', '2.4.2', '1.6']
+  skipped = ['race', '3.6.1', '2.4.2', '1.6']
   output_dir = 'drivers/hmis/app/graphql/types/hmis_schema/enums/hud'
 
   JSON.parse(source).each do |element|
@@ -50,6 +50,8 @@ task generate_graphql_enums: [:environment, 'log:info_to_stdout'] do
       f.write(contents)
     end
   end
+
+  exec("bundle exec rubocop -A --format simple #{output_dir}")
 end
 
 desc 'Seed form definitions'
