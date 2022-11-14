@@ -33,7 +33,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       contact_information: 'Contact for contact information',
       project_type: Types::HmisSchema::Enums::ProjectType.enum_member_for_value(2).first,
       housing_type: Types::HmisSchema::Enums::Hud::HousingType.enum_member_for_value(3).first,
-      tracking_method: Types::HmisSchema::Enums::TrackingMethod.enum_member_for_value(3).first,
+      tracking_method: Types::HmisSchema::Enums::Hud::TrackingMethod.enum_member_for_value(3).first,
       target_population: Types::HmisSchema::Enums::TargetPopulation.enum_member_for_value(4).first,
       'HOPWAMedAssistedLivingFac' => Types::HmisSchema::Enums::Hud::HOPWAMedAssistedLivingFac.enum_member_for_value(0).first,
       continuum_project: false,

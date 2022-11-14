@@ -18,13 +18,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     {
       enrollment_id: e1.id,
       date_provided: Date.today.strftime('%Y-%m-%d'),
-      record_type: Types::HmisSchema::Enums::RecordType.enum_member_for_value(144).first,
+      record_type: Types::HmisSchema::Enums::Hud::RecordType.enum_member_for_value(144).first,
       type_provided: Types::HmisSchema::Enums::ServiceTypeProvided.enum_member_for_value('144:3').first,
       sub_type_provided: Types::HmisSchema::Enums::ServiceSubTypeProvided.enum_member_for_value('144:3:1').first,
       other_type_provided: 'Other Type',
       moving_on_other_type: 'Moving On Other Type',
       'FAAmount' => 1.5,
-      referral_outcome: Types::HmisSchema::Enums::PATHReferralOutcome.enum_member_for_value(1).first,
+      referral_outcome: Types::HmisSchema::Enums::Hud::PATHReferralOutcome.enum_member_for_value(1).first,
     }
   end
 
@@ -118,7 +118,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         'should emit error if type provided is not valid for the provided record type',
         ->(input) do
           input = input.merge(
-            record_type: Types::HmisSchema::Enums::RecordType.enum_member_for_value(200).first,
+            record_type: Types::HmisSchema::Enums::Hud::RecordType.enum_member_for_value(200).first,
             type_provided: Types::HmisSchema::Enums::ServiceTypeProvided.enum_member_for_value('144:3').first,
           )
           input[:sub_type_provided] = nil
@@ -133,7 +133,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         'should emit error if sub type provided provided when not record type 144',
         ->(input) do
           input.merge(
-            record_type: Types::HmisSchema::Enums::RecordType.enum_member_for_value(141).first,
+            record_type: Types::HmisSchema::Enums::Hud::RecordType.enum_member_for_value(141).first,
             type_provided: Types::HmisSchema::Enums::ServiceTypeProvided.enum_member_for_value('141:1').first,
           )
         end,
@@ -146,7 +146,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         'should emit error if sub type provided provided when record type is 144 but type provided is not 3, 4 or 5',
         ->(input) do
           input.merge(
-            record_type: Types::HmisSchema::Enums::RecordType.enum_member_for_value(144).first,
+            record_type: Types::HmisSchema::Enums::Hud::RecordType.enum_member_for_value(144).first,
             type_provided: Types::HmisSchema::Enums::ServiceTypeProvided.enum_member_for_value('144:1').first,
           )
         end,
@@ -159,7 +159,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         'should emit error if sub type provided provided does not match type provided',
         ->(input) do
           input.merge(
-            record_type: Types::HmisSchema::Enums::RecordType.enum_member_for_value(144).first,
+            record_type: Types::HmisSchema::Enums::Hud::RecordType.enum_member_for_value(144).first,
             type_provided: Types::HmisSchema::Enums::ServiceTypeProvided.enum_member_for_value('144:3').first,
             sub_type_provided: Types::HmisSchema::Enums::ServiceSubTypeProvided.enum_member_for_value('144:5:7').first,
           )

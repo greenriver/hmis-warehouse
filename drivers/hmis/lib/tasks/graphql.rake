@@ -1,11 +1,5 @@
 require 'digest/sha1'
 
-desc 'Seed form definitions'
-task seed_definitions: [:environment, 'log:info_to_stdout'] do
-  seed_record_form_definitions
-  seed_assessment_form_definitions
-end
-
 desc 'Update schema.graphql dump'
 task dump_graphql_schema: [:environment, 'log:info_to_stdout'] do
   schema_definition = HmisSchema.to_definition

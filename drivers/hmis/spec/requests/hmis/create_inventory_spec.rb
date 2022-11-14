@@ -17,7 +17,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       project_id: p1.id,
       coc_code: pc1.coc_code,
       household_type: Types::HmisSchema::Enums::Hud::HouseholdType.enum_member_for_value(4).first,
-      availability: Types::HmisSchema::Enums::Availability.enum_member_for_value(2).first,
+      availability: Types::HmisSchema::Enums::Hud::Availability.enum_member_for_value(2).first,
       unit_inventory: 2,
       bed_inventory: 2,
       inventory_start_date: Date.today.strftime('%Y-%m-%d'),
