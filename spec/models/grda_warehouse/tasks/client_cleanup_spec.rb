@@ -26,6 +26,7 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
         data_source: source_data_source,
         DateUpdated: 1.day.ago,
         DateCreated: 2.days.ago,
+        source_hash: 'abc',
       )
     end
     let!(:source_2) do
@@ -35,6 +36,7 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
         data_source: source_data_source,
         DateUpdated: 2.day.ago,
         DateCreated: 3.days.ago,
+        source_hash: 'bcd',
       )
     end
 
@@ -484,8 +486,8 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
       end
 
       @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
-      expect('Right').to eq(@dest_attr[:FirstName])
-      expect('Right').to eq(@dest_attr[:LastName])
+      expect(@dest_attr[:FirstName]).to eq('Right')
+      expect(@dest_attr[:LastName]).to eq('Right')
     end
 
     it 'chooses the first and last name of the highest quality record, even if the quality is nil' do
@@ -496,8 +498,8 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
       end
 
       @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
-      expect('Right').to eq(@dest_attr[:FirstName])
-      expect('Right').to eq(@dest_attr[:LastName])
+      expect(@dest_attr[:FirstName]).to eq('Right')
+      expect(@dest_attr[:LastName]).to eq('Right')
     end
 
     it 'chooses the first and last name of the highest quality record, and treats nil like 99' do
@@ -507,8 +509,8 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
         Hash[@cleanup.client_columns.keys.zip(row)]
       end
       @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
-      expect('Right').to eq(@dest_attr[:FirstName])
-      expect('Right').to eq(@dest_attr[:LastName])
+      expect(@dest_attr[:FirstName]).to eq('Right')
+      expect(@dest_attr[:LastName]).to eq('Right')
     end
 
     it "chooses the oldest record's names when quality is equivalent" do
@@ -519,8 +521,8 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
       end
 
       @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
-      expect('Right').to eq(@dest_attr[:FirstName])
-      expect('Right').to eq(@dest_attr[:LastName])
+      expect(@dest_attr[:FirstName]).to eq('Right')
+      expect(@dest_attr[:LastName]).to eq('Right')
     end
 
     it 'chooses the oldest, and treats nil like 99' do
@@ -531,8 +533,8 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
       end
 
       @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
-      expect('Right').to eq(@dest_attr[:FirstName])
-      expect('Right').to eq(@dest_attr[:LastName])
+      expect(@dest_attr[:FirstName]).to eq('Right')
+      expect(@dest_attr[:LastName]).to eq('Right')
     end
 
     it 'sets DOB to nil if all client records are blank' do

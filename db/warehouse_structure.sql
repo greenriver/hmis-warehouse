@@ -2211,7 +2211,8 @@ CREATE TABLE public.warehouse_clients (
     deleted_at timestamp without time zone,
     source_id integer,
     destination_id integer,
-    client_match_id integer
+    client_match_id integer,
+    source_hash character varying
 );
 
 
@@ -14488,8 +14489,7 @@ CREATE TABLE public.hud_report_apr_clients (
     bed_nights integer,
     pit_enrollments jsonb DEFAULT '[]'::jsonb,
     source_enrollment_id integer,
-    los_under_threshold integer,
-    project_id integer
+    los_under_threshold integer
 );
 
 
@@ -50650,6 +50650,6 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20221103144659'),
 ('20221103201310'),
 ('20221104134752'),
-('20221107144111');
+('20221110133236');
 
 
