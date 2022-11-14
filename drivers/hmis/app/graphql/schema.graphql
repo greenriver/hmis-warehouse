@@ -186,6 +186,7 @@ type Client {
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
+  disabilities(limit: Int, offset: Int): DisabilitiesPaginated!
   dob: ISO8601Date
   dobDataQuality: DOBDataQuality!
   enrollments(limit: Int, offset: Int, sortOrder: EnrollmentSortOption): EnrollmentsPaginated!
@@ -193,6 +194,7 @@ type Client {
   firstName: String
   gender: [Gender!]!
   id: ID!
+  incomeBenefits(limit: Int, offset: Int): IncomeBenefitsPaginated!
   lastName: String
   middleName: String
   nameDataQuality: NameDataQuality!
@@ -742,6 +744,106 @@ type DeleteServicePayload {
   clientMutationId: String
   errors: [ValidationError!]!
   service: Service
+}
+
+type DisabilitiesPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [Disability!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
+}
+
+type Disability {
+  client: Client!
+  dataCollectionStage: DataCollectionStage!
+  dateCreated: ISO8601DateTime!
+  dateDeleted: ISO8601DateTime
+  dateUpdated: ISO8601DateTime!
+  disabilityResponse: DisabilityResponse!
+  disabilityType: DisabilityType!
+  enrollment: Enrollment!
+  id: ID!
+  indefiniteAndImpairs: Int
+  informationDate: ISO8601Date!
+  user: User!
+}
+
+"""
+4.10.2
+"""
+enum DisabilityResponse {
+  """
+  (1) Alcohol use disorder
+  """
+  ALCOHOL_USE_DISORDER
+
+  """
+  (3) Both alcohol and drug use disorders
+  """
+  BOTH_ALCOHOL_AND_DRUG_USE_DISORDERS
+
+  """
+  (8) Client doesn't know
+  """
+  CLIENT_DOESN_T_KNOW
+
+  """
+  (9) Client refused
+  """
+  CLIENT_REFUSED
+
+  """
+  (99) Data not collected
+  """
+  DATA_NOT_COLLECTED
+
+  """
+  (2) Drug use disorder
+  """
+  DRUG_USE_DISORDER
+
+  """
+  (0) No
+  """
+  NO
+}
+
+"""
+1.3
+"""
+enum DisabilityType {
+  """
+  (7) Chronic health condition
+  """
+  CHRONIC_HEALTH_CONDITION
+
+  """
+  (6) Developmental disability
+  """
+  DEVELOPMENTAL_DISABILITY
+
+  """
+  (8) HIV/AIDS
+  """
+  HIV_AIDS
+
+  """
+  (9) Mental health disorder
+  """
+  MENTAL_HEALTH_DISORDER
+
+  """
+  (5) Physical disability
+  """
+  PHYSICAL_DISABILITY
+
+  """
+  (10) Substance use disorder
+  """
+  SUBSTANCE_USE_DISORDER
 }
 
 enum EnableBehavior {
@@ -1591,6 +1693,45 @@ scalar ISO8601Date
 An ISO 8601-encoded datetime
 """
 scalar ISO8601DateTime
+
+type IncomeBenefit {
+  alimonyAmount: String
+  childSupportAmount: String
+  client: Client!
+  dataCollectionStage: DataCollectionStage!
+  dateCreated: ISO8601DateTime!
+  dateDeleted: ISO8601DateTime
+  dateUpdated: ISO8601DateTime!
+  earnedAmount: String
+  enrollment: Enrollment!
+  gaAmount: String
+  id: ID!
+  informationDate: ISO8601Date!
+  otherIncomeAmount: String
+  otherIncomeSourceIdentify: String
+  pensionAmount: String
+  privateDisabilityAmount: String
+  socSecRetirementAmount: String
+  ssdiAmount: String
+  ssiAmount: String
+  tanfAmount: String
+  totalMonthlyIncome: String
+  unemploymentAmount: String
+  user: User!
+  vaDisabilityNonServiceAmount: String
+  vaDisabilityServiceAmount: String
+  workersCompAmount: String
+}
+
+type IncomeBenefitsPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [IncomeBenefit!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
+}
 
 """
 Initial value when item is first rendered

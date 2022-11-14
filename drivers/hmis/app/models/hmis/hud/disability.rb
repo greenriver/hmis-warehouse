@@ -11,4 +11,7 @@ class Hmis::Hud::Disability < Hmis::Hud::Base
   self.sequence_name = "public.\"#{table_name}_id_seq\""
 
   belongs_to :enrollment, **hmis_relation(:EnrollmentID, 'Enrollment')
+
+  use_enum :disability_type_enum_map, ::HUD.disability_types
+  use_enum :disability_responses_enum_map, ::HUD.disability_responses
 end

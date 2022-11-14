@@ -9,6 +9,9 @@
 module Types
   class HmisSchema::Client < Types::BaseObject
     include Types::HmisSchema::HasEnrollments
+    include Types::HmisSchema::HasIncomeBenefits
+    include Types::HmisSchema::HasDisabilities
+    # include Types::HmisSchema::HealthAndDvs
 
     def self.configuration
       Hmis::Hud::Client.hmis_configuration(version: '2022')
@@ -33,12 +36,22 @@ module Types
     hud_field :veteran_status, Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData
     field :pronouns, String, null: true
     enrollments_field :enrollments, type: Types::HmisSchema::Enrollment.page_type
+    income_benefits_field :income_benefits
+    disabilities_field :disabilities
     hud_field :date_updated
     hud_field :date_created
     hud_field :date_deleted
 
     def enrollments(**args)
       resolve_enrollments(**args)
+    end
+
+    def income_benefits(**args)
+      resolve_income_benefits(**args)
+    end
+
+    def disabilities(**args)
+      resolve_disabilities(**args)
     end
 
     def gender
