@@ -29,7 +29,8 @@ task generate_graphql_enums: [:environment, 'log:info_to_stdout'] do
 
     name = element['name']
     arr = []
-    arr.push "###\n# Copyright 2016 - 2022 Green River Data Analysis, LLC\n#\n# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md\n###\n\n# frozen_string_literal: true\n"
+    arr.push ::Code.copywright_header
+    arr.push "# frozen_string_literal: true\n"
     arr.push "# THIS FILE IS GENERATED, DO NOT EDIT DIRECTLY\n"
     arr.push 'module Types'
     arr.push "  class HmisSchema::Enums::Hud::#{name} < Types::BaseEnum"
