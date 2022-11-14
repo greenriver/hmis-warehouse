@@ -1695,32 +1695,32 @@ An ISO 8601-encoded datetime
 scalar ISO8601DateTime
 
 type IncomeBenefit {
-  alimonyAmount: String
-  childSupportAmount: String
+  alimonyAmount: Float
+  childSupportAmount: Float
   client: Client!
   dataCollectionStage: DataCollectionStage!
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
-  earnedAmount: String
+  earnedAmount: Float
   enrollment: Enrollment!
-  gaAmount: String
+  gaAmount: Float
   id: ID!
   informationDate: ISO8601Date!
-  otherIncomeAmount: String
+  otherIncomeAmount: Float
   otherIncomeSourceIdentify: String
-  pensionAmount: String
-  privateDisabilityAmount: String
-  socSecRetirementAmount: String
-  ssdiAmount: String
-  ssiAmount: String
-  tanfAmount: String
+  pensionAmount: Float
+  privateDisabilityAmount: Float
+  socSecRetirementAmount: Float
+  ssdiAmount: Float
+  ssiAmount: Float
+  tanfAmount: Float
   totalMonthlyIncome: String
-  unemploymentAmount: String
+  unemploymentAmount: Float
   user: User!
-  vaDisabilityNonServiceAmount: String
-  vaDisabilityServiceAmount: String
-  workersCompAmount: String
+  vaDisabilityNonServiceAmount: Float
+  vaDisabilityServiceAmount: Float
+  workersCompAmount: Float
 }
 
 type IncomeBenefitsPaginated {
