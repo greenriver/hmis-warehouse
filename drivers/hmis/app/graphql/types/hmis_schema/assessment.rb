@@ -13,9 +13,9 @@ module Types
     field :enrollment, HmisSchema::Enrollment, null: false
     field :assessment_date, GraphQL::Types::ISO8601Date, null: false
     field :assessment_location, String, null: false
-    field :assessment_type, HmisSchema::Enums::AssessmentType, null: true
-    field :assessment_level, HmisSchema::Enums::AssessmentLevel, null: true
-    field :prioritization_status, HmisSchema::Enums::PrioritizationStatus, null: true
+    field :assessment_type, HmisSchema::Enums::Hud::AssessmentType, null: true
+    field :assessment_level, HmisSchema::Enums::Hud::AssessmentLevel, null: true
+    field :prioritization_status, HmisSchema::Enums::Hud::PrioritizationStatus, null: true
     field :date_created, GraphQL::Types::ISO8601DateTime, null: false
     field :date_updated, GraphQL::Types::ISO8601DateTime, null: false
     field :date_deleted, GraphQL::Types::ISO8601DateTime, null: true

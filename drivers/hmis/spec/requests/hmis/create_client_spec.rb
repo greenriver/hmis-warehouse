@@ -120,11 +120,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     let(:mutation_test_input) do
       {
         **test_input,
-        name_data_quality: Types::HmisSchema::Enums::NameDataQuality.values.first[0],
-        dob_data_quality: Types::HmisSchema::Enums::DOBDataQuality.values.first[0],
-        ssn_data_quality: Types::HmisSchema::Enums::SSNDataQuality.values.first[0],
-        ethnicity: Types::HmisSchema::Enums::Ethnicity.values.first[0],
-        veteran_status: Types::HmisSchema::Enums::YesNoMissingReason.values.first[0],
+        name_data_quality: Types::HmisSchema::Enums::Hud::NameDataQuality.values.first[0],
+        dob_data_quality: Types::HmisSchema::Enums::Hud::DOBDataQuality.values.first[0],
+        ssn_data_quality: Types::HmisSchema::Enums::Hud::SSNDataQuality.values.first[0],
+        ethnicity: Types::HmisSchema::Enums::Hud::Ethnicity.values.first[0],
+        veteran_status: Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData.values.first[0],
         gender: [Types::HmisSchema::Enums::Gender.values.first[0]],
         race: [Types::HmisSchema::Enums::Race.values.first[0]],
       }

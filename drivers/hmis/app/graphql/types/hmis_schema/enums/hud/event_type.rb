@@ -9,9 +9,9 @@
 # THIS FILE IS GENERATED, DO NOT EDIT DIRECTLY
 
 module Types
-  class HmisSchema::Enums::Hud::Event < Types::BaseEnum
+  class HmisSchema::Enums::Hud::EventType < Types::BaseEnum
     description '4.20.2'
-    graphql_name 'Event'
+    graphql_name 'EventType'
     value 'REFERRAL_TO_PREVENTION_ASSISTANCE_PROJECT', '(1) Referral to Prevention Assistance project', value: 1
     value 'PROBLEM_SOLVING_DIVERSION_RAPID_RESOLUTION_INTERVENTION_OR_SERVICE', '(2) Problem Solving/Diversion/Rapid Resolution intervention or service', value: 2
     value 'REFERRAL_TO_SCHEDULED_COORDINATED_ENTRY_CRISIS_NEEDS_ASSESSMENT', '(3) Referral to scheduled Coordinated Entry Crisis Needs Assessment', value: 3

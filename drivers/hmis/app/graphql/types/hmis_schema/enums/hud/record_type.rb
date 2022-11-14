@@ -12,8 +12,8 @@ module Types
   class HmisSchema::Enums::Hud::RecordType < Types::BaseEnum
     description '1.4'
     graphql_name 'RecordType'
-    value 'CONTACT', '(12) Contact', value: 12
-    value 'CONTACT', '(13) Contact', value: 13
+    value 'CONTACT_12', '(12) Contact 12', value: 12
+    value 'CONTACT_13', '(13) Contact 13', value: 13
     value 'PATH_SERVICE', '(141) PATH service', value: 141
     value 'RHY_SERVICE_CONNECTIONS', '(142) RHY service connections', value: 142
     value 'HOPWA_SERVICE', '(143) HOPWA service', value: 143

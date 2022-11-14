@@ -18,7 +18,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     {
       project_id: p1.id,
       coc_code: pc2.coc_code,
-      household_type: Types::HmisSchema::Enums::HouseholdType.enum_member_for_value(4).first,
+      household_type: Types::HmisSchema::Enums::Hud::HouseholdType.enum_member_for_value(4).first,
       availability: Types::HmisSchema::Enums::Availability.enum_member_for_value(2).first,
       unit_inventory: 2,
       bed_inventory: 2,

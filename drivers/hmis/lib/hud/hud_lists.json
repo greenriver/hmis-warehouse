@@ -63,8 +63,8 @@
     "name": "RecordType",
     "code": "1.4",
     "values": [
-      { "key": 12, "description": "Contact" },
-      { "key": 13, "description": "Contact" },
+      { "key": 12, "description": "Contact 12" },
+      { "key": 13, "description": "Contact 13" },
       { "key": 141, "description": "PATH service" },
       { "key": 142, "description": "RHY service connections" },
       { "key": 143, "description": "HOPWA service" },
@@ -142,9 +142,9 @@
       { "key": 3, "description": "PH - Permanent Supportive Housing" },
       { "key": 4, "description": "Street Outreach" },
       { "key": 6, "description": "Services Only" },
-      { "key": 7, "description": "Other" },
       { "key": 8, "description": "Safe Haven" },
       { "key": 9, "description": "PH - Housing Only" },
+      { "key": 7, "description": "Other" },
       {
         "key": 10,
         "description": "PH - Housing with Services (no disability required for entry)"
@@ -916,6 +916,16 @@
     ]
   },
   {
+    "method_name": "h_o_p_w_a_med_assisted_living_fac",
+    "name": "HOPWAMedAssistedLivingFac",
+    "code": "2.02.9",
+    "values": [
+      { "key": 0, "description": "No" },
+      { "key": 1, "description": "Yes" },
+      { "key": 2, "description": "Non-HOPWA Funded Project" }
+    ]
+  },
+  {
     "method_name": "h_o_p_w_a_services",
     "name": "HOPWAServices",
     "code": "4.14.C",
@@ -1590,7 +1600,7 @@
   },
   {
     "method_name": "event",
-    "name": "Event",
+    "name": "EventType",
     "code": "4.20.2",
     "values": [
       { "key": 1, "description": "Referral to Prevention Assistance project" },
