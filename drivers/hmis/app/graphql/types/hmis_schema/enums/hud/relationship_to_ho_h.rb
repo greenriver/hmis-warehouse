@@ -9,9 +9,9 @@
 # THIS FILE IS GENERATED, DO NOT EDIT DIRECTLY
 
 module Types
-  class HmisSchema::Enums::Hud::RelationshipToHoh < Types::BaseEnum
+  class HmisSchema::Enums::Hud::RelationshipToHoH < Types::BaseEnum
     description '3.15.1'
-    graphql_name 'RelationshipToHoh'
+    graphql_name 'RelationshipToHoH'
     value 'SELF_HEAD_OF_HOUSEHOLD', '(1) Self (head of household)', value: 1
     value 'CHILD', '(2) Child', value: 2
     value 'SPOUSE_OR_PARTNER', '(3) Spouse or partner', value: 3

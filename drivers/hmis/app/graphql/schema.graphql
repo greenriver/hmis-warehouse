@@ -827,7 +827,7 @@ type Enrollment {
   lengthOfStay: ResidencePriorLengthOfStay
   monthsHomelessPastThreeYears: MonthsHomelessPastThreeYears
   project: Project!
-  relationshipToHoH: RelationshipToHoh!
+  relationshipToHoH: RelationshipToHoH!
   services(limit: Int, offset: Int, sortOrder: ServiceSortOption): ServicesPaginated!
   timesHomelessPastThreeYears: TimesHomelessPastThreeYears
 }
@@ -837,7 +837,7 @@ HMIS Enrollment household member input
 """
 input EnrollmentHouseholdMemberInput {
   id: ID!
-  relationshipToHoH: RelationshipToHoh!
+  relationshipToHoH: RelationshipToHoH!
 }
 
 """
@@ -1539,7 +1539,7 @@ type HouseholdClient {
   client: Client!
   enrollment: Enrollment!
   id: ID!
-  relationshipToHoH: RelationshipToHoh!
+  relationshipToHoH: RelationshipToHoH!
 }
 
 """
@@ -2525,7 +2525,7 @@ enum ReferralResult {
 """
 3.15.1
 """
-enum RelationshipToHoh {
+enum RelationshipToHoH {
   """
   (2) Child
   """
@@ -3486,7 +3486,7 @@ input UpdateEnrollmentInput {
   """
   entryDate: String
   id: ID!
-  relationshipToHoH: RelationshipToHoh
+  relationshipToHoH: RelationshipToHoH
 }
 
 """

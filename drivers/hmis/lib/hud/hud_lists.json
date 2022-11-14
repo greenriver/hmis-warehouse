@@ -716,7 +716,7 @@
   },
   {
     "method_name": "relationship_to_hoh",
-    "name": "RelationshipToHoh",
+    "name": "RelationshipToHoH",
     "code": "3.15.1",
     "values": [
       { "key": 1, "description": "Self (head of household)" },
