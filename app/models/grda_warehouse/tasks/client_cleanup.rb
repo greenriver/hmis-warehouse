@@ -610,10 +610,8 @@ module GrdaWarehouse::Tasks
             dest.invalidate_service_history unless @dry_run
           end
           dest.assign_attributes(dest_attr)
-          if dest.changed? && ! @dry_run
-            changed_batch << dest
-            dest.clear_view_cache
-          end
+          changed_batch << dest if dest.changed? && ! @dry_run
+
           changed[:dobs] << dest.id if dest.DOB != dest_attr[:DOB]
           changed[:females] << dest.id if dest.Female != dest_attr[:Female]
           changed[:males] << dest.id if dest.Male != dest_attr[:Male]
@@ -628,6 +626,7 @@ module GrdaWarehouse::Tasks
 
         update_destination_clients(changed_batch)
         update_source_hashes(batch)
+        changed_batch.each(&:clear_view_cache)
         processed += batch.count
         changed_count += changed_batch.count
       end
