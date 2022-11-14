@@ -842,6 +842,15 @@ module GrdaWarehouse::WarehouseReports
           health: false,
         }
       end
+      if RailsDrivers.loaded.include?(:ma_yya_followup_report)
+        r_list['Operational'] << {
+          url: 'ma_yya_followup_report/warehouse_reports/youth_followup',
+          name: 'MA Homeless Youth Follow Up Report',
+          description: 'Youth who require a three month follow up.',
+          limitable: true,
+          health: false,
+        }
+      end
       if RailsDrivers.loaded.include?(:service_scanning)
         r_list['Operational'] << {
           url: 'service_scanning/warehouse_reports/scanned_services',
@@ -1290,6 +1299,7 @@ module GrdaWarehouse::WarehouseReports
         'warehouse_reports/client_details/last_permanent_zips',
       ]
       cleanup << 'ma_yya_report/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:ma_yya_report)
+      cleanup << 'ma_yya_followup_report/warehouse_reports/youth_followup' unless RailsDrivers.loaded.include?(:ma_yya_followup_report)
       cleanup << 'service_scanning/warehouse_reports/scanned_services' unless RailsDrivers.loaded.include?(:service_scanning)
       cleanup << 'core_demographics_report/warehouse_reports/core' unless RailsDrivers.loaded.include?(:core_demographics_report)
       unless RailsDrivers.loaded.include?(:claims_reporting)
