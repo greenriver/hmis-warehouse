@@ -13,8 +13,6 @@ class Hmis::Hud::Funder < Hmis::Hud::Base
 
   belongs_to :project, **hmis_relation(:ProjectID, 'Project')
 
-  use_enum :funding_source_enum_map, ::HUD.funding_sources
-
   scope :viewable_by, ->(user) do
     joins(:project).merge(Hmis::Hud::Project.viewable_by(user))
   end

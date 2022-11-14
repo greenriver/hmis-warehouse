@@ -29,12 +29,6 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :enrollments
   has_one :wip, class_name: 'Hmis::Wip', as: :source
 
-  use_enum :relationships_to_hoh_enum_map, ::HUD.relationships_to_hoh
-  use_enum :living_situations_enum_map, ::HUD.living_situations
-  use_enum :length_of_stays_enum_map, ::HUD.length_of_stays
-  use_enum :times_homeless_past_three_years_enum_map, ::HUD.times_homeless_options
-  use_enum :months_homeless_past_three_years_enum_map, ::HUD.month_categories
-
   SORT_OPTIONS = [:most_recent].freeze
 
   # A user can see any enrollment associated with a project they can access
