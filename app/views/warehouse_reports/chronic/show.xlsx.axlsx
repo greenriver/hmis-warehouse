@@ -9,9 +9,9 @@ wb.add_worksheet(name: "Potentially Chronic Clients") do |sheet|
     data_sources = client['data_sources']
     sheet.add_row([
       client['id'], 
-      client['FirstName'], 
-      client['LastName'], 
-      client['DOB'], 
+      ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client['FirstName'] : 'Redacted',
+      ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client['LastName'] : 'Redacted',
+      ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client['DOB'] : 'Redacted',
       chronic['homeless_since'], 
       chronic['days_in_last_three_years'], 
       chronic['months_in_last_three_years'], 

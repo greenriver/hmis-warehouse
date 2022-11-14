@@ -1,6 +1,6 @@
 wb = xlsx_package.workbook
-headers = @report.header_for(@key)
-rows = @report.columns_for(@key)
+headers = @report.headers_for_export(@key)
+rows = @report.columns_for_export(@key)
 title = @report.support_title(@key).to_s.gsub(/[^-a-z0-9 ]/i, '')
 
 wb.add_worksheet name: title[0..30] do |sheet|

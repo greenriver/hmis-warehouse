@@ -24,8 +24,8 @@ wb.add_worksheet(name: 'CAS Decline Reasons') do |sheet|
     row = ['Canceled']
     row += match.attributes.values_at(*match.class.cancelation_reason_attributes.keys.map(&:to_s))
     row += [
-      @report.clients[match.cas_client_id]&.first_name,
-      @report.clients[match.cas_client_id]&.last_name,
+      ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? @report.clients[match.cas_client_id]&.first_name : 'Redacted',
+      ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? @report.clients[match.cas_client_id]&.last_name : 'Redacted',
       "(#{match.decision_order}) #{match.match_step}",
       match.updated_at&.to_date,
       match.event_contact,
@@ -47,8 +47,8 @@ wb.add_worksheet(name: 'CAS Decline Reasons') do |sheet|
     row = ['Declined']
     row += match.attributes.values_at(*match.class.decline_reason_attributes.keys.map(&:to_s))
     row += [
-      @report.clients[match.cas_client_id]&.first_name,
-      @report.clients[match.cas_client_id]&.last_name,
+      ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? @report.clients[match.cas_client_id]&.first_name : 'Redacted',
+      ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? @report.clients[match.cas_client_id]&.last_name : 'Redacted',
       "(#{match.decision_order}) #{match.match_step}",
       match.updated_at&.to_date,
       match.event_contact,

@@ -1206,7 +1206,7 @@ class WarehouseReport::Outcomes::Base
 
     def client_headers
       [
-        'Warehouse ID',
+        'Warehouse Client ID',
         'First Name',
         'Last Name',
       ]
@@ -1214,16 +1214,27 @@ class WarehouseReport::Outcomes::Base
 
     attr_reader :headers
 
+    def headers_for_export
+      return headers if ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+
+      headers.excluding('First Name', 'Last Name')
+    end
+
     # return an array of arrays where the first three columns are
     # client_id, FirstName, LastName
     # and the remaining columns are from the rows array which should match the order of the headers
-    def support_rows
+    def support_rows(export: false)
+      exclude_pii = export && !::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
       @rows.map do |row|
         client_id = row.first
-        client = @clients[client_id]
-        first_name = client&.try(:[], 1)
-        last_name = client&.try(:[], 2)
-        hashed = Hash[@headers.zip([client_id, first_name, last_name] + row.drop(1))]
+        client_columns = [client_id]
+        unless exclude_pii
+          client = @clients[client_id]
+          first_name = client&.try(:[], 1)
+          last_name = client&.try(:[], 2)
+          client_columns += [first_name, last_name]
+        end
+        hashed = Hash[@headers.zip(client_columns + row.drop(1))]
         format_support(hashed)
       end
     end

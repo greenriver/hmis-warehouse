@@ -373,5 +373,37 @@ module GrdaWarehouse::WarehouseReports
     def service_history_service_source
       GrdaWarehouse::ServiceHistoryService
     end
+
+    def headers_for_export
+      headers = ['Warehouse Client ID']
+      headers += ['First Name', 'Last Name'] if ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+      headers += [
+        'Project Name',
+        'First Date In Program',
+        'Last Date In Program',
+        'Destination',
+      ]
+      headers
+    end
+
+    def rows_for_export(key)
+      rows = []
+      enrollments_for(key).values.each do |enrollments|
+        enrollments.each do |enrollment|
+          client = enrollment.client
+          row = [client.id]
+          row += [client.FirstName, client.LastName] if ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+          row += [
+            enrollment.project_name,
+            enrollment.service_type_brief,
+            enrollment.first_date_in_program,
+            enrollment.last_date_in_program,
+            HUD.destination(enrollment.destination),
+          ]
+          rows << row
+        end
+      end
+      rows
+    end
   end
 end

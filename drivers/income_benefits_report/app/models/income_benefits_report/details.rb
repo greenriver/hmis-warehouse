@@ -52,11 +52,25 @@ module
       headers
     end
 
+    def headers_for_export(_key)
+      client_columns_for_export.map { |_, data| data[:title] } +
+      income_columns.map { |_, data| data[:title] }
+    end
+
     def columns_for(key)
       detail = detail_hash[key]
       return '' unless detail
 
-      detail_data(detail[:scope], detail[:income_relation]).sort_by(&:first)
+      detail_data(detail[:scope], detail[:income_relation], client_columns).sort_by(&:first)
+    end
+
+    def columns_for_export(key)
+      return columns_for(key) if GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+
+      detail = detail_hash[key]
+      return '' unless detail
+
+      detail_data(detail[:scope], detail[:income_relation], client_columns_for_export).sort_by(&:first)
     end
 
     private def headers
@@ -64,11 +78,11 @@ module
       income_columns.map { |_, data| data[:title] }
     end
 
-    private def detail_data(scope, income_relation)
+    private def detail_data(scope, income_relation, columns)
       [].tap do |rows|
         scope.preload(income_relation).find_each do |client|
           row = []
-          client_columns.each do |column, data|
+          columns.each do |column, data|
             row << data[:transformation].call(client.send(column))
           end
           income_columns.each do |column, data|
@@ -134,6 +148,12 @@ module
           transformation: ->(v) { yn(v) },
         },
       }
+    end
+
+    private def client_columns_for_export
+      return client_columns if GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+
+      client_columns.except(:first_name, :last_name, :dob)
     end
 
     def income_columns

@@ -33,8 +33,8 @@ wb.add_worksheet(name: "#{@report.sub_population_title} Dashboard"[0,30]) do |sh
     sheet.add_row(
       [
         client.id,
-        client.FirstName,
-        client.LastName,
+        ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client.FirstName : 'Redacted',
+        ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client.LastName : 'Redacted',
         en.head_of_household,
         en.household_id,
         project_name,
