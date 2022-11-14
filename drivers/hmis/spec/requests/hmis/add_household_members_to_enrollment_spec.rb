@@ -17,11 +17,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       household_members: [
         {
           id: c2.id,
-          relationship_to_ho_h: Types::HmisSchema::Enums::RelationshipToHoH.enum_member_for_value(2).first,
+          relationship_to_ho_h: HmisSchema::Enums::Hud::RelationshipToHoh.enum_member_for_value(2).first,
         },
         {
           id: c3.id,
-          relationship_to_ho_h: Types::HmisSchema::Enums::RelationshipToHoH.enum_member_for_value(3).first,
+          relationship_to_ho_h: HmisSchema::Enums::Hud::RelationshipToHoh.enum_member_for_value(3).first,
         },
       ],
     }
@@ -128,7 +128,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         [
           'should emit error if trying to add HoH member when one already exists',
           ->(input) do
-            input[:household_members][0][:relationship_to_ho_h] = Types::HmisSchema::Enums::RelationshipToHoH.enum_member_for_value(1).first
+            input[:household_members][0][:relationship_to_ho_h] = HmisSchema::Enums::Hud::RelationshipToHoh.enum_member_for_value(1).first
             input
           end,
           {

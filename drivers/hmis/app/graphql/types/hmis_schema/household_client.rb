@@ -10,7 +10,7 @@ module Types
   class HmisSchema::HouseholdClient < Types::BaseObject
     description 'HUD Client within a Household'
     field :id, ID, null: false
-    field :relationship_to_ho_h, HmisSchema::Enums::RelationshipToHoH, null: false
+    field :relationship_to_ho_h, Types::HmisSchema::Enums::Hud::RelationshipToHoh, null: false
     field :client, HmisSchema::Client, null: false
     field :enrollment, HmisSchema::Enrollment, null: false
 
