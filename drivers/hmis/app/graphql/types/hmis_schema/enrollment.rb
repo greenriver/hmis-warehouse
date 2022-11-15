@@ -19,7 +19,7 @@ module Types
     description 'HUD Enrollment'
     field :id, ID, null: false
     field :project, Types::HmisSchema::Project, null: false
-    hud_field :entry_date, null: true # we are overriding HUD spec to make it nullable, why? we have it even for WIP
+    hud_field :entry_date
     field :exit_date, GraphQL::Types::ISO8601Date, null: true
     assessments_field :assessments, type: HmisSchema::Assessment.page_type, null: false
     events_field :events, type: HmisSchema::Event.page_type, null: false

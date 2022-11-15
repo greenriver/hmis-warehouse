@@ -922,7 +922,7 @@ type Enrollment {
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
   disablingCondition: NoYesReasonsForMissingData
-  entryDate: ISO8601Date
+  entryDate: ISO8601Date!
   events(limit: Int, offset: Int, sortOrder: EventSortOption): EventsPaginated!
   exitDate: ISO8601Date
   household: Household!
