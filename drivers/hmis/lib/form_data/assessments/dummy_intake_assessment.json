@@ -38,7 +38,7 @@
           "type": "CHOICE",
           "link_id": "3.917.2",
           "text": "Length of stay in prior living situation",
-          "pick_list_reference": "LengthOfStay"
+          "pick_list_reference": "ResidencePriorLengthOfStay"
         },
         {
           "type": "DISPLAY",
