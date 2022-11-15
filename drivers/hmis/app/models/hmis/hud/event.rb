@@ -6,7 +6,7 @@
 
 class Hmis::Hud::Event < Hmis::Hud::Base
   include ::HmisStructure::Event
-  include ::Hmis::Hud::Shared
+  include ::Hmis::Hud::Concerns::Shared
   self.table_name = :Event
   self.sequence_name = "public.\"#{table_name}_id_seq\""
 
@@ -14,16 +14,9 @@ class Hmis::Hud::Event < Hmis::Hud::Base
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :events
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
+  include ::Hmis::Hud::Concerns::EnrollmentRelated
 
   SORT_OPTIONS = [:event_date].freeze
-
-  scope :viewable_by, ->(user) do
-    joins(:enrollment).merge(Hmis::Hud::Enrollment.viewable_by(user))
-  end
-
-  scope :editable_by, ->(user) do
-    joins(:enrollment).merge(Hmis::Hud::Enrollment.editable_by(user))
-  end
 
   def self.sort_by_option(option)
     raise NotImplementedError unless SORT_OPTIONS.include?(option)

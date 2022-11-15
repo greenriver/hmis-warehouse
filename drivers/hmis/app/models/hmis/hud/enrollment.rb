@@ -6,7 +6,7 @@
 
 class Hmis::Hud::Enrollment < Hmis::Hud::Base
   include ::HmisStructure::Enrollment
-  include ::Hmis::Hud::Shared
+  include ::Hmis::Hud::Concerns::Shared
   include ArelHelper
 
   self.table_name = :Enrollment

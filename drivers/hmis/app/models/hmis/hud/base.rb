@@ -12,6 +12,14 @@ class Hmis::Hud::Base < ::GrdaWarehouseBase
   attr_writer :skip_validations
   attr_writer :required_fields
 
+  scope :viewable_by, ->(_) do
+    none
+  end
+
+  scope :editable_by, ->(_) do
+    none
+  end
+
   def self.hmis_relation(col, model_name = nil)
     h = {
       primary_key: [

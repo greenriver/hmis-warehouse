@@ -23,16 +23,16 @@ module Types
       end
 
       def resolve_events_with_loader(association_name = :events, **args)
-        load_ar_association(object, association_name, scope: apply_event_arguments(Hmis::Hud::Event, **args))
+        load_ar_association(object, association_name, scope: scoped_events(Hmis::Hud::Event, **args))
       end
 
       def resolve_events(scope = object.events, **args)
-        apply_event_arguments(scope, **args)
+        scoped_events(scope, **args)
       end
 
       private
 
-      def apply_event_arguments(scope, sort_order: :event_date)
+      def scoped_events(scope, sort_order: :event_date)
         scope = scope.sort_by_option(sort_order) if sort_order.present?
         scope.viewable_by(current_user)
       end

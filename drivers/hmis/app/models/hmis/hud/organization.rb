@@ -7,7 +7,7 @@
 class Hmis::Hud::Organization < Hmis::Hud::Base
   include ArelHelper
   include ::HmisStructure::Organization
-  include ::Hmis::Hud::Shared
+  include ::Hmis::Hud::Concerns::Shared
   self.table_name = :Organization
   self.sequence_name = "public.\"#{table_name}_id_seq\""
 
@@ -16,6 +16,7 @@ class Hmis::Hud::Organization < Hmis::Hud::Base
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :organizations
 
   validates_with Hmis::Hud::Validators::OrganizationValidator
+  include ::Hmis::Hud::Concerns::ProjectRelated
 
   # Any organizations the user has been assigned, limited to the data source the HMIS is connected to
   scope :viewable_by, ->(user) do

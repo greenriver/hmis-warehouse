@@ -6,7 +6,7 @@
 
 class Hmis::Hud::Assessment < Hmis::Hud::Base
   include ::HmisStructure::Assessment
-  include ::Hmis::Hud::Shared
+  include ::Hmis::Hud::Concerns::Shared
   include ArelHelper
 
   self.table_name = :Assessment
@@ -25,6 +25,8 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
   attr_accessor :in_progress
 
   validates_with Hmis::Hud::Validators::AssessmentValidator
+
+  include ::Hmis::Hud::Concerns::EnrollmentRelated
 
   scope :in_progress, -> { where(enrollment_id: WIP_ID) }
 

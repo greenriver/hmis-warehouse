@@ -23,18 +23,18 @@ module Types
       end
 
       def resolve_funders_with_loader(association_name = :funders, **args)
-        load_ar_association(object, association_name, scope: apply_funder_arguments(Hmis::Hud::Funder, **args))
+        load_ar_association(object, association_name, scope: scoped_funders(Hmis::Hud::Funder, **args))
       end
 
       def resolve_funders(scope = object.funders, **args)
-        apply_funder_arguments(scope, **args)
+        scoped_funders(scope, **args)
       end
 
       private
 
-      def apply_funder_arguments(scope, sort_order: nil)
+      def scoped_funders(scope, sort_order: nil)
         scope = scope.sort_by_option(sort_order) if sort_order.present?
-        scope
+        scope.viewable_by(current_user)
       end
     end
   end

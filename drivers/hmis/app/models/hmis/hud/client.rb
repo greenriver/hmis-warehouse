@@ -6,7 +6,7 @@
 
 class Hmis::Hud::Client < Hmis::Hud::Base
   include ::HmisStructure::Client
-  include ::Hmis::Hud::Shared
+  include ::Hmis::Hud::Concerns::Shared
   include ArelHelper
   include ClientSearch
 

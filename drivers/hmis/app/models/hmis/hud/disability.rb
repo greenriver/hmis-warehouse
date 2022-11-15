@@ -6,7 +6,7 @@
 
 class Hmis::Hud::Disability < Hmis::Hud::Base
   include ::HmisStructure::Disability
-  include ::Hmis::Hud::Shared
+  include ::Hmis::Hud::Concerns::Shared
   self.table_name = :Disabilities
   self.sequence_name = "public.\"#{table_name}_id_seq\""
 
@@ -15,11 +15,5 @@ class Hmis::Hud::Disability < Hmis::Hud::Base
   belongs_to :user, **hmis_relation(:UserID, 'User')
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
-  scope :viewable_by, ->(user) do
-    joins(:enrollment).merge(Hmis::Hud::Enrollment.viewable_by(user))
-  end
-
-  scope :editable_by, ->(user) do
-    joins(:enrollment).merge(Hmis::Hud::Enrollment.editable_by(user))
-  end
+  include ::Hmis::Hud::Concerns::EnrollmentRelated
 end

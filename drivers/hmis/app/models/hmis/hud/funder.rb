@@ -6,20 +6,14 @@
 
 class Hmis::Hud::Funder < Hmis::Hud::Base
   include ::HmisStructure::Funder
-  include ::Hmis::Hud::Shared
+  include ::Hmis::Hud::Concerns::Shared
   self.table_name = :Funder
   self.sequence_name = "public.\"#{table_name}_id_seq\""
   validates_with Hmis::Hud::Validators::FunderValidator
 
   belongs_to :project, **hmis_relation(:ProjectID, 'Project')
 
-  scope :viewable_by, ->(user) do
-    joins(:project).merge(Hmis::Hud::Project.viewable_by(user))
-  end
-
-  scope :editable_by, ->(user) do
-    joins(:project).merge(Hmis::Hud::Project.editable_by(user))
-  end
+  include ::Hmis::Hud::Concerns::ProjectRelated
 
   SORT_OPTIONS = [:start_date].freeze
 

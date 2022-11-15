@@ -6,7 +6,7 @@
 
 class Hmis::Hud::Service < Hmis::Hud::Base
   include ::HmisStructure::Service
-  include ::Hmis::Hud::Shared
+  include ::Hmis::Hud::Concerns::Shared
   self.table_name = :Services
   self.sequence_name = "public.\"#{table_name}_id_seq\""
 
@@ -16,16 +16,9 @@ class Hmis::Hud::Service < Hmis::Hud::Base
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
   validates_with Hmis::Hud::Validators::ServiceValidator
+  include ::Hmis::Hud::Concerns::EnrollmentRelated
 
   SORT_OPTIONS = [:date_provided].freeze
-
-  scope :viewable_by, ->(user) do
-    joins(:enrollment).merge(Hmis::Hud::Enrollment.viewable_by(user))
-  end
-
-  scope :editable_by, ->(user) do
-    joins(:enrollment).merge(Hmis::Hud::Enrollment.editable_by(user))
-  end
 
   def self.generate_services_id
     generate_uuid

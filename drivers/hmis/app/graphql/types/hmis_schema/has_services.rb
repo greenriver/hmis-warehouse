@@ -23,18 +23,19 @@ module Types
       end
 
       def resolve_services_with_loader(association_name = :services, **args)
-        load_ar_association(object, association_name, scope: apply_service_arguments(Hmis::Hud::Service, **args))
+        load_ar_association(object, association_name, scope: scoped_services(Hmis::Hud::Service, **args))
       end
 
       def resolve_services(scope = object.services, **args)
-        apply_service_arguments(scope, **args)
+        scoped_services(scope, **args)
       end
 
       private
 
-      def apply_service_arguments(scope, sort_order: :date_provided)
+      def scoped_services(scope, sort_order: :date_provided)
+        scope = scope.viewable_by(current_user)
         scope = scope.sort_by_option(sort_order) if sort_order.present?
-        scope.viewable_by(current_user)
+        scope
       end
     end
   end

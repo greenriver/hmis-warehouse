@@ -7,7 +7,7 @@
 class Hmis::Hud::Project < Hmis::Hud::Base
   include ArelHelper
   include ::HmisStructure::Project
-  include ::Hmis::Hud::Shared
+  include ::Hmis::Hud::Concerns::Shared
   self.table_name = :Project
   self.sequence_name = "public.\"#{table_name}_id_seq\""
 
