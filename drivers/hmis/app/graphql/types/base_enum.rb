@@ -26,8 +26,7 @@ module Types
       values.find { |_, v| v.value == value }
     end
 
-    def self.hud_enum(method_name)
-      hash = ::HudLists.send(method_name)
+    def self.hud_enum(hash)
       values = hash.map do |key, desc|
         {
           key: desc,

@@ -39,7 +39,7 @@ task generate_graphql_enums: [:environment, 'log:info_to_stdout'] do
     arr.push "  class #{name} < Types::BaseEnum"
     arr.push "    description '#{element['code'] || name}'"
     arr.push "    graphql_name '#{name}'"
-    arr.push "    hud_enum :#{name.underscore}_map"
+    arr.push "    hud_enum ::HudLists.#{name.underscore}_map"
     arr.push '  end'
     seen << name
   end
