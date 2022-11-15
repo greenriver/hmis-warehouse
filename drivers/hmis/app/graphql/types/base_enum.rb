@@ -25,5 +25,17 @@ module Types
     def self.enum_member_for_value(value)
       values.find { |_, v| v.value == value }
     end
+
+    def self.hud_enum(method_name)
+      hash = ::HudLists.send(method_name)
+      values = hash.map do |key, desc|
+        {
+          key: desc,
+          value: key,
+          desc: desc,
+        }
+      end
+      with_enum_map(Hmis::FieldMap.new(values))
+    end
   end
 end
