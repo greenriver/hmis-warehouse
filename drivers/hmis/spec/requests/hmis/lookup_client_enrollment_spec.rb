@@ -113,14 +113,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   describe 'Enrollment lookup' do
-    it 'should resolve no related records if user does not have view access' do
+    it 'should return empty if user does not have view access' do
       response, result = post_graphql(id: e1.id) { enrollment_query }
       expect(response.status).to eq 200
       enrollment = result.dig('data', 'enrollment')
-      expect(enrollment['id']).to eq(e1.id.to_s)
-      expect(enrollment['services']['nodesCount']).to eq(0)
-      expect(enrollment['events']['nodesCount']).to eq(0)
-      expect(enrollment['assessments']['nodesCount']).to eq(0)
+      expect(enrollment).to be_nil
     end
 
     it 'should resolve related records if user has view access' do
