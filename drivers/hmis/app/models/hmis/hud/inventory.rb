@@ -14,10 +14,6 @@ class Hmis::Hud::Inventory < Hmis::Hud::Base
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   belongs_to :project, **hmis_relation(:ProjectID, 'Project')
 
-  use_enum :household_type_enum_map, ::HUD.household_types
-  use_enum :availability_enum_map, ::HUD.availabilities
-  use_enum :bed_type_enum_map, ::HUD.bed_types
-
   scope :viewable_by, ->(user) do
     joins(:project).merge(Hmis::Hud::Project.viewable_by(user))
   end

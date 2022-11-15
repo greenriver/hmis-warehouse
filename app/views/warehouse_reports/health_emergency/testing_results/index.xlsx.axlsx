@@ -25,9 +25,9 @@ wb.add_worksheet(name: "#{GrdaWarehouse::Config.current_health_emergency_title} 
     sheet.add_row(
       [
         client.id,
-        client.FirstName,
-        client.LastName,
-        client.DOB,
+        ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client.FirstName : 'Redacted',
+        ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client.LastName : 'Redacted',
+        ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client.DOB : 'Redacted',
         result.tested_on,
         result.result,
         result.notes,

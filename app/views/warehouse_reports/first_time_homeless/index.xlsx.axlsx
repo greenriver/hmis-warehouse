@@ -22,8 +22,8 @@ wb.add_worksheet(name: "First Time Homeless #{GrdaWarehouse::WarehouseReports::D
     project = client.first_service_history.project
     sheet.add_row([
       client.id,
-      client.FirstName,
-      client.LastName,
+      ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client.FirstName : 'Redacted',
+      ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client.LastName : 'Redacted',
       client.first_service_history.age,
       client.age,
       ::HUD.no_yes_reasons_for_missing_data(client.VeteranStatus),

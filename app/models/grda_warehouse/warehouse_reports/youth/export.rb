@@ -32,7 +32,7 @@ module GrdaWarehouse::WarehouseReports::Youth
     end
 
     def client_scope
-      @client_scope ||=  begin
+      @client_scope ||= begin
         clients = clients_within_age_range
         clients = clients.where(id: clients_within_projects.select(:id)) unless filter.all_projects?
         clients = clients.where(id: filter.clients_from_cohorts.select(:id)) if filter.clients_from_cohorts.exists?
@@ -46,10 +46,9 @@ module GrdaWarehouse::WarehouseReports::Youth
         client_scope.in_batches do |batch|
           report_calculator = WarehouseReport::ExportEnrollmentCalculator.new(batch_scope: batch, filter: filter)
           batch.find_each do |client|
-            rows << [
-              client.id,
-              client.FirstName,
-              client.LastName,
+            row = [client.id]
+            row << [client.FirstName, client.LastName] if ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+            row << [
               client.race_description,
               HUD.ethnicity(client.Ethnicity),
               client.gender,
@@ -94,6 +93,7 @@ module GrdaWarehouse::WarehouseReports::Youth
               report_calculator.vispdat_for_client(client)&.answer_for(:head_answer),
               report_calculator.vispdat_for_client(client)&.answer_for(:learning_answer),
             ]
+            rows << row
           end
         end
         rows
@@ -101,7 +101,7 @@ module GrdaWarehouse::WarehouseReports::Youth
     end
 
     def headers_for_report
-      [
+      headers = [
         'Client ID',
         'First Name',
         'Last Name',
@@ -149,6 +149,9 @@ module GrdaWarehouse::WarehouseReports::Youth
         'Maintaining Housing (head injury)',
         'Maintaining Housing (learning disability)',
       ]
+      return headers if ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+
+      headers.excluding('First Name', 'Last Name')
     end
   end
 end

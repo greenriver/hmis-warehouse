@@ -101,23 +101,6 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     end
   end
 
-  {
-    name_data_quality_enum_map: ::HUD.name_data_quality_options,
-    ssn_data_quality_enum_map: ::HUD.ssn_data_quality_options,
-    dob_data_quality_enum_map: ::HUD.dob_data_quality_options,
-  }.each do |name, options_hash|
-    use_enum(name, options_hash) do |hash|
-      hash.map do |value, desc|
-        {
-          key: desc,
-          value: value,
-          desc: desc,
-          null: [8, 9, 99].include?(value),
-        }
-      end
-    end
-  end
-
   use_enum(:gender_enum_map, ::HUD.genders) do |hash|
     hash.map do |value, desc|
       {
@@ -138,7 +121,6 @@ class Hmis::Hud::Client < Hmis::Hud::Base
       }
     end
   end
-  use_enum :ethnicity_enum_map, ::HUD.ethnicities.slice(0, 1), include_base_null: true
 
   def age(date = Date.current)
     GrdaWarehouse::Hud::Client.age(date: date, dob: self.DOB)

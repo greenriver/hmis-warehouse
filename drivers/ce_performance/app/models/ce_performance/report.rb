@@ -526,6 +526,12 @@ module CePerformance
       end.freeze
     end
 
+    def detail_headers_for_export(key: nil)
+      return detail_headers(key: key) if ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+
+      detail_headers(key: key).except('first_name', 'last_name', 'dob')
+    end
+
     def client_value(client, column)
       return client.public_send(column) unless column.include?('source_client')
 

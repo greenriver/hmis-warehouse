@@ -1321,7 +1321,7 @@ enum FundingSource {
   HUD_COC_HOMELESSNESS_PREVENTION_HIGH_PERFORMING_COMMUNITIES_ONLY
 
   """
-  (49) HUD: CoC - Joint Component RRH/PSH 
+  (49) HUD: CoC - Joint Component RRH/PSH
   """
   HUD_COC_JOINT_COMPONENT_RRH_PSH
 
@@ -1376,7 +1376,7 @@ enum FundingSource {
   HUD_ESG_EMERGENCY_SHELTER_OPERATING_AND_OR_ESSENTIAL_SERVICES
 
   """
-  (9) HUD: ESG - Homelessness Prevention 
+  (9) HUD: ESG - Homelessness Prevention
   """
   HUD_ESG_HOMELESSNESS_PREVENTION
 
@@ -1466,7 +1466,7 @@ enum FundingSource {
   HUD_PUBLIC_AND_INDIAN_HOUSING_PIH_PROGRAMS
 
   """
-  (12) HUD: Rural Housing Stability Assistance Program 
+  (12) HUD: Rural Housing Stability Assistance Program
   """
   HUD_RURAL_HOUSING_STABILITY_ASSISTANCE_PROGRAM
 

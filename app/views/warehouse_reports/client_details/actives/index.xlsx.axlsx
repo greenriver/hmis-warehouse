@@ -27,8 +27,8 @@ wb.add_worksheet(name: "Active #{GrdaWarehouse::WarehouseReports::Dashboard::Bas
 
       row = [
         client_id,
-        client.FirstName,
-        client.LastName,
+        ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client.FirstName : 'Redacted',
+        ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client.LastName : 'Redacted',
         HUD.project_type(enrollment.computed_project_type),
         enrollment.project.name(current_user),
         enrollment.first_date_in_program,

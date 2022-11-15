@@ -22,10 +22,6 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   has_one :wip, class_name: 'Hmis::Wip', as: :source
 
-  use_enum :assessment_types_enum_map, ::HUD.assessment_types
-  use_enum :assessment_levels_enum_map, ::HUD.assessment_levels
-  use_enum :prioritization_statuses_enum_map, ::HUD.prioritization_statuses
-
   attr_accessor :in_progress
 
   validates_with Hmis::Hud::Validators::AssessmentValidator
