@@ -240,7 +240,14 @@ module HmisDataQualityTool
     end
 
     private def ch_keys
-      ['client_ch_most_recent', 'client_ch_any', 'enrollment_any_ch'].freeze
+      [
+        'client_ch_most_recent',
+        'client_ch_any',
+        'enrollment_any_ch',
+        'average_days_before_entry',
+        'destination_temporary',
+        'destination_other',
+      ].freeze
     end
 
     def result_from_key(key)
@@ -259,6 +266,9 @@ module HmisDataQualityTool
         title = 'Total Enrollments Chronic at Entry'
         # Months homeless has the same detail columns we need
         slug = :months_homeless_issues
+        item_class = Enrollment
+      when 'average_days_before_entry'
+        title = 'Average Days Homeless Before Entry'
         item_class = Enrollment
       end
       OpenStruct.new(
@@ -288,7 +298,34 @@ module HmisDataQualityTool
         clients.where(ch_at_any_entry: true)
       when 'enrollment_any_ch'
         enrollments.where(ch_at_entry: true)
+      when 'average_days_before_entry'
+        enrollments.where.not(days_before_entry: nil)
+      when 'destination_temporary'
+        enrollments.where(destination: ::HUD.temporary_destinations)
+      when 'destination_other'
+        enrollments.where(destination: ::HUD.other_destinations)
       end
+    end
+
+    def destination_percent(category)
+      # All exits
+      denominator = enrollments.where.not(exit_date: nil).count
+      # Exits in category (destination_temporary or destination_other)
+      numerator = items_for(category.to_s).count
+
+      return 100 if denominator.zero?
+      return 0 if numerator.zero?
+
+      ((numerator / denominator.to_f) * 100).round
+    end
+
+    def average_days_before_entry
+      count = items_for('average_days_before_entry').count
+      sum = items_for('average_days_before_entry').sum(:days_before_entry)
+
+      return 0 if count.zero?
+
+      sum / count
     end
 
     private def result_groups
