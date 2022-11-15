@@ -11,7 +11,7 @@ RUN mkdir -p /app /app/shape_files/CoC /etc/ssl/certs \
 
 WORKDIR /app
 
-COPY Gemfile Gemfile.lock Rakefile config.ru package.json ./
+COPY Gemfile Gemfile.lock Rakefile config.ru package.json yarn.lock ./
 COPY bin ./bin
 COPY public ./public
 COPY config/deploy/docker/lib ./bin
