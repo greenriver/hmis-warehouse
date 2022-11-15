@@ -10,15 +10,15 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       middle_name: 'Joseph',
       preferred_name: 'Johnny',
       name_suffix: 'jr',
-      name_data_quality: Hmis::Hud::Client.name_data_quality_enum_map.lookup(key: 'Partial, street name, or code name reported')&.[](:value),
+      name_data_quality: 1,
       dob: '2022-06-15',
-      dob_data_quality: Hmis::Hud::Client.dob_data_quality_enum_map.lookup(key: 'Full DOB reported')&.[](:value),
+      dob_data_quality: 2,
       ssn: '123-45-6789',
-      ssn_data_quality: Hmis::Hud::Client.ssn_data_quality_enum_map.lookup(key: 'Full SSN reported')&.[](:value),
-      ethnicity: Hmis::Hud::Client.ethnicity_enum_map.values.first,
-      veteran_status: Hmis::FieldMap.no_yes_reasons.values.first,
-      gender: [Hmis::Hud::Client.gender_enum_map.base_members.first[:value]],
-      race: [Hmis::Hud::Client.race_enum_map.base_members.first[:value]],
+      ssn_data_quality: 3,
+      ethnicity: 1,
+      veteran_status: 1,
+      gender: [0],
+      race: ['AmIndAKNative'],
     }
   end
 
