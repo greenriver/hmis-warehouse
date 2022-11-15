@@ -24,6 +24,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   has_many :events, **hmis_relation(:EnrollmentID, 'Event')
   has_many :income_benefits, **hmis_relation(:EnrollmentID, 'IncomeBenefit')
   has_many :disabilities, **hmis_relation(:EnrollmentID, 'Disability')
+  has_many :health_and_dvs, **hmis_relation(:EnrollmentID, 'HealthAndDv')
 
   # NOTE: this does not include WIP assessments
   has_many :assessments, **hmis_relation(:EnrollmentID, 'Assessment')

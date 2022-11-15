@@ -23,13 +23,13 @@ module Types
       end
 
       def resolve_disabilities(scope = object.disabilities, **args)
-        apply_event_arguments(scope, **args)
+        apply_arguments(scope, **args)
       end
 
       private
 
-      def apply_event_arguments(scope)
-        scope
+      def apply_arguments(scope)
+        scope.viewable_by(current_user)
       end
     end
   end

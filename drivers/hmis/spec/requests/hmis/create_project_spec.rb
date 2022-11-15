@@ -46,33 +46,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       mutation CreateProject($input: ProjectInput!) {
         createProject(input: { input: $input }) {
           project {
-            id
+            #{scalar_fields(Types::HmisSchema::Project)}
             organization {
               id
             }
-            projectName
-            projectType
-            HMISParticipatingProject
-            HOPWAMedAssistedLivingFac
-            contactInformation
-            continuumProject
-            description
-            housingType
-            operatingEndDate
-            operatingStartDate
-            residentialAffiliation
-            targetPopulation
-            trackingMethod
-            active
           }
-          errors {
-            attribute
-            message
-            fullMessage
-            type
-            options
-            __typename
-          }
+          #{error_fields}
         }
       }
     GRAPHQL

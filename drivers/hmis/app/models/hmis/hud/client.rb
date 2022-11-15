@@ -24,6 +24,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   has_many :projects, through: :enrollments
   has_many :income_benefits, through: :enrollments
   has_many :disabilities, through: :enrollments
+  has_many :health_and_dvs, through: :enrollments
 
   validates_with Hmis::Hud::Validators::ClientValidator
 

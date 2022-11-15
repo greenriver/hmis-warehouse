@@ -32,10 +32,9 @@ module Types
 
       private
 
-      def apply_enrollment_arguments(scope, user: current_user, sort_order: :most_recent)
-        scope = scope.viewable_by(user)
+      def apply_enrollment_arguments(scope, sort_order: :most_recent)
         scope = scope.sort_by_option(sort_order) if sort_order.present?
-        scope
+        scope.viewable_by(current_user)
       end
     end
   end

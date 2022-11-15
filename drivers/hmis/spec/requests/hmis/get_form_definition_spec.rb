@@ -31,37 +31,16 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     <<~GRAPHQL
       query GetFormDefinition($enrollmentId: ID!, $assessmentRole: AssessmentRole!) {
         getFormDefinition(enrollmentId: $enrollmentId, assessmentRole: $assessmentRole) {
-          id
-          version
-          role
-          status
-          identifier
+          #{scalar_fields(Types::Forms::FormDefinition)}
           definition {
             item {
-              linkId
-              prefix
-              text
-              helperText
-              required
-              hidden
-              readOnly
-              repeats
-              queryField
-              pickListReference
+              #{scalar_fields(Types::Forms::FormItem)}
               pickListOptions {
-                code
-                label
-                secondaryLabel
-                groupLabel
-                initialSelected
+                #{scalar_fields(Types::Forms::PickListOption)}
               }
               enableBehavior
               enableWhen {
-                question
-                operator
-                answerCode
-                answerNumber
-                answerBoolean
+                #{scalar_fields(Types::Forms::EnableWhen)}
               }
               item {
                 linkId

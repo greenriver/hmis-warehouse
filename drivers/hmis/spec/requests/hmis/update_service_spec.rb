@@ -38,31 +38,15 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       mutation UpdateService($id: ID!, $input: ServiceInput!) {
         updateService(input: { input: $input, id: $id }) {
           service {
-            id
+            #{scalar_fields(Types::HmisSchema::Service)}
             enrollment {
               id
             }
             client {
               id
             }
-            dateProvided
-            recordType
-            typeProvided
-            subTypeProvided
-            otherTypeProvided
-            movingOnOtherType
-            FAAmount
-            referralOutcome
-            dateUpdated
           }
-          errors {
-            attribute
-            message
-            fullMessage
-            type
-            options
-            __typename
-          }
+          #{error_fields}
         }
       }
     GRAPHQL

@@ -28,22 +28,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       mutation UpdateFunder($id: ID!, $input: FunderInput!) {
         updateFunder(input: { input: $input, id: $id }) {
           funder {
-            id
-            funder
-            grantId
-            startDate
-            endDate
-            otherFunder
-            dateCreated
-            dateUpdated
-            dateDeleted
+            #{scalar_fields(Types::HmisSchema::Funder)}
           }
-          errors {
-            attribute
-            type
-            fullMessage
-            message
-          }
+          #{error_fields}
         }
       }
     GRAPHQL

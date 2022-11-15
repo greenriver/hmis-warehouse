@@ -33,7 +33,8 @@ module Types
       private
 
       def apply_event_arguments(scope, sort_order: :event_date)
-        scope.sort_by_option(sort_order) if sort_order.present?
+        scope = scope.sort_by_option(sort_order) if sort_order.present?
+        scope.viewable_by(current_user)
       end
     end
   end

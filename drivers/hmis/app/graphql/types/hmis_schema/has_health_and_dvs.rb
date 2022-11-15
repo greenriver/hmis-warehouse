@@ -8,21 +8,20 @@
 
 module Types
   module HmisSchema
-    module HasIncomeBenefits
+    module HasHealthAndDvs
       extend ActiveSupport::Concern
 
       class_methods do
-        def income_benefits_field(name = :events, description = nil, **override_options, &block)
-          default_field_options = { type: HmisSchema::IncomeBenefit.page_type, null: false, description: description }
+        def health_and_dvs_field(name = :events, description = nil, **override_options, &block)
+          default_field_options = { type: HmisSchema::HealthAndDv.page_type, null: false, description: description }
           field_options = default_field_options.merge(override_options)
           field(name, **field_options) do
-            # argument :sort_order, Types::HmisSchema::IncomeBenefitsSortOption, required: false
             instance_eval(&block) if block_given?
           end
         end
       end
 
-      def resolve_income_benefits(scope = object.income_benefits, **args)
+      def resolve_health_and_dvs(scope = object.health_and_dvs, **args)
         apply_arguments(scope, **args)
       end
 

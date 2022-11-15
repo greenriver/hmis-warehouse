@@ -11,7 +11,7 @@ module Types
     include Types::HmisSchema::HasEnrollments
     include Types::HmisSchema::HasIncomeBenefits
     include Types::HmisSchema::HasDisabilities
-    # include Types::HmisSchema::HealthAndDvs
+    include Types::HmisSchema::HasHealthAndDvs
 
     def self.configuration
       Hmis::Hud::Client.hmis_configuration(version: '2022')
@@ -38,6 +38,7 @@ module Types
     enrollments_field :enrollments, type: Types::HmisSchema::Enrollment.page_type
     income_benefits_field :income_benefits
     disabilities_field :disabilities
+    health_and_dvs_field :health_and_dvs
     hud_field :date_updated
     hud_field :date_created
     hud_field :date_deleted
@@ -52,6 +53,10 @@ module Types
 
     def disabilities(**args)
       resolve_disabilities(**args)
+    end
+
+    def health_and_dvs(**args)
+      resolve_health_and_dvs(**args)
     end
 
     def gender
