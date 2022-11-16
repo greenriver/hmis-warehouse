@@ -11,7 +11,6 @@ module HudLsa
     before_action :set_reports, except: [:index, :running_all_questions]
 
     def new
-      @default_coc = GrdaWarehouse::Config.default_site_coc_codes&.first
       report
     end
 
@@ -76,11 +75,13 @@ module HudLsa
         Date.current.year - 1
       end
       # Some sane defaults, using the previous report if available
-      @filter = filter_class.new(user_id: current_user.id, enforce_one_year_range: false)
+      @filter = filter_class.new(
+        user_id: current_user.id,
+        enforce_one_year_range: false,
+      )
       if filter_params.blank?
         prior_report = generator.find_report(current_user)
         options = prior_report&.options
-        site_coc_codes = GrdaWarehouse::Config.get(:site_coc_codes).presence&.split(/,\s*/)
         if options.present?
           @filter.start = options['start'].presence || Date.new(year - 1, 10, 1)
           @filter.end = options['end'].presence || Date.new(year, 9, 30)
@@ -90,7 +91,6 @@ module HudLsa
         else
           @filter.start = Date.new(year - 1, 10, 1)
           @filter.end = Date.new(year, 9, 30)
-          @filter.coc_code = site_coc_codes
           @filter.report_version = default_report_version
         end
       end
