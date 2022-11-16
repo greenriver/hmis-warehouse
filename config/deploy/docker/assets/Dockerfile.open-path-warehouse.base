@@ -11,7 +11,7 @@ RUN mkdir -p /app /app/shape_files/CoC /etc/ssl/certs \
 
 WORKDIR /app
 
-COPY Gemfile Gemfile.lock Rakefile config.ru package.json ./
+COPY Gemfile Gemfile.lock Rakefile config.ru package.json yarn.lock ./
 COPY bin ./bin
 COPY public ./public
 COPY config/deploy/docker/lib ./bin
@@ -68,7 +68,7 @@ RUN chmod +x /usr/bin/entrypoint.sh \
   && rm -rf tmp/* \
   && rm .env \
   && mkdir tmp/pids \
-  && yarn
+  && yarn install --frozen-lockfile
 
 RUN touch /etc/timezone
 RUN ln -sf /app/etc-localtime /etc/localtime
