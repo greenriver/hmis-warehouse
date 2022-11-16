@@ -299,7 +299,7 @@ module Filters
         opts['Chronically Homeless'] = 'Yes' if chronic_status
         opts['With RRH Move-in'] = 'Yes' if rrh_move_in
         opts['With PSH Move-in'] = 'Yes' if psh_move_in
-        opts['Fist Time Homeless in Past Two Years'] = 'Yes' if first_time_homeless
+        opts['First Time Homeless in Past Two Years'] = 'Yes' if first_time_homeless
         opts['Returned to Homelessness from Permanent Destination'] = 'Yes' if returned_to_homelessness_from_permanent_destination
         opts['CE Homeless'] = 'Yes' if coordinated_assessment_living_situation_homeless
         opts['Current Living Situation Homeless'] = 'Yes' if ce_cls_as_homeless

@@ -23,6 +23,10 @@ Dir.chdir APP_ROOT do
       FileUtils.cp "#{file}.sample", file
     end
   end
+  unless File.exist?('.pgpass')
+    puts "\n== Creating .pgpass"
+    FileUtils.cp 'sample.pgpass', '.pgpass'
+  end
   unless File.exist?('.env.local')
     puts "\n== Creating .env.local"
     FileUtils.cp 'sample.env', '.env.local'

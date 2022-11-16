@@ -41,55 +41,103 @@
           "pick_list_reference": "LengthOfStay"
         },
         {
-          "type": "GROUP",
-          "link_id": "pls-conditionals",
-          "item": [
+          "type": "DISPLAY",
+          "link_id": "3.917.A",
+          "read_only": true,
+          "text": "Client stayed 90+ days in an institutional setting. This is considered a \"break\" according to the HUD definition of chronic homelessness. Stopping data collection for 3.917 Prior Living Situation.",
+          "project_types_excluded": ["ES", "SERVICES_ONLY", "SH"],
+          "enable_behavior": "ALL",
+          "enable_when": [
             {
-              "type": "BOOLEAN",
-              "link_id": "3.917.A",
-              "text": "Did the client stay less than 90 days?",
-              "project_types_excluded": ["ES", "SERVICES_ONLY", "SH"],
-              "enable_behavior": "ALL",
-              "enable_when": [
-                {
-                  "question": "3.917.1",
-                  "operator": "EQUAL",
-                  "answer_group_code": "INSTITUTIONAL"
-                }
-              ]
+              "question": "3.917.1",
+              "operator": "EQUAL",
+              "answer_group_code": "INSTITUTIONAL"
             },
             {
-              "type": "BOOLEAN",
-              "link_id": "3.917.B",
-              "text": "Did the client stay less than 7 nights?",
-              "project_types_excluded": ["ES", "SERVICES_ONLY", "SH"],
-              "enable_behavior": "ALL",
-              "enable_when": [
-                {
-                  "question": "3.917.1",
-                  "operator": "EQUAL",
-                  "answer_group_code": "TEMPORARY_PERMANENT_OTHER"
-                }
+              "question": "3.917.2",
+              "operator": "IN",
+              "answer_codes": [
+                "LOS_90_DAYS_OR_MORE_BUT_LESS_THAN_ONE_YEAR",
+                "LOS_ONE_YEAR_OR_LONGER"
               ]
+            }
+          ]
+        },
+        {
+          "type": "DISPLAY",
+          "link_id": "3.917.B",
+          "text": "Client stayed 7+ days in a transitional or permanent housing situation. This is considered a \"break\" according to the HUD definition of chronic homelessness. Stopping data collection for 3.917 Prior Living Situation.",
+          "project_types_excluded": ["ES", "SERVICES_ONLY", "SH"],
+          "enable_behavior": "ALL",
+          "enable_when": [
+            {
+              "question": "3.917.1",
+              "operator": "EQUAL",
+              "answer_group_code": "TEMPORARY_PERMANENT_OTHER"
             },
             {
-              "type": "BOOLEAN",
-              "link_id": "3.917.C",
-              "text": "On the night before, did the client stay on the streets, ES or SH?",
-              "project_types_excluded": ["ES", "SERVICES_ONLY", "SH"],
-              "enable_behavior": "ANY",
-              "enable_when": [
-                {
-                  "question": "3.917.A",
-                  "operator": "EQUAL",
-                  "answer_boolean": true
-                },
-                {
-                  "question": "3.917.B",
-                  "operator": "EQUAL",
-                  "answer_boolean": true
-                }
+              "question": "3.917.2",
+              "operator": "IN",
+              "answer_codes": [
+                "LOS_ONE_WEEK_OR_MORE_BUT_LESS_THAN_ONE_MONTH",
+                "LOS_ONE_MONTH_OR_MORE_BUT_LESS_THAN_90_DAYS",
+                "LOS_90_DAYS_OR_MORE_BUT_LESS_THAN_ONE_YEAR",
+                "LOS_ONE_YEAR_OR_LONGER"
               ]
+            }
+          ]
+        },
+        {
+          "type": "BOOLEAN",
+          "link_id": "3.917.C",
+          "text": "On the night before, did the client stay on the streets, ES or SH?",
+          "project_types_excluded": ["ES", "SERVICES_ONLY", "SH"],
+          "enable_behavior": "ALL",
+          "enable_when": [
+            {
+              "question": "3.917.A",
+              "operator": "ENABLED",
+              "answer_boolean": false
+            },
+            {
+              "question": "3.917.B",
+              "operator": "ENABLED",
+              "answer_boolean": false
+            }
+          ]
+        },
+        {
+          "type": "DISPLAY",
+          "link_id": "3.917.C.message",
+          "text": "Stopping data collection for 3.917 Prior Living Situation.",
+          "project_types_excluded": ["ES", "SERVICES_ONLY", "SH"],
+          "_comment": "FIXME: If 2.917 B or C were enabled, we shouldnt show this unless B/C have been answered?",
+          "enable_behavior": "ALL",
+          "enable_when": [
+            {
+              "question": "3.917.C",
+              "operator": "EQUAL",
+              "answer_boolean": false
+            },
+            {
+              "question": "3.917.1",
+              "operator": "EXISTS",
+              "answer_boolean": true
+            },
+            {
+              "question": "3.917.2",
+              "operator": "EXISTS",
+              "answer_boolean": true
+            },
+            {
+              "question": "3.917.A",
+              "operator": "ENABLED",
+              "answer_boolean": false
+            },
+            {
+              "question": "3.917.B",
+              "operator": "ENABLED",
+              "answer_boolean": false
             }
           ]
         },
@@ -101,21 +149,18 @@
           "enable_when": [
             {
               "question": "3.917.A",
-              "operator": "NOT_EQUAL",
-              "answer_boolean": false,
-              "_comment": "Stop data collection if false"
+              "operator": "ENABLED",
+              "answer_boolean": false
             },
             {
               "question": "3.917.B",
-              "operator": "NOT_EQUAL",
-              "answer_boolean": false,
-              "_comment": "Stop data collection if false"
+              "operator": "ENABLED",
+              "answer_boolean": false
             },
             {
-              "question": "3.917.C",
-              "operator": "NOT_EQUAL",
-              "answer_boolean": false,
-              "_comment": "Stop data collection if false"
+              "question": "3.917.C.message",
+              "operator": "ENABLED",
+              "answer_boolean": false
             }
           ]
         },
@@ -128,21 +173,18 @@
           "enable_when": [
             {
               "question": "3.917.A",
-              "operator": "NOT_EQUAL",
-              "answer_boolean": false,
-              "_comment": "Stop data collection if false"
+              "operator": "ENABLED",
+              "answer_boolean": false
             },
             {
               "question": "3.917.B",
-              "operator": "NOT_EQUAL",
-              "answer_boolean": false,
-              "_comment": "Stop data collection if false"
+              "operator": "ENABLED",
+              "answer_boolean": false
             },
             {
-              "question": "3.917.C",
-              "operator": "NOT_EQUAL",
-              "answer_boolean": false,
-              "_comment": "Stop data collection if false"
+              "question": "3.917.C.message",
+              "operator": "ENABLED",
+              "answer_boolean": false
             }
           ]
         },
@@ -155,21 +197,18 @@
           "enable_when": [
             {
               "question": "3.917.A",
-              "operator": "NOT_EQUAL",
-              "answer_boolean": false,
-              "_comment": "Stop data collection if false"
+              "operator": "ENABLED",
+              "answer_boolean": false
             },
             {
               "question": "3.917.B",
-              "operator": "NOT_EQUAL",
-              "answer_boolean": false,
-              "_comment": "Stop data collection if false"
+              "operator": "ENABLED",
+              "answer_boolean": false
             },
             {
-              "question": "3.917.C",
-              "operator": "NOT_EQUAL",
-              "answer_boolean": false,
-              "_comment": "Stop data collection if false"
+              "question": "3.917.C.message",
+              "operator": "ENABLED",
+              "answer_boolean": false
             }
           ]
         }
@@ -249,6 +288,10 @@
           "link_id": "4.02.A",
           "text": "Monthly Amount",
           "enable_behavior": "ALL",
+          "bounds": [{
+            "type": "MIN",
+            "value_number": 0
+          }],
           "enable_when": [
             {
               "question": "4.02.3",
@@ -325,7 +368,8 @@
             },
             {
               "question": "4.04.2",
-              "operator": "NOT_EXISTS"
+              "operator": "EXISTS",
+              "answer_boolean": false
             }
           ],
           "item": [

@@ -2,8 +2,52 @@
   "item": [
     {
       "type": "GROUP",
+      "link_id": "address",
+      "text": "Project Address",
+      "required": false,
+      "item": [
+        {
+          "type": "STRING",
+          "required": false,
+          "link_id": "address1",
+          "text": "Address",
+          "query_field": "address1"
+        },
+        {
+          "type": "STRING",
+          "required": false,
+          "link_id": "address2",
+          "text": "Address (line 2)",
+          "query_field": "address2"
+        },
+        {
+          "type": "STRING",
+          "required": false,
+          "link_id": "city",
+          "text": "City",
+          "query_field": "city"
+        },
+        {
+          "type": "CHOICE",
+          "required": false,
+          "link_id": "state",
+          "text": "State",
+          "pick_list_reference": "STATE",
+          "query_field": "state"
+        },
+        {
+          "type": "STRING",
+          "required": false,
+          "link_id": "zip",
+          "text": "Zip",
+          "query_field": "zip"
+        }
+      ]
+    },
+    {
+      "type": "GROUP",
       "link_id": "name",
-      "text": "Details",
+      "text": "Location Details",
       "required": false,
       "item": [
         {
@@ -15,11 +59,11 @@
           "query_field": "cocCode"
         },
         {
-          "type": "STRING",
+          "type": "CHOICE",
           "required": true,
           "link_id": "geocode",
           "text": "Geocode",
-
+          "pick_list_reference": "GEOCODE",
           "query_field": "geocode"
         },
         {
@@ -28,56 +72,7 @@
           "link_id": "geotype",
           "text": "Geography Type",
           "pick_list_reference": "GeographyType",
-
           "query_field": "geographyType"
-        }
-      ]
-    },
-    {
-      "type": "GROUP",
-      "link_id": "address",
-      "text": "Project Address",
-      "required": false,
-      "item": [
-        {
-          "type": "STRING",
-          "required": false,
-          "link_id": "address1",
-          "text": "Address",
-
-          "query_field": "address1"
-        },
-        {
-          "type": "STRING",
-          "required": false,
-          "link_id": "address2",
-          "text": "Address (line 2)",
-
-          "query_field": "address2"
-        },
-        {
-          "type": "STRING",
-          "required": false,
-          "link_id": "city",
-          "text": "City",
-
-          "query_field": "city"
-        },
-        {
-          "type": "STRING",
-          "required": false,
-          "link_id": "state",
-          "text": "State",
-
-          "query_field": "state"
-        },
-        {
-          "type": "STRING",
-          "required": false,
-          "link_id": "zip",
-          "text": "Zip",
-
-          "query_field": "zip"
         }
       ]
     }

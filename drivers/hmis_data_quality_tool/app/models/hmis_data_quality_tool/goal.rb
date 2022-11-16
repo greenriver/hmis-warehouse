@@ -10,7 +10,12 @@ module HmisDataQualityTool
     acts_as_paranoid
 
     def self.known_params
-      columns = [:coc_code]
+      columns = [
+        :coc_code,
+        :entry_date_entered_length,
+        :exit_date_entered_length,
+        :expose_ch_calculations,
+      ]
       columns += stay_length_categories
       segment_numbers.each do |num|
         columns << "segment_#{num}_name".to_sym
@@ -141,6 +146,17 @@ module HmisDataQualityTool
         :so_missed_exit_length,
         :ph_missed_exit_length,
       ].freeze
+    end
+
+    def self.timeliness_categories
+      {
+        'Disabled' => -1,
+        'Same day' => 0,
+        '3 days or less' => 3,
+        '6 days or less' => 6,
+        '10 days or less' => 10,
+        '11 or more days' => 10_000,
+      }
     end
 
     def stay_lengths

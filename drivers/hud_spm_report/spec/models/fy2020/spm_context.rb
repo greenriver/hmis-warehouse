@@ -4,10 +4,6 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-RSpec.configure do
-  RSpec.configuration.fixpoints_path = 'drivers/hud_spm_report/spec/fixpoints'
-end
-
 SPM_USER_EMAIL = 'spm_reporter@example.com'.freeze
 
 RSpec.shared_context 'HudSpmReport context', shared_context: :metadata do
@@ -39,7 +35,7 @@ RSpec.shared_context 'HudSpmReport context', shared_context: :metadata do
       start: Date.parse('2016-1-1'),
       end: Date.parse('2019-10-01'),
       user_id: User.setup_system_user.id,
-      project_type_codes: GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPE_CODES + [:psh],
+      project_type_codes: GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPE_CODES + [:psh] + [:oph],
       coc_codes: ['KY-500'],
     }.freeze
   end

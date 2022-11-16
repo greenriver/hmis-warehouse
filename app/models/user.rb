@@ -44,4 +44,10 @@ class User < ApplicationRecord
         where(roles: { permission => true })
     end
   end
+
+  def related_hmis_user(data_source)
+    return unless HmisEnforcement.hmis_enabled?
+
+    Hmis::User.find(id)&.tap { |u| u.update(hmis_data_source_id: data_source.id) }
+  end
 end

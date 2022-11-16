@@ -1,0 +1,25 @@
+%h3 Viewable Entities
+
+.alert.alert-info.align-items-start
+  %i.icon-warning.mr-4.mt-4
+  .alert__content
+    %p
+      Clients with records in specified data sources will be visible in the window to users in this group, regardless of data source visibility settings if they belong to a role with the
+      %strong "Can see clients in window for assigned data sources"
+      permission
+%ul.nav.nav-tabs.mb-0
+  %li.nav-item
+    %a.nav-link.active{href: '#data-access-assignments', role: "presentation", data: {toggle: :tab}, aria: {controls:"data-access-assignments", selected:"true"}}
+      Data Access Assignments
+
+.tab-content
+  .tab-pane.show.active.fade#data-access-assignments{role: 'tabpanel', aria: {labelledby: 'data-access-assignments'}}
+    .c-columns
+      = render 'entity_column', entity: @data_sources, f: f
+      = render 'entity_column', entity: @organizations, f: f
+      = render 'entity_column', entity: @project_access_groups, f: f
+      = render 'entity_column', entity: @projects, associations: [:data_source, :organization, :project_access_group], f: f
+
+- content_for :page_js do
+  :javascript
+    new App.ViewableEntities()

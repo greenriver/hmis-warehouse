@@ -1,0 +1,7 @@
+= render 'breadcrumbs'
+.row
+  .col-sm-12
+    %h1 New Role
+  .col-sm-8
+    = simple_form_for @role, as: :role, url: hmis_admin_role_path(@role) do |f|
+      = render 'admin/roles/new_form', f: f, submit_text: 'Create Role'

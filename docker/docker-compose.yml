@@ -53,7 +53,7 @@ services:
     profiles:
       - manual
     command: /bin/bash
-    entrypoint: ''
+    entrypoint: '/usr/bin/spec.entrypoint.sh'
     depends_on:
       - db
       - redis

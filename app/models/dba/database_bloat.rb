@@ -2,7 +2,7 @@
 #
 # Test with this:
 # DBA_MIN_ROWS=200  DBA_MIN_UNUSED_INDEX_SIZE=10000 DBA_BLOAT_CUTOFF=1 DBA_SIZE_CUTOFF=100000 ./bin/rake dba:dry_run
-class DatabaseBloat
+class DBA::DatabaseBloat
   attr_accessor :ar_base_class
   attr_accessor :dry_run
 
@@ -21,6 +21,9 @@ class DatabaseBloat
   # minimum number of rows or dead tuples in a table to consider it worthy of vacuuming
   MIN_ROWS = ENV.fetch('DBA_MIN_ROWS', 1_000).to_i
 
+  # minimum percentage of non-analyzed rows to trigger adjusting autovaccuum
+  MIN_PCT_NOT_ANALZYED = ENV.fetch('DBA_MIN_PCT_NOT_ANALYZED', 4).to_i
+
   SERVER_PG_REPACK_VERSION = '1.4.7'.freeze
 
   def initialize(ar_base_class:, dry_run: false)
@@ -33,7 +36,7 @@ class DatabaseBloat
     dbs << CasBase if CasBase.db_exists?
     dbs.each do |ar_base_class|
       Rails.logger.tagged({ 'dba' => true, 'base_class' => ar_base_class.to_s, 'method' => meth.to_s }) do
-        db = DatabaseBloat.new(ar_base_class: ar_base_class, dry_run: dry_run)
+        db = DBA::DatabaseBloat.new(ar_base_class: ar_base_class, dry_run: dry_run)
         db.send(meth)
       end
     end
@@ -41,7 +44,11 @@ class DatabaseBloat
 
   def show_cache_hits!
     cache_hit_rates.each do |row|
-      Rails.logger.warn "Cache #{row['name']}: #{row['ratio']}"
+      if row['ratio'].to_f < 0.7
+        Rails.logger.warn "Cache #{row['name']} is too low in #{row['current_database']}: #{row['ratio'].round(2)}"
+      elsif row['ratio'].to_f < 0.85
+        Rails.logger.info "Cache #{row['name']} is a little low in #{row['current_database']}: #{row['ratio'].round(2)}"
+      end
     end
   end
 
@@ -60,7 +67,7 @@ class DatabaseBloat
         sql = %<REINDEX INDEX CONCURRENTLY "#{row['schemaname']}"."#{row['idxname']}";>
         Rails.logger.info("EVIDENCE: #{row}")
         run(sql)
-        throw :enough if i + 1 == MAX_PER_RUN
+        throw :enough if i + 1 == MAX_PER_RUN && !dry_run
       end
     end
   end
@@ -76,14 +83,32 @@ class DatabaseBloat
 
         adjust_autovacuum_for(row)
 
-        throw :enough if i + 1 == MAX_PER_RUN
+        throw :enough if i + 1 == MAX_PER_RUN && !dry_run
       end
     end
   end
 
+  # Autovacuum is tied to autoanalyze
   def adjust_autovacuum_for(row)
-    scale_factor = [row['autovacuum_vacuum_scale_factor'] * 0.75, 0.005].min
-    sql = %<ALTER TABLE "#{row['schemaname']}"."#{row['tblname']}" SET (autovacuum_analyze_scale_factor = #{scale_factor});>
+    return unless row['percent_unanalyzed'] > MIN_PCT_NOT_ANALZYED
+
+    autovacuum_analyze_threshold = (row['autovacuum_analyze_threshold'] / 2).to_i
+    autovacuum_analyze_scale_factor = (row['autovacuum_analyze_scale_factor'] / 2).round(2)
+
+    autovacuum_vacuum_threshold = (row['autovacuum_vacuum_threshold'] / 2).to_i
+    autovacuum_vacuum_scale_factor = (row['autovacuum_vacuum_scale_factor'] / 2).round(2)
+
+    Rails.logger.warn 'Not ready to automatically recommend autovacuum settings.'
+
+    sql = format(%<ALTER TABLE "%s"."%s" SET (autovacuum_analyze_threshold = %d, autovacuum_analyze_scale_factor = %f, autovacuum_vacuum_threshold = %d, autovacuum_vacuum_scale_factor = %f);>,
+                 row['schemaname'],
+                 row['tblname'],
+                 autovacuum_analyze_threshold,
+                 autovacuum_analyze_scale_factor,
+                 autovacuum_vacuum_threshold,
+                 autovacuum_vacuum_scale_factor
+                )
+    Rails.logger.info sql
     run(sql)
   end
 
@@ -117,7 +142,7 @@ class DatabaseBloat
 
         adjust_autovacuum_for(row)
 
-        throw :enough if i + 1 == MAX_PER_RUN
+        throw :enough if i + 1 == MAX_PER_RUN && !dry_run
       end
     end
   end
@@ -246,9 +271,13 @@ class DatabaseBloat
         v.last_autovacuum,
         v.rowcount,
         v.dead_rowcount,
+        v.autovacuum_vacuum_threshold,
         v.autovacuum_vacuum_scale_factor, -- percentage of table length that triggers an autovacuum after exceeding the usually tiny offset that's typically 50
         v.autovacuum_threshold::bigint,
-        v.expect_autovacuum
+        v.autovacuum_analyze_scale_factor,
+        v.autovacuum_analyze_threshold,
+        v.expect_autovacuum,
+        v.percent_unanalyzed
       FROM
         results r
         JOIN vacuum_results v ON (
@@ -419,7 +448,17 @@ class DatabaseBloat
             WHEN relopts LIKE '%autovacuum_vacuum_scale_factor%'
               THEN substring(relopts, '.*autovacuum_vacuum_scale_factor=([0-9.]+).*')::real
               ELSE current_setting('autovacuum_vacuum_scale_factor')::real
-            END AS autovacuum_vacuum_scale_factor
+            END AS autovacuum_vacuum_scale_factor,
+          CASE
+            WHEN relopts LIKE '%autovacuum_analyze_threshold%'
+              THEN substring(relopts, '.*autovacuum_analyze_threshold=([0-9.]+).*')::integer
+              ELSE current_setting('autovacuum_analyze_threshold')::integer
+            END AS autovacuum_analyze_threshold,
+          CASE
+            WHEN relopts LIKE '%autovacuum_analyze_scale_factor%'
+              THEN substring(relopts, '.*autovacuum_analyze_scale_factor=([0-9.]+).*')::real
+              ELSE current_setting('autovacuum_analyze_scale_factor')::real
+            END AS autovacuum_analyze_scale_factor
         FROM
           vacuum_table_opts
       ),
@@ -432,12 +471,21 @@ class DatabaseBloat
           pg_class.reltuples AS rowcount,
           psut.n_dead_tup AS dead_rowcount,
           autovacuum_vacuum_scale_factor,
+          autovacuum_vacuum_threshold,
           autovacuum_vacuum_threshold + (autovacuum_vacuum_scale_factor::numeric * pg_class.reltuples) AS autovacuum_threshold,
+          autovacuum_analyze_scale_factor,
+          autovacuum_analyze_threshold,
           CASE
             WHEN autovacuum_vacuum_threshold + (autovacuum_vacuum_scale_factor::numeric * pg_class.reltuples) < psut.n_dead_tup
             THEN true
             ELSE false
-          END AS expect_autovacuum
+          END AS expect_autovacuum,
+          n_live_tup AS estimated_num_rows,
+          last_autoanalyze,
+          last_analyze,
+          n_mod_since_analyze AS "rows_changed_since_last_analyze",
+          -- for non-tiny tables, find percentage of rows modified since the last analyze
+          CASE WHEN n_live_tup > 1000 THEN round(n_mod_since_analyze::numeric / n_live_tup::numeric * 100.0, 1) ELSE 0 END AS percent_unanalyzed
         FROM
           pg_stat_user_tables psut
           INNER JOIN pg_class ON psut.relid = pg_class.oid
@@ -507,11 +555,13 @@ class DatabaseBloat
     <<~SQL
       -- Index and table hit rate
       SELECT
+        current_database(),
         'index hit rate' AS name,
-        (sum(idx_blks_hit)) / nullif(sum(idx_blks_hit + idx_blks_read),0) AS ratio
+        round((sum(idx_blks_hit)) / nullif(sum(idx_blks_hit + idx_blks_read),0), 2) AS ratio
       FROM pg_statio_user_indexes
       UNION ALL
       SELECT
+        current_database(),
        'table hit rate' AS name,
         sum(heap_blks_hit) / nullif(sum(heap_blks_hit) + sum(heap_blks_read),0) AS ratio
       FROM pg_statio_user_tables;

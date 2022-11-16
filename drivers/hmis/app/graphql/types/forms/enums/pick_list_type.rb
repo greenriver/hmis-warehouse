@@ -13,7 +13,8 @@ module Types
     value 'COC'
     value 'PROJECT'
     value 'ORGANIZATION'
-    # value 'GEOCODE'
+    value 'GEOCODE'
+    value 'STATE'
     value 'PRIOR_LIVING_SITUATION'
     value 'CURRENT_LIVING_SITUATION'
   end

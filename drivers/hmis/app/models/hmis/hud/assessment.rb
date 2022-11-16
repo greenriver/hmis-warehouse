@@ -40,6 +40,14 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
     left_outer_joins(:wip).where(viewable_wip.or(viewable_completed))
   end
 
+  scope :editable_by, ->(user) do
+    enrollment_ids = Hmis::Hud::Enrollment.editable_by(user).pluck(:id, :EnrollmentID)
+    editable_wip = wip_t[:enrollment_id].in(enrollment_ids.map(&:first))
+    editable_completed = as_t[:EnrollmentID].in(enrollment_ids.map(&:second))
+
+    left_outer_joins(:wip).where(editable_wip.or(editable_completed))
+  end
+
   scope :with_role, ->(role) do
     joins(:assessment_detail).merge(Hmis::Form::AssessmentDetail.with_role(role))
   end
@@ -80,7 +88,7 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
 
   def save_not_in_progress
     transaction do
-      self.enrollment_id = enrollment_id == WIP_ID ? wip&.enrollment_id : enrollment_id
+      self.enrollment_id = enrollment_id == WIP_ID ? enrollment.enrollment_id : enrollment_id
       wip&.destroy
       save!
     end
