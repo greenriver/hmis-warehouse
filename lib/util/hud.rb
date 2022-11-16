@@ -957,6 +957,7 @@ module HUD
     other_situations(as: :prior)
   end
 
+  # See https://www.hudexchange.info/programs/hmis/hmis-data-standards/standards/HMIS-Data-Standards.htm#Appendix_A_-_Living_Situation_Option_List for details
   def available_situations
     {
       1 => 'Emergency shelter, including hotel or motel paid for with emergency shelter voucher, or RHY-funded Host Home shelter ',
@@ -1004,15 +1005,11 @@ module HUD
     case version
     when '2020', nil
       case as
-      when :prior, :current
+      when :prior, :current, :destination
         [
           16,
           1,
           18,
-        ]
-      when :destination
-        [
-          16,
         ]
       end
     end
@@ -1157,14 +1154,12 @@ module HUD
 
   def temporary_destinations(version: nil)
     case version
-    when '2020', nil # From SPM 3.1 definition
+    when '2020', nil
       [
-        1,
         15,
         14,
         27,
         4,
-        18,
         12,
         13,
         5,
