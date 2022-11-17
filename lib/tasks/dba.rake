@@ -47,4 +47,20 @@ namespace :dba do
   task :show_cache_hits, [] => :environment do
     DBA::DatabaseBloat.all_databases!(:show_cache_hits!, dry_run: @dry_run)
   end
+
+  desc 'Partition big tables'
+  task :partition, [:table] => [:environment] do |t, args|
+    if args[:table].present?
+      pm = DBA::PartitionMaker.new(table_name: args[:table])
+      if pm.no_table?
+        Rails.logger.error "Skipping #{args[:table]} which couldn't be found"
+      elsif pm.done?
+        Rails.logger.info "Skipping #{args[:table]} which is done"
+      else
+        pm.run!
+      end
+    else
+      DBA::PartitionAll.new.run!
+    end
+  end
 end
