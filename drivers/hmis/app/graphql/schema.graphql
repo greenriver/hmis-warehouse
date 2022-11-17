@@ -186,13 +186,16 @@ type Client {
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
+  disabilities(limit: Int, offset: Int): DisabilitiesPaginated!
   dob: ISO8601Date
   dobDataQuality: DOBDataQuality!
   enrollments(limit: Int, offset: Int, sortOrder: EnrollmentSortOption): EnrollmentsPaginated!
   ethnicity: Ethnicity!
   firstName: String
   gender: [Gender!]!
+  healthAndDvs(limit: Int, offset: Int): HealthAndDvsPaginated!
   id: ID!
+  incomeBenefits(limit: Int, offset: Int): IncomeBenefitsPaginated!
   lastName: String
   middleName: String
   nameDataQuality: NameDataQuality!
@@ -744,6 +747,106 @@ type DeleteServicePayload {
   service: Service
 }
 
+type DisabilitiesPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [Disability!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
+}
+
+type Disability {
+  client: Client!
+  dataCollectionStage: DataCollectionStage!
+  dateCreated: ISO8601DateTime!
+  dateDeleted: ISO8601DateTime
+  dateUpdated: ISO8601DateTime!
+  disabilityResponse: DisabilityResponse!
+  disabilityType: DisabilityType!
+  enrollment: Enrollment!
+  id: ID!
+  indefiniteAndImpairs: Int
+  informationDate: ISO8601Date!
+  user: User!
+}
+
+"""
+4.10.2
+"""
+enum DisabilityResponse {
+  """
+  (1) Alcohol use disorder
+  """
+  ALCOHOL_USE_DISORDER
+
+  """
+  (3) Both alcohol and drug use disorders
+  """
+  BOTH_ALCOHOL_AND_DRUG_USE_DISORDERS
+
+  """
+  (8) Client doesn't know
+  """
+  CLIENT_DOESN_T_KNOW
+
+  """
+  (9) Client refused
+  """
+  CLIENT_REFUSED
+
+  """
+  (99) Data not collected
+  """
+  DATA_NOT_COLLECTED
+
+  """
+  (2) Drug use disorder
+  """
+  DRUG_USE_DISORDER
+
+  """
+  (0) No
+  """
+  NO
+}
+
+"""
+1.3
+"""
+enum DisabilityType {
+  """
+  (7) Chronic health condition
+  """
+  CHRONIC_HEALTH_CONDITION
+
+  """
+  (6) Developmental disability
+  """
+  DEVELOPMENTAL_DISABILITY
+
+  """
+  (8) HIV/AIDS
+  """
+  HIV_AIDS
+
+  """
+  (9) Mental health disorder
+  """
+  MENTAL_HEALTH_DISORDER
+
+  """
+  (5) Physical disability
+  """
+  PHYSICAL_DISABILITY
+
+  """
+  (10) Substance use disorder
+  """
+  SUBSTANCE_USE_DISORDER
+}
+
 enum EnableBehavior {
   ALL
   ANY
@@ -818,13 +921,15 @@ type Enrollment {
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
-  entryDate: ISO8601Date
+  disablingCondition: NoYesReasonsForMissingData
+  entryDate: ISO8601Date!
   events(limit: Int, offset: Int, sortOrder: EventSortOption): EventsPaginated!
   exitDate: ISO8601Date
   household: Household!
   id: ID!
   inProgress: Boolean!
   lengthOfStay: ResidencePriorLengthOfStay
+  livingSituation: LivingSituation
   monthsHomelessPastThreeYears: MonthsHomelessPastThreeYears
   project: Project!
   relationshipToHoH: RelationshipToHoH!
@@ -1017,6 +1122,51 @@ type EventsPaginated {
   nodesCount: Int!
   offset: Int!
   pagesCount: Int!
+}
+
+"""
+C1.2
+"""
+enum FeelingFrequency {
+  """
+  (4) At least every day
+  """
+  AT_LEAST_EVERY_DAY
+
+  """
+  (8) Client doesn't know
+  """
+  CLIENT_DOESN_T_KNOW
+
+  """
+  (9) Client refused
+  """
+  CLIENT_REFUSED
+
+  """
+  (99) Data not collected
+  """
+  DATA_NOT_COLLECTED
+
+  """
+  (0) Not at all
+  """
+  NOT_AT_ALL
+
+  """
+  (1) Once a month
+  """
+  ONCE_A_MONTH
+
+  """
+  (2) Several times a month
+  """
+  SEVERAL_TIMES_A_MONTH
+
+  """
+  (3) Several times a week
+  """
+  SEVERAL_TIMES_A_WEEK
 }
 
 """
@@ -1524,6 +1674,84 @@ enum HOPWAMedAssistedLivingFac {
   YES
 }
 
+type HealthAndDv {
+  bounceBack: WellbeingAgreement
+  client: Client!
+  currentlyFleeing: NoYesReasonsForMissingData
+  dataCollectionStage: DataCollectionStage!
+  dateCreated: ISO8601DateTime!
+  dateDeleted: ISO8601DateTime
+  dateUpdated: ISO8601DateTime!
+  dentalHealthStatus: HealthStatus
+  dueDate: ISO8601Date
+  enrollment: Enrollment!
+  feelingFrequency: FeelingFrequency
+  generalHealthStatus: HealthStatus
+  id: ID!
+  informationDate: ISO8601Date!
+  lifeValue: WellbeingAgreement
+  mentalHealthStatus: HealthStatus
+  pregnancyStatus: NoYesReasonsForMissingData
+  supportFromOthers: WellbeingAgreement
+  user: User!
+  whenOccurred: WhenDVOccurred
+}
+
+type HealthAndDvsPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [HealthAndDv!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
+}
+
+"""
+4.27.1
+"""
+enum HealthStatus {
+  """
+  (8) Client doesn't know
+  """
+  CLIENT_DOESN_T_KNOW
+
+  """
+  (9) Client refused
+  """
+  CLIENT_REFUSED
+
+  """
+  (99) Data not collected
+  """
+  DATA_NOT_COLLECTED
+
+  """
+  (1) Excellent
+  """
+  EXCELLENT
+
+  """
+  (4) Fair
+  """
+  FAIR
+
+  """
+  (3) Good
+  """
+  GOOD
+
+  """
+  (5) Poor
+  """
+  POOR
+
+  """
+  (2) Very good
+  """
+  VERY_GOOD
+}
+
 """
 HUD Household
 """
@@ -1591,6 +1819,45 @@ scalar ISO8601Date
 An ISO 8601-encoded datetime
 """
 scalar ISO8601DateTime
+
+type IncomeBenefit {
+  alimonyAmount: Float
+  childSupportAmount: Float
+  client: Client!
+  dataCollectionStage: DataCollectionStage!
+  dateCreated: ISO8601DateTime!
+  dateDeleted: ISO8601DateTime
+  dateUpdated: ISO8601DateTime!
+  earnedAmount: Float
+  enrollment: Enrollment!
+  gaAmount: Float
+  id: ID!
+  informationDate: ISO8601Date!
+  otherIncomeAmount: Float
+  otherIncomeSourceIdentify: String
+  pensionAmount: Float
+  privateDisabilityAmount: Float
+  socSecRetirementAmount: Float
+  ssdiAmount: Float
+  ssiAmount: Float
+  tanfAmount: Float
+  totalMonthlyIncome: String
+  unemploymentAmount: Float
+  user: User!
+  vaDisabilityNonServiceAmount: Float
+  vaDisabilityServiceAmount: Float
+  workersCompAmount: Float
+}
+
+type IncomeBenefitsPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [IncomeBenefit!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
+}
 
 """
 Initial value when item is first rendered
@@ -1689,6 +1956,202 @@ enum ItemType {
 Arbitrary JSON Type
 """
 scalar JsonObject
+
+"""
+3.917.1
+"""
+enum LivingSituation {
+  """
+  (8) Client doesn't know
+  """
+  CLIENT_DOESN_T_KNOW
+
+  """
+  (9) Client refused
+  """
+  CLIENT_REFUSED
+
+  """
+  (99) Data not collected
+  """
+  DATA_NOT_COLLECTED
+
+  """
+  (24) Deceased
+  """
+  DECEASED
+
+  """
+  (1) Emergency shelter, including hotel or motel paid for with emergency shelter voucher, or RHY-funded Host Home shelter
+  """
+  EMERGENCY_SHELTER_INCLUDING_HOTEL_OR_MOTEL_PAID_FOR_WITH_EMERGENCY_SHELTER_VOUCHER_OR_RHY_FUNDED_HOST_HOME_SHELTER
+
+  """
+  (15) Foster care home or foster care group home
+  """
+  FOSTER_CARE_HOME_OR_FOSTER_CARE_GROUP_HOME
+
+  """
+  (6) Hospital or other residential non-psychiatric medical facility
+  """
+  HOSPITAL_OR_OTHER_RESIDENTIAL_NON_PSYCHIATRIC_MEDICAL_FACILITY
+
+  """
+  (32) Host Home (non-crisis)
+  """
+  HOST_HOME_NON_CRISIS
+
+  """
+  (14) Hotel or motel paid for without emergency shelter voucher
+  """
+  HOTEL_OR_MOTEL_PAID_FOR_WITHOUT_EMERGENCY_SHELTER_VOUCHER
+
+  """
+  (27) Interim Housing
+  """
+  INTERIM_HOUSING
+
+  """
+  (7) Jail, prison or juvenile detention facility
+  """
+  JAIL_PRISON_OR_JUVENILE_DETENTION_FACILITY
+
+  """
+  (25) Long-term care facility or nursing home
+  """
+  LONG_TERM_CARE_FACILITY_OR_NURSING_HOME
+
+  """
+  (26) Moved from one HOPWA funded project to HOPWA PH
+  """
+  MOVED_FROM_ONE_HOPWA_FUNDED_PROJECT_TO_HOPWA_PH
+
+  """
+  (30) No exit interview completed
+  """
+  NO_EXIT_INTERVIEW_COMPLETED
+
+  """
+  (17) Other
+  """
+  OTHER
+
+  """
+  (11) Owned by client, no ongoing housing subsidy
+  """
+  OWNED_BY_CLIENT_NO_ONGOING_HOUSING_SUBSIDY
+
+  """
+  (21) Owned by client, with ongoing housing subsidy
+  """
+  OWNED_BY_CLIENT_WITH_ONGOING_HOUSING_SUBSIDY
+
+  """
+  (3) Permanent housing (other than RRH) for formerly homeless persons
+  """
+  PERMANENT_HOUSING_OTHER_THAN_RRH_FOR_FORMERLY_HOMELESS_PERSONS
+
+  """
+  (16) Place not meant for habitation (e.g., a vehicle, an abandoned building,
+  bus/train/subway station/airport or anywhere outside)
+  """
+  PLACE_NOT_MEANT_FOR_HABITATION_E_G_A_VEHICLE_AN_ABANDONED_BUILDING_BUS_TRAIN_SUBWAY_STATION_AIRPORT_OR_ANYWHERE_OUTSIDE
+
+  """
+  (4) Psychiatric hospital or other psychiatric facility
+  """
+  PSYCHIATRIC_HOSPITAL_OR_OTHER_PSYCHIATRIC_FACILITY
+
+  """
+  (34) Rental by client in a public housing unit
+  """
+  RENTAL_BY_CLIENT_IN_A_PUBLIC_HOUSING_UNIT
+
+  """
+  (10) Rental by client, no ongoing housing subsidy
+  """
+  RENTAL_BY_CLIENT_NO_ONGOING_HOUSING_SUBSIDY
+
+  """
+  (28) Rental by client, with GPD TIP housing subsidy
+  """
+  RENTAL_BY_CLIENT_WITH_GPD_TIP_HOUSING_SUBSIDY
+
+  """
+  (33) Rental by client, with HCV voucher (tenant or project based)
+  """
+  RENTAL_BY_CLIENT_WITH_HCV_VOUCHER_TENANT_OR_PROJECT_BASED
+
+  """
+  (20) Rental by client, with other ongoing housing subsidy
+  """
+  RENTAL_BY_CLIENT_WITH_OTHER_ONGOING_HOUSING_SUBSIDY
+
+  """
+  (31) Rental by client, with RRH or equivalent subsidy
+  """
+  RENTAL_BY_CLIENT_WITH_RRH_OR_EQUIVALENT_SUBSIDY
+
+  """
+  (19) Rental by client, with VASH housing subsidy
+  """
+  RENTAL_BY_CLIENT_WITH_VASH_HOUSING_SUBSIDY
+
+  """
+  (29) Residential project or halfway house with no homeless criteria
+  """
+  RESIDENTIAL_PROJECT_OR_HALFWAY_HOUSE_WITH_NO_HOMELESS_CRITERIA
+
+  """
+  (18) Safe Haven
+  """
+  SAFE_HAVEN
+
+  """
+  (35) Staying or living in a family member's room, apartment or house
+  """
+  STAYING_OR_LIVING_IN_A_FAMILY_MEMBER_S_ROOM_APARTMENT_OR_HOUSE
+
+  """
+  (36) Staying or living in a friend's room, apartment or house
+  """
+  STAYING_OR_LIVING_IN_A_FRIEND_S_ROOM_APARTMENT_OR_HOUSE
+
+  """
+  (22) Staying or living with family, permanent tenure
+  """
+  STAYING_OR_LIVING_WITH_FAMILY_PERMANENT_TENURE
+
+  """
+  (12) Staying or living with family, temporary tenure (e.g. room, apartment or house)
+  """
+  STAYING_OR_LIVING_WITH_FAMILY_TEMPORARY_TENURE_E_G_ROOM_APARTMENT_OR_HOUSE
+
+  """
+  (23) Staying or living with friends, permanent tenure
+  """
+  STAYING_OR_LIVING_WITH_FRIENDS_PERMANENT_TENURE
+
+  """
+  (13) Staying or living with friends, temporary tenure (e.g. room apartment or house)
+  """
+  STAYING_OR_LIVING_WITH_FRIENDS_TEMPORARY_TENURE_E_G_ROOM_APARTMENT_OR_HOUSE
+
+  """
+  (5) Substance abuse treatment facility or detox center
+  """
+  SUBSTANCE_ABUSE_TREATMENT_FACILITY_OR_DETOX_CENTER
+
+  """
+  (2) Transitional housing for homeless persons (including homeless youth)
+  """
+  TRANSITIONAL_HOUSING_FOR_HOMELESS_PERSONS_INCLUDING_HOMELESS_YOUTH
+
+  """
+  (37) Worker unable to determine
+  """
+  WORKER_UNABLE_TO_DETERMINE
+}
 
 """
 3.917.5
@@ -3676,4 +4139,89 @@ type ValueBound {
   type: BoundType!
   valueDate: ISO8601Date
   valueNumber: Int
+}
+
+"""
+C1.1
+"""
+enum WellbeingAgreement {
+  """
+  (8) Client doesn't know
+  """
+  CLIENT_DOESN_T_KNOW
+
+  """
+  (9) Client refused
+  """
+  CLIENT_REFUSED
+
+  """
+  (99) Data not collected
+  """
+  DATA_NOT_COLLECTED
+
+  """
+  (2) Neither agree nor disagree
+  """
+  NEITHER_AGREE_NOR_DISAGREE
+
+  """
+  (3) Somewhat agree
+  """
+  SOMEWHAT_AGREE
+
+  """
+  (1) Somewhat disagree
+  """
+  SOMEWHAT_DISAGREE
+
+  """
+  (4) Strongly agree
+  """
+  STRONGLY_AGREE
+
+  """
+  (0) Strongly disagree
+  """
+  STRONGLY_DISAGREE
+}
+
+"""
+4.11.A
+"""
+enum WhenDVOccurred {
+  """
+  (8) Client doesn't know
+  """
+  CLIENT_DOESN_T_KNOW
+
+  """
+  (9) Client refused
+  """
+  CLIENT_REFUSED
+
+  """
+  (99) Data not collected
+  """
+  DATA_NOT_COLLECTED
+
+  """
+  (4) One year or more
+  """
+  ONE_YEAR_OR_MORE
+
+  """
+  (3) Six months to one year ago (excluding one year exactly)
+  """
+  SIX_MONTHS_TO_ONE_YEAR_AGO_EXCLUDING_ONE_YEAR_EXACTLY
+
+  """
+  (2) Three to six months ago (excluding six months exactly)
+  """
+  THREE_TO_SIX_MONTHS_AGO_EXCLUDING_SIX_MONTHS_EXACTLY
+
+  """
+  (1) Within the past three months
+  """
+  WITHIN_THE_PAST_THREE_MONTHS
 }

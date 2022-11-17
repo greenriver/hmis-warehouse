@@ -36,25 +36,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         mutation CreateInventory($input: InventoryInput!) {
           createInventory(input: { input: $input }) {
             inventory {
-              id
-              cocCode
-              availability
-              bedInventory
-              chVetBedInventory
-              unitInventory
-              esBedType
-              householdType
-              inventoryEndDate
-              inventoryStartDate
-              dateCreated
-              dateUpdated
-              dateDeleted
-              active
+              #{scalar_fields(Types::HmisSchema::Inventory)}
             }
-            errors {
-              attribute
-              type
-            }
+            #{error_fields}
           }
         }
       GRAPHQL

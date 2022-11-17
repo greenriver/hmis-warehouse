@@ -12,25 +12,30 @@ module Types
     include Types::HmisSchema::HasServices
     include Types::HmisSchema::HasAssessments
 
+    def self.configuration
+      Hmis::Hud::Enrollment.hmis_configuration(version: '2022')
+    end
+
     description 'HUD Enrollment'
     field :id, ID, null: false
     field :project, Types::HmisSchema::Project, null: false
-    field :entry_date, GraphQL::Types::ISO8601Date, null: true
+    hud_field :entry_date
     field :exit_date, GraphQL::Types::ISO8601Date, null: true
     assessments_field :assessments, type: HmisSchema::Assessment.page_type, null: false
     events_field :events, type: HmisSchema::Event.page_type, null: false
     services_field :services, type: HmisSchema::Service.page_type, null: false
     field :household, HmisSchema::Household, null: false
     field :client, HmisSchema::Client, null: false
-    field :relationship_to_ho_h, HmisSchema::Enums::Hud::RelationshipToHoH, null: false
-    # field :living_situation, HmisSchema::Enums::Hud::LivingSituation, null: true
-    field :length_of_stay, HmisSchema::Enums::Hud::ResidencePriorLengthOfStay, null: true
-    field :times_homeless_past_three_years, HmisSchema::Enums::Hud::TimesHomelessPastThreeYears, null: true
-    field :months_homeless_past_three_years, HmisSchema::Enums::Hud::MonthsHomelessPastThreeYears, null: true
+    hud_field :relationship_to_ho_h, HmisSchema::Enums::Hud::RelationshipToHoH, null: false
+    field :living_situation, HmisSchema::Enums::Hud::LivingSituation
+    hud_field :length_of_stay, HmisSchema::Enums::Hud::ResidencePriorLengthOfStay
+    hud_field :times_homeless_past_three_years, HmisSchema::Enums::Hud::TimesHomelessPastThreeYears
+    hud_field :months_homeless_past_three_years, HmisSchema::Enums::Hud::MonthsHomelessPastThreeYears
+    hud_field :disabling_condition, HmisSchema::Enums::Hud::NoYesReasonsForMissingData
     field :in_progress, Boolean, null: false
-    field :date_updated, GraphQL::Types::ISO8601DateTime, null: false
-    field :date_created, GraphQL::Types::ISO8601DateTime, null: false
-    field :date_deleted, GraphQL::Types::ISO8601DateTime, null: true
+    hud_field :date_updated
+    hud_field :date_created
+    hud_field :date_deleted
 
     def project
       load_ar_association(object.in_progress? ? object.wip : object, :project)

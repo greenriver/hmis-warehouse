@@ -6,7 +6,7 @@
 
 class Hmis::Hud::AssessmentResult < Hmis::Hud::Base
   include ::HmisStructure::AssessmentResult
-  include ::Hmis::Hud::Shared
+  include ::Hmis::Hud::Concerns::Shared
   self.table_name = :AssessmentResults
   self.sequence_name = "public.\"#{table_name}_id_seq\""
 

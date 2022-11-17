@@ -10,7 +10,7 @@ module GraphqlHelpers
     post '/hmis/hmis-gql', params: { query: yield, variables: variables }.to_json, headers: headers
     # puts response.body
     if response.code == '200'
-      result = JSON.parse(response.body)
+      result = JSON.parse(response.body) # , object_class: OpenStruct
       raise result.to_h['errors'].first['message'] unless result.to_h['errors'].nil? || result.to_h['errors'].empty?
 
       [response, result.to_h]
@@ -18,5 +18,29 @@ module GraphqlHelpers
       body = JSON.parse(response.body)
       [response, body.to_h]
     end
+  end
+
+  def scalar_fields(typ)
+    fields = []
+    typ.fields.each do |name, field|
+      next if field.type.list? || field.type.respond_to?(:fields) || (field.type.respond_to?(:of_type) && field.type.of_type.respond_to?(:fields))
+
+      fields << name
+    end
+    fields.join("\n")
+  end
+
+  def error_fields
+    <<~ERRORS
+      errors {
+        id
+        attribute
+        message
+        fullMessage
+        type
+        options
+        __typename
+      }
+    ERRORS
   end
 end

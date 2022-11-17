@@ -5,7 +5,7 @@
 ###
 
 class Hmis::Form::AssessmentDetail < ::GrdaWarehouseBase
-  include Hmis::Hud::HasEnums
+  include Hmis::Hud::Concerns::HasEnums
   self.table_name = :hmis_assessment_details
   belongs_to :assessment, class_name: 'Hmis::Hud::Assessment'
   belongs_to :definition

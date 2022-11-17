@@ -62,15 +62,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
                 }
               }
             }
-            errors {
-              id
-              attribute
-              message
-              fullMessage
-              type
-              options
-              __typename
-            }
+            #{error_fields}
           }
         }
       GRAPHQL

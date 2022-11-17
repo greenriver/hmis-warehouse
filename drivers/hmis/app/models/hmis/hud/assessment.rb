@@ -5,12 +5,12 @@
 ###
 
 class Hmis::Hud::Assessment < Hmis::Hud::Base
-  include ::HmisStructure::Assessment
-  include ::Hmis::Hud::Shared
-  include ArelHelper
-
   self.table_name = :Assessment
   self.sequence_name = "public.\"#{table_name}_id_seq\""
+  include ::HmisStructure::Assessment
+  include ::Hmis::Hud::Concerns::Shared
+  include ::Hmis::Hud::Concerns::EnrollmentRelated
+  include ArelHelper
 
   SORT_OPTIONS = [:assessment_date].freeze
   WIP_ID = 'WIP'.freeze

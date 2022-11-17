@@ -6,7 +6,7 @@
 
 class Hmis::Hud::Client < Hmis::Hud::Base
   include ::HmisStructure::Client
-  include ::Hmis::Hud::Shared
+  include ::Hmis::Hud::Concerns::Shared
   include ArelHelper
   include ClientSearch
 
@@ -22,6 +22,10 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
   # NOTE: this does not include project where the enrollment is WIP
   has_many :projects, through: :enrollments
+  has_many :income_benefits, through: :enrollments
+  has_many :disabilities, through: :enrollments
+  has_many :health_and_dvs, through: :enrollments
+
   validates_with Hmis::Hud::Validators::ClientValidator
 
   scope :visible_to, ->(user) do

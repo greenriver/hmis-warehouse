@@ -42,12 +42,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               dateDeleted
               active
             }
-            errors {
-              attribute
-              type
-              fullMessage
-              message
-            }
+            #{error_fields}
           }
         }
       GRAPHQL
