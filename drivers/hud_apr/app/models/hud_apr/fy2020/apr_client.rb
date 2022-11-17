@@ -15,13 +15,21 @@ module HudApr::Fy2020
     has_many :hud_report_ce_events, class_name: 'HudApr::Fy2020::CeEvent', foreign_key: :hud_report_apr_client_id, inverse_of: :apr_client
     belongs_to :source_enrollment, class_name: 'GrdaWarehouse::Hud::Enrollment', optional: true
 
-    # Hide ID, move client_id, and name to the front
+    # Hide ID, move destination_client_id, and name to the front
     def self.detail_headers
-      special = ['client_id', 'first_name', 'last_name']
+      special = ['destination_client_id', 'first_name', 'last_name']
       remove = ['id', 'created_at', 'updated_at']
       cols = special + (column_names - special - remove)
       cols.map do |h|
-        [h, h.humanize]
+        label = case h
+        when 'destination_client_id'
+          'Warehouse Client ID'
+        when 'client_id'
+          'Warehouse Source Client ID'
+        else
+          h.humanize
+        end
+        [h, label]
       end.to_h
     end
 

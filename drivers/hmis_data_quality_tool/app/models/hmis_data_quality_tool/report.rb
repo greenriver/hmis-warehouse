@@ -42,14 +42,13 @@ module HmisDataQualityTool
       start
       begin
         populate_universe
-        # calculate_results
       rescue Exception => e
         update(state: 'Failed', failed_at: Time.current)
         raise e
       end
-      # Run results to cache them for later
-      results
       complete
+      # Run results to cache them for later
+      self.class.find(id).results
     end
 
     def start
@@ -210,7 +209,7 @@ module HmisDataQualityTool
       Client.calculate(report_items: report_clients, report: self)
       report_enrollments = enrollments.map { |e| [e.enrollment_id, e] }.to_h
       Enrollment.calculate(report_items: report_enrollments, report: self)
-      report_inventories = inventories.map { |i| [i.inventory_id, e] }.to_h
+      report_inventories = inventories.map { |i| [i.inventory_id, i] }.to_h
       Inventory.calculate(report_items: report_inventories, report: self)
       report_current_living_situations = current_living_situations.map { |e| [e.current_living_situation_id, e] }.to_h
       CurrentLivingSituation.calculate(report_items: report_current_living_situations, report: self)
@@ -237,15 +236,96 @@ module HmisDataQualityTool
     end
 
     def known_keys
-      results.map(&:title)
+      results.map(&:title) + ch_keys
+    end
+
+    private def ch_keys
+      [
+        'client_ch_most_recent',
+        'client_ch_any',
+        'enrollment_any_ch',
+        'average_days_before_entry',
+        'destination_temporary',
+        'destination_other',
+      ].freeze
     end
 
     def result_from_key(key)
-      results.detect { |r| r.title == key }
+      return results.detect { |r| r.title == key } unless key.to_s.in?(ch_keys)
+
+      slug = key.to_sym
+      # CH calculations are done live
+      case key.to_s
+      when 'client_ch_most_recent'
+        title = 'Most-Recent Enrollment Chronic at Entry'
+        item_class = Client
+      when 'client_ch_any'
+        title = 'Any Enrollment Chronic at Entry'
+        item_class = Client
+      when 'enrollment_any_ch'
+        title = 'Total Enrollments Chronic at Entry'
+        # Months homeless has the same detail columns we need
+        slug = :months_homeless_issues
+        item_class = Enrollment
+      when 'average_days_before_entry'
+        title = 'Average Days Homeless Before Entry'
+        item_class = Enrollment
+      end
+      OpenStruct.new(
+        title: title,
+        description: '',
+        required_for: '',
+        category: 'Chronic Homelessness',
+        invalid_count: 0,
+        total: 0,
+        percent_invalid: 0,
+        percent_valid: 0,
+        item_class: item_class.name,
+        detail_columns: item_class.detail_headers_for(slug, self),
+        projects: {},
+        project_types: {},
+      )
     end
 
     def items_for(key)
-      universe("#{key}__invalid").universe_members.map(&:universe_membership)
+      return universe("#{key}__invalid").universe_members.map(&:universe_membership) unless key.to_s.in?(ch_keys)
+
+      # CH calculations are done live
+      case key.to_s
+      when 'client_ch_most_recent'
+        clients.where(ch_at_most_recent_entry: true)
+      when 'client_ch_any'
+        clients.where(ch_at_any_entry: true)
+      when 'enrollment_any_ch'
+        enrollments.where(ch_at_entry: true)
+      when 'average_days_before_entry'
+        enrollments.where.not(days_before_entry: nil)
+      when 'destination_temporary'
+        enrollments.where(destination: ::HUD.temporary_destinations)
+      when 'destination_other'
+        enrollments.where(destination: ::HUD.other_destinations)
+      end
+    end
+
+    def destination_percent(category)
+      # All exits
+      denominator = enrollments.where.not(exit_date: nil).count
+      # Exits in category (destination_temporary or destination_other)
+      numerator = items_for(category.to_s).count
+
+      return 100 if denominator.zero?
+      return 0 if numerator.zero?
+
+      ((numerator / denominator.to_f) * 100).round
+    end
+
+    def average_days_before_entry
+      count = items_for('average_days_before_entry').count
+      sum = items_for('average_days_before_entry').sum(:days_before_entry)
+
+      return 0 if count.zero?
+
+      sum / count
     end
 
     private def result_groups
@@ -267,6 +347,11 @@ module HmisDataQualityTool
           no_hoh_issues: Enrollment,
           multiple_hoh_issues: Enrollment,
           hoh_client_location_issues: Enrollment,
+          date_to_street_issues: Enrollment,
+          times_homeless_issues: Enrollment,
+          months_homeless_issues: Enrollment,
+          entry_date_entry_issues: Enrollment,
+          exit_date_entry_issues: Enrollment,
           destination_issues: Enrollment,
           current_living_situation_issues: CurrentLivingSituation,
           unaccompanied_youth_issues: Enrollment,
@@ -335,7 +420,7 @@ module HmisDataQualityTool
         [].tap do |r|
           result_groups.each do |category, slugs|
             slugs.each do |slug, item_class|
-              stay_length_category, stay_length_limit = item_class.stay_length_limit(slug)
+              stay_length_category, stay_length_limit = item_class.stay_length_limit(slug, self)
               # If we're looking at a result with a stay category option and we have a goal setup with stay lengths
               # only include those that match the goal, include all for a given category if no goal was set for that category
               next if stay_length_category.present? &&
@@ -343,22 +428,27 @@ module HmisDataQualityTool
                 goal_config.stay_lengths.detect { |k, _| k == stay_length_category }.present? &&
                 ! goal_config.stay_lengths.include?([stay_length_category, stay_length_limit])
 
-              title = item_class.section_title(slug)
+              next if slug == :entry_date_entry_issues && goal_config.entry_date_entered_length == -1
+              next if slug == :exit_date_entry_issues && goal_config.exit_date_entered_length == -1
+              next if slug.in?([:date_to_street_issues, :times_homeless_issues, :months_homeless_issues]) &&
+                ! goal_config.expose_ch_calculations
+
+              title = item_class.section_title(slug, self)
               denominator_cell = universe("#{title}__denominator")
               overall_count = denominator_cell.count
               numerator_cell = universe("#{title}__invalid")
               invalid_count = numerator_cell.count
               this_result = OpenStruct.new(
                 title: title,
-                description: item_class.section_description(slug),
-                required_for: item_class.required_for(slug),
+                description: item_class.section_description(slug, self),
+                required_for: item_class.required_for(slug, self),
                 category: category,
                 invalid_count: invalid_count,
                 total: overall_count,
                 percent_invalid: percent(overall_count, invalid_count),
                 percent_valid: percent(overall_count, overall_count - invalid_count),
                 item_class: item_class.name,
-                detail_columns: item_class.detail_headers_for(slug),
+                detail_columns: item_class.detail_headers_for(slug, self),
                 projects: {},
                 project_types: {},
               )

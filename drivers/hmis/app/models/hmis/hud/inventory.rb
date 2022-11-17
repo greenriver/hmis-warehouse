@@ -22,6 +22,10 @@ class Hmis::Hud::Inventory < Hmis::Hud::Base
     joins(:project).merge(Hmis::Hud::Project.viewable_by(user))
   end
 
+  scope :editable_by, ->(user) do
+    joins(:project).merge(Hmis::Hud::Project.editable_by(user))
+  end
+
   SORT_OPTIONS = [:start_date].freeze
 
   def self.sort_by_option(option)

@@ -18,24 +18,24 @@ module HmisDataQualityTool::DqConcern
       )
     end
 
-    def self.section_title(slug)
-      sections[slug].try(:[], :title)
+    def self.section_title(slug, report)
+      sections(report)[slug].try(:[], :title)
     end
 
-    def self.section_description(slug)
-      sections[slug].try(:[], :description)
+    def self.section_description(slug, report)
+      sections(report)[slug].try(:[], :description)
     end
 
-    def self.required_for(slug)
-      sections[slug].try(:[], :required_for)
+    def self.required_for(slug, report)
+      sections(report)[slug].try(:[], :required_for)
     end
 
     def self.calculate_issues(report_items, report)
       calculate(report_items: report_items, report: report)
     end
 
-    def self.detail_headers_for(slug)
-      section = sections[slug.to_sym]
+    def self.detail_headers_for(slug, report)
+      section = sections(report)[slug.to_sym]
       headers = detail_headers.transform_values { |v| v.except(:translator) }
       return headers unless section
 
@@ -55,8 +55,8 @@ module HmisDataQualityTool::DqConcern
     end
 
     # returns [stay_length_category, stay_length_limit]
-    def self.stay_length_limit(key)
-      section = sections[key]
+    def self.stay_length_limit(key, report)
+      section = sections(report)[key]
       # To maintain compatibility with the API
       values = [nil, nil]
       return values unless section.present?

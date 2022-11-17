@@ -23,6 +23,7 @@ module GrdaWarehouse::Hud
     include CasClientData
     include ClientSearch
     include VeteranStatusCalculator
+    include NotifierConfig
     has_paper_trail
 
     attr_accessor :source_id
@@ -630,11 +631,15 @@ module GrdaWarehouse::Hud
 
     # do not include ineligible clients for Sync with CAS
     def active_cohorts
+      active_cohort_clients.map(&:cohort).compact.uniq
+    end
+
+    def active_cohort_clients
       cohort_clients.select do |cc|
         # meta.inactive is related to days of inactivity in HMIS
         meta = CohortColumns::Meta.new(cohort: cc.cohort, cohort_client: cc)
         cc.active? && cc.cohort&.active? && (cc.housed_date.blank? || cc.destination.blank?) && ! meta.inactive && ! cc.ineligible?
-      end.map(&:cohort).compact.uniq
+      end
     end
 
     # do not include ineligible clients for Sync with CAS
@@ -2324,6 +2329,7 @@ module GrdaWarehouse::Hud
     def merge_from(other_client, reviewed_by:, reviewed_at:, client_match_id: nil)
       raise 'only works for destination_clients' unless self.destination? # rubocop:disable Style/RedundantSelf
 
+      setup_notifier('PatientMerger') unless @notifier
       moved = []
       transaction do
         # get the existing destination client for other_client
@@ -2355,13 +2361,13 @@ module GrdaWarehouse::Hud
         end
         # clean up the previous destination
         if prev_destination_client
-
           # move any CAS column data
           previous_cas_columns = prev_destination_client.attributes.slice(*self.class.cas_columns.keys.map(&:to_s))
           current_cas_columns = self.attributes.slice(*self.class.cas_columns.keys.map(&:to_s)) # rubocop:disable Style/RedundantSelf
           current_cas_columns.merge!(previous_cas_columns) { |_k, old, new| old.presence || new }
           self.update(current_cas_columns) # rubocop:disable Style/RedundantSelf
           self.save # rubocop:disable Style/RedundantSelf
+
           prev_destination_client.force_full_service_history_rebuild
           prev_destination_client.source_clients.reload
           if prev_destination_client.source_clients.empty?
@@ -2371,7 +2377,6 @@ module GrdaWarehouse::Hud
           end
 
           move_dependent_items(prev_destination_client.id, self.id) # rubocop:disable Style/RedundantSelf
-
         end
         # and invalidate our own service history
         force_full_service_history_rebuild
@@ -2388,9 +2393,18 @@ module GrdaWarehouse::Hud
           where(destination_client_id: m.id).destroy_all
       end
       moved
+    rescue Health::MedicaidIdConflict => e
+      @notifier.ping(
+        'Non-matching Medicaid IDs on patient merge',
+        {
+          exception: e,
+        },
+      )
     end
 
     def move_dependent_hmis_items(previous_id, new_id)
+      return if previous_id == new_id
+
       hmis_dependent_items.each do |klass|
         klass.where(client_id: previous_id).
           update_all(client_id: new_id)
@@ -2398,6 +2412,23 @@ module GrdaWarehouse::Hud
     end
 
     def move_dependent_health_items(previous_id, new_id)
+      return if previous_id == new_id
+
+      # If we are merging 2 existing patients...
+      previous_patient = Health::Patient.find_by(client_id: previous_id)
+      new_patient = Health::Patient.find_by(client_id: new_id)
+      if previous_patient.present? && new_patient.present?
+        # Confirm their MedicaidIDs match
+        raise Health::MedicaidIdConflict, "Cannot merge #{previous_patient.id} and #{new_patient.id}" if previous_patient.medicaid_id != new_patient.medicaid_id
+
+        # Move the referrals
+        previous_patient.patient_referrals.update_all(patient_id: new_patient.id)
+        new_patient.cleanup_referrals
+
+        # There can only be one patient with an client_id, so clean up the old one
+        previous_patient.destroy
+      end
+
       health_dependent_items.each do |klass|
         klass.where(client_id: previous_id).
           update_all(client_id: new_id)
@@ -2405,14 +2436,8 @@ module GrdaWarehouse::Hud
     end
 
     def move_dependent_items previous_id, new_id
-      dependent_items.each do |klass|
-        klass.where(client_id: previous_id).
-          update_all(client_id: new_id)
-      end
-    end
-
-    private def dependent_items
-      hmis_dependent_items + health_dependent_items
+      move_dependent_hmis_items(previous_id, new_id)
+      move_dependent_health_items(previous_id, new_id)
     end
 
     private def hmis_dependent_items

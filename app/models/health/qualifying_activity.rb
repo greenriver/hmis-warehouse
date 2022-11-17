@@ -10,6 +10,7 @@
 module Health
   class QualifyingActivity < HealthBase
     include ArelHelper
+    acts_as_paranoid
 
     phi_patient :patient_id
 

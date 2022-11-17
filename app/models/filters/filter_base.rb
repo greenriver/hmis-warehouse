@@ -299,7 +299,7 @@ module Filters
         opts['Chronically Homeless'] = 'Yes' if chronic_status
         opts['With RRH Move-in'] = 'Yes' if rrh_move_in
         opts['With PSH Move-in'] = 'Yes' if psh_move_in
-        opts['Fist Time Homeless in Past Two Years'] = 'Yes' if first_time_homeless
+        opts['First Time Homeless in Past Two Years'] = 'Yes' if first_time_homeless
         opts['Returned to Homelessness from Permanent Destination'] = 'Yes' if returned_to_homelessness_from_permanent_destination
         opts['CE Homeless'] = 'Yes' if coordinated_assessment_living_situation_homeless
         opts['Current Living Situation Homeless'] = 'Yes' if ce_cls_as_homeless
@@ -1123,17 +1123,79 @@ module Filters
       }.invert.freeze
     end
 
-    def available_prior_living_situations
-      HUD.living_situations.invert.map do |title, id|
-        [
-          "#{title} (#{id})",
-          id,
-        ]
-      end.to_h
+    def available_prior_living_situations(grouped: false)
+      if grouped
+        {
+          'Homeless' => HUD.homeless_situation_options(as: :prior).map do |id, title|
+            [
+              "#{title} (#{id})",
+              id,
+            ]
+          end.to_h,
+          'Institutional' => HUD.institutional_situation_options(as: :prior).map do |id, title|
+            [
+              "#{title} (#{id})",
+              id,
+            ]
+          end.to_h,
+          'Temporary and Permanent' => HUD.temporary_and_permanent_housing_situation_options(as: :prior).map do |id, title|
+            [
+              "#{title} (#{id})",
+              id,
+            ]
+          end.to_h,
+          'Other' => HUD.other_situation_options(as: :prior).map do |id, title|
+            [
+              "#{title} (#{id})",
+              id,
+            ]
+          end.to_h,
+        }
+      else
+        HUD.living_situations.map do |id, title|
+          [
+            "#{title} (#{id})",
+            id,
+          ]
+        end.to_h
+      end
     end
 
-    def available_destinations
-      HUD.valid_destinations.invert
+    def available_destinations(grouped: false)
+      return HUD.valid_destinations.invert unless grouped
+
+      {
+        'Homeless' => HUD.homeless_situation_options(as: :destination).map do |id, title|
+          [
+            "#{title} (#{id})",
+            id,
+          ]
+        end.to_h,
+        'Institutional' => HUD.institutional_situation_options(as: :destination).map do |id, title|
+          [
+            "#{title} (#{id})",
+            id,
+          ]
+        end.to_h,
+        'Temporary' => HUD.temporary_destination_options.map do |id, title|
+          [
+            "#{title} (#{id})",
+            id,
+          ]
+        end.to_h,
+        'Permanent' => HUD.permanent_destination_options.map do |id, title|
+          [
+            "#{title} (#{id})",
+            id,
+          ]
+        end.to_h,
+        'Other' => HUD.other_situation_options(as: :destination).map do |id, title|
+          [
+            "#{title} (#{id})",
+            id,
+          ]
+        end.to_h,
+      }
     end
 
     def available_disabilities

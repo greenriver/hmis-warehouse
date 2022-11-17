@@ -269,30 +269,108 @@
     {
       "type": "GROUP",
       "link_id": "income-source",
-      "text": "Income and Source",
+      "text": "Income and Sources",
       "data_collected_about": "HOH_AND_ADULTS",
       "item": [
         {
-          "type": "CHOICE",
-          "link_id": "4.02.2",
-          "text": "Income from Any Source",
-          "pick_list_reference": "YesNoMissing"
-        },
-        {
-          "type": "BOOLEAN",
-          "link_id": "4.02.3",
-          "text": "Earned Income (i.e., employment income)"
-        },
-        {
-          "type": "CURRENCY",
-          "link_id": "4.02.A",
-          "text": "Monthly Amount",
-          "enable_behavior": "ALL",
-          "enable_when": [
+          "type": "GROUP",
+          "link_id": "income-sources-group",
+          "component": "INPUT_GROUP",
+          "item": [
             {
-              "question": "4.02.3",
-              "operator": "EQUAL",
-              "answer_boolean": true
+              "type": "CHOICE",
+              "link_id": "4.02.2",
+              "text": "Income from Any Source",
+              "pick_list_reference": "YesNoMissingReason"
+            },
+            {
+              "type": "CURRENCY",
+              "link_id": "4.02.A",
+              "text": "Earned Income (i.e., employment income)"
+            },
+            {
+              "type": "CURRENCY",
+              "link_id": "4.02.B",
+              "text": "Unemployment Insurance"
+            },
+            {
+              "type": "CURRENCY",
+              "link_id": "4.02.C",
+              "text": "Supplemental Security Income (SSI)"
+            },
+            {
+              "type": "CURRENCY",
+              "link_id": "4.02.D",
+              "text": "Social Security Disability Insurance (SSDI)"
+            },
+            {
+              "type": "CURRENCY",
+              "link_id": "4.02.E",
+              "text": "VA Service-Connected Disability Compensation"
+            },
+            {
+              "type": "CURRENCY",
+              "link_id": "4.02.F",
+              "text": "VA Non-Service-Connected Disability Pension"
+            },
+            {
+              "type": "CURRENCY",
+              "link_id": "4.02.G",
+              "text": "Private disability insurance"
+            },
+            {
+              "type": "CURRENCY",
+              "link_id": "4.02.H",
+              "text": "Worker's Compensation"
+            },
+            {
+              "type": "CURRENCY",
+              "link_id": "4.02.I",
+              "text": "Temporary Assistance for Needy Families (TANF)"
+            },
+            {
+              "type": "CURRENCY",
+              "link_id": "4.02.J",
+              "text": "General Assistance (GA)"
+            },
+            {
+              "type": "CURRENCY",
+              "link_id": "4.02.K",
+              "text": "Retirement Income from Social Security"
+            },
+            {
+              "type": "CURRENCY",
+              "link_id": "4.02.L",
+              "text": "Pension or retirement income from a former job"
+            },
+            {
+              "type": "CURRENCY",
+              "link_id": "4.02.M",
+              "text": "Child support"
+            },
+            {
+              "type": "CURRENCY",
+              "link_id": "4.02.N",
+              "text": "Alimony and other spousal support"
+            },
+            {
+              "type": "CURRENCY",
+              "link_id": "4.02.O",
+              "text": "Other Source"
+            },
+            {
+              "type": "STRING",
+              "link_id": "4.02.P",
+              "text": "Specify source",
+              "required": true,
+              "enable_behavior": "ALL",
+              "enable_when": [
+                {
+                  "question": "4.02.O",
+                  "operator": "GREATER_THAN",
+                  "answer_number": 0
+                }
+              ]
             }
           ]
         }
@@ -305,36 +383,65 @@
       "data_collected_about": "HOH_AND_ADULTS",
       "item": [
         {
-          "type": "CHOICE",
-          "link_id": "4.03.2",
-          "text": "Non-Cash Benefits from Any Source",
-          "pick_list_reference": "YesNoMissing"
-        },
-        {
-          "type": "BOOLEAN",
-          "link_id": "4.03.3",
-          "text": "Supplemental Nutrition Assistance Program (SNAP) (Previously known as Food Stamps)"
-        },
-        {
-          "type": "BOOLEAN",
-          "link_id": "4.03.4",
-          "text": "Special Supplemental Nutrition Program for Women, Infants, and Children (WIC)"
-        },
-        {
-          "type": "BOOLEAN",
-          "link_id": "4.03.8",
-          "text": "Other source"
-        },
-        {
-          "type": "STRING",
-          "link_id": "4.03.A",
-          "text": "Specify source",
-          "enable_behavior": "ALL",
-          "enable_when": [
+          "type": "GROUP",
+          "link_id": "non-cash-benefits-group",
+          "component": "INPUT_GROUP",
+          "item": [
             {
-              "question": "4.03.8",
-              "operator": "EQUAL",
-              "answer_boolean": true
+              "type": "CHOICE",
+              "link_id": "4.03.2",
+              "text": "Non-Cash Benefits from Any Source",
+              "pick_list_reference": "YesNoMissingReason"
+            },
+            {
+              "type": "BOOLEAN",
+              "link_id": "4.03.3",
+              "component": "CHECKBOX",
+              "text": "Supplemental Nutrition Assistance Program (SNAP) (Previously known as Food Stamps)"
+            },
+            {
+              "type": "BOOLEAN",
+              "link_id": "4.03.4",
+              "component": "CHECKBOX",
+              "text": "Special Supplemental Nutrition Program for Women, Infants, and Children (WIC)"
+            },
+            {
+              "type": "BOOLEAN",
+              "link_id": "4.03.5",
+              "component": "CHECKBOX",
+              "text": "TANF Child Care services"
+            },
+            {
+              "type": "BOOLEAN",
+              "link_id": "4.03.6",
+              "component": "CHECKBOX",
+              "text": "TANF transportation services"
+            },
+            {
+              "type": "BOOLEAN",
+              "link_id": "4.03.7",
+              "component": "CHECKBOX",
+              "text": "Other TANF-funded services"
+            },
+            {
+              "type": "BOOLEAN",
+              "link_id": "4.03.8",
+              "component": "CHECKBOX",
+              "text": "Other source"
+            },
+            {
+              "type": "STRING",
+              "link_id": "4.03.A",
+              "text": "Specify source",
+              "required": true,
+              "enable_behavior": "ALL",
+              "enable_when": [
+                {
+                  "question": "4.03.8",
+                  "operator": "EQUAL",
+                  "answer_boolean": true
+                }
+              ]
             }
           ]
         }
@@ -347,75 +454,73 @@
       "data_collected_about": "ALL_CLIENTS",
       "item": [
         {
-          "type": "CHOICE",
-          "link_id": "4.04.2",
-          "text": "Covered by Health Insurance",
-          "pick_list_reference": "YesNoMissing"
-        },
-        {
           "type": "GROUP",
           "link_id": "insurance-provider",
-          "enable_behavior": "ANY",
-          "enable_when": [
-            {
-              "question": "4.04.2",
-              "operator": "EQUAL",
-              "answer_code": "YES"
-            },
-            {
-              "question": "4.04.2",
-              "operator": "EXISTS",
-              "answer_boolean": false
-            }
-          ],
+          "component": "INPUT_GROUP",
           "item": [
             {
+              "type": "CHOICE",
+              "link_id": "4.04.2",
+              "text": "Covered by Health Insurance",
+              "pick_list_reference": "YesNoMissingReason"
+            },
+            {
               "type": "BOOLEAN",
+              "component": "CHECKBOX",
               "link_id": "4.04.3",
               "text": "Medicaid"
             },
             {
               "type": "BOOLEAN",
+              "component": "CHECKBOX",
               "link_id": "4.04.4",
               "text": "Medicare"
             },
             {
               "type": "BOOLEAN",
+              "component": "CHECKBOX",
               "link_id": "4.04.5",
               "text": "State Children's Health Insurance Program"
             },
             {
               "type": "BOOLEAN",
+              "component": "CHECKBOX",
               "link_id": "4.04.6",
               "text": "VA Medical Services"
             },
             {
               "type": "BOOLEAN",
+              "component": "CHECKBOX",
               "link_id": "4.04.7",
               "text": "Employer-Provided Health Insurance"
             },
             {
               "type": "BOOLEAN",
+              "component": "CHECKBOX",
               "link_id": "4.04.8",
               "text": "Health Insurance obtained through COBRA"
             },
             {
               "type": "BOOLEAN",
+              "component": "CHECKBOX",
               "link_id": "4.04.9",
               "text": "Private Pay Health Insurance"
             },
             {
               "type": "BOOLEAN",
+              "component": "CHECKBOX",
               "link_id": "4.04.10",
               "text": "State Health Insurance for Adults"
             },
             {
               "type": "BOOLEAN",
+              "component": "CHECKBOX",
               "link_id": "4.04.11",
               "text": "Indian Health Services Program"
             },
             {
               "type": "BOOLEAN",
+              "component": "CHECKBOX",
               "link_id": "4.04.12",
               "text": "Other"
             },
@@ -423,6 +528,7 @@
               "type": "STRING",
               "link_id": "4.04.12A",
               "text": "Specify Source",
+              "required": true,
               "enable_behavior": "ALL",
               "enable_when": [
                 {
@@ -446,19 +552,25 @@
           "type": "CHOICE",
           "link_id": "4.05.2",
           "text": "Physical Disability",
-          "pick_list_reference": "YesNoMissing"
+          "pick_list_reference": "YesNoMissingReason"
         },
         {
-          "type": "CHOICE",
-          "link_id": "4.05.A",
-          "text": "Expected to be of long, continued and indefinite duration and substantially impairs ability to live independently",
-          "pick_list_reference": "YesNoMissing",
-          "enable_behavior": "ALL",
-          "enable_when": [
+          "type": "GROUP",
+          "link_id": "4.05.2-conditional",
+          "item": [
             {
-              "question": "4.05.2",
-              "operator": "EQUAL",
-              "answer_code": "YES"
+              "type": "CHOICE",
+              "link_id": "4.05.A",
+              "text": "Expected to be of long, continued and indefinite duration and substantially impairs ability to live independently",
+              "pick_list_reference": "YesNoMissingReason",
+              "enable_behavior": "ALL",
+              "enable_when": [
+                {
+                  "question": "4.05.2",
+                  "operator": "EQUAL",
+                  "answer_code": "YES"
+                }
+              ]
             }
           ]
         },
@@ -466,13 +578,13 @@
           "type": "CHOICE",
           "link_id": "4.06.2",
           "text": "Developmental Disability",
-          "pick_list_reference": "YesNoMissing"
+          "pick_list_reference": "YesNoMissingReason"
         },
         {
           "type": "CHOICE",
           "link_id": "4.07.2",
           "text": "Chronic Health Condition",
-          "pick_list_reference": "YesNoMissing"
+          "pick_list_reference": "YesNoMissingReason"
         },
         {
           "type": "GROUP",
@@ -482,7 +594,7 @@
               "type": "CHOICE",
               "link_id": "4.07.A",
               "text": "Expected to be of long, continued and indefinite duration and substantially impairs ability to live independently",
-              "pick_list_reference": "YesNoMissing",
+              "pick_list_reference": "YesNoMissingReason",
               "enable_behavior": "ALL",
               "enable_when": [
                 {
@@ -498,13 +610,13 @@
           "type": "CHOICE",
           "link_id": "4.08.2",
           "text": "HIV/AIDS",
-          "pick_list_reference": "YesNoMissing"
+          "pick_list_reference": "YesNoMissingReason"
         },
         {
           "type": "CHOICE",
           "link_id": "4.09.2",
           "text": "Mental Health Disorder",
-          "pick_list_reference": "YesNoMissing"
+          "pick_list_reference": "YesNoMissingReason"
         },
         {
           "type": "GROUP",
@@ -514,7 +626,7 @@
               "type": "CHOICE",
               "link_id": "4.09.A",
               "text": "Expected to be of long, continued and indefinite duration and substantially impairs ability to live independently",
-              "pick_list_reference": "YesNoMissing",
+              "pick_list_reference": "YesNoMissingReason",
               "enable_behavior": "ALL",
               "enable_when": [
                 {
@@ -541,7 +653,7 @@
               "type": "CHOICE",
               "link_id": "4.10.A",
               "text": "Expected to be of long, continued and indefinite duration and substantially impairs ability to live independently",
-              "pick_list_reference": "YesNoMissing",
+              "pick_list_reference": "YesNoMissingReason",
               "enable_behavior": "ANY",
               "enable_when": [
                 {
@@ -573,39 +685,40 @@
       "item": [
         {
           "type": "DISPLAY",
-          "link_id": "4.11-2-display",
+          "link_id": "4.11.2-display",
           "text": "Domestic Violence Victim/Survivor should be indicated as “Yes” if the person has experienced any domestic violence, dating violence, sexual assault, stalking or other dangerous or life-threatening conditions that relate to violence against the individual or a family member, including a child, that has either taken place within the individual's or family's primary nighttime residence."
         },
         {
           "type": "CHOICE",
-          "link_id": "4.11-2",
-          "text": "Domestic Violence Victim/Survivor"
+          "link_id": "4.11.2",
+          "text": "Domestic Violence Victim/Survivor",
+          "pick_list_reference": "YesNoMissingReason"
         },
         {
           "type": "CHOICE",
-          "link_id": "4.11-A",
+          "link_id": "4.11.A",
           "text": "When did the experience occur?",
           "enable_behavior": "ALL",
           "enable_when": [
             {
-              "question": "4.11-2",
+              "question": "4.11.2",
               "operator": "EQUAL",
-              "answer_code": "1"
+              "answer_code": "YES"
             }
           ]
         },
         {
           "type": "CHOICE",
-          "link_id": "4.11-B",
+          "link_id": "4.11.B",
           "text": "Are you currently fleeing?",
-          "pick_list_reference": "YesNoMissing",
+          "pick_list_reference": "YesNoMissingReason",
           "helper_text": "Currently fleeing should be indicated as “Yes” if the person is fleeing, or is attempting to flee, the domestic violence situation or is afraid to return to their primary nighttime residence.",
           "enable_behavior": "ALL",
           "enable_when": [
             {
-              "question": "4.11-2",
+              "question": "4.11.2",
               "operator": "EQUAL",
-              "answer_code": "1"
+              "answer_code": "YES"
             }
           ]
         }

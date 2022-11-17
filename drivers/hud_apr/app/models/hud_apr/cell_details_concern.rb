@@ -46,7 +46,7 @@ module HudApr::CellDetailsConcern
 
     def self.common_fields
       [
-        :client_id,
+        :destination_client_id,
         :first_name,
         :last_name,
         :first_date_in_program,

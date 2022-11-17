@@ -513,6 +513,7 @@ module HUD
       50 => 'HUD: HOME',
       51 => 'HUD: HOME (ARP)',
       52 => 'HUD: PIH (Emergency Housing Voucher)',
+      53 => 'HUD: ESG - RUSH',
     }
   end
 
@@ -724,6 +725,10 @@ module HUD
 
   def gender_fields
     gender_id_to_field_name.values.uniq.freeze
+  end
+
+  def gender_field_name_to_id
+    gender_id_to_field_name.invert.freeze
   end
 
   def gender_id_to_field_name
@@ -952,6 +957,7 @@ module HUD
     other_situations(as: :prior)
   end
 
+  # See https://www.hudexchange.info/programs/hmis/hmis-data-standards/standards/HMIS-Data-Standards.htm#Appendix_A_-_Living_Situation_Option_List for details
   def available_situations
     {
       1 => 'Emergency shelter, including hotel or motel paid for with emergency shelter voucher, or RHY-funded Host Home shelter ',
@@ -999,15 +1005,11 @@ module HUD
     case version
     when '2020', nil
       case as
-      when :prior, :current
+      when :prior, :current, :destination
         [
           16,
           1,
           18,
-        ]
-      when :destination
-        [
-          16,
         ]
       end
     end
@@ -1152,14 +1154,12 @@ module HUD
 
   def temporary_destinations(version: nil)
     case version
-    when '2020', nil # From SPM 3.1 definition
+    when '2020', nil
       [
-        1,
         15,
         14,
         27,
         4,
-        18,
         12,
         13,
         5,
@@ -1181,6 +1181,30 @@ module HUD
 
   def homeless_destinations(version: nil)
     homeless_situations(as: :destination, version: version)
+  end
+
+  def homeless_situation_options(as:)
+    available_situations.select { |id, _| id.in?(homeless_situations(as: as)) }.to_h
+  end
+
+  def institutional_situation_options(as:)
+    available_situations.select { |id, _| id.in?(institutional_situations(as: as)) }.to_h
+  end
+
+  def temporary_and_permanent_housing_situation_options(as:)
+    available_situations.select { |id, _| id.in?(temporary_and_permanent_housing_situations(as: as)) }.to_h
+  end
+
+  def other_situation_options(as:)
+    available_situations.select { |id, _| id.in?(other_situations(as: as)) }.to_h
+  end
+
+  def temporary_destination_options(version: nil)
+    available_situations.select { |id, _| id.in?(temporary_destinations(version: version)) }.to_h
+  end
+
+  def permanent_destination_options(version: nil)
+    available_situations.select { |id, _| id.in?(permanent_destinations(version: version)) }.to_h
   end
 
   # 3.15.1

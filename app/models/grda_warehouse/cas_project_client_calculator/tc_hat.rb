@@ -13,6 +13,8 @@ module GrdaWarehouse::CasProjectClientCalculator
     # To use this efficiently, you'll probably want to preload a handful of data, see push_clients_to_cas.rb
     def value_for_cas_project_client(client:, column:)
       current_value = client.send(column)
+      # override ssvf_eligible even if we don't have a TC HAT
+      current_value = send(column, client) if column == :ssvf_eligible
       # Return existing value if we don't have anything in the new format
       return current_value unless client.most_recent_tc_hat_for_destination.present?
 
@@ -132,6 +134,12 @@ module GrdaWarehouse::CasProjectClientCalculator
       ]
     end
 
+    def most_recent_assessment_for_destination(client)
+      return unless client.present?
+
+      cas_assessment_collected_at(client)&.to_date&.to_s
+    end
+
     private def for_boolean(client, key)
       section_title = section_titles[key]
       question_title = boolean_lookups[key]
@@ -249,6 +257,12 @@ module GrdaWarehouse::CasProjectClientCalculator
       question_title = 'successfully exit 12-24 month RRH'
       rrh_successful_exit = form.answer_from_section(relevant_section, question_title) == 'Yes'
       full_time_employed || rrh_successful_exit
+    end
+
+    private def ssvf_eligible(client)
+      # ssvf_eligible only _looks_ like a boolean
+      client.active_cohort_clients.map(&:ssvf_eligible).
+        any?('true')
     end
   end
 end

@@ -94,7 +94,7 @@ jobs:
         echo "postgres:5432:*:postgres:postgres" > ~/.pgpass
         chmod 600 ~/.pgpass
 
-        yarn install
+        yarn install --frozen-lockfile
         gem install bundler --version=2.3.8
 
     # According to https://www.jessesquires.com/blog/2021/08/23/caching-bundler-on-github-actions/

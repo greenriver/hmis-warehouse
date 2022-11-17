@@ -2,4 +2,10 @@
   .c-columns__column-header
     %h3.c-columns__column-title Groups
   .c-columns__column-content
-    = f.association :access_groups, as: :check_boxes, label_method: :name, collection: AccessGroup.general.order(:name), label: false
+    .alert.alert-info.m-4
+      Please note, system groups (#{AccessGroup.system.map(&:name).to_sentence}) must be assigned from the group to prevent accidental assignment.
+    = f.association :access_groups, as: :check_boxes, label_method: :name, collection: AccessGroup.general.not_system.order(:name), label: false
+    - @user.access_groups.system.each do |group|
+      .mb-4.ml-4
+        = checkmark(true)
+        = group.name

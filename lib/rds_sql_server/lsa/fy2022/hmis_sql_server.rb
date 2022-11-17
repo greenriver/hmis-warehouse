@@ -35,8 +35,13 @@ module HmisSqlServer
       nil
     end
 
+    private def skip_date_fixes?
+      false
+    end
+
     private def useful_date(row:, headers:)
-      return unless useful_date_column.present?
+      return if skip_date_fixes?
+      return '2000-01-01' unless useful_date_column.present?
 
       row[headers.index(useful_date_column)]
     end
@@ -53,6 +58,7 @@ module HmisSqlServer
           'DateUpdated',
         ].each do |k|
           field_index = headers.index(k)
+          # NOTE: if a date is missing, this may trigger data quality issues, but should allow the LSA to run
           row[field_index] = row[field_index].presence || useful_date.to_time
         end
       end
@@ -108,6 +114,10 @@ module HmisSqlServer
   class Export < LsaBase
     self.table_name = :hmis_Export
     include ::HmisStructure::Export
+
+    private def skip_date_fixes?
+      true
+    end
   end
 
   class Funder < LsaBase
@@ -209,6 +219,14 @@ module HmisSqlServer
 
     private def useful_date_column
       'DateProvided'
+    end
+
+    def clean_row_for_import(row:, headers:)
+      field_index = headers.map(&:downcase).index('othertypeprovided')
+      row[field_index] = row[field_index].to_s[0..49]
+      field_index = headers.map(&:downcase).index('movingonothertype')
+      row[field_index] = row[field_index].to_s[0..49]
+      super(row: row, headers: headers)
     end
   end
 

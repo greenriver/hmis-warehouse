@@ -7,7 +7,7 @@ rm -f /app/tmp/pids/server.pid
 cd /app
 bundle config --global set build.sassc --disable-march-tune-native
 bundle install --quiet
-yarn install --silent
+yarn install --silent --frozen-lockfile
 
 if [ ! -e /bundle/ruby/2.7.0/gems/seven_zip_ruby-1.3.0/lib/seven_zip_ruby/7z.so ]
 then

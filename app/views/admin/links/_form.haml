@@ -1,0 +1,12 @@
+.row
+  .col-sm-8
+    = simple_form_for [:admin, @link] do |f|
+      = f.error_notification
+      .form-inputs
+        = f.input :label
+        = f.input :url, label: 'URL'
+        = f.input :subject, hint: 'Only include a subject if URL is an email address'
+        = f.input :location, collection: @link.available_locations, as: :select_two, hint: 'Where on the site should this appear', include_blank: false
+
+      .form_actions
+      = f.button :submit

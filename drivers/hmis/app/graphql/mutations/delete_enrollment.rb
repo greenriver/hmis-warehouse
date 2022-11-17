@@ -7,7 +7,7 @@ module Mutations
 
     def resolve(id:)
       errors = []
-      enrollment = Hmis::Hud::Enrollment.viewable_by(current_user).find_by(id: id)
+      enrollment = Hmis::Hud::Enrollment.editable_by(current_user).find_by(id: id)
 
       if enrollment.present?
         if enrollment.in_progress?

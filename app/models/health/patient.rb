@@ -1018,6 +1018,8 @@ module Health
     end
 
     def available_user_ids
+      return [] unless health_agency.present?
+
       Health::AgencyUser.where(agency_id: health_agency.id, user_id: User.active.pluck(:id)).pluck(:user_id)
     end
 
@@ -1180,6 +1182,10 @@ module Health
           ]
         end.to_h
       end
+    end
+
+    def cleanup_referrals
+      Health::PatientReferral.cleanup_referrals(id)
     end
 
     def self.sort_options

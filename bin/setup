@@ -11,7 +11,7 @@ Dir.chdir APP_ROOT do
   system 'bundle check || bundle install --without seven_zip'
 
   puts '== Installing NPM dependencies =='
-  system 'yarn install'
+  system 'yarn install --frozen-lockfile'
 
   ymls = [
     'secrets.yml',
@@ -22,6 +22,10 @@ Dir.chdir APP_ROOT do
       puts "\n== Creating #{file} =="
       FileUtils.cp "#{file}.sample", file
     end
+  end
+  unless File.exist?('.pgpass')
+    puts "\n== Creating .pgpass"
+    FileUtils.cp 'sample.pgpass', '.pgpass'
   end
   unless File.exist?('.env.local')
     puts "\n== Creating .env.local"

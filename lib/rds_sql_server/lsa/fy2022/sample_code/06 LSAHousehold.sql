@@ -779,7 +779,7 @@ FY2022 Changes
 	--NOTE:  This statement will leave Other3917Days NULL for households without
 	--at least one DateToStreetESSH prior to LastInactive.  Final value for Other3917Days
 	--is the sum of days prior to LastInactive (if any) PLUS the count of dates 
-	--added to sys_Time in the next statement.  
+	--after LastInactive that are added to sys_Time in the next statement.  
 	update hh
 	set hh.Other3917Days = (select datediff (dd,
 			(select top 1 hn.DateToStreetESSH
@@ -791,7 +791,6 @@ FY2022 Changes
 				and (hhid.LSAProjectType in (0,1,8)
 					or hn.LivingSituation in (1,18,16)
 					or (hn.LengthOfStay in (10,11) and hn.PreviousStreetESSH = 1)
-					--5/14/2020 - correct 24 (deceased) to 25 (LTC/nursing home) 
 					or (hn.LivingSituation in (4,5,6,7,15,25) 
 						and hn.LengthOfStay in (2,3) and hn.PreviousStreetESSH = 1))
 			order by hn.DateToStreetESSH asc)
@@ -810,6 +809,7 @@ FY2022 Changes
 	inner join ref_Calendar cal on 
 		cal.theDate >= hn.DateToStreetESSH
 		and cal.theDate < hn.EntryDate
+		and cal.theDate > hh.LastInactive
 	left outer join sys_Time other on other.HoHID = hh.HoHID and other.HHType = hh.HHType
 		and other.sysDate = cal.theDate
 	where other.sysDate is null and hhid.EnrollmentID in 

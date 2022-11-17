@@ -18,7 +18,7 @@ module HealthFlexibleService
     phi_attr :aco, Phi::SmallPopulation
 
     belongs_to :patient, class_name: 'Health::Patient', optional: true
-    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', optional: true
+    belongs_to :client, class_name: '::GrdaWarehouse::Hud::Client', optional: true
     belongs_to :user, class_name: 'User', optional: true
     has_many :follow_ups, inverse_of: :vpr, dependent: :destroy
     belongs_to :aco, class_name: 'Health::AccountableCareOrganization', optional: true

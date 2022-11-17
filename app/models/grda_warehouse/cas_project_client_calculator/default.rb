@@ -24,5 +24,9 @@ module GrdaWarehouse::CasProjectClientCalculator
     def unrelated_columns
       []
     end
+
+    def most_recent_assessment_for_destination(_)
+      nil
+    end
   end
 end

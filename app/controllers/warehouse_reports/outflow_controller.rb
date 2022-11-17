@@ -20,13 +20,14 @@ module WarehouseReports
       raise 'Key required' if params[:key].blank?
 
       @key = @report.metrics.keys.detect { |key| key.to_s == params[:key] }
-      @enrollments = @report.enrollments_for(@key)
 
       respond_to do |format|
         format.xlsx do
           headers['Content-Disposition'] = "attachment; filename=outflow-#{@key}.xlsx"
         end
-        format.html {}
+        format.html do
+          @enrollments = @report.enrollments_for(@key)
+        end
       end
     end
 

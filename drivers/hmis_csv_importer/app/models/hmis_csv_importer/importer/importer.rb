@@ -442,8 +442,18 @@ module HmisCsvImporter::Importer
         next if klass.hud_key == :ExportID
 
         # Never delete Projects, Organizations, or Clients, but cleanup any pending deletions
-        if klass.hud_key.in?([:ProjectID, :OrganizationID, :PersonalID])
+        if klass.hud_key.in?([:ProjectID, :OrganizationID])
           klass.existing_destination_data(data_source_id: data_source.id, project_ids: involved_project_ids, date_range: date_range).update_all(pending_date_deleted: nil, source_hash: nil)
+        elsif klass.hud_key == :PersonalID
+          # Clients need to be treated differently for the situation where we are importing a partial data source
+          existing = klass.existing_destination_data(data_source_id: data_source.id, project_ids: involved_project_ids, date_range: date_range)
+          # for everyone who would have been included in this import, but didn't get
+          # processed above, set their source hash to nil so future imports will fix them
+          existing.joins(enrollments: :project).
+            merge(GrdaWarehouse::Hud::Enrollment.open_during_range(date_range)).
+            merge(GrdaWarehouse::Hud::Project.where(id: involved_project_ids)).
+            update_all(source_hash: nil)
+          existing.update_all(pending_date_deleted: nil)
         else
           delete_count = klass.pending_deletions(data_source_id: data_source.id, project_ids: involved_project_ids, date_range: date_range).count
           klass.existing_destination_data(data_source_id: data_source.id, project_ids: involved_project_ids, date_range: date_range).update_all(pending_date_deleted: nil, DateDeleted: Time.current, source_hash: nil)

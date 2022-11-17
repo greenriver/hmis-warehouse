@@ -11,8 +11,8 @@ module Mutations
       errors = []
       errors << InputValidationError.new('Entry date cannot be in the future', attribute: 'start_date') if Date.parse(start_date) > Date.today
 
-      has_enrollment = Hmis::Hud::Enrollment.viewable_by(current_user).exists?(household_id: household_id)
-      has_hoh_enrollment = Hmis::Hud::Enrollment.viewable_by(current_user).exists?(household_id: household_id, relationship_to_ho_h: 1)
+      has_enrollment = Hmis::Hud::Enrollment.editable_by(current_user).exists?(household_id: household_id)
+      has_hoh_enrollment = Hmis::Hud::Enrollment.editable_by(current_user).exists?(household_id: household_id, relationship_to_ho_h: 1)
       errors << InputValidationError.new("Cannot find Enrollment for household with id '#{household_id}'", attribute: 'household_id') unless has_enrollment
       errors << InputValidationError.new('Enrollment already has a head of household designated', attribute: 'household_members') if has_hoh_enrollment && household_members.find { |hm| hm.relationship_to_ho_h == 1 }
 
@@ -30,13 +30,13 @@ module Mutations
         }
       end
 
-      existing_enrollment = Hmis::Hud::Enrollment.viewable_by(user).find_by(household_id: household_id)
+      existing_enrollment = Hmis::Hud::Enrollment.editable_by(user).find_by(household_id: household_id)
       lookup = Hmis::Hud::Client.where(id: household_members.map(&:id)).index_by(&:id)
       project_id = existing_enrollment.project.project_id
 
       enrollments = household_members.map do |household_member|
         client = lookup[household_member.id.to_i]
-        enrollment = client.enrollments.viewable_by(user).find_by(household_id: household_id)
+        enrollment = client.enrollments.editable_by(user).find_by(household_id: household_id)
 
         next enrollment if enrollment.present?
 

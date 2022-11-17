@@ -3730,7 +3730,8 @@ CREATE TABLE public.qualifying_activities (
     valid_unpayable boolean DEFAULT false NOT NULL,
     procedure_valid boolean DEFAULT false NOT NULL,
     ignored boolean DEFAULT false,
-    valid_unpayable_reasons character varying[]
+    valid_unpayable_reasons character varying[],
+    deleted_at date
 );
 
 
@@ -7628,6 +7629,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220623172328'),
 ('20220721163813'),
 ('20220721165009'),
-('20220812184231');
+('20220812184231'),
+('20221108190522');
 
 

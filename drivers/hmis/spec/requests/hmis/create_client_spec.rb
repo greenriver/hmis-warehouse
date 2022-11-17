@@ -1,4 +1,6 @@
 require 'rails_helper'
+require_relative 'login_and_permissions'
+require_relative 'hmis_base_setup'
 
 RSpec.describe Hmis::GraphqlController, type: :request do
   let(:test_input) do
@@ -14,7 +16,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       ssn: '123-45-6789',
       ssn_data_quality: Hmis::Hud::Client.ssn_data_quality_enum_map.lookup(key: 'Full SSN reported')&.[](:value),
       ethnicity: Hmis::Hud::Client.ethnicity_enum_map.values.first,
-      veteran_status: Hmis::Hud::Client.veteran_status_enum_map.values.first,
+      veteran_status: Hmis::FieldMap.no_yes_reasons.values.first,
       gender: [Hmis::Hud::Client.gender_enum_map.base_members.first[:value]],
       race: [Hmis::Hud::Client.race_enum_map.base_members.first[:value]],
     }
@@ -115,8 +117,21 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   describe 'client creation tests' do
     let!(:ds1) { create :hmis_data_source }
     let!(:user) { create(:user).tap { |u| u.add_viewable(ds1) } }
+    let(:mutation_test_input) do
+      {
+        **test_input,
+        name_data_quality: Types::HmisSchema::Enums::NameDataQuality.values.first[0],
+        dob_data_quality: Types::HmisSchema::Enums::DOBDataQuality.values.first[0],
+        ssn_data_quality: Types::HmisSchema::Enums::SSNDataQuality.values.first[0],
+        ethnicity: Types::HmisSchema::Enums::Ethnicity.values.first[0],
+        veteran_status: Types::HmisSchema::Enums::YesNoMissingReason.values.first[0],
+        gender: [Types::HmisSchema::Enums::Gender.values.first[0]],
+        race: [Types::HmisSchema::Enums::Race.values.first[0]],
+      }
+    end
+
     before(:each) do
-      post hmis_user_session_path(hmis_user: { email: user.email, password: user.password })
+      hmis_login(user)
     end
 
     let(:mutation) do
@@ -124,14 +139,26 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         mutation CreateClient($input: ClientInput!) {
           createClient(input: { input: $input }) {
             client {
-              id
+              dateCreated
+              dateDeleted
+              dateUpdated
+              dob
+              dobDataQuality
+              ethnicity
               firstName
+              gender
+              id
               lastName
+              middleName
+              nameDataQuality
+              nameSuffix
+              personalId
               preferredName
               pronouns
-              ssnSerial
-              dob
-              dateUpdated
+              race
+              ssn
+              ssnDataQuality
+              veteranStatus
               enrollments {
                 nodes {
                   id
@@ -158,28 +185,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     it 'should create a client successfully' do
-      mutation_input = test_input
-
-      [
-        [:name_data_quality, Types::HmisSchema::Enums::NameDataQuality],
-        [:dob_data_quality, Types::HmisSchema::Enums::DOBDataQuality],
-        [:ssn_data_quality, Types::HmisSchema::Enums::SSNDataQuality],
-        [:ethnicity, Types::HmisSchema::Enums::Ethnicity],
-        [:veteran_status, Types::HmisSchema::Enums::VeteranStatus],
-        [:gender, Types::HmisSchema::Enums::Gender],
-        [:race, Types::HmisSchema::Enums::Race],
-      ].each do |field, enum|
-        if test_input[field].is_a?(Array)
-          mutation_input[field] = test_input[field].map do |val|
-            enum.values.find { |_k, v| v.value == val }.first
-          end
-        else
-          value = enum.values.find { |_k, v| v.value == test_input[field] }
-          mutation_input[field] = value.first
-        end
-      end
-
-      response, result = post_graphql(input: mutation_input) { mutation }
+      response, result = post_graphql(input: mutation_test_input) { mutation }
 
       expect(response.status).to eq 200
       client = result.dig('data', 'createClient', 'client')
@@ -188,15 +194,58 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(errors).to be_empty
     end
 
+    it 'should save and resolve race and gender correctly when missing' do
+      mutation_input = {
+        **mutation_test_input,
+        gender: ['GENDER_DATA_NOT_COLLECTED'],
+        race: ['RACE_REFUSED'],
+      }
+
+      response, result = post_graphql(input: mutation_input) { mutation }
+
+      aggregate_failures 'checking response' do
+        expect(response.status).to eq 200
+        client = result.dig('data', 'createClient', 'client')
+        errors = result.dig('data', 'createClient', 'errors')
+        expect(errors).to be_empty
+        expect(client['id']).to be_present
+        expect(client['race']).to contain_exactly('RACE_REFUSED')
+        expect(client['gender']).to contain_exactly('GENDER_DATA_NOT_COLLECTED')
+      end
+    end
+
+    it 'should save and resolve race and gender correctly when multiple present' do
+      genders = ['GENDER_QUESTIONING', 'GENDER_MALE']
+      races = ['RACE_ASIAN', 'RACE_BLACK_AF_AMERICAN']
+      mutation_input = {
+        **mutation_test_input,
+        gender: genders,
+        race: races,
+      }
+      response, result = post_graphql(input: mutation_input) { mutation }
+
+      aggregate_failures 'checking response' do
+        expect(response.status).to eq 200
+        client = result.dig('data', 'createClient', 'client')
+        errors = result.dig('data', 'createClient', 'errors')
+        expect(errors).to be_empty
+        expect(client['id']).to be_present
+        expect(client['race']).to contain_exactly(*races)
+        expect(client['gender']).to contain_exactly(*genders)
+      end
+    end
+
     it 'should throw errors if the client is invalid' do
       response, result = post_graphql(input: {}) { mutation }
 
       client = result.dig('data', 'createClient', 'client')
       errors = result.dig('data', 'createClient', 'errors')
 
-      expect(response.status).to eq 200
-      expect(client).to be_nil
-      expect(errors).to be_present
+      aggregate_failures 'checking response' do
+        expect(response.status).to eq 200
+        expect(client).to be_nil
+        expect(errors).to be_present
+      end
     end
   end
 end

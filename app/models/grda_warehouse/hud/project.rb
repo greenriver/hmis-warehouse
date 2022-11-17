@@ -27,8 +27,8 @@ module GrdaWarehouse::Hud
       h = { # duplicate of code in various places
         ph: [3, 9, 10, 13],
         rrh: [13],
-        psh: [3, 10],
-        oph: [9],
+        psh: [3],
+        oph: [9, 10],
         th: [2],
         es: [1],
         so: [4],
@@ -88,14 +88,14 @@ module GrdaWarehouse::Hud
     WITH_MOVE_IN_DATES = RESIDENTIAL_PROJECT_TYPES[:ph]
     PERFORMANCE_REPORTING = { # duplicate of code in various places
       ph: [3, 9, 10, 13],
-      oph: [9],
+      oph: [9, 10],
       th: [2],
       es: [1],
       so: [4],
       sh: [8],
       ca: [14],
       rrh: [13],
-      psh: [3, 10],
+      psh: [3],
       other: [7],
       day_shelter: [11],
       prevention: [12],

@@ -116,7 +116,7 @@ jobs:
           echo "postgres:5432:*:postgres:postgres" > ~/.pgpass
           chmod 600 ~/.pgpass
 
-          yarn install
+          yarn install --frozen-lockfile
           gem install bundler --version=2.3.8
 
       - name: Install gems
@@ -137,7 +137,8 @@ jobs:
           pg_isready -h postgres -U postgres
           bin/db_prep
 
-          echo "postgres:5432:*:postgres:postgres" > ~/.pgpass
+          echo "Setting up .pgpass"
+          echo "postgres:*:*:postgres:postgres" > ~/.pgpass
           chmod 600 ~/.pgpass
 
           bundle exec rake assets:precompile
@@ -156,7 +157,6 @@ jobs:
         run: |
           bundle exec rspec --fail-fast=$MAX_FAILURES --color --format p -P "{spec,drivers}/**/*_spec.rb"
           OKTA_DOMAIN=localhost OKTA_CLIENT_ID=x OKTA_CLIENT_SECRET=x bundle exec rspec --fail-fast=$MAX_FAILURES --color -fd spec/requests/omniauth_spec.rb # this one test needs a different ENV
-
       - name: Run logging tests
         env:
           LOG_LEVEL: INFO
