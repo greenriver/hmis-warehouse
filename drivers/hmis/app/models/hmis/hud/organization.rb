@@ -5,11 +5,12 @@
 ###
 
 class Hmis::Hud::Organization < Hmis::Hud::Base
-  include ArelHelper
-  include ::HmisStructure::Organization
-  include ::Hmis::Hud::Shared
   self.table_name = :Organization
   self.sequence_name = "public.\"#{table_name}_id_seq\""
+  include ArelHelper
+  include ::HmisStructure::Organization
+  include ::Hmis::Hud::Concerns::Shared
+  include ::Hmis::Hud::Concerns::ProjectRelated
 
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   has_many :projects, **hmis_relation(:OrganizationID, 'Project')

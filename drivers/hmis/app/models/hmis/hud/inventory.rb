@@ -5,26 +5,15 @@
 ###
 
 class Hmis::Hud::Inventory < Hmis::Hud::Base
-  include ::HmisStructure::Inventory
-  include ::Hmis::Hud::Shared
   self.table_name = :Inventory
   self.sequence_name = "public.\"#{table_name}_id_seq\""
+  include ::HmisStructure::Inventory
+  include ::Hmis::Hud::Concerns::Shared
+  include ::Hmis::Hud::Concerns::ProjectRelated
   validates_with Hmis::Hud::Validators::InventoryValidator
 
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   belongs_to :project, **hmis_relation(:ProjectID, 'Project')
-
-  use_enum :household_type_enum_map, ::HUD.household_types
-  use_enum :availability_enum_map, ::HUD.availabilities
-  use_enum :bed_type_enum_map, ::HUD.bed_types
-
-  scope :viewable_by, ->(user) do
-    joins(:project).merge(Hmis::Hud::Project.viewable_by(user))
-  end
-
-  scope :editable_by, ->(user) do
-    joins(:project).merge(Hmis::Hud::Project.editable_by(user))
-  end
 
   SORT_OPTIONS = [:start_date].freeze
 

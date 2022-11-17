@@ -3,9 +3,10 @@
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
-module Hmis::Hud::Shared
+
+module Hmis::Hud::Concerns::Shared
   extend ActiveSupport::Concern
-  include Hmis::Hud::HasEnums
+  include Hmis::Hud::Concerns::HasEnums
   include ::HmisStructure::Shared
 
   included do

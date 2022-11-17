@@ -12,7 +12,7 @@ module Types
     field :id, ID, null: false
     field :definition, Forms::FormDefinition, null: false
     field :assessment, HmisSchema::Assessment, null: false
-    field :data_collection_stage, HmisSchema::Enums::DataCollectionStage, null: true
+    field :data_collection_stage, HmisSchema::Enums::Hud::DataCollectionStage, null: true
     field :role, HmisSchema::Enums::AssessmentRole, null: false
     field :status, String, null: false
     field :values, JsonObject, null: true

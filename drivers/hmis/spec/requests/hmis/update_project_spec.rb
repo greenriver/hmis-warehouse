@@ -32,10 +32,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       description: 'This is a test project',
       contact_information: 'Contact for contact information',
       project_type: Types::HmisSchema::Enums::ProjectType.enum_member_for_value(2).first,
-      housing_type: Types::HmisSchema::Enums::HousingType.enum_member_for_value(3).first,
-      tracking_method: Types::HmisSchema::Enums::TrackingMethod.enum_member_for_value(3).first,
-      target_population: Types::HmisSchema::Enums::TargetPopulation.enum_member_for_value(4).first,
-      'HOPWAMedAssistedLivingFac' => Types::HmisSchema::Enums::HOPWAMedAssistedLivingFac.enum_member_for_value(0).first,
+      housing_type: Types::HmisSchema::Enums::Hud::HousingType.enum_member_for_value(3).first,
+      tracking_method: Types::HmisSchema::Enums::Hud::TrackingMethod.enum_member_for_value(3).first,
+      target_population: Types::HmisSchema::Enums::Hud::TargetPopulation.enum_member_for_value(4).first,
+      'HOPWAMedAssistedLivingFac' => Types::HmisSchema::Enums::Hud::HOPWAMedAssistedLivingFac.enum_member_for_value(0).first,
       continuum_project: false,
       residential_affiliation: true,
       'HMISParticipatingProject' => false,
@@ -47,32 +47,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       mutation UpdateProject($id: ID!, $input: ProjectInput!) {
         updateProject(input: { input: $input, id: $id }) {
           project {
-            id
+            #{scalar_fields(Types::HmisSchema::Project)}
             organization {
               id
             }
-            projectName
-            projectType
-            HMISParticipatingProject
-            HOPWAMedAssistedLivingFac
-            contactInformation
-            continuumProject
-            description
-            housingType
-            operatingEndDate
-            operatingStartDate
-            residentialAffiliation
-            targetPopulation
-            trackingMethod
           }
-          errors {
-            attribute
-            message
-            fullMessage
-            type
-            options
-            __typename
-          }
+          #{error_fields}
         }
       }
     GRAPHQL

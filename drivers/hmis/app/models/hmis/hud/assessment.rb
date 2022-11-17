@@ -5,12 +5,12 @@
 ###
 
 class Hmis::Hud::Assessment < Hmis::Hud::Base
-  include ::HmisStructure::Assessment
-  include ::Hmis::Hud::Shared
-  include ArelHelper
-
   self.table_name = :Assessment
   self.sequence_name = "public.\"#{table_name}_id_seq\""
+  include ::HmisStructure::Assessment
+  include ::Hmis::Hud::Concerns::Shared
+  include ::Hmis::Hud::Concerns::EnrollmentRelated
+  include ArelHelper
 
   SORT_OPTIONS = [:assessment_date].freeze
   WIP_ID = 'WIP'.freeze
@@ -21,10 +21,6 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
   has_one :assessment_detail, class_name: 'Hmis::Form::AssessmentDetail'
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   has_one :wip, class_name: 'Hmis::Wip', as: :source
-
-  use_enum :assessment_types_enum_map, ::HUD.assessment_types
-  use_enum :assessment_levels_enum_map, ::HUD.assessment_levels
-  use_enum :prioritization_statuses_enum_map, ::HUD.prioritization_statuses
 
   attr_accessor :in_progress
 
