@@ -433,6 +433,26 @@
     {
       "warning_type": "Command Injection",
       "warning_code": 14,
+      "fingerprint": "2c28f5db06f64f3bf05051287b6c0c3fc9f2bc876eebf089634825021dfdad0e",
+      "check_name": "Execute",
+      "message": "Possible command injection",
+      "file": "app/models/dba/partition_all.rb",
+      "line": 20,
+      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
+      "code": "system(\"sed -i -e \\\"/self.table_name/a\\\\    self.primary_key = 'id'\\\" #{`#{\"egrep -R 'table_name..*#{t}' drivers/hmis_csv_twenty_twenty_two/app/models/hmis_csv_twenty_twenty_two | cut -d: -f1\"}`}\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "DBA::PartitionAll",
+        "method": "add_explicit_primary_key!"
+      },
+      "user_input": "`#{\"egrep -R 'table_name..*#{t}' drivers/hmis_csv_twenty_twenty_two/app/models/hmis_csv_twenty_twenty_two | cut -d: -f1\"}`",
+      "confidence": "Medium",
+      "note": "Internal sources"
+    },
+    {
+      "warning_type": "Command Injection",
+      "warning_code": 14,
       "fingerprint": "2d5a0735c8eef436174e943c26f2f3107fdbe465dd46e480ad60ed6b43b29b5b",
       "check_name": "Execute",
       "message": "Possible command injection",
@@ -799,6 +819,26 @@
       "user_input": "conf.dir",
       "confidence": "Medium",
       "note": "Injection from internal sources"
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "612b6d5691a811528ec05a66aa10ad125e6651851be9f0d639748af0343ccbe7",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "app/models/dba/partition_all.rb",
+      "line": 47,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "GrdaWarehouseBase.connection.execute(\"DROP TABLE \\\"#{table}_saved\\\"\\n\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "DBA::PartitionAll",
+        "method": "remove_saved_tables!"
+      },
+      "user_input": "table",
+      "confidence": "Medium",
+      "note": "Internal sources"
     },
     {
       "warning_type": "Command Injection",
@@ -1543,6 +1583,26 @@
       "note": ""
     },
     {
+      "warning_type": "Command Injection",
+      "warning_code": 14,
+      "fingerprint": "9ab45e7d67d6adc34c7e6259b7ea366869ab2301396800f46870a7cebf28c593",
+      "check_name": "Execute",
+      "message": "Possible command injection",
+      "file": "app/models/dba/partition_all.rb",
+      "line": 15,
+      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
+      "code": "`#{\"egrep -R 'table_name..*#{t}' drivers/hmis_csv_twenty_twenty_two/app/models/hmis_csv_twenty_twenty_two | cut -d: -f1\"}`",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "DBA::PartitionAll",
+        "method": "add_explicit_primary_key!"
+      },
+      "user_input": "t",
+      "confidence": "Medium",
+      "note": "Internal sources"
+    },
+    {
       "warning_type": "Remote Code Execution",
       "warning_code": 24,
       "fingerprint": "a018a2a65716f162e78639cf9ecc84440e48c1b4001c80db96d96f5ca82c11ab",
@@ -1609,7 +1669,7 @@
       "check_name": "Execute",
       "message": "Possible command injection",
       "file": "app/models/dba/database_bloat.rb",
-      "line": 136,
+      "line": 137,
       "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
       "code": "system(\"pg_repack #{\"--no-superuser-check -U #{ar_base_class.connection_db_config.configuration_hash[:username]} -d #{ar_base_class.connection_db_config.configuration_hash[:database]} -h #{(CGI.escape(ar_base_class.connection_db_config.configuration_hash[:host]) or ar_base_class.connection_db_config.configuration_hash[:host])} -p #{(ar_base_class.connection_db_config.configuration_hash[:port].presence or \"5432\")} -t #{row[\"schemaname\"]}.#{row[\"tblname\"]}\"}\")",
       "render_path": null,
@@ -2444,6 +2504,6 @@
       "note": ""
     }
   ],
-  "updated": "2022-10-27 21:00:55 +0000",
+  "updated": "2022-10-31 17:40:38 +0000",
   "brakeman_version": "5.0.4"
 }
