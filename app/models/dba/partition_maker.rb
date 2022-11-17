@@ -113,6 +113,10 @@ class DBA::PartitionMaker
       p(<<~SQL)
         ALTER TABLE "#{partitioned_table}" RENAME TO "#{table_name}";
       SQL
+
+      p(<<~SQL)
+        ALTER SEQUENCE #{table_name}_id_seq OWNED BY #{table_name}.id;
+      SQL
     end
   end
 

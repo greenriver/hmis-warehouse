@@ -49,7 +49,7 @@ namespace :dba do
   end
 
   desc 'Partition big tables'
-  task :partition, [:table] => [:environment] do |t, args|
+  task :partition, [:table] => [:environment] do |_t, args|
     if args[:table].present?
       pm = DBA::PartitionMaker.new(table_name: args[:table])
       if pm.no_table?
@@ -61,6 +61,13 @@ namespace :dba do
       end
     else
       DBA::PartitionAll.new.run!
+    end
+  end
+
+  namespace :partition do
+    desc "Get needed space"
+    task :space_needed, [] => [:environment] do
+      DBA::PartitionAll.new.space_needed
     end
   end
 end
