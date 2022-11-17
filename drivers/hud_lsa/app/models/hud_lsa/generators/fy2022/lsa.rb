@@ -33,10 +33,6 @@ module HudLsa::Generators::Fy2022
       @filter ||= HudLsa::Filters::LsaFilter.new(user_id: user_id).update(options)
     end
 
-    def self.valid_project_types
-      [1, 2, 3, 8, 13]
-    end
-
     def lookback_stop_date
       filter.start - 7.years
     end
@@ -166,7 +162,10 @@ module HudLsa::Generators::Fy2022
             hash_status: 1,
             include_deleted: false,
           ).
+          # where project_ids contains the effective project ids, and effective contains the project ids
+          # (equivalency without sort)
           where('project_ids @> ?', filter.effective_project_ids.to_json).
+          where('project_ids <@ ?', filter.effective_project_ids.to_json).
           where.not(file: nil)&.first
         if existing_export.present?
           @hmis_export = existing_export
