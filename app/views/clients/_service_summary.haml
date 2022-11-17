@@ -21,18 +21,17 @@
             %span=projects.to_sentence
       %li
         %h4 Days in Last 3 Years
-        .client__days-homeless
-          = "#{@client.processed_service_history&.days_homeless_last_three_years || 0} homeless"
+        .client__days-homeless.mt-2
+          = "#{number_with_delimiter(@client.processed_service_history&.days_homeless_last_three_years) || 0} homeless"
           %i.icon-info{data: {toggle: :tooltip, title: 'Days in ES, SO, SH, or TH with no overlapping PH after move-in date'}}
-        .client__days-homeless
-          = "#{@client.sheltered_days_homeless_last_three_years} sheltered"
+        .client__days-homeless.mt-2
+          = "#{number_with_delimiter(@client.sheltered_days_homeless_last_three_years)} sheltered"
           %i.icon-info{data: {toggle: :tooltip, title: 'Days in ES, SH, or TH with no overlapping PH after move-in date'}}
-        .client__days-homeless
-          = "#{@client.unsheltered_days_homeless_last_three_years} unsheltered"
+        .client__days-homeless.mt-2
+          = "#{number_with_delimiter(@client.unsheltered_days_homeless_last_three_years)} unsheltered"
           %i.icon-info{data: {toggle: :tooltip, title: 'Days in SO with no overlapping sheltered dates ES, SH, TH, or PH after move-in date'}}
-
         .client__days-literally-homeless.mt-2
-          = "#{@client.processed_service_history&.literally_homeless_last_three_years || 0} literally homeless"
+          = "#{number_with_delimiter(@client.processed_service_history&.literally_homeless_last_three_years) || 0} literally homeless"
           %i.icon-info{data: {toggle: :tooltip, title: 'Days in ES, SO, or SH with no overlapping TH or PH after move-in date'}}
 
       - if @client.scope_for_ongoing_residential_enrollments.any?
@@ -42,9 +41,13 @@
       %li
         %h4 Homeless Span
         %span= "#{@client.date_of_first_service} to #{@client.date_of_last_service}"
-        %span
-          = pluralize(@client.days_homeless, 'day')
+        .client__days-total.mt-2
+          = pluralize(number_with_delimiter(@client.days_homeless), 'day')
           %i.icon-info{data: {toggle: :tooltip, title: 'Days in ES, SO, SH, or TH with no overlapping PH after move-in date'}}
+        - if GrdaWarehouse::Hud::Project.includes_verified_days_homeless.exists?
+          .client__days-including-overrides.mt-2
+            = "#{number_with_delimiter(@client.processed_service_history&.days_homeless_plus_overrides) || 0} including verified days"
+            %i.icon-info{data: {toggle: :tooltip, title: 'Days in ES, SO, or SH with no overlapping TH or PH after move-in date including any days in projects marked as providing additional verified days homeless'}}
 
       %li
         %h4 Veteran
