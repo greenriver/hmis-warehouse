@@ -26,6 +26,10 @@ module HudApr::Generators::Shared::Fy2023
       }.freeze
     end
 
+    private def youth_filter
+      a_t[:age].between(12..24).and(a_t[:other_clients_over_25].eq(false))
+    end
+
     private def q27a_youth_age
       table_name = 'Q27a'
       metadata = {
@@ -41,16 +45,16 @@ module HudApr::Generators::Shared::Fy2023
       cols = (metadata[:first_column]..metadata[:last_column]).to_a
       rows = (metadata[:first_row]..metadata[:last_row]).to_a
       youth_or_unknown = universe.members.where(
-        a_t[:other_clients_over_25].eq(false).and(
-          a_t[:age].between(12..24).and(a_t[:dob_quality].in([1, 2])).
-          or(
-            a_t[:dob_quality].in([8, 9, 99]).
-            or(a_t[:dob_quality].eq(nil)).
-            or(a_t[:age].lt(0)).
-            or(a_t[:age].eq(nil)),
-          ),
-        ),
+        youth_filter.
+          and(a_t[:dob_quality].in([1, 2])).
+            or(
+              a_t[:dob_quality].in([8, 9, 99]).
+              or(a_t[:dob_quality].eq(nil)).
+              or(a_t[:age].lt(0)).
+              or(a_t[:age].eq(nil)),
+            ),
       )
+
       q27_populations.values.each_with_index do |population_clause, col_index|
         youth_age_ranges.values.each_with_index do |response_clause, row_index|
           cell = "#{cols[col_index]}#{rows[row_index]}"
@@ -169,9 +173,7 @@ module HudApr::Generators::Shared::Fy2023
 
           answer = @report.answer(question: table_name, cell: cell)
 
-          members = universe.members.where(
-            a_t[:age].between(12..24).and(a_t[:other_clients_over_25].eq(false)),
-          ).
+          members = universe.members.where(youth_filter).
             where(population_clause).
             where(response_clause)
           value = members.count
@@ -235,9 +237,7 @@ module HudApr::Generators::Shared::Fy2023
 
           answer = @report.answer(question: table_name, cell: cell)
 
-          members = universe.members.where(
-            a_t[:age].between(12..24).and(a_t[:other_clients_over_25].eq(false)),
-          ).
+          members = universe.members.where(youth_filter).
             where(population_clause).
             where(length_clause)
 
@@ -274,10 +274,7 @@ module HudApr::Generators::Shared::Fy2023
 
           members = leavers.
             where(population_clause).
-            where(
-              a_t[:age].between(12..24).
-                and(a_t[:other_clients_over_25].eq(false)),
-            )
+            where(youth_filter)
 
           if destination_clause.is_a?(Symbol)
             case destination_clause
@@ -559,7 +556,9 @@ module HudApr::Generators::Shared::Fy2023
 
           answer = @report.answer(question: table_name, cell: cell)
 
-          members = universe.members.where(population_clause)
+          members = universe.members.
+            where(population_clause).
+            where(youth_filter)
           stay_lengths = members.pluck(a_t[:length_of_stay]).compact
           value = 0
           case method
@@ -603,6 +602,7 @@ module HudApr::Generators::Shared::Fy2023
 
           # Universe: All active clients where the head of household had a move-in date in the report date range plus leavers who exited in the date range and never had a move-in date.
           members = relevant_members.where(population_clause).
+            where(youth_filter).
             where(
               a_t[:move_in_date].between(@report.start_date..@report.end_date).
               or(leavers_clause.and(a_t[:move_in_date].eq(nil))),
@@ -630,7 +630,7 @@ module HudApr::Generators::Shared::Fy2023
     private def q27l_time_prior_to_housing
       table_name = 'Q27l'
       metadata = {
-        header_row: [' '] + q27k_populations.keys,
+        header_row: [' '] + q27l_populations.keys,
         row_labels: q27l_lengths.keys,
         first_column: 'B',
         last_column: 'F',
@@ -649,7 +649,9 @@ module HudApr::Generators::Shared::Fy2023
 
           answer = @report.answer(question: table_name, cell: cell)
 
-          members = relevant_members.where(population_clause).where(length_clause)
+          members = relevant_members.where(population_clause).
+            where(length_clause).
+            where(youth_filter)
 
           answer.add_members(members)
           answer.update(summary: members.count)
