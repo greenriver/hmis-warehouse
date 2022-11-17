@@ -13,11 +13,6 @@ class Hmis::Hud::Event < Hmis::Hud::Base
   belongs_to :enrollment, **hmis_relation(:EnrollmentID, 'Enrollment')
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :events
 
-  use_enum :events_enum_map, ::HUD.events
-  use_enum :referral_result_enum_map, ::HUD.referral_results
-  use_common_enum :prob_sol_div_rr_result_enum_map, :yes_no_missing
-  use_common_enum :referral_case_manage_after_enum_map, :yes_no_missing
-
   SORT_OPTIONS = [:event_date].freeze
 
   def self.sort_by_option(option)

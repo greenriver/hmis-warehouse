@@ -19,11 +19,6 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   has_many :inventories, **hmis_relation(:ProjectID, 'Inventory'), inverse_of: :project
   has_many :funders, **hmis_relation(:ProjectID, 'Funder'), inverse_of: :project
 
-  use_enum :housing_type_enum_map, ::HUD.housing_types
-  use_enum :tracking_methods_enum_map, ::HUD.tracking_methods.except(nil)
-  use_enum :target_population_enum_map, ::HUD.target_populations
-  use_enum :h_o_p_w_a_med_assisted_living_facs_enum_map, ::HUD.h_o_p_w_a_med_assisted_living_facs
-
   validates_with Hmis::Hud::Validators::ProjectValidator
 
   # Any projects the user has been assigned, limited to the data source the HMIS is connected to

@@ -22,15 +22,15 @@ module Types
     hud_field :last_name
     field :preferred_name, String, null: true
     hud_field :name_suffix
-    hud_field :name_data_quality, Types::HmisSchema::Enums::NameDataQuality
+    hud_field :name_data_quality, Types::HmisSchema::Enums::Hud::NameDataQuality
     hud_field :dob
-    hud_field :dob_data_quality, Types::HmisSchema::Enums::DOBDataQuality
+    hud_field :dob_data_quality, Types::HmisSchema::Enums::Hud::DOBDataQuality
     hud_field :ssn
-    hud_field :ssn_data_quality, Types::HmisSchema::Enums::SSNDataQuality
+    hud_field :ssn_data_quality, Types::HmisSchema::Enums::Hud::SSNDataQuality
     field :gender, [Types::HmisSchema::Enums::Gender], null: false
     field :race, [Types::HmisSchema::Enums::Race], null: false
-    hud_field :ethnicity, Types::HmisSchema::Enums::Ethnicity
-    hud_field :veteran_status, Types::HmisSchema::Enums::YesNoMissingReason
+    hud_field :ethnicity, Types::HmisSchema::Enums::Hud::Ethnicity
+    hud_field :veteran_status, Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData
     field :pronouns, String, null: true
     enrollments_field :enrollments, type: Types::HmisSchema::Enrollment.page_type
     hud_field :date_updated

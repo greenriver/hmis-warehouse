@@ -55,7 +55,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       response, result = post_graphql(
         input: {
           id: e2.id,
-          relationship_to_ho_h: Types::HmisSchema::Enums::RelationshipToHoH.enum_member_for_value(3).first,
+          relationship_to_ho_h: Types::HmisSchema::Enums::Hud::RelationshipToHoH.enum_member_for_value(3).first,
           entry_date: new_entry_date.strftime('%Y-%m-%d'),
         },
       ) { mutation }
@@ -71,7 +71,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(enrollment).to include(
           'id' => e2.id.to_s,
           'entryDate' => new_entry_date.strftime('%Y-%m-%d'),
-          'relationshipToHoH' => Types::HmisSchema::Enums::RelationshipToHoH.enum_member_for_value(3).first,
+          'relationshipToHoH' => Types::HmisSchema::Enums::Hud::RelationshipToHoH.enum_member_for_value(3).first,
           'client' => include('id' => c2.id.to_s),
         )
         expect(Hmis::Hud::Enrollment.all).to contain_exactly(
@@ -93,7 +93,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       response, result = post_graphql(
         input: {
           id: e2.id,
-          relationship_to_ho_h: Types::HmisSchema::Enums::RelationshipToHoH.enum_member_for_value(3).first,
+          relationship_to_ho_h: Types::HmisSchema::Enums::Hud::RelationshipToHoH.enum_member_for_value(3).first,
           entry_date: new_entry_date.strftime('%Y-%m-%d'),
         },
       ) { mutation }

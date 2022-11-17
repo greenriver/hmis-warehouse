@@ -14,7 +14,7 @@ module Types
 
     hud_field :id, ID, null: false
     hud_field :project, Types::HmisSchema::Project, null: false
-    hud_field :funder, HmisSchema::Enums::FundingSource
+    hud_field :funder, HmisSchema::Enums::Hud::FundingSource
     hud_field :other_funder
     hud_field :grant_id
     hud_field :start_date, null: false
