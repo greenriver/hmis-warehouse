@@ -271,6 +271,7 @@
       "link_id": "income-source",
       "text": "Income and Sources",
       "data_collected_about": "HOH_AND_ADULTS",
+      "record_type": "INCOME_BENEFITS",
       "item": [
         {
           "type": "GROUP",
@@ -281,17 +282,20 @@
               "type": "CHOICE",
               "link_id": "4.02.2",
               "text": "Income from Any Source",
-              "pick_list_reference": "NoYesReasonsForMissingData"
+              "pick_list_reference": "NoYesReasonsForMissingData",
+              "query_field": "incomeFromAnySource"
             },
             {
               "type": "CURRENCY",
               "link_id": "4.02.A",
-              "text": "Earned Income (i.e., employment income)"
+              "text": "Earned Income (i.e., employment income)",
+              "query_field": "earnedIncome"
             },
             {
               "type": "CURRENCY",
               "link_id": "4.02.B",
-              "text": "Unemployment Insurance"
+              "text": "Unemployment Insurance",
+              "query_field": "unemploymentInsurance"
             },
             {
               "type": "CURRENCY",
