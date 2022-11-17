@@ -35,5 +35,9 @@ module GrdaWarehouse::WarehouseReports
         ]
       end
     end
+
+    def yn(boolean)
+      boolean ? 'Y' : 'N'
+    end
   end
 end
