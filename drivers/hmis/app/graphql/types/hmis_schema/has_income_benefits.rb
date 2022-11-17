@@ -23,12 +23,12 @@ module Types
       end
 
       def resolve_income_benefits(scope = object.income_benefits, **args)
-        apply_arguments(scope, **args)
+        scoped_income_benefits(scope, **args)
       end
 
       private
 
-      def apply_arguments(scope)
+      def scoped_income_benefits(scope)
         scope.viewable_by(current_user)
       end
     end

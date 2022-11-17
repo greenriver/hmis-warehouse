@@ -22,12 +22,12 @@ module Types
       end
 
       def resolve_health_and_dvs(scope = object.health_and_dvs, **args)
-        apply_arguments(scope, **args)
+        scoped_health_and_dvs(scope, **args)
       end
 
       private
 
-      def apply_arguments(scope)
+      def scoped_health_and_dvs(scope)
         scope.viewable_by(current_user)
       end
     end

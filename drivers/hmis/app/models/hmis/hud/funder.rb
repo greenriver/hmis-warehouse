@@ -5,15 +5,14 @@
 ###
 
 class Hmis::Hud::Funder < Hmis::Hud::Base
-  include ::HmisStructure::Funder
-  include ::Hmis::Hud::Concerns::Shared
   self.table_name = :Funder
   self.sequence_name = "public.\"#{table_name}_id_seq\""
+  include ::HmisStructure::Funder
+  include ::Hmis::Hud::Concerns::Shared
+  include ::Hmis::Hud::Concerns::ProjectRelated
   validates_with Hmis::Hud::Validators::FunderValidator
 
   belongs_to :project, **hmis_relation(:ProjectID, 'Project')
-
-  include ::Hmis::Hud::Concerns::ProjectRelated
 
   SORT_OPTIONS = [:start_date].freeze
 

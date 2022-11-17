@@ -26,11 +26,11 @@ module Types
       end
 
       def resolve_project_cocs(scope = object.project_cocs, **args)
-        apply_project_cocs_arguments(scope, **args)
+        scoped_arguments(scope, **args)
       end
 
-      def apply_project_cocs_arguments(scope)
-        scope
+      def scoped_arguments(scope)
+        scope.viewable_by(current_user)
       end
     end
   end

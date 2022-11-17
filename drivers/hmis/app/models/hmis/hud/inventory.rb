@@ -5,16 +5,15 @@
 ###
 
 class Hmis::Hud::Inventory < Hmis::Hud::Base
-  include ::HmisStructure::Inventory
-  include ::Hmis::Hud::Concerns::Shared
   self.table_name = :Inventory
   self.sequence_name = "public.\"#{table_name}_id_seq\""
+  include ::HmisStructure::Inventory
+  include ::Hmis::Hud::Concerns::Shared
+  include ::Hmis::Hud::Concerns::ProjectRelated
   validates_with Hmis::Hud::Validators::InventoryValidator
 
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   belongs_to :project, **hmis_relation(:ProjectID, 'Project')
-
-  include ::Hmis::Hud::Concerns::ProjectRelated
 
   SORT_OPTIONS = [:start_date].freeze
 

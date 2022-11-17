@@ -5,15 +5,14 @@
 ###
 
 class Hmis::Hud::HealthAndDv < Hmis::Hud::Base
-  include ::HmisStructure::HealthAndDv
-  include ::Hmis::Hud::Concerns::Shared
   self.table_name = :HealthAndDV
   self.sequence_name = "public.\"#{table_name}_id_seq\""
+  include ::HmisStructure::HealthAndDv
+  include ::Hmis::Hud::Concerns::Shared
+  include ::Hmis::Hud::Concerns::EnrollmentRelated
 
   belongs_to :enrollment, **hmis_relation(:EnrollmentID, 'Enrollment')
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
   belongs_to :user, **hmis_relation(:UserID, 'User')
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
-
-  include ::Hmis::Hud::Concerns::EnrollmentRelated
 end

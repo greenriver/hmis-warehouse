@@ -5,12 +5,12 @@
 ###
 
 class Hmis::Hud::Assessment < Hmis::Hud::Base
-  include ::HmisStructure::Assessment
-  include ::Hmis::Hud::Concerns::Shared
-  include ArelHelper
-
   self.table_name = :Assessment
   self.sequence_name = "public.\"#{table_name}_id_seq\""
+  include ::HmisStructure::Assessment
+  include ::Hmis::Hud::Concerns::Shared
+  include ::Hmis::Hud::Concerns::EnrollmentRelated
+  include ArelHelper
 
   SORT_OPTIONS = [:assessment_date].freeze
   WIP_ID = 'WIP'.freeze
@@ -25,8 +25,6 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
   attr_accessor :in_progress
 
   validates_with Hmis::Hud::Validators::AssessmentValidator
-
-  include ::Hmis::Hud::Concerns::EnrollmentRelated
 
   scope :in_progress, -> { where(enrollment_id: WIP_ID) }
 

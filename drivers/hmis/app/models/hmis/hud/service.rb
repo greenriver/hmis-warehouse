@@ -5,10 +5,11 @@
 ###
 
 class Hmis::Hud::Service < Hmis::Hud::Base
-  include ::HmisStructure::Service
-  include ::Hmis::Hud::Concerns::Shared
   self.table_name = :Services
   self.sequence_name = "public.\"#{table_name}_id_seq\""
+  include ::HmisStructure::Service
+  include ::Hmis::Hud::Concerns::Shared
+  include ::Hmis::Hud::Concerns::EnrollmentRelated
 
   belongs_to :enrollment, **hmis_relation(:EnrollmentID, 'Enrollment')
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
@@ -16,7 +17,6 @@ class Hmis::Hud::Service < Hmis::Hud::Base
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
   validates_with Hmis::Hud::Validators::ServiceValidator
-  include ::Hmis::Hud::Concerns::EnrollmentRelated
 
   SORT_OPTIONS = [:date_provided].freeze
 

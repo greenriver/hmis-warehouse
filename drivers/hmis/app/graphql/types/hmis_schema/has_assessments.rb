@@ -38,9 +38,10 @@ module Types
       private
 
       def scoped_assessments(scope, sort_order: nil, role: nil)
+        scope = scope.viewable_by(current_user)
         scope = scope.sort_by_option(sort_order) if sort_order.present?
         scope = scope.with_role(role) if role.present?
-        scope.viewable_by(current_user)
+        scope
       end
     end
   end

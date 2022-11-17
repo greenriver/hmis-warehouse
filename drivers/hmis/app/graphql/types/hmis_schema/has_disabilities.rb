@@ -23,12 +23,12 @@ module Types
       end
 
       def resolve_disabilities(scope = object.disabilities, **args)
-        apply_arguments(scope, **args)
+        scoped_disabilities(scope, **args)
       end
 
       private
 
-      def apply_arguments(scope)
+      def scoped_disabilities(scope)
         scope.viewable_by(current_user)
       end
     end

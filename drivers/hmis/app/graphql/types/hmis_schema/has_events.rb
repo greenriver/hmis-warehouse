@@ -33,8 +33,9 @@ module Types
       private
 
       def scoped_events(scope, sort_order: :event_date)
+        scope = scope.viewable_by(current_user)
         scope = scope.sort_by_option(sort_order) if sort_order.present?
-        scope.viewable_by(current_user)
+        scope
       end
     end
   end
