@@ -14,6 +14,7 @@ namespace :code do
   desc 'Generate HUD list mapping module'
   task generate_hud_lists: [:environment, 'log:info_to_stdout'] do
     source = File.read('lib/data/hud_lists.json')
+    all_lists = JSON.parse(source).sort_by { |hash| hash['code'] }
     skipped = []
     filename = 'lib/util/hud_lists.rb'
 
@@ -24,19 +25,18 @@ namespace :code do
     arr.push "# THIS FILE IS GENERATED, DO NOT EDIT DIRECTLY\n"
     arr.push 'module HudLists'
     arr.push '  module_function'
-    JSON.parse(source).each do |element|
+    all_lists.each do |element|
       next if skipped.include?(element['code'].to_s)
 
       function_name = "#{element['name'].underscore}_map"
-      fn_already_defined = map_lookup.values.include?(function_name)
       map_lookup[element['code']] = function_name
-      next if fn_already_defined
 
       map_values = element['values'].map do |obj|
         description = obj['description'].strip
         "#{obj['key'].to_json} => \"#{description}\""
       end.join(",\n")
 
+      arr.push "# #{element['code']}"
       arr.push "def #{function_name}"
       arr.push "  {\n#{map_values}\n}.freeze"
       arr.push 'end'

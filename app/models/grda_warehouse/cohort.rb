@@ -106,9 +106,13 @@ module GrdaWarehouse
             :source_clients,
             :processed_service_history,
             :most_recent_pathways_or_rrh_assessment,
-            :most_recent_tc_hat_for_destination,
             {
-              cohort_clients: :cohort,
+              cohort_clients: [
+                :cohort,
+              ],
+              source_clients: [
+                :most_recent_tc_hat,
+              ],
             },
           ],
         },

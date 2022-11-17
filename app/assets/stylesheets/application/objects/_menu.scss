@@ -26,7 +26,8 @@
   border-top: 2px solid darken($cob-sg-charles-blue, 8%);
   border-bottom: 2px solid darken($cob-sg-charles-blue, 8%);;
   &.on-canvas {
-    z-index: $zIndex-1/2;
+    // minus 1 because it should be under the horizontal header
+    z-index: $page-z-index - 1;
   }
 }
 

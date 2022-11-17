@@ -116,7 +116,7 @@ jobs:
           echo "postgres:5432:*:postgres:postgres" > ~/.pgpass
           chmod 600 ~/.pgpass
 
-          yarn install
+          yarn install --frozen-lockfile
           gem install bundler --version=2.3.8
 
       - name: Install gems

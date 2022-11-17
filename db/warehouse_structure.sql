@@ -13355,7 +13355,8 @@ CREATE TABLE public.hmis_dqt_enrollments (
     entry_date_entered_at timestamp without time zone,
     exit_date_entered_at timestamp without time zone,
     days_to_enter_entry_date integer,
-    days_to_enter_exit_date integer
+    days_to_enter_exit_date integer,
+    days_before_entry integer
 );
 
 
@@ -50656,6 +50657,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20221107144111'),
 ('20221108134143'),
 ('20221109155552'),
-('20221110133236');
+('20221110133236'),
+('20221115123832');
 
 
