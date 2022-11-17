@@ -270,12 +270,18 @@ module HmisDataQualityTool
       when 'average_days_before_entry'
         title = 'Average Days Homeless Before Entry'
         item_class = Enrollment
+      when 'destination_temporary'
+        title = 'Temporary Destination'
+        item_class = Enrollment
+      when 'destination_other'
+        title = 'Other Destination'
+        item_class = Enrollment
       end
       OpenStruct.new(
         title: title,
         description: '',
         required_for: '',
-        category: 'Chronic Homelessness',
+        category: 'Informational',
         invalid_count: 0,
         total: 0,
         percent_invalid: 0,
@@ -475,7 +481,7 @@ module HmisDataQualityTool
                     count
                 end
                 this_result[:projects][project.id] = {
-                  project_name: project.name(user),
+                  project_name: project&.name(user) || 'unknown',
                   invalid_count: invalid_count,
                   total: overall_count,
                 }
