@@ -1207,6 +1207,12 @@ type FormItem {
   enableWhen: [EnableWhen!]
 
   """
+  Name of the query input field that corresponds to this item. Only used for
+  record creation/update forms, not for assessments.
+  """
+  fieldName: String
+
+  """
   Include this item only for the listed funders
   """
   funders: [FundingSource!]
@@ -1260,12 +1266,6 @@ type FormItem {
   Include this item only for the listed project types
   """
   projectTypesIncluded: [ProjectType!]
-
-  """
-  Name of the query input field that corresponds to this item. Only used for
-  record creation/update forms, not for assessments.
-  """
-  queryField: String
 
   """
   Whether human editing is allowed

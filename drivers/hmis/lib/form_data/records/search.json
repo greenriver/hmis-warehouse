@@ -5,35 +5,35 @@
       "required": false,
       "link_id": "1",
       "text": "Personal ID",
-      "query_field": "personalId"
+      "field_name": "personalId"
     },
     {
       "type": "STRING",
       "required": false,
       "link_id": "2",
       "text": "First Name",
-      "query_field": "firstName"
+      "field_name": "firstName"
     },
     {
       "type": "STRING",
       "required": false,
       "link_id": "3",
       "text": "Last Name",
-      "query_field": "lastName"
+      "field_name": "lastName"
     },
     {
       "type": "STRING",
       "required": false,
       "link_id": "4",
       "text": "SSN",
-      "query_field": "ssnSerial"
+      "field_name": "ssnSerial"
     },
     {
       "type": "DATE",
       "required": false,
       "link_id": "5",
       "text": "Date of Birth",
-      "query_field": "dob"
+      "field_name": "dob"
     },
     {
       "type": "CHOICE",
@@ -42,7 +42,7 @@
       "text": "Organizations",
       "repeats": true,
       "pick_list_reference": "ORGANIZATION",
-      "query_field": "organizations"
+      "field_name": "organizations"
     }
   ]
 }

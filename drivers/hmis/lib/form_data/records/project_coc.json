@@ -11,21 +11,21 @@
           "required": false,
           "link_id": "address1",
           "text": "Address",
-          "query_field": "address1"
+          "field_name": "address1"
         },
         {
           "type": "STRING",
           "required": false,
           "link_id": "address2",
           "text": "Address (line 2)",
-          "query_field": "address2"
+          "field_name": "address2"
         },
         {
           "type": "STRING",
           "required": false,
           "link_id": "city",
           "text": "City",
-          "query_field": "city"
+          "field_name": "city"
         },
         {
           "type": "CHOICE",
@@ -33,14 +33,14 @@
           "link_id": "state",
           "text": "State",
           "pick_list_reference": "STATE",
-          "query_field": "state"
+          "field_name": "state"
         },
         {
           "type": "STRING",
           "required": false,
           "link_id": "zip",
           "text": "Zip",
-          "query_field": "zip"
+          "field_name": "zip"
         }
       ]
     },
@@ -56,7 +56,7 @@
           "link_id": "coc",
           "text": "CoC Code",
           "pick_list_reference": "COC",
-          "query_field": "cocCode"
+          "field_name": "cocCode"
         },
         {
           "type": "CHOICE",
@@ -64,7 +64,7 @@
           "link_id": "geocode",
           "text": "Geocode",
           "pick_list_reference": "GEOCODE",
-          "query_field": "geocode"
+          "field_name": "geocode"
         },
         {
           "type": "CHOICE",
@@ -72,7 +72,7 @@
           "link_id": "geotype",
           "text": "Geography Type",
           "pick_list_reference": "GeographyType",
-          "query_field": "geographyType"
+          "field_name": "geographyType"
         }
       ]
     }

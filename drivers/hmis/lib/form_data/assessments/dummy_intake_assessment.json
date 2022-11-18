@@ -283,19 +283,19 @@
               "link_id": "4.02.2",
               "text": "Income from Any Source",
               "pick_list_reference": "NoYesReasonsForMissingData",
-              "query_field": "incomeFromAnySource"
+              "field_name": "incomeFromAnySource"
             },
             {
               "type": "CURRENCY",
               "link_id": "4.02.A",
               "text": "Earned Income (i.e., employment income)",
-              "query_field": "earnedAmount"
+              "field_name": "earnedAmount"
             },
             {
               "type": "CURRENCY",
               "link_id": "4.02.B",
               "text": "Unemployment Insurance",
-              "query_field": "unemploymentAmount"
+              "field_name": "unemploymentAmount"
             },
             {
               "type": "CURRENCY",
@@ -397,14 +397,14 @@
               "link_id": "4.03.2",
               "text": "Non-Cash Benefits from Any Source",
               "pick_list_reference": "NoYesReasonsForMissingData",
-              "query_field": "benefitsFromAnySource"
+              "field_name": "benefitsFromAnySource"
             },
             {
               "type": "BOOLEAN",
               "link_id": "4.03.3",
               "component": "CHECKBOX",
               "text": "Supplemental Nutrition Assistance Program (SNAP) (Previously known as Food Stamps)",
-              "query_field": "snap"
+              "field_name": "snap"
               
             },
             {
@@ -412,42 +412,42 @@
               "link_id": "4.03.4",
               "component": "CHECKBOX",
               "text": "Special Supplemental Nutrition Program for Women, Infants, and Children (WIC)",
-              "query_field": "wic"
+              "field_name": "wic"
             },
             {
               "type": "BOOLEAN",
               "link_id": "4.03.5",
               "component": "CHECKBOX",
               "text": "TANF Child Care services",
-              "query_field": "tanfChildCare"
+              "field_name": "tanfChildCare"
             },
             {
               "type": "BOOLEAN",
               "link_id": "4.03.6",
               "component": "CHECKBOX",
               "text": "TANF transportation services",
-              "query_field": "tanfTransportation"
+              "field_name": "tanfTransportation"
             },
             {
               "type": "BOOLEAN",
               "link_id": "4.03.7",
               "component": "CHECKBOX",
               "text": "Other TANF-funded services",
-              "query_field": "otherTanf"
+              "field_name": "otherTanf"
             },
             {
               "type": "BOOLEAN",
               "link_id": "4.03.8",
               "component": "CHECKBOX",
               "text": "Other source",
-              "query_field": "otherBenefitsSource"
+              "field_name": "otherBenefitsSource"
             },
             {
               "type": "STRING",
               "link_id": "4.03.A",
               "text": "Specify source",
               "required": true,
-              "query_field": "otherBenefitsSourceIdentify",
+              "field_name": "otherBenefitsSourceIdentify",
               "enable_behavior": "ALL",
               "enable_when": [
                 {
@@ -478,21 +478,21 @@
               "link_id": "4.04.2",
               "text": "Covered by Health Insurance",
               "pick_list_reference": "NoYesReasonsForMissingData",
-              "query_field": "insuranceFromAnySource"
+              "field_name": "insuranceFromAnySource"
             },
             {
               "type": "BOOLEAN",
               "component": "CHECKBOX",
               "link_id": "4.04.3",
               "text": "Medicaid",
-              "query_field": "medicaid"
+              "field_name": "medicaid"
             },
             {
               "type": "BOOLEAN",
               "component": "CHECKBOX",
               "link_id": "4.04.4",
               "text": "Medicare",
-              "query_field": "medicare"
+              "field_name": "medicare"
             },
             {
               "type": "BOOLEAN",
