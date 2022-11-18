@@ -35,8 +35,11 @@
                 - value = @report.client_value(client, k)
                 %td
                   - if k.to_s == 'client_id'
-                    = link_to from_source_client_path(client[k]) do
-                      = value
+                    = link_to value, from_source_client_path(client[k])
+                    %a{href: '#', class: ['btn', 'btn-sm'], data: { toggle: :popover, title: 'Client Information', url: api_client_path(client.client_id), html: 'true' }}
+                      %i.icon-info
+                  - elsif k.to_s == 'destination_client_id' && value.present?
+                    = link_to value, appropriate_client_path(value)
                     %a{href: '#', class: ['btn', 'btn-sm'], data: { toggle: :popover, title: 'Client Information', url: api_client_path(client.client_id), html: 'true' }}
                       %i.icon-info
                   - else

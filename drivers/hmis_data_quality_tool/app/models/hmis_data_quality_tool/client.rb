@@ -86,19 +86,38 @@ module HmisDataQualityTool
     # we're going to loop over the entire client scope once rather than
     # load it multiple times
     def self.calculate(report_items:, report:)
+      destinations_counted = {}
+      # We need to obey visibility restrictions on the source clients
+      all_source_client_ids = report.report_scope.joins(client: :warehouse_client_destination).
+        pluck(wc_t[:source_id])
+      visible_source_client_ids = GrdaWarehouse::Hud::Client.source_visible_to(
+        report.user,
+        client_ids: all_source_client_ids,
+      ).pluck(:id).to_set
       client_scope(report).find_in_batches do |batch|
         intermediate = {}
         batch.each do |client|
-          item = report_item_fields_from_client(
-            report_items: report_items,
-            client: client,
-            report: report,
-          )
-          sections(report).each do |_, calc|
-            section_title = calc[:title]
-            intermediate[section_title] ||= { denominator: {}, invalid: {} }
-            intermediate[section_title][:denominator][client] = item if calc[:denominator].call(item)
-            intermediate[section_title][:invalid][client] = item if calc[:limiter].call(item)
+          client.source_clients.each do |sc|
+            next unless visible_source_client_ids.include?(sc.id)
+
+            item = report_item_fields_from_client(
+              report_items: report_items,
+              destination_client: client,
+              source_client: sc,
+              report: report,
+            )
+            sections(report).each do |_, calc|
+              section_title = calc[:title]
+              # Only count client's once in the overlapping sections so we don't balloon the counts
+              destinations_counted[section_title] ||= Set.new
+              next if calc[:count_once] && destinations_counted[section_title].include?(client.id)
+
+              destinations_counted[section_title] << client.id if calc[:count_once]
+
+              intermediate[section_title] ||= { denominator: {}, invalid: {} }
+              intermediate[section_title][:denominator][sc] = item if calc[:denominator].call(item)
+              intermediate[section_title][:invalid][sc] = item if calc[:limiter].call(item)
+            end
           end
         end
         intermediate.each do |section_title, item_batch|
@@ -114,49 +133,49 @@ module HmisDataQualityTool
 
     def self.client_scope(report)
       GrdaWarehouse::Hud::Client.joins(source_enrollments: [:service_history_enrollment, :project]).
-        preload(:warehouse_client_source, source_enrollments: [:exit, :project]).
+        preload(:warehouse_client_source, :source_clients, source_enrollments: [:exit, :project]).
         merge(report.report_scope).distinct
     end
 
-    def self.report_item_fields_from_client(report_items:, client:, report:)
-      # we only need to do the calculations once, the values will be the same for any client,
+    def self.report_item_fields_from_client(report_items:, destination_client:, source_client:, report:)
+      # we only need to do the calculations once, the values will be the same for any source client,
       # no matter how many times we see it
-      report_item = report_items[client]
+      report_item = report_items[source_client]
       return report_item if report_item.present?
 
       report_item = new(
         report_id: report.id,
-        client_id: client.id,
-        destination_client_id: client.id, # to actually identify overlaps, we need to work against destination clients
+        client_id: source_client.id,
+        destination_client_id: destination_client.id, # to actually identify overlaps, we need to work against destination clients
       )
-      report_item.first_name = client.FirstName
-      report_item.last_name = client.LastName
-      report_item.name_data_quality = client.NameDataQuality
-      report_item.dob = client.DOB
-      report_item.dob_data_quality = client.DOBDataQuality
+      report_item.first_name = source_client.FirstName
+      report_item.last_name = source_client.LastName
+      report_item.name_data_quality = source_client.NameDataQuality
+      report_item.dob = source_client.DOB
+      report_item.dob_data_quality = source_client.DOBDataQuality
       # for simplicity, since we don't have a specific enrollment, calculate age as of the end of the reporting period
-      report_item.reporting_age = client.age_on(report.filter.end)
-      report_item.personal_id = client.PersonalID
-      report_item.data_source_id = client.data_source_id
-      report_item.male = client.Male
-      report_item.female = client.Female
-      report_item.no_single_gender = client.NoSingleGender
-      report_item.transgender = client.Transgender
-      report_item.questioning = client.Questioning
-      report_item.gender_none = client.GenderNone
-      report_item.am_ind_ak_native = client.AmIndAKNative
-      report_item.asian = client.Asian
-      report_item.black_af_american = client.BlackAfAmerican
-      report_item.native_hi_pacific = client.NativeHIPacific
-      report_item.white = client.White
-      report_item.race_none = client.RaceNone
-      report_item.ethnicity = client.Ethnicity
-      report_item.veteran_status = client.VeteranStatus
-      report_item.ssn = client.SSN
-      report_item.ssn_data_quality = client.SSNDataQuality
+      report_item.reporting_age = source_client.age_on(report.filter.end)
+      report_item.personal_id = source_client.PersonalID
+      report_item.data_source_id = source_client.data_source_id
+      report_item.male = source_client.Male
+      report_item.female = source_client.Female
+      report_item.no_single_gender = source_client.NoSingleGender
+      report_item.transgender = source_client.Transgender
+      report_item.questioning = source_client.Questioning
+      report_item.gender_none = source_client.GenderNone
+      report_item.am_ind_ak_native = source_client.AmIndAKNative
+      report_item.asian = source_client.Asian
+      report_item.black_af_american = source_client.BlackAfAmerican
+      report_item.native_hi_pacific = source_client.NativeHIPacific
+      report_item.white = source_client.White
+      report_item.race_none = source_client.RaceNone
+      report_item.ethnicity = source_client.Ethnicity
+      report_item.veteran_status = source_client.VeteranStatus
+      report_item.ssn = source_client.SSN
+      report_item.ssn_data_quality = source_client.SSNDataQuality
       # we need these for calculations, but don't want to store them permanently,
       # also, limit them to those that overlap the projects included and the date range of the report
-      report_item.enrollments = client.source_enrollments.select do |en|
+      report_item.enrollments = destination_client.source_enrollments.select do |en|
         # sometimes this loads source enrollments that are missing a project
         en.open_during_range?(report.filter.range) && en.project&.id&.in?(report.filter.effective_project_ids)
       end.uniq
@@ -471,6 +490,7 @@ module HmisDataQualityTool
           title: 'Overlapping Entry/Exit enrollments in ES, SH, and TH',
           description: 'Homeless projects using Entry/Exit tracking methods should not have overlapping enrollments.',
           required_for: 'All',
+          count_once: true,
           detail_columns: [
             :destination_client_id,
             :first_name,
@@ -487,6 +507,7 @@ module HmisDataQualityTool
           title: 'Overlapping Night-by-Night ES enrollments with other ES, SH, and TH',
           description: 'Client\'s receiving more than two overlapping ES NbN services are included.',
           required_for: 'All',
+          count_once: true,
           detail_columns: [
             :destination_client_id,
             :first_name,
@@ -504,6 +525,7 @@ module HmisDataQualityTool
           title: 'Overlapping Homeless Service After Move-in in PH',
           description: 'Bed nights in ES, SH or TH must not overlap with days housed in RRH, PSH or OPH. Client\'s receiving more than two overlapping homeless nights are included.',
           required_for: 'Adults',
+          count_once: true,
           detail_columns: [
             :destination_client_id,
             :first_name,
@@ -522,6 +544,7 @@ module HmisDataQualityTool
           title: 'Overlapping Moved-in PH',
           description: 'Client\'s should not be housed in more than one project at a time.',
           required_for: 'Adults',
+          count_once: true,
           detail_columns: [
             :destination_client_id,
             :first_name,

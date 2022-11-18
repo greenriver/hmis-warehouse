@@ -25,6 +25,7 @@ module PerformanceDashboards
 
       respond_to do |format|
         format.xlsx do
+          @options[:export] = true
           render(
             xlsx: 'details',
             filename: "#{@report.support_title(@options)} - #{Time.current.to_s.delete(',')}.xlsx",

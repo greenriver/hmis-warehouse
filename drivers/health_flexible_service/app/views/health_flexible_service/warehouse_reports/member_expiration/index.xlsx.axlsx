@@ -1,23 +1,8 @@
 wb = xlsx_package.workbook
 wb.add_worksheet(name: @report.title[0, 30]) do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
-  sheet.add_row(
-    [
-      'Medicaid ID',
-      'Last Name',
-      'First Name',
-      'VPR Start Date',
-      'VPR End Date',
-    ],
-    style: title,
-  )
+  sheet.add_row(@report.class.headers, style: title)
   @vprs.each do |vpr|
-    sheet.add_row([
-      vpr.medicaid_id,
-      vpr.last_name,
-      vpr.first_name,
-      vpr.planned_on,
-      vpr.end_date,
-    ])
+    sheet.add_row(@report.class.columns_for_export(vpr))
   end
 end

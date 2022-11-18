@@ -1,5 +1,4 @@
 wb = xlsx_package.workbook
-headers = @clients.headers
 title = 'Supporting Data'
 projects = @report.valid_project_name(params[:selected_project])
 title += " for #{projects}" if projects.present?
@@ -14,8 +13,8 @@ wb.add_worksheet name: title[0..30] do |sheet|
     title,
   ]
   sheet.add_row(summary, style: title_style)
-  sheet.add_row(headers, style: title_style)
-  @clients.support_rows.each do |row|
+  sheet.add_row(@clients.headers_for_export, style: title_style)
+  @clients.support_rows(export: true).each do |row|
     sheet.add_row(row.values)
   end
 end

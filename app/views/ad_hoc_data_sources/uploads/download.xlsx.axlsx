@@ -1,7 +1,7 @@
 wb = xlsx_package.workbook
 fields = {
   id: '',
-  client_id: 'Client ID',
+  client_id: 'Warehouse Client ID',
   first_name: 'First Name',
   middle_name: 'Middle Name',
   last_name: 'Last Name',

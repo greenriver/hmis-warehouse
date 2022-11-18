@@ -1,1 +1,1 @@
-= f.input :destination_ids, collection: @filter.available_destinations, required: false, input_html: { multiple: true }, label: control.label, as: :select_two
+= f.input :destination_ids, collection: @filter.available_destinations(grouped: true), required: false, input_html: { multiple: true }, label: control.label, as: :select_two, as: :grouped_select_two, group_method: :last

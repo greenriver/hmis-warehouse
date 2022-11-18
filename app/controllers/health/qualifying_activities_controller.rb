@@ -22,9 +22,17 @@ module Health
     end
 
     def destroy
-      @qa.claim_submitted_on = nil
-      @qa.save(validate: false)
-      flash[:notice] = 'QA unsubmitted'
+      # Destroy has 2 levels:
+      # If the claim was submitted destroy the record of that
+      # Otherwise, remove the QA
+      if @qa.claim_submitted_on.blank?
+        @qa.destroy
+        flash[:notice] = 'QA deleted'
+      else
+        @qa.claim_submitted_on = nil
+        @qa.save(validate: false)
+        flash[:notice] = 'QA unsubmitted'
+      end
       redirect_to(polymorphic_path(health_path_generator + [:qualifying_activities]))
     end
 

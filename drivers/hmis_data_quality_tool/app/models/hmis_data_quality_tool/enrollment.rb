@@ -69,6 +69,7 @@ module HmisDataQualityTool
         date_to_street_essh: { title: 'Approximate start of episode (3.917.3)' },
         times_homeless_past_three_years: { title: 'Times homelessin the past 3 years (3.917.4)' },
         months_homeless_past_three_years: { title: 'Months homeless in the past 3 years (3.917.5)' },
+        days_before_entry: { title: 'Days between approximate start of episode (3.917.3) and entry date' },
         enrollment_coc: { title: 'Enrollment CoC Code' },
         has_disability: { title: 'At least one disability?' },
         days_between_entry_and_create: { title: 'Days between entry date and date added to HMIS' },
@@ -249,6 +250,7 @@ module HmisDataQualityTool
       report_item.previous_street_es_sh = enrollment.PreviousStreetESSH
       report_item.times_homeless_past_three_years = enrollment.TimesHomelessPastThreeYears
       report_item.months_homeless_past_three_years = enrollment.MonthsHomelessPastThreeYears
+      report_item.days_before_entry = enrollment.EntryDate - enrollment.DateToStreetESSH if enrollment.DateToStreetESSH.present?
       report_item.enrollment_coc = enrollment.enrollment_coc_at_entry&.CoCCode
       report_item.has_disability = enrollment.disabilities_at_entry&.map(&:indefinite_and_impairs?)&.any?
       report_item.days_between_entry_and_create = (enrollment.DateCreated.to_date - enrollment.EntryDate).to_i
@@ -1477,6 +1479,7 @@ module HmisDataQualityTool
             :los_under_threshold,
             :times_homeless_past_three_years,
             :months_homeless_past_three_years,
+            :days_before_entry,
           ],
           denominator: ->(item) {
             return false unless hoh_or_adult?(item) && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS.include?(item.project_type)
@@ -1516,6 +1519,7 @@ module HmisDataQualityTool
             :los_under_threshold,
             :times_homeless_past_three_years,
             :months_homeless_past_three_years,
+            :days_before_entry,
           ],
           denominator: ->(item) {
             return false unless hoh_or_adult?(item) && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS.include?(item.project_type)
@@ -1555,6 +1559,7 @@ module HmisDataQualityTool
             :los_under_threshold,
             :times_homeless_past_three_years,
             :months_homeless_past_three_years,
+            :days_before_entry,
           ],
           denominator: ->(item) {
             return false unless hoh_or_adult?(item) && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS.include?(item.project_type)

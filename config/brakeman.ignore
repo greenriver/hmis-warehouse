@@ -479,7 +479,7 @@
       },
       "user_input": "`#{\"egrep -R 'table_name..*#{t}' drivers/hmis_csv_twenty_twenty_two/app/models/hmis_csv_twenty_twenty_two | cut -d: -f1\"}`",
       "confidence": "Medium",
-      "note": ""
+      "note": "Internal sources"
     },
     {
       "warning_type": "Command Injection",
@@ -891,37 +891,6 @@
       "note": "Injection from internal sources"
     },
     {
-      "warning_type": "Dynamic Render Path",
-      "warning_code": 15,
-      "fingerprint": "6012356b03eb94bac6208d03adf39acd1db517d644ec8c52e503b7efef462571",
-      "check_name": "Render",
-      "message": "Render path contains parameter value",
-      "file": "app/views/health/goals/edit.haml",
-      "line": 4,
-      "link": "https://brakemanscanner.org/docs/warning_types/dynamic_render_path/",
-      "code": "render(action => ::Health::Goal::Hpc.find(params[:id].to_i), { :readonly => false })",
-      "render_path": [
-        {
-          "type": "controller",
-          "class": "Health::GoalsController",
-          "method": "edit",
-          "line": 34,
-          "file": "app/controllers/concerns/health_goal.rb",
-          "rendered": {
-            "name": "health/goals/edit",
-            "file": "app/views/health/goals/edit.haml"
-          }
-        }
-      ],
-      "location": {
-        "type": "template",
-        "template": "health/goals/edit"
-      },
-      "user_input": "params[:id]",
-      "confidence": "Weak",
-      "note": ""
-    },
-    {
       "warning_type": "SQL Injection",
       "warning_code": 0,
       "fingerprint": "612b6d5691a811528ec05a66aa10ad125e6651851be9f0d639748af0343ccbe7",
@@ -939,7 +908,7 @@
       },
       "user_input": "table",
       "confidence": "Medium",
-      "note": ""
+      "note": "Internal sources"
     },
     {
       "warning_type": "Command Injection",
@@ -1689,7 +1658,7 @@
       },
       "user_input": "t",
       "confidence": "Medium",
-      "note": ""
+      "note": "Internal sources"
     },
     {
       "warning_type": "Remote Code Execution",
@@ -2672,6 +2641,6 @@
       "note": ""
     }
   ],
-  "updated": "2022-11-07 15:59:43 +0000",
+  "updated": "2022-11-08 21:15:43 +0000",
   "brakeman_version": "5.0.4"
 }

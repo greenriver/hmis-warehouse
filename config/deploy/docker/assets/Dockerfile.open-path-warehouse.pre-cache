@@ -26,7 +26,7 @@ RUN mkdir -p /app \
 
 WORKDIR /app
 
-COPY Gemfile Gemfile.lock Rakefile config.ru package.json ./
+COPY Gemfile Gemfile.lock Rakefile config.ru package.json yarn.lock ./
 COPY bin ./bin
 COPY public ./public
 COPY lib ./lib

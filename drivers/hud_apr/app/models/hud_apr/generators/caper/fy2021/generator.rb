@@ -21,7 +21,7 @@ module HudApr::Generators::Caper::Fy2021
     end
 
     def self.default_project_type_codes
-      GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.keys
+      GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.keys + [:prevention]
     end
 
     def url
