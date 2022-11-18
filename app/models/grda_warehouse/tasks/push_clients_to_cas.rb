@@ -10,7 +10,6 @@ module GrdaWarehouse::Tasks
     attr_accessor :logger, :send_notifications, :notifier_config
     def initialize
       setup_notifier('Warehouse-CAS Sync')
-      self.logger = Rails.logger
     end
 
     private def advisory_lock_key
@@ -25,10 +24,10 @@ module GrdaWarehouse::Tasks
       if GrdaWarehouse::DataSource.advisory_lock_exists?(advisory_lock_key)
         msg = 'Other CAS Sync in progress, exiting.'
         logger.warn msg
-        @notifier.ping(msg) if @send_notifications
+        @notifier.ping(msg)
         return
       end
-
+      @start_time = Time.current
       GrdaWarehouse::DataSource.with_advisory_lock(advisory_lock_key) do
         @client_ids = client_source.pluck(:id)
         updated_clients = []
@@ -101,8 +100,11 @@ module GrdaWarehouse::Tasks
         maintain_cas_availability_table(@client_ids)
 
         unless updated_clients.empty?
+          elapsed = Time.current - @start_time
           msg = "Updated #{updated_clients.size} ProjectClients in CAS and marked them available"
-          @notifier.ping msg if @send_notifications
+          Rails.logger.tagged({ task_name: 'Warehouse-CAS Sync', repeating_task: true, task_runtime: elapsed }) do
+            @notifier.ping msg
+          end
         end
       end
     end

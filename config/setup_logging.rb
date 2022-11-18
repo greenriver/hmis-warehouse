@@ -89,7 +89,7 @@ class SetupLogging
         x_forwarded_for: event.payload[:x_forwarded_for],
         rails_env: Rails.env,
         exception: event.payload[:exception]&.first,
-        # x_amzn_trace_id: event.payload[:headers]['HTTP_X_AMZN_TRACE_ID'],
+        x_amzn_trace_id: event.payload[:request]&.headers&.env.try(:[], 'HTTP_X_AMZN_TRACE_ID'),
       }
     end
   end
