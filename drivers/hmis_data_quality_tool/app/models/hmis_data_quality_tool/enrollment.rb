@@ -604,7 +604,7 @@ module HmisDataQualityTool
         },
         hoh_client_location_issues: {
           title: 'Head of Household is Missing Client Location',
-          description: 'Client location (CoC Code) is missing, invalid or doesn\'t match the project\'s CoC, but collection is required for all adults and heads of household',
+          description: 'Client location (CoC Code) is missing, invalid or doesn\'t match the project\'s CoC',
           required_for: 'HoH',
           detail_columns: [
             :destination_client_id,
