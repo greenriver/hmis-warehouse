@@ -67,6 +67,7 @@ jobs:
         ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
         SHA: ${{ github.sha }}
         DOCKER_ASSETS_PATH: config/deploy/docker/assets
+        BRANCH: ${{ github.ref_name }}
       run: |
         export GITHASH="${SHA::9}"
         export IMAGE_TAG="githash-${GITHASH}"
@@ -74,7 +75,8 @@ jobs:
         export PRE_CACHE_VERSION=`cat .pre-cache-version`
         export PRE_CACHE_TAG="${RUBY_VERSION}-${PRE_CACHE_VERSION}--pre-cache"
 
-        echo $GITHASH > $DOCKER_ASSETS_PATH/REVISION
+        echo $SHA > REVISION
+        echo $BRANCH > GIT_BRANCH
 
         echo "::set-output name=pre_cache_tag::$PRE_CACHE_TAG"
         echo "::set-output name=githash::$GITHASH"

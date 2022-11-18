@@ -18,8 +18,7 @@ class Deployer
   TEST_PORT   = 9999
   WAIT_TIME   = 2
 
-  attr_accessor :git_version
-  attr_accessor :git_branch
+  attr_accessor :version
   attr_accessor :image_tag
   attr_accessor :image_tag_latest
 
@@ -68,8 +67,7 @@ class Deployer
     self.registry_id       = registry_id
     self.repo_name         = repo_name
     self.variant           = 'web'
-    self.git_version       = `git rev-parse --short=9 HEAD`.chomp
-    self.git_branch        = `git branch --no-color --show-current`.chomp
+    self.version           = `git rev-parse --short=9 HEAD`.chomp
 
     Dir.chdir(_root)
   end
@@ -145,10 +143,7 @@ class Deployer
         task_role: task_role,
         web_options: web_options,
         capacity_providers: _capacity_providers,
-      ).tap do |roll_out|
-        roll_out.git_version = git_version
-        roll_out.git_branch = git_branch
-      end
+      )
   end
 
   def _ensure_clean_repo!
@@ -159,9 +154,7 @@ class Deployer
   end
 
   def _set_revision!
-    File.open("#{_assets_path}/REVISION") do |fout|
-      fout.write git_version
-    end
+    `git rev-parse HEAD > #{_assets_path}/REVISION`
   end
 
   def _check_that_you_pushed_to_remote!
@@ -314,7 +307,7 @@ class Deployer
       self.image_tag = ENV['IMAGE_TAG'] + "--#{variant}"
       self.image_tag_latest = 'latest-' + ENV['IMAGE_TAG'] + "--#{variant}"
     else
-      self.image_tag = "githash-#{git_version}--#{variant}"
+      self.image_tag = "githash-#{version}--#{variant}"
       self.image_tag_latest = "latest-#{target_group_name}--#{variant}"
     end
 
