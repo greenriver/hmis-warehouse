@@ -93,7 +93,7 @@ enum AssessmentRole {
   """
   Form for creating or editing resources directly
   """
-  RESOURCE
+  RECORD
   UPDATE
 }
 
@@ -1207,8 +1207,8 @@ type FormItem {
   enableWhen: [EnableWhen!]
 
   """
-  Name of the query input field that corresponds to this item. Only used for
-  record creation/update forms, not for assessments.
+  Name of the field on the record (or on the query input type). Used for record
+  creation/update forms and for assessment population.
   """
   fieldName: String
 

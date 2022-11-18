@@ -35,7 +35,7 @@ module Types
 
     # field mapping
     field :record_type, Forms::Enums::RelatedRecordType, 'Record type to use for population', null: true
-    field :field_name, String, 'Name of the query input field that corresponds to this item. Only used for record creation/update forms, not for assessments.', null: true
+    field :field_name, String, 'Name of the field on the record (or on the query input type). Used for record creation/update forms and for assessment population.', null: true
 
     # nested children
     field :item, ['Types::Forms::FormItem'], 'Nested items', null: true
