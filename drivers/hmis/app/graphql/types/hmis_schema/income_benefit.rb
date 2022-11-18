@@ -55,35 +55,35 @@ module Types
 
     # Benefits
     hud_field :benefits_from_any_source, HmisSchema::Enums::Hud::NoYesReasonsForMissingData
-    hud_field :snap, HmisSchema::Enums::Hud::NoYesMissing
-    hud_field :wic, HmisSchema::Enums::Hud::NoYesMissing
-    hud_field :tanf_child_care, HmisSchema::Enums::Hud::NoYesMissing
-    hud_field :tanf_transportation, HmisSchema::Enums::Hud::NoYesMissing
-    hud_field :other_tanf, HmisSchema::Enums::Hud::NoYesMissing
-    hud_field :other_benefits_source, HmisSchema::Enums::Hud::NoYesMissing
+    yes_no_missing_field :snap
+    yes_no_missing_field :wic
+    yes_no_missing_field :tanf_child_care
+    yes_no_missing_field :tanf_transportation
+    yes_no_missing_field :other_tanf
+    yes_no_missing_field :other_benefits_source
     hud_field :other_benefits_source_identify
 
     # Health
     hud_field :insurance_from_any_source, HmisSchema::Enums::Hud::NoYesReasonsForMissingData
-    hud_field :medicaid, HmisSchema::Enums::Hud::NoYesMissing
+    yes_no_missing_field :medicaid
     hud_field :no_medicaid_reason, HmisSchema::Enums::Hud::ReasonNotInsured
-    hud_field :medicare, HmisSchema::Enums::Hud::NoYesMissing
+    yes_no_missing_field :medicare
     hud_field :no_medicare_reason, HmisSchema::Enums::Hud::ReasonNotInsured
-    hud_field :schip, HmisSchema::Enums::Hud::NoYesMissing
+    yes_no_missing_field :schip
     hud_field :no_schip_reason, HmisSchema::Enums::Hud::ReasonNotInsured
-    hud_field :va_medical_services, HmisSchema::Enums::Hud::NoYesMissing
+    yes_no_missing_field :va_medical_services
     hud_field :no_va_med_reason, HmisSchema::Enums::Hud::ReasonNotInsured
-    hud_field :employer_provided, HmisSchema::Enums::Hud::NoYesMissing
+    yes_no_missing_field :employer_provided
     hud_field :no_employer_provided_reason, HmisSchema::Enums::Hud::ReasonNotInsured
-    hud_field :cobra, HmisSchema::Enums::Hud::NoYesMissing
+    yes_no_missing_field :cobra
     hud_field :no_cobra_reason, HmisSchema::Enums::Hud::ReasonNotInsured
-    hud_field :private_pay, HmisSchema::Enums::Hud::NoYesMissing
+    yes_no_missing_field :private_pay
     hud_field :no_private_pay_reason, HmisSchema::Enums::Hud::ReasonNotInsured
-    hud_field :state_health_ins, HmisSchema::Enums::Hud::NoYesMissing
+    yes_no_missing_field :state_health_ins
     hud_field :no_state_health_ins_reason, HmisSchema::Enums::Hud::ReasonNotInsured
-    hud_field :indian_health_services, HmisSchema::Enums::Hud::NoYesMissing
+    yes_no_missing_field :indian_health_services
     hud_field :no_indian_health_services_reason, HmisSchema::Enums::Hud::ReasonNotInsured
-    hud_field :other_insurance, HmisSchema::Enums::Hud::NoYesMissing
+    yes_no_missing_field :other_insurance
     hud_field :other_insurance_identify
 
     hud_field :hivaids_assistance, HmisSchema::Enums::Hud::NoYesReasonsForMissingData

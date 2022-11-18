@@ -14,7 +14,7 @@ module Types
     field :id, ID, null: false
     field :organization_name, String, null: false
     projects_field :projects, type: Types::HmisSchema::Project.page_type
-    field :victim_service_provider, Boolean, null: true
+    yes_no_missing_field :victim_service_provider, null: true
     field :description, String, null: true
     field :contact_information, String, null: true
     field :date_updated, GraphQL::Types::ISO8601DateTime, null: false
@@ -23,10 +23,6 @@ module Types
 
     def projects(**args)
       resolve_projects_with_loader(:projects, **args)
-    end
-
-    def victim_service_provider
-      resolve_yes_no_missing(object.victim_service_provider)
     end
 
     def self.organizations(scope = Hmis::Hud::Organization.all, user:)

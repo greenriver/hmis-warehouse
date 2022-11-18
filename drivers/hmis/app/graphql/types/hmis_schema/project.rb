@@ -39,20 +39,6 @@ module Types
     hud_field :date_deleted
     field :active, Boolean, null: false
 
-    # rubocop:disable Naming/MethodName
-    def HMISParticipatingProject
-      resolve_yes_no_missing(object.HMISParticipatingProject)
-    end
-    # rubocop:enable Naming/MethodName
-
-    def continuum_project
-      resolve_yes_no_missing(object.continuum_project)
-    end
-
-    def residential_affiliation
-      resolve_yes_no_missing(object.residential_affiliation)
-    end
-
     def organization
       load_ar_association(object, :organization)
     end

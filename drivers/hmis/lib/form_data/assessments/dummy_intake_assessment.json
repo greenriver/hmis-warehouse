@@ -289,13 +289,13 @@
               "type": "CURRENCY",
               "link_id": "4.02.A",
               "text": "Earned Income (i.e., employment income)",
-              "query_field": "earnedIncome"
+              "query_field": "earnedAmount"
             },
             {
               "type": "CURRENCY",
               "link_id": "4.02.B",
               "text": "Unemployment Insurance",
-              "query_field": "unemploymentInsurance"
+              "query_field": "unemploymentAmount"
             },
             {
               "type": "CURRENCY",
@@ -385,6 +385,7 @@
       "link_id": "non-cash-benefits",
       "text": "Non-Cash Benefits",
       "data_collected_about": "HOH_AND_ADULTS",
+      "record_type": "INCOME_BENEFITS",
       "item": [
         {
           "type": "GROUP",
@@ -395,49 +396,58 @@
               "type": "CHOICE",
               "link_id": "4.03.2",
               "text": "Non-Cash Benefits from Any Source",
-              "pick_list_reference": "NoYesReasonsForMissingData"
+              "pick_list_reference": "NoYesReasonsForMissingData",
+              "query_field": "benefitsFromAnySource"
             },
             {
               "type": "BOOLEAN",
               "link_id": "4.03.3",
               "component": "CHECKBOX",
-              "text": "Supplemental Nutrition Assistance Program (SNAP) (Previously known as Food Stamps)"
+              "text": "Supplemental Nutrition Assistance Program (SNAP) (Previously known as Food Stamps)",
+              "query_field": "snap"
+              
             },
             {
               "type": "BOOLEAN",
               "link_id": "4.03.4",
               "component": "CHECKBOX",
-              "text": "Special Supplemental Nutrition Program for Women, Infants, and Children (WIC)"
+              "text": "Special Supplemental Nutrition Program for Women, Infants, and Children (WIC)",
+              "query_field": "wic"
             },
             {
               "type": "BOOLEAN",
               "link_id": "4.03.5",
               "component": "CHECKBOX",
-              "text": "TANF Child Care services"
+              "text": "TANF Child Care services",
+              "query_field": "tanfChildCare"
             },
             {
               "type": "BOOLEAN",
               "link_id": "4.03.6",
               "component": "CHECKBOX",
-              "text": "TANF transportation services"
+              "text": "TANF transportation services",
+              "query_field": "tanfTransportation"
             },
             {
               "type": "BOOLEAN",
               "link_id": "4.03.7",
               "component": "CHECKBOX",
-              "text": "Other TANF-funded services"
+              "text": "Other TANF-funded services",
+              "query_field": "otherTanf"
             },
             {
               "type": "BOOLEAN",
               "link_id": "4.03.8",
               "component": "CHECKBOX",
-              "text": "Other source"
+              "text": "Other source",
+              "query_field": "otherBenefitsSource"
             },
             {
               "type": "STRING",
               "link_id": "4.03.A",
               "text": "Specify source",
               "required": true,
+              "query_field": "otherBenefitsSourceIdentify",
               "enable_behavior": "ALL",
               "enable_when": [
                 {
@@ -456,6 +466,7 @@
       "link_id": "health-insurance",
       "text": "Health Insurance",
       "data_collected_about": "ALL_CLIENTS",
+      "record_type": "INCOME_BENEFITS",
       "item": [
         {
           "type": "GROUP",
@@ -466,19 +477,22 @@
               "type": "CHOICE",
               "link_id": "4.04.2",
               "text": "Covered by Health Insurance",
-              "pick_list_reference": "NoYesReasonsForMissingData"
+              "pick_list_reference": "NoYesReasonsForMissingData",
+              "query_field": "insuranceFromAnySource"
             },
             {
               "type": "BOOLEAN",
               "component": "CHECKBOX",
               "link_id": "4.04.3",
-              "text": "Medicaid"
+              "text": "Medicaid",
+              "query_field": "medicaid"
             },
             {
               "type": "BOOLEAN",
               "component": "CHECKBOX",
               "link_id": "4.04.4",
-              "text": "Medicare"
+              "text": "Medicare",
+              "query_field": "medicare"
             },
             {
               "type": "BOOLEAN",

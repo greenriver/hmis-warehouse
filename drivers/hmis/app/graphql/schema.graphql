@@ -1005,8 +1005,8 @@ type Event {
   eventDate: ISO8601DateTime!
   id: ID!
   locationCrisisOrPhHousing: String
-  probSolDivRrResult: NoYesMissing
-  referralCaseManageAfter: NoYesMissing
+  probSolDivRrResult: Boolean
+  referralCaseManageAfter: Boolean
   referralResult: ReferralResult
   resultDate: ISO8601DateTime
   user: User!
@@ -1831,24 +1831,24 @@ type IncomeBenefit {
   benefitsFromAnySource: NoYesReasonsForMissingData
   childSupportAmount: Float
   client: Client!
-  cobra: NoYesMissing
+  cobra: Boolean
   connectionWithSoar: NoYesReasonsForMissingData
   dataCollectionStage: DataCollectionStage!
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
   earnedAmount: Float
-  employerProvided: NoYesMissing
+  employerProvided: Boolean
   enrollment: Enrollment!
   gaAmount: Float
   hivaidsAssistance: NoYesReasonsForMissingData
   id: ID!
   incomeFromAnySource: NoYesReasonsForMissingData
-  indianHealthServices: NoYesMissing
+  indianHealthServices: Boolean
   informationDate: ISO8601Date!
   insuranceFromAnySource: NoYesReasonsForMissingData
-  medicaid: NoYesMissing
-  medicare: NoYesMissing
+  medicaid: Boolean
+  medicare: Boolean
   noAdapReason: NoAssistanceReason
   noCobraReason: ReasonNotInsured
   noEmployerProvidedReason: ReasonNotInsured
@@ -1861,33 +1861,33 @@ type IncomeBenefit {
   noSchipReason: ReasonNotInsured
   noStateHealthInsReason: ReasonNotInsured
   noVaMedReason: ReasonNotInsured
-  otherBenefitsSource: NoYesMissing
+  otherBenefitsSource: Boolean
   otherBenefitsSourceIdentify: String
   otherIncomeAmount: Float
   otherIncomeSourceIdentify: String
-  otherInsurance: NoYesMissing
+  otherInsurance: Boolean
   otherInsuranceIdentify: String
-  otherTanf: NoYesMissing
+  otherTanf: Boolean
   pensionAmount: Float
   privateDisabilityAmount: Float
-  privatePay: NoYesMissing
+  privatePay: Boolean
   ryanWhiteMedDent: NoYesReasonsForMissingData
-  schip: NoYesMissing
-  snap: NoYesMissing
+  schip: Boolean
+  snap: Boolean
   socSecRetirementAmount: Float
   ssdiAmount: Float
   ssiAmount: Float
-  stateHealthIns: NoYesMissing
+  stateHealthIns: Boolean
   tanfAmount: Float
-  tanfChildCare: NoYesMissing
-  tanfTransportation: NoYesMissing
+  tanfChildCare: Boolean
+  tanfTransportation: Boolean
   totalMonthlyIncome: String
   unemploymentAmount: Float
   user: User!
   vaDisabilityNonServiceAmount: Float
   vaDisabilityServiceAmount: Float
-  vaMedicalServices: NoYesMissing
-  wic: NoYesMissing
+  vaMedicalServices: Boolean
+  wic: Boolean
   workersCompAmount: Float
 }
 
@@ -2516,26 +2516,6 @@ enum NoAssistanceReason {
 }
 
 """
-1.7
-"""
-enum NoYesMissing {
-  """
-  (99) Data not collected
-  """
-  DATA_NOT_COLLECTED
-
-  """
-  (0) No
-  """
-  NO
-
-  """
-  (1) Yes
-  """
-  YES
-}
-
-"""
 1.8
 """
 enum NoYesReasonsForMissingData {
@@ -3111,13 +3091,44 @@ enum ReferralResult {
 Related record type for a group of questions in an assessment
 """
 enum RelatedRecordType {
+  """
+  CurrentLivingSituation
+  """
   CURRENT_LIVING_SITUATION
+
+  """
+  Disability
+  """
   DISABILITIES
+
+  """
+  ExmploymentEducation
+  """
   EMPLOYMENT_EDUCATION
+
+  """
+  Enrollment
+  """
   ENROLLMENT
+
+  """
+  Exit
+  """
   EXIT
+
+  """
+  HealthAndDv
+  """
   HEALTH_AND_DV
+
+  """
+  IncomeBenefit
+  """
   INCOME_BENEFITS
+
+  """
+  YouthEducationStatus
+  """
   YOUTH_EDUCATION_STATUS
 }
 

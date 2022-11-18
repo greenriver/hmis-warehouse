@@ -11,13 +11,13 @@ module Types
     description 'Related record type for a group of questions in an assessment'
     graphql_name 'RelatedRecordType'
 
-    value 'ENROLLMENT'
-    value 'INCOME_BENEFITS'
-    value 'DISABILITIES'
-    value 'HEALTH_AND_DV'
-    value 'EXIT'
-    value 'CURRENT_LIVING_SITUATION'
-    value 'YOUTH_EDUCATION_STATUS'
-    value 'EMPLOYMENT_EDUCATION'
+    value 'ENROLLMENT', 'Enrollment'
+    value 'INCOME_BENEFITS', 'IncomeBenefit'
+    value 'DISABILITIES', 'Disability'
+    value 'HEALTH_AND_DV', 'HealthAndDv'
+    value 'EXIT', 'Exit'
+    value 'CURRENT_LIVING_SITUATION', 'CurrentLivingSituation'
+    value 'YOUTH_EDUCATION_STATUS', 'YouthEducationStatus'
+    value 'EMPLOYMENT_EDUCATION', 'ExmploymentEducation'
   end
 end
