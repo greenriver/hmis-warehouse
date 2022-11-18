@@ -135,7 +135,7 @@ type AssessmentsPaginated {
 }
 
 """
-2.7.4
+2.07.6
 """
 enum Availability {
   """
@@ -155,7 +155,7 @@ enum Availability {
 }
 
 """
-2.7.3
+2.07.5
 """
 enum BedType {
   """
@@ -517,7 +517,7 @@ type CreateServicePayload {
 }
 
 """
-3.3.2
+3.03.2
 """
 enum DOBDataQuality {
   """
@@ -963,7 +963,7 @@ type EnrollmentsPaginated {
 }
 
 """
-3.5.1
+3.05.1
 """
 enum Ethnicity {
   """
@@ -1330,7 +1330,7 @@ type FundersPaginated {
 }
 
 """
-2.6.1
+2.06.1
 """
 enum FundingSource {
   """
@@ -1630,7 +1630,7 @@ enum Gender {
 }
 
 """
-2.8.7
+2.03.4
 """
 enum GeographyType {
   """
@@ -1708,7 +1708,7 @@ type HealthAndDvsPaginated {
 }
 
 """
-4.27.1
+R7.1
 """
 enum HealthStatus {
   """
@@ -1771,7 +1771,7 @@ type HouseholdClient {
 }
 
 """
-2.7.2
+2.07.4
 """
 enum HouseholdType {
   """
@@ -1958,7 +1958,7 @@ Arbitrary JSON Type
 scalar JsonObject
 
 """
-3.917.1
+3.12.1
 """
 enum LivingSituation {
   """
@@ -2404,7 +2404,7 @@ type Mutation {
 }
 
 """
-3.1.5
+3.01.5
 """
 enum NameDataQuality {
   """
@@ -3071,7 +3071,7 @@ enum ResidencePriorLengthOfStay {
 }
 
 """
-3.2.2
+3.02.2
 """
 enum SSNDataQuality {
   """
@@ -3856,7 +3856,7 @@ enum TargetPopulation {
 }
 
 """
-3.3917.4
+3.917.4
 """
 enum TimesHomelessPastThreeYears {
   """
