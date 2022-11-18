@@ -22,11 +22,17 @@ module Filter::FilterScopes
     private def filter_for_cocs(scope)
       return scope unless @filter.coc_codes.present?
 
-      # scope.joins(project: :project_cocs).
-      #   merge(GrdaWarehouse::Hud::ProjectCoc.in_coc(coc_code: @filter.coc_codes))
+      scope = filter_for_project_cocs(scope)
+      filter_for_enrollment_cocs(scope)
+    end
+
+    private def filter_for_project_cocs(scope)
       scope.joins(project: :project_cocs).
-        left_outer_joins(enrollment: :enrollment_coc_at_entry).
-        merge(GrdaWarehouse::Hud::ProjectCoc.in_coc(coc_code: @filter.coc_codes)).
+        merge(GrdaWarehouse::Hud::ProjectCoc.in_coc(coc_code: @filter.coc_codes))
+    end
+
+    private def filter_for_enrollment_cocs(scope)
+      scope.left_outer_joins(enrollment: :enrollment_coc_at_entry).
         # limit enrollment coc to the cocs chosen, and any random thing that's not a valid coc
         merge(
           GrdaWarehouse::Hud::EnrollmentCoc.where(CoCCode: @filter.coc_codes).
