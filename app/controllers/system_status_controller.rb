@@ -56,17 +56,6 @@ class SystemStatusController < ApplicationController
 
     status = 417 if cache_message != 'OK'
 
-    branch = begin
-               `git rev-parse HEAD`.chomp
-             rescue StandardError
-               'unknown'
-             end
-    revision = (begin
-                  File.read(File.join(Rails.root, 'REVISION'))
-                rescue StandardError
-                  branch
-                end)
-
     db_message = 'UNKNOWN'
     begin
       db_message = (ApplicationRecord.connection.execute('select 1') ? 'OK' : 'FAILED')
@@ -128,8 +117,8 @@ class SystemStatusController < ApplicationController
       db: db_message,
       jobs_stats: jobs_stats,
       jobs_message: jobs_message,
-      revision: revision.chomp,
-      branch: branch,
+      revision: Git.revision,
+      branch: Git.branch,
       hostname: `hostname`.chomp,
       cache: cache_message,
       user_count_positive: User.all.any?,

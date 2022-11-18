@@ -65,6 +65,3 @@ ENV['CURRENT_PATH'] = if /^\d+$/.match?(root_folder)
 else
   Rails.root.to_s
 end
-if File.exists?(File.join(ENV['CURRENT_PATH'], 'REVISION'))
-  ENV['GIT_REVISION'] = File.read(File.join(ENV['CURRENT_PATH'], 'REVISION'))&.strip
-end

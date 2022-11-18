@@ -34,6 +34,8 @@ class RollOut
   attr_accessor :task_arn
   attr_accessor :web_options
   attr_accessor :only_check_ram
+  attr_accessor :git_version
+  attr_accessor :git_branch
 
   include SharedLogic
   include AwsSdkHelpers::Helpers
@@ -110,6 +112,8 @@ class RollOut
       { 'name' => 'CLUSTER_NAME', 'value' => self.cluster },
       { 'name' => 'RAILS_ENV', 'value' => rails_env },
       { 'name' => 'DEPLOYMENT_ID', 'value' => self.deployment_id },
+      { 'name' => 'GIT_VERSION', 'value' => git_version },
+      { 'name' => 'GIT_BRANCH', 'value' => git_branch },
       # { "name" => "RAILS_MAX_THREADS", "value" => '5' },
       # { "name" => "WEB_CONCURRENCY", "value" =>  '2' },
       # { "name" => "PUMA_PERSISTENT_TIMEOUT", "value" =>  '70' },

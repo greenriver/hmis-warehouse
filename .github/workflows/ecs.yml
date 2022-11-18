@@ -74,7 +74,7 @@ jobs:
         export PRE_CACHE_VERSION=`cat .pre-cache-version`
         export PRE_CACHE_TAG="${RUBY_VERSION}-${PRE_CACHE_VERSION}--pre-cache"
 
-        echo $SHA > $DOCKER_ASSETS_PATH/REVISION
+        echo $GITHASH > $DOCKER_ASSETS_PATH/REVISION
 
         echo "::set-output name=pre_cache_tag::$PRE_CACHE_TAG"
         echo "::set-output name=githash::$GITHASH"
@@ -116,7 +116,6 @@ jobs:
         IMAGE_TAG: ${{ steps.prep.outputs.image_tag }}
         RUBY_VERSION: ${{ steps.prep.outputs.ruby_version }}
       run: |
-        echo $SHA > $DOCKER_ASSETS_PATH/REVISION
         echo 'no tag generated' > image-tag.txt
 
         echo Building base
