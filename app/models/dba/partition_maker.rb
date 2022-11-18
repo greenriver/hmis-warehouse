@@ -42,7 +42,7 @@ class DBA::PartitionMaker
   end
 
   def no_table?
-    !table_exists?(partitioned_table)
+    !table_exists?(table_name)
   end
 
   private
@@ -113,6 +113,10 @@ class DBA::PartitionMaker
       p(<<~SQL)
         ALTER TABLE "#{partitioned_table}" RENAME TO "#{table_name}";
       SQL
+
+      p(<<~SQL)
+        ALTER SEQUENCE #{table_name}_id_seq OWNED BY #{table_name}.id;
+      SQL
     end
   end
 
@@ -123,6 +127,11 @@ class DBA::PartitionMaker
   end
 
   def _copy
+    Rails.logger.info 'Setting maintenance_work_mem to 2GB'
+    p(<<~SQL)
+      SET maintenance_work_mem='2GB'
+    SQL
+
     results = Benchmark.measure do
       p(<<~SQL)
         INSERT INTO "#{partitioned_table}" SELECT * FROM "#{table_name}"
