@@ -776,7 +776,9 @@ module HmisCsvImporter::Importer
         importer_log.save
         data_source.update(last_imported_at: Time.current)
         elapsed = importer_log.completed_at - @started_at
-        log("Completed importing in #{elapsed_time(elapsed)} #{hash_as_log_str log_ids}.  #{summary_as_log_str(importer_log.summary)}")
+        Rails.logger.tagged({ task_name: 'HMIS CSV Importer', repeating_task: true, task_runtime: elapsed }) do
+          log("Completed importing in #{elapsed_time(elapsed)} #{hash_as_log_str log_ids}.  #{summary_as_log_str(importer_log.summary)}")
+        end
         @import_log&.update(importer_log: importer_log)
       end
     end
