@@ -20,7 +20,7 @@ module HmisDataQualityTool
     INSTITUTIONAL_LIVING_SITUATIONS = [15, 6, 7, 25, 4, 5].freeze
     HOUSED_LIVING_SITUATIONS = [29, 14, 2, 32, 36, 35, 28, 19, 3, 31, 33, 34, 10, 20, 21, 11, 8, 9, 99].freeze
 
-    attr_accessor :report_end_date, :entry_threshold, :exit_threshold
+    attr_accessor :report_end_date, :entry_threshold, :exit_threshold, :project_coc_codes
 
     has_many :hud_reports_universe_members, inverse_of: :universe_membership, class_name: 'HudReports::UniverseMember', foreign_key: :universe_membership_id
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', optional: true
@@ -135,10 +135,9 @@ module HmisDataQualityTool
 
     def self.enrollment_scope(report)
       GrdaWarehouse::Hud::Enrollment.joins(:service_history_enrollment).
-        left_outer_joins(:exit).
+        left_outer_joins(:exit, :enrollment_coc_at_entry).
         preload(
           :exit,
-          :project,
           :services,
           :current_living_situations,
           :enrollment_coc_at_entry,
@@ -148,6 +147,7 @@ module HmisDataQualityTool
           :income_benefits_at_exit,
           :income_benefits_annual_update,
           client: :warehouse_client_source,
+          project: :project_cocs,
         ).
         merge(report.report_scope).distinct
     end
@@ -251,7 +251,9 @@ module HmisDataQualityTool
       report_item.times_homeless_past_three_years = enrollment.TimesHomelessPastThreeYears
       report_item.months_homeless_past_three_years = enrollment.MonthsHomelessPastThreeYears
       report_item.days_before_entry = enrollment.EntryDate - enrollment.DateToStreetESSH if enrollment.DateToStreetESSH.present?
-      report_item.enrollment_coc = enrollment.enrollment_coc_at_entry&.CoCCode
+      # Note this differs form coc_code since it is found by ignoring the CoC limit on the enrollment_scope
+      report_item.enrollment_coc = enrollment_cocs(report)[enrollment.id]
+      report_item.project_coc_codes = enrollment.project&.project_cocs&.map(&:CoCCode) || []
       report_item.has_disability = enrollment.disabilities_at_entry&.map(&:indefinite_and_impairs?)&.any?
       report_item.days_between_entry_and_create = (enrollment.DateCreated.to_date - enrollment.EntryDate).to_i
 
@@ -344,6 +346,12 @@ module HmisDataQualityTool
       report_item
     end
 
+    private def enrollment_cocs(report)
+      @enrollment_cocs ||= self.class.enrollment_scope(report).
+        pluck(e_t[:id], ec_t[:CoCCode]).
+        to_h
+    end
+
     private def household_type(min_age, max_age)
       return 'Unknown' if min_age.blank? || max_age.blank?
       return 'Adult Only' if min_age >= 18
@@ -389,6 +397,18 @@ module HmisDataQualityTool
 
     def self.hoh_or_adult?(item)
       item.age.present? && item.age > 18 || item.relationship_to_hoh == 1
+    end
+
+    def self.chronic_denominator?(item)
+      return false unless hoh_or_adult?(item) && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS.include?(item.project_type)
+      # required for HoH and Adults in ES, SO, SH
+      return true if GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES.include?(item.project_type)
+
+      return true if item.living_situation.in?(HOMELESS_LIVING_SITUATIONS)
+      return true if item.living_situation.in?(INSTITUTIONAL_LIVING_SITUATIONS) && item.los_under_threshold == 1 && item.previous_street_es_sh
+      return true if item.living_situation.in?(HOUSED_LIVING_SITUATIONS) && item.los_under_threshold == 1 && item.previous_street_es_sh
+
+      false
     end
 
     def self.sections(report) # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
@@ -584,8 +604,8 @@ module HmisDataQualityTool
         },
         hoh_client_location_issues: {
           title: 'Head of Household is Missing Client Location',
-          description: 'Client location (CoC Code) is missing or invalid, but collection is required for all adults and heads of household',
-          required_for: 'Adults and HoH',
+          description: 'Client location (CoC Code) is missing, invalid or doesn\'t match the project\'s CoC, but collection is required for all adults and heads of household',
+          required_for: 'HoH',
           detail_columns: [
             :destination_client_id,
             :hmis_enrollment_id,
@@ -599,9 +619,20 @@ module HmisDataQualityTool
             :relationship_to_hoh,
             :coc_code,
           ],
-          denominator: ->(item) { hoh_or_adult?(item) },
+          denominator: ->(item) { item.relationship_to_hoh == 1 },
           limiter: ->(item) {
-            item.relationship_to_hoh == 1 && item.coc_code.blank? && HUD.valid_coc?(item.coc_code)
+            # Only HoH
+            return false unless item.relationship_to_hoh == 1
+            # Must have a CoC Code
+            return true if item.coc_code.blank?
+            # Must be a known CoC
+            return true unless HUD.valid_coc?(item.coc_code)
+            # If the project doesn't have a CoC, then we don't know if the enrollment CoC is in the right place
+            # so just ignore it
+            return false if item.project_coc_codes.blank?
+
+            # If the enrollment CoC doesn't match a project CoC
+            ! item.enrollment_coc.in?(item.project_coc_codes)
           },
         },
         future_exit_date_issues: {
@@ -1482,19 +1513,10 @@ module HmisDataQualityTool
             :days_before_entry,
           ],
           denominator: ->(item) {
-            return false unless hoh_or_adult?(item) && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS.include?(item.project_type)
-            # required for HoH and Adults in ES, SO, SH
-            return true if GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES.include?(item.project_type)
-
-            return true if item.living_situation.in?(HOMELESS_LIVING_SITUATIONS)
-            return true if item.living_situation.in?(INSTITUTIONAL_LIVING_SITUATIONS) && item.los_under_threshold == 1 && item.previous_street_es_sh
-            return true if item.living_situation.in?(HOUSED_LIVING_SITUATIONS) && item.los_under_threshold == 1 && item.previous_street_es_sh
-
-            false
+            chronic_denominator?(item)
           },
           limiter: ->(item) {
-            return false unless hoh_or_adult?(item)
-            return false unless GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS.include?(item.project_type)
+            return false unless chronic_denominator?(item)
 
             item.date_to_street_essh.blank?
           },
@@ -1522,19 +1544,10 @@ module HmisDataQualityTool
             :days_before_entry,
           ],
           denominator: ->(item) {
-            return false unless hoh_or_adult?(item) && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS.include?(item.project_type)
-            # required for HoH and Adults in ES, SO, SH
-            return true if GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES.include?(item.project_type)
-
-            return true if item.living_situation.in?(HOMELESS_LIVING_SITUATIONS)
-            return true if item.living_situation.in?(INSTITUTIONAL_LIVING_SITUATIONS) && item.los_under_threshold == 1 && item.previous_street_es_sh
-            return true if item.living_situation.in?(HOUSED_LIVING_SITUATIONS) && item.los_under_threshold == 1 && item.previous_street_es_sh
-
-            false
+            chronic_denominator?(item)
           },
           limiter: ->(item) {
-            return false unless hoh_or_adult?(item)
-            return false unless GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS.include?(item.project_type)
+            return false unless chronic_denominator?(item)
 
             item.times_homeless_past_three_years.blank? || item.times_homeless_past_three_years == 99
           },
@@ -1562,19 +1575,10 @@ module HmisDataQualityTool
             :days_before_entry,
           ],
           denominator: ->(item) {
-            return false unless hoh_or_adult?(item) && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS.include?(item.project_type)
-            # required for HoH and Adults in ES, SO, SH
-            return true if GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES.include?(item.project_type)
-
-            return true if item.living_situation.in?(HOMELESS_LIVING_SITUATIONS)
-            return true if item.living_situation.in?(INSTITUTIONAL_LIVING_SITUATIONS) && item.los_under_threshold == 1 && item.previous_street_es_sh
-            return true if item.living_situation.in?(HOUSED_LIVING_SITUATIONS) && item.los_under_threshold == 1 && item.previous_street_es_sh
-
-            false
+            chronic_denominator?(item)
           },
           limiter: ->(item) {
-            return false unless hoh_or_adult?(item)
-            return false unless GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS.include?(item.project_type)
+            return false unless chronic_denominator?(item)
 
             item.months_homeless_past_three_years.blank? || item.months_homeless_past_three_years == 99
           },
