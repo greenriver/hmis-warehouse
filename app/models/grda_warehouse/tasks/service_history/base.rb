@@ -12,13 +12,10 @@ module GrdaWarehouse::Tasks::ServiceHistory
     include NotifierConfig
     include ::ServiceHistory::Builder
 
-    attr_accessor :logger, :send_notifications, :notifier_config
-
     # Debugging
     attr_accessor :batch, :to_patch
 
     def initialize(client_ids: nil, batch_size: 250, force_sequential_processing: false)
-      self.logger = Rails.logger
       setup_notifier('Service History Generator')
       @batch_size = batch_size
       @client_ids = Array(client_ids).uniq
@@ -31,7 +28,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
 
     def process
       begin
-        logger.info "Generating Service History #{'[DRY RUN!]' if @dry_run}"
+        Rails.logger.info "Generating Service History #{'[DRY RUN!]' if @dry_run}"
         @client_ids = if @client_ids.present? && @client_ids.any?
           @client_ids
         else
@@ -48,8 +45,8 @@ module GrdaWarehouse::Tasks::ServiceHistory
     end
 
     def log_and_send_message msg
-      logger.info msg
-      @notifier.ping msg if @send_notifications
+      Rails.logger.info msg
+      @notifier.ping msg
     end
 
     def client_source

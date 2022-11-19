@@ -10,7 +10,7 @@ module EtoApi::Tasks
   class UpdateEtoData
     include ActionView::Helpers::DateHelper
     include NotifierConfig
-    attr_accessor :send_notifications, :notifier_config, :notifier
+    attr_accessor :notifier
     # Local accessors for processed_fields-only data
     attr_accessor :phone, :email, :language_1, :language_2, :youth_current_zip
 
@@ -470,7 +470,7 @@ module EtoApi::Tasks
         true
       rescue Exception
         # msg = "Failed to save, probably dirty: #{e.message}"
-        # notifier.ping msg if send_notifications
+        # notifier.ping msg
         false
       end
     end

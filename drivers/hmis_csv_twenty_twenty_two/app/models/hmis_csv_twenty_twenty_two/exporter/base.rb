@@ -17,7 +17,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
     include ::Export::Exporter
     include ::Export::Scopes
 
-    attr_accessor :logger, :notifier_config, :file_path, :version, :export, :include_deleted
+    attr_accessor :file_path, :version, :export, :include_deleted
 
     def initialize( # rubocop:disable  Metrics/ParameterLists
       version: '2022',
@@ -35,13 +35,11 @@ module HmisCsvTwentyTwentyTwo::Exporter
       confidential: false,
       options: {},
       file_path: 'var/hmis_export',
-      logger: Rails.logger,
       debug: true
     )
       setup_notifier('HMIS Exporter 2022')
       @version = version
       @file_path = "#{file_path}/#{Time.now.to_f}"
-      @logger = logger
       @debug = debug
       @range = ::Filters::DateRange.new(start: start_date, end: end_date)
       @projects = if coc_codes.present?

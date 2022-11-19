@@ -79,7 +79,7 @@ module Export::Exporter
 
     def log(message)
       @notifier&.ping message
-      logger.info message if @debug
+      Rails.logger.info message if @debug
     end
 
     def set_time_format

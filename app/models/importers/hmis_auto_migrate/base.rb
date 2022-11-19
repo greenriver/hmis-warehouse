@@ -9,8 +9,6 @@ module Importers::HmisAutoMigrate
   class Base
     include NotifierConfig
 
-    attr_accessor :notifier_config
-
     def import!
       # pre_process should do any cleanup of the zip file contents
       # and present a clean zip file in the @upload variable

@@ -8,7 +8,7 @@ class Users::OmniauthCallbacksController < Devise::OmniauthCallbacksController
   include AuthenticatesWithTwoFactor
 
   def okta
-    logger.debug "OmniauthCallbacksController#okta #{request.env['omniauth.auth'].inspect}"
+    Rails.logger.debug "OmniauthCallbacksController#okta #{request.env['omniauth.auth'].inspect}"
 
     user = User.from_omniauth request.env['omniauth.auth']
 
@@ -38,7 +38,7 @@ class Users::OmniauthCallbacksController < Devise::OmniauthCallbacksController
   end
 
   def failure
-    logger.error "OmniauthCallbacksController#failure #{request.env['omniauth.auth']}"
+    Rails.logger.error "OmniauthCallbacksController#failure #{request.env['omniauth.auth']}"
     super
   end
 end

@@ -13,7 +13,7 @@ module EtoApi
   class Base
     extend Memoist
     include NotifierConfig
-    attr_accessor :send_notifications, :notifier_config, :notifier
+    attr_accessor :notifier
     attr_accessor :trace
 
     def initialize(trace: false, api_connection: 'dnd_eto')

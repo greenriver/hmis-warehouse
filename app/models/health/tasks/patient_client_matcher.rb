@@ -9,8 +9,6 @@ module Health::Tasks
     include NotifierConfig
     include ObviousClientMatcher
 
-    attr_accessor :send_notifications, :notifier_config
-
     def run!
       setup_notifier('PatientClientMatcher')
       Rails.logger.info 'Loading unprocessed patients'
@@ -78,7 +76,7 @@ module Health::Tasks
 
     def notify(msg)
       Rails.logger.info msg
-      @notifier.ping msg if @send_notifications
+      @notifier.ping msg
     end
   end
 end

@@ -10,7 +10,7 @@ module GrdaWarehouse::Tasks
     include NotifierConfig
     include ::ServiceHistory::Builder
 
-    attr_accessor :logger, :send_notifications, :notifier_config
+    attr_accessor :send_notifications
     MAX_ATTEMPTS = 3 # We'll check anything a few times, but don't run forever
     CACHE_KEY = 'sanity_check_service_history'.freeze
 
@@ -18,7 +18,6 @@ module GrdaWarehouse::Tasks
       @sample_size = sample_size
       @client_ids = client_ids
       setup_notifier('Sanity Checker')
-      @logger = Rails.logger
       @dirty = false
       @sample_size = @client_ids.size if @client_ids.any?
       @batch_size = 1000
@@ -27,7 +26,7 @@ module GrdaWarehouse::Tasks
     # Pick a sample of destination clients and compare the number of entry and exit records
     # they have in their source data to the number they have in their service history
     def run!
-      logger.info "Sanity checking #{@sample_size} random clients..."
+      Rails.logger.info "Sanity checking #{@sample_size} random clients..."
       choose_sample
       # Load all of the data in batches, sometimes the massive queries are slow
       @destinations.keys.each_slice(@batch_size) do |batch|
@@ -40,7 +39,7 @@ module GrdaWarehouse::Tasks
         # load_source_service_counts(batch)
       end
       sanity_check
-      logger.info '...sanity check complete'
+      Rails.logger.info '...sanity check complete'
       @dirty
     end
 
@@ -51,7 +50,7 @@ module GrdaWarehouse::Tasks
         next if counts[:service_history].except(:service) == counts[:source].except(:service) || clients_still_processing?(client_ids: id)
 
         msg = "```client: #{id} \n#{counts.except(:source_personal_ids).inspect}```\n"
-        logger.warn msg
+        Rails.logger.warn msg
         messages << msg
         client_source.find(id).invalidate_service_history
         processed_ids << id
@@ -68,7 +67,7 @@ module GrdaWarehouse::Tasks
         msg += "\n\n#{rebuilding_message}"
         @notifier.ping msg
       end
-      logger.info rebuilding_message
+      Rails.logger.info rebuilding_message
       GrdaWarehouse::Tasks::ServiceHistory::Add.new(force_sequential_processing: true).run!
       GrdaWarehouse::WarehouseClientsProcessed.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running), priority: 12).update_cached_counts(client_ids: processed_ids.to_a)
     end

@@ -151,7 +151,7 @@ module ClaimsReporting::Calculators
     private def pcr_risk_adjustment_calculator
       ::ClaimsReporting::Calculators::PcrRiskAdjustment.new
     rescue StandardError => e
-      logger.warn { "PcrRiskAdjustment calculator is unavailable: #{e.message}" }
+      Rails.logger.warn { "PcrRiskAdjustment calculator is unavailable: #{e.message}" }
       nil
     end
   end

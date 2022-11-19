@@ -85,7 +85,7 @@ module ClaimsReporting::CsvHelpers
         SQL
         copy_sql << " WHERE #{csv_constraints}" if respond_to?(:csv_constraints)
 
-        # logger.debug { copy_sql }
+        # Rails.logger.debug { copy_sql }
         pg_conn = connection.raw_connection
         pg_result = pg_conn.copy_data copy_sql do
           io.each_line do |line|
@@ -123,11 +123,11 @@ module ClaimsReporting::CsvHelpers
         SQL
         begin
           pg_result = connection.execute sql
-          logger.info { "#{self}.upsert_from(#{tmp_table_name}) result #{pg_result}" }
+          Rails.logger.info { "#{self}.upsert_from(#{tmp_table_name}) result #{pg_result}" }
           results[:records_upserted] = pg_result.cmd_tuples
           pg_result.clear
         rescue PG::Error => e
-          logger.error { "#{self}.upsert_from(#{tmp_table_name}) failed #{e.inspect}" }
+          Rails.logger.error { "#{self}.upsert_from(#{tmp_table_name}) failed #{e.inspect}" }
           raise
         end
       end
@@ -184,7 +184,7 @@ module ClaimsReporting::CsvHelpers
     end
 
     private def log_timing(str)
-      logger.info { "#{self}: #{str} started" }
+      Rails.logger.info { "#{self}: #{str} started" }
       res = nil
       bm = Benchmark.measure(str) do
         res = yield
@@ -194,7 +194,7 @@ module ClaimsReporting::CsvHelpers
 
       msg += " #{(res.to_f / bm.real).round}/sec" if res.is_a?(Numeric)
 
-      logger.info { msg }
+      Rails.logger.info { msg }
       res
     end
   end
