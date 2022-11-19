@@ -36,7 +36,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
         end
         batches = @client_ids.each_slice(@batch_size)
         started_at = DateTime.now
-        log = GrdaWarehouse::GenerateServiceHistoryLog.create(started_at: started_at, batches: batches.size)
+        GrdaWarehouse::GenerateServiceHistoryLog.create(started_at: started_at, batches: batches.size)
         queue_clients(@client_ids)
         wait_for_clients(client_ids: @clients) if @force_sequential_processing
       ensure

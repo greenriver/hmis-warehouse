@@ -18,7 +18,7 @@ module GrdaWarehouse::Tasks
     RESIDENTIAL_NON_HOMELESS_PROJECT_TYPE = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS - GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
 
     def run!
-      Rails.logger.info "====DRY RUN====" if @dry_run
+      Rails.logger.info '====DRY RUN====' if @dry_run
       Rails.logger.info "Updating status of DMH chronically homeless clients on #{@date}"
       if @clients.present?
         # limit to those we provided where it intersects with actual DMH clients
@@ -59,7 +59,7 @@ module GrdaWarehouse::Tasks
           @chronic_trigger = "#{dmh_days_homeless + mainstream_days_homeless} days total #{mainstream_days_homeless} of which were mainstream, DMH client"
           homeless_months = adjusted_months_served(dates: adjusted_homeless_dates_served)
           debug_log "Found #{homeless_months.size} homeless months"
-          debug_log "Chronic Triggers: "
+          debug_log 'Chronic Triggers: '
           debug_log @chronic_trigger.inspect
           @chronically_homeless << client_id
           # Add details for any chronically homeless client

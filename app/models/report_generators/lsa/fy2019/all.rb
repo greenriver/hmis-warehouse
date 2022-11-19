@@ -46,7 +46,7 @@ module ReportGenerators::Lsa::Fy2019
       # Disable logging so we don't fill the disk
       # ActiveRecord::Base.logger.silence do
         calculate
-        Rails.logger.info "Done"
+        Rails.logger.info 'Done'
       # end # End silence ActiveRecord Log
     end
 
