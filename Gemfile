@@ -99,6 +99,8 @@ gem 'text'
 
 gem 'lograge'
 gem 'logstop'
+gem 'yabeda-rails'
+gem 'yabeda-prometheus'
 gem 'activerecord-session_store'
 gem 'attribute_normalizer'
 gem 'delayed_job'
