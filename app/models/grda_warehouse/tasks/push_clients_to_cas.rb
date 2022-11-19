@@ -7,7 +7,7 @@
 module GrdaWarehouse::Tasks
   class PushClientsToCas
     include NotifierConfig
-    attr_accessor :logger, :send_notifications, :notifier_config
+
     def initialize
       setup_notifier('Warehouse-CAS Sync')
     end
@@ -23,7 +23,6 @@ module GrdaWarehouse::Tasks
 
       if GrdaWarehouse::DataSource.advisory_lock_exists?(advisory_lock_key)
         msg = 'Other CAS Sync in progress, exiting.'
-        logger.warn msg
         @notifier.ping(msg)
         return
       end
@@ -103,7 +102,7 @@ module GrdaWarehouse::Tasks
           elapsed = Time.current - @start_time
           msg = "Updated #{updated_clients.size} ProjectClients in CAS and marked them available"
           Rails.logger.tagged({ task_name: 'Warehouse-CAS Sync', repeating_task: true, task_runtime: elapsed }) do
-            @notifier.ping msg
+            @notifier.ping(msg)
           end
         end
       end

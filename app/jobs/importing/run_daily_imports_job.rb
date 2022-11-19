@@ -9,7 +9,6 @@ module Importing
     include ActionView::Helpers::DateHelper
     include NotifierConfig
     include ArelHelper
-    attr_accessor :send_notifications, :notifier_config
 
     queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
 
@@ -26,7 +25,6 @@ module Importing
       # refuse to run if there's already a nightly process running
       if GrdaWarehouse::DataSource.advisory_lock_exists?(advisory_lock_key)
         msg = 'Nightly process already running EXITING!!!'
-        Rails.logger.warn msg
         @notifier.ping(msg)
         return
       end

@@ -8,7 +8,6 @@ module GrdaWarehouse::Tasks
   class ProjectCleanup
     include ArelHelper
     include NotifierConfig
-    attr_accessor :send_notifications, :notifier_config
 
     def initialize(
       _bogus_notifier = false,
@@ -164,7 +163,6 @@ module GrdaWarehouse::Tasks
 
     def debug_log message
       @notifier&.ping(message)
-      Rails.logger.info message if @debug
     end
   end
 end
