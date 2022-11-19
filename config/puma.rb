@@ -50,3 +50,6 @@ end
 
 # Allow puma to be restarted by `rails restart` command.
 plugin :tmp_restart
+
+activate_control_app
+plugin :yabeda
