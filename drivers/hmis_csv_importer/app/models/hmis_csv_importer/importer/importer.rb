@@ -631,7 +631,7 @@ module HmisCsvImporter::Importer
 
     private def process_batch!(klass, batch, file_name, type:, upsert:, columns: klass.upsert_column_names)
       Rails.logger.debug { "process_batch! #{klass} #{upsert ? 'upsert' : 'import'} #{batch.size} records" }
-      klass.silence(Logger::WARN) do
+      klass.logger.silence(Logger::WARN) do
         if upsert
           klass.import(
             batch,
