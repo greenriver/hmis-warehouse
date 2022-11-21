@@ -189,7 +189,7 @@ type Client {
   disabilities(limit: Int, offset: Int): DisabilitiesPaginated!
   dob: ISO8601Date
   dobDataQuality: DOBDataQuality!
-  enrollments(limit: Int, offset: Int, sortOrder: EnrollmentSortOption): EnrollmentsPaginated!
+  enrollments(includeInProgress: Boolean, limit: Int, offset: Int, sortOrder: EnrollmentSortOption): EnrollmentsPaginated!
   ethnicity: Ethnicity!
   firstName: String
   gender: [Gender!]!
@@ -937,6 +937,7 @@ type Enrollment {
   relationshipToHoH: RelationshipToHoH!
   services(limit: Int, offset: Int, sortOrder: ServiceSortOption): ServicesPaginated!
   timesHomelessPastThreeYears: TimesHomelessPastThreeYears
+  user: User!
 }
 
 """

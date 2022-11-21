@@ -38,6 +38,7 @@ module Types
     hud_field :date_updated
     hud_field :date_created
     hud_field :date_deleted
+    field :user, HmisSchema::User, null: false
 
     def project
       load_ar_association(object.in_progress? ? object.wip : object, :project)
@@ -71,6 +72,10 @@ module Types
 
     def assessments(**args)
       resolve_assessments_including_wip(**args)
+    end
+
+    def user
+      load_ar_association(object, :user)
     end
   end
 end
