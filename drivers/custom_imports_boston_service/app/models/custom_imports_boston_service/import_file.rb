@@ -5,7 +5,7 @@
 ###
 
 module CustomImportsBostonService
-  class ImportFile < GrdaWarehouse::CustomImports::ImportFile
+  class ImportFile < ::GrdaWarehouse::CustomImports::ImportFile
     has_many :rows
 
     def self.description
