@@ -1688,6 +1688,7 @@ type HealthAndDv {
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
   dentalHealthStatus: HealthStatus
+  domesticViolenceVictim: NoYesReasonsForMissingData
   dueDate: ISO8601Date
   enrollment: Enrollment!
   feelingFrequency: FeelingFrequency
@@ -3099,7 +3100,7 @@ enum RelatedRecordType {
   """
   Disability
   """
-  DISABILITIES
+  DISABILITY
 
   """
   ExmploymentEducation
@@ -3124,7 +3125,7 @@ enum RelatedRecordType {
   """
   IncomeBenefit
   """
-  INCOME_BENEFITS
+  INCOME_BENEFIT
 
   """
   YouthEducationStatus

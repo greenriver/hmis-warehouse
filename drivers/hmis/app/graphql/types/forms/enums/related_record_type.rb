@@ -12,8 +12,8 @@ module Types
     graphql_name 'RelatedRecordType'
 
     value 'ENROLLMENT', 'Enrollment'
-    value 'INCOME_BENEFITS', 'IncomeBenefit'
-    value 'DISABILITIES', 'Disability'
+    value 'INCOME_BENEFIT', 'IncomeBenefit'
+    value 'DISABILITY', 'Disability'
     value 'HEALTH_AND_DV', 'HealthAndDv'
     value 'EXIT', 'Exit'
     value 'CURRENT_LIVING_SITUATION', 'CurrentLivingSituation'
