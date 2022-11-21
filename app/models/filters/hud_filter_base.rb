@@ -54,22 +54,30 @@ module Filters
       @effective_project_ids.uniq.reject(&:blank?)
     end
 
-    def apply(scope)
+    def apply(scope, except: [])
       # @filter is required for these to work
       @filter = self
-      scope = filter_for_user_access(scope)
-      scope = filter_for_projects_hud(scope)
-      scope = filter_for_cocs(scope)
-      scope = filter_for_veteran_status(scope)
-      scope = filter_for_household_type(scope)
-      scope = filter_for_head_of_household(scope)
-      scope = filter_for_age(scope)
-      scope = filter_for_gender(scope)
-      scope = filter_for_race(scope)
-      scope = filter_for_ethnicity(scope)
-      scope = filter_for_sub_population(scope)
-
+      filter_methods(except: except).each do |filter_method|
+        scope = send(filter_method, scope)
+      end
       scope
+    end
+
+    private def filter_methods(except: [])
+      [
+        :filter_for_user_access,
+        :filter_for_projects_hud,
+        :filter_for_project_cocs,
+        :filter_for_veteran_status,
+        :filter_for_household_type,
+        :filter_for_head_of_household,
+        :filter_for_age,
+        :filter_for_gender,
+        :filter_for_race,
+        :filter_for_ethnicity,
+        :filter_for_sub_population,
+        :filter_for_enrollment_cocs,
+      ] - Array.wrap(except)
     end
 
     private def report_scope_source
