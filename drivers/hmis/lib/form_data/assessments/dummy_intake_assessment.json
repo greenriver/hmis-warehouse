@@ -20,6 +20,7 @@
       "link_id": "3.917.group",
       "text": "Prior Living Situation (3.917)",
       "data_collected_about": "HOH_AND_ADULTS",
+      "record_type": "ENROLLMENT",
       "reference_link": "https://files.hudexchange.info/resources/documents/FY-2022-HMIS-Data-Standards-Manual.pdf#page=104",
       "item": [
         {
@@ -32,13 +33,15 @@
           "required": false,
           "link_id": "3.917.1",
           "text": "Prior Living Situation",
-          "pick_list_reference": "PRIOR_LIVING_SITUATION"
+          "pick_list_reference": "PRIOR_LIVING_SITUATION",
+          "field_name": "livingSituation"
         },
         {
           "type": "CHOICE",
           "link_id": "3.917.2",
           "text": "Length of stay in prior living situation",
-          "pick_list_reference": "ResidencePriorLengthOfStay"
+          "pick_list_reference": "ResidencePriorLengthOfStay",
+          "field_name": "lengthOfStay"
         },
         {
           "type": "DISPLAY",
@@ -90,6 +93,7 @@
         {
           "type": "BOOLEAN",
           "link_id": "3.917.C",
+          "field_name": "previousStreetEssh",
           "text": "On the night before, did the client stay on the streets, ES or SH?",
           "project_types_excluded": ["ES", "SERVICES_ONLY", "SH"],
           "enable_behavior": "ALL",
@@ -144,6 +148,7 @@
         {
           "type": "DATE",
           "link_id": "3.917.3",
+          "field_name": "dateToStreetEssh",
           "text": "Date homelessness started",
           "enable_behavior": "ALL",
           "enable_when": [
@@ -167,6 +172,7 @@
         {
           "type": "CHOICE",
           "link_id": "3.917.4",
+          "field_name": "timesHomelessPastThreeYears",
           "text": "Number of times the client has been on the streets, in ES, or SH in the past three years",
           "pick_list_reference": "TimesHomelessPastThreeYears",
           "enable_behavior": "ALL",
@@ -191,6 +197,7 @@
         {
           "type": "CHOICE",
           "link_id": "3.917.5",
+          "field_name": "monthsHomelessPastThreeYears",
           "text": "Total number of months homeless on the street, in ES, or SH in the past three years",
           "pick_list_reference": "MonthsHomelessPastThreeYears",
           "enable_behavior": "ALL",

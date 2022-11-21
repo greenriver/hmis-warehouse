@@ -29,6 +29,8 @@ module Types
     hud_field :relationship_to_ho_h, HmisSchema::Enums::Hud::RelationshipToHoH, null: false
     field :living_situation, HmisSchema::Enums::Hud::LivingSituation
     hud_field :length_of_stay, HmisSchema::Enums::Hud::ResidencePriorLengthOfStay
+    yes_no_missing_field :previous_street_essh
+    hud_field :date_to_street_essh
     hud_field :times_homeless_past_three_years, HmisSchema::Enums::Hud::TimesHomelessPastThreeYears
     hud_field :months_homeless_past_three_years, HmisSchema::Enums::Hud::MonthsHomelessPastThreeYears
     hud_field :disabling_condition, HmisSchema::Enums::Hud::NoYesReasonsForMissingData

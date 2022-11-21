@@ -920,6 +920,7 @@ type Enrollment {
   client: Client!
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
+  dateToStreetEssh: ISO8601Date
   dateUpdated: ISO8601DateTime!
   disablingCondition: NoYesReasonsForMissingData
   entryDate: ISO8601Date!
@@ -931,6 +932,7 @@ type Enrollment {
   lengthOfStay: ResidencePriorLengthOfStay
   livingSituation: LivingSituation
   monthsHomelessPastThreeYears: MonthsHomelessPastThreeYears
+  previousStreetEssh: Boolean
   project: Project!
   relationshipToHoH: RelationshipToHoH!
   services(limit: Int, offset: Int, sortOrder: ServiceSortOption): ServicesPaginated!
