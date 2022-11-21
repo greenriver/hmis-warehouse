@@ -40,7 +40,7 @@ RSpec.describe CustomImportsBostonService::ImportFile, type: :model do
     CustomImportsBostonService::ImportFile.delete_all
     CustomImportsBostonService::Row.delete_all
     GrdaWarehouse::Synthetic::Event.delete_all
-    GrdaWarehouse::Generic::Service.delete_all
+    ::GrdaWarehouse::Generic::Service.delete_all
     GrdaWarehouse::Hud::Event.delete_all
   end
   describe 'after initial import' do
@@ -48,16 +48,16 @@ RSpec.describe CustomImportsBostonService::ImportFile, type: :model do
       CustomImportsBostonService::ImportFile.delete_all
       CustomImportsBostonService::Row.delete_all
       GrdaWarehouse::Synthetic::Event.delete_all
-      GrdaWarehouse::Generic::Service.delete_all
+      ::GrdaWarehouse::Generic::Service.delete_all
       GrdaWarehouse::Hud::Event.delete_all
-      import_custom_service('drivers/custom_imports_boston_services/spec/fixtures/first_service_export.csv', config, ds1)
+      import_custom_service('drivers/custom_imports_boston_service/spec/fixtures/first_service_export.csv', config, ds1)
     end
     it 'inserts 6 rows' do
       expect(CustomImportsBostonService::Row.count).to eq(6)
     end
 
     it 'creates 6 custom services' do
-      expect(GrdaWarehouse::Generic::Service.count).to eq(6)
+      expect(::GrdaWarehouse::Generic::Service.count).to eq(6)
     end
 
     it 'creates 0 synthetic events' do
@@ -86,10 +86,10 @@ RSpec.describe CustomImportsBostonService::ImportFile, type: :model do
         CustomImportsBostonService::ImportFile.delete_all
         CustomImportsBostonService::Row.delete_all
         GrdaWarehouse::Synthetic::Event.delete_all
-        GrdaWarehouse::Generic::Service.delete_all
+        ::GrdaWarehouse::Generic::Service.delete_all
         GrdaWarehouse::Hud::Event.delete_all
-        import_custom_service('drivers/custom_imports_boston_services/spec/fixtures/first_service_export.csv', config, ds1)
-        import_custom_service('drivers/custom_imports_boston_services/spec/fixtures/second_service_export.csv', config, ds1)
+        import_custom_service('drivers/custom_imports_boston_service/spec/fixtures/first_service_export.csv', config, ds1)
+        import_custom_service('drivers/custom_imports_boston_service/spec/fixtures/second_service_export.csv', config, ds1)
       end
 
       it 'adds 12 rows' do

@@ -62,7 +62,7 @@ module CustomImportsBostonService
       period_started_on = first_row.reporting_period_started_on
       period_ended_on = first_row.reporting_period_ended_on
       CustomImportsBostonService::Row.transaction do
-        GrdaWarehouse::Generic::Service.where(data_source_id: data_source_id, date: period_started_on..period_ended_on).delete_all
+        ::GrdaWarehouse::Generic::Service.where(data_source_id: data_source_id, date: period_started_on..period_ended_on).delete_all
         rows.preload(:enrollment, client: :destination_client).find_in_batches do |batch|
           service_batch = []
           batch.each do |row|
@@ -79,7 +79,7 @@ module CustomImportsBostonService
               category: row.service_category,
             }
           end
-          GrdaWarehouse::Generic::Service.import(
+          ::GrdaWarehouse::Generic::Service.import(
             service_batch,
             conflict_target: [:source_id, :source_type],
             columns: [:date, :client_id, :data_source_id],
