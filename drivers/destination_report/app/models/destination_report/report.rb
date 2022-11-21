@@ -170,8 +170,9 @@ module DestinationReport
             data[:by_coc][coc_code][:destinations][destination] ||= destination_buckets.map { |b| [b, Set.new] }.to_h
             data[:by_coc][coc_code][:destinations][destination] << client_id
             data[:by_coc][coc_code][:destination_details][destination] ||= {}
-            data[:by_coc][coc_code][:destination_details][destination][detailed_destination || 'Unknown'] ||= Set.new
-            data[:by_coc][coc_code][:destination_details][destination][detailed_destination || 'Unknown'] << client_id
+            word = detailed_destination.presence || 'Unknown'
+            data[:by_coc][coc_code][:destination_details][destination][word] ||= Set.new
+            data[:by_coc][coc_code][:destination_details][destination][word] << client_id
           end
         data
       end
