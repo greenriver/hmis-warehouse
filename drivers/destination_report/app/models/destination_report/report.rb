@@ -140,7 +140,7 @@ module DestinationReport
           pluck(
             :client_id,
             :Destination,
-            :CoCCode,
+            pc_t[:CoCCode],
           ).each do |client_id, destination_id, coc_code|
             destination = HUD.destination_type(destination_id)
             detailed_destination = HUD.destination(destination_id)
