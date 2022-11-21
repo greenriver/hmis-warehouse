@@ -3,7 +3,7 @@
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
-
+# TODO delete
 module Censuses
   class CensusByProjectType < ProjectTypeBase
     def for_date_range(start_date, end_date, user: nil) # rubocop:disable Lint/UnusedMethodArgument

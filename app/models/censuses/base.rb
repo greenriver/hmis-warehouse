@@ -8,6 +8,10 @@ module Censuses
   class Base
     include Filter::ControlSections
 
+    def initialize(filter)
+      @filter = filter
+    end
+
     def self.available_census_types
       [
         Censuses::CensusByProgram,

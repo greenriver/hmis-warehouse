@@ -49,13 +49,21 @@ class App.Census.Base
       id += 1 
 
   _service_total: (data) ->
-    counts = $.map data.datasets[0].data, (row) ->
+    first_counts = $.map data.datasets[0].data, (row) ->
       row['y']
-    counts.reduce (m, n) -> m + n
+    
+    # ignore second row for inventory breakdown, because its the bed count.
+    # keep it for veteran breakdown, because its the non-veteran count.
+    second_counts = []
+    if JSON.parse(@filters)["aggregation_type"] == "veteran"
+      second_counts = $.map data.datasets[1].data, (row) -> row['y']
+
+    first_counts.concat(second_counts).reduce (m, n) -> m + n
 
   _individual_chart: (data, id, census_detail_slug, options) ->
     chart_id = "census-chart-#{id}"
-    $('.jCharts').append("<div class='col-sm-12 census__chart-header'><h4 class='census__chart-title'>#{data.title.text}</h4><div class='census__chart-subtitle'><strong>Total Bed Nights:</strong> #{@_service_total(data)}</div></div><div id='#{chart_id}' class='jChart'></div>")
+    total_bed_nights = d3.format(",")(@_service_total(data))
+    $('.jCharts').append("<div class='col-sm-12 census__chart-header'><h4 class='census__chart-title'>#{data.title.text}</h4><div class='census__chart-subtitle'><strong>Total Bed Nights:</strong> #{total_bed_nights}</div></div><div id='#{chart_id}' class='jChart'></div>")
 
     # console.log(data, id, census_detail_slug, options)
 
@@ -107,7 +115,9 @@ class App.Census.Base
             count: 10
             format: "%b %e, %Y"
         y:
-          padding: 0
+          padding:
+            top: 5
+            bottom: 0
           min: 0
           max: max_value
           # label:

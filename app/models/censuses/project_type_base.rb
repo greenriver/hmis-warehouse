@@ -3,7 +3,7 @@
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
-
+# TODO delete
 module Censuses
   class ProjectTypeBase < Base
     include ArelHelper

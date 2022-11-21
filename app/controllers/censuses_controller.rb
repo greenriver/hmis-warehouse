@@ -16,17 +16,6 @@ class CensusesController < ApplicationController
   include ArelHelper
 
   def index
-    # Whitelist census types
-
-    # detect class
-    # klass = Censuses::Base.available_census_types.detect { |m| m.to_s == params[:type] } || Censuses::CensusByProgram
-
-    # @census = klass.new
-
-    # @start_date = @filter.start
-    # @end_date = @filter.end
-    # @filter_json = filter_params.to_json
-    # filters
   end
 
   def details
@@ -79,15 +68,13 @@ class CensusesController < ApplicationController
   end
 
   private def set_report
-    klass = Censuses::Base.available_census_types.detect { |m| m.to_s == params[:type] } || Censuses::CensusByProgram
-    @report = klass.new
+    @report = Censuses::CensusByProgram.new(@filter)
   end
 
   def date_range
-    klass = Censuses::CensusByProgram
-    @census = klass.new
+    @census = Censuses::CensusByProgram.new(@filter)
 
-    render json: @census.for_date_range(@filter)
+    render json: @census.for_date_range
   end
 
   private def project_scope

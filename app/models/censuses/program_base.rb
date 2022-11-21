@@ -41,35 +41,32 @@ module Censuses
     #   }
     # }
 
-    def for_date_range(filter)
-      user = filter.user
-      start_date = filter.start
-      end_date = filter.end
+    def for_date_range
+      user = @filter.user
+      start_date = @filter.start
+      end_date = @filter.end
 
-      Rails.logger.info(">>> calculating #{filter.aggregation_level}")
-      # Rails.logger.info(">>> start_date #{start_date}")
-      # Rails.logger.info(">>> end_date #{end_date}")
-      # Rails.logger.info(">>> user #{user}")
       @shape ||= {}
-      projects = census_projects_scope(filter)
-      Rails.logger.info(">>> #{projects.count} projects")
+      project_scope = census_projects_scope
 
-      case filter.aggregation_level.to_sym
+      case @filter.aggregation_level.to_sym
       when :by_project
-        projects.each do |project|
+        project_scope.each do |project|
           for_project(start_date, end_date, project, user: user)
         end
       when :by_organization
-        organizations = GrdaWarehouse::Hud::Organization.joins(:projects).merge(projects).uniq
-        Rails.logger.info(">>>  #{organizations.count} orgs")
+        organizations = GrdaWarehouse::Hud::Organization.joins(:projects).merge(project_scope).uniq
         organizations.each do |organization|
-          for_organization(start_date, end_date, organization, projects, user: user)
+          for_organization(start_date, end_date, organization, project_scope, user: user)
         end
       when :by_data_source
-        data_sources = GrdaWarehouse::DataSource.joins(:projects).merge(projects).uniq
-        Rails.logger.info(">>>  #{data_sources.count} sources")
+        data_sources = GrdaWarehouse::DataSource.joins(:projects).merge(project_scope).uniq
         data_sources.each do |ds|
-          for_data_source(start_date, end_date, ds, projects)
+          for_data_source(start_date, end_date, ds, project_scope)
+        end
+      when :by_project_type
+        [:ph, :th, :es, :so, :sh].each do |project_type|
+          for_project_type(start_date, end_date, project_type, project_scope)
         end
       else
         raise NotImplementedError
@@ -89,57 +86,70 @@ module Censuses
     end
 
     private def for_data_source(start_date, end_date, data_source, project_scope)
-      project_count = project_scope.where(data_source_id: data_source.id).count
-      dimension_label = "#{project_count_str(project_count)} from #{data_source.name}"
-
-      # pass project scope
       dimension_scope = census_data_scope(project_scope).by_data_source_id(data_source.id)
+      project_count = dimension_scope.group_by(&:project_id).count
+      dimension_label = "#{project_count_str(project_count)} from #{data_source.name}"
       compute_dimension(start_date, end_date, data_source.id, 'all', 'all', dimension_label, dimension_scope)
     end
 
     private def for_organization(start_date, end_date, organization, project_scope, user: nil)
       organization_name = organization.name(user, ignore_confidential_status: user.can_edit_organizations?)
-      project_count = project_scope.where(data_source_id: organization.data_source_id, OrganizationID: organization.OrganizationID).count
-      dimension_label = "#{project_count_str(project_count)} from #{organization_name}"
       dimension_scope = census_data_scope(project_scope).by_organization_id(organization.id)
+      project_count = dimension_scope.group_by(&:project_id).count
+      dimension_label = "#{project_count_str(project_count)} from #{organization_name}"
       compute_dimension(start_date, end_date, organization.data_source_id, organization.id, 'all', dimension_label, dimension_scope)
     end
 
-    private def project_count_str(count)
-      "#{count} #{'Project'.pluralize(count)}"
+    private def for_project_type(start_date, end_date, project_type, project_scope)
+      project_type_ids = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[project_type]
+      project_group_title = GrdaWarehouse::Hud::Project::PROJECT_GROUP_TITLES[project_type]
+      dimension_scope = census_data_scope(project_scope).by_project_type(project_type_ids)
+      project_count = dimension_scope.group_by(&:project_id).count
+      dimension_label = project_count_str(project_count, prefix: project_group_title)
+      compute_dimension(start_date, end_date, project_type, 'all', 'all', dimension_label, dimension_scope)
     end
 
-    private def compute_dimension(start_date, end_date, data_source_id, organization_id, project_id, dimension_label, dimension_scope)
+    private def project_count_str(count, prefix: nil)
+      [count, prefix, 'Project'.pluralize(count)].compact.join(' ')
+    end
+
+    private def compute_dimension(start_date, end_date, data_source_or_project_type, organization_id, project_id, dimension_label, dimension_scope)
       # Move the start of the range to include "yesterday"
       yesterday = 0
       adjusted_start_date = start_date.to_date - 1.day
 
-      bounded_scope = dimension_scope.for_date_range(adjusted_start_date, end_date).group(:date).pluck(:date, 'sum(all_clients)', 'sum(beds)')
+      labels = @filter.aggregation_type.to_sym == :veteran ? ['Veteran Count', 'Non-Veteran Count'] : ['Client Count', 'Bed Inventory Count']
+      # FIXME: veterans and non_veterans don't add up to all_clients
+      columns = @filter.aggregation_type.to_sym == :veteran ? ['sum(veterans)', 'sum(non_veterans)'] : ['sum(all_clients)', 'sum(beds)']
 
-      client_data = []
-      bed_data = []
+      bounded_scope = dimension_scope.for_date_range(adjusted_start_date, end_date).group(:date).pluck(:date, *columns)
+
+      first_dataset = []
+      second_dataset = []
 
       bounded_scope.each do |item|
-        # item.first = date, item.second = clients, item.last = beds
-        client_data << { x: item.first, y: item.second, yesterday: yesterday }
-        bed_data << { x: item.first, y: item.last }
+        first_dataset << { x: item.first, y: item.second, yesterday: yesterday }
+        second_dataset << { x: item.first, y: item.last }
 
         yesterday = item.second
       end
 
-      add_dimension(data_source_id, organization_id, project_id, client_data, bed_data, dimension_label) unless client_data.empty?
+      datasets = [
+        { label: labels[0], data: first_dataset },
+        { label: labels[1], data: second_dataset },
+      ]
+
+      add_dimension(data_source_or_project_type, organization_id, project_id, datasets, dimension_label) unless first_dataset.empty?
     end
 
-    private def add_dimension(data_source_id, organization_id, project_id, clients, beds, title)
-      @shape[data_source_id] ||= {}
-      @shape[data_source_id][organization_id] ||= {}
-      @shape[data_source_id][organization_id][project_id] ||= {}
-      @shape[data_source_id][organization_id][project_id][:datasets] = []
-      @shape[data_source_id][organization_id][project_id][:datasets][0] = { label: 'Client Count', data: clients }
-      @shape[data_source_id][organization_id][project_id][:datasets][1] = { label: 'Bed Inventory Count', data: beds }
-      @shape[data_source_id][organization_id][project_id][:title] = {}
-      @shape[data_source_id][organization_id][project_id][:title][:display] = true
-      @shape[data_source_id][organization_id][project_id][:title][:text] = title
+    private def add_dimension(data_source_or_project_type, organization_id, project_id, datasets, title)
+      @shape[data_source_or_project_type] ||= {}
+      @shape[data_source_or_project_type][organization_id] ||= {}
+      @shape[data_source_or_project_type][organization_id][project_id] ||= {}
+      @shape[data_source_or_project_type][organization_id][project_id][:datasets] = datasets
+      @shape[data_source_or_project_type][organization_id][project_id][:title] = {}
+      @shape[data_source_or_project_type][organization_id][project_id][:title][:display] = true
+      @shape[data_source_or_project_type][organization_id][project_id][:title][:text] = title
       @shape
     end
 
