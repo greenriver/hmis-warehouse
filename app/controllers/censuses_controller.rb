@@ -6,19 +6,27 @@
 
 class CensusesController < ApplicationController
   include WarehouseReportAuthorization
+  include BaseFilters
 
   before_action :require_can_view_clients!, only: [:details]
+  before_action :set_report, only: [:index, :details]
+  prepend_before_action :parse_filter_params, only: [:date_range]
   # skip_before_action :report_visible?, only: [:date_range]
   # skip_before_action :require_can_view_any_reports!, only: [:date_range]
   include ArelHelper
-  # default view grouped by project
+
   def index
     # Whitelist census types
-    klass = Censuses::Base.available_census_types.detect { |m| m.to_s == params[:type] } || Censuses::CensusBedNightProgram
-    @census = klass.new
-    @start_date = params[:start_date].try(:to_date) || 1.month.ago.to_date
-    @end_date = params[:end_date].try(:to_date) || 1.day.ago.to_date
-    @types = census_types
+
+    # detect class
+    # klass = Censuses::Base.available_census_types.detect { |m| m.to_s == params[:type] } || Censuses::CensusByProgram
+
+    # @census = klass.new
+
+    # @start_date = @filter.start
+    # @end_date = @filter.end
+    # @filter_json = filter_params.to_json
+    # filters
   end
 
   def details
@@ -70,31 +78,62 @@ class CensusesController < ApplicationController
     end
   end
 
-  def date_range
+  private def set_report
     klass = Censuses::Base.available_census_types.detect { |m| m.to_s == params[:type] } || Censuses::CensusByProgram
+    @report = klass.new
+  end
+
+  def date_range
+    klass = Censuses::CensusByProgram
     @census = klass.new
-    start_date = params[:start_date]
-    end_date = params[:end_date]
-    # Allow single program display
-    if params[:project_id].present? && params[:data_source_id].present?
-      render json: @census.for_date_range(start_date, end_date, params[:data_source_id].to_i, params[:project_id].to_i, user: current_user)
-    else
-      render json: @census.for_date_range(start_date, end_date, user: current_user)
-    end
+
+    render json: @census.for_date_range(@filter)
   end
 
   private def project_scope
     GrdaWarehouse::Hud::Project.all
   end
 
-  private def census_types
+  def available_aggregation_levels
     {
-      'ES Bed-night only shelters': 'Censuses::CensusBedNightProgram',
-      'Emergency Shelters': 'Censuses::CensusAllEs',
-      'Street Outreach': 'Censuses::CensusAllSo',
-      'By Project Type': 'Censuses::CensusByProjectType',
-      'By Project': 'Censuses::CensusByProgram',
-      'Veteran': 'Censuses::CensusVeteran',
+      'By Project' => :by_project,
+      'By Organization' => :by_organization,
+      'By Data Source' => :by_data_source,
+      'By Project Type' => :by_project_type,
     }
+  end
+  helper_method :available_aggregation_levels
+
+  def available_aggregation_types
+    {
+      'Nightly Client Count and Available Beds' => :inventory,
+      'Nightly Veteran vs Non-Veteran' => :veteran,
+    }
+  end
+  helper_method :available_aggregation_types
+
+  private def set_filter
+    @filter = filter_class.new(
+      filter_params.merge(
+        user_id: current_user.id,
+        default_start: 1.month.ago,
+        default_end: 1.day.ago,
+      ),
+    )
+  end
+
+  private def parse_filter_params
+    params[:filters] = JSON.parse(params[:filters])
+  end
+
+  def filter_params
+    return {} unless params[:filters]
+
+    params.require(:filters).permit(filter_class.new(user_id: current_user.id).known_params)
+  end
+  helper_method :filter_params
+
+  private def filter_class
+    ::Filters::CensusReportFilter
   end
 end

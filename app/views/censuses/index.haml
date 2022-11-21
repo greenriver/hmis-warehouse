@@ -5,11 +5,20 @@
   .col-sm-12
     = render partial: 'form'
     .jCharts
-      %p.jLoading.text-center Loading...
+      - if filter_params.present?
+        .card.mb-4.pt-2
+          .h4.pl-3 Census Filters
+          .warehouse-reports__completed.d-flex
+            = @filter.describe_filter_as_html(@filter.params_for_display)
+        %p.jLoading.text-center Loading census...
+      - else
+        .none-found No filters applied.
 
 - content_for :page_js do
   :javascript
     (function($) {
-      census = new App.Census.#{@census.class.name.split('::').last}('#{date_range_censuses_path()}', '#{@census.class.name}', '#{@start_date}', '#{@end_date}', {follow_link: '#{can_view_clients?}'});
-      census.load();
+      if ('#{filter_params.present?}' === 'true') {
+        census = new App.Census.Base('#{date_range_censuses_path()}', '#{filter_params.to_json.html_safe}', {follow_link: '#{can_view_clients?}'});
+        census.load();
+      }
     })(jQuery);

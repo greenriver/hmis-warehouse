@@ -7,17 +7,15 @@
 module Censuses
   class CensusByProgram < ProgramBase
     # what projects should be included?
-    def census_projects_scope(user:)
-      GrdaWarehouse::Hud::Project.residential.
-        viewable_by(user).
-        order(:data_source_id, :OrganizationID)
+    def census_projects_scope(filter)
+      scope = GrdaWarehouse::Hud::Project.residential.viewable_by(filter.user)
+      scope = scope.night_by_night if filter.limit_es_to_nbn
+      scope.where(id: filter.effective_project_ids)
     end
 
     # what data should be included?
-    def census_data_scope(user:)
-      GrdaWarehouse::Census::ByProject.all.
-        joins(:project).
-        merge(GrdaWarehouse::Hud::Project.viewable_by(user))
+    def census_data_scope(project_scope)
+      GrdaWarehouse::Census::ByProject.joins(:project).merge(project_scope)
     end
 
     # # what data should appear in the detail view?

@@ -1,5 +1,5 @@
 #= require ./namespace
-
+# remove
 class App.Census.CensusByProjectType extends App.Census.Base
   _build_census: () ->
     id = 0

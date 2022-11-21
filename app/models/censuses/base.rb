@@ -3,18 +3,21 @@
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
-
+# delete file
 module Censuses
   class Base
+    include Filter::ControlSections
+
     def self.available_census_types
       [
-        Censuses::CensusBedNightProgram,
-        Censuses::CensusAllEs,
-        Censuses::CensusAllSo,
         Censuses::CensusByProgram,
         Censuses::CensusByProjectType,
         Censuses::CensusVeteran,
       ]
+    end
+
+    private def build_control_sections
+      []
     end
   end
 end

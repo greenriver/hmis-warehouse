@@ -41,64 +41,72 @@ module Censuses
     #   }
     # }
 
-    def for_date_range(start_date, end_date, data_source_id = 0, project_id = 0, user:)
+    def for_date_range(filter)
+      user = filter.user
+      start_date = filter.start
+      end_date = filter.end
+
+      Rails.logger.info(">>> calculating #{filter.aggregation_level}")
+      # Rails.logger.info(">>> start_date #{start_date}")
+      # Rails.logger.info(">>> end_date #{end_date}")
+      # Rails.logger.info(">>> user #{user}")
       @shape ||= {}
+      projects = census_projects_scope(filter)
+      Rails.logger.info(">>> #{projects.count} projects")
 
-      if data_source_id != 0 && project_id != 0
-        for_project_id(start_date, end_date, data_source_id, project_id, user: user)
+      case filter.aggregation_level.to_sym
+      when :by_project
+        projects.each do |project|
+          for_project(start_date, end_date, project, user: user)
+        end
+      when :by_organization
+        organizations = GrdaWarehouse::Hud::Organization.joins(:projects).merge(projects).uniq
+        Rails.logger.info(">>>  #{organizations.count} orgs")
+        organizations.each do |organization|
+          for_organization(start_date, end_date, organization, projects, user: user)
+        end
+      when :by_data_source
+        data_sources = GrdaWarehouse::DataSource.joins(:projects).merge(projects).uniq
+        Rails.logger.info(">>>  #{data_sources.count} sources")
+        data_sources.each do |ds|
+          for_data_source(start_date, end_date, ds, projects)
+        end
       else
-        census_projects_scope(user: user).each do |project|
-          for_project_id(start_date, end_date, project.data_source_id, project.id, user: user)
-        end
-
-        @shape.each_key do |ds_id|
-          # only include data source summary if the source contains more than one organization
-          for_data_source_id(start_date, end_date, ds_id, user: user) if @shape[ds_id].count > 1
-
-          @shape[ds_id].each_key do |organization_id|
-            if @shape[ds_id][organization_id].count > 1
-              # only include the organization summary if the organization contains more than one project
-              for_organization_id(start_date, end_date, ds_id, organization_id, user: user)
-            end
-          end
-        end
-
-        # only show the all sources summary if there is more than one source
-        if @shape.count > 1
-          compute_dimension(
-            start_date, end_date, 'all', 'all', 'all',
-            'All Programs from All Sources', GrdaWarehouse::Census::ByProject.night_by_night
-          )
-        end
+        raise NotImplementedError
       end
+
       @shape
     end
 
-    private def for_project_id(start_date, end_date, data_source_id, project_id, user: nil)
-      project = GrdaWarehouse::Hud::Project.find(project_id)
-      project_type = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.select { |_k, v| v.include?(project[:ProjectType]) }.keys.first&.upcase
-      return if project_type.blank?
-
-      dimension_scope = census_data_scope(user: user).by_project_id(project_id)
+    private def for_project(start_date, end_date, project, user: nil)
+      dimension_scope = GrdaWarehouse::Census::ByProject.by_project_id(project.id)
       organization_id = project.organization&.id
+      data_source_id = project.data_source_id
       name_and_type = project.name(user, include_project_type: true, ignore_confidential_status: user.can_edit_projects?)
       organization_name = project.organization&.name(user, ignore_confidential_status: user.can_edit_organizations?)
       dimension_label = "#{name_and_type} < #{organization_name} < #{project.data_source&.short_name}"
-      compute_dimension(start_date, end_date, data_source_id, organization_id, project_id, dimension_label, dimension_scope)
+      compute_dimension(start_date, end_date, data_source_id, organization_id, project.id, dimension_label, dimension_scope)
     end
 
-    private def for_data_source_id(start_date, end_date, data_source_id, user: nil)
-      data_source_name = GrdaWarehouse::DataSource.find(data_source_id).name
-      dimension_label = "All programs from #{data_source_name}"
-      dimension_scope = census_data_scope(user: user).by_data_source_id(data_source_id)
-      compute_dimension(start_date, end_date, data_source_id, 'all', 'all', dimension_label, dimension_scope)
+    private def for_data_source(start_date, end_date, data_source, project_scope)
+      project_count = project_scope.where(data_source_id: data_source.id).count
+      dimension_label = "#{project_count_str(project_count)} from #{data_source.name}"
+
+      # pass project scope
+      dimension_scope = census_data_scope(project_scope).by_data_source_id(data_source.id)
+      compute_dimension(start_date, end_date, data_source.id, 'all', 'all', dimension_label, dimension_scope)
     end
 
-    private def for_organization_id(start_date, end_date, data_source_id, organization_id, user: nil)
-      organization_name = GrdaWarehouse::Hud::Organization.find(organization_id).name(user, ignore_confidential_status: user.can_edit_organizations?)
-      dimension_label = "All programs from #{organization_name}"
-      dimension_scope = census_data_scope(user: user).by_organization_id(organization_id)
-      compute_dimension(start_date, end_date, data_source_id, organization_id, 'all', dimension_label, dimension_scope)
+    private def for_organization(start_date, end_date, organization, project_scope, user: nil)
+      organization_name = organization.name(user, ignore_confidential_status: user.can_edit_organizations?)
+      project_count = project_scope.where(data_source_id: organization.data_source_id, OrganizationID: organization.OrganizationID).count
+      dimension_label = "#{project_count_str(project_count)} from #{organization_name}"
+      dimension_scope = census_data_scope(project_scope).by_organization_id(organization.id)
+      compute_dimension(start_date, end_date, organization.data_source_id, organization.id, 'all', dimension_label, dimension_scope)
+    end
+
+    private def project_count_str(count)
+      "#{count} #{'Project'.pluralize(count)}"
     end
 
     private def compute_dimension(start_date, end_date, data_source_id, organization_id, project_id, dimension_label, dimension_scope)
