@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module CustomImportsBostonServices::Synthetic
+module CustomImportsBostonService::Synthetic
   class Event < ::GrdaWarehouse::Synthetic::Event
     include ArelHelper
 
@@ -79,14 +79,14 @@ module CustomImportsBostonServices::Synthetic
     end
 
     def self.remove_orphans
-      orphan_ids = pluck(:source_id) - CustomImportsBostonServices::Row.joins(:service).event_eligible.pluck(:id)
+      orphan_ids = pluck(:source_id) - CustomImportsBostonService::Row.joins(:service).event_eligible.pluck(:id)
       return unless orphan_ids.present?
 
       where(source_id: orphan_ids).delete_all
     end
 
     def self.add_new
-      rows = CustomImportsBostonServices::Row.joins(:service).event_eligible.where.not(id: self.select(:source_id)).preload(:enrollment)
+      rows = CustomImportsBostonService::Row.joins(:service).event_eligible.where.not(id: self.select(:source_id)).preload(:enrollment)
       rows.find_in_batches do |batch|
         event_batch = []
         batch.each do |row|
@@ -103,7 +103,7 @@ module CustomImportsBostonServices::Synthetic
             client_id: row.client.id,
           }
         end
-        CustomImportsBostonServices::Synthetic::Event.import(
+        CustomImportsBostonService::Synthetic::Event.import(
           event_batch,
           conflict_target: [:source_id, :source_type],
           columns: [:enrollment_id, :client_id],
