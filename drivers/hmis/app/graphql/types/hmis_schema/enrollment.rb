@@ -38,7 +38,7 @@ module Types
     hud_field :date_updated
     hud_field :date_created
     hud_field :date_deleted
-    field :user, HmisSchema::User, null: false
+    field :user, HmisSchema::User, null: true
 
     def project
       load_ar_association(object.in_progress? ? object.wip : object, :project)

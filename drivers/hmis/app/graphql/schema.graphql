@@ -44,7 +44,7 @@ type Assessment {
   id: ID!
   inProgress: Boolean!
   prioritizationStatus: PrioritizationStatus
-  user: User!
+  user: User
 }
 
 """
@@ -769,7 +769,7 @@ type Disability {
   id: ID!
   indefiniteAndImpairs: Int
   informationDate: ISO8601Date!
-  user: User!
+  user: User
 }
 
 """
@@ -937,7 +937,7 @@ type Enrollment {
   relationshipToHoH: RelationshipToHoH!
   services(limit: Int, offset: Int, sortOrder: ServiceSortOption): ServicesPaginated!
   timesHomelessPastThreeYears: TimesHomelessPastThreeYears
-  user: User!
+  user: User
 }
 
 """
@@ -1012,7 +1012,7 @@ type Event {
   referralCaseManageAfter: Boolean
   referralResult: ReferralResult
   resultDate: ISO8601DateTime
-  user: User!
+  user: User
 }
 
 """
@@ -1702,7 +1702,7 @@ type HealthAndDv {
   mentalHealthStatus: HealthStatus
   pregnancyStatus: NoYesReasonsForMissingData
   supportFromOthers: WellbeingAgreement
-  user: User!
+  user: User
   whenOccurred: WhenDVOccurred
 }
 
@@ -1887,7 +1887,7 @@ type IncomeBenefit {
   tanfTransportation: Boolean
   totalMonthlyIncome: String
   unemploymentAmount: Float
-  user: User!
+  user: User
   vaDisabilityNonServiceAmount: Float
   vaDisabilityServiceAmount: Float
   vaMedicalServices: Boolean
@@ -3297,7 +3297,7 @@ type Service {
   referralOutcome: PATHReferralOutcome
   subTypeProvided: ServiceSubTypeProvided
   typeProvided: ServiceTypeProvided!
-  user: User!
+  user: User
 }
 
 """

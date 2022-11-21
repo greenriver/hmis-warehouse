@@ -22,7 +22,7 @@ module Types
     field :date_created, GraphQL::Types::ISO8601DateTime, null: false
     field :date_updated, GraphQL::Types::ISO8601DateTime, null: false
     field :date_deleted, GraphQL::Types::ISO8601DateTime, null: true
-    field :user, HmisSchema::User, null: false
+    field :user, HmisSchema::User, null: true
 
     def enrollment
       load_ar_association(object, :enrollment)
