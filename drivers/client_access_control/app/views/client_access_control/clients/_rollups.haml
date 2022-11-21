@@ -38,7 +38,7 @@
           Services &mdash; Aggregated Bed Register
         .ml-auto.text-small
           = link_to 'details', enrollment_details_client_path(@client, anchor: 'full_services')
-    - if RailsDrivers.loaded.include?(:custom_imports_boston_service) && @client.source_custom_b_services.exists?
+    - if RailsDrivers.loaded.include?(:custom_imports_boston_service) && @client.source_custom_b_services.client_services.exists?
       %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: :boston_custom_services}}
         %header
           %h1.h3 Custom Services
