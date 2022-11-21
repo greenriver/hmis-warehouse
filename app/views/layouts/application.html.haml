@@ -72,10 +72,6 @@
                       = mail_to link.url, link.label, subject: link.subject
                     - else
                       = link_to link.label, link.url
-        - if can_add_administrative_event?
-          .site-status.border-top-1
-            %h3 Delayed Job Queue
-
 
     #d3-tooltip
     = render 'layouts/ajax_modal_frame'
