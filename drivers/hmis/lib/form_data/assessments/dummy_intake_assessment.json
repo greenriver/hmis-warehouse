@@ -692,7 +692,7 @@
           "type": "CHOICE",
           "link_id": "4.10.2",
           "text": "Substance Use Disorder",
-          "pick_list_reference": "SubstanceUseDisorder"
+          "pick_list_reference": "DisabilityResponse"
         },
         {
           "type": "GROUP",
