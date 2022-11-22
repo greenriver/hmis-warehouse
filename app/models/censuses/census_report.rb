@@ -5,8 +5,29 @@
 ###
 
 module Censuses
-  class ProgramBase < Base
+  class CensusReport
     include ArelHelper
+    include Filter::ControlSections
+
+    def initialize(filter)
+      @filter = filter
+    end
+
+    # what projects should be included?
+    def census_projects_scope
+      scope = GrdaWarehouse::Hud::Project.residential.
+        viewable_by(@filter.user).
+        where(id: @filter.effective_project_ids)
+
+      # Limit ES projects to Night-by-night only by filtering out Entry/Exit ES projects
+      scope = scope.where.not(ProjectType: 1, TrackingMethod: 0) if @filter.limit_es_to_nbn
+      scope
+    end
+
+    # what data should be included?
+    def census_data_scope(project_scope)
+      GrdaWarehouse::Census::ByProject.joins(:project).merge(project_scope)
+    end
 
     # JSON Shape:
     # { datasource_id: {
@@ -155,21 +176,32 @@ module Censuses
 
     # Detail view
 
-    def detail_name(project_code, user: nil)
-      data_source_id, organization_id, project_id = project_code.split('-')
-      return 'All Programs from All Sources on' if data_source_id == 'all'
+    def detail_name(project_count, project_type, data_source_id, organization_id, project_id)
+      if project_type != 'all'
+        ptype = GrdaWarehouse::Hud::Project::PROJECT_GROUP_TITLES[project_type]
+        return "#{project_count_str(project_count, prefix: ptype)} on"
+      end
 
-      data_source_name = GrdaWarehouse::DataSource.find(data_source_id.to_i).name
-      return "All Programs from #{data_source_name} on" if organization_id == 'all'
+      projects = project_count_str(project_count)
+      return "#{projects} from All Sources on" if data_source_id == 'all'
 
-      organization_name = GrdaWarehouse::Hud::Organization.find(organization_id.to_i).name(user)
-      return "All Projects from #{organization_name} on" if project_id == 'all'
+      if organization_id == 'all'
+        data_source_name = GrdaWarehouse::DataSource.find(data_source_id.to_i).name
+        return "#{projects} from #{data_source_name} on"
+      end
 
-      project_name = GrdaWarehouse::Hud::Project.find(project_id.to_i).name(user)
+      organization_name = GrdaWarehouse::Hud::Organization.find(organization_id.to_i).name(@filter.user)
+      return "#{projects} from #{organization_name} on" if project_id == 'all'
+
+      project_name = GrdaWarehouse::Hud::Project.find(project_id.to_i).name(@filter.user)
       "#{project_name} at #{organization_name} on"
     end
 
-    def clients_for_date(user, date, data_source = nil, organization = nil, project = nil)
+    def clients_for_date(date, project_type, data_source, organization, project, population)
+      known_sub_populations = GrdaWarehouse::ServiceHistoryEnrollment.known_standard_cohorts
+
+      raise "Population #{population} not defined" unless known_sub_populations.include?(population.to_sym)
+
       columns = {
         'LastName' => c_t[:LastName].to_sql,
         'FirstName' => c_t[:FirstName].to_sql,
@@ -180,44 +212,58 @@ module Censuses
         'confidential' => bool_or(p_t[:confidential], o_t[:confidential]),
       }
 
-      base_scope = GrdaWarehouse::ServiceHistoryService.where(date: date)
-      if data_source && data_source != 'all'
-        base_scope = base_scope.joins(:service_history_enrollment).
-          merge(GrdaWarehouse::ServiceHistoryEnrollment.where(data_source_id: data_source.to_i))
-      end
-      if organization && organization != 'all'
-        base_scope = base_scope.joins(service_history_enrollment: :organization).
-          merge(GrdaWarehouse::Hud::Organization.where(id: organization.to_i))
-      end
-      if project && project != 'all'
-        base_scope = base_scope.joins(service_history_enrollment: :project).
-          merge(GrdaWarehouse::Hud::Project.where(id: project.to_i))
-      end
+      enrollments = GrdaWarehouse::ServiceHistoryEnrollment.residential.
+        send(population).
+        service_on_date(date).
+        joins(:client, :data_source, :organization, :project).
+        merge(census_projects_scope) # merge with project scope filtered by @filter params
 
-      base_scope.joins(:client, service_history_enrollment: [:data_source, project: :organization]).
+      enrollments = enrollments.in_project_type(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[project_type]) if project_type && project_type != 'all'
+      enrollments = enrollments.where(data_source_id: data_source.to_i) if data_source && data_source != 'all'
+      enrollments = enrollments.merge(GrdaWarehouse::Hud::Organization.where(id: organization.to_i)) if organization && organization != 'all'
+      enrollments = enrollments.merge(GrdaWarehouse::Hud::Project.where(id: project.to_i)) if project && project != 'all'
+
+      enrollments.
+        order(c_t[:LastName].asc, c_t[:FirstName].asc).
         pluck(*columns.values).
         map do |row|
           h = Hash[columns.keys.zip(row)]
-          h['ProjectName'] = GrdaWarehouse::Hud::Project.confidential_project_name if h['confidential'] && !user.can_view_confidential_project_names?
+          h['ProjectName'] = GrdaWarehouse::Hud::Project.confidential_project_name if h['confidential'] && !@filter.user.can_view_confidential_project_names?
           h
         end
     end
 
-    def prior_year_averages(year, data_source = nil, organization = nil, project = nil, user: nil)
+    def prior_year_averages(year, project_type, data_source, organization, project, population)
       start_date = Date.new(year).beginning_of_year
       end_date = Date.new(year).end_of_year
+      days = (end_date - start_date).to_i
 
-      local_census_scope = census_data_scope(user: user).for_date_range(start_date, end_date)
+      local_census_scope = census_data_scope(census_projects_scope).for_date_range(start_date, end_date)
+
+      if project_type && project_type != 'all'
+        project_type_ids = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[project_type]
+        local_census_scope = local_census_scope.by_project_type(project_type_ids)
+      end
       local_census_scope = local_census_scope.by_data_source_id(data_source.to_i) if data_source && data_source != 'all'
       local_census_scope = local_census_scope.by_organization_id(organization.to_i) if organization && organization != 'all'
       local_census_scope = local_census_scope.by_project_id(project.to_i) if project && project != 'all'
 
-      {
-        year: year,
-        ave_client_count: local_census_scope.average(:all_clients)&.round(2) || 0,
-        ave_bed_inventory: local_census_scope.average(:beds)&.round(2) || 0,
-        ave_seasonal_inventory: seasonal_inventory(year)&.round(2) || 0,
-      }
+      averages = { year: year }
+      # sum and divide by total days to find the average. can't average columns directly since they're split by project.
+      column = population == :clients ? :all_clients : population
+      averages[:ave_client_count] = percentage(local_census_scope.sum(column), days)
+
+      if population == :all_clients
+        averages[:ave_bed_inventory] = percentage(local_census_scope.sum(:beds), days)
+        averages[:ave_seasonal_inventory] = seasonal_inventory(year)&.round(2) || 0
+      end
+
+      averages
+    end
+
+    private def percentage(numerator, denominator)
+      pct = numerator / denominator
+      pct&.round(2) || 0
     end
 
     private def seasonal_inventory(year)
@@ -232,6 +278,10 @@ module Censuses
         end
       end
       counts.values.sum.to_f / counts.values.count
+    end
+
+    private def build_control_sections
+      []
     end
   end
 end

@@ -9,8 +9,8 @@ class CensusesController < ApplicationController
   include BaseFilters
 
   before_action :require_can_view_clients!, only: [:details]
-  before_action :set_report, only: [:index, :details]
-  prepend_before_action :parse_filter_params, only: [:date_range]
+  before_action :set_report, only: [:date_range, :details]
+  prepend_before_action :parse_filter_params, only: [:date_range, :details]
   # skip_before_action :report_visible?, only: [:date_range]
   # skip_before_action :require_can_view_any_reports!, only: [:date_range]
   include ArelHelper
@@ -19,62 +19,43 @@ class CensusesController < ApplicationController
   end
 
   def details
-    klass = Censuses::Base.available_census_types.detect { |m| m.to_s == params[:type] } || Censuses::CensusByProgram
-    census = klass.new
     @date = params[:date].to_date
-    if params[:project].present?
-      @census_detail_name = census.detail_name(params[:project], user: current_user)
-      ds_id, org_id, p_id = params[:project].split('-')
-      @clients = census.clients_for_date(current_user, @date, ds_id, org_id, p_id)
 
-      @yesterday_client_count = census.clients_for_date(current_user, @date - 1.day, ds_id, org_id, p_id).size
-      @prior_year_averages = census.prior_year_averages(@date.year - 1, ds_id, org_id, p_id, user: current_user)
-
-    elsif params[:project_type].present?
-      # Whitelist project_types
-      project_type = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.keys.detect { |m| m == params[:project_type].downcase.to_sym }
-
-      @census_detail_name = census.detail_name(project_type)
-
-      if params[:veteran].present?
-        if params[:veteran] == 'Veteran Count'
-          @census_detail_name = "Veterans in #{@census_detail_name}"
-          @clients = census.clients_for_date(current_user, @date, project_type, :veterans)
-          @yesterday_client_count = census.clients_for_date(current_user, @date - 1.day, project_type, :veterans).size
-          @prior_year_averages = census.prior_year_averages(@date.year - 1, project_type, :veterans, user: current_user)
-        else
-          @census_detail_name = "Non-Veterans in #{@census_detail_name}"
-          @clients = census.clients_for_date(current_user, @date, project_type, :non_veterans)
-          @yesterday_client_count = census.clients_for_date(current_user, @date - 1.day, project_type, :non_veterans).size
-          @prior_year_averages = census.prior_year_averages(@date.year - 1, project_type, :non_veterans, user: current_user)
-        end
-      else
-        @clients = census.clients_for_date(current_user, @date, project_type)
-        @yesterday_client_count = census.clients_for_date(current_user, @date - 1.day, project_type).size
-        @prior_year_averages = census.prior_year_averages(@date.year - 1, project_type, :all_clients, user: current_user)
-      end
-    else
-      @census_detail_name = 'All'
-      @clients = census.clients_for_date(current_user, @date)
-      @yesterday_client_count = census.clients_for_date(current_user, @date - 1.day).size
+    population = :clients
+    if @filter.aggregation_type.to_sym == :veteran
+      population = params[:dataset] == 'Veteran Count' ? :veterans : :non_veterans
     end
+
+    # parse slug <datasource-or-ptype>-<org>-<proj>
+    data_source_or_project_type, organization, project = params[:census_detail_slug].split('-')
+    if @filter.aggregation_level.to_sym == :by_project_type
+      project_type = data_source_or_project_type.to_sym
+      data_source = 'all'
+    else
+      project_type = 'all'
+      data_source = data_source_or_project_type
+    end
+
+    census_details = [project_type, data_source, organization, project]
+    @clients = @report.clients_for_date(@date, *census_details, population)
+    @yesterday_client_count = @report.clients_for_date(@date - 1.day, *census_details, population).size
+    @prior_year_averages = @report.prior_year_averages(@date.year - 1, *census_details, population)
 
     # Note: ProjectName is already confidentialized here
     @involved_projects = @clients.map { |row| [row['project_id'], row['ProjectName']] }.to_h
+
+    @census_detail_name = @report.detail_name(@involved_projects.count, *census_details)
+    @census_detail_name.prepend('Veterans in ') if population == :veterans
+    @census_detail_name.prepend('Non-Veterans in ') if population == :non_veterans
+
     respond_to do |format|
       format.html {}
       format.xlsx {}
     end
   end
 
-  private def set_report
-    @report = Censuses::CensusByProgram.new(@filter)
-  end
-
   def date_range
-    @census = Censuses::CensusByProgram.new(@filter)
-
-    render json: @census.for_date_range
+    render json: @report.for_date_range
   end
 
   private def project_scope
@@ -98,6 +79,10 @@ class CensusesController < ApplicationController
     }
   end
   helper_method :available_aggregation_types
+
+  private def set_report
+    @report = Censuses::CensusReport.new(@filter)
+  end
 
   private def set_filter
     @filter = filter_class.new(

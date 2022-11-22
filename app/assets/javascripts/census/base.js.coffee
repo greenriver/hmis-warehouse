@@ -7,6 +7,8 @@ class App.Census.Base
     @chart_data = {}
     @width = @_width()
     @height = @_height()
+    @is_veteran_breakdown = JSON.parse(@filters)["aggregation_type"] == "veteran"
+    @is_project_type_aggregation = JSON.parse(@filters)["aggregation_level"] == "by_project_type"
 
   load: ->
     $.get @url, {filters: @filters}, (data) =>
@@ -21,32 +23,16 @@ class App.Census.Base
     @charts
 
   _build_charts: ->
-
-    # TODO differ based on filter
-    @_build_census_by_project()
-
-  _build_census_by_project: ->
     id = 0
-    for data_source, all_organizations of @data
+    for data_source_or_project_type, all_organizations of @data
       for organization, all_projects of all_organizations
         for project, data of all_projects
           options = 
             size: 
               height: 200
-          census_detail_slug = "#{data_source}-#{organization}-#{project}"
+          census_detail_slug = "#{data_source_or_project_type}-#{organization}-#{project}"
           @_individual_chart(data, id, census_detail_slug, options)
           id += 1   
-
-  _build_census_by_project_type: ->
-    id = 0
-    for project_type, data of @data
-      util = window.App.util.new
-      options =
-        size:
-          height: 200
-      census_detail_slug = "#{project_type}"
-      @_individual_chart(data, id, census_detail_slug, options)
-      id += 1 
 
   _service_total: (data) ->
     first_counts = $.map data.datasets[0].data, (row) ->
@@ -55,7 +41,7 @@ class App.Census.Base
     # ignore second row for inventory breakdown, because its the bed count.
     # keep it for veteran breakdown, because its the non-veteran count.
     second_counts = []
-    if JSON.parse(@filters)["aggregation_type"] == "veteran"
+    if @is_veteran_breakdown
       second_counts = $.map data.datasets[1].data, (row) -> row['y']
 
     first_counts.concat(second_counts).reduce (m, n) -> m + n
@@ -64,8 +50,6 @@ class App.Census.Base
     chart_id = "census-chart-#{id}"
     total_bed_nights = d3.format(",")(@_service_total(data))
     $('.jCharts').append("<div class='col-sm-12 census__chart-header'><h4 class='census__chart-title'>#{data.title.text}</h4><div class='census__chart-subtitle'><strong>Total Bed Nights:</strong> #{total_bed_nights}</div></div><div id='#{chart_id}' class='jChart'></div>")
-
-    # console.log(data, id, census_detail_slug, options)
 
     @chart_data[chart_id] = {}
     @chart_data[chart_id]['title'] = data.title.text
@@ -190,68 +174,17 @@ class App.Census.Base
     html += '</table>'
     html
 
-  # Override as necessary
-  #TODO drop, or vary based on filter
   _follow_link: (d, element) =>
     return unless @options.follow_link == 'true'
+
     chart_id = $(element).closest('.jChart').attr('id')
     date = d.x.toISOString().split('T')[0]
-    project = @chart_data[chart_id]['census_detail_slug']
+    census_detail_slug = @chart_data[chart_id]['census_detail_slug']
 
-    # # If we clicked on a point, send us to the list of associated clients
-    params = {filters: @filters, project: project}
+    # If we clicked on a point, send us to the list of associated clients
+    params = { filters: @filters, date: date, census_detail_slug: census_detail_slug, dataset: d.name }
     url = @url.replace('date_range', 'details') + '?' + $.param(params)
     window.open url
-
-  _process_hover: (event, item) =>
-    if item.length
-      $('.census-chart').css('cursor', 'pointer')
-    else
-      $('.census-chart').css('cursor', 'default')
-
-  _format_tooltip_label: (tool_tip) =>
-    return unless tool_tip
-    d = new Date(tool_tip.xLabel)
-    date_string = new Date((d.getTime() + (d.getTimezoneOffset() * 60000))).toDateString()
-    if tool_tip.datasetIndex == 0
-      tool_tip.label = [
-        tool_tip.xLabel,
-        date_string,
-        "Client count: #{tool_tip.yLabel}"
-      ]
-    else
-      tool_tip.label = [
-        date_string,
-        "Bed inventory: #{tool_tip.yLabel}"
-      ]
-
-  # _animation_complete: (anim) ->
-  #   # Disable downloads
-  #   return
-  #   return unless anim?
-  #   return unless $(anim.chartInstance.chart.canvas).prev('.row').find('.jChartDownloads').is(':empty')
-  #   image_url = anim.chartInstance.chart.canvas.toDataURL()
-  #   datasets = anim.chartInstance.chart.config.data.datasets
-  #   csv = []
-  #   i = 1
-  #   $.each datasets, (data) ->
-  #     csv[0] ?= []
-  #     csv[0][data * i] = 'Date'
-  #     csv[0][(data * i) + 1] = datasets[data]['label']
-  #     i++
-  #     $.each datasets[data].data, (day) ->
-  #       csv[day + 1] ?= []
-  #       csv[day + 1][data * (i - 1)] = datasets[data].data[day]['x']
-  #       csv[day + 1][(data * (i - 1)) + 1] = datasets[data].data[day]['y']
-
-  #   csvString = csv.map((d) ->
-  #     d.join()
-  #   ).join('\n')
-
-  #   data_url = 'data:attachment/csv;census.csv,' + encodeURIComponent(csvString)
-  #   html = '<a href="' + image_url + '" target="_blank">Download Image</a>'
-  #   html += '<br /><a href="' + data_url + '" target="_blank" download="census.csv">Download Data</a>'
-  #   $(anim.chartInstance.chart.canvas).prev('.row').find('.jChartDownloads').html(html)
 
   _width: ->
     300
