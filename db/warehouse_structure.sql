@@ -4047,7 +4047,8 @@ CREATE TABLE public.ce_performance_clients (
     community character varying,
     lgbtq_household_members boolean DEFAULT false NOT NULL,
     client_lgbtq boolean DEFAULT false NOT NULL,
-    dv_survivor boolean DEFAULT false NOT NULL
+    dv_survivor boolean DEFAULT false NOT NULL,
+    destination_client_id integer
 );
 
 
@@ -13354,7 +13355,8 @@ CREATE TABLE public.hmis_dqt_enrollments (
     entry_date_entered_at timestamp without time zone,
     exit_date_entered_at timestamp without time zone,
     days_to_enter_entry_date integer,
-    days_to_enter_exit_date integer
+    days_to_enter_exit_date integer,
+    days_before_entry integer
 );
 
 
@@ -14489,7 +14491,8 @@ CREATE TABLE public.hud_report_apr_clients (
     bed_nights integer,
     pit_enrollments jsonb DEFAULT '[]'::jsonb,
     source_enrollment_id integer,
-    los_under_threshold integer
+    los_under_threshold integer,
+    project_id integer
 );
 
 
@@ -15105,7 +15108,8 @@ CREATE TABLE public.hud_report_path_clients (
     destination integer,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
-    gender_multi character varying
+    gender_multi character varying,
+    destination_client_id integer
 );
 
 
@@ -39477,6 +39481,13 @@ CREATE INDEX idx_any_stage ON public."IncomeBenefits" USING btree ("IncomeFromAn
 
 
 --
+-- Name: idx_ds_id_p_id_e_id_del; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_ds_id_p_id_e_id_del ON public."Disabilities" USING btree ("EnrollmentID", "PersonalID", "DateDeleted", data_source_id) WHERE ("IndefiniteAndImpairs" = 1);
+
+
+--
 -- Name: idx_earned_stage; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -50650,6 +50661,11 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20221103144659'),
 ('20221103201310'),
 ('20221104134752'),
-('20221110133236');
+('20221107144111'),
+('20221108134143'),
+('20221109155552'),
+('20221110133236'),
+('20221115123832'),
+('20221115211004');
 
 

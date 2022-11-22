@@ -19,7 +19,7 @@ module CohortColumns
     end
 
     def value(cohort_client) # OK
-      cohort_client.client&.most_recent_pathways_or_rrh_assessment_for_destination&.AssessmentDate&.to_date&.to_s
+      GrdaWarehouse::Config.get(:cas_calculator).constantize.new.most_recent_assessment_for_destination(cohort_client.client)
     end
   end
 end

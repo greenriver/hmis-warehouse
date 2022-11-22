@@ -554,8 +554,9 @@ module Health
       }
     end
 
-    def self.cleanup_referrals
+    def self.cleanup_referrals(patient_ids = nil)
       referral_source = joins(:patient) # Limit to referrals with patients
+      referral_source = referral_source.where(patient_id: patient_ids) if patient_ids
       cleanup_time = Date.today.to_time
 
       # Any non-current enrollments should have a disenrollment date
@@ -610,6 +611,4 @@ module Health
       end
     end
   end
-
-  class MedicaidIdConflict < StandardError; end
 end

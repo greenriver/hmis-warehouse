@@ -2,28 +2,9 @@
 wb = xlsx_package.workbook
 wb.add_worksheet(name: 'Average Length of Time') do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
-  sheet.add_row([
-    'Warehouse ID',
-    'First Name',
-    'Last Name',
-    'Days Homeless',
-    'Entry Date',
-    'Exit Date/Move-in-Date',
-    'Destination/PH Project',
-    'Homeless Project',
-  ], :style => title)
+  sheet.add_row(@report.headers_for_export, :style => title)
 
-  @report.data.each do |client|
-    row = [
-      client.client.id,
-      client.client.FirstName,
-      client.client.LastName,
-      client.days,
-      client.entry_date,
-      client.exit_date,
-      client.destination,
-      client.project_name,
-    ]
+  @report.rows_for_export.each do |row|
     sheet.add_row(row)
   end
 end

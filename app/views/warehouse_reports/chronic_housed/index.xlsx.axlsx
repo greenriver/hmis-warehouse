@@ -2,7 +2,7 @@ wb = xlsx_package.workbook
 wb.add_worksheet(name: "Chronic Clients Housed") do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
   sheet.add_row([
-    'Client ID',
+    'Warehouse Client ID',
     'First Name',
     'Last Name',
     'On Lists',
@@ -12,8 +12,8 @@ wb.add_worksheet(name: "Chronic Clients Housed") do |sheet|
     client = exits.first
     sheet.add_row([
       client.client_id,
-      client.first_name,
-      client.last_name,
+      ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client.first_name : 'Redacted',
+      ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client.last_name : 'Redacted',
       @chronics[client.client_id].map(&:date).uniq.join('; '),
       exits.map{|ex| [ex.exit_date, HUD.destination(ex.destination)].join(' - ')}.uniq.join(';'),
     ])

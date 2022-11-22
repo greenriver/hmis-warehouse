@@ -40,7 +40,7 @@ $zIndex-8:   800;
 $zIndex-9:   900;
 $zIndex-10: 1000;
 
-$page-z-index: $zIndex-1;
+$page-z-index: $zIndex-4; // header and footer
 $dropdown-z-index: $zIndex-6;
 $fixed-nav-z-index: $zIndex-1;
 $loader-z-index: $zIndex-10*2;

@@ -35,8 +35,8 @@
         - enrollments.each do |enrollment|
           - client = enrollment.client
           %tr
-            %td= client.FirstName
-            %td= client.LastName
+            %td= ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client.FirstName : 'Redacted'
+            %td= ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client.LastName : 'Redacted'
             %td= HUD.project_type(enrollment.computed_project_type)
             %td= enrollment.project.name(current_user)
             %td= enrollment.first_date_in_program

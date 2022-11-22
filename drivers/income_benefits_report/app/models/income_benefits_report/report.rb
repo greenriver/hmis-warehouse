@@ -168,7 +168,6 @@ module IncomeBenefitsReport
       [
         build_general_control_section,
         build_coc_control_section,
-        build_household_control_section,
         add_demographic_disabilities_control_section,
       ]
     end

@@ -17,6 +17,9 @@
             %td= link_to "#{patient.first_name} #{patient.last_name}", polymorphic_path(health_path_generator + [:patient, :index], client_id: patient.client_id)
           - patients[1..-1].each do |patient|
             %tr
-              %td= link_to "#{patient.first_name} #{patient.last_name}", polymorphic_path(health_path_generator + [:patient, :index], client_id: patient.client_id)
+              - if patient.client_id.present?
+                %td= link_to "#{patient.first_name} #{patient.last_name}", polymorphic_path(health_path_generator + [:patient, :index], client_id: patient.client_id)
+              - else
+                %td= "#{patient.first_name} #{patient.last_name}"
 - else
   No patients found

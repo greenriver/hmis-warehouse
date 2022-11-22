@@ -27,8 +27,8 @@ wb.add_worksheet(name: 'COVID-19 Impact Assessment Export'[0, 30]) do |sheet|
       tenant_payment = assessment.monthly_rent_total - (assessment.total_subsidy / assessment.subsidy_months)
     end
     sheet.add_row [
-      client.LastName,
-      client.FirstName,
+      ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client.LastName : 'Redacted',
+      ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client.FirstName : 'Redacted',
       assessment.number_of_bedrooms,
       tenant_payment,
       assessment.total_subsidy,

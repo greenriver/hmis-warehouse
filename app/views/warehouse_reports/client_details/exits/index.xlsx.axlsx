@@ -14,8 +14,8 @@ wb.add_worksheet(name: "Exit Detail #{GrdaWarehouse::WarehouseReports::Dashboard
     client = enrollment.client
     row = [
       enrollment.client_id,
-      client.FirstName,
-      client.LastName,
+      ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client.FirstName : 'Redacted',
+      ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client.LastName : 'Redacted',
       enrollment.last_date_in_program,
       enrollment.destination,
       enrollment.project.name(current_user),
