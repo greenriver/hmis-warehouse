@@ -140,7 +140,6 @@ module Censuses
       adjusted_start_date = start_date.to_date - 1.day
 
       labels = @filter.aggregation_type.to_sym == :veteran ? ['Veteran Count', 'Non-Veteran Count'] : ['Client Count', 'Bed Inventory Count']
-      # FIXME: veterans and non_veterans don't add up to all_clients
       columns = @filter.aggregation_type.to_sym == :veteran ? ['sum(veterans)', 'sum(non_veterans)'] : ['sum(all_clients)', 'sum(beds)']
 
       bounded_scope = dimension_scope.for_date_range(adjusted_start_date, end_date).group(:date).pluck(:date, *columns)
