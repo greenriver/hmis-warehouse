@@ -74,7 +74,7 @@ class CensusesController < ApplicationController
 
   def available_aggregation_types
     {
-      'Nightly Client Count and Available Beds' => :inventory,
+      'Nightly Client Count vs Available Beds' => :inventory,
       'Nightly Veteran vs Non-Veteran' => :veteran,
     }
   end
@@ -95,7 +95,7 @@ class CensusesController < ApplicationController
   end
 
   private def parse_filter_params
-    params[:filters] = JSON.parse(params[:filters])
+    params[:filters] = JSON.parse(params[:filters]) if params[:filters].instance_of?(String)
   end
 
   def filter_params

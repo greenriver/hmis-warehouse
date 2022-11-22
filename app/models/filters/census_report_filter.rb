@@ -63,7 +63,6 @@ module Filters
 
     # These are not presented in the UI, but need to be set to nothing or all homeless projects are returned
     def default_project_type_codes
-      # GrdaWarehouse::Hud::Project::RESIDENTIAL_TYPE_TITLES.keys
       []
     end
   end

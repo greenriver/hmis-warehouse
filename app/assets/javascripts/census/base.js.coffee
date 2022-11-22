@@ -8,7 +8,6 @@ class App.Census.Base
     @width = @_width()
     @height = @_height()
     @is_veteran_breakdown = JSON.parse(@filters)["aggregation_type"] == "veteran"
-    @is_project_type_aggregation = JSON.parse(@filters)["aggregation_level"] == "by_project_type"
 
   load: ->
     $.get @url, {filters: @filters}, (data) =>
