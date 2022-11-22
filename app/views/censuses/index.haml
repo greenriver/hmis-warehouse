@@ -4,7 +4,7 @@
 .row.mb-4
   .col-sm-12
     = render partial: 'form'
-    .jCharts
+    .jCharts.mt-6
       - if filter_params.present?
         .card.mb-4.pt-2
           .h4.pl-3 Census Filters
@@ -18,7 +18,7 @@
   :javascript
     (function($) {
       if ('#{filter_params.present?}' === 'true') {
-        census = new App.Census.Base('#{date_range_censuses_path()}', '#{filter_params.to_json.html_safe}', {follow_link: '#{can_view_clients?}'});
+        census = new App.Census.Base('#{date_range_censuses_path()}', '#{filter_params.to_json.html_safe}', { follow_link: '#{can_view_clients?}' });
         census.load();
       }
     })(jQuery);

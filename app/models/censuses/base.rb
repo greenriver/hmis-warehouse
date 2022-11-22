@@ -3,7 +3,7 @@
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
-# delete file
+
 module Censuses
   class Base
     include Filter::ControlSections
