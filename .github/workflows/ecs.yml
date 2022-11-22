@@ -38,7 +38,7 @@ concurrency:
 
 jobs:
   deploy:
-    name: Deploy
+    name: Build
     runs-on: ubuntu-20.04
 
     steps:
@@ -77,9 +77,6 @@ jobs:
 
         echo $SHA > ${DOCKER_ASSETS_PATH}/REVISION
         echo $BRANCH > ${DOCKER_ASSETS_PATH}/GIT_BRANCH
-        echo Here are the file values
-        echo ${DOCKER_ASSETS_PATH}/REVISION
-        echo ${DOCKER_ASSETS_PATH}/GIT_BRANCH
 
         echo "::set-output name=pre_cache_tag::$PRE_CACHE_TAG"
         echo "::set-output name=githash::$GITHASH"
@@ -122,6 +119,10 @@ jobs:
         RUBY_VERSION: ${{ steps.prep.outputs.ruby_version }}
       run: |
         echo 'no tag generated' > image-tag.txt
+
+        echo Here are the file values
+        cat ${DOCKER_ASSETS_PATH}/REVISION
+        cat ${DOCKER_ASSETS_PATH}/GIT_BRANCH
 
         echo Building base
         docker build --file=$DOCKER_ASSETS_PATH/Dockerfile.${ECR_REPOSITORY}.base --build-arg GITHASH=${GITHASH} --build-arg RUBY_VERSION=${RUBY_VERSION} -t ${ECR_REPOSITORY}:latest--base .
