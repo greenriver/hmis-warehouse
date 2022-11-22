@@ -20,6 +20,7 @@
       "link_id": "3.917.group",
       "text": "Prior Living Situation (3.917)",
       "data_collected_about": "HOH_AND_ADULTS",
+      "record_type": "ENROLLMENT",
       "reference_link": "https://files.hudexchange.info/resources/documents/FY-2022-HMIS-Data-Standards-Manual.pdf#page=104",
       "item": [
         {
@@ -32,13 +33,15 @@
           "required": false,
           "link_id": "3.917.1",
           "text": "Prior Living Situation",
-          "pick_list_reference": "PRIOR_LIVING_SITUATION"
+          "pick_list_reference": "PRIOR_LIVING_SITUATION",
+          "field_name": "livingSituation"
         },
         {
           "type": "CHOICE",
           "link_id": "3.917.2",
           "text": "Length of stay in prior living situation",
-          "pick_list_reference": "ResidencePriorLengthOfStay"
+          "pick_list_reference": "ResidencePriorLengthOfStay",
+          "field_name": "lengthOfStay"
         },
         {
           "type": "DISPLAY",
@@ -90,6 +93,7 @@
         {
           "type": "BOOLEAN",
           "link_id": "3.917.C",
+          "field_name": "previousStreetEssh",
           "text": "On the night before, did the client stay on the streets, ES or SH?",
           "project_types_excluded": ["ES", "SERVICES_ONLY", "SH"],
           "enable_behavior": "ALL",
@@ -144,6 +148,7 @@
         {
           "type": "DATE",
           "link_id": "3.917.3",
+          "field_name": "dateToStreetEssh",
           "text": "Date homelessness started",
           "enable_behavior": "ALL",
           "enable_when": [
@@ -167,6 +172,7 @@
         {
           "type": "CHOICE",
           "link_id": "3.917.4",
+          "field_name": "timesHomelessPastThreeYears",
           "text": "Number of times the client has been on the streets, in ES, or SH in the past three years",
           "pick_list_reference": "TimesHomelessPastThreeYears",
           "enable_behavior": "ALL",
@@ -191,6 +197,7 @@
         {
           "type": "CHOICE",
           "link_id": "3.917.5",
+          "field_name": "monthsHomelessPastThreeYears",
           "text": "Total number of months homeless on the street, in ES, or SH in the past three years",
           "pick_list_reference": "MonthsHomelessPastThreeYears",
           "enable_behavior": "ALL",
@@ -271,6 +278,7 @@
       "link_id": "income-source",
       "text": "Income and Sources",
       "data_collected_about": "HOH_AND_ADULTS",
+      "record_type": "INCOME_BENEFIT",
       "item": [
         {
           "type": "GROUP",
@@ -281,82 +289,98 @@
               "type": "CHOICE",
               "link_id": "4.02.2",
               "text": "Income from Any Source",
-              "pick_list_reference": "NoYesReasonsForMissingData"
+              "pick_list_reference": "NoYesReasonsForMissingData",
+              "field_name": "incomeFromAnySource"
             },
             {
               "type": "CURRENCY",
               "link_id": "4.02.A",
-              "text": "Earned Income (i.e., employment income)"
+              "text": "Earned Income (i.e., employment income)",
+              "field_name": "earnedAmount"
             },
             {
               "type": "CURRENCY",
               "link_id": "4.02.B",
-              "text": "Unemployment Insurance"
+              "text": "Unemployment Insurance",
+              "field_name": "unemploymentAmount"
             },
             {
               "type": "CURRENCY",
               "link_id": "4.02.C",
-              "text": "Supplemental Security Income (SSI)"
+              "text": "Supplemental Security Income (SSI)",
+              "field_name": "ssiAmount"
             },
             {
               "type": "CURRENCY",
               "link_id": "4.02.D",
-              "text": "Social Security Disability Insurance (SSDI)"
+              "text": "Social Security Disability Insurance (SSDI)",
+              "field_name": "ssdiAmount"
             },
             {
               "type": "CURRENCY",
               "link_id": "4.02.E",
-              "text": "VA Service-Connected Disability Compensation"
+              "text": "VA Service-Connected Disability Compensation",
+              "field_name": "vaDisabilityServiceAmount"
             },
             {
               "type": "CURRENCY",
               "link_id": "4.02.F",
-              "text": "VA Non-Service-Connected Disability Pension"
+              "text": "VA Non-Service-Connected Disability Pension",
+              "field_name": "vaDisabilityNonServiceAmount"
             },
             {
               "type": "CURRENCY",
               "link_id": "4.02.G",
-              "text": "Private disability insurance"
+              "text": "Private disability insurance",
+              "field_name": "privateDisabilityAmount"
             },
             {
               "type": "CURRENCY",
               "link_id": "4.02.H",
-              "text": "Worker's Compensation"
+              "text": "Worker's Compensation",
+              "field_name": "workersCompAmount"
             },
             {
               "type": "CURRENCY",
               "link_id": "4.02.I",
-              "text": "Temporary Assistance for Needy Families (TANF)"
+              "text": "Temporary Assistance for Needy Families (TANF)",
+              "field_name": "tanfAmount"
             },
             {
               "type": "CURRENCY",
               "link_id": "4.02.J",
-              "text": "General Assistance (GA)"
+              "text": "General Assistance (GA)",
+              "field_name": "gaAmount"
             },
             {
               "type": "CURRENCY",
               "link_id": "4.02.K",
-              "text": "Retirement Income from Social Security"
+              "text": "Retirement Income from Social Security",
+              "field_name": "socSecRetirementAmount"
             },
             {
               "type": "CURRENCY",
               "link_id": "4.02.L",
-              "text": "Pension or retirement income from a former job"
+              "text": "Pension or retirement income from a former job",
+              "field_name": "pensionAmount"
             },
             {
               "type": "CURRENCY",
               "link_id": "4.02.M",
-              "text": "Child support"
+              "text": "Child support",
+              "field_name": "childSupportAmount"
             },
             {
               "type": "CURRENCY",
               "link_id": "4.02.N",
-              "text": "Alimony and other spousal support"
+              "text": "Alimony and other spousal support",
+              "field_name": "alimonyAmount"
             },
             {
               "type": "CURRENCY",
               "link_id": "4.02.O",
-              "text": "Other Source"
+              "text": "Other Source",
+              "field_name": "otherIncomeAmount"
             },
             {
               "type": "STRING",
@@ -364,6 +388,7 @@
               "text": "Specify source",
               "required": true,
               "enable_behavior": "ALL",
+              "field_name": "otherIncomeSourceIdentify",
               "enable_when": [
                 {
                   "question": "4.02.O",
@@ -381,6 +406,7 @@
       "link_id": "non-cash-benefits",
       "text": "Non-Cash Benefits",
       "data_collected_about": "HOH_AND_ADULTS",
+      "record_type": "INCOME_BENEFIT",
       "item": [
         {
           "type": "GROUP",
@@ -391,49 +417,58 @@
               "type": "CHOICE",
               "link_id": "4.03.2",
               "text": "Non-Cash Benefits from Any Source",
-              "pick_list_reference": "NoYesReasonsForMissingData"
+              "pick_list_reference": "NoYesReasonsForMissingData",
+              "field_name": "benefitsFromAnySource"
             },
             {
               "type": "BOOLEAN",
               "link_id": "4.03.3",
               "component": "CHECKBOX",
-              "text": "Supplemental Nutrition Assistance Program (SNAP) (Previously known as Food Stamps)"
+              "text": "Supplemental Nutrition Assistance Program (SNAP) (Previously known as Food Stamps)",
+              "field_name": "snap"
+              
             },
             {
               "type": "BOOLEAN",
               "link_id": "4.03.4",
               "component": "CHECKBOX",
-              "text": "Special Supplemental Nutrition Program for Women, Infants, and Children (WIC)"
+              "text": "Special Supplemental Nutrition Program for Women, Infants, and Children (WIC)",
+              "field_name": "wic"
             },
             {
               "type": "BOOLEAN",
               "link_id": "4.03.5",
               "component": "CHECKBOX",
-              "text": "TANF Child Care services"
+              "text": "TANF Child Care services",
+              "field_name": "tanfChildCare"
             },
             {
               "type": "BOOLEAN",
               "link_id": "4.03.6",
               "component": "CHECKBOX",
-              "text": "TANF transportation services"
+              "text": "TANF transportation services",
+              "field_name": "tanfTransportation"
             },
             {
               "type": "BOOLEAN",
               "link_id": "4.03.7",
               "component": "CHECKBOX",
-              "text": "Other TANF-funded services"
+              "text": "Other TANF-funded services",
+              "field_name": "otherTanf"
             },
             {
               "type": "BOOLEAN",
               "link_id": "4.03.8",
               "component": "CHECKBOX",
-              "text": "Other source"
+              "text": "Other source",
+              "field_name": "otherBenefitsSource"
             },
             {
               "type": "STRING",
               "link_id": "4.03.A",
               "text": "Specify source",
               "required": true,
+              "field_name": "otherBenefitsSourceIdentify",
               "enable_behavior": "ALL",
               "enable_when": [
                 {
@@ -452,6 +487,7 @@
       "link_id": "health-insurance",
       "text": "Health Insurance",
       "data_collected_about": "ALL_CLIENTS",
+      "record_type": "INCOME_BENEFIT",
       "item": [
         {
           "type": "GROUP",
@@ -462,73 +498,85 @@
               "type": "CHOICE",
               "link_id": "4.04.2",
               "text": "Covered by Health Insurance",
-              "pick_list_reference": "NoYesReasonsForMissingData"
+              "pick_list_reference": "NoYesReasonsForMissingData",
+              "field_name": "insuranceFromAnySource"
             },
             {
               "type": "BOOLEAN",
               "component": "CHECKBOX",
               "link_id": "4.04.3",
-              "text": "Medicaid"
+              "text": "Medicaid",
+              "field_name": "medicaid"
             },
             {
               "type": "BOOLEAN",
               "component": "CHECKBOX",
               "link_id": "4.04.4",
-              "text": "Medicare"
+              "text": "Medicare",
+              "field_name": "medicare"
             },
             {
               "type": "BOOLEAN",
               "component": "CHECKBOX",
               "link_id": "4.04.5",
-              "text": "State Children's Health Insurance Program"
+              "text": "State Children's Health Insurance Program",
+              "field_name": "schip"
             },
             {
               "type": "BOOLEAN",
               "component": "CHECKBOX",
               "link_id": "4.04.6",
-              "text": "VA Medical Services"
+              "text": "VA Medical Services",
+              "field_name": "vaMedicalServices"
             },
             {
               "type": "BOOLEAN",
               "component": "CHECKBOX",
               "link_id": "4.04.7",
-              "text": "Employer-Provided Health Insurance"
+              "text": "Employer-Provided Health Insurance",
+              "field_name": "employerProvided"
             },
             {
               "type": "BOOLEAN",
               "component": "CHECKBOX",
               "link_id": "4.04.8",
-              "text": "Health Insurance obtained through COBRA"
+              "text": "Health Insurance obtained through COBRA",
+              "field_name": "cobra"
             },
             {
               "type": "BOOLEAN",
               "component": "CHECKBOX",
               "link_id": "4.04.9",
-              "text": "Private Pay Health Insurance"
+              "text": "Private Pay Health Insurance",
+              "field_name": "privatePay"
             },
             {
               "type": "BOOLEAN",
               "component": "CHECKBOX",
               "link_id": "4.04.10",
-              "text": "State Health Insurance for Adults"
+              "text": "State Health Insurance for Adults",
+              "field_name": "stateHealthIns"
             },
             {
               "type": "BOOLEAN",
               "component": "CHECKBOX",
               "link_id": "4.04.11",
-              "text": "Indian Health Services Program"
+              "text": "Indian Health Services Program",
+              "field_name": "indianHealthServices"
             },
             {
               "type": "BOOLEAN",
               "component": "CHECKBOX",
               "link_id": "4.04.12",
-              "text": "Other"
+              "text": "Other",
+              "field_name": "otherInsurance"
             },
             {
               "type": "STRING",
               "link_id": "4.04.12A",
               "text": "Specify Source",
               "required": true,
+              "field_name": "otherInsuranceIdentify",
               "enable_behavior": "ALL",
               "enable_when": [
                 {
@@ -547,6 +595,7 @@
       "link_id": "disability",
       "text": "Disability",
       "data_collected_about": "ALL_CLIENTS",
+      "record_type": "DISABILITY",
       "item": [
         {
           "type": "CHOICE",
@@ -643,7 +692,7 @@
           "type": "CHOICE",
           "link_id": "4.10.2",
           "text": "Substance Use Disorder",
-          "pick_list_reference": "SubstanceUseDisorder"
+          "pick_list_reference": "DisabilityResponse"
         },
         {
           "type": "GROUP",
@@ -682,6 +731,7 @@
       "link_id": "health-and-dv",
       "text": "Health and DV",
       "data_collected_about": "HOH_AND_ADULTS",
+      "record_type": "HEALTH_AND_DV",
       "item": [
         {
           "type": "DISPLAY",
@@ -692,12 +742,15 @@
           "type": "CHOICE",
           "link_id": "4.11.2",
           "text": "Domestic Violence Victim/Survivor",
-          "pick_list_reference": "NoYesReasonsForMissingData"
+          "pick_list_reference": "NoYesReasonsForMissingData",
+          "field_name": "domesticViolenceVictim"
         },
         {
           "type": "CHOICE",
           "link_id": "4.11.A",
           "text": "When did the experience occur?",
+          "field_name": "whenOccurred",
+          "pick_list_reference": "WhenDVOccurred",
           "enable_behavior": "ALL",
           "enable_when": [
             {
@@ -711,6 +764,7 @@
           "type": "CHOICE",
           "link_id": "4.11.B",
           "text": "Are you currently fleeing?",
+          "field_name": "currentlyFleeing",
           "pick_list_reference": "NoYesReasonsForMissingData",
           "helper_text": "Currently fleeing should be indicated as “Yes” if the person is fleeing, or is attempting to flee, the domestic violence situation or is afraid to return to their primary nighttime residence.",
           "enable_behavior": "ALL",

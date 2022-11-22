@@ -15,8 +15,9 @@ module Types
     field :id, ID, null: false
     field :enrollment, HmisSchema::Enrollment, null: false
     field :client, HmisSchema::Client, null: false
-    field :user, HmisSchema::User, null: false
+    field :user, HmisSchema::User, null: true
     hud_field :information_date
+    hud_field :domestic_violence_victim, HmisSchema::Enums::Hud::NoYesReasonsForMissingData
     hud_field :when_occurred, HmisSchema::Enums::Hud::WhenDVOccurred
     hud_field :currently_fleeing, HmisSchema::Enums::Hud::NoYesReasonsForMissingData
     hud_field :general_health_status, HmisSchema::Enums::Hud::HealthStatus
