@@ -75,8 +75,11 @@ jobs:
         export PRE_CACHE_VERSION=`cat .pre-cache-version`
         export PRE_CACHE_TAG="${RUBY_VERSION}-${PRE_CACHE_VERSION}--pre-cache"
 
-        echo $SHA > REVISION
-        echo $BRANCH > GIT_BRANCH
+        echo $SHA > ${DOCKER_ASSETS_PATH}/REVISION
+        echo $BRANCH > ${DOCKER_ASSETS_PATH}/GIT_BRANCH
+        echo Here are the file values
+        echo ${DOCKER_ASSETS_PATH}/REVISION
+        echo ${DOCKER_ASSETS_PATH}/GIT_BRANCH
 
         echo "::set-output name=pre_cache_tag::$PRE_CACHE_TAG"
         echo "::set-output name=githash::$GITHASH"
