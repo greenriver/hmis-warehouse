@@ -140,7 +140,7 @@ module DestinationReport
           pluck(
             :client_id,
             :Destination,
-            :CoCCode,
+            pc_t[:CoCCode],
           ).each do |client_id, destination_id, coc_code|
             destination = HUD.destination_type(destination_id)
             detailed_destination = HUD.destination(destination_id)
@@ -169,7 +169,10 @@ module DestinationReport
 
             data[:by_coc][coc_code][:destinations][destination] ||= destination_buckets.map { |b| [b, Set.new] }.to_h
             data[:by_coc][coc_code][:destinations][destination] << client_id
-            data[:by_coc][coc_code][:destination_details][destination][detailed_destination || 'Unknown'] << client_id
+            data[:by_coc][coc_code][:destination_details][destination] ||= {}
+            word = detailed_destination.presence || 'Unknown'
+            data[:by_coc][coc_code][:destination_details][destination][word] ||= Set.new
+            data[:by_coc][coc_code][:destination_details][destination][word] << client_id
           end
         data
       end

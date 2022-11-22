@@ -253,7 +253,7 @@ module HmisDataQualityTool
       report_item.days_before_entry = enrollment.EntryDate - enrollment.DateToStreetESSH if enrollment.DateToStreetESSH.present?
       # Note this differs form coc_code since it is found by ignoring the CoC limit on the enrollment_scope
       report_item.enrollment_coc = enrollment_cocs(report)[enrollment.id]
-      report_item.project_coc_codes = enrollment.project&.project_cocs&.map(&:CoCCode) || []
+      report_item.project_coc_codes = enrollment.project&.project_cocs&.map(&:effective_coc_code) || []
       report_item.has_disability = enrollment.disabilities_at_entry&.map(&:indefinite_and_impairs?)&.any?
       report_item.days_between_entry_and_create = (enrollment.DateCreated.to_date - enrollment.EntryDate).to_i
 

@@ -28,7 +28,7 @@ module Types
       private
 
       def scoped_health_and_dvs(scope)
-        scope.viewable_by(current_user)
+        scope.viewable_by(current_user).order(information_date: :desc)
       end
     end
   end

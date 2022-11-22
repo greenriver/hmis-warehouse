@@ -29,6 +29,8 @@ module Types
     hud_field :relationship_to_ho_h, HmisSchema::Enums::Hud::RelationshipToHoH, null: false
     field :living_situation, HmisSchema::Enums::Hud::LivingSituation
     hud_field :length_of_stay, HmisSchema::Enums::Hud::ResidencePriorLengthOfStay
+    yes_no_missing_field :previous_street_essh
+    hud_field :date_to_street_essh
     hud_field :times_homeless_past_three_years, HmisSchema::Enums::Hud::TimesHomelessPastThreeYears
     hud_field :months_homeless_past_three_years, HmisSchema::Enums::Hud::MonthsHomelessPastThreeYears
     hud_field :disabling_condition, HmisSchema::Enums::Hud::NoYesReasonsForMissingData
@@ -36,6 +38,7 @@ module Types
     hud_field :date_updated
     hud_field :date_created
     hud_field :date_deleted
+    field :user, HmisSchema::User, null: true
 
     def project
       load_ar_association(object.in_progress? ? object.wip : object, :project)
@@ -69,6 +72,10 @@ module Types
 
     def assessments(**args)
       resolve_assessments_including_wip(**args)
+    end
+
+    def user
+      load_ar_association(object, :user)
     end
   end
 end
