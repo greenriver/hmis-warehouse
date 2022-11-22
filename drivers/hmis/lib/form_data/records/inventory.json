@@ -13,7 +13,7 @@
           "link_id": "coc",
           "text": "CoC Code",
           "pick_list_reference": "COC",
-          "query_field": "cocCode"
+          "field_name": "cocCode"
         },
         {
           "type": "CHOICE",
@@ -21,21 +21,21 @@
           "link_id": "hhtype",
           "text": "Household Type",
           "pick_list_reference": "HouseholdType",
-          "query_field": "householdType"
+          "field_name": "householdType"
         },
         {
           "type": "INTEGER",
           "required": true,
           "link_id": "units",
           "text": "Unit Inventory",
-          "query_field": "unitInventory"
+          "field_name": "unitInventory"
         },
         {
           "type": "INTEGER",
           "required": true,
           "link_id": "beds",
           "text": "Bed Inventory",
-          "query_field": "bedInventory"
+          "field_name": "bedInventory"
         }
       ]
     },
@@ -50,7 +50,7 @@
           "required": true,
           "link_id": "2.07.1",
           "text": "Start Date",
-          "query_field": "inventoryStartDate",
+          "field_name": "inventoryStartDate",
           "bounds": [{
             "type": "MAX",
             "question": "2.07.2"
@@ -61,7 +61,7 @@
           "required": false,
           "link_id": "2.07.2",
           "text": "End Date",
-          "query_field": "inventoryEndDate",
+          "field_name": "inventoryEndDate",
           "bounds": [{
             "type": "MIN",
             "question": "2.07.1"

@@ -5,7 +5,7 @@ module Types
     end
 
     hud_argument :project_id, ID, required: false
-    hud_argument :funder, HmisSchema::Enums::FundingSource
+    hud_argument :funder, HmisSchema::Enums::Hud::FundingSource
     hud_argument :other_funder
     hud_argument :grant_id
     hud_argument :start_date

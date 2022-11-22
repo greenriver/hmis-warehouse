@@ -3,7 +3,7 @@
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
-module Hmis::Hud::HasEnums
+module Hmis::Hud::Concerns::HasEnums
   extend ActiveSupport::Concern
 
   class_methods do

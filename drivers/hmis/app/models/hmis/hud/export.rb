@@ -7,7 +7,7 @@
 # NOTE Export does not inherit from Base (it does not act as paranoid)
 class Hmis::Hud::Export < ::GrdaWarehouseBase
   include ::HmisStructure::Export
-  include ::Hmis::Hud::Shared
+  include ::Hmis::Hud::Concerns::Shared
   self.table_name = :Export
   self.sequence_name = "public.\"#{table_name}_id_seq\""
 end

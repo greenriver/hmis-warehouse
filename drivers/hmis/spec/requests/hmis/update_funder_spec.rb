@@ -16,7 +16,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     {
       project_id: p1.id,
       grant_id: 'grant',
-      funder: Types::HmisSchema::Enums::FundingSource.enum_member_for_value(24).first,
+      funder: Types::HmisSchema::Enums::Hud::FundingSource.enum_member_for_value(24).first,
       start_date: '2022-01-01',
     }
   end
@@ -28,22 +28,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       mutation UpdateFunder($id: ID!, $input: FunderInput!) {
         updateFunder(input: { input: $input, id: $id }) {
           funder {
-            id
-            funder
-            grantId
-            startDate
-            endDate
-            otherFunder
-            dateCreated
-            dateUpdated
-            dateDeleted
+            #{scalar_fields(Types::HmisSchema::Funder)}
           }
-          errors {
-            attribute
-            type
-            fullMessage
-            message
-          }
+          #{error_fields}
         }
       }
     GRAPHQL
@@ -100,7 +87,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     it 'fails if 46 and other is missing' do
-      response, result = post_graphql(id: f1.id, input: { **valid_input, funder: Types::HmisSchema::Enums::FundingSource.enum_member_for_value(46).first }) { mutation }
+      response, result = post_graphql(id: f1.id, input: { **valid_input, funder: Types::HmisSchema::Enums::Hud::FundingSource.enum_member_for_value(46).first }) { mutation }
 
       record = result.dig('data', 'updateFunder', 'funder')
       errors = result.dig('data', 'updateFunder', 'errors')

@@ -17,23 +17,25 @@ module Types
           field_options = default_field_options.merge(override_options)
           field(name, **field_options) do
             argument :sort_order, HmisSchema::EnrollmentSortOption, required: false
+            argument :include_in_progress, GraphQL::Types::Boolean, required: false
             instance_eval(&block) if block_given?
           end
         end
       end
 
       def resolve_enrollments_with_loader(association_name = :enrollments, **args)
-        load_ar_association(object, association_name, scope: apply_enrollment_arguments(Hmis::Hud::Enrollment, **args))
+        load_ar_association(object, association_name, scope: scoped_enrollments(Hmis::Hud::Enrollment, **args))
       end
 
       def resolve_enrollments(scope = object.enrollments, **args)
-        apply_enrollment_arguments(scope, **args)
+        scoped_enrollments(scope, **args)
       end
 
       private
 
-      def apply_enrollment_arguments(scope, user: current_user, sort_order: :most_recent)
-        scope = scope.viewable_by(user)
+      def scoped_enrollments(scope, sort_order: :most_recent, include_in_progress: false)
+        scope = scope.viewable_by(current_user)
+        scope = scope.where.not(project_id: nil) unless include_in_progress
         scope = scope.sort_by_option(sort_order) if sort_order.present?
         scope
       end

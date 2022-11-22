@@ -21,7 +21,7 @@ module Types
     hud_field :city
     hud_field :state
     hud_field :zip
-    hud_field :geography_type, HmisSchema::Enums::GeographyType
+    hud_field :geography_type, HmisSchema::Enums::Hud::GeographyType
     hud_field :date_updated
     hud_field :date_created
     hud_field :date_deleted

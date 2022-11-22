@@ -23,20 +23,23 @@ module Types
         end
       end
 
-      def resolve_projects_with_loader(association_name = :projects, **args)
-        load_ar_association(object, association_name, scope: apply_project_arguments(Hmis::Hud::Project, **args))
-      end
+      included do
+        def resolve_projects_with_loader(association_name = :projects, **args)
+          load_ar_association(object, association_name, scope: scoped_projects(Hmis::Hud::Project, **args))
+        end
 
-      def resolve_projects(scope = object.projects, **args)
-        apply_project_arguments(scope, **args)
+        def resolve_projects(scope = object.projects, **args)
+          scoped_projects(scope, **args)
+        end
       end
 
       private
 
-      def apply_project_arguments(scope, user: current_user, project_types: nil, sort_order: nil)
-        projects_scope = scope.viewable_by(user)
-        projects_scope = projects_scope.with_project_type(project_types) if project_types.present?
-        projects_scope.sort_by_option(sort_order) if sort_order.present?
+      def scoped_projects(scope, user: current_user, project_types: nil, sort_order: nil)
+        scope = scope.viewable_by(user)
+        scope = scope.with_project_type(project_types) if project_types.present?
+        scope = scope.sort_by_option(sort_order) if sort_order.present?
+        scope
       end
     end
   end

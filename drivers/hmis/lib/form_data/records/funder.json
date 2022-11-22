@@ -12,14 +12,14 @@
           "link_id": "funder",
           "text": "Funding Source",
           "pick_list_reference": "FundingSource",
-          "query_field": "funder"
+          "field_name": "funder"
         },
         {
           "type": "STRING",
           "required": true,
           "link_id": "other",
           "text": "Other Funder",
-          "query_field": "otherFunder",
+          "field_name": "otherFunder",
           "enable_behavior": "ALL",
           "enable_when": [
             {
@@ -34,7 +34,7 @@
           "required": true,
           "link_id": "grant-id",
           "text": "Grant Identifier",
-          "query_field": "grantId"
+          "field_name": "grantId"
         }
       ]
     },
@@ -50,7 +50,7 @@
           "required": true,
           "link_id": "start",
           "text": "Start Date",
-          "query_field": "startDate",
+          "field_name": "startDate",
           "bounds": [{
             "type": "MAX",
             "question": "end"
@@ -61,7 +61,7 @@
           "required": false,
           "link_id": "end",
           "text": "End Date",
-          "query_field": "endDate",
+          "field_name": "endDate",
           "bounds": [{
             "type": "MIN",
             "question": "start"

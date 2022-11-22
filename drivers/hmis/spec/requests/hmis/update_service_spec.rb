@@ -23,13 +23,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let(:test_input) do
     {
       date_provided: Date.today.strftime('%Y-%m-%d'),
-      record_type: Types::HmisSchema::Enums::RecordType.enum_member_for_value(144).first,
+      record_type: Types::HmisSchema::Enums::Hud::RecordType.enum_member_for_value(144).first,
       type_provided: Types::HmisSchema::Enums::ServiceTypeProvided.enum_member_for_value('144:3').first,
       sub_type_provided: Types::HmisSchema::Enums::ServiceSubTypeProvided.enum_member_for_value('144:3:1').first,
       other_type_provided: 'Other Type',
       moving_on_other_type: 'Moving On Other Type',
       'FAAmount' => 1.5,
-      referral_outcome: Types::HmisSchema::Enums::PATHReferralOutcome.enum_member_for_value(1).first,
+      referral_outcome: Types::HmisSchema::Enums::Hud::PATHReferralOutcome.enum_member_for_value(1).first,
     }
   end
 
@@ -38,31 +38,15 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       mutation UpdateService($id: ID!, $input: ServiceInput!) {
         updateService(input: { input: $input, id: $id }) {
           service {
-            id
+            #{scalar_fields(Types::HmisSchema::Service)}
             enrollment {
               id
             }
             client {
               id
             }
-            dateProvided
-            recordType
-            typeProvided
-            subTypeProvided
-            otherTypeProvided
-            movingOnOtherType
-            FAAmount
-            referralOutcome
-            dateUpdated
           }
-          errors {
-            attribute
-            message
-            fullMessage
-            type
-            options
-            __typename
-          }
+          #{error_fields}
         }
       }
     GRAPHQL

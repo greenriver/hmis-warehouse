@@ -20,6 +20,10 @@ module Types
 
     def self.yes_no_missing_field(name, description = nil, **kwargs)
       field name, Boolean, description, **kwargs
+
+      define_method name do
+        resolve_yes_no_missing(object.send(name))
+      end
     end
 
     def resolve_yes_no_missing(value, yes_value: 1, no_value: 0, null_value: 99)
@@ -46,7 +50,12 @@ module Types
       return field name, type, **kwargs unless configuration.present?
 
       config = configuration.transform_keys { |k| k.to_s.underscore }[name.to_s]
-      type ||= hud_to_gql_type_map[config[:type]] if config.present?
+
+      if config.present? && !type.present?
+        type = hud_to_gql_type_map[config[:type]]
+        type = Float if config[:type] == :string && config[:check] == :money
+      end
+
       raise "No type for #{name}" unless type.present?
 
       nullable = kwargs[:null].nil? && config.present? ? config[:null] : kwargs[:null]

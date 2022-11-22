@@ -1409,7 +1409,7 @@
       },
       "user_input": "table",
       "confidence": "Medium",
-      "note": "Injections from safe internal source"
+      "note": "Injected string from entirely internal sources"
     },
     {
       "warning_type": "SQL Injection",
@@ -2473,6 +2473,6 @@
       "note": ""
     }
   ],
-  "updated": "2022-11-22 21:39:42 +0000",
+  "updated": "2022-11-18 20:01:17 +0000",
   "brakeman_version": "5.0.4"
 }
