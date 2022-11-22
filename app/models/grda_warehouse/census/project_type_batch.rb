@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# NOTE: this has been removed from use around 11/2022
+
 # Delegate to create census data by project type
 module GrdaWarehouse::Census
   class ProjectTypeBatch

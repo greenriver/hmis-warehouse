@@ -223,7 +223,7 @@ module Censuses
       enrollments = enrollments.merge(GrdaWarehouse::Hud::Organization.where(id: organization.to_i)) if organization && organization != 'all'
       enrollments = enrollments.merge(GrdaWarehouse::Hud::Project.where(id: project.to_i)) if project && project != 'all'
 
-      enrollments.
+      enrollments.distinct.
         order(c_t[:LastName].asc, c_t[:FirstName].asc).
         pluck(*columns.values).
         map do |row|
