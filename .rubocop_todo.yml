@@ -263,7 +263,6 @@ Layout/EmptyLinesAroundArguments:
 # SupportedStyles: empty_lines, no_empty_lines
 Layout/EmptyLinesAroundBlockBody:
   Exclude:
-    - 'app/models/grda_warehouse/census/census_builder.rb'
     - 'app/models/grda_warehouse/census/project_type_batch.rb'
     - 'app/models/grda_warehouse/us_census_api/coc_agg.rb'
     - 'app/models/grda_warehouse/warehouse_reports/initiative_report.rb'
@@ -793,7 +792,6 @@ Layout/SpaceAfterComma:
 # Cop supports --auto-correct.
 Layout/SpaceAfterMethodName:
   Exclude:
-    - 'app/models/grda_warehouse/census/census_builder.rb'
     - 'app/models/grda_warehouse/census/project_batch.rb'
 
 # Offense count: 19
@@ -802,7 +800,6 @@ Layout/SpaceAfterMethodName:
 # SupportedStylesInsidePipes: space, no_space
 Layout/SpaceAroundBlockParameters:
   Exclude:
-    - 'app/models/grda_warehouse/census/census_builder.rb'
     - 'app/models/grda_warehouse/census/project_batch.rb'
     - 'app/models/grda_warehouse/census/project_type_batch.rb'
 
@@ -872,7 +869,6 @@ Layout/SpaceAroundOperators:
 Layout/SpaceBeforeBlockBraces:
   Exclude:
     - 'app/models/grda_warehouse/available_file_tag.rb'
-    - 'app/models/grda_warehouse/census/census_builder.rb'
     - 'app/models/grda_warehouse/cohort_column_option.rb'
     - 'app/models/grda_warehouse/cohort_copier.rb'
     - 'app/models/grda_warehouse/export/hmis_six_one_one/client.rb'
@@ -981,7 +977,6 @@ Layout/SpaceInLambdaLiteral:
 Layout/SpaceInsideArrayLiteralBrackets:
   Exclude:
     - 'app/models/glacier/tester.rb'
-    - 'app/models/grda_warehouse/census/census_builder.rb'
     - 'app/models/grda_warehouse/census_by_project.rb'
     - 'app/models/grda_warehouse/census_by_project_type.rb'
     - 'app/models/grda_warehouse/tasks/enrollment_extras_import.rb'
@@ -1005,7 +1000,6 @@ Layout/SpaceInsideArrayLiteralBrackets:
 Layout/SpaceInsideBlockBraces:
   Exclude:
     - 'app/models/grda_warehouse/available_file_tag.rb'
-    - 'app/models/grda_warehouse/census/census_builder.rb'
     - 'app/models/grda_warehouse/cohort_column_option.rb'
     - 'app/models/grda_warehouse/cohort_copier.rb'
     - 'app/models/grda_warehouse/export/hmis_six_one_one/client.rb'

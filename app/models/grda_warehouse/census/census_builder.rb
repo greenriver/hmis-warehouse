@@ -12,7 +12,33 @@ module GrdaWarehouse::Census
         # Batches are 1 month, or to the end_date if closer
         batch_end_date = [batch_start_date + 1.years, end_date].min
 
+        # By Project Type
+        # batch_by_project_type = ProjectTypeBatch.new(batch_start_date, batch_end_date)
+
+        # Run builder for each project type
+        # GrdaWarehouse::Hud::Project::PROJECT_TYPE_TITLES.keys.each do | project_type |
+        #   batch_by_project_type.build_batch_for_project_type(project_type)
+        # end
+        # batch_by_project_type.build_project_type_independent_batch
+
         GrdaWarehouseBase.transaction do
+          # # Remove any existing census data for the batch range
+          # ByProjectType.where(date: batch_start_date..batch_end_date).delete_all
+
+          # # Save the new batch
+          # # batch_by_project_type.by_count.values.each(&:save)
+          # first_item = batch_by_project_type.by_count.values.first
+          # if first_item
+          #   headers = first_item.attributes.except('id').keys
+
+          #   values = batch_by_project_type.by_count.values.map{|m| m.attributes.except('id')}.map do |m|
+          #     m['created_at'] = Time.now
+          #     m['updated_at'] = Time.now
+          #     m.values
+          #   end
+          #   ByProjectType.new.insert_batch(ByProjectType, headers, values, transaction: false, batch_size: 500)
+          # end
+
           # By Project
           batch_by_project = ProjectBatch.new(batch_start_date, batch_end_date)
           batch_by_project.build_census_batch
