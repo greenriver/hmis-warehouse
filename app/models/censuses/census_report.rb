@@ -72,16 +72,16 @@ module Censuses
 
       case @filter.aggregation_level.to_sym
       when :by_project
-        project_scope.each do |project|
+        project_scope.joins(:organization, :data_source).each do |project|
           for_project(start_date, end_date, project, user: user)
         end
       when :by_organization
-        organizations = GrdaWarehouse::Hud::Organization.joins(:projects).merge(project_scope).uniq
+        organizations = GrdaWarehouse::Hud::Organization.joins(:projects).merge(project_scope).distinct
         organizations.each do |organization|
           for_organization(start_date, end_date, organization, project_scope, user: user)
         end
       when :by_data_source
-        data_sources = GrdaWarehouse::DataSource.joins(:projects).merge(project_scope).uniq
+        data_sources = GrdaWarehouse::DataSource.joins(:projects).merge(project_scope).distinct
         data_sources.each do |ds|
           for_data_source(start_date, end_date, ds, project_scope)
         end
