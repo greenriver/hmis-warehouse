@@ -44,7 +44,7 @@ class DBA::PartitionMaker
       WHERE relname = '#{table_name}'
     SQL
 
-    # The table is a paritioned table and the transactional insert/renaming
+    # The table is a partitioned table and the transactional insert/renaming
     # happened. It can't have been renamed without copying the data
     result[0]['relkind'] == 'p' && !table_exists?(partitioned_table)
   end
