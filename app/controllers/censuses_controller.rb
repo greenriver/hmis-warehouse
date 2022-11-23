@@ -88,8 +88,8 @@ class CensusesController < ApplicationController
     @filter = filter_class.new(
       filter_params.merge(
         user_id: current_user.id,
-        default_start: 1.month.ago,
-        default_end: 1.day.ago,
+        default_start: 1.month.ago.to_date,
+        default_end: 1.day.ago.to_date,
       ),
     )
   end

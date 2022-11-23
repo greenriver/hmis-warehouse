@@ -2,14 +2,14 @@
   - content_for :filters_col_full do
     .row.mb-4
       .col-sm-3
-        = f.input :start, as: :date_picker, label: 'Start Date', required: true
+        = f.input :start, as: :date_picker, input_html: { value: @filter.start.to_date }, label: 'Start Date', required: true
       .col-sm-3
-        = f.input :end, as: :date_picker, label: 'End Date', required: true
+        = f.input :end, as: :date_picker, input_html: { value: @filter.end.to_date }, label: 'End Date', required: true
       .col-sm-6
         = f.input :coc_codes, collection: @filter.coc_code_options_for_select(user: current_user), required: false, as: :select_two, input_html: {multiple: true, placeholder: 'Choose CoCs', data: {'filter-projects-target' => 'cocCodes', 'action': 'change->filter-projects#update'}}, label: 'CoC Codes'
 
     = render 'hud_reports/project_filter', f: f, alert: alert, show_organization_picker: true
-    %h2 View Options
+    %h2.mt-4 View Options
     .row.mb-4.mt-2
       .col-sm-4
         = f.input :aggregation_level, as: :select_two, label: 'Aggregation Level', collection: available_aggregation_levels, required: true, value: @filter.aggregation_level
