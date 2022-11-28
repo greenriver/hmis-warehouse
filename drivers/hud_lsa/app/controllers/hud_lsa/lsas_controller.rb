@@ -98,6 +98,17 @@ module HudLsa
       @filter.update(filter_params) if filter_params.present?
     end
 
+    def filter_params
+      return {} unless params[:filter]
+
+      filter_p = params.require(:filter).permit(filter_class.new.known_params)
+      filter_p[:user_id] = current_user.id
+      filter_p[:enforce_one_year_range] = false
+      # coc codes acts oddly here
+      filter_p[:coc_code] = params[:filter].try(:[], :coc_codes).presence
+      filter_p
+    end
+
     private def report_name
       active_version.title
     end
