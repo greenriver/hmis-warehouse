@@ -9,11 +9,13 @@ module Reporting::Hud
     queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
 
     def perform(class_name, report_id, email: true)
-      report = HudReports::ReportInstance.find(report_id)
-      report.start_report
-
       raise "Unknown HUD Report class: #{class_name}" unless Rails.application.config.hud_reports[class_name].present?
 
+      report = HudReports::ReportInstance.find_by(id: report_id)
+      # Occassionally people delete the report before it actually runs
+      return unless report.present?
+
+      report.start_report
       @generator = class_name.constantize.new(report)
       @generator.class.questions.each do |q, klass|
         next unless report.build_for_questions.include?(q)
