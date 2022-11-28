@@ -10,21 +10,21 @@
           "required": true,
           "link_id": "2.02.2",
           "text": "Project Name",
-          "query_field": "projectName"
+          "field_name": "projectName"
         },
         {
           "type": "TEXT",
           "required": false,
           "link_id": "description",
           "text": "Description",
-          "query_field": "description"
+          "field_name": "description"
         },
         {
           "type": "TEXT",
           "required": false,
           "link_id": "contact",
           "text": "Contact Information",
-          "query_field": "contactInformation"
+          "field_name": "contactInformation"
         }
       ]
     },
@@ -39,7 +39,7 @@
           "required": true,
           "link_id": "2.02.3",
           "text": "Start Date",
-          "query_field": "operatingStartDate",
+          "field_name": "operatingStartDate",
           "bounds": [{
             "type": "MAX",
             "question": "2.02.4"
@@ -50,7 +50,7 @@
           "required": false,
           "link_id": "2.02.4",
           "text": "End Date",
-          "query_field": "operatingEndDate",
+          "field_name": "operatingEndDate",
           "bounds": [{
             "type": "MIN",
             "question": "2.02.3"
@@ -69,7 +69,7 @@
           "link_id": "2.02.6",
           "text": "Project Type",
           "pick_list_reference": "ProjectType",
-          "query_field": "projectType"
+          "field_name": "projectType"
         },
         {
           "type": "GROUP",
@@ -81,7 +81,7 @@
               "link_id": "2.02.C",
               "text": "Tracking Method",
               "pick_list_reference": "TrackingMethod",
-              "query_field": "trackingMethod",
+              "field_name": "trackingMethod",
               "enable_behavior": "ALL",
               "enable_when": [
                 {
@@ -96,7 +96,7 @@
               "required": false,
               "link_id": "2.02.A",
               "text": "Residential Affiliation?",
-              "query_field": "residentialAffiliation",
+              "field_name": "residentialAffiliation",
               "enable_behavior": "ALL",
               "enable_when": [
                 {
@@ -114,7 +114,7 @@
           "link_id": "2.02.D",
           "text": "Housing Type",
           "pick_list_reference": "HousingType",
-          "query_field": "housingType"
+          "field_name": "housingType"
         },
         {
           "type": "CHOICE",
@@ -122,7 +122,7 @@
           "link_id": "2.02.8",
           "text": "Target Population",
           "pick_list_reference": "TargetPopulation",
-          "query_field": "targetPopulation"
+          "field_name": "targetPopulation"
         },
         {
           "type": "CHOICE",
@@ -130,21 +130,21 @@
           "link_id": "2.02.9",
           "text": "HOPWA Assisted Living Facility",
           "pick_list_reference": "HOPWAMedAssistedLivingFac",
-          "query_field": "HOPWAMedAssistedLivingFac"
+          "field_name": "HOPWAMedAssistedLivingFac"
         },
         {
           "type": "BOOLEAN",
           "required": false,
           "link_id": "2.02.5",
           "text": "Continuum Project?",
-          "query_field": "continuumProject"
+          "field_name": "continuumProject"
         },
         {
           "type": "BOOLEAN",
           "required": false,
           "link_id": "2.02.7",
           "text": "HMIS Participating Project?",
-          "query_field": "HMISParticipatingProject"
+          "field_name": "HMISParticipatingProject"
         }
       ]
     }

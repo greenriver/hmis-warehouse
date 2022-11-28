@@ -20,6 +20,10 @@ module Types
 
     def self.yes_no_missing_field(name, description = nil, **kwargs)
       field name, Boolean, description, **kwargs
+
+      define_method name do
+        resolve_yes_no_missing(object.send(name))
+      end
     end
 
     def resolve_yes_no_missing(value, yes_value: 1, no_value: 0, null_value: 99)
