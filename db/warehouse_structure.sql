@@ -43429,6 +43429,27 @@ CREATE INDEX index_new_service_history_on_first_date_in_program ON public.new_se
 
 
 --
+-- Name: index_nightly_census_by_project_types_on_date; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_nightly_census_by_project_types_on_date ON public.nightly_census_by_project_types USING btree (date);
+
+
+--
+-- Name: index_nightly_census_by_projects_on_date; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_nightly_census_by_projects_on_date ON public.nightly_census_by_projects USING btree (date);
+
+
+--
+-- Name: index_nightly_census_by_projects_on_project_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_nightly_census_by_projects_on_project_id ON public.nightly_census_by_projects USING btree (project_id);
+
+
+--
 -- Name: index_non_hmis_uploads_on_deleted_at; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -50667,6 +50688,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20221110133236'),
 ('20221115123832'),
 ('20221115211004'),
+('20221116185411'),
 ('20221124002729'),
 ('20221126145518');
 

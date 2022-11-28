@@ -10,7 +10,8 @@
           .h4.pl-3 Census Filters
           .warehouse-reports__completed.d-flex
             = @filter.describe_filter_as_html(@filter.params_for_display)
-        %p.jLoading.text-center Loading census...
+        %p.jLoading.text-center.rollup-container.well
+
       - else
         .none-found No filters applied.
 
