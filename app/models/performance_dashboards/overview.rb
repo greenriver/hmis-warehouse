@@ -59,7 +59,6 @@ class PerformanceDashboards::Overview < PerformanceDashboards::Base
     [
       build_general_control_section(include_inactivity_days: true),
       build_coc_control_section,
-      build_household_control_section,
       build_demographics_control_section,
     ]
   end

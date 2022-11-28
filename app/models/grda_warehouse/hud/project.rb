@@ -27,8 +27,8 @@ module GrdaWarehouse::Hud
       h = { # duplicate of code in various places
         ph: [3, 9, 10, 13],
         rrh: [13],
-        psh: [3, 10],
-        oph: [9],
+        psh: [3],
+        oph: [9, 10],
         th: [2],
         es: [1],
         so: [4],
@@ -88,14 +88,14 @@ module GrdaWarehouse::Hud
     WITH_MOVE_IN_DATES = RESIDENTIAL_PROJECT_TYPES[:ph]
     PERFORMANCE_REPORTING = { # duplicate of code in various places
       ph: [3, 9, 10, 13],
-      oph: [9],
+      oph: [9, 10],
       th: [2],
       es: [1],
       so: [4],
       sh: [8],
       ca: [14],
       rrh: [13],
-      psh: [3, 10],
+      psh: [3],
       other: [7],
       day_shelter: [11],
       prevention: [12],
@@ -203,7 +203,7 @@ module GrdaWarehouse::Hud
     end
 
     scope :night_by_night, -> do
-      where(TrackingMethod: 3)
+      where(cl(p_t[:tracking_method_override], p_t[:TrackingMethod]).eq(3))
     end
 
     scope :confidential, -> do
@@ -694,7 +694,7 @@ module GrdaWarehouse::Hud
     end
 
     def bed_night_tracking?
-      self.TrackingMethod == 3 || street_outreach_and_acts_as_bednight?
+      tracking_method_to_use == 3 || street_outreach_and_acts_as_bednight?
     end
 
     # Some Street outreach are counted like bed-night shelters, others aren't yet
@@ -816,6 +816,18 @@ module GrdaWarehouse::Hud
       else
         :ProjectType
       end
+    end
+
+    def operating_start_date_to_use
+      operating_start_date_override.presence || self.OperatingStartDate
+    end
+
+    def operating_end_date_to_use
+      operating_end_date_override.presence || self.OperatingEndDate
+    end
+
+    def tracking_method_to_use
+      tracking_method_override.presence || self.TrackingMethod
     end
 
     def human_readable_project_type

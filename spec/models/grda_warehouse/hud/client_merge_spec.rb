@@ -2,7 +2,7 @@ require 'rails_helper'
 
 RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
   let(:destination_ds) { create :grda_warehouse_data_source }
-  let(:source_ds) { create :data_source_fixed_id }
+  let(:source_ds) { create :grda_warehouse_data_source }
   let(:sources) { create_list :hud_client, 2, data_source_id: source_ds.id }
 
   let(:prev_destination) { create :hud_client, data_source_id: destination_ds.id }

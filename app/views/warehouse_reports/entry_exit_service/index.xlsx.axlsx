@@ -10,9 +10,9 @@ wb.add_worksheet(name: "Entry=Exit=Service") do |sheet|
       client[:PersonalID]
     end
     sheet.add_row [
-      uuid, 
-      client[:FirstName], 
-      client[:LastName],
+      uuid,
+      ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client[:FirstName] : 'Redacted',
+      ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client[:LastName] : 'Redacted',
       client[:EntryDate],
       client[:ExitDate],
       client[:DateProvided],

@@ -15,14 +15,20 @@ module GrdaWarehouse::Tasks
 
     attr_accessor :logger, :send_notifications, :notifier_config
 
-    def initialize(max_allowed = 1_000, _bogus_notifier = false, changed_client_date: 2.weeks.ago.to_date, debug: false, dry_run: false)
+    def initialize(
+      max_allowed = 1_000,
+      _bogus_notifier = false,
+      debug: false,
+      dry_run: false,
+      destination_ids: []
+    )
       @max_allowed = max_allowed
       setup_notifier('Client Cleanup')
       self.logger = Rails.logger
       @debug = debug
       @soft_delete_date = Time.now
-      @changed_client_date = changed_client_date
       @dry_run = dry_run
+      @destination_ids = Array.wrap(destination_ids)
     end
 
     def run!
@@ -346,24 +352,34 @@ module GrdaWarehouse::Tasks
     end
 
     def choose_best_name dest_attr, source_clients
-      # Get the best name (has name and quality is full or partial, oldest breaks the tie)
       non_blank_names = source_clients.select { |sc| (sc[:FirstName].present? or sc[:LastName].present?) }
       if non_blank_names.any?
-        best_name_client = non_blank_names.max do |a, b|
-          comp = b[:NameDataQuality] <=> a[:NameDataQuality] # Desc
-          if comp == 0 # rubocop:disable Style/NumericPredicate
-            comp = if GrdaWarehouse::Config.get(:warehouse_client_name_order).to_s == 'latest'
-              a[:DateCreated] <=> b[:DateCreated] # asc (newer names win)
-            else
-              b[:DateCreated] <=> a[:DateCreated] # desc (original name wins)
-            end
+        # find any with NameDataQuality with 1, pick the oldest/newest from those
+        # find any with NameDataQuality with 2, pick the oldest/newest from those
+        # else, pick the oldest/newest from those
+        best = nil
+        [1, 2, 8, 9, 99].each do |dq_value|
+          temp_clients = non_blank_names.select { |sc| sc[:NameDataQuality] == dq_value }
+          best = if GrdaWarehouse::Config.get(:warehouse_client_name_order).to_s == 'latest'
+            temp_clients.max_by { |sc| sc[:DateCreated] }
+          else
+            temp_clients.min_by { |sc| sc[:DateCreated] }
           end
-          comp
+          break if best.present?
         end
-        if best_name_client.present?
-          dest_attr[:FirstName] = best_name_client[:FirstName]
-          dest_attr[:LastName] = best_name_client[:LastName]
-          dest_attr[:NameDataQuality] = best_name_client[:NameDataQuality]
+
+        if best.blank?
+          best = if GrdaWarehouse::Config.get(:warehouse_client_name_order).to_s == 'latest'
+            non_blank_names.max_by { |sc| sc[:DateCreated] }
+          else
+            non_blank_names.min_by { |sc| sc[:DateCreated] }
+          end
+        end
+
+        if best.present?
+          dest_attr[:FirstName] = best[:FirstName]
+          dest_attr[:LastName] = best[:LastName]
+          dest_attr[:NameDataQuality] = best[:NameDataQuality]
         end
       end
       dest_attr
@@ -373,13 +389,13 @@ module GrdaWarehouse::Tasks
       # Get the best SSN (has value and quality is full or partial, oldest breaks the tie)
       non_blank_ssn = source_clients.select { |sc| sc[:SSN].present? }
       if non_blank_ssn.any?
-        best = non_blank_ssn.max do |a, b|
-          comp = b[:SSNDataQuality] <=> a[:SSNDataQuality] # Desc
-          if comp == 0 # rubocop:disable Style/NumericPredicate
-            comp = b[:DateCreated] <=> a[:DateCreated] # Desc
-          end
-          comp
+        best = nil
+        [1, 2, 8, 9, 99].each do |dq_value|
+          best = non_blank_ssn.select { |sc| sc[:SSNDataQuality] == dq_value }.min_by { |sc| sc[:DateCreated] }
+          break if best.present?
         end
+        best = non_blank_ssn.min_by { |sc| sc[:DateCreated] } if best.blank?
+
         dest_attr[:SSN] = best[:SSN]
         dest_attr[:SSNDataQuality] = best[:SSNDataQuality]
       elsif dest_attr[:SSN].present?
@@ -399,13 +415,13 @@ module GrdaWarehouse::Tasks
       # Get the best DOB (has value and quality is full or partial, oldest breaks the tie)
       non_blank_dob = source_clients.select { |sc| sc[:DOB].present? }
       if non_blank_dob.any?
-        best = non_blank_dob.max do |a, b|
-          comp = b[:DOBDataQuality] <=> a[:DOBDataQuality] # Desc
-          if comp == 0 # rubocop:disable Style/NumericPredicate
-            comp = b[:DateCreated] <=> a[:DateCreated] # Desc
-          end
-          comp
+        best = nil
+        [1, 2, 8, 9, 99].each do |dq_value|
+          best = non_blank_dob.select { |sc| sc[:DOBDataQuality] == dq_value }.min_by { |sc| sc[:DateCreated] }
+          break if best.present?
         end
+        best = non_blank_dob.min_by { |sc| sc[:DateCreated] } if best.blank?
+
         dest_attr[:DOB] = best[:DOB]
         dest_attr[:DOBDataQuality] = best[:DOBDataQuality]
       elsif dest_attr[:DOB].present?
@@ -421,7 +437,7 @@ module GrdaWarehouse::Tasks
       # Valid responses for GenderNone are [8, 9, 99] -- should be null if any other gender field contains a 1
       known_values = [0, 1]
       # Sort in reverse chronological order (newest first)
-      sorted_source_clients = source_clients.sort_by.sort { |a, b| b[:DateUpdated] <=> a[:DateUpdated] }
+      sorted_source_clients = source_clients.sort { |a, b| b[:DateUpdated] <=> a[:DateUpdated] }
 
       gender_columns.each do |col|
         sorted_source_clients.each do |source_client|
@@ -465,7 +481,7 @@ module GrdaWarehouse::Tasks
       # Valid responses for RaceNone are [8, 9, 99] -- should be null if all other fields are 0 or 99
       known_values = [0, 1]
       # Sort in reverse chronological order (newest first)
-      sorted_source_clients = source_clients.sort_by.sort { |a, b| b[:DateUpdated] <=> a[:DateUpdated] }
+      sorted_source_clients = source_clients.sort { |a, b| b[:DateUpdated] <=> a[:DateUpdated] }
 
       race_columns.each do |col|
         sorted_source_clients.each do |source_client|
@@ -506,7 +522,7 @@ module GrdaWarehouse::Tasks
       # Most recent 0 or 1 if no 0 or 1 use the most recent value
       known_values = [0, 1]
       # Sort in reverse chronological order (newest first)
-      sorted_source_clients = source_clients.sort_by.sort { |a, b| b[:DateUpdated] <=> a[:DateUpdated] }
+      sorted_source_clients = source_clients.sort { |a, b| b[:DateUpdated] <=> a[:DateUpdated] }
       col = :Ethnicity
       sorted_source_clients.each do |source_client|
         value = source_client[col]
@@ -539,9 +555,12 @@ module GrdaWarehouse::Tasks
     #     d. LastName
     #     e. Veteran Status (if yes or no)
     #   3. Never remove attribute unless it doesn't exist in any of the sources (never remove name)
+    # TODO: this currently doesn't cleanly handle the situation where a data source is deleted
+    # but no other source client is changed
     def update_client_demographics_based_on_sources
-      batch_size = 1_000
+      batch_size = 500
       processed = 0
+      changed_count = 0
       changed = {
         dobs: Set.new,
         females: Set.new,
@@ -559,14 +578,29 @@ module GrdaWarehouse::Tasks
       log "Munging #{munge_clients.size} clients"
       batches = munge_clients.each_slice(batch_size)
       batches.each do |batch|
-        batch.each do |dest_id|
-          dest = client_source.find(dest_id)
-          source_clients = dest.source_clients.
-            joins(:data_source). # Don't consider deleted data sources
-            pluck(*client_columns.values.map { |column| Arel.sql(column) }).
-            map do |row|
-              Hash[client_columns.keys.zip(row)]
-            end
+        client_batch = client_source.distinct.where(id: batch).
+          joins(source_clients: :data_source).
+          preload(source_clients: :data_source)
+        changed_batch = []
+        client_batch.each do |dest|
+          source_clients = dest.source_clients.map do |sc|
+            next nil unless sc.data_source.present? # Don't consider deleted data sources
+
+            # Set some defaults
+            sc.NameDataQuality ||= 99
+            sc.SSNDataQuality ||= 99
+            sc.DOBDataQuality ||= 99
+            sc.AmIndAKNative ||= 99
+            sc.Asian ||= 99
+            sc.BlackAfAmerican ||= 99
+            sc.NativeHIPacific ||= 99
+            sc.White ||= 99
+            sc.RaceNone ||= 99
+            sc.Ethnicity ||= 99
+            sc.DateCreated ||= 10.years.ago.to_date
+            sc.DateUpdated ||= 10.years.ago.to_date
+            sc
+          end.compact
           dest_attr = dest.attributes.with_indifferent_access.slice(*client_columns.keys)
           dest_attr = choose_attributes_from_sources(dest_attr, source_clients)
 
@@ -575,9 +609,9 @@ module GrdaWarehouse::Tasks
             logger.debug "Invalidating service history for #{dest.id}"
             dest.invalidate_service_history unless @dry_run
           end
-          # We can speed this up if we want later.  If there's only one source client and the
-          # updated dates match, there's no need to update the destination
-          dest.update(dest_attr) unless @dry_run
+          dest.assign_attributes(dest_attr)
+          changed_batch << dest if dest.changed? && ! @dry_run
+
           changed[:dobs] << dest.id if dest.DOB != dest_attr[:DOB]
           changed[:females] << dest.id if dest.Female != dest_attr[:Female]
           changed[:males] << dest.id if dest.Male != dest_attr[:Male]
@@ -589,15 +623,45 @@ module GrdaWarehouse::Tasks
           changed[:new_vets] << dest.id if dest.VeteranStatus != 1 && dest_attr[:VeteranStatus] == 1
           changed[:newly_not_vets] << dest.id if dest.VeteranStatus == 1 && dest_attr[:VeteranStatus] == 0 # rubocop:disable Style/NumericPredicate
         end
-        processed += batch_size
-        logger.debug "Updated demographics for #{processed} destination clients"
+
+        update_destination_clients(changed_batch)
+        update_source_hashes(batch)
+        changed_batch.each(&:clear_view_cache)
+        processed += batch.count
+        changed_count += changed_batch.count
       end
+      log "Updated demographics for #{processed} destination clients, #{changed_count} changed" if processed.positive?
       return unless @debug
 
       logger.debug '=========== Changed Counts ============'
       logger.debug changed.map { |k, ids| [k, ids.count] }.to_h.inspect
       logger.debug changed.inspect
       logger.debug '=========== End Changed Counts ============'
+    end
+
+    private def update_destination_clients(batch)
+      return unless batch.present?
+
+      GrdaWarehouse::Hud::Client.import(
+        batch,
+        on_duplicate_key_update: {
+          conflict_target: [:id],
+          columns: client_columns.keys,
+        },
+      )
+    end
+
+    private def update_source_hashes(batch)
+      source_client_ids = GrdaWarehouse::Hud::Client.where(id: batch).joins(:warehouse_client_destination).pluck(wc_t[:source_id])
+      updates = GrdaWarehouse::Hud::Client.where(id: source_client_ids).joins(:warehouse_client_source).pluck(wc_t[:id], wc_t[:id_in_source], :source_hash)
+      GrdaWarehouse::WarehouseClient.import(
+        [:id, :id_in_source, :source_hash],
+        updates,
+        on_duplicate_key_update: {
+          conflict_target: [:id],
+          columns: [:source_hash],
+        },
+      )
     end
 
     def client_columns
@@ -631,16 +695,12 @@ module GrdaWarehouse::Tasks
     end
 
     def clients_to_munge
-      log "Check any client who's source has been updated in the past week"
-      wc_t = GrdaWarehouse::WarehouseClient.arel_table
-      updated_client_ids = GrdaWarehouse::Hud::Client.source.where(c_t[:DateUpdated].gt(@changed_client_date)).select(:id).pluck(:id)
-      @to_update = GrdaWarehouse::WarehouseClientsProcessed.service_history.
-        joins(:warehouse_client).
-        where(wc_t[:source_id].in(updated_client_ids)).
-        distinct.
-        pluck(:client_id)
-      log "...found #{@to_update.size}."
-      @to_update
+      return @destination_ids if @destination_ids.present?
+
+      log "Check any client who's source has changed"
+      to_update = GrdaWarehouse::WarehouseClient.destination_needs_cleanup.distinct.pluck(:destination_id)
+      log "...found #{to_update.size}."
+      to_update
     end
 
     def log message

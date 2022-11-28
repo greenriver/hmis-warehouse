@@ -125,6 +125,7 @@
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
+  z-index: $zIndex-1;
 }
 
 .c-list-search__list-group-header--static {

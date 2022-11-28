@@ -96,6 +96,18 @@ module
       detail[:columns]
     end
 
+    def headers_for_export(key)
+      return header_for(key) if GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+
+      (header_for(key) || []).reject { |s| ['First Name', 'Last Name', 'DOB'].include?(s) }
+    end
+
+    def columns_for_export(key)
+      return columns_for(key) if GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+
+      (columns_for(key) || []).reject { |a| ['FirstName', 'LastName', 'DOB'].include?(a.name) }
+    end
+
     def detail_column_display(header:, column:)
       case header
       when 'Project Type'

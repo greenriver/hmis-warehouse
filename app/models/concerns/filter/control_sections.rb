@@ -16,7 +16,6 @@ module
       [
         build_general_control_section,
         build_coc_control_section,
-        build_household_control_section,
         build_demographics_control_section,
         build_enrollment_control_section,
       ]
@@ -157,6 +156,11 @@ module
 
     protected def build_demographics_control_section
       ::Filters::UiControlSection.new(id: 'demographics').tap do |section|
+        section.add_control(
+          id: 'hoh_only',
+          label: 'Only Heads of Household?',
+          value: @filter.hoh_only ? 'HOH Only' : nil,
+        )
         section.add_control(
           id: 'sub_population',
           label: 'Sub-Population',

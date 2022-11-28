@@ -6,7 +6,7 @@ wb.add_worksheet(name: "Enrolled Clients") do |sheet|
   ])
   sheet.merge_cells("A1:F1")
   sheet.add_row([
-    'Client ID',
+    'Warehouse Client ID',
     'First Name',
     'Last Name',
     'DOB',
@@ -17,9 +17,9 @@ wb.add_worksheet(name: "Enrolled Clients") do |sheet|
   @clients.each do |client|
     sheet.add_row([
       client.id,
-      client.FirstName,
-      client.LastName,
-      client.DOB,
+      ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client.FirstName : 'Redacted',
+      ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client.LastName : 'Redacted',
+      ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client.DOB : 'Redacted',
       HUD.veteran_status(client.VeteranStatus),
       client.days_homeless,
       client.days_homeless_in_last_three_years,

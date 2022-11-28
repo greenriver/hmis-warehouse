@@ -6,7 +6,7 @@
 
 class Hmis::Hud::Client < Hmis::Hud::Base
   include ::HmisStructure::Client
-  include ::Hmis::Hud::Shared
+  include ::Hmis::Hud::Concerns::Shared
   include ArelHelper
   include ClientSearch
 
@@ -22,6 +22,10 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
   # NOTE: this does not include project where the enrollment is WIP
   has_many :projects, through: :enrollments
+  has_many :income_benefits, through: :enrollments
+  has_many :disabilities, through: :enrollments
+  has_many :health_and_dvs, through: :enrollments
+
   validates_with Hmis::Hud::Validators::ClientValidator
 
   scope :visible_to, ->(user) do
@@ -98,23 +102,6 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     end
   end
 
-  {
-    name_data_quality_enum_map: ::HUD.name_data_quality_options,
-    ssn_data_quality_enum_map: ::HUD.ssn_data_quality_options,
-    dob_data_quality_enum_map: ::HUD.dob_data_quality_options,
-  }.each do |name, options_hash|
-    use_enum(name, options_hash) do |hash|
-      hash.map do |value, desc|
-        {
-          key: desc,
-          value: value,
-          desc: desc,
-          null: [8, 9, 99].include?(value),
-        }
-      end
-    end
-  end
-
   use_enum(:gender_enum_map, ::HUD.genders) do |hash|
     hash.map do |value, desc|
       {
@@ -135,8 +122,6 @@ class Hmis::Hud::Client < Hmis::Hud::Base
       }
     end
   end
-  use_enum :ethnicity_enum_map, ::HUD.ethnicities.slice(0, 1), include_base_null: true
-  use_common_enum :veteran_status_enum_map, :no_yes_reasons
 
   def age(date = Date.current)
     GrdaWarehouse::Hud::Client.age(date: date, dob: self.DOB)

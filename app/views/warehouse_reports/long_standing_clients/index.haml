@@ -37,7 +37,7 @@
             %td= link_to_if can_view_clients?, client.FirstName, appropriate_client_path(client)
             %td= entry.first_date_in_program
             %td= safe_project_name
-            %td= client.source_clients.map{|m| m.data_source.short_name}.uniq.join(', ')
+            %td= client.source_clients.map{|m| m.data_source&.short_name}.compact.uniq.join(', ')
   = render 'common/pagination_bottom', item_name: 'client'
 - else
   .none-found.mt-4 No clients found.

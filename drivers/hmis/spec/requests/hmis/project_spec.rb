@@ -28,20 +28,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       <<~GRAPHQL
         query GetProject($id: ID!) {
           project(id: $id) {
-            id
-            projectName
-            projectType
-            HMISParticipatingProject
-            HOPWAMedAssistedLivingFac
-            contactInformation
-            continuumProject
-            description
-            housingType
-            operatingEndDate
-            operatingStartDate
-            residentialAffiliation
-            targetPopulation
-            trackingMethod
+            #{scalar_fields(Types::HmisSchema::Project)}
             inventories(limit: 1, offset: 1, sortOrder: START_DATE) {
               nodesCount
               nodes {
@@ -64,9 +51,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               id
               organizationName
             }
-            dateCreated
-            dateUpdated
-            dateDeleted
           }
         }
       GRAPHQL

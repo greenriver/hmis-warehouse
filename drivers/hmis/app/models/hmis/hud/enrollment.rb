@@ -6,7 +6,7 @@
 
 class Hmis::Hud::Enrollment < Hmis::Hud::Base
   include ::HmisStructure::Enrollment
-  include ::Hmis::Hud::Shared
+  include ::Hmis::Hud::Concerns::Shared
   include ArelHelper
 
   self.table_name = :Enrollment
@@ -22,18 +22,15 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   has_one :exit, **hmis_relation(:EnrollmentID, 'Exit')
   has_many :services, **hmis_relation(:EnrollmentID, 'Service')
   has_many :events, **hmis_relation(:EnrollmentID, 'Event')
+  has_many :income_benefits, **hmis_relation(:EnrollmentID, 'IncomeBenefit')
+  has_many :disabilities, **hmis_relation(:EnrollmentID, 'Disability')
+  has_many :health_and_dvs, **hmis_relation(:EnrollmentID, 'HealthAndDv')
 
   # NOTE: this does not include WIP assessments
   has_many :assessments, **hmis_relation(:EnrollmentID, 'Assessment')
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :enrollments
   has_one :wip, class_name: 'Hmis::Wip', as: :source
-
-  use_enum :relationships_to_hoh_enum_map, ::HUD.relationships_to_hoh
-  use_enum :living_situations_enum_map, ::HUD.living_situations
-  use_enum :length_of_stays_enum_map, ::HUD.length_of_stays
-  use_enum :times_homeless_past_three_years_enum_map, ::HUD.times_homeless_options
-  use_enum :months_homeless_past_three_years_enum_map, ::HUD.month_categories
 
   SORT_OPTIONS = [:most_recent].freeze
 

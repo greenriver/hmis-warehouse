@@ -160,7 +160,7 @@
           "link_id": "veteran-status",
           "text": "Veteran Status",
           "query_field": "veteranStatus",
-          "pick_list_reference": "VeteranStatus"
+          "pick_list_reference": "NoYesReasonsForMissingData"
         }
       ]
     }

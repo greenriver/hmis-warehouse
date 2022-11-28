@@ -89,10 +89,10 @@ module HmisDataQualityTool
       report_item.hmis_inventory_id = inventory.InventoryID
       report_item.data_source_id = inventory.data_source_id
       report_item.project_type = project.project_type_to_use
-      report_item.project_operating_start_date = project.OperatingStartDate
-      report_item.project_operating_end_date = project.OperatingEndDate
-      report_item.inventory_start_date = inventory.InventoryStartDate
-      report_item.inventory_end_date = inventory.InventoryEndDate
+      report_item.project_operating_start_date = project.operating_start_date_to_use
+      report_item.project_operating_end_date = project.operating_end_date_to_use
+      report_item.inventory_start_date = inventory.computed_start_date
+      report_item.inventory_end_date = inventory.computed_end_date
       report_item.unit_inventory = inventory.UnitInventory
       report_item.bed_inventory = inventory.BedInventory
       report_item.ch_vet_bed_inventory = inventory.CHVetBedInventory

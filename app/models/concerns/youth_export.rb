@@ -12,7 +12,7 @@ module YouthExport
         user.public_send(method)
       end
 
-      data += self.class.report_columns.map do |method|
+      data += self.class.report_columns_for_export.map do |method|
         clean_value(public_send(method))
       end
 
@@ -65,7 +65,16 @@ module YouthExport
     end
 
     def self.export_headers
-      user_headers + report_columns + intake_headers
+      all_headers = user_headers + report_columns + intake_headers
+      return all_headers if ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+
+      all_headers.excluding('first_name', 'last_name', 'ssn', 'client_dob')
+    end
+
+    def self.report_columns_for_export
+      return report_columns if ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+
+      report_columns.excluding('first_name', 'last_name', 'ssn', 'client_dob')
     end
   end
 end

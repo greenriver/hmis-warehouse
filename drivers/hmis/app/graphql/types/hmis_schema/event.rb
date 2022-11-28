@@ -13,11 +13,11 @@ module Types
     field :enrollment, HmisSchema::Enrollment, null: false
     field :client, HmisSchema::Client, null: false
     field :event_date, GraphQL::Types::ISO8601DateTime, null: false
-    field :event, HmisSchema::Enums::EventType, null: false
-    field :referral_result, HmisSchema::Enums::ReferralResult, null: true
+    field :event, HmisSchema::Enums::Hud::EventType, null: false
+    field :referral_result, HmisSchema::Enums::Hud::ReferralResult, null: true
     field :location_crisis_or_ph_housing, String, null: true
-    field :prob_sol_div_rr_result, HmisSchema::Enums::ProbSolDivRRResult, null: true
-    field :referral_case_manage_after, HmisSchema::Enums::ReferralCaseManageAfter, null: true
+    field :prob_sol_div_rr_result, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    field :referral_case_manage_after, HmisSchema::Enums::Hud::NoYesMissing, null: true
     field :result_date, GraphQL::Types::ISO8601DateTime, null: true
     field :date_created, GraphQL::Types::ISO8601DateTime, null: false
     field :date_updated, GraphQL::Types::ISO8601DateTime, null: false

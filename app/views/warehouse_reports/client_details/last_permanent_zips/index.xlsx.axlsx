@@ -20,8 +20,8 @@ wb.add_worksheet(name: "#{GrdaWarehouse::WarehouseReports::Dashboard::Base.avail
     client = enrollment.client
     row = [
       client_id,
-      client.FirstName,
-      client.LastName,
+      ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client.FirstName : 'Redacted',
+      ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client.LastName : 'Redacted',
       enrollment.enrollment&.LastPermanentZIP,
       yes_no(enrollment.unaccompanied_youth),
       enrollment.age,

@@ -7,6 +7,8 @@
 module HudLsa::Filters
   class LsaFilter < ::Filters::HudFilterBase
     validates_presence_of :coc_code
+    attribute :default_project_type_codes, Array, default: [:es, :th, :psh, :sh, :oph, :rrh]
+    attribute :coc_codes, Array, default: [GrdaWarehouse::Config.default_site_coc_codes&.first]
 
     # This lets parent validation pass
     def coc_codes

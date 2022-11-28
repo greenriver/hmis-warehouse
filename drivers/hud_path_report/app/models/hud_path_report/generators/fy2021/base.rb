@@ -44,6 +44,7 @@ module HudPathReport::Generators::Fy2021
 
           pending_associations[client] = report_client_universe.new(
             client_id: source_client.id,
+            destination_client_id: client.id,
             data_source_id: source_client.data_source_id,
             report_instance_id: @report.id,
             first_name: source_client.FirstName,

@@ -7,7 +7,10 @@
       %strong Prior to adding the above days:
     .d-flex.mb-2
       .title.text-bold Days homeless in the last three years
-      .ml-2= @client.processed_service_history&.days_homeless_last_three_years
+      .ml-2= number_with_delimiter @client.processed_service_history&.days_homeless_last_three_years
     .d-flex.mb-2
       .title.text-bold Days literally homeless in the last three years
-      .ml-2= @client.processed_service_history&.literally_homeless_last_three_years
+      .ml-2= number_with_delimiter @client.processed_service_history&.literally_homeless_last_three_years
+    .d-flex.mb-2
+      .title.text-bold Days homeless including additional verified days
+      .ml-2= number_with_delimiter @client.processed_service_history&.days_homeless_plus_overrides

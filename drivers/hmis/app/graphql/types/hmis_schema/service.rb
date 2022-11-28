@@ -16,13 +16,13 @@ module Types
     hud_field :enrollment, Types::HmisSchema::Enrollment, null: false
     hud_field :client, HmisSchema::Client, null: false
     hud_field :date_provided
-    hud_field :record_type, HmisSchema::Enums::RecordType
+    hud_field :record_type, HmisSchema::Enums::Hud::RecordType
     hud_field :type_provided, HmisSchema::Enums::ServiceTypeProvided
     hud_field :other_type_provided
     hud_field :moving_on_other_type
     hud_field :sub_type_provided, HmisSchema::Enums::ServiceSubTypeProvided
     field 'FAAmount', Float, null: true
-    hud_field :referral_outcome, HmisSchema::Enums::PATHReferralOutcome
+    hud_field :referral_outcome, HmisSchema::Enums::Hud::PATHReferralOutcome
     hud_field :date_updated
     hud_field :date_created
     hud_field :date_deleted

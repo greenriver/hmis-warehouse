@@ -214,6 +214,7 @@ module CePerformance
         report_client = report_clients[ce_apr_client[:client_id]] || Client.new(
           report_id: id,
           client_id: ce_apr_client[:client_id],
+          destination_client_id: ce_apr_client.destination_client_id,
           ce_apr_id: ce_apr.id,
           ce_apr_client_id: ce_apr_client.id,
         )
@@ -347,7 +348,7 @@ module CePerformance
         end&.map { |e| e.with_indifferent_access[:date] }&.min&.to_date
         report_client.initial_housing_referral_date = initial_referral_date
         if initial_referral_date.present?
-          report_client.days_between_entry_and_initial_referral = initial_referral_date - report_client.entry_date
+          report_client.days_between_entry_and_initial_referral = initial_referral_date - ce_apr_client.first_date_in_program if ce_apr_client.first_date_in_program.present?
           dates = ph_enrollments[ce_apr_client.destination_client_id]
           housing_entry_date = dates&.
             map(&:first)&.
@@ -486,7 +487,8 @@ module CePerformance
       @detail_headers ||= {}.tap do |headers|
         headers.merge!(
           {
-            'client_id' => 'Warehouse Client ID',
+            'destination_client_id' => 'Warehouse Client ID',
+            'client_id' => 'Warehouse Source Client ID',
             'dob' => 'DOB',
             'veteran' => 'Veteran Status',
             'first_name' => 'First Name',
@@ -522,6 +524,12 @@ module CePerformance
           headers['dv_survivor'] = 'Survivor of Domestic Violence'
         end
       end.freeze
+    end
+
+    def detail_headers_for_export(key: nil)
+      return detail_headers(key: key) if ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+
+      detail_headers(key: key).except('first_name', 'last_name', 'dob')
     end
 
     def client_value(client, column)

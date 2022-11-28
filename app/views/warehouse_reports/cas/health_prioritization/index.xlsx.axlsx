@@ -2,8 +2,8 @@ wb = xlsx_package.workbook
 wb.add_worksheet(name: 'Health Prioritization') do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
   row = [
-    'Warehouse ID',
-    'Client',
+    'Warehouse Client ID',
+    'Client Name',
     'Age',
     'HMIS Physical Disability?',
     'VI-SPDAT Physical Disability?',
@@ -31,7 +31,7 @@ wb.add_worksheet(name: 'Health Prioritization') do |sheet|
 
     row = [
       client.id,
-      client.name,
+      ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client.name : 'Redacted',
       client.age,
       disability,
       vispdat_disability,

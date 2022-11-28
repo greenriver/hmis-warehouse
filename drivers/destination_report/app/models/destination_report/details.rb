@@ -88,12 +88,26 @@ module
       detail[:headers]
     end
 
+    def headers_for_export(key)
+      headers = header_for(key)
+      return headers if ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+
+      (headers || []).excluding(['Last Name', 'First Name', 'DOB'])
+    end
+
     def columns_for(key)
       detail = detail_hash[key]
 
       return '' unless detail
 
       detail[:columns]
+    end
+
+    def columns_for_export(key)
+      columns = columns_for(key)
+      return columns if GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+
+      (columns || []).reject { |a| ['FirstName', 'LastName', 'DOB'].include?(a.name) }
     end
 
     def detail_column_display(header:, column:)

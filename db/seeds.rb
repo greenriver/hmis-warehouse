@@ -329,7 +329,9 @@ def setup_hmis_admin_access
 
   role = Hmis::Role.create(name: 'HMIS Administrator', can_administer_hmis: true)
   user = Hmis::User.not_system.first
-  user.hmis_data_source_id = hmis_ids.id
+  return unless user.present?
+
+  user.hmis_data_source_id = hmis_ds.id
   user.user_hmis_data_sources_roles.create(role: role, data_source_id: user.hmis_data_source_id)
 end
 

@@ -22,7 +22,7 @@ chdir APP_ROOT do
   system! 'bundle exec rake db:migrate'
 
   puts "\n== Updating NPM dependencies =="
-  system! 'yarn install'
+  system! 'yarn install --frozen-lockfile'
 
   puts "\n== Removing old logs and tempfiles =="
   system! 'bundle exec rake log:clear tmp:clear'
