@@ -203,7 +203,7 @@ module GrdaWarehouse::Hud
     end
 
     scope :night_by_night, -> do
-      where(TrackingMethod: 3)
+      where(cl(p_t[:tracking_method_override], p_t[:TrackingMethod]).eq(3))
     end
 
     scope :confidential, -> do
@@ -694,7 +694,7 @@ module GrdaWarehouse::Hud
     end
 
     def bed_night_tracking?
-      self.TrackingMethod == 3 || street_outreach_and_acts_as_bednight?
+      tracking_method_to_use == 3 || street_outreach_and_acts_as_bednight?
     end
 
     # Some Street outreach are counted like bed-night shelters, others aren't yet
@@ -816,6 +816,18 @@ module GrdaWarehouse::Hud
       else
         :ProjectType
       end
+    end
+
+    def operating_start_date_to_use
+      operating_start_date_override.presence || self.OperatingStartDate
+    end
+
+    def operating_end_date_to_use
+      operating_end_date_override.presence || self.OperatingEndDate
+    end
+
+    def tracking_method_to_use
+      tracking_method_override.presence || self.TrackingMethod
     end
 
     def human_readable_project_type

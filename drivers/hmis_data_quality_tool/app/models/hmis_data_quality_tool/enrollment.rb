@@ -217,7 +217,7 @@ module HmisDataQualityTool
       report_item.destination = enrollment.exit&.Destination
       report_item.project_operating_start_date = enrollment.project.OperatingStartDate
       report_item.project_operating_end_date = enrollment.project.OperatingEndDate
-      project_tracking_method = enrollment.project.TrackingMethod
+      project_tracking_method = enrollment.project.tracking_method_to_use
       report_item.project_tracking_method = project_tracking_method
       report_age_date = [enrollment.EntryDate, report.filter.start].max
       report_item.age = enrollment.client.age_on(report_age_date)
@@ -737,9 +737,9 @@ module HmisDataQualityTool
           es_stay_length: 365,
         },
         days_since_last_service_es_90_issues: {
-          title: 'Possible Missed Exit - ES, No Service in 90 Days or More',
-          description: 'There is an expectation that clients will be exited from emergency shelter if they haven\'t been seen, these clients have been in shelter for 90 days or more',
-          required_for: 'All in ES',
+          title: 'Possible Missed Exit - ES NbN, No Service in 90 Days or More',
+          description: 'There is an expectation that clients will be exited from night-by-night emergency shelter if they haven\'t been seen, these clients have not been in shelter for 90 days or more',
+          required_for: 'All in ES NbN',
           detail_columns: [
             :destination_client_id,
             :hmis_enrollment_id,
@@ -754,18 +754,20 @@ module HmisDataQualityTool
             :days_since_last_service,
           ],
           denominator: ->(item) {
-            GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
+            GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type) && item.project_tracking_method == 3
           },
           limiter: ->(item) {
             return false if item.exit_date.present?
+            return false unless GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
+            return false unless item.project_tracking_method == 3
 
-            item.days_since_last_service >= 90 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
+            item.days_since_last_service >= 90
           },
           es_missed_exit_length: 90,
         },
         days_since_last_service_es_180_issues: {
-          title: 'Possible Missed Exit - ES, No Service in 180 Days or More',
-          description: 'There is an expectation that clients will be exited from emergency shelter if they haven\'t been seen, these clients have been in shelter for 180 days or more',
+          title: 'Possible Missed Exit - ES NbN, No Service in 180 Days or More',
+          description: 'There is an expectation that clients will be exited from night-by-night emergency shelter if they haven\'t been seen, these clients have not been in shelter for 180 days or more',
           required_for: 'All in ES',
           detail_columns: [
             :destination_client_id,
@@ -781,18 +783,20 @@ module HmisDataQualityTool
             :days_since_last_service,
           ],
           denominator: ->(item) {
-            GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
+            GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type) && item.project_tracking_method == 3
           },
           limiter: ->(item) {
             return false if item.exit_date.present?
+            return false unless GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
+            return false unless item.project_tracking_method == 3
 
-            item.days_since_last_service >= 180 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
+            item.days_since_last_service >= 180
           },
           es_missed_exit_length: 180,
         },
         days_since_last_service_es_365_issues: {
-          title: 'Possible Missed Exit - ES, No Service in 365 Days or More',
-          description: 'There is an expectation that clients will be exited from emergency shelter if they haven\'t been seen, these clients have been in shelter for 365 days or more',
+          title: 'Possible Missed Exit - ES NbN, No Service in 365 Days or More',
+          description: 'There is an expectation that clients will be exited from night-by-night emergency shelter if they haven\'t been seen, these clients have not been in shelter for 365 days or more',
           required_for: 'All in ES',
           detail_columns: [
             :destination_client_id,
@@ -808,12 +812,14 @@ module HmisDataQualityTool
             :days_since_last_service,
           ],
           denominator: ->(item) {
-            GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
+            GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type) && item.project_tracking_method == 3
           },
           limiter: ->(item) {
             return false if item.exit_date.present?
+            return false unless GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
+            return false unless item.project_tracking_method == 3
 
-            item.days_since_last_service >= 365 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(item.project_type)
+            item.days_since_last_service >= 365
           },
           es_missed_exit_length: 365,
         },

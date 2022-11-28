@@ -51,7 +51,7 @@ module HudLsa::Fy2022
     def self.available_lsa_scopes
       {
         'System-Wide' => 1,
-        'Project-focused' => 2,
+        'Project-Focused' => 2,
       }
     end
   end
