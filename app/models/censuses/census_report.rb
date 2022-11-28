@@ -86,7 +86,7 @@ module Censuses
           for_data_source(start_date, end_date, ds, project_scope)
         end
       when :by_project_type
-        [:ph, :th, :es, :so, :sh].each do |project_type|
+        GrdaWarehouse::Hud::Project::RESIDENTIAL_TYPE_TITLES.keys.each do |project_type|
           for_project_type(start_date, end_date, project_type, project_scope)
         end
       else

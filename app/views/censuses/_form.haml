@@ -1,4 +1,4 @@
-= simple_form_for @filter, as: :filters, url: censuses_path, data: { controller: 'filter-projects' }, html: { method: :get } do |f|
+= simple_form_for @filter, as: :filters, url: censuses_path, data: { controller: 'filter-projects', 'filter-projects-supported-project-types-value': GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS }, html: { method: :get } do |f|
   - content_for :filters_col_full do
     .row.mb-4
       .col-sm-3
