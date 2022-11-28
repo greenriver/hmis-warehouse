@@ -379,13 +379,13 @@
             {
               "type": "CURRENCY",
               "link_id": "4.02.O",
-              "text": "Other Source",
+              "text": "Other source",
               "field_name": "otherIncomeAmount"
             },
             {
               "type": "STRING",
               "link_id": "4.02.P",
-              "text": "Specify source",
+              "text": "Specify other source",
               "required": true,
               "enable_behavior": "ALL",
               "field_name": "otherIncomeSourceIdentify",
@@ -466,7 +466,7 @@
             {
               "type": "STRING",
               "link_id": "4.03.A",
-              "text": "Specify source",
+              "text": "Specify other source",
               "required": true,
               "field_name": "otherBenefitsSourceIdentify",
               "enable_behavior": "ALL",
@@ -574,7 +574,7 @@
             {
               "type": "STRING",
               "link_id": "4.04.12A",
-              "text": "Specify Source",
+              "text": "Specify other source",
               "required": true,
               "field_name": "otherInsuranceIdentify",
               "enable_behavior": "ALL",
