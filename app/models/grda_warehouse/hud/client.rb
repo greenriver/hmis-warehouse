@@ -2480,9 +2480,12 @@ module GrdaWarehouse::Hud
     end
 
     def force_full_service_history_rebuild
-      service_history_enrollments.where(record_type: [:entry, :exit, :service, :extrapolated]).delete_all
-      source_enrollments.update_all(processed_as: nil)
-      invalidate_service_history
+      # If we're already forcing a rebuild, we don't need to clear things again
+      self.class.with_advisory_lock([__method__, self.class.name, id].join('_'), timeout_seconds: 0) do
+        service_history_enrollments.where(record_type: [:entry, :exit, :service, :extrapolated]).delete_all
+        source_enrollments.update_all(processed_as: nil)
+        invalidate_service_history
+      end
     end
 
     def self.clear_view_cache(id)
