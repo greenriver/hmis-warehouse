@@ -15,6 +15,7 @@ App.StimulusApp.register('filter-projects', class extends Stimulus.Controller {
       'projects',
       'projectTypes',
       'dataSources',
+      'organizations',
       'projectGroups',
       'funderIds',
       'cocCodes',
@@ -48,6 +49,10 @@ App.StimulusApp.register('filter-projects', class extends Stimulus.Controller {
     if (this.hasCocCodesTarget) {
       const val = $(this.cocCodesTarget).val();
       if (val) data.coc_codes = Array.isArray(val) ? val : [val];
+    }
+    if (this.hasOrganizationsTarget) {
+      const val = $(this.organizationsTarget).val();
+      if (val) data.organization_ids = Array.isArray(val) ? val : [val];
     }
 
     // Special parameter to limit the project list by supported project type IDs
@@ -90,6 +95,7 @@ App.StimulusApp.register('filter-projects', class extends Stimulus.Controller {
     ];
     if (this.hasFunderIdsTarget) targets.push(this.funderIdsTarget);
     if (this.hasCocCodesTarget) targets.push(this.cocCodesTarget);
+    if (this.hasOrganizationsTarget) targets.push(this.organizationsTarget);
 
     targets.forEach(el => {
       $(el).on('select2:close', (e) => {

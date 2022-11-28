@@ -1,22 +1,24 @@
--# debug params
-= simple_form_for :nightly_census, url: censuses_path, html: {method: :get} do |f|
-  .row
-    .col-sm-3
-      = f.input :type, input_html: {name: :type}, collection: @types, label: 'Census Type', selected: @census.class.name, include_blank: false, as: :select_two
-    .col-sm-3
-      %label{for: 'nightly_census[start_date]'}
-        From
-      .input-group.date{'data-provide' => 'datepicker'}
-        = f.input_field :start_date, name: :start_date, class: 'form-control', value: @start_date
-        .input-group-append
-          %button.icon-calendar.btn.btn-secondary{type: 'button'}
-    .col-sm-3
-      %label{for: 'nightly_census[end_date]'}
-        To
-      .input-group.date{'data-provide' => 'datepicker'}
-        = f.input_field :end_date, name: :end_date, class: 'form-control', value: @end_date
-        .input-group-append
-          %button.icon-calendar.btn.btn-secondary{type: 'button'}
-    .col-sm-3
-      %br
-      = f.button :submit, value: 'Update View'
+= simple_form_for @filter, as: :filters, url: censuses_path, data: { controller: 'filter-projects', 'filter-projects-supported-project-types-value': GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS }, html: { method: :get } do |f|
+  - content_for :filters_col_full do
+    .row.mb-4
+      .col-sm-3
+        = f.input :start, as: :date_picker, input_html: { value: @filter.start.to_date }, label: 'Start Date', required: true
+      .col-sm-3
+        = f.input :end, as: :date_picker, input_html: { value: @filter.end.to_date }, label: 'End Date', required: true
+      .col-sm-6
+        = f.input :coc_codes, collection: @filter.coc_code_options_for_select(user: current_user), required: false, as: :select_two, input_html: {multiple: true, placeholder: 'Choose CoCs', data: {'filter-projects-target' => 'cocCodes', 'action': 'change->filter-projects#update'}}, label: 'CoC Codes'
+
+    = render 'hud_reports/project_filter', f: f, alert: alert, show_organization_picker: true
+    %h2.mt-4 View Options
+    .row.mb-4.mt-2
+      .col-sm-4
+        = f.input :aggregation_level, as: :select_two, label: 'Aggregation Level', collection: available_aggregation_levels, required: true, value: @filter.aggregation_level
+      .col-sm-6
+        = f.input :aggregation_type, as: :select_two, label: 'Census Breakdown', collection: available_aggregation_types, required: true, value: @filter.aggregation_type
+    .row.mb-4.mt-2
+      .col-sm-8
+        = f.input :limit_es_to_nbn, as: :boolean, label: 'Limit ES projects to Night By Night shelters only', required: false, value: @filter.limit_es_to_nbn
+  - content_for :filter_actions do
+    = f.submit 'Update View', class: ['btn', 'btn-primary'], data: { 'filter-projects-target' => 'submitButton' }
+
+  = render 'warehouse_reports/filters', f:f

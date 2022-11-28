@@ -864,6 +864,8 @@ module Filters
         'LSA Scope'
       when :cohort_ids
         'Cohorts'
+      else
+        key.to_s.titleize
       end
 
       return unless value.present?
@@ -933,6 +935,9 @@ module Filters
         chosen_lsa_scope
       when :cohort_ids
         cohorts
+      else
+        val = send(key)
+        val.instance_of?(String) ? val.titleize : val
       end
     end
 

@@ -108,7 +108,6 @@ Layout/ElseAlignment:
 # Configuration parameters: AllowBorderComment, AllowMarginComment.
 Layout/EmptyComment:
   Exclude:
-    - 'app/models/grda_warehouse/census/project_type_batch.rb'
 
 # Offense count: 248
 # Cop supports --auto-correct.
@@ -263,8 +262,6 @@ Layout/EmptyLinesAroundArguments:
 # SupportedStyles: empty_lines, no_empty_lines
 Layout/EmptyLinesAroundBlockBody:
   Exclude:
-    - 'app/models/grda_warehouse/census/census_builder.rb'
-    - 'app/models/grda_warehouse/census/project_type_batch.rb'
     - 'app/models/grda_warehouse/us_census_api/coc_agg.rb'
     - 'app/models/grda_warehouse/warehouse_reports/initiative_report.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_one.rb'
@@ -281,8 +278,6 @@ Layout/EmptyLinesAroundClassBody:
     - 'app/models/grda_warehouse/cas_availability.rb'
     - 'app/models/grda_warehouse/cas_non_hmis_client_history.rb'
     - 'app/models/grda_warehouse/cas_vacancy.rb'
-    - 'app/models/grda_warehouse/census/by_project_type.rb'
-    - 'app/models/grda_warehouse/census/by_project_type_client.rb'
     - 'app/models/grda_warehouse/client_merge_history.rb'
     - 'app/models/grda_warehouse/cohort_column_option.rb'
     - 'app/models/grda_warehouse/cohort_copier.rb'
@@ -723,7 +718,6 @@ Layout/MultilineMethodCallIndentation:
   Exclude:
     - 'app/models/aws_s3.rb'
     - 'app/models/cas/user.rb'
-    - 'app/models/grda_warehouse/census/project_type_batch.rb'
     - 'app/models/grda_warehouse/grades/missing.rb'
     - 'app/models/grda_warehouse/health_emergency/uploaded_test.rb'
     - 'app/models/grda_warehouse/us_census_api/coc_agg.rb'
@@ -793,7 +787,6 @@ Layout/SpaceAfterComma:
 # Cop supports --auto-correct.
 Layout/SpaceAfterMethodName:
   Exclude:
-    - 'app/models/grda_warehouse/census/census_builder.rb'
     - 'app/models/grda_warehouse/census/project_batch.rb'
 
 # Offense count: 19
@@ -802,9 +795,7 @@ Layout/SpaceAfterMethodName:
 # SupportedStylesInsidePipes: space, no_space
 Layout/SpaceAroundBlockParameters:
   Exclude:
-    - 'app/models/grda_warehouse/census/census_builder.rb'
     - 'app/models/grda_warehouse/census/project_batch.rb'
-    - 'app/models/grda_warehouse/census/project_type_batch.rb'
 
 # Offense count: 45
 # Cop supports --auto-correct.
@@ -872,7 +863,6 @@ Layout/SpaceAroundOperators:
 Layout/SpaceBeforeBlockBraces:
   Exclude:
     - 'app/models/grda_warehouse/available_file_tag.rb'
-    - 'app/models/grda_warehouse/census/census_builder.rb'
     - 'app/models/grda_warehouse/cohort_column_option.rb'
     - 'app/models/grda_warehouse/cohort_copier.rb'
     - 'app/models/grda_warehouse/export/hmis_six_one_one/client.rb'
@@ -953,9 +943,6 @@ Layout/SpaceInLambdaLiteral:
     - 'app/models/grda_warehouse/cas_non_hmis_client_history.rb'
     - 'app/models/grda_warehouse/cas_vacancy.rb'
     - 'app/models/grda_warehouse/census/by_project.rb'
-    - 'app/models/grda_warehouse/census/by_project_client.rb'
-    - 'app/models/grda_warehouse/census/by_project_type.rb'
-    - 'app/models/grda_warehouse/census/by_project_type_client.rb'
     - 'app/models/grda_warehouse/census_by_project.rb'
     - 'app/models/grda_warehouse/census_by_project_type.rb'
     - 'app/models/grda_warehouse/health_emergency/ama_restriction.rb'
@@ -981,7 +968,6 @@ Layout/SpaceInLambdaLiteral:
 Layout/SpaceInsideArrayLiteralBrackets:
   Exclude:
     - 'app/models/glacier/tester.rb'
-    - 'app/models/grda_warehouse/census/census_builder.rb'
     - 'app/models/grda_warehouse/census_by_project.rb'
     - 'app/models/grda_warehouse/census_by_project_type.rb'
     - 'app/models/grda_warehouse/tasks/enrollment_extras_import.rb'
@@ -1005,7 +991,6 @@ Layout/SpaceInsideArrayLiteralBrackets:
 Layout/SpaceInsideBlockBraces:
   Exclude:
     - 'app/models/grda_warehouse/available_file_tag.rb'
-    - 'app/models/grda_warehouse/census/census_builder.rb'
     - 'app/models/grda_warehouse/cohort_column_option.rb'
     - 'app/models/grda_warehouse/cohort_copier.rb'
     - 'app/models/grda_warehouse/export/hmis_six_one_one/client.rb'
@@ -1466,7 +1451,6 @@ Lint/UselessAssignment:
     - 'app/models/glacier/utils.rb'
     - 'app/models/grda_warehouse/available_file_tag.rb'
     - 'app/models/grda_warehouse/census/project_batch.rb'
-    - 'app/models/grda_warehouse/census/project_type_batch.rb'
     - 'app/models/grda_warehouse/cohort_copier.rb'
     - 'app/models/grda_warehouse/export/hmis_six_one_one/exit.rb'
     - 'app/models/grda_warehouse/export/hmis_twenty_twenty/exit.rb'
@@ -1813,7 +1797,6 @@ Style/IfUnlessModifier:
     - 'app/models/glacier/chunker.rb'
     - 'app/models/glacier/restore.rb'
     - 'app/models/glacier/tester.rb'
-    - 'app/models/grda_warehouse/census/project_type_batch.rb'
     - 'app/models/grda_warehouse/export/hmis_six_one_one/enrollment.rb'
     - 'app/models/grda_warehouse/export/hmis_six_one_one/project.rb'
     - 'app/models/grda_warehouse/export/hmis_twenty_twenty/enrollment.rb'
@@ -2094,7 +2077,6 @@ Style/RedundantParentheses:
   Exclude:
     - 'app/models/glacier/chunker.rb'
     - 'app/models/grda_warehouse/census/project_batch.rb'
-    - 'app/models/grda_warehouse/census/project_type_batch.rb'
     - 'app/models/grda_warehouse/export/hmis_six_one_one/enrollment.rb'
     - 'app/models/grda_warehouse/export/hmis_six_one_one/enrollment_coc.rb'
     - 'app/models/grda_warehouse/export/hmis_twenty_twenty/enrollment.rb'
@@ -2175,7 +2157,6 @@ Style/RescueModifier:
     - 'app/models/eto_base.rb'
     - 'app/models/glacier/uploader.rb'
     - 'app/models/grda_warehouse/census/project_batch.rb'
-    - 'app/models/grda_warehouse/census/project_type_batch.rb'
     - 'app/models/grda_warehouse/hmis/base.rb'
     - 'app/models/grda_warehouse/tasks/enrollment_extras_import.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_one.rb'
@@ -2254,9 +2235,6 @@ Style/StringLiterals:
     - 'app/models/glacier/uploader.rb'
     - 'app/models/glacier/utils.rb'
     - 'app/models/grda_warehouse/census/by_project.rb'
-    - 'app/models/grda_warehouse/census/by_project_client.rb'
-    - 'app/models/grda_warehouse/census/by_project_type.rb'
-    - 'app/models/grda_warehouse/census/by_project_type_client.rb'
     - 'app/models/grda_warehouse/coordinated_entry_assessment/individual.rb'
     - 'app/models/grda_warehouse/export/hmis_twenty_twenty/project_coc.rb'
     - 'app/models/grda_warehouse/report/demographic.rb'

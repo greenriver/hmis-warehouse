@@ -26,28 +26,29 @@
 .row
   .col-sm-8
     %h4 Client List
-    %table.table.table-sm.table-hover
-      %thead
-        %tr
-          %th
-          %th Last Name
-          %th First Name
-          %th Project
-          %th Data Source
-          -# %th Entry Dates
-      %tbody
-        - @clients.each_with_index do |entry, index|
+    .table-responsive
+      %table.table.table-sm.table-striped
+        %thead
           %tr
-            %td
-              = index + 1
-            %td
-              = link_to entry['LastName'], client_path(id: entry['client_id'])
-            %td
-              = link_to entry['FirstName'], client_path(id: entry['client_id'])
-            %td
-              = entry['ProjectName']
-            %td
-              = entry['short_name']
+            %th
+            %th Last Name
+            %th First Name
+            %th Project
+            %th Data Source
+            -# %th Entry Dates
+        %tbody
+          - @clients.each_with_index do |entry, index|
+            %tr
+              %td
+                = index + 1
+              %td
+                = link_to entry['LastName'], client_path(id: entry['client_id'])
+              %td
+                = link_to entry['FirstName'], client_path(id: entry['client_id'])
+              %td
+                = entry['ProjectName']
+              %td
+                = entry['short_name']
   .col-sm-4
     .census__involved-projects
       %h4 Involved Projects
