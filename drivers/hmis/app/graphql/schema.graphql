@@ -783,6 +783,7 @@ type DisabilityGroup {
   developmentalDisability: NoYesReasonsForMissingData
   enrollment: Enrollment!
   hivAids: NoYesReasonsForMissingData
+  id: ID!
   informationDate: ISO8601Date!
   mentalHealthDisorder: NoYesReasonsForMissingData
   mentalHealthDisorderIndefiniteAndImpairs: NoYesReasonsForMissingData

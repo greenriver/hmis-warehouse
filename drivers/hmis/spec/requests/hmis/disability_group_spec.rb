@@ -74,6 +74,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       # sorted by most recent date and data collection stage
 
       # "group 3" only has substance record
+      expect(groups[0]['id'].split(':').map(&:to_i)).to contain_exactly(d3a.id)
       expect(groups[0]['informationDate']).to eq(date2.strftime('%Y-%m-%d'))
       expect(groups[0]['dataCollectionStage']).to eq('UPDATE')
       expect(groups[0]['physicalDisability']).to be_nil
@@ -82,6 +83,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(groups[0]['developmentalDisability']).to be_nil
 
       # "group 2" has physical and developmental (no)
+      expect(groups[1]['id'].split(':').map(&:to_i)).to contain_exactly(d2a.id, d2b.id)
       expect(groups[1]['informationDate']).to eq(date2.strftime('%Y-%m-%d'))
       expect(groups[1]['dataCollectionStage']).to eq('PROJECT_ENTRY')
       expect(groups[1]['physicalDisability']).to eq('NO')
@@ -90,6 +92,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(groups[1]['developmentalDisability']).to eq('NO')
 
       # "group 1" has physical and developmental (yes)
+      expect(groups[2]['id'].split(':').map(&:to_i)).to contain_exactly(d1a.id, d1b.id)
       expect(groups[2]['informationDate']).to eq(date1.strftime('%Y-%m-%d'))
       expect(groups[2]['dataCollectionStage']).to eq('PROJECT_ENTRY')
       expect(groups[2]['physicalDisability']).to eq('YES')

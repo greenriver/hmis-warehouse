@@ -43,6 +43,7 @@ module Types
           :disability_type,
           :disability_response,
           :indefinite_and_impairs,
+          :id,
         ]
         result_aggregations = result_fields.map { |f| array_agg(d_t[f]).to_sql }
 
@@ -68,6 +69,7 @@ module Types
           obj.disabilities = result_values.transpose.map do |arr|
             OpenStruct.new(result_fields.zip(arr).to_h)
           end
+          obj.id = obj.disabilities.map(&:id).join(':')
           obj
         end
       end
