@@ -426,7 +426,6 @@
               "component": "CHECKBOX",
               "text": "Supplemental Nutrition Assistance Program (SNAP) (Previously known as Food Stamps)",
               "field_name": "snap"
-              
             },
             {
               "type": "BOOLEAN",
@@ -595,31 +594,27 @@
       "link_id": "disability",
       "text": "Disability",
       "data_collected_about": "ALL_CLIENTS",
-      "record_type": "DISABILITY",
+      "record_type": "DISABILITY_GROUP",
       "item": [
         {
           "type": "CHOICE",
           "link_id": "4.05.2",
           "text": "Physical Disability",
+          "field_name": "physicalDisability",
           "pick_list_reference": "NoYesReasonsForMissingData"
         },
         {
-          "type": "GROUP",
-          "link_id": "4.05.2-conditional",
-          "item": [
+          "type": "CHOICE",
+          "link_id": "4.05.A",
+          "text": "Expected to be of long, continued and indefinite duration and substantially impairs ability to live independently",
+          "field_name": "physicalDisabilityIndefiniteAndImpairs",
+          "pick_list_reference": "NoYesReasonsForMissingData",
+          "enable_behavior": "ALL",
+          "enable_when": [
             {
-              "type": "CHOICE",
-              "link_id": "4.05.A",
-              "text": "Expected to be of long, continued and indefinite duration and substantially impairs ability to live independently",
-              "pick_list_reference": "NoYesReasonsForMissingData",
-              "enable_behavior": "ALL",
-              "enable_when": [
-                {
-                  "question": "4.05.2",
-                  "operator": "EQUAL",
-                  "answer_code": "YES"
-                }
-              ]
+              "question": "4.05.2",
+              "operator": "EQUAL",
+              "answer_code": "YES"
             }
           ]
         },
@@ -627,31 +622,28 @@
           "type": "CHOICE",
           "link_id": "4.06.2",
           "text": "Developmental Disability",
+          "field_name": "developmentalDisability",
           "pick_list_reference": "NoYesReasonsForMissingData"
         },
         {
           "type": "CHOICE",
           "link_id": "4.07.2",
           "text": "Chronic Health Condition",
+          "field_name": "chronicHealthCondition",
           "pick_list_reference": "NoYesReasonsForMissingData"
         },
         {
-          "type": "GROUP",
-          "link_id": "4.07.2-conditional",
-          "item": [
+          "type": "CHOICE",
+          "link_id": "4.07.A",
+          "text": "Expected to be of long, continued and indefinite duration and substantially impairs ability to live independently",
+          "field_name": "chronicHealthConditionIndefiniteAndImpairs",
+          "pick_list_reference": "NoYesReasonsForMissingData",
+          "enable_behavior": "ALL",
+          "enable_when": [
             {
-              "type": "CHOICE",
-              "link_id": "4.07.A",
-              "text": "Expected to be of long, continued and indefinite duration and substantially impairs ability to live independently",
-              "pick_list_reference": "NoYesReasonsForMissingData",
-              "enable_behavior": "ALL",
-              "enable_when": [
-                {
-                  "question": "4.07.2",
-                  "operator": "EQUAL",
-                  "answer_code": "YES"
-                }
-              ]
+              "question": "4.07.2",
+              "operator": "EQUAL",
+              "answer_code": "YES"
             }
           ]
         },
@@ -659,31 +651,28 @@
           "type": "CHOICE",
           "link_id": "4.08.2",
           "text": "HIV/AIDS",
+          "field_name": "hivAids",
           "pick_list_reference": "NoYesReasonsForMissingData"
         },
         {
           "type": "CHOICE",
           "link_id": "4.09.2",
           "text": "Mental Health Disorder",
+          "field_name": "mentalHealthDisorder",
           "pick_list_reference": "NoYesReasonsForMissingData"
         },
         {
-          "type": "GROUP",
-          "link_id": "4.09-group",
-          "item": [
+          "type": "CHOICE",
+          "link_id": "4.09.A",
+          "text": "Expected to be of long, continued and indefinite duration and substantially impairs ability to live independently",
+          "field_name": "mentalHealthDisorderIndefiniteAndImpairs",
+          "pick_list_reference": "NoYesReasonsForMissingData",
+          "enable_behavior": "ALL",
+          "enable_when": [
             {
-              "type": "CHOICE",
-              "link_id": "4.09.A",
-              "text": "Expected to be of long, continued and indefinite duration and substantially impairs ability to live independently",
-              "pick_list_reference": "NoYesReasonsForMissingData",
-              "enable_behavior": "ALL",
-              "enable_when": [
-                {
-                  "question": "4.09.2",
-                  "operator": "EQUAL",
-                  "answer_code": "YES"
-                }
-              ]
+              "question": "4.09.2",
+              "operator": "EQUAL",
+              "answer_code": "YES"
             }
           ]
         },
@@ -692,35 +681,31 @@
           "type": "CHOICE",
           "link_id": "4.10.2",
           "text": "Substance Use Disorder",
+          "field_name": "substanceUseDisorder",
           "pick_list_reference": "DisabilityResponse"
         },
         {
-          "type": "GROUP",
-          "link_id": "4.10-group",
-          "item": [
+          "type": "CHOICE",
+          "link_id": "4.10.A",
+          "text": "Expected to be of long, continued and indefinite duration and substantially impairs ability to live independently",
+          "field_name": "substanceUseDisorderIndefiniteAndImpairs",
+          "pick_list_reference": "NoYesReasonsForMissingData",
+          "enable_behavior": "ANY",
+          "enable_when": [
             {
-              "type": "CHOICE",
-              "link_id": "4.10.A",
-              "text": "Expected to be of long, continued and indefinite duration and substantially impairs ability to live independently",
-              "pick_list_reference": "NoYesReasonsForMissingData",
-              "enable_behavior": "ANY",
-              "enable_when": [
-                {
-                  "question": "4.10.2",
-                  "operator": "EQUAL",
-                  "answer_code": "ALCOHOL_USE"
-                },
-                {
-                  "question": "4.10.2",
-                  "operator": "EQUAL",
-                  "answer_code": "DRUG_USE"
-                },
-                {
-                  "question": "4.10.2",
-                  "operator": "EQUAL",
-                  "answer_code": "ALCOHOL_AND_DRUG_USE"
-                }
-              ]
+              "question": "4.10.2",
+              "operator": "EQUAL",
+              "answer_code": "ALCOHOL_USE"
+            },
+            {
+              "question": "4.10.2",
+              "operator": "EQUAL",
+              "answer_code": "DRUG_USE"
+            },
+            {
+              "question": "4.10.2",
+              "operator": "EQUAL",
+              "answer_code": "ALCOHOL_AND_DRUG_USE"
             }
           ]
         }

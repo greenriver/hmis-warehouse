@@ -3123,9 +3123,9 @@ enum RelatedRecordType {
   CURRENT_LIVING_SITUATION
 
   """
-  Disability
+  DisabilityGroup
   """
-  DISABILITY
+  DISABILITY_GROUP
 
   """
   ExmploymentEducation

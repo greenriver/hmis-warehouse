@@ -13,7 +13,7 @@ module Types
 
     value 'ENROLLMENT', 'Enrollment'
     value 'INCOME_BENEFIT', 'IncomeBenefit'
-    value 'DISABILITY', 'Disability'
+    value 'DISABILITY_GROUP', 'DisabilityGroup'
     value 'HEALTH_AND_DV', 'HealthAndDv'
     value 'EXIT', 'Exit'
     value 'CURRENT_LIVING_SITUATION', 'CurrentLivingSituation'
