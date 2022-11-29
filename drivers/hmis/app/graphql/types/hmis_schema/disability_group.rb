@@ -16,18 +16,18 @@ module Types
     field :data_collection_stage, HmisSchema::Enums::Hud::DataCollectionStage, null: false
 
     # Disability Type 5
-    field :physical_disability, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: false
+    field :physical_disability, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: true
     field :physical_disability_indefinite_and_impairs, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: true
 
     # Disability Type 6
-    field :developmental_disability, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: false
+    field :developmental_disability, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: true
 
     # Disability Type 7
-    field :chronic_health_condition, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: false
+    field :chronic_health_condition, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: true
     field :chronic_health_condition_indefinite_and_impairs, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: true
 
     # Disability Type 8
-    field :hiv_aids, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: false
+    field :hiv_aids, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: true
     # ADD t_cell_count_available
     # ADD t_cell_count
     # ADD t_cell_source
@@ -36,11 +36,11 @@ module Types
     # ADD anti_retroviral
 
     # Disability Type 9
-    field :mental_health_disorder, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: false
+    field :mental_health_disorder, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: true
     field :mental_health_disorder_indefinite_and_impairs, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: true
 
     # Disability Type 10
-    field :substance_use_disorder, HmisSchema::Enums::Hud::DisabilityResponse, null: false
+    field :substance_use_disorder, HmisSchema::Enums::Hud::DisabilityResponse, null: true
     field :substance_use_disorder_indefinite_and_impairs, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: true
 
     def physical_disability

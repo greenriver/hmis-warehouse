@@ -47,7 +47,7 @@ module Types
         result_aggregations = result_fields.map { |f| array_agg(d_t[f]).to_sql }
 
         disability_groups = scope.viewable_by(current_user).
-          order(information_date: :desc).
+          order(information_date: :desc, data_collection_stage: :desc).
           group(*key_fields).
           pluck(*key_fields, *result_aggregations)
 

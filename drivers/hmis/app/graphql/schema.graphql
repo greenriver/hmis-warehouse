@@ -777,18 +777,18 @@ type Disability {
 Group of disability records that were collected at the same time
 """
 type DisabilityGroup {
-  chronicHealthCondition: NoYesReasonsForMissingData!
+  chronicHealthCondition: NoYesReasonsForMissingData
   chronicHealthConditionIndefiniteAndImpairs: NoYesReasonsForMissingData
   dataCollectionStage: DataCollectionStage!
-  developmentalDisability: NoYesReasonsForMissingData!
+  developmentalDisability: NoYesReasonsForMissingData
   enrollment: Enrollment!
-  hivAids: NoYesReasonsForMissingData!
+  hivAids: NoYesReasonsForMissingData
   informationDate: ISO8601Date!
-  mentalHealthDisorder: NoYesReasonsForMissingData!
+  mentalHealthDisorder: NoYesReasonsForMissingData
   mentalHealthDisorderIndefiniteAndImpairs: NoYesReasonsForMissingData
-  physicalDisability: NoYesReasonsForMissingData!
+  physicalDisability: NoYesReasonsForMissingData
   physicalDisabilityIndefiniteAndImpairs: NoYesReasonsForMissingData
-  substanceUseDisorder: DisabilityResponse!
+  substanceUseDisorder: DisabilityResponse
   substanceUseDisorderIndefiniteAndImpairs: NoYesReasonsForMissingData
   user: User
 }
