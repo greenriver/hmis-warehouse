@@ -1,15 +1,16 @@
 #= require ./namespace
 
 class App.Census.Base
-  constructor: (@url, @type, @start_date, @end_date, @options) ->
+  constructor: (@url, @filters, @options) ->
     @data = {}
     @charts = {}
     @chart_data = {}
     @width = @_width()
     @height = @_height()
+    @is_veteran_breakdown = JSON.parse(@filters)["aggregation_type"] == "veteran"
 
   load: ->
-    $.get @url, {start_date: @start_date, end_date: @end_date, type: @type}, (data) =>
+    $.get @url, {filters: @filters}, (data) =>
       @data = data
       if Object.keys(data).length
         @_build_charts()
@@ -21,19 +22,33 @@ class App.Census.Base
     @charts
 
   _build_charts: ->
-
-    @_build_census()
+    id = 0
+    for data_source_or_project_type, all_organizations of @data
+      for organization, all_projects of all_organizations
+        for project, data of all_projects
+          options = 
+            size: 
+              height: 200
+          census_detail_slug = "#{data_source_or_project_type}-#{organization}-#{project}"
+          @_individual_chart(data, id, census_detail_slug, options)
+          id += 1   
 
   _service_total: (data) ->
-    counts = $.map data.datasets[0].data, (row) ->
+    first_counts = $.map data.datasets[0].data, (row) ->
       row['y']
-    counts.reduce (m, n) -> m + n
+    
+    # ignore second row for inventory breakdown, because its the bed count.
+    # keep it for veteran breakdown, because its the non-veteran count.
+    second_counts = []
+    if @is_veteran_breakdown
+      second_counts = $.map data.datasets[1].data, (row) -> row['y']
+
+    first_counts.concat(second_counts).reduce (m, n) -> m + n
 
   _individual_chart: (data, id, census_detail_slug, options) ->
     chart_id = "census-chart-#{id}"
-    $('.jCharts').append("<div class='row'><div class='col-sm-8'><h4 class='census__chart-title'>#{data.title.text}</h4><div><strong>Services Provided:</strong> #{@_service_total(data)}</div></div><div class='col-sm-4 jChartDownloads'></div></div><div id='#{chart_id}' class='jChart'></div>")
-
-    # console.log(data, id, census_detail_slug, options)
+    total_bed_nights = d3.format(",")(@_service_total(data))
+    $('.jCharts').append("<div class='col-sm-12 census__chart-header'><h4 class='census__chart-title'>#{data.title.text}</h4><div class='census__chart-subtitle'><strong>Total Bed Nights:</strong> #{total_bed_nights}</div></div><div id='#{chart_id}' class='jChart'></div>")
 
     @chart_data[chart_id] = {}
     @chart_data[chart_id]['title'] = data.title.text
@@ -83,9 +98,14 @@ class App.Census.Base
             count: 10
             format: "%b %e, %Y"
         y:
-          padding: 0
+          padding:
+            top: 5
+            bottom: 0
           min: 0
           max: max_value
+          # label:
+          #   text: 'Count'
+          #   position: 'outer-middle'
           tick:
             values: tick_values
             format: (x) ->
@@ -121,7 +141,7 @@ class App.Census.Base
         bg_color = color(row.id)
         html += "<tr class='bb-tooltip-name-#{chart.internal.getTargetSelectorSuffix(row.id)}'>"
         box = "<td class='name'><svg><rect style='fill:#{bg_color}' width='10' height='10'></rect></svg>#{row.name}</td>"
-        value = "<td>#{row.value}</td>"
+        value = "<td>#{d3.format(",")(row.value)}</td>"
         html += box
         html += value
         if @chart_data[chart_id][i]['yesterday_counts']?
@@ -153,67 +173,17 @@ class App.Census.Base
     html += '</table>'
     html
 
-  # Override as necessary
   _follow_link: (d, element) =>
     return unless @options.follow_link == 'true'
+
     chart_id = $(element).closest('.jChart').attr('id')
     date = d.x.toISOString().split('T')[0]
-    project = @chart_data[chart_id]['census_detail_slug']
+    census_detail_slug = @chart_data[chart_id]['census_detail_slug']
 
-    # # If we clicked on a point, send us to the list of associated clients
-    params = {type: @type, date: date, project: project}
+    # If we clicked on a point, send us to the list of associated clients
+    params = { filters: @filters, date: date, census_detail_slug: census_detail_slug, dataset: d.name }
     url = @url.replace('date_range', 'details') + '?' + $.param(params)
     window.open url
-
-  _process_hover: (event, item) =>
-    if item.length
-      $('.census-chart').css('cursor', 'pointer')
-    else
-      $('.census-chart').css('cursor', 'default')
-
-  _format_tooltip_label: (tool_tip) =>
-    return unless tool_tip
-    d = new Date(tool_tip.xLabel)
-    date_string = new Date((d.getTime() + (d.getTimezoneOffset() * 60000))).toDateString()
-    if tool_tip.datasetIndex == 0
-      tool_tip.label = [
-        tool_tip.xLabel,
-        date_string,
-        "Client count: #{tool_tip.yLabel}"
-      ]
-    else
-      tool_tip.label = [
-        date_string,
-        "Bed inventory: #{tool_tip.yLabel}"
-      ]
-
-  _animation_complete: (anim) ->
-    # Disable downloads
-    return
-    return unless anim?
-    return unless $(anim.chartInstance.chart.canvas).prev('.row').find('.jChartDownloads').is(':empty')
-    image_url = anim.chartInstance.chart.canvas.toDataURL()
-    datasets = anim.chartInstance.chart.config.data.datasets
-    csv = []
-    i = 1
-    $.each datasets, (data) ->
-      csv[0] ?= []
-      csv[0][data * i] = 'Date'
-      csv[0][(data * i) + 1] = datasets[data]['label']
-      i++
-      $.each datasets[data].data, (day) ->
-        csv[day + 1] ?= []
-        csv[day + 1][data * (i - 1)] = datasets[data].data[day]['x']
-        csv[day + 1][(data * (i - 1)) + 1] = datasets[data].data[day]['y']
-
-    csvString = csv.map((d) ->
-      d.join()
-    ).join('\n')
-
-    data_url = 'data:attachment/csv;census.csv,' + encodeURIComponent(csvString)
-    html = '<a href="' + image_url + '" target="_blank">Download Image</a>'
-    html += '<br /><a href="' + data_url + '" target="_blank" download="census.csv">Download Data</a>'
-    $(anim.chartInstance.chart.canvas).prev('.row').find('.jChartDownloads').html(html)
 
   _width: ->
     300

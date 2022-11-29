@@ -9,6 +9,7 @@ class ProjectsController < ApplicationController
   before_action :require_can_delete_projects_or_data_sources!, only: [:destroy]
   before_action :require_can_edit_projects!, only: [:edit, :update]
   before_action :set_project, only: [:show, :update, :edit, :destroy]
+  before_action :set_census_params, only: [:show]
   before_action :require_can_view_confidential_project_names!, if: -> { !can_edit_projects? && @project.confidential? }
 
   include ArelHelper
@@ -18,8 +19,6 @@ class ProjectsController < ApplicationController
       preload(:client).
       order(she_t[:first_date_in_program].desc, she_t[:last_date_in_program].desc)
     @pagy, @clients = pagy(@clients)
-    url = 'censuses'
-    @show_census = GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: url).viewable_by(current_user).exists?
   end
 
   def edit
@@ -54,6 +53,22 @@ class ProjectsController < ApplicationController
       :tracking_method_override,
       :target_population_override,
     )
+  end
+
+  private def set_census_params
+    @show_census = GrdaWarehouse::WarehouseReports::ReportDefinition.
+      where(url: 'censuses').
+      viewable_by(current_user).exists?
+
+    return unless @show_census
+
+    @census_filter_params = {
+      project_ids: [@project.id],
+      start: Date.current - 3.years,
+      end: Date.current - 1.day,
+      aggregation_level: :by_project,
+      aggregation_type: :inventory,
+    }
   end
 
   private def project_scope
