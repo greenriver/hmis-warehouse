@@ -48,6 +48,7 @@ module Types
 
         disability_groups = scope.viewable_by(current_user).
           order(information_date: :desc, data_collection_stage: :desc).
+          limit(150). # No pagination, so LIMIT to 25 most recent groups (6*25 = 150 records)
           group(*key_fields).
           pluck(*key_fields, *result_aggregations)
 
