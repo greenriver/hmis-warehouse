@@ -13,7 +13,7 @@ module Types
       include ArelHelper
 
       class_methods do
-        def disability_groups_field(name = :events, description = nil, **override_options, &block)
+        def disability_groups_field(name = :disability_groups, description = nil, **override_options, &block)
           default_field_options = { type: [Types::HmisSchema::DisabilityGroup], null: false, description: description }
           field_options = default_field_options.merge(override_options)
           field(name, **field_options) do
@@ -22,20 +22,15 @@ module Types
         end
       end
 
-      # Resolve disabilities list into an array of hashes with this shape:
-      # { :enrollment_id=>\"1370143\",
-      #   :information_date=>Mon, 21 Feb 2022,
-      #   :data_collection_stage=>5,
-      #   :user_id=>\"hillary\",
-      #   :disabilities=>
-      #    [{:disability_type=>7, :disability_response=>1, :indefinite_and_impairs=>0},
-      #     {:disability_type=>9, :disability_response=>1, :indefinite_and_impairs=>1},
-      #     {:disability_type=>8, :disability_response=>0, :indefinite_and_impairs=>nil}]
-      # }
+      # Resolve disabilities list into an array of OpenStructs.
+      # Each struct represents a group of disability records that were collected
+      # on the same Information Date / Data Collection Stage / Enrollment.
+      # Each struct contains a `disabilities` array field, which has
+      # information about all six disability types.
       def resolve_disability_groups(scope = object.disabilities, **_args)
         key_fields = [
-          :enrollment_id,
-          :user_id,
+          :enrollment_id, # Don't move! below code depends on item being first in array
+          :user_id,       # Don't move! below code depends on item being second in array
           :information_date,
           :data_collection_stage,
         ]
@@ -69,6 +64,8 @@ module Types
           obj.disabilities = result_values.transpose.map do |arr|
             OpenStruct.new(result_fields.zip(arr).to_h)
           end
+
+          # Concatenate disability IDs to create a unique "ID" for the DisabilityGroup
           obj.id = obj.disabilities.map(&:id).join(':')
           obj
         end

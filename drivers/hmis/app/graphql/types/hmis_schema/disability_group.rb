@@ -10,7 +10,7 @@ module Types
   class HmisSchema::DisabilityGroup < Types::BaseObject
     description 'Group of disability records that were collected at the same time'
 
-    field :id, ID, null: false
+    field :id, ID, 'Concatenated string of Disability record IDs', null: false
     field :enrollment, HmisSchema::Enrollment, null: false
     field :user, HmisSchema::User, null: true
     field :information_date, GraphQL::Types::ISO8601Date, null: false
