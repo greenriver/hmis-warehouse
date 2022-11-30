@@ -783,6 +783,10 @@ type DisabilityGroup {
   developmentalDisability: NoYesReasonsForMissingData
   enrollment: Enrollment!
   hivAids: NoYesReasonsForMissingData
+
+  """
+  Concatenated string of Disability record IDs
+  """
   id: ID!
   informationDate: ISO8601Date!
   mentalHealthDisorder: NoYesReasonsForMissingData
