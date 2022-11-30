@@ -6,7 +6,7 @@
 
 require 'rails_helper'
 
-RSpec.describe CustomImportsBostonServices::ImportFile, type: :model do
+RSpec.describe CustomImportsBostonService::ImportFile, type: :model do
   let!(:warehouse_ds) { create :destination_data_source }
   let!(:ds1) { create :source_data_source }
   let!(:o1) { create :hud_organization, data_source_id: ds1.id }
@@ -37,27 +37,27 @@ RSpec.describe CustomImportsBostonServices::ImportFile, type: :model do
   end
   after(:each) do
     GrdaWarehouse::CustomImports::Config.delete_all
-    CustomImportsBostonServices::ImportFile.delete_all
-    CustomImportsBostonServices::Row.delete_all
+    CustomImportsBostonService::ImportFile.delete_all
+    CustomImportsBostonService::Row.delete_all
     GrdaWarehouse::Synthetic::Event.delete_all
-    GrdaWarehouse::Generic::Service.delete_all
+    ::GrdaWarehouse::Generic::Service.delete_all
     GrdaWarehouse::Hud::Event.delete_all
   end
   describe 'after initial import' do
     before(:each) do
-      CustomImportsBostonServices::ImportFile.delete_all
-      CustomImportsBostonServices::Row.delete_all
+      CustomImportsBostonService::ImportFile.delete_all
+      CustomImportsBostonService::Row.delete_all
       GrdaWarehouse::Synthetic::Event.delete_all
-      GrdaWarehouse::Generic::Service.delete_all
+      ::GrdaWarehouse::Generic::Service.delete_all
       GrdaWarehouse::Hud::Event.delete_all
-      import_custom_service('drivers/custom_imports_boston_services/spec/fixtures/first_service_export.csv', config, ds1)
+      import_custom_service('drivers/custom_imports_boston_service/spec/fixtures/first_service_export.csv', config, ds1)
     end
     it 'inserts 6 rows' do
-      expect(CustomImportsBostonServices::Row.count).to eq(6)
+      expect(CustomImportsBostonService::Row.count).to eq(6)
     end
 
     it 'creates 6 custom services' do
-      expect(GrdaWarehouse::Generic::Service.count).to eq(6)
+      expect(::GrdaWarehouse::Generic::Service.count).to eq(6)
     end
 
     it 'creates 0 synthetic events' do
@@ -83,17 +83,17 @@ RSpec.describe CustomImportsBostonServices::ImportFile, type: :model do
 
     describe 'after second import' do
       before(:each) do
-        CustomImportsBostonServices::ImportFile.delete_all
-        CustomImportsBostonServices::Row.delete_all
+        CustomImportsBostonService::ImportFile.delete_all
+        CustomImportsBostonService::Row.delete_all
         GrdaWarehouse::Synthetic::Event.delete_all
-        GrdaWarehouse::Generic::Service.delete_all
+        ::GrdaWarehouse::Generic::Service.delete_all
         GrdaWarehouse::Hud::Event.delete_all
-        import_custom_service('drivers/custom_imports_boston_services/spec/fixtures/first_service_export.csv', config, ds1)
-        import_custom_service('drivers/custom_imports_boston_services/spec/fixtures/second_service_export.csv', config, ds1)
+        import_custom_service('drivers/custom_imports_boston_service/spec/fixtures/first_service_export.csv', config, ds1)
+        import_custom_service('drivers/custom_imports_boston_service/spec/fixtures/second_service_export.csv', config, ds1)
       end
 
       it 'adds 12 rows' do
-        expect(CustomImportsBostonServices::Row.count).to eq(12)
+        expect(CustomImportsBostonService::Row.count).to eq(12)
       end
 
       describe 'after hud processing' do
@@ -103,8 +103,8 @@ RSpec.describe CustomImportsBostonServices::ImportFile, type: :model do
 
         it 'adds and removes 1 synthetic event' do
           expect(GrdaWarehouse::Synthetic::Event.count).to eq(4)
-          expect(CustomImportsBostonServices::Synthetic::Event.where(source_id: CustomImportsBostonServices::Row.where(service_id: 'S-1').select(:id)).count).to eq(0)
-          expect(CustomImportsBostonServices::Synthetic::Event.where(source_id: CustomImportsBostonServices::Row.where(service_id: 'S-7').select(:id)).count).to eq(1)
+          expect(CustomImportsBostonService::Synthetic::Event.where(source_id: CustomImportsBostonService::Row.where(service_id: 'S-1').select(:id)).count).to eq(0)
+          expect(CustomImportsBostonService::Synthetic::Event.where(source_id: CustomImportsBostonService::Row.where(service_id: 'S-7').select(:id)).count).to eq(1)
         end
 
         it 'creates 4 HUD events' do
@@ -121,7 +121,7 @@ RSpec.describe CustomImportsBostonServices::ImportFile, type: :model do
   def import_custom_service(file, config, data_source)
     GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
     contents = File.read(file)
-    import_file = CustomImportsBostonServices::ImportFile.create(
+    import_file = CustomImportsBostonService::ImportFile.create(
       config_id: config.id,
       data_source_id: data_source.id,
       file: file,

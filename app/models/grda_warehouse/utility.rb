@@ -98,7 +98,7 @@ class GrdaWarehouse::Utility
       tables << HudDataQualityReport::Fy2020::DqLivingSituation
     end
 
-    tables << CustomImportsBostonServices::Row if RailsDrivers.loaded.include?(:custom_imports_boston_services)
+    tables << CustomImportsBostonService::Row if RailsDrivers.loaded.include?(:custom_imports_boston_services)
 
     if RailsDrivers.loaded.include?(:cas_ce_data)
       tables << CasCeData::GrdaWarehouse::CasReferralEvent
