@@ -248,6 +248,7 @@ module GrdaWarehouse::Tasks
         heavy_drug_use: :heavy_drug_use,
         sober: :sober,
         site_case_management_required: :site_case_management_required,
+        ongoing_case_management_required: :ongoing_case_management_required,
         currently_fleeing: :currently_fleeing,
         dv_date: :dv_date,
         assessor_first_name: :assessor_first_name,
