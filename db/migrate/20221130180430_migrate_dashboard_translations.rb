@@ -11,9 +11,7 @@ class MigrateDashboardTranslations < ActiveRecord::Migration[6.1]
           'exited Search during the reporting period',
           'Average Time in Search for the Reporting Period',
           'Time in Search with Exits to Housing',
-          'Average Time in Search for the Reporting Period',
           'Time in Search with an Exit not to Housing',
-          'Average Time in Search for the Reporting Period',
           'Time in Search with an Exit to Any Destination']
       },
       {
@@ -30,7 +28,8 @@ class MigrateDashboardTranslations < ActiveRecord::Migration[6.1]
           'Clients in Housing',
           'Clients Entering Housing',
           'entered Housing during the reporting period',
-          'Clients Exited Housing','exited Housing during the reporting period',
+          'Clients Exited Housing',
+          'exited Housing during the reporting period',
           'Time in Search with Exits to Housing',
           'Time in Search with an Exit not to Housing',
           'Time in Housing with an Exit to Any Destination',
