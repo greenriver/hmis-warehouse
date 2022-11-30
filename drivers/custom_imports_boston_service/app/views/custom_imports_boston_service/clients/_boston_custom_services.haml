@@ -1,0 +1,13 @@
+
+%table.table
+  %thead
+    %tr
+      %th Date
+      %th Service
+      %th Organization
+  %tbody
+    - @client.source_custom_b_services.client_services.order(date: :desc).preload(:organization).each do |service|
+      %tr
+        %td= service.date
+        %td= service.service_name
+        %td= service.organization&.name(current_user) || 'unknown'

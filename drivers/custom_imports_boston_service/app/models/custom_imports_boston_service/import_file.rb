@@ -4,8 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module CustomImportsBostonServices
-  class ImportFile < GrdaWarehouse::CustomImports::ImportFile
+module CustomImportsBostonService
+  class ImportFile < ::GrdaWarehouse::CustomImports::ImportFile
     has_many :rows
 
     def self.description
@@ -61,8 +61,8 @@ module CustomImportsBostonServices
       first_row = rows.first
       period_started_on = first_row.reporting_period_started_on
       period_ended_on = first_row.reporting_period_ended_on
-      CustomImportsBostonServices::Row.transaction do
-        GrdaWarehouse::Generic::Service.where(data_source_id: data_source_id, date: period_started_on..period_ended_on).delete_all
+      CustomImportsBostonService::Row.transaction do
+        ::GrdaWarehouse::Generic::Service.where(data_source_id: data_source_id, date: period_started_on..period_ended_on).delete_all
         rows.preload(:enrollment, client: :destination_client).find_in_batches do |batch|
           service_batch = []
           batch.each do |row|
@@ -79,7 +79,7 @@ module CustomImportsBostonServices
               category: row.service_category,
             }
           end
-          GrdaWarehouse::Generic::Service.import(
+          ::GrdaWarehouse::Generic::Service.import(
             service_batch,
             conflict_target: [:source_id, :source_type],
             columns: [:date, :client_id, :data_source_id],
