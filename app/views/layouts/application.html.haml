@@ -72,6 +72,8 @@
                       = mail_to link.url, link.label, subject: link.subject
                     - else
                       = link_to link.label, link.url
+        - if can_add_administrative_event? && Delayed::Job.exists?
+          = render 'common/dj_status'
 
     #d3-tooltip
     = render 'layouts/ajax_modal_frame'

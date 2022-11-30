@@ -53,6 +53,10 @@ module Delayed
           end
           where(sql)
         end
+
+        def self.queue_status
+          where(failed_at: nil).group(:queue).count.transform_keys(&:humanize)
+        end
       end
     end
   end
