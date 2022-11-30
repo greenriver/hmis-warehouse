@@ -99,11 +99,9 @@ module HudLsa
     end
 
     def filter_params
-      return {} unless params[:filter]
-
-      filter_p = params.require(:filter).permit(filter_class.new.known_params)
-      filter_p[:user_id] = current_user.id
-      filter_p[:enforce_one_year_range] = false
+      filter_p = super
+      return {} unless filter_p.present?
+      
       # coc codes acts oddly here
       filter_p[:coc_code] = params[:filter].try(:[], :coc_codes).presence
       filter_p
