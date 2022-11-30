@@ -102,6 +102,8 @@ module Health
     private def set_blank_form
       @blank_release_form_url = GrdaWarehouse::PublicFile.url_for_location 'patient/release'
       @blank_directed_form_url = GrdaWarehouse::PublicFile.url_for_location 'patient/directed_release'
+      @blank_release_form_spanish_url = GrdaWarehouse::PublicFile.url_for_location 'patient/release_spanish'
+      @blank_directed_form_spanish_url = GrdaWarehouse::PublicFile.url_for_location 'patient/directed_release_spanish'
     end
 
     private def health_file_params_blank?

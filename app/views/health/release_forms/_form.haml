@@ -39,10 +39,10 @@
     %input{ name: 'authenticity_token', type: 'hidden', value: form_authenticity_token }
 
   .row
-    .col-6
+    .col-7
       = render 'blank_form_button'
 
-    .col-6
+    .col-5
       .form__actions--right
         %button.btn.btn-secondary(aria-label="Cancel" pjax-modal-close type="button") Cancel
         = f.button :submit, 'Save', class: 'btn btn-primary'

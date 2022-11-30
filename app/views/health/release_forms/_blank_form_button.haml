@@ -1,4 +1,4 @@
-- if @blank_release_form_url.present? || @blank_directed_form_url.present?
+- if [@blank_release_form_url, @blank_directed_form_url, @blank_release_form_spanish_url, @blank_directed_form_spanish_url].compact.any?
   .dropdown
     %button#dropdownButton.btn.btn-secondary.dropdown-toggle{aria: {expanded: "false", haspopup: "true"}, data:{toggle: "dropdown"}, type: "button"}
       %i.icon-download2
@@ -8,8 +8,15 @@
         %a.dropdown-item.d-flex.align-items-center.mb-1.py-2{href: @blank_release_form_url}
           %i.icon-user2
           Patient Signature Form
+      - if @blank_release_form_spanish_url.present?
+        %a.dropdown-item.d-flex.align-items-center.mb-1.py-2{href: @blank_release_form_spanish_url}
+          %i.icon-user2
+          Spanish Patient Signature Form
       - if @blank_directed_form_url
         %a.dropdown-item.d-flex.align-items-center.mb-1.py-2{href: @blank_directed_form_url}
           %i.icon-users2
           Verbal (Directed) Signature Form
-
+      - if @blank_directed_form_spanish_url
+        %a.dropdown-item.d-flex.align-items-center.mb-1.py-2{href: @blank_directed_form_spanish_url}
+          %i.icon-users2
+          Spanish Verbal (Directed) Signature Form
