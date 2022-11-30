@@ -2,9 +2,9 @@
 
 The population of clients to be considered in the report (the *universe*) are defined as clients enrolled in PSH (non-RRH) or a PSH-affiliated project during the reporting period, who also meet the chosen requirements at the top of the page (e.g., are veterans).
 
-*{{Pre-Placement}}* is time spent in PSH-affiliated projects or time before the move-in date for a PSH enrollment.
+*{{Search}}* is time spent in PSH-affiliated projects or time before the move-in date for a PSH enrollment.
 
-*{{Stabilization}}* is time spent in PSH after the move-in date.
+*{{Housing}}* is time spent in PSH after the move-in date.
 
 ## Overview
 
@@ -12,93 +12,94 @@ The population of clients to be considered in the report (the *universe*) are de
 
 The unique count of all the clients in the universe.
 
-### Clients Enrolled in {{Pre-Placement}}
+### {{Clients in Search}}
 
-The unique count of the clients from the universe who had an open enrollment in {{pre-placement}} during the reporting period.
+The unique count of the clients from the universe who had an open enrollment in {{search}} during the reporting period.
 
-### Clients Enrolled in {{Stabilization}}
+### {{Clients in Housing}}
 
-The unique count of the clients from the universe who had an open enrollment in {{stabilization}} during the reporting period.
+The unique count of the clients from the universe who had an open enrollment in {{housing}} during the reporting period.
 
-### Clients Entering {{Pre-Placement}}
+### {{Clients Entering Search}}
 
-The unique count of the clients who entered {{pre-placement}} during the reporting period.
+The unique count of the clients who entered {{search}} during the reporting period.
 
-### Clients Exiting {{Pre-Placement}}
+### {{Clients Exiting Search}}
 
-The unique count of the clients who exited {{pre-placement}} during the reporting period.
+The unique count of the clients who exited {{search}} during the reporting period.
 
-### Clients Entering {{Stabilization}}
+### {{Clients Entering Housing}}
 
-The unique count of the clients who entered {{stabilization}} during the reporting period.
+The unique count of the clients who entered {{housing}} during the reporting period.
 
-### Clients Exited {{Stabilization}}
+### {{Clients Exited Housing}}
 
-The unique count of the clients who exited {{stabilization}} during the reporting period.
+The unique count of the clients who exited {{housing}} during the reporting period.
 
 ## Time In Program
 
-### Time in {{Pre-Placement}} with Exits To {{Stabilization}}
+### {{Time in Search with Exits to Housing}}
 
 #### Chart
 
-The average of the number of days a client who exited to {{stabilization}} in a given month, spent in {{pre-placement}}.
+The average of the number of days a client who exited to {{housing}} in a given month, spent in {{search}}.
 
-#### Average Time in {{Pre-Placement}} for the Reporting Period
+#### {{Average Time in Search for the Reporting Period}}
 
-The average of the number of days a client who exited to {{stabilization}} spent in {{pre-placement}} for the reporting period.
+The average of the number of days a client who exited to {{housing}} spent in {{search}} for the reporting period.
 
-### Time in {{Pre-Placement}} with an Exit not to {{Stabilization}}
-
-#### Chart
-
-The average of the number of days a client who exited to a destination other than {{stabilization}} in a given month, spent in {{pre-placement}}.
-
-#### Average Time in {{Pre-Placement}} for the Reporting Period
-
-The average of the number of days a client who exited to a destination other than {{stabilization}} spent in {{pre-placement}} for the reporting period.
-
-### Time in {{Pre-Placement}} with an Exit to Any Destination
+### {{Time in Search with an Exit not to Housing}}
 
 #### Chart
 
-The average of the number of days a client who exited to any destination in a given month, spent in {{pre-placement}}.
+The average of the number of days a client who exited to {{housing}} spent in {{search}} for the reporting period.
 
-#### Average Time in {{Pre-Placement}} for the Reporting Period
+#### {{Average Time in Search for the Reporting Period}}
 
-The average of the number of days a client who exited to any destination spent in {{pre-placement}} for the reporting period.
+The average of the number of days a client who exited to a destination other than {{housing}} spent in {{search}} for the reporting period.
 
-### Time in {{Stabilization}} with an Exit to Any Destination
+### {{Time in Search with an Exit to Any Destination}}
 
 #### Chart
 
-The average of the number of days a client who exited to any destination in a given month, spent in {{stabilization}}.
+The average of the number of days a client who exited to a destination other than {{housing}} in a given month, spent in {{search}}.
 
-#### Average Time in {{Stabilization}} for the Reporting Period
+#### {{Average Time in Search for the Reporting Period}}
 
-The average of the number of days a client who exited to any destination spent in {{stabilization}} for the reporting period.
+The average of the number of days a client who exited to any destination spent in {{search}} for the reporting period.
+
+### {{Time in Housing with an Exit to Any Destination}}
+
+#### Chart
+
+The average of the number of days a client who exited to any destination in a given month, spent in {{housing}}.
+
+#### {{Average Time in Housing for the Reporting Period}}
+
+The average of the number of days a client who exited to any destination spent in {{housing}} for the reporting period.
+
 
 ## Program Makeup
 
-### Percentage Exiting {{Pre-Placement}} to {{Stabilization}}
+### {{Percentage Exiting Search to Housing}}
 
-The percentage of clients who exited {{pre-placement}} to {{stabilization}} out of the number of clients who exited {{pre-placement}} in a given month.
+The percentage of clients who exited {{search}} to {{housing}} out of the number of clients who exited {{search}} in a given month.
 
-### Percentage of Participants Enrolled in {{Stabilization}}
+### {{Percentage of Participants Enrolled in Housing}}
 
-The percentage of clients enrolled in {{stabilization}} out of the number of
+The percentage of clients enrolled in {{housing}} out of the number of
 clients in the universe for a given month.
 
-### Percentage Exiting {{Stabilization}} to Permanent Destinations
+### {{Percentage Exiting Housing}}
 
 The percentage of clients exiting to a permanent destination out of the number
-of clients who exited {{stabilization}} in a given month.
+of clients who exited {{housing}} in a given month.
 
 ## Outcomes
 
-### Destination at {{Stabilization}} Exit
+### Destination at {{Housing}} Exit
 
-The relative number of clients exiting {{stabilization}}:
+The relative number of clients exiting {{housing}}:
 
 * To permanent housing,
 * To a temporary destination,
@@ -106,9 +107,9 @@ The relative number of clients exiting {{stabilization}}:
 * To another institution, or
 * To another, or unknown, outcome
 
-A successful exit to permanent housing is defined as an exit to permanent housing without a subsequent night in an Emergency Shelter or on the street, either directly after exiting {{stabilization}}, or after exiting to a permanent housing destination.
+A successful exit to permanent housing is defined as an exit to permanent housing without a subsequent night in an Emergency Shelter or on the street, either directly after exiting {{housing}}, or after exiting to a permanent housing destination.
 
-## Returns to Homelessness from Permanent Housing
+## Returns to Homelessness from a Permanent Destination
 
 The number of unique clients that with a subsequent enrollment after successfully exiting Rapid Rehousing to a permanent housing destination.
 
