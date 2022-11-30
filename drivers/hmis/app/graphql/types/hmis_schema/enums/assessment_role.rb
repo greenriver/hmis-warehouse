@@ -18,6 +18,6 @@ module Types
     value 'CE'
     value 'POST_EXIT'
     value 'CUSTOM', 'Custom HMIS Assessment'
-    value 'RESOURCE', 'Form for creating or editing resources directly'
+    value 'RECORD', 'Form for creating or editing resources directly'
   end
 end

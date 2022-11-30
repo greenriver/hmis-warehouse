@@ -11,12 +11,13 @@ module MaYyaFollowupReport
 
     attr_accessor :start_date, :late_date, :filter
 
-    def initialize(filter)
-      @filter = filter
+    def initialize(filter_object)
+      @filter = filter_object
       filter.require_service_during_range = false
-      @end_date = filter.on
+      @end_date = filter_object.on
       @late_date = @end_date - 3.months
       @start_date = @late_date + 1.weeks
+      filter.update(start: @start_date, end: @end_date)
     end
 
     def clients

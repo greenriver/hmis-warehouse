@@ -17,7 +17,10 @@ module WarehouseReports
     def perform(user_id:, report_class:, report_id:)
       klass = allowed_reports[report_class]
       if klass
-        report = klass.find(report_id)
+        report = klass.find_by(id: report_id)
+        # Occassionally people delete the report before it actually runs
+        return unless report.present?
+
         report.run_and_save!
 
         NotifyUser.report_completed(user_id, report).deliver_later
