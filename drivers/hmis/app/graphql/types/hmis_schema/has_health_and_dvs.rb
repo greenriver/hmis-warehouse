@@ -12,7 +12,7 @@ module Types
       extend ActiveSupport::Concern
 
       class_methods do
-        def health_and_dvs_field(name = :events, description = nil, **override_options, &block)
+        def health_and_dvs_field(name = :health_and_dvs, description = nil, **override_options, &block)
           default_field_options = { type: HmisSchema::HealthAndDv.page_type, null: false, description: description }
           field_options = default_field_options.merge(override_options)
           field(name, **field_options) do

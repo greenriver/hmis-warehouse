@@ -20,9 +20,9 @@ module Types
     hud_field :project_name
     hud_field :project_type, Types::HmisSchema::Enums::ProjectType
     hud_field :organization, Types::HmisSchema::Organization, null: false
-    inventories_field null: false
-    project_cocs_field null: false
-    funders_field null: false
+    inventories_field
+    project_cocs_field
+    funders_field
     hud_field :operating_start_date
     hud_field :operating_end_date
     hud_field :description, String, null: true

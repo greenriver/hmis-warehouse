@@ -187,6 +187,7 @@ type Client {
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
   disabilities(limit: Int, offset: Int): DisabilitiesPaginated!
+  disabilityGroups: [DisabilityGroup!]!
   dob: ISO8601Date
   dobDataQuality: DOBDataQuality!
   enrollments(includeInProgress: Boolean, limit: Int, offset: Int, sortOrder: EnrollmentSortOption): EnrollmentsPaginated!
@@ -769,6 +770,31 @@ type Disability {
   id: ID!
   indefiniteAndImpairs: Int
   informationDate: ISO8601Date!
+  user: User
+}
+
+"""
+Group of disability records that were collected at the same time
+"""
+type DisabilityGroup {
+  chronicHealthCondition: NoYesReasonsForMissingData
+  chronicHealthConditionIndefiniteAndImpairs: NoYesReasonsForMissingData
+  dataCollectionStage: DataCollectionStage!
+  developmentalDisability: NoYesReasonsForMissingData
+  enrollment: Enrollment!
+  hivAids: NoYesReasonsForMissingData
+
+  """
+  Concatenated string of Disability record IDs
+  """
+  id: ID!
+  informationDate: ISO8601Date!
+  mentalHealthDisorder: NoYesReasonsForMissingData
+  mentalHealthDisorderIndefiniteAndImpairs: NoYesReasonsForMissingData
+  physicalDisability: NoYesReasonsForMissingData
+  physicalDisabilityIndefiniteAndImpairs: NoYesReasonsForMissingData
+  substanceUseDisorder: DisabilityResponse
+  substanceUseDisorderIndefiniteAndImpairs: NoYesReasonsForMissingData
   user: User
 }
 
@@ -3101,9 +3127,9 @@ enum RelatedRecordType {
   CURRENT_LIVING_SITUATION
 
   """
-  Disability
+  DisabilityGroup
   """
-  DISABILITY
+  DISABILITY_GROUP
 
   """
   ExmploymentEducation

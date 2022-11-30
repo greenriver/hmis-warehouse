@@ -11,6 +11,7 @@ module Types
     include Types::HmisSchema::HasEnrollments
     include Types::HmisSchema::HasIncomeBenefits
     include Types::HmisSchema::HasDisabilities
+    include Types::HmisSchema::HasDisabilityGroups
     include Types::HmisSchema::HasHealthAndDvs
 
     def self.configuration
@@ -35,10 +36,11 @@ module Types
     hud_field :ethnicity, Types::HmisSchema::Enums::Hud::Ethnicity
     hud_field :veteran_status, Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData
     field :pronouns, String, null: true
-    enrollments_field :enrollments, type: Types::HmisSchema::Enrollment.page_type
-    income_benefits_field :income_benefits
-    disabilities_field :disabilities
-    health_and_dvs_field :health_and_dvs
+    enrollments_field
+    income_benefits_field
+    disabilities_field
+    disability_groups_field
+    health_and_dvs_field
     hud_field :date_updated
     hud_field :date_created
     hud_field :date_deleted
@@ -53,6 +55,10 @@ module Types
 
     def disabilities(**args)
       resolve_disabilities(**args)
+    end
+
+    def disability_groups(**args)
+      resolve_disability_groups(**args)
     end
 
     def health_and_dvs(**args)
