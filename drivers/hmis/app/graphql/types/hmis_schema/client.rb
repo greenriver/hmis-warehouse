@@ -36,11 +36,11 @@ module Types
     hud_field :ethnicity, Types::HmisSchema::Enums::Hud::Ethnicity
     hud_field :veteran_status, Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData
     field :pronouns, String, null: true
-    enrollments_field :enrollments, type: Types::HmisSchema::Enrollment.page_type
-    income_benefits_field :income_benefits
-    disabilities_field :disabilities
-    disability_groups_field :disability_groups
-    health_and_dvs_field :health_and_dvs
+    enrollments_field
+    income_benefits_field
+    disabilities_field
+    disability_groups_field
+    health_and_dvs_field
     hud_field :date_updated
     hud_field :date_created
     hud_field :date_deleted
