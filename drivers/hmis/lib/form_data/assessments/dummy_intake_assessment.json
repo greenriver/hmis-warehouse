@@ -725,9 +725,12 @@
           "link_id": "3.08",
           "text": "Disabling Condition",
           "field_name": "disablingCondition",
-          "initial": [{
-            "value_boolean": false
-          }],
+          "_comment": "NOTE: disablingCondition is not really a field on DisabilityGroup, but on Enrollment. TBD how this should be represented for extraction.",
+          "initial": [
+            {
+              "value_boolean": false
+            }
+          ],
           "autofill_values": [
             {
               "value_boolean": true,

@@ -804,7 +804,6 @@ type DisabilityGroup {
   chronicHealthConditionIndefiniteAndImpairs: NoYesReasonsForMissingData
   dataCollectionStage: DataCollectionStage!
   developmentalDisability: NoYesReasonsForMissingData
-  disablingCondition: Boolean
   enrollment: Enrollment!
   hivAids: NoYesReasonsForMissingData
 
