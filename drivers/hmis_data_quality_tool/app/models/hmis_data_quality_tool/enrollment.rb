@@ -1476,7 +1476,7 @@ module HmisDataQualityTool
         },
         disability_at_entry_collected: {
           title: 'Disability at entry',
-          description: 'None of the disabilities collected at entry were missing or "Data not collected" (99).',
+          description: 'At least one of the disabilities collected at entry were missing or "Data not collected" (99).',
           required_for: 'All',
           detail_columns: [
             :destination_client_id,
