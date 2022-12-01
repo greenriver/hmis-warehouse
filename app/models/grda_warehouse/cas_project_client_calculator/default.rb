@@ -7,6 +7,8 @@
 require 'memoist'
 module GrdaWarehouse::CasProjectClientCalculator
   class Default
+    # Used for limiting queries when displaying the CAS Readiness page
+    attr_accessor :client_id
     # A hook/wrapper to enable easily overriding how we get data for a given project client column
     # To use this efficiently, you'll probably want to preload a handful of data, see push_clients_to_cas.rb
     def value_for_cas_project_client(client:, column:)
