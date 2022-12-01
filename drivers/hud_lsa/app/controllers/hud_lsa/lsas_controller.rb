@@ -98,6 +98,15 @@ module HudLsa
       @filter.update(filter_params) if filter_params.present?
     end
 
+    def filter_params
+      filter_p = super
+      return {} unless filter_p.present?
+      
+      # coc codes acts oddly here
+      filter_p[:coc_code] = params[:filter].try(:[], :coc_codes).presence
+      filter_p
+    end
+
     private def report_name
       active_version.title
     end
