@@ -956,11 +956,16 @@ module Health
     before_save :set_answers, :set_reviewed_at
 
     validate :validate_health_file_if_present
+    validates :completed_at, absence: true, unless: -> { collection_method.present? }
 
     def complete?
       completed_at.present?
     end
     alias completed? complete?
+
+    def reviewed?
+      reviewed_at.present?
+    end
 
     def active?
       completed_at && completed_at >= 1.years.ago
@@ -1043,6 +1048,13 @@ module Health
       {
         source: 'Warehouse',
       }
+    end
+
+    def collection_methods
+      {
+        in_person: 'In-Person',
+        phone: 'On Phone',
+      }.invert
     end
 
     # allow keys, but some keys need to allow multiple checkbox selections (b_q2 & b_q4)

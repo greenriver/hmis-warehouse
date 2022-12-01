@@ -176,7 +176,12 @@ module Health
       patient.import_epic_team_members
     end
 
-    # We need both signatures, and one of must have just been assigned
+    # If we have the patient signature, and they just signed, it was just finished
+    def just_finished?
+      patient_signed_on.present? && patient_signed_on_changed?
+    end
+
+    # We need both signatures, and one of must have just been done
     def just_signed?
       (patient_signed_on.present? && provider_signed_on.present?) && (patient_signed_on_changed? || provider_signed_on_changed?)
     end
@@ -235,13 +240,19 @@ module Health
       return attributes
     end
 
+    def completed_on
+      return unless completed?
+
+      [
+        provider_signed_on,
+        patient_signed_on,
+      ].compact.max
+    end
+
     def expires_on
       return unless completed?
 
-      ([
-        provider_signed_on,
-        patient_signed_on,
-      ].compact.max + 12.months).to_date
+      (completed_on + 12.months).to_date
     end
 
     def active?
@@ -261,6 +272,14 @@ module Health
       issues.compact.each_with_index do |issue, i|
         self["future_issues_#{i}"] = issue
       end
+    end
+
+    def future_issues?
+      (0..10).each do |i|
+        future_issues = self["future_issues_#{i}"]
+        return true if future_issues&.strip&.present?
+      end
+      false
     end
 
     def signature_modes

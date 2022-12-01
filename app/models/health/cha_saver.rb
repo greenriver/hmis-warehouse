@@ -7,14 +7,12 @@
 # A wrapper around CHA changes to ease Qualifying Activities creation
 module Health
   class ChaSaver
-
     def initialize user:, cha: Health::ComprehensiveHealthAssessment.new, complete: false, reviewed: false, create_qa: false
       @user = user
       @cha = cha
       @complete = complete
       @reviewed = reviewed
       @create_qa = create_qa
-      @qualifying_activity = setup_qualifying_activity
 
       @cha.completed_at = Time.current if @complete
       @cha.reviewed_by = @user if @reviewed
@@ -22,13 +20,11 @@ module Health
       # and then uncheck before hitting save button
       # some of these values were sticking around
       # clear everything
-      @cha.reviewed_by = nil if !@reviewed
-      @cha.reviewed_at = nil if !@reviewed
-      @cha.reviewer = nil if !@reviewed
+      @cha.reviewed_by = nil unless @reviewed
+      @cha.reviewed_at = nil unless @reviewed
+      @cha.reviewer = nil unless @reviewed
       # fall back to reviewer being reviewed_by if they don't provide a name
-      if @reviewed && !@cha.reviewer.present?
-        @cha.reviewer = @cha.reviewed_by.name
-      end
+      @cha.reviewer = @cha.reviewed_by.name if @reviewed && !@cha.reviewer.present?
     end
 
     def create
@@ -37,14 +33,15 @@ module Health
       end
     end
 
-
     def update
       @cha.class.transaction do
         @cha.completed_at = nil unless @complete
         @cha.save!
-        if @complete && @reviewed && @create_qa
-          @qualifying_activity.source_id = @cha.id
-          @qualifying_activity.save
+        # The CHA QA actually requires both the CHA and the SSM, so check both
+        # also done in the SsmSaver so it can be done in either order
+        if @complete && @create_qa && @cha.patient.recent_ssm_form.completed_at.present?
+          qualifying_activity = setup_qualifying_activity
+          qualifying_activity.save
         end
       end
     end
@@ -52,16 +49,16 @@ module Health
     protected def setup_qualifying_activity
       Health::QualifyingActivity.new(
         source_type: @cha.class.name,
+        source_id: @cha.id,
         user_id: @user.id,
         user_full_name: @user.name_with_email,
-        date_of_activity: Date.current,
+        date_of_activity: @cha.completed_at.to_date,
         activity: :cha,
-        follow_up: 'Implement Comprehensive Health Assessment',
+        follow_up: 'This writer completed CHA and SSM with patient.',
         reached_client: :yes,
-        mode_of_contact: :in_person,
-        patient_id: @cha.patient_id
+        mode_of_contact: @cha.collection_method,
+        patient_id: @cha.patient_id,
       )
     end
-
   end
 end

@@ -36,7 +36,7 @@
         .pctp__signature-expired.mb-2{data: {toggle: :tooltip, title: "Requested: #{aco_signature_request.sent_at.strftime('%b %e, %Y at %I:%M%P')} <br />by #{aco_signature_request.requestor_name}. <br />Valid until: #{aco_signature_request.expires_at}", html: 'true'}}
           ACO Signature request expired
       - else
-        .pctp__signature-pending{data: {toggle: :tooltip, title: "Requested: #{aco_signature_request.sent_at.strftime('%b %e, %Y at %I:%M%P')} <br />by #{aco_signature_request.requestor_name}. <br />Valid until: #{aco_signature_request.expires_at}", html: 'true'}}
+        .pctp__signature-pending{data: {toggle: :tooltip, title: "Requested: #{aco_signature_request&.sent_at&.strftime('%b %e, %Y at %I:%M%P')} <br />by #{aco_signature_request.requestor_name}. <br />Valid until: #{aco_signature_request.expires_at}", html: 'true'}}
           ACO signature requested
           %br
           from #{aco_signature_request.to_name}
