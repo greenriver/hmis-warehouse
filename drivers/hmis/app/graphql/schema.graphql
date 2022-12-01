@@ -135,6 +135,29 @@ type AssessmentsPaginated {
 }
 
 """
+Value to autofill based on conditional logic
+"""
+type AutofillValue {
+  autofillBehavior: EnableBehavior
+  autofillWhen: [EnableWhen!]
+
+  """
+  If question is boolean type, autofill value
+  """
+  valueBoolean: Boolean
+
+  """
+  If question is choice type, autofill value
+  """
+  valueCode: String
+
+  """
+  If question is numeric, autofill value
+  """
+  valueNumber: Int
+}
+
+"""
 2.07.6
 """
 enum Availability {
@@ -781,6 +804,7 @@ type DisabilityGroup {
   chronicHealthConditionIndefiniteAndImpairs: NoYesReasonsForMissingData
   dataCollectionStage: DataCollectionStage!
   developmentalDisability: NoYesReasonsForMissingData
+  disablingCondition: Boolean
   enrollment: Enrollment!
   hivAids: NoYesReasonsForMissingData
 
@@ -1221,6 +1245,10 @@ type FormDefinitionJson {
 A question or group of questions
 """
 type FormItem {
+  """
+  Value(s) to autofill based on conditional logic
+  """
+  autofillValues: [AutofillValue!]
   bounds: [ValueBound!]
 
   """
