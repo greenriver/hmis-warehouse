@@ -614,6 +614,7 @@
           "text": "Is this a disabling condition?",
           "field_name": "physicalDisabilityIndefiniteAndImpairs",
           "pick_list_reference": "NoYesReasonsForMissingData",
+          "disabled_display": "PROTECTED",
           "enable_behavior": "ALL",
           "enable_when": [
             {
@@ -643,6 +644,7 @@
           "text": "Is this a disabling condition?",
           "field_name": "chronicHealthConditionIndefiniteAndImpairs",
           "pick_list_reference": "NoYesReasonsForMissingData",
+          "disabled_display": "PROTECTED",
           "enable_behavior": "ALL",
           "enable_when": [
             {
@@ -672,6 +674,7 @@
           "text": "Is this a disabling condition?",
           "field_name": "mentalHealthDisorderIndefiniteAndImpairs",
           "pick_list_reference": "NoYesReasonsForMissingData",
+          "disabled_display": "PROTECTED",
           "enable_behavior": "ALL",
           "enable_when": [
             {
@@ -695,6 +698,7 @@
           "text": "Is this a disabling condition?",
           "field_name": "substanceUseDisorderIndefiniteAndImpairs",
           "pick_list_reference": "NoYesReasonsForMissingData",
+          "disabled_display": "PROTECTED",
           "enable_behavior": "ANY",
           "enable_when": [
             {
@@ -717,7 +721,7 @@
         {
           "type": "DISPLAY",
           "link_id": "3.08-info",
-          "text": "<b>OVERALL DISABLING CONDITION</b>: This field is auto-filled based on the above disabilities, according to the HUD definition of a Disabling Condition.<br />The User may override a system-generated YES with a NO.",
+          "text": "<b>OVERALL DISABLING CONDITION</b>: This field is auto-filled based on the above disabilities, according to the HUD definition of a Disabling Condition.<br />The User may override a system-generated NO with a YES.",
           "_ignore": "HUD defines a Disabling Condition as:<ul><li>A physical, mental, or emotional impairment, including an impairment caused by alcohol or drug abuse, post-traumatic stress disorder, or brain injury that:</li><ul><li>Is expected to be long-continuing or of indefinite duration;</li><li>Substantially impedes the individual's ability to live independently; and</li><li>Could be improved by the provision of more suitable housing conditions.</li></ul></li><li>A developmental disability, as defined in section 102 of the Developmental Disabilities Assistance and Bill of Rights Act of 2000 (42 U.S.C. 15002); or</li><li>The disease of acquired immunodeficiency syndrome (AIDS) or any condition arising from the etiologic agency for acquired immunodeficiency syndrome (HIV).</li></ul>"
         },
         {
@@ -764,6 +768,42 @@
                 {
                   "question": "4.10.A",
                   "operator": "EQUAL",
+                  "answer_code": "YES"
+                }
+              ]
+            },
+            {
+              "value_boolean": false,
+              "autofill_behavior": "ALL",
+              "autofill_when": [
+                {
+                  "question": "4.05.A",
+                  "operator": "NOT_EQUAL",
+                  "answer_code": "YES"
+                },
+                {
+                  "question": "4.06.2",
+                  "operator": "NOT_EQUAL",
+                  "answer_code": "YES"
+                },
+                {
+                  "question": "4.07.A",
+                  "operator": "NOT_EQUAL",
+                  "answer_code": "YES"
+                },
+                {
+                  "question": "4.08.2",
+                  "operator": "NOT_EQUAL",
+                  "answer_code": "YES"
+                },
+                {
+                  "question": "4.09.A",
+                  "operator": "NOT_EQUAL",
+                  "answer_code": "YES"
+                },
+                {
+                  "question": "4.10.A",
+                  "operator": "NOT_EQUAL",
                   "answer_code": "YES"
                 }
               ]

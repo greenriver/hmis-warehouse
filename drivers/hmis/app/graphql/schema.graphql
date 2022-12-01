@@ -896,6 +896,11 @@ enum DisabilityType {
   SUBSTANCE_USE_DISORDER
 }
 
+enum DisabledDisplay {
+  HIDDEN
+  PROTECTED
+}
+
 enum EnableBehavior {
   ALL
   ANY
@@ -1259,6 +1264,11 @@ type FormItem {
   Include this item only if the Client meets this HUD DataCollectedAbout condition
   """
   dataCollectedAbout: DataCollectedAbout
+
+  """
+  How to display item if it is disabled
+  """
+  disabledDisplay: DisabledDisplay
   enableBehavior: EnableBehavior
   enableWhen: [EnableWhen!]
 
