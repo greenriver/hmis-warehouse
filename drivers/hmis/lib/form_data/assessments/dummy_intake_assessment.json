@@ -599,7 +599,7 @@
         {
           "type": "DISPLAY",
           "link_id": "disability-info",
-          "text": "The following questions help determine if there are additional housing services or benefits available for the client.<br />Select YES to Disabling Condition IF (1) Expected to be of long, continued and indefinite duration, (2) Substantially impedes an individual's ability to live independently, and (3) Of such a nature that such ability could be improved by more suitable housing conditions."
+          "text": "The following questions help determine if there are additional housing services or benefits available for the client.<br /><br/>Select YES to 'Is this a disabling condition?' IF (1) Expected to be of long, continued and indefinite duration, (2) Substantially impedes an individual's ability to live independently, and (3) Of such a nature that such ability could be improved by more suitable housing conditions."
         },
         {
           "type": "CHOICE",
@@ -721,7 +721,7 @@
         {
           "type": "DISPLAY",
           "link_id": "3.08-info",
-          "text": "<b>OVERALL DISABLING CONDITION</b>: This field is auto-filled based on the above disabilities, according to the HUD definition of a Disabling Condition.<br />The User may override a system-generated NO with a YES.",
+          "text": "<b>OVERALL DISABLING CONDITION</b>: This field is auto-filled based on the above disabilities. The user may override a system-generated NO with a YES.",
           "_ignore": "HUD defines a Disabling Condition as:<ul><li>A physical, mental, or emotional impairment, including an impairment caused by alcohol or drug abuse, post-traumatic stress disorder, or brain injury that:</li><ul><li>Is expected to be long-continuing or of indefinite duration;</li><li>Substantially impedes the individual's ability to live independently; and</li><li>Could be improved by the provision of more suitable housing conditions.</li></ul></li><li>A developmental disability, as defined in section 102 of the Developmental Disabilities Assistance and Bill of Rights Act of 2000 (42 U.S.C. 15002); or</li><li>The disease of acquired immunodeficiency syndrome (AIDS) or any condition arising from the etiologic agency for acquired immunodeficiency syndrome (HIV).</li></ul>"
         },
         {
@@ -837,6 +837,7 @@
           "text": "When did the experience occur?",
           "field_name": "whenOccurred",
           "pick_list_reference": "WhenDVOccurred",
+          "disabled_display": "PROTECTED",
           "enable_behavior": "ALL",
           "enable_when": [
             {
@@ -853,6 +854,7 @@
           "field_name": "currentlyFleeing",
           "pick_list_reference": "NoYesReasonsForMissingData",
           "helper_text": "Currently fleeing should be indicated as “Yes” if the person is fleeing, or is attempting to flee, the domestic violence situation or is afraid to return to their primary nighttime residence.",
+          "disabled_display": "PROTECTED",
           "enable_behavior": "ALL",
           "enable_when": [
             {
