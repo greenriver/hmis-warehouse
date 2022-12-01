@@ -29,9 +29,11 @@ module Types
     field :repeats, Boolean, 'Whether the item may repeat (for choice types, this means multiple choice)', null: true
     field :pick_list_reference, String, 'Reference to value set of possible answer options', null: true
     field :pick_list_options, [Forms::PickListOption], 'Permitted answers, for choice items', null: true
+    field :disabled_display, Forms::Enums::DisabledDisplay, 'How to display item if it is disabled', null: true
     field :enable_behavior, Forms::Enums::EnableBehavior, null: true
     field :enable_when, [Forms::EnableWhen], null: true
     field :initial, [Forms::InitialValue], 'Initial value(s) when item is first rendered', null: true
+    field :autofill_values, [Forms::AutofillValue], 'Value(s) to autofill based on conditional logic', null: true
 
     # field mapping
     field :record_type, Forms::Enums::RelatedRecordType, 'Record type to use for population', null: true

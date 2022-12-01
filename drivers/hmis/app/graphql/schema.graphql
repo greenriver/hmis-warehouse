@@ -135,6 +135,29 @@ type AssessmentsPaginated {
 }
 
 """
+Value to autofill based on conditional logic
+"""
+type AutofillValue {
+  autofillBehavior: EnableBehavior
+  autofillWhen: [EnableWhen!]
+
+  """
+  If question is boolean type, autofill value
+  """
+  valueBoolean: Boolean
+
+  """
+  If question is choice type, autofill value
+  """
+  valueCode: String
+
+  """
+  If question is numeric, autofill value
+  """
+  valueNumber: Int
+}
+
+"""
 2.07.6
 """
 enum Availability {
@@ -873,6 +896,11 @@ enum DisabilityType {
   SUBSTANCE_USE_DISORDER
 }
 
+enum DisabledDisplay {
+  HIDDEN
+  PROTECTED
+}
+
 enum EnableBehavior {
   ALL
   ANY
@@ -1221,6 +1249,10 @@ type FormDefinitionJson {
 A question or group of questions
 """
 type FormItem {
+  """
+  Value(s) to autofill based on conditional logic
+  """
+  autofillValues: [AutofillValue!]
   bounds: [ValueBound!]
 
   """
@@ -1232,6 +1264,11 @@ type FormItem {
   Include this item only if the Client meets this HUD DataCollectedAbout condition
   """
   dataCollectedAbout: DataCollectedAbout
+
+  """
+  How to display item if it is disabled
+  """
+  disabledDisplay: DisabledDisplay
   enableBehavior: EnableBehavior
   enableWhen: [EnableWhen!]
 

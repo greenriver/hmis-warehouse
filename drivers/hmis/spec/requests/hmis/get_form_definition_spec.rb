@@ -38,9 +38,14 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               pickListOptions {
                 #{scalar_fields(Types::Forms::PickListOption)}
               }
-              enableBehavior
               enableWhen {
                 #{scalar_fields(Types::Forms::EnableWhen)}
+              }
+              autofillValues {
+                #{scalar_fields(Types::Forms::AutofillValue)}
+                autofillWhen {
+                  #{scalar_fields(Types::Forms::EnableWhen)}
+                }
               }
               item {
                 linkId
