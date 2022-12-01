@@ -305,20 +305,39 @@ type ClientsPaginated {
 
 enum Component {
   """
-  Component to render a boolean input item as a checkbox
+  Display text as an error alert
   """
-  CHECKBOX
+  ALERT_ERROR
 
   """
-  Component to render a group that contains children of the same type (eg all
-  booleans). Optionally has a choice item, which must be the first item.
+  Display text as an info alert
   """
-  INPUT_GROUP
+  ALERT_INFO
+
+  """
+  Display text as a success alert
+  """
+  ALERT_SUCCESS
 
   """
   Display text as a warning alert
   """
-  WARNING_ALERT
+  ALERT_WARNING
+
+  """
+  Render a boolean input item as a checkbox
+  """
+  CHECKBOX
+
+  """
+  Render a group that contains children of the same type (e.g. all booleans)
+  """
+  INPUT_GROUP
+
+  """
+  Render a choice input item as radio buttons
+  """
+  RADIO_BUTTONS
 }
 
 """

@@ -65,7 +65,7 @@
         {
           "link_id": "date-range-warning",
           "type": "DISPLAY",
-          "component": "WARNING_ALERT",
+          "component": "ALERT_WARNING",
           "text": "Date range does not overlap with the project operating period.",
           "enable_behavior": "ANY",
           "enable_when": [
