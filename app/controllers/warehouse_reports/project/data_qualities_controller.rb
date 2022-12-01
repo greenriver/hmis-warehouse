@@ -173,7 +173,7 @@ module WarehouseReports::Project
       end
 
       @pagy, @project_scope = pagy(@projects, items: 50)
-      paged_project_ids = @projects.pluck(:id)
+      paged_project_ids = @project_scope.pluck(:id)
       @projects = @project_scope.
         group_by { |p| [p.data_source.short_name, p.organization] }
 
