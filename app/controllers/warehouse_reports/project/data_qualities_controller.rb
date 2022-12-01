@@ -171,15 +171,16 @@ module WarehouseReports::Project
       else
         project_scope.none
       end
-      # Load any matching project groups before paginating projects
-      @project_groups = project_group_scope.joins(:projects).
-        merge(@projects).
-        order(name: :asc).
-        preload(:contacts, projects: [organization: :contacts])
 
       @pagy, @project_scope = pagy(@projects, items: 50)
+      paged_project_ids = @projects.pluck(:id)
       @projects = @project_scope.
         group_by { |p| [p.data_source.short_name, p.organization] }
+
+      # Load any matching project groups before paginating projects
+      @project_groups = project_group_scope.joins(:projects).
+        merge(GrdaWarehouse::Hud::Project.where(id: paged_project_ids)).
+        order(name: :asc)
     end
 
     def organization_scope
