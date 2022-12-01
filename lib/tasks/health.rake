@@ -208,6 +208,13 @@ namespace :health do
     Kiba.run(job)
   end
 
+  desc "Export patient disenrollment demographics"
+  task :export_disenrollment_demographics, [:filename, :start_date, :end_date] => [:environment, 'log:info_to_stdout'] do  |task, args|
+    start_date = args[:start_date].to_date
+    end_date = args[:end_date].to_date
+    Health::Tasks::ExportDisenrollmentDemographics.new(filename: args[:filename], start_date: start_date, end_date: end_date).run!
+  end
+
   # DB related, provides health:db:migrate etc.
   namespace :db do |ns|
     namespace :schema do
