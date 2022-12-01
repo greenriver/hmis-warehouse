@@ -12,12 +12,11 @@ module GrdaWarehouse::Tasks::ServiceHistory
   class Add < Base
     include TsqlImport
     include ActiveSupport::Benchmarkable
-    attr_accessor :logger
 
     def run!
       @client_ids = destination_client_scope.without_service_history.pluck(:id)
       if @client_ids.empty?
-        logger.info "Nothing to do."
+        Rails.logger.info 'Nothing to do.'
         return
       end
       process

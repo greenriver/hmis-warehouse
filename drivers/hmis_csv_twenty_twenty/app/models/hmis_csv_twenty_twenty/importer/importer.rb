@@ -38,7 +38,7 @@ module HmisCsvTwentyTwenty::Importer
     include HmisTwentyTwenty
     include ArelHelper
 
-    attr_accessor :logger, :notifier_config, :import, :range, :data_source, :importer_log
+    attr_accessor :import, :range, :data_source, :importer_log
 
     SELECT_BATCH_SIZE = 10_000
     INSERT_BATCH_SIZE = 5_000
@@ -46,14 +46,12 @@ module HmisCsvTwentyTwenty::Importer
     def initialize(
       loader_id:,
       data_source_id:,
-      logger: Rails.logger,
       debug: true,
       deidentified: false
     )
       setup_notifier('HMIS CSV Importer 2020')
       @loader_log = HmisCsvTwentyTwenty::Loader::LoaderLog.find(loader_id.to_i)
       @data_source = GrdaWarehouse::DataSource.find(data_source_id.to_i)
-      @logger = logger
       @debug = debug # no longer used for anything. instead we use logger.levels.
       @updated_source_client_ids = []
 
@@ -104,7 +102,7 @@ module HmisCsvTwentyTwenty::Importer
     def resume!
       return unless importer_log.resuming?
 
-      logger.info "resume! #{hash_as_log_str log_ids}"
+      Rails.logger.info "resume! #{hash_as_log_str log_ids}"
 
       # this isn't quite right, but we don't store it,
       # and we may have paused for a significant amount of time
@@ -191,7 +189,7 @@ module HmisCsvTwentyTwenty::Importer
         pp_cpu: "#{(bm.total * 100.0 / bm.real).round}%",
       }
       importer_log.summary[file_name].merge!(stats)
-      logger.debug do
+      Rails.logger.debug do
         " Pre-processed #{klass.table_name} #{hash_as_log_str({ importer_log_id: importer_log_id, processed: records }.merge(stats))}"
       end
     end
@@ -368,7 +366,7 @@ module HmisCsvTwentyTwenty::Importer
     def add_new_data
       importable_files.each do |file_name, klass|
         destination_class = klass.reflect_on_association(:destination_record).klass
-        # logger.debug "Adding #{destination_class.table_name} #{hash_as_log_str log_ids}"
+        # Rails.logger.debug "Adding #{destination_class.table_name} #{hash_as_log_str log_ids}"
         batch = []
         existing_keys = klass.existing_data(
           data_source_id: data_source.id,
@@ -411,7 +409,7 @@ module HmisCsvTwentyTwenty::Importer
           add_cpu: "#{(bm.total * 100.0 / bm.real).round}%",
         }
         importer_log.summary[file_name].merge!(stats)
-        logger.debug do
+        Rails.logger.debug do
           "  Added #{destination_class.table_name} #{hash_as_log_str({ added: records }.merge(stats).merge(log_ids))}"
         end
       end
@@ -469,7 +467,7 @@ module HmisCsvTwentyTwenty::Importer
       return if klass.hud_key == :ExportID
 
       destination_class = klass.reflect_on_association(:destination_record).klass
-      # logger.debug "Updating #{destination_class.name} #{hash_as_log_str log_ids}"
+      # Rails.logger.debug "Updating #{destination_class.name} #{hash_as_log_str log_ids}"
 
       existing = klass.existing_destination_data(
         data_source_id: data_source.id,
@@ -542,7 +540,7 @@ module HmisCsvTwentyTwenty::Importer
         up_cpu: "#{(bm.total * 100.0 / bm.real).round}%",
       }
       importer_log.summary[file_name].merge!(stats)
-      logger.debug do
+      Rails.logger.debug do
         "  Updated #{destination_class.table_name} #{hash_as_log_str({ updated: records }.merge(stats).merge(log_ids))}"
       end
     end
@@ -619,7 +617,7 @@ module HmisCsvTwentyTwenty::Importer
     end
 
     private def process_batch!(klass, batch, file_name, type:, upsert:, columns: klass.upsert_column_names(version: '2020'))
-      klass.logger.debug { "process_batch! #{klass} #{upsert ? 'upsert' : 'import'} #{batch.size} records" }
+      Rails.logger.debug { "process_batch! #{klass} #{upsert ? 'upsert' : 'import'} #{batch.size} records" }
       klass.logger.silence(Logger::WARN) do
         if upsert
           klass.import(
@@ -696,7 +694,7 @@ module HmisCsvTwentyTwenty::Importer
     end
 
     def pause_import
-      logger.info "pause_import #{hash_as_log_str(importer_log_id: importer_log.id)}"
+      Rails.logger.info "pause_import #{hash_as_log_str(importer_log_id: importer_log.id)}"
       importer_log.update(status: :paused)
     end
 
