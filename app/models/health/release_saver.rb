@@ -21,7 +21,7 @@ module Health
     def update
       @form.class.transaction do
         # If the form is completely signed, and was not previously, a QA can be generated
-        include_qualifying_activity @form.signature_on.present? && @form.participation_signature_on.present? &&
+        include_qualifying_activity = @form.signature_on.present? && @form.participation_signature_on.present? &&
           (@form.signature_on_was.blank? || @form.participation_signature_on_was.blank?)
         @form.save
         if include_qualifying_activity && @create_qa
