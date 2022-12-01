@@ -10,7 +10,6 @@ module GrdaWarehouse::Tasks
     include NotifierConfig
     include ::ServiceHistory::Builder
 
-    attr_accessor :send_notifications
     MAX_ATTEMPTS = 3 # We'll check anything a few times, but don't run forever
     CACHE_KEY = 'sanity_check_service_history'.freeze
 
@@ -61,12 +60,12 @@ module GrdaWarehouse::Tasks
 
       @dirty = true
       rebuilding_message = "Rebuilding service history for #{messages.size} invalidated clients."
-      if send_notifications
-        msg = "Hey, the service history counts don't match for the following #{messages.size} client(s).  Service histories have been invalidated.\n"
-        msg += messages.join("\n")
-        msg += "\n\n#{rebuilding_message}"
-        @notifier.ping msg
-      end
+
+      msg = "Hey, the service history counts don't match for the following #{messages.size} client(s).  Service histories have been invalidated.\n"
+      msg += messages.join("\n")
+      msg += "\n\n#{rebuilding_message}"
+      @notifier.ping msg
+
       Rails.logger.info rebuilding_message
       GrdaWarehouse::Tasks::ServiceHistory::Add.new(force_sequential_processing: true).run!
       GrdaWarehouse::WarehouseClientsProcessed.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running), priority: 12).update_cached_counts(client_ids: processed_ids.to_a)
