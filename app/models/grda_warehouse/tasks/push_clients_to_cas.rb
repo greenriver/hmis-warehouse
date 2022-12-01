@@ -270,7 +270,12 @@ module GrdaWarehouse::Tasks
       end
     end
 
+    # Only used to display attributes for a single client,
+    # NOT used during sync to CAS
     def attributes_for_display(user, client)
+      # Since we only care about one client at a time for this, we can
+      # speed up queries by telling the calculator which client we are looking at
+      calculator_instance.client_id = client.id
       attributes_for_cas_project_client(client).map do |k, value|
         next if skip_for_display(user).include?(k)
 

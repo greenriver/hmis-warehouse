@@ -8,26 +8,24 @@
           %li= msg
   .row
     .col-sm-6
-      = f.input :signature_on, as: :date_picker
+      = f.input :participation_signature_on, as: :date_picker
+    .col-sm-6
+      = f.input :signature_on, as: :date_picker, label: 'Release Signature On'
 
+  .row
+    .col-sm-6
       - if @release_form.file_location
         .form-group
           %label Location
           %p.form-control-static= @release_form.file_location
 
-    - if @blank_release_form_url.present? || @blank_directed_form_url.present?
-      .col-sm-6.text-right
-        - if @blank_release_form_url.present?
-          = link_to @blank_release_form_url, class: 'btn btn-secondary' do
-            %i.icon-download2
-            Blank Release Form
-        - if @blank_directed_form_url.present?
-          = link_to @blank_directed_form_url, class: 'btn btn-secondary mt-4' do
-            %i.icon-download2
-            Blank Directed Release Form
+  .row
+    .col
+      .j-file-upload= render 'upload_fields', f: f
 
-  .j-file-upload= render 'upload_fields', f: f
-  = f.input :verbal_approval, label: 'Patient gave verbal approval'
+  .row
+    .col
+      = f.input :mode_of_contact, as: :radio_buttons, collection: @release_form.modes_of_contact
 
   .row
     .col-sm-8
@@ -40,5 +38,23 @@
 
     %input{ name: 'authenticity_token', type: 'hidden', value: form_authenticity_token }
 
-  .form__actions.form__actions--right
-    = f.button :submit, 'Save', class: 'btn btn-primary'
+  .row
+    .col-7
+      = render 'blank_form_button'
+
+    .col-5
+      .form__actions--right
+        %button.btn.btn-secondary(aria-label="Cancel" pjax-modal-close type="button") Cancel
+        = f.button :submit, 'Save', class: 'btn btn-primary'
+
+:javascript
+  $('#form_participation_signature_on').on('change', function(event) {
+    if ($('#form_signature_on').val() == '') {
+      $('#form_signature_on').datepicker('setDate', $('#form_participation_signature_on').val())
+    }
+  });
+  $('#form_signature_on').on('change', function(event) {
+    if ($('#form_participation_signature_on').val() == '') {
+      $('#form_participation_signature_on').datepicker('setDate', $('#form_signature_on').val())
+    }
+  });

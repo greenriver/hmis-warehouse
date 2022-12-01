@@ -10,19 +10,19 @@
 module Health
   class Goal::Base < HealthBase
     self.table_name = 'health_goals'
-    has_paper_trail versions: {class_name: 'Health::HealthVersion'}
+    has_paper_trail versions: { class_name: 'Health::HealthVersion' }
     acts_as_paranoid
 
     phi_patient :patient_id
-    phi_attr :id, Phi::OtherIdentifier, "ID of goal"
-    phi_attr :user_id, Phi::SmallPopulation, "ID of user"
+    phi_attr :id, Phi::OtherIdentifier, 'ID of goal'
+    phi_attr :user_id, Phi::SmallPopulation, 'ID of user'
     # phi_attr :type,
     # phi_attr :number,
-    phi_attr :name, Phi::FreeText, "Name of goal"
+    phi_attr :name, Phi::FreeText, 'Name of goal'
     phi_attr :associated_dx, Phi::FreeText
-    phi_attr :barriers, Phi::FreeText, "Description of barriers to goal"
-    phi_attr :provider_plan, Phi::FreeText, "Plan of provider"
-    phi_attr :case_manager_plan, Phi::FreeText, "Plan of case manager"
+    phi_attr :barriers, Phi::FreeText, 'Description of barriers to goal'
+    phi_attr :provider_plan, Phi::FreeText, 'Plan of provider'
+    phi_attr :case_manager_plan, Phi::FreeText, 'Plan of case manager'
     phi_attr :rn_plan, Phi::FreeText
     phi_attr :bh_plan, Phi::FreeText
     phi_attr :other_plan, Phi::FreeText
@@ -47,13 +47,12 @@ module Health
     phi_attr :az_family, Phi::FreeText
     phi_attr :az_community, Phi::FreeText
     phi_attr :az_time_management, Phi::FreeText
-    phi_attr :goal_details, Phi::FreeText, "Details of goal"
+    phi_attr :goal_details, Phi::FreeText, 'Details of goal'
     phi_attr :problem, Phi::FreeText
-    phi_attr :start_date, Phi::Date, "Start date of goal"
+    phi_attr :start_date, Phi::Date, 'Start date of goal'
     phi_attr :intervention, Phi::FreeText
     # phi_attr :status,
-    phi_attr :responsible_team_member_id, Phi::SmallPopulation, "ID of responsible team member"
-
+    phi_attr :responsible_team_member_id, Phi::SmallPopulation, 'ID of responsible team member'
 
     # belongs_to :careplan, class_name: 'Health::Careplan', optional: true
     # delegate :patient, to: :careplan
@@ -62,7 +61,7 @@ module Health
 
     validates_presence_of :name, :number, :type
 
-    scope :variable_goals, -> { where(type: self.available_types_for_variable_goals)}
+    scope :variable_goals, -> { where(type: available_types_for_variable_goals) }
 
     def self.type_name
       raise 'Implement in sub-class'
@@ -71,7 +70,6 @@ module Health
     def type_name
       self.class.type_name
     end
-
 
     def self.available_types
       [
@@ -83,7 +81,7 @@ module Health
     end
 
     def self.available_types_for_variable_goals
-      self.available_types - [Health::Goal::Housing, Health::Goal::SelfManagement]
+      available_types - [Health::Goal::Housing, Health::Goal::SelfManagement]
     end
 
     def self.next_available_number(careplan_id:)
@@ -92,6 +90,14 @@ module Health
 
     def self.available_numbers
       (1..4)
+    end
+
+    def action_steps?
+      (0..9).each do |i|
+        action_step = self["action_step_#{i}"]
+        return true if action_step&.strip&.present?
+      end
+      false
     end
   end
 end

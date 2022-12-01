@@ -1,48 +1,51 @@
+- enabled = @careplan.editable?
+- not_provided = '<span class="no-data">Not provided</span>'.html_safe
 %article.l-print__section
   %ul.l-print__summary-items
     %li
       %dl
         %dt Patient DOB
-        %dd= @patient.birthdate&.to_date
+        %dd
+          = @patient.birthdate&.to_date || not_provided
     %li
       %dl
         %dt Initial Date
-        %dd= @careplan.initial_date&.to_date
+        %dd
+          = @careplan.initial_date&.to_date || not_provided
     %li
       %dl
         %dt Review Date
-        %dd= @careplan.review_date&.to_date
-
+        %dd
+          = @careplan.review_date&.to_date || not_provided
 
 = render 'health/careplans/team_members_table'
 
-%article.health-care-plan__about-me.l-print__section--page
+%article.health-care-plan__about-me.l-print__section
   %h1 Strengths and Barriers
   .l-print__item
     %h4 My Health Problems
+    = not_provided unless @careplan.patient_health_problems.present?
     = simple_format @careplan.patient_health_problems
   .l-print__item
     %h4 My Strengths (including interests, preferences, and cultural considerations and available informal, caregiver, or social supports, peer supports)
+    = not_provided unless @careplan.patient_strengths.present?
     = simple_format @careplan.patient_strengths
   .l-print__item
     %h4 My Barriers
+    = not_provided unless @careplan.patient_barriers.present?
     = simple_format @careplan.patient_barriers
-= render 'health/careplans/goals_table'
 
-%article.health-care-plan__issues.l-print__section--page
+%article.health-care-plan__goals.l-print__section.no-break
+  = render 'health/careplans/goals_table'
+
+%article.health-care-plan__issues.l-print__section.no-break
   = render 'health/careplans/future_issues'
 
-%article.health-care-plan__services.l-print__section--page
+%article.health-care-plan__services.l-print__section.no-break
   = render 'health/careplans/service_list'
 
-%article.health-care-plan__equipments.l-print__section--page
+%article.health-care-plan__equipments.l-print__section.no-break
   = render 'health/careplans/equipment_list'
 
-%section.health-care-plan__backup_plans.l-print__section--page.no-break
-  %strong
-    -if  @careplan.member_understands_contingency
-      _X_
-    - else
-      ___
-  Member understands contingency plan described below if care coordinator is needed but not available
+%section.health-care-plan__backup_plans.l-print__section.no-break
   = render 'health/careplans/backup_plan_list'

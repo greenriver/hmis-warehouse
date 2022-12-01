@@ -17,7 +17,7 @@
         %tr
           %td
             = link_to url, data: { loads_in_pjax_modal: true } do
-              %h4= form[:title].presence || 'Title Missing'
+              %h4.mb-1.mt-0= form[:title].presence || 'Title Missing'
               .pl-2= form[:sub_title]
           %td= form[:date]
           %td= form[:user]
@@ -31,5 +31,13 @@
       ordering: false,
       pageLength: 10,
       lengthChange: false,
-      pagingType: 'simple'
+      pagingType: 'simple',
+      fnDrawCallback: function() {
+        // hide pagination if there is only 1 page of results
+        [0, 1, 2].forEach(i => {
+          if ($(`#DataTables_Table_0.datatable-sdh tr`).length < 11) {
+            $(`#DataTables_Table_0_wrapper .row:last-of-type`).hide();
+          }
+        })
+      }
     })

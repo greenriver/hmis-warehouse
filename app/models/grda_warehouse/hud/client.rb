@@ -799,7 +799,7 @@ module GrdaWarehouse::Hud
       #   or(destination.where(id: disabled_client_because_disability_scope.select(:id)))
       ids = if client_ids.present?
         client_ids = Array.wrap(client_ids)
-        disabling_condition_ids = disabling_condition_client_scope.where(id: client_ids).pluck(:id)
+        disabling_condition_ids = disabling_condition_client_scope(client_ids: client_ids).where(id: client_ids).pluck(:id)
         # If everyone is disabled, short circuit as we don't have to check disabilities
         return destination.where(id: disabling_condition_ids) if Array.wrap(client_ids).sort == disabling_condition_ids.sort
 
@@ -863,21 +863,23 @@ module GrdaWarehouse::Hud
       disabled_client_scope.pluck(:id)
     end
 
-    def self.disabling_condition_client_scope
+    def self.disabling_condition_client_scope(client_ids: nil)
       mre_t = Arel::Table.new(:most_recent_enrollments)
       join = she_t.join(mre_t).on(she_t[:id].eq(mre_t[:current_id]))
 
+      most_recent_enrollment_scope = GrdaWarehouse::ServiceHistoryEnrollment.
+        joins(:enrollment).
+        define_window(:client_by_start_date).partition_by(:client_id, order_by: { she_t[:first_date_in_program] => :desc }).
+        select_window(:first_value, she_t[:id], over: :client_by_start_date, as: :current_id).
+        where(e_t[:DisablingCondition].in([0, 1]))
+      if client_ids.present?
+        most_recent_enrollment_scope = most_recent_enrollment_scope.
+          where(she_t[:client_id].in(client_ids))
+      end
+
       destination.where(
         id: GrdaWarehouse::ServiceHistoryEnrollment.
-        with(
-          most_recent_enrollments:
-            GrdaWarehouse::ServiceHistoryEnrollment.
-              joins(:enrollment).
-              define_window(:client_by_start_date).partition_by(:client_id, order_by: { she_t[:first_date_in_program] => :desc }).
-              select_window(:first_value, she_t[:id], over: :client_by_start_date, as: :current_id).
-              # where(project_type: GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS).
-              where(e_t[:DisablingCondition].in([0, 1])),
-        ).
+        with(most_recent_enrollments: most_recent_enrollment_scope).
           joins(join.join_sources, :enrollment).
           where(e_t[:DisablingCondition].eq(1)).
           select(:client_id),
