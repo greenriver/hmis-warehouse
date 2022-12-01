@@ -15,5 +15,6 @@ module Types
     field :answer_group_code, String, 'If question is choice type and has grouped options, value for comparison', null: true
     field :answer_number, Integer, 'If question is numeric, value for comparison', null: true
     field :answer_boolean, Boolean, 'If question is boolean type, value for comparison', null: true
+    field :compare_question, String, 'The linkId of a question to compare with the question using the operator', null: true
   end
 end

@@ -2,9 +2,28 @@
   "name": "funder-edit",
   "item": [
     {
+      "type": "DATE",
+      "link_id": "project-start",
+      "hidden": true,
+      "initial": [
+        {
+          "value_local_constant": "$projectStartDate"
+        }
+      ]
+    },
+    {
+      "type": "DATE",
+      "link_id": "project-end",
+      "hidden": true,
+      "initial": [
+        {
+          "value_local_constant": "$projectEndDate"
+        }
+      ]
+    },
+    {
       "type": "GROUP",
       "link_id": "name",
-      "required": false,
       "item": [
         {
           "type": "CHOICE",
@@ -42,19 +61,38 @@
       "type": "GROUP",
       "link_id": "dates",
       "text": "Operating Period",
-      "required": false,
-      "display": { "direction": "row" },
       "item": [
+        {
+          "link_id": "date-range-warning",
+          "type": "DISPLAY",
+          "component": "WARNING_ALERT",
+          "text": "Date range does not overlap with the project operating period.",
+          "enable_behavior": "ANY",
+          "enable_when": [
+            {
+              "question": "end",
+              "operator": "LESS_THAN",
+              "compare_question": "project-start"
+            },
+            {
+              "question": "start",
+              "operator": "GREATER_THAN",
+              "compare_question": "project-end"
+            }
+          ]
+        },
         {
           "type": "DATE",
           "required": true,
           "link_id": "start",
           "text": "Start Date",
           "field_name": "startDate",
-          "bounds": [{
-            "type": "MAX",
-            "question": "end"
-          }]
+          "bounds": [
+            {
+              "type": "MAX",
+              "question": "end"
+            }
+          ]
         },
         {
           "type": "DATE",
@@ -62,10 +100,12 @@
           "link_id": "end",
           "text": "End Date",
           "field_name": "endDate",
-          "bounds": [{
-            "type": "MIN",
-            "question": "start"
-          }]
+          "bounds": [
+            {
+              "type": "MIN",
+              "question": "start"
+            }
+          ]
         }
       ]
     }

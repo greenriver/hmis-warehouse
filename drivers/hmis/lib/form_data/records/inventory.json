@@ -2,6 +2,26 @@
   "name": "inventory",
   "item": [
     {
+      "type": "DATE",
+      "link_id": "project-start",
+      "hidden": true,
+      "initial": [
+        {
+          "value_local_constant": "$projectStartDate"
+        }
+      ]
+    },
+    {
+      "type": "DATE",
+      "link_id": "project-end",
+      "hidden": true,
+      "initial": [
+        {
+          "value_local_constant": "$projectEndDate"
+        }
+      ]
+    },
+    {
       "type": "GROUP",
       "link_id": "name",
       "text": "Details",
@@ -51,10 +71,20 @@
           "link_id": "2.07.1",
           "text": "Start Date",
           "field_name": "inventoryStartDate",
-          "bounds": [{
-            "type": "MAX",
-            "question": "2.07.2"
-          }]
+          "bounds": [
+            {
+              "type": "MIN",
+              "question": "project-start"
+            },
+            {
+              "type": "MAX",
+              "question": "project-end"
+            },
+            {
+              "type": "MAX",
+              "question": "2.07.2"
+            }
+          ]
         },
         {
           "type": "DATE",
@@ -62,10 +92,20 @@
           "link_id": "2.07.2",
           "text": "End Date",
           "field_name": "inventoryEndDate",
-          "bounds": [{
-            "type": "MIN",
-            "question": "2.07.1"
-          }]
+          "bounds": [
+            {
+              "type": "MIN",
+              "question": "project-start"
+            },
+            {
+              "type": "MAX",
+              "question": "project-end"
+            },
+            {
+              "type": "MIN",
+              "question": "2.07.1"
+            }
+          ]
         }
       ]
     }
