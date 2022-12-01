@@ -13,8 +13,6 @@ module GrdaWarehouse::Tasks
     include ArelHelper
     include VeteranStatusCalculator
 
-    attr_accessor :logger, :send_notifications, :notifier_config
-
     def initialize(
       max_allowed = 1_000,
       _bogus_notifier = false,
@@ -24,7 +22,6 @@ module GrdaWarehouse::Tasks
     )
       @max_allowed = max_allowed
       setup_notifier('Client Cleanup')
-      self.logger = Rails.logger
       @debug = debug
       @soft_delete_date = Time.now
       @dry_run = dry_run
@@ -606,7 +603,7 @@ module GrdaWarehouse::Tasks
 
           # invalidate client if DOB has changed
           if dest.DOB != dest_attr[:DOB]
-            logger.debug "Invalidating service history for #{dest.id}"
+            Rails.logger.debug "Invalidating service history for #{dest.id}"
             dest.invalidate_service_history unless @dry_run
           end
           dest.assign_attributes(dest_attr)
@@ -633,10 +630,10 @@ module GrdaWarehouse::Tasks
       log "Updated demographics for #{processed} destination clients, #{changed_count} changed" if processed.positive?
       return unless @debug
 
-      logger.debug '=========== Changed Counts ============'
-      logger.debug changed.map { |k, ids| [k, ids.count] }.to_h.inspect
-      logger.debug changed.inspect
-      logger.debug '=========== End Changed Counts ============'
+      Rails.logger.debug '=========== Changed Counts ============'
+      Rails.logger.debug changed.map { |k, ids| [k, ids.count] }.to_h.inspect
+      Rails.logger.debug changed.inspect
+      Rails.logger.debug '=========== End Changed Counts ============'
     end
 
     private def update_destination_clients(batch)
@@ -705,7 +702,7 @@ module GrdaWarehouse::Tasks
 
     def log message
       Rails.logger.info(message)
-      @notifier.ping(message) if @send_notifications
+      @notifier.ping(message)
     end
 
     # Sometimes client merging doesn't do a very good job of cleaning up
@@ -718,7 +715,7 @@ module GrdaWarehouse::Tasks
       return unless non_existant_client_ids.any?
 
       # if non_existant_client_ids.size > @max_allowed
-      #   @notifier.ping "Found #{non_existant_client_ids.size} clients in the service history table with no corresponding destination client. \nRefusing to remove so many service_history records.  The current threshold is *#{@max_allowed}* clients. You should come back and run this manually `bin/rake grda_warehouse:clean_clients[#{non_existant_client_ids.size}]` after you determine there isn't a bug." if @send_notifications
+      #   @notifier.ping "Found #{non_existant_client_ids.size} clients in the service history table with no corresponding destination client. \nRefusing to remove so many service_history records.  The current threshold is *#{@max_allowed}* clients. You should come back and run this manually `bin/rake grda_warehouse:clean_clients[#{non_existant_client_ids.size}]` after you determine there isn't a bug."
       #   return
       # end
       log "Removing service history for #{non_existant_client_ids.count} clients who no longer have client records"
@@ -730,7 +727,7 @@ module GrdaWarehouse::Tasks
 
       sh_size = service_history_source.where(client_id: @clients).count
       # if @clients.size > @max_allowed
-      #   @notifier.ping "Found #{@clients.size} clients needing cleanup. \nRefusing to cleanup so many clients.  The current threshold is *#{@max_allowed}*. You should come back and run this manually `bin/rake grda_warehouse:clean_clients[#{@clients.size}]` after you determine there isn't a bug." if @send_notifications
+      #   @notifier.ping "Found #{@clients.size} clients needing cleanup. \nRefusing to cleanup so many clients.  The current threshold is *#{@max_allowed}*. You should come back and run this manually `bin/rake grda_warehouse:clean_clients[#{@clients.size}]` after you determine there isn't a bug."
       #   @clients = []
       #   return
       # end

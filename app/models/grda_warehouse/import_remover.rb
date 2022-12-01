@@ -8,7 +8,7 @@
 
 module GrdaWarehouse
   class ImportRemover
-    attr_accessor :logger, :dry_run
+    attr_accessor :dry_run
     def initialize import_id, dry_run: false
       @import_log = GrdaWarehouse::ImportLog.find(import_id)
       @import_log.update(zip: @import_log.upload.file.to_s)
@@ -19,17 +19,16 @@ module GrdaWarehouse
         upload_id: @import_log.upload_id,
       )
 
-      self.logger = Rails.logger
       self.dry_run = dry_run
     end
 
     def run!
-      logger.info "Removing import #{@import_id}"
+      Rails.logger.info "Removing import #{@import_id}"
       directory = reconstitute_import
       puts directory
       removed_data_notes = remove_imported_data(directory, @upload.export_id_addition)
       removed_data_notes.each do |msg|
-        logger.info msg
+        Rails.logger.info msg
       end
     end
 
@@ -66,7 +65,7 @@ module GrdaWarehouse
         next unless klass.column_names.include?('DateDeleted')
 
         msg = "Attempting to remove #{hud_keys.count} #{klass.name}.  Data Source: #{@data_source_id}, ExportID #{export_id}..."
-        logger.info msg
+        Rails.logger.info msg
         removed_data_notes << msg
         removed = 0
         msg = if dry_run
@@ -94,7 +93,7 @@ module GrdaWarehouse
           end
           "Removed #{removed}."
         end
-        logger.info msg
+        Rails.logger.info msg
         removed_data_notes << msg
       end
       return removed_data_notes

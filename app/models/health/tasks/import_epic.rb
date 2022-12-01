@@ -11,13 +11,10 @@ require 'charlock_holmes'
 module Health::Tasks
   class ImportEpic
     include NotifierConfig
-    attr_accessor :send_notifications, :notifier_config, :logger
 
     # if load_locally, then the files must be in 'var/health'
-    def initialize(logger: Rails.logger, load_locally: false, configs: nil, prevent_massive_change: true, local_path: nil)
+    def initialize(load_locally: false, configs: nil, prevent_massive_change: true, local_path: nil)
       setup_notifier('HealthImporter')
-
-      @logger = logger
 
       @load_locally = load_locally
       @local_path = local_path
@@ -166,7 +163,7 @@ module Health::Tasks
         detect(File.read(path)).
         try(:[], :encoding)
       file_lines = IO.readlines(path).size - 1
-      @logger.info "Processing #{file_lines} lines in: #{path}"
+      Rails.logger.info "Processing #{file_lines} lines in: #{path}"
       options = if @file_encoding.starts_with? 'UTF'
         "rb:bom|#{@file_encoding}"
       else
@@ -191,8 +188,8 @@ module Health::Tasks
     end
 
     def notify msg
-      @logger.info msg
-      @notifier.ping msg if @send_notifications
+      Rails.logger.info msg
+      @notifier.ping msg
     end
   end
 end

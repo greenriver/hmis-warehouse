@@ -12,7 +12,6 @@ require 'zip'
 module ClaimsReporting
   class Importer
     attr_reader :import
-    attr_accessor :logger
 
     def default_credentials
       @default_credentials ||= ::Health::ImportConfig.find_by(kind: :claims_reporting) || {}
@@ -40,10 +39,6 @@ module ClaimsReporting
         klass.connection.truncate(klass.table_name)
       end
       nil
-    end
-
-    def initialize
-      @logger = Rails.logger
     end
 
     DEFAULT_NAMING_CONVENTION = /(?<prefix>.*)_?(?<m>[a-z]{3})_(?<y>\d{4})\.zip\Z/i.freeze
@@ -124,7 +119,7 @@ module ClaimsReporting
       # and then sync over any content we cant find. Ugly
       # race conditions exist if these are interleaved
       HealthBase.with_advisory_lock('import_all_from_health_sftp') do
-        logger.info { 'ClaimsReporting::Importer#import_all_from_health_sftp' }
+        Rails.logger.info { 'ClaimsReporting::Importer#import_all_from_health_sftp' }
         results = check_sftp(
           naming_convention: naming_convention,
           root_path: root_path,
@@ -136,7 +131,7 @@ module ClaimsReporting
             @import = nil # paranoia, reset this since we are looping
             import_from_health_sftp(r[:path], credentials: credentials)
           else
-            logger.debug { "Skipping #{r}" }
+            Rails.logger.debug { "Skipping #{r}" }
             false
           end
         end
@@ -159,15 +154,15 @@ module ClaimsReporting
       Tempfile.create(File.basename(zip_path)) do |tmpfile|
         using_sftp(credentials) do |sftp|
           record_progress(step: :connected)
-          logger.info 'import_from_health_sftp: connected, downloading...'
+          Rails.logger.info 'import_from_health_sftp: connected, downloading...'
           record_progress(step: :downloading)
-          logger.info "... to #{tmpfile.path}"
+          Rails.logger.info "... to #{tmpfile.path}"
           sftp.download!(zip_path, tmpfile.path)
           sftp.loop # cargo-cult... maybe helps Net::SFTP stay alive
           record_progress(step: :downloaded)
-          logger.info "... downloaded #{tmpfile.path}; disconnecting"
+          Rails.logger.info "... downloaded #{tmpfile.path}; disconnecting"
         end
-        logger.info '... disconnected'
+        Rails.logger.info '... disconnected'
         import_from_zip(tmpfile, replace_all: replace_all, new_import: false)
       end
     rescue Interrupt
@@ -219,11 +214,11 @@ module ClaimsReporting
             next unless entry.name.ends_with?(name_pattern)
 
             if file_filter && !file_filter.match?(entry.name)
-              logger.warn "Skipping #{entry.name} which is not in #{file_filter.inspect}"
+              Rails.logger.warn "Skipping #{entry.name} which is not in #{file_filter.inspect}"
               next
             end
 
-            logger.info "found #{entry.name}, importing..."
+            Rails.logger.info "found #{entry.name}, importing..."
             results[name_pattern] = { step: :import_csv_data }
             record_progress results
             entry.get_input_stream do |entry_io|
@@ -273,7 +268,7 @@ module ClaimsReporting
     end
 
     private def record_start(method_name, method_args, source_url)
-      logger.info "#{self.class}#record_start: #{method_name} #{method_args} #{source_url}"
+      Rails.logger.info "#{self.class}#record_start: #{method_name} #{method_args} #{source_url}"
       @import = ClaimsReporting::Import.create!(
         source_url: source_url,
         started_at: Time.current,

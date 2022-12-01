@@ -25,9 +25,9 @@ module Hl7
       start = Time.current
 
       bm = Benchmark.measure do
-        logger.info { "Hl7::ValueSetCode#load_from_xlsx parsing #{file} sheet:#{sheet}" }
+        Rails.logger.info { "Hl7::ValueSetCode#load_from_xlsx parsing #{file} sheet:#{sheet}" }
         data = ::Roo::Excelx.new(file).sheet(sheet).parse(**headers)
-        logger.info { 'Hl7::ValueSetCode#load_from_xlsx processing rows' }
+        Rails.logger.info { 'Hl7::ValueSetCode#load_from_xlsx processing rows' }
 
         transaction do
           data.each do |row|
@@ -54,13 +54,13 @@ module Hl7
     # #import with preconfigured options to upsert a batch of new
     # data
     def self.upsert(batch, dedupe: true)
-      logger.info { "Hl7::ValueSetCode#load_from_xlsx upsert batch.size=#{batch.size}" }
+      Rails.logger.info { "Hl7::ValueSetCode#load_from_xlsx upsert batch.size=#{batch.size}" }
 
       if dedupe
         grouped_by_key = batch.group_by { |row| row.values_at(:value_set_oid, :code_system_oid, :code) }.values
         dupes = grouped_by_key.select { |rows| rows.size > 1 }
         if dupes.any?
-          logger.warn "Found #{dupes.size} sets of rows with duplicate keys. Using the first value found: #{dupes.inspect}"
+          Rails.logger.warn "Found #{dupes.size} sets of rows with duplicate keys. Using the first value found: #{dupes.inspect}"
           batch = grouped_by_key.map(&:first)
         end
       end

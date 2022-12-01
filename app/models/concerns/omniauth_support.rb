@@ -28,7 +28,7 @@ module OmniauthSupport
     # If the user already exist and #provider_changed? an ::ApplicationMailer#provider_linked
     #    email letting them know will be scheduled.
     def from_omniauth(auth)
-      logger.debug do
+      Rails.logger.debug do
         "User#from_omniauth #{auth['info']}"
       end
 
@@ -58,7 +58,7 @@ module OmniauthSupport
       # Notify existing users the first time OKTA is used
       # to sign into their account
       if !user.new_record? && user.provider_set_at.blank?
-        logger.info { "User#from_omniauth linking to pre-existing user. provider:#{user.provider} uid:#{user.uid} existing_user_id:#{user.id}" }
+        Rails.logger.info { "User#from_omniauth linking to pre-existing user. provider:#{user.provider} uid:#{user.uid} existing_user_id:#{user.id}" }
         user.provider_set_at = Time.current
         ::ApplicationMailer.with(user: user).provider_linked.deliver_later
       end

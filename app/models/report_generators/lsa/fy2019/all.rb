@@ -27,7 +27,6 @@ module ReportGenerators::Lsa::Fy2019
     include TsqlImport
     include NotifierConfig
     include ActionView::Helpers::DateHelper
-    attr_accessor :send_notifications, :notifier_config
 
     def initialize options
       @user = User.find(options[:user_id].to_i)
@@ -47,7 +46,7 @@ module ReportGenerators::Lsa::Fy2019
       # Disable logging so we don't fill the disk
       # ActiveRecord::Base.logger.silence do
         calculate
-        Rails.logger.info "Done"
+        Rails.logger.info 'Done'
       # end # End silence ActiveRecord Log
     end
 
@@ -117,7 +116,7 @@ module ReportGenerators::Lsa::Fy2019
     def log_and_ping msg
       msg = "#{msg} (ReportResult: #{@report&.id}, percent_complete: #{@report&.percent_complete})"
       Rails.logger.info msg
-      @notifier.ping(msg) if @send_notifications
+      @notifier.ping(msg)
     end
 
     def sql_server_identifier

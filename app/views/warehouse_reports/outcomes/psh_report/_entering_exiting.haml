@@ -1,41 +1,41 @@
 .d-flex.text-center.justify-content-center.mb-6
   .rrh__entered-pre-placement.chunk.pr-4.mr-4
     %h4.title
-      Clients Entering #{_('Search')}
+      #{_('Clients Entering Search')}
     %i.icon-arrow-right.metric
     %i.icon-file-text.metric
     .metric
       - client_count = @report.entering_pre_placement.distinct.select(:client_id).count
       = link_to_if @report.can_see_client_details?(current_user), pluralize(client_count, 'client'), polymorphic_path(@report.clients_path_array, passed_params.merge(metric: :entering_pre_placement)), data: { loads_in_pjax_modal: true }
     .description
-      entered #{_('Search')} during the reporting period.
+      #{_('entered Search during the reporting period')}.
   .rrh__exited-pre-placement.chunk.pr-4.mr-4
     %h4.title
-      Clients Exiting #{_('Search')}
+      #{_('Clients Exiting Search')}
     %i.icon-file-text.metric
     %i.icon-arrow-right.metric
     .metric
       - client_count = @report.exiting_pre_placement.distinct.select(:client_id).count
       = link_to_if @report.can_see_client_details?(current_user), pluralize(client_count, 'client'), polymorphic_path(@report.clients_path_array, passed_params.merge(metric: :exiting_pre_placement)), data: { loads_in_pjax_modal: true }
     .description
-      exited #{_('Search')} during the reporting period.
+      #{_('exited Search during the reporting period')}.
   .rrh__entered-stabilization.chunk.pr-4.mr-4
     %h4.title
-      Clients Entering #{_('Housing')}
+      #{_('Clients Entering Housing')}
     %i.icon-arrow-right.metric
     %i.icon-house.metric
     .metric
       - client_count = @report.entering_stabilization.distinct.select(:client_id).count
       = link_to_if @report.can_see_client_details?(current_user), pluralize(client_count, 'client'), polymorphic_path(@report.clients_path_array, passed_params.merge(metric: :entering_stabilization)), data: { loads_in_pjax_modal: true }
     .description
-      entered #{_('Housing')} during the reporting period.
+      #{_('entered Housing during the reporting period')}.
   .rrh__exited-stabilization.chunk
     %h4.title
-      Clients Exited #{_('Housing')}
+      #{_('Clients Exited Housing')}
     %i.icon-house.metric
     %i.icon-arrow-right.metric
     .metric
       - client_count = @report.exiting_stabilization.distinct.select(:client_id).count
       = link_to_if @report.can_see_client_details?(current_user), pluralize(client_count, 'client'), polymorphic_path(@report.clients_path_array, passed_params.merge(metric: :exiting_stabilization)), data: { loads_in_pjax_modal: true }
     .description
-      exited #{_('Housing')} during the reporting period.
+      #{_('exited Housing during the reporting period')}.

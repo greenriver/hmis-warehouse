@@ -32,7 +32,7 @@ module HmisCsvImporter::HmisCsv
     end
 
     def log(message, attachment = nil)
-      logger.info message
+      Rails.logger.info message
       if attachment.present?
         @notifier&.post(text: message, attachments: { text: attachment })
       else
@@ -82,7 +82,7 @@ module HmisCsvImporter::HmisCsv
     end
 
     def log_timing(message)
-      logger.debug { "#{message} #{hash_as_log_str log_ids}" }
+      Rails.logger.debug { "#{message} #{hash_as_log_str log_ids}" }
       ret = nil
       bm = Benchmark.measure do
         ret = send(message)
