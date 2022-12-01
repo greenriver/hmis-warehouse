@@ -39,7 +39,7 @@ module Health
         @cha.save!
         # The CHA QA actually requires both the CHA and the SSM, so check both
         # also done in the SsmSaver so it can be done in either order
-        if @complete && @reviewed && @create_qa && @cha.patient.recent_ssm_form.completed_at.present?
+        if @complete && @create_qa && @cha.patient.recent_ssm_form.completed_at.present?
           qualifying_activity = setup_qualifying_activity
           qualifying_activity.save
         end
