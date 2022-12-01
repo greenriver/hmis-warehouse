@@ -81,7 +81,7 @@ end
 
 # Seed default form definition for intake assessments
 def seed_assessment_form_definitions
-  file = File.read('drivers/hmis/lib/form_data/assessments/dummy_intake_assessment.json')
+  file = File.read('drivers/hmis/lib/form_data/assessments/base_assessment.json')
   form_definition = JSON.parse(file)
   Hmis::Form::Definition.validate_json(form_definition)
 
