@@ -305,15 +305,39 @@ type ClientsPaginated {
 
 enum Component {
   """
-  Component to render a boolean input item as a checkbox
+  Display text as an error alert
+  """
+  ALERT_ERROR
+
+  """
+  Display text as an info alert
+  """
+  ALERT_INFO
+
+  """
+  Display text as a success alert
+  """
+  ALERT_SUCCESS
+
+  """
+  Display text as a warning alert
+  """
+  ALERT_WARNING
+
+  """
+  Render a boolean input item as a checkbox
   """
   CHECKBOX
 
   """
-  Component to render a group that contains children of the same type (eg all
-  booleans). Optionally has a choice item, which must be the first item.
+  Render a group that contains children of the same type (e.g. all booleans)
   """
   INPUT_GROUP
+
+  """
+  Render a choice input item as radio buttons
+  """
+  RADIO_BUTTONS
 }
 
 """
@@ -954,6 +978,11 @@ type EnableWhen {
   If question is numeric, value for comparison
   """
   answerNumber: Int
+
+  """
+  The linkId of a question to compare with the question using the operator
+  """
+  compareQuestion: String
 
   """
   How to evaluate the question's answer
@@ -1981,6 +2010,11 @@ type InitialValue {
   If question is choice type, initial value
   """
   valueCode: String
+
+  """
+  Name of local variable to use as initial value if present. Variable type should match item type.
+  """
+  valueLocalConstant: String
 
   """
   If question is numeric, initial value

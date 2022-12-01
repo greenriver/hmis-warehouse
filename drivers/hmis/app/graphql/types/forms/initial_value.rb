@@ -13,6 +13,7 @@ module Types
     field :value_code, String, 'If question is choice type, initial value', null: true
     field :value_number, Integer, 'If question is numeric, initial value', null: true
     field :value_boolean, Boolean, 'If question is boolean type, initial value', null: true
+    field :value_local_constant, String, 'Name of local variable to use as initial value if present. Variable type should match item type.', null: true
 
     # Add date, datetime, etc as needed
   end
