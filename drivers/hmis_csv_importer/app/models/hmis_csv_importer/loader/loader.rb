@@ -21,7 +21,7 @@ module HmisCsvImporter::Loader
     include TsqlImport
     include NotifierConfig
     include HmisCsvImporter::HmisCsv
-    attr_accessor :logger, :notifier_config, :import, :range, :data_source, :loader_log, :limit_projects
+    attr_accessor :import, :range, :data_source, :loader_log, :limit_projects
 
     # Prepare a loader for HmisCsvImporter CSVs
     # in the directory `file_path`
@@ -33,7 +33,6 @@ module HmisCsvImporter::Loader
     def initialize(
       data_source_id:,
       file_path: File.join('tmp', 'hmis_import'),
-      logger: Rails.logger,
       debug: true,
       remove_files: true,
       deidentified: false,
@@ -45,7 +44,6 @@ module HmisCsvImporter::Loader
       setup_notifier('HMIS CSV Loader')
       @data_source = GrdaWarehouse::DataSource.find(data_source_id.to_i)
       @file_path = file_path
-      @logger = logger
       @debug = debug
       @remove_files = remove_files
       @deidentified = deidentified
@@ -85,7 +83,6 @@ module HmisCsvImporter::Loader
       @importer = HmisCsvImporter::Importer::Importer.new(
         loader_id: @loader_log.id,
         data_source_id: data_source.id,
-        logger: @logger,
         debug: @debug,
         deidentified: @deidentified,
       )
@@ -216,7 +213,7 @@ module HmisCsvImporter::Loader
       file_name = original_file_path
       base_name = File.basename(file_name)
 
-      logger.debug do
+      Rails.logger.debug do
         "Loading #{base_name} into #{klass.table_name} #{hash_as_log_str(loader_id: @loader_log.id)}"
       end
 
@@ -325,7 +322,7 @@ module HmisCsvImporter::Loader
           stat['lines_loaded'] = lines_loaded
           stat['rps'] = (lines_loaded / bm.real).round
         end
-        logger.debug do
+        Rails.logger.debug do
           # line_loaded comes from pg directly, if we dont trust it we can go back for a count
           # if lines_loaded > 1
           #   scope = klass.where(data_source_id: data_source.id, loader_id: @loader_log.id)

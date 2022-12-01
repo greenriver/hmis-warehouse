@@ -24,14 +24,17 @@
       %h3 Summary
       .well
         %dl
-          %dt Project Types
-          %dd.mb-4= @project_group.projects.map(&:human_readable_project_type).uniq.join(', ')
-          %dt PIT Count
+          %dt
+            PIT Count
+            %i.icon-info{data: { toggle: :tooltip, title: 'The sum of all PITCount columuns as reported from HMIS for all projects included.' }}
           %dd.mb-4= @project_group.projects.map(&:PITCount).compact.sum
           %dt Project Count
           %dd.mb-4= @project_group.projects.count
           %dt Projects
-          %dd= @project_group.projects.map(&:ProjectName).join(', ')
+          %dd
+            - @project_group.projects.map(&:ProjectName).sort.each do |name|
+              = name
+              %br
 
 - if @project_group.any_contacts?
   .mt-6

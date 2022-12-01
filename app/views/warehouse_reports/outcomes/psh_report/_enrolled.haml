@@ -20,16 +20,16 @@
         %em= @report.project_names
   .rrh__enrolled.chunk.-pre-placement.pr-4.mr-4
     %h4.title
-      Clients in #{_('Search')}
+      #{_('Clients in Search')}
     %i.icon-file-text.metric
     .metric
       - client_count = @report.pre_placement_clients.distinct.select(:client_id).count
       = link_to_if @report.can_see_client_details?(current_user), pluralize(client_count, 'client'), polymorphic_path(@report.clients_path_array, passed_params.merge(metric: :enrolled_in_pre_placement)), data: { loads_in_pjax_modal: true }
     .description
       - if client_count != 1
-        were in #{_('search')}
+        #{_('were in search')}
       - else
-        was in #{_('search')}
+        #{_('was in search')}
       - if @filter.project_id.present?
         project
       - else
@@ -39,16 +39,16 @@
         %em= @report.pre_placement_project_name
   .rrh__enrolled.chunk.-stabilization
     %h4.title
-      Clients in #{_('Housing')}
+      #{_('Clients in Housing')}
     %i.icon-house.metric
     .metric
       - client_count = @report.stabilization_clients.distinct.select(:client_id).count
       = link_to_if @report.can_see_client_details?(current_user), pluralize(client_count, 'client'), polymorphic_path(@report.clients_path_array, passed_params.merge(metric: :enrolled_in_stabilization)), data: { loads_in_pjax_modal: true }
     .description
       - if client_count != 1
-        were enrolled in #{_('housing')}
+        #{_('were enrolled in housing')}
       - else
-        was enrolled in #{_('housing')}
+        #{_('was enrolled in housing')}
       - if @filter.project_id.present?
         project
       - else

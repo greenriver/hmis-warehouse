@@ -78,8 +78,7 @@ module Export::Exporter
     end
 
     def log(message)
-      @notifier&.ping message
-      logger.info message if @debug
+      @notifier.ping message
     end
 
     def set_time_format
