@@ -42,7 +42,8 @@ RSpec.describe Health::CareplanSaver, type: :model do
     expect(pctp_qa.first.mode_of_contact_other).to eq('On-line')
   end
 
-  it 'creates a care planning QA when the patient signs, but not a PCTP signed one until the provider also signs' do
+  # FIXME This test is disabled because the automated QAs are disabled, but should be put back for automated QA launch
+  xit 'creates a care planning QA when the patient signs, but not a PCTP signed one until the provider also signs' do
     careplan.patient_signed_on = Date.today
     Health::CareplanSaver.new(user: user, careplan: careplan, create_qa: true).update
 

@@ -44,7 +44,7 @@ module Health
 
     def update
       @form.assign_attributes(form_params)
-      Health::SsmSaver.new(ssm: @form, user: current_user, create_qa: true).update
+      Health::SsmSaver.new(ssm: @form, user: current_user, create_qa: false).update
       respond_with @form, location: polymorphic_path(careplans_path_generator)
     end
 
