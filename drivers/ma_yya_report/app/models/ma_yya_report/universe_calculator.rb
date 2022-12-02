@@ -160,12 +160,13 @@ module MaYyaReport
     private def disability?(enrollment, disability_type, disability_responses = [1])
       # Find most recent disability record associated with the enrollment for the appropriate type with a value
       # recorded before the end of the reporting period
-      disability = enrollment.disabilities.detect do |d|
+      disability = enrollment.disabilities.order(InformationDate: :desc).detect do |d|
         d.InformationDate < @filter.end_date &&
           d.DisabilityType == disability_type &&
           d.DisabilityResponse.in?([0, 1, 2, 3])
       end
-      disability.present? && disability.IndefiniteAndImpairs == 1 && disability.DisabilityResponse.in?(disability_responses)
+      impairing = [6] # developmental disability (4.06) does not require I&I
+      disability.present? && (disability.IndefiniteAndImpairs == 1 || disability_type.in?(impairing)) && disability.DisabilityResponse.in?(disability_responses)
     end
 
     private def household_ages(enrollment)
