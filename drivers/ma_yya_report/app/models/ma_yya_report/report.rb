@@ -35,7 +35,7 @@ module MaYyaReport
     private def create_universe
       previous_period_filter = filter.deep_dup
       previous_period_filter.end = filter.start - 1.day
-      previous_period_filter.start = previous_period_filter.start - 1.year
+      previous_period_filter.start = filter.start - 1.year
 
       previous_period_calculator = UniverseCalculator.new(previous_period_filter)
       previous_period_clients = []
@@ -92,8 +92,8 @@ module MaYyaReport
           and(a_t[:subsequent_current_living_situations].not_eq([])))
 
       {
-        A1a: a_t[:currently_homeless].eq(true),
-        A1b: a_t[:at_risk_of_homelessness].eq(true),
+        A1a: a_t[:referral_source].eq(7).and(a_t[:currently_homeless].eq(true)),
+        A1b: a_t[:referral_source].eq(7).and(a_t[:at_risk_of_homelessness].eq(true)),
 
         A2a: a_t[:initial_contact].eq(true).and(a_t[:currently_homeless].eq(true)),
         A2b: a_t[:initial_contact].eq(true).and(a_t[:at_risk_of_homelessness].eq(true)),
