@@ -58,6 +58,7 @@ class MigrateDashboardTranslations < ActiveRecord::Migration[6.1]
       old_key = m[:old]
       new_keys = m[:new]
       key = TranslationKey.find_by(key: old_key)
+      next unless key
 
       # find all translations for 'Search'
       key.translations.where.not(text: nil).each do |t|
