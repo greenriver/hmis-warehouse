@@ -1,23 +1,23 @@
 $brand-primary: #002664;
-$brand-primary-l: lighten($brand-primary, 10);
-$brand-primary-ll: lighten($brand-primary, 25);
+$brand-primary-l: #73B7D3;
+$brand-primary-ll: #BFE2FF;
 
 $brand-success: #00A3E0;
-$brand-success-l: lighten($brand-success, 10);
-$brand-success-ll: lighten($brand-success, 25);
+$brand-success-l: lighten($brand-success, 5);
+$brand-success-ll: lighten($brand-success, 10);
 
 $brand-warning: #fed700;
 $brand-warning-l: lighten($brand-warning, 10);
 
 $brand-danger: lighten($brand-danger-d, 5);
 $brand-danger-d: #bb133e;
-$brand-danger-l: lighten($brand-danger-d, 25);
+$brand-danger-l: lighten($brand-danger-d, 15);
 
 $cob-sg-freedom-trail-red: #bb133e;
 $cob-sg-charles-blue: $brand-primary;
 $cob-sg-optimistic-blue: #4AB7C4;
 
-$cob-sg-blue-002: darken($brand-primary, 10%);
+$cob-sg-blue-002: darken($brand-primary, 10);
 
 $footer-background: white;
 $footer-foreground: #222;
