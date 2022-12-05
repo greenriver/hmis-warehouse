@@ -61,7 +61,7 @@ type AssessmentDetail {
 }
 
 """
-HUD AssessmentLevel (4.19.4)
+4.19.4
 """
 enum AssessmentLevel {
   """
@@ -105,7 +105,7 @@ enum AssessmentSortOption {
 }
 
 """
-HUD AssessmentType (4.19.3)
+4.19.3
 """
 enum AssessmentType {
   """
@@ -135,7 +135,7 @@ type AssessmentsPaginated {
 }
 
 """
-HUD Availability (2.7.4)
+2.07.6
 """
 enum Availability {
   """
@@ -155,7 +155,7 @@ enum Availability {
 }
 
 """
-HUD Bed Type (2.7.3)
+2.07.5
 """
 enum BedType {
   """
@@ -186,13 +186,16 @@ type Client {
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
+  disabilities(limit: Int, offset: Int): DisabilitiesPaginated!
   dob: ISO8601Date
   dobDataQuality: DOBDataQuality!
   enrollments(limit: Int, offset: Int, sortOrder: EnrollmentSortOption): EnrollmentsPaginated!
   ethnicity: Ethnicity!
   firstName: String
   gender: [Gender!]!
+  healthAndDvs(limit: Int, offset: Int): HealthAndDvsPaginated!
   id: ID!
+  incomeBenefits(limit: Int, offset: Int): IncomeBenefitsPaginated!
   lastName: String
   middleName: String
   nameDataQuality: NameDataQuality!
@@ -203,7 +206,7 @@ type Client {
   race: [Race!]!
   ssn: String
   ssnDataQuality: SSNDataQuality!
-  veteranStatus: YesNoMissingReason!
+  veteranStatus: NoYesReasonsForMissingData!
 }
 
 """
@@ -223,7 +226,7 @@ input ClientInput {
   race: [Race!]
   ssn: String
   ssnDataQuality: SSNDataQuality
-  veteranStatus: YesNoMissingReason
+  veteranStatus: NoYesReasonsForMissingData
 }
 
 """
@@ -514,33 +517,33 @@ type CreateServicePayload {
 }
 
 """
-HUD DOB Data Quality (3.03.2)
+3.03.2
 """
 enum DOBDataQuality {
   """
   (2) Approximate or partial DOB reported
   """
-  DOB_APPROXIMATE_OR_PARTIAL_DOB_REPORTED
+  APPROXIMATE_OR_PARTIAL_DOB_REPORTED
 
   """
   (8) Client doesn't know
   """
-  DOB_CLIENT_DOESN_T_KNOW
+  CLIENT_DOESN_T_KNOW
 
   """
   (9) Client refused
   """
-  DOB_CLIENT_REFUSED
+  CLIENT_REFUSED
 
   """
   (99) Data not collected
   """
-  DOB_DATA_NOT_COLLECTED
+  DATA_NOT_COLLECTED
 
   """
   (1) Full DOB reported
   """
-  DOB_FULL_DOB_REPORTED
+  FULL_DOB_REPORTED
 }
 
 enum DataCollectedAbout {
@@ -554,7 +557,7 @@ enum DataCollectedAbout {
 }
 
 """
-HUD Data Collection Stage (5.03.1)
+5.03.1
 """
 enum DataCollectionStage {
   """
@@ -744,6 +747,106 @@ type DeleteServicePayload {
   service: Service
 }
 
+type DisabilitiesPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [Disability!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
+}
+
+type Disability {
+  client: Client!
+  dataCollectionStage: DataCollectionStage!
+  dateCreated: ISO8601DateTime!
+  dateDeleted: ISO8601DateTime
+  dateUpdated: ISO8601DateTime!
+  disabilityResponse: DisabilityResponse!
+  disabilityType: DisabilityType!
+  enrollment: Enrollment!
+  id: ID!
+  indefiniteAndImpairs: Int
+  informationDate: ISO8601Date!
+  user: User!
+}
+
+"""
+4.10.2
+"""
+enum DisabilityResponse {
+  """
+  (1) Alcohol use disorder
+  """
+  ALCOHOL_USE_DISORDER
+
+  """
+  (3) Both alcohol and drug use disorders
+  """
+  BOTH_ALCOHOL_AND_DRUG_USE_DISORDERS
+
+  """
+  (8) Client doesn't know
+  """
+  CLIENT_DOESN_T_KNOW
+
+  """
+  (9) Client refused
+  """
+  CLIENT_REFUSED
+
+  """
+  (99) Data not collected
+  """
+  DATA_NOT_COLLECTED
+
+  """
+  (2) Drug use disorder
+  """
+  DRUG_USE_DISORDER
+
+  """
+  (0) No
+  """
+  NO
+}
+
+"""
+1.3
+"""
+enum DisabilityType {
+  """
+  (7) Chronic health condition
+  """
+  CHRONIC_HEALTH_CONDITION
+
+  """
+  (6) Developmental disability
+  """
+  DEVELOPMENTAL_DISABILITY
+
+  """
+  (8) HIV/AIDS
+  """
+  HIV_AIDS
+
+  """
+  (9) Mental health disorder
+  """
+  MENTAL_HEALTH_DISORDER
+
+  """
+  (5) Physical disability
+  """
+  PHYSICAL_DISABILITY
+
+  """
+  (10) Substance use disorder
+  """
+  SUBSTANCE_USE_DISORDER
+}
+
 enum EnableBehavior {
   ALL
   ANY
@@ -818,13 +921,15 @@ type Enrollment {
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
-  entryDate: ISO8601Date
+  disablingCondition: NoYesReasonsForMissingData
+  entryDate: ISO8601Date!
   events(limit: Int, offset: Int, sortOrder: EventSortOption): EventsPaginated!
   exitDate: ISO8601Date
   household: Household!
   id: ID!
   inProgress: Boolean!
-  lengthOfStay: LengthOfStay
+  lengthOfStay: ResidencePriorLengthOfStay
+  livingSituation: LivingSituation
   monthsHomelessPastThreeYears: MonthsHomelessPastThreeYears
   project: Project!
   relationshipToHoH: RelationshipToHoH!
@@ -858,33 +963,33 @@ type EnrollmentsPaginated {
 }
 
 """
-HUD Ethnicity (3.05.1)
+3.05.1
 """
 enum Ethnicity {
   """
-  (1) Hispanic/Latin(a)(o)(x)
+  (8) Client doesn't know
   """
-  ETHNICITY_HISPANIC_LATIN_A_O_X_
-
-  """
-  (0) Non-Hispanic/Non-Latin(a)(o)(x)
-  """
-  ETHNICITY_NON_HISPANIC_NON_LATIN_A_O_X_
-
-  """
-  (99) Data not collected
-  """
-  ETHNICITY_NOT_COLLECTED
+  CLIENT_DOESN_T_KNOW
 
   """
   (9) Client refused
   """
-  ETHNICITY_REFUSED
+  CLIENT_REFUSED
 
   """
-  (8) Client doesn't know
+  (99) Data not collected
   """
-  ETHNICITY_UNKNOWN
+  DATA_NOT_COLLECTED
+
+  """
+  (1) Hispanic/Latin(a)(o)(x)
+  """
+  HISPANIC_LATIN_A_O_X
+
+  """
+  (0) Non-Hispanic/Non-Latin(a)(o)(x)
+  """
+  NON_HISPANIC_NON_LATIN_A_O_X
 }
 
 """
@@ -900,8 +1005,8 @@ type Event {
   eventDate: ISO8601DateTime!
   id: ID!
   locationCrisisOrPhHousing: String
-  probSolDivRrResult: ProbSolDivRRResult
-  referralCaseManageAfter: ReferralCaseManageAfter
+  probSolDivRrResult: NoYesMissing
+  referralCaseManageAfter: NoYesMissing
   referralResult: ReferralResult
   resultDate: ISO8601DateTime
   user: User!
@@ -915,7 +1020,7 @@ enum EventSortOption {
 }
 
 """
-HUD EventType (4.20.2)
+4.20.2
 """
 enum EventType {
   """
@@ -936,7 +1041,7 @@ enum EventType {
   """
   (17) Referral to Emergency Housing Voucher (EHV)
   """
-  REFERRAL_TO_EMERGENCY_HOUSING_VOUCHER_EHV_
+  REFERRAL_TO_EMERGENCY_HOUSING_VOUCHER_EHV
 
   """
   (10) Referral to Emergency Shelter bed opening
@@ -1017,6 +1122,51 @@ type EventsPaginated {
   nodesCount: Int!
   offset: Int!
   pagesCount: Int!
+}
+
+"""
+C1.2
+"""
+enum FeelingFrequency {
+  """
+  (4) At least every day
+  """
+  AT_LEAST_EVERY_DAY
+
+  """
+  (8) Client doesn't know
+  """
+  CLIENT_DOESN_T_KNOW
+
+  """
+  (9) Client refused
+  """
+  CLIENT_REFUSED
+
+  """
+  (99) Data not collected
+  """
+  DATA_NOT_COLLECTED
+
+  """
+  (0) Not at all
+  """
+  NOT_AT_ALL
+
+  """
+  (1) Once a month
+  """
+  ONCE_A_MONTH
+
+  """
+  (2) Several times a month
+  """
+  SEVERAL_TIMES_A_MONTH
+
+  """
+  (3) Several times a week
+  """
+  SEVERAL_TIMES_A_WEEK
 }
 
 """
@@ -1180,7 +1330,7 @@ type FundersPaginated {
 }
 
 """
-HUD Funding Source (2.06.1)
+2.06.1
 """
 enum FundingSource {
   """
@@ -1191,7 +1341,7 @@ enum FundingSource {
   """
   (22) HHS: RHY - Basic Center Program (prevention and shelter)
   """
-  HHS_RHY_BASIC_CENTER_PROGRAM_PREVENTION_AND_SHELTER_
+  HHS_RHY_BASIC_CENTER_PROGRAM_PREVENTION_AND_SHELTER
 
   """
   (26) HHS: RHY - Demonstration Project
@@ -1216,12 +1366,12 @@ enum FundingSource {
   """
   (1) HUD: CoC - Homelessness Prevention (High Performing Communities Only)
   """
-  HUD_COC_HOMELESSNESS_PREVENTION_HIGH_PERFORMING_COMMUNITIES_ONLY_
+  HUD_COC_HOMELESSNESS_PREVENTION_HIGH_PERFORMING_COMMUNITIES_ONLY
 
   """
-  (49) HUD: CoC - Joint Component RRH/PSH 
+  (49) HUD: CoC - Joint Component RRH/PSH
   """
-  HUD_COC_JOINT_COMPONENT_RRH_PSH_
+  HUD_COC_JOINT_COMPONENT_RRH_PSH
 
   """
   (44) HUD: CoC - Joint Component TH/RRH
@@ -1246,7 +1396,7 @@ enum FundingSource {
   """
   (7) HUD: CoC - Single Room Occupancy (SRO)
   """
-  HUD_COC_SINGLE_ROOM_OCCUPANCY_SRO_
+  HUD_COC_SINGLE_ROOM_OCCUPANCY_SRO
 
   """
   (4) HUD: CoC - Supportive Services Only
@@ -1261,7 +1411,7 @@ enum FundingSource {
   """
   (43) HUD: CoC - Youth Homeless Demonstration Program (YHDP)
   """
-  HUD_COC_YOUTH_HOMELESS_DEMONSTRATION_PROGRAM_YHDP_
+  HUD_COC_YOUTH_HOMELESS_DEMONSTRATION_PROGRAM_YHDP
 
   """
   (47) HUD: ESG - CV
@@ -1271,12 +1421,12 @@ enum FundingSource {
   """
   (8) HUD: ESG - Emergency Shelter (operating and/or essential services)
   """
-  HUD_ESG_EMERGENCY_SHELTER_OPERATING_AND_OR_ESSENTIAL_SERVICES_
+  HUD_ESG_EMERGENCY_SHELTER_OPERATING_AND_OR_ESSENTIAL_SERVICES
 
   """
-  (9) HUD: ESG - Homelessness Prevention 
+  (9) HUD: ESG - Homelessness Prevention
   """
-  HUD_ESG_HOMELESSNESS_PREVENTION_
+  HUD_ESG_HOMELESSNESS_PREVENTION
 
   """
   (10) HUD: ESG - Rapid Rehousing
@@ -1301,7 +1451,7 @@ enum FundingSource {
   """
   (51) HUD: HOME (ARP)
   """
-  HUD_HOME_ARP_
+  HUD_HOME_ARP
 
   """
   (48) HUD: HOPWA - CV
@@ -1321,7 +1471,7 @@ enum FundingSource {
   """
   (15) HUD: HOPWA - Permanent Housing (facility based or TBRA)
   """
-  HUD_HOPWA_PERMANENT_HOUSING_FACILITY_BASED_OR_TBRA_
+  HUD_HOPWA_PERMANENT_HOUSING_FACILITY_BASED_OR_TBRA
 
   """
   (16) HUD: HOPWA - Permanent Housing Placement
@@ -1341,7 +1491,7 @@ enum FundingSource {
   """
   (19) HUD: HOPWA - Transitional Housing (facility based or TBRA)
   """
-  HUD_HOPWA_TRANSITIONAL_HOUSING_FACILITY_BASED_OR_TBRA_
+  HUD_HOPWA_TRANSITIONAL_HOUSING_FACILITY_BASED_OR_TBRA
 
   """
   (20) HUD: HUD/VASH
@@ -1356,7 +1506,7 @@ enum FundingSource {
   """
   (52) HUD: PIH (Emergency Housing Voucher)
   """
-  HUD_PIH_EMERGENCY_HOUSING_VOUCHER_
+  HUD_PIH_EMERGENCY_HOUSING_VOUCHER
 
   """
   (36) HUD: Public and Indian Housing (PIH) Programs
@@ -1364,9 +1514,9 @@ enum FundingSource {
   HUD_PUBLIC_AND_INDIAN_HOUSING_PIH_PROGRAMS
 
   """
-  (12) HUD: Rural Housing Stability Assistance Program 
+  (12) HUD: Rural Housing Stability Assistance Program
   """
-  HUD_RURAL_HOUSING_STABILITY_ASSISTANCE_PROGRAM_
+  HUD_RURAL_HOUSING_STABILITY_ASSISTANCE_PROGRAM
 
   """
   (46) Local or Other Funding Source
@@ -1480,7 +1630,7 @@ enum Gender {
 }
 
 """
-HUD Geography Type (2.8.7)
+2.03.4
 """
 enum GeographyType {
   """
@@ -1505,7 +1655,7 @@ enum GeographyType {
 }
 
 """
-HUD HOPWAMedAssistedLivingFac (2.02.9)
+2.02.9
 """
 enum HOPWAMedAssistedLivingFac {
   """
@@ -1522,6 +1672,84 @@ enum HOPWAMedAssistedLivingFac {
   (1) Yes
   """
   YES
+}
+
+type HealthAndDv {
+  bounceBack: WellbeingAgreement
+  client: Client!
+  currentlyFleeing: NoYesReasonsForMissingData
+  dataCollectionStage: DataCollectionStage!
+  dateCreated: ISO8601DateTime!
+  dateDeleted: ISO8601DateTime
+  dateUpdated: ISO8601DateTime!
+  dentalHealthStatus: HealthStatus
+  dueDate: ISO8601Date
+  enrollment: Enrollment!
+  feelingFrequency: FeelingFrequency
+  generalHealthStatus: HealthStatus
+  id: ID!
+  informationDate: ISO8601Date!
+  lifeValue: WellbeingAgreement
+  mentalHealthStatus: HealthStatus
+  pregnancyStatus: NoYesReasonsForMissingData
+  supportFromOthers: WellbeingAgreement
+  user: User!
+  whenOccurred: WhenDVOccurred
+}
+
+type HealthAndDvsPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [HealthAndDv!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
+}
+
+"""
+R7.1
+"""
+enum HealthStatus {
+  """
+  (8) Client doesn't know
+  """
+  CLIENT_DOESN_T_KNOW
+
+  """
+  (9) Client refused
+  """
+  CLIENT_REFUSED
+
+  """
+  (99) Data not collected
+  """
+  DATA_NOT_COLLECTED
+
+  """
+  (1) Excellent
+  """
+  EXCELLENT
+
+  """
+  (4) Fair
+  """
+  FAIR
+
+  """
+  (3) Good
+  """
+  GOOD
+
+  """
+  (5) Poor
+  """
+  POOR
+
+  """
+  (2) Very good
+  """
+  VERY_GOOD
 }
 
 """
@@ -1543,7 +1771,7 @@ type HouseholdClient {
 }
 
 """
-HUD Household Type (2.7.2)
+2.07.4
 """
 enum HouseholdType {
   """
@@ -1563,7 +1791,7 @@ enum HouseholdType {
 }
 
 """
-HUD HousingType (2.02.D)
+2.02.D
 """
 enum HousingType {
   """
@@ -1591,6 +1819,45 @@ scalar ISO8601Date
 An ISO 8601-encoded datetime
 """
 scalar ISO8601DateTime
+
+type IncomeBenefit {
+  alimonyAmount: Float
+  childSupportAmount: Float
+  client: Client!
+  dataCollectionStage: DataCollectionStage!
+  dateCreated: ISO8601DateTime!
+  dateDeleted: ISO8601DateTime
+  dateUpdated: ISO8601DateTime!
+  earnedAmount: Float
+  enrollment: Enrollment!
+  gaAmount: Float
+  id: ID!
+  informationDate: ISO8601Date!
+  otherIncomeAmount: Float
+  otherIncomeSourceIdentify: String
+  pensionAmount: Float
+  privateDisabilityAmount: Float
+  socSecRetirementAmount: Float
+  ssdiAmount: Float
+  ssiAmount: Float
+  tanfAmount: Float
+  totalMonthlyIncome: String
+  unemploymentAmount: Float
+  user: User!
+  vaDisabilityNonServiceAmount: Float
+  vaDisabilityServiceAmount: Float
+  workersCompAmount: Float
+}
+
+type IncomeBenefitsPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [IncomeBenefit!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
+}
 
 """
 Initial value when item is first rendered
@@ -1691,138 +1958,284 @@ Arbitrary JSON Type
 scalar JsonObject
 
 """
-HUD Length of Stay in Prior living situation (3.917.2)
+3.12.1
 """
-enum LengthOfStay {
-  """
-  (4) 90 days or more but less than one year
-  """
-  LOS_90_DAYS_OR_MORE_BUT_LESS_THAN_ONE_YEAR
-
+enum LivingSituation {
   """
   (8) Client doesn't know
   """
-  LOS_CLIENT_DOESN_T_KNOW
+  CLIENT_DOESN_T_KNOW
 
   """
   (9) Client refused
   """
-  LOS_CLIENT_REFUSED
+  CLIENT_REFUSED
 
   """
   (99) Data not collected
   """
-  LOS_DATA_NOT_COLLECTED
+  DATA_NOT_COLLECTED
 
   """
-  (3) One month or more, but less than 90 days
+  (24) Deceased
   """
-  LOS_ONE_MONTH_OR_MORE_BUT_LESS_THAN_90_DAYS
+  DECEASED
 
   """
-  (10) One night or less
+  (1) Emergency shelter, including hotel or motel paid for with emergency shelter voucher, or RHY-funded Host Home shelter
   """
-  LOS_ONE_NIGHT_OR_LESS
+  EMERGENCY_SHELTER_INCLUDING_HOTEL_OR_MOTEL_PAID_FOR_WITH_EMERGENCY_SHELTER_VOUCHER_OR_RHY_FUNDED_HOST_HOME_SHELTER
 
   """
-  (2) One week or more, but less than one month
+  (15) Foster care home or foster care group home
   """
-  LOS_ONE_WEEK_OR_MORE_BUT_LESS_THAN_ONE_MONTH
+  FOSTER_CARE_HOME_OR_FOSTER_CARE_GROUP_HOME
 
   """
-  (5) One year or longer
+  (6) Hospital or other residential non-psychiatric medical facility
   """
-  LOS_ONE_YEAR_OR_LONGER
+  HOSPITAL_OR_OTHER_RESIDENTIAL_NON_PSYCHIATRIC_MEDICAL_FACILITY
 
   """
-  (11) Two to six nights
+  (32) Host Home (non-crisis)
   """
-  LOS_TWO_TO_SIX_NIGHTS
+  HOST_HOME_NON_CRISIS
+
+  """
+  (14) Hotel or motel paid for without emergency shelter voucher
+  """
+  HOTEL_OR_MOTEL_PAID_FOR_WITHOUT_EMERGENCY_SHELTER_VOUCHER
+
+  """
+  (27) Interim Housing
+  """
+  INTERIM_HOUSING
+
+  """
+  (7) Jail, prison or juvenile detention facility
+  """
+  JAIL_PRISON_OR_JUVENILE_DETENTION_FACILITY
+
+  """
+  (25) Long-term care facility or nursing home
+  """
+  LONG_TERM_CARE_FACILITY_OR_NURSING_HOME
+
+  """
+  (26) Moved from one HOPWA funded project to HOPWA PH
+  """
+  MOVED_FROM_ONE_HOPWA_FUNDED_PROJECT_TO_HOPWA_PH
+
+  """
+  (30) No exit interview completed
+  """
+  NO_EXIT_INTERVIEW_COMPLETED
+
+  """
+  (17) Other
+  """
+  OTHER
+
+  """
+  (11) Owned by client, no ongoing housing subsidy
+  """
+  OWNED_BY_CLIENT_NO_ONGOING_HOUSING_SUBSIDY
+
+  """
+  (21) Owned by client, with ongoing housing subsidy
+  """
+  OWNED_BY_CLIENT_WITH_ONGOING_HOUSING_SUBSIDY
+
+  """
+  (3) Permanent housing (other than RRH) for formerly homeless persons
+  """
+  PERMANENT_HOUSING_OTHER_THAN_RRH_FOR_FORMERLY_HOMELESS_PERSONS
+
+  """
+  (16) Place not meant for habitation (e.g., a vehicle, an abandoned building,
+  bus/train/subway station/airport or anywhere outside)
+  """
+  PLACE_NOT_MEANT_FOR_HABITATION_E_G_A_VEHICLE_AN_ABANDONED_BUILDING_BUS_TRAIN_SUBWAY_STATION_AIRPORT_OR_ANYWHERE_OUTSIDE
+
+  """
+  (4) Psychiatric hospital or other psychiatric facility
+  """
+  PSYCHIATRIC_HOSPITAL_OR_OTHER_PSYCHIATRIC_FACILITY
+
+  """
+  (34) Rental by client in a public housing unit
+  """
+  RENTAL_BY_CLIENT_IN_A_PUBLIC_HOUSING_UNIT
+
+  """
+  (10) Rental by client, no ongoing housing subsidy
+  """
+  RENTAL_BY_CLIENT_NO_ONGOING_HOUSING_SUBSIDY
+
+  """
+  (28) Rental by client, with GPD TIP housing subsidy
+  """
+  RENTAL_BY_CLIENT_WITH_GPD_TIP_HOUSING_SUBSIDY
+
+  """
+  (33) Rental by client, with HCV voucher (tenant or project based)
+  """
+  RENTAL_BY_CLIENT_WITH_HCV_VOUCHER_TENANT_OR_PROJECT_BASED
+
+  """
+  (20) Rental by client, with other ongoing housing subsidy
+  """
+  RENTAL_BY_CLIENT_WITH_OTHER_ONGOING_HOUSING_SUBSIDY
+
+  """
+  (31) Rental by client, with RRH or equivalent subsidy
+  """
+  RENTAL_BY_CLIENT_WITH_RRH_OR_EQUIVALENT_SUBSIDY
+
+  """
+  (19) Rental by client, with VASH housing subsidy
+  """
+  RENTAL_BY_CLIENT_WITH_VASH_HOUSING_SUBSIDY
+
+  """
+  (29) Residential project or halfway house with no homeless criteria
+  """
+  RESIDENTIAL_PROJECT_OR_HALFWAY_HOUSE_WITH_NO_HOMELESS_CRITERIA
+
+  """
+  (18) Safe Haven
+  """
+  SAFE_HAVEN
+
+  """
+  (35) Staying or living in a family member's room, apartment or house
+  """
+  STAYING_OR_LIVING_IN_A_FAMILY_MEMBER_S_ROOM_APARTMENT_OR_HOUSE
+
+  """
+  (36) Staying or living in a friend's room, apartment or house
+  """
+  STAYING_OR_LIVING_IN_A_FRIEND_S_ROOM_APARTMENT_OR_HOUSE
+
+  """
+  (22) Staying or living with family, permanent tenure
+  """
+  STAYING_OR_LIVING_WITH_FAMILY_PERMANENT_TENURE
+
+  """
+  (12) Staying or living with family, temporary tenure (e.g. room, apartment or house)
+  """
+  STAYING_OR_LIVING_WITH_FAMILY_TEMPORARY_TENURE_E_G_ROOM_APARTMENT_OR_HOUSE
+
+  """
+  (23) Staying or living with friends, permanent tenure
+  """
+  STAYING_OR_LIVING_WITH_FRIENDS_PERMANENT_TENURE
+
+  """
+  (13) Staying or living with friends, temporary tenure (e.g. room apartment or house)
+  """
+  STAYING_OR_LIVING_WITH_FRIENDS_TEMPORARY_TENURE_E_G_ROOM_APARTMENT_OR_HOUSE
+
+  """
+  (5) Substance abuse treatment facility or detox center
+  """
+  SUBSTANCE_ABUSE_TREATMENT_FACILITY_OR_DETOX_CENTER
+
+  """
+  (2) Transitional housing for homeless persons (including homeless youth)
+  """
+  TRANSITIONAL_HOUSING_FOR_HOMELESS_PERSONS_INCLUDING_HOMELESS_YOUTH
+
+  """
+  (37) Worker unable to determine
+  """
+  WORKER_UNABLE_TO_DETERMINE
 }
 
 """
-HUD MonthsHomelessPastThreeYears (3.917.5)
+3.917.5
 """
 enum MonthsHomelessPastThreeYears {
   """
-  (101) 1
-  """
-  MONTHS_1
-
-  """
-  (110) 10
-  """
-  MONTHS_10
-
-  """
-  (111) 11
-  """
-  MONTHS_11
-
-  """
-  (112) 12
-  """
-  MONTHS_12
-
-  """
-  (102) 2
-  """
-  MONTHS_2
-
-  """
-  (103) 3
-  """
-  MONTHS_3
-
-  """
-  (104) 4
-  """
-  MONTHS_4
-
-  """
-  (105) 5
-  """
-  MONTHS_5
-
-  """
-  (106) 6
-  """
-  MONTHS_6
-
-  """
-  (107) 7
-  """
-  MONTHS_7
-
-  """
-  (108) 8
-  """
-  MONTHS_8
-
-  """
-  (109) 9
-  """
-  MONTHS_9
-
-  """
   (8) Client doesn't know
   """
-  MONTHS_CLIENT_DOESN_T_KNOW
+  CLIENT_DOESN_T_KNOW
 
   """
   (9) Client refused
   """
-  MONTHS_CLIENT_REFUSED
+  CLIENT_REFUSED
 
   """
   (99) Data not collected
   """
-  MONTHS_DATA_NOT_COLLECTED
+  DATA_NOT_COLLECTED
 
   """
   (113) More than 12 months
   """
-  MONTHS_MORE_THAN_12_MONTHS
+  MORE_THAN_12_MONTHS
+
+  """
+  (101) 1
+  """
+  NUM_1
+
+  """
+  (110) 10
+  """
+  NUM_10
+
+  """
+  (111) 11
+  """
+  NUM_11
+
+  """
+  (112) 12
+  """
+  NUM_12
+
+  """
+  (102) 2
+  """
+  NUM_2
+
+  """
+  (103) 3
+  """
+  NUM_3
+
+  """
+  (104) 4
+  """
+  NUM_4
+
+  """
+  (105) 5
+  """
+  NUM_5
+
+  """
+  (106) 6
+  """
+  NUM_6
+
+  """
+  (107) 7
+  """
+  NUM_7
+
+  """
+  (108) 8
+  """
+  NUM_8
+
+  """
+  (109) 9
+  """
+  NUM_9
 }
 
 type Mutation {
@@ -1991,33 +2404,83 @@ type Mutation {
 }
 
 """
-HUD NameDataQuality (3.01.5)
+3.01.5
 """
 enum NameDataQuality {
   """
   (8) Client doesn't know
   """
-  NAME_CLIENT_DOESN_T_KNOW
+  CLIENT_DOESN_T_KNOW
 
   """
   (9) Client refused
   """
-  NAME_CLIENT_REFUSED
+  CLIENT_REFUSED
 
   """
   (99) Data not collected
   """
-  NAME_DATA_NOT_COLLECTED
+  DATA_NOT_COLLECTED
 
   """
   (1) Full name reported
   """
-  NAME_FULL_NAME_REPORTED
+  FULL_NAME_REPORTED
 
   """
   (2) Partial, street name, or code name reported
   """
-  NAME_PARTIAL_STREET_NAME_OR_CODE_NAME_REPORTED
+  PARTIAL_STREET_NAME_OR_CODE_NAME_REPORTED
+}
+
+"""
+1.7
+"""
+enum NoYesMissing {
+  """
+  (99) Data not collected
+  """
+  DATA_NOT_COLLECTED
+
+  """
+  (0) No
+  """
+  NO
+
+  """
+  (1) Yes
+  """
+  YES
+}
+
+"""
+1.8
+"""
+enum NoYesReasonsForMissingData {
+  """
+  (8) Client doesn't know
+  """
+  CLIENT_DOESN_T_KNOW
+
+  """
+  (9) Client refused
+  """
+  CLIENT_REFUSED
+
+  """
+  (99) Data not collected
+  """
+  DATA_NOT_COLLECTED
+
+  """
+  (0) No
+  """
+  NO
+
+  """
+  (1) Yes
+  """
+  YES
 }
 
 """
@@ -2063,7 +2526,7 @@ type OrganizationsPaginated {
 }
 
 """
-HUD PATHReferralOutcome (P2.A)
+P2.A
 """
 enum PATHReferralOutcome {
   """
@@ -2125,7 +2588,7 @@ enum PickListType {
 }
 
 """
-HUD PrioritizationStatus (4.19.7)
+4.19.7
 """
 enum PrioritizationStatus {
   """
@@ -2137,26 +2600,6 @@ enum PrioritizationStatus {
   (1) Placed on prioritization list
   """
   PLACED_ON_PRIORITIZATION_LIST
-}
-
-"""
-HUD ProbSolDivRRResult (1.7)
-"""
-enum ProbSolDivRRResult {
-  """
-  (99) Data not collected
-  """
-  DATA_NOT_COLLECTED
-
-  """
-  (0) No
-  """
-  NO
-
-  """
-  (1) Yes
-  """
-  YES
 }
 
 type Project {
@@ -2453,7 +2896,7 @@ enum Race {
 }
 
 """
-HUD RecordType (1.4)
+1.4
 """
 enum RecordType {
   """
@@ -2465,6 +2908,16 @@ enum RecordType {
   (300) C2 Moving On Assistance Provided
   """
   C2_MOVING_ON_ASSISTANCE_PROVIDED
+
+  """
+  (12) Contact 12
+  """
+  CONTACT_12
+
+  """
+  (13) Contact 13
+  """
+  CONTACT_13
 
   """
   (151) HOPWA financial assistance
@@ -2513,27 +2966,7 @@ enum RecordType {
 }
 
 """
-HUD ReferralCaseManageAfter (1.7)
-"""
-enum ReferralCaseManageAfter {
-  """
-  (99) Data not collected
-  """
-  DATA_NOT_COLLECTED
-
-  """
-  (0) No
-  """
-  NO
-
-  """
-  (1) Yes
-  """
-  YES
-}
-
-"""
-HUD ReferralResult (4.20.D)
+4.20.D
 """
 enum ReferralResult {
   """
@@ -2553,7 +2986,7 @@ enum ReferralResult {
 }
 
 """
-HUD RelationshipToHoH (3.15.1)
+3.15.1
 """
 enum RelationshipToHoH {
   """
@@ -2574,7 +3007,7 @@ enum RelationshipToHoH {
   """
   (1) Self (head of household)
   """
-  SELF_HEAD_OF_HOUSEHOLD_
+  SELF_HEAD_OF_HOUSEHOLD
 
   """
   (3) Spouse or partner
@@ -2588,33 +3021,83 @@ enum RelationshipToHoH {
 }
 
 """
-HUD SSN Data Quality (3.02.2)
+3.917.2
+"""
+enum ResidencePriorLengthOfStay {
+  """
+  (8) Client doesn't know
+  """
+  CLIENT_DOESN_T_KNOW
+
+  """
+  (9) Client refused
+  """
+  CLIENT_REFUSED
+
+  """
+  (99) Data not collected
+  """
+  DATA_NOT_COLLECTED
+
+  """
+  (4) 90 days or more but less than one year
+  """
+  NUM_90_DAYS_OR_MORE_BUT_LESS_THAN_ONE_YEAR
+
+  """
+  (3) One month or more, but less than 90 days
+  """
+  ONE_MONTH_OR_MORE_BUT_LESS_THAN_90_DAYS
+
+  """
+  (10) One night or less
+  """
+  ONE_NIGHT_OR_LESS
+
+  """
+  (2) One week or more, but less than one month
+  """
+  ONE_WEEK_OR_MORE_BUT_LESS_THAN_ONE_MONTH
+
+  """
+  (5) One year or longer
+  """
+  ONE_YEAR_OR_LONGER
+
+  """
+  (11) Two to six nights
+  """
+  TWO_TO_SIX_NIGHTS
+}
+
+"""
+3.02.2
 """
 enum SSNDataQuality {
   """
   (2) Approximate or partial SSN reported
   """
-  SSN_APPROXIMATE_OR_PARTIAL_SSN_REPORTED
+  APPROXIMATE_OR_PARTIAL_SSN_REPORTED
 
   """
   (8) Client doesn't know
   """
-  SSN_CLIENT_DOESN_T_KNOW
+  CLIENT_DOESN_T_KNOW
 
   """
   (9) Client refused
   """
-  SSN_CLIENT_REFUSED
+  CLIENT_REFUSED
 
   """
   (99) Data not collected
   """
-  SSN_DATA_NOT_COLLECTED
+  DATA_NOT_COLLECTED
 
   """
   (1) Full SSN reported
   """
-  SSN_FULL_SSN_REPORTED
+  FULL_SSN_REPORTED
 }
 
 """
@@ -2849,7 +3332,7 @@ enum ServiceTypeProvided {
   """
   (2) Financial assistance for Moving On (e.g., security deposit, moving expenses)
   """
-  C2_MOVING_ON_ASSISTANCE_PROVIDED__FINANCIAL_ASSISTANCE_FOR_MOVING_ON_E_G_SECURITY_DEPOSIT_MOVING_EXPENSES_
+  C2_MOVING_ON_ASSISTANCE_PROVIDED__FINANCIAL_ASSISTANCE_FOR_MOVING_ON_E_G_SECURITY_DEPOSIT_MOVING_EXPENSES
 
   """
   (4) Housing referral/placement
@@ -2859,12 +3342,12 @@ enum ServiceTypeProvided {
   """
   (3) Non-financial assistance for Moving On (e.g., housing navigation, transition support)
   """
-  C2_MOVING_ON_ASSISTANCE_PROVIDED__NON_FINANCIAL_ASSISTANCE_FOR_MOVING_ON_E_G_HOUSING_NAVIGATION_TRANSITION_SUPPORT_
+  C2_MOVING_ON_ASSISTANCE_PROVIDED__NON_FINANCIAL_ASSISTANCE_FOR_MOVING_ON_E_G_HOUSING_NAVIGATION_TRANSITION_SUPPORT
 
   """
   (5) Other (please specify)
   """
-  C2_MOVING_ON_ASSISTANCE_PROVIDED__OTHER_PLEASE_SPECIFY_
+  C2_MOVING_ON_ASSISTANCE_PROVIDED__OTHER_PLEASE_SPECIFY
 
   """
   (1) Subsidized housing application assistance
@@ -3149,7 +3632,7 @@ enum ServiceTypeProvided {
   """
   (2) Community service/service learning (CSL)
   """
-  RHY_SERVICE_CONNECTIONS__COMMUNITY_SERVICE_SERVICE_LEARNING_CSL_
+  RHY_SERVICE_CONNECTIONS__COMMUNITY_SERVICE_SERVICE_LEARNING_CSL
 
   """
   (7) Criminal justice /legal services
@@ -3194,7 +3677,7 @@ enum ServiceTypeProvided {
   """
   (27) Post-natal newborn care (wellness exams; immunizations)
   """
-  RHY_SERVICE_CONNECTIONS__POST_NATAL_NEWBORN_CARE_WELLNESS_EXAMS_IMMUNIZATIONS_
+  RHY_SERVICE_CONNECTIONS__POST_NATAL_NEWBORN_CARE_WELLNESS_EXAMS_IMMUNIZATIONS
 
   """
   (13) Pre-natal care
@@ -3353,7 +3836,7 @@ type SetHoHForEnrollmentPayload {
 }
 
 """
-HUD TargetPopulation (2.02.8)
+2.02.8
 """
 enum TargetPopulation {
   """
@@ -3373,47 +3856,47 @@ enum TargetPopulation {
 }
 
 """
-HUD TimesHomelessPastThreeYears (3.917.4)
+3.917.4
 """
 enum TimesHomelessPastThreeYears {
   """
   (8) Client doesn't know
   """
-  TIMES_CLIENT_DOESN_T_KNOW
+  CLIENT_DOESN_T_KNOW
 
   """
   (9) Client refused
   """
-  TIMES_CLIENT_REFUSED
+  CLIENT_REFUSED
 
   """
   (99) Data not collected
   """
-  TIMES_DATA_NOT_COLLECTED
+  DATA_NOT_COLLECTED
 
   """
   (4) Four or more times
   """
-  TIMES_FOUR_OR_MORE_TIMES
+  FOUR_OR_MORE_TIMES
 
   """
   (1) One time
   """
-  TIMES_ONE_TIME
+  ONE_TIME
 
   """
   (3) Three times
   """
-  TIMES_THREE_TIMES
+  THREE_TIMES
 
   """
   (2) Two times
   """
-  TIMES_TWO_TIMES
+  TWO_TIMES
 }
 
 """
-HUD TrackingMethod (2.02.C)
+2.02.C
 """
 enum TrackingMethod {
   """
@@ -3659,9 +4142,9 @@ type ValueBound {
 }
 
 """
-HUD No/Yes/Reasons for Missing Data (1.8)
+C1.1
 """
-enum YesNoMissingReason {
+enum WellbeingAgreement {
   """
   (8) Client doesn't know
   """
@@ -3678,12 +4161,67 @@ enum YesNoMissingReason {
   DATA_NOT_COLLECTED
 
   """
-  (0) No
+  (2) Neither agree nor disagree
   """
-  NO
+  NEITHER_AGREE_NOR_DISAGREE
 
   """
-  (1) Yes
+  (3) Somewhat agree
   """
-  YES
+  SOMEWHAT_AGREE
+
+  """
+  (1) Somewhat disagree
+  """
+  SOMEWHAT_DISAGREE
+
+  """
+  (4) Strongly agree
+  """
+  STRONGLY_AGREE
+
+  """
+  (0) Strongly disagree
+  """
+  STRONGLY_DISAGREE
+}
+
+"""
+4.11.A
+"""
+enum WhenDVOccurred {
+  """
+  (8) Client doesn't know
+  """
+  CLIENT_DOESN_T_KNOW
+
+  """
+  (9) Client refused
+  """
+  CLIENT_REFUSED
+
+  """
+  (99) Data not collected
+  """
+  DATA_NOT_COLLECTED
+
+  """
+  (4) One year or more
+  """
+  ONE_YEAR_OR_MORE
+
+  """
+  (3) Six months to one year ago (excluding one year exactly)
+  """
+  SIX_MONTHS_TO_ONE_YEAR_AGO_EXCLUDING_ONE_YEAR_EXACTLY
+
+  """
+  (2) Three to six months ago (excluding six months exactly)
+  """
+  THREE_TO_SIX_MONTHS_AGO_EXCLUDING_SIX_MONTHS_EXACTLY
+
+  """
+  (1) Within the past three months
+  """
+  WITHIN_THE_PAST_THREE_MONTHS
 }

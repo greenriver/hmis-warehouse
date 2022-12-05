@@ -1,8 +1,8 @@
 namespace :code do
   desc 'Ensure the copyright is included in all ruby files'
-  task :maintain_copyright, [:environment, 'log:info_to_stdout'] do
+  task :maintain_copyright, [] => [:environment, 'log:info_to_stdout'] do
     puts 'Adding license text in all .rb files that don\'t already have it'
-    puts current_text
+    puts ::Code.copywright_header
     @modified = 0
     files.each do |path|
       add_copyright_to_file(path)
@@ -11,15 +11,47 @@ namespace :code do
     puts "Modified #{@modified} #{'record'.pluralize(@modified)}"
   end
 
-  def current_text
-    <<~COPYRIGHT
-      ###
-      # Copyright 2016 - 2022 Green River Data Analysis, LLC
-      #
-      # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
-      ###
+  desc 'Generate HUD list mapping module'
+  task generate_hud_lists: [:environment, 'log:info_to_stdout'] do
+    source = File.read('lib/data/hud_lists.json')
+    all_lists = JSON.parse(source).sort_by { |hash| hash['code'] }
+    skipped = []
+    filename = 'lib/util/hud_lists.rb'
 
-    COPYRIGHT
+    map_lookup = {}
+    arr = []
+    arr.push ::Code.copywright_header
+    arr.push "# frozen_string_literal: true\n"
+    arr.push "# THIS FILE IS GENERATED, DO NOT EDIT DIRECTLY\n"
+    arr.push 'module HudLists'
+    arr.push '  module_function'
+    all_lists.each do |element|
+      next if skipped.include?(element['code'].to_s)
+
+      function_name = "#{element['name'].underscore}_map"
+      map_lookup[element['code']] = function_name
+
+      map_values = element['values'].map do |obj|
+        description = obj['description'].strip
+        "#{obj['key'].to_json} => \"#{description}\""
+      end.join(",\n")
+
+      arr.push "# #{element['code']}"
+      arr.push "def #{function_name}"
+      arr.push "  {\n#{map_values}\n}.freeze"
+      arr.push 'end'
+    end
+
+    map_contents = map_lookup.sort.to_h.map { |code, func| "#{code.to_json}: :#{func}" }.join(",\n")
+    arr.push 'def hud_code_to_function_map'
+    arr.push "  {\n#{map_contents}\n}.freeze"
+    arr.push 'end'
+    arr.push 'end'
+    contents = arr.join("\n")
+    File.open(filename, 'w') do |f|
+      f.write(contents)
+    end
+    exec("bundle exec rubocop -A --format simple #{filename}")
   end
 
   def files
@@ -30,13 +62,13 @@ namespace :code do
     puts ">>> Prepending copyright to #{path}"
     @modified += 1
     lines = File.open(path).readlines
-    if lines.slice(0, current_text.lines.count).join == current_text
+    if lines.slice(0, ::Code.copywright_header.lines.count).join == ::Code.copywright_header
       puts 'Found existing copyright, ignoring'
       @modified -= 1
     else
       tempfile = Tempfile.new('with_copyright')
       line = ''
-      tempfile.write(current_text)
+      tempfile.write(::Code.copywright_header)
       tempfile.write(line)
       tempfile.write(lines.join)
       tempfile.flush

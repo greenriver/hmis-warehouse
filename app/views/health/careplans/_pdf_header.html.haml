@@ -1,4 +1,4 @@
-- title = "Person-Centered Treatment Plan for #{@patient.name}"
+- title = "Person-Centered Treatment Plan"
 
 !!!
 %html
@@ -14,16 +14,18 @@
       overflow: hidden;
     }
     .l-print__header {
-      padding-top: 20px;
-      padding-bottom: 10px;
-    }
-    .l-print__header h1 {
-      font-size: 16px;
+      font-size: 12px;
       font-family: sans-serif;
-      margin-bottom: 0;
+      margin-top: 10px;
+      margin-bottom: 0px;
       color: #091F2F;
+    }
+    .l-print__header__title {
+      font-weight: 700;
+      margin-bottom: 4px;
     }
 
   %body
     .l-print__header
-      %h1= title
+      .l-print__header__title= title
+      = @patient.name

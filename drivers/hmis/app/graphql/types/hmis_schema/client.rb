@@ -9,6 +9,9 @@
 module Types
   class HmisSchema::Client < Types::BaseObject
     include Types::HmisSchema::HasEnrollments
+    include Types::HmisSchema::HasIncomeBenefits
+    include Types::HmisSchema::HasDisabilities
+    include Types::HmisSchema::HasHealthAndDvs
 
     def self.configuration
       Hmis::Hud::Client.hmis_configuration(version: '2022')
@@ -22,23 +25,38 @@ module Types
     hud_field :last_name
     field :preferred_name, String, null: true
     hud_field :name_suffix
-    hud_field :name_data_quality, Types::HmisSchema::Enums::NameDataQuality
+    hud_field :name_data_quality, Types::HmisSchema::Enums::Hud::NameDataQuality
     hud_field :dob
-    hud_field :dob_data_quality, Types::HmisSchema::Enums::DOBDataQuality
+    hud_field :dob_data_quality, Types::HmisSchema::Enums::Hud::DOBDataQuality
     hud_field :ssn
-    hud_field :ssn_data_quality, Types::HmisSchema::Enums::SSNDataQuality
+    hud_field :ssn_data_quality, Types::HmisSchema::Enums::Hud::SSNDataQuality
     field :gender, [Types::HmisSchema::Enums::Gender], null: false
     field :race, [Types::HmisSchema::Enums::Race], null: false
-    hud_field :ethnicity, Types::HmisSchema::Enums::Ethnicity
-    hud_field :veteran_status, Types::HmisSchema::Enums::YesNoMissingReason
+    hud_field :ethnicity, Types::HmisSchema::Enums::Hud::Ethnicity
+    hud_field :veteran_status, Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData
     field :pronouns, String, null: true
     enrollments_field :enrollments, type: Types::HmisSchema::Enrollment.page_type
+    income_benefits_field :income_benefits
+    disabilities_field :disabilities
+    health_and_dvs_field :health_and_dvs
     hud_field :date_updated
     hud_field :date_created
     hud_field :date_deleted
 
     def enrollments(**args)
       resolve_enrollments(**args)
+    end
+
+    def income_benefits(**args)
+      resolve_income_benefits(**args)
+    end
+
+    def disabilities(**args)
+      resolve_disabilities(**args)
+    end
+
+    def health_and_dvs(**args)
+      resolve_health_and_dvs(**args)
     end
 
     def gender

@@ -6,8 +6,8 @@ module Types
 
     hud_argument :project_id, ID
     hud_argument :coc_code, String
-    hud_argument :household_type, HmisSchema::Enums::HouseholdType
-    hud_argument :availability, HmisSchema::Enums::Availability
+    hud_argument :household_type, HmisSchema::Enums::Hud::HouseholdType
+    hud_argument :availability, HmisSchema::Enums::Hud::Availability
     hud_argument :unit_inventory
     hud_argument :bed_inventory
     hud_argument :ch_vet_bed_inventory
@@ -17,7 +17,7 @@ module Types
     hud_argument :youth_bed_inventory
     hud_argument :ch_bed_inventory
     hud_argument :other_bed_inventory
-    hud_argument :es_bed_type, HmisSchema::Enums::BedType
+    hud_argument :es_bed_type, HmisSchema::Enums::Hud::BedType
     hud_argument :inventory_start_date
     hud_argument :inventory_end_date
 

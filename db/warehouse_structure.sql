@@ -13525,11 +13525,11 @@ CREATE TABLE public.hmis_dqt_inventories (
     youth_bed_inventory integer,
     ch_bed_inventory integer,
     other_bed_inventory integer,
-    inventory_start_date integer,
-    inventory_end_date integer,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    inventory_start_date date,
+    inventory_end_date date
 );
 
 
@@ -50666,6 +50666,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20221109155552'),
 ('20221110133236'),
 ('20221115123832'),
-('20221115211004');
+('20221115211004'),
+('20221124002729'),
+('20221126145518');
 
 

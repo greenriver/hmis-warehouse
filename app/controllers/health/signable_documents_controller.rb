@@ -16,6 +16,7 @@ module Health
     before_action :set_careplan, except: [:signature, :signed]
     before_action :set_medications, except: [:signature, :signed]
     before_action :set_problems, except: [:signature, :signed]
+    before_action :set_live_services_equipment_backup, except: [:signature, :signed]
 
     # This supports signing without logging in:
     skip_before_action :authenticate_user!, only: [:signature, :signed]

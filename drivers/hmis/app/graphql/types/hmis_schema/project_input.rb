@@ -11,10 +11,10 @@ module Types
     hud_argument :description, String
     hud_argument :contact_information, String
     hud_argument :project_type, Types::HmisSchema::Enums::ProjectType
-    hud_argument :housing_type, Types::HmisSchema::Enums::HousingType
-    hud_argument :tracking_method, Types::HmisSchema::Enums::TrackingMethod
-    hud_argument :target_population, HmisSchema::Enums::TargetPopulation
-    hud_argument :HOPWAMedAssistedLivingFac, HmisSchema::Enums::HOPWAMedAssistedLivingFac
+    hud_argument :housing_type, Types::HmisSchema::Enums::Hud::HousingType
+    hud_argument :tracking_method, Types::HmisSchema::Enums::Hud::TrackingMethod
+    hud_argument :target_population, HmisSchema::Enums::Hud::TargetPopulation
+    hud_argument :HOPWAMedAssistedLivingFac, HmisSchema::Enums::Hud::HOPWAMedAssistedLivingFac
     yes_no_missing_argument :continuum_project, required: false
     yes_no_missing_argument :residential_affiliation, required: false
     yes_no_missing_argument :HMISParticipatingProject, required: false

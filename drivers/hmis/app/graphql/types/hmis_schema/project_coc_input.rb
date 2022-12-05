@@ -12,7 +12,7 @@ module Types
     hud_argument :city
     hud_argument :state
     hud_argument :zip
-    hud_argument :geography_type, HmisSchema::Enums::GeographyType
+    hud_argument :geography_type, HmisSchema::Enums::Hud::GeographyType
 
     def to_params
       result = to_h

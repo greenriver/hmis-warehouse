@@ -12,18 +12,18 @@ module Types
     graphql_name 'ServiceTypeProvided'
 
     [
-      [141, HmisSchema::Enums::PATHService],
-      [142, HmisSchema::Enums::RHYService],
-      [143, HmisSchema::Enums::HOPWAService],
-      [144, HmisSchema::Enums::SSVFService],
-      [151, HmisSchema::Enums::HOPWAFinancialAssistance],
-      [152, HmisSchema::Enums::SSVFFinancialAssistance],
-      [161, HmisSchema::Enums::PATHReferral],
-      [200, HmisSchema::Enums::BedNight],
-      [210, HmisSchema::Enums::VoucherTracking],
-      [300, HmisSchema::Enums::MovingOnAssistance],
+      [141, HmisSchema::Enums::Hud::PATHServices],
+      [142, HmisSchema::Enums::Hud::RHYServices],
+      [143, HmisSchema::Enums::Hud::HOPWAServices],
+      [144, HmisSchema::Enums::Hud::SSVFServices],
+      [151, HmisSchema::Enums::Hud::HOPWAFinancialAssistance],
+      [152, HmisSchema::Enums::Hud::SSVFFinancialAssistance],
+      [161, HmisSchema::Enums::Hud::PATHReferral],
+      [200, HmisSchema::Enums::Hud::BedNight],
+      [210, HmisSchema::Enums::Hud::VoucherTracking],
+      [300, HmisSchema::Enums::Hud::MovingOnAssistance],
     ].each do |record_type, enum|
-      rt_key, rt_value = HmisSchema::Enums::RecordType.enum_member_for_value(record_type)
+      rt_key, rt_value = HmisSchema::Enums::Hud::RecordType.enum_member_for_value(record_type)
       enum.values.each do |enum_key, enum_value|
         value [rt_key, enum_key].join('__'), enum_value.description, value: [rt_value.value, enum_value.value].join(':')
       end
