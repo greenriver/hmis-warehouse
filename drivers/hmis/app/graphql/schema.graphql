@@ -138,8 +138,8 @@ type AssessmentsPaginated {
 Value to autofill based on conditional logic
 """
 type AutofillValue {
-  autofillBehavior: EnableBehavior
-  autofillWhen: [EnableWhen!]
+  autofillBehavior: EnableBehavior!
+  autofillWhen: [EnableWhen!]!
 
   """
   If question is boolean type, autofill value

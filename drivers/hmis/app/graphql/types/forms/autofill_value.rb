@@ -13,7 +13,7 @@ module Types
     field :value_code, String, 'If question is choice type, autofill value', null: true
     field :value_number, Integer, 'If question is numeric, autofill value', null: true
     field :value_boolean, Boolean, 'If question is boolean type, autofill value', null: true
-    field :autofill_behavior, Types::Forms::Enums::EnableBehavior, null: true
-    field :autofill_when, [Types::Forms::EnableWhen], null: true
+    field :autofill_behavior, Types::Forms::Enums::EnableBehavior, null: false
+    field :autofill_when, [Types::Forms::EnableWhen], null: false
   end
 end
