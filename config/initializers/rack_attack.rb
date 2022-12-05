@@ -5,6 +5,7 @@ class Rack::Attack
 
   def self.tracking_enabled?(request)
     return false if internal_lb_checks?(request)
+    return false if request.path == '/hmis/user.json'
 
     !Rails.env.test? || /t|1/.match?(request.params['rack_attack_enabled'].to_s)
   end
@@ -17,6 +18,10 @@ class Rack::Attack
 
   def self.sign_in_path(request)
     request.path == '/users/sign_in' && request.post?
+  end
+
+  def self.hmis_sign_in_path(request)
+    request.path == '/hmis/login' && request.post?
   end
 
   def self.rapid_paths(request)
@@ -35,6 +40,10 @@ class Rack::Attack
     request.params['user'].present? && request.params['user']['email'].present?
   end
 
+  def self.hmis_user_email_present?(request)
+    request.params['hmis_user'].present? && request.params['hmis_user']['email'].present?
+  end
+
   def self.warden_user_present?(request)
     request.env['warden']&.user.present?
   end
@@ -45,7 +54,7 @@ class Rack::Attack
 
   send(tracker, 'requests per unauthenticated user per ip', limit: 10, period: 1.seconds) do |request|
     if tracking_enabled?(request)
-      if !warden_user_present?(request) && !(sign_in_path(request) || history_pdf_path(request) || asset_paths(request))
+      if !warden_user_present?(request) && !(sign_in_path(request) || hmis_sign_in_path(request) || history_pdf_path(request) || asset_paths(request))
         request.ip
       end
     end
@@ -90,6 +99,13 @@ class Rack::Attack
     if tracking_enabled?(request)
       if sign_in_path(request) && user_email_present?(request)
         request.params['user']['email']
+      end
+    end
+  end
+  send(tracker, 'hmis logins per account', limit: 10, period: 180.seconds) do |request|
+    if tracking_enabled?(request)
+      if hmis_sign_in_path(request) && hmis_user_email_present?(request)
+        request.params['hmis_user']['email']
       end
     end
   end
