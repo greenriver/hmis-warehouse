@@ -5,7 +5,6 @@ class Rack::Attack
 
   def self.tracking_enabled?(request)
     return false if internal_lb_checks?(request)
-    return false if request.path == '/hmis/user.json'
 
     !Rails.env.test? || /t|1/.match?(request.params['rack_attack_enabled'].to_s)
   end
@@ -45,7 +44,7 @@ class Rack::Attack
   end
 
   def self.warden_user_present?(request)
-    request.env['warden']&.user.present?
+    request.env['warden']&.user.present? || request.env['warden']&.user(:hmis_user).present?
   end
 
   # track any remote ip that exceeds our basic request rate limits
