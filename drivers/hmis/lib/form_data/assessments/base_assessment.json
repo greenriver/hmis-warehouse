@@ -374,7 +374,7 @@
           "type": "GROUP",
           "link_id": "income-sources-group",
           "component": "INPUT_GROUP",
-          "text": "Income Sources",
+          "text": "Income Sources and Monthly Total",
           "enable_behavior": "ANY",
           "enable_when": [
             {
@@ -554,7 +554,7 @@
           "type": "GROUP",
           "link_id": "non-cash-benefits-group",
           "component": "INPUT_GROUP",
-          "text": "Benefits",
+          "text": "Select Benefit(s)",
           "enable_behavior": "ANY",
           "enable_when": [
             {
@@ -706,7 +706,7 @@
           "type": "GROUP",
           "link_id": "insurance-provider",
           "component": "INPUT_GROUP",
-          "text": "Insurance Providers",
+          "text": "Select Insurance Provider(s)",
           "enable_behavior": "ANY",
           "enable_when": [
             {
