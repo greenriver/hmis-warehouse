@@ -946,19 +946,19 @@
           "_ignore": "HUD defines a Disabling Condition as:<ul><li>A physical, mental, or emotional impairment, including an impairment caused by alcohol or drug abuse, post-traumatic stress disorder, or brain injury that:</li><ul><li>Is expected to be long-continuing or of indefinite duration;</li><li>Substantially impedes the individual's ability to live independently; and</li><li>Could be improved by the provision of more suitable housing conditions.</li></ul></li><li>A developmental disability, as defined in section 102 of the Developmental Disabilities Assistance and Bill of Rights Act of 2000 (42 U.S.C. 15002); or</li><li>The disease of acquired immunodeficiency syndrome (AIDS) or any condition arising from the etiologic agency for acquired immunodeficiency syndrome (HIV).</li></ul>"
         },
         {
-          "type": "BOOLEAN",
+          "type": "CHOICE",
           "link_id": "3.08",
           "text": "Disabling Condition",
           "field_name": "disablingCondition",
-          "_comment": "NOTE: disablingCondition is not really a field on DisabilityGroup, but on Enrollment. TBD how this should be represented for extraction.",
+          "pick_list_reference": "NoYesReasonsForMissingData",
           "initial": [
             {
-              "value_boolean": false
+              "value_code": "NO"
             }
           ],
           "autofill_values": [
             {
-              "value_boolean": true,
+              "value_code": "YES",
               "autofill_behavior": "ANY",
               "autofill_when": [
                 {
@@ -994,7 +994,7 @@
               ]
             },
             {
-              "value_boolean": false,
+              "value_code": "NO",
               "autofill_behavior": "ALL",
               "autofill_when": [
                 {
