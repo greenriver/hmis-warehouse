@@ -1042,7 +1042,7 @@ module HUD
 
   # 4.14
   def bed_night_map
-    ::HudList.bed_night_map
+    ::HudLists.bed_night_map
   end
 
   def bed_night(id, reverse = false)
@@ -1135,7 +1135,7 @@ module HUD
   end
 
   def prioritization_statuses
-    ::HudList.prioritization_status_map
+    ::HudLists.prioritization_status_map
   end
 
   # W5.A
@@ -1267,7 +1267,7 @@ module HUD
 
   # 4.37.A
   def early_exit_reason(id, reverse = false)
-    map = ::HudList.early_exit_reason_map
+    map = ::HudLists.early_exit_reason_map
 
     _translate map, id, reverse
   end
