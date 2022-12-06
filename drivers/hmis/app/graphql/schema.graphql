@@ -4322,6 +4322,7 @@ input UpdateProjectInput {
   A unique identifier for the client performing the mutation.
   """
   clientMutationId: String
+  confirmed: Boolean!
   id: ID!
   input: ProjectInput!
 }

@@ -10,17 +10,14 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     cleanup_test_environment
   end
 
-  let!(:ds1) { create :hmis_data_source }
-  let!(:user) { create(:user).tap { |u| u.add_viewable(ds1) } }
-  let(:hmis_user) { Hmis::User.find(user.id)&.tap { |u| u.update(hmis_data_source_id: ds1.id) } }
-  let(:u1) { Hmis::Hud::User.from_user(hmis_user) }
+  include_context 'hmis base setup'
+
   let(:u2) do
     user2 = create(:user).tap { |u| u.add_viewable(ds1) }
     hmis_user2 = Hmis::User.find(user2.id)&.tap { |u| u.update(hmis_data_source_id: ds1.id) }
     Hmis::Hud::User.from_user(hmis_user2)
   end
-  let!(:o1) { create :hmis_hud_organization, data_source: ds1, user: u1 }
-  let!(:p1) { create :hmis_hud_project, organization: o1, data_source: ds1, user: u2 }
+
   let(:edit_access_group) { create :edit_access_group }
   let(:view_access_group) { create :view_access_group }
 
@@ -44,8 +41,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   let(:mutation) do
     <<~GRAPHQL
-      mutation UpdateProject($id: ID!, $input: ProjectInput!) {
-        updateProject(input: { input: $input, id: $id }) {
+      mutation UpdateProject($id: ID!, $input: ProjectInput!, $confirmed: Boolean!) {
+        updateProject(input: { input: $input, id: $id, confirmed: $confirmed }) {
           project {
             #{scalar_fields(Types::HmisSchema::Project)}
             organization {
@@ -62,13 +59,14 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     before(:each) do
       hmis_login(user)
       assign_viewable(edit_access_group, p1.as_warehouse, hmis_user)
+      p1.update(user_id: u2.user_id)
     end
 
     it 'should update a project successfully' do
       prev_date_updated = p1.date_updated
       aggregate_failures 'checking response' do
         expect(p1.user_id).to eq(u2.user_id)
-        response, result = post_graphql(id: p1.id, input: test_input) { mutation }
+        response, result = post_graphql(id: p1.id, input: test_input, confirmed: false) { mutation }
 
         expect(response.status).to eq 200
         project = result.dig('data', 'updateProject', 'project')
@@ -106,7 +104,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         residential_affiliation: nil,
         'HMISParticipatingProject' => nil,
       }
-      response, result = post_graphql(id: p1.id, input: input) { mutation }
+      response, result = post_graphql(id: p1.id, input: input, confirmed: false) { mutation }
 
       aggregate_failures 'checking response' do
         expect(response.status).to eq 200
@@ -133,17 +131,66 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
   end
 
+  describe 'with related records' do
+    before(:each) do
+      hmis_login(user)
+      assign_viewable(edit_access_group, p1.as_warehouse, hmis_user)
+    end
+
+    let!(:pc1) { create :hmis_hud_project_coc, data_source_id: ds1.id, project: p1, coc_code: 'CO-500' }
+    let!(:i1) { create :hmis_hud_inventory, data_source: ds1, project: p1, coc_code: pc1.coc_code, inventory_start_date: '2020-01-01' }
+    let!(:f1) { create :hmis_hud_funder, data_source_id: ds1.id, project: p1 }
+
+    it 'should warn if closing project with open funders and inventory' do
+      p1.update!(operating_end_date: nil)
+
+      input = { operating_end_date: Date.today.strftime('%Y-%m-%d') }
+      response, result = post_graphql(id: p1.id, input: input, confirmed: false) { mutation }
+
+      aggregate_failures 'checking response' do
+        expect(response.status).to eq 200
+        project = result.dig('data', 'updateProject', 'project')
+        errors = result.dig('data', 'updateProject', 'errors')
+        puts project
+        puts errors
+        expect(project).to be_nil
+        expect(p1.operating_end_date).to be_nil
+        expect(errors.length).to eq(2)
+      end
+    end
+
+    it 'should close related funders and inventory if confirmed' do
+      p1.update!(operating_end_date: nil)
+
+      end_date = Date.today.strftime('%Y-%m-%d')
+      input = { operating_end_date: end_date }
+      response, result = post_graphql(id: p1.id, input: input, confirmed: true) { mutation }
+
+      aggregate_failures 'checking response' do
+        expect(response.status).to eq 200
+        project = result.dig('data', 'updateProject', 'project')
+        errors = result.dig('data', 'updateProject', 'errors')
+        expect(errors).to be_empty
+        expect(project).to include('operatingEndDate' => end_date)
+        expect(p1.reload.operating_end_date).to be_present
+        expect(i1.reload.inventory_end_date).to be_present
+        expect(f1.reload.end_date).to be_present
+      end
+    end
+  end
+
   describe 'with view access' do
     before(:each) do
       hmis_login(user)
       assign_viewable(view_access_group, p1.as_warehouse, hmis_user)
+      p1.update(user_id: u2.user_id)
     end
 
     it 'should not be able to update a project' do
       prev_date_updated = p1.date_updated
       aggregate_failures 'checking response' do
         expect(p1.user_id).to eq(u2.user_id)
-        response, = post_graphql(id: p1.id, input: test_input) { mutation }
+        response, = post_graphql(id: p1.id, input: test_input, confirmed: false) { mutation }
         expect(response.status).to eq 200
         expect(p1.reload.date_updated > prev_date_updated).to eq(false)
       end
