@@ -36,7 +36,7 @@ module HmisCsvImporter::HmisCsvCleanup
           enrollment_source.import(
             batch,
             on_duplicate_key_update: {
-              conflict_target: [:id],
+              conflict_target: [:id, :importer_log_id],
               columns: [
                 :RelationshipToHoH,
                 :HouseholdID,
@@ -85,7 +85,7 @@ module HmisCsvImporter::HmisCsvCleanup
           enrollment_source.import(
             batch,
             on_duplicate_key_update: {
-              conflict_target: [:id],
+              conflict_target: [:id, :importer_log_id],
               columns: [
                 :RelationshipToHoH,
                 :source_hash,
@@ -106,7 +106,7 @@ module HmisCsvImporter::HmisCsvCleanup
           enrollment_source.import(
             batch,
             on_duplicate_key_update: {
-              conflict_target: [:id],
+              conflict_target: [:id, :importer_log_id],
               columns: [
                 :RelationshipToHoH,
                 :source_hash,
@@ -124,7 +124,7 @@ module HmisCsvImporter::HmisCsvCleanup
           enrollment_source.import(
             batch,
             on_duplicate_key_update: {
-              conflict_target: [:id],
+              conflict_target: [:id, :importer_log_id],
               columns: [
                 :RelationshipToHoH,
                 :source_hash,
@@ -144,7 +144,7 @@ module HmisCsvImporter::HmisCsvCleanup
           enrollment_source.import(
             batch,
             on_duplicate_key_update: {
-              conflict_target: [:id],
+              conflict_target: [:id, :importer_log_id],
               columns: [
                 :RelationshipToHoH,
                 :HouseholdID,
@@ -185,7 +185,7 @@ module HmisCsvImporter::HmisCsvCleanup
       enrollment_source.import(
         batch,
         on_duplicate_key_update: {
-          conflict_target: [:id],
+          conflict_target: [:id, :importer_log_id],
           columns: [
             :HouseholdID,
             :RelationshipToHoH,
@@ -224,7 +224,7 @@ module HmisCsvImporter::HmisCsvCleanup
       enrollment_source.import(
         batch,
         on_duplicate_key_update: {
-          conflict_target: [:id],
+          conflict_target: [:id, :importer_log_id],
           columns: [
             :HouseholdID,
             :source_hash,

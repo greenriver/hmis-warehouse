@@ -28,7 +28,7 @@ module HmisCsvImporter::HmisCsvCleanup
       enrollment_source.import(
         enrollment_batch,
         on_duplicate_key_update: {
-          conflict_target: [:id],
+          conflict_target: [:id, :importer_log_id],
           columns: [:MoveInDate, :source_hash],
         },
       )
