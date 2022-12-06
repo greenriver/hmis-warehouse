@@ -16,12 +16,10 @@ module HmisCsvImporter::HmisCsvCleanup
     end
 
     # If the table has been partitioned, it needs a compound key
-    def conflict_target(source)
-      if source.partitioned?
-        [:id, :importer_log_id]
-      else
-        [:id]
-      end
+    def conflict_target(source_class)
+      return [:id, :importer_log_id] if GrdaWarehouseBase.partitioned?(source_class.table_name)
+
+      [:id]
     end
 
     def cleanup!

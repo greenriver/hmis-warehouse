@@ -28,7 +28,7 @@ class GrdaWarehouseBase < ApplicationRecord
     ActiveRecord::MigrationContext.new('db/warehouse/migrate', GrdaWarehouse::SchemaMigration).needs_migration?
   end
 
-  def partitioned?
+  def self.partitioned?(table_name)
     DBA::PartitionMaker.new(table_name: table_name).done?
   end
 end
