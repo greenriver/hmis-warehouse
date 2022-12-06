@@ -109,7 +109,7 @@ module HUD
     method = ::HudLists.hud_code_to_function_map[number.to_s.to_sym]
     raise "unknown controlled vocabulary list: #{number}" unless method
 
-    map = HudLists.send(method)
+    map = ::HudLists.send(method)
     _translate(map, id, reverse)
   end
 
