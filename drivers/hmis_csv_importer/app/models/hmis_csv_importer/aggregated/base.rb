@@ -15,15 +15,6 @@ module HmisCsvImporter::Aggregated
       @date_range = date_range
     end
 
-    # If the table has been partitioned, it needs a compound key
-    def conflict_target(source)
-      if source.partitioned?
-        [:id, :importer_log_id]
-      else
-        [:id]
-      end
-    end
-
     def aggregate!
       raise 'aggregate! must be implemented'
     end
