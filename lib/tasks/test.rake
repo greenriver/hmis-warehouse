@@ -50,6 +50,14 @@ namespace :test do
     )
     sleep 1
 
+    puts 'Sentry.capture_exception_with_info_no_exception'
+    Sentry.capture_exception_with_info(
+      StandardError.new("Testing Sentry.capture_exception_with_info_no_exception from #{Rails.env} for hmis-warehouse"),
+      'Testing custom error message',
+      { info: 'info' }
+    )
+    sleep 1
+
     puts '@notifier.ping with exception (Sentry)'
     @notifier.ping(
       'Testing .ping polymorphism - this should go to Sentry',
