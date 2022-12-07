@@ -13,8 +13,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   include_context 'hmis base setup'
 
   let!(:c1) { create :hmis_hud_client_complete, data_source: ds1, user: u1 }
-  let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1 }
-  let!(:e2) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1 }
+  let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, disabling_condition: 1 }
+  let!(:e2) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, disabling_condition: 0 }
 
   let(:date1) { 1.year.ago }
   let(:date2) { 1.month.ago }
@@ -77,6 +77,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(groups[0]['id'].split(':').map(&:to_i)).to contain_exactly(d3a.id)
       expect(groups[0]['informationDate']).to eq(date2.strftime('%Y-%m-%d'))
       expect(groups[0]['dataCollectionStage']).to eq('UPDATE')
+      expect(groups[0]['disablingCondition']).to eq('NO')
       expect(groups[0]['physicalDisability']).to be_nil
       expect(groups[0]['physicalDisabilityIndefiniteAndImpairs']).to be_nil
       expect(groups[0]['substanceUseDisorder']).to eq('BOTH_ALCOHOL_AND_DRUG_USE_DISORDERS')
@@ -86,6 +87,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(groups[1]['id'].split(':').map(&:to_i)).to contain_exactly(d2a.id, d2b.id)
       expect(groups[1]['informationDate']).to eq(date2.strftime('%Y-%m-%d'))
       expect(groups[1]['dataCollectionStage']).to eq('PROJECT_ENTRY')
+      expect(groups[1]['disablingCondition']).to eq('NO')
       expect(groups[1]['physicalDisability']).to eq('NO')
       expect(groups[1]['physicalDisabilityIndefiniteAndImpairs']).to eq('NO')
       expect(groups[1]['substanceUseDisorder']).to be_nil
@@ -95,6 +97,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(groups[2]['id'].split(':').map(&:to_i)).to contain_exactly(d1a.id, d1b.id)
       expect(groups[2]['informationDate']).to eq(date1.strftime('%Y-%m-%d'))
       expect(groups[2]['dataCollectionStage']).to eq('PROJECT_ENTRY')
+      expect(groups[2]['disablingCondition']).to eq('YES')
       expect(groups[2]['physicalDisability']).to eq('YES')
       expect(groups[2]['physicalDisabilityIndefiniteAndImpairs']).to eq('YES')
       expect(groups[2]['substanceUseDisorder']).to be_nil

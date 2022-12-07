@@ -20,11 +20,15 @@ class GrdaWarehouseBase < ApplicationRecord
   end
 
   def self.reset_connection
-    self.connection.disconnect!
-    self.establish_connection DB_WAREHOUSE
+    connection.disconnect!
+    establish_connection DB_WAREHOUSE
   end
 
   def self.needs_migration?
     ActiveRecord::MigrationContext.new('db/warehouse/migrate', GrdaWarehouse::SchemaMigration).needs_migration?
+  end
+
+  def self.partitioned?(table_name)
+    DBA::PartitionMaker.new(table_name: table_name).done?
   end
 end
