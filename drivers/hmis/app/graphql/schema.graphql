@@ -830,8 +830,7 @@ type DisabilityGroup {
   developmentalDisability: NoYesReasonsForMissingData
 
   """
-  Current disabling conditionn on the linked Enrollment. It may not matching up
-  with the disabilities specified in this group.
+  Current disabling conditionn on the linked Enrollment. It may not match up with the disabilities specified in this group.
   """
   disablingCondition: NoYesReasonsForMissingData!
   enrollment: Enrollment!
@@ -4322,6 +4321,7 @@ input UpdateProjectInput {
   A unique identifier for the client performing the mutation.
   """
   clientMutationId: String
+  confirmed: Boolean!
   id: ID!
   input: ProjectInput!
 }
