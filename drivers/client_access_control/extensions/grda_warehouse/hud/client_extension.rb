@@ -10,6 +10,8 @@ module ClientAccessControl::GrdaWarehouse::Hud
     include ArelHelper
 
     included do
+      # hide previous declaration of :destination_visible_to, we'll use this one
+      singleton_class.undef_method :destination_visible_to
       scope :destination_visible_to, ->(user, source_client_ids: nil) do
         limited_scope = if user.system_user?
           current_scope || all
@@ -19,6 +21,8 @@ module ClientAccessControl::GrdaWarehouse::Hud
         merge(limited_scope)
       end
 
+      # hide previous declaration of :source_visible_to, we'll use this one
+      singleton_class.undef_method :source_visible_to
       scope :source_visible_to, ->(user, client_ids: nil) do
         limited_scope = if user.system_user?
           current_scope || all
@@ -28,6 +32,8 @@ module ClientAccessControl::GrdaWarehouse::Hud
         merge(limited_scope)
       end
 
+      # hide previous declaration of :searchable_to, we'll use this one
+      singleton_class.undef_method :searchable_to
       # can search even if no ROI
       scope :searchable_to, ->(user, client_ids: nil) do
         limited_scope = if user.can_search_all_clients? || user.system_user?

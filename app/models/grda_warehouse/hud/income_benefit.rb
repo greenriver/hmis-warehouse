@@ -43,6 +43,8 @@ module GrdaWarehouse::Hud
       where(DataCollectionStage: 1).joins(:enrollment).where(ib_t[:InformationDate].eq(e_t[:EntryDate]))
     end
 
+    # hide previous declaration of :at_exit, we'll use this one
+    singleton_class.undef_method :at_exit
     scope :at_exit, -> do
       where(DataCollectionStage: 3).joins(:exit).where(ib_t[:InformationDate].eq(ex_t[:ExitDate]))
     end

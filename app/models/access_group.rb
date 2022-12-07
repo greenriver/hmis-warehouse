@@ -32,6 +32,8 @@ class AccessGroup < ApplicationRecord
     where(AccessGroup.arel_table[:system].eq([]))
   end
 
+  # hide previous declaration of :system (from Kernel), we'll use this one
+  singleton_class.undef_method :system
   scope :system, -> do
     where(AccessGroup.arel_table[:system].not_eq([]))
   end

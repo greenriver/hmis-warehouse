@@ -35,10 +35,6 @@ module GrdaWarehouse::HealthEmergency
       warehouse_reports_health_emergency_uploaded_results_url(host: ENV.fetch('FQDN'), protocol: 'https')
     end
 
-    scope :newest_first, -> do
-      order(created_at: :desc)
-    end
-
     scope :un_started, -> do
       where(started_at: nil)
     end

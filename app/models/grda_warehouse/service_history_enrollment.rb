@@ -37,6 +37,8 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   end
 
   scope :entry, -> { where record_type: 'entry' }
+  # hide previous declaration of :exit (from Kernel), we'll use this one
+  singleton_class.undef_method :exit
   scope :exit, -> { where record_type: 'exit' }
   scope :bed_night, -> { where project_tracking_method: 3 }
   scope :night_by_night, -> { bed_night }

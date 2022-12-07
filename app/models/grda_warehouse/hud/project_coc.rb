@@ -27,10 +27,14 @@ module GrdaWarehouse::Hud
     has_one :lookup_coc, class_name: '::GrdaWarehouse::Lookups::CocCode', primary_key: :CoCCode, foreign_key: :coc_code, inverse_of: :project_coc
     has_one :overridden_lookup_coc, class_name: '::GrdaWarehouse::Lookups::CocCode', primary_key: :hud_coc_code, foreign_key: :coc_code, inverse_of: :overridden_project_coc
 
+    # hide previous declaration of :importable, we'll use this one
+    singleton_class.undef_method :importable
     scope :importable, -> do
       where(manual_entry: false)
     end
 
+    # hide previous declaration of :in_coc, we'll use this one
+    singleton_class.undef_method :in_coc
     scope :in_coc, ->(coc_code:) do
       # hud_coc_code overrides CoCCode
       coc_code = Array(coc_code)

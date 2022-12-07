@@ -34,6 +34,8 @@ module GrdaWarehouse::Hud
       where(AssessmentDate: range)
     end
 
+    # hide previous declaration of :importable, we'll use this one
+    singleton_class.undef_method :importable
     scope :importable, -> do
       where(synthetic: false)
     end

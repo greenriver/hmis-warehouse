@@ -21,6 +21,8 @@ module GrdaWarehouse::Hud
     belongs_to :user, **hud_assoc(:UserID, 'User'), inverse_of: :funders, optional: true
     belongs_to :data_source
 
+    # hide previous declaration of :importable, we'll use this one
+    singleton_class.undef_method :importable
     scope :importable, -> do
       where(manual_entry: false)
     end

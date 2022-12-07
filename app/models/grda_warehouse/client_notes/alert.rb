@@ -12,6 +12,8 @@ module GrdaWarehouse::ClientNotes
       'Client Alert'
     end
 
+    # hide previous declaration of :visible_by, we'll use this one
+    singleton_class.undef_method :visible_by
     # anyone who can see this client
     scope :visible_by, ->(user, client) do
       joins(:client).merge(GrdaWarehouse::Hud::Client.destination_visible_to(user, source_client_ids: client.source_client_ids))

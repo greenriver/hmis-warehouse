@@ -10,6 +10,8 @@ module GrdaWarehouse::ClientNotes
       'Anomaly Note'
     end
 
+    # hide previous declaration of :visible_by, we'll use this one
+    singleton_class.undef_method :visible_by
     scope :visible_by, ->(user) do
       if user.can_track_anomalies?
         current_scope

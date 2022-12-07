@@ -34,6 +34,8 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   SORT_OPTIONS = [:most_recent].freeze
 
+  # hide previous declaration of :viewable_by, we'll use this one
+  singleton_class.undef_method :viewable_by
   # A user can see any enrollment associated with a project they can access
   scope :viewable_by, ->(user) do
     project_ids = Hmis::Hud::Project.viewable_by(user).pluck(:id, :ProjectID)
@@ -43,6 +45,8 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     left_outer_joins(:wip).where(viewable_wip.or(viewable_enrollment))
   end
 
+  # hide previous declaration of :editable_by, we'll use this one
+  singleton_class.undef_method :editable_by
   scope :editable_by, ->(user) do
     project_ids = Hmis::Hud::Project.editable_by(user).pluck(:id, :ProjectID)
     editable_wip = wip_t[:project_id].in(project_ids.map(&:first))

@@ -42,6 +42,8 @@ module GrdaWarehouse::Hud
     alias_attribute :end_date, :InventoryEndDate
     alias_attribute :beds, :BedInventory
 
+    # hide previous declaration of :importable, we'll use this one
+    singleton_class.undef_method :importable
     scope :importable, -> do
       where(manual_entry: false)
     end
@@ -60,6 +62,8 @@ module GrdaWarehouse::Hud
       within_range(date..date)
     end
 
+    # hide previous declaration of :in_coc, we'll use this one
+    singleton_class.undef_method :in_coc
     scope :in_coc, ->(coc_code:) do
       coc_code = Array(coc_code)
       where(
