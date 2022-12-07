@@ -138,8 +138,8 @@ type AssessmentsPaginated {
 Value to autofill based on conditional logic
 """
 type AutofillValue {
-  autofillBehavior: EnableBehavior
-  autofillWhen: [EnableWhen!]
+  autofillBehavior: EnableBehavior!
+  autofillWhen: [EnableWhen!]!
 
   """
   If question is boolean type, autofill value
@@ -828,6 +828,12 @@ type DisabilityGroup {
   chronicHealthConditionIndefiniteAndImpairs: NoYesReasonsForMissingData
   dataCollectionStage: DataCollectionStage!
   developmentalDisability: NoYesReasonsForMissingData
+
+  """
+  Current disabling conditionn on the linked Enrollment. It may not matching up
+  with the disabilities specified in this group.
+  """
+  disablingCondition: NoYesReasonsForMissingData!
   enrollment: Enrollment!
   hivAids: NoYesReasonsForMissingData
 
