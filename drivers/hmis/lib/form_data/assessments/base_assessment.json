@@ -2,8 +2,8 @@
   "item": [
     {
       "type": "GROUP",
-      "link_id": "initial-group",
-      "text": "Client Location (HoH only)",
+      "link_id": "location",
+      "text": "Client Location",
       "item": [
         {
           "type": "CHOICE",
@@ -17,8 +17,8 @@
     },
     {
       "type": "GROUP",
-      "link_id": "3.917.group",
-      "text": "Prior Living Situation (3.917)",
+      "link_id": "prior-living-situation",
+      "text": "Prior Living Situation",
       "data_collected_about": "HOH_AND_ADULTS",
       "record_type": "ENROLLMENT",
       "reference_link": "https://files.hudexchange.info/resources/documents/FY-2022-HMIS-Data-Standards-Manual.pdf#page=104",
@@ -223,8 +223,8 @@
     },
     {
       "type": "GROUP",
-      "link_id": "4.12-group",
-      "text": "Current Living Situation (4.12)",
+      "link_id": "current-living-situation",
+      "text": "Current Living Situation",
       "data_collected_about": "HOH_AND_ADULTS",
       "hidden": true,
       "item": [
@@ -275,7 +275,7 @@
     },
     {
       "type": "GROUP",
-      "link_id": "income-source",
+      "link_id": "income-and-source",
       "text": "Income and Sources",
       "data_collected_about": "HOH_AND_ADULTS",
       "record_type": "INCOME_BENEFIT",
