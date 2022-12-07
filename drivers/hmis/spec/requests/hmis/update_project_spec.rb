@@ -151,8 +151,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(response.status).to eq 200
         project = result.dig('data', 'updateProject', 'project')
         errors = result.dig('data', 'updateProject', 'errors')
-        puts project
-        puts errors
         expect(project).to be_nil
         expect(p1.operating_end_date).to be_nil
         expect(errors.length).to eq(2)
