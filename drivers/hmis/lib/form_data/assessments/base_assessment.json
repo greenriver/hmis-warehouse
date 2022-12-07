@@ -281,17 +281,114 @@
       "record_type": "INCOME_BENEFIT",
       "item": [
         {
+          "type": "CHOICE",
+          "link_id": "4.02.2",
+          "text": "Income from Any Source",
+          "pick_list_reference": "NoYesReasonsForMissingData",
+          "field_name": "incomeFromAnySource",
+          "autofill_values": [
+            {
+              "value_code": "YES",
+              "autofill_behavior": "ANY",
+              "autofill_when": [
+                {
+                  "question": "4.02.A",
+                  "operator": "GREATER_THAN",
+                  "answer_number": 0
+                },
+                {
+                  "question": "4.02.B",
+                  "operator": "GREATER_THAN",
+                  "answer_number": 0
+                },
+                {
+                  "question": "4.02.C",
+                  "operator": "GREATER_THAN",
+                  "answer_number": 0
+                },
+                {
+                  "question": "4.02.D",
+                  "operator": "GREATER_THAN",
+                  "answer_number": 0
+                },
+                {
+                  "question": "4.02.E",
+                  "operator": "GREATER_THAN",
+                  "answer_number": 0
+                },
+                {
+                  "question": "4.02.F",
+                  "operator": "GREATER_THAN",
+                  "answer_number": 0
+                },
+                {
+                  "question": "4.02.G",
+                  "operator": "GREATER_THAN",
+                  "answer_number": 0
+                },
+                {
+                  "question": "4.02.H",
+                  "operator": "GREATER_THAN",
+                  "answer_number": 0
+                },
+                {
+                  "question": "4.02.I",
+                  "operator": "GREATER_THAN",
+                  "answer_number": 0
+                },
+                {
+                  "question": "4.02.J",
+                  "operator": "GREATER_THAN",
+                  "answer_number": 0
+                },
+                {
+                  "question": "4.02.K",
+                  "operator": "GREATER_THAN",
+                  "answer_number": 0
+                },
+                {
+                  "question": "4.02.L",
+                  "operator": "GREATER_THAN",
+                  "answer_number": 0
+                },
+                {
+                  "question": "4.02.M",
+                  "operator": "GREATER_THAN",
+                  "answer_number": 0
+                },
+                {
+                  "question": "4.02.N",
+                  "operator": "GREATER_THAN",
+                  "answer_number": 0
+                },
+                {
+                  "question": "4.02.O",
+                  "operator": "GREATER_THAN",
+                  "answer_number": 0
+                }
+              ]
+            }
+          ]
+        },
+        {
           "type": "GROUP",
           "link_id": "income-sources-group",
           "component": "INPUT_GROUP",
-          "item": [
+          "text": "Income Sources and Monthly Total",
+          "enable_behavior": "ANY",
+          "enable_when": [
             {
-              "type": "CHOICE",
-              "link_id": "4.02.2",
-              "text": "Income from Any Source",
-              "pick_list_reference": "NoYesReasonsForMissingData",
-              "field_name": "incomeFromAnySource"
+              "question": "4.02.2",
+              "operator": "EQUAL",
+              "answer_code": "YES"
             },
+            {
+              "question": "4.02.2",
+              "operator": "EXISTS",
+              "answer_boolean": false
+            }
+          ],
+          "item": [
             {
               "type": "CURRENCY",
               "link_id": "4.02.A",
@@ -409,17 +506,69 @@
       "record_type": "INCOME_BENEFIT",
       "item": [
         {
+          "type": "CHOICE",
+          "link_id": "4.03.2",
+          "text": "Non-Cash Benefits from Any Source",
+          "pick_list_reference": "NoYesReasonsForMissingData",
+          "field_name": "benefitsFromAnySource",
+          "autofill_values": [
+            {
+              "value_code": "YES",
+              "autofill_behavior": "ANY",
+              "autofill_when": [
+                {
+                  "question": "4.03.3",
+                  "operator": "EQUAL",
+                  "answer_boolean": true
+                },
+                {
+                  "question": "4.03.4",
+                  "operator": "EQUAL",
+                  "answer_boolean": true
+                },
+                {
+                  "question": "4.03.5",
+                  "operator": "EQUAL",
+                  "answer_boolean": true
+                },
+                {
+                  "question": "4.03.6",
+                  "operator": "EQUAL",
+                  "answer_boolean": true
+                },
+                {
+                  "question": "4.03.7",
+                  "operator": "EQUAL",
+                  "answer_boolean": true
+                },
+                {
+                  "question": "4.03.8",
+                  "operator": "EQUAL",
+                  "answer_boolean": true
+                }
+              ]
+            }
+          ]
+        },
+        {
           "type": "GROUP",
           "link_id": "non-cash-benefits-group",
           "component": "INPUT_GROUP",
-          "item": [
+          "text": "Select Benefit(s)",
+          "enable_behavior": "ANY",
+          "enable_when": [
             {
-              "type": "CHOICE",
-              "link_id": "4.03.2",
-              "text": "Non-Cash Benefits from Any Source",
-              "pick_list_reference": "NoYesReasonsForMissingData",
-              "field_name": "benefitsFromAnySource"
+              "question": "4.03.2",
+              "operator": "EQUAL",
+              "answer_code": "YES"
             },
+            {
+              "question": "4.03.2",
+              "operator": "EXISTS",
+              "answer_boolean": false
+            }
+          ],
+          "item": [
             {
               "type": "BOOLEAN",
               "link_id": "4.03.3",
@@ -489,17 +638,89 @@
       "record_type": "INCOME_BENEFIT",
       "item": [
         {
+          "type": "CHOICE",
+          "link_id": "4.04.2",
+          "text": "Covered by Health Insurance",
+          "pick_list_reference": "NoYesReasonsForMissingData",
+          "field_name": "insuranceFromAnySource",
+          "autofill_values": [
+            {
+              "value_code": "YES",
+              "autofill_behavior": "ANY",
+              "autofill_when": [
+                {
+                  "question": "4.04.3",
+                  "operator": "EQUAL",
+                  "answer_boolean": true
+                },
+                {
+                  "question": "4.04.4",
+                  "operator": "EQUAL",
+                  "answer_boolean": true
+                },
+                {
+                  "question": "4.04.5",
+                  "operator": "EQUAL",
+                  "answer_boolean": true
+                },
+                {
+                  "question": "4.04.6",
+                  "operator": "EQUAL",
+                  "answer_boolean": true
+                },
+                {
+                  "question": "4.04.7",
+                  "operator": "EQUAL",
+                  "answer_boolean": true
+                },
+                {
+                  "question": "4.04.8",
+                  "operator": "EQUAL",
+                  "answer_boolean": true
+                },
+                {
+                  "question": "4.04.9",
+                  "operator": "EQUAL",
+                  "answer_boolean": true
+                },
+                {
+                  "question": "4.04.10",
+                  "operator": "EQUAL",
+                  "answer_boolean": true
+                },
+                {
+                  "question": "4.04.11",
+                  "operator": "EQUAL",
+                  "answer_boolean": true
+                },
+                {
+                  "question": "4.04.12",
+                  "operator": "EQUAL",
+                  "answer_boolean": true
+                }
+              ]
+            }
+          ]
+        },
+        {
           "type": "GROUP",
           "link_id": "insurance-provider",
           "component": "INPUT_GROUP",
-          "item": [
+          "text": "Select Insurance Provider(s)",
+          "enable_behavior": "ANY",
+          "enable_when": [
             {
-              "type": "CHOICE",
-              "link_id": "4.04.2",
-              "text": "Covered by Health Insurance",
-              "pick_list_reference": "NoYesReasonsForMissingData",
-              "field_name": "insuranceFromAnySource"
+              "question": "4.04.2",
+              "operator": "EQUAL",
+              "answer_code": "YES"
             },
+            {
+              "question": "4.04.2",
+              "operator": "EXISTS",
+              "answer_boolean": false
+            }
+          ],
+          "item": [
             {
               "type": "BOOLEAN",
               "component": "CHECKBOX",
@@ -725,19 +946,19 @@
           "_ignore": "HUD defines a Disabling Condition as:<ul><li>A physical, mental, or emotional impairment, including an impairment caused by alcohol or drug abuse, post-traumatic stress disorder, or brain injury that:</li><ul><li>Is expected to be long-continuing or of indefinite duration;</li><li>Substantially impedes the individual's ability to live independently; and</li><li>Could be improved by the provision of more suitable housing conditions.</li></ul></li><li>A developmental disability, as defined in section 102 of the Developmental Disabilities Assistance and Bill of Rights Act of 2000 (42 U.S.C. 15002); or</li><li>The disease of acquired immunodeficiency syndrome (AIDS) or any condition arising from the etiologic agency for acquired immunodeficiency syndrome (HIV).</li></ul>"
         },
         {
-          "type": "BOOLEAN",
+          "type": "CHOICE",
           "link_id": "3.08",
           "text": "Disabling Condition",
           "field_name": "disablingCondition",
-          "_comment": "NOTE: disablingCondition is not really a field on DisabilityGroup, but on Enrollment. TBD how this should be represented for extraction.",
+          "pick_list_reference": "NoYesReasonsForMissingData",
           "initial": [
             {
-              "value_boolean": false
+              "value_code": "NO"
             }
           ],
           "autofill_values": [
             {
-              "value_boolean": true,
+              "value_code": "YES",
               "autofill_behavior": "ANY",
               "autofill_when": [
                 {
@@ -773,7 +994,7 @@
               ]
             },
             {
-              "value_boolean": false,
+              "value_code": "NO",
               "autofill_behavior": "ALL",
               "autofill_when": [
                 {

@@ -16,6 +16,8 @@ module Types
     field :information_date, GraphQL::Types::ISO8601Date, null: false
     field :data_collection_stage, HmisSchema::Enums::Hud::DataCollectionStage, null: false
 
+    field :disabling_condition, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, 'Current disabling conditionn on the linked Enrollment. It may not matching up with the disabilities specified in this group.', null: false
+
     # Disability Type 5
     field :physical_disability, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: true
     field :physical_disability_indefinite_and_impairs, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: true
@@ -43,6 +45,10 @@ module Types
     # Disability Type 10
     field :substance_use_disorder, HmisSchema::Enums::Hud::DisabilityResponse, null: true
     field :substance_use_disorder_indefinite_and_impairs, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: true
+
+    def disabling_condition
+      object.enrollment.disabling_condition
+    end
 
     def physical_disability
       response_for_type(5)
