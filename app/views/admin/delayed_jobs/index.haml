@@ -21,8 +21,8 @@
               %strong= job.id
               %br
               = job.name.split(' ').first
-              - user_id = job.payload_object.job_data.try(:[], 'arguments').try(:first).try(:[], 'user_id')
-              - arguments = job.payload_object.job_data.try(:[], 'arguments').try(:first)
+              - user_id = if job.payload_object.respond_to?(:job_data) then job.payload_object.job_data.try(:[], 'arguments').try(:first).try(:[], 'user_id') else 'unknown' end
+              - arguments = if job.payload_object.respond_to?(:job_data) then job.payload_object.job_data.try(:[], 'arguments').try(:first) else nil end
               - detail = if arguments.is_a?(Hash) then arguments.try(:[], 'report_class') else arguments end
               - if user_id
                 %br

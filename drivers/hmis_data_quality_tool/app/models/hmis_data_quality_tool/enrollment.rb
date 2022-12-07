@@ -225,8 +225,9 @@ module HmisDataQualityTool
 
       hh = report.household(enrollment.HouseholdID)
       hoh = hh&.detect(&:head_of_household?) || enrollment.service_history_enrollment
+      stayer = hoh.last_date_in_program.blank? || hoh.last_date_in_program > report.filter.end
       # anniversary_date = anniversary_date(entry_date: hoh.first_date_in_program, report_end_date: report.end_date)
-      hoh_annual_expected = annual_assessment_expected?(hoh)
+      hoh_annual_expected = annual_assessment_expected?(hoh) && stayer
 
       report_item.household_max_age = hh&.map(&:age)&.compact&.max || report_item.age
       report_item.household_min_age = hh&.map(&:age)&.compact&.min || report_item.age

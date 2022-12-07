@@ -29,7 +29,7 @@ module HmisCsvImporter::HmisCsvCleanup
       enrollment_coc_source.import(
         enrollment_coc_batch,
         on_duplicate_key_update: {
-          conflict_target: [:id],
+          conflict_target: conflict_target(enrollment_coc_source),
           columns: [:CoCCode, :source_hash],
         },
       )
