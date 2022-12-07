@@ -402,6 +402,25 @@
               "field_name": "unemploymentAmount"
             },
             {
+              "type": "BOOLEAN",
+              "link_id": "mis",
+              "hidden": true,
+              "field_name": "ssi",
+              "autofill_values": [
+                {
+                  "value_boolean": true,
+                  "autofill_behavior": "ALL",
+                  "autofill_when": [
+                    {
+                      "question": "4.02.C",
+                      "operator": "GREATER_THAN",
+                      "answer_number": 0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
               "type": "CURRENCY",
               "link_id": "4.02.C",
               "text": "Supplemental Security Income (SSI)",
