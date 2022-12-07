@@ -9,7 +9,7 @@ module Mutations
 
     def resolve(id:, input:, confirmed:)
       record = Hmis::Hud::Project.editable_by(current_user).find_by(id: id)
-      closes_project = record.present? && !record.operating_end_date.present? && input.operating_end_date.present?
+      closes_project = record.present? && record.operating_end_date.blank? && input.operating_end_date.present?
       response = default_update_record(
         record: record,
         field_name: :project,
@@ -21,7 +21,7 @@ module Mutations
     end
 
     def create_warnings(project, input)
-      return [] unless !project.operating_end_date && input.operating_end_date
+      return [] unless project.operating_end_date.blank? && input.operating_end_date.present?
 
       funder_count = project.funders.where(end_date: nil).count
       inventory_count = project.inventories.where(inventory_end_date: nil).count
