@@ -27,8 +27,8 @@ module Mutations
       inventory_count = project.inventories.where(inventory_end_date: nil).count
       warnings = []
       # TODO add warning if there are open enrollments in project
-      warnings << InputConfirmationWarning.new("#{funder_count} open funders will be closed.", attribute: 'id') if funder_count.positive?
-      warnings << InputConfirmationWarning.new("#{inventory_count} open inventory records will be closed.", attribute: 'id') if inventory_count.positive?
+      warnings << InputConfirmationWarning.new("#{funder_count} open #{'funder'.pluralize(funder_count)} will be closed.", attribute: 'id') if funder_count.positive?
+      warnings << InputConfirmationWarning.new("#{inventory_count} open inventory #{'record'.pluralize(inventory_count)} will be closed.", attribute: 'id') if inventory_count.positive?
       warnings
     end
 
