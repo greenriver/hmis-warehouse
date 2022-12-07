@@ -50,6 +50,34 @@ module GrdaWarehouse
       candidate.where(score: [-threshold..0])
     end
 
+    # Occassionally client data changes that updates clients in such
+    # a way that they should be caught by identify duplicates
+    # Client.merge_from should cleanup the matches, but sometimes
+    # doesn't.  This method loops over the existing un-processed matches
+    # and accepts any where 2 of 3 of name, SSN, and DOB are exact matches.
+    # In addition, if either the source or destination client no longer
+    # exists, we'll delete the match
+    def self.accept_exact_matches!
+      candidate.preload(:source_client, :destination_client).
+        find_each do |match|
+          sc = match.source_client
+          dc = match.destination_client
+          # next puts("match.destroy  #{match.id}") if sc.blank? || dc.blank?
+          next match.destroy if sc.blank? || dc.blank?
+
+          ssns_match = ::HUD.valid_social?(sc.SSN) && ::HUD.valid_social?(dc.SSN) && sc.SSN == dc.SSN
+          dobs_match = sc.DOB.present? && dc.DOB.present? && sc.DOB == dc.DOB
+          # next puts("ssn: match.accept! #{match.id}") if ssns_match && dobs_match
+          next match.accept! if ssns_match && dobs_match
+          # If we are missing any part of a name, just ignore this
+          next if sc.FirstName.blank? || sc.LastName.blank? || dc.FirstName.blank? || dc.LastName.blank?
+
+          names_match = sc.FirstName == dc.FirstName && sc.LastName == dc.LastName
+          # puts("name: match.accept!  #{match.id}") if [ssns_match, dobs_match, names_match].count(true) > 1
+          match.accept! if [ssns_match, dobs_match, names_match].count(true) > 1
+        end
+    end
+
     def self.auto_process!
       # Don't do anything if we don't have any destination clients
       return unless GrdaWarehouse::Hud::Client.destination.count.positive?
@@ -177,6 +205,7 @@ module GrdaWarehouse
     end
 
     def accept!(user: nil)
+      user ||= User.system_user
       flag_as(user: user, status: 'accepted')
       return unless destination_client && source_client
 
@@ -187,7 +216,7 @@ module GrdaWarehouse
     end
 
     def flag_as(user: nil, status:)
-      user ||= User.setup_system_user
+      user ||= User.system_user
       update(
         updated_by_id: user.id,
         status: status,
