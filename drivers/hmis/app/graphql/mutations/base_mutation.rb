@@ -52,10 +52,12 @@ module Mutations
     end
 
     # Default CRUD Update functionality
-    def default_update_record(record:, field_name:, input:, confirmed:)
+    def default_update_record(record:, field_name:, input:, confirmed: nil)
       return { field_name => nil, errors: [InputValidationError.new("#{field_name.to_s.humanize} record not found", attribute: 'id')] } unless record.present?
 
+      # If confirm is not specified, treat as confirmed (aka ignore warnings)
       confirmed = true if confirmed.nil?
+
       errors = []
       # Add custom warnings to error list
       errors += create_warnings(record, input) unless confirmed
