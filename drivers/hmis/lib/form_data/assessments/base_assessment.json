@@ -1548,6 +1548,28 @@
                   "answer_code": "YES"
                 }
               ]
+            },
+            {
+              "value_code": "NO",
+              "autofill_behavior": "ALL",
+              "_comment": "It should autofull when ANY element is interacted with, so add these as dependencies even though they do not determine disabling condition status. This autofill will only occur if none of the above rules matcheed.",
+              "autofill_when": [
+                {
+                  "question": "4.07.2",
+                  "operator": "EXISTS",
+                  "answer_boolean": true
+                },
+                {
+                  "question": "4.09.2",
+                  "operator": "EXISTS",
+                  "answer_boolean": true
+                },
+                {
+                  "question": "4.10.2",
+                  "operator": "EXISTS",
+                  "answer_boolean": true
+                }
+              ]
             }
           ]
         }
