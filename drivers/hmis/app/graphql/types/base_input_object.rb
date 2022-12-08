@@ -20,10 +20,6 @@ module Types
       @transformer = transformer_class
     end
 
-    def self.date_string_argument(name, description, required: false, **kwargs)
-      argument name, String, description, validates: { format: { with: /\d{4}-\d{2}-\d{2}/ }, allow_null: !required }, required: required, **kwargs
-    end
-
     def self.yes_no_missing_argument(name, description = nil, yes_value: 1, no_value: 0, null_value: 99, **kwargs)
       argument(
         name,
