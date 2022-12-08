@@ -85,8 +85,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     aggregate_failures 'checking response' do
       expect(response.status).to eq 200
       options = result.dig('data', 'pickList')
-      expect(options[0]['code']).to eq(::HUD.homeless_situations(as: :prior).first.to_s)
-      expect(options[0]['label']).to eq(::HUD.living_situation(options[0]['code'].to_i))
+      expect(options[0]['code']).to eq(Types::HmisSchema::Enums::Hud::LivingSituation.all_enum_value_definitions.find { |v| v.value == 16 }.graphql_name)
+      expect(options[0]['label']).to eq(::HUD.living_situation(16))
       expect(options[0]['groupCode']).to eq('HOMELESS')
       expect(options[0]['groupLabel']).to eq('Homeless')
     end

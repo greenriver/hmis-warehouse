@@ -15,7 +15,7 @@ module Types
     field :id, ID, null: false
     field :enrollment, HmisSchema::Enrollment, null: false
     field :client, HmisSchema::Client, null: false
-    field :user, HmisSchema::User, null: false
+    field :user, HmisSchema::User, null: true
     hud_field :information_date
     hud_field :disability_type, HmisSchema::Enums::Hud::DisabilityType
     hud_field :disability_response, HmisSchema::Enums::Hud::DisabilityResponse

@@ -36,7 +36,7 @@ module Confidence
       ).order(:resource_id, iteration: :asc).distinct_on(:resource_id)
 
       unless queued_for_batch.any?
-        dm_model.logger.warn { "#{self.class} found no queued requests. Nothing to do." }
+        Rails.logger.warn { "#{self.class} found no queued requests. Nothing to do." }
         return
       end
 
@@ -72,7 +72,7 @@ module Confidence
         if previous_value
           record.change = record.value - previous_value
         else
-          dm_model.logger.warn { "#{self.class} missing #{previous_key.inspect}. Cannot calculate change" }
+          Rails.logger.warn { "#{self.class} missing #{previous_key.inspect}. Cannot calculate change" }
           record.change = nil
         end
       end

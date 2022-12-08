@@ -66,7 +66,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       <<~GRAPHQL
         query GetClient($id: ID!) {
           client(id: $id) {
-            enrollments {
+            enrollments(includeInProgress: true) {
               nodesCount
               nodes {
                 id

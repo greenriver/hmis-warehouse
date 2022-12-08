@@ -1,0 +1,11 @@
+.site-status.border-top-1
+  %h4
+    = link_to 'Delayed Job Status', admin_delayed_jobs_path
+  .dj-status
+    .dj-status__queue
+      Running:
+      %strong= Delayed::Job.where(failed_at: nil).where.not(locked_at: nil).count
+    - Delayed::Job.queue_status.each do |queue_name, count|
+      .dj-status__queue
+        #{queue_name}:
+        %strong= count

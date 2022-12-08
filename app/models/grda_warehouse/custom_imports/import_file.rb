@@ -12,7 +12,6 @@ module GrdaWarehouse::CustomImports
 
     acts_as_paranoid
     self.table_name = :custom_imports_files
-    attr_accessor :notifier_config
 
     belongs_to :config, class_name: 'GrdaWarehouse::CustomImports::Config'
     has_one :data_source, through: :config

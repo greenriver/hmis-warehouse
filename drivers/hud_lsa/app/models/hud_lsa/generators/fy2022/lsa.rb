@@ -19,7 +19,7 @@ module HudLsa::Generators::Fy2022
     include MissingDataConcern
     include ViewRelatedConcern
     include StatusProgressionConcern
-    attr_accessor :report, :send_notifications, :notifier_config, :destroy_rds, :hmis_export_id, :test
+    attr_accessor :report, :destroy_rds, :hmis_export_id, :test
     has_one_attached :result_file
     has_one_attached :intermediate_file
     has_one :summary_result, class_name: 'HudLsa::Fy2022::SummaryResult', foreign_key: :hud_report_instance_id

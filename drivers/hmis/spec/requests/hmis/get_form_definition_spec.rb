@@ -1,6 +1,7 @@
 require 'rails_helper'
 require_relative 'login_and_permissions'
 require_relative 'hmis_base_setup'
+require_relative 'hmis_form_setup'
 
 RSpec.describe Hmis::GraphqlController, type: :request do
   before(:all) do
@@ -11,6 +12,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   include_context 'hmis base setup'
+  include_context 'hmis form setup'
+
   let(:c1) { create :hmis_hud_client, data_source: ds1, user: u1 }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1 }
   let!(:fd1) { create :hmis_form_definition }
@@ -27,38 +30,54 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     }
   end
 
-  let(:query) do
+  let(:find_by_role_query) do
     <<~GRAPHQL
-      query GetFormDefinition($enrollmentId: ID!, $assessmentRole: AssessmentRole!) {
+      query FindFormDefinitionByRole($enrollmentId: ID!, $assessmentRole: AssessmentRole!) {
         getFormDefinition(enrollmentId: $enrollmentId, assessmentRole: $assessmentRole) {
-          #{scalar_fields(Types::Forms::FormDefinition)}
-          definition {
-            item {
-              #{scalar_fields(Types::Forms::FormItem)}
-              pickListOptions {
-                #{scalar_fields(Types::Forms::PickListOption)}
-              }
-              enableBehavior
-              enableWhen {
-                #{scalar_fields(Types::Forms::EnableWhen)}
-              }
-              item {
-                linkId
-              }
-            }
-          }
+          #{form_definition_fragment}
         }
       }
     GRAPHQL
   end
 
-  it 'should get a form definition successfully' do
-    response, result = post_graphql(**input) { query }
+  let(:lookup_query) do
+    <<~GRAPHQL
+      query LookupFormDefinition($identifier: String!) {
+        formDefinition(identifier: $identifier) {
+          #{form_definition_fragment}
+        }
+      }
+    GRAPHQL
+  end
+
+  it 'should find definition by role' do
+    response, result = post_graphql(**input) { find_by_role_query }
 
     aggregate_failures 'checking response' do
       expect(response.status).to eq 200
       form_definition = result.dig('data', 'getFormDefinition')
       expect(form_definition['id']).to eq(fd1.id.to_s)
+    end
+  end
+
+  it 'should resolve base assessment form definition' do
+    response, _result = post_graphql(identifier: base_assessment_form_definition.identifier) { lookup_query }
+
+    expect(response.status).to eq 200
+  end
+
+  it 'should resolve record-editing form definitions' do
+    [
+      client_form_definition,
+      funder_form_definition,
+      inventory_form_definition,
+      organization_form_definition,
+      project_coc_form_definition,
+      project_form_definition,
+      search_form_definition,
+    ].each do |form_def|
+      response, _result = post_graphql(identifier: form_def.identifier) { lookup_query }
+      expect(response.status).to eq 200
     end
   end
 

@@ -39481,10 +39481,10 @@ CREATE INDEX idx_any_stage ON public."IncomeBenefits" USING btree ("IncomeFromAn
 
 
 --
--- Name: idx_ds_id_p_id_e_id_del; Type: INDEX; Schema: public; Owner: -
+-- Name: idx_dis_p_id_e_id_del_ds_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX idx_ds_id_p_id_e_id_del ON public."Disabilities" USING btree ("EnrollmentID", "PersonalID", "DateDeleted", data_source_id) WHERE ("IndefiniteAndImpairs" = 1);
+CREATE INDEX idx_dis_p_id_e_id_del_ds_id ON public."Disabilities" USING btree ("EnrollmentID", "PersonalID", "DateDeleted", data_source_id) WHERE ("IndefiniteAndImpairs" = 1);
 
 
 --
@@ -43426,6 +43426,20 @@ CREATE INDEX index_ma_yya_report_clients_on_service_history_enrollment_id ON pub
 --
 
 CREATE INDEX index_new_service_history_on_first_date_in_program ON public.new_service_history USING brin (first_date_in_program);
+
+
+--
+-- Name: index_nightly_census_by_projects_on_date; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_nightly_census_by_projects_on_date ON public.nightly_census_by_projects USING btree (date);
+
+
+--
+-- Name: index_nightly_census_by_projects_on_project_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_nightly_census_by_projects_on_project_id ON public.nightly_census_by_projects USING btree (project_id);
 
 
 --
@@ -50667,6 +50681,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20221110133236'),
 ('20221115123832'),
 ('20221115211004'),
+('20221116185411'),
 ('20221124002729'),
 ('20221126145518');
 

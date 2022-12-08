@@ -18,7 +18,7 @@ module HmisCsvImporter::HmisCsvCleanup
       project_source.import(
         project_batch,
         on_duplicate_key_update: {
-          conflict_target: [:id],
+          conflict_target: conflict_target(project_source),
           columns: [:ProjectName, :source_hash],
         },
       )

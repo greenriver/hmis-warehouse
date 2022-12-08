@@ -44,7 +44,7 @@ type Assessment {
   id: ID!
   inProgress: Boolean!
   prioritizationStatus: PrioritizationStatus
-  user: User!
+  user: User
 }
 
 """
@@ -93,7 +93,7 @@ enum AssessmentRole {
   """
   Form for creating or editing resources directly
   """
-  RESOURCE
+  RECORD
   UPDATE
 }
 
@@ -132,6 +132,29 @@ type AssessmentsPaginated {
   nodesCount: Int!
   offset: Int!
   pagesCount: Int!
+}
+
+"""
+Value to autofill based on conditional logic
+"""
+type AutofillValue {
+  autofillBehavior: EnableBehavior
+  autofillWhen: [EnableWhen!]
+
+  """
+  If question is boolean type, autofill value
+  """
+  valueBoolean: Boolean
+
+  """
+  If question is choice type, autofill value
+  """
+  valueCode: String
+
+  """
+  If question is numeric, autofill value
+  """
+  valueNumber: Int
 }
 
 """
@@ -187,9 +210,10 @@ type Client {
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
   disabilities(limit: Int, offset: Int): DisabilitiesPaginated!
+  disabilityGroups: [DisabilityGroup!]!
   dob: ISO8601Date
   dobDataQuality: DOBDataQuality!
-  enrollments(limit: Int, offset: Int, sortOrder: EnrollmentSortOption): EnrollmentsPaginated!
+  enrollments(includeInProgress: Boolean, limit: Int, offset: Int, sortOrder: EnrollmentSortOption): EnrollmentsPaginated!
   ethnicity: Ethnicity!
   firstName: String
   gender: [Gender!]!
@@ -281,15 +305,39 @@ type ClientsPaginated {
 
 enum Component {
   """
-  Component to render a boolean input item as a checkbox
+  Display text as an error alert
+  """
+  ALERT_ERROR
+
+  """
+  Display text as an info alert
+  """
+  ALERT_INFO
+
+  """
+  Display text as a success alert
+  """
+  ALERT_SUCCESS
+
+  """
+  Display text as a warning alert
+  """
+  ALERT_WARNING
+
+  """
+  Render a boolean input item as a checkbox
   """
   CHECKBOX
 
   """
-  Component to render a group that contains children of the same type (eg all
-  booleans). Optionally has a choice item, which must be the first item.
+  Render a group that contains children of the same type (e.g. all booleans)
   """
   INPUT_GROUP
+
+  """
+  Render a choice input item as radio buttons
+  """
+  RADIO_BUTTONS
 }
 
 """
@@ -769,7 +817,32 @@ type Disability {
   id: ID!
   indefiniteAndImpairs: Int
   informationDate: ISO8601Date!
-  user: User!
+  user: User
+}
+
+"""
+Group of disability records that were collected at the same time
+"""
+type DisabilityGroup {
+  chronicHealthCondition: NoYesReasonsForMissingData
+  chronicHealthConditionIndefiniteAndImpairs: NoYesReasonsForMissingData
+  dataCollectionStage: DataCollectionStage!
+  developmentalDisability: NoYesReasonsForMissingData
+  enrollment: Enrollment!
+  hivAids: NoYesReasonsForMissingData
+
+  """
+  Concatenated string of Disability record IDs
+  """
+  id: ID!
+  informationDate: ISO8601Date!
+  mentalHealthDisorder: NoYesReasonsForMissingData
+  mentalHealthDisorderIndefiniteAndImpairs: NoYesReasonsForMissingData
+  physicalDisability: NoYesReasonsForMissingData
+  physicalDisabilityIndefiniteAndImpairs: NoYesReasonsForMissingData
+  substanceUseDisorder: DisabilityResponse
+  substanceUseDisorderIndefiniteAndImpairs: NoYesReasonsForMissingData
+  user: User
 }
 
 """
@@ -847,6 +920,11 @@ enum DisabilityType {
   SUBSTANCE_USE_DISORDER
 }
 
+enum DisabledDisplay {
+  HIDDEN
+  PROTECTED
+}
+
 enum EnableBehavior {
   ALL
   ANY
@@ -902,6 +980,11 @@ type EnableWhen {
   answerNumber: Int
 
   """
+  The linkId of a question to compare with the question using the operator
+  """
+  compareQuestion: String
+
+  """
   How to evaluate the question's answer
   """
   operator: EnableOperator!
@@ -920,6 +1003,7 @@ type Enrollment {
   client: Client!
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
+  dateToStreetEssh: ISO8601Date
   dateUpdated: ISO8601DateTime!
   disablingCondition: NoYesReasonsForMissingData
   entryDate: ISO8601Date!
@@ -931,10 +1015,12 @@ type Enrollment {
   lengthOfStay: ResidencePriorLengthOfStay
   livingSituation: LivingSituation
   monthsHomelessPastThreeYears: MonthsHomelessPastThreeYears
+  previousStreetEssh: Boolean
   project: Project!
   relationshipToHoH: RelationshipToHoH!
   services(limit: Int, offset: Int, sortOrder: ServiceSortOption): ServicesPaginated!
   timesHomelessPastThreeYears: TimesHomelessPastThreeYears
+  user: User
 }
 
 """
@@ -1005,11 +1091,11 @@ type Event {
   eventDate: ISO8601DateTime!
   id: ID!
   locationCrisisOrPhHousing: String
-  probSolDivRrResult: NoYesMissing
-  referralCaseManageAfter: NoYesMissing
+  probSolDivRrResult: Boolean
+  referralCaseManageAfter: Boolean
   referralResult: ReferralResult
   resultDate: ISO8601DateTime
-  user: User!
+  user: User
 }
 
 """
@@ -1192,6 +1278,10 @@ type FormDefinitionJson {
 A question or group of questions
 """
 type FormItem {
+  """
+  Value(s) to autofill based on conditional logic
+  """
+  autofillValues: [AutofillValue!]
   bounds: [ValueBound!]
 
   """
@@ -1203,8 +1293,19 @@ type FormItem {
   Include this item only if the Client meets this HUD DataCollectedAbout condition
   """
   dataCollectedAbout: DataCollectedAbout
+
+  """
+  How to display item if it is disabled
+  """
+  disabledDisplay: DisabledDisplay
   enableBehavior: EnableBehavior
   enableWhen: [EnableWhen!]
+
+  """
+  Name of the field on the record (or on the query input type). Used for record
+  creation/update forms and for assessment population.
+  """
+  fieldName: String
 
   """
   Include this item only for the listed funders
@@ -1262,15 +1363,14 @@ type FormItem {
   projectTypesIncluded: [ProjectType!]
 
   """
-  Name of the query input field that corresponds to this item. Only used for
-  record creation/update forms, not for assessments.
-  """
-  queryField: String
-
-  """
   Whether human editing is allowed
   """
   readOnly: Boolean
+
+  """
+  Record type to use for population
+  """
+  recordType: RelatedRecordType
 
   """
   Whether the item may repeat (for choice types, this means multiple choice)
@@ -1683,6 +1783,7 @@ type HealthAndDv {
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
   dentalHealthStatus: HealthStatus
+  domesticViolenceVictim: NoYesReasonsForMissingData
   dueDate: ISO8601Date
   enrollment: Enrollment!
   feelingFrequency: FeelingFrequency
@@ -1693,7 +1794,7 @@ type HealthAndDv {
   mentalHealthStatus: HealthStatus
   pregnancyStatus: NoYesReasonsForMissingData
   supportFromOthers: WellbeingAgreement
-  user: User!
+  user: User
   whenOccurred: WhenDVOccurred
 }
 
@@ -1821,31 +1922,68 @@ An ISO 8601-encoded datetime
 scalar ISO8601DateTime
 
 type IncomeBenefit {
+  adap: NoYesReasonsForMissingData
   alimonyAmount: Float
+  benefitsFromAnySource: NoYesReasonsForMissingData
   childSupportAmount: Float
   client: Client!
+  cobra: Boolean
+  connectionWithSoar: NoYesReasonsForMissingData
   dataCollectionStage: DataCollectionStage!
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
   earnedAmount: Float
+  employerProvided: Boolean
   enrollment: Enrollment!
   gaAmount: Float
+  hivaidsAssistance: NoYesReasonsForMissingData
   id: ID!
+  incomeFromAnySource: NoYesReasonsForMissingData
+  indianHealthServices: Boolean
   informationDate: ISO8601Date!
+  insuranceFromAnySource: NoYesReasonsForMissingData
+  medicaid: Boolean
+  medicare: Boolean
+  noAdapReason: NoAssistanceReason
+  noCobraReason: ReasonNotInsured
+  noEmployerProvidedReason: ReasonNotInsured
+  noHivaidsAssistanceReason: NoAssistanceReason
+  noIndianHealthServicesReason: ReasonNotInsured
+  noMedicaidReason: ReasonNotInsured
+  noMedicareReason: ReasonNotInsured
+  noPrivatePayReason: ReasonNotInsured
+  noRyanWhiteReason: NoAssistanceReason
+  noSchipReason: ReasonNotInsured
+  noStateHealthInsReason: ReasonNotInsured
+  noVaMedReason: ReasonNotInsured
+  otherBenefitsSource: Boolean
+  otherBenefitsSourceIdentify: String
   otherIncomeAmount: Float
   otherIncomeSourceIdentify: String
+  otherInsurance: Boolean
+  otherInsuranceIdentify: String
+  otherTanf: Boolean
   pensionAmount: Float
   privateDisabilityAmount: Float
+  privatePay: Boolean
+  ryanWhiteMedDent: NoYesReasonsForMissingData
+  schip: Boolean
+  snap: Boolean
   socSecRetirementAmount: Float
   ssdiAmount: Float
   ssiAmount: Float
+  stateHealthIns: Boolean
   tanfAmount: Float
+  tanfChildCare: Boolean
+  tanfTransportation: Boolean
   totalMonthlyIncome: String
   unemploymentAmount: Float
-  user: User!
+  user: User
   vaDisabilityNonServiceAmount: Float
   vaDisabilityServiceAmount: Float
+  vaMedicalServices: Boolean
+  wic: Boolean
   workersCompAmount: Float
 }
 
@@ -1872,6 +2010,11 @@ type InitialValue {
   If question is choice type, initial value
   """
   valueCode: String
+
+  """
+  Name of local variable to use as initial value if present. Variable type should match item type.
+  """
+  valueLocalConstant: String
 
   """
   If question is numeric, initial value
@@ -2434,23 +2577,43 @@ enum NameDataQuality {
 }
 
 """
-1.7
+W3
 """
-enum NoYesMissing {
+enum NoAssistanceReason {
+  """
+  (2) Applied; client not eligible
+  """
+  APPLIED_CLIENT_NOT_ELIGIBLE
+
+  """
+  (1) Applied; decision pending
+  """
+  APPLIED_DECISION_PENDING
+
+  """
+  (3) Client did not apply
+  """
+  CLIENT_DID_NOT_APPLY
+
+  """
+  (8) Client doesn't know
+  """
+  CLIENT_DOESN_T_KNOW
+
+  """
+  (9) Client refused
+  """
+  CLIENT_REFUSED
+
   """
   (99) Data not collected
   """
   DATA_NOT_COLLECTED
 
   """
-  (0) No
+  (4) Insurance type not applicable for this client
   """
-  NO
-
-  """
-  (1) Yes
-  """
-  YES
+  INSURANCE_TYPE_NOT_APPLICABLE_FOR_THIS_CLIENT
 }
 
 """
@@ -2896,6 +3059,46 @@ enum Race {
 }
 
 """
+4.04.A
+"""
+enum ReasonNotInsured {
+  """
+  (2) Applied; client not eligible
+  """
+  APPLIED_CLIENT_NOT_ELIGIBLE
+
+  """
+  (1) Applied; decision pending
+  """
+  APPLIED_DECISION_PENDING
+
+  """
+  (3) Client did not apply
+  """
+  CLIENT_DID_NOT_APPLY
+
+  """
+  (8) Client doesn't know
+  """
+  CLIENT_DOESN_T_KNOW
+
+  """
+  (9) Client refused
+  """
+  CLIENT_REFUSED
+
+  """
+  (99) Data not collected
+  """
+  DATA_NOT_COLLECTED
+
+  """
+  (4) Insurance type N/A for this client
+  """
+  INSURANCE_TYPE_N_A_FOR_THIS_CLIENT
+}
+
+"""
 1.4
 """
 enum RecordType {
@@ -2983,6 +3186,51 @@ enum ReferralResult {
   (3) Unsuccessful referral: provider rejected
   """
   UNSUCCESSFUL_REFERRAL_PROVIDER_REJECTED
+}
+
+"""
+Related record type for a group of questions in an assessment
+"""
+enum RelatedRecordType {
+  """
+  CurrentLivingSituation
+  """
+  CURRENT_LIVING_SITUATION
+
+  """
+  DisabilityGroup
+  """
+  DISABILITY_GROUP
+
+  """
+  ExmploymentEducation
+  """
+  EMPLOYMENT_EDUCATION
+
+  """
+  Enrollment
+  """
+  ENROLLMENT
+
+  """
+  Exit
+  """
+  EXIT
+
+  """
+  HealthAndDv
+  """
+  HEALTH_AND_DV
+
+  """
+  IncomeBenefit
+  """
+  INCOME_BENEFIT
+
+  """
+  YouthEducationStatus
+  """
+  YOUTH_EDUCATION_STATUS
 }
 
 """
@@ -3146,7 +3394,7 @@ type Service {
   referralOutcome: PATHReferralOutcome
   subTypeProvided: ServiceSubTypeProvided
   typeProvided: ServiceTypeProvided!
-  user: User!
+  user: User
 }
 
 """

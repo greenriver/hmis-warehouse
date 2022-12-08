@@ -54,6 +54,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               #{scalar_fields(Types::HmisSchema::HealthAndDv)}
             }
           }
+          disabilityGroups {
+            #{scalar_fields(Types::HmisSchema::DisabilityGroup)}
+          }
         }
       }
     GRAPHQL
@@ -97,6 +100,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(client['incomeBenefits']['nodesCount']).to eq(0)
       expect(client['disabilities']['nodesCount']).to eq(0)
       expect(client['healthAndDvs']['nodesCount']).to eq(0)
+      expect(client['disabilityGroups'].size).to eq(0)
     end
 
     it 'should resolve related records if user has view access' do
@@ -109,6 +113,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(client['incomeBenefits']['nodesCount']).to eq(1)
       expect(client['disabilities']['nodesCount']).to eq(1)
       expect(client['healthAndDvs']['nodesCount']).to eq(1)
+      expect(client['disabilityGroups'].size).to eq(1)
     end
   end
 

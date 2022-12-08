@@ -1481,7 +1481,7 @@ module GrdaWarehouse::Hud
       image_directory = File.join('public', 'fake_photos', age_group, gender)
       available = Dir[File.join(image_directory, '*.jpg')]
       image_id = "#{self.FirstName}#{self.LastName}".sum % available.count
-      logger.debug "Client#image id:#{self.id} faked #{self.PersonalID} #{available.count} #{available[image_id]}" # rubocop:disable Style/RedundantSelf
+      Rails.logger.debug "Client#image id:#{self.id} faked #{self.PersonalID} #{available.count} #{available[image_id]}" # rubocop:disable Style/RedundantSelf
       image_data = File.read(available[image_id]) # rubocop:disable Lint/UselessAssignment
     end
 
@@ -2482,9 +2482,12 @@ module GrdaWarehouse::Hud
     end
 
     def force_full_service_history_rebuild
-      service_history_enrollments.where(record_type: [:entry, :exit, :service, :extrapolated]).delete_all
-      source_enrollments.update_all(processed_as: nil)
-      invalidate_service_history
+      # If we're already forcing a rebuild, we don't need to clear things again
+      self.class.with_advisory_lock([__method__, self.class.name, id].join('_'), timeout_seconds: 0) do
+        service_history_enrollments.where(record_type: [:entry, :exit, :service, :extrapolated]).delete_all
+        source_enrollments.update_all(processed_as: nil)
+        invalidate_service_history
+      end
     end
 
     def self.clear_view_cache(id)

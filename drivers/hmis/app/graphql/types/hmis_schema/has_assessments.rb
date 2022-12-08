@@ -13,7 +13,7 @@ module Types
 
       class_methods do
         def assessments_field(name = :assessments, description = nil, **override_options, &block)
-          default_field_options = { type: [Types::HmisSchema::Assessment], null: false, description: description }
+          default_field_options = { type: HmisSchema::Assessment.page_type, null: false, description: description }
           field_options = default_field_options.merge(override_options)
           field(name, **field_options) do
             argument :sort_order, Types::HmisSchema::AssessmentSortOption, required: false

@@ -105,11 +105,6 @@ module HudSpmReport::Generators::Fy2020
       @universe ||= @report.universe(self.class.question_number)
     end
 
-    # logger we can use here
-    private def logger
-      @report.logger
-    end
-
     private def prepare_table(table_name, rows, cols)
       @report.answer(question: table_name).update(
         metadata: {
@@ -1567,11 +1562,11 @@ module HudSpmReport::Generators::Fy2020
       if dates.any?
         # Find the latest bed night (stopping at the report date end)
         client_end_date = [dates.last.to_date, @report.end_date].min
-        # logger.info "Latest Homeless Bed Night: #{client_end_date}"
+        # Rails.logger.info "Latest Homeless Bed Night: #{client_end_date}"
 
         # Determine the client's start date
         client_start_date = [client_end_date.to_date - 365.days, LOOKBACK_STOP_DATE].max
-        # logger.info "Client's initial start date: #{client_start_date}"
+        # Rails.logger.info "Client's initial start date: #{client_start_date}"
         days_before_client_start_date = dates.select do |d|
           d.to_date < client_start_date.to_date
         end
@@ -1586,12 +1581,12 @@ module HudSpmReport::Generators::Fy2020
           end
         end
         client_start_date = [new_client_start_date.to_date, LOOKBACK_STOP_DATE].max
-        # logger.info "Client's new start date: #{client_start_date}"
+        # Rails.logger.info "Client's new start date: #{client_start_date}"
 
         # Remove any days outside of client_start_date and client_end_date
-        # logger.info "Days homeless before limits #{dates.count}"
+        # Rails.logger.info "Days homeless before limits #{dates.count}"
         dates.delete_if { |d| d.to_date < client_start_date.to_date || d.to_date > client_end_date.to_date }
-        # logger.info "Days homeless after limits #{dates.count}"
+        # Rails.logger.info "Days homeless after limits #{dates.count}"
       end
       # binding.pry if debug
       # If the client doesn't have any days within the report range in the appropriate project types, exclude them

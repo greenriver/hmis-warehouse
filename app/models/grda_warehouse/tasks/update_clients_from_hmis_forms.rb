@@ -7,10 +7,9 @@
 module GrdaWarehouse::Tasks
   class UpdateClientsFromHmisForms
     include NotifierConfig
-    attr_accessor :logger, :send_notifications, :notifier_config
+
     def initialize(client_ids: [])
       setup_notifier('HMIS Form -> Client Sync')
-      self.logger = Rails.logger
       @client_ids = client_ids
     end
 
@@ -18,12 +17,12 @@ module GrdaWarehouse::Tasks
       # Fail gracefully if there's no ETO API
       return unless GrdaWarehouse::Config.get(:eto_api_available)
 
-      # @notifier.ping('Updating clients from HMIS Forms...') if @send_notifications
+      # @notifier.ping('Updating clients from HMIS Forms...')
       GrdaWarehouse::HmisForm.set_pathways_results
       GrdaWarehouse::HmisForm.covid_19_impact_assessment_results
       update_rrh_assessment_data()
       update_pathways_assessment_data()
-      # @notifier.ping('Updated clients from HMIS Forms') if @send_notifications
+      # @notifier.ping('Updated clients from HMIS Forms')
     end
 
     def update_rrh_assessment_data

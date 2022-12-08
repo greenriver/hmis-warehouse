@@ -94,11 +94,15 @@ module HmisDataQualityTool
         report.user,
         client_ids: all_source_client_ids,
       ).pluck(:id).to_set
+      client_ids_at_chosen_projects = GrdaWarehouse::Hud::Enrollment.joins(:project, :client).
+        merge(GrdaWarehouse::Hud::Project.where(id: report.filter.effective_project_ids)).
+        pluck(c_t[:id]).to_set
       client_scope(report).find_in_batches do |batch|
         intermediate = {}
         batch.each do |client|
           client.source_clients.each do |sc|
             next unless visible_source_client_ids.include?(sc.id)
+            next unless client_ids_at_chosen_projects.include?(sc.id)
 
             item = report_item_fields_from_client(
               report_items: report_items,

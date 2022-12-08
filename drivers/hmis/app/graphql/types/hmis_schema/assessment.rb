@@ -20,7 +20,7 @@ module Types
     field :date_updated, GraphQL::Types::ISO8601DateTime, null: false
     field :date_deleted, GraphQL::Types::ISO8601DateTime, null: true
     field :assessment_detail, HmisSchema::AssessmentDetail, null: true
-    field :user, HmisSchema::User, null: false
+    field :user, HmisSchema::User, null: true
     field :client, HmisSchema::Client, null: false
     field :in_progress, Boolean, null: false
 

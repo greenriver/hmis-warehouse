@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: hmis_warehouse 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-09-06 19:56+0000\n"
-"PO-Revision-Date: 2022-09-06 19:56+0000\n"
+"POT-Creation-Date: 2022-11-30 17:57+0000\n"
+"PO-Revision-Date: 2022-11-30 17:57+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
@@ -36,6 +36,9 @@ msgstr ""
 msgid "A summary of SPMs 1, 2, and 7 with sub-population and demographic details"
 msgstr ""
 
+msgid "A tool to track data quality across HMIS data used in HUD reports."
+msgstr ""
+
 msgid "A tool to track performance and utilization of Coordinated Entry resources."
 msgstr ""
 
@@ -49,6 +52,9 @@ msgid "Actual Expenditures in eLOCCS"
 msgstr ""
 
 msgid "Ad-Hoc Data Sources"
+msgstr ""
+
+msgid "Add a PIT Count"
 msgstr ""
 
 msgid "Add a Release"
@@ -112,6 +118,12 @@ msgid "Average Length of time from Access to Assessment"
 msgstr ""
 
 msgid "Average Single VI-SPDAT Score"
+msgstr ""
+
+msgid "Average Time in Housing for the Reporting Period"
+msgstr ""
+
+msgid "Average Time in Search for the Reporting Period"
 msgstr ""
 
 msgid "Average VI-SPDAT Score"
@@ -3540,10 +3552,28 @@ msgstr ""
 msgid "Client does not have a community preference."
 msgstr ""
 
+msgid "Clients Entering Housing"
+msgstr ""
+
+msgid "Clients Entering Search"
+msgstr ""
+
+msgid "Clients Exited Housing"
+msgstr ""
+
+msgid "Clients Exiting Search"
+msgstr ""
+
 msgid "Clients Screened for Prevention"
 msgstr ""
 
 msgid "Clients Served"
+msgstr ""
+
+msgid "Clients in Housing"
+msgstr ""
+
+msgid "Clients in Search"
 msgstr ""
 
 msgid "Clients moving into permanent housing"
@@ -3559,9 +3589,6 @@ msgid "Cohort is visible on Client dashboard"
 msgstr ""
 
 msgid "Cohorts"
-msgstr ""
-
-msgid "Configure Performance Measurement Goal"
 msgstr ""
 
 msgid "Consent form confirmed"
@@ -3708,6 +3735,9 @@ msgstr ""
 msgid "HMIS Data Quality 20%"
 msgstr ""
 
+msgid "HMIS Data Quality Tool"
+msgstr ""
+
 msgid "HMIS Data Sources"
 msgstr ""
 
@@ -3798,21 +3828,6 @@ msgstr ""
 msgid "Import Dashboard"
 msgstr ""
 
-msgid "Import a Zip of HUD CSVs"
-msgstr ""
-
-msgid "Import failed to queue."
-msgstr ""
-
-msgid "Import queued to start."
-msgstr ""
-
-msgid "Import was successfully removed."
-msgstr ""
-
-msgid "Import was successfully updated."
-msgstr ""
-
 msgid "Improving a household's access to financial resources is crucial to reducing vulnerability to homelessness. Increase in income is measured through the NOFA & System Performance Measures."
 msgstr ""
 
@@ -3877,6 +3892,12 @@ msgid "Location Option 3"
 msgstr ""
 
 msgid "Location Option 4"
+msgstr ""
+
+msgid "MA YYA Follow Up Report"
+msgstr ""
+
+msgid "MA YYA Report"
 msgstr ""
 
 msgid "MA-500 Boston Continuum of Care FY2022 Renewal Project Scoring Tool"
@@ -4020,16 +4041,19 @@ msgstr ""
 msgid "Percent Homeless Comparison Report Generator"
 msgstr ""
 
+msgid "Percentage of clients enrolled in housing out of those enrolled in either search or housing"
+msgstr ""
+
+msgid "Percentage of clients exiting housing to a permanent destination out of those who exited housing"
+msgstr ""
+
+msgid "Percentage of clients exiting search to housing out of those who exited search"
+msgstr ""
+
 msgid "Percentage of clients with increased income"
 msgstr ""
 
 msgid "Performance Management Dashboard"
-msgstr ""
-
-msgid "Performance Measurement Goal Configurator"
-msgstr ""
-
-msgid "Performance Measurement Report"
 msgstr ""
 
 msgid "Performance Metrics"
@@ -4155,9 +4179,6 @@ msgstr ""
 msgid "Scanned Services"
 msgstr ""
 
-msgid "Search"
-msgstr ""
-
 msgid "Search End"
 msgstr ""
 
@@ -4236,7 +4257,19 @@ msgstr ""
 msgid "Time Homeless"
 msgstr ""
 
+msgid "Time in Housing with an Exit to Any Destination"
+msgstr ""
+
 msgid "Time in Project"
+msgstr ""
+
+msgid "Time in Search with Exits to Housing"
+msgstr ""
+
+msgid "Time in Search with an Exit not to Housing"
+msgstr ""
+
+msgid "Time in Search with an Exit to Any Destination"
 msgstr ""
 
 msgid "To support collaboration between agencies and knowledge of local resources at the CoC will provides CoC wide meetings with varying topics related to homelessness and housing services. The measure indicates agency participation."
@@ -4347,7 +4380,16 @@ msgstr ""
 msgid "engagement period has ended, and there is no signed careplan"
 msgstr ""
 
-msgid "housing"
+msgid "entered Housing during the reporting period"
+msgstr ""
+
+msgid "entered Search during the reporting period"
+msgstr ""
+
+msgid "exited Housing during the reporting period"
+msgstr ""
+
+msgid "exited Search during the reporting period"
 msgstr ""
 
 msgid "invalid procedure code"
@@ -4377,9 +4419,6 @@ msgstr ""
 msgid "pre-placement"
 msgstr ""
 
-msgid "search"
-msgstr ""
-
 msgid "stabilization"
 msgstr ""
 
@@ -4399,4 +4438,16 @@ msgid "too many non-outreach activities in the month"
 msgstr ""
 
 msgid "too many outreach activities in the month"
+msgstr ""
+
+msgid "was enrolled in housing"
+msgstr ""
+
+msgid "was in search"
+msgstr ""
+
+msgid "were enrolled in housing"
+msgstr ""
+
+msgid "were in search"
 msgstr ""
