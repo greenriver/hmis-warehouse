@@ -56,7 +56,8 @@ module Mutations
     def default_update_record(record:, field_name:, input:, confirmed: true)
       return { field_name => nil, errors: [InputValidationError.new("#{field_name.to_s.humanize} record not found", attribute: 'id')] } unless record.present?
 
-      errors = []
+      errors = create_errors(record, input)
+
       # Add custom warnings to error list
       errors += create_warnings(record, input) unless confirmed
 
@@ -79,6 +80,11 @@ module Mutations
 
     # Override to create custom warnings
     def create_warnings(_record, _input)
+      []
+    end
+
+    # Override to create custom errors
+    def create_errors(_record, _input)
       []
     end
 
