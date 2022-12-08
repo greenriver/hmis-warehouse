@@ -1555,6 +1555,11 @@
               "_comment": "It should autofull when ANY element is interacted with, so add these as dependencies even though they do not determine disabling condition status. This autofill will only occur if none of the above rules matcheed.",
               "autofill_when": [
                 {
+                  "question": "4.05.2",
+                  "operator": "EXISTS",
+                  "answer_boolean": true
+                },
+                {
                   "question": "4.07.2",
                   "operator": "EXISTS",
                   "answer_boolean": true
