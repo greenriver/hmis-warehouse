@@ -10294,7 +10294,8 @@ CREATE TABLE public.hmis_assessment_details (
     status character varying,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    "values" jsonb
+    "values" jsonb,
+    hud_values jsonb
 );
 
 
@@ -50683,6 +50684,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20221115211004'),
 ('20221116185411'),
 ('20221124002729'),
-('20221126145518');
+('20221126145518'),
+('20221207171030');
 
 

@@ -94,4 +94,30 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
     @in_progress = enrollment_id == WIP_ID if @in_progress.nil?
     @in_progress
   end
+
+  def self.new_with_defaults(enrollment:, user:, form_definition:, assessment_date:)
+    new_assessment = new(
+      data_source_id: user.data_source_id,
+      user_id: user.user_id,
+      personal_id: enrollment.personal_id,
+      enrollment_id: enrollment.enrollment_id,
+      assessment_id: Hmis::Hud::Assessment.generate_assessment_id,
+      assessment_date: assessment_date,
+      assessment_location: enrollment.project.project_name,
+      assessment_type: ::HUD.ignored_enum_value,
+      assessment_level: ::HUD.ignored_enum_value,
+      prioritization_status: ::HUD.ignored_enum_value,
+      date_created: DateTime.current,
+      date_updated: DateTime.current,
+    )
+
+    new_assessment.assessment_detail = Hmis::Form::AssessmentDetail.new(
+      definition: form_definition,
+      role: form_definition.role,
+      data_collection_stage: Types::HmisSchema::Enums::AssessmentRole.as_data_collection_stage(form_definition.role),
+      status: 'draft',
+    )
+
+    new_assessment
+  end
 end

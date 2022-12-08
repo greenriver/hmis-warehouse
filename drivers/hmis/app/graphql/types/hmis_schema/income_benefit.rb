@@ -21,6 +21,7 @@ module Types
     # Income
     hud_field :income_from_any_source, HmisSchema::Enums::Hud::NoYesReasonsForMissingData
     hud_field :total_monthly_income
+    # TODO add all these
     # hud_field :earned
     hud_field :earned_amount
     # hud_field :unemployment
