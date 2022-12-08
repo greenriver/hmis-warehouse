@@ -304,7 +304,7 @@ module HmisDataQualityTool
       {
         gender_issues: {
           title: 'Gender',
-          description: 'Gender fields and Gender None are incompatible, or invalid gender response was recorded',
+          description: 'Gender fields and Gender None are incompatible, or invalid gender response was recorded, or the responses are compatible, but Gender None is "Data not collected" (99)',
           required_for: 'All',
           detail_columns: [
             :destination_client_id,
@@ -333,15 +333,16 @@ module HmisDataQualityTool
             # any are yes and GenderNone is present and not 99
             return true if values.include?(1) && item.gender_none.present? && item.gender_none != 99
 
-            # all are no or not collected and GenderNone is not in 8, 9, 99
-            return true if values.all? { |m| m.in?([0, 99]) } && ! item.gender_none.in?([8, 9, 99])
+            # all are no or not collected and GenderNone is not in 8, 9
+            # note: GenderNone 99 will trigger an error even though all 0s and a 99 is a valid response
+            return true if values.all? { |m| m.in?([0, 99]) } && ! item.gender_none.in?([8, 9])
 
             false
           },
         },
         race_issues: {
           title: 'Race',
-          description: 'Race fields and Race None are incompatible, or invalid race response was recorded',
+          description: 'Race fields and Race None are incompatible, or invalid race response was recorded, or the responses are compatible, but Race None is "Data not collected" (99)',
           required_for: 'All',
           detail_columns: [
             :destination_client_id,
@@ -370,8 +371,9 @@ module HmisDataQualityTool
             # any are yes and RaceNone is present and isn't "not collected"
             return true if values.include?(1) && item.race_none.present? && item.race_none != 99
 
-            # all are no or not collected and RaceNone is not in 8, 9, 99
-            return true if values.all? { |m| m.in?([0, 99]) } && ! item.race_none.in?([8, 9, 99])
+            # all are no or not collected and RaceNone is not in 8, 9
+            # note: RaceNone 99 will trigger an error even though all 0s and a 99 is a valid response
+            return true if values.all? { |m| m.in?([0, 99]) } && ! item.race_none.in?([8, 9])
 
             false
           },
