@@ -405,6 +405,22 @@
                       "answer_number": 0
                     }
                   ]
+                },
+                {
+                  "value_boolean": false,
+                  "autofill_behavior": "ANY",
+                  "autofill_when": [
+                    {
+                      "question": "4.02.A",
+                      "operator": "LESS_THAN_EQUAL",
+                      "answer_number": 0
+                    },
+                    {
+                      "question": "4.02.A",
+                      "operator": "EXISTS",
+                      "answer_boolean": false
+                    }
+                  ]
                 }
               ]
             },
@@ -428,6 +444,22 @@
                       "question": "4.02.B",
                       "operator": "GREATER_THAN",
                       "answer_number": 0
+                    }
+                  ]
+                },
+                {
+                  "value_boolean": false,
+                  "autofill_behavior": "ANY",
+                  "autofill_when": [
+                    {
+                      "question": "4.02.B",
+                      "operator": "LESS_THAN_EQUAL",
+                      "answer_number": 0
+                    },
+                    {
+                      "question": "4.02.B",
+                      "operator": "EXISTS",
+                      "answer_boolean": false
                     }
                   ]
                 }
@@ -455,6 +487,22 @@
                       "answer_number": 0
                     }
                   ]
+                },
+                {
+                  "value_boolean": false,
+                  "autofill_behavior": "ANY",
+                  "autofill_when": [
+                    {
+                      "question": "4.02.C",
+                      "operator": "LESS_THAN_EQUAL",
+                      "answer_number": 0
+                    },
+                    {
+                      "question": "4.02.C",
+                      "operator": "EXISTS",
+                      "answer_boolean": false
+                    }
+                  ]
                 }
               ]
             },
@@ -478,6 +526,22 @@
                       "question": "4.02.D",
                       "operator": "GREATER_THAN",
                       "answer_number": 0
+                    }
+                  ]
+                },
+                {
+                  "value_boolean": false,
+                  "autofill_behavior": "ANY",
+                  "autofill_when": [
+                    {
+                      "question": "4.02.D",
+                      "operator": "LESS_THAN_EQUAL",
+                      "answer_number": 0
+                    },
+                    {
+                      "question": "4.02.D",
+                      "operator": "EXISTS",
+                      "answer_boolean": false
                     }
                   ]
                 }
@@ -505,6 +569,22 @@
                       "answer_number": 0
                     }
                   ]
+                },
+                {
+                  "value_boolean": false,
+                  "autofill_behavior": "ANY",
+                  "autofill_when": [
+                    {
+                      "question": "4.02.E",
+                      "operator": "LESS_THAN_EQUAL",
+                      "answer_number": 0
+                    },
+                    {
+                      "question": "4.02.E",
+                      "operator": "EXISTS",
+                      "answer_boolean": false
+                    }
+                  ]
                 }
               ]
             },
@@ -528,6 +608,22 @@
                       "question": "4.02.F",
                       "operator": "GREATER_THAN",
                       "answer_number": 0
+                    }
+                  ]
+                },
+                {
+                  "value_boolean": false,
+                  "autofill_behavior": "ANY",
+                  "autofill_when": [
+                    {
+                      "question": "4.02.F",
+                      "operator": "LESS_THAN_EQUAL",
+                      "answer_number": 0
+                    },
+                    {
+                      "question": "4.02.F",
+                      "operator": "EXISTS",
+                      "answer_boolean": false
                     }
                   ]
                 }
@@ -555,6 +651,22 @@
                       "answer_number": 0
                     }
                   ]
+                },
+                {
+                  "value_boolean": false,
+                  "autofill_behavior": "ANY",
+                  "autofill_when": [
+                    {
+                      "question": "4.02.G",
+                      "operator": "LESS_THAN_EQUAL",
+                      "answer_number": 0
+                    },
+                    {
+                      "question": "4.02.G",
+                      "operator": "EXISTS",
+                      "answer_boolean": false
+                    }
+                  ]
                 }
               ]
             },
@@ -578,6 +690,22 @@
                       "question": "4.02.H",
                       "operator": "GREATER_THAN",
                       "answer_number": 0
+                    }
+                  ]
+                },
+                {
+                  "value_boolean": false,
+                  "autofill_behavior": "ANY",
+                  "autofill_when": [
+                    {
+                      "question": "4.02.H",
+                      "operator": "LESS_THAN_EQUAL",
+                      "answer_number": 0
+                    },
+                    {
+                      "question": "4.02.H",
+                      "operator": "EXISTS",
+                      "answer_boolean": false
                     }
                   ]
                 }
@@ -605,6 +733,22 @@
                       "answer_number": 0
                     }
                   ]
+                },
+                {
+                  "value_boolean": false,
+                  "autofill_behavior": "ANY",
+                  "autofill_when": [
+                    {
+                      "question": "4.02.I",
+                      "operator": "LESS_THAN_EQUAL",
+                      "answer_number": 0
+                    },
+                    {
+                      "question": "4.02.I",
+                      "operator": "EXISTS",
+                      "answer_boolean": false
+                    }
+                  ]
                 }
               ]
             },
@@ -628,6 +772,22 @@
                       "question": "4.02.J",
                       "operator": "GREATER_THAN",
                       "answer_number": 0
+                    }
+                  ]
+                },
+                {
+                  "value_boolean": false,
+                  "autofill_behavior": "ANY",
+                  "autofill_when": [
+                    {
+                      "question": "4.02.J",
+                      "operator": "LESS_THAN_EQUAL",
+                      "answer_number": 0
+                    },
+                    {
+                      "question": "4.02.J",
+                      "operator": "EXISTS",
+                      "answer_boolean": false
                     }
                   ]
                 }
@@ -655,6 +815,22 @@
                       "answer_number": 0
                     }
                   ]
+                },
+                {
+                  "value_boolean": false,
+                  "autofill_behavior": "ANY",
+                  "autofill_when": [
+                    {
+                      "question": "4.02.K",
+                      "operator": "LESS_THAN_EQUAL",
+                      "answer_number": 0
+                    },
+                    {
+                      "question": "4.02.K",
+                      "operator": "EXISTS",
+                      "answer_boolean": false
+                    }
+                  ]
                 }
               ]
             },
@@ -678,6 +854,22 @@
                       "question": "4.02.L",
                       "operator": "GREATER_THAN",
                       "answer_number": 0
+                    }
+                  ]
+                },
+                {
+                  "value_boolean": false,
+                  "autofill_behavior": "ANY",
+                  "autofill_when": [
+                    {
+                      "question": "4.02.L",
+                      "operator": "LESS_THAN_EQUAL",
+                      "answer_number": 0
+                    },
+                    {
+                      "question": "4.02.L",
+                      "operator": "EXISTS",
+                      "answer_boolean": false
                     }
                   ]
                 }
@@ -705,6 +897,22 @@
                       "answer_number": 0
                     }
                   ]
+                },
+                {
+                  "value_boolean": false,
+                  "autofill_behavior": "ANY",
+                  "autofill_when": [
+                    {
+                      "question": "4.02.M",
+                      "operator": "LESS_THAN_EQUAL",
+                      "answer_number": 0
+                    },
+                    {
+                      "question": "4.02.M",
+                      "operator": "EXISTS",
+                      "answer_boolean": false
+                    }
+                  ]
                 }
               ]
             },
@@ -730,6 +938,22 @@
                       "answer_number": 0
                     }
                   ]
+                },
+                {
+                  "value_boolean": false,
+                  "autofill_behavior": "ANY",
+                  "autofill_when": [
+                    {
+                      "question": "4.02.N",
+                      "operator": "LESS_THAN_EQUAL",
+                      "answer_number": 0
+                    },
+                    {
+                      "question": "4.02.N",
+                      "operator": "EXISTS",
+                      "answer_boolean": false
+                    }
+                  ]
                 }
               ]
             },
@@ -753,6 +977,22 @@
                       "question": "4.02.O",
                       "operator": "GREATER_THAN",
                       "answer_number": 0
+                    }
+                  ]
+                },
+                {
+                  "value_boolean": false,
+                  "autofill_behavior": "ANY",
+                  "autofill_when": [
+                    {
+                      "question": "4.02.O",
+                      "operator": "LESS_THAN_EQUAL",
+                      "answer_number": 0
+                    },
+                    {
+                      "question": "4.02.O",
+                      "operator": "EXISTS",
+                      "answer_boolean": false
                     }
                   ]
                 }
