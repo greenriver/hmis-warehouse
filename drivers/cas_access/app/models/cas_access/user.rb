@@ -4,18 +4,18 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module Cas
+module CasAccess
   class User < CasBase
     has_one :contact
     belongs_to :agency, optional: true
 
     scope :in_directory, -> do
       preload(:contact, :agency).
-      where(active: true, exclude_from_directory: false)
+        where(active: true, exclude_from_directory: false)
     end
 
     scope :text_search, ->(text) do
-      where("first_name LIKE :text OR last_name LIKE :text OR email LIKE :text", text: "%#{text}%")
+      where('first_name LIKE :text OR last_name LIKE :text OR email LIKE :text', text: "%#{text}%")
     end
 
     def name
@@ -23,15 +23,13 @@ module Cas
     end
 
     def phone_for_directory
-      if contact.present?
-        contact.phone unless exclude_phone_from_directory
-      end
+      return unless  contact.present?
+
+      contact.phone unless exclude_phone_from_directory
     end
 
     def agency_name
-      if agency.present?
-        agency&.name
-      end
+      agency&.name
     end
   end
 end

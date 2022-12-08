@@ -4,7 +4,9 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module Cas
-  class PrimaryRace < CasBase
+module CasAccess
+  class ProjectClient < CasBase
+    belongs_to :client, class_name: 'CasAccess::Client', optional: true
+    belongs_to :data_source, optional: true
   end
 end

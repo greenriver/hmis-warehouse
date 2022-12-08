@@ -229,7 +229,7 @@ module GrdaWarehouse::CasProjectClientCalculator
         name if most_recent_pathways_or_transfer(client).
           question_matching_requirement(key, '1').present?
       end.compact
-      Cas::Neighborhood.neighborhood_ids_from_names(names)
+      CasAccess::Neighborhood.neighborhood_ids_from_names(names)
     end
 
     private def days_homeless_in_last_three_years_cached(client)

@@ -20,13 +20,13 @@ module GrdaWarehouse::Tasks
       # @notifier.ping('Updating clients from HMIS Forms...')
       GrdaWarehouse::HmisForm.set_pathways_results
       GrdaWarehouse::HmisForm.covid_19_impact_assessment_results
-      update_rrh_assessment_data()
-      update_pathways_assessment_data()
+      update_rrh_assessment_data
+      update_pathways_assessment_data
       # @notifier.ping('Updated clients from HMIS Forms')
     end
 
     def update_rrh_assessment_data
-      clients = clients_with_rrh_assessments()
+      clients = clients_with_rrh_assessments
       clients.find_each do |client|
         assessment = most_recent_rrh_assessment(client)
         client.rrh_assessment_score = assessment.rrh_assessment_score
@@ -41,7 +41,7 @@ module GrdaWarehouse::Tasks
     end
 
     def update_pathways_assessment_data
-      clients = clients_with_pathways_assessments()
+      clients = clients_with_pathways_assessments
       clients.find_each do |client|
         assessment = most_recent_pathways_assessment(client)
         monthly_income = if assessment&.income_total_annual&.positive?
@@ -68,7 +68,7 @@ module GrdaWarehouse::Tasks
         client.pathways_disabled_housing = assessment.disabled_housing
         client.evicted = assessment.evicted
 
-        client.neighborhood_interests = Cas::Neighborhood.neighborhood_ids_from_names(assessment.neighborhood_interests)
+        client.neighborhood_interests = CasAccess::Neighborhood.neighborhood_ids_from_names(assessment.neighborhood_interests)
 
         case assessment.youth_rrh_aggregate
         when 'youth'

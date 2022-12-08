@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module Cas
+module CasAccess
   class Tag < CasBase
     acts_as_paranoid
 

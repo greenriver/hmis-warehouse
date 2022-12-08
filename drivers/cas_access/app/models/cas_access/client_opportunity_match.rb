@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module Cas
+module CasAccess
   class ClientOpportunityMatch < CasBase
     belongs_to :client, optional: true
     scope :proposed, -> { where active: false, closed: false }

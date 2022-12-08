@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module Cas
+module CasAccess
   class ActivityLog < CasBase
     belongs_to :user
 
@@ -35,7 +35,7 @@ module Cas
     end
 
     def self.agency_name_column
-      Cas::Agency.arel_table[:name]
+      CasAccess::Agency.arel_table[:name]
     end
 
     def self.scrub(data)

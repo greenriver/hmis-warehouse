@@ -4,8 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module Cas
-  class Contact < CasBase
-    belongs_to :user, optional: true
+module CasAccess
+  class DataSource < CasBase
+    has_many :project_clients
   end
 end

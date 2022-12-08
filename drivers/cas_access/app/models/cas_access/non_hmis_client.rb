@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module Cas
+module CasAccess
   class NonHmisClient < CasBase
     include ArelHelper
     self.inheritance_column = :_type_disabled # disable STI
