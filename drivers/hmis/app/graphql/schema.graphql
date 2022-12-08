@@ -2831,16 +2831,8 @@ input ProjectInput {
   continuumProject: Boolean
   description: String
   housingType: HousingType
-
-  """
-  Date with format yyyy-mm-dd
-  """
-  operatingEndDate: String
-
-  """
-  Date with format yyyy-mm-dd
-  """
-  operatingStartDate: String
+  operatingEndDate: ISO8601Date
+  operatingStartDate: ISO8601Date
   organizationId: ID
   projectName: String
   projectType: ProjectType
@@ -3415,11 +3407,7 @@ HUD Service Input
 """
 input ServiceInput {
   FAAmount: Float
-
-  """
-  Date with format yyyy-mm-dd
-  """
-  dateProvided: String
+  dateProvided: ISO8601Date
   enrollmentId: ID
   movingOnOtherType: String
   otherTypeProvided: String
