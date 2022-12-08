@@ -74,7 +74,7 @@ module GrdaWarehouse::Tasks
             data_source_id: client.data_source_id,
           )
 
-          # Cleanup any propposed matches that might have been affected
+          # Cleanup any proposed matches that might have been affected
           GrdaWarehouse::ClientMatch.accept_exact_matches!
           print "Matched: #{index} #{DateTime.now}\n" if (index % 1000).zero? && index.positive?
         end

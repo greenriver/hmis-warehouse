@@ -204,8 +204,7 @@ module GrdaWarehouse
       score_sum / weight_sum
     end
 
-    def accept!(user: nil)
-      user ||= User.system_user
+    def accept!(user: User.system_user)
       flag_as(user: user, status: 'accepted')
       return unless destination_client && source_client
 
@@ -215,8 +214,7 @@ module GrdaWarehouse
       GrdaWarehouse::Tasks::ServiceHistory::Add.new(force_sequential_processing: true).run!
     end
 
-    def flag_as(user: nil, status:)
-      user ||= User.system_user
+    def flag_as(user: User.system_user, status:)
       update(
         updated_by_id: user.id,
         status: status,
