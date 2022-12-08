@@ -1896,8 +1896,10 @@ scalar ISO8601DateTime
 
 type IncomeBenefit {
   adap: NoYesReasonsForMissingData
+  alimony: Boolean
   alimonyAmount: Float
   benefitsFromAnySource: NoYesReasonsForMissingData
+  childSupport: Boolean
   childSupportAmount: Float
   client: Client!
   cobra: Boolean
@@ -1906,9 +1908,11 @@ type IncomeBenefit {
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
+  earned: Boolean
   earnedAmount: Float
   employerProvided: Boolean
   enrollment: Enrollment!
+  ga: Boolean
   gaAmount: Float
   hivaidsAssistance: NoYesReasonsForMissingData
   id: ID!
@@ -1933,30 +1937,41 @@ type IncomeBenefit {
   otherBenefitsSource: Boolean
   otherBenefitsSourceIdentify: String
   otherIncomeAmount: Float
+  otherIncomeSource: Boolean
   otherIncomeSourceIdentify: String
   otherInsurance: Boolean
   otherInsuranceIdentify: String
   otherTanf: Boolean
+  pension: Boolean
   pensionAmount: Float
+  privateDisability: Boolean
   privateDisabilityAmount: Float
   privatePay: Boolean
   ryanWhiteMedDent: NoYesReasonsForMissingData
   schip: Boolean
   snap: Boolean
+  socSecRetirement: Boolean
   socSecRetirementAmount: Float
+  ssdi: Boolean
   ssdiAmount: Float
+  ssi: Boolean
   ssiAmount: Float
   stateHealthIns: Boolean
+  tanf: Boolean
   tanfAmount: Float
   tanfChildCare: Boolean
   tanfTransportation: Boolean
   totalMonthlyIncome: String
+  unemployment: Boolean
   unemploymentAmount: Float
   user: User
+  vaDisabilityNonService: Boolean
   vaDisabilityNonServiceAmount: Float
+  vaDisabilityService: Boolean
   vaDisabilityServiceAmount: Float
   vaMedicalServices: Boolean
   wic: Boolean
+  workersComp: Boolean
   workersCompAmount: Float
 }
 
