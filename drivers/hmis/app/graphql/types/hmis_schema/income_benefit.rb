@@ -21,36 +21,39 @@ module Types
     # Income
     hud_field :income_from_any_source, HmisSchema::Enums::Hud::NoYesReasonsForMissingData
     hud_field :total_monthly_income
-    # TODO add all these
-    # hud_field :earned
+
+    # Income Booleans
+    yes_no_missing_field :earned
+    yes_no_missing_field :unemployment
+    yes_no_missing_field :ssi
+    yes_no_missing_field :ssdi
+    yes_no_missing_field :va_disability_service
+    yes_no_missing_field :va_disability_non_service
+    yes_no_missing_field :private_disability
+    yes_no_missing_field :workers_comp
+    yes_no_missing_field :tanf
+    yes_no_missing_field :ga
+    yes_no_missing_field :soc_sec_retirement
+    yes_no_missing_field :pension
+    yes_no_missing_field :child_support
+    yes_no_missing_field :alimony
+    yes_no_missing_field :other_income_source
+
+    # Income Amounts
     hud_field :earned_amount
-    # hud_field :unemployment
     hud_field :unemployment_amount
-    # hud_field :ssi
     hud_field :ssi_amount
-    # hud_field :ssdi
     hud_field :ssdi_amount
-    # hud_field :va_disability_service
     hud_field :va_disability_service_amount
-    # hud_field :va_disability_non_service
     hud_field :va_disability_non_service_amount
-    # hud_field :private_disability
     hud_field :private_disability_amount
-    # hud_field :workers_comp
     hud_field :workers_comp_amount
-    # hud_field :tanf
     hud_field :tanf_amount
-    # hud_field :ga
     hud_field :ga_amount
-    # hud_field :soc_sec_retirement
     hud_field :soc_sec_retirement_amount
-    # hud_field :pension
     hud_field :pension_amount
-    # hud_field :child_support
     hud_field :child_support_amount
-    # hud_field :alimony
     hud_field :alimony_amount
-    # hud_field :other_income_source
     hud_field :other_income_amount
     hud_field :other_income_source_identify
 
