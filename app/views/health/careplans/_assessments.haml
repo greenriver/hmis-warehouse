@@ -13,7 +13,8 @@
       fnDrawCallback: function() {
         // hide pagination if there is only 1 page of results
         [0, 1, 2].forEach(i => {
-          if ($(`#DataTables_Table_${i}.datatable-ssm tr`).length < 21) {
+          table_size = $(`#DataTables_Table_${i}.datatable-ssm tr`).length
+          if (table_size > 0 && table_size < 21) {
             $(`#DataTables_Table_${i}_wrapper .row:last-of-type`).hide();
           }
         })
