@@ -6,6 +6,7 @@
 
 module CasAccess
   class NonHmisClient < CasBase
+    self.table_name = :non_hmis_clients
     include ArelHelper
     self.inheritance_column = :_type_disabled # disable STI
 

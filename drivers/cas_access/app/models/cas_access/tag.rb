@@ -6,6 +6,7 @@
 
 module CasAccess
   class Tag < CasBase
+    self.table_name = :tags
     acts_as_paranoid
 
     def self.available_cohort_tags

@@ -5,8 +5,11 @@
 ###
 
 module CasAccess
-  class Contact < CasBase
-    self.table_name = :contacts
-    belongs_to :user, optional: true
+  class UserRole < CasBase
+    self.table_name = :user_roles
+    acts_as_paranoid
+
+    belongs_to :user, inverse_of: :user_roles
+    belongs_to :role, inverse_of: :user_roles
   end
 end

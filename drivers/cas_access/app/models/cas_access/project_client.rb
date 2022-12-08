@@ -6,6 +6,7 @@
 
 module CasAccess
   class ProjectClient < CasBase
+    self.table_name = :project_clients
     belongs_to :client, class_name: 'CasAccess::Client', optional: true
     belongs_to :data_source, optional: true
   end

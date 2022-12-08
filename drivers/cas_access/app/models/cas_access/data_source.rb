@@ -6,6 +6,7 @@
 
 module CasAccess
   class DataSource < CasBase
+    self.table_name = :data_sources
     has_many :project_clients
   end
 end

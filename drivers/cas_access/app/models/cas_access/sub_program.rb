@@ -5,6 +5,7 @@
 ###
 
 class CasAccess::SubProgram < CasBase
+  self.table_name = :sub_programs
   acts_as_paranoid
 
   belongs_to :program, inverse_of: :sub_programs

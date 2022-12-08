@@ -6,30 +6,18 @@
 
 module CasAccess
   class User < CasBase
+    self.table_name = :users
     has_one :contact
+    has_many :user_roles, dependent: :destroy, inverse_of: :user
+    has_many :roles, through: :user_roles
     belongs_to :agency, optional: true
 
-    scope :in_directory, -> do
-      preload(:contact, :agency).
-        where(active: true, exclude_from_directory: false)
+    scope :match_admin, -> do
+      joins(:roles).merge(CasAccess::Role.match_admin)
     end
 
-    scope :text_search, ->(text) do
-      where('first_name LIKE :text OR last_name LIKE :text OR email LIKE :text', text: "%#{text}%")
-    end
-
-    def name
-      "#{first_name} #{last_name}"
-    end
-
-    def phone_for_directory
-      return unless  contact.present?
-
-      contact.phone unless exclude_phone_from_directory
-    end
-
-    def agency_name
-      agency&.name
+    def match_admin?
+      self.class.match_admin.where(id: id).exists?
     end
   end
 end

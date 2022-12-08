@@ -5,8 +5,9 @@
 ###
 
 module CasAccess
-  class Contact < CasBase
-    self.table_name = :contacts
-    belongs_to :user, optional: true
+  class Voucher < CasBase
+    self.table_name = :vouchers
+    belongs_to :sub_program, optional: true
+    has_many :programs, through: :sub_program
   end
 end

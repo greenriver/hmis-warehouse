@@ -7,13 +7,3 @@
 = render 'filter'
 = render 'summary'
 = render 'table'
-
-
-- content_for :page_js do
-  :javascript
-    $(function(){
-      $('.jTrigger').on('change', function(e){
-        $('.jDependent :input').val('');
-        window.location.href = window.location.href + '?steps[route]=' + $(this).val();
-      });
-    });

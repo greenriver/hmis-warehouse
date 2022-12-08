@@ -6,6 +6,7 @@
 
 module CasAccess
   class ActivityLog < CasBase
+    self.table_name = :activity_logs
     belongs_to :user
 
     def self.to_a(user_id: nil, range: 1.years.ago..Time.current)

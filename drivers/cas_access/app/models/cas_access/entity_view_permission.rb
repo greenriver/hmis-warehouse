@@ -5,6 +5,7 @@
 ###
 
 class CasAccess::EntityViewPermission < CasBase
+  self.table_name = :entity_view_permissions
   acts_as_paranoid
 
   belongs_to :entity, polymorphic: true

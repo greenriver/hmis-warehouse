@@ -5,6 +5,9 @@
 ###
 
 module CasAccess
-  class PrimaryRace < CasBase
+  class Opportunity < CasBase
+    self.table_name = :opportunities
+    belongs_to :voucher, optional: true
+    has_many :programs, through: :voucher
   end
 end
