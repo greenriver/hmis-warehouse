@@ -299,7 +299,7 @@ module GrdaWarehouse::WarehouseReports
 
     def exits_scope(start_date: @filter.start, end_date: @filter.end)
       service_history_enrollment_scope.
-        homeless.
+        in_project_type(@filter.project_type_ids).
         exit_within_date_range(start_date: start_date, end_date: end_date)
     end
 
