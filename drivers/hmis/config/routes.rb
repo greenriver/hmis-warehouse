@@ -6,6 +6,7 @@ BostonHmis::Application.routes.draw do
     namespace :hmis, defaults: { format: :json } do
       devise_for :users, class_name: 'Hmis::User',
                          skip: [:registrations, :invitations, :passwords, :confirmations, :unlocks, :password_expired],
+                         controllers: { sessions: 'hmis/sessions' },
                          path: '', path_names: { sign_in: 'login', sign_out: 'logout' }
 
       resources :user, only: [:none] do
