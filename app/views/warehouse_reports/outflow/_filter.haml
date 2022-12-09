@@ -1,11 +1,11 @@
 = simple_form_for :filter, url: warehouse_reports_outflow_index_path, html: { method: :get, class: 'jFilter' } do |f|
   - content_for :filters_col_full do
     .row
-      .col-4
+      .col-3
         = f.input :start, label: 'Start Date', as: :date_picker, input_html: {value: @filter.start}
-      .col-4
+      .col-3
         = f.input :end, label: 'End Date', as: :date_picker, input_html: {value: @filter.end}
-      .col-4
+      .col-4.offset-2
         = f.input :no_service_after_date, label: 'No Service After', as: :date_picker, input_html: {value: @filter.no_service_after_date}
     %h3.my-4 Project Filters
     .row
