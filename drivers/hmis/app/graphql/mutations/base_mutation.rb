@@ -19,6 +19,20 @@ module Mutations
     end
   end
 
+  class InputConfirmationWarning
+    def initialize(message, attribute: nil, **kwargs)
+      {
+        message: message,
+        attribute: attribute,
+        full_message: message,
+        type: :confirm_warning,
+        **kwargs,
+      }.each do |key, value|
+        define_singleton_method(key) { value }
+      end
+    end
+  end
+
   class BaseMutation < GraphQL::Schema::RelayClassicMutation
     argument_class Types::BaseArgument
     field_class Types::BaseField
@@ -38,23 +52,34 @@ module Mutations
     end
 
     # Default CRUD Update functionality
-    def default_update_record(record:, field_name:, input:)
-      errors = []
-      if record.present?
-        record.update(
-          **input.to_params,
-          user_id: hmis_user.user_id,
-          date_updated: DateTime.current,
-        )
-        errors += record.errors.errors unless record.valid?
-      else
-        errors << InputValidationError.new("#{field_name.to_s.humanize} record not found", attribute: 'id') unless record.present?
-      end
+    # If confirm is not specified, treat as confirmed (aka ignore warnings)
+    def default_update_record(record:, field_name:, input:, confirmed: true)
+      return { field_name => nil, errors: [InputValidationError.new("#{field_name.to_s.humanize} record not found", attribute: 'id')] } unless record.present?
 
-      {
-        field_name => record&.valid? ? record : nil,
-        errors: errors,
-      }
+      errors = []
+      # Add custom warnings to error list
+      errors += create_warnings(record, input) unless confirmed
+
+      record.assign_attributes(
+        **input.to_params,
+        user_id: hmis_user.user_id,
+        date_updated: DateTime.current,
+      )
+
+      # Add validation errors to error list
+      errors += record.errors.errors unless record.valid?
+
+      if errors.empty?
+        record.save!
+        { field_name => record, errors: [] }
+      else
+        { field_name => nil, errors: errors }
+      end
+    end
+
+    # Override to create custom warnings
+    def create_warnings(_record, _input)
+      []
     end
 
     # Default CRUD Create functionality

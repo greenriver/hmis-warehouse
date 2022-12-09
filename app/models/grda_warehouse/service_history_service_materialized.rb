@@ -35,7 +35,6 @@ class GrdaWarehouse::ServiceHistoryServiceMaterialized < GrdaWarehouseBase
     @notifier.ping(
       msg,
       {
-        exception: e,
         info: { incorrect_dates_count: incorrect_dates.count },
       },
     )
