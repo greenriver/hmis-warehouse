@@ -149,7 +149,8 @@ jobs:
           bundle exec rake driver:hmis:dump_graphql_schema
 
       # fetch some closed source files
-      - uses: keithweaver/aws-s3-github-action@v1.0.0
+      - name: 'Fetch files'
+        uses: keithweaver/aws-s3-github-action@v1.0.0
         with:
           command: cp
           source: s3://op-github-actions-data/test-kit-source-2023/
