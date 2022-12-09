@@ -7,7 +7,7 @@
         %i.icon-plus
         Add Service
   .c-card__content.c-card__content--flush
-    - if enabled && (@services.any? || !@pdf)
+    - if enabled && (@services&.any? || !@pdf)
       = render 'health/services/service_list'
     - elsif !enabled && @careplan.service_archive.any?
       %table.table.health-care-plan__services-list

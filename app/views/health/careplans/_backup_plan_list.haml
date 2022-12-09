@@ -19,7 +19,7 @@
   - else
     = f.input :member_understands_contingency, label: contingency_label, disabled: @careplan.locked?, wrapper_html: {style: 'margin-bottom: 1em;'}
   .c-card__content.c-card__content--flush
-    - if enabled && (@backup_plans.any? || !@pdf)
+    - if enabled && (@backup_plans&.any? || !@pdf)
       = render 'health/backup_plans/backup_plan_list'
     - elsif !enabled && @careplan.backup_plan_archive.any?
       %table.table.health-care-plan__services-list
