@@ -1,3 +1,3 @@
 ## CasAccess README
 
-This README file should be used to explain the functionality of the driver.
+CasAccess provides a minimal interface to [CAS](http://github.com/greenriver/boston-cas) data to assist in reporting on said data.

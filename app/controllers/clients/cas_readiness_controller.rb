@@ -14,7 +14,7 @@ module Clients
     after_action :log_client
 
     def edit
-      @neighborhoods = CasAccess::Neighborhood.order(:name).pluck(:id, :name) if CasAccess::Neighborhood.db_exists?
+      @neighborhoods = CasAccess::Neighborhood.order(:name).pluck(:id, :name) if CasBase.db_exists? && RailsDrivers.loaded.include?(:cas_access)
     end
 
     def update
