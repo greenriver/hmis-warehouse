@@ -16,7 +16,7 @@ module Health
     end
 
     def signature
-      signature_on
+      participation_form.signature_on
     end
   end
 end
