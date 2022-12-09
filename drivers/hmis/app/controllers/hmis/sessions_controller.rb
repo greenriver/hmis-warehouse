@@ -7,10 +7,20 @@
 class Hmis::SessionsController < Devise::SessionsController
   include Hmis::Concerns::JsonErrors
   include AuthenticatesWithTwoFactor
+
+  # Only respond to JSON requests
+  clear_respond_to
   respond_to :json
+
   skip_before_action :verify_signed_out_user
   before_action :authenticate_with_2fa, only: [:create], if: -> { two_factor_enabled? }
 
+  # GET /hmis/login
+  def new
+    raise ActionController::RoutingError, 'Not Found'
+  end
+
+  # POST /hmis/login
   def create
     self.resource = warden.authenticate!(auth_options)
     sign_in(:hmis_user, resource)
@@ -18,6 +28,7 @@ class Hmis::SessionsController < Devise::SessionsController
     render json: { name: resource.name, email: resource.email }
   end
 
+  # DELETE /hmis/logout
   def destroy
     sign_out(:hmis_user) # Only sign out of the HMIS, not the warehouse
     render json: { success: true }, status: 204
