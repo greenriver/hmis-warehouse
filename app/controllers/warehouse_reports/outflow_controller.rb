@@ -62,6 +62,7 @@ module WarehouseReports
           organization_ids: [],
           project_ids: [],
           project_group_ids: [],
+          project_type_numbers: [],
           no_recent_service_project_ids: [],
         )
         if opts[:start].to_date > opts[:end].to_date
@@ -82,6 +83,7 @@ module WarehouseReports
           start: default_start.to_date,
           end: default_end.to_date,
           no_service_after_date: default_no_service_after_date,
+          project_type_numbers: GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES,
           sub_population: :clients,
         }
       end
