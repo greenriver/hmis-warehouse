@@ -132,8 +132,11 @@ module CasAccess::Filters
       end.to_h
     end
 
-    def agency_options_for_select
-      CasAccess::Agency.pluck(:name, :id).to_h
+    def agency_options_for_select(cas_user)
+      return CasAccess::Agency.none unless cas_user&.agency.present?
+      return CasAccess::Agency.pluck(:name, :id).to_h if cas_user&.match_admin?
+
+      [[cas_user.agency.name, cas_user.agency.id]]
     end
 
     def household_type_options_for_select

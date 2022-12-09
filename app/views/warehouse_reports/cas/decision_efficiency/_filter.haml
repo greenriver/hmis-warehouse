@@ -4,7 +4,8 @@
       .col-sm-6
         = f.input :match_route, collection: @filter.match_route_options_for_select, input_html: {value: @filter.match_route, class: [:jTrigger]}, as: :select_two, hint: 'Changing this will reset the form'
       .col-sm-6
-        = f.input :agency, collection: @filter.agency_options_for_select, as: :select_two, include_blank: 'All Agencies'
+        - include_blank = if @cas_user.match_admin? then 'All Agencies' else false end
+        = f.input :agency, collection: @filter.agency_options_for_select(@cas_user), as: :select_two, include_blank: include_blank
     .row
       .col-sm-3
         = f.input :interesting_date, as: :select_two, collection: @filter.available_interesting_dates, label: 'Date for filtering', hint: 'This date must fall in the range chosen.'

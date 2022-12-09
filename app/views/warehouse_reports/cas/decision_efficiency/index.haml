@@ -4,6 +4,10 @@
 %h1= title
 = render '/warehouse_reports/breadcrumbs', tab: 'cas'
 
-= render 'filter'
-= render 'summary'
-= render 'table'
+- if @cas_user.present?
+  = render 'filter'
+  = render 'summary'
+  = render 'table'
+- else
+  .alert.alert-warning
+    No CAS user found.  To access this report, you must have a user in CAS with a matching email address.

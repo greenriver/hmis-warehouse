@@ -11,6 +11,7 @@ module WarehouseReports::Cas
     before_action :filter
 
     def index
+      @cas_user = current_user.cas_user
       @data = report_scope
       respond_to do |format|
         format.html {}
@@ -83,6 +84,8 @@ module WarehouseReports::Cas
     end
 
     private def report_scope
+      return report_source.none unless @cas_user.present?
+
       decision_join = at.join(at2).on(
         at[:client_id].eq(at2[:client_id]).
         and(at[:match_id].eq(at2[:match_id])).
@@ -100,9 +103,8 @@ module WarehouseReports::Cas
         joins(decision_join).
         order(at[:program_name].asc, at[:sub_program_name].asc)
 
-      user = current_user.cas_user
       chosen_program_ids = CasAccess::Agency.find_by(id: @filter.agency)&.program_ids.presence || CasAccess::Program.pluck(:id)
-      chosen_program_ids &= user.agency.program_ids unless user.match_admin?
+      chosen_program_ids &= @cas_user.agency.program_ids unless @cas_user.match_admin?
       scope = scope.merge(CasAccess::Program.where(id: chosen_program_ids))
 
       scope.pluck(*columns.values).map do |row|
