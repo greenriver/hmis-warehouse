@@ -30,12 +30,12 @@ module GrdaWarehouse::Tasks
       GrdaWarehouse::DataSource.with_advisory_lock(advisory_lock_key) do
         @client_ids = client_source.pluck(:id)
         updated_clients = []
-        update_columns = (Cas::ProjectClient.column_names - ['id']).map(&:to_sym)
-        Cas::ProjectClient.transaction do
-          Cas::ProjectClient.update_all(sync_with_cas: false)
+        update_columns = (CasAccess::ProjectClient.column_names - ['id']).map(&:to_sym)
+        CasAccess::ProjectClient.transaction do
+          CasAccess::ProjectClient.update_all(sync_with_cas: false)
           @client_ids.each_slice(150) do |client_id_batch|
             to_update = []
-            project_clients = Cas::ProjectClient.
+            project_clients = CasAccess::ProjectClient.
               where(data_source_id: data_source.id, id_in_data_source: client_id_batch).
               index_by(&:id_in_data_source)
             max_dates = GrdaWarehouse::Hud::Client.date_of_last_homeless_service(client_id_batch)
@@ -68,7 +68,7 @@ module GrdaWarehouse::Tasks
             end
             client_source.preload(preloads).
               where(id: client_id_batch).find_each do |client|
-              project_client = project_clients[client.id] || Cas::ProjectClient.new(data_source_id: data_source.id, id_in_data_source: client.id)
+              project_client = project_clients[client.id] || CasAccess::ProjectClient.new(data_source_id: data_source.id, id_in_data_source: client.id)
               project_client.assign_attributes(attributes_for_cas_project_client(client))
 
               case GrdaWarehouse::Config.get(:cas_days_homeless_source)
@@ -92,7 +92,7 @@ module GrdaWarehouse::Tasks
               project_client.needs_update = true
               to_update << project_client
             end
-            Cas::ProjectClient.import(to_update, on_duplicate_key_update: update_columns)
+            CasAccess::ProjectClient.import(to_update, on_duplicate_key_update: update_columns)
             updated_clients += to_update
           end
         end
@@ -129,7 +129,7 @@ module GrdaWarehouse::Tasks
     end
 
     def data_source
-      @data_source ||= Cas::DataSource.where(name: 'DND Warehouse').first_or_create
+      @data_source ||= CasAccess::DataSource.where(name: 'DND Warehouse').first_or_create
     end
 
     def client_source
@@ -307,11 +307,11 @@ module GrdaWarehouse::Tasks
         HUD.no_yes_reasons_for_missing_data(value)
       elsif key == :neighborhood_interests
         value.map do |id|
-          Cas::Neighborhood.find_by(id: id)&.name
+          CasAccess::Neighborhood.find_by(id: id)&.name
         end&.to_sentence
       elsif key == :tags
         value.keys.map do |id|
-          Cas::Tag.find(id).name
+          CasAccess::Tag.find(id).name
         end&.join('; ')
       elsif key == :default_shelter_agency_contacts
         value.join('; ')
