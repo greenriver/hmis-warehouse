@@ -4,8 +4,10 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module Cas
-  class DataSource < CasBase
-    has_many :project_clients
+module CasAccess
+  class Voucher < CasBase
+    self.table_name = :vouchers
+    belongs_to :sub_program, optional: true
+    has_many :programs, through: :sub_program
   end
 end

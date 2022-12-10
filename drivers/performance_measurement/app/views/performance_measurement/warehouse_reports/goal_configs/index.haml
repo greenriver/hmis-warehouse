@@ -4,14 +4,26 @@
 
 = render '/warehouse_reports/breadcrumbs', tab: 'performance'
 %h1.mb-5= title
+= simple_form_for @default_goal, url: performance_measurement_warehouse_reports_goal_config_path(@default_goal), as: :goal do |f|
+  .well
+    %p The #{_('CoC Performance Measurement Dashboard')} can be run limited to the projects a user can see, or can be run for the entire CoC with detailed comparisons for all projects. Turning "Always run for full CoC" off is the safer choice.
+    .row
+      .col-sm-3
+        = f.input :always_run_for_coc, label: 'Always run for full CoC'
+      .col-sm-2
+        = f.submit 'Set CoC Config', class: 'btn-secondary btn-sm ml-4'
 .row.mb-4
   .col-sm-8
-    %p Goals can be adjusted on a per-CoC basis.  If a particular CoC does not have a goal configuration, the following will be used.
+    %p Goals can be adjusted on a per-CoC basis.  If a particular CoC does not have a goal configuration, the default goal will be used.
+
+
+
   .col-sm-4.d-flex
     .ml-auto
       = link_to performance_measurement_warehouse_reports_goal_configs_path(), method: :post, class: 'btn btn-primary' do
         %i.icon-plus
         Add CoC Specific Goal
+
 .card
   %table.table.table-striped
     %thead

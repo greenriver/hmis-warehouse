@@ -4,8 +4,9 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module Cas
+module CasAccess
   class Neighborhood < CasBase
+    self.table_name = :neigborhoods
     def self.neighborhood_ids_from_names(names)
       return [] unless db_exists?
       return [] unless names&.map(&:presence)&.compact&.any?

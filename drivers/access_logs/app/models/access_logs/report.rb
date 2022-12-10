@@ -34,7 +34,7 @@ class AccessLogs::Report < OpenStruct
   def data
     {
       'Warehouse' => ActivityLog.to_a(user_id: filter.user_id, range: filter.range),
-      'CAS' => Cas::ActivityLog.to_a(user_id: @cas_user_id, range: filter.range),
+      'CAS' => CasAccess::ActivityLog.to_a(user_id: @cas_user_id, range: filter.range),
     }
   end
 

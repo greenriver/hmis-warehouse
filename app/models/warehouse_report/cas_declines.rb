@@ -63,7 +63,7 @@ class WarehouseReport::CasDeclines < OpenStruct
   end
 
   def clients
-    @clients ||= Cas::Client.distinct.
+    @clients ||= CasAccess::Client.distinct.
       where(id: declines.pluck(:cas_client_id) + cancels.pluck(:cas_client_id)).
       index_by(&:id)
   end

@@ -4,8 +4,9 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module Cas
-  class Agency < CasBase
-    has_many :users
+module CasAccess
+  class DataSource < CasBase
+    self.table_name = :data_sources
+    has_many :project_clients
   end
 end
