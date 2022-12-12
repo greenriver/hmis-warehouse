@@ -22,8 +22,7 @@ module GrdaWarehouse::Hud
     belongs_to :data_source
 
     # hide previous declaration of :importable, we'll use this one
-    singleton_class.undef_method :importable
-    scope :importable, -> do
+    replace_scope :importable, -> do
       where(manual_entry: false)
     end
 

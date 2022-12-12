@@ -9,14 +9,12 @@ module Hmis::Hud::Concerns::ProjectRelated
 
   included do
     # hide previous declaration of :viewable_by, we'll use this one
-    singleton_class.undef_method :viewable_by
-    scope :viewable_by, ->(user) do
+    replace_scope :viewable_by, ->(user) do
       joins(:project).merge(Hmis::Hud::Project.viewable_by(user))
     end
 
     # hide previous declaration of :editable_by, we'll use this one
-    singleton_class.undef_method :editable_by
-    scope :editable_by, ->(user) do
+    replace_scope :editable_by, ->(user) do
       joins(:project).merge(Hmis::Hud::Project.editable_by(user))
     end
   end

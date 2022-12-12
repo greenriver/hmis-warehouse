@@ -200,8 +200,7 @@ module GrdaWarehouse::Hud
     # hide previous declaration of :in_coc, we'll use this one,
     # but we don't need to be told there are two every time
     # we load the class
-    singleton_class.undef_method :in_coc
-    scope :in_coc, ->(coc_code:) do
+    replace_scope :in_coc, ->(coc_code:) do
       joins(:project_cocs).
         merge(GrdaWarehouse::Hud::ProjectCoc.in_coc(coc_code: coc_code))
     end

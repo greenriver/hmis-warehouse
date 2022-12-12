@@ -44,8 +44,7 @@ module GrdaWarehouse::Hud
     end
 
     # hide previous declaration of :at_exit, we'll use this one
-    singleton_class.undef_method :at_exit
-    scope :at_exit, -> do
+    replace_scope :at_exit, -> do
       where(DataCollectionStage: 3).joins(:exit).where(ib_t[:InformationDate].eq(ex_t[:ExitDate]))
     end
 

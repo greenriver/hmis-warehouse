@@ -895,8 +895,7 @@ module Health
     scope :reviewed, -> { where.not(reviewed_by_id: nil) }
     scope :incomplete, -> { where(completed_at: nil, reviewed_by_id: nil) }
     # hide previous declaration of :complete, we'll use this one
-    singleton_class.undef_method :complete
-    scope :complete, -> { where.not(completed_at: nil) }
+    replace_scope :complete, -> { where.not(completed_at: nil) }
     scope :completed, -> { complete }
 
     scope :active, -> do

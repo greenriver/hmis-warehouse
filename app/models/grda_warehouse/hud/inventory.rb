@@ -43,8 +43,7 @@ module GrdaWarehouse::Hud
     alias_attribute :beds, :BedInventory
 
     # hide previous declaration of :importable, we'll use this one
-    singleton_class.undef_method :importable
-    scope :importable, -> do
+    replace_scope :importable, -> do
       where(manual_entry: false)
     end
 
@@ -63,8 +62,7 @@ module GrdaWarehouse::Hud
     end
 
     # hide previous declaration of :in_coc, we'll use this one
-    singleton_class.undef_method :in_coc
-    scope :in_coc, ->(coc_code:) do
+    replace_scope :in_coc, ->(coc_code:) do
       coc_code = Array(coc_code)
       where(
         i_t[:CoCCode].in(coc_code).and(i_t[:coc_code_override].eq(nil).or(i_t[:coc_code_override].eq(''))).

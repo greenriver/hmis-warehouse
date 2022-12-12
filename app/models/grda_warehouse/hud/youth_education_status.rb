@@ -28,8 +28,7 @@ module GrdaWarehouse::Hud
     has_one :client, through: :enrollment, inverse_of: :youth_education_statuses
 
     # hide previous declaration of :importable, we'll use this one
-    singleton_class.undef_method :importable
-    scope :importable, -> do
+    replace_scope :importable, -> do
       where(synthetic: false)
     end
 

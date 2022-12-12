@@ -14,4 +14,9 @@ class ApplicationRecord < ActiveRecord::Base
   def self.needs_migration?
     ActiveRecord::Migration.check_pending!
   end
+
+  def self.replace_scope(name, body, &block)
+    singleton_class.undef_method name
+    scope name, body, &block
+  end
 end

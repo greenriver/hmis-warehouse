@@ -36,8 +36,7 @@ module GrdaWarehouse::Hud
     end
 
     # hide previous declaration of :in_coc, we'll use this one
-    singleton_class.undef_method :in_coc
-    scope :in_coc, ->(coc_code:) do
+    replace_scope :in_coc, ->(coc_code:) do
       where(CoCCode: coc_code)
     end
 

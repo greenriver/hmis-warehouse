@@ -19,17 +19,15 @@ class Hmis::Hud::Organization < Hmis::Hud::Base
   validates_with Hmis::Hud::Validators::OrganizationValidator
 
   # hide previous declaration of :viewable_by, we'll use this one
-  singleton_class.undef_method :viewable_by
   # Any organizations the user has been assigned, limited to the data source the HMIS is connected to
-  scope :viewable_by, ->(user) do
+  replace_scope :viewable_by, ->(user) do
     ids = user.viewable_organizations.pluck(:id)
     ids += user.viewable_data_sources.joins(:organizations).pluck(o_t[:id])
     where(id: ids, data_source_id: user.hmis_data_source_id)
   end
 
   # hide previous declaration of :editable_by, we'll use this one
-  singleton_class.undef_method :editable_by
-  scope :editable_by, ->(user) do
+  replace_scope :editable_by, ->(user) do
     ids = user.editable_organizations.pluck(:id)
     ids += user.editable_data_sources.joins(:organizations).pluck(o_t[:id])
     where(id: ids, data_source_id: user.hmis_data_source_id)
