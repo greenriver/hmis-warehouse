@@ -180,11 +180,6 @@ module Health
           code: 'G9011',
           weight: 0,
         },
-        intake_completed: {
-          title: 'Intake/Reassessment (completing consent/ROI, CHA, SSM, care plan)',
-          code: 'G9005',
-          weight: 5,
-        },
         cha: {
           title: 'Comprehensive Health Assessment',
           code: 'G0506',
@@ -239,6 +234,11 @@ module Health
           title: 'Person-Centered Treatment Plan signed',
           code: 'T2024>U4',
           weight: 100,
+        },
+        intake_completed: {
+          title: 'Intake/Reassessment (completing consent/ROI, CHA, SSM, care plan)',
+          code: 'G9005',
+          weight: 110,
         },
       }.sort_by { |_, m| m[:weight] }.to_h
     end
