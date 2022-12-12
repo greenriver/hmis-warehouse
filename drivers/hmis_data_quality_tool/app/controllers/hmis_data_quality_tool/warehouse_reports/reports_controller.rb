@@ -65,7 +65,7 @@ module HmisDataQualityTool::WarehouseReports
 
     def destroy
       @report.destroy
-      respond_with(@report, location: @report.url)
+      respond_with(@report, location: @report.index_path)
     end
 
     def details
