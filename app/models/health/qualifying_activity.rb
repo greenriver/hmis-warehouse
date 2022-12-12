@@ -180,6 +180,11 @@ module Health
           code: 'G9011',
           weight: 0,
         },
+        intake_completed: {
+          title: 'Intake/Reassessment (completing consent/ROI, CHA, SSM, care plan)',
+          code: 'G9005',
+          weight: 5,
+        },
         cha: {
           title: 'Comprehensive Health Assessment',
           code: 'G0506',
