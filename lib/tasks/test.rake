@@ -19,6 +19,7 @@ namespace :test do
         Rails.logger.fatal('Test dual tagged blocks')
       end
     end
+    Rails.logger.info('This should not be tagged')
     TestJob.perform_now
   end
 
