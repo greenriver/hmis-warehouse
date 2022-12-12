@@ -28,7 +28,8 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
 
   scope :in_progress, -> { where(enrollment_id: WIP_ID) }
 
-  scope :viewable_by, ->(user) do
+  # hide previous declaration of :viewable_by, we'll use this one
+  replace_scope :viewable_by, ->(user) do
     enrollment_ids = Hmis::Hud::Enrollment.viewable_by(user).pluck(:id, :EnrollmentID)
     viewable_wip = wip_t[:enrollment_id].in(enrollment_ids.map(&:first))
     viewable_completed = as_t[:EnrollmentID].in(enrollment_ids.map(&:second))
@@ -36,7 +37,8 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
     left_outer_joins(:wip).where(viewable_wip.or(viewable_completed))
   end
 
-  scope :editable_by, ->(user) do
+  # hide previous declaration of :editable_by, we'll use this one
+  replace_scope :editable_by, ->(user) do
     enrollment_ids = Hmis::Hud::Enrollment.editable_by(user).pluck(:id, :EnrollmentID)
     editable_wip = wip_t[:enrollment_id].in(enrollment_ids.map(&:first))
     editable_completed = as_t[:EnrollmentID].in(enrollment_ids.map(&:second))

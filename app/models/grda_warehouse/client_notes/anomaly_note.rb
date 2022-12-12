@@ -10,7 +10,8 @@ module GrdaWarehouse::ClientNotes
       'Anomaly Note'
     end
 
-    scope :visible_by, ->(user) do
+    # hide previous declaration of :visible_by, we'll use this one
+    replace_scope :visible_by, ->(user) do
       if user.can_track_anomalies?
         current_scope
       else

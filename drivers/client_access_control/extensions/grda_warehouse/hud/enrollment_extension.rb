@@ -9,7 +9,8 @@ module ClientAccessControl::GrdaWarehouse::Hud
     extend ActiveSupport::Concern
 
     included do
-      scope :visible_to, ->(user, client_ids: nil) do
+      # hide previous declaration of :visible_to, we'll use this one
+      replace_scope :visible_to, ->(user, client_ids: nil) do
         merge(GrdaWarehouse::Config.arbiter_class.new.enrollments_visible_to(user, client_ids: client_ids))
       end
     end

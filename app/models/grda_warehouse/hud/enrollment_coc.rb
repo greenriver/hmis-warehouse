@@ -35,7 +35,8 @@ module GrdaWarehouse::Hud
       end
     end
 
-    scope :in_coc, ->(coc_code:) do
+    # hide previous declaration of :in_coc, we'll use this one
+    replace_scope :in_coc, ->(coc_code:) do
       where(CoCCode: coc_code)
     end
 

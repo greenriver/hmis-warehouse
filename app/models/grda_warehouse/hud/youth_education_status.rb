@@ -27,7 +27,8 @@ module GrdaWarehouse::Hud
     has_one :direct_client, **hud_assoc(:PersonalID, 'Client'), inverse_of: :direct_youth_education_statuses
     has_one :client, through: :enrollment, inverse_of: :youth_education_statuses
 
-    scope :importable, -> do
+    # hide previous declaration of :importable, we'll use this one
+    replace_scope :importable, -> do
       where(synthetic: false)
     end
 
