@@ -37,7 +37,7 @@ class SetupLogging
 
       block.call
       # Reset tags so Rails.logger.info('msg') won't be tagged with the last tag
-      @tags = []
+      # @tags = []
     end
 
     def current_tags
