@@ -14,10 +14,12 @@
         .col-sm-3
           = f.input :end, as: :date_picker
       .row
-        .col-sm-6
-          = f.input :project_ids, label: 'Project', collection: [], as: :select_two, input_html: {multiple: true, data: {'collection-path' => api_projects_path(selected_project_ids: @filter.project_ids)}}, include_blank: false
-        .col-sm-6
-          = f.input :organization_ids, collection: GrdaWarehouse::Hud::Organization.options_for_select(user: current_user), as: :grouped_select_two, group_method: :last, placeholder: 'Any Organization', input_html: { multiple: true }, label: 'Organizations'
+        .col-sm-4
+          = f.input :project_ids, label: 'Project', collection: [], as: :select_two, input_html: {multiple: true, data: {'collection-path' => api_projects_path(selected_project_ids: @filter.project_ids)}, placeholder: 'Any Project' }, include_blank: false
+        .col-sm-4
+          = f.input :organization_ids, collection: @filter.organization_options_for_select(user: current_user), as: :grouped_select_two, group_method: :last, input_html: { multiple: true, placeholder: 'Any Organization' }, label: 'Organizations'
+        .col-sm-4
+          = f.input :project_group_ids, collection: @filter.project_groups_options_for_select(user: current_user), as: :select_two,  input_html: { multiple: true, placeholder: 'Any Project Group' }, label: 'Project Groups'
 
 
     - content_for :filter_actions do

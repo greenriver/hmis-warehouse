@@ -175,6 +175,7 @@ Populates and references:
 	from tlsa_Enrollment n
 	inner join tlsa_HHID hhid on hhid.HouseholdID = n.HouseholdID
 	where hhid.HHAdultAge in (18,24)
+		and n.ActiveAge in (21,24)
 		and (ActiveHHType = 1 or (ActiveHHType = 2 and HHParent = 1)) 
 		and n.AHAR = 1
 
@@ -315,6 +316,7 @@ Populates and references:
 	inner join ref_RowPopulations rp on rv.RowID between rp.RowMin and rp.RowMax 
 	inner join ref_PopHHTypes ph on ph.PopID = rp.PopID
 	inner join tlsa_CountPops pop on rp.PopID = pop.PopID
+		and (rv.Universe <> 10 or rp.ByProject = 1)
 	inner join tlsa_Enrollment n on n.PersonalID = pop.PersonalID
 			and case rv.Cohort	
 				when 1 then n.AHAR
@@ -334,7 +336,6 @@ Populates and references:
 				or (rv.Universe = 16 and hhid.LSAProjectType in (0,1,2,8))
 			)
 		where rv.RowID = 55 
-			and ((rv.Universe = 10 and rp.ByProject = 1) or rp.ByProject is NULL)
 		group by rv.Cohort, rv.Universe, ph.HHType, rp.PopID, rv.SystemPath
 			, case when rv.Universe = 10 then hhid.ProjectID else null end
 			, rv.RowID

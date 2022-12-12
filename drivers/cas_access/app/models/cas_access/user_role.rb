@@ -4,16 +4,12 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module Cas
-  class Tag < CasBase
+module CasAccess
+  class UserRole < CasBase
+    self.table_name = :user_roles
     acts_as_paranoid
 
-    def self.available_cohort_tags
-      where(rrh_assessment_trigger: false)
-    end
-
-    def self.available_tags
-      all
-    end
+    belongs_to :user, inverse_of: :user_roles
+    belongs_to :role, inverse_of: :user_roles
   end
 end

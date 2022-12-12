@@ -106,11 +106,18 @@ module PerformanceMeasurement
 
     def filter
       @filter ||= begin
-        f = ::Filters::HudFilterBase.new(user_id: user_id)
+        f = ::Filters::HudFilterBase.new(user_id: filter_user_id)
         f.update((options || {}).merge(comparison_pattern: :prior_year).with_indifferent_access)
         f.update(start: f.end - 1.years + 1.days)
         f
       end
+    end
+
+    # The filter user is dependent on the configuration
+    private def filter_user_id
+      return user_id if PerformanceMeasurement::Goal.include_project_options?
+
+      User.system_user.id
     end
 
     def coc_code

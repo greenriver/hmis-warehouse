@@ -16,7 +16,7 @@ module Types
     field :information_date, GraphQL::Types::ISO8601Date, null: false
     field :data_collection_stage, HmisSchema::Enums::Hud::DataCollectionStage, null: false
 
-    field :disabling_condition, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, 'Current disabling conditionn on the linked Enrollment. It may not matching up with the disabilities specified in this group.', null: false
+    field :disabling_condition, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, 'Current disabling conditionn on the linked Enrollment. It may not match up with the disabilities specified in this group.', null: false
 
     # Disability Type 5
     field :physical_disability, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: true

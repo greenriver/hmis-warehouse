@@ -1,6 +1,7 @@
 - denominator_label = @report.detail_denominator_label_for(key)
 - numerator_label = @report.detail_numerator_label_for(key)
 - pit_count_types = @report.detail_pit_types(key)
+- project_id = if defined?(project_id) then project_id else nil end
 %h3.mb-6= @report.detail_title_for(key)
 .row
   .col-6
@@ -25,7 +26,12 @@
           .performance-measurement__result-number.font-weight-bold.mt-4= "#{median.secondary_value} #{median.secondary_unit}"
           .text-capitalize= sanitize(median.value_label)
       .col-sm-4
-        .performance-measurement__result-number.font-weight-bold= primary_value
+        .performance-measurement__result-number.font-weight-bold
+          - if project_id.present?
+            = link_to performance_measurement_warehouse_reports_report_clients_path(@report.id, key, project_id) do
+              = primary_value
+          - else
+            = primary_value
         .text-capitalize= primary_unit
         - if @report.result_includes_median?(result.field)
           .performance-measurement__result-number.font-weight-bold.mt-4= median.primary_value.to_s

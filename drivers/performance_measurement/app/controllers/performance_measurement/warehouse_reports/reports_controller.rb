@@ -11,7 +11,7 @@ module PerformanceMeasurement::WarehouseReports
     include ArelHelper
     include BaseFilters
 
-    before_action :require_can_access_some_version_of_clients!, only: [:details, :clients]
+    before_action :require_can_access_some_version_of_clients!, only: [:clients]
     before_action :require_my_project!, only: [:clients]
     before_action :set_report, only: [:show, :destroy]
     before_action :set_pdf_export, only: [:show]

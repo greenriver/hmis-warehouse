@@ -10294,7 +10294,8 @@ CREATE TABLE public.hmis_assessment_details (
     status character varying,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    "values" jsonb
+    "values" jsonb,
+    hud_values jsonb
 );
 
 
@@ -16579,7 +16580,8 @@ CREATE TABLE public.performance_measurement_goals (
     income integer DEFAULT 3 NOT NULL,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    always_run_for_coc boolean DEFAULT false
 );
 
 
@@ -50683,6 +50685,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20221115211004'),
 ('20221116185411'),
 ('20221124002729'),
-('20221126145518');
+('20221126145518'),
+('20221207171030'),
+('20221209131957');
 
 
