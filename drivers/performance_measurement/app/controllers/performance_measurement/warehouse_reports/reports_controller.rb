@@ -99,7 +99,7 @@ module PerformanceMeasurement::WarehouseReports
       }
       return { filters: default_options } unless params[:filters].present?
 
-      filters = params.permit(filters: @filter.known_params)
+      filters = params.permit(filters: report_class.known_params)
       filters[:filters][:coc_codes] ||= site_coc_codes
       filters[:filters][:start] = filters[:filters][:end].to_date - 1.years + 1.days
       filters[:filters][:enforce_one_year_range] = false
