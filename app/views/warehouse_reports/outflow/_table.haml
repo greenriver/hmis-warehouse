@@ -6,7 +6,7 @@
         %th Metric
         %th Clients
     %tbody
-      - @report.metrics.each do |key, label|
+      - @report.metrics.each do |key, obj|
         %tr
-          %td= link_to label, details_warehouse_reports_outflow_index_path(filter: filter_options, key: key), data: {loads_in_pjax_modal: true}
+          %td= link_to obj[:label], details_warehouse_reports_outflow_index_path(filter: filter_options, key: key), data: {loads_in_pjax_modal: true}
           %td= @report.send(key).count
