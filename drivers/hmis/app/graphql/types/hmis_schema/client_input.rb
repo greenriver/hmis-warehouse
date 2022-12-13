@@ -20,5 +20,6 @@ module Types
     argument :race, [Types::HmisSchema::Enums::Race], required: false
     argument :ethnicity, Types::HmisSchema::Enums::Hud::Ethnicity, required: false
     argument :veteran_status, Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData, required: false
+    argument :image_blob_id, ID, required: false
   end
 end

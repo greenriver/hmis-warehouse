@@ -28,6 +28,16 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
   validates_with Hmis::Hud::Validators::ClientValidator
 
+  # ! Elliot: This logic probably wouldn't live here, but I've included it here for reference
+  # attr_accessor :image_blob_id
+  # after_save do
+  #   current_image_blob_id = image_blob_id
+  #   self.image_blob_id = nil
+  #   if current_image_blob_id
+  #     main.attach(current_image_blob_id)
+  #   end
+  # end
+
   scope :visible_to, ->(user) do
     joins(:data_source).merge(GrdaWarehouse::DataSource.hmis(user))
   end
