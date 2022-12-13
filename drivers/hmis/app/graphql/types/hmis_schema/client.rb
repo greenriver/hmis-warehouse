@@ -44,6 +44,7 @@ module Types
     hud_field :date_updated
     hud_field :date_created
     hud_field :date_deleted
+    field :image, HmisSchema::ClientImage, null: true
 
     def enrollments(**args)
       resolve_enrollments(**args)
@@ -75,6 +76,10 @@ module Types
       selected_races = ::HUD.races.except('RaceNone').keys.select { |f| object.send(f).to_i == 1 }
       selected_races << object.RaceNone if object.RaceNone
       selected_races
+    end
+
+    def image
+      object
     end
   end
 end

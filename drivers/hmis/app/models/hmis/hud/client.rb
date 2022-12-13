@@ -9,6 +9,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   include ::Hmis::Hud::Concerns::Shared
   include ArelHelper
   include ClientSearch
+  # include ClientImageConsumer
 
   attr_accessor :gender, :race
 
@@ -25,6 +26,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   has_many :income_benefits, through: :enrollments
   has_many :disabilities, through: :enrollments
   has_many :health_and_dvs, through: :enrollments
+  # has_many :client_files, class_name: 'GrdaWarehouse::ClientFile'
 
   validates_with Hmis::Hud::Validators::ClientValidator
 
@@ -49,6 +51,17 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   end
 
   SORT_OPTIONS = [:last_name_asc, :last_name_desc].freeze
+
+  # ! Remove once concern works right
+  def fake_client_image_data
+    gender = if self[:Male].in?([1]) then 'male' else 'female' end
+    age_group = if age.blank? || age > 18 then 'adults' else 'children' end
+    image_directory = File.join('public', 'fake_photos', age_group, gender)
+    available = Dir[File.join(image_directory, '*.jpg')]
+    image_id = "#{self.FirstName}#{self.LastName}".sum % available.count
+    Rails.logger.debug "Client#image id:#{self.id} faked #{self.PersonalID} #{available.count} #{available[image_id]}" # rubocop:disable Style/RedundantSelf
+    image_data = File.read(available[image_id]) # rubocop:disable Lint/UselessAssignment
+  end
 
   def self.client_search(input:, user: nil)
     # Apply ID searches directly, as they can only ever return a single client
@@ -125,5 +138,10 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
   def age(date = Date.current)
     GrdaWarehouse::Hud::Client.age(date: date, dob: self.DOB)
+  end
+
+  def image
+    # TODO: Remove this when stub is no longer needed
+    fake_client_image_data
   end
 end
