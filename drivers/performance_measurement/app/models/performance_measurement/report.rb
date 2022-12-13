@@ -98,6 +98,9 @@ module PerformanceMeasurement
     end
 
     def filter=(filter_object)
+      # enforce default project types if we can't choose
+      filter_object.project_type_codes = self.class.default_project_type_codes unless PerformanceMeasurement::Goal.include_project_options?
+
       self.options = filter_object.to_h
       # force reset the filter cache
       @filter = nil
@@ -111,6 +114,12 @@ module PerformanceMeasurement
         f.update(start: f.end - 1.years + 1.days)
         f
       end
+    end
+
+    def self.known_params
+      return ::Filters::HudFilterBase.new.known_params if PerformanceMeasurement::Goal.include_project_options?
+
+      [:end, :coc_code]
     end
 
     # The filter user is dependent on the configuration
