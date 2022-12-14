@@ -13,7 +13,7 @@
         .modal-body
           = f.input :note, as: :string, hint: '(Optional) Give a reason for including this file.'
           = f.input :effective_date, as: :date_picker
-          = f.input :file, as: :file, required: true
+          = f.input :client_file, as: :file, required: true
         .modal-footer
           %button.btn.btn-default{"data-dismiss" => "modal", :type => "button"} Close
           %button.btn.btn-primary(type='submit') Upload
@@ -51,7 +51,7 @@
     .row
       .col-sm-4
         - if @vispdat.files.empty?
-          %button.btn.btn-default(data-toggle='modal' data-target='#upload-file')
+          %button.btn.btn-default.jRoiButton(data-toggle='modal' data-target='#upload-file')
             %i.icon-upload2
             Upload Signed Consent Form
         - else

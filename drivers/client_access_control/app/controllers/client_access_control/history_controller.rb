@@ -92,16 +92,6 @@ module ClientAccessControl
       end
 
       @file = ::GrdaWarehouse::ClientFile.new
-      begin
-        tmp_path = Rails.root.join('tmp', "service_history_pdf_#{@client.id}.pdf")
-        file = File.open(tmp_path, 'wb')
-        file.write(pdf)
-        @file.file = file
-        @file.content = @file.file.read
-      ensure
-        tmp_path.unlink
-      end
-
       @file.client_id = @client.id
       @file.user_id = @requesting_user&.id || @user.id
       @file.note = "Auto Generated for prior #{@years} years"
@@ -109,7 +99,17 @@ module ClientAccessControl
       @file.visible_in_window = true
       @file.effective_date = Date.current
       @file.tag_list.add(['Homeless Verification'])
-      @file.save!
+      begin
+        tmp_path = Rails.root.join('tmp', "service_history_pdf_#{@client.id}.pdf")
+        file = File.open(tmp_path, 'wb')
+        file.write(pdf)
+        file.close
+        @file.client_file.attach(io: File.open(tmp_path), content_type: 'application/pdf', filename: file_name, identify: false)
+        @file.save!
+      ensure
+        tmp_path.unlink
+      end
+
       # allow for multiple mechanisms to trigger this without getting in the way
       # of CAS triggering it.
       if @client.generate_manual_history_pdf

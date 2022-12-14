@@ -26,7 +26,6 @@ module GrdaWarehouse
     validate :note_if_other
     mount_uploader :file, FileUploader # Tells rails to use this uploader for this model.
     has_one_attached :client_file
-
     validates_presence_of :expiration_date, on: :requires_expiration_date, message: 'Expiration date is required'
     validates_presence_of :effective_date, on: :requires_effective_date, message: 'Effective date is required'
 
@@ -171,6 +170,16 @@ module GrdaWarehouse
       where(coc_codes: coc_codes)
     end
 
+    scope :unprocessed_s3_migration, -> do
+      # plucking these seems to be 100x faster than where.not(id: migrated)
+      migrated = ActiveStorage::Attachment.where(record_type: 'GrdaWarehouse::File').pluck(:record_id)
+      all = pluck(:id)
+      unmigrated = all - migrated
+      return none if unmigrated.blank?
+
+      where(id: unmigrated)
+    end
+
     ####################
     # Callbacks
     ####################
@@ -308,8 +317,8 @@ module GrdaWarehouse
     end
 
     def file_exists_and_not_too_large
-      errors.add :file, 'No uploaded file found' if (content&.size || 0) < 100
-      errors.add :file, 'File size should be less than 4 MB' if (content&.size || 0) > 4.megabytes
+      errors.add :client_file, 'No uploaded file found' if (client_file.byte_size || 0) < 100
+      errors.add :client_file, 'File size should be less than 4 MB' if (client_file.byte_size || 0) > 4.megabytes
     end
 
     def note_if_other
@@ -321,23 +330,29 @@ module GrdaWarehouse
     end
 
     def as_preview
-      return content unless content_type == 'image/jpeg'
+      return client_file.download unless client_file.variable?
 
-      image = MiniMagick::Image.read(content)
-      image.auto_level
-      image.strip
-      image.resize('1920x1080')
-      image.to_blob
+      client_file.variant(resize_to_limit: [400, 400]).processed.download
     end
 
     def as_thumb
-      return nil unless content_type == 'image/jpeg'
+      return nil unless client_file.variable?
 
-      image = MiniMagick::Image.read(content)
-      image.auto_level
-      image.strip
-      image.resize('400x400')
-      image.to_blob
+      client_file.variant(resize_to_limit: [1920, 1080]).processed.download
+    end
+
+    def copy_to_s3!
+      return unless content.present?
+      # return unless valid? # Ignore uploads that are already invalid (data source deleted?)
+      return if client_file.attached? # don't re-process
+
+      puts "Migrating #{file} to S3"
+
+      Tempfile.create(binmode: true) do |tmp_file|
+        tmp_file.write(content)
+        tmp_file.rewind
+        client_file.attach(io: tmp_file, content_type: content_type, filename: file, identify: false)
+      end
     end
   end
 end

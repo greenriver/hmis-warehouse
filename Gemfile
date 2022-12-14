@@ -59,6 +59,7 @@ gem 'carrierwave-i18n'
 # version 1.5 has the fix we need when we ever go to 1.5
 #gem 'carrierwave-aws', '~> 1.4'
 gem 'carrierwave-aws', git: "https://github.com/greenriver/carrierwave-aws.git", branch: "gr-1.4.0-without-deprecations"
+gem 'image_processing'
 
 gem 'ruby-filemagic'
 gem 'mini_magick'
