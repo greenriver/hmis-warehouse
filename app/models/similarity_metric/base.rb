@@ -8,6 +8,8 @@ module SimilarityMetric
   class Base < ApplicationRecord
     self.table_name = :similarity_metrics
 
+    # if no instances of a metric have been seen to calculate a mean and standard deviation (n == 0)
+    # or if the metric has been assigned a weight of 0, then it is not usable
     scope :usable, -> { where arel_table[:n].gt(0).and( arel_table[:weight].gt 0 ) }
 
     MD = Redcarpet::Markdown.new(
@@ -18,9 +20,12 @@ module SimilarityMetric
     )
 
     # override this as appropriate in subclasses
-    DESCRIPTION = <<eos
-*{{{human_name}}}* does not yet have a description.
-eos
+    #
+    # Strings inside {{{ }}} are methods whose value will be interpolated into the description.
+    # This description is markdown-formatted.
+    DESCRIPTION = <<~eos
+      *{{{human_name}}}* does not yet have a description.
+    eos
 
     # take to clients and return a number to be used in ranking; more similar pairs should map to smaller numbers
     # should return nil if the clients aren't comparable by this metric
@@ -29,6 +34,7 @@ eos
     end
 
     # a description of this metric for display
+    # HTML is returned
     def description
       @description ||= begin
         str = self.class::DESCRIPTION.gsub /[{]{3}([a-z]\w*)[}]{3}/ do

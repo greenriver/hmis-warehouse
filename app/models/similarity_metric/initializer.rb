@@ -7,6 +7,7 @@
 module SimilarityMetric
 
   # collect a set of means and standard deviations for a set of metrics given a sample
+  # this will give all the various similarity metrics an initial mean, standard deviation, and n
   class Initializer
     attr_reader :verbose, :minimum_sample, :sample
 
