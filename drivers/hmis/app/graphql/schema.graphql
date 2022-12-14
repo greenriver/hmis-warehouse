@@ -226,7 +226,7 @@ type Client {
   nameSuffix: String
   personalId: String!
   preferredName: String
-  pronouns: String
+  pronouns: [String!]!
   race: [Race!]!
   ssn: String
   ssnDataQuality: SSNDataQuality!
@@ -247,6 +247,7 @@ input ClientInput {
   nameDataQuality: NameDataQuality
   nameSuffix: String
   preferredName: String
+  pronouns: [String!]
   race: [Race!]
   ssn: String
   ssnDataQuality: SSNDataQuality
