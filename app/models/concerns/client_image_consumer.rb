@@ -77,21 +77,6 @@ module ClientImageConsumer
       end
     end
 
-    [
-      :api,
-      :age,
-      :age_group,
-      :gener,
-      :FirstName,
-      :LastName,
-      :PersonalID,
-      :local_client_image_cache,
-    ].each do |method_name|
-      next if respond_to?(method_name)
-
-      define_method(method_name) { nil }
-    end
-
     private def uploaded_local_image
       client_files.window.tagged_with('Client Headshot').order(updated_at: :desc).limit(1)&.first
     end

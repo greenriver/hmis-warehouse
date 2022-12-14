@@ -17,7 +17,7 @@ module Types
 
     def content_type
       # ! Fix this to take into account file format
-      'image/png'
+      'image/jpeg'
     end
 
     def base64
