@@ -215,7 +215,7 @@ module GrdaWarehouse
     end
 
     def flag_as(user: User.system_user, status:)
-      update(
+      reload.update(
         updated_by_id: user.id,
         status: status,
       )
