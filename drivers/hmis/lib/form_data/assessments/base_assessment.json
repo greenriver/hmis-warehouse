@@ -4,14 +4,14 @@
       "type": "GROUP",
       "link_id": "location",
       "text": "Client Location",
+      "data_collected_about": "HOH",
       "item": [
         {
           "type": "CHOICE",
           "link_id": "3.16",
           "prefix": "3.16",
           "text": "CoC Code for Client Location",
-          "pick_list_reference": "COC",
-          "data_collected_about": "HOH"
+          "pick_list_reference": "COC"
         }
       ]
     },
