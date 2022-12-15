@@ -23,7 +23,7 @@
     },
     {
       "type": "GROUP",
-      "link_id": "name",
+      "link_id": "1",
       "item": [
         {
           "type": "CHOICE",

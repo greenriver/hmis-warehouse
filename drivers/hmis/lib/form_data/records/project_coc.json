@@ -2,9 +2,7 @@
   "item": [
     {
       "type": "GROUP",
-      "link_id": "name",
-      "text": "Location Details",
-      "required": false,
+      "link_id": "1",
       "item": [
         {
           "type": "CHOICE",
@@ -29,15 +27,7 @@
           "text": "Geography Type",
           "pick_list_reference": "GeographyType",
           "field_name": "geographyType"
-        }
-      ]
-    },
-    {
-      "type": "GROUP",
-      "link_id": "address",
-      "text": "Project Address",
-      "required": false,
-      "item": [
+        },
         {
           "type": "STRING",
           "required": false,
@@ -49,7 +39,7 @@
           "type": "STRING",
           "required": false,
           "link_id": "address2",
-          "text": "Address (line 2)",
+          "text": "Apt, suite, etc (Optional)",
           "field_name": "address2"
         },
         {
@@ -71,7 +61,7 @@
           "type": "STRING",
           "required": false,
           "link_id": "zip",
-          "text": "Zip",
+          "text": "Zip Code",
           "field_name": "zip",
           "size": "SMALL"
         }
