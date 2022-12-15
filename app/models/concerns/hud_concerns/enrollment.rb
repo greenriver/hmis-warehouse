@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module HudConcerns::EnrollmentShared
+module HudConcerns::Enrollment
   extend ActiveSupport::Concern
   included do
     scope :open_during_range, ->(range) do
