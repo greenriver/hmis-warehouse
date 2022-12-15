@@ -290,8 +290,40 @@ input ClientSearchInput {
 HUD Client Sorting Options
 """
 enum ClientSortOption {
-  LAST_NAME_ASC
-  LAST_NAME_DESC
+  """
+  First Name A To Z
+  """
+  FIRST_NAME_A_TO_Z
+
+  """
+  First Name Z To A
+  """
+  FIRST_NAME_Z_TO_A
+
+  """
+  Last Name A To Z
+  """
+  LAST_NAME_A_TO_Z
+
+  """
+  Last Name Z To A
+  """
+  LAST_NAME_Z_TO_A
+
+  """
+  Oldest To Youngest
+  """
+  OLDEST_TO_YOUNGEST
+
+  """
+  Recently Added
+  """
+  RECENTLY_ADDED
+
+  """
+  Youngest To Oldest
+  """
+  YOUNGEST_TO_OLDEST
 }
 
 type ClientsPaginated {
