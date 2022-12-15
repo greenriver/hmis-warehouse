@@ -2,6 +2,38 @@
   "item": [
     {
       "type": "GROUP",
+      "link_id": "name",
+      "text": "Location Details",
+      "required": false,
+      "item": [
+        {
+          "type": "CHOICE",
+          "required": true,
+          "link_id": "coc",
+          "text": "CoC Code",
+          "pick_list_reference": "COC",
+          "field_name": "cocCode"
+        },
+        {
+          "type": "CHOICE",
+          "required": true,
+          "link_id": "geocode",
+          "text": "Geocode",
+          "pick_list_reference": "GEOCODE",
+          "field_name": "geocode"
+        },
+        {
+          "type": "CHOICE",
+          "required": false,
+          "link_id": "geotype",
+          "text": "Geography Type",
+          "pick_list_reference": "GeographyType",
+          "field_name": "geographyType"
+        }
+      ]
+    },
+    {
+      "type": "GROUP",
       "link_id": "address",
       "text": "Project Address",
       "required": false,
@@ -40,39 +72,8 @@
           "required": false,
           "link_id": "zip",
           "text": "Zip",
-          "field_name": "zip"
-        }
-      ]
-    },
-    {
-      "type": "GROUP",
-      "link_id": "name",
-      "text": "Location Details",
-      "required": false,
-      "item": [
-        {
-          "type": "CHOICE",
-          "required": true,
-          "link_id": "coc",
-          "text": "CoC Code",
-          "pick_list_reference": "COC",
-          "field_name": "cocCode"
-        },
-        {
-          "type": "CHOICE",
-          "required": true,
-          "link_id": "geocode",
-          "text": "Geocode",
-          "pick_list_reference": "GEOCODE",
-          "field_name": "geocode"
-        },
-        {
-          "type": "CHOICE",
-          "required": false,
-          "link_id": "geotype",
-          "text": "Geography Type",
-          "pick_list_reference": "GeographyType",
-          "field_name": "geographyType"
+          "field_name": "zip",
+          "size": "SMALL"
         }
       ]
     }

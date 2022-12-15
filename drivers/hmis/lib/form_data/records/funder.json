@@ -54,14 +54,13 @@
           "link_id": "grant-id",
           "text": "Grant Identifier",
           "field_name": "grantId"
-        }
-      ]
-    },
-    {
-      "type": "GROUP",
-      "link_id": "dates",
-      "text": "Operating Period",
-      "item": [
+        },
+        {
+          "type": "DISPLAY",
+          "hidden": true,
+          "link_id": "bumper",
+          "text": "<br />"
+        },
         {
           "link_id": "date-range-warning",
           "type": "DISPLAY",

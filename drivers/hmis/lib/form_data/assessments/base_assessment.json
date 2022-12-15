@@ -21,7 +21,6 @@
       "text": "Prior Living Situation",
       "data_collected_about": "HOH_AND_ADULTS",
       "record_type": "ENROLLMENT",
-      "reference_link": "https://files.hudexchange.info/resources/documents/FY-2022-HMIS-Data-Standards-Manual.pdf#page=104",
       "item": [
         {
           "type": "DISPLAY",
@@ -232,8 +231,7 @@
           "type": "CHOICE",
           "required": false,
           "link_id": "4.12",
-          "text": "Current Living Situation",
-          "valueSetReference": "LivingSituation"
+          "text": "Current Living Situation"
         },
         {
           "type": "GROUP",
