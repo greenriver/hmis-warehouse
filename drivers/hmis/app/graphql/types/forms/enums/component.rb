@@ -14,7 +14,7 @@ module Types
     value 'HORIZONTAL_GROUP', 'Render a group of inputs horizontally'
     value 'CHECKBOX', 'Render a boolean input item as a checkbox'
     value 'RADIO_BUTTONS', 'Render a choice input item as radio buttons'
-    value 'RADIO_BUTTONS_VERTICAL', 'Render a choice input item as radio vertical buttons'
+    value 'RADIO_BUTTONS_VERTICAL', 'Render a choice input item as vertical radio buttons'
     value 'ALERT_INFO', 'Display text as an info alert'
     value 'ALERT_WARNING', 'Display text as a warning alert'
     value 'ALERT_ERROR', 'Display text as an error alert'

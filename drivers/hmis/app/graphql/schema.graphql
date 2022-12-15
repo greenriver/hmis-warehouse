@@ -346,7 +346,7 @@ enum Component {
   RADIO_BUTTONS
 
   """
-  Render a choice input item as radio vertical buttons
+  Render a choice input item as vertical radio buttons
   """
   RADIO_BUTTONS_VERTICAL
 }
