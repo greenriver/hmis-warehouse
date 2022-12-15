@@ -10,6 +10,7 @@ module GrdaWarehouse::Hud
     include HudSharedScopes
     include TsqlImport
     include NotifierConfig
+    include ::HudConcerns::EnrollmentShared
     include ::HmisStructure::Enrollment
     include ::HmisStructure::Shared
 
@@ -144,9 +145,10 @@ module GrdaWarehouse::Hud
     scope :with_project_type, ->(project_types) do
       joins(:project).merge(Project.with_project_type(project_types))
     end
-    scope :in_project, ->(project_ids) do
-      joins(:project).where(p_t[:id].in(project_ids))
-    end
+    # ! Remove if EnrollmentShared concern works
+    # scope :in_project, ->(project_ids) do
+    #   joins(:project).where(p_t[:id].in(project_ids))
+    # end
 
     scope :visible_in_window_to, ->(user) do
       visible_to(user)
@@ -156,20 +158,21 @@ module GrdaWarehouse::Hud
       none
     end
 
-    scope :open_during_range, ->(range) do
-      # convert the range into a standard range for backwards compatability
-      range = (range.start..range.end) if range.is_a?(::Filters::DateRange)
-      d_1_start = range.first
-      d_1_end = range.last
-      d_2_start = e_t[:EntryDate]
-      d_2_end = ex_t[:ExitDate]
-      left_outer_joins(:exit).
-        where(d_2_end.gteq(d_1_start).or(d_2_end.eq(nil)).and(d_2_start.lteq(d_1_end)))
-    end
+    # scope :open_during_range, ->(range) do
+    #   # convert the range into a standard range for backwards compatability
+    #   range = (range.start..range.end) if range.is_a?(::Filters::DateRange)
+    #   d_1_start = range.first
+    #   d_1_end = range.last
+    #   d_2_start = e_t[:EntryDate]
+    #   d_2_end = ex_t[:ExitDate]
+    #   left_outer_joins(:exit).
+    #     where(d_2_end.gteq(d_1_start).or(d_2_end.eq(nil)).and(d_2_start.lteq(d_1_end)))
+    # end
 
-    scope :open_on_date, ->(date = Date.current) do
-      open_during_range(date..date)
-    end
+    # ! Remove if EnrollmentShared concern works
+    # scope :open_on_date, ->(date = Date.current) do
+    #   open_during_range(date..date)
+    # end
 
     scope :opened_during_range, ->(range) do
       where(EntryDate: range)
