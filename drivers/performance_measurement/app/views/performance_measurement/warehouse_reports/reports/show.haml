@@ -27,7 +27,7 @@
             .j-toggle-text.ml-2.hide Hide Details
       .minimal-collapse
         = render 'common/panel_collapse', id: 'universe', title: 'Chosen Universe', content: '_universe', heading_slug: '_universe', arrow_icon: 'icon-angle'
-    - if can_view_hud_reports? && @report.reporting_spm_id.present? && @report.comparison_spm_id.present?
+    - if can_view_all_hud_reports? && @report.reporting_spm_id.present? && @report.comparison_spm_id.present?
       .col-2
         %h3.mb-4 SPMs
         .mb-2
