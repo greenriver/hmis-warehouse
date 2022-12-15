@@ -17,7 +17,7 @@ module GrdaWarehouse::WarehouseReports
     def enrollments_for(key)
       scope = case metrics[key][:type]
       when :exit
-        exit_scope
+        exits_scope
       when :entry
         entries_scope
       when :all
