@@ -11,6 +11,7 @@ module WarehouseReports
     before_action :set_limited, only: [:index]
 
     def index
+      TodoOrDie('Remove after 2/1/2023', by: '2023-02-01')
       @date = (params[:date] || default_date).to_date
       @counts = GrdaWarehouse::ServiceHistoryService.residential.
         joins(service_history_enrollment: [:project, :organization]).

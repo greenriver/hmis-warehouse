@@ -398,13 +398,13 @@ module GrdaWarehouse::WarehouseReports
             limitable: true,
             health: false,
           },
-          {
-            url: 'warehouse_reports/double_enrollments',
-            name: 'Doubly Enrolled Clients',
-            description: 'Clients enrolled in multiple simultaneous projects of the same type.',
-            limitable: true,
-            health: false,
-          },
+          # {
+          #   url: 'warehouse_reports/double_enrollments',
+          #   name: 'Doubly Enrolled Clients',
+          #   description: 'Clients enrolled in multiple simultaneous projects of the same type.',
+          #   limitable: true,
+          #   health: false,
+          # },
           {
             url: 'warehouse_reports/conflicting_client_attributes',
             name: 'Clients with Conflicting Reported Attributes',
@@ -412,27 +412,27 @@ module GrdaWarehouse::WarehouseReports
             limitable: true,
             health: false,
           },
-          {
-            url: 'warehouse_reports/hud/missing_coc_codes',
-            name: 'Missing CoC Codes',
-            description: 'Identify clients with missing EnrollmentCoC entries.',
-            limitable: true,
-            health: false,
-          },
-          {
-            url: 'warehouse_reports/hud/not_one_hohs',
-            name: 'Incorrect Head of Household Counts',
-            description: 'Identify households with zero or more than one Head of Household.',
-            limitable: true,
-            health: false,
-          },
-          {
-            url: 'warehouse_reports/hud/incorrect_move_in_dates',
-            name: 'Incorrect Move-in Dates',
-            description: 'Enrollments with move-in dates outside of the enrollment, or missing.',
-            limitable: true,
-            health: false,
-          },
+          # {
+          #   url: 'warehouse_reports/hud/missing_coc_codes',
+          #   name: 'Missing CoC Codes',
+          #   description: 'Identify clients with missing EnrollmentCoC entries.',
+          #   limitable: true,
+          #   health: false,
+          # },
+          # {
+          #   url: 'warehouse_reports/hud/not_one_hohs',
+          #   name: 'Incorrect Head of Household Counts',
+          #   description: 'Identify households with zero or more than one Head of Household.',
+          #   limitable: true,
+          #   health: false,
+          # },
+          # {
+          #   url: 'warehouse_reports/hud/incorrect_move_in_dates',
+          #   name: 'Incorrect Move-in Dates',
+          #   description: 'Enrollments with move-in dates outside of the enrollment, or missing.',
+          #   limitable: true,
+          #   health: false,
+          # },
           {
             url: 'override_summary/warehouse_reports/reports',
             name: 'Override Summary',
@@ -1297,6 +1297,10 @@ module GrdaWarehouse::WarehouseReports
         'claims_reporting/warehouse_reports/performance',
         'warehouse_reports/initiatives',
         'warehouse_reports/client_details/last_permanent_zips',
+        'warehouse_reports/double_enrollments',
+        'warehouse_reports/hud/missing_coc_codes',
+        'warehouse_reports/hud/not_one_hohs',
+        'warehouse_reports/hud/incorrect_move_in_dates',
       ]
       cleanup << 'ma_yya_report/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:ma_yya_report)
       cleanup << 'ma_yya_followup_report/warehouse_reports/youth_followup' unless RailsDrivers.loaded.include?(:ma_yya_followup_report)
