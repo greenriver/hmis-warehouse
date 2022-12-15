@@ -27,7 +27,7 @@ module Mutations
       inventory_count = project.inventories.where(inventory_end_date: nil).count
       open_enrollments = Hmis::Hud::Enrollment.open_on_date.in_project(project.id)
       warnings = []
-      warnings << InputConfirmationWarning.new("#{open_enrollments.count} open #{'enrollment'.pluralize(open_enrollments.count)} exist.", attribute: 'id') if open_enrollments.present?
+      warnings << InputConfirmationWarning.new("Project has #{open_enrollments.count} open #{'enrollment'.pluralize(open_enrollments.count)}.", attribute: 'id') if open_enrollments.present?
       warnings << InputConfirmationWarning.new("#{funder_count} open #{'funder'.pluralize(funder_count)} will be closed.", attribute: 'id') if funder_count.positive?
       warnings << InputConfirmationWarning.new("#{inventory_count} open inventory #{'record'.pluralize(inventory_count)} will be closed.", attribute: 'id') if inventory_count.positive?
       warnings
