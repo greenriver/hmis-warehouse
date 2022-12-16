@@ -47,7 +47,7 @@ jobs:
 
     - name: Install aws cli
       id: install-aws-cli
-      uses: unfor19/install-aws-cli-action@v2
+      uses: unfor19/install-aws-cli-action@v1
 
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v1-node16
