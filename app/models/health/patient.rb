@@ -253,10 +253,14 @@ module Health
       # epic_careplan_patient_id_scope = Health::EpicCareplan.distinct.joins(:patient).select(hp_t[:id].to_sql)
 
       where(
+        # participation_form_patient_id_scope is commented out above
+        #
         # arel_table[:id].in(Arel.sql(participation_form_patient_id_scope.to_sql)).
         # and(
-        arel_table[:id].in(Arel.sql(release_form_patient_id_scope.to_sql)).
+        #  arel_table[:id].in(Arel.sql(release_form_patient_id_scope.to_sql)),
         # ).
+        # Moved out of and() above
+        arel_table[:id].in(Arel.sql(release_form_patient_id_scope.to_sql)).
         and(
           arel_table[:id].in(Arel.sql(cha_patient_id_scope.to_sql)).
           or(
