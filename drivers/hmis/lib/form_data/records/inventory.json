@@ -58,11 +58,6 @@
           "field_name": "bedInventory"
         },
         {
-          "type": "DISPLAY",
-          "link_id": "bumper",
-          "text": "<br />"
-        },
-        {
           "type": "DATE",
           "required": true,
           "link_id": "2.07.1",

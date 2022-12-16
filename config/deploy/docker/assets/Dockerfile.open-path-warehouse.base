@@ -36,6 +36,7 @@ COPY drivers ./drivers
 COPY locale ./locale
 
 COPY config/deploy/docker/assets/REVISION ./
+COPY config/deploy/docker/assets/GIT_BRANCH ./
 
 ##################
 ## Actual Build ##
