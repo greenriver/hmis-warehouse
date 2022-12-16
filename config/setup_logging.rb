@@ -38,7 +38,7 @@ class SetupLogging
       result = block.call
 
       # Reset tags so Rails.logger.info('msg') won't be tagged with the last tag
-      @tags = {}
+      clear_tags!
 
       # This method is actually rack middleware (at least in some contexts). It
       # needs to pass along the block call.
