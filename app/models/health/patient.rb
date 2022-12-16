@@ -224,10 +224,11 @@ module Health
         where(ssm_updated_at: (first_date..on.to_time)).
         select(hp_t[:id].to_sql)
 
-      participation_form_patient_id_scope = Health::ParticipationForm.distinct.
-        valid.
-        allowed_for_engagement.
-        select(:patient_id)
+      # Participation forms were combined with release forms 11/2022
+      # participation_form_patient_id_scope = Health::ParticipationForm.distinct.
+      #   valid.
+      #   allowed_for_engagement.
+      #   select(:patient_id)
 
       release_form_patient_id_scope = Health::ReleaseForm.distinct.
         valid.
@@ -252,10 +253,10 @@ module Health
       # epic_careplan_patient_id_scope = Health::EpicCareplan.distinct.joins(:patient).select(hp_t[:id].to_sql)
 
       where(
-        arel_table[:id].in(Arel.sql(participation_form_patient_id_scope.to_sql)).
-        and(
-          arel_table[:id].in(Arel.sql(release_form_patient_id_scope.to_sql)),
-        ).
+        # arel_table[:id].in(Arel.sql(participation_form_patient_id_scope.to_sql)).
+        # and(
+        arel_table[:id].in(Arel.sql(release_form_patient_id_scope.to_sql)).
+        # ).
         and(
           arel_table[:id].in(Arel.sql(cha_patient_id_scope.to_sql)).
           or(
