@@ -927,7 +927,7 @@ module HmisDataQualityTool
         days_in_ph_prior_to_move_in_90_issues: {
           title: 'Possible Missed Move In Date - PH, Time in Enrollment 90 Days or More',
           description: 'There is an expectation that clients in PH will eventually move into housing, these clients have been in PH without a move-in date 90 days ore more, or have an invalid move-in date ',
-          required_for: 'Adults and HoH in PH',
+          required_for: 'HoH in PH',
           detail_columns: [
             :destination_client_id,
             :hmis_enrollment_id,
@@ -944,10 +944,10 @@ module HmisDataQualityTool
             :lot,
           ],
           denominator: ->(item) {
-            hoh_or_adult?(item) && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
+            item.relationship_to_hoh == 1 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
           },
           limiter: ->(item) {
-            return false unless hoh_or_adult?(item)
+            return false unless item.relationship_to_hoh == 1
             return false if item.move_in_date.present? && item.move_in_date >= item.entry_date && (item.exit_date.blank? || item.move_in_date <= item.exit_date)
 
             item.lot >= 90 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
@@ -957,7 +957,7 @@ module HmisDataQualityTool
         days_in_ph_prior_to_move_in_180_issues: {
           title: 'Possible Missed Move In Date - PH, Time in Enrollment 180 Days or More',
           description: 'There is an expectation that clients in PH will eventually move into housing, these clients have been in PH without a move-in date 180 days ore more, or have an invalid move-in date',
-          required_for: 'Adults and HoH in PH',
+          required_for: 'HoH in PH',
           detail_columns: [
             :destination_client_id,
             :hmis_enrollment_id,
@@ -974,10 +974,10 @@ module HmisDataQualityTool
             :lot,
           ],
           denominator: ->(item) {
-            hoh_or_adult?(item) && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
+            item.relationship_to_hoh == 1 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
           },
           limiter: ->(item) {
-            return false unless hoh_or_adult?(item)
+            return false unless item.relationship_to_hoh == 1
             return false if item.move_in_date.present? && item.move_in_date >= item.entry_date && (item.exit_date.blank? || item.move_in_date <= item.exit_date)
 
             item.lot >= 180 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
@@ -987,7 +987,7 @@ module HmisDataQualityTool
         days_in_ph_prior_to_move_in_365_issues: {
           title: 'Possible Missed Move In Date - PH, Time in Enrollment 365 Days or More',
           description: 'There is an expectation that clients in PH will eventually move into housing, these clients have been in PH without a move-in date 365 days or more, or have an invalid move-in date',
-          required_for: 'Adults and HoH in PH',
+          required_for: 'AHoH in PH',
           detail_columns: [
             :destination_client_id,
             :hmis_enrollment_id,
@@ -1004,10 +1004,10 @@ module HmisDataQualityTool
             :lot,
           ],
           denominator: ->(item) {
-            hoh_or_adult?(item) && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
+            item.relationship_to_hoh == 1 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
           },
           limiter: ->(item) {
-            return false unless hoh_or_adult?(item)
+            return false unless item.relationship_to_hoh == 1
             return false if item.move_in_date.present? && item.move_in_date >= item.entry_date && (item.exit_date.blank? || item.move_in_date <= item.exit_date)
 
             item.lot >= 365 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
@@ -1017,7 +1017,7 @@ module HmisDataQualityTool
         move_in_prior_to_start_issues: {
           title: 'Move-In Before Entry Date',
           description: 'Move-in date must be on or after the entry date, only checked for PH projects',
-          required_for: 'Adults and HoH in PH',
+          required_for: 'HoH in PH',
           detail_columns: [
             :destination_client_id,
             :hmis_enrollment_id,
@@ -1033,10 +1033,10 @@ module HmisDataQualityTool
             :relationship_to_hoh,
           ],
           denominator: ->(item) {
-            hoh_or_adult?(item) && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
+            item.relationship_to_hoh == 1 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
           },
           limiter: ->(item) {
-            return false unless hoh_or_adult?(item)
+            return false unless item.relationship_to_hoh == 1
             return false if item.move_in_date.blank?
             return false unless GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
 
@@ -1046,7 +1046,7 @@ module HmisDataQualityTool
         move_in_post_exit_issues: {
           title: 'Move-In After Exit Date',
           description: 'Move-in date must be on or before the exit date, only checked for PH projects',
-          required_for: 'Adults and HoH in PH',
+          required_for: 'HoH in PH',
           detail_columns: [
             :destination_client_id,
             :hmis_enrollment_id,
@@ -1062,10 +1062,10 @@ module HmisDataQualityTool
             :relationship_to_hoh,
           ],
           denominator: ->(item) {
-            hoh_or_adult?(item) && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
+            item.relationship_to_hoh == 1 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
           },
           limiter: ->(item) {
-            return false unless hoh_or_adult?(item)
+            return false unless item.relationship_to_hoh == 1
             return false if item.move_in_date.blank? || item.exit_date.blank?
             return false unless GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
 
