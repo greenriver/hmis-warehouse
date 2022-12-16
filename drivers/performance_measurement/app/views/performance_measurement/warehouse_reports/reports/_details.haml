@@ -21,11 +21,11 @@
     .calculation.ml-6
       %h3.d-flex
         Calculation
-        - if ! can_view_hud_reports? && measure.present?
+        - if ! @report.show_spm_link? && measure.present?
           .ml-auto
             .badge.badge-secondary= "SPM #{measure}"
       %p= @report.detail_calculation_description_for(key)
-    - if can_view_hud_reports? && measure.present?
+    - if @report.show_spm_link? && measure.present?
       .col-2.ml-6.p-0
         %h3.mb-4= "SPM #{measure}"
         .mb-2
