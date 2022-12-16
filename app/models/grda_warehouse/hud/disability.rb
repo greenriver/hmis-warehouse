@@ -82,6 +82,11 @@ module GrdaWarehouse::Hud
       where(DisabilityType: 8)
     end
 
+    # Used to exclude HIV, since that isn't always collected
+    scope :not_hiv, -> do
+      where.not(DisabilityType: 8)
+    end
+
     scope :mental, -> do
       where(DisabilityType: 9)
     end
