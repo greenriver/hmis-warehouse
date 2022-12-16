@@ -14,10 +14,16 @@ module GrdaWarehouse::WarehouseReports
       @user = user
     end
 
+    def project_types_limiting_exit_scope
+      @filter.project_type_numbers.map do |n|
+        ::HUD.project_type(n)
+      end
+    end
+
     def enrollments_for(key)
       scope = case metrics[key][:type]
       when :exit
-        exit_scope
+        exits_scope
       when :entry
         entries_scope
       when :all
@@ -280,9 +286,9 @@ module GrdaWarehouse::WarehouseReports
         clients_to_stabilization: { label: 'All Clients entering Stabilization', type: :entry },
         hoh_to_stabilization: { label: 'All Heads of Households entering Stabilization', type: :entry },
         exits_to_ph: { label: 'Unique Clients exiting to Permanent Destinations or entering Stabilization',
-                       type: :exit },
+                       type: :entry },
         hoh_exits_to_ph: { label: 'Unique Heads of Households exiting to Permanent Destinations or entering Stabilization',
-                           type: :exit },
+                           type: :entry },
         clients_to_neutral: { label: 'Unique Clients exiting to a neutral destination', type: :exit },
         hoh_to_neutral: { label: 'Unique Heads of Households exiting to a neutral destination',
                           type: :exit },

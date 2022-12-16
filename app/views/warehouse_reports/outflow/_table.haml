@@ -5,8 +5,13 @@
       %tr
         %th Metric
         %th Clients
+        %th
     %tbody
       - @report.metrics.each do |key, obj|
         %tr
           %td= link_to obj[:label], details_warehouse_reports_outflow_index_path(filter: filter_options, key: key), data: {loads_in_pjax_modal: true}
           %td= @report.send(key).count
+          %td
+            - if obj[:type] == :exit && @report.project_types_limiting_exit_scope.present?
+              - types = @report.project_types_limiting_exit_scope.join(', ')
+              %i.icon-info{data: {toggle: :tooltip, title: "Limited to exits from #{types}"}}

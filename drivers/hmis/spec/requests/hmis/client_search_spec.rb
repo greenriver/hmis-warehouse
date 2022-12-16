@@ -20,7 +20,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   let(:query) do
     <<~GRAPHQL
-      query ClientSearch($input: ClientSearchInput!, $sortOrder: ClientSortOption = LAST_NAME_ASC) {
+      query ClientSearch($input: ClientSearchInput!, $sortOrder: ClientSortOption = LAST_NAME_A_TO_Z) {
         clientSearch(
           limit: 100,
           offset: 0,

@@ -30,6 +30,7 @@ module Types
     field :pick_list_reference, String, 'Reference to value set of possible answer options', null: true
     field :pick_list_options, [Forms::PickListOption], 'Permitted answers, for choice items', null: true
     field :disabled_display, Forms::Enums::DisabledDisplay, 'How to display item if it is disabled', null: true
+    field :size, Forms::Enums::InputSize, 'Size of the input element', null: true
     field :enable_behavior, Forms::Enums::EnableBehavior, null: true
     field :enable_when, [Forms::EnableWhen], null: true
     field :initial, [Forms::InitialValue], 'Initial value(s) when item is first rendered', null: true

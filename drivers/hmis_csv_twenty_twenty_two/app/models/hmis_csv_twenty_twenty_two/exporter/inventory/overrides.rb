@@ -18,14 +18,14 @@ module HmisCsvTwentyTwentyTwo::Exporter
     # in addition, there is a single `apply_overrides` method if you want all of them
     # the `process method` will apply all overrides, and then set primary and foreign keys correctly for export
     def process(row)
-      row = self.class.apply_overrides(row, export: @options[:export])
+      row = self.class.apply_overrides(row)
 
       row
     end
 
-    def self.apply_overrides(row, export:)
+    def self.apply_overrides(row)
       [
-        { hud_field: :CoCCode, override_field: :coc_code_override, default_value: best_coc(row, export) },
+        { hud_field: :CoCCode, override_field: :coc_code_override, default_value: best_coc(row) },
         { hud_field: :InventoryStartDate, override_field: :inventory_start_date_override },
         { hud_field: :InventoryEndDate, override_field: :inventory_end_date_override },
 
@@ -36,15 +36,10 @@ module HmisCsvTwentyTwentyTwo::Exporter
       row
     end
 
-    def self.best_coc(row, export)
+    def self.best_coc(row)
       return row.CoCCode if row.CoCCode.present?
 
-      project_cocs = if export.include_deleted || export.period_type == 1
-        row.project_with_deleted&.project_cocs_with_deleted&.map(&:CoCCode)
-      else
-        row.project&.project_cocs&.map(&:CoCCode)
-      end
-
+      project_cocs = row.project&.project_cocs&.map(&:CoCCode)
       project_cocs.uniq!
       # If we have more than one project coc, don't guess
       return nil if project_cocs.blank? || project_cocs.count > 1
