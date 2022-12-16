@@ -331,6 +331,11 @@ enum Component {
   CHECKBOX
 
   """
+  Render a group of inputs horizontally
+  """
+  HORIZONTAL_GROUP
+
+  """
   Render a group that contains children of the same type (e.g. all booleans)
   """
   INPUT_GROUP
@@ -339,6 +344,11 @@ enum Component {
   Render a choice input item as radio buttons
   """
   RADIO_BUTTONS
+
+  """
+  Render a choice input item as vertical radio buttons
+  """
+  RADIO_BUTTONS_VERTICAL
 }
 
 """
@@ -1357,6 +1367,11 @@ type FormItem {
   required: Boolean
 
   """
+  Size of the input element
+  """
+  size: InputSize
+
+  """
   Primary text for the item
   """
   text: String
@@ -2009,6 +2024,13 @@ type InitialValue {
   If question is numeric, initial value
   """
   valueNumber: Int
+}
+
+enum InputSize {
+  LARGE
+  MEDIUM
+  SMALL
+  XSMALL
 }
 
 type InventoriesPaginated {
