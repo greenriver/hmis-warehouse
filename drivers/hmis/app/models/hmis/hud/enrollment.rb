@@ -26,6 +26,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   has_many :income_benefits, **hmis_relation(:EnrollmentID, 'IncomeBenefit')
   has_many :disabilities, **hmis_relation(:EnrollmentID, 'Disability')
   has_many :health_and_dvs, **hmis_relation(:EnrollmentID, 'HealthAndDv')
+  has_many :current_living_situations, **hmis_relation(:EnrollmentID, 'CurrentLivingSituation'), inverse_of: :enrollment
 
   # NOTE: this does not include WIP assessments
   has_many :assessments, **hmis_relation(:EnrollmentID, 'Assessment')
