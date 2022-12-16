@@ -315,8 +315,8 @@ module HmisDataQualityTool
         exit_income_assessment,
       )
 
-      # NOTE: we may want to exclude HIV/AIDS from this calculation as it may not be asked everywhere
-      report_item.disability_at_entry_collected = enrollment.disabilities_at_entry&.map(&:DisabilityResponse)&.all? { |dr| dr.in?([0, 1, 2, 3]) } || false
+      # NOTE: we exclude HIV/AIDS from this calculation as it may not be asked everywhere
+      report_item.disability_at_entry_collected = enrollment.disabilities_at_entry.not_hiv&.map(&:DisabilityResponse)&.all? { |dr| dr.in?([0, 1, 2, 3, 8, 9]) } || false
 
       max_date = [report.filter.end, Date.current].min
       en_services = enrollment.services&.select { |s| s.DateProvided.present? && s.DateProvided <= max_date }
@@ -399,7 +399,11 @@ module HmisDataQualityTool
     end
 
     def self.hoh_or_adult?(item)
-      item.age.present? && item.age > 18 || item.relationship_to_hoh == 1
+      item.age.present? && item.age > 18 || hoh?(item)
+    end
+
+    def self.hoh?(item)
+      item.relationship_to_hoh == 1
     end
 
     def self.chronic_denominator?(item)
@@ -606,9 +610,9 @@ module HmisDataQualityTool
             :relationship_to_hoh,
             :head_of_household_count,
           ],
-          denominator: ->(item) { item.relationship_to_hoh == 1 },
+          denominator: ->(item) { hoh?(item) },
           limiter: ->(item) {
-            item.relationship_to_hoh == 1 && item.head_of_household_count > 1
+            hoh?(item) && item.head_of_household_count > 1
           },
         },
         hoh_client_location_issues: {
@@ -629,10 +633,10 @@ module HmisDataQualityTool
             :relationship_to_hoh,
             :coc_code,
           ],
-          denominator: ->(item) { item.relationship_to_hoh == 1 },
+          denominator: ->(item) { hoh?(item) },
           limiter: ->(item) {
             # Only HoH
-            return false unless item.relationship_to_hoh == 1
+            return false unless hoh?(item)
             # Must have a CoC Code
             return true if item.coc_code.blank?
             # Must be a known CoC
@@ -944,10 +948,10 @@ module HmisDataQualityTool
             :lot,
           ],
           denominator: ->(item) {
-            item.relationship_to_hoh == 1 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
+            hoh?(item) && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
           },
           limiter: ->(item) {
-            return false unless item.relationship_to_hoh == 1
+            return false unless hoh?(item)
             return false if item.move_in_date.present? && item.move_in_date >= item.entry_date && (item.exit_date.blank? || item.move_in_date <= item.exit_date)
 
             item.lot >= 90 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
@@ -974,10 +978,10 @@ module HmisDataQualityTool
             :lot,
           ],
           denominator: ->(item) {
-            item.relationship_to_hoh == 1 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
+            hoh?(item) && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
           },
           limiter: ->(item) {
-            return false unless item.relationship_to_hoh == 1
+            return false unless hoh?(item)
             return false if item.move_in_date.present? && item.move_in_date >= item.entry_date && (item.exit_date.blank? || item.move_in_date <= item.exit_date)
 
             item.lot >= 180 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
@@ -1004,10 +1008,10 @@ module HmisDataQualityTool
             :lot,
           ],
           denominator: ->(item) {
-            item.relationship_to_hoh == 1 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
+            hoh?(item) && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
           },
           limiter: ->(item) {
-            return false unless item.relationship_to_hoh == 1
+            return false unless hoh?(item)
             return false if item.move_in_date.present? && item.move_in_date >= item.entry_date && (item.exit_date.blank? || item.move_in_date <= item.exit_date)
 
             item.lot >= 365 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
@@ -1033,10 +1037,10 @@ module HmisDataQualityTool
             :relationship_to_hoh,
           ],
           denominator: ->(item) {
-            item.relationship_to_hoh == 1 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
+            hoh?(item) && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
           },
           limiter: ->(item) {
-            return false unless item.relationship_to_hoh == 1
+            return false unless hoh?(item)
             return false if item.move_in_date.blank?
             return false unless GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
 
@@ -1062,10 +1066,10 @@ module HmisDataQualityTool
             :relationship_to_hoh,
           ],
           denominator: ->(item) {
-            item.relationship_to_hoh == 1 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
+            hoh?(item) && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
           },
           limiter: ->(item) {
-            return false unless item.relationship_to_hoh == 1
+            return false unless hoh?(item)
             return false if item.move_in_date.blank? || item.exit_date.blank?
             return false unless GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
 
