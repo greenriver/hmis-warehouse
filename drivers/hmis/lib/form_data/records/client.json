@@ -8,7 +8,7 @@
       "item": [
         {
           "type": "GROUP",
-          "link_id": "fn-group",
+          "link_id": "name-group",
           "component": "HORIZONTAL_GROUP",
           "item": [
             {
@@ -21,24 +21,10 @@
             {
               "type": "STRING",
               "required": false,
-              "link_id": "preferred-name",
-              "text": "Preferred Name",
-              "field_name": "preferredName"
-            },
-            {
-              "type": "STRING",
-              "required": false,
               "link_id": "middle-name",
               "text": "Middle Name",
               "field_name": "middleName"
-            }
-          ]
-        },
-        {
-          "type": "GROUP",
-          "link_id": "ln-group",
-          "component": "HORIZONTAL_GROUP",
-          "item": [
+            },
             {
               "type": "STRING",
               "required": false,
@@ -57,13 +43,26 @@
           ]
         },
         {
-          "type": "CHOICE",
+          "type": "STRING",
           "required": false,
-          "link_id": "name-dq",
-          "component": "RADIO_BUTTONS",
-          "text": "Name Data Quality",
-          "field_name": "nameDataQuality",
-          "pick_list_reference": "NameDataQuality"
+          "link_id": "preferred-name",
+          "text": "Preferred Name",
+          "field_name": "preferredName"
+        },
+        {
+          "type": "GROUP",
+          "component": "INFO_GROUP",
+          "link_id": "dq-group",
+          "item": [
+            {
+              "type": "CHOICE",
+              "required": false,
+              "link_id": "name-dq",
+              "text": "Name Data Quality",
+              "field_name": "nameDataQuality",
+              "pick_list_reference": "NameDataQuality"
+            }
+          ]
         }
       ]
     },
@@ -74,21 +73,20 @@
       "link_id": "identification",
       "item": [
         {
+          "type": "DATE",
+          "required": false,
+          "link_id": "dob",
+          "text": "Date of Birth",
+          "field_name": "dob"
+        },
+        {
           "type": "GROUP",
-          "component": "HORIZONTAL_GROUP",
+          "component": "INFO_GROUP",
           "link_id": "dob-group",
           "item": [
             {
-              "type": "DATE",
-              "required": false,
-              "link_id": "dob",
-              "text": "Date of Birth",
-              "field_name": "dob"
-            },
-            {
               "type": "CHOICE",
               "required": false,
-              "component": "RADIO_BUTTONS",
               "link_id": "dob-dq",
               "text": "DOB Data Quality",
               "field_name": "dobDataQuality",
@@ -97,22 +95,21 @@
           ]
         },
         {
+          "type": "STRING",
+          "required": false,
+          "link_id": "ssn",
+          "text": "Social Security Number",
+          "field_name": "ssn",
+          "size": "SMALL"
+        },
+        {
           "type": "GROUP",
-          "component": "HORIZONTAL_GROUP",
+          "component": "INFO_GROUP",
           "link_id": "ssn-group",
           "item": [
             {
-              "type": "STRING",
-              "required": false,
-              "link_id": "ssn",
-              "text": "Social Security Number",
-              "field_name": "ssn",
-              "size": "SMALL"
-            },
-            {
               "type": "CHOICE",
               "required": false,
-              "component": "RADIO_BUTTONS",
               "link_id": "ssn-dq",
               "text": "SSN Data Quality",
               "field_name": "ssnDataQuality",
