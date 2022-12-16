@@ -286,6 +286,7 @@
       "item": [
         {
           "type": "CHOICE",
+          "component": "RADIO_BUTTONS",
           "link_id": "4.02.2",
           "text": "Income from Any Source",
           "pick_list_reference": "NoYesReasonsForMissingData",
@@ -1036,6 +1037,7 @@
       "item": [
         {
           "type": "CHOICE",
+          "component": "RADIO_BUTTONS",
           "link_id": "4.03.2",
           "text": "Non-Cash Benefits from Any Source",
           "pick_list_reference": "NoYesReasonsForMissingData",
@@ -1168,6 +1170,7 @@
       "item": [
         {
           "type": "CHOICE",
+          "component": "RADIO_BUTTONS",
           "link_id": "4.04.2",
           "text": "Covered by Health Insurance",
           "pick_list_reference": "NoYesReasonsForMissingData",
@@ -1598,6 +1601,7 @@
         },
         {
           "type": "CHOICE",
+          "component": "RADIO_BUTTONS",
           "link_id": "4.11.2",
           "text": "Domestic Violence Victim/Survivor",
           "pick_list_reference": "NoYesReasonsForMissingData",
@@ -1622,6 +1626,7 @@
         },
         {
           "type": "CHOICE",
+          "component": "RADIO_BUTTONS",
           "link_id": "4.11.B",
           "text": "Are you currently fleeing?",
           "brief_text": "Currently Fleeing",
