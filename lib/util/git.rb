@@ -9,7 +9,7 @@ class Git
     if Rails.env.development?
       `git rev-parse --short=9 HEAD`.chomp
     else
-      File.read("#{Rails.root}/REVISION")
+      File.read("#{Rails.root}/REVISION").chomp
     end
   rescue StandardError
     'unknown'
@@ -19,7 +19,7 @@ class Git
     if Rails.env.development?
       `git branch --no-color --show-current`.chomp
     else
-      File.read("#{Rails.root}/GIT_BRANCH")
+      File.read("#{Rails.root}/GIT_BRANCH").chomp
     end
   rescue StandardError
     'unknown'
