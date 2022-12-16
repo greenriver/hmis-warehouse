@@ -6,7 +6,7 @@
 
 module CasAccess
   class Neighborhood < CasBase
-    self.table_name = :neigborhoods
+    self.table_name = :neighborhoods
     def self.neighborhood_ids_from_names(names)
       return [] unless db_exists?
       return [] unless names&.map(&:presence)&.compact&.any?

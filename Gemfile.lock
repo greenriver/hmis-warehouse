@@ -516,7 +516,7 @@ GEM
       railties (>= 4)
       request_store (~> 1.0)
     logstop (0.2.7)
-    loofah (2.19.0)
+    loofah (2.19.1)
       crass (~> 1.0.2)
       nokogiri (>= 1.5.9)
     lumberjack (1.2.8)
@@ -667,8 +667,8 @@ GEM
       activesupport (>= 4.2)
       choice (~> 0.2.0)
       ruby-graphviz (~> 1.2)
-    rails-html-sanitizer (1.4.3)
-      loofah (~> 2.3)
+    rails-html-sanitizer (1.4.4)
+      loofah (~> 2.19, >= 2.19.1)
     rails_drivers (1.2.0)
       rails (>= 5.2)
     railties (6.1.6.1)
@@ -1018,6 +1018,7 @@ DEPENDENCIES
   list_matcher
   lograge
   logstop
+  loofah (>= 2.19.1)
   marginalia
   maxminddb
   memoist
@@ -1051,7 +1052,7 @@ DEPENDENCIES
   rails (~> 6.1)
   rails-controller-testing
   rails-erd
-  rails-html-sanitizer (>= 1.4.3)
+  rails-html-sanitizer (>= 1.4.4)
   rails_drivers
   ransack
   redcarpet
