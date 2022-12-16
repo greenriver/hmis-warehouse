@@ -987,7 +987,7 @@ module HmisDataQualityTool
         days_in_ph_prior_to_move_in_365_issues: {
           title: 'Possible Missed Move In Date - PH, Time in Enrollment 365 Days or More',
           description: 'There is an expectation that clients in PH will eventually move into housing, these clients have been in PH without a move-in date 365 days or more, or have an invalid move-in date',
-          required_for: 'AHoH in PH',
+          required_for: 'HoH in PH',
           detail_columns: [
             :destination_client_id,
             :hmis_enrollment_id,
