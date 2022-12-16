@@ -2,6 +2,26 @@
   "name": "inventory",
   "item": [
     {
+      "type": "DATE",
+      "link_id": "project-start",
+      "hidden": true,
+      "initial": [
+        {
+          "value_local_constant": "$projectStartDate"
+        }
+      ]
+    },
+    {
+      "type": "DATE",
+      "link_id": "project-end",
+      "hidden": true,
+      "initial": [
+        {
+          "value_local_constant": "$projectEndDate"
+        }
+      ]
+    },
+    {
       "type": "GROUP",
       "link_id": "name",
       "text": "Details",
@@ -13,7 +33,7 @@
           "link_id": "coc",
           "text": "CoC Code",
           "pick_list_reference": "COC",
-          "query_field": "cocCode"
+          "field_name": "cocCode"
         },
         {
           "type": "CHOICE",
@@ -21,21 +41,21 @@
           "link_id": "hhtype",
           "text": "Household Type",
           "pick_list_reference": "HouseholdType",
-          "query_field": "householdType"
+          "field_name": "householdType"
         },
         {
           "type": "INTEGER",
           "required": true,
           "link_id": "units",
           "text": "Unit Inventory",
-          "query_field": "unitInventory"
+          "field_name": "unitInventory"
         },
         {
           "type": "INTEGER",
           "required": true,
           "link_id": "beds",
           "text": "Bed Inventory",
-          "query_field": "bedInventory"
+          "field_name": "bedInventory"
         }
       ]
     },
@@ -50,22 +70,42 @@
           "required": true,
           "link_id": "2.07.1",
           "text": "Start Date",
-          "query_field": "inventoryStartDate",
-          "bounds": [{
-            "type": "MAX",
-            "question": "2.07.2"
-          }]
+          "field_name": "inventoryStartDate",
+          "bounds": [
+            {
+              "type": "MIN",
+              "question": "project-start"
+            },
+            {
+              "type": "MAX",
+              "question": "project-end"
+            },
+            {
+              "type": "MAX",
+              "question": "2.07.2"
+            }
+          ]
         },
         {
           "type": "DATE",
           "required": false,
           "link_id": "2.07.2",
           "text": "End Date",
-          "query_field": "inventoryEndDate",
-          "bounds": [{
-            "type": "MIN",
-            "question": "2.07.1"
-          }]
+          "field_name": "inventoryEndDate",
+          "bounds": [
+            {
+              "type": "MIN",
+              "question": "project-start"
+            },
+            {
+              "type": "MAX",
+              "question": "project-end"
+            },
+            {
+              "type": "MIN",
+              "question": "2.07.1"
+            }
+          ]
         }
       ]
     }

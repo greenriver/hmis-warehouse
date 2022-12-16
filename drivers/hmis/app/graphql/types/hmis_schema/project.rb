@@ -20,9 +20,9 @@ module Types
     hud_field :project_name
     hud_field :project_type, Types::HmisSchema::Enums::ProjectType
     hud_field :organization, Types::HmisSchema::Organization, null: false
-    inventories_field null: false
-    project_cocs_field null: false
-    funders_field null: false
+    inventories_field
+    project_cocs_field
+    funders_field
     hud_field :operating_start_date
     hud_field :operating_end_date
     hud_field :description, String, null: true
@@ -38,20 +38,6 @@ module Types
     hud_field :date_created
     hud_field :date_deleted
     field :active, Boolean, null: false
-
-    # rubocop:disable Naming/MethodName
-    def HMISParticipatingProject
-      resolve_yes_no_missing(object.HMISParticipatingProject)
-    end
-    # rubocop:enable Naming/MethodName
-
-    def continuum_project
-      resolve_yes_no_missing(object.continuum_project)
-    end
-
-    def residential_affiliation
-      resolve_yes_no_missing(object.residential_affiliation)
-    end
 
     def organization
       load_ar_association(object, :organization)

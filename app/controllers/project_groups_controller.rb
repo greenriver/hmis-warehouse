@@ -26,7 +26,7 @@ class ProjectGroupsController < ApplicationController
     begin
       @project_group.assign_attributes(name: group_params[:name])
       @project_group.options = ::Filters::HudFilterBase.new(user_id: current_user.id, project_type_numbers: []).update(filter_params).to_h
-      @project_group.save
+      @project_group.save!
       users = user_params[:users]&.reject(&:empty?)
       # If the user can't edit all project groups, make sure we add the user so they can access it later
       users << current_user.id
@@ -49,7 +49,7 @@ class ProjectGroupsController < ApplicationController
     begin
       @project_group.assign_attributes(name: group_params[:name])
       @project_group.options = ::Filters::HudFilterBase.new(user_id: current_user.id, project_type_numbers: []).update(filter_params).to_h
-      @project_group.save
+      @project_group.save!
       if user_params.key?(:users)
         users = user_params[:users]&.reject(&:empty?)
         @project_group.update_access(users.map(&:to_i))

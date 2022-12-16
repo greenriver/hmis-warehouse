@@ -229,7 +229,7 @@ module GrdaWarehouse::CasProjectClientCalculator
         name if most_recent_pathways_or_transfer(client).
           question_matching_requirement(key, '1').present?
       end.compact
-      Cas::Neighborhood.neighborhood_ids_from_names(names)
+      CasAccess::Neighborhood.neighborhood_ids_from_names(names)
     end
 
     private def days_homeless_in_last_three_years_cached(client)
@@ -378,12 +378,16 @@ module GrdaWarehouse::CasProjectClientCalculator
       @cas_active_ids ||= GrdaWarehouse::Hud::Client.cas_active.pluck(:id)
     end
 
+    private def client_id_limit
+      @client_id_limit ||= client_id.presence || cas_active_ids
+    end
+
     private def disabled_client_ids
-      @disabled_client_ids ||= GrdaWarehouse::Hud::Client.disabled_client_scope(client_ids: cas_active_ids).pluck(:id).to_set
+      @disabled_client_ids ||= GrdaWarehouse::Hud::Client.disabled_client_scope(client_ids: client_id_limit).pluck(:id).to_set
     end
 
     private def chronically_disabled_ids
-      @chronically_disabled_ids ||= GrdaWarehouse::Hud::Client.chronically_disabled.where(id: cas_active_ids).pluck(:id).to_set
+      @chronically_disabled_ids ||= GrdaWarehouse::Hud::Client.chronically_disabled.where(id: client_id_limit).pluck(:id).to_set
     end
 
     private def disabling_condition?(client)

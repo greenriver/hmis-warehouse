@@ -12,7 +12,7 @@ module PerformanceMeasurement::WarehouseReports
     before_action :set_goal, only: [:edit, :update, :destroy]
 
     def index
-      goal_source.ensure_default
+      @default_goal = goal_source.ensure_default
       @goals = goal_source.default_first
     end
 
@@ -55,6 +55,7 @@ module PerformanceMeasurement::WarehouseReports
         :recidivism_6_months,
         :recidivism_24_months,
         :income,
+        :always_run_for_coc,
       )
       p[:coc_code] = :default if p[:coc_code].blank?
       p

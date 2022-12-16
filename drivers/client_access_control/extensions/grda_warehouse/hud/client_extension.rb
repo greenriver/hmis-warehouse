@@ -10,7 +10,8 @@ module ClientAccessControl::GrdaWarehouse::Hud
     include ArelHelper
 
     included do
-      scope :destination_visible_to, ->(user, source_client_ids: nil) do
+      # hide previous declaration of :destination_visible_to, we'll use this one
+      replace_scope :destination_visible_to, ->(user, source_client_ids: nil) do
         limited_scope = if user.system_user?
           current_scope || all
         else
@@ -19,7 +20,8 @@ module ClientAccessControl::GrdaWarehouse::Hud
         merge(limited_scope)
       end
 
-      scope :source_visible_to, ->(user, client_ids: nil) do
+      # hide previous declaration of :source_visible_to, we'll use this one
+      replace_scope :source_visible_to, ->(user, client_ids: nil) do
         limited_scope = if user.system_user?
           current_scope || all
         else
@@ -28,8 +30,9 @@ module ClientAccessControl::GrdaWarehouse::Hud
         merge(limited_scope)
       end
 
+      # hide previous declaration of :searchable_to, we'll use this one
       # can search even if no ROI
-      scope :searchable_to, ->(user, client_ids: nil) do
+      replace_scope :searchable_to, ->(user, client_ids: nil) do
         limited_scope = if user.can_search_all_clients? || user.system_user?
           current_scope || all
         else

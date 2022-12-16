@@ -9,5 +9,18 @@
       ordering: false,
       pageLength: 20,
       lengthChange: false,
-      pagingType: 'simple'
+      pagingType: 'simple',
+      fnDrawCallback: function() {
+        // hide pagination if there is only 1 page of results
+
+        // There are up to 2 '.datatable-ssm' tables on the page (CHA and SSM).
+        // They may have index 0, 1, or 2 because they may be preceded by sdh datatable.
+        const tables = [0, 1, 2];
+        tables.forEach(i => {
+          const rows = $(`#DataTables_Table_${i}.datatable-ssm tr`)
+          if (rows && rows.length > 0 && rows.length < 21) {
+            $(`#DataTables_Table_${i}_wrapper .row:last-of-type`).hide();
+          }
+        })
+      }
     })

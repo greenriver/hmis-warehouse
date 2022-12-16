@@ -143,3 +143,6 @@ config/claims_reporting/*
 
 # Ignore CAS db structure, it will be maintained in CAS
 db/cas_structure.sql
+
+# Refuse to commit test kit, this will be pulled down at runtime
+drivers/datalab_testkit/spec/fixtures/inputs/merged/source/*

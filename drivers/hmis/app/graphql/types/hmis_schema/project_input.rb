@@ -6,8 +6,8 @@ module Types
 
     hud_argument :organization_id, ID
     hud_argument :project_name
-    date_string_argument :operating_start_date, 'Date with format yyyy-mm-dd', required: false
-    date_string_argument :operating_end_date, 'Date with format yyyy-mm-dd', required: false
+    hud_argument :operating_start_date
+    hud_argument :operating_end_date
     hud_argument :description, String
     hud_argument :contact_information, String
     hud_argument :project_type, Types::HmisSchema::Enums::ProjectType

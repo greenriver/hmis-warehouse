@@ -93,10 +93,11 @@ module Types
     end
 
     def self.living_situation_options(as:)
+      enum_value_definitions = Types::HmisSchema::Enums::Hud::LivingSituation.all_enum_value_definitions
       to_option = ->(group_code, group_label) {
         proc do |id|
           {
-            code: id,
+            code: enum_value_definitions.find { |v| v.value == id }.graphql_name,
             label: ::HUD.living_situation(id),
             group_code: group_code,
             group_label: group_label,

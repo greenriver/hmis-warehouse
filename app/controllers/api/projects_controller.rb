@@ -30,8 +30,10 @@ module Api
           ).each do |id, p_name, type, o_name, o_id, ds_name|
             o_name_at_ds = "#{o_name} at #{ds_name}"
             @data[[o_id, o_name_at_ds]] ||= []
+
+            p_name += " (#{HUD.project_type_brief(type)})" if HUD.project_type_brief(type).present?
             @data[[o_id, o_name_at_ds]] << [
-              "#{p_name} (#{HUD.project_type_brief(type)})",
+              p_name,
               id,
               selected_project_ids.include?(id),
             ]

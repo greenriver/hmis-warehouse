@@ -34,7 +34,8 @@ module GrdaWarehouse::Hud
       where(AssessmentDate: range)
     end
 
-    scope :importable, -> do
+    # hide previous declaration of :importable, we'll use this one
+    replace_scope :importable, -> do
       where(synthetic: false)
     end
 

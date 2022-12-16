@@ -197,13 +197,16 @@ module GrdaWarehouse::Hud
       where(project_type_column => project_types)
     end
 
-    scope :in_coc, ->(coc_code:) do
+    # hide previous declaration of :in_coc, we'll use this one,
+    # but we don't need to be told there are two every time
+    # we load the class
+    replace_scope :in_coc, ->(coc_code:) do
       joins(:project_cocs).
         merge(GrdaWarehouse::Hud::ProjectCoc.in_coc(coc_code: coc_code))
     end
 
     scope :night_by_night, -> do
-      where(TrackingMethod: 3)
+      where(cl(p_t[:tracking_method_override], p_t[:TrackingMethod]).eq(3))
     end
 
     scope :confidential, -> do
@@ -577,12 +580,10 @@ module GrdaWarehouse::Hud
       end
     end
 
-    scope :rrh, -> { where(project_type_column => PERFORMANCE_REPORTING[:rrh]) }
     def rrh?
       project_type_to_use.in?(PERFORMANCE_REPORTING[:rrh])
     end
 
-    scope :psh, -> { where(project_type_column => PERFORMANCE_REPORTING[:psh]) }
     def psh?
       project_type_to_use.in?(PERFORMANCE_REPORTING[:psh])
     end
@@ -694,7 +695,7 @@ module GrdaWarehouse::Hud
     end
 
     def bed_night_tracking?
-      self.TrackingMethod == 3 || street_outreach_and_acts_as_bednight?
+      tracking_method_to_use == 3 || street_outreach_and_acts_as_bednight?
     end
 
     # Some Street outreach are counted like bed-night shelters, others aren't yet
@@ -816,6 +817,18 @@ module GrdaWarehouse::Hud
       else
         :ProjectType
       end
+    end
+
+    def operating_start_date_to_use
+      operating_start_date_override.presence || self.OperatingStartDate
+    end
+
+    def operating_end_date_to_use
+      operating_end_date_override.presence || self.OperatingEndDate
+    end
+
+    def tracking_method_to_use
+      tracking_method_override.presence || self.TrackingMethod
     end
 
     def human_readable_project_type

@@ -18,15 +18,15 @@ module GrdaWarehouse::Tasks
     RESIDENTIAL_NON_HOMELESS_PROJECT_TYPE = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS - GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
 
     def run!
-      logger.info "====DRY RUN====" if @dry_run
-      logger.info "Updating status of DMH chronically homeless clients on #{@date}"
+      Rails.logger.info '====DRY RUN====' if @dry_run
+      Rails.logger.info "Updating status of DMH chronically homeless clients on #{@date}"
       if @clients.present?
         # limit to those we provided where it intersects with actual DMH clients
         @clients = @clients #dmh_clients.pluck(:client_id) && @clients
       else
         @clients = dmh_clients.pluck(:client_id)
       end
-      logger.info "Found #{@clients.size} DMH clients who are currently homeless"
+      Rails.logger.info "Found #{@clients.size} DMH clients who are currently homeless"
       @chronically_homeless = []
       @client_details = {}
       extra_work = 0
@@ -59,7 +59,7 @@ module GrdaWarehouse::Tasks
           @chronic_trigger = "#{dmh_days_homeless + mainstream_days_homeless} days total #{mainstream_days_homeless} of which were mainstream, DMH client"
           homeless_months = adjusted_months_served(dates: adjusted_homeless_dates_served)
           debug_log "Found #{homeless_months.size} homeless months"
-          debug_log "Chronic Triggers: "
+          debug_log 'Chronic Triggers: '
           debug_log @chronic_trigger.inspect
           @chronically_homeless << client_id
           # Add details for any chronically homeless client
@@ -74,9 +74,9 @@ module GrdaWarehouse::Tasks
 
         end
       end
-      logger.info "Found #{@chronically_homeless.size} DMH chronically homeless clients"
+      Rails.logger.info "Found #{@chronically_homeless.size} DMH chronically homeless clients"
       if @dry_run
-        logger.info @client_details.inspect
+        Rails.logger.info @client_details.inspect
       else
         chronic_source.transaction do
           chronic_source.where(date: @date, dmh: true).delete_all
@@ -84,9 +84,9 @@ module GrdaWarehouse::Tasks
             insert_batch(chronic_source, @client_details.values.first.keys, @client_details.values.map(&:values))
           end
         end
-        logger.info 'Done updating status of chronically homeless clients'
+        Rails.logger.info 'Done updating status of chronically homeless clients'
       end
-      logger.info 'Completed chronic calculations'
+      Rails.logger.info 'Completed chronic calculations'
     end
   end
 end

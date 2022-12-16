@@ -8,7 +8,6 @@ module GrdaWarehouse::Tasks
   class ProjectCleanup
     include ArelHelper
     include NotifierConfig
-    attr_accessor :logger, :send_notifications, :notifier_config
 
     def initialize(
       _bogus_notifier = false,
@@ -16,12 +15,12 @@ module GrdaWarehouse::Tasks
       debug: false
     )
       setup_notifier('Project Cleaner')
-      self.logger = Rails.logger
       @project_ids = project_ids
       @debug = debug
     end
 
     def run!
+      @start_time = Time.current
       debug_log('Cleaning projects')
       @projects = load_projects
 
@@ -64,6 +63,11 @@ module GrdaWarehouse::Tasks
         debug_log("done updating name for #{project.ProjectName}")
       end
       GrdaWarehouse::Tasks::ServiceHistory::Enrollment.batch_process_unprocessed!(max_wait_seconds: 1_800)
+
+      elapsed = Time.current - @start_time
+      Rails.logger.tagged({ task_name: 'Project Cleaner', repeating_task: true, task_runtime: elapsed }) do
+        Rails.logger.info('Project Cleanup Complete')
+      end
     end
 
     def load_projects
@@ -159,7 +163,6 @@ module GrdaWarehouse::Tasks
 
     def debug_log message
       @notifier&.ping(message)
-      logger.info message if @debug
     end
   end
 end

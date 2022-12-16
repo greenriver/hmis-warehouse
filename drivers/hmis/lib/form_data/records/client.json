@@ -11,42 +11,42 @@
           "required": false,
           "link_id": "first-name",
           "text": "First Name",
-          "query_field": "firstName"
+          "field_name": "firstName"
         },
         {
           "type": "STRING",
           "required": false,
           "link_id": "preferred-name",
           "text": "Preferred Name",
-          "query_field": "preferredName"
+          "field_name": "preferredName"
         },
         {
           "type": "STRING",
           "required": false,
           "link_id": "middle-name",
           "text": "Middle Name",
-          "query_field": "middleName"
+          "field_name": "middleName"
         },
         {
           "type": "STRING",
           "required": false,
           "link_id": "last-name",
           "text": "Last Name",
-          "query_field": "lastName"
+          "field_name": "lastName"
         },
         {
           "type": "STRING",
           "required": false,
           "link_id": "name-suffix",
           "text": "Suffix",
-          "query_field": "nameSuffix"
+          "field_name": "nameSuffix"
         },
         {
           "type": "CHOICE",
           "required": false,
           "link_id": "name-dq",
           "text": "Name Data Quality",
-          "query_field": "nameDataQuality",
+          "field_name": "nameDataQuality",
           "pick_list_reference": "NameDataQuality"
         },
         {
@@ -55,7 +55,7 @@
           "link_id": "pronouns",
           "text": "Pronouns",
           "repeats": true,
-          "_TMP_IGNORED_query_field": "pronouns",
+          "field_name": "pronouns",
           "pick_list_options": [
             {
               "code": "she/her"
@@ -83,14 +83,14 @@
           "required": false,
           "link_id": "dob",
           "text": "Date of Birth",
-          "query_field": "dob"
+          "field_name": "dob"
         },
         {
           "type": "CHOICE",
           "required": false,
           "link_id": "dob-dq",
           "text": "DOB Data Quality",
-          "query_field": "dobDataQuality",
+          "field_name": "dobDataQuality",
           "pick_list_reference": "DOBDataQuality"
         }
       ]
@@ -108,14 +108,14 @@
           "required": false,
           "link_id": "ssn",
           "text": "Social Security Number",
-          "query_field": "ssn"
+          "field_name": "ssn"
         },
         {
           "type": "CHOICE",
           "required": false,
           "link_id": "ssn-dq",
           "text": "SSN Data Quality",
-          "query_field": "ssnDataQuality",
+          "field_name": "ssnDataQuality",
           "pick_list_reference": "SSNDataQuality"
         }
       ]
@@ -132,7 +132,7 @@
           "link_id": "race",
           "text": "Race",
           "repeats": true,
-          "query_field": "race",
+          "field_name": "race",
           "pick_list_reference": "Race"
         },
         {
@@ -141,7 +141,7 @@
           "link_id": "ethnicity",
           "text": "Ethnicity",
           "repeats": false,
-          "query_field": "ethnicity",
+          "field_name": "ethnicity",
           "pick_list_reference": "Ethnicity"
         },
         {
@@ -150,7 +150,7 @@
           "link_id": "gender",
           "text": "Gender",
           "repeats": true,
-          "query_field": "gender",
+          "field_name": "gender",
           "pick_list_reference": "Gender"
         },
         {
@@ -159,7 +159,7 @@
           "repeats": false,
           "link_id": "veteran-status",
           "text": "Veteran Status",
-          "query_field": "veteranStatus",
+          "field_name": "veteranStatus",
           "pick_list_reference": "NoYesReasonsForMissingData"
         }
       ]

@@ -21,8 +21,9 @@ class Hmis::Hud::Project < Hmis::Hud::Base
 
   validates_with Hmis::Hud::Validators::ProjectValidator
 
+  # hide previous declaration of :viewable_by, we'll use this one
   # Any projects the user has been assigned, limited to the data source the HMIS is connected to
-  scope :viewable_by, ->(user) do
+  replace_scope :viewable_by, ->(user) do
     ids = user.viewable_projects.pluck(:id)
     ids += user.viewable_organizations.joins(:projects).pluck(p_t[:id])
     ids += user.viewable_data_sources.joins(:projects).pluck(p_t[:id])
@@ -31,7 +32,8 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     where(id: ids, data_source_id: user.hmis_data_source_id)
   end
 
-  scope :editable_by, ->(user) do
+  # hide previous declaration of :editable_by, we'll use this one
+  replace_scope :editable_by, ->(user) do
     ids = user.editable_projects.pluck(:id)
     ids += user.organizations.joins(:projects).pluck(p_t[:id])
     ids += user.data_sources.joins(:projects).pluck(p_t[:id])

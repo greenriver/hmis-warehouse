@@ -18,6 +18,23 @@ module Types
     value 'CE'
     value 'POST_EXIT'
     value 'CUSTOM', 'Custom HMIS Assessment'
-    value 'RESOURCE', 'Form for creating or editing resources directly'
+    value 'RECORD', 'Form for creating or editing resources directly'
+
+    def self.as_data_collection_stage(role)
+      case role
+      when 'INTAKE'
+        1
+      when 'UPDATE'
+        2
+      when 'EXIT'
+        3
+      when 'ANNUAL'
+        5
+      when 'POST_EXIT'
+        6
+      else
+        99
+      end
+    end
   end
 end

@@ -169,7 +169,7 @@ module Clients
         headers['Content-Security-Policy'] = "default-src 'none'; object-src 'self'; style-src 'unsafe-inline'; plugin-types application/pdf;"
         send_data @preview, filename: @file.name, disposition: :inline, content_type: @file.content_type
       else
-        logger.debug 'used browser cache'
+        Rails.logger.debug 'used browser cache'
       end
     end
 
@@ -183,7 +183,7 @@ module Clients
         headers['Content-Security-Policy'] = "default-src 'none'; object-src 'self'; style-src 'unsafe-inline'; plugin-types application/pdf;"
         send_data @thumb, filename: @file.name, disposition: :inline, content_type: @file.content_type
       else
-        logger.debug 'used browser cache'
+        Rails.logger.debug 'used browser cache'
       end
     end
 

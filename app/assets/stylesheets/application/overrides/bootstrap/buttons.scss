@@ -17,10 +17,13 @@ button.close {
   }
 }
 
-.btn-sm {
+.btn-sm, input[type=submit].btn-sm {
   padding: $input-btn-sm-padding-y $input-btn-sm-padding-x;
   min-height: auto;
   font-weight: 600;
+}
+input[type=submit].btn-sm {
+  font-size: 0.875rem;
 }
 
 .btn-xs {

@@ -11,6 +11,8 @@ module Filters
     attribute :no_recent_service_project_ids, Array, default: []
     attribute :limit_to_vispdats, Boolean, default: false
     attribute :require_homeless_enrollment, Boolean, default: false
+    attribute :project_type_codes, Array, lazy: true, default: ->(r, _) { r.default_project_type_codes }
+    attribute :project_type_numbers, Array, default: ->(r, _) { r.default_project_type_numbers }
 
     validates_presence_of :start, :end, :sub_population
 
@@ -30,6 +32,10 @@ module Filters
 
     # These are not presented in the UI, but need to be set to nothing or all homeless projects are returned
     def default_project_type_codes
+      []
+    end
+
+    def default_project_type_numbers
       []
     end
 

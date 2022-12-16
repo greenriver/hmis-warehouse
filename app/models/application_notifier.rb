@@ -83,6 +83,9 @@ class ApplicationNotifier < Slack::Notifier
   # Send a message to Slack if possible
   # Rate limits messages in a queue if Redis is available
   def ping(message, options = {})
+    # always send to the log
+    Rails.logger.info(message)
+
     return unless @endpoint&.host
 
     if options.key?(:exception)

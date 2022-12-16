@@ -19,6 +19,7 @@ namespace :test do
         Rails.logger.fatal('Test dual tagged blocks')
       end
     end
+    Rails.logger.info('This should not be tagged')
     TestJob.perform_now
   end
 
@@ -47,6 +48,14 @@ namespace :test do
       StandardError.new("Testing Sentry.capture_exception_with_info from #{Rails.env} for hmis-warehouse"),
       'Testing custom error message',
       { with: 'data' }
+    )
+    sleep 1
+
+    puts 'Sentry.capture_exception_with_info_no_exception'
+    Sentry.capture_exception_with_info(
+      StandardError.new("Testing Sentry.capture_exception_with_info_no_exception from #{Rails.env} for hmis-warehouse"),
+      'Testing custom error message',
+      { info: 'info' }
     )
     sleep 1
 

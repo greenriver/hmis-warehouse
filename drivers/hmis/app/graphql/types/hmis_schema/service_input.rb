@@ -10,7 +10,7 @@ module Types
   class HmisSchema::ServiceInput < Types::BaseInputObject
     description 'HUD Service Input'
     argument :enrollment_id, ID, required: false
-    date_string_argument :date_provided, 'Date with format yyyy-mm-dd', required: false
+    argument :date_provided, GraphQL::Types::ISO8601Date, required: false
     argument :record_type, HmisSchema::Enums::Hud::RecordType, required: false
     argument :type_provided, HmisSchema::Enums::ServiceTypeProvided, required: false
     argument :other_type_provided, String, required: false

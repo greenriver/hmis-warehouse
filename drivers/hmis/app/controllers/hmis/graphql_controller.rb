@@ -68,8 +68,8 @@ module Hmis
     end
 
     def handle_error_in_development(err)
-      logger.error err.message
-      logger.error err.backtrace.join("\n")
+      Rails.logger.error err.message
+      Rails.logger.error err.backtrace.join("\n")
 
       render json: { errors: [{ message: err.message, backtrace: err.backtrace }], data: {} }, status: 500
     end

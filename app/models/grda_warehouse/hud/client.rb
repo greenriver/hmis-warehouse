@@ -59,8 +59,8 @@ module GrdaWarehouse::Hud
       )
     end, **hud_assoc(:PersonalID, 'CurrentLivingSituation')
 
-    has_one :cas_project_client, class_name: 'Cas::ProjectClient', foreign_key: :id_in_data_source
-    has_one :cas_client, class_name: 'Cas::Client', through: :cas_project_client, source: :client
+    has_one :cas_project_client, class_name: 'CasAccess::ProjectClient', foreign_key: :id_in_data_source
+    has_one :cas_client, class_name: 'CasAccess::Client', through: :cas_project_client, source: :client
 
     has_many :splits_to, class_name: 'GrdaWarehouse::ClientSplitHistory', foreign_key: :split_from
     has_many :splits_from, class_name: 'GrdaWarehouse::ClientSplitHistory', foreign_key: :split_into
@@ -799,7 +799,7 @@ module GrdaWarehouse::Hud
       #   or(destination.where(id: disabled_client_because_disability_scope.select(:id)))
       ids = if client_ids.present?
         client_ids = Array.wrap(client_ids)
-        disabling_condition_ids = disabling_condition_client_scope.where(id: client_ids).pluck(:id)
+        disabling_condition_ids = disabling_condition_client_scope(client_ids: client_ids).where(id: client_ids).pluck(:id)
         # If everyone is disabled, short circuit as we don't have to check disabilities
         return destination.where(id: disabling_condition_ids) if Array.wrap(client_ids).sort == disabling_condition_ids.sort
 
@@ -863,21 +863,23 @@ module GrdaWarehouse::Hud
       disabled_client_scope.pluck(:id)
     end
 
-    def self.disabling_condition_client_scope
+    def self.disabling_condition_client_scope(client_ids: nil)
       mre_t = Arel::Table.new(:most_recent_enrollments)
       join = she_t.join(mre_t).on(she_t[:id].eq(mre_t[:current_id]))
 
+      most_recent_enrollment_scope = GrdaWarehouse::ServiceHistoryEnrollment.
+        joins(:enrollment).
+        define_window(:client_by_start_date).partition_by(:client_id, order_by: { she_t[:first_date_in_program] => :desc }).
+        select_window(:first_value, she_t[:id], over: :client_by_start_date, as: :current_id).
+        where(e_t[:DisablingCondition].in([0, 1]))
+      if client_ids.present?
+        most_recent_enrollment_scope = most_recent_enrollment_scope.
+          where(she_t[:client_id].in(client_ids))
+      end
+
       destination.where(
         id: GrdaWarehouse::ServiceHistoryEnrollment.
-        with(
-          most_recent_enrollments:
-            GrdaWarehouse::ServiceHistoryEnrollment.
-              joins(:enrollment).
-              define_window(:client_by_start_date).partition_by(:client_id, order_by: { she_t[:first_date_in_program] => :desc }).
-              select_window(:first_value, she_t[:id], over: :client_by_start_date, as: :current_id).
-              # where(project_type: GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS).
-              where(e_t[:DisablingCondition].in([0, 1])),
-        ).
+        with(most_recent_enrollments: most_recent_enrollment_scope).
           joins(join.join_sources, :enrollment).
           where(e_t[:DisablingCondition].eq(1)).
           select(:client_id),
@@ -1479,7 +1481,7 @@ module GrdaWarehouse::Hud
       image_directory = File.join('public', 'fake_photos', age_group, gender)
       available = Dir[File.join(image_directory, '*.jpg')]
       image_id = "#{self.FirstName}#{self.LastName}".sum % available.count
-      logger.debug "Client#image id:#{self.id} faked #{self.PersonalID} #{available.count} #{available[image_id]}" # rubocop:disable Style/RedundantSelf
+      Rails.logger.debug "Client#image id:#{self.id} faked #{self.PersonalID} #{available.count} #{available[image_id]}" # rubocop:disable Style/RedundantSelf
       image_data = File.read(available[image_id]) # rubocop:disable Lint/UselessAssignment
     end
 
@@ -2480,9 +2482,12 @@ module GrdaWarehouse::Hud
     end
 
     def force_full_service_history_rebuild
-      service_history_enrollments.where(record_type: [:entry, :exit, :service, :extrapolated]).delete_all
-      source_enrollments.update_all(processed_as: nil)
-      invalidate_service_history
+      # If we're already forcing a rebuild, we don't need to clear things again
+      self.class.with_advisory_lock([__method__, self.class.name, id].join('_'), timeout_seconds: 0) do
+        service_history_enrollments.where(record_type: [:entry, :exit, :service, :extrapolated]).delete_all
+        source_enrollments.update_all(processed_as: nil)
+        invalidate_service_history
+      end
     end
 
     def self.clear_view_cache(id)

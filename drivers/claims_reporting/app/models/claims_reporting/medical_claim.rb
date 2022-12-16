@@ -131,12 +131,12 @@ module ClaimsReporting
         last_claim_date = MedicalClaim.maximum(:service_start_date) || Date.current
         member_ids = distinct.pluck(:member_id)
         member_ids.each_with_index do |member_id, idx|
-          logger.info { "MedicalClaim.maintain_engaged_days!: Processing member #{idx + 1}/#{member_ids.length}." }
+          Rails.logger.info { "MedicalClaim.maintain_engaged_days!: Processing member #{idx + 1}/#{member_ids.length}." }
           enrollments = MemberEnrollmentRoster.where(member_id: member_id).select(
             :member_id, :span_start_date, :span_end_date
           ).sort_by(&:span_start_date)
 
-          logger.debug { "MedicalClaim.maintain_engaged_days!: Found #{enrollments.length} enrollment spans" }
+          Rails.logger.debug { "MedicalClaim.maintain_engaged_days!: Found #{enrollments.length} enrollment spans" }
 
           # enrolled_day is the number of days of enrollment to date.
           #
@@ -205,7 +205,7 @@ module ClaimsReporting
             end
             tuples << "(#{conn.quote claim.id},#{conn.quote enrolled_days},#{conn.quote engaged_days})"
           end
-          logger.debug { "MedicalClaim.maintain_engaged_days!: Updating #{tuples.size} claim records" }
+          Rails.logger.debug { "MedicalClaim.maintain_engaged_days!: Updating #{tuples.size} claim records" }
           updates += tuples.size
           if tuples.any?
             sql = <<~SQL

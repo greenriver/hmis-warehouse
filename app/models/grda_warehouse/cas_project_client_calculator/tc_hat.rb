@@ -70,6 +70,7 @@ module GrdaWarehouse::CasProjectClientCalculator
         rrh_successful_exit: 'successfully exit 12-24 month rrh',
         th_desired: 'interested in transitional housing',
         site_case_management_required: 'client need site-based case management',
+        ongoing_case_management_required: 'client need ongoing housing case management',
         currently_fleeing: 'are you currently fleeing',
       }.freeze
     end
@@ -93,6 +94,7 @@ module GrdaWarehouse::CasProjectClientCalculator
         rrh_successful_exit: 'Section C',
         th_desired: 'Section C',
         site_case_management_required: 'Section D',
+        ongoing_case_management_required: 'Section D',
         currently_fleeing: 'Section E',
       }
     end
@@ -126,6 +128,7 @@ module GrdaWarehouse::CasProjectClientCalculator
         :drug_test,
         :employed_three_months,
         :site_case_management_required,
+        :ongoing_case_management_required,
         :currently_fleeing,
         :dv_date,
         :va_eligible,
@@ -165,7 +168,7 @@ module GrdaWarehouse::CasProjectClientCalculator
       relevant_section = client.most_recent_tc_hat_for_destination.
         section_starts_with(section_title)
       chosen_neighborhood = client.most_recent_tc_hat_for_destination.answer_from_section(relevant_section, question_title)
-      Cas::Neighborhood.neighborhood_ids_from_names([chosen_neighborhood])
+      CasAccess::Neighborhood.neighborhood_ids_from_names([chosen_neighborhood])
     end
 
     private def strengths(client)

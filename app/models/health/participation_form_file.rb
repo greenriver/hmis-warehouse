@@ -9,11 +9,14 @@
 # Control: PHI attributes documented in base class
 module Health
   class ParticipationFormFile < Health::HealthFile
-
     belongs_to :participation_form, class_name: 'Health::ParticipationForm', foreign_key: :parent_id, optional: true
 
     def title
       'Participation Form'
+    end
+
+    def signature
+      participation_form.signature_on
     end
   end
 end

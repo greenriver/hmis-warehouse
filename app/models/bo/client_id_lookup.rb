@@ -7,7 +7,6 @@
 module Bo
   class ClientIdLookup
     include NotifierConfig
-    attr_accessor :send_notifications, :notifier_config, :notifier
     attr_reader :data_source_id
 
     # api_site_identifier is the numeral that represents the same connection
@@ -124,8 +123,7 @@ module Bo
     def fetch_batches_of_clients
       rows = []
       msg = "Fetching #{week_ranges.count} #{'batch'.pluralize(week_ranges.count)} of clients. From #{week_ranges.first.first} to #{week_ranges.last.last}"
-      Rails.logger.info msg
-      @notifier.ping msg if send_notifications && msg.present?
+      @notifier.ping(msg)
       week_ranges.each_with_index do |(start_time, end_time), index|
         Rails.logger.info "Fetching #{index + 1} -- #{start_time} to #{end_time}" if @debug
         response = fetch_client_lookup(
@@ -136,8 +134,7 @@ module Bo
         rows += response_rows if response_rows.present?
       end
       msg = 'Fetched batches of clients.'
-      Rails.logger.info msg
-      @notifier.ping msg if send_notifications && msg.present?
+      @notifier.ping(msg)
       rows
     end
 
@@ -145,8 +142,7 @@ module Bo
       rows = []
       total_batches = week_ranges.count * touch_point_ids.count
       msg = "Fetching #{total_batches} #{'batch'.pluralize(week_ranges.count)} of touch points. From #{week_ranges.first.first} to #{week_ranges.last.last} for data source #{@data_source_id}"
-      Rails.logger.info msg
-      @notifier.ping msg if send_notifications && msg.present?
+      @notifier.ping(msg)
       week_ranges.each_with_index do |(start_time, end_time), index|
         # fetch responses for one touch point at a time to avoid timeouts
         touch_point_ids.each_with_index do |tp_id, tp_index|
@@ -159,19 +155,16 @@ module Bo
             )
           rescue Bo::Soap::RequestFailed => e
             msg = "FAILED to fetch batch #{start_time} .. #{end_time} for TP: #{tp_id} \n #{e.message} for data source #{@data_source_id}"
-            Rails.logger.info msg
-            if send_notifications && msg.present?
-              @notifier.ping(
-                msg,
-                {
-                  exception: e,
-                  info: {
-                    tp_id: tp_id,
-                    data_source_id: @data_source_id,
-                  },
+            @notifier.ping(
+              msg,
+              {
+                exception: e,
+                info: {
+                  tp_id: tp_id,
+                  data_source_id: @data_source_id,
                 },
-              )
-            end
+              },
+            )
 
             response = nil
           end
@@ -179,8 +172,7 @@ module Bo
         end
       end
       msg = "Fetched batches of touch points. Found #{rows.count} touch point responses for data source #{@data_source_id}"
-      Rails.logger.info msg
-      @notifier.ping msg if send_notifications && msg.present?
+      @notifier.ping(msg)
       rows
     end
 
@@ -290,7 +282,7 @@ module Bo
 
         msg = "FAILURE: unable to successfully fetch #{settings[:url]}; response blank; options: #{message_options.inspect}"
         Rails.logger.info msg
-        # @notifier.ping msg if send_notifications && msg.present?
+        # @notifier.ping(msg)
         break
       end
       response
@@ -300,8 +292,7 @@ module Bo
       return unless @config.disability_verification_cuid.present?
 
       msg = 'Fetching disability verifications'
-      Rails.logger.info msg
-      @notifier.ping msg if send_notifications && msg.present?
+      @notifier.ping(msg)
       settings = {
         url: "#{@config.url}?wsdl=1&cuid=#{@config.disability_verification_cuid}",
         method: :disability_lookup,
@@ -355,11 +346,9 @@ module Bo
         updated_destination_counts += 1
       end
       msg = "Updated #{updated_source_counts} source disability verifications"
-      Rails.logger.info msg
-      @notifier.ping msg if send_notifications && msg.present?
+      @notifier.ping(msg)
       msg = "Updated #{updated_destination_counts} destination disability verifications"
-      Rails.logger.info msg
-      @notifier.ping msg if send_notifications && msg.present?
+      @notifier.ping(msg)
     end
 
     def existing_eto_touch_point_lookups

@@ -208,6 +208,28 @@ namespace :health do
     Kiba.run(job)
   end
 
+  desc "Export patient disenrollment demographics"
+  task :export_disenrollment_demographics, [:filename, :start_date, :end_date] => [:environment, 'log:info_to_stdout'] do  |task, args|
+    start_date = args[:start_date].to_date
+    end_date = args[:end_date].to_date
+    Health::Tasks::ExportDisenrollmentDemographics.new(filename: args[:filename], start_date: start_date, end_date: end_date).run!
+  end
+
+  desc "Copy participation signature dates into releases"
+  task move_participant_signatures: [:environment, 'log:info_to_stdout'] do
+    Health::Patient.participating.find_each do |patient|
+      release = patient.recent_release_form
+      next unless release.present?
+
+      participation_date = patient.recent_participation_form&.signature_on
+      if participation_date.blank?
+        # If we don't have an earlier participation signature, use the one on the release
+        participation_date = release.signature_on
+      end
+      release.update(participation_signature_on: participation_date)
+    end
+  end
+
   # DB related, provides health:db:migrate etc.
   namespace :db do |ns|
     namespace :schema do

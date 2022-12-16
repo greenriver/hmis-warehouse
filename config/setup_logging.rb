@@ -26,7 +26,6 @@ class SetupLogging
   class OpenPathLogFormatter < ::Logger::Formatter
     def tagged(*args, &block)
       tags = Array.wrap(args).flatten
-
       @tags = {}
       if tags[0].is_a?(Hash)
         tags.each do |t|
@@ -37,6 +36,9 @@ class SetupLogging
       end
 
       block.call
+      # Reset tags so Rails.logger.info('msg') won't be tagged with the last tag
+      # @tags = []
+      # FIXME: needs to respond to `pop` and << and merge
     end
 
     def current_tags
@@ -89,6 +91,7 @@ class SetupLogging
         x_forwarded_for: event.payload[:x_forwarded_for],
         rails_env: Rails.env,
         exception: event.payload[:exception]&.first,
+        x_amzn_trace_id: event.payload[:request]&.headers&.env.try(:[], 'HTTP_X_AMZN_TRACE_ID'),
       }
     end
   end
@@ -114,7 +117,6 @@ class SetupLogging
     config.lograge.enabled = false
     config.log_level = ENV.fetch('LOG_LEVEL') { 'info' }.to_sym
     config.logger = _tagged ActiveSupport::Logger.new("log/#{Rails.env}.log")
-    #config.logger.formatter = ActiveSupport::Logger::SimpleFormatter.new
   end
 
   def _staging

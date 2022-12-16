@@ -10,8 +10,12 @@ module Types
   class Forms::Enums::Component < Types::BaseEnum
     graphql_name 'Component'
 
-    value 'INPUT_GROUP', 'Component to render a group that contains children of the same type (eg all booleans). Optionally has a choice item, which must be the first item.'
-    value 'CHECKBOX', 'Component to render a boolean input item as a checkbox'
-    # value 'RADIO_BUTTONS', 'Component to render a choice input item as radio buttons'
+    value 'INPUT_GROUP', 'Render a group that contains children of the same type (e.g. all booleans)'
+    value 'CHECKBOX', 'Render a boolean input item as a checkbox'
+    value 'RADIO_BUTTONS', 'Render a choice input item as radio buttons'
+    value 'ALERT_INFO', 'Display text as an info alert'
+    value 'ALERT_WARNING', 'Display text as a warning alert'
+    value 'ALERT_ERROR', 'Display text as an error alert'
+    value 'ALERT_SUCCESS', 'Display text as a success alert'
   end
 end
