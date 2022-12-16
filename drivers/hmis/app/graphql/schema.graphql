@@ -1301,6 +1301,11 @@ type FormItem {
   bounds: [ValueBound!]
 
   """
+  Label to use for placeholder and population table
+  """
+  briefText: String
+
+  """
   Component to use for display/input of this item
   """
   component: Component
