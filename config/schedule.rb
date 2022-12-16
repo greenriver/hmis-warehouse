@@ -36,6 +36,13 @@ health_trigger = ENV['HEALTH_SFTP_HOST'].to_s != '' && ENV['HEALTH_SFTP_HOST'] !
 backup_glacier_trigger = ENV['GLACIER_NEEDS_BACKUP'] == 'true'
 # glacier_files_backup_trigger = backup_glacier_trigger && ENV['GLACIER_FILESYSTEM_BACKUP'] == 'true'
 tasks = [
+  # temporary task to move files to S3 and ActiveStorage
+  {
+    task: 'storage:move_to_s3',
+    frequency: 1.day,
+    at: '5:00pm',
+    interruptable: true,
+  },
   {
     task: 'grda_warehouse:daily',
     frequency: 1.day,

@@ -290,8 +290,40 @@ input ClientSearchInput {
 HUD Client Sorting Options
 """
 enum ClientSortOption {
-  LAST_NAME_ASC
-  LAST_NAME_DESC
+  """
+  First Name A To Z
+  """
+  FIRST_NAME_A_TO_Z
+
+  """
+  First Name Z To A
+  """
+  FIRST_NAME_Z_TO_A
+
+  """
+  Last Name A To Z
+  """
+  LAST_NAME_A_TO_Z
+
+  """
+  Last Name Z To A
+  """
+  LAST_NAME_Z_TO_A
+
+  """
+  Oldest To Youngest
+  """
+  OLDEST_TO_YOUNGEST
+
+  """
+  Recently Added
+  """
+  RECENTLY_ADDED
+
+  """
+  Youngest To Oldest
+  """
+  YOUNGEST_TO_OLDEST
 }
 
 type ClientsPaginated {
@@ -331,6 +363,11 @@ enum Component {
   CHECKBOX
 
   """
+  Render a group of inputs horizontally
+  """
+  HORIZONTAL_GROUP
+
+  """
   Render a group that contains children of the same type (e.g. all booleans)
   """
   INPUT_GROUP
@@ -339,6 +376,11 @@ enum Component {
   Render a choice input item as radio buttons
   """
   RADIO_BUTTONS
+
+  """
+  Render a choice input item as vertical radio buttons
+  """
+  RADIO_BUTTONS_VERTICAL
 }
 
 """
@@ -1357,6 +1399,11 @@ type FormItem {
   required: Boolean
 
   """
+  Size of the input element
+  """
+  size: InputSize
+
+  """
   Primary text for the item
   """
   text: String
@@ -2009,6 +2056,13 @@ type InitialValue {
   If question is numeric, initial value
   """
   valueNumber: Int
+}
+
+enum InputSize {
+  LARGE
+  MEDIUM
+  SMALL
+  XSMALL
 }
 
 type InventoriesPaginated {

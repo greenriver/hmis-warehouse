@@ -35,10 +35,14 @@ class SetupLogging
         @tags.merge!(tags.map { |x| [x, true] }.to_h)
       end
 
-      block.call
+      result = block.call
+
       # Reset tags so Rails.logger.info('msg') won't be tagged with the last tag
-      # @tags = []
-      # FIXME: needs to respond to `pop` and << and merge
+      clear_tags!
+
+      # This method is actually rack middleware (at least in some contexts). It
+      # needs to pass along the block call.
+      result
     end
 
     def current_tags
