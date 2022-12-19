@@ -3266,6 +3266,11 @@ enum RelatedRecordType {
   ENROLLMENT
 
   """
+  EnrollmentCoc
+  """
+  ENROLLMENT_COC
+
+  """
   Exit
   """
   EXIT
