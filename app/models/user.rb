@@ -7,6 +7,7 @@
 require 'memoist'
 class User < ApplicationRecord
   include UserConcern
+  include RailsDrivers::Extensions
   has_many :user_roles, dependent: :destroy, inverse_of: :user
   has_many :roles, through: :user_roles
 

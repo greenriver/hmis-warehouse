@@ -22,7 +22,7 @@ module GrdaWarehouse
 
     has_many :cohort_clients, dependent: :destroy
     has_many :clients, through: :cohort_clients, class_name: 'GrdaWarehouse::Hud::Client'
-    belongs_to :tags, class_name: 'Cas::Tag', optional: true
+    belongs_to :tags, class_name: 'CasAccess::Tag', optional: true
 
     has_many :group_viewable_entities, class_name: 'GrdaWarehouse::GroupViewableEntity', foreign_key: :entity_id
 
@@ -195,7 +195,7 @@ module GrdaWarehouse
     end
 
     def cas_tag_name
-      Cas::Tag.find(tag_id)&.name
+      CasAccess::Tag.find(tag_id)&.name
     rescue ActiveRecord::RecordNotFound, PG::ConnectionBad
       nil
     end

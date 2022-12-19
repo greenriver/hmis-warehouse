@@ -28,7 +28,8 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
 
   scope :in_progress, -> { where(enrollment_id: WIP_ID) }
 
-  scope :viewable_by, ->(user) do
+  # hide previous declaration of :viewable_by, we'll use this one
+  replace_scope :viewable_by, ->(user) do
     enrollment_ids = Hmis::Hud::Enrollment.viewable_by(user).pluck(:id, :EnrollmentID)
     viewable_wip = wip_t[:enrollment_id].in(enrollment_ids.map(&:first))
     viewable_completed = as_t[:EnrollmentID].in(enrollment_ids.map(&:second))
@@ -36,7 +37,8 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
     left_outer_joins(:wip).where(viewable_wip.or(viewable_completed))
   end
 
-  scope :editable_by, ->(user) do
+  # hide previous declaration of :editable_by, we'll use this one
+  replace_scope :editable_by, ->(user) do
     enrollment_ids = Hmis::Hud::Enrollment.editable_by(user).pluck(:id, :EnrollmentID)
     editable_wip = wip_t[:enrollment_id].in(enrollment_ids.map(&:first))
     editable_completed = as_t[:EnrollmentID].in(enrollment_ids.map(&:second))
@@ -93,5 +95,31 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
   def in_progress?
     @in_progress = enrollment_id == WIP_ID if @in_progress.nil?
     @in_progress
+  end
+
+  def self.new_with_defaults(enrollment:, user:, form_definition:, assessment_date:)
+    new_assessment = new(
+      data_source_id: user.data_source_id,
+      user_id: user.user_id,
+      personal_id: enrollment.personal_id,
+      enrollment_id: enrollment.enrollment_id,
+      assessment_id: Hmis::Hud::Assessment.generate_assessment_id,
+      assessment_date: assessment_date,
+      assessment_location: enrollment.project.project_name,
+      assessment_type: ::HUD.ignored_enum_value,
+      assessment_level: ::HUD.ignored_enum_value,
+      prioritization_status: ::HUD.ignored_enum_value,
+      date_created: DateTime.current,
+      date_updated: DateTime.current,
+    )
+
+    new_assessment.assessment_detail = Hmis::Form::AssessmentDetail.new(
+      definition: form_definition,
+      role: form_definition.role,
+      data_collection_stage: Types::HmisSchema::Enums::AssessmentRole.as_data_collection_stage(form_definition.role),
+      status: 'draft',
+    )
+
+    new_assessment
   end
 end

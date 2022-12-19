@@ -197,7 +197,10 @@ module GrdaWarehouse::Hud
       where(project_type_column => project_types)
     end
 
-    scope :in_coc, ->(coc_code:) do
+    # hide previous declaration of :in_coc, we'll use this one,
+    # but we don't need to be told there are two every time
+    # we load the class
+    replace_scope :in_coc, ->(coc_code:) do
       joins(:project_cocs).
         merge(GrdaWarehouse::Hud::ProjectCoc.in_coc(coc_code: coc_code))
     end
@@ -577,12 +580,10 @@ module GrdaWarehouse::Hud
       end
     end
 
-    scope :rrh, -> { where(project_type_column => PERFORMANCE_REPORTING[:rrh]) }
     def rrh?
       project_type_to_use.in?(PERFORMANCE_REPORTING[:rrh])
     end
 
-    scope :psh, -> { where(project_type_column => PERFORMANCE_REPORTING[:psh]) }
     def psh?
       project_type_to_use.in?(PERFORMANCE_REPORTING[:psh])
     end

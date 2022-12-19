@@ -10,7 +10,7 @@ module WarehouseReports::Cas
     include WarehouseReportAuthorization
 
     def index
-      @report = ::Cas::NonHmisClient.find_matches(report_source)
+      @report = ::CasAccess::NonHmisClient.find_matches(report_source)
     end
 
     def match
@@ -34,7 +34,7 @@ module WarehouseReports::Cas
     end
 
     private def report_source
-      ::Cas::NonHmisClient.unassigned
+      ::CasAccess::NonHmisClient.unassigned
     end
   end
 end

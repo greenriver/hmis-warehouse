@@ -1,7 +1,7 @@
 - if devise_mapping.omniauthable?
   .d-flex
     - resource_class.omniauth_providers.each do |provider|
-      = button_to "Sign in with #{provider.upcase}", omniauth_authorize_path(resource_name, provider), class: 'btn btn-primary btn-sm mt-2 mb-2 pt-1 pb-1'
+      = button_to "Sign in with #{provider.upcase}", omniauth_authorize_path(resource_name, provider), class: 'btn btn-secondary btn mt-2 mb-2 pt-1 pb-1'
       = link_to new_user_session_path(local: true), class: 'c-header-nav__link' do
         More options
 - else

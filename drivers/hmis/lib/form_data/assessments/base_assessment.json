@@ -2,8 +2,8 @@
   "item": [
     {
       "type": "GROUP",
-      "link_id": "initial-group",
-      "text": "Client Location (HoH only)",
+      "link_id": "location",
+      "text": "Client Location",
       "item": [
         {
           "type": "CHOICE",
@@ -17,8 +17,8 @@
     },
     {
       "type": "GROUP",
-      "link_id": "3.917.group",
-      "text": "Prior Living Situation (3.917)",
+      "link_id": "prior-living-situation",
+      "text": "Prior Living Situation",
       "data_collected_about": "HOH_AND_ADULTS",
       "record_type": "ENROLLMENT",
       "reference_link": "https://files.hudexchange.info/resources/documents/FY-2022-HMIS-Data-Standards-Manual.pdf#page=104",
@@ -223,8 +223,8 @@
     },
     {
       "type": "GROUP",
-      "link_id": "4.12-group",
-      "text": "Current Living Situation (4.12)",
+      "link_id": "current-living-situation",
+      "text": "Current Living Situation",
       "data_collected_about": "HOH_AND_ADULTS",
       "hidden": true,
       "item": [
@@ -275,22 +275,154 @@
     },
     {
       "type": "GROUP",
-      "link_id": "income-source",
+      "link_id": "income-and-source",
       "text": "Income and Sources",
       "data_collected_about": "HOH_AND_ADULTS",
       "record_type": "INCOME_BENEFIT",
       "item": [
         {
+          "type": "CHOICE",
+          "link_id": "4.02.2",
+          "text": "Income from Any Source",
+          "pick_list_reference": "NoYesReasonsForMissingData",
+          "field_name": "incomeFromAnySource",
+          "autofill_values": [
+            {
+              "value_code": "YES",
+              "autofill_behavior": "ANY",
+              "autofill_when": [
+                {
+                  "question": "4.02.A",
+                  "operator": "GREATER_THAN",
+                  "answer_number": 0
+                },
+                {
+                  "question": "4.02.B",
+                  "operator": "GREATER_THAN",
+                  "answer_number": 0
+                },
+                {
+                  "question": "4.02.C",
+                  "operator": "GREATER_THAN",
+                  "answer_number": 0
+                },
+                {
+                  "question": "4.02.D",
+                  "operator": "GREATER_THAN",
+                  "answer_number": 0
+                },
+                {
+                  "question": "4.02.E",
+                  "operator": "GREATER_THAN",
+                  "answer_number": 0
+                },
+                {
+                  "question": "4.02.F",
+                  "operator": "GREATER_THAN",
+                  "answer_number": 0
+                },
+                {
+                  "question": "4.02.G",
+                  "operator": "GREATER_THAN",
+                  "answer_number": 0
+                },
+                {
+                  "question": "4.02.H",
+                  "operator": "GREATER_THAN",
+                  "answer_number": 0
+                },
+                {
+                  "question": "4.02.I",
+                  "operator": "GREATER_THAN",
+                  "answer_number": 0
+                },
+                {
+                  "question": "4.02.J",
+                  "operator": "GREATER_THAN",
+                  "answer_number": 0
+                },
+                {
+                  "question": "4.02.K",
+                  "operator": "GREATER_THAN",
+                  "answer_number": 0
+                },
+                {
+                  "question": "4.02.L",
+                  "operator": "GREATER_THAN",
+                  "answer_number": 0
+                },
+                {
+                  "question": "4.02.M",
+                  "operator": "GREATER_THAN",
+                  "answer_number": 0
+                },
+                {
+                  "question": "4.02.N",
+                  "operator": "GREATER_THAN",
+                  "answer_number": 0
+                },
+                {
+                  "question": "4.02.O",
+                  "operator": "GREATER_THAN",
+                  "answer_number": 0
+                }
+              ]
+            }
+          ]
+        },
+        {
           "type": "GROUP",
           "link_id": "income-sources-group",
           "component": "INPUT_GROUP",
+          "text": "Income Sources and Monthly Total",
+          "enable_behavior": "ANY",
+          "enable_when": [
+            {
+              "question": "4.02.2",
+              "operator": "EQUAL",
+              "answer_code": "YES"
+            },
+            {
+              "question": "4.02.2",
+              "operator": "EXISTS",
+              "answer_boolean": false
+            }
+          ],
           "item": [
             {
-              "type": "CHOICE",
-              "link_id": "4.02.2",
-              "text": "Income from Any Source",
-              "pick_list_reference": "NoYesReasonsForMissingData",
-              "field_name": "incomeFromAnySource"
+              "type": "BOOLEAN",
+              "link_id": "4.02.3",
+              "hidden": true,
+              "field_name": "earned",
+              "autofill_values": [
+                {
+                  "value_boolean": true,
+                  "autofill_behavior": "ALL",
+                  "autofill_when": [
+                    {
+                      "question": "4.02.A",
+                      "operator": "GREATER_THAN",
+                      "answer_number": 0
+                    }
+                  ]
+                },
+                {
+                  "value_boolean": false,
+                  "autofill_behavior": "ANY",
+                  "autofill_when": [
+                    {
+                      "question": "4.02.A",
+                      "operator": "LESS_THAN_EQUAL",
+                      "answer_number": 0
+                    },
+                    {
+                      "question": "4.02.A",
+                      "operator": "EXISTS",
+                      "answer_boolean": false
+                    }
+                  ]
+                }
+              ]
             },
             {
               "type": "CURRENCY",
@@ -299,10 +431,80 @@
               "field_name": "earnedAmount"
             },
             {
+              "type": "BOOLEAN",
+              "link_id": "4.02.4",
+              "hidden": true,
+              "field_name": "unemployment",
+              "autofill_values": [
+                {
+                  "value_boolean": true,
+                  "autofill_behavior": "ALL",
+                  "autofill_when": [
+                    {
+                      "question": "4.02.B",
+                      "operator": "GREATER_THAN",
+                      "answer_number": 0
+                    }
+                  ]
+                },
+                {
+                  "value_boolean": false,
+                  "autofill_behavior": "ANY",
+                  "autofill_when": [
+                    {
+                      "question": "4.02.B",
+                      "operator": "LESS_THAN_EQUAL",
+                      "answer_number": 0
+                    },
+                    {
+                      "question": "4.02.B",
+                      "operator": "EXISTS",
+                      "answer_boolean": false
+                    }
+                  ]
+                }
+              ]
+            },
+            {
               "type": "CURRENCY",
               "link_id": "4.02.B",
               "text": "Unemployment Insurance",
               "field_name": "unemploymentAmount"
+            },
+            {
+              "type": "BOOLEAN",
+              "link_id": "4.02.5",
+              "hidden": true,
+              "field_name": "ssi",
+              "autofill_values": [
+                {
+                  "value_boolean": true,
+                  "autofill_behavior": "ALL",
+                  "autofill_when": [
+                    {
+                      "question": "4.02.C",
+                      "operator": "GREATER_THAN",
+                      "answer_number": 0
+                    }
+                  ]
+                },
+                {
+                  "value_boolean": false,
+                  "autofill_behavior": "ANY",
+                  "autofill_when": [
+                    {
+                      "question": "4.02.C",
+                      "operator": "LESS_THAN_EQUAL",
+                      "answer_number": 0
+                    },
+                    {
+                      "question": "4.02.C",
+                      "operator": "EXISTS",
+                      "answer_boolean": false
+                    }
+                  ]
+                }
+              ]
             },
             {
               "type": "CURRENCY",
@@ -311,10 +513,80 @@
               "field_name": "ssiAmount"
             },
             {
+              "type": "BOOLEAN",
+              "link_id": "4.02.6",
+              "hidden": true,
+              "field_name": "ssdi",
+              "autofill_values": [
+                {
+                  "value_boolean": true,
+                  "autofill_behavior": "ALL",
+                  "autofill_when": [
+                    {
+                      "question": "4.02.D",
+                      "operator": "GREATER_THAN",
+                      "answer_number": 0
+                    }
+                  ]
+                },
+                {
+                  "value_boolean": false,
+                  "autofill_behavior": "ANY",
+                  "autofill_when": [
+                    {
+                      "question": "4.02.D",
+                      "operator": "LESS_THAN_EQUAL",
+                      "answer_number": 0
+                    },
+                    {
+                      "question": "4.02.D",
+                      "operator": "EXISTS",
+                      "answer_boolean": false
+                    }
+                  ]
+                }
+              ]
+            },
+            {
               "type": "CURRENCY",
               "link_id": "4.02.D",
               "text": "Social Security Disability Insurance (SSDI)",
               "field_name": "ssdiAmount"
+            },
+            {
+              "type": "BOOLEAN",
+              "link_id": "4.02.7",
+              "hidden": true,
+              "field_name": "vaDisabilityService",
+              "autofill_values": [
+                {
+                  "value_boolean": true,
+                  "autofill_behavior": "ALL",
+                  "autofill_when": [
+                    {
+                      "question": "4.02.E",
+                      "operator": "GREATER_THAN",
+                      "answer_number": 0
+                    }
+                  ]
+                },
+                {
+                  "value_boolean": false,
+                  "autofill_behavior": "ANY",
+                  "autofill_when": [
+                    {
+                      "question": "4.02.E",
+                      "operator": "LESS_THAN_EQUAL",
+                      "answer_number": 0
+                    },
+                    {
+                      "question": "4.02.E",
+                      "operator": "EXISTS",
+                      "answer_boolean": false
+                    }
+                  ]
+                }
+              ]
             },
             {
               "type": "CURRENCY",
@@ -323,10 +595,80 @@
               "field_name": "vaDisabilityServiceAmount"
             },
             {
+              "type": "BOOLEAN",
+              "link_id": "4.02.8",
+              "hidden": true,
+              "field_name": "vaDisabilityNonService",
+              "autofill_values": [
+                {
+                  "value_boolean": true,
+                  "autofill_behavior": "ALL",
+                  "autofill_when": [
+                    {
+                      "question": "4.02.F",
+                      "operator": "GREATER_THAN",
+                      "answer_number": 0
+                    }
+                  ]
+                },
+                {
+                  "value_boolean": false,
+                  "autofill_behavior": "ANY",
+                  "autofill_when": [
+                    {
+                      "question": "4.02.F",
+                      "operator": "LESS_THAN_EQUAL",
+                      "answer_number": 0
+                    },
+                    {
+                      "question": "4.02.F",
+                      "operator": "EXISTS",
+                      "answer_boolean": false
+                    }
+                  ]
+                }
+              ]
+            },
+            {
               "type": "CURRENCY",
               "link_id": "4.02.F",
               "text": "VA Non-Service-Connected Disability Pension",
               "field_name": "vaDisabilityNonServiceAmount"
+            },
+            {
+              "type": "BOOLEAN",
+              "link_id": "4.02.9",
+              "hidden": true,
+              "field_name": "privateDisability",
+              "autofill_values": [
+                {
+                  "value_boolean": true,
+                  "autofill_behavior": "ALL",
+                  "autofill_when": [
+                    {
+                      "question": "4.02.G",
+                      "operator": "GREATER_THAN",
+                      "answer_number": 0
+                    }
+                  ]
+                },
+                {
+                  "value_boolean": false,
+                  "autofill_behavior": "ANY",
+                  "autofill_when": [
+                    {
+                      "question": "4.02.G",
+                      "operator": "LESS_THAN_EQUAL",
+                      "answer_number": 0
+                    },
+                    {
+                      "question": "4.02.G",
+                      "operator": "EXISTS",
+                      "answer_boolean": false
+                    }
+                  ]
+                }
+              ]
             },
             {
               "type": "CURRENCY",
@@ -335,10 +677,80 @@
               "field_name": "privateDisabilityAmount"
             },
             {
+              "type": "BOOLEAN",
+              "link_id": "4.02.10",
+              "hidden": true,
+              "field_name": "workersComp",
+              "autofill_values": [
+                {
+                  "value_boolean": true,
+                  "autofill_behavior": "ALL",
+                  "autofill_when": [
+                    {
+                      "question": "4.02.H",
+                      "operator": "GREATER_THAN",
+                      "answer_number": 0
+                    }
+                  ]
+                },
+                {
+                  "value_boolean": false,
+                  "autofill_behavior": "ANY",
+                  "autofill_when": [
+                    {
+                      "question": "4.02.H",
+                      "operator": "LESS_THAN_EQUAL",
+                      "answer_number": 0
+                    },
+                    {
+                      "question": "4.02.H",
+                      "operator": "EXISTS",
+                      "answer_boolean": false
+                    }
+                  ]
+                }
+              ]
+            },
+            {
               "type": "CURRENCY",
               "link_id": "4.02.H",
               "text": "Worker's Compensation",
               "field_name": "workersCompAmount"
+            },
+            {
+              "type": "BOOLEAN",
+              "link_id": "4.02.11",
+              "hidden": true,
+              "field_name": "tanf",
+              "autofill_values": [
+                {
+                  "value_boolean": true,
+                  "autofill_behavior": "ALL",
+                  "autofill_when": [
+                    {
+                      "question": "4.02.I",
+                      "operator": "GREATER_THAN",
+                      "answer_number": 0
+                    }
+                  ]
+                },
+                {
+                  "value_boolean": false,
+                  "autofill_behavior": "ANY",
+                  "autofill_when": [
+                    {
+                      "question": "4.02.I",
+                      "operator": "LESS_THAN_EQUAL",
+                      "answer_number": 0
+                    },
+                    {
+                      "question": "4.02.I",
+                      "operator": "EXISTS",
+                      "answer_boolean": false
+                    }
+                  ]
+                }
+              ]
             },
             {
               "type": "CURRENCY",
@@ -347,10 +759,80 @@
               "field_name": "tanfAmount"
             },
             {
+              "type": "BOOLEAN",
+              "link_id": "4.02.12",
+              "hidden": true,
+              "field_name": "ga",
+              "autofill_values": [
+                {
+                  "value_boolean": true,
+                  "autofill_behavior": "ALL",
+                  "autofill_when": [
+                    {
+                      "question": "4.02.J",
+                      "operator": "GREATER_THAN",
+                      "answer_number": 0
+                    }
+                  ]
+                },
+                {
+                  "value_boolean": false,
+                  "autofill_behavior": "ANY",
+                  "autofill_when": [
+                    {
+                      "question": "4.02.J",
+                      "operator": "LESS_THAN_EQUAL",
+                      "answer_number": 0
+                    },
+                    {
+                      "question": "4.02.J",
+                      "operator": "EXISTS",
+                      "answer_boolean": false
+                    }
+                  ]
+                }
+              ]
+            },
+            {
               "type": "CURRENCY",
               "link_id": "4.02.J",
               "text": "General Assistance (GA)",
               "field_name": "gaAmount"
+            },
+            {
+              "type": "BOOLEAN",
+              "link_id": "4.02.13",
+              "hidden": true,
+              "field_name": "socSecRetirement",
+              "autofill_values": [
+                {
+                  "value_boolean": true,
+                  "autofill_behavior": "ALL",
+                  "autofill_when": [
+                    {
+                      "question": "4.02.K",
+                      "operator": "GREATER_THAN",
+                      "answer_number": 0
+                    }
+                  ]
+                },
+                {
+                  "value_boolean": false,
+                  "autofill_behavior": "ANY",
+                  "autofill_when": [
+                    {
+                      "question": "4.02.K",
+                      "operator": "LESS_THAN_EQUAL",
+                      "answer_number": 0
+                    },
+                    {
+                      "question": "4.02.K",
+                      "operator": "EXISTS",
+                      "answer_boolean": false
+                    }
+                  ]
+                }
+              ]
             },
             {
               "type": "CURRENCY",
@@ -359,10 +841,80 @@
               "field_name": "socSecRetirementAmount"
             },
             {
+              "type": "BOOLEAN",
+              "link_id": "4.02.14",
+              "hidden": true,
+              "field_name": "pension",
+              "autofill_values": [
+                {
+                  "value_boolean": true,
+                  "autofill_behavior": "ALL",
+                  "autofill_when": [
+                    {
+                      "question": "4.02.L",
+                      "operator": "GREATER_THAN",
+                      "answer_number": 0
+                    }
+                  ]
+                },
+                {
+                  "value_boolean": false,
+                  "autofill_behavior": "ANY",
+                  "autofill_when": [
+                    {
+                      "question": "4.02.L",
+                      "operator": "LESS_THAN_EQUAL",
+                      "answer_number": 0
+                    },
+                    {
+                      "question": "4.02.L",
+                      "operator": "EXISTS",
+                      "answer_boolean": false
+                    }
+                  ]
+                }
+              ]
+            },
+            {
               "type": "CURRENCY",
               "link_id": "4.02.L",
               "text": "Pension or retirement income from a former job",
               "field_name": "pensionAmount"
+            },
+            {
+              "type": "BOOLEAN",
+              "link_id": "4.02.15",
+              "hidden": true,
+              "field_name": "childSupport",
+              "autofill_values": [
+                {
+                  "value_boolean": true,
+                  "autofill_behavior": "ALL",
+                  "autofill_when": [
+                    {
+                      "question": "4.02.M",
+                      "operator": "GREATER_THAN",
+                      "answer_number": 0
+                    }
+                  ]
+                },
+                {
+                  "value_boolean": false,
+                  "autofill_behavior": "ANY",
+                  "autofill_when": [
+                    {
+                      "question": "4.02.M",
+                      "operator": "LESS_THAN_EQUAL",
+                      "answer_number": 0
+                    },
+                    {
+                      "question": "4.02.M",
+                      "operator": "EXISTS",
+                      "answer_boolean": false
+                    }
+                  ]
+                }
+              ]
             },
             {
               "type": "CURRENCY",
@@ -371,10 +923,80 @@
               "field_name": "childSupportAmount"
             },
             {
+              "type": "BOOLEAN",
+              "link_id": "4.02.16",
+              "hidden": true,
+              "field_name": "alimony",
+              "autofill_values": [
+                {
+                  "value_boolean": true,
+                  "autofill_behavior": "ALL",
+                  "autofill_when": [
+                    {
+                      "question": "4.02.N",
+                      "operator": "GREATER_THAN",
+                      "answer_number": 0
+                    }
+                  ]
+                },
+                {
+                  "value_boolean": false,
+                  "autofill_behavior": "ANY",
+                  "autofill_when": [
+                    {
+                      "question": "4.02.N",
+                      "operator": "LESS_THAN_EQUAL",
+                      "answer_number": 0
+                    },
+                    {
+                      "question": "4.02.N",
+                      "operator": "EXISTS",
+                      "answer_boolean": false
+                    }
+                  ]
+                }
+              ]
+            },
+            {
               "type": "CURRENCY",
               "link_id": "4.02.N",
               "text": "Alimony and other spousal support",
               "field_name": "alimonyAmount"
+            },
+            {
+              "type": "BOOLEAN",
+              "link_id": "4.02.17",
+              "hidden": true,
+              "field_name": "otherIncomeSource",
+              "autofill_values": [
+                {
+                  "value_boolean": true,
+                  "autofill_behavior": "ALL",
+                  "autofill_when": [
+                    {
+                      "question": "4.02.O",
+                      "operator": "GREATER_THAN",
+                      "answer_number": 0
+                    }
+                  ]
+                },
+                {
+                  "value_boolean": false,
+                  "autofill_behavior": "ANY",
+                  "autofill_when": [
+                    {
+                      "question": "4.02.O",
+                      "operator": "LESS_THAN_EQUAL",
+                      "answer_number": 0
+                    },
+                    {
+                      "question": "4.02.O",
+                      "operator": "EXISTS",
+                      "answer_boolean": false
+                    }
+                  ]
+                }
+              ]
             },
             {
               "type": "CURRENCY",
@@ -409,17 +1031,69 @@
       "record_type": "INCOME_BENEFIT",
       "item": [
         {
+          "type": "CHOICE",
+          "link_id": "4.03.2",
+          "text": "Non-Cash Benefits from Any Source",
+          "pick_list_reference": "NoYesReasonsForMissingData",
+          "field_name": "benefitsFromAnySource",
+          "autofill_values": [
+            {
+              "value_code": "YES",
+              "autofill_behavior": "ANY",
+              "autofill_when": [
+                {
+                  "question": "4.03.3",
+                  "operator": "EQUAL",
+                  "answer_boolean": true
+                },
+                {
+                  "question": "4.03.4",
+                  "operator": "EQUAL",
+                  "answer_boolean": true
+                },
+                {
+                  "question": "4.03.5",
+                  "operator": "EQUAL",
+                  "answer_boolean": true
+                },
+                {
+                  "question": "4.03.6",
+                  "operator": "EQUAL",
+                  "answer_boolean": true
+                },
+                {
+                  "question": "4.03.7",
+                  "operator": "EQUAL",
+                  "answer_boolean": true
+                },
+                {
+                  "question": "4.03.8",
+                  "operator": "EQUAL",
+                  "answer_boolean": true
+                }
+              ]
+            }
+          ]
+        },
+        {
           "type": "GROUP",
           "link_id": "non-cash-benefits-group",
           "component": "INPUT_GROUP",
-          "item": [
+          "text": "Select Benefit(s)",
+          "enable_behavior": "ANY",
+          "enable_when": [
             {
-              "type": "CHOICE",
-              "link_id": "4.03.2",
-              "text": "Non-Cash Benefits from Any Source",
-              "pick_list_reference": "NoYesReasonsForMissingData",
-              "field_name": "benefitsFromAnySource"
+              "question": "4.03.2",
+              "operator": "EQUAL",
+              "answer_code": "YES"
             },
+            {
+              "question": "4.03.2",
+              "operator": "EXISTS",
+              "answer_boolean": false
+            }
+          ],
+          "item": [
             {
               "type": "BOOLEAN",
               "link_id": "4.03.3",
@@ -489,17 +1163,89 @@
       "record_type": "INCOME_BENEFIT",
       "item": [
         {
+          "type": "CHOICE",
+          "link_id": "4.04.2",
+          "text": "Covered by Health Insurance",
+          "pick_list_reference": "NoYesReasonsForMissingData",
+          "field_name": "insuranceFromAnySource",
+          "autofill_values": [
+            {
+              "value_code": "YES",
+              "autofill_behavior": "ANY",
+              "autofill_when": [
+                {
+                  "question": "4.04.3",
+                  "operator": "EQUAL",
+                  "answer_boolean": true
+                },
+                {
+                  "question": "4.04.4",
+                  "operator": "EQUAL",
+                  "answer_boolean": true
+                },
+                {
+                  "question": "4.04.5",
+                  "operator": "EQUAL",
+                  "answer_boolean": true
+                },
+                {
+                  "question": "4.04.6",
+                  "operator": "EQUAL",
+                  "answer_boolean": true
+                },
+                {
+                  "question": "4.04.7",
+                  "operator": "EQUAL",
+                  "answer_boolean": true
+                },
+                {
+                  "question": "4.04.8",
+                  "operator": "EQUAL",
+                  "answer_boolean": true
+                },
+                {
+                  "question": "4.04.9",
+                  "operator": "EQUAL",
+                  "answer_boolean": true
+                },
+                {
+                  "question": "4.04.10",
+                  "operator": "EQUAL",
+                  "answer_boolean": true
+                },
+                {
+                  "question": "4.04.11",
+                  "operator": "EQUAL",
+                  "answer_boolean": true
+                },
+                {
+                  "question": "4.04.12",
+                  "operator": "EQUAL",
+                  "answer_boolean": true
+                }
+              ]
+            }
+          ]
+        },
+        {
           "type": "GROUP",
           "link_id": "insurance-provider",
           "component": "INPUT_GROUP",
-          "item": [
+          "text": "Select Insurance Provider(s)",
+          "enable_behavior": "ANY",
+          "enable_when": [
             {
-              "type": "CHOICE",
-              "link_id": "4.04.2",
-              "text": "Covered by Health Insurance",
-              "pick_list_reference": "NoYesReasonsForMissingData",
-              "field_name": "insuranceFromAnySource"
+              "question": "4.04.2",
+              "operator": "EQUAL",
+              "answer_code": "YES"
             },
+            {
+              "question": "4.04.2",
+              "operator": "EXISTS",
+              "answer_boolean": false
+            }
+          ],
+          "item": [
             {
               "type": "BOOLEAN",
               "component": "CHECKBOX",
@@ -725,19 +1471,14 @@
           "_ignore": "HUD defines a Disabling Condition as:<ul><li>A physical, mental, or emotional impairment, including an impairment caused by alcohol or drug abuse, post-traumatic stress disorder, or brain injury that:</li><ul><li>Is expected to be long-continuing or of indefinite duration;</li><li>Substantially impedes the individual's ability to live independently; and</li><li>Could be improved by the provision of more suitable housing conditions.</li></ul></li><li>A developmental disability, as defined in section 102 of the Developmental Disabilities Assistance and Bill of Rights Act of 2000 (42 U.S.C. 15002); or</li><li>The disease of acquired immunodeficiency syndrome (AIDS) or any condition arising from the etiologic agency for acquired immunodeficiency syndrome (HIV).</li></ul>"
         },
         {
-          "type": "BOOLEAN",
+          "type": "CHOICE",
           "link_id": "3.08",
           "text": "Disabling Condition",
           "field_name": "disablingCondition",
-          "_comment": "NOTE: disablingCondition is not really a field on DisabilityGroup, but on Enrollment. TBD how this should be represented for extraction.",
-          "initial": [
-            {
-              "value_boolean": false
-            }
-          ],
+          "pick_list_reference": "NoYesReasonsForMissingData",
           "autofill_values": [
             {
-              "value_boolean": true,
+              "value_code": "YES",
               "autofill_behavior": "ANY",
               "autofill_when": [
                 {
@@ -773,7 +1514,7 @@
               ]
             },
             {
-              "value_boolean": false,
+              "value_code": "NO",
               "autofill_behavior": "ALL",
               "autofill_when": [
                 {
@@ -805,6 +1546,33 @@
                   "question": "4.10.A",
                   "operator": "NOT_EQUAL",
                   "answer_code": "YES"
+                }
+              ]
+            },
+            {
+              "value_code": "NO",
+              "autofill_behavior": "ALL",
+              "_comment": "It should autofull when ANY element is interacted with, so add these as dependencies even though they do not determine disabling condition status. This autofill will only occur if none of the above rules matcheed.",
+              "autofill_when": [
+                {
+                  "question": "4.05.2",
+                  "operator": "EXISTS",
+                  "answer_boolean": true
+                },
+                {
+                  "question": "4.07.2",
+                  "operator": "EXISTS",
+                  "answer_boolean": true
+                },
+                {
+                  "question": "4.09.2",
+                  "operator": "EXISTS",
+                  "answer_boolean": true
+                },
+                {
+                  "question": "4.10.2",
+                  "operator": "EXISTS",
+                  "answer_boolean": true
                 }
               ]
             }

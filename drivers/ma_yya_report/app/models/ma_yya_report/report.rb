@@ -285,7 +285,7 @@ module MaYyaReport
         'D' => 'D. Demographics',
         'E' => 'E. Youth Action Board/Youth Engagement Activity',
         'F' => 'F. Outcomes',
-        'G' => 'G. Demographics of Rehousing Outcomes: youth who transitioned into stabilized housing (YTD should be unduplicated and match D2a)',
+        'G' => 'G. Demographics of Rehousing Outcomes: youth who transitioned into stabilized housing (YTD should be unduplicated and match F2a)',
       }
       @section_label[label]
     end

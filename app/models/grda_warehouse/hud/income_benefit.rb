@@ -43,7 +43,8 @@ module GrdaWarehouse::Hud
       where(DataCollectionStage: 1).joins(:enrollment).where(ib_t[:InformationDate].eq(e_t[:EntryDate]))
     end
 
-    scope :at_exit, -> do
+    # hide previous declaration of :at_exit, we'll use this one
+    replace_scope :at_exit, -> do
       where(DataCollectionStage: 3).joins(:exit).where(ib_t[:InformationDate].eq(ex_t[:ExitDate]))
     end
 

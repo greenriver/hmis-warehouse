@@ -22,7 +22,7 @@ module UserDirectoryReport::WarehouseReports
 
     def cas
       if cas_available?
-        @users = _users(Cas::User)
+        @users = _users(CasAccess::User)
       else
         @users = []
       end
@@ -38,7 +38,7 @@ module UserDirectoryReport::WarehouseReports
     end
 
     def cas_available?
-      CasBase.db_exists? && Cas::User.take.respond_to?('exclude_from_directory')
+      CasBase.db_exists? && CasAccess::User.take.respond_to?('exclude_from_directory')
     end
 
     private def _users(user_model)

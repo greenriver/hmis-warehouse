@@ -894,7 +894,8 @@ module Health
     scope :recent, -> { order(updated_at: :desc).limit(1) }
     scope :reviewed, -> { where.not(reviewed_by_id: nil) }
     scope :incomplete, -> { where(completed_at: nil, reviewed_by_id: nil) }
-    scope :complete, -> { where.not(completed_at: nil) }
+    # hide previous declaration of :complete, we'll use this one
+    replace_scope :complete, -> { where.not(completed_at: nil) }
     scope :completed, -> { complete }
 
     scope :active, -> do

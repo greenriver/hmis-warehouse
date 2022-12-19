@@ -168,7 +168,7 @@ module GrdaWarehouse::CasProjectClientCalculator
       relevant_section = client.most_recent_tc_hat_for_destination.
         section_starts_with(section_title)
       chosen_neighborhood = client.most_recent_tc_hat_for_destination.answer_from_section(relevant_section, question_title)
-      Cas::Neighborhood.neighborhood_ids_from_names([chosen_neighborhood])
+      CasAccess::Neighborhood.neighborhood_ids_from_names([chosen_neighborhood])
     end
 
     private def strengths(client)

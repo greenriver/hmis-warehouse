@@ -106,7 +106,7 @@ module Filters
       elsif filters.key?(:project_type_numbers)
         self.project_type_codes = []
       else
-        project_type_codes
+        self.project_type_codes = project_type_codes
       end
       self.project_type_numbers = filters.dig(:project_type_numbers)&.reject(&:blank?)&.map(&:to_i).presence || project_type_numbers
       self.data_source_ids = filters.dig(:data_source_ids)&.reject(&:blank?)&.map(&:to_i).presence || data_source_ids

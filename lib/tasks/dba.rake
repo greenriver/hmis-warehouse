@@ -48,6 +48,7 @@ namespace :dba do
     DBA::DatabaseBloat.all_databases!(:show_cache_hits!, dry_run: @dry_run)
   end
 
+  # rails dba:partition['hmis_2022_enrollments']
   desc 'Partition big tables'
   task :partition, [:table] => [:environment] do |_t, args|
     if args[:table].present?

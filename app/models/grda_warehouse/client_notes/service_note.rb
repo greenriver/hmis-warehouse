@@ -10,8 +10,9 @@ module GrdaWarehouse::ClientNotes
       'Service Note'
     end
 
+    # hide previous declaration of :visible_by, we'll use this one
     # anyone who can see the client and project
-    scope :visible_by, ->(user, client) do
+    replace_scope :visible_by, ->(user, client) do
       joins(:client).merge(GrdaWarehouse::Hud::Client.destination_visible_to(user, source_client_ids: client.source_client_ids)).
         joins(:project).merge(GrdaWarehouse::Hud::Project.viewable_by(user))
     end

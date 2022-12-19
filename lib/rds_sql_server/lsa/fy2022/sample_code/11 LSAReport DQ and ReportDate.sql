@@ -21,19 +21,19 @@ set rpt.NoCoC = (select count (distinct n.HouseholdID)
 				and p.HMISParticipatingProject = 1
 			inner join lsa_Organization org on org.OrganizationID = p.OrganizationID
 				and org.VictimServiceProvider = 0
-			inner join hmis_ProjectCoC pcoc on pcoc.ProjectID = p.ProjectID
-				and pcoc.DateDeleted is null 
 			left outer join hmis_EnrollmentCoC coc on 
 				coc.HouseholdID = n.HouseholdID
 				and coc.InformationDate <= rpt.ReportEnd
-				and coc.CoCCode = pcoc.CoCCode
 				and coc.DateDeleted is null 
 			left outer join hmis_Exit x on x.EnrollmentID = n.EnrollmentID 
 				and x.DateDeleted is null
+			left outer join hmis_ProjectCoC pcoc on pcoc.ProjectID = p.ProjectID
+				and pcoc.CoCCode = coc.CoCCode
+				and pcoc.DateDeleted is null 
 			where n.EntryDate <= rpt.ReportEnd 
 				and (x.ExitDate is null or x.ExitDate >= rpt.ReportStart)
 				and n.RelationshipToHoH = 1 
-				and coc.CoCCode is null
+				and pcoc.CoCCode is null
 				and n.DateDeleted is null 
 			)
 from lsa_Report rpt
@@ -100,7 +100,7 @@ set rpt.MoveInDate =
 		where hhid.LSAProjectType in (3,13)
 			and hhid.Active = 1 
 			and hhid.MoveInDate is null 
-			and hn.MoveInDate is not NULL
+			and hn.MoveInDate <= rpt.ReportEnd
 	)
 from lsa_Report rpt
 

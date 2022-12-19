@@ -11,7 +11,7 @@
             %th.text-center From Assessment?
         %tbody
           - @client.cas_tags.each do |id, rank|
-            - tag = Cas::Tag.find(id)
+            - tag = CasAccess::Tag.find(id)
             %tr
               %td= tag&.name || 'Unknown'
               %td.text-center= rank

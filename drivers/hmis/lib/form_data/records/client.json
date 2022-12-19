@@ -55,7 +55,7 @@
           "link_id": "pronouns",
           "text": "Pronouns",
           "repeats": true,
-          "_TMP_IGNORED_field_name": "pronouns",
+          "field_name": "pronouns",
           "pick_list_options": [
             {
               "code": "she/her"

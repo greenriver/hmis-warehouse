@@ -15,7 +15,7 @@
 
       .page-break-avoid
         %h3.mb-4= result.hud_project.name(current_user, include_project_type: true)
-        = render 'performance_measurement/warehouse_reports/reports/details_row', key: key, result: result, class_name: "jProjectLevelPerformance_#{key}_#{project_id}", show_label_detail: result.percentage?
+        = render 'performance_measurement/warehouse_reports/reports/details_row', key: key, result: result, class_name: "jProjectLevelPerformance_#{key}_#{project_id}", show_label_detail: result.percentage?, project_id: project_id
 - other_projects = @report.other_projects(current_user, key)
 - if other_projects.present?
   .well.no-break

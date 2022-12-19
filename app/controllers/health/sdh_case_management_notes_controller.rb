@@ -55,6 +55,9 @@ module Health
       end
       @note_added = (@activity_count != @note.activities.size)
       @activities = @note.activities.sort_by(&:id)
+      @activities.each do |qa|
+        qa.delay.maintain_cached_values
+      end
       respond_with @note, location: polymorphic_path(careplans_path_generator)
     end
 

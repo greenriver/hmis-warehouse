@@ -98,6 +98,9 @@ module PerformanceMeasurement
     end
 
     def filter=(filter_object)
+      # enforce default project types if we can't choose
+      filter_object.project_type_codes = self.class.default_project_type_codes unless PerformanceMeasurement::Goal.include_project_options?
+
       self.options = filter_object.to_h
       # force reset the filter cache
       @filter = nil
@@ -106,11 +109,31 @@ module PerformanceMeasurement
 
     def filter
       @filter ||= begin
-        f = ::Filters::HudFilterBase.new(user_id: user_id)
+        f = ::Filters::HudFilterBase.new(user_id: filter_user_id)
         f.update((options || {}).merge(comparison_pattern: :prior_year).with_indifferent_access)
         f.update(start: f.end - 1.years + 1.days)
         f
       end
+    end
+
+    def self.known_params
+      return ::Filters::HudFilterBase.new.known_params if PerformanceMeasurement::Goal.include_project_options?
+
+      [:end, :coc_code]
+    end
+
+    # The filter user is dependent on the configuration
+    private def filter_user_id
+      return user_id if PerformanceMeasurement::Goal.include_project_options?
+
+      User.system_user.id
+    end
+
+    def show_spm_link?
+      return true if user.can_view_all_hud_reports?
+      return true if user.can_view_own_hud_reports? && PerformanceMeasurement::Goal.include_project_options?
+
+      false
     end
 
     def coc_code
@@ -634,7 +657,7 @@ module PerformanceMeasurement
 
       options = filter.to_h
       # Because we want data back for all projects in the CoC we need to run this as the System User who will have access to everything
-      options[:user_id] = User.setup_system_user.id
+      options[:user_id] = filter_user_id
 
       # Re-enable the following if you don't want to have to run SPMs during development
       # if Rails.env.development?
