@@ -35,7 +35,7 @@ module Types
         state_options.map do |obj|
           {
             code: obj['abbreviation'],
-            label: "#{obj['abbreviation']} - #{obj['name']}",
+            # label: "#{obj['abbreviation']} - #{obj['name']}",
             initial_selected: obj['abbreviation'] == relevant_state,
           }
         end

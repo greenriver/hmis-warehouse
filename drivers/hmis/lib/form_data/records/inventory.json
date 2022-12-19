@@ -23,6 +23,7 @@
     },
     {
       "type": "GROUP",
+      "text": "Inventory Details",
       "link_id": "1",
       "required": false,
       "item": [
@@ -56,11 +57,6 @@
           "link_id": "beds",
           "text": "Bed Inventory",
           "field_name": "bedInventory"
-        },
-        {
-          "type": "DISPLAY",
-          "link_id": "bumper",
-          "text": "<br />"
         },
         {
           "type": "DATE",

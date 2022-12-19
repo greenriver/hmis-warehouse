@@ -2,6 +2,7 @@
   "item": [
     {
       "type": "GROUP",
+      "text": "Project CoC Details",
       "link_id": "1",
       "item": [
         {
@@ -50,21 +51,30 @@
           "field_name": "city"
         },
         {
-          "type": "CHOICE",
-          "required": false,
-          "link_id": "state",
-          "text": "State",
-          "pick_list_reference": "STATE",
-          "field_name": "state"
-        },
-        {
-          "type": "STRING",
-          "required": false,
-          "link_id": "zip",
-          "text": "Zip Code",
-          "field_name": "zip",
-          "size": "SMALL"
+          "type": "GROUP",
+          "component": "HORIZONTAL_GROUP",
+          "link_id": "state-zip",
+          "item": [
+            {
+              "type": "CHOICE",
+              "required": false,
+              "link_id": "state",
+              "text": "State",
+              "pick_list_reference": "STATE",
+              "field_name": "state",
+              "size": "XSMALL"
+            },
+            {
+              "type": "STRING",
+              "required": false,
+              "link_id": "zip",
+              "text": "Zip Code",
+              "field_name": "zip",
+              "size": "SMALL"
+            }
+          ]
         }
+
       ]
     }
   ]

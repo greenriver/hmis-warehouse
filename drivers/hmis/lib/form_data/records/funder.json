@@ -24,6 +24,7 @@
     {
       "type": "GROUP",
       "link_id": "1",
+      "text": "Funder Details",
       "item": [
         {
           "type": "CHOICE",
