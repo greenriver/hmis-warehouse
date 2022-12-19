@@ -96,6 +96,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     options = result.dig('data', 'pickList')
     expect(options.length).to eq(1)
     expect(options[0]['code']).to eq(pc1.coc_code)
+    expect(options[0]['label']).to include(::HUD.cocs[pc1.coc_code])
     expect(options[0]['initialSelected']).to eq(true)
   end
 
