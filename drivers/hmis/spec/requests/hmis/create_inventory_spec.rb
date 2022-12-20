@@ -47,6 +47,15 @@ RSpec.describe Hmis::GraphqlController, type: :request do
                   }
                 }
               }
+              beds {
+                nodesCount
+                nodes {
+                  #{scalar_fields(Types::HmisSchema::Bed)}
+                  unit {
+                    id
+                  }
+                }
+              }
             }
             #{error_fields}
           }

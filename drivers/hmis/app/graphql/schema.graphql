@@ -184,6 +184,7 @@ type Bed {
   id: ID!
   name: String
   startDate: ISO8601Date!
+  unit: Unit!
 }
 
 """
@@ -204,6 +205,16 @@ enum BedType {
   (2) Voucher
   """
   VOUCHER
+}
+
+type BedsPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [Bed!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
 }
 
 enum BoundType {
@@ -2093,6 +2104,7 @@ type Inventory {
   active: Boolean!
   availability: Availability
   bedInventory: Int!
+  beds(limit: Int, offset: Int): BedsPaginated!
   chBedInventory: Int
   chVetBedInventory: Int
   chYouthBedInventory: Int
