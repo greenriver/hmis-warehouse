@@ -69,7 +69,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
     end
 
-    it 'creates units and beds' do
+    it 'creates units and beds (4 beds per unit, beds overflow)' do
       input = { unit_inventory: 2, vet_bed_inventory: 3, other_bed_inventory: 6, bed_inventory: 9, beds_per_unit: 4 }
       response, result = post_graphql(input: { **valid_input, **input }) { mutation }
 
@@ -87,6 +87,50 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(inventory.inventory_start_date).to be_present
         expect(inventory.units.count).to eq(2)
         expect(inventory.beds.count).to eq(9)
+      end
+    end
+
+    it 'creates units and beds (1 bed per unit, exact fit)' do
+      input = { unit_inventory: 3, vet_bed_inventory: 1, other_bed_inventory: 2, bed_inventory: 3, beds_per_unit: 1 }
+      response, result = post_graphql(input: { **valid_input, **input }) { mutation }
+
+      aggregate_failures 'checking response' do
+        expect(response.status).to eq 200
+        record = result.dig('data', 'createInventory', 'inventory')
+        errors = result.dig('data', 'createInventory', 'errors')
+        expect(errors).to be_empty
+        expect(record['id']).to be_present
+        expect(record['active']).to eq(true)
+        expect(record['units']['nodesCount']).to eq(3)
+        expect(record['units']['nodes'][0]['beds'].length).to eq(1)
+        expect(record['units']['nodes'][1]['beds'].length).to eq(1)
+        expect(record['units']['nodes'][2]['beds'].length).to eq(1)
+        inventory = Hmis::Hud::Inventory.find(record['id'])
+        expect(inventory.inventory_start_date).to be_present
+        expect(inventory.units.count).to eq(3)
+        expect(inventory.beds.count).to eq(3)
+      end
+    end
+
+    it 'creates units and beds (1 bed per unit, beds underfill)' do
+      input = { unit_inventory: 3, vet_bed_inventory: 1, bed_inventory: 1, beds_per_unit: 1 }
+      response, result = post_graphql(input: { **valid_input, **input }) { mutation }
+
+      aggregate_failures 'checking response' do
+        expect(response.status).to eq 200
+        record = result.dig('data', 'createInventory', 'inventory')
+        errors = result.dig('data', 'createInventory', 'errors')
+        expect(errors).to be_empty
+        expect(record['id']).to be_present
+        expect(record['active']).to eq(true)
+        expect(record['units']['nodesCount']).to eq(3)
+        expect(record['units']['nodes'][0]['beds'].length).to eq(1)
+        expect(record['units']['nodes'][1]['beds'].length).to eq(0)
+        expect(record['units']['nodes'][2]['beds'].length).to eq(0)
+        inventory = Hmis::Hud::Inventory.find(record['id'])
+        expect(inventory.inventory_start_date).to be_present
+        expect(inventory.units.count).to eq(3)
+        expect(inventory.beds.count).to eq(1)
       end
     end
 

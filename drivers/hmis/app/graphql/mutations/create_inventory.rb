@@ -16,12 +16,12 @@ module Mutations
       inventory = response[:inventory]
       return response unless inventory.present?
 
-      create_beds_and_units(inventory)
+      create_beds_and_units(inventory, input.beds_per_unit)
 
       response
     end
 
-    def create_beds_and_units(inventory, beds_per_unit = 4)
+    def create_beds_and_units(inventory, beds_per_unit)
       return unless inventory.unit_inventory.positive?
 
       common = { user_id: hmis_user.user_id, created_at: Time.now, updated_at: Time.now }
