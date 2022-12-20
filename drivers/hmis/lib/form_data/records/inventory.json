@@ -122,7 +122,32 @@
       "type": "GROUP",
       "text": "Beds and Units",
       "link_id": "2",
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "_comment": "Only show this section if we're creating a new Inventory record",
+          "question": "inventory-id",
+          "operator": "EXISTS",
+          "answer_boolean": false
+        }
+      ],
       "item": [
+        {
+          "type": "INTEGER",
+          "required": true,
+          "link_id": "units",
+          "text": "Unit Count",
+          "field_name": "unitInventory"
+        },
+        {
+          "type": "INTEGER",
+          "required": true,
+          "link_id": "beds-per-unit",
+          "field_name": "bedsPerUnit",
+          "text": "Beds per Unit",
+          "helper_text": "System will attempt to assign this number of beds to each unit."
+        },
+
         {
           "type": "GROUP",
           "hidden": true,
@@ -143,7 +168,8 @@
           "type": "GROUP",
           "link_id": "beds-group",
           "component": "INPUT_GROUP",
-          "text": "Beds",
+          "text": "Bed Counts",
+          "required": true,
           "item": [
             {
               "type": "INTEGER",
@@ -194,50 +220,6 @@
               "text": "Total Bed Count"
             }
           ]
-        },
-        {
-          "type": "DISPLAY",
-          "link_id": "space",
-          "text": "<br />"
-        },
-        {
-          "type": "GROUP",
-          "hidden": false,
-          "link_id": "units-group",
-          "component": "INPUT_GROUP",
-          "text": "Units",
-          "item": [
-            {
-              "type": "INTEGER",
-              "required": false,
-              "link_id": "units",
-              "text": "Unit Count",
-              "field_name": "unitInventory",
-              "initial": [
-                {
-                  "value_number": 0
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "type": "INTEGER",
-          "hidden": true,
-          "link_id": "units",
-          "text": "Number of Units",
-          "field_name": "unitInventory"
-        },
-        {
-          "type": "DISPLAY",
-          "link_id": "space-2",
-          "text": "<br />"
-        },
-        {
-          "type": "BOOLEAN",
-          "component": "CHECKBOX",
-          "link_id": "units-per-bed",
-          "text": "One Bed per Unit"
         }
       ]
     }
