@@ -5,12 +5,14 @@
       "link_id": "location",
       "text": "Client Location",
       "data_collected_about": "HOH",
+      "record_type": "ENROLLMENT_COC",
       "item": [
         {
           "type": "CHOICE",
           "link_id": "3.16",
           "prefix": "3.16",
           "text": "CoC Code for Client Location",
+          "field_name": "cocCode",
           "brief_text": "Location",
           "pick_list_reference": "COC"
         }
@@ -62,8 +64,8 @@
               "question": "3.917.2",
               "operator": "IN",
               "answer_codes": [
-                "LOS_90_DAYS_OR_MORE_BUT_LESS_THAN_ONE_YEAR",
-                "LOS_ONE_YEAR_OR_LONGER"
+                "NUM_90_DAYS_OR_MORE_BUT_LESS_THAN_ONE_YEAR",
+                "ONE_YEAR_OR_LONGER"
               ]
             }
           ]
@@ -84,10 +86,10 @@
               "question": "3.917.2",
               "operator": "IN",
               "answer_codes": [
-                "LOS_ONE_WEEK_OR_MORE_BUT_LESS_THAN_ONE_MONTH",
-                "LOS_ONE_MONTH_OR_MORE_BUT_LESS_THAN_90_DAYS",
-                "LOS_90_DAYS_OR_MORE_BUT_LESS_THAN_ONE_YEAR",
-                "LOS_ONE_YEAR_OR_LONGER"
+                "ONE_WEEK_OR_MORE_BUT_LESS_THAN_ONE_MONTH",
+                "ONE_MONTH_OR_MORE_BUT_LESS_THAN_90_DAYS",
+                "NUM_90_DAYS_OR_MORE_BUT_LESS_THAN_ONE_YEAR",
+                "ONE_YEAR_OR_LONGER"
               ]
             }
           ]
@@ -116,14 +118,14 @@
         {
           "type": "DISPLAY",
           "link_id": "3.917.C.message",
-          "text": "Stopping data collection for 3.917 Prior Living Situation.",
+          "text": "Client does not meet the HUD definition of chronic homelessness. Stopping data collection for 3.917 Prior Living Situation.",
           "project_types_excluded": ["ES", "SERVICES_ONLY", "SH"],
-          "_comment": "FIXME: If 2.917 B or C were enabled, we shouldnt show this unless B/C have been answered?",
           "enable_behavior": "ALL",
           "enable_when": [
             {
               "question": "3.917.C",
               "operator": "EQUAL",
+              "_comment": "not homeless on the night before",
               "answer_boolean": false
             },
             {
