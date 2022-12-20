@@ -300,39 +300,34 @@ HUD Client Sorting Options
 """
 enum ClientSortOption {
   """
-  First Name A To Z
+  Age: Oldest to Youngest
+  """
+  AGE_OLDEST_TO_YOUNGEST
+
+  """
+  Age: Youngest to Oldest
+  """
+  AGE_YOUNGEST_TO_OLDEST
+
+  """
+  First Name: A-Z
   """
   FIRST_NAME_A_TO_Z
 
   """
-  First Name Z To A
+  First Name: Z-A
   """
   FIRST_NAME_Z_TO_A
 
   """
-  Last Name A To Z
+  Last Name: A-Z
   """
   LAST_NAME_A_TO_Z
 
   """
-  Last Name Z To A
+  Last Name: Z-A
   """
   LAST_NAME_Z_TO_A
-
-  """
-  Oldest To Youngest
-  """
-  OLDEST_TO_YOUNGEST
-
-  """
-  Recently Added
-  """
-  RECENTLY_ADDED
-
-  """
-  Youngest To Oldest
-  """
-  YOUNGEST_TO_OLDEST
 }
 
 type ClientsPaginated {
