@@ -1,22 +1,27 @@
 .row.mb-4
-  .col-sm-12.pull-right.mb-2
-    = link_to new_cohort_cohort_client_cohort_client_note_path(@cohort, @cohort_client), class: 'btn btn-secondary btn-sm', data: {loads_in_pjax_modal: true} do
-      %i.icon-plus
-      Add a note
-- @cohort_client.cohort_client_notes.order(updated_at: :desc).each do |note|
-  .mb-4
+  - if request.xhr?
+    .col-sm-12.pull-right.mb-2
+      = link_to new_cohort_cohort_client_cohort_client_note_path(@cohort, @cohort_client), class: 'btn btn-secondary btn-sm', data: {loads_in_pjax_modal: true} do
+        %i.icon-plus
+        Add a note
+- if @cohort_client.cohort_client_notes.exists?
+  - @cohort_client.cohort_client_notes.order(updated_at: :desc).each do |note|
+    .mb-4
+      %p= simple_format note.note
     .mb-2
-      = note.note
-    .d-flex.align-items-center
-      %p.attribution.mt-2.mb-0
-        = note.user.name
-        on
-        = note.updated_at.to_date
-      - if note.destroyable_by current_user
-        = link_to cohort_cohort_client_cohort_client_note_path(@cohort, @cohort_client, note), class: 'btn btn-sm btn-danger ml-auto mt-auto', method: :delete, remote: true do
-          %i.icon-cross.mr-2
-          Destroy
-  %hr
+      - if note.recipient_info
+        %p.small.text-muted
+          = note.recipient_info
+        %p.small.text-muted
+          Posted by #{content_tag(:strong, note.user&.name)} on #{content_tag(:strong, note.created_at)}
+      .d-flex.align-items-center
+        - if note.destroyable_by current_user
+          = link_to cohort_cohort_client_cohort_client_note_path(@cohort, @cohort_client, note), class: 'btn btn-sm btn-danger ml-auto mt-auto', method: :delete, remote: request.xhr? do
+            %i.icon-cross.mr-2
+            Destroy
+    %hr
+- else
+  .none-found No notes found.
 
 - content_for :modal_title do
   Notes for #{@cohort_client.client.full_name}
