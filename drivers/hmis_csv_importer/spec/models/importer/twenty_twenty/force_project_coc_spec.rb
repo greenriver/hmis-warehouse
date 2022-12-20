@@ -33,14 +33,12 @@ RSpec.describe 'Force Valid CoC Codes', type: :model do
       expect(GrdaWarehouse::Hud::EnrollmentCoc.count).to eq(9)
     end
 
-    it 'Includes ignores CoCCodes it cannot fix' do
-      expect(GrdaWarehouse::Hud::EnrollmentCoc.pluck(:CoCCode).compact.count).to eq(4)
+    it 'Includes all CoCCodes' do
+      expect(GrdaWarehouse::Hud::EnrollmentCoc.pluck(:CoCCode).compact.count).to eq(9)
     end
 
     it 'Includes corrected CoCCodes' do
-      expect(GrdaWarehouse::Hud::EnrollmentCoc.pluck(:CoCCode)).to include('MA-502')
-      expect(GrdaWarehouse::Hud::EnrollmentCoc.pluck(:CoCCode)).to include('MA-503')
-      expect(GrdaWarehouse::Hud::EnrollmentCoc.pluck(:CoCCode)).to include('MA-504')
+      expect(GrdaWarehouse::Hud::EnrollmentCoc.pluck(:CoCCode).uniq).to eq(['KY-500'])
     end
   end
 
@@ -49,7 +47,7 @@ RSpec.describe 'Force Valid CoC Codes', type: :model do
     HmisCsvImporter::Utility.clear!
 
     data_source = if with_cleanup
-      create(:importer_force_valid_enrollment_cocs)
+      create(:importer_force_project_enrollment_cocs)
     else
       create(:importer_dont_cleanup_ds)
     end
