@@ -8,6 +8,7 @@
 
 module Types
   class HmisSchema::Inventory < Types::BaseObject
+    include Types::HmisSchema::HasUnits
     def self.configuration
       Hmis::Hud::Inventory.hmis_configuration(version: '2022')
     end
@@ -33,5 +34,10 @@ module Types
     hud_field :date_created
     hud_field :date_deleted
     field :active, Boolean, null: false
+    units_field
+
+    def units(**args)
+      resolve_units(**args)
+    end
   end
 end

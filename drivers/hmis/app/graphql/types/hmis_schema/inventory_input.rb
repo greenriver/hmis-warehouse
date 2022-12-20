@@ -20,9 +20,10 @@ module Types
     hud_argument :es_bed_type, HmisSchema::Enums::Hud::BedType
     hud_argument :inventory_start_date
     hud_argument :inventory_end_date
+    argument :beds_per_unit, Integer
 
     def to_params
-      result = to_h
+      result = to_h.except(:beds_per_unit)
       result[:project_id] = Hmis::Hud::Project.editable_by(current_user).find_by(id: project_id)&.project_id if project_id.present?
 
       result
