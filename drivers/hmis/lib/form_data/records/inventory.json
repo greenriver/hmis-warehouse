@@ -147,23 +147,6 @@
           "text": "Beds per Unit",
           "helper_text": "System will attempt to assign this number of beds to each unit."
         },
-
-        {
-          "type": "GROUP",
-          "hidden": true,
-          "link_id": "units-group",
-          "component": "INPUT_GROUP",
-          "text": "Units",
-          "item": [
-            {
-              "type": "INTEGER",
-              "required": true,
-              "link_id": "units",
-              "text": "Number of Units",
-              "field_name": "unitInventory"
-            }
-          ]
-        },
         {
           "type": "GROUP",
           "link_id": "beds-group",
