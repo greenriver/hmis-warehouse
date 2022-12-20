@@ -2897,6 +2897,21 @@ input ProjectInput {
 }
 
 """
+HMIS Project search input
+"""
+input ProjectSearchInput {
+  """
+  Project primary key
+  """
+  id: ID
+
+  """
+  Omnisearch string
+  """
+  textSearch: String
+}
+
+"""
 HUD Project Sorting Options
 """
 enum ProjectSortOption {
@@ -3049,6 +3064,11 @@ type Query {
   Project CoC lookup
   """
   projectCoc(id: ID!): ProjectCoc
+
+  """
+  Search for projects
+  """
+  projectSearch(input: ProjectSearchInput!, limit: Int, offset: Int, projectTypes: [ProjectType!], sortOrder: ProjectSortOption): ProjectsPaginated!
 
   """
   Get a list of projects

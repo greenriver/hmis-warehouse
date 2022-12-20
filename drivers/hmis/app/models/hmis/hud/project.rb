@@ -8,6 +8,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   include ArelHelper
   include ::HmisStructure::Project
   include ::Hmis::Hud::Concerns::Shared
+  include ProjectSearch
   self.table_name = :Project
   self.sequence_name = "public.\"#{table_name}_id_seq\""
 
@@ -60,6 +61,19 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     else
       raise NotImplementedError
     end
+  end
+
+  def self.project_search(input:, _user: nil)
+    # scope = Hmis::Hud::Project.where(id: viewable_by(user).select(:id))
+    scope = Hmis::Hud::Project.all
+
+    if input.text_search.present?
+      scope = text_searcher(input.text_search) do |where|
+        scope.where(where).pluck(:id)
+      end
+    end
+
+    Hmis::Hud::Project.where(id: scope.select(:id))
   end
 
   def self.generate_project_id
