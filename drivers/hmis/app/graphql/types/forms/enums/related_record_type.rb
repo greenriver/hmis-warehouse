@@ -12,6 +12,7 @@ module Types
     graphql_name 'RelatedRecordType'
 
     value 'ENROLLMENT', 'Enrollment'
+    value 'ENROLLMENT_COC', 'EnrollmentCoc'
     value 'INCOME_BENEFIT', 'IncomeBenefit'
     value 'DISABILITY_GROUP', 'DisabilityGroup'
     value 'HEALTH_AND_DV', 'HealthAndDv'
