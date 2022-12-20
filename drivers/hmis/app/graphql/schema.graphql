@@ -368,6 +368,11 @@ enum Component {
   HORIZONTAL_GROUP
 
   """
+  Render contents in an info box
+  """
+  INFO_GROUP
+
+  """
   Render a group that contains children of the same type (e.g. all booleans)
   """
   INPUT_GROUP
@@ -1299,6 +1304,11 @@ type FormItem {
   """
   autofillValues: [AutofillValue!]
   bounds: [ValueBound!]
+
+  """
+  Label to use for placeholder and population table
+  """
+  briefText: String
 
   """
   Component to use for display/input of this item

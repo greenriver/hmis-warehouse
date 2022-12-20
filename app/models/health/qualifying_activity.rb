@@ -235,6 +235,11 @@ module Health
           code: 'T2024>U4',
           weight: 100,
         },
+        intake_completed: {
+          title: 'Intake/Reassessment (completing consent/ROI, CHA, SSM, care plan)',
+          code: 'G9005',
+          weight: 110,
+        },
       }.sort_by { |_, m| m[:weight] }.to_h
     end
 
@@ -320,10 +325,14 @@ module Health
     end
 
     def self.activity_collection
-      # suppress_from_view = [:pctp_signed]
+      suppress_from_view = [
+        :cha,
+        :care_planning,
+        :pctp_signed,
+      ]
       load_string_collection(
         activities.
-        # reject{|k| suppress_from_view.include?(k)}.
+        reject { |k| suppress_from_view.include?(k) }.
         map { |k, mode| [k, mode[:title]] },
       )
     end

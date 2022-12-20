@@ -20,6 +20,7 @@ module Types
     field :type, Types::Forms::Enums::ItemType, null: false
     field :component, Types::Forms::Enums::Component, 'Component to use for display/input of this item', null: true
     field :text, String, 'Primary text for the item', null: true
+    field :brief_text, String, 'Label to use for placeholder and population table', null: true
     field :prefix, String, 'Prefix for the item label', null: true
     field :helper_text, String, 'Helper text for the item', null: true
     field :required, Boolean, 'Whether the item must be included in data results', null: true
