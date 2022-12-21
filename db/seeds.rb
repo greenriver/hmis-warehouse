@@ -348,3 +348,6 @@ GrdaWarehouse::Help.setup_default_links
 maintain_system_groups
 maintain_zip_code_shapes
 Rake::Task['storage:move_to_s3'].invoke
+# for the most recent 50 reports, re-calculate results (which will move the cache to the DB)
+# Remove this if release-59 has been merged to production
+HmisDataQualityTool::Report.ordered.limit(50).find_each(&:results)
