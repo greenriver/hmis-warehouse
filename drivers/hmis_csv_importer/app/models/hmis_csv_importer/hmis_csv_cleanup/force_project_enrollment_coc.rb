@@ -13,13 +13,12 @@ module HmisCsvImporter::HmisCsvCleanup
         # Don't replace blanks
         next if e_coc.CoCCode.blank?
 
-        # If we have a single CoC from the project, this will set it,
-        # if not, this will set it to nil
+        # If we have a single CoC from the project, this will set it
         coc_code = coc_for(e_coc.ProjectID)
-        next if coc_code.blank?
+        # If they already match or we couldn't determine the project CoC, don't do anything
+        next if coc_code.blank? || coc_code == e_coc.CoCCode
 
         e_coc.CoCCode = coc_code
-
         e_coc.set_source_hash
         enrollment_coc_batch << e_coc
       end
