@@ -24,15 +24,15 @@
       %button.btn.btn-primary(title="#{@client.full_name} already has a VI-SPDAT in progress. Please complete that one or delete it before starting a new VI-SPDAT" data-toggle='tooltip')
         %span.icon-plus
 
+.card
+  %table.table.vispdat-table.table-striped
+    %thead
+      %tr
+        %th.text-left Created On
+        %th.text-left Status
+        %th.text-left Type
+        %th.text-center Total Score
+        %th Completed By
 
-%table.table.vispdat-table
-  %thead
-    %tr
-      %th.text-left Created On
-      %th.text-left Status
-      %th.text-left Type
-      %th.text-center Total Score
-      %th Completed By
-
-  %tbody
-    = render partial: 'vispdat_row', collection: @vispdats, as: :vispdat
+    %tbody
+      = render partial: 'vispdat_row', collection: @vispdats, as: :vispdat
