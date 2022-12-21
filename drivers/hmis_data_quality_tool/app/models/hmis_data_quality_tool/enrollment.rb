@@ -380,9 +380,12 @@ module HmisDataQualityTool
 
       responses = assessment.values_at(*assessment.class::NON_CASH_BENEFIT_TYPES)
       any_yes = responses.include?(1)
+      # Said Yes, and had one (as expected)
       return true if assessment.BenefitsFromAnySource == 1 && any_yes
-      return false if assessment.BenefitsFromAnySource&.zero? && any_yes
+      # Said No, and didn't have any (as expected)
+      return true if assessment.BenefitsFromAnySource&.zero? && ! any_yes
 
+      # Either said Yes and had none, or said No and had some, or some other random numbers
       false
     end
 
@@ -392,9 +395,12 @@ module HmisDataQualityTool
 
       responses = assessment.values_at(*assessment.class::INSURANCE_TYPES)
       any_yes = responses.include?(1)
+      # Said Yes, and had one (as expected)
       return true if assessment.InsuranceFromAnySource == 1 && any_yes
-      return false if assessment.InsuranceFromAnySource&.zero? && any_yes
+      # Said No, and didn't have any (as expected)
+      return true if assessment.InsuranceFromAnySource&.zero? && ! any_yes
 
+      # Either said Yes and had none, or said No and had some, or some other random numbers
       false
     end
 
