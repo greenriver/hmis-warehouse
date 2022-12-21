@@ -25,6 +25,7 @@ module HmisDataQualityTool
     has_many :inventories
 
     after_initialize :filter
+    alias_attribute :result_cache, :build_for_questions
 
     # NOTE: this differs from viewable_by which looks at the report definitions
     scope :visible_to, ->(user) do
@@ -423,79 +424,85 @@ module HmisDataQualityTool
       Rails.cache.delete(cache_key)
     end
 
+    def result_cache_as_open_struct
+      result_cache.map { |r| OpenStruct.new(r.deep_symbolize_keys) }
+    end
+
     def results
-      @results ||= Rails.cache.fetch(cache_key, expires_in: 1.months) do
-        [].tap do |r|
-          result_groups.each do |category, slugs|
-            slugs.each do |slug, item_class|
-              stay_length_category, stay_length_limit = item_class.stay_length_limit(slug, self)
-              # If we're looking at a result with a stay category option and we have a goal setup with stay lengths
-              # only include those that match the goal, include all for a given category if no goal was set for that category
-              next if stay_length_category.present? &&
-                goal_config.stay_lengths.present? &&
-                goal_config.stay_lengths.detect { |k, _| k == stay_length_category }.present? &&
-                ! goal_config.stay_lengths.include?([stay_length_category, stay_length_limit])
+      return result_cache_as_open_struct if result_cache.present?
 
-              next if slug == :entry_date_entry_issues && goal_config.entry_date_entered_length == -1
-              next if slug == :exit_date_entry_issues && goal_config.exit_date_entered_length == -1
-              next if slug.in?([:date_to_street_issues, :times_homeless_issues, :months_homeless_issues]) &&
-                ! goal_config.expose_ch_calculations
+      self.result_cache = [].tap do |r|
+        result_groups.each do |category, slugs|
+          slugs.each do |slug, item_class|
+            stay_length_category, stay_length_limit = item_class.stay_length_limit(slug, self)
+            # If we're looking at a result with a stay category option and we have a goal setup with stay lengths
+            # only include those that match the goal, include all for a given category if no goal was set for that category
+            next if stay_length_category.present? &&
+              goal_config.stay_lengths.present? &&
+              goal_config.stay_lengths.detect { |k, _| k == stay_length_category }.present? &&
+              ! goal_config.stay_lengths.include?([stay_length_category, stay_length_limit])
 
-              title = item_class.section_title(slug, self)
-              denominator_cell = universe("#{title}__denominator")
-              overall_count = denominator_cell.count
-              numerator_cell = universe("#{title}__invalid")
-              invalid_count = numerator_cell.count
-              this_result = OpenStruct.new(
-                title: title,
-                description: item_class.section_description(slug, self),
-                required_for: item_class.required_for(slug, self),
-                category: category,
+            next if slug == :entry_date_entry_issues && goal_config.entry_date_entered_length == -1
+            next if slug == :exit_date_entry_issues && goal_config.exit_date_entered_length == -1
+            next if slug.in?([:date_to_street_issues, :times_homeless_issues, :months_homeless_issues]) &&
+              ! goal_config.expose_ch_calculations
+
+            title = item_class.section_title(slug, self)
+            denominator_cell = universe("#{title}__denominator")
+            overall_count = denominator_cell.count
+            numerator_cell = universe("#{title}__invalid")
+            invalid_count = numerator_cell.count
+            this_result = {
+              title: title,
+              description: item_class.section_description(slug, self),
+              required_for: item_class.required_for(slug, self),
+              category: category,
+              invalid_count: invalid_count,
+              total: overall_count,
+              percent_invalid: percent(overall_count, invalid_count),
+              percent_valid: percent(overall_count, overall_count - invalid_count),
+              item_class: item_class.name,
+              detail_columns: item_class.detail_headers_for(slug, self),
+              projects: {},
+              project_types: {},
+            }
+            filter.effective_projects.each do |project|
+              # Because some metrics don't include project_id, we need to
+              # use client_id for those, currently those based off the Client class
+              if item_class == Client
+                overall_count = denominator_cell.
+                  members.
+                  where(item_class.arel_table[:destination_client_id].in(client_ids_for_project(project))).
+                  count
+                invalid_count = numerator_cell.
+                  members.
+                  where(item_class.arel_table[:destination_client_id].in(client_ids_for_project(project))).
+                  count
+              else
+                overall_count = denominator_cell.
+                  members.
+                  where(item_class.arel_table[:project_id].eq(project.id)).
+                  count
+                invalid_count = numerator_cell.
+                  members.
+                  where(item_class.arel_table[:project_id].eq(project.id)).
+                  count
+              end
+              this_result[:projects][project.id] = {
+                project_name: project&.name(user) || 'unknown',
                 invalid_count: invalid_count,
                 total: overall_count,
-                percent_invalid: percent(overall_count, invalid_count),
-                percent_valid: percent(overall_count, overall_count - invalid_count),
-                item_class: item_class.name,
-                detail_columns: item_class.detail_headers_for(slug, self),
-                projects: {},
-                project_types: {},
-              )
-              filter.effective_projects.each do |project|
-                # Because some metrics don't include project_id, we need to
-                # use client_id for those, currently those based off the Client class
-                if item_class == Client
-                  overall_count = denominator_cell.
-                    members.
-                    where(item_class.arel_table[:destination_client_id].in(client_ids_for_project(project))).
-                    count
-                  invalid_count = numerator_cell.
-                    members.
-                    where(item_class.arel_table[:destination_client_id].in(client_ids_for_project(project))).
-                    count
-                else
-                  overall_count = denominator_cell.
-                    members.
-                    where(item_class.arel_table[:project_id].eq(project.id)).
-                    count
-                  invalid_count = numerator_cell.
-                    members.
-                    where(item_class.arel_table[:project_id].eq(project.id)).
-                    count
-                end
-                this_result[:projects][project.id] = {
-                  project_name: project&.name(user) || 'unknown',
-                  invalid_count: invalid_count,
-                  total: overall_count,
-                }
-                this_result[:project_types][project.project_type_to_use] ||= { invalid_count: 0, total: 0 }
-                this_result[:project_types][project.project_type_to_use][:invalid_count] += invalid_count
-                this_result[:project_types][project.project_type_to_use][:total] += overall_count
-              end
-              r << this_result
+              }
+              this_result[:project_types][project.project_type_to_use] ||= { invalid_count: 0, total: 0 }
+              this_result[:project_types][project.project_type_to_use][:invalid_count] += invalid_count
+              this_result[:project_types][project.project_type_to_use][:total] += overall_count
             end
+            r << this_result
           end
         end
       end
+      save
+      result_cache_as_open_struct
     end
 
     def categories
