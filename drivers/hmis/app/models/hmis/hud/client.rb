@@ -118,9 +118,9 @@ class Hmis::Hud::Client < Hmis::Hud::Base
       order(arel_table[:first_name].asc.nulls_last)
     when :first_name_z_to_a
       order(arel_table[:first_name].desc.nulls_last)
-    when :youngest_to_oldest
+    when :age_youngest_to_oldest
       order(arel_table[:dob].desc.nulls_last)
-    when :oldest_to_youngest
+    when :age_oldest_to_youngest
       order(arel_table[:dob].asc.nulls_last)
     when :recently_added
       order(arel_table[:date_created].desc.nulls_last)
