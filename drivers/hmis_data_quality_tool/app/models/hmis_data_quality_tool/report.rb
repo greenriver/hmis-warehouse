@@ -538,6 +538,15 @@ module HmisDataQualityTool
       ((partial / total.to_f) * 100).round(1)
     end
 
+    def category_percent_valid(results)
+      denominator = results.map(&:total).sum
+      return 100 if denominator.zero?
+
+      numerator = results.map(&:invalid_count).sum
+      category_percent_invalid = percent(denominator, numerator)
+      (100 - category_percent_invalid).round(1)
+    end
+
     private def client_ids_for_project(project)
       @client_ids_per_project ||= enrollments.pluck(:project_id, :destination_client_id).group_by(&:shift)
       @client_ids_per_project[project.id]&.flatten
