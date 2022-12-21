@@ -51,11 +51,11 @@ module HmisDataQualityTool
         update(state: 'Failed', failed_at: Time.current)
         raise e
       end
-      complete
       # Invalidate the cache so we can re-run
       update(result_cache: nil)
       # Run results to cache them for later
       self.class.find(id).results
+      complete
     end
 
     def start
