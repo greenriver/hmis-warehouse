@@ -5,12 +5,15 @@
       "link_id": "location",
       "text": "Client Location",
       "data_collected_about": "HOH",
+      "record_type": "ENROLLMENT_COC",
       "item": [
         {
           "type": "CHOICE",
           "link_id": "3.16",
           "prefix": "3.16",
           "text": "CoC Code for Client Location",
+          "field_name": "cocCode",
+          "brief_text": "Location",
           "pick_list_reference": "COC"
         }
       ]
@@ -32,6 +35,7 @@
           "required": false,
           "link_id": "3.917.1",
           "text": "Prior Living Situation",
+          "brief_text": "Living Situation",
           "pick_list_reference": "PRIOR_LIVING_SITUATION",
           "field_name": "livingSituation"
         },
@@ -39,6 +43,7 @@
           "type": "CHOICE",
           "link_id": "3.917.2",
           "text": "Length of stay in prior living situation",
+          "brief_text": "Length of Stay",
           "pick_list_reference": "ResidencePriorLengthOfStay",
           "field_name": "lengthOfStay"
         },
@@ -59,8 +64,8 @@
               "question": "3.917.2",
               "operator": "IN",
               "answer_codes": [
-                "LOS_90_DAYS_OR_MORE_BUT_LESS_THAN_ONE_YEAR",
-                "LOS_ONE_YEAR_OR_LONGER"
+                "NUM_90_DAYS_OR_MORE_BUT_LESS_THAN_ONE_YEAR",
+                "ONE_YEAR_OR_LONGER"
               ]
             }
           ]
@@ -81,10 +86,10 @@
               "question": "3.917.2",
               "operator": "IN",
               "answer_codes": [
-                "LOS_ONE_WEEK_OR_MORE_BUT_LESS_THAN_ONE_MONTH",
-                "LOS_ONE_MONTH_OR_MORE_BUT_LESS_THAN_90_DAYS",
-                "LOS_90_DAYS_OR_MORE_BUT_LESS_THAN_ONE_YEAR",
-                "LOS_ONE_YEAR_OR_LONGER"
+                "ONE_WEEK_OR_MORE_BUT_LESS_THAN_ONE_MONTH",
+                "ONE_MONTH_OR_MORE_BUT_LESS_THAN_90_DAYS",
+                "NUM_90_DAYS_OR_MORE_BUT_LESS_THAN_ONE_YEAR",
+                "ONE_YEAR_OR_LONGER"
               ]
             }
           ]
@@ -94,6 +99,7 @@
           "link_id": "3.917.C",
           "field_name": "previousStreetEssh",
           "text": "On the night before, did the client stay on the streets, ES or SH?",
+          "brief_text": "Homeless on previous night",
           "project_types_excluded": ["ES", "SERVICES_ONLY", "SH"],
           "enable_behavior": "ALL",
           "enable_when": [
@@ -112,14 +118,14 @@
         {
           "type": "DISPLAY",
           "link_id": "3.917.C.message",
-          "text": "Stopping data collection for 3.917 Prior Living Situation.",
+          "text": "Client does not meet the HUD definition of chronic homelessness. Stopping data collection for 3.917 Prior Living Situation.",
           "project_types_excluded": ["ES", "SERVICES_ONLY", "SH"],
-          "_comment": "FIXME: If 2.917 B or C were enabled, we shouldnt show this unless B/C have been answered?",
           "enable_behavior": "ALL",
           "enable_when": [
             {
               "question": "3.917.C",
               "operator": "EQUAL",
+              "_comment": "not homeless on the night before",
               "answer_boolean": false
             },
             {
@@ -173,6 +179,7 @@
           "link_id": "3.917.4",
           "field_name": "timesHomelessPastThreeYears",
           "text": "Number of times the client has been on the streets, in ES, or SH in the past three years",
+          "brief_text": "Times Homeless",
           "pick_list_reference": "TimesHomelessPastThreeYears",
           "enable_behavior": "ALL",
           "enable_when": [
@@ -198,6 +205,7 @@
           "link_id": "3.917.5",
           "field_name": "monthsHomelessPastThreeYears",
           "text": "Total number of months homeless on the street, in ES, or SH in the past three years",
+          "brief_text": "Months Homeless",
           "pick_list_reference": "MonthsHomelessPastThreeYears",
           "enable_behavior": "ALL",
           "enable_when": [
@@ -280,6 +288,7 @@
       "item": [
         {
           "type": "CHOICE",
+          "component": "RADIO_BUTTONS",
           "link_id": "4.02.2",
           "text": "Income from Any Source",
           "pick_list_reference": "NoYesReasonsForMissingData",
@@ -1030,6 +1039,7 @@
       "item": [
         {
           "type": "CHOICE",
+          "component": "RADIO_BUTTONS",
           "link_id": "4.03.2",
           "text": "Non-Cash Benefits from Any Source",
           "pick_list_reference": "NoYesReasonsForMissingData",
@@ -1162,6 +1172,7 @@
       "item": [
         {
           "type": "CHOICE",
+          "component": "RADIO_BUTTONS",
           "link_id": "4.04.2",
           "text": "Covered by Health Insurance",
           "pick_list_reference": "NoYesReasonsForMissingData",
@@ -1592,6 +1603,7 @@
         },
         {
           "type": "CHOICE",
+          "component": "RADIO_BUTTONS",
           "link_id": "4.11.2",
           "text": "Domestic Violence Victim/Survivor",
           "pick_list_reference": "NoYesReasonsForMissingData",
@@ -1601,6 +1613,7 @@
           "type": "CHOICE",
           "link_id": "4.11.A",
           "text": "When did the experience occur?",
+          "brief_text": "When Occurred",
           "field_name": "whenOccurred",
           "pick_list_reference": "WhenDVOccurred",
           "disabled_display": "PROTECTED",
@@ -1615,8 +1628,10 @@
         },
         {
           "type": "CHOICE",
+          "component": "RADIO_BUTTONS",
           "link_id": "4.11.B",
           "text": "Are you currently fleeing?",
+          "brief_text": "Currently Fleeing",
           "field_name": "currentlyFleeing",
           "pick_list_reference": "NoYesReasonsForMissingData",
           "helper_text": "Currently fleeing should be indicated as “Yes” if the person is fleeing, or is attempting to flee, the domestic violence situation or is afraid to return to their primary nighttime residence.",
