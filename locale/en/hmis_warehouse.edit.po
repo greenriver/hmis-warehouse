@@ -3797,9 +3797,6 @@ msgstr ""
 msgid "Household utilization rates demonstrate that the CoC is fully utilizing its inventory."
 msgstr ""
 
-msgid "Housing"
-msgstr ""
-
 msgid "Housing Authority Eligible"
 msgstr ""
 
@@ -4038,6 +4035,15 @@ msgid "People in Families"
 msgstr ""
 
 msgid "Percent Homeless Comparison Report Generator"
+msgstr ""
+
+msgid "Percentage Exiting Housing"
+msgstr ""
+
+msgid "Percentage Exiting Search to Housing"
+msgstr ""
+
+msgid "Percentage of Participants Enrolled in Housing"
 msgstr ""
 
 msgid "Percentage of clients enrolled in housing out of those enrolled in either search or housing"
