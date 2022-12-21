@@ -178,7 +178,7 @@ enum Availability {
 }
 
 type Bed {
-  bedType: String!
+  bedType: InventoryBedType!
   endDate: ISO8601Date
   gender: String
   id: ID!
@@ -2104,7 +2104,7 @@ type Inventory {
   active: Boolean!
   availability: Availability
   bedInventory: Int!
-  beds(limit: Int, offset: Int): BedsPaginated!
+  beds(active: Boolean, bedType: InventoryBedType, limit: Int, offset: Int): BedsPaginated!
   chBedInventory: Int
   chVetBedInventory: Int
   chYouthBedInventory: Int
@@ -2120,10 +2120,47 @@ type Inventory {
   otherBedInventory: Int
   project: Project!
   unitInventory: Int!
-  units(limit: Int, offset: Int): UnitsPaginated!
+  units(active: Boolean, limit: Int, offset: Int): UnitsPaginated!
   vetBedInventory: Int
   youthBedInventory: Int
   youthVetBedInventory: Int
+}
+
+enum InventoryBedType {
+  """
+  Chronic
+  """
+  CHRONIC
+
+  """
+  Chronic Veteran
+  """
+  CHRONIC_VETERAN
+
+  """
+  Chronic Youth
+  """
+  CHRONIC_YOUTH
+
+  """
+  Other
+  """
+  OTHER
+
+  """
+  Veteran
+  """
+  VETERAN
+
+  """
+  Youth
+  """
+  YOUTH
+
+  """
+  Youth Veteran
+  """
+  YOUTH_VETERAN
 }
 
 input InventoryInput {
@@ -4310,6 +4347,7 @@ enum TrackingMethod {
 }
 
 type Unit {
+  bedCount: Int!
   beds: [Bed!]!
   endDate: ISO8601Date
   id: ID!

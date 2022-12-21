@@ -16,13 +16,20 @@ module Types
           default_field_options = { type: HmisSchema::Unit.page_type, null: false, description: description }
           field_options = default_field_options.merge(override_options)
           field(name, **field_options) do
+            argument :active, GraphQL::Types::Boolean, required: false
             instance_eval(&block) if block_given?
           end
         end
       end
 
-      def resolve_units(scope = object.units)
-        scope
+      def resolve_units(scope = object.units, active: nil)
+        if active == true
+          scope.active
+        elsif active == false
+          scope.inactive
+        else
+          scope
+        end
       end
     end
   end

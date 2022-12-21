@@ -8,16 +8,11 @@
 
 module Types
   class HmisSchema::Unit < Types::BaseObject
-    include Types::HmisSchema::HasBeds
-
     field :id, ID, null: false
     field :name, String, null: true
-    beds_field
+    field :beds, [HmisSchema::Bed], null: false
+    field :bed_count, Integer, null: false
     field :start_date, GraphQL::Types::ISO8601Date, null: false
     field :end_date, GraphQL::Types::ISO8601Date, null: true
-
-    def beds(**args)
-      resolve_beds(**args)
-    end
   end
 end

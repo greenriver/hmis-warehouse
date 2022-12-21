@@ -10,7 +10,7 @@ module Types
   class HmisSchema::Bed < Types::BaseObject
     field :id, ID, null: false
     field :unit, HmisSchema::Unit, null: false
-    field :bed_type, String, null: false
+    field :bed_type, Types::HmisSchema::Enums::InventoryBedType, null: false
     field :name, String, null: true
     field :gender, String, null: true
     field :start_date, GraphQL::Types::ISO8601Date, null: false

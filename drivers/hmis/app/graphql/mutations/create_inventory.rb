@@ -42,7 +42,7 @@ module Mutations
       bed_args = []
       unit_idx = 0
       beds_filled = 0
-      Hmis::Bed.bed_types.each do |bed_type|
+      Hmis::Bed.bed_types.each do |bed_type, label|
         num_beds = inventory.send(bed_type)
         next unless num_beds&.positive?
 
@@ -58,7 +58,7 @@ module Mutations
 
           bed_args << {
             unit_id: units[unit_idx]['id'],
-            name: "#{bed_type.to_s.sub!('_bed_inventory', '').titleize} #{i}",
+            name: "#{label} #{i}",
             bed_type: bed_type,
             **common,
           }

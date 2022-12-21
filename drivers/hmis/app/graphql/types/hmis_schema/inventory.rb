@@ -37,7 +37,7 @@ module Types
     hud_field :date_deleted
     field :active, Boolean, null: false
     units_field
-    beds_field :beds, type: HmisSchema::Bed.page_type
+    beds_field
 
     def units(**args)
       resolve_units(**args)

@@ -12,11 +12,11 @@ module Types
       key
     end
 
-    def self.with_enum_map(enum_map, prefix: '')
+    def self.with_enum_map(enum_map, prefix: '', prefix_description_with_key: true)
       enum_map.members.each do |member|
         member_values = member.dup
         member_values[:key] = "#{prefix}#{member[:key]}"
-        member_values[:desc] = "(#{member_values[:value]}) #{member_values[:desc]}"
+        member_values[:desc] = prefix_description_with_key ? "(#{member_values[:value]}) #{member_values[:desc]}" : member_values[:desc]
         member_values = yield member if block_given?
         value to_enum_key(member_values[:key]), member_values[:desc], value: member_values[:value]
       end
