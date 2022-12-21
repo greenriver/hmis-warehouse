@@ -35,6 +35,10 @@ module HmisDataQualityTool
       none
     end
 
+    scope :diet, -> do
+      select(column_names - ['build_for_questions', 'remaining_questions'])
+    end
+
     scope :ordered, -> do
       order(updated_at: :desc)
     end
@@ -48,6 +52,8 @@ module HmisDataQualityTool
         raise e
       end
       complete
+      # Invalidate the cache so we can re-run
+      update(result_cache: nil)
       # Run results to cache them for later
       self.class.find(id).results
     end
@@ -60,14 +66,14 @@ module HmisDataQualityTool
       update(completed_at: Time.current, state: 'Completed')
     end
 
-    def describe_filter_as_html(keys = nil, inline: false)
+    def describe_filter_as_html(keys = nil, inline: false, limited: true)
       keys ||= [
         :project_type_codes,
         :project_ids,
         :project_group_ids,
         :data_source_ids,
       ]
-      filter.describe_filter_as_html(keys, inline: inline)
+      filter.describe_filter_as_html(keys, inline: inline, limited: limited)
     end
 
     def known_params
