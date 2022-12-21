@@ -33,12 +33,10 @@
               %td= yes_no(! missing_data[:invalid_funders].include?(project))
 %h3 LSA-Specific Data Quality Reports
 .well
-  %p The LSA reports on data quality issues, the following reports should assist in tracking down the details.
+  %p The LSA reports on data quality issues, the following report should assist in tracking down the details.
   %ul
-    %li= link_to 'Missing CoC Codes', warehouse_reports_hud_missing_coc_codes_path
-    %li= link_to 'Incorrect Head of Household Counts', warehouse_reports_hud_not_one_hohs_path
-    %li= link_to 'Incorrect Move-in Dates', warehouse_reports_hud_incorrect_move_in_dates_path
-    %li= link_to 'Clients Enrolled in Multiple Projects of the Same Type', warehouse_reports_double_enrollments_path
+    %li= link_to 'HMIS Data Quality Tool', hmis_data_quality_tool_warehouse_reports_reports_path
+
   %p When investigating LSA QC flags, HUD will reference the internal warehouse IDs for various inventory-related items.  The following export can help track down the HMIS source IDs.
   %ul
     %li= link_to 'HMIS Cross-Walk', warehouse_reports_hmis_cross_walks_path

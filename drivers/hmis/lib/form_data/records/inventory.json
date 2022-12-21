@@ -23,8 +23,8 @@
     },
     {
       "type": "GROUP",
-      "link_id": "name",
-      "text": "Details",
+      "text": "Inventory Details",
+      "link_id": "1",
       "required": false,
       "item": [
         {
@@ -39,6 +39,7 @@
           "type": "CHOICE",
           "required": true,
           "link_id": "hhtype",
+          "component": "RADIO_BUTTONS_VERTICAL",
           "text": "Household Type",
           "pick_list_reference": "HouseholdType",
           "field_name": "householdType"
@@ -56,15 +57,7 @@
           "link_id": "beds",
           "text": "Bed Inventory",
           "field_name": "bedInventory"
-        }
-      ]
-    },
-    {
-      "type": "GROUP",
-      "link_id": "dates",
-      "text": "Operating Period",
-      "required": false,
-      "item": [
+        },
         {
           "type": "DATE",
           "required": true,

@@ -11,8 +11,12 @@ module Types
     graphql_name 'Component'
 
     value 'INPUT_GROUP', 'Render a group that contains children of the same type (e.g. all booleans)'
+    value 'HORIZONTAL_GROUP', 'Render a group of inputs horizontally'
+    value 'INFO_GROUP', 'Render contents in an info box'
+
     value 'CHECKBOX', 'Render a boolean input item as a checkbox'
     value 'RADIO_BUTTONS', 'Render a choice input item as radio buttons'
+    value 'RADIO_BUTTONS_VERTICAL', 'Render a choice input item as vertical radio buttons'
     value 'ALERT_INFO', 'Display text as an info alert'
     value 'ALERT_WARNING', 'Display text as a warning alert'
     value 'ALERT_ERROR', 'Display text as an error alert'

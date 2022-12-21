@@ -4,14 +4,15 @@
       "type": "GROUP",
       "link_id": "location",
       "text": "Client Location",
+      "data_collected_about": "HOH",
       "item": [
         {
           "type": "CHOICE",
           "link_id": "3.16",
           "prefix": "3.16",
           "text": "CoC Code for Client Location",
-          "pick_list_reference": "COC",
-          "data_collected_about": "HOH"
+          "brief_text": "Location",
+          "pick_list_reference": "COC"
         }
       ]
     },
@@ -21,7 +22,6 @@
       "text": "Prior Living Situation",
       "data_collected_about": "HOH_AND_ADULTS",
       "record_type": "ENROLLMENT",
-      "reference_link": "https://files.hudexchange.info/resources/documents/FY-2022-HMIS-Data-Standards-Manual.pdf#page=104",
       "item": [
         {
           "type": "DISPLAY",
@@ -33,6 +33,7 @@
           "required": false,
           "link_id": "3.917.1",
           "text": "Prior Living Situation",
+          "brief_text": "Living Situation",
           "pick_list_reference": "PRIOR_LIVING_SITUATION",
           "field_name": "livingSituation"
         },
@@ -40,6 +41,7 @@
           "type": "CHOICE",
           "link_id": "3.917.2",
           "text": "Length of stay in prior living situation",
+          "brief_text": "Length of Stay",
           "pick_list_reference": "ResidencePriorLengthOfStay",
           "field_name": "lengthOfStay"
         },
@@ -95,6 +97,7 @@
           "link_id": "3.917.C",
           "field_name": "previousStreetEssh",
           "text": "On the night before, did the client stay on the streets, ES or SH?",
+          "brief_text": "Homeless on previous night",
           "project_types_excluded": ["ES", "SERVICES_ONLY", "SH"],
           "enable_behavior": "ALL",
           "enable_when": [
@@ -174,6 +177,7 @@
           "link_id": "3.917.4",
           "field_name": "timesHomelessPastThreeYears",
           "text": "Number of times the client has been on the streets, in ES, or SH in the past three years",
+          "brief_text": "Times Homeless",
           "pick_list_reference": "TimesHomelessPastThreeYears",
           "enable_behavior": "ALL",
           "enable_when": [
@@ -199,6 +203,7 @@
           "link_id": "3.917.5",
           "field_name": "monthsHomelessPastThreeYears",
           "text": "Total number of months homeless on the street, in ES, or SH in the past three years",
+          "brief_text": "Months Homeless",
           "pick_list_reference": "MonthsHomelessPastThreeYears",
           "enable_behavior": "ALL",
           "enable_when": [
@@ -232,8 +237,7 @@
           "type": "CHOICE",
           "required": false,
           "link_id": "4.12",
-          "text": "Current Living Situation",
-          "valueSetReference": "LivingSituation"
+          "text": "Current Living Situation"
         },
         {
           "type": "GROUP",
@@ -282,6 +286,7 @@
       "item": [
         {
           "type": "CHOICE",
+          "component": "RADIO_BUTTONS",
           "link_id": "4.02.2",
           "text": "Income from Any Source",
           "pick_list_reference": "NoYesReasonsForMissingData",
@@ -1032,6 +1037,7 @@
       "item": [
         {
           "type": "CHOICE",
+          "component": "RADIO_BUTTONS",
           "link_id": "4.03.2",
           "text": "Non-Cash Benefits from Any Source",
           "pick_list_reference": "NoYesReasonsForMissingData",
@@ -1164,6 +1170,7 @@
       "item": [
         {
           "type": "CHOICE",
+          "component": "RADIO_BUTTONS",
           "link_id": "4.04.2",
           "text": "Covered by Health Insurance",
           "pick_list_reference": "NoYesReasonsForMissingData",
@@ -1594,6 +1601,7 @@
         },
         {
           "type": "CHOICE",
+          "component": "RADIO_BUTTONS",
           "link_id": "4.11.2",
           "text": "Domestic Violence Victim/Survivor",
           "pick_list_reference": "NoYesReasonsForMissingData",
@@ -1603,6 +1611,7 @@
           "type": "CHOICE",
           "link_id": "4.11.A",
           "text": "When did the experience occur?",
+          "brief_text": "When Occurred",
           "field_name": "whenOccurred",
           "pick_list_reference": "WhenDVOccurred",
           "disabled_display": "PROTECTED",
@@ -1617,8 +1626,10 @@
         },
         {
           "type": "CHOICE",
+          "component": "RADIO_BUTTONS",
           "link_id": "4.11.B",
           "text": "Are you currently fleeing?",
+          "brief_text": "Currently Fleeing",
           "field_name": "currentlyFleeing",
           "pick_list_reference": "NoYesReasonsForMissingData",
           "helper_text": "Currently fleeing should be indicated as “Yes” if the person is fleeing, or is attempting to flee, the domestic violence situation or is afraid to return to their primary nighttime residence.",

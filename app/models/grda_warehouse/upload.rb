@@ -28,7 +28,7 @@ module GrdaWarehouse
       # plucking these seems to be 100x faster than where.not(id: migrated)
       migrated = ActiveStorage::Attachment.where(record_type: 'GrdaWarehouse::Upload').pluck(:record_id)
       all = pluck(:id)
-      unmigrated = migrated - all
+      unmigrated = all - migrated
       return none if unmigrated.blank?
 
       where(id: unmigrated)

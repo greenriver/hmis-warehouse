@@ -32,7 +32,7 @@ module Types
 
       private
 
-      def scoped_clients(scope, sort_order: :last_name_asc, no_sort: false, user: current_user)
+      def scoped_clients(scope, sort_order: :last_name_a_to_z, no_sort: false, user: current_user)
         scope = scope.visible_to(user)
         scope = scope.sort_by_option(sort_order) unless no_sort
         scope

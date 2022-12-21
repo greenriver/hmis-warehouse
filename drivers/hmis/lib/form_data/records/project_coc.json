@@ -2,53 +2,8 @@
   "item": [
     {
       "type": "GROUP",
-      "link_id": "address",
-      "text": "Project Address",
-      "required": false,
-      "item": [
-        {
-          "type": "STRING",
-          "required": false,
-          "link_id": "address1",
-          "text": "Address",
-          "field_name": "address1"
-        },
-        {
-          "type": "STRING",
-          "required": false,
-          "link_id": "address2",
-          "text": "Address (line 2)",
-          "field_name": "address2"
-        },
-        {
-          "type": "STRING",
-          "required": false,
-          "link_id": "city",
-          "text": "City",
-          "field_name": "city"
-        },
-        {
-          "type": "CHOICE",
-          "required": false,
-          "link_id": "state",
-          "text": "State",
-          "pick_list_reference": "STATE",
-          "field_name": "state"
-        },
-        {
-          "type": "STRING",
-          "required": false,
-          "link_id": "zip",
-          "text": "Zip",
-          "field_name": "zip"
-        }
-      ]
-    },
-    {
-      "type": "GROUP",
-      "link_id": "name",
-      "text": "Location Details",
-      "required": false,
+      "text": "Project CoC Details",
+      "link_id": "1",
       "item": [
         {
           "type": "CHOICE",
@@ -73,7 +28,53 @@
           "text": "Geography Type",
           "pick_list_reference": "GeographyType",
           "field_name": "geographyType"
+        },
+        {
+          "type": "STRING",
+          "required": false,
+          "link_id": "address1",
+          "text": "Address",
+          "field_name": "address1"
+        },
+        {
+          "type": "STRING",
+          "required": false,
+          "link_id": "address2",
+          "text": "Apt, suite, etc (Optional)",
+          "field_name": "address2"
+        },
+        {
+          "type": "STRING",
+          "required": false,
+          "link_id": "city",
+          "text": "City",
+          "field_name": "city"
+        },
+        {
+          "type": "GROUP",
+          "component": "HORIZONTAL_GROUP",
+          "link_id": "state-zip",
+          "item": [
+            {
+              "type": "CHOICE",
+              "required": false,
+              "link_id": "state",
+              "text": "State",
+              "pick_list_reference": "STATE",
+              "field_name": "state",
+              "size": "XSMALL"
+            },
+            {
+              "type": "STRING",
+              "required": false,
+              "link_id": "zip",
+              "text": "Zip Code",
+              "field_name": "zip",
+              "size": "SMALL"
+            }
+          ]
         }
+
       ]
     }
   ]
