@@ -332,27 +332,13 @@ module GrdaWarehouse
     def as_preview
       return client_file.download unless client_file.variable?
 
-      client_file.variant(resize_to_limit: [400, 400]).processed.download
+      client_file.variant(resize_to_limit: [1920, 1080]).processed.download
     end
 
     def as_thumb
       return nil unless client_file.variable?
 
-      client_file.variant(resize_to_limit: [1920, 1080]).processed.download
-    end
-
-    def copy_to_s3!
-      return unless content.present?
-      # return unless valid? # Ignore uploads that are already invalid (data source deleted?)
-      return if client_file.attached? # don't re-process
-
-      puts "Migrating #{file} to S3"
-
-      Tempfile.create(binmode: true) do |tmp_file|
-        tmp_file.write(content)
-        tmp_file.rewind
-        client_file.attach(io: tmp_file, content_type: content_type, filename: file, identify: false)
-      end
+      client_file.variant(resize_to_limit: [400, 400]).processed.download
     end
 
     def copy_to_s3!

@@ -45,8 +45,8 @@ module Clients
 
     def create
       @file = file_source.new
-      @file.errors.add :tag_list, 'You must specify file contents' if file_params[:tag_list].blank?
-      @file.errors.add :client_file, 'No uploaded file found' unless file_params[:client_file]
+      @file.errors.add(:tag_list, 'You must specify file contents') if file_params[:tag_list].blank?
+      @file.errors.add(:client_file, 'No uploaded file found') unless file_params[:client_file]
       if @file.errors.any?
         render :new
         return
@@ -66,7 +66,7 @@ module Clients
             coc_codes: allowed_params[:coc_codes].reject(&:blank?),
           ),
         )
-        @file.name = "#{@file.client_file.filename.base}#{@file.client_file.filename.extension_with_delimiter}"
+        @file.name = export_name
         @file.tag_list.add(tag_list)
 
         requires_effective_date = GrdaWarehouse::AvailableFileTag.where(name: @file.tag_list).any?(&:requires_effective_date)
@@ -154,6 +154,10 @@ module Clients
     end
     helper_method :delete_reasons
 
+    private def export_name
+      "#{@file.client_file.filename.base}#{@file.client_file.filename.extension_with_delimiter}"
+    end
+
     def preview
       if stale?(etag: @file, last_modified: @file.updated_at)
         @preview = @file.as_preview
@@ -162,7 +166,7 @@ module Clients
           return
         end
         headers['Content-Security-Policy'] = "default-src 'none'; object-src 'self'; style-src 'unsafe-inline'; plugin-types application/pdf;"
-        send_data @preview, filename: "#{@file.client_file.filename.base}#{@file.client_file.filename.extension_with_delimiter}", disposition: :inline, content_type: @file.client_file.content_type
+        send_data @preview, filename: export_name, disposition: :inline, content_type: @file.client_file.content_type
       else
         Rails.logger.debug 'used browser cache'
       end
@@ -176,7 +180,7 @@ module Clients
           return
         end
         headers['Content-Security-Policy'] = "default-src 'none'; object-src 'self'; style-src 'unsafe-inline'; plugin-types application/pdf;"
-        send_data @thumb, filename: "#{@file.client_file.filename.base}#{@file.client_file.filename.extension_with_delimiter}", disposition: :inline, content_type: @file.client_file.content_type
+        send_data @thumb, filename: export_name, disposition: :inline, content_type: @file.client_file.content_type
       else
         Rails.logger.debug 'used browser cache'
       end
