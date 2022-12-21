@@ -3,22 +3,11 @@
     = link_to new_cohort_cohort_client_client_note_path(@cohort, @cohort_client), class: 'btn btn-secondary btn-sm', data: {loads_in_pjax_modal: true} do
       %i.icon-plus
       Add a note
-- if @cohort_client.client.cohort_notes.exists?
-  - @cohort_client.client.cohort_notes.order(updated_at: :desc).each do |note|
-    .mb-4
-      %p= simple_format note.note
-    .mb-2
-      - if note.recipient_info
-        %p.small.text-muted
-          = note.recipient_info
-        %p.small.text-muted
-          Posted by #{content_tag(:strong, note.user&.name)} on #{content_tag(:strong, note.created_at)}
-      .d-flex.align-items-center
-        - if note.destroyable_by current_user
-          = link_to cohort_cohort_client_client_note_path(@cohort, @cohort_client, note), class: 'btn btn-sm btn-danger ml-auto mt-auto', method: :delete, remote: true do
-            %i.icon-cross.mr-2
-            Destroy
-    %hr
+
+- notes = @cohort_client.client.cohort_notes.order(updated_at: :desc).to_a
+- if notes.present?
+  - notes.each do |note|
+    = render 'cohorts/common/note_card', note: note
 - else
   .none-found No notes found.
 
