@@ -225,9 +225,9 @@ module HmisDataQualityTool
 
       hh = report.household(enrollment.HouseholdID)
       hoh = hh&.detect(&:head_of_household?) || enrollment.service_history_enrollment
-      stayer = hoh.last_date_in_program.blank? || hoh.last_date_in_program > report.filter.end
+      stayer = enrollment.exit&.ExitDate.blank? || enrollment.exit.ExitDate > report.filter.end
       # anniversary_date = anniversary_date(entry_date: hoh.first_date_in_program, report_end_date: report.end_date)
-      hoh_annual_expected = annual_assessment_expected?(hoh) && stayer
+      annual_expected = annual_assessment_expected?(hoh) && stayer
 
       report_item.household_max_age = hh&.map(&:age)&.compact&.max || report_item.age
       report_item.household_min_age = hh&.map(&:age)&.compact&.min || report_item.age
@@ -239,11 +239,11 @@ module HmisDataQualityTool
       report_item.health_dv_at_entry_expected = adult_or_hoh
 
       report_item.income_at_entry_expected = adult_or_hoh
-      report_item.income_at_annual_expected = adult_or_hoh && hoh_annual_expected
+      report_item.income_at_annual_expected = adult_or_hoh && annual_expected
       report_item.income_at_exit_expected = adult_or_hoh && enrollment&.exit&.ExitDate.present?
 
       report_item.insurance_at_entry_expected = true
-      report_item.insurance_at_annual_expected = hoh_annual_expected
+      report_item.insurance_at_annual_expected = annual_expected
       report_item.insurance_at_exit_expected = enrollment&.exit&.ExitDate.present?
 
       report_item.los_under_threshold = enrollment.LOSUnderThreshold
