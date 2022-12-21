@@ -347,4 +347,3 @@ maintain_lookups
 GrdaWarehouse::Help.setup_default_links
 maintain_system_groups
 maintain_zip_code_shapes
-Rake::Task['storage:move_to_s3'].invoke
