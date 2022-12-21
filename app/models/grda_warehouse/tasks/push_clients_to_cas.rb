@@ -47,6 +47,7 @@ module GrdaWarehouse::Tasks
               :source_disabilities,
               :source_health_and_dvs,
               :source_exits,
+              :client_files,
               source_clients: [
                 :most_recent_current_living_situation,
                 {
@@ -89,6 +90,12 @@ module GrdaWarehouse::Tasks
               project_client.enrolled_in_psh = client.enrolled_in_psh(enrollments)
               project_client.enrolled_in_ph = client.enrolled_in_ph(enrollments)
               project_client.date_days_homeless_verified = Date.current
+
+              # Order the files by effective date to get the newest date for each tag
+              project_client.file_tags = client.client_files.order(effective_date: :asc).
+                map { |f| f.tag_list.map { |tag| [tag, f.effective_date] } }.
+                flatten(1).to_h
+
               project_client.needs_update = true
               to_update << project_client
             end
