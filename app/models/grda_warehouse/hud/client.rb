@@ -1504,6 +1504,8 @@ module GrdaWarehouse::Hud
     end
 
     def set_local_client_image_cache(image_data) # rubocop:disable Naming/AccessorMethodName
+      return unless image_data.present?
+
       user = ::User.setup_system_user
       self.class.transaction do
         client_files.window.where(name: 'Client Headshot Cache')&.delete_all
