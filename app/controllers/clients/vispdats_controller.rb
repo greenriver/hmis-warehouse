@@ -93,31 +93,23 @@ module Clients
     def upload_file
       set_vispdat
       @file = GrdaWarehouse::ClientFile.new
-      # begin
-      file = file_params[:file]
       @file.assign_attributes(
-        file: file,
-        client_id: @client.id,
-        user_id: current_user.id,
-        content_type: file&.content_type,
-        content: file&.read,
-        visible_in_window: true,
-        note: file_params[:note],
-        name: file.original_filename,
-        vispdat_id: @vispdat.id,
-        consent_form_signed_on: file_params[:effective_date],
-        effective_date: file_params[:effective_date],
+        file_params.merge(
+          file: 'See S3', # Temporary until we remove the column
+          client_id: @client.id,
+          user_id: current_user.id,
+          visible_in_window: true,
+          vispdat_id: @vispdat.id,
+          consent_form_signed_on: file_params[:effective_date],
+        ),
       )
+      @file.name = @file.client_file.filename.base
       consent_form = 'Consent Form'
-      # @file.tag_list.add(tag_list.select(&:present?))
-      # force consent form for now
       @file.tag_list.add [consent_form]
       @file.save!
 
       flash[:notice] = "File #{file_params[:name]} saved."
-      # rescue Exception => e
-      #   flash[:error] = e.message
-      # end
+
       redirect_to action: :edit
     end
 
@@ -157,6 +149,7 @@ module Clients
     private def file_params
       params.require(:grda_warehouse_client_file).
         permit(
+          :client_file,
           :file,
           :name,
           :note,

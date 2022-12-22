@@ -40,7 +40,7 @@ module Clients
       @group_name = 'Release of Information'
       @consent_file_types = file_source.available_tags[@group_name]
       @file.errors.add :tag_list, 'You must specify file contents' if file_params[:tag_list].blank?
-      @file.errors.add :file, 'No uploaded file found' unless file_params[:file]
+      @file.errors.add :client_file, 'No uploaded file found' unless file_params[:client_file]
       if @file.errors.any?
         render :new
         return
@@ -48,25 +48,19 @@ module Clients
 
       begin
         allowed_params = current_user.can_confirm_housing_release? ? file_params : file_params.except(:consent_form_confirmed)
-        file = allowed_params[:file]
         tag_list = [allowed_params[:tag_list]].select(&:present?)
-        attrs = {
-          file: file,
-          client_id: @client.id,
-          user_id: current_user.id,
-          # content_type: file&.content_type,
-          content: file&.read,
-          note: allowed_params[:note],
-          name: file.original_filename,
-          visible_in_window: window_visible?(allowed_params[:visible_in_window]),
-          effective_date: allowed_params[:effective_date],
-          expiration_date: allowed_params[:expiration_date],
-          consent_form_confirmed: allowed_params[:consent_form_confirmed] || GrdaWarehouse::Config.get(:auto_confirm_consent),
-          coc_codes: allowed_params[:coc_codes]&.reject(&:blank?) || [],
-          consent_revoked_at: allowed_params[:consent_revoked_at],
-        }
 
-        @file.assign_attributes(attrs)
+        @file.assign_attributes(
+          allowed_params.merge(
+            file: 'See S3', # Temporary until we remove the column
+            client_id: @client.id,
+            user_id: current_user.id,
+            visible_in_window: window_visible?(allowed_params[:visible_in_window]),
+            consent_form_confirmed: allowed_params[:consent_form_confirmed] || GrdaWarehouse::Config.get(:auto_confirm_consent),
+            coc_codes: allowed_params[:coc_codes].reject(&:blank?),
+          ),
+        )
+        @file.name = @file.client_file.filename.base
         @file.tag_list.add(tag_list)
 
         requires_effective_date = GrdaWarehouse::AvailableFileTag.where(name: @file.tag_list).any?(&:requires_effective_date)
@@ -115,6 +109,7 @@ module Clients
     def file_params
       params.require(:grda_warehouse_client_file).
         permit(
+          :client_file,
           :file,
           :note,
           :visible_in_window,
