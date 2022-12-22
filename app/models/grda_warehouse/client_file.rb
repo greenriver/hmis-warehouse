@@ -33,6 +33,10 @@ module GrdaWarehouse
       where(visible_in_window: true)
     end
 
+    scope :newest_first, -> do
+      order(created_at: :desc)
+    end
+
     scope :visible_by?, ->(user) do
       return current_scope if user.can_manage_client_files?
 

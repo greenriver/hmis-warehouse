@@ -167,6 +167,6 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   end
 
   def image
-    client_files&.client_photos&.first&.client_file&.download
+    client_files&.client_photos&.newest_first&.first&.client_file&.download
   end
 end
