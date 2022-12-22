@@ -1420,40 +1420,6 @@ module GrdaWarehouse::Hud
       return File.read(Rails.root.join('public', 'no_photo_on_file.jpg'))
     end
 
-    # finds an image for the client. there may be more then one available but this
-    # method will select one more or less at random. returns no_image_on_file_image
-    # if none is found. returns that actual image bytes
-    # FIXME: invalidate the cached image if any aspect of the client changes
-    # ! Uncomment if concern doesn't work
-    # def image(cache_for = 10.minutes) # rubocop:disable Lint/UnusedMethodArgument
-    #   return nil unless GrdaWarehouse::Config.get(:eto_api_available)
-
-    #   # Use an uploaded headshot if available
-    #   faked_image_data = local_client_image_data || fake_client_image_data
-    #   return faked_image_data unless Rails.env.production?
-
-    #   # Use the uploaded client image if available, otherwise use the API, if we have access
-    #   image_data = local_client_image_data
-    #   return image_data if image_data
-    #   return nil unless GrdaWarehouse::Config.get(:eto_api_available)
-
-    #   api_configs = EtoApi::Base.api_configs
-    #   source_eto_client_lookups.detect do |c_lookup|
-    #     api_key = api_configs.select { |_k, v| v['data_source_id'] == c_lookup.data_source_id }&.keys&.first
-    #     return nil unless api_key.present?
-
-    #     api ||= EtoApi::Base.new(api_connection: api_key).tap(&:connect) rescue nil # rubocop:disable Style/RescueModifier
-    #     image_data = api.client_image( # rubocop:disable Style/RescueModifier
-    #       client_id: c_lookup.participant_site_identifier,
-    #       site_id: c_lookup.site_id,
-    #     ) rescue nil
-    #     (image_data && image_data.length.positive?) # rubocop:disable Style/SafeNavigation
-    #   end
-
-    #   set_local_client_image_cache(image_data)
-    #   image_data
-    # end
-
     def image_for_source_client(cache_for = 10.minutes) # rubocop:disable Lint/UnusedMethodArgument
       return '' unless GrdaWarehouse::Config.get(:eto_api_available) && source?
 
@@ -1471,7 +1437,7 @@ module GrdaWarehouse::Hud
           client_id: c_lookup.participant_site_identifier,
           site_id: c_lookup.site_id,
         ) rescue nil
-        (image_data && image_data.length.positive?) # rubocop:disable Style/SafeNavigation
+        image_data&.length&.positive?
       end
       set_local_client_image_cache(image_data)
       image_data || self.class.no_image_on_file_image
