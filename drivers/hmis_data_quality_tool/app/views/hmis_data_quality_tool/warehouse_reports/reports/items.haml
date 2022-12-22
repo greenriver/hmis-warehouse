@@ -12,13 +12,14 @@
       %span.input-group-append
         %button.btn.btn-secondary Search
   .ml-auto
-    = link_to items_hmis_data_quality_tool_warehouse_reports_report_path(@report, key: @result.title, format: :xlsx), class: ['btn', 'btn-secondary'] do
+    - key = if @result.key.present? then @result.key else @result.title end
+    = link_to items_hmis_data_quality_tool_warehouse_reports_report_path(@report, key: key, format: :xlsx), class: ['btn', 'btn-secondary'] do
       %i.icon-file-excel
       Download Excel
 - if @items.blank?
   .none-found No records found.
 - else
-  - headers = @result.detail_columns
+  - headers = if @result.slug.present? then @result.item_class.constantize.detail_headers_for(@result.slug, @report) else @result.detail_columns end
   .card
     .overflow-x-scroll{style: "height: 800px"}
       %table.table.table-sm.table-bordered.table-fixed.datatable{ style: 'margin-top: 0 !important;'}
