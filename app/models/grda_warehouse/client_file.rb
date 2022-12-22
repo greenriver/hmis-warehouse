@@ -8,11 +8,7 @@ module GrdaWarehouse
   class ClientFile < GrdaWarehouse::File
     # attr_accessor :requires_expiration_date
     # attr_accessor :requires_effective_date
-    # TODO: This can be removed after merging https://github.com/greenriver/hmis-warehouse/pull/611
-    attr_accessor :coc_code
-
-    # FIXME: temporary alias pending merge multi-coc code
-    alias_attribute :coc_code, :coc_codes
+    attr_accessor :callbacks_skipped
 
     acts_as_taggable
 
@@ -184,10 +180,14 @@ module GrdaWarehouse
     ####################
     # Callbacks
     ####################
-    after_create_commit :notify_users
-    before_save :adjust_consent_date
-    after_save :note_changes_in_consent
-    after_commit :set_client_consent, on: [:create, :update]
+    after_create_commit :notify_users, if: ->(m) { m.should_run_callbacks? }
+    before_save :adjust_consent_date, if: ->(m) { m.should_run_callbacks? }
+    after_save :note_changes_in_consent, if: ->(m) { m.should_run_callbacks? }
+    after_commit :set_client_consent, on: [:create, :update], if: ->(m) { m.should_run_callbacks? }
+
+    def should_run_callbacks?
+      callbacks_skipped.nil? || ! callbacks_skipped
+    end
 
     ####################
     # Access
@@ -352,16 +352,22 @@ module GrdaWarehouse
 
     def copy_to_s3!
       return unless content.present?
-      return unless valid? # Ignore uploads that are already invalid (data source deleted?)
       return if client_file.attached? # don't re-process
 
-      puts "Migrating #{file} to S3"
+      # Prevent any callbacks
+      @callbacks_skipped = true
+
+      puts "Migrating #{file} to S3 for client_id: #{client_id}"
 
       Tempfile.create(binmode: true) do |tmp_file|
         tmp_file.write(content)
         tmp_file.rewind
         client_file.attach(io: tmp_file, content_type: content_type, filename: file, identify: false)
+
+        # Save no-matter validity state
+        save!(validate: false)
       end
+      @callbacks_skipped = nil
     end
   end
 end
