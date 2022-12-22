@@ -123,6 +123,10 @@ module GrdaWarehouse
       where.not(name: 'Client Headshot Cache')
     end
 
+    scope :client_photos, -> do
+      tagged_with('Client Headshot')
+    end
+
     scope :verified_homeless_history, -> do
       # NOTE: tagged_with does not work correctly in testing
       # tagged_with(GrdaWarehouse::AvailableFileTag.consent_forms.pluck(:name), any: true)

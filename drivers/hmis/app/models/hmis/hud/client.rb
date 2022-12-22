@@ -9,7 +9,6 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   include ::Hmis::Hud::Concerns::Shared
   include ArelHelper
   include ClientSearch
-  # include ClientImageConsumer
 
   attr_accessor :gender, :race
 
@@ -26,7 +25,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   has_many :income_benefits, through: :enrollments
   has_many :disabilities, through: :enrollments
   has_many :health_and_dvs, through: :enrollments
-  # has_many :client_files, class_name: 'GrdaWarehouse::ClientFile'
+  has_many :client_files, class_name: 'GrdaWarehouse::ClientFile'
   has_many :current_living_situations, through: :enrollments
 
   validates_with Hmis::Hud::Validators::ClientValidator
@@ -168,7 +167,6 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   end
 
   def image
-    # TODO: Remove this when stub is no longer needed
-    fake_client_image_data
+    client_files&.client_photos&.first&.client_file&.download
   end
 end
