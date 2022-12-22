@@ -10,8 +10,7 @@ module Types
     argument :preferred_name, String, required: false
     argument :name_suffix, String, required: false
     argument :name_data_quality, Types::HmisSchema::Enums::Hud::NameDataQuality, required: false
-    # TODO: Needs more discussion
-    # argument :pronouns, [String], required: false
+    argument :pronouns, [String], required: false
     argument :dob, String, required: false
     argument :dob_data_quality, Types::HmisSchema::Enums::Hud::DOBDataQuality, required: false
     argument :ssn, String, required: false

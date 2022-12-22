@@ -70,7 +70,7 @@ module Health
     end
 
     def careplan_status
-      careplan = @patient.careplans.recent.first
+      careplan = @patient.careplans.sorted.first
       return [:no_signed_form, 'PCTP Signed', new_client_health_careplan_path(@client), false, nil] if careplan.blank?
       return [:valid, 'PCTP Signed', client_health_careplan_path(@client, careplan), false, nil] if careplan.active?
 

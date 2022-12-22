@@ -35,7 +35,7 @@ module Types
     field :race, [Types::HmisSchema::Enums::Race], null: false
     hud_field :ethnicity, Types::HmisSchema::Enums::Hud::Ethnicity
     hud_field :veteran_status, Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData
-    field :pronouns, String, null: true
+    field :pronouns, [String], null: false
     enrollments_field
     income_benefits_field
     disabilities_field
@@ -44,6 +44,7 @@ module Types
     hud_field :date_updated
     hud_field :date_created
     hud_field :date_deleted
+    field :image, HmisSchema::ClientImage, null: true
 
     def enrollments(**args)
       resolve_enrollments(**args)
@@ -65,6 +66,10 @@ module Types
       resolve_health_and_dvs(**args)
     end
 
+    def pronouns
+      object.pronouns&.split('|') || []
+    end
+
     def gender
       selected_genders = ::HUD.gender_field_name_to_id.except(:GenderNone).select { |f| object.send(f).to_i == 1 }.values
       selected_genders << object.GenderNone if object.GenderNone
@@ -75,6 +80,10 @@ module Types
       selected_races = ::HUD.races.except('RaceNone').keys.select { |f| object.send(f).to_i == 1 }
       selected_races << object.RaceNone if object.RaceNone
       selected_races
+    end
+
+    def image
+      object
     end
   end
 end

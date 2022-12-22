@@ -28,14 +28,14 @@
     .col-3
       - if file.visible_in_window
         .font-italic.mb-2 This file is visible in the window
-      - if file.content_type != 'image/jpeg'
+      - unless file.client_file.variable?
         .mb-2
           = link_to preview_client_file_path(id: file.id), class: 'btn btn-secondary btn-sm', target: '_blank' do
             %span.icon-eye
             Preview
       - else
         .jThumb.mb-2{data: {file: file.id}}
-      - if file.content.present?
+      - if file.client_file.present?
         %div
           = link_to appropriate_file_path(id: file.id), class: 'btn btn-secondary btn-sm' do
             %span.icon-download2

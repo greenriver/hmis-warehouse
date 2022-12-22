@@ -225,9 +225,15 @@ module HmisDataQualityTool
 
       hh = report.household(enrollment.HouseholdID)
       hoh = hh&.detect(&:head_of_household?) || enrollment.service_history_enrollment
-      stayer = hoh.last_date_in_program.blank? || hoh.last_date_in_program > report.filter.end
-      # anniversary_date = anniversary_date(entry_date: hoh.first_date_in_program, report_end_date: report.end_date)
-      hoh_annual_expected = annual_assessment_expected?(hoh) && stayer
+      stayer = enrollment.exit&.ExitDate.blank? || enrollment.exit.ExitDate > report.filter.end
+
+      # Annuals are expected for stayers where the HoH has been present more than a year
+      # and the client in question was present on the most-recent anniversary date
+      annual_expected = if annual_assessment_expected?(hoh) && stayer
+        anniversary_date = anniversary_date(entry_date: hoh.first_date_in_program, report_end_date: report.end_date)
+        enrollment_range = (enrollment.EntryDate .. [enrollment&.exit&.ExitDate, report.end_date].compact.min)
+        enrollment_range.cover?(anniversary_date)
+      end
 
       report_item.household_max_age = hh&.map(&:age)&.compact&.max || report_item.age
       report_item.household_min_age = hh&.map(&:age)&.compact&.min || report_item.age
@@ -239,11 +245,11 @@ module HmisDataQualityTool
       report_item.health_dv_at_entry_expected = adult_or_hoh
 
       report_item.income_at_entry_expected = adult_or_hoh
-      report_item.income_at_annual_expected = adult_or_hoh && hoh_annual_expected
+      report_item.income_at_annual_expected = adult_or_hoh && annual_expected
       report_item.income_at_exit_expected = adult_or_hoh && enrollment&.exit&.ExitDate.present?
 
       report_item.insurance_at_entry_expected = true
-      report_item.insurance_at_annual_expected = hoh_annual_expected
+      report_item.insurance_at_annual_expected = annual_expected
       report_item.insurance_at_exit_expected = enrollment&.exit&.ExitDate.present?
 
       report_item.los_under_threshold = enrollment.LOSUnderThreshold
@@ -315,8 +321,8 @@ module HmisDataQualityTool
         exit_income_assessment,
       )
 
-      # NOTE: we may want to exclude HIV/AIDS from this calculation as it may not be asked everywhere
-      report_item.disability_at_entry_collected = enrollment.disabilities_at_entry&.map(&:DisabilityResponse)&.all? { |dr| dr.in?([0, 1, 2, 3]) } || false
+      # NOTE: we exclude HIV/AIDS from this calculation as it may not be asked everywhere
+      report_item.disability_at_entry_collected = enrollment.disabilities_at_entry.not_hiv&.map(&:DisabilityResponse)&.all? { |dr| dr.in?([0, 1, 2, 3, 8, 9]) } || false
 
       max_date = [report.filter.end, Date.current].min
       en_services = enrollment.services&.select { |s| s.DateProvided.present? && s.DateProvided <= max_date }
@@ -379,9 +385,13 @@ module HmisDataQualityTool
       return false if assessment.blank?
 
       responses = assessment.values_at(*assessment.class::NON_CASH_BENEFIT_TYPES)
-      return true if assessment.BenefitsFromAnySource == 1 && responses.include?(1)
-      return true if assessment.BenefitsFromAnySource&.zero? && responses.all?(0)
+      any_yes = responses.include?(1)
+      # Said Yes, and had one (as expected)
+      return true if assessment.BenefitsFromAnySource == 1 && any_yes
+      # Said No, and didn't have any (as expected)
+      return true if assessment.BenefitsFromAnySource&.zero? && ! any_yes
 
+      # Either said Yes and had none, or said No and had some, or some other random numbers
       false
     end
 
@@ -390,14 +400,22 @@ module HmisDataQualityTool
       return false if assessment.blank?
 
       responses = assessment.values_at(*assessment.class::INSURANCE_TYPES)
-      return true if assessment.InsuranceFromAnySource == 1 && responses.include?(1)
-      return true if assessment.InsuranceFromAnySource&.zero? && responses.all?(0)
+      any_yes = responses.include?(1)
+      # Said Yes, and had one (as expected)
+      return true if assessment.InsuranceFromAnySource == 1 && any_yes
+      # Said No, and didn't have any (as expected)
+      return true if assessment.InsuranceFromAnySource&.zero? && ! any_yes
 
+      # Either said Yes and had none, or said No and had some, or some other random numbers
       false
     end
 
     def self.hoh_or_adult?(item)
-      item.age.present? && item.age > 18 || item.relationship_to_hoh == 1
+      item.age.present? && item.age > 18 || hoh?(item)
+    end
+
+    def self.hoh?(item)
+      item.relationship_to_hoh == 1
     end
 
     def self.chronic_denominator?(item)
@@ -422,6 +440,7 @@ module HmisDataQualityTool
             :destination_client_id,
             :hmis_enrollment_id,
             :personal_id,
+            :household_id,
             :project_name,
             :exit_id,
             :entry_date,
@@ -443,13 +462,13 @@ module HmisDataQualityTool
             :destination_client_id,
             :hmis_enrollment_id,
             :personal_id,
+            :household_id,
             :project_name,
             :exit_id,
             :entry_date,
             :move_in_date,
             :exit_date,
             :age,
-            :household_id,
             :relationship_to_hoh,
           ],
           denominator: ->(_item) { true },
@@ -465,6 +484,7 @@ module HmisDataQualityTool
             :destination_client_id,
             :hmis_enrollment_id,
             :personal_id,
+            :household_id,
             :project_name,
             :exit_id,
             :entry_date,
@@ -490,6 +510,7 @@ module HmisDataQualityTool
             :destination_client_id,
             :hmis_enrollment_id,
             :personal_id,
+            :household_id,
             :project_name,
             :exit_id,
             :entry_date,
@@ -511,6 +532,7 @@ module HmisDataQualityTool
             :destination_client_id,
             :hmis_enrollment_id,
             :personal_id,
+            :household_id,
             :project_name,
             :exit_id,
             :entry_date,
@@ -540,6 +562,7 @@ module HmisDataQualityTool
             :destination_client_id,
             :hmis_enrollment_id,
             :personal_id,
+            :household_id,
             :project_name,
             :exit_id,
             :entry_date,
@@ -566,6 +589,7 @@ module HmisDataQualityTool
             :destination_client_id,
             :hmis_enrollment_id,
             :personal_id,
+            :household_id,
             :project_name,
             :exit_id,
             :entry_date,
@@ -588,19 +612,19 @@ module HmisDataQualityTool
             :destination_client_id,
             :hmis_enrollment_id,
             :personal_id,
+            :household_id,
             :project_name,
             :exit_id,
             :entry_date,
             :move_in_date,
             :exit_date,
             :age,
-            :household_id,
             :relationship_to_hoh,
             :head_of_household_count,
           ],
-          denominator: ->(item) { item.relationship_to_hoh == 1 },
+          denominator: ->(item) { hoh?(item) },
           limiter: ->(item) {
-            item.relationship_to_hoh == 1 && item.head_of_household_count > 1
+            hoh?(item) && item.head_of_household_count > 1
           },
         },
         hoh_client_location_issues: {
@@ -611,6 +635,7 @@ module HmisDataQualityTool
             :destination_client_id,
             :hmis_enrollment_id,
             :personal_id,
+            :household_id,
             :project_name,
             :exit_id,
             :entry_date,
@@ -620,10 +645,10 @@ module HmisDataQualityTool
             :relationship_to_hoh,
             :coc_code,
           ],
-          denominator: ->(item) { item.relationship_to_hoh == 1 },
+          denominator: ->(item) { hoh?(item) },
           limiter: ->(item) {
             # Only HoH
-            return false unless item.relationship_to_hoh == 1
+            return false unless hoh?(item)
             # Must have a CoC Code
             return true if item.coc_code.blank?
             # Must be a known CoC
@@ -644,6 +669,7 @@ module HmisDataQualityTool
             :destination_client_id,
             :hmis_enrollment_id,
             :personal_id,
+            :household_id,
             :project_name,
             :exit_id,
             :entry_date,
@@ -664,6 +690,7 @@ module HmisDataQualityTool
             :destination_client_id,
             :hmis_enrollment_id,
             :personal_id,
+            :household_id,
             :project_name,
             :exit_id,
             :entry_date,
@@ -691,6 +718,7 @@ module HmisDataQualityTool
             :destination_client_id,
             :hmis_enrollment_id,
             :personal_id,
+            :household_id,
             :project_name,
             :exit_id,
             :entry_date,
@@ -718,6 +746,7 @@ module HmisDataQualityTool
             :destination_client_id,
             :hmis_enrollment_id,
             :personal_id,
+            :household_id,
             :project_name,
             :exit_id,
             :entry_date,
@@ -745,6 +774,7 @@ module HmisDataQualityTool
             :destination_client_id,
             :hmis_enrollment_id,
             :personal_id,
+            :household_id,
             :project_name,
             :exit_id,
             :entry_date,
@@ -774,6 +804,7 @@ module HmisDataQualityTool
             :destination_client_id,
             :hmis_enrollment_id,
             :personal_id,
+            :household_id,
             :project_name,
             :exit_id,
             :entry_date,
@@ -803,6 +834,7 @@ module HmisDataQualityTool
             :destination_client_id,
             :hmis_enrollment_id,
             :personal_id,
+            :household_id,
             :project_name,
             :exit_id,
             :entry_date,
@@ -832,6 +864,7 @@ module HmisDataQualityTool
             :destination_client_id,
             :hmis_enrollment_id,
             :personal_id,
+            :household_id,
             :project_name,
             :exit_id,
             :entry_date,
@@ -859,6 +892,7 @@ module HmisDataQualityTool
             :destination_client_id,
             :hmis_enrollment_id,
             :personal_id,
+            :household_id,
             :project_name,
             :exit_id,
             :entry_date,
@@ -886,6 +920,7 @@ module HmisDataQualityTool
             :destination_client_id,
             :hmis_enrollment_id,
             :personal_id,
+            :household_id,
             :project_name,
             :exit_id,
             :entry_date,
@@ -908,11 +943,12 @@ module HmisDataQualityTool
         days_in_ph_prior_to_move_in_90_issues: {
           title: 'Possible Missed Move In Date - PH, Time in Enrollment 90 Days or More',
           description: 'There is an expectation that clients in PH will eventually move into housing, these clients have been in PH without a move-in date 90 days ore more, or have an invalid move-in date ',
-          required_for: 'Adults and HoH in PH',
+          required_for: 'HoH in PH',
           detail_columns: [
             :destination_client_id,
             :hmis_enrollment_id,
             :personal_id,
+            :household_id,
             :project_name,
             :exit_id,
             :entry_date,
@@ -924,10 +960,10 @@ module HmisDataQualityTool
             :lot,
           ],
           denominator: ->(item) {
-            hoh_or_adult?(item) && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
+            hoh?(item) && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
           },
           limiter: ->(item) {
-            return false unless hoh_or_adult?(item)
+            return false unless hoh?(item)
             return false if item.move_in_date.present? && item.move_in_date >= item.entry_date && (item.exit_date.blank? || item.move_in_date <= item.exit_date)
 
             item.lot >= 90 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
@@ -937,11 +973,12 @@ module HmisDataQualityTool
         days_in_ph_prior_to_move_in_180_issues: {
           title: 'Possible Missed Move In Date - PH, Time in Enrollment 180 Days or More',
           description: 'There is an expectation that clients in PH will eventually move into housing, these clients have been in PH without a move-in date 180 days ore more, or have an invalid move-in date',
-          required_for: 'Adults and HoH in PH',
+          required_for: 'HoH in PH',
           detail_columns: [
             :destination_client_id,
             :hmis_enrollment_id,
             :personal_id,
+            :household_id,
             :project_name,
             :exit_id,
             :entry_date,
@@ -953,10 +990,10 @@ module HmisDataQualityTool
             :lot,
           ],
           denominator: ->(item) {
-            hoh_or_adult?(item) && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
+            hoh?(item) && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
           },
           limiter: ->(item) {
-            return false unless hoh_or_adult?(item)
+            return false unless hoh?(item)
             return false if item.move_in_date.present? && item.move_in_date >= item.entry_date && (item.exit_date.blank? || item.move_in_date <= item.exit_date)
 
             item.lot >= 180 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
@@ -966,11 +1003,12 @@ module HmisDataQualityTool
         days_in_ph_prior_to_move_in_365_issues: {
           title: 'Possible Missed Move In Date - PH, Time in Enrollment 365 Days or More',
           description: 'There is an expectation that clients in PH will eventually move into housing, these clients have been in PH without a move-in date 365 days or more, or have an invalid move-in date',
-          required_for: 'Adults and HoH in PH',
+          required_for: 'HoH in PH',
           detail_columns: [
             :destination_client_id,
             :hmis_enrollment_id,
             :personal_id,
+            :household_id,
             :project_name,
             :exit_id,
             :entry_date,
@@ -982,10 +1020,10 @@ module HmisDataQualityTool
             :lot,
           ],
           denominator: ->(item) {
-            hoh_or_adult?(item) && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
+            hoh?(item) && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
           },
           limiter: ->(item) {
-            return false unless hoh_or_adult?(item)
+            return false unless hoh?(item)
             return false if item.move_in_date.present? && item.move_in_date >= item.entry_date && (item.exit_date.blank? || item.move_in_date <= item.exit_date)
 
             item.lot >= 365 && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
@@ -995,11 +1033,12 @@ module HmisDataQualityTool
         move_in_prior_to_start_issues: {
           title: 'Move-In Before Entry Date',
           description: 'Move-in date must be on or after the entry date, only checked for PH projects',
-          required_for: 'Adults and HoH in PH',
+          required_for: 'HoH in PH',
           detail_columns: [
             :destination_client_id,
             :hmis_enrollment_id,
             :personal_id,
+            :household_id,
             :project_name,
             :exit_id,
             :entry_date,
@@ -1010,10 +1049,10 @@ module HmisDataQualityTool
             :relationship_to_hoh,
           ],
           denominator: ->(item) {
-            hoh_or_adult?(item) && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
+            hoh?(item) && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
           },
           limiter: ->(item) {
-            return false unless hoh_or_adult?(item)
+            return false unless hoh?(item)
             return false if item.move_in_date.blank?
             return false unless GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
 
@@ -1023,11 +1062,12 @@ module HmisDataQualityTool
         move_in_post_exit_issues: {
           title: 'Move-In After Exit Date',
           description: 'Move-in date must be on or before the exit date, only checked for PH projects',
-          required_for: 'Adults and HoH in PH',
+          required_for: 'HoH in PH',
           detail_columns: [
             :destination_client_id,
             :hmis_enrollment_id,
             :personal_id,
+            :household_id,
             :project_name,
             :exit_id,
             :entry_date,
@@ -1038,10 +1078,10 @@ module HmisDataQualityTool
             :relationship_to_hoh,
           ],
           denominator: ->(item) {
-            hoh_or_adult?(item) && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
+            hoh?(item) && GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
           },
           limiter: ->(item) {
-            return false unless hoh_or_adult?(item)
+            return false unless hoh?(item)
             return false if item.move_in_date.blank? || item.exit_date.blank?
             return false unless GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(item.project_type)
 
@@ -1056,6 +1096,7 @@ module HmisDataQualityTool
             :destination_client_id,
             :hmis_enrollment_id,
             :personal_id,
+            :household_id,
             :project_name,
             :exit_id,
             :entry_date,
@@ -1084,6 +1125,7 @@ module HmisDataQualityTool
             :destination_client_id,
             :hmis_enrollment_id,
             :personal_id,
+            :household_id,
             :project_name,
             :exit_id,
             :entry_date,
@@ -1108,6 +1150,7 @@ module HmisDataQualityTool
             :destination_client_id,
             :hmis_enrollment_id,
             :personal_id,
+            :household_id,
             :project_name,
             :exit_id,
             :entry_date,
@@ -1133,6 +1176,7 @@ module HmisDataQualityTool
             :destination_client_id,
             :hmis_enrollment_id,
             :personal_id,
+            :household_id,
             :project_name,
             :exit_id,
             :entry_date,
@@ -1158,6 +1202,7 @@ module HmisDataQualityTool
             :destination_client_id,
             :hmis_enrollment_id,
             :personal_id,
+            :household_id,
             :project_name,
             :exit_id,
             :entry_date,
@@ -1183,6 +1228,7 @@ module HmisDataQualityTool
             :destination_client_id,
             :hmis_enrollment_id,
             :personal_id,
+            :household_id,
             :project_name,
             :exit_id,
             :entry_date,
@@ -1208,6 +1254,7 @@ module HmisDataQualityTool
             :destination_client_id,
             :hmis_enrollment_id,
             :personal_id,
+            :household_id,
             :project_name,
             :exit_id,
             :entry_date,
@@ -1233,6 +1280,7 @@ module HmisDataQualityTool
             :destination_client_id,
             :hmis_enrollment_id,
             :personal_id,
+            :household_id,
             :project_name,
             :exit_id,
             :entry_date,
@@ -1258,6 +1306,7 @@ module HmisDataQualityTool
             :destination_client_id,
             :hmis_enrollment_id,
             :personal_id,
+            :household_id,
             :project_name,
             :exit_id,
             :entry_date,
@@ -1283,6 +1332,7 @@ module HmisDataQualityTool
             :destination_client_id,
             :hmis_enrollment_id,
             :personal_id,
+            :household_id,
             :project_name,
             :exit_id,
             :entry_date,
@@ -1308,6 +1358,7 @@ module HmisDataQualityTool
             :destination_client_id,
             :hmis_enrollment_id,
             :personal_id,
+            :household_id,
             :project_name,
             :exit_id,
             :entry_date,
@@ -1333,6 +1384,7 @@ module HmisDataQualityTool
             :destination_client_id,
             :hmis_enrollment_id,
             :personal_id,
+            :household_id,
             :project_name,
             :exit_id,
             :entry_date,
@@ -1358,6 +1410,7 @@ module HmisDataQualityTool
             :destination_client_id,
             :hmis_enrollment_id,
             :personal_id,
+            :household_id,
             :project_name,
             :exit_id,
             :entry_date,
@@ -1383,6 +1436,7 @@ module HmisDataQualityTool
             :destination_client_id,
             :hmis_enrollment_id,
             :personal_id,
+            :household_id,
             :project_name,
             :exit_id,
             :entry_date,
@@ -1408,6 +1462,7 @@ module HmisDataQualityTool
             :destination_client_id,
             :hmis_enrollment_id,
             :personal_id,
+            :household_id,
             :project_name,
             :exit_id,
             :entry_date,
@@ -1433,6 +1488,7 @@ module HmisDataQualityTool
             :destination_client_id,
             :hmis_enrollment_id,
             :personal_id,
+            :household_id,
             :project_name,
             :exit_id,
             :entry_date,
@@ -1458,6 +1514,7 @@ module HmisDataQualityTool
             :destination_client_id,
             :hmis_enrollment_id,
             :personal_id,
+            :household_id,
             :project_name,
             :exit_id,
             :entry_date,
@@ -1483,6 +1540,7 @@ module HmisDataQualityTool
             :destination_client_id,
             :hmis_enrollment_id,
             :personal_id,
+            :household_id,
             :project_name,
             :exit_id,
             :entry_date,
@@ -1505,6 +1563,7 @@ module HmisDataQualityTool
             :destination_client_id,
             :hmis_enrollment_id,
             :personal_id,
+            :household_id,
             :project_name,
             :exit_id,
             :entry_date,
@@ -1536,6 +1595,7 @@ module HmisDataQualityTool
             :destination_client_id,
             :hmis_enrollment_id,
             :personal_id,
+            :household_id,
             :project_name,
             :exit_id,
             :entry_date,
@@ -1567,6 +1627,7 @@ module HmisDataQualityTool
             :destination_client_id,
             :hmis_enrollment_id,
             :personal_id,
+            :household_id,
             :project_name,
             :exit_id,
             :entry_date,
@@ -1598,6 +1659,7 @@ module HmisDataQualityTool
             :destination_client_id,
             :hmis_enrollment_id,
             :personal_id,
+            :household_id,
             :project_name,
             :exit_id,
             :entry_date,
@@ -1623,6 +1685,7 @@ module HmisDataQualityTool
             :destination_client_id,
             :hmis_enrollment_id,
             :personal_id,
+            :household_id,
             :project_name,
             :exit_id,
             :entry_date,

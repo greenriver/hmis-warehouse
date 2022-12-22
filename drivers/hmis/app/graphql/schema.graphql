@@ -178,6 +178,11 @@ enum Availability {
 }
 
 """
+A base64 encoded string
+"""
+scalar Base64
+
+"""
 2.07.5
 """
 enum BedType {
@@ -219,6 +224,7 @@ type Client {
   gender: [Gender!]!
   healthAndDvs(limit: Int, offset: Int): HealthAndDvsPaginated!
   id: ID!
+  image: ClientImage
   incomeBenefits(limit: Int, offset: Int): IncomeBenefitsPaginated!
   lastName: String
   middleName: String
@@ -226,11 +232,20 @@ type Client {
   nameSuffix: String
   personalId: String!
   preferredName: String
-  pronouns: String
+  pronouns: [String!]!
   race: [Race!]!
   ssn: String
   ssnDataQuality: SSNDataQuality!
   veteranStatus: NoYesReasonsForMissingData!
+}
+
+"""
+Client Image
+"""
+type ClientImage {
+  base64: Base64!
+  contentType: String!
+  id: ID!
 }
 
 """
@@ -247,6 +262,7 @@ input ClientInput {
   nameDataQuality: NameDataQuality
   nameSuffix: String
   preferredName: String
+  pronouns: [String!]
   race: [Race!]
   ssn: String
   ssnDataQuality: SSNDataQuality
@@ -289,8 +305,35 @@ input ClientSearchInput {
 HUD Client Sorting Options
 """
 enum ClientSortOption {
-  LAST_NAME_ASC
-  LAST_NAME_DESC
+  """
+  Age: Oldest to Youngest
+  """
+  AGE_OLDEST_TO_YOUNGEST
+
+  """
+  Age: Youngest to Oldest
+  """
+  AGE_YOUNGEST_TO_OLDEST
+
+  """
+  First Name: A-Z
+  """
+  FIRST_NAME_A_TO_Z
+
+  """
+  First Name: Z-A
+  """
+  FIRST_NAME_Z_TO_A
+
+  """
+  Last Name: A-Z
+  """
+  LAST_NAME_A_TO_Z
+
+  """
+  Last Name: Z-A
+  """
+  LAST_NAME_Z_TO_A
 }
 
 type ClientsPaginated {
@@ -330,6 +373,16 @@ enum Component {
   CHECKBOX
 
   """
+  Render a group of inputs horizontally
+  """
+  HORIZONTAL_GROUP
+
+  """
+  Render contents in an info box
+  """
+  INFO_GROUP
+
+  """
   Render a group that contains children of the same type (e.g. all booleans)
   """
   INPUT_GROUP
@@ -338,6 +391,11 @@ enum Component {
   Render a choice input item as radio buttons
   """
   RADIO_BUTTONS
+
+  """
+  Render a choice input item as vertical radio buttons
+  """
+  RADIO_BUTTONS_VERTICAL
 }
 
 """
@@ -1258,6 +1316,11 @@ type FormItem {
   bounds: [ValueBound!]
 
   """
+  Label to use for placeholder and population table
+  """
+  briefText: String
+
+  """
   Component to use for display/input of this item
   """
   component: Component
@@ -1354,6 +1417,11 @@ type FormItem {
   Whether the item must be included in data results
   """
   required: Boolean
+
+  """
+  Size of the input element
+  """
+  size: InputSize
 
   """
   Primary text for the item
@@ -2008,6 +2076,13 @@ type InitialValue {
   If question is numeric, initial value
   """
   valueNumber: Int
+}
+
+enum InputSize {
+  LARGE
+  MEDIUM
+  SMALL
+  XSMALL
 }
 
 type InventoriesPaginated {
@@ -3199,6 +3274,11 @@ enum RelatedRecordType {
   Enrollment
   """
   ENROLLMENT
+
+  """
+  EnrollmentCoc
+  """
+  ENROLLMENT_COC
 
   """
   Exit

@@ -19,6 +19,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       veteran_status: 1,
       gender: [0],
       race: ['AmIndAKNative'],
+      pronouns: ['he/him', 'she/hers'],
     }
   end
 
@@ -50,6 +51,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           'SSNDataQuality' => input.ssn_data_quality,
           'VeteranStatus' => input.veteran_status,
           'preferred_name' => input.preferred_name,
+          'pronouns' => input.pronouns.join('|'),
         },
       )
     end

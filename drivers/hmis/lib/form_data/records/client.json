@@ -2,16 +2,45 @@
   "item": [
     {
       "type": "GROUP",
-      "link_id": "first-name-group",
+      "link_id": "name",
       "text": "Name",
       "required": false,
       "item": [
         {
-          "type": "STRING",
-          "required": false,
-          "link_id": "first-name",
-          "text": "First Name",
-          "field_name": "firstName"
+          "type": "GROUP",
+          "link_id": "name-group",
+          "component": "HORIZONTAL_GROUP",
+          "item": [
+            {
+              "type": "STRING",
+              "required": false,
+              "link_id": "first-name",
+              "text": "First Name",
+              "field_name": "firstName"
+            },
+            {
+              "type": "STRING",
+              "required": false,
+              "link_id": "middle-name",
+              "text": "Middle Name",
+              "field_name": "middleName"
+            },
+            {
+              "type": "STRING",
+              "required": false,
+              "link_id": "last-name",
+              "text": "Last Name",
+              "field_name": "lastName"
+            },
+            {
+              "type": "STRING",
+              "required": false,
+              "link_id": "name-suffix",
+              "text": "Suffix",
+              "field_name": "nameSuffix",
+              "size": "XSMALL"
+            }
+          ]
         },
         {
           "type": "STRING",
@@ -21,50 +50,17 @@
           "field_name": "preferredName"
         },
         {
-          "type": "STRING",
-          "required": false,
-          "link_id": "middle-name",
-          "text": "Middle Name",
-          "field_name": "middleName"
-        },
-        {
-          "type": "STRING",
-          "required": false,
-          "link_id": "last-name",
-          "text": "Last Name",
-          "field_name": "lastName"
-        },
-        {
-          "type": "STRING",
-          "required": false,
-          "link_id": "name-suffix",
-          "text": "Suffix",
-          "field_name": "nameSuffix"
-        },
-        {
-          "type": "CHOICE",
-          "required": false,
-          "link_id": "name-dq",
-          "text": "Name Data Quality",
-          "field_name": "nameDataQuality",
-          "pick_list_reference": "NameDataQuality"
-        },
-        {
-          "type": "OPEN_CHOICE",
-          "required": false,
-          "link_id": "pronouns",
-          "text": "Pronouns",
-          "repeats": true,
-          "_TMP_IGNORED_field_name": "pronouns",
-          "pick_list_options": [
+          "type": "GROUP",
+          "component": "INFO_GROUP",
+          "link_id": "dq-group",
+          "item": [
             {
-              "code": "she/her"
-            },
-            {
-              "code": "he/him"
-            },
-            {
-              "code": "they/them"
+              "type": "CHOICE",
+              "required": false,
+              "link_id": "name-dq",
+              "text": "Name Data Quality",
+              "field_name": "nameDataQuality",
+              "pick_list_reference": "NameDataQuality"
             }
           ]
         }
@@ -73,10 +69,8 @@
     {
       "type": "GROUP",
       "required": false,
-      "link_id": "dob-group",
-      "display": {
-        "direction": "row"
-      },
+      "text": "Identification",
+      "link_id": "identification",
       "item": [
         {
           "type": "DATE",
@@ -86,45 +80,50 @@
           "field_name": "dob"
         },
         {
-          "type": "CHOICE",
-          "required": false,
-          "link_id": "dob-dq",
-          "text": "DOB Data Quality",
-          "field_name": "dobDataQuality",
-          "pick_list_reference": "DOBDataQuality"
-        }
-      ]
-    },
-    {
-      "type": "GROUP",
-      "required": false,
-      "link_id": "ssn-group",
-      "display": {
-        "direction": "row"
-      },
-      "item": [
+          "type": "GROUP",
+          "component": "INFO_GROUP",
+          "link_id": "dob-group",
+          "item": [
+            {
+              "type": "CHOICE",
+              "required": false,
+              "link_id": "dob-dq",
+              "text": "DOB Data Quality",
+              "field_name": "dobDataQuality",
+              "pick_list_reference": "DOBDataQuality"
+            }
+          ]
+        },
         {
           "type": "STRING",
           "required": false,
           "link_id": "ssn",
           "text": "Social Security Number",
-          "field_name": "ssn"
+          "field_name": "ssn",
+          "size": "SMALL"
         },
         {
-          "type": "CHOICE",
-          "required": false,
-          "link_id": "ssn-dq",
-          "text": "SSN Data Quality",
-          "field_name": "ssnDataQuality",
-          "pick_list_reference": "SSNDataQuality"
+          "type": "GROUP",
+          "component": "INFO_GROUP",
+          "link_id": "ssn-group",
+          "item": [
+            {
+              "type": "CHOICE",
+              "required": false,
+              "link_id": "ssn-dq",
+              "text": "SSN Data Quality",
+              "field_name": "ssnDataQuality",
+              "pick_list_reference": "SSNDataQuality"
+            }
+          ]
         }
       ]
     },
     {
       "type": "GROUP",
       "required": false,
-      "link_id": "demographic-group",
-      "text": "Demographic Information",
+      "link_id": "demographics",
+      "text": "Demographics",
       "item": [
         {
           "type": "CHOICE",
@@ -152,6 +151,25 @@
           "repeats": true,
           "field_name": "gender",
           "pick_list_reference": "Gender"
+        },
+        {
+          "type": "OPEN_CHOICE",
+          "required": false,
+          "link_id": "pronouns",
+          "text": "Pronouns",
+          "repeats": true,
+          "field_name": "pronouns",
+          "pick_list_options": [
+            {
+              "code": "she/her"
+            },
+            {
+              "code": "he/him"
+            },
+            {
+              "code": "they/them"
+            }
+          ]
         },
         {
           "type": "CHOICE",

@@ -1463,7 +1463,7 @@ module HUD
 
   # C3.A
   def most_recent_ed_status(id, reverse = false)
-    map = ::HudLists.most_recent_ed_status
+    map = ::HudLists.most_recent_ed_status_map
 
     _translate map, id, reverse
   end

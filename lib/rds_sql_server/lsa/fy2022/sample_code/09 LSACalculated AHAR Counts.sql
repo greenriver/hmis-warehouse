@@ -114,7 +114,7 @@ Populates and references:
 	inner join tlsa_Person lp on lp.PersonalID = n.PersonalID 
 	where n.AHAR = 1 and lp.DVStatus = 1
 
-	insert into tlsa_CountPops (PopID, PersonalID, HouseholdID, Step) 
+	insert into tlsa_CountPops (PopID, PersonalID, Step) 
 	select distinct 
 		case when lp.Race = 5 and lp.Ethnicity <> 1 then 56
 			when lp.Race = 5 and lp.Ethnicity = 1 then 57
@@ -125,25 +125,25 @@ Populates and references:
 			when lp.Race = 1 and lp.Ethnicity = 1 then 62
 			when lp.Race = 4 then 63
 			else 64 end
-		, n.PersonalID, n.HouseholdID, '9.1.17' 
+		, n.PersonalID, '9.1.17' 
 	from tlsa_Enrollment n 
 	inner join tlsa_Person lp on lp.PersonalID = n.PersonalID 
 	where n.AHAR = 1 and lp.Race not in (-1,98,99) 
 
-	insert into tlsa_CountPops (PopID, PersonalID, HouseholdID, Step) 
+	insert into tlsa_CountPops (PopID, PersonalID, Step) 
 	select distinct case when lp.Ethnicity = 0 then 65
-		else 66 end, n.PersonalID, n.HouseholdID, '9.1.18' 
+		else 66 end, n.PersonalID, '9.1.18' 
 	from tlsa_Enrollment n 
 	inner join tlsa_Person lp on lp.PersonalID = n.PersonalID 
 	where n.AHAR = 1 and lp.Ethnicity in (0,1)
 
-	insert into tlsa_CountPops (PopID, PersonalID, HouseholdID, Step) 
+	insert into tlsa_CountPops (PopID, PersonalID, Step) 
 	select distinct case lp.Gender
 		when 1 then 67
 		when 2 then 68
 		when 3 then 69
 		when 4 then 70
-		else 71 end, n.PersonalID, n.HouseholdID, '9.1.19' 
+		else 71 end, n.PersonalID, '9.1.19' 
 	from tlsa_Enrollment n 
 	inner join tlsa_Person lp on lp.PersonalID = n.PersonalID 
 	where n.AHAR = 1 and lp.Gender between 1 and 5
@@ -318,6 +318,7 @@ Populates and references:
 	inner join tlsa_CountPops pop on rp.PopID = pop.PopID
 		and (rv.Universe <> 10 or rp.ByProject = 1)
 	inner join tlsa_Enrollment n on n.PersonalID = pop.PersonalID
+			and (n.HouseholdID = pop.HouseholdID or pop.HouseholdID is null)
 			and case rv.Cohort	
 				when 1 then n.AHAR
 				when 10 then n.PITOctober

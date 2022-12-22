@@ -28,18 +28,14 @@ module Health
       begin
         @careplan.class.transaction do
           # This needs to be done before the save so that the _changed tracking is triggered
-          care_planning_qa = setup_care_planning_qualifying_activity if @careplan.just_finished? && @create_qa # rubocop:disable Lint/UselessAssignment
+          care_planning_qa = setup_care_planning_qualifying_activity if @careplan.just_finished? && @create_qa
           pctp_signed_qa = setup_pctp_signed_qualifying_activity if @careplan.just_signed? && @create_qa
 
           # Validate the save so that no QAs are  created if the PCTP is invalid
           @careplan.save!
 
           # This is done after the save to guarantee the careplan has an id
-
-          # TODO Re-enable when automated QAs go live
-          # complete_qa(care_planning_qa) if care_planning_qa.present?
-
-          # This is the one generated when provider has signed, so it remains
+          complete_qa(care_planning_qa) if care_planning_qa.present?
           complete_qa(pctp_signed_qa) if pctp_signed_qa.present?
 
           @careplan.set_lock

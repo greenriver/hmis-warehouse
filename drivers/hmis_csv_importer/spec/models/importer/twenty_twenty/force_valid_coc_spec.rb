@@ -55,7 +55,7 @@ RSpec.describe 'Force Valid CoC Codes', type: :model do
     end
 
     import_hmis_csv_fixture(
-      'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty/cleanup_move_ins',
+      'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twentytwo/cleanup_move_ins',
       data_source: data_source,
       version: 'AutoMigrate',
       run_jobs: false,

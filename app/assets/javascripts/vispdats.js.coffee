@@ -31,3 +31,5 @@ $ ->
       $('.number-of-bedrooms-other').prop('disabled', true)
       $('.number-of-bedrooms-other').val('')
   $('.number-of-bedrooms').trigger('change')
+  $('.jRoiButton').on 'click', (e) ->
+    e.preventDefault()

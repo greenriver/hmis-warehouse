@@ -95,7 +95,7 @@
               Print Refusal Form
     %h4 Upload Release or Refusal
     .well
-      = f.input :file, as: :file, required: true
+      = f.input :client_file, as: :file, required: true
       .row.jEffectiveDate
         .col-sm-4
           = f.input :effective_date, as: :date_picker, label: 'Date Signed'
