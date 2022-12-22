@@ -63,10 +63,10 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     end
   end
 
-  def self.project_search(input:, user: nil)
-    scope = Hmis::Hud::Project.where(id: viewable_by(user).select(:id))
+  def self.project_search(input:, user:)
+    scope = viewable_by(user)
     scope = text_searcher(input.text_search, scope) if input.text_search.present?
-    Hmis::Hud::Project.where(id: scope.select(:id))
+    scope
   end
 
   def self.generate_project_id

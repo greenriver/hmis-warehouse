@@ -13,8 +13,8 @@ module ProjectSearch
       text.strip!
 
       query = "%#{text}%"
-      scope.joins(:organization).where(
-        o_t[:OrganizationName].matches(query).or(p_t[:ProjectName].matches(query)).or(p_t[:ProjectID].matches(query)),
+      scope.where(
+        p_t[:ProjectName].matches(query).or(p_t[:ProjectID].matches(query)),
       )
     end
   end
