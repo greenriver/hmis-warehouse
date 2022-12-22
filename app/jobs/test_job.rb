@@ -8,6 +8,15 @@ class TestJob < BaseJob
   SLEEP_TIME = 5
 
   def perform(length_in_seconds: 10, memory_bloat_per_second: 10_000_000)
+    Rails.logger.info 'TestJob started and has a log message in the job'
+    Rails.logger.tagged({ process_name: 'testjob' }) do
+      Rails.logger.info 'tagged with process_name=testjob'
+    end
+    Rails.logger.tagged([{ process_name: 'testjob' }]) do
+      Rails.logger.info 'tagged with process_name=testjob'
+    end
+    Rails.logger.info 'NOT tagged'
+
     setup_notifier('TestJob')
     @notifier.ping('Testing!') if @send_notifications
     a = Time.now

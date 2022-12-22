@@ -133,121 +133,145 @@ module HmisCsvTwentyTwentyTwo::Exporter
     def exportable_files
       {
         HmisCsvTwentyTwentyTwo::Exporter::Organization => {
-          hmis_class: GrdaWarehouse::Hud::Organization,
+          hmis_class: hmis_class(GrdaWarehouse::Hud::Organization),
           project_scope: project_scope,
         },
         HmisCsvTwentyTwentyTwo::Exporter::Project => {
-          hmis_class: GrdaWarehouse::Hud::Project,
+          hmis_class: hmis_class(GrdaWarehouse::Hud::Project),
           project_scope: project_scope,
         },
         HmisCsvTwentyTwentyTwo::Exporter::Inventory => {
-          hmis_class: GrdaWarehouse::Hud::Inventory,
+          hmis_class: hmis_class(GrdaWarehouse::Hud::Inventory),
           project_scope: project_scope,
         },
         HmisCsvTwentyTwentyTwo::Exporter::ProjectCoc => {
-          hmis_class: GrdaWarehouse::Hud::ProjectCoc,
+          hmis_class: hmis_class(GrdaWarehouse::Hud::ProjectCoc),
           project_scope: project_scope,
         },
         HmisCsvTwentyTwentyTwo::Exporter::Affiliation => {
-          hmis_class: GrdaWarehouse::Hud::Affiliation,
+          hmis_class: hmis_class(GrdaWarehouse::Hud::Affiliation),
           project_scope: project_scope,
         },
         HmisCsvTwentyTwentyTwo::Exporter::Funder => {
-          hmis_class: GrdaWarehouse::Hud::Funder,
+          hmis_class: hmis_class(GrdaWarehouse::Hud::Funder),
           project_scope: project_scope,
         },
 
         HmisCsvTwentyTwentyTwo::Exporter::Enrollment => {
-          hmis_class: GrdaWarehouse::Hud::Enrollment,
+          hmis_class: hmis_class(GrdaWarehouse::Hud::Enrollment),
           enrollment_scope: enrollment_scope,
         },
         HmisCsvTwentyTwentyTwo::Exporter::Client => {
-          hmis_class: GrdaWarehouse::Hud::Client,
+          hmis_class: hmis_class(GrdaWarehouse::Hud::Client),
           client_scope: client_scope,
         },
         HmisCsvTwentyTwentyTwo::Exporter::Exit => {
-          hmis_class: GrdaWarehouse::Hud::Exit,
+          hmis_class: hmis_class(GrdaWarehouse::Hud::Exit),
           enrollment_scope: enrollment_scope,
         },
         HmisCsvTwentyTwentyTwo::Exporter::EnrollmentCoc => {
-          hmis_class: GrdaWarehouse::Hud::EnrollmentCoc,
+          hmis_class: hmis_class(GrdaWarehouse::Hud::EnrollmentCoc),
           enrollment_scope: enrollment_scope,
           coc_codes: @coc_codes,
         },
         HmisCsvTwentyTwentyTwo::Exporter::Disability => {
-          hmis_class: GrdaWarehouse::Hud::Disability,
+          hmis_class: hmis_class(GrdaWarehouse::Hud::Disability),
           enrollment_scope: enrollment_scope,
         },
         HmisCsvTwentyTwentyTwo::Exporter::EmploymentEducation => {
-          hmis_class: GrdaWarehouse::Hud::EmploymentEducation,
+          hmis_class: hmis_class(GrdaWarehouse::Hud::EmploymentEducation),
           enrollment_scope: enrollment_scope,
         },
         HmisCsvTwentyTwentyTwo::Exporter::IncomeBenefit => {
-          hmis_class: GrdaWarehouse::Hud::IncomeBenefit,
+          hmis_class: hmis_class(GrdaWarehouse::Hud::IncomeBenefit),
           enrollment_scope: enrollment_scope,
         },
         HmisCsvTwentyTwentyTwo::Exporter::HealthAndDv => {
-          hmis_class: GrdaWarehouse::Hud::HealthAndDv,
+          hmis_class: hmis_class(GrdaWarehouse::Hud::HealthAndDv),
           enrollment_scope: enrollment_scope,
         },
         HmisCsvTwentyTwentyTwo::Exporter::CurrentLivingSituation => {
-          hmis_class: GrdaWarehouse::Hud::CurrentLivingSituation,
+          hmis_class: hmis_class(GrdaWarehouse::Hud::CurrentLivingSituation),
           enrollment_scope: enrollment_scope,
         },
         HmisCsvTwentyTwentyTwo::Exporter::Service => {
-          hmis_class: GrdaWarehouse::Hud::Service,
+          hmis_class: hmis_class(GrdaWarehouse::Hud::Service),
           enrollment_scope: enrollment_scope,
         },
         HmisCsvTwentyTwentyTwo::Exporter::Assessment => {
-          hmis_class: GrdaWarehouse::Hud::Assessment,
+          hmis_class: hmis_class(GrdaWarehouse::Hud::Assessment),
           enrollment_scope: enrollment_scope,
         },
         HmisCsvTwentyTwentyTwo::Exporter::AssessmentQuestion => {
-          hmis_class: GrdaWarehouse::Hud::AssessmentQuestion,
+          hmis_class: hmis_class(GrdaWarehouse::Hud::AssessmentQuestion),
           enrollment_scope: enrollment_scope,
         },
         HmisCsvTwentyTwentyTwo::Exporter::AssessmentResult => {
-          hmis_class: GrdaWarehouse::Hud::AssessmentResult,
+          hmis_class: hmis_class(GrdaWarehouse::Hud::AssessmentResult),
           enrollment_scope: enrollment_scope,
         },
         HmisCsvTwentyTwentyTwo::Exporter::Event => {
-          hmis_class: GrdaWarehouse::Hud::Event,
+          hmis_class: hmis_class(GrdaWarehouse::Hud::Event),
           enrollment_scope: enrollment_scope,
         },
         HmisCsvTwentyTwentyTwo::Exporter::YouthEducationStatus => {
-          hmis_class: GrdaWarehouse::Hud::YouthEducationStatus,
+          hmis_class: hmis_class(GrdaWarehouse::Hud::YouthEducationStatus),
           enrollment_scope: enrollment_scope,
         },
         # NOTE: User must be last since we collect user_ids from the other files
         HmisCsvTwentyTwentyTwo::Exporter::User => {
-          hmis_class: GrdaWarehouse::Hud::User,
+          hmis_class: hmis_class(GrdaWarehouse::Hud::User),
           project_scope: project_scope,
         },
       }.freeze
     end
 
-    def self.client_source
+    def hmis_class(klass)
+      return klass unless @include_deleted
+
+      @classes_with_deleted ||= {
+        GrdaWarehouse::Hud::Assessment => GrdaWarehouse::Hud::WithDeleted::Assessment,
+        GrdaWarehouse::Hud::Client => GrdaWarehouse::Hud::WithDeleted::Client,
+        GrdaWarehouse::Hud::Enrollment => GrdaWarehouse::Hud::WithDeleted::Enrollment,
+        GrdaWarehouse::Hud::EnrollmentCoc => GrdaWarehouse::Hud::WithDeleted::EnrollmentCoc,
+        GrdaWarehouse::Hud::Inventory => GrdaWarehouse::Hud::WithDeleted::Inventory,
+        GrdaWarehouse::Hud::Organization => GrdaWarehouse::Hud::WithDeleted::Organization,
+        GrdaWarehouse::Hud::Project => GrdaWarehouse::Hud::WithDeleted::Project,
+        GrdaWarehouse::Hud::ProjectCoc => GrdaWarehouse::Hud::WithDeleted::ProjectCoc,
+        GrdaWarehouse::Hud::User => GrdaWarehouse::Hud::WithDeleted::User,
+      }.freeze
+
+      @classes_with_deleted[klass] || klass
+    end
+
+    def self.client_source(include_deleted = false)
+      return GrdaWarehouse::Hud::WithDeleted::Client if include_deleted
+
       GrdaWarehouse::Hud::Client
     end
 
     def client_source
-      self.class.client_source
+      self.class.client_source(@include_deleted)
     end
 
-    def self.enrollment_source
+    def self.enrollment_source(include_deleted = false)
+      return GrdaWarehouse::Hud::WithDeleted::Enrollment if include_deleted
+
       GrdaWarehouse::Hud::Enrollment
     end
 
     def enrollment_source
-      self.class.enrollment_source
+      self.class.enrollment_source(@include_deleted)
     end
 
-    def self.project_source
+    def self.project_source(include_deleted = false)
+      return GrdaWarehouse::Hud::WithDeleted::Project if include_deleted
+
       GrdaWarehouse::Hud::Project
     end
 
     def project_source
-      self.class.project_source
+      self.class.project_source(@include_deleted)
     end
   end
 end

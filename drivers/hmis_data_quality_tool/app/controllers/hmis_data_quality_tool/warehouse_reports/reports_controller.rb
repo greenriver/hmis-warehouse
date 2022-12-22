@@ -16,7 +16,7 @@ module HmisDataQualityTool::WarehouseReports
     # before_action :set_pdf_export, only: [:show]
 
     def index
-      @pagy, @reports = pagy(report_scope.ordered)
+      @pagy, @reports = pagy(report_scope.diet.ordered)
       @report = report_class.new(user_id: current_user.id)
       @filter.default_project_type_codes = @report.default_project_type_codes
       previous_report = report_scope.where(user_id: current_user.id).last

@@ -22,7 +22,7 @@ module Types
       when 'COC'
         selected_project = Hmis::Hud::Project.viewable_by(user).find_by(id: project_id) if project_id.present?
         available_codes = if selected_project.present?
-          selected_project.project_cocs.pluck(:CoCCode)
+          selected_project.project_cocs.pluck(:CoCCode).uniq.map { |code| [code, ::HUD.cocs[code] || code] }
         else
           ::HUD.cocs_in_state(relevant_state)
         end
@@ -35,7 +35,7 @@ module Types
         state_options.map do |obj|
           {
             code: obj['abbreviation'],
-            label: "#{obj['abbreviation']} - #{obj['name']}",
+            # label: "#{obj['abbreviation']} - #{obj['name']}",
             initial_selected: obj['abbreviation'] == relevant_state,
           }
         end

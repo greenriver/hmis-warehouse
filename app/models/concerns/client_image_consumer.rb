@@ -64,16 +64,19 @@ module ClientImageConsumer
     end
 
     def set_local_client_image_cache(image_data) # rubocop:disable Naming/AccessorMethodName
+      return unless image_data.present?
+
       user = ::User.setup_system_user
       self.class.transaction do
         client_files.window.where(name: 'Client Headshot Cache')&.delete_all
-        GrdaWarehouse::ClientFile.create(
+        file = GrdaWarehouse::ClientFile.create(
           client_id: id,
           user_id: user.id,
-          content: image_data,
           name: 'Client Headshot Cache',
           visible_in_window: true,
         )
+        file.client_file.attach(io: StringIO.open(image_data), filename: "client_headshot_cache_#{id}")
+        file.save!
       end
     end
 

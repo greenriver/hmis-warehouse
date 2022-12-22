@@ -517,11 +517,13 @@ module Reporting
             residential_project[:res_id],
           ]
           service_project = service_projects[key]
+          next unless service_project.present?
+
           [
             residential_project[:p_id],
             service_project[:p_id],
           ]
-        end.to_h
+        end.compact.to_h
       end
     end
 

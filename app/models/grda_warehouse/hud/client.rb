@@ -1477,53 +1477,6 @@ module GrdaWarehouse::Hud
       image_data || self.class.no_image_on_file_image
     end
 
-    # ! Uncomment if concern doesn't work
-    # def fake_client_image_data
-    #   gender = if self[:Male].in?([1]) then 'male' else 'female' end
-    #   age_group = if age.blank? || age > 18 then 'adults' else 'children' end
-    #   image_directory = File.join('public', 'fake_photos', age_group, gender)
-    #   available = Dir[File.join(image_directory, '*.jpg')]
-    #   image_id = "#{self.FirstName}#{self.LastName}".sum % available.count
-    #   Rails.logger.debug "Client#image id:#{self.id} faked #{self.PersonalID} #{available.count} #{available[image_id]}" # rubocop:disable Style/RedundantSelf
-    #   image_data = File.read(available[image_id]) # rubocop:disable Lint/UselessAssignment
-    # end
-
-    # These need to be flagged as available in the Window. Since we cache these
-    # in the file-system, we'll only show those that would be available to people
-    # with window access
-    # ! Uncomment if concern doesn't work
-    # def local_client_image_data
-    #   headshot = uploaded_local_image
-    #   return headshot.as_thumb if headshot
-
-    #   local_client_image_cache&.content
-    # end
-
-    # ! Uncomment if concern doesn't work
-    # private def uploaded_local_image
-    #   client_files.window.tagged_with('Client Headshot').order(updated_at: :desc).limit(1)&.first
-    # end
-
-    # ! Uncomment if concern doesn't work
-    # private def local_client_image_cache
-    #   client_files.window.where(name: 'Client Headshot Cache').where(updated_at: 1.days.ago..DateTime.tomorrow).limit(1)&.first
-    # end
-
-    # ! Uncomment if concern doesn't work
-    # def set_local_client_image_cache(image_data) # rubocop:disable Naming/AccessorMethodName
-    #   user = ::User.setup_system_user
-    #   self.class.transaction do
-    #     client_files.window.where(name: 'Client Headshot Cache')&.delete_all
-    #     GrdaWarehouse::ClientFile.create(
-    #       client_id: id,
-    #       user_id: user.id,
-    #       content: image_data,
-    #       name: 'Client Headshot Cache',
-    #       visible_in_window: true,
-    #     )
-    #   end
-    # end
-
     def accessible_via_qaaws?
       GrdaWarehouse::Config.get(:eto_api_available) && source_eto_client_lookups.exists?
     end

@@ -35,7 +35,7 @@ module Types
     field :race, [Types::HmisSchema::Enums::Race], null: false
     hud_field :ethnicity, Types::HmisSchema::Enums::Hud::Ethnicity
     hud_field :veteran_status, Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData
-    field :pronouns, String, null: true
+    field :pronouns, [String], null: false
     enrollments_field
     income_benefits_field
     disabilities_field
@@ -64,6 +64,10 @@ module Types
 
     def health_and_dvs(**args)
       resolve_health_and_dvs(**args)
+    end
+
+    def pronouns
+      object.pronouns&.split('|') || []
     end
 
     def gender

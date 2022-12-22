@@ -25,20 +25,8 @@ module GrdaWarehouse::SystemCohorts
       @processing_date - days_of_inactivity.days
     end
 
-    private def add_missing_clients
-      # Newly identified (first homeless enrollment in the past 2 years)
-      # for each client with ongoing enrollments not on cohort
-      #   find max exit or move in prior to min start of ongoing
-      # if no exit or move in within the 2 years before min start of ongoing - Newly identified
-      # if exit was to permanent destination within 2 year range, or move in was within 2 year range  - Returned from housing
-      # else Returned from inactive unless no service in INACTIVE period
-
-      moved_in_ph = enrollment_source.ph.
-        ongoing(on_date: @processing_date + 1.days).
-        where(she_t[:move_in_date].lteq(@processing_date)).
-        select(:client_id)
-
-      candidate_enrollments = enrollment_source.
+    private def candidate_enrollments
+      @candidate_enrollments ||= enrollment_source.
         homeless. # homeless clients
         ongoing(on_date: @processing_date). # who's enrollment is open today
         with_service_between(start_date: inactive_date, end_date: @processing_date). # who received service in the past 90 days
@@ -50,6 +38,39 @@ module GrdaWarehouse::SystemCohorts
         where.not(client_id: moved_in_ph). # who aren't currently enrolled and moved-in to PH
         where.not(client_id: cohort_clients.select(:client_id)). # who aren't on the cohort currently
         group(:client_id).minimum(:first_date_in_program)
+    end
+
+    private def moved_in_ph
+      enrollment_source.ph.
+        ongoing(on_date: @processing_date + 1.days).
+        where(she_t[:move_in_date].lteq(@processing_date)).
+        select(:client_id)
+    end
+
+    # Anyone with an ongoing homeless enrollment that is still "active" (seen in past 90 days)
+    # used to prevent people from getting marked as housed when their exit destination is Permanent
+    # but they are still active in a homeless project
+    # NOTE: alternate approach would be to pull last 90 days of homeless service and look for
+    # any after the exit date with a permanent destination.
+    # As written, the client won't be marked housed until the homeless enrollment is exited, or
+    # 90 days has elapsed since they received service.
+    private def active_ongoing_homeless_enrollments
+      enrollment_source.
+        homeless. # homeless clients
+        ongoing(on_date: @processing_date).
+        with_service_between(start_date: inactive_date, end_date: @processing_date, service_scope: :homeless).
+        where(client_id: cohort_clients.select(:client_id)).
+        distinct.
+        pluck(:client_id)
+    end
+
+    private def add_missing_clients
+      # Newly identified (first homeless enrollment in the past 2 years)
+      # for each client with ongoing enrollments not on cohort
+      #   find max exit or move in prior to min start of ongoing
+      # if no exit or move in within the 2 years before min start of ongoing - Newly identified
+      # if exit was to permanent destination within 2 year range, or move in was within 2 year range  - Returned from housing
+      # else Returned from inactive unless no service in INACTIVE period
 
       # for candidate clients, find the most recent previously closed enrollment
       previous_enrollments = enrollment_source.
@@ -106,21 +127,6 @@ module GrdaWarehouse::SystemCohorts
         distinct.
         pluck(:client_id)
 
-      # Anyone with an ongoing homeless enrollment that is still "active" (seen in past 90 days)
-      # used to prevent people from getting marked as housed when their exit destination is Permanent
-      # but they are still active in a homeless project
-      # NOTE: alternate approach would be to pull last 90 days of homeless service and look for
-      # any after the exit date with a permanent destination.
-      # As written, the client won't be marked housed until the homeless enrollment is exited, or
-      # 90 days has elapsed since they received service.
-      active_ongoing_homeless_enrollments = enrollment_source.
-        homeless. # homeless clients
-        ongoing(on_date: @processing_date).
-        with_service_between(start_date: inactive_date, end_date: @processing_date, service_scope: :homeless).
-        where(client_id: cohort_clients.select(:client_id)).
-        distinct.
-        pluck(:client_id)
-
       # moved-in to PH - anyone with a move-in date prior to processing date and an SHS homeless false on the processing date
       moved_in = cohort_clients.joins(client: :service_history_enrollments).
         merge(enrollment_source.ph.where(she_t[:move_in_date].lt(@processing_date))).
@@ -145,7 +151,12 @@ module GrdaWarehouse::SystemCohorts
     private def remove_inactive_clients
       # Inactive (hasn't been seen in a homeless project in N days, where N refers to the setting on the cohort.)
       # only look up until the processing date.
-      active_client_ids = enrollment_source.
+      inactive_client_ids = cohort_clients.pluck(:client_id) - active_client_ids
+      remove_clients(inactive_client_ids, 'Inactive')
+    end
+
+    private def active_client_ids
+      enrollment_source.
         homeless.
         ongoing(on_date: @processing_date).
         where(client_id: cohort_clients.select(:client_id)).
@@ -153,18 +164,17 @@ module GrdaWarehouse::SystemCohorts
         where(shs_t[:date].between(inactive_date..@processing_date)).
         distinct.
         pluck(:client_id)
+    end
 
-      inactive_client_ids = cohort_clients.pluck(:client_id) - active_client_ids
-      remove_clients(inactive_client_ids, 'Inactive')
+    private def with_homeless_enrollment
+      enrollment_source.
+        homeless.
+        ongoing(on_date: @processing_date)
     end
 
     private def remove_no_longer_meets_criteria
       # No longer meets criteria (exited without a permanent destination and no ongoing homeless enrollments.)
-      # or ongoing homeless with overlapping PH move in
-      with_homeless_enrollment = enrollment_source.
-        homeless.
-        ongoing(on_date: @processing_date)
-
+      # or ongoing homeless with overlapping PH move in.
       # clients who have a homeless enrollment with an exit that wasn't to a permanent destination
       # and who don't have an ongoing homeless enrollment
       no_ongoing = cohort_clients.joins(client: :service_history_enrollments).

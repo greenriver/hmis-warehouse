@@ -109,8 +109,7 @@ module GrdaWarehouse::Hud
     end
 
     def for_export
-      fake_export = OpenStruct.new(include_deleted: false, period_type: 3)
-      row = HmisCsvTwentyTwentyTwo::Exporter::Inventory::Overrides.apply_overrides(self, export: fake_export)
+      row = HmisCsvTwentyTwentyTwo::Exporter::Inventory::Overrides.apply_overrides(self)
       row = HmisCsvTwentyTwentyTwo::Exporter::Inventory.adjust_keys(row)
       row
     end

@@ -129,6 +129,13 @@ module PerformanceMeasurement
       User.system_user.id
     end
 
+    def show_spm_link?
+      return true if user.can_view_all_hud_reports?
+      return true if user.can_view_own_hud_reports? && PerformanceMeasurement::Goal.include_project_options?
+
+      false
+    end
+
     def coc_code
       filter.coc_code
     end
@@ -650,7 +657,7 @@ module PerformanceMeasurement
 
       options = filter.to_h
       # Because we want data back for all projects in the CoC we need to run this as the System User who will have access to everything
-      options[:user_id] = User.setup_system_user.id
+      options[:user_id] = filter_user_id
 
       # Re-enable the following if you don't want to have to run SPMs during development
       # if Rails.env.development?

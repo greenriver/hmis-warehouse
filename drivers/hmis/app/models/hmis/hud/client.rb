@@ -27,6 +27,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   has_many :disabilities, through: :enrollments
   has_many :health_and_dvs, through: :enrollments
   # has_many :client_files, class_name: 'GrdaWarehouse::ClientFile'
+  has_many :current_living_situations, through: :enrollments
 
   validates_with Hmis::Hud::Validators::ClientValidator
 
@@ -50,7 +51,23 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     self.SSN&.[](-4..-1)
   end
 
-  SORT_OPTIONS = [:last_name_asc, :last_name_desc].freeze
+  SORT_OPTIONS = [
+    :last_name_a_to_z,
+    :last_name_z_to_a,
+    :first_name_a_to_z,
+    :first_name_z_to_a,
+    :age_youngest_to_oldest,
+    :age_oldest_to_youngest,
+  ].freeze
+
+  SORT_OPTION_DESCRIPTIONS = {
+    last_name_a_to_z: 'Last Name: A-Z',
+    last_name_z_to_a: 'Last Name: Z-A',
+    first_name_a_to_z: 'First Name: A-Z',
+    first_name_z_to_a: 'First Name: Z-A',
+    age_youngest_to_oldest: 'Age: Youngest to Oldest',
+    age_oldest_to_youngest: 'Age: Oldest to Youngest',
+  }.freeze
 
   # ! Remove once concern works right
   def fake_client_image_data
@@ -106,10 +123,20 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     raise NotImplementedError unless SORT_OPTIONS.include?(option)
 
     case option
-    when :last_name_asc
-      order(:LastName)
-    when :last_name_desc
-      order(LastName: :desc)
+    when :last_name_a_to_z
+      order(arel_table[:last_name].asc.nulls_last)
+    when :last_name_z_to_a
+      order(arel_table[:last_name].desc.nulls_last)
+    when :first_name_a_to_z
+      order(arel_table[:first_name].asc.nulls_last)
+    when :first_name_z_to_a
+      order(arel_table[:first_name].desc.nulls_last)
+    when :age_youngest_to_oldest
+      order(arel_table[:dob].desc.nulls_last)
+    when :age_oldest_to_youngest
+      order(arel_table[:dob].asc.nulls_last)
+    when :recently_added
+      order(arel_table[:date_created].desc.nulls_last)
     else
       raise NotImplementedError
     end
