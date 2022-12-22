@@ -226,8 +226,14 @@ module HmisDataQualityTool
       hh = report.household(enrollment.HouseholdID)
       hoh = hh&.detect(&:head_of_household?) || enrollment.service_history_enrollment
       stayer = enrollment.exit&.ExitDate.blank? || enrollment.exit.ExitDate > report.filter.end
-      # anniversary_date = anniversary_date(entry_date: hoh.first_date_in_program, report_end_date: report.end_date)
-      annual_expected = annual_assessment_expected?(hoh) && stayer
+
+      # Annuals are expected for stayers where the HoH has been present more than a year
+      # and the client in question was present on the most-recent anniversary date
+      annual_expected = if annual_assessment_expected?(hoh) && stayer
+        anniversary_date = anniversary_date(entry_date: hoh.first_date_in_program, report_end_date: report.end_date)
+        enrollment_range = (enrollment.EntryDate .. [enrollment&.exit&.ExitDate, report.end_date].compact.min)
+        enrollment_range.cover?(anniversary_date)
+      end
 
       report_item.household_max_age = hh&.map(&:age)&.compact&.max || report_item.age
       report_item.household_min_age = hh&.map(&:age)&.compact&.min || report_item.age
