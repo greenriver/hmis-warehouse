@@ -40,7 +40,7 @@ module HmisDataQualityTool
     end
 
     scope :ordered, -> do
-      order(updated_at: :desc)
+      order(created_at: :desc)
     end
 
     def run_and_save!
