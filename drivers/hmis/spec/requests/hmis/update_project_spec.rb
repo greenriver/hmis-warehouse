@@ -24,8 +24,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let(:test_input) do
     {
       project_name: 'Project 1',
-      operating_start_date: (Date.today - 1.day).strftime('%Y-%m-%d'),
-      operating_end_date: Date.today.strftime('%Y-%m-%d'),
+      operating_start_date: (Date.yesterday).strftime('%Y-%m-%d'),
+      operating_end_date: Date.current.strftime('%Y-%m-%d'),
       description: 'This is a test project',
       contact_information: 'Contact for contact information',
       project_type: Types::HmisSchema::Enums::ProjectType.enum_member_for_value(2).first,
