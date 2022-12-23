@@ -178,6 +178,11 @@ enum Availability {
 }
 
 """
+A base64 encoded string
+"""
+scalar Base64
+
+"""
 2.07.5
 """
 enum BedType {
@@ -219,6 +224,7 @@ type Client {
   gender: [Gender!]!
   healthAndDvs(limit: Int, offset: Int): HealthAndDvsPaginated!
   id: ID!
+  image: ClientImage
   incomeBenefits(limit: Int, offset: Int): IncomeBenefitsPaginated!
   lastName: String
   middleName: String
@@ -231,6 +237,15 @@ type Client {
   ssn: String
   ssnDataQuality: SSNDataQuality!
   veteranStatus: NoYesReasonsForMissingData!
+}
+
+"""
+Client Image
+"""
+type ClientImage {
+  base64: Base64!
+  contentType: String!
+  id: ID!
 }
 
 """
