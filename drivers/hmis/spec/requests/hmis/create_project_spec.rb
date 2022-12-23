@@ -107,11 +107,19 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         },
       ],
       [
-        'should emit error if name is not provided',
+        'should emit error if start date is not provided',
         ->(input) { input.except(:operating_start_date) },
         {
           'fullMessage' => 'Operating start date must exist',
           'attribute' => 'operatingStartDate',
+        },
+      ],
+      [
+        'should emit error if end date is after start date',
+        ->(input) { { **input, operating_end_date: 2.years.ago.strftime('%Y-%m-%d') } },
+        {
+          'message' => 'must be on or after start date',
+          'attribute' => 'operatingEndDate',
         },
       ],
       [

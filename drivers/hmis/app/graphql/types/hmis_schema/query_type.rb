@@ -37,6 +37,15 @@ module Types
       resolve_clients(search_scope, **args)
     end
 
+    projects_field :project_search, 'Search for projects', type: Types::HmisSchema::Project.page_type, null: false do |field|
+      field.argument :input, Types::HmisSchema::ProjectSearchInput, required: true
+    end
+
+    def project_search(input:, **args)
+      search_scope = Hmis::Hud::Project.project_search(input: input.to_params, user: current_user)
+      resolve_projects(search_scope, **args)
+    end
+
     field :client, Types::HmisSchema::Client, 'Client lookup', null: true do
       argument :id, ID, required: true
     end
