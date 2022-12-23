@@ -23,20 +23,22 @@ module
     end
 
     def project_names
-      GrdaWarehouse::Hud::Project.
-        distinct.
-        joins(:organization).
-        order(p_t[:ProjectName]).
-        where(id: report_scope.distinct.select(p_t[:id])).map do |project|
-          [
-            project.id,
-            {
-              project_name: project.name(@filter.user),
-              organization_name: project.organization_name(@filter.user),
-              project_type: HUD.project_type_brief(project.computed_project_type),
-            },
-          ]
-        end.to_h
+      @project_names ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
+        GrdaWarehouse::Hud::Project.
+          distinct.
+          joins(:organization).
+          order(p_t[:ProjectName]).
+          where(id: report_scope.distinct.select(p_t[:id])).map do |project|
+            [
+              project.id,
+              {
+                project_name: project.name(@filter.user),
+                organization_name: project.organization_name(@filter.user),
+                project_type: HUD.project_type_brief(project.computed_project_type),
+              },
+            ]
+          end.to_h
+      end
     end
 
     def enrollment_count(type)

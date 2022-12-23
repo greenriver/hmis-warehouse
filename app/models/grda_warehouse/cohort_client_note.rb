@@ -11,6 +11,8 @@ module GrdaWarehouse
     has_one :client, through: :cohort_client
     belongs_to :user, optional: true
 
+    attr_accessor :send_notification
+
     validates_presence_of :cohort_client, :note
 
     scope :ordered, -> do
@@ -20,6 +22,19 @@ module GrdaWarehouse
     # only destroyable by admins for now
     def destroyable_by user
       user.can_edit_cohort_clients? || user.can_manage_cohorts? # || user_id == user.id
+    end
+
+    def recipient_info
+      return unless notification_contacts.present?
+
+      "Note sent to: #{notification_contacts.to_sentence}"
+    end
+
+    private def notification_contacts
+      ids = recipients&.reject(&:blank?)
+      return unless ids.present?
+
+      @notification_contacts ||= User.where(id: ids).map(&:name_with_email)
     end
   end
 end

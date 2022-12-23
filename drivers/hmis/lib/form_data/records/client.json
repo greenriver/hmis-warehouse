@@ -100,7 +100,7 @@
           "link_id": "ssn",
           "text": "Social Security Number",
           "field_name": "ssn",
-          "size": "SMALL"
+          "component": "SSN"
         },
         {
           "type": "GROUP",
