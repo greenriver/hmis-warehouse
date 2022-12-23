@@ -21,5 +21,6 @@ module Types
     value 'ALERT_WARNING', 'Display text as a warning alert'
     value 'ALERT_ERROR', 'Display text as an error alert'
     value 'ALERT_SUCCESS', 'Display text as a success alert'
+    value 'SSN', 'SSN input component'
   end
 end
