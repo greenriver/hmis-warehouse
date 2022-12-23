@@ -679,15 +679,23 @@ module Filters
 
     def available_age_ranges
       {
+        zero_to_four: '0 - 4',
+        five_to_ten: '5 - 10',
+        eleven_to_fourteen: '11 - 14',
+        fifteen_to_seventeen: '15 - 17',
         under_eighteen: '< 18',
         eighteen_to_twenty_four: '18 - 24',
         twenty_five_to_twenty_nine: '25 - 29',
-        thirty_to_thirty_nine: '30 - 39',
-        forty_to_forty_nine: '40 - 49',
+        thirty_to_thirty_four: '30 - 34',
+        thirty_five_to_thirty_nine: '35 - 39',
+        forty_to_forty_four: '40 - 44',
+        forty_five_to_forty_nine: '45 - 49',
         fifty_to_fifty_four: '50 - 54',
         fifty_five_to_fifty_nine: '55 - 59',
         sixty_to_sixty_one: '60 - 61',
-        over_sixty_one: '62+',
+        sixty_two_to_sixty_four: '62 - 64',
+        over_sixty_four: '64+',
+        # over_sixty_one: '62+',
       }.invert.freeze
     end
 
