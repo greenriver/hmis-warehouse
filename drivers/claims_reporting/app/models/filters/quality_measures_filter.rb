@@ -74,5 +74,19 @@ module Filters
         super
       end
     end
+
+    def available_age_ranges
+      {
+        under_eighteen: '< 18',
+        eighteen_to_twenty_four: '18 - 24',
+        twenty_five_to_twenty_nine: '25 - 29',
+        thirty_to_thirty_nine: '30 - 39',
+        forty_to_forty_nine: '40 - 49',
+        fifty_to_fifty_four: '50 - 54',
+        fifty_five_to_fifty_nine: '55 - 59',
+        sixty_to_sixty_one: '60 - 61',
+        over_sixty_one: '62+',
+      }.invert.freeze
+    end
   end
 end
