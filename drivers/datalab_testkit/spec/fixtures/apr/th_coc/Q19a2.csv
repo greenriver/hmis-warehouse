@@ -1,7 +1,7 @@
-"Income change by income category","Had income category at start and did not have it at exit","Retained income category but had less $ at exit than at start","Retained income category and same $ at exit as at start","Retained income category and increased $ at exit","Did not have the income category at start and gained the income category at exit","Did not have the income category at start or exit","Total adults (including those with no income)","Performance measure: Adults who gained or increased income from start to follow-up; Average gain","Performance measure: Percent of persons who accomplished this measure"
-"1. Number of adults with earned income (i.e. employment income)","0","0","4","0","0","0","4","0","0"
-"2. Average change in earned income","0","0","0","0","0","","","0",""
-"3. Number of adults with other income","0","0","1","0","0","3","4","0","0"
-"4. Average change in other income","0","0","0","0","0","","","0",""
-"5. Number of adults with any income (i.e. total income)","0","0","4","0","0","0","4","0","0"
-"6. Average change in overall income","0","0","0","0","0","","0","0",""
+"",Had Income Category at Start and Did Not Have It at Exit,Retained Income Category But Had Less at Exit Than at Start,Retained Income Category and Same at Exit as at Start,Retained Income Category and Increased at Exit,Did Not Have the Income Category at Start and Gained the Income Category at Exit,Did Not Have the Income Category at Start or at Exit,Total Adults including those with No Income,Performance Measure Adults who Gained or Increased Income from Start to Exit Average Gain,Performance measure Percent of persons who accomplished this measure
+Number of Adults with Earned Income,0,0,2,0,8,23,33,8,0.24242424242424243
+Average Change in Earned Income,0,0,0,0,1090,0,0,1090,0
+Number of Adults with Other Income,0,0,2,0,3,28,33,3,0.09090909090909091
+Average Change in Other Income,0,0,0,0,672.6666666666666,0,0,672.6666666666666,0
+"Number of Adults with Any Income (i e , Total Income)",0,0,3,0,10,20,33,10,0.30303030303030304
+Average Change in Overall Income,0,0,0,0,1073.8,0,325.3939393939394,1073.8,0

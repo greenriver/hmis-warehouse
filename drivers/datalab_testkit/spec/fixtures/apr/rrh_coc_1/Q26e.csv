@@ -1,9 +1,9 @@
-"Special need","At start","Stayers","Leavers"
-"a. Mental Health Disorder",3,1,2
-"b. Alcohol Use Disorder",0,0,0
-"c. Drug Use Disorder",1,0,1
-"d. Both Alcohol and Drug Use Disorders",0,0,0
-"e. Chronic Health Condition",3,1,2
-"f. HIV/AIDS",0,0,0
-"g. Developmental Disability",1,0,1
-"h. Physical Disability",0,0,0
+"",Conditions At Start,Conditions At Latest Assessment for Stayers,Conditions At Exit for Leavers
+Mental Health Disorder,4,1,2
+Alcohol Use Disorder,0,0,0
+Drug Use Disorder,0,0,0
+Both Alcohol and Drug Use Disorders,1,1,0
+Chronic Health Condition,1,1,0
+HIV/AIDS,0,0,0
+Developmental Disability,1,0,1
+Physical Disability,1,2,0

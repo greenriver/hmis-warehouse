@@ -1,14 +1,14 @@
-" ","AO:Adult with Disabling Condition","AO:Adult without Disabling Condition","AO:Total Adults","AO:% with Disabling Condition by Source","AC:Adult with Disabling Condition","AC:Adult without Disabling Condition","AC:Total Adults","AC:% with Disabling Condition by Source","UK:Adult with Disabling Condition","UK:Adult without Disabling Condition","UK:Total Adults","UK:% with Disabling Condition by Source"
-"a. Earned Income","","","","","","","","","","","",""
-"b. Supplemental Security Income (SSI)","2","","2","1.0000","","","","","","","",""
-"c. Social Security Disability Insurance (SSDI)","","","","","","","","","","","",""
-"d. VA Service-Connected Disability Compensation","1","","1","1.0000","","","","","","","",""
-"e. Private Disability Insurance","","","","","","","","","","","",""
-"f. Worker's Compensation","","","","","","","","","","","",""
-"g. Temporary Assistance for Needy Families (TANF)","","","","","","","","","","","",""
-"h. Retirement Income from Social Security","","","","","","","","","","","",""
-"i. Pension or retirement income from a former job","","","","","","","","","","","",""
-"j. Child Support","","","","","","","","","","","",""
-"k. Other source","","","","","","","","","","","",""
-"l. No Sources","1","","1","1.0000","","","","","","","",""
-"m. Unduplicated Total Adults","3","","3","","","","","","","","",""
+"",disabling_condition_Without Children,no_disabling_condition_Without Children,all_Without Children,Without Children_percent,disabling_condition_With Children And Adults,no_disabling_condition_With Children And Adults,all_With Children And Adults,With Children And Adults_percent,disabling_condition_Unknown Household Type,no_disabling_condition_Unknown Household Type,all_Unknown Household Type,Unknown Household Type_percent
+Earned,1,0,1,1,0,0,0,0,0,0,0,0
+SSI,1,0,1,1,0,0,0,0,0,0,0,0
+SSDI,1,0,1,1,0,0,0,0,0,0,0,0
+VADisabilityService,0,0,0,0,0,0,0,0,0,0,0,0
+PrivateDisability,0,0,0,0,0,0,0,0,0,0,0,0
+WorkersComp,0,0,0,0,0,0,0,0,0,0,0,0
+TANF,0,0,0,0,0,0,0,0,0,0,0,0
+SocSecRetirement,1,0,1,1,0,0,0,0,0,0,0,0
+Pension,1,0,1,1,0,0,0,0,0,0,0,0
+ChildSupport,0,0,0,0,0,0,0,0,0,0,0,0
+Other Source,0,1,1,0,0,0,0,0,0,0,0,0
+No Sources,1,0,1,1,0,0,0,0,0,0,0,0
+Unduplicated Total Adults,4,1,5,0,0,0,0,0,0,0,0,0

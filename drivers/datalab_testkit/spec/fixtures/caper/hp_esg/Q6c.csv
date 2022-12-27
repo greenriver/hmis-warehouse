@@ -1,5 +1,5 @@
-"Data Element","Error Count","% of Error Rate"
-"Destination",0,"0"
-"Income and Sources at Start",6,"0.2727"
-"Income and Sources at Annual Assessment",22,"1.0000"
-"Income and Sources at Exit",0,"0"
+"",Error Count,Percent of Error Count
+Destination 3 12,0,0
+Income and Sources 4 02 at Start,0,0
+Income and Sources 4 02 at Annual Assessment,2,1
+Income and Sources 4 02 at Exit,0,0

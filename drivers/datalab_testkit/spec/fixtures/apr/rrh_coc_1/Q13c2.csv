@@ -1,9 +1,9 @@
-"Special need","Total persons","a. Without children","b. Adults in households with children and adults","c. Children in households with children and adults","d. With only children","e. Unknown household type"
-"a. None",1,0,0,1,0,0
-"b. 1 condition",4,4,0,0,0,0
-"c. 2 conditions",3,2,1,0,0,0
-"d. 3+ conditions",2,2,0,0,0,0
-"e. Condition unknown",0,0,0,0,0,0
-"f. Client Doesn't Know/Client Refused",0,0,0,0,0,0
-"g. Data Not Collected",0,0,0,0,0,0
-"h. Total",10,8,1,1,0,0
+"",Total,Without Children,Adults in HH with Children and Adults,Children in HH with Children and Adults,With Only Children,Unknown Household Type
+None,2,0,1,1,0,0
+One Condition,4,3,1,0,0,0
+Two Conditions,1,1,0,0,0,0
+Three Or More Conditions,0,0,0,0,0,0
+Unknown,0,0,0,0,0,0
+Client Doesn't Know/Refused,0,0,0,0,0,0
+Data Not Collected,0,0,0,0,0,0
+Total,7,4,2,1,0,0

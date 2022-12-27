@@ -1,6 +1,6 @@
-"Data Element","Error Count","% of Error Rate"
-"Veteran Status",0,"0"
-"Project Start Date",0,"0"
-"Relationship to Head of Household",0,"0"
-"Client Location",0,"0"
-"Disabling Condition",2,"0.1538"
+"",Error Count,Percent of Error Count
+Veteran Status 3 07,0,0
+Project Start Date 3 10,0,0
+Relationship to Head of Household 3 15,1,0.013333333333333334
+Client Location 3 16,0,0
+Disabling Condition 3 08,1,0.013333333333333334

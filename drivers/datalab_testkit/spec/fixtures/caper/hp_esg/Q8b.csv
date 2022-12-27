@@ -1,5 +1,5 @@
-" ","Total","a. Without children","b. With children and adults","c. With only children","d. Unknown household type"
-"January","22","11","1","0","10"
-"April","22","11","1","0","10"
-"July","22","11","1","0","10"
-"October","22","11","1","0","10"
+"",Total,Without Children,With Children And Adults,With Only Children,Unknown Household Type
+January,2,2,0,0,0
+April,3,3,0,0,0
+July,6,5,1,0,0
+October,1,1,0,0,0

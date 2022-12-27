@@ -1,6 +1,6 @@
-"Ethnicity","Total","a. Without children","b. With children and adults","c. With only children","d. Unknown household type"
-"a. Non-Hispanic/Non-Latin(a)(o)(x)","19","18","1","0","0"
-"b. Hispanic/Latin(a)(o)(x)","26","21","5","0","0"
-"c. Client Doesn't Know/Client Refused","0","0","0","0","0"
-"d. Data Not Collected","1","1","0","0","0"
-"e. Total","46","40","6","0","0"
+"",Total,Without Children,With Children And Adults,With Only Children,Unknown Household Type
+Non-Hispanic/Non-Latin(a)(o)(x),35,27,5,3,0
+Hispanic/Latin(a)(o)(x),3,3,0,0,0
+Client Doesn't Know/Refused,0,0,0,0,0
+Data Not Collected,0,0,0,0,0
+Total,38,30,5,3,0

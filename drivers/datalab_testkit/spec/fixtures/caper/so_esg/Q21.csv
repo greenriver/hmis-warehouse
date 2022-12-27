@@ -1,17 +1,17 @@
-"Source","At start","At latest annual assessment for stayers","At exit for leavers"
-"a. MEDICAID",16,0,11
-"b. MEDICARE",8,0,1
-"c. State Children's Health Insurance",0,0,0
-"d. Veteran's Administration (VA) Medical Services",0,0,0
-"e. Employer-provided health insurance",0,0,0
-"f. Health insurance obtained through COBRA",0,0,0
-"g. Private pay health insurance",0,0,0
-"h. State Health Insurance for Adults",1,0,1
-"i. Indian Health Services Program",0,0,0
-"j. Other",0,0,0
-"k. No health insurance",2,0,0
-"l. Client doesn't know/Client refused",1,0,0
-"m. Data not collected",44,2,36
-"n. Number of adult stayers not yet required to have an annual assessment",,21,
-"o. 1 source of health insurance",23,0,11
-"p. More than 1 source of health insurance",1,0,1
+"",At Start,At Annual Assessment for Stayers,At Exit for Leavers
+MEDICAID,13,0,13
+MEDICARE,0,0,0
+State Children’s Health Insurance Program,5,0,5
+Veteran’s Administration (VA) Medical Services,1,0,1
+Employer – Provided Health Insurance,0,0,0
+Health Insurance obtained through COBRA,0,0,0
+Private Pay Health Insurance,0,0,0
+State Health Insurance for Adults,2,0,2
+Indian Health Services Program,0,0,0
+Other,0,0,0
+No health insurance,5,0,5
+Client Doesn't Know/Refused,0,0,0
+Data Not Collected,0,0,0
+Annual assessment not required,0,0,0
+One source of insurance,19,0,19
+More than one source of insurance,1,0,1

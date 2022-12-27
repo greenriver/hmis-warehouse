@@ -1,6 +1,6 @@
-"Time for Record Entry","Number of Project Entry Records","Number of Project Exit Records"
-"0 days",0,0
-"1-3 days",4,0
-"4-6 days",1,0
-"7-10 days",1,1
-"11+ days",8,12
+"",Number of Project Start Records,Number of Project Exit Records
+0 days,68,0
+1-3 days,41,136
+4-6 days,8,0
+7-10 days,5,0
+11+ days,9,1

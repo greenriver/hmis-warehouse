@@ -1,6 +1,6 @@
-"Currently fleeing domestic violence","Total","a. Without children","b. With children and adults","c. With only children","d. Unknown household type"
-"a. Yes","0","0","0","0","0"
-"b. No","1","0","1","0","0"
-"c. Client Doesn't Know/Client Refused","0","0","0","0","0"
-"d. Data Not Collected","0","0","0","0","0"
-"e. Total","1","0","1","0","0"
+"",Total,Without Children,With Children And Adults,With Only Children,Unknown Household Type
+Yes,1,0,1,0,0
+No,4,3,1,0,0
+Client Doesn't Know/Refused,0,0,0,0,0
+Data Not Collected,0,0,0,0,0
+Total,5,3,2,0,0

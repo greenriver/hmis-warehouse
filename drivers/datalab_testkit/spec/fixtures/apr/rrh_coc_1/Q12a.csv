@@ -1,10 +1,10 @@
-"Race","Total","a. Without children","b. With children and adults","c. With only children","d. Unknown household type"
-"a. White","13","11","2","0","0"
-"b. Black, African American, or African","2","2","0","0","0"
-"c. Asian or Asian American","0","0","0","0","0"
-"d. American Indian, Alaska Native, or Indigenous","1","1","0","0","0"
-"e. Native Hawaiian or Pacific Islander","0","0","0","0","0"
-"f. Multiple races","0","0","0","0","0"
-"g. Client Doesn't Know/Client Refused","0","0","0","0","0"
-"h. Data Not Collected","0","0","0","0","0"
-"i. Total","16","14","2","0","0"
+"",Total,Without Children,With Children And Adults,With Only Children,Unknown Household Type
+White,7,5,2,0,0
+"Black, African American, or African",4,4,0,0,0
+Asian or Asian American,0,0,0,0,0
+"American Indian, Alaska Native, or Indigenous",0,0,0,0,0
+Native Hawaiian or Pacific Islander,0,0,0,0,0
+Multiple Races,3,0,3,0,0
+Client Doesn't Know/Refused,0,0,0,0,0
+Data Not Collected,0,0,0,0,0
+Total,14,9,5,0,0

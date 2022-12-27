@@ -1,14 +1,14 @@
-" ","AO:Youth with Disabling Condition","AO:Youth without Disabling Condition","AO:Total Youth","AO:% with Disabling Condition by Source","AC:Youth with Disabling Condition","AC:Youth without Disabling Condition","AC:Total Youth","AC:% with Disabling Condition by Source","CO:Youth with Disabling Condition","CO:Youth without Disabling Condition","CO:Total Youth","CO:% with Disabling Condition by Source","UK:Youth with Disabling Condition","UK:Youth without Disabling Condition","UK:Total Youth","UK:% with Disabling Condition by Source"
-"a. Earned Income","1","","1","1.0000","","","","","","","","","","","",""
-"b. Supplemental Security Income (SSI)","","","","","","","","","","","","","","","",""
-"c. Social Security Disability Insurance (SSDI)","","","","","","","","","","","","","","","",""
-"d. VA Service-Connected Disability Compensation","","","","","","","","","","","","","","","",""
-"e. Private Disability Insurance","","","","","","","","","","","","","","","",""
-"f. Worker's Compensation","","","","","","","","","","","","","","","",""
-"g. Temporary Assistance for Needy Families (TANF)","","","","","","","","","","","","","","","",""
-"h. Retirement Income from Social Security","","","","","","","","","","","","","","","",""
-"i. Pension or retirement income from a former job","","","","","","","","","","","","","","","",""
-"j. Child Support","","","","","","","","","","","","","","","",""
-"k. Other source","1","","1","1.0000","","","","","","","","","","","",""
-"l. No Sources","","","","","","","","","","","","","","","",""
-"m. Unduplicated Total Youth","1","","1","","","","","","","","","","","","",""
+"",disabling_condition_Without Children,no_disabling_condition_Without Children,all_Without Children,Without Children_percent,disabling_condition_With Children And Adults,no_disabling_condition_With Children And Adults,all_With Children And Adults,With Children And Adults_percent,disabling_condition_With Only Children,no_disabling_condition_With Only Children,all_With Only Children,With Only Children_percent,disabling_condition_Unknown Household Type,no_disabling_condition_Unknown Household Type,all_Unknown Household Type,Unknown Household Type_percent
+Earned,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+SSI,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+SSDI,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+VADisabilityService,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+PrivateDisability,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+WorkersComp,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+TANF,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+SocSecRetirement,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+Pension,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+ChildSupport,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+Other Source,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+No Sources,2,0,2,1,0,0,0,0,0,0,0,0,0,0,0,0
+Unduplicated Total Adults,2,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0

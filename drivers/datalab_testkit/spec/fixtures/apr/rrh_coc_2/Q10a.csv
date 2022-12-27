@@ -1,9 +1,9 @@
-"Gender","Total","a. Without children","b. With children and adults","c. Unknown household type"
-"a. Male","15","15","0","0"
-"b. Female","26","24","2","0"
-"c. No Single Gender","2","1","1","0"
-"d. Questioning","0","0","0","0"
-"e. Transgender","0","0","0","0"
-"f. Client Doesn't Know/Client Refused","0","0","0","0"
-"g. Data Not Collected","0","0","0","0"
-"h. Total","43","40","3","0"
+"",Total,Without Children,With Children And Adults,Unknown Household Type
+Male,23,22,1,0
+Female,9,7,2,0
+No Single Gender,1,1,0,0
+Questioning,0,0,0,0
+Transgender,0,0,0,0
+Client Doesn't Know/Refused,0,0,0,0
+Data Not Collected,0,0,0,0
+Total,33,30,3,0

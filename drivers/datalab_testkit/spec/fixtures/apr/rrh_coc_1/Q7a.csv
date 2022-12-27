@@ -1,7 +1,7 @@
-"Total number of persons served during the operating year","Total","a. Without children","b. With children and adults","c. With only children","d. Unknown household type"
-"a. Adults","15","14","1","0","0"
-"b. Children","1","0","1","0","0"
-"c. Client Doesn't Know/ Client Refused","0","0","0","0","0"
-"d. Data Not Collected","0","0","0","0","0"
-"e. Total","16","14","2","0","0"
-"f. For PSH & RRH – the total persons served who moved into housing","16","14","2","",""
+"",Total,Without Children,With Children And Adults,With Only Children,Unknown Household Type
+Adults,12,9,3,0,0
+Children,2,0,2,0,0
+Client Doesn't Know/Refused,0,0,0,0,0
+Data Not Collected,0,0,0,0,0
+Total,14,9,5,0,0
+For PSH & RRH - the total persons served who moved into housing,14,9,5,0,0

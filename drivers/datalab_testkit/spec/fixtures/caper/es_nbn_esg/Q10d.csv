@@ -1,9 +1,9 @@
-" ","Total","a. Under age 18","b. Age 18-24","c. Age 25-61","d. Age 62 and over","e. Client Doesn't Know/Client Refused","f. Data not collected"
-"a. Male","0","0","0","0","0","0","0"
-"b. Female","24","0","0","21","3","0","0"
-"c. No Single Gender","0","0","0","0","0","0","0"
-"d. Questioning","0","0","0","0","0","0","0"
-"e. Transgender","0","0","0","0","0","0","0"
-"f. Client Doesn't Know/Client Refused","0","0","0","0","0","0","0"
-"g. Data Not Collected","0","0","0","0","0","0","0"
-"h. Total","24","0","0","21","3","0","0"
+"",Total,Under Age 18,Age 18 to 24,Age 25 to 61,Age 62 and over,Client Doesn't Know/Refused,Data Not Collected
+Male,90,13,6,63,8,0,0
+Female,67,16,8,39,4,0,0
+No Single Gender,0,0,0,0,0,0,0
+Questioning,0,0,0,0,0,0,0
+Transgender,2,0,0,2,0,0,0
+Client Doesn't Know/Refused,0,0,0,0,0,0,0
+Data Not Collected,0,0,0,0,0,0,0
+Total,159,29,14,104,12,0,0
