@@ -10,7 +10,7 @@ RSpec.shared_context 'datalab testkit context', shared_context: :metadata do
       start: Date.parse('2020-10-01'),
       end: Date.parse('2021-09-30'),
       user_id: User.setup_system_user.id,
-      coc_codes: ['XX-500'],
+      coc_codes: ['XX-501'],
     }.freeze
   end
 

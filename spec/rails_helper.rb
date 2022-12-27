@@ -70,9 +70,9 @@ RSpec.configure do |config|
     Dir.glob('{drivers,spec}/**/fixpoints/*.yml').each do |filename|
       FileUtils.rm(filename)
     end
-    Dir.glob('{drivers,spec}/**/fixpoints/*.sql').each do |filename|
-      FileUtils.rm(filename)
-    end
+    # Dir.glob('{drivers,spec}/**/fixpoints/*.sql').each do |filename|
+    #   FileUtils.rm(filename)
+    # end
 
     GrdaWarehouse::Utility.clear!
     Delayed::Job.delete_all

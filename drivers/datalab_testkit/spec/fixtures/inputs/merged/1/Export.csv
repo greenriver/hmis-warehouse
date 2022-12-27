@@ -1,2 +1,0 @@
-SourceType,SourceID,SourceName,SourceContactFirst,SourceContactLast,SourceContactPhone,SourceContactExtension,SourceContactEmail,ExportDate,ExportStartDate,ExportEndDate,SoftwareName,SoftwareVersion,CSVVersion,ExportPeriodType,ExportDirective,HashStatus,ExportID
-4,1106,I COUNT Network,,,,,,,,,DataLab,1.0,1.2,3,2,3,MERGED-ID
