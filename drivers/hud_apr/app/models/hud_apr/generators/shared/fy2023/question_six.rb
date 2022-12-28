@@ -72,13 +72,16 @@ module HudApr::Generators::Shared::Fy2023
       answer.update(summary: dkr_members.count)
 
       # Name missing
+      # Name DQ 99 or name missing and we didn't already count it for DK/R
       answer = @report.answer(question: table_name, cell: 'C2')
       m_members = dq_universe_members.where(
-        a_t[:name_quality].not_in([8, 9]).
-          and(
-            a_t[:first_name].eq(nil).
-              or(a_t[:last_name].eq(nil)),
-          ),
+        a_t[:name_quality].eq(99).or(
+          a_t[:name_quality].not_in([8, 9]).
+            and(
+              a_t[:first_name].eq(nil).
+                or(a_t[:last_name].eq(nil)),
+            ),
+        ),
       )
       answer.add_members(m_members)
       answer.update(summary: m_members.count)
