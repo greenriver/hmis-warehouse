@@ -54,10 +54,18 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     :last_name_z_to_a,
     :first_name_a_to_z,
     :first_name_z_to_a,
-    :youngest_to_oldest,
-    :oldest_to_youngest,
-    :recently_added,
+    :age_youngest_to_oldest,
+    :age_oldest_to_youngest,
   ].freeze
+
+  SORT_OPTION_DESCRIPTIONS = {
+    last_name_a_to_z: 'Last Name: A-Z',
+    last_name_z_to_a: 'Last Name: Z-A',
+    first_name_a_to_z: 'First Name: A-Z',
+    first_name_z_to_a: 'First Name: Z-A',
+    age_youngest_to_oldest: 'Age: Youngest to Oldest',
+    age_oldest_to_youngest: 'Age: Oldest to Youngest',
+  }.freeze
 
   def self.client_search(input:, user: nil)
     # Apply ID searches directly, as they can only ever return a single client
@@ -110,9 +118,9 @@ class Hmis::Hud::Client < Hmis::Hud::Base
       order(arel_table[:first_name].asc.nulls_last)
     when :first_name_z_to_a
       order(arel_table[:first_name].desc.nulls_last)
-    when :youngest_to_oldest
+    when :age_youngest_to_oldest
       order(arel_table[:dob].desc.nulls_last)
-    when :oldest_to_youngest
+    when :age_oldest_to_youngest
       order(arel_table[:dob].asc.nulls_last)
     when :recently_added
       order(arel_table[:date_created].desc.nulls_last)
