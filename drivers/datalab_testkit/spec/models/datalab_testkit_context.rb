@@ -10,7 +10,7 @@ RSpec.shared_context 'datalab testkit context', shared_context: :metadata do
       start: Date.parse('2021-10-01'),
       end: Date.parse('2022-09-30'),
       user_id: User.setup_system_user.id,
-      coc_codes: ['XX-501'],
+      coc_codes: ['XX-500', 'XX-501'],
     }.freeze
   end
 
@@ -23,7 +23,7 @@ RSpec.shared_context 'datalab testkit context', shared_context: :metadata do
   end
 
   def result_file_prefix
-    'drivers/datalab_testkit/spec/fixtures/'
+    'drivers/datalab_testkit/spec/fixtures/results/'
   end
 
   def result_file(name)
