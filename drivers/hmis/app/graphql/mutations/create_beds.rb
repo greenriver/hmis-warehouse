@@ -16,7 +16,7 @@ module Mutations
       # Validate all numbers are non-negative
       Hmis::Bed.bed_types.each do |bed_type, _|
         num = input.send(bed_type)
-        errors << InputValidationError.new('Must be non-negative', attribute: bed_type) unless num&.positive?
+        errors << InputValidationError.new('Must be non-negative', attribute: bed_type) if num.present? && !num.positive?
       end
 
       return { inventory: nil, errors: errors } if errors.any?
@@ -26,6 +26,8 @@ module Mutations
       common = { user_id: hmis_user.user_id, created_at: Time.now, updated_at: Time.now }
       Hmis::Bed.bed_types.each do |bed_type, label|
         num_beds = input.send(bed_type)
+        next unless num_beds&.positive?
+
         (1..num_beds).each do |i|
           bed_args << {
             unit_id: unit.id,
@@ -39,19 +41,20 @@ module Mutations
       Hmis::Bed.insert_all(bed_args) if bed_args.any?
 
       # Update bed counts on Inventory record
-      # FIXME: call update once
       total_beds_added = 0
       Hmis::Bed.bed_types.each do |bed_type, _|
         previous = inventory.send(bed_type) || 0
-        num_added = input.send(bed_type) || 0
-        inventory.update(bed_type => previous + num_added)
-        total_beds_added += num_added
+        num_added = input.send(bed_type)
+        if num_added&.positive?
+          inventory.update(bed_type => previous + num_added)
+          total_beds_added += num_added
+        end
       end
       inventory.update(bed_inventory: inventory.bed_inventory + total_beds_added)
 
       {
         inventory: inventory,
-        errors: nil,
+        errors: [],
       }
     end
   end

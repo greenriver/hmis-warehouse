@@ -27,7 +27,7 @@ module Mutations
 
       {
         inventory: inventory,
-        errors: nil,
+        errors: [],
       }
     end
   end

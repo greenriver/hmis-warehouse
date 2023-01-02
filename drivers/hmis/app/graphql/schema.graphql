@@ -2248,13 +2248,20 @@ enum InventoryBedType {
 input InventoryInput {
   availability: Availability
   bedInventory: Int
+  chBedInventory: Int
+  chVetBedInventory: Int
+  chYouthBedInventory: Int
   cocCode: String
   esBedType: BedType
   householdType: HouseholdType
   inventoryEndDate: ISO8601Date
   inventoryStartDate: ISO8601Date
+  otherBedInventory: Int
   projectId: ID
   unitInventory: Int
+  vetBedInventory: Int
+  youthBedInventory: Int
+  youthVetBedInventory: Int
 }
 
 """
@@ -2262,15 +2269,6 @@ HUD Inventory Sorting Options
 """
 enum InventorySortOption {
   START_DATE
-}
-
-input InventoryUpdateInput {
-  availability: Availability
-  cocCode: String
-  esBedType: BedType
-  householdType: HouseholdType
-  inventoryEndDate: ISO8601Date
-  inventoryStartDate: ISO8601Date
 }
 
 enum ItemType {
@@ -4572,7 +4570,7 @@ input UpdateInventoryInput {
   """
   clientMutationId: String
   id: ID!
-  input: InventoryUpdateInput!
+  input: InventoryInput!
 }
 
 """

@@ -1,7 +1,7 @@
 module Mutations
   class UpdateInventory < BaseMutation
     argument :id, ID, required: true
-    argument :input, Types::HmisSchema::InventoryUpdateInput, required: true
+    argument :input, Types::HmisSchema::InventoryInput, required: true
 
     field :inventory, Types::HmisSchema::Inventory, null: true
     field :errors, [Types::HmisSchema::ValidationError], null: false

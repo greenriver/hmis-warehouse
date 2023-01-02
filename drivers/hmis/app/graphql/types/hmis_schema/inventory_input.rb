@@ -10,13 +10,13 @@ module Types
     hud_argument :availability, HmisSchema::Enums::Hud::Availability
     hud_argument :unit_inventory
     hud_argument :bed_inventory
-    # hud_argument :ch_vet_bed_inventory
-    # hud_argument :youth_vet_bed_inventory
-    # hud_argument :vet_bed_inventory
-    # hud_argument :ch_youth_bed_inventory
-    # hud_argument :youth_bed_inventory
-    # hud_argument :ch_bed_inventory
-    # hud_argument :other_bed_inventory
+    hud_argument :ch_vet_bed_inventory
+    hud_argument :youth_vet_bed_inventory
+    hud_argument :vet_bed_inventory
+    hud_argument :ch_youth_bed_inventory
+    hud_argument :youth_bed_inventory
+    hud_argument :ch_bed_inventory
+    hud_argument :other_bed_inventory
     hud_argument :es_bed_type, HmisSchema::Enums::Hud::BedType
     hud_argument :inventory_start_date
     hud_argument :inventory_end_date
