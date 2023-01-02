@@ -29,8 +29,8 @@ module Types
     field :delete_funder, mutation: Mutations::DeleteFunder
     field :create_inventory, mutation: Mutations::CreateInventory
 
-    # field :create_units, mutation: Mutations::CreateUnits
-    # field :create_beds, mutation: Mutations::CreateBeds
+    field :create_units, mutation: Mutations::CreateUnits
+    field :create_beds, mutation: Mutations::CreateBeds
 
     # field :update_units, mutation: Mutations::UpdateUnit
     # field :update_beds, mutation: Mutations::UpdateUnit
