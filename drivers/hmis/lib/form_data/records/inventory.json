@@ -116,7 +116,6 @@
         {
           "type": "INTEGER",
           "link_id": "unit",
-          "required": true,
           "text": "Unit Inventory",
           "field_name": "unitInventory"
         },
@@ -125,7 +124,6 @@
           "link_id": "beds-group",
           "component": "INPUT_GROUP",
           "text": "Bed Inventory",
-          "required": true,
           "item": [
             {
               "type": "INTEGER",
