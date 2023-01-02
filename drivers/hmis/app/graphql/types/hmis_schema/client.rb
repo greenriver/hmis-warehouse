@@ -83,7 +83,9 @@ module Types
     end
 
     def image
-      object.image ? object : nil
+      return nil unless object.image&.download
+
+      object.image
     end
   end
 end
