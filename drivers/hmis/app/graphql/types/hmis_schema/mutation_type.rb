@@ -31,9 +31,10 @@ module Types
 
     field :create_units, mutation: Mutations::CreateUnits
     field :create_beds, mutation: Mutations::CreateBeds
-
-    # field :update_units, mutation: Mutations::UpdateUnit
-    # field :update_beds, mutation: Mutations::UpdateUnit
+    # field :update_unit, mutation: Mutations::UpdateUnit
+    # field :update_bed, mutation: Mutations::UpdateBed
+    # field :delete_units, mutation: Mutations::DeleteUnits
+    # field :delete_beds, mutation: Mutations::DeleteBeds
 
     field :update_inventory, mutation: Mutations::UpdateInventory
     field :delete_inventory, mutation: Mutations::DeleteInventory
