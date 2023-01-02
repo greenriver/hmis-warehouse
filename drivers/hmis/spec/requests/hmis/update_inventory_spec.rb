@@ -105,6 +105,38 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
     end
 
+    it 'fails if end date is before start date' do
+      response, result = post_graphql(id: i1.id, input: { **valid_input, inventory_start_date: '2010-01-01', inventory_end_date: '2000-01-01' }) { mutation }
+
+      record = result.dig('data', 'updateInventory', 'inventory')
+      errors = result.dig('data', 'updateInventory', 'errors')
+
+      aggregate_failures 'checking response' do
+        expect(response.status).to eq 200
+        expect(errors).to be_present
+        expect(record).to be_nil
+        expect(errors.length).to eq(1)
+        expect(errors[0]['attribute']).to eq 'inventoryEndDate'
+        expect(errors[0]['type']).to eq 'invalid'
+      end
+    end
+
+    # it 'fails if counts are negaitve' do
+    #   response, result = post_graphql(id: i1.id, input: { **valid_input, unit_inventory: -1, bed_inventory: -2, other_bed_inventory: -3 }) { mutation }
+
+    #   record = result.dig('data', 'updateInventory', 'inventory')
+    #   errors = result.dig('data', 'updateInventory', 'errors')
+
+    #   aggregate_failures 'checking response' do
+    #     expect(response.status).to eq 200
+    #     expect(errors).to be_present
+    #     expect(record).to be_nil
+    #     expect(errors.length).to eq(3)
+    #     expect(errors[0]['attribute']).to eq 'bedInventory'
+    #     expect(errors[0]['type']).to eq 'invalid'
+    #   end
+    # end
+
     it 'validates start date against project operating period (start date too early)' do
       p1.update(operating_start_date: '2019-01-01')
       response, result = post_graphql(id: i1.id, input: { **valid_input, inventory_start_date: '2010-01-01' }) { mutation }

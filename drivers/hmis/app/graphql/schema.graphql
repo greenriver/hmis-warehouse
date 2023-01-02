@@ -177,6 +177,11 @@ enum Availability {
   YEAR_ROUND
 }
 
+"""
+A base64 encoded string
+"""
+scalar Base64
+
 type Bed {
   bedType: InventoryBedType!
   endDate: ISO8601Date
@@ -239,6 +244,7 @@ type Client {
   gender: [Gender!]!
   healthAndDvs(limit: Int, offset: Int): HealthAndDvsPaginated!
   id: ID!
+  image: ClientImage
   incomeBenefits(limit: Int, offset: Int): IncomeBenefitsPaginated!
   lastName: String
   middleName: String
@@ -251,6 +257,15 @@ type Client {
   ssn: String
   ssnDataQuality: SSNDataQuality!
   veteranStatus: NoYesReasonsForMissingData!
+}
+
+"""
+Client Image
+"""
+type ClientImage {
+  base64: Base64!
+  contentType: String!
+  id: ID!
 }
 
 """
@@ -401,6 +416,11 @@ enum Component {
   Render a choice input item as vertical radio buttons
   """
   RADIO_BUTTONS_VERTICAL
+
+  """
+  SSN input component
+  """
+  SSN
 }
 
 """
@@ -2971,6 +2991,21 @@ input ProjectInput {
 }
 
 """
+HMIS Project search input
+"""
+input ProjectSearchInput {
+  """
+  Project primary key
+  """
+  id: ID
+
+  """
+  Omnisearch string
+  """
+  textSearch: String
+}
+
+"""
 HUD Project Sorting Options
 """
 enum ProjectSortOption {
@@ -3123,6 +3158,11 @@ type Query {
   Project CoC lookup
   """
   projectCoc(id: ID!): ProjectCoc
+
+  """
+  Search for projects
+  """
+  projectSearch(input: ProjectSearchInput!, limit: Int, offset: Int, projectTypes: [ProjectType!], sortOrder: ProjectSortOption): ProjectsPaginated!
 
   """
   Get a list of projects
