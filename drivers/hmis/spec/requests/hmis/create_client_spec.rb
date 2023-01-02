@@ -141,26 +141,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         mutation CreateClient($input: ClientInput!) {
           createClient(input: { input: $input }) {
             client {
-              dateCreated
-              dateDeleted
-              dateUpdated
-              dob
-              dobDataQuality
-              ethnicity
-              firstName
               gender
-              id
-              lastName
-              middleName
-              nameDataQuality
-              nameSuffix
-              personalId
-              preferredName
-              pronouns
               race
-              ssn
-              ssnDataQuality
-              veteranStatus
+              #{scalar_fields(Types::HmisSchema::Client)}
+              image {
+                #{scalar_fields(Types::HmisSchema::ClientImage)}
+              }
               enrollments {
                 nodes {
                   id
