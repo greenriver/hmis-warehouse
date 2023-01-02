@@ -83,7 +83,7 @@ module Types
     end
 
     def image
-      object
+      object.image ? object : nil
     end
   end
 end
