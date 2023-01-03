@@ -63,7 +63,7 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
 
     case option
     when :assessment_date
-      order(AssessmentDate: :desc)
+      order(assessment_date: :desc, date_created: :desc)
     else
       raise NotImplementedError
     end

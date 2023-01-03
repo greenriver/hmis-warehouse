@@ -206,7 +206,6 @@ Rails.application.routes.draw do
     resources :future_enrollments, only: [:index]
     resources :long_standing_clients, only: [:index]
     resources :really_old_enrollments, only: [:index]
-    resources :double_enrollments, only: [:index]
     resources :entry_exit_service, only: [:index]
     resources :recidivism, only: [:index]
     resources :expiring_consent, only: [:index]
@@ -296,11 +295,6 @@ Rails.application.routes.draw do
       collection do
         get :running
       end
-    end
-    namespace :hud do
-      resources :missing_coc_codes, only: [:index]
-      resources :not_one_hohs, only: [:index]
-      resources :incorrect_move_in_dates, only: [:index]
     end
     namespace :client_details do
       resources :exits, only: [:index] do

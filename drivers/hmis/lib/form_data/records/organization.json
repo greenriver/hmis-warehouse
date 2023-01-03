@@ -2,13 +2,13 @@
   "item": [
     {
       "type": "GROUP",
-      "link_id": "name",
+      "link_id": "organization",
       "required": false,
       "item": [
         {
           "type": "STRING",
           "required": true,
-          "link_id": "1",
+          "link_id": "name",
           "text": "Organization Name",
           "field_name": "organizationName"
         },
