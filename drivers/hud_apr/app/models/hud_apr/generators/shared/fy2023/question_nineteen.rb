@@ -245,7 +245,7 @@ module HudApr::Generators::Shared::Fy2023
 
     private def ids_and_amounts(adults, column:, income_category:, suffix:)
       ids = Set.new
-      amounts = Set.new
+      amounts = [] # this can't be a set, we need all amounts even duplicates
       adults.preload(:universe_membership).find_each do |member|
         apr_client = member.universe_membership
         income_difference = income_change(
