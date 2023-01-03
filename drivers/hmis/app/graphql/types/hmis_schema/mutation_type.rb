@@ -35,5 +35,6 @@ module Types
     field :delete_service, mutation: Mutations::DeleteService
     field :save_assessment, mutation: Mutations::SaveAssessment
     field :submit_assessment, mutation: Mutations::SubmitAssessment
+    field :create_direct_upload, mutation: Mutations::CreateDirectUpload
   end
 end

@@ -3,8 +3,8 @@
 
 module Mutations
   class CreateDirectUpload < BaseMutation
-    argument :input, Types::DirectUploadInputType, required: true
-    type Types::DirectUploadType
+    argument :input, Types::Uploads::DirectUploadInputType, required: true
+    type Types::Uploads::DirectUploadType
 
     def resolve(input:)
       blob = ActiveStorage::Blob.create_before_direct_upload!(input.to_h)

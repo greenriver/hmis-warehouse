@@ -1,5 +1,5 @@
 module Types
-  class DirectUploadInputType < BaseInputObject
+  class Uploads::DirectUploadInputType < BaseInputObject
     description 'File information required to prepare a direct upload'
 
     argument :filename, String, 'Original file name', required: true

@@ -1,5 +1,5 @@
 module Types
-  class DirectUploadType < BaseObject
+  class Uploads::DirectUploadType < BaseObject
     description 'Represents direct upload credentials'
 
     field :filename, String, null: false
