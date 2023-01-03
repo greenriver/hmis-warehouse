@@ -10,7 +10,7 @@ module HudApr::Generators::Shared::Fy2023
 
     def self.table_descriptions
       {
-        'Question 22' => 'Length of participation',
+        'Question 22' => 'Length of Participation',
         'Q22a1' => 'Length of Participation - CoC Projects',
         'Q22a2' => 'Length of Participation - ESG Projects',
         'Q22b' => 'Average and Median Length of Participation in Days',

@@ -10,7 +10,7 @@ module HudApr::Generators::Shared::Fy2023
 
     def self.table_descriptions
       {
-        'Question 13' => 'PhysicalandMentalHealthConditions',
+        'Question 13' => 'Physical and Mental Health Conditions',
         'Q13a1' => 'Physical and Mental Health Conditions at Start',
         'Q13b1' => 'Physical and Mental Health Conditions at Exit',
         'Q13c1' => 'Physical and Mental Health Conditions for Stayers',
@@ -150,9 +150,8 @@ module HudApr::Generators::Shared::Fy2023
               apr_client = member.universe_membership
               disability_truths = [
                 apr_client["mental_health_problem_#{suffix}".to_sym] == 1,
-                apr_client["alcohol_abuse_#{suffix}".to_sym] && !apr_client["drug_abuse_#{suffix}".to_sym],
-                apr_client["drug_abuse_#{suffix}".to_sym] && !apr_client["alcohol_abuse_#{suffix}".to_sym],
-                apr_client["drug_abuse_#{suffix}".to_sym] && apr_client["alcohol_abuse_#{suffix}".to_sym],
+                apr_client["drug_abuse_#{suffix}".to_sym],
+                apr_client["alcohol_abuse_#{suffix}".to_sym],
                 apr_client["chronic_disability_#{suffix}".to_sym] == 1,
                 apr_client["hiv_aids_#{suffix}".to_sym] == 1,
                 apr_client["developmental_disability_#{suffix}".to_sym] == 1,

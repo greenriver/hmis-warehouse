@@ -10,7 +10,7 @@ module HudApr::Generators::Shared::Fy2023
 
     def self.table_descriptions
       {
-        'Question 19' => 'Cash Income - Changes over Time',
+        'Question 19' => 'Cash Income - Changes Over Time',
         'Q19a1' => 'Client Cash Income Change - Income Source - by Start and Latest Status',
         'Q19a2' => 'Client Cash Income Change - Income Source - by Start and Exit',
         'Q19b' => 'Disabling Conditions and Income for Adults at Exit',
