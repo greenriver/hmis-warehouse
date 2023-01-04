@@ -1025,6 +1025,11 @@
                   "answer_number": 0
                 }
               ]
+            },
+            {
+              "type": "DISPLAY",
+              "link_id": "monthly-total-income",
+              "text": "Montly Total Income"
             }
           ]
         }

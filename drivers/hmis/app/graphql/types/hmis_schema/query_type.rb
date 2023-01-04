@@ -133,10 +133,10 @@ module Types
 
     field :pick_list, [Types::Forms::PickListOption], 'Get list of options for pick list', null: false do
       argument :pick_list_type, Types::Forms::Enums::PickListType, required: true
-      argument :project_id, ID, required: false
+      argument :relation_id, ID, required: false
     end
-    def pick_list(pick_list_type:, project_id: nil)
-      Types::Forms::PickListOption.options_for_type(pick_list_type, user: current_user, project_id: project_id)
+    def pick_list(pick_list_type:, relation_id: nil)
+      Types::Forms::PickListOption.options_for_type(pick_list_type, user: current_user, relation_id: relation_id)
     end
   end
 end
