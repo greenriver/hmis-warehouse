@@ -24,7 +24,7 @@
     {
       "type": "GROUP",
       "text": "Inventory Details",
-      "link_id": "1",
+      "link_id": "inventory-detail",
       "required": false,
       "item": [
         {
@@ -39,24 +39,30 @@
           "type": "CHOICE",
           "required": true,
           "link_id": "hhtype",
-          "component": "RADIO_BUTTONS_VERTICAL",
+          "component": "RADIO_BUTTONS",
           "text": "Household Type",
           "pick_list_reference": "HouseholdType",
           "field_name": "householdType"
         },
         {
-          "type": "INTEGER",
-          "required": true,
-          "link_id": "units",
-          "text": "Unit Inventory",
-          "field_name": "unitInventory"
+          "type": "CHOICE",
+          "_comment": "TODO: ES ONLY",
+          "required": false,
+          "link_id": "es-availability",
+          "component": "RADIO_BUTTONS",
+          "text": "Availability",
+          "pick_list_reference": "Availability",
+          "field_name": "availability"
         },
         {
-          "type": "INTEGER",
-          "required": true,
-          "link_id": "beds",
-          "text": "Bed Inventory",
-          "field_name": "bedInventory"
+          "type": "CHOICE",
+          "_comment": "TODO: ES ONLY",
+          "required": false,
+          "link_id": "es-bed-type",
+          "component": "RADIO_BUTTONS",
+          "text": "ES Bed Type",
+          "pick_list_reference": "BedType",
+          "field_name": "esBedType"
         },
         {
           "type": "DATE",
@@ -97,6 +103,75 @@
             {
               "type": "MIN",
               "question": "2.07.1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "GROUP",
+      "text": "Beds and Units",
+      "link_id": "beds-and-units",
+      "item": [
+        {
+          "type": "INTEGER",
+          "link_id": "unit",
+          "text": "Unit Inventory",
+          "field_name": "unitInventory"
+        },
+        {
+          "type": "GROUP",
+          "link_id": "beds-group",
+          "component": "INPUT_GROUP",
+          "text": "Bed Inventory",
+          "item": [
+            {
+              "type": "INTEGER",
+              "link_id": "ch-beds",
+              "text": "Chronic",
+              "field_name": "chBedInventory"
+            },
+            {
+              "type": "INTEGER",
+              "link_id": "vet-beds",
+              "text": "Veteran",
+              "field_name": "vetBedInventory"
+            },
+            {
+              "type": "INTEGER",
+              "link_id": "ch-vet-beds",
+              "text": "Chronic Veteran",
+              "field_name": "chVetBedInventory"
+            },
+            {
+              "type": "INTEGER",
+              "link_id": "youth-beds",
+              "text": "Youth",
+              "field_name": "youthBedInventory"
+            },
+            {
+              "type": "INTEGER",
+              "link_id": "youth-vet-beds",
+              "text": "Youth Veteran",
+              "field_name": "youthVetBedInventory"
+            },
+            {
+              "type": "INTEGER",
+              "link_id": "ch-youth-beds",
+              "text": "Chronic Youth",
+              "field_name": "chYouthBedInventory"
+            },
+            {
+              "type": "INTEGER",
+              "link_id": "other-beds",
+              "text": "Other",
+              "field_name": "otherBedInventory"
+            },
+            {
+              "type": "DISPLAY",
+              "link_id": "sum",
+              "text": "Total Bed Count",
+              "field_name": "bedInventory"
             }
           ]
         }

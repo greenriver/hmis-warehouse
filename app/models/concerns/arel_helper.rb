@@ -420,6 +420,10 @@ module ArelHelper
     Hmis::Wip.arel_table
   end
 
+  def ar_t
+    Hmis::ActiveRange.arel_table
+  end
+
   # and to the class itself (so they can be used in scopes, for example)
   class_methods do
     # convert non-node into a node
@@ -794,6 +798,10 @@ module ArelHelper
 
     def wip_t
       Hmis::Wip.arel_table
+    end
+
+    def ar_t
+      Hmis::ActiveRange.arel_table
     end
   end
 end

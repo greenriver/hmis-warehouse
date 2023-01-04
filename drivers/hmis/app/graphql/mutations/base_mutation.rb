@@ -99,7 +99,7 @@ module Mutations
         date_created: DateTime.current,
       )
 
-      errors = []
+      errors = create_errors(record, input)
 
       if record.valid?
         record.save!
