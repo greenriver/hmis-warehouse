@@ -81,5 +81,11 @@ module Types
       selected_races << object.RaceNone if object.RaceNone
       selected_races
     end
+
+    def image
+      return nil unless object.image&.download
+
+      object.image
+    end
   end
 end

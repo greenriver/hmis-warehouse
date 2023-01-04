@@ -13,6 +13,12 @@ module Types
     field :content_type, String, null: false
     field :base64, Types::Base64, null: false
 
+    # Object is a GrdaWarehouse::ClientFile
+
+    def content_type
+      object.content_type || 'image/jpeg'
+    end
+
     def base64
       ::Base64.encode64(object.download)
     end

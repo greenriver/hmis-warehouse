@@ -86,7 +86,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     age_oldest_to_youngest: 'Age: Oldest to Youngest',
   }.freeze
 
-  # ! Remove once concern works right
+  # Unused
   def fake_client_image_data
     gender = if self[:Male].in?([1]) then 'male' else 'female' end
     age_group = if age.blank? || age > 18 then 'adults' else 'children' end
@@ -185,6 +185,6 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   end
 
   def image
-    client_files&.client_photos&.newest_first&.first&.client_file
+    @image ||= client_files&.client_photos&.newest_first&.first&.client_file
   end
 end
