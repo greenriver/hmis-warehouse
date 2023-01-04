@@ -24,5 +24,6 @@ module Types
     value 'TEXT'
     value 'CHOICE'
     value 'OPEN_CHOICE'
+    value 'IMAGE'
   end
 end

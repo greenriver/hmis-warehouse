@@ -81,9 +81,5 @@ module Types
       selected_races << object.RaceNone if object.RaceNone
       selected_races
     end
-
-    def image
-      object
-    end
   end
 end

@@ -25,20 +25,28 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   has_many :income_benefits, through: :enrollments
   has_many :disabilities, through: :enrollments
   has_many :health_and_dvs, through: :enrollments
-  has_many :client_files, class_name: 'GrdaWarehouse::ClientFile'
+  has_many :client_files, class_name: 'GrdaWarehouse::ClientFile', primary_key: :id, foreign_key: :client_id
   has_many :current_living_situations, through: :enrollments
 
   validates_with Hmis::Hud::Validators::ClientValidator
 
   # ! Elliot: This logic probably wouldn't live here, but I've included it here for reference
-  # attr_accessor :image_blob_id
-  # after_save do
-  #   current_image_blob_id = image_blob_id
-  #   self.image_blob_id = nil
-  #   if current_image_blob_id
-  #     main.attach(current_image_blob_id)
-  #   end
-  # end
+  attr_accessor :image_blob_id
+  after_save do
+    current_image_blob = ActiveStorage::Blob.find_by(id: image_blob_id)
+    self.image_blob_id = nil
+    if current_image_blob
+      file = GrdaWarehouse::ClientFile.new(
+        client_id: id,
+        user_id: user.id,
+        name: 'Client Headshot',
+        visible_in_window: false,
+      )
+      file.tag_list.add('Client Headshot')
+      file.client_file.attach(current_image_blob)
+      file.save!
+    end
+  end
 
   scope :visible_to, ->(user) do
     joins(:data_source).merge(GrdaWarehouse::DataSource.hmis(user))
@@ -177,6 +185,6 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   end
 
   def image
-    client_files&.client_photos&.newest_first&.first&.client_file&.download
+    client_files&.client_photos&.newest_first&.first&.client_file
   end
 end

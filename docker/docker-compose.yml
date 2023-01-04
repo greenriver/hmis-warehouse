@@ -36,6 +36,8 @@ x-backend: &backend
     - .:/app:cached
     - rails_cache_alpine:/app/tmp/cache
     - bundle_alpine:/bundle
+    - /usr/local/share/ca-certificates:/usr/local/share/ca-certificates
+    - /etc/ssl/certs:/etc/ssl/certs
 
 services:
   shell:
@@ -153,16 +155,17 @@ services:
     image: minio/minio
     volumes:
       - ~/minio/data:/data
-    hostname: s3
+      - ~/.minio/certs:/certs
+    hostname: s3.dev.test
     environment:
-      - MINIO_ACCESS_KEY=local_access_key
-      - MINIO_SECRET_KEY=local_secret_key
-      - MINIO_ROOT_USER=local_access_key
-      - MINIO_ROOT_PASSWORD=local_secret_key
+      MINIO_ACCESS_KEY: local_access_key
+      MINIO_SECRET_KEY: local_secret_key
+      MINIO_ROOT_USER: local_access_key
+      MINIO_ROOT_PASSWORD: local_secret_key
     ports:
       - 9000:9000
       - 9001:9001 # enable for UI access
-    command: server /data
+    command: server --address :9000 --console-address :9001 --certs-dir /certs /data
 
 volumes:
   bundle_alpine:

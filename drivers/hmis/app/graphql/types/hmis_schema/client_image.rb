@@ -13,15 +13,8 @@ module Types
     field :content_type, String, null: false
     field :base64, Types::Base64, null: false
 
-    # Object is a client. This type will extract the images form the client
-
-    def content_type
-      # ! Fix this to take into account file format
-      'image/jpeg'
-    end
-
     def base64
-      ::Base64.encode64(object.image)
+      ::Base64.encode64(object.download)
     end
   end
 end
