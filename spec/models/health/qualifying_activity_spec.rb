@@ -333,7 +333,7 @@ RSpec.describe Health::QualifyingActivity, type: :model do
     end
 
     it 'marks phone_calls as in person' do
-      TodoOrDie('Remove MH COVID flexibility', by: '2023-01-07')
+      TodoOrDie('Remove MH COVID flexibility', by: '2023-03-31')
       phone_qa.maintain_cached_values
 
       expect(phone_qa.naturally_payable).to be true
@@ -357,7 +357,7 @@ RSpec.describe Health::QualifyingActivity, type: :model do
     end
 
     it 'marks phone_calls as in person' do
-      TodoOrDie('Remove MH COVID flexibility', by: '2023-01-07')
+      TodoOrDie('Remove MH COVID flexibility', by: '2023-03-31')
       phone_qa.maintain_cached_values
 
       expect(phone_qa.naturally_payable).to be true
