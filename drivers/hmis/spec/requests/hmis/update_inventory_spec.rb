@@ -16,13 +16,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   let(:valid_input) do
     {
-      project_id: p1.id,
       coc_code: pc2.coc_code,
       household_type: Types::HmisSchema::Enums::Hud::HouseholdType.enum_member_for_value(4).first,
       availability: Types::HmisSchema::Enums::Hud::Availability.enum_member_for_value(2).first,
-      unit_inventory: 2,
-      bed_inventory: 2,
       inventory_start_date: '2022-01-01',
+      bed_inventory: 10,
+      unit_inventory: 10,
     }
   end
 
@@ -104,21 +103,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(errors).to be_present
         expect(errors.length).to eq(1)
         expect(errors[0]['attribute']).to eq 'inventoryStartDate'
-        expect(errors[0]['type']).to eq 'required'
-      end
-    end
-
-    it 'fails if project is null' do
-      response, result = post_graphql(id: i1.id, input: { **valid_input, project_id: nil }) { mutation }
-
-      record = result.dig('data', 'updateInventory', 'inventory')
-      errors = result.dig('data', 'updateInventory', 'errors')
-
-      aggregate_failures 'checking response' do
-        expect(response.status).to eq 200
-        expect(errors).to be_present
-        expect(record).to be_nil
-        expect(errors[0]['attribute']).to eq 'projectId'
         expect(errors[0]['type']).to eq 'required'
       end
     end

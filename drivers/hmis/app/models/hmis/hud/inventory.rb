@@ -14,6 +14,8 @@ class Hmis::Hud::Inventory < Hmis::Hud::Base
 
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   belongs_to :project, **hmis_relation(:ProjectID, 'Project')
+  has_many :units
+  has_many :beds, through: :units
 
   SORT_OPTIONS = [:start_date].freeze
 
