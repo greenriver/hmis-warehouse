@@ -47,12 +47,12 @@ module CoreDemographicsReport::DocumentExports
           ),
           "Core Demographics - #{Time.current.to_s(:db)}",
         ) do |io|
-          self.pdf_file = io
+          self.downloadable_file = io
         end
       end
     end
 
-    def pdf_file=(file_io)
+    def downloadable_file=(file_io)
       self.filename = File.basename(file_io.path)
       self.file_data = file_io.read
       self.mime_type = EXCEL_MIME_TYPE
