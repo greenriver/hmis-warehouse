@@ -16,7 +16,7 @@ module Mutations
       # Validate all numbers are non-negative
       Hmis::Bed.bed_types.each do |bed_type, _|
         num = input.send(bed_type)
-        errors << InputValidationError.new('Must be non-negative', attribute: bed_type) if num.present? && !num.positive?
+        errors << InputValidationError.new('Bed count must be positive', attribute: bed_type) if num&.negative?
       end
 
       return { inventory: nil, errors: errors } if errors.any?
