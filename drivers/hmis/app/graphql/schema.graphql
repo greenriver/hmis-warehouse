@@ -3212,7 +3212,7 @@ type Query {
   """
   Get list of options for pick list
   """
-  pickList(inventoryId: ID, pickListType: PickListType!, projectId: ID): [PickListOption!]!
+  pickList(pickListType: PickListType!, relationId: ID): [PickListOption!]!
 
   """
   Project lookup
