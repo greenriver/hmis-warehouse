@@ -18,6 +18,14 @@
   if defined?(breakdown) && breakdown.present?
     report_params['breakdown'] = breakdown
   end
+  excel_data = if defined?(excel_export) && excel_export.present?
+    {
+      type: excel_export.type,
+      query_string: report_params.to_query
+    }
+  else
+    {}
+  end
   if export.present?
     data = {
       type: export.type,
@@ -25,4 +33,4 @@
     }
   end
 
-= render 'report_downloads/report_download_button', export: export, data: data, excel_download_path: excel_download_path, excel_download_tooltip: excel_download_tooltip
+= render 'report_downloads/report_download_button', export: export, data: data, excel_data: excel_data, excel_download_path: excel_download_path, excel_download_tooltip: excel_download_tooltip
