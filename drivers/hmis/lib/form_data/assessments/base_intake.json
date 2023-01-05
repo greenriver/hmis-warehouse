@@ -1,0 +1,25 @@
+{
+  "item": [
+    {
+      "fragment": "#client_location"
+    },
+    {
+      "fragment": "#prior_living_situation"
+    },
+    {
+      "fragment": "#income_and_sources"
+    },
+    {
+      "fragment": "#non_cash_benefits"
+    },
+    {
+      "fragment": "#health_insurance"
+    },
+    {
+      "fragment": "#disability"
+    },
+    {
+      "fragment": "#health_and_dv"
+    }
+  ]
+}
