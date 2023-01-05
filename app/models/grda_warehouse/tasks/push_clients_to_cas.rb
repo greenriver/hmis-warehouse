@@ -38,7 +38,6 @@ module GrdaWarehouse::Tasks
             project_clients = CasAccess::ProjectClient.
               where(data_source_id: data_source.id, id_in_data_source: client_id_batch).
               index_by(&:id_in_data_source)
-            max_dates = GrdaWarehouse::Hud::Client.date_of_last_homeless_service(client_id_batch)
             ongoing_enrolled_project_details = GrdaWarehouse::Hud::Client.ongoing_enrolled_project_details(client_id_batch)
             preloads = [
               :vispdats,
@@ -78,7 +77,7 @@ module GrdaWarehouse::Tasks
                 project_client.days_homeless = client.days_homeless
               end
 
-              project_client.calculated_last_homeless_night = max_dates[client.id]
+              project_client.calculated_last_homeless_night = client.date_of_last_homeless_service
               project_client.enrolled_project_ids = ongoing_enrolled_project_details[client.id]&.map(&:project_id)
               enrollments = ongoing_enrolled_project_details[client.id]
               project_client.enrolled_in_th = client.enrolled_in_th(enrollments)
