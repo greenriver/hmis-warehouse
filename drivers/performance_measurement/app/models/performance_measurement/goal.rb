@@ -32,6 +32,10 @@ module PerformanceMeasurement
       default_goal
     end
 
+    def self.include_project_options?
+      ! default_goal.always_run_for_coc
+    end
+
     def self.default_first
       goals = [default_goal]
       goals += coc.to_a

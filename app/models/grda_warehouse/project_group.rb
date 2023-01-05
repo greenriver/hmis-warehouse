@@ -12,9 +12,11 @@ module GrdaWarehouse
     acts_as_paranoid
     has_paper_trail
 
+    validates_presence_of :name
     after_create :maintain_system_group
 
     has_and_belongs_to_many :projects, class_name: 'GrdaWarehouse::Hud::Project', join_table: :project_project_groups
+    has_many :clients, through: :projects
 
     has_many :data_quality_reports, class_name: 'GrdaWarehouse::WarehouseReports::Project::DataQuality::Base'
     has_one :current_data_quality_report, -> do

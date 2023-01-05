@@ -10,18 +10,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     cleanup_test_environment
   end
 
-  let!(:ds1) { create :hmis_data_source }
-  let!(:user) { create(:user).tap { |u| u.add_viewable(ds1) } }
-  let(:hmis_user) { Hmis::User.find(user.id)&.tap { |u| u.update(hmis_data_source_id: ds1.id) } }
-  let(:u1) { Hmis::Hud::User.from_user(hmis_user) }
-  let(:u2) do
-    user2 = create(:user).tap { |u| u.add_viewable(ds1) }
-    hmis_user2 = Hmis::User.find(user2.id)&.tap { |u| u.update(hmis_data_source_id: ds1.id) }
-    Hmis::Hud::User.from_user(hmis_user2)
-  end
-  let!(:o1) { create :hmis_hud_organization, data_source: ds1, user: u1 }
-  let!(:p1) { create :hmis_hud_project, organization: o1, data_source: ds1, user: u2 }
-  let(:edit_access_group) { create :edit_access_group }
+  include_context 'hmis base setup'
+
+  let!(:pc1) { create :hmis_hud_project_coc, data_source_id: ds1.id, project: p1, coc_code: 'MA-500' }
 
   before(:each) do
     hmis_login(user)
@@ -30,8 +21,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   let(:query) do
     <<~GRAPHQL
-      query GetPickList($pickListType: PickListType!) {
-        pickList(pickListType: $pickListType) {
+      query GetPickList($pickListType: PickListType!, $relationId: ID) {
+        pickList(pickListType: $pickListType, relationId: $relationId) {
           code
           label
           secondaryLabel
@@ -85,8 +76,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     aggregate_failures 'checking response' do
       expect(response.status).to eq 200
       options = result.dig('data', 'pickList')
-      expect(options[0]['code']).to eq(::HUD.homeless_situations(as: :prior).first.to_s)
-      expect(options[0]['label']).to eq(::HUD.living_situation(options[0]['code'].to_i))
+      expect(options[0]['code']).to eq(Types::HmisSchema::Enums::Hud::LivingSituation.all_enum_value_definitions.find { |v| v.value == 16 }.graphql_name)
+      expect(options[0]['label']).to eq(::HUD.living_situation(16))
       expect(options[0]['groupCode']).to eq('HOMELESS')
       expect(options[0]['groupLabel']).to eq('Homeless')
     end
@@ -97,6 +88,16 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     expect(response.status).to eq 200
     options = result.dig('data', 'pickList')
     expect(options[0]['code']).to eq('VT-500')
+  end
+
+  it 'returns CoC pick list for specified project' do
+    response, result = post_graphql(pick_list_type: 'COC', relationId: p1.id.to_s) { query }
+    expect(response.status).to eq 200
+    options = result.dig('data', 'pickList')
+    expect(options.length).to eq(1)
+    expect(options[0]['code']).to eq(pc1.coc_code)
+    expect(options[0]['label']).to include(::HUD.cocs[pc1.coc_code])
+    expect(options[0]['initialSelected']).to eq(true)
   end
 
   it 'returns states with RELEVANT_COC_STATE selected' do

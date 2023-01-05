@@ -47,7 +47,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/hud/project.rb",
-      "line": 361,
+      "line": 364,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "where(\"#{access_to_project_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_organization(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_data_source(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_coc_codes(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_project_access_groups(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)}\")",
       "render_path": null,
@@ -147,7 +147,7 @@
       "check_name": "FileAccess",
       "message": "Parameter value used in file name",
       "file": "drivers/client_access_control/app/controllers/client_access_control/history_controller.rb",
-      "line": 97,
+      "line": 104,
       "link": "https://brakemanscanner.org/docs/warning_types/file_access/",
       "code": "File.open(Rails.root.join(\"tmp\", \"service_history_pdf_#{::GrdaWarehouse::Hud::Client.destination.find(params[:client_id].to_i).id}.pdf\"), \"wb\")",
       "render_path": null,
@@ -891,24 +891,35 @@
       "note": "Injection from internal sources"
     },
     {
-      "warning_type": "SQL Injection",
-      "warning_code": 0,
-      "fingerprint": "612b6d5691a811528ec05a66aa10ad125e6651851be9f0d639748af0343ccbe7",
-      "check_name": "SQL",
-      "message": "Possible SQL injection",
-      "file": "app/models/dba/partition_all.rb",
-      "line": 47,
-      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
-      "code": "GrdaWarehouseBase.connection.execute(\"DROP TABLE \\\"#{table}_saved\\\"\\n\")",
-      "render_path": null,
+      "warning_type": "Dynamic Render Path",
+      "warning_code": 15,
+      "fingerprint": "6012356b03eb94bac6208d03adf39acd1db517d644ec8c52e503b7efef462571",
+      "check_name": "Render",
+      "message": "Render path contains parameter value",
+      "file": "app/views/health/goals/edit.haml",
+      "line": 4,
+      "link": "https://brakemanscanner.org/docs/warning_types/dynamic_render_path/",
+      "code": "render(action => ::Health::Goal::Hpc.find(params[:id].to_i), { :readonly => false })",
+      "render_path": [
+        {
+          "type": "controller",
+          "class": "Health::GoalsController",
+          "method": "edit",
+          "line": 34,
+          "file": "app/controllers/concerns/health_goal.rb",
+          "rendered": {
+            "name": "health/goals/edit",
+            "file": "app/views/health/goals/edit.haml"
+          }
+        }
+      ],
       "location": {
-        "type": "method",
-        "class": "DBA::PartitionAll",
-        "method": "remove_saved_tables!"
+        "type": "template",
+        "template": "health/goals/edit"
       },
-      "user_input": "table",
-      "confidence": "Medium",
-      "note": "Internal sources"
+      "user_input": "params[:id]",
+      "confidence": "Weak",
+      "note": ""
     },
     {
       "warning_type": "Command Injection",
@@ -957,7 +968,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/report_generators/lsa/fy2021/all.rb",
-      "line": 661,
+      "line": 660,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "SqlServerBase.connection.execute((\"\" + \" ALTER TABLE #{table_name} ADD id BIGINT identity (1,1) NOT NULL; \"))",
       "render_path": null,
@@ -1128,7 +1139,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/report_generators/lsa/fy2021/all.rb",
-      "line": 391,
+      "line": 390,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "SqlServerBase.connection.execute(\"drop database #{@rds.database}\\n\")",
       "render_path": null,
@@ -1208,7 +1219,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/report_generators/lsa/fy2019/all.rb",
-      "line": 379,
+      "line": 378,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "SqlServerBase.connection.execute(\"drop database #{@rds.database}\\n\")",
       "render_path": null,
@@ -1268,7 +1279,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/report_generators/lsa/fy2019/all.rb",
-      "line": 660,
+      "line": 659,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "SqlServerBase.connection.execute((\"\" + \" ALTER TABLE #{table_name} DROP COLUMN id; \"))",
       "render_path": null,
@@ -1300,6 +1311,26 @@
       "user_input": "Arel.sql(_full_geoid_prefix)",
       "confidence": "Weak",
       "note": "Injection from internal sources"
+    },
+    {
+      "warning_type": "File Access",
+      "warning_code": 16,
+      "fingerprint": "8209c231f3717f00dfbf5f1ae66d9b27926d43b14bc03133faed58d17aa086e6",
+      "check_name": "FileAccess",
+      "message": "Parameter value used in file name",
+      "file": "drivers/client_access_control/app/controllers/client_access_control/history_controller.rb",
+      "line": 107,
+      "link": "https://brakemanscanner.org/docs/warning_types/file_access/",
+      "code": "File.open(Rails.root.join(\"tmp\", \"service_history_pdf_#{::GrdaWarehouse::Hud::Client.destination.find(params[:client_id].to_i).id}.pdf\"))",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "ClientAccessControl::HistoryController",
+        "method": "pdf"
+      },
+      "user_input": "params[:client_id]",
+      "confidence": "Weak",
+      "note": ""
     },
     {
       "warning_type": "Command Injection",
@@ -1484,11 +1515,31 @@
     {
       "warning_type": "SQL Injection",
       "warning_code": 0,
+      "fingerprint": "8d410282ff5f996729cb535ca2c5048ad928d9f38393ea2a77756fd2b8f4d69b",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "app/models/dba/partition_all.rb",
+      "line": 72,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "GrdaWarehouseBase.connection.execute(\"DROP TABLE IF EXSITS \\\"#{table}_saved\\\"\\n\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "DBA::PartitionAll",
+        "method": "remove_saved_tables!"
+      },
+      "user_input": "table",
+      "confidence": "Medium",
+      "note": "Injected string from entirely internal sources"
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
       "fingerprint": "90ff2d536c66b271d5f9e428f8f430887e06ca4bf3031ede5a3846d9f7c12294",
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/report_generators/lsa/fy2019/all.rb",
-      "line": 651,
+      "line": 650,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "SqlServerBase.connection.execute((\"\" + \" ALTER TABLE #{table_name} ADD id BIGINT identity (1,1) NOT NULL; \"))",
       "render_path": null,
@@ -2448,7 +2499,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/report_generators/lsa/fy2021/all.rb",
-      "line": 670,
+      "line": 669,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "SqlServerBase.connection.execute((\"\" + \" ALTER TABLE #{table_name} DROP COLUMN id; \"))",
       "render_path": null,
@@ -2641,6 +2692,6 @@
       "note": ""
     }
   ],
-  "updated": "2022-11-08 21:15:43 +0000",
+  "updated": "2022-12-14 19:59:15 +0000",
   "brakeman_version": "5.0.4"
 }

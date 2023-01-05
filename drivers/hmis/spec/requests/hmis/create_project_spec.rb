@@ -26,10 +26,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       description: 'This is a test project',
       contact_information: 'Contact for contact information',
       project_type: Types::HmisSchema::Enums::ProjectType.enum_member_for_value(1).first,
-      housing_type: Types::HmisSchema::Enums::HousingType.enum_member_for_value(1).first,
-      tracking_method: Types::HmisSchema::Enums::TrackingMethod.enum_member_for_value(0).first,
-      target_population: Types::HmisSchema::Enums::TargetPopulation.enum_member_for_value(1).first,
-      'HOPWAMedAssistedLivingFac' => Types::HmisSchema::Enums::HOPWAMedAssistedLivingFac.enum_member_for_value(1).first,
+      housing_type: Types::HmisSchema::Enums::Hud::HousingType.enum_member_for_value(1).first,
+      tracking_method: Types::HmisSchema::Enums::Hud::TrackingMethod.enum_member_for_value(0).first,
+      target_population: Types::HmisSchema::Enums::Hud::TargetPopulation.enum_member_for_value(1).first,
+      'HOPWAMedAssistedLivingFac' => Types::HmisSchema::Enums::Hud::HOPWAMedAssistedLivingFac.enum_member_for_value(1).first,
       continuum_project: false,
       residential_affiliation: true,
       'HMISParticipatingProject' => nil,
@@ -46,33 +46,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       mutation CreateProject($input: ProjectInput!) {
         createProject(input: { input: $input }) {
           project {
-            id
+            #{scalar_fields(Types::HmisSchema::Project)}
             organization {
               id
             }
-            projectName
-            projectType
-            HMISParticipatingProject
-            HOPWAMedAssistedLivingFac
-            contactInformation
-            continuumProject
-            description
-            housingType
-            operatingEndDate
-            operatingStartDate
-            residentialAffiliation
-            targetPopulation
-            trackingMethod
-            active
           }
-          errors {
-            attribute
-            message
-            fullMessage
-            type
-            options
-            __typename
-          }
+          #{error_fields}
         }
       }
     GRAPHQL
@@ -128,11 +107,19 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         },
       ],
       [
-        'should emit error if name is not provided',
+        'should emit error if start date is not provided',
         ->(input) { input.except(:operating_start_date) },
         {
           'fullMessage' => 'Operating start date must exist',
           'attribute' => 'operatingStartDate',
+        },
+      ],
+      [
+        'should emit error if end date is after start date',
+        ->(input) { { **input, operating_end_date: 2.years.ago.strftime('%Y-%m-%d') } },
+        {
+          'message' => 'must be on or after start date',
+          'attribute' => 'operatingEndDate',
         },
       ],
       [

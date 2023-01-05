@@ -6,3 +6,8 @@ def assign_viewable(access_group, viewable, user)
   access_group.add_viewable(viewable)
   access_group.add(user)
 end
+
+def remove_viewable(access_group, viewable, user)
+  access_group.remove_viewable(viewable)
+  access_group.remove(user)
+end

@@ -472,6 +472,9 @@ GEM
     i18n (1.12.0)
       concurrent-ruby (~> 1.0)
     ice_nine (0.11.2)
+    image_processing (1.12.2)
+      mini_magick (>= 4.9.5, < 5)
+      ruby-vips (>= 2.0.17, < 3)
     iniparse (1.5.0)
     io-console (0.5.9)
     jmespath (1.6.1)
@@ -516,7 +519,7 @@ GEM
       railties (>= 4)
       request_store (~> 1.0)
     logstop (0.2.7)
-    loofah (2.19.0)
+    loofah (2.19.1)
       crass (~> 1.0.2)
       nokogiri (>= 1.5.9)
     lumberjack (1.2.8)
@@ -561,14 +564,14 @@ GEM
     net-ssh (6.1.0)
     netrc (0.11.0)
     nio4r (2.5.8)
-    nokogiri (1.13.9)
+    nokogiri (1.13.10)
       mini_portile2 (~> 2.8.0)
       racc (~> 1.4)
-    nokogiri (1.13.9-aarch64-linux)
+    nokogiri (1.13.10-aarch64-linux)
       racc (~> 1.4)
-    nokogiri (1.13.9-x86_64-darwin)
+    nokogiri (1.13.10-x86_64-darwin)
       racc (~> 1.4)
-    nokogiri (1.13.9-x86_64-linux)
+    nokogiri (1.13.10-x86_64-linux)
       racc (~> 1.4)
     nominatim (0.0.6)
       faraday
@@ -630,7 +633,7 @@ GEM
     puma (4.3.12)
       nio4r (~> 2.0)
     pwned (2.0.2)
-    racc (1.6.0)
+    racc (1.6.1)
     rack (2.2.4)
     rack-attack (6.5.0)
       rack (>= 1.0, < 3)
@@ -667,8 +670,8 @@ GEM
       activesupport (>= 4.2)
       choice (~> 0.2.0)
       ruby-graphviz (~> 1.2)
-    rails-html-sanitizer (1.4.3)
-      loofah (~> 2.3)
+    rails-html-sanitizer (1.4.4)
+      loofah (~> 2.19, >= 2.19.1)
     rails_drivers (1.2.0)
       rails (>= 5.2)
     railties (6.1.6.1)
@@ -784,6 +787,8 @@ GEM
     ruby-progressbar (1.11.0)
     ruby-rc4 (0.1.5)
     ruby-statistics (3.0.0)
+    ruby-vips (2.1.4)
+      ffi (~> 1.12)
     ruby2_keywords (0.0.5)
     rubyXL (3.4.18)
       nokogiri (>= 1.10.8)
@@ -1007,6 +1012,7 @@ DEPENDENCIES
   hellosign-ruby-sdk
   html2haml
   htmlentities
+  image_processing
   jquery-minicolors-rails
   jquery-rails
   jquery-ui-rails
@@ -1018,6 +1024,7 @@ DEPENDENCIES
   list_matcher
   lograge
   logstop
+  loofah (>= 2.19.1)
   marginalia
   maxminddb
   memoist
@@ -1026,7 +1033,7 @@ DEPENDENCIES
   mini_magick
   minitest-reporters
   net-sftp
-  nokogiri (>= 1.13.9)
+  nokogiri (>= 1.13.10)
   nominatim
   oj
   omniauth (~> 1.9.1)
@@ -1051,7 +1058,7 @@ DEPENDENCIES
   rails (~> 6.1)
   rails-controller-testing
   rails-erd
-  rails-html-sanitizer (>= 1.4.3)
+  rails-html-sanitizer (>= 1.4.4)
   rails_drivers
   ransack
   redcarpet

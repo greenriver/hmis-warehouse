@@ -15,7 +15,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     {
       project_id: p1.id,
       grant_id: 'grant',
-      funder: Types::HmisSchema::Enums::FundingSource.enum_member_for_value(30).first,
+      funder: Types::HmisSchema::Enums::Hud::FundingSource.enum_member_for_value(30).first,
       start_date: '2022-01-01',
     }
   end
@@ -42,12 +42,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               dateDeleted
               active
             }
-            errors {
-              attribute
-              type
-              fullMessage
-              message
-            }
+            #{error_fields}
           }
         }
       GRAPHQL
@@ -74,7 +69,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       response, result = post_graphql(
         input: {
           **valid_input,
-          funder: Types::HmisSchema::Enums::FundingSource.enum_member_for_value(46).first,
+          funder: Types::HmisSchema::Enums::Hud::FundingSource.enum_member_for_value(46).first,
           other_funder: 'Another funder',
         },
       ) { mutation }
@@ -92,7 +87,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       response, result = post_graphql(
         input: {
           **valid_input,
-          funder: Types::HmisSchema::Enums::FundingSource.enum_member_for_value(46).first,
+          funder: Types::HmisSchema::Enums::Hud::FundingSource.enum_member_for_value(46).first,
           other_funder: '',
         },
       ) { mutation }

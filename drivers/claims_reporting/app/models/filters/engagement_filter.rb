@@ -68,6 +68,20 @@ module Filters
       end
     end
 
+    def describe_filter_as_html
+      super(
+        [
+          :food_insecurity,
+          :cohort_type,
+          :age_ranges,
+          :races,
+          :ethnicities,
+          :genders,
+          :acos,
+        ]
+      )
+    end
+
     def describe(key, value = chosen(key))
       title = case key
       when :acos

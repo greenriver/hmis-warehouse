@@ -44,14 +44,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             FAAmount
             referralOutcome
           }
-          errors {
-            attribute
-            message
-            fullMessage
-            type
-            options
-            __typename
-          }
+          #{error_fields}
         }
       }
     GRAPHQL

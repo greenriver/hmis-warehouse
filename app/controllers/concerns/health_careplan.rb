@@ -22,6 +22,18 @@ module HealthCareplan
       @problems = @patient.problems.order(onset_date: :desc)
     end
 
+    def set_live_services_equipment_backup
+      return unless @careplan.editable?
+
+      # If the plan is editable, make sure we have the most recent
+      # services, DME, and backup plans.
+      # These variables are used for the list partials.
+      # Non-editable careplans use archive fields instead.
+      @services = @patient.services
+      @equipments = @patient.equipments
+      @backup_plans = @careplan.backup_plans
+    end
+
     def careplan_source
       Health::Careplan
     end
@@ -55,7 +67,7 @@ module HealthCareplan
 
     def careplan_pdf_full
       file_name = 'care_plan'
-      pctp = render_to_string(
+      full_careplan = render_to_string(
         pdf: file_name,
         template: 'health/careplans/show',
         layout: false,
@@ -79,18 +91,19 @@ module HealthCareplan
         emulate_media: 'print',
         style_tag_options: [{ content: inline_stylesheet_link_tag('print') }],
         margin: {
-          top: '1.5in',
-          bottom: '1.5in',
+          top: '1in',
+          bottom: '1in',
           left: '.4in',
           right: '.4in',
         },
         wait_until: 'networkidle0',
         print_background: true,
       }
-      CombinePDF.parse(Grover.new(wrap_in_html(pctp), grover_options).to_pdf, allow_optional_content: true)
+      CombinePDF.parse(Grover.new(wrap_in_html(full_careplan), grover_options).to_pdf, allow_optional_content: true)
     end
 
     def careplan_pdf_pctp
+      @pdf = true
       file_name = 'care_plan_pctp'
       pctp = render_to_string(
         pdf: file_name,
@@ -116,8 +129,8 @@ module HealthCareplan
         emulate_media: 'print',
         style_tag_options: [{ content: inline_stylesheet_link_tag('print') }],
         margin: {
-          top: '1.5in',
-          bottom: '1.5in',
+          top: '1in',
+          bottom: '1in',
           left: '.4in',
           right: '.4in',
         },
@@ -134,6 +147,8 @@ module HealthCareplan
 
     # The logic for creating the CarePlan PDF is fairly complicated and needs to be used in both the careplan controllers and the signable document controllers
     def careplan_combine_pdf_object
+      @pdf = true
+      @html = false
       @goal = Health::Goal::Base.new
       @readonly = false
       # If we already have a document with a signature, use that to try and avoid massive duplication
@@ -141,16 +156,6 @@ module HealthCareplan
         if (health_file = Health::HealthFile.find(health_file_id))
           return CombinePDF.parse(health_file.content, allow_optional_content: true)
         end
-      end
-      # If we haven't sent this for signatures, build out the PDF
-      # make sure we have the most recent-services, DME, team members, and goals if
-      # the plan is editable
-      if @careplan.editable?
-        @careplan.archive_services
-        @careplan.archive_equipment
-        @careplan.archive_goals
-        @careplan.archive_team_members
-        @careplan.save
       end
 
       # Include most-recent SSM & CHA

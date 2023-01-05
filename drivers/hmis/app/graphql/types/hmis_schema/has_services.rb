@@ -13,7 +13,7 @@ module Types
 
       class_methods do
         def services_field(name = :services, description = nil, **override_options, &block)
-          default_field_options = { type: [Types::HmisSchema::Service], null: false, description: description }
+          default_field_options = { type: HmisSchema::Service.page_type, null: false, description: description }
           field_options = default_field_options.merge(override_options)
           field(name, **field_options) do
             argument :sort_order, Types::HmisSchema::ServiceSortOption, required: false
@@ -23,17 +23,19 @@ module Types
       end
 
       def resolve_services_with_loader(association_name = :services, **args)
-        load_ar_association(object, association_name, scope: apply_service_arguments(Hmis::Hud::Service, **args))
+        load_ar_association(object, association_name, scope: scoped_services(Hmis::Hud::Service, **args))
       end
 
       def resolve_services(scope = object.services, **args)
-        apply_service_arguments(scope, **args)
+        scoped_services(scope, **args)
       end
 
       private
 
-      def apply_service_arguments(scope, sort_order: :date_provided)
-        scope.sort_by_option(sort_order) if sort_order.present?
+      def scoped_services(scope, sort_order: :date_provided)
+        scope = scope.viewable_by(current_user)
+        scope = scope.sort_by_option(sort_order) if sort_order.present?
+        scope
       end
     end
   end

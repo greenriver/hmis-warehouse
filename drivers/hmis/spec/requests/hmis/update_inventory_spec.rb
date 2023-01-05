@@ -16,13 +16,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   let(:valid_input) do
     {
-      project_id: p1.id,
       coc_code: pc2.coc_code,
-      household_type: Types::HmisSchema::Enums::HouseholdType.enum_member_for_value(4).first,
-      availability: Types::HmisSchema::Enums::Availability.enum_member_for_value(2).first,
-      unit_inventory: 2,
-      bed_inventory: 2,
+      household_type: Types::HmisSchema::Enums::Hud::HouseholdType.enum_member_for_value(4).first,
+      availability: Types::HmisSchema::Enums::Hud::Availability.enum_member_for_value(2).first,
       inventory_start_date: '2022-01-01',
+      bed_inventory: 10,
+      unit_inventory: 10,
     }
   end
 
@@ -33,26 +32,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       mutation UpdateInventory($id: ID!, $input: InventoryInput!) {
         updateInventory(input: { input: $input, id: $id }) {
           inventory {
-            id
-            cocCode
-            availability
-            bedInventory
-            chVetBedInventory
-            unitInventory
-            esBedType
-            householdType
-            inventoryEndDate
-            inventoryStartDate
-            dateCreated
-            dateUpdated
-            dateDeleted
+            #{scalar_fields(Types::HmisSchema::Inventory)}
           }
-          errors {
-            attribute
-            type
-            fullMessage
-            message
-          }
+          #{error_fields}
         }
       }
     GRAPHQL
@@ -88,6 +70,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(response.status).to eq 200
         expect(record).to be_nil
         expect(errors).to be_present
+        expect(errors.length).to eq(1)
         expect(errors[0]['attribute']).to eq 'cocCode'
         expect(errors[0]['type']).to eq 'invalid'
       end
@@ -118,13 +101,14 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(response.status).to eq 200
         expect(record).to be_nil
         expect(errors).to be_present
+        expect(errors.length).to eq(1)
         expect(errors[0]['attribute']).to eq 'inventoryStartDate'
         expect(errors[0]['type']).to eq 'required'
       end
     end
 
-    it 'fails if project is null' do
-      response, result = post_graphql(id: i1.id, input: { **valid_input, project_id: nil }) { mutation }
+    it 'fails if end date is before start date' do
+      response, result = post_graphql(id: i1.id, input: { **valid_input, inventory_start_date: '2010-01-01', inventory_end_date: '2000-01-01' }) { mutation }
 
       record = result.dig('data', 'updateInventory', 'inventory')
       errors = result.dig('data', 'updateInventory', 'errors')
@@ -133,8 +117,133 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(response.status).to eq 200
         expect(errors).to be_present
         expect(record).to be_nil
-        expect(errors[0]['attribute']).to eq 'projectId'
-        expect(errors[0]['type']).to eq 'required'
+        expect(errors.length).to eq(1)
+        expect(errors[0]['attribute']).to eq 'inventoryEndDate'
+        expect(errors[0]['type']).to eq 'invalid'
+      end
+    end
+
+    it 'fails if counts are negaitve' do
+      response, result = post_graphql(id: i1.id, input: { **valid_input, unit_inventory: -1, bed_inventory: -2, other_bed_inventory: -3 }) { mutation }
+
+      record = result.dig('data', 'updateInventory', 'inventory')
+      errors = result.dig('data', 'updateInventory', 'errors')
+
+      aggregate_failures 'checking response' do
+        expect(response.status).to eq 200
+        expect(errors).to be_present
+        expect(record).to be_nil
+        expect(errors.length).to eq(3)
+        expect(errors[0]['attribute']).to eq 'bedInventory'
+        expect(errors[0]['type']).to eq 'invalid'
+      end
+    end
+
+    it 'validates start date against project operating period (start date too early)' do
+      p1.update(operating_start_date: '2019-01-01')
+      response, result = post_graphql(id: i1.id, input: { **valid_input, inventory_start_date: '2010-01-01' }) { mutation }
+
+      record = result.dig('data', 'updateInventory', 'inventory')
+      errors = result.dig('data', 'updateInventory', 'errors')
+
+      aggregate_failures 'checking response' do
+        expect(response.status).to eq 200
+        expect(errors).to be_present
+        expect(record).to be_nil
+        expect(errors.length).to eq(1)
+        expect(errors[0]['attribute']).to eq 'inventoryStartDate'
+        expect(errors[0]['type']).to eq 'invalid'
+      end
+    end
+
+    it 'validates end date against project operating period (end date too late)' do
+      p1.update(operating_start_date: '2019-01-01')
+      p1.update(operating_end_date: '2019-02-01')
+      response, result = post_graphql(id: i1.id, input: { **valid_input, inventory_start_date: '2019-01-01', inventory_end_date: '2019-03-01' }) { mutation }
+
+      record = result.dig('data', 'updateInventory', 'inventory')
+      errors = result.dig('data', 'updateInventory', 'errors')
+
+      aggregate_failures 'checking response' do
+        expect(response.status).to eq 200
+        expect(errors).to be_present
+        expect(record).to be_nil
+        expect(errors.length).to eq(1)
+        expect(errors[0]['attribute']).to eq 'inventoryEndDate'
+        expect(errors[0]['type']).to eq 'invalid'
+      end
+    end
+
+    it 'validates both dates against project operating period (start date too early, with end date)' do
+      p1.update(operating_start_date: '2019-01-01')
+      p1.update(operating_end_date: '2019-02-01')
+      response, result = post_graphql(id: i1.id, input: { **valid_input, inventory_start_date: '2018-01-01', inventory_end_date: '2019-01-15' }) { mutation }
+
+      record = result.dig('data', 'updateInventory', 'inventory')
+      errors = result.dig('data', 'updateInventory', 'errors')
+
+      aggregate_failures 'checking response' do
+        expect(response.status).to eq 200
+        expect(errors).to be_present
+        expect(record).to be_nil
+        expect(errors.length).to eq(1)
+        expect(errors[0]['attribute']).to eq 'inventoryStartDate'
+        expect(errors[0]['type']).to eq 'invalid'
+      end
+    end
+
+    it 'validates both dates against project operating period (fully outside range)' do
+      p1.update(operating_start_date: '2019-01-01')
+      p1.update(operating_end_date: '2019-02-01')
+      response, result = post_graphql(id: i1.id, input: { **valid_input, inventory_start_date: '2020-01-01', inventory_end_date: '2020-03-01' }) { mutation }
+
+      record = result.dig('data', 'updateInventory', 'inventory')
+      errors = result.dig('data', 'updateInventory', 'errors')
+
+      aggregate_failures 'checking response' do
+        expect(response.status).to eq 200
+        expect(errors).to be_present
+        expect(record).to be_nil
+        expect(errors.length).to eq(2)
+        expect(errors[0]['attribute']).to eq 'inventoryStartDate'
+        expect(errors[0]['type']).to eq 'invalid'
+        expect(errors[1]['attribute']).to eq 'inventoryEndDate'
+        expect(errors[1]['type']).to eq 'invalid'
+      end
+    end
+
+    it 'validates both dates against project operating period (fully outside range in other direction)' do
+      p1.update(operating_start_date: '2019-01-01')
+      p1.update(operating_end_date: '2019-02-01')
+      response, result = post_graphql(id: i1.id, input: { **valid_input, inventory_start_date: '2010-01-01', inventory_end_date: '2010-03-01' }) { mutation }
+
+      record = result.dig('data', 'updateInventory', 'inventory')
+      errors = result.dig('data', 'updateInventory', 'errors')
+
+      aggregate_failures 'checking response' do
+        expect(response.status).to eq 200
+        expect(errors).to be_present
+        expect(record).to be_nil
+        expect(errors.length).to eq(2)
+        expect(errors[0]['attribute']).to eq 'inventoryStartDate'
+        expect(errors[0]['type']).to eq 'invalid'
+        expect(errors[1]['attribute']).to eq 'inventoryEndDate'
+        expect(errors[1]['type']).to eq 'invalid'
+      end
+    end
+
+    it 'passes validation if dates match project operating period' do
+      p1.update(operating_start_date: '2019-01-01')
+      p1.update(operating_end_date: '2019-02-01')
+      response, result = post_graphql(id: i1.id, input: { **valid_input, inventory_start_date: '2019-01-01', inventory_end_date: '2019-02-01' }) { mutation }
+
+      record = result.dig('data', 'updateInventory', 'inventory')
+      errors = result.dig('data', 'updateInventory', 'errors')
+
+      aggregate_failures 'checking response' do
+        expect(response.status).to eq 200
+        expect(errors).to be_empty
+        expect(record).to be_present
       end
     end
   end

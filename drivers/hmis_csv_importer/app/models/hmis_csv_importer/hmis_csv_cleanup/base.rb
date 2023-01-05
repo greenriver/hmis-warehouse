@@ -15,6 +15,13 @@ module HmisCsvImporter::HmisCsvCleanup
       @date_range = date_range
     end
 
+    # If the table has been partitioned, it needs a compound key
+    def conflict_target(source_class)
+      return [:id, :importer_log_id] if GrdaWarehouseBase.partitioned?(source_class.table_name)
+
+      [:id]
+    end
+
     def cleanup!
       raise 'cleanup! must be implemented'
     end

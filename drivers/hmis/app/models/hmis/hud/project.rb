@@ -7,7 +7,8 @@
 class Hmis::Hud::Project < Hmis::Hud::Base
   include ArelHelper
   include ::HmisStructure::Project
-  include ::Hmis::Hud::Shared
+  include ::Hmis::Hud::Concerns::Shared
+  include ProjectSearch
   self.table_name = :Project
   self.sequence_name = "public.\"#{table_name}_id_seq\""
 
@@ -19,15 +20,11 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   has_many :inventories, **hmis_relation(:ProjectID, 'Inventory'), inverse_of: :project
   has_many :funders, **hmis_relation(:ProjectID, 'Funder'), inverse_of: :project
 
-  use_enum :housing_type_enum_map, ::HUD.housing_types
-  use_enum :tracking_methods_enum_map, ::HUD.tracking_methods.except(nil)
-  use_enum :target_population_enum_map, ::HUD.target_populations
-  use_enum :h_o_p_w_a_med_assisted_living_facs_enum_map, ::HUD.h_o_p_w_a_med_assisted_living_facs
-
   validates_with Hmis::Hud::Validators::ProjectValidator
 
+  # hide previous declaration of :viewable_by, we'll use this one
   # Any projects the user has been assigned, limited to the data source the HMIS is connected to
-  scope :viewable_by, ->(user) do
+  replace_scope :viewable_by, ->(user) do
     ids = user.viewable_projects.pluck(:id)
     ids += user.viewable_organizations.joins(:projects).pluck(p_t[:id])
     ids += user.viewable_data_sources.joins(:projects).pluck(p_t[:id])
@@ -36,7 +33,8 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     where(id: ids, data_source_id: user.hmis_data_source_id)
   end
 
-  scope :editable_by, ->(user) do
+  # hide previous declaration of :editable_by, we'll use this one
+  replace_scope :editable_by, ->(user) do
     ids = user.editable_projects.pluck(:id)
     ids += user.organizations.joins(:projects).pluck(p_t[:id])
     ids += user.data_sources.joins(:projects).pluck(p_t[:id])
@@ -63,6 +61,12 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     else
       raise NotImplementedError
     end
+  end
+
+  def self.project_search(input:, user:)
+    scope = viewable_by(user)
+    scope = text_searcher(input.text_search, scope) if input.text_search.present?
+    scope
   end
 
   def self.generate_project_id

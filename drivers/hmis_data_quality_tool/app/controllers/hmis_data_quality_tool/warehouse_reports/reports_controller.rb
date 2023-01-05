@@ -16,7 +16,7 @@ module HmisDataQualityTool::WarehouseReports
     # before_action :set_pdf_export, only: [:show]
 
     def index
-      @pagy, @reports = pagy(report_scope.ordered)
+      @pagy, @reports = pagy(report_scope.diet.ordered)
       @report = report_class.new(user_id: current_user.id)
       @filter.default_project_type_codes = @report.default_project_type_codes
       previous_report = report_scope.where(user_id: current_user.id).last
@@ -65,7 +65,7 @@ module HmisDataQualityTool::WarehouseReports
 
     def destroy
       @report.destroy
-      respond_with(@report, location: @report.url)
+      respond_with(@report, location: @report.index_path)
     end
 
     def details
@@ -87,10 +87,17 @@ module HmisDataQualityTool::WarehouseReports
       respond_to do |format|
         format.html {}
         format.xlsx do
-          filename = "#{"#{@result.category} #{@result.title}".tr(' ', '-')}-#{Date.current.to_s(:db)}.xlsx"
+          title = "#{@result.category} #{@result.title}"
+          filename = "#{sanitized_name(title)}-#{Date.current.to_s(:db)}.xlsx"
+          headers['Content-Type'] = GrdaWarehouse::DocumentExport::EXCEL_MIME_TYPE
           headers['Content-Disposition'] = "attachment; filename=#{filename}"
         end
       end
+    end
+
+    def sanitized_name(name)
+      # See https://www.keynotesupport.com/excel-basics/worksheet-names-characters-allowed-prohibited.shtml
+      name.gsub(/[',\*\/\\\?\[\]\:]/, '-').gsub(' - ', '-').gsub(' ', '-')
     end
 
     def details_params

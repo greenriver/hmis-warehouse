@@ -49,6 +49,17 @@ FactoryBot.define do
     end
   end
 
+  factory :importer_force_project_enrollment_cocs, class: 'GrdaWarehouse::DataSource' do
+    name { 'Force Enrollment CoC to match Project CoC' }
+    short_name { 'CoCCode' }
+    source_type { :sftp }
+    import_cleanups do
+      {
+        'EnrollmentCoc': ['HmisCsvImporter::HmisCsvCleanup::ForceProjectEnrollmentCoc'],
+      }
+    end
+  end
+
   factory :importer_delete_empty_enrollments_ds, class: 'GrdaWarehouse::DataSource' do
     name { 'Delete Empty Enrollments' }
     short_name { 'Empty Enrollments' }

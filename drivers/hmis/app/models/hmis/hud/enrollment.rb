@@ -6,7 +6,8 @@
 
 class Hmis::Hud::Enrollment < Hmis::Hud::Base
   include ::HmisStructure::Enrollment
-  include ::Hmis::Hud::Shared
+  include ::Hmis::Hud::Concerns::Shared
+  include ::HudConcerns::Enrollment
   include ArelHelper
 
   self.table_name = :Enrollment
@@ -22,6 +23,10 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   has_one :exit, **hmis_relation(:EnrollmentID, 'Exit')
   has_many :services, **hmis_relation(:EnrollmentID, 'Service')
   has_many :events, **hmis_relation(:EnrollmentID, 'Event')
+  has_many :income_benefits, **hmis_relation(:EnrollmentID, 'IncomeBenefit')
+  has_many :disabilities, **hmis_relation(:EnrollmentID, 'Disability')
+  has_many :health_and_dvs, **hmis_relation(:EnrollmentID, 'HealthAndDv')
+  has_many :current_living_situations, **hmis_relation(:EnrollmentID, 'CurrentLivingSituation'), inverse_of: :enrollment
 
   # NOTE: this does not include WIP assessments
   has_many :assessments, **hmis_relation(:EnrollmentID, 'Assessment')
@@ -29,16 +34,11 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :enrollments
   has_one :wip, class_name: 'Hmis::Wip', as: :source
 
-  use_enum :relationships_to_hoh_enum_map, ::HUD.relationships_to_hoh
-  use_enum :living_situations_enum_map, ::HUD.living_situations
-  use_enum :length_of_stays_enum_map, ::HUD.length_of_stays
-  use_enum :times_homeless_past_three_years_enum_map, ::HUD.times_homeless_options
-  use_enum :months_homeless_past_three_years_enum_map, ::HUD.month_categories
-
   SORT_OPTIONS = [:most_recent].freeze
 
+  # hide previous declaration of :viewable_by, we'll use this one
   # A user can see any enrollment associated with a project they can access
-  scope :viewable_by, ->(user) do
+  replace_scope :viewable_by, ->(user) do
     project_ids = Hmis::Hud::Project.viewable_by(user).pluck(:id, :ProjectID)
     viewable_wip = wip_t[:project_id].in(project_ids.map(&:first))
     viewable_enrollment = e_t[:ProjectID].in(project_ids.map(&:second))
@@ -46,7 +46,8 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     left_outer_joins(:wip).where(viewable_wip.or(viewable_enrollment))
   end
 
-  scope :editable_by, ->(user) do
+  # hide previous declaration of :editable_by, we'll use this one
+  replace_scope :editable_by, ->(user) do
     project_ids = Hmis::Hud::Project.editable_by(user).pluck(:id, :ProjectID)
     editable_wip = wip_t[:project_id].in(project_ids.map(&:first))
     editable_enrollment = e_t[:ProjectID].in(project_ids.map(&:second))

@@ -2,9 +2,29 @@
   "name": "inventory",
   "item": [
     {
+      "type": "DATE",
+      "link_id": "project-start",
+      "hidden": true,
+      "initial": [
+        {
+          "value_local_constant": "$projectStartDate"
+        }
+      ]
+    },
+    {
+      "type": "DATE",
+      "link_id": "project-end",
+      "hidden": true,
+      "initial": [
+        {
+          "value_local_constant": "$projectEndDate"
+        }
+      ]
+    },
+    {
       "type": "GROUP",
-      "link_id": "name",
-      "text": "Details",
+      "text": "Inventory Details",
+      "link_id": "inventory-detail",
       "required": false,
       "item": [
         {
@@ -13,59 +33,147 @@
           "link_id": "coc",
           "text": "CoC Code",
           "pick_list_reference": "COC",
-          "query_field": "cocCode"
+          "field_name": "cocCode"
         },
         {
           "type": "CHOICE",
           "required": true,
           "link_id": "hhtype",
+          "component": "RADIO_BUTTONS",
           "text": "Household Type",
           "pick_list_reference": "HouseholdType",
-          "query_field": "householdType"
+          "field_name": "householdType"
         },
         {
-          "type": "INTEGER",
-          "required": true,
-          "link_id": "units",
-          "text": "Unit Inventory",
-          "query_field": "unitInventory"
+          "type": "CHOICE",
+          "_comment": "TODO: ES ONLY",
+          "required": false,
+          "link_id": "es-availability",
+          "component": "RADIO_BUTTONS",
+          "text": "Availability",
+          "pick_list_reference": "Availability",
+          "field_name": "availability"
         },
         {
-          "type": "INTEGER",
-          "required": true,
-          "link_id": "beds",
-          "text": "Bed Inventory",
-          "query_field": "bedInventory"
-        }
-      ]
-    },
-    {
-      "type": "GROUP",
-      "link_id": "dates",
-      "text": "Operating Period",
-      "required": false,
-      "item": [
+          "type": "CHOICE",
+          "_comment": "TODO: ES ONLY",
+          "required": false,
+          "link_id": "es-bed-type",
+          "component": "RADIO_BUTTONS",
+          "text": "ES Bed Type",
+          "pick_list_reference": "BedType",
+          "field_name": "esBedType"
+        },
         {
           "type": "DATE",
           "required": true,
           "link_id": "2.07.1",
           "text": "Start Date",
-          "query_field": "inventoryStartDate",
-          "bounds": [{
-            "type": "MAX",
-            "question": "2.07.2"
-          }]
+          "field_name": "inventoryStartDate",
+          "bounds": [
+            {
+              "type": "MIN",
+              "question": "project-start"
+            },
+            {
+              "type": "MAX",
+              "question": "project-end"
+            },
+            {
+              "type": "MAX",
+              "question": "2.07.2"
+            }
+          ]
         },
         {
           "type": "DATE",
           "required": false,
           "link_id": "2.07.2",
           "text": "End Date",
-          "query_field": "inventoryEndDate",
-          "bounds": [{
-            "type": "MIN",
-            "question": "2.07.1"
-          }]
+          "field_name": "inventoryEndDate",
+          "bounds": [
+            {
+              "type": "MIN",
+              "question": "project-start"
+            },
+            {
+              "type": "MAX",
+              "question": "project-end"
+            },
+            {
+              "type": "MIN",
+              "question": "2.07.1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "GROUP",
+      "text": "Beds and Units",
+      "link_id": "beds-and-units",
+      "item": [
+        {
+          "type": "INTEGER",
+          "link_id": "unit",
+          "text": "Unit Inventory",
+          "field_name": "unitInventory"
+        },
+        {
+          "type": "GROUP",
+          "link_id": "beds-group",
+          "component": "INPUT_GROUP",
+          "text": "Bed Inventory",
+          "item": [
+            {
+              "type": "INTEGER",
+              "link_id": "ch-beds",
+              "text": "Chronic",
+              "field_name": "chBedInventory"
+            },
+            {
+              "type": "INTEGER",
+              "link_id": "vet-beds",
+              "text": "Veteran",
+              "field_name": "vetBedInventory"
+            },
+            {
+              "type": "INTEGER",
+              "link_id": "ch-vet-beds",
+              "text": "Chronic Veteran",
+              "field_name": "chVetBedInventory"
+            },
+            {
+              "type": "INTEGER",
+              "link_id": "youth-beds",
+              "text": "Youth",
+              "field_name": "youthBedInventory"
+            },
+            {
+              "type": "INTEGER",
+              "link_id": "youth-vet-beds",
+              "text": "Youth Veteran",
+              "field_name": "youthVetBedInventory"
+            },
+            {
+              "type": "INTEGER",
+              "link_id": "ch-youth-beds",
+              "text": "Chronic Youth",
+              "field_name": "chYouthBedInventory"
+            },
+            {
+              "type": "INTEGER",
+              "link_id": "other-beds",
+              "text": "Other",
+              "field_name": "otherBedInventory"
+            },
+            {
+              "type": "DISPLAY",
+              "link_id": "sum",
+              "text": "Total Bed Count",
+              "field_name": "bedInventory"
+            }
+          ]
         }
       ]
     }

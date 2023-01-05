@@ -14,10 +14,23 @@ module GrdaWarehouse::WarehouseReports
       @user = user
     end
 
+    def project_types_limiting_exit_scope
+      @filter.project_type_numbers.map do |n|
+        ::HUD.project_type(n)
+      end
+    end
+
     def enrollments_for(key)
-      entries_scope.
-        residential.
-        joins(:client).
+      scope = case metrics[key][:type]
+      when :exit
+        exits_scope
+      when :entry
+        entries_scope
+      when :all
+        entries_scope
+      end
+
+      scope.joins(:client).
         preload(:client, :project).
         order(c_t[:LastName], c_t[:FirstName]).
         where(client_id: send(key)).
@@ -217,9 +230,9 @@ module GrdaWarehouse::WarehouseReports
         labels: [:x] + months,
         data: [
           [:x] + months,
-          [metrics[:hoh_to_ph]] + hoh_to_ph_count.values,
-          [metrics[:hoh_to_stabilization]] + hoh_to_stabilization_count.values,
-          [metrics[:hoh_exits_to_ph]] + hoh_exits_to_ph_count.values,
+          [metrics[:hoh_to_ph][:label]] + hoh_to_ph_count.values,
+          [metrics[:hoh_to_stabilization][:label]] + hoh_to_stabilization_count.values,
+          [metrics[:hoh_exits_to_ph][:label]] + hoh_exits_to_ph_count.values,
         ],
       }
     end
@@ -263,32 +276,38 @@ module GrdaWarehouse::WarehouseReports
     end
 
     def metrics
-      {
-        clients_to_ph: 'Clients exiting to Permanent Destinations',
-        hoh_to_ph: 'Heads of Households exiting to Permanent Destinations',
-        psh_clients_to_stabilization: "PSH Clients entering #{_('Housing')}",
-        psh_hoh_to_stabilization: "PSH Heads of Households entering #{_('Housing')}",
-        rrh_clients_to_stabilization: "RRH Clients entering #{_('Stabilization')}",
-        rrh_hoh_to_stabilization: "RRH Heads of Households entering #{_('Stabilization')}",
-        clients_to_stabilization: "All Clients entering #{_('Stabilization')}",
-        hoh_to_stabilization: "All Heads of Households entering #{_('Stabilization')}",
-        exits_to_ph: "Unique Clients exiting to Permanent Destinations or entering #{_('Stabilization')}",
-        hoh_exits_to_ph: "Unique Heads of Households exiting to Permanent Destinations or entering #{_('Stabilization')}",
-        clients_to_neutral: 'Unique Clients exiting to a neutral destination',
-        hoh_to_neutral: 'Unique Heads of Households exiting to a neutral destination',
-        clients_to_jail: 'Unique Clients exiting to Jail',
-        hoh_to_jail: 'Unique Heads of Households exiting to Jail',
-        clients_to_deceased: 'Deceased Clients',
-        hoh_to_deceased: 'Deceased Heads of Households',
-        clients_to_permanent_or_neutral: 'Unique Clients Entering Housing or exiting to Permanent, Neutral Destinations',
-        hoh_to_permanent_or_neutral: 'Unique Heads of Households Entering Housing or exiting to Permanent, Neutral Destinations',
-        clients_to_destinations: 'Unique Clients Entering Housing or exiting to Permanent, Neutral, Jail, or Deceased Destinations',
-        hoh_to_destinations: 'Unique Heads of Households Entering Housing or exiting to Permanent, Neutral, Jail, or Deceased Destinations',
-        clients_without_recent_service: 'Clients without recent service',
-        hoh_without_recent_service: 'Heads of Households without recent service',
-        client_outflow: 'Total Outflow',
-        hoh_outflow: 'Total Outflow of Heads of Household',
-      }
+      { clients_to_ph: { label: 'Clients exiting to Permanent Destinations', type: :exit },
+        hoh_to_ph: { label: 'Heads of Households exiting to Permanent Destinations',
+                     type: :exit },
+        psh_clients_to_stabilization: { label: 'PSH Clients entering Stable Housing', type: :entry },
+        psh_hoh_to_stabilization: { label: 'PSH Heads of Households entering Stable Housing', type: :entry },
+        rrh_clients_to_stabilization: { label: 'RRH Clients entering Stabilization', type: :entry },
+        rrh_hoh_to_stabilization: { label: 'RRH Heads of Households entering Stabilization', type: :entry },
+        clients_to_stabilization: { label: 'All Clients entering Stabilization', type: :entry },
+        hoh_to_stabilization: { label: 'All Heads of Households entering Stabilization', type: :entry },
+        exits_to_ph: { label: 'Unique Clients exiting to Permanent Destinations or entering Stabilization',
+                       type: :entry },
+        hoh_exits_to_ph: { label: 'Unique Heads of Households exiting to Permanent Destinations or entering Stabilization',
+                           type: :entry },
+        clients_to_neutral: { label: 'Unique Clients exiting to a neutral destination', type: :exit },
+        hoh_to_neutral: { label: 'Unique Heads of Households exiting to a neutral destination',
+                          type: :exit },
+        clients_to_jail: { label: 'Unique Clients exiting to Jail', type: :exit },
+        hoh_to_jail: { label: 'Unique Heads of Households exiting to Jail', type: :exit },
+        clients_to_deceased: { label: 'Deceased Clients', type: :exit },
+        hoh_to_deceased: { label: 'Deceased Heads of Households', type: :exit },
+        clients_to_permanent_or_neutral: { label: 'Unique Clients Entering Housing or exiting to Permanent, Neutral Destinations',
+                                           type: :all },
+        hoh_to_permanent_or_neutral: { label: 'Unique Heads of Households Entering Housing or exiting to Permanent, Neutral Destinations',
+                                       type: :all },
+        clients_to_destinations: { label: 'Unique Clients Entering Housing or exiting to Permanent, Neutral, Jail, or Deceased Destinations',
+                                   type: :all },
+        hoh_to_destinations: { label: 'Unique Heads of Households Entering Housing or exiting to Permanent, Neutral, Jail, or Deceased Destinations',
+                               type: :all },
+        clients_without_recent_service: { label: 'Clients without recent service', type: :entry },
+        hoh_without_recent_service: { label: 'Heads of Households without recent service', type: :entry },
+        client_outflow: { label: 'Total Outflow', type: :entry },
+        hoh_outflow: { label: 'Total Outflow of Heads of Household', type: :all } }
     end
 
     def entries_scope
@@ -298,9 +317,9 @@ module GrdaWarehouse::WarehouseReports
     end
 
     def exits_scope(start_date: @filter.start, end_date: @filter.end)
-      service_history_enrollment_scope.
-        homeless.
-        exit_within_date_range(start_date: start_date, end_date: end_date)
+      scope = service_history_enrollment_scope
+      scope = scope.in_project_type(@filter.project_type_ids) if @filter.project_type_ids.any?
+      scope.exit_within_date_range(start_date: start_date, end_date: end_date)
     end
 
     def housed_scope

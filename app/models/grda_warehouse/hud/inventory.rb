@@ -42,7 +42,8 @@ module GrdaWarehouse::Hud
     alias_attribute :end_date, :InventoryEndDate
     alias_attribute :beds, :BedInventory
 
-    scope :importable, -> do
+    # hide previous declaration of :importable, we'll use this one
+    replace_scope :importable, -> do
       where(manual_entry: false)
     end
 
@@ -60,7 +61,8 @@ module GrdaWarehouse::Hud
       within_range(date..date)
     end
 
-    scope :in_coc, ->(coc_code:) do
+    # hide previous declaration of :in_coc, we'll use this one
+    replace_scope :in_coc, ->(coc_code:) do
       coc_code = Array(coc_code)
       where(
         i_t[:CoCCode].in(coc_code).and(i_t[:coc_code_override].eq(nil).or(i_t[:coc_code_override].eq(''))).
@@ -107,8 +109,7 @@ module GrdaWarehouse::Hud
     end
 
     def for_export
-      fake_export = OpenStruct.new(include_deleted: false, period_type: 3)
-      row = HmisCsvTwentyTwentyTwo::Exporter::Inventory::Overrides.apply_overrides(self, export: fake_export)
+      row = HmisCsvTwentyTwentyTwo::Exporter::Inventory::Overrides.apply_overrides(self)
       row = HmisCsvTwentyTwentyTwo::Exporter::Inventory.adjust_keys(row)
       row
     end

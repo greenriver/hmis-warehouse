@@ -11,6 +11,8 @@ class Hmis::Hud::Validators::ClientValidator < Hmis::Hud::Validators::BaseValida
 
   def validate(record)
     super(record) do
+      record.errors.add :first_name, :required if record.first_name.blank? && record.last_name.blank?
+      record.errors.add :last_name, :required if record.first_name.blank? && record.last_name.blank?
       record.errors.add :gender, :required if !skipped_attributes(record).include?(:gender) && ::HUD.gender_id_to_field_name.except(8, 9, 99).values.any? { |field| record.send(field).nil? }
       record.errors.add :race, :required if !skipped_attributes(record).include?(:race) && ::HUD.races.except('RaceNone').keys.any? { |field| record.send(field).nil? }
     end

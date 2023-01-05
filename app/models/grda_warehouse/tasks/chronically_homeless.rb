@@ -30,7 +30,7 @@ module GrdaWarehouse::Tasks
     RESIDENTIAL_NON_HOMELESS_PROJECT_TYPE = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS - GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
     SO = 4
 
-    attr_accessor :logger, :debug
+    attr_accessor :debug
 
     # Pass client_ids as an array
     def initialize(
@@ -41,7 +41,6 @@ module GrdaWarehouse::Tasks
       debug: false,
       sanity_check: false
     )
-      self.logger = Rails.logger
       @date = date
       @hard_stop = @date.beginning_of_month
       @count_so_as_full_month = GrdaWarehouse::Config.get(:so_day_as_month)
@@ -95,27 +94,27 @@ module GrdaWarehouse::Tasks
     end
 
     def run!
-      logger.info '====DRY RUN====' if @dry_run
-      logger.info "Updating status of chronically homeless clients on #{@date}"
+      Rails.logger.info '====DRY RUN====' if @dry_run
+      Rails.logger.info "Updating status of chronically homeless clients on #{@date}"
       load_active_clients
-      logger.info '====Using supplied client ids====' if @limited
-      logger.info "Found #{@clients.size} clients who are homeless on #{@date}"
+      Rails.logger.info '====Using supplied client ids====' if @limited
+      Rails.logger.info "Found #{@clients.size} clients who are homeless on #{@date}"
       @chronically_homeless = []
       @client_details = {}
       @clients.each do |client_id|
         chronic_on_date(client_id)
       end
-      logger.info "Found #{@chronically_homeless.size} chronically homeless clients"
+      Rails.logger.info "Found #{@chronically_homeless.size} chronically homeless clients"
       if @dry_run
-        logger.info @client_details.inspect
+        Rails.logger.info @client_details.inspect
       else
         chronic_source.transaction do
           chronic_source.where(date: @date, dmh: false).delete_all
           insert_batch chronic_source, @client_details.values.first.keys, @client_details.values.map(&:values) if @client_details.present?
         end
-        logger.info 'Done updating status of chronically homeless clients'
+        Rails.logger.info 'Done updating status of chronically homeless clients'
       end
-      logger.info 'Completed chronic calculations'
+      Rails.logger.info 'Completed chronic calculations'
     end
 
     def reset_for_batch
@@ -265,7 +264,7 @@ module GrdaWarehouse::Tasks
     end
 
     def debug_log string
-      logger.info string if debug
+      Rails.logger.info string if debug
     end
 
     def count_all_dates?(meta)

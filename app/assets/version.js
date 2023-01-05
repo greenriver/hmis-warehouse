@@ -1,1 +1,1 @@
-// version: 1 // update to force rebuild of assets
+// version: 3 // update to force rebuild of assets

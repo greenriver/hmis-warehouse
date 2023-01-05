@@ -53,6 +53,10 @@ module Delayed
           end
           where(sql)
         end
+
+        def self.queue_status
+          where(failed_at: nil).group(:queue).count.transform_keys(&:humanize)
+        end
       end
     end
   end
@@ -64,7 +68,4 @@ ENV['CURRENT_PATH'] = if /^\d+$/.match?(root_folder)
   Rails.root.to_s.gsub(File.join('releases', root_folder), 'current')
 else
   Rails.root.to_s
-end
-if File.exists?(File.join(ENV['CURRENT_PATH'], 'REVISION'))
-  ENV['GIT_REVISION'] = File.read(File.join(ENV['CURRENT_PATH'], 'REVISION'))&.strip
 end

@@ -36,10 +36,10 @@ module Health
       @release_form.user = current_user
 
       if ! request.xhr?
-        Health::ReleaseSaver.new(form: @release_form, user: current_user).create
+        Health::ReleaseSaver.new(form: @release_form, user: current_user, create_qa: true).create
         respond_with @release_form, location: polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id)
       elsif @release_form.valid?
-        Health::ReleaseSaver.new(form: @release_form, user: current_user).create
+        Health::ReleaseSaver.new(form: @release_form, user: current_user, create_qa: true).create
       end
     end
 
@@ -57,10 +57,10 @@ module Health
 
       @release_form.health_file.set_calculated!(current_user.id, @client.id) if @release_form.health_file&.new_record?
       if ! request.xhr?
-        Health::ReleaseSaver.new(form: @release_form, user: current_user).update
+        Health::ReleaseSaver.new(form: @release_form, user: current_user, create_qa: true).update
         respond_with @release_form, location: polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id)
       elsif @release_form.valid?
-        Health::ReleaseSaver.new(form: @release_form, user: current_user).update
+        Health::ReleaseSaver.new(form: @release_form, user: current_user, create_qa: true).update
       end
     end
 
@@ -78,9 +78,10 @@ module Health
 
     private def form_params
       local_params = params.require(:form).permit(
+        :participation_signature_on,
         :signature_on,
         :reviewed_by_supervisor,
-        :verbal_approval,
+        :mode_of_contact,
         health_file_attributes: [
           :id,
           :file,
@@ -101,6 +102,8 @@ module Health
     private def set_blank_form
       @blank_release_form_url = GrdaWarehouse::PublicFile.url_for_location 'patient/release'
       @blank_directed_form_url = GrdaWarehouse::PublicFile.url_for_location 'patient/directed_release'
+      @blank_release_form_spanish_url = GrdaWarehouse::PublicFile.url_for_location 'patient/release_spanish'
+      @blank_directed_form_spanish_url = GrdaWarehouse::PublicFile.url_for_location 'patient/directed_release_spanish'
     end
 
     private def health_file_params_blank?

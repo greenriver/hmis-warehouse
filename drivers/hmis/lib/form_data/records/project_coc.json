@@ -2,53 +2,8 @@
   "item": [
     {
       "type": "GROUP",
-      "link_id": "address",
-      "text": "Project Address",
-      "required": false,
-      "item": [
-        {
-          "type": "STRING",
-          "required": false,
-          "link_id": "address1",
-          "text": "Address",
-          "query_field": "address1"
-        },
-        {
-          "type": "STRING",
-          "required": false,
-          "link_id": "address2",
-          "text": "Address (line 2)",
-          "query_field": "address2"
-        },
-        {
-          "type": "STRING",
-          "required": false,
-          "link_id": "city",
-          "text": "City",
-          "query_field": "city"
-        },
-        {
-          "type": "CHOICE",
-          "required": false,
-          "link_id": "state",
-          "text": "State",
-          "pick_list_reference": "STATE",
-          "query_field": "state"
-        },
-        {
-          "type": "STRING",
-          "required": false,
-          "link_id": "zip",
-          "text": "Zip",
-          "query_field": "zip"
-        }
-      ]
-    },
-    {
-      "type": "GROUP",
-      "link_id": "name",
-      "text": "Location Details",
-      "required": false,
+      "text": "Project CoC Details",
+      "link_id": "1",
       "item": [
         {
           "type": "CHOICE",
@@ -56,7 +11,7 @@
           "link_id": "coc",
           "text": "CoC Code",
           "pick_list_reference": "COC",
-          "query_field": "cocCode"
+          "field_name": "cocCode"
         },
         {
           "type": "CHOICE",
@@ -64,7 +19,7 @@
           "link_id": "geocode",
           "text": "Geocode",
           "pick_list_reference": "GEOCODE",
-          "query_field": "geocode"
+          "field_name": "geocode"
         },
         {
           "type": "CHOICE",
@@ -72,8 +27,54 @@
           "link_id": "geotype",
           "text": "Geography Type",
           "pick_list_reference": "GeographyType",
-          "query_field": "geographyType"
+          "field_name": "geographyType"
+        },
+        {
+          "type": "STRING",
+          "required": false,
+          "link_id": "address1",
+          "text": "Address",
+          "field_name": "address1"
+        },
+        {
+          "type": "STRING",
+          "required": false,
+          "link_id": "address2",
+          "text": "Apt, suite, etc (Optional)",
+          "field_name": "address2"
+        },
+        {
+          "type": "STRING",
+          "required": false,
+          "link_id": "city",
+          "text": "City",
+          "field_name": "city"
+        },
+        {
+          "type": "GROUP",
+          "component": "HORIZONTAL_GROUP",
+          "link_id": "state-zip",
+          "item": [
+            {
+              "type": "CHOICE",
+              "required": false,
+              "link_id": "state",
+              "text": "State",
+              "pick_list_reference": "STATE",
+              "field_name": "state",
+              "size": "XSMALL"
+            },
+            {
+              "type": "STRING",
+              "required": false,
+              "link_id": "zip",
+              "text": "Zip Code",
+              "field_name": "zip",
+              "size": "SMALL"
+            }
+          ]
         }
+
       ]
     }
   ]

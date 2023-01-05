@@ -38,7 +38,15 @@ class DBA::PartitionMaker
   end
 
   def done?
-    table_exists?(old_table) && !table_exists?(partitioned_table)
+    result = p(<<~SQL)
+      SELECT relkind
+      FROM pg_class
+      WHERE relname = '#{table_name}'
+    SQL
+
+    # The table is a partitioned table and the transactional insert/renaming
+    # happened. It can't have been renamed without copying the data
+    result[0]['relkind'] == 'p' && !table_exists?(partitioned_table)
   end
 
   def no_table?
@@ -112,6 +120,10 @@ class DBA::PartitionMaker
 
       p(<<~SQL)
         ALTER TABLE "#{partitioned_table}" RENAME TO "#{table_name}";
+      SQL
+
+      p(<<~SQL)
+        ALTER SEQUENCE #{table_name}_id_seq OWNED BY #{table_name}.id;
       SQL
     end
   end

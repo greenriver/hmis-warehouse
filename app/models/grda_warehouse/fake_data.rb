@@ -88,6 +88,16 @@ class GrdaWarehouse::FakeData < GrdaWarehouseBase
       UserFirstName: ->(_value) { fake_name(type: :first) },
       UserLastName: ->(_value) { fake_name(type: :last) },
       UserEmail: ->(_value) { Faker::Internet.safe_email },
+      MovingOnOtherType: ->(value) { Faker::Hipster.sentence(word_count: 3) if value.present? },
+      VerifiedBy: ->(value) { Faker::TvShows::TwinPeaks.location if value.present? },
+      LocationDetails: ->(value) { Faker::TvShows::TwinPeaks.location if value.present? },
+      AssessmentLocation: ->(value) { Faker::TvShows::TwinPeaks.location if value.present? },
+      AssessmentQuestion: ->(value) { Faker::Hipster.sentence(word_count: 3) if value.present? },
+      AssessmentAnswer: ->(value) { Faker::Hipster.sentence(word_count: 3) if value.present? },
+      LocationCrisisOrPHHousing: ->(value) { Faker::TvShows::TwinPeaks.location if value.present? },
+      CustomQuestion: ->(value) { Faker::Hipster.sentence(word_count: 3) if value.present? },
+      CustomAnswer: ->(value) { Faker::Hipster.sentence(word_count: 3) if value.present? },
+      CustomDetailAnswer: ->(value) { Faker::Hipster.sentence(word_count: 3) if value.present? },
     }
   end
 

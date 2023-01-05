@@ -11,6 +11,7 @@ module WarehouseReports::Cas
     before_action :filter
 
     def index
+      @cas_user = current_user.cas_user
       @data = report_scope
       respond_to do |format|
         format.html {}
@@ -22,8 +23,7 @@ module WarehouseReports::Cas
     end
 
     private def filter
-      # raise step_params.inspect
-      @filter = ::Filters::StepRange.new(
+      @filter = ::CasAccess::Filters::FilterBase.new(
         {
           start: 12.month.ago.to_date,
           end: Date.current,
@@ -55,7 +55,8 @@ module WarehouseReports::Cas
         :first_step,
         :second_step,
         :unit,
-        :route,
+        :match_route,
+        :agency,
         :start,
         :end,
         :interesting_date,
@@ -63,11 +64,15 @@ module WarehouseReports::Cas
     end
 
     private def report_source
-      GrdaWarehouse::CasReport
+      CasAccess::Reporting::Decisions
     end
 
     private def at
       @at ||= report_source.arel_table
+    end
+
+    private def cas_c_t
+      @cas_c_t ||= CasAccess::Client.arel_table
     end
 
     private def at2
@@ -79,17 +84,30 @@ module WarehouseReports::Cas
     end
 
     private def report_scope
-      query = at.where(at[@filter.interesting_column].between(@filter.start..@filter.end + 1.day).or(at[@filter.interesting_column].eq(nil))).
-        join(at2).on(
-          at[:client_id].eq(at2[:client_id]).
-          and(at[:match_id].eq(at2[:match_id])).
-          and(at[:match_step].eq(first_step)).
-          and(at2[:match_step].eq(second_step)),
-        ).where(at2[@filter.interesting_column].between(@filter.start..@filter.end + 1.day)).
-        join(c_t).on(at[:client_id].eq(c_t[:id])).
-        order(at[:program_name].asc, at[:sub_program_name].asc).
-        project(*columns.values)
-      report_source.connection.select_rows(query.to_sql).map do |row|
+      return report_source.none unless @cas_user.present?
+
+      decision_join = at.join(at2).on(
+        at[:client_id].eq(at2[:client_id]).
+        and(at[:match_id].eq(at2[:match_id])).
+        and(at[:match_step].eq(first_step)).
+        and(at2[:match_step].eq(second_step)),
+      ).join_sources
+
+      scope = report_source.where(
+        at[@filter.interesting_column].
+          between(@filter.start..@filter.end + 1.day).
+          or(at[@filter.interesting_column].eq(nil)),
+      ).
+        where(at2[@filter.interesting_column].between(@filter.start..@filter.end + 1.day)).
+        joins(:client, match: :programs).
+        joins(decision_join).
+        order(at[:program_name].asc, at[:sub_program_name].asc)
+
+      chosen_program_ids = CasAccess::Agency.find_by(id: @filter.agency)&.program_ids.presence || CasAccess::Program.pluck(:id)
+      chosen_program_ids &= @cas_user.agency.program_ids unless @cas_user.match_admin?
+      scope = scope.merge(CasAccess::Program.where(id: chosen_program_ids))
+
+      scope.pluck(*columns.values).map do |row|
         hashed_row = columns.keys.zip(row).to_h
         hashed_row[:days] = (hashed_row[:second_ended_at].to_date - hashed_row[:first_ended_at].to_date).to_i
         hashed_row
@@ -118,8 +136,8 @@ module WarehouseReports::Cas
         second_id: at2[:id],
         first_ended_at: at[:updated_at],
         second_ended_at: at2[:updated_at],
-        first_name: c_t[:FirstName],
-        last_name: c_t[:LastName],
+        first_name: cas_c_t[:first_name],
+        last_name: cas_c_t[:last_name],
         hsa_contacts: at[:hsa_contacts],
         hsp_contacts: at[:hsp_contacts],
         client_move_in_date: at2[:client_move_in_date],

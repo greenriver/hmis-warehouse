@@ -38,7 +38,7 @@ concurrency:
 
 jobs:
   deploy:
-    name: Deploy
+    name: Build
     runs-on: ubuntu-20.04
 
     steps:
@@ -47,10 +47,10 @@ jobs:
 
     - name: Install aws cli
       id: install-aws-cli
-      uses: unfor19/install-aws-cli-action@v1.0.3
+      uses: unfor19/install-aws-cli-action@v1
 
     - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v1
+      uses: aws-actions/configure-aws-credentials@v1-node16
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -67,6 +67,7 @@ jobs:
         ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
         SHA: ${{ github.sha }}
         DOCKER_ASSETS_PATH: config/deploy/docker/assets
+        BRANCH: ${{ github.ref_name }}
       run: |
         export GITHASH="${SHA::9}"
         export IMAGE_TAG="githash-${GITHASH}"
@@ -74,13 +75,14 @@ jobs:
         export PRE_CACHE_VERSION=`cat .pre-cache-version`
         export PRE_CACHE_TAG="${RUBY_VERSION}-${PRE_CACHE_VERSION}--pre-cache"
 
-        echo $SHA > $DOCKER_ASSETS_PATH/REVISION
+        echo $SHA > ${DOCKER_ASSETS_PATH}/REVISION
+        echo $BRANCH > ${DOCKER_ASSETS_PATH}/GIT_BRANCH
 
-        echo "::set-output name=pre_cache_tag::$PRE_CACHE_TAG"
-        echo "::set-output name=githash::$GITHASH"
-        echo "::set-output name=ruby_version::$RUBY_VERSION"
-        echo "::set-output name=docker_assets_path::$DOCKER_ASSETS_PATH"
-        echo "::set-output name=image_tag::$IMAGE_TAG"
+        echo "pre_cache_tag=$PRE_CACHE_TAG" >> $GITHUB_OUTPUT
+        echo "githash=$GITHASH" >> $GITHUB_OUTPUT
+        echo "ruby_version=$RUBY_VERSION" >> $GITHUB_OUTPUT
+        echo "docker_assets_path=$DOCKER_ASSETS_PATH" >> $GITHUB_OUTPUT
+        echo "image_tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
 
         bin/error_if_githash_is_latest.rb base,web,dj
 
@@ -116,8 +118,11 @@ jobs:
         IMAGE_TAG: ${{ steps.prep.outputs.image_tag }}
         RUBY_VERSION: ${{ steps.prep.outputs.ruby_version }}
       run: |
-        echo $SHA > $DOCKER_ASSETS_PATH/REVISION
         echo 'no tag generated' > image-tag.txt
+
+        echo Here are the file values
+        cat ${DOCKER_ASSETS_PATH}/REVISION
+        cat ${DOCKER_ASSETS_PATH}/GIT_BRANCH
 
         echo Building base
         docker build --file=$DOCKER_ASSETS_PATH/Dockerfile.${ECR_REPOSITORY}.base --build-arg GITHASH=${GITHASH} --build-arg RUBY_VERSION=${RUBY_VERSION} -t ${ECR_REPOSITORY}:latest--base .
@@ -140,10 +145,10 @@ jobs:
         echo $IMAGE_TAG--web >> image-tag.txt
         echo $IMAGE_TAG--dj >> image-tag.txt
         echo $IMAGE_TAG--deploy >> image-tag.txt
-        echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--base"
-        echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--web"
-        echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--dj"
-        echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--deploy"
+        echo "image_base=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--base" >> $GITHUB_OUTPUT
+        echo "image_web=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--web" >> $GITHUB_OUTPUT
+        echo "image_dj=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--dj" >> $GITHUB_OUTPUT
+        echo "image_deploy=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--deploy" >> $GITHUB_OUTPUT
 
     - name: Show image tag
       uses: actions/upload-artifact@v1

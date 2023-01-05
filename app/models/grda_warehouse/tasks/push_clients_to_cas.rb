@@ -7,10 +7,9 @@
 module GrdaWarehouse::Tasks
   class PushClientsToCas
     include NotifierConfig
-    attr_accessor :logger, :send_notifications, :notifier_config
+
     def initialize
       setup_notifier('Warehouse-CAS Sync')
-      self.logger = Rails.logger
     end
 
     private def advisory_lock_key
@@ -24,20 +23,19 @@ module GrdaWarehouse::Tasks
 
       if GrdaWarehouse::DataSource.advisory_lock_exists?(advisory_lock_key)
         msg = 'Other CAS Sync in progress, exiting.'
-        logger.warn msg
-        @notifier.ping(msg) if @send_notifications
+        @notifier.ping(msg)
         return
       end
-
+      @start_time = Time.current
       GrdaWarehouse::DataSource.with_advisory_lock(advisory_lock_key) do
         @client_ids = client_source.pluck(:id)
         updated_clients = []
-        update_columns = (Cas::ProjectClient.column_names - ['id']).map(&:to_sym)
-        Cas::ProjectClient.transaction do
-          Cas::ProjectClient.update_all(sync_with_cas: false)
+        update_columns = (CasAccess::ProjectClient.column_names - ['id']).map(&:to_sym)
+        CasAccess::ProjectClient.transaction do
+          CasAccess::ProjectClient.update_all(sync_with_cas: false)
           @client_ids.each_slice(150) do |client_id_batch|
             to_update = []
-            project_clients = Cas::ProjectClient.
+            project_clients = CasAccess::ProjectClient.
               where(data_source_id: data_source.id, id_in_data_source: client_id_batch).
               index_by(&:id_in_data_source)
             max_dates = GrdaWarehouse::Hud::Client.date_of_last_homeless_service(client_id_batch)
@@ -70,7 +68,7 @@ module GrdaWarehouse::Tasks
             end
             client_source.preload(preloads).
               where(id: client_id_batch).find_each do |client|
-              project_client = project_clients[client.id] || Cas::ProjectClient.new(data_source_id: data_source.id, id_in_data_source: client.id)
+              project_client = project_clients[client.id] || CasAccess::ProjectClient.new(data_source_id: data_source.id, id_in_data_source: client.id)
               project_client.assign_attributes(attributes_for_cas_project_client(client))
 
               case GrdaWarehouse::Config.get(:cas_days_homeless_source)
@@ -94,15 +92,18 @@ module GrdaWarehouse::Tasks
               project_client.needs_update = true
               to_update << project_client
             end
-            Cas::ProjectClient.import(to_update, on_duplicate_key_update: update_columns)
+            CasAccess::ProjectClient.import(to_update, on_duplicate_key_update: update_columns)
             updated_clients += to_update
           end
         end
         maintain_cas_availability_table(@client_ids)
 
         unless updated_clients.empty?
+          elapsed = Time.current - @start_time
           msg = "Updated #{updated_clients.size} ProjectClients in CAS and marked them available"
-          @notifier.ping msg if @send_notifications
+          Rails.logger.tagged({ task_name: 'Warehouse-CAS Sync', repeating_task: true, task_runtime: elapsed }) do
+            @notifier.ping(msg)
+          end
         end
       end
     end
@@ -128,7 +129,7 @@ module GrdaWarehouse::Tasks
     end
 
     def data_source
-      @data_source ||= Cas::DataSource.where(name: 'DND Warehouse').first_or_create
+      @data_source ||= CasAccess::DataSource.where(name: 'DND Warehouse').first_or_create
     end
 
     def client_source
@@ -248,6 +249,7 @@ module GrdaWarehouse::Tasks
         heavy_drug_use: :heavy_drug_use,
         sober: :sober,
         site_case_management_required: :site_case_management_required,
+        ongoing_case_management_required: :ongoing_case_management_required,
         currently_fleeing: :currently_fleeing,
         dv_date: :dv_date,
         assessor_first_name: :assessor_first_name,
@@ -268,7 +270,12 @@ module GrdaWarehouse::Tasks
       end
     end
 
+    # Only used to display attributes for a single client,
+    # NOT used during sync to CAS
     def attributes_for_display(user, client)
+      # Since we only care about one client at a time for this, we can
+      # speed up queries by telling the calculator which client we are looking at
+      calculator_instance.client_id = client.id
       attributes_for_cas_project_client(client).map do |k, value|
         next if skip_for_display(user).include?(k)
 
@@ -300,11 +307,11 @@ module GrdaWarehouse::Tasks
         HUD.no_yes_reasons_for_missing_data(value)
       elsif key == :neighborhood_interests
         value.map do |id|
-          Cas::Neighborhood.find_by(id: id)&.name
+          CasAccess::Neighborhood.find_by(id: id)&.name
         end&.to_sentence
       elsif key == :tags
         value.keys.map do |id|
-          Cas::Tag.find(id).name
+          CasAccess::Tag.find(id).name
         end&.join('; ')
       elsif key == :default_shelter_agency_contacts
         value.join('; ')

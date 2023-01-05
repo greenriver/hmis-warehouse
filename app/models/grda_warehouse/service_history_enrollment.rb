@@ -37,7 +37,8 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   end
 
   scope :entry, -> { where record_type: 'entry' }
-  scope :exit, -> { where record_type: 'exit' }
+  # hide previous declaration of :exit (from Kernel), we'll use this one
+  replace_scope :exit, -> { where record_type: 'exit' }
   scope :bed_night, -> { where project_tracking_method: 3 }
   scope :night_by_night, -> { bed_night }
   # the first date individuals entered a residential service

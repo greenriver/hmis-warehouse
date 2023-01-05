@@ -106,7 +106,7 @@ module Filters
       elsif filters.key?(:project_type_numbers)
         self.project_type_codes = []
       else
-        project_type_codes
+        self.project_type_codes = project_type_codes
       end
       self.project_type_numbers = filters.dig(:project_type_numbers)&.reject(&:blank?)&.map(&:to_i).presence || project_type_numbers
       self.data_source_ids = filters.dig(:data_source_ids)&.reject(&:blank?)&.map(&:to_i).presence || data_source_ids
@@ -679,15 +679,22 @@ module Filters
 
     def available_age_ranges
       {
+        zero_to_four: '0 - 4',
+        five_to_ten: '5 - 10',
+        eleven_to_fourteen: '11 - 14',
+        fifteen_to_seventeen: '15 - 17',
         under_eighteen: '< 18',
         eighteen_to_twenty_four: '18 - 24',
         twenty_five_to_twenty_nine: '25 - 29',
-        thirty_to_thirty_nine: '30 - 39',
-        forty_to_forty_nine: '40 - 49',
+        thirty_to_thirty_four: '30 - 34',
+        thirty_five_to_thirty_nine: '35 - 39',
+        forty_to_forty_four: '40 - 44',
+        forty_five_to_forty_nine: '45 - 49',
         fifty_to_fifty_four: '50 - 54',
         fifty_five_to_fifty_nine: '55 - 59',
         sixty_to_sixty_one: '60 - 61',
-        over_sixty_one: '62+',
+        sixty_two_to_sixty_four: '62 - 64',
+        over_sixty_four: '64+',
       }.invert.freeze
     end
 
@@ -864,6 +871,8 @@ module Filters
         'LSA Scope'
       when :cohort_ids
         'Cohorts'
+      else
+        key.to_s.titleize
       end
 
       return unless value.present?
@@ -933,6 +942,9 @@ module Filters
         chosen_lsa_scope
       when :cohort_ids
         cohorts
+      else
+        val = send(key)
+        val.instance_of?(String) ? val.titleize : val
       end
     end
 

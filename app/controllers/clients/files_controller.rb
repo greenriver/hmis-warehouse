@@ -45,8 +45,8 @@ module Clients
 
     def create
       @file = file_source.new
-      @file.errors.add :tag_list, 'You must specify file contents' if file_params[:tag_list].blank?
-      @file.errors.add :file, 'No uploaded file found' unless file_params[:file]
+      @file.errors.add(:tag_list, 'You must specify file contents') if file_params[:tag_list].blank?
+      @file.errors.add(:client_file, 'No uploaded file found') unless file_params[:client_file]
       if @file.errors.any?
         render :new
         return
@@ -54,24 +54,19 @@ module Clients
 
       begin
         allowed_params = current_user.can_confirm_housing_release? ? file_params : file_params.except(:consent_form_confirmed)
-        file = allowed_params[:file]
         tag_list = [allowed_params[:tag_list]].select(&:present?)
-        attrs = {
-          file: file,
-          client_id: @client.id,
-          user_id: current_user.id,
-          # content_type: file&.content_type,
-          content: file&.read,
-          note: allowed_params[:note],
-          name: file.original_filename,
-          visible_in_window: window_visible?(allowed_params[:visible_in_window]),
-          effective_date: allowed_params[:effective_date],
-          expiration_date: allowed_params[:expiration_date],
-          consent_form_confirmed: allowed_params[:consent_form_confirmed] || GrdaWarehouse::Config.get(:auto_confirm_consent),
-          coc_codes: allowed_params[:coc_codes].reject(&:blank?),
-        }
 
-        @file.assign_attributes(attrs)
+        @file.assign_attributes(
+          allowed_params.merge(
+            file: 'See S3', # Temporary until we remove the column
+            client_id: @client.id,
+            user_id: current_user.id,
+            visible_in_window: window_visible?(allowed_params[:visible_in_window]),
+            consent_form_confirmed: allowed_params[:consent_form_confirmed] || GrdaWarehouse::Config.get(:auto_confirm_consent),
+            coc_codes: allowed_params[:coc_codes].reject(&:blank?),
+          ),
+        )
+        @file.name = export_name
         @file.tag_list.add(tag_list)
 
         requires_effective_date = GrdaWarehouse::AvailableFileTag.where(name: @file.tag_list).any?(&:requires_effective_date)
@@ -159,6 +154,10 @@ module Clients
     end
     helper_method :delete_reasons
 
+    private def export_name
+      "#{@file.client_file.filename.base}#{@file.client_file.filename.extension_with_delimiter}"
+    end
+
     def preview
       if stale?(etag: @file, last_modified: @file.updated_at)
         @preview = @file.as_preview
@@ -167,9 +166,9 @@ module Clients
           return
         end
         headers['Content-Security-Policy'] = "default-src 'none'; object-src 'self'; style-src 'unsafe-inline'; plugin-types application/pdf;"
-        send_data @preview, filename: @file.name, disposition: :inline, content_type: @file.content_type
+        send_data @preview, filename: export_name, disposition: :inline, content_type: @file.client_file.content_type
       else
-        logger.debug 'used browser cache'
+        Rails.logger.debug 'used browser cache'
       end
     end
 
@@ -181,15 +180,16 @@ module Clients
           return
         end
         headers['Content-Security-Policy'] = "default-src 'none'; object-src 'self'; style-src 'unsafe-inline'; plugin-types application/pdf;"
-        send_data @thumb, filename: @file.name, disposition: :inline, content_type: @file.content_type
+        send_data @thumb, filename: export_name, disposition: :inline, content_type: @file.client_file.content_type
       else
-        logger.debug 'used browser cache'
+        Rails.logger.debug 'used browser cache'
       end
     end
 
     def download
-      filename = @file.file&.file&.filename&.to_s || 'client_file'
-      send_data(@file.content, type: @file.content_type, filename: filename)
+      client_file = @file.client_file
+      filename = "#{client_file.filename.base}#{client_file.filename.extension_with_delimiter}".presence || 'client_file'
+      send_data(client_file.download, type: client_file.content_type, filename: filename)
     end
 
     def batch_download
@@ -200,8 +200,8 @@ module Clients
       # temp_file = Tempfile.new('tmp-zip-' + request.remote_ip)
       zip_stream = Zip::OutputStream.write_buffer do |zip_out|
         @files.each do |file|
-          zip_out.put_next_entry(File.join(@client.id.to_s, "#{file.tag_list.join('-')}#{extension_for(file.content_type)}"))
-          zip_out.print file.content
+          zip_out.put_next_entry(File.join(@client.id.to_s, "#{file.tag_list.join('-')}#{extension_for(file.client_file.content_type)}"))
+          zip_out.print file.client_file.download
         end
       end
       zip_stream.rewind
@@ -220,6 +220,7 @@ module Clients
     def file_params
       params.require(:grda_warehouse_client_file).
         permit(
+          :client_file,
           :file,
           :note,
           :visible_in_window,

@@ -12,9 +12,9 @@ module Types
     graphql_name 'ServiceSubTypeProvided'
 
     [
-      ['144:3', HmisSchema::Enums::SSVFSubType3],
-      ['144:4', HmisSchema::Enums::SSVFSubType4],
-      ['144:5', HmisSchema::Enums::SSVFSubType5],
+      ['144:3', HmisSchema::Enums::Hud::SSVFSubType3],
+      ['144:4', HmisSchema::Enums::Hud::SSVFSubType4],
+      ['144:5', HmisSchema::Enums::Hud::SSVFSubType5],
     ].each do |record_type, enum|
       rt_key, rt_value = HmisSchema::Enums::ServiceTypeProvided.enum_member_for_value(record_type)
       enum.values.each do |enum_key, enum_value|

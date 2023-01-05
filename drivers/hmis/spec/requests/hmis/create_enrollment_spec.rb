@@ -14,15 +14,15 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       household_members: [
         {
           id: c1.id,
-          relationship_to_ho_h: Types::HmisSchema::Enums::RelationshipToHoH.enum_member_for_value(1).first,
+          relationship_to_ho_h: Types::HmisSchema::Enums::Hud::RelationshipToHoH.enum_member_for_value(1).first,
         },
         {
           id: c2.id,
-          relationship_to_ho_h: Types::HmisSchema::Enums::RelationshipToHoH.enum_member_for_value(2).first,
+          relationship_to_ho_h: Types::HmisSchema::Enums::Hud::RelationshipToHoH.enum_member_for_value(2).first,
         },
         {
           id: c3.id,
-          relationship_to_ho_h: Types::HmisSchema::Enums::RelationshipToHoH.enum_member_for_value(3).first,
+          relationship_to_ho_h: Types::HmisSchema::Enums::Hud::RelationshipToHoH.enum_member_for_value(3).first,
         },
       ],
     }
@@ -56,15 +56,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
                 id
               }
             }
-            errors {
-              id
-              attribute
-              message
-              fullMessage
-              type
-              options
-              __typename
-            }
+            #{error_fields}
           }
         }
       GRAPHQL
@@ -74,7 +66,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       <<~GRAPHQL
         query GetClient($id: ID!) {
           client(id: $id) {
-            enrollments {
+            enrollments(includeInProgress: true) {
               nodesCount
               nodes {
                 id

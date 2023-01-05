@@ -8,6 +8,9 @@
 
 module Types
   class HmisSchema::Inventory < Types::BaseObject
+    include Types::HmisSchema::HasUnits
+    include Types::HmisSchema::HasBeds
+
     def self.configuration
       Hmis::Hud::Inventory.hmis_configuration(version: '2022')
     end
@@ -15,8 +18,8 @@ module Types
     hud_field :id, ID, null: false
     hud_field :project, Types::HmisSchema::Project, null: false
     hud_field :coc_code
-    hud_field :household_type, HmisSchema::Enums::HouseholdType
-    hud_field :availability, HmisSchema::Enums::Availability
+    hud_field :household_type, HmisSchema::Enums::Hud::HouseholdType
+    hud_field :availability, HmisSchema::Enums::Hud::Availability
     hud_field :unit_inventory
     hud_field :bed_inventory
     hud_field :ch_vet_bed_inventory
@@ -26,12 +29,22 @@ module Types
     hud_field :youth_bed_inventory
     hud_field :ch_bed_inventory
     hud_field :other_bed_inventory
-    hud_field :es_bed_type, HmisSchema::Enums::BedType
+    hud_field :es_bed_type, HmisSchema::Enums::Hud::BedType
     hud_field :inventory_start_date, null: false
     hud_field :inventory_end_date
     hud_field :date_updated
     hud_field :date_created
     hud_field :date_deleted
     field :active, Boolean, null: false
+    units_field
+    beds_field
+
+    def units(**args)
+      resolve_units(**args)
+    end
+
+    def beds(**args)
+      resolve_beds(**args)
+    end
   end
 end

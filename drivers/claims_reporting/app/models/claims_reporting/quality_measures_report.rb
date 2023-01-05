@@ -259,10 +259,6 @@ module ClaimsReporting
       ),
     ].index_by(&:id).freeze
 
-    private def logger
-      Rails.logger
-    end
-
     # we are keeping rows of each enrollee, etc and flags for each measure
     # with three possible values:
     #  - nil (not in the universe for the measure)
@@ -399,7 +395,7 @@ module ClaimsReporting
         :sex,
       ).index_by(&:member_id)
 
-      logger.debug { "#{members_by_member_id.size} members" }
+      Rails.logger.debug { "#{members_by_member_id.size} members" }
 
       enrollments_by_member_id = assigned_enrollements_scope.select(
         :id,
@@ -413,7 +409,7 @@ module ClaimsReporting
         :cp_stop_rsn,
       ).group_by(&:member_id)
 
-      logger.debug { "#{assigned_enrollements_scope.size} enrollment spans" }
+      Rails.logger.debug { "#{assigned_enrollements_scope.size} enrollment spans" }
 
       rows = []
 
@@ -474,7 +470,7 @@ module ClaimsReporting
         ->(_item, _i, _result) { pb.increment! }
       end
 
-      logger.debug { "#{medical_claims_scope.count} medical_claims" }
+      Rails.logger.debug { "#{medical_claims_scope.count} medical_claims" }
 
       # value_set_lookups # preload before we potentially fork to save IO/ram
 
@@ -591,7 +587,7 @@ module ClaimsReporting
 
       selected_enrollments.each_cons(2) do |e_prev, e|
         if (e.span_start_date - e_prev.span_end_date) > max_gap
-          # logger.debug { "Found enrollment gap > #{max_gap} #{e_prev.span_end_date.inspect}..#{e.span_start_date.inspect}" }
+          # Rails.logger.debug { "Found enrollment gap > #{max_gap} #{e_prev.span_end_date.inspect}..#{e.span_start_date.inspect}" }
           return false
         end
       end
@@ -727,7 +723,7 @@ module ClaimsReporting
 
     # hook to log exclusions
     private def trace_exclusion(&block)
-      # logger.debug(&block)
+      # Rails.logger.debug(&block)
     end
 
     # Follow-up with BH CP after Emergency Department visit
@@ -1595,7 +1591,7 @@ module ClaimsReporting
       cp_enrolled_days = cp_enrolled_dates.size
       community_days = (cp_enrolled_dates - days_using_services.to_a).size
 
-      # logger.debug "BH_CP_6: Found #{community_days}/#{cp_enrolled_days} days"
+      # Rails.logger.debug "BH_CP_6: Found #{community_days}/#{cp_enrolled_days} days"
       [
         MeasureRow.new(
           row_type: 'enrolled days',

@@ -2,29 +2,29 @@
   "item": [
     {
       "type": "GROUP",
-      "link_id": "name",
+      "link_id": "organization",
       "required": false,
       "item": [
         {
           "type": "STRING",
           "required": true,
-          "link_id": "1",
+          "link_id": "name",
           "text": "Organization Name",
-          "query_field": "organizationName"
+          "field_name": "organizationName"
         },
         {
           "type": "TEXT",
           "required": false,
           "link_id": "description",
           "text": "Description",
-          "query_field": "description"
+          "field_name": "description"
         },
         {
           "type": "TEXT",
           "required": false,
           "link_id": "contact",
           "text": "Contact Information",
-          "query_field": "contactInformation"
+          "field_name": "contactInformation"
         },
         {
           "type": "BOOLEAN",
@@ -32,7 +32,7 @@
           "hidden": false,
           "text": "Victim Service Provider",
           "link_id": "victimServiceProvider",
-          "query_field": "victimServiceProvider"
+          "field_name": "victimServiceProvider"
         }
       ]
     }

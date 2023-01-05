@@ -1,3 +1,5 @@
+@import '../_settings/colors';
+
 .census-chart {
   width: 100%;
   height: 100px;
@@ -5,4 +7,22 @@
 
 .jChartDownloads {
   font-size: 0.8rem;
+}
+
+.census__chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.census__chart-header:not(:first-child) {
+  margin-top: 20px;
+  // padding-top: 10px;
+  // border-top: 1px solid $gray-034;
+  background-color: $brand-primary-ll;
+}
+
+.census__chart-subtitle {
+  float: 'right';
 }

@@ -40,22 +40,28 @@ RSpec.describe 'Datalab 2021', type: :model do
     setup
   end
 
-  include_context 'datalab psh coc 1 apr'
-  include_context 'datalab rrh coc 1 apr'
-  include_context 'datalab rrh coc 2 apr'
-  include_context 'datalab so coc apr'
-  include_context 'datalab sso coc apr'
-  include_context 'datalab th coc apr'
+  # Only run the tests if the source files are available
+  if File.exist?('drivers/datalab_testkit/spec/fixtures/inputs/merged/source/Export.csv')
+    include_context 'datalab psh coc 1 apr'
+    include_context 'datalab rrh coc 1 apr'
+    include_context 'datalab rrh coc 2 apr'
+    include_context 'datalab so coc apr'
+    include_context 'datalab sso coc apr'
+    include_context 'datalab th coc apr'
 
-  include_context 'datalab es ee esg caper'
-  include_context 'datalab es nbn esg caper'
-  include_context 'datalab hp esg caper'
-  include_context 'datalab rrh esg caper'
-  include_context 'datalab so esg caper'
-  include_context 'datalab th esg caper'
+    include_context 'datalab es ee esg caper'
+    include_context 'datalab es nbn esg caper'
+    include_context 'datalab hp esg caper'
+    include_context 'datalab rrh esg caper'
+    include_context 'datalab so esg caper'
+    include_context 'datalab th esg caper'
 
-  include_context 'datalab th ce and es ce apr'
-  include_context 'datalab th ce ce apr'
+    include_context 'datalab th ce and es ce apr'
+    include_context 'datalab th ce ce apr'
+  else
+    xit 'Data Lab Testkit based tests are skipped, files are missing' do
+    end
+  end
 
   after(:all) do
     cleanup

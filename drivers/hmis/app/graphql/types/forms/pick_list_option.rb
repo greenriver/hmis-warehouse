@@ -15,14 +15,14 @@ module Types
     field :group_label, String, 'Label for group that option belongs to, if grouped', null: true
     field :initial_selected, Boolean, 'Whether option is selected by default', null: true
 
-    def self.options_for_type(pick_list_type, user:, project_id: nil)
+    def self.options_for_type(pick_list_type, user:, relation_id: nil)
       relevant_state = ENV['RELEVANT_COC_STATE']
 
       case pick_list_type
       when 'COC'
-        selected_project = Hmis::Hud::Project.viewable_by(user).find_by(id: project_id) if project_id.present?
+        selected_project = Hmis::Hud::Project.viewable_by(user).find_by(id: relation_id) if relation_id.present?
         available_codes = if selected_project.present?
-          selected_project.project_cocs.pluck(:CoCCode)
+          selected_project.project_cocs.pluck(:CoCCode).uniq.map { |code| [code, ::HUD.cocs[code] || code] }
         else
           ::HUD.cocs_in_state(relevant_state)
         end
@@ -35,7 +35,7 @@ module Types
         state_options.map do |obj|
           {
             code: obj['abbreviation'],
-            label: "#{obj['abbreviation']} - #{obj['name']}",
+            # label: "#{obj['abbreviation']} - #{obj['name']}",
             initial_selected: obj['abbreviation'] == relevant_state,
           }
         end
@@ -77,6 +77,11 @@ module Types
             label: organization.organization_name,
           }
         end
+      when 'AVAILABLE_UNITS'
+        inventory = Hmis::Hud::Inventory.find_by(id: relation_id) if relation_id.present?
+        return [] unless inventory.present?
+
+        inventory.units.map { |unit| { code: unit.id, label: unit.name } }
       end
     end
 
@@ -93,10 +98,11 @@ module Types
     end
 
     def self.living_situation_options(as:)
+      enum_value_definitions = Types::HmisSchema::Enums::Hud::LivingSituation.all_enum_value_definitions
       to_option = ->(group_code, group_label) {
         proc do |id|
           {
-            code: id,
+            code: enum_value_definitions.find { |v| v.value == id }.graphql_name,
             label: ::HUD.living_situation(id),
             group_code: group_code,
             group_label: group_label,

@@ -19,7 +19,7 @@ module HudLsa::Generators::Fy2022
     include MissingDataConcern
     include ViewRelatedConcern
     include StatusProgressionConcern
-    attr_accessor :report, :send_notifications, :notifier_config, :destroy_rds, :hmis_export_id, :test
+    attr_accessor :report, :destroy_rds, :hmis_export_id, :test
     has_one_attached :result_file
     has_one_attached :intermediate_file
     has_one :summary_result, class_name: 'HudLsa::Fy2022::SummaryResult', foreign_key: :hud_report_instance_id
@@ -31,10 +31,6 @@ module HudLsa::Generators::Fy2022
 
     def filter
       @filter ||= HudLsa::Filters::LsaFilter.new(user_id: user_id).update(options)
-    end
-
-    def self.valid_project_types
-      [1, 2, 3, 8, 13]
     end
 
     def lookback_stop_date
@@ -166,7 +162,10 @@ module HudLsa::Generators::Fy2022
             hash_status: 1,
             include_deleted: false,
           ).
+          # where project_ids contains the effective project ids, and effective contains the project ids
+          # (equivalency without sort)
           where('project_ids @> ?', filter.effective_project_ids.to_json).
+          where('project_ids <@ ?', filter.effective_project_ids.to_json).
           where.not(file: nil)&.first
         if existing_export.present?
           @hmis_export = existing_export
@@ -258,7 +257,7 @@ module HudLsa::Generators::Fy2022
               klass.new.clean_row_for_import(row: row.fields, headers: import_headers)
             end.compact
             # Using TsqlImport because active_record import doesn't play nice
-            insert_batch(klass, import_headers, content, batch_size: 1_000)
+            insert_batch(klass, standardize_headers(import_headers), content, batch_size: 1_000)
           end
         end
       end
@@ -266,6 +265,19 @@ module HudLsa::Generators::Fy2022
       GrdaWarehouseBase.connection.reconnect!
       ApplicationRecord.connection.reconnect!
       ReportingBase.connection.reconnect!
+    end
+
+    # This reverses some export changes we made to maintain case sensitive matching with the 2022 spec
+    private def standardize_headers(headers)
+      # ZIP -> Zip
+      zip_index = headers.index('ZIP')
+      headers[zip_index] = 'Zip' if zip_index.present?
+
+      # WorkplaceViolenceThreats -> WorkPlaceViolenceThreats
+      workplace_index = headers.index('WorkplaceViolenceThreats')
+      headers[workplace_index] = 'WorkPlaceViolenceThreats' if workplace_index.present?
+
+      headers
     end
 
     def fetch_results

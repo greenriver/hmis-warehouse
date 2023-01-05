@@ -17,7 +17,7 @@
         %tr
           %td
             = link_to url, data: { loads_in_pjax_modal: true } do
-              %h4= form[:title].presence || 'Title Missing'
+              %h4.mb-1.mt-0= form[:title].presence || 'Title Missing'
               .pl-2= form[:sub_title]
           %td= form[:date]
           %td= form[:user]
@@ -26,10 +26,17 @@
 
 = content_for :page_js do
   :javascript
-    $('.datatable-sdh').DataTable({
+    let options = {
       searching: false,
       ordering: false,
       pageLength: 10,
       lengthChange: false,
       pagingType: 'simple'
-    })
+    };
+    let table = $('.datatable-sdh').DataTable(options);
+    let info = table.page.info();
+    if(info.pages == 1) {
+      table.destroy()
+      options.paging = false;
+      table = $('.datatable-sdh').DataTable(options);
+    }

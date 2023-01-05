@@ -5,23 +5,14 @@
 ###
 
 class Hmis::Hud::Funder < Hmis::Hud::Base
-  include ::HmisStructure::Funder
-  include ::Hmis::Hud::Shared
   self.table_name = :Funder
   self.sequence_name = "public.\"#{table_name}_id_seq\""
+  include ::HmisStructure::Funder
+  include ::Hmis::Hud::Concerns::Shared
+  include ::Hmis::Hud::Concerns::ProjectRelated
   validates_with Hmis::Hud::Validators::FunderValidator
 
   belongs_to :project, **hmis_relation(:ProjectID, 'Project')
-
-  use_enum :funding_source_enum_map, ::HUD.funding_sources
-
-  scope :viewable_by, ->(user) do
-    joins(:project).merge(Hmis::Hud::Project.viewable_by(user))
-  end
-
-  scope :editable_by, ->(user) do
-    joins(:project).merge(Hmis::Hud::Project.editable_by(user))
-  end
 
   SORT_OPTIONS = [:start_date].freeze
 

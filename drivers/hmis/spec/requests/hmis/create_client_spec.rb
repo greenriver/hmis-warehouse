@@ -10,15 +10,16 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       middle_name: 'Joseph',
       preferred_name: 'Johnny',
       name_suffix: 'jr',
-      name_data_quality: Hmis::Hud::Client.name_data_quality_enum_map.lookup(key: 'Partial, street name, or code name reported')&.[](:value),
+      name_data_quality: 1,
       dob: '2022-06-15',
-      dob_data_quality: Hmis::Hud::Client.dob_data_quality_enum_map.lookup(key: 'Full DOB reported')&.[](:value),
+      dob_data_quality: 2,
       ssn: '123-45-6789',
-      ssn_data_quality: Hmis::Hud::Client.ssn_data_quality_enum_map.lookup(key: 'Full SSN reported')&.[](:value),
-      ethnicity: Hmis::Hud::Client.ethnicity_enum_map.values.first,
-      veteran_status: Hmis::FieldMap.no_yes_reasons.values.first,
-      gender: [Hmis::Hud::Client.gender_enum_map.base_members.first[:value]],
-      race: [Hmis::Hud::Client.race_enum_map.base_members.first[:value]],
+      ssn_data_quality: 3,
+      ethnicity: 1,
+      veteran_status: 1,
+      gender: [0],
+      race: ['AmIndAKNative'],
+      pronouns: ['he/him', 'she/hers'],
     }
   end
 
@@ -50,6 +51,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           'SSNDataQuality' => input.ssn_data_quality,
           'VeteranStatus' => input.veteran_status,
           'preferred_name' => input.preferred_name,
+          'pronouns' => input.pronouns.join('|'),
         },
       )
     end
@@ -120,11 +122,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     let(:mutation_test_input) do
       {
         **test_input,
-        name_data_quality: Types::HmisSchema::Enums::NameDataQuality.values.first[0],
-        dob_data_quality: Types::HmisSchema::Enums::DOBDataQuality.values.first[0],
-        ssn_data_quality: Types::HmisSchema::Enums::SSNDataQuality.values.first[0],
-        ethnicity: Types::HmisSchema::Enums::Ethnicity.values.first[0],
-        veteran_status: Types::HmisSchema::Enums::YesNoMissingReason.values.first[0],
+        name_data_quality: Types::HmisSchema::Enums::Hud::NameDataQuality.values.first[0],
+        dob_data_quality: Types::HmisSchema::Enums::Hud::DOBDataQuality.values.first[0],
+        ssn_data_quality: Types::HmisSchema::Enums::Hud::SSNDataQuality.values.first[0],
+        ethnicity: Types::HmisSchema::Enums::Hud::Ethnicity.values.first[0],
+        veteran_status: Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData.values.first[0],
         gender: [Types::HmisSchema::Enums::Gender.values.first[0]],
         race: [Types::HmisSchema::Enums::Race.values.first[0]],
       }
@@ -139,26 +141,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         mutation CreateClient($input: ClientInput!) {
           createClient(input: { input: $input }) {
             client {
-              dateCreated
-              dateDeleted
-              dateUpdated
-              dob
-              dobDataQuality
-              ethnicity
-              firstName
               gender
-              id
-              lastName
-              middleName
-              nameDataQuality
-              nameSuffix
-              personalId
-              preferredName
-              pronouns
               race
-              ssn
-              ssnDataQuality
-              veteranStatus
+              #{scalar_fields(Types::HmisSchema::Client)}
+              image {
+                #{scalar_fields(Types::HmisSchema::ClientImage)}
+              }
               enrollments {
                 nodes {
                   id
@@ -171,14 +159,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
                 }
               }
             }
-            errors {
-              attribute
-              message
-              fullMessage
-              type
-              options
-              __typename
-            }
+            #{error_fields}
           }
         }
       GRAPHQL

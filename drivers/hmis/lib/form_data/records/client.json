@@ -2,52 +2,155 @@
   "item": [
     {
       "type": "GROUP",
-      "link_id": "first-name-group",
+      "link_id": "name",
       "text": "Name",
       "required": false,
       "item": [
         {
-          "type": "STRING",
-          "required": false,
-          "link_id": "first-name",
-          "text": "First Name",
-          "query_field": "firstName"
+          "type": "GROUP",
+          "link_id": "name-group",
+          "component": "HORIZONTAL_GROUP",
+          "item": [
+            {
+              "type": "STRING",
+              "required": false,
+              "link_id": "first-name",
+              "text": "First Name",
+              "field_name": "firstName"
+            },
+            {
+              "type": "STRING",
+              "required": false,
+              "link_id": "middle-name",
+              "text": "Middle Name",
+              "field_name": "middleName"
+            },
+            {
+              "type": "STRING",
+              "required": false,
+              "link_id": "last-name",
+              "text": "Last Name",
+              "field_name": "lastName"
+            },
+            {
+              "type": "STRING",
+              "required": false,
+              "link_id": "name-suffix",
+              "text": "Suffix",
+              "field_name": "nameSuffix",
+              "size": "XSMALL"
+            }
+          ]
         },
         {
           "type": "STRING",
           "required": false,
           "link_id": "preferred-name",
           "text": "Preferred Name",
-          "query_field": "preferredName"
+          "field_name": "preferredName"
+        },
+        {
+          "type": "GROUP",
+          "component": "INFO_GROUP",
+          "link_id": "dq-group",
+          "item": [
+            {
+              "type": "CHOICE",
+              "required": false,
+              "link_id": "name-dq",
+              "text": "Name Data Quality",
+              "field_name": "nameDataQuality",
+              "pick_list_reference": "NameDataQuality"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "GROUP",
+      "required": false,
+      "text": "Identification",
+      "link_id": "identification",
+      "item": [
+        {
+          "type": "DATE",
+          "required": false,
+          "link_id": "dob",
+          "text": "Date of Birth",
+          "field_name": "dob"
+        },
+        {
+          "type": "GROUP",
+          "component": "INFO_GROUP",
+          "link_id": "dob-group",
+          "item": [
+            {
+              "type": "CHOICE",
+              "required": false,
+              "link_id": "dob-dq",
+              "text": "DOB Data Quality",
+              "field_name": "dobDataQuality",
+              "pick_list_reference": "DOBDataQuality"
+            }
+          ]
         },
         {
           "type": "STRING",
           "required": false,
-          "link_id": "middle-name",
-          "text": "Middle Name",
-          "query_field": "middleName"
+          "link_id": "ssn",
+          "text": "Social Security Number",
+          "field_name": "ssn",
+          "component": "SSN"
         },
         {
-          "type": "STRING",
-          "required": false,
-          "link_id": "last-name",
-          "text": "Last Name",
-          "query_field": "lastName"
-        },
+          "type": "GROUP",
+          "component": "INFO_GROUP",
+          "link_id": "ssn-group",
+          "item": [
+            {
+              "type": "CHOICE",
+              "required": false,
+              "link_id": "ssn-dq",
+              "text": "SSN Data Quality",
+              "field_name": "ssnDataQuality",
+              "pick_list_reference": "SSNDataQuality"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "GROUP",
+      "required": false,
+      "link_id": "demographics",
+      "text": "Demographics",
+      "item": [
         {
-          "type": "STRING",
+          "type": "CHOICE",
           "required": false,
-          "link_id": "name-suffix",
-          "text": "Suffix",
-          "query_field": "nameSuffix"
+          "link_id": "race",
+          "text": "Race",
+          "repeats": true,
+          "field_name": "race",
+          "pick_list_reference": "Race"
         },
         {
           "type": "CHOICE",
           "required": false,
-          "link_id": "name-dq",
-          "text": "Name Data Quality",
-          "query_field": "nameDataQuality",
-          "pick_list_reference": "NameDataQuality"
+          "link_id": "ethnicity",
+          "text": "Ethnicity",
+          "repeats": false,
+          "field_name": "ethnicity",
+          "pick_list_reference": "Ethnicity"
+        },
+        {
+          "type": "CHOICE",
+          "required": false,
+          "link_id": "gender",
+          "text": "Gender",
+          "repeats": true,
+          "field_name": "gender",
+          "pick_list_reference": "Gender"
         },
         {
           "type": "OPEN_CHOICE",
@@ -55,7 +158,7 @@
           "link_id": "pronouns",
           "text": "Pronouns",
           "repeats": true,
-          "_TMP_IGNORED_query_field": "pronouns",
+          "field_name": "pronouns",
           "pick_list_options": [
             {
               "code": "she/her"
@@ -67,91 +170,6 @@
               "code": "they/them"
             }
           ]
-        }
-      ]
-    },
-    {
-      "type": "GROUP",
-      "required": false,
-      "link_id": "dob-group",
-      "display": {
-        "direction": "row"
-      },
-      "item": [
-        {
-          "type": "DATE",
-          "required": false,
-          "link_id": "dob",
-          "text": "Date of Birth",
-          "query_field": "dob"
-        },
-        {
-          "type": "CHOICE",
-          "required": false,
-          "link_id": "dob-dq",
-          "text": "DOB Data Quality",
-          "query_field": "dobDataQuality",
-          "pick_list_reference": "DOBDataQuality"
-        }
-      ]
-    },
-    {
-      "type": "GROUP",
-      "required": false,
-      "link_id": "ssn-group",
-      "display": {
-        "direction": "row"
-      },
-      "item": [
-        {
-          "type": "STRING",
-          "required": false,
-          "link_id": "ssn",
-          "text": "Social Security Number",
-          "query_field": "ssn"
-        },
-        {
-          "type": "CHOICE",
-          "required": false,
-          "link_id": "ssn-dq",
-          "text": "SSN Data Quality",
-          "query_field": "ssnDataQuality",
-          "pick_list_reference": "SSNDataQuality"
-        }
-      ]
-    },
-    {
-      "type": "GROUP",
-      "required": false,
-      "link_id": "demographic-group",
-      "text": "Demographic Information",
-      "item": [
-        {
-          "type": "CHOICE",
-          "required": false,
-          "link_id": "race",
-          "text": "Race",
-          "repeats": true,
-          "query_field": "race",
-          "pick_list_reference": "Race"
-        },
-        {
-          "type": "CHOICE",
-          "required": false,
-          "link_id": "ethnicity",
-          "text": "Ethnicity",
-          "repeats": false,
-          "query_field": "ethnicity",
-          "pick_list_reference": "Ethnicity"
-        },
-        {
-          "type": "CHOICE",
-          "required": false,
-          "link_id": "gender",
-          "text": "Gender",
-          "repeats": true,
-          "query_field": "gender",
-          "pick_list_reference": "Gender"
         },
         {
           "type": "CHOICE",
@@ -159,8 +177,8 @@
           "repeats": false,
           "link_id": "veteran-status",
           "text": "Veteran Status",
-          "query_field": "veteranStatus",
-          "pick_list_reference": "YesNoMissingReason"
+          "field_name": "veteranStatus",
+          "pick_list_reference": "NoYesReasonsForMissingData"
         }
       ]
     }

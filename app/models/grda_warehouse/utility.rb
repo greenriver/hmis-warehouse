@@ -15,11 +15,7 @@ class GrdaWarehouse::Utility
       GrdaWarehouse::CensusByYear,
       GrdaWarehouse::CensusByProjectType,
       GrdaWarehouse::CensusByProject,
-      GrdaWarehouse::Census::ByProjectType,
       GrdaWarehouse::Census::ByProject,
-      GrdaWarehouse::Census::ByProjectClient,
-      GrdaWarehouse::Census::ByProjectType,
-      GrdaWarehouse::Census::ByProjectTypeClient,
       GrdaWarehouse::ProjectGroup,
       GrdaWarehouse::Chronic,
       GrdaWarehouse::HudChronic,
@@ -102,7 +98,7 @@ class GrdaWarehouse::Utility
       tables << HudDataQualityReport::Fy2020::DqLivingSituation
     end
 
-    tables << CustomImportsBostonServices::Row if RailsDrivers.loaded.include?(:custom_imports_boston_services)
+    tables << CustomImportsBostonService::Row if RailsDrivers.loaded.include?(:custom_imports_boston_services)
 
     if RailsDrivers.loaded.include?(:cas_ce_data)
       tables << CasCeData::GrdaWarehouse::CasReferralEvent

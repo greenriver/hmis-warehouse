@@ -22,15 +22,15 @@ module Types
       end
 
       def resolve_project_cocs_with_loader(association_name = :project_cocs, **args)
-        load_ar_association(object, association_name, scope: apply_assessment_arguments(Hmis::Hud::ProjectCoc, **args))
+        load_ar_association(object, association_name, scope: scoped(Hmis::Hud::ProjectCoc, **args))
       end
 
       def resolve_project_cocs(scope = object.project_cocs, **args)
-        apply_project_cocs_arguments(scope, **args)
+        scoped_arguments(scope, **args)
       end
 
-      def apply_project_cocs_arguments(scope)
-        scope
+      def scoped_arguments(scope)
+        scope.viewable_by(current_user)
       end
     end
   end

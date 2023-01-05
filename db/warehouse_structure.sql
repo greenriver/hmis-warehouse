@@ -4985,7 +4985,8 @@ CREATE TABLE public.cohort_client_notes (
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     deleted_at timestamp without time zone,
-    user_id integer NOT NULL
+    user_id integer NOT NULL,
+    recipients jsonb DEFAULT '[]'::jsonb
 );
 
 
@@ -5290,7 +5291,8 @@ CREATE TABLE public.cohorts (
     threshold_color_5 character varying,
     threshold_label_5 character varying,
     system_cohort boolean DEFAULT false,
-    type character varying DEFAULT 'GrdaWarehouse::Cohort'::character varying
+    type character varying DEFAULT 'GrdaWarehouse::Cohort'::character varying,
+    project_group_id bigint
 );
 
 
@@ -10095,6 +10097,42 @@ ALTER SEQUENCE public.hmis_2022_youth_education_statuses_id_seq OWNED BY public.
 
 
 --
+-- Name: hmis_active_ranges; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_active_ranges (
+    id bigint NOT NULL,
+    entity_type character varying,
+    entity_id bigint,
+    start date NOT NULL,
+    "end" date,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone,
+    user_id character varying NOT NULL
+);
+
+
+--
+-- Name: hmis_active_ranges_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_active_ranges_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_active_ranges_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_active_ranges_id_seq OWNED BY public.hmis_active_ranges.id;
+
+
+--
 -- Name: hmis_aggregated_enrollments; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -10294,7 +10332,8 @@ CREATE TABLE public.hmis_assessment_details (
     status character varying,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    "values" jsonb
+    "values" jsonb,
+    hud_values jsonb
 );
 
 
@@ -10386,6 +10425,42 @@ CREATE SEQUENCE public.hmis_assessments_id_seq
 --
 
 ALTER SEQUENCE public.hmis_assessments_id_seq OWNED BY public.hmis_assessments.id;
+
+
+--
+-- Name: hmis_beds; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_beds (
+    id bigint NOT NULL,
+    unit_id bigint NOT NULL,
+    bed_type character varying NOT NULL,
+    name character varying,
+    gender character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone,
+    user_id character varying NOT NULL
+);
+
+
+--
+-- Name: hmis_beds_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_beds_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_beds_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_beds_id_seq OWNED BY public.hmis_beds.id;
 
 
 --
@@ -13525,11 +13600,11 @@ CREATE TABLE public.hmis_dqt_inventories (
     youth_bed_inventory integer,
     ch_bed_inventory integer,
     other_bed_inventory integer,
-    inventory_start_date integer,
-    inventory_end_date integer,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    inventory_start_date date,
+    inventory_end_date date
 );
 
 
@@ -13850,6 +13925,40 @@ CREATE SEQUENCE public.hmis_staff_x_clients_id_seq
 --
 
 ALTER SEQUENCE public.hmis_staff_x_clients_id_seq OWNED BY public.hmis_staff_x_clients.id;
+
+
+--
+-- Name: hmis_units; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_units (
+    id bigint NOT NULL,
+    inventory_id bigint NOT NULL,
+    name character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone,
+    user_id character varying NOT NULL
+);
+
+
+--
+-- Name: hmis_units_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_units_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_units_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_units_id_seq OWNED BY public.hmis_units.id;
 
 
 --
@@ -16579,7 +16688,8 @@ CREATE TABLE public.performance_measurement_goals (
     income integer DEFAULT 3 NOT NULL,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    always_run_for_coc boolean DEFAULT false
 );
 
 
@@ -21917,6 +22027,13 @@ ALTER TABLE ONLY public.hmis_2022_youth_education_statuses ALTER COLUMN id SET D
 
 
 --
+-- Name: hmis_active_ranges id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_active_ranges ALTER COLUMN id SET DEFAULT nextval('public.hmis_active_ranges_id_seq'::regclass);
+
+
+--
 -- Name: hmis_aggregated_enrollments id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -21942,6 +22059,13 @@ ALTER TABLE ONLY public.hmis_assessment_details ALTER COLUMN id SET DEFAULT next
 --
 
 ALTER TABLE ONLY public.hmis_assessments ALTER COLUMN id SET DEFAULT nextval('public.hmis_assessments_id_seq'::regclass);
+
+
+--
+-- Name: hmis_beds id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_beds ALTER COLUMN id SET DEFAULT nextval('public.hmis_beds_id_seq'::regclass);
 
 
 --
@@ -22411,6 +22535,13 @@ ALTER TABLE ONLY public.hmis_staff ALTER COLUMN id SET DEFAULT nextval('public.h
 --
 
 ALTER TABLE ONLY public.hmis_staff_x_clients ALTER COLUMN id SET DEFAULT nextval('public.hmis_staff_x_clients_id_seq'::regclass);
+
+
+--
+-- Name: hmis_units id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_units ALTER COLUMN id SET DEFAULT nextval('public.hmis_units_id_seq'::regclass);
 
 
 --
@@ -24895,6 +25026,14 @@ ALTER TABLE ONLY public.hmis_2022_youth_education_statuses
 
 
 --
+-- Name: hmis_active_ranges hmis_active_ranges_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_active_ranges
+    ADD CONSTRAINT hmis_active_ranges_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: hmis_aggregated_enrollments hmis_aggregated_enrollments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -24924,6 +25063,14 @@ ALTER TABLE ONLY public.hmis_assessment_details
 
 ALTER TABLE ONLY public.hmis_assessments
     ADD CONSTRAINT hmis_assessments_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_beds hmis_beds_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_beds
+    ADD CONSTRAINT hmis_beds_pkey PRIMARY KEY (id);
 
 
 --
@@ -25460,6 +25607,14 @@ ALTER TABLE ONLY public.hmis_staff
 
 ALTER TABLE ONLY public.hmis_staff_x_clients
     ADD CONSTRAINT hmis_staff_x_clients_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_units hmis_units_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_units
+    ADD CONSTRAINT hmis_units_pkey PRIMARY KEY (id);
 
 
 --
@@ -39481,10 +39636,10 @@ CREATE INDEX idx_any_stage ON public."IncomeBenefits" USING btree ("IncomeFromAn
 
 
 --
--- Name: idx_ds_id_p_id_e_id_del; Type: INDEX; Schema: public; Owner: -
+-- Name: idx_dis_p_id_e_id_del_ds_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX idx_ds_id_p_id_e_id_del ON public."Disabilities" USING btree ("EnrollmentID", "PersonalID", "DateDeleted", data_source_id) WHERE ("IndefiniteAndImpairs" = 1);
+CREATE INDEX idx_dis_p_id_e_id_del_ds_id ON public."Disabilities" USING btree ("EnrollmentID", "PersonalID", "DateDeleted", data_source_id) WHERE ("IndefiniteAndImpairs" = 1);
 
 
 --
@@ -41182,6 +41337,13 @@ CREATE INDEX index_cohorts_on_deleted_at ON public.cohorts USING btree (deleted_
 
 
 --
+-- Name: index_cohorts_on_project_group_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_cohorts_on_project_group_id ON public.cohorts USING btree (project_group_id);
+
+
+--
 -- Name: index_contacts_on_entity_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -42078,6 +42240,13 @@ CREATE INDEX index_hmis_2022_youth_education_statuses_on_importer_log_id ON publ
 
 
 --
+-- Name: index_hmis_active_ranges_on_entity; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_active_ranges_on_entity ON public.hmis_active_ranges USING btree (entity_type, entity_id);
+
+
+--
 -- Name: index_hmis_assessment_details_on_assessment_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -42117,6 +42286,13 @@ CREATE INDEX index_hmis_assessments_on_name ON public.hmis_assessments USING btr
 --
 
 CREATE INDEX index_hmis_assessments_on_site_id ON public.hmis_assessments USING btree (site_id);
+
+
+--
+-- Name: index_hmis_beds_on_unit_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_beds_on_unit_id ON public.hmis_beds USING btree (unit_id);
 
 
 --
@@ -42792,6 +42968,13 @@ CREATE INDEX index_hmis_import_configs_on_data_source_id ON public.hmis_import_c
 
 
 --
+-- Name: index_hmis_units_on_inventory_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_units_on_inventory_id ON public.hmis_units USING btree (inventory_id);
+
+
+--
 -- Name: index_hmis_wips_on_client_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -43426,6 +43609,20 @@ CREATE INDEX index_ma_yya_report_clients_on_service_history_enrollment_id ON pub
 --
 
 CREATE INDEX index_new_service_history_on_first_date_in_program ON public.new_service_history USING brin (first_date_in_program);
+
+
+--
+-- Name: index_nightly_census_by_projects_on_date; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_nightly_census_by_projects_on_date ON public.nightly_census_by_projects USING btree (date);
+
+
+--
+-- Name: index_nightly_census_by_projects_on_project_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_nightly_census_by_projects_on_project_id ON public.nightly_census_by_projects USING btree (project_id);
 
 
 --
@@ -50666,6 +50863,14 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20221109155552'),
 ('20221110133236'),
 ('20221115123832'),
-('20221115211004');
+('20221115211004'),
+('20221116185411'),
+('20221124002729'),
+('20221126145518'),
+('20221207171030'),
+('20221209131957'),
+('20221220180133'),
+('20221220184746'),
+('20221223202329');
 
 

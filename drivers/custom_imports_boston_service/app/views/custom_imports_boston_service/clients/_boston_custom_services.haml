@@ -1,0 +1,13 @@
+%div{ style: 'overflow-auto; max-height: 500px;'}
+  %table.table
+    %thead
+      %tr
+        %th Date
+        %th Service
+        %th Organization
+    %tbody
+      - @client.source_non_event_custom_b_services_for_display.each do |service|
+        %tr
+          %td= service.date
+          %td= service.service_name
+          %td= service.organization&.name(current_user) || 'unknown'

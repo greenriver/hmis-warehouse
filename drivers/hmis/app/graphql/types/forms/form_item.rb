@@ -12,12 +12,15 @@ module Types
 
     field :link_id, String, 'Unique identifier for item', null: false
     field :data_collected_about, Types::Forms::Enums::DataCollectedAbout, 'Include this item only if the Client meets this HUD DataCollectedAbout condition', null: true
-    field :funders, [HmisSchema::Enums::FundingSource], 'Include this item only for the listed funders', null: true
+    field :funders, [HmisSchema::Enums::Hud::FundingSource], 'Include this item only for the listed funders', null: true
     field :project_types_included, [HmisSchema::Enums::ProjectType], 'Include this item only for the listed project types', null: true
     field :project_types_excluded, [HmisSchema::Enums::ProjectType], 'Exclude this item for the listed project types', null: true
+
+    # field display
     field :type, Types::Forms::Enums::ItemType, null: false
     field :component, Types::Forms::Enums::Component, 'Component to use for display/input of this item', null: true
     field :text, String, 'Primary text for the item', null: true
+    field :brief_text, String, 'Label to use for placeholder and population table', null: true
     field :prefix, String, 'Prefix for the item label', null: true
     field :helper_text, String, 'Helper text for the item', null: true
     field :required, Boolean, 'Whether the item must be included in data results', null: true
@@ -27,10 +30,18 @@ module Types
     field :repeats, Boolean, 'Whether the item may repeat (for choice types, this means multiple choice)', null: true
     field :pick_list_reference, String, 'Reference to value set of possible answer options', null: true
     field :pick_list_options, [Forms::PickListOption], 'Permitted answers, for choice items', null: true
+    field :disabled_display, Forms::Enums::DisabledDisplay, 'How to display item if it is disabled', null: true
+    field :size, Forms::Enums::InputSize, 'Size of the input element', null: true
     field :enable_behavior, Forms::Enums::EnableBehavior, null: true
     field :enable_when, [Forms::EnableWhen], null: true
     field :initial, [Forms::InitialValue], 'Initial value(s) when item is first rendered', null: true
+    field :autofill_values, [Forms::AutofillValue], 'Value(s) to autofill based on conditional logic', null: true
+
+    # field mapping
+    field :record_type, Forms::Enums::RelatedRecordType, 'Record type to use for population', null: true
+    field :field_name, String, 'Name of the field on the record (or on the query input type). Used for record creation/update forms and for assessment population.', null: true
+
+    # nested children
     field :item, ['Types::Forms::FormItem'], 'Nested items', null: true
-    field :query_field, String, 'Name of the query input field that corresponds to this item. Only used for record creation/update forms, not for assessments.', null: true
   end
 end

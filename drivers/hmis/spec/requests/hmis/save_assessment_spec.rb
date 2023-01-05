@@ -11,160 +11,167 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   include_context 'hmis base setup'
+
   let(:c1) { create :hmis_hud_client, data_source: ds1, user: u1 }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1 }
   let!(:fd1) { create :hmis_form_definition }
   let!(:fi1) { create :hmis_form_instance, definition: fd1, entity: p1 }
-  let!(:a1) do
-    create(
-      :hmis_hud_assessment,
-      data_source: ds1,
-      client: c1,
-      user: u1,
-      enrollment: e1,
-    )
-  end
-  let!(:ad1) { create(:hmis_form_assessment_detail, definition: fd1, assessment: a1) }
 
   before(:each) do
-    hmis_login(user)
     assign_viewable(edit_access_group, p1.as_warehouse, hmis_user)
+    hmis_login(user)
   end
 
   let(:test_input) do
     {
-      assessment_id: a1.id,
-      assessment_date: '2022-10-16',
-      values: { key: 'newValue' },
+      enrollment_id: e1.id.to_s,
+      form_definition_id: fd1.id,
+      assessment_date: (Date.today - 2.days).strftime('%Y-%m-%d'),
+      values: { key: 'value' },
     }
   end
 
   let(:mutation) do
     <<~GRAPHQL
-      mutation SaveAssessment($assessmentId: ID!, $values: JsonObject!, $assessmentDate: String, $inProgress: Boolean) {
+      mutation SaveAssessment($enrollmentId: ID, $formDefinitionId: ID, $assessmentId: ID, $values: JsonObject!, $assessmentDate: String) {
         saveAssessment(input: {
+          enrollmentId: $enrollmentId,
+          formDefinitionId: $formDefinitionId,
           assessmentId: $assessmentId,
           assessmentDate: $assessmentDate,
           values: $values,
-          inProgress: $inProgress,
         }) {
           assessment {
-            id
-            inProgress
+            #{scalar_fields(Types::HmisSchema::Assessment)}
             enrollment {
               id
             }
             user {
               id
             }
-            assessmentDate
-            assessmentLocation
-            assessmentType
-            assessmentLevel
-            prioritizationStatus
-            dateCreated
-            dateUpdated
-            dateDeleted
-            assessmentDetail {
+            client {
               id
+            }
+            assessmentDetail {
+              #{scalar_fields(Types::HmisSchema::AssessmentDetail)}
               definition {
                 id
-                version
-                role
-                status
-                identifier
-                definition {
-                  item {
-                    linkId
-                  }
-                }
               }
-              dataCollectionStage
-              role
-              status
-              values
             }
           }
-          errors {
-            attribute
-            message
-            fullMessage
-            type
-            options
-            __typename
+          #{error_fields}
+        }
+      }
+    GRAPHQL
+  end
+
+  let(:get_enrollment_query) do
+    <<~GRAPHQL
+      query GetEnrollment($id: ID!) {
+        enrollment(id: $id) {
+          assessments {
+            nodesCount
+            nodes {
+              id
+              inProgress
+            }
           }
         }
       }
     GRAPHQL
   end
 
-  it 'should save an assessment successfully' do
+  it 'should create and update a WIP assessment successfully' do
+    # Create new WIP assessment
     response, result = post_graphql(**test_input) { mutation }
+    assessment = result.dig('data', 'saveAssessment', 'assessment')
+    errors = result.dig('data', 'saveAssessment', 'errors')
 
     aggregate_failures 'checking response' do
       expect(response.status).to eq 200
-      assessment = result.dig('data', 'saveAssessment', 'assessment')
-      errors = result.dig('data', 'saveAssessment', 'errors')
-      expect(assessment['id']).to be_present
-      expect(assessment).to include(
-        'assessmentDate' => test_input[:assessment_date],
-        'assessmentDetail' => include(
-          'values' => { 'key' => 'newValue' },
-        ),
-      )
       expect(errors).to be_empty
+      expect(assessment).to be_present
+      expect(assessment['enrollment']).to be_present
+      expect(assessment).to include(
+        'inProgress' => true,
+        'assessmentDate' => test_input[:assessment_date],
+        'assessmentDetail' => include('values' => { 'key' => 'value' }),
+      )
       expect(Hmis::Hud::Assessment.count).to eq(1)
-      expect(Hmis::Hud::Assessment.in_progress.count).to eq(0)
-      assessment = Hmis::Hud::Assessment.first
-      expect(assessment.enrollment_id).to eq(e1.enrollment_id)
+      expect(Hmis::Hud::Assessment.in_progress.count).to eq(1)
+      expect(Hmis::Hud::Assessment.where(enrollment_id: Hmis::Hud::Assessment::WIP_ID).count).to eq(1)
+      expect(Hmis::Wip.count).to eq(1)
+      expect(Hmis::Wip.first).to have_attributes(enrollment_id: e1.id, client_id: c1.id, project_id: nil)
+      expect(Hmis::Hud::Assessment.viewable_by(hmis_user).count).to eq(1)
     end
+
+    # WIP assessment should appear on enrollment query
+    response, result = post_graphql(id: e1.id) { get_enrollment_query }
+    expect(response.status).to eq 200
+    enrollment = result.dig('data', 'enrollment')
+    expect(enrollment).to be_present
+    expect(enrollment.dig('assessments', 'nodes', 0, 'id')).to eq(assessment['id'])
   end
 
-  describe 'In progress tests' do
-    it 'should set things to in progress if we tell it to' do
-      response, result = post_graphql(**test_input.merge(in_progress: true)) { mutation }
-      aggregate_failures 'checking response' do
-        expect(response.status).to eq 200
-        assessment = result.dig('data', 'saveAssessment', 'assessment')
-        errors = result.dig('data', 'saveAssessment', 'errors')
-        expect(assessment).to be_present
-        expect(assessment['inProgress']).to eq(true)
-        expect(assessment['enrollment']).to be_present
-        expect(errors).to be_empty
-        expect(Hmis::Hud::Assessment.count).to eq(1)
-        expect(Hmis::Hud::Assessment.in_progress.count).to eq(1)
-        expect(Hmis::Hud::Assessment.where(enrollment_id: Hmis::Hud::Assessment::WIP_ID).count).to eq(1)
-        expect(Hmis::Wip.count).to eq(1)
-        expect(Hmis::Wip.first).to have_attributes(enrollment_id: e1.id, client_id: c1.id, project_id: nil)
-        expect(Hmis::Hud::Assessment.viewable_by(hmis_user).count).to eq(1)
-      end
-    end
+  it 'update an existing WIP assessment successfully' do
+    # Create new WIP assessment
+    response, result = post_graphql(**test_input) { mutation }
+    assessment_id = result.dig('data', 'saveAssessment', 'assessment', 'id')
+    expect(assessment_id).to be_present
+    expect(Hmis::Hud::Assessment.count).to eq(1)
+    expect(Hmis::Hud::Assessment.in_progress.count).to eq(1)
 
-    it 'set enrollment ID correctly when WIP assessment is saved as non-WIP' do
-      response, = post_graphql(**test_input.merge(in_progress: true)) { mutation }
-      aggregate_failures 'checking response' do
-        expect(response.status).to eq 200
-        expect(Hmis::Hud::Assessment.count).to eq(1)
-        expect(Hmis::Hud::Assessment.in_progress.count).to eq(1)
-
-        response, = post_graphql(test_input) { mutation }
-        expect(response.status).to eq 200
-        expect(Hmis::Hud::Assessment.count).to eq(1)
-        expect(Hmis::Hud::Assessment.in_progress.count).to eq(0)
-        assessment = Hmis::Hud::Assessment.first
-        expect(assessment.enrollment_id).to eq(e1.enrollment_id)
-      end
+    # Subsequent request should update the existing WIP assessment
+    response, result = post_graphql(assessment_id: assessment_id, values: { key: 'newValue', newKey: 'foo' }) { mutation }
+    assessment = result.dig('data', 'saveAssessment', 'assessment')
+    errors = result.dig('data', 'saveAssessment', 'errors')
+    aggregate_failures 'checking response' do
+      expect(response.status).to eq 200
+      expect(errors).to be_empty
+      expect(assessment).to be_present
+      expect(assessment['enrollment']).to be_present
+      expect(assessment).to include(
+        'inProgress' => true,
+        'assessmentDetail' => include('values' => { 'key' => 'newValue', 'newKey' => 'foo' }),
+      )
+      expect(Hmis::Hud::Assessment.count).to eq(1)
+      expect(Hmis::Hud::Assessment.in_progress.count).to eq(1)
+      expect(Hmis::Wip.count).to eq(1)
     end
   end
 
   describe 'Validity tests' do
     [
       [
-        'should emit error if assessment doesn\'t exist',
+        'should emit error if enrollment doesn\'t exist',
+        ->(input) { input.merge(enrollment_id: '999') },
+        {
+          'message' => 'Enrollment must exist',
+          'attribute' => 'enrollmentId',
+        },
+      ],
+      [
+        'should emit error if cannot find form definition',
+        ->(input) { input.merge(form_definition_id: '999') },
+        {
+          'message' => 'Form definition must exist',
+          'attribute' => 'formDefinitionId',
+        },
+      ],
+      [
+        'should emit error if cannot find assessment',
         ->(input) { input.merge(assessment_id: '999') },
         {
           'message' => 'Assessment must exist',
           'attribute' => 'assessmentId',
+        },
+      ],
+      [
+        'should emit error if neithor enrollment nor assessment are provided',
+        ->(input) { input.except(:enrollment_id, :assessment_id) },
+        {
+          'message' => 'Enrollment ID or Assessment ID must exist',
+          'attribute' => 'enrollmentId',
         },
       ],
     ].each do |test_name, input_proc, *expected_errors|

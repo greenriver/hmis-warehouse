@@ -6,7 +6,7 @@
 
 class Hmis::Hud::Client < Hmis::Hud::Base
   include ::HmisStructure::Client
-  include ::Hmis::Hud::Shared
+  include ::Hmis::Hud::Concerns::Shared
   include ArelHelper
   include ClientSearch
 
@@ -22,6 +22,12 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
   # NOTE: this does not include project where the enrollment is WIP
   has_many :projects, through: :enrollments
+  has_many :income_benefits, through: :enrollments
+  has_many :disabilities, through: :enrollments
+  has_many :health_and_dvs, through: :enrollments
+  has_many :client_files, class_name: 'GrdaWarehouse::ClientFile'
+  has_many :current_living_situations, through: :enrollments
+
   validates_with Hmis::Hud::Validators::ClientValidator
 
   scope :visible_to, ->(user) do
@@ -44,7 +50,34 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     self.SSN&.[](-4..-1)
   end
 
-  SORT_OPTIONS = [:last_name_asc, :last_name_desc].freeze
+  SORT_OPTIONS = [
+    :last_name_a_to_z,
+    :last_name_z_to_a,
+    :first_name_a_to_z,
+    :first_name_z_to_a,
+    :age_youngest_to_oldest,
+    :age_oldest_to_youngest,
+  ].freeze
+
+  SORT_OPTION_DESCRIPTIONS = {
+    last_name_a_to_z: 'Last Name: A-Z',
+    last_name_z_to_a: 'Last Name: Z-A',
+    first_name_a_to_z: 'First Name: A-Z',
+    first_name_z_to_a: 'First Name: Z-A',
+    age_youngest_to_oldest: 'Age: Youngest to Oldest',
+    age_oldest_to_youngest: 'Age: Oldest to Youngest',
+  }.freeze
+
+  # Unused
+  def fake_client_image_data
+    gender = if self[:Male].in?([1]) then 'male' else 'female' end
+    age_group = if age.blank? || age > 18 then 'adults' else 'children' end
+    image_directory = File.join('public', 'fake_photos', age_group, gender)
+    available = Dir[File.join(image_directory, '*.jpg')]
+    image_id = "#{self.FirstName}#{self.LastName}".sum % available.count
+    Rails.logger.debug "Client#image id:#{self.id} faked #{self.PersonalID} #{available.count} #{available[image_id]}" # rubocop:disable Style/RedundantSelf
+    image_data = File.read(available[image_id]) # rubocop:disable Lint/UselessAssignment
+  end
 
   def self.client_search(input:, user: nil)
     # Apply ID searches directly, as they can only ever return a single client
@@ -89,29 +122,22 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     raise NotImplementedError unless SORT_OPTIONS.include?(option)
 
     case option
-    when :last_name_asc
-      order(:LastName)
-    when :last_name_desc
-      order(LastName: :desc)
+    when :last_name_a_to_z
+      order(arel_table[:last_name].asc.nulls_last)
+    when :last_name_z_to_a
+      order(arel_table[:last_name].desc.nulls_last)
+    when :first_name_a_to_z
+      order(arel_table[:first_name].asc.nulls_last)
+    when :first_name_z_to_a
+      order(arel_table[:first_name].desc.nulls_last)
+    when :age_youngest_to_oldest
+      order(arel_table[:dob].desc.nulls_last)
+    when :age_oldest_to_youngest
+      order(arel_table[:dob].asc.nulls_last)
+    when :recently_added
+      order(arel_table[:date_created].desc.nulls_last)
     else
       raise NotImplementedError
-    end
-  end
-
-  {
-    name_data_quality_enum_map: ::HUD.name_data_quality_options,
-    ssn_data_quality_enum_map: ::HUD.ssn_data_quality_options,
-    dob_data_quality_enum_map: ::HUD.dob_data_quality_options,
-  }.each do |name, options_hash|
-    use_enum(name, options_hash) do |hash|
-      hash.map do |value, desc|
-        {
-          key: desc,
-          value: value,
-          desc: desc,
-          null: [8, 9, 99].include?(value),
-        }
-      end
     end
   end
 
@@ -135,9 +161,12 @@ class Hmis::Hud::Client < Hmis::Hud::Base
       }
     end
   end
-  use_enum :ethnicity_enum_map, ::HUD.ethnicities.slice(0, 1), include_base_null: true
 
   def age(date = Date.current)
     GrdaWarehouse::Hud::Client.age(date: date, dob: self.DOB)
+  end
+
+  def image
+    @image ||= client_files&.client_photos&.newest_first&.first&.client_file
   end
 end

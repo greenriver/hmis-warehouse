@@ -11,7 +11,7 @@ module PerformanceMeasurement::WarehouseReports
     include ArelHelper
     include BaseFilters
 
-    before_action :require_can_access_some_version_of_clients!, only: [:details, :clients]
+    before_action :require_can_access_some_version_of_clients!, only: [:clients]
     before_action :require_my_project!, only: [:clients]
     before_action :set_report, only: [:show, :destroy]
     before_action :set_pdf_export, only: [:show]
@@ -99,7 +99,7 @@ module PerformanceMeasurement::WarehouseReports
       }
       return { filters: default_options } unless params[:filters].present?
 
-      filters = params.permit(filters: @filter.known_params)
+      filters = params.permit(filters: report_class.known_params)
       filters[:filters][:coc_codes] ||= site_coc_codes
       filters[:filters][:start] = filters[:filters][:end].to_date - 1.years + 1.days
       filters[:filters][:enforce_one_year_range] = false

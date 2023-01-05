@@ -5,12 +5,12 @@
 ###
 
 class Hmis::Hud::Assessment < Hmis::Hud::Base
-  include ::HmisStructure::Assessment
-  include ::Hmis::Hud::Shared
-  include ArelHelper
-
   self.table_name = :Assessment
   self.sequence_name = "public.\"#{table_name}_id_seq\""
+  include ::HmisStructure::Assessment
+  include ::Hmis::Hud::Concerns::Shared
+  include ::Hmis::Hud::Concerns::EnrollmentRelated
+  include ArelHelper
 
   SORT_OPTIONS = [:assessment_date].freeze
   WIP_ID = 'WIP'.freeze
@@ -22,17 +22,14 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   has_one :wip, class_name: 'Hmis::Wip', as: :source
 
-  use_enum :assessment_types_enum_map, ::HUD.assessment_types
-  use_enum :assessment_levels_enum_map, ::HUD.assessment_levels
-  use_enum :prioritization_statuses_enum_map, ::HUD.prioritization_statuses
-
   attr_accessor :in_progress
 
   validates_with Hmis::Hud::Validators::AssessmentValidator
 
   scope :in_progress, -> { where(enrollment_id: WIP_ID) }
 
-  scope :viewable_by, ->(user) do
+  # hide previous declaration of :viewable_by, we'll use this one
+  replace_scope :viewable_by, ->(user) do
     enrollment_ids = Hmis::Hud::Enrollment.viewable_by(user).pluck(:id, :EnrollmentID)
     viewable_wip = wip_t[:enrollment_id].in(enrollment_ids.map(&:first))
     viewable_completed = as_t[:EnrollmentID].in(enrollment_ids.map(&:second))
@@ -40,7 +37,8 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
     left_outer_joins(:wip).where(viewable_wip.or(viewable_completed))
   end
 
-  scope :editable_by, ->(user) do
+  # hide previous declaration of :editable_by, we'll use this one
+  replace_scope :editable_by, ->(user) do
     enrollment_ids = Hmis::Hud::Enrollment.editable_by(user).pluck(:id, :EnrollmentID)
     editable_wip = wip_t[:enrollment_id].in(enrollment_ids.map(&:first))
     editable_completed = as_t[:EnrollmentID].in(enrollment_ids.map(&:second))
@@ -65,7 +63,7 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
 
     case option
     when :assessment_date
-      order(AssessmentDate: :desc)
+      order(assessment_date: :desc, date_created: :desc)
     else
       raise NotImplementedError
     end
@@ -97,5 +95,31 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
   def in_progress?
     @in_progress = enrollment_id == WIP_ID if @in_progress.nil?
     @in_progress
+  end
+
+  def self.new_with_defaults(enrollment:, user:, form_definition:, assessment_date:)
+    new_assessment = new(
+      data_source_id: user.data_source_id,
+      user_id: user.user_id,
+      personal_id: enrollment.personal_id,
+      enrollment_id: enrollment.enrollment_id,
+      assessment_id: Hmis::Hud::Assessment.generate_assessment_id,
+      assessment_date: assessment_date,
+      assessment_location: enrollment.project.project_name,
+      assessment_type: ::HUD.ignored_enum_value,
+      assessment_level: ::HUD.ignored_enum_value,
+      prioritization_status: ::HUD.ignored_enum_value,
+      date_created: DateTime.current,
+      date_updated: DateTime.current,
+    )
+
+    new_assessment.assessment_detail = Hmis::Form::AssessmentDetail.new(
+      definition: form_definition,
+      role: form_definition.role,
+      data_collection_stage: Types::HmisSchema::Enums::AssessmentRole.as_data_collection_stage(form_definition.role),
+      status: 'draft',
+    )
+
+    new_assessment
   end
 end

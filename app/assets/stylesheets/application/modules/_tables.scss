@@ -57,7 +57,12 @@ ul.pagination {
 }
 .dataTables_wrapper > .row
 {
+  // remove negative margins
   margin-right: 0;
+  margin-left: 0;
+  > div {
+    padding: 0
+  }
 }
 .dataTables_wrapper .dataTables_paginate .paginate_button
 {

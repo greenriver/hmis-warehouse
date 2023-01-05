@@ -10,14 +10,14 @@ module Types
   class HmisSchema::ServiceInput < Types::BaseInputObject
     description 'HUD Service Input'
     argument :enrollment_id, ID, required: false
-    date_string_argument :date_provided, 'Date with format yyyy-mm-dd', required: false
-    argument :record_type, HmisSchema::Enums::RecordType, required: false
+    argument :date_provided, GraphQL::Types::ISO8601Date, required: false
+    argument :record_type, HmisSchema::Enums::Hud::RecordType, required: false
     argument :type_provided, HmisSchema::Enums::ServiceTypeProvided, required: false
     argument :other_type_provided, String, required: false
     argument :moving_on_other_type, String, required: false
     argument :sub_type_provided, HmisSchema::Enums::ServiceSubTypeProvided, required: false
     argument 'FAAmount', Float, required: false
-    argument :referral_outcome, HmisSchema::Enums::PATHReferralOutcome, required: false
+    argument :referral_outcome, HmisSchema::Enums::Hud::PATHReferralOutcome, required: false
 
     def to_params
       result = to_h

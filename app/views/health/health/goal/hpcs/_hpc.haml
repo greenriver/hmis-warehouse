@@ -19,35 +19,48 @@
             Goal Description
             (including any specific barrier to achieving goal not previously mentioned)
           .health-careplan__goal-details
-            = simple_format goal.goal_details
+            - if goal.goal_details.present?
+              = simple_format goal.goal_details
+            - else
+              .font-italic.gray.mb-2 Not provided
       .row.mb-2
         .col-sm-4
           %label.text-bold Start Date
           .health-careplan__goal-start-date
-            = goal.start_date
+            - if goal.start_date.present?
+              = goal.start_date
+            - else
+              .font-italic.gray Not provided
       .row
         .col-sm-6.mb-2
           %label.text-bold Recommended Action Steps and any needed accommodations
         .col-sm-6.mb-2
           %label.text-bold Timeframe
-      - (0..9).each do |i|
-        - action_step = goal["action_step_#{i}"]
-        - timeframe = goal["timeframe_#{i}"]
-        - next unless action_step || timeframe
-        .row
-          .col-sm-6.mb-2
-            .health-careplan__goal-intervention
-              - if action_step&.strip&.present?
-                = simple_format "#{i+1}. #{action_step}"
-          .col-sm-6.mb-2
-            .health-careplan__goal-timeframe
-              - if timeframe&.strip&.present?
-                = simple_format "#{i+1}. #{timeframe}"
+      - if !goal.action_steps?
+        .mb-2.font-italic.gray Not provided
+      - else
+        - (0..9).each do |i|
+          - action_step = goal["action_step_#{i}"]
+          - timeframe = goal["timeframe_#{i}"]
+          - next unless action_step || timeframe
+          .row
+            .col-sm-6.mb-2
+              .health-careplan__goal-intervention
+                - if action_step&.strip&.present?
+                  = simple_format "#{i+1}. #{action_step}"
+            .col-sm-6.mb-2
+              .health-careplan__goal-timeframe
+                - if timeframe&.strip&.present?
+                  = simple_format "#{i+1}. #{timeframe}"
       .row
         .col-sm-12
           %label.text-bold Responsible Care Team Member
           .health-careplan__goal-responsible
-            = @patient.available_team_members.to_h.invert[goal.responsible_team_member_id]
+            - member = @patient.available_team_members.to_h.invert[goal.responsible_team_member_id]
+            - if member.present?
+              = member
+            - else
+              .font-italic.gray Not provided
 
 - else
   = simple_form_for(goal, as: :goal, url: goal_form_path, remote: request.xhr?, class: :jGoal) do |f|
@@ -78,7 +91,7 @@
             Add
     .row
       .col-sm-6
-        = f.input :responsible_team_member_id, collection: @patient.available_team_members, label: 'Responsible Care Team Member', as: :select_two
+        = f.input :responsible_team_member_id, collection: @patient.available_team_members, label: 'Responsible Care Team Member'
     .d-flex
       .c-btn-group.ml-auto
         = f.submit value: 'Save Goal', class: 'btn btn-primary', data: { disable_with: 'Saving ...' }

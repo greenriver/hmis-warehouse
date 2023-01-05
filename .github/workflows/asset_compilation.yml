@@ -30,6 +30,9 @@ jobs:
           - gha_staging_load_11
           - gha_staging_load_12
           - gha_staging_load_13
+          - gha_staging_load_14
+          - gha_staging_load_15
+          - gha_staging_load_16
           - gha_production_load_1
           - gha_production_load_2
           - gha_production_load_3
@@ -42,6 +45,8 @@ jobs:
           - gha_production_load_10
           - gha_production_load_11
           - gha_production_load_12
+          - gha_production_load_13
+          - gha_production_load_14
 
     runs-on: ubuntu-20.04
     container: ruby:2.7.6-alpine3.15

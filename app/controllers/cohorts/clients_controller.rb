@@ -403,7 +403,7 @@ module Cohorts
     end
 
     def bulk_destroy
-      unless @cohort.system_cohort
+      unless @cohort.system_cohort || @cohort.auto_maintained?
         @cohort_client_ids = params.require(:cc).permit(:cohort_client_ids)[:cohort_client_ids].split(',').map(&:to_i)
         @cohort_clients = cohort_client_source.where(id: @cohort_client_ids)
         removed = 0
