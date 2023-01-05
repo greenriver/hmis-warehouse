@@ -11,6 +11,7 @@ module Types
     field :create_client, mutation: Mutations::CreateClient
     field :update_client, mutation: Mutations::UpdateClient
     field :update_client_image, mutation: Mutations::UpdateClientImage
+    field :delete_client_image, mutation: Mutations::DeleteClientImage
     field :create_enrollment, mutation: Mutations::CreateEnrollment
     field :add_household_members_to_enrollment, mutation: Mutations::AddHouseholdMembersToEnrollment
     field :set_ho_h_for_enrollment, mutation: Mutations::SetHoHForEnrollment

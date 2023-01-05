@@ -187,4 +187,9 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   def image
     @image ||= client_files&.client_photos&.newest_first&.first&.client_file
   end
+
+  def delete_image
+    client_files&.client_photos&.newest_first&.first&.destroy!
+    @image = nil
+  end
 end
