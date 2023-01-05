@@ -27,7 +27,7 @@
       .percent-loaded
 
 
-- if @cohort.clients.blank? && (! @cohort.system_cohort && can_edit_some_cohorts?)
+- if @cohort.clients.blank? && (! @cohort.system_cohort && ! @cohort.auto_maintained? && can_edit_some_cohorts?)
   %p.text-center.mt-2
     = link_to new_cohort_cohort_client_path(@cohort), class: 'btn btn-primary' do
       %i.icon-plus
@@ -37,5 +37,11 @@
     .col-sm-12
       - if @cohort.cohort_clients.preload(:clients).any?
         = render 'client_table'
+      - elsif @cohort.auto_maintained?
+        .none-found
+          %p
+            Clients will be populated based on enrollments in the #{@cohort.project_group.name} project group.
+            %br
+            If you just created this cohort, clients will be added within a bit, refresh to check.
 
   = render 'cohort_client_form'

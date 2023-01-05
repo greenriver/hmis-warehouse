@@ -425,6 +425,11 @@ enum Component {
   INPUT_GROUP
 
   """
+  Render inputs as a table. Each nested group is rendered as a row.
+  """
+  INPUT_TABLE
+
+  """
   Render a choice input item as radio buttons
   """
   RADIO_BUTTONS
