@@ -40,7 +40,7 @@ module Health
         source_id: @cha.id,
         user_id: @user.id,
         user_full_name: @user.name_with_email,
-        date_of_activity: @cha.completed_at.date,
+        date_of_activity: @cha.completed_at.to_date,
         activity: :cha,
         follow_up: 'This writer completed CHA and SSM with patient.',
         reached_client: :yes,
