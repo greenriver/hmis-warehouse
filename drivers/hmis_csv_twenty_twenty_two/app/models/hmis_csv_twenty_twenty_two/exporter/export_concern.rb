@@ -104,6 +104,11 @@ module HmisCsvTwentyTwentyTwo::Exporter::ExportConcern
       id || 'Unknown'
     end
 
+    # Don't override anything by default
+    def self.csv_header_override(keys)
+      keys
+    end
+
     def process(row)
       row = assign_export_id(row)
       row = self.class.adjust_keys(row)

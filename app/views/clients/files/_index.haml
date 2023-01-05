@@ -55,20 +55,4 @@
 - else
   No file uploads
 
-- content_for :page_js do
-  :javascript
-    var selectedTab = window.location.hash
-    if (!selectedTab) {
-      $("ul.files-nav.nav-tabs li:first-child a").tab('show')
-    }
-    $('.files-nav.nav-tabs a').click(function(e) {
-      e.preventDefault();
-      $(this).tab('show');
-      $(this).parent().siblings().removeClass('active')
-    });
-    $("ul.files-nav.nav-tabs a").on("shown.bs.tab", function(e) {
-      var id = $(e.target).attr("href").substr(1);
-      history.pushState({}, id, $(e.target).attr("href"));
-    });
-    var hash = window.location.hash;
-    $('.files-nav.nav-tabs a[href="' + hash + '"]').tab('show');
+= render 'common/bootstrap_tab_memory'

@@ -72,8 +72,8 @@ module SimilarityMetric
         nstars = ( count / star_size ).ceil
         nstars = stars if nstars > stars   # prevent floating point shenanigans
         nspaces = stars - nstars
-        nstars.times{ print '*' }
-        nspaces.times{ print ' ' }
+        print '*' * nstars
+        print ' ' * nspaces
         print ' '
         print count_formatter.format(show)
         if v = velocity[i]
