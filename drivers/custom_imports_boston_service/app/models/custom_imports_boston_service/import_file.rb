@@ -28,6 +28,8 @@ module CustomImportsBostonService
       post_process
     end
 
+    # Override CSV load so that we can upsert and don't end up with duplicates when we should just be updating
+    # the row we received before.  Full files are stored in the attachment
     def load_csv(file)
       batch_size = 10_000
       loaded_rows = 0
