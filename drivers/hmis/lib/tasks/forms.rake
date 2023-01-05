@@ -22,7 +22,7 @@ def seed_record_form_definitions
     definition.definition = form_definition.to_json
     definition.save!
   end
-  puts "Saved definitions with these identifiers: #{forms}"
+  puts "Saved definitions with identifiers: #{forms}"
 end
 
 def seed_assessment_form_definitions
@@ -35,6 +35,7 @@ def seed_assessment_form_definitions
   end
 
   roles = [:INTAKE, :EXIT, :UPDATE, :ANNUAL]
+  identifiers = []
   roles.each do |role|
     file = File.read("drivers/hmis/lib/form_data/assessments/base_#{role.to_s.downcase}.json")
     next unless file.present?
@@ -55,6 +56,7 @@ def seed_assessment_form_definitions
 
     # Load definition into database
     identifier = "base-#{role.to_s.downcase}"
+    identifiers << identifier
     definition = Hmis::Form::Definition.find_or_create_by(
       identifier: identifier,
       version: 0,
@@ -68,4 +70,5 @@ def seed_assessment_form_definitions
     instance = Hmis::Form::Instance.find_or_create_by(entity_type: nil, entity_id: nil, definition_identifier: identifier)
     instance.save!
   end
+  puts "Saved definitions with identifiers: #{identifiers}"
 end
