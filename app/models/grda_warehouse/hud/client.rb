@@ -1657,14 +1657,7 @@ module GrdaWarehouse::Hud
     end
 
     def date_of_last_homeless_service
-      self.class.date_of_last_homeless_service([id]).try(:[], id)
-    end
-
-    def self.date_of_last_homeless_service(client_ids)
-      GrdaWarehouse::ServiceHistoryServiceMaterialized.homeless(chronic_types_only: true).
-        where(client_id: client_ids).
-        group(:client_id).
-        maximum(:date)
+      processed_service_history&.last_homeless_date
     end
 
     def confidential_project_ids
