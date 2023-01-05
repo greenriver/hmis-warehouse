@@ -40,7 +40,7 @@ module HmisDataQualityTool
     end
 
     scope :ordered, -> do
-      order(updated_at: :desc)
+      order(created_at: :desc)
     end
 
     def run_and_save!
@@ -52,7 +52,7 @@ module HmisDataQualityTool
         raise e
       end
       # Invalidate the cache so we can re-run
-      update(result_cache: nil)
+      uncache!
       # Run results to cache them for later
       self.class.find(id).results
       complete
@@ -296,7 +296,9 @@ module HmisDataQualityTool
         percent_invalid: 0,
         percent_valid: 0,
         item_class: item_class.name,
-        detail_columns: item_class.detail_headers_for(slug, self),
+        # detail_columns: item_class.detail_headers_for(slug, self),
+        slug: slug,
+        key: key,
         projects: {},
         project_types: {},
       )
@@ -422,12 +424,8 @@ module HmisDataQualityTool
       }
     end
 
-    private def cache_key
-      [self.class.name, id]
-    end
-
     def uncache!
-      Rails.cache.delete(cache_key)
+      update(result_cache: nil)
     end
 
     def result_cache_as_open_struct
@@ -468,7 +466,8 @@ module HmisDataQualityTool
               percent_invalid: percent(overall_count, invalid_count),
               percent_valid: percent(overall_count, overall_count - invalid_count),
               item_class: item_class.name,
-              detail_columns: item_class.detail_headers_for(slug, self),
+              # detail_columns: item_class.detail_headers_for(slug, self),
+              slug: slug,
               projects: {},
               project_types: {},
             }
@@ -536,6 +535,15 @@ module HmisDataQualityTool
       return 0 if partial.blank? || partial.zero?
 
       ((partial / total.to_f) * 100).round(1)
+    end
+
+    def category_percent_valid(results)
+      denominator = results.map(&:total).sum
+      return 100 if denominator.zero?
+
+      numerator = results.map(&:invalid_count).sum
+      category_percent_invalid = percent(denominator, numerator)
+      (100 - category_percent_invalid).round(1)
     end
 
     private def client_ids_for_project(project)

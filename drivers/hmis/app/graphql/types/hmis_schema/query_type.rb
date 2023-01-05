@@ -37,6 +37,15 @@ module Types
       resolve_clients(search_scope, **args)
     end
 
+    projects_field :project_search, 'Search for projects', type: Types::HmisSchema::Project.page_type, null: false do |field|
+      field.argument :input, Types::HmisSchema::ProjectSearchInput, required: true
+    end
+
+    def project_search(input:, **args)
+      search_scope = Hmis::Hud::Project.project_search(input: input.to_params, user: current_user)
+      resolve_projects(search_scope, **args)
+    end
+
     field :client, Types::HmisSchema::Client, 'Client lookup', null: true do
       argument :id, ID, required: true
     end
@@ -124,10 +133,10 @@ module Types
 
     field :pick_list, [Types::Forms::PickListOption], 'Get list of options for pick list', null: false do
       argument :pick_list_type, Types::Forms::Enums::PickListType, required: true
-      argument :project_id, ID, required: false
+      argument :relation_id, ID, required: false
     end
-    def pick_list(pick_list_type:, project_id: nil)
-      Types::Forms::PickListOption.options_for_type(pick_list_type, user: current_user, project_id: project_id)
+    def pick_list(pick_list_type:, relation_id: nil)
+      Types::Forms::PickListOption.options_for_type(pick_list_type, user: current_user, relation_id: relation_id)
     end
   end
 end

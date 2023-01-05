@@ -40,5 +40,17 @@ module HmisCsvTwentyTwentyTwo::Exporter
         HmisCsvTwentyTwentyTwo::Exporter::FakeData,
       ]
     end
+
+    # Return an array of symbols
+    def self.csv_header_override(keys)
+      keys.map do |k|
+        case k.to_s.downcase
+        when 'zip'
+          :ZIP
+        else
+          k
+        end
+      end
+    end
   end
 end

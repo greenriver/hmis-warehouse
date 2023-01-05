@@ -5,6 +5,7 @@
 ###
 
 module SimilarityMetric
+  # a similarity metric identified by a single field/attribute of a HUD client
   class Field < Base
 
     def field

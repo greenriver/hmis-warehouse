@@ -16,13 +16,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   let(:valid_input) do
     {
-      project_id: p1.id,
       coc_code: pc2.coc_code,
       household_type: Types::HmisSchema::Enums::Hud::HouseholdType.enum_member_for_value(4).first,
       availability: Types::HmisSchema::Enums::Hud::Availability.enum_member_for_value(2).first,
-      unit_inventory: 2,
-      bed_inventory: 2,
       inventory_start_date: '2022-01-01',
+      bed_inventory: 10,
+      unit_inventory: 10,
     }
   end
 
@@ -108,8 +107,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
     end
 
-    it 'fails if project is null' do
-      response, result = post_graphql(id: i1.id, input: { **valid_input, project_id: nil }) { mutation }
+    it 'fails if end date is before start date' do
+      response, result = post_graphql(id: i1.id, input: { **valid_input, inventory_start_date: '2010-01-01', inventory_end_date: '2000-01-01' }) { mutation }
 
       record = result.dig('data', 'updateInventory', 'inventory')
       errors = result.dig('data', 'updateInventory', 'errors')
@@ -118,8 +117,25 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(response.status).to eq 200
         expect(errors).to be_present
         expect(record).to be_nil
-        expect(errors[0]['attribute']).to eq 'projectId'
-        expect(errors[0]['type']).to eq 'required'
+        expect(errors.length).to eq(1)
+        expect(errors[0]['attribute']).to eq 'inventoryEndDate'
+        expect(errors[0]['type']).to eq 'invalid'
+      end
+    end
+
+    it 'fails if counts are negaitve' do
+      response, result = post_graphql(id: i1.id, input: { **valid_input, unit_inventory: -1, bed_inventory: -2, other_bed_inventory: -3 }) { mutation }
+
+      record = result.dig('data', 'updateInventory', 'inventory')
+      errors = result.dig('data', 'updateInventory', 'errors')
+
+      aggregate_failures 'checking response' do
+        expect(response.status).to eq 200
+        expect(errors).to be_present
+        expect(record).to be_nil
+        expect(errors.length).to eq(3)
+        expect(errors[0]['attribute']).to eq 'bedInventory'
+        expect(errors[0]['type']).to eq 'invalid'
       end
     end
 

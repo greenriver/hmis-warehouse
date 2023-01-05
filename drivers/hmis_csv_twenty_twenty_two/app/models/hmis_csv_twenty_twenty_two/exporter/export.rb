@@ -34,5 +34,9 @@ module HmisCsvTwentyTwentyTwo::Exporter
         HmisCsvTwentyTwentyTwo::Exporter::FakeData,
       ]
     end
+
+    def self.csv_header_override(keys)
+      keys
+    end
   end
 end

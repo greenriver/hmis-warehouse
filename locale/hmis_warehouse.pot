@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: hmis_warehouse 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-11-30 17:57+0000\n"
-"PO-Revision-Date: 2022-11-30 17:57+0000\n"
+"POT-Creation-Date: 2022-12-21 14:18+0000\n"
+"PO-Revision-Date: 2022-12-21 14:18+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
@@ -3798,9 +3798,6 @@ msgstr ""
 msgid "Household utilization rates demonstrate that the CoC is fully utilizing its inventory."
 msgstr ""
 
-msgid "Housing"
-msgstr ""
-
 msgid "Housing Authority Eligible"
 msgstr ""
 
@@ -4039,6 +4036,15 @@ msgid "People in Families"
 msgstr ""
 
 msgid "Percent Homeless Comparison Report Generator"
+msgstr ""
+
+msgid "Percentage Exiting Housing"
+msgstr ""
+
+msgid "Percentage Exiting Search to Housing"
+msgstr ""
+
+msgid "Percentage of Participants Enrolled in Housing"
 msgstr ""
 
 msgid "Percentage of clients enrolled in housing out of those enrolled in either search or housing"

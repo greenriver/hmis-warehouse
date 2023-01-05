@@ -11,6 +11,7 @@ module Types
     graphql_name 'Component'
 
     value 'INPUT_GROUP', 'Render a group that contains children of the same type (e.g. all booleans)'
+    value 'INPUT_TABLE', 'Render inputs as a table. Each nested group is rendered as a row.'
     value 'HORIZONTAL_GROUP', 'Render a group of inputs horizontally'
     value 'INFO_GROUP', 'Render contents in an info box'
 
@@ -21,5 +22,6 @@ module Types
     value 'ALERT_WARNING', 'Display text as a warning alert'
     value 'ALERT_ERROR', 'Display text as an error alert'
     value 'ALERT_SUCCESS', 'Display text as a success alert'
+    value 'SSN', 'SSN input component'
   end
 end

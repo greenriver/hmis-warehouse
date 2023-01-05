@@ -281,7 +281,7 @@
     },
     {
       "type": "GROUP",
-      "link_id": "income-and-source",
+      "link_id": "income-and-sources",
       "text": "Income and Sources",
       "data_collected_about": "HOH_AND_ADULTS",
       "record_type": "INCOME_BENEFIT",
@@ -1025,6 +1025,11 @@
                   "answer_number": 0
                 }
               ]
+            },
+            {
+              "type": "DISPLAY",
+              "link_id": "monthly-total-income",
+              "text": "Montly Total Income"
             }
           ]
         }
@@ -1238,7 +1243,7 @@
         },
         {
           "type": "GROUP",
-          "link_id": "insurance-provider",
+          "link_id": "health-insurance-group",
           "component": "INPUT_GROUP",
           "text": "Select Insurance Provider(s)",
           "enable_behavior": "ANY",
@@ -1354,234 +1359,303 @@
         {
           "type": "DISPLAY",
           "link_id": "disability-info",
-          "text": "The following questions help determine if there are additional housing services or benefits available for the client.<br /><br/>Select YES to 'Is this a disabling condition?' IF (1) Expected to be of long, continued and indefinite duration, (2) Substantially impedes an individual's ability to live independently, and (3) Of such a nature that such ability could be improved by more suitable housing conditions."
+          "text": "The following questions help determine if there are additional housing services or benefits available for the client.<br /><br/>Select YES to 'Disabling Condition' IF (1) Expected to be of long, continued and indefinite duration, (2) Substantially impedes an individual's ability to live independently, and (3) Of such a nature that such ability could be improved by more suitable housing conditions."
         },
         {
-          "type": "CHOICE",
-          "link_id": "4.05.2",
-          "text": "Physical Disability",
-          "field_name": "physicalDisability",
-          "pick_list_reference": "NoYesReasonsForMissingData"
-        },
-        {
-          "type": "CHOICE",
-          "link_id": "4.05.A",
-          "text": "Is this a disabling condition?",
-          "field_name": "physicalDisabilityIndefiniteAndImpairs",
-          "pick_list_reference": "NoYesReasonsForMissingData",
-          "disabled_display": "PROTECTED",
-          "enable_behavior": "ALL",
-          "enable_when": [
+          "type": "GROUP",
+          "link_id": "disability-table",
+          "component": "INPUT_TABLE",
+          "item": [
             {
-              "question": "4.05.2",
-              "operator": "EQUAL",
-              "answer_code": "YES"
-            }
-          ]
-        },
-        {
-          "type": "CHOICE",
-          "link_id": "4.06.2",
-          "text": "Developmental Disability",
-          "field_name": "developmentalDisability",
-          "pick_list_reference": "NoYesReasonsForMissingData"
-        },
-        {
-          "type": "CHOICE",
-          "link_id": "4.07.2",
-          "text": "Chronic Health Condition",
-          "field_name": "chronicHealthCondition",
-          "pick_list_reference": "NoYesReasonsForMissingData"
-        },
-        {
-          "type": "CHOICE",
-          "link_id": "4.07.A",
-          "text": "Is this a disabling condition?",
-          "field_name": "chronicHealthConditionIndefiniteAndImpairs",
-          "pick_list_reference": "NoYesReasonsForMissingData",
-          "disabled_display": "PROTECTED",
-          "enable_behavior": "ALL",
-          "enable_when": [
-            {
-              "question": "4.07.2",
-              "operator": "EQUAL",
-              "answer_code": "YES"
-            }
-          ]
-        },
-        {
-          "type": "CHOICE",
-          "link_id": "4.08.2",
-          "text": "HIV/AIDS",
-          "field_name": "hivAids",
-          "pick_list_reference": "NoYesReasonsForMissingData"
-        },
-        {
-          "type": "CHOICE",
-          "link_id": "4.09.2",
-          "text": "Mental Health Disorder",
-          "field_name": "mentalHealthDisorder",
-          "pick_list_reference": "NoYesReasonsForMissingData"
-        },
-        {
-          "type": "CHOICE",
-          "link_id": "4.09.A",
-          "text": "Is this a disabling condition?",
-          "field_name": "mentalHealthDisorderIndefiniteAndImpairs",
-          "pick_list_reference": "NoYesReasonsForMissingData",
-          "disabled_display": "PROTECTED",
-          "enable_behavior": "ALL",
-          "enable_when": [
-            {
-              "question": "4.09.2",
-              "operator": "EQUAL",
-              "answer_code": "YES"
-            }
-          ]
-        },
-
-        {
-          "type": "CHOICE",
-          "link_id": "4.10.2",
-          "text": "Substance Use Disorder",
-          "field_name": "substanceUseDisorder",
-          "pick_list_reference": "DisabilityResponse"
-        },
-        {
-          "type": "CHOICE",
-          "link_id": "4.10.A",
-          "text": "Is this a disabling condition?",
-          "field_name": "substanceUseDisorderIndefiniteAndImpairs",
-          "pick_list_reference": "NoYesReasonsForMissingData",
-          "disabled_display": "PROTECTED",
-          "enable_behavior": "ANY",
-          "enable_when": [
-            {
-              "question": "4.10.2",
-              "operator": "EQUAL",
-              "answer_code": "ALCOHOL_USE_DISORDER"
-            },
-            {
-              "question": "4.10.2",
-              "operator": "EQUAL",
-              "answer_code": "DRUG_USE_DISORDER"
-            },
-            {
-              "question": "4.10.2",
-              "operator": "EQUAL",
-              "answer_code": "BOTH_ALCOHOL_AND_DRUG_USE_DISORDERS"
-            }
-          ]
-        },
-        {
-          "type": "DISPLAY",
-          "link_id": "3.08-info",
-          "text": "<b>OVERALL DISABLING CONDITION</b>: This field is auto-filled based on the above disabilities. The user may override a system-generated NO with a YES.",
-          "_ignore": "HUD defines a Disabling Condition as:<ul><li>A physical, mental, or emotional impairment, including an impairment caused by alcohol or drug abuse, post-traumatic stress disorder, or brain injury that:</li><ul><li>Is expected to be long-continuing or of indefinite duration;</li><li>Substantially impedes the individual's ability to live independently; and</li><li>Could be improved by the provision of more suitable housing conditions.</li></ul></li><li>A developmental disability, as defined in section 102 of the Developmental Disabilities Assistance and Bill of Rights Act of 2000 (42 U.S.C. 15002); or</li><li>The disease of acquired immunodeficiency syndrome (AIDS) or any condition arising from the etiologic agency for acquired immunodeficiency syndrome (HIV).</li></ul>"
-        },
-        {
-          "type": "CHOICE",
-          "link_id": "3.08",
-          "text": "Disabling Condition",
-          "field_name": "disablingCondition",
-          "pick_list_reference": "NoYesReasonsForMissingData",
-          "autofill_values": [
-            {
-              "value_code": "YES",
-              "autofill_behavior": "ANY",
-              "autofill_when": [
+              "type": "GROUP",
+              "link_id": "disability-table-r1",
+              "text": "Physical Disability",
+              "item": [
                 {
-                  "question": "4.05.A",
-                  "operator": "EQUAL",
-                  "answer_code": "YES"
+                  "type": "CHOICE",
+                  "link_id": "4.05.2",
+                  "text": "Physical Disability",
+                  "field_name": "physicalDisability",
+                  "pick_list_reference": "NoYesReasonsForMissingData"
                 },
                 {
-                  "question": "4.06.2",
-                  "operator": "EQUAL",
-                  "answer_code": "YES"
-                },
-                {
-                  "question": "4.07.A",
-                  "operator": "EQUAL",
-                  "answer_code": "YES"
-                },
-                {
-                  "question": "4.08.2",
-                  "operator": "EQUAL",
-                  "answer_code": "YES"
-                },
-                {
-                  "question": "4.09.A",
-                  "operator": "EQUAL",
-                  "answer_code": "YES"
-                },
-                {
-                  "question": "4.10.A",
-                  "operator": "EQUAL",
-                  "answer_code": "YES"
+                  "type": "CHOICE",
+                  "link_id": "4.05.A",
+                  "text": "Is this a disabling condition?",
+                  "brief_text": "Disabling Condition",
+                  "field_name": "physicalDisabilityIndefiniteAndImpairs",
+                  "pick_list_reference": "NoYesReasonsForMissingData",
+                  "disabled_display": "PROTECTED",
+                  "enable_behavior": "ALL",
+                  "enable_when": [
+                    {
+                      "question": "4.05.2",
+                      "operator": "EQUAL",
+                      "answer_code": "YES"
+                    }
+                  ]
                 }
               ]
             },
             {
-              "value_code": "NO",
-              "autofill_behavior": "ALL",
-              "autofill_when": [
+              "type": "GROUP",
+              "link_id": "disability-table-r2",
+              "text": "Developmental Disability",
+              "item": [
                 {
-                  "question": "4.05.A",
-                  "operator": "NOT_EQUAL",
-                  "answer_code": "YES"
+                  "type": "CHOICE",
+                  "link_id": "4.06.2",
+                  "text": "Developmental Disability",
+                  "field_name": "developmentalDisability",
+                  "pick_list_reference": "NoYesReasonsForMissingData"
                 },
                 {
-                  "question": "4.06.2",
-                  "operator": "NOT_EQUAL",
-                  "answer_code": "YES"
-                },
-                {
-                  "question": "4.07.A",
-                  "operator": "NOT_EQUAL",
-                  "answer_code": "YES"
-                },
-                {
-                  "question": "4.08.2",
-                  "operator": "NOT_EQUAL",
-                  "answer_code": "YES"
-                },
-                {
-                  "question": "4.09.A",
-                  "operator": "NOT_EQUAL",
-                  "answer_code": "YES"
-                },
-                {
-                  "question": "4.10.A",
-                  "operator": "NOT_EQUAL",
-                  "answer_code": "YES"
+                  "type": "DISPLAY",
+                  "link_id": "4.06.2-info",
+                  "text": "<i style='color:gray;'>Always considered a disabling condition.</i>"
                 }
               ]
             },
             {
-              "value_code": "NO",
-              "autofill_behavior": "ALL",
-              "_comment": "It should autofull when ANY element is interacted with, so add these as dependencies even though they do not determine disabling condition status. This autofill will only occur if none of the above rules matcheed.",
-              "autofill_when": [
+              "type": "GROUP",
+              "link_id": "disability-table-r3",
+              "text": "Chronic Health Condition",
+              "item": [
                 {
-                  "question": "4.05.2",
-                  "operator": "EXISTS",
-                  "answer_boolean": true
+                  "type": "CHOICE",
+                  "link_id": "4.07.2",
+                  "text": "Chronic Health Condition",
+                  "field_name": "chronicHealthCondition",
+                  "pick_list_reference": "NoYesReasonsForMissingData"
                 },
                 {
-                  "question": "4.07.2",
-                  "operator": "EXISTS",
-                  "answer_boolean": true
+                  "type": "CHOICE",
+                  "link_id": "4.07.A",
+                  "text": "Is this a disabling condition?",
+                  "brief_text": "Disabling Condition",
+                  "field_name": "chronicHealthConditionIndefiniteAndImpairs",
+                  "pick_list_reference": "NoYesReasonsForMissingData",
+                  "disabled_display": "PROTECTED",
+                  "enable_behavior": "ALL",
+                  "enable_when": [
+                    {
+                      "question": "4.07.2",
+                      "operator": "EQUAL",
+                      "answer_code": "YES"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "GROUP",
+              "link_id": "disability-table-r4",
+              "text": "HIV/AIDS",
+              "item": [
+                {
+                  "type": "CHOICE",
+                  "link_id": "4.08.2",
+                  "text": "HIV/AIDS",
+                  "field_name": "hivAids",
+                  "pick_list_reference": "NoYesReasonsForMissingData"
                 },
                 {
-                  "question": "4.09.2",
-                  "operator": "EXISTS",
-                  "answer_boolean": true
+                  "type": "DISPLAY",
+                  "link_id": "4.08.2-info",
+                  "text": "<i style='color:gray;'>Always considered a disabling condition.</i>"
+                }
+              ]
+            },
+            {
+              "type": "GROUP",
+              "link_id": "disability-table-r5",
+              "text": "Mental Health Disorder",
+              "item": [
+                {
+                  "type": "CHOICE",
+                  "link_id": "4.09.2",
+                  "text": "Mental Health Disorder",
+                  "field_name": "mentalHealthDisorder",
+                  "pick_list_reference": "NoYesReasonsForMissingData"
                 },
                 {
-                  "question": "4.10.2",
-                  "operator": "EXISTS",
-                  "answer_boolean": true
+                  "type": "CHOICE",
+                  "link_id": "4.09.A",
+                  "text": "Is this a disabling condition?",
+                  "brief_text": "Disabling Condition",
+                  "field_name": "mentalHealthDisorderIndefiniteAndImpairs",
+                  "pick_list_reference": "NoYesReasonsForMissingData",
+                  "disabled_display": "PROTECTED",
+                  "enable_behavior": "ALL",
+                  "enable_when": [
+                    {
+                      "question": "4.09.2",
+                      "operator": "EQUAL",
+                      "answer_code": "YES"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "GROUP",
+              "link_id": "disability-table-r6",
+              "text": "Substance Use Disorder",
+              "item": [
+                {
+                  "type": "CHOICE",
+                  "link_id": "4.10.2",
+                  "text": "Substance Use Disorder",
+                  "field_name": "substanceUseDisorder",
+                  "pick_list_reference": "DisabilityResponse"
+                },
+                {
+                  "type": "CHOICE",
+                  "link_id": "4.10.A",
+                  "text": "Is this a disabling condition?",
+                  "brief_text": "Disabling Condition",
+                  "field_name": "substanceUseDisorderIndefiniteAndImpairs",
+                  "pick_list_reference": "NoYesReasonsForMissingData",
+                  "disabled_display": "PROTECTED",
+                  "enable_behavior": "ANY",
+                  "enable_when": [
+                    {
+                      "question": "4.10.2",
+                      "operator": "EQUAL",
+                      "answer_code": "ALCOHOL_USE_DISORDER"
+                    },
+                    {
+                      "question": "4.10.2",
+                      "operator": "EQUAL",
+                      "answer_code": "DRUG_USE_DISORDER"
+                    },
+                    {
+                      "question": "4.10.2",
+                      "operator": "EQUAL",
+                      "answer_code": "BOTH_ALCOHOL_AND_DRUG_USE_DISORDERS"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "GROUP",
+              "link_id": "disability-table-r7",
+              "text": "Overall Disabling Condition",
+              "_ignore": "HUD defines a Disabling Condition as:<ul><li>A physical, mental, or emotional impairment, including an impairment caused by alcohol or drug abuse, post-traumatic stress disorder, or brain injury that:</li><ul><li>Is expected to be long-continuing or of indefinite duration;</li><li>Substantially impedes the individual's ability to live independently; and</li><li>Could be improved by the provision of more suitable housing conditions.</li></ul></li><li>A developmental disability, as defined in section 102 of the Developmental Disabilities Assistance and Bill of Rights Act of 2000 (42 U.S.C. 15002); or</li><li>The disease of acquired immunodeficiency syndrome (AIDS) or any condition arising from the etiologic agency for acquired immunodeficiency syndrome (HIV).</li></ul>",
+              "item": [
+                {
+                  "type": "CHOICE",
+                  "link_id": "3.08",
+                  "text": "Disabling Condition",
+                  "field_name": "disablingCondition",
+                  "pick_list_reference": "NoYesReasonsForMissingData",
+                  "autofill_values": [
+                    {
+                      "value_code": "YES",
+                      "autofill_behavior": "ANY",
+                      "autofill_when": [
+                        {
+                          "question": "4.05.A",
+                          "operator": "EQUAL",
+                          "answer_code": "YES"
+                        },
+                        {
+                          "question": "4.06.2",
+                          "operator": "EQUAL",
+                          "answer_code": "YES"
+                        },
+                        {
+                          "question": "4.07.A",
+                          "operator": "EQUAL",
+                          "answer_code": "YES"
+                        },
+                        {
+                          "question": "4.08.2",
+                          "operator": "EQUAL",
+                          "answer_code": "YES"
+                        },
+                        {
+                          "question": "4.09.A",
+                          "operator": "EQUAL",
+                          "answer_code": "YES"
+                        },
+                        {
+                          "question": "4.10.A",
+                          "operator": "EQUAL",
+                          "answer_code": "YES"
+                        }
+                      ]
+                    },
+                    {
+                      "value_code": "NO",
+                      "autofill_behavior": "ALL",
+                      "autofill_when": [
+                        {
+                          "question": "4.05.A",
+                          "operator": "NOT_EQUAL",
+                          "answer_code": "YES"
+                        },
+                        {
+                          "question": "4.06.2",
+                          "operator": "NOT_EQUAL",
+                          "answer_code": "YES"
+                        },
+                        {
+                          "question": "4.07.A",
+                          "operator": "NOT_EQUAL",
+                          "answer_code": "YES"
+                        },
+                        {
+                          "question": "4.08.2",
+                          "operator": "NOT_EQUAL",
+                          "answer_code": "YES"
+                        },
+                        {
+                          "question": "4.09.A",
+                          "operator": "NOT_EQUAL",
+                          "answer_code": "YES"
+                        },
+                        {
+                          "question": "4.10.A",
+                          "operator": "NOT_EQUAL",
+                          "answer_code": "YES"
+                        }
+                      ]
+                    },
+                    {
+                      "value_code": "NO",
+                      "autofill_behavior": "ALL",
+                      "_comment": "It should autofull when ANY element is interacted with, so add these as dependencies even though they do not determine disabling condition status. This autofill will only occur if none of the above rules matcheed.",
+                      "autofill_when": [
+                        {
+                          "question": "4.05.2",
+                          "operator": "EXISTS",
+                          "answer_boolean": true
+                        },
+                        {
+                          "question": "4.07.2",
+                          "operator": "EXISTS",
+                          "answer_boolean": true
+                        },
+                        {
+                          "question": "4.09.2",
+                          "operator": "EXISTS",
+                          "answer_boolean": true
+                        },
+                        {
+                          "question": "4.10.2",
+                          "operator": "EXISTS",
+                          "answer_boolean": true
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "DISPLAY",
+                  "link_id": "overall-placeholder",
+                  "text": "This field is auto-filled based on the above responses. The user may override a system-generated NO with a YES."
                 }
               ]
             }

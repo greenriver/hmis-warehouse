@@ -29,6 +29,14 @@ module Cohorts
         ),
       )
       @cohort_client.touch
+      # send notifications
+      if note_params[:send_notification].present? && note_params[:recipients].present?
+        token = Token.tokenize(client_notes_path(client_id: @cohort_client.client_id))
+        note_params[:recipients].reject(&:blank?).map(&:to_i).each do |id|
+          user = User.find(id)
+          TokenMailer.note_added(user, token).deliver_later if user.present?
+        end
+      end
       respond_with(@note, location: cohort_path(id: params[:cohort_id].to_i))
     rescue StandardError
       @note = { error: 'Failed to create a note.' }
@@ -54,6 +62,8 @@ module Cohorts
       params.require(:grda_warehouse_client_notes_cohort_note).permit(
         :note,
         :alert_active,
+        :send_notification,
+        recipients: [],
       )
     end
 

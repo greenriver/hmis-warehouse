@@ -25,6 +25,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   has_many :income_benefits, through: :enrollments
   has_many :disabilities, through: :enrollments
   has_many :health_and_dvs, through: :enrollments
+  has_many :client_files, class_name: 'GrdaWarehouse::ClientFile'
   has_many :current_living_situations, through: :enrollments
 
   validates_with Hmis::Hud::Validators::ClientValidator
@@ -66,6 +67,17 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     age_youngest_to_oldest: 'Age: Youngest to Oldest',
     age_oldest_to_youngest: 'Age: Oldest to Youngest',
   }.freeze
+
+  # Unused
+  def fake_client_image_data
+    gender = if self[:Male].in?([1]) then 'male' else 'female' end
+    age_group = if age.blank? || age > 18 then 'adults' else 'children' end
+    image_directory = File.join('public', 'fake_photos', age_group, gender)
+    available = Dir[File.join(image_directory, '*.jpg')]
+    image_id = "#{self.FirstName}#{self.LastName}".sum % available.count
+    Rails.logger.debug "Client#image id:#{self.id} faked #{self.PersonalID} #{available.count} #{available[image_id]}" # rubocop:disable Style/RedundantSelf
+    image_data = File.read(available[image_id]) # rubocop:disable Lint/UselessAssignment
+  end
 
   def self.client_search(input:, user: nil)
     # Apply ID searches directly, as they can only ever return a single client
@@ -118,9 +130,9 @@ class Hmis::Hud::Client < Hmis::Hud::Base
       order(arel_table[:first_name].asc.nulls_last)
     when :first_name_z_to_a
       order(arel_table[:first_name].desc.nulls_last)
-    when :youngest_to_oldest
+    when :age_youngest_to_oldest
       order(arel_table[:dob].desc.nulls_last)
-    when :oldest_to_youngest
+    when :age_oldest_to_youngest
       order(arel_table[:dob].asc.nulls_last)
     when :recently_added
       order(arel_table[:date_created].desc.nulls_last)
@@ -152,5 +164,9 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
   def age(date = Date.current)
     GrdaWarehouse::Hud::Client.age(date: date, dob: self.DOB)
+  end
+
+  def image
+    @image ||= client_files&.client_photos&.newest_first&.first&.client_file
   end
 end

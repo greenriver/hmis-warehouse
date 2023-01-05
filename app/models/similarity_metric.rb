@@ -132,8 +132,11 @@ module SimilarityMetric
   # take a merged set of score maps and calculate a new score using the best weight for each metric
   def rescore_amalgam(score_map)
     score_map = score_map[:metrics_with_scores]
-    return Float::MAX if score_map.empty?
-    score_map.map{ |k,v| k.weight * v }.sum / score_map.size
+    # if we have no data, return a score representing maximal dissimilarity
+    return Float::INFINITY if score_map.empty?
+
+    # return a weighted average
+    score_map.sum { |k,v| k.weight * v } / score_map.keys.sum(&:weight)
   end
 
   # calculate score for a pair of individuals
@@ -146,8 +149,10 @@ module SimilarityMetric
       end
     end.compact
     s = if scores.any?
+      # the weighted average of all the scores
       scores.sum / weights.map(&:weight).sum
     else
+      # the worst possible score
       Float::INFINITY
     end
     if just_score

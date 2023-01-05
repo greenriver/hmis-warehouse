@@ -15,7 +15,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
       return if @headers_written
 
       @headers_written = true
-      @csv << @keys
+      @csv << options[:destination_class].csv_header_override(@keys)
     end
 
     def write(row)
