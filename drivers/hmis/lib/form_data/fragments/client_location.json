@@ -1,0 +1,18 @@
+{
+  "type": "GROUP",
+  "link_id": "location",
+  "text": "Client Location",
+  "data_collected_about": "HOH",
+  "record_type": "ENROLLMENT_COC",
+  "item": [
+    {
+      "type": "CHOICE",
+      "link_id": "3.16",
+      "prefix": "3.16",
+      "text": "CoC Code for Client Location",
+      "field_name": "cocCode",
+      "brief_text": "Location",
+      "pick_list_reference": "COC"
+    }
+  ]
+}
