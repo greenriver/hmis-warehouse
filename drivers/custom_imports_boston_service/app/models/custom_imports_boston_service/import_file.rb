@@ -28,6 +28,24 @@ module CustomImportsBostonService
       post_process
     end
 
+    def load_csv(file)
+      batch_size = 10_000
+      loaded_rows = 0
+
+      headers = clean_headers(file.first)
+      file.drop(1).each_slice(batch_size) do |lines|
+        loaded_rows += lines.count
+        cleaned_headers = headers.reject { |h| h == 'do_not_import' }
+        rows.klass.import!(
+          cleaned_headers,
+          clean_rows(headers, lines),
+          conflict_target: [:service_id],
+          columns: cleaned_headers,
+        )
+      end
+      summary << "Loaded #{loaded_rows} rows"
+    end
+
     # CSV is missing a header for row_number, needs import_file_id, and the others need to be translated
     private def clean_headers(headers)
       headers[0] = 'row_number'
