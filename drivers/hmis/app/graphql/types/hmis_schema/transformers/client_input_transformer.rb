@@ -55,6 +55,7 @@ module Types
       result['Ethnicity'] = ethnicity
       result['VeteranStatus'] = veteran_status
       result['pronouns'] = pronouns&.join('|')
+      result['image_blob_id'] = image_blob_id if image_blob_id.present?
 
       result = result.merge(race_attrs)
       result = result.merge(gender_attrs)

@@ -1,6 +1,16 @@
 {
   "item": [
     {
+      "type": "DATE",
+      "link_id": "client-id",
+      "hidden": true,
+      "initial": [
+        {
+          "value_local_constant": "$clientId"
+        }
+      ]
+    },
+    {
       "type": "GROUP",
       "link_id": "name",
       "text": "Name",
@@ -179,6 +189,29 @@
           "text": "Veteran Status",
           "field_name": "veteranStatus",
           "pick_list_reference": "NoYesReasonsForMissingData"
+        }
+      ]
+    },
+    {
+      "type": "GROUP",
+      "required": false,
+      "link_id": "image",
+      "text": "Image",
+      "enable_behavior": "ANY",
+      "enable_when": [
+        {
+          "question": "client-id",
+          "operator": "EXISTS",
+          "answer_boolean": false
+        }
+      ],
+      "item": [
+        {
+          "type": "IMAGE",
+          "required": false,
+          "link_id": "image_blob_id",
+          "text": "Image",
+          "field_name": "imageBlobId"
         }
       ]
     }
