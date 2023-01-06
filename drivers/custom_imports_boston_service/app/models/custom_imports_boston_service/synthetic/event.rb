@@ -49,6 +49,10 @@ module CustomImportsBostonService::Synthetic
       # ['', ''] => 18, # 'Referral to a Housing Stability Voucher'
     }.freeze
 
+    ASSESSMENT_REFERRAL_DAYS = 5
+    SHELTER_REFERRAL_DAYS = 3
+    REPORTING_PERIOD_WINDOW = [ASSESSMENT_REFERRAL_DAYS, SHELTER_REFERRAL_DAYS].max
+
     def self.event_event(source)
       EVENT_LOOKUP[[source.service_name, source.service_item]]
     end
@@ -86,7 +90,7 @@ module CustomImportsBostonService::Synthetic
     end
 
     def self.build_event_batch(batch)
-      range = batch.first.reporting_period_started_on .. batch.first.reporting_period_ended_on + 5.days
+      range = batch.first.reporting_period_started_on .. batch.first.reporting_period_ended_on + REPORTING_PERIOD_WINDOW.days
       destination_client_ids = batch.map { |row| [row.client.id, row.client.destination_client.id] }.to_h
 
       # Fetch assessments within range
@@ -118,15 +122,15 @@ module CustomImportsBostonService::Synthetic
         referral_result_date = nil
 
         # Pathways/Transfer within 5 days after referral to assessment
-        if event_number == 4
+        if event_number == 4 # Referral to scheduled Coordinated Entry Housing Needs Assessment
           assessment_dates = assessments[destination_client_ids[row.client_id]]
-          referral_result_date = assessment_dates.detect { |d| d.in?(row.date..row.date + 5.days) }
+          referral_result_date = assessment_dates.detect { |d| d.in?(row.date..row.date + ASSESSMENT_REFERRAL_DAYS.days) }
           referral_result = 1 if referral_result_date.present?
         end
         # ES enrollment started within 3 days after referral to shelter
-        if event_number == 10
+        if event_number == 10 # Referral to Emergency Shelter bed opening
           enrollment_dates = enrollments[destination_client_ids[row.client_id]]
-          referral_result_date = enrollment_dates.detect { |d| d.in?(row.date..row.date + 3.days) }
+          referral_result_date = enrollment_dates.detect { |d| d.in?(row.date..row.date + SHELTER_REFERRAL_DAYS.days) }
           referral_result = 1 if referral_result_date.present?
         end
 
