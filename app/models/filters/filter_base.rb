@@ -694,7 +694,7 @@ module Filters
         fifty_five_to_fifty_nine: '55 - 59',
         sixty_to_sixty_one: '60 - 61',
         sixty_two_to_sixty_four: '62 - 64',
-        over_sixty_four: '64+',
+        over_sixty_four: '65+',
       }.invert.freeze
     end
 
