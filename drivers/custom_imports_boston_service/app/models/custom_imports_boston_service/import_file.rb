@@ -41,8 +41,10 @@ module CustomImportsBostonService
         rows.klass.import!(
           cleaned_headers,
           clean_rows(headers, lines),
-          conflict_target: [:service_id],
-          columns: cleaned_headers,
+          on_duplicate_key_update: {
+            conflict_target: [:service_id],
+            columns: cleaned_headers,
+          },
         )
       end
       summary << "Loaded #{loaded_rows} rows"
@@ -99,10 +101,12 @@ module CustomImportsBostonService
               category: row.service_category,
             }
           end
-          ::GrdaWarehouse::Generic::Service.import(
+          ::GrdaWarehouse::Generic::Service.import!(
             service_batch,
-            conflict_target: [:source_id, :source_type],
-            columns: [:date, :client_id, :data_source_id],
+            on_duplicate_key_update: {
+              conflict_target: [:source_id, :source_type],
+              columns: [:date, :client_id, :data_source_id],
+            },
           )
         end
         summary << "Matched #{matched} services"

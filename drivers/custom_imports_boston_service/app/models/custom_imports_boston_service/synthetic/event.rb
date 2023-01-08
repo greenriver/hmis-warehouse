@@ -70,11 +70,11 @@ module CustomImportsBostonService::Synthetic
     end
 
     def referral_result
-      source.calculated_referral_result
+      calculated_referral_result
     end
 
     def result_date
-      source.calculated_result_date
+      calculated_referral_date
     end
 
     def self.sync
@@ -90,23 +90,23 @@ module CustomImportsBostonService::Synthetic
     end
 
     def self.build_event_batch(batch)
-      range = batch.first.reporting_period_started_on .. batch.first.reporting_period_ended_on + REPORTING_PERIOD_WINDOW.days
       destination_client_ids = batch.map { |row| [row.client.id, row.client.destination_client.id] }.to_h
 
+      range = batch.first.reporting_period_started_on .. batch.first.reporting_period_ended_on + REPORTING_PERIOD_WINDOW.days
       # Fetch assessments within range
-      assessments = GrdaWarehouse::Hud::Assessment.pathways_or_rrh.
+      assessments = ::GrdaWarehouse::Hud::Assessment.pathways_or_rrh.
         where(AssessmentDate: range).
-        where(:wc_t[:source_id].in(destination_client_ids.keys)).
+        where(wc_t[:source_id].in(destination_client_ids.keys)).
         joins(enrollment: { client: :warehouse_client_source }).
-        pluck(:wc_t[:destination_id], :AssessmentDate).
+        pluck(wc_t[:destination_id], :AssessmentDate).
         group_by(&:shift)
 
       # Fetch ES entry dates within range, keyed on destination_client_id
-      enrollments = GrdaWarehouse::Hud::Enrollment.where(EntryDate: range).
+      enrollments = ::GrdaWarehouse::Hud::Enrollment.where(EntryDate: range).
         joins(:project, client: :warehouse_client_source).
-        merge(GrdaWarehouse::Hud::Project.es).
-        where(:wc_t[:source_id].in(destination_client_ids.keys)).
-        pluck(:wc_t[:destination_id], :EntryDate).
+        merge(::GrdaWarehouse::Hud::Project.es).
+        where(wc_t[:source_id].in(destination_client_ids.keys)).
+        pluck(wc_t[:destination_id], :EntryDate).
         group_by(&:shift)
 
       event_batch = []
@@ -117,20 +117,24 @@ module CustomImportsBostonService::Synthetic
         enrollment = row.enrollment
         next unless enrollment.present?
 
-        event_number = event_event(row)
+        client_id = row.client.id
+        next unless client_id
+
+        event_number = CustomImportsBostonService::Synthetic::Event.event_event(row)
         referral_result = nil
         referral_result_date = nil
 
         # Pathways/Transfer within 5 days after referral to assessment
         if event_number == 4 # Referral to scheduled Coordinated Entry Housing Needs Assessment
-          assessment_dates = assessments[destination_client_ids[row.client_id]]
-          referral_result_date = assessment_dates.detect { |d| d.in?(row.date..row.date + ASSESSMENT_REFERRAL_DAYS.days) }
+          assessment_dates = assessments[destination_client_ids[client_id]]
+          referral_result_date = assessment_dates&.flatten&.detect { |d| d.in?(row.date..row.date + ASSESSMENT_REFERRAL_DAYS.days) }
           referral_result = 1 if referral_result_date.present?
         end
+
         # ES enrollment started within 3 days after referral to shelter
         if event_number == 10 # Referral to Emergency Shelter bed opening
-          enrollment_dates = enrollments[destination_client_ids[row.client_id]]
-          referral_result_date = enrollment_dates.detect { |d| d.in?(row.date..row.date + SHELTER_REFERRAL_DAYS.days) }
+          enrollment_dates = enrollments[destination_client_ids[client_id]]
+          referral_result_date = enrollment_dates&.flatten&.detect { |d| d.in?(row.date..row.date + SHELTER_REFERRAL_DAYS.days) }
           referral_result = 1 if referral_result_date.present?
         end
 
@@ -138,11 +142,12 @@ module CustomImportsBostonService::Synthetic
           source_id: row.id,
           source_type: row.class.name,
           enrollment_id: enrollment.id,
-          client_id: row.client.id,
+          client_id: client_id,
+          calculated_referral_date: referral_result_date,
           calculated_referral_result: referral_result,
-          calculated_result_date: referral_result_date,
         }
       end
+      event_batch
     end
 
     def self.add_new_and_update_existing
@@ -154,8 +159,10 @@ module CustomImportsBostonService::Synthetic
 
         CustomImportsBostonService::Synthetic::Event.import(
           event_batch,
-          conflict_target: [:source_id, :source_type],
-          columns: [:enrollment_id, :client_id, :calculated_referral_result, :calculated_result_date],
+          on_duplicate_key_update: {
+            conflict_target: [:source_id, :source_type],
+            columns: [:enrollment_id, :client_id, :calculated_referral_date, :calculated_referral_result],
+          },
         )
       end
     end
