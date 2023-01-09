@@ -10,6 +10,8 @@ module Types
   class HmisSchema::MutationType < Types::BaseObject
     field :create_client, mutation: Mutations::CreateClient
     field :update_client, mutation: Mutations::UpdateClient
+    field :update_client_image, mutation: Mutations::UpdateClientImage
+    field :delete_client_image, mutation: Mutations::DeleteClientImage
     field :create_enrollment, mutation: Mutations::CreateEnrollment
     field :add_household_members_to_enrollment, mutation: Mutations::AddHouseholdMembersToEnrollment
     field :set_ho_h_for_enrollment, mutation: Mutations::SetHoHForEnrollment
@@ -28,6 +30,14 @@ module Types
     field :update_funder, mutation: Mutations::UpdateFunder
     field :delete_funder, mutation: Mutations::DeleteFunder
     field :create_inventory, mutation: Mutations::CreateInventory
+
+    field :create_units, mutation: Mutations::CreateUnits
+    field :create_beds, mutation: Mutations::CreateBeds
+    # field :update_unit, mutation: Mutations::UpdateUnit
+    # field :update_bed, mutation: Mutations::UpdateBed
+    # field :delete_units, mutation: Mutations::DeleteUnits
+    # field :delete_beds, mutation: Mutations::DeleteBeds
+
     field :update_inventory, mutation: Mutations::UpdateInventory
     field :delete_inventory, mutation: Mutations::DeleteInventory
     field :create_service, mutation: Mutations::CreateService
@@ -35,5 +45,6 @@ module Types
     field :delete_service, mutation: Mutations::DeleteService
     field :save_assessment, mutation: Mutations::SaveAssessment
     field :submit_assessment, mutation: Mutations::SubmitAssessment
+    field :create_direct_upload, mutation: Mutations::CreateDirectUpload
   end
 end

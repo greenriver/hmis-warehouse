@@ -50,11 +50,12 @@ module Types
       result['NameDataQuality'] = name_data_quality
       result['DOB'] = dob
       result['DOBDataQuality'] = dob_data_quality
-      result['SSN'] = ssn&.gsub(/\D/, '')
+      result['SSN'] = ssn&.gsub(/[^\dXx]/, '')
       result['SSNDataQuality'] = ssn_data_quality
       result['Ethnicity'] = ethnicity
       result['VeteranStatus'] = veteran_status
       result['pronouns'] = pronouns&.join('|')
+      result['image_blob_id'] = image_blob_id if image_blob_id.present?
 
       result = result.merge(race_attrs)
       result = result.merge(gender_attrs)

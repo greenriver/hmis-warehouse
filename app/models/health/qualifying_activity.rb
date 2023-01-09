@@ -408,7 +408,7 @@ module Health
     end
 
     def modifiers
-      TodoOrDie('Remove MH COVID flexibility', by: '2023-01-07')
+      TodoOrDie('Remove MH COVID flexibility', by: '2023-03-31')
 
       modifiers = []
       case activity&.to_sym

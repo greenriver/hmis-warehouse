@@ -77,15 +77,25 @@ module Filter::FilterScopes
       # Or'ing ages is very slow, instead we'll build up an acceptable
       # array of ages
       ages = []
+      ages += (0..4).to_a if @filter.age_ranges.include?(:zero_to_four)
+      ages += (5..10).to_a if @filter.age_ranges.include?(:five_to_ten)
+      ages += (11..14).to_a if @filter.age_ranges.include?(:eleven_to_fourteen)
+      ages += (15..17).to_a if @filter.age_ranges.include?(:fifteen_to_seventeen)
       ages += (0..17).to_a if @filter.age_ranges.include?(:under_eighteen)
       ages += (18..24).to_a if @filter.age_ranges.include?(:eighteen_to_twenty_four)
       ages += (25..29).to_a if @filter.age_ranges.include?(:twenty_five_to_twenty_nine)
+      ages += (30..34).to_a if @filter.age_ranges.include?(:thirty_to_thirty_four)
+      ages += (35..39).to_a if @filter.age_ranges.include?(:thirty_five_to_thirty_nine)
       ages += (30..39).to_a if @filter.age_ranges.include?(:thirty_to_thirty_nine)
+      ages += (40..44).to_a if @filter.age_ranges.include?(:forty_to_forty_four)
+      ages += (45..49).to_a if @filter.age_ranges.include?(:forty_five_to_forty_nine)
       ages += (40..49).to_a if @filter.age_ranges.include?(:forty_to_forty_nine)
       ages += (50..54).to_a if @filter.age_ranges.include?(:fifty_to_fifty_four)
       ages += (55..59).to_a if @filter.age_ranges.include?(:fifty_five_to_fifty_nine)
       ages += (60..61).to_a if @filter.age_ranges.include?(:sixty_to_sixty_one)
+      ages += (62..64).to_a if @filter.age_ranges.include?(:sixty_two_to_sixty_four)
       ages += (62..110).to_a if @filter.age_ranges.include?(:over_sixty_one)
+      ages += (65..110).to_a if @filter.age_ranges.include?(:over_sixty_four)
 
       scope.joins(:client).where(age_calculation.in(ages))
     end

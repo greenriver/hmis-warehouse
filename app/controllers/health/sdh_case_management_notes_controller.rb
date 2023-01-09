@@ -33,12 +33,12 @@ module Health
           housing_placement_date: last_form&.housing_placement_date,
           client_phone_number: last_form&.client_phone_number,
         )
-      @note.activities.build
       @note.save(validate: false)
       redirect_to polymorphic_path([:edit] + sdh_case_management_note_path_generator, client_id: @client.id, id: @note.id)
     end
 
     def edit
+      @note.activities.build if @note.activities.size.zero? # Add a qa if there isn't at least one
       @activities = @note.activities.sort_by(&:id)
       @note.build_health_file unless @note.health_file
       respond_with @note
@@ -49,14 +49,17 @@ module Health
       @note.assign_attributes(note_params.merge(updated_at: Time.now))
       if params[:commit] == 'Save Case Note'
         @note.health_file.set_calculated!(current_user.id, @client.id) if @note.health_file&.new_record?
+        # Clean up any invalid QAs
+        @note.activities = @note.activities.to_a.select(&:valid?)
         @note.save
       else
+        # Save invalid data for WIP -- will get cleaned up on save
         @note.save(validate: false)
       end
       @note_added = (@activity_count != @note.activities.size)
       @activities = @note.activities.sort_by(&:id)
       @activities.each do |qa|
-        qa.delay.maintain_cached_values
+        qa.delay.maintain_cached_values if qa.persisted?
       end
       respond_with @note, location: polymorphic_path(careplans_path_generator)
     end

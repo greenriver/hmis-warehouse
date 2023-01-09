@@ -124,7 +124,7 @@ class GrdaWarehouse::FakeData < GrdaWarehouseBase
       @randos ||= [
         *(1..10).map { -> { rand(0..9).to_s * rand(3..9) } },  # mostly of this sort (why not)
         *(1..5).map { -> { '123456789'[0...rand(4..9)] } },    # then a lot of these
-        -> { '078051120' },                                     # and one of these
+        -> { '078051120' },                                    # and one of these
       ]
 
       v = @randos.sample.call while v == value

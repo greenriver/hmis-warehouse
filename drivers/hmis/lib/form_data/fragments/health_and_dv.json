@@ -1,0 +1,58 @@
+{
+  "type": "GROUP",
+  "link_id": "health-and-dv",
+  "text": "Health and DV",
+  "data_collected_about": "HOH_AND_ADULTS",
+  "record_type": "HEALTH_AND_DV",
+  "item": [
+    {
+      "type": "DISPLAY",
+      "link_id": "4.11.2-display",
+      "text": "Domestic Violence Victim/Survivor should be indicated as “Yes” if the person has experienced any domestic violence, dating violence, sexual assault, stalking or other dangerous or life-threatening conditions that relate to violence against the individual or a family member, including a child, that has either taken place within the individual's or family's primary nighttime residence."
+    },
+    {
+      "type": "CHOICE",
+      "component": "RADIO_BUTTONS",
+      "link_id": "4.11.2",
+      "text": "Domestic Violence Victim/Survivor",
+      "pick_list_reference": "NoYesReasonsForMissingData",
+      "field_name": "domesticViolenceVictim"
+    },
+    {
+      "type": "CHOICE",
+      "link_id": "4.11.A",
+      "text": "When did the experience occur?",
+      "brief_text": "When Occurred",
+      "field_name": "whenOccurred",
+      "pick_list_reference": "WhenDVOccurred",
+      "disabled_display": "PROTECTED",
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "question": "4.11.2",
+          "operator": "EQUAL",
+          "answer_code": "YES"
+        }
+      ]
+    },
+    {
+      "type": "CHOICE",
+      "component": "RADIO_BUTTONS",
+      "link_id": "4.11.B",
+      "text": "Are you currently fleeing?",
+      "brief_text": "Currently Fleeing",
+      "field_name": "currentlyFleeing",
+      "pick_list_reference": "NoYesReasonsForMissingData",
+      "helper_text": "Currently fleeing should be indicated as “Yes” if the person is fleeing, or is attempting to flee, the domestic violence situation or is afraid to return to their primary nighttime residence.",
+      "disabled_display": "PROTECTED",
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "question": "4.11.2",
+          "operator": "EQUAL",
+          "answer_code": "YES"
+        }
+      ]
+    }
+  ]
+}

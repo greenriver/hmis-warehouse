@@ -54,7 +54,7 @@ class CohortsController < ApplicationController
       format.html do
         @visible_columns = [CohortColumns::Meta.new]
         @visible_columns += @cohort.visible_columns(user: current_user)
-        @visible_columns << CohortColumns::Delete.new if (can_manage_cohorts? || can_edit_cohort_clients?) && ! @cohort.system_cohort
+        @visible_columns << CohortColumns::Delete.new if (can_manage_cohorts? || can_edit_cohort_clients?) && ! @cohort.system_cohort && ! @cohort.auto_maintained?
         @column_headers = @visible_columns.each_with_index.map do |col, index|
           header = {
             headerName: col.title,
@@ -123,6 +123,7 @@ class CohortsController < ApplicationController
     user_ids = cohort_params[:user_ids].select(&:present?).map(&:to_i)
     @cohort.update(cohort_options)
     @cohort.update_access(user_ids)
+    @cohort.delay.maintain if @cohort.auto_maintained?
     respond_with(@cohort, location: cohort_path(@cohort))
   end
 
@@ -141,6 +142,7 @@ class CohortsController < ApplicationController
       :visible_in_cas,
       :assessment_trigger,
       :tag_id,
+      :project_group_id,
       user_ids: [],
     ] + GrdaWarehouse::Cohort.threshold_keys
     params.require(:cohort).permit(opts)
