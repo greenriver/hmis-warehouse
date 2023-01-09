@@ -783,9 +783,13 @@ module HmisCsvImporter::Importer
 
     private def post_process
       # s_time = Time.current
-      GrdaWarehouse::Tasks::ProjectCleanup.new(
-        project_ids: GrdaWarehouse::Hud::Project.where(computed_project_type: nil).select(:id),
-      ).run!
+      project_ids = GrdaWarehouse::Hud::Project.
+        where(data_source_id: @data_source.id, ProjectID: involved_project_ids).
+        pluck(:id)
+      project_ids += GrdaWarehouse::Hud::Project.
+        where(computed_project_type: nil).
+        pluck(:id)
+      GrdaWarehouse::Tasks::ProjectCleanup.new(project_ids: project_ids.uniq).run!
 
       # Clean up any dangling enrollments for updated clients
       updated_client_ids = GrdaWarehouse::Hud::Client.
