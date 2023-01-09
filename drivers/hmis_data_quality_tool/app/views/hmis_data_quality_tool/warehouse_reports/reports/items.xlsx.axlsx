@@ -3,7 +3,7 @@ ws_title = "#{@result.category} #{@result.title}"
 
 wb.add_worksheet(name: ws_title.slice(0, 30).gsub(':', ' ').gsub('/', '-')) do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
-  headers = if @result.slug.present? then @result.item_class.constantize.detail_headers_for(@result.slug, @report) else @result.detail_columns end
+  headers = if @result.slug.present? then @result.item_class.constantize.detail_headers_for(@result.slug, @report, export: true) else @result.detail_columns end
   sheet.add_row(headers.values.map { |h| h[:title] }, style: title)
   @items.each do |item|
     row = []

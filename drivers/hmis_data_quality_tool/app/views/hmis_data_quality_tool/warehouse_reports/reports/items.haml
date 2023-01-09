@@ -19,7 +19,7 @@
 - if @items.blank?
   .none-found No records found.
 - else
-  - headers = if @result.slug.present? then @result.item_class.constantize.detail_headers_for(@result.slug, @report) else @result.detail_columns end
+  - headers = if @result.slug.present? then @result.item_class.constantize.detail_headers_for(@result.slug, @report, export: false) else @result.detail_columns end
   .card
     .overflow-x-scroll{style: "height: 800px"}
       %table.table.table-sm.table-bordered.table-fixed.datatable{ style: 'margin-top: 0 !important;'}

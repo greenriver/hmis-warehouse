@@ -33,7 +33,9 @@ module HmisDataQualityTool
     end
 
     def self.detail_headers_for_export
-      detail_headers
+      return detail_headers if GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+
+      detail_headers.except(:first_name, :last_name)
     end
 
     # Because multiple of these calculations require inspecting unrelated enrollments

@@ -99,7 +99,9 @@ module HmisDataQualityTool
     end
 
     def self.detail_headers_for_export
-      detail_headers
+      return detail_headers if GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+
+      detail_headers.except(:first_name, :last_name)
     end
 
     # Because multiple of these calculations require inspecting unrelated enrollments
@@ -154,12 +156,17 @@ module HmisDataQualityTool
         merge(report.report_scope).distinct
     end
 
-    def self.detail_headers_for(slug, report)
+    def self.detail_headers_for(slug, report, export:)
       # Months homeless has the same detail columns we need for the CH questions
       slug = :months_homeless_issues unless sections(report).key?(slug.to_sym)
 
       section = sections(report)[slug.to_sym]
-      headers = detail_headers.transform_values { |v| v.except(:translator) }
+      header_source = if export
+        detail_headers_for_export
+      else
+        detail_headers
+      end
+      headers = header_source.transform_values { |v| v.except(:translator) }
       return headers unless section
 
       columns = section[:detail_columns]
