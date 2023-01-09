@@ -23,6 +23,14 @@ module HudLsa::Generators::Fy2022::RdsConcern
     @rds.setup!
   end
 
+  def create_temporary_rds
+    ::Rds.identifier = sql_server_identifier unless ::Rds.static_rds?
+    ::Rds.database = sql_server_database
+    ::Rds.timeout = 60_000_000
+    @rds = ::Rds.new
+    @rds.create!
+  end
+
   def remove_temporary_rds
     return unless destroy_rds?
 
