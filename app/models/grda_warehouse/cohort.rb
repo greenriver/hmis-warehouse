@@ -610,7 +610,7 @@ module GrdaWarehouse
       client_ids -= cohort_clients.pluck(:client_id) # Do not touch existing clients
       cohort_clients_by_client_id = cohort_clients.only_deleted.where(client_id: client_ids).index_by(&:client_id)
       cohort_client_batch = []
-      client_ids.each do |client_id|
+      client_ids.uniq.each do |client_id|
         # Create (or resurrect) added clients
         cohort_client = cohort_clients_by_client_id[client_id] || GrdaWarehouse::CohortClient.new(cohort_id: id, client_id: client_id)
         cohort_client.deleted_at = nil
