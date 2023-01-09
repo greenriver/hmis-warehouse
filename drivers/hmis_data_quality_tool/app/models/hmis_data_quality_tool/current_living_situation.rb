@@ -22,6 +22,8 @@ module HmisDataQualityTool
         current_living_situation_id: { title: 'Current Living Situation ID' },
         hmis_current_living_situation_id: { title: 'HMIS Current Living Situation ID' },
         current_living_situation: { title: 'Current Living Situation', translator: ->(v) { "#{HUD.living_situation(v)} (#{v})" } },
+        first_name: { title: 'First Name' },
+        last_name: { title: 'Last Name' },
         project_name: { title: 'Project Name' },
         enrollment_id: { title: 'Enrollment ID' },
         information_date: { title: 'Information Date' },
@@ -85,6 +87,8 @@ module HmisDataQualityTool
       report_item.client_id = client.id
       report_item.situation = current_living_situation.CurrentLivingSituation
       report_item.enrollment_id = current_living_situation.enrollment.id
+      report_item.first_name = client.FirstName
+      report_item.last_name = client.LastName
       report_item.project_name = project.name(report.user)
       report_item.project_id = project.id
       report_item.destination_client_id = client.warehouse_client_source.destination_id
