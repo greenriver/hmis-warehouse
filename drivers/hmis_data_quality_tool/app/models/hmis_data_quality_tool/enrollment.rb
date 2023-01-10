@@ -395,12 +395,16 @@ module HmisDataQualityTool
       return true unless expected
       return false if assessment.blank?
 
+      any_source = assessment.BenefitsFromAnySource
+      # It's ok to not know or refuse
+      return true if any_source.in?([8, 9])
+
       responses = assessment.values_at(*assessment.class::NON_CASH_BENEFIT_TYPES)
       any_yes = responses.include?(1)
       # Said Yes, and had one (as expected)
-      return true if assessment.BenefitsFromAnySource == 1 && any_yes
+      return true if any_source == 1 && any_yes
       # Said No, and didn't have any (as expected)
-      return true if assessment.BenefitsFromAnySource&.zero? && ! any_yes
+      return true if any_source&.zero? && ! any_yes
 
       # Either said Yes and had none, or said No and had some, or some other random numbers
       false
@@ -410,12 +414,16 @@ module HmisDataQualityTool
       return true unless expected
       return false if assessment.blank?
 
+      any_source = assessment.InsuranceFromAnySource
+      # It's ok to not know or refuse
+      return true if any_source.in?([8, 9])
+
       responses = assessment.values_at(*assessment.class::INSURANCE_TYPES)
       any_yes = responses.include?(1)
       # Said Yes, and had one (as expected)
-      return true if assessment.InsuranceFromAnySource == 1 && any_yes
+      return true if any_source == 1 && any_yes
       # Said No, and didn't have any (as expected)
-      return true if assessment.InsuranceFromAnySource&.zero? && ! any_yes
+      return true if any_source&.zero? && ! any_yes
 
       # Either said Yes and had none, or said No and had some, or some other random numbers
       false
