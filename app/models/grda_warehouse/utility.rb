@@ -12,8 +12,6 @@ class GrdaWarehouse::Utility
       GrdaWarehouse::ServiceHistoryEnrollment,
       GrdaWarehouse::WarehouseClientsProcessed,
       GrdaWarehouse::WarehouseClient,
-      GrdaWarehouse::CensusByYear,
-      GrdaWarehouse::CensusByProjectType,
       GrdaWarehouse::CensusByProject,
       GrdaWarehouse::Census::ByProject,
       GrdaWarehouse::ProjectGroup,
