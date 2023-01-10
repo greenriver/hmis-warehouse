@@ -34,9 +34,15 @@ module HmisDataQualityTool::DqConcern
       calculate(report_items: report_items, report: report)
     end
 
-    def self.detail_headers_for(slug, report)
+    def self.detail_headers_for(slug, report, export:)
       section = sections(report)[slug.to_sym]
-      headers = detail_headers.transform_values { |v| v.except(:translator) }
+
+      header_source = if export
+        detail_headers_for_export
+      else
+        detail_headers
+      end
+      headers = header_source.transform_values { |v| v.except(:translator) }
       return headers unless section
 
       columns = section[:detail_columns]

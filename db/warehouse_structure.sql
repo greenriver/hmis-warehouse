@@ -13328,7 +13328,9 @@ CREATE TABLE public.hmis_dqt_current_living_situations (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     deleted_at timestamp without time zone,
-    project_id integer
+    project_id integer,
+    first_name character varying,
+    last_name character varying
 );
 
 
@@ -13431,7 +13433,9 @@ CREATE TABLE public.hmis_dqt_enrollments (
     exit_date_entered_at timestamp without time zone,
     days_to_enter_entry_date integer,
     days_to_enter_exit_date integer,
-    days_before_entry integer
+    days_before_entry integer,
+    first_name character varying,
+    last_name character varying
 );
 
 
@@ -50891,6 +50895,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230105155630'),
 ('20230105155655'),
 ('20230107220752'),
-('20230108133748');
+('20230108133748'),
+('20230109173226');
 
 
