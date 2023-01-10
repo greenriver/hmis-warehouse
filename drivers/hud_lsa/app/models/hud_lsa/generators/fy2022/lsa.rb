@@ -52,6 +52,9 @@ module HudLsa::Generators::Fy2022
 
       log_and_ping('Starting')
       begin
+        # kick-off the RDS creation it often takes quite a few minutes, as does the export
+        # asking AWS to create the RDS is quick
+        create_temporary_rds
         create_hmis_csv_export
         update_report_progress(percent: 15)
         log_and_ping('HMIS Export complete')
