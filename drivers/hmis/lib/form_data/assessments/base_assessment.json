@@ -281,7 +281,7 @@
     },
     {
       "type": "GROUP",
-      "link_id": "income-and-source",
+      "link_id": "income-and-sources",
       "text": "Income and Sources",
       "data_collected_about": "HOH_AND_ADULTS",
       "record_type": "INCOME_BENEFIT",
@@ -1025,6 +1025,11 @@
                   "answer_number": 0
                 }
               ]
+            },
+            {
+              "type": "DISPLAY",
+              "link_id": "monthly-total-income",
+              "text": "Montly Total Income"
             }
           ]
         }
@@ -1238,7 +1243,7 @@
         },
         {
           "type": "GROUP",
-          "link_id": "insurance-provider",
+          "link_id": "health-insurance-group",
           "component": "INPUT_GROUP",
           "text": "Select Insurance Provider(s)",
           "enable_behavior": "ANY",
