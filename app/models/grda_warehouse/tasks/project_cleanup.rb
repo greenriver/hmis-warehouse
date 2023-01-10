@@ -28,39 +28,13 @@ module GrdaWarehouse::Tasks
         next unless project.enrollments.exists?
 
         if should_update_type?(project)
-          blank_initial_computed_project_type = project.computed_project_type.blank?
-          debug_log("Updating type for #{project.ProjectName} << #{project.organization&.OrganizationName || 'unknown'} in #{project.data_source.short_name}... current ProjectType: #{project.ProjectType} acts_as: #{project.act_as_project_type} project types in Service History:  #{sh_project_types(project).inspect}") unless blank_initial_computed_project_type
-          project_type = project.compute_project_type
-          # Force a rebuild of all related enrollments
-          project_source.transaction do
-            project.enrollments.invalidate_processing!
-            project.update(computed_project_type: project_type)
-            # Fix the SHE with record_type "first"
-            service_history_enrollment_source.where(
-              project_id: project.ProjectID,
-              data_source_id: project.data_source_id,
-            ).update_all(computed_project_type: project_type, project_type: project_type)
-          end
-          debug_log("done invalidating enrollments for #{project.ProjectName}") unless blank_initial_computed_project_type
+          fix_project_type(project)
         elsif homeless_mismatch?(project) # if should_update_type? returned true, these have been fixed
-          debug_log("Rebuilding enrollments for #{project.ProjectName} << #{project.organization&.OrganizationName || 'unknown'} in #{project.data_source.short_name}")
-          project_source.transaction do
-            project.enrollments.invalidate_processing!
-          end
-          debug_log("done invalidating enrollments for #{project.ProjectName}")
+          invalidate_enrollments(project)
         end
 
-        next unless should_update_name?(project)
-
-        debug_log("Updating name for #{project.ProjectName}")
-        project_source.transaction do
-          # Update any service records with this project
-          service_history_enrollment_source.
-            where(project_id: project.ProjectID, data_source_id: project.data_source_id).
-            where.not(project_name: project.ProjectName).
-            update_all(project_name: project.ProjectName)
-        end
-        debug_log("done updating name for #{project.ProjectName}")
+        fix_name(project)
+        fix_client_locations(project)
       end
       GrdaWarehouse::Tasks::ServiceHistory::Enrollment.batch_process_unprocessed!(max_wait_seconds: 1_800)
 
@@ -71,7 +45,7 @@ module GrdaWarehouse::Tasks
     end
 
     def load_projects
-      project_source.where(id: @project_ids)
+      project_source.where(id: @project_ids).preload(:project_cocs)
     end
 
     def should_update_type? project
@@ -87,6 +61,23 @@ module GrdaWarehouse::Tasks
       project_type_changed_in_source || project_override_changed || ! project_types_match_sh_types
     end
 
+    def fix_project_type(project)
+      blank_initial_computed_project_type = project.computed_project_type.blank?
+      debug_log("Updating type for #{project.ProjectName} << #{project.organization&.OrganizationName || 'unknown'} in #{project.data_source.short_name}... current ProjectType: #{project.ProjectType} acts_as: #{project.act_as_project_type} project types in Service History:  #{sh_project_types(project).inspect}") unless blank_initial_computed_project_type
+      project_type = project.compute_project_type
+      # Force a rebuild of all related enrollments
+      project_source.transaction do
+        project.enrollments.invalidate_processing!
+        project.update(computed_project_type: project_type)
+        # Fix the SHE with record_type "first"
+        service_history_enrollment_source.where(
+          project_id: project.ProjectID,
+          data_source_id: project.data_source_id,
+        ).update_all(computed_project_type: project_type, project_type: project_type)
+      end
+      debug_log("done invalidating enrollments for #{project.ProjectName}") unless blank_initial_computed_project_type
+    end
+
     def sh_project_types project
       service_history_enrollment_source.
         where(data_source_id: project.data_source_id, project_id: project.ProjectID).
@@ -98,6 +89,20 @@ module GrdaWarehouse::Tasks
       service_history_enrollment_source.
         where(data_source_id: project.data_source_id, project_id: project.ProjectID).
         where.not(project_name: project.ProjectName).exists?
+    end
+
+    def fix_name(project)
+      return unless should_update_name?(project)
+
+      debug_log("Updating name for #{project.ProjectName}")
+      project_source.transaction do
+        # Update any service records with this project
+        service_history_enrollment_source.
+          where(project_id: project.ProjectID, data_source_id: project.data_source_id).
+          where.not(project_name: project.ProjectName).
+          update_all(project_name: project.ProjectName)
+      end
+      debug_log("done updating name for #{project.ProjectName}")
     end
 
     # Just check the last two years for discrepancies to speed checking
@@ -119,6 +124,14 @@ module GrdaWarehouse::Tasks
           where(homeless: true).exists?
         !any_homeless_history
       end
+    end
+
+    def invalidate_enrollments(project)
+      debug_log("Rebuilding enrollments for #{project.ProjectName} << #{project.organization&.OrganizationName || 'unknown'} in #{project.data_source.short_name}")
+      project_source.transaction do
+        project.enrollments.invalidate_processing!
+      end
+      debug_log("done invalidating enrollments for #{project.ProjectName}")
     end
 
     # Just check the last two years for discrepancies to speed checking
@@ -147,6 +160,16 @@ module GrdaWarehouse::Tasks
     # same for literally_homeless
     def homeless_mismatch?(project)
       !(homeless_status_correct?(project) && literally_homeless_status_correct?(project))
+    end
+
+    # If the project only has one CoC Code, set all EnrollmentCoC to match
+    # If the project has more than one, clear out any EnrollmentCoC where isn't covered
+    def fix_client_locations(project)
+      # debug_log("Setting client locations for #{project.ProjectName}")
+      coc_codes = project.project_cocs.map(&:effective_coc_code).uniq
+      project.enrollment_cocs.where.not(CoCCode: coc_codes).update_all(CoCCode: coc_codes.first) if coc_codes.count == 1
+
+      project.enrollment_cocs.where.not(CoCCode: coc_codes).update_all(CoCCode: nil)
     end
 
     def project_source

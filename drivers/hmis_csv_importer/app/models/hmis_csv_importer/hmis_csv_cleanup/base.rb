@@ -35,11 +35,15 @@ module HmisCsvImporter::HmisCsvCleanup
     end
 
     def self.associated_model
+      return unless enable.present?
+
       # NOTE: This assumes an enable contains a single element
       enable[:import_cleanups].keys.first
     end
 
     def self.checked?(data_source)
+      return unless enable.present?
+
       # NOTE: This assumes an enable contains a single element
       enabled_key = enable[:import_cleanups].keys.first
       data_source[:import_cleanups][enabled_key.to_s]&.include?(enable[:import_cleanups][enabled_key].first) || false
