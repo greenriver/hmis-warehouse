@@ -49,6 +49,10 @@ module CustomImportsBostonService::Synthetic
       # ['', ''] => 18, # 'Referral to a Housing Stability Voucher'
     }.freeze
 
+    ASSESSMENT_REFERRAL_DAYS = 5
+    SHELTER_REFERRAL_DAYS = 3
+    REPORTING_PERIOD_WINDOW = [ASSESSMENT_REFERRAL_DAYS, SHELTER_REFERRAL_DAYS].max
+
     def self.event_event(source)
       EVENT_LOOKUP[[source.service_name, source.service_item]]
     end
@@ -66,16 +70,16 @@ module CustomImportsBostonService::Synthetic
     end
 
     def referral_result
-      nil
+      calculated_referral_result
     end
 
     def result_date
-      nil
+      calculated_referral_date
     end
 
     def self.sync
       remove_orphans
-      add_new
+      add_new_and_update_existing
     end
 
     def self.remove_orphans
@@ -85,28 +89,80 @@ module CustomImportsBostonService::Synthetic
       where(source_id: orphan_ids).delete_all
     end
 
-    def self.add_new
-      rows = CustomImportsBostonService::Row.joins(:service).event_eligible.where.not(id: self.select(:source_id)).preload(:enrollment)
-      rows.find_in_batches do |batch|
-        event_batch = []
-        batch.each do |row|
-          next unless row.client.present?
-          next unless row.date.present?
+    def self.build_event_batch(batch)
+      destination_client_ids = batch.map { |row| [row.client.id, row.client.destination_client.id] }.to_h
 
-          enrollment = row.enrollment
-          next unless enrollment.present?
+      range = batch.first.reporting_period_started_on .. batch.first.reporting_period_ended_on + REPORTING_PERIOD_WINDOW.days
+      # Fetch assessments within range
+      assessments = ::GrdaWarehouse::Hud::Assessment.pathways_or_rrh.
+        where(AssessmentDate: range).
+        where(wc_t[:source_id].in(destination_client_ids.keys)).
+        joins(enrollment: { client: :warehouse_client_source }).
+        pluck(wc_t[:destination_id], :AssessmentDate).
+        group_by(&:shift)
 
-          event_batch << {
-            source_id: row.id,
-            source_type: row.class.name,
-            enrollment_id: enrollment.id,
-            client_id: row.client.id,
-          }
+      # Fetch ES entry dates within range, keyed on destination_client_id
+      enrollments = ::GrdaWarehouse::Hud::Enrollment.where(EntryDate: range).
+        joins(:project, client: :warehouse_client_source).
+        merge(::GrdaWarehouse::Hud::Project.es).
+        where(wc_t[:source_id].in(destination_client_ids.keys)).
+        pluck(wc_t[:destination_id], :EntryDate).
+        group_by(&:shift)
+
+      event_batch = []
+      batch.each do |row|
+        next unless row.client.present?
+        next unless row.date.present?
+
+        enrollment = row.enrollment
+        next unless enrollment.present?
+
+        client_id = row.client.id
+        next unless client_id
+
+        event_number = CustomImportsBostonService::Synthetic::Event.event_event(row)
+        referral_result = nil
+        referral_result_date = nil
+
+        # Pathways/Transfer within 5 days after referral to assessment
+        if event_number == 4 # Referral to scheduled Coordinated Entry Housing Needs Assessment
+          assessment_dates = assessments[destination_client_ids[client_id]]
+          referral_result_date = assessment_dates&.flatten&.detect { |d| d.in?(row.date..row.date + ASSESSMENT_REFERRAL_DAYS.days) }
+          referral_result = 1 if referral_result_date.present?
         end
+
+        # ES enrollment started within 3 days after referral to shelter
+        if event_number == 10 # Referral to Emergency Shelter bed opening
+          enrollment_dates = enrollments[destination_client_ids[client_id]]
+          referral_result_date = enrollment_dates&.flatten&.detect { |d| d.in?(row.date..row.date + SHELTER_REFERRAL_DAYS.days) }
+          referral_result = 1 if referral_result_date.present?
+        end
+
+        event_batch << {
+          source_id: row.id,
+          source_type: row.class.name,
+          enrollment_id: enrollment.id,
+          client_id: client_id,
+          calculated_referral_date: referral_result_date,
+          calculated_referral_result: referral_result,
+        }
+      end
+      event_batch
+    end
+
+    def self.add_new_and_update_existing
+      rows = CustomImportsBostonService::Row.joins(:service).
+        event_eligible.
+        preload(:enrollment, client: :destination_client)
+      rows.find_in_batches do |batch|
+        event_batch = build_event_batch(batch)
+
         CustomImportsBostonService::Synthetic::Event.import(
           event_batch,
-          conflict_target: [:source_id, :source_type],
-          columns: [:enrollment_id, :client_id],
+          on_duplicate_key_update: {
+            conflict_target: [:source_id, :source_type],
+            columns: [:enrollment_id, :client_id, :calculated_referral_date, :calculated_referral_result],
+          },
         )
       end
     end

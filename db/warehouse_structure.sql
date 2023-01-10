@@ -19696,7 +19696,9 @@ CREATE TABLE public.synthetic_events (
     source_id bigint,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
-    hud_event_event_id character varying
+    hud_event_event_id character varying,
+    calculated_referral_result integer,
+    calculated_referral_date date
 );
 
 
@@ -41435,6 +41437,13 @@ CREATE INDEX index_custom_imports_b_services_rows_on_import_file_id ON public.cu
 
 
 --
+-- Name: index_custom_imports_b_services_rows_on_service_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_custom_imports_b_services_rows_on_service_id ON public.custom_imports_b_services_rows USING btree (service_id);
+
+
+--
 -- Name: index_custom_imports_b_services_rows_on_updated_at; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -47455,6 +47464,13 @@ CREATE INDEX index_synthetic_events_on_enrollment_id ON public.synthetic_events 
 
 
 --
+-- Name: index_synthetic_events_on_source_id_and_source_type; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_synthetic_events_on_source_id_and_source_type ON public.synthetic_events USING btree (source_id, source_type);
+
+
+--
 -- Name: index_synthetic_events_on_source_type_and_source_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -50871,6 +50887,10 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20221209131957'),
 ('20221220180133'),
 ('20221220184746'),
-('20221223202329');
+('20221223202329'),
+('20230105155630'),
+('20230105155655'),
+('20230107220752'),
+('20230108133748');
 
 

@@ -10,17 +10,20 @@ RSpec.describe CustomImportsBostonService::ImportFile, type: :model do
   let!(:warehouse_ds) { create :destination_data_source }
   let!(:ds1) { create :source_data_source }
   let!(:o1) { create :hud_organization, data_source_id: ds1.id }
-  let!(:p1) { create :hud_project, data_source_id: ds1.id, OrganizationID: o1.OrganizationID, ProjectID: 'P-1' }
+  let!(:p1) { create :hud_project, data_source_id: ds1.id, OrganizationID: o1.OrganizationID, ProjectID: 'P-1', ProjectType: 1, computed_project_type: 1 }
   let!(:p2) { create :hud_project, data_source_id: ds1.id, OrganizationID: o1.OrganizationID, ProjectID: 'P-2' }
   let!(:c1) { create :grda_warehouse_hud_client,  data_source_id: ds1.id, PersonalID: 'C-1' }
   let!(:c2) { create :grda_warehouse_hud_client,  data_source_id: ds1.id, PersonalID: 'C-2' }
   let!(:c3) { create :grda_warehouse_hud_client,  data_source_id: ds1.id, PersonalID: 'C-3' }
   let!(:c4) { create :grda_warehouse_hud_client,  data_source_id: ds1.id, PersonalID: 'C-4' }
   let!(:e1) { create :grda_warehouse_hud_enrollment,  data_source_id: ds1.id, PersonalID: 'C-1', EnrollmentID: 'E-1', ProjectID: 'P-1' }
-  let!(:e2) { create :grda_warehouse_hud_enrollment,  data_source_id: ds1.id, PersonalID: 'C-2', EnrollmentID: 'E-2', ProjectID: 'P-1' }
-  let!(:e3) { create :grda_warehouse_hud_enrollment,  data_source_id: ds1.id, PersonalID: 'C-2', EnrollmentID: 'E-3', ProjectID: 'P-2' }
+  let!(:e2) { create :grda_warehouse_hud_enrollment,  data_source_id: ds1.id, PersonalID: 'C-2', EnrollmentID: 'E-2', ProjectID: 'P-1', EntryDate: '2021-08-31'.to_date }
+  let!(:e3) { create :grda_warehouse_hud_enrollment,  data_source_id: ds1.id, PersonalID: 'C-2', EnrollmentID: 'E-3', ProjectID: 'P-2', EntryDate: '2021-09-02'.to_date }
   let!(:e4) { create :grda_warehouse_hud_enrollment,  data_source_id: ds1.id, PersonalID: 'C-3', EnrollmentID: 'E-4', ProjectID: 'P-2' }
   let!(:e5) { create :grda_warehouse_hud_enrollment,  data_source_id: ds1.id, PersonalID: 'C-4', EnrollmentID: 'E-5', ProjectID: 'P-2' }
+  let!(:a1) { create :hud_assessment, data_source_id: ds1.id, PersonalID: 'C-2', EnrollmentID: 'E-3', AssessmentDate: '2021-09-02'.to_date }
+  let!(:aq1) { create :hud_assessment_question, data_source_id: ds1.id, PersonalID: 'C-2', EnrollmentID: 'E-3', AssessmentID: a1.AssessmentID, AssessmentQuestion: :c_housing_assessment_name }
+
   let!(:config) do
     config = GrdaWarehouse::CustomImports::Config.find_by(data_source_id: ds1.id)
     if config.blank?
@@ -93,7 +96,7 @@ RSpec.describe CustomImportsBostonService::ImportFile, type: :model do
       end
 
       it 'adds 12 rows' do
-        expect(CustomImportsBostonService::Row.count).to eq(12)
+        expect(CustomImportsBostonService::Row.count).to eq(7)
       end
 
       describe 'after hud processing' do
@@ -113,6 +116,12 @@ RSpec.describe CustomImportsBostonService::ImportFile, type: :model do
           expect(GrdaWarehouse::Hud::Event.where(Event: 4).count).to eq(3)
           expect(GrdaWarehouse::Hud::Event.where(Event: 9).count).to eq(0)
           expect(GrdaWarehouse::Hud::Event.where(Event: 10).count).to eq(1)
+        end
+
+        it 'contains one synthetic event with a result' do
+          expect(GrdaWarehouse::Synthetic::Event.where.not(calculated_referral_date: nil).count).to eq(2)
+          expect(GrdaWarehouse::Hud::Event.where(Event: 4).where.not(ReferralResult: nil).count).to eq(1)
+          expect(GrdaWarehouse::Hud::Event.where(Event: 10).where.not(ReferralResult: nil).count).to eq(1)
         end
       end
     end
