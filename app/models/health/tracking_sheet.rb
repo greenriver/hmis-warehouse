@@ -18,9 +18,17 @@ module Health
     end
 
     def consented_date(patient_id)
-      @consented_dates ||= Health::ParticipationForm.where(patient_id: patient_ids).
-        group(:patient_id).
-        maximum(:signature_on)
+      @consented_dates ||= begin
+        legacy_dates = Health::ParticipationForm.where(patient_id: patient_ids).
+          group(:patient_id).
+          maximum(:signature_on)
+        current_dates = Health::ReleaseForm.where(patient_id: patient_ids).
+          group(:patient_id).
+          maximum(:participation_signature_on)
+
+        # If we have a post participation/ROI UI date. it should override any old participation form dates.
+        legacy_dates.merge(current_dates)
+      end
       @consented_dates[patient_id]&.to_date
     end
 
