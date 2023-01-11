@@ -12,7 +12,7 @@ module Mutations
       return { units: [], errors: [InputValidationError.new('Inventory record not found', attribute: 'inventory_id')] } unless inventory.present?
 
       units = inventory.units.where(id: unit_ids)
-      units.update_all(name: name)
+      units.update_all(name: name, user_id: hmis_user.user_id, updated_at: Time.now)
 
       { units: units, errors: [] }
     end

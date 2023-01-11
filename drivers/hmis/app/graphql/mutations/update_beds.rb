@@ -13,8 +13,9 @@ module Mutations
       return { beds: [], errors: [InputValidationError.new('Inventory record not found', attribute: 'inventory_id')] } unless inventory.present?
 
       beds = inventory.beds.where(id: bed_ids)
-      beds.update_all(name: name) if name.present?
-      beds.update_all(unit_id: unit.to_i) if unit.present?
+      common = { user_id: hmis_user.user_id, updated_at: Time.now }
+      beds.update_all(name: name, **common) if name.present?
+      beds.update_all(unit_id: unit.to_i, **common) if unit.present?
 
       { beds: beds, errors: [] }
     end
