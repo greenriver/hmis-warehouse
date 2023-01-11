@@ -5,19 +5,18 @@ module Mutations
     argument :name, String, required: false
     argument :unit, ID, required: false
 
-    field :inventory, Types::HmisSchema::Inventory, null: true
+    field :beds, [Types::HmisSchema::Bed], null: false
     field :errors, [Types::HmisSchema::ValidationError], null: false
 
-    def resolve(inventory_id:, bed_ids:, name:, unit:)
+    def resolve(inventory_id:, bed_ids:, name: nil, unit: nil)
       inventory = Hmis::Hud::Inventory.editable_by(current_user).find_by(id: inventory_id)
-      return { inventory => nil, errors: [InputValidationError.new('Inventory record not found', attribute: 'inventory_id')] } unless inventory.present?
+      return { beds: [], errors: [InputValidationError.new('Inventory record not found', attribute: 'inventory_id')] } unless inventory.present?
 
-      return { inventory => inventory, errors: [] } unless bed_ids.any?
+      beds = inventory.beds.where(id: bed_ids)
+      beds.update_all(name: name) if name.present?
+      beds.update_all(unit_id: unit.to_i) if unit.present?
 
-      inventory.beds.where(id: bed_ids).update(name: name) if name.present?
-      inventory.beds.where(id: bed_ids).update(unit: unit) if unit.present?
-
-      { inventory => inventory, errors: [] }
+      { beds: beds, errors: [] }
     end
   end
 end
