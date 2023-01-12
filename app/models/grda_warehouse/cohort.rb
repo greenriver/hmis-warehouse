@@ -23,6 +23,7 @@ module GrdaWarehouse
     has_many :cohort_clients, dependent: :destroy
     has_many :clients, through: :cohort_clients, class_name: 'GrdaWarehouse::Hud::Client'
     belongs_to :tags, class_name: 'CasAccess::Tag', optional: true
+    belongs_to :project_group, class_name: 'GrdaWarehouse::ProjectGroup', optional: true
 
     has_many :group_viewable_entities, class_name: 'GrdaWarehouse::GroupViewableEntity', foreign_key: :entity_id
 
@@ -50,6 +51,10 @@ module GrdaWarehouse
 
     scope :system_cohorts, -> do
       where(system_cohort: true)
+    end
+
+    scope :auto_maintained, -> do
+      where.not(project_group_id: nil)
     end
 
     scope :viewable_by, ->(user) do
@@ -575,6 +580,99 @@ module GrdaWarehouse
 
     private def maintain_system_group
       AccessGroup.delayed_system_group_maintenance(group: :cohorts)
+    end
+
+    def self.maintain_auto_maintained!
+      auto_maintained.find_each(&:maintain)
+    end
+
+    def auto_maintained?
+      project_group.present?
+    end
+
+    def maintain
+      return unless auto_maintained?
+
+      existing_client_ids = cohort_clients.pluck(:client_id)
+      incoming_client_ids = project_group.clients.
+        joins(:warehouse_client_source).
+        merge(GrdaWarehouse::Hud::Enrollment.open_on_date(Date.current)).
+        pluck(wc_t[:destination_id])
+      to_remove = existing_client_ids - incoming_client_ids
+      to_add = incoming_client_ids - existing_client_ids
+      remove_clients(to_remove, 'No longer enrolled in project group')
+      add_clients(to_add, 'Enrolled in project group')
+    end
+
+    private def add_clients(client_ids, reason)
+      @processing_date ||= Date.current
+      system_user_id = User.setup_system_user.id
+      client_ids -= cohort_clients.pluck(:client_id) # Do not touch existing clients
+      cohort_clients_by_client_id = cohort_clients.only_deleted.where(client_id: client_ids).index_by(&:client_id)
+      cohort_client_batch = []
+      client_ids.uniq.each do |client_id|
+        # Create (or resurrect) added clients
+        cohort_client = cohort_clients_by_client_id[client_id] || GrdaWarehouse::CohortClient.new(cohort_id: id, client_id: client_id)
+        cohort_client.deleted_at = nil
+
+        # Set any default columns
+        self.class.available_columns.each do |column|
+          if column.default_value?
+            column.cohort = self
+            cohort_client[column.column] = column.default_value(client_id)
+          end
+          # Enforce that we added the client on the processing date
+          cohort_client[:date_added_to_cohort] = @processing_date
+        end
+
+        cohort_client_batch << cohort_client
+      end
+
+      # Save the cohort clients, and log the create reasons
+      update_columns = self.class.available_columns.map { |c| c.column.to_sym if c.column_editable? }.compact.uniq + [:deleted_at]
+      results = GrdaWarehouse::CohortClient.import!(
+        cohort_client_batch,
+        on_duplicate_key_update: { columns: update_columns },
+      )
+      changes_batch = []
+      results.ids.each do |cohort_client_id|
+        changes_batch << cohort_client_changes_source.new(
+          cohort_id: id,
+          cohort_client_id: cohort_client_id,
+          user_id: system_user_id,
+          change: 'create',
+          reason: reason,
+          changed_at: @processing_date,
+        )
+      end
+      cohort_client_changes_source.import(changes_batch)
+      client_ids
+    end
+
+    private def remove_clients(client_ids, reason)
+      return unless client_ids
+
+      @processing_date ||= Date.current
+      system_user_id = User.setup_system_user.id
+      cc_ids = cohort_clients.where(client_id: client_ids).pluck(:id)
+      cohort_clients.where(client_id: client_ids).update_all(deleted_at: Time.current)
+      cohort_client_changes_source.import(
+        cc_ids.map do |cc_id|
+          cohort_client_changes_source.new(
+            cohort_id: id,
+            cohort_client_id: cc_id,
+            user_id: system_user_id,
+            change: 'destroy',
+            reason: reason,
+            changed_at: @processing_date,
+          )
+        end,
+      )
+      client_ids
+    end
+
+    private def cohort_client_changes_source
+      GrdaWarehouse::CohortClientChange
     end
   end
 end

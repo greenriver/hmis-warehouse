@@ -52,6 +52,9 @@ module HudLsa::Generators::Fy2022
 
       log_and_ping('Starting')
       begin
+        # kick-off the RDS creation it often takes quite a few minutes, as does the export
+        # asking AWS to create the RDS is quick
+        create_temporary_rds
         create_hmis_csv_export
         update_report_progress(percent: 15)
         log_and_ping('HMIS Export complete')
@@ -257,7 +260,7 @@ module HudLsa::Generators::Fy2022
               klass.new.clean_row_for_import(row: row.fields, headers: import_headers)
             end.compact
             # Using TsqlImport because active_record import doesn't play nice
-            insert_batch(klass, import_headers, content, batch_size: 1_000)
+            insert_batch(klass, standardize_headers(import_headers), content, batch_size: 1_000)
           end
         end
       end
@@ -265,6 +268,19 @@ module HudLsa::Generators::Fy2022
       GrdaWarehouseBase.connection.reconnect!
       ApplicationRecord.connection.reconnect!
       ReportingBase.connection.reconnect!
+    end
+
+    # This reverses some export changes we made to maintain case sensitive matching with the 2022 spec
+    private def standardize_headers(headers)
+      # ZIP -> Zip
+      zip_index = headers.index('ZIP')
+      headers[zip_index] = 'Zip' if zip_index.present?
+
+      # WorkplaceViolenceThreats -> WorkPlaceViolenceThreats
+      workplace_index = headers.index('WorkplaceViolenceThreats')
+      headers[workplace_index] = 'WorkPlaceViolenceThreats' if workplace_index.present?
+
+      headers
     end
 
     def fetch_results

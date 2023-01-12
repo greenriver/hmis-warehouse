@@ -41,7 +41,12 @@ module GrdaWarehouse
     end
 
     def describe_filter_as_html
-      keys ||= [
+      keys ||= known_params
+      filter.describe_filter_as_html(keys)
+    end
+
+    def known_params
+      [
         # Ignore a bunch of options because we manually show them for backwards compatibility
         # :start_date,
         # :end_date,
@@ -58,7 +63,6 @@ module GrdaWarehouse
         :data_source_ids,
         :coc_codes,
       ]
-      filter.describe_filter_as_html(keys)
     end
 
     def filter

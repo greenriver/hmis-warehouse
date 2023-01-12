@@ -1,0 +1,50 @@
+{
+  "type": "GROUP",
+  "link_id": "current-living-situation",
+  "text": "Current Living Situation",
+  "data_collected_about": "HOH_AND_ADULTS",
+  "item": [
+    {
+      "type": "CHOICE",
+      "required": false,
+      "link_id": "4.12",
+      "text": "Current Living Situation"
+    },
+    {
+      "type": "GROUP",
+      "link_id": "4.12-conditionals",
+      "item": [
+        {
+          "type": "CHOICE",
+          "link_id": "4.12-A",
+          "text": "Is client going to have to leave their current living situation within 14 days?"
+        },
+        {
+          "type": "CHOICE",
+          "link_id": "4.12-B",
+          "text": "Has a subsequent residence been identified?"
+        },
+        {
+          "type": "CHOICE",
+          "link_id": "4.12-C",
+          "text": "Does individual or family have resources or support networks to obtain other permanent housing?"
+        },
+        {
+          "type": "CHOICE",
+          "link_id": "4.12-D",
+          "text": "Has the client had a lease or ownership interest in a permanent housing unit in the last 60 days?"
+        },
+        {
+          "type": "CHOICE",
+          "link_id": "4.12-E",
+          "text": "Has the client moved 2 or more times in the last 60 days?"
+        }
+      ]
+    },
+    {
+      "type": "TEXT",
+      "link_id": "4.12-4",
+      "text": "Location details"
+    }
+  ]
+}

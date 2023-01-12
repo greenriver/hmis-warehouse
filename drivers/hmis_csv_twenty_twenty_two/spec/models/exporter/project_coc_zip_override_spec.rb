@@ -51,7 +51,7 @@ RSpec.describe HmisCsvTwentyTwentyTwo::Exporter::Base, type: :model do
       end
       it 'Zip from CSV file matches the first ProjectCoC Zip' do
         csv = CSV.read(csv_file_path(@project_coc_class), headers: true)
-        expect(csv.first['Zip']).to eq @project_cocs.first.Zip
+        expect(csv.first['ZIP']).to eq @project_cocs.first.Zip
       end
     end
 
@@ -62,7 +62,7 @@ RSpec.describe HmisCsvTwentyTwentyTwo::Exporter::Base, type: :model do
       end
       it 'Zip from CSV file matches the first ProjectCoC zip_override' do
         csv = CSV.read(csv_file_path(@project_coc_class, exporter: @second_exporter), headers: true)
-        expect(csv.first['Zip']).to eq @zip
+        expect(csv.first['ZIP']).to eq @zip
       end
     end
   end

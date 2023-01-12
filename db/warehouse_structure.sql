@@ -4479,44 +4479,6 @@ CREATE TABLE public.censuses (
 
 
 --
--- Name: censuses_averaged_by_year; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.censuses_averaged_by_year (
-    id integer NOT NULL,
-    year integer NOT NULL,
-    data_source_id integer,
-    "OrganizationID" character varying,
-    "ProjectID" character varying,
-    "ProjectType" integer NOT NULL,
-    client_count integer DEFAULT 0 NOT NULL,
-    bed_inventory integer DEFAULT 0 NOT NULL,
-    seasonal_inventory integer DEFAULT 0 NOT NULL,
-    overflow_inventory integer DEFAULT 0 NOT NULL,
-    days_of_service integer DEFAULT 0 NOT NULL
-);
-
-
---
--- Name: censuses_averaged_by_year_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.censuses_averaged_by_year_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: censuses_averaged_by_year_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.censuses_averaged_by_year_id_seq OWNED BY public.censuses_averaged_by_year.id;
-
-
---
 -- Name: censuses_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -5291,7 +5253,8 @@ CREATE TABLE public.cohorts (
     threshold_color_5 character varying,
     threshold_label_5 character varying,
     system_cohort boolean DEFAULT false,
-    type character varying DEFAULT 'GrdaWarehouse::Cohort'::character varying
+    type character varying DEFAULT 'GrdaWarehouse::Cohort'::character varying,
+    project_group_id bigint
 );
 
 
@@ -13327,7 +13290,9 @@ CREATE TABLE public.hmis_dqt_current_living_situations (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     deleted_at timestamp without time zone,
-    project_id integer
+    project_id integer,
+    first_name character varying,
+    last_name character varying
 );
 
 
@@ -13430,7 +13395,9 @@ CREATE TABLE public.hmis_dqt_enrollments (
     exit_date_entered_at timestamp without time zone,
     days_to_enter_entry_date integer,
     days_to_enter_exit_date integer,
-    days_before_entry integer
+    days_before_entry integer,
+    first_name character varying,
+    last_name character varying
 );
 
 
@@ -16243,343 +16210,6 @@ CREATE SEQUENCE public.new_service_history_id_seq
 --
 
 ALTER SEQUENCE public.new_service_history_id_seq OWNED BY public.new_service_history.id;
-
-
---
--- Name: nightly_census_by_project_clients; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.nightly_census_by_project_clients (
-    id integer NOT NULL,
-    date date NOT NULL,
-    project_id integer NOT NULL,
-    veterans jsonb DEFAULT '[]'::jsonb,
-    non_veterans jsonb DEFAULT '[]'::jsonb,
-    children jsonb DEFAULT '[]'::jsonb,
-    adults jsonb DEFAULT '[]'::jsonb,
-    youth jsonb DEFAULT '[]'::jsonb,
-    families jsonb DEFAULT '[]'::jsonb,
-    individuals jsonb DEFAULT '[]'::jsonb,
-    parenting_youth jsonb DEFAULT '[]'::jsonb,
-    parenting_juveniles jsonb DEFAULT '[]'::jsonb,
-    all_clients jsonb DEFAULT '[]'::jsonb,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL,
-    juveniles jsonb DEFAULT '[]'::jsonb,
-    unaccompanied_minors jsonb DEFAULT '[]'::jsonb,
-    youth_families jsonb DEFAULT '[]'::jsonb,
-    family_parents jsonb DEFAULT '[]'::jsonb
-);
-
-
---
--- Name: nightly_census_by_project_clients_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.nightly_census_by_project_clients_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: nightly_census_by_project_clients_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.nightly_census_by_project_clients_id_seq OWNED BY public.nightly_census_by_project_clients.id;
-
-
---
--- Name: nightly_census_by_project_type_clients; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.nightly_census_by_project_type_clients (
-    id integer NOT NULL,
-    date date NOT NULL,
-    literally_homeless_veterans jsonb DEFAULT '[]'::jsonb,
-    literally_homeless_non_veterans jsonb DEFAULT '[]'::jsonb,
-    literally_homeless_children jsonb DEFAULT '[]'::jsonb,
-    literally_homeless_adults jsonb DEFAULT '[]'::jsonb,
-    literally_homeless_youth jsonb DEFAULT '[]'::jsonb,
-    literally_homeless_families jsonb DEFAULT '[]'::jsonb,
-    literally_homeless_individuals jsonb DEFAULT '[]'::jsonb,
-    literally_homeless_parenting_youth jsonb DEFAULT '[]'::jsonb,
-    literally_homeless_parenting_juveniles jsonb DEFAULT '[]'::jsonb,
-    literally_homeless_all_clients jsonb DEFAULT '[]'::jsonb,
-    system_veterans jsonb DEFAULT '[]'::jsonb,
-    system_non_veterans jsonb DEFAULT '[]'::jsonb,
-    system_children jsonb DEFAULT '[]'::jsonb,
-    system_adults jsonb DEFAULT '[]'::jsonb,
-    system_youth jsonb DEFAULT '[]'::jsonb,
-    system_families jsonb DEFAULT '[]'::jsonb,
-    system_individuals jsonb DEFAULT '[]'::jsonb,
-    system_parenting_youth jsonb DEFAULT '[]'::jsonb,
-    system_parenting_juveniles jsonb DEFAULT '[]'::jsonb,
-    system_all_clients jsonb DEFAULT '[]'::jsonb,
-    homeless_veterans jsonb DEFAULT '[]'::jsonb,
-    homeless_non_veterans jsonb DEFAULT '[]'::jsonb,
-    homeless_children jsonb DEFAULT '[]'::jsonb,
-    homeless_adults jsonb DEFAULT '[]'::jsonb,
-    homeless_youth jsonb DEFAULT '[]'::jsonb,
-    homeless_families jsonb DEFAULT '[]'::jsonb,
-    homeless_individuals jsonb DEFAULT '[]'::jsonb,
-    homeless_parenting_youth jsonb DEFAULT '[]'::jsonb,
-    homeless_parenting_juveniles jsonb DEFAULT '[]'::jsonb,
-    homeless_all_clients jsonb DEFAULT '[]'::jsonb,
-    ph_veterans jsonb DEFAULT '[]'::jsonb,
-    ph_non_veterans jsonb DEFAULT '[]'::jsonb,
-    ph_children jsonb DEFAULT '[]'::jsonb,
-    ph_adults jsonb DEFAULT '[]'::jsonb,
-    ph_youth jsonb DEFAULT '[]'::jsonb,
-    ph_families jsonb DEFAULT '[]'::jsonb,
-    ph_individuals jsonb DEFAULT '[]'::jsonb,
-    ph_parenting_youth jsonb DEFAULT '[]'::jsonb,
-    ph_parenting_juveniles jsonb DEFAULT '[]'::jsonb,
-    ph_all_clients jsonb DEFAULT '[]'::jsonb,
-    es_veterans jsonb DEFAULT '[]'::jsonb,
-    es_non_veterans jsonb DEFAULT '[]'::jsonb,
-    es_children jsonb DEFAULT '[]'::jsonb,
-    es_adults jsonb DEFAULT '[]'::jsonb,
-    es_youth jsonb DEFAULT '[]'::jsonb,
-    es_families jsonb DEFAULT '[]'::jsonb,
-    es_individuals jsonb DEFAULT '[]'::jsonb,
-    es_parenting_youth jsonb DEFAULT '[]'::jsonb,
-    es_parenting_juveniles jsonb DEFAULT '[]'::jsonb,
-    es_all_clients jsonb DEFAULT '[]'::jsonb,
-    th_veterans jsonb DEFAULT '[]'::jsonb,
-    th_non_veterans jsonb DEFAULT '[]'::jsonb,
-    th_children jsonb DEFAULT '[]'::jsonb,
-    th_adults jsonb DEFAULT '[]'::jsonb,
-    th_youth jsonb DEFAULT '[]'::jsonb,
-    th_families jsonb DEFAULT '[]'::jsonb,
-    th_individuals jsonb DEFAULT '[]'::jsonb,
-    th_parenting_youth jsonb DEFAULT '[]'::jsonb,
-    th_parenting_juveniles jsonb DEFAULT '[]'::jsonb,
-    th_all_clients jsonb DEFAULT '[]'::jsonb,
-    so_veterans jsonb DEFAULT '[]'::jsonb,
-    so_non_veterans jsonb DEFAULT '[]'::jsonb,
-    so_children jsonb DEFAULT '[]'::jsonb,
-    so_adults jsonb DEFAULT '[]'::jsonb,
-    so_youth jsonb DEFAULT '[]'::jsonb,
-    so_families jsonb DEFAULT '[]'::jsonb,
-    so_individuals jsonb DEFAULT '[]'::jsonb,
-    so_parenting_youth jsonb DEFAULT '[]'::jsonb,
-    so_parenting_juveniles jsonb DEFAULT '[]'::jsonb,
-    so_all_clients jsonb DEFAULT '[]'::jsonb,
-    sh_veterans jsonb DEFAULT '[]'::jsonb,
-    sh_non_veterans jsonb DEFAULT '[]'::jsonb,
-    sh_children jsonb DEFAULT '[]'::jsonb,
-    sh_adults jsonb DEFAULT '[]'::jsonb,
-    sh_youth jsonb DEFAULT '[]'::jsonb,
-    sh_families jsonb DEFAULT '[]'::jsonb,
-    sh_individuals jsonb DEFAULT '[]'::jsonb,
-    sh_parenting_youth jsonb DEFAULT '[]'::jsonb,
-    sh_parenting_juveniles jsonb DEFAULT '[]'::jsonb,
-    sh_all_clients jsonb DEFAULT '[]'::jsonb,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL,
-    literally_homeless_juveniles jsonb DEFAULT '[]'::jsonb,
-    system_juveniles jsonb DEFAULT '[]'::jsonb,
-    homeless_juveniles jsonb DEFAULT '[]'::jsonb,
-    ph_juveniles jsonb DEFAULT '[]'::jsonb,
-    es_juveniles jsonb DEFAULT '[]'::jsonb,
-    th__juveniles jsonb DEFAULT '[]'::jsonb,
-    so_juveniles jsonb DEFAULT '[]'::jsonb,
-    sh_juveniles jsonb DEFAULT '[]'::jsonb,
-    literally_homeless_unaccompanied_minors jsonb DEFAULT '[]'::jsonb,
-    system_unaccompanied_minors jsonb DEFAULT '[]'::jsonb,
-    homeless_unaccompanied_minors jsonb DEFAULT '[]'::jsonb,
-    ph_unaccompanied_minors jsonb DEFAULT '[]'::jsonb,
-    es_unaccompanied_minors jsonb DEFAULT '[]'::jsonb,
-    th_unaccompanied_minors jsonb DEFAULT '[]'::jsonb,
-    so_unaccompanied_minors jsonb DEFAULT '[]'::jsonb,
-    sh_unaccompanied_minors jsonb DEFAULT '[]'::jsonb,
-    literally_homeless_youth_families jsonb DEFAULT '[]'::jsonb,
-    system_youth_families jsonb DEFAULT '[]'::jsonb,
-    homeless_youth_families jsonb DEFAULT '[]'::jsonb,
-    ph_youth_families jsonb DEFAULT '[]'::jsonb,
-    es_youth_families jsonb DEFAULT '[]'::jsonb,
-    th_youth_families jsonb DEFAULT '[]'::jsonb,
-    so_youth_families jsonb DEFAULT '[]'::jsonb,
-    sh_youth_families jsonb DEFAULT '[]'::jsonb,
-    literally_homeless_family_parents jsonb DEFAULT '[]'::jsonb,
-    system_family_parents jsonb DEFAULT '[]'::jsonb,
-    homeless_family_parents jsonb DEFAULT '[]'::jsonb,
-    ph_family_parents jsonb DEFAULT '[]'::jsonb,
-    es_family_parents jsonb DEFAULT '[]'::jsonb,
-    th_family_parents jsonb DEFAULT '[]'::jsonb,
-    so_family_parents jsonb DEFAULT '[]'::jsonb,
-    sh_family_parents jsonb DEFAULT '[]'::jsonb
-);
-
-
---
--- Name: nightly_census_by_project_type_clients_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.nightly_census_by_project_type_clients_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: nightly_census_by_project_type_clients_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.nightly_census_by_project_type_clients_id_seq OWNED BY public.nightly_census_by_project_type_clients.id;
-
-
---
--- Name: nightly_census_by_project_types; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.nightly_census_by_project_types (
-    id integer NOT NULL,
-    date date NOT NULL,
-    literally_homeless_veterans integer DEFAULT 0,
-    literally_homeless_non_veterans integer DEFAULT 0,
-    literally_homeless_children integer DEFAULT 0,
-    literally_homeless_adults integer DEFAULT 0,
-    literally_homeless_youth integer DEFAULT 0,
-    literally_homeless_families integer DEFAULT 0,
-    literally_homeless_individuals integer DEFAULT 0,
-    literally_homeless_parenting_youth integer DEFAULT 0,
-    literally_homeless_parenting_juveniles integer DEFAULT 0,
-    literally_homeless_all_clients integer DEFAULT 0,
-    system_veterans integer DEFAULT 0,
-    system_non_veterans integer DEFAULT 0,
-    system_children integer DEFAULT 0,
-    system_adults integer DEFAULT 0,
-    system_youth integer DEFAULT 0,
-    system_families integer DEFAULT 0,
-    system_individuals integer DEFAULT 0,
-    system_parenting_youth integer DEFAULT 0,
-    system_parenting_juveniles integer DEFAULT 0,
-    system_all_clients integer DEFAULT 0,
-    homeless_veterans integer DEFAULT 0,
-    homeless_non_veterans integer DEFAULT 0,
-    homeless_children integer DEFAULT 0,
-    homeless_adults integer DEFAULT 0,
-    homeless_youth integer DEFAULT 0,
-    homeless_families integer DEFAULT 0,
-    homeless_individuals integer DEFAULT 0,
-    homeless_parenting_youth integer DEFAULT 0,
-    homeless_parenting_juveniles integer DEFAULT 0,
-    homeless_all_clients integer DEFAULT 0,
-    ph_veterans integer DEFAULT 0,
-    ph_non_veterans integer DEFAULT 0,
-    ph_children integer DEFAULT 0,
-    ph_adults integer DEFAULT 0,
-    ph_youth integer DEFAULT 0,
-    ph_families integer DEFAULT 0,
-    ph_individuals integer DEFAULT 0,
-    ph_parenting_youth integer DEFAULT 0,
-    ph_parenting_juveniles integer DEFAULT 0,
-    ph_all_clients integer DEFAULT 0,
-    es_veterans integer DEFAULT 0,
-    es_non_veterans integer DEFAULT 0,
-    es_children integer DEFAULT 0,
-    es_adults integer DEFAULT 0,
-    es_youth integer DEFAULT 0,
-    es_families integer DEFAULT 0,
-    es_individuals integer DEFAULT 0,
-    es_parenting_youth integer DEFAULT 0,
-    es_parenting_juveniles integer DEFAULT 0,
-    es_all_clients integer DEFAULT 0,
-    th_veterans integer DEFAULT 0,
-    th_non_veterans integer DEFAULT 0,
-    th_children integer DEFAULT 0,
-    th_adults integer DEFAULT 0,
-    th_youth integer DEFAULT 0,
-    th_families integer DEFAULT 0,
-    th_individuals integer DEFAULT 0,
-    th_parenting_youth integer DEFAULT 0,
-    th_parenting_juveniles integer DEFAULT 0,
-    th_all_clients integer DEFAULT 0,
-    so_veterans integer DEFAULT 0,
-    so_non_veterans integer DEFAULT 0,
-    so_children integer DEFAULT 0,
-    so_adults integer DEFAULT 0,
-    so_youth integer DEFAULT 0,
-    so_families integer DEFAULT 0,
-    so_individuals integer DEFAULT 0,
-    so_parenting_youth integer DEFAULT 0,
-    so_parenting_juveniles integer DEFAULT 0,
-    so_all_clients integer DEFAULT 0,
-    sh_veterans integer DEFAULT 0,
-    sh_non_veterans integer DEFAULT 0,
-    sh_children integer DEFAULT 0,
-    sh_adults integer DEFAULT 0,
-    sh_youth integer DEFAULT 0,
-    sh_families integer DEFAULT 0,
-    sh_individuals integer DEFAULT 0,
-    sh_parenting_youth integer DEFAULT 0,
-    sh_parenting_juveniles integer DEFAULT 0,
-    sh_all_clients integer DEFAULT 0,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL,
-    ph_beds integer DEFAULT 0,
-    es_beds integer DEFAULT 0,
-    th_beds integer DEFAULT 0,
-    so_beds integer DEFAULT 0,
-    sh_beds integer DEFAULT 0,
-    literally_homeless_juveniles integer DEFAULT 0,
-    system_juveniles integer DEFAULT 0,
-    homeless_juveniles integer DEFAULT 0,
-    ph_juveniles integer DEFAULT 0,
-    es_juveniles integer DEFAULT 0,
-    th_juveniles integer DEFAULT 0,
-    so_juveniles integer DEFAULT 0,
-    sh_juveniles integer DEFAULT 0,
-    literally_homeless_unaccompanied_minors integer DEFAULT 0,
-    system_unaccompanied_minors integer DEFAULT 0,
-    homeless_unaccompanied_minors integer DEFAULT 0,
-    ph_unaccompanied_minors integer DEFAULT 0,
-    es_unaccompanied_minors integer DEFAULT 0,
-    th_unaccompanied_minors integer DEFAULT 0,
-    so_unaccompanied_minors integer DEFAULT 0,
-    sh_unaccompanied_minors integer DEFAULT 0,
-    literally_homeless_youth_families integer DEFAULT 0,
-    system_youth_families integer DEFAULT 0,
-    homeless_youth_families integer DEFAULT 0,
-    ph_youth_families integer DEFAULT 0,
-    es_youth_families integer DEFAULT 0,
-    th_youth_families integer DEFAULT 0,
-    so_youth_families integer DEFAULT 0,
-    sh_youth_families integer DEFAULT 0,
-    literally_homeless_family_parents integer DEFAULT 0,
-    system_family_parents integer DEFAULT 0,
-    homeless_family_parents integer DEFAULT 0,
-    ph_family_parents integer DEFAULT 0,
-    es_family_parents integer DEFAULT 0,
-    th_family_parents integer DEFAULT 0,
-    so_family_parents integer DEFAULT 0,
-    sh_family_parents integer DEFAULT 0
-);
-
-
---
--- Name: nightly_census_by_project_types_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.nightly_census_by_project_types_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: nightly_census_by_project_types_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.nightly_census_by_project_types_id_seq OWNED BY public.nightly_census_by_project_types.id;
 
 
 --
@@ -19640,7 +19270,9 @@ CREATE TABLE public.synthetic_events (
     source_id bigint,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
-    hud_event_event_id character varying
+    hud_event_event_id character varying,
+    calculated_referral_result integer,
+    calculated_referral_date date
 );
 
 
@@ -21205,13 +20837,6 @@ ALTER TABLE ONLY public.census_variables ALTER COLUMN id SET DEFAULT nextval('pu
 --
 
 ALTER TABLE ONLY public.censuses ALTER COLUMN id SET DEFAULT nextval('public.censuses_id_seq'::regclass);
-
-
---
--- Name: censuses_averaged_by_year id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.censuses_averaged_by_year ALTER COLUMN id SET DEFAULT nextval('public.censuses_averaged_by_year_id_seq'::regclass);
 
 
 --
@@ -22804,27 +22429,6 @@ ALTER TABLE ONLY public.new_service_history ALTER COLUMN id SET DEFAULT nextval(
 
 
 --
--- Name: nightly_census_by_project_clients id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.nightly_census_by_project_clients ALTER COLUMN id SET DEFAULT nextval('public.nightly_census_by_project_clients_id_seq'::regclass);
-
-
---
--- Name: nightly_census_by_project_type_clients id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.nightly_census_by_project_type_clients ALTER COLUMN id SET DEFAULT nextval('public.nightly_census_by_project_type_clients_id_seq'::regclass);
-
-
---
--- Name: nightly_census_by_project_types id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.nightly_census_by_project_types ALTER COLUMN id SET DEFAULT nextval('public.nightly_census_by_project_types_id_seq'::regclass);
-
-
---
 -- Name: nightly_census_by_projects id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -24087,14 +23691,6 @@ ALTER TABLE ONLY public.census_values
 
 ALTER TABLE ONLY public.census_variables
     ADD CONSTRAINT census_variables_pkey PRIMARY KEY (id);
-
-
---
--- Name: censuses_averaged_by_year censuses_averaged_by_year_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.censuses_averaged_by_year
-    ADD CONSTRAINT censuses_averaged_by_year_pkey PRIMARY KEY (id);
 
 
 --
@@ -25919,30 +25515,6 @@ ALTER TABLE ONLY public.ma_yya_report_clients
 
 ALTER TABLE ONLY public.new_service_history
     ADD CONSTRAINT new_service_history_pkey PRIMARY KEY (id);
-
-
---
--- Name: nightly_census_by_project_clients nightly_census_by_project_clients_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.nightly_census_by_project_clients
-    ADD CONSTRAINT nightly_census_by_project_clients_pkey PRIMARY KEY (id);
-
-
---
--- Name: nightly_census_by_project_type_clients nightly_census_by_project_type_clients_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.nightly_census_by_project_type_clients
-    ADD CONSTRAINT nightly_census_by_project_type_clients_pkey PRIMARY KEY (id);
-
-
---
--- Name: nightly_census_by_project_types nightly_census_by_project_types_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.nightly_census_by_project_types
-    ADD CONSTRAINT nightly_census_by_project_types_pkey PRIMARY KEY (id);
 
 
 --
@@ -40910,13 +40482,6 @@ CREATE UNIQUE INDEX index_census_variables_on_year_and_dataset_and_name ON publi
 
 
 --
--- Name: index_censuses_ave_year_ds_id_proj_type_org_id_proj_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_censuses_ave_year_ds_id_proj_type_org_id_proj_id ON public.censuses_averaged_by_year USING btree (year, data_source_id, "ProjectType", "OrganizationID", "ProjectID");
-
-
---
 -- Name: index_censuses_ds_id_proj_type_org_id_proj_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -41148,6 +40713,13 @@ CREATE INDEX index_cohorts_on_deleted_at ON public.cohorts USING btree (deleted_
 
 
 --
+-- Name: index_cohorts_on_project_group_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_cohorts_on_project_group_id ON public.cohorts USING btree (project_group_id);
+
+
+--
 -- Name: index_contacts_on_entity_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -41236,6 +40808,13 @@ CREATE INDEX index_custom_imports_b_services_rows_on_data_source_id ON public.cu
 --
 
 CREATE INDEX index_custom_imports_b_services_rows_on_import_file_id ON public.custom_imports_b_services_rows USING btree (import_file_id);
+
+
+--
+-- Name: index_custom_imports_b_services_rows_on_service_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_custom_imports_b_services_rows_on_service_id ON public.custom_imports_b_services_rows USING btree (service_id);
 
 
 --
@@ -43413,13 +42992,6 @@ CREATE INDEX index_ma_yya_report_clients_on_service_history_enrollment_id ON pub
 --
 
 CREATE INDEX index_new_service_history_on_first_date_in_program ON public.new_service_history USING brin (first_date_in_program);
-
-
---
--- Name: index_nightly_census_by_project_types_on_date; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_nightly_census_by_project_types_on_date ON public.nightly_census_by_project_types USING btree (date);
 
 
 --
@@ -47266,6 +46838,13 @@ CREATE INDEX index_synthetic_events_on_enrollment_id ON public.synthetic_events 
 
 
 --
+-- Name: index_synthetic_events_on_source_id_and_source_type; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_synthetic_events_on_source_id_and_source_type ON public.synthetic_events USING btree (source_id, source_type);
+
+
+--
 -- Name: index_synthetic_events_on_source_type_and_source_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -50660,6 +50239,13 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20221207171030'),
 ('20221209131957'),
 ('20221220180133'),
-('20221220184746');
+('20221220184746'),
+('20221223202329'),
+('20230105155630'),
+('20230105155655'),
+('20230107220752'),
+('20230108133748'),
+('20230109173226'),
+('20230110174657');
 
 

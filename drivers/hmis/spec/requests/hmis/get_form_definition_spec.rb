@@ -16,18 +16,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   let(:c1) { create :hmis_hud_client, data_source: ds1, user: u1 }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1 }
-  let!(:fd1) { create :hmis_form_definition }
-  let!(:fi1) { create :hmis_form_instance, definition: fd1, entity: p1 }
 
   before(:each) do
     hmis_login(user)
-  end
-
-  let(:input) do
-    {
-      enrollment_id: e1.id.to_s,
-      assessment_role: 'INTAKE',
-    }
   end
 
   let(:find_by_role_query) do
@@ -50,33 +41,23 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     GRAPHQL
   end
 
-  it 'should find definition by role' do
-    response, result = post_graphql(**input) { find_by_role_query }
+  [:INTAKE, :UPDATE, :ANNUAL, :EXIT].each do |role|
+    it 'should find default definition by role' do
+      response, result = post_graphql({ enrollment_id: e1.id.to_s, assessment_role: role }) { find_by_role_query }
 
-    aggregate_failures 'checking response' do
-      expect(response.status).to eq 200
-      form_definition = result.dig('data', 'getFormDefinition')
-      expect(form_definition['id']).to eq(fd1.id.to_s)
+      aggregate_failures 'checking response' do
+        expect(response.status).to eq 200
+        form_definition = result.dig('data', 'getFormDefinition')
+        expect(form_definition['role']).to eq(role.to_s)
+      end
     end
   end
 
-  it 'should resolve base assessment form definition' do
-    response, _result = post_graphql(identifier: base_assessment_form_definition.identifier) { lookup_query }
-
-    expect(response.status).to eq 200
-  end
-
-  it 'should resolve record-editing form definitions' do
-    [
-      client_form_definition,
-      funder_form_definition,
-      inventory_form_definition,
-      organization_form_definition,
-      project_coc_form_definition,
-      project_form_definition,
-      search_form_definition,
-    ].each do |form_def|
-      response, _result = post_graphql(identifier: form_def.identifier) { lookup_query }
+  it 'should successfully lookup all form definitions by identifier' do
+    records = ['search', 'project', 'funder', 'project_coc', 'organization', 'inventory', 'client']
+    assessments = ['base-intake', 'base-annual', 'base-update', 'base-exit']
+    (records + assessments).each do |identifier|
+      response, _result = post_graphql(identifier: identifier) { lookup_query }
       expect(response.status).to eq 200
     end
   end

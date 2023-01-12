@@ -95,7 +95,7 @@ module Filter::FilterScopes
       ages += (60..61).to_a if @filter.age_ranges.include?(:sixty_to_sixty_one)
       ages += (62..64).to_a if @filter.age_ranges.include?(:sixty_two_to_sixty_four)
       ages += (62..110).to_a if @filter.age_ranges.include?(:over_sixty_one)
-      ages += (64..110).to_a if @filter.age_ranges.include?(:over_sixty_four)
+      ages += (65..110).to_a if @filter.age_ranges.include?(:over_sixty_four)
 
       scope.joins(:client).where(age_calculation.in(ages))
     end
