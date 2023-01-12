@@ -54,6 +54,9 @@ module Types
       when 'CURRENT_LIVING_SITUATION'
         living_situation_options(as: :current)
 
+      when 'DESTINATION'
+        living_situation_options(as: :destination)
+
       when 'PROJECT'
         Hmis::Hud::Project.editable_by(user).
           joins(:organization).
