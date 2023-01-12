@@ -73,12 +73,12 @@ module HudReports::Incomes
       earned_amount(universe_client, suffix).to_f.positive?
     end
 
-    # We have other income if the total is positive and not equal to the earned amount
+    # We have other income if the total is positive and greater than the earned amount
     private def other_income?(universe_client, suffix)
       total_amount = total_amount(universe_client, suffix)
       return false unless total_amount.present? && total_amount.positive?
 
-      total_amount.to_f != earned_amount(universe_client, suffix).to_f
+      total_amount.to_f > earned_amount(universe_client, suffix).to_f
     end
 
     private def total_income?(universe_client, suffix)

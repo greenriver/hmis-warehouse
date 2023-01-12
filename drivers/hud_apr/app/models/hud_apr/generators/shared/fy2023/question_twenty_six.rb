@@ -216,7 +216,7 @@ module HudApr::Generators::Shared::Fy2023
           next if intentionally_blank_26f.include?(cell)
 
           answer = @report.answer(question: table_name, cell: cell)
-          adults = universe.members.where(a_t[:chronically_homeless].eq(true))
+          adults = universe.members.where(a_t[:chronically_homeless].eq(true)).where(adult_clause)
           adults = adults.where(stayers_clause) if suffix == :annual_assessment
           adults = adults.where(leavers_clause) if suffix == :exit
 
