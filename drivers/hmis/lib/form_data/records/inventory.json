@@ -111,6 +111,7 @@
     {
       "type": "GROUP",
       "text": "Beds and Units",
+      "hidden": true,
       "link_id": "beds-and-units",
       "item": [
         {

@@ -39,5 +39,8 @@
     - else
       %label.label.text-danger.parameter-value
         %i.icon-cross
-.report-parameters
+.report-parameters.border-top.pt-4
   = report.describe_filter_as_html
+  - opts = report.filter.to_h
+  .ml-auto.nobr
+    = render 'filters/view_filter_details', filter_hash: opts, selected_keys: report.known_params

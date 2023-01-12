@@ -202,7 +202,6 @@ Layout/EmptyLines:
     - 'app/models/grda_warehouse/export/hmis_twenty_twenty/enrollment_coc.rb'
     - 'app/models/grda_warehouse/export/hmis_twenty_twenty/exit.rb'
     - 'app/models/grda_warehouse/hmis/client_attribute_defined_text.rb'
-    - 'app/models/grda_warehouse/tasks/census_import.rb'
     - 'app/models/grda_warehouse/us_census_api/relevant_variables.rb'
     - 'app/models/grda_warehouse/verification_source/disability.rb'
     - 'app/models/grda_warehouse/warehouse_reports/dashboard/active.rb'
@@ -332,7 +331,6 @@ Layout/EmptyLinesAroundClassBody:
     - 'app/models/grda_warehouse/recent_service_history.rb'
     - 'app/models/grda_warehouse/report_result_file.rb'
     - 'app/models/grda_warehouse/schema_migration.rb'
-    - 'app/models/grda_warehouse/tasks/census_import.rb'
     - 'app/models/grda_warehouse/tasks/enrollment_extras_import.rb'
     - 'app/models/grda_warehouse/tasks/hud_chronically_homeless.rb'
     - 'app/models/grda_warehouse/tasks/test_data.rb'
@@ -496,7 +494,6 @@ Layout/EmptyLinesAroundMethodBody:
   Exclude:
     - 'app/jobs/background_render/core_demographics_report_job.rb'
     - 'app/models/grda_warehouse/export/hmis_six_one_one/income_benefit.rb'
-    - 'app/models/grda_warehouse/tasks/census_import.rb'
     - 'app/models/grda_warehouse/warehouse_reports/initiative_report.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_one.rb'
     - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
@@ -924,7 +921,6 @@ Layout/SpaceInLambdaLiteral:
     - 'app/models/grda_warehouse/cas_vacancy.rb'
     - 'app/models/grda_warehouse/census/by_project.rb'
     - 'app/models/grda_warehouse/census_by_project.rb'
-    - 'app/models/grda_warehouse/census_by_project_type.rb'
     - 'app/models/grda_warehouse/health_emergency/ama_restriction.rb'
     - 'app/models/grda_warehouse/health_emergency/test.rb'
     - 'app/models/grda_warehouse/health_emergency/vaccination.rb'
@@ -949,7 +945,6 @@ Layout/SpaceInsideArrayLiteralBrackets:
   Exclude:
     - 'app/models/glacier/tester.rb'
     - 'app/models/grda_warehouse/census_by_project.rb'
-    - 'app/models/grda_warehouse/census_by_project_type.rb'
     - 'app/models/grda_warehouse/tasks/enrollment_extras_import.rb'
     - 'app/models/grda_warehouse/tasks/test_data.rb'
     - 'app/models/grda_warehouse/us_census_api/aggregates.rb'
@@ -1059,7 +1054,6 @@ Layout/SpaceInsideHashLiteralBraces:
 Layout/SpaceInsideParens:
   Exclude:
     - 'app/models/grda_warehouse/census_by_project.rb'
-    - 'app/models/grda_warehouse/census_by_project_type.rb'
     - 'app/models/grda_warehouse/document_export.rb'
     - 'app/models/grda_warehouse/export/hmis_six_one_one/affiliation.rb'
     - 'app/models/grda_warehouse/export/hmis_six_one_one/client.rb'
@@ -1702,7 +1696,6 @@ Style/GuardClause:
     - 'app/models/cas/user.rb'
     - 'app/models/glacier/backup.rb'
     - 'app/models/glacier/restore.rb'
-    - 'app/models/grda_warehouse/tasks/census_import.rb'
     - 'app/models/grda_warehouse/tasks/enrollment_extras_import.rb'
     - 'app/models/grda_warehouse/tasks/test_data.rb'
     - 'app/models/grda_warehouse/us_census_api/coc_agg.rb'
@@ -1759,7 +1752,6 @@ Style/IfUnlessModifier:
     - 'app/models/grda_warehouse/export/hmis_six_one_one/project.rb'
     - 'app/models/grda_warehouse/export/hmis_twenty_twenty/enrollment.rb'
     - 'app/models/grda_warehouse/export/hmis_twenty_twenty/project.rb'
-    - 'app/models/grda_warehouse/tasks/census_import.rb'
     - 'app/models/grda_warehouse/tasks/earliest_residential_service.rb'
     - 'app/models/grda_warehouse/tasks/process_recurring_hmis_exports.rb'
     - 'app/models/grda_warehouse/tasks/test_data.rb'

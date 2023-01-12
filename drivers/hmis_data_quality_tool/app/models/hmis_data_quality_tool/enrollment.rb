@@ -31,6 +31,8 @@ module HmisDataQualityTool
         destination_client_id: { title: 'Warehouse Client ID' },
         hmis_enrollment_id: { title: 'HMIS Enrollment ID' },
         personal_id: { title: 'HMIS Personal ID' },
+        first_name: { title: 'First Name' },
+        last_name: { title: 'Last Name' },
         project_name: { title: 'Project Name' },
         exit_id: { title: 'HMIS Exit ID' },
         entry_date: { title: 'Entry Date' },
@@ -97,7 +99,9 @@ module HmisDataQualityTool
     end
 
     def self.detail_headers_for_export
-      detail_headers
+      return detail_headers if GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+
+      detail_headers.except(:first_name, :last_name)
     end
 
     # Because multiple of these calculations require inspecting unrelated enrollments
@@ -152,12 +156,17 @@ module HmisDataQualityTool
         merge(report.report_scope).distinct
     end
 
-    def self.detail_headers_for(slug, report)
+    def self.detail_headers_for(slug, report, export:)
       # Months homeless has the same detail columns we need for the CH questions
       slug = :months_homeless_issues unless sections(report).key?(slug.to_sym)
 
       section = sections(report)[slug.to_sym]
-      headers = detail_headers.transform_values { |v| v.except(:translator) }
+      header_source = if export
+        detail_headers_for_export
+      else
+        detail_headers
+      end
+      headers = header_source.transform_values { |v| v.except(:translator) }
       return headers unless section
 
       columns = section[:detail_columns]
@@ -193,6 +202,8 @@ module HmisDataQualityTool
       )
       report_item.client_id = client.id
       report_item.personal_id = client.PersonalID
+      report_item.first_name = client.FirstName
+      report_item.last_name = client.LastName
       report_item.destination_client_id = client.warehouse_client_source.destination_id
       report_item.hmis_enrollment_id = enrollment.EnrollmentID
       report_item.exit_id = enrollment.exit&.ExitID
@@ -384,12 +395,16 @@ module HmisDataQualityTool
       return true unless expected
       return false if assessment.blank?
 
+      any_source = assessment.BenefitsFromAnySource
+      # It's ok to not know or refuse
+      return true if any_source.in?([8, 9])
+
       responses = assessment.values_at(*assessment.class::NON_CASH_BENEFIT_TYPES)
       any_yes = responses.include?(1)
       # Said Yes, and had one (as expected)
-      return true if assessment.BenefitsFromAnySource == 1 && any_yes
+      return true if any_source == 1 && any_yes
       # Said No, and didn't have any (as expected)
-      return true if assessment.BenefitsFromAnySource&.zero? && ! any_yes
+      return true if any_source&.zero? && ! any_yes
 
       # Either said Yes and had none, or said No and had some, or some other random numbers
       false
@@ -399,12 +414,16 @@ module HmisDataQualityTool
       return true unless expected
       return false if assessment.blank?
 
+      any_source = assessment.InsuranceFromAnySource
+      # It's ok to not know or refuse
+      return true if any_source.in?([8, 9])
+
       responses = assessment.values_at(*assessment.class::INSURANCE_TYPES)
       any_yes = responses.include?(1)
       # Said Yes, and had one (as expected)
-      return true if assessment.InsuranceFromAnySource == 1 && any_yes
+      return true if any_source == 1 && any_yes
       # Said No, and didn't have any (as expected)
-      return true if assessment.InsuranceFromAnySource&.zero? && ! any_yes
+      return true if any_source&.zero? && ! any_yes
 
       # Either said Yes and had none, or said No and had some, or some other random numbers
       false
@@ -430,23 +449,30 @@ module HmisDataQualityTool
       false
     end
 
+    def self.default_detail_columns
+      [
+        :destination_client_id,
+        :hmis_enrollment_id,
+        :personal_id,
+        :first_name,
+        :last_name,
+        :household_id,
+        :project_name,
+        :exit_id,
+        :entry_date,
+        :move_in_date,
+        :exit_date,
+        :age,
+      ]
+    end
+
     def self.sections(report) # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
       {
         disabling_condition_issues: {
           title: 'Disabling Condition',
           description: 'Disabling condition is an invalid value',
           required_for: 'All',
-          detail_columns: [
-            :destination_client_id,
-            :hmis_enrollment_id,
-            :personal_id,
-            :household_id,
-            :project_name,
-            :exit_id,
-            :entry_date,
-            :move_in_date,
-            :exit_date,
-            :age,
+          detail_columns: default_detail_columns + [
             :disabling_condition,
           ],
           denominator: ->(_item) { true },
@@ -458,17 +484,7 @@ module HmisDataQualityTool
           title: 'Relationship to Head of Household',
           description: 'Relationship to head of household is an invalid value',
           required_for: 'All',
-          detail_columns: [
-            :destination_client_id,
-            :hmis_enrollment_id,
-            :personal_id,
-            :household_id,
-            :project_name,
-            :exit_id,
-            :entry_date,
-            :move_in_date,
-            :exit_date,
-            :age,
+          detail_columns: default_detail_columns + [
             :relationship_to_hoh,
           ],
           denominator: ->(_item) { true },
@@ -480,17 +496,7 @@ module HmisDataQualityTool
           title: 'Living Situation',
           description: 'Living situation is an invalid value',
           required_for: 'Adults and HoH',
-          detail_columns: [
-            :destination_client_id,
-            :hmis_enrollment_id,
-            :personal_id,
-            :household_id,
-            :project_name,
-            :exit_id,
-            :entry_date,
-            :move_in_date,
-            :exit_date,
-            :age,
+          detail_columns: default_detail_columns + [
             :relationship_to_hoh,
             :living_situation,
           ],
@@ -506,17 +512,7 @@ module HmisDataQualityTool
           title: 'Exit Before Entry',
           description: 'Enrollment exit date must occur after entry date',
           required_for: 'All',
-          detail_columns: [
-            :destination_client_id,
-            :hmis_enrollment_id,
-            :personal_id,
-            :household_id,
-            :project_name,
-            :exit_id,
-            :entry_date,
-            :move_in_date,
-            :exit_date,
-            :age,
+          detail_columns: default_detail_columns + [
             :relationship_to_hoh,
           ],
           denominator: ->(_item) { true },
@@ -528,17 +524,7 @@ module HmisDataQualityTool
           title: 'Destination',
           description: 'Destination is an invalid value',
           required_for: 'Adults and HoH at Exit',
-          detail_columns: [
-            :destination_client_id,
-            :hmis_enrollment_id,
-            :personal_id,
-            :household_id,
-            :project_name,
-            :exit_id,
-            :entry_date,
-            :move_in_date,
-            :exit_date,
-            :age,
+          detail_columns: default_detail_columns + [
             :relationship_to_hoh,
             :destination,
           ],
@@ -558,17 +544,7 @@ module HmisDataQualityTool
           title: 'Unaccompanied Youth < 12 Years Old',
           description: 'Youth under 12 are generally expected to be accompanied.  The presence of an unaccompanied youth under 12 may indicate an issue with household data collection',
           required_for: 'Children under 12',
-          detail_columns: [
-            :destination_client_id,
-            :hmis_enrollment_id,
-            :personal_id,
-            :household_id,
-            :project_name,
-            :exit_id,
-            :entry_date,
-            :move_in_date,
-            :exit_date,
-            :age,
+          detail_columns: default_detail_columns + [
             :relationship_to_hoh,
             :household_max_age,
           ],
@@ -585,17 +561,7 @@ module HmisDataQualityTool
           title: 'No Head of Household',
           description: 'Every household must have exactly one head of household',
           required_for: 'All',
-          detail_columns: [
-            :destination_client_id,
-            :hmis_enrollment_id,
-            :personal_id,
-            :household_id,
-            :project_name,
-            :exit_id,
-            :entry_date,
-            :move_in_date,
-            :exit_date,
-            :age,
+          detail_columns: default_detail_columns + [
             :relationship_to_hoh,
             :head_of_household_count,
           ],
@@ -608,17 +574,7 @@ module HmisDataQualityTool
           title: 'Multiple Heads of Household',
           description: 'Every household must have exactly one head of household',
           required_for: 'HoH',
-          detail_columns: [
-            :destination_client_id,
-            :hmis_enrollment_id,
-            :personal_id,
-            :household_id,
-            :project_name,
-            :exit_id,
-            :entry_date,
-            :move_in_date,
-            :exit_date,
-            :age,
+          detail_columns: default_detail_columns + [
             :relationship_to_hoh,
             :head_of_household_count,
           ],
@@ -631,17 +587,7 @@ module HmisDataQualityTool
           title: 'Head of Household is Missing Client Location',
           description: 'Client location (CoC Code) is missing, invalid or doesn\'t match the project\'s CoC',
           required_for: 'HoH',
-          detail_columns: [
-            :destination_client_id,
-            :hmis_enrollment_id,
-            :personal_id,
-            :household_id,
-            :project_name,
-            :exit_id,
-            :entry_date,
-            :move_in_date,
-            :exit_date,
-            :age,
+          detail_columns: default_detail_columns + [
             :relationship_to_hoh,
             :coc_code,
           ],
@@ -665,18 +611,7 @@ module HmisDataQualityTool
           title: 'Future Exit Date',
           description: 'Exit date occurred before entry date, but should occur on or after the entry date',
           required_for: 'All',
-          detail_columns: [
-            :destination_client_id,
-            :hmis_enrollment_id,
-            :personal_id,
-            :household_id,
-            :project_name,
-            :exit_id,
-            :entry_date,
-            :move_in_date,
-            :exit_date,
-            :age,
-          ],
+          detail_columns: default_detail_columns,
           denominator: ->(_item) { true },
           limiter: ->(item) {
             item.exit_date.present? && item.exit_date > Date.current
@@ -686,17 +621,7 @@ module HmisDataQualityTool
           title: 'Possible Missed Exit - ES, Time in Enrollment 90 Days or More',
           description: 'There is an expectation that clients will not stay indefinitely in emergency shelter, these clients have been in shelter 90 days or more',
           required_for: 'All in ES',
-          detail_columns: [
-            :destination_client_id,
-            :hmis_enrollment_id,
-            :personal_id,
-            :household_id,
-            :project_name,
-            :exit_id,
-            :entry_date,
-            :move_in_date,
-            :exit_date,
-            :age,
+          detail_columns: default_detail_columns + [
             :project_type,
             :lot,
           ],
@@ -714,17 +639,7 @@ module HmisDataQualityTool
           title: 'Possible Missed Exit - ES, Time in Enrollment 180 Days or More',
           description: 'There is an expectation that clients will not stay indefinitely in emergency shelter, these clients have been in shelter 180 days or more',
           required_for: 'All in ES',
-          detail_columns: [
-            :destination_client_id,
-            :hmis_enrollment_id,
-            :personal_id,
-            :household_id,
-            :project_name,
-            :exit_id,
-            :entry_date,
-            :move_in_date,
-            :exit_date,
-            :age,
+          detail_columns: default_detail_columns + [
             :project_type,
             :lot,
           ],
@@ -742,17 +657,7 @@ module HmisDataQualityTool
           title: 'Possible Missed Exit - ES, Time in Enrollment 365 Days or More',
           description: 'There is an expectation that clients will not stay indefinitely in emergency shelter, these clients have been in shelter 365 days or more',
           required_for: 'All in ES',
-          detail_columns: [
-            :destination_client_id,
-            :hmis_enrollment_id,
-            :personal_id,
-            :household_id,
-            :project_name,
-            :exit_id,
-            :entry_date,
-            :move_in_date,
-            :exit_date,
-            :age,
+          detail_columns: default_detail_columns + [
             :project_type,
             :lot,
           ],
@@ -770,17 +675,7 @@ module HmisDataQualityTool
           title: 'Possible Missed Exit - ES NbN, No Service in 90 Days or More',
           description: 'There is an expectation that clients will be exited from night-by-night emergency shelter if they haven\'t been seen, these clients have not been in shelter for 90 days or more',
           required_for: 'All in ES NbN',
-          detail_columns: [
-            :destination_client_id,
-            :hmis_enrollment_id,
-            :personal_id,
-            :household_id,
-            :project_name,
-            :exit_id,
-            :entry_date,
-            :move_in_date,
-            :exit_date,
-            :age,
+          detail_columns: default_detail_columns + [
             :project_type,
             :days_since_last_service,
           ],
@@ -800,17 +695,7 @@ module HmisDataQualityTool
           title: 'Possible Missed Exit - ES NbN, No Service in 180 Days or More',
           description: 'There is an expectation that clients will be exited from night-by-night emergency shelter if they haven\'t been seen, these clients have not been in shelter for 180 days or more',
           required_for: 'All in ES',
-          detail_columns: [
-            :destination_client_id,
-            :hmis_enrollment_id,
-            :personal_id,
-            :household_id,
-            :project_name,
-            :exit_id,
-            :entry_date,
-            :move_in_date,
-            :exit_date,
-            :age,
+          detail_columns: default_detail_columns + [
             :project_type,
             :days_since_last_service,
           ],
@@ -830,17 +715,7 @@ module HmisDataQualityTool
           title: 'Possible Missed Exit - ES NbN, No Service in 365 Days or More',
           description: 'There is an expectation that clients will be exited from night-by-night emergency shelter if they haven\'t been seen, these clients have not been in shelter for 365 days or more',
           required_for: 'All in ES',
-          detail_columns: [
-            :destination_client_id,
-            :hmis_enrollment_id,
-            :personal_id,
-            :household_id,
-            :project_name,
-            :exit_id,
-            :entry_date,
-            :move_in_date,
-            :exit_date,
-            :age,
+          detail_columns: default_detail_columns + [
             :project_type,
             :days_since_last_service,
           ],
@@ -860,17 +735,7 @@ module HmisDataQualityTool
           title: 'Possible Missed Exit - SO, Time in Enrollment 90 Days or More',
           description: 'There is an expectation that clients will not stay indefinitely in street outreach, these clients have been in street outreach with no current living situation collected for 90 days or more',
           required_for: 'All in SO',
-          detail_columns: [
-            :destination_client_id,
-            :hmis_enrollment_id,
-            :personal_id,
-            :household_id,
-            :project_name,
-            :exit_id,
-            :entry_date,
-            :move_in_date,
-            :exit_date,
-            :age,
+          detail_columns: default_detail_columns + [
             :project_type,
             :days_since_last_service,
           ],
@@ -888,17 +753,7 @@ module HmisDataQualityTool
           title: 'Possible Missed Exit - SO, Time in Enrollment 180 Days or More',
           description: 'There is an expectation that clients will not stay indefinitely in street outreach, these clients have been in street outreach with no current living situation collected for 180 days or more',
           required_for: 'All in SO',
-          detail_columns: [
-            :destination_client_id,
-            :hmis_enrollment_id,
-            :personal_id,
-            :household_id,
-            :project_name,
-            :exit_id,
-            :entry_date,
-            :move_in_date,
-            :exit_date,
-            :age,
+          detail_columns: default_detail_columns + [
             :project_type,
             :days_since_last_service,
           ],
@@ -916,17 +771,7 @@ module HmisDataQualityTool
           title: 'Possible Missed Exit - SO, Time in Enrollment 365 Days or More',
           description: 'There is an expectation that clients will not stay indefinitely in street outreach, these clients have been in street outreach with no current living situation collected for 365 days or more',
           required_for: 'All in SO',
-          detail_columns: [
-            :destination_client_id,
-            :hmis_enrollment_id,
-            :personal_id,
-            :household_id,
-            :project_name,
-            :exit_id,
-            :entry_date,
-            :move_in_date,
-            :exit_date,
-            :age,
+          detail_columns: default_detail_columns + [
             :project_type,
             :days_since_last_service,
           ],
@@ -944,17 +789,7 @@ module HmisDataQualityTool
           title: 'Possible Missed Move In Date - PH, Time in Enrollment 90 Days or More',
           description: 'There is an expectation that clients in PH will eventually move into housing, these clients have been in PH without a move-in date 90 days ore more, or have an invalid move-in date ',
           required_for: 'HoH in PH',
-          detail_columns: [
-            :destination_client_id,
-            :hmis_enrollment_id,
-            :personal_id,
-            :household_id,
-            :project_name,
-            :exit_id,
-            :entry_date,
-            :move_in_date,
-            :exit_date,
-            :age,
+          detail_columns: default_detail_columns + [
             :project_type,
             :relationship_to_hoh,
             :lot,
@@ -974,17 +809,7 @@ module HmisDataQualityTool
           title: 'Possible Missed Move In Date - PH, Time in Enrollment 180 Days or More',
           description: 'There is an expectation that clients in PH will eventually move into housing, these clients have been in PH without a move-in date 180 days ore more, or have an invalid move-in date',
           required_for: 'HoH in PH',
-          detail_columns: [
-            :destination_client_id,
-            :hmis_enrollment_id,
-            :personal_id,
-            :household_id,
-            :project_name,
-            :exit_id,
-            :entry_date,
-            :move_in_date,
-            :exit_date,
-            :age,
+          detail_columns: default_detail_columns + [
             :project_type,
             :relationship_to_hoh,
             :lot,
@@ -1004,17 +829,7 @@ module HmisDataQualityTool
           title: 'Possible Missed Move In Date - PH, Time in Enrollment 365 Days or More',
           description: 'There is an expectation that clients in PH will eventually move into housing, these clients have been in PH without a move-in date 365 days or more, or have an invalid move-in date',
           required_for: 'HoH in PH',
-          detail_columns: [
-            :destination_client_id,
-            :hmis_enrollment_id,
-            :personal_id,
-            :household_id,
-            :project_name,
-            :exit_id,
-            :entry_date,
-            :move_in_date,
-            :exit_date,
-            :age,
+          detail_columns: default_detail_columns + [
             :project_type,
             :relationship_to_hoh,
             :lot,
@@ -1034,17 +849,7 @@ module HmisDataQualityTool
           title: 'Move-In Before Entry Date',
           description: 'Move-in date must be on or after the entry date, only checked for PH projects',
           required_for: 'HoH in PH',
-          detail_columns: [
-            :destination_client_id,
-            :hmis_enrollment_id,
-            :personal_id,
-            :household_id,
-            :project_name,
-            :exit_id,
-            :entry_date,
-            :move_in_date,
-            :exit_date,
-            :age,
+          detail_columns: default_detail_columns + [
             :project_type,
             :relationship_to_hoh,
           ],
@@ -1063,17 +868,7 @@ module HmisDataQualityTool
           title: 'Move-In After Exit Date',
           description: 'Move-in date must be on or before the exit date, only checked for PH projects',
           required_for: 'HoH in PH',
-          detail_columns: [
-            :destination_client_id,
-            :hmis_enrollment_id,
-            :personal_id,
-            :household_id,
-            :project_name,
-            :exit_id,
-            :entry_date,
-            :move_in_date,
-            :exit_date,
-            :age,
+          detail_columns: default_detail_columns + [
             :project_type,
             :relationship_to_hoh,
           ],
@@ -1092,17 +887,7 @@ module HmisDataQualityTool
           title: 'Enrollment Active Outside of Project Operating Dates',
           description: 'Entry and exit dates must occur while a project is in operation',
           required_for: 'All',
-          detail_columns: [
-            :destination_client_id,
-            :hmis_enrollment_id,
-            :personal_id,
-            :household_id,
-            :project_name,
-            :exit_id,
-            :entry_date,
-            :move_in_date,
-            :exit_date,
-            :age,
+          detail_columns: default_detail_columns + [
             :project_type,
             :project_operating_start_date,
             :project_operating_end_date,
@@ -1121,17 +906,7 @@ module HmisDataQualityTool
           title: 'Survivor of Domestic Violence',
           description: 'DV data at entry is not "Data not collected" (99) or blank',
           required_for: 'Adults and HoH',
-          detail_columns: [
-            :destination_client_id,
-            :hmis_enrollment_id,
-            :personal_id,
-            :household_id,
-            :project_name,
-            :exit_id,
-            :entry_date,
-            :move_in_date,
-            :exit_date,
-            :age,
+          detail_columns: default_detail_columns + [
             :relationship_to_hoh,
             :domestic_violence_victim_at_entry,
           ],
@@ -1146,17 +921,7 @@ module HmisDataQualityTool
           title: 'Income From Any Source at Entry',
           description: 'Income from any source at entry is not "Data not collected" (99) or blank',
           required_for: 'Adults and HoH',
-          detail_columns: [
-            :destination_client_id,
-            :hmis_enrollment_id,
-            :personal_id,
-            :household_id,
-            :project_name,
-            :exit_id,
-            :entry_date,
-            :move_in_date,
-            :exit_date,
-            :age,
+          detail_columns: default_detail_columns + [
             :relationship_to_hoh,
             :income_at_entry_expected,
             :income_from_any_source_at_entry,
@@ -1172,17 +937,7 @@ module HmisDataQualityTool
           title: 'Income From Any Source at Annual Assessment',
           description: 'Income from any source at annual assessment is not "Data not collected" (99) or blank',
           required_for: 'Adults and HoH staying longer than 1 year',
-          detail_columns: [
-            :destination_client_id,
-            :hmis_enrollment_id,
-            :personal_id,
-            :household_id,
-            :project_name,
-            :exit_id,
-            :entry_date,
-            :move_in_date,
-            :exit_date,
-            :age,
+          detail_columns: default_detail_columns + [
             :relationship_to_hoh,
             :income_at_annual_expected,
             :income_from_any_source_at_annual,
@@ -1198,17 +953,7 @@ module HmisDataQualityTool
           title: 'Income From Any Source at Exit',
           description: 'Income from any source at exit is not "Data not collected" (99) or blank',
           required_for: 'Adults and HoH exiting during report range',
-          detail_columns: [
-            :destination_client_id,
-            :hmis_enrollment_id,
-            :personal_id,
-            :household_id,
-            :project_name,
-            :exit_id,
-            :entry_date,
-            :move_in_date,
-            :exit_date,
-            :age,
+          detail_columns: default_detail_columns + [
             :relationship_to_hoh,
             :income_at_exit_expected,
             :income_from_any_source_at_exit,
@@ -1224,17 +969,7 @@ module HmisDataQualityTool
           title: 'Insurance From Any Source at Entry',
           description: 'Insurance from any source at entry is not "Data not collected" (99) or blank',
           required_for: 'All',
-          detail_columns: [
-            :destination_client_id,
-            :hmis_enrollment_id,
-            :personal_id,
-            :household_id,
-            :project_name,
-            :exit_id,
-            :entry_date,
-            :move_in_date,
-            :exit_date,
-            :age,
+          detail_columns: default_detail_columns + [
             :relationship_to_hoh,
             :insurance_at_entry_expected,
             :insurance_from_any_source_at_entry,
@@ -1250,17 +985,7 @@ module HmisDataQualityTool
           title: 'Insurance From Any Source at Annual Assessment',
           description: 'Insurance from any source at annual assessment is not "Data not collected" (99) or blank',
           required_for: 'All staying longer than 1 year',
-          detail_columns: [
-            :destination_client_id,
-            :hmis_enrollment_id,
-            :personal_id,
-            :household_id,
-            :project_name,
-            :exit_id,
-            :entry_date,
-            :move_in_date,
-            :exit_date,
-            :age,
+          detail_columns: default_detail_columns + [
             :relationship_to_hoh,
             :insurance_at_annual_expected,
             :insurance_from_any_source_at_annual,
@@ -1276,17 +1001,7 @@ module HmisDataQualityTool
           title: 'Insurance From Any Source at Exit',
           description: 'Insurance from any source at exit is not "Data not collected" (99) or blank',
           required_for: 'All exiting during report range',
-          detail_columns: [
-            :destination_client_id,
-            :hmis_enrollment_id,
-            :personal_id,
-            :household_id,
-            :project_name,
-            :exit_id,
-            :entry_date,
-            :move_in_date,
-            :exit_date,
-            :age,
+          detail_columns: default_detail_columns + [
             :relationship_to_hoh,
             :insurance_at_exit_expected,
             :insurance_from_any_source_at_exit,
@@ -1302,17 +1017,7 @@ module HmisDataQualityTool
           title: 'Cash Income Matches Expected Value at Entry',
           description: 'Cash Income from any source at entry is yes, but no cash income sources are identified, or cash income form any source is no, but cash income sources are identified, or cash income information is missing.',
           required_for: 'Adults and HoH',
-          detail_columns: [
-            :destination_client_id,
-            :hmis_enrollment_id,
-            :personal_id,
-            :household_id,
-            :project_name,
-            :exit_id,
-            :entry_date,
-            :move_in_date,
-            :exit_date,
-            :age,
+          detail_columns: default_detail_columns + [
             :relationship_to_hoh,
             :income_at_entry_expected,
             :cash_income_as_expected_at_entry,
@@ -1328,17 +1033,7 @@ module HmisDataQualityTool
           title: 'Cash Income Matches Expected Value at Annual Assessment',
           description: 'Cash Income from any source at annual assessment is yes, but no cash income sources are identified, or cash income form any source is no, but cash income sources are identified, or cash income information is missing.',
           required_for: 'Adults and HoH staying longer than 1 year',
-          detail_columns: [
-            :destination_client_id,
-            :hmis_enrollment_id,
-            :personal_id,
-            :household_id,
-            :project_name,
-            :exit_id,
-            :entry_date,
-            :move_in_date,
-            :exit_date,
-            :age,
+          detail_columns: default_detail_columns + [
             :relationship_to_hoh,
             :income_at_annual_expected,
             :cash_income_as_expected_at_annual,
@@ -1354,17 +1049,7 @@ module HmisDataQualityTool
           title: 'Cash Income Matches Expected Value at Exit',
           description: 'Cash Income from any source at exit is yes, but no cash income sources are identified, or cash income form any source is no, but cash income sources are identified, or cash income information is missing.',
           required_for: 'Adults and HoH exiting during report range',
-          detail_columns: [
-            :destination_client_id,
-            :hmis_enrollment_id,
-            :personal_id,
-            :household_id,
-            :project_name,
-            :exit_id,
-            :entry_date,
-            :move_in_date,
-            :exit_date,
-            :age,
+          detail_columns: default_detail_columns + [
             :relationship_to_hoh,
             :income_at_exit_expected,
             :cash_income_as_expected_at_exit,
@@ -1380,17 +1065,7 @@ module HmisDataQualityTool
           title: 'Non-Cash Benefits Matches Expected Value at Entry',
           description: 'Non-cash benefits from any source at entry is yes, but no Non-cash benefit sources are identified, or Non-cash benefit form any source is no, but Non-cash benefit sources are identified, or Non-cash benefit information is missing.',
           required_for: 'Adults and HoH',
-          detail_columns: [
-            :destination_client_id,
-            :hmis_enrollment_id,
-            :personal_id,
-            :household_id,
-            :project_name,
-            :exit_id,
-            :entry_date,
-            :move_in_date,
-            :exit_date,
-            :age,
+          detail_columns: default_detail_columns + [
             :relationship_to_hoh,
             :income_at_entry_expected,
             :ncb_as_expected_at_entry,
@@ -1406,17 +1081,7 @@ module HmisDataQualityTool
           title: 'Non-Cash Benefits Matches Expected Value at Annual Assessment',
           description: 'Non-cash benefits from any source at annual assessment is yes, but no Non-cash benefit sources are identified, or Non-cash benefit form any source is no, but Non-cash benefit sources are identified, or Non-cash benefit information is missing.',
           required_for: 'Adults and HoH staying longer than 1 year',
-          detail_columns: [
-            :destination_client_id,
-            :hmis_enrollment_id,
-            :personal_id,
-            :household_id,
-            :project_name,
-            :exit_id,
-            :entry_date,
-            :move_in_date,
-            :exit_date,
-            :age,
+          detail_columns: default_detail_columns + [
             :relationship_to_hoh,
             :income_at_annual_expected,
             :ncb_as_expected_at_annual,
@@ -1432,17 +1097,7 @@ module HmisDataQualityTool
           title: 'Non-Cash Benefits Matches Expected Value at Exit',
           description: 'Non-cash benefits from any source at exit is yes, but no Non-cash benefit sources are identified, or Non-cash benefit form any source is no, but Non-cash benefit sources are identified, or Non-cash benefit information is missing.',
           required_for: 'Adults and HoH exiting during report range',
-          detail_columns: [
-            :destination_client_id,
-            :hmis_enrollment_id,
-            :personal_id,
-            :household_id,
-            :project_name,
-            :exit_id,
-            :entry_date,
-            :move_in_date,
-            :exit_date,
-            :age,
+          detail_columns: default_detail_columns + [
             :relationship_to_hoh,
             :income_at_exit_expected,
             :ncb_as_expected_at_exit,
@@ -1458,17 +1113,7 @@ module HmisDataQualityTool
           title: 'Insurance Matches Expected Value at Entry',
           description: 'Insurance from any source at entry is yes, but no insurance sources are identified, or insurance form any source is no, but insurance sources are identified, or insurance information is missing.',
           required_for: 'All',
-          detail_columns: [
-            :destination_client_id,
-            :hmis_enrollment_id,
-            :personal_id,
-            :household_id,
-            :project_name,
-            :exit_id,
-            :entry_date,
-            :move_in_date,
-            :exit_date,
-            :age,
+          detail_columns: default_detail_columns + [
             :relationship_to_hoh,
             :insurance_at_entry_expected,
             :insurance_as_expected_at_entry,
@@ -1484,17 +1129,7 @@ module HmisDataQualityTool
           title: 'Insurance Matches Expected Value at Annual Assessment',
           description: 'Insurance from any source at annual assessment is yes, but no insurance sources are identified, or insurance form any source is no, but insurance sources are identified, or insurance information is missing.',
           required_for: 'All staying longer than 1 year',
-          detail_columns: [
-            :destination_client_id,
-            :hmis_enrollment_id,
-            :personal_id,
-            :household_id,
-            :project_name,
-            :exit_id,
-            :entry_date,
-            :move_in_date,
-            :exit_date,
-            :age,
+          detail_columns: default_detail_columns + [
             :relationship_to_hoh,
             :insurance_at_annual_expected,
             :insurance_as_expected_at_annual,
@@ -1510,17 +1145,7 @@ module HmisDataQualityTool
           title: 'Insurance Matches Expected Value at Exit',
           description: 'Insurance from any source at exit is yes, but no insurance sources are identified, or insurance form any source is no, but insurance sources are identified, or insurance information is missing.',
           required_for: 'All exiting during report range',
-          detail_columns: [
-            :destination_client_id,
-            :hmis_enrollment_id,
-            :personal_id,
-            :household_id,
-            :project_name,
-            :exit_id,
-            :entry_date,
-            :move_in_date,
-            :exit_date,
-            :age,
+          detail_columns: default_detail_columns + [
             :relationship_to_hoh,
             :insurance_at_exit_expected,
             :insurance_as_expected_at_exit,
@@ -1536,17 +1161,7 @@ module HmisDataQualityTool
           title: 'Disability at entry',
           description: 'At least one of the disabilities collected at entry were missing or "Data not collected" (99).',
           required_for: 'All',
-          detail_columns: [
-            :destination_client_id,
-            :hmis_enrollment_id,
-            :personal_id,
-            :household_id,
-            :project_name,
-            :exit_id,
-            :entry_date,
-            :move_in_date,
-            :exit_date,
-            :age,
+          detail_columns: default_detail_columns + [
             :relationship_to_hoh,
             :disability_at_entry_collected,
             :disabling_condition,
@@ -1559,17 +1174,7 @@ module HmisDataQualityTool
           title: 'Approximate Date Homeless',
           description: 'Approximate Date Homeless (Date to Street ES SH 3.917.3) is required in some situations',
           required_for: 'Adults and HoH in ES, SH, SO, TH, or PH, further restricted by living situation and project type',
-          detail_columns: [
-            :destination_client_id,
-            :hmis_enrollment_id,
-            :personal_id,
-            :household_id,
-            :project_name,
-            :exit_id,
-            :entry_date,
-            :move_in_date,
-            :exit_date,
-            :age,
+          detail_columns: default_detail_columns + [
             :relationship_to_hoh,
             :date_to_street_essh,
             :previous_street_es_sh,
@@ -1591,17 +1196,7 @@ module HmisDataQualityTool
           title: 'Number Times Homeless',
           description: 'The number of times someone was previously homeless is required in some situations.',
           required_for: 'Adults and HoH in ES, SH, SO, TH, or PH, further restricted by living situation and project type',
-          detail_columns: [
-            :destination_client_id,
-            :hmis_enrollment_id,
-            :personal_id,
-            :household_id,
-            :project_name,
-            :exit_id,
-            :entry_date,
-            :move_in_date,
-            :exit_date,
-            :age,
+          detail_columns: default_detail_columns + [
             :relationship_to_hoh,
             :date_to_street_essh,
             :previous_street_es_sh,
@@ -1623,17 +1218,7 @@ module HmisDataQualityTool
           title: 'Number of Months Homeless',
           description: 'The number of months someone was previously homeless is required in some situations.',
           required_for: 'Adults and HoH in ES, SH, SO, TH, or PH, further restricted by living situation and project type',
-          detail_columns: [
-            :destination_client_id,
-            :hmis_enrollment_id,
-            :personal_id,
-            :household_id,
-            :project_name,
-            :exit_id,
-            :entry_date,
-            :move_in_date,
-            :exit_date,
-            :age,
+          detail_columns: default_detail_columns + [
             :relationship_to_hoh,
             :date_to_street_essh,
             :previous_street_es_sh,
@@ -1655,17 +1240,7 @@ module HmisDataQualityTool
           title: 'Time for Record Entry of Entry Date',
           description: "Timely data entry is critical to ensuring data accuracy and completeness, valid records were added to HMIS within #{report.goal_config.entry_date_entered_length} days.",
           required_for: 'All',
-          detail_columns: [
-            :destination_client_id,
-            :hmis_enrollment_id,
-            :personal_id,
-            :household_id,
-            :project_name,
-            :exit_id,
-            :entry_date,
-            :move_in_date,
-            :exit_date,
-            :age,
+          detail_columns: default_detail_columns + [
             :relationship_to_hoh,
             :entry_date_entered_at,
             :days_to_enter_entry_date,
@@ -1681,17 +1256,7 @@ module HmisDataQualityTool
           title: 'Time for Record Entry of Exit Date',
           description: "Timely data entry is critical to ensuring data accuracy and completeness, valid records were added to HMIS within #{report.goal_config.exit_date_entered_length} days.",
           required_for: 'All exiting during report range',
-          detail_columns: [
-            :destination_client_id,
-            :hmis_enrollment_id,
-            :personal_id,
-            :household_id,
-            :project_name,
-            :exit_id,
-            :entry_date,
-            :move_in_date,
-            :exit_date,
-            :age,
+          detail_columns: default_detail_columns + [
             :relationship_to_hoh,
             :exit_date_entered_at,
             :days_to_enter_exit_date,

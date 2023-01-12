@@ -109,13 +109,13 @@ module ClientAccessControl::GrdaWarehouse::Hud
         return false unless user.can_view_clients?
         # access isn't governed by release if a client can only search their assigned clients
         return false if user.can_search_own_clients?
-        return unless release_valid?
+        return unless consent_form_valid?
 
         valid_in_coc(user.coc_codes)
       end
 
       private def visible_because_of_relationship?(user)
-        user_clients.pluck(:user_id).include?(user.id) && release_valid? && user.can_search_window?
+        user_clients.pluck(:user_id).include?(user.id) && consent_form_valid? && user.can_search_window?
       end
 
       def enrollments_for_rollup(user:, en_scope: scope, include_confidential_names: false, only_ongoing: false)

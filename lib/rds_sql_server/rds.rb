@@ -57,7 +57,7 @@ class Rds
   def start!
     status = instance_data.db_instance_status
 
-    if status.in?(['available', 'starting'])
+    if status.in?(['available', 'starting', 'creating'])
       Rails.logger.info "Not starting #{identifier}. It's #{status}"
     elsif status == 'stopped'
       Rails.logger.info "Starting #{identifier}."

@@ -61,8 +61,13 @@ module HmisDataQualityTool
       detail_headers.except(:first_name, :last_name, :dob, :ssn)
     end
 
-    def self.detail_headers_for(slug, report)
-      headers = detail_headers.transform_values { |v| v.except(:translator) }
+    def self.detail_headers_for(slug, report, export:)
+      header_source = if export
+        detail_headers_for_export
+      else
+        detail_headers
+      end
+      headers = header_source.transform_values { |v| v.except(:translator) }
       section = sections(report)[slug.to_sym]
       columns = if section.present?
         section[:detail_columns]

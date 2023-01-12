@@ -10,17 +10,13 @@ module GrdaWarehouse::Tasks
     include ArelHelper
 
     def initialize replace_all = nil
-      if replace_all.present?
-        @replace_all = true
-      end
+      @replace_all = true if replace_all.present?
     end
 
     def run!
       Rails.logger.info 'Processing GrdaWarehouse::Census census format'
 
-      if @replace_all
-        Rails.logger.info 'Replacing all GrdaWarehouse::Census census records'
-      end
+      Rails.logger.info 'Replacing all GrdaWarehouse::Census census records' if @replace_all
 
       return unless GrdaWarehouse::ServiceHistoryEnrollment.exists?
 
@@ -34,15 +30,6 @@ module GrdaWarehouse::Tasks
         start_date = end_date - 3.years
       end
       GrdaWarehouse::Census::CensusBuilder.new.create_census(start_date, end_date)
-
-    end
-
-    private def census_by_project_type_source
-      GrdaWarehouse::CensusByProjectType
-    end
-
-    private def census_by_project_source
-      GrdaWarehouse::CensusByProject
     end
 
     def history_source
@@ -52,7 +39,5 @@ module GrdaWarehouse::Tasks
     def history_scope
       history_source.service.where.not(history_source.project_type_column => nil)
     end
-
-
   end
 end
