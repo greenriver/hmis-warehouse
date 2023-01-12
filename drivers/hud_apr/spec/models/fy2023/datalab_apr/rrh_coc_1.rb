@@ -28,9 +28,9 @@ RSpec.shared_context 'datalab rrh coc 1 apr', shared_context: :metadata do
         file_path: result_file_prefix + 'apr/rrh_coc_1',
         question: 'Q5a',
         # Pending AAQ: [APR] DataLab - RRH CoC I & DataLab - RRH CoC II (D) Q5 B16
-        skip: [
-          'B16',
-        ],
+        # skip: [
+        #   'B16',
+        # ],
       )
     end
 
@@ -38,6 +38,11 @@ RSpec.shared_context 'datalab rrh coc 1 apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'apr/rrh_coc_1',
         question: 'Q6a',
+        # Pending https://www.hudexchange.info/program-support/my-question/?askaquestionaction=public%3Amain.answer&key=98BF8791-4249-48F3-8E5395910C01CF59
+        skip: [
+          'B6',
+          'C6',
+        ],
       )
     end
 

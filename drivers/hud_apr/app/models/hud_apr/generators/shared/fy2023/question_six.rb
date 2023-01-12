@@ -749,7 +749,9 @@ module HudApr::Generators::Shared::Fy2023
         # entry 1..3 days
         {
           cell: 'B3',
-          clause: datediff(report_client_universe, 'day', a_t[:enrollment_created], a_t[:first_date_in_program]).gteq(1).
+          # To match test kit, count anything less than 3 days, except 0
+          # AAQ: https://www.hudexchange.info/program-support/my-question/?askaquestionaction=public%3Amain.answer&key=CAA8AE17-22C4-447B-AA191B21C984CBA7
+          clause: datediff(report_client_universe, 'day', a_t[:enrollment_created], a_t[:first_date_in_program]).not_eq(0).
             and(datediff(report_client_universe, 'day', a_t[:enrollment_created], a_t[:first_date_in_program]).lteq(3)),
         },
         # entry 4..6 days

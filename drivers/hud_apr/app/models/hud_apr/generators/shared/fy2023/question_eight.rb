@@ -114,12 +114,16 @@ module HudApr::Generators::Shared::Fy2023
           and(a_t[:move_in_date].not_eq(nil).
           and(a_t[:move_in_date].lteq(@report.end_date))),
       )
-      answer = @report.answer(question: table_name, cell: 'B3')
-      members = ps_rrh_w_move_in
-      answer.add_members(members)
-      answer.update(summary: members.count)
+      unless q8a_intentionally_blank.include?('B3')
+        answer = @report.answer(question: table_name, cell: 'B3')
+        members = ps_rrh_w_move_in
+        answer.add_members(members)
+        answer.update(summary: members.count)
+      end
 
       q8a4_active_questions.each do |col|
+        next if q8a_intentionally_blank.include?(col[:cell])
+
         answer = @report.answer(question: table_name, cell: col[:cell])
         members = ps_rrh_w_move_in.where(a_t[:household_type].eq(col[:household_type]))
         answer.add_members(members)

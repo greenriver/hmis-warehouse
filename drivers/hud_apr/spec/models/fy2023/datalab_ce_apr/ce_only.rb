@@ -8,7 +8,7 @@ RSpec.shared_context 'datalab th ce ce apr', shared_context: :metadata do
   describe 'Datalab 2023 CE APR - CE Only' do
     before(:all) do
       generator = HudApr::Generators::CeApr::Fy2023::Generator
-      project_ids = GrdaWarehouse::Hud::Project.where(ProjectName: ['DataLab - Coordinated Entry']).pluck(:id)
+      project_ids = GrdaWarehouse::Hud::Project.all.pluck(:id)
       run(generator, project_ids_filter(project_ids))
     end
 
@@ -60,6 +60,11 @@ RSpec.shared_context 'datalab th ce ce apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'ce_apr/ce',
         question: 'Q9b',
+        skip: [ # pending AirTable submission, test kit doesn't include 4 significant digits
+          'B4',
+          'C4',
+          'D4',
+        ],
       )
     end
 
