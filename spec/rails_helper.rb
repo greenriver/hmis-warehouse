@@ -71,7 +71,7 @@ RSpec.configure do |config|
       FileUtils.rm(filename)
     end
     Dir.glob('{drivers,spec}/**/fixpoints/*.sql').each do |filename|
-      # FileUtils.rm(filename)
+      FileUtils.rm(filename)
     end
 
     GrdaWarehouse::Utility.clear!

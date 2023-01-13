@@ -109,7 +109,7 @@ module HudApr::Generators::Shared::Fy2023
             if stay_lengths.any?
               sorted = stay_lengths.sort
               length = stay_lengths.count
-              value = ((sorted[(length - 1) / 2] + sorted[length / 2]) / 2.0).round
+              value = ((sorted[(length - 1) / 2] + sorted[length / 2]) / 2.0).round(2)
             end
           end
 

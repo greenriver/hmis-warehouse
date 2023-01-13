@@ -298,10 +298,10 @@ RSpec.shared_context 'datalab rrh coc 1 apr', shared_context: :metadata do
         file_path: result_file_prefix + 'apr/rrh_coc_1',
         question: 'Q21',
         # Pending AAQ: [APR] DataLab - RRH CoC I (D) Q21 C14 - submitted 10/2/2022
-        skip: [
-          'C14',
-          'C15',
-        ],
+        # skip: [
+        #   'C14',
+        #   'C15',
+        # ],
       )
     end
 

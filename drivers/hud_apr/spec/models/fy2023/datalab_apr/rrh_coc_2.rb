@@ -25,10 +25,6 @@ RSpec.shared_context 'datalab rrh coc 2 apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'apr/rrh_coc_2',
         question: 'Q5a',
-        # Pending AAQ: [APR] DataLab - RRH CoC I & DataLab - RRH CoC II (D) Q5 B16
-        skip: [
-          'B16',
-        ],
       )
     end
 
@@ -43,6 +39,11 @@ RSpec.shared_context 'datalab rrh coc 2 apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'apr/rrh_coc_2',
         question: 'Q6b',
+        # Pending https://www.hudexchange.info/program-support/my-question/?askaquestionaction=public%3Amain.answer&key=98BF8791-4249-48F3-8E5395910C01CF59
+        skip: [
+          'B6',
+          'C6',
+        ],
       )
     end
 
@@ -64,6 +65,10 @@ RSpec.shared_context 'datalab rrh coc 2 apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'apr/rrh_coc_2',
         question: 'Q6e',
+        # Pending https://www.hudexchange.info/program-support/my-question/?askaquestionaction=public%3Amain.answer&key=CAA8AE17-22C4-447B-AA191B21C984CBA7
+        skip: [
+          'C3',
+        ],
       )
     end
 
@@ -264,6 +269,14 @@ RSpec.shared_context 'datalab rrh coc 2 apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'apr/rrh_coc_2',
         question: 'Q19b',
+        # Pending AAQ: https://www.hudexchange.info/program-support/my-question/?askaquestionaction=public%3Amain.answer&key=99B4E7C1-9C9A-4C5C-877330D949FEE8A7
+        skip: [
+          'B13',
+          'D13',
+          'E13',
+          'G13',
+          'H13',
+        ],
       )
     end
 
@@ -285,10 +298,6 @@ RSpec.shared_context 'datalab rrh coc 2 apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'apr/rrh_coc_2',
         question: 'Q21',
-        # Pending AAQ: [APR] DataLab - RRH CoC I (D) Q21 C14 - submitted 10/2/2022
-        skip: [
-          'C15',
-        ],
       )
     end
 
@@ -310,6 +319,11 @@ RSpec.shared_context 'datalab rrh coc 2 apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'apr/rrh_coc_2',
         question: 'Q22c',
+        # Pending AirTable question (1/13/2023)
+        skip: [
+          'B11',
+          'C11',
+        ],
       )
     end
 
@@ -317,17 +331,6 @@ RSpec.shared_context 'datalab rrh coc 2 apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'apr/rrh_coc_2',
         question: 'Q22e',
-        # Pending AAQ: [APR] DataLab - RRH CoC I & DataLab - RRH CoC II (D) Q22e - submitted 10/2/2022
-        skip: [
-          'B4', # child Bubble Eventual should inherit from HoH
-          'D4',
-          'B7', # child Hepzibah Providence should inherit from HoH
-          'D7',
-          'B11',
-          'D11',
-          'B13',
-          'D13',
-        ],
       )
     end
 
@@ -349,6 +352,11 @@ RSpec.shared_context 'datalab rrh coc 2 apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'apr/rrh_coc_2',
         question: 'Q25b',
+        # pending AirTable from 1/13/2023 regarding ChildrenOnly household
+        skip: [
+          'B6',
+          'B7',
+        ],
       )
     end
 
@@ -366,7 +374,8 @@ RSpec.shared_context 'datalab rrh coc 2 apr', shared_context: :metadata do
       )
     end
 
-    it 'Q25e' do
+    # Pending AAQ https://www.hudexchange.info/program-support/my-question/?askaquestionaction=public%3Amain.answer&key=7621DC58-B880-4E59-8ED2027685A40C16 (and AirTable submission)
+    xit 'Q25e' do
       compare_results(
         file_path: result_file_prefix + 'apr/rrh_coc_2',
         question: 'Q25e',
@@ -429,7 +438,8 @@ RSpec.shared_context 'datalab rrh coc 2 apr', shared_context: :metadata do
       )
     end
 
-    it 'Q26e' do
+    # Pending AAQ https://www.hudexchange.info/program-support/my-question/?askaquestionaction=public%3Amain.answer&key=7621DC58-B880-4E59-8ED2027685A40C16 (and AirTable submission)
+    xit 'Q26e' do
       compare_results(
         file_path: result_file_prefix + 'apr/rrh_coc_2',
         question: 'Q26e',
@@ -517,6 +527,13 @@ RSpec.shared_context 'datalab rrh coc 2 apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'apr/rrh_coc_2',
         question: 'Q27i',
+        # Pending AAQ: https://www.hudexchange.info/program-support/my-question/?askaquestionaction=public%3Amain.answer&key=99B4E7C1-9C9A-4C5C-877330D949FEE8A7
+        skip: [
+          'B13',
+          'D13',
+          'E13',
+          'M14',
+        ],
       )
     end
   end

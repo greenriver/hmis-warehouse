@@ -27,6 +27,11 @@ RSpec.shared_context 'datalab sso coc apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'apr/sso_coc',
         question: 'Q5a',
+        # Pending AirTable from 1/13/2023 LOT Method 1 – Using Start/Exit Dates
+        skip: [
+          'B17',
+          'C17',
+        ],
       )
     end
 
@@ -41,11 +46,6 @@ RSpec.shared_context 'datalab sso coc apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'apr/sso_coc',
         question: 'Q6b',
-        # Pending AAQ: Datalab Test Kit 2.0 APR Q6 B6
-        skip: [
-          'B6',
-          'C6',
-        ],
       )
     end
 
@@ -53,6 +53,11 @@ RSpec.shared_context 'datalab sso coc apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'apr/sso_coc',
         question: 'Q6c',
+        # Pending AirTable submitted 1/13/2023
+        skip: [
+          'B5',
+          'C5',
+        ],
       )
     end
 
@@ -89,10 +94,10 @@ RSpec.shared_context 'datalab sso coc apr', shared_context: :metadata do
         file_path: result_file_prefix + 'apr/sso_coc',
         question: 'Q7b',
         # Pending AAQ: Datalab Test Kit 2.0 APR Q7 - submitted 9/29/2022
-        skip: [
-          'B2',
-          'C2',
-        ],
+        # skip: [
+        #   'B2',
+        #   'C2',
+        # ],
       )
     end
 
@@ -108,10 +113,10 @@ RSpec.shared_context 'datalab sso coc apr', shared_context: :metadata do
         file_path: result_file_prefix + 'apr/sso_coc',
         question: 'Q8b',
         # Pending AAQ: Datalab Test Kit 2.0 APR Q7 - submitted 9/29/2022
-        skip: [
-          'B2',
-          'C2',
-        ],
+        # skip: [
+        #   'B2',
+        #   'C2',
+        # ],
       )
     end
 
@@ -266,6 +271,12 @@ RSpec.shared_context 'datalab sso coc apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'apr/sso_coc',
         question: 'Q19a2',
+        # Pending AirTable submitted 1/13/2023
+        skip: [
+          'B4',
+          'G4',
+          'B5',
+        ],
       )
     end
 
@@ -273,6 +284,12 @@ RSpec.shared_context 'datalab sso coc apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'apr/sso_coc',
         question: 'Q19b',
+        # Pending AAQ: https://www.hudexchange.info/program-support/my-question/?askaquestionaction=public%3Amain.answer&key=99B4E7C1-9C9A-4C5C-877330D949FEE8A7
+        # IncomeFromAnySource = 0, but do have earned income
+        skip: [
+          'C13',
+          'D13',
+        ],
       )
     end
 
@@ -343,6 +360,11 @@ RSpec.shared_context 'datalab sso coc apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'apr/sso_coc',
         question: 'Q25b',
+        # pending AirTable from 1/13/2023 regarding ChildrenOnly household
+        skip: [
+          'B6',
+          'B7',
+        ],
       )
     end
 
@@ -399,6 +421,13 @@ RSpec.shared_context 'datalab sso coc apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'apr/sso_coc',
         question: 'Q26a',
+        # pending AirTable 1/13/2023 related to https://www.hudexchange.info/program-support/my-question/?askaquestionaction=public%3Amain.answer&key=6B4F6314-CD74-429E-9DF7E4E93C938AD4
+        skip: [
+          'B3',
+          'E3',
+          'B5',
+          'E5',
+        ],
       )
     end
 
@@ -406,6 +435,13 @@ RSpec.shared_context 'datalab sso coc apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'apr/sso_coc',
         question: 'Q26b',
+        # pending AirTable 1/13/2023 related to https://www.hudexchange.info/program-support/my-question/?askaquestionaction=public%3Amain.answer&key=6B4F6314-CD74-429E-9DF7E4E93C938AD4
+        skip: [
+          'B3',
+          'E3',
+          'B5',
+          'E5',
+        ],
       )
     end
 
