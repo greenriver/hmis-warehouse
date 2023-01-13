@@ -1,6 +1,9 @@
 {
   "item": [
     {
+      "fragment": "#information_date"
+    },
+    {
       "fragment": "#client_location"
     },
     {
