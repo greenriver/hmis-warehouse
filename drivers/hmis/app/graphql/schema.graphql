@@ -1274,6 +1274,7 @@ type Enrollment {
   inProgress: Boolean!
   lengthOfStay: ResidencePriorLengthOfStay
   livingSituation: LivingSituation
+  losUnderThreshold: NoYesMissing
   monthsHomelessPastThreeYears: MonthsHomelessPastThreeYears
   previousStreetEssh: Boolean
   project: Project!
@@ -3008,6 +3009,26 @@ enum NoAssistanceReason {
   (4) Insurance type not applicable for this client
   """
   INSURANCE_TYPE_NOT_APPLICABLE_FOR_THIS_CLIENT
+}
+
+"""
+1.7
+"""
+enum NoYesMissing {
+  """
+  (99) Data not collected
+  """
+  DATA_NOT_COLLECTED
+
+  """
+  (0) No
+  """
+  NO
+
+  """
+  (1) Yes
+  """
+  YES
 }
 
 """
