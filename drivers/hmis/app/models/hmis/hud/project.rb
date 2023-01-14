@@ -16,6 +16,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   belongs_to :organization, **hmis_relation(:OrganizationID, 'Organization')
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :projects
 
+  has_many :enrollments, **hmis_relation(:ProjectID, 'Enrollment'), inverse_of: :project
   has_many :project_cocs, **hmis_relation(:ProjectID, 'ProjectCoc'), inverse_of: :project
   has_many :inventories, **hmis_relation(:ProjectID, 'Inventory'), inverse_of: :project
   has_many :funders, **hmis_relation(:ProjectID, 'Funder'), inverse_of: :project
@@ -77,5 +78,9 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     return true unless operating_end_date.present?
 
     operating_end_date >= Date.today
+  end
+
+  def enrollments
+    Hmis::Hud::Enrollment.in_project_including_wip(self)
   end
 end
