@@ -496,6 +496,13 @@ RSpec.shared_context 'datalab th coc apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'apr/th_coc',
         question: 'Q27h',
+        # Pending AirTable submitted 1/13/2023
+        skip: [
+          'B7',
+          'D7',
+          'B10',
+          'D10',
+        ],
       )
     end
 

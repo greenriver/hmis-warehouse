@@ -212,11 +212,9 @@ module HudReports::Incomes
       end
       responses.merge!(
         {
-          'Number of adult stayers not yet required to have an annual assessment' => adult_clause.
-            and(stayers_clause).
+          'Number of adult stayers not yet required to have an annual assessment' => stayers_clause.
             and(a_t[:annual_assessment_expected].eq(false)),
-          'Number of adult stayers without required annual assessment' => adult_clause.
-            and(stayers_clause).
+          'Number of adult stayers without required annual assessment' => stayers_clause.
             and(a_t[:annual_assessment_expected].eq(true)).
             and(a_t[:income_from_any_source_at_annual_assessment].eq(nil)),
           'Total Adults' => Arel.sql('1=1'),

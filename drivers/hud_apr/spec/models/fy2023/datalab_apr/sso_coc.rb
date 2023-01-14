@@ -547,6 +547,16 @@ RSpec.shared_context 'datalab sso coc apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'apr/sso_coc',
         question: 'Q27i',
+        # Pending AAQ: https://www.hudexchange.info/program-support/my-question/?askaquestionaction=public%3Amain.answer&key=99B4E7C1-9C9A-4C5C-877330D949FEE8A7
+        # IncomeFromAnySource = 0, but do have earned income
+        skip: [
+          'C13',
+          'D13',
+          'J13',
+          'L13',
+          'M13',
+          'M14',
+        ],
       )
     end
   end

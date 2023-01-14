@@ -39,11 +39,11 @@ RSpec.describe 'Datalab 2023', type: :model do
 
   # Only run the tests if the source files are available
   if File.exist?('drivers/datalab_testkit/spec/fixtures/inputs/merged/source/Export.csv')
-    # include_context 'datalab psh coc 1 apr' # done
-    # include_context 'datalab rrh coc 1 apr' # done
-    # include_context 'datalab rrh coc 2 apr' # done
-    include_context 'datalab sso coc apr'
-    # include_context 'datalab th coc apr'
+    include_context 'datalab psh coc 1 apr' # done
+    include_context 'datalab rrh coc 1 apr' # done
+    include_context 'datalab rrh coc 2 apr' # done
+    include_context 'datalab sso coc apr' # done
+    include_context 'datalab th coc apr'
 
     # include_context 'datalab es ee esg caper'
     # include_context 'datalab es nbn esg caper'
