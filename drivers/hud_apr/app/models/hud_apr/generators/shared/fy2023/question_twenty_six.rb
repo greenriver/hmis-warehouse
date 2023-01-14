@@ -216,7 +216,8 @@ module HudApr::Generators::Shared::Fy2023
           next if intentionally_blank_26f.include?(cell)
 
           answer = @report.answer(question: table_name, cell: cell)
-          adults = universe.members.where(a_t[:chronically_homeless].eq(true)).where(adult_clause)
+          adults = universe.members.where(a_t[:chronically_homeless].eq(true)).
+            where(adult_clause)
           adults = adults.where(stayers_clause) if suffix == :annual_assessment
           adults = adults.where(leavers_clause) if suffix == :exit
 
@@ -268,7 +269,8 @@ module HudApr::Generators::Shared::Fy2023
           next if intentionally_blank_26g.include?(cell)
 
           answer = @report.answer(question: table_name, cell: cell)
-          members = universe.members.where(a_t[:chronically_homeless].eq(true))
+          members = universe.members.where(a_t[:chronically_homeless].eq(true)).
+            where(adult_clause)
 
           answer.update(summary: 0) and next if members.count.zero?
 
@@ -325,9 +327,12 @@ module HudApr::Generators::Shared::Fy2023
                 hoh_exit_date = hoh_exit_dates[hoh_id]
                 additional_leaver_ids << id if exit_date.blank? || hoh_exit_date.blank? || exit_date >= hoh_exit_date
               end
-            members = members.where(leavers_clause).where(hoh_clause.or(a_t[:id].in(additional_leaver_ids)))
+            members = members.where(leavers_clause).
+              where(hoh_clause.or(a_t[:id].in(additional_leaver_ids)))
           end
 
+          # Q20a is limited to adults
+          members = members.where(adult_clause)
           answer.update(summary: 0) and next if members.count.zero?
 
           members = members.where.contains(income_clause)
