@@ -43,7 +43,8 @@ module HudReports::Ages
 
     private def unknown_ages?(ages)
       ages.any? do |age|
-        age.blank? || age < 1
+        # NOTE: 0 is a valid child age
+        age.blank? || age.negative?
       end
     end
 
