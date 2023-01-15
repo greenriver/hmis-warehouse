@@ -237,6 +237,8 @@ module HudApr::Generators::Shared::Fy2023
       ).merge(
         {
           'Other Source' => income_types(:exit).slice(*other_sources).values,
+          # FIXME? There are some cases in the test kit that have income_from_any_source_at_exit = 1, but no other sources specified
+          # where should those client's go?
           'No Sources' => a_t[:income_from_any_source_at_exit].eq(0),
           'Unduplicated Total Adults' => Arel.sql('1=1'),
         },

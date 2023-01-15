@@ -35,13 +35,13 @@ RSpec.shared_context 'datalab hp esg caper', shared_context: :metadata do
         file_path: result_file_prefix + 'caper/hp_esg',
         question: 'Q6a',
         # Pending AAQ: HMIS Vendor Test Kit APR Q6a Cell C3 - submitted 9/23/2022 - fix in next test kit?
-        skip: [
-          'C3',
-          'E3',
-          'F3',
-          'E8',
-          'F8',
-        ],
+        # skip: [
+        #   'C3',
+        #   'E3',
+        #   'F3',
+        #   'E8',
+        #   'F8',
+        # ],
       )
     end
 
@@ -243,9 +243,9 @@ RSpec.shared_context 'datalab hp esg caper', shared_context: :metadata do
         file_path: result_file_prefix + 'caper/hp_esg',
         question: 'Q20a',
         # Pending AAQ: [CAPER] DataLab - HP ESG (D) - Q20a B7 - submitted 10/5/2022
-        skip: [
-          'B7',
-        ],
+        # skip: [
+        #   'B7',
+        # ],
       )
     end
 
@@ -310,12 +310,12 @@ RSpec.shared_context 'datalab hp esg caper', shared_context: :metadata do
         file_path: result_file_prefix + 'caper/hp_esg',
         question: 'Q26b',
         # Pending AAQ: [CAPER] DataLab - HP ESG (D) - Q26b B3
-        skip: [
-          'B3',
-          'F3',
-          'B5',
-          'F5',
-        ],
+        # skip: [
+        #   'B3',
+        #   'F3',
+        #   'B5',
+        #   'F5',
+        # ],
       )
     end
   end

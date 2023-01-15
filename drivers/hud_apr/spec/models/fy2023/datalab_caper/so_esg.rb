@@ -78,11 +78,11 @@ RSpec.shared_context 'datalab so esg caper', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'caper/so_esg',
         question: 'Q6f',
-        skip: [ # pending AAQ
-          'B2',
-          'C2',
-          'D2',
-        ],
+        # skip: [ # pending AAQ
+        #   'B2',
+        #   'C2',
+        #   'D2',
+        # ],
       )
     end
 
@@ -185,14 +185,14 @@ RSpec.shared_context 'datalab so esg caper', shared_context: :metadata do
         question: 'Q13a1',
         # Pending AAQ:
         # Test kit includes Amazon1777 and Joshi0390 who do not have disability records with a data collection stage of 1
-        skip: [
-          'B2',
-          'C2',
-          'G2',
-          'B4',
-          'C4',
-          'G4',
-        ],
+        # skip: [
+        #   'B2',
+        #   'C2',
+        #   'G2',
+        #   'B4',
+        #   'C4',
+        #   'G4',
+        # ],
       )
     end
 
@@ -298,12 +298,12 @@ RSpec.shared_context 'datalab so esg caper', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'caper/so_esg',
         question: 'Q23c',
-        skip: [ # pending AAQ
-          'B44',
-          'F44',
-          'B46',
-          'F46',
-        ],
+        # skip: [ # pending AAQ
+        #   'B44',
+        #   'F44',
+        #   'B46',
+        #   'F46',
+        # ],
       )
     end
 

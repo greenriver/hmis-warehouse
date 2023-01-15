@@ -35,11 +35,11 @@ RSpec.shared_context 'datalab rrh esg caper', shared_context: :metadata do
         file_path: result_file_prefix + 'caper/rrh_esg',
         question: 'Q6a',
         # Pending AAQ, 99 in SSNDQ should put client in missing
-        skip: [
-          'C3',
-          'E3',
-          'F3',
-        ],
+        # skip: [
+        #   'C3',
+        #   'E3',
+        #   'F3',
+        # ],
       )
     end
 
