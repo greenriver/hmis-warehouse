@@ -34,11 +34,9 @@ RSpec.shared_context 'datalab es ee esg caper', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'caper/es_ee_esg',
         question: 'Q6a',
-        # Pending AAQ, 99 in SSNDQ should put client in missing
+        # Pending AirTable, client 705787 does not have an SSN, but not included in D3
         skip: [
-          'C3',
-          'E3',
-          'F3',
+          'D3',
         ],
       )
     end
@@ -47,10 +45,10 @@ RSpec.shared_context 'datalab es ee esg caper', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'caper/es_ee_esg',
         question: 'Q6b',
-        # Pending AAQ: Datalab Test Kit 2.0 APR Q6 B6
+        # Pending AirTable for HouseholdID h_842571 with two HoH
         skip: [
-          'B6',
-          'C6',
+          'B4',
+          'C4',
         ],
       )
     end
@@ -59,6 +57,12 @@ RSpec.shared_context 'datalab es ee esg caper', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'caper/es_ee_esg',
         question: 'Q6c',
+        # Pending AirTable submitted 1/13/2023 - submitted regarding APR - DataLab - SSO CoC Q6c B5
+        skip: [
+          'B3',
+          'C3',
+          'B5',
+        ],
       )
     end
 
