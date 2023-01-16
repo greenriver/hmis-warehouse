@@ -21,6 +21,7 @@ class Hmis::Hud::Validators::BaseValidator < ActiveModel::Validator
     configuration.except(*skipped_attributes(record)).each do |key, options|
       required = options[:null] == false || required_fields(record).include?(key.to_sym)
       record.errors.add(key, :required) if required && missing?(key, record)
+      record.errors.add(key, :invalid) if invalid_enum_value?(key, record)
       record.errors.add(key, :too_long, count: options[:limit]) if too_long?(key, record, options[:limit])
     end
 
@@ -35,5 +36,9 @@ class Hmis::Hud::Validators::BaseValidator < ActiveModel::Validator
 
   def missing?(key, record)
     record.send(key).blank?
+  end
+
+  def invalid_enum_value?(key, record)
+    record.send(key) == Types::BaseEnum::INVALID_VALUE
   end
 end
