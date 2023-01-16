@@ -5,15 +5,11 @@
 ###
 
 module Hmis::Hud::Processors
-  class HealthAndDvProcessor < Base
+  class EnrollmentCocProcessor < Base
     def process(field, value)
       attribute_name = hud_name(field)
-      attribute_value = hud_type(field)&.value_for(value) || value
-      @processor.health_and_dv_factory.assign_attributes(attribute_name => attribute_value)
-    end
-
-    def schema
-      Types::HmisSchema::HealthAndDv
+      attribute_value = value
+      @processor.enrollment_coc_factory.assign_attributes(attribute_name => attribute_value)
     end
   end
 end

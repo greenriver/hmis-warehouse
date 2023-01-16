@@ -119,6 +119,7 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
       data_collection_stage: Types::HmisSchema::Enums::AssessmentRole.as_data_collection_stage(form_definition.role),
       status: 'draft',
     )
+    new_assessment.assessment_detail.processor.build
 
     new_assessment
   end

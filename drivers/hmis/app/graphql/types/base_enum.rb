@@ -36,5 +36,9 @@ module Types
       end
       with_enum_map(Hmis::FieldMap.new(values))
     end
+
+    def self.value_for(key)
+      values[key].value
+    end
   end
 end

@@ -9,7 +9,7 @@ class Hmis::Form::AssessmentDetail < ::GrdaWarehouseBase
   self.table_name = :hmis_assessment_details
   belongs_to :assessment, class_name: 'Hmis::Hud::Assessment'
   belongs_to :definition
-  has_one :processor, dependent: :destroy
+  belongs_to :processor, dependent: :destroy
 
   def initialize(*)
     super
