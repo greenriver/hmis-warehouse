@@ -118,7 +118,7 @@
           "type": "INTEGER",
           "link_id": "unit",
           "text": "Unit Inventory",
-          "field_name": "unitInventory"
+          "_old_field_name": "unitInventory"
         },
         {
           "type": "GROUP",
@@ -130,49 +130,49 @@
               "type": "INTEGER",
               "link_id": "ch-beds",
               "text": "Chronic",
-              "field_name": "chBedInventory"
+              "_old_field_name": "chBedInventory"
             },
             {
               "type": "INTEGER",
               "link_id": "vet-beds",
               "text": "Veteran",
-              "field_name": "vetBedInventory"
+              "_old_field_name": "vetBedInventory"
             },
             {
               "type": "INTEGER",
               "link_id": "ch-vet-beds",
               "text": "Chronic Veteran",
-              "field_name": "chVetBedInventory"
+              "_old_field_name": "chVetBedInventory"
             },
             {
               "type": "INTEGER",
               "link_id": "youth-beds",
               "text": "Youth",
-              "field_name": "youthBedInventory"
+              "_old_field_name": "youthBedInventory"
             },
             {
               "type": "INTEGER",
               "link_id": "youth-vet-beds",
               "text": "Youth Veteran",
-              "field_name": "youthVetBedInventory"
+              "_old_field_name": "youthVetBedInventory"
             },
             {
               "type": "INTEGER",
               "link_id": "ch-youth-beds",
               "text": "Chronic Youth",
-              "field_name": "chYouthBedInventory"
+              "_old_field_name": "chYouthBedInventory"
             },
             {
               "type": "INTEGER",
               "link_id": "other-beds",
               "text": "Other",
-              "field_name": "otherBedInventory"
+              "_old_field_name": "otherBedInventory"
             },
             {
               "type": "DISPLAY",
               "link_id": "sum",
               "text": "Total Bed Count",
-              "field_name": "bedInventory"
+              "_old_field_name": "bedInventory"
             }
           ]
         }
