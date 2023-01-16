@@ -55,9 +55,9 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     left_outer_joins(:wip).where(editable_wip.or(editable_enrollment))
   end
 
-  scope :in_project_including_wip, ->(project) do
-    wip_enrollments = wip_t[:project_id].in(project.id)
-    actual_enrollments = e_t[:ProjectID].in(project.project_id)
+  scope :in_project_including_wip, ->(ids, project_ids) do
+    wip_enrollments = wip_t[:project_id].in(Array.wrap(ids))
+    actual_enrollments = e_t[:ProjectID].in(Array.wrap(project_ids))
 
     left_outer_joins(:wip).where(wip_enrollments.or(actual_enrollments))
   end
