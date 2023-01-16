@@ -81,6 +81,6 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   end
 
   def enrollments
-    Hmis::Hud::Enrollment.in_project_including_wip(self)
+    Hmis::Hud::Enrollment.in_project_including_wip(id, project_id)
   end
 end
