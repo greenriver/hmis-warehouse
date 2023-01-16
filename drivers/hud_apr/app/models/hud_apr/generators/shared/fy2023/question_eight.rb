@@ -193,9 +193,13 @@ module HudApr::Generators::Shared::Fy2023
     end
 
     private def pit_universe(month:)
+      # NOTE: from AirTable Issue 31, this needs to find households based on any
+      # client active on the pit date, then return the HoH for those households.
+      # This will catch the edge case where an HoH left, but other members remain
       heads_of_household = universe.members.where(a_t[:head_of_household].eq(true))
       pit_date = pit_date(month: month, before: @report.end_date)
-      heads_of_household.where("pit_enrollments ? '#{pit_date}'")
+      active_members = universe.members.where("pit_enrollments ? '#{pit_date}'")
+      heads_of_household.where(a_t[:household_id].in(active_members.pluck(a_t[:household_id])))
     end
   end
 end

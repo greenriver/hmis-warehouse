@@ -27,7 +27,7 @@ RSpec.shared_context 'datalab sso coc apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'apr/sso_coc',
         question: 'Q5a',
-        # Pending AirTable from 1/13/2023 LOT Method 1 – Using Start/Exit Dates
+        # Pending AirTable from 1/13/2023 LOT Method 1 – Using Start/Exit Dates Issue ID 25
         skip: [
           'B17',
           'C17',
@@ -53,7 +53,7 @@ RSpec.shared_context 'datalab sso coc apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'apr/sso_coc',
         question: 'Q6c',
-        # Pending AirTable submitted 1/13/2023
+        # Pending AirTable submitted 1/13/2023 Issue ID 26
         skip: [
           'B5',
           'C5',
@@ -271,7 +271,7 @@ RSpec.shared_context 'datalab sso coc apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'apr/sso_coc',
         question: 'Q19a2',
-        # Pending AirTable submitted 1/13/2023
+        # Pending AirTable submitted 1/13/2023 Issue ID 27 and 36
         skip: [
           'B4',
           'G4',

@@ -135,8 +135,8 @@ RSpec.shared_context 'datalab th coc apr', shared_context: :metadata do
         question: 'Q8b',
         # Pending AirTable regarding client with Exit in May but counted for July
         skip: [
-          'B4',
-          'D4',
+          # 'B4',
+          # 'D4',
         ],
       )
     end
@@ -496,7 +496,7 @@ RSpec.shared_context 'datalab th coc apr', shared_context: :metadata do
     end
 
     # Pending AirTable regarding children of CH HoH submitted 1/14/2023
-    xit 'Q26d' do
+    it 'Q26d' do
       compare_results(
         file_path: result_file_prefix + 'apr/th_coc',
         question: 'Q26d',

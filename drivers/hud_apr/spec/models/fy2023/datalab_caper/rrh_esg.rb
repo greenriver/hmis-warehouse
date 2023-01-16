@@ -215,6 +215,13 @@ RSpec.shared_context 'datalab rrh esg caper', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'caper/rrh_esg',
         question: 'Q16',
+        # Pending AirTable submitted 1/16/2023 Issue ID 37
+        skip: [
+          'B2',
+          'D2',
+          'B11',
+          'D11',
+        ],
       )
     end
 
@@ -229,6 +236,12 @@ RSpec.shared_context 'datalab rrh esg caper', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'caper/rrh_esg',
         question: 'Q19b',
+        # Pending AAQ: https://www.hudexchange.info/program-support/my-question/?askaquestionaction=public%3Amain.answer&key=99B4E7C1-9C9A-4C5C-877330D949FEE8A7
+        skip: [
+          'B13',
+          'D13',
+          'E13',
+        ],
       )
     end
 
@@ -257,6 +270,11 @@ RSpec.shared_context 'datalab rrh esg caper', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'caper/rrh_esg',
         question: 'Q22c',
+        # Pending AirTable submitted 1/16/2023 Issue ID 38
+        skip: [
+          'B11',
+          'C11',
+        ],
       )
     end
 

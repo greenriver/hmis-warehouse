@@ -149,7 +149,9 @@ module HudApr::Generators::Shared::Fy2023
     private def dob_quality(table_name:)
       # DOB DK/R
       answer = @report.answer(question: table_name, cell: 'B4')
-      dkr_members = dq_universe_members.where(a_t[:dob_quality].in([8, 9]))
+      dkr_members = dq_universe_members.where(
+        a_t[:dob].eq(nil).and(a_t[:dob_quality].in([8, 9])),
+      )
       answer.add_members(dkr_members)
       answer.update(summary: dkr_members.count)
 

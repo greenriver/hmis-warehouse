@@ -319,7 +319,7 @@ RSpec.shared_context 'datalab rrh coc 2 apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'apr/rrh_coc_2',
         question: 'Q22c',
-        # Pending AirTable question (1/13/2023)
+        # Pending AirTable question (1/13/2023) Issue ID 23
         skip: [
           'B11',
           'C11',
@@ -352,7 +352,7 @@ RSpec.shared_context 'datalab rrh coc 2 apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'apr/rrh_coc_2',
         question: 'Q25b',
-        # pending AirTable from 1/13/2023 regarding ChildrenOnly household
+        # pending AirTable from 1/13/2023 regarding ChildrenOnly household  Issue ID 24
         skip: [
           'B6',
           'B7',

@@ -34,7 +34,7 @@ RSpec.shared_context 'datalab es ee esg caper', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'caper/es_ee_esg',
         question: 'Q6a',
-        # Pending AirTable, client 705787 does not have an SSN, but not included in D3
+        # Pending AirTable, client 705787 does not have an SSN, but not included in D3, Issue ID 32
         skip: [
           'D3',
         ],

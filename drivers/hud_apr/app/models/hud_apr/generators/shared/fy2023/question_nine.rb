@@ -133,7 +133,17 @@ module HudApr::Generators::Shared::Fy2023
           member_ids = candidates.select do |client_id, v|
             client = clients[client_id]
             clses = v.select do |cls|
-              cls[:information_date] >= client.first_date_in_program &&
+              (
+                # For actual CLS, they must occur after project start
+                cls[:information_date] >= client.first_date_in_program ||
+                # If the client was engaged before entry, and there was no CLS on the date of engagement, we added one, make sure to include it
+                # NOTE, there is a "corner" case where a client only has a CLS on their date of engagement of situation 37, where we might count
+                # them and really shouldn't
+                client.date_of_engagement.present? &&
+                client.date_of_engagement < client.first_date_in_program &&
+                cls[:information_date] == client.date_of_engagement &&
+                cls[:living_situation] == 37
+              ) &&
               (client.last_date_in_program.blank? || cls[:information_date] <= client.last_date_in_program) &&
               (client.date_of_engagement.blank? || cls[:information_date] <= client.date_of_engagement) &&
               cls[:information_date] <= @report.end_date
