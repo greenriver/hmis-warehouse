@@ -247,6 +247,7 @@ enum BoundType {
 HUD Client
 """
 type Client {
+  assessments(limit: Int, offset: Int, role: AssessmentRole, sortOrder: AssessmentSortOption): AssessmentsPaginated!
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
@@ -1270,6 +1271,7 @@ type Enrollment {
   events(limit: Int, offset: Int, sortOrder: EventSortOption): EventsPaginated!
   exitDate: ISO8601Date
   household: Household!
+  householdSize: Int!
   id: ID!
   inProgress: Boolean!
   lengthOfStay: ResidencePriorLengthOfStay
@@ -3192,6 +3194,7 @@ type Project {
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
   description: String
+  enrollments(includeInProgress: Boolean, limit: Int, offset: Int, sortOrder: EnrollmentSortOption): EnrollmentsPaginated!
   funders(limit: Int, offset: Int, sortOrder: FunderSortOption): FundersPaginated!
   housingType: HousingType
   id: ID!

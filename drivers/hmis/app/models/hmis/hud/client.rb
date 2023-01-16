@@ -57,6 +57,14 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     visible_to(user)
   end
 
+  def assessments_including_wip
+    enrollment_ids = enrollments.pluck(:id, :enrollment_id)
+    wip_assessments = wip_t[:enrollment_id].in(enrollment_ids.map(&:first))
+    completed_assessments = as_t[:enrollment_id].in(enrollment_ids.map(&:second))
+
+    Hmis::Hud::Assessment.left_outer_joins(:wip).where(completed_assessments.or(wip_assessments))
+  end
+
   def self.source_for(destination_id:, user:)
     source_id = GrdaWarehouse::WarehouseClient.find_by(destination_id: destination_id, data_source_id: user.hmis_data_source_id).source_id
     return nil unless source_id.present?

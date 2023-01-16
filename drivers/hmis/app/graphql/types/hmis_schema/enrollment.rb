@@ -25,6 +25,7 @@ module Types
     events_field
     services_field
     field :household, HmisSchema::Household, null: false
+    field :household_size, Integer, null: false
     field :client, HmisSchema::Client, null: false
     hud_field :relationship_to_ho_h, HmisSchema::Enums::Hud::RelationshipToHoH, null: false
     field :living_situation, HmisSchema::Enums::Hud::LivingSituation
@@ -57,6 +58,12 @@ module Types
       return nil unless object.household_id.present?
 
       Hmis::Hud::Enrollment.where(household_id: object.household_id).preload(:client)
+    end
+
+    def household_size
+      return 1 unless object.household_id.present?
+
+      Hmis::Hud::Enrollment.where(household_id: object.household_id).count
     end
 
     def in_progress

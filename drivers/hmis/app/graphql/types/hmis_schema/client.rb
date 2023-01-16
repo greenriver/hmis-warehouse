@@ -13,6 +13,7 @@ module Types
     include Types::HmisSchema::HasDisabilities
     include Types::HmisSchema::HasDisabilityGroups
     include Types::HmisSchema::HasHealthAndDvs
+    include Types::HmisSchema::HasAssessments
 
     def self.configuration
       Hmis::Hud::Client.hmis_configuration(version: '2022')
@@ -41,6 +42,7 @@ module Types
     disabilities_field
     disability_groups_field
     health_and_dvs_field
+    assessments_field
     hud_field :date_updated
     hud_field :date_created
     hud_field :date_deleted
@@ -64,6 +66,10 @@ module Types
 
     def health_and_dvs(**args)
       resolve_health_and_dvs(**args)
+    end
+
+    def assessments(**args)
+      resolve_assessments_including_wip(**args)
     end
 
     def pronouns
