@@ -73,6 +73,11 @@ enum AssessmentLevel {
   (2) Housing Needs Assessment
   """
   HOUSING_NEEDS_ASSESSMENT
+
+  """
+  Invalid Value
+  """
+  INVALID
 }
 
 """
@@ -108,6 +113,11 @@ enum AssessmentSortOption {
 4.19.3
 """
 enum AssessmentType {
+  """
+  Invalid Value
+  """
+  INVALID
+
   """
   (3) In Person
   """
@@ -161,6 +171,11 @@ type AutofillValue {
 2.07.6
 """
 enum Availability {
+  """
+  Invalid Value
+  """
+  INVALID
+
   """
   (3) Overflow
   """
@@ -216,6 +231,11 @@ enum BedType {
   (1) Facility-based
   """
   FACILITY_BASED
+
+  """
+  Invalid Value
+  """
+  INVALID
 
   """
   (3) Other
@@ -723,6 +743,11 @@ enum DOBDataQuality {
   (1) Full DOB reported
   """
   FULL_DOB_REPORTED
+
+  """
+  Invalid Value
+  """
+  INVALID
 }
 
 enum DataCollectedAbout {
@@ -743,6 +768,11 @@ enum DataCollectionStage {
   (5) Annual assessment
   """
   ANNUAL_ASSESSMENT
+
+  """
+  Invalid Value
+  """
+  INVALID
 
   """
   (6) Post-exit
@@ -1141,6 +1171,11 @@ enum DisabilityResponse {
   DRUG_USE_DISORDER
 
   """
+  Invalid Value
+  """
+  INVALID
+
+  """
   (0) No
   """
   NO
@@ -1164,6 +1199,11 @@ enum DisabilityType {
   (8) HIV/AIDS
   """
   HIV_AIDS
+
+  """
+  Invalid Value
+  """
+  INVALID
 
   """
   (9) Mental health disorder
@@ -1336,6 +1376,11 @@ enum Ethnicity {
   HISPANIC_LATIN_A_O_X
 
   """
+  Invalid Value
+  """
+  INVALID
+
+  """
   (0) Non-Hispanic/Non-Latin(a)(o)(x)
   """
   NON_HISPANIC_NON_LATIN_A_O_X
@@ -1372,6 +1417,11 @@ enum EventSortOption {
 4.20.2
 """
 enum EventType {
+  """
+  Invalid Value
+  """
+  INVALID
+
   """
   (2) Problem Solving/Diversion/Rapid Resolution intervention or service
   """
@@ -1496,6 +1546,11 @@ enum FeelingFrequency {
   (99) Data not collected
   """
   DATA_NOT_COLLECTED
+
+  """
+  Invalid Value
+  """
+  INVALID
 
   """
   (0) Not at all
@@ -1892,6 +1947,11 @@ enum FundingSource {
   HUD_RURAL_HOUSING_STABILITY_ASSISTANCE_PROGRAM
 
   """
+  Invalid Value
+  """
+  INVALID
+
+  """
   (46) Local or Other Funding Source
   """
   LOCAL_OR_OTHER_FUNDING_SOURCE
@@ -2007,6 +2067,11 @@ enum Gender {
 """
 enum GeographyType {
   """
+  Invalid Value
+  """
+  INVALID
+
+  """
   (3) Rural
   """
   RURAL
@@ -2031,6 +2096,11 @@ enum GeographyType {
 2.02.9
 """
 enum HOPWAMedAssistedLivingFac {
+  """
+  Invalid Value
+  """
+  INVALID
+
   """
   (0) No
   """
@@ -2116,6 +2186,11 @@ enum HealthStatus {
   GOOD
 
   """
+  Invalid Value
+  """
+  INVALID
+
+  """
   (5) Poor
   """
   POOR
@@ -2162,12 +2237,22 @@ enum HouseholdType {
   (4) Households with only children
   """
   HOUSEHOLDS_WITH_ONLY_CHILDREN
+
+  """
+  Invalid Value
+  """
+  INVALID
 }
 
 """
 2.02.D
 """
 enum HousingType {
+  """
+  Invalid Value
+  """
+  INVALID
+
   """
   (2) Site-based - clustered / multiple sites
   """
@@ -2490,6 +2575,11 @@ enum LivingSituation {
   INTERIM_HOUSING
 
   """
+  Invalid Value
+  """
+  INVALID
+
+  """
   (7) Jail, prison or juvenile detention facility
   """
   JAIL_PRISON_OR_JUVENILE_DETENTION_FACILITY
@@ -2649,6 +2739,11 @@ enum MonthsHomelessPastThreeYears {
   (99) Data not collected
   """
   DATA_NOT_COLLECTED
+
+  """
+  Invalid Value
+  """
+  INVALID
 
   """
   (113) More than 12 months
@@ -2968,6 +3063,11 @@ enum NameDataQuality {
   FULL_NAME_REPORTED
 
   """
+  Invalid Value
+  """
+  INVALID
+
+  """
   (2) Partial, street name, or code name reported
   """
   PARTIAL_STREET_NAME_OR_CODE_NAME_REPORTED
@@ -3011,6 +3111,11 @@ enum NoAssistanceReason {
   (4) Insurance type not applicable for this client
   """
   INSURANCE_TYPE_NOT_APPLICABLE_FOR_THIS_CLIENT
+
+  """
+  Invalid Value
+  """
+  INVALID
 }
 
 """
@@ -3021,6 +3126,11 @@ enum NoYesMissing {
   (99) Data not collected
   """
   DATA_NOT_COLLECTED
+
+  """
+  Invalid Value
+  """
+  INVALID
 
   """
   (0) No
@@ -3051,6 +3161,11 @@ enum NoYesReasonsForMissingData {
   (99) Data not collected
   """
   DATA_NOT_COLLECTED
+
+  """
+  Invalid Value
+  """
+  INVALID
 
   """
   (0) No
@@ -3115,6 +3230,11 @@ enum PATHReferralOutcome {
   ATTAINED
 
   """
+  Invalid Value
+  """
+  INVALID
+
+  """
   (2) Not attained
   """
   NOT_ATTAINED
@@ -3173,6 +3293,11 @@ enum PickListType {
 4.19.7
 """
 enum PrioritizationStatus {
+  """
+  Invalid Value
+  """
+  INVALID
+
   """
   (2) Not placed on prioritization list
   """
@@ -3306,6 +3431,11 @@ enum ProjectType {
   Emergency Shelter
   """
   ES
+
+  """
+  Invalid Value
+  """
+  INVALID
 
   """
   Permanent Housing Only
@@ -3528,6 +3658,11 @@ enum ReasonNotInsured {
   (4) Insurance type N/A for this client
   """
   INSURANCE_TYPE_N_A_FOR_THIS_CLIENT
+
+  """
+  Invalid Value
+  """
+  INVALID
 }
 
 """
@@ -3570,6 +3705,11 @@ enum RecordType {
   HUD_VASH_OTH_VOUCHER_TRACKING
 
   """
+  Invalid Value
+  """
+  INVALID
+
+  """
   (161) PATH referral
   """
   PATH_REFERRAL
@@ -3604,6 +3744,11 @@ enum RecordType {
 4.20.D
 """
 enum ReferralResult {
+  """
+  Invalid Value
+  """
+  INVALID
+
   """
   (1) Successful referral: client accepted
   """
@@ -3685,6 +3830,11 @@ enum RelationshipToHoH {
   DATA_NOT_COLLECTED
 
   """
+  Invalid Value
+  """
+  INVALID
+
+  """
   (4) Other relative
   """
   OTHER_RELATIVE
@@ -3723,6 +3873,11 @@ enum ResidencePriorLengthOfStay {
   (99) Data not collected
   """
   DATA_NOT_COLLECTED
+
+  """
+  Invalid Value
+  """
+  INVALID
 
   """
   (4) 90 days or more but less than one year
@@ -3783,6 +3938,11 @@ enum SSNDataQuality {
   (1) Full SSN reported
   """
   FULL_SSN_REPORTED
+
+  """
+  Invalid Value
+  """
+  INVALID
 }
 
 """
@@ -3877,6 +4037,11 @@ enum ServiceSortOption {
 HUD Service TypeProvided:SubTypeProvided aggregate (V2.A, V2.B, V2.C)
 """
 enum ServiceSubTypeProvided {
+  """
+  Invalid Value
+  """
+  INVALID
+
   """
   (12) Child care
   """
@@ -4206,6 +4371,11 @@ enum ServiceTypeProvided {
   (6) Voucher was ported locally
   """
   HUD_VASH_OTH_VOUCHER_TRACKING__VOUCHER_WAS_PORTED_LOCALLY
+
+  """
+  Invalid Value
+  """
+  INVALID
 
   """
   (1) Community mental health
@@ -4596,6 +4766,11 @@ enum TargetPopulation {
   DOMESTIC_VIOLENCE_VICTIMS
 
   """
+  Invalid Value
+  """
+  INVALID
+
+  """
   (4) Not applicable
   """
   NOT_APPLICABLE
@@ -4631,6 +4806,11 @@ enum TimesHomelessPastThreeYears {
   FOUR_OR_MORE_TIMES
 
   """
+  Invalid Value
+  """
+  INVALID
+
+  """
   (1) One time
   """
   ONE_TIME
@@ -4654,6 +4834,11 @@ enum TrackingMethod {
   (0) Entry/Exit Date
   """
   ENTRY_EXIT_DATE
+
+  """
+  Invalid Value
+  """
+  INVALID
 
   """
   (3) Night-by-Night
@@ -5025,6 +5210,11 @@ enum WellbeingAgreement {
   DATA_NOT_COLLECTED
 
   """
+  Invalid Value
+  """
+  INVALID
+
+  """
   (2) Neither agree nor disagree
   """
   NEITHER_AGREE_NOR_DISAGREE
@@ -5068,6 +5258,11 @@ enum WhenDVOccurred {
   (99) Data not collected
   """
   DATA_NOT_COLLECTED
+
+  """
+  Invalid Value
+  """
+  INVALID
 
   """
   (4) One year or more

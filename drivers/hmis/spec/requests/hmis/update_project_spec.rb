@@ -129,6 +129,24 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(p1.HMISParticipatingProject).to eq(99)
       end
     end
+
+    it 'should fail if any fields are INVALID' do
+      input = {
+        project_type: 'INVALID',
+        housing_type: 'INVALID',
+      }
+      response, result = post_graphql(id: p1.id, input: input, confirmed: false) { mutation }
+
+      aggregate_failures 'checking response' do
+        expect(response.status).to eq 200
+        errors = result.dig('data', 'updateProject', 'errors')
+        expect(errors.length).to eq(2)
+        expect(errors[0]['attribute']).to eq('projectType')
+        expect(errors[0]['type']).to eq('invalid')
+        expect(errors[1]['attribute']).to eq('housingType')
+        expect(errors[1]['type']).to eq('invalid')
+      end
+    end
   end
 
   describe 'with related records' do
