@@ -57,6 +57,14 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     visible_to(user)
   end
 
+  scope :matching_search_term, ->(text_search) do
+    text_searcher(text_search) do |where|
+      where(where)
+    rescue RangeError
+      return none
+    end
+  end
+
   def assessments_including_wip
     enrollment_ids = enrollments.pluck(:id, :enrollment_id)
     wip_assessments = wip_t[:enrollment_id].in(enrollment_ids.map(&:first))
