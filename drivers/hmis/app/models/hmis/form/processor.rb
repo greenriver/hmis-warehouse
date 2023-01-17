@@ -10,15 +10,15 @@ class Hmis::Form::Processor < ::GrdaWarehouseBase
   has_one :assessment_detail
 
   # assessment is accessed through the assessment_detail
-  belongs_to :health_and_dv, class_name: 'Hmis::Hud::HealthAndDv', foreign_key: :HealthAndDVID
-  belongs_to :income_benefit, class_name: 'Hmis::Hud::IncomeBenefit', foreign_key: :IncomeBenefitID
-  belongs_to :enrollment_coc, class_name: 'Hmis::Hud::EnrollmentCoc', foreign_key: :EnrollmentCocID
-  belongs_to :physical_disability, class_name: 'Hmis::Hud::Disability', foreign_key: :DisabilityID
-  belongs_to :developmental_disability, class_name: 'Hmis::Hud::Disability', foreign_key: :DisabilityID
-  belongs_to :chronic_health_condition, class_name: 'Hmis::Hud::Disability', foreign_key: :DisabilityID
-  belongs_to :hiv_aids, class_name: 'Hmis::Hud::Disability', foreign_key: :DisabilityID
-  belongs_to :mental_health_disorder, class_name: 'Hmis::Hud::Disability', foreign_key: :DisabilityID
-  belongs_to :substance_use_disorder, class_name: 'Hmis::Hud::Disability', foreign_key: :DisabilityID
+  belongs_to :health_and_dv, class_name: 'Hmis::Hud::HealthAndDv', primary_key: :HealthAndDVID, optional: true
+  belongs_to :income_benefit, class_name: 'Hmis::Hud::IncomeBenefit', primary_key: :IncomeBenefitID, optional: true
+  belongs_to :enrollment_coc, class_name: 'Hmis::Hud::EnrollmentCoc', primary_key: :EnrollmentCocID, optional: true
+  belongs_to :physical_disability, class_name: 'Hmis::Hud::Disability', primary_key: :DisabilityID, optional: true
+  belongs_to :developmental_disability, class_name: 'Hmis::Hud::Disability', primary_key: :DisabilitiesID, optional: true
+  belongs_to :chronic_health_condition, class_name: 'Hmis::Hud::Disability', primary_key: :DisabilitiesID, optional: true
+  belongs_to :hiv_aids, class_name: 'Hmis::Hud::Disability', primary_key: :DisabilitiesID, optional: true
+  belongs_to :mental_health_disorder, class_name: 'Hmis::Hud::Disability', primary_key: :DisabilitiesID, optional: true
+  belongs_to :substance_use_disorder, class_name: 'Hmis::Hud::Disability', primary_key: :DisabiliesID, optional: true
 
   def run!
     return unless assessment_detail.hud_values.present?

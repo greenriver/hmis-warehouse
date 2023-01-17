@@ -14,7 +14,9 @@ class Hmis::Hud::Processors::Base
   end
 
   def hud_type(field)
-    type = schema.fields(field).type
+    type = schema.fields[field].type
     return nil unless type.respond_to?(:value_for)
+
+    type
   end
 end

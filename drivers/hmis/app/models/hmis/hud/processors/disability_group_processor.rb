@@ -11,13 +11,15 @@ module Hmis::Hud::Processors
       return unless disability_type.present?
 
       disability_value = enum_type.value_for(value)
-      send(disability_type).update_attributes(disability_field => disability_value)
+      @processor.send(disability_type).assign_attributes(disability_field => disability_value)
     end
 
     def field_mapping
       @field_mapping ||= begin
-        standard_enum = Types::HmisSchema::Enums::Hud::DisabilityResponse::NoYesReasonsForMissingData
+        standard_enum = Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData
         {
+          'disablingCondition' => [:enrollment_factory, :disabling_condition, standard_enum],
+
           'physicalDisability' => [:physical_disability_factory, :disability_response, standard_enum],
           'physicalDisabilityIndefiniteAndImpairs' => [:physical_disability_factory, :indefinite_and_impairs, standard_enum],
 

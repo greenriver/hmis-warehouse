@@ -18,7 +18,7 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
   belongs_to :enrollment, **hmis_relation(:EnrollmentID, 'Enrollment')
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :assessments
-  has_one :assessment_detail, class_name: 'Hmis::Form::AssessmentDetail'
+  has_one :assessment_detail, class_name: 'Hmis::Form::AssessmentDetail', autosave: true
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   has_one :wip, class_name: 'Hmis::Wip', as: :source
 
@@ -119,7 +119,6 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
       data_collection_stage: Types::HmisSchema::Enums::AssessmentRole.as_data_collection_stage(form_definition.role),
       status: 'draft',
     )
-    new_assessment.assessment_detail.processor.build
 
     new_assessment
   end
