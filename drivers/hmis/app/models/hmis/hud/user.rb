@@ -21,11 +21,10 @@ class Hmis::Hud::User < Hmis::Hud::Base
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
   def self.from_user(user)
-    Hmis::Hud::User.where(user_email: user.email, data_source_id: user.hmis_data_source_id).first_or_create do |u|
-      u.user_id = user.id
+    Hmis::Hud::User.where(user_id: user.id, data_source_id: user.hmis_data_source_id).first_or_create do |u|
+      u.user_email = user.email
       u.user_first_name = user.first_name
       u.user_last_name = user.last_name
-      u.data_source_id = user.hmis_data_source_id
     end
   end
 end
