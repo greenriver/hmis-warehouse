@@ -1,6 +1,9 @@
 {
   "item": [
     {
+      "fragment": "#destination"
+    },
+    {
       "fragment": "#income_and_sources"
     },
     {
@@ -11,9 +14,6 @@
     },
     {
       "fragment": "#disability"
-    },
-    {
-      "fragment": "#destination"
     }
   ]
 }

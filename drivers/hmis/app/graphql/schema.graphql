@@ -247,6 +247,7 @@ enum BoundType {
 HUD Client
 """
 type Client {
+  assessments(limit: Int, offset: Int, role: AssessmentRole, sortOrder: AssessmentSortOption): AssessmentsPaginated!
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
@@ -1270,10 +1271,12 @@ type Enrollment {
   events(limit: Int, offset: Int, sortOrder: EventSortOption): EventsPaginated!
   exitDate: ISO8601Date
   household: Household!
+  householdSize: Int!
   id: ID!
   inProgress: Boolean!
   lengthOfStay: ResidencePriorLengthOfStay
   livingSituation: LivingSituation
+  losUnderThreshold: NoYesMissing
   monthsHomelessPastThreeYears: MonthsHomelessPastThreeYears
   previousStreetEssh: Boolean
   project: Project!
@@ -3011,6 +3014,26 @@ enum NoAssistanceReason {
 }
 
 """
+1.7
+"""
+enum NoYesMissing {
+  """
+  (99) Data not collected
+  """
+  DATA_NOT_COLLECTED
+
+  """
+  (0) No
+  """
+  NO
+
+  """
+  (1) Yes
+  """
+  YES
+}
+
+"""
 1.8
 """
 enum NoYesReasonsForMissingData {
@@ -3138,6 +3161,7 @@ enum PickListType {
   AVAILABLE_UNITS
   COC
   CURRENT_LIVING_SITUATION
+  DESTINATION
   GEOCODE
   ORGANIZATION
   PRIOR_LIVING_SITUATION
@@ -3170,6 +3194,7 @@ type Project {
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
   description: String
+  enrollments(includeInProgress: Boolean, limit: Int, offset: Int, sortOrder: EnrollmentSortOption): EnrollmentsPaginated!
   funders(limit: Int, offset: Int, sortOrder: FunderSortOption): FundersPaginated!
   housingType: HousingType
   id: ID!
