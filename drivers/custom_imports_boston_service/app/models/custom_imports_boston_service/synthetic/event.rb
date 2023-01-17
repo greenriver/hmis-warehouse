@@ -151,19 +151,23 @@ module CustomImportsBostonService::Synthetic
     end
 
     def self.add_new_and_update_existing
-      rows = CustomImportsBostonService::Row.joins(:service).
-        event_eligible.
-        preload(:enrollment, client: :destination_client)
-      rows.find_in_batches do |batch|
-        event_batch = build_event_batch(batch)
+      ranges = CustomImportsBostonService::Row.event_eligible.distinct.pluck(:reporting_period_started_on, :reporting_period_ended_on)
+      ranges.each do |report_start, report_end|
+        rows = CustomImportsBostonService::Row.where(reporting_period_started_on: report_start, reporting_period_ended_on: report_end).
+          joins(:service).
+          event_eligible.
+          preload(:enrollment, client: :destination_client)
+        rows.find_in_batches do |batch|
+          event_batch = build_event_batch(batch)
 
-        CustomImportsBostonService::Synthetic::Event.import(
-          event_batch,
-          on_duplicate_key_update: {
-            conflict_target: [:source_id, :source_type],
-            columns: [:enrollment_id, :client_id, :calculated_referral_date, :calculated_referral_result],
-          },
-        )
+          CustomImportsBostonService::Synthetic::Event.import(
+            event_batch,
+            on_duplicate_key_update: {
+              conflict_target: [:source_id, :source_type],
+              columns: [:enrollment_id, :client_id, :calculated_referral_date, :calculated_referral_result],
+            },
+          )
+        end
       end
     end
   end
