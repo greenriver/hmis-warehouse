@@ -4888,6 +4888,7 @@ input UpdateBedsInput {
   A unique identifier for the client performing the mutation.
   """
   clientMutationId: String
+  gender: String
   inventoryId: ID!
   name: String
   unit: ID
