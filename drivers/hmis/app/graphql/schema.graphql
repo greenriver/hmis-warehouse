@@ -247,7 +247,7 @@ enum BoundType {
 HUD Client
 """
 type Client {
-  assessments(limit: Int, offset: Int, role: AssessmentRole, sortOrder: AssessmentSortOption): AssessmentsPaginated!
+  assessments(inProgress: Boolean, limit: Int, offset: Int, roles: [AssessmentRole!], sortOrder: AssessmentSortOption): AssessmentsPaginated!
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
@@ -1260,7 +1260,7 @@ type EnableWhen {
 HUD Enrollment
 """
 type Enrollment {
-  assessments(limit: Int, offset: Int, role: AssessmentRole, sortOrder: AssessmentSortOption): AssessmentsPaginated!
+  assessments(inProgress: Boolean, limit: Int, offset: Int, roles: [AssessmentRole!], sortOrder: AssessmentSortOption): AssessmentsPaginated!
   client: Client!
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
