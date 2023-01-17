@@ -113,7 +113,7 @@ RSpec.describe Hmis::Form::Processor, type: :model do
       assessment.save_not_in_progress
 
       assessment.assessment_detail.hud_values = {
-        'EnrollmentCoc.cocCode ' => nil,
+        'EnrollmentCoc.cocCode' => nil,
       }
 
       assessment.assessment_detail.processor.run!
