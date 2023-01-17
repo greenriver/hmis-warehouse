@@ -11,6 +11,7 @@ module Types
     include Types::HmisSchema::HasInventories
     include Types::HmisSchema::HasProjectCocs
     include Types::HmisSchema::HasFunders
+    include Types::HmisSchema::HasEnrollments
 
     def self.configuration
       Hmis::Hud::Project.hmis_configuration(version: '2022')
@@ -38,6 +39,11 @@ module Types
     hud_field :date_created
     hud_field :date_deleted
     field :active, Boolean, null: false
+    enrollments_field without_args: [:project_types]
+
+    def enrollments(**args)
+      resolve_enrollments(**args)
+    end
 
     def organization
       load_ar_association(object, :organization)

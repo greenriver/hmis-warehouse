@@ -17,6 +17,7 @@ module Types
     value 'STATE'
     value 'PRIOR_LIVING_SITUATION'
     value 'CURRENT_LIVING_SITUATION'
+    value 'DESTINATION'
     value 'AVAILABLE_UNITS'
   end
 end

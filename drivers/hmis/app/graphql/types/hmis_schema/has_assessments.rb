@@ -17,7 +17,8 @@ module Types
           field_options = default_field_options.merge(override_options)
           field(name, **field_options) do
             argument :sort_order, Types::HmisSchema::AssessmentSortOption, required: false
-            argument :role, HmisSchema::Enums::AssessmentRole, required: false
+            argument :roles, [HmisSchema::Enums::AssessmentRole], required: false
+            argument :in_progress, GraphQL::Types::Boolean, required: false
             instance_eval(&block) if block_given?
           end
         end
@@ -37,10 +38,12 @@ module Types
 
       private
 
-      def scoped_assessments(scope, sort_order: nil, role: nil)
+      def scoped_assessments(scope, sort_order: nil, roles: nil, in_progress: nil)
         scope = scope.viewable_by(current_user)
         scope = scope.sort_by_option(sort_order) if sort_order.present?
-        scope = scope.with_role(role) if role.present?
+        scope = scope.with_role(roles) if roles.present?
+        scope = scope.in_progress if in_progress == true
+        scope = scope.not_in_progress if in_progress == false
         scope
       end
     end

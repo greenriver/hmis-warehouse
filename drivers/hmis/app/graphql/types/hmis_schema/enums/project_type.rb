@@ -24,5 +24,6 @@ module Types
     value 'PREVENTION', 'Homelessness Prevention', value: 12
     value 'RRH', 'Rapid Re-Housing', value: 13
     value 'CE', 'Coordinated Entry', value: 14
+    invalid_value
   end
 end

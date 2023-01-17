@@ -75,6 +75,46 @@
       ]
     },
     {
+      "type": "DISPLAY",
+      "hidden": true,
+      "link_id": "los-threshold",
+      "field_name": "losUnderThreshold",
+      "autofill_values": [
+        {
+          "_comment": "LOS is above the threshold if either of the 'break' display notices are shown",
+          "value_boolean": false,
+          "autofill_behavior": "ANY",
+          "autofill_when": [
+            {
+              "question": "3.917.A",
+              "operator": "ENABLED"
+            },
+            {
+              "question": "3.917.B",
+              "operator": "ENABLED"
+            }
+          ]
+        },
+        {
+          "_comment": "LOS is under the threshold if neither 'break' display notices are shown, AND Living Situation and LOS have both been filled in",
+          "value_boolean": true,
+          "autofill_behavior": "ALL",
+          "autofill_when": [
+            {
+              "question": "3.917.2",
+              "operator": "EXISTS",
+              "answer_boolean": true
+            },
+            {
+              "question": "3.917.1",
+              "operator": "EXISTS",
+              "answer_boolean": true
+            }
+          ]
+        }
+      ]
+    },
+    {
       "type": "BOOLEAN",
       "link_id": "3.917.C",
       "field_name": "previousStreetEssh",
