@@ -11,6 +11,6 @@ class Hmis::Form::AssessmentDetail < ::GrdaWarehouseBase
   belongs_to :definition
 
   scope :with_role, ->(role) do
-    where(role: role)
+    where(role: Array.wrap(role))
   end
 end
