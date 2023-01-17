@@ -275,7 +275,7 @@ type Client {
   disabilityGroups: [DisabilityGroup!]!
   dob: ISO8601Date
   dobDataQuality: DOBDataQuality!
-  enrollments(clientSearchTerm: String, includeInProgress: Boolean, limit: Int, offset: Int, projectTypes: [ProjectType!], sortOrder: EnrollmentSortOption): EnrollmentsPaginated!
+  enrollments(includeInProgress: Boolean, limit: Int, offset: Int, projectTypes: [ProjectType!], sortOrder: EnrollmentSortOption): EnrollmentsPaginated!
   ethnicity: Ethnicity!
   firstName: String
   gender: [Gender!]!
@@ -3189,7 +3189,7 @@ type Organization {
   description: String
   id: ID!
   organizationName: String!
-  projects(limit: Int, offset: Int, projectTypes: [ProjectType!], sortOrder: ProjectSortOption): ProjectsPaginated!
+  projects(limit: Int, offset: Int, projectTypes: [ProjectType!], searchTerm: String, sortOrder: ProjectSortOption): ProjectsPaginated!
   victimServiceProvider: Boolean
 }
 
@@ -3319,7 +3319,7 @@ type Project {
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
   description: String
-  enrollments(clientSearchTerm: String, includeInProgress: Boolean, limit: Int, offset: Int, projectTypes: [ProjectType!], sortOrder: EnrollmentSortOption): EnrollmentsPaginated!
+  enrollments(clientSearchTerm: String, includeInProgress: Boolean, limit: Int, offset: Int, sortOrder: EnrollmentSortOption): EnrollmentsPaginated!
   funders(limit: Int, offset: Int, sortOrder: FunderSortOption): FundersPaginated!
   housingType: HousingType
   id: ID!
@@ -3388,21 +3388,6 @@ input ProjectInput {
   residentialAffiliation: Boolean
   targetPopulation: TargetPopulation
   trackingMethod: TrackingMethod
-}
-
-"""
-HMIS Project search input
-"""
-input ProjectSearchInput {
-  """
-  Project primary key
-  """
-  id: ID
-
-  """
-  Omnisearch string
-  """
-  textSearch: String
 }
 
 """
@@ -3543,10 +3528,6 @@ type Query {
   Organization lookup
   """
   organization(id: ID!): Organization
-
-  """
-  Get a list of organizations
-  """
   organizations(limit: Int, offset: Int, sortOrder: OrganizationSortOption): OrganizationsPaginated!
 
   """
@@ -3563,16 +3544,7 @@ type Query {
   Project CoC lookup
   """
   projectCoc(id: ID!): ProjectCoc
-
-  """
-  Search for projects
-  """
-  projectSearch(input: ProjectSearchInput!, limit: Int, offset: Int, projectTypes: [ProjectType!], sortOrder: ProjectSortOption): ProjectsPaginated!
-
-  """
-  Get a list of projects
-  """
-  projects(limit: Int, offset: Int, projectTypes: [ProjectType!], sortOrder: ProjectSortOption): ProjectsPaginated!
+  projects(limit: Int, offset: Int, projectTypes: [ProjectType!], searchTerm: String, sortOrder: ProjectSortOption): ProjectsPaginated!
 }
 
 """

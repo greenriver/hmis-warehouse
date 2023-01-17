@@ -39,7 +39,7 @@ module Types
     hud_field :date_created
     hud_field :date_deleted
     field :active, Boolean, null: false
-    enrollments_field
+    enrollments_field without_args: [:project_types]
 
     def enrollments(**args)
       resolve_enrollments(**args)

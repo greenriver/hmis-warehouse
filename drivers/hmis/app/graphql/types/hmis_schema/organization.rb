@@ -13,7 +13,7 @@ module Types
     description 'HUD Organization'
     field :id, ID, null: false
     field :organization_name, String, null: false
-    projects_field :projects, type: Types::HmisSchema::Project.page_type
+    projects_field :projects
     yes_no_missing_field :victim_service_provider, null: true
     field :description, String, null: true
     field :contact_information, String, null: true
@@ -22,7 +22,7 @@ module Types
     field :date_deleted, GraphQL::Types::ISO8601DateTime, null: true
 
     def projects(**args)
-      resolve_projects_with_loader(:projects, **args)
+      resolve_projects(object.projects, **args)
     end
 
     def self.organizations(scope = Hmis::Hud::Organization.all, user:)
