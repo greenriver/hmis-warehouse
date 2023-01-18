@@ -43,7 +43,8 @@ module HudReports::Ages
 
     private def unknown_ages?(ages)
       ages.any? do |age|
-        age.blank? || age < 1
+        # NOTE: 0 is a valid child age
+        age.blank? || age.negative?
       end
     end
 
@@ -58,7 +59,7 @@ module HudReports::Ages
         '45-54' => a_t[:age].between(45..54),
         '55-61' => a_t[:age].between(55..61),
         '62+' => a_t[:age].gteq(62),
-        "Client Doesn't Know/Client Refused" => a_t[:dob_quality].in([8, 9]),
+        "Client Doesn't Know/Client Refused" => a_t[:dob_quality].in([8, 9]).and(a_t[:dob].eq(nil)),
         'Data Not Collected' => a_t[:dob_quality].eq(99).and(a_t[:dob].eq(nil)),
         'Total' => Arel.sql('1=1'), # include everyone
       }

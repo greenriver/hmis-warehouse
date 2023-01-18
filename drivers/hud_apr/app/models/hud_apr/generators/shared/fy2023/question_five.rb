@@ -158,6 +158,7 @@ module HudApr::Generators::Shared::Fy2023
         end
         # Total clients
         cell = "#{col}2"
+
         answer = @report.answer(question: table_name, cell: cell)
 
         members = universe.members.where(inclusion_clause)
@@ -166,6 +167,8 @@ module HudApr::Generators::Shared::Fy2023
 
         active_questions.each do |data|
           cell = "#{col}#{data[:row]}"
+          next if intentionally_blank.include?(cell)
+
           answer = @report.answer(question: table_name, cell: cell)
           members = universe.members.where(inclusion_clause).where(data[:clause])
           answer.add_members(members)

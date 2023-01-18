@@ -16,7 +16,7 @@ module HudApr::Generators::Shared::Fy2023
       }.freeze
     end
 
-    private def q7a_persons_served
+    private def q7a_persons_served # rubocop:disable Metrics/AbcSize
       table_name = 'Q7a'
       metadata = {
         header_row: header_row,
@@ -85,30 +85,30 @@ module HudApr::Generators::Shared::Fy2023
         # Number of DK/R
         {
           cell: 'B4',
-          clause: a_t[:dob_quality].in([8, 9]),
+          clause: a_t[:dob_quality].in([8, 9]).and(a_t[:dob].eq(nil)),
         },
         # Number of DK/R w/ no children
         {
           cell: 'C4',
-          clause: a_t[:dob_quality].in([8, 9]).
+          clause: a_t[:dob_quality].in([8, 9]).and(a_t[:dob].eq(nil)).
             and(a_t[:household_type].eq(:adults_only)),
         },
         # Number of DK/R w/ children
         {
           cell: 'D4',
-          clause: a_t[:dob_quality].in([8, 9]).
+          clause: a_t[:dob_quality].in([8, 9]).and(a_t[:dob].eq(nil)).
             and(a_t[:household_type].eq(:adults_and_children)),
         },
         # Number of DK/R w/ no adults
         {
           cell: 'E4',
-          clause: a_t[:dob_quality].in([8, 9]).
+          clause: a_t[:dob_quality].in([8, 9]).and(a_t[:dob].eq(nil)).
             and(a_t[:household_type].eq(:children_only)),
         },
         # Number of DK/R in unknown household type
         {
           cell: 'F4',
-          clause: a_t[:dob_quality].in([8, 9]).
+          clause: a_t[:dob_quality].in([8, 9]).and(a_t[:dob].eq(nil)).
             and(a_t[:household_type].eq(:unknown)),
         },
         # Number of NC
