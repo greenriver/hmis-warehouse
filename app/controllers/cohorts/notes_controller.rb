@@ -31,7 +31,7 @@ module Cohorts
       @note.cohort_client.touch
       # send notifications
       if note_params[:send_notification].present? && note_params[:recipients].present?
-        token = Token.tokenize(cohort_cohort_client_cohort_client_notes_path(@cohort, @cohort_client))
+        token = Token.tokenize(cohort_cohort_client_client_notes_path(@cohort, @cohort_client))
         note_params[:recipients].reject(&:blank?).map(&:to_i).each do |id|
           user = User.find(id)
           TokenMailer.note_added(user, token).deliver_later if user.present?
@@ -46,7 +46,7 @@ module Cohorts
       path = if request.xhr?
         cohort_path(@cohort)
       else
-        cohort_cohort_client_cohort_client_notes_path(@cohort, @cohort_client)
+        cohort_cohort_client_client_notes_path(@cohort, @cohort_client)
       end
 
       if @note.destroyable_by current_user
