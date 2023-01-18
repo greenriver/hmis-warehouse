@@ -6,10 +6,8 @@
 
 module Hmis::Hud::Processors
   class EnrollmentProcessor < Base
-    def process(field, value)
-      attribute_name = hud_name(field)
-      attribute_value = hud_type(field)&.value_for(value) || value
-      @processor.enrollment_factory.assign_attributes(attribute_name => attribute_value)
+    def factory_name
+      :enrollment_factory
     end
 
     def schema

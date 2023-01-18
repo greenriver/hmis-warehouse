@@ -9,6 +9,12 @@ class Hmis::Hud::Processors::Base
     @processor = processor
   end
 
+  def process(field, value)
+    attribute_name = hud_name(field)
+    attribute_value = hud_type(field)&.value_for(value) || value # If the HUD type doesn't have a translator, fall back to the DB one
+    @processor.send(factory_name).assign_attributes(attribute_name => attribute_value)
+  end
+
   def hud_name(field)
     field.underscore
   end
@@ -18,5 +24,18 @@ class Hmis::Hud::Processors::Base
     return nil unless type.respond_to?(:value_for)
 
     type
+  end
+
+  # @return [Symbol] the name of the instance factory method on the processor
+  def factory_name
+    raise 'Implement in sub-class'
+  end
+
+  # The GraphQL schema for the HMIS type to translate string values into DB values,
+  # or nil to use the DB translation.
+  #
+  # @return [Class, nil] a schema class that implements respond_to?, or nil
+  def schema
+    raise 'Implement in sub-class'
   end
 end

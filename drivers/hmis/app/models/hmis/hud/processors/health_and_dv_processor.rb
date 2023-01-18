@@ -6,10 +6,8 @@
 
 module Hmis::Hud::Processors
   class HealthAndDvProcessor < Base
-    def process(field, value)
-      attribute_name = hud_name(field)
-      attribute_value = hud_type(field)&.value_for(value) || value
-      @processor.health_and_dv_factory.assign_attributes(attribute_name => attribute_value)
+    def factory_name
+      :health_and_dv_factory
     end
 
     def schema

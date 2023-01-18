@@ -6,10 +6,12 @@
 
 module Hmis::Hud::Processors
   class EnrollmentCocProcessor < Base
-    def process(field, value)
-      attribute_name = hud_name(field)
-      attribute_value = value
-      @processor.enrollment_coc_factory.assign_attributes(attribute_name => attribute_value)
+    def factory_name
+      :enrollment_coc_factory
+    end
+
+    def hud_type(_)
+      nil # No schema, so hud_type is always nil
     end
   end
 end
