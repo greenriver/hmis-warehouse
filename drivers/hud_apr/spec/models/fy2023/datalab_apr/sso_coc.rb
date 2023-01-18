@@ -17,7 +17,6 @@ RSpec.shared_context 'datalab sso coc apr', shared_context: :metadata do
         file_path: result_file_prefix + 'apr/sso_coc',
         question: 'Q4a',
         skip: [
-          'B2', # expected is a name not and ID?
           'L2', # Is the generator name, so not expected to match
         ],
       )
@@ -93,11 +92,6 @@ RSpec.shared_context 'datalab sso coc apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'apr/sso_coc',
         question: 'Q7b',
-        # Pending AAQ: Datalab Test Kit 2.0 APR Q7 - submitted 9/29/2022
-        # skip: [
-        #   'B2',
-        #   'C2',
-        # ],
       )
     end
 
@@ -112,11 +106,6 @@ RSpec.shared_context 'datalab sso coc apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'apr/sso_coc',
         question: 'Q8b',
-        # Pending AAQ: Datalab Test Kit 2.0 APR Q7 - submitted 9/29/2022
-        # skip: [
-        #   'B2',
-        #   'C2',
-        # ],
       )
     end
 

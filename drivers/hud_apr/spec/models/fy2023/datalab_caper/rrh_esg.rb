@@ -17,7 +17,6 @@ RSpec.shared_context 'datalab rrh esg caper', shared_context: :metadata do
         file_path: result_file_prefix + 'caper/rrh_esg',
         question: 'Q4a',
         skip: [
-          'B2', # expected is a name not and ID?
           'L2', # Is the generator name, so not expected to match
         ],
       )
@@ -34,12 +33,6 @@ RSpec.shared_context 'datalab rrh esg caper', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'caper/rrh_esg',
         question: 'Q6a',
-        # Pending AAQ, 99 in SSNDQ should put client in missing
-        # skip: [
-        #   'C3',
-        #   'E3',
-        #   'F3',
-        # ],
       )
     end
 

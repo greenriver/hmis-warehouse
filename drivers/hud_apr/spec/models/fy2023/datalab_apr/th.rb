@@ -17,7 +17,6 @@ RSpec.shared_context 'datalab th coc apr', shared_context: :metadata do
         file_path: result_file_prefix + 'apr/th_coc',
         question: 'Q4a',
         skip: [
-          'B2', # expected is a name not and ID?
           'L2', # Is the generator name, so not expected to match
           'P2', # Pending AirTable regarding children of CH HoH submitted 1/14/2023
         ],
@@ -133,11 +132,6 @@ RSpec.shared_context 'datalab th coc apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'apr/th_coc',
         question: 'Q8b',
-        # Pending AirTable regarding client with Exit in May but counted for July
-        skip: [
-          # 'B4',
-          # 'D4',
-        ],
       )
     end
 
@@ -495,7 +489,6 @@ RSpec.shared_context 'datalab th coc apr', shared_context: :metadata do
       )
     end
 
-    # Pending AirTable regarding children of CH HoH submitted 1/14/2023
     it 'Q26d' do
       compare_results(
         file_path: result_file_prefix + 'apr/th_coc',

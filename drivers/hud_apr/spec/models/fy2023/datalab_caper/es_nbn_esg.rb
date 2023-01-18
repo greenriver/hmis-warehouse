@@ -18,24 +18,16 @@ RSpec.shared_context 'datalab es nbn esg caper', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'caper/es_nbn_esg',
         question: 'Q4a',
-
         skip: [
-          'B2', # expected is a name not and ID?
           'L2', # Is the generator name, so not expected to match
         ],
       )
     end
 
-    # Q5 B11 - needs to look at disabilities to determine if the client has a disabling condition
-    # save as a calculated field any disabilities at entry
-    # Pending AAQ: [CAPER] DataLab - ES-NbN ESG (D) Q5a Number of chronically homeless persons - submitted 10/4/2022
     it 'Q5a' do
       compare_results(
         file_path: result_file_prefix + 'caper/es_nbn_esg',
         question: 'Q5a',
-        # skip: [
-        #   'B11',
-        # ],
       )
     end
 
@@ -78,11 +70,6 @@ RSpec.shared_context 'datalab es nbn esg caper', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'caper/es_nbn_esg',
         question: 'Q6f',
-        # skip: [ # AAQ pending
-        #   'B2',
-        #   'C2',
-        #   'D2',
-        # ],
       )
     end
 
@@ -97,11 +84,6 @@ RSpec.shared_context 'datalab es nbn esg caper', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'caper/es_nbn_esg',
         question: 'Q7b',
-        # skip: [ # pending AAQ
-        #   'B5',
-        #   'D5',
-        #   'F5',
-        # ],
       )
     end
 
@@ -221,13 +203,6 @@ RSpec.shared_context 'datalab es nbn esg caper', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'caper/es_nbn_esg',
         question: 'Q15',
-        # Pending AAQ: [CAPER] DataLab - ES-NbN ESG (D) - Q15 B33 - submitted 10/4/2022
-        # skip: [
-        #   'B33',
-        #   'C33',
-        #   'B34',
-        #   'C34',
-        # ],
       )
     end
 
@@ -235,10 +210,6 @@ RSpec.shared_context 'datalab es nbn esg caper', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'caper/es_nbn_esg',
         question: 'Q16',
-        # skip: [ # pending AAQ
-        #   'C7',
-        #   'C12',
-        # ],
       )
     end
 
@@ -246,9 +217,6 @@ RSpec.shared_context 'datalab es nbn esg caper', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'caper/es_nbn_esg',
         question: 'Q17',
-        # skip: [ # pending AAQ
-        #   'C17',
-        # ],
       )
     end
 
@@ -326,13 +294,6 @@ RSpec.shared_context 'datalab es nbn esg caper', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'caper/es_nbn_esg',
         question: 'Q26b',
-        # Pending AAQ: [CAPER] DataLab - ES-NbN ESG (D) Q5a Number of chronically homeless persons - submitted 10/4/2022
-        # skip: [
-        #   'B2',
-        #   'C2',
-        #   'B3',
-        #   'C3',
-        # ],
       )
     end
   end

@@ -17,7 +17,6 @@ RSpec.shared_context 'datalab psh coc 1 apr', shared_context: :metadata do
         file_path: result_file_prefix + 'apr/psh_coc_1',
         question: 'Q4a',
         skip: [
-          'B2', # expected is a name not and ID?
           'L2', # Is the generator name, so not expected to match
         ],
       )
@@ -34,12 +33,6 @@ RSpec.shared_context 'datalab psh coc 1 apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'apr/psh_coc_1',
         question: 'Q6a',
-        # detail_columns: [
-        #   :last_name,
-        #   :first_name,
-        #   :ssn_quality,
-        #   :ssn,
-        # ],
       )
     end
 
@@ -174,22 +167,6 @@ RSpec.shared_context 'datalab psh coc 1 apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'apr/psh_coc_1',
         question: 'Q13a2',
-        # detail_columns: [
-        #   :last_name,
-        #   :first_name,
-        #   :chronically_homeless,
-        #   :mental_health_problem_entry,
-        #   :alcohol_abuse_entry,
-        #   :drug_abuse_entry,
-        #   :drug_abuse_entry,
-        #   :alcohol_abuse_entry,
-        #   :alcohol_abuse_entry,
-        #   :drug_abuse_entry,
-        #   :chronic_disability_entry,
-        #   :hiv_aids_entry,
-        #   :developmental_disability_entry,
-        #   :physical_disability_entry,
-        # ],
       )
     end
 
@@ -218,44 +195,6 @@ RSpec.shared_context 'datalab psh coc 1 apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'apr/psh_coc_1',
         question: 'Q13c2',
-        # detail_columns: [
-        #   :last_name,
-        #   :first_name,
-        #   :chronically_homeless,
-        #   :mental_health_problem_entry,
-        #   :alcohol_abuse_entry,
-        #   :drug_abuse_entry,
-        #   :drug_abuse_entry,
-        #   :alcohol_abuse_entry,
-        #   :alcohol_abuse_entry,
-        #   :drug_abuse_entry,
-        #   :chronic_disability_entry,
-        #   :hiv_aids_entry,
-        #   :developmental_disability_entry,
-        #   :physical_disability_entry,
-        #   :mental_health_problem_exit,
-        #   :alcohol_abuse_exit,
-        #   :drug_abuse_exit,
-        #   :drug_abuse_exit,
-        #   :alcohol_abuse_exit,
-        #   :alcohol_abuse_exit,
-        #   :drug_abuse_exit,
-        #   :chronic_disability_exit,
-        #   :hiv_aids_exit,
-        #   :developmental_disability_exit,
-        #   :physical_disability_exit,
-        #   :mental_health_problem_latest,
-        #   :alcohol_abuse_latest,
-        #   :drug_abuse_latest,
-        #   :drug_abuse_latest,
-        #   :alcohol_abuse_latest,
-        #   :alcohol_abuse_latest,
-        #   :drug_abuse_latest,
-        #   :chronic_disability_latest,
-        #   :hiv_aids_latest,
-        #   :developmental_disability_latest,
-        #   :physical_disability_latest,
-        # ],
       )
     end
 

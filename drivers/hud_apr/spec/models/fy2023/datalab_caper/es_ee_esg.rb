@@ -17,7 +17,6 @@ RSpec.shared_context 'datalab es ee esg caper', shared_context: :metadata do
         file_path: result_file_prefix + 'caper/es_ee_esg',
         question: 'Q4a',
         skip: [
-          'B2', # expected is a name not and ID?
           'L2', # Is the generator name, so not expected to match
         ],
       )

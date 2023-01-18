@@ -183,6 +183,8 @@ module HudReports::Incomes
     end
 
     private def income_responses(suffix)
+      # NOTE: these are the default messages, adult clause gets added in the appropriate question,
+      # message gets overridden for some questions (like 26 where it's looking at chronically homeless)
       responses = {
         'Adults with Only Earned Income (i.e., Employment Income)' => :earned,
         'Adults with Only Other Income' => :other,

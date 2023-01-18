@@ -17,7 +17,6 @@ RSpec.shared_context 'datalab rrh coc 1 apr', shared_context: :metadata do
         file_path: result_file_prefix + 'apr/rrh_coc_1',
         question: 'Q4a',
         skip: [
-          'B2', # expected is a name not and ID?
           'L2', # Is the generator name, so not expected to match
         ],
       )
@@ -27,10 +26,6 @@ RSpec.shared_context 'datalab rrh coc 1 apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'apr/rrh_coc_1',
         question: 'Q5a',
-        # Pending AAQ: [APR] DataLab - RRH CoC I & DataLab - RRH CoC II (D) Q5 B16
-        # skip: [
-        #   'B16',
-        # ],
       )
     end
 
@@ -297,11 +292,6 @@ RSpec.shared_context 'datalab rrh coc 1 apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'apr/rrh_coc_1',
         question: 'Q21',
-        # Pending AAQ: [APR] DataLab - RRH CoC I (D) Q21 C14 - submitted 10/2/2022
-        # skip: [
-        #   'C14',
-        #   'C15',
-        # ],
       )
     end
 
