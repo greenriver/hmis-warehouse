@@ -1,6 +1,6 @@
 class AddHmisFormProcessor < ActiveRecord::Migration[6.1]
   def change
-    add_reference :hmis_assessment_details, :processor
+    add_reference :hmis_assessment_details, :assessment_processor
 
     create_table :hmis_assessment_processors do |t|
       t.references :enrollment_coc

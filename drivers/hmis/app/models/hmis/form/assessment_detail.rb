@@ -9,12 +9,9 @@ class Hmis::Form::AssessmentDetail < ::GrdaWarehouseBase
   self.table_name = :hmis_assessment_details
   belongs_to :assessment, class_name: 'Hmis::Hud::Assessment'
   belongs_to :definition
-  belongs_to :processor, dependent: :destroy
+  belongs_to :assessment_processor, dependent: :destroy
 
-  def initialize(*)
-    super
-    build_processor
-  end
+  after_initialize :build_assessment_processor
 
   scope :with_role, ->(role) do
     where(role: role)

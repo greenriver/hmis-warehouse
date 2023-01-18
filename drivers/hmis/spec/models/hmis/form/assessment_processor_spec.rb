@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe Hmis::Form::Processor, type: :model do
+RSpec.describe Hmis::Form::AssessmentProcessor, type: :model do
   let!(:ds) { create :hmis_data_source }
   let!(:user) { create(:user).tap { |u| u.add_viewable(ds) } }
   let(:hmis_user) { Hmis::User.find(user.id)&.tap { |u| u.update(hmis_data_source_id: ds.id) } }
@@ -19,7 +19,7 @@ RSpec.describe Hmis::Form::Processor, type: :model do
       'EnrollmentCoc.cocCode' => 'MA-507',
     }
 
-    assessment.assessment_detail.processor.run!
+    assessment.assessment_detail.assessment_processor.run!
     assessment.save_not_in_progress
 
     expect(assessment.enrollment.enrollment_cocs.count).to eq(1)
@@ -35,7 +35,7 @@ RSpec.describe Hmis::Form::Processor, type: :model do
       'IncomeBenefit.otherInsurance' => false,
     }
 
-    assessment.assessment_detail.processor.run!
+    assessment.assessment_detail.assessment_processor.run!
     assessment.save_not_in_progress
 
     expect(assessment.enrollment.income_benefits.count).to eq(1)
@@ -62,7 +62,7 @@ RSpec.describe Hmis::Form::Processor, type: :model do
       'DisabilityGroup.disablingCondition' => 'YES',
     }
 
-    assessment.assessment_detail.processor.run!
+    assessment.assessment_detail.assessment_processor.run!
     assessment.save_not_in_progress
 
     expect(assessment.enrollment.disabilities.count).to eq(6)
@@ -86,14 +86,14 @@ RSpec.describe Hmis::Form::Processor, type: :model do
         'EnrollmentCoc.cocCode' => 'MA-507',
       }
 
-      assessment.assessment_detail.processor.run!
+      assessment.assessment_detail.assessment_processor.run!
       assessment.save_not_in_progress
 
       assessment.assessment_detail.hud_values = {
         'IncomeBenefit.incomeFromAnySource' => 'YES',
       }
 
-      assessment.assessment_detail.processor.run!
+      assessment.assessment_detail.assessment_processor.run!
       assessment.save_not_in_progress
 
       expect(assessment.enrollment.enrollment_cocs.count).to eq(1)
@@ -109,14 +109,14 @@ RSpec.describe Hmis::Form::Processor, type: :model do
         'EnrollmentCoc.cocCode' => 'MA-507',
       }
 
-      assessment.assessment_detail.processor.run!
+      assessment.assessment_detail.assessment_processor.run!
       assessment.save_not_in_progress
 
       assessment.assessment_detail.hud_values = {
         'EnrollmentCoc.cocCode' => nil,
       }
 
-      assessment.assessment_detail.processor.run!
+      assessment.assessment_detail.assessment_processor.run!
       assessment.save_not_in_progress
 
       expect(assessment.enrollment.enrollment_cocs.first.coc_code).to eq(nil)

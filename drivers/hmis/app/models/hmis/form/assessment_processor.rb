@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class Hmis::Form::Processor < ::GrdaWarehouseBase
+class Hmis::Form::AssessmentProcessor < ::GrdaWarehouseBase
   self.table_name = :hmis_assessment_processors
 
   has_one :assessment_detail

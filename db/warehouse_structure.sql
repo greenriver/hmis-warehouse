@@ -10296,7 +10296,7 @@ CREATE TABLE public.hmis_assessment_details (
     updated_at timestamp(6) without time zone NOT NULL,
     "values" jsonb,
     hud_values jsonb,
-    processor_id bigint
+    assessment_processor_id bigint
 );
 
 
@@ -41753,17 +41753,17 @@ CREATE INDEX index_hmis_assessment_details_on_assessment_id ON public.hmis_asses
 
 
 --
+-- Name: index_hmis_assessment_details_on_assessment_processor_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_assessment_details_on_assessment_processor_id ON public.hmis_assessment_details USING btree (assessment_processor_id);
+
+
+--
 -- Name: index_hmis_assessment_details_on_definition_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_assessment_details_on_definition_id ON public.hmis_assessment_details USING btree (definition_id);
-
-
---
--- Name: index_hmis_assessment_details_on_processor_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_assessment_details_on_processor_id ON public.hmis_assessment_details USING btree (processor_id);
 
 
 --
