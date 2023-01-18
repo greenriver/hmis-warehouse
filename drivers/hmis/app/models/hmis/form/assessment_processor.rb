@@ -25,7 +25,10 @@ class Hmis::Form::AssessmentProcessor < ::GrdaWarehouseBase
 
     assessment_detail.hud_values.each do |key, value|
       # Don't use greedy matching so that the container is up to the first dot, and the rest is the field
-      container, field = /(.*?)\.(.*)/.match(key)[1..2]
+      match = /(.*?)\.(.*)/.match(key)
+      next unless match.present?
+
+      container, field = match[1..2]
 
       container_processor(container)&.process(field, value)
     end
