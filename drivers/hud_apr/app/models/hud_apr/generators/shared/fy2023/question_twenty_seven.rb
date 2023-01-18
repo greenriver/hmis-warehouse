@@ -274,7 +274,8 @@ module HudApr::Generators::Shared::Fy2023
 
           members = leavers.
             where(population_clause).
-            where(youth_filter)
+            where(youth_filter).
+            where(youth_adult_or_youth_hoh_clause)
 
           if destination_clause.is_a?(Symbol)
             case destination_clause
@@ -319,13 +320,7 @@ module HudApr::Generators::Shared::Fy2023
           members = universe.members.
             # Add youth filter to Q17, but expand universe to include youth adults AND youth
             # heads of household even if they are not adults.
-            where(
-              a_t[:other_clients_over_25].eq(false).
-                and(
-                  hoh_clause.and(a_t[:age].between(12..24)).
-                  or(a_t[:age].between(18..24)),
-                ),
-            )
+            where(youth_adult_or_youth_hoh_clause)
 
           answer.update(summary: 0) and next if members.count.zero?
 
@@ -370,13 +365,7 @@ module HudApr::Generators::Shared::Fy2023
 
           answer = @report.answer(question: table_name, cell: cell)
           youth = universe.members.
-            where(
-              a_t[:other_clients_over_25].eq(false).
-                and(
-                  hoh_clause.and(a_t[:age].between(12..24)).
-                    or(a_t[:age].between(18..24)),
-                ),
-            )
+            where(youth_adult_or_youth_hoh_clause)
           youth = youth.where(stayers_clause) if suffix == :annual_assessment
           youth = youth.where(leavers_clause) if suffix == :exit
 
@@ -428,13 +417,7 @@ module HudApr::Generators::Shared::Fy2023
           answer = @report.answer(question: table_name, cell: cell)
           members = universe.members.
             # Only relevant to youth or < 24 HoH leavers with answers for income at exit and disability
-            where(
-              a_t[:other_clients_over_25].eq(false).
-                and(
-                  hoh_clause.and(a_t[:age].between(12..24)).
-                    or(a_t[:age].between(18..24)),
-                ),
-            ).
+            where(youth_adult_or_youth_hoh_clause).
             where(leavers_clause).
             where(a_t[:disabling_condition].in([0, 1])).
             where(a_t[:income_from_any_source_at_exit].in([0, 1]))
@@ -895,6 +878,14 @@ module HudApr::Generators::Shared::Fy2023
 
     private def q27i_populations
       sub_populations
+    end
+
+    private def youth_adult_or_youth_hoh_clause
+      a_t[:other_clients_over_25].eq(false).
+        and(
+          hoh_clause.and(a_t[:age].between(12..24)).
+            or(a_t[:age].between(18..24)),
+        )
     end
 
     private def intentionally_blank

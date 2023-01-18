@@ -1,0 +1,14 @@
+{
+  "type": "GROUP",
+  "link_id": "information-date",
+  "text": "Information Date",
+  "data_collected_about": "ALL_CLIENTS",
+  "item": [
+    {
+      "type": "DATE",
+      "link_id": "information-date-input",
+      "text": "Date Collected",
+      "field_name": "informationDate"
+    }
+  ]
+}

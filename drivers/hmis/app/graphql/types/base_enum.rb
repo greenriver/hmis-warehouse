@@ -6,6 +6,8 @@
 
 module Types
   class BaseEnum < GraphQL::Schema::Enum
+    INVALID_VALUE = -999999
+
     def self.to_enum_key(value)
       key = value.to_s.underscore.upcase.gsub(/\W+/, '_').gsub(/_+/, '_').gsub(/_$/, '').gsub(/^_/, '')
       key = "NUM_#{key}" if key.match(/^[0-9]/)
@@ -26,6 +28,20 @@ module Types
       values.find { |_, v| v.value == value }
     end
 
+    def self.coerce_result(value, ctx)
+      super(value, ctx)
+    rescue self::UnresolvedValueError => e
+      # If unable to coerce results and this enum supports INVALID, then return that
+      invalid = values.each_value.find { |val| val.value == INVALID_VALUE }
+      return invalid.graphql_name if invalid.present?
+
+      raise e
+    end
+
+    def self.invalid_value
+      value 'INVALID', 'Invalid Value', value: INVALID_VALUE
+    end
+
     def self.hud_enum(hash)
       values = hash.map do |key, desc|
         {
@@ -35,6 +51,7 @@ module Types
         }
       end
       with_enum_map(Hmis::FieldMap.new(values))
+      invalid_value # Always define invalid value on HUD enums
     end
 
     def self.value_for(key)

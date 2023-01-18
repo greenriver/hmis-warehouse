@@ -35,7 +35,6 @@ class HmisCsvImporter::ImporterExtensionsController < ApplicationController
   def allowed_extensions
     @allowed_extensions = [
       HmisCsvImporter::HmisCsvCleanup::ForceValidEnrollmentCoc,
-      HmisCsvImporter::HmisCsvCleanup::ForceProjectEnrollmentCoc,
       HmisCsvImporter::HmisCsvCleanup::MoveInOutsideEnrollment,
       HmisCsvImporter::HmisCsvCleanup::PrependProjectId,
       HmisCsvImporter::HmisCsvCleanup::PrependOrganizationId,

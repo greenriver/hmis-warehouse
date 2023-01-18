@@ -24,6 +24,7 @@ module Types
       end
 
       def resolve_beds(scope = object.beds, bed_type: nil, active: nil)
+        scope = scope.order(created_at: :desc)
         scope = scope.where(bed_type: bed_type) if bed_type.present?
         if active == true
           scope.active

@@ -20,10 +20,22 @@ module HUD
     # 900+ are not assigned, and 666 is excluded
     return false if area_number.to_i >= 900 || area_number == '666'
     # Published IDs are not valid
-    return false if ['219099999', '078051120', '123456789'].include?(ssn)
+    return false if known_invalid_ssns.include?(ssn)
     return false if ssn.split('').uniq.count == 1 # all the same number
 
     true
+  end
+
+  private def known_invalid_ssns
+    @known_invalid_ssns ||= [].tap do |seq|
+      10.times do |i|
+        seq << ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].rotate(i)[0..8].join
+      end
+      seq.dup.each do |m|
+        seq << m.reverse
+      end
+      seq += ['219099999', '078051120']
+    end
   end
 
   private def digits?(value)

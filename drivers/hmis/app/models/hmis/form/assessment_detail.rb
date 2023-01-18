@@ -14,6 +14,6 @@ class Hmis::Form::AssessmentDetail < ::GrdaWarehouseBase
   after_initialize :build_assessment_processor
 
   scope :with_role, ->(role) do
-    where(role: role)
+    where(role: Array.wrap(role))
   end
 end

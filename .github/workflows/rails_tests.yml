@@ -149,16 +149,28 @@ jobs:
           bundle exec rake driver:hmis:dump_graphql_schema
 
       # fetch some closed source files
-      - name: 'Fetch files'
+      - name: 'Fetch source files'
         uses: keithweaver/aws-s3-github-action@v1.0.0
         with:
           command: cp
-          source: s3://op-github-actions-data/test-kit-source-2022/
+          source: ${{ secrets.AWS_S3_ACTIONS_SOURCE_PATH }}
           destination: ./drivers/datalab_testkit/spec/fixtures/inputs/merged/source/
           aws_access_key_id: ${{ secrets.AWS_S3_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}
           aws_region: us-east-1
           flags: --recursive
+
+      - name: 'Fetch result files'
+        uses: keithweaver/aws-s3-github-action@v1.0.0
+        with:
+          command: cp
+          source: ${{ secrets.AWS_S3_ACTIONS_RESULTS_PATH }}
+          destination: ./drivers/datalab_testkit/spec/fixtures/results/
+          aws_access_key_id: ${{ secrets.AWS_S3_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}
+          aws_region: us-east-1
+          flags: --recursive
+
 
       - name: Run tests
         env:

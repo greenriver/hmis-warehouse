@@ -23,6 +23,7 @@ module Types
       end
 
       def resolve_units(scope = object.units, active: nil)
+        scope = scope.order(created_at: :desc)
         if active == true
           scope.active
         elsif active == false

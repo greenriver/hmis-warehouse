@@ -72,13 +72,16 @@ module HudApr::Generators::Shared::Fy2023
       answer.update(summary: dkr_members.count)
 
       # Name missing
+      # Name DQ 99 or name missing and we didn't already count it for DK/R
       answer = @report.answer(question: table_name, cell: 'C2')
       m_members = dq_universe_members.where(
-        a_t[:name_quality].not_in([8, 9]).
-          and(
-            a_t[:first_name].eq(nil).
-              or(a_t[:last_name].eq(nil)),
-          ),
+        a_t[:name_quality].eq(99).or(
+          a_t[:name_quality].not_in([8, 9]).
+            and(
+              a_t[:first_name].eq(nil).
+                or(a_t[:last_name].eq(nil)),
+            ),
+        ),
       )
       answer.add_members(m_members)
       answer.update(summary: m_members.count)
@@ -146,7 +149,9 @@ module HudApr::Generators::Shared::Fy2023
     private def dob_quality(table_name:)
       # DOB DK/R
       answer = @report.answer(question: table_name, cell: 'B4')
-      dkr_members = dq_universe_members.where(a_t[:dob_quality].in([8, 9]))
+      dkr_members = dq_universe_members.where(
+        a_t[:dob].eq(nil).and(a_t[:dob_quality].in([8, 9])),
+      )
       answer.add_members(dkr_members)
       answer.update(summary: dkr_members.count)
 
@@ -746,7 +751,9 @@ module HudApr::Generators::Shared::Fy2023
         # entry 1..3 days
         {
           cell: 'B3',
-          clause: datediff(report_client_universe, 'day', a_t[:enrollment_created], a_t[:first_date_in_program]).gteq(1).
+          # To match test kit, count anything less than 3 days, except 0
+          # AAQ: https://www.hudexchange.info/program-support/my-question/?askaquestionaction=public%3Amain.answer&key=CAA8AE17-22C4-447B-AA191B21C984CBA7
+          clause: datediff(report_client_universe, 'day', a_t[:enrollment_created], a_t[:first_date_in_program]).not_eq(0).
             and(datediff(report_client_universe, 'day', a_t[:enrollment_created], a_t[:first_date_in_program]).lteq(3)),
         },
         # entry 4..6 days
@@ -784,7 +791,9 @@ module HudApr::Generators::Shared::Fy2023
         # exit 1..3 days
         {
           cell: 'C3',
-          clause: datediff(report_client_universe, 'day', a_t[:exit_created], a_t[:last_date_in_program]).gteq(1).
+          # To match test kit, count anything less than 3 days, except 0
+          # AAQ: https://www.hudexchange.info/program-support/my-question/?askaquestionaction=public%3Amain.answer&key=CAA8AE17-22C4-447B-AA191B21C984CBA7
+          clause: datediff(report_client_universe, 'day', a_t[:exit_created], a_t[:last_date_in_program]).not_eq(0).
             and(datediff(report_client_universe, 'day', a_t[:exit_created], a_t[:last_date_in_program]).lteq(3)),
         },
         # exit 4..6 days
