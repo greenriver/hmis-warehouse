@@ -14,6 +14,13 @@ module Hmis::Hud::Processors
       @processor.send(disability_type).assign_attributes(disability_field => disability_value)
     end
 
+    def information_date(date)
+      factory_names = field_mapping.values.map(&:first) - [:enrollment_factory] # Enrollments don't have information dates
+      factory_names.each do |factory_name|
+        @processor.send(factory_name, create: false)&.assign_attributes(information_date: date)
+      end
+    end
+
     def field_mapping
       @field_mapping ||= begin
         standard_enum = Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData

@@ -29,22 +29,26 @@ class Hmis::Form::AssessmentProcessor < ::GrdaWarehouseBase
 
       container_processor(container)&.process(field, value)
     end
+
+    valid_containers.values.each do |processor|
+      processor.new(self).information_date(assessment_detail.assessment.assessment_date)
+    end
   end
 
   # Type Factories
-  def enrollment_factory
+  def enrollment_factory(create: true) # rubocop:disable Lint/UnusedMethodArgument
     # The enrollment has already been created, so we can just return it
     assessment_detail.assessment.enrollment
   end
 
   # The items associated with the enrollments are all singletons, so return
   # them if they already exist, otherwise create them
-  def enrollment_coc_factory
-    return enrollment_coc if enrollment_coc.present?
+  def enrollment_coc_factory(create: true)
+    return enrollment_coc if enrollment_coc.present? || !create
 
     self.enrollment_coc = enrollment_factory.enrollment_cocs.
-      where(data_collection_stage: assessment_detail.data_collection_stage).
-      first_or_initialize(
+      build(
+        data_collection_stage: assessment_detail.data_collection_stage,
         household_id: enrollment_factory.household_id,
         project_id: enrollment_factory.project_id,
         personal_id: enrollment_factory.client.personal_id,
@@ -53,114 +57,102 @@ class Hmis::Form::AssessmentProcessor < ::GrdaWarehouseBase
       )
   end
 
-  def health_and_dv_factory
-    return health_and_dv if health_and_dv.present?
+  def health_and_dv_factory(create: true)
+    return health_and_dv if health_and_dv.present? || !create
 
     self.health_and_dv = enrollment_factory.health_and_dvs.
-      where(data_collection_stage: assessment_detail.data_collection_stage).
-      first_or_initialize(
+      build(
+        data_collection_stage: assessment_detail.data_collection_stage,
         personal_id: enrollment_factory.client.personal_id,
         information_date: assessment_detail.assessment.assessment_date,
         user_id: assessment_detail.assessment.user_id,
       )
   end
 
-  def income_benefit_factory
-    return income_benefit if income_benefit.present?
+  def income_benefit_factory(create: true)
+    return income_benefit if income_benefit.present? || !create
 
     self.income_benefit = enrollment_factory.income_benefits.
-      where(data_collection_stage: assessment_detail.data_collection_stage).
-      first_or_initialize(
+      build(
+        data_collection_stage: assessment_detail.data_collection_stage,
         personal_id: enrollment_factory.client.personal_id,
         information_date: assessment_detail.assessment.assessment_date,
         user_id: assessment_detail.assessment.user_id,
       )
   end
 
-  def physical_disability_factory
-    return physical_disability if physical_disability.present?
+  def physical_disability_factory(create: true)
+    return physical_disability if physical_disability.present? || !create
 
     self.physical_disability = enrollment_factory.disabilities.
-      where(
+      build(
         data_collection_stage: assessment_detail.data_collection_stage,
         disability_type: 5, # Physical Disability
-      ).
-      first_or_initialize(
         personal_id: enrollment_factory.client.personal_id,
         information_date: assessment_detail.assessment.assessment_date,
         user_id: assessment_detail.assessment.user_id,
       )
   end
 
-  def developmental_disability_factory
-    return developmental_disability if developmental_disability.present?
+  def developmental_disability_factory(create: true)
+    return developmental_disability if developmental_disability.present? || !create
 
     self.developmental_disability = enrollment_factory.disabilities.
-      where(
+      build(
         data_collection_stage: assessment_detail.data_collection_stage,
         disability_type: 6, # Developmental Disability
-      ).
-      first_or_initialize(
         personal_id: enrollment_factory.client.personal_id,
         information_date: assessment_detail.assessment.assessment_date,
         user_id: assessment_detail.assessment.user_id,
       )
   end
 
-  def chronic_health_condition_factory
-    return chronic_health_condition if chronic_health_condition.present?
+  def chronic_health_condition_factory(create: true)
+    return chronic_health_condition if chronic_health_condition.present? || !create
 
     self.chronic_health_condition = enrollment_factory.disabilities.
-      where(
+      build(
         data_collection_stage: assessment_detail.data_collection_stage,
         disability_type: 7, # Chronic health condition
-      ).
-      first_or_initialize(
         personal_id: enrollment_factory.client.personal_id,
         information_date: assessment_detail.assessment.assessment_date,
         user_id: assessment_detail.assessment.user_id,
       )
   end
 
-  def hiv_aids_factory
-    return hiv_aids if hiv_aids.present?
+  def hiv_aids_factory(create: true)
+    return hiv_aids if hiv_aids.present? || !create
 
     self.hiv_aids = enrollment_factory.disabilities.
-      where(
+      build(
         data_collection_stage: assessment_detail.data_collection_stage,
         disability_type: 8, # HIV/AIDS
-      ).
-      first_or_initialize(
         personal_id: enrollment_factory.client.personal_id,
         information_date: assessment_detail.assessment.assessment_date,
         user_id: assessment_detail.assessment.user_id,
       )
   end
 
-  def mental_health_disorder_factory
-    return mental_health_disorder if mental_health_disorder.present?
+  def mental_health_disorder_factory(create: true)
+    return mental_health_disorder if mental_health_disorder.present? || !create
 
     self.mental_health_disorder = enrollment_factory.disabilities.
-      where(
+      build(
         data_collection_stage: assessment_detail.data_collection_stage,
         disability_type: 9, # Mental health disorder
-      ).
-      first_or_initialize(
         personal_id: enrollment_factory.client.personal_id,
         information_date: assessment_detail.assessment.assessment_date,
         user_id: assessment_detail.assessment.user_id,
       )
   end
 
-  def substance_use_disorder_factory
-    return substance_use_disorder if substance_use_disorder.present?
+  def substance_use_disorder_factory(create: true)
+    return substance_use_disorder if substance_use_disorder.present? || !create
 
     self.substance_use_disorder = enrollment_factory.disabilities.
-      where(
+      build(
         data_collection_stage: assessment_detail.data_collection_stage,
         disability_type: 10, # Substance use disorder
-      ).
-      first_or_initialize(
         personal_id: enrollment_factory.client.personal_id,
         information_date: assessment_detail.assessment.assessment_date,
         user_id: assessment_detail.assessment.user_id,

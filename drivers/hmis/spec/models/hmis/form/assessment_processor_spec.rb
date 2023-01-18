@@ -121,5 +121,23 @@ RSpec.describe Hmis::Form::AssessmentProcessor, type: :model do
 
       expect(assessment.enrollment.enrollment_cocs.first.coc_code).to eq(nil)
     end
+
+    it 'adjusts the information dates as appropriate' do
+      assessment = Hmis::Hud::Assessment.new_with_defaults(enrollment: e1, user: hmis_hud_user, form_definition: fd, assessment_date: Date.current)
+      assessment.assessment_detail.hud_values = {
+        'EnrollmentCoc.cocCode' => 'MA-507',
+      }
+
+      assessment.assessment_detail.assessment_processor.run!
+      assessment.save_not_in_progress
+
+      test_date = '2020-10-15'.to_date
+      assessment.assessment_date = test_date
+
+      assessment.assessment_detail.assessment_processor.run!
+      assessment.save_not_in_progress
+
+      expect(assessment.enrollment.enrollment_cocs.first.information_date).to eq(test_date)
+    end
   end
 end

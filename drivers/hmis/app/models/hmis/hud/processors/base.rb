@@ -15,6 +15,10 @@ class Hmis::Hud::Processors::Base
     @processor.send(factory_name).assign_attributes(attribute_name => attribute_value)
   end
 
+  def information_date(date)
+    @processor.send(factory_name, create: false)&.assign_attributes(information_date: date)
+  end
+
   def hud_name(field)
     field.underscore
   end

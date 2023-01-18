@@ -13,5 +13,9 @@ module Hmis::Hud::Processors
     def schema
       Types::HmisSchema::Enrollment
     end
+
+    def information_date(_)
+      # Enrollments don't have an information date to be set
+    end
   end
 end
