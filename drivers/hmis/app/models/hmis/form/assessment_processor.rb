@@ -45,7 +45,6 @@ class Hmis::Form::AssessmentProcessor < ::GrdaWarehouseBase
     self.enrollment_coc = enrollment_factory.enrollment_cocs.
       where(data_collection_stage: assessment_detail.data_collection_stage).
       first_or_initialize(
-        enrollment_id: enrollment_factory.enrollment_id,
         household_id: enrollment_factory.household_id,
         project_id: enrollment_factory.project_id,
         personal_id: enrollment_factory.client.personal_id,
@@ -60,7 +59,6 @@ class Hmis::Form::AssessmentProcessor < ::GrdaWarehouseBase
     self.health_and_dv = enrollment_factory.health_and_dvs.
       where(data_collection_stage: assessment_detail.data_collection_stage).
       first_or_initialize(
-        enrollment_id: enrollment_factory.enrollment_id,
         personal_id: enrollment_factory.client.personal_id,
         information_date: assessment_detail.assessment.assessment_date,
         user_id: assessment_detail.assessment.user_id,
@@ -73,7 +71,6 @@ class Hmis::Form::AssessmentProcessor < ::GrdaWarehouseBase
     self.income_benefit = enrollment_factory.income_benefits.
       where(data_collection_stage: assessment_detail.data_collection_stage).
       first_or_initialize(
-        enrollment_id: enrollment_factory.enrollment_id,
         personal_id: enrollment_factory.client.personal_id,
         information_date: assessment_detail.assessment.assessment_date,
         user_id: assessment_detail.assessment.user_id,
@@ -89,7 +86,6 @@ class Hmis::Form::AssessmentProcessor < ::GrdaWarehouseBase
         disability_type: 5, # Physical Disability
       ).
       first_or_initialize(
-        enrollment_id: enrollment_factory.enrollment_id,
         personal_id: enrollment_factory.client.personal_id,
         information_date: assessment_detail.assessment.assessment_date,
         user_id: assessment_detail.assessment.user_id,
@@ -105,7 +101,6 @@ class Hmis::Form::AssessmentProcessor < ::GrdaWarehouseBase
         disability_type: 6, # Developmental Disability
       ).
       first_or_initialize(
-        enrollment_id: enrollment_factory.enrollment_id,
         personal_id: enrollment_factory.client.personal_id,
         information_date: assessment_detail.assessment.assessment_date,
         user_id: assessment_detail.assessment.user_id,
@@ -121,7 +116,6 @@ class Hmis::Form::AssessmentProcessor < ::GrdaWarehouseBase
         disability_type: 7, # Chronic health condition
       ).
       first_or_initialize(
-        enrollment_id: enrollment_factory.enrollment_id,
         personal_id: enrollment_factory.client.personal_id,
         information_date: assessment_detail.assessment.assessment_date,
         user_id: assessment_detail.assessment.user_id,
@@ -137,7 +131,6 @@ class Hmis::Form::AssessmentProcessor < ::GrdaWarehouseBase
         disability_type: 8, # HIV/AIDS
       ).
       first_or_initialize(
-        enrollment_id: enrollment_factory.enrollment_id,
         personal_id: enrollment_factory.client.personal_id,
         information_date: assessment_detail.assessment.assessment_date,
         user_id: assessment_detail.assessment.user_id,
@@ -153,7 +146,6 @@ class Hmis::Form::AssessmentProcessor < ::GrdaWarehouseBase
         disability_type: 9, # Mental health disorder
       ).
       first_or_initialize(
-        enrollment_id: enrollment_factory.enrollment_id,
         personal_id: enrollment_factory.client.personal_id,
         information_date: assessment_detail.assessment.assessment_date,
         user_id: assessment_detail.assessment.user_id,
@@ -169,7 +161,6 @@ class Hmis::Form::AssessmentProcessor < ::GrdaWarehouseBase
         disability_type: 10, # Substance use disorder
       ).
       first_or_initialize(
-        enrollment_id: enrollment_factory.enrollment_id,
         personal_id: enrollment_factory.client.personal_id,
         information_date: assessment_detail.assessment.assessment_date,
         user_id: assessment_detail.assessment.user_id,
