@@ -8,7 +8,7 @@
 - notes = @cohort_client.cohort_client_notes.order(updated_at: :desc).to_a
 - if notes.present?
   - notes.each do |note|
-    = render 'cohorts/common/note_card', note: note
+    = render 'cohorts/common/note_card', note: note, url: cohort_cohort_client_cohort_client_note_path(@cohort, @cohort_client, note)
 - else
   .none-found No notes found.
 

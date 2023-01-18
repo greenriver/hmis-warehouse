@@ -8,7 +8,7 @@
       Posted by #{content_tag(:strong, note.user&.name)} on #{content_tag(:strong, note.created_at)}
     .d-flex.align-items-center
       - if note.destroyable_by current_user
-        = link_to cohort_cohort_client_cohort_client_note_path(@cohort, @cohort_client, note), class: 'btn btn-sm btn-danger ml-auto mt-auto', method: :delete, remote: request.xhr? do
+        = link_to url, class: 'btn btn-sm btn-danger ml-auto mt-auto', method: :delete, remote: request.xhr? do
           %i.icon-cross.mr-2
           Delete
 %hr
