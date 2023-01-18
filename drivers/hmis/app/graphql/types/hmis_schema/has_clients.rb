@@ -12,7 +12,7 @@ module Types
       extend ActiveSupport::Concern
 
       class_methods do
-        def clients_field(name = :clients, description = nil, type: [Types::HmisSchema::Client], **override_options, &block)
+        def clients_field(name = :clients, description = nil, type: Types::HmisSchema::Client.page_type, **override_options, &block)
           default_field_options = { type: type, null: false, description: description }
           field_options = default_field_options.merge(override_options)
           field(name, **field_options) do

@@ -16,34 +16,25 @@ module Types
     include Types::HmisSchema::HasOrganizations
     include Types::HmisSchema::HasClients
 
-    projects_field :projects, type: Types::HmisSchema::Project.page_type, description: 'Get a list of projects'
+    projects_field :projects
 
     def projects(**args)
       resolve_projects(Hmis::Hud::Project.all, **args)
     end
 
-    organizations_field :organizations, type: Types::HmisSchema::Organization.page_type, description: 'Get a list of organizations'
+    organizations_field :organizations
 
     def organizations(**args)
       resolve_organizations(Hmis::Hud::Organization.all, **args)
     end
 
-    clients_field :client_search, 'Search for clients', type: Types::HmisSchema::Client.page_type, null: false do |field|
+    clients_field :client_search, 'Search for clients' do |field|
       field.argument :input, Types::HmisSchema::ClientSearchInput, required: true
     end
 
     def client_search(input:, **args)
       search_scope = Hmis::Hud::Client.client_search(input: input.to_params, user: current_user)
       resolve_clients(search_scope, **args)
-    end
-
-    projects_field :project_search, 'Search for projects', type: Types::HmisSchema::Project.page_type, null: false do |field|
-      field.argument :input, Types::HmisSchema::ProjectSearchInput, required: true
-    end
-
-    def project_search(input:, **args)
-      search_scope = Hmis::Hud::Project.project_search(input: input.to_params, user: current_user)
-      resolve_projects(search_scope, **args)
     end
 
     field :client, Types::HmisSchema::Client, 'Client lookup', null: true do

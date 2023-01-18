@@ -8,7 +8,6 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   include ArelHelper
   include ::HmisStructure::Project
   include ::Hmis::Hud::Concerns::Shared
-  include ProjectSearch
   self.table_name = :Project
   self.sequence_name = "public.\"#{table_name}_id_seq\""
 
@@ -49,6 +48,14 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     where(ProjectType: project_types)
   end
 
+  scope :matching_search_term, ->(search_term) do
+    return none unless search_term.present?
+
+    search_term.strip!
+    query = "%#{search_term}%"
+    where(p_t[:ProjectName].matches(query).or(p_t[:ProjectID].matches(query)))
+  end
+
   SORT_OPTIONS = [:organization_and_name, :name].freeze
 
   def self.sort_by_option(option)
@@ -62,12 +69,6 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     else
       raise NotImplementedError
     end
-  end
-
-  def self.project_search(input:, user:)
-    scope = viewable_by(user)
-    scope = text_searcher(input.text_search, scope) if input.text_search.present?
-    scope
   end
 
   def self.generate_project_id
