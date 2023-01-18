@@ -160,7 +160,7 @@ module PerformanceMeasurement::Details
       details = results.project.left_outer_joins(:hud_project).
         order(p_t[:ProjectName].asc, p_t[GrdaWarehouse::Hud::Project.project_type_column].asc).
         for_field(key).
-        sort_by { |project| project.hud_project.name(user) }.
+        sort_by { |project| project&.hud_project&.name(user) || 'unknown' }.
         index_by(&:project_id)
       # throw out any where there are no associated client_projects
       # NOTE: we also need to throw these out in `inventory_sum`
