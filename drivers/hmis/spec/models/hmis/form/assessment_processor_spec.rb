@@ -13,6 +13,13 @@ RSpec.describe Hmis::Form::AssessmentProcessor, type: :model do
   let(:c1) { create :hmis_hud_client, data_source: ds, user: hmis_hud_user }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds, project: p1, client: c1, user: hmis_hud_user }
 
+  before(:all) do
+    cleanup_test_environment
+  end
+  after(:all) do
+    cleanup_test_environment
+  end
+
   it 'ingests EnrollmentCoC into the hud tables' do
     assessment = Hmis::Hud::Assessment.new_with_defaults(enrollment: e1, user: hmis_hud_user, form_definition: fd, assessment_date: Date.current)
     assessment.assessment_detail.hud_values = {
