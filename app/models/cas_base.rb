@@ -5,7 +5,7 @@
 ###
 
 if ENV['DATABASE_CAS_DB'].present?
-  class CasBase < ActiveRecord::Base
+  class CasBase < ApplicationRecord
     self.abstract_class = true
 
     connects_to database: { writing: :cas, reading: :cas }
