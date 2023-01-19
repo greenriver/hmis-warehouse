@@ -63,7 +63,6 @@ module BostonHmis
     # additional library paths
     config.eager_load_paths << Rails.root.join('lib', 'util')
     config.eager_load_paths << Rails.root.join('lib/devise')
-    config.eager_load_paths << 'app/drivers'
 
     # serve error pages from the Rails app itself
     # rather than using static error pages in public/.
