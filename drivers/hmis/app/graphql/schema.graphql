@@ -1309,11 +1309,13 @@ type Enrollment {
   disablingCondition: NoYesReasonsForMissingData
   entryDate: ISO8601Date!
   events(limit: Int, offset: Int, sortOrder: EventSortOption): EventsPaginated!
+  exitAssessment: Assessment
   exitDate: ISO8601Date
   household: Household!
   householdSize: Int!
   id: ID!
   inProgress: Boolean!
+  intakeAssessment: Assessment
   lengthOfStay: ResidencePriorLengthOfStay
   livingSituation: LivingSituation
   losUnderThreshold: NoYesMissing

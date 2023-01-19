@@ -130,4 +130,18 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     @in_progress = project_id.nil? if @in_progress.nil?
     @in_progress
   end
+
+  def intake_assessment
+    assessments_including_wip.
+      joins(:assessment_detail).
+      where(assessment_detail: { data_collection_stage: 1 }). # Project entry
+      first
+  end
+
+  def exit_assessment
+    assessments_including_wip.
+      joins(:assessment_detail).
+      where(assessment_detail: { data_collection_stage: 3 }). # Project exit
+      first
+  end
 end
