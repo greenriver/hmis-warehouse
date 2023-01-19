@@ -52,6 +52,7 @@ module Mutations
 
       if assessment.valid? && assessment.assessment_detail.valid?
         assessment.assessment_detail.save!
+        assessment.assessment_detail.assessment_processor.run!
         assessment.save_not_in_progress
       else
         errors << assessment.errors
