@@ -18,7 +18,7 @@ module GrdaWarehouse
       attr_accessor :candidates
 
       def self.run!
-        Shape::CoC.my_state.find_each do |coc|
+        Shape::Coc.my_state.find_each do |coc|
           puts coc.cocname
 
           agg = new(coc: coc)

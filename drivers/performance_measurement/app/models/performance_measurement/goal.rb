@@ -43,7 +43,7 @@ module PerformanceMeasurement
     end
 
     def available_cocs
-      ::HUD.cocs_in_state(ENV['RELEVANT_COC_STATE']).map do |code, name|
+      ::HudUtility.cocs_in_state(ENV['RELEVANT_COC_STATE']).map do |code, name|
         [
           "#{name} (#{code})",
           code,
@@ -52,7 +52,7 @@ module PerformanceMeasurement
     end
 
     def coc_name
-      name = ::HUD.coc_name(coc_code)
+      name = ::HudUtility.coc_name(coc_code)
       return "#{name} (#{coc_code})" unless name == coc_code
 
       coc_code

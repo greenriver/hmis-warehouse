@@ -2,7 +2,7 @@ class AddShapeData < ActiveRecord::Migration[5.2]
   def change
     # remove them all on up and down
     GrdaWarehouse::Shape::ZipCode.delete_all
-    GrdaWarehouse::Shape::CoC.delete_all
+    GrdaWarehouse::Shape::Coc.delete_all
 
     reversible do |r|
       r.up do

@@ -65,7 +65,7 @@ module GrdaWarehouse
           # next puts("match.destroy  #{match.id}") if sc.blank? || dc.blank?
           next match.destroy if sc.blank? || dc.blank?
 
-          ssns_match = ::HUD.valid_social?(sc.SSN) && ::HUD.valid_social?(dc.SSN) && sc.SSN == dc.SSN
+          ssns_match = ::HudUtility.valid_social?(sc.SSN) && ::HudUtility.valid_social?(dc.SSN) && sc.SSN == dc.SSN
           dobs_match = sc.DOB.present? && dc.DOB.present? && sc.DOB == dc.DOB
           # next puts("ssn: match.accept! #{match.id}") if ssns_match && dobs_match
           next match.accept!(run_service_history_add: false) if ssns_match && dobs_match

@@ -11,7 +11,7 @@
       .col-sm-4
         = f.input :coc_code, as: :select_two, collection: GrdaWarehouse::Hud::ProjectCoc.distinct.viewable_by(current_user).pluck(:CoCCode), selected: GrdaWarehouse::Config.get(:site_coc_codes), input_html: { name: 'report_result[options][coc_code]'}, hint: GrdaWarehouse::Config.get(:site_coc_codes), required: false, label: 'CoC Code'
         = f.input :race_code, as: :select_two, input_html: { name: 'report_result[options][race_code]' }, required: false, collection: Reports::SystemPerformance::Fy2019::Base.available_races, label: 'Race', include_blank: 'All'
-        = f.input :ethnicity_code, as: :select_two, input_html: { name: 'report_result[options][ethnicity_code]' }, required: false, collection: ::HUD.ethnicities.invert, label: 'Ethnicity', include_blank: 'All'
+        = f.input :ethnicity_code, as: :select_two, input_html: { name: 'report_result[options][ethnicity_code]' }, required: false, collection: ::HudUtility.ethnicities.invert, label: 'Ethnicity', include_blank: 'All'
       .col-sm-4
         .form-group
           %label.control-lable.string

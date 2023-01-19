@@ -3749,7 +3749,7 @@ msgstr ""
 msgid "HMIS Source Data"
 msgstr ""
 
-msgid "HMIS participation and data quality are priorities for TX-601 & HUD. Accurate, complete & timely data is crucial to determine how projects are contributing to ending homelessness.  High quality data is key to understanding what projects are doing and how the CoC & HUD can make informed decisions about the project."
+msgid "HMIS participation and data quality are priorities for TX-601 & HudUtility. Accurate, complete & timely data is crucial to determine how projects are contributing to ending homelessness.  High quality data is key to understanding what projects are doing and how the CoC & HUD can make informed decisions about the project."
 msgstr ""
 
 msgid "HSA"

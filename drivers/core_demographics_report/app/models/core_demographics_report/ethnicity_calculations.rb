@@ -10,7 +10,7 @@ module
   included do
     def ethnicity_detail_hash
       {}.tap do |hashes|
-        HUD.ethnicities.each do |key, title|
+        HudUtility.ethnicities.each do |key, title|
           hashes["ethnicity_#{key}"] = {
             title: "Ethnicity - #{title}",
             headers: client_headers,
@@ -39,7 +39,7 @@ module
       rows['_Ethnicity Break'] ||= []
       rows['*Ethnicity'] ||= []
       rows['*Ethnicity'] += ['Ethnicity', 'Count', 'Percentage', nil, nil]
-      ::HUD.ethnicities.each do |id, title|
+      ::HudUtility.ethnicities.each do |id, title|
         rows["_Ethnicity_data_#{title}"] ||= []
         rows["_Ethnicity_data_#{title}"] += [
           title,

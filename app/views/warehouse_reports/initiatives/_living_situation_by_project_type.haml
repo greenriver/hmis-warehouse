@@ -5,7 +5,7 @@
   :ruby
     ignore_columns = {}
     @data.involved_project_types.each do |p_type|
-      ::HUD.living_situations.each do |id, value|
+      ::HudUtility.living_situations.each do |id, value|
         key = "#{p_type}__#{value}"
         ignore_columns[value] ||= []
         count = data[key] || 0
@@ -13,19 +13,19 @@
       end
     end
     ignore_columns = ignore_columns.select{ |k, v| v.all?{ |m| m == 0 } }.keys
-      
+
   %table.table.table-striped.jToggle{id: "#{section}_table"}
     %thead
       %tr
         %th Project Type
-        - ::HUD.living_situations.each do |id, value|
+        - ::HudUtility.living_situations.each do |id, value|
           - next if ignore_columns.include? value
           %th= value
     %tbody
       - @data.involved_project_types.each do |p_type|
         %tr
           %th= p_type
-          - ::HUD.living_situations.each do |id, value|
+          - ::HudUtility.living_situations.each do |id, value|
             - next if ignore_columns.include? value
             %td
               - key = "#{p_type}__#{value}"

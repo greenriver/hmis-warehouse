@@ -6,7 +6,7 @@
 
 module GrdaWarehouse
   module Shape
-    class CoC < GrdaWarehouseBase
+    class Coc < GrdaWarehouseBase
       include SharedBehaviors
 
       scope :my_state, -> { where(st: ENV['RELEVANT_COC_STATE']) }

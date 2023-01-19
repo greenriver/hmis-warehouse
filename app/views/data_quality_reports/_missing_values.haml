@@ -35,7 +35,7 @@
         %tbody
           - @report.projects.each do |project|
             - any_clients = counts["#{project.id}"]['total_open_enrollments'] > 0 rescue true
-            - p_type = ::HUD.project_type_brief(project.ProjectType)
+            - p_type = ::HudUtility.project_type_brief(project.ProjectType)
             - p_class = "client__service_type_#{p_type}"
             - grade = GrdaWarehouse::Grades::Missing.grade_from_score(counts["#{project.id}"]['score'])
             %tr
@@ -103,7 +103,7 @@
         %tbody
           - @report.projects.each do |project|
             - any_clients = counts["#{project.id}"]['total_open_enrollments'] > 0 rescue true
-            - p_type = ::HUD.project_type_brief(project.ProjectType)
+            - p_type = ::HudUtility.project_type_brief(project.ProjectType)
             - p_class = "client__service_type_#{p_type}"
             - grade = GrdaWarehouse::Grades::Missing.grade_from_score(counts["#{project.id}"]['score'])
             %tr
@@ -148,4 +148,3 @@
                           #{measure}
                       - else
                         #{measure}
-

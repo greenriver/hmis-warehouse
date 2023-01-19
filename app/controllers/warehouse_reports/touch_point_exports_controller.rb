@@ -80,7 +80,7 @@ module WarehouseReports
     end
 
     def touch_point_scope
-      GrdaWarehouse::HMIS::Assessment.non_confidential
+      GrdaWarehouse::Hmis::Assessment.non_confidential
     end
 
     def reports_location

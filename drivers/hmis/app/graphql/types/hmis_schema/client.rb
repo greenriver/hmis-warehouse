@@ -77,13 +77,13 @@ module Types
     end
 
     def gender
-      selected_genders = ::HUD.gender_field_name_to_id.except(:GenderNone).select { |f| object.send(f).to_i == 1 }.values
+      selected_genders = ::HudUtility.gender_field_name_to_id.except(:GenderNone).select { |f| object.send(f).to_i == 1 }.values
       selected_genders << object.GenderNone if object.GenderNone
       selected_genders
     end
 
     def race
-      selected_races = ::HUD.races.except('RaceNone').keys.select { |f| object.send(f).to_i == 1 }
+      selected_races = ::HudUtility.races.except('RaceNone').keys.select { |f| object.send(f).to_i == 1 }
       selected_races << object.RaceNone if object.RaceNone
       selected_races
     end

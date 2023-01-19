@@ -474,7 +474,7 @@
       "render_path": null,
       "location": {
         "type": "method",
-        "class": "DBA::PartitionAll",
+        "class": "Dba::PartitionAll",
         "method": "add_explicit_primary_key!"
       },
       "user_input": "`#{\"egrep -R 'table_name..*#{t}' drivers/hmis_csv_twenty_twenty_two/app/models/hmis_csv_twenty_twenty_two | cut -d: -f1\"}`",
@@ -1525,7 +1525,7 @@
       "render_path": null,
       "location": {
         "type": "method",
-        "class": "DBA::PartitionAll",
+        "class": "Dba::PartitionAll",
         "method": "remove_saved_tables!"
       },
       "user_input": "table",
@@ -1704,7 +1704,7 @@
       "render_path": null,
       "location": {
         "type": "method",
-        "class": "DBA::PartitionAll",
+        "class": "Dba::PartitionAll",
         "method": "add_explicit_primary_key!"
       },
       "user_input": "t",
@@ -1784,7 +1784,7 @@
       "render_path": null,
       "location": {
         "type": "method",
-        "class": "DBA::DatabaseBloat",
+        "class": "Dba::DatabaseBloat",
         "method": "repack!"
       },
       "user_input": "ar_base_class.connection_db_config.configuration_hash[:username]",

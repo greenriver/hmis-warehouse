@@ -12,8 +12,8 @@ require_relative '../lib/util/id_protector'
 module BostonHmis
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
-    config.load_defaults 5.2
-    config.autoloader = :classic
+    config.load_defaults 6.1
+    # config.autoloader = :classic
     config.autoload_paths << Rails.root.join('lib/devise')
 
     # ActionCable
@@ -62,6 +62,8 @@ module BostonHmis
 
     # additional library paths
     config.eager_load_paths << Rails.root.join('lib', 'util')
+    config.eager_load_paths << Rails.root.join('lib/devise')
+    config.eager_load_paths << 'app/drivers'
 
     # serve error pages from the Rails app itself
     # rather than using static error pages in public/.

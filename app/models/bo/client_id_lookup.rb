@@ -356,7 +356,7 @@ module Bo
     end
 
     def touch_point_ids
-      @touch_point_ids ||= GrdaWarehouse::HMIS::Assessment.fetch_for_data_source(@data_source_id).
+      @touch_point_ids ||= GrdaWarehouse::Hmis::Assessment.fetch_for_data_source(@data_source_id).
         distinct.
         pluck(:assessment_id)
     end

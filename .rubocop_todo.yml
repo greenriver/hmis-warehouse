@@ -20,7 +20,6 @@ Layout/AccessModifierIndentation:
 # SupportedStyles: with_first_argument, with_fixed_indentation
 Layout/ArgumentAlignment:
   Exclude:
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
     - 'app/models/talentlms/facade.rb'
 
 # Offense count: 6
@@ -29,7 +28,6 @@ Layout/ArgumentAlignment:
 # SupportedStyles: with_first_element, with_fixed_indentation
 Layout/ArrayAlignment:
   Exclude:
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
     - 'app/models/health/exporter/health_exporter.rb'
 
 # Offense count: 12
@@ -38,8 +36,6 @@ Layout/ArrayAlignment:
 # SupportedStylesAlignWith: either, start_of_block, start_of_line
 Layout/BlockAlignment:
   Exclude:
-    - 'app/models/grda_warehouse/warehouse_reports/initiative_report.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
 
 # Offense count: 126
 # Cop supports --auto-correct.
@@ -52,8 +48,6 @@ Layout/CaseIndentation:
 # Cop supports --auto-correct.
 Layout/ClosingParenthesisIndentation:
   Exclude:
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_one.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
     - 'app/models/report_generators/data_quality/fy2017/base.rb'
 
 # Offense count: 34
@@ -75,8 +69,6 @@ Layout/CommentIndentation:
     - 'app/models/grda_warehouse/export/hmis_twenty_twenty/exit.rb'
     - 'app/models/grda_warehouse/export/hmis_twenty_twenty/health_and_dv.rb'
     - 'app/models/grda_warehouse/export/hmis_twenty_twenty/service.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/hud_lot.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
     - 'app/models/report_generators/lsa/fy2018/all.rb'
 
 # Offense count: 7
@@ -125,28 +117,17 @@ Layout/EmptyLineAfterGuardClause:
     - 'app/models/grda_warehouse/tasks/test_data.rb'
     - 'app/models/grda_warehouse/vispdat/family.rb'
     - 'app/models/grda_warehouse/vispdat/youth.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/hud_lot.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_one.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_two.rb'
     - 'app/models/health/cp_members/file_base.rb'
     - 'app/models/health/enrollment_reasons.rb'
     - 'app/models/health/tasks/check_patient_eligibility.rb'
     - 'app/models/health/health_file.rb'
     - 'app/models/health_base.rb'
     - 'app/models/report_generators/data_quality/fy2017/base.rb'
-    - 'app/models/report_generators/data_quality/fy2017/q5.rb'
     - 'app/models/report_generators/lsa/fy2018/base.rb'
     - 'app/models/report_generators/lsa/fy2019/base.rb'
     - 'app/models/report_generators/system_performance/fy2018/base.rb'
-    - 'app/models/reports/data_quality/fy2016/base.rb'
-    - 'app/models/reports/data_quality/fy2017/base.rb'
     - 'app/models/reports/lsa/fy2018/base.rb'
-    - 'app/models/reports/lsa/fy2019/base.rb'
     - 'app/models/reports/system_performance/fy2016/base.rb'
-    - 'app/models/reports/system_performance/fy2017/base.rb'
-    - 'app/models/reports/system_performance/fy2018/base.rb'
-    - 'app/models/reports/system_performance/fy2019/base.rb'
     - 'app/models/similarity_metric.rb'
     - 'app/models/similarity_metric/date_of_birth.rb'
     - 'app/models/similarity_metric/experiment.rb'
@@ -159,10 +140,6 @@ Layout/EmptyLineAfterGuardClause:
 Layout/EmptyLineBetweenDefs:
   Exclude:
     - 'app/models/grda_warehouse/vispdat/youth.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/dashboard/entered.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_one.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_two.rb'
     - 'app/models/health/base.rb'
     - 'app/models/health/claim.rb'
     - 'app/models/health/goal/base.rb'
@@ -173,8 +150,6 @@ Layout/EmptyLineBetweenDefs:
     - 'app/models/health/signature_requests/pcp_signature_request.rb'
     - 'app/models/phi.rb'
     - 'app/models/report_generators/data_quality/fy2017/base.rb'
-    - 'app/models/report_generators/data_quality/fy2017/q1.rb'
-    - 'app/models/report_generators/data_quality/fy2017/q5.rb'
     - 'app/models/report_generators/lsa/fy2018/all.rb'
     - 'app/models/report_generators/system_performance/fy2018/base.rb'
     - 'app/models/report_generators/system_performance/fy2018/measure_four.rb'
@@ -184,7 +159,6 @@ Layout/EmptyLineBetweenDefs:
     - 'app/models/report_results_summaries/data_quality/fy2016.rb'
     - 'app/models/report_results_summaries/data_quality/fy2017.rb'
     - 'app/models/report_results_summaries/system_performance/fy2015.rb'
-    - 'app/models/reporting/data_quality_reports/project.rb'
     - 'app/models/reporting/rrh_report.rb'
 
 # Offense count: 117
@@ -201,17 +175,9 @@ Layout/EmptyLines:
     - 'app/models/grda_warehouse/export/hmis_twenty_twenty/disability.rb'
     - 'app/models/grda_warehouse/export/hmis_twenty_twenty/enrollment_coc.rb'
     - 'app/models/grda_warehouse/export/hmis_twenty_twenty/exit.rb'
-    - 'app/models/grda_warehouse/hmis/client_attribute_defined_text.rb'
     - 'app/models/grda_warehouse/us_census_api/relevant_variables.rb'
     - 'app/models/grda_warehouse/verification_source/disability.rb'
     - 'app/models/grda_warehouse/warehouse_reports/dashboard/active.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/dashboard/entered.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/dashboard/housed.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/hud_lot.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/initiative_report.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_one.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_two.rb'
     - 'app/models/health/backup_plan_saver.rb'
     - 'app/models/health/claim.rb'
     - 'app/models/health/dme_saver.rb'
@@ -221,8 +187,6 @@ Layout/EmptyLines:
     - 'app/models/health/premium_payment.rb'
     - 'app/models/health/service_saver.rb'
     - 'app/models/report_generators/data_quality/fy2017/base.rb'
-    - 'app/models/report_generators/data_quality/fy2017/q1.rb'
-    - 'app/models/report_generators/data_quality/fy2017/q5.rb'
     - 'app/models/report_generators/lsa/fy2018/all.rb'
     - 'app/models/report_generators/system_performance/fy2018/base.rb'
     - 'app/models/report_generators/system_performance/fy2018/measure_four.rb'
@@ -232,9 +196,6 @@ Layout/EmptyLines:
     - 'app/models/reporting_base.rb'
     - 'app/models/reports/lsa/fy2018/base.rb'
     - 'app/models/reports/system_performance/fy2016/base.rb'
-    - 'app/models/reports/system_performance/fy2017/base.rb'
-    - 'app/models/reports/system_performance/fy2018/base.rb'
-    - 'app/models/reports/system_performance/fy2019/base.rb'
     - 'app/models/talentlms/config.rb'
 
 # Offense count: 3
@@ -256,11 +217,6 @@ Layout/EmptyLinesAroundArguments:
 # SupportedStyles: empty_lines, no_empty_lines
 Layout/EmptyLinesAroundBlockBody:
   Exclude:
-    - 'app/models/grda_warehouse/us_census_api/coc_agg.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/initiative_report.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_one.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_two.rb'
 
 # Offense count: 317
 # Cop supports --auto-correct.
@@ -301,8 +257,6 @@ Layout/EmptyLinesAroundClassBody:
     - 'app/models/grda_warehouse/grades/utilization.rb'
     - 'app/models/grda_warehouse/health_emergency/isolation.rb'
     - 'app/models/grda_warehouse/health_emergency/quarantine.rb'
-    - 'app/models/grda_warehouse/hmis/client_attribute_defined_text.rb'
-    - 'app/models/grda_warehouse/hmis/staff.rb'
     - 'app/models/grda_warehouse/identify_duplicates_log.rb'
     - 'app/models/grda_warehouse/import/hmis_six_one_one/affiliation.rb'
     - 'app/models/grda_warehouse/import/hmis_six_one_one/disability.rb'
@@ -342,11 +296,6 @@ Layout/EmptyLinesAroundClassBody:
     - 'app/models/grda_warehouse/warehouse_reports/chronic_report.rb'
     - 'app/models/grda_warehouse/warehouse_reports/confidential_touch_point.rb'
     - 'app/models/grda_warehouse/warehouse_reports/dashboard/active.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/dashboard/entered.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/dashboard/housed.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/initiative_report.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_one.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_two.rb'
     - 'app/models/health/agency_patient_referral.rb'
     - 'app/models/health/agency_user_saver.rb'
     - 'app/models/health/backup_plan_saver.rb'
@@ -400,9 +349,6 @@ Layout/EmptyLinesAroundClassBody:
     - 'app/models/import.rb'
     - 'app/models/program.rb'
     - 'app/models/report_generators/data_quality/fy2017/base.rb'
-    - 'app/models/report_generators/data_quality/fy2017/q1.rb'
-    - 'app/models/report_generators/data_quality/fy2017/q3.rb'
-    - 'app/models/report_generators/data_quality/fy2017/q4.rb'
     - 'app/models/report_generators/lsa/fy2018/all.rb'
     - 'app/models/report_results_summaries/ahar/base.rb'
     - 'app/models/report_results_summaries/ahar/veteran.rb'
@@ -413,7 +359,6 @@ Layout/EmptyLinesAroundClassBody:
     - 'app/models/report_results_summaries/pit/fy2017.rb'
     - 'app/models/report_results_summaries/pit/fy2018.rb'
     - 'app/models/reporting/d3_charts.rb'
-    - 'app/models/reporting/data_quality_reports/project.rb'
     - 'app/models/reporting/data_quality_reports/project_group.rb'
     - 'app/models/reporting/monthly_client_ids.rb'
     - 'app/models/reporting/rrh_report.rb'
@@ -451,7 +396,6 @@ Layout/EmptyLinesAroundClassBody:
     - 'app/models/reports/system_performance/fy2016/measure_six.rb'
     - 'app/models/reports/system_performance/fy2016/measure_three.rb'
     - 'app/models/reports/system_performance/fy2016/measure_two.rb'
-    - 'app/models/reports/system_performance/fy2017/base.rb'
     - 'app/models/reports/system_performance/fy2017/measure_five.rb'
     - 'app/models/reports/system_performance/fy2017/measure_four.rb'
     - 'app/models/reports/system_performance/fy2017/measure_one.rb'
@@ -459,7 +403,6 @@ Layout/EmptyLinesAroundClassBody:
     - 'app/models/reports/system_performance/fy2017/measure_six.rb'
     - 'app/models/reports/system_performance/fy2017/measure_three.rb'
     - 'app/models/reports/system_performance/fy2017/measure_two.rb'
-    - 'app/models/reports/system_performance/fy2018/base.rb'
     - 'app/models/reports/system_performance/fy2018/measure_five.rb'
     - 'app/models/reports/system_performance/fy2018/measure_four.rb'
     - 'app/models/reports/system_performance/fy2018/measure_one.rb'
@@ -467,7 +410,6 @@ Layout/EmptyLinesAroundClassBody:
     - 'app/models/reports/system_performance/fy2018/measure_six.rb'
     - 'app/models/reports/system_performance/fy2018/measure_three.rb'
     - 'app/models/reports/system_performance/fy2018/measure_two.rb'
-    - 'app/models/reports/system_performance/fy2019/base.rb'
     - 'app/models/reports/system_performance/fy2019/measure_five.rb'
     - 'app/models/reports/system_performance/fy2019/measure_four.rb'
     - 'app/models/reports/system_performance/fy2019/measure_one.rb'
@@ -482,7 +424,6 @@ Layout/EmptyLinesAroundClassBody:
     - 'app/models/similarity_metric/initializer.rb'
     - 'app/models/similarity_metric/levenshtein.rb'
     - 'app/models/similarity_metric/multinomial.rb'
-    - 'app/models/similarity_metric/social_security_number.rb'
     - 'app/models/talentlms/facade.rb'
     - 'app/models/token.rb'
     - 'app/models/warehouse_report.rb'
@@ -494,15 +435,7 @@ Layout/EmptyLinesAroundMethodBody:
   Exclude:
     - 'app/jobs/background_render/core_demographics_report_job.rb'
     - 'app/models/grda_warehouse/export/hmis_six_one_one/income_benefit.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/initiative_report.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_one.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_two.rb'
     - 'app/models/health/premium_payment.rb'
-    - 'app/models/report_generators/data_quality/fy2017/q1.rb'
-    - 'app/models/reports/system_performance/fy2017/base.rb'
-    - 'app/models/reports/system_performance/fy2018/base.rb'
-    - 'app/models/reports/system_performance/fy2019/base.rb'
 
 # Offense count: 12
 # Cop supports --auto-correct.
@@ -513,7 +446,6 @@ Layout/EmptyLinesAroundModuleBody:
     - 'app/models/grda_warehouse/shape.rb'
     - 'app/models/grda_warehouse/tasks/earliest_residential_service.rb'
     - 'app/models/grda_warehouse/tasks/test_data.rb'
-    - 'app/models/grda_warehouse/us_census_api/state_fips.rb'
     - 'app/models/similarity_metric.rb'
     - 'app/models/similarity_metric/experiment/float_formatter.rb'
     - 'app/models/similarity_metric/experiment/integer_formatter.rb'
@@ -536,8 +468,6 @@ Layout/EndAlignment:
 # Configuration parameters: AllowForAlignment, AllowBeforeTrailingComments, ForceEqualSignAlignment.
 Layout/ExtraSpacing:
   Exclude:
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_two.rb'
     - 'app/models/health/transaction_acknowledgement.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_four.rb'
     - 'app/models/similarity_metric/experiment.rb'
@@ -550,7 +480,6 @@ Layout/ExtraSpacing:
 # SupportedStyles: consistent, consistent_relative_to_receiver, special_for_inner_method_call, special_for_inner_method_call_in_parentheses
 Layout/FirstArgumentIndentation:
   Exclude:
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
     - 'app/models/reporting/data_quality_reports/project_group.rb'
 
 # Offense count: 14
@@ -559,8 +488,6 @@ Layout/FirstArgumentIndentation:
 # SupportedStyles: special_inside_parentheses, consistent, align_brackets
 Layout/FirstArrayElementIndentation:
   Exclude:
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_two.rb'
     - 'app/models/health/claims/view_model.rb'
 
 # Offense count: 133
@@ -576,9 +503,6 @@ Layout/FirstHashElementIndentation:
     - 'app/models/glacier/uploader.rb'
     - 'app/models/glacier/utils.rb'
     - 'app/models/grda_warehouse/us_census_api/aggregates.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_one.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_two.rb'
     - 'app/models/health/transaction_acknowledgement.rb'
 
 # Offense count: 264
@@ -590,18 +514,10 @@ Layout/FirstHashElementIndentation:
 Layout/HashAlignment:
   Exclude:
     - 'app/models/grda_warehouse/tasks/enrollment_extras_import.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/initiative_report.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_one.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_two.rb'
     - 'app/models/health/accountable_care_organization.rb'
     - 'app/models/health/claim.rb'
     - 'app/models/health/tasks/notify_care_coordinators_of_patient_eligibility_problems.rb'
     - 'app/models/report_generators/data_quality/fy2017/base.rb'
-    - 'app/models/report_generators/data_quality/fy2017/q1.rb'
-    - 'app/models/report_generators/data_quality/fy2017/q3.rb'
-    - 'app/models/report_generators/data_quality/fy2017/q4.rb'
-    - 'app/models/report_generators/data_quality/fy2017/q5.rb'
     - 'app/models/report_generators/data_quality/fy2017/q6.rb'
     - 'app/models/report_generators/data_quality/fy2017/q7.rb'
     - 'app/models/report_generators/lsa/fy2018/all.rb'
@@ -630,8 +546,6 @@ Layout/IndentationConsistency:
     - 'app/models/concerns/performance_dashboard/overview/entering/lot_homeless.rb'
     - 'app/models/concerns/performance_dashboard/overview/exiting/lot_homeless.rb'
     - 'app/models/grda_warehouse/cohort_copier.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_one.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_two.rb'
     - 'app/models/health/aco_performance.rb'
     - 'app/models/health/claim.rb'
     - 'app/models/report_generators/lsa/fy2018/all.rb'
@@ -648,8 +562,6 @@ Layout/IndentationConsistency:
 Layout/IndentationWidth:
   Exclude:
     - 'app/models/consent_limit.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/hud_lot.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
     - 'app/models/health/aco_performance.rb'
     - 'app/models/health/expiring_item_report.rb'
     - 'app/models/health/soap/soap_response.rb'
@@ -671,10 +583,7 @@ Layout/LeadingCommentSpace:
     - 'app/models/glacier/tester.rb'
     - 'app/models/glacier/uploader.rb'
     - 'app/models/glacier/utils.rb'
-    - 'app/models/grda_warehouse/us_census_api/coc_agg.rb'
     - 'app/models/grda_warehouse/us_census_api/relevant_variables.rb'
-    - 'app/models/grda_warehouse/us_census_api/test_suite.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
     - 'app/models/reports/ahar/fy2016/base.rb'
     - 'app/models/reports/ahar/fy2017/base.rb'
     - 'bin/containers/list'
@@ -686,8 +595,6 @@ Layout/LeadingCommentSpace:
 # SupportedStyles: symmetrical, new_line, same_line
 Layout/MultilineMethodCallBraceLayout:
   Exclude:
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_one.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
     - 'app/models/report_generators/data_quality/fy2017/base.rb'
     - 'app/models/talentlms/facade.rb'
 
@@ -701,13 +608,7 @@ Layout/MultilineMethodCallIndentation:
     - 'app/models/cas/user.rb'
     - 'app/models/grda_warehouse/grades/missing.rb'
     - 'app/models/grda_warehouse/health_emergency/uploaded_test.rb'
-    - 'app/models/grda_warehouse/us_census_api/coc_agg.rb'
     - 'app/models/grda_warehouse/warehouse_reports/dashboard/base.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/hud_lot.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/initiative_report.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_one.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_two.rb'
     - 'app/models/health/expiring_item_report.rb'
     - 'app/models/health/signature_request.rb'
     - 'app/models/health/transaction_acknowledgement.rb'
@@ -726,9 +627,6 @@ Layout/MultilineMethodDefinitionBraceLayout:
 Layout/SpaceAfterColon:
   Exclude:
     - 'app/models/glacier/backup.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_one.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_two.rb'
     - 'app/models/report_generators/system_performance/fy2018/measure_four.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_four.rb'
     - 'app/models/similarity_metric/tasks/generate_candidates.rb'
@@ -738,17 +636,8 @@ Layout/SpaceAfterColon:
 Layout/SpaceAfterComma:
   Exclude:
     - 'app/models/grda_warehouse/cohort_copier.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/dashboard/housed.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/hud_lot.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_one.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_two.rb'
     - 'app/models/health/premium_payment.rb'
     - 'app/models/report_generators/data_quality/fy2017/base.rb'
-    - 'app/models/report_generators/data_quality/fy2017/q1.rb'
-    - 'app/models/report_generators/data_quality/fy2017/q3.rb'
-    - 'app/models/report_generators/data_quality/fy2017/q4.rb'
-    - 'app/models/report_generators/data_quality/fy2017/q5.rb'
     - 'app/models/report_generators/data_quality/fy2017/q6.rb'
     - 'app/models/report_generators/data_quality/fy2017/q7.rb'
     - 'app/models/report_generators/system_performance/fy2018/measure_four.rb'
@@ -791,7 +680,6 @@ Layout/SpaceAroundEqualsInParameterDefault:
     - 'app/models/grda_warehouse/health_emergency/vaccination.rb'
     - 'app/models/grda_warehouse/tasks/earliest_residential_service.rb'
     - 'app/models/grda_warehouse/tasks/test_data.rb'
-    - 'app/models/grda_warehouse/us_census_api/test_suite.rb'
     - 'app/models/health/agency_user_saver.rb'
     - 'app/models/health_base.rb'
     - 'app/models/report_result.rb'
@@ -816,15 +704,10 @@ Layout/SpaceAroundOperators:
     - 'app/models/glacier/utils.rb'
     - 'app/models/grda_warehouse/generate_service_history_log.rb'
     - 'app/models/grda_warehouse/identify_duplicates_log.rb'
-    - 'app/models/grda_warehouse/us_census_api/coc_agg.rb'
     - 'app/models/grda_warehouse/us_census_api/relevant_variables.rb'
     - 'app/models/grda_warehouse/vispdat/family.rb'
     - 'app/models/grda_warehouse/warehouse_reports/base.rb'
     - 'app/models/grda_warehouse/warehouse_reports/confidential_touch_point.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/initiative_report.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_one.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_two.rb'
     - 'app/models/grda_warehouse/warehouse_reports/touch_point.rb'
     - 'app/models/health/claims/view_model.rb'
     - 'app/models/health/transaction_acknowledgement.rb'
@@ -851,13 +734,6 @@ Layout/SpaceBeforeBlockBraces:
     - 'app/models/grda_warehouse/export/hmis_twenty_twenty/exit.rb'
     - 'app/models/grda_warehouse/tasks/enrollment_extras_import.rb'
     - 'app/models/grda_warehouse/tasks/test_data.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/dashboard/entered.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/dashboard/housed.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/hud_lot.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/initiative_report.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_one.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_two.rb'
     - 'app/models/grda_warehouse/warehouse_reports/touch_point.rb'
     - 'app/models/health/claim.rb'
     - 'app/models/health/claims/view_model.rb'
@@ -869,20 +745,13 @@ Layout/SpaceBeforeBlockBraces:
     - 'app/models/health/sdh_case_management_note.rb'
     - 'app/models/health/transaction_acknowledgement.rb'
     - 'app/models/report_generators/data_quality/fy2017/base.rb'
-    - 'app/models/report_generators/data_quality/fy2017/q1.rb'
-    - 'app/models/report_generators/data_quality/fy2017/q4.rb'
     - 'app/models/report_generators/lsa/fy2018/all.rb'
     - 'app/models/report_generators/system_performance/fy2018/measure_four.rb'
     - 'app/models/report_generators/system_performance/fy2019/base.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_four.rb'
-    - 'app/models/reporting/data_quality_reports/project.rb'
     - 'app/models/reports/ahar/fy2017/base.rb'
-    - 'app/models/reports/data_quality/fy2016/base.rb'
-    - 'app/models/reports/data_quality/fy2017/base.rb'
     - 'app/models/reports/lsa/fy2018/base.rb'
     - 'app/models/reports/system_performance/fy2016/base.rb'
-    - 'app/models/reports/system_performance/fy2017/base.rb'
-    - 'app/models/reports/system_performance/fy2018/base.rb'
     - 'app/models/similarity_metric.rb'
     - 'app/models/similarity_metric/double_metaphone.rb'
     - 'app/models/similarity_metric/experiment.rb'
@@ -948,7 +817,6 @@ Layout/SpaceInsideArrayLiteralBrackets:
     - 'app/models/grda_warehouse/tasks/enrollment_extras_import.rb'
     - 'app/models/grda_warehouse/tasks/test_data.rb'
     - 'app/models/grda_warehouse/us_census_api/aggregates.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
     - 'app/models/health/exporter/health_exporter.rb'
     - 'app/models/similarity_metric.rb'
     - 'app/models/similarity_metric/double_metaphone.rb'
@@ -972,13 +840,6 @@ Layout/SpaceInsideBlockBraces:
     - 'app/models/grda_warehouse/export/hmis_six_one_one/exit.rb'
     - 'app/models/grda_warehouse/export/hmis_twenty_twenty/client.rb'
     - 'app/models/grda_warehouse/export/hmis_twenty_twenty/exit.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/dashboard/entered.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/dashboard/housed.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/hud_lot.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/initiative_report.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_one.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_two.rb'
     - 'app/models/grda_warehouse/warehouse_reports/touch_point.rb'
     - 'app/models/health/agency_patient_referral.rb'
     - 'app/models/health/claim.rb'
@@ -991,20 +852,13 @@ Layout/SpaceInsideBlockBraces:
     - 'app/models/health/sdh_case_management_note.rb'
     - 'app/models/health/signable_document.rb'
     - 'app/models/health/transaction_acknowledgement.rb'
-    - 'app/models/report_generators/data_quality/fy2017/q1.rb'
-    - 'app/models/report_generators/data_quality/fy2017/q3.rb'
-    - 'app/models/report_generators/data_quality/fy2017/q4.rb'
     - 'app/models/report_generators/data_quality/fy2017/q6.rb'
     - 'app/models/report_generators/lsa/fy2018/all.rb'
     - 'app/models/report_generators/system_performance/fy2018/measure_four.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_four.rb'
     - 'app/models/reports/ahar/fy2017/base.rb'
-    - 'app/models/reports/data_quality/fy2016/base.rb'
-    - 'app/models/reports/data_quality/fy2017/base.rb'
     - 'app/models/reports/lsa/fy2018/base.rb'
     - 'app/models/reports/system_performance/fy2016/base.rb'
-    - 'app/models/reports/system_performance/fy2017/base.rb'
-    - 'app/models/reports/system_performance/fy2018/base.rb'
     - 'app/models/similarity_metric/experiment/ranking.rb'
     - 'app/models/talentlms/config.rb'
 
@@ -1023,13 +877,7 @@ Layout/SpaceInsideHashLiteralBraces:
     - 'app/models/grda_warehouse/grades/utilization.rb'
     - 'app/models/grda_warehouse/hud_chronic.rb'
     - 'app/models/grda_warehouse/us_census_api/census_variable.rb'
-    - 'app/models/grda_warehouse/us_census_api/coc_agg.rb'
     - 'app/models/grda_warehouse/warehouse_reports/dashboard/active.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/dashboard/entered.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/initiative_report.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_one.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_two.rb'
     - 'app/models/health/claims/view_model.rb'
     - 'app/models/health/exporter/health_exporter.rb'
     - 'app/models/health/goal/base.rb'
@@ -1134,10 +982,8 @@ Layout/SpaceInsideParens:
     - 'app/models/grda_warehouse/tasks/hud_chronically_homeless.rb'
     - 'app/models/grda_warehouse/tasks/test_data.rb'
     - 'app/models/grda_warehouse/us_census_api/relevant_variables.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/hud_lot.rb'
     - 'app/models/health/claims/base.rb'
     - 'app/models/health/sdh_case_management_note.rb'
-    - 'app/models/reporting/data_quality_reports/project.rb'
     - 'app/models/reporting/data_quality_reports/project_group.rb'
     - 'app/models/similarity_metric.rb'
     - 'app/models/similarity_metric/base.rb'
@@ -1220,7 +1066,6 @@ Lint/AssignmentInCondition:
 Lint/BinaryOperatorWithIdenticalOperands:
   Exclude:
     - 'app/models/grda_warehouse/report_token.rb'
-    - 'app/models/grda_warehouse/us_census_api/test_suite.rb'
 
 # Offense count: 1
 # Cop supports --auto-correct.
@@ -1233,7 +1078,6 @@ Lint/BooleanSymbol:
 # DebuggerMethods: debugger, byebug, remote_byebug, pry, remote_pry, pry_remote, console, rescue, save_and_open_page, save_and_open_screenshot, irb
 Lint/Debugger:
   Exclude:
-    - 'app/models/grda_warehouse/us_census_api/test_suite.rb'
 
 # Offense count: 24
 # Cop supports --auto-correct.
@@ -1300,14 +1144,9 @@ Lint/ShadowingOuterLocalVariable:
     - 'app/models/grda_warehouse/export/hmis_six_one_one/project.rb'
     - 'app/models/grda_warehouse/export/hmis_six_one_one/project_coc.rb'
     - 'app/models/grda_warehouse/export/hmis_twenty_twenty/project_coc.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/initiative_report.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_one.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_two.rb'
     - 'app/models/health/claim.rb'
     - 'app/models/health/premium_payment.rb'
     - 'app/models/report_generators/data_quality/fy2017/base.rb'
-    - 'app/models/report_generators/data_quality/fy2017/q3.rb'
     - 'app/models/report_generators/system_performance/fy2018/measure_four.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_four.rb'
     - 'app/models/similarity_metric.rb'
@@ -1324,12 +1163,10 @@ Lint/ShadowingOuterLocalVariable:
 Lint/SuppressedException:
   Exclude:
     - 'app/models/glacier/tester.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/initiative_report.rb'
 
 # Offense count: 3
 Lint/UnreachableCode:
   Exclude:
-    - 'app/models/grda_warehouse/us_census_api/coc_agg.rb'
     - 'app/models/similarity_metric/date_of_birth.rb'
     - 'app/models/similarity_metric/name_data_quality.rb'
 
@@ -1347,15 +1184,8 @@ Lint/UnusedBlockArgument:
     - 'app/models/glacier/backup.rb'
     - 'app/models/glacier/restore.rb'
     - 'app/models/grda_warehouse/cohort_copier.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/hud_lot.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/initiative_report.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_one.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_two.rb'
     - 'app/models/health/claim.rb'
     - 'app/models/report_generators/data_quality/fy2017/base.rb'
-    - 'app/models/report_generators/data_quality/fy2017/q1.rb'
-    - 'app/models/report_generators/data_quality/fy2017/q5.rb'
     - 'app/models/report_generators/data_quality/fy2017/q6.rb'
     - 'app/models/report_generators/system_performance/fy2018/measure_four.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_four.rb'
@@ -1391,11 +1221,6 @@ Lint/UnusedMethodArgument:
     - 'app/models/grda_warehouse/import/hmis_six_one_one/project_coc.rb'
     - 'app/models/grda_warehouse/import/hmis_twenty_twenty/affiliation.rb'
     - 'app/models/grda_warehouse/import/hmis_twenty_twenty/project_coc.rb'
-    - 'app/models/grda_warehouse/us_census_api/coc_agg.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/dashboard/entered.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_one.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_two.rb'
     - 'app/models/health/epic_patient.rb'
     - 'app/models/health/problem.rb'
     - 'app/models/similarity_metric/base.rb'
@@ -1418,15 +1243,12 @@ Lint/UselessAssignment:
     - 'app/models/grda_warehouse/export/hmis_twenty_twenty/exit.rb'
     - 'app/models/grda_warehouse/tasks/enrollment_extras_import.rb'
     - 'app/models/grda_warehouse/tasks/test_data.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/dashboard/entered.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/dashboard/housed.rb'
     - 'app/models/health/agency_user_saver.rb'
     - 'app/models/health/claim.rb'
     - 'app/models/health/claims/view_model.rb'
     - 'app/models/health/participation_saver.rb'
     - 'app/models/health/premium_payment.rb'
     - 'app/models/report_generators/data_quality/fy2017/base.rb'
-    - 'app/models/report_generators/data_quality/fy2017/q1.rb'
     - 'app/models/report_generators/lsa/fy2018/all.rb'
     - 'app/models/report_generators/system_performance/fy2018/measure_four.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_four.rb'
@@ -1464,7 +1286,6 @@ Metrics/PerceivedComplexity:
 # Offense count: 8
 Naming/AccessorMethodName:
   Exclude:
-    - 'app/models/grda_warehouse/warehouse_reports/hud_lot.rb'
 
 # Offense count: 4
 # Cop supports --auto-correct.
@@ -1492,7 +1313,6 @@ Naming/MemoizedInstanceVariableName:
   Exclude:
     - 'app/models/grda_warehouse/tasks/test_data.rb'
     - 'app/models/grda_warehouse/warehouse_reports/confidential_touch_point.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
     - 'app/models/grda_warehouse/warehouse_reports/touch_point.rb'
     - 'app/models/health/aco_performance.rb'
     - 'app/models/health/premium_payment.rb'
@@ -1530,7 +1350,6 @@ Naming/MethodParameterName:
     - 'app/models/similarity_metric/experiment/ranking.rb'
     - 'app/models/similarity_metric/levenshtein.rb'
     - 'app/models/similarity_metric/multinomial.rb'
-    - 'app/models/similarity_metric/social_security_number.rb'
     - 'app/models/similarity_metric/veteran_status.rb'
 
 # Offense count: 88
@@ -1547,19 +1366,13 @@ Naming/PredicateName:
     - 'app/models/reports/ahar/fy2017/base.rb'
     - 'app/models/reports/ahar/fy2017/by_data_source.rb'
     - 'app/models/reports/ahar/fy2017/by_project.rb'
-    - 'app/models/reports/data_quality/fy2016/base.rb'
-    - 'app/models/reports/data_quality/fy2017/base.rb'
     - 'app/models/reports/hic/fy2017/base.rb'
     - 'app/models/reports/hic/fy2019/base.rb'
     - 'app/models/reports/lsa/fy2018/base.rb'
-    - 'app/models/reports/lsa/fy2019/base.rb'
     - 'app/models/reports/pit/fy2017/base.rb'
     - 'app/models/reports/pit/fy2017/by_project.rb'
     - 'app/models/reports/pit/fy2018/by_project.rb'
     - 'app/models/reports/system_performance/fy2016/base.rb'
-    - 'app/models/reports/system_performance/fy2017/base.rb'
-    - 'app/models/reports/system_performance/fy2018/base.rb'
-    - 'app/models/reports/system_performance/fy2019/base.rb'
 
 # Offense count: 7
 # Cop supports --auto-correct.
@@ -1626,19 +1439,12 @@ Style/ClassEqualityComparison:
 # Offense count: 3
 Style/ClassVars:
   Exclude:
-    - 'app/models/grda_warehouse/us_census_api/test_suite.rb'
 
 # Offense count: 26
 # Cop supports --auto-correct.
 Style/ColonMethodCall:
   Exclude:
     - 'app/models/grda_warehouse/warehouse_reports/dashboard/base.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/dashboard/entered.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/dashboard/housed.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
-    - 'app/models/reporting/data_quality_reports/project.rb'
-    - 'app/models/reports/data_quality/fy2016/base.rb'
-    - 'app/models/reports/data_quality/fy2017/base.rb'
 
 # Offense count: 25
 # Cop supports --auto-correct.
@@ -1667,8 +1473,6 @@ Style/EmptyLambdaParameter:
 # Cop supports --auto-correct.
 Style/EmptyLiteral:
   Exclude:
-    - 'app/models/report_generators/data_quality/fy2017/q1.rb'
-    - 'app/models/report_generators/data_quality/fy2017/q4.rb'
     - 'app/models/report_generators/data_quality/fy2017/q6.rb'
 
 # Offense count: 8
@@ -1687,7 +1491,6 @@ Style/FormatString:
 # Cop supports --auto-correct.
 Style/GlobalStdStream:
   Exclude:
-    - 'app/models/grda_warehouse/us_census_api/test_suite.rb'
 
 # Offense count: 106
 # Configuration parameters: MinBodyLength.
@@ -1698,9 +1501,6 @@ Style/GuardClause:
     - 'app/models/glacier/restore.rb'
     - 'app/models/grda_warehouse/tasks/enrollment_extras_import.rb'
     - 'app/models/grda_warehouse/tasks/test_data.rb'
-    - 'app/models/grda_warehouse/us_census_api/coc_agg.rb'
-    - 'app/models/grda_warehouse/us_census_api/state_fips.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
     - 'app/models/health/cp_members/file_base.rb'
     - 'app/models/health/sdh_case_management_note.rb'
     - 'app/models/report_result.rb'
@@ -1725,8 +1525,6 @@ Style/HashSyntax:
 # Offense count: 18
 Style/IdenticalConditionalBranches:
   Exclude:
-    - 'app/models/grda_warehouse/warehouse_reports/hud_lot.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
     - 'app/models/health/enrollment_reasons.rb'
 
 # Offense count: 17
@@ -1737,7 +1535,6 @@ Style/IfInsideElse:
     - 'app/models/grda_warehouse/tasks/earliest_residential_service.rb'
     - 'app/models/grda_warehouse/us_census_api/aggregates.rb'
     - 'app/models/import.rb'
-    - 'app/models/report_generators/data_quality/fy2017/q4.rb'
 
 # Offense count: 378
 # Cop supports --auto-correct.
@@ -1755,12 +1552,7 @@ Style/IfUnlessModifier:
     - 'app/models/grda_warehouse/tasks/earliest_residential_service.rb'
     - 'app/models/grda_warehouse/tasks/process_recurring_hmis_exports.rb'
     - 'app/models/grda_warehouse/tasks/test_data.rb'
-    - 'app/models/grda_warehouse/us_census_api/coc_agg.rb'
     - 'app/models/grda_warehouse/us_census_api/relevant_variables.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/dashboard/housed.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_one.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_two.rb'
     - 'app/models/health/claim.rb'
     - 'app/models/health/premium_payment.rb'
     - 'app/models/health/sdh_case_management_note.rb'
@@ -1810,16 +1602,9 @@ Style/MethodCallWithoutArgsParentheses:
     - 'app/models/grda_warehouse/import/hmis_six_one_one/project.rb'
     - 'app/models/grda_warehouse/import/hmis_twenty_twenty/project.rb'
     - 'app/models/grda_warehouse/warehouse_reports/dashboard/active.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/dashboard/entered.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/initiative_report.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_one.rb'
     - 'app/models/health/claim.rb'
     - 'app/models/health/claims/view_model.rb'
     - 'app/models/health/exporter/health_exporter.rb'
-    - 'app/models/report_generators/data_quality/fy2017/q1.rb'
-    - 'app/models/report_generators/data_quality/fy2017/q3.rb'
-    - 'app/models/report_generators/data_quality/fy2017/q4.rb'
-    - 'app/models/report_generators/data_quality/fy2017/q5.rb'
     - 'app/models/report_generators/data_quality/fy2017/q6.rb'
     - 'app/models/report_generators/data_quality/fy2017/q7.rb'
     - 'app/models/report_generators/lsa/fy2018/all.rb'
@@ -1856,8 +1641,6 @@ Style/MultipleComparison:
 # SupportedStyles: literals, strict
 Style/MutableConstant:
   Exclude:
-    - 'app/models/grda_warehouse/hmis/base.rb'
-    - 'app/models/grda_warehouse/hmis/staff_x_client.rb'
     - 'app/models/grda_warehouse/tasks/enrollment_extras_import.rb'
     - 'app/models/grda_warehouse/tasks/test_data.rb'
     - 'app/models/grda_warehouse/us_census_api/aggregates.rb'
@@ -1874,7 +1657,6 @@ Style/MutableConstant:
     - 'app/models/similarity_metric/double_metaphone.rb'
     - 'app/models/similarity_metric/levenshtein.rb'
     - 'app/models/similarity_metric/multinomial.rb'
-    - 'app/models/similarity_metric/social_security_number.rb'
 
 # Offense count: 20
 # Cop supports --auto-correct.
@@ -1883,9 +1665,6 @@ Style/MutableConstant:
 Style/NegatedIf:
   Exclude:
     - 'app/models/grda_warehouse/us_census_api/relevant_variables.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_one.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_two.rb'
     - 'app/models/health/signable_document.rb'
 
 # Offense count: 21
@@ -1904,12 +1683,6 @@ Style/NestedParenthesizedCalls:
 Style/Next:
   Exclude:
     - 'app/models/grda_warehouse/cohort_copier.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/dashboard/entered.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/hud_lot.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_one.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_two.rb'
-    - 'app/models/report_generators/data_quality/fy2017/q1.rb'
     - 'app/models/report_generators/data_quality/fy2017/q7.rb'
     - 'app/models/report_generators/lsa/fy2018/all.rb'
     - 'app/models/report_generators/system_performance/fy2018/measure_four.rb'
@@ -1924,7 +1697,6 @@ Style/Next:
 # SupportedStyles: predicate, comparison
 Style/NilComparison:
   Exclude:
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
 
 # Offense count: 3
 # Cop supports --auto-correct.
@@ -1940,17 +1712,11 @@ Style/NumericPredicate:
   Exclude:
     - 'spec/**/*'
     - 'app/models/grda_warehouse/tasks/test_data.rb'
-    - 'app/models/grda_warehouse/us_census_api/coc_agg.rb'
     - 'app/models/grda_warehouse/vispdat/family.rb'
     - 'app/models/grda_warehouse/warehouse_reports/confidential_touch_point.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_one.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_two.rb'
     - 'app/models/grda_warehouse/warehouse_reports/touch_point.rb'
     - 'app/models/import.rb'
     - 'app/models/report_generators/data_quality/fy2017/base.rb'
-    - 'app/models/report_generators/data_quality/fy2017/q3.rb'
-    - 'app/models/report_generators/data_quality/fy2017/q4.rb'
     - 'app/models/report_generators/data_quality/fy2017/q6.rb'
     - 'app/models/report_generators/system_performance/fy2018/measure_four.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_four.rb'
@@ -2003,7 +1769,6 @@ Style/RedundantBegin:
 # Cop supports --auto-correct.
 Style/RedundantCondition:
   Exclude:
-    - 'app/models/grda_warehouse/us_census_api/state_fips.rb'
 
 # Offense count: 4
 # Cop supports --auto-correct.
@@ -2053,24 +1818,17 @@ Style/RedundantSelf:
     - 'app/models/grda_warehouse/import/hmis_twenty_twenty/service.rb'
     - 'app/models/grda_warehouse/us_census_api/census_group.rb'
     - 'app/models/grda_warehouse/us_census_api/census_variable.rb'
-    - 'app/models/grda_warehouse/us_census_api/coc_agg.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_one.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_two.rb'
     - 'app/models/health/cp_members/file_base.rb'
     - 'app/models/health/encounter_report.rb'
     - 'app/models/health/goal/base.rb'
     - 'app/models/health/sdh_case_management_note.rb'
     - 'app/models/health_base.rb'
-    - 'app/models/reporting/data_quality_reports/project.rb'
     - 'app/models/reporting/data_quality_reports/project_group.rb'
 
 # Offense count: 16
 # Cop supports --auto-correct.
 Style/RedundantSort:
   Exclude:
-    - 'app/models/grda_warehouse/warehouse_reports/initiative_report.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
     - 'app/models/report_generators/system_performance/fy2018/measure_four.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_four.rb'
 
@@ -2094,21 +1852,14 @@ Style/RescueModifier:
     - 'app/models/eto_base.rb'
     - 'app/models/glacier/uploader.rb'
     - 'app/models/grda_warehouse/census/project_batch.rb'
-    - 'app/models/grda_warehouse/hmis/base.rb'
     - 'app/models/grda_warehouse/tasks/enrollment_extras_import.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_one.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_two.rb'
     - 'app/models/health/claims/view_model.rb'
     - 'app/models/health/premium_payment.rb'
     - 'app/models/old_warehouse_base.rb'
     - 'app/models/report_generators/system_performance/fy2018/measure_four.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_four.rb'
-    - 'app/models/reporting/data_quality_reports/project.rb'
     - 'app/models/reporting/data_quality_reports/project_group.rb'
     - 'app/models/reporting/rrh_report.rb'
-    - 'app/models/reports/system_performance/fy2018/base.rb'
-    - 'app/models/reports/system_performance/fy2019/base.rb'
 
 # Offense count: 11
 # Cop supports --auto-correct.
@@ -2117,7 +1868,6 @@ Style/RescueModifier:
 Style/RescueStandardError:
   Exclude:
     - 'app/models/glacier/tester.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/initiative_report.rb'
     - 'app/models/health/transaction_acknowledgement.rb'
     - 'app/models/reporting/rrh_report.rb'
 
@@ -2132,14 +1882,12 @@ Style/SafeNavigation:
 # Cop supports --auto-correct.
 Style/SelfAssignment:
   Exclude:
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
 
 # Offense count: 13
 # Cop supports --auto-correct.
 # Configuration parameters: AllowAsExpressionSeparator.
 Style/Semicolon:
   Exclude:
-    - 'app/models/grda_warehouse/warehouse_reports/dashboard/housed.rb'
     - 'app/models/phi.rb'
     - 'app/models/similarity_metric/experiment/metric_score_histogram.rb'
     - 'app/models/similarity_metric/experiment/ranking.rb'
@@ -2180,13 +1928,10 @@ Style/StringLiterals:
     - 'app/models/grda_warehouse/us_census_api/census_variable.rb'
     - 'app/models/grda_warehouse/us_census_api/is_a_database_view.rb'
     - 'app/models/grda_warehouse/us_census_api/relevant_variables.rb'
-    - 'app/models/grda_warehouse/us_census_api/test_suite.rb'
     - 'app/models/grda_warehouse/vispdat/family.rb'
     - 'app/models/grda_warehouse/vispdat/youth.rb'
     - 'app/models/grda_warehouse/warehouse_reports/confidential_touch_point.rb'
     - 'app/models/grda_warehouse/warehouse_reports/dashboard/base.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/initiative_report.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
     - 'app/models/grda_warehouse/warehouse_reports/touch_point.rb'
     - 'app/models/health/agency_patient_referral.rb'
     - 'app/models/health/careplan_file.rb'
@@ -2211,9 +1956,7 @@ Style/StringLiterals:
     - 'app/models/health/goal/housing.rb'
     - 'app/models/health/premium_payment.rb'
     - 'app/models/health/sdh_case_management_note.rb'
-    - 'app/models/health/ssm_export.rb'
     - 'app/models/health/transaction_acknowledgement.rb'
-    - 'app/models/report_generators/data_quality/fy2017/q3.rb'
     - 'app/models/report_generators/lsa/fy2018/all.rb'
     - 'app/models/report_generators/system_performance/fy2018/measure_four.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_four.rb'
@@ -2231,7 +1974,6 @@ Style/StringLiterals:
 # Cop supports --auto-correct.
 Style/StructInheritance:
   Exclude:
-    - 'app/models/grda_warehouse/us_census_api/state_fips.rb'
 
 # Offense count: 8
 # Cop supports --auto-correct.
@@ -2280,25 +2022,15 @@ Style/TrailingCommaInArguments:
     - 'app/models/grda_warehouse/grades/missing.rb'
     - 'app/models/grda_warehouse/grades/utilization.rb'
     - 'app/models/grda_warehouse/tasks/test_data.rb'
-    - 'app/models/grda_warehouse/us_census_api/coc_agg.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/initiative_report.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_one.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_two.rb'
     - 'app/models/health/claim.rb'
     - 'app/models/health/dme_saver.rb'
     - 'app/models/health/expiring_item_report.rb'
     - 'app/models/health/exporter/health_exporter.rb'
     - 'app/models/health/participation_saver.rb'
     - 'app/models/health/service_saver.rb'
-    - 'app/models/health/ssm_export.rb'
     - 'app/models/health/tracing/search.rb'
     - 'app/models/health_base.rb'
     - 'app/models/report_generators/data_quality/fy2017/base.rb'
-    - 'app/models/report_generators/data_quality/fy2017/q1.rb'
-    - 'app/models/report_generators/data_quality/fy2017/q3.rb'
-    - 'app/models/report_generators/data_quality/fy2017/q4.rb'
-    - 'app/models/report_generators/data_quality/fy2017/q5.rb'
     - 'app/models/report_generators/data_quality/fy2017/q6.rb'
     - 'app/models/report_generators/data_quality/fy2017/q7.rb'
     - 'app/models/report_generators/lsa/fy2018/all.rb'
@@ -2308,10 +2040,8 @@ Style/TrailingCommaInArguments:
     - 'app/models/report_generators/system_performance/fy2018/base.rb'
     - 'app/models/report_generators/system_performance/fy2018/measure_four.rb'
     - 'app/models/report_generators/system_performance/fy2019/measure_four.rb'
-    - 'app/models/reporting/data_quality_reports/project.rb'
     - 'app/models/reporting/data_quality_reports/project_group.rb'
     - 'app/models/reporting/rrh_report.rb'
-    - 'app/models/reports/system_performance/fy2019/base.rb'
     - 'app/models/similarity_metric/base.rb'
 
 # Offense count: 97
@@ -2322,19 +2052,11 @@ Style/TrailingCommaInArrayLiteral:
   Exclude:
     - 'app/models/grda_warehouse/tasks/test_data.rb'
     - 'app/models/grda_warehouse/us_census_api/aggregates.rb'
-    - 'app/models/grda_warehouse/us_census_api/coc_agg.rb'
     - 'app/models/grda_warehouse/vispdat/family.rb'
     - 'app/models/grda_warehouse/vispdat/youth.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/initiative_report.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_one.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_two.rb'
     - 'app/models/health/claims/view_model.rb'
     - 'app/models/health/sdh_case_management_note.rb'
     - 'app/models/report_generators/data_quality/fy2017/base.rb'
-    - 'app/models/report_generators/data_quality/fy2017/q1.rb'
-    - 'app/models/report_generators/data_quality/fy2017/q3.rb'
-    - 'app/models/report_generators/data_quality/fy2017/q4.rb'
     - 'app/models/report_generators/data_quality/fy2017/q6.rb'
     - 'app/models/report_generators/data_quality/fy2017/q7.rb'
     - 'app/models/report_generators/system_performance/fy2018/measure_four.rb'
@@ -2355,11 +2077,6 @@ Style/TrailingCommaInHashLiteral:
     - 'app/models/grda_warehouse/tasks/test_data.rb'
     - 'app/models/grda_warehouse/us_census_api/aggregates.rb'
     - 'app/models/grda_warehouse/vispdat/family.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/dashboard/housed.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/initiative_report.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_one.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_three.rb'
-    - 'app/models/grda_warehouse/warehouse_reports/project/data_quality/version_two.rb'
     - 'app/models/health/claims/view_model.rb'
     - 'app/models/health/sdh_case_management_note.rb'
     - 'app/models/health/soap/file_list.rb'
@@ -2375,7 +2092,6 @@ Style/TrailingCommaInHashLiteral:
 # Configuration parameters: AllowNamedUnderscoreVariables.
 Style/TrailingUnderscoreVariable:
   Exclude:
-    - 'app/models/grda_warehouse/warehouse_reports/hud_lot.rb'
 
 # Offense count: 5
 # Cop supports --auto-correct.
@@ -2412,11 +2128,9 @@ Style/WordArray:
 # SupportedStyles: forbid_for_all_comparison_operators, forbid_for_equality_operators_only, require_for_all_comparison_operators, require_for_equality_operators_only
 Style/YodaCondition:
   Exclude:
-    - 'app/models/grda_warehouse/us_census_api/coc_agg.rb'
 
 # Offense count: 11
 # Cop supports --auto-correct.
 Style/ZeroLengthPredicate:
   Exclude:
-    - 'app/models/grda_warehouse/us_census_api/coc_agg.rb'
     - 'app/models/similarity_metric/tasks/generate_candidates.rb'

@@ -6,13 +6,13 @@
     %thead
       %tr
         %th Project
-        - ::HUD.races.each do |column, value|
+        - ::HudUtility.races.each do |column, value|
           %th= value
     %tbody
       - @data.involved_projects.sort_by(&:last).each do |(p_id, p_name)|
         %tr
           %th= p_name
-          - ::HUD.races.each do |id, value|
+          - ::HudUtility.races.each do |id, value|
             %td
               - key = "#{p_id}__#{value.parameterize.underscore}"
               - count = data[key] || 0

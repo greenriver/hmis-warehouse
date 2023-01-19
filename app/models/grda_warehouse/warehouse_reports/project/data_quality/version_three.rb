@@ -293,21 +293,21 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       end.uniq
       geography_types = projects.flat_map do |project|
         project.geographies.map do |geography|
-          ::HUD.geography_type(geography.GeographyType)
+          ::HudUtility.geography_type(geography.GeographyType)
         end
       end.uniq
       housing_types = projects.flat_map do |project|
-        ::HUD.housing_type(project.HousingType)
+        ::HudUtility.housing_type(project.HousingType)
       end.uniq
       information_dates = projects.flat_map do |project|
         project.inventories.map(&:InformationDate)
       end.uniq
       start_dates = projects.map(&:OperatingStartDate).uniq
       coc_program_components = projects.map do |project|
-        ::HUD.project_type(project.ProjectType)
+        ::HudUtility.project_type(project.ProjectType)
       end
       target_populations = projects.map do |project|
-        ::HUD.target_population(project.TargetPopulation) || nil
+        ::HudUtility.target_population(project.TargetPopulation) || nil
       end.compact
 
       monitoring_ranges = []
@@ -1059,7 +1059,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       hohs.each do |hoh|
         dest = hoh[:destination].to_i
         if dest != 0
-          hoh[:destination_text] = "#{dest}: #{HUD.destination(dest)}"
+          hoh[:destination_text] = "#{dest}: #{HudUtility.destination(dest)}"
         end
 
         hoh[:most_recent_service] = max_dates[hoh[:enrollment_id]] || 'Before report start'
@@ -1085,7 +1085,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       hohs.each do |hoh|
         dest = hoh[:destination].to_i
         if dest != 0
-          hoh[:destination_text] = "#{dest}: #{HUD.destination(dest)}"
+          hoh[:destination_text] = "#{dest}: #{HudUtility.destination(dest)}"
         end
         hoh[:most_recent_service] = max_dates[hoh[:enrollment_id]] || 'Before report start'
         hoh.delete(:enrollment_id)
@@ -1165,7 +1165,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           dis[:disability_response].to_i == value
         end.map do |dis|
           base_colums_for_support(enrollment) + [
-          HUD.disability_type(dis[:disability_type]),
+          HudUtility.disability_type(dis[:disability_type]),
           dis[:disability_response],
         ]
         end
@@ -1800,7 +1800,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           m[:first_date_in_program],
           m[:last_date_in_program],
           m[:most_recent_service],
-          m[:destination].present? ? "#{m[:destination]}: #{HUD.destination(m[:destination].to_i)}" : ''
+          m[:destination].present? ? "#{m[:destination]}: #{HudUtility.destination(m[:destination].to_i)}" : ''
         ]
       end
     end
@@ -2250,7 +2250,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         enrollments[client_id].each do |enrollment|
           # this fixes a bug in bad staging data
           ph_destinations[enrollment[:project_name]] ||= Set.new
-          ph_destinations[enrollment[:project_name]] << client_id if HUD.permanent_destinations.include?(enrollment[:destination].to_i)
+          ph_destinations[enrollment[:project_name]] << client_id if HudUtility.permanent_destinations.include?(enrollment[:destination].to_i)
         end
       end
       ph_destinations_percentage = (ph_destinations.values.flatten.uniq.size.to_f/leavers.size*100).round(2) rescue 0

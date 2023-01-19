@@ -15,7 +15,7 @@ wb.add_worksheet(name: "Active #{GrdaWarehouse::WarehouseReports::Dashboard::Bas
     'Living Situation',
     'Destination',
     'Ethnicity',
-  ] + GrdaWarehouse::Hud::Client.race_fields.map { |m| HUD.race(m).gsub('None', 'Race None') }, style: title)
+  ] + GrdaWarehouse::Hud::Client.race_fields.map { |m| HudUtility.race(m).gsub('None', 'Race None') }, style: title)
   @report.enrollments.each do |client_id, enrollments|
     enrollments.each do |enrollment|
       client = enrollment.client
@@ -29,16 +29,16 @@ wb.add_worksheet(name: "Active #{GrdaWarehouse::WarehouseReports::Dashboard::Bas
         client_id,
         ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client.FirstName : 'Redacted',
         ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client.LastName : 'Redacted',
-        HUD.project_type(enrollment.computed_project_type),
+        HudUtility.project_type(enrollment.computed_project_type),
         enrollment.project.name(current_user),
         enrollment.first_date_in_program,
         enrollment.last_date_in_program,
         length_of_stay.to_i,
         enrollment.enrollment_group_id,
-        HUD.living_situation(enrollment.enrollment&.LivingSituation),
-        HUD.destination(enrollment.destination),
-        HUD.ethnicity(client.Ethnicity),
-      ] + GrdaWarehouse::Hud::Client.race_fields.map { |m| HUD.no_yes_reasons_for_missing_data(client.public_send(m.to_sym)&.to_i) }
+        HudUtility.living_situation(enrollment.enrollment&.LivingSituation),
+        HudUtility.destination(enrollment.destination),
+        HudUtility.ethnicity(client.Ethnicity),
+      ] + GrdaWarehouse::Hud::Client.race_fields.map { |m| HudUtility.no_yes_reasons_for_missing_data(client.public_send(m.to_sym)&.to_i) }
       sheet.add_row(row)
     end
   end

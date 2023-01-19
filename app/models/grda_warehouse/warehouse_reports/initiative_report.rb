@@ -68,13 +68,13 @@ module GrdaWarehouse::WarehouseReports
     def involved_project_types
       p_types = report_scope.distinct.pluck(:project_type)
       p_types += comparison_scope.distinct.pluck(:project_type)
-      @data.merge!(involved_project_types: p_types.uniq.map{|m| ::HUD.project_type_brief(m)})
+      @data.merge!(involved_project_types: p_types.uniq.map{|m| ::HudUtility.project_type_brief(m)})
     end
 
     def involved_genders
       genders = report_scope.distinct.pluck(c_t[:Gender].to_sql)
       genders += comparison_scope.distinct.pluck(c_t[:Gender].to_sql)
-      @data.merge!(involved_genders: genders.uniq.map{|m| ::HUD.gender(m)})
+      @data.merge!(involved_genders: genders.uniq.map{|m| ::HudUtility.gender(m)})
     end
 
     def involved_zipcodes
@@ -103,7 +103,7 @@ module GrdaWarehouse::WarehouseReports
         end.group_by do |row|
           [row[:project_type], row[:date]]
         end.each do |(project_type, date), days|
-          data_key = "#{::HUD.project_type_brief(project_type)}__#{date}"
+          data_key = "#{::HudUtility.project_type_brief(project_type)}__#{date}"
           data[data_key] = days
         end
         add_data_and_support(key: key, data: data)
@@ -152,7 +152,7 @@ module GrdaWarehouse::WarehouseReports
         data = send(r_scope).distinct.pluck(*columns.values).map do |row|
           Hash[columns.keys.zip(row)]
         end.group_by do |row|
-          "#{::HUD.project_type_brief(row[:project_type])}__count"
+          "#{::HudUtility.project_type_brief(row[:project_type])}__count"
         end
         add_data_and_support(key: key, data: data)
       end
@@ -196,7 +196,7 @@ module GrdaWarehouse::WarehouseReports
           distinct.pluck(*columns.values).map do |row|
           Hash[columns.keys.zip(row)]
         end.group_by do |row|
-          "#{::HUD.project_type_brief(row[:project_type])}__#{row[:destination]}"
+          "#{::HudUtility.project_type_brief(row[:project_type])}__#{row[:destination]}"
         end
         add_data_and_support(key: key, data: data)
       end
@@ -243,7 +243,7 @@ module GrdaWarehouse::WarehouseReports
           distinct.pluck(*columns.values).map do |row|
           Hash[columns.keys.zip(row)]
         end.group_by do |row|
-          "#{::HUD.project_type_brief(row[:project_type])}__#{row[:zipcode].first(5)}"
+          "#{::HudUtility.project_type_brief(row[:project_type])}__#{row[:zipcode].first(5)}"
         end
         add_data_and_support(key: key, data: data)
       end
@@ -297,7 +297,7 @@ module GrdaWarehouse::WarehouseReports
         end.each do |(project_type, client_id), incomes|
           row = incomes.sort_by{|row| row[:information_date]}.last
           GrdaWarehouse::Hud::IncomeBenefit.income_ranges.each do |income_key, income_bucket|
-            data_key = "#{::HUD.project_type_brief(row[:project_type])}__#{income_key}"
+            data_key = "#{::HudUtility.project_type_brief(row[:project_type])}__#{income_key}"
             data[data_key] ||= []
             data[data_key] << row if income_bucket[:range].include?(row[:income])
           end
@@ -370,7 +370,7 @@ module GrdaWarehouse::WarehouseReports
           Hash[columns.keys.zip(row)]
         end.each do |row|
           GrdaWarehouse::Hud::IncomeBenefit.income_ranges.each do |income_key, income_bucket|
-            data_key = "#{::HUD.project_type_brief(row[:project_type])}__#{income_key}"
+            data_key = "#{::HudUtility.project_type_brief(row[:project_type])}__#{income_key}"
             data[data_key] ||= []
             data[data_key] << row if income_bucket[:range].include?(row[:income])
           end
@@ -424,7 +424,7 @@ module GrdaWarehouse::WarehouseReports
           distinct.pluck(*columns.values).map do |row|
           Hash[columns.keys.zip(row)]
         end.group_by do |row|
-          "#{::HUD.project_type_brief(row[:project_type])}__#{::HUD.living_situation(row[:living_situation])}"
+          "#{::HudUtility.project_type_brief(row[:project_type])}__#{::HudUtility.living_situation(row[:living_situation])}"
         end
         add_data_and_support(key: key, data: data)
       end
@@ -447,7 +447,7 @@ module GrdaWarehouse::WarehouseReports
           distinct.pluck(*columns.values).map do |row|
           Hash[columns.keys.zip(row)]
         end.group_by do |row|
-          "#{row[:project_id]}__#{::HUD.living_situation(row[:living_situation])}"
+          "#{row[:project_id]}__#{::HudUtility.living_situation(row[:living_situation])}"
         end
         add_data_and_support(key: key, data: data)
       end
@@ -476,7 +476,7 @@ module GrdaWarehouse::WarehouseReports
         end.each do |(project_type, client_id), days|
           row = days.first
           GrdaWarehouse::Hud::Enrollment.lengths_of_stay.each do |stay_key, range|
-            data_key = "#{::HUD.project_type_brief(row[:project_type])}__#{stay_key}"
+            data_key = "#{::HudUtility.project_type_brief(row[:project_type])}__#{stay_key}"
             data[data_key] ||= []
             data[data_key] << row if range.include?(days.count)
           end
@@ -550,7 +550,7 @@ module GrdaWarehouse::WarehouseReports
         end.each do |row|
           GrdaWarehouse::Hud::Client.extended_age_groups.each do |age_key, age_bucket|
             label = age_bucket[:name].parameterize.underscore
-            data_key = "#{::HUD.project_type_brief(row[:project_type])}__#{label}"
+            data_key = "#{::HudUtility.project_type_brief(row[:project_type])}__#{label}"
             data[data_key] ||= []
             age = GrdaWarehouse::Hud::Client.age(date: Date.current, dob: row[:dob])
             data[data_key] << row if age_bucket[:range].include?(age)
@@ -596,7 +596,7 @@ module GrdaWarehouse::WarehouseReports
         first_name: c_t[:FirstName].to_sql,
         last_name: c_t[:LastName].to_sql,
       }
-      ::HUD.races.each do |column, key|
+      ::HudUtility.races.each do |column, key|
         columns[key.parameterize.underscore] = c_t[column.to_sym].to_sql
       end
       groups = {
@@ -608,9 +608,9 @@ module GrdaWarehouse::WarehouseReports
         send(r_scope).distinct.pluck(*columns.values).map do |row|
           Hash[columns.keys.zip(row)]
         end.each do |row|
-          ::HUD.races.each do |column, label|
+          ::HudUtility.races.each do |column, label|
             race_label = label.parameterize.underscore
-            data_key = "#{::HUD.project_type_brief(row[:project_type])}__#{race_label}"
+            data_key = "#{::HudUtility.project_type_brief(row[:project_type])}__#{race_label}"
             data[data_key] ||= []
             data[data_key] << row if row[race_label] == 1
           end
@@ -626,7 +626,7 @@ module GrdaWarehouse::WarehouseReports
         first_name: c_t[:FirstName].to_sql,
         last_name: c_t[:LastName].to_sql,
       }
-      ::HUD.races.each do |column, key|
+      ::HudUtility.races.each do |column, key|
         columns[key.parameterize.underscore] = c_t[column.to_sym].to_sql
       end
       groups = {
@@ -638,7 +638,7 @@ module GrdaWarehouse::WarehouseReports
         send(r_scope).distinct.pluck(*columns.values).map do |row|
           Hash[columns.keys.zip(row)]
         end.each do |row|
-          ::HUD.races.each do |column, label|
+          ::HudUtility.races.each do |column, label|
             race_label = label.parameterize.underscore
             data_key = "#{row[:project_id]}__#{race_label}"
             data[data_key] ||= []
@@ -665,7 +665,7 @@ module GrdaWarehouse::WarehouseReports
         data = send(r_scope).distinct.pluck(*columns.values).map do |row|
           Hash[columns.keys.zip(row)]
         end.group_by do |row|
-          "#{::HUD.project_type_brief(row[:project_type])}__#{::HUD.ethnicity(row[:ethnicity])}"
+          "#{::HudUtility.project_type_brief(row[:project_type])}__#{::HudUtility.ethnicity(row[:ethnicity])}"
         end
         add_data_and_support(key: key, data: data)
       end
@@ -687,7 +687,7 @@ module GrdaWarehouse::WarehouseReports
         data = send(r_scope).distinct.pluck(*columns.values).map do |row|
           Hash[columns.keys.zip(row)]
         end.group_by do |row|
-          "#{row[:project_id]}__#{::HUD.ethnicity(row[:ethnicity])}"
+          "#{row[:project_id]}__#{::HudUtility.ethnicity(row[:ethnicity])}"
         end
         add_data_and_support(key: key, data: data)
       end
@@ -709,7 +709,7 @@ module GrdaWarehouse::WarehouseReports
         data = send(r_scope).distinct.pluck(*columns.values).map do |row|
           Hash[columns.keys.zip(row)]
         end.group_by do |row|
-          "#{::HUD.project_type_brief(row[:project_type])}__#{::HUD.veteran_status(row[:veteran])}"
+          "#{::HudUtility.project_type_brief(row[:project_type])}__#{::HudUtility.veteran_status(row[:veteran])}"
         end
         add_data_and_support(key: key, data: data)
       end
@@ -731,7 +731,7 @@ module GrdaWarehouse::WarehouseReports
         data = send(r_scope).distinct.pluck(*columns.values).map do |row|
           Hash[columns.keys.zip(row)]
         end.group_by do |row|
-          "#{row[:project_id]}__#{::HUD.veteran_status(row[:veteran])}"
+          "#{row[:project_id]}__#{::HudUtility.veteran_status(row[:veteran])}"
         end
         add_data_and_support(key: key, data: data)
       end
@@ -753,7 +753,7 @@ module GrdaWarehouse::WarehouseReports
         data = send(r_scope).distinct.pluck(*columns.values).map do |row|
           Hash[columns.keys.zip(row)]
         end.group_by do |row|
-          "#{::HUD.project_type_brief(row[:project_type])}__#{::HUD.gender(row[:gender])}"
+          "#{::HudUtility.project_type_brief(row[:project_type])}__#{::HudUtility.gender(row[:gender])}"
         end
         add_data_and_support(key: key, data: data)
       end
@@ -775,7 +775,7 @@ module GrdaWarehouse::WarehouseReports
         data = send(r_scope).distinct.pluck(*columns.values).map do |row|
           Hash[columns.keys.zip(row)]
         end.group_by do |row|
-          "#{row[:project_id]}__#{::HUD.gender(row[:gender])}"
+          "#{row[:project_id]}__#{::HudUtility.gender(row[:gender])}"
         end
         add_data_and_support(key: key, data: data)
       end

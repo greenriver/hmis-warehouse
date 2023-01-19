@@ -47,6 +47,6 @@
               %tr{class: [highlight, odd_class]}
                 %td= enrollment.first_date_in_program
                 %td= enrollment.last_date_in_program
-                %td= HUD.project_type(enrollment.computed_project_type)
+                %td= HudUtility.project_type(enrollment.computed_project_type)
                 %td= project.name(current_user)
                 %td= project.organization_name(current_user)

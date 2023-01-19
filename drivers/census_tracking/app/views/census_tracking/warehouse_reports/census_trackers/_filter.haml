@@ -22,13 +22,13 @@
         = f.input :project_group_ids, collection: GrdaWarehouse::ProjectGroup.viewable_by(current_user), placeholder: 'None', as: :select_two, input_html: { multiple: true }, label: 'Project Groups'
     .row
       .col-3
-        = f.input :races, collection: HUD.races.invert, placeholder: 'Any Race', as: :select_two, input_html: {multiple: true}
+        = f.input :races, collection: HudUtility.races.invert, placeholder: 'Any Race', as: :select_two, input_html: {multiple: true}
       .col-3
-        = f.input :ethnicities, collection: HUD.ethnicities.invert, placeholder: 'Any Ethnicity', as: :select_two, input_html: {multiple: true}
+        = f.input :ethnicities, collection: HudUtility.ethnicities.invert, placeholder: 'Any Ethnicity', as: :select_two, input_html: {multiple: true}
       .col-3
-        = f.input :genders, collection: HUD.genders.invert, placeholder: 'Any Gender', as: :select_two, input_html: {multiple: true}
+        = f.input :genders, collection: HudUtility.genders.invert, placeholder: 'Any Gender', as: :select_two, input_html: {multiple: true}
       .col-3
-        = f.input :veteran_statuses, collection: HUD.no_yes_reasons_for_missing_data_options.invert,  placeholder: 'Any Status', as: :select_two, input_html: { multiple: true }, label: 'Veteran Statuses'
+        = f.input :veteran_statuses, collection: HudUtility.no_yes_reasons_for_missing_data_options.invert,  placeholder: 'Any Status', as: :select_two, input_html: { multiple: true }, label: 'Veteran Statuses'
 
   - content_for :filter_actions do
     = f.submit 'Update Filter', class: 'btn btn-primary'

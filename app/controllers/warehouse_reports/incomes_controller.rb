@@ -63,7 +63,7 @@ module WarehouseReports
         row + [
           record.client.gender,
           record.client.race_description,
-          HUD.ethnicity(record.client.Ethnicity),
+          HudUtility.ethnicity(record.client.Ethnicity),
         ]
       end
     end

@@ -22,7 +22,7 @@
                 %div
                   %div{class: "service-type__#{service[:record_type]} client__service_type_#{service[:project_type]}"}
                     %span.service-type__program-type
-                      = HUD.project_type_brief service[:project_type]
+                      = HudUtility.project_type_brief service[:project_type]
                     - if service[:organization_name].present?
                       = "#{service[:organization_name]}:"
                     = service[:project_name]

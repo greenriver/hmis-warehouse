@@ -26,7 +26,7 @@
             %td= project.data_source.short_name
             %td= project.organization.name(current_user)
             %td= project.name(current_user)
-            %td= HUD.project_type(project.ProjectType)
-            %td= HUD.project_type(project.act_as_project_type)
+            %td= HudUtility.project_type(project.ProjectType)
+            %td= HudUtility.project_type(project.act_as_project_type)
 - else
   .none-found All project types match.

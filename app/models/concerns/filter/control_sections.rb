@@ -34,13 +34,13 @@ module
           id: 'coordinated_assessment_living_situation_homeless',
           label: 'Including CE homeless at entry?',
           value: @filter.coordinated_assessment_living_situation_homeless ? 'Yes' : nil,
-          hint: "Including Coordinated Entry enrollments where the prior living situation is homeless (#{HUD.homeless_situations(as: :prior).to_sentence}) will include these clients even if they do not have an enrollment in one of the chosen project types.",
+          hint: "Including Coordinated Entry enrollments where the prior living situation is homeless (#{HudUtility.homeless_situations(as: :prior).to_sentence}) will include these clients even if they do not have an enrollment in one of the chosen project types.",
         )
         section.add_control(
           id: 'ce_cls_as_homeless',
           label: 'Including CE Current Living Situation Homeless',
           value: @filter.ce_cls_as_homeless ? 'Yes' : nil,
-          hint: "Including Coordinated Entry enrollments where the client has at least two homeless current living situations (#{HUD.homeless_situations(as: :current).to_sentence}) within the report range. These clients will be included even if they do not have an enrollment in one of the chosen project types.",
+          hint: "Including Coordinated Entry enrollments where the client has at least two homeless current living situations (#{HudUtility.homeless_situations(as: :current).to_sentence}) within the report range. These clients will be included even if they do not have an enrollment in one of the chosen project types.",
         )
         if include_inactivity_days
           section.add_control(

@@ -12,7 +12,7 @@ module ClientLocationHistory::GrdaWarehouse
       has_many :client_locations, class_name: 'ClientLocationHistory::Location', as: :source
 
       scope :with_location_data, -> do
-        joins(:hmis_assessment).merge(GrdaWarehouse::HMIS::Assessment.with_location_data)
+        joins(:hmis_assessment).merge(GrdaWarehouse::Hmis::Assessment.with_location_data)
       end
 
       def self.cleanup_missing_locations

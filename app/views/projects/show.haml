@@ -21,12 +21,12 @@
         %tr
           %th Project Type
           %td
-            = HUD.project_type @project.ProjectType
+            = HudUtility.project_type @project.ProjectType
             - if @project.act_as_project_type.present?
               %br
               %em
                 Acts as:
-                = HUD.project_type @project.act_as_project_type
+                = HudUtility.project_type @project.act_as_project_type
               for HUD Reports
             - if @project.active_homeless_status_override.present?
               %br
@@ -71,13 +71,13 @@
           %td.d-flex
             .project__housing-type
               - if @project.HousingType.present?
-                = HUD.housing_type(@project.HousingType)
+                = HudUtility.housing_type(@project.HousingType)
                 (#{@project.HousingType})
             - if @project.housing_type_override
               .ml-2
                 %em
                   Overridden as
-                  = HUD.housing_type(@project.housing_type_override)
+                  = HudUtility.housing_type(@project.housing_type_override)
         %tr
           %th
             %span{data: {toggle: :tooltip, title: 'This has no affect currently'}}
@@ -135,21 +135,21 @@
         %tr
           %th Tracking Method
           %td
-            = HUD.tracking_method(@project.TrackingMethod || 0)
+            = HudUtility.tracking_method(@project.TrackingMethod || 0)
             - if @project.tracking_method_override.present?
               .mt-2
                 Overridden as:
                 %br
-                %em= HUD.tracking_method(@project.tracking_method_override)
+                %em= HudUtility.tracking_method(@project.tracking_method_override)
         %tr
           %th Target Population
           %td
-            = HUD.target_population @project.TargetPopulation
+            = HudUtility.target_population @project.TargetPopulation
             - if @project.target_population_override.present?
               .mt-2
                 Overridden as:
                 %br
-                %em= HUD.target_population(@project.target_population_override)
+                %em= HudUtility.target_population(@project.target_population_override)
         %tr
           %th Household Type
           %td

@@ -35,7 +35,7 @@ module Reports::DataQuality::Fy2017
     end
 
     def self.available_project_types
-      HUD::project_types.invert
+      HudUtility.project_types.invert
     end
 
     def self.available_data_sources
@@ -48,7 +48,7 @@ module Reports::DataQuality::Fy2017
       display_string << "; CoC-Code: #{options['coc_code']}" if options['coc_code'].present?
       display_string << "; Data Source: #{GrdaWarehouse::DataSource.short_name(options['data_source_id'].to_i)}" if options['data_source_id'].present?
       display_string << project_id_string(options)
-      display_string << "; Project Types: #{options['project_type'].map{|m| HUD.project_type(m.to_i) if m.present?}.compact.join(', ')}" if options['project_type'].present? && options['project_type'].delete_if(&:blank?).any?
+      display_string << "; Project Types: #{options['project_type'].map{|m| HudUtility.project_type(m.to_i) if m.present?}.compact.join(', ')}" if options['project_type'].present? && options['project_type'].delete_if(&:blank?).any?
       display_string << project_group_string(options)
       display_string
     end

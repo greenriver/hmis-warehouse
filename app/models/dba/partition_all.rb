@@ -1,4 +1,4 @@
-class DBA::PartitionAll
+class Dba::PartitionAll
   def tables
     t = HmisCsvImporter::Loader::Loader.loadable_files.values.map(&:table_name)
     t += HmisCsvImporter::Importer::Importer.importable_files.values.map(&:table_name)
@@ -52,7 +52,7 @@ class DBA::PartitionAll
 
     tables.each do |table|
       Rails.logger.info "==== Partitioning #{table} ===="
-      pm = DBA::PartitionMaker.new(table_name: table)
+      pm = Dba::PartitionMaker.new(table_name: table)
       if pm.no_table?
         Rails.logger.error "Skipping #{table} which couldn't be found"
       elsif pm.done?

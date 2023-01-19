@@ -9,7 +9,7 @@ namespace :dba do
 
   # Useful in development to get something to paste
   task :show_bloated_sql_statements, [] => :environment do
-    db = DBA::DatabaseBloat.new(ar_base_class: GrdaWarehouseBase)
+    db = Dba::DatabaseBloat.new(ar_base_class: GrdaWarehouseBase)
     puts '-----------------'
     puts '-----------------'
     puts '-- indexes'
@@ -29,30 +29,30 @@ namespace :dba do
   task :unbloat, [] => [:unbloat_indexes, :repack_tables, :index_drops, :show_cache_hits]
 
   task :unbloat_indexes, [] => :environment do
-    DBA::DatabaseBloat.all_databases!(:reindex!, dry_run: @dry_run)
+    Dba::DatabaseBloat.all_databases!(:reindex!, dry_run: @dry_run)
   end
 
   task :vacuum_tables, [] => :environment do
-    DBA::DatabaseBloat.all_databases!(:vacuum_full!, dry_run: @dry_run)
+    Dba::DatabaseBloat.all_databases!(:vacuum_full!, dry_run: @dry_run)
   end
 
   task :repack_tables, [] => :environment do
-    DBA::DatabaseBloat.all_databases!(:repack!, dry_run: @dry_run)
+    Dba::DatabaseBloat.all_databases!(:repack!, dry_run: @dry_run)
   end
 
   task :index_drops, [] => :environment do
-    DBA::DatabaseBloat.all_databases!(:index_drops!, dry_run: @dry_run)
+    Dba::DatabaseBloat.all_databases!(:index_drops!, dry_run: @dry_run)
   end
 
   task :show_cache_hits, [] => :environment do
-    DBA::DatabaseBloat.all_databases!(:show_cache_hits!, dry_run: @dry_run)
+    Dba::DatabaseBloat.all_databases!(:show_cache_hits!, dry_run: @dry_run)
   end
 
   # rails dba:partition['hmis_2022_enrollments']
   desc 'Partition big tables'
   task :partition, [:table] => [:environment] do |_t, args|
     if args[:table].present?
-      pm = DBA::PartitionMaker.new(table_name: args[:table])
+      pm = Dba::PartitionMaker.new(table_name: args[:table])
       if pm.no_table?
         Rails.logger.error "Skipping #{args[:table]} which couldn't be found"
       elsif pm.done?
@@ -61,14 +61,14 @@ namespace :dba do
         pm.run!
       end
     else
-      DBA::PartitionAll.new.run!
+      Dba::PartitionAll.new.run!
     end
   end
 
   namespace :partition do
     desc "Get needed space"
     task :space_needed, [] => [:environment] do
-      DBA::PartitionAll.new.space_needed
+      Dba::PartitionAll.new.space_needed
     end
   end
 end
