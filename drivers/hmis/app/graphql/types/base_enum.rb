@@ -53,5 +53,9 @@ module Types
       with_enum_map(Hmis::FieldMap.new(values))
       invalid_value # Always define invalid value on HUD enums
     end
+
+    def self.value_for(key)
+      values[key].value
+    end
   end
 end
