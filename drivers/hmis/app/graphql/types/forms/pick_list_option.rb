@@ -52,13 +52,13 @@ module Types
         living_situation_options(as: :prior)
 
       when 'SERVICE_TYPE'
-        Types::HmisSchema::Enums::ServiceTypeProvided.all_enum_value_definitions.map do |enum|
+        Types::HmisSchema::Enums::ServiceTypeProvided.values.map do |key, enum|
           next if enum.value.is_a?(Integer) && enum.value.negative?
 
           record_type = enum.value.split(':').first
           _, record_type_enum = Types::HmisSchema::Enums::Hud::RecordType.enum_member_for_value(record_type&.to_i)
           {
-            code: enum.value,
+            code: key,
             label: enum.description,
             group_code: record_type_enum&.value,
             group_label: record_type_enum&.description,
@@ -127,9 +127,9 @@ module Types
     end
 
     def self.options_without_invalid_for_enum(enum_type)
-      enum_type.all_enum_value_definitions.reject { |enum| enum.value.negative? }.map do |enum|
+      enum_type.valyes.reject { |_key, enum| enum.value.negative? }.map do |key, enum|
         {
-          code: enum.value,
+          code: key,
           label: enum.description,
         }
       end
