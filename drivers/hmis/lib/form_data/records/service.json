@@ -1,0 +1,262 @@
+{
+  "name": "service",
+  "item": [
+    {
+      "type": "CHOICE",
+      "link_id": "typeProvided",
+      "required": true,
+      "text": "Service Type",
+      "pick_list_reference": "SERVICE_TYPE",
+      "field_name": "typeProvided"
+    },
+    {
+      "type": "STRING",
+      "required": false,
+      "link_id": "otherTypeProvided",
+      "text": "Other Type Provided",
+      "field_name": "otherTypeProvided",
+      "enable_behavior": "ANY",
+      "enable_when": [
+        {
+          "question": "typeProvided",
+          "operator": "EQUAL",
+          "answer_code": "144:6"
+        },
+        {
+          "question": "typeProvided",
+          "operator": "EQUAL",
+          "answer_code": "210:12"
+        }
+      ]
+    },
+    {
+      "type": "STRING",
+      "required": false,
+      "link_id": "movingOnOtherType",
+      "text": "Moving On Other Type",
+      "field_name": "movingOnOtherType",
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "question": "typeProvided",
+          "operator": "EQUAL",
+          "answer_code": "300:5"
+        }
+      ]
+    },
+    {
+      "type": "CHOICE",
+      "link_id": "subTypeProvided3",
+      "required": false,
+      "text": "Sub Type Provided",
+      "pick_list_reference": "SUB_TYPE_PROVIDED_3",
+      "field_name": "subTypeProvided",
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "question": "typeProvided",
+          "operator": "EQUAL",
+          "answer_code": "144:3"
+        }
+      ]
+    },
+    {
+      "type": "CHOICE",
+      "link_id": "subTypeProvided4",
+      "required": false,
+      "text": "Sub Type Provided",
+      "pick_list_reference": "SUB_TYPE_PROVIDED_4",
+      "field_name": "subTypeProvided",
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "question": "typeProvided",
+          "operator": "EQUAL",
+          "answer_code": "144:4"
+        }
+      ]
+    },
+    {
+      "type": "CHOICE",
+      "link_id": "subTypeProvided5",
+      "required": false,
+      "text": "Sub Type Provided",
+      "pick_list_reference": "SUB_TYPE_PROVIDED_5",
+      "field_name": "subTypeProvided",
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "question": "typeProvided",
+          "operator": "EQUAL",
+          "answer_code": "144:5"
+        }
+      ]
+    },
+    {
+      "type": "CURRENCY",
+      "required": false,
+      "link_id": "FAAmount",
+      "text": "FA Amount",
+      "field_name": "FAAmount",
+      "enable_behavior": "ANY",
+      "enable_when": [
+        {
+          "question": "typeProvided",
+          "operator": "EQUAL",
+          "answer_code": "151:1"
+        },
+        {
+          "question": "typeProvided",
+          "operator": "EQUAL",
+          "answer_code": "151:2"
+        },
+        {
+          "question": "typeProvided",
+          "operator": "EQUAL",
+          "answer_code": "151:3"
+        },
+        {
+          "question": "typeProvided",
+          "operator": "EQUAL",
+          "answer_code": "151:4"
+        },
+        {
+          "question": "typeProvided",
+          "operator": "EQUAL",
+          "answer_code": "151:7"
+        },
+        {
+          "question": "typeProvided",
+          "operator": "EQUAL",
+          "answer_code": "152:1"
+        },
+        {
+          "question": "typeProvided",
+          "operator": "EQUAL",
+          "answer_code": "152:2"
+        },
+        {
+          "question": "typeProvided",
+          "operator": "EQUAL",
+          "answer_code": "152:3"
+        },
+        {
+          "question": "typeProvided",
+          "operator": "EQUAL",
+          "answer_code": "152:4"
+        },
+        {
+          "question": "typeProvided",
+          "operator": "EQUAL",
+          "answer_code": "152:5"
+        },
+        {
+          "question": "typeProvided",
+          "operator": "EQUAL",
+          "answer_code": "152:8"
+        },
+        {
+          "question": "typeProvided",
+          "operator": "EQUAL",
+          "answer_code": "152:9"
+        },
+        {
+          "question": "typeProvided",
+          "operator": "EQUAL",
+          "answer_code": "152:10"
+        },
+        {
+          "question": "typeProvided",
+          "operator": "EQUAL",
+          "answer_code": "152:11"
+        },
+        {
+          "question": "typeProvided",
+          "operator": "EQUAL",
+          "answer_code": "152:12"
+        },
+        {
+          "question": "typeProvided",
+          "operator": "EQUAL",
+          "answer_code": "152:14"
+        },
+        {
+          "question": "typeProvided",
+          "operator": "EQUAL",
+          "answer_code": "152:15"
+        },
+        {
+          "question": "typeProvided",
+          "operator": "EQUAL",
+          "answer_code": "152:16"
+        }
+      ]
+    },
+    {
+      "type": "CHOICE",
+      "link_id": "referralOutcome",
+      "required": false,
+      "text": "Referral Outcome",
+      "pick_list_reference": "REFERRAL_OUTCOME",
+      "field_name": "referralOutcome",
+      "enable_behavior": "ANY",
+      "enable_when": [
+        {
+          "question": "typeProvided",
+          "operator": "EQUAL",
+          "answer_code": "161:1"
+        },
+        {
+          "question": "typeProvided",
+          "operator": "EQUAL",
+          "answer_code": "161:2"
+        },
+        {
+          "question": "typeProvided",
+          "operator": "EQUAL",
+          "answer_code": "161:3"
+        },
+        {
+          "question": "typeProvided",
+          "operator": "EQUAL",
+          "answer_code": "161:4"
+        },
+        {
+          "question": "typeProvided",
+          "operator": "EQUAL",
+          "answer_code": "161:5"
+        },
+        {
+          "question": "typeProvided",
+          "operator": "EQUAL",
+          "answer_code": "161:6"
+        },
+        {
+          "question": "typeProvided",
+          "operator": "EQUAL",
+          "answer_code": "161:7"
+        },
+        {
+          "question": "typeProvided",
+          "operator": "EQUAL",
+          "answer_code": "161:8"
+        },
+        {
+          "question": "typeProvided",
+          "operator": "EQUAL",
+          "answer_code": "161:9"
+        },
+        {
+          "question": "typeProvided",
+          "operator": "EQUAL",
+          "answer_code": "161:10"
+        },
+        {
+          "question": "typeProvided",
+          "operator": "EQUAL",
+          "answer_code": "161:11"
+        }
+      ]
+    }
+  ]
+}

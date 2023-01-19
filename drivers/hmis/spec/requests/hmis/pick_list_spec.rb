@@ -113,6 +113,23 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     options = result.dig('data', 'pickList')
     expect(options[0]['code']).to eq('509001')
   end
+
+  it 'returns grouped service type pick list' do
+    response, result = post_graphql(pick_list_type: 'SERVICE_TYPE', relationId: e1.id.to_s) { query }
+    expect(response.status).to eq 200
+    options = result.dig('data', 'pickList')
+    expect(options.length).to eq(
+      Types::HmisSchema::Enums::ServiceTypeProvided.all_enum_value_definitions.reject { |item| item.value.is_a?(Integer) }.count,
+    )
+    expect(options).to include(
+      include(
+        'code' => '141:1',
+        'label' => '(1) Re-engagement',
+        'groupCode' => '141',
+        'groupLabel' => '(141) PATH service',
+      ),
+    )
+  end
 end
 
 RSpec.configure do |c|

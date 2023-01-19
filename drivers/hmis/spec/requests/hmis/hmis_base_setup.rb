@@ -5,6 +5,8 @@ RSpec.shared_context 'hmis base setup', shared_context: :metadata do
   let(:u1) { Hmis::Hud::User.from_user(hmis_user) }
   let!(:o1) { create :hmis_hud_organization, data_source: ds1, user: u1 }
   let!(:p1) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1 }
+  let(:c1) { create :hmis_hud_client, data_source: ds1, user: u1 }
+  let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, relationship_to_ho_h: 1, household_id: '1', user: u1 }
 
   let(:edit_access_group) { create :edit_access_group }
   let(:view_access_group) { create :view_access_group }

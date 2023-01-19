@@ -51,6 +51,32 @@ module Types
       when 'PRIOR_LIVING_SITUATION'
         living_situation_options(as: :prior)
 
+      when 'SERVICE_TYPE'
+        Types::HmisSchema::Enums::ServiceTypeProvided.all_enum_value_definitions.map do |enum|
+          next if enum.value.is_a?(Integer) && enum.value.negative?
+
+          record_type = enum.value.split(':').first
+          _, record_type_enum = Types::HmisSchema::Enums::Hud::RecordType.enum_member_for_value(record_type&.to_i)
+          {
+            code: enum.value,
+            label: enum.description,
+            group_code: record_type_enum&.value,
+            group_label: record_type_enum&.description,
+          }
+        end.compact
+
+      when 'SUB_TYPE_PROVIDED_3'
+        options_without_invalid_for_enum(Types::HmisSchema::Enums::Hud::SSVFSubType3)
+
+      when 'SUB_TYPE_PROVIDED_4'
+        options_without_invalid_for_enum(Types::HmisSchema::Enums::Hud::SSVFSubType4)
+
+      when 'SUB_TYPE_PROVIDED_5'
+        options_without_invalid_for_enum(Types::HmisSchema::Enums::Hud::SSVFSubType5)
+
+      when 'REFERRAL_OUTCOME'
+        options_without_invalid_for_enum(Types::HmisSchema::Enums::Hud::PATHReferralOutcome)
+
       when 'CURRENT_LIVING_SITUATION'
         living_situation_options(as: :current)
 
@@ -97,6 +123,15 @@ module Types
     def self.state_options
       Rails.cache.fetch('STATE_OPTION_LIST', expires_in: 1.days) do
         JSON.parse(File.read('drivers/hmis/lib/pick_list_data/states.json'))
+      end
+    end
+
+    def self.options_without_invalid_for_enum(enum_type)
+      enum_type.all_enum_value_definitions.reject { |enum| enum.value.negative? }.map do |enum|
+        {
+          code: enum.value,
+          label: enum.description,
+        }
       end
     end
 
