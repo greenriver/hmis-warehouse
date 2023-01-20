@@ -164,6 +164,7 @@ gem 'puma', '~> 4.3.11'
 gem 'dotenv-rails'
 
 gem 'net-sftp', require: false
+gem 'net-http'
 gem 'redis-actionpack'
 
 # AWS SDK is needed for deployment and within the application
@@ -219,7 +220,6 @@ group :development, :test do
   gem 'brakeman', '~> 5.0.4', require: false
   gem 'rspec-rails', require: false
   gem 'factory_bot_rails'
-  gem 'guard-rspec', require: false
   gem 'vcr'
   gem 'webmock'
   # gem 'rb-readline'

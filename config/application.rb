@@ -14,7 +14,7 @@ module BostonHmis
     # Initialize configuration defaults for originally generated Rails version.
     config.load_defaults 6.1
     # config.autoloader = :classic
-    config.autoload_paths << Rails.root.join('lib/devise')
+    config.autoload_paths << Rails.root.join('lib', 'devise')
 
     # ActionCable
     config.action_cable.mount_path = "/cable"
@@ -62,7 +62,7 @@ module BostonHmis
 
     # additional library paths
     config.eager_load_paths << Rails.root.join('lib', 'util')
-    config.eager_load_paths << Rails.root.join('lib/devise')
+    config.eager_load_paths << Rails.root.join('lib', 'devise')
 
     # serve error pages from the Rails app itself
     # rather than using static error pages in public/.
