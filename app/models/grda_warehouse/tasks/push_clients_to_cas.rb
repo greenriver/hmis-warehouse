@@ -90,15 +90,20 @@ module GrdaWarehouse::Tasks
               project_client.enrolled_in_ph = client.enrolled_in_ph(enrollments)
               project_client.date_days_homeless_verified = Date.current
 
-              # Order the files by effective date to get the newest date for each tag
-              project_client.file_tags = client.client_files.order(effective_date: :asc).
+              # Order the files by effective date to get the newest date for each tag, blank at the end
+              project_client.file_tags = client.client_files.sort_by { |file| file.effective_date || 10.years.ago.to_date }.
                 map { |f| f.tag_list.map { |tag| [tag, f.effective_date] } }.
                 flatten(1).to_h
 
               project_client.needs_update = true
               to_update << project_client
             end
-            CasAccess::ProjectClient.import(to_update, on_duplicate_key_update: update_columns)
+            to_insert = to_update.select { |c| c.id.blank? }
+            to_upsert = to_update.select { |c| c.id.present? }
+
+            CasAccess::ProjectClient.import!(to_upsert, on_duplicate_key_update: update_columns) if to_upsert.present?
+            CasAccess::ProjectClient.import!(update_columns, to_insert) if to_insert.present?
+
             updated_clients += to_update
           end
         end
