@@ -46,6 +46,7 @@ module BostonHmis
     config.active_record.schema_format = ENV.fetch('SCHEMA_FORMAT') { 'sql' }.to_sym
 
     config.active_job.queue_adapter = :delayed_job
+    config.action_mailer.deliver_later_queue_name = :mailers
 
     config.generators do |generate|
       generate.helper false
