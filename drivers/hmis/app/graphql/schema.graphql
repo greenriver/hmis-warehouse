@@ -1318,7 +1318,7 @@ type Enrollment {
   intakeAssessment: Assessment
   lengthOfStay: ResidencePriorLengthOfStay
   livingSituation: LivingSituation
-  losUnderThreshold: NoYesMissing
+  losUnderThreshold: Boolean
   monthsHomelessPastThreeYears: MonthsHomelessPastThreeYears
   previousStreetEssh: Boolean
   project: Project!
@@ -3118,31 +3118,6 @@ enum NoAssistanceReason {
   Invalid Value
   """
   INVALID
-}
-
-"""
-1.7
-"""
-enum NoYesMissing {
-  """
-  (99) Data not collected
-  """
-  DATA_NOT_COLLECTED
-
-  """
-  Invalid Value
-  """
-  INVALID
-
-  """
-  (0) No
-  """
-  NO
-
-  """
-  (1) Yes
-  """
-  YES
 }
 
 """

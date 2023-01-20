@@ -55,6 +55,8 @@ module Types
     end
 
     def self.value_for(key)
+      raise "Unrecognized key '#{key}' for enum #{name}" unless values[key].present?
+
       values[key].value
     end
   end
