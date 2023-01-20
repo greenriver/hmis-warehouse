@@ -10295,7 +10295,8 @@ CREATE TABLE public.hmis_assessment_details (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     "values" jsonb,
-    hud_values jsonb
+    hud_values jsonb,
+    assessment_processor_id bigint
 );
 
 
@@ -10337,6 +10338,43 @@ CREATE SEQUENCE public.hmis_assessment_details_id_seq
 --
 
 ALTER SEQUENCE public.hmis_assessment_details_id_seq OWNED BY public.hmis_assessment_details.id;
+
+
+--
+-- Name: hmis_assessment_processors; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_assessment_processors (
+    id bigint NOT NULL,
+    enrollment_coc_id bigint,
+    health_and_dv_id bigint,
+    income_benefit_id bigint,
+    physical_disability_id bigint,
+    developmental_disability_id bigint,
+    chronic_health_condition_id bigint,
+    hiv_aids_id bigint,
+    mental_health_disorder_id bigint,
+    substance_use_disorder_id bigint
+);
+
+
+--
+-- Name: hmis_assessment_processors_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_assessment_processors_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_assessment_processors_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_assessment_processors_id_seq OWNED BY public.hmis_assessment_processors.id;
 
 
 --
@@ -21679,6 +21717,13 @@ ALTER TABLE ONLY public.hmis_assessment_details ALTER COLUMN id SET DEFAULT next
 
 
 --
+-- Name: hmis_assessment_processors id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_assessment_processors ALTER COLUMN id SET DEFAULT nextval('public.hmis_assessment_processors_id_seq'::regclass);
+
+
+--
 -- Name: hmis_assessments id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -24650,6 +24695,14 @@ ALTER TABLE ONLY public.hmis_aggregated_exits
 
 ALTER TABLE ONLY public.hmis_assessment_details
     ADD CONSTRAINT hmis_assessment_details_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_assessment_processors hmis_assessment_processors_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_assessment_processors
+    ADD CONSTRAINT hmis_assessment_processors_pkey PRIMARY KEY (id);
 
 
 --
@@ -41825,10 +41878,80 @@ CREATE INDEX index_hmis_assessment_details_on_assessment_id ON public.hmis_asses
 
 
 --
+-- Name: index_hmis_assessment_details_on_assessment_processor_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_assessment_details_on_assessment_processor_id ON public.hmis_assessment_details USING btree (assessment_processor_id);
+
+
+--
 -- Name: index_hmis_assessment_details_on_definition_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_assessment_details_on_definition_id ON public.hmis_assessment_details USING btree (definition_id);
+
+
+--
+-- Name: index_hmis_assessment_processors_on_chronic_health_condition_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_assessment_processors_on_chronic_health_condition_id ON public.hmis_assessment_processors USING btree (chronic_health_condition_id);
+
+
+--
+-- Name: index_hmis_assessment_processors_on_developmental_disability_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_assessment_processors_on_developmental_disability_id ON public.hmis_assessment_processors USING btree (developmental_disability_id);
+
+
+--
+-- Name: index_hmis_assessment_processors_on_enrollment_coc_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_assessment_processors_on_enrollment_coc_id ON public.hmis_assessment_processors USING btree (enrollment_coc_id);
+
+
+--
+-- Name: index_hmis_assessment_processors_on_health_and_dv_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_assessment_processors_on_health_and_dv_id ON public.hmis_assessment_processors USING btree (health_and_dv_id);
+
+
+--
+-- Name: index_hmis_assessment_processors_on_hiv_aids_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_assessment_processors_on_hiv_aids_id ON public.hmis_assessment_processors USING btree (hiv_aids_id);
+
+
+--
+-- Name: index_hmis_assessment_processors_on_income_benefit_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_assessment_processors_on_income_benefit_id ON public.hmis_assessment_processors USING btree (income_benefit_id);
+
+
+--
+-- Name: index_hmis_assessment_processors_on_mental_health_disorder_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_assessment_processors_on_mental_health_disorder_id ON public.hmis_assessment_processors USING btree (mental_health_disorder_id);
+
+
+--
+-- Name: index_hmis_assessment_processors_on_physical_disability_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_assessment_processors_on_physical_disability_id ON public.hmis_assessment_processors USING btree (physical_disability_id);
+
+
+--
+-- Name: index_hmis_assessment_processors_on_substance_use_disorder_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_assessment_processors_on_substance_use_disorder_id ON public.hmis_assessment_processors USING btree (substance_use_disorder_id);
 
 
 --
@@ -50455,6 +50578,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230107220752'),
 ('20230108133748'),
 ('20230109173226'),
-('20230110174657');
+('20230110174657'),
+('20230112142317'),
+('20230119123843');
 
 
