@@ -212,6 +212,11 @@ gem 'parallel'
 gem 'todo_or_die'
 gem 'reline', '~> 0.2'
 
+gem "business_time", "~> 0.10.0"
+gem "cable_ready", "~> 4.5"
+gem "graphql", "~> 2.0"
+gem "sentry-rails", "~> 5.5"
+
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
   gem 'byebug'
@@ -282,11 +287,3 @@ end
 group :production, :development, :staging do
   gem 'tiny_tds'
 end
-
-gem "business_time", "~> 0.10.0"
-
-gem "cable_ready", "~> 4.5"
-
-gem "graphql", "~> 2.0"
-
-gem "sentry-rails", "~> 5.5"
