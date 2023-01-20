@@ -99,7 +99,7 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
   end
 
   def intake?
-    assessment_detail.data_collection_stage == 1
+    assessment_detail&.data_collection_stage == 1
   end
 
   def self.new_with_defaults(enrollment:, user:, form_definition:, assessment_date:)
