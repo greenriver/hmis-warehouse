@@ -52,7 +52,9 @@ module ClientAccessControl
         ),
       ) # 1
       # The can_search_own_clients permission limits search results regardles of ROI status
-      unless user.can_search_own_clients?
+      show_source_clients_with_roi = ::GrdaWarehouse::Config.get(:consent_exposes_all_data_sources) && ! user.can_search_own_clients?
+
+      if show_source_clients_with_roi
         where_clause = where_clause.or(
           c_t[:id].in(
             Arel.sql(
