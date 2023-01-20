@@ -3550,6 +3550,11 @@ type Query {
   """
   projectCoc(id: ID!): ProjectCoc
   projects(limit: Int, offset: Int, projectTypes: [ProjectType!], searchTerm: String, sortOrder: ProjectSortOption): ProjectsPaginated!
+
+  """
+  Service lookup
+  """
+  service(id: ID!): Service
 }
 
 """

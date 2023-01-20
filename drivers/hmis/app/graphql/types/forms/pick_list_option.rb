@@ -15,6 +15,8 @@ module Types
     field :group_label, String, 'Label for group that option belongs to, if grouped', null: true
     field :initial_selected, Boolean, 'Whether option is selected by default', null: true
 
+    CODE_PATTERN = /^\(([0-9]*)\) /.freeze
+
     def self.options_for_type(pick_list_type, user:, relation_id: nil)
       relevant_state = ENV['RELEVANT_COC_STATE']
 
@@ -56,23 +58,23 @@ module Types
           next if enum.value.is_a?(Integer) && enum.value.negative?
 
           record_type = enum.value.split(':').first
-          _, record_type_enum = Types::HmisSchema::Enums::Hud::RecordType.enum_member_for_value(record_type&.to_i)
+          record_type_key, record_type_enum = Types::HmisSchema::Enums::Hud::RecordType.enum_member_for_value(record_type&.to_i)
           {
             code: key,
-            label: enum.description,
-            group_code: record_type_enum&.value,
-            group_label: record_type_enum&.description,
+            label: enum.description.gsub(CODE_PATTERN, ''),
+            group_code: record_type_key,
+            group_label: record_type_enum&.description&.gsub(CODE_PATTERN, ''),
           }
         end.compact
 
       when 'SUB_TYPE_PROVIDED_3'
-        options_without_invalid_for_enum(Types::HmisSchema::Enums::Hud::SSVFSubType3)
+        sub_type_provided_options(Types::HmisSchema::Enums::Hud::SSVFSubType3, '144:3')
 
       when 'SUB_TYPE_PROVIDED_4'
-        options_without_invalid_for_enum(Types::HmisSchema::Enums::Hud::SSVFSubType4)
+        sub_type_provided_options(Types::HmisSchema::Enums::Hud::SSVFSubType4, '144:4')
 
       when 'SUB_TYPE_PROVIDED_5'
-        options_without_invalid_for_enum(Types::HmisSchema::Enums::Hud::SSVFSubType5)
+        sub_type_provided_options(Types::HmisSchema::Enums::Hud::SSVFSubType5, '144:5')
 
       when 'REFERRAL_OUTCOME'
         options_without_invalid_for_enum(Types::HmisSchema::Enums::Hud::PATHReferralOutcome)
@@ -126,11 +128,19 @@ module Types
       end
     end
 
+    def self.sub_type_provided_options(enum_type, type_provided_value)
+      options_without_invalid_for_enum(enum_type).
+        map do |item|
+          parent_key, = Types::HmisSchema::Enums::ServiceTypeProvided.enum_member_for_value(type_provided_value)
+          item.merge(code: "#{parent_key}__#{item[:code]}")
+        end
+    end
+
     def self.options_without_invalid_for_enum(enum_type)
-      enum_type.valyes.reject { |_key, enum| enum.value.negative? }.map do |key, enum|
+      enum_type.values.reject { |_key, enum| enum.value.negative? }.map do |key, enum|
         {
           code: key,
-          label: enum.description,
+          label: enum.description.gsub(CODE_PATTERN, ''),
         }
       end
     end

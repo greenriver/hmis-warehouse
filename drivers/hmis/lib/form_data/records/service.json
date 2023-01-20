@@ -20,12 +20,12 @@
         {
           "question": "typeProvided",
           "operator": "EQUAL",
-          "answer_code": "144:6"
+          "answer_code": "SSVF_SERVICE__OTHER_NON_TFA_SUPPORTIVE_SERVICE_APPROVED_BY_VA"
         },
         {
           "question": "typeProvided",
           "operator": "EQUAL",
-          "answer_code": "210:12"
+          "answer_code": "HUD_VASH_OTH_VOUCHER_TRACKING__OTHER"
         }
       ]
     },
@@ -40,7 +40,7 @@
         {
           "question": "typeProvided",
           "operator": "EQUAL",
-          "answer_code": "300:5"
+          "answer_code": "C2_MOVING_ON_ASSISTANCE_PROVIDED__OTHER_PLEASE_SPECIFY"
         }
       ]
     },
@@ -56,7 +56,7 @@
         {
           "question": "typeProvided",
           "operator": "EQUAL",
-          "answer_code": "144:3"
+          "answer_code": "SSVF_SERVICE__ASSISTANCE_OBTAINING_VA_BENEFITS"
         }
       ]
     },
@@ -72,7 +72,7 @@
         {
           "question": "typeProvided",
           "operator": "EQUAL",
-          "answer_code": "144:4"
+          "answer_code": "SSVF_SERVICE__ASSISTANCE_OBTAINING_COORDINATING_OTHER_PUBLIC_BENEFITS"
         }
       ]
     },
@@ -88,7 +88,7 @@
         {
           "question": "typeProvided",
           "operator": "EQUAL",
-          "answer_code": "144:5"
+          "answer_code": "SSVF_SERVICE__DIRECT_PROVISION_OF_OTHER_PUBLIC_BENEFITS"
         }
       ]
     },
@@ -103,92 +103,12 @@
         {
           "question": "typeProvided",
           "operator": "EQUAL",
-          "answer_code": "151:1"
+          "answer_group_code": "HOPWA_FINANCIAL_ASSISTANCE"
         },
         {
           "question": "typeProvided",
           "operator": "EQUAL",
-          "answer_code": "151:2"
-        },
-        {
-          "question": "typeProvided",
-          "operator": "EQUAL",
-          "answer_code": "151:3"
-        },
-        {
-          "question": "typeProvided",
-          "operator": "EQUAL",
-          "answer_code": "151:4"
-        },
-        {
-          "question": "typeProvided",
-          "operator": "EQUAL",
-          "answer_code": "151:7"
-        },
-        {
-          "question": "typeProvided",
-          "operator": "EQUAL",
-          "answer_code": "152:1"
-        },
-        {
-          "question": "typeProvided",
-          "operator": "EQUAL",
-          "answer_code": "152:2"
-        },
-        {
-          "question": "typeProvided",
-          "operator": "EQUAL",
-          "answer_code": "152:3"
-        },
-        {
-          "question": "typeProvided",
-          "operator": "EQUAL",
-          "answer_code": "152:4"
-        },
-        {
-          "question": "typeProvided",
-          "operator": "EQUAL",
-          "answer_code": "152:5"
-        },
-        {
-          "question": "typeProvided",
-          "operator": "EQUAL",
-          "answer_code": "152:8"
-        },
-        {
-          "question": "typeProvided",
-          "operator": "EQUAL",
-          "answer_code": "152:9"
-        },
-        {
-          "question": "typeProvided",
-          "operator": "EQUAL",
-          "answer_code": "152:10"
-        },
-        {
-          "question": "typeProvided",
-          "operator": "EQUAL",
-          "answer_code": "152:11"
-        },
-        {
-          "question": "typeProvided",
-          "operator": "EQUAL",
-          "answer_code": "152:12"
-        },
-        {
-          "question": "typeProvided",
-          "operator": "EQUAL",
-          "answer_code": "152:14"
-        },
-        {
-          "question": "typeProvided",
-          "operator": "EQUAL",
-          "answer_code": "152:15"
-        },
-        {
-          "question": "typeProvided",
-          "operator": "EQUAL",
-          "answer_code": "152:16"
+          "answer_group_code": "SSVF_FINANCIAL_ASSISTANCE"
         }
       ]
     },
@@ -204,59 +124,16 @@
         {
           "question": "typeProvided",
           "operator": "EQUAL",
-          "answer_code": "161:1"
-        },
-        {
-          "question": "typeProvided",
-          "operator": "EQUAL",
-          "answer_code": "161:2"
-        },
-        {
-          "question": "typeProvided",
-          "operator": "EQUAL",
-          "answer_code": "161:3"
-        },
-        {
-          "question": "typeProvided",
-          "operator": "EQUAL",
-          "answer_code": "161:4"
-        },
-        {
-          "question": "typeProvided",
-          "operator": "EQUAL",
-          "answer_code": "161:5"
-        },
-        {
-          "question": "typeProvided",
-          "operator": "EQUAL",
-          "answer_code": "161:6"
-        },
-        {
-          "question": "typeProvided",
-          "operator": "EQUAL",
-          "answer_code": "161:7"
-        },
-        {
-          "question": "typeProvided",
-          "operator": "EQUAL",
-          "answer_code": "161:8"
-        },
-        {
-          "question": "typeProvided",
-          "operator": "EQUAL",
-          "answer_code": "161:9"
-        },
-        {
-          "question": "typeProvided",
-          "operator": "EQUAL",
-          "answer_code": "161:10"
-        },
-        {
-          "question": "typeProvided",
-          "operator": "EQUAL",
-          "answer_code": "161:11"
+          "answer_group_code": "PATH_REFERRAL"
         }
       ]
+    },
+    {
+      "type": "DATE",
+      "link_id": "dateProvided",
+      "required": true,
+      "text": "Date Provided",
+      "field_name": "dateProvided"
     }
   ]
 }
