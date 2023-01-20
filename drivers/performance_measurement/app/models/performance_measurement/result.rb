@@ -34,7 +34,7 @@ module PerformanceMeasurement
     end
 
     def titles_for_system_level_bar_tooltip
-      [report.filter.date_range_words, report.filter.comparison_range_words]
+      [report.filter.comparison_range_words, report.filter.date_range_words]
     end
 
     def pit_count
