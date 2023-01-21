@@ -39,8 +39,7 @@ module ClientAccessControl
 
     private def visible_client_scope(user, data_source_ids, client_ids: nil)
       client_scope = unscoped_clients.source
-      # Enforce that we're only looking at clients in data sources we're allowed to see
-      client_scope = client_scope.where(data_source_id: ::GrdaWarehouse::DataSource.viewable_by(user).pluck(:id) + data_source_ids)
+      client_scope = client_scope.where(data_source_id: potentially_viewable_data_source_ids(user))
       client_scope = client_scope.where(id: client_ids) if client_ids.present?
 
       coc_codes = user.coc_codes
@@ -112,6 +111,14 @@ module ClientAccessControl
 
     private def window_data_source_ids
       @window_data_source_ids ||= ::GrdaWarehouse::DataSource.window_data_source_ids
+    end
+
+    private def potentially_viewable_data_source_ids(user)
+      @potentially_viewable_data_source_ids ||= if ::GrdaWarehouse::Config.get(:consent_exposes_all_data_sources)
+        ::GrdaWarehouse::DataSource.source.pluck(:id)
+      else
+        authoritative_viewable_ds_ids(user) + ::GrdaWarehouse::DataSource.viewable_by(user).pluck(:id) + window_data_source_ids
+      end
     end
 
     private def project_ids(user)
