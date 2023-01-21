@@ -98,6 +98,10 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
     @in_progress
   end
 
+  def intake?
+    assessment_detail&.data_collection_stage == 1
+  end
+
   def self.new_with_defaults(enrollment:, user:, form_definition:, assessment_date:)
     new_assessment = new(
       data_source_id: user.data_source_id,
