@@ -9,7 +9,7 @@
 
 module GrdaWarehouse
   module UsCensusApi
-    class CoCAgg
+    class CocAgg
       attr_accessor :coc
       attr_accessor :value_tally
       attr_accessor :num_pieces
