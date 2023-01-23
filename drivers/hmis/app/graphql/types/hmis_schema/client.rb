@@ -46,6 +46,7 @@ module Types
     hud_field :date_updated
     hud_field :date_created
     hud_field :date_deleted
+    field :user, HmisSchema::User, null: true
     field :image, HmisSchema::ClientImage, null: true
 
     def enrollments(**args)
@@ -92,6 +93,10 @@ module Types
       return nil unless object.image&.download
 
       object.image
+    end
+
+    def user
+      load_ar_association(object, :user)
     end
   end
 end
