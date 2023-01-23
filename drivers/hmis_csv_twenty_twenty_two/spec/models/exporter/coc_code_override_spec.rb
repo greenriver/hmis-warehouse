@@ -24,6 +24,7 @@ RSpec.describe HmisCsvTwentyTwentyTwo::Exporter::Base, type: :model do
   end
 
   before(:all) do
+    self.use_transactional_tests = false
     cleanup_test_environment
     setup_data
     override_coc_codes
@@ -42,6 +43,7 @@ RSpec.describe HmisCsvTwentyTwentyTwo::Exporter::Base, type: :model do
   after(:all) do
     @exporter.remove_export_files
     cleanup_test_environment
+    self.use_transactional_tests = true
   end
 
   describe 'When exporting enrollment related item' do
