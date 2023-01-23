@@ -118,7 +118,6 @@ module Types
       enrollment = Hmis::Hud::Enrollment.find_by(id: enrollment_id)
       definition = enrollment&.project&.present? ? Hmis::Form::Definition.find_definition_for_project(enrollment.project, role: assessment_role) : nil
 
-      definition.apply_conditionals(enrollment) if definition.present?
       definition
     end
 
