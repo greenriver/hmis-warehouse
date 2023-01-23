@@ -3044,7 +3044,8 @@ CREATE TABLE public.data_sources (
     import_aggregators jsonb DEFAULT '{}'::jsonb,
     import_cleanups jsonb DEFAULT '{}'::jsonb,
     refuse_imports_with_errors boolean DEFAULT false,
-    hmis character varying
+    hmis character varying,
+    obey_consent boolean DEFAULT true
 );
 
 
@@ -50580,6 +50581,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230109173226'),
 ('20230110174657'),
 ('20230112142317'),
-('20230119123843');
+('20230119123843'),
+('20230123010327');
 
 
