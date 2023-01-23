@@ -1,7 +1,7 @@
 # a general clearing house to translate HUD ids of various sorts into strings
 # further access or translation logic can also go here
 # information from HMIS CSV format specifications version 5
-module HUD
+module HudUtility
   module_function
 
   # factored out of app/models/grda_warehouse/tasks/identify_duplicates.rb

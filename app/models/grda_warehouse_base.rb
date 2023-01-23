@@ -29,6 +29,6 @@ class GrdaWarehouseBase < ApplicationRecord
   end
 
   def self.partitioned?(table_name)
-    DBA::PartitionMaker.new(table_name: table_name).done?
+    Dba::PartitionMaker.new(table_name: table_name).done?
   end
 end

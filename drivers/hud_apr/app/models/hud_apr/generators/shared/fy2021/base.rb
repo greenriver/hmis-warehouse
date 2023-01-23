@@ -486,7 +486,7 @@ module HudApr::Generators::Shared::Fy2021
         merge(
           GrdaWarehouse::Hud::EnrollmentCoc.where(CoCCode: @report.coc_codes).
           or(GrdaWarehouse::Hud::EnrollmentCoc.where(CoCCode: nil)).
-          or(GrdaWarehouse::Hud::EnrollmentCoc.where.not(CoCCode: HUD.cocs.keys)),
+          or(GrdaWarehouse::Hud::EnrollmentCoc.where.not(CoCCode: HudUtility.cocs.keys)),
         )
       scope = scope.in_project(@report.project_ids) if @report.project_ids.present? # for consistency with client_scope
       scope

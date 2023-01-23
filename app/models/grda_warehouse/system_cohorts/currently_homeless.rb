@@ -103,7 +103,7 @@ module GrdaWarehouse::SystemCohorts
           newly_identified << client_id
         # if we have seen you before, and your exit was to a permanent destination, or you had prior
         # housed service, then you are returning from housing
-        elsif HUD.permanent_destinations.include?(previous_destination) || last_services_prior_to_processing_date_was_housed
+        elsif HudUtility.permanent_destinations.include?(previous_destination) || last_services_prior_to_processing_date_was_housed
           returned_from_housing << client_id
         # if you have service within the active window, you have returned from inactivity
         elsif most_recent_service.present? && most_recent_service >= @processing_date - days_of_inactivity.days
@@ -140,7 +140,7 @@ module GrdaWarehouse::SystemCohorts
         ).
         pluck(:client_id, she_t[:last_date_in_program], she_t[:destination]).
         group_by(&:shift).
-        select { |_, exits| exits.max_by(&:first).last.in?(HUD.permanent_destinations) }.
+        select { |_, exits| exits.max_by(&:first).last.in?(HudUtility.permanent_destinations) }.
         keys
 
       # keep anyone who is still receiving homeless service on the cohort
@@ -180,7 +180,7 @@ module GrdaWarehouse::SystemCohorts
       no_ongoing = cohort_clients.joins(client: :service_history_enrollments).
         where(she_t[:last_date_in_program].lt(@processing_date)).
         where.not(client_id: with_homeless_enrollment.select(:client_id)).
-        merge(enrollment_source.where.not(destination: HUD.permanent_destinations)).
+        merge(enrollment_source.where.not(destination: HudUtility.permanent_destinations)).
         pluck(:client_id)
 
       currently_moved_in_ph = enrollment_source.ongoing(on_date: @processing_date).ph.

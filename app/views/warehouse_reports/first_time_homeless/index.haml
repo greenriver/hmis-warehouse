@@ -48,13 +48,13 @@
               %nobr= link_to_if can_view_clients?, client.FirstName, appropriate_client_path(client)
             %td= client.first_service_history.age
             %td= client.age()
-            %td= HUD.no_yes_reasons_for_missing_data(client.VeteranStatus)
+            %td= HudUtility.no_yes_reasons_for_missing_data(client.VeteranStatus)
             %td= client.first_service_history.date
             %td
-              = ::HUD.project_type(client.first_service_history.project_type)
+              = ::HudUtility.project_type(client.first_service_history.project_type)
               - if client.first_service_history.project.act_as_project_type.present?
                 acts as
-                = ::HUD.project_type_brief(client.first_service_history.project.act_as_project_type)
+                = ::HudUtility.project_type_brief(client.first_service_history.project.act_as_project_type)
             %td= project.name(current_user)
             %td= project.organization_name(current_user)
             %td= client.source_clients.map{|m| m.data_source&.short_name}.uniq.reject(&:blank?).join(', ')

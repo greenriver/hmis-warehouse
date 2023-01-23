@@ -9,11 +9,11 @@
     %table.table.table-striped
       %thead
         %tr
-          - HUD.gender_id_to_field_name.each_key do |id|
-            %th= HUD.gender(id)
+          - HudUtility.gender_id_to_field_name.each_key do |id|
+            %th= HudUtility.gender(id)
       %tbody
         %tr
-          - HUD.gender_id_to_field_name.each_value do |field|
+          - HudUtility.gender_id_to_field_name.each_value do |field|
             %td= data.count { |row| row[field] == 1 }
   %h3 Age
   .card.mb-6
@@ -31,22 +31,22 @@
     %table.table.table-striped
       %thead
         %tr
-          - HUD.races(multi_racial: true).values.each do |race|
+          - HudUtility.races(multi_racial: true).values.each do |race|
             %th= race
       %tbody
         %tr
-          - HUD.races(multi_racial: true).keys.each do |race|
+          - HudUtility.races(multi_racial: true).keys.each do |race|
             %td= data.count { |row| row[:race] == race }
   %h3 Ethnicity
   .card.mb-6
     %table.table.table-striped
       %thead
         %tr
-          - HUD.yes_no_missing_options.each_value do |option|
+          - HudUtility.yes_no_missing_options.each_value do |option|
             %th= option
       %tbody
         %tr
-          - HUD.yes_no_missing_options.each_key do |id|
+          - HudUtility.yes_no_missing_options.each_key do |id|
             %td= data.count { |row| row[:ethnicity] == id }
 
 - #TODO break each of these into their own table, add ethnicity and veteran status

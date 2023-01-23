@@ -126,9 +126,9 @@ module TxClientReports
           row[:hh_size],
           row[:income],
           '', # % AMI
-          row[:genders].map { |k| ::HUD.gender(k) }.join(', '),
-          row[:races].map { |f| ::HUD.race(f) }.join(', '),
-          ::HUD.ethnicity(row[:ethnicity]),
+          row[:genders].map { |k| ::HudUtility.gender(k) }.join(', '),
+          row[:races].map { |f| ::HudUtility.race(f) }.join(', '),
+          ::HudUtility.ethnicity(row[:ethnicity]),
           (if row[:any_veterans] then 'Yes' else 'No' end),
           (if row[:over_62_in_household] then 'Yes' else 'No' end),
           (if row[:child_in_household] then 'Yes' else 'No' end),

@@ -54,7 +54,7 @@ module HmisCsvTwentyTwentyTwo::Importer
           },
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HUD.available_situations.keys.map(&:to_s).freeze },
+            arguments: { valid_options: HudUtility.available_situations.keys.map(&:to_s).freeze },
           },
         ],
       }

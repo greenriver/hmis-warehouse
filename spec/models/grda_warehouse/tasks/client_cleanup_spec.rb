@@ -290,7 +290,7 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
     end
 
     describe 'Gender Fields' do
-      (::HUD.gender_fields - [:GenderNone]).each do |col|
+      (::HudUtility.gender_fields - [:GenderNone]).each do |col|
         it "uses newest known gender value for #{col}" do
           destination_client.update(col => 1)
           source_1.update(col => 1, DateUpdated: 2.days.ago)
@@ -707,7 +707,7 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
     end
 
     describe 'Gender Fields' do
-      (::HUD.gender_fields - [:GenderNone]).each do |col|
+      (::HudUtility.gender_fields - [:GenderNone]).each do |col|
         it "overwrites nil #{col} if something is non-blank" do
           source_1.update(col => nil, DateUpdated: 3.days.ago)
           source_2.update(col => 99, DateUpdated: 2.days.ago)

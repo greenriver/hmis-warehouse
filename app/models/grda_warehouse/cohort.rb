@@ -541,7 +541,7 @@ module GrdaWarehouse
       client.permanent_source_exits_from_homelessness.
         where(ex_t[:ExitDate].gteq(90.days.ago.to_date)).
         pluck(:ExitDate, :Destination).map do |exit_date, destination|
-          "#{exit_date} to #{HUD.destination(destination)}"
+          "#{exit_date} to #{HudUtility.destination(destination)}"
         end.join('; ')
     end
 

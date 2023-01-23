@@ -56,7 +56,7 @@ module ClientAccessControl
         where_clause = where_clause.or(
           c_t[:id].in(
             Arel.sql(
-              consent_sub_query(coc_codes).
+              consent_sub_query(coc_codes, user).
               joins(:warehouse_client_destination).
               select(wc_t[:source_id]).to_sql,
             ),
@@ -82,7 +82,7 @@ module ClientAccessControl
       enrollments = enrollments.joins(:client).merge(unscoped_clients.where(id: client_ids)) if client_ids.present?
       ::GrdaWarehouse::Hud::Enrollment.where(
         e_t[:id].in(Arel.sql(enrollments.select(:id).to_sql)). # 1
-        or(e_t[:id].in(Arel.sql(consent_sub_query(coc_codes).joins(:source_enrollments).select(e_t[:id]).to_sql))), # 2
+        or(e_t[:id].in(Arel.sql(consent_sub_query(coc_codes, user).joins(:source_enrollments).select(e_t[:id]).to_sql))), # 2
       )
     end
 
@@ -90,8 +90,9 @@ module ClientAccessControl
       ::GrdaWarehouse::Hud::Enrollment.joins(:project).where(p_t[:id].in(project_ids(user)))
     end
 
-    private def consent_sub_query(coc_codes)
-      unscoped_clients.active_confirmed_consent_in_cocs(coc_codes)
+    private def consent_sub_query(coc_codes, user)
+      unscoped_clients.active_confirmed_consent_in_cocs(coc_codes).
+        where(wc_t[:data_source_id].in(potentially_viewable_data_source_ids(user)))
     end
 
     # NOTE: because we call EnrollmentArbiter within a scope on client, the
@@ -106,6 +107,11 @@ module ClientAccessControl
 
     private def window_data_source_ids
       @window_data_source_ids ||= ::GrdaWarehouse::DataSource.window_data_source_ids
+    end
+
+    private def potentially_viewable_data_source_ids(user)
+      @potentially_viewable_data_source_ids ||= ::GrdaWarehouse::DataSource.source.obeys_consent.pluck(:id) +
+        ::GrdaWarehouse::DataSource.viewable_by(user).pluck(:id)
     end
 
     private def project_ids(user)

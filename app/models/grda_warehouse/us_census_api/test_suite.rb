@@ -126,7 +126,7 @@ module GrdaWarehouse
       end
 
       def _cocs
-        Shape::CoC.my_state.select(:id, :full_geoid)
+        Shape::Coc.my_state.select(:id, :full_geoid)
       end
 
       def _zip_codes

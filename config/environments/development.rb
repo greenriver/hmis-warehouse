@@ -15,7 +15,7 @@ Rails.application.configure do
   config.hosts = [ /.*/ ]
 
   # Do not eager load code on boot.
-  config.eager_load = false
+  config.eager_load = true
 
   # Show full error reports.
   config.consider_all_requests_local = true
@@ -64,13 +64,13 @@ Rails.application.configure do
         port: smtp_port,
       }
     end
-    puts "Using stmp #{ENV['SMTP_SERVER']} for mail delivery"
+    # puts "Using stmp #{ENV['SMTP_SERVER']} for mail delivery"
   else
     # Don't care if the mailer can't send.
     config.action_mailer.raise_delivery_errors = false
 
     config.action_mailer.delivery_method = ENV.fetch("DEV_MAILER") { :file }.to_sym
-    puts "Using #{config.action_mailer.delivery_method} for mail delivery"
+    # puts "Using #{config.action_mailer.delivery_method} for mail delivery"
   end
 
   config.action_mailer.perform_caching = false

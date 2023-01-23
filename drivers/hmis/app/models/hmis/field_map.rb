@@ -65,7 +65,7 @@ class Hmis::FieldMap
 
   def self.no_yes
     Hmis::FieldMap.new(
-      ::HUD.no_yes_reasons_for_missing_data_options.slice(0, 1).map do |value, desc|
+      ::HudUtility.no_yes_reasons_for_missing_data_options.slice(0, 1).map do |value, desc|
         {
           key: desc,
           value: value,
@@ -78,7 +78,7 @@ class Hmis::FieldMap
 
   def self.no_yes_reasons
     Hmis::FieldMap.new(
-      ::HUD.no_yes_reasons_for_missing_data_options.map do |value, desc|
+      ::HudUtility.no_yes_reasons_for_missing_data_options.map do |value, desc|
         {
           key: desc,
           value: value,
@@ -90,7 +90,7 @@ class Hmis::FieldMap
 
   def self.yes_no_missing
     Hmis::FieldMap.new(
-      ::HUD.yes_no_missing_options.map do |value, desc|
+      ::HudUtility.yes_no_missing_options.map do |value, desc|
         {
           key: desc,
           value: value,

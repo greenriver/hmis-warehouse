@@ -1151,7 +1151,7 @@
         "description": "Non-financial assistance for Moving On (e.g., housing navigation, transition support)"
       },
       { "key": 4, "description": "Housing referral/placement" },
-      { "key": 5, "description": "Other (please specify)" }
+      { "key": 5, "description": "Other" }
     ]
   },
   {

@@ -9,7 +9,7 @@
 
 module GrdaWarehouse
   module UsCensusApi
-    class CoCAgg
+    class CocAgg
       attr_accessor :coc
       attr_accessor :value_tally
       attr_accessor :num_pieces
@@ -18,7 +18,7 @@ module GrdaWarehouse
       attr_accessor :candidates
 
       def self.run!
-        Shape::CoC.my_state.find_each do |coc|
+        Shape::Coc.my_state.find_each do |coc|
           puts coc.cocname
 
           agg = new(coc: coc)

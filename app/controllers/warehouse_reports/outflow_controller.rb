@@ -74,7 +74,7 @@ module WarehouseReports
         opts[:organization_ids] = cleanup_ids(opts[:organization_ids])
         opts[:no_recent_service_project_ids] = cleanup_ids(opts[:no_recent_service_project_ids])
         opts[:project_group_ids] = cleanup_ids(opts[:project_group_ids])
-        opts[:races] = opts[:races].select { |r| ::HUD.races.include?(r) } if opts[:races].present?
+        opts[:races] = opts[:races].select { |r| ::HudUtility.races.include?(r) } if opts[:races].present?
         opts[:ethnicities] = opts[:ethnicities].reject(&:blank?).map(&:to_i) if opts[:ethnicities].present?
         opts[:genders] = opts[:genders].reject(&:blank?).map(&:to_i) if opts[:genders].present?
         opts

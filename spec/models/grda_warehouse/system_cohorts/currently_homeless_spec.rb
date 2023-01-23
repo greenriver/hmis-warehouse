@@ -44,7 +44,7 @@ RSpec.describe GrdaWarehouse::SystemCohorts::CurrentlyHomeless, type: :model do
         currently_homeless_cohort.sync
         expect(currently_homeless_cohort.cohort_clients.count).to eq(1)
 
-        enrollment_1.update(last_date_in_program: '2020-01-31'.to_date, destination: HUD.temporary_destinations.first)
+        enrollment_1.update(last_date_in_program: '2020-01-31'.to_date, destination: HudUtility.temporary_destinations.first)
         currently_homeless_cohort.sync
         expect(currently_homeless_cohort.cohort_clients.count).to eq(0)
       end

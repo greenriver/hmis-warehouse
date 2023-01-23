@@ -10,7 +10,7 @@ module Importing
 
     def perform(start_date: 2.years.ago, data_source_id:)
       # Ensure we know about all the available touch points
-      GrdaWarehouse::HMIS::Assessment.update_touch_points
+      GrdaWarehouse::Hmis::Assessment.update_touch_points
 
       Bo::ClientIdLookup.new(
         data_source_id: data_source_id,

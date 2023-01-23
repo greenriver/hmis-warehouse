@@ -16,4 +16,4 @@
           %td= client[:LastName]
           %td= ssn(client[:SSN])
           %td= client[:DOB]
-          %td= HUD.no_yes_missing(client[:VeteranStatus])
+          %td= HudUtility.no_yes_missing(client[:VeteranStatus])

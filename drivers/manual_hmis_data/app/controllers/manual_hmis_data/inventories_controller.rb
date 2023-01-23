@@ -109,7 +109,7 @@ module ManualHmisData
         },
         Availability: {
           type: :select_two,
-          collection: HUD.availabilities.invert,
+          collection: HudUtility.availabilities.invert,
         },
         CoCCode: {
           type: :select_two,
@@ -123,7 +123,7 @@ module ManualHmisData
         },
         ESBedType: {
           type: :select_two,
-          collection: HUD.bed_types.invert,
+          collection: HudUtility.bed_types.invert,
         },
       }
     end

@@ -71,7 +71,7 @@
               %tr
                 %td= en[:organization_name]
                 %td= en[:project_name]
-                %td= HUD.project_type en[:project_type]
+                %td= HudUtility.project_type en[:project_type]
                 %td= date
                 %td= date if en[:record_type] == 'entry'
                 %td= date if en[:record_type] == 'exit'

@@ -14,7 +14,7 @@
         %tbody
           %tr
             %td Project Type
-            %td= ::HUD.project_type_brief(@service_history_enrollment.computed_project_type)
+            %td= ::HudUtility.project_type_brief(@service_history_enrollment.computed_project_type)
           %tr
             %td Entry Date
             %td= @enrollment.EntryDate || '-'
@@ -23,7 +23,7 @@
             %td= yes_no(@enrollment.chronically_homeless_at_start?)
           %tr
             %td Prior Living Situation
-            %td= ::HUD.living_situation(@enrollment.LivingSituation) || '-'
+            %td= ::HudUtility.living_situation(@enrollment.LivingSituation) || '-'
           %tr
             %td Exit Date
             %td= @service_history_enrollment.last_date_in_program || '-'

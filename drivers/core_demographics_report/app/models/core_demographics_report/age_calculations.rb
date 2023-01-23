@@ -59,7 +59,7 @@ module
           }
         end
         age_categories.each do |age_key, age_title|
-          HUD.genders.each do |gender, gender_title|
+          HudUtility.genders.each do |gender, gender_title|
             hashes["age_#{age_key}_gender_#{gender}"] = {
               title: "Age - #{age_title} #{gender_title}",
               headers: client_headers,

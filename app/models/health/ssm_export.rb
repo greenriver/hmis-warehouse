@@ -57,7 +57,7 @@ module Health
     end
 
     def touch_point_scope
-      GrdaWarehouse::HMIS::Assessment.confidential
+      GrdaWarehouse::Hmis::Assessment.confidential
     end
 
     def headers_for_report

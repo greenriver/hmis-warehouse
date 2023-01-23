@@ -4,7 +4,7 @@ def find_log_stream_name
   log_group = ENV.fetch('TARGET_GROUP_NAME', nil)
 
   if log_group.nil?
-    Rails.logger.info 'TARGET_GROUP_NAME not set, bailing out'
+    Rails.logger.info 'TARGET_GROUP_NAME not set, bailing out' unless Rails.env.development?
     return nil
   end
 

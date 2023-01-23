@@ -16,6 +16,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       GrdaWarehouse::Config.delete_all
       GrdaWarehouse::Config.invalidate_cache
       AccessGroup.maintain_system_groups
+      non_window_visible_data_source.update(obey_consent: false)
     end
     let!(:config) { create :config_b }
     let!(:user) { create :user }
@@ -38,7 +39,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       it 'user can see all clients' do
         get clients_path(q: 'bob')
         doc = Nokogiri::HTML(response.body)
-        expect(doc.text).to include('Displaying 2 clients')
+        expect(doc.text).to include('Displaying 3 clients')
         expect(response).to have_http_status(200)
       end
     end
@@ -51,7 +52,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       it 'user can see only window clients' do
         get clients_path(q: 'bob')
         doc = Nokogiri::HTML(response.body)
-        expect(doc.text).to include('Displaying 1 client')
+        expect(doc.text).to include('Displaying 2 client')
         expect(response).to have_http_status(200)
       end
       it 'user can see client dashboard for window client' do
@@ -71,7 +72,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       it 'user can see only window clients' do
         get clients_path(q: 'bob')
         doc = Nokogiri::HTML(response.body)
-        expect(doc.text).to include('Displaying 1 client')
+        expect(doc.text).to include('Displaying 2 client')
         expect(response).to have_http_status(200)
       end
       it 'user cannot see client dashboard' do
@@ -92,8 +93,28 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       it 'user can see window clients in search results' do
         get clients_path(q: 'bob')
         doc = Nokogiri::HTML(response.body)
-        expect(doc.text).to include('Displaying 1 client')
+        expect(doc.text).to include('Displaying 2 client')
         expect(response).to have_http_status(200)
+      end
+      it 'can see window source client, but not non-window source client' do
+        get client_path(both_destination_client)
+        doc = Nokogiri::HTML(response.body)
+        expect(doc.text).to include('Bob')
+        expect(doc.text).to_not include('Michele')
+      end
+      it 'user can not see non-window client even with release' do
+        past_date = 5.days.ago
+        future_date = Date.current + 1.years
+        both_destination_client.update(
+          housing_release_status: both_destination_client.class.full_release_string,
+          consent_form_signed_on: past_date,
+          consent_expires_on: future_date,
+        )
+        get client_path(both_destination_client)
+        doc = Nokogiri::HTML(response.body)
+        expect(response).to have_http_status(200)
+        expect(doc.text).to include('Bob')
+        expect(doc.text).to_not include('Michele')
       end
       describe 'and the user is assigned a data source' do
         before do
@@ -102,8 +123,14 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         it 'user can see one client in expected data source and any window clients' do
           get clients_path(q: 'bob')
           doc = Nokogiri::HTML(response.body)
-          expect(doc.text).to include('Displaying 2 clients')
+          expect(doc.text).to include('Displaying 3 clients')
           expect(response).to have_http_status(200)
+        end
+        it 'can see window source client, but not non-window source client' do
+          get client_path(both_destination_client)
+          doc = Nokogiri::HTML(response.body)
+          expect(doc.text).to include('Bob')
+          expect(doc.text).to include('Michele')
         end
       end
     end
@@ -133,7 +160,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       it 'user can see all clients' do
         get clients_path(q: 'bob')
         doc = Nokogiri::HTML(response.body)
-        expect(doc.text).to include('Displaying 2 clients')
+        expect(doc.text).to include('Displaying 3 clients')
         expect(response).to have_http_status(200)
       end
     end
@@ -146,7 +173,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       it 'user can search only window clients' do
         get clients_path(q: 'bob')
         doc = Nokogiri::HTML(response.body)
-        expect(doc.text).to include('Displaying 1 client')
+        expect(doc.text).to include('Displaying 2 client')
         expect(response).to have_http_status(200)
       end
       it 'user cannot see client dashboard for window client' do
@@ -164,6 +191,20 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         get client_path(window_destination_client)
         expect(response).to have_http_status(200)
       end
+      it 'user can see non-window client with release' do
+        past_date = 5.days.ago
+        future_date = Date.current + 1.years
+        both_destination_client.update(
+          housing_release_status: both_destination_client.class.full_release_string,
+          consent_form_signed_on: past_date,
+          consent_expires_on: future_date,
+        )
+        get client_path(both_destination_client)
+        doc = Nokogiri::HTML(response.body)
+        expect(response).to have_http_status(200)
+        expect(doc.text).to include('Bob')
+        expect(doc.text).to include('Michele')
+      end
       it 'user cannot see client dashboard for non-window client' do
         get client_path(non_window_destination_client)
         expect(response).to redirect_to(user.my_root_path)
@@ -177,7 +218,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       it 'user can see only window clients' do
         get clients_path(q: 'bob')
         doc = Nokogiri::HTML(response.body)
-        expect(doc.text).to include('Displaying 1 client')
+        expect(doc.text).to include('Displaying 2 client')
         expect(response).to have_http_status(200)
       end
       it 'user cannot see client dashboard' do
@@ -194,7 +235,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       it 'user can see window clients in search results' do
         get clients_path(q: 'bob')
         doc = Nokogiri::HTML(response.body)
-        expect(doc.text).to include('Displaying 1 client')
+        expect(doc.text).to include('Displaying 2 client')
         expect(response).to have_http_status(200)
       end
       describe 'and the user is assigned a data source' do
@@ -204,7 +245,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         it 'user can see one client in expected data source and any window clients' do
           get clients_path(q: 'bob')
           doc = Nokogiri::HTML(response.body)
-          expect(doc.text).to include('Displaying 2 clients')
+          expect(doc.text).to include('Displaying 3 clients')
           expect(response).to have_http_status(200)
         end
         describe 'user can see client data for assigned client' do
@@ -247,7 +288,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       it 'user can see all clients' do
         get clients_path(q: 'bob')
         doc = Nokogiri::HTML(response.body)
-        expect(doc.text).to include('Displaying 2 clients')
+        expect(doc.text).to include('Displaying 3 clients')
         expect(response).to have_http_status(200)
       end
     end
@@ -260,7 +301,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       it 'user can see only window clients' do
         get clients_path(q: 'bob')
         doc = Nokogiri::HTML(response.body)
-        expect(doc.text).to include('Displaying 1 client')
+        expect(doc.text).to include('Displaying 2 client')
         expect(response).to have_http_status(200)
       end
       it 'user can see client dashboard for window client' do
@@ -280,7 +321,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       it 'user can see only window clients' do
         get clients_path(q: 'bob')
         doc = Nokogiri::HTML(response.body)
-        expect(doc.text).to include('Displaying 1 client')
+        expect(doc.text).to include('Displaying 2 client')
         expect(response).to have_http_status(200)
       end
       it 'user cannot see client dashboard' do
@@ -297,7 +338,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       it 'user can see window clients in search results' do
         get clients_path(q: 'bob')
         doc = Nokogiri::HTML(response.body)
-        expect(doc.text).to include('Displaying 1 client')
+        expect(doc.text).to include('Displaying 2 client')
         expect(response).to have_http_status(200)
       end
       describe 'and the user is assigned a data source' do
@@ -307,7 +348,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         it 'user can see one client in expected data source and any window clients' do
           get clients_path(q: 'bob')
           doc = Nokogiri::HTML(response.body)
-          expect(doc.text).to include('Displaying 2 clients')
+          expect(doc.text).to include('Displaying 3 clients')
           expect(response).to have_http_status(200)
         end
       end
@@ -340,7 +381,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       it 'user can see all clients' do
         get clients_path(q: 'bob')
         doc = Nokogiri::HTML(response.body)
-        expect(doc.text).to include('Displaying 2 clients')
+        expect(doc.text).to include('Displaying 3 clients')
         expect(response).to have_http_status(200)
       end
     end
@@ -353,7 +394,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       it 'user can see only window clients' do
         get clients_path(q: 'bob')
         doc = Nokogiri::HTML(response.body)
-        expect(doc.text).to include('Displaying 1 client')
+        expect(doc.text).to include('Displaying 2 client')
         expect(response).to have_http_status(200)
       end
       it 'user can see client dashboard for window client' do
@@ -373,7 +414,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       it 'user can see only window clients' do
         get clients_path(q: 'bob')
         doc = Nokogiri::HTML(response.body)
-        expect(doc.text).to include('Displaying 1 client')
+        expect(doc.text).to include('Displaying 2 client')
         expect(response).to have_http_status(200)
       end
       it 'user cannot see client dashboard' do
@@ -390,7 +431,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       it 'user can see window clients in search results' do
         get clients_path(q: 'bob')
         doc = Nokogiri::HTML(response.body)
-        expect(doc.text).to include('Displaying 1 client')
+        expect(doc.text).to include('Displaying 2 client')
         expect(response).to have_http_status(200)
       end
       describe 'and the user is assigned a data source' do
@@ -400,7 +441,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         it 'user can see one client in expected data source and any window clients' do
           get clients_path(q: 'bob')
           doc = Nokogiri::HTML(response.body)
-          expect(doc.text).to include('Displaying 2 clients')
+          expect(doc.text).to include('Displaying 3 clients')
           expect(response).to have_http_status(200)
         end
       end
@@ -435,7 +476,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       it 'user can see all clients' do
         get clients_path(q: 'bob')
         doc = Nokogiri::HTML(response.body)
-        expect(doc.text).to include('Displaying 2 clients')
+        expect(doc.text).to include('Displaying 3 clients')
         expect(response).to have_http_status(200)
       end
     end
@@ -448,7 +489,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       it 'user can see only window clients' do
         get clients_path(q: 'bob')
         doc = Nokogiri::HTML(response.body)
-        expect(doc.text).to include('Displaying 2 clients')
+        expect(doc.text).to include('Displaying 3 clients')
         expect(response).to have_http_status(200)
       end
       it 'user cannot see client dashboard for window client' do
@@ -479,7 +520,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       it 'user can see only window clients' do
         get clients_path(q: 'bob')
         doc = Nokogiri::HTML(response.body)
-        expect(doc.text).to include('Displaying 2 clients')
+        expect(doc.text).to include('Displaying 3 clients')
         expect(response).to have_http_status(200)
       end
       it 'user cannot see client dashboard' do
@@ -496,7 +537,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       it 'user can see window clients in search results' do
         get clients_path(q: 'bob')
         doc = Nokogiri::HTML(response.body)
-        expect(doc.text).to include('Displaying 2 clients')
+        expect(doc.text).to include('Displaying 3 clients')
         expect(response).to have_http_status(200)
       end
       describe 'and the user is assigned a data source' do
@@ -506,7 +547,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         it 'user can see one client in expected data source and any window clients' do
           get clients_path(q: 'bob')
           doc = Nokogiri::HTML(response.body)
-          expect(doc.text).to include('Displaying 2 clients')
+          expect(doc.text).to include('Displaying 3 clients')
           expect(response).to have_http_status(200)
         end
         describe 'user can see client data for assigned client' do
@@ -532,7 +573,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       it 'user can search for all clients' do
         get clients_path(q: 'bob')
         doc = Nokogiri::HTML(response.body)
-        expect(doc.text).to include('Displaying 2 clients')
+        expect(doc.text).to include('Displaying 3 clients')
         expect(response).to have_http_status(200)
       end
       describe 'and the user is assigned a CoC' do
@@ -701,7 +742,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       it 'user can see only window clients' do
         get clients_path(q: 'bob')
         doc = Nokogiri::HTML(response.body)
-        expect(doc.text).to include('Displaying 1 client')
+        expect(doc.text).to include('Displaying 2 client')
         expect(response).to have_http_status(200)
       end
       it 'user cannot see client dashboard' do
@@ -718,7 +759,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       it 'user can see window clients in search results' do
         get clients_path(q: 'bob')
         doc = Nokogiri::HTML(response.body)
-        expect(doc.text).to include('Displaying 1 client')
+        expect(doc.text).to include('Displaying 2 client')
         expect(response).to have_http_status(200)
       end
       describe 'and the user is assigned a data source' do
@@ -728,7 +769,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         it 'user can see one client in expected data source and any window clients' do
           get clients_path(q: 'bob')
           doc = Nokogiri::HTML(response.body)
-          expect(doc.text).to include('Displaying 2 clients')
+          expect(doc.text).to include('Displaying 3 clients')
           expect(response).to have_http_status(200)
         end
         describe 'user can see client data for assigned client' do

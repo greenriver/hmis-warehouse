@@ -94,9 +94,9 @@ module HudPathReport::Generators::Fy2021
       {
         'Female' => a_t[:gender_multi].eq('[0]'),
         'Male' => a_t[:gender_multi].eq('[1]'),
-        'No Single Gender' => a_t[:gender_multi].in(::HUD.no_single_gender_queries.map { |q| "[#{q}]" }),
-        'Questioning' => a_t[:gender_multi].in(::HUD.questioning_gender_queries.map { |q| "[#{q}]" }),
-        'Transgender' => a_t[:gender_multi].in(::HUD.transgender_gender_queries.map { |q| "[#{q}]" }),
+        'No Single Gender' => a_t[:gender_multi].in(::HudUtility.no_single_gender_queries.map { |q| "[#{q}]" }),
+        'Questioning' => a_t[:gender_multi].in(::HudUtility.questioning_gender_queries.map { |q| "[#{q}]" }),
+        'Transgender' => a_t[:gender_multi].in(::HudUtility.transgender_gender_queries.map { |q| "[#{q}]" }),
         'Client doesn\'t know' => a_t[:gender_multi].eq('[8]'),
         'Client refused' => a_t[:gender_multi].eq('[9]'),
         'Data not collected' => a_t[:gender_multi].eq('[99]'),
@@ -136,7 +136,7 @@ module HudPathReport::Generators::Fy2021
       [8, 9, 99].each do |v|
         query = a_t[:race_none].eq(v)
         query = query.or(no_race) if v == 99
-        h[HUD.race_none(v)] = query
+        h[HudUtility.race_none(v)] = query
       end
       h['Total'] = nil
       h.freeze
@@ -214,7 +214,7 @@ module HudPathReport::Generators::Fy2021
           query = a_t[:prior_living_situation].eq(value)
           query = query.or(a_t[:prior_living_situation].eq(nil)) if value == 99
           [
-            HUD.available_situations[value],
+            HudUtility.available_situations[value],
             query,
           ]
         end
@@ -228,7 +228,7 @@ module HudPathReport::Generators::Fy2021
         query = a_t[:length_of_stay].eq(v)
         query = query.or(a_t[:length_of_stay].eq(nil)) if v == 99
         [
-          HUD.length_of_stays[v],
+          HudUtility.length_of_stays[v],
           a_t[:prior_living_situation].in([1, 16]).and(query),
         ]
       end.to_h

@@ -17,7 +17,7 @@
         = f.input :last_name
         = f.input :dob, as: :date_picker
         = f.input :estimated_age
-        = f.input :gender, as: :radio_buttons, collection: {'Unknown' => ''}.merge(HUD.genders.invert), wrapper: radio_wrapper_class
+        = f.input :gender, as: :radio_buttons, collection: {'Unknown' => ''}.merge(HudUtility.genders.invert), wrapper: radio_wrapper_class
         = f.input :address, label: @staff.label_for(:address)
         = f.input :phone_number
         = f.input :site_name

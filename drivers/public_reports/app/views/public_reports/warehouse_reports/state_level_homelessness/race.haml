@@ -6,6 +6,6 @@
 
   .mb-4
     - chart_class = "race-chart"
-    = render 'race_chart', data: data['race_chart'], chart_class: chart_class, category: :race, groups: ::HUD.races(multi_racial: true).values + ['Other or Unknown']
+    = render 'race_chart', data: data['race_chart'], chart_class: chart_class, category: :race, groups: ::HudUtility.races(multi_racial: true).values + ['Other or Unknown']
 
   = render 'glossary_content'

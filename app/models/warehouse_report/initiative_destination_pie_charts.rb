@@ -10,10 +10,10 @@ class WarehouseReport::InitiativeDestinationPieCharts
     @data = data
     @projects = @data.involved_projects.sort_by(&:last)
     @project_types = @data.involved_project_types
-    @permanent_destinations = HUD.permanent_destinations
-    @temporary_destinations = HUD.temporary_destinations
-    @institutional_destinations = HUD.institutional_destinations
-    @other_destinations = HUD.other_destinations
+    @permanent_destinations = HudUtility.permanent_destinations
+    @temporary_destinations = HudUtility.temporary_destinations
+    @institutional_destinations = HudUtility.institutional_destinations
+    @other_destinations = HudUtility.other_destinations
     @ranges = {
       report: report_range,
       comparison: comparison_range,

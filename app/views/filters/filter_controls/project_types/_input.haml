@@ -7,7 +7,7 @@
   homeless = @filter.chosen_project_types_only_homeless?
   ctl_name = 'display_project_type_ctl'
   homeless_types = GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
-    .map { |s| HUD.project_type_brief(s) }
+    .map { |s| HudUtility.project_type_brief(s) }
 
 .form-group.form-group-valid
   .mb-1.h5-prs1= control.label

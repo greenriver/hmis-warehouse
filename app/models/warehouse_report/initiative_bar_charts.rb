@@ -97,9 +97,9 @@ class WarehouseReport::InitiativeBarCharts
   def stack_keys(data_type, by)
     keys = {
       gender_breakdowns: @data.involved_genders,
-      veteran_breakdowns: ::HUD.no_yes_reasons_for_missing_data_options.map { |_id, reason| reason },
-      ethnicity_breakdowns: ::HUD.ethnicities.map { |_id, value| value },
-      race_breakdowns: ::HUD.races.map { |_id, value| value.downcase.gsub(' ', '_') },
+      veteran_breakdowns: ::HudUtility.no_yes_reasons_for_missing_data_options.map { |_id, reason| reason },
+      ethnicity_breakdowns: ::HudUtility.ethnicities.map { |_id, value| value },
+      race_breakdowns: ::HudUtility.races.map { |_id, value| value.downcase.gsub(' ', '_') },
       age_breakdowns: age_breakdowns_stack_keys(by),
       length_of_stay_breakdowns: GrdaWarehouse::Hud::Enrollment.lengths_of_stay.map { |l_key, _| l_key.to_s },
       living_situation_breakdowns: living_situation_stack_keys(by),
@@ -164,7 +164,7 @@ class WarehouseReport::InitiativeBarCharts
         map { |_i_key, i_bucket| i_bucket[:name] }.
         first
     elsif data_type == :destination_breakdowns
-      ::HUD.valid_destinations.select { |id, _value| key == id.to_s }.
+      ::HudUtility.valid_destinations.select { |id, _value| key == id.to_s }.
         map { |_id, value| value }.first
     else
       key

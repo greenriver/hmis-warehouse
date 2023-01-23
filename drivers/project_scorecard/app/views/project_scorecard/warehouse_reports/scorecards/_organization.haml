@@ -36,7 +36,7 @@
           %td<
             = link_to project.name(current_user), history_project_scorecard_warehouse_reports_scorecards_path(:filters => { project_ids: [project.id], start: 1.year.ago})
           %td<
-            = HUD.project_type_brief(project[GrdaWarehouse::Hud::Project.project_type_column])
+            = HudUtility.project_type_brief(project[GrdaWarehouse::Hud::Project.project_type_column])
           %td<
             - if last_status = last_report&.status
               = link_to last_status, edit_project_scorecard_warehouse_reports_scorecard_path(last_report)
