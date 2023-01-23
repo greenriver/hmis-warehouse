@@ -88,6 +88,85 @@ RSpec.shared_context 'visibility test context', shared_context: :metadata do
     )
   end
 
+  # Client with both non-window and window source data
+  let!(:non_window_source_client_2) do
+    create(
+      :grda_warehouse_hud_client,
+      data_source_id: non_window_visible_data_source.id,
+      DOB: 51.years.ago,
+      SSN: nil,
+      FirstName: 'Michele',
+    )
+  end
+  let!(:non_window_enrollment_2) do
+    create(
+      :grda_warehouse_hud_enrollment,
+      data_source_id: non_window_visible_data_source.id,
+      PersonalID: non_window_source_client_2.PersonalID,
+      ProjectID: non_window_project.ProjectID,
+      EntryDate: 1.months.ago.to_date,
+    )
+  end
+  let!(:non_window_service_history_enrollment_2) do
+    create(
+      :grda_warehouse_service_history,
+      :service_history_entry,
+      project_id: non_window_project.ProjectID,
+      client_id: non_window_source_client_2.id,
+      enrollment_group_id: non_window_enrollment_2.EnrollmentID,
+      first_date_in_program: non_window_enrollment_2.EntryDate,
+      data_source_id: non_window_visible_data_source.id,
+    )
+  end
+  let(:both_destination_client) { create :grda_warehouse_hud_client, data_source_id: warehouse_data_source.id }
+  let!(:non_window_warehouse_client_2) do
+    create(
+      :warehouse_client,
+      data_source_id: non_window_visible_data_source.id,
+      id_in_source: non_window_source_client_2.PersonalID,
+      source_id: non_window_source_client_2.id,
+      destination_id: both_destination_client.id,
+    )
+  end
+
+  let!(:window_source_client_2) do
+    create(
+      :grda_warehouse_hud_client,
+      data_source_id: window_visible_data_source.id,
+      DOB: 50.years.ago,
+      SSN: nil,
+    )
+  end
+  let!(:window_enrollment_2) do
+    create(
+      :grda_warehouse_hud_enrollment,
+      data_source_id: window_visible_data_source.id,
+      PersonalID: window_source_client_2.PersonalID,
+      ProjectID: window_project.ProjectID,
+      EntryDate: 1.months.ago.to_date,
+    )
+  end
+  let!(:window_service_history_enrollment_2) do
+    create(
+      :grda_warehouse_service_history,
+      :service_history_entry,
+      project_id: window_project.ProjectID,
+      client_id: window_source_client_2.id,
+      enrollment_group_id: window_enrollment_2.EnrollmentID,
+      first_date_in_program: window_enrollment_2.EntryDate,
+      data_source_id: window_visible_data_source.id,
+    )
+  end
+  let!(:window_warehouse_client_2) do
+    create(
+      :warehouse_client,
+      data_source_id: window_visible_data_source.id,
+      id_in_source: window_source_client_2.PersonalID,
+      source_id: window_source_client_2.id,
+      destination_id: both_destination_client.id,
+    )
+  end
+
   # roles
   let!(:can_view_clients) { create :role, can_view_clients: true }
   let!(:can_search_window) { create :role, can_search_window: true }
