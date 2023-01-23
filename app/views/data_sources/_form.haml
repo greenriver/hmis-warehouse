@@ -17,7 +17,7 @@
 
   = f.input :authoritative, label: 'This is an authoritative data source', hint: 'If authoritative, uploads will not be allowed, data will need to be entered manually', input_html: { class: 'jAuthoritativeTrigger' }
 
-  = f.input :obey_consent, label: 'Should this data source be exposed if a client has a consent (ROI) on file?', hint: 'If unchecked, only users with this data source assigned directly too them will be able to see the source client details.'
+  = f.input :obey_consent, label: 'Should this data source be exposed if a client has a consent (ROI) on file?', hint: 'If unchecked, only users with this data source assigned directly to them will be able to see the source client details.'
 
   .jAuthoritativeType
     = f.input :authoritative_type, collection: GrdaWarehouse::DataSource.authoritative_types, as: :select_two

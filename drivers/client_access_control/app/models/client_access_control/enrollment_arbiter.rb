@@ -26,7 +26,6 @@ module ClientAccessControl
 
       data_source_ids = authoritative_viewable_ds_ids(user)
       data_source_ids += window_data_source_ids unless ::GrdaWarehouse::Config.get(:window_access_requires_release)
-      # binding.pry
       visible_client_scope(user, data_source_ids, client_ids: client_ids)
     end
 
@@ -40,7 +39,6 @@ module ClientAccessControl
 
     private def visible_client_scope(user, data_source_ids, client_ids: nil)
       client_scope = unscoped_clients.source
-      # client_scope = client_scope.where(data_source_id: potentially_viewable_data_source_ids(user))
       client_scope = client_scope.where(id: client_ids) if client_ids.present?
       coc_codes = user.coc_codes
 
