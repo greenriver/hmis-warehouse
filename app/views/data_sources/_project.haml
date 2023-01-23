@@ -4,13 +4,13 @@
       = link_to_if can_view_projects?, project.name(current_user, ignore_confidential_status: can_edit_projects?), project_path(project)
     %td
       .enrollment__project_type{class: "client__service_type_#{project.ProjectType}"}
-        .service-type__program-type{data: {toggle: :tooltip, title: HUD.project_type(project.ProjectType)}}
-          = HUD.project_type_brief project.ProjectType
+        .service-type__program-type{data: {toggle: :tooltip, title: HudUtility.project_type(project.ProjectType)}}
+          = HudUtility.project_type_brief project.ProjectType
       - if project.act_as_project_type.present? && project.act_as_project_type != project.ProjectType
         .o-text--italic.mb-2
           Acts as
-          = HUD.project_type project.act_as_project_type
-    %td= HUD.tracking_method project.TrackingMethod
+          = HudUtility.project_type project.act_as_project_type
+    %td= HudUtility.tracking_method project.TrackingMethod
     %td.text-center
       %span{data: {toggle: :tooltip, title: project.confidential_hint}}
         = checkmark project.confidential

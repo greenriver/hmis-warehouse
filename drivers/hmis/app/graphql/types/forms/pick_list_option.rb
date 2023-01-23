@@ -22,9 +22,9 @@ module Types
       when 'COC'
         selected_project = Hmis::Hud::Project.viewable_by(user).find_by(id: relation_id) if relation_id.present?
         available_codes = if selected_project.present?
-          selected_project.project_cocs.pluck(:CoCCode).uniq.map { |code| [code, ::HUD.cocs[code] || code] }
+          selected_project.project_cocs.pluck(:CoCCode).uniq.map { |code| [code, ::HudUtility.cocs[code] || code] }
         else
-          ::HUD.cocs_in_state(relevant_state)
+          ::HudUtility.cocs_in_state(relevant_state)
         end
 
         available_codes.sort.map do |code, name|
@@ -65,7 +65,7 @@ module Types
           {
             code: project.id,
             label: project.project_name,
-            secondary_label: HUD.project_type_brief(project.project_type),
+            secondary_label: HudUtility.project_type_brief(project.project_type),
             group_label: project.organization.organization_name,
             group_code: project.organization.id,
           }
@@ -106,17 +106,17 @@ module Types
         proc do |id|
           {
             code: enum_value_definitions.find { |v| v.value == id }.graphql_name,
-            label: ::HUD.living_situation(id),
+            label: ::HudUtility.living_situation(id),
             group_code: group_code,
             group_label: group_label,
           }
         end
       }
 
-      homeless = ::HUD.homeless_situations(as: as).map(&to_option.call('HOMELESS', 'Homeless'))
-      institutional = ::HUD.institutional_situations(as: as).map(&to_option.call('INSTITUTIONAL', 'Institutional'))
-      temporary = ::HUD.temporary_and_permanent_housing_situations(as: as).map(&to_option.call('TEMPORARY_PERMANENT_OTHER', 'Temporary or Permanent'))
-      missing_reasons = ::HUD.other_situations(as: as).map(&to_option.call('MISSING', 'Other'))
+      homeless = ::HudUtility.homeless_situations(as: as).map(&to_option.call('HOMELESS', 'Homeless'))
+      institutional = ::HudUtility.institutional_situations(as: as).map(&to_option.call('INSTITUTIONAL', 'Institutional'))
+      temporary = ::HudUtility.temporary_and_permanent_housing_situations(as: as).map(&to_option.call('TEMPORARY_PERMANENT_OTHER', 'Temporary or Permanent'))
+      missing_reasons = ::HudUtility.other_situations(as: as).map(&to_option.call('MISSING', 'Other'))
 
       homeless + institutional + temporary + missing_reasons
     end

@@ -270,7 +270,7 @@ module GrdaWarehouse::Tasks
     end
 
     private def valid_social? ssn
-      ::HUD.valid_social? ssn
+      ::HudUtility.valid_social? ssn
     end
 
     private def check_social ssn

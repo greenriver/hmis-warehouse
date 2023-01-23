@@ -90,15 +90,20 @@ module GrdaWarehouse::Tasks
               project_client.enrolled_in_ph = client.enrolled_in_ph(enrollments)
               project_client.date_days_homeless_verified = Date.current
 
-              # Order the files by effective date to get the newest date for each tag
-              project_client.file_tags = client.client_files.order(effective_date: :asc).
+              # Order the files by effective date to get the newest date for each tag, blank at the end
+              project_client.file_tags = client.client_files.sort_by { |file| file.effective_date || 10.years.ago.to_date }.
                 map { |f| f.tag_list.map { |tag| [tag, f.effective_date] } }.
                 flatten(1).to_h
 
               project_client.needs_update = true
               to_update << project_client
             end
-            CasAccess::ProjectClient.import(to_update, on_duplicate_key_update: update_columns)
+            to_insert = to_update.select { |c| c.id.blank? }
+            to_upsert = to_update.select { |c| c.id.present? }
+
+            CasAccess::ProjectClient.import!(to_upsert, on_duplicate_key_update: update_columns) if to_upsert.present?
+            CasAccess::ProjectClient.import!(update_columns, to_insert) if to_insert.present?
+
             updated_clients += to_update
           end
         end
@@ -308,9 +313,9 @@ module GrdaWarehouse::Tasks
       if value.in?([true, false])
         ApplicationController.helpers.yes_no(value)
       elsif key == :ethnicity
-        HUD.ethnicity(value)
+        HudUtility.ethnicity(value)
       elsif key.in?([:veteran_status])
-        HUD.no_yes_reasons_for_missing_data(value)
+        HudUtility.no_yes_reasons_for_missing_data(value)
       elsif key == :neighborhood_interests
         value.map do |id|
           CasAccess::Neighborhood.find_by(id: id)&.name
@@ -362,16 +367,16 @@ module GrdaWarehouse::Tasks
           rrh_successful_exit: 'RRH successful exit:',
           hmis_days_homeless_last_three_years: _('Days homeless in the last three years, from HMIS'),
           hmis_days_homeless_all_time: _('Total days homeless, from HMIS'),
-          am_ind_ak_native: "Race: #{::HUD.race('AmIndAKNative')}",
-          asian: "Race: #{::HUD.race('Asian')}",
-          black_af_american: "Race: #{::HUD.race('BlackAfAmerican')}",
-          native_hi_pacific: "Race: #{::HUD.race('NativeHIPacific')}",
-          white: "Race: #{::HUD.race('White')}",
-          female: "Gender: #{::HUD.gender(0)}",
-          male: "Gender: #{::HUD.gender(1)}",
-          no_single_gender: "Gender: #{::HUD.gender(4)}",
-          transgender: "Gender: #{::HUD.gender(5)}",
-          questioning: "Gender: #{::HUD.gender(6)}",
+          am_ind_ak_native: "Race: #{::HudUtility.race('AmIndAKNative')}",
+          asian: "Race: #{::HudUtility.race('Asian')}",
+          black_af_american: "Race: #{::HudUtility.race('BlackAfAmerican')}",
+          native_hi_pacific: "Race: #{::HudUtility.race('NativeHIPacific')}",
+          white: "Race: #{::HudUtility.race('White')}",
+          female: "Gender: #{::HudUtility.gender(0)}",
+          male: "Gender: #{::HudUtility.gender(1)}",
+          no_single_gender: "Gender: #{::HudUtility.gender(4)}",
+          transgender: "Gender: #{::HudUtility.gender(5)}",
+          questioning: "Gender: #{::HudUtility.gender(6)}",
         },
       )
       @title_override[column]

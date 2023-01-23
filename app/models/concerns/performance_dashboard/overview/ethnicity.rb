@@ -8,14 +8,14 @@ module PerformanceDashboard::Overview::Ethnicity
   extend ActiveSupport::Concern
 
   private def ethnicity_buckets
-    HUD.ethnicities.keys
+    HudUtility.ethnicities.keys
   end
 
   def ethnicity_bucket_titles
     ethnicity_buckets.map do |key|
       [
         key,
-        HUD.ethnicity(key),
+        HudUtility.ethnicity(key),
       ]
     end.to_h
   end

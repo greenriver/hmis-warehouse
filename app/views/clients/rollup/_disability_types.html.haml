@@ -46,7 +46,7 @@
               %td
                 .ds{class: "ds-color-#{enrollment.data_source_id}"}= ds_short_name_for(enrollment.client.id)
               %td.date-cell= enrollment.EntryDate
-              %td= HUD.data_collection_stage(disabilities.first.DataCollectionStage)
+              %td= HudUtility.data_collection_stage(disabilities.first.DataCollectionStage)
               %td.date-cell= information_date
               - aggregated.each do |symptom, result|
                 %td

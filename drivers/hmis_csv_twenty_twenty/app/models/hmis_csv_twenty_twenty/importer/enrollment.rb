@@ -79,19 +79,19 @@ module HmisCsvTwentyTwenty::Importer
           },
           {
             class: HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HUD.relationships_to_hoh.keys.map(&:to_s).freeze },
+            arguments: { valid_options: HudUtility.relationships_to_hoh.keys.map(&:to_s).freeze },
           },
         ],
         LivingSituation: [
           {
             class: HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HUD.available_situations.keys.map(&:to_s).freeze },
+            arguments: { valid_options: HudUtility.available_situations.keys.map(&:to_s).freeze },
           },
         ],
         LengthOfStay: [
           {
             class: HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HUD.length_of_stays.keys.map(&:to_s).freeze },
+            arguments: { valid_options: HudUtility.length_of_stays.keys.map(&:to_s).freeze },
           },
         ],
         DisablingCondition: [
@@ -100,7 +100,7 @@ module HmisCsvTwentyTwenty::Importer
           },
           {
             class: HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HUD.no_yes_reasons_for_missing_data_options.keys.map(&:to_s).freeze },
+            arguments: { valid_options: HudUtility.no_yes_reasons_for_missing_data_options.keys.map(&:to_s).freeze },
           },
         ],
       }

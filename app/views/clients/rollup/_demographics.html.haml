@@ -37,8 +37,8 @@
             = "#{@client.DOB} (#{@client.age})"
         %td= @client.gender
         %td= @client.race_description(include_missing_reason: true)
-        %td= HUD::ethnicity @client.Ethnicity
-        %td= HUD::no_yes_reasons_for_missing_data @client.VeteranStatus
+        %td= HudUtility.ethnicity @client.Ethnicity
+        %td= HudUtility.no_yes_reasons_for_missing_data @client.VeteranStatus
         %td{colspan: 3}
 
       - source_clients.joins(:data_source).each do |client|

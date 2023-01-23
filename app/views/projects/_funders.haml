@@ -23,7 +23,7 @@
                 = link_to 'HMIS', source_datum_path(funder.id, type: 'Funder'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis'
             %td= funder.FunderID
             %td
-              = HUD.funding_source funder.Funder.to_i
+              = HudUtility.funding_source funder.Funder.to_i
             %td
               = funder.GrantID
             - if funder.manual_entry? && RailsDrivers.loaded.include?(:manual_hmis_data)

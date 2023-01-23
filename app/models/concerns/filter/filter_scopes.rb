@@ -37,7 +37,7 @@ module Filter::FilterScopes
         merge(
           GrdaWarehouse::Hud::EnrollmentCoc.where(CoCCode: @filter.coc_codes).
           or(GrdaWarehouse::Hud::EnrollmentCoc.where(CoCCode: nil)).
-          or(GrdaWarehouse::Hud::EnrollmentCoc.where.not(CoCCode: HUD.cocs.keys)),
+          or(GrdaWarehouse::Hud::EnrollmentCoc.where.not(CoCCode: HudUtility.cocs.keys)),
         )
     end
 
@@ -106,10 +106,10 @@ module Filter::FilterScopes
       scope = scope.joins(:client)
       gender_scope = nil
       @filter.genders.each do |value|
-        column = HUD.gender_id_to_field_name[value]
+        column = HudUtility.gender_id_to_field_name[value]
         next unless column
 
-        gender_query = report_scope_source.joins(:client).where(c_t[column.to_sym].eq(HUD.gender_comparison_value(value)))
+        gender_query = report_scope_source.joins(:client).where(c_t[column.to_sym].eq(HudUtility.gender_comparison_value(value)))
         gender_scope = add_alternative(gender_scope, gender_query)
       end
       scope.merge(gender_scope)
@@ -360,7 +360,7 @@ module Filter::FilterScopes
         partition_by(:client_id, order_by: { last_date_in_program: :desc }).
         select_window(:row_number, over: :client_window, as: :row_id)
       client_ids_with_recent_permanent_exits = GrdaWarehouse::ServiceHistoryEnrollment.from(exits).
-        where("row_id = 1 and destination in (#{HUD.permanent_destinations.join(', ')})")
+        where("row_id = 1 and destination in (#{HudUtility.permanent_destinations.join(', ')})")
 
       scope.homeless.where(client_id: client_ids_with_recent_permanent_exits.select(:client_id))
     end
@@ -374,7 +374,7 @@ module Filter::FilterScopes
       p_types = @project_types.presence || @filter.project_type_ids
       scope.joins(:enrollment).where(
         she_t[:computed_project_type].in(GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING[:ca]).
-        and(e_t[:LivingSituation].in(HUD.homeless_situations(as: :prior))).
+        and(e_t[:LivingSituation].in(HudUtility.homeless_situations(as: :prior))).
         or(she_t[:computed_project_type].in(p_types)),
       )
     end

@@ -185,7 +185,7 @@ module ClientAccessControl::GrdaWarehouse::Hud
               adjusted_days: adjusted_dates_for_similar_programs.count,
               months_served: adjusted_months_served(dates: adjusted_dates_for_similar_programs),
               household: household(entry.household_id, entry.enrollment.data_source_id),
-              project_type: ::HUD.project_type_brief(entry.computed_project_type),
+              project_type: ::HudUtility.project_type_brief(entry.computed_project_type),
               project_type_id: entry.computed_project_type,
               class: "client__service_type_#{entry.computed_project_type}",
               most_recent_service: most_recent_service,

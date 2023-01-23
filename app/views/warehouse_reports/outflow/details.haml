@@ -40,6 +40,6 @@
               %td= enrollment.last_date_in_program
               %td
                 = enrollment.move_in_date if enrollment.move_in_date && enrollment.move_in_date > @filter.start
-              %td= HUD.destination(enrollment.destination)
+              %td= HudUtility.destination(enrollment.destination)
 - else
   None found.

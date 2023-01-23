@@ -48,6 +48,9 @@
           %th.pl-2 Authoritative Type
           %td= GrdaWarehouse::DataSource.authoritative_types.invert[@data_source.authoritative_type&.to_sym] || 'blank'
       %tr
+        %th.pl-2 Exposed with ROI?
+        %td= yes_no(@data_source.obey_consent?)
+      %tr
         %th.pl-2 Service Scanning Enabled?
         %td= yes_no(@data_source.service_scannable)
     %tr

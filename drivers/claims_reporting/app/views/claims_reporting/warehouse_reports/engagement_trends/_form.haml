@@ -4,9 +4,9 @@
     .row
       .col-6
         = f.input :age_ranges, collection: @filter.available_age_ranges, required: false, as: :select_two, input_html: { multiple: true}, placeholder: 'all ages'
-        = f.input :races, collection: HUD.races(multi_racial: true).invert.except('None'), required: false,  as: :select_two, input_html: { multiple: true}, label: 'Race', placeholder: 'all races', hint: 'As reported in HMIS'
-        = f.input :ethnicities, collection: HUD.ethnicities.invert, required: false, as: :select_two, input_html: { multiple: true }, label: 'Ethnicity', placeholder: 'all ethnicities', hint: 'As reported in HMIS'
-        = f.input :genders, collection: HUD.genders.invert, required: false, as: :select_two, input_html: { multiple: true }, label: 'Gender', placeholder: 'all genders', hint: 'As reported in HMIS'
+        = f.input :races, collection: HudUtility.races(multi_racial: true).invert.except('None'), required: false,  as: :select_two, input_html: { multiple: true}, label: 'Race', placeholder: 'all races', hint: 'As reported in HMIS'
+        = f.input :ethnicities, collection: HudUtility.ethnicities.invert, required: false, as: :select_two, input_html: { multiple: true }, label: 'Ethnicity', placeholder: 'all ethnicities', hint: 'As reported in HMIS'
+        = f.input :genders, collection: HudUtility.genders.invert, required: false, as: :select_two, input_html: { multiple: true }, label: 'Gender', placeholder: 'all genders', hint: 'As reported in HMIS'
       .col-6
         = f.input :food_insecurity, as: :select_two, collection: @filter.available_food_insecurities, hint: 'Limit to patients with initial SSM food insecurity scores at or below the chosen value', placeholder: 'all levels of food insecurity'
         = f.input :acos, as: :select_two, collection: @filter.available_acos, input_html: { multiple: true }, label: 'ACO', placeholder: 'all ACOs', hint: 'Current assigned in the Care Hub'

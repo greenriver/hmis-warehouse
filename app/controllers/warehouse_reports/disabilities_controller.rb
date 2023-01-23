@@ -118,12 +118,12 @@ module WarehouseReports
       exclude = []
       exclude << 'HIV/AIDS' unless can_view_hiv_status?
       exclude << 'Mental health disorder' unless can_view_dmh_status?
-      ::HUD.disability_types.invert.except(*exclude)
+      ::HudUtility.disability_types.invert.except(*exclude)
     end
     helper_method :available_disabilities
 
     def available_project_types
-      ::HUD.project_types.invert
+      ::HudUtility.project_types.invert
     end
     helper_method :available_project_types
 

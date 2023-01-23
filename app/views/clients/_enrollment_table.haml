@@ -50,7 +50,7 @@
         %td.nobr
           .ds.jClickToCopy{class: "ds-color-#{e[:data_source_id]}", data: { toggle: :tooltip, html: 'true', title: ds_tooltip_content(e[:client_source_id], e[:data_source_id]).html_safe }}= ds_short_name_for(e[:client_source_id])
           .enrollment__project_type{class: e[:class]}
-            %span.service-type__program-type{data: {toggle: :tooltip, title: HUD.project_type(e[:project_type_id])}}
+            %span.service-type__program-type{data: {toggle: :tooltip, title: HudUtility.project_type(e[:project_type_id])}}
               = e[:project_type]
           - if e[:confidential_project] && can_view_confidential_project_names?
             .confidential_project{data: {toggle: :tooltip, title: GrdaWarehouse::Hud::Project.confidential_project_name}}
@@ -65,7 +65,7 @@
               = e[:project_name]
 
         %td
-          - living_situation = HUD.living_situation(e[:living_situation])
+          - living_situation = HudUtility.living_situation(e[:living_situation])
           - if living_situation == e[:living_situation]
             - living_situation = 'Unknown'
           - title = "<b>Prior Living Situation:</b> #{living_situation}"
@@ -87,7 +87,7 @@
               - title += '<br />(inherited from HoH)'
             %i.icon-house{data: { toggle: :tooltip, title: title.html_safe, html: 'true' }}
         %td
-          - destination = HUD.destination(e[:destination])
+          - destination = HudUtility.destination(e[:destination])
           - if destination == e[:destination]
             - destination = 'Unknown'
           %span{data: {toggle: :tooltip, title: "Destination: #{destination}"}}

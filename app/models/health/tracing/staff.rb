@@ -65,7 +65,7 @@ module Health::Tracing
         first_name: first_name,
         last_name: last_name,
         dob_or_age: [dob&.strftime('%m/%d/%Y'), estimated_age].reject(&:blank?)&.join(' / '),
-        gender: ::HUD.gender(gender),
+        gender: ::HudUtility.gender(gender),
         address: address,
         phone_number: phone_number,
         site: site_name,

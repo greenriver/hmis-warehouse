@@ -222,7 +222,7 @@ module ReportGenerators::DataQuality::Fy2017
             enrollment[:project_name],
             enrollment[:first_date_in_program],
             enrollment[:last_date_in_program],
-            HUD.times_homeless_past_three_years(enrollment[:TimesHomelessPastThreeYears]),
+            HudUtility.times_homeless_past_three_years(enrollment[:TimesHomelessPastThreeYears]),
           ]
         end
       )
@@ -239,7 +239,7 @@ module ReportGenerators::DataQuality::Fy2017
             enrollment[:project_name],
             enrollment[:first_date_in_program],
             enrollment[:last_date_in_program],
-            HUD.months_homeless_past_three_years(enrollment[:MonthsHomelessPastThreeYears]),
+            HudUtility.months_homeless_past_three_years(enrollment[:MonthsHomelessPastThreeYears]),
           ]
         end
       )

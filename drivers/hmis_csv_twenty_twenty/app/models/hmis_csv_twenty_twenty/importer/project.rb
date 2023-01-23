@@ -59,31 +59,31 @@ module HmisCsvTwentyTwenty::Importer
           },
           {
             class: HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HUD.yes_no_missing_options.keys.map(&:to_s).freeze },
+            arguments: { valid_options: HudUtility.yes_no_missing_options.keys.map(&:to_s).freeze },
           },
         ],
         ProjectType: [
           {
             class: HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HUD.project_types.keys.map(&:to_s).freeze },
+            arguments: { valid_options: HudUtility.project_types.keys.map(&:to_s).freeze },
           },
         ],
         HousingType: [
           {
             class: HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HUD.housing_types.keys.map(&:to_s).freeze },
+            arguments: { valid_options: HudUtility.housing_types.keys.map(&:to_s).freeze },
           },
         ],
         ResidentialAffiliation: [
           {
             class: HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HUD.yes_no_missing_options.keys.map(&:to_s).freeze },
+            arguments: { valid_options: HudUtility.yes_no_missing_options.keys.map(&:to_s).freeze },
           },
         ],
         TrackingMethod: [
           {
             class: HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HUD.tracking_methods.keys.map(&:to_s).freeze },
+            arguments: { valid_options: HudUtility.tracking_methods.keys.map(&:to_s).freeze },
           },
         ],
         HMISParticipatingProject: [
@@ -92,13 +92,13 @@ module HmisCsvTwentyTwenty::Importer
           },
           {
             class: HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HUD.yes_no_missing_options.keys.map(&:to_s).freeze },
+            arguments: { valid_options: HudUtility.yes_no_missing_options.keys.map(&:to_s).freeze },
           },
         ],
         TargetPopulation: [
           {
             class: HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HUD.target_populations.keys.map(&:to_s).freeze },
+            arguments: { valid_options: HudUtility.target_populations.keys.map(&:to_s).freeze },
           },
         ],
       }

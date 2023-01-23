@@ -25,10 +25,8 @@ module GrdaWarehouse::SystemCohorts
       return super(hoh_only: hoh_only) unless project_group.present?
 
       @households ||= {}.tap do |hh|
-        project_ids = GrdaWarehouse::ProjectGroup.where(id: project_group).
-          joins(:projects).
-          pluck(p_t[:id])
-        enrollments = GrdaWarehouse::Hud::Enrollment.open_on_date(@processing_date).joins(:project).
+        enrollments = GrdaWarehouse::Hud::Enrollment.open_on_date(@processing_date).
+          joins(:project).
           merge(GrdaWarehouse::Hud::Project.where(id: project_ids))
         enrollments = enrollments.heads_of_households if hoh_only
         enrollments.preload(:destination_client).find_in_batches(batch_size: 250) do |batch|
@@ -45,6 +43,12 @@ module GrdaWarehouse::SystemCohorts
           GC.start
         end
       end
+    end
+
+    private def project_ids
+      @project_ids ||= GrdaWarehouse::ProjectGroup.where(id: project_group).
+        joins(:projects).
+        pluck(p_t[:id])
     end
 
     private def candidate_enrollments
@@ -70,7 +74,10 @@ module GrdaWarehouse::SystemCohorts
       enrollment_source.
         # homeless. # Not limiting to homeless since we're limiting by project group
         ongoing(on_date: @processing_date).
-        with_service_between(start_date: inactive_date, end_date: @processing_date, service_scope: :homeless).
+        with_service_between(start_date: inactive_date, end_date: @processing_date).
+        # Require an ongoing enrollment in the project group
+        joins(:project).
+        merge(GrdaWarehouse::Hud::Project.where(id: project_ids)).
         where(client_id: cohort_clients.select(:client_id)).
         distinct.
         pluck(:client_id)

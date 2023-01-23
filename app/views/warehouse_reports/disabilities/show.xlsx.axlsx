@@ -25,7 +25,7 @@ wb.add_worksheet(name: "Clients with Disabilities") do |sheet|
       yes_no(enrollment&.[]('unaccompanied_youth')),
       yes_no(enrollment&.[]('parenting_youth') || enrollment&.[]('parenting_juvenile')),
       yes_no(enrollment&.[]('head_of_household')),
-      HUD.veteran_status(client['VeteranStatus']),
+      HudUtility.veteran_status(client['VeteranStatus']),
       disabilities
     ]
   end

@@ -30,10 +30,10 @@
             %td= project&.name(current_user)
             %td.date-cell= event.enrollment.EntryDate
             %td= event.EventDate
-            %td= HUD.event(event.Event)
-            %td= HUD.no_yes_missing event.ProbSolDivRRResult
-            %td= HUD.no_yes_missing event.ReferralCaseManageAfter
-            %td= HUD.referral_result event.ReferralResult
+            %td= HudUtility.event(event.Event)
+            %td= HudUtility.no_yes_missing event.ProbSolDivRRResult
+            %td= HudUtility.no_yes_missing event.ReferralCaseManageAfter
+            %td= HudUtility.referral_result event.ReferralResult
             %td.text-right
               - if @client.hmis_source_visible_by?(current_user)
                 = link_to 'HMIS', source_datum_path(event, type: 'Event'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis mb-2'

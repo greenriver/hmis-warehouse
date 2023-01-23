@@ -49,7 +49,7 @@
             %td
               = record.client.race_description
             %td
-              = HUD.ethnicity(record.client.Ethnicity)
+              = HudUtility.ethnicity(record.client.Ethnicity)
   = render 'common/pagination_bottom', item_name: 'enrollment'
 - else
   .none-found.mt-4 No enrollments found.

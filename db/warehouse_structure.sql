@@ -3044,7 +3044,8 @@ CREATE TABLE public.data_sources (
     import_aggregators jsonb DEFAULT '{}'::jsonb,
     import_cleanups jsonb DEFAULT '{}'::jsonb,
     refuse_imports_with_errors boolean DEFAULT false,
-    hmis character varying
+    hmis character varying,
+    obey_consent boolean DEFAULT true
 );
 
 
@@ -5412,8 +5413,7 @@ CREATE TABLE public.configs (
     chronic_tab_justifications boolean DEFAULT true,
     chronic_tab_roi boolean,
     filter_date_span_years integer DEFAULT 1 NOT NULL,
-    include_pii_in_detail_downloads boolean DEFAULT true,
-    consent_exposes_all_data_sources boolean DEFAULT true
+    include_pii_in_detail_downloads boolean DEFAULT true
 );
 
 
@@ -50582,6 +50582,6 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230110174657'),
 ('20230112142317'),
 ('20230119123843'),
-('20230120184444');
+('20230123010327');
 
 

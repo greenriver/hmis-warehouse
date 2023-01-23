@@ -95,10 +95,10 @@ module TxClientReports
 
     def format_demographic_value(value, index)
       case demographic_headers[index]
-      when *::HUD.races.values, *::HUD.genders.values
-        ::HUD.no_yes_missing(value)
+      when *::HudUtility.races.values, *::HudUtility.genders.values
+        ::HudUtility.no_yes_missing(value)
       when 'Ethnicity'
-        ::HUD.ethnicity(value)
+        ::HudUtility.ethnicity(value)
       else
         value
       end
@@ -107,7 +107,7 @@ module TxClientReports
     def format_enrollment_value(value, index)
       case enrollment_headers[index]
       when 'Project Type'
-        ::HUD.project_type_brief(value)
+        ::HudUtility.project_type_brief(value)
       else
         value
       end
@@ -145,8 +145,8 @@ module TxClientReports
           'Warehouse ID',
           'Reporting Age', # NOTE: this is age at the latter of report start or entry
         ]
-        headers += ::HUD.genders.values
-        headers += ::HUD.races.values
+        headers += ::HudUtility.genders.values
+        headers += ::HudUtility.races.values
         headers << 'Ethnicity'
         headers
       end
@@ -162,8 +162,8 @@ module TxClientReports
       [
         :client_id,
         age_calculation,
-        *::HUD.gender_fields.map { |k| c_t[k] },
-        *::HUD.races.keys.map { |k| c_t[k] },
+        *::HudUtility.gender_fields.map { |k| c_t[k] },
+        *::HudUtility.races.keys.map { |k| c_t[k] },
         c_t[:Ethnicity],
       ]
     end

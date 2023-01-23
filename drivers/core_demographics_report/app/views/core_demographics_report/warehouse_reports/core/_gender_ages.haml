@@ -20,7 +20,7 @@
                 %th Count
                 %th Percentage
             %tbody
-              - HUD.genders.each do |gender, gender_title|
+              - HudUtility.genders.each do |gender, gender_title|
                 - report.age_categories.each do |age_range, age_title|
                   %tr
                     %th= gender_title

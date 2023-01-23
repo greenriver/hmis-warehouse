@@ -108,13 +108,13 @@ module TableauExport
             value = inner_path[h.to_s].presence
             value = case h
             # when :prog
-            #   ::HUD.project_type value.to_i if value
+            #   ::HudUtility.project_type value.to_i if value
             when :entry, :exit
               value && DateTime.parse(value).strftime('%Y-%m-%d')
             # when :destination
-            #   ::HUD.destination value.to_i if value
+            #   ::HudUtility.destination value.to_i if value
             when :coc_name
-              ::HUD.coc_name(inner_path['coc_code'])
+              ::HudUtility.coc_name(inner_path['coc_code'])
             else
               value
             end

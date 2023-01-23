@@ -72,7 +72,7 @@ module WarehouseReports
         'Previous Project Type',
         'Previous Destination',
         'Ethnicity',
-      ] + GrdaWarehouse::Hud::Client.race_fields.map { |m| HUD.race(m).gsub('None', 'Race None') }
+      ] + GrdaWarehouse::Hud::Client.race_fields.map { |m| HudUtility.race(m).gsub('None', 'Race None') }
       headers
     end
 
@@ -85,16 +85,16 @@ module WarehouseReports
         row = [client.id]
         row += [client.FirstName, client.LastName] if ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
         row += [
-          HUD.no_yes_reasons_for_missing_data(client.VeteranStatus),
+          HudUtility.no_yes_reasons_for_missing_data(client.VeteranStatus),
           enrollment.first_date_in_program,
-          HUD.project_type(enrollment.computed_project_type),
+          HudUtility.project_type(enrollment.computed_project_type),
           project.name(current_user),
           project.organization_name(current_user),
           re_entry.days_since_last_exit,
-          HUD.project_type(re_entry.prior_exit_project_type),
-          HUD.destination(re_entry.prior_exit_destination_id),
-          ::HUD.ethnicity(client.Ethnicity),
-        ] + client.attributes.slice(*GrdaWarehouse::Hud::Client.race_fields).values.map { |m| ::HUD.no_yes_reasons_for_missing_data(m&.to_i) }
+          HudUtility.project_type(re_entry.prior_exit_project_type),
+          HudUtility.destination(re_entry.prior_exit_destination_id),
+          ::HudUtility.ethnicity(client.Ethnicity),
+        ] + client.attributes.slice(*GrdaWarehouse::Hud::Client.race_fields).values.map { |m| ::HudUtility.no_yes_reasons_for_missing_data(m&.to_i) }
         rows << row
       end
       rows

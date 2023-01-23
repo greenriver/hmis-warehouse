@@ -36,19 +36,19 @@ module PerformanceDashboard::Overview::Detail
   def detail_column_display(header:, column:)
     case header
     when 'Female', 'Male', 'No Single Gender', 'Transgender', 'Questioning', 'Unknown Gender'
-      HUD.no_yes_reasons_for_missing_data(column)
+      HudUtility.no_yes_reasons_for_missing_data(column)
     when 'Ethnicity'
-      HUD.ethnicity(column)
-    when HUD.race('AmIndAKNative'), HUD.race('Asian'), HUD.race('BlackAfAmerican'), HUD.race('NativeHIPacific'), HUD.race('White'), HUD.race('RaceNone')
-      HUD.no_yes_reasons_for_missing_data(column)
+      HudUtility.ethnicity(column)
+    when HudUtility.race('AmIndAKNative'), HudUtility.race('Asian'), HudUtility.race('BlackAfAmerican'), HudUtility.race('NativeHIPacific'), HudUtility.race('White'), HudUtility.race('RaceNone')
+      HudUtility.no_yes_reasons_for_missing_data(column)
     when 'Veteran Status'
-      HUD.veteran_status(column)
+      HudUtility.veteran_status(column)
     when 'Individual Adult', 'Child Only'
       yn(column)
     when 'Project Type'
-      HUD.project_type(column)
+      HudUtility.project_type(column)
     when 'CoC'
-      HUD.coc_name(column)
+      HudUtility.coc_name(column)
     else
       column
     end
@@ -117,7 +117,7 @@ module PerformanceDashboard::Overview::Detail
     end
     columns['Veteran Status'] = c_t[:VeteranStatus] if options[:veteran]
     if options[:race]
-      HUD.races.each do |k, title|
+      HudUtility.races.each do |k, title|
         columns[title] = c_t[k.to_sym]
       end
     end

@@ -34,7 +34,7 @@ wb.add_worksheet name: 'Inventory Utilization' do |sheet|
     sheet.add_row(
       [
         project.name,
-        ::HUD.project_type_brief(project.project_type),
+        ::HudUtility.project_type_brief(project.project_type),
         project.organization_name,
         project.beds,
         project.clients,

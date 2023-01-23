@@ -123,7 +123,7 @@ module ReportGenerators::SystemPerformance::Fy2019
           [
             id,
             client_personal_ids[id].join(', '),
-            HUD.destination(destination),
+            HudUtility.destination(destination),
           ]
         end
       }
@@ -136,12 +136,12 @@ module ReportGenerators::SystemPerformance::Fy2019
           [
             id,
             client_personal_ids[id].join(', '),
-            HUD.destination(destination),
+            HudUtility.destination(destination),
           ]
         end
       }
 
-      permanent_leavers = destinations.select{ |id, destination| (HUD.permanent_destinations - [24]).include?(destination.to_i)}
+      permanent_leavers = destinations.select{ |id, destination| (HudUtility.permanent_destinations - [24]).include?(destination.to_i)}
       @answers[:sevena1_c4][:value] = permanent_leavers.size
       @support[:sevena1_c4][:support] = {
         headers: ['Client ID', 'Personal IDs', 'Destination'],
@@ -149,7 +149,7 @@ module ReportGenerators::SystemPerformance::Fy2019
           [
             id,
             client_personal_ids[id].join(', '),
-            HUD.destination(destination),
+            HudUtility.destination(destination),
           ]
         end
       }
@@ -225,12 +225,12 @@ module ReportGenerators::SystemPerformance::Fy2019
           [
             id,
             client_personal_ids[id].join(', '),
-            HUD.destination(destination),
+            HudUtility.destination(destination),
           ]
         end
       }
 
-      permanent_leavers = destinations.select{ |id, destination| (HUD.permanent_destinations - [24]).include?(destination.to_i)}
+      permanent_leavers = destinations.select{ |id, destination| (HudUtility.permanent_destinations - [24]).include?(destination.to_i)}
       @answers[:sevenb1_c3][:value] = permanent_leavers.size
       @support[:sevenb1_c3][:support] = {
         headers: ['Client ID', 'Personal IDs', 'Destination'],
@@ -238,7 +238,7 @@ module ReportGenerators::SystemPerformance::Fy2019
           [
             id,
             client_personal_ids[id].join(', '),
-            HUD.destination(destination),
+            HudUtility.destination(destination),
           ]
         end
       }
@@ -331,12 +331,12 @@ module ReportGenerators::SystemPerformance::Fy2019
           [
             id,
             client_personal_ids[id].join(', '),
-            HUD.destination(destination),
+            HudUtility.destination(destination),
           ]
         end
       }
 
-      permanent_leavers = destinations.select{ |id, destination| (HUD.permanent_destinations - [24]).include?(destination.to_i)}
+      permanent_leavers = destinations.select{ |id, destination| (HudUtility.permanent_destinations - [24]).include?(destination.to_i)}
       @answers[:sevenb2_c3][:value] = permanent_leavers.size + stayers.size
       @support[:sevenb2_c3][:support] = {
         headers: ['Client ID', 'Personal IDs', 'Destination'],
@@ -344,7 +344,7 @@ module ReportGenerators::SystemPerformance::Fy2019
           [
             id,
             client_personal_ids[id].join(', '),
-            HUD.destination(destination),
+            HudUtility.destination(destination),
           ]
         end
       }

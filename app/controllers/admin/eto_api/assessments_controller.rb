@@ -32,7 +32,7 @@ module Admin::EtoApi
     end
 
     def assessment_source
-      GrdaWarehouse::HMIS::Assessment
+      GrdaWarehouse::Hmis::Assessment
     end
 
     def assessment_scope

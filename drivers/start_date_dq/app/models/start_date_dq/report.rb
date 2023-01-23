@@ -59,7 +59,7 @@ module StartDateDq
         days_between_start_and_exit: days_between_start_and_exit,
         personal_id: row.enrollment.PersonalID,
         project_name: row.project&.name(user),
-        project_type: HUD.project_type_brief(row.project_type),
+        project_type: HudUtility.project_type_brief(row.project_type),
       }
     end
 

@@ -33,12 +33,12 @@
             %td= project&.name(current_user)
             %td.date-cell= event.enrollment.EntryDate
             %td= event.InformationDate
-            %td= HUD.last_grade_completed event.LastGradeCompleted
-            %td= HUD.school_status event.SchoolStatus
+            %td= HudUtility.last_grade_completed event.LastGradeCompleted
+            %td= HudUtility.school_status event.SchoolStatus
             %td= hud_1_8 event.Employed
-            %td= HUD.employment_type event.EmploymentType
-            %td= HUD.not_employed_reason event.NotEmployedReason
-            %td= HUD.data_collection_stage event.DataCollectionStage
+            %td= HudUtility.employment_type event.EmploymentType
+            %td= HudUtility.not_employed_reason event.NotEmployedReason
+            %td= HudUtility.data_collection_stage event.DataCollectionStage
             %td.text-right
               - if @client.hmis_source_visible_by?(current_user)
                 = link_to 'HMIS', source_datum_path(event, type: 'EmploymentEducation'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis mb-2'

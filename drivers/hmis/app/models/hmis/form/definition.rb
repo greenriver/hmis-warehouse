@@ -57,6 +57,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     recur_check.call(json)
   end
 
+  # Unused
   def apply_conditionals(enrollment)
     parsed = JSON.parse(definition)
     client = enrollment.client

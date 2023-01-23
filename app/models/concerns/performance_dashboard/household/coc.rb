@@ -18,7 +18,7 @@ module PerformanceDashboard::Household::Coc
     coc_buckets.map do |key|
       [
         key,
-        HUD.coc_name(key),
+        HudUtility.coc_name(key),
       ]
     end.to_h
   end

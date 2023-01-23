@@ -111,14 +111,14 @@
           - @report.report_projects.preload(:project).each do |p|
             %li
               #{p.project.name(current_user)}:
-              %strong #{HUD.housing_type(p.housing_type.presence) || 'blank'}
+              %strong #{HudUtility.housing_type(p.housing_type.presence) || 'blank'}
       .col-sm-6
         %h4 Project Types
         %ul.list-unstyled
           - @report.report_projects.preload(:project).each do |p|
             %li
               #{p.project.name(current_user)}:
-              %strong #{HUD.project_type p.project_type.presence}
+              %strong #{HudUtility.project_type p.project_type.presence}
     - else
       .col-sm-12
         %h4 Project Types
@@ -126,4 +126,4 @@
           - @report.report_projects.preload(:project).each do |p|
             %li
               #{p.project.name(current_user)}:
-              %strong #{HUD.project_type p.project_type.presence}
+              %strong #{HudUtility.project_type p.project_type.presence}
