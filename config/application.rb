@@ -12,9 +12,9 @@ require_relative '../lib/util/id_protector'
 module BostonHmis
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
-    config.load_defaults 5.2
-    config.autoloader = :classic
-    config.autoload_paths << Rails.root.join('lib/devise')
+    config.load_defaults 6.1
+    # config.autoloader = :classic
+    config.autoload_paths << Rails.root.join('lib', 'devise')
 
     # ActionCable
     config.action_cable.mount_path = "/cable"
@@ -46,6 +46,7 @@ module BostonHmis
     config.active_record.schema_format = ENV.fetch('SCHEMA_FORMAT') { 'sql' }.to_sym
 
     config.active_job.queue_adapter = :delayed_job
+    config.action_mailer.deliver_later_queue_name = :mailers
 
     config.generators do |generate|
       generate.helper false
@@ -62,6 +63,7 @@ module BostonHmis
 
     # additional library paths
     config.eager_load_paths << Rails.root.join('lib', 'util')
+    config.eager_load_paths << Rails.root.join('lib', 'devise')
 
     # serve error pages from the Rails app itself
     # rather than using static error pages in public/.

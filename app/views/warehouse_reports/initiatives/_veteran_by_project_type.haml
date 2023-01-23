@@ -6,13 +6,13 @@
     %thead
       %tr
         %th Project Type
-        - ::HUD.no_yes_reasons_for_missing_data_options.each do |id, reason|
+        - ::HudUtility.no_yes_reasons_for_missing_data_options.each do |id, reason|
           %th= reason
     %tbody
       - @data.involved_project_types.each do |p_type|
         %tr
           %th= p_type
-          - ::HUD.no_yes_reasons_for_missing_data_options.each do |id, reason|
+          - ::HudUtility.no_yes_reasons_for_missing_data_options.each do |id, reason|
             %td
               - key = "#{p_type}__#{reason}"
               - count = data[key] || 0

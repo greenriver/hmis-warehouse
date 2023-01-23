@@ -19,15 +19,15 @@ module Health::Tasks
     def run!
       CSV.open(@filename, 'wb') do |csv|
         csv << ['Race']
-        HUD.races(multi_racial: true).keys.each do |key|
+        HudUtility.races(multi_racial: true).keys.each do |key|
           disenrolled = demographics.values.select(&:reason).count { |client| client[:race] == key }
           total = demographics.values.count { |client| client[:race] == key }
-          csv << [HUD.race(key, multi_racial: true), disenrolled, percentage(disenrolled, patient_universe.count), total, percentage(total, patient_universe.count)]
+          csv << [HudUtility.race(key, multi_racial: true), disenrolled, percentage(disenrolled, patient_universe.count), total, percentage(total, patient_universe.count)]
         end
 
         csv << []
         csv << ['Gender']
-        HUD.genders.values.each do |key|
+        HudUtility.genders.values.each do |key|
           disenrolled = demographics.values.select(&:reason).count { |client| client[:gender] == key }
           total = demographics.values.count { |client| client[:gender] == key }
           csv << [key, disenrolled, percentage(disenrolled, patient_universe.count), total, percentage(total, patient_universe.count)]
@@ -35,7 +35,7 @@ module Health::Tasks
 
         csv << []
         csv << ['Ethnicity']
-        HUD.ethnicities.values.each do |key|
+        HudUtility.ethnicities.values.each do |key|
           disenrolled = demographics.values.select(&:reason).count { |client| client[:ethnicity] == key }
           total = demographics.values.count { |client| client[:ethnicity] == key }
           csv << [key, disenrolled, percentage(disenrolled, patient_universe.count), total, percentage(total, patient_universe.count)]
@@ -86,7 +86,7 @@ module Health::Tasks
     end
 
     private def gender(client)
-      HUD.gender(client.gender_binary)
+      HudUtility.gender(client.gender_binary)
     end
 
     private def ethnicity(client)

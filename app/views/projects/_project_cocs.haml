@@ -45,12 +45,12 @@
                   Overridden as
                   = p_coc.geocode_override
             %td
-              = HUD.geography_type p_coc.GeographyType
+              = HudUtility.geography_type p_coc.GeographyType
               - if p_coc.geography_type_override.present?
                 %br
                 %em
                   Overridden as
-                  = HUD.geography_type p_coc.geography_type_override
+                  = HudUtility.geography_type p_coc.geography_type_override
             %td
               - if can_edit_projects?
                 - unless p_coc.manual_entry?

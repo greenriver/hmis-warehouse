@@ -68,7 +68,7 @@ module GrdaWarehouse::WarehouseReports::Dashboard
       # ensure that the counts are in the same order as the labels
       @labels.each do |project_type_sym, _|
         @buckets.each do |project_type, bucket|
-          project_type_key = ::HUD::project_type_brief(project_type).downcase.to_sym
+          project_type_key = ::HudUtility.project_type_brief(project_type).downcase.to_sym
           if project_type_sym == project_type_key
             bucket.each do |group_key, client_count|
               @data[group_key][:data] << client_count

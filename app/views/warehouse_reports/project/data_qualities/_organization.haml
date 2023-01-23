@@ -37,7 +37,7 @@
           %td<
             = link_to project.name(current_user), project_data_quality_reports_path(project)
           %td<
-            = HUD.project_type_brief(project[GrdaWarehouse::Hud::Project.project_type_column])
+            = HudUtility.project_type_brief(project[GrdaWarehouse::Hud::Project.project_type_column])
           %td<
             - if last_status = last_report&.status
               = link_to last_status, project_data_quality_report_path(project_id: project.id, id: last_report.id)

@@ -34,7 +34,7 @@ wb.add_worksheet(name: "Active Veterans") do |sheet|
     client['enrollments'].each do |enrollment|
       row += [
         enrollment['ds_short_name'],
-        HUD::project_type_brief(enrollment['project_type']),
+        HudUtility.project_type_brief(enrollment['project_type']),
         enrollment['project_name'],
         enrollment['first_date_in_program'],
         enrollment['last_date_in_program']

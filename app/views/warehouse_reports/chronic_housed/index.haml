@@ -39,6 +39,6 @@
               %td
                 = @chronics[client.client_id].map(&:date).uniq.join('<br />').html_safe
               %td
-                = exits.map{|ex| [ex.exit_date, HUD.destination(ex.destination)].join(' - ')}.uniq.join('<br />').html_safe
+                = exits.map{|ex| [ex.exit_date, HudUtility.destination(ex.destination)].join(' - ')}.uniq.join('<br />').html_safe
   - else
     .none-found No clients found.

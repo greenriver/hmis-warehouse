@@ -161,7 +161,7 @@ module CePerformance
     end
 
     def self.literally_homeless_at_entry_query
-      arel_table[:prior_living_situation].in(::HUD.homeless_situations(as: :prior)).
+      arel_table[:prior_living_situation].in(::HudUtility.homeless_situations(as: :prior)).
         or(arel_table[:los_under_threshold].eq(1).and(arel_table[:previous_street_essh].eq(1)))
     end
 

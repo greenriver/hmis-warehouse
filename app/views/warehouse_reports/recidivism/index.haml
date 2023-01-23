@@ -58,7 +58,7 @@
               - @homeless_clients[client.id].each do |enrollment|
                 %tr
                   %td= enrollment[:project_name]
-                  %td= HUD.project_type_brief enrollment[:computed_project_type]
+                  %td= HudUtility.project_type_brief enrollment[:computed_project_type]
                   %td= enrollment[:first_date_in_program]
                   %td= enrollment[:last_date_in_program]
                   %td= @homeless_service_dates[enrollment[:id]]

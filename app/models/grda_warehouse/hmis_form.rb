@@ -11,7 +11,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   include RailsDrivers::Extensions
   belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', optional: true
   has_one :destination_client, through: :client
-  belongs_to :hmis_assessment, class_name: 'GrdaWarehouse::HMIS::Assessment', primary_key: [:assessment_id, :site_id, :data_source_id], foreign_key: [:assessment_id, :site_id, :data_source_id], optional: true
+  belongs_to :hmis_assessment, class_name: 'GrdaWarehouse::Hmis::Assessment', primary_key: [:assessment_id, :site_id, :data_source_id], foreign_key: [:assessment_id, :site_id, :data_source_id], optional: true
   serialize :api_response, Hash
   serialize :answers, Hash
 
@@ -23,23 +23,23 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   end
 
   scope :hud_assessment, -> do
-    joins(:hmis_assessment).merge(GrdaWarehouse::HMIS::Assessment.hud_assessment)
+    joins(:hmis_assessment).merge(GrdaWarehouse::Hmis::Assessment.hud_assessment)
   end
 
   scope :triage, -> do
-    joins(:hmis_assessment).merge(GrdaWarehouse::HMIS::Assessment.triage_assessment)
+    joins(:hmis_assessment).merge(GrdaWarehouse::Hmis::Assessment.triage_assessment)
   end
 
   scope :vispdat, -> do
-    joins(:hmis_assessment).merge(GrdaWarehouse::HMIS::Assessment.vispdat)
+    joins(:hmis_assessment).merge(GrdaWarehouse::Hmis::Assessment.vispdat)
   end
 
   scope :pathways, -> do
-    joins(:hmis_assessment).merge(GrdaWarehouse::HMIS::Assessment.pathways)
+    joins(:hmis_assessment).merge(GrdaWarehouse::Hmis::Assessment.pathways)
   end
 
   scope :covid_19_impact_assessments, -> do
-    joins(:hmis_assessment).merge(GrdaWarehouse::HMIS::Assessment.covid_19_impact_assessments)
+    joins(:hmis_assessment).merge(GrdaWarehouse::Hmis::Assessment.covid_19_impact_assessments)
   end
 
   scope :interested_in_some_rrh, -> do
@@ -65,27 +65,27 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   end
 
   scope :confidential, -> do
-    joins(:hmis_assessment).merge(GrdaWarehouse::HMIS::Assessment.confidential)
+    joins(:hmis_assessment).merge(GrdaWarehouse::Hmis::Assessment.confidential)
   end
 
   scope :non_confidential, -> do
-    joins(:hmis_assessment).merge(GrdaWarehouse::HMIS::Assessment.non_confidential)
+    joins(:hmis_assessment).merge(GrdaWarehouse::Hmis::Assessment.non_confidential)
   end
 
   scope :window, -> do
-    joins(:hmis_assessment, :client).merge(GrdaWarehouse::HMIS::Assessment.window)
+    joins(:hmis_assessment, :client).merge(GrdaWarehouse::Hmis::Assessment.window)
   end
 
   scope :health, -> do
-    joins(:hmis_assessment).merge(GrdaWarehouse::HMIS::Assessment.health)
+    joins(:hmis_assessment).merge(GrdaWarehouse::Hmis::Assessment.health)
   end
 
   scope :window_with_details, -> do
-    window.merge(GrdaWarehouse::HMIS::Assessment.window_with_details)
+    window.merge(GrdaWarehouse::Hmis::Assessment.window_with_details)
   end
 
   scope :self_sufficiency, -> do
-    joins(:hmis_assessment).merge(GrdaWarehouse::HMIS::Assessment.ssm)
+    joins(:hmis_assessment).merge(GrdaWarehouse::Hmis::Assessment.ssm)
   end
 
   scope :collected, -> do
@@ -93,11 +93,11 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   end
 
   scope :case_management_notes, -> do
-    joins(:hmis_assessment).merge(GrdaWarehouse::HMIS::Assessment.health_case_note)
+    joins(:hmis_assessment).merge(GrdaWarehouse::Hmis::Assessment.health_case_note)
   end
 
   scope :has_qualifying_activities, -> do
-    joins(:hmis_assessment).merge(GrdaWarehouse::HMIS::Assessment.health_has_qualifying_activities)
+    joins(:hmis_assessment).merge(GrdaWarehouse::Hmis::Assessment.health_has_qualifying_activities)
   end
 
   scope :has_unprocessed_qualifying_activities, -> do
@@ -108,7 +108,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   end
 
   scope :health_touch_points, -> do
-    health_assessments = joins(:hmis_assessment).merge(GrdaWarehouse::HMIS::Assessment.health).distinct.pluck(:id)
+    health_assessments = joins(:hmis_assessment).merge(GrdaWarehouse::Hmis::Assessment.health).distinct.pluck(:id)
     sdh_assessments = where(arel_table[:collection_location].matches('Social Determinants of Health%')).pluck(:id)
     where(id: health_assessments + sdh_assessments)
   end
@@ -705,7 +705,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   end
 
   def self.rrh_assessment_name
-    GrdaWarehouse::HMIS::Assessment.rrh_assessment&.first&.name
+    GrdaWarehouse::Hmis::Assessment.rrh_assessment&.first&.name
   end
 
   def section_starts_with(string)

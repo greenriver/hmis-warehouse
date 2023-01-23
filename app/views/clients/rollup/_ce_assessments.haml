@@ -29,9 +29,9 @@
             %td= project&.name(current_user)
             %td.date-cell= assessment.enrollment.EntryDate
             %td= link_to(assessment.AssessmentDate, client_hud_assessment_path(@client, assessment))
-            %td= HUD.assessment_type assessment.AssessmentType
-            %td= HUD.assessment_level assessment.AssessmentLevel
-            %td= HUD.prioritization_status assessment.PrioritizationStatus
+            %td= HudUtility.assessment_type assessment.AssessmentType
+            %td= HudUtility.assessment_level assessment.AssessmentLevel
+            %td= HudUtility.prioritization_status assessment.PrioritizationStatus
             %td.text-right
               - if @client.hmis_source_visible_by?(current_user)
                 = link_to 'HMIS', source_datum_path(assessment, type: 'Assessment'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis mb-2'

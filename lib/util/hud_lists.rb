@@ -776,7 +776,7 @@ module HudLists
       2 => 'Financial assistance for Moving On (e.g., security deposit, moving expenses)',
       3 => 'Non-financial assistance for Moving On (e.g., housing navigation, transition support)',
       4 => 'Housing referral/placement',
-      5 => 'Other (please specify)',
+      5 => 'Other',
     }.freeze
   end
 

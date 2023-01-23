@@ -117,7 +117,7 @@ module ClientController
 
       ssn_matches = []
       ssn = attr[:SSN].delete('-')
-      if ::HUD.valid_social?(ssn)
+      if ::HudUtility.valid_social?(ssn)
         ssn_matches = client_search_scope.
           where(c_t[:SSN].eq(ssn)).
           pluck(:id)

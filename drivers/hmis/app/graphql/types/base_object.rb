@@ -38,7 +38,7 @@ module Types
     end
 
     def resolve_null_enum(value)
-      value == ::HUD.ignored_enum_value ? nil : value
+      value == ::HudUtility.ignored_enum_value ? nil : value
     end
 
     def load_ar_association(object, association, scope: nil)

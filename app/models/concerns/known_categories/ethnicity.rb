@@ -9,7 +9,7 @@ module KnownCategories::Ethnicity
 
   def ethnicity_calculations
     @ethnicity_calculations ||= {}.tap do |calcs|
-      HUD.ethnicities.each do |key, title|
+      HudUtility.ethnicities.each do |key, title|
         calcs[title] = ->(value) { value == key }
       end
     end

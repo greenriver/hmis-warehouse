@@ -142,8 +142,8 @@ module DestinationReport
             :Destination,
             pc_t[:CoCCode],
           ).each do |client_id, destination_id, coc_code|
-            destination = HUD.destination_type(destination_id)
-            detailed_destination = HUD.destination(destination_id)
+            destination = HudUtility.destination_type(destination_id)
+            detailed_destination = HudUtility.destination(destination_id)
 
             data[:all][destination] << client_id
             data[:by_coc][coc_code] ||= {}
@@ -161,7 +161,7 @@ module DestinationReport
 
             data[:by_coc][coc_code][:destination_details] ||= destination_buckets.map { |b| [b, {}] }.to_h
             destination_buckets.each do |b|
-              HUD.valid_destinations.values.uniq.each do |l|
+              HudUtility.valid_destinations.values.uniq.each do |l|
                 data[:by_coc][coc_code][:destination_details][b][l] ||= Set.new
               end
               data[:by_coc][coc_code][:destination_details][b]['Unknown'] ||= Set.new

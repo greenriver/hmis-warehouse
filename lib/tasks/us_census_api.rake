@@ -29,7 +29,7 @@ namespace :us_census_api do
   task :shapes, [] => [:environment] do
     [
       GrdaWarehouse::Shape::BlockGroup,
-      GrdaWarehouse::Shape::CoC,
+      GrdaWarehouse::Shape::Coc,
       GrdaWarehouse::Shape::County,
       GrdaWarehouse::Shape::State,
       GrdaWarehouse::Shape::ZipCode,
@@ -55,7 +55,7 @@ namespace :us_census_api do
 
   desc "Aggregate values so CoC geometries can use same interface to census data"
   task :coc_agg, [] => [:setup, :environment] do
-    GrdaWarehouse::UsCensusApi::CoCAgg.run!
+    GrdaWarehouse::UsCensusApi::CocAgg.run!
   end
 
   desc "Aggregate values so Town geometries can use same interface to census data"

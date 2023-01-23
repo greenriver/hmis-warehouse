@@ -4,8 +4,6 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-require 'util/hud'
-
 class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
   include RandomScope
   include ArelHelper
@@ -679,7 +677,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
             oe[id] << if project_type == 13
               [project_type, 'RRH']
             else
-              [project_type, ::HUD.project_type_brief(project_type)]
+              [project_type, ::HudUtility.project_type_brief(project_type)]
             end
           end
       end
@@ -729,7 +727,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
             destination_string = if destination_code == 17
               other_destination
             else
-              ::HUD.destination(destination_code)
+              ::HudUtility.destination(destination_code)
             end
             destinations[id] ||= "#{destination_string} (#{last_date_in_program})"
           end

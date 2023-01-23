@@ -18,4 +18,4 @@
           %tr
             %th= k
             - [[:comparison, comparison[k]], [:reporting, v]].each do |period, value|
-              %td= link_to_if can_view_all_hud_reports? || can_view_own_hud_reports?, value.round, clients_ce_performance_warehouse_reports_report_path(@report, period: period, event_type: ::HUD.event(k, true), key: @key, category_name: @category_name)
+              %td= link_to_if can_view_all_hud_reports? || can_view_own_hud_reports?, value.round, clients_ce_performance_warehouse_reports_report_path(@report, period: period, event_type: ::HudUtility.event(k, true), key: @key, category_name: @category_name)

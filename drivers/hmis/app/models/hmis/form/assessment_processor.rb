@@ -30,7 +30,11 @@ class Hmis::Form::AssessmentProcessor < ::GrdaWarehouseBase
 
       container, field = match[1..2]
 
-      container_processor(container)&.process(field, value)
+      begin
+        container_processor(container)&.process(field, value)
+      rescue StandardError => e
+        raise e.class, "Error processing field '#{field}': #{e.message}"
+      end
     end
 
     valid_containers.values.each do |processor|

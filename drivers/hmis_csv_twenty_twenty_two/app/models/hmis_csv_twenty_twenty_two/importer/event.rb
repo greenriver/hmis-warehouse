@@ -47,7 +47,7 @@ module HmisCsvTwentyTwentyTwo::Importer
           },
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HUD.events.keys.map(&:to_s).freeze },
+            arguments: { valid_options: HudUtility.events.keys.map(&:to_s).freeze },
           },
         ],
       }

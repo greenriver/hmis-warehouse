@@ -5,7 +5,7 @@
   :ruby
     ignore_columns = {}
     @data.involved_projects.sort_by(&:last).each do |(p_id, p_name)|
-      ::HUD.living_situations.each do |id, value|
+      ::HudUtility.living_situations.each do |id, value|
         key = "#{p_id}__#{value}"
         ignore_columns[value] ||= []
         count = data[key] || 0
@@ -17,14 +17,14 @@
     %thead
       %tr
         %th Project
-        - ::HUD.living_situations.each do |id, value|
+        - ::HudUtility.living_situations.each do |id, value|
           - next if ignore_columns.include? value
           %th= value
     %tbody
       - @data.involved_projects.sort_by(&:last).each do |(p_id, p_name)|
         %tr
           %th= p_name
-          - ::HUD.living_situations.each do |id, value|
+          - ::HudUtility.living_situations.each do |id, value|
             - next if ignore_columns.include? value
             %td
               - key = "#{p_id}__#{value}"

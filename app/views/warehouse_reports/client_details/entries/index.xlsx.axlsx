@@ -13,7 +13,7 @@ wb.add_worksheet(name: "Entry Detail #{GrdaWarehouse::WarehouseReports::Dashboar
     'Project Type',
     'Group',
     'Ethnicity',
-  ] + GrdaWarehouse::Hud::Client.race_fields.map { |m| HUD.race(m).gsub('None', 'Race None') }, style: title)
+  ] + GrdaWarehouse::Hud::Client.race_fields.map { |m| HudUtility.race(m).gsub('None', 'Race None') }, style: title)
   @report.buckets.each do |group, clients|
     section = @report.data[group][:label]
     clients.each do |client_id|
@@ -29,10 +29,10 @@ wb.add_worksheet(name: "Entry Detail #{GrdaWarehouse::WarehouseReports::Dashboar
           enrollment.last_date_in_program,
           project.name(current_user),
           project.organization_name(current_user),
-          HUD.project_type(enrollment.computed_project_type),
+          HudUtility.project_type(enrollment.computed_project_type),
           section,
-          HUD.ethnicity(client.Ethnicity),
-        ] + GrdaWarehouse::Hud::Client.race_fields.map { |m| HUD.no_yes_reasons_for_missing_data(client.public_send(m.to_sym)&.to_i) }
+          HudUtility.ethnicity(client.Ethnicity),
+        ] + GrdaWarehouse::Hud::Client.race_fields.map { |m| HudUtility.no_yes_reasons_for_missing_data(client.public_send(m.to_sym)&.to_i) }
         sheet.add_row(row)
       end
     end

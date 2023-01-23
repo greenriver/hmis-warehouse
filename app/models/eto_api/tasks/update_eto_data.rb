@@ -150,7 +150,7 @@ module EtoApi::Tasks
 
         eto_touch_point_lookups = GrdaWarehouse::EtoQaaws::TouchPointLookup.
           joins(:hmis_assessment).
-          merge(GrdaWarehouse::HMIS::Assessment.fetch_for_data_source(@data_source_id)).
+          merge(GrdaWarehouse::Hmis::Assessment.fetch_for_data_source(@data_source_id)).
           where(data_source_id: @data_source_id)
         eto_touch_point_lookups = eto_touch_point_lookups.where(client_id: @client_ids) if @client_ids.present?
         eto_touch_point_lookups = eto_touch_point_lookups.pluck(*eto_touch_point_lookup_columns).

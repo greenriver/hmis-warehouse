@@ -13,13 +13,13 @@ module WarehouseReports
     CACHE_LIFETIME = 30.minutes.freeze
 
     RELEVANT_COC_STATE = ENV.fetch('RELEVANT_COC_STATE') do
-      GrdaWarehouse::Shape::CoC.order(Arel.sql('random()')).limit(1).pluck(:st)
+      GrdaWarehouse::Shape::Coc.order(Arel.sql('random()')).limit(1).pluck(:st)
     rescue StandardError
       'UNKNOWN'
     end
 
     private def state_coc_shapes
-      GrdaWarehouse::Shape::CoC.where(
+      GrdaWarehouse::Shape::Coc.where(
         st: RELEVANT_COC_STATE,
       )
     end
@@ -168,11 +168,11 @@ module WarehouseReports
       attr_accessor :coc1_id, :coc2_id, :start_date, :end_date
 
       def coc1
-        coc1_id ? (@coc1 ||= GrdaWarehouse::Shape::CoC.find(coc1_id)) : nil
+        coc1_id ? (@coc1 ||= GrdaWarehouse::Shape::Coc.find(coc1_id)) : nil
       end
 
       def coc2
-        coc2_id ? (@coc2 ||= GrdaWarehouse::Shape::CoC.find(coc2_id)) : nil
+        coc2_id ? (@coc2 ||= GrdaWarehouse::Shape::Coc.find(coc2_id)) : nil
       end
 
       def to_params

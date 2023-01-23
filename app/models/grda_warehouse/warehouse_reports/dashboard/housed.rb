@@ -21,7 +21,7 @@ module GrdaWarehouse::WarehouseReports::Dashboard
         ended_between(start_date: @start_date, end_date: @end_date + 1.day).
         order(date: :asc).
         pluck(*columns).map do |date, destination, client_id|
-          destination = 99 unless ::HUD.valid_destinations.keys.include?(destination)
+          destination = 99 unless ::HudUtility.valid_destinations.keys.include?(destination)
           Hash[columns.zip([date, destination, client_id])]
         end
 
@@ -30,20 +30,20 @@ module GrdaWarehouse::WarehouseReports::Dashboard
       all_date_buckets = (@start_date...@end_date).map{|date| date.strftime('%b %Y')}.uniq;
       all_date_buckets = all_date_buckets.zip(Array.new(all_date_buckets.size, 0)).to_h
 
-      @ph_clients = all_exits.select{|m| ::HUD.permanent_destinations.include?(m[:destination])}.map{|m| m[:client_id]}.uniq
+      @ph_clients = all_exits.select{|m| ::HudUtility.permanent_destinations.include?(m[:destination])}.map{|m| m[:client_id]}.uniq
 
       @buckets = {}
 
       all_destinations.each do |destination|
-        label = ::HUD::destination(destination).to_s
+        label = ::HudUtility.destination(destination).to_s
         if label.is_a? Numeric
-          label = ::HUD::destination(99)
+          label = ::HudUtility.destination(99)
         end
         @buckets[destination] ||= {
           source_data: all_date_buckets.deep_dup,
           label: label.truncate(45),
           backgroundColor: colorize(label),
-          ph: ::HUD.permanent_destinations.include?(destination),
+          ph: ::HudUtility.permanent_destinations.include?(destination),
         }
       end
 

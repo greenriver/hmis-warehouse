@@ -186,17 +186,17 @@ module Exporters::Tableau::EntryExit
               "#{value}_#{row['data_source']}"
             end
           # when :rel_to_hoh
-          #   ::HUD.relationship_to_hoh value&.to_i
+          #   ::HudUtility.relationship_to_hoh value&.to_i
           when :prov_id
             if row['confidential']
-              "#{GrdaWarehouse::Hud::Project.confidential_project_name} (#{HUD.project_type_brief(row['prog_type']&.to_i)})"
+              "#{GrdaWarehouse::Hud::Project.confidential_project_name} (#{HudUtility.project_type_brief(row['prog_type']&.to_i)})"
             else
               "#{value} (#{row['_prov_id']})"
             end
           # when :prog_type
           #   pt = value&.to_i
           #   if pt
-          #     type = ::HUD.project_type pt
+          #     type = ::HudUtility.project_type pt
           #     if type == pt
           #       pt
           #     else
@@ -204,21 +204,21 @@ module Exporters::Tableau::EntryExit
           #     end
           #   end
           # when :times_on_street
-          #   ::HUD.times_homeless_past_three_years_brief value&.to_i
+          #   ::HudUtility.times_homeless_past_three_years_brief value&.to_i
           # when :total_months_homeless_on_street
-          #   ::HUD.months_homeless_past_three_years_brief value&.to_i
+          #   ::HudUtility.months_homeless_past_three_years_brief value&.to_i
           when :night_before_es_sh
-            entering_from_es = ::HUD.institutional_destinations + ::HUD.temporary_destinations
-            entering_from_ph = ::HUD.permanent_destinations
+            entering_from_es = ::HudUtility.institutional_destinations + ::HudUtility.temporary_destinations
+            entering_from_ph = ::HudUtility.permanent_destinations
             if entering_from_es.include? row['res_prior_to_entry']&.to_i
               'Yes'
             elsif entering_from_ph.include? row['res_prior_to_entry']&.to_i
               'No'
             end
           when :less_than_7_nights
-            'Yes' if ::HUD.residence_prior_length_of_stay_brief value&.to_i == '0-7'
+            'Yes' if ::HudUtility.residence_prior_length_of_stay_brief value&.to_i == '0-7'
           when :less_than_90_days
-            'Yes' if ['7-30', '30-90'].include?(::HUD.residence_prior_length_of_stay_brief(value&.to_i))
+            'Yes' if ['7-30', '30-90'].include?(::HudUtility.residence_prior_length_of_stay_brief(value&.to_i))
           when :client_6orunder
             age = row['client_age_at_entry'].presence&.to_i
             if age && age <= 6
@@ -252,7 +252,7 @@ module Exporters::Tableau::EntryExit
             if fields.many?
               'Multiracial'
             elsif fields.any?
-              ::HUD.race fields.first
+              ::HudUtility.race fields.first
             end
           when :disabling_condition
             if disabled_ids.include?(row['client_uid'].to_i)
@@ -289,7 +289,7 @@ module Exporters::Tableau::EntryExit
             # nil - no exit
             # positive number = days to return
             # -1 = no return
-            if ::HUD.permanent_destinations.include? row['destination'].to_i
+            if ::HudUtility.permanent_destinations.include? row['destination'].to_i
               # select all residential enrollments where the entry date is greater than this exit date
               # if the next enrollment is TH it must be > 14 days after exit to count
               # if the next enrollment is PH it must be > 14 days after exit AND 14 days after any other PH or TH exits
@@ -345,7 +345,7 @@ module Exporters::Tableau::EntryExit
               (three_years_prior...entry_date).include?(enrollment['entry_exit_entry_date'].to_date)
             end.count
           when :coc_name
-            ::HUD.coc_name(row['coc_code'])
+            ::HudUtility.coc_name(row['coc_code'])
           else
             value
           end
