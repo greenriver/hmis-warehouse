@@ -39,7 +39,7 @@ class ClientsController < ApplicationController
     clean_params[:Gender]&.each do |k|
       next if k.blank?
 
-      gender_column = HUD.gender_id_to_field_name[k.to_i]
+      gender_column = HudUtility.gender_id_to_field_name[k.to_i]
       clean_params[gender_column] = 1
     end
     clean_params.delete(:Gender)

@@ -59,7 +59,7 @@ module Import::ClientMatching
   end
 
   private def valid_social?(ssn)
-    ::HUD.valid_social?(ssn)
+    ::HudUtility.valid_social?(ssn)
   end
 
   private def clean(row)

@@ -469,7 +469,7 @@ module GrdaWarehouse::Tasks
     end
 
     private def gender_columns
-      @gender_columns ||= ::HUD.gender_fields - [:GenderNone]
+      @gender_columns ||= ::HudUtility.gender_fields - [:GenderNone]
     end
 
     def choose_best_race dest_attr, source_clients

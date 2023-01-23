@@ -1,6 +1,6 @@
 :ruby
   names = GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES.map do |id|
-    name = HUD::project_type(id)
+    name = HudUtility.project_type(id)
   end.sort
   items = names.map do |name|
     "<li class='list-inline-item chip-v1-prs1'>#{CGI.escapeHTML name}</li>"

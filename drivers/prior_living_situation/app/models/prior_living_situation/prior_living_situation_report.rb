@@ -142,7 +142,7 @@ module PriorLivingSituation
             :LengthOfStay,
             :CoCCode,
           ).each do |client_id, living_situation_id, length_of_stay, coc_code|
-            living_situation = HUD.situation_type(living_situation_id, include_homeless_breakout: true)
+            living_situation = HudUtility.situation_type(living_situation_id, include_homeless_breakout: true)
 
             data[:all] ||= living_situation_buckets.map { |b| [b, Set.new] }.to_h
             data[:all][living_situation] << client_id
@@ -161,16 +161,16 @@ module PriorLivingSituation
 
             data[:by_coc][coc_code][:situations] ||= living_situation_buckets.map { |b| [b, Set.new] }.to_h
 
-            # data[:by_coc][coc_code][:situations_length] ||= living_situation_buckets.product(HUD.residence_prior_length_of_stays_brief.values.uniq).map { |b| [b, Set.new] }.to_h
+            # data[:by_coc][coc_code][:situations_length] ||= living_situation_buckets.product(HudUtility.residence_prior_length_of_stays_brief.values.uniq).map { |b| [b, Set.new] }.to_h
             data[:by_coc][coc_code][:situations_length] ||= living_situation_buckets.map { |b| [b, {}] }.to_h
             living_situation_buckets.each do |b|
-              HUD.residence_prior_length_of_stays_brief.values.uniq.each do |l|
+              HudUtility.residence_prior_length_of_stays_brief.values.uniq.each do |l|
                 data[:by_coc][coc_code][:situations_length][b][l] ||= Set.new
               end
             end
 
             data[:by_coc][coc_code][:situations][living_situation] << client_id
-            data[:by_coc][coc_code][:situations_length][living_situation][HUD.residence_prior_length_of_stay_brief(length_of_stay) || ''] << client_id
+            data[:by_coc][coc_code][:situations_length][living_situation][HudUtility.residence_prior_length_of_stay_brief(length_of_stay) || ''] << client_id
           end
         data
       end
@@ -179,7 +179,7 @@ module PriorLivingSituation
 
       # columns:
       #   'location' ()
-      #   'length of stay' HUD.residence_prior_length_of_stay_brief
+      #   'length of stay' HudUtility.residence_prior_length_of_stay_brief
     end
 
     private def living_situation_buckets

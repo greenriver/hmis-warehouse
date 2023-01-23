@@ -7,7 +7,7 @@
 # This information is available from the Shape::State model too
 module GrdaWarehouse
   module UsCensusApi
-    class StateFIPS < Struct.new(:state_code)
+    class StateFips < Struct.new(:state_code)
       def code
         result = {
           'AL' => '01', # Alabama

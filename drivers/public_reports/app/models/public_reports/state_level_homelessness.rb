@@ -352,7 +352,7 @@ module PublicReports
           count
         out_count = homeless_scope.entry.
           exit_within_date_range(start_date: start_date, end_date: end_date).
-          where(destination: ::HUD.permanent_destinations).
+          where(destination: ::HudUtility.permanent_destinations).
           select(:client_id).
           distinct.
           count
@@ -433,7 +433,7 @@ module PublicReports
       {}.tap do |charts|
         client_cache = GrdaWarehouse::Hud::Client.new
         # Manually do HUD race lookup to avoid a bunch of unnecessary mapping and lookups
-        races = ::HUD.races(multi_racial: true)
+        races = ::HudUtility.races(multi_racial: true)
         iteration_dates.each do |date|
           start_date = beginning_iteration(date)
           end_date = end_iteration(date)
@@ -1025,11 +1025,11 @@ module PublicReports
 
     # COC CODES
     private def geometries
-      @geometries ||= GrdaWarehouse::Shape::CoC.where(cocnum: coc_codes)
+      @geometries ||= GrdaWarehouse::Shape::Coc.where(cocnum: coc_codes)
     end
 
     private def state_coc_shapes
-      @state_coc_shapes ||= GrdaWarehouse::Shape::CoC.my_state
+      @state_coc_shapes ||= GrdaWarehouse::Shape::Coc.my_state
     end
 
     private def coc_codes

@@ -21,7 +21,7 @@
           - @missing_data[:missing_projects].each do |project|
             %tr
               %td= link_to project[:project], project_path(project[:id])
-              %th= ::HUD.project_type_brief project[:project_type]
+              %th= ::HudUtility.project_type_brief project[:project_type]
               %td= yes_no(! @missing_data[:missing_operating_start_date].include?(project))
               %td= yes_no(! @missing_data[:missing_housing_type].include?(project))
               %td= yes_no(! @missing_data[:missing_coc_codes].include?(project))
@@ -50,7 +50,7 @@
     - content_for :filters_col_full do
       .row
         .col-sm-12
-          %p The LSA must be run system-wide for submission to HUD.  To run a system-wide LSA, choose a CoC Code and date range and leave project, project group, and data source limits empty.
+          %p The LSA must be run system-wide for submission to HudUtility.  To run a system-wide LSA, choose a CoC Code and date range and leave project, project group, and data source limits empty.
           %p To run the LSA for a sub-set of projects, usually for local data validation, you can limit the projects included by choosing any combination of project, project group, or data source.
       .row
         .col-sm-6

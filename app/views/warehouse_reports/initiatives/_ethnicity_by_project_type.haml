@@ -6,13 +6,13 @@
     %thead
       %tr
         %th Project Type
-        - ::HUD.ethnicities.each do |id, value|
+        - ::HudUtility.ethnicities.each do |id, value|
           %th= value
     %tbody
       - @data.involved_project_types.each do |p_type|
         %tr
           %th= p_type
-          - ::HUD.ethnicities.each do |id, value|
+          - ::HudUtility.ethnicities.each do |id, value|
             %td
               - key = "#{p_type}__#{value}"
               - count = data[key] || 0

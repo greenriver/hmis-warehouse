@@ -7,18 +7,18 @@
     - legend_id = vm.legend_id(by, period)
     - collapse_id = vm.collapse_id(by, period)
     - if period == :report
-      - dates = "#{@report_range.first.to_date} to #{@report_range.last.to_date}" 
-    - if period == :comparison 
+      - dates = "#{@report_range.first.to_date} to #{@report_range.last.to_date}"
+    - if period == :comparison
       - dates = "#{@comparison_range.first.to_date} to #{@comparison_range.last.to_date}"
     = render 'pie_charts', buckets: buckets, chart_id: chart_id, table_id: table_id, legend_id: legend_id, collapse_id: collapse_id, title: "Destination Counts by #{by.to_s.gsub('_', ' ').titleize} for #{period.to_s.titleize} Period (#{dates})", outer_legend: 'Destination', by: by
 
 -#
-  - if data = @data[:destination_breakdowns_by_project_type] 
+  - if data = @data[:destination_breakdowns_by_project_type]
     :ruby
-      permanent_destinations = HUD::permanent_destinations
-      temporary_destinations = HUD::temporary_destinations
-      institutional_destinations = HUD::institutional_destinations
-      other_destinations = HUD::other_destinations
+      permanent_destinations = HudUtility.permanent_destinations
+      temporary_destinations = HudUtility.temporary_destinations
+      institutional_destinations = HudUtility.institutional_destinations
+      other_destinations = HudUtility.other_destinations
       buckets = {permanent: {total: 0}, temporary: {total: 0}, institutional: {total: 0}, other: {total: 0}}
       data.each do |k, count|
         (project_type, destination) = k.split('__')
@@ -60,10 +60,10 @@
 
   - if data = @data[:comparison_destination_breakdowns_by_project_type]
     :ruby
-      permanent_destinations = HUD::permanent_destinations
-      temporary_destinations = HUD::temporary_destinations
-      institutional_destinations = HUD::institutional_destinations
-      other_destinations = HUD::other_destinations
+      permanent_destinations = HudUtility.permanent_destinations
+      temporary_destinations = HudUtility.temporary_destinations
+      institutional_destinations = HudUtility.institutional_destinations
+      other_destinations = HudUtility.other_destinations
       buckets = {permanent: {}, temporary: {}, institutional: {}, other: {}}
       data.each do |k, count|
         (project_type, destination) = k.split('__')
@@ -101,10 +101,10 @@
 
   - if data = @data[:destination_breakdowns_by_project]
     :ruby
-      permanent_destinations = HUD::permanent_destinations
-      temporary_destinations = HUD::temporary_destinations
-      institutional_destinations = HUD::institutional_destinations
-      other_destinations = HUD::other_destinations
+      permanent_destinations = HudUtility.permanent_destinations
+      temporary_destinations = HudUtility.temporary_destinations
+      institutional_destinations = HudUtility.institutional_destinations
+      other_destinations = HudUtility.other_destinations
       buckets = {permanent: {total: 0}, temporary: {total: 0}, institutional: {total: 0}, other: {total: 0}}
       @data.involved_projects.sort_by(&:last).each do |(p_id, p_name)|
         buckets.each do |k, _|
@@ -155,10 +155,10 @@
 
   - if data = @data[:comparison_destination_breakdowns_by_project]
     :ruby
-      permanent_destinations = HUD::permanent_destinations
-      temporary_destinations = HUD::temporary_destinations
-      institutional_destinations = HUD::institutional_destinations
-      other_destinations = HUD::other_destinations
+      permanent_destinations = HudUtility.permanent_destinations
+      temporary_destinations = HudUtility.temporary_destinations
+      institutional_destinations = HudUtility.institutional_destinations
+      other_destinations = HudUtility.other_destinations
       buckets = {permanent: {}, temporary: {}, institutional: {}, other: {}}
       @data.involved_projects.sort_by(&:last).each do |(p_id, p_name)|
         buckets.each do |k, _|

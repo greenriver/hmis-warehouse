@@ -4,22 +4,22 @@ class Hmis::Hud::Validators::ServiceValidator < Hmis::Hud::Validators::BaseValid
   ].freeze
 
   TYPE_PROVIDED_MAP = {
-    141 => ::HUD.p_a_t_h_services_map,
-    142 => ::HUD.r_h_y_services_map,
-    143 => ::HUD.h_o_p_w_a_services_map,
-    144 => ::HUD.s_s_v_f_services_map,
-    151 => ::HUD.h_o_p_w_a_financial_assistance_map,
-    152 => ::HUD.s_s_v_f_financial_assistance_map,
-    161 => ::HUD.p_a_t_h_referral_map,
-    200 => ::HUD.bed_night_map,
-    210 => ::HUD.voucher_tracking_map,
-    300 => ::HUD.moving_on_assistance_map,
+    141 => ::HudUtility.p_a_t_h_services_map,
+    142 => ::HudUtility.r_h_y_services_map,
+    143 => ::HudUtility.h_o_p_w_a_services_map,
+    144 => ::HudUtility.s_s_v_f_services_map,
+    151 => ::HudUtility.h_o_p_w_a_financial_assistance_map,
+    152 => ::HudUtility.s_s_v_f_financial_assistance_map,
+    161 => ::HudUtility.p_a_t_h_referral_map,
+    200 => ::HudUtility.bed_night_map,
+    210 => ::HudUtility.voucher_tracking_map,
+    300 => ::HudUtility.moving_on_assistance_map,
   }.freeze
 
   SUB_TYPE_PROVIDED_MAP = {
-    3 => ::HUD.s_s_v_f_sub_type3_map,
-    4 => ::HUD.s_s_v_f_sub_type4_map,
-    5 => ::HUD.s_s_v_f_sub_type5_map,
+    3 => ::HudUtility.s_s_v_f_sub_type3_map,
+    4 => ::HudUtility.s_s_v_f_sub_type4_map,
+    5 => ::HudUtility.s_s_v_f_sub_type5_map,
   }.freeze
 
   def configuration
@@ -35,7 +35,7 @@ class Hmis::Hud::Validators::ServiceValidator < Hmis::Hud::Validators::BaseValid
   end
 
   def validate_record_type(record)
-    return if ::HUD.record_types.reject { |_k, v| v == 'Contact' }.any? { |k, _v| record.record_type == k }
+    return if ::HudUtility.record_types.reject { |_k, v| v == 'Contact' }.any? { |k, _v| record.record_type == k }
 
     record.errors.add :record_type, :invalid, message: 'Invalid RecordType', full_message: "Value for RecordType '#{record.record_type}' is not a valid RecordType"
   end

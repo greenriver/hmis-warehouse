@@ -20,6 +20,6 @@
           %td= client.age
           %td= client.gender
           %td
-            = HUD::ethnicity client.Ethnicity
+            = HudUtility.ethnicity client.Ethnicity
             \/
-            = client.race_fields.map{ |f| HUD::race f }.join ', '
+            = client.race_fields.map{ |f| HudUtility.race f }.join ', '

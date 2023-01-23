@@ -29,7 +29,7 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
       @non_overlapping = true
     elsif project_type.present?
       @project_type = project_type.to_i
-      raise Error, 'Invalid project type' unless ::HUD.project_types.key?(@project_type)
+      raise Error, 'Invalid project type' unless ::HudUtility.project_types.key?(@project_type)
     end
 
     # FIXME: there is some sort of schema cache issue in development
@@ -57,7 +57,7 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
   end
 
   def coc_shape_by_cocnum
-    GrdaWarehouse::Shape::CoC.where(cocnum: coc_codes).index_by(&:cocnum)
+    GrdaWarehouse::Shape::Coc.where(cocnum: coc_codes).index_by(&:cocnum)
   end
   memoize :coc_shape_by_cocnum
 
@@ -72,7 +72,7 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
   def shared_clients
     GrdaWarehouse::Hud::Client.where(
       id: overlapping_client_ids.map(&:to_i),
-    ).select(*['id', 'DOB', 'Ethnicity'] + HUD.gender_fields + GrdaWarehouse::Hud::Client.race_fields)
+    ).select(*['id', 'DOB', 'Ethnicity'] + HudUtility.gender_fields + GrdaWarehouse::Hud::Client.race_fields)
   end
   memoize :shared_clients
 
@@ -185,7 +185,7 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
           gender: client.gender,
           age_group: age_group(client),
           race: client.race_description,
-          ethnicity: ::HUD.ethnicity(client.Ethnicity),
+          ethnicity: ::HudUtility.ethnicity(client.Ethnicity),
           client_id: client.to_param,
         }
       end
@@ -221,7 +221,7 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
           gender: client.gender,
           age_group: age_group(client),
           race: client.race_description,
-          ethnicity: ::HUD.ethnicity(client.Ethnicity),
+          ethnicity: ::HudUtility.ethnicity(client.Ethnicity),
           enrollments: enrollment_details(services, user),
           client_id: client.to_param,
         }
@@ -250,7 +250,7 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
       {
         coc: project.project_cocs.first.effective_coc_code,
         project_name: project.name(user),
-        project_type: ::HUD.project_type_brief(project.ProjectType),
+        project_type: ::HudUtility.project_type_brief(project.ProjectType),
         history: history_details(project_services),
       }
     end.sort_by do |service|
@@ -283,7 +283,7 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
       next unless (async + concurrent).positive?
 
       [
-        HUD.project_type(p_type),
+        HudUtility.project_type(p_type),
         [
           async,
           concurrent,

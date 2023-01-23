@@ -111,9 +111,9 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
       assessment_id: Hmis::Hud::Assessment.generate_assessment_id,
       assessment_date: assessment_date,
       assessment_location: enrollment.project.project_name,
-      assessment_type: ::HUD.ignored_enum_value,
-      assessment_level: ::HUD.ignored_enum_value,
-      prioritization_status: ::HUD.ignored_enum_value,
+      assessment_type: ::HudUtility.ignored_enum_value,
+      assessment_level: ::HudUtility.ignored_enum_value,
+      prioritization_status: ::HudUtility.ignored_enum_value,
       date_created: DateTime.current,
       date_updated: DateTime.current,
     )

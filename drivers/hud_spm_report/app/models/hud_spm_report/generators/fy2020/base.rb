@@ -1455,8 +1455,8 @@ module HudSpmReport::Generators::Fy2020
     #
     # sh_enrollments: an Array(GrdaWarehouse::ServiceHistoryEnrollments) for a client with suitable preloads
     #   covering all dates that could contribute to this report
-    # project_types: Array(HUD.project_types.keys)
-    # stop_project_types: Array(HUD.project_types.keys)
+    # project_types: Array(HudUtility.project_types.keys)
+    # stop_project_types: Array(HudUtility.project_types.keys)
     # include_pre_entry: boolean true to include days before entry
     #
     # The flags are set like so

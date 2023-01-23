@@ -232,7 +232,7 @@ module ReportGenerators::DataQuality::Fy2017
           [
             client_id,
             @client_personal_ids[client_id].join(', '),
-            HUD.no_yes_reasons_for_missing_data(enrollment[:VeteranStatus]),
+            HudUtility.no_yes_reasons_for_missing_data(enrollment[:VeteranStatus]),
             enrollment[:age],
           ]
         end

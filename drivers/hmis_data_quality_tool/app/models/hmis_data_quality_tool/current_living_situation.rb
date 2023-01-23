@@ -21,7 +21,7 @@ module HmisDataQualityTool
         destination_client_id: { title: 'Warehouse Client ID' },
         current_living_situation_id: { title: 'Current Living Situation ID' },
         hmis_current_living_situation_id: { title: 'HMIS Current Living Situation ID' },
-        current_living_situation: { title: 'Current Living Situation', translator: ->(v) { "#{HUD.living_situation(v)} (#{v})" } },
+        current_living_situation: { title: 'Current Living Situation', translator: ->(v) { "#{HudUtility.living_situation(v)} (#{v})" } },
         first_name: { title: 'First Name' },
         last_name: { title: 'Last Name' },
         project_name: { title: 'Project Name' },
@@ -111,7 +111,7 @@ module HmisDataQualityTool
           required_for: 'All',
           denominator: ->(_item) { true },
           limiter: ->(item) {
-            ! HUD.valid_current_living_situations.include?(item.situation)
+            ! HudUtility.valid_current_living_situations.include?(item.situation)
           },
         },
       }.freeze

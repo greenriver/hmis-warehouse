@@ -2,7 +2,7 @@
 #
 # Test with this:
 # DBA_MIN_ROWS=200  DBA_MIN_UNUSED_INDEX_SIZE=10000 DBA_BLOAT_CUTOFF=1 DBA_SIZE_CUTOFF=100000 ./bin/rake dba:dry_run
-class DBA::DatabaseBloat
+class Dba::DatabaseBloat
   attr_accessor :ar_base_class
   attr_accessor :dry_run
 
@@ -36,7 +36,7 @@ class DBA::DatabaseBloat
     dbs << CasBase if CasBase.db_exists?
     dbs.each do |ar_base_class|
       Rails.logger.tagged({ 'dba' => true, 'base_class' => ar_base_class.to_s, 'method' => meth.to_s }) do
-        db = DBA::DatabaseBloat.new(ar_base_class: ar_base_class, dry_run: dry_run)
+        db = Dba::DatabaseBloat.new(ar_base_class: ar_base_class, dry_run: dry_run)
         db.send(meth)
       end
     end

@@ -145,7 +145,7 @@ module CasAccess
     end
 
     def self.valid_social?(ssn)
-      ::HUD.valid_social?(ssn)
+      ::HudUtility.valid_social?(ssn)
     end
   end
 end

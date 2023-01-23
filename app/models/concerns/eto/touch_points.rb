@@ -8,7 +8,7 @@ module Eto
   module TouchPoints
     extend ActiveSupport::Concern
     included do
-      has_many :client_attributes_defined_text, class_name: 'GrdaWarehouse::HMIS::ClientAttributeDefinedText', inverse_of: :client
+      has_many :client_attributes_defined_text, class_name: 'GrdaWarehouse::Hmis::ClientAttributeDefinedText', inverse_of: :client
       has_many :hmis_forms, class_name: 'GrdaWarehouse::HmisForm'
       has_many :non_confidential_hmis_forms, -> do
         joins(:hmis_forms).where(id: GrdaWarehouse::HmisForm.window.non_confidential.select(:id))

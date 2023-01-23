@@ -17,14 +17,14 @@ module Reporting::DataQualityReports
       project.project_cocs.map(&:CoCCode).uniq.join(', ')
     end
     def calculate_funder project:
-      project.funders.map{ |f| HUD.funding_source f.Funder&.to_i }.uniq.join(', ')
+      project.funders.map{ |f| HudUtility.funding_source f.Funder&.to_i }.uniq.join(', ')
     end
     def calculate_geocode project:
       project.project_cocs.map(&:Geocode).uniq.join(', ')
     end
     def calculate_geography_type project:
       project.project_cocs.map do |m|
-        HUD::geography_type(m.GeographyType)
+        HudUtility.geography_type(m.GeographyType)
       end.uniq.join(', ')
     end
 

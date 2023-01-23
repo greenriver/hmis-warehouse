@@ -190,7 +190,7 @@ module GrdaWarehouse::WarehouseReports
 
         if en.ph?
           # Homeless Situation
-          if HUD.homeless_situations(as: :prior).include?(enrollment&.LivingSituation)
+          if HudUtility.homeless_situations(as: :prior).include?(enrollment&.LivingSituation)
 
             # Add any dates between DateToStreetESSH and the MoveInDate
             count_until = [enrollment.MoveInDate, en.last_date_in_program, filter.end].compact.min
@@ -198,7 +198,7 @@ module GrdaWarehouse::WarehouseReports
               self_report_dates[d] = self_reported_shelter
             end
             # Institutional Situations
-          elsif HUD.institutional_situations(as: :prior).include?(enrollment&.LivingSituation)
+          elsif HudUtility.institutional_situations(as: :prior).include?(enrollment&.LivingSituation)
             next unless enrollment.LOSUnderThreshold == 1 && enrollment.PreviousStreetESSH == 1
 
             # Add any dates between DateToStreetESSH and the MoveInDate
@@ -211,7 +211,7 @@ module GrdaWarehouse::WarehouseReports
           next unless project.ContinuumProject == 1
           next unless en.computed_project_type.in?([1, 2, 4, 8, 11, 12, 14])
           # Homeless enrollment, or institutional stay
-          if en.es? || en.sh? || en.so? || HUD.institutional_situations(as: :prior).include?(enrollment&.LivingSituation)
+          if en.es? || en.sh? || en.so? || HudUtility.institutional_situations(as: :prior).include?(enrollment&.LivingSituation)
             (enrollment.DateToStreetESSH..en.first_date_in_program).each do |d|
               self_report_dates[d] = self_reported_shelter
             end
@@ -250,12 +250,12 @@ module GrdaWarehouse::WarehouseReports
     end
 
     private def institutional_stay_longer_than_90_days?(entry)
-      entry.enrollment.LivingSituation.in?(HUD.institutional_situations(as: :prior)) &&
+      entry.enrollment.LivingSituation.in?(HudUtility.institutional_situations(as: :prior)) &&
         entry.enrollment.LengthOfStay.in?([4, 5])
     end
 
     private def transitional_or_permanent_longer_than_7_days?(entry)
-      entry.enrollment.LivingSituation.in?(HUD.temporary_and_permanent_housing_situations(as: :prior)) &&
+      entry.enrollment.LivingSituation.in?(HudUtility.temporary_and_permanent_housing_situations(as: :prior)) &&
         entry.enrollment.LengthOfStay.in?([2, 3, 4, 5])
     end
 

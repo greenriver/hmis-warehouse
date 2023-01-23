@@ -26,8 +26,8 @@
         = f.input :hoh_only, as: :boolean, label: 'Limit to heads of household'
   .row
     .col-sm-4
-      = f.input :genders, collection: HUD.genders.invert, as: :select_two, required: false, placeholder: 'Any Gender', input_html: { multiple: true, placeholder: 'Any Gender' }
+      = f.input :genders, collection: HudUtility.genders.invert, as: :select_two, required: false, placeholder: 'Any Gender', input_html: { multiple: true, placeholder: 'Any Gender' }
     .col-sm-4
-      = f.input :races, collection: HUD.races.invert, as: :select_two, required: false, placeholder: 'Any Race', input_html: { multiple: true, placeholder: 'Any Race' }
+      = f.input :races, collection: HudUtility.races.invert, as: :select_two, required: false, placeholder: 'Any Race', input_html: { multiple: true, placeholder: 'Any Race' }
     .col-sm-4
-      = f.input :ethnicities, collection: HUD.ethnicities.invert, as: :select_two, required: false, placeholder: 'Any Ethnicity', input_html: { multiple: true, placeholder: 'Any Ethnicity' }
+      = f.input :ethnicities, collection: HudUtility.ethnicities.invert, as: :select_two, required: false, placeholder: 'Any Ethnicity', input_html: { multiple: true, placeholder: 'Any Ethnicity' }

@@ -164,6 +164,7 @@ gem 'puma', '~> 4.3.11'
 gem 'dotenv-rails'
 
 gem 'net-sftp', require: false
+gem 'net-http'
 gem 'redis-actionpack'
 
 # AWS SDK is needed for deployment and within the application
@@ -211,6 +212,11 @@ gem 'parallel'
 gem 'todo_or_die'
 gem 'reline', '~> 0.2'
 
+gem "business_time", "~> 0.10.0"
+gem "cable_ready", "~> 4.5"
+gem "graphql", "~> 2.0"
+gem "sentry-rails", "~> 5.5"
+
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
   gem 'byebug'
@@ -219,7 +225,6 @@ group :development, :test do
   gem 'brakeman', '~> 5.0.4', require: false
   gem 'rspec-rails', require: false
   gem 'factory_bot_rails'
-  gem 'guard-rspec', require: false
   gem 'vcr'
   gem 'webmock'
   # gem 'rb-readline'
@@ -282,11 +287,3 @@ end
 group :production, :development, :staging do
   gem 'tiny_tds'
 end
-
-gem "business_time", "~> 0.10.0"
-
-gem "cable_ready", "~> 4.5"
-
-gem "graphql", "~> 2.0"
-
-gem "sentry-rails", "~> 5.5"

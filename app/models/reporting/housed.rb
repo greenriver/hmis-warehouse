@@ -76,7 +76,7 @@ module Reporting
     end
 
     scope :ph_destinations, -> do
-      where(destination: ::HUD.permanent_destinations)
+      where(destination: ::HudUtility.permanent_destinations)
     end
 
     # Pre-placement
@@ -189,19 +189,19 @@ module Reporting
     end
 
     def self.available_races
-      ::HUD.races(multi_racial: true)
+      ::HudUtility.races(multi_racial: true)
     end
 
     def self.available_ethnicities
-      ::HUD.ethnicities
+      ::HudUtility.ethnicities
     end
 
     def self.available_genders
-      ::HUD.genders
+      ::HudUtility.genders
     end
 
     def self.available_veteran_stati
-      ::HUD.no_yes_reasons_for_missing_data_options
+      ::HudUtility.no_yes_reasons_for_missing_data_options
     end
 
     def self.household_type(key)
@@ -255,7 +255,7 @@ module Reporting
             client.delete(:id)
             en.merge!(client)
             en[:month_year] = en[:housed_date]&.strftime('%Y-%m-01')
-            if HUD.permanent_destinations.include?(en[:destination])
+            if HudUtility.permanent_destinations.include?(en[:destination])
               en[:ph_destination] = :ph
             else
               en[:ph_destination] = :not_ph

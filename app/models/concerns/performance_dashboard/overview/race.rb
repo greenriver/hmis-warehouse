@@ -8,14 +8,14 @@ module PerformanceDashboard::Overview::Race
   extend ActiveSupport::Concern
 
   private def race_buckets
-    HUD.races.keys + ['Multiple', 'Unknown']
+    HudUtility.races.keys + ['Multiple', 'Unknown']
   end
 
   def race_title(key)
     return 'Multi-Race' if key == 'Multiple'
     return 'Unknown-Race' if key == 'Unknown'
 
-    HUD.race(key)
+    HudUtility.race(key)
   end
 
   def race_bucket_titles

@@ -10,7 +10,7 @@ module
   included do
     def relationship_detail_hash
       {}.tap do |hashes|
-        ::HUD.relationships_to_hoh.each do |key, title|
+        ::HudUtility.relationships_to_hoh.each do |key, title|
           hashes["relationship_#{key}"] = {
             title: "Relationship #{title}",
             headers: client_headers,
@@ -39,7 +39,7 @@ module
       rows['_Relationship to Head of Household Break'] ||= []
       rows['*Relationship to Head of Household'] ||= []
       rows['*Relationship to Head of Household'] += ['Relationship', 'Count', 'Percentage', nil, nil]
-      ::HUD.relationships_to_hoh.each do |id, title|
+      ::HudUtility.relationships_to_hoh.each do |id, title|
         rows["_Relationship_data_#{title}"] ||= []
         rows["_Relationship_data_#{title}"] += [
           title,

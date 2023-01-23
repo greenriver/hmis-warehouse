@@ -29,7 +29,7 @@
             %td.date-cell= enrollment_coc.enrollment.EntryDate
             %td= enrollment_coc.InformationDate
             %td= enrollment_coc.CoCCode
-            %td= HUD.data_collection_stage enrollment_coc.DataCollectionStage
+            %td= HudUtility.data_collection_stage enrollment_coc.DataCollectionStage
             %td.text-right
               - if @client.hmis_source_visible_by?(current_user)
                 = link_to 'HMIS', source_datum_path(enrollment_coc, type: 'EnrollmentCoC'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis mb-2'

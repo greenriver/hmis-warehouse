@@ -37,7 +37,7 @@ module HmisCsvTwentyTwentyTwo::Importer
           },
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HUD.source_types.keys.map(&:to_s).freeze },
+            arguments: { valid_options: HudUtility.source_types.keys.map(&:to_s).freeze },
           },
         ],
         ExportStartDate: [
@@ -52,7 +52,7 @@ module HmisCsvTwentyTwentyTwo::Importer
           },
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HUD.period_types.keys.map(&:to_s).freeze },
+            arguments: { valid_options: HudUtility.period_types.keys.map(&:to_s).freeze },
           },
         ],
         ExportDirective: [
@@ -61,7 +61,7 @@ module HmisCsvTwentyTwentyTwo::Importer
           },
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HUD.export_directives.keys.map(&:to_s).freeze },
+            arguments: { valid_options: HudUtility.export_directives.keys.map(&:to_s).freeze },
           },
         ],
         HashStatus: [
@@ -70,7 +70,7 @@ module HmisCsvTwentyTwentyTwo::Importer
           },
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HUD.hash_statuses.keys.map(&:to_s).freeze },
+            arguments: { valid_options: HudUtility.hash_statuses.keys.map(&:to_s).freeze },
           },
         ],
       }
