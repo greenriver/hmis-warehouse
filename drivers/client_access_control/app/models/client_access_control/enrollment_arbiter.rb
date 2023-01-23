@@ -91,7 +91,9 @@ module ClientAccessControl
     end
 
     private def consent_sub_query(coc_codes)
-      unscoped_clients.active_confirmed_consent_in_cocs(coc_codes)
+      unscoped_clients.active_confirmed_consent_in_cocs(coc_codes).
+        joins(:data_source).
+        merge(::GrdaWarehouse::DataSource.source.obeys_consent)
     end
 
     # NOTE: because we call EnrollmentArbiter within a scope on client, the

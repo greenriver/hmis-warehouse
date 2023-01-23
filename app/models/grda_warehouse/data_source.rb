@@ -60,6 +60,10 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     importable.where(source_type: 's3')
   end
 
+  scope :obeys_consent, -> do
+    where(obey_consent: true)
+  end
+
   scope :viewable_by, ->(user) do
     qc = ->(s) { connection.quote_column_name s }
     q  = ->(s) { connection.quote s }
