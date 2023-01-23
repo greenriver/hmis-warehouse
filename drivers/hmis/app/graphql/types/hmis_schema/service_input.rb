@@ -20,12 +20,11 @@ module Types
     argument :referral_outcome, HmisSchema::Enums::Hud::PATHReferralOutcome, required: false
 
     def to_params
-      result = to_h
+      result = to_h.except(:service_type)
 
       result[:record_type] = record_type || type_provided&.split(':')&.first&.to_i
-      result[:type_provided] = type_provided.split(':').last&.to_i if type_provided.present?
+      result[:type_provided] = type_provided&.split(':')&.last&.to_i
       result[:sub_type_provided] = sub_type_provided.split(':').last&.to_i if sub_type_provided.present?
-      result[:date_provided] = date_provided || Date.today
 
       enrollment = Hmis::Hud::Enrollment.editable_by(current_user).find_by(id: enrollment_id)
 

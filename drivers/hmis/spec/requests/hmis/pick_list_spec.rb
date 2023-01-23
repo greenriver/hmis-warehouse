@@ -123,10 +123,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     )
     expect(options).to include(
       include(
-        'code' => '141:1',
-        'label' => '(1) Re-engagement',
-        'groupCode' => '141',
-        'groupLabel' => '(141) PATH service',
+        'code' => 'PATH_SERVICE__RE_ENGAGEMENT',
+        'label' => 'Re-engagement',
+        'groupCode' => 'PATH_SERVICE',
+        'groupLabel' => 'PATH service',
       ),
     )
   end

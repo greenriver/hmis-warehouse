@@ -1,6 +1,8 @@
 class Hmis::Hud::Validators::ServiceValidator < Hmis::Hud::Validators::BaseValidator
   IGNORED = [
     :ExportID,
+    :TypeProvided,
+    :RecordType,
   ].freeze
 
   TYPE_PROVIDED_MAP = {
@@ -28,23 +30,37 @@ class Hmis::Hud::Validators::ServiceValidator < Hmis::Hud::Validators::BaseValid
 
   def validate(record)
     super(record) do
-      validate_record_type(record)
-      validate_type_provided(record)
+      # validate_record_type(record)
+      # validate_type_provided(record)
+      validate_service_type(record)
       validate_sub_type_provided(record)
     end
   end
 
-  def validate_record_type(record)
+  def validate_service_type(record)
+    record.errors.add :type_provided, :required, message: 'must exist' unless record.record_type.present? && record.type_provided.present?
+    return unless record.record_type.present? && record.type_provided.present?
     return if ::HUD.record_types.reject { |_k, v| v == 'Contact' }.any? { |k, _v| record.record_type == k }
 
-    record.errors.add :record_type, :invalid, message: 'Invalid RecordType', full_message: "Value for RecordType '#{record.record_type}' is not a valid RecordType"
-  end
-
-  def validate_type_provided(record)
+    record.errors.add :type_provided, :invalid, message: 'is invalid', full_message: "Service type category '#{record.record_type}' is not a valid category"
     return if TYPE_PROVIDED_MAP.any? { |rt, tp_map| record.record_type == rt && tp_map.keys.include?(record.type_provided) }
 
-    record.errors.add :type_provided, :invalid, message: 'Invalid TypeProvided for RecordType', full_message: "Value for TypeProvided '#{record.type_provided}' does not match RecordType '#{record.record_type}'"
+    record.errors.add :type_provided, :invalid, message: 'Invalid service type', full_message: "Value for service type '#{record.type_provided}' is not a valid service type for the category '#{record.record_type}'"
   end
+
+  # def validate_record_type(record)
+  #   return unless record.record_type.present?
+  #   return if ::HUD.record_types.reject { |_k, v| v == 'Contact' }.any? { |k, _v| record.record_type == k }
+
+  #   record.errors.add :record_type, :invalid, message: 'Invalid RecordType', full_message: "Value for RecordType '#{record.record_type}' is not a valid RecordType"
+  # end
+
+  # def validate_type_provided(record)
+  #   return unless record.record_type.present?
+  #   return if TYPE_PROVIDED_MAP.any? { |rt, tp_map| record.record_type == rt && tp_map.keys.include?(record.type_provided) }
+
+  #   record.errors.add :type_provided, :invalid, message: 'Invalid TypeProvided for RecordType', full_message: "Value for TypeProvided '#{record.type_provided}' does not match RecordType '#{record.record_type}'"
+  # end
 
   def validate_sub_type_provided(record)
     if record.record_type == 144
