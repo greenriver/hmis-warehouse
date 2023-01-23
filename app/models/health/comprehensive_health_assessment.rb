@@ -1054,7 +1054,7 @@ module Health
     def collection_methods
       {
         in_person: 'In-Person',
-        phone: 'On Phone',
+        phone_call: 'On Phone',
       }.invert
     end
 
