@@ -51,7 +51,7 @@ module Mutations
 
       if assessment.valid? && assessment.assessment_detail.valid?
         assessment.assessment_detail.save!
-        assessment.assessment_detail.assessment_processor.run!
+        # assessment.assessment_detail.assessment_processor.run!
         assessment.save_not_in_progress
         # If this is an intake assessment, move the enrollment out of WIP status
         assessment.enrollment.save_not_in_progress if assessment.intake?
