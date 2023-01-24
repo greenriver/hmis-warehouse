@@ -49,18 +49,18 @@ RSpec.describe HmisCsvTwentyTwentyTwo::Exporter::Base, type: :model do
       setup_data
       override_coc_codes
 
-      @exporter = HmisCsvTwentyTwentyTwo::Exporter::Base.new(
-        start_date: 1.week.ago.to_date,
-        end_date: Date.current,
-        projects: [@projects.first.id],
-        period_type: 3,
-        directive: 3,
-        user_id: @user.id,
-      )
-      @exporter.export!(cleanup: false, zip: false, upload: false)
       warehouse_fixture.store
       app_fixture.store
     end
+    @exporter = HmisCsvTwentyTwentyTwo::Exporter::Base.new(
+      start_date: 1.week.ago.to_date,
+      end_date: Date.current,
+      projects: [@projects.first.id],
+      period_type: 3,
+      directive: 3,
+      user_id: @user.id,
+    )
+    @exporter.export!(cleanup: false, zip: false, upload: false)
   end
 
   after(:all) do
