@@ -539,7 +539,7 @@ class Role < ApplicationRecord
         ],
       },
       can_edit_cohort_clients: {
-        description: 'Ability to participate in all cohorts, including adding, editing, and removing clients, but not changing cohort settings',
+        description: 'Ability to participate in all cohorts, including adding, editing, removing clients, and viewing inactive clients, but not changing cohort settings',
         administrative: true,
         categories: [
           'Cohorts',
