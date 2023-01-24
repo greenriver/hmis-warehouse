@@ -20,7 +20,7 @@ module Types
     argument :referral_outcome, HmisSchema::Enums::Hud::PATHReferralOutcome, required: false
 
     def to_params
-      result = to_h.except(:service_type)
+      result = to_h
 
       result[:record_type] = record_type || type_provided&.split(':')&.first&.to_i
       result[:type_provided] = type_provided&.split(':')&.last&.to_i
