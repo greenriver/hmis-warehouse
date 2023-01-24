@@ -50,7 +50,7 @@ class Hmis::Hud::Validators::ServiceValidator < Hmis::Hud::Validators::BaseValid
     if record.record_type == 144
       if SUB_TYPE_PROVIDED_MAP.keys.include?(record.type_provided)
         record.errors.add :sub_type_provided, :invalid, message: 'Invalid SubTypeProvided for TypeProvided', full_message: "Value for SubTypeProvided '#{record.sub_type_provided}' does not match TypeProvided '#{record.type_provided}'" unless SUB_TYPE_PROVIDED_MAP.any? { |tp, stp_map| record.type_provided == tp && stp_map.keys.include?(record.sub_type_provided) }
-      else
+      elsif record.sub_type_provided.present?
         record.errors.add :sub_type_provided, :invalid, message: 'Invalid SubTypeProvided for TypeProvided', full_message: "SubTypeProvided must be null unless TypeProvided is 3, 4 or 5. TypeProvided is #{record.type_provided}"
       end
     elsif record.sub_type_provided.present?

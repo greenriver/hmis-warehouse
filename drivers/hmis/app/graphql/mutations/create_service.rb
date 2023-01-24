@@ -7,6 +7,7 @@ module Mutations
 
     def resolve(input:)
       user = hmis_user
+      errors = []
 
       service = Hmis::Hud::Service.new(
         services_id: Hmis::Hud::Service.generate_services_id,
