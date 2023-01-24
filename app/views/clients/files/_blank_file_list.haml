@@ -3,7 +3,7 @@
     %header.o-section-card__header
       %h3= file_list_title
     .c-card.c-card--flush.c-card--block
-      %table.table.table-sm
+      %table.table.table-striped
         %thead
           %tr
             %th Document
@@ -13,5 +13,5 @@
               %tr
                 %td
                   = link_to file[:url] do
-                    = file[:title]
-                    %i.pull-right.icon-download2
+                    %i.mr-2.pull-right.icon-download2
+                    = _(file[:title])
