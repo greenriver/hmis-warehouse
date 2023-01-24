@@ -154,16 +154,6 @@ module WarehouseReports
       ]
     end
 
-    private def project_ids(project_ids)
-      return :all unless project_ids.present?
-
-      project_ids = available_projects.map(&:last).
-        select { |m| project_ids.include?(m) }
-      return project_ids.map(&:to_i) if project_ids
-
-      :all
-    end
-
     private def project_source
       GrdaWarehouse::Hud::Project.viewable_by(current_user)
     end
