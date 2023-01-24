@@ -16,6 +16,9 @@
     .d-flex.pt-2.pb-2
       - if Rails.env.development?
         .git-branch.ml-auto
+          .label.label-info
+            = ENV['CLIENT']
+        .git-branch.ml-4
           = branch_info
         .git-branch.ml-4
           .navbar-text
