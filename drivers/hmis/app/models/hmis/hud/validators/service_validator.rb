@@ -38,9 +38,12 @@ class Hmis::Hud::Validators::ServiceValidator < Hmis::Hud::Validators::BaseValid
   def validate_service_type(record)
     record.errors.add :type_provided, :required, message: 'must exist' unless record.record_type.present? && record.type_provided.present?
     return unless record.record_type.present? && record.type_provided.present?
-    return if ::HudUtility.record_types.reject { |_k, v| v == 'Contact' }.any? { |k, _v| record.record_type == k }
 
-    record.errors.add :type_provided, :invalid, message: 'is invalid', full_message: "Service type category '#{record.record_type}' is not a valid category"
+    unless ::HudUtility.record_types.reject { |_k, v| v == 'Contact' }.any? { |k, _v| record.record_type == k }
+      record.errors.add :type_provided, :invalid, message: 'is invalid', full_message: "Service type category '#{record.record_type}' is not a valid category"
+      return
+    end
+
     return if TYPE_PROVIDED_MAP.any? { |rt, tp_map| record.record_type == rt && tp_map.keys.include?(record.type_provided) }
 
     record.errors.add :type_provided, :invalid, message: 'Invalid service type', full_message: "Value for service type '#{record.type_provided}' is not a valid service type for the category '#{record.record_type}'"
