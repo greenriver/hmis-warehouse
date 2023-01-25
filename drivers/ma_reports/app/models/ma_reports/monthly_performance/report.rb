@@ -7,11 +7,19 @@
 module MaReports::MonthlyPerformance
   class Report < SimpleReports::ReportInstance
     include Rails.application.routes.url_helpers
+    include ArelHelper
     include Reporting::Status
-    # after_initialize :set_attributes
+    include HudReports::Util
+    include HudReports::Clients
+    include HudReports::Ages
+    include HudReports::Households
+    include HudReports::LengthOfStays
 
     def run_and_save!
       start
+
+      # Setup some household related data
+      calculate_households
       create_universe
 
       # run!
@@ -30,6 +38,27 @@ module MaReports::MonthlyPerformance
       'Project Utilization by Month'
     end
 
+    def self.report_options
+      [
+        :start,
+        :end,
+        :project_ids,
+        :age_ranges,
+        :household_type,
+        :hoh_only,
+        :sub_population,
+        :coc_codes,
+        :project_type_numbers,
+        :age_ranges,
+        :data_source_ids,
+        :organization_ids,
+        :project_ids,
+        :funder_ids,
+        :project_group_ids,
+        :cohort_ids,
+      ].freeze
+    end
+
     def filter
       @filter ||= begin
         f = Filters::FilterBase.new(user_id: user_id, enforce_one_year_range: false)
@@ -42,72 +71,138 @@ module MaReports::MonthlyPerformance
     end
 
     private def create_universe
-      enrollment_scope.find_in_batches do |batch|
-        # hap_clients = {}
-        # batch.each do |processed_enrollment|
-        #   disabilities = processed_enrollment.enrollment.disabilities
-        #   mental_health = disabilities.chronically_disabled.mental.exists?
-        #   substance_use_disorder = disabilities.chronically_disabled.substance.exists?
+      projects = {}
+      enrollment_scope.find_in_batches(batch_size: 100) do |batch|
+        enrollment_batch = {}
 
-        #   health_and_dvs = processed_enrollment.enrollment.health_and_dvs
-        #   domestic_violence = health_and_dvs.currently_fleeing.exists?
+        batch.each do |enrollment|
+          client = enrollment.client
+          client_start_date = [filter.start_date, enrollment.first_date_in_program].max
+          age = client.age_on(client_start_date)
 
-        #   income_benefits = processed_enrollment.enrollment.income_benefits
-        #   income_at_start = income_benefits.at_entry.with_earned_income.pluck(:EarnedAmount).compact.max # Should be only one
-        #   income_at_exit = income_benefits.at_exit.with_earned_income.pluck(:EarnedAmount).compact.max # Should be only one
-
-        #   client = processed_enrollment.client
-        #   nights_in_shelter = processed_enrollment.service_history_services.
-        #     service_between(start_date: @start_date, end_date: @end_date).
-        #     bed_night.
-        #     count
-
-        #   household_id = processed_enrollment.household_id || "#{processed_enrollment.enrollment_group_id}*hh"
-        #   head_of_household = if processed_enrollment.household_id
-        #     processed_enrollment.head_of_household?
-        #   else
-        #     true
-        #   end
-
-        #   existing_client = hap_clients[processed_enrollment.client] || HapClient.new
-        #   new_client = HapClient.new(
-        #     client_id: existing_client[:client_id] || processed_enrollment.client_id,
-        #     age: existing_client[:age] || client.age([@start_date, processed_enrollment.first_date_in_program].max),
-        #     emancipated: false,
-        #     head_of_household: existing_client[:head_of_household] || head_of_household,
-        #     household_ids: (Array.wrap(existing_client[:household_ids]) << household_id).uniq,
-        #     project_types: (Array.wrap(existing_client[:project_types]) << processed_enrollment.project_type).uniq,
-        #     veteran: existing_client[:veteran] || processed_enrollment.client.veteran?,
-        #     mental_health: existing_client[:mental_health] || mental_health,
-        #     substance_use_disorder: existing_client[:substance_use_disorder] || substance_use_disorder,
-        #     domestic_violence: existing_client[:domestic_violence] || domestic_violence,
-        #     income_at_start: [existing_client[:income_at_start], income_at_start].compact.max,
-        #     income_at_exit: [existing_client[:income_at_exit], income_at_exit].compact.max,
-        #     homeless: existing_client[:homeless] || client.service_history_enrollments.homeless.open_between(start_date: @start_date, end_date: @end_date).exists?,
-        #     nights_in_shelter: [existing_client[:nights_in_shelter], nights_in_shelter].compact.sum,
-        #   )
-        #   new_client[:head_of_household_for] = if head_of_household
-        #     (Array.wrap(existing_client[:head_of_household_for])) << household_id
-        #   else
-        #     existing_client[:head_of_household_for] || []
-        #   end
-
-        #   hap_clients[client] = new_client
-        # end
-        # HapClient.import(hap_clients.values)
-        # universe.add_universe_members(hap_clients)
+          household_id = enrollment.enrollment.household_id || "#{enrollment.enrollment_group_id}*hh"
+          cocs = enrollment.project.project_cocs || enrollment.project.build_project_coc
+          cocs.each do |project_coc|
+            new_enrollment = Enrollment.new(
+              report: id,
+              client: client.id,
+              enrollment: enrollment.enrollment.id,
+              project: enrollment.project.id,
+              project_coc: project_coc,
+              personal_id: client.personal_id,
+              city: project.City,
+              coc_code: project_coc.coc_code,
+              entry_date: enrollment.first_date_in_program,
+              exit_date: enrollment.last_date_in_program,
+              latest_for_client: enrollment.id == @last_enrollment_ids[enrollment.client_id],
+              chronically_homeless_at_entry: enrollment.enrollment&.ch_enrollment&.chronically_homeless_at_entry,
+              stay_length_in_days: stay_length(enrollment),
+              am_ind_ak_native: client.am_ind_ak_native == 1,
+              asian: client.asian == 1,
+              black_af_american: client.black_af_american == 1,
+              native_hi_pacific: client.native_hi_pacific == 1,
+              white: client.white == 1,
+              ethnicity: client.ethnicity == 1,
+              male: client.male == 1,
+              female: client.female == 1,
+              gender_other: client.gender_other == 1,
+              transgender: client.trangender == 1,
+              questioning: client.questioning == 1,
+              no_single_gender: client.no_single_gender == 1,
+              disabling_condition: enrollment.disabling_condition == 1,
+              reporting_age: age,
+              relationship_to_hoh: enrollment.enrollment.relationship_to_hoh,
+              household_id: household_id,
+              household_type: household_makeup(get_hh_id(enrollment), enrollment.first_date_in_program),
+              household_members: households[get_hh_id(enrollment)],
+              prior_living_situation: enrollment.enrollment.prior_living_situation,
+              months_homeless_past_three_years: enrollment.enrollment.months_homeless_past_three_years,
+              times_homeless_past_three_years: enrollment.enrollment.times_homeless_past_three_years,
+            )
+            projects[enrollment.project] ||= {} # TODO
+            enrollment_batch[enrollment] = new_enrollment
+          end
+        end
+        Enrollment.import(enrollment_batch.values)
+        universe.add_universe_members(enrollment_batch)
       end
     end
 
     def enrollment_scope
-      scope = GrdaWarehouse::ServiceHistoryEnrollment.
-        entry.
-        preload(:client, enrollment: [:exit])
+      enrollment_scope_without_preloads.
+        preload(:client, enrollment: [:exit, :ch_enrollment, project: [:project_cocs, :inventories]])
+    end
+
+    def enrollment_scope_without_preloads
+      scope = GrdaWarehouse::ServiceHistoryEnrollment.entry
       filter.apply(scope)
     end
 
-    private def report_client_scope
-      universe.members
+    private def calculate_households
+      @hoh_enrollments ||= {}
+      @households ||= {}
+      @last_enrollment_ids ||= {}
+
+      enrollment_scope.find_in_batches(batch_size: 100) do |batch|
+        clients_with_enrollments(batch).each do |client_id, enrollments|
+          @last_enrollment_ids[client_id] ||= enrollments.last.id
+          enrollments.each do |enrollment|
+            @hoh_enrollments[enrollment.client_id] = enrollment if enrollment.head_of_household?
+            next unless enrollment&.enrollment&.client.present?
+
+            date = [enrollment.first_date_in_program, @report.start_date].max
+            age = GrdaWarehouse::Hud::Client.age(date: date, dob: enrollment.enrollment.client.DOB&.to_date)
+            @households[get_hh_id(enrollment)] ||= []
+            @households[get_hh_id(enrollment)] << {
+              client_id: enrollment.client_id,
+              source_client_id: enrollment.enrollment.client.id,
+              dob: enrollment.enrollment.client.DOB,
+              age: age,
+              veteran_status: enrollment.enrollment.client.VeteranStatus,
+              chronic_status: enrollment.enrollment.chronically_homeless_at_start?,
+              chronic_detail: enrollment.enrollment.chronically_homeless_at_start,
+              relationship_to_hoh: enrollment.enrollment.RelationshipToHoH,
+              # Include dates for determining if someone was present at assessment date
+              entry_date: enrollment.first_date_in_program,
+              exit_date: enrollment.last_date_in_program,
+            }.with_indifferent_access
+          end
+        end
+        GC.start
+      end
+    end
+
+    # private def report_client_scope
+    #   universe.members
+    # end
+
+    private def clients_with_enrollments(batch)
+      enrollment_scope.
+        where(client_id: batch.map(&:client_id)).
+        order(first_date_in_program: :asc).
+        group_by(&:client_id).
+        transform_values do |enrollments|
+          enrollments.select do |enrollment|
+            nbn_with_service?(enrollment)
+          end
+        end.
+        reject { |_, enrollments| enrollments.empty? }
+    end
+
+    private def nbn_with_service?(enrollment)
+      return true unless enrollment.nbn?
+
+      @with_service ||= GrdaWarehouse::ServiceHistoryService.bed_night.
+        service_excluding_extrapolated.
+        service_within_date_range(start_date: filter.start_date, end_date: filter.end_date).
+        where(service_history_enrollment_id: enrollment_scope_without_preloads.select(:id)).
+        pluck(:service_history_enrollment_id).to_set
+
+      @with_service.include?(enrollment.id)
+    end
+
+    def report_end_date
+      filter.end_date
     end
   end
 end

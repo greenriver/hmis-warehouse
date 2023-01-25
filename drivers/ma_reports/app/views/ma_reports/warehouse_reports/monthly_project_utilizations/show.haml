@@ -1,0 +1,12 @@
+= content_for :crumbs do
+  = link_to ma_reports_warehouse_reports_monthly_project_utilizations_path do
+    = "« #{@report.title}"
+%h1.mb-5
+  = @report.title
+
+.warehouse-reports__completed
+  = render 'filters/report_parameters', options: @report.options, report: @report
+.card
+  %table.table.table-striped
+    %thead
+      %th TODO
