@@ -172,7 +172,8 @@ gem 'puma', '~> 4.3.11'
 
 gem 'dotenv-rails'
 
-gem 'net-sftp', require: false
+gem 'net-sftp', '~> 4', require: false
+gem 'net-ssh', '~> 7', require: false
 gem 'net-http'
 gem 'redis-actionpack'
 
