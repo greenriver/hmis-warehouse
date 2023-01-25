@@ -88,27 +88,29 @@ module HmisCsvTwentyTwentyTwo::Exporter
             output_file: File.join(@file_path, file_name_for(export_class)),
           },
         )
-        exportable_files.each do |destination_class, opts|
-          opts[:export] = @export
-          options[:export] = @export
-          tmp_table_prefix = opts[:hmis_class].table_name.downcase
-          dest_config = {
-            hmis_class: opts[:hmis_class],
-            destination_class: destination_class,
-            output_file: File.join(@file_path, file_name_for(destination_class)),
-          }
-          opts[:temp_class] = TempExport.create_temporary_table(table_name: "temp_export_#{tmp_table_prefix}_#{export.id}s", model_name: destination_class.temp_model_name)
-          begin
-            HmisCsvTwentyTwentyTwo::Exporter::KibaExport.export!(
-              options: options,
-              source_class: HmisCsvTwentyTwentyTwo::Exporter::RailsSource,
-              source_config: destination_class.export_scope(**opts),
-              transforms: destination_class.transforms,
-              dest_class: HmisCsvTwentyTwentyTwo::Exporter::CsvDestination,
-              dest_config: dest_config,
-            )
-          ensure
-            opts[:temp_class].drop
+        GrdaWarehouse::Hud::Export.transaction(isolation: :repeatable_read) do
+          exportable_files.each do |destination_class, opts|
+            opts[:export] = @export
+            options[:export] = @export
+            tmp_table_prefix = opts[:hmis_class].table_name.downcase
+            dest_config = {
+              hmis_class: opts[:hmis_class],
+              destination_class: destination_class,
+              output_file: File.join(@file_path, file_name_for(destination_class)),
+            }
+            opts[:temp_class] = TempExport.create_temporary_table(table_name: "temp_export_#{tmp_table_prefix}_#{export.id}s", model_name: destination_class.temp_model_name)
+            begin
+              HmisCsvTwentyTwentyTwo::Exporter::KibaExport.export!(
+                options: options,
+                source_class: HmisCsvTwentyTwentyTwo::Exporter::RailsSource,
+                source_config: destination_class.export_scope(**opts),
+                transforms: destination_class.transforms,
+                dest_class: HmisCsvTwentyTwentyTwo::Exporter::CsvDestination,
+                dest_config: dest_config,
+              )
+            ensure
+              opts[:temp_class].drop
+            end
           end
         end
         zip_archive if zip
