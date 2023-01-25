@@ -881,7 +881,6 @@ Rails.application.routes.draw do
     get :ping
     get :exception
   end
-  mount Yabeda::Prometheus::Exporter, at: '/metrics'
 
   root 'root#index'
 end

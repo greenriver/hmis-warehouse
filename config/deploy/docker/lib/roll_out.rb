@@ -219,9 +219,17 @@ class RollOut
       soft_mem_limit_mb: soft_mem_limit_mb,
       image: image_base + '--web',
       environment: environment,
+      docker_labels: {
+        'PROMETHEUS_EXPORTER_PORT' => 9394,
+      },
       ports: [
         {
-          'container_port' => 3000,
+          'container_port' => 3000, # rails app
+          'host_port' => 0,
+          'protocol' => 'tcp',
+        },
+        {
+          'container_port' => 9394, # metrics
           'host_port' => 0,
           'protocol' => 'tcp',
         },
@@ -308,7 +316,7 @@ class RollOut
     @seen = true
   end
 
-  def _register_task!(name:, image:, cpu_shares: nil, soft_mem_limit_mb: 512, ports: [], environment: nil, command: nil, stop_timeout: 30)
+  def _register_task!(name:, image:, cpu_shares: nil, soft_mem_limit_mb: 512, ports: [], environment: nil, command: nil, stop_timeout: 30, docker_labels: {})
     puts "[INFO] Registering #{name} task #{target_group_name}"
 
     environment ||= default_environment.dup
@@ -360,6 +368,7 @@ class RollOut
       # Soft limit
       memory_reservation: (ma.use_memory_analyzer? ? ma.recommended_soft_limit_mb : soft_mem_limit_mb),
 
+      docker_labels: docker_labels,
       port_mappings: ports,
       essential: true,
       environment: environment,
