@@ -183,7 +183,7 @@ class RollOut
 
     _register_task!(
       soft_mem_limit_mb: DEFAULT_SOFT_DJ_RAM_MB.call(target_group_name),
-      image: image_base + '--dj',
+      image: image_base,
       name: name,
       # command: ['echo', 'workerhere'],
     )
@@ -194,7 +194,7 @@ class RollOut
 
     _register_task!(
       soft_mem_limit_mb: DEFAULT_SOFT_RAM_MB,
-      image: image_base + '--dj',
+      image: image_base,
       name: name,
       command: ['rake', 'jobs:workoff'],
     )
@@ -217,11 +217,19 @@ class RollOut
 
     _register_task!(
       soft_mem_limit_mb: soft_mem_limit_mb,
-      image: image_base + '--web',
+      image: image_base,
       environment: environment,
+      health_check: {
+        start_period: '15s',
+        interval: '5m',
+        timeout: '10s',
+        command: 'curl -k -f https://localhost:3000/system_status/operational || exit 1',
+      },
       docker_labels: {
         'PROMETHEUS_EXPORTER_PORT' => 9394,
+        'role' => 'web',
       },
+      command: ['puma', '-b', 'ssl://0.0.0.0:3000?key=/app/config/key.pem&cert=/app/config/cert.pem&verify_mode=none'],
       ports: [
         {
           'container_port' => 3000, # rails app
@@ -275,9 +283,13 @@ class RollOut
 
     _register_task!(
       soft_mem_limit_mb: soft_mem_limit_mb,
-      image: image_base + '--dj',
+      image: image_base,
       name: name,
       environment: environment,
+      docker_labels: {
+        'role' => 'jobs',
+      },
+      command: ['rake', 'jobs:work'],
     )
 
     return if self.only_check_ram
@@ -316,7 +328,7 @@ class RollOut
     @seen = true
   end
 
-  def _register_task!(name:, image:, cpu_shares: nil, soft_mem_limit_mb: 512, ports: [], environment: nil, command: nil, stop_timeout: 30, docker_labels: {})
+  def _register_task!(name:, image:, cpu_shares: nil, soft_mem_limit_mb: 512, ports: [], environment: nil, command: nil, stop_timeout: 30, docker_labels: {}, health_check: nil)
     puts "[INFO] Registering #{name} task #{target_group_name}"
 
     environment ||= default_environment.dup
@@ -392,6 +404,7 @@ class RollOut
     puts "[INFO] hard RAM limit: #{container_definition[:memory]} #{target_group_name}"
     puts "[INFO] soft RAM limit: #{container_definition[:memory_reservation]} #{target_group_name}"
 
+    container_definition[:health_check] = health_check unless health_check.nil?
     container_definition[:command] = command unless command.nil?
 
     task_definition_payload = {
