@@ -1,6 +1,8 @@
 class Hmis::Hud::Validators::ServiceValidator < Hmis::Hud::Validators::BaseValidator
   IGNORED = [
     :ExportID,
+    :TypeProvided,
+    :RecordType,
   ].freeze
 
   TYPE_PROVIDED_MAP = {
@@ -28,29 +30,30 @@ class Hmis::Hud::Validators::ServiceValidator < Hmis::Hud::Validators::BaseValid
 
   def validate(record)
     super(record) do
-      validate_record_type(record)
-      validate_type_provided(record)
+      validate_service_type(record)
       validate_sub_type_provided(record)
     end
   end
 
-  def validate_record_type(record)
-    return if ::HudUtility.record_types.reject { |_k, v| v == 'Contact' }.any? { |k, _v| record.record_type == k }
+  def validate_service_type(record)
+    record.errors.add :type_provided, :required, message: 'must exist' unless record.record_type.present? && record.type_provided.present?
+    return unless record.record_type.present? && record.type_provided.present?
 
-    record.errors.add :record_type, :invalid, message: 'Invalid RecordType', full_message: "Value for RecordType '#{record.record_type}' is not a valid RecordType"
-  end
+    unless ::HudUtility.record_types.reject { |_k, v| v == 'Contact' }.any? { |k, _v| record.record_type == k }
+      record.errors.add :type_provided, :invalid, message: 'is invalid', full_message: "Service type category '#{record.record_type}' is not a valid category"
+      return
+    end
 
-  def validate_type_provided(record)
     return if TYPE_PROVIDED_MAP.any? { |rt, tp_map| record.record_type == rt && tp_map.keys.include?(record.type_provided) }
 
-    record.errors.add :type_provided, :invalid, message: 'Invalid TypeProvided for RecordType', full_message: "Value for TypeProvided '#{record.type_provided}' does not match RecordType '#{record.record_type}'"
+    record.errors.add :type_provided, :invalid, message: 'Invalid service type', full_message: "Value for service type '#{record.type_provided}' is not a valid service type for the category '#{record.record_type}'"
   end
 
   def validate_sub_type_provided(record)
     if record.record_type == 144
       if SUB_TYPE_PROVIDED_MAP.keys.include?(record.type_provided)
         record.errors.add :sub_type_provided, :invalid, message: 'Invalid SubTypeProvided for TypeProvided', full_message: "Value for SubTypeProvided '#{record.sub_type_provided}' does not match TypeProvided '#{record.type_provided}'" unless SUB_TYPE_PROVIDED_MAP.any? { |tp, stp_map| record.type_provided == tp && stp_map.keys.include?(record.sub_type_provided) }
-      else
+      elsif record.sub_type_provided.present?
         record.errors.add :sub_type_provided, :invalid, message: 'Invalid SubTypeProvided for TypeProvided', full_message: "SubTypeProvided must be null unless TypeProvided is 3, 4 or 5. TypeProvided is #{record.type_provided}"
       end
     elsif record.sub_type_provided.present?
