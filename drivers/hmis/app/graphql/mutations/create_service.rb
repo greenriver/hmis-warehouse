@@ -13,36 +13,15 @@ module Mutations
     end
 
     def resolve(input:)
-      user = hmis_user
       errors = validate_input(input)
+      return { service: nil, errors: errors } if errors.present?
 
-      if errors.present?
-        return {
-          service: nil,
-          errors: errors,
-        }
-      end
-
-      service = Hmis::Hud::Service.new(
-        services_id: Hmis::Hud::Service.generate_services_id,
-        data_source_id: user.data_source_id,
-        user_id: user.user_id,
-        date_updated: DateTime.current,
-        date_created: DateTime.current,
-        **input.to_params,
+      default_create_record(
+        Hmis::Hud::Service,
+        field_name: :service,
+        id_field_name: :services_id,
+        input: input,
       )
-
-      if service.valid?
-        service.save!
-      else
-        errors = service.errors
-        service = nil
-      end
-
-      {
-        service: service,
-        errors: errors,
-      }
     end
   end
 end
