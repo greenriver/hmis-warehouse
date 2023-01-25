@@ -1,139 +1,145 @@
 {
-  "name": "service",
   "item": [
     {
-      "type": "CHOICE",
-      "link_id": "typeProvided",
-      "required": true,
-      "text": "Service Type",
-      "pick_list_reference": "SERVICE_TYPE",
-      "field_name": "typeProvided"
-    },
-    {
-      "type": "STRING",
-      "required": false,
-      "link_id": "otherTypeProvided",
-      "text": "Other Type Provided",
-      "field_name": "otherTypeProvided",
-      "enable_behavior": "ANY",
-      "enable_when": [
+      "type": "GROUP",
+      "text": "Service Details",
+      "link_id": "1",
+      "item": [
         {
-          "question": "typeProvided",
-          "operator": "EQUAL",
-          "answer_code": "SSVF_SERVICE__OTHER_NON_TFA_SUPPORTIVE_SERVICE_APPROVED_BY_VA"
+          "type": "CHOICE",
+          "link_id": "typeProvided",
+          "required": true,
+          "text": "Service Type",
+          "pick_list_reference": "SERVICE_TYPE",
+          "field_name": "typeProvided"
         },
         {
-          "question": "typeProvided",
-          "operator": "EQUAL",
-          "answer_code": "HUD_VASH_OTH_VOUCHER_TRACKING__OTHER"
-        }
-      ]
-    },
-    {
-      "type": "STRING",
-      "required": false,
-      "link_id": "movingOnOtherType",
-      "text": "Moving On Other Type",
-      "field_name": "movingOnOtherType",
-      "enable_behavior": "ALL",
-      "enable_when": [
-        {
-          "question": "typeProvided",
-          "operator": "EQUAL",
-          "answer_code": "C2_MOVING_ON_ASSISTANCE_PROVIDED__OTHER_PLEASE_SPECIFY"
-        }
-      ]
-    },
-    {
-      "type": "CHOICE",
-      "link_id": "subTypeProvided3",
-      "required": false,
-      "text": "Sub Type Provided",
-      "pick_list_reference": "SUB_TYPE_PROVIDED_3",
-      "field_name": "subTypeProvided",
-      "enable_behavior": "ALL",
-      "enable_when": [
-        {
-          "question": "typeProvided",
-          "operator": "EQUAL",
-          "answer_code": "SSVF_SERVICE__ASSISTANCE_OBTAINING_VA_BENEFITS"
-        }
-      ]
-    },
-    {
-      "type": "CHOICE",
-      "link_id": "subTypeProvided4",
-      "required": false,
-      "text": "Sub Type Provided",
-      "pick_list_reference": "SUB_TYPE_PROVIDED_4",
-      "field_name": "subTypeProvided",
-      "enable_behavior": "ALL",
-      "enable_when": [
-        {
-          "question": "typeProvided",
-          "operator": "EQUAL",
-          "answer_code": "SSVF_SERVICE__ASSISTANCE_OBTAINING_COORDINATING_OTHER_PUBLIC_BENEFITS"
-        }
-      ]
-    },
-    {
-      "type": "CHOICE",
-      "link_id": "subTypeProvided5",
-      "required": false,
-      "text": "Sub Type Provided",
-      "pick_list_reference": "SUB_TYPE_PROVIDED_5",
-      "field_name": "subTypeProvided",
-      "enable_behavior": "ALL",
-      "enable_when": [
-        {
-          "question": "typeProvided",
-          "operator": "EQUAL",
-          "answer_code": "SSVF_SERVICE__DIRECT_PROVISION_OF_OTHER_PUBLIC_BENEFITS"
-        }
-      ]
-    },
-    {
-      "type": "CURRENCY",
-      "required": false,
-      "link_id": "FAAmount",
-      "text": "FA Amount",
-      "field_name": "FAAmount",
-      "enable_behavior": "ANY",
-      "enable_when": [
-        {
-          "question": "typeProvided",
-          "operator": "EQUAL",
-          "answer_group_code": "HOPWA_FINANCIAL_ASSISTANCE"
+          "type": "STRING",
+          "required": false,
+          "link_id": "otherTypeProvided",
+          "text": "Other Type Provided",
+          "field_name": "otherTypeProvided",
+          "enable_behavior": "ANY",
+          "enable_when": [
+            {
+              "question": "typeProvided",
+              "operator": "EQUAL",
+              "answer_code": "SSVF_SERVICE__OTHER_NON_TFA_SUPPORTIVE_SERVICE_APPROVED_BY_VA"
+            },
+            {
+              "question": "typeProvided",
+              "operator": "EQUAL",
+              "answer_code": "HUD_VASH_OTH_VOUCHER_TRACKING__OTHER"
+            }
+          ]
         },
         {
-          "question": "typeProvided",
-          "operator": "EQUAL",
-          "answer_group_code": "SSVF_FINANCIAL_ASSISTANCE"
-        }
-      ]
-    },
-    {
-      "type": "CHOICE",
-      "link_id": "referralOutcome",
-      "required": false,
-      "text": "Referral Outcome",
-      "pick_list_reference": "REFERRAL_OUTCOME",
-      "field_name": "referralOutcome",
-      "enable_behavior": "ANY",
-      "enable_when": [
+          "type": "STRING",
+          "required": false,
+          "link_id": "movingOnOtherType",
+          "text": "Moving On Other Type",
+          "field_name": "movingOnOtherType",
+          "enable_behavior": "ALL",
+          "enable_when": [
+            {
+              "question": "typeProvided",
+              "operator": "EQUAL",
+              "answer_code": "C2_MOVING_ON_ASSISTANCE_PROVIDED__OTHER"
+            }
+          ]
+        },
         {
-          "question": "typeProvided",
-          "operator": "EQUAL",
-          "answer_group_code": "PATH_REFERRAL"
+          "type": "CHOICE",
+          "link_id": "subTypeProvided3",
+          "required": false,
+          "text": "Sub Type Provided",
+          "pick_list_reference": "SUB_TYPE_PROVIDED_3",
+          "field_name": "subTypeProvided",
+          "enable_behavior": "ALL",
+          "enable_when": [
+            {
+              "question": "typeProvided",
+              "operator": "EQUAL",
+              "answer_code": "SSVF_SERVICE__ASSISTANCE_OBTAINING_VA_BENEFITS"
+            }
+          ]
+        },
+        {
+          "type": "CHOICE",
+          "link_id": "subTypeProvided4",
+          "required": false,
+          "text": "Sub Type Provided",
+          "pick_list_reference": "SUB_TYPE_PROVIDED_4",
+          "field_name": "subTypeProvided",
+          "enable_behavior": "ALL",
+          "enable_when": [
+            {
+              "question": "typeProvided",
+              "operator": "EQUAL",
+              "answer_code": "SSVF_SERVICE__ASSISTANCE_OBTAINING_COORDINATING_OTHER_PUBLIC_BENEFITS"
+            }
+          ]
+        },
+        {
+          "type": "CHOICE",
+          "link_id": "subTypeProvided5",
+          "required": false,
+          "text": "Sub Type Provided",
+          "pick_list_reference": "SUB_TYPE_PROVIDED_5",
+          "field_name": "subTypeProvided",
+          "enable_behavior": "ALL",
+          "enable_when": [
+            {
+              "question": "typeProvided",
+              "operator": "EQUAL",
+              "answer_code": "SSVF_SERVICE__DIRECT_PROVISION_OF_OTHER_PUBLIC_BENEFITS"
+            }
+          ]
+        },
+        {
+          "type": "CURRENCY",
+          "required": false,
+          "link_id": "FAAmount",
+          "text": "FA Amount",
+          "field_name": "FAAmount",
+          "enable_behavior": "ANY",
+          "enable_when": [
+            {
+              "question": "typeProvided",
+              "operator": "EQUAL",
+              "answer_group_code": "HOPWA_FINANCIAL_ASSISTANCE"
+            },
+            {
+              "question": "typeProvided",
+              "operator": "EQUAL",
+              "answer_group_code": "SSVF_FINANCIAL_ASSISTANCE"
+            }
+          ]
+        },
+        {
+          "type": "CHOICE",
+          "link_id": "referralOutcome",
+          "required": false,
+          "text": "Referral Outcome",
+          "pick_list_reference": "REFERRAL_OUTCOME",
+          "field_name": "referralOutcome",
+          "enable_behavior": "ANY",
+          "enable_when": [
+            {
+              "question": "typeProvided",
+              "operator": "EQUAL",
+              "answer_group_code": "PATH_REFERRAL"
+            }
+          ]
+        },
+        {
+          "type": "DATE",
+          "link_id": "dateProvided",
+          "required": true,
+          "text": "Date Provided",
+          "field_name": "dateProvided"
         }
       ]
-    },
-    {
-      "type": "DATE",
-      "link_id": "dateProvided",
-      "required": true,
-      "text": "Date Provided",
-      "field_name": "dateProvided"
     }
   ]
 }
