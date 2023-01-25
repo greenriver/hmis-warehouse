@@ -232,8 +232,6 @@ class Deployer
 
   def _add_latest_tags!
     _add_latest_tag!('base')
-    _add_latest_tag!('web')
-    _add_latest_tag!('dj')
   end
 
   def _add_latest_tag!(variant)

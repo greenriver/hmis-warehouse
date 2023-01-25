@@ -183,7 +183,7 @@ class RollOut
 
     _register_task!(
       soft_mem_limit_mb: DEFAULT_SOFT_DJ_RAM_MB.call(target_group_name),
-      image: image_base,
+      image: image_base + '--base',
       name: name,
       # command: ['echo', 'workerhere'],
     )
@@ -194,7 +194,7 @@ class RollOut
 
     _register_task!(
       soft_mem_limit_mb: DEFAULT_SOFT_RAM_MB,
-      image: image_base,
+      image: image_base + '--base',
       name: name,
       command: ['rake', 'jobs:workoff'],
     )
@@ -217,16 +217,16 @@ class RollOut
 
     _register_task!(
       soft_mem_limit_mb: soft_mem_limit_mb,
-      image: image_base,
+      image: image_base + '--base',
       environment: environment,
       health_check: {
-        start_period: '15s',
-        interval: '5m',
-        timeout: '10s',
-        command: 'curl -k -f https://localhost:3000/system_status/operational || exit 1',
+        start_period: 15,   # seconds
+        interval: (60 * 5), # seconds (5 minutes)
+        timeout: 10, # seconds
+        command: ['curl', '-k', '-f', 'https://localhost:3000/system_status/operational'],
       },
       docker_labels: {
-        'PROMETHEUS_EXPORTER_PORT' => 9394,
+        'PROMETHEUS_EXPORTER_PORT' => '9394',
         'role' => 'web',
       },
       command: ['puma', '-b', 'ssl://0.0.0.0:3000?key=/app/config/key.pem&cert=/app/config/cert.pem&verify_mode=none'],
@@ -283,7 +283,7 @@ class RollOut
 
     _register_task!(
       soft_mem_limit_mb: soft_mem_limit_mb,
-      image: image_base,
+      image: image_base + '--base',
       name: name,
       environment: environment,
       docker_labels: {
