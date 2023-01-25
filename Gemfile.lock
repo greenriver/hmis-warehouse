@@ -1052,7 +1052,7 @@ DEPENDENCIES
   mini_magick
   minitest-reporters
   net-http
-  net-sftp (~> 4)
+  net-sftp
   net-ssh (~> 7)
   nokogiri (>= 1.13.10)
   nominatim
