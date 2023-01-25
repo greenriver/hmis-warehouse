@@ -183,7 +183,7 @@ class RollOut
 
     _register_task!(
       soft_mem_limit_mb: DEFAULT_SOFT_DJ_RAM_MB.call(target_group_name),
-      image: image_base + '--dj',
+      image: image_base + '--base',
       name: name,
       # command: ['echo', 'workerhere'],
     )
@@ -194,7 +194,7 @@ class RollOut
 
     _register_task!(
       soft_mem_limit_mb: DEFAULT_SOFT_RAM_MB,
-      image: image_base + '--dj',
+      image: image_base + '--base',
       name: name,
       command: ['rake', 'jobs:workoff'],
     )
@@ -217,11 +217,27 @@ class RollOut
 
     _register_task!(
       soft_mem_limit_mb: soft_mem_limit_mb,
-      image: image_base + '--web',
+      image: image_base + '--base',
       environment: environment,
+      health_check: {
+        start_period: 15,   # seconds
+        interval: (60 * 5), # seconds (5 minutes)
+        timeout: 10, # seconds
+        command: ['curl', '-k', '-f', 'https://localhost:3000/system_status/operational'],
+      },
+      docker_labels: {
+        'PROMETHEUS_EXPORTER_PORT' => '9394',
+        'role' => 'web',
+      },
+      command: ['puma', '-b', 'ssl://0.0.0.0:3000?key=/app/config/key.pem&cert=/app/config/cert.pem&verify_mode=none'],
       ports: [
         {
-          'container_port' => 3000,
+          'container_port' => 3000, # rails app
+          'host_port' => 0,
+          'protocol' => 'tcp',
+        },
+        {
+          'container_port' => 9394, # metrics
           'host_port' => 0,
           'protocol' => 'tcp',
         },
@@ -267,9 +283,13 @@ class RollOut
 
     _register_task!(
       soft_mem_limit_mb: soft_mem_limit_mb,
-      image: image_base + '--dj',
+      image: image_base + '--base',
       name: name,
       environment: environment,
+      docker_labels: {
+        'role' => 'jobs',
+      },
+      command: ['rake', 'jobs:work'],
     )
 
     return if self.only_check_ram
@@ -308,7 +328,7 @@ class RollOut
     @seen = true
   end
 
-  def _register_task!(name:, image:, cpu_shares: nil, soft_mem_limit_mb: 512, ports: [], environment: nil, command: nil, stop_timeout: 30)
+  def _register_task!(name:, image:, cpu_shares: nil, soft_mem_limit_mb: 512, ports: [], environment: nil, command: nil, stop_timeout: 30, docker_labels: {}, health_check: nil)
     puts "[INFO] Registering #{name} task #{target_group_name}"
 
     environment ||= default_environment.dup
@@ -360,6 +380,7 @@ class RollOut
       # Soft limit
       memory_reservation: (ma.use_memory_analyzer? ? ma.recommended_soft_limit_mb : soft_mem_limit_mb),
 
+      docker_labels: docker_labels,
       port_mappings: ports,
       essential: true,
       environment: environment,
@@ -383,6 +404,7 @@ class RollOut
     puts "[INFO] hard RAM limit: #{container_definition[:memory]} #{target_group_name}"
     puts "[INFO] soft RAM limit: #{container_definition[:memory_reservation]} #{target_group_name}"
 
+    container_definition[:health_check] = health_check unless health_check.nil?
     container_definition[:command] = command unless command.nil?
 
     task_definition_payload = {
