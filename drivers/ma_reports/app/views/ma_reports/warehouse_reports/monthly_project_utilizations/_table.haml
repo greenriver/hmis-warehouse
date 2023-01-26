@@ -14,8 +14,10 @@
             %tr
               %td
                 = link_to_if(report.completed?, report.status, ma_reports_warehouse_reports_monthly_project_utilization_path(report))
-              %th
-                = render 'filters/report_parameters', options: report.options, report: report
+              %th.report-parameters
+                = report.filter.describe_filter_as_html(report.class.report_options, limited: true)
+                .ml-auto
+                  = render 'filters/view_filter_details', filter_hash: report.filter.to_h, selected_keys: report.class.report_options
               %td.text-nowrap
                 = report.created_at
                 .text-sm.text-muted by #{report.user&.name}

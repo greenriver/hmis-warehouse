@@ -4,8 +4,10 @@
 %h1.mb-5
   = @report.title
 
-.warehouse-reports__completed
-  = render 'filters/report_parameters', options: @report.options, report: @report
+.warehouse-reports__completed.report-parameters
+  = @report.filter.describe_filter_as_html(@report.class.report_options, limited: true)
+  .ml-auto
+    = render 'filters/view_filter_details', filter_hash: @report.filter.to_h, selected_keys: @report.class.report_options
 .card
   %table.table.table-striped
     %thead
