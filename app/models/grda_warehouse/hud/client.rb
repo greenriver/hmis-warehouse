@@ -2302,7 +2302,7 @@ module GrdaWarehouse::Hud
         # and invalidate our own service history
         force_full_service_history_rebuild
         # and invalidate any cache for these clients
-        self.class.clear_view_cache(prev_destination_client.id)
+        self.class.clear_view_cache(prev_destination_client.id) if prev_destination_client.present?
       end
       self.class.clear_view_cache(self.id) # rubocop:disable Style/RedundantSelf
       self.class.clear_view_cache(other_client.id)
