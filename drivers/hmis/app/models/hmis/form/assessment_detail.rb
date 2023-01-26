@@ -10,10 +10,20 @@ class Hmis::Form::AssessmentDetail < ::GrdaWarehouseBase
   belongs_to :assessment, class_name: 'Hmis::Hud::Assessment'
   belongs_to :definition
   belongs_to :assessment_processor, dependent: :destroy
+  validate :assessment_processor_is_valid
 
   after_initialize :build_assessment_processor
 
   scope :with_role, ->(role) do
     where(role: Array.wrap(role))
+  end
+
+  # Pull up the errors from the assessment processor so we can see them (as opposed to validates_associated)
+  private def assessment_processor_is_valid
+    return if assessment_processor.valid?
+
+    assessment_processor.errors.each do |error|
+      errors.add(error.attribute, error.type, error.options)
+    end
   end
 end

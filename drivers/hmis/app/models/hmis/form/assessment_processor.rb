@@ -20,6 +20,8 @@ class Hmis::Form::AssessmentProcessor < ::GrdaWarehouseBase
   belongs_to :mental_health_disorder, class_name: 'Hmis::Hud::Disability', optional: true
   belongs_to :substance_use_disorder, class_name: 'Hmis::Hud::Disability', optional: true
 
+  validate :hmis_records_are_valid
+
   def run!
     return unless assessment_detail.hud_values.present?
 
@@ -182,5 +184,46 @@ class Hmis::Form::AssessmentProcessor < ::GrdaWarehouseBase
       HealthAndDv: Hmis::Hud::Processors::HealthAndDvProcessor,
       IncomeBenefit: Hmis::Hud::Processors::IncomeBenefitProcessor,
     }.freeze
+  end
+
+  # Pull up and errors from the HMIS records, adjusting their attribute names as required
+  private def hmis_records_are_valid
+    {
+      enrollment_coc_factory: ->(attribute_name) { translate_field(attribute_name) },
+      health_and_dv_factory: ->(attribute_name) { translate_field(attribute_name) },
+      income_benefit_factory: ->(attribute_name) { translate_field(attribute_name) },
+      physical_disability_factory: ->(attribute_name) { translate_disability_field('physicalDisability', attribute_name) },
+      developmental_disability_factory: ->(attribute_name) { translate_disability_field('developmentalDisability', attribute_name) },
+      chronic_health_condition_factory: ->(attribute_name) { translate_disability_field('chronicHealthCondition', attribute_name) },
+      hiv_aids_factory: ->(attribute_name) { translate_disability_field('hivAids', attribute_name) },
+      mental_health_disorder_factory: ->(attribute_name) { translate_disability_field('mentalHealthDisorder', attribute_name) },
+      substance_use_disorder_factory: ->(attribute_name) { translate_disability_field('substanceUseDisorder', attribute_name) },
+    }.each do |factory_method, transformer|
+      record = send(factory_method, create: false)
+      next unless record.present?
+      next if record.valid?
+
+      record.errors.each do |error|
+        errors.add(transformer.call(error.attribute), error.message, **error.options)
+      end
+    end
+  end
+
+  private def translate_field(field, container: nil)
+    camelized = field.to_s.camelize(:lower)
+    containerize(container, camelized)
+  end
+
+  private def translate_disability_field(context, field, container: nil)
+    return containerize(container, field) if field == 'disability_response'
+
+    camelized = "#{context}#{field.to_s.camelize}"
+    containerize(container, camelized)
+  end
+
+  private def containerize(container, field)
+    return field unless container.present?
+
+    "#{container}.#{field}"
   end
 end

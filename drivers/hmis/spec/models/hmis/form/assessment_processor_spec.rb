@@ -86,6 +86,17 @@ RSpec.describe Hmis::Form::AssessmentProcessor, type: :model do
     expect(disabilities.find_by(disability_type: 10).disability_response).to eq(3)
   end
 
+  it 'pulls validation errors up from HUD records' do
+    assessment = Hmis::Hud::Assessment.new_with_defaults(enrollment: e1, user: hmis_hud_user, form_definition: fd, assessment_date: Date.current)
+    assessment.assessment_detail.hud_values = {
+      'EnrollmentCoc.user_id' => nil,
+    }
+
+    assessment.assessment_detail.assessment_processor.run!
+    expect(assessment.assessment_detail.valid?).to be false
+    expect(assessment.assessment_detail.errors[:user]).to include('must exist')
+  end
+
   describe 'updating existing assessment' do
     it "doesn't touch an existing value, if it isn't listed (but applies the listed fields)" do
       assessment = Hmis::Hud::Assessment.new_with_defaults(enrollment: e1, user: hmis_hud_user, form_definition: fd, assessment_date: Date.current)
