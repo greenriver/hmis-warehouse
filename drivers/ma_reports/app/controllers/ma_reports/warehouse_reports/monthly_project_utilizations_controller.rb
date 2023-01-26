@@ -11,14 +11,14 @@ module MaReports::WarehouseReports
 
     def index
       @pagy, @reports = pagy(report_scope)
-      @filter = filter_class.new(user_id: current_user.id)
+      @filter = filter_class.new(user_id: current_user.id, enforce_one_year_range: false)
       # Set default filter to prior run
-      previous_report = @reports.last
-      @filter.update(previous_report.options.with_indifferent_access) if previous_report
+      previous_report = @reports.first
+      @filter.update(previous_report.filter.to_h) if previous_report
     end
 
     def create
-      @filter = filter_class.new(user_id: current_user.id).set_from_params(filter_params)
+      @filter = filter_class.new(user_id: current_user.id, enforce_one_year_range: false).set_from_params(filter_params)
 
       if @filter.valid?
         @report = report_scope.create(user_id: @filter.user_id, options: report_options(@filter))

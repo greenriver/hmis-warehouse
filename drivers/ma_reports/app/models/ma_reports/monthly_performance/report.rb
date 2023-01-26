@@ -71,6 +71,10 @@ module MaReports::MonthlyPerformance
     end
 
     private def create_universe
+      # make it repeatable
+      MaReports::MonthlyPerformance::Enrollment.where(report_id: id).delete_all
+      MaReports::MonthlyPerformance::Project.where(report_id: id).delete_all
+      SimpleReports::UniverseMember.where(report_cell_id: universe.id).delete_all
       projects = {}
       enrollment_scope.find_in_batches(batch_size: 100) do |batch|
         enrollment_batch = {}
@@ -128,10 +132,6 @@ module MaReports::MonthlyPerformance
               organization_name: project.organization_name,
               coc_code: project_coc.effective_coc_code,
               city: project_coc.city,
-              month_start: month_start,
-              available_beds: available_beds,
-              average_length_of_stay_in_days: average_length_of_stay_in_days,
-              number_chronically_homeless_at_entry: number_chronically_homeless_at_entry,
             }
             enrollment_batch[enrollment.id] = new_enrollment
           end
@@ -148,11 +148,11 @@ module MaReports::MonthlyPerformance
       a_t = MaReports::MonthlyPerformance::Enrollment.arel_table
       months.each do |month_start, month_end|
         projects.each do |project, project_data|
-          available_beds = project.inventories.map { |i| i.average_daily_inventory(range: month_start .. month_end, field: :BedInventory) || 0 }.sum
+          available_beds = project.inventories.map { |i| i.average_daily_inventory(range: ::Filters::DateRange.new(start: month_start, end: month_end), field: :BedInventory) || 0 }.sum
           enrollments_for_project = universe.members.where(a_t[:project_id].eq(project.id)).
             merge(MaReports::MonthlyPerformance::Enrollment.open_between(month_start..month_end))
           length_of_stays_in_days = enrollments_for_project.pluck(:stay_length_in_days)
-          number_chronically_homeless_at_entry = enrollments_for_project.where(chronically_homeless_at_entry: true).count
+          number_chronically_homeless_at_entry = enrollments_for_project.where(a_t[:chronically_homeless_at_entry].eq(true)).count
           monthly_projects << project_data.merge(
             month_start: month_start,
             available_beds: available_beds,
@@ -161,6 +161,7 @@ module MaReports::MonthlyPerformance
           )
         end
       end
+      monthly_projects
     end
 
     # Returns an array of months covered by the report in the form:
