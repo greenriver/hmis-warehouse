@@ -49,7 +49,15 @@ class Hmis::Form::AssessmentProcessor < ::GrdaWarehouseBase
     # The enrollment has already been created, so we can just return it
     assessment_detail.assessment.enrollment
   end
-  # add date created, date updated, and ID UUIDS (like HealthAndDv) everywhere
+
+  def common_attributes
+    {
+      data_collection_stage: assessment_detail.data_collection_stage,
+      personal_id: enrollment_factory.client.personal_id,
+      information_date: assessment_detail.assessment.assessment_date,
+      user_id: assessment_detail.assessment.user_id,
+    }
+  end
 
   # The items associated with the enrollments are all singletons, so return
   # them if they already exist, otherwise create them
@@ -58,39 +66,24 @@ class Hmis::Form::AssessmentProcessor < ::GrdaWarehouseBase
 
     self.enrollment_coc = enrollment_factory.enrollment_cocs.
       build(
-        data_collection_stage: assessment_detail.data_collection_stage,
         household_id: enrollment_factory.household_id,
         project_id: enrollment_factory.project_id,
-        personal_id: enrollment_factory.client.personal_id,
-        information_date: assessment_detail.assessment.assessment_date,
-        user_id: assessment_detail.assessment.user_id,
+        **common_attributes,
       )
-  end
-
-  def common_attributes(create: true, id_field_name: nil)
-    attributes = {}
-    attributes[:data_collection_stage] = assessment_detail.data_collection_stage
-    attributes[:personal_id] = enrollment_factory.client.personal_id
-    attributes[:information_date] = assessment_detail.assessment.assessment_date
-    attributes[:user_id] = assessment_detail.assessment.user_id
-    attributes[:date_updated] = DateTime.current
-    attributes[:date_created] = DateTime.current if create
-    attributes[id_field_name] = Hmis::Hud::Base.generate_uuid if create && id_field_name.present?
-    attributes
   end
 
   def health_and_dv_factory(create: true)
     return health_and_dv if health_and_dv.present? || !create
 
     self.health_and_dv = enrollment_factory.health_and_dvs.
-      build(**common_attributes(create: create, id_field_name: :health_and_dvid))
+      build(**common_attributes)
   end
 
   def income_benefit_factory(create: true)
     return income_benefit if income_benefit.present? || !create
 
     self.income_benefit = enrollment_factory.income_benefits.
-      build(**common_attributes(create: create, id_field_name: :income_benefits_id))
+      build(**common_attributes)
   end
 
   def physical_disability_factory(create: true)
@@ -98,11 +91,8 @@ class Hmis::Form::AssessmentProcessor < ::GrdaWarehouseBase
 
     self.physical_disability = enrollment_factory.disabilities.
       build(
-        data_collection_stage: assessment_detail.data_collection_stage,
         disability_type: 5, # Physical Disability
-        personal_id: enrollment_factory.client.personal_id,
-        information_date: assessment_detail.assessment.assessment_date,
-        user_id: assessment_detail.assessment.user_id,
+        **common_attributes,
       )
   end
 
@@ -111,11 +101,8 @@ class Hmis::Form::AssessmentProcessor < ::GrdaWarehouseBase
 
     self.developmental_disability = enrollment_factory.disabilities.
       build(
-        data_collection_stage: assessment_detail.data_collection_stage,
         disability_type: 6, # Developmental Disability
-        personal_id: enrollment_factory.client.personal_id,
-        information_date: assessment_detail.assessment.assessment_date,
-        user_id: assessment_detail.assessment.user_id,
+        **common_attributes,
       )
   end
 
@@ -124,11 +111,8 @@ class Hmis::Form::AssessmentProcessor < ::GrdaWarehouseBase
 
     self.chronic_health_condition = enrollment_factory.disabilities.
       build(
-        data_collection_stage: assessment_detail.data_collection_stage,
         disability_type: 7, # Chronic health condition
-        personal_id: enrollment_factory.client.personal_id,
-        information_date: assessment_detail.assessment.assessment_date,
-        user_id: assessment_detail.assessment.user_id,
+        **common_attributes,
       )
   end
 
@@ -137,11 +121,8 @@ class Hmis::Form::AssessmentProcessor < ::GrdaWarehouseBase
 
     self.hiv_aids = enrollment_factory.disabilities.
       build(
-        data_collection_stage: assessment_detail.data_collection_stage,
         disability_type: 8, # HIV/AIDS
-        personal_id: enrollment_factory.client.personal_id,
-        information_date: assessment_detail.assessment.assessment_date,
-        user_id: assessment_detail.assessment.user_id,
+        **common_attributes,
       )
   end
 
@@ -150,11 +131,8 @@ class Hmis::Form::AssessmentProcessor < ::GrdaWarehouseBase
 
     self.mental_health_disorder = enrollment_factory.disabilities.
       build(
-        data_collection_stage: assessment_detail.data_collection_stage,
         disability_type: 9, # Mental health disorder
-        personal_id: enrollment_factory.client.personal_id,
-        information_date: assessment_detail.assessment.assessment_date,
-        user_id: assessment_detail.assessment.user_id,
+        **common_attributes,
       )
   end
 
@@ -163,11 +141,8 @@ class Hmis::Form::AssessmentProcessor < ::GrdaWarehouseBase
 
     self.substance_use_disorder = enrollment_factory.disabilities.
       build(
-        data_collection_stage: assessment_detail.data_collection_stage,
         disability_type: 10, # Substance use disorder
-        personal_id: enrollment_factory.client.personal_id,
-        information_date: assessment_detail.assessment.assessment_date,
-        user_id: assessment_detail.assessment.user_id,
+        **common_attributes,
       )
   end
 
