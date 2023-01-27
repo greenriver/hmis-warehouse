@@ -1,20 +1,34 @@
 = content_for :crumbs do
   = link_to ma_reports_warehouse_reports_monthly_project_utilization_path(@report) do
     = "« #{@report.title}"
-%h1.mb-5
-  = @cell
 
-.overflow-x-scroll{style: "height: 800px"}
-  %table.table.table-sm.table-bordered.table-fixed
-    - attributes = @members.first.universe_membership.attribute_names - ['id', 'deleted_at', 'created_at', 'updated_at']
-    %thead.thead-dark
-      - (['first_name', 'last_name'] + attributes).each do |name|
-        %th= name.humanize
-    %tbody.thead-dark
-      - @members.each do |member|
+%h1.mb-5 Details for #{@report.title_for(@key, @sub_key)}
+.d-flex.mb-4
+  .mr-4
+    .input-group
+      %input#table_search.form-control{autofocus: true, type: :text, placeholder: 'Search...'}
+      %span.input-group-append
+        %button.btn.btn-secondary Search
+.card
+  .overflow-x-scroll{style: "height: 800px"}
+    %table.table.table-sm.table-bordered.table-fixed.datatable{ style: 'margin-top: 0 !important;'}
+      %thead.thead-dark
         %tr
-          %td= member[:first_name]
-          %td= member[:last_name]
-          - client_details = member.universe_membership
-          - attributes.each do |attribute|
-            %td= client_details[attribute]
+          - MaReports::MonthlyPerformance::Enrollment.headers.each_value do |label|
+            %th= label
+      %tbody.thead-dark
+        - @report.enrollments_for(@key, @sub_key).each do |enrollment|
+          %tr
+            - MaReports::MonthlyPerformance::Enrollment.headers.each_key do |column|
+              - # TODO: these should probably get formatted, but we'd like to confirm contents first
+              %td= enrollment.public_send(column)
+
+  = content_for :page_js do
+    :javascript
+      table = $('.datatable').DataTable({
+        paging: false,
+        "dom": 'lrtip'
+      });
+      $('#table_search').keyup(function(){
+        table.search($(this).val()).draw() ;
+      })

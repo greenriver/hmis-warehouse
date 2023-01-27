@@ -699,6 +699,49 @@ module Filters
       }.invert.freeze
     end
 
+    def self.age_range(description)
+      case description
+      when :zero_to_four
+        0..4
+      when :five_to_ten
+        5..10
+      when :eleven_to_fourteen
+        11..14
+      when :fifteen_to_seventeen
+        15..17
+      when :under_eighteen
+        0..17
+      when :eighteen_to_twenty_four
+        18..24
+      when :twenty_five_to_twenty_nine
+        25..29
+      when :thirty_to_thirty_four
+        30..34
+      when :thirty_five_to_thirty_nine
+        35..39
+      when :thirty_to_thirty_nine
+        30..39
+      when :forty_to_forty_four
+        40..44
+      when :forty_five_to_forty_nine
+        45..49
+      when :forty_to_forty_nine
+        40..49
+      when :fifty_to_fifty_four
+        50..54
+      when :fifty_five_to_fifty_nine
+        55..59
+      when :sixty_to_sixty_one
+        60..61
+      when :sixty_two_to_sixty_four
+        62..64
+      when :over_sixty_one
+        62..110
+      when :over_sixty_four
+        65..110
+      end
+    end
+
     def available_inactivity_days
       {
         30 => '30 days',

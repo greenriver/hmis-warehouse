@@ -35,6 +35,12 @@ module MaReports::WarehouseReports
     end
 
     def show
+      respond_to do |format|
+        format.html {}
+        format.xlsx do
+          headers['Content-Disposition'] = "attachment; filename=#{@report.title}.xlsx"
+        end
+      end
     end
 
     def destroy
@@ -44,8 +50,8 @@ module MaReports::WarehouseReports
     end
 
     def details
-      @cell = params[:cell].humanize
-      @members = @report.cell(params[:cell]).members
+      @key = params[:key]
+      @sub_key = params[:sub_key]
     end
 
     def report_class

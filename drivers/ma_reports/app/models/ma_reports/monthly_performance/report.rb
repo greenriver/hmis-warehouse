@@ -15,13 +15,18 @@ module MaReports::MonthlyPerformance
     include HudReports::Households
     include HudReports::LengthOfStays
 
+    has_many :enrollments
+    has_many :projects
+
     def run_and_save!
       start
 
       # Setup some household related data
       calculate_households
       create_universe
-
+      # cache results
+      demographic_breakdowns
+      project_utilization_by_month
       # run!
       complete
     end
@@ -99,6 +104,8 @@ module MaReports::MonthlyPerformance
               coc_code: project_coc.effective_coc_code,
               entry_date: enrollment.first_date_in_program,
               exit_date: enrollment.last_date_in_program,
+              first_name: client.first_name,
+              last_name: client.last_name,
               latest_for_client: enrollment.id == @last_enrollment_ids[enrollment.client_id],
               chronically_homeless_at_entry: enrollment.enrollment&.ch_enrollment&.chronically_homeless_at_entry,
               stay_length_in_days: stay_length(enrollment),
@@ -156,6 +163,7 @@ module MaReports::MonthlyPerformance
           monthly_projects << project_data.merge(
             month_start: month_start,
             available_beds: available_beds,
+            enrolled_client_count: length_of_stays_in_days.count,
             average_length_of_stay_in_days: average(length_of_stays_in_days.sum, length_of_stays_in_days.count),
             number_chronically_homeless_at_entry: number_chronically_homeless_at_entry,
           )
@@ -226,10 +234,6 @@ module MaReports::MonthlyPerformance
       end
     end
 
-    # private def report_client_scope
-    #   universe.members
-    # end
-
     private def clients_with_enrollments(batch)
       enrollment_scope.
         where(client_id: batch.map(&:client_id)).
@@ -253,6 +257,160 @@ module MaReports::MonthlyPerformance
         pluck(:service_history_enrollment_id).to_set
 
       @with_service.include?(enrollment.id)
+    end
+
+    def demographic_breakdowns
+      Rails.cache.fetch([self.class.name, __method__, id], expires_in: 5.months) do
+        breakdowns = {}
+        HudUtility.races.each do |k, label|
+          next if k == 'RaceNone'
+
+          key = ['Race', k]
+          breakdowns["Race: #{label}"] = {
+            key: key,
+            count: enrollments_for(*key).count,
+          }
+        end
+        key = ['Ethnicity', 0]
+        breakdowns['Ethnicity: Non-Hispanic/Non-Latin(a)(o)(x)'] = {
+          key: key,
+          count: enrollments_for(*key).count,
+        }
+        key = ['Ethnicity', 1]
+        breakdowns['Ethnicity: Hispanic/Latin(a)(o)(x)'] = {
+          key: key,
+          count: enrollments_for(*key).count,
+        }
+        HudUtility.gender_id_to_field_name.
+          reject { |k, _| k.in?([8, 9, 99]) }.
+          each do |gender_id, gender_column|
+            label = HudUtility.gender(gender_id)
+            key = ['Gender', gender_column]
+            breakdowns["Gender: #{label}"] = {
+              key: key,
+              count: enrollments_for(*key).count,
+            }
+          end
+        key = ['DisablingCondition', nil]
+        breakdowns['Disabling Condition'] = {
+          key: key,
+          count: enrollments_for(*key).count,
+        }
+        ::Filters::FilterBase.new(user_id: user_id).available_age_ranges.each do |label, k|
+          key = ['Age', k]
+          breakdowns["Age: #{label}"] = {
+            key: key,
+            count: enrollments_for(*key).count,
+          }
+        end
+        HudUtility.valid_prior_living_situations.reject { |k, _| k.in?([8, 9, 99]) }.each do |k|
+          key = ['PriorLivingSituation', k]
+          breakdowns["Prior Living Situation: #{HudUtility.living_situation(k)}"] = {
+            key: key,
+            count: enrollments_for(*key).count,
+          }
+        end
+        HudUtility.times_homeless_options.reject { |k, _| k.in?([8, 9, 99]) }.each do |k, label|
+          key = ['TimesHomeless', k]
+          breakdowns["Times Homeless in the past three years: #{label}"] = {
+            key: key,
+            count: enrollments_for(*key).count,
+          }
+        end
+        HudUtility.month_categories.reject { |k, _| k.in?([8, 9, 99]) }.each do |k, label|
+          key = ['MonthsHomeless', k]
+          breakdowns["Months homeless in the past 3 years: #{label}"] = {
+            key: key,
+            count: enrollments_for(*key).count,
+          }
+        end
+        breakdowns
+      end
+    end
+
+    def enrollments_for(key, sub_key)
+      case key
+      when 'Race'
+        return enrollments.none unless HudUtility.races.key?(sub_key)
+
+        enrollments.where(sub_key.underscore => true)
+      when 'Ethnicity'
+        return enrollments.none unless HudUtility.ethnicities.key?(sub_key.to_i)
+
+        enrollments.where(ethnicity: sub_key.to_i)
+      when 'Gender'
+        return enrollments.none unless HudUtility.genders.key?(sub_key)
+
+        enrollments.where(sub_key.underscore => true)
+      when 'DisablingCondition'
+        enrollments.where(disabling_condition: true)
+      when 'Age'
+        return enrollments.none unless ::Filters::FilterBase.new(user_id: user_id).available_age_ranges.value?(sub_key.to_sym)
+
+        enrollments.where(reporting_age: ::Filters::FilterBase.age_range(sub_key.to_sym))
+      when 'PriorLivingSituation'
+        return enrollments.none unless HudUtility.valid_prior_living_situations.include?(sub_key.to_i)
+
+        enrollments.where(prior_living_situation: sub_key)
+      when 'TimesHomeless'
+        return enrollments.none unless HudUtility.times_homeless_options.key?(sub_key.to_i)
+
+        enrollments.where(times_homeless_past_three_years: sub_key)
+      when 'MonthsHomeless'
+        return enrollments.none unless HudUtility.month_categories.key?(sub_key.to_i)
+
+        enrollments.where(months_homeless_past_three_years: sub_key)
+      else
+        return enrollments.none
+      end
+    end
+
+    def title_for(key, sub_key)
+      case key
+      when 'Race'
+        label = HudUtility.race(sub_key)
+        "#{key}: #{label}"
+      when 'Ethnicity'
+        label = HudUtility.ethnicity(sub_key.to_i)
+        "#{key}: #{label}"
+      when 'Gender'
+        label = HudUtility.gender(sub_key.to_i)
+        "#{key}: #{label}"
+      when 'DisablingCondition'
+        'Disabling Condition'
+      when 'Age'
+        label = ::Filters::FilterBase.new(user_id: user_id).available_age_ranges.invert[sub_key.to_sym]
+        "#{key}: #{label}"
+      when 'PriorLivingSituation'
+        label = HudUtility.living_situation(sub_key.to_i)
+        "#{key}: #{label}"
+      when 'TimesHomeless'
+        label = HudUtility.times_homeless_past_three_years(sub_key.to_i)
+        "#{key}: #{label}"
+      when 'MonthsHomeless'
+        label = HudUtility.months_homeless_past_three_years(sub_key.to_i)
+        "#{key}: #{label}"
+      end
+    end
+
+    def project_utilization_by_month
+      Rails.cache.fetch([self.class.name, __method__, id], expires_in: 5.months) do
+        rows = [['Month Start', 'CoC', 'City', 'Organization', 'Project', 'Active Enrollments', 'Average Daily Available Beds', 'Average Length of Stay (months)', 'Number of Chronically Homeless Individuals Served (at entry)']]
+        projects.each do |project|
+          rows << [
+            project.month_start,
+            project.coc_code,
+            project.city,
+            project.organization_name,
+            project.project_name,
+            project.enrolled_client_count,
+            project.available_beds,
+            project.average_length_of_stay_in_days / 30,
+            project.number_chronically_homeless_at_entry,
+          ]
+        end
+        rows
+      end
     end
 
     def report_end_date
