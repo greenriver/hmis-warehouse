@@ -73,12 +73,12 @@ module HudReports::Incomes
       earned_amount(universe_client, suffix).to_f.positive?
     end
 
-    # We have other income if the total is positive and not equal to the earned amount
+    # We have other income if the total is positive and greater than the earned amount
     private def other_income?(universe_client, suffix)
       total_amount = total_amount(universe_client, suffix)
       return false unless total_amount.present? && total_amount.positive?
 
-      total_amount.to_f != earned_amount(universe_client, suffix).to_f
+      total_amount.to_f > earned_amount(universe_client, suffix).to_f
     end
 
     private def total_income?(universe_client, suffix)
@@ -183,6 +183,8 @@ module HudReports::Incomes
     end
 
     private def income_responses(suffix)
+      # NOTE: these are the default messages, adult clause gets added in the appropriate question,
+      # message gets overridden for some questions (like 26 where it's looking at chronically homeless)
       responses = {
         'Adults with Only Earned Income (i.e., Employment Income)' => :earned,
         'Adults with Only Other Income' => :other,
@@ -212,11 +214,9 @@ module HudReports::Incomes
       end
       responses.merge!(
         {
-          'Number of adult stayers not yet required to have an annual assessment' => adult_clause.
-            and(stayers_clause).
+          'Number of adult stayers not yet required to have an annual assessment' => stayers_clause.
             and(a_t[:annual_assessment_expected].eq(false)),
-          'Number of adult stayers without required annual assessment' => adult_clause.
-            and(stayers_clause).
+          'Number of adult stayers without required annual assessment' => stayers_clause.
             and(a_t[:annual_assessment_expected].eq(true)).
             and(a_t[:income_from_any_source_at_annual_assessment].eq(nil)),
           'Total Adults' => Arel.sql('1=1'),

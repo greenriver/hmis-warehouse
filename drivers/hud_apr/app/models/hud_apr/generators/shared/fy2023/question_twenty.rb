@@ -102,8 +102,12 @@ module HudApr::Generators::Shared::Fy2023
             members = members.where(leavers_clause).where(hoh_clause.or(a_t[:id].in(additional_leaver_ids)))
           end
 
+          # Row 4 is everyone not counted in 2, or 3
+          if rows[row_index] == 4
+            members = members.where(a_t[:id].not_in(counted)).where(income_clause)
+            counted += members.pluck(a_t[:id])
           # Row 5 is everyone not counted in 2, 3, or 4
-          if rows[row_index] == 5
+          elsif rows[row_index] == 5
             members = members.where(a_t[:id].not_in(counted))
           else
             members = members.where(income_clause)
@@ -126,10 +130,10 @@ module HudApr::Generators::Shared::Fy2023
     private def income_counts(suffix)
       {
         'No Sources' => a_t["non_cash_benefits_from_any_source_at_#{suffix}"].eq(0).
-          and(benefit_jsonb_clause(1, a_t["income_sources_at_#{suffix}"].to_sql, negation: true)).
-          and(benefit_jsonb_clause(99, a_t["income_sources_at_#{suffix}"].to_sql, negation: true)),
+          and(benefit_jsonb_clause(1, a_t["income_sources_at_#{suffix}"].to_sql, negation: true, coalesce_value: 0)).
+          and(benefit_jsonb_clause(99, a_t["income_sources_at_#{suffix}"].to_sql, negation: true, coalesce_value: 0)),
         '1 + Source(s)' => a_t["non_cash_benefits_from_any_source_at_#{suffix}"].eq(1).
-          and(benefit_jsonb_clause(1, a_t["income_sources_at_#{suffix}"].to_sql)),
+          or(benefit_jsonb_clause(1, a_t["income_sources_at_#{suffix}"].to_sql)),
         "Client Doesn't Know/Client Refused" => a_t["non_cash_benefits_from_any_source_at_#{suffix}"].in([8, 9]),
         # Special case implemented in code above
         'Data Not Collected/Not stayed long enough for Annual Assessment' => nil,

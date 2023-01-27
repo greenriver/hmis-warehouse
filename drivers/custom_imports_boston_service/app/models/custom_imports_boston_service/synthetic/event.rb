@@ -90,7 +90,14 @@ module CustomImportsBostonService::Synthetic
     end
 
     def self.build_event_batch(batch)
-      destination_client_ids = batch.map { |row| [row.client.id, row.client.destination_client.id] }.to_h
+      destination_client_ids = batch.map do |row|
+        next unless row.client&.destination_client.present?
+
+        [
+          row.client.id,
+          row.client.destination_client.id,
+        ]
+      end.compact.to_h
 
       range = batch.first.reporting_period_started_on .. batch.first.reporting_period_ended_on + REPORTING_PERIOD_WINDOW.days
       # Fetch assessments within range

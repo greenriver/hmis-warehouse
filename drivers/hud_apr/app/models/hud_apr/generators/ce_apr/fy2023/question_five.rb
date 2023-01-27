@@ -23,14 +23,22 @@ module HudApr::Generators::CeApr::Fy2023
 
     private def intentionally_blank
       [
-        'B5',
         'B6',
+        'C6',
         'B7',
+        'C7',
         'B8',
+        'C8',
         'B9',
-        'B11',
-        'B13',
-        'B16',
+        'C9',
+        'B10',
+        'C10',
+        'B12',
+        'C12',
+        'B14',
+        'C14',
+        'B17',
+        'C17',
       ]
     end
   end

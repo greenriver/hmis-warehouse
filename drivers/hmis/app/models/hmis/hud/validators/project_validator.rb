@@ -1,7 +1,6 @@
 class Hmis::Hud::Validators::ProjectValidator < Hmis::Hud::Validators::BaseValidator
   IGNORED = [
     :ExportID,
-    :ProjectType,
   ].freeze
 
   def configuration

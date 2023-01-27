@@ -115,9 +115,15 @@
             let description = '';
             const denominatorLabel = "#{@report.detail_denominator_label_for(key)}";
             const numeratorLabel = "#{@report.detail_numerator_label_for(key)}";
+            let numer, denom;
             if (denominatorLabel) {
-              const numer = data.index === 0 ? "#{result.reporting_numerator}" : "#{result.comparison_numerator}";
-              const denom = data.index === 0 ? "#{result.reporting_denominator}" : "#{result.comparison_denominator}";
+              if (includePercent) {
+                numer = data.index === 0 ? "#{result.comparison_numerator}" : "#{result.reporting_numerator}";
+                denom = data.index === 0 ? "#{result.comparison_denominator}" : "#{result.reporting_denominator}";
+              } else {
+                numer = data.index === 0 ? "#{result.reporting_numerator}" : "#{result.comparison_numerator}";
+                denom = data.index === 0 ? "#{result.reporting_denominator}" : "#{result.comparison_denominator}";
+              }
               description = ` (${numer} ${numeratorLabel} of ${denom} ${denominatorLabel})`;
             }
 

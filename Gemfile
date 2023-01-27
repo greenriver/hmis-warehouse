@@ -164,6 +164,7 @@ gem 'puma', '~> 4.3.11'
 gem 'dotenv-rails'
 
 gem 'net-sftp', require: false
+gem 'net-ssh', '~> 7', require: false
 gem 'redis-actionpack'
 
 # AWS SDK is needed for deployment and within the application

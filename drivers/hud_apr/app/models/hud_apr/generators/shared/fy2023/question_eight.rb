@@ -114,12 +114,16 @@ module HudApr::Generators::Shared::Fy2023
           and(a_t[:move_in_date].not_eq(nil).
           and(a_t[:move_in_date].lteq(@report.end_date))),
       )
-      answer = @report.answer(question: table_name, cell: 'B3')
-      members = ps_rrh_w_move_in
-      answer.add_members(members)
-      answer.update(summary: members.count)
+      unless q8a_intentionally_blank.include?('B3')
+        answer = @report.answer(question: table_name, cell: 'B3')
+        members = ps_rrh_w_move_in
+        answer.add_members(members)
+        answer.update(summary: members.count)
+      end
 
       q8a4_active_questions.each do |col|
+        next if q8a_intentionally_blank.include?(col[:cell])
+
         answer = @report.answer(question: table_name, cell: col[:cell])
         members = ps_rrh_w_move_in.where(a_t[:household_type].eq(col[:household_type]))
         answer.add_members(members)
@@ -189,9 +193,13 @@ module HudApr::Generators::Shared::Fy2023
     end
 
     private def pit_universe(month:)
+      # NOTE: from AirTable Issue 31, this needs to find households based on any
+      # client active on the pit date, then return the HoH for those households.
+      # This will catch the edge case where an HoH left, but other members remain
       heads_of_household = universe.members.where(a_t[:head_of_household].eq(true))
       pit_date = pit_date(month: month, before: @report.end_date)
-      heads_of_household.where("pit_enrollments ? '#{pit_date}'")
+      active_members = universe.members.where("pit_enrollments ? '#{pit_date}'")
+      heads_of_household.where(a_t[:household_id].in(active_members.pluck(a_t[:household_id])))
     end
   end
 end

@@ -44,7 +44,7 @@ module Health
         source_type: @form.class.name,
         user_id: @user.id,
         user_full_name: @user.name_with_email,
-        date_of_activity: Date.current,
+        date_of_activity: [@form.signature_on, @form.participation_signature_on].max,
         activity: :outreach,
         follow_up: follow_up_text,
         reached_client: :yes,

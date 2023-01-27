@@ -27,6 +27,7 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
   validates_with Hmis::Hud::Validators::AssessmentValidator
 
   scope :in_progress, -> { where(enrollment_id: WIP_ID) }
+  scope :not_in_progress, -> { where.not(enrollment_id: WIP_ID) }
 
   # hide previous declaration of :viewable_by, we'll use this one
   replace_scope :viewable_by, ->(user) do

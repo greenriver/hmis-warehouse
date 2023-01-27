@@ -16,10 +16,10 @@ RSpec.describe 'Force Valid CoC Codes', type: :model do
       expect(GrdaWarehouse::Hud::EnrollmentCoc.count).to eq(9)
     end
 
+    # NOTE: these have been partially replaced by CoC Cleanup in ProjectCleanup
+    # we now should find only the CoC Code of the project
     it 'Includes invalid CoCCodes' do
-      expect(GrdaWarehouse::Hud::EnrollmentCoc.pluck(:CoCCode)).to include('MA5001')
-      expect(GrdaWarehouse::Hud::EnrollmentCoc.pluck(:CoCCode)).to include('zz999')
-      expect(GrdaWarehouse::Hud::EnrollmentCoc.pluck(:CoCCode)).to include('ma504')
+      expect(GrdaWarehouse::Hud::EnrollmentCoc.pluck(:CoCCode).uniq).to include('KY-500')
       expect(GrdaWarehouse::Hud::EnrollmentCoc.pluck(:CoCCode).compact.count).to eq(9)
     end
   end
@@ -37,10 +37,10 @@ RSpec.describe 'Force Valid CoC Codes', type: :model do
       expect(GrdaWarehouse::Hud::EnrollmentCoc.pluck(:CoCCode).compact.count).to eq(4)
     end
 
+    # NOTE: these have been partially replaced by CoC Cleanup in ProjectCleanup
+    # we now should find only the CoC Code of the project
     it 'Includes corrected CoCCodes' do
-      expect(GrdaWarehouse::Hud::EnrollmentCoc.pluck(:CoCCode)).to include('MA-502')
-      expect(GrdaWarehouse::Hud::EnrollmentCoc.pluck(:CoCCode)).to include('MA-503')
-      expect(GrdaWarehouse::Hud::EnrollmentCoc.pluck(:CoCCode)).to include('MA-504')
+      expect(GrdaWarehouse::Hud::EnrollmentCoc.pluck(:CoCCode).uniq).to include('KY-500')
     end
   end
 

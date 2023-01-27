@@ -10,7 +10,7 @@ module HudApr::Generators::Shared::Fy2023
 
     def self.table_descriptions
       {
-        'Question 19' => 'Cash Income - Changes over Time',
+        'Question 19' => 'Cash Income - Changes Over Time',
         'Q19a1' => 'Client Cash Income Change - Income Source - by Start and Latest Status',
         'Q19a2' => 'Client Cash Income Change - Income Source - by Start and Exit',
         'Q19b' => 'Disabling Conditions and Income for Adults at Exit',
@@ -237,6 +237,8 @@ module HudApr::Generators::Shared::Fy2023
       ).merge(
         {
           'Other Source' => income_types(:exit).slice(*other_sources).values,
+          # FIXME? There are some cases in the test kit that have income_from_any_source_at_exit = 1, but no other sources specified
+          # where should those client's go?
           'No Sources' => a_t[:income_from_any_source_at_exit].eq(0),
           'Unduplicated Total Adults' => Arel.sql('1=1'),
         },
@@ -245,7 +247,7 @@ module HudApr::Generators::Shared::Fy2023
 
     private def ids_and_amounts(adults, column:, income_category:, suffix:)
       ids = Set.new
-      amounts = Set.new
+      amounts = [] # this can't be a set, we need all amounts even duplicates
       adults.preload(:universe_membership).find_each do |member|
         apr_client = member.universe_membership
         income_difference = income_change(

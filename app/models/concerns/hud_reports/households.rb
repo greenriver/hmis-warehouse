@@ -55,23 +55,26 @@ module HudReports::Households
     # if no adults are either yes or no, use  self for adults, and the HoH enrollment for children
     # from glossary:
     # In cases where the head of household as well as all other adult household members have an indeterminate CH status (don’t know, refused, missing), any child household members should carry the same CH status as the head of household.
+    # NOTE: Client CH status is only inherited if the client was present at the start of the enrollment.
+    # per HUD guidance, the HoH should always be present for the entire stay, so we'll compare start dates to them
+    # see AirTable Issue ID 30
     private def household_chronic_status(hh_id, client_id)
       household_members = households[hh_id]
       hoh = household_members.detect { |hm| hm[:relationship_to_hoh] == 1 }
+      current_member = household_members.detect { |hm| hm[:client_id] == client_id }
 
       # HoH if they are chronically homeless
-      return hoh if hoh.present? && hoh[:chronic_status]
+      return hoh if hoh.present? && hoh[:chronic_status] && hoh[:entry_date] == current_member[:entry_date]
 
       chronic_adult = household_members.detect do |hm|
         next false unless hm[:age].present?
 
-        hm[:age] >= 18 && hm[:chronic_status]
+        hm[:age] >= 18 && hm[:chronic_status] && hm[:entry_date] == current_member[:entry_date]
       end
-      # if not, use any other adult who is
+      # if not, use any other adult who is (with the same entry date)
       return chronic_adult if chronic_adult.present?
 
-      current_member = household_members.detect { |hm| hm[:client_id] == client_id }
-      # if no adults are either yes or no, use  self for adults
+      # if no adults are either yes or no, use self for adults
       return current_member if current_member[:age].present? && current_member[:age] >= 18
       # if the data is bad and we don't have an HoH, use our own record
       return current_member if hoh.blank?

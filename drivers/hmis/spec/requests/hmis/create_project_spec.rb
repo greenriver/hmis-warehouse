@@ -131,6 +131,14 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         },
       ],
       [
+        'should emit error if project type is not valid',
+        ->(input) { { **input, project_type: 'INVALID' } },
+        {
+          'fullMessage' => 'Project type is invalid',
+          'attribute' => 'projectType',
+        },
+      ],
+      [
         'should not emit error if project type is not provided and project is a continuum project',
         ->(input) { input.except(:project_type).merge(continuum_project: true) },
       ],

@@ -146,3 +146,4 @@ db/cas_structure.sql
 
 # Refuse to commit test kit, this will be pulled down at runtime
 drivers/datalab_testkit/spec/fixtures/inputs/merged/source/*
+drivers/datalab_testkit/spec/fixtures/results/*

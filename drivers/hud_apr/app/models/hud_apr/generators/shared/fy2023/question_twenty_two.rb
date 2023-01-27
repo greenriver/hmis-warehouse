@@ -10,7 +10,7 @@ module HudApr::Generators::Shared::Fy2023
 
     def self.table_descriptions
       {
-        'Question 22' => 'Length of participation',
+        'Question 22' => 'Length of Participation',
         'Q22a1' => 'Length of Participation - CoC Projects',
         'Q22a2' => 'Length of Participation - ESG Projects',
         'Q22b' => 'Average and Median Length of Participation in Days',
@@ -104,12 +104,12 @@ module HudApr::Generators::Shared::Fy2023
           value = 0
           case method
           when :average
-            value = (stay_lengths.sum(0.0) / stay_lengths.count).round if stay_lengths.any?
+            value = (stay_lengths.sum(0.0) / stay_lengths.count).round(2) if stay_lengths.any?
           when :median
             if stay_lengths.any?
               sorted = stay_lengths.sort
               length = stay_lengths.count
-              value = ((sorted[(length - 1) / 2] + sorted[length / 2]) / 2.0).round
+              value = ((sorted[(length - 1) / 2] + sorted[length / 2]) / 2.0).round(2)
             end
           end
 

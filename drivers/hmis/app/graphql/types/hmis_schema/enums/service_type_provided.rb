@@ -25,8 +25,11 @@ module Types
     ].each do |record_type, enum|
       rt_key, rt_value = HmisSchema::Enums::Hud::RecordType.enum_member_for_value(record_type)
       enum.values.each do |enum_key, enum_value|
+        next if enum_value.value == Types::BaseEnum::INVALID_VALUE
+
         value [rt_key, enum_key].join('__'), enum_value.description, value: [rt_value.value, enum_value.value].join(':')
       end
     end
+    invalid_value
   end
 end

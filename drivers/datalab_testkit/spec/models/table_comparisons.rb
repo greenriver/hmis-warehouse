@@ -73,13 +73,13 @@ end
 def normalize(value)
   value = value&.to_s&.strip
   value = value[...-1] if percent?(value) # Remove percent signs
-  return '0' if value.blank? # Treat 0 and blank as the same for comparison
+  return '0.0000' if value.blank? # Treat 0 and blank as the same for comparison
 
   value = value[1..] if money?(value) # Remove dollar signs
-  value = value.to_f.truncate(2).to_s if float?(value) # only compare 2 significant digits
+  value = value.to_f.round(2).to_s if float?(value) # only compare 2 significant digits
   value = '0' if normalize_zero?(value) # Treat all zeros as '0'
 
-  value
+  format('%1.4f', value.to_f.round(4))
 end
 
 def normalize_zero?(value)
