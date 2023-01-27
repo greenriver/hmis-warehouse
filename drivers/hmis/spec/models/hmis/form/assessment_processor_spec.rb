@@ -125,6 +125,7 @@ RSpec.describe Hmis::Form::AssessmentProcessor, type: :model do
       assessment = Hmis::Hud::Assessment.new_with_defaults(enrollment: e1, user: hmis_hud_user, form_definition: fd, assessment_date: Date.current)
       assessment.assessment_detail.hud_values = {
         'EnrollmentCoc.cocCode' => 'MA-507',
+        'IncomeBenefit.incomeFromAnySource' => 'YES',
       }
 
       assessment.assessment_detail.assessment_processor.run!
@@ -132,6 +133,7 @@ RSpec.describe Hmis::Form::AssessmentProcessor, type: :model do
 
       assessment.assessment_detail.hud_values = {
         'EnrollmentCoc.cocCode' => nil,
+        'IncomeBenefit.incomeFromAnySource' => nil,
       }
 
       assessment.assessment_detail.assessment_processor.run!
