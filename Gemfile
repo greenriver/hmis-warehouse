@@ -99,6 +99,15 @@ gem 'text'
 
 gem 'lograge'
 gem 'logstop'
+
+# Metrics
+gem 'yabeda-rails'
+gem 'yabeda-prometheus'
+gem 'yabeda-puma-plugin'
+gem 'yabeda-graphql'
+gem 'yabeda-http_requests'
+gem 'yabeda-activerecord'
+
 gem 'activerecord-session_store'
 gem 'attribute_normalizer'
 gem 'delayed_job'
@@ -164,6 +173,7 @@ gem 'puma', '~> 4.3.11'
 gem 'dotenv-rails'
 
 gem 'net-sftp', require: false
+gem 'net-ssh', '~> 7', require: false
 gem 'net-http'
 gem 'redis-actionpack'
 

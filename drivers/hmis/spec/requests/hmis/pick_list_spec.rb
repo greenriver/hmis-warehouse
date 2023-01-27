@@ -13,6 +13,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   include_context 'hmis base setup'
 
   let!(:pc1) { create :hmis_hud_project_coc, data_source_id: ds1.id, project: p1, coc_code: 'MA-500' }
+  let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, relationship_to_ho_h: 1, household_id: '1', user: u1 }
 
   before(:each) do
     hmis_login(user)
@@ -112,6 +113,23 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     expect(response.status).to eq 200
     options = result.dig('data', 'pickList')
     expect(options[0]['code']).to eq('509001')
+  end
+
+  it 'returns grouped service type pick list' do
+    response, result = post_graphql(pick_list_type: 'SERVICE_TYPE', relationId: e1.id.to_s) { query }
+    expect(response.status).to eq 200
+    options = result.dig('data', 'pickList')
+    expect(options.length).to eq(
+      Types::HmisSchema::Enums::ServiceTypeProvided.all_enum_value_definitions.reject { |item| item.value.is_a?(Integer) }.count,
+    )
+    expect(options).to include(
+      include(
+        'code' => 'PATH_SERVICE__RE_ENGAGEMENT',
+        'label' => 'Re-engagement',
+        'groupCode' => 'PATH_SERVICE',
+        'groupLabel' => 'PATH service',
+      ),
+    )
   end
 end
 
