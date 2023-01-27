@@ -11,7 +11,7 @@ class Hmis::Hud::Processors::Base
 
   def process(field, value)
     attribute_name = hud_name(field)
-    attribute_value = hud_type(field)&.value_for(value) || value # If the HUD type doesn't have a translator, fall back to the DB one
+    attribute_value = hud_type(field)&.value_for(value) || value if value.present? # If the HUD type doesn't have a translator, fall back to the DB one
     @processor.send(factory_name).assign_attributes(attribute_name => attribute_value)
   end
 

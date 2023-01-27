@@ -33,6 +33,8 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   end
 
   def self.find_definition_for_project(project, role:, version: nil)
+    return none unless project.present?
+
     definitions = definitions_for_project(project, role: role)
     definitions = definitions.where(version: version) if version.present?
     definitions.order(version: :desc).first

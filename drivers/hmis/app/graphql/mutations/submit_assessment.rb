@@ -47,14 +47,20 @@ module Mutations
         assessment_date: assessment_date ? Date.strptime(assessment_date) : assessment.assessment_date,
       )
 
-      # TODO: return validation errors for processed records
-
       if assessment.valid? && assessment.assessment_detail.valid?
         assessment.assessment_detail.save!
-        # assessment.assessment_detail.assessment_processor.run!
-        assessment.save_not_in_progress
-        # If this is an intake assessment, move the enrollment out of WIP status
-        assessment.enrollment.save_not_in_progress if assessment.intake?
+        # Run processor to create/update related records
+        assessment.assessment_detail.assessment_processor.run!
+
+        # Check if related records are valid
+        if assessment.assessment_detail.valid?
+          assessment.save_not_in_progress
+          # If this is an intake assessment, move the enrollment out of WIP status
+          assessment.enrollment.save_not_in_progress if assessment.intake?
+        else
+          errors.push(*assessment.assessment_detail.errors.errors)
+          assessment = nil
+        end
       else
         errors << assessment.errors
         errors << assessment.assessment_detail.errors

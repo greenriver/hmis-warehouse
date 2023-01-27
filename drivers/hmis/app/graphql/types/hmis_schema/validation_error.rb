@@ -27,6 +27,12 @@ module Types
       return object.id if object.respond_to?(:id)
     end
 
+    def message
+      return object.message if object.respond_to?(:message) && object.message.present?
+      return 'must exist' if type == :required
+      return 'is invalid' if type == :invalid
+    end
+
     def full_message
       return object.full_message.gsub(object.attribute.to_s.downcase.capitalize, readable_attribute) if object.respond_to?(:full_message)
     end
