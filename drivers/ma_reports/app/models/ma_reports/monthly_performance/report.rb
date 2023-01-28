@@ -93,6 +93,8 @@ module MaReports::MonthlyPerformance
           cocs = project.project_cocs || project.build_project_coc
 
           cocs.each do |project_coc|
+            ethnicity = nil
+            ethnicity = client.ethnicity == 1 if client.ethnicity.in?([1, 0])
             new_enrollment = Enrollment.new(
               report_id: id,
               client_id: client.id,
@@ -114,7 +116,7 @@ module MaReports::MonthlyPerformance
               black_af_american: client.black_af_american == 1,
               native_hi_pacific: client.native_hi_pacific == 1,
               white: client.white == 1,
-              ethnicity: client.ethnicity == 1,
+              ethnicity: ethnicity,
               male: client.male == 1,
               female: client.female == 1,
               transgender: client.transgender == 1,
@@ -261,7 +263,13 @@ module MaReports::MonthlyPerformance
 
     def demographic_breakdowns
       Rails.cache.fetch([self.class.name, __method__, id], expires_in: 5.months) do
-        breakdowns = {}
+        key = ['All', nil]
+        breakdowns = {
+          'Unique Enrolled Clients' => {
+            key: key,
+            count: enrollments_for(*key).select(:client_id).distinct.count,
+          },
+        }
         HudUtility.races.each do |k, label|
           next if k == 'RaceNone'
 
@@ -330,6 +338,8 @@ module MaReports::MonthlyPerformance
 
     def enrollments_for(key, sub_key)
       case key
+      when 'All'
+        enrollments
       when 'Race'
         return enrollments.none unless HudUtility.races.key?(sub_key)
 
@@ -367,6 +377,8 @@ module MaReports::MonthlyPerformance
 
     def title_for(key, sub_key)
       case key
+      when 'All'
+        'Unique Enrolled Clients'
       when 'Race'
         label = HudUtility.race(sub_key)
         "#{key}: #{label}"
