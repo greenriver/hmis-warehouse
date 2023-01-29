@@ -841,6 +841,15 @@ module GrdaWarehouse::WarehouseReports
           health: false,
         }
       end
+      if RailsDrivers.loaded.include?(:boston_reports)
+        r_list['Performance'] << {
+          url: 'boston_reports/warehouse_reports/street_to_homes',
+          name: _('Street to Home'),
+          description: 'Boston specific report to track progress for the Street to Home initiative',
+          limitable: false,
+          health: false,
+        }
+      end
       if RailsDrivers.loaded.include?(:project_scorecard)
         r_list['Performance'] << {
           url: 'project_scorecard/warehouse_reports/scorecards',
@@ -1278,6 +1287,8 @@ module GrdaWarehouse::WarehouseReports
       cleanup << 'ma_yya_followup_report/warehouse_reports/youth_followup' unless RailsDrivers.loaded.include?(:ma_yya_followup_report)
       cleanup << 'service_scanning/warehouse_reports/scanned_services' unless RailsDrivers.loaded.include?(:service_scanning)
       cleanup << 'core_demographics_report/warehouse_reports/core' unless RailsDrivers.loaded.include?(:core_demographics_report)
+      cleanup << 'boston_reports/warehouse_reports/street_to_homes' unless RailsDrivers.loaded.include?(:boston_reports)
+
       unless RailsDrivers.loaded.include?(:claims_reporting)
         cleanup << 'claims_reporting/warehouse_reports/reconciliation'
         cleanup << 'claims_reporting/warehouse_reports/engagement_trends'
