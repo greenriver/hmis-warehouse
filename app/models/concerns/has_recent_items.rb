@@ -21,7 +21,7 @@ module HasRecentItems
       association_name, = recent_item_types.find { |_name, item_class| item.is_a?(item_class) }
       raise "Cannot resolve recent item type for '#{item&.class&.name}' with id '#{item&.id}'" unless association_name.present?
 
-      recent_item_links.find_or_create_by(item: item)
+      recent_item_links.find_or_create_by(item: item)&.touch
     end
 
     def clear_recent_items
@@ -29,7 +29,7 @@ module HasRecentItems
     end
 
     def sorted_recent_item_links
-      recent_item_links.order(created_at: :desc)
+      recent_item_links.order(updated_at: :desc)
     end
   end
 

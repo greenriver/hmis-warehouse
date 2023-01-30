@@ -137,10 +137,6 @@ module Types
       Types::Forms::PickListOption.options_for_type(pick_list_type, user: current_user, relation_id: relation_id)
     end
 
-    field :recent_items, [HmisSchema::OmnisearchResult], null: false
-
-    def recent_items
-      current_user&.recent_items || []
-    end
+    field :current_user, HmisSchema::User, null: true
   end
 end

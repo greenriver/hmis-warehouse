@@ -2848,13 +2848,13 @@ type Mutation {
     Parameters for AddRecentItem
     """
     input: AddRecentItemInput!
-  ): [OmnisearchResult!]
+  ): User
   clearRecentItems(
     """
     Parameters for ClearRecentItems
     """
     input: ClearRecentItemsInput!
-  ): [OmnisearchResult!]
+  ): User
   createBeds(
     """
     Parameters for CreateBeds
@@ -3520,6 +3520,7 @@ type Query {
   Search for clients
   """
   clientSearch(input: ClientSearchInput!, limit: Int, offset: Int, sortOrder: ClientSortOption): ClientsPaginated!
+  currentUser: User
 
   """
   Enrollment lookup
@@ -3567,7 +3568,6 @@ type Query {
   """
   projectCoc(id: ID!): ProjectCoc
   projects(limit: Int, offset: Int, projectTypes: [ProjectType!], searchTerm: String, sortOrder: ProjectSortOption): ProjectsPaginated!
-  recentItems: [OmnisearchResult!]!
 
   """
   Service lookup
@@ -5174,6 +5174,7 @@ type User {
   dateUpdated: ISO8601DateTime!
   id: ID!
   name: String!
+  recentItems: [OmnisearchResult!]!
 }
 
 type ValidationError {
