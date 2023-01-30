@@ -3517,6 +3517,11 @@ type Query {
   client(id: ID!): Client
 
   """
+  Client omnisearch
+  """
+  clientOmniSearch(input: ClientSearchInput!, limit: Int, offset: Int, sortOrder: ClientSortOption): ClientsPaginated!
+
+  """
   Search for clients
   """
   clientSearch(input: ClientSearchInput!, limit: Int, offset: Int, sortOrder: ClientSortOption): ClientsPaginated!

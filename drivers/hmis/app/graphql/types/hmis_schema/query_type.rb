@@ -37,6 +37,18 @@ module Types
       resolve_clients(search_scope, **args)
     end
 
+    clients_field :client_omni_search, 'Client omnisearch' do |field|
+      field.argument :input, Types::HmisSchema::ClientSearchInput, required: true
+    end
+
+    def client_omni_search(input:, **args)
+      client_scope = Hmis::Hud::Client.client_search(input: input.to_params, user: current_user).
+        joins(:enrollments).
+        where(Enrollment: { id: Hmis::Hud::Enrollment.open_during_range((Date.today - 1.month)..Date.today) }).
+        order('Enrollment.DateUpdated' => :desc)
+      resolve_clients(client_scope, **args)
+    end
+
     field :client, Types::HmisSchema::Client, 'Client lookup', null: true do
       argument :id, ID, required: true
     end
