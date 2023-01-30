@@ -76,7 +76,7 @@ module MaReports::MonthlyPerformance
     end
 
     private def create_universe
-      # make it repeatable
+      # make create_universe repeatable for testing
       MaReports::MonthlyPerformance::Enrollment.where(report_id: id).delete_all
       MaReports::MonthlyPerformance::Project.where(report_id: id).delete_all
       SimpleReports::UniverseMember.where(report_cell_id: universe.id).delete_all
