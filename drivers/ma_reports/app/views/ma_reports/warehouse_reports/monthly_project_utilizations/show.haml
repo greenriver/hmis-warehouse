@@ -1,0 +1,29 @@
+= content_for :crumbs do
+  = link_to ma_reports_warehouse_reports_monthly_project_utilizations_path do
+    = "« #{@report.title}"
+%h1.mb-5
+  = @report.title
+.well
+  .warehouse-reports__completed.report-parameters
+    = @report.filter.describe_filter_as_html(@report.class.report_options, limited: true)
+    .ml-auto
+      = render 'filters/view_filter_details', filter_hash: @report.filter.to_h, selected_keys: @report.class.report_options
+.d-flex
+  .table-header
+    %H2 Demographic Analysis
+    %p Note: download includes the following demographic analysis and monthly counts by project.
+  .ml-auto.mb-4
+    = link_to ma_reports_warehouse_reports_monthly_project_utilization_path(@report, format: :xlsx), class: 'btn btn-secondary' do
+      %i.icon-download2
+      Download
+.card
+  %table.table.table-striped
+    %thead
+      %tr
+        %th Category
+        %th Count
+    %tbody
+      - @report.demographic_breakdowns.each do |label, data|
+        %tr
+          %th= label
+          %td= link_to data[:count], details_ma_reports_warehouse_reports_monthly_project_utilization_path(@report, key: data[:key].first, sub_key: data[:key].last)
