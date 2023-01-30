@@ -1265,6 +1265,15 @@ module GrdaWarehouse::WarehouseReports
           health: false,
         }
       end
+      if RailsDrivers.loaded.include?(:ma_reports)
+        r_list['Exports'] << {
+          url: 'ma_reports/warehouse_reports/monthly_project_utilizations',
+          name: 'Project Utilization by Month',
+          description: 'Includes monthly breakdowns of enrollment and inventory counts by project, and CoC.  Additionally, summary demographic data for report range',
+          limitable: true,
+          health: false,
+        }
+      end
 
       r_list
     end
@@ -1340,6 +1349,7 @@ module GrdaWarehouse::WarehouseReports
         cleanup << 'hmis_data_quality_tool/warehouse_reports/reports'
         cleanup << 'hmis_data_quality_tool/warehouse_reports/goal_configs'
       end
+      cleanup << 'ma_reports/warehouse_reports/monthly_project_utilizations' unless RailsDrivers.loaded.include?(:ma_reports)
 
       cleanup.each do |url|
         GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: url).delete_all
