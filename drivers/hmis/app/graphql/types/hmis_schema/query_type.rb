@@ -154,6 +154,6 @@ module Types
       Types::Forms::PickListOption.options_for_type(pick_list_type, user: current_user, relation_id: relation_id)
     end
 
-    field :current_user, HmisSchema::UserAccount, null: true
+    field :current_user, Application::User, null: true
   end
 end

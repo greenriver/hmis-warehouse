@@ -7,8 +7,9 @@
 # frozen_string_literal: true
 
 module Types
-  class HmisSchema::UserAccount < Types::BaseObject
+  class Application::User < Types::BaseObject
     description 'User account for a user of the system'
+    graphql_name 'ApplicationUser'
     field :id, ID, null: false
     field :name, String, null: false
     field :recent_items, [Types::HmisSchema::OmnisearchResult], null: false

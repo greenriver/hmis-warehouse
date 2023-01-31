@@ -40,6 +40,18 @@ input AddRecentItemInput {
 }
 
 """
+User account for a user of the system
+"""
+type ApplicationUser {
+  dateCreated: ISO8601DateTime!
+  dateDeleted: ISO8601DateTime
+  dateUpdated: ISO8601DateTime!
+  id: ID!
+  name: String!
+  recentItems: [OmnisearchResult!]!
+}
+
+"""
 HUD Assessment
 """
 type Assessment {
@@ -2848,13 +2860,13 @@ type Mutation {
     Parameters for AddRecentItem
     """
     input: AddRecentItemInput!
-  ): UserAccount
+  ): ApplicationUser
   clearRecentItems(
     """
     Parameters for ClearRecentItems
     """
     input: ClearRecentItemsInput!
-  ): UserAccount
+  ): ApplicationUser
   createBeds(
     """
     Parameters for CreateBeds
@@ -3525,7 +3537,7 @@ type Query {
   Search for clients
   """
   clientSearch(input: ClientSearchInput!, limit: Int, offset: Int, sortOrder: ClientSortOption): ClientsPaginated!
-  currentUser: UserAccount
+  currentUser: ApplicationUser
 
   """
   Enrollment lookup
@@ -5179,18 +5191,6 @@ type User {
   dateUpdated: ISO8601DateTime!
   id: ID!
   name: String!
-}
-
-"""
-User account for a user of the system
-"""
-type UserAccount {
-  dateCreated: ISO8601DateTime!
-  dateDeleted: ISO8601DateTime
-  dateUpdated: ISO8601DateTime!
-  id: ID!
-  name: String!
-  recentItems: [OmnisearchResult!]!
 }
 
 type ValidationError {
