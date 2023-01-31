@@ -2848,13 +2848,13 @@ type Mutation {
     Parameters for AddRecentItem
     """
     input: AddRecentItemInput!
-  ): User
+  ): UserAccount
   clearRecentItems(
     """
     Parameters for ClearRecentItems
     """
     input: ClearRecentItemsInput!
-  ): User
+  ): UserAccount
   createBeds(
     """
     Parameters for CreateBeds
@@ -3525,7 +3525,7 @@ type Query {
   Search for clients
   """
   clientSearch(input: ClientSearchInput!, limit: Int, offset: Int, sortOrder: ClientSortOption): ClientsPaginated!
-  currentUser: User
+  currentUser: UserAccount
 
   """
   Enrollment lookup
@@ -5174,6 +5174,17 @@ type UpdateUnitsPayload {
 HUD User
 """
 type User {
+  dateCreated: ISO8601DateTime!
+  dateDeleted: ISO8601DateTime
+  dateUpdated: ISO8601DateTime!
+  id: ID!
+  name: String!
+}
+
+"""
+User account for a user of the system
+"""
+type UserAccount {
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!

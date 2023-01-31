@@ -2,7 +2,7 @@ module Mutations
   class AddRecentItem < BaseMutation
     argument :item_id, ID, required: true
     argument :item_type, Types::HmisSchema::Enums::RecentItemType, required: true
-    type Types::HmisSchema::User
+    type Types::HmisSchema::UserAccount
 
     def resolve(item_id:, item_type:)
       # item_type is an enum where the value is an AR class that corresponds to that type
