@@ -13,7 +13,7 @@
     .top-nav-prs1
       %h1.mb-5= title
     .main-inner-prs1
-      - if @filter.cohort_column.present?
+      - if @filter.cohort_column.present? && @filter.cohort_ids.present?
         .text-right.mb-4
           = render 'report_downloads/report_download', export: @pdf_export, excel_download_path: nil
         - @report.class.available_section_types.each do |section|
@@ -23,4 +23,6 @@
           = render 'common/section_not_loading', path_to_section: section_boston_reports_warehouse_reports_street_to_homes_path(partial: section, filters: @filter.for_params[:filters])
       - else
         .none-found
-          Please choose a cohort column under Select Universe.
+          - total_url = polymorphic_path(@report.filter_path_array, *link_params.except(:action))
+          Please choose a cohort and cohort column column under
+          = link_to 'Select Universe.', total_url, data: { loads_in_pjax_modal: true }

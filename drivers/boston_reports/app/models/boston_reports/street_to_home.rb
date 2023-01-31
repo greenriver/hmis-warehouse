@@ -16,8 +16,6 @@ module BostonReports
 
     def initialize(filter)
       @filter = filter
-      @project_types = filter.project_type_ids || GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
-      @comparison_pattern = filter.comparison_pattern
     end
 
     def self.comparison_patterns
@@ -34,7 +32,7 @@ module BostonReports
     end
 
     def self.url
-      'boston_reports/warehouse_reports/street_to_home'
+      'boston_reports/warehouse_reports/street_to_homes'
     end
 
     def self.available_section_types
@@ -42,7 +40,7 @@ module BostonReports
         'clients_by_cohort',
         'clients_by_stage',
         'stage_by_cohort',
-        'clients_by_stage_and_cohort',
+        'cohort_by_stage',
         'matching',
         'move_in',
         'demographics_by_cohort',
@@ -95,11 +93,11 @@ module BostonReports
 
     private def build_general_control_section
       ::Filters::UiControlSection.new(id: 'general').tap do |section|
-        section.add_control(
-          id: 'reporting_period',
-          required: true,
-          value: @filter.date_range_words,
-        )
+        # section.add_control(
+        #   id: 'reporting_period',
+        #   required: true,
+        #   value: @filter.date_range_words,
+        # )
         section.add_control(
           id: 'cohorts',
           required: true,
@@ -111,6 +109,127 @@ module BostonReports
           value: @filter.cohort_column,
         )
       end
+    end
+
+    private def report_scope
+      return GrdaWarehouse::CohortClient.none unless filter.cohort_ids.present? && filter.cohort_column.present?
+
+      GrdaWarehouse::CohortClient.where(cohort_id: filter.cohort_ids)
+    end
+
+    def clients_by_cohort
+      @clients_by_cohort ||= {}.tap do |counts|
+        counts.merge!(all_client_breakdowns)
+        cohort_names.each do |cohort|
+          counts[cohort] = {
+            label: cohort,
+            count: clients_for(cohort).count,
+          }
+        end
+      end
+    end
+
+    def clients_by_stage
+      @clients_by_stage ||= {}.tap do |counts|
+        counts.merge!(all_client_breakdowns)
+        stages.each do |(key, stage)|
+          counts[key] = {
+            label: stage[:label],
+            count: stage[:scope].count,
+          }
+        end
+      end
+    end
+
+    def stage_by_cohort
+      @stage_by_cohort ||= {}.tap do |counts|
+        cohort_names.each do |cohort|
+          all_client_breakdowns.each do |(key, data)|
+            counts[[cohort, key]] = {
+              label: data[:label],
+              count: data[:scope].merge(clients_for(cohort)).count,
+            }
+          end
+          stages.each do |(key, stage)|
+            counts[[cohort, key]] = {
+              label: stage[:label],
+              count: stage[:scope].merge(clients_for(cohort)).count,
+            }
+          end
+        end
+      end
+    end
+
+    def cohort_by_stage
+      @cohort_by_stage ||= {}.tap do |counts|
+        stages.each do |(key, stage)|
+          cohort_names.each do |cohort|
+            counts[[key, cohort]] = {
+              label: cohort,
+              count: stage[:scope].merge(clients_for(cohort)).count,
+            }
+          end
+        end
+        cohort_names.each do |cohort|
+          counts[[:inactive, cohort]] = {
+            label: cohort,
+            count: all_client_breakdowns[:inactive][:scope].merge(clients_for(cohort)).count,
+          }
+        end
+      end
+    end
+
+    private def all_client_breakdowns
+      @all_client_breakdowns ||= {
+        total: {
+          label: 'All clients',
+          count: report_scope.count,
+          scope: report_scope,
+        },
+        active: {
+          label: 'Active',
+          count: report_scope.active.count,
+          scope: report_scope.active,
+        },
+        inactive: {
+          label: 'Inactive',
+          count: report_scope.inactive.count,
+          scope: report_scope.inactive,
+        },
+      }
+    end
+
+    private def clients_for(cohort)
+      report_scope.where(filter.cohort_column => cohort)
+    end
+
+    private def cohort_names
+      GrdaWarehouse::CohortColumnOption.active.ordered.
+        where(cohort_column: filter.cohort_column).
+        pluck(:value)
+    end
+
+    private def stages
+      @stages ||= {}.tap do |s|
+        s[:moved_in] = {
+          label: 'Housed',
+          scope: report_scope.active.where(c_client_t[:housed_date].not_eq(nil)),
+        }
+        if matched_column.present?
+          s[:matched] = {
+            label: 'Matched',
+            scope: report_scope.active.where(c_client_t[matched_column].not_eq(nil).and(c_client_t[:housed_date].eq(nil))),
+          }
+          s[:unmatched] = {
+            label: 'Un-matched',
+            scope: report_scope.active.where(c_client_t[matched_column].eq(nil).and(c_client_t[:housed_date].eq(nil))),
+          }
+        end
+      end
+    end
+
+    private def matched_column
+      @matched_column ||= GrdaWarehouse::Cohort.available_columns.detect { |c| c.title == 'Current Voucher or Match Type' }&.column
     end
   end
 end
