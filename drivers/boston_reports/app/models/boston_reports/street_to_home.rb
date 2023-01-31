@@ -41,7 +41,7 @@ module BostonReports
         'clients_by_stage',
         'stage_by_cohort',
         'cohort_by_stage',
-        'matching',
+        'match_type_by_cohort',
         'move_in',
         'demographics_by_cohort',
         'demographics_by_stage',
@@ -123,7 +123,7 @@ module BostonReports
         cohort_names.each do |cohort|
           counts[cohort] = {
             label: cohort,
-            count: clients_for(cohort).count,
+            count: clients_for_cohort(cohort).count,
           }
         end
       end
@@ -147,13 +147,13 @@ module BostonReports
           all_client_breakdowns.each do |(key, data)|
             counts[[cohort, key]] = {
               label: data[:label],
-              count: data[:scope].merge(clients_for(cohort)).count,
+              count: data[:scope].merge(clients_for_cohort(cohort)).count,
             }
           end
           stages.each do |(key, stage)|
             counts[[cohort, key]] = {
               label: stage[:label],
-              count: stage[:scope].merge(clients_for(cohort)).count,
+              count: stage[:scope].merge(clients_for_cohort(cohort)).count,
             }
           end
         end
@@ -166,15 +166,36 @@ module BostonReports
           cohort_names.each do |cohort|
             counts[[key, cohort]] = {
               label: cohort,
-              count: stage[:scope].merge(clients_for(cohort)).count,
+              count: stage[:scope].merge(clients_for_cohort(cohort)).count,
             }
           end
         end
         cohort_names.each do |cohort|
           counts[[:inactive, cohort]] = {
             label: cohort,
-            count: all_client_breakdowns[:inactive][:scope].merge(clients_for(cohort)).count,
+            count: all_client_breakdowns[:inactive][:scope].merge(clients_for_cohort(cohort)).count,
           }
+        end
+      end
+    end
+
+    def match_type_by_cohort
+      @match_type_by_cohort ||= {}.tap do |counts|
+        stages.each do |(key, stage)|
+          match_types.each do |match_type|
+            cohort_names.each do |cohort|
+              counts[[key, match_type, cohort]] = {
+                label: cohort,
+                count: stage[:scope].merge(clients_for_match_type(match_type)).merge(clients_for_cohort(cohort)).count,
+              }
+            end
+          end
+          cohort_names.each do |cohort|
+            counts[[key, :inactive, cohort]] = {
+              label: cohort,
+              count: stage[:scope].merge(all_client_breakdowns[:inactive][:scope]).merge(clients_for_cohort(cohort)).count,
+            }
+          end
         end
       end
     end
@@ -199,8 +220,12 @@ module BostonReports
       }
     end
 
-    private def clients_for(cohort)
+    private def clients_for_cohort(cohort)
       report_scope.where(filter.cohort_column => cohort)
+    end
+
+    private def clients_for_match_type(match_type)
+      report_scope.where(matched_column => match_type)
     end
 
     private def cohort_names
@@ -217,7 +242,7 @@ module BostonReports
         }
         if matched_column.present?
           s[:matched] = {
-            label: 'Matched',
+            label: 'Matched, Not Yet Housed',
             scope: report_scope.active.where(c_client_t[matched_column].not_eq(nil).and(c_client_t[:housed_date].eq(nil))),
           }
           s[:unmatched] = {
@@ -230,6 +255,12 @@ module BostonReports
 
     private def matched_column
       @matched_column ||= GrdaWarehouse::Cohort.available_columns.detect { |c| c.title == 'Current Voucher or Match Type' }&.column
+    end
+
+    private def match_types
+      GrdaWarehouse::CohortColumnOption.active.ordered.
+        where(cohort_column: matched_column).
+        pluck(:value)
     end
   end
 end
