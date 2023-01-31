@@ -14,7 +14,9 @@ module GrdaWarehouse
     end
 
     scope :needs_processing, -> do
-      joins(:enrollment).where(arel_table[:processed_as].not_eq(e_t[:processed_as])).
+      joins(:enrollment).
+        where(processed_as: nil).
+        where(arel_table[:processed_as].not_eq(e_t[:processed_as])).
         or(where(enrollment_id: GrdaWarehouse::Hud::Enrollment.open_on_date.chronic.select(:id)))
     end
 
