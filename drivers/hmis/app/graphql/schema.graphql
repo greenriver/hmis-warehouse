@@ -3531,7 +3531,16 @@ type Query {
   """
   Client omnisearch
   """
-  clientOmniSearch(input: ClientSearchInput!, limit: Int, offset: Int, sortOrder: ClientSortOption): ClientsPaginated!
+  clientOmniSearch(
+    limit: Int
+    offset: Int
+    sortOrder: ClientSortOption
+
+    """
+    Omnisearch string
+    """
+    textSearch: String!
+  ): ClientsPaginated!
 
   """
   Search for clients

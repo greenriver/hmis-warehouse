@@ -39,11 +39,11 @@ module Types
     end
 
     clients_field :client_omni_search, 'Client omnisearch' do |field|
-      field.argument :input, Types::HmisSchema::ClientSearchInput, required: true
+      field.argument :text_search, String, 'Omnisearch string', required: true
     end
 
-    def client_omni_search(input:, **args)
-      client_order = Hmis::Hud::Client.client_search(input: input.to_params, user: current_user).
+    def client_omni_search(text_search:, **args)
+      client_order = Hmis::Hud::Client.searchable_to(current_user).matching_search_term(text_search).
         joins(:enrollments).
         merge(Hmis::Hud::Enrollment.open_during_range((Date.today - 1.month)..Date.today)).
         order(e_t[:date_updated].desc).
