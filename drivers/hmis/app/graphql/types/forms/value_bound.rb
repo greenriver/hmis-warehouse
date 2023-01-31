@@ -8,11 +8,19 @@
 
 module Types
   class Forms::ValueBound < Types::BaseObject
-    description 'Bound for the response value. The bound may or may not be dependent on another questions answer.'
+    description 'Bound applied to the response value. The bound may or may not be dependent on another questions answer.'
 
+    field :id, String, 'Unique identifier for this bound', null: true
+    field :severity, Types::HmisSchema::Enums::ValidationSeverity, 'Severity of bound. If error, user will be unable to submit a value that does not meet this condition.', null: false
     field :type, Forms::Enums::BoundType, null: false
+
+    # Note: only one of the below attributes should be specified
     field :value_number, Integer, null: true
     field :value_date, GraphQL::Types::ISO8601Date, null: true
-    field :question, String, 'Link ID of dependent question, if bound value should be equal to the questions answer', null: true
+    field :question, String, 'Link ID of dependent question, if this items value should be compared to another items value', null: true
+
+    def severity
+      object.severity || 'error'
+    end
   end
 end

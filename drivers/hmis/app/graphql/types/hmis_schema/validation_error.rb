@@ -10,47 +10,65 @@ module Types
   class HmisSchema::ValidationError < Types::BaseObject
     field :id, String, null: true
     field :attribute, String, null: true
+    field :readable_attribute, String, null: true
     field :message, String, null: false
-    field :full_message, String, null: true
-    field :type, String, null: false
+    field :full_message, String, null: false
+    field :type, HmisSchema::Enums::ValidationType, null: false
+    field :severity, HmisSchema::Enums::ValidationSeverity, null: false
     field :options, JsonObject, null: true
 
     def attribute
-      return object.attribute.to_s.underscore.camelize(:lower) if object.respond_to?(:attribute)
+      object.attribute.to_s.underscore.camelize(:lower) if object.respond_to?(:attribute)
+    end
+
+    # Converts 'operatingStartDate' => 'Operating start date'
+    # Converts 'organizationId' => 'Organization'
+    def readable_attribute
+      return object.readable_attribute if object.respond_to?(:readable_attribute)
+
+      object.attribute.to_s.underscore.humanize if object.respond_to?(:attribute)
     end
 
     def options
-      return object.options if object.respond_to?(:options)
+      object.options if object.respond_to?(:options)
     end
 
     def id
-      return object.id if object.respond_to?(:id)
+      object.id if object.respond_to?(:id)
     end
 
     def message
       return object.message if object.respond_to?(:message) && object.message.present?
-      return 'must exist' if type == :required
-      return 'is invalid' if type == :invalid
+
+      return 'is empty' if type == 'data_not_collected'
+
+      I18n.t("errors.messages.#{type}", default: 'is invalid')
     end
 
     def full_message
-      return object.full_message.gsub(object.attribute.to_s.downcase.capitalize, readable_attribute) if object.respond_to?(:full_message)
+      return object.full_message.gsub(object.attribute.to_s.downcase.capitalize, readable_attribute) if object.respond_to?(:full_message) && object.full_message.present?
+      return "#{readable_attribute} #{message}" if readable_attribute.present?
+      return "#{attribute} #{message}" if attribute.present?
+
+      'An unknown error occurred'
     end
 
     def type
-      if object.respond_to?(:type)
-        return object.type == :blank ? :required : object.type
+      if object.respond_to?(:type) && object.type.present?
+        return 'required' if object.type == :blank
+
+        return object.type.to_s if Types::HmisSchema::Enums::ValidationType.values.keys.include?(object.type.to_s)
       end
 
-      return object.class.name if object.is_a?(Exception)
+      return 'server_error' if object.is_a?(Exception)
 
-      'UnknownError'
+      'invalid'
     end
 
-    # Convert 'operatingStartDate' => 'Operating start date'
-    # Convert 'organizationId' => 'Organization'
-    private def readable_attribute
-      object.attribute.to_s.underscore.humanize
+    def severity
+      return object.severity.to_s if object.respond_to?(:severity) && Types::HmisSchema::Enums::ValidationSeverity.values.keys.include?(object.severity.to_s)
+
+      'error'
     end
   end
 end

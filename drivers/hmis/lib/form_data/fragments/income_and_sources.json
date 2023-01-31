@@ -734,6 +734,7 @@
           "type": "STRING",
           "link_id": "4.02.P",
           "text": "Specify other source",
+          "brief_text": "Other source",
           "required": true,
           "enable_behavior": "ALL",
           "field_name": "otherIncomeSourceIdentify",

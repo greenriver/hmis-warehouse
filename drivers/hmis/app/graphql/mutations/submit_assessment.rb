@@ -2,68 +2,60 @@ module Mutations
   class SubmitAssessment < BaseMutation
     description 'Create/Submit assessment, and create/update related HUD records'
 
-    argument :assessment_id, ID, 'Required if updating an existing assessment', required: false
-    argument :enrollment_id, ID, 'Required if saving a new assessment', required: false
-    argument :form_definition_id, ID, 'Required if saving a new assessment', required: false
-    argument :values, Types::JsonObject, 'Form state as JSON', required: true
-    argument :hud_values, Types::JsonObject, 'Transformed HUD values as JSON', required: false
-    date_string_argument :assessment_date, 'Date with format yyyy-mm-dd', required: false
+    argument :input, Types::HmisSchema::AssessmentInput, required: true
 
     field :assessment, Types::HmisSchema::Assessment, null: true
     field :errors, [Types::HmisSchema::ValidationError], null: false
 
-    def resolve(assessment_id: nil, enrollment_id: nil, form_definition_id: nil, values:, hud_values: nil, assessment_date: nil)
-      errors = []
+    def resolve(input:)
+      assessment, errors = input.find_or_create_assessment
+      return { assessment: nil, errors: errors } if errors.any?
 
-      # Look up Assessment or Enrollment
-      if assessment_id
-        assessment = Hmis::Hud::Assessment.viewable_by(current_user).find_by(id: assessment_id)
-        errors << InputValidationError.new('Assessment must exist', attribute: 'assessment_id') unless assessment.present?
-      elsif enrollment_id
-        enrollment = Hmis::Hud::Enrollment.viewable_by(current_user).find_by(id: enrollment_id)
-        errors << InputValidationError.new('Enrollment must exist', attribute: 'enrollment_id') unless enrollment.present?
+      definition = assessment.assessment_detail.definition
 
-        form_definition = Hmis::Form::Definition.find_by(id: form_definition_id)
-        errors << InputValidationError.new('Form definition must exist') unless form_definition.present?
-      else
-        errors << InputValidationError.new('Enrollment ID or Assessment ID must exist', attribute: 'enrollment_id')
-      end
+      # Determine the Assessment Date (same as Information Date) and validate it
+      assessment_date, errors = input.get_and_validate_assessment_date(assessment, definition)
 
-      return { assessment: nil, errors: errors } if errors.present?
+      # Validate hudValues based on FormDefinition
+      validation_errors = definition.validate_form_values(input.hud_values, nil)
+      # If user has already confirmed any warnings, remove them
+      validation_errors = validation_errors.filter { |e| e.severity != :warning } if input.confirmed
+      errors.push(*validation_errors)
 
-      # Create new Assessment (and AssessmentDetail) if one doesn't exist already
-      assessment ||= Hmis::Hud::Assessment.new_with_defaults(
-        enrollment: enrollment,
-        user: hmis_user,
-        form_definition: form_definition,
-        assessment_date: assessment_date ? Date.strptime(assessment_date) : Date.today,
-      )
+      return { assessment: nil, errors: errors } if errors.any?
 
       # Update values
-      assessment.assessment_detail.assign_attributes(values: values, hud_values: hud_values)
+      assessment.assessment_detail.assign_attributes(
+        values: input.values,
+        hud_values: definition.key_by_field_name(input.hud_values),
+      )
       assessment.assign_attributes(
         user_id: hmis_user.user_id,
         date_updated: DateTime.current,
-        assessment_date: assessment_date ? Date.strptime(assessment_date) : assessment.assessment_date,
+        assessment_date: assessment_date,
       )
 
-      if assessment.valid? && assessment.assessment_detail.valid?
-        assessment.assessment_detail.save!
-        # Run processor to create/update related records
-        assessment.assessment_detail.assessment_processor.run!
+      # Run processor to create/update related records
+      assessment.assessment_detail.assessment_processor.run!
 
-        # Check if related records are valid
-        if assessment.assessment_detail.valid?
-          assessment.save_not_in_progress
-          # If this is an intake assessment, move the enrollment out of WIP status
-          assessment.enrollment.save_not_in_progress if assessment.intake?
-        else
-          errors.push(*assessment.assessment_detail.errors.errors)
-          assessment = nil
-        end
+      # Run both validation checks so that we can return all errors
+      assessment_valid = assessment.valid?
+      assessment_detail_valid = assessment.assessment_detail.valid?
+
+      if assessment_valid && assessment_detail_valid
+        assessment.assessment_detail.save!
+        assessment.save_not_in_progress
+        # If this is an intake assessment, move the enrollment out of WIP status
+        assessment.enrollment.save_not_in_progress if assessment.intake?
       else
-        errors << assessment.errors
-        errors << assessment.assessment_detail.errors
+        # TODO: remove all this and raise an exception if there were errors
+        errors.push(*assessment.assessment_detail&.errors&.errors)
+        errors.push(*assessment.errors&.errors)
+        errors = errors.uniq { |e| "#{e.attribute}#{e.message}" }
+
+        # Hide AssessmentDate error becuase it gets its own different message..
+        errors = errors.reject { |e| e.attribute.to_s.downcase == 'assessmentdate' }
+        # annoyingly the "type" is "must exist because of https://github.com/rails/rails/blob/83217025a171593547d1268651b446d3533e2019/activemodel/lib/active_model/error.rb#L65 so we cant really resolve the error type...
         assessment = nil
       end
 

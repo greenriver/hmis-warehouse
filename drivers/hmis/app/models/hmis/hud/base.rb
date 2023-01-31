@@ -12,7 +12,7 @@ class Hmis::Hud::Base < ::GrdaWarehouseBase
   attr_writer :skip_validations
   attr_writer :required_fields
 
-  before_save :ensure_id
+  before_validation :ensure_id
 
   scope :viewable_by, ->(_) do
     none

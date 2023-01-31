@@ -8,7 +8,8 @@
       "type": "DATE",
       "link_id": "information-date-input",
       "text": "Date Collected",
-      "field_name": "informationDate"
+      "field_name": "informationDate",
+      "assessment_date": true
     }
   ]
 }

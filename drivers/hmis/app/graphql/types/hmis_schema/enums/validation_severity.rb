@@ -7,14 +7,10 @@
 # frozen_string_literal: true
 
 module Types
-  class Forms::Enums::BoundType < Types::BaseEnum
-    graphql_name 'BoundType'
+  class HmisSchema::Enums::ValidationSeverity < Types::BaseEnum
+    graphql_name 'ValidationSeverity'
 
-    value 'MIN'
-    value 'MAX'
-    # value 'MIN_VALUE'
-    # value 'MAX_VALUE'
-    # value 'MIN_LENGTH'
-    # value 'MAX_LENGTH'
+    value 'error'
+    value 'warning'
   end
 end

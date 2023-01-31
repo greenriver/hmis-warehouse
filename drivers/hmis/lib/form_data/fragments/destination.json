@@ -9,7 +9,8 @@
       "type": "DATE",
       "link_id": "exit-date",
       "text": "Exit Date",
-      "field_name": "exitDate"
+      "field_name": "exitDate",
+      "assessment_date": true
     },
     {
       "type": "CHOICE",

@@ -5,6 +5,7 @@
 ###
 
 module Mutations
+  # TODO remove
   class InputValidationError
     def initialize(message, attribute: nil, **kwargs)
       {
@@ -19,6 +20,41 @@ module Mutations
     end
   end
 
+  class CustomValidationErrors
+    include Enumerable
+
+    extend Forwardable
+    def_delegators :@errors, :size, :clear, :blank?, :empty?, :uniq!, :any?, :count
+    attr_reader :errors
+    alias objects errors
+
+    def initialize
+      @errors = []
+    end
+
+    def add(attribute, type = :invalid, **options)
+      error = CustomValidationError.new(attribute, type, **options)
+      @errors.append(error)
+      error
+    end
+  end
+
+  class CustomValidationError
+    def initialize(attribute, type = :invalid, message: nil, full_message: nil, severity: :error, **kwargs)
+      {
+        attribute: attribute,
+        type: type,
+        message: message,
+        full_message: full_message,
+        severity: severity,
+        **kwargs,
+      }.each do |key, value|
+        define_singleton_method(key) { value }
+      end
+    end
+  end
+
+  # TODO remove
   class InputConfirmationWarning
     def initialize(message, attribute: nil, **kwargs)
       {
@@ -56,6 +92,8 @@ module Mutations
     def default_update_record(record:, field_name:, input:, confirmed: true)
       return { field_name => nil, errors: [InputValidationError.new("#{field_name.to_s.humanize} record not found", attribute: 'id')] } unless record.present?
 
+      # FIXME: update this so create_errors returns everything,
+      # but if 'confirmed' then filter out all where type==:warning
       errors = create_errors(record, input)
 
       # Add custom warnings to error list
@@ -118,6 +156,7 @@ module Mutations
     def default_delete_record(record:, field_name:)
       errors = []
       if record.present?
+        # record.destroy_dependents!
         record.destroy
       else
         errors << InputValidationError.new("#{field_name.to_s.humanize} record not found", attribute: 'id') unless record.present?

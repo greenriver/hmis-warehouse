@@ -56,6 +56,7 @@
       "text": "Client stayed 7+ days in a transitional or permanent housing situation. This is considered a \"break\" according to the HUD definition of chronic homelessness. Stopping data collection for 3.917 Prior Living Situation.",
       "project_types_excluded": ["ES", "SERVICES_ONLY", "SH"],
       "enable_behavior": "ALL",
+      "_required_when": "TODO",
       "enable_when": [
         {
           "question": "3.917.1",

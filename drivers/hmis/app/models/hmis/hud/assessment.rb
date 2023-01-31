@@ -102,7 +102,11 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
     assessment_detail&.data_collection_stage == 1
   end
 
-  def self.new_with_defaults(enrollment:, user:, form_definition:, assessment_date:)
+  def exit?
+    assessment_detail&.data_collection_stage == 3
+  end
+
+  def self.new_with_defaults(enrollment:, user:, form_definition:, assessment_date: nil)
     new_assessment = new(
       data_source_id: user.data_source_id,
       user_id: user.user_id,
