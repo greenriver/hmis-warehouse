@@ -18,7 +18,7 @@ class BackgroundRender::StreetToHomeJob < BackgroundRenderJob
     raise 'Rollup not in allowlist' unless @section.present?
 
     @section = @report.section_subpath + @section
-    BostonReports::WarehouseReports::StreetToHomeController.render(
+    BostonReports::WarehouseReports::StreetToHomesController.render(
       partial: @section,
       assigns: {
         report: @report,

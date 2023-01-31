@@ -34,7 +34,7 @@ module BostonReports
     end
 
     def self.url
-      'core_demographics_report/warehouse_reports/core'
+      'boston_reports/warehouse_reports/street_to_home'
     end
 
     def self.available_section_types
@@ -62,8 +62,6 @@ module BostonReports
     protected def build_control_sections
       [
         build_general_control_section,
-        build_coc_control_section,
-        add_demographic_disabilities_control_section,
       ]
     end
 
@@ -81,6 +79,38 @@ module BostonReports
 
     def include_comparison?
       comparison_pattern != :no_comparison_period
+    end
+
+    def detail_link_base
+      "#{section_subpath}details"
+    end
+
+    def section_subpath
+      "#{self.class.url}/"
+    end
+
+    def detail_path_array
+      [:details] + report_path_array
+    end
+
+    private def build_general_control_section
+      ::Filters::UiControlSection.new(id: 'general').tap do |section|
+        section.add_control(
+          id: 'reporting_period',
+          required: true,
+          value: @filter.date_range_words,
+        )
+        section.add_control(
+          id: 'cohorts',
+          required: true,
+          value: @filter.cohorts,
+        )
+        section.add_control(
+          id: 'cohort_column',
+          required: true,
+          value: @filter.cohort_column,
+        )
+      end
     end
   end
 end

@@ -46,6 +46,7 @@ module Filters
     attribute :data_source_ids, Array, default: []
     attribute :funder_ids, Array, default: []
     attribute :cohort_ids, Array, default: []
+    attribute :cohort_column, String, default: nil
     attribute :coc_codes, Array, default: []
     attribute :coc_code, String, default: ->(_, _) { GrdaWarehouse::Config.get(:site_coc_codes) }
     attribute :sub_population, Symbol, default: :clients
@@ -125,6 +126,7 @@ module Filters
       self.destination_ids = filters.dig(:destination_ids)&.reject(&:blank?)&.map(&:to_i).presence || destination_ids
       self.length_of_times = filters.dig(:length_of_times)&.reject(&:blank?)&.map(&:to_sym).presence || length_of_times
       self.cohort_ids = filters.dig(:cohort_ids)&.reject(&:blank?)&.map(&:to_i).presence || cohort_ids
+      self.cohort_column = filters.dig(:cohort_column)&.presence || cohort_column
 
       self.disabilities = filters.dig(:disabilities)&.reject(&:blank?)&.map(&:to_i).presence || disabilities
       self.indefinite_disabilities = filters.dig(:indefinite_disabilities)&.reject(&:blank?)&.map(&:to_i).presence || indefinite_disabilities
@@ -176,6 +178,7 @@ module Filters
           ethnicities: ethnicities,
           project_group_ids: project_group_ids,
           cohort_ids: cohort_ids,
+          cohort_column: cohort_column,
           hoh_only: hoh_only,
           prior_living_situation_ids: prior_living_situation_ids,
           destination_ids: destination_ids,
@@ -234,6 +237,7 @@ module Filters
         :creator_id,
         :inactivity_days,
         :lsa_scope,
+        :cohort_column,
         coc_codes: [],
         default_project_type_codes: [],
         project_types: [],
@@ -613,6 +617,21 @@ module Filters
     def cohorts_for_select(user:)
       GrdaWarehouse::Cohort.viewable_by(user).distinct.order(name: :asc).pluck(:name, :id)
     end
+
+    # A list of select/drop-down type cohort columns where there is at least one choice.
+    # This should give us a reasonable list of options to choose from
+    def cohort_columns_for_select
+      initialized_columns = GrdaWarehouse::CohortColumnOption.distinct.pluck(:cohort_column)
+      GrdaWarehouse::Cohort.available_columns.select do |column|
+        column.column.in?(initialized_columns)
+      end.map do |column|
+        [
+          column.title,
+          column.column,
+        ]
+      end
+    end
+
     # End Select display options
 
     def clients_from_cohorts
@@ -915,6 +934,8 @@ module Filters
         'LSA Scope'
       when :cohort_ids
         'Cohorts'
+      when :cohort_column
+        'Cohort Column'
       else
         key.to_s.titleize
       end
@@ -986,6 +1007,8 @@ module Filters
         chosen_lsa_scope
       when :cohort_ids
         cohorts
+      when :cohort_column
+        cohort_column
       else
         val = send(key)
         val.instance_of?(String) ? val.titleize : val
