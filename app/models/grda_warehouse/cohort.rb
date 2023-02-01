@@ -60,9 +60,7 @@ module GrdaWarehouse
     scope :viewable_by, ->(user) do
       return none unless user.present?
 
-      if user.can_edit_cohort_clients? || user.can_manage_cohorts?
-        current_scope
-      elsif user.can_view_assigned_cohorts? || user.can_edit_assigned_cohorts?
+      if user.can_access_some_cohorts
         if current_scope.present?
           current_scope.merge(user.cohorts)
         else
@@ -74,9 +72,7 @@ module GrdaWarehouse
     end
 
     scope :editable_by, ->(user) do
-      if user.can_edit_cohort_clients? || user.can_manage_cohorts?
-        current_scope
-      elsif user.can_view_assigned_cohorts? || user.can_edit_assigned_cohorts?
+      if user.can_edit_some_cohorts
         if current_scope.present?
           current_scope.merge(user.cohorts)
         else
@@ -143,13 +139,13 @@ module GrdaWarehouse
 
     # only administrator should have access to the inactive clients
     def inactive_scope user
-      return @client_search_scope.none unless user.can_manage_cohorts? || user.can_edit_cohort_clients?
+      return @client_search_scope.none unless user.can_view_inactive_cohort_clients? || user.can_manage_inactive_cohort_clients?
 
       @client_search_scope.where(active: false)
     end
 
     def show_inactive user
-      return false unless user.can_manage_cohorts? || user.can_edit_cohort_clients?
+      return false unless user.can_view_inactive_cohort_clients? || user.can_manage_inactive_cohort_clients?
 
       inactive_scope(user).exists?
     end
@@ -183,11 +179,11 @@ module GrdaWarehouse
     attr_reader :client_search_result
 
     def self.has_some_cohort_access user # rubocop:disable  Naming/PredicateName
-      user.can_view_assigned_cohorts? || user.can_edit_assigned_cohorts? || user.can_edit_cohort_clients? || user.can_manage_cohorts?
+      user.can_access_some_cohorts
     end
 
     def user_can_edit_cohort_clients user
-      user.can_manage_cohorts? || user.can_edit_cohort_clients? || (user.can_edit_assigned_cohorts? && user.cohorts.where(id: id).exists?)
+      user.can_edit_some_cohorts && user.cohorts.where(id: id).exists?
     end
     memoize :user_can_edit_cohort_clients
 

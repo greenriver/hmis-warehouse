@@ -15,8 +15,9 @@ module Cohorts
     include ActionView::Helpers::TextHelper
 
     before_action :require_can_access_cohort!
-    before_action :require_can_edit_some_cohorts!, only: [:new, :create, :destroy]
-    before_action :require_more_than_read_only_access_to_cohort!, only: [:edit, :update, :re_rank]
+    before_action :require_can_add_cohort_clients!, only: [:new, :create, :destroy]
+    before_action :require_can_configure_cohorts!, only: [:edit, :update]
+    before_action :require_can_update_some_cohort_data!, only: [:re_rank]
     before_action :set_cohort
     before_action :set_client, only: [:destroy, :update, :show, :pre_destroy, :field]
     before_action :load_cohort_names, only: [:index, :edit, :field, :update]

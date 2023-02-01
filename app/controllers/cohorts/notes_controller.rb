@@ -9,6 +9,7 @@ module Cohorts
     include AjaxModalRails::Controller
     include CohortAuthorization
     before_action :require_can_access_cohort!
+    before_action :require_can_update_some_cohort_data!, only: [:new, :create, :destroy]
     before_action :set_note, only: [:destroy]
     before_action :set_cohort_client
 
