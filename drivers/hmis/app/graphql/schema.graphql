@@ -139,6 +139,7 @@ HUD Assessment Sorting Options
 """
 enum AssessmentSortOption {
   ASSESSMENT_DATE
+  DATE_UPDATED
 }
 
 """
@@ -464,6 +465,11 @@ enum Component {
   CHECKBOX
 
   """
+  Specialized component for rendering disabilities in a table
+  """
+  DISABILITY_TABLE
+
+  """
   Render a group of inputs horizontally
   """
   HORIZONTAL_GROUP
@@ -477,11 +483,6 @@ enum Component {
   Render a group that contains children of the same type (e.g. all booleans)
   """
   INPUT_GROUP
-
-  """
-  Render inputs as a table. Each nested group is rendered as a row.
-  """
-  INPUT_TABLE
 
   """
   Render a choice input item as radio buttons
@@ -1146,10 +1147,12 @@ type DisabilityGroup {
   chronicHealthCondition: NoYesReasonsForMissingData
   chronicHealthConditionIndefiniteAndImpairs: NoYesReasonsForMissingData
   dataCollectionStage: DataCollectionStage!
+  dateCreated: ISO8601DateTime!
+  dateUpdated: ISO8601DateTime!
   developmentalDisability: NoYesReasonsForMissingData
 
   """
-  Current disabling conditionn on the linked Enrollment. It may not match up with the disabilities specified in this group.
+  Current disabling condition on the linked Enrollment. It may not match up with the disabilities specified in this group.
   """
   disablingCondition: NoYesReasonsForMissingData!
   enrollment: Enrollment!

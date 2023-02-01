@@ -28,6 +28,7 @@ module Types
       # Each struct contains a `disabilities` array field, which has
       # information about all six disability types.
       def resolve_disability_groups(scope = object.disabilities, **_args)
+        # FIXME: we should key by SOURCE ASSESSMENT if possible, since there can be 2 update assessments on the same day.
         key_fields = [
           :enrollment_id, # Don't move! below code depends on item being first in array
           :user_id,       # Don't move! below code depends on item being second in array
@@ -39,8 +40,10 @@ module Types
           :disability_response,
           :indefinite_and_impairs,
           :id,
+          :date_updated,
+          :date_created,
         ]
-        result_aggregations = result_fields.map { |f| array_agg(d_t[f]).to_sql }
+        result_aggregations = result_fields.map { |f| nf('json_agg', [d_t[f]]).to_sql }
 
         disability_groups = scope.viewable_by(current_user).
           order(information_date: :desc, data_collection_stage: :desc).
@@ -53,7 +56,7 @@ module Types
         enrollments_by_id = Hmis::Hud::Enrollment.where(enrollment_id: enrollment_ids).index_by(&:enrollment_id)
         users_by_id = Hmis::Hud::User.where(user_id: user_ids).index_by(&:user_id)
 
-        disability_groups.map do |group|
+        groups = disability_groups.map do |group|
           key_values = group[0..key_fields.length - 1]
           result_values = group[key_fields.length..]
 
@@ -67,8 +70,12 @@ module Types
 
           # Concatenate disability IDs to create a unique "ID" for the DisabilityGroup
           obj.id = obj.disabilities.map(&:id).join(':')
+          obj.date_updated = obj.disabilities.map(&:date_updated).map(&:to_datetime).max
+          obj.date_created = obj.disabilities.map(&:date_created).map(&:to_datetime).max
           obj
         end
+
+        groups.sort_by(&:date_updated).reverse!
       end
     end
   end

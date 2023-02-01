@@ -12,7 +12,7 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
   include ::Hmis::Hud::Concerns::EnrollmentRelated
   include ArelHelper
 
-  SORT_OPTIONS = [:assessment_date].freeze
+  SORT_OPTIONS = [:assessment_date, :date_updated].freeze
   WIP_ID = 'WIP'.freeze
 
   belongs_to :enrollment, **hmis_relation(:EnrollmentID, 'Enrollment')
@@ -65,6 +65,8 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
     case option
     when :assessment_date
       order(assessment_date: :desc, date_created: :desc)
+    when :date_updated
+      order(date_updated: :desc)
     else
       raise NotImplementedError
     end
