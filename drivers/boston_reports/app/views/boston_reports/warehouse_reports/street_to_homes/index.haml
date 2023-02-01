@@ -19,10 +19,11 @@
         - @report.class.available_section_types.each do |section|
           = render 'background_render', url: render_section_boston_reports_warehouse_reports_street_to_homes_path, fetch_params: {partial: section, filters: @filter.for_params[:filters] } do
             .rollup
+              = debug section
               .rollup-container.well
           = render 'common/section_not_loading', path_to_section: section_boston_reports_warehouse_reports_street_to_homes_path(partial: section, filters: @filter.for_params[:filters])
       - else
         .none-found
           - total_url = polymorphic_path(@report.filter_path_array, *link_params.except(:action))
-          Please choose a cohort and cohort column column under
+          Please choose a cohort and cohort column under
           = link_to 'Select Universe.', total_url, data: { loads_in_pjax_modal: true }

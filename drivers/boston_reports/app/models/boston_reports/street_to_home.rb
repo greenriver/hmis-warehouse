@@ -42,7 +42,6 @@ module BostonReports
         'stage_by_cohort',
         'cohort_by_stage',
         'match_type_by_cohort',
-        'move_in',
         'demographics_by_cohort',
         'demographics_by_stage',
         'comparison',
@@ -114,118 +113,185 @@ module BostonReports
     private def report_scope
       return GrdaWarehouse::CohortClient.none unless filter.cohort_ids.present? && filter.cohort_column.present?
 
-      GrdaWarehouse::CohortClient.where(cohort_id: filter.cohort_ids)
+      GrdaWarehouse::CohortClient.
+        where(cohort_id: filter.cohort_ids).
+        preload(client: :source_clients)
     end
 
-    def clients_by_cohort
-      @clients_by_cohort ||= {}.tap do |counts|
-        counts.merge!(all_client_breakdowns)
-        cohort_names.each do |cohort|
-          counts[cohort] = {
-            label: cohort,
-            count: clients_for_cohort(cohort).count,
-          }
-        end
-      end
-    end
-
-    def clients_by_stage
-      @clients_by_stage ||= {}.tap do |counts|
-        counts.merge!(all_client_breakdowns)
-        stages.each do |(key, stage)|
-          counts[key] = {
-            label: stage[:label],
-            count: stage[:scope].count,
-          }
-        end
-      end
-    end
-
-    def stage_by_cohort
-      @stage_by_cohort ||= {}.tap do |counts|
-        cohort_names.each do |cohort|
-          all_client_breakdowns.each do |(key, data)|
-            counts[[cohort, key]] = {
-              label: data[:label],
-              count: data[:scope].merge(clients_for_cohort(cohort)).count,
-            }
+    def clients
+      @clients ||= {}.tap do |counts|
+        report_scope.find_each do |client|
+          all_client_breakdowns.each do |(key, breakdown)|
+            counts[key] ||= Set.new
+            counts[key] << client.client_id if breakdown[:calculation].call(client)
+          end
+          cohort_names.each do |cohort|
+            counts[cohort] ||= Set.new
+            counts[cohort] << client.client_id if client[filter.cohort_column] == cohort
           end
           stages.each do |(key, stage)|
-            counts[[cohort, key]] = {
-              label: stage[:label],
-              count: stage[:scope].merge(clients_for_cohort(cohort)).count,
-            }
+            counts[key] ||= Set.new
+            counts[key] << client.client_id if stage[:calculation].call(client)
           end
-        end
-      end
-    end
-
-    def cohort_by_stage
-      @cohort_by_stage ||= {}.tap do |counts|
-        stages.each do |(key, stage)|
-          cohort_names.each do |cohort|
-            counts[[key, cohort]] = {
-              label: cohort,
-              count: stage[:scope].merge(clients_for_cohort(cohort)).count,
-            }
-          end
-        end
-        cohort_names.each do |cohort|
-          counts[[:inactive, cohort]] = {
-            label: cohort,
-            count: all_client_breakdowns[:inactive][:scope].merge(clients_for_cohort(cohort)).count,
-          }
-        end
-      end
-    end
-
-    def match_type_by_cohort
-      @match_type_by_cohort ||= {}.tap do |counts|
-        stages.each do |(key, stage)|
           match_types.each do |match_type|
-            cohort_names.each do |cohort|
-              counts[[key, match_type, cohort]] = {
-                label: cohort,
-                count: stage[:scope].merge(clients_for_match_type(match_type)).merge(clients_for_cohort(cohort)).count,
-              }
+            counts[match_type] ||= Set.new
+            counts[match_type] << client.client_id if client[matched_column] == match_type
+          end
+          # Loop over all races so we don't end up with missing categories
+          races.each do |race|
+            CohortColumns::Race.new.value(client).each do |value|
+              counts[race] ||= Set.new
+              counts[value] << client.client_id if value == race
             end
           end
-          cohort_names.each do |cohort|
-            counts[[key, :inactive, cohort]] = {
-              label: cohort,
-              count: stage[:scope].merge(all_client_breakdowns[:inactive][:scope]).merge(clients_for_cohort(cohort)).count,
-            }
+          # Loop over all ethnicities so we don't end up with missing categories
+          ethnicities.each do |ethnicity|
+            CohortColumns::Ethnicity.new.value(client).each do |value|
+              counts[value] ||= Set.new
+              counts[value] << client.client_id if value == ethnicity
+            end
           end
         end
       end
     end
+
+    # def clients_by_cohort
+    #   @clients_by_cohort ||= {}.tap do |counts|
+    #     counts.merge!(all_client_breakdowns)
+    #     cohort_names.each do |cohort|
+    #       counts[cohort] = {
+    #         label: cohort,
+    #         count: clients_for_cohort(cohort).count,
+    #       }
+    #     end
+    #   end
+    # end
+
+    # def clients_by_stage
+    #   @clients_by_stage ||= {}.tap do |counts|
+    #     counts.merge!(all_client_breakdowns)
+    #     stages.each do |(key, stage)|
+    #       counts[key] = {
+    #         label: stage[:label],
+    #         count: stage[:scope].count,
+    #       }
+    #     end
+    #   end
+    # end
+
+    # def stage_by_cohort
+    #   @stage_by_cohort ||= {}.tap do |counts|
+    #     cohort_names.each do |cohort|
+    #       all_client_breakdowns.each do |(key, data)|
+    #         counts[[cohort, key]] = {
+    #           label: data[:label],
+    #           count: data[:scope].merge(clients_for_cohort(cohort)).count,
+    #         }
+    #       end
+    #       stages.each do |(key, stage)|
+    #         counts[[cohort, key]] = {
+    #           label: stage[:label],
+    #           count: stage[:scope].merge(clients_for_cohort(cohort)).count,
+    #         }
+    #       end
+    #     end
+    #   end
+    # end
+
+    # def cohort_by_stage
+    #   @cohort_by_stage ||= {}.tap do |counts|
+    #     stages.each do |(key, stage)|
+    #       cohort_names.each do |cohort|
+    #         counts[[key, cohort]] = {
+    #           label: cohort,
+    #           count: stage[:scope].merge(clients_for_cohort(cohort)).count,
+    #         }
+    #       end
+    #     end
+    #     cohort_names.each do |cohort|
+    #       counts[[:inactive, cohort]] = {
+    #         label: cohort,
+    #         count: all_client_breakdowns[:inactive][:scope].merge(clients_for_cohort(cohort)).count,
+    #       }
+    #     end
+    #   end
+    # end
+
+    # def match_type_by_cohort
+    #   @match_type_by_cohort ||= {}.tap do |counts|
+    #     stages.each do |(key, stage)|
+    #       match_types.each do |match_type|
+    #         cohort_names.each do |cohort|
+    #           counts[[key, match_type, cohort]] = {
+    #             label: cohort,
+    #             count: stage[:scope].merge(clients_for_match_type(match_type)).merge(clients_for_cohort(cohort)).count,
+    #           }
+    #         end
+    #       end
+    #       cohort_names.each do |cohort|
+    #         counts[[key, :inactive, cohort]] = {
+    #           label: cohort,
+    #           count: stage[:scope].merge(all_client_breakdowns[:inactive][:scope]).merge(clients_for_cohort(cohort)).count,
+    #         }
+    #       end
+    #     end
+    #   end
+    # end
+
+    # def demographics_by_cohort
+    #   @demographics_by_cohort ||= {}.tap do |counts|
+    #     cohort_names.each do |cohort|
+    #       demographics.each do |((field, value), label)|
+    #         counts[[cohort, field]] = {
+    #           label: label,
+    #           count: clients_for_cohort(cohort).merge(clients_for_demographic(field, value)).count,
+    #         }
+    #       end
+    #     end
+    #   end
+    # end
 
     private def all_client_breakdowns
       @all_client_breakdowns ||= {
         total: {
           label: 'All clients',
+          calculation: ->(_client) { true },
           count: report_scope.count,
           scope: report_scope,
         },
         active: {
           label: 'Active',
+          calculation: ->(client) { client.active },
           count: report_scope.active.count,
           scope: report_scope.active,
         },
         inactive: {
           label: 'Inactive',
+          calculation: ->(client) { ! client.active },
           count: report_scope.inactive.count,
           scope: report_scope.inactive,
         },
       }
     end
 
-    private def clients_for_cohort(cohort)
-      report_scope.where(filter.cohort_column => cohort)
+    # private def clients_for_cohort(cohort)
+    #   report_scope.where(filter.cohort_column => cohort)
+    # end
+
+    # private def clients_for_match_type(match_type)
+    #   report_scope.where(matched_column => match_type)
+    # end
+
+    # private def clients_for_demographic(field, value)
+    #   report_scope.joins(:client).where(c_t[field].in(value))
+    # end
+
+    private def races
+      ::HudUtility.races.keys
     end
 
-    private def clients_for_match_type(match_type)
-      report_scope.where(matched_column => match_type)
+    private def ethnicities
+      ::HudLists.ethnicity_map.select { |id, _| id.in?([0, 1]) }.values
     end
 
     private def cohort_names
@@ -238,15 +304,18 @@ module BostonReports
       @stages ||= {}.tap do |s|
         s[:moved_in] = {
           label: 'Housed',
+          calculation: ->(client) { client.housed_date.present? },
           scope: report_scope.active.where(c_client_t[:housed_date].not_eq(nil)),
         }
         if matched_column.present?
           s[:matched] = {
             label: 'Matched, Not Yet Housed',
+            calculation: ->(client) { client.housed_date.blank? && client[matched_column].present? },
             scope: report_scope.active.where(c_client_t[matched_column].not_eq(nil).and(c_client_t[:housed_date].eq(nil))),
           }
           s[:unmatched] = {
             label: 'Un-matched',
+            calculation: ->(client) { client.housed_date.blank? && client[matched_column].blank? },
             scope: report_scope.active.where(c_client_t[matched_column].eq(nil).and(c_client_t[:housed_date].eq(nil))),
           }
         end
