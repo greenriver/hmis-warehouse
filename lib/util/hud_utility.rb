@@ -611,7 +611,7 @@ module HudUtility
       110 => '10',
       111 => '11',
       112 => '12',
-      113 => '12+', # FIXME should this be 13+?
+      113 => '> 12',
     }
 
     _translate map, id, reverse

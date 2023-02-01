@@ -68,6 +68,7 @@ module WarehouseReports
       reports['TxClientReports::ResearchExport'] = TxClientReports::ResearchExport if RailsDrivers.loaded.include?(:tx_client_reports)
       reports['HmisDataQualityTool::Report'] = HmisDataQualityTool::Report if RailsDrivers.loaded.include?(:hmis_data_quality_tool)
       reports['MaYyaReport::Report'] = MaYyaReport::Report if RailsDrivers.loaded.include?(:ma_yya_report)
+      reports['MaReports::MonthlyPerformance::Report'] = MaReports::MonthlyPerformance::Report if RailsDrivers.loaded.include?(:ma_reports)
 
       reports
     end
