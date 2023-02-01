@@ -9,6 +9,7 @@ module BostonReports
     include Filter::ControlSections
     include Filter::FilterScopes
     include ActionView::Helpers::NumberHelper
+    include HudReports::Util
     include ArelHelper
 
     attr_reader :filter
@@ -330,6 +331,65 @@ module BostonReports
       GrdaWarehouse::CohortColumnOption.active.ordered.
         where(cohort_column: matched_column).
         pluck(:value)
+    end
+
+    # Get the PIT dates for the two prior years (this assumes last wednesday of January)
+    def pit_dates
+      @pit_dates ||= begin
+        latest_date = if Date.current.month == 1
+          pit_date(month: 1, before: 1.months.ago.to_date)
+        else
+          pit_date(month: 1, before: Date.current)
+        end
+        previous_date = pit_date(month: 1, before: latest_date - 11.months)
+        [previous_date, latest_date]
+      end
+    end
+
+    private def pit_columns
+      [
+        :client_id,
+        *GrdaWarehouse::Hud::Client.race_fields.map { |f| c_t[f] },
+        c_t[:Ethnicity],
+      ]
+    end
+
+    private def pit_clients
+      @pit_clients ||= GrdaWarehouse::ServiceHistoryService.joins(:client).
+        where(date: pit_dates).
+        pluck(*pit_columns)
+    end
+
+    def pit_races
+      @pit_races ||= {}.tap do |counts|
+        GrdaWarehouse::Hud::Client.race_fields.each.with_index do |key, i|
+          counts[key] ||= { ids: Set.new, count: 0, pit_dates: pit_dates }
+          # client_id is in the first column, followed by race fields, increment those by 1
+          pit_clients.each do |row|
+            counts[key][:ids] << row.first if row[i + 1] == 1
+          end
+          # Average last two PIT dates
+          counts.each do |k, v|
+            counts[k][:count] = v[:ids].count / pit_dates.count
+          end
+        end
+      end
+    end
+
+    def pit_ethnicities
+      @pit_ethnicities ||= {}.tap do |counts|
+        ::HudLists.ethnicity_map.select { |id, _| id.in?([0, 1]) }.each do |key, label|
+          counts[label] ||= { ids: Set.new, count: 0, pit_dates: pit_dates }
+          # client_id is in the first column, ethnicity in the last
+          pit_clients.each do |row|
+            counts[label][:ids] << row.first if key == row.last
+          end
+          # Average last two PIT dates
+          counts.each do |k, v|
+            counts[k][:count] = v[:ids].count / pit_dates.count
+          end
+        end
+      end
     end
   end
 end
