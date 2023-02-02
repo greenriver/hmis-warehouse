@@ -154,14 +154,14 @@ module GrdaWarehouse
 
     def deleted_scope(user)
       return @client_search_scope.none unless user.can_view_deleted_cohort_clients?
-      
+
       @client_search_scope.only_deleted
     end
 
     def show_deleted user
       return false unless user.can_view_deleted_cohort_clients?
 
-      deleted_scope.exists?
+      deleted_scope(user).exists?
     end
 
     # should we show the housed option for the last `client_search`
