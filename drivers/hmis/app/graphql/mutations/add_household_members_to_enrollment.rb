@@ -8,27 +8,24 @@ module Mutations
     field :errors, [Types::HmisSchema::ValidationError], null: false
 
     def validate_input(household_id:, start_date:, household_members:)
-      errors = []
-      errors << InputValidationError.new('Entry date cannot be in the future', attribute: 'start_date') if Date.parse(start_date) > Date.today
+      errors = CustomValidationErrors.new
+      errors.add :start_date, :out_of_range, message: 'cannot be in the future', readable_attribute: 'Entry date' if Date.parse(start_date) > Date.today
 
       has_enrollment = Hmis::Hud::Enrollment.editable_by(current_user).exists?(household_id: household_id)
       has_hoh_enrollment = Hmis::Hud::Enrollment.editable_by(current_user).exists?(household_id: household_id, relationship_to_ho_h: 1)
-      errors << InputValidationError.new("Cannot find Enrollment for household with id '#{household_id}'", attribute: 'household_id') unless has_enrollment
-      errors << InputValidationError.new('Enrollment already has a head of household designated', attribute: 'household_members') if has_hoh_enrollment && household_members.find { |hm| hm.relationship_to_ho_h == 1 }
 
-      errors
+      errors.add :household_id, :invalid, full_message: "Cannot find Enrollment for household with id '#{household_id}'" unless has_enrollment
+
+      errors.add :household_members, :invalid, full_message: 'Enrollment already has a Head of Household designated' if has_hoh_enrollment && household_members.find { |hm| hm.relationship_to_ho_h == 1 }
+
+      errors.errors
     end
 
     def resolve(household_id:, start_date:, household_members:)
       user = current_user
       errors = validate_input(household_id: household_id, start_date: start_date, household_members: household_members)
 
-      if errors.present?
-        return {
-          enrollments: [],
-          errors: errors,
-        }
-      end
+      return { enrollments: [], errors: errors } if errors.any?
 
       existing_enrollment = Hmis::Hud::Enrollment.editable_by(user).find_by(household_id: household_id)
       lookup = Hmis::Hud::Client.where(id: household_members.map(&:id)).index_by(&:id)

@@ -39,6 +39,8 @@ module GraphqlHelpers
         fullMessage
         type
         options
+        severity
+        readableAttribute
         __typename
       }
     ERRORS

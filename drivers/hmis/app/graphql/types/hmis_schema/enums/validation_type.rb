@@ -13,6 +13,7 @@ module Types
     value 'required'
     value 'invalid'
     value 'information'
+    value 'not_found'
     value 'out_of_range'
     value 'server_error'
     value 'data_not_collected'

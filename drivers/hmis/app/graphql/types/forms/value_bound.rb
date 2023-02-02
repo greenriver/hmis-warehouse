@@ -20,7 +20,7 @@ module Types
     field :question, String, 'Link ID of dependent question, if this items value should be compared to another items value', null: true
 
     def severity
-      object.severity || 'error'
+      object['severity'] || 'error'
     end
   end
 end

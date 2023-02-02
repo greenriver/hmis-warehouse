@@ -26,10 +26,10 @@ module Mutations
 
           enrollment = new_hoh_enrollment
         else
-          errors << InputValidationError.new("No enrollment for this client with household ID '#{household_id}'", attribute: 'household_id')
+          errors << CustomValidationError.new(:household_id, full_message: "No enrollment for this client with household ID '#{household_id}'")
         end
       else
-        errors << InputValidationError.new("No client with id '#{client_id}'", attribute: 'client_id')
+        errors << CustomValidationError.new(:client_id, :not_found)
       end
 
       {

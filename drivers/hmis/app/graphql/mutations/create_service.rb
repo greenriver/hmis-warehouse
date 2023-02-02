@@ -8,7 +8,7 @@ module Mutations
     def validate_input(input)
       errors = []
       params = input.to_params
-      errors << InputValidationError.new("Enrollment with id '#{input.enrollment_id}' does not exist", attribute: 'enrollment_id') unless params[:enrollment_id].present?
+      errors << CustomValidationError.new(:enrollment_id, :not_found) unless params[:enrollment_id].present?
       errors
     end
 

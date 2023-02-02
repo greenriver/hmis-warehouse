@@ -69,7 +69,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       service = result.dig('data', 'deleteService', 'service')
       errors = result.dig('data', 'deleteService', 'errors')
       expect(service).to be_nil
-      expect(errors).to contain_exactly(include('message' => 'Service record not found', 'attribute' => 'id'))
+      expect(errors).to contain_exactly(include('fullMessage' => 'Service not found'))
     end
   end
 end

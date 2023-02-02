@@ -20,7 +20,7 @@ module Mutations
 
         errors << enrollment.errors.errors unless enrollment.valid?
       else
-        errors << InputValidationError.new("No enrollment found with ID '#{id}'", attribute: 'id')
+        errors << CustomValidationError.new(:enrollment, :not_found)
       end
 
       {

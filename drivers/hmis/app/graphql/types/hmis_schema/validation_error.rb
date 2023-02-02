@@ -42,6 +42,8 @@ module Types
 
       return 'is empty' if type == 'data_not_collected'
 
+      return 'not found' if type == 'not_found'
+
       I18n.t("errors.messages.#{type}", default: 'is invalid')
     end
 

@@ -33,14 +33,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   let(:mutation) do
     <<~GRAPHQL
-      mutation SaveAssessment($enrollmentId: ID, $formDefinitionId: ID, $assessmentId: ID, $values: JsonObject!, $assessmentDate: String) {
-        saveAssessment(input: {
-          enrollmentId: $enrollmentId,
-          formDefinitionId: $formDefinitionId,
-          assessmentId: $assessmentId,
-          assessmentDate: $assessmentDate,
-          values: $values,
-        }) {
+      mutation SaveAssessment($input: SaveAssessmentInput!) {
+        saveAssessment(input: $input) {
           assessment {
             #{scalar_fields(Types::HmisSchema::Assessment)}
             enrollment {
@@ -83,7 +77,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   it 'should create and update a WIP assessment successfully' do
     # Create new WIP assessment
-    response, result = post_graphql(**test_input) { mutation }
+    response, result = post_graphql(input: test_input) { mutation }
     assessment = result.dig('data', 'saveAssessment', 'assessment')
     errors = result.dig('data', 'saveAssessment', 'errors')
 
@@ -115,7 +109,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   it 'update an existing WIP assessment successfully' do
     # Create new WIP assessment
-    response, result = post_graphql(**test_input) { mutation }
+    response, result = post_graphql(input: test_input) { mutation }
     assessment_id = result.dig('data', 'saveAssessment', 'assessment', 'id')
     expect(assessment_id).to be_present
     expect(Hmis::Hud::Assessment.count).to eq(1)

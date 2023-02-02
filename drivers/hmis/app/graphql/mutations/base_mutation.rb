@@ -5,21 +5,6 @@
 ###
 
 module Mutations
-  # TODO remove
-  class InputValidationError
-    def initialize(message, attribute: nil, **kwargs)
-      {
-        message: message,
-        attribute: attribute,
-        full_message: message,
-        type: :invalid,
-        **kwargs,
-      }.each do |key, value|
-        define_singleton_method(key) { value }
-      end
-    end
-  end
-
   class CustomValidationErrors
     include Enumerable
 
@@ -75,7 +60,7 @@ module Mutations
     # Default CRUD Update functionality
     # If confirm is not specified, treat as confirmed (aka ignore warnings)
     def default_update_record(record:, field_name:, input:, confirmed: true)
-      return { field_name => nil, errors: [InputValidationError.new("#{field_name.to_s.humanize} record not found", attribute: 'id')] } unless record.present?
+      return { field_name => nil, errors: [CustomValidationError.new(field_name, :not_found)] } unless record.present?
 
       # Create any custom validation errors
       errors = create_errors(record, input)
@@ -135,10 +120,9 @@ module Mutations
     def default_delete_record(record:, field_name:)
       errors = []
       if record.present?
-        # record.destroy_dependents!
         record.destroy
       else
-        errors << InputValidationError.new("#{field_name.to_s.humanize} record not found", attribute: 'id') unless record.present?
+        errors << CustomValidationError.new(field_name, :not_found) unless record.present?
       end
 
       {

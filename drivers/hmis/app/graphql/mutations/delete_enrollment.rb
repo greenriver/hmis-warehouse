@@ -13,12 +13,12 @@ module Mutations
         if enrollment.in_progress?
           enrollment.destroy
         else
-          errors << InputValidationError.new('Only in-progress enrollments can be deleted')
+          errors << CustomValidationError.new(:base, full_message: 'Completed enrollments can not be deleted. Please exit the client instead.')
         end
 
         errors << enrollment.errors.errors unless enrollment.valid?
       else
-        errors << InputValidationError.new("No enrollment found with ID '#{id}'", attribute: 'id')
+        errors << CustomValidationError.new(:enrollment, :not_found)
       end
 
       {
