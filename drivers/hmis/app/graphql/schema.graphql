@@ -209,22 +209,22 @@ type AutofillValue {
   autofillWhen: [EnableWhen!]!
 
   """
-  If question is boolean type, autofill value
+  Value to autofill if condition is met
   """
   valueBoolean: Boolean
 
   """
-  If question is choice type, autofill value
+  Value to autofill if condition is met
   """
   valueCode: String
 
   """
-  If question is numeric, autofill value
+  Value to autofill if condition is met
   """
   valueNumber: Int
 
   """
-  Link ID of question to autofill value from
+  Link ID of question to autofill the value from if condition is med
   """
   valueQuestion: String
 }
