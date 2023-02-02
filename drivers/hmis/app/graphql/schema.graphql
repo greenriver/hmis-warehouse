@@ -1181,8 +1181,8 @@ type DisabilityGroup {
   chronicHealthCondition: NoYesReasonsForMissingData
   chronicHealthConditionIndefiniteAndImpairs: NoYesReasonsForMissingData
   dataCollectionStage: DataCollectionStage!
-  dateCreated: ISO8601DateTime!
-  dateUpdated: ISO8601DateTime!
+  dateCreated: ISO8601DateTime
+  dateUpdated: ISO8601DateTime
   developmentalDisability: NoYesReasonsForMissingData
 
   """
