@@ -5,7 +5,6 @@
       $('ul.nav-tabs li:first-child a').tab('show')
     }
     $('.nav-tabs a').click(function(e) {
-      e.preventDefault();
       $(this).tab('show');
       $(this).parent().siblings().removeClass('active')
     });
