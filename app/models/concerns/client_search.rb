@@ -22,14 +22,15 @@ module ClientSearch
         last, first = text.split(',').map(&:strip)
         where = sa[:LastName].lower.matches("#{last.downcase}%") if last.present?
         if last.present? && first.present?
-          where = where.and(sa[:FirstName].lower.matches("#{first.downcase}%"))
+          where = where.and(sa[:FirstName].lower.matches("#{first.downcase}%")).or(sa[:preferred_name].lower.matches("#{first.downcase}%"))
         elsif first.present?
-          where = sa[:FirstName].lower.matches("#{first.downcase}%")
+          where = sa[:FirstName].lower.matches("#{first.downcase}%").or(sa[:preferred_name].lower.matches("#{first.downcase}%"))
         end
         # Explicitly search for "first last"
       elsif text.include?(' ')
         first, last = text.split(' ').map(&:strip)
         where = sa[:FirstName].lower.matches("#{first.downcase}%").
+          or(sa[:preferred_name].lower.matches("#{first.downcase}%")).
           and(sa[:LastName].lower.matches("#{last.downcase}%"))
         # Explicitly search for a PersonalID
       elsif alpha_numeric && (text.size == 32 || text.size == 36)
@@ -44,7 +45,8 @@ module ClientSearch
       else
         query = "%#{text}%"
         where = sa[:FirstName].matches(query).
-          or(sa[:LastName].matches(query))
+          or(sa[:LastName].matches(query)).
+          or(sa[:preferred_name].matches(query))
 
         where = nickname_search(where, text)
         where = metaphone_search(where, :FirstName, text)

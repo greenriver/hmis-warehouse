@@ -15,6 +15,7 @@ module Types
     include Types::HmisSchema::HasProjects
     include Types::HmisSchema::HasOrganizations
     include Types::HmisSchema::HasClients
+    include ArelHelper
 
     projects_field :projects
 
@@ -35,6 +36,22 @@ module Types
     def client_search(input:, **args)
       search_scope = Hmis::Hud::Client.client_search(input: input.to_params, user: current_user)
       resolve_clients(search_scope, **args)
+    end
+
+    clients_field :client_omni_search, 'Client omnisearch' do |field|
+      field.argument :text_search, String, 'Omnisearch string', required: true
+    end
+
+    def client_omni_search(text_search:, **args)
+      client_order = Hmis::Hud::Client.searchable_to(current_user).matching_search_term(text_search).
+        joins(:enrollments).
+        merge(Hmis::Hud::Enrollment.open_during_range((Date.today - 1.month)..Date.today)).
+        order(e_t[:date_updated].desc).
+        pluck(:id, e_t[:date_updated]).
+        map(&:first).
+        uniq
+      client_scope = Hmis::Hud::Client.where(id: client_order).order_as_specified(id: client_order)
+      resolve_clients(client_scope, **args)
     end
 
     field :client, Types::HmisSchema::Client, 'Client lookup', null: true do
@@ -136,5 +153,7 @@ module Types
     def pick_list(pick_list_type:, relation_id: nil)
       Types::Forms::PickListOption.options_for_type(pick_list_type, user: current_user, relation_id: relation_id)
     end
+
+    field :current_user, Application::User, null: true
   end
 end
