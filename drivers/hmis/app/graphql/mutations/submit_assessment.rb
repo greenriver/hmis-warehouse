@@ -12,9 +12,14 @@ module Mutations
       return { assessment: nil, errors: errors } if errors.any?
 
       definition = assessment.assessment_detail.definition
+      enrollment = assessment.enrollment
 
       # Determine the Assessment Date (same as Information Date) and validate it
-      assessment_date, errors = definition.find_and_validate_assessment_date(assessment, input.hud_values)
+      assessment_date, errors = definition.find_and_validate_assessment_date(
+        hud_values: input.hud_values,
+        entry_date: enrollment.entry_date,
+        exit_date: enrollment.exit_date,
+      )
 
       # Validate hudValues based on FormDefinition
       validation_errors = definition.validate_form_values(input.hud_values, nil)

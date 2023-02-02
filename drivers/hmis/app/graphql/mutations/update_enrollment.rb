@@ -20,7 +20,7 @@ module Mutations
 
         errors << enrollment.errors.errors unless enrollment.valid?
       else
-        errors << CustomValidationError.new(:enrollment, :not_found)
+        errors << Errors::CustomValidationError.new(:enrollment, :not_found)
       end
 
       {

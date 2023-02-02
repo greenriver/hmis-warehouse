@@ -63,35 +63,52 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     Types::HmisSchema::Enums::AssessmentRole.as_data_collection_stage(role) != 99
   end
 
+  def intake?
+    Types::HmisSchema::Enums::AssessmentRole.as_data_collection_stage(role) == 1
+  end
+
+  def exit?
+    Types::HmisSchema::Enums::AssessmentRole.as_data_collection_stage(role) == 3
+  end
+
   def assessment_date_item
     @assessment_date_item ||= link_id_item_hash.values.find(&:assessment_date)
   end
 
-  def find_and_validate_assessment_date(assessment, hud_values)
-    errors = Mutations::CustomValidationErrors.new
+  def find_and_validate_assessment_date(hud_values:, entry_date:, exit_date:)
+    errors = Errors::CustomValidationErrors.new
     date = nil
     item = assessment_date_item
     if item.present? && hud_values.present?
-      date = hud_values[item.link_id]
-      # TODO - handle invalid date formats?
-      date = Date.parse(date) if date.present?
-      errors.add item.field_name, :required unless date.present?
-      unless assessment.intake?
-        # Ensure assessment date is on or after entry date
-        entry_date = assessment.enrollment&.entry_date
-        errors.add item.field_name, :invalid, message: "must be after entry date (#{entry_date.strftime('%m/%d/%Y')})" if date && entry_date && date < entry_date
+      date_string = hud_values[item.link_id]
+
+      if date_string.present?
+        date = Util::Dates.safe_parse_date(date_string: date_string, reasonable_years_distance: 10)
+        errors.add item.field_name, :invalid unless date.present?
+      else
+        errors.add item.field_name, :required
       end
     elsif hud_assessment?
       errors.add :assessmentDate, :required
-    elsif !hud_assessment?
-      date = assessment.assessment_date || Date.today
     end
+
+    return [nil, errors.errors] if errors.errors.any?
+
+    # Additional validations for HUD assessment dates to be within appropriate entry/exit bounds
+    if date.present? && hud_assessment?
+      # Ensure assessment date is on or after entry date
+      errors.add item.field_name, :out_of_range, message: "must be after entry date (#{entry_date.strftime('%m/%d/%Y')})" if entry_date.present? && !intake? && date < entry_date
+      # Ensure assessment date is on or before exit date
+      errors.add item.field_name, :out_of_range, message: "must be before exit date (#{exit_date.strftime('%m/%d/%Y')})" if exit_date.present? && !exit? && date > exit_date
+    end
+
+    date = nil if errors.errors.any?
 
     [date, errors.errors]
   end
 
   def validate_form_values(hud_values, _custom_values)
-    errors = Mutations::CustomValidationErrors.new
+    errors = Errors::CustomValidationErrors.new
     hud_values.each do |link_id, value|
       item = link_id_item_hash[link_id]
       raise "Unrecognized link ID: #{link_id}" unless item.present?

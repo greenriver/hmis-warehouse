@@ -16,7 +16,7 @@ module Types
     argument :confirmed, Boolean, 'Whether warnings have been confirmed', required: false
 
     def find_or_create_assessment
-      errors = Mutations::CustomValidationErrors.new
+      errors = Errors::CustomValidationErrors.new
 
       if assessment_id.present?
         # Updating an existing assessment

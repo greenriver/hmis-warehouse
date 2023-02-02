@@ -5,40 +5,6 @@
 ###
 
 module Mutations
-  class CustomValidationErrors
-    include Enumerable
-
-    extend Forwardable
-    def_delegators :@errors, :size, :clear, :blank?, :empty?, :uniq!, :any?, :count
-    attr_reader :errors
-    alias objects errors
-
-    def initialize
-      @errors = []
-    end
-
-    def add(attribute, type = :invalid, **options)
-      error = CustomValidationError.new(attribute, type, **options)
-      @errors.append(error)
-      error
-    end
-  end
-
-  class CustomValidationError
-    def initialize(attribute, type = :invalid, message: nil, full_message: nil, severity: :error, **kwargs)
-      {
-        attribute: attribute,
-        type: type,
-        message: message,
-        full_message: full_message,
-        severity: severity,
-        **kwargs,
-      }.each do |key, value|
-        define_singleton_method(key) { value }
-      end
-    end
-  end
-
   class BaseMutation < GraphQL::Schema::RelayClassicMutation
     argument_class Types::BaseArgument
     field_class Types::BaseField
@@ -60,7 +26,7 @@ module Mutations
     # Default CRUD Update functionality
     # If confirm is not specified, treat as confirmed (aka ignore warnings)
     def default_update_record(record:, field_name:, input:, confirmed: true)
-      return { field_name => nil, errors: [CustomValidationError.new(field_name, :not_found)] } unless record.present?
+      return { field_name => nil, errors: [Errors::CustomValidationError.new(field_name, :not_found)] } unless record.present?
 
       # Create any custom validation errors
       errors = create_errors(record, input)
@@ -122,7 +88,7 @@ module Mutations
       if record.present?
         record.destroy
       else
-        errors << CustomValidationError.new(field_name, :not_found) unless record.present?
+        errors << Errors::CustomValidationError.new(field_name, :not_found) unless record.present?
       end
 
       {
