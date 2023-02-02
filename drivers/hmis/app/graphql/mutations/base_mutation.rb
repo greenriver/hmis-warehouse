@@ -54,21 +54,6 @@ module Mutations
     end
   end
 
-  # TODO remove
-  class InputConfirmationWarning
-    def initialize(message, attribute: nil, **kwargs)
-      {
-        message: message,
-        attribute: attribute,
-        full_message: message,
-        type: :confirm_warning,
-        **kwargs,
-      }.each do |key, value|
-        define_singleton_method(key) { value }
-      end
-    end
-  end
-
   class BaseMutation < GraphQL::Schema::RelayClassicMutation
     argument_class Types::BaseArgument
     field_class Types::BaseField
@@ -92,12 +77,11 @@ module Mutations
     def default_update_record(record:, field_name:, input:, confirmed: true)
       return { field_name => nil, errors: [InputValidationError.new("#{field_name.to_s.humanize} record not found", attribute: 'id')] } unless record.present?
 
-      # FIXME: update this so create_errors returns everything,
-      # but if 'confirmed' then filter out all where type==:warning
+      # Create any custom validation errors
       errors = create_errors(record, input)
 
-      # Add custom warnings to error list
-      errors += create_warnings(record, input) unless confirmed
+      # If user has already confirmed warnings, remove them
+      errors = errors.filter { |e| e.severity != :warning } if confirmed
 
       record.assign_attributes(
         **input.to_params,
@@ -105,7 +89,7 @@ module Mutations
         date_updated: DateTime.current,
       )
 
-      # Add validation errors to error list
+      # Add ActiveRecord validation errors to error list
       errors += record.errors.errors unless record.valid?
 
       if errors.empty?
@@ -114,11 +98,6 @@ module Mutations
       else
         { field_name => nil, errors: errors }
       end
-    end
-
-    # Override to create custom warnings
-    def create_warnings(_record, _input)
-      []
     end
 
     # Override to create custom errors

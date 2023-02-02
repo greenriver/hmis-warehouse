@@ -20,17 +20,20 @@ module Mutations
       response
     end
 
-    def create_warnings(project, input)
+    def create_errors(project, input)
       return [] unless project.operating_end_date.blank? && input.operating_end_date.present?
+
+      errors = CustomValidationErrors.new
 
       funder_count = project.funders.where(end_date: nil).count
       inventory_count = project.inventories.where(inventory_end_date: nil).count
       open_enrollments = Hmis::Hud::Enrollment.open_on_date.in_project_including_wip(project.id, project.project_id)
-      warnings = []
-      warnings << InputConfirmationWarning.new("Project has #{open_enrollments.count} open #{'enrollment'.pluralize(open_enrollments.count)}.", attribute: 'id') if open_enrollments.present?
-      warnings << InputConfirmationWarning.new("#{funder_count} open #{'funder'.pluralize(funder_count)} will be closed.", attribute: 'id') if funder_count.positive?
-      warnings << InputConfirmationWarning.new("#{inventory_count} open inventory #{'record'.pluralize(inventory_count)} will be closed.", attribute: 'id') if inventory_count.positive?
-      warnings
+
+      errors.add :base, :information, severity: :warning, full_message: "Project has #{open_enrollments.count} open #{'enrollment'.pluralize(open_enrollments.count)}." if open_enrollments.present?
+      errors.add :base, :information, severity: :warning, full_message: "#{funder_count} open #{'funder'.pluralize(funder_count)} will be closed." if funder_count.positive?
+      errors.add :base, :information, severity: :warning, full_message: "#{inventory_count} open inventory #{'record'.pluralize(inventory_count)} will be closed." if inventory_count.positive?
+
+      errors.errors
     end
 
     def close_related_records(project)
