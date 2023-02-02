@@ -96,7 +96,7 @@ module GrdaWarehouse
       when :inactive
         inactive_scope(user)
       when :deleted
-        deleted_scope
+        deleted_scope(user)
       else # active
         active_scope.where(active: true)
       end
@@ -152,7 +152,9 @@ module GrdaWarehouse
       inactive_scope(user).exists?
     end
 
-    def deleted_scope
+    def deleted_scope(user)
+      return @client_search_scope.none unless user.can_view_deleted_cohort_clients?
+      
       @client_search_scope.only_deleted
     end
 
