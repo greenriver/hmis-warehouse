@@ -13,7 +13,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   include_context 'hmis base setup'
   let(:c1) { create :hmis_hud_client, data_source: ds1, user: u1 }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1 }
-  let!(:fd1) { create :hmis_form_definition }
+  let!(:fd1) { create :hmis_form_definition, role: 'INTAKE' }
   let!(:fi1) { create :hmis_form_instance, definition: fd1, entity: p1 }
 
   before(:each) do
@@ -25,7 +25,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     {
       enrollment_id: e1.id,
       form_definition_id: fd1.id,
-      assessment_date: '2022-10-16',
       values: { 'key' => 'value' },
       hud_values: { 'hud_key' => 'hud_value' },
     }
@@ -61,7 +60,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   describe 'Submitting a form for the first time' do
     it 'should create assessment successfully' do
-      response, result = post_graphql(input: test_input) { mutation }
+      response, result = post_graphql(input: { input: test_input }) { mutation }
       assessment = result.dig('data', 'submitAssessment', 'assessment')
       errors = result.dig('data', 'submitAssessment', 'errors')
 
@@ -83,13 +82,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   describe 'Re-Submitting a form that has already been submitted' do
     before(:each) do
       # create tha initial submitted assessment
-      post_graphql(input: test_input) { mutation }
+      post_graphql(input: { input: test_input }) { mutation }
       @assessment = Hmis::Hud::Assessment.first
     end
 
     it 'should update assessment successfully' do
       input = { assessment_id: @assessment.id, values: { 'newKey' => 'newValue' }, hud_values: { 'newHudKey' => 'newHudValue' } }
-      response, result = post_graphql(input: input) { mutation }
+      response, result = post_graphql(input: { input: test_input }) { mutation }
       assessment = result.dig('data', 'submitAssessment', 'assessment')
       errors = result.dig('data', 'submitAssessment', 'errors')
 
@@ -110,14 +109,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   describe 'Submitting a form that was previously saved as WIP' do
     let(:save_wip_mutation) do
       <<~GRAPHQL
-        mutation SaveAssessment($enrollmentId: ID, $formDefinitionId: ID, $assessmentId: ID, $values: JsonObject!, $assessmentDate: String) {
-          saveAssessment(input: {
-            enrollmentId: $enrollmentId,
-            formDefinitionId: $formDefinitionId,
-            assessmentId: $assessmentId,
-            assessmentDate: $assessmentDate,
-            values: $values,
-          }) {
+        mutation SaveAssessment($input: SaveAssessmentInput!) {
+          saveAssessment(input: $input) {
             assessment {
               id
             }
@@ -125,9 +118,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         }
       GRAPHQL
     end
+
     before(:each) do
       # create the initial WIP assessment
-      post_graphql(input: test_input.except(:hud_values)) { save_wip_mutation }
+      post_graphql(input: { input: test_input.except(:hud_values) }) { save_wip_mutation }
       @assessment = Hmis::Hud::Assessment.in_progress.first
     end
 
@@ -135,8 +129,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(Hmis::Hud::Assessment.count).to eq(1)
       expect(Hmis::Hud::Assessment.in_progress.count).to eq(1)
 
-      input = { assessment_id: @assessment.id, values: { 'newKey' => 'newValue' }, hud_values: { 'newHudKey' => 'newHudValue' } }
-      response, result = post_graphql(**input) { mutation }
+      input = {
+        assessment_id: @assessment.id,
+        values: { 'newKey' => 'newValue' },
+        hud_values: { 'newHudKey' => 'newHudValue' },
+      }
+      response, result = post_graphql(input: { input: input }) { mutation }
       assessment = result.dig('data', 'submitAssessment', 'assessment')
       errors = result.dig('data', 'submitAssessment', 'errors')
 
@@ -164,15 +162,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       [
         'should emit error if assessment doesn\'t exist',
         ->(input) { input.merge(assessment_id: '999') },
-        {
-          'fullMessage' => 'Assessment must exist',
-          'attribute' => 'assessmentId',
-        },
+        { 'fullMessage' => 'Assessment must exist' },
       ],
     ].each do |test_name, input_proc, *expected_errors|
       it test_name do
         input = input_proc.call(test_input)
-        response, result = post_graphql(input: input) { mutation }
+        response, result = post_graphql(input: { input: input }) { mutation }
         errors = result.dig('data', 'submitAssessment', 'errors')
         aggregate_failures 'checking response' do
           expect(response.status).to eq 200

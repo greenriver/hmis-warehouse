@@ -6,6 +6,7 @@
       "hidden": true,
       "initial": [
         {
+          "initial_behavior": "OVERWRITE",
           "value_local_constant": "$clientId"
         }
       ]

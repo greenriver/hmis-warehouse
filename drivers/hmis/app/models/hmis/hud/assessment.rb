@@ -77,14 +77,16 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
 
     self.enrollment_id = WIP_ID
     save!(validate: false)
-    self.wip = Hmis::Wip.find_or_create_by(
+    self.wip = Hmis::Wip.create_with(date: assessment_date).find_or_create_by(
       {
         source: self,
         enrollment_id: saved_enrollment_id,
         client_id: client.id,
-        date: assessment_date,
       },
     )
+
+    wip.update(date: assessment_date)
+    wip
   end
 
   def save_not_in_progress

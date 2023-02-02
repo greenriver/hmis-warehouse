@@ -18,7 +18,7 @@ module Mutations
       return { assessment: nil, errors: errors } if errors.any?
 
       # Update values
-      assessment.assessment_detail.assign_attributes(values: values)
+      assessment.assessment_detail.assign_attributes(values: input.values)
       assessment.assign_attributes(
         user_id: hmis_user.user_id,
         date_updated: DateTime.current,
@@ -34,7 +34,7 @@ module Mutations
         assessment = nil
       end
 
-      return {
+      {
         assessment: assessment,
         errors: errors,
       }

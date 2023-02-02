@@ -10,11 +10,11 @@ module Types
   class Forms::InitialValue < Types::BaseObject
     description 'Initial value when item is first rendered'
 
-    field :value_code, String, 'If question is choice type, initial value', null: true
-    field :value_number, Integer, 'If question is numeric, initial value', null: true
-    field :value_boolean, Boolean, 'If question is boolean type, initial value', null: true
-    field :value_local_constant, String, 'Name of local variable to use as initial value if present. Variable type should match item type.', null: true
+    field :initial_behavior, Types::Forms::Enums::InitialBehavior, null: false
 
-    # Add date, datetime, etc as needed
+    field :value_local_constant, String, 'Name of local variable to use as initial value if present. Variable type should match item type.', null: true
+    field :value_code, String, 'Code to set as initial value', null: true
+    field :value_number, Integer, 'Number to set as initial value', null: true
+    field :value_boolean, Boolean, 'Boolean to set as initial value', null: true
   end
 end

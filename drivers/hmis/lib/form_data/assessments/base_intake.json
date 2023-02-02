@@ -1,6 +1,28 @@
 {
   "item": [
     {
+      "type": "GROUP",
+      "link_id": "entry-date-group",
+      "text": "Entry Date",
+      "data_collected_about": "ALL_CLIENTS",
+      "record_type": "ENROLLMENT",
+      "item": [
+        {
+          "type": "DATE",
+          "link_id": "entry-date",
+          "text": "Entry Date",
+          "field_name": "entryDate",
+          "assessment_date": true,
+          "initial": [
+            {
+              "initial_behavior": "OVERWRITE",
+              "value_local_constant": "$entryDate"
+            }
+          ]
+        }
+      ]
+    },
+    {
       "fragment": "#client_location"
     },
     {

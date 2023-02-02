@@ -65,6 +65,7 @@ module Types
         assessment_date = assessment.assessment_date || Date.today
       end
 
+      Rails.logger.info(">>> assessment_date #{assessment_date}")
       [assessment_date, errors.errors]
     end
   end

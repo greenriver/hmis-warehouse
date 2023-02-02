@@ -222,6 +222,11 @@ type AutofillValue {
   If question is numeric, autofill value
   """
   valueNumber: Int
+
+  """
+  Link ID of question to autofill value from
+  """
+  valueQuestion: String
 }
 
 """
@@ -2457,17 +2462,31 @@ type IncomeBenefitsPaginated {
   pagesCount: Int!
 }
 
+enum InitialBehavior {
+  """
+  When loading the form, only set the specified initial value if there is no existing value.
+  """
+  IF_EMPTY
+
+  """
+  When loading the form, always overwrite the existing value with specified initial value.
+  """
+  OVERWRITE
+}
+
 """
 Initial value when item is first rendered
 """
 type InitialValue {
+  initialBehavior: InitialBehavior!
+
   """
-  If question is boolean type, initial value
+  Boolean to set as initial value
   """
   valueBoolean: Boolean
 
   """
-  If question is choice type, initial value
+  Code to set as initial value
   """
   valueCode: String
 
@@ -2477,7 +2496,7 @@ type InitialValue {
   valueLocalConstant: String
 
   """
-  If question is numeric, initial value
+  Number to set as initial value
   """
   valueNumber: Int
 }
@@ -5217,7 +5236,9 @@ enum ValidationSeverity {
 
 enum ValidationType {
   data_not_collected
+  information
   invalid
+  not_found
   out_of_range
   required
   server_error
