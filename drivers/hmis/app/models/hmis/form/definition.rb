@@ -71,12 +71,16 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     errors = Mutations::CustomValidationErrors.new
     date = nil
     item = assessment_date_item
-    if item.present?
+    if item.present? && hud_values.present?
       date = hud_values[item.link_id]
       # TODO - handle invalid date formats?
       date = Date.parse(date) if date.present?
       errors.add item.field_name, :required unless date.present?
-      errors.add item.field_name, :invalid, message: "must be after entry date (#{entry_date.strftime('%m/%d/%Y')})" if !assessment.intake? && date && entry_date && date < entry_date
+      unless assessment.intake?
+        # Ensure assessment date is on or after entry date
+        entry_date = assessment.enrollment&.entry_date
+        errors.add item.field_name, :invalid, message: "must be after entry date (#{entry_date.strftime('%m/%d/%Y')})" if date && entry_date && date < entry_date
+      end
     elsif hud_assessment?
       errors.add :assessmentDate, :required
     elsif !hud_assessment?

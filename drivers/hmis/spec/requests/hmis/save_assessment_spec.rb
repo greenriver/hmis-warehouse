@@ -27,6 +27,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       enrollment_id: e1.id.to_s,
       form_definition_id: fd1.id,
       values: { key: 'value' },
+      hud_values: { 'linkid-date' => '2023-02-01' },
     }
   end
 
@@ -87,7 +88,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(assessment['enrollment']).to be_present
       expect(assessment).to include(
         'inProgress' => true,
-        'assessmentDate' => e1.entry_date.strftime('%Y-%m-%d'),
+        'assessmentDate' => '2023-02-01',
         'assessmentDetail' => include('values' => { 'key' => 'value' }),
       )
       expect(Hmis::Hud::Assessment.count).to eq(1)
@@ -115,7 +116,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     expect(Hmis::Hud::Assessment.in_progress.count).to eq(1)
 
     # Subsequent request should update the existing WIP assessment
-    input = { assessment_id: assessment_id, values: { key: 'newValue', newKey: 'foo' } }
+    new_information_date = '2024-01-01'
+    input = {
+      assessment_id: assessment_id,
+      values: { key: 'newValue', newKey: 'foo' },
+      hud_values: { 'linkid-date' => new_information_date },
+    }
+
     response, result = post_graphql(input: { input: input }) { mutation }
     assessment = result.dig('data', 'saveAssessment', 'assessment')
     errors = result.dig('data', 'saveAssessment', 'errors')
@@ -126,6 +133,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(assessment['enrollment']).to be_present
       expect(assessment).to include(
         'inProgress' => true,
+        'assessmentDate' => new_information_date,
         'assessmentDetail' => include('values' => { 'key' => 'newValue', 'newKey' => 'foo' }),
       )
       expect(Hmis::Hud::Assessment.count).to eq(1)

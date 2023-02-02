@@ -2,7 +2,7 @@ FactoryBot.define do
   factory :hmis_form_definition, class: 'Hmis::Form::Definition' do
     version { 1 }
     sequence(:identifier, 100)
-    role { 'INTAKE' }
+    role { 'UPDATE' }
     status { 'active' }
     definition do
       {
@@ -12,11 +12,17 @@ FactoryBot.define do
             'link_id': '1',
             'item': [
               {
-                'type': 'CHOICE',
-                'link_id': '2',
+                'type': 'DATE',
+                'link_id': 'linkid-date',
                 'required': true,
-                'text': 'Relationship to Head of Household',
-                'pick_list_reference': 'RelationshipToHoH',
+                'text': 'Information Date',
+                'assessment_date': true,
+                'field_name': 'informationDate',
+              },
+              {
+                'type': 'STRING',
+                'link_id': 'linkid-1',
+                'field_name': 'fieldOne',
               },
               {
                 'type': 'CHOICE',

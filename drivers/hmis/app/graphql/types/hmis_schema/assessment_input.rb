@@ -17,6 +17,7 @@ module Types
 
     def find_or_create_assessment
       errors = Mutations::CustomValidationErrors.new
+
       if assessment_id.present?
         # Updating an existing assessment
         assessment = Hmis::Hud::Assessment.editable_by(current_user).find_by(id: assessment_id)
@@ -24,9 +25,8 @@ module Types
       elsif enrollment_id.present? && form_definition_id.present?
         # Creating a new assessment
         enrollment = Hmis::Hud::Enrollment.editable_by(current_user).find_by(id: enrollment_id)
-        errors.add :enrollment, :required unless enrollment.present?
-
         form_definition = Hmis::Form::Definition.find_by(id: form_definition_id)
+        errors.add :enrollment, :required unless enrollment.present?
         errors.add :form_definition, :required unless form_definition.present?
       else
         errors.add :enrollment, :required
