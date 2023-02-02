@@ -84,7 +84,7 @@ jobs:
         echo "docker_assets_path=$DOCKER_ASSETS_PATH" >> $GITHUB_OUTPUT
         echo "image_tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
 
-        bin/error_if_githash_is_latest.rb base,web,dj
+        bin/error_if_githash_is_latest.rb base
 
     # git commit --allow-empty -m "[gh:rebuild]"
     - name: (Maybe) Rebuild pre-cache image
@@ -129,25 +129,13 @@ jobs:
         docker tag ${ECR_REPOSITORY}:latest--base $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--base
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--base
 
-        echo Building web
-        docker build --file=$DOCKER_ASSETS_PATH/Dockerfile.${ECR_REPOSITORY}.web -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--web .
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--web
-
-        echo Building dj
-        docker build --file=$DOCKER_ASSETS_PATH/Dockerfile.${ECR_REPOSITORY}.dj -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--dj .
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--dj
-
         echo Building deploy
         docker build --file=$DOCKER_ASSETS_PATH/Dockerfile.${ECR_REPOSITORY}.deploy -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--deploy .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--deploy
 
         echo $IMAGE_TAG--base > image-tag.txt
-        echo $IMAGE_TAG--web >> image-tag.txt
-        echo $IMAGE_TAG--dj >> image-tag.txt
         echo $IMAGE_TAG--deploy >> image-tag.txt
         echo "image_base=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--base" >> $GITHUB_OUTPUT
-        echo "image_web=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--web" >> $GITHUB_OUTPUT
-        echo "image_dj=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--dj" >> $GITHUB_OUTPUT
         echo "image_deploy=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--deploy" >> $GITHUB_OUTPUT
 
     - name: Show image tag

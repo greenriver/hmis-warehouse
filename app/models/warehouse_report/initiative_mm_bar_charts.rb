@@ -133,7 +133,7 @@ class WarehouseReport::InitiativeMmBarCharts
           d[sk] = 0
         end
         data.each_key do |pt_id|
-          pt = ::HUD.project_type_brief(pt_id.to_i)
+          pt = ::HudUtility.project_type_brief(pt_id.to_i)
           d[pt] = send(type, data[pt_id])
           chart_data[:values].push(d[pt])
         end

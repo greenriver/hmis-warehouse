@@ -65,7 +65,7 @@ module Exporters::Tableau::Disability
         value = client[h.to_s].presence
         value = case h
         # when :disability_type
-        #   ::HUD.disability_type(value&.to_i)&.titleize
+        #   ::HudUtility.disability_type(value&.to_i)&.titleize
         when :start_date, :end_date
           value && DateTime.parse(value).strftime('%Y-%m-%d')
         else

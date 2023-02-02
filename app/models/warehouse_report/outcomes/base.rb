@@ -298,8 +298,8 @@ class WarehouseReport::Outcomes::Base
         destinations[destination][:count] += 1 unless destinations[destination][:client_ids].include?(row[:client_id])
         destinations[destination][:client_ids] << row[:client_id]
         destinations[destination][:detailed_destinations] ||= {}
-        destinations[destination][:detailed_destinations][HUD.destination(row[:destination])] ||= 0
-        destinations[destination][:detailed_destinations][HUD.destination(row[:destination])] += 1
+        destinations[destination][:detailed_destinations][HudUtility.destination(row[:destination])] ||= 0
+        destinations[destination][:detailed_destinations][HudUtility.destination(row[:destination])] += 1
 
         # Support for later
         destinations[destination][:support] ||= []
@@ -314,9 +314,9 @@ class WarehouseReport::Outcomes::Base
   end
 
   def destination_bucket(dest_id)
-    return 'exited to other institution' if HUD.institutional_destinations.include?(dest_id)
-    return 'successful exit to PH' if HUD.permanent_destinations.include?(dest_id)
-    return 'exited to temporary destination' if HUD.temporary_destinations.include?(dest_id)
+    return 'exited to other institution' if HudUtility.institutional_destinations.include?(dest_id)
+    return 'successful exit to PH' if HudUtility.permanent_destinations.include?(dest_id)
+    return 'exited to temporary destination' if HudUtility.temporary_destinations.include?(dest_id)
 
     'other or unknown outcome'
   end
@@ -364,7 +364,7 @@ class WarehouseReport::Outcomes::Base
           race: returner_demographics[id][1],
           ethnicity: returner_demographics[id][2]&.to_i,
           gender: returner_demographics[id][3],
-          destination: HUD.destination(destination),
+          destination: HudUtility.destination(destination),
         }
       end
       returns
@@ -672,7 +672,7 @@ class WarehouseReport::Outcomes::Base
 
         clients[project_name].each do |row|
           # Only count clients who exited in this month to a permanent destination
-          next unless HUD.permanent_destinations.include?(row[:destination])
+          next unless HudUtility.permanent_destinations.include?(row[:destination])
           next unless (beginning_of_month..end_of_month).include?(row[:housing_exit])
 
           month_data[month_year]['All']['data'] << row
@@ -1084,7 +1084,7 @@ class WarehouseReport::Outcomes::Base
         [
           row[:client_id],
           row[:residential_project],
-          HUD.destination(row[:destination]),
+          HudUtility.destination(row[:destination]),
           row[:housed_date],
           row[:housing_exit],
           row[:project_id],
@@ -1101,7 +1101,7 @@ class WarehouseReport::Outcomes::Base
         [
           row[:client_id],
           row[:residential_project],
-          HUD.destination(row[:destination]),
+          HudUtility.destination(row[:destination]),
           row[:housed_date],
           row[:housing_exit],
           row[:project_id],
@@ -1165,7 +1165,7 @@ class WarehouseReport::Outcomes::Base
     scope = scope.where(race: @race&.to_s) unless @race == :current_scope
     scope = scope.where(ethnicity: @ethnicity&.to_s&.to_i) unless @ethnicity == :current_scope
     if @gender != :current_scope
-      gender_column = HUD.gender_id_to_field_name[@gender]
+      gender_column = HudUtility.gender_id_to_field_name[@gender]
       scope = scope.where(gender_column.downcase => 1)
     end
     scope = scope.where(veteran_status: @veteran_status&.to_s&.to_i) unless @veteran_status == :current_scope
@@ -1244,11 +1244,11 @@ class WarehouseReport::Outcomes::Base
       row.each do |header, value|
         case header
         when 'Race'
-          row[header] = HUD.race(value)
+          row[header] = HudUtility.race(value)
         when 'Ethnicity'
-          row[header] = HUD.ethnicity(value)
+          row[header] = HudUtility.ethnicity(value)
         when 'Gender'
-          row[header] = HUD.gender(value)
+          row[header] = HudUtility.gender(value)
         else
           value
         end

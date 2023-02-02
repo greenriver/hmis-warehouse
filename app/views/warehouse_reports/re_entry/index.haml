@@ -46,13 +46,13 @@
               %nobr= link_to_if can_view_clients?, client.LastName, appropriate_client_path(client)
             %td
               %nobr= link_to_if can_view_clients?, client.FirstName, appropriate_client_path(client)
-            %td= HUD.no_yes_reasons_for_missing_data(client.VeteranStatus)
+            %td= HudUtility.no_yes_reasons_for_missing_data(client.VeteranStatus)
             %td= enrollment.first_date_in_program
-            %td= HUD.project_type enrollment.computed_project_type
+            %td= HudUtility.project_type enrollment.computed_project_type
             %td= project.name(current_user)
             %td= project.organization_name(current_user)
             %td= re_entry.days_since_last_exit
-            %td= HUD.project_type re_entry.prior_exit_project_type
-            %td= HUD.destination re_entry.prior_exit_destination_id
+            %td= HudUtility.project_type re_entry.prior_exit_project_type
+            %td= HudUtility.destination re_entry.prior_exit_destination_id
 - else
   .none-found No clients found

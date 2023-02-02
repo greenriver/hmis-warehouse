@@ -31,7 +31,7 @@ module PerformanceDashboard::Overview::Entering::Veteran
       categories = entering_by_veteran.keys
       filter_selected_data_for_chart(
         {
-          labels: categories.map { |s| [s, HUD.veteran_status(s)] }.to_h,
+          labels: categories.map { |s| [s, HudUtility.veteran_status(s)] }.to_h,
           chosen: @veteran_statuses,
           columns: columns,
           categories: categories,

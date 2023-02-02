@@ -353,15 +353,15 @@ module GrdaWarehouse::YouthIntake
     def race_array
       return [] if client_race == '[]'
 
-      client_race&.map { |r| ::HUD.race(r).presence }&.compact
+      client_race&.map { |r| ::HudUtility.race(r).presence }&.compact
     end
 
     def ethnicity_description
-      ::HUD.ethnicity(client_ethnicity)
+      ::HudUtility.ethnicity(client_ethnicity)
     end
 
     def gender
-      ::HUD.gender(client_gender)
+      ::HudUtility.gender(client_gender)
     end
 
     def update_destination_client
@@ -380,7 +380,7 @@ module GrdaWarehouse::YouthIntake
         RaceNone: compute_race_none,
         DateUpdated: Time.now,
       }
-      gender_column = ::HUD.gender_id_to_field_name[client_gender]
+      gender_column = ::HudUtility.gender_id_to_field_name[client_gender]
       data[gender_column] = 1 unless gender_column.nil?
       data[:FirstName] = first_name if first_name.present?
       data[:LastName] = last_name if last_name.present?

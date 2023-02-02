@@ -7,7 +7,7 @@
 module ClientLocationHistory::GrdaWarehouse
 end
 
-module ClientLocationHistory::GrdaWarehouse::HMIS
+module ClientLocationHistory::GrdaWarehouse::Hmis
   module AssessmentExtension
     extend ActiveSupport::Concern
 

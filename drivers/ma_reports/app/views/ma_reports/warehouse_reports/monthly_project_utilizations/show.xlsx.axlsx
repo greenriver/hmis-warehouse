@@ -1,0 +1,14 @@
+wb = xlsx_package.workbook
+wb.add_worksheet(name: 'Demographic Analysis') do |sheet|
+  sheet_title_style = sheet.styles.add_style(sz: 16, b: true)
+  sheet.add_row(['Category', 'Count'], style: sheet_title_style)
+  @report.demographic_breakdowns.each do |label, data|
+    sheet.add_row([label, data[:count]])
+  end
+end
+wb.add_worksheet(name: 'Project Utilization by Month') do |sheet|
+  sheet_title_style = sheet.styles.add_style(sz: 16, b: true)
+  @report.project_utilization_by_month.each do |row|
+    sheet.add_row(row)
+  end
+end

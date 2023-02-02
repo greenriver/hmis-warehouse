@@ -15,15 +15,15 @@
         %dt Assessment Date
         %dd= @assessment.AssessmentDate
         %dt Assessment Level
-        %dd= HUD.assessment_level @assessment.AssessmentLevel
+        %dd= HudUtility.assessment_level @assessment.AssessmentLevel
         %dt Assessment Type
-        %dd= HUD.assessment_type @assessment.AssessmentType
+        %dd= HudUtility.assessment_type @assessment.AssessmentType
         %dt Prioritization Status
-        %dd= HUD.prioritization_status @assessment.PrioritizationStatus
+        %dd= HudUtility.prioritization_status @assessment.PrioritizationStatus
         %dt Created
-        %dd= HUD.prioritization_status @assessment.DateCreated
+        %dd= HudUtility.prioritization_status @assessment.DateCreated
         %dt Updated
-        %dd= HUD.prioritization_status @assessment.DateUpdated
+        %dd= HudUtility.prioritization_status @assessment.DateUpdated
     - if @assessment.assessment_results.any?
       .assessment-results.ml-8
         %h3 Assessment Results

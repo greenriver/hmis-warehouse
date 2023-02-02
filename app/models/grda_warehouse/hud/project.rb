@@ -82,7 +82,7 @@ module GrdaWarehouse::Hud
       sh: 'rgba(61, 99, 130, 0.5)',
     }.freeze
 
-    ALL_PROJECT_TYPES = ::HUD.project_types.keys
+    ALL_PROJECT_TYPES = ::HudUtility.project_types.keys
     PROJECT_TYPES_WITHOUT_INVENTORY = [4, 6, 7, 11, 12, 14].freeze
     PROJECT_TYPES_WITH_INVENTORY = ALL_PROJECT_TYPES - PROJECT_TYPES_WITHOUT_INVENTORY
     WITH_MOVE_IN_DATES = RESIDENTIAL_PROJECT_TYPES[:ph]
@@ -644,7 +644,7 @@ module GrdaWarehouse::Hud
       else
         safe_project_name
       end
-      project_name += " (#{HUD.project_type_brief(computed_project_type)})" if include_project_type && computed_project_type.present?
+      project_name += " (#{HudUtility.project_type_brief(computed_project_type)})" if include_project_type && computed_project_type.present?
 
       project_name
     end
@@ -752,9 +752,9 @@ module GrdaWarehouse::Hud
               d = project[h.to_s].presence
               d && DateTime.parse(d).strftime('%Y-%m-%d %H:%M:%S')
             when :current_continuum_project
-              ::HUD.ad_hoc_yes_no_1 project[h.to_s].presence&.to_i
+              ::HudUtility.ad_hoc_yes_no_1 project[h.to_s].presence&.to_i
             when :fed_partner_program
-              ::HUD.funding_source project[h.to_s].presence&.to_i
+              ::HudUtility.funding_source project[h.to_s].presence&.to_i
             else
               project[h.to_s]
             end
@@ -832,7 +832,7 @@ module GrdaWarehouse::Hud
     end
 
     def human_readable_project_type
-      HUD.project_type(project_type_to_use)
+      HudUtility.project_type(project_type_to_use)
     end
 
     def main_population

@@ -43,7 +43,7 @@
                 = checkmark_or_x(vispdat_disability.last == 'Yes')
             %td.text-center= checkmark_or_x(@vispdats.include?(client.id))
             %td= client.race_description
-            %td= HUD.ethnicity(client.Ethnicity)
+            %td= HudUtility.ethnicity(client.Ethnicity)
             %td= render 'form', client: client
   = render 'common/pagination_bottom', item_name: 'client'
 - else

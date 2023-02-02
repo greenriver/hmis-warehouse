@@ -27,7 +27,7 @@
             %td= link_to_if current_user.can_access_project?(project) && project.name != GrdaWarehouse::Hud::Project.confidential_project_name, project.name, project_path(project.id)
             %td
               - project_type = project.project_type
-              - p_type = ::HUD.project_type_brief(project_type)
+              - p_type = ::HudUtility.project_type_brief(project_type)
               - p_class = "client__service_type_#{p_type}"
               %span{class: "client__service_type_#{project_type}"}
                 .enrollment__project_type{class: p_class}

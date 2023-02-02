@@ -321,10 +321,10 @@ namespace :grda_warehouse do
       next unless fake.map['CoCCode']
 
       fake.map['CoCCode'].each do |k, code|
-        if HUD.cocs.keys.include?(code)
+        if HudUtility.cocs.keys.include?(code)
           fake.map['CoCCode'][k] = code
         else
-          fake.map['CoCCode'][k] = HUD.cocs.keys.sample
+          fake.map['CoCCode'][k] = HudUtility.cocs.keys.sample
         end
       end
       fake.save

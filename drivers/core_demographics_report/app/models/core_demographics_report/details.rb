@@ -79,11 +79,11 @@ module
     def detail_column_display(header:, column:)
       case header
       when 'Project Type'
-        HUD.project_type(column)
+        HudUtility.project_type(column)
       when 'CoC'
-        HUD.coc_name(column)
+        HudUtility.coc_name(column)
       when 'Female', 'Male', 'No Single Gender', 'Transgender', 'Questioning', 'Unknown Gender'
-        HUD.no_yes_reasons_for_missing_data(column)
+        HudUtility.no_yes_reasons_for_missing_data(column)
       else
         column
       end

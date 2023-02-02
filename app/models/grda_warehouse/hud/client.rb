@@ -152,8 +152,8 @@ module GrdaWarehouse::Hud
     has_many :source_enrollment_income_benefits, through: :source_enrollments, source: :income_benefits
     has_many :source_enrollment_services, through: :source_enrollments, source: :services
     has_many :source_client_attributes_defined_text, through: :source_clients, source: :client_attributes_defined_text
-    has_many :staff_x_clients, class_name: 'GrdaWarehouse::HMIS::StaffXClient', inverse_of: :client
-    has_many :staff, class_name: 'GrdaWarehouse::HMIS::Staff', through: :staff_x_clients
+    has_many :staff_x_clients, class_name: 'GrdaWarehouse::Hmis::StaffXClient', inverse_of: :client
+    has_many :staff, class_name: 'GrdaWarehouse::Hmis::Staff', through: :staff_x_clients
     has_many :source_eto_client_lookups, through: :source_clients, source: :eto_client_lookups
     has_many :source_eto_touch_point_lookups, through: :source_clients, source: :eto_touch_point_lookups
     has_many :source_hmis_clients, through: :source_clients, source: :hmis_client
@@ -692,7 +692,7 @@ module GrdaWarehouse::Hud
         if destination_code == 17
           destination_string = last_exit.OtherDestination
         else
-          destination_string = ::HUD.destination(destination_code)
+          destination_string = ::HudUtility.destination(destination_code)
         end
         return "#{destination_string} (#{last_exit.ExitDate})"
       else
@@ -912,7 +912,7 @@ module GrdaWarehouse::Hud
       # To allow preload(:source_exits) do the calculation in memory
       @deceased_on ||= source_exits.
         select do |m|
-          m.Destination == ::HUD.valid_destinations.invert['Deceased']
+          m.Destination == ::HudUtility.valid_destinations.invert['Deceased']
         end&.
         max_by(&:ExitDate)&.ExitDate
     end
@@ -1834,7 +1834,7 @@ module GrdaWarehouse::Hud
     end
 
     def gender
-      gender_multi.map { |k| ::HUD.gender(k) }.join(', ')
+      gender_multi.map { |k| ::HudUtility.gender(k) }.join(', ')
     end
 
     # while the entire warehouse is updated to accept and use the new gender setup, this will provide
@@ -1936,7 +1936,7 @@ module GrdaWarehouse::Hud
 
     # those columns that relate to race
     def self.race_fields
-      ::HUD.races.keys
+      ::HudUtility.races.keys
     end
 
     # those race fields which are marked as pertinent to the client
@@ -1945,16 +1945,16 @@ module GrdaWarehouse::Hud
     end
 
     def race_description(include_missing_reason: false)
-      description = race_fields.map { |f| ::HUD.race f }.join ', '
+      description = race_fields.map { |f| ::HudUtility.race f }.join ', '
       return description if description.present?
       return '' unless include_missing_reason
-      return '' unless self.RaceNone.in?(HUD.race_gender_none_options.keys)
+      return '' unless self.RaceNone.in?(HudUtility.race_gender_none_options.keys)
 
-      HUD.race_none(self.RaceNone)
+      HudUtility.race_none(self.RaceNone)
     end
 
     def ethnicity_description
-      ::HUD.ethnicity(self.Ethnicity)
+      ::HudUtility.ethnicity(self.Ethnicity)
     end
 
     def pit_race
@@ -2053,7 +2053,7 @@ module GrdaWarehouse::Hud
     end
 
     def primary_caseworkers
-      staff.merge(GrdaWarehouse::HMIS::StaffXClient.primary_caseworker)
+      staff.merge(GrdaWarehouse::Hmis::StaffXClient.primary_caseworker)
     end
 
     # convert all clients to the appropriate destination client
@@ -2302,7 +2302,7 @@ module GrdaWarehouse::Hud
         # and invalidate our own service history
         force_full_service_history_rebuild
         # and invalidate any cache for these clients
-        self.class.clear_view_cache(prev_destination_client.id)
+        self.class.clear_view_cache(prev_destination_client.id) if prev_destination_client.present?
       end
       self.class.clear_view_cache(self.id) # rubocop:disable Style/RedundantSelf
       self.class.clear_view_cache(other_client.id)

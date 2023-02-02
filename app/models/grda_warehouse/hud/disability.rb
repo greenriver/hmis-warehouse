@@ -129,14 +129,14 @@ module GrdaWarehouse::Hud
     # see Disabilities.csv spec version 5
     def response
       if self.DisabilityType == 10
-        ::HUD.list('4.10.2', self.DisabilityResponse)
+        ::HudUtility.list('4.10.2', self.DisabilityResponse)
       else
-        ::HUD.list('1.8', self.DisabilityResponse)
+        ::HudUtility.list('1.8', self.DisabilityResponse)
       end
     end
 
     def disability_type_text
-      ::HUD.disability_type self.DisabilityType
+      ::HudUtility.disability_type self.DisabilityType
     end
 
     def self.related_item_keys

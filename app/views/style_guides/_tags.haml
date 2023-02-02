@@ -14,5 +14,5 @@
     - next if id == 5
     .mt-3.ml-6
       .enrollment__project_type{class: "client__service_type_#{id}"}
-        .service-type__program-type{data: {toggle: :tooltip, title: HUD.project_type(id)}}
-          = HUD.project_type_brief(id)
+        .service-type__program-type{data: {toggle: :tooltip, title: HudUtility.project_type(id)}}
+          = HudUtility.project_type_brief(id)

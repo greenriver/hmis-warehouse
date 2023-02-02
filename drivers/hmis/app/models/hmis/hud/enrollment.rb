@@ -27,6 +27,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   has_many :disabilities, **hmis_relation(:EnrollmentID, 'Disability')
   has_many :health_and_dvs, **hmis_relation(:EnrollmentID, 'HealthAndDv')
   has_many :current_living_situations, **hmis_relation(:EnrollmentID, 'CurrentLivingSituation'), inverse_of: :enrollment
+  has_many :enrollment_cocs, **hmis_relation(:EnrollmentID, 'EnrollmentCoc')
 
   # NOTE: this does not include WIP assessments
   has_many :assessments, **hmis_relation(:EnrollmentID, 'Assessment')
@@ -128,5 +129,19 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   def in_progress?
     @in_progress = project_id.nil? if @in_progress.nil?
     @in_progress
+  end
+
+  def intake_assessment
+    assessments_including_wip.
+      joins(:assessment_detail).
+      where(assessment_detail: { data_collection_stage: 1 }). # Project entry
+      first
+  end
+
+  def exit_assessment
+    assessments_including_wip.
+      joins(:assessment_detail).
+      where(assessment_detail: { data_collection_stage: 3 }). # Project exit
+      first
   end
 end

@@ -23,11 +23,35 @@ RSpec.describe HmisCsvTwentyTwentyTwo::Exporter::Base, type: :model do
     end
   end
 
-  before(:all) do
-    cleanup_test_environment
-    setup_data
-    override_coc_codes
+  def warehouse_fixture
+    @warehouse_fixture ||= PgFixtures.new(
+      directory: 'drivers/hmis_csv_twenty_twenty_two/spec/fixpoints',
+      excluded_tables: default_excluded_tables,
+      model: GrdaWarehouseBase,
+    )
+  end
 
+  def app_fixture
+    @app_fixture ||= PgFixtures.new(
+      directory: 'drivers/hmis_csv_twenty_twenty_two/spec/fixpoints',
+      excluded_tables: ['versions'],
+      model: ApplicationRecord,
+    )
+  end
+
+  before(:all) do
+    self.use_transactional_tests = false
+    cleanup_test_environment
+    if warehouse_fixture.exists? && app_fixture.exists?
+      warehouse_fixture.restore
+      app_fixture.restore
+    else
+      setup_data
+      override_coc_codes
+
+      warehouse_fixture.store
+      app_fixture.store
+    end
     @exporter = HmisCsvTwentyTwentyTwo::Exporter::Base.new(
       start_date: 1.week.ago.to_date,
       end_date: Date.current,
@@ -42,6 +66,7 @@ RSpec.describe HmisCsvTwentyTwentyTwo::Exporter::Base, type: :model do
   after(:all) do
     @exporter.remove_export_files
     cleanup_test_environment
+    self.use_transactional_tests = true
   end
 
   describe 'When exporting enrollment related item' do
@@ -75,6 +100,8 @@ RSpec.describe HmisCsvTwentyTwentyTwo::Exporter::Base, type: :model do
       ].each do |klass|
         describe "when exporting #{klass}" do
           before(:all) do
+            warehouse_fixture.restore
+            app_fixture.restore
             klass.hmis_class.update_all(CoCCode: nil)
             @exporter.remove_export_files
             @exporter.export!(cleanup: false, zip: false, upload: false)
@@ -126,6 +153,8 @@ RSpec.describe HmisCsvTwentyTwentyTwo::Exporter::Base, type: :model do
     ].each do |klass|
       describe "when exporting #{klass}" do
         before(:all) do
+          warehouse_fixture.restore
+          app_fixture.restore
           @exporter.remove_export_files
           @exporter.export!(cleanup: false, zip: false, upload: false)
         end
@@ -153,6 +182,8 @@ RSpec.describe HmisCsvTwentyTwentyTwo::Exporter::Base, type: :model do
       ].each do |klass|
         describe "when exporting #{klass}" do
           before(:all) do
+            warehouse_fixture.restore
+            app_fixture.restore
             klass.hmis_class.update_all(ProjectID: nil)
             @exporter.remove_export_files
             @exporter.export!(cleanup: false, zip: false, upload: false)

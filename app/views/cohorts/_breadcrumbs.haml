@@ -1,3 +1,7 @@
 = content_for :crumbs do
   = link_to cohorts_path do
     &laquo; Cohorts
+  - if @cohort.present?
+    = link_to cohort_path(@cohort) do
+      &laquo;
+      = @cohort.name

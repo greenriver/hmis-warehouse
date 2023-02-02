@@ -499,8 +499,8 @@ module ReportGenerators::SystemPerformance::Fy2018
             [
               m[:client_id],
               m[:project_name],
-              HUD::project_type(m[:project_type]),
-              HUD::destination(m[:destination]),
+              HudUtility.project_type(m[:project_type]),
+              HudUtility.destination(m[:destination]),
               m[:first_date_in_program],
               m[:last_date_in_program]
             ]

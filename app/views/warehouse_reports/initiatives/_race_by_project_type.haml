@@ -6,13 +6,13 @@
     %thead
       %tr
         %th Project Type
-        - ::HUD.races.each do |id, value|
+        - ::HudUtility.races.each do |id, value|
           %th= value
     %tbody
       - @data.involved_project_types.each do |p_type|
         %tr
           %th= p_type
-          - ::HUD.races.each do |id, value|
+          - ::HudUtility.races.each do |id, value|
             %td
               - key = "#{p_type}__#{value.parameterize.underscore}"
               - count = data[key] || 0

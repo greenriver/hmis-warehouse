@@ -127,7 +127,7 @@ module Reports::SystemPerformance::Fy2017
 
     def ethnicity options
       if options['ethnicity_code'].present?
-        ethnicity = HUD.ethnicity(options['ethnicity_code'].to_i)
+        ethnicity = HudUtility.ethnicity(options['ethnicity_code'].to_i)
         return "; Ethnicity: #{ethnicity}"
       else
         ''

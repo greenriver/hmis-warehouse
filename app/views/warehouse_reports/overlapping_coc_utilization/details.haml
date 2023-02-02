@@ -15,7 +15,7 @@
     - else
       = "#{pluralize @details[:clients].size, 'Shared Client'}"
     - if @report.project_type
-      in #{::HUD.project_type(@report.project_type)} enrollments
+      in #{::HudUtility.project_type(@report.project_type)} enrollments
     = "by Demographics and Time"
   %p.text-muted
     %em= "Served by #{@report.coc1.number_and_name} and #{@report.coc2.number_and_name} between #{@report.start_date} - #{@report.end_date}."

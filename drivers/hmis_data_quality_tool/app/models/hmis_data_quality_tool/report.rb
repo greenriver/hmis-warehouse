@@ -318,9 +318,9 @@ module HmisDataQualityTool
       when 'average_days_before_entry'
         enrollments.where.not(days_before_entry: nil)
       when 'destination_temporary'
-        enrollments.where(destination: ::HUD.temporary_destinations)
+        enrollments.where(destination: ::HudUtility.temporary_destinations)
       when 'destination_other'
-        enrollments.where(destination: ::HUD.other_destinations)
+        enrollments.where(destination: ::HudUtility.other_destinations)
       end
     end
 

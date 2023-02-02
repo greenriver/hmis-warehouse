@@ -1,7 +1,7 @@
 # a general clearing house to translate HUD ids of various sorts into strings
 # further access or translation logic can also go here
 # information from HMIS CSV format specifications version 5
-module HUD
+module HudUtility
   module_function
 
   # factored out of app/models/grda_warehouse/tasks/identify_duplicates.rb
@@ -611,7 +611,7 @@ module HUD
       110 => '10',
       111 => '11',
       112 => '12',
-      113 => '12+', # FIXME should this be 13+?
+      113 => '> 12',
     }
 
     _translate map, id, reverse

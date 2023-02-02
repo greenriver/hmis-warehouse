@@ -8,7 +8,7 @@ module PerformanceDashboard::Overview::ProjectType
   extend ActiveSupport::Concern
 
   private def project_type_buckets
-    buckets = HUD.project_types.keys
+    buckets = HudUtility.project_types.keys
     buckets & GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING.values.flatten
   end
 
@@ -16,7 +16,7 @@ module PerformanceDashboard::Overview::ProjectType
     project_type_buckets.map do |key|
       [
         key,
-        HUD.project_type(key),
+        HudUtility.project_type(key),
       ]
     end.to_h
   end

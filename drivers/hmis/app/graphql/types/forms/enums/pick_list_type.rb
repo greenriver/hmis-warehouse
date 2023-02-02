@@ -19,5 +19,10 @@ module Types
     value 'CURRENT_LIVING_SITUATION'
     value 'DESTINATION'
     value 'AVAILABLE_UNITS'
+    value 'SERVICE_TYPE'
+    value 'SUB_TYPE_PROVIDED_3'
+    value 'SUB_TYPE_PROVIDED_4'
+    value 'SUB_TYPE_PROVIDED_5'
+    value 'REFERRAL_OUTCOME'
   end
 end

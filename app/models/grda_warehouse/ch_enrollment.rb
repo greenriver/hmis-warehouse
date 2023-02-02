@@ -199,30 +199,30 @@ module GrdaWarehouse
     def self.project_type(enrollment)
       ptype = enrollment.project.computed_project_type
       result = GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES.include?(ptype) ? :continue : :skip
-      { result: result, display_value: "#{ptype} (#{::HUD.project_type_brief(ptype)})", line: 3 }
+      { result: result, display_value: "#{ptype} (#{::HudUtility.project_type_brief(ptype)})", line: 3 }
     end
 
     # Line 9  (3.917.1)
     def self.prior_living_sitation_homeless(enrollment)
       value = enrollment.LivingSituation
-      result = HUD.homeless_situations(as: :prior).include?(value) ? :continue : :skip
-      display_value = value ? "#{value} (#{::HUD.living_situation(value)})" : ''
+      result = HudUtility.homeless_situations(as: :prior).include?(value) ? :continue : :skip
+      display_value = value ? "#{value} (#{::HudUtility.living_situation(value)})" : ''
       { result: result, display_value: display_value, line: 9 }
     end
 
     # Line 14 (3.917.1)
     def self.prior_living_sitation_institutional(enrollment)
       value = enrollment.LivingSituation
-      result = HUD.institutional_situations(as: :prior).include?(value) ? :continue : :skip
-      display_value = value ? "#{value} (#{::HUD.living_situation(value)})" : ''
+      result = HudUtility.institutional_situations(as: :prior).include?(value) ? :continue : :skip
+      display_value = value ? "#{value} (#{::HudUtility.living_situation(value)})" : ''
       { result: result, display_value: display_value, line: 14 }
     end
 
     # Line 21 (3.917.1)
     def self.prior_living_sitation_other(enrollment)
       value = enrollment.LivingSituation
-      is_other = (HUD.temporary_and_permanent_housing_situations(as: :prior) + HUD.other_situations(as: :prior)).include?(value)
-      display_value = value ? "#{value} (#{::HUD.living_situation(value)})" : ''
+      is_other = (HudUtility.temporary_and_permanent_housing_situations(as: :prior) + HudUtility.other_situations(as: :prior)).include?(value)
+      display_value = value ? "#{value} (#{::HudUtility.living_situation(value)})" : ''
       { result: is_other ? :continue : :skip, display_value: display_value, line: 21 }
     end
 

@@ -1,6 +1,6 @@
 class CreateHmisStaffXClientTable < ActiveRecord::Migration[4.2]
   def change
-    table_name = GrdaWarehouse::HMIS::StaffXClient.table_name
+    table_name = GrdaWarehouse::Hmis::StaffXClient.table_name
     create_table table_name do |t|
       t.integer :staff_id
       t.integer :client_id
