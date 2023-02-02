@@ -54,7 +54,12 @@ class CohortsController < ApplicationController
       format.html do
         @visible_columns = [CohortColumns::Meta.new]
         @visible_columns += @cohort.visible_columns(user: current_user)
-        @visible_columns << CohortColumns::Delete.new if can_add_cohort_clients? && ! @cohort.system_cohort && ! @cohort.auto_maintained?
+        delete_column = if params[:population] == 'deleted'
+          CohortColumns::Delete.new(title: 'Restore')
+        else
+          CohortColumns::Delete.new
+        end
+        @visible_columns << delete_column if can_add_cohort_clients? && ! @cohort.system_cohort && ! @cohort.auto_maintained?
         @column_headers = @visible_columns.each_with_index.map do |col, index|
           header = {
             headerName: col.title,

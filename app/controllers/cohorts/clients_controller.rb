@@ -54,7 +54,12 @@ module Cohorts
 
       @visible_columns = [CohortColumns::Meta.new]
       @visible_columns += @cohort.visible_columns(user: current_user)
-      @visible_columns << CohortColumns::Delete.new if current_user.can_add_cohort_clients?
+      delete_column = if params[:population] == 'deleted'
+        CohortColumns::Delete.new(title: 'Restore')
+      else
+        CohortColumns::Delete.new
+      end
+      @visible_columns << delete_column if current_user.can_add_cohort_clients?
 
       @cohort_clients.each do |cohort_client|
         client = cohort_client.client
