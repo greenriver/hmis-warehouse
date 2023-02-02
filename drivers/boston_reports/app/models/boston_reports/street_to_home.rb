@@ -180,43 +180,57 @@ module BostonReports
     #   end
     # end
 
-    # def stage_by_cohort
-    #   @stage_by_cohort ||= {}.tap do |counts|
-    #     cohort_names.each do |cohort|
-    #       all_client_breakdowns.each do |(key, data)|
-    #         counts[[cohort, key]] = {
-    #           label: data[:label],
-    #           count: data[:scope].merge(clients_for_cohort(cohort)).count,
-    #         }
-    #       end
-    #       stages.each do |(key, stage)|
-    #         counts[[cohort, key]] = {
-    #           label: stage[:label],
-    #           count: stage[:scope].merge(clients_for_cohort(cohort)).count,
-    #         }
-    #       end
-    #     end
-    #   end
-    # end
+    def stage_by_cohort
+      @stage_by_cohort ||= {}.tap do |data|
+        data['x'] = 'x'
+        data['type'] = 'bar'
+        data['axis'] = { x: { type: :category } }
+        data['groups'] = [stages.values.map { |d| d[:label] }]
 
-    # def cohort_by_stage
-    #   @cohort_by_stage ||= {}.tap do |counts|
-    #     stages.each do |(key, stage)|
-    #       cohort_names.each do |cohort|
-    #         counts[[key, cohort]] = {
-    #           label: cohort,
-    #           count: stage[:scope].merge(clients_for_cohort(cohort)).count,
-    #         }
-    #       end
-    #     end
-    #     cohort_names.each do |cohort|
-    #       counts[[:inactive, cohort]] = {
-    #         label: cohort,
-    #         count: all_client_breakdowns[:inactive][:scope].merge(clients_for_cohort(cohort)).count,
-    #       }
-    #     end
-    #   end
-    # end
+        data['columns'] = [['x', *cohort_names]]
+        stages.each do |(key, stage)|
+          row = [stage[:label]]
+          cohort_names.each do |cohort|
+            row << (clients[cohort] & clients[key]).count
+          end
+          data['columns'] << row
+        end
+
+        # cohort_names.each do |cohort|
+        #   all_client_breakdowns.each do |(key, data)|
+        #     counts[[cohort, key]] = {
+        #       label: data[:label],
+        #       count: data[:scope].merge(clients_for_cohort(cohort)).count,
+        #     }
+        #   end
+        #   stages.each do |(key, stage)|
+        #     counts[[cohort, key]] = {
+        #       label: stage[:label],
+        #       count: stage[:scope].merge(clients_for_cohort(cohort)).count,
+        #     }
+        #   end
+        # end
+      end
+    end
+
+    def cohort_by_stage
+      @cohort_by_stage ||= {}.tap do |counts|
+        stages.each do |(key, stage)|
+          cohort_names.each do |cohort|
+            counts[[key, cohort]] = {
+              label: cohort,
+              count: stage[:scope].merge(clients_for_cohort(cohort)).count,
+            }
+          end
+        end
+        cohort_names.each do |cohort|
+          counts[[:inactive, cohort]] = {
+            label: cohort,
+            count: all_client_breakdowns[:inactive][:scope].merge(clients_for_cohort(cohort)).count,
+          }
+        end
+      end
+    end
 
     # def match_type_by_cohort
     #   @match_type_by_cohort ||= {}.tap do |counts|
