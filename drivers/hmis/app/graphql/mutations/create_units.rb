@@ -7,9 +7,11 @@ module Mutations
 
     def resolve(input:)
       inventory = Hmis::Hud::Inventory.editable_by(current_user).find_by(id: input.inventory_id)
-      return { inventory => nil, errors: [CustomValidationError.new(:inventory_id, :not_found)] } unless inventory.present?
-
-      return { inventory => nil, errors: [CustomValidationError.new(:count, :out_of_range, message: 'must be positive')] } if input.count&.negative?
+      errors = CustomValidationErrors.new
+      errors.add :inventory_id, :not_found unless inventory.present?
+      errors.add :count, :required unless input.count.present?
+      errors.add :count, :out_of_range, message: 'must be positive' if input.count&.negative?
+      return { inventory: nil, errors: errors.errors } if errors.any?
 
       # Create Units
       common = { user_id: hmis_user.user_id, created_at: Time.now, updated_at: Time.now }
