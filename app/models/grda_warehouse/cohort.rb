@@ -96,7 +96,7 @@ module GrdaWarehouse
       when :inactive
         inactive_scope(user)
       when :deleted
-        deleted_scope
+        deleted_scope(user)
       else # active
         active_scope.where(active: true)
       end
