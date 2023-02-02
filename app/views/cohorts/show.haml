@@ -27,7 +27,7 @@
       .percent-loaded
 
 
-- if @cohort.clients.blank? && (! @cohort.system_cohort && ! @cohort.auto_maintained? && current_user.can_add_cohort_clients)
+- if @cohort.clients.blank? && (! @cohort.system_cohort && ! @cohort.auto_maintained? && current_user.can_add_cohort_clients?)
   %p.text-center.mt-2
     = link_to new_cohort_cohort_client_path(@cohort), class: 'btn btn-primary' do
       %i.icon-plus

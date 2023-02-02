@@ -179,7 +179,7 @@ module UserPermissions
     end
 
     def can_access_some_cohorts
-      can_edit_some_cohorts || can_view_cohorts? || can_view_inactive_cohort_clients?
+      can_edit_some_cohorts || can_view_cohorts?
     end
 
     def can_edit_some_cohorts
