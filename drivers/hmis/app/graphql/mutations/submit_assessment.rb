@@ -14,7 +14,7 @@ module Mutations
       definition = assessment.assessment_detail.definition
 
       # Determine the Assessment Date (same as Information Date) and validate it
-      assessment_date, errors = input.get_and_validate_assessment_date(assessment, definition)
+      assessment_date, errors = definition.find_and_validate_assessment_date(assessment, input.hud_values)
 
       # Validate hudValues based on FormDefinition
       validation_errors = definition.validate_form_values(input.hud_values, nil)

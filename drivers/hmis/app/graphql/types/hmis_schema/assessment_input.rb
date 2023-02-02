@@ -43,30 +43,5 @@ module Types
 
       [assessment, []]
     end
-
-    # Get and validate the AssessmentDate based on form values and assessment type
-    def get_and_validate_assessment_date(assessment, definition)
-      assessment_date = nil
-      errors = Mutations::CustomValidationErrors.new
-
-      entry_date = assessment.enrollment.entry_date
-      item = definition.assessment_date_item
-
-      if assessment.intake?
-        assessment_date = entry_date
-      elsif item.present?
-        assessment_date = hud_values[item.link_id]
-        assessment_date = Date.parse(assessment_date) if assessment_date.present?
-        errors.add item.field_name, :required unless assessment_date.present?
-        errors.add item.field_name, :invalid, message: "must be after entry date (#{entry_date.strftime('%m/%d/%Y')})" if assessment_date && entry_date && assessment_date < entry_date
-      elsif definition.hud_assessment?
-        errors.add :assessmentDate, :required
-      elsif !definition.hud_assessment?
-        assessment_date = assessment.assessment_date || Date.today
-      end
-
-      Rails.logger.info(">>> assessment_date #{assessment_date}")
-      [assessment_date, errors.errors]
-    end
   end
 end
