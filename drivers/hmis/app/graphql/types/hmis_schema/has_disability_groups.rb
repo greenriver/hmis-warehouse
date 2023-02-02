@@ -56,7 +56,7 @@ module Types
         enrollments_by_id = Hmis::Hud::Enrollment.where(enrollment_id: enrollment_ids).index_by(&:enrollment_id)
         users_by_id = Hmis::Hud::User.where(user_id: user_ids).index_by(&:user_id)
 
-        groups = disability_groups.map do |group|
+        disability_groups.map do |group|
           key_values = group[0..key_fields.length - 1]
           result_values = group[key_fields.length..]
 
@@ -74,8 +74,6 @@ module Types
           obj.date_created = obj.disabilities.map(&:date_created).map(&:to_datetime).max
           obj
         end
-
-        groups.sort_by(&:date_updated).reverse!
       end
     end
   end
