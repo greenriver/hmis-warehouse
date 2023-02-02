@@ -17,8 +17,14 @@
 
   .text-right.mt-4
     - unless @cohort.system_cohort || @cohort.auto_maintained?
-      = simple_form_for :cc, url: pre_bulk_destroy_cohort_cohort_clients_path(cohort_id: @cohort.id), method: :post, html: {class: :jBulkDelete} do |f|
+      - if @population.to_sym == :deleted
+        - url = bulk_restore_cohort_cohort_clients_path(cohort_id: @cohort.id)
+        - label = 'Restore Selected Clients'
+      - else
+        - url = pre_bulk_destroy_cohort_cohort_clients_path(cohort_id: @cohort.id)
+        - label = 'Delete Selected Clients'
+      = simple_form_for :cc, url: url, method: :post, html: {class: :jBulkDelete} do |f|
         = f.input :cohort_client_ids, as: :hidden, input_html: {class: :cohort_client_ids}
         = button_tag(type: 'submit', class: "btn btn-danger btn-sm") do
           %i.icon-cross
-          Delete Selected Clients
+          = label

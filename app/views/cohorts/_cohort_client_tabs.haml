@@ -1,22 +1,25 @@
-- if @cohort.cohort_clients.any?
-  :ruby
-    tabs = {
-      cohort_path(@cohort, population: :active) => {
-        title: 'Active Clients',
-        permission: true,
-      },
-      cohort_path(@cohort, population: :inactive) => {
-        title: 'Inactive Clients',
-        permission: @cohort.show_inactive(current_user),
-      },
-      cohort_path(@cohort, population: :housed) => {
-        title: 'Housed Clients',
-        permission: @cohort.show_housed,
-      },
-      cohort_path(@cohort, population: :ineligible) => {
-        title: 'Ineligible Clients',
-        permission: @cohort.show_ineligible,
-      },
-    }
+:ruby
+  tabs = {
+    cohort_path(@cohort, population: :active) => {
+      title: 'Active Clients',
+      permission: true,
+    },
+    cohort_path(@cohort, population: :inactive) => {
+      title: 'Inactive Clients',
+      permission: @cohort.show_inactive(current_user),
+    },
+    cohort_path(@cohort, population: :housed) => {
+      title: 'Housed Clients',
+      permission: @cohort.show_housed,
+    },
+    cohort_path(@cohort, population: :ineligible) => {
+      title: 'Ineligible Clients',
+      permission: @cohort.show_ineligible,
+    },
+    cohort_path(@cohort, population: :deleted) => {
+      title: 'Removed Clients',
+      permission: @cohort.show_deleted(current_user),
+    },
+  }
 
-  = render "tabs", tabs: tabs, current: current
+= render "tabs", tabs: tabs, current: current

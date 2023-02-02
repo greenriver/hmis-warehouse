@@ -95,6 +95,8 @@ module GrdaWarehouse
         ineligible_scope
       when :inactive
         inactive_scope(user)
+      when :deleted
+        deleted_scope
       else # active
         active_scope.where(active: true)
       end
@@ -148,6 +150,16 @@ module GrdaWarehouse
       return false unless user.can_view_inactive_cohort_clients? || user.can_manage_inactive_cohort_clients?
 
       inactive_scope(user).exists?
+    end
+
+    def deleted_scope
+      @client_search_scope.only_deleted
+    end
+
+    def show_deleted user
+      return false unless user.can_view_deleted_cohort_clients?
+
+      deleted_scope.exists?
     end
 
     # should we show the housed option for the last `client_search`
