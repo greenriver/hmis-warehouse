@@ -23,6 +23,7 @@ module Types
 
     # field display
     field :type, Types::Forms::Enums::ItemType, null: false
+    field :prefill, Boolean, 'Whether to allow pre-filling section from recent records. Should only be enabled in conjunction with record_type and for top-level group items.', null: true
     field :component, Types::Forms::Enums::Component, 'Component to use for display/input of this item', null: true
     field :text, String, 'Primary text for the item', null: true
     field :brief_text, String, 'Label to use for placeholder and population table', null: true

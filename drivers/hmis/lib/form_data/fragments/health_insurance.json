@@ -4,6 +4,7 @@
   "text": "Health Insurance",
   "data_collected_about": "ALL_CLIENTS",
   "record_type": "INCOME_BENEFIT",
+  "prefill": true,
   "item": [
     {
       "type": "CHOICE",

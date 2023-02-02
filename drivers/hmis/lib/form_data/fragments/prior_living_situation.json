@@ -4,6 +4,7 @@
   "text": "Prior Living Situation",
   "data_collected_about": "HOH_AND_ADULTS",
   "record_type": "ENROLLMENT",
+  "prefill": true,
   "item": [
     {
       "type": "DISPLAY",

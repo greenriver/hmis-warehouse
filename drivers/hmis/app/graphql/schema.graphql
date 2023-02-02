@@ -1758,6 +1758,12 @@ type FormItem {
   pickListReference: String
 
   """
+  Whether to allow pre-filling section from recent records. Should only be
+  enabled in conjunction with record_type and for top-level group items.
+  """
+  prefill: Boolean
+
+  """
   Prefix for the item label
   """
   prefix: String

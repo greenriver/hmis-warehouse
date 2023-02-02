@@ -4,6 +4,7 @@
   "text": "Income and Sources",
   "data_collected_about": "HOH_AND_ADULTS",
   "record_type": "INCOME_BENEFIT",
+  "prefill": true,
   "item": [
     {
       "type": "CHOICE",

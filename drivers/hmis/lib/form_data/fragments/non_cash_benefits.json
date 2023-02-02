@@ -4,6 +4,7 @@
   "text": "Non-Cash Benefits",
   "data_collected_about": "HOH_AND_ADULTS",
   "record_type": "INCOME_BENEFIT",
+  "prefill": true,
   "item": [
     {
       "type": "CHOICE",

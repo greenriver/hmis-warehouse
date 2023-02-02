@@ -9,6 +9,7 @@
       "link_id": "information-date-input",
       "text": "Date Collected",
       "field_name": "informationDate",
+      "required": true,
       "assessment_date": true
     }
   ]

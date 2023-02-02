@@ -10,6 +10,7 @@
       "link_id": "exit-date",
       "text": "Exit Date",
       "field_name": "exitDate",
+      "required": true,
       "assessment_date": true
     },
     {

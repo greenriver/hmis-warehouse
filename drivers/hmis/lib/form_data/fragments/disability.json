@@ -4,6 +4,7 @@
   "text": "Disability",
   "data_collected_about": "ALL_CLIENTS",
   "record_type": "DISABILITY_GROUP",
+  "prefill": true,
   "item": [
     {
       "type": "DISPLAY",

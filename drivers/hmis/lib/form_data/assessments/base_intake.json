@@ -3,7 +3,7 @@
     {
       "type": "GROUP",
       "link_id": "entry-date-group",
-      "text": "Entry Date",
+      "text": "Project Entry Date",
       "data_collected_about": "ALL_CLIENTS",
       "record_type": "ENROLLMENT",
       "item": [
@@ -12,6 +12,7 @@
           "link_id": "entry-date",
           "text": "Entry Date",
           "field_name": "entryDate",
+          "required": true,
           "assessment_date": true,
           "initial": [
             {

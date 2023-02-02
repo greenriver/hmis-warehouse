@@ -4,6 +4,7 @@
   "text": "Health and DV",
   "data_collected_about": "HOH_AND_ADULTS",
   "record_type": "HEALTH_AND_DV",
+  "prefill": true,
   "item": [
     {
       "type": "DISPLAY",
