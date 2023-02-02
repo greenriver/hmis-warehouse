@@ -184,50 +184,30 @@ module BostonReports
       @stage_by_cohort ||= {}.tap do |data|
         data['x'] = 'x'
         data['type'] = 'bar'
-        data['axis'] = { x: { type: :category } }
         data['groups'] = [stages.values.map { |d| d[:label] }]
-
         data['columns'] = [['x', *cohort_names]]
-        stages.each do |(key, stage)|
+        stages.merge({ inactive: all_client_breakdowns[:inactive] }).each do |(key, stage)|
           row = [stage[:label]]
           cohort_names.each do |cohort|
             row << (clients[cohort] & clients[key]).count
           end
           data['columns'] << row
         end
-
-        # cohort_names.each do |cohort|
-        #   all_client_breakdowns.each do |(key, data)|
-        #     counts[[cohort, key]] = {
-        #       label: data[:label],
-        #       count: data[:scope].merge(clients_for_cohort(cohort)).count,
-        #     }
-        #   end
-        #   stages.each do |(key, stage)|
-        #     counts[[cohort, key]] = {
-        #       label: stage[:label],
-        #       count: stage[:scope].merge(clients_for_cohort(cohort)).count,
-        #     }
-        #   end
-        # end
       end
     end
 
     def cohort_by_stage
-      @cohort_by_stage ||= {}.tap do |counts|
-        stages.each do |(key, stage)|
-          cohort_names.each do |cohort|
-            counts[[key, cohort]] = {
-              label: cohort,
-              count: stage[:scope].merge(clients_for_cohort(cohort)).count,
-            }
-          end
-        end
+      @cohort_by_stage ||= {}.tap do |data|
+        data['x'] = 'x'
+        data['type'] = 'bar'
+        data['groups'] = [cohort_names]
+        data['columns'] = [['x', *stages.merge({ inactive: all_client_breakdowns[:inactive] }).values.map { |d| d[:label] }]]
         cohort_names.each do |cohort|
-          counts[[:inactive, cohort]] = {
-            label: cohort,
-            count: all_client_breakdowns[:inactive][:scope].merge(clients_for_cohort(cohort)).count,
-          }
+          row = [cohort]
+          stages.merge({ inactive: all_client_breakdowns[:inactive] }).each do |(key, _stage)|
+            row << (clients[cohort] & clients[key]).count
+          end
+          data['columns'] << row
         end
       end
     end

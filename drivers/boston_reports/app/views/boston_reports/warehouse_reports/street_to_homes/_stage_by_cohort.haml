@@ -25,11 +25,21 @@
 -#                 %td= number_to_percentage(report.race_percentage(id), precision: 2)
 Stage by Cohort
 .well
-  #stage-by-cohort
-  = @report.stage_by_cohort.to_json
+  #stage-by-cohort-chart
+= @report.stage_by_cohort.to_json
 = content_for :page_js do
   :javascript
     var chart = bb.generate({
-      data: #{@report.stage_by_cohort.to_json.html_safe},
-      bindto: "#stage-by-cohort"
+      'data': #{@report.stage_by_cohort.to_json.html_safe},
+      'bindto': "#stage-by-cohort-chart",
+      'axis': {
+        'x': {
+          'type': 'category'
+        },
+        'y': {
+          'tick': {
+            'stepSize': 1
+          }
+        }
+      }
     });
