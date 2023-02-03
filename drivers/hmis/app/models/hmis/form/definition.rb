@@ -79,17 +79,19 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     errors = Errors::CustomValidationErrors.new
     date = nil
     item = assessment_date_item
+    readable_attribute = item.brief_text || item.text
+
     if item.present? && hud_values.present?
       date_string = hud_values[item.link_id]
 
       if date_string.present?
         date = Util::Dates.safe_parse_date(date_string: date_string, reasonable_years_distance: 10)
-        errors.add item.field_name, :invalid unless date.present?
+        errors.add item.field_name, :invalid, readable_attribute: readable_attribute unless date.present?
       else
-        errors.add item.field_name, :required
+        errors.add item.field_name, :required, readable_attribute: readable_attribute
       end
     elsif hud_assessment?
-      errors.add :assessmentDate, :required
+      errors.add :assessmentDate, :required, readable_attribute: readable_attribute
     end
 
     return [nil, errors.errors] if errors.errors.any?
@@ -97,9 +99,9 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     # Additional validations for HUD assessment dates to be within appropriate entry/exit bounds
     if date.present? && hud_assessment?
       # Ensure assessment date is on or after entry date
-      errors.add item.field_name, :out_of_range, message: "must be after entry date (#{entry_date.strftime('%m/%d/%Y')})" if entry_date.present? && !intake? && date < entry_date
+      errors.add item.field_name, :out_of_range, readable_attribute: readable_attribute, message: "must be after entry date (#{entry_date.strftime('%m/%d/%Y')})" if entry_date.present? && !intake? && date < entry_date
       # Ensure assessment date is on or before exit date
-      errors.add item.field_name, :out_of_range, message: "must be before exit date (#{exit_date.strftime('%m/%d/%Y')})" if exit_date.present? && !exit? && date > exit_date
+      errors.add item.field_name, :out_of_range, readable_attribute: readable_attribute, message: "must be before exit date (#{exit_date.strftime('%m/%d/%Y')})" if exit_date.present? && !exit? && date > exit_date
     end
 
     date = nil if errors.errors.any?
@@ -107,11 +109,13 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     [date, errors.errors]
   end
 
-  def validate_form_values(hud_values, _custom_values)
+  def validate_form_values(hud_values, _custom_values = nil)
     errors = Errors::CustomValidationErrors.new
     hud_values.each do |link_id, value|
-      item = link_id_item_hash[link_id]
+      item = link_id_item_hash[link_id.to_s]
       raise "Unrecognized link ID: #{link_id}" unless item.present?
+
+      next if item.assessment_date # Skip assessment date, it is validated separately
 
       # Use item text as the "readable attribute" name to display on errors
       readable_attribute = item.brief_text || item.text
@@ -164,7 +168,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   end
 
   # Hash { link_id => FormItem }
-  private def link_id_item_hash
+  def link_id_item_hash
     @link_id_item_hash ||= begin
       item_map = {}
       recur_fill = lambda do |items|

@@ -21,12 +21,12 @@ module Mutations
         exit_date: enrollment.exit_date,
       )
 
-      # Validate hudValues based on FormDefinition
+      # Validate form values based on FormDefinition
       validation_errors = definition.validate_form_values(input.hud_values, nil)
       # If user has already confirmed any warnings, remove them
       validation_errors = validation_errors.filter { |e| e.severity != :warning } if input.confirmed
       errors.push(*validation_errors)
-
+      # errors.uniq! { |e| [e.attribute, e.readable_attribute, e.type] }
       return { assessment: nil, errors: errors } if errors.any?
 
       # Update values
@@ -43,7 +43,7 @@ module Mutations
       # Run processor to create/update related records
       assessment.assessment_detail.assessment_processor.run!
 
-      # Run both validation checks so that we can return all errors
+      # Run both validations
       assessment_valid = assessment.valid?
       assessment_detail_valid = assessment.assessment_detail.valid?
 
@@ -53,14 +53,10 @@ module Mutations
         # If this is an intake assessment, move the enrollment out of WIP status
         assessment.enrollment.save_not_in_progress if assessment.intake?
       else
-        # TODO: remove all this and raise an exception if there were errors
+        # These are potentially unfixable errors, so maybe we should throw a server error instead.
+        # Leaving them visible to the user for now, while we QA the feature.
         errors.push(*assessment.assessment_detail&.errors&.errors)
         errors.push(*assessment.errors&.errors)
-        errors = errors.uniq { |e| "#{e.attribute}#{e.message}" }
-
-        # Hide AssessmentDate error becuase it gets its own different message..
-        errors = errors.reject { |e| e.attribute.to_s.downcase == 'assessmentdate' }
-        # annoyingly the "type" is "must exist because of https://github.com/rails/rails/blob/83217025a171593547d1268651b446d3533e2019/activemodel/lib/active_model/error.rb#L65 so we cant really resolve the error type...
         assessment = nil
       end
 

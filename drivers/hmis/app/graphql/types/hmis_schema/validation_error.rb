@@ -58,6 +58,8 @@ module Types
     def type
       if object.respond_to?(:type) && object.type.present?
         return 'required' if object.type == :blank
+        # https://github.com/rails/rails/blob/83217025a171593547d1268651b446d3533e2019/activemodel/lib/active_model/error.rb#L65
+        return 'required' if object.type == 'must exist'
 
         return object.type.to_s if Types::HmisSchema::Enums::ValidationType.values.keys.include?(object.type.to_s)
       end
