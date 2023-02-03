@@ -1,4 +1,4 @@
 - if current_user.present?
   .site-status.border-top-1
-    Session Expires at
+    = _('Session Expires at')
     %strong= current_user&.timeout_time(user_session)&.strftime('%l:%M:%S %P')
