@@ -4220,6 +4220,9 @@ msgstr ""
 msgid "Search Start"
 msgstr ""
 
+msgid "Session Expires at"
+msgstr ""
+
 msgid "Set Automated HMIS CSV Loads"
 msgstr ""
 
