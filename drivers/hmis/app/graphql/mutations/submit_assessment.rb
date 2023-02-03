@@ -24,10 +24,8 @@ module Mutations
       # Validate form values based on FormDefinition
       validation_errors = definition.validate_form_values(input.hud_values, nil)
       # If user has already confirmed any warnings, remove them
-      validation_errors = validation_errors.filter { |e| e.severity != :warning } if input.confirmed
+      validation_errors = validation_errors.reject(&:warning?) if input.confirmed
       errors.push(*validation_errors)
-      # errors.uniq! { |e| [e.attribute, e.readable_attribute, e.type] }
-      return { assessment: nil, errors: errors } if errors.any?
 
       # Update values
       assessment.assessment_detail.assign_attributes(
@@ -37,8 +35,18 @@ module Mutations
       assessment.assign_attributes(
         user_id: hmis_user.user_id,
         date_updated: DateTime.current,
-        assessment_date: assessment_date,
+        assessment_date: assessment_date || assessment.assessment_date,
       )
+
+      # If this is an existing assessment and all the errors are warnings, save changes before returning.
+      # (NOTE: We could/should do this for new assessments, too, but it's a bit more complicated
+      # because we'd need to send back the newly created assessment ID to the frontend.)
+      if errors.all?(&:warning?) && assessment.id.present?
+        assessment.assessment_detail.save!
+        assessment.save!
+      end
+
+      return { assessment: nil, errors: errors } if errors.any?
 
       # Run processor to create/update related records
       assessment.assessment_detail.assessment_processor.run!

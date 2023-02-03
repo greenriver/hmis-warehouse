@@ -30,6 +30,10 @@ module HmisErrors
         readable_attribute: readable_attribute,
       }
     end
+
+    def warning?
+      severity&.to_sym == :warning
+    end
   end
 
   class CustomValidationErrors

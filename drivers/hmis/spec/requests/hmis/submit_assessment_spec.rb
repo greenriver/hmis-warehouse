@@ -157,6 +157,35 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(Hmis::Hud::Assessment.in_progress.count).to eq(0)
         expect(Hmis::Hud::Assessment.where(enrollment_id: Hmis::Hud::Assessment::WIP_ID).count).to eq(0)
         expect(Hmis::Wip.count).to eq(0)
+        @assessment.reload
+        expect(@assessment.in_progress?).to eq(false)
+      end
+    end
+
+    it 'should save without submitting if there are unconfirmed warnings' do
+      expect(Hmis::Hud::Assessment.in_progress.count).to eq(1)
+
+      new_information_date = '2026-01-01'
+      input = {
+        assessment_id: @assessment.id,
+        values: { 'someKey' => 'someValue' },
+        hud_values: { 'linkid-date' => new_information_date, 'linkid-choice': 'DATA_NOT_COLLECTED' },
+      }
+      response, result = post_graphql(input: { input: input }) { mutation }
+      assessment = result.dig('data', 'submitAssessment', 'assessment')
+      errors = result.dig('data', 'submitAssessment', 'errors')
+
+      aggregate_failures 'checking response' do
+        expect(response.status).to eq 200
+        expect(errors).to match([a_hash_including('severity' => 'warning', 'type' => 'data_not_collected')])
+        expect(assessment).to be_nil
+
+        @assessment.reload
+        # It is still WIP, but its values and assessment date have been updated
+        expect(@assessment.in_progress?).to eq(true)
+        expect(@assessment.assessment_date).to eq(Date.parse(new_information_date))
+        expect(@assessment.assessment_detail.values).to include(**input[:values])
+        expect(@assessment.assessment_detail.hud_values).to include('fieldTwo' => 'DATA_NOT_COLLECTED', 'informationDate' => '2026-01-01')
       end
     end
   end
@@ -167,6 +196,38 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         'should emit error if assessment doesn\'t exist',
         ->(input) { input.merge(assessment_id: '999') },
         { 'fullMessage' => 'Assessment must exist' },
+      ],
+      [
+        'should return error if a required field is missing',
+        ->(input) {
+          input.merge(hud_values: {
+                        'linkid-date' => '2024-02-01',
+                        'linkid-required': nil,
+                      })
+        },
+        {
+          'fullMessage' => 'The Required Field must exist',
+          'attribute' => 'fieldOne',
+          'readableAttribute' => 'The Required Field',
+          'type' => 'required',
+          'severity' => 'error',
+        },
+      ],
+      [
+        'should return warning for data not collected',
+        ->(input) {
+          input.merge(hud_values: {
+                        'linkid-date' => '2024-02-01',
+                        'linkid-choice': 'DATA_NOT_COLLECTED',
+                      })
+        },
+        {
+          'fullMessage' => 'Choice field is empty',
+          'attribute' => 'fieldTwo',
+          'readableAttribute' => 'Choice field',
+          'type' => 'data_not_collected',
+          'severity' => 'warning',
+        },
       ],
     ].each do |test_name, input_proc, *expected_errors|
       it test_name do
