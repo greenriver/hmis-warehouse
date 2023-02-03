@@ -18,6 +18,14 @@ class Hmis::Form::AssessmentDetail < ::GrdaWarehouseBase
     where(role: Array.wrap(role))
   end
 
+  def intake?
+    data_collection_stage == 1
+  end
+
+  def exit?
+    data_collection_stage == 3
+  end
+
   # Pull up the errors from the assessment processor so we can see them (as opposed to validates_associated)
   private def assessment_processor_is_valid
     return if assessment_processor.valid?

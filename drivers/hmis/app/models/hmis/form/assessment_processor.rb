@@ -47,7 +47,10 @@ class Hmis::Form::AssessmentProcessor < ::GrdaWarehouseBase
   # Type Factories
   def enrollment_factory(create: true) # rubocop:disable Lint/UnusedMethodArgument
     # The enrollment has already been created, so we can just return it
-    assessment_detail.assessment.enrollment
+    enrollment = assessment_detail.assessment.enrollment
+    # If this is an intake assessment, update the entry date
+    enrollment.update(entry_date: assessment_detail.assessment.assessment_date) if assessment_detail.intake?
+    enrollment
   end
 
   def common_attributes
