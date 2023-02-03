@@ -27,7 +27,7 @@ module CohortColumns
     end
 
     def display_for(user)
-      if user.can_manage_cohorts? || user.can_edit_cohort_clients?
+      if user.can_add_cohort_clients?
         display_read_only(user)
       else
         ''

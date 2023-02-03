@@ -1,5 +1,9 @@
 @import '../helpers';
 
+.modal-dialog-centered.modal-dialog-scrollable .modal-content {
+  max-height: 100%;
+}
+
 .modal-title {
   font-size: rem(24);
   color: $brand-primary;
@@ -46,6 +50,14 @@
 
 .modal-content {
   background: $white;
+}
+
+.modal-dialog-scrollable .modal-content {
+  overflow: scroll;
+}
+
+.modal-dialog-scrollable .modal-body {
+  overflow-y: visible;
 }
 
 .modal-dialog {

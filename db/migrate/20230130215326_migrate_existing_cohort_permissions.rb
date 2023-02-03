@@ -8,7 +8,7 @@ class MigrateExistingCohortPermissions < ActiveRecord::Migration[6.1]
     )
     users = roles.map(&:users).flatten
     all_cohorts_group = AccessGroup.find_by(name: 'All Cohorts')
-    all_cohorts_group.add(users)
+    all_cohorts_group&.add(users)
 
     Role.where(can_manage_cohorts: true).update_all(
         can_configure_cohorts: true,
