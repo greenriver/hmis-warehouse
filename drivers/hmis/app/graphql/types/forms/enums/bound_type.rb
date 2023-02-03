@@ -12,9 +12,5 @@ module Types
 
     value 'MIN'
     value 'MAX'
-    # value 'MIN_VALUE'
-    # value 'MAX_VALUE'
-    # value 'MIN_LENGTH'
-    # value 'MAX_LENGTH'
   end
 end

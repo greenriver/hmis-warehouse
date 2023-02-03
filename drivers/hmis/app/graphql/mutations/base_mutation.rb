@@ -32,7 +32,7 @@ module Mutations
       errors = create_errors(record, input)
 
       # If user has already confirmed warnings, remove them
-      errors = errors.filter { |e| e.severity != :warning } if confirmed
+      errors = errors.reject(&:warning?) if confirmed
 
       record.assign_attributes(
         **input.to_params,

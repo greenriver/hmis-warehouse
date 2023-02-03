@@ -45,7 +45,6 @@ module Types
     field :assessment_date, Boolean, 'Whether this item corresponds to the assessment date. Must be used with DATE type. Should be used no more than once per form', null: true
     field :record_type, Forms::Enums::RelatedRecordType, 'Record type to use for population and extraction', null: true
     field :field_name, String, 'Name of the field on the record (or on the query input type). Used for record creation/update forms, for assessment population, and for assessment extraction.', null: true
-    # TODO: add custom_field_name
 
     # nested children
     field :item, ['Types::Forms::FormItem'], 'Nested items', null: true
