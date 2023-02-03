@@ -76,7 +76,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   end
 
   def find_and_validate_assessment_date(hud_values:, entry_date:, exit_date:)
-    errors = Errors::CustomValidationErrors.new
+    errors = HmisErrors::CustomValidationErrors.new
     date = nil
     item = assessment_date_item
     readable_attribute = item.brief_text || item.text
@@ -85,7 +85,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
       date_string = hud_values[item.link_id]
 
       if date_string.present?
-        date = Util::Dates.safe_parse_date(date_string: date_string, reasonable_years_distance: 10)
+        date = HmisUtil::Dates.safe_parse_date(date_string: date_string, reasonable_years_distance: 10)
         errors.add item.field_name, :invalid, readable_attribute: readable_attribute unless date.present?
       else
         errors.add item.field_name, :required, readable_attribute: readable_attribute
@@ -110,7 +110,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   end
 
   def validate_form_values(hud_values, _custom_values = nil)
-    errors = Errors::CustomValidationErrors.new
+    errors = HmisErrors::CustomValidationErrors.new
     hud_values.each do |link_id, value|
       item = link_id_item_hash[link_id.to_s]
       raise "Unrecognized link ID: #{link_id}" unless item.present?
@@ -132,9 +132,9 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
       end
 
       # TODO: Evaluate EnableWhen and null out any disabled fields
-
-      # TODO: Validate bounds
-      # XXX what about validations that rely on local values like projectStartDate and entryDate?
+      # TODO: Validate ValuBounds
+      # TODO: Add support for RequiredWhen and implement it
+      # How to handle bounds that rely on local values like projectStartDate and entryDate?
     end
 
     errors.errors

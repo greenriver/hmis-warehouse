@@ -117,7 +117,7 @@
           "type": "STRING",
           "link_id": "4.03.A",
           "text": "Specify other source",
-          "brief_text": "Other source",
+          "brief_text": "Other benefits source",
           "required": true,
           "field_name": "otherBenefitsSourceIdentify",
           "enable_behavior": "ALL",

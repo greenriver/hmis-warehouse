@@ -8,7 +8,7 @@ module Mutations
     field :errors, [Types::HmisSchema::ValidationError], null: false
 
     def validate_input(household_id:, start_date:, household_members:)
-      errors = Errors::CustomValidationErrors.new
+      errors = HmisErrors::CustomValidationErrors.new
       errors.add :start_date, :out_of_range, message: 'cannot be in the future', readable_attribute: 'Entry date' if Date.parse(start_date) > Date.today
 
       has_enrollment = Hmis::Hud::Enrollment.editable_by(current_user).exists?(household_id: household_id)

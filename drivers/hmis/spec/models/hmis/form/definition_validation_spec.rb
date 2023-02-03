@@ -113,4 +113,80 @@ RSpec.describe Hmis::Form::Definition, type: :model do
       end
     end
   end
+
+  describe 'validate form values' do
+    let(:completed_hud_values_for_update) do
+      {
+        "information-date-input": '2023-02-15',
+        "3.16": 'SC-501',
+        "4.02.2": 'CLIENT_REFUSED',
+        "4.03.2": 'YES',
+        "4.03.3": nil,
+        "4.03.4": nil,
+        "4.03.5": nil,
+        "4.03.6": nil,
+        "4.03.7": nil,
+        "4.03.8": true,
+        "4.03.A": 'other description', # required field when enabled
+        "4.04.2": 'NO',
+        "4.05.2": 'NO',
+        "4.06.2": 'NO',
+        "4.07.2": 'NO',
+        "4.08.2": 'NO',
+        "4.09.2": 'NO',
+        "4.10.2": 'NO',
+        "3.08": 'CLIENT_REFUSED',
+        "4.11.2": 'NO',
+      }
+    end
+
+    it 'should have no errors when Update assessment is completely filled in' do
+      definition = Hmis::Form::Definition.find_by(role: :UPDATE)
+      errors = definition.validate_form_values(completed_hud_values_for_update)
+      expect(errors).to be_empty
+    end
+
+    it 'should error if required field is nil' do
+      definition = Hmis::Form::Definition.find_by(role: :UPDATE)
+      hud_values = {
+        **completed_hud_values_for_update,
+        "4.03.A": nil,
+      }
+      expected_errors = [
+        {
+          type: :required,
+          severity: :error,
+          readable_attribute: 'Other benefits source',
+        },
+      ]
+
+      errors = definition.validate_form_values(hud_values)
+      expect(errors.map(&:to_h)).to match(expected_errors.map { |h| a_hash_including(**h) })
+    end
+
+    it 'should return warnings for Data Not Collected items' do
+      definition = Hmis::Form::Definition.find_by(role: :UPDATE)
+      hud_values = {
+        **completed_hud_values_for_update,
+        "4.11.2": 'YES',
+        "4.11.A": 'DATA_NOT_COLLECTED',
+        "4.11.B": 'DATA_NOT_COLLECTED',
+      }
+      expected_errors = [
+        {
+          type: :data_not_collected,
+          severity: :warning,
+          readable_attribute: 'When DV Occurred',
+        },
+        {
+          type: :data_not_collected,
+          severity: :warning,
+          readable_attribute: 'Currently Fleeing DV',
+        },
+      ]
+
+      errors = definition.validate_form_values(hud_values)
+      expect(errors.map(&:to_h)).to match(expected_errors.map { |h| a_hash_including(**h) })
+    end
+  end
 end

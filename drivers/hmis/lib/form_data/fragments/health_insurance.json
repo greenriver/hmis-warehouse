@@ -165,7 +165,7 @@
           "type": "STRING",
           "link_id": "4.04.12A",
           "text": "Specify other source",
-          "brief_text": "Other source",
+          "brief_text": "Other insurance",
           "required": true,
           "field_name": "otherInsuranceIdentify",
           "enable_behavior": "ALL",

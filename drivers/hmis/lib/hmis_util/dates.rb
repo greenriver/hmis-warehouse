@@ -3,7 +3,7 @@
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
-module Util
+module HmisUtil
   class Dates
     def self.safe_parse_date(date_string:, date_format: '%Y-%m-%d', reasonable_years_distance: 100)
       date = begin

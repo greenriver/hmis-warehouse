@@ -8,7 +8,7 @@ module Mutations
     def validate_input(input)
       errors = []
       params = input.to_params
-      errors << Errors::CustomValidationError.new(:enrollment_id, :not_found) unless params[:enrollment_id].present?
+      errors << HmisErrors::CustomValidationError.new(:enrollment_id, :not_found) unless params[:enrollment_id].present?
       errors
     end
 

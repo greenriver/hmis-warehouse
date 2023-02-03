@@ -20,7 +20,7 @@ module Mutations
 
         errors << enrollment.errors.errors unless enrollment.valid?
       else
-        errors << Errors::CustomValidationError.new(:enrollment, :not_found)
+        errors << HmisErrors::CustomValidationError.new(:enrollment, :not_found)
       end
 
       {

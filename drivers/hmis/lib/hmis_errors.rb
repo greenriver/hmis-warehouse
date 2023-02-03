@@ -4,19 +4,31 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module Errors
+module HmisErrors
   class CustomValidationError
-    def initialize(attribute, type = :invalid, message: nil, full_message: nil, severity: :error, **kwargs)
+    def initialize(attribute, type = :invalid, message: nil, full_message: nil, severity: :error, readable_attribute: nil, **kwargs)
+      {
+        attribute: attribute,
+        type: type,
+        message: message,
+        full_message: full_message,
+        readable_attribute: readable_attribute,
+        severity: severity,
+        **kwargs,
+      }.each do |key, value|
+        define_singleton_method(key) { value }
+      end
+    end
+
+    def to_h
       {
         attribute: attribute,
         type: type,
         message: message,
         full_message: full_message,
         severity: severity,
-        **kwargs,
-      }.each do |key, value|
-        define_singleton_method(key) { value }
-      end
+        readable_attribute: readable_attribute,
+      }
     end
   end
 

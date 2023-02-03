@@ -24,9 +24,9 @@ module Types
     # Converts 'operatingStartDate' => 'Operating start date'
     # Converts 'organizationId' => 'Organization'
     def readable_attribute
-      return object.readable_attribute if object.respond_to?(:readable_attribute)
+      return object.readable_attribute if object.respond_to?(:readable_attribute) && object.readable_attribute.present?
 
-      object.attribute.to_s.underscore.humanize if object.respond_to?(:attribute)
+      object.attribute.to_s.underscore.humanize if object.respond_to?(:attribute) && object.attribute.present?
     end
 
     def options

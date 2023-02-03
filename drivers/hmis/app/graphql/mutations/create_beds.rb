@@ -7,7 +7,7 @@ module Mutations
 
     def resolve(input:)
       inventory = Hmis::Hud::Inventory.editable_by(current_user).find_by(id: input.inventory_id)
-      errors = Errors::CustomValidationErrors.new
+      errors = HmisErrors::CustomValidationErrors.new
       errors.add :inventory_id, :not_found unless inventory.present?
 
       unit = Hmis::Unit.find_by(id: input.unit_id)

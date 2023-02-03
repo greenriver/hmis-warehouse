@@ -9,7 +9,7 @@ module Mutations
       client = Hmis::Hud::Client.visible_to(current_user).find_by(id: client_id)
       errors = []
 
-      errors << Errors::CustomValidationError.new(:client_id, :not_found) unless client.present?
+      errors << HmisErrors::CustomValidationError.new(:client_id, :not_found) unless client.present?
 
       if client.present?
         client.delete_image

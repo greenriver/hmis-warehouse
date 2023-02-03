@@ -38,7 +38,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       mutation CreateService($input: ServiceInput!) {
         createService(input: { input: $input }) {
           service {
-            id
+            #{scalar_fields(Types::HmisSchema::Service)}
             enrollment {
               id
             }
@@ -48,14 +48,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             user {
               id
             }
-            dateProvided
-            recordType
-            typeProvided
-            subTypeProvided
-            otherTypeProvided
-            movingOnOtherType
-            FAAmount
-            referralOutcome
           }
           #{error_fields}
         }
@@ -171,8 +163,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         errors = result.dig('data', 'createService', 'errors')
         aggregate_failures 'checking response' do
           expect(response.status).to eq 200
-          expect(errors).to contain_exactly(*expected_errors.map do |error_attrs|
-            include(**error_attrs.transform_keys(&:to_s).transform_values(&:to_s))
+          expect(errors).to match(expected_errors.map do |h|
+            a_hash_including(**h.transform_keys(&:to_s).transform_values(&:to_s))
           end)
         end
       end

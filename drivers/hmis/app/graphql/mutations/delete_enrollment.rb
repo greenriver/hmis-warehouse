@@ -13,12 +13,12 @@ module Mutations
         if enrollment.in_progress?
           enrollment.destroy
         else
-          errors << Errors::CustomValidationError.new(:base, full_message: 'Completed enrollments can not be deleted. Please exit the client instead.')
+          errors << HmisErrors::CustomValidationError.new(:base, full_message: 'Completed enrollments can not be deleted. Please exit the client instead.')
         end
 
         errors << enrollment.errors.errors unless enrollment.valid?
       else
-        errors << Errors::CustomValidationError.new(:enrollment, :not_found)
+        errors << HmisErrors::CustomValidationError.new(:enrollment, :not_found)
       end
 
       {

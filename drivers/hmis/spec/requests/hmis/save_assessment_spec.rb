@@ -179,7 +179,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         errors = result.dig('data', 'saveAssessment', 'errors')
         aggregate_failures 'checking response' do
           expect(response.status).to eq 200
-          expect(errors).to contain_exactly(*expected_errors.map { |error_attrs| include(**error_attrs) })
+          expect(errors).to match(expected_errors.map { |h| a_hash_including(**h) })
         end
       end
     end

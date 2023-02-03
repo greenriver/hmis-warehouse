@@ -23,7 +23,7 @@ module Mutations
     def create_errors(project, input)
       return [] unless project.operating_end_date.blank? && input.operating_end_date.present?
 
-      errors = Errors::CustomValidationErrors.new
+      errors = HmisErrors::CustomValidationErrors.new
 
       funder_count = project.funders.where(end_date: nil).count
       inventory_count = project.inventories.where(inventory_end_date: nil).count

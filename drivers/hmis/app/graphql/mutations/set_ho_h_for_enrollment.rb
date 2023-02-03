@@ -26,10 +26,10 @@ module Mutations
 
           enrollment = new_hoh_enrollment
         else
-          errors << Errors::CustomValidationError.new(:household_id, full_message: "No enrollment for this client with household ID '#{household_id}'")
+          errors << HmisErrors::CustomValidationError.new(:household_id, full_message: "No enrollment for this client with household ID '#{household_id}'")
         end
       else
-        errors << Errors::CustomValidationError.new(:client_id, :not_found)
+        errors << HmisErrors::CustomValidationError.new(:client_id, :not_found)
       end
 
       {

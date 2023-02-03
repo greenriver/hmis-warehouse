@@ -26,7 +26,7 @@ module Mutations
     # Default CRUD Update functionality
     # If confirm is not specified, treat as confirmed (aka ignore warnings)
     def default_update_record(record:, field_name:, input:, confirmed: true)
-      return { field_name => nil, errors: [Errors::CustomValidationError.new(field_name, :not_found)] } unless record.present?
+      return { field_name => nil, errors: [HmisErrors::CustomValidationError.new(field_name, :not_found)] } unless record.present?
 
       # Create any custom validation errors
       errors = create_errors(record, input)
@@ -88,7 +88,7 @@ module Mutations
       if record.present?
         record.destroy
       else
-        errors << Errors::CustomValidationError.new(field_name, :not_found) unless record.present?
+        errors << HmisErrors::CustomValidationError.new(field_name, :not_found) unless record.present?
       end
 
       {
