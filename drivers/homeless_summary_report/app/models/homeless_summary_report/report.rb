@@ -4,13 +4,13 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-require 'memoist'
+require 'memery'
 
 # Useful notes for testing
 # reload!;  r = HomelessSummaryReport::Report.last; nr = HomelessSummaryReport::Report.new(user_id: r.user_id); nr.filter = r.filter; nr.run_and_save!
 module HomelessSummaryReport
   class Report < SimpleReports::ReportInstance
-    extend Memoist
+    include Memery
     include Filter::ControlSections
     include Filter::FilterScopes
     include Reporting::Status

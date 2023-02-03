@@ -4,13 +4,13 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-require 'memoist'
+require 'memery'
 module ClaimsReporting::Health
   module PatientExtension
     extend ActiveSupport::Concern
 
     included do
-      extend Memoist
+      include Memery
 
       has_many :medical_claims, class_name: 'ClaimsReporting::MedicalClaim', foreign_key: :member_id, primary_key: :medicaid_id
 

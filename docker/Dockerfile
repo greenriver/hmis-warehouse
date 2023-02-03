@@ -1,7 +1,7 @@
 # Based on https://github.com/ledermann/docker-rails/blob/develop/Dockerfile
 ARG RUBY_VERSION
 # NOTE FROM clears all ARGs
-FROM ruby:$RUBY_VERSION-alpine3.15
+FROM ruby:$RUBY_VERSION-alpine3.17
 
 ARG BUNDLER_VERSION
 
@@ -37,12 +37,11 @@ RUN apk add --no-cache \
   lftp postgresql tmux postgis geos geos-dev proj proj-dev proj-util zip expect \
   shared-mime-info docker \
   vim less \
-  tar xz \
+  tar xz p7zip \
   python3 py3-pip \
-  && git config --global --add safe.directory /app \
-  && ln -s $(ls -1r /usr/lib/libproj.so.* | head -1) /usr/lib/libproj.so.25
+  && git config --global --add safe.directory /app
 
-RUN pip3 install awscliv2 awscli awscli-local
+RUN pip3 install awscliv2 awscli
 
 RUN mkdir /app
 WORKDIR /app
@@ -58,9 +57,7 @@ COPY Gemfile.lock /app/Gemfile.lock
 ENV BUNDLE_PATH=/bundle
 ENV PATH=$PATH:/app/bin
 COPY docker/entrypoint.sh /usr/bin/
-COPY docker/shell.entrypoint.sh /usr/bin/
 COPY docker/spec.entrypoint.sh /usr/bin/
 RUN chmod +x /usr/bin/entrypoint.sh
-RUN chmod +x /usr/bin/shell.entrypoint.sh
 RUN chmod +x /usr/bin/spec.entrypoint.sh
 ENTRYPOINT ["entrypoint.sh"]

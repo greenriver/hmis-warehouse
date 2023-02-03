@@ -5,7 +5,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-require 'memoist'
+require 'memery'
 
 # Calculator for various Quality Measures in the MassHealth Community Partners (CP) Program
 # https://www.mass.gov/guides/masshealth-community-partners-cp-program-information-for-providers
@@ -27,7 +27,7 @@ require 'memoist'
 
 module ClaimsReporting
   class QualityMeasuresReport
-    extend Memoist
+    include Memery
 
     include ActiveModel::Model
 

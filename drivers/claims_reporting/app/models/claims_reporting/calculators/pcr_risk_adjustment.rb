@@ -5,7 +5,7 @@
 ###
 
 require 'roo'
-require 'memoist'
+require 'memery'
 
 # Latest Plan All-Cause Readmissions (PCR) Risk Calculator
 #
@@ -23,7 +23,7 @@ require 'memoist'
 # Both As of May 28, 2021
 module ClaimsReporting::Calculators
   class PcrRiskAdjustment
-    extend Memoist
+    include Memery
 
     # This class needs some support files to work. Helper method for places
     # where we want to test if it has what it nees

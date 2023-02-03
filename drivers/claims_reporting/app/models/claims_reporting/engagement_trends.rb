@@ -4,13 +4,13 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-require 'memoist'
+require 'memery'
 module ClaimsReporting
   class EngagementTrends < HealthBase
     include Reporting::Status
     include Rails.application.routes.url_helpers
     include HmisFilters
-    extend Memoist
+    include Memery
     acts_as_paranoid
 
     belongs_to :user, optional: true

@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-require 'memoist'
+require 'memery'
 class User < ApplicationRecord
   include UserConcern
   include RailsDrivers::Extensions

@@ -7,11 +7,11 @@
 # see https://services.etosoftware.com
 require 'json'
 require 'restclient'
-require 'memoist'
+require 'memery'
 
 module EtoApi
   class Base
-    extend Memoist
+    include Memery
     include NotifierConfig
     attr_accessor :notifier
     attr_accessor :trace

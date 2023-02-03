@@ -4,11 +4,11 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-require 'memoist'
+require 'memery'
 module ClaimsReporting
   class PerformanceReport
     include ActiveModel::Model
-    extend Memoist
+    include Memery
     attr_reader :member_roster, :rx_claims, :medical_claims, :claim_date_range
 
     def initialize(
