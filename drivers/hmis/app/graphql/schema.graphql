@@ -1743,6 +1743,11 @@ type FormItem {
   required: Boolean
 
   """
+  Whether to apply this field to all clients or a single client when bulk creating
+  """
+  serviceDetailType: ServiceDetailType
+
+  """
   Size of the input element
   """
   size: InputSize
@@ -4043,6 +4048,11 @@ type Service {
   subTypeProvided: ServiceSubTypeProvided
   typeProvided: ServiceTypeProvided!
   user: User
+}
+
+enum ServiceDetailType {
+  BULK
+  CLIENT
 }
 
 """
