@@ -101,6 +101,14 @@ module Types
       Hmis::Hud::Funder.viewable_by(current_user).find_by(id: id)
     end
 
+    field :service, Types::HmisSchema::Service, 'Service lookup', null: true do
+      argument :id, ID, required: true
+    end
+
+    def service(id:)
+      Hmis::Hud::Service.viewable_by(current_user).find_by(id: id)
+    end
+
     field :form_definition, Types::Forms::FormDefinition, 'Form definition lookup by identifier', null: true do
       argument :identifier, String, required: true
     end
@@ -118,7 +126,6 @@ module Types
       enrollment = Hmis::Hud::Enrollment.find_by(id: enrollment_id)
       definition = enrollment&.project&.present? ? Hmis::Form::Definition.find_definition_for_project(enrollment.project, role: assessment_role) : nil
 
-      definition.apply_conditionals(enrollment) if definition.present?
       definition
     end
 

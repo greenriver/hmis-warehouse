@@ -423,7 +423,7 @@ module PublicReports
               # Force any unknown genders to Unknown
               gender_id = nil unless gender_id.in?([0, 1, 2, 5, 6])
               [
-                ::HUD.gender(gender_id) || 'Unknown',
+                ::HudUtility.gender(gender_id) || 'Unknown',
                 count,
               ]
             end.to_h
@@ -531,7 +531,7 @@ module PublicReports
               # Force any unknown ethnicties to Unknown
               e_id = nil unless e_id.in?([0, 1])
               [
-                ::HUD.ethnicity(e_id) || 'Unknown',
+                ::HudUtility.ethnicity(e_id) || 'Unknown',
                 count,
               ]
             end.to_h
@@ -575,9 +575,9 @@ module PublicReports
           data = {}
           census_data = {}
           # Add census info
-          ::HUD.races(multi_racial: true).each do |race_code, label|
+          ::HudUtility.races(multi_racial: true).each do |race_code, label|
             census_data[label] = 0
-            data[::HUD.race(race_code, multi_racial: true)] ||= Set.new
+            data[::HudUtility.race(race_code, multi_racial: true)] ||= Set.new
             year = date.year
             full_pop = get_us_census_population(year: year)
             census_data[label] = get_us_census_population(race_code: race_code, year: year) / full_pop.to_f if full_pop&.positive?
@@ -590,7 +590,7 @@ module PublicReports
             find_each do |enrollment|
               client = enrollment.client
               race = client_cache.race_string(destination_id: client.id, scope_limit: client.class.where(id: all_destination_ids))
-              data[::HUD.race(race, multi_racial: true)] << client.id unless client_ids.include?(client.id)
+              data[::HudUtility.race(race, multi_racial: true)] << client.id unless client_ids.include?(client.id)
               client_ids << client.id
             end
           total_count = data.map { |_, ids| ids.count }.sum
@@ -657,7 +657,7 @@ module PublicReports
     end
 
     private def geometries
-      @geometries ||= GrdaWarehouse::Shape::CoC.where(cocnum: coc_codes)
+      @geometries ||= GrdaWarehouse::Shape::Coc.where(cocnum: coc_codes)
     end
 
     private def coc_codes
@@ -668,8 +668,8 @@ module PublicReports
           pluck(pc_t[:hud_coc_code], pc_t[:CoCCode]).map do |override, original|
             override.presence || original
           end
-        reasonable_cocs_count = GrdaWarehouse::Shape::CoC.my_state.where(cocnum: result).count
-        result = GrdaWarehouse::Shape::CoC.my_state.map(&:cocnum) if reasonable_cocs_count.zero? && !Rails.env.production?
+        reasonable_cocs_count = GrdaWarehouse::Shape::Coc.my_state.where(cocnum: result).count
+        result = GrdaWarehouse::Shape::Coc.my_state.map(&:cocnum) if reasonable_cocs_count.zero? && !Rails.env.production?
 
         result
       end

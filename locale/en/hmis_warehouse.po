@@ -731,6 +731,9 @@ msgstr ""
 msgid "CHA F_TITLE"
 msgstr ""
 
+msgid "CHA Form"
+msgstr ""
+
 msgid "CHA G_Q1AC"
 msgstr ""
 
@@ -3518,6 +3521,12 @@ msgstr ""
 msgid "CSPECH Eligible"
 msgstr ""
 
+msgid "Care Plan Form"
+msgstr ""
+
+msgid "Case Management Note Form"
+msgstr ""
+
 msgid "Census Tracking Worksheets"
 msgstr ""
 
@@ -3576,6 +3585,9 @@ msgid "Clients in Search"
 msgstr ""
 
 msgid "Clients moving into permanent housing"
+msgstr ""
+
+msgid "CoC Map (png)"
 msgstr ""
 
 msgid "CoC Performance Measurement Dashboard"
@@ -3729,6 +3741,9 @@ msgid "HIV+"
 msgstr ""
 
 msgid "HMIS Blackout"
+msgstr ""
+
+msgid "HMIS Consent Form"
 msgstr ""
 
 msgid "HMIS Data Quality 20%"
@@ -4019,10 +4034,22 @@ msgstr ""
 msgid "Part of a family"
 msgstr ""
 
+msgid "Participation Form (SPANISH) [Unused]"
+msgstr ""
+
+msgid "Participation Form [Unused]"
+msgstr ""
+
 msgid "Pathways"
 msgstr ""
 
+msgid "Patient Directed Participation Form [Unused]"
+msgstr ""
+
 msgid "Patient Engagement Trends"
+msgstr ""
+
+msgid "Patient Signature Form"
 msgstr ""
 
 msgid "People Experiencing Homelessness"
@@ -4175,6 +4202,9 @@ msgstr ""
 msgid "Returns to Homelessness"
 msgstr ""
 
+msgid "SSM Form"
+msgstr ""
+
 msgid "Scan Card Services"
 msgstr ""
 
@@ -4197,6 +4227,12 @@ msgid "Set ETO API Configuration"
 msgstr ""
 
 msgid "Shelter Agency Contacts"
+msgstr ""
+
+msgid "Spanish Patient Signature Form"
+msgstr ""
+
+msgid "Spanish Verbal (Directed) Signature Form"
 msgstr ""
 
 msgid "Stabilization"
@@ -4332,6 +4368,15 @@ msgid "VA Eligible"
 msgstr ""
 
 msgid "VASH Eligible"
+msgstr ""
+
+msgid "Verbal (Directed) Signature Form"
+msgstr ""
+
+msgid "Verification of Chronic Homelessness"
+msgstr ""
+
+msgid "Verification of Disability"
 msgstr ""
 
 msgid "Veterans"

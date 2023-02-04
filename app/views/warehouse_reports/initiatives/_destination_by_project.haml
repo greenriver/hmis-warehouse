@@ -6,13 +6,13 @@
     %thead
       %tr
         %th Project
-        - ::HUD.valid_destinations.each do |_, value|
+        - ::HudUtility.valid_destinations.each do |_, value|
           %th= value
     %tbody
       - @data.involved_projects.sort_by(&:last).each do |(p_id, p_name)|
         %tr
           %th= p_name
-          - ::HUD.valid_destinations.each do |id, value|
+          - ::HudUtility.valid_destinations.each do |id, value|
             %td
               - key = "#{p_id}__#{id}"
               - count = data[key] || 0

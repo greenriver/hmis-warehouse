@@ -126,7 +126,7 @@ module HudDataQualityReport::Generators::Fy2022
       universe.members.preload(:universe_membership).find_each do |u_member|
         member = u_member.universe_membership
         q_member_ids << u_member.id if member.ssn_quality == 2 ||
-          (member.ssn_quality == 1 && !HUD.valid_social?(member.ssn))
+          (member.ssn_quality == 1 && !HudUtility.valid_social?(member.ssn))
       end
       q_members = universe.members.where(id: q_member_ids)
       answer.add_members(q_members)

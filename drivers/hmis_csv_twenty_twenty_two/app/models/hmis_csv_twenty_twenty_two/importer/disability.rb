@@ -45,7 +45,7 @@ module HmisCsvTwentyTwentyTwo::Importer
           },
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HUD.data_collection_stages.keys.map(&:to_s).freeze },
+            arguments: { valid_options: HudUtility.data_collection_stages.keys.map(&:to_s).freeze },
           },
         ],
         DisabilityType: [
@@ -54,7 +54,7 @@ module HmisCsvTwentyTwentyTwo::Importer
           },
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HUD.disability_types.keys.map(&:to_s).freeze },
+            arguments: { valid_options: HudUtility.disability_types.keys.map(&:to_s).freeze },
           },
         ],
         DisabilityResponse: [
@@ -63,13 +63,13 @@ module HmisCsvTwentyTwentyTwo::Importer
           },
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HUD.disability_responses.keys.map(&:to_s).freeze },
+            arguments: { valid_options: HudUtility.disability_responses.keys.map(&:to_s).freeze },
           },
         ],
         IndefiniteAndImpairs: [
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HUD.no_yes_reasons_for_missing_data_options.keys.map(&:to_s).freeze },
+            arguments: { valid_options: HudUtility.no_yes_reasons_for_missing_data_options.keys.map(&:to_s).freeze },
           },
         ],
       }

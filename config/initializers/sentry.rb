@@ -13,7 +13,7 @@ if ENV['WAREHOUSE_SENTRY_DSN'].present?
     config.environment = Rails.env
 
     if config.enabled_environments.include?(config.environment) && config.dsn.to_s.match?(/sentry\.io/)
-      Rails.logger.info "Enabling Sentry for environment #{config.environment}"
+      Rails.logger.info "Enabling Sentry for environment #{config.environment}" unless ENV['QUIET_SENTRY_ENTRY'].present?
     else
       Rails.logger.error "Cannot enable Sentry for environment #{config.environment}"
     end

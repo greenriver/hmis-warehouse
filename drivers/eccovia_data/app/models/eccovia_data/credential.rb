@@ -7,7 +7,7 @@
 require 'uri'
 require 'net/http'
 module EccoviaData
-  class Credential < GrdaWarehouse::RemoteCredential
+  class Credential < ::GrdaWarehouse::RemoteCredential
     # Docs: https://apidoc.eccovia.com/
     alias_attribute :subscriptionkey, :username
     alias_attribute :apikey, :password

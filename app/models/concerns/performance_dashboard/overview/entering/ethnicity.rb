@@ -31,7 +31,7 @@ module PerformanceDashboard::Overview::Entering::Ethnicity
       categories = entering_by_ethnicity.keys
       filter_selected_data_for_chart(
         {
-          labels: categories.map { |s| [s, HUD.ethnicity(s)] }.to_h,
+          labels: categories.map { |s| [s, HudUtility.ethnicity(s)] }.to_h,
           chosen: @ethnicities,
           columns: columns,
           categories: categories,

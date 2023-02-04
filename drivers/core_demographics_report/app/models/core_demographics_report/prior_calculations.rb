@@ -10,7 +10,7 @@ module
   included do
     def prior_detail_hash
       {}.tap do |hashes|
-        ::HUD.times_homeless_options.each do |id, title|
+        ::HudUtility.times_homeless_options.each do |id, title|
           hashes["prior_times_#{id}"] = {
             title: "Number of Times on the Streets, ES, or SH in The Past 3 Years #{title}",
             headers: client_headers,
@@ -18,7 +18,7 @@ module
             scope: -> { report_scope.joins(:client).where(client_id: client_ids_in_prior_times(id)).distinct },
           }
         end
-        ::HUD.month_categories.each do |id, title|
+        ::HudUtility.month_categories.each do |id, title|
           hashes["prior_months_#{id}"] = {
             title: "Number of Months on the Streets, ES, or SH in The Past 3 Years #{title}",
             headers: client_headers,
@@ -26,7 +26,7 @@ module
             scope: -> { report_scope.joins(:client).where(client_id: client_ids_in_prior_months(id)).distinct },
           }
         end
-        ::HUD.living_situations.each do |id, title|
+        ::HudUtility.living_situations.each do |id, title|
           hashes["prior_situation_#{id}"] = {
             title: "Prior Living Situation #{title}",
             headers: client_headers,
@@ -108,7 +108,7 @@ module
       rows['*Number of Times on the Streets, ES, or SH in The Past 3 Years'] ||= []
       rows['*Number of Times Response'] ||= []
       rows['*Number of Times Response'] += ['Times', 'Count', 'Percentage', nil, nil]
-      ::HUD.times_homeless_options.each do |id, title|
+      ::HudUtility.times_homeless_options.each do |id, title|
         rows["_Number of Times Response_data_#{title}"] ||= []
         rows["_Number of Times Response_data_#{title}"] += [
           title,
@@ -121,7 +121,7 @@ module
       rows['*Number of Months on the Streets, ES, or SH in The Past 3 Years'] ||= []
       rows['*Number of Months Response'] ||= []
       rows['*Number of Months Response'] += ['Time', 'Count', 'Percentage', nil, nil]
-      ::HUD.month_categories.each do |id, title|
+      ::HudUtility.month_categories.each do |id, title|
         rows["_Number of Months_data_#{title}"] ||= []
         rows["_Number of Months_data_#{title}"] += [
           title,
@@ -133,7 +133,7 @@ module
       rows['_Prior Living Situation break'] ||= []
       rows['*Prior Living Situation'] ||= []
       rows['*Prior Living Situation'] += ['Situation', 'Count', 'Percentage', nil, nil]
-      ::HUD.living_situations.each do |id, title|
+      ::HudUtility.living_situations.each do |id, title|
         rows["_Prior Living Situation_data_#{title}"] ||= []
         rows["_Prior Living Situation_data_#{title}"] += [
           title,

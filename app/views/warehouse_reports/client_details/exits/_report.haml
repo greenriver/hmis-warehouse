@@ -31,7 +31,7 @@
       - @report.buckets.each do |destination_id, count|
         %tr
           %td
-            = HUD.destination(destination_id)
+            = HudUtility.destination(destination_id)
 
           %td
             = count
@@ -58,5 +58,5 @@
           %tr
             %td= link_to_if current_user.can_view_clients?, "#{client.FirstName} #{client.LastName}", appropriate_client_path(id: enrollment.client_id)
             %td= enrollment.last_date_in_program
-            %td= HUD.destination(enrollment.destination)
+            %td= HudUtility.destination(enrollment.destination)
             %td= enrollment.project.name(current_user)

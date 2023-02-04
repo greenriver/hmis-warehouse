@@ -293,6 +293,7 @@ type Client {
   race: [Race!]!
   ssn: String
   ssnDataQuality: SSNDataQuality!
+  user: User
   veteranStatus: NoYesReasonsForMissingData!
 }
 
@@ -1309,14 +1310,16 @@ type Enrollment {
   disablingCondition: NoYesReasonsForMissingData
   entryDate: ISO8601Date!
   events(limit: Int, offset: Int, sortOrder: EventSortOption): EventsPaginated!
+  exitAssessment: Assessment
   exitDate: ISO8601Date
   household: Household!
   householdSize: Int!
   id: ID!
   inProgress: Boolean!
+  intakeAssessment: Assessment
   lengthOfStay: ResidencePriorLengthOfStay
   livingSituation: LivingSituation
-  losUnderThreshold: NoYesMissing
+  losUnderThreshold: Boolean
   monthsHomelessPastThreeYears: MonthsHomelessPastThreeYears
   previousStreetEssh: Boolean
   project: Project!
@@ -3119,31 +3122,6 @@ enum NoAssistanceReason {
 }
 
 """
-1.7
-"""
-enum NoYesMissing {
-  """
-  (99) Data not collected
-  """
-  DATA_NOT_COLLECTED
-
-  """
-  Invalid Value
-  """
-  INVALID
-
-  """
-  (0) No
-  """
-  NO
-
-  """
-  (1) Yes
-  """
-  YES
-}
-
-"""
 1.8
 """
 enum NoYesReasonsForMissingData {
@@ -3286,7 +3264,12 @@ enum PickListType {
   ORGANIZATION
   PRIOR_LIVING_SITUATION
   PROJECT
+  REFERRAL_OUTCOME
+  SERVICE_TYPE
   STATE
+  SUB_TYPE_PROVIDED_3
+  SUB_TYPE_PROVIDED_4
+  SUB_TYPE_PROVIDED_5
 }
 
 """
@@ -3545,6 +3528,11 @@ type Query {
   """
   projectCoc(id: ID!): ProjectCoc
   projects(limit: Int, offset: Int, projectTypes: [ProjectType!], searchTerm: String, sortOrder: ProjectSortOption): ProjectsPaginated!
+
+  """
+  Service lookup
+  """
+  service(id: ID!): Service
 }
 
 """
@@ -4180,9 +4168,9 @@ enum ServiceTypeProvided {
   C2_MOVING_ON_ASSISTANCE_PROVIDED__NON_FINANCIAL_ASSISTANCE_FOR_MOVING_ON_E_G_HOUSING_NAVIGATION_TRANSITION_SUPPORT
 
   """
-  (5) Other (please specify)
+  (5) Other
   """
-  C2_MOVING_ON_ASSISTANCE_PROVIDED__OTHER_PLEASE_SPECIFY
+  C2_MOVING_ON_ASSISTANCE_PROVIDED__OTHER
 
   """
   (1) Subsidized housing application assistance

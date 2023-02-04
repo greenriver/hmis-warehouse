@@ -94,7 +94,7 @@ module Health::He
     end
 
     def races(client)
-      HUD.races.keys.select { |race| client.public_send(race) == 1 }
+      HudUtility.races.keys.select { |race| client.public_send(race) == 1 }
     end
   end
 end

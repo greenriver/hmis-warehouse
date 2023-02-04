@@ -30,10 +30,10 @@
         = f.input :age_ranges, collection: filter.available_age_ranges, as: :select_two, input_html: { multiple: true }, required: false
     .row
       .col-4
-        = f.input :races, collection: HUD.races.invert, as: :select_two, required: false, placeholder: 'All Races', input_html: { multiple: true }
+        = f.input :races, collection: HudUtility.races.invert, as: :select_two, required: false, placeholder: 'All Races', input_html: { multiple: true }
       .col-4
-        = f.input :ethnicities, collection: HUD.ethnicities.invert, as: :select_two, required: false, placeholder: 'All Ethnicities', input_html: { multiple: true }
+        = f.input :ethnicities, collection: HudUtility.ethnicities.invert, as: :select_two, required: false, placeholder: 'All Ethnicities', input_html: { multiple: true }
       .col-4
-        = f.input :genders, collection: HUD.genders.invert, as: :select_two, required: false, placeholder: 'All Genders', input_html: { multiple: true }
+        = f.input :genders, collection: HudUtility.genders.invert, as: :select_two, required: false, placeholder: 'All Genders', input_html: { multiple: true }
     .w-20
       = f.button :submit, 'Update View'

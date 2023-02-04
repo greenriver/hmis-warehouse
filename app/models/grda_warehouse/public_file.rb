@@ -19,21 +19,21 @@ module GrdaWarehouse
 
     def self.known_locations
       {
-        'client/hmis_consent' => 'HMIS Consent Form', #  app/controllers/clients/files_controller.rb
-        'client/chronic_homelessness_verification' => 'Verification of Chronic Homelessness', # app/controllers/clients/files_controller.rb,
-        'client/disability_verification' => 'Verification of Disability', # app/controllers/clients/files_controller.rb,
-        'patient/release' => 'Patient Signature Form', # app/controllers/health/release_forms_controller.rb
-        'patient/directed_release' => 'Verbal (Directed) Signature Form', # app/controllers/health/release_forms_controller.rb
-        'patient/release_spanish' => 'Spanish Patient Signature Form', # app/controllers/health/release_forms_controller.rb
-        'patient/directed_release_spanish' => 'Spanish Verbal (Directed) Signature Form', # app/controllers/health/release_forms_controller.rb
-        'patient/participation' => 'Participation Form [Unused]', # app/controllers/health/participation_forms_controller.rb
-        'patient/participation_spanish' => 'Participation Form (SPANISH) [Unused]', # app/controllers/health/participation_forms_controller.rb
-        'patient/directed_participation' => 'Patient Directed Participation Form [Unused]', # app/controllers/health/participation_forms_controller.rb
-        'patient/ssm' => 'SSM Form', # app/controllers/health/self_sufficiency_matrix_forms_controller.rb.rb
-        'patient/cha' => 'CHA Form', # app/controllers/health/comprehensive_health_assessments_controller.rb
-        'patient/care_plan' => 'Care Plan Form', # app/controllers/health/careplans_controller.rb
-        'patient/case_management_note' => 'Case Management Note Form', # app/controllers/health/sdh_case_management_note.rb,
-        'client/releases/coc_map' => 'CoC Map (png)', # app/controllers/clients/releases_controller.rb
+        'client/hmis_consent' => _('HMIS Consent Form'), #  app/controllers/clients/files_controller.rb
+        'client/chronic_homelessness_verification' => _('Verification of Chronic Homelessness'), # app/controllers/clients/files_controller.rb,
+        'client/disability_verification' => _('Verification of Disability'), # app/controllers/clients/files_controller.rb,
+        'patient/release' => _('Patient Signature Form'), # app/controllers/health/release_forms_controller.rb
+        'patient/directed_release' => _('Verbal (Directed) Signature Form'), # app/controllers/health/release_forms_controller.rb
+        'patient/release_spanish' => _('Spanish Patient Signature Form'), # app/controllers/health/release_forms_controller.rb
+        'patient/directed_release_spanish' => _('Spanish Verbal (Directed) Signature Form'), # app/controllers/health/release_forms_controller.rb
+        'patient/participation' => _('Participation Form [Unused]'), # app/controllers/health/participation_forms_controller.rb
+        'patient/participation_spanish' => _('Participation Form (SPANISH) [Unused]'), # app/controllers/health/participation_forms_controller.rb
+        'patient/directed_participation' => _('Patient Directed Participation Form [Unused]'), # app/controllers/health/participation_forms_controller.rb
+        'patient/ssm' => _('SSM Form'), # app/controllers/health/self_sufficiency_matrix_forms_controller.rb.rb
+        'patient/cha' => _('CHA Form'), # app/controllers/health/comprehensive_health_assessments_controller.rb
+        'patient/care_plan' => _('Care Plan Form'), # app/controllers/health/careplans_controller.rb
+        'patient/case_management_note' => _('Case Management Note Form'), # app/controllers/health/sdh_case_management_note.rb,
+        'client/releases/coc_map' => _('CoC Map (png)'), # app/controllers/clients/releases_controller.rb
       }
     end
 

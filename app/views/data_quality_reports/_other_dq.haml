@@ -22,7 +22,7 @@
           %th Enrollments with no Service
       %tbody
         - @report.projects.each do |project|
-          - p_type = ::HUD.project_type_brief(project.ProjectType)
+          - p_type = ::HudUtility.project_type_brief(project.ProjectType)
           - p_class = "client__service_type_#{p_type}"
           %tr
             %td

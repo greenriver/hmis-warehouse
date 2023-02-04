@@ -22,9 +22,9 @@
         = f.input :notified, as: :boolean_button_group, collection: @contact.yes_no_options, include_blank: true, label: @contact.label_for(:notified)
         = f.input :dob, as: :date_picker
         = f.input :estimated_age, hint: 'Estimated age if reported by index case'
-        = f.input :gender, as: :radio_buttons, collection: {'Unknown' => ''}.merge(HUD.genders.invert), wrapper: radio_wrapper_class
-        = f.input :race, as: :check_boxes, collection: HUD.races.invert.except('none'), wrapper: radio_wrapper_class
-        = f.input :ethnicity, as: :radio_buttons, collection: {'Unknown' => ''}.merge(HUD.ethnicities.invert), wrapper: radio_wrapper_class
+        = f.input :gender, as: :radio_buttons, collection: {'Unknown' => ''}.merge(HudUtility.genders.invert), wrapper: radio_wrapper_class
+        = f.input :race, as: :check_boxes, collection: HudUtility.races.invert.except('none'), wrapper: radio_wrapper_class
+        = f.input :ethnicity, as: :radio_buttons, collection: {'Unknown' => ''}.merge(HudUtility.ethnicities.invert), wrapper: radio_wrapper_class
         = f.input :preferred_language
         = f.input :relationship_to_index_case
         = f.input :location_of_exposure

@@ -92,7 +92,7 @@ module ReportGenerators::DataQuality::Fy2017
             enrollment[:project_name],
             enrollment[:first_date_in_program],
             enrollment[:last_date_in_program],
-            HUD.destination(enrollment[:destination]),
+            HudUtility.destination(enrollment[:destination]),
           ]
         end
       )

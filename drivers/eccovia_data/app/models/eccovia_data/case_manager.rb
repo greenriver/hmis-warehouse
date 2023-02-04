@@ -8,7 +8,7 @@ module EccoviaData
   class CaseManager < GrdaWarehouseBase
     include Shared
     self.table_name = :eccovia_case_managers
-    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', foreign_key: [:client_id, :data_source_id], primary_key: [:PersonalID, :data_source_id]
+    belongs_to :client, class_name: '::GrdaWarehouse::Hud::Client', foreign_key: [:client_id, :data_source_id], primary_key: [:PersonalID, :data_source_id]
     acts_as_paranoid
 
     # NOTE: this is how you get assigned case manager for a client:
@@ -91,7 +91,7 @@ module EccoviaData
         query = 'crql?q=select EnrollID from Enrollment'
         credentials.get_all(query)&.map { |a| a['EnrollID'] }
       else
-        GrdaWarehouse::Hud::Enrollment.where(data_source_id: data_source_id).
+        ::GrdaWarehouse::Hud::Enrollment.where(data_source_id: data_source_id).
           with_project_type(14).
           where(DateUpdated: since.to_date..Date.current).
           pluck(:EnrollmentID)

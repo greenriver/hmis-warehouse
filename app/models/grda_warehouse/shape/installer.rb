@@ -32,7 +32,7 @@ module GrdaWarehouse
           OpenStruct.new(klass: GrdaWarehouse::Shape::BlockGroup, dir: 'block_groups'), # First because needed for water pruning
           OpenStruct.new(klass: GrdaWarehouse::Shape::State, dir: 'states'), # Second because needed for pruning
           OpenStruct.new(klass: GrdaWarehouse::Shape::ZipCode, dir: 'zip_codes.census.2018'),
-          OpenStruct.new(klass: GrdaWarehouse::Shape::CoC, dir: 'CoC'),
+          OpenStruct.new(klass: GrdaWarehouse::Shape::Coc, dir: 'CoC'),
           OpenStruct.new(klass: GrdaWarehouse::Shape::County, dir: 'counties'),
           OpenStruct.new(klass: GrdaWarehouse::Shape::Place, dir: 'places'),
           OpenStruct.new(klass: GrdaWarehouse::Shape::Town, dir: 'towns'),

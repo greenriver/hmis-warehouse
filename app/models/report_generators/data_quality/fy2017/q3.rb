@@ -105,7 +105,7 @@ module ReportGenerators::DataQuality::Fy2017
           [
             id,
             @client_personal_ids[id].join(', '),
-            HUD.no_yes_reasons_for_missing_data(enrollment[:VeteranStatus]),
+            HudUtility.no_yes_reasons_for_missing_data(enrollment[:VeteranStatus]),
             enrollment[:age]
           ]
         end
@@ -266,7 +266,7 @@ module ReportGenerators::DataQuality::Fy2017
           [
             id,
             @client_personal_ids[id].join(', '),
-            HUD.disability_type(enrollment[:DisablingCondition]),
+            HudUtility.disability_type(enrollment[:DisablingCondition]),
           ]
         end
       )

@@ -26,6 +26,6 @@
           %td= client.LastName
           %td= client.DOB
           %td= client.gender
-          %td= HUD.no_yes_missing(client.VeteranStatus)
+          %td= HudUtility.no_yes_missing(client.VeteranStatus)
           %td= client.race_description
-          %td= HUD.ethnicity(client.Ethnicity)
+          %td= HudUtility.ethnicity(client.Ethnicity)

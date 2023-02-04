@@ -37,7 +37,7 @@ module Filter::FilterScopes
         merge(
           GrdaWarehouse::Hud::EnrollmentCoc.where(CoCCode: @filter.coc_codes).
           or(GrdaWarehouse::Hud::EnrollmentCoc.where(CoCCode: nil)).
-          or(GrdaWarehouse::Hud::EnrollmentCoc.where.not(CoCCode: HUD.cocs.keys)),
+          or(GrdaWarehouse::Hud::EnrollmentCoc.where.not(CoCCode: HudUtility.cocs.keys)),
         )
     end
 
@@ -77,25 +77,25 @@ module Filter::FilterScopes
       # Or'ing ages is very slow, instead we'll build up an acceptable
       # array of ages
       ages = []
-      ages += (0..4).to_a if @filter.age_ranges.include?(:zero_to_four)
-      ages += (5..10).to_a if @filter.age_ranges.include?(:five_to_ten)
-      ages += (11..14).to_a if @filter.age_ranges.include?(:eleven_to_fourteen)
-      ages += (15..17).to_a if @filter.age_ranges.include?(:fifteen_to_seventeen)
-      ages += (0..17).to_a if @filter.age_ranges.include?(:under_eighteen)
-      ages += (18..24).to_a if @filter.age_ranges.include?(:eighteen_to_twenty_four)
-      ages += (25..29).to_a if @filter.age_ranges.include?(:twenty_five_to_twenty_nine)
-      ages += (30..34).to_a if @filter.age_ranges.include?(:thirty_to_thirty_four)
-      ages += (35..39).to_a if @filter.age_ranges.include?(:thirty_five_to_thirty_nine)
-      ages += (30..39).to_a if @filter.age_ranges.include?(:thirty_to_thirty_nine)
-      ages += (40..44).to_a if @filter.age_ranges.include?(:forty_to_forty_four)
-      ages += (45..49).to_a if @filter.age_ranges.include?(:forty_five_to_forty_nine)
-      ages += (40..49).to_a if @filter.age_ranges.include?(:forty_to_forty_nine)
-      ages += (50..54).to_a if @filter.age_ranges.include?(:fifty_to_fifty_four)
-      ages += (55..59).to_a if @filter.age_ranges.include?(:fifty_five_to_fifty_nine)
-      ages += (60..61).to_a if @filter.age_ranges.include?(:sixty_to_sixty_one)
-      ages += (62..64).to_a if @filter.age_ranges.include?(:sixty_two_to_sixty_four)
-      ages += (62..110).to_a if @filter.age_ranges.include?(:over_sixty_one)
-      ages += (65..110).to_a if @filter.age_ranges.include?(:over_sixty_four)
+      ages += Filters::FilterBase.age_range(:zero_to_four).to_a if @filter.age_ranges.include?(:zero_to_four)
+      ages += Filters::FilterBase.age_range(:five_to_ten).to_a if @filter.age_ranges.include?(:five_to_ten)
+      ages += Filters::FilterBase.age_range(:eleven_to_fourteen).to_a if @filter.age_ranges.include?(:eleven_to_fourteen)
+      ages += Filters::FilterBase.age_range(:fifteen_to_seventeen).to_a if @filter.age_ranges.include?(:fifteen_to_seventeen)
+      ages += Filters::FilterBase.age_range(:under_eighteen).to_a if @filter.age_ranges.include?(:under_eighteen)
+      ages += Filters::FilterBase.age_range(:eighteen_to_twenty_four).to_a if @filter.age_ranges.include?(:eighteen_to_twenty_four)
+      ages += Filters::FilterBase.age_range(:twenty_five_to_twenty_nine).to_a if @filter.age_ranges.include?(:twenty_five_to_twenty_nine)
+      ages += Filters::FilterBase.age_range(:thirty_to_thirty_four).to_a if @filter.age_ranges.include?(:thirty_to_thirty_four)
+      ages += Filters::FilterBase.age_range(:thirty_five_to_thirty_nine).to_a if @filter.age_ranges.include?(:thirty_five_to_thirty_nine)
+      ages += Filters::FilterBase.age_range(:thirty_to_thirty_nine).to_a if @filter.age_ranges.include?(:thirty_to_thirty_nine)
+      ages += Filters::FilterBase.age_range(:forty_to_forty_four).to_a if @filter.age_ranges.include?(:forty_to_forty_four)
+      ages += Filters::FilterBase.age_range(:forty_five_to_forty_nine).to_a if @filter.age_ranges.include?(:forty_five_to_forty_nine)
+      ages += Filters::FilterBase.age_range(:forty_to_forty_nine).to_a if @filter.age_ranges.include?(:forty_to_forty_nine)
+      ages += Filters::FilterBase.age_range(:fifty_to_fifty_four).to_a if @filter.age_ranges.include?(:fifty_to_fifty_four)
+      ages += Filters::FilterBase.age_range(:fifty_five_to_fifty_nine).to_a if @filter.age_ranges.include?(:fifty_five_to_fifty_nine)
+      ages += Filters::FilterBase.age_range(:sixty_to_sixty_one).to_a if @filter.age_ranges.include?(:sixty_to_sixty_one)
+      ages += Filters::FilterBase.age_range(:sixty_two_to_sixty_four).to_a if @filter.age_ranges.include?(:sixty_two_to_sixty_four)
+      ages += Filters::FilterBase.age_range(:over_sixty_one).to_a if @filter.age_ranges.include?(:over_sixty_one)
+      ages += Filters::FilterBase.age_range(:over_sixty_four).to_a if @filter.age_ranges.include?(:over_sixty_four)
 
       scope.joins(:client).where(age_calculation.in(ages))
     end
@@ -106,10 +106,10 @@ module Filter::FilterScopes
       scope = scope.joins(:client)
       gender_scope = nil
       @filter.genders.each do |value|
-        column = HUD.gender_id_to_field_name[value]
+        column = HudUtility.gender_id_to_field_name[value]
         next unless column
 
-        gender_query = report_scope_source.joins(:client).where(c_t[column.to_sym].eq(HUD.gender_comparison_value(value)))
+        gender_query = report_scope_source.joins(:client).where(c_t[column.to_sym].eq(HudUtility.gender_comparison_value(value)))
         gender_scope = add_alternative(gender_scope, gender_query)
       end
       scope.merge(gender_scope)
@@ -360,7 +360,7 @@ module Filter::FilterScopes
         partition_by(:client_id, order_by: { last_date_in_program: :desc }).
         select_window(:row_number, over: :client_window, as: :row_id)
       client_ids_with_recent_permanent_exits = GrdaWarehouse::ServiceHistoryEnrollment.from(exits).
-        where("row_id = 1 and destination in (#{HUD.permanent_destinations.join(', ')})")
+        where("row_id = 1 and destination in (#{HudUtility.permanent_destinations.join(', ')})")
 
       scope.homeless.where(client_id: client_ids_with_recent_permanent_exits.select(:client_id))
     end
@@ -374,7 +374,7 @@ module Filter::FilterScopes
       p_types = @project_types.presence || @filter.project_type_ids
       scope.joins(:enrollment).where(
         she_t[:computed_project_type].in(GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING[:ca]).
-        and(e_t[:LivingSituation].in(HUD.homeless_situations(as: :prior))).
+        and(e_t[:LivingSituation].in(HudUtility.homeless_situations(as: :prior))).
         or(she_t[:computed_project_type].in(p_types)),
       )
     end

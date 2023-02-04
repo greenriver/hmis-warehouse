@@ -578,13 +578,13 @@ module ReportGenerators::SystemPerformance::Fy2018
       @answers[:sixc1_c2][:value] = remaining_leavers.size
       @support[:sixc1_c2][:support] = {
         headers: ['Client ID', 'Destination'],
-        counts: remaining_leavers.map{|id, destination| [id, HUD.destination(destination)]},
+        counts: remaining_leavers.map{|id, destination| [id, HudUtility.destination(destination)]},
       }
       permanent_leavers = destinations.select{ |id, destination| [26, 11, 21, 3, 10, 28, 20, 19, 22, 23].include?(destination.to_i)}
       @answers[:sixc1_c3][:value] = permanent_leavers.size
       @support[:sixc1_c3][:support] = {
         headers: ['Client ID', 'Destination'],
-        counts: permanent_leavers.map{|id, destination| [id, HUD.destination(destination)]},
+        counts: permanent_leavers.map{|id, destination| [id, HudUtility.destination(destination)]},
       }
       @answers[:sixc1_c4][:value] = ((@answers[:sixc1_c3][:value].to_f / @answers[:sixc1_c2][:value]) * 100).round(2)
       return @answers
@@ -661,13 +661,13 @@ module ReportGenerators::SystemPerformance::Fy2018
       @answers[:sixc2_c2][:value] = remaining_leavers.size + stayers.size
       @support[:sixc2_c2][:support] = {
         headers: ['Client ID', 'Destination'],
-        counts: remaining_leavers.map{|id, destination| [id, HUD.destination(destination)]},
+        counts: remaining_leavers.map{|id, destination| [id, HudUtility.destination(destination)]},
       }
       permanent_leavers = destinations.select{ |id, destination| [26, 11, 21, 3, 10, 28, 20, 19, 22, 23].include?(destination.to_i)}
       @answers[:sixc2_c3][:value] = permanent_leavers.size + stayers.size
       @support[:sixc2_c3][:support] = {
         headers: ['Client ID', 'Destination'],
-        counts: permanent_leavers.map{|id, destination| [id, HUD.destination(destination)]},
+        counts: permanent_leavers.map{|id, destination| [id, HudUtility.destination(destination)]},
       }
       @answers[:sixc2_c4][:value] = ((@answers[:sixc2_c3][:value].to_f / @answers[:sixc2_c2][:value]) * 100).round(2)
       return @answers

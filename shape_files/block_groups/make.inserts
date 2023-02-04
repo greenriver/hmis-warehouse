@@ -12,7 +12,7 @@ end
 
 FileUtils.chdir(Pathname.new(__FILE__).dirname)
 
-fips_code = GrdaWarehouse::UsCensusApi::StateFIPS.new(ARGV[0]).code
+fips_code = GrdaWarehouse::UsCensusApi::StateFips.new(ARGV[0]).code
 
 basename = "tl_2020_#{fips_code}_bg"
 puts "Using #{basename}.zip"

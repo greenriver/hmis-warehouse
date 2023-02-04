@@ -453,7 +453,7 @@ module Cohorts
     end
 
     def available_touchpoints
-      GrdaWarehouse::HMIS::Assessment.
+      GrdaWarehouse::Hmis::Assessment.
         active.
         non_confidential.
         for_user(current_user).

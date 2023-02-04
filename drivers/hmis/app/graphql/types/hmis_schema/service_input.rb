@@ -22,14 +22,15 @@ module Types
     def to_params
       result = to_h
 
-      result[:type_provided] = type_provided.split(':').last&.to_i if type_provided.present?
+      result[:record_type] = record_type || type_provided&.split(':')&.first&.to_i
+      result[:type_provided] = type_provided&.split(':')&.last&.to_i
       result[:sub_type_provided] = sub_type_provided.split(':').last&.to_i if sub_type_provided.present?
 
-      enrollment = Hmis::Hud::Enrollment.editable_by(current_user).find_by(id: enrollment_id)
+      if enrollment_id.present?
+        enrollment = Hmis::Hud::Enrollment.editable_by(current_user).find_by(id: enrollment_id)
 
-      if enrollment.present?
-        result[:enrollment_id] = enrollment.enrollment_id
-        result[:personal_id] = enrollment.personal_id
+        result[:enrollment_id] = enrollment&.enrollment_id
+        result[:personal_id] = enrollment&.personal_id
       end
 
       result

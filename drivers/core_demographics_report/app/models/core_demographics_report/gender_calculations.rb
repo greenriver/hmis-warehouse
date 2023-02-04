@@ -10,7 +10,7 @@ module
   included do
     def gender_detail_hash
       {}.tap do |hashes|
-        HUD.genders.each do |key, title|
+        HudUtility.genders.each do |key, title|
           hashes["gender_#{key}"] = {
             title: "Gender - #{title}",
             headers: client_headers,
@@ -55,7 +55,7 @@ module
       rows['_Gender Break'] ||= []
       rows['*Gender Breakdowns'] ||= []
       rows['*Gender Breakdowns'] += ['Gender', 'Count', 'Percentage', nil, nil]
-      HUD.genders.each do |id, title|
+      HudUtility.genders.each do |id, title|
         rows["_Gender Breakdowns_data_#{title}"] ||= []
         rows["_Gender Breakdowns_data_#{title}"] += [
           title,
@@ -68,7 +68,7 @@ module
       rows['_Gender/Age Beakdowns Break'] ||= []
       rows['*Gender/Age Beakdowns'] ||= []
       rows['*Gender/Age Beakdowns'] += ['Gender', 'Age Range', 'Count', 'Percentage', nil]
-      HUD.genders.each do |gender, gender_title|
+      HudUtility.genders.each do |gender, gender_title|
         age_categories.each do |age_range, age_title|
           rows["_Gender/Age_data_#{gender_title} #{age_title}"] ||= []
           rows["_Gender/Age_data_#{gender_title} #{age_title}"] += [

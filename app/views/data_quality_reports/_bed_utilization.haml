@@ -26,7 +26,7 @@
       %tbody
         - @report.report.with_indifferent_access[:bed_utilization].each do |project|
           - grade = GrdaWarehouse::Grades::Utilization.grade_from_score(project[:average_daily_percentage])
-          - p_type = ::HUD.project_type_brief(project[:project_type])
+          - p_type = ::HudUtility.project_type_brief(project[:project_type])
           - p_class = "client__service_type_#{p_type}"
           %tr
             %td= project[:name]
@@ -62,4 +62,3 @@
                 %span.text-muted
                   = link_to polymorphic_path(support_path, {key: key}), data: {loads_in_pjax_modal: true} do
                     (#{totals[:counts][measure]})
-

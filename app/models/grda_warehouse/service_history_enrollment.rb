@@ -409,11 +409,11 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   # 13: Rapid Re-Housing (PH)
   # 14: Coordinated Entry
   def service_type
-    ::HUD.project_type(computed_project_type)
+    ::HudUtility.project_type(computed_project_type)
   end
 
   def service_type_brief
-    ::HUD.project_type_brief(computed_project_type)
+    ::HudUtility.project_type_brief(computed_project_type)
   end
 
   def start_time

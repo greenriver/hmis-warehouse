@@ -42,19 +42,19 @@ module HmisDataQualityTool
         household_max_age: { title: 'Age of Oldest Household Member' },
         household_id: { title: 'Household ID' },
         head_of_household_count: { title: 'Count of Heads of Household' },
-        disabling_condition: { title: 'Disabling Condition', translator: ->(v) { "#{HUD.no_yes_reasons_for_missing_data(v)} (#{v})" } },
-        living_situation: { title: 'Living Situation', translator: ->(v) { "#{HUD.living_situation(v)} (#{v})" } },
-        relationship_to_hoh: { title: 'Relationship to Head of Household', translator: ->(v) { "#{HUD.relationship_to_hoh(v)} (#{v})" } },
+        disabling_condition: { title: 'Disabling Condition', translator: ->(v) { "#{HudUtility.no_yes_reasons_for_missing_data(v)} (#{v})" } },
+        living_situation: { title: 'Living Situation', translator: ->(v) { "#{HudUtility.living_situation(v)} (#{v})" } },
+        relationship_to_hoh: { title: 'Relationship to Head of Household', translator: ->(v) { "#{HudUtility.relationship_to_hoh(v)} (#{v})" } },
         coc_code: { title: 'CoC Code' },
-        destination: { title: 'Exit Destination', translator: ->(v) { "#{HUD.destination(v)} (#{v})" } },
+        destination: { title: 'Exit Destination', translator: ->(v) { "#{HudUtility.destination(v)} (#{v})" } },
         entry_date_entered_at: { title: 'Entry Date Added' },
         exit_date_entered_at: { title: 'Exit Date Added' },
         days_to_enter_entry_date: { title: 'Days to Add Entry Date' },
         days_to_enter_exit_date: { title: 'Days to Add Exit Date' },
         project_operating_start_date: { title: 'Project Operating Start Date' },
         project_operating_end_date: { title: 'Project Operating End Date' },
-        project_type: { title: 'Project Type', translator: ->(v) { "#{HUD.project_type(v)} (#{v})" } },
-        project_tracking_method: { title: 'Project Tracking Method', translator: ->(v) { "#{HUD.tracking_method(v)} (#{v})" } },
+        project_type: { title: 'Project Type', translator: ->(v) { "#{HudUtility.project_type(v)} (#{v})" } },
+        project_tracking_method: { title: 'Project Tracking Method', translator: ->(v) { "#{HudUtility.tracking_method(v)} (#{v})" } },
         lot: { title: 'Length of Time in Project' },
         days_since_last_service: { title: 'Days Since Last Service' },
         ch_details_expected: { title: 'Chronic related fields (3.917) expected?' },
@@ -75,22 +75,22 @@ module HmisDataQualityTool
         enrollment_coc: { title: 'Enrollment CoC Code' },
         has_disability: { title: 'At least one disability?' },
         days_between_entry_and_create: { title: 'Days between entry date and date added to HMIS' },
-        domestic_violence_victim_at_entry: { title: 'Survivor of domestic violence response at entry', translator: ->(v) { "#{HUD.no_yes_reasons_for_missing_data(v)} (#{v})" } },
-        income_from_any_source_at_entry: { title: 'Income from any source at entry', translator: ->(v) { "#{HUD.no_yes_reasons_for_missing_data(v)} (#{v})" } },
-        income_from_any_source_at_annual: { title: 'Income from any source at annual assessment', translator: ->(v) { "#{HUD.no_yes_reasons_for_missing_data(v)} (#{v})" } },
-        income_from_any_source_at_exit: { title: 'Income from any source at exit', translator: ->(v) { "#{HUD.no_yes_reasons_for_missing_data(v)} (#{v})" } },
+        domestic_violence_victim_at_entry: { title: 'Survivor of domestic violence response at entry', translator: ->(v) { "#{HudUtility.no_yes_reasons_for_missing_data(v)} (#{v})" } },
+        income_from_any_source_at_entry: { title: 'Income from any source at entry', translator: ->(v) { "#{HudUtility.no_yes_reasons_for_missing_data(v)} (#{v})" } },
+        income_from_any_source_at_annual: { title: 'Income from any source at annual assessment', translator: ->(v) { "#{HudUtility.no_yes_reasons_for_missing_data(v)} (#{v})" } },
+        income_from_any_source_at_exit: { title: 'Income from any source at exit', translator: ->(v) { "#{HudUtility.no_yes_reasons_for_missing_data(v)} (#{v})" } },
         cash_income_as_expected_at_entry: { title: 'Cash income reported as expected at entry' },
         cash_income_as_expected_at_annual: { title: 'Cash income reported as expected at annual assessment' },
         cash_income_as_expected_at_exit: { title: 'Cash income reported as expected at exit' },
-        ncb_from_any_source_at_entry: { title: 'Non-cash benefits from any source at entry', translator: ->(v) { "#{HUD.no_yes_reasons_for_missing_data(v)} (#{v})" } },
-        ncb_from_any_source_at_annual: { title: 'Non-cash benefits from any source at annual assessment', translator: ->(v) { "#{HUD.no_yes_reasons_for_missing_data(v)} (#{v})" } },
-        ncb_from_any_source_at_exit: { title: 'Non-cash benefits from any source at exit', translator: ->(v) { "#{HUD.no_yes_reasons_for_missing_data(v)} (#{v})" } },
+        ncb_from_any_source_at_entry: { title: 'Non-cash benefits from any source at entry', translator: ->(v) { "#{HudUtility.no_yes_reasons_for_missing_data(v)} (#{v})" } },
+        ncb_from_any_source_at_annual: { title: 'Non-cash benefits from any source at annual assessment', translator: ->(v) { "#{HudUtility.no_yes_reasons_for_missing_data(v)} (#{v})" } },
+        ncb_from_any_source_at_exit: { title: 'Non-cash benefits from any source at exit', translator: ->(v) { "#{HudUtility.no_yes_reasons_for_missing_data(v)} (#{v})" } },
         ncb_as_expected_at_entry: { title: 'Non-cash benefits as expected at entry' },
         ncb_as_expected_at_annual: { title: 'Non-cash benefits as expected at annual assessment' },
         ncb_as_expected_at_exit: { title: 'Non-cash benefits as expected at exit' },
-        insurance_from_any_source_at_entry: { title: 'Insurance from any source at entry', translator: ->(v) { "#{HUD.no_yes_reasons_for_missing_data(v)} (#{v})" } },
-        insurance_from_any_source_at_annual: { title: 'Insurance from any source at annual assessment', translator: ->(v) { "#{HUD.no_yes_reasons_for_missing_data(v)} (#{v})" } },
-        insurance_from_any_source_at_exit: { title: 'Insurance from any source at exit', translator: ->(v) { "#{HUD.no_yes_reasons_for_missing_data(v)} (#{v})" } },
+        insurance_from_any_source_at_entry: { title: 'Insurance from any source at entry', translator: ->(v) { "#{HudUtility.no_yes_reasons_for_missing_data(v)} (#{v})" } },
+        insurance_from_any_source_at_annual: { title: 'Insurance from any source at annual assessment', translator: ->(v) { "#{HudUtility.no_yes_reasons_for_missing_data(v)} (#{v})" } },
+        insurance_from_any_source_at_exit: { title: 'Insurance from any source at exit', translator: ->(v) { "#{HudUtility.no_yes_reasons_for_missing_data(v)} (#{v})" } },
         insurance_as_expected_at_entry: { title: 'Insurance as expected at entry' },
         insurance_as_expected_at_annual: { title: 'Insurance as expected at annual assessment' },
         insurance_as_expected_at_exit: { title: 'Insurance as expected at exit' },
@@ -477,7 +477,7 @@ module HmisDataQualityTool
           ],
           denominator: ->(_item) { true },
           limiter: ->(item) {
-            ! HUD.no_yes_reasons_for_missing_data_options.key?(item.disabling_condition)
+            ! HudUtility.no_yes_reasons_for_missing_data_options.key?(item.disabling_condition)
           },
         },
         hoh_validation_issues: {
@@ -489,7 +489,7 @@ module HmisDataQualityTool
           ],
           denominator: ->(_item) { true },
           limiter: ->(item) {
-            ! HUD.relationships_to_hoh.key?(item.relationship_to_hoh)
+            ! HudUtility.relationships_to_hoh.key?(item.relationship_to_hoh)
           },
         },
         living_situation_issues: {
@@ -505,7 +505,7 @@ module HmisDataQualityTool
             return false unless hoh_or_adult?(item)
             return false if item.living_situation.blank?
 
-            ! item.living_situation.in?(HUD.valid_prior_living_situations)
+            ! item.living_situation.in?(HudUtility.valid_prior_living_situations)
           },
         },
         exit_date_issues: {
@@ -537,7 +537,7 @@ module HmisDataQualityTool
             return false unless hoh_or_adult?(item)
             return false unless item.exit_date.present?
 
-            ! HUD.valid_destinations.key?(item.destination)
+            ! HudUtility.valid_destinations.key?(item.destination)
           },
         },
         unaccompanied_youth_issues: {
@@ -598,7 +598,7 @@ module HmisDataQualityTool
             # Must have a CoC Code
             return true if item.coc_code.blank?
             # Must be a known CoC
-            return true unless HUD.valid_coc?(item.coc_code)
+            return true unless HudUtility.valid_coc?(item.coc_code)
             # If the project doesn't have a CoC, then we don't know if the enrollment CoC is in the right place
             # so just ignore it
             return false if item.project_coc_codes.blank?

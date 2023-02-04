@@ -27,14 +27,14 @@
       .col-4
         = f.input :age_ranges, collection: @filter.available_age_ranges, required: false, input_html: { multiple: true, placeholder: 'Any Ages' }, label: 'Age Ranges', as: :select_two
       .col-4
-        = f.input :veteran_statuses, collection: HUD.no_yes_reasons_for_missing_data_options.invert, required: false, input_html: { multiple: true, placeholder: 'Any Status' }, label: 'Veteran Status', as: :select_two
+        = f.input :veteran_statuses, collection: HudUtility.no_yes_reasons_for_missing_data_options.invert, required: false, input_html: { multiple: true, placeholder: 'Any Status' }, label: 'Veteran Status', as: :select_two
     .row
       .col-4
-        = f.input :races, collection: HUD.races.invert, selected: @filter.races, required: false, input_html: {multiple: true, placeholder: 'Any Race'}, as: :select_two
+        = f.input :races, collection: HudUtility.races.invert, selected: @filter.races, required: false, input_html: {multiple: true, placeholder: 'Any Race'}, as: :select_two
       .col-4
-        = f.input :ethnicities, collection: HUD.ethnicities.invert, selected: @filter.ethnicities, required: false, input_html: {multiple: true, placeholder: 'Any Ethnicity'}, as: :select_two
+        = f.input :ethnicities, collection: HudUtility.ethnicities.invert, selected: @filter.ethnicities, required: false, input_html: {multiple: true, placeholder: 'Any Ethnicity'}, as: :select_two
       .col-4
-        = f.input :genders, collection: HUD.genders.invert, selected: @filter.genders, required: false, input_html: {multiple: true, placeholder: 'Any Gender'}, as: :select_two
+        = f.input :genders, collection: HudUtility.genders.invert, selected: @filter.genders, required: false, input_html: {multiple: true, placeholder: 'Any Gender'}, as: :select_two
 
     .row.mt-6
       .col

@@ -12,7 +12,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   include_context 'hmis base setup'
   let!(:c1) { create :hmis_hud_client, data_source: ds1, user: u1 }
-  let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, client: c1, project: p1, user: u1 }
+  let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, relationship_to_ho_h: 1, household_id: '1', user: u1 }
 
   let(:test_input) do
     {
@@ -118,7 +118,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           input
         end,
         {
-          'message' => 'Invalid TypeProvided for RecordType',
+          'fullMessage' => 'Type provided Invalid service type',
           'attribute' => 'typeProvided',
         },
       ],

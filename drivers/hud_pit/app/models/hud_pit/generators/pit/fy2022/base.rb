@@ -106,7 +106,7 @@ module HudPit::Generators::Pit::Fy2022
           # https://files.hudexchange.info/resources/documents/Reporting-Gender-for-the-PIT-Count.pdf
           binary_gender_code = source_client.gender_binary
           binary_gender_code = 4 if binary_gender_code == 6
-          pit_gender = HUD.gender(binary_gender_code)
+          pit_gender = HudUtility.gender(binary_gender_code)
           # Only count clients once (where one category is Multiple Races)
           pit_race = source_client.pit_race
           processed_source_clients << source_client.id

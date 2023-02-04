@@ -426,22 +426,22 @@ module GrdaWarehouse::WarehouseReports::Youth
 
     def d_one_b
       @d_one_b ||= get_client_ids(all_served_last_assessment.
-        where(client_gender: 1)) # HUD.gender male
+        where(client_gender: 1)) # HudUtility.gender male
     end
 
     def d_one_c
       @d_one_c ||= get_client_ids(all_served_last_assessment.
-          where(client_gender: 0)) # HUD.gender female
+          where(client_gender: 0)) # HudUtility.gender female
     end
 
     def d_one_d
       @d_one_d ||= get_client_ids(all_served_last_assessment.
-          where(client_gender: [2, 3])) # HUD.gender trans
+          where(client_gender: [2, 3])) # HudUtility.gender trans
     end
 
     def d_one_e
       @d_one_e ||= get_client_ids(all_served_last_assessment.
-          where(client_gender: 4)) # HUD.gender non-binary
+          where(client_gender: 4)) # HudUtility.gender non-binary
     end
 
     def d_two_a
@@ -476,7 +476,7 @@ module GrdaWarehouse::WarehouseReports::Youth
 
     def d_two_g
       @d_two_g ||= get_client_ids(all_served_last_assessment.
-          where(client_ethnicity: 1)) # HUD.ethnicity Hispanic/Latino
+          where(client_ethnicity: 1)) # HudUtility.ethnicity Hispanic/Latino
     end
 
     def d_two_h
@@ -619,25 +619,25 @@ module GrdaWarehouse::WarehouseReports::Youth
     def g_one_b
       @g_one_b ||= get_client_ids(all_served_last_assessment.
         joins(:youth_follow_ups).merge(transitioned_to_stabilized_housing_scope).
-        where(client_gender: 1)) # HUD.gender male
+        where(client_gender: 1)) # HudUtility.gender male
     end
 
     def g_one_c
       @g_one_c ||= get_client_ids(all_served_last_assessment.
         joins(:youth_follow_ups).merge(transitioned_to_stabilized_housing_scope).
-          where(client_gender: 0)) # HUD.gender female
+          where(client_gender: 0)) # HudUtility.gender female
     end
 
     def g_one_d
       @g_one_d ||= get_client_ids(all_served_last_assessment.
         joins(:youth_follow_ups).merge(transitioned_to_stabilized_housing_scope).
-          where(client_gender: [2, 3])) # HUD.gender trans
+          where(client_gender: [2, 3])) # HudUtility.gender trans
     end
 
     def g_one_e
       @g_one_e ||= get_client_ids(all_served_last_assessment.
         joins(:youth_follow_ups).merge(transitioned_to_stabilized_housing_scope).
-          where(client_gender: 4)) # HUD.gender non-binary
+          where(client_gender: 4)) # HudUtility.gender non-binary
     end
 
     def g_two_a
@@ -680,7 +680,7 @@ module GrdaWarehouse::WarehouseReports::Youth
       @g_two_g ||= get_client_ids(all_served_last_assessment.
         only_most_recent_by_client.
         joins(:youth_follow_ups).merge(transitioned_to_stabilized_housing_scope).
-          where(client_ethnicity: 1)) # HUD.ethnicity Hispanic/Latino
+          where(client_ethnicity: 1)) # HudUtility.ethnicity Hispanic/Latino
     end
 
     def g_three_b
@@ -701,25 +701,25 @@ module GrdaWarehouse::WarehouseReports::Youth
     def h_one_b
       @h_one_b ||= get_client_ids(all_served_last_assessment.
         joins(:youth_follow_ups).merge(follow_up_from_at_risk).
-        where(client_gender: 1)) # HUD.gender male
+        where(client_gender: 1)) # HudUtility.gender male
     end
 
     def h_one_c
       @h_one_c ||= get_client_ids(all_served_last_assessment.
         joins(:youth_follow_ups).merge(follow_up_from_at_risk).
-          where(client_gender: 0)) # HUD.gender female
+          where(client_gender: 0)) # HudUtility.gender female
     end
 
     def h_one_d
       @h_one_d ||= get_client_ids(all_served_last_assessment.
         joins(:youth_follow_ups).merge(follow_up_from_at_risk).
-          where(client_gender: [2, 3])) # HUD.gender trans
+          where(client_gender: [2, 3])) # HudUtility.gender trans
     end
 
     def h_one_e
       @h_one_e ||= get_client_ids(all_served_last_assessment.
         joins(:youth_follow_ups).merge(follow_up_from_at_risk).
-          where(client_gender: 4)) # HUD.gender non-binary
+          where(client_gender: 4)) # HudUtility.gender non-binary
     end
 
     def h_two_a
@@ -761,7 +761,7 @@ module GrdaWarehouse::WarehouseReports::Youth
     def h_two_g
       @h_two_g ||= get_client_ids(all_served_last_assessment.
         joins(:youth_follow_ups).merge(follow_up_from_at_risk).
-          where(client_ethnicity: 1)) # HUD.ethnicity Hispanic/Latino
+          where(client_ethnicity: 1)) # HudUtility.ethnicity Hispanic/Latino
     end
 
     def h_three_b

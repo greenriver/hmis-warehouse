@@ -974,7 +974,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
           denominator = exiting_clients.where(project_id: project.project_id).count
           count = exiting_clients.where(
             project_id: project.project_id,
-            destination_id: HUD.permanent_destinations,
+            destination_id: HudUtility.permanent_destinations,
           ).count
           percentage = begin
                          ((count / denominator.to_f) * 100).round
@@ -999,7 +999,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
           denominator = exiting_clients.where(project_id: project.project_id).count
           count = exiting_clients.where(
             project_id: project.project_id,
-            destination_id: HUD.permanent_destinations,
+            destination_id: HudUtility.permanent_destinations,
           ).count
           percentage = begin
                          ((count / denominator.to_f) * 100).round
@@ -1017,7 +1017,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
         if report_type == :project_group
           denominator = exiting_clients.count
           count = exiting_clients.where(
-            destination_id: HUD.permanent_destinations,
+            destination_id: HudUtility.permanent_destinations,
           ).count
           percentage = begin
                          ((count / denominator.to_f) * 100).round

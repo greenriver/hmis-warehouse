@@ -27,7 +27,7 @@
             %td= link_to_if can_view_clients?, client.LastName, appropriate_client_path(client)
             %td= link_to_if can_view_clients?, client.FirstName, appropriate_client_path(client)
             %th= client.age
-            %th= HUD.veteran_status(client.VeteranStatus)
+            %th= HudUtility.veteran_status(client.VeteranStatus)
             %td.text-center= client.days_homeless
             %td.text-center= client.days_homeless_in_last_three_years
   = render 'common/pagination_bottom', item_name: 'client'

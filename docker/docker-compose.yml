@@ -99,8 +99,10 @@ services:
       - "traefik.http.services.op.loadbalancer.server.port=3000"
     ports:
       - "3000"
+      - "9394"
     expose:
-      - 3000
+      - "3000"
+      - "9394"
     environment:
       <<: *env
       VIRTUAL_HOST: ${FQDN:-hmis-warehouse.dev.test}

@@ -24,10 +24,10 @@
       = f.input :client_dob, as: :date_picker, label: 'Youth Birthday'
       = f.input :staff_believes_youth_under_24, as: :radio_buttons, collection: @intake.yes_no, label: 'Staff believes youth is 24 or under?'
 
-      = f.input :client_gender, as: :radio_buttons, collection: HUD.genders.invert
+      = f.input :client_gender, as: :radio_buttons, collection: HudUtility.genders.invert
       = f.input :client_lgbtq, as: :radio_buttons, collection: @intake.yes_no_unknown_refused, label: 'Is the youth LGBTQ+?'
-      = f.input :client_race, as: :check_boxes, collection: HUD.races.invert
-      = f.input :client_ethnicity, as: :radio_buttons, collection: HUD.ethnicities.invert, label: 'Ethnicity'
+      = f.input :client_race, as: :check_boxes, collection: HudUtility.races.invert
+      = f.input :client_ethnicity, as: :radio_buttons, collection: HudUtility.ethnicities.invert, label: 'Ethnicity'
       = f.input :client_primary_language, as: :radio_buttons, collection: @intake.languages, input_html: { class: 'jLanguage' }, label: 'Primary language'
       .jOtherLanguage
         - if ! readonly

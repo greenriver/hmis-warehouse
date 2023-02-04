@@ -118,7 +118,7 @@ module Filters
       self.age_ranges = filters.dig(:age_ranges)&.reject(&:blank?)&.map(&:to_sym).presence || age_ranges
       self.genders = filters.dig(:genders)&.reject(&:blank?)&.map(&:to_i).presence || genders
       self.sub_population = filters.dig(:sub_population)&.to_sym || sub_population
-      self.races = filters.dig(:races)&.select { |race| HUD.races(multi_racial: true).keys.include?(race) }.presence || races
+      self.races = filters.dig(:races)&.select { |race| HudUtility.races(multi_racial: true).keys.include?(race) }.presence || races
       self.ethnicities = filters.dig(:ethnicities)&.reject(&:blank?)&.map(&:to_i).presence || ethnicities
       self.project_group_ids = filters.dig(:project_group_ids)&.reject(&:blank?)&.map(&:to_i).presence || project_group_ids
       self.prior_living_situation_ids = filters.dig(:prior_living_situation_ids)&.reject(&:blank?)&.map(&:to_i).presence || prior_living_situation_ids
@@ -572,7 +572,7 @@ module Filters
 
     # Select display options
     def project_type_options_for_select(id_limit: [])
-      options = HUD.project_types.invert
+      options = HudUtility.project_types.invert
       options = options.select { |_, id| id.in?(id_limit) } if id_limit.present?
       options.map do |text, id|
         [
@@ -634,7 +634,7 @@ module Filters
     end
 
     def available_project_type_numbers
-      ::HUD.project_types.invert
+      ::HudUtility.project_types.invert
     end
 
     def available_vispdat_limits
@@ -650,7 +650,7 @@ module Filters
     end
 
     def available_times_homeless_in_last_three_years
-      ::HUD.times_homeless_options
+      ::HudUtility.times_homeless_options
     end
 
     def chosen_times_homeless_in_last_three_years
@@ -697,6 +697,49 @@ module Filters
         sixty_two_to_sixty_four: '62 - 64',
         over_sixty_four: '65+',
       }.invert.freeze
+    end
+
+    def self.age_range(description)
+      case description
+      when :zero_to_four
+        0..4
+      when :five_to_ten
+        5..10
+      when :eleven_to_fourteen
+        11..14
+      when :fifteen_to_seventeen
+        15..17
+      when :under_eighteen
+        0..17
+      when :eighteen_to_twenty_four
+        18..24
+      when :twenty_five_to_twenty_nine
+        25..29
+      when :thirty_to_thirty_four
+        30..34
+      when :thirty_five_to_thirty_nine
+        35..39
+      when :thirty_to_thirty_nine
+        30..39
+      when :forty_to_forty_four
+        40..44
+      when :forty_five_to_forty_nine
+        45..49
+      when :forty_to_forty_nine
+        40..49
+      when :fifty_to_fifty_four
+        50..54
+      when :fifty_five_to_fifty_nine
+        55..59
+      when :sixty_to_sixty_one
+        60..61
+      when :sixty_two_to_sixty_four
+        62..64
+      when :over_sixty_one
+        62..110
+      when :over_sixty_four
+        65..110
+      end
     end
 
     def available_inactivity_days
@@ -961,19 +1004,19 @@ module Filters
 
     def chosen_races
       races.map do |race|
-        HUD.race(race, multi_racial: true)
+        HudUtility.race(race, multi_racial: true)
       end
     end
 
     def chosen_ethnicities
       ethnicities.map do |ethnicity|
-        HUD.ethnicity(ethnicity)
+        HudUtility.ethnicity(ethnicity)
       end
     end
 
     def chosen_genders
       genders.map do |gender|
-        HUD.gender(gender)
+        HudUtility.gender(gender)
       end
     end
 
@@ -1014,18 +1057,18 @@ module Filters
     def chosen_funding_sources
       return nil unless funder_ids.reject(&:blank?).present?
 
-      funder_ids.map { |code| "#{HUD.funding_source(code&.to_i)} (#{code})" }
+      funder_ids.map { |code| "#{HudUtility.funding_source(code&.to_i)} (#{code})" }
     end
 
     def chosen_veteran_statuses
       veteran_statuses.map do |veteran_status|
-        HUD.veteran_status(veteran_status)
+        HudUtility.veteran_status(veteran_status)
       end
     end
 
     def chosen_project_types
       project_type_ids.map do |type|
-        HUD.project_type(type)
+        HudUtility.project_type(type)
       end.uniq
     end
 
@@ -1139,25 +1182,25 @@ module Filters
     def available_prior_living_situations(grouped: false)
       if grouped
         {
-          'Homeless' => HUD.homeless_situation_options(as: :prior).map do |id, title|
+          'Homeless' => HudUtility.homeless_situation_options(as: :prior).map do |id, title|
             [
               "#{title} (#{id})",
               id,
             ]
           end.to_h,
-          'Institutional' => HUD.institutional_situation_options(as: :prior).map do |id, title|
+          'Institutional' => HudUtility.institutional_situation_options(as: :prior).map do |id, title|
             [
               "#{title} (#{id})",
               id,
             ]
           end.to_h,
-          'Temporary and Permanent' => HUD.temporary_and_permanent_housing_situation_options(as: :prior).map do |id, title|
+          'Temporary and Permanent' => HudUtility.temporary_and_permanent_housing_situation_options(as: :prior).map do |id, title|
             [
               "#{title} (#{id})",
               id,
             ]
           end.to_h,
-          'Other' => HUD.other_situation_options(as: :prior).map do |id, title|
+          'Other' => HudUtility.other_situation_options(as: :prior).map do |id, title|
             [
               "#{title} (#{id})",
               id,
@@ -1165,7 +1208,7 @@ module Filters
           end.to_h,
         }
       else
-        HUD.living_situations.map do |id, title|
+        HudUtility.living_situations.map do |id, title|
           [
             "#{title} (#{id})",
             id,
@@ -1175,34 +1218,34 @@ module Filters
     end
 
     def available_destinations(grouped: false)
-      return HUD.valid_destinations.invert unless grouped
+      return HudUtility.valid_destinations.invert unless grouped
 
       {
-        'Homeless' => HUD.homeless_situation_options(as: :destination).map do |id, title|
+        'Homeless' => HudUtility.homeless_situation_options(as: :destination).map do |id, title|
           [
             "#{title} (#{id})",
             id,
           ]
         end.to_h,
-        'Institutional' => HUD.institutional_situation_options(as: :destination).map do |id, title|
+        'Institutional' => HudUtility.institutional_situation_options(as: :destination).map do |id, title|
           [
             "#{title} (#{id})",
             id,
           ]
         end.to_h,
-        'Temporary' => HUD.temporary_destination_options.map do |id, title|
+        'Temporary' => HudUtility.temporary_destination_options.map do |id, title|
           [
             "#{title} (#{id})",
             id,
           ]
         end.to_h,
-        'Permanent' => HUD.permanent_destination_options.map do |id, title|
+        'Permanent' => HudUtility.permanent_destination_options.map do |id, title|
           [
             "#{title} (#{id})",
             id,
           ]
         end.to_h,
-        'Other' => HUD.other_situation_options(as: :destination).map do |id, title|
+        'Other' => HudUtility.other_situation_options(as: :destination).map do |id, title|
           [
             "#{title} (#{id})",
             id,
@@ -1212,19 +1255,19 @@ module Filters
     end
 
     def available_disabilities
-      HUD.disability_types.invert
+      HudUtility.disability_types.invert
     end
 
     def available_indefinite_disabilities
-      HUD.no_yes_reasons_for_missing_data_options.invert
+      HudUtility.no_yes_reasons_for_missing_data_options.invert
     end
 
     def available_dv_status
-      HUD.no_yes_reasons_for_missing_data_options.invert
+      HudUtility.no_yes_reasons_for_missing_data_options.invert
     end
 
     def available_currently_fleeing
-      HUD.no_yes_reasons_for_missing_data_options.invert
+      HudUtility.no_yes_reasons_for_missing_data_options.invert
     end
 
     def to_comparison

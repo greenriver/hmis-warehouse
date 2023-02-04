@@ -102,7 +102,7 @@ module HudDataQualityReport::Generators::Fy2022
         where(hoh_clause).
         where(
           a_t[:enrollment_coc].eq(nil).
-            or(a_t[:enrollment_coc].not_in(HUD.cocs.keys)),
+            or(a_t[:enrollment_coc].not_in(HudUtility.cocs.keys)),
         )
       answer.add_members(members)
       answer.update(summary: members.count)

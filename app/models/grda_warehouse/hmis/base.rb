@@ -4,12 +4,12 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module GrdaWarehouse::HMIS
+module GrdaWarehouse::Hmis
   class Base < GrdaWarehouse::Hud::Base
     self.abstract_class = true
     PREFIX = 'hmis_'
 
-    # use for association table names with models in GrdaWarehouse::HMIS
+    # use for association table names with models in GrdaWarehouse::Hmis
     def self.dub(name)
       self.table_name = PREFIX + name
     end

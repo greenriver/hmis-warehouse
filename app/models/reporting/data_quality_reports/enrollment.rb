@@ -301,7 +301,7 @@ module Reporting::DataQualityReports
     end
 
     def calculate_ssn_missing ssn:
-      ssn.blank? || ! ::HUD.valid_social?(ssn)
+      ssn.blank? || ! ::HudUtility.valid_social?(ssn)
     end
 
     def calculate_ssn_partial ssn_quality:

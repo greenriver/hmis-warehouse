@@ -443,7 +443,7 @@ module ReportGenerators::SystemPerformance::Fy2019
           [
             id,
             client_personal_ids[id].join(', '),
-            HUD.destination(destination),
+            HudUtility.destination(destination),
           ]
         end
       }
@@ -456,7 +456,7 @@ module ReportGenerators::SystemPerformance::Fy2019
           [
             id,
             client_personal_ids[id].join(', '),
-            HUD.destination(destination),
+            HudUtility.destination(destination),
           ]
         end
       }
@@ -550,7 +550,7 @@ module ReportGenerators::SystemPerformance::Fy2019
           [
             id,
             client_personal_ids[id].join(', '),
-            HUD.destination(destination),
+            HudUtility.destination(destination),
           ]
         end
       }
@@ -559,7 +559,7 @@ module ReportGenerators::SystemPerformance::Fy2019
       @answers[:sixc2_c3][:value] = permanent_leavers.size + stayers.size
       @support[:sixc2_c3][:support] = {
         headers: ['Client ID', 'Personal IDs', 'Destination'],
-        counts: permanent_leavers.map{|id, destination| [id, HUD.destination(destination)]},
+        counts: permanent_leavers.map{|id, destination| [id, HudUtility.destination(destination)]},
       }
       @answers[:sixc2_c4][:value] = ((@answers[:sixc2_c3][:value].to_f / @answers[:sixc2_c2][:value]) * 100).round(2)
       return @answers

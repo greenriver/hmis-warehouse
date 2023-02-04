@@ -18,7 +18,7 @@ gem 'activerecord-sqlserver-adapter'
 gem 'activerecord-import'
 gem 'order_as_specified'
 
-gem 'activerecord', '>= 6.1.6.1' # for CVE-2022-32224
+gem 'activerecord', '>= 6.1.7.1' # for CVE-2023-22796
 gem 'active_record_extended'
 gem 'active_median'
 
@@ -99,6 +99,15 @@ gem 'text'
 
 gem 'lograge'
 gem 'logstop'
+
+# Metrics
+gem 'yabeda-rails'
+gem 'yabeda-prometheus'
+gem 'yabeda-puma-plugin'
+gem 'yabeda-graphql'
+gem 'yabeda-http_requests'
+gem 'yabeda-activerecord'
+
 gem 'activerecord-session_store'
 gem 'attribute_normalizer'
 gem 'delayed_job'
@@ -165,6 +174,7 @@ gem 'dotenv-rails'
 
 gem 'net-sftp', require: false
 gem 'net-ssh', '~> 7', require: false
+gem 'net-http'
 gem 'redis-actionpack'
 
 # AWS SDK is needed for deployment and within the application
@@ -212,6 +222,11 @@ gem 'parallel'
 gem 'todo_or_die'
 gem 'reline', '~> 0.2'
 
+gem "business_time", "~> 0.10.0"
+gem "cable_ready", "~> 4.5"
+gem "graphql", "~> 2.0"
+gem "sentry-rails", "~> 5.5"
+
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
   gem 'byebug'
@@ -220,7 +235,6 @@ group :development, :test do
   gem 'brakeman', '~> 5.0.4', require: false
   gem 'rspec-rails', require: false
   gem 'factory_bot_rails'
-  gem 'guard-rspec', require: false
   gem 'vcr'
   gem 'webmock'
   # gem 'rb-readline'
@@ -283,11 +297,3 @@ end
 group :production, :development, :staging do
   gem 'tiny_tds'
 end
-
-gem "business_time", "~> 0.10.0"
-
-gem "cable_ready", "~> 4.5"
-
-gem "graphql", "~> 2.0"
-
-gem "sentry-rails", "~> 5.5"

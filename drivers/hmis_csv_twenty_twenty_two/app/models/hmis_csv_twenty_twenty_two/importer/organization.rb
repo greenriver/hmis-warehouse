@@ -50,7 +50,7 @@ module HmisCsvTwentyTwentyTwo::Importer
           },
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HUD.yes_no_missing_options.keys.map(&:to_s).freeze },
+            arguments: { valid_options: HudUtility.yes_no_missing_options.keys.map(&:to_s).freeze },
           },
         ],
       }

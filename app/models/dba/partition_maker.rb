@@ -1,6 +1,6 @@
 # https://www.postgresql.org/docs/current/ddl-partitioning.html#DDL-PARTITIONING-DECLARATIVE
 
-class DBA::PartitionMaker
+class Dba::PartitionMaker
   attr_accessor :base_class
   attr_accessor :klass
   attr_accessor :num_partitions

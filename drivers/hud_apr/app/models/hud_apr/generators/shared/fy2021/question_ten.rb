@@ -12,9 +12,9 @@ module HudApr::Generators::Shared::Fy2021
       {
         'Male' => [2, a_t[:gender_multi].eq('1')],
         'Female' => [3, a_t[:gender_multi].eq('0')],
-        'No Single Gender' => [4, a_t[:gender_multi].in(::HUD.no_single_gender_queries)],
-        'Questioning' => [5, a_t[:gender_multi].in(::HUD.questioning_gender_queries)],
-        'Transgender' => [6, a_t[:gender_multi].in(::HUD.transgender_gender_queries)],
+        'No Single Gender' => [4, a_t[:gender_multi].in(::HudUtility.no_single_gender_queries)],
+        'Questioning' => [5, a_t[:gender_multi].in(::HudUtility.questioning_gender_queries)],
+        'Transgender' => [6, a_t[:gender_multi].in(::HudUtility.transgender_gender_queries)],
         'Client Doesn\'t Know/Client Refused' => [7, a_t[:gender_multi].in(['8', '9'])],
         'Data Not Collected' => [8, a_t[:gender_multi].eq('99')],
         'Total' => [9, Arel.sql('1=1')],
