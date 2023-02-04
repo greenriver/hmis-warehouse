@@ -1,11 +1,11 @@
 # build/runtime artifacts from host OS
-node_modules/*
-tmp/*
-log/*
+node_modules/
+tmp/
+log/
 vendor/cache*
 public/packs*
-var/*
-coverage/*
+var/
+coverage/
 
 # Dev cruft
 *.swp
@@ -21,10 +21,6 @@ byebug_history
 untracked
 .bundle
 .github
+.git/
 tags
-shape_files/**/*.zip
-shape_files/**/*.xml
-shape_files/**/*.shp
-shape_files/**/*.prj
-shape_files/**/*.dbf
-shape_files/**/*.cpg
+shape_files/
