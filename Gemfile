@@ -1,7 +1,7 @@
 source 'https://rubygems.org'
 
 gem 'rails', '~> 6.1'
-gem 'rails_drivers'
+gem 'rails_drivers', github: 'greenriver/rails_drivers', branch: 'master'
 
 # bundle exec rake doc:rails generates the API under doc/api.
 gem 'sdoc', group: :doc
@@ -221,7 +221,7 @@ gem 'ansi'
 
 gem 'parallel'
 gem 'todo_or_die'
-gem 'reline', '~> 0.2'
+gem 'reline'
 
 gem "business_time", "~> 0.10.0"
 gem "cable_ready", "~> 4.5"

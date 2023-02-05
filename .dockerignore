@@ -23,4 +23,4 @@ untracked
 .github
 .git/
 tags
-shape_files/
+shape_files/*
