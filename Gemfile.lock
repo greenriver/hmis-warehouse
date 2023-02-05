@@ -811,7 +811,6 @@ GEM
     sentry-ruby (5.7.0)
       concurrent-ruby (~> 1.0, >= 1.0.2)
     set (1.0.1)
-    seven_zip_ruby (1.3.0)
     sexp_processor (4.15.3)
     shoulda (4.0.0)
       shoulda-context (~> 2.0)
@@ -1117,7 +1116,6 @@ DEPENDENCIES
   scenic
   sdoc
   sentry-rails (~> 5.5)
-  seven_zip_ruby
   shoulda
   simple_form
   slack-notifier
