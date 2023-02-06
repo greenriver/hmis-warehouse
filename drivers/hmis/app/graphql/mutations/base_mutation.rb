@@ -88,7 +88,7 @@ module Mutations
       if record.present?
         record.destroy
       else
-        errors << HmisErrors::CustomValidationError.new(field_name, :not_found) unless record.present?
+        errors << HmisErrors::CustomValidationError.new(field_name, :not_found)
       end
 
       {
