@@ -78,11 +78,9 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
     self.enrollment_id = WIP_ID
     save!(validate: false)
     self.wip = Hmis::Wip.create_with(date: assessment_date).find_or_create_by(
-      {
-        source: self,
-        enrollment_id: saved_enrollment_id,
-        client_id: client.id,
-      },
+      source: self,
+      enrollment_id: saved_enrollment_id,
+      client_id: client.id,
     )
 
     wip.update(date: assessment_date)
