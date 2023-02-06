@@ -36,7 +36,7 @@ module Types
     end
 
     def race_attrs
-      multi_field_attrs(race, race_map, :not_collected, :RaceNone)
+      multi_field_attrs(race, race_map, :data_not_collected, :RaceNone)
     end
 
     def to_params

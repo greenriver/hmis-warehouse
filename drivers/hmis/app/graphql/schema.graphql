@@ -2122,48 +2122,53 @@ enum Gender {
   """
   (8) Client doesn't know
   """
-  GENDER_CLIENT_DOESN_T_KNOW
+  CLIENT_DOESN_T_KNOW
 
   """
   (9) Client refused
   """
-  GENDER_CLIENT_REFUSED
+  CLIENT_REFUSED
 
   """
   (99) Data not collected
   """
-  GENDER_DATA_NOT_COLLECTED
+  DATA_NOT_COLLECTED
 
   """
   (0) Female
   """
-  GENDER_FEMALE
+  FEMALE
 
   """
   (1) Male
   """
-  GENDER_MALE
+  MALE
 
   """
   (4) A gender other than singularly female or male (e.g., non-binary, genderfluid, agender, culturally specific gender)
   """
-  GENDER_NO_SINGLE_GENDER
+  NO_SINGLE_GENDER
 
   """
   (6) Questioning
   """
-  GENDER_QUESTIONING
+  QUESTIONING
 
   """
   (5) Transgender
   """
-  GENDER_TRANSGENDER
+  TRANSGENDER
 }
 
 """
 2.03.4
 """
 enum GeographyType {
+  """
+  (99) Unknown / data not collected
+  """
+  DATA_NOT_COLLECTED
+
   """
   Invalid Value
   """
@@ -2178,11 +2183,6 @@ enum GeographyType {
   (2) Suburban
   """
   SUBURBAN
-
-  """
-  (99) Unknown / data not collected
-  """
-  UNKNOWN_DATA_NOT_COLLECTED
 
   """
   (1) Urban
@@ -3683,42 +3683,42 @@ enum Race {
   """
   (AmIndAKNative) American Indian, Alaska Native, or Indigenous
   """
-  RACE_AM_IND_AK_NATIVE
+  AM_IND_AK_NATIVE
 
   """
   (Asian) Asian or Asian American
   """
-  RACE_ASIAN
+  ASIAN
 
   """
   (BlackAfAmerican) Black, African American, or African
   """
-  RACE_BLACK_AF_AMERICAN
-
-  """
-  (NativeHIPacific) Native Hawaiian or Pacific Islander
-  """
-  RACE_NATIVE_HI_PACIFIC
-
-  """
-  (99) Data not collected
-  """
-  RACE_NOT_COLLECTED
-
-  """
-  (9) Client refused
-  """
-  RACE_REFUSED
+  BLACK_AF_AMERICAN
 
   """
   (8) Client doesn't know
   """
-  RACE_UNKNOWN
+  CLIENT_DOESN_T_KNOW
+
+  """
+  (9) Client refused
+  """
+  CLIENT_REFUSED
+
+  """
+  (99) Data not collected
+  """
+  DATA_NOT_COLLECTED
+
+  """
+  (NativeHIPacific) Native Hawaiian or Pacific Islander
+  """
+  NATIVE_HI_PACIFIC
 
   """
   (White) White
   """
-  RACE_WHITE
+  WHITE
 }
 
 """
