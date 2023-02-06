@@ -120,8 +120,6 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
       assessment_type: ::HudUtility.ignored_enum_value,
       assessment_level: ::HudUtility.ignored_enum_value,
       prioritization_status: ::HudUtility.ignored_enum_value,
-      date_created: DateTime.current,
-      date_updated: DateTime.current,
     )
 
     new_assessment.assessment_detail = Hmis::Form::AssessmentDetail.new(

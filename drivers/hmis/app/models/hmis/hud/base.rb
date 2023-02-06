@@ -13,6 +13,7 @@ class Hmis::Hud::Base < ::GrdaWarehouseBase
   attr_writer :required_fields
 
   before_validation :ensure_id
+  before_validation :ensure_timestamps
 
   scope :viewable_by, ->(_) do
     none
@@ -57,6 +58,11 @@ class Hmis::Hud::Base < ::GrdaWarehouseBase
     return if send(self.class.hud_key).present? # Don't overwrite the ID if we already have one
 
     assign_attributes(self.class.hud_key => self.class.generate_uuid)
+  end
+
+  private def ensure_timestamps
+    self.date_created ||= DateTime.current
+    self.date_updated ||= DateTime.current
   end
 
   # Let Rails update the HUD timestamps

@@ -172,6 +172,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       client = result.dig('data', 'createClient', 'client')
       errors = result.dig('data', 'createClient', 'errors')
       expect(client['id']).to be_present
+      expect(client['dateUpdated']).to be_present
+      expect(client['dateCreated']).to be_present
       expect(errors).to be_empty
     end
 

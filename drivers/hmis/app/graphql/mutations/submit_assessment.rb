@@ -34,7 +34,6 @@ module Mutations
       )
       assessment.assign_attributes(
         user_id: hmis_user.user_id,
-        date_updated: DateTime.current,
         assessment_date: assessment_date || assessment.assessment_date,
       )
 

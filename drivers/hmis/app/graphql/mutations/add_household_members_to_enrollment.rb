@@ -40,8 +40,6 @@ module Mutations
         enrollment = Hmis::Hud::Enrollment.new(
           data_source_id: hmis_user.data_source_id,
           user_id: hmis_user.user_id,
-          date_updated: DateTime.current,
-          date_created: DateTime.current,
           personal_id: client.personal_id,
           relationship_to_ho_h: household_member.relationship_to_ho_h,
           entry_date: start_date,

@@ -34,11 +34,7 @@ module Mutations
       # If user has already confirmed warnings, remove them
       errors = errors.reject(&:warning?) if confirmed
 
-      record.assign_attributes(
-        **input.to_params,
-        user_id: hmis_user.user_id,
-        date_updated: DateTime.current,
-      )
+      record.assign_attributes(**input.to_params, user_id: hmis_user.user_id)
 
       # Add ActiveRecord validation errors to error list
       errors += record.errors.errors unless record.valid?
@@ -63,8 +59,6 @@ module Mutations
         id_field_name => Hmis::Hud::Base.generate_uuid,
         data_source_id: hmis_user.data_source_id,
         user_id: hmis_user.user_id,
-        date_updated: DateTime.current,
-        date_created: DateTime.current,
       )
 
       errors = create_errors(record, input)
