@@ -165,7 +165,7 @@ module Clients
       }
 
       html = render_to_string('clients/releases/pre_populated')
-      Grover.new(html, grover_options).to_pdf
+      Grover.new(html, **grover_options).to_pdf
     end
 
     def file_source

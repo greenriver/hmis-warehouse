@@ -5,11 +5,11 @@
 ###
 
 require 'csv'
-require 'memoist'
+require 'memery'
 
 module ClaimsReporting
   class ReconcilationReport
-    extend Memoist
+    include Memery
 
     attr_accessor :month, :aco_ids
 

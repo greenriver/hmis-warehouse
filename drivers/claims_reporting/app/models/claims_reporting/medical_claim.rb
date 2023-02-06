@@ -4,10 +4,10 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-require 'memoist'
+require 'memery'
 module ClaimsReporting
   class MedicalClaim < HealthBase
-    extend Memoist
+    include Memery
 
     ANNUAL_WELLCARE_PROCEDURE_CODES = [(99381...99387).to_a, (99391...99397).to_a, 99461, 'G0438', 'G0439', 'T1015'].flatten.map(&:to_s).freeze
     ANNUAL_WELLCARE_DIAGNOSIS_CODE_PREFIXES = ['Z00', 'Z02', 'Z76'].freeze

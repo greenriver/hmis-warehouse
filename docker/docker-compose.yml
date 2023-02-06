@@ -38,6 +38,7 @@ x-backend: &backend
     - bundle_alpine:/bundle
     - /usr/local/share/ca-certificates:/usr/local/share/ca-certificates
     - /etc/ssl/certs:/etc/ssl/certs
+    - /vagrant/kiba:/app/var/kiba
 
 services:
   shell:

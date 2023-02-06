@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-require 'memoist'
+require 'memery'
 module GrdaWarehouse::CasProjectClientCalculator
   class Mdha < Default
     def value_for_cas_project_client(client:, column:)

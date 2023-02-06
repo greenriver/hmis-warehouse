@@ -7,7 +7,7 @@
 class GrdaWarehouse::DataSource < GrdaWarehouseBase
   include RailsDrivers::Extensions
   self.primary_key = :id
-  require 'memoist'
+  require 'memery'
   include ArelHelper
   acts_as_paranoid
   validates :name, presence: true
@@ -466,7 +466,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   end
 
   class << self
-    extend Memoist
+    include Memery
     def health_authoritative_id
       authoritative.where(short_name: 'Health')&.first&.id
     end
