@@ -10,6 +10,8 @@
       "type": "CHOICE",
       "component": "RADIO_BUTTONS",
       "link_id": "4.04.2",
+      "required": false,
+      "warn_if_empty": true,
       "text": "Covered by Health Insurance",
       "pick_list_reference": "NoYesReasonsForMissingData",
       "field_name": "insuranceFromAnySource",
@@ -166,7 +168,8 @@
           "link_id": "4.04.12A",
           "text": "Specify other source",
           "brief_text": "Other insurance",
-          "required": true,
+          "required": false,
+          "warn_if_empty": true,
           "field_name": "otherInsuranceIdentify",
           "enable_behavior": "ALL",
           "enable_when": [

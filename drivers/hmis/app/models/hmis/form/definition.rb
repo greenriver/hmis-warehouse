@@ -120,21 +120,20 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
       # Use item text as the "readable attribute" name to display on errors
       readable_attribute = item.brief_text || item.text
 
-      is_missing = value.blank?
-      is_dnc = value == 'DATA_NOT_COLLECTED'
+      is_missing = value.blank? || value == 'DATA_NOT_COLLECTED'
 
       # Validate required status
-      # TODO: confirm logic
       if item.required && is_missing
         errors.add item.field_name, :required, readable_attribute: readable_attribute
-      elsif (item.warn_if_empty || item.field_name || item.required) && is_dnc
+      elsif item.warn_if_empty && is_missing
         errors.add item.field_name, :data_not_collected, severity: :warning, readable_attribute: readable_attribute
       end
 
-      # TODO: Evaluate EnableWhen and null out any disabled fields
-      # TODO: Validate ValuBounds
-      # TODO: Add support for RequiredWhen and implement it
-      # How to handle bounds that rely on local values like projectStartDate and entryDate?
+      # TODO(#184404586): Evaluate EnableWhen and null out any disabled fields (currently we rely on the frontend implementation to be accurate)
+
+      # TODO(##184404620): Validate ValueBounds (How to handle bounds that rely on local values like projectStartDate and entryDate?)
+
+      # TODO(##184402463): Add support for RequiredWhen
     end
 
     errors.errors

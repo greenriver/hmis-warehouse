@@ -10,6 +10,8 @@
       "type": "CHOICE",
       "component": "RADIO_BUTTONS",
       "link_id": "4.03.2",
+      "required": false,
+      "warn_if_empty": true,
       "text": "Non-Cash Benefits from Any Source",
       "pick_list_reference": "NoYesReasonsForMissingData",
       "field_name": "benefitsFromAnySource",
@@ -118,7 +120,8 @@
           "link_id": "4.03.A",
           "text": "Specify other source",
           "brief_text": "Other benefits source",
-          "required": true,
+          "required": false,
+          "warn_if_empty": true,
           "field_name": "otherBenefitsSourceIdentify",
           "enable_behavior": "ALL",
           "enable_when": [

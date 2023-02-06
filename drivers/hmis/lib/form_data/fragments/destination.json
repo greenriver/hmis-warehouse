@@ -18,7 +18,9 @@
       "link_id": "3.12",
       "text": "Exit Destination",
       "pick_list_reference": "DESTINATION",
-      "field_name": "destination"
+      "field_name": "destination",
+      "required": false,
+      "warn_if_empty": true
     },
     {
       "type": "CHOICE",
@@ -30,7 +32,9 @@
         {
           "question": "3.12",
           "operator": "EQUAL",
-          "answer_code": "OTHER"
+          "answer_code": "OTHER",
+          "required": false,
+          "warn_if_empty": true
         }
       ]
     }

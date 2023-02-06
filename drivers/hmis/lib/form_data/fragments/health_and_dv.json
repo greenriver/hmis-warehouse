@@ -15,6 +15,8 @@
       "type": "CHOICE",
       "component": "RADIO_BUTTONS",
       "link_id": "4.11.2",
+      "required": false,
+      "warn_if_empty": true,
       "text": "Domestic Violence Victim/Survivor",
       "pick_list_reference": "NoYesReasonsForMissingData",
       "field_name": "domesticViolenceVictim"
@@ -22,6 +24,8 @@
     {
       "type": "CHOICE",
       "link_id": "4.11.A",
+      "required": false,
+      "warn_if_empty": true,
       "text": "When did the experience occur?",
       "brief_text": "When DV Occurred",
       "field_name": "whenOccurred",
@@ -40,6 +44,8 @@
       "type": "CHOICE",
       "component": "RADIO_BUTTONS",
       "link_id": "4.11.B",
+      "required": false,
+      "warn_if_empty": true,
       "text": "Are you currently fleeing?",
       "brief_text": "Currently Fleeing DV",
       "field_name": "currentlyFleeing",

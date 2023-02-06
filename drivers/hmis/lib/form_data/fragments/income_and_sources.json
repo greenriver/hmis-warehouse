@@ -10,6 +10,8 @@
       "type": "CHOICE",
       "component": "RADIO_BUTTONS",
       "link_id": "4.02.2",
+      "required": false,
+      "warn_if_empty": true,
       "text": "Income from Any Source",
       "pick_list_reference": "NoYesReasonsForMissingData",
       "field_name": "incomeFromAnySource",
@@ -736,7 +738,8 @@
           "link_id": "4.02.P",
           "text": "Specify other source",
           "brief_text": "Other income source",
-          "required": true,
+          "required": false,
+          "warn_if_empty": true,
           "enable_behavior": "ALL",
           "field_name": "otherIncomeSourceIdentify",
           "enable_when": [

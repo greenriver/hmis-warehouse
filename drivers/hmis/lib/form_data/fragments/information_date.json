@@ -10,6 +10,7 @@
       "text": "Date Collected",
       "field_name": "informationDate",
       "required": true,
+      "warn_if_empty": false,
       "assessment_date": true
     }
   ]
