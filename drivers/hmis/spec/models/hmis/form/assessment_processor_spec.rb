@@ -81,7 +81,7 @@ RSpec.describe Hmis::Form::AssessmentProcessor, type: :model do
     expect(disabilities.find_by(disability_type: 5).indefinite_and_impairs).to eq(1)
     # Developmental Disability
     expect(disabilities.find_by(disability_type: 6).disability_response).to eq(0)
-    expect(disabilities.find_by(disability_type: 6).indefinite_and_impairs).to eq(nil)
+    expect(disabilities.find_by(disability_type: 6).indefinite_and_impairs).to be_nil
     # Substance Use
     expect(disabilities.find_by(disability_type: 10).disability_response).to eq(3)
   end
@@ -139,7 +139,7 @@ RSpec.describe Hmis::Form::AssessmentProcessor, type: :model do
       assessment.assessment_detail.assessment_processor.run!
       assessment.save_not_in_progress
 
-      expect(assessment.enrollment.enrollment_cocs.first.coc_code).to eq(nil)
+      expect(assessment.enrollment.enrollment_cocs.first.coc_code).to be_nil
     end
 
     it 'adjusts the information dates as appropriate' do
@@ -158,6 +158,29 @@ RSpec.describe Hmis::Form::AssessmentProcessor, type: :model do
       assessment.save_not_in_progress
 
       expect(assessment.enrollment.enrollment_cocs.first.information_date).to eq(test_date)
+    end
+
+    it 'adds an exit record when appropriate' do
+      assessment = Hmis::Hud::Assessment.new_with_defaults(enrollment: e1, user: hmis_hud_user, form_definition: fd, assessment_date: Date.current)
+      assessment.assessment_detail.hud_values = {
+        'EnrollmentCoc.cocCode' => 'MA-507',
+      }
+
+      assessment.assessment_detail.assessment_processor.run!
+      assessment.save_not_in_progress
+
+      expect(assessment.enrollment.exit).to be_nil
+      expect(assessment.enrollment.exit_date).to be_nil
+
+      assessment.assessment_detail.hud_values = {
+        'Exit.destination' => '1',
+      }
+
+      assessment.assessment_detail.assessment_processor.run!
+      assessment.save_not_in_progress
+
+      expect(assessment.enrollment.exit).to be_present
+      expect(assessment.enrollment.exit.destination).to eq('1')
     end
   end
 end
