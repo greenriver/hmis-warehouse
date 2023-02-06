@@ -149,6 +149,10 @@ module UserConcern
       super(conditions)
     end
 
+    def timeout_time(session)
+      Time.current + (Devise.timeout_in - (Time.now.utc - session['last_request_at'].presence || 0).to_i)
+    end
+
     def future_expiration?
       expired_at.present? && expired_at > Time.current
     end
