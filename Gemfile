@@ -237,7 +237,7 @@ group :development, :test do
   gem 'factory_bot_rails'
   gem 'vcr'
   gem 'webmock'
-  gem "deprecation_toolkit"
+  gem 'deprecation_toolkit', require: false
 end
 
 group :development do
