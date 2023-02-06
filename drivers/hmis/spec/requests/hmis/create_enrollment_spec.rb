@@ -46,9 +46,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         mutation CreateEnrollment($input: CreateEnrollmentInput!) {
           createEnrollment(input: $input) {
             enrollments {
-              id
-              entryDate
-              inProgress
+              #{scalar_fields(Types::HmisSchema::Enrollment)}
               client {
                 id
               }

@@ -1,6 +1,8 @@
 class Hmis::Hud::Validators::ServiceValidator < Hmis::Hud::Validators::BaseValidator
   IGNORED = [
     :ExportID,
+    :DateCreated,
+    :DateUpdated,
     :TypeProvided,
     :RecordType,
   ].freeze
