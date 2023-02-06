@@ -48,6 +48,19 @@ module Types
     field :date_created, GraphQL::Types::ISO8601DateTime, null: true
     field :date_updated, GraphQL::Types::ISO8601DateTime, null: true
 
+    def id
+      # Concatenate disability IDs to create a unique id for the group
+      object.disabilities.map(&:id).join(':')
+    end
+
+    def date_created
+      object.disabilities.map(&:date_created).map(&:to_datetime).max
+    end
+
+    def date_updated
+      object.disabilities.map(&:date_updated).map(&:to_datetime).max
+    end
+
     def disabling_condition
       object.enrollment.disabling_condition || 99
     end

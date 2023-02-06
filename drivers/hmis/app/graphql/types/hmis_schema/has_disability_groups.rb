@@ -68,10 +68,6 @@ module Types
             OpenStruct.new(result_fields.zip(arr).to_h)
           end
 
-          # Concatenate disability IDs to create a unique "ID" for the DisabilityGroup
-          obj.id = obj.disabilities.map(&:id).join(':')
-          obj.date_updated = obj.disabilities.map(&:date_updated).map(&:to_datetime).max
-          obj.date_created = obj.disabilities.map(&:date_created).map(&:to_datetime).max
           obj
         end
       end
