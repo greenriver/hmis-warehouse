@@ -120,7 +120,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
       # Use item text as the "readable attribute" name to display on errors
       readable_attribute = item.brief_text || item.text
 
-      is_missing = value.nil?
+      is_missing = value.blank?
       is_dnc = value == 'DATA_NOT_COLLECTED'
 
       # Validate required status
@@ -164,7 +164,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   end
 
   private def definition_struct
-    @definition_struct ||= JSON.parse definition, object_class: OpenStruct
+    @definition_struct ||= Oj.load(definition, mode: :compat, object_class: OpenStruct)
   end
 
   # Hash { link_id => FormItem }
