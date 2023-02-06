@@ -317,6 +317,8 @@ GEM
     delayed_job_active_record (4.1.6)
       activerecord (>= 3.0, < 6.2)
       delayed_job (>= 3.0, < 5)
+    deprecation_toolkit (2.0.1)
+      activesupport (>= 5.2)
     derailed_benchmarks (2.1.1)
       benchmark-ips (~> 2)
       dead_end
@@ -1000,6 +1002,7 @@ DEPENDENCIES
   daemons
   delayed_job
   delayed_job_active_record
+  deprecation_toolkit
   derailed_benchmarks
   devise (~> 4)
   devise-pwned_password
