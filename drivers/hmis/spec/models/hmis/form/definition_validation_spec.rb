@@ -15,6 +15,7 @@ RSpec.describe Hmis::Form::Definition, type: :model do
   let(:entry_date) { Date.parse('2020-01-01') }
   let(:exit_date) { Date.parse('2024-01-01') }
   let(:default_args) { { entry_date: entry_date, exit_date: exit_date } }
+  let!(:factory_form_definition) { create :hmis_form_definition }
 
   describe 'find and validate assessment' do
     it 'should error if assessment date value is missing from hud_values' do
@@ -147,24 +148,20 @@ RSpec.describe Hmis::Form::Definition, type: :model do
     end
 
     it 'should error if required field is nil' do
-      definition = Hmis::Form::Definition.find_by(role: :UPDATE)
-      hud_values = {
-        **completed_hud_values_for_update,
-        "4.03.A": nil,
-      }
+      hud_values = { 'linkid-required': nil }
       expected_errors = [
         {
           type: :required,
           severity: :error,
-          readable_attribute: 'Other benefits source',
+          readable_attribute: 'The Required Field',
         },
       ]
-
-      errors = definition.validate_form_values(hud_values)
+      # Test using factory because actual forms don't have any required fields aside from assessment date
+      errors = factory_form_definition.validate_form_values(hud_values)
       expect(errors.map(&:to_h)).to match(expected_errors.map { |h| a_hash_including(**h) })
     end
 
-    it 'should return warnings for Data Not Collected items' do
+    it 'should return warnings for warn_if_empty items' do
       definition = Hmis::Form::Definition.find_by(role: :UPDATE)
       hud_values = {
         **completed_hud_values_for_update,
@@ -182,6 +179,24 @@ RSpec.describe Hmis::Form::Definition, type: :model do
           type: :data_not_collected,
           severity: :warning,
           readable_attribute: 'Currently Fleeing DV',
+        },
+      ]
+
+      errors = definition.validate_form_values(hud_values)
+      expect(errors.map(&:to_h)).to match(expected_errors.map { |h| a_hash_including(**h) })
+    end
+
+    it 'should warn if conditional warn_if_empty field is enabled' do
+      definition = Hmis::Form::Definition.find_by(role: :UPDATE)
+      hud_values = {
+        **completed_hud_values_for_update,
+        "4.03.A": nil,
+      }
+      expected_errors = [
+        {
+          type: :data_not_collected,
+          severity: :warning,
+          readable_attribute: 'Other benefits source',
         },
       ]
 
