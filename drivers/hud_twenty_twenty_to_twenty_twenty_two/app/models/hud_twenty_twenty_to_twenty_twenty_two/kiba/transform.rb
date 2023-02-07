@@ -9,14 +9,14 @@ module HudTwentyTwentyToTwentyTwentyTwo::Kiba::Transform
 
   def up(source_class, source_config, transforms, dest_class, dest_config)
     Kiba.parse do
-      source source_class, source_config
+      source(source_class, **source_config)
 
       transform(&:to_hash) # Make sure what the source returns is a hash
       transforms.each do |t|
         transform t
       end
 
-      destination dest_class, dest_config
+      destination(dest_class, **dest_config)
     end
   end
 end

@@ -4,12 +4,12 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-require 'memoist'
+require 'memery'
 module ClaimsReporting
   class EngagementReport
     include ActiveModel::Model
     include ArelHelper
-    extend Memoist
+    include Memery
     attr_reader :member_roster, :enrollment_roster, :medical_claims, :rx_claims, :claim_date_range
 
     DAYS_PER_YEAR = 365.2422
