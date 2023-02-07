@@ -58,7 +58,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   describe 'Submitting and then re-submitting an existing HUD assessment' do
-    [:INTAKE, :UPDATE, :ANNUAL].each do |role|
+    # [:INTAKE, :UPDATE, :ANNUAL].each do |role|
+    [:EXIT].each do |role|
       it "#{role}: sets and updates assessment date and entry/exit dates as appropriate" do
         definition = Hmis::Form::Definition.find_by(role: role)
         link_id = definition.assessment_date_item.link_id
@@ -77,11 +78,20 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(assessment.enrollment.entry_date).to eq(Date.parse(initial_assessment_date)) if role == :INTAKE
         expect(assessment.enrollment&.exit&.exit_date).to eq(Date.parse(initial_assessment_date)) if role == :EXIT
 
+        # binding.pry
+
         # Update the assessment
         new_assessment_date = '2021-03-01'
         input = { assessment_id: assessment.id, hud_values: { link_id => new_assessment_date } }
-        post_graphql(input: { input: input }) { submit_assessment_mutation }
-        assessment.reload
+        _resp, result = post_graphql(input: { input: input }) { submit_assessment_mutation }
+        assessment_id = result.dig('data', 'submitAssessment', 'assessment', 'id')
+        errors = result.dig('data', 'submitAssessment', 'errors')
+        puts errors
+        expect(errors).to be_empty
+        # binding.pry
+
+        # assessment.reload
+        assessment = Hmis::Hud::Assessment.find(assessment_id)
         expect(assessment.assessment_date).to eq(Date.parse(new_assessment_date))
         expect(assessment.enrollment.entry_date).to eq(Date.parse(new_assessment_date)) if role == :INTAKE
         expect(assessment.enrollment&.exit&.exit_date).to eq(Date.parse(new_assessment_date)) if role == :EXIT

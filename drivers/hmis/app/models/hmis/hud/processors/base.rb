@@ -16,6 +16,7 @@ class Hmis::Hud::Processors::Base
     else
       hud_type(field)&.value_for(value) || value # If the HUD type doesn't have a translator, fall back to the DB one
     end
+    # binding.pry if attribute_name == 'exit_date'
     @processor.send(factory_name).assign_attributes(attribute_name => attribute_value)
   end
 
