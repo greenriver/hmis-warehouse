@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class Hmis::Unit < HmisBase
+class Hmis::Unit < Hmis::HmisBase
   include ArelHelper
   self.table_name = :hmis_units
 
