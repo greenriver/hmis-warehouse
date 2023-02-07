@@ -180,7 +180,7 @@ RSpec.describe Hmis::Form::AssessmentProcessor, type: :model do
       assessment.save_not_in_progress
 
       expect(assessment.enrollment.exit).to be_present
-      expect(assessment.enrollment.exit.destination).to eq('1')
+      expect(assessment.enrollment.exit.destination).to eq(1)
     end
   end
 end
