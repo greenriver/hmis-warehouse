@@ -16129,6 +16129,116 @@ ALTER SEQUENCE public.lsa_rds_state_logs_id_seq OWNED BY public.lsa_rds_state_lo
 
 
 --
+-- Name: ma_monthly_performance_enrollments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.ma_monthly_performance_enrollments (
+    id bigint NOT NULL,
+    report_id bigint,
+    client_id bigint,
+    enrollment_id bigint,
+    project_id bigint,
+    project_coc_id bigint,
+    personal_id character varying,
+    city character varying,
+    coc_code character varying,
+    entry_date date NOT NULL,
+    exit_date date,
+    latest_for_client boolean,
+    chronically_homeless_at_entry boolean,
+    stay_length_in_days integer,
+    am_ind_ak_native boolean,
+    asian boolean,
+    black_af_american boolean,
+    native_hi_pacific boolean,
+    ethnicity boolean,
+    white boolean,
+    male boolean,
+    female boolean,
+    gender_other boolean,
+    transgender boolean,
+    questioning boolean,
+    no_single_gender boolean,
+    disabling_condition boolean,
+    reporting_age integer,
+    relationship_to_hoh integer,
+    household_id character varying,
+    household_type character varying,
+    household_members jsonb,
+    prior_living_situation integer,
+    months_homeless_past_three_years integer,
+    times_homeless_past_three_years integer,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone,
+    first_name character varying,
+    last_name character varying
+);
+
+
+--
+-- Name: ma_monthly_performance_enrollments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.ma_monthly_performance_enrollments_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: ma_monthly_performance_enrollments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.ma_monthly_performance_enrollments_id_seq OWNED BY public.ma_monthly_performance_enrollments.id;
+
+
+--
+-- Name: ma_monthly_performance_projects; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.ma_monthly_performance_projects (
+    id bigint NOT NULL,
+    report_id bigint,
+    project_id bigint,
+    project_coc_id bigint,
+    project_name character varying,
+    organization_name character varying,
+    coc_code character varying,
+    month_start date,
+    available_beds integer,
+    average_length_of_stay_in_days integer,
+    number_chronically_homeless_at_entry integer,
+    city character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone,
+    enrolled_client_count integer
+);
+
+
+--
+-- Name: ma_monthly_performance_projects_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.ma_monthly_performance_projects_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: ma_monthly_performance_projects_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.ma_monthly_performance_projects_id_seq OWNED BY public.ma_monthly_performance_projects.id;
+
+
+--
 -- Name: ma_yya_report_clients; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -17360,6 +17470,40 @@ CREATE SEQUENCE public.public_report_settings_id_seq
 --
 
 ALTER SEQUENCE public.public_report_settings_id_seq OWNED BY public.public_report_settings.id;
+
+
+--
+-- Name: recent_items; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.recent_items (
+    id bigint NOT NULL,
+    owner_type character varying NOT NULL,
+    owner_id bigint NOT NULL,
+    item_type character varying NOT NULL,
+    item_id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: recent_items_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.recent_items_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: recent_items_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.recent_items_id_seq OWNED BY public.recent_items.id;
 
 
 --
@@ -22516,6 +22660,20 @@ ALTER TABLE ONLY public.lsa_rds_state_logs ALTER COLUMN id SET DEFAULT nextval('
 
 
 --
+-- Name: ma_monthly_performance_enrollments id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ma_monthly_performance_enrollments ALTER COLUMN id SET DEFAULT nextval('public.ma_monthly_performance_enrollments_id_seq'::regclass);
+
+
+--
+-- Name: ma_monthly_performance_projects id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ma_monthly_performance_projects ALTER COLUMN id SET DEFAULT nextval('public.ma_monthly_performance_projects_id_seq'::regclass);
+
+
+--
 -- Name: ma_yya_report_clients id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -22653,6 +22811,13 @@ ALTER TABLE ONLY public.public_report_reports ALTER COLUMN id SET DEFAULT nextva
 --
 
 ALTER TABLE ONLY public.public_report_settings ALTER COLUMN id SET DEFAULT nextval('public.public_report_settings_id_seq'::regclass);
+
+
+--
+-- Name: recent_items id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.recent_items ALTER COLUMN id SET DEFAULT nextval('public.recent_items_id_seq'::regclass);
 
 
 --
@@ -25611,6 +25776,22 @@ ALTER TABLE ONLY public.lsa_rds_state_logs
 
 
 --
+-- Name: ma_monthly_performance_enrollments ma_monthly_performance_enrollments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ma_monthly_performance_enrollments
+    ADD CONSTRAINT ma_monthly_performance_enrollments_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: ma_monthly_performance_projects ma_monthly_performance_projects_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ma_monthly_performance_projects
+    ADD CONSTRAINT ma_monthly_performance_projects_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: ma_yya_report_clients ma_yya_report_clients_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -25768,6 +25949,14 @@ ALTER TABLE ONLY public.public_report_reports
 
 ALTER TABLE ONLY public.public_report_settings
     ADD CONSTRAINT public_report_settings_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: recent_items recent_items_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.recent_items
+    ADD CONSTRAINT recent_items_pkey PRIMARY KEY (id);
 
 
 --
@@ -26717,10 +26906,31 @@ CREATE INDEX exit_date_updated ON public."Exit" USING btree ("DateUpdated");
 
 
 --
+-- Name: exit_en_id_p_id_ds_id_ex_d; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX exit_en_id_p_id_ds_id_ex_d ON public."Exit" USING btree ("EnrollmentID", "PersonalID", data_source_id, "ExitDate");
+
+
+--
+-- Name: exit_en_id_p_id_ds_id_ex_d_undeleted; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX exit_en_id_p_id_ds_id_ex_d_undeleted ON public."Exit" USING btree ("EnrollmentID", "PersonalID", data_source_id, "ExitDate") WHERE ("DateDeleted" IS NULL);
+
+
+--
 -- Name: exit_export_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX exit_export_id ON public."Exit" USING btree ("ExportID");
+
+
+--
+-- Name: exit_p_id_ds_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX exit_p_id_ds_id ON public."Exit" USING btree ("PersonalID", data_source_id) WHERE ("DateDeleted" IS NULL);
 
 
 --
@@ -39835,6 +40045,13 @@ CREATE INDEX "index_Enrollment_on_ProjectID" ON public."Enrollment" USING btree 
 
 
 --
+-- Name: index_Enrollment_on_ProjectID_and_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_Enrollment_on_ProjectID_and_data_source_id" ON public."Enrollment" USING btree ("ProjectID", data_source_id) WHERE ("DateDeleted" IS NULL);
+
+
+--
 -- Name: index_Enrollment_on_data_source_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -39884,13 +40101,6 @@ CREATE INDEX "index_Exit_on_DateDeleted_and_data_source_id" ON public."Exit" USI
 
 
 --
--- Name: index_Exit_on_EnrollmentID; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "index_Exit_on_EnrollmentID" ON public."Exit" USING btree ("EnrollmentID");
-
-
---
 -- Name: index_Exit_on_ExitDate; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -39902,27 +40112,6 @@ CREATE INDEX "index_Exit_on_ExitDate" ON public."Exit" USING btree ("ExitDate");
 --
 
 CREATE UNIQUE INDEX "index_Exit_on_ExitID_and_data_source_id" ON public."Exit" USING btree ("ExitID", data_source_id);
-
-
---
--- Name: index_Exit_on_PersonalID; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "index_Exit_on_PersonalID" ON public."Exit" USING btree ("PersonalID");
-
-
---
--- Name: index_Exit_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "index_Exit_on_data_source_id" ON public."Exit" USING btree (data_source_id);
-
-
---
--- Name: index_Exit_on_data_source_id_and_PersonalID; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "index_Exit_on_data_source_id_and_PersonalID" ON public."Exit" USING btree (data_source_id, "PersonalID");
 
 
 --
@@ -43286,6 +43475,62 @@ CREATE INDEX index_lookups_yes_no_etcs_on_value ON public.lookups_yes_no_etcs US
 
 
 --
+-- Name: index_ma_monthly_performance_enrollments_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ma_monthly_performance_enrollments_on_client_id ON public.ma_monthly_performance_enrollments USING btree (client_id);
+
+
+--
+-- Name: index_ma_monthly_performance_enrollments_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ma_monthly_performance_enrollments_on_enrollment_id ON public.ma_monthly_performance_enrollments USING btree (enrollment_id);
+
+
+--
+-- Name: index_ma_monthly_performance_enrollments_on_project_coc_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ma_monthly_performance_enrollments_on_project_coc_id ON public.ma_monthly_performance_enrollments USING btree (project_coc_id);
+
+
+--
+-- Name: index_ma_monthly_performance_enrollments_on_project_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ma_monthly_performance_enrollments_on_project_id ON public.ma_monthly_performance_enrollments USING btree (project_id);
+
+
+--
+-- Name: index_ma_monthly_performance_enrollments_on_report_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ma_monthly_performance_enrollments_on_report_id ON public.ma_monthly_performance_enrollments USING btree (report_id);
+
+
+--
+-- Name: index_ma_monthly_performance_projects_on_project_coc_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ma_monthly_performance_projects_on_project_coc_id ON public.ma_monthly_performance_projects USING btree (project_coc_id);
+
+
+--
+-- Name: index_ma_monthly_performance_projects_on_project_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ma_monthly_performance_projects_on_project_id ON public.ma_monthly_performance_projects USING btree (project_id);
+
+
+--
+-- Name: index_ma_monthly_performance_projects_on_report_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ma_monthly_performance_projects_on_report_id ON public.ma_monthly_performance_projects USING btree (report_id);
+
+
+--
 -- Name: index_ma_yya_report_clients_on_client_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -43647,6 +43892,20 @@ CREATE INDEX index_public_report_reports_on_updated_at ON public.public_report_r
 --
 
 CREATE INDEX index_public_report_reports_on_user_id ON public.public_report_reports USING btree (user_id);
+
+
+--
+-- Name: index_recent_items_on_item; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_recent_items_on_item ON public.recent_items USING btree (item_type, item_id);
+
+
+--
+-- Name: index_recent_items_on_owner; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_recent_items_on_owner ON public.recent_items USING btree (owner_type, owner_id);
 
 
 --
@@ -50582,6 +50841,10 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230110174657'),
 ('20230112142317'),
 ('20230119123843'),
-('20230123010327');
+('20230123010327'),
+('20230124195245'),
+('20230127151606'),
+('20230127200801'),
+('20230207151644');
 
 

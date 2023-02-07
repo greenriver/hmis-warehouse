@@ -55,10 +55,11 @@ module GrdaWarehouse::WarehouseReports
       end.to_h
     end
 
-    private def clients_housed_scope
-      client_source.
+    private def clients_housed_ids
+      @clients_housed_ids ||= client_source.
         where(id: clients_with_permanent_exits.select(:id)).
-        or(client_source.where(id: clients_with_housed_enrollments.select(:id)))
+        or(client_source.where(id: clients_with_housed_enrollments.select(:id))).
+        pluck(:id)
     end
 
     private def client_housed_dates
@@ -129,17 +130,27 @@ module GrdaWarehouse::WarehouseReports
           entry.
           with_service_between(start_date: filter.last - 5.years, end_date: filter.last).
           where(she_t[:first_date_in_program].lt(filter.end)).
-          where(client_id: clients_housed_scope.select(:id)),
+          where(client_id: clients_housed_ids),
         ).
-        where(id: clients_housed_scope.select(:id))
+        where(id: clients_housed_ids)
+    end
+
+    private def source_client_ids_with_permanent_exits_in_range
+      GrdaWarehouse::Hud::Enrollment.with_permanent_exit(filter.range).joins(:client).pluck(c_t[:id])
+    end
+
+    private def source_client_ids_with_move_in_in_range
+      GrdaWarehouse::Hud::Enrollment.housed(filter.range).joins(:client).pluck(c_t[:id])
     end
 
     private def clients_with_permanent_exits
-      client_scope.merge(GrdaWarehouse::Hud::Enrollment.with_permanent_exit(filter.range))
+      client_scope.where(wc_t[:source_id].in(source_client_ids_with_permanent_exits_in_range)).
+        merge(GrdaWarehouse::Hud::Enrollment.with_permanent_exit(filter.range))
     end
 
     private def clients_with_housed_enrollments
-      client_scope.merge(GrdaWarehouse::Hud::Enrollment.housed(filter.range))
+      client_scope.where(wc_t[:source_id].in(source_client_ids_with_move_in_in_range)).
+        merge(GrdaWarehouse::Hud::Enrollment.housed(filter.range))
     end
 
     private def client_source
