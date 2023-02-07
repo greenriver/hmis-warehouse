@@ -3709,11 +3709,6 @@ enum RecordType {
   BED_NIGHT
 
   """
-  (300) C2 Moving On Assistance Provided
-  """
-  C2_MOVING_ON_ASSISTANCE_PROVIDED
-
-  """
   (12) Contact 12
   """
   CONTACT_12
@@ -3742,6 +3737,11 @@ enum RecordType {
   Invalid Value
   """
   INVALID
+
+  """
+  (300) Moving On Assistance
+  """
+  MOVING_ON_ASSISTANCE
 
   """
   (161) PATH referral
@@ -4227,31 +4227,6 @@ enum ServiceTypeProvided {
   BED_NIGHT__BED_NIGHT
 
   """
-  (2) Financial assistance for Moving On (e.g., security deposit, moving expenses)
-  """
-  C2_MOVING_ON_ASSISTANCE_PROVIDED__FINANCIAL_ASSISTANCE_FOR_MOVING_ON_E_G_SECURITY_DEPOSIT_MOVING_EXPENSES
-
-  """
-  (4) Housing referral/placement
-  """
-  C2_MOVING_ON_ASSISTANCE_PROVIDED__HOUSING_REFERRAL_PLACEMENT
-
-  """
-  (3) Non-financial assistance for Moving On (e.g., housing navigation, transition support)
-  """
-  C2_MOVING_ON_ASSISTANCE_PROVIDED__NON_FINANCIAL_ASSISTANCE_FOR_MOVING_ON_E_G_HOUSING_NAVIGATION_TRANSITION_SUPPORT
-
-  """
-  (5) Other
-  """
-  C2_MOVING_ON_ASSISTANCE_PROVIDED__OTHER
-
-  """
-  (1) Subsidized housing application assistance
-  """
-  C2_MOVING_ON_ASSISTANCE_PROVIDED__SUBSIDIZED_HOUSING_APPLICATION_ASSISTANCE
-
-  """
   (7) Mortgage assistance
   """
   HOPWA_FINANCIAL_ASSISTANCE__MORTGAGE_ASSISTANCE
@@ -4410,6 +4385,31 @@ enum ServiceTypeProvided {
   Invalid Value
   """
   INVALID
+
+  """
+  (2) Financial assistance for Moving On (e.g., security deposit, moving expenses)
+  """
+  MOVING_ON_ASSISTANCE__FINANCIAL_ASSISTANCE_FOR_MOVING_ON_E_G_SECURITY_DEPOSIT_MOVING_EXPENSES
+
+  """
+  (4) Housing referral/placement
+  """
+  MOVING_ON_ASSISTANCE__HOUSING_REFERRAL_PLACEMENT
+
+  """
+  (3) Non-financial assistance for Moving On (e.g., housing navigation, transition support)
+  """
+  MOVING_ON_ASSISTANCE__NON_FINANCIAL_ASSISTANCE_FOR_MOVING_ON_E_G_HOUSING_NAVIGATION_TRANSITION_SUPPORT
+
+  """
+  (5) Other
+  """
+  MOVING_ON_ASSISTANCE__OTHER
+
+  """
+  (1) Subsidized housing application assistance
+  """
+  MOVING_ON_ASSISTANCE__SUBSIDIZED_HOUSING_APPLICATION_ASSISTANCE
 
   """
   (1) Community mental health
