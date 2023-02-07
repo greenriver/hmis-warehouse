@@ -19,6 +19,7 @@ class Hmis::Form::AssessmentProcessor < ::GrdaWarehouseBase
   belongs_to :hiv_aids, class_name: 'Hmis::Hud::Disability', optional: true
   belongs_to :mental_health_disorder, class_name: 'Hmis::Hud::Disability', optional: true
   belongs_to :substance_use_disorder, class_name: 'Hmis::Hud::Disability', optional: true
+  belongs_to :exit, class_name: 'Hmis::Hud::Exit', optional: true
 
   validate :hmis_records_are_valid
 
@@ -73,6 +74,16 @@ class Hmis::Form::AssessmentProcessor < ::GrdaWarehouseBase
         project_id: enrollment_factory.project_id,
         **common_attributes,
       )
+  end
+
+  def exit_factory(create: true)
+    return exit if exit.present? || !create
+
+    self.exit = enrollment_factory.build_exit(
+      personal_id: enrollment_factory.client.personal_id,
+      user_id: assessment_detail.assessment.user_id,
+      exit_date: assessment_detail.assessment.assessment_date,
+    )
   end
 
   def health_and_dv_factory(create: true)
@@ -164,6 +175,7 @@ class Hmis::Form::AssessmentProcessor < ::GrdaWarehouseBase
       EnrollmentCoc: Hmis::Hud::Processors::EnrollmentCocProcessor,
       HealthAndDv: Hmis::Hud::Processors::HealthAndDvProcessor,
       IncomeBenefit: Hmis::Hud::Processors::IncomeBenefitProcessor,
+      Exit: Hmis::Hud::Processors::ExitProcessor,
     }.freeze
   end
 
@@ -179,6 +191,7 @@ class Hmis::Form::AssessmentProcessor < ::GrdaWarehouseBase
       hiv_aids_factory: ->(attribute_name) { translate_disability_field('hivAids', attribute_name) },
       mental_health_disorder_factory: ->(attribute_name) { translate_disability_field('mentalHealthDisorder', attribute_name) },
       substance_use_disorder_factory: ->(attribute_name) { translate_disability_field('substanceUseDisorder', attribute_name) },
+      exit_factory: ->(attribute_name) { translate_field(attribute_name) },
     }.each do |factory_method, transformer|
       record = send(factory_method, create: false)
       next unless record.present?
