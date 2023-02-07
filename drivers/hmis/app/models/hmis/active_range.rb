@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class Hmis::ActiveRange < ::GrdaWarehouseBase
+class Hmis::ActiveRange < HmisBase
   self.table_name = :hmis_active_ranges
   belongs_to :entity, polymorphic: true, optional: true
 

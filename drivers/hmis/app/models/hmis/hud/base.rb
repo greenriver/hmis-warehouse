@@ -8,6 +8,7 @@ class Hmis::Hud::Base < ::GrdaWarehouseBase
   self.abstract_class = true
 
   acts_as_paranoid(column: :DateDeleted)
+  has_paper_trail # Track changes made to HUD objects via PaperTrail
 
   attr_writer :skip_validations
   attr_writer :required_fields
