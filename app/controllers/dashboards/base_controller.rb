@@ -101,7 +101,7 @@ module Dashboards
       grover_options[:executablePath] = ENV['CHROMIUM_PATH'] if ENV['CHROMIUM_PATH']
 
       html = render_to_string('dashboards/base/index')
-      Grover.new(html, grover_options).to_pdf
+      Grover.new(html, **grover_options).to_pdf
     end
 
     def describe_computations

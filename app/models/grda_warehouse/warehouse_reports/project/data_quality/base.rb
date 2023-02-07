@@ -4,13 +4,13 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-require 'memoist'
+require 'memery'
 module GrdaWarehouse::WarehouseReports::Project::DataQuality
   class Base < GrdaWarehouseBase
     include ApplicationHelper
     include ArelHelper
     include NotifierConfig
-    extend Memoist
+    include Memery
     self.table_name = :project_data_quality
 
     belongs_to :project, class_name: 'GrdaWarehouse::Hud::Project', optional: true

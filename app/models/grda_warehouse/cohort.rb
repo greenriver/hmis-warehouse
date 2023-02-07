@@ -4,13 +4,13 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-require 'memoist'
+require 'memery'
 
 module GrdaWarehouse
   class Cohort < GrdaWarehouseBase
     include ArelHelper
     include AccessGroups
-    extend Memoist
+    include Memery
 
     acts_as_paranoid
     validates_presence_of :name

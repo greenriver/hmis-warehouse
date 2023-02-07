@@ -309,7 +309,7 @@ module GrdaWarehouse
     end
 
     class << self
-      extend Memoist
+      include Memery
       def dates_in_enrollment_between(enrollment, start_date, end_date)
         enrollment.service_history_services.
           service_between(start_date: start_date, end_date: end_date).

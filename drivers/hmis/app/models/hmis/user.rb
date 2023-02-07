@@ -9,7 +9,7 @@
 # u = Hmis::User.first; u.hmis_data_source_id = 3
 # u.user_hmis_data_sources_roles.create(role: r, data_source_id: u.hmis_data_source_id)
 # u.can_view_full_ssn?
-require 'memoist'
+require 'memery'
 class Hmis::User < ApplicationRecord
   include UserConcern
   include HasRecentItems

@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-require 'memoist'
+require 'memery'
 
 class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
   VERSION = 3
@@ -12,7 +12,7 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
 
   attr_reader :start_date, :end_date, :project_type, :non_overlapping
 
-  extend Memoist
+  include Memery
 
   NON_OVERLAPPING_PROJECT_TYPE = 'non_overlapping'.freeze
   def initialize(coc_code_1:, coc_code_2:, start_date:, end_date:, project_type: nil)

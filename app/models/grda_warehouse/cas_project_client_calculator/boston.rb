@@ -4,10 +4,10 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-require 'memoist'
+require 'memery'
 module GrdaWarehouse::CasProjectClientCalculator
   class Boston < Default
-    extend Memoist
+    include Memery
     # A hook/wrapper to enable easily overriding how we get data for a given project client column
     # To use this efficiently, you'll probably want to preload a handful of data, see push_clients_to_cas.rb
     def value_for_cas_project_client(client:, column:)

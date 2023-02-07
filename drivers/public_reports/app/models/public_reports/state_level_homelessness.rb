@@ -5,13 +5,13 @@
 ###
 
 # require 'get_process_mem'
-require 'memoist'
+require 'memery'
 module PublicReports
   class StateLevelHomelessness < ::PublicReports::Report
     include ActionView::Helpers::TextHelper
     include ActionView::Helpers::NumberHelper
     include GrdaWarehouse::UsCensusApi::Aggregates
-    extend Memoist
+    include Memery
     acts_as_paranoid
 
     MIN_THRESHOLD = 11

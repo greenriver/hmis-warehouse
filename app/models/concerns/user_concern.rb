@@ -551,7 +551,7 @@ module UserConcern
     end
 
     class << self
-      extend Memoist
+      include Memery
       def group_associations
         {
           data_sources: GrdaWarehouse::DataSource,
