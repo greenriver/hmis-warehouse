@@ -5,7 +5,6 @@ module Mutations
     argument :input, Types::HmisSchema::AssessmentInput, required: true
 
     field :assessment, Types::HmisSchema::Assessment, null: true
-    field :errors, [Types::HmisSchema::ValidationError], null: false, resolver: Resolvers::ValidationErrors
 
     def resolve(input:)
       assessment, errors = input.find_or_create_assessment

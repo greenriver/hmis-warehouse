@@ -5,7 +5,6 @@ module Mutations
     argument :name, String, required: false
 
     field :units, [Types::HmisSchema::Unit], null: false
-    field :errors, [Types::HmisSchema::ValidationError], null: false, resolver: Resolvers::ValidationErrors
 
     def resolve(inventory_id:, unit_ids:, name:)
       inventory = Hmis::Hud::Inventory.editable_by(current_user).find_by(id: inventory_id)

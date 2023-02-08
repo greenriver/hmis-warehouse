@@ -4,7 +4,6 @@ module Mutations
     argument :client_id, ID, required: true
 
     field :enrollment, Types::HmisSchema::Enrollment, null: true
-    field :errors, [Types::HmisSchema::ValidationError], null: false, resolver: Resolvers::ValidationErrors
 
     def resolve(household_id:, client_id:)
       errors = []

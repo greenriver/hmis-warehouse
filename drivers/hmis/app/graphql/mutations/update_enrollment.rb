@@ -5,7 +5,6 @@ module Mutations
     argument :relationship_to_ho_h, Types::HmisSchema::Enums::Hud::RelationshipToHoH, required: false
 
     field :enrollment, Types::HmisSchema::Enrollment, null: true
-    field :errors, [Types::HmisSchema::ValidationError], null: false, resolver: Resolvers::ValidationErrors
 
     def resolve(id:, entry_date: nil, relationship_to_ho_h: nil)
       errors = []

@@ -11,6 +11,8 @@ module Mutations
     input_object_class Types::BaseInputObject
     object_class Types::BaseObject
 
+    field :errors, [Types::HmisSchema::ValidationError], null: false, resolver: Resolvers::ValidationErrors
+
     def current_user
       context[:current_user]
     end

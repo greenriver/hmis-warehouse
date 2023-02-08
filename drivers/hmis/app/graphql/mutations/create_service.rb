@@ -3,7 +3,6 @@ module Mutations
     argument :input, Types::HmisSchema::ServiceInput, required: true
 
     field :service, Types::HmisSchema::Service, null: true
-    field :errors, [Types::HmisSchema::ValidationError], null: false, resolver: Resolvers::ValidationErrors
 
     def validate_input(input)
       errors = []

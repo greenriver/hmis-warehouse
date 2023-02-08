@@ -5,7 +5,6 @@ module Mutations
     argument :household_members, [Types::HmisSchema::EnrollmentHouseholdMemberInput], required: true
 
     field :enrollments, [Types::HmisSchema::Enrollment], null: true
-    field :errors, [Types::HmisSchema::ValidationError], null: false, resolver: Resolvers::ValidationErrors
 
     def validate_input(household_id:, start_date:, household_members:)
       errors = HmisErrors::Errors.new

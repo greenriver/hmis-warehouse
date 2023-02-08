@@ -3,7 +3,6 @@ module Mutations
     argument :input, Types::HmisSchema::InventoryInput, required: true
 
     field :inventory, Types::HmisSchema::Inventory, null: true
-    field :errors, [Types::HmisSchema::ValidationError], null: false, resolver: Resolvers::ValidationErrors
 
     def resolve(input:)
       default_create_record(
