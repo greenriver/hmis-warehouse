@@ -1019,15 +1019,12 @@ module GrdaWarehouse::Hud
 
     def self.revoke_expired_consent
       if release_duration.in?(['One Year', 'Two Years'])
-        clients_with_consent = where.not(consent_form_signed_on: nil)
-        clients_with_consent.each do |client|
-          next unless client.consent_form_signed_on < consent_validity_period.ago
-
-          client.update_columns(
+        # This doesn't trigger callbacks (e.g., papertrail)
+        where(c_t[:consent_form_signed_on].lt(consent_validity_period.ago)).
+          update_all(
             housing_release_status: nil,
             consented_coc_codes: [],
           )
-        end
       elsif release_duration == 'Use Expiration Date'
         destination.where(
           arel_table[:consent_expires_on].lt(Date.current),
