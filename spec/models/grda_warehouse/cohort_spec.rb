@@ -16,6 +16,12 @@ RSpec.describe GrdaWarehouse::Cohort, type: :model do
   let(:cohort_client) { create :cohort_client, cohort: cohort, client: client }
   let(:adjusted_days_homeless) { build :adjusted_days_homeless, cohort: cohort }
   let(:rank) { build :rank, cohort: cohort }
+
+  before(:each) do
+    user.add_viewable(cohort)
+    admin.add_viewable(cohort)
+  end
+
   describe 'when a user with no roles accesses a cohort column' do
     it 'display_as_editable? should always return false' do
       expect(adjusted_days_homeless.display_as_editable?(user, cohort_client)).to be_falsey

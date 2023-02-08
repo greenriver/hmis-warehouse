@@ -10,9 +10,8 @@ module GrdaWarehouse::ClientNotes
       'Cohort Note'
     end
 
-    # only destroyable by admins for now
     def destroyable_by(user)
-      user.can_edit_cohort_clients? || user.can_manage_cohorts? # || user_id == user.id
+      user.can_manage_cohort_data? && user.can_participate_in_cohorts?
     end
   end
 end
