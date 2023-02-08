@@ -20,6 +20,14 @@ GIT
   specs:
     pg_fixtures (0.1.0)
 
+GIT
+  remote: https://github.com/greenriver/rails_drivers.git
+  revision: 9ae472566aab064be43dbc355d4b5bb611c6d360
+  branch: master
+  specs:
+    rails_drivers (1.2.0)
+      rails (>= 5.2)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -668,8 +676,6 @@ GEM
       ruby-graphviz (~> 1.2)
     rails-html-sanitizer (1.5.0)
       loofah (~> 2.19, >= 2.19.1)
-    rails_drivers (1.2.0)
-      rails (>= 5.2)
     railties (6.1.7.1)
       actionpack (= 6.1.7.1)
       activesupport (= 6.1.7.1)
@@ -1080,7 +1086,7 @@ DEPENDENCIES
   rails-controller-testing
   rails-erd
   rails-html-sanitizer (>= 1.4.4)
-  rails_drivers
+  rails_drivers!
   ransack
   redcarpet
   redis-actionpack
