@@ -23,5 +23,9 @@ untracked
 .github
 .git/
 tags
-shape_files/*
-!shape_files/*.s3
+shape_files/**/*.zip
+shape_files/**/*.xml
+shape_files/**/*.shp
+shape_files/**/*.prj
+shape_files/**/*.dbf
+shape_files/**/*.cpg
