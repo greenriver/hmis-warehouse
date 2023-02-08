@@ -25,7 +25,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     {
       enrollment_id: e1.id,
       form_definition_id: fd1.id,
-      values: { 'key' => 'value' },
+      values: { 'linkid-date' => '2023-02-01' },
       hud_values: { 'linkid-date' => '2023-02-01' },
     }
   end
@@ -91,7 +91,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       new_information_date = '2024-01-01'
       input = {
         assessment_id: @assessment.id,
-        values: {},
+        values: { 'linkid-date' => '2023-02-01' },
         hud_values: { 'linkid-date' => new_information_date },
       }
       response, result = post_graphql(input: { input: input }) { mutation }
@@ -139,7 +139,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       new_information_date = '2024-01-01'
       input = {
         assessment_id: @assessment.id,
-        values: {},
+        values: { 'linkid-date' => new_information_date },
         hud_values: { 'linkid-date' => new_information_date },
       }
       response, result = post_graphql(input: { input: input }) { mutation }
@@ -168,8 +168,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       new_information_date = '2026-01-01'
       input = {
         assessment_id: @assessment.id,
-        values: { 'someKey' => 'someValue' },
-        hud_values: { 'linkid-date' => new_information_date, 'linkid-choice': 'DATA_NOT_COLLECTED' },
+        values: { 'linkid-date' => new_information_date, 'linkid-choice' => nil },
+        hud_values: { 'linkid-date' => new_information_date, 'linkid-choice' => 'DATA_NOT_COLLECTED' },
       }
       response, result = post_graphql(input: { input: input }) { mutation }
       assessment = result.dig('data', 'submitAssessment', 'assessment')
@@ -200,10 +200,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       [
         'should return error if a required field is missing',
         ->(input) {
-          input.merge(hud_values: {
-                        'linkid-date' => '2024-02-01',
-                        'linkid-required': nil,
-                      })
+          input.merge(
+            hud_values: { 'linkid-date' => '2024-02-01', 'linkid-required' => nil },
+            values: { 'linkid-date' => '2024-02-01', 'linkid-required' => nil },
+          )
         },
         {
           'fullMessage' => 'The Required Field must exist',
@@ -216,10 +216,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       [
         'should return warning for data not collected',
         ->(input) {
-          input.merge(hud_values: {
-                        'linkid-date' => '2024-02-01',
-                        'linkid-choice': 'DATA_NOT_COLLECTED',
-                      })
+          input.merge(
+            hud_values: { 'linkid-date' => '2024-02-01', 'linkid-choice': 'DATA_NOT_COLLECTED' },
+            values: { 'linkid-date' => '2024-02-01', 'linkid-choice' => nil },
+          )
         },
         {
           'fullMessage' => 'Choice field is empty',
