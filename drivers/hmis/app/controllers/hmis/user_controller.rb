@@ -5,7 +5,6 @@
 ###
 
 class Hmis::UserController < Hmis::BaseController
-  skip_before_action :verify_authenticity_token, only: [:index]
   skip_before_action :authenticate_user!, only: [:index]
   prepend_before_action :skip_timeout, only: [:index]
   before_action :clear_etag, only: [:index]
