@@ -5,10 +5,10 @@ module Mutations
     argument :household_members, [Types::HmisSchema::EnrollmentHouseholdMemberInput], required: true
 
     field :enrollments, [Types::HmisSchema::Enrollment], null: true
-    field :errors, [Types::HmisSchema::ValidationError], null: false
+    field :errors, [Types::HmisSchema::ValidationError], null: false, resolver: Resolvers::ValidationErrors
 
     def validate_input(household_id:, start_date:, household_members:)
-      errors = HmisErrors::CustomValidationErrors.new
+      errors = HmisErrors::Errors.new
       errors.add :start_date, :out_of_range, message: 'cannot be in the future', readable_attribute: 'Entry date' if Date.parse(start_date) > Date.today
 
       has_enrollment = Hmis::Hud::Enrollment.editable_by(current_user).exists?(household_id: household_id)
@@ -18,14 +18,13 @@ module Mutations
 
       errors.add :household_members, :invalid, full_message: 'Enrollment already has a Head of Household designated' if has_hoh_enrollment && household_members.find { |hm| hm.relationship_to_ho_h == 1 }
 
-      errors.errors
+      errors
     end
 
     def resolve(household_id:, start_date:, household_members:)
       user = current_user
       errors = validate_input(household_id: household_id, start_date: start_date, household_members: household_members)
-
-      return { enrollments: [], errors: errors } if errors.any?
+      return { errors: errors } if errors.any?
 
       existing_enrollment = Hmis::Hud::Enrollment.editable_by(user).find_by(household_id: household_id)
       lookup = Hmis::Hud::Client.where(id: household_members.map(&:id)).index_by(&:id)
@@ -52,13 +51,17 @@ module Mutations
         enrollment
       end
 
+      errors = []
       enrollments.each(&:valid?).each do |enrollment|
         errors += enrollment.errors.errors unless enrollment.errors.empty?
       end
+      return { errors: errors } if errors.any?
+
+      enrollments.each(&:save_in_progress)
 
       {
         enrollments: enrollments,
-        errors: errors,
+        errors: [],
       }
     end
   end

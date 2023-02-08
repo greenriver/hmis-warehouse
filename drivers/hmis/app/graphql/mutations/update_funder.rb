@@ -4,7 +4,7 @@ module Mutations
     argument :input, Types::HmisSchema::FunderInput, required: true
 
     field :funder, Types::HmisSchema::Funder, null: true
-    field :errors, [Types::HmisSchema::ValidationError], null: false
+    field :errors, [Types::HmisSchema::ValidationError], null: false, resolver: Resolvers::ValidationErrors
 
     def resolve(id:, input:)
       record = Hmis::Hud::Funder.editable_by(current_user).find_by(id: id)

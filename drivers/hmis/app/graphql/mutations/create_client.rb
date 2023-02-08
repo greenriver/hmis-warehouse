@@ -3,7 +3,7 @@ module Mutations
     argument :input, Types::HmisSchema::ClientInput, required: true
 
     field :client, Types::HmisSchema::Client, null: true
-    field :errors, [Types::HmisSchema::ValidationError], null: false
+    field :errors, [Types::HmisSchema::ValidationError], null: false, resolver: Resolvers::ValidationErrors
 
     def resolve(input:)
       client = Hmis::Hud::Client.new(

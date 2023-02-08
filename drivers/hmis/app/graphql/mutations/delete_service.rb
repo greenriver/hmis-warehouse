@@ -3,7 +3,7 @@ module Mutations
     argument :id, ID, required: true
 
     field :service, Types::HmisSchema::Service, null: true
-    field :errors, [Types::HmisSchema::ValidationError], null: false
+    field :errors, [Types::HmisSchema::ValidationError], null: false, resolver: Resolvers::ValidationErrors
 
     def resolve(id:)
       record = Hmis::Hud::Service.editable_by(current_user).find_by(id: id)

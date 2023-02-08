@@ -76,7 +76,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   end
 
   def find_and_validate_assessment_date(hud_values:, entry_date:, exit_date:)
-    errors = HmisErrors::CustomValidationErrors.new
+    errors = HmisErrors::Errors.new
     date = nil
     item = assessment_date_item
     readable_attribute = item.brief_text || item.text
@@ -110,7 +110,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   end
 
   def validate_form_values(hud_values, _custom_values = nil)
-    errors = HmisErrors::CustomValidationErrors.new
+    errors = HmisErrors::Errors.new
     hud_values.each do |link_id, value|
       item = link_id_item_hash[link_id.to_s]
       raise "Unrecognized link ID: #{link_id}" unless item.present?

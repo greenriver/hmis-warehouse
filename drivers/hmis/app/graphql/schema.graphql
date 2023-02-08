@@ -5225,11 +5225,10 @@ type User {
 }
 
 type ValidationError {
-  attribute: String
+  attribute: String!
   fullMessage: String!
   id: String
   message: String!
-  options: JsonObject
   readableAttribute: String
   severity: ValidationSeverity!
   type: ValidationType!

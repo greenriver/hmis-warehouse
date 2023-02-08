@@ -10,6 +10,6 @@ module Types
   class HmisSchema::ErrorGroup < Types::BaseObject
     field :id, ID, null: false
     field :class_name, String, null: true
-    field :errors, [Types::HmisSchema::ValidationError], null: false
+    field :errors, [Types::HmisSchema::ValidationError], null: false, resolver: Resolvers::ValidationErrors
   end
 end

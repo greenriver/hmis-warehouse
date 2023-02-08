@@ -16,7 +16,7 @@ module Types
     argument :confirmed, Boolean, 'Whether warnings have been confirmed', required: false
 
     def find_or_create_assessment
-      errors = HmisErrors::CustomValidationErrors.new
+      errors = HmisErrors::Errors.new
 
       if assessment_id.present?
         # Updating an existing assessment

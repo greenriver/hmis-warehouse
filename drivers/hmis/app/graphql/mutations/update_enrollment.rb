@@ -5,7 +5,7 @@ module Mutations
     argument :relationship_to_ho_h, Types::HmisSchema::Enums::Hud::RelationshipToHoH, required: false
 
     field :enrollment, Types::HmisSchema::Enrollment, null: true
-    field :errors, [Types::HmisSchema::ValidationError], null: false
+    field :errors, [Types::HmisSchema::ValidationError], null: false, resolver: Resolvers::ValidationErrors
 
     def resolve(id:, entry_date: nil, relationship_to_ho_h: nil)
       errors = []
@@ -20,7 +20,7 @@ module Mutations
 
         errors << enrollment.errors.errors unless enrollment.valid?
       else
-        errors << HmisErrors::CustomValidationError.new(:enrollment, :not_found)
+        errors << HmisErrors::Error.new(:enrollment, :not_found)
       end
 
       {

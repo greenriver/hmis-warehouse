@@ -5,7 +5,7 @@ module Mutations
     argument :confirmed, Boolean, required: true
 
     field :project, Types::HmisSchema::Project, null: true
-    field :errors, [Types::HmisSchema::ValidationError], null: false
+    field :errors, [Types::HmisSchema::ValidationError], null: false, resolver: Resolvers::ValidationErrors
 
     def resolve(id:, input:, confirmed:)
       record = Hmis::Hud::Project.editable_by(current_user).find_by(id: id)
@@ -23,7 +23,7 @@ module Mutations
     def create_errors(project, input)
       return [] unless project.operating_end_date.blank? && input.operating_end_date.present?
 
-      errors = HmisErrors::CustomValidationErrors.new
+      errors = HmisErrors::Errors.new
 
       funder_count = project.funders.where(end_date: nil).count
       inventory_count = project.inventories.where(inventory_end_date: nil).count

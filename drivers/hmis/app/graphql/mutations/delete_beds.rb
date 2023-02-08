@@ -4,11 +4,11 @@ module Mutations
     argument :bed_ids, [ID], required: true
 
     field :inventory, Types::HmisSchema::Inventory, null: true
-    field :errors, [Types::HmisSchema::ValidationError], null: false
+    field :errors, [Types::HmisSchema::ValidationError], null: false, resolver: Resolvers::ValidationErrors
 
     def resolve(inventory_id:, bed_ids:)
       inventory = Hmis::Hud::Inventory.editable_by(current_user).find_by(id: inventory_id)
-      return { inventory => nil, errors: [HmisErrors::CustomValidationError.new(:inventory_id, :not_found)] } unless inventory.present?
+      return { inventory => nil, errors: [HmisErrors::Error.new(:inventory_id, :not_found)] } unless inventory.present?
 
       return { inventory => inventory, errors: [] } unless bed_ids.any?
 

@@ -3,7 +3,7 @@ module Mutations
     argument :id, ID, required: true
 
     field :enrollment, Types::HmisSchema::Enrollment, null: true
-    field :errors, [Types::HmisSchema::ValidationError], null: false
+    field :errors, [Types::HmisSchema::ValidationError], null: false, resolver: Resolvers::ValidationErrors
 
     def resolve(id:)
       errors = []
@@ -13,12 +13,12 @@ module Mutations
         if enrollment.in_progress?
           enrollment.destroy
         else
-          errors << HmisErrors::CustomValidationError.new(:base, full_message: 'Completed enrollments can not be deleted. Please exit the client instead.')
+          errors << HmisErrors::Error.new(:base, full_message: 'Completed enrollments can not be deleted. Please exit the client instead.')
         end
 
         errors << enrollment.errors.errors unless enrollment.valid?
       else
-        errors << HmisErrors::CustomValidationError.new(:enrollment, :not_found)
+        errors << HmisErrors::Error.new(:enrollment, :not_found)
       end
 
       {

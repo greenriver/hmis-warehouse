@@ -157,7 +157,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
           aggregate_failures 'checking response' do
             expect(response.status).to eq 200
-            expect(enrollments).to be_empty
+            expect(enrollments).to be_nil
             expect(errors).to contain_exactly(
               include(**error_attrs.transform_keys(&:to_s).transform_values(&:to_s)),
             )

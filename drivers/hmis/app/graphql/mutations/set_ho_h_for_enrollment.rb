@@ -4,7 +4,7 @@ module Mutations
     argument :client_id, ID, required: true
 
     field :enrollment, Types::HmisSchema::Enrollment, null: true
-    field :errors, [Types::HmisSchema::ValidationError], null: false
+    field :errors, [Types::HmisSchema::ValidationError], null: false, resolver: Resolvers::ValidationErrors
 
     def resolve(household_id:, client_id:)
       errors = []
@@ -23,10 +23,10 @@ module Mutations
 
           enrollment = new_hoh_enrollment
         else
-          errors << HmisErrors::CustomValidationError.new(:household_id, full_message: "No enrollment for this client with household ID '#{household_id}'")
+          errors << HmisErrors::Error.new(:household_id, full_message: "No enrollment for this client with household ID '#{household_id}'")
         end
       else
-        errors << HmisErrors::CustomValidationError.new(:client_id, :not_found)
+        errors << HmisErrors::Error.new(:client_id, :not_found)
       end
 
       {
