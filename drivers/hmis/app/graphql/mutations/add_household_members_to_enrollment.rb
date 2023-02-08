@@ -36,7 +36,7 @@ module Mutations
 
         next enrollment if enrollment.present?
 
-        enrollment = Hmis::Hud::Enrollment.new(
+        Hmis::Hud::Enrollment.new(
           data_source_id: hmis_user.data_source_id,
           user_id: hmis_user.user_id,
           personal_id: client.personal_id,
@@ -46,9 +46,6 @@ module Mutations
           household_id: household_id,
           enrollment_id: Hmis::Hud::Enrollment.generate_enrollment_id,
         )
-        enrollment.save_in_progress
-
-        enrollment
       end
 
       errors = []
