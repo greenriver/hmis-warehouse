@@ -13,13 +13,13 @@ module Resolvers
       return [] unless object[:errors].present?
 
       errors = object[:errors]
-      errors = errors.errors if errors.instance_of?(HmisErrors::Errors)
+      errors = errors.errors if errors.instance_of?(::HmisErrors::Errors)
 
       errors.map do |error|
-        if error.instance_of?(HmisErrors::Error)
+        if error.instance_of?(::HmisErrors::Error)
           error
         elsif error.instance_of?(ActiveModel::Error)
-          HmisErrors::Error.from_ar_error(error)
+          ::HmisErrors::Error.from_ar_error(error)
         else
           raise "Unrecognized error type: #{error.class}"
         end

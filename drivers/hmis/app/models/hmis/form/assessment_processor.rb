@@ -10,16 +10,16 @@ class Hmis::Form::AssessmentProcessor < ::GrdaWarehouseBase
   has_one :assessment_detail
 
   # assessment is accessed through the assessment_detail
-  belongs_to :health_and_dv, class_name: 'Hmis::Hud::HealthAndDv', optional: true
-  belongs_to :income_benefit, class_name: 'Hmis::Hud::IncomeBenefit', optional: true
-  belongs_to :enrollment_coc, class_name: 'Hmis::Hud::EnrollmentCoc', optional: true
-  belongs_to :physical_disability, class_name: 'Hmis::Hud::Disability', optional: true
-  belongs_to :developmental_disability, class_name: 'Hmis::Hud::Disability', optional: true
-  belongs_to :chronic_health_condition, class_name: 'Hmis::Hud::Disability', optional: true
-  belongs_to :hiv_aids, class_name: 'Hmis::Hud::Disability', optional: true
-  belongs_to :mental_health_disorder, class_name: 'Hmis::Hud::Disability', optional: true
-  belongs_to :substance_use_disorder, class_name: 'Hmis::Hud::Disability', optional: true
-  belongs_to :exit, class_name: 'Hmis::Hud::Exit', optional: true
+  belongs_to :health_and_dv, class_name: 'Hmis::Hud::HealthAndDv', optional: true, autosave: true
+  belongs_to :income_benefit, class_name: 'Hmis::Hud::IncomeBenefit', optional: true, autosave: true
+  belongs_to :enrollment_coc, class_name: 'Hmis::Hud::EnrollmentCoc', optional: true, autosave: true
+  belongs_to :physical_disability, class_name: 'Hmis::Hud::Disability', optional: true, autosave: true
+  belongs_to :developmental_disability, class_name: 'Hmis::Hud::Disability', optional: true, autosave: true
+  belongs_to :chronic_health_condition, class_name: 'Hmis::Hud::Disability', optional: true, autosave: true
+  belongs_to :hiv_aids, class_name: 'Hmis::Hud::Disability', optional: true, autosave: true
+  belongs_to :mental_health_disorder, class_name: 'Hmis::Hud::Disability', optional: true, autosave: true
+  belongs_to :substance_use_disorder, class_name: 'Hmis::Hud::Disability', optional: true, autosave: true
+  belongs_to :exit, class_name: 'Hmis::Hud::Exit', optional: true, autosave: true
 
   validate :hmis_records_are_valid
 
@@ -32,7 +32,6 @@ class Hmis::Form::AssessmentProcessor < ::GrdaWarehouseBase
       next unless match.present?
 
       container, field = match[1..2]
-      # binding.pry
 
       begin
         container_processor(container)&.process(field, value)
@@ -50,8 +49,6 @@ class Hmis::Form::AssessmentProcessor < ::GrdaWarehouseBase
   def enrollment_factory(create: true) # rubocop:disable Lint/UnusedMethodArgument
     # The enrollment has already been created, so we can just return it
     enrollment = assessment_detail.assessment.enrollment
-    # If this is an intake assessment, update the entry date
-    enrollment.update(entry_date: assessment_detail.assessment.assessment_date) if assessment_detail.intake?
     enrollment
   end
 
