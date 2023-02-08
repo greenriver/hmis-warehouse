@@ -113,7 +113,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     [date, errors.errors]
   end
 
-  def validate_form_values(hud_values, _custom_values = nil)
+  def validate_form_values(raw_form_values, hud_values, _custom_values = nil)
     errors = HmisErrors::Errors.new
     hud_values.each do |link_id, value|
       item = link_id_item_hash[link_id.to_s]
@@ -127,6 +127,9 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
         link_id: item&.link_id,
       }
 
+      # If this form is not present in the raw form state, then it is not enabled. Skip validation for it.
+      next unless raw_form_values.key?(link_id)
+
       is_missing = value.blank? || value == 'DATA_NOT_COLLECTED'
 
       # Validate required status
@@ -136,10 +139,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
         errors.add item.field_name, :data_not_collected, severity: :warning, **error_context
       end
 
-      # TODO(#184404586): Evaluate EnableWhen and null out any disabled fields (currently we rely on the frontend implementation to be accurate)
-
       # TODO(##184404620): Validate ValueBounds (How to handle bounds that rely on local values like projectStartDate and entryDate?)
-
       # TODO(##184402463): Add support for RequiredWhen
     end
 

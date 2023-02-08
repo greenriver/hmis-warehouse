@@ -22,7 +22,7 @@ module Mutations
       )
 
       # Validate form values based on FormDefinition
-      validation_errors = definition.validate_form_values(input.hud_values, nil)
+      validation_errors = definition.validate_form_values(input.values, input.hud_values)
       # If user has already confirmed any warnings, remove them
       validation_errors = validation_errors.reject(&:warning?) if input.confirmed
       errors.push(*validation_errors)
