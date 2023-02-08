@@ -48,14 +48,16 @@ module Importers::HmisAutoMigrate
         FileUtils.rmtree(tmp_folder) if File.exist? tmp_folder
         FileUtils.mkdir_p(tmp_folder)
 
-        options = {}
-        options = { password: @file_password } if @file_password.present?
+        # options = {}
+        # options = { password: @file_password } if @file_password.present?
 
-        File.open(zip_file, 'rb') do |seven_zip|
-          SevenZipRuby::Reader.open(seven_zip, options) do |szr|
-            szr.extract_all(tmp_folder)
-          end
-        end
+        cmd = "7z e -o#{tmp_folder} #{zip_file}"
+        system(cmd)
+        # File.open(zip_file, 'rb') do |seven_zip|
+        #   SevenZipRuby::Reader.open(seven_zip, options) do |szr|
+        #     szr.extract_all(tmp_folder)
+        #   end
+        # end
         # Cleanup original file
         FileUtils.rm(zip_file)
         # Make sure we don't have any old zip files around

@@ -47,7 +47,7 @@ gem 'pagy'
 gem 'with_advisory_lock'
 # gem 'schema_plus_views'
 gem 'scenic'
-gem 'memoist', require: false
+gem 'memery', require: false
 gem 'rserve-client', require: false
 gem 'rserve-simpler', require: false
 gem 'encryptor'
@@ -68,7 +68,7 @@ gem 'mimemagic'
 # since there are no tests for this
 # it should be tested manually
 gem 'acts-as-taggable-on', '~> 7.0'
-gem 'seven_zip_ruby' unless ENV['NO_7ZIP'] == '1'
+# gem 'seven_zip_ruby' unless ENV['NO_7ZIP'] == '1'
 gem 'hellosign-ruby-sdk'
 
 gem 'devise', '~> 4'
@@ -237,7 +237,7 @@ group :development, :test do
   gem 'factory_bot_rails'
   gem 'vcr'
   gem 'webmock'
-  # gem 'rb-readline'
+  gem 'deprecation_toolkit', require: false
 end
 
 group :development do

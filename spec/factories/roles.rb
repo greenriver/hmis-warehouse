@@ -69,26 +69,27 @@ FactoryBot.define do
 
   factory :cohort_manager, class: 'Role' do
     name { 'cohort manager' }
-    can_manage_cohorts { true }
+    can_configure_cohorts { true }
+    can_manage_cohort_data { true }
   end
 
   factory :cohort_client_editor, class: 'Role' do
     name { 'cohort client editor' }
-    can_edit_assigned_cohorts { true }
+    can_participate_in_cohorts { true }
   end
 
   factory :cohort_client_viewer, class: 'Role' do
     name { 'cohort client viewer' }
-    can_view_assigned_cohorts { true }
+    can_view_cohorts { true }
   end
 
   factory :report_viewer, class: 'Role' do
-    name { 'cohort client viewer' }
+    name { 'report viewer' }
     can_view_all_reports { true }
   end
 
   factory :assigned_report_viewer, class: 'Role' do
-    name { 'cohort client viewer' }
+    name { 'assigned report viewer' }
     can_view_assigned_reports { true }
   end
 

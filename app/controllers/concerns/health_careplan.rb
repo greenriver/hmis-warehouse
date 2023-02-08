@@ -62,7 +62,7 @@ module HealthCareplan
         wait_until: 'networkidle0',
         print_background: true,
       }
-      CombinePDF.parse(Grover.new(wrap_in_html(coversheet), grover_options).to_pdf, allow_optional_content: true)
+      CombinePDF.parse(Grover.new(wrap_in_html(coversheet), **grover_options).to_pdf, allow_optional_content: true)
     end
 
     def careplan_pdf_full
@@ -99,7 +99,7 @@ module HealthCareplan
         wait_until: 'networkidle0',
         print_background: true,
       }
-      CombinePDF.parse(Grover.new(wrap_in_html(full_careplan), grover_options).to_pdf, allow_optional_content: true)
+      CombinePDF.parse(Grover.new(wrap_in_html(full_careplan), **grover_options).to_pdf, allow_optional_content: true)
     end
 
     def careplan_pdf_pctp
@@ -138,7 +138,7 @@ module HealthCareplan
         print_background: true,
       }
 
-      CombinePDF.parse(Grover.new(wrap_in_html(pctp), grover_options).to_pdf, allow_optional_content: true)
+      CombinePDF.parse(Grover.new(wrap_in_html(pctp), **grover_options).to_pdf, allow_optional_content: true)
     end
 
     private def wrap_in_html(content)

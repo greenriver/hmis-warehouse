@@ -203,8 +203,8 @@ module HmisCsvImporter::Importer
         next unless checks.present?
 
         checks.each do |check|
-          arguments = check.dig(:arguments)
-          failures << check[:class].check_validity!(row, column, arguments)
+          arguments = check.dig(:arguments) || {}
+          failures << check[:class].check_validity!(row, column, **arguments)
         end
       end
       failures.compact!

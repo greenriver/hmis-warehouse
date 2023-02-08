@@ -9,7 +9,7 @@ class CohortsController < ApplicationController
   include CohortAuthorization
   include CohortClients
   before_action :some_cohort_access!
-  before_action :require_can_manage_cohorts!, only: [:create, :destroy, :edit, :update]
+  before_action :require_can_configure_cohorts!, only: [:create, :destroy, :edit, :update]
   before_action :require_can_access_cohort!, only: [:show]
   before_action :set_cohort, only: [:edit, :update, :destroy, :show]
   before_action :set_groups, only: [:edit, :update, :destroy, :show]
@@ -54,7 +54,12 @@ class CohortsController < ApplicationController
       format.html do
         @visible_columns = [CohortColumns::Meta.new]
         @visible_columns += @cohort.visible_columns(user: current_user)
-        @visible_columns << CohortColumns::Delete.new if (can_manage_cohorts? || can_edit_cohort_clients?) && ! @cohort.system_cohort && ! @cohort.auto_maintained?
+        delete_column = if params[:population] == 'deleted'
+          CohortColumns::Delete.new(title: 'Restore')
+        else
+          CohortColumns::Delete.new
+        end
+        @visible_columns << delete_column if can_add_cohort_clients? && ! @cohort.system_cohort && ! @cohort.auto_maintained?
         @column_headers = @visible_columns.each_with_index.map do |col, index|
           header = {
             headerName: col.title,
