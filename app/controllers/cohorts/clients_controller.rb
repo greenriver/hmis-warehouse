@@ -15,8 +15,9 @@ module Cohorts
     include ActionView::Helpers::TextHelper
 
     before_action :require_can_access_cohort!
-    before_action :require_can_edit_some_cohorts!, only: [:new, :create, :destroy]
-    before_action :require_more_than_read_only_access_to_cohort!, only: [:edit, :update, :re_rank]
+    before_action :require_can_add_cohort_clients!, only: [:new, :create, :destroy]
+    before_action :require_can_configure_cohorts!, only: [:edit, :update]
+    before_action :require_can_update_some_cohort_data!, only: [:re_rank]
     before_action :set_cohort
     before_action :set_client, only: [:destroy, :update, :show, :pre_destroy, :field]
     before_action :load_cohort_names, only: [:index, :edit, :field, :update]
@@ -53,7 +54,12 @@ module Cohorts
 
       @visible_columns = [CohortColumns::Meta.new]
       @visible_columns += @cohort.visible_columns(user: current_user)
-      @visible_columns << CohortColumns::Delete.new if current_user.can_edit_some_cohorts?
+      delete_column = if params[:population] == 'deleted'
+        CohortColumns::Delete.new(title: 'Restore')
+      else
+        CohortColumns::Delete.new
+      end
+      @visible_columns << delete_column if current_user.can_add_cohort_clients?
 
       @cohort_clients.each do |cohort_client|
         client = cohort_client.client
@@ -396,6 +402,14 @@ module Cohorts
     end
 
     def pre_destroy
+      return unless @client.deleted?
+
+      @client.restore
+      if @client.cohort.cohort_clients.only_deleted.exists?
+        redirect_to cohort_path(@cohort, population: :deleted)
+      else
+        redirect_to cohort_path(@cohort)
+      end
     end
 
     def pre_bulk_destroy
@@ -413,6 +427,18 @@ module Cohorts
         end
         flash[:notice] = "Removed #{removed} #{'client'.pluralize(removed)}"
       end
+      redirect_to cohort_path(@cohort)
+    end
+
+    def bulk_restore
+      unless @cohort.system_cohort || @cohort.auto_maintained?
+        @cohort_client_ids = params.require(:cc).permit(:cohort_client_ids)[:cohort_client_ids].split(',').map(&:to_i)
+        @cohort_clients = cohort_client_source.only_deleted.where(id: @cohort_client_ids)
+        @cohort_clients.each(&:restore)
+      end
+
+      return redirect_to cohort_path(@cohort, population: :deleted) if @cohort.cohort_clients.only_deleted.exists?
+
       redirect_to cohort_path(@cohort)
     end
 
@@ -577,7 +603,7 @@ module Cohorts
     end
 
     def set_client
-      @client = @cohort.cohort_clients.find(params[:id].to_i)
+      @client = @cohort.cohort_clients.with_deleted.find(params[:id].to_i)
     end
 
     def cohort_client_source

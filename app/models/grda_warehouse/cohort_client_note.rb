@@ -21,7 +21,7 @@ module GrdaWarehouse
 
     # only destroyable by admins for now
     def destroyable_by user
-      user.can_edit_cohort_clients? || user.can_manage_cohorts? # || user_id == user.id
+      user.can_add_cohort_clients?
     end
 
     def recipient_info

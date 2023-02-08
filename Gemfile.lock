@@ -280,12 +280,12 @@ GEM
       mime-types (>= 1.16)
       ssrf_filter (~> 1.0)
     carrierwave-i18n (0.2.0)
-    caxlsx (3.1.1)
+    caxlsx (3.3.0)
       htmlentities (~> 4.3, >= 4.3.4)
       marcel (~> 1.0)
       nokogiri (~> 1.10, >= 1.10.4)
       rubyzip (>= 1.3.0, < 3)
-    caxlsx_rails (0.6.2)
+    caxlsx_rails (0.6.3)
       actionpack (>= 3.1)
       caxlsx (>= 3.0)
     charlock_holmes (0.7.7)
@@ -323,6 +323,8 @@ GEM
     delayed_job_active_record (4.1.6)
       activerecord (>= 3.0, < 6.2)
       delayed_job (>= 3.0, < 5)
+    deprecation_toolkit (2.0.1)
+      activesupport (>= 5.2)
     derailed_benchmarks (2.1.1)
       benchmark-ips (~> 2)
       dead_end
@@ -527,7 +529,6 @@ GEM
     maxminddb (0.1.22)
     memery (1.4.1)
       ruby2_keywords (~> 0.0.2)
-    memoist (0.16.2)
     memory_profiler (1.0.0)
     method_source (1.0.0)
     mime-types (3.4.1)
@@ -723,7 +724,7 @@ GEM
       rgeo (>= 1.0.0)
     rgeo-proj4 (3.1.1)
       rgeo (~> 2.0)
-    roo (2.8.3)
+    roo (2.9.0)
       nokogiri (~> 1)
       rubyzip (>= 1.3.0, < 3.0.0)
     roo-xls (1.2.0)
@@ -786,7 +787,7 @@ GEM
     ruby-vips (2.1.4)
       ffi (~> 1.12)
     ruby2_keywords (0.0.5)
-    rubyXL (3.4.18)
+    rubyXL (3.4.25)
       nokogiri (>= 1.10.8)
       rubyzip (>= 1.3.0)
     ruby_parser (3.17.0)
@@ -1006,6 +1007,7 @@ DEPENDENCIES
   daemons
   delayed_job
   delayed_job_active_record
+  deprecation_toolkit
   derailed_benchmarks
   devise (~> 4)
   devise-pwned_password
@@ -1052,7 +1054,6 @@ DEPENDENCIES
   marginalia
   maxminddb
   memery
-  memoist
   memory_profiler
   mimemagic
   mini_magick

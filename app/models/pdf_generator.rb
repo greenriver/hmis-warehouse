@@ -38,7 +38,7 @@ class PdfGenerator
       },
     }.
       deep_merge(options)
-    Grover.new(html, grover_options).to_pdf
+    Grover.new(html, **grover_options).to_pdf
   end
 
   def root_url

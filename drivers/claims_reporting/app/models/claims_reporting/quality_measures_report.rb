@@ -1,9 +1,10 @@
-# frozen_string_literal: true
 ###
 # Copyright 2016 - 2022 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 require 'memery'
 
@@ -280,11 +281,12 @@ module ClaimsReporting
 
     def serializable_hash
       measure_info = AVAILABLE_MEASURES.values.map do |m|
-        numerator, denominator = * if respond_to?(m.id)
-                                     send(m.id)
-                                   else
-                                     percentage medical_claim_based_rows, m.id
-        end
+        numerator, denominator =
+          * if respond_to?(m.id)
+              send(m.id)
+            else
+              percentage medical_claim_based_rows, m.id
+          end
 
         # only one value indicates a count
         if denominator.present?
@@ -296,14 +298,16 @@ module ClaimsReporting
 
         # any detail tables?
         detail_table_msg = "#{m.id}_table"
-        [m.id, {
-          id: m.id,
-          title: m.title,
-          numerator: numerator,
-          denominator: denominator,
-          value: value,
-          table: (send(detail_table_msg) if respond_to?(detail_table_msg)),
-        }]
+        [
+          m.id, {
+            id: m.id,
+            title: m.title,
+            numerator: numerator,
+            denominator: denominator,
+            value: value,
+            table: (send(detail_table_msg) if respond_to?(detail_table_msg)),
+          }
+        ]
       end.to_h
 
       {
@@ -333,10 +337,12 @@ module ClaimsReporting
       e_t = scope.quoted_table_name
 
       scope = scope.where(
-        ["#{e_t}.cp_enroll_dt <= :max and (#{e_t}.cp_disenroll_dt IS NULL OR #{e_t}.cp_disenroll_dt > :max)", {
-          min: cp_enollment_date_range.min,
-          max: cp_enollment_date_range.max,
-        }],
+        [
+          "#{e_t}.cp_enroll_dt <= :max and (#{e_t}.cp_disenroll_dt IS NULL OR #{e_t}.cp_disenroll_dt > :max)", {
+            min: cp_enollment_date_range.min,
+            max: cp_enollment_date_range.max,
+          }
+        ],
       )
       scope.where(
         member_id: ::ClaimsReporting::MemberRoster.where(date_of_birth: dob_range_1).select(:member_id),
@@ -418,9 +424,9 @@ module ClaimsReporting
         rx_claims_scope.select(
           :id,
           :member_id,
-          #:member_dob,
-          #:claim_number, # "billed on the same claim"
-          #:cp_pidsl, # "same CP"
+          # :member_dob,
+          # :claim_number, # "billed on the same claim"
+          # :cp_pidsl, # "same CP"
           :service_start_date,
           :ndc_code,
         ).group_by(&:member_id)
