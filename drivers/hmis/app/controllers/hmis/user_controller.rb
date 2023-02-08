@@ -17,8 +17,7 @@ class Hmis::UserController < Hmis::BaseController
   # The frontend also polls this method to determine if the session is still valid.
   #
   # If there is no active session, warden will return a 401.
-  # We set a CSRF cookie *prior* to authentication, because the frontend
-  # needs a valid CSRF token to hit POST /hmis/login.
+  # We set a CSRF cookie here because the frontend needs it for authentication (POST /hmis/login)
   def index
     set_csrf_cookie
     authenticate_hmis_user!
