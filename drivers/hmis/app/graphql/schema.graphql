@@ -5238,6 +5238,11 @@ type ValidationError {
   attribute: String!
   fullMessage: String!
   id: String
+
+  """
+  Link ID of form item if this error is linked to a specific item
+  """
+  linkId: String
   message: String!
   readableAttribute: String
   severity: ValidationSeverity!
