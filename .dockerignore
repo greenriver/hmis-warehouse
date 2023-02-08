@@ -24,3 +24,4 @@ untracked
 .git/
 tags
 shape_files/*
+!shape_files/*.s3
