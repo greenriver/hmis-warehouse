@@ -77,7 +77,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(assessment.assessment_date).to eq(Date.parse(initial_assessment_date))
         expect(assessment.enrollment.entry_date).to eq(Date.parse(initial_assessment_date)) if role == :INTAKE
         expect(assessment.enrollment.exit&.exit_date).to eq(Date.parse(initial_assessment_date)) if role == :EXIT
-        expect(assessment.enrollment.date_updated.inspect).not_to eq(enrollment_date_updated.inspect)
+        expect(assessment.enrollment.date_updated.inspect).not_to be == enrollment_date_updated.inspect
         enrollment_date_updated = assessment.enrollment.date_updated
 
         # Update the assessment
@@ -91,7 +91,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(assessment.assessment_date).to eq(Date.parse(new_assessment_date))
         expect(assessment.enrollment.entry_date).to eq(Date.parse(new_assessment_date)) if role == :INTAKE
         expect(assessment.enrollment&.exit&.exit_date).to eq(Date.parse(new_assessment_date)) if role == :EXIT
-        expect(assessment.enrollment.date_updated.inspect).not_to eq(enrollment_date_updated.inspect)
+        expect(assessment.enrollment.date_updated.inspect).not_to be == enrollment_date_updated.inspect
       end
     end
   end
