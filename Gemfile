@@ -1,7 +1,7 @@
 source 'https://rubygems.org'
 
 gem 'rails', '~> 6.1'
-gem 'rails_drivers', github: 'greenriver/rails_drivers', branch: 'master'
+gem 'rails_drivers'
 
 # bundle exec rake doc:rails generates the API under doc/api.
 gem 'sdoc', group: :doc
