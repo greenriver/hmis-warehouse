@@ -26,9 +26,9 @@ module Mutations
 
       funder_count = project.funders.where(end_date: nil).count
       inventory_count = project.inventories.where(inventory_end_date: nil).count
-      open_enrollments = Hmis::Hud::Enrollment.open_on_date.in_project_including_wip(project.id, project.project_id)
+      open_enrollments = Hmis::Hud::Enrollment.open_on_date(input.operating_end_date).in_project_including_wip(project.id, project.project_id)
 
-      errors.add :base, :information, severity: :warning, full_message: "Project has #{open_enrollments.count} open #{'enrollment'.pluralize(open_enrollments.count)}." if open_enrollments.present?
+      errors.add :base, :information, severity: :warning, full_message: "Project has #{open_enrollments.count} open #{'enrollment'.pluralize(open_enrollments.count)} on specified end date." if open_enrollments.present?
       errors.add :base, :information, severity: :warning, full_message: "#{funder_count} open #{'funder'.pluralize(funder_count)} will be closed." if funder_count.positive?
       errors.add :base, :information, severity: :warning, full_message: "#{inventory_count} open inventory #{'record'.pluralize(inventory_count)} will be closed." if inventory_count.positive?
 
