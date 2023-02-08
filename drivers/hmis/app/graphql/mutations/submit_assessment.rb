@@ -35,6 +35,7 @@ module Mutations
         user_id: hmis_user.user_id,
         assessment_date: assessment_date || assessment.assessment_date,
       )
+      enrollment.assign_attributes(user_id: hmis_user.user_id)
 
       # If this is an existing assessment and all the errors are warnings, save changes before returning.
       # (NOTE: We could/should do this for new assessments, too, but it's a bit more complicated
@@ -58,6 +59,7 @@ module Mutations
         assessment.save_not_in_progress
         # If this is an intake assessment, move the enrollment out of WIP status
         assessment.enrollment.save_not_in_progress if assessment.intake?
+        assessment.enrollment.save!
       else
         # These are potentially unfixable errors, so maybe we should throw a server error instead.
         # Leaving them visible to the user for now, while we QA the feature.
