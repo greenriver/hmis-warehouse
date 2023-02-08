@@ -25,7 +25,7 @@ RSpec.describe Hmis::Form::Definition, type: :model do
         expect(date).to be_nil
         expect(errors.length).to eq(1)
         expect(errors[0].type).to eq(:required)
-        expect(errors[0].attribute).to eq(definition.assessment_date_item.field_name)
+        expect(errors[0].attribute).to eq(definition.assessment_date_item.field_name.to_sym)
       end
     end
 
@@ -37,7 +37,7 @@ RSpec.describe Hmis::Form::Definition, type: :model do
         expect(date).to be_nil
         expect(errors.length).to eq(1)
         expect(errors[0].type).to eq(:required)
-        expect(errors[0].attribute).to eq(definition.assessment_date_item.field_name)
+        expect(errors[0].attribute).to eq(definition.assessment_date_item.field_name.to_sym)
       end
     end
 
@@ -62,7 +62,7 @@ RSpec.describe Hmis::Form::Definition, type: :model do
         date, errors = definition.find_and_validate_assessment_date(hud_values: { link_id => assessment_date }, **default_args)
         expect(errors.length).to eq(1)
         expect(errors[0].type).to eq(:out_of_range)
-        expect(errors[0].attribute).to eq(definition.assessment_date_item.field_name)
+        expect(errors[0].attribute).to eq(definition.assessment_date_item.field_name.to_sym)
         expect(date).to be_nil
       end
     end
@@ -87,7 +87,7 @@ RSpec.describe Hmis::Form::Definition, type: :model do
         expect(date).to be_nil
         expect(errors.length).to eq(1)
         expect(errors[0].type).to eq(:out_of_range)
-        expect(errors[0].attribute).to eq(definition.assessment_date_item.field_name)
+        expect(errors[0].attribute).to eq(definition.assessment_date_item.field_name.to_sym)
       end
     end
 
@@ -110,7 +110,7 @@ RSpec.describe Hmis::Form::Definition, type: :model do
         expect(date).to be_nil
         expect(errors.length).to eq(1)
         expect(errors[0].type).to eq(:invalid)
-        expect(errors[0].attribute).to eq(definition.assessment_date_item.field_name)
+        expect(errors[0].attribute).to eq(definition.assessment_date_item.field_name.to_sym)
       end
     end
   end
@@ -174,11 +174,13 @@ RSpec.describe Hmis::Form::Definition, type: :model do
           type: :data_not_collected,
           severity: :warning,
           readable_attribute: 'When DV Occurred',
+          link_id: '4.11.A',
         },
         {
           type: :data_not_collected,
           severity: :warning,
           readable_attribute: 'Currently Fleeing DV',
+          link_id: '4.11.B',
         },
       ]
 

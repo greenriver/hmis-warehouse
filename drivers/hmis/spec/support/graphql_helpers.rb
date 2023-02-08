@@ -34,6 +34,7 @@ module GraphqlHelpers
     <<~ERRORS
       errors {
         id
+        linkId
         attribute
         message
         fullMessage

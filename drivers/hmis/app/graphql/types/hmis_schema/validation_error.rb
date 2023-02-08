@@ -11,6 +11,7 @@ module Types
     # Resolves an HmisError object
 
     field :id, String, null: true
+    field :link_id, String, 'Link ID of form item if this error is linked to a specific item', null: true
     field :attribute, String, null: false
     field :readable_attribute, String, null: true
     field :message, String, null: false

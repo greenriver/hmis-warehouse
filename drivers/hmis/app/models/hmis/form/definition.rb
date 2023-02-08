@@ -79,19 +79,23 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     errors = HmisErrors::Errors.new
     date = nil
     item = assessment_date_item
-    readable_attribute = item.brief_text || item.text
+
+    error_context = {
+      readable_attribute: item.brief_text || item.text,
+      link_id: item&.link_id,
+    }
 
     if item.present? && hud_values.present?
       date_string = hud_values[item.link_id]
 
       if date_string.present?
         date = HmisUtil::Dates.safe_parse_date(date_string: date_string, reasonable_years_distance: 30)
-        errors.add item.field_name, :invalid, readable_attribute: readable_attribute unless date.present?
+        errors.add item.field_name, :invalid, **error_context unless date.present?
       else
-        errors.add item.field_name, :required, readable_attribute: readable_attribute
+        errors.add item.field_name, :required, **error_context
       end
     elsif hud_assessment?
-      errors.add :assessmentDate, :required, readable_attribute: readable_attribute
+      errors.add :assessmentDate, :required, **error_context
     end
 
     return [nil, errors.errors] if errors.errors.any?
@@ -99,9 +103,9 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     # Additional validations for HUD assessment dates to be within appropriate entry/exit bounds
     if date.present? && hud_assessment?
       # Ensure assessment date is on or after entry date
-      errors.add item.field_name, :out_of_range, readable_attribute: readable_attribute, message: "must be after entry date (#{entry_date.strftime('%m/%d/%Y')})" if entry_date.present? && !intake? && date < entry_date
+      errors.add item.field_name, :out_of_range, **error_context, message: "must be after entry date (#{entry_date.strftime('%m/%d/%Y')})" if entry_date.present? && !intake? && date < entry_date
       # Ensure assessment date is on or before exit date
-      errors.add item.field_name, :out_of_range, readable_attribute: readable_attribute, message: "must be before exit date (#{exit_date.strftime('%m/%d/%Y')})" if exit_date.present? && !exit? && date > exit_date
+      errors.add item.field_name, :out_of_range, **error_context, message: "must be before exit date (#{exit_date.strftime('%m/%d/%Y')})" if exit_date.present? && !exit? && date > exit_date
     end
 
     date = nil if errors.errors.any?
@@ -115,18 +119,21 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
       item = link_id_item_hash[link_id.to_s]
       raise "Unrecognized link ID: #{link_id}" unless item.present?
 
-      next if item.assessment_date # Skip assessment date, it is validated separately
+      # Skip assessment date, it is validated separately
+      next if item.assessment_date
 
-      # Use item text as the "readable attribute" name to display on errors
-      readable_attribute = item.brief_text || item.text
+      error_context = {
+        readable_attribute: item.brief_text || item.text,
+        link_id: item&.link_id,
+      }
 
       is_missing = value.blank? || value == 'DATA_NOT_COLLECTED'
 
       # Validate required status
       if item.required && is_missing
-        errors.add item.field_name, :required, readable_attribute: readable_attribute
+        errors.add item.field_name, :required, **error_context
       elsif item.warn_if_empty && is_missing
-        errors.add item.field_name, :data_not_collected, severity: :warning, readable_attribute: readable_attribute
+        errors.add item.field_name, :data_not_collected, severity: :warning, **error_context
       end
 
       # TODO(#184404586): Evaluate EnableWhen and null out any disabled fields (currently we rely on the frontend implementation to be accurate)
