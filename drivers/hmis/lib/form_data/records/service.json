@@ -103,6 +103,7 @@
           "text": "Financial Assistance",
           "field_name": "FAAmount",
           "enable_behavior": "ANY",
+          "service_detail_type": "CLIENT",
           "enable_when": [
             {
               "question": "typeProvided",
