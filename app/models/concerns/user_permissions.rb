@@ -188,7 +188,7 @@ module UserPermissions
     end
 
     def can_update_some_cohort_data
-      can_manage_cohort_data? || can_participate_in_cohort_data?
+      can_manage_cohort_data? || can_participate_in_cohorts?
     end
 
     def can_manage_some_ad_hoc_ds
