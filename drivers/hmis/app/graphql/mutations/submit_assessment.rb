@@ -54,6 +54,9 @@ module Mutations
       assessment_detail_valid = assessment.assessment_detail.valid?
 
       if assessment_valid && assessment_detail_valid
+        # call manually to save enrollment. figure out a better way
+        assessment.assessment_detail.assessment_processor.save!
+
         assessment.assessment_detail.save!
         assessment.save_not_in_progress
         # If this is an intake assessment, move the enrollment out of WIP status

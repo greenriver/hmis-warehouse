@@ -45,10 +45,15 @@ class Hmis::Form::AssessmentProcessor < ::GrdaWarehouseBase
     end
   end
 
+  before_save :save_enrollment
+  def save_enrollment
+    enrollment_factory.save! if enrollment_factory.present?
+  end
+
   # Type Factories
   def enrollment_factory(create: true) # rubocop:disable Lint/UnusedMethodArgument
     # The enrollment has already been created, so we can just return it
-    assessment_detail.assessment.enrollment
+    @enrollment_factory ||= assessment_detail.assessment.enrollment
   end
 
   def common_attributes
@@ -76,11 +81,15 @@ class Hmis::Form::AssessmentProcessor < ::GrdaWarehouseBase
   def exit_factory(create: true)
     return self.exit if self.exit.present? || !create
 
-    self.exit = enrollment_factory.build_exit(
-      personal_id: enrollment_factory.client.personal_id,
-      user_id: assessment_detail.assessment.user_id,
-      exit_date: assessment_detail.assessment.assessment_date,
-    )
+    if enrollment_factory.exit.present?
+      # Enrollment already has an Exit that's not tied to this processor (could occur in imported data..)
+      self.exit = enrollment_factory.exit
+    else
+      self.exit = enrollment_factory.build_exit(
+        personal_id: enrollment_factory.client.personal_id,
+        user_id: assessment_detail.assessment.user_id,
+      )
+    end
   end
 
   def health_and_dv_factory(create: true)
