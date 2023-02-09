@@ -16,6 +16,7 @@ module GrdaWarehouse::Tasks
     end
 
     def run!
+      # with_advisory lock with a timeout returns false if the lock was not acquired
       return if GrdaWarehouseBase.with_advisory_lock('identify_duplicates', timeout_seconds: 0) { identify_duplicates }
 
       msg = 'Skipping identify duplicates, all ready running.'
@@ -41,41 +42,60 @@ module GrdaWarehouse::Tasks
       Rails.logger.info "Matching #{unprocessed.count} unprocessed clients"
       matched = 0
       new_created = 0
-      unprocessed.find_each do |client|
-        match_id = check_for_obvious_match(client)
-        if match_id.present?
-          matched += 1
-          destination_client = GrdaWarehouse::Hud::Client.find(match_id)
-          destination_client.invalidate_service_history
-          # Set SSN & DOB if we have it in the incoming client, but not in the destination
-          should_save = false
-          if client.DOB.present? && destination_client.DOB.blank?
-            destination_client.DOB = client.DOB
-            should_save = true
-          end
-          if client.SSN.present? && destination_client.SSN.blank?
-            destination_client.SSN = client.SSN
-            should_save = true
+      unprocessed.find_in_batches do |batch|
+        matched_ids = []
+        destination_client_updates = []
+        new_destination_clients = []
+        new_warehouse_clients = []
+        batch.each do |client|
+          match_id = check_for_obvious_match(client)
+          if match_id.present?
+            matched += 1
+            matched_ids << match_id
+            destination_client = destination_clients_by_id[match_id]
+
+            # Set SSN & DOB if we have it in the incoming client, but not in the destination
+            should_save = false
+            if client.DOB.present? && destination_client[:dob].blank?
+              destination_client[:DOB] = client.DOB
+              should_save = true
+            end
+            if client.SSN.present? && destination_client[:ssn].blank?
+              destination_client[:SSN] = client.SSN
+              should_save = true
+            end
+
+            destination_client_updates << destination_client if should_save
+          else
+            new_created += 1
+            destination_client = client.dup
+            destination_client.data_source_id = @dnd_warehouse_data_source.id
+            destination_client.apply_housing_release_status
+            new_destination_clients << destination_client
           end
 
-          destination_client.save if should_save
-        else
-          new_created += 1
-          destination_client = client.dup
-          destination_client.data_source_id = @dnd_warehouse_data_source.id
-          destination_client.apply_housing_release_status
-          destination_client.save
+          new_warehouse_clients << GrdaWarehouse::WarehouseClient.new(
+            id_in_source: client.PersonalID,
+            source_id: client.id,
+            destination_id: destination_client[:id],
+            data_source_id: client.data_source_id,
+          )
         end
-        GrdaWarehouse::WarehouseClient.create(
-          id_in_source: client.PersonalID,
-          source_id: client.id,
-          destination_id: destination_client.id,
-          data_source_id: client.data_source_id,
+        GrdaWarehouse::Hud::Client.import(
+          destination_client_updates,
+          on_duplicate_key_update: {
+            conflict_target: [:id],
+            columns: [:SSN, :DOB],
+          },
+          validate: false,
         )
-
-        # Cleanup any proposed matches that might have been affected
-        GrdaWarehouse::ClientMatch.accept_exact_matches!
+        GrdaWarehouse::Hud::Client.where(id: matched_ids).find_each(&:invalidate_service_history)
+        GrdaWarehouse::Hud::Client.import(new_destination_clients)
+        GrdaWarehouse::WarehouseClient.import(new_warehouse_clients)
       end
+      # Cleanup any proposed matches that might have been affected
+      GrdaWarehouse::ClientMatch.accept_exact_matches!
+      # Record completed run
       completed_at = DateTime.now
       GrdaWarehouse::IdentifyDuplicatesLog.create(
         started_at: started_at,
@@ -161,13 +181,9 @@ module GrdaWarehouse::Tasks
         splits = splits_by_from[dest_id]&.flatten || [] # Don't re-merge anybody that was split off from this candidate
         splits += splits_by_into[dest_id]&.flatten || [] # Don't merge with anybody that this candidate was split off from
 
-        if first_name && last_name
-          key = [first_name.downcase.strip.gsub(/[^a-z0-9]/i, ''), last_name.downcase.strip.gsub(/[^a-z0-9]/i, '')]
-          matches_name += source_clients_grouped_by_name[key].map(&:last).uniq - [dest_id]
-        end
-
-        matches_ssn += source_clients_grouped_by_ssn[ssn].map(&:last).uniq - [dest_id] if valid_social?(ssn)
-        matches_dob += source_clients_grouped_by_dob[dob].map(&:last).uniq - [dest_id] if dob
+        matches_name += check_name(first_name, last_name, source_clients_grouped_by_name)
+        matches_ssn += check_ssn(ssn, source_clients_grouped_by_ssn)
+        matches_dob += check_dob(dob, source_clients_grouped_by_dob)
         all_matching_dest_ids = (matches_name + matches_ssn + matches_dob) - splits
         to_merge_by_dest_id = all_matching_dest_ids.uniq.
           map { |num| [num, all_matching_dest_ids.count(num)] }.to_h.
@@ -179,15 +195,18 @@ module GrdaWarehouse::Tasks
     end
 
     def source_clients_grouped_by_name
-      @source_clients_grouped_by_name ||= all_source_clients.group_by { |first_name, last_name, _, _, _| [first_name.downcase, last_name.downcase] }
+      @source_clients_grouped_by_name ||= all_source_clients.group_by { |first_name, last_name, _, _, _| [first_name.downcase, last_name.downcase] }.
+        transform_values { |values| values.map(&:last) }
     end
 
     def source_clients_grouped_by_ssn
-      @source_clients_grouped_by_ssn ||= all_source_clients.group_by { |_, _, ssn, _, _| ssn }
+      @source_clients_grouped_by_ssn ||= all_source_clients.group_by { |_, _, ssn, _, _| ssn }.
+        transform_values { |values| values.map(&:last) }
     end
 
     def source_clients_grouped_by_dob
-      @source_clients_grouped_by_dob ||= all_source_clients.group_by { |_, _, _, dob, _| dob }
+      @source_clients_grouped_by_dob ||= all_source_clients.group_by { |_, _, _, dob, _| dob }.
+        transform_values { |values| values.map(&:last) }
     end
 
     def all_source_clients
@@ -234,14 +253,9 @@ module GrdaWarehouse::Tasks
     #   2. birthdate matches
     #   3. perfect name matches
     private def check_for_obvious_match(client)
-      ssn_matches = []
-      ssn_matches = check_social(client.SSN) if valid_social?(client.SSN)
-
-      birthdate_matches = []
-      birthdate_matches = check_birthday(client.DOB) if client.DOB.present?
-
-      name_matches = []
-      name_matches = check_name(client) if client.FirstName.present? && client.last_name.present?
+      ssn_matches = check_social(client.SSN, destination_clients_grouped_by_ssn)
+      birthdate_matches = check_birthday(client.DOB, destination_clients_grouped_by_dob)
+      name_matches = check_name(client.first_name, client.last_name, destination_clients_grouped_by_name)
 
       all_matches = ssn_matches + birthdate_matches + name_matches
       if Rails.env.development?
@@ -269,18 +283,24 @@ module GrdaWarehouse::Tasks
       ::HudUtility.valid_social? ssn
     end
 
-    private def check_social(ssn)
-      destination_clients_grouped_by_ssn[ssn] || []
+    private def check_social(ssn, ssn_group)
+      return [] unless valid_social?(ssn)
+
+      ssn_group[ssn] || []
     end
 
-    private def check_birthday(dob)
-      destination_clients_grouped_by_dob[dob] || []
+    private def check_birthday(dob, dob_group)
+      return [] unless dob.present?
+
+      dob_group[dob] || []
     end
 
-    private def check_name(client)
-      clean_first_name = client.first_name&.downcase&.strip&.gsub(/[^a-z0-9]/i, '') || ''
-      clean_last_name = client.last_name&.downcase&.strip&.gsub(/[^a-z0-9]/i, '') || ''
-      destination_clients_grouped_by_name[[clean_first_name, clean_last_name]] || []
+    private def check_name(first_name, last_name, name_group)
+      clean_first_name = first_name&.downcase&.strip&.gsub(/[^a-z0-9]/i, '') || ''
+      clean_last_name = last_name&.downcase&.strip&.gsub(/[^a-z0-9]/i, '') || ''
+      return [] unless clean_first_name.present? && clean_last_name.present?
+
+      name_group[[clean_first_name, clean_last_name]] || []
     end
 
     private def all_destination_clients
@@ -306,6 +326,11 @@ module GrdaWarehouse::Tasks
     private def destination_clients_grouped_by_dob
       @destination_clients_grouped_by_dob ||= all_destination_clients.group_by { |_, _, _, dob, _| dob }.
         transform_values { |values| values.map(&:last) }
+    end
+
+    private def destination_clients_by_id
+      @destination_clients_by_id ||= all_destination_clients.group_by { |_, _, _, _, dest_id| dest_id }.
+        transform_values { |values| values.map { |client| { SSN: client[2], DOB: client[3], id: client[4] } }.first }
     end
   end
 end
