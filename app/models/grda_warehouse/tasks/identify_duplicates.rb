@@ -56,11 +56,11 @@ module GrdaWarehouse::Tasks
 
             # Set SSN & DOB if we have it in the incoming client, but not in the destination
             should_save = false
-            if client.DOB.present? && destination_client[:dob].blank?
+            if client.DOB.present? && destination_client[:DOB].blank?
               destination_client[:DOB] = client.DOB
               should_save = true
             end
-            if client.SSN.present? && destination_client[:ssn].blank?
+            if client.SSN.present? && destination_client[:SSN].blank?
               destination_client[:SSN] = client.SSN
               should_save = true
             end
@@ -239,8 +239,9 @@ module GrdaWarehouse::Tasks
 
     # figure out who doesn't yet have an entry in warehouse clients
     private def unprocessed
-      @unprocessed_source_ids ||= GrdaWarehouse::Hud::Client.source.pluck(:id) - GrdaWarehouse::WarehouseClient.pluck(:source_id)
-      GrdaWarehouse::Hud::Client.where(id: @unprocessed_source_ids)
+      @unprocessed ||= GrdaWarehouse::Hud::Client.where(
+        id: GrdaWarehouse::Hud::Client.source.pluck(:id) - GrdaWarehouse::WarehouseClient.pluck(:source_id),
+      )
     end
 
     # fetch a list of existing clients from the DND Warehouse DataSource (current destinations)
