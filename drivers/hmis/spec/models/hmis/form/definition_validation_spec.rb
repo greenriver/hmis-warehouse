@@ -140,10 +140,12 @@ RSpec.describe Hmis::Form::Definition, type: :model do
         "4.11.2": 'NO',
       }
     end
+    # It doesn't matter what the raw values are set to, but all the keys need to be present
+    let(:empty_values_for_update) { completed_hud_values_for_update.keys.map { |k| [k, nil] }.to_h }
 
     it 'should have no errors when Update assessment is completely filled in' do
       definition = Hmis::Form::Definition.find_by(role: :UPDATE)
-      errors = definition.validate_form_values(completed_hud_values_for_update)
+      errors = definition.validate_form_values(empty_values_for_update, completed_hud_values_for_update)
       expect(errors).to be_empty
     end
 
@@ -157,12 +159,18 @@ RSpec.describe Hmis::Form::Definition, type: :model do
         },
       ]
       # Test using factory because actual forms don't have any required fields aside from assessment date
-      errors = factory_form_definition.validate_form_values(hud_values)
+      errors = factory_form_definition.validate_form_values(hud_values, hud_values)
       expect(errors.map(&:to_h)).to match(expected_errors.map { |h| a_hash_including(**h) })
     end
 
     it 'should return warnings for warn_if_empty items' do
       definition = Hmis::Form::Definition.find_by(role: :UPDATE)
+      values = {
+        **empty_values_for_update,
+        "4.11.2": 'YES',
+        "4.11.A": nil,
+        "4.11.B": nil,
+      }
       hud_values = {
         **completed_hud_values_for_update,
         "4.11.2": 'YES',
@@ -184,7 +192,7 @@ RSpec.describe Hmis::Form::Definition, type: :model do
         },
       ]
 
-      errors = definition.validate_form_values(hud_values)
+      errors = definition.validate_form_values(values, hud_values)
       expect(errors.map(&:to_h)).to match(expected_errors.map { |h| a_hash_including(**h) })
     end
 
@@ -202,7 +210,7 @@ RSpec.describe Hmis::Form::Definition, type: :model do
         },
       ]
 
-      errors = definition.validate_form_values(hud_values)
+      errors = definition.validate_form_values(empty_values_for_update, hud_values)
       expect(errors.map(&:to_h)).to match(expected_errors.map { |h| a_hash_including(**h) })
     end
   end
