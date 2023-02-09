@@ -22,7 +22,7 @@ module CohortColumns
     attribute :current_user
 
     def display_as_editable?(user, _cohort_client)
-      cohort.user_can_edit_cohort_clients(user) && (user.can_manage_cohort_data? || editable)
+      cohort.user_can_edit_cohort_clients(user) && (user.can_manage_cohort_data? || (editable && user.can_participate_in_cohorts?))
     end
 
     def column_editable?
