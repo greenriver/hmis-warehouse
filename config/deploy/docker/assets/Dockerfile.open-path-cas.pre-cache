@@ -21,7 +21,7 @@ WORKDIR /app
 RUN addgroup -g 1001 app \
   && adduser -u 1001 -G app -h /app -D app
 
-RUN gem install bundler --version=2.3.8 && \
+RUN gem install bundler --version=2.4.6 && \
   mkdir -p app/assets tmp/pids lib/assets vendor/assets public locale var
 
 COPY Gemfile Gemfile.lock Rakefile config.ru ./

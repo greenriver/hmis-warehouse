@@ -16,7 +16,9 @@ RSpec.describe model, type: :model do
     describe 'viewability' do
       describe 'ordinary user' do
         it 'sees nothing' do
-          expect(model.viewable_by(user).exists?).to be false
+          puts GrdaWarehouse::DataSource.can_see_all_data_sources?(user).inspect
+          puts user.coc_codes.inspect
+          expect(model.viewable_by(user).pluck(:id)).to eq([])
         end
       end
 

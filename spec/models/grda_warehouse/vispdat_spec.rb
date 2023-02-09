@@ -42,12 +42,10 @@ RSpec.describe GrdaWarehouse::Vispdat::Individual, type: :model do
     describe 'and completed already set' do
       let(:vispat) { create :vispdat, completed: Time.now }
 
-      before(:each) do
-        vispdat.update(nickname: 'Joey')
-      end
-
       it 'does not queue an email' do
-        expect(Delayed::Job.count).to eq 0
+        expect do
+          vispdat.update(nickname: 'Joey')
+        end.to_not have_enqueued_job.on_queue('mailers')
       end
     end
   end

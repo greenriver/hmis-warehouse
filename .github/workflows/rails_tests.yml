@@ -117,7 +117,7 @@ jobs:
           chmod 600 ~/.pgpass
 
           yarn install --frozen-lockfile
-          gem install bundler --version=2.3.8
+          gem install bundler --version=2.4.6
 
       - name: Install gems
         run: |

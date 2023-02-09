@@ -97,7 +97,7 @@ RUN apk add --no-cache \
     shared-mime-info \
     tar p7zip \
   && rm -rf /var/cache/apk/* \
-  && gem install bundler --version=2.3.8 \
+  && gem install bundler --version=2.4.6 \
   && bundle config without development test doc \
   && bundle install \
   && find /usr/local/bundle -name "*.o" -exec rm {} \; \
