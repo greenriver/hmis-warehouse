@@ -100,7 +100,7 @@ jobs:
         chmod 600 ~/.pgpass
 
         yarn install --frozen-lockfile
-        gem install bundler --version=2.7.6
+        gem install bundler --version=2.4.6
 
     # According to https://www.jessesquires.com/blog/2021/08/23/caching-bundler-on-github-actions/
     # this is fragile and failure prone, but the step they recommend using instead (ruby/ruby-setup)
