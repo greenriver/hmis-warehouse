@@ -19,15 +19,6 @@ RSpec.describe model, type: :model do
     describe 'viewability' do
       describe 'ordinary user' do
         it 'sees nothing' do
-          tt = {
-            can_see_all_data_sources: GrdaWarehouse::DataSource.can_see_all_data_sources?(user),
-            user_coc_codes: user.coc_codes.inspect,
-            data_source_visible_count: GrdaWarehouse::DataSource.viewable_by(user).source.distinct,
-            project_count: GrdaWarehouse::Hud::Project.count,
-            organization_count: GrdaWarehouse::Hud::Organization.count,
-            group_viewable_entities: GrdaWarehouse::GroupViewableEntity.pluck(:entity_id),
-          }
-          puts tt.inspect
           expect(model.viewable_by(user).pluck(:id)).to eq([])
         end
       end
