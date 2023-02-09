@@ -209,6 +209,11 @@ type AutofillValue {
   autofillWhen: [EnableWhen!]!
 
   """
+  Link IDs of numeric questions to sum up and set as the value if condition is met
+  """
+  sumQuestions: [String!]
+
+  """
   Value to autofill if condition is met
   """
   valueBoolean: Boolean
@@ -222,11 +227,6 @@ type AutofillValue {
   Value to autofill if condition is met
   """
   valueNumber: Int
-
-  """
-  Link ID of question to autofill the value from if condition is med
-  """
-  valueQuestion: String
 }
 
 """

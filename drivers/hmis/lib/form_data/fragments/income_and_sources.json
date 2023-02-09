@@ -753,7 +753,30 @@
         {
           "type": "DISPLAY",
           "link_id": "monthly-total-income",
-          "text": "Montly Total Income"
+          "text": "Montly Total Income",
+          "autofill_values": [
+            {
+              "autofill_behavior": "ANY",
+              "autofill_when": [],
+              "sum_questions": [
+                "4.02.A",
+                "4.02.B",
+                "4.02.C",
+                "4.02.D",
+                "4.02.E",
+                "4.02.F",
+                "4.02.G",
+                "4.02.H",
+                "4.02.I",
+                "4.02.J",
+                "4.02.K",
+                "4.02.L",
+                "4.02.M",
+                "4.02.N",
+                "4.02.O"
+              ]
+            }
+          ]
         }
       ]
     }
