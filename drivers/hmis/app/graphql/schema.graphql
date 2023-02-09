@@ -347,7 +347,7 @@ type Client {
   disabilityGroups: [DisabilityGroup!]!
   dob: ISO8601Date
   dobDataQuality: DOBDataQuality!
-  enrollments(includeInProgress: Boolean, limit: Int, offset: Int, projectTypes: [ProjectType!], sortOrder: EnrollmentSortOption): EnrollmentsPaginated!
+  enrollments(includeInProgress: Boolean, limit: Int, offset: Int, openOnDate: ISO8601Date, projectTypes: [ProjectType!], sortOrder: EnrollmentSortOption): EnrollmentsPaginated!
   ethnicity: Ethnicity!
   firstName: String
   gender: [Gender!]!
@@ -3433,7 +3433,7 @@ type Project {
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
   description: String
-  enrollments(clientSearchTerm: String, includeInProgress: Boolean, limit: Int, offset: Int, sortOrder: EnrollmentSortOption): EnrollmentsPaginated!
+  enrollments(clientSearchTerm: String, includeInProgress: Boolean, limit: Int, offset: Int, openOnDate: ISO8601Date, sortOrder: EnrollmentSortOption): EnrollmentsPaginated!
   funders(limit: Int, offset: Int, sortOrder: FunderSortOption): FundersPaginated!
   housingType: HousingType
   id: ID!
