@@ -93,8 +93,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         enrollment_date_updated = e1.date_updated
 
         # Create the initial assessment (submit)
-        new_exit_date = '2005-03-02'
-        input = { **test_input, form_definition_id: definition.id, hud_values: { link_id => new_exit_date } }
+        initial_assessment_date = '2005-03-02'
+        input = { **test_input, form_definition_id: definition.id, hud_values: { link_id => initial_assessment_date } }
         _resp, result = post_graphql(input: { input: input }) { submit_assessment_mutation }
         assessment_id = result.dig('data', 'submitAssessment', 'assessment', 'id')
         errors = result.dig('data', 'submitAssessment', 'errors')
@@ -102,9 +102,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         assessment = Hmis::Hud::Assessment.find(assessment_id)
         expect(assessment).to be_present
         expect(assessment.assessment_detail.assessment_processor).to be_present
-        expect(assessment.assessment_date).to eq(Date.parse(new_exit_date))
-        expect(assessment.enrollment.entry_date).to eq(Date.parse(new_exit_date)) if role == :INTAKE
-        expect(assessment.enrollment.exit&.exit_date).to eq(Date.parse(new_exit_date)) if role == :EXIT
+        expect(assessment.assessment_date).to eq(Date.parse(initial_assessment_date))
+        expect(assessment.enrollment.entry_date).to eq(Date.parse(initial_assessment_date)) if role == :INTAKE
+        expect(assessment.enrollment.exit&.exit_date).to eq(Date.parse(initial_assessment_date)) if role == :EXIT
         expect(assessment.enrollment.date_updated.inspect).not_to be == enrollment_date_updated.inspect
         enrollment_date_updated = assessment.enrollment.date_updated
 
@@ -133,15 +133,15 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         enrollment_entry_date = e1.entry_date
 
         # Create the initial assessment (save as WIP)
-        new_exit_date = '2005-03-02'
-        input = { **test_input, form_definition_id: definition.id, hud_values: { link_id => new_exit_date } }
+        initial_assessment_date = '2005-03-02'
+        input = { **test_input, form_definition_id: definition.id, hud_values: { link_id => initial_assessment_date } }
         _resp, result = post_graphql(input: { input: input }) { save_assessment_mutation }
         assessment_id = result.dig('data', 'saveAssessment', 'assessment', 'id')
         errors = result.dig('data', 'saveAssessment', 'errors')
         expect(errors).to be_empty
         assessment = Hmis::Hud::Assessment.find(assessment_id)
         expect(assessment).to be_present
-        expect(assessment.assessment_date).to eq(Date.parse(new_exit_date))
+        expect(assessment.assessment_date).to eq(Date.parse(initial_assessment_date))
         expect(assessment.assessment_detail.assessment_processor).to be_present
 
         # entry and exit dates should NOT change on save
