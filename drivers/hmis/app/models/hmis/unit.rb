@@ -4,9 +4,10 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class Hmis::Unit < ::GrdaWarehouseBase
+class Hmis::Unit < Hmis::HmisBase
   include ArelHelper
   self.table_name = :hmis_units
+
   belongs_to :inventory, class_name: 'Hmis::Hud::Inventory'
   has_many :beds
   has_many :active_ranges, class_name: 'Hmis::ActiveRange', as: :entity
