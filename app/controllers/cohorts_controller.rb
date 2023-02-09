@@ -116,7 +116,12 @@ class CohortsController < ApplicationController
 
   def create
     @cohort = cohort_source.create!(cohort_params)
-    respond_with(@cohort, location: cohort_path(@cohort))
+    # If the user doesn't have All Cohorts access, grant them access to the cohort
+    AccessGroup.for_user(current_user).add_viewable(@cohort) unless AccessGroup.system_group(:cohorts).users.include?(current_user)
+    # Always add the cohort to the system group
+    AccessGroup.maintain_system_groups(group: :cohorts)
+    # Search the list so you can see the newly created cohort
+    redirect_to cohorts_path('q[name_cont]' => @cohort.name)
   rescue Exception => e
     flash[:error] = e.message
     redirect_to cohorts_path
