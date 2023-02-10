@@ -19,5 +19,9 @@ module CasAccess
     def match_admin?
       self.class.match_admin.where(id: id).exists?
     end
+
+    def name_with_email
+      "#{first_name} #{last_name} <#{email}>"
+    end
   end
 end
