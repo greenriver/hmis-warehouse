@@ -187,8 +187,8 @@ module GrdaWarehouse::Tasks
         splits += splits_by_into[dest_id]&.flatten || [] # Don't merge with anybody that this candidate was split off from
 
         matches_name += check_name(first_name, last_name, source_clients_grouped_by_name)
-        matches_ssn += check_ssn(ssn, source_clients_grouped_by_ssn)
-        matches_dob += check_dob(dob, source_clients_grouped_by_dob)
+        matches_ssn += check_social(ssn, source_clients_grouped_by_ssn)
+        matches_dob += check_birthday(dob, source_clients_grouped_by_dob)
         all_matching_dest_ids = (matches_name + matches_ssn + matches_dob) - splits
         to_merge_by_dest_id = all_matching_dest_ids.uniq.
           map { |num| [num, all_matching_dest_ids.count(num)] }.to_h.
