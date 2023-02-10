@@ -46,7 +46,8 @@ module GrdaWarehouse::Tasks
         matched_ids = []
         destination_client_updates = []
         new_destination_clients = []
-        new_warehouse_clients = []
+        new_warehouse_clients = {}
+        source_client_ids_with_new_destination_clients = []
         batch.each do |client|
           match_id = check_for_obvious_match(client)
           if match_id.present?
@@ -72,12 +73,13 @@ module GrdaWarehouse::Tasks
             destination_client.data_source_id = @dnd_warehouse_data_source.id
             destination_client.apply_housing_release_status
             new_destination_clients << destination_client
+            source_client_ids_with_new_destination_clients << client.id
           end
 
-          new_warehouse_clients << GrdaWarehouse::WarehouseClient.new(
+          new_warehouse_clients[client.id] = GrdaWarehouse::WarehouseClient.new(
             id_in_source: client.PersonalID,
             source_id: client.id,
-            destination_id: destination_client[:id],
+            destination_id: destination_client[:id], # Nil if no destination client exists
             data_source_id: client.data_source_id,
           )
         end
@@ -89,9 +91,12 @@ module GrdaWarehouse::Tasks
           },
           validate: false,
         )
+        new_destination_ids = GrdaWarehouse::Hud::Client.import(new_destination_clients).ids
+        source_client_ids_with_new_destination_clients.zip(new_destination_ids).each do |source_id, destination_id|
+          new_warehouse_clients[source_id][:destination_id] = destination_id
+        end
+        GrdaWarehouse::WarehouseClient.import(new_warehouse_clients.values)
         GrdaWarehouse::Hud::Client.where(id: matched_ids).find_each(&:invalidate_service_history)
-        GrdaWarehouse::Hud::Client.import(new_destination_clients)
-        GrdaWarehouse::WarehouseClient.import(new_warehouse_clients)
       end
       # Cleanup any proposed matches that might have been affected
       GrdaWarehouse::ClientMatch.accept_exact_matches!
