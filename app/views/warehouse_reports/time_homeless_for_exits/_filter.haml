@@ -5,7 +5,7 @@
         = render 'warehouse_reports/date_range_filters', f:f
       - if GrdaWarehouse::Config.get(:multi_coc_installation)
         .col-sm-6
-          = f.input :coc_codes, collection: @filter.coc_code_options_for_select(user: current_user), as: :select_two, label: 'CoCs', input_html: { multiple: true, class: ['select2-id-when-selected'], placeholder: 'Choose CoCs' }, as: :select_two
+          = f.input :coc_codes, collection: @filter.coc_code_options_for_select(user: current_user), as: :select_two, label: 'CoCs', input_html: { multiple: true, class: ['select2-id-when-selected'], placeholder: 'Choose CoCs' }
     .row.mt-4
       .col-sm-6.mb-4
         = f.input :project_ids, label: 'Projects', collection: [], as: :select_two, input_html: {multiple: true, placeholder: 'Choose Projects', data: {'collection-path' => api_projects_path(selected_project_ids: @filter.project_ids)}}, include_blank: false
