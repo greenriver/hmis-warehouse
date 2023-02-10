@@ -6,8 +6,8 @@
     %h1= content_for :title
   = render 'clients/tab_navigation', current: client_health_patient_referrals_path(client_id: @client)
 
-.table-responsive
-  %table.table.table-sm
+.card
+  %table.table.table-striped
     %thead
       %tr
         %th Enrollment Start Date

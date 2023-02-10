@@ -6,7 +6,7 @@ x-app: &app
     context: .
     args:
       RUBY_VERSION: 2.7.7
-      BUNDLER_VERSION: '2.2.26'
+      BUNDLER_VERSION: '2.4.6'
   environment: &env
     AWS_REGION: ${AWS_REGION:-us-east-1}
     AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
