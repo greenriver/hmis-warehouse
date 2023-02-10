@@ -22,6 +22,7 @@ class Hmis::Form::AssessmentProcessor < ::GrdaWarehouseBase
   belongs_to :exit, class_name: 'Hmis::Hud::Exit', optional: true, autosave: true
 
   validate :hmis_records_are_valid
+  before_save :save_enrollment
 
   def run!
     return unless assessment_detail.hud_values.present?
@@ -45,7 +46,6 @@ class Hmis::Form::AssessmentProcessor < ::GrdaWarehouseBase
     end
   end
 
-  before_save :save_enrollment
   def save_enrollment
     enrollment_factory.save! if enrollment_factory.present?
   end

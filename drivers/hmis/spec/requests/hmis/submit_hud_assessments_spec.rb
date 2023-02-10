@@ -14,6 +14,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   include_context 'hmis base setup'
   include_context 'hmis form setup'
 
+  TIME_FMT = '%Y-%m-%d %T.%3N'.freeze
+
   let(:c1) { create :hmis_hud_client, data_source: ds1, user: u1 }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: '2000-01-01' }
 
@@ -105,7 +107,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(assessment.assessment_date).to eq(Date.parse(initial_assessment_date))
         expect(assessment.enrollment.entry_date).to eq(Date.parse(initial_assessment_date)) if role == :INTAKE
         expect(assessment.enrollment.exit&.exit_date).to eq(Date.parse(initial_assessment_date)) if role == :EXIT
-        expect(assessment.enrollment.date_updated.inspect).not_to be == enrollment_date_updated.inspect
+        expect(assessment.enrollment.date_updated.strftime(TIME_FMT)).not_to eq(enrollment_date_updated.strftime(TIME_FMT))
         enrollment_date_updated = assessment.enrollment.date_updated
 
         # Update the assessment (submit)
@@ -119,7 +121,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(assessment.assessment_date).to eq(Date.parse(new_assessment_date))
         expect(assessment.enrollment.entry_date).to eq(Date.parse(new_assessment_date)) if role == :INTAKE
         expect(assessment.enrollment&.exit&.exit_date).to eq(Date.parse(new_assessment_date)) if role == :EXIT
-        expect(assessment.enrollment.date_updated.inspect).not_to be == enrollment_date_updated.inspect
+        expect(assessment.enrollment.date_updated.strftime(TIME_FMT)).not_to eq(enrollment_date_updated.strftime(TIME_FMT))
       end
     end
   end
@@ -147,7 +149,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         # entry and exit dates should NOT change on save
         expect(assessment.enrollment.entry_date).to eq(enrollment_entry_date)
         expect(assessment.enrollment.exit&.exit_date).to be_nil
-        # expect(assessment.enrollment.date_updated.inspect).to be == enrollment_date_updated.inspect
+        expect(assessment.enrollment.date_updated.strftime(TIME_FMT)).to eq(enrollment_date_updated.strftime(TIME_FMT))
 
         # Update the assessment (submit)
         new_assessment_date = '2021-03-01'
@@ -161,7 +163,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         # entry and exit dates should change on save
         expect(assessment.enrollment.entry_date).to eq(Date.parse(new_assessment_date)) if role == :INTAKE
         expect(assessment.enrollment&.exit&.exit_date).to eq(Date.parse(new_assessment_date)) if role == :EXIT
-        expect(assessment.enrollment.date_updated.inspect).not_to be == enrollment_date_updated.inspect
+        expect(assessment.enrollment.date_updated.strftime(TIME_FMT)).not_to eq(enrollment_date_updated.strftime(TIME_FMT))
       end
     end
   end
