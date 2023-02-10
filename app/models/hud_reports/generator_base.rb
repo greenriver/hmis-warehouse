@@ -4,13 +4,13 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-require 'memoist'
+require 'memery'
 module HudReports
   class GeneratorBase
     include ArelHelper
     include Filter::FilterScopes
     include Rails.application.routes.url_helpers
-    extend Memoist
+    include Memery
 
     PENDING = 'pending'.freeze
     STARTED = 'started'.freeze

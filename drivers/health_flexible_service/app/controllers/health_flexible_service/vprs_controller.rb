@@ -69,7 +69,7 @@ module HealthFlexibleService
       }
       grover_options[:executablePath] = ENV['CHROMIUM_PATH'] if ENV['CHROMIUM_PATH']
       html = render_to_string('health_flexible_service/vprs/show')
-      Grover.new(html, grover_options).to_pdf
+      Grover.new(html, **grover_options).to_pdf
     end
 
     def create
