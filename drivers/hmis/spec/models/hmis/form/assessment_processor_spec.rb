@@ -112,8 +112,9 @@ RSpec.describe Hmis::Form::AssessmentProcessor, type: :model do
       }
 
       assessment.assessment_detail.assessment_processor.run!
+      assessment.assessment_detail.save!
       assessment.save_not_in_progress
-
+      assessment.reload
       expect(assessment.enrollment.enrollment_cocs.count).to eq(1)
       expect(assessment.enrollment.enrollment_cocs.first.coc_code).to eq('MA-507')
 
@@ -137,7 +138,9 @@ RSpec.describe Hmis::Form::AssessmentProcessor, type: :model do
       }
 
       assessment.assessment_detail.assessment_processor.run!
+      assessment.assessment_detail.save!
       assessment.save_not_in_progress
+      assessment.reload
 
       expect(assessment.enrollment.enrollment_cocs.first.coc_code).to be_nil
     end
@@ -155,8 +158,10 @@ RSpec.describe Hmis::Form::AssessmentProcessor, type: :model do
       assessment.assessment_date = test_date
 
       assessment.assessment_detail.assessment_processor.run!
+      assessment.assessment_detail.save!
       assessment.save_not_in_progress
 
+      assessment.reload
       expect(assessment.enrollment.enrollment_cocs.first.information_date).to eq(test_date)
     end
 
@@ -177,10 +182,38 @@ RSpec.describe Hmis::Form::AssessmentProcessor, type: :model do
       }
 
       assessment.assessment_detail.assessment_processor.run!
+      assessment.assessment_detail.save!
       assessment.save_not_in_progress
+      assessment.reload
 
       expect(assessment.enrollment.exit).to be_present
       expect(assessment.enrollment.exit.destination).to eq(1)
+    end
+
+    it 'updates enrollment entry date when appropriate' do
+      assessment = Hmis::Hud::Assessment.new_with_defaults(enrollment: e1, user: hmis_hud_user, form_definition: fd, assessment_date: Date.current)
+      assessment.assessment_detail.hud_values = {
+        'EnrollmentCoc.cocCode' => 'MA-507',
+      }
+
+      assessment.assessment_detail.assessment_processor.run!
+      assessment.save_not_in_progress
+
+      old_entry_date = assessment.enrollment.entry_date
+      new_entry_date = '2024-03-14'
+      expect(old_entry_date).not_to be_nil
+
+      assessment.assessment_detail.hud_values = {
+        'Enrollment.entryDate' => new_entry_date,
+      }
+
+      assessment.assessment_detail.assessment_processor.run!
+      assessment.assessment_detail.assessment_processor.save!
+      assessment.save_not_in_progress
+      assessment.reload
+
+      expect(assessment.enrollment.entry_date).not_to eq(old_entry_date)
+      expect(assessment.enrollment.entry_date).to eq(Date.parse(new_entry_date))
     end
   end
 end
