@@ -84,21 +84,21 @@ class AccessGroup < ApplicationRecord
     Delayed::Worker.new.work_off if Rails.env.test?
   end
 
+  def self.system_groups
+    {
+      hmis_reports: AccessGroup.where(name: 'All HMIS Reports').first_or_create,
+      health_reports: AccessGroup.where(name: 'All Health Reports').first_or_create,
+      cohorts: AccessGroup.where(name: 'All Cohorts').first_or_create,
+      project_groups: AccessGroup.where(name: 'All Project Groups').first_or_create,
+      data_sources: AccessGroup.where(name: 'All Data Sources').first_or_create,
+    }
+  end
+
   def self.system_group(group)
-    case group
-    when :hmis_reports
-      AccessGroup.where(name: 'All HMIS Reports').first_or_create
-    when :health_reports
-      AccessGroup.where(name: 'All Health Reports').first_or_create
-    when :cohorts
-      AccessGroup.where(name: 'All Cohorts').first_or_create
-    when :project_groups
-      AccessGroup.where(name: 'All Project Groups').first_or_create
-    when :data_sources
-      AccessGroup.where(name: 'All Data Sources').first_or_create
-    else
-      raise ArgumentError, "Unknown group: #{group}"
-    end
+    selected_group = system_groups[group] 
+    raise ArgumentError, "Unknown group: #{group}" unless selected_group
+
+    selected_group
   end
 
   def self.maintain_system_groups(group: nil)
