@@ -21,7 +21,7 @@
       .col-sm-6.mb-4
         = f.input :sub_population, collection: @filter.class.available_sub_populations, label: 'Sub-Population', include_blank: false, as: :select_two
       .col-sm-6.mb-4
-        = f.input :cohort_ids, collection: @filter.cohorts_for_select(user: current_user), label: 'Cohorts', include_blank: false, as: :select_two, include_blank: false, input_html: { multiple: :true, placeholder: 'Any Cohort' }
+        = f.input :cohort_ids, collection: @filter.cohorts_for_select(user: current_user), label: 'Cohorts', as: :select_two, include_blank: false, input_html: { multiple: :true, placeholder: 'Any Cohort' }
 
   - content_for :filter_actions do
     = f.button :submit, value: 'Update Report'
