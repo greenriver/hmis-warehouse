@@ -15,7 +15,7 @@
 %ul.nav.nav-tabs{role: :tablist}
   %li.nav-item{role: :presentation}
     %a{href: '#active-cohorts', aria: {controls: 'active-cohorts'}, data: {toggle: :tab}, role: :tab, class: 'nav-link active'} Cohorts
-  - if can_view_inactive_cohort_clients? || can_manage_inactive_cohort_clients? || can_configure_cohorts?
+  - if can_configure_cohorts?
     %li.nav-item{role: :presentation}
       %a{href: '#inactive-cohorts', aria: {controls: 'inactive-cohorts'}, data: {toggle: :tab}, role: :tab, class: 'nav-link'} Inactive Cohorts
   - if system_cohorts_enabled
