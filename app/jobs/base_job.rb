@@ -41,12 +41,24 @@ class BaseJob < ApplicationJob
     end
   end
 
+  if ENV['ECS'] == 'true'
+    # When called through Delayed::Job, uses this hook
+    def after(_job)
+      WorkerStatus.new.conditional_exit!
+    end
+
+    # When called through Active::Job, uses this hook
+    after_perform do |_job|
+      WorkerStatus.new.conditional_exit!
+    end
+  end
+
   private
 
   def running_in_correct_path?
     return true unless File.exist?('config/exception_notifier.yml')
 
-    STARTING_PATH == expected_path
+    expected_path == STARTING_PATH
   end
 
   def notify_on_restart(msg)
