@@ -80,8 +80,12 @@ class AccessGroup < ApplicationRecord
   end
 
   def self.delayed_system_group_maintenance(group: nil)
-    delay.maintain_system_groups(group: group)
+    delay.maintain_system_groups_no_named_arguments(group)
     Delayed::Worker.new.work_off if Rails.env.test?
+  end
+ 
+  def self.maintain_system_groups_no_named_arguments(group)
+    maintain_system_groups(group: group)
   end
 
   def self.system_groups
