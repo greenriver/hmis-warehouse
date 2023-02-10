@@ -1,6 +1,7 @@
 wb = xlsx_package.workbook
 wb.add_worksheet(name: 'Projects') do |sheet|
-  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+  date_time = sheet.styles.add_style(num_fmt: Axlsx::NUM_FMT_YYYYMMDDHHMMSS)
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
   sheet.add_row(
     [
       'Warehouse ID',
@@ -9,6 +10,7 @@ wb.add_worksheet(name: 'Projects') do |sheet|
       'HMIS OrganizationID',
       'OrganizationName',
       'Data Source',
+      'Date Updated',
     ],
     style: title,
   )
@@ -21,19 +23,23 @@ wb.add_worksheet(name: 'Projects') do |sheet|
         row.organization&.OrganizationID,
         row.organization&.OrganizationName,
         row.data_source&.short_name,
+        row.DateUpdated,
       ],
     )
   end
+  sheet.col_style 6, date_time, row_offset: 1
 end
 
 wb.add_worksheet(name: 'Organizations') do |sheet|
-  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+  date_time = sheet.styles.add_style(num_fmt: Axlsx::NUM_FMT_YYYYMMDDHHMMSS)
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
   sheet.add_row(
     [
       'Warehouse ID',
       'HMIS OrganizationID',
       'OrganizationName',
       'Data Source',
+      'Date Updated',
     ],
     style: title,
   )
@@ -44,13 +50,16 @@ wb.add_worksheet(name: 'Organizations') do |sheet|
         row.OrganizationID,
         row.OrganizationName,
         row.data_source&.short_name,
+        row.DateUpdated,
       ],
     )
   end
+  sheet.col_style 4, date_time, row_offset: 1
 end
 
 wb.add_worksheet(name: 'Inventory') do |sheet|
-  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+  date_time = sheet.styles.add_style(num_fmt: Axlsx::NUM_FMT_YYYYMMDDHHMMSS)
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
   sheet.add_row(
     [
       'Warehouse ID',
@@ -58,6 +67,7 @@ wb.add_worksheet(name: 'Inventory') do |sheet|
       'HMIS ProjectID',
       'ProjectName',
       'Data Source',
+      'Date Updated',
     ],
     style: title,
   )
@@ -69,13 +79,16 @@ wb.add_worksheet(name: 'Inventory') do |sheet|
         row.project.ProjectID,
         row.project.ProjectName,
         row.data_source&.short_name,
+        row.DateUpdated,
       ],
     )
   end
+  sheet.col_style 5, date_time, row_offset: 1
 end
 
 wb.add_worksheet(name: 'Funders') do |sheet|
-  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+  date_time = sheet.styles.add_style(num_fmt: Axlsx::NUM_FMT_YYYYMMDDHHMMSS)
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
   sheet.add_row(
     [
       'Warehouse ID',
@@ -83,6 +96,7 @@ wb.add_worksheet(name: 'Funders') do |sheet|
       'HMIS ProjectID',
       'ProjectName',
       'Data Source',
+      'Date Updated',
     ],
     style: title,
   )
@@ -94,13 +108,16 @@ wb.add_worksheet(name: 'Funders') do |sheet|
         row.project.ProjectID,
         row.project.ProjectName,
         row.data_source&.short_name,
+        row.DateUpdated,
       ],
     )
   end
+  sheet.col_style 5, date_time, row_offset: 1
 end
 
 wb.add_worksheet(name: 'ProjectCoCs') do |sheet|
-  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+  date_time = sheet.styles.add_style(num_fmt: Axlsx::NUM_FMT_YYYYMMDDHHMMSS)
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
   sheet.add_row(
     [
       'Warehouse ID',
@@ -108,6 +125,7 @@ wb.add_worksheet(name: 'ProjectCoCs') do |sheet|
       'HMIS ProjectID',
       'ProjectName',
       'Data Source',
+      'Date Updated',
     ],
     style: title,
   )
@@ -119,7 +137,9 @@ wb.add_worksheet(name: 'ProjectCoCs') do |sheet|
         row.project.ProjectID,
         row.project.ProjectName,
         row.data_source&.short_name,
+        row.DateUpdated,
       ],
     )
   end
+  sheet.col_style 5, date_time, row_offset: 1
 end
