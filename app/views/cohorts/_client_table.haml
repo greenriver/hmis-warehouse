@@ -16,7 +16,7 @@
   .cohort-client__table.ag-theme-balham.datatable{class: size}
 
   .text-right.mt-4
-    - unless @cohort.system_cohort || @cohort.auto_maintained?
+    - if current_user.can_add_cohort_clients? && !(@cohort.system_cohort || @cohort.auto_maintained?)
       - if @population.to_sym == :deleted
         - url = bulk_restore_cohort_cohort_clients_path(cohort_id: @cohort.id)
         = simple_form_for :cc, url: url, method: :post, html: {class: :jBulkDelete} do |f|
