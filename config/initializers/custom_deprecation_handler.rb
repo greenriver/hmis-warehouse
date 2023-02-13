@@ -14,7 +14,10 @@ class CustomDeprecationHandler
 
   def call(message:, backtrace: nil)
     error = StandardError.new(message)
-    error.set_backtrace(backtrace) if backtrace
+    begin
+      error.set_backtrace(backtrace) if backtrace
+    rescue TypeError
+    end
     key = Digest::MD5.hexdigest(error.full_message)
     # rate limit warnings
     cache.fetch(key, expires_in: 1.minute) do
