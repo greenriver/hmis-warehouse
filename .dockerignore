@@ -29,3 +29,4 @@ shape_files/*/*.shp
 shape_files/*/*.prj
 shape_files/*/*.dbf
 shape_files/*/*.cpg
+shape_files/*/*.sql
