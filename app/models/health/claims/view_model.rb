@@ -81,12 +81,13 @@ module Health::Claims
       result
     end
 
-    protected
-
-    Table = Struct.new('Table', :keys, :patient, :sdh, :variance)
-
     def load_table(result)
-      Table.new(result[:patient].keys, result[:patient], result[:sdh], result[:variance])
+      OpenStruct.new(
+        keys: result[:patient].keys,
+        patient: result[:patient],
+        sdh: result[:sdh],
+        variance: result[:variance],
+      )
     end
 
     def load_implementation_baseline_variance(values)
