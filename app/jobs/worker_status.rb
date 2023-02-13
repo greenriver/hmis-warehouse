@@ -8,6 +8,8 @@
 # to exit when a job completes and the worker is not on the latest task
 # definition (i.e. the latest code)
 class WorkerStatus
+  include NotifierConfig
+
   attr_accessor :job
 
   def initialize(job)
@@ -22,14 +24,18 @@ class WorkerStatus
 
     return if my_version == -1
     return if latest_version == -1
-
     return unless my_version < latest_version
-
     return unless latest_deployment_is_at_least_partially_finished
 
     Rails.logger.info 'The most recently attempted deployment is finished'
 
+    unlock_job!
+
     Rails.logger.warn "Exiting because I am a workoff worker that isn't on the latest version"
+
+    # Letting the logs sync, otherwise we lose the last few log lines
+    sleep(10)
+
     exit!(0)
   end
 
@@ -117,5 +123,13 @@ class WorkerStatus
 
   def client
     @client ||= Aws::ECS::Client.new
+  end
+
+  def notify_on_restart(msg)
+    Rails.logger.info msg
+    return unless File.exist?('config/exception_notifier.yml')
+
+    setup_notifier('DelayedJobRestarter')
+    @notifier.ping(msg) if @send_notifications
   end
 end
