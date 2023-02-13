@@ -8,10 +8,16 @@
 # to exit when a job completes and the worker is not on the latest task
 # definition (i.e. the latest code)
 class WorkerStatus
+  attr_accessor :job
+
+  def initialize(job)
+    self.job = job
+  end
+
   def conditional_exit!
     return unless i_am_a_workoff_worker
 
-    Rails.logger.info "This tasks's task definition version: #{my_version}"
+    Rails.logger.info "This task's task definition version: #{my_version}"
     Rails.logger.info "The latest task definition version: #{latest_version}"
 
     return if my_version == -1
@@ -28,6 +34,24 @@ class WorkerStatus
   end
 
   private
+
+  def unlock_job!
+    job_id =
+      if job.respond_to? :job_id
+        job.job_id
+      else
+        job.id
+      end
+
+    a_t = Delayed::Job.arel_table
+    job_object = Delayed::Job.where(a_t[:handler].matches("%job_id: #{job_id}%").or(a_t[:id].eq(job_id))).first
+    return unless job_object
+
+    msg = "Marking delayed job as unlocked: #{job_object.locked_by}"
+    notify_on_restart(msg)
+
+    job_object.update(locked_by: nil, locked_at: nil)
+  end
 
   def latest_deployment_is_at_least_partially_finished
     return true if Rails.env.development? || Rails.env.test?
@@ -59,7 +83,7 @@ class WorkerStatus
     result = client.describe_task_definition(task_definition: unversioned_task_definition)
 
     @latest_version = result.task_definition[:task_definition_arn].split(':').last.to_i
-  rescue Aws::ECS::Errors::ClientException => e
+  rescue Aws::ECS::Errors::ClientException, Aws::Errors::InvalidProcessCredentialsPayload => e
     Rails.logger.error e.message
     Rails.logger.error 'Unable to determine if we should exit this workoff worker'
     -1
@@ -73,10 +97,18 @@ class WorkerStatus
   def task_metadata
     return @task_metadata unless @task_metadata.nil?
 
+    return default_metadata if ENV['ECS_CONTAINER_METADATA_URI_V4'].blank?
+
     json = `curl #{ENV['ECS_CONTAINER_METADATA_URI_V4']}/task`
     @task_metadata = JSON.parse(json)
   rescue StandardError => e
     Rails.logger.error e.message
+    default_metadata
+  end
+
+  def default_metadata
+    return JSON.parse(ENV['DEFAULT_METADATA']) if ENV['DEFAULT_METADATA'].present?
+
     {
       'Family' => 'unknown',
       'Revision' => '-1',

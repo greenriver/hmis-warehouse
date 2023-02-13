@@ -43,13 +43,13 @@ class BaseJob < ApplicationJob
 
   if ENV['ECS'] == 'true'
     # When called through Delayed::Job, uses this hook
-    def after(_job)
-      WorkerStatus.new.conditional_exit!
+    def before(job)
+      WorkerStatus.new(job).conditional_exit!
     end
 
     # When called through Active::Job, uses this hook
-    after_perform do |_job|
-      WorkerStatus.new.conditional_exit!
+    before_perform do |job|
+      WorkerStatus.new(job).conditional_exit!
     end
   end
 
