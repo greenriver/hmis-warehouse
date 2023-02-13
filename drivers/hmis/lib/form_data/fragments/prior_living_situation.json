@@ -180,6 +180,8 @@
     {
       "type": "DATE",
       "link_id": "3.917.3",
+      "required": false,
+      "warn_if_empty": true,
       "field_name": "dateToStreetEssh",
       "text": "Date homelessness started",
       "enable_behavior": "ALL",

@@ -16,7 +16,7 @@
       .col-sm-6.mb-4
         = f.input :data_source_ids, collection: @filter.data_source_options_for_select(user: current_user), placeholder: 'Any Data Source', input_html: {multiple: true}, label: 'Data Sources', as: :select_two
       .col-sm-6.mb-4
-        = f.input :sub_population, collection: GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations, as: :select_two, label: 'Sub-population'
+        = f.input :sub_population, collection: GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations, as: :select_two, label: 'Sub-population', include_blank: false
 
   - content_for :filter_actions do
     = f.button :submit, value: 'Generate Export'

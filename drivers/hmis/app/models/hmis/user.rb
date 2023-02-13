@@ -14,6 +14,7 @@ class Hmis::User < ApplicationRecord
   include UserConcern
   include HasRecentItems
   self.table_name = :users
+
   has_many :user_hmis_data_sources_roles, class_name: '::Hmis::UserHmisDataSourceRole', dependent: :destroy, inverse_of: :user # join table with user_id, data_source_id, role_id
   has_many :roles, through: :user_hmis_data_sources_roles, source: :role
   has_many :hmis_data_sources, through: :user_hmis_data_sources_roles, source: :data_source
