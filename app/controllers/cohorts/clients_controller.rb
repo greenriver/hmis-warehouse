@@ -16,8 +16,7 @@ module Cohorts
 
     before_action :require_can_access_cohort!
     before_action :require_can_add_cohort_clients!, only: [:new, :create, :destroy, :bulk_destroy, :bulk_restore]
-    before_action :require_can_configure_cohorts!, only: [:edit, :update]
-    before_action :require_can_update_some_cohort_data!, only: [:re_rank]
+    before_action :require_can_update_some_cohort_data!, only: [:re_rank, :edit, :update]
     before_action :set_cohort
     before_action :set_client, only: [:destroy, :update, :show, :pre_destroy, :field]
     before_action :load_cohort_names, only: [:index, :edit, :field, :update]
@@ -536,7 +535,10 @@ module Cohorts
     end
 
     def cohort_update_params
-      params.require(:cohort_client).permit(*cohort_source.available_columns.select(&:column_editable?).map(&:column))
+      editable_columns = cohort_source.available_columns.
+        select { |column| column.display_as_editable?(current_user, @client, on_cohort: @cohort) }.
+        map(&:column)
+      params.require(:cohort_client).permit(*editable_columns)
     end
 
     def log_create(cohort_id, cohort_client_id)
