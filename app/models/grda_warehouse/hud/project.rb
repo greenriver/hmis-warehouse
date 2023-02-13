@@ -608,7 +608,9 @@ module GrdaWarehouse::Hud
         @psh_types.include?(compute_project_type)
     end
 
-    alias_attribute :name, :ProjectName
+    def effective_target_population
+      target_population_override || self.TargetPopulation
+    end
 
     def confidential?
       super || GrdaWarehouse::Hud::Organization.confidential_org?(self.OrganizationID, data_source_id)
@@ -648,6 +650,7 @@ module GrdaWarehouse::Hud
 
       project_name
     end
+    alias_attribute :name, :ProjectName
 
     # Useful for confidentializing name after 'pluck'
     # The confidential parameter should indicate whether the Project or Organization is confidential

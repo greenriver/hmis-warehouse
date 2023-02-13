@@ -6,9 +6,9 @@ wb.add_worksheet(name: 'Projects') do |sheet|
     [
       'Warehouse ID',
       'HMIS ProjectID',
-      'ProjectName',
-      'HMIS OrganizationID',
-      'OrganizationName',
+      'Project Name',
+      'HMIS Organization ID',
+      'Organization Name',
       'Data Source',
       'Date Updated',
     ],
@@ -36,8 +36,8 @@ wb.add_worksheet(name: 'Organizations') do |sheet|
   sheet.add_row(
     [
       'Warehouse ID',
-      'HMIS OrganizationID',
-      'OrganizationName',
+      'HMIS Organization ID',
+      'Organization Name',
       'Data Source',
       'Date Updated',
     ],
@@ -63,9 +63,9 @@ wb.add_worksheet(name: 'Inventory') do |sheet|
   sheet.add_row(
     [
       'Warehouse ID',
-      'HMIS InventoryID',
-      'HMIS ProjectID',
-      'ProjectName',
+      'HMIS Inventory ID',
+      'HMIS Project ID',
+      'Project Name',
       'Data Source',
       'Date Updated',
     ],
@@ -92,9 +92,9 @@ wb.add_worksheet(name: 'Funders') do |sheet|
   sheet.add_row(
     [
       'Warehouse ID',
-      'HMIS FunderID',
-      'HMIS ProjectID',
-      'ProjectName',
+      'HMIS Funder ID',
+      'HMIS Project ID',
+      'Project Name',
       'Data Source',
       'Date Updated',
     ],
@@ -123,7 +123,7 @@ wb.add_worksheet(name: 'ProjectCoCs') do |sheet|
       'Warehouse ID',
       'HMIS ProjectCoCID',
       'HMIS ProjectID',
-      'ProjectName',
+      'Project Name',
       'Data Source',
       'Date Updated',
     ],
