@@ -115,10 +115,10 @@ module GrdaWarehouse
     # re-compress the zip file with a password and 7zip
     private def encrypt_seven_zip(content)
       tmp = Tempfile.new(['hmis_export', '.zip'], 'tmp', binmode: true)
-      local_source_path = tmp.path
+      # local_source_path = tmp.path
       source_path = Rails.root.join(tmp.path).to_s
       destination_path = ::File.join(::File.dirname(source_path), ::File.basename(source_path, '.zip')).to_s
-      local_destination_path = ::File.join(::File.dirname(local_source_path), ::File.basename(source_path, '.zip')).to_s
+      # local_destination_path = ::File.join(::File.dirname(local_source_path), ::File.basename(source_path, '.zip')).to_s
       destination_file = "#{::File.join(::File.dirname(source_path), ::File.basename(source_path, '.zip'))}_enc.7z"
       tmp.write(content)
       tmp.close

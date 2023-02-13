@@ -4,11 +4,14 @@
   "text": "Non-Cash Benefits",
   "data_collected_about": "HOH_AND_ADULTS",
   "record_type": "INCOME_BENEFIT",
+  "prefill": true,
   "item": [
     {
       "type": "CHOICE",
       "component": "RADIO_BUTTONS",
       "link_id": "4.03.2",
+      "required": false,
+      "warn_if_empty": true,
       "text": "Non-Cash Benefits from Any Source",
       "pick_list_reference": "NoYesReasonsForMissingData",
       "field_name": "benefitsFromAnySource",
@@ -116,7 +119,9 @@
           "type": "STRING",
           "link_id": "4.03.A",
           "text": "Specify other source",
-          "required": true,
+          "brief_text": "Other benefits source",
+          "required": false,
+          "warn_if_empty": true,
           "field_name": "otherBenefitsSourceIdentify",
           "enable_behavior": "ALL",
           "enable_when": [

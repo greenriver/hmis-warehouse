@@ -20,13 +20,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       mutation UpdateEnrollment($input: UpdateEnrollmentInput!) {
         updateEnrollment(input: $input) {
           enrollment {
-            id
-            entryDate
-            relationshipToHoH
+            #{scalar_fields(Types::HmisSchema::Enrollment)}
             client {
               id
             }
-            dateUpdated
           }
           #{error_fields}
         }

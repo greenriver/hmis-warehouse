@@ -1,6 +1,8 @@
 class Hmis::Hud::Validators::FunderValidator < Hmis::Hud::Validators::BaseValidator
   IGNORED = [
     :ExportID,
+    :DateCreated,
+    :DateUpdated,
   ].freeze
 
   def configuration

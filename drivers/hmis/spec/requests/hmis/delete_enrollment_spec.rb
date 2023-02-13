@@ -45,7 +45,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       enrollment = result.dig('data', 'deleteEnrollment', 'enrollment')
       errors = result.dig('data', 'deleteEnrollment', 'errors')
       expect(enrollment).to be_present
-      expect(errors).to contain_exactly(include('message' => 'Only in-progress enrollments can be deleted'))
+      expect(errors).to contain_exactly(include('fullMessage' => 'Completed enrollments can not be deleted. Please exit the client instead.'))
       expect(Hmis::Hud::Enrollment.all).to contain_exactly(
         have_attributes(id: e1.id),
         have_attributes(id: e2.id),

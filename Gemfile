@@ -58,7 +58,7 @@ gem 'carrierwave-i18n'
 
 # version 1.5 has the fix we need when we ever go to 1.5
 #gem 'carrierwave-aws', '~> 1.4'
-gem 'carrierwave-aws', git: "https://github.com/greenriver/carrierwave-aws.git", branch: "gr-1.4.0-without-deprecations"
+gem 'carrierwave-aws', git: 'https://github.com/greenriver/carrierwave-aws.git', branch: 'gr-1.4.0-without-deprecations'
 gem 'image_processing'
 
 gem 'ruby-filemagic'
@@ -194,7 +194,7 @@ gem 'aws-sdk-secretsmanager', '~> 1'
 gem 'aws-sdk-ses', '~> 1'
 gem 'aws-sdk-iam', '~> 1'
 gem 'aws-sdk-sns', require: false
-gem "aws-sdk-ssm", "~> 1"
+gem 'aws-sdk-ssm', '~> 1'
 gem 'json'
 gem 'oj'
 gem 'amazing_print'
@@ -222,10 +222,11 @@ gem 'parallel'
 gem 'todo_or_die'
 gem 'reline', '~> 0.2'
 
-gem "business_time", "~> 0.10.0"
-gem "cable_ready", "~> 4.5"
-gem "graphql", "~> 2.0"
-gem "sentry-rails", "~> 5.5"
+gem 'business_time', '~> 0.10.0'
+gem 'cable_ready', '~> 4.5'
+gem 'graphql', '~> 2.0'
+gem 'sentry-rails', '~> 5.5'
+gem 'warning'
 
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console

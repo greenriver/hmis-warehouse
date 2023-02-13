@@ -48,8 +48,8 @@ module Importers::HmisAutoMigrate
         FileUtils.rmtree(tmp_folder) if File.exist? tmp_folder
         FileUtils.mkdir_p(tmp_folder)
 
-        options = {}
-        options = { password: @file_password } if @file_password.present?
+        # options = {}
+        # options = { password: @file_password } if @file_password.present?
 
         cmd = "7z e -o#{tmp_folder} #{zip_file}"
         system(cmd)

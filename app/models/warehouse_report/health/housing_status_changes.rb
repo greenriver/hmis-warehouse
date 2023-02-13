@@ -108,7 +108,7 @@ class WarehouseReport::Health::HousingStatusChanges
   end
 
   private def trend_group_counts
-    trend_categories.values.map { |opts| count_trend_group(opts) }
+    trend_categories.values.map { |opts| count_trend_group(**opts) }
   end
 
   private def housed_statuses

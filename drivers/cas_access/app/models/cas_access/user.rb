@@ -16,8 +16,28 @@ module CasAccess
       joins(:roles).merge(CasAccess::Role.match_admin)
     end
 
+    scope :in_directory, -> do
+      current_scope
+    end
+
     def match_admin?
       self.class.match_admin.where(id: id).exists?
+    end
+
+    def name_with_email
+      "#{name} <#{email}>"
+    end
+
+    def name
+      "#{first_name} #{last_name}"
+    end
+
+    def phone_for_directory
+      contact&.cell_phone
+    end
+
+    def agency_name
+      agency&.name
     end
   end
 end

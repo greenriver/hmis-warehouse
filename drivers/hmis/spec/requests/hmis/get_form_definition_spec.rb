@@ -1,7 +1,7 @@
 require 'rails_helper'
 require_relative 'login_and_permissions'
 require_relative 'hmis_base_setup'
-require_relative 'hmis_form_setup'
+require_relative '../../models/hmis/form/hmis_form_setup'
 
 RSpec.describe Hmis::GraphqlController, type: :request do
   before(:all) do
@@ -54,7 +54,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   it 'should successfully lookup all form definitions by identifier' do
-    records = ['search', 'project', 'funder', 'project_coc', 'organization', 'inventory', 'client']
+    records = ['search', 'project', 'funder', 'project_coc', 'organization', 'inventory', 'client', 'service']
     assessments = ['base-intake', 'base-annual', 'base-update', 'base-exit']
     (records + assessments).each do |identifier|
       response, _result = post_graphql(identifier: identifier) { lookup_query }

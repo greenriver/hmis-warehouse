@@ -62,8 +62,8 @@ module WarehouseReports::Cas
     end
 
     def step_times(step_range)
-      first_step  = step_range.first_step.gsub(/\(\d+\)/, '').strip
-      second_step = step_range.second_step.gsub(/\(\d+\)/, '').strip
+      first_step  = step_range.first_step&.gsub(/\(\d+\)/, '')&.strip
+      second_step = step_range.second_step&.gsub(/\(\d+\)/, '')&.strip
       unit        = step_range.unit
       divisor = case unit
       when 'second'

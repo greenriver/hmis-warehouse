@@ -4,6 +4,7 @@
   "text": "Prior Living Situation",
   "data_collected_about": "HOH_AND_ADULTS",
   "record_type": "ENROLLMENT",
+  "prefill": true,
   "item": [
     {
       "type": "DISPLAY",
@@ -12,8 +13,9 @@
     },
     {
       "type": "CHOICE",
-      "required": false,
       "link_id": "3.917.1",
+      "required": false,
+      "warn_if_empty": true,
       "text": "Prior Living Situation",
       "brief_text": "Living Situation",
       "pick_list_reference": "PRIOR_LIVING_SITUATION",
@@ -22,6 +24,8 @@
     {
       "type": "CHOICE",
       "link_id": "3.917.2",
+      "required": false,
+      "warn_if_empty": true,
       "text": "Length of stay in prior living situation",
       "brief_text": "Length of Stay",
       "pick_list_reference": "ResidencePriorLengthOfStay",
@@ -56,6 +60,7 @@
       "text": "Client stayed 7+ days in a transitional or permanent housing situation. This is considered a \"break\" according to the HUD definition of chronic homelessness. Stopping data collection for 3.917 Prior Living Situation.",
       "project_types_excluded": ["ES", "SERVICES_ONLY", "SH"],
       "enable_behavior": "ALL",
+      "_required_when": "TODO",
       "enable_when": [
         {
           "question": "3.917.1",
@@ -117,6 +122,8 @@
     {
       "type": "BOOLEAN",
       "link_id": "3.917.C",
+      "required": false,
+      "warn_if_empty": true,
       "field_name": "previousStreetEssh",
       "text": "On the night before, did the client stay on the streets, ES or SH?",
       "brief_text": "Homeless on previous night",
@@ -173,6 +180,8 @@
     {
       "type": "DATE",
       "link_id": "3.917.3",
+      "required": false,
+      "warn_if_empty": true,
       "field_name": "dateToStreetEssh",
       "text": "Date homelessness started",
       "enable_behavior": "ALL",
@@ -197,6 +206,8 @@
     {
       "type": "CHOICE",
       "link_id": "3.917.4",
+      "required": false,
+      "warn_if_empty": true,
       "field_name": "timesHomelessPastThreeYears",
       "text": "Number of times the client has been on the streets, in ES, or SH in the past three years",
       "brief_text": "Times Homeless",
@@ -223,6 +234,8 @@
     {
       "type": "CHOICE",
       "link_id": "3.917.5",
+      "required": false,
+      "warn_if_empty": true,
       "field_name": "monthsHomelessPastThreeYears",
       "text": "Total number of months homeless on the street, in ES, or SH in the past three years",
       "brief_text": "Months Homeless",
