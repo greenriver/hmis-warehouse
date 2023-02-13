@@ -54,10 +54,16 @@ module Mutations
       assessment_detail_valid = assessment.assessment_detail.valid?
 
       if assessment_valid && assessment_detail_valid
+        # We need to call save on the processor directly to get the before_save hook to invoke.
+        # If this is removed, the Enrollment won't save.
+        assessment.assessment_detail.assessment_processor.save!
+        # Save AssessmentDetail to save the rest of the related records
         assessment.assessment_detail.save!
+        # Save the assessment as non-WIP
         assessment.save_not_in_progress
-        # If this is an intake assessment, move the enrollment out of WIP status
+        # If this is an intake assessment, ensure the enrollment is no longer in WIP status
         enrollment.save_not_in_progress if assessment.intake?
+        # Update DateUpdated on the Enrollment
         enrollment.touch
       else
         # These are potentially unfixable errors, so maybe we should throw a server error instead.
