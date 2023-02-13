@@ -3784,7 +3784,7 @@ enum RecentItemType {
 """
 enum RecordType {
   """
-  (200) Bed night
+  (200) Bed Night
   """
   BED_NIGHT
 
@@ -3799,17 +3799,17 @@ enum RecordType {
   CONTACT_13
 
   """
-  (151) HOPWA financial assistance
+  (151) HOPWA Financial Assistance
   """
   HOPWA_FINANCIAL_ASSISTANCE
 
   """
-  (143) HOPWA service
+  (143) HOPWA Service
   """
   HOPWA_SERVICE
 
   """
-  (210) HUD-VASH OTH voucher tracking
+  (210) HUD-VASH OTH Voucher Tracking
   """
   HUD_VASH_OTH_VOUCHER_TRACKING
 
@@ -3824,32 +3824,32 @@ enum RecordType {
   MOVING_ON_ASSISTANCE
 
   """
-  (161) PATH referral
+  (161) PATH Referral
   """
   PATH_REFERRAL
 
   """
-  (141) PATH service
+  (141) PATH Service
   """
   PATH_SERVICE
 
   """
-  (162) RHY referral
+  (162) RHY Referral
   """
   RHY_REFERRAL
 
   """
-  (142) RHY service connections
+  (142) RHY Service Connections
   """
   RHY_SERVICE_CONNECTIONS
 
   """
-  (152) SSVF financial assistance
+  (152) SSVF Financial Assistance
   """
   SSVF_FINANCIAL_ASSISTANCE
 
   """
-  (144) SSVF service
+  (144) SSVF Service
   """
   SSVF_SERVICE
 }
