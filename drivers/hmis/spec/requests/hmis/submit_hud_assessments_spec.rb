@@ -1,6 +1,6 @@
 require 'rails_helper'
 require_relative 'login_and_permissions'
-require_relative 'hmis_base_setup'
+require_relative '../../support/hmis_base_setup'
 require_relative '../../models/hmis/form/hmis_form_setup'
 
 RSpec.describe Hmis::GraphqlController, type: :request do
