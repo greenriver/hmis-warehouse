@@ -3,7 +3,6 @@ module Mutations
     argument :input, Types::HmisSchema::FunderInput, required: true
 
     field :funder, Types::HmisSchema::Funder, null: true
-    field :errors, [Types::HmisSchema::ValidationError], null: false
 
     def resolve(input:)
       default_create_record(

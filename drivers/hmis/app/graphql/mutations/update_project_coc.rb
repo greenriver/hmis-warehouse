@@ -4,7 +4,6 @@ module Mutations
     argument :input, Types::HmisSchema::ProjectCocInput, required: true
 
     field :project_coc, Types::HmisSchema::ProjectCoc, null: true
-    field :errors, [Types::HmisSchema::ValidationError], null: false
 
     def resolve(id:, input:)
       record = Hmis::Hud::ProjectCoc.editable_by(current_user).find_by(id: id)

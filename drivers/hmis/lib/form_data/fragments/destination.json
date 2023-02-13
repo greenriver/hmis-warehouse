@@ -9,14 +9,24 @@
       "type": "DATE",
       "link_id": "exit-date",
       "text": "Exit Date",
-      "field_name": "exitDate"
+      "field_name": "exitDate",
+      "required": true,
+      "assessment_date": true,
+      "initial": [
+        {
+          "initial_behavior": "OVERWRITE",
+          "value_local_constant": "$exitDate"
+        }
+      ]
     },
     {
       "type": "CHOICE",
       "link_id": "3.12",
       "text": "Exit Destination",
       "pick_list_reference": "DESTINATION",
-      "field_name": "destination"
+      "field_name": "destination",
+      "required": false,
+      "warn_if_empty": true
     },
     {
       "type": "CHOICE",
@@ -28,7 +38,9 @@
         {
           "question": "3.12",
           "operator": "EQUAL",
-          "answer_code": "OTHER"
+          "answer_code": "OTHER",
+          "required": false,
+          "warn_if_empty": true
         }
       ]
     }

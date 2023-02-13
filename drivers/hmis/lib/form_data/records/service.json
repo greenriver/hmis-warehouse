@@ -44,7 +44,7 @@
             {
               "question": "typeProvided",
               "operator": "EQUAL",
-              "answer_code": "C2_MOVING_ON_ASSISTANCE_PROVIDED__OTHER"
+              "answer_code": "MOVING_ON_ASSISTANCE__OTHER"
             }
           ]
         },

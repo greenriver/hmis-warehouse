@@ -16,7 +16,7 @@ RSpec.describe Hmis::Form::Definition, type: :model do
   let(:p1) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1 }
   let(:c1) { create :hmis_hud_client, data_source: ds1, user: u1 }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1 }
-  let!(:fd1) { create :hmis_form_definition }
+  let!(:fd1) { create :hmis_form_definition, role: 'INTAKE' }
   let!(:fi1) { create :hmis_form_instance, definition: fd1, entity: p1 }
 
   it 'should return the right definition if a project has a specific assessment' do
