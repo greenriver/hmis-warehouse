@@ -19,9 +19,9 @@ module GrdaWarehouse
       order(updated_at: :desc)
     end
 
-    # only destroyable by admins for now
     def destroyable_by user
-      user.can_add_cohort_clients?
+      notes_column = cohort_client.cohort.column_state.find { |c| c.is_a?(CohortColumns::Notes) }
+      notes_column.display_as_editable?(user, cohort_client, on_cohort: cohort_client.cohort)
     end
 
     def recipient_info
