@@ -4,7 +4,6 @@ module Mutations
     argument :input, Types::HmisSchema::ServiceInput, required: true
 
     field :service, Types::HmisSchema::Service, null: true
-    field :errors, [Types::HmisSchema::ValidationError], null: false
 
     def resolve(id:, input:)
       record = Hmis::Hud::Service.editable_by(current_user).find_by(id: id)

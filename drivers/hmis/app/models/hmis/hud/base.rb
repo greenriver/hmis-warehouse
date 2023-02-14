@@ -8,9 +8,12 @@ class Hmis::Hud::Base < ::GrdaWarehouseBase
   self.abstract_class = true
 
   acts_as_paranoid(column: :DateDeleted)
+  has_paper_trail # Track changes made to HUD objects via PaperTrail
 
   attr_writer :skip_validations
   attr_writer :required_fields
+
+  before_validation :ensure_id
 
   scope :viewable_by, ->(_) do
     none
@@ -49,5 +52,20 @@ class Hmis::Hud::Base < ::GrdaWarehouseBase
   # NOTE: No need to add fields here if they are not already required by the warehouse validator.
   def required_fields
     @required_fields ||= []
+  end
+
+  private def ensure_id
+    return if send(self.class.hud_key).present? # Don't overwrite the ID if we already have one
+
+    assign_attributes(self.class.hud_key => self.class.generate_uuid)
+  end
+
+  # Let Rails update the HUD timestamps
+  def self.timestamp_attributes_for_create
+    super << 'DateCreated'
+  end
+
+  def self.timestamp_attributes_for_update
+    super << 'DateUpdated'
   end
 end

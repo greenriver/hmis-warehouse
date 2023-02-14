@@ -53,6 +53,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(record['id']).to be_present
         record = Hmis::Hud::Funder.find(record['id'])
         expect(record.funder).to eq 24
+        expect(record.date_created).to eq(f1.date_created)
+        expect(record.date_updated).not_to eq(f1.date_updated)
       end
     end
 

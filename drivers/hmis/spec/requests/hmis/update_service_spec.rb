@@ -45,6 +45,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             client {
               id
             }
+            user {
+              id
+            }
           }
           #{error_fields}
         }

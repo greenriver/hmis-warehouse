@@ -26,21 +26,15 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     {
       enrollment_id: e1.id.to_s,
       form_definition_id: fd1.id,
-      assessment_date: (Date.today - 2.days).strftime('%Y-%m-%d'),
       values: { key: 'value' },
+      hud_values: { 'linkid-date' => '2023-02-01' },
     }
   end
 
   let(:mutation) do
     <<~GRAPHQL
-      mutation SaveAssessment($enrollmentId: ID, $formDefinitionId: ID, $assessmentId: ID, $values: JsonObject!, $assessmentDate: String) {
-        saveAssessment(input: {
-          enrollmentId: $enrollmentId,
-          formDefinitionId: $formDefinitionId,
-          assessmentId: $assessmentId,
-          assessmentDate: $assessmentDate,
-          values: $values,
-        }) {
+      mutation SaveAssessment($input: SaveAssessmentInput!) {
+        saveAssessment(input: $input) {
           assessment {
             #{scalar_fields(Types::HmisSchema::Assessment)}
             enrollment {
@@ -83,7 +77,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   it 'should create and update a WIP assessment successfully' do
     # Create new WIP assessment
-    response, result = post_graphql(**test_input) { mutation }
+    response, result = post_graphql(input: { input: test_input }) { mutation }
     assessment = result.dig('data', 'saveAssessment', 'assessment')
     errors = result.dig('data', 'saveAssessment', 'errors')
 
@@ -94,7 +88,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(assessment['enrollment']).to be_present
       expect(assessment).to include(
         'inProgress' => true,
-        'assessmentDate' => test_input[:assessment_date],
+        'assessmentDate' => '2023-02-01',
         'assessmentDetail' => include('values' => { 'key' => 'value' }),
       )
       expect(Hmis::Hud::Assessment.count).to eq(1)
@@ -115,14 +109,21 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   it 'update an existing WIP assessment successfully' do
     # Create new WIP assessment
-    response, result = post_graphql(**test_input) { mutation }
+    response, result = post_graphql(input: { input: test_input }) { mutation }
     assessment_id = result.dig('data', 'saveAssessment', 'assessment', 'id')
     expect(assessment_id).to be_present
     expect(Hmis::Hud::Assessment.count).to eq(1)
     expect(Hmis::Hud::Assessment.in_progress.count).to eq(1)
 
     # Subsequent request should update the existing WIP assessment
-    response, result = post_graphql(assessment_id: assessment_id, values: { key: 'newValue', newKey: 'foo' }) { mutation }
+    new_information_date = '2024-01-01'
+    input = {
+      assessment_id: assessment_id,
+      values: { key: 'newValue', newKey: 'foo' },
+      hud_values: { 'linkid-date' => new_information_date },
+    }
+
+    response, result = post_graphql(input: { input: input }) { mutation }
     assessment = result.dig('data', 'saveAssessment', 'assessment')
     errors = result.dig('data', 'saveAssessment', 'errors')
     aggregate_failures 'checking response' do
@@ -132,6 +133,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(assessment['enrollment']).to be_present
       expect(assessment).to include(
         'inProgress' => true,
+        'assessmentDate' => new_information_date,
         'assessmentDetail' => include('values' => { 'key' => 'newValue', 'newKey' => 'foo' }),
       )
       expect(Hmis::Hud::Assessment.count).to eq(1)
@@ -146,42 +148,38 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         'should emit error if enrollment doesn\'t exist',
         ->(input) { input.merge(enrollment_id: '999') },
         {
-          'message' => 'Enrollment must exist',
-          'attribute' => 'enrollmentId',
+          'fullMessage' => 'Enrollment must exist',
         },
       ],
       [
         'should emit error if cannot find form definition',
         ->(input) { input.merge(form_definition_id: '999') },
         {
-          'message' => 'Form definition must exist',
-          'attribute' => 'formDefinitionId',
+          'fullMessage' => 'Form definition must exist',
         },
       ],
       [
         'should emit error if cannot find assessment',
         ->(input) { input.merge(assessment_id: '999') },
         {
-          'message' => 'Assessment must exist',
-          'attribute' => 'assessmentId',
+          'fullMessage' => 'Assessment must exist',
         },
       ],
       [
         'should emit error if neithor enrollment nor assessment are provided',
         ->(input) { input.except(:enrollment_id, :assessment_id) },
         {
-          'message' => 'Enrollment ID or Assessment ID must exist',
-          'attribute' => 'enrollmentId',
+          'fullMessage' => 'Enrollment must exist',
         },
       ],
     ].each do |test_name, input_proc, *expected_errors|
       it test_name do
         input = input_proc.call(test_input)
-        response, result = post_graphql(input) { mutation }
+        response, result = post_graphql(input: { input: input }) { mutation }
         errors = result.dig('data', 'saveAssessment', 'errors')
         aggregate_failures 'checking response' do
           expect(response.status).to eq 200
-          expect(errors).to contain_exactly(*expected_errors.map { |error_attrs| include(**error_attrs) })
+          expect(errors).to match(expected_errors.map { |h| a_hash_including(**h) })
         end
       end
     end

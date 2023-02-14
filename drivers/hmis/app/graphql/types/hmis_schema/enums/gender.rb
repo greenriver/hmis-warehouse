@@ -11,6 +11,6 @@ module Types
     description 'HUD Gender (1.7)'
     graphql_name 'Gender'
 
-    with_enum_map Hmis::Hud::Client.gender_enum_map, prefix: 'GENDER_'
+    with_enum_map Hmis::Hud::Client.gender_enum_map
   end
 end

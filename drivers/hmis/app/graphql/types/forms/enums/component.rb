@@ -11,7 +11,7 @@ module Types
     graphql_name 'Component'
 
     value 'INPUT_GROUP', 'Render a group that contains children of the same type (e.g. all booleans)'
-    value 'INPUT_TABLE', 'Render inputs as a table. Each nested group is rendered as a row.'
+    value 'DISABILITY_TABLE', 'Specialized component for rendering disabilities in a table'
     value 'HORIZONTAL_GROUP', 'Render a group of inputs horizontally'
     value 'INFO_GROUP', 'Render contents in an info box'
 

@@ -192,7 +192,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
         expect(GrdaWarehouse::Hud::Client.full_housing_release_on_file.count).to eq(4)
       end
 
-      it 'after revoking consent, only two should have a full housing release string' do
+      it 'after revoking consent, only one should have a full housing release string' do
         client_signed_yesterday.save
         client_signed_2_years_ago.save
         client_signed_2_years_ago_short_consent.save

@@ -61,10 +61,11 @@ class CohortsController < ApplicationController
         end
         @visible_columns << delete_column if can_add_cohort_clients? && ! @cohort.system_cohort && ! @cohort.auto_maintained?
         @column_headers = @visible_columns.each_with_index.map do |col, index|
+          col.cohort = @cohort # Needed for display_as_editable?
           header = {
             headerName: col.title,
             field: col.column,
-            editable: col.column_editable? && col.editable,
+            editable: col.column_editable? && col.display_as_editable?(current_user, nil),
           }
           header[:pinned] = :left if index <= @cohort.static_column_count
           header[:renderer] = col.renderer
@@ -116,7 +117,12 @@ class CohortsController < ApplicationController
 
   def create
     @cohort = cohort_source.create!(cohort_params)
-    respond_with(@cohort, location: cohort_path(@cohort))
+    # If the user doesn't have All Cohorts access, grant them access to the cohort
+    AccessGroup.for_user(current_user).add_viewable(@cohort) unless AccessGroup.system_group(:cohorts).users.include?(current_user)
+    # Always add the cohort to the system group
+    AccessGroup.maintain_system_groups(group: :cohorts)
+    # Search the list so you can see the newly created cohort
+    redirect_to cohorts_path('q[name_cont]' => @cohort.name)
   rescue Exception => e
     flash[:error] = e.message
     redirect_to cohorts_path

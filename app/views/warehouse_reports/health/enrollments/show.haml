@@ -6,7 +6,7 @@
 - content_for :title, title
 %h1= content_for :title
 
-.text-right
+.text-right.mb-4
   = link_to download_warehouse_reports_health_enrollment_path(@file, format: :edi), class: 'btn btn-secondary mt-4 ml-4' do
     %span.icon-download2
     Download EDI

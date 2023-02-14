@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class Hmis::Bed < ::GrdaWarehouseBase
+class Hmis::Bed < Hmis::HmisBase
   include Hmis::Hud::Concerns::HasEnums
   include ArelHelper
   self.table_name = :hmis_beds

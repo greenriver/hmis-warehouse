@@ -68,7 +68,8 @@ module GrdaWarehouse::Tasks
 
       Rails.logger.info rebuilding_message
       GrdaWarehouse::Tasks::ServiceHistory::Add.new(force_sequential_processing: true).run!
-      GrdaWarehouse::WarehouseClientsProcessed.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running), priority: 12).update_cached_counts(client_ids: processed_ids.to_a)
+      GrdaWarehouse::WarehouseClientsProcessed.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running), priority: 12).
+        update_cached_counts_no_named_arguments(processed_ids.to_a)
     end
 
     def attempts

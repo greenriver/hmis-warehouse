@@ -5406,8 +5406,8 @@ CREATE TABLE public.configs (
     roi_model character varying DEFAULT 'explicit'::character varying,
     client_dashboard character varying DEFAULT 'default'::character varying NOT NULL,
     require_service_for_reporting_default boolean DEFAULT true NOT NULL,
-    supplemental_enrollment_importer character varying DEFAULT 'GrdaWarehouse::Tasks::EnrollmentExtrasImport'::character varying,
     verified_homeless_history_method character varying DEFAULT 'visible_in_window'::character varying,
+    supplemental_enrollment_importer character varying DEFAULT 'GrdaWarehouse::Tasks::EnrollmentExtrasImport'::character varying,
     youth_hoh_cohort boolean DEFAULT false NOT NULL,
     youth_hoh_cohort_project_group_id integer,
     chronic_tab_justifications boolean DEFAULT true,
@@ -6053,7 +6053,7 @@ ALTER SEQUENCE public.enrollment_change_histories_id_seq OWNED BY public.enrollm
 
 CREATE TABLE public.enrollment_extras (
     id integer NOT NULL,
-    enrollment_id integer,
+    enrollment_id integer NOT NULL,
     vispdat_grand_total integer,
     vispdat_added_at date,
     vispdat_started_at date,
@@ -10355,7 +10355,8 @@ CREATE TABLE public.hmis_assessment_processors (
     chronic_health_condition_id bigint,
     hiv_aids_id bigint,
     mental_health_disorder_id bigint,
-    substance_use_disorder_id bigint
+    substance_use_disorder_id bigint,
+    exit_id bigint
 );
 
 
@@ -13277,14 +13278,14 @@ CREATE TABLE public.hmis_dqt_clients (
     overlapping_nbn integer,
     overlapping_pre_move_in integer,
     overlapping_post_move_in integer,
-    ch_at_most_recent_entry boolean DEFAULT false,
-    ch_at_any_entry boolean DEFAULT false,
     veteran_status integer,
     ssn character varying,
     ssn_data_quality integer,
     name_data_quality integer,
     ethnicity integer,
-    reporting_age integer
+    reporting_age integer,
+    ch_at_most_recent_entry boolean DEFAULT false,
+    ch_at_any_entry boolean DEFAULT false
 );
 
 
@@ -13390,7 +13391,6 @@ CREATE TABLE public.hmis_dqt_enrollments (
     updated_at timestamp(6) without time zone NOT NULL,
     deleted_at timestamp without time zone,
     project_type integer,
-    ch_at_entry boolean DEFAULT false,
     project_id integer,
     household_type character varying,
     household_min_age integer,
@@ -13416,19 +13416,20 @@ CREATE TABLE public.hmis_dqt_enrollments (
     cash_income_as_expected_at_entry boolean DEFAULT false,
     cash_income_as_expected_at_annual boolean DEFAULT false,
     cash_income_as_expected_at_exit boolean DEFAULT false,
-    ncb_from_any_source_at_entry integer,
-    ncb_from_any_source_at_annual integer,
-    ncb_from_any_source_at_exit integer,
+    ncb_from_any_source_at_entry boolean DEFAULT false,
+    ncb_from_any_source_at_annual boolean DEFAULT false,
+    ncb_from_any_source_at_exit boolean DEFAULT false,
     ncb_as_expected_at_entry boolean DEFAULT false,
     ncb_as_expected_at_annual boolean DEFAULT false,
     ncb_as_expected_at_exit boolean DEFAULT false,
-    insurance_from_any_source_at_entry integer,
-    insurance_from_any_source_at_annual integer,
-    insurance_from_any_source_at_exit integer,
+    insurance_from_any_source_at_entry boolean DEFAULT false,
+    insurance_from_any_source_at_annual boolean DEFAULT false,
+    insurance_from_any_source_at_exit boolean DEFAULT false,
     insurance_as_expected_at_entry boolean DEFAULT false,
     insurance_as_expected_at_annual boolean DEFAULT false,
     insurance_as_expected_at_exit boolean DEFAULT false,
     disability_at_entry_collected boolean DEFAULT false,
+    ch_at_entry boolean DEFAULT false,
     previous_street_es_sh integer,
     entry_date_entered_at timestamp without time zone,
     exit_date_entered_at timestamp without time zone,
@@ -16422,33 +16423,6 @@ ALTER SEQUENCE public.non_hmis_uploads_id_seq OWNED BY public.non_hmis_uploads.i
 
 
 --
--- Name: organization_47_tes; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.organization_47_tes (
-    source_id integer
-);
-
-
---
--- Name: organization_48_tes; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.organization_48_tes (
-    source_id integer
-);
-
-
---
--- Name: organization_49_tes; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.organization_49_tes (
-    source_id integer
-);
-
-
---
 -- Name: performance_measurement_goals; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -17644,34 +17618,6 @@ CREATE TABLE public.recent_report_enrollments (
     "HOHLeaseholder" integer,
     demographic_id integer,
     client_id integer
-);
-
-
---
--- Name: recent_service_history; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.recent_service_history (
-    id bigint,
-    client_id integer,
-    data_source_id integer,
-    date date,
-    first_date_in_program date,
-    last_date_in_program date,
-    enrollment_group_id character varying(50),
-    age smallint,
-    destination integer,
-    head_of_household_id character varying(50),
-    household_id character varying(50),
-    project_id integer,
-    project_type smallint,
-    project_tracking_method integer,
-    organization_id integer,
-    housing_status_at_entry integer,
-    housing_status_at_exit integer,
-    service_type smallint,
-    computed_project_type smallint,
-    presented_as_individual boolean
 );
 
 
@@ -26451,90 +26397,6 @@ CREATE INDEX "Disabilities_DateDeleted_idx" ON public."Disabilities" USING btree
 
 
 --
--- Name: Enrollment_2735; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "Enrollment_2735" ON public."Enrollment" USING btree ("ProjectID", "HouseholdID");
-
-
---
--- Name: Enrollment_3085; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "Enrollment_3085" ON public."Enrollment" USING btree ("PreviousStreetESSH", "LengthOfStay");
-
-
---
--- Name: Enrollment_34e3; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "Enrollment_34e3" ON public."Enrollment" USING btree ("EnrollmentID", "ProjectID", "EntryDate");
-
-
---
--- Name: Enrollment_42af; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "Enrollment_42af" ON public."Enrollment" USING btree ("ProjectID");
-
-
---
--- Name: Enrollment_42d5; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "Enrollment_42d5" ON public."Enrollment" USING btree ("DateUpdated");
-
-
---
--- Name: Enrollment_4337; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "Enrollment_4337" ON public."Enrollment" USING btree ("EnrollmentID");
-
-
---
--- Name: Enrollment_5328; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "Enrollment_5328" ON public."Enrollment" USING btree ("HouseholdID");
-
-
---
--- Name: Enrollment_603f; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "Enrollment_603f" ON public."Enrollment" USING btree ("PersonalID");
-
-
---
--- Name: Enrollment_634d; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "Enrollment_634d" ON public."Enrollment" USING btree ("ExportID");
-
-
---
--- Name: Enrollment_c548; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "Enrollment_c548" ON public."Enrollment" USING btree ("EnrollmentID", "PersonalID");
-
-
---
--- Name: Enrollment_d381; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "Enrollment_d381" ON public."Enrollment" USING btree ("DateCreated");
-
-
---
--- Name: Enrollment_f3a2; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "Enrollment_f3a2" ON public."Enrollment" USING btree ("DateDeleted");
-
-
---
 -- Name: IncomeBenefits_DateDeleted_data_source_id_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -26668,13 +26530,6 @@ CREATE INDEX client_id_ret_index ON public.recent_report_enrollments USING btree
 
 
 --
--- Name: client_id_rsh_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX client_id_rsh_index ON public.recent_service_history USING btree (client_id);
-
-
---
 -- Name: client_last_name; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -26686,20 +26541,6 @@ CREATE INDEX client_last_name ON public."Client" USING btree ("LastName");
 --
 
 CREATE INDEX client_personal_id ON public."Client" USING btree ("PersonalID");
-
-
---
--- Name: coc_code_test; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX coc_code_test ON public."EnrollmentCoC" USING btree ("CoCCode");
-
-
---
--- Name: computed_project_type_rsh_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX computed_project_type_rsh_index ON public.recent_service_history USING btree (computed_project_type);
 
 
 --
@@ -26721,13 +26562,6 @@ CREATE INDEX cur_liv_sit_p_id_en_id_ds_id_cur_id ON public."CurrentLivingSituati
 --
 
 CREATE UNIQUE INDEX cur_liv_sit_sit_id_ds_id ON public."CurrentLivingSituation" USING btree ("CurrentLivingSitID", data_source_id);
-
-
---
--- Name: date_rsh_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX date_rsh_index ON public.recent_service_history USING btree (date);
 
 
 --
@@ -26819,13 +26653,6 @@ CREATE INDEX employment_education_export_id ON public."EmploymentEducation" USIN
 --
 
 CREATE UNIQUE INDEX en_en_id_p_id_ds_id ON public."Enrollment" USING btree ("EnrollmentID", "PersonalID", data_source_id);
-
-
---
--- Name: en_tt; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX en_tt ON public.hmis_2022_enrollments USING btree ("EnrollmentID", "PersonalID", importer_log_id, data_source_id);
 
 
 --
@@ -39394,13 +39221,6 @@ CREATE INDEX "hmiscsv2022youtheducationstatuses_xGU1" ON public.hmis_csv_2022_yo
 
 
 --
--- Name: household_id_rsh_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX household_id_rsh_index ON public.recent_service_history USING btree (household_id);
-
-
---
 -- Name: hud_path_client_conflict_columns; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -39454,13 +39274,6 @@ CREATE UNIQUE INDEX hud_report_hic_projects_uniqueness_constraint ON public.hud_
 --
 
 CREATE UNIQUE INDEX id_ret_index ON public.recent_report_enrollments USING btree (id);
-
-
---
--- Name: id_rsh_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX id_rsh_index ON public.recent_service_history USING btree (id);
 
 
 --
@@ -42100,6 +41913,13 @@ CREATE INDEX index_hmis_assessment_processors_on_developmental_disability_id ON 
 --
 
 CREATE INDEX index_hmis_assessment_processors_on_enrollment_coc_id ON public.hmis_assessment_processors USING btree (enrollment_coc_id);
+
+
+--
+-- Name: index_hmis_assessment_processors_on_exit_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_assessment_processors_on_exit_id ON public.hmis_assessment_processors USING btree (exit_id);
 
 
 --
@@ -48011,20 +47831,6 @@ CREATE INDEX project_project_override_index ON public."Project" USING btree (COA
 
 
 --
--- Name: project_tracking_method_rsh_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX project_tracking_method_rsh_index ON public.recent_service_history USING btree (project_tracking_method);
-
-
---
--- Name: project_type_rsh_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX project_type_rsh_index ON public.recent_service_history USING btree (project_type);
-
-
---
 -- Name: services_date_created; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -48120,13 +47926,6 @@ CREATE INDEX taggings_idy ON public.taggings USING btree (taggable_id, taggable_
 --
 
 CREATE UNIQUE INDEX test_shs ON public.service_history_services_2000 USING btree (service_history_enrollment_id, date);
-
-
---
--- Name: tt; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX tt ON public.hmis_2022_exits USING btree ("EnrollmentID", "PersonalID", importer_log_id, data_source_id);
 
 
 --
@@ -50845,6 +50644,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230124195245'),
 ('20230127151606'),
 ('20230127200801'),
+('20230206142754'),
 ('20230207151644');
 
 
