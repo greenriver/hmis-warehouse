@@ -17,7 +17,6 @@
       "required": false,
       "warn_if_empty": true,
       "text": "Prior Living Situation",
-      "brief_text": "Living Situation",
       "pick_list_reference": "PRIOR_LIVING_SITUATION",
       "field_name": "livingSituation"
     },
