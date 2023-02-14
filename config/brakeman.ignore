@@ -794,6 +794,26 @@
     {
       "warning_type": "Command Injection",
       "warning_code": 14,
+      "fingerprint": "5499b637b8348aa1e36c39c76eedd901c66563518a8514361499efb75c9b0b43",
+      "check_name": "Execute",
+      "message": "Possible command injection",
+      "file": "app/jobs/worker_status.rb",
+      "line": 76,
+      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
+      "code": "`curl #{ENV[\"ECS_CONTAINER_METADATA_URI_V4\"]}/task`",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "WorkerStatus",
+        "method": "task_metadata"
+      },
+      "user_input": "ENV[\"ECS_CONTAINER_METADATA_URI_V4\"]",
+      "confidence": "Medium",
+      "note": "Considering AWS provided URI okay to inject"
+    },
+    {
+      "warning_type": "Command Injection",
+      "warning_code": 14,
       "fingerprint": "54f8e790a2519455109daadf5dd74297f7684aa397825fa9c2f1bf9bdef73192",
       "check_name": "Execute",
       "message": "Possible command injection",
@@ -1499,7 +1519,7 @@
       "check_name": "Execute",
       "message": "Possible command injection",
       "file": "config/deploy/docker/lib/deployer.rb",
-      "line": 391,
+      "line": 389,
       "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
       "code": "`docker image ls -f 'reference=#{repo_name}' | grep \"#{_ruby_version}-#{_pre_cache_version}--pre-cache\"`",
       "render_path": null,
@@ -1698,7 +1718,7 @@
       "check_name": "UnsafeReflection",
       "message": "Unsafe reflection method `constantize` called with model attribute",
       "file": "app/controllers/cohorts/clients_controller.rb",
-      "line": 432,
+      "line": 458,
       "link": "https://brakemanscanner.org/docs/warning_types/remote_code_execution/",
       "code": "GrdaWarehouse::Cohort.available_columns.map(&:class).map(&:name).select do\n (m == params.require(:field))\n end.first.constantize",
       "render_path": null,
@@ -1901,6 +1921,26 @@
       "user_input": "_assets_path",
       "confidence": "Medium",
       "note": ""
+    },
+    {
+      "warning_type": "Command Injection",
+      "warning_code": 14,
+      "fingerprint": "b86000207c4fe44ca5dd3bcc3d9a87789cfaab516d90a3c76a5b4a25d8e91e55",
+      "check_name": "Execute",
+      "message": "Possible command injection",
+      "file": "app/jobs/worker_status.rb",
+      "line": 36,
+      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
+      "code": "`curl -k https://#{ENV[\"FQDN\"]}/system_status/details`",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "WorkerStatus",
+        "method": "latest_deployment_is_at_least_partially_finished"
+      },
+      "user_input": "ENV[\"FQDN\"]",
+      "confidence": "Medium",
+      "note": "Injected value is from the environment"
     },
     {
       "warning_type": "Dynamic Render Path",
@@ -2239,7 +2279,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/data_source.rb",
-      "line": 69,
+      "line": 73,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "where(\"#{has_access_to_data_source_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_data_source_through_organizations(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_data_source_through_projects(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)}\")",
       "render_path": null,
@@ -2692,6 +2732,6 @@
       "note": ""
     }
   ],
-  "updated": "2023-01-19 20:38:27 +0000",
+  "updated": "2023-02-10 20:50:49 +0000",
   "brakeman_version": "5.0.4"
 }
