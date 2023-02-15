@@ -127,7 +127,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         'code' => 'PATH_SERVICE__RE_ENGAGEMENT',
         'label' => 'Re-engagement',
         'groupCode' => 'PATH_SERVICE',
-        'groupLabel' => 'PATH service',
+        'groupLabel' => 'PATH Service',
       ),
     )
   end
