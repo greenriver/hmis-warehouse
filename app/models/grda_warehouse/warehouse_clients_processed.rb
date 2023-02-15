@@ -220,6 +220,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
           last_exit_destination: calcs.last_exit_destination(client_id),
           vispdat_score: calcs.vispdat_score(client_id),
           vispdat_priority_score: calcs.vispdat_priority_score(client_id),
+          last_intentional_contacts: calcs.last_intentional_contacts(client_id),
         )
         processed_batch << processed if processed.changed?
       end
@@ -808,6 +809,51 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
         end
         vispdat_score + vispdat_prioritized_days_score
       end
+    end
+
+    def last_intentional_contacts(client)
+      open_enrollments = GrdaWarehouse::ServiceHistoryEnrollment.entry.ongoing.
+        where(client_id: @client_ids)
+      @services ||= {}.tap do |h|
+        open_enrollments.
+          joins(:service_history_services, :project).
+          merge(GrdaWarehouse::ServiceHistoryService.service_excluding_extrapolated).
+          preload(:service_history_services, :project).
+          order(shs_t[:date].desc).
+          pluck(:client_id, shs_t[:date], p_t[:project_name], p_t[:project_id]).each do |id, date, p_name, p_id|
+            h[id] ||= {}
+            h[id][p_id] ||= {
+              date: date,
+              project_name: p_name,
+              project_id: p_id,
+            }
+          end
+      end
+      @current_living_situations ||= {}.tap do |h|
+        open_enrollments.
+          joins(:project, enrollment: :current_living_situations).
+          preload(:project, enrollment: :current_living_situations).
+          order(cls_t[:information_date].desc).
+          pluck(:client_id, cls_t[:information_date], p_t[:project_name], p_t[:project_id]).each do |id, date, p_name, p_id|
+          h[id] ||= {}
+          h[id][p_id] ||= {
+            date: date,
+            project_name: p_name,
+            project_id: p_id,
+          }
+        end
+      end
+      @custom_services ||= {}
+      # if RailsDrivers.loaded.include?(:custom_imports_boston_service)
+      #   {} # TODO
+      # else
+      #   {}
+      # end
+      [
+        @services[client.id]&.values,
+        @current_living_situations[client.id]&.values,
+        @custom_services[client.id]&.values,
+      ].flatten.compact
     end
 
     private def days_homeless_for_vispdat_prioritization(_vispdat, client)
