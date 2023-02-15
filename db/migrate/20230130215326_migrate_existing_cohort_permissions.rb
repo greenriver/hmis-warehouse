@@ -30,7 +30,7 @@ class MigrateExistingCohortPermissions < ActiveRecord::Migration[6.1]
     )
 
     Role.where(can_view_assigned_cohorts: true).update_all(
-        can_participate_in_cohorts: true,
+        can_view_assigned_cohorts: true,
     )
   end
 end
