@@ -60,7 +60,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
   scope :matching_search_term, ->(text_search) do
     text_searcher(text_search) do |where|
-      where(where)
+      where(where).pluck(:id)
     rescue RangeError
       return none
     end
