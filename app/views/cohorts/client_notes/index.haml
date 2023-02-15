@@ -1,7 +1,7 @@
 = render 'cohorts/breadcrumbs'
 
 .row.mb-4
-  - if current_user.can_manage_cohort_data? || current_user.can_participate_in_cohorts?
+  - if @column_editable
     .col-sm-12.pull-right.mb-2
       = link_to new_cohort_cohort_client_client_note_path(@cohort, @cohort_client), class: 'btn btn-secondary btn-sm', data: {loads_in_pjax_modal: true} do
         %i.icon-plus
@@ -10,7 +10,7 @@
 - notes = @cohort_client.client.cohort_notes.order(updated_at: :desc).to_a
 - if notes.present?
   - notes.each do |note|
-    = render 'cohorts/common/note_card', note: note, url: cohort_cohort_client_client_note_path(@cohort, @cohort_client, note)
+    = render 'cohorts/common/note_card', note: note, url: cohort_cohort_client_client_note_path(@cohort, @cohort_client, note), editable: @column_editable
 - else
   .none-found No notes found.
 
