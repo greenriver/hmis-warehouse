@@ -546,7 +546,7 @@ class Role < ApplicationRecord
         ],
       },
       can_manage_cohort_data: {
-        description: 'Ability to modify all visible cohort client data',
+        description: "Ability to modify all visible cohort client data (except for 'Active')",
         administrative: false,
         categories: [
           'Cohorts',
