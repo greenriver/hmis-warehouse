@@ -42,6 +42,7 @@ module Mutations
       if errors.all?(&:warning?) && assessment.id.present?
         assessment.assessment_detail.save!
         assessment.save!
+        assessment.touch
       end
 
       return { assessment: nil, errors: errors } if errors.any?
