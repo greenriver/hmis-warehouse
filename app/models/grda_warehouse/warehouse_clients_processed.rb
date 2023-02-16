@@ -261,6 +261,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
               :last_exit_destination,
               :vispdat_score,
               :vispdat_priority_score,
+              :last_intentional_contacts,
             ],
           },
         )
@@ -811,7 +812,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
       end
     end
 
-    def last_intentional_contacts(client)
+    def last_intentional_contacts(client_id)
       open_enrollments = GrdaWarehouse::ServiceHistoryEnrollment.entry.ongoing.
         where(client_id: @client_ids)
       @services ||= {}.tap do |h|
@@ -820,7 +821,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
           merge(GrdaWarehouse::ServiceHistoryService.service_excluding_extrapolated).
           preload(:service_history_services, :project).
           order(shs_t[:date].desc).
-          pluck(:client_id, shs_t[:date], p_t[:project_name], p_t[:project_id]).each do |id, date, p_name, p_id|
+          pluck(:client_id, shs_t[:date], p_t[:project_name], p_t[:id]).each do |id, date, p_name, p_id|
             h[id] ||= {}
             h[id][p_id] ||= {
               date: date,
@@ -834,7 +835,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
           joins(:project, enrollment: :current_living_situations).
           preload(:project, enrollment: :current_living_situations).
           order(cls_t[:information_date].desc).
-          pluck(:client_id, cls_t[:information_date], p_t[:project_name], p_t[:project_id]).each do |id, date, p_name, p_id|
+          pluck(:client_id, cls_t[:information_date], p_t[:project_name], p_t[:id]).each do |id, date, p_name, p_id|
           h[id] ||= {}
           h[id][p_id] ||= {
             date: date,
@@ -861,10 +862,10 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
         {}
       end
       [
-        @services[client.id]&.values,
-        @current_living_situations[client.id]&.values,
-        @custom_services[client.id],
-      ].flatten.compact
+        @services[client_id]&.values,
+        @current_living_situations[client_id]&.values,
+        @custom_services[client_id],
+      ].flatten.compact.to_json
     end
 
     private def days_homeless_for_vispdat_prioritization(_vispdat, client)
