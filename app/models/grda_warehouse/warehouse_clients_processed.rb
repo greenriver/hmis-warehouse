@@ -843,16 +843,27 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
           }
         end
       end
-      @custom_services ||= {}
-      # if RailsDrivers.loaded.include?(:custom_imports_boston_service)
-      #   {} # TODO
-      # else
-      #   {}
-      # end
+      @custom_services ||= if RailsDrivers.loaded.include?(:custom_imports_boston_service)
+        {}.tap do |h|
+          source_client_ids = GrdaWarehouse::WarehouseClient.where(destination_id: @client_ids).pluck(:source_id)
+          CustomImportsBostonService::Row.
+            joins(:client).where(c_t[:id].in(source_client_ids)).
+            order(date: :desc).
+            pluck(c_t[:id], :date, :service_item).each do |id, date, item_name|
+              h[id] ||= {
+                date: date,
+                project_name: item_name,
+                project_id: nil,
+              }
+            end
+        end
+      else
+        {}
+      end
       [
         @services[client.id]&.values,
         @current_living_situations[client.id]&.values,
-        @custom_services[client.id]&.values,
+        @custom_services[client.id],
       ].flatten.compact
     end
 
