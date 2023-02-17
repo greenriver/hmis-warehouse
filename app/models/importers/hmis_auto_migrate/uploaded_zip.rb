@@ -51,7 +51,7 @@ module Importers::HmisAutoMigrate
         # options = {}
         # options = { password: @file_password } if @file_password.present?
         cmd = if @file_password.present?
-          "7z e -o#{tmp_folder} #{zip_file} -p#{@file_password}"
+          "7z e -p#{@file_password} -o#{tmp_folder} #{zip_file}"
         else
           "7z e -o#{tmp_folder} #{zip_file}"
         end
