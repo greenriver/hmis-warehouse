@@ -72,14 +72,14 @@ class Rack::Attack
       end
     end
   end
-  send(tracker, 'requests per logged-in user per ip', limit: 150, period: 5.seconds) do |request|
+  send(tracker, 'requests per logged-in user per ip', limit: 300, period: 5.seconds) do |request|
     if tracking_enabled?(request)
       if warden_user_present?(request) && !(rapid_paths(request))
         request.ip
       end
     end
   end
-  send(tracker, 'requests per logged-in user per ip special', limit: 250, period: 5.seconds) do |request|
+  send(tracker, 'requests per logged-in user per ip special', limit: 300, period: 5.seconds) do |request|
     if tracking_enabled?(request)
       if warden_user_present?(request) && (rapid_paths(request))
         request.ip
