@@ -3,7 +3,7 @@
     %h2
       = t "devise.invitations.new.header"
 =simple_form_for @user, url: confirm_users_invitations_path, html: { method: :post} do |f|
-  = devise_error_messages!
+  = render 'devise/shared/error_messages', resource: resource
 
   = render 'admin/users/form_fields', f: f
 

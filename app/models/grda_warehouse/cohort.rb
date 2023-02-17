@@ -503,26 +503,47 @@ module GrdaWarehouse
       return unless client_ids.present?
 
       GrdaWarehouse::WarehouseClientsProcessed.update_cached_counts(client_ids: client_ids)
-      GrdaWarehouse::Cohort.active.each(&:refresh_time_dependant_client_data)
+      GrdaWarehouse::Cohort.active.find_each(&:refresh_time_dependant_client_data)
     end
 
     def refresh_time_dependant_client_data(cohort_client_ids: nil)
       scope = cohort_clients
       scope = scope.where(id: cohort_client_ids) if cohort_client_ids.present?
-      scope.joins(:client).each do |cc|
-        data = {
-          calculated_days_homeless_on_effective_date: calculated_days_homeless(cc.client),
-          days_homeless_last_three_years_on_effective_date: days_homeless_last_three_years(cc.client),
-          days_literally_homeless_last_three_years_on_effective_date: days_literally_homeless_last_three_years(cc.client),
-          destination_from_homelessness: destination_from_homelessness(cc.client),
-          related_users: related_users(cc.client),
-          disability_verification_date: disability_verification_date(cc.client),
-          missing_documents: missing_documents(cc.client),
-          days_homeless_plus_overrides: days_homeless_plus_overrides(cc.client),
-          individual_in_most_recent_homeless_enrollment: individual_in_most_recent_homeless_enrollment(cc.client),
-          most_recent_date_to_street: most_recent_date_to_street(cc.client),
-        }
-        cc.update(data)
+      scope.joins(:client).preload(client: :processed_service_history).find_in_batches do |batch|
+        rows = []
+        batch.each do |cc|
+          cc.assign_attributes(
+            calculated_days_homeless_on_effective_date: calculated_days_homeless(cc.client),
+            days_homeless_last_three_years_on_effective_date: days_homeless_last_three_years(cc.client),
+            days_literally_homeless_last_three_years_on_effective_date: days_literally_homeless_last_three_years(cc.client),
+            destination_from_homelessness: destination_from_homelessness(cc.client),
+            related_users: related_users(cc.client),
+            disability_verification_date: disability_verification_date(cc.client),
+            missing_documents: missing_documents(cc.client),
+            days_homeless_plus_overrides: days_homeless_plus_overrides(cc.client),
+            individual_in_most_recent_homeless_enrollment: individual_in_most_recent_homeless_enrollment(cc.client),
+            most_recent_date_to_street: most_recent_date_to_street(cc.client),
+          )
+          rows << cc
+        end
+        GrdaWarehouse::CohortClient.import(
+          rows,
+          on_duplicate_key_update: {
+            conflict_target: [:id],
+            columns: [
+              :calculated_days_homeless_on_effective_date,
+              :days_homeless_last_three_years_on_effective_date,
+              :days_literally_homeless_last_three_years_on_effective_date,
+              :destination_from_homelessness,
+              :related_users,
+              :disability_verification_date,
+              :missing_documents,
+              :days_homeless_plus_overrides,
+              :individual_in_most_recent_homeless_enrollment,
+              :most_recent_date_to_street,
+            ],
+          },
+        )
       end
     end
 
