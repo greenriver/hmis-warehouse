@@ -1,5 +1,5 @@
 require 'rails_helper'
-require_relative '../../support/hmis_base_setup'
+require_relative '../../../support/hmis_base_setup'
 
 RSpec.describe Hmis::Hud::Client, type: :model do
   before(:all) do

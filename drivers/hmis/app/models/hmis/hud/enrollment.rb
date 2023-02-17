@@ -20,17 +20,17 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   delegate :exit_date, to: :exit, allow_nil: true
 
   belongs_to :project, **hmis_relation(:ProjectID, 'Project'), optional: true
-  has_one :exit, **hmis_relation(:EnrollmentID, 'Exit')
-  has_many :services, **hmis_relation(:EnrollmentID, 'Service')
-  has_many :events, **hmis_relation(:EnrollmentID, 'Event')
-  has_many :income_benefits, **hmis_relation(:EnrollmentID, 'IncomeBenefit')
-  has_many :disabilities, **hmis_relation(:EnrollmentID, 'Disability')
-  has_many :health_and_dvs, **hmis_relation(:EnrollmentID, 'HealthAndDv')
-  has_many :current_living_situations, **hmis_relation(:EnrollmentID, 'CurrentLivingSituation'), inverse_of: :enrollment
-  has_many :enrollment_cocs, **hmis_relation(:EnrollmentID, 'EnrollmentCoc')
+  has_one :exit, **hmis_relation(:EnrollmentID, 'Exit'), dependent: :destroy
+  has_many :services, **hmis_relation(:EnrollmentID, 'Service'), dependent: :destroy
+  has_many :events, **hmis_relation(:EnrollmentID, 'Event'), dependent: :destroy
+  has_many :income_benefits, **hmis_relation(:EnrollmentID, 'IncomeBenefit'), dependent: :destroy
+  has_many :disabilities, **hmis_relation(:EnrollmentID, 'Disability'), dependent: :destroy
+  has_many :health_and_dvs, **hmis_relation(:EnrollmentID, 'HealthAndDv'), dependent: :destroy
+  has_many :current_living_situations, **hmis_relation(:EnrollmentID, 'CurrentLivingSituation'), inverse_of: :enrollment, dependent: :destroy
+  has_many :enrollment_cocs, **hmis_relation(:EnrollmentID, 'EnrollmentCoc'), dependent: :destroy
 
   # NOTE: this does not include WIP assessments
-  has_many :assessments, **hmis_relation(:EnrollmentID, 'Assessment')
+  has_many :assessments, **hmis_relation(:EnrollmentID, 'Assessment'), dependent: :destroy
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :enrollments
   has_one :wip, class_name: 'Hmis::Wip', as: :source, dependent: :destroy
