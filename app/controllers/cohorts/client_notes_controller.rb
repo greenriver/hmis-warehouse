@@ -15,6 +15,8 @@ module Cohorts
 
     def index
       @modal_size = :lg
+      notes_column = @cohort.column_state.find { |c| c.is_a?(::CohortColumns::ClientNotes) }
+      @column_editable = notes_column.display_as_editable?(current_user, nil, on_cohort: @cohort)
     end
 
     def new

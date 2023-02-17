@@ -1,6 +1,6 @@
 require 'rails_helper'
 require_relative 'login_and_permissions'
-require_relative 'hmis_base_setup'
+require_relative '../../support/hmis_base_setup'
 
 RSpec.describe Hmis::GraphqlController, type: :request do
   before(:all) do
@@ -127,7 +127,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         'code' => 'PATH_SERVICE__RE_ENGAGEMENT',
         'label' => 'Re-engagement',
         'groupCode' => 'PATH_SERVICE',
-        'groupLabel' => 'PATH service',
+        'groupLabel' => 'PATH Service',
       ),
     )
   end
