@@ -7,8 +7,19 @@ RSpec.shared_context 'hmis base setup', shared_context: :metadata do
   let!(:p1) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1 }
   let(:c1) { create :hmis_hud_client, data_source: ds1, user: u1 }
 
-  let(:edit_access_group) { create :edit_access_group }
-  let(:view_access_group) { create :view_access_group }
+  let(:edit_access_group) do
+    group = create :edit_access_group
+    role = create(:hmis_role)
+    group.access_controls.create(role: role)
+    group
+  end
+  # let(:view_access_group) { create :view_access_group }
+  let(:view_access_group) do
+    group = create :view_access_group
+    role = create(:hmis_role, can_administer_hmis: false, can_delete_assigned_project_data: false, can_delete_enrollments: false)
+    group.access_controls.create(role: role)
+    group
+  end
 end
 
 RSpec.configure do |rspec|

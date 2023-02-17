@@ -7,7 +7,9 @@
 # NOTE:
 # r = Hmis::Role.create(name: 'test')
 # u = Hmis::User.first; u.hmis_data_source_id = 3
-# u.user_hmis_data_sources_roles.create(role: r, data_source_id: u.hmis_data_source_id)
+# g = Hmis::AccessGroup.create(name: 'test')
+# ac = u.access_controls.create(role: r, group: g)
+# u.user_access_controls.create(user: u, access_control: ac)
 # u.can_view_full_ssn?
 require 'memery'
 class Hmis::User < ApplicationRecord
@@ -15,10 +17,11 @@ class Hmis::User < ApplicationRecord
   include HasRecentItems
   self.table_name = :users
 
-  has_many :user_hmis_data_sources_roles, class_name: '::Hmis::UserHmisDataSourceRole', dependent: :destroy, inverse_of: :user # join table with user_id, data_source_id, role_id
-  has_many :roles, through: :user_hmis_data_sources_roles, source: :role
-  has_many :hmis_data_sources, through: :user_hmis_data_sources_roles, source: :data_source
-  has_many :groups, class_name: '::Hmis::AccessGroup'
+  has_many :user_access_controls, class_name: '::Hmis::UserAccessControl', dependent: :destroy, inverse_of: :user
+  has_many :access_controls, through: :user_access_controls
+  has_many :access_groups, through: :access_controls
+  has_many :roles, through: :access_controls
+
   has_recent :clients, Hmis::Hud::Client
   has_recent :projects, Hmis::Hud::Project
   attr_accessor :hmis_data_source_id # stores the data_source_id of the currently logged in HMIS
@@ -27,12 +30,12 @@ class Hmis::User < ApplicationRecord
     true
   end
 
-  # load a hash of permission names (e.g. 'can_view_all_reports')
+  # load a hash of global permission names (e.g. 'can_view_all_reports')
   # to a boolean true if the user has the permission through one
   # of their roles
   def load_effective_permissions
     {}.tap do |h|
-      roles.merge(Hmis::UserHmisDataSourceRole.where(data_source_id: hmis_data_source_id)).each do |role|
+      roles.each do |role|
         ::Hmis::Role.permissions.each do |permission|
           h[permission] ||= role.send(permission)
         end
@@ -54,6 +57,23 @@ class Hmis::User < ApplicationRecord
       send(permission)
     end
 
+    define_method("#{permission}_for?") do |entity|
+      joins_association = nil
+      joins_association = :projects if entity.is_a?(Hmis::Hud::Project)
+      joins_association = :organizations if entity.is_a?(Hmis::Hud::Organization)
+
+      raise "Invalid entity '#{entity.class.name}'" unless joins_association.present?
+      return false unless send("#{permission}?")
+
+      access_groups.
+        merge(
+          Hmis::AccessGroup.joins(:access_controls).
+            where(id: Hmis::GroupViewableEntity.where(entity_type: entity.class.name, entity_id: entity.id).pluck(:access_group_id)).
+            merge(Hmis::AccessControl.where(role_id: roles.where(permission => true).pluck(:id))),
+        )
+        .exists?
+    end
+
     # Provide a scope for each permission to get any user who qualifies
     # e.g. User.can_administer_health
     scope permission, -> do
@@ -68,7 +88,7 @@ class Hmis::User < ApplicationRecord
 
   private def viewable(model)
     model.where(
-      id: GrdaWarehouse::GroupViewableEntity.where(
+      id: Hmis::GroupViewableEntity.where(
         access_group_id: access_groups.viewable.pluck(:id),
         entity_type: model.sti_name,
       ).select(:entity_id),
@@ -80,11 +100,11 @@ class Hmis::User < ApplicationRecord
   end
 
   def viewable_organizations
-    viewable GrdaWarehouse::Hud::Organization
+    viewable Hmis::Hud::Organization
   end
 
   def viewable_projects
-    viewable GrdaWarehouse::Hud::Project
+    viewable Hmis::Hud::Project
   end
 
   def viewable_project_access_groups
@@ -105,7 +125,7 @@ class Hmis::User < ApplicationRecord
 
   private def editable(model)
     model.where(
-      id: GrdaWarehouse::GroupViewableEntity.where(
+      id: Hmis::GroupViewableEntity.where(
         access_group_id: access_groups.editable.pluck(:id),
         entity_type: model.sti_name,
       ).select(:entity_id),
@@ -117,11 +137,11 @@ class Hmis::User < ApplicationRecord
   end
 
   def editable_organizations
-    editable GrdaWarehouse::Hud::Organization
+    editable Hmis::Hud::Organization
   end
 
   def editable_projects
-    editable GrdaWarehouse::Hud::Project
+    editable Hmis::Hud::Project
   end
 
   def editable_project_access_groups

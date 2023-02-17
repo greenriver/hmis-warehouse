@@ -8,8 +8,37 @@ class Hmis::Role < ::ApplicationRecord
   self.table_name = :hmis_roles
   # Warehouse roles do not have a paper trail, so neither do these
 
-  has_many :user_hmis_data_source_roles, class_name: '::Hmis::UserHmisDataSourceRole'
-  has_many :users, through: :user_hmis_data_source_roles, source: :user
+  has_many :access_controls, class_name: '::Hmis::AccessControl', inverse_of: :role
+  has_many :user_access_controls, through: :access_controls
+  has_many :users, through: :user_access_controls
+
+  # has_many :user_hmis_data_source_roles, class_name: '::Hmis::UserHmisDataSourceRole'
+  # has_many :users, through: :user_hmis_data_source_roles, source: :user
+
+  scope :with_all_permissions, ->(*perms) do
+    where(**perms.map { |p| [p, true] }.to_h)
+  end
+
+  scope :with_any_permissions, ->(*perms) do
+    scope = self
+    perms.map { |p| scope = scope.or(Hmis::Role.where(p => true)) }
+    scope
+  end
+
+  scope :with_editable_permissions, -> do
+    with_any_permissions(
+      :can_delete_assigned_project_data,
+      :can_administer_hmis,
+      :can_delete_enrollments,
+    )
+  end
+
+  scope :with_viewable_permissions, -> do
+    with_any_permissions(
+      :can_view_full_ssn,
+      :can_view_clients,
+    )
+  end
 
   def administrative?
     self.class.permissions_with_descriptions.each do |permission, description|
@@ -82,16 +111,5 @@ class Hmis::Role < ::ApplicationRecord
         ],
       },
     }
-  end
-
-  def add(users)
-    hmis_ds = GrdaWarehouse::DataSource.hmis.first
-    Array.wrap(users).each do |u|
-      u.user_hmis_data_sources_roles.create(role: self, data_source_id: hmis_ds.id)
-    end
-  end
-
-  def remove(users)
-    self.users = (self.users - Array.wrap(users))
   end
 end

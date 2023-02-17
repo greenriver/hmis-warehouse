@@ -18,13 +18,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     Hmis::Hud::User.from_user(hmis_user2)
   end
 
-  let(:edit_access_group) { create :edit_access_group }
-  let(:view_access_group) { create :view_access_group }
-
   let(:test_input) do
     {
       project_name: 'Project 1',
-      operating_start_date: (Date.yesterday).strftime('%Y-%m-%d'),
+      operating_start_date: Date.yesterday.strftime('%Y-%m-%d'),
       operating_end_date: Date.current.strftime('%Y-%m-%d'),
       description: 'This is a test project',
       contact_information: 'Contact for contact information',
