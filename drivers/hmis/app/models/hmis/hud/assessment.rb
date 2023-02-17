@@ -18,7 +18,7 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
   belongs_to :enrollment, **hmis_relation(:EnrollmentID, 'Enrollment')
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :assessments
-  has_one :assessment_detail, class_name: 'Hmis::Form::AssessmentDetail'
+  has_one :assessment_detail, class_name: 'Hmis::Form::AssessmentDetail', dependent: :destroy
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   has_one :wip, class_name: 'Hmis::Wip', as: :source, dependent: :destroy
 
