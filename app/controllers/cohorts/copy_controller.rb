@@ -9,6 +9,7 @@ module Cohorts
     include CohortAuthorization
     include CohortClients
 
+    before_action :require_can_add_cohort_clients!
     before_action :load_cohort
     before_action :load_new, only: [:new]
 

@@ -8,7 +8,7 @@
       .col-sm-3
         = f.input :user_id, as: :select_two, collection: User.all, label: 'Warehouse User', include_blank: 'All', selected: nil
       .col-sm-3
-        = f.input :cas_user_id, as: :select_two, collection: CasAccess::User.all, label: 'CAS User', include_blank: 'All', selected: nil
+        = f.input :cas_user_id, as: :select_two, collection: CasAccess::User.all, label_method: :name_with_email, label: 'CAS User', include_blank: 'All', selected: nil
 
   - content_for :filter_actions do
     = f.submit 'Generate Download', class: ['btn', 'btn-primary'], data: { disable_with: false }

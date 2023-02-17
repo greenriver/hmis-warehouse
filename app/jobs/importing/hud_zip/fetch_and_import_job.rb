@@ -12,7 +12,7 @@ module Importing::HudZip
       safe_klass = known_classes.detect { |m| klass == m }
       raise "Unknown import class: #{klass}; You must add it to the whitelist in FetchAndImportJob" unless safe_klass.present?
 
-      safe_klass.constantize.new(options).import!
+      safe_klass.constantize.new(**options).import!
     end
 
     def max_attempts

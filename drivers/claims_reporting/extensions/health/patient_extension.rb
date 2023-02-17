@@ -4,17 +4,17 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-require 'memoist'
+require 'memery'
 module ClaimsReporting::Health
   module PatientExtension
     extend ActiveSupport::Concern
 
     included do
-      extend Memoist
+      include Memery
 
       has_many :medical_claims, class_name: 'ClaimsReporting::MedicalClaim', foreign_key: :member_id, primary_key: :medicaid_id
 
-      def medical_claims_for_qualifying_activity(qa, denied: false) # rubocop:disable Naming/MethodParameterName
+      def medical_claims_for_qualifying_activity(qa, denied: false)
         activity_date_range = Range.new(*qualifying_activities.map(&:date_of_activity).minmax)
 
         (
@@ -27,7 +27,7 @@ module ClaimsReporting::Health
         end
       end
 
-      def best_medical_claim_for_qualifying_activity(qa, denied: false) # rubocop:disable Naming/MethodParameterName
+      def best_medical_claim_for_qualifying_activity(qa, denied: false)
         matching_claims = medical_claims_for_qualifying_activity(qa, denied: denied)
 
         return matching_claims.first if matching_claims.size <= 1

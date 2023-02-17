@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-require 'memoist'
+require 'memery'
 module GrdaWarehouse::CasProjectClientCalculator
   class Default
     # Used for limiting queries when displaying the CAS Readiness page

@@ -17473,6 +17473,40 @@ ALTER SEQUENCE public.public_report_settings_id_seq OWNED BY public.public_repor
 
 
 --
+-- Name: recent_items; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.recent_items (
+    id bigint NOT NULL,
+    owner_type character varying NOT NULL,
+    owner_id bigint NOT NULL,
+    item_type character varying NOT NULL,
+    item_id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: recent_items_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.recent_items_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: recent_items_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.recent_items_id_seq OWNED BY public.recent_items.id;
+
+
+--
 -- Name: recent_report_enrollments; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -22780,6 +22814,13 @@ ALTER TABLE ONLY public.public_report_settings ALTER COLUMN id SET DEFAULT nextv
 
 
 --
+-- Name: recent_items id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.recent_items ALTER COLUMN id SET DEFAULT nextval('public.recent_items_id_seq'::regclass);
+
+
+--
 -- Name: recurring_hmis_export_links id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -25911,6 +25952,14 @@ ALTER TABLE ONLY public.public_report_settings
 
 
 --
+-- Name: recent_items recent_items_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.recent_items
+    ADD CONSTRAINT recent_items_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: recurring_hmis_export_links recurring_hmis_export_links_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -26857,10 +26906,31 @@ CREATE INDEX exit_date_updated ON public."Exit" USING btree ("DateUpdated");
 
 
 --
+-- Name: exit_en_id_p_id_ds_id_ex_d; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX exit_en_id_p_id_ds_id_ex_d ON public."Exit" USING btree ("EnrollmentID", "PersonalID", data_source_id, "ExitDate");
+
+
+--
+-- Name: exit_en_id_p_id_ds_id_ex_d_undeleted; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX exit_en_id_p_id_ds_id_ex_d_undeleted ON public."Exit" USING btree ("EnrollmentID", "PersonalID", data_source_id, "ExitDate") WHERE ("DateDeleted" IS NULL);
+
+
+--
 -- Name: exit_export_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX exit_export_id ON public."Exit" USING btree ("ExportID");
+
+
+--
+-- Name: exit_p_id_ds_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX exit_p_id_ds_id ON public."Exit" USING btree ("PersonalID", data_source_id) WHERE ("DateDeleted" IS NULL);
 
 
 --
@@ -39975,6 +40045,13 @@ CREATE INDEX "index_Enrollment_on_ProjectID" ON public."Enrollment" USING btree 
 
 
 --
+-- Name: index_Enrollment_on_ProjectID_and_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_Enrollment_on_ProjectID_and_data_source_id" ON public."Enrollment" USING btree ("ProjectID", data_source_id) WHERE ("DateDeleted" IS NULL);
+
+
+--
 -- Name: index_Enrollment_on_data_source_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -40024,13 +40101,6 @@ CREATE INDEX "index_Exit_on_DateDeleted_and_data_source_id" ON public."Exit" USI
 
 
 --
--- Name: index_Exit_on_EnrollmentID; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "index_Exit_on_EnrollmentID" ON public."Exit" USING btree ("EnrollmentID");
-
-
---
 -- Name: index_Exit_on_ExitDate; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -40042,27 +40112,6 @@ CREATE INDEX "index_Exit_on_ExitDate" ON public."Exit" USING btree ("ExitDate");
 --
 
 CREATE UNIQUE INDEX "index_Exit_on_ExitID_and_data_source_id" ON public."Exit" USING btree ("ExitID", data_source_id);
-
-
---
--- Name: index_Exit_on_PersonalID; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "index_Exit_on_PersonalID" ON public."Exit" USING btree ("PersonalID");
-
-
---
--- Name: index_Exit_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "index_Exit_on_data_source_id" ON public."Exit" USING btree (data_source_id);
-
-
---
--- Name: index_Exit_on_data_source_id_and_PersonalID; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "index_Exit_on_data_source_id_and_PersonalID" ON public."Exit" USING btree (data_source_id, "PersonalID");
 
 
 --
@@ -43843,6 +43892,20 @@ CREATE INDEX index_public_report_reports_on_updated_at ON public.public_report_r
 --
 
 CREATE INDEX index_public_report_reports_on_user_id ON public.public_report_reports USING btree (user_id);
+
+
+--
+-- Name: index_recent_items_on_item; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_recent_items_on_item ON public.recent_items USING btree (item_type, item_id);
+
+
+--
+-- Name: index_recent_items_on_owner; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_recent_items_on_owner ON public.recent_items USING btree (owner_type, owner_id);
 
 
 --
@@ -50780,6 +50843,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230119123843'),
 ('20230123010327'),
 ('20230124195245'),
-('20230127200801');
+('20230127151606'),
+('20230127200801'),
+('20230207151644');
 
 

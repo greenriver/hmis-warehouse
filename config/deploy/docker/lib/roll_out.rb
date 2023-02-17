@@ -541,6 +541,7 @@ class RollOut
         -e AWS_SECURITY_TOKEN=#{ENV['AWS_SECURITY_TOKEN']} \
         -e AWS_SESSION_TOKEN=#{ENV['AWS_SESSION_TOKEN']} \
         --rm -it amazon/aws-cli logs tail #{target_group_name} --follow --log-stream-names=#{log_stream_name}"
+
       PTY.spawn(cmd) do |stdout, _stdin, _pid|
         stdout.each do |line|
           chars_written += line.length

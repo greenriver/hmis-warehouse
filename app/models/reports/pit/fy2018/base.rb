@@ -22,19 +22,19 @@ module Reports::Pit::Fy2018
       nil
     end
 
-    def has_options?
+    def has_options? # rubocop:disable Naming/PredicateName
       true
     end
 
-    def has_custom_form?
+    def has_custom_form? # rubocop:disable Naming/PredicateName
       true
     end
 
-    def has_pit_options?
+    def has_pit_options? # rubocop:disable Naming/PredicateName
       true
     end
 
-    def has_coc_codes_option?
+    def has_coc_codes_option? # rubocop:disable Naming/PredicateName
       true
     end
 
@@ -42,7 +42,7 @@ module Reports::Pit::Fy2018
       'Dates'
     end
 
-    def describe_filter_as_html
+    def describe_filter_as_html(_)
       ''
     end
 

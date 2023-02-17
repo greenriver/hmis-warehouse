@@ -587,6 +587,7 @@ Rails.application.routes.draw do
       get :pre_destroy, on: :member
       post :pre_bulk_destroy, on: :collection
       delete :bulk_destroy, on: :collection
+      post :bulk_restore, on: :collection
       get :field, on: :member
       patch :re_rank, on: :collection
       resources :cohort_client_notes, controller: 'cohorts/notes'

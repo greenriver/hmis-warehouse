@@ -9,14 +9,17 @@
 # u = Hmis::User.first; u.hmis_data_source_id = 3
 # u.user_hmis_data_sources_roles.create(role: r, data_source_id: u.hmis_data_source_id)
 # u.can_view_full_ssn?
-require 'memoist'
+require 'memery'
 class Hmis::User < ApplicationRecord
   include UserConcern
+  include HasRecentItems
   self.table_name = :users
   has_many :user_hmis_data_sources_roles, class_name: '::Hmis::UserHmisDataSourceRole', dependent: :destroy, inverse_of: :user # join table with user_id, data_source_id, role_id
   has_many :roles, through: :user_hmis_data_sources_roles, source: :role
   has_many :hmis_data_sources, through: :user_hmis_data_sources_roles, source: :data_source
   has_many :groups, class_name: '::Hmis::AccessGroup'
+  has_recent :clients, Hmis::Hud::Client
+  has_recent :projects, Hmis::Hud::Project
   attr_accessor :hmis_data_source_id # stores the data_source_id of the currently logged in HMIS
 
   def skip_session_limitable?

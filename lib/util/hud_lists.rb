@@ -57,7 +57,7 @@ module HudLists
       162 => 'RHY referral',
       200 => 'Bed night',
       210 => 'HUD-VASH OTH voucher tracking',
-      300 => 'C2 Moving On Assistance Provided',
+      300 => 'Moving On Assistance',
     }.freeze
   end
 

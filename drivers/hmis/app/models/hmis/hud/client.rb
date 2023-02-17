@@ -5,6 +5,7 @@
 ###
 
 class Hmis::Hud::Client < Hmis::Hud::Base
+  extend OrderAsSpecified
   include ::HmisStructure::Client
   include ::Hmis::Hud::Concerns::Shared
   include ArelHelper

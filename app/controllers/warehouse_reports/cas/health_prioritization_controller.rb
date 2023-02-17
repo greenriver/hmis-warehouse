@@ -46,7 +46,7 @@ module WarehouseReports::Cas
     end
 
     def filter_params
-      return { project_ids: es_project_ids } unless filter_set?
+      return { project_ids: es_project_ids, start: 1.months.ago.to_date } unless filter_set?
 
       allowed = params.require(:filter).
         permit(

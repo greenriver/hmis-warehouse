@@ -285,8 +285,8 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
       failures = []
       complex_validations.each do |check|
         Rails.logger.debug { "Running #{check[:class]} for #{self}" }
-        arguments = check.dig(:arguments)
-        failures += check[:class].check_validity!(self, importer_log, arguments)
+        arguments = check.dig(:arguments) || {}
+        failures += check[:class].check_validity!(self, importer_log, **arguments)
       end
       failures.compact!
       importer_log.summary[filename]['total_flags'] ||= 0

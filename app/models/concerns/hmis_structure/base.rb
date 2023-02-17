@@ -129,7 +129,7 @@ module HmisStructure::Base
             :string
           end
           if constraints
-            t.send(type, column, options.except(:type))
+            t.send(type, column, **options.except(:type))
           else
             t.send(type, column)
           end

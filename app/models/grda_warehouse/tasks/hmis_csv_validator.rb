@@ -5,10 +5,10 @@
 ###
 
 require 'csv'
-require 'memoist'
+require 'memery'
 module GrdaWarehouse::Tasks
   class HmisCsvValidator
-    extend Memoist
+    include Memery
     attr_accessor :errors, :project_ids, :enrollment_ids, :export_id, :path
     def initialize(path)
       @path = path
