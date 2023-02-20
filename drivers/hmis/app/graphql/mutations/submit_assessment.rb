@@ -13,9 +13,9 @@ module Mutations
       definition = assessment.assessment_detail.definition
       enrollment = assessment.enrollment
 
-      # Determine the Assessment Date (same as Information Date) and validate it
+      # Determine the Assessment Date and validate it
       assessment_date, errors = definition.find_and_validate_assessment_date(
-        hud_values: input.hud_values,
+        values: input.values,
         entry_date: enrollment.entry_date,
         exit_date: enrollment.exit_date,
       )
@@ -31,7 +31,7 @@ module Mutations
       )
 
       # Validate form values based on FormDefinition
-      validation_errors = assessment.assessment_detail.validate_form_values(ignore_warnings: input.confirmed)
+      validation_errors = assessment.assessment_detail.validate_form(ignore_warnings: input.confirmed)
       errors.push(*validation_errors)
 
       # If this is an existing assessment and all the errors are warnings, save changes before returning.

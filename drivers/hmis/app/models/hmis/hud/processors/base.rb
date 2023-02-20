@@ -5,6 +5,8 @@
 ###
 
 class Hmis::Hud::Processors::Base
+  HIDDEN_FIELD_VALUE = '_HIDDEN'.freeze
+
   def initialize(processor)
     @processor = processor
   end
@@ -12,7 +14,9 @@ class Hmis::Hud::Processors::Base
   def process(field, value)
     attribute_name = hud_name(field)
     attribute_value = if value.nil?
-      nil # nil clears a field
+      hud_type(field)&.data_not_collected_value # nil or 99
+    elsif value == HIDDEN_FIELD_VALUE
+      nil # field is hidden, so we always save it as nil (not 99)
     else
       hud_type(field)&.value_for(value) || value # If the HUD type doesn't have a translator, fall back to the DB one
     end

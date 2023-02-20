@@ -26,8 +26,8 @@ class Hmis::Form::AssessmentDetail < ::GrdaWarehouseBase
     data_collection_stage == 3
   end
 
-  def validate_form_values(ignore_warnings: false)
-    validation_errors = definition.validate_form_values(values, hud_values)
+  def validate_form(ignore_warnings: false)
+    validation_errors = definition.validate_form_values(values)
 
     if ignore_warnings
       validation_errors.reject(&:warning?)

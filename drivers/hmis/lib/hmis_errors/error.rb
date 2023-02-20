@@ -47,7 +47,7 @@ module HmisErrors
         full_message: full_message,
         readable_attribute: readable_attribute,
         severity: :error,
-        record_id: error.object&.id,
+        record_id: error.object_id,
       )
     end
 

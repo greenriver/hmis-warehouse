@@ -13,9 +13,9 @@ module Mutations
       definition = assessment.assessment_detail.definition
       enrollment = assessment.enrollment
 
-      # Determine the Assessment Date (same as Information Date) and validate it
+      # Determine the Assessment Date and validate it
       assessment_date, errors = definition.find_and_validate_assessment_date(
-        hud_values: input.hud_values,
+        values: input.values,
         entry_date: enrollment.entry_date,
         exit_date: enrollment.exit_date,
       )

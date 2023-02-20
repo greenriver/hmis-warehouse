@@ -29,7 +29,7 @@ module Mutations
 
       # Validate form values based on FormDefinition
       assessments.each do |assessment|
-        validation_errors = assessment.assessment_detail.validate_form_values(ignore_warnings: confirmed)
+        validation_errors = assessment.assessment_detail.validate_form(ignore_warnings: confirmed)
         errors.add_with_record_id(validation_errors, assessment.id)
       end
 

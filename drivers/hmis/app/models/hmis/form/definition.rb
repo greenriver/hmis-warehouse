@@ -75,7 +75,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     @assessment_date_item ||= link_id_item_hash.values.find(&:assessment_date)
   end
 
-  def find_and_validate_assessment_date(hud_values:, entry_date:, exit_date:)
+  def find_and_validate_assessment_date(values:, entry_date:, exit_date:)
     errors = HmisErrors::Errors.new
     date = nil
     item = assessment_date_item
@@ -85,8 +85,8 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
       link_id: item&.link_id,
     }
 
-    if item.present? && hud_values.present?
-      date_string = hud_values[item.link_id]
+    if item.present? && values.present?
+      date_string = values[item.link_id]
 
       if date_string.present?
         date = HmisUtil::Dates.safe_parse_date(date_string: date_string, reasonable_years_distance: 30)
@@ -113,9 +113,9 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     [date, errors.errors]
   end
 
-  def validate_form_values(raw_form_values, hud_values, _custom_values = nil)
+  def validate_form_values(form_values)
     errors = HmisErrors::Errors.new
-    hud_values.each do |link_id, value|
+    form_values.each do |link_id, value|
       item = link_id_item_hash[link_id.to_s]
       raise "Unrecognized link ID: #{link_id}" unless item.present?
 
@@ -126,9 +126,6 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
         readable_attribute: item.brief_text || item.text,
         link_id: item&.link_id,
       }
-
-      # If this form is not present in the raw form state, then it is not enabled. Skip validation for it.
-      next unless raw_form_values.key?(link_id)
 
       is_missing = value.blank? || value == 'DATA_NOT_COLLECTED'
 
