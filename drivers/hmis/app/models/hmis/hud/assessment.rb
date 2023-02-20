@@ -21,6 +21,8 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
   has_one :assessment_detail, class_name: 'Hmis::Form::AssessmentDetail', dependent: :destroy
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   has_one :wip, class_name: 'Hmis::Wip', as: :source, dependent: :destroy
+  has_many :assessment_questions, **hmis_relation(:AssessmentID, 'AssessmentQuestion'), dependent: :destroy
+  has_many :assessment_results, **hmis_relation(:AssessmentID, 'AssessmentResult'), dependent: :destroy
 
   attr_accessor :in_progress
 
