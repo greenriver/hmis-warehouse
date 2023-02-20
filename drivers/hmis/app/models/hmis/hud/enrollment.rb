@@ -28,6 +28,8 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   has_many :health_and_dvs, **hmis_relation(:EnrollmentID, 'HealthAndDv'), dependent: :destroy
   has_many :current_living_situations, **hmis_relation(:EnrollmentID, 'CurrentLivingSituation'), inverse_of: :enrollment, dependent: :destroy
   has_many :enrollment_cocs, **hmis_relation(:EnrollmentID, 'EnrollmentCoc'), dependent: :destroy
+  has_many :employment_educations, **hmis_relation(:EnrollmentID, 'EmploymentEducation'), dependent: :destroy
+  has_many :youth_education_statuses, **hmis_relation(:EnrollmentID, 'YouthEducationStatus'), dependent: :destroy
 
   # NOTE: this does not include WIP assessments
   has_many :assessments, **hmis_relation(:EnrollmentID, 'Assessment'), dependent: :destroy
