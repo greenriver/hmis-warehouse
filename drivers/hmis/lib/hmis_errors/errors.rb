@@ -9,7 +9,7 @@ module HmisErrors
     include Enumerable
 
     extend Forwardable
-    def_delegators :@errors, :size, :clear, :blank?, :empty?, :uniq!, :any?, :count
+    def_delegators :@errors, :size, :clear, :blank?, :empty?, :uniq!, :any?, :count, :push
     attr_reader :errors
     alias objects errors
 
@@ -29,6 +29,14 @@ module HmisErrors
       error = HmisErrors::Error.new(attribute, type, **options)
       @errors.append(error)
       error
+    end
+
+    def add_with_record_id(errors, record_id)
+      Array.wrap(errors).each do |e|
+        e.send(:define_singleton_method, :record_id) { record_id }
+        @errors << e
+      end
+      @errors
     end
   end
 end

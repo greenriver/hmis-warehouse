@@ -20,21 +20,19 @@ module Mutations
         exit_date: enrollment.exit_date,
       )
 
-      # Validate form values based on FormDefinition
-      validation_errors = definition.validate_form_values(input.values, input.hud_values)
-      # If user has already confirmed any warnings, remove them
-      validation_errors = validation_errors.reject(&:warning?) if input.confirmed
-      errors.push(*validation_errors)
-
       # Update values
       assessment.assessment_detail.assign_attributes(
         values: input.values,
-        hud_values: definition.key_by_field_name(input.hud_values),
+        hud_values: input.hud_values,
       )
       assessment.assign_attributes(
         user_id: hmis_user.user_id,
         assessment_date: assessment_date || assessment.assessment_date,
       )
+
+      # Validate form values based on FormDefinition
+      validation_errors = assessment.assessment_detail.validate_form_values(ignore_warnings: input.confirmed)
+      errors.push(*validation_errors)
 
       # If this is an existing assessment and all the errors are warnings, save changes before returning.
       # (NOTE: We could/should do this for new assessments, too, but it's a bit more complicated
@@ -74,7 +72,7 @@ module Mutations
         assessment = nil
       end
 
-      return {
+      {
         assessment: assessment,
         errors: errors,
       }

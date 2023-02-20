@@ -26,6 +26,16 @@ class Hmis::Form::AssessmentDetail < ::GrdaWarehouseBase
     data_collection_stage == 3
   end
 
+  def validate_form_values(ignore_warnings: false)
+    validation_errors = definition.validate_form_values(values, hud_values)
+
+    if ignore_warnings
+      validation_errors.reject(&:warning?)
+    else
+      validation_errors
+    end
+  end
+
   # Pull up the errors from the assessment processor so we can see them (as opposed to validates_associated)
   private def assessment_processor_is_valid
     return if assessment_processor.valid?

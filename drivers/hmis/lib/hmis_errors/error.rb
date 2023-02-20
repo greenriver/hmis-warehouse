@@ -6,7 +6,7 @@
 
 module HmisErrors
   class Error
-    def initialize(attribute, type = :invalid, message: nil, full_message: nil, severity: :error, readable_attribute: nil, id: nil, link_id: nil, **kwargs)
+    def initialize(attribute, type = :invalid, message: nil, full_message: nil, severity: :error, readable_attribute: nil, id: nil, link_id: nil, record_id: nil, **kwargs)
       type = :invalid unless Types::HmisSchema::Enums::ValidationType.values.keys.include?(type.to_s)
 
       # Camelize attribute ("entryDate" not "entry_date")
@@ -26,6 +26,7 @@ module HmisErrors
         readable_attribute: readable_attribute,
         severity: severity,
         id: id,
+        record_id: record_id,
         link_id: link_id,
         **kwargs,
       }.each do |key, value|
@@ -45,7 +46,8 @@ module HmisErrors
         message: error.message,
         full_message: full_message,
         readable_attribute: readable_attribute,
-        severity: :error, # could it be set in options?
+        severity: :error,
+        record_id: error.object&.id,
       )
     end
 

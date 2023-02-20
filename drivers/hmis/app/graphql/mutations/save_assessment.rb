@@ -22,7 +22,10 @@ module Mutations
       return { assessment: nil, errors: errors } if errors.any?
 
       # Update values
-      assessment.assessment_detail.assign_attributes(values: input.values)
+      assessment.assessment_detail.assign_attributes(
+        values: input.values,
+        hud_values: input.hud_values,
+      )
       assessment.assign_attributes(
         user_id: hmis_user.user_id,
         assessment_date: assessment_date,

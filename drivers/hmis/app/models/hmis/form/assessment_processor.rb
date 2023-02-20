@@ -27,7 +27,9 @@ class Hmis::Form::AssessmentProcessor < ::GrdaWarehouseBase
   def run!
     return unless assessment_detail.hud_values.present?
 
-    assessment_detail.hud_values.each do |key, value|
+    hud_values_by_field_name = assessment_detail.definition.key_by_field_name(assessment_detail.hud_values)
+
+    hud_values_by_field_name.each do |key, value|
       # Don't use greedy matching so that the container is up to the first dot, and the rest is the field
       match = /(.*?)\.(.*)/.match(key)
       next unless match.present?
