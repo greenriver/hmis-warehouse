@@ -74,7 +74,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(Hmis::Hud::Assessment.first.enrollment_id).to eq(e1.enrollment_id)
         details = Hmis::Hud::Assessment.first.assessment_detail
         expect(details.values).to include(test_input[:values])
-        expect(details.hud_values).to include({ 'informationDate' => '2023-02-01' })
+        expect(details.hud_values).to include(test_input[:hud_values])
       end
     end
   end
@@ -107,7 +107,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(Hmis::Hud::Assessment.in_progress.count).to eq(0)
         details = Hmis::Hud::Assessment.first.assessment_detail
         expect(details.values).to include(input[:values])
-        expect(details.hud_values).to include({ 'informationDate' => new_information_date })
+        expect(details.hud_values).to include(input[:hud_values])
       end
     end
   end
@@ -185,7 +185,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(@assessment.in_progress?).to eq(true)
         expect(@assessment.assessment_date).to eq(Date.parse(new_information_date))
         expect(@assessment.assessment_detail.values).to include(**input[:values])
-        expect(@assessment.assessment_detail.hud_values).to include('fieldTwo' => 'DATA_NOT_COLLECTED', 'informationDate' => '2026-01-01')
+        expect(@assessment.assessment_detail.hud_values).to include(**input[:hud_values])
       end
     end
   end
