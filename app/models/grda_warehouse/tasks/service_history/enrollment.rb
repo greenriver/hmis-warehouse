@@ -762,12 +762,15 @@ module GrdaWarehouse::Tasks::ServiceHistory
           exit_date,
           (Date.current + 1.year).end_of_year,
         ].min
-      else
+      elsif export.present?
         [
           export.effective_export_end_date,
           export.ExportEndDate,
           Date.current,
         ].compact.min.to_date
+      else
+        # If there is no Export, the data is coming from the OP HMIS. Treat it as accurate up to the current date.
+        [Date.current]
       end
     end
 
