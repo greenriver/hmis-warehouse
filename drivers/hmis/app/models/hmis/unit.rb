@@ -9,8 +9,9 @@ class Hmis::Unit < Hmis::HmisBase
   self.table_name = :hmis_units
 
   belongs_to :inventory, class_name: 'Hmis::Hud::Inventory'
-  has_many :beds
-  has_many :active_ranges, class_name: 'Hmis::ActiveRange', as: :entity
+  has_many :beds, dependent: :destroy
+  has_many :active_ranges, class_name: 'Hmis::ActiveRange', as: :entity, dependent: :destroy
+  belongs_to :user, class_name: 'User'
 
   scope :active, ->(date = Date.today) do
     active_unit = ar_t[:end].eq(nil).or(ar_t[:end].gteq(date))
