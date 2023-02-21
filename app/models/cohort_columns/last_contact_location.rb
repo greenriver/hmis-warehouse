@@ -11,7 +11,7 @@ module CohortColumns
     attribute :title, String, lazy: true, default: ->(model, _attr) { _(model.translation_key) }
 
     def description
-      'Location of the most recent client contacts'
+      'Locations of the most recent client contact'
     end
 
     def display_read_only(user)
