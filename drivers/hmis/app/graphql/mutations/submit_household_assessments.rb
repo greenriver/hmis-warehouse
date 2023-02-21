@@ -38,7 +38,8 @@ module Mutations
       includes_hoh = assessments.map { |a| a.enrollment.relationship_to_ho_h }.uniq.include?(1)
       new_hoh_enrollment = nil
       if assessments.first.exit? && includes_hoh
-        open_enrollments = Hmis::Hud::Enrollment.where(household_id: household_ids.first, exit_id: nil).
+        open_enrollments = Hmis::Hud::Enrollment.open_on_date.
+          where(household_id: household_ids.first).
           where.not(enrollment_id: assessments.map(&:enrollment_id))
 
         if open_enrollments.size == 1
