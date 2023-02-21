@@ -18,7 +18,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
-  has_many :enrollments, **hmis_relation(:PersonalID, 'Enrollment')
+  has_many :enrollments, **hmis_relation(:PersonalID, 'Enrollment'), dependent: :destroy
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :clients
 
   # NOTE: this does not include project where the enrollment is WIP

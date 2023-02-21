@@ -31,4 +31,41 @@ RSpec.describe Hmis::Hud::Client, type: :model do
       end
     end
   end
+
+  describe 'when destroying clients' do
+    let!(:client) { create :hmis_hud_client }
+    before(:each) do
+      create(:hmis_hud_enrollment, client: client, user: client.user, data_source: client.data_source)
+    end
+
+    it 'preserves shared data' do
+      client.destroy
+      client.reload
+
+      [
+        :data_source,
+        :user,
+      ].each do |assoc|
+        expect(client.send(assoc)).to be_present, "expected #{assoc} to be present"
+      end
+    end
+
+    it 'destroys dependent data' do
+      client.reload
+      [
+        :enrollments,
+      ].each do |assoc|
+        expect(client.send(assoc)).to be_present, "expected #{assoc} to be present"
+      end
+
+      client.destroy
+      client.reload
+
+      [
+        :enrollments,
+      ].each do |assoc|
+        expect(client.send(assoc)).not_to be_present, "expected #{assoc} not to be present"
+      end
+    end
+  end
 end
