@@ -17,6 +17,7 @@ module Types
     field :readable_attribute, String, null: true
     field :message, String, null: false
     field :full_message, String, null: false
+    field :section, String, null: true
     field :type, HmisSchema::Enums::ValidationType, null: false
     field :severity, HmisSchema::Enums::ValidationSeverity, null: false
 

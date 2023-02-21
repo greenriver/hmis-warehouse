@@ -124,7 +124,8 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
 
       error_context = {
         readable_attribute: item.brief_text || item.text,
-        link_id: item&.link_id,
+        link_id: item.link_id,
+        section: link_id_section_hash[item.link_id],
       }
 
       is_missing = value.blank? || value == 'DATA_NOT_COLLECTED'
@@ -143,6 +144,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     errors.errors
   end
 
+  # Unused
   def key_by_field_name(hud_values)
     result = {}
     recur_fill = lambda do |items, current_record_type|
@@ -184,6 +186,23 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
       end
 
       recur_fill.call(definition_struct.item)
+      item_map
+    end
+  end
+
+  # Hash { link_id => section label ("Income and Sources") }
+  def link_id_section_hash
+    @link_id_section_hash ||= begin
+      item_map = {}
+      recur_fill = lambda do |items, level, label|
+        items.each do |item|
+          label = item.brief_text || item.text if level.zero?
+          recur_fill.call(item.item, level + 1, label) if item.item
+          item_map[item.link_id] = label
+        end
+      end
+
+      recur_fill.call(definition_struct.item, 0, nil)
       item_map
     end
   end

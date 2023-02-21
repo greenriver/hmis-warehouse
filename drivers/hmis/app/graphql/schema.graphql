@@ -5324,6 +5324,7 @@ type ValidationError {
   ID of the AR record this error pertains to
   """
   recordId: ID
+  section: String
   severity: ValidationSeverity!
   type: ValidationType!
 }
