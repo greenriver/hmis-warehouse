@@ -53,12 +53,12 @@ RSpec.describe Hmis::Form::AssessmentProcessor, type: :model do
 
     income_benefits = assessment.enrollment.income_benefits.first
     expect(income_benefits.income_from_any_source).to eq(1)
-    expect(income_benefits.earned).to eq(nil) # should this be set to 0?
+    expect(income_benefits.earned).to eq(nil)
     expect(income_benefits.earned_amount).to eq(nil)
     expect(income_benefits.unemployment).to eq(1)
     expect(income_benefits.unemployment_amount).to eq(100)
     expect(income_benefits.other_income_source).to eq(0)
-    expect(income_benefits.other_income_amount).to eq(0) # should this be set to nil?
+    expect(income_benefits.other_income_amount).to eq(0)
     expect(income_benefits.other_income_source_identify).to eq(nil)
   end
 
@@ -103,7 +103,7 @@ RSpec.describe Hmis::Form::AssessmentProcessor, type: :model do
     income_benefits = assessment.enrollment.income_benefits.first
     expect(income_benefits.insurance_from_any_source).to eq(1)
     expect(income_benefits.medicaid).to eq(1)
-    expect(income_benefits.schip).to eq(nil) # should this be set to 0?
+    expect(income_benefits.schip).to eq(nil)
     expect(income_benefits.other_insurance).to eq(nil)
     expect(income_benefits.other_insurance_identify).to eq(nil)
   end
