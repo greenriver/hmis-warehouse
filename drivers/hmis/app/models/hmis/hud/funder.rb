@@ -13,6 +13,8 @@ class Hmis::Hud::Funder < Hmis::Hud::Base
   validates_with Hmis::Hud::Validators::FunderValidator
 
   belongs_to :project, **hmis_relation(:ProjectID, 'Project')
+  belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
+  belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :projects
 
   SORT_OPTIONS = [:start_date].freeze
 
