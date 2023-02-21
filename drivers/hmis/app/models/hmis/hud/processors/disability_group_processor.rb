@@ -10,7 +10,7 @@ module Hmis::Hud::Processors
       disability_type, disability_field, enum_type = field_mapping[field]
       return unless disability_type.present?
 
-      disability_value = enum_type.value_for(value)
+      disability_value = attribute_value_for_enum(enum_type, value)
       @processor.send(disability_type).assign_attributes(disability_field => disability_value)
     end
 

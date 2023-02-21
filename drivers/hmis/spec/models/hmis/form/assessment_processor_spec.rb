@@ -214,6 +214,40 @@ RSpec.describe Hmis::Form::AssessmentProcessor, type: :model do
     expect(disabilities.find_by(disability_type: 10).disability_response).to eq(3)
   end
 
+  it 'can process nil and _HIDDEN DisabilityGroup fields' do
+    assessment = Hmis::Hud::Assessment.new_with_defaults(enrollment: e1, user: hmis_hud_user, form_definition: fd, assessment_date: Date.current)
+    assessment.assessment_detail.hud_values = {
+      'DisabilityGroup.physicalDisability' => nil,
+      'DisabilityGroup.physicalDisabilityIndefiniteAndImpairs' => '_HIDDEN',
+      'DisabilityGroup.developmentalDisability' => 'NO',
+      'DisabilityGroup.developmentalDisabilityIndefiniteAndImpairs' => '_HIDDEN',
+      'DisabilityGroup.chronicHealthCondition' => 'YES',
+      'DisabilityGroup.chronicHealthConditionIndefiniteAndImpairs' => nil,
+      'DisabilityGroup.hivAids' => nil,
+      'DisabilityGroup.mentalHealthDisorder' => nil,
+      'DisabilityGroup.substanceUseDisorder' => 'BOTH_ALCOHOL_AND_DRUG_USE_DISORDERS',
+      'DisabilityGroup.substanceUseDisorderIndefiniteAndImpairs' => nil,
+      'DisabilityGroup.disablingCondition' => nil,
+    }
+
+    assessment.assessment_detail.assessment_processor.run!
+    assessment.save_not_in_progress
+
+    expect(assessment.enrollment.disabilities.count).to eq(6)
+    expect(assessment.enrollment.disabling_condition).to eq(99)
+
+    disabilities = assessment.enrollment.disabilities
+    # Physical Disability
+    expect(disabilities.find_by(disability_type: 5).disability_response).to eq(99) # nil is saved as 99
+    expect(disabilities.find_by(disability_type: 5).indefinite_and_impairs).to be_nil # hidden is saved as nil
+    # Developmental Disability
+    expect(disabilities.find_by(disability_type: 6).disability_response).to eq(0)
+    expect(disabilities.find_by(disability_type: 6).indefinite_and_impairs).to be_nil # hidden is saved as nil
+    # Substance Use
+    expect(disabilities.find_by(disability_type: 10).disability_response).to eq(3)
+    expect(disabilities.find_by(disability_type: 10).indefinite_and_impairs).to eq(99) # nil is saved as 99
+  end
+
   it 'pulls validation errors up from HUD records' do
     assessment = Hmis::Hud::Assessment.new_with_defaults(enrollment: e1, user: hmis_hud_user, form_definition: fd, assessment_date: Date.current)
     assessment.assessment_detail.hud_values = {
