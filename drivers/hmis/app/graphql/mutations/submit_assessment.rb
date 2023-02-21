@@ -8,10 +8,29 @@ module Mutations
 
     def resolve(input:)
       assessment, errors = input.find_or_create_assessment
-      return { assessment: nil, errors: errors } if errors.any?
+      return { errors: errors } if errors.any?
 
       definition = assessment.assessment_detail.definition
       enrollment = assessment.enrollment
+
+      # If this is an HoH Exit, check special restrictions
+      new_hoh_enrollment = nil
+      if enrollment.head_of_household? && assessment.exit?
+        open_enrollments = Hmis::Hud::Enrollment.open_on_date.
+          where(household_id: enrollment.household_id).
+          where.not(id: enrollment.id)
+
+        if open_enrollments.size == 1
+          # There is only 1 other open enrollment, so make them the HoH
+          new_hoh_enrollment = open_enrollments.first
+          new_hoh_enrollment.assign_attributes(relationship_to_ho_h: 1)
+        elsif open_enrollments.size > 1
+          # Error: cannot exit HoH if there are any other open enrollments
+          return {
+            errors: [HmisErrors::Error.new(:assessment, :invalid, full_message: 'Cannot exit head of household because there are existing open enrollments. Please assign a new HoH.')],
+          }
+        end
+      end
 
       # Determine the Assessment Date and validate it
       assessment_date, errors = definition.find_and_validate_assessment_date(
@@ -64,6 +83,9 @@ module Mutations
         enrollment.save_not_in_progress if assessment.intake?
         # Update DateUpdated on the Enrollment
         enrollment.touch
+        # If we are assigning a new HoH as a result of this submission, save the HoH change
+        new_hoh_enrollment&.save!
+        new_hoh_enrollment&.touch
       else
         # These are potentially unfixable errors, so maybe we should throw a server error instead.
         # Leaving them visible to the user for now, while we QA the feature.

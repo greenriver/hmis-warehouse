@@ -27,6 +27,31 @@ module Mutations
         return { errors: errors }
       end
 
+      # Error: assessments do not have the same data collection stage
+      data_collection_stages = assessments.map { |a| a.assessment_detail.data_collection_stage }.uniq
+      if data_collection_stages.count != 1
+        errors.add :assessment, :invalid, full_message: 'Assessments must have the same data collection stage.'
+        return { errors: errors }
+      end
+
+      # If this includes an HoH Exit, check special restrictions
+      includes_hoh = assessments.map { |a| a.enrollment.relationship_to_ho_h }.uniq.include?(1)
+      new_hoh_enrollment = nil
+      if assessments.first.exit? && includes_hoh
+        open_enrollments = Hmis::Hud::Enrollment.where(household_id: household_ids.first, exit_id: nil).
+          where.not(enrollment_id: assessments.map(&:enrollment_id))
+
+        if open_enrollments.size == 1
+          # There is only 1 other open enrollment, so make them the HoH
+          new_hoh_enrollment = open_enrollments.first
+          new_hoh_enrollment.assign_attributes(relationship_to_ho_h: 1)
+        elsif open_enrollments.size > 1
+          # Error: cannot exit HoH if there are any other open enrollments
+          errors.add :assessment, :invalid, full_message: 'Cannot exit head of household because there are existing open enrollments. Please assign a new HoH, or exit all open enrollments.'
+          return { errors: errors }
+        end
+      end
+
       # Validate form values based on FormDefinition
       assessments.each do |assessment|
         validation_errors = assessment.assessment_detail.validate_form(ignore_warnings: confirmed)
@@ -66,6 +91,10 @@ module Mutations
         # Update DateUpdated on the Enrollment
         assessment.enrollment.touch
       end
+
+      # If we are assigning a new HoH as a result of this submission, save the HoH change
+      new_hoh_enrollment&.save!
+      new_hoh_enrollment&.touch
 
       {
         assessments: assessments,

@@ -12,11 +12,15 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   include_context 'hmis base setup'
   let(:c1) { create :hmis_hud_client, data_source: ds1, user: u1 }
+  let(:c2) { create :hmis_hud_client, data_source: ds1, user: u1 }
+  let(:c3) { create :hmis_hud_client, data_source: ds1, user: u1 }
+  let(:c4) { create :hmis_hud_client, data_source: ds1, user: u1 }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: '2022-01-01' }
-  let!(:e2) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: '2022-01-01', household_id: e1.household_id }
-  let!(:e3) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: '2022-01-01', household_id: e1.household_id }
-  let!(:e4) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: '2022-01-01' }
+  let!(:e2) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c2, user: u1, entry_date: '2022-01-01', household_id: e1.household_id, relationship_to_ho_h: 99 }
+  let!(:e3) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c3, user: u1, entry_date: '2022-01-01', household_id: e1.household_id, relationship_to_ho_h: 99 }
+  let!(:e4) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c4, user: u1, entry_date: '2022-01-01', relationship_to_ho_h: 99 }
   let!(:fd1) { create :hmis_form_definition }
+  let!(:exit_fd) { create :hmis_form_definition, role: 'EXIT' }
   let!(:fi1) { create :hmis_form_instance, definition: fd1, entity: p1 }
 
   before(:each) do

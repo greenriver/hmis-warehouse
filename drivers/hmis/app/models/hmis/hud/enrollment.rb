@@ -76,6 +76,8 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   scope :in_progress, -> { where(project_id: nil) }
 
+  scope :not_in_progress, -> { where.not(project_id: nil) }
+
   def project
     super || Hmis::Hud::Project.find(wip.project_id)
   end
@@ -129,6 +131,10 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   def in_progress?
     @in_progress = project_id.nil? if @in_progress.nil?
     @in_progress
+  end
+
+  def head_of_household?
+    self.RelationshipToHoH == 1
   end
 
   def intake_assessment

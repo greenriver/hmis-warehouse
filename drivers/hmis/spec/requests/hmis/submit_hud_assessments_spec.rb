@@ -216,6 +216,67 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expected_exit_date: new_exit_date,
     )
   end
+
+  describe 'Submitting an Exit assessment in a household with several open enrollments:' do
+    let!(:c2) { create :hmis_hud_client, data_source: ds1, user: u1 }
+    let!(:c3) { create :hmis_hud_client, data_source: ds1, user: u1 }
+    let!(:c4) { create :hmis_hud_client, data_source: ds1, user: u1 }
+    let!(:hoh_enrollment) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c2, user: u1, entry_date: '2000-01-01' }
+    let!(:open_enrollment) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c3, user: u1, entry_date: '2000-01-01', household_id: hoh_enrollment.household_id, relationship_to_ho_h: 99 }
+    let!(:open_enrollment2) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c4, user: u1, entry_date: '2000-01-01', household_id: hoh_enrollment.household_id, relationship_to_ho_h: 99 }
+
+    it 'fails if exiting HoH member' do
+      definition = Hmis::Form::Definition.find_by(role: :EXIT)
+
+      # Submit the HoH's assessment
+      initial_assessment_date = '2005-03-02'
+      input = { enrollment_id: hoh_enrollment.id, form_definition_id: definition.id, **build_values(definition, initial_assessment_date) }
+      _resp, result = post_graphql(input: { input: input }) { submit_assessment_mutation }
+      errors = result.dig('data', 'submitAssessment', 'errors')
+      expect(errors).to match([a_hash_including('severity' => 'error', 'fullMessage' => 'Cannot exit head of household because there are existing open enrollments. Please assign a new HoH.')])
+    end
+
+    it 'succeeds if exiting non-HoH member' do
+      definition = Hmis::Form::Definition.find_by(role: :EXIT)
+
+      # Submit the HoH's assessment
+      initial_assessment_date = '2005-03-02'
+      input = { enrollment_id: open_enrollment2.id, form_definition_id: definition.id, **build_values(definition, initial_assessment_date) }
+      _resp, result = post_graphql(input: { input: input }) { submit_assessment_mutation }
+      assessment_id = result.dig('data', 'submitAssessment', 'assessment', 'id')
+      errors = result.dig('data', 'submitAssessment', 'errors')
+      expect(errors).to be_empty
+      expect(assessment_id).to be_present
+    end
+  end
+
+  describe 'Submitting an Exit assessment in a household with 2 open enrollments:' do
+    let!(:c2) { create :hmis_hud_client, data_source: ds1, user: u1 }
+    let!(:c3) { create :hmis_hud_client, data_source: ds1, user: u1 }
+    let!(:c4) { create :hmis_hud_client, data_source: ds1, user: u1 }
+    let!(:hoh_enrollment) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c2, user: u1, entry_date: '2000-01-01' }
+    let!(:open_enrollment) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c3, user: u1, entry_date: '2000-01-01', household_id: hoh_enrollment.household_id, relationship_to_ho_h: 99 }
+    let!(:exited_enrollment1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c3, user: u1, entry_date: '2000-01-01', household_id: hoh_enrollment.household_id, relationship_to_ho_h: 99 }
+    let!(:exit_record1) { create :hmis_hud_exit, enrollment: exited_enrollment1, data_source: ds1, client: c1, user: u1 }
+
+    it 'succeeds if exiting HoH member, and automatically sets remaining member as HoH' do
+      definition = Hmis::Form::Definition.find_by(role: :EXIT)
+
+      # Submit the HoH's assessment
+      initial_assessment_date = '2005-03-02'
+      input = { enrollment_id: hoh_enrollment.id, form_definition_id: definition.id, **build_values(definition, initial_assessment_date) }
+      _resp, result = post_graphql(input: { input: input }) { submit_assessment_mutation }
+      assessment_id = result.dig('data', 'submitAssessment', 'assessment', 'id')
+      errors = result.dig('data', 'submitAssessment', 'errors')
+      expect(errors).to be_empty
+      expect(assessment_id).to be_present
+
+      hoh_enrollment.reload
+      open_enrollment.reload
+      expect(open_enrollment.head_of_household?).to be true
+      expect(hoh_enrollment.exit_date).to be_present
+    end
+  end
 end
 
 RSpec.configure do |c|
