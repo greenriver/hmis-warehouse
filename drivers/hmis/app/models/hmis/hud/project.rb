@@ -20,6 +20,10 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   has_many :inventories, **hmis_relation(:ProjectID, 'Inventory'), inverse_of: :project
   has_many :funders, **hmis_relation(:ProjectID, 'Funder'), inverse_of: :project
 
+  has_and_belongs_to_many :project_groups,
+                          class_name: 'GrdaWarehouse::ProjectGroup',
+                          join_table: :project_project_groups
+
   validates_with Hmis::Hud::Validators::ProjectValidator
 
   # hide previous declaration of :viewable_by, we'll use this one
