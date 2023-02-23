@@ -14,8 +14,8 @@ class Hmis::AccessControl < ApplicationRecord
   has_many :users, through: :user_access_controls
 
   def add(users)
-    (self.users + Array.wrap(users)).uniq.each do |user|
-      user_access_controls.create!(user_id: user.id)
+    Array.wrap(users).uniq.each do |user|
+      user_access_controls.where(user_id: user.id).first_or_create!
     end
   end
 
