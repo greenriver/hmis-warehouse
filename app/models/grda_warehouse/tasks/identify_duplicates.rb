@@ -179,16 +179,12 @@ module GrdaWarehouse::Tasks
       splits_by_into = all_splits.group_by(&:last)
 
       all_source_clients.each do |first_name, last_name, ssn, dob, dest_id|
-        matches_name = []
-        matches_dob = []
-        matches_ssn = []
-
         splits = splits_by_from[dest_id]&.flatten || [] # Don't re-merge anybody that was split off from this candidate
         splits += splits_by_into[dest_id]&.flatten || [] # Don't merge with anybody that this candidate was split off from
 
-        matches_name += check_name(first_name, last_name, source_clients_grouped_by_name)
-        matches_ssn += check_social(ssn, source_clients_grouped_by_ssn)
-        matches_dob += check_birthday(dob, source_clients_grouped_by_dob)
+        matches_name = (check_name(first_name, last_name, source_clients_grouped_by_name) - [dest_id])
+        matches_ssn = (check_social(ssn, source_clients_grouped_by_ssn) - [dest_id])
+        matches_dob = (check_birthday(dob, source_clients_grouped_by_dob) - [dest_id])
         all_matching_dest_ids = (matches_name + matches_ssn + matches_dob) - splits
         to_merge_by_dest_id = all_matching_dest_ids.uniq.
           map { |num| [num, all_matching_dest_ids.count(num)] }.to_h.
@@ -292,13 +288,13 @@ module GrdaWarehouse::Tasks
     private def check_social(ssn, ssn_group)
       return [] unless valid_social?(ssn)
 
-      ssn_group[ssn] || []
+      ssn_group[ssn]&.uniq || []
     end
 
     private def check_birthday(dob, dob_group)
       return [] unless dob.present?
 
-      dob_group[dob] || []
+      dob_group[dob]&.uniq || []
     end
 
     private def check_name(first_name, last_name, name_group)
@@ -306,7 +302,7 @@ module GrdaWarehouse::Tasks
       clean_last_name = last_name&.downcase&.strip&.gsub(/[^a-z0-9]/i, '') || ''
       return [] unless clean_first_name.present? && clean_last_name.present?
 
-      name_group[[clean_first_name, clean_last_name]] || []
+      name_group[[clean_first_name, clean_last_name]]&.uniq || []
     end
 
     private def all_destination_clients
