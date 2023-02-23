@@ -13,5 +13,6 @@ FactoryBot.define do
       ]
       dates[n % 5].to_date
     end
+    user { association :hmis_hud_user, data_source: data_source }
   end
 end

@@ -2,8 +2,8 @@ FactoryBot.define do
   factory :hmis_hud_funder, class: 'Hmis::Hud::Funder' do
     data_source { association :hmis_data_source }
     sequence(:FunderID, 300)
-    sequence(:ProjectID, 200)
-    sequence(:UserID, 100)
+    project { association :hmis_hud_project, data_source: data_source }
+    user { association :hmis_hud_user, data_source: data_source }
     GrantID { 'grant id' }
     Funder { 20 }
     StartDate { '2020-12-01' }
