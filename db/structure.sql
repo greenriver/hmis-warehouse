@@ -639,7 +639,9 @@ CREATE TABLE public.hmis_roles (
     deleted_at timestamp without time zone,
     can_administer_hmis boolean DEFAULT false,
     can_delete_assigned_project_data boolean DEFAULT false,
-    can_delete_enrollments boolean DEFAULT false
+    can_delete_enrollments boolean DEFAULT false,
+    can_delete_project boolean DEFAULT false NOT NULL,
+    can_edit_project_details boolean DEFAULT false NOT NULL
 );
 
 
@@ -1245,8 +1247,8 @@ CREATE TABLE public.roles (
     can_search_own_clients boolean DEFAULT false,
     can_view_confidential_project_names boolean DEFAULT false,
     can_report_on_confidential_projects boolean DEFAULT false,
-    can_edit_assigned_project_groups boolean DEFAULT false,
     can_view_chronic_tab boolean DEFAULT false,
+    can_edit_assigned_project_groups boolean DEFAULT false,
     can_configure_cohorts boolean DEFAULT false,
     can_add_cohort_clients boolean DEFAULT false,
     can_manage_cohort_data boolean DEFAULT false,
@@ -3185,6 +3187,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230130213746'),
 ('20230130215326'),
 ('20230217151359'),
-('20230217201904');
+('20230217201904'),
+('20230223204644');
 
 

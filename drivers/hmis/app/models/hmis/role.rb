@@ -112,6 +112,22 @@ class Hmis::Role < ::ApplicationRecord
           'Client Access',
         ],
       },
+      can_delete_project: {
+        description: 'Grants access to delete projects',
+        administrative: false,
+        access: [:editable],
+        categories: [
+          'Projects',
+        ],
+      },
+      can_edit_project_details: {
+        description: 'Grants access to edit project details',
+        administrative: false,
+        access: [:editable],
+        categories: [
+          'Projects',
+        ],
+      },
     }
   end
 end

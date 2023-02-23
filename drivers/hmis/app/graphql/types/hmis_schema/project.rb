@@ -41,6 +41,11 @@ module Types
     field :active, Boolean, null: false
     enrollments_field without_args: [:project_types]
 
+    access_field do
+      can :delete_project
+      can :edit_project_details
+    end
+
     def enrollments(**args)
       resolve_enrollments(**args)
     end
