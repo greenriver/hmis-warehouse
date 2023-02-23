@@ -20,12 +20,8 @@ module Mutations
           where(household_id: enrollment.household_id).
           where.not(id: enrollment.id)
 
-        if open_enrollments.size == 1
-          # There is only 1 other open enrollment, so make them the HoH
-          new_hoh_enrollment = open_enrollments.first
-          new_hoh_enrollment.assign_attributes(relationship_to_ho_h: 1)
-        elsif open_enrollments.size > 1
-          # Error: cannot exit HoH if there are any other open enrollments
+        # Error: cannot exit HoH if there are any other open enrollments
+        if open_enrollments.any?
           return {
             errors: [HmisErrors::Error.new(:assessment, :invalid, full_message: 'Cannot exit head of household because there are existing open enrollments. Please assign a new HoH.')],
           }
