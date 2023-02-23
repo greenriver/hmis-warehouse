@@ -58,25 +58,21 @@ class Hmis::User < ApplicationRecord
     end
 
     define_method("#{permission}_for?") do |entity|
-      joins_association = nil
-      joins_association = :projects if entity.is_a?(Hmis::Hud::Project)
-      joins_association = :organizations if entity.is_a?(Hmis::Hud::Organization)
-
-      raise "Invalid entity '#{entity.class.name}'" unless joins_association.present?
       return false unless send("#{permission}?")
 
-      access_group_ids = Hmis::GroupViewableEntity.includes_project(entity).pluck(:access_group_id) if entity.is_a?(Hmis::Hud::Project)
-      access_group_ids = Hmis::GroupViewableEntity.includes_organization(entity).pluck(:access_group_id) if entity.is_a?(Hmis::Hud::Organization)
-      access_group_ids = Hmis::GroupViewableEntity.includes_data_source(entity).pluck(:access_group_id) if entity.is_a?(GrdaWarehouse::DataSource)
-      access_group_ids = Hmis::GroupViewableEntity.includes_project_access_group(entity).pluck(:access_group_id) if entity.is_a?(GrdaWarehouse::ProjectAccessGroup)
+      access_group_ids = nil
 
-      access_groups.
-        merge(
-          Hmis::AccessGroup.joins(:access_controls).
-            where(id: access_group_ids).
-            merge(Hmis::AccessControl.where(role_id: roles.where(permission => true).pluck(:id))),
-        )
-        .exists?
+      if entity.is_a?(Hmis::Hud::Project)
+        access_group_ids = Hmis::GroupViewableEntity.includes_project(entity).pluck(:access_group_id)
+      elsif entity.is_a?(Hmis::Hud::Organization)
+        access_group_ids = Hmis::GroupViewableEntity.includes_organization(entity).pluck(:access_group_id)
+      end
+
+      raise "Invalid entity '#{entity.class.name}'" if access_group_ids.nil?
+
+      role_ids = roles.where(permission => true).pluck(:id)
+
+      access_controls.where(access_group_id: access_group_ids, role_id: role_ids).exists?
     end
 
     # Provide a scope for each permission to get any user who qualifies

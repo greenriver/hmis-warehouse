@@ -26,18 +26,11 @@ class Hmis::Role < ::ApplicationRecord
   end
 
   scope :with_editable_permissions, -> do
-    with_any_permissions(
-      :can_delete_assigned_project_data,
-      :can_administer_hmis,
-      :can_delete_enrollments,
-    )
+    with_any_permissions(*permissions_for_access(:editable))
   end
 
   scope :with_viewable_permissions, -> do
-    with_any_permissions(
-      :can_view_full_ssn,
-      :can_view_clients,
-    )
+    with_any_permissions(*permissions_for_access(:viewable))
   end
 
   def administrative?
@@ -73,11 +66,16 @@ class Hmis::Role < ::ApplicationRecord
     end
   end
 
+  def self.permissions_for_access(access)
+    permissions_with_descriptions.select { |_k, attrs| attrs[:access].include?(access) }.keys
+  end
+
   def self.permissions_with_descriptions
     {
       can_administer_hmis: {
         description: 'Grants access to the administration section for HMIS',
         administrative: true,
+        access: [:viewable, :editable],
         categories: [
           'Administration',
         ],
@@ -85,6 +83,7 @@ class Hmis::Role < ::ApplicationRecord
       can_view_full_ssn: {
         description: 'Allow the user to see client\'s full SSN.',
         administrative: false,
+        access: [:viewable],
         categories: [
           'Client Details',
         ],
@@ -92,6 +91,7 @@ class Hmis::Role < ::ApplicationRecord
       can_view_clients: {
         description: 'Allow the user to see clients at assigned projects.',
         administrative: false,
+        access: [:viewable],
         categories: [
           'Client Access',
         ],
@@ -99,6 +99,7 @@ class Hmis::Role < ::ApplicationRecord
       can_delete_assigned_project_data: {
         description: 'Grants access to delete project related data for projects the user can see',
         administrative: false,
+        access: [:editable],
         categories: [
           'Projects',
         ],
@@ -106,6 +107,7 @@ class Hmis::Role < ::ApplicationRecord
       can_delete_enrollments: {
         description: 'Grants the ability to delete enrollments for clients the user has access to',
         administrative: false,
+        access: [:editable],
         categories: [
           'Client Access',
         ],
