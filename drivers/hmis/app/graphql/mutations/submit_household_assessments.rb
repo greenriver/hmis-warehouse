@@ -35,12 +35,15 @@ module Mutations
       end
 
       # If this includes an HoH Exit, check special restrictions
-      includes_hoh = assessments.map { |a| a.enrollment.relationship_to_ho_h }.uniq.include?(1)
+      enrollments = assessments.map(&:enrollment)
+      includes_hoh = enrollments.map(&:relationship_to_ho_h).uniq.include?(1)
       new_hoh_enrollment = nil
       if assessments.first.exit? && includes_hoh
+        # FIXME: If exit dates can be in the future, `open_on_date` should check against HoH exit date
+        # and the max assessment date on all assessments being submitted. Maybe do in Exit validator instead.
         open_enrollments = Hmis::Hud::Enrollment.open_on_date.
           where(household_id: household_ids.first).
-          where.not(enrollment_id: assessments.map { |a| a.enrollment.enrollment_id })
+          where.not(enrollment_id: enrollments.map(&:enrollment_id))
 
         # Error: cannot exit HoH if there are any other open enrollments
         if open_enrollments.any?
