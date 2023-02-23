@@ -44,7 +44,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       }
     GRAPHQL
   end
-  let!(:pc1) { create :hmis_hud_project_coc, data_source_id: ds1.id, project: p1, coc_code: 'CO-503' }
+  let!(:pc1) { create :hmis_hud_project_coc, data_source: ds1, project: p1, coc_code: 'CO-503' }
 
   describe 'projectCoc update with edit access' do
     before(:each) do
