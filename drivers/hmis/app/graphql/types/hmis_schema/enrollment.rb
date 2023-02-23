@@ -59,13 +59,13 @@ module Types
     def household
       return nil unless object.household_id.present?
 
-      Hmis::Hud::Enrollment.where(household_id: object.household_id).preload(:client)
+      Hmis::Hud::Enrollment.where(household_id: object.household_id, data_source_id: object.data_source_id).preload(:client)
     end
 
     def household_size
       return 1 unless object.household_id.present?
 
-      Hmis::Hud::Enrollment.where(household_id: object.household_id).count
+      Hmis::Hud::Enrollment.where(household_id: object.household_id, data_source_id: object.data_source_id).count
     end
 
     def in_progress

@@ -17,7 +17,7 @@ module Mutations
       new_hoh_enrollment = nil
       if enrollment.head_of_household? && assessment.exit?
         open_enrollments = Hmis::Hud::Enrollment.open_on_date.
-          where(household_id: enrollment.household_id).
+          where(household_id: enrollment.household_id, data_source_id: hmis_user.data_source_id).
           where.not(id: enrollment.id)
 
         # Error: cannot exit HoH if there are any other open enrollments

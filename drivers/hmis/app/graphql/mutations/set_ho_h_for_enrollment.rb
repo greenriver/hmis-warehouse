@@ -12,7 +12,8 @@ module Mutations
       client = Hmis::Hud::Client.find_by(id: client_id)
 
       if client
-        household_enrollments = Hmis::Hud::Enrollment.editable_by(current_user).where(household_id: household_id)
+        household_enrollments = Hmis::Hud::Enrollment.editable_by(current_user).
+          where(household_id: household_id, data_source_id: hmis_user.data_source_id)
         new_hoh_enrollment = household_enrollments.find_by(personal_id: client&.personal_id)
         if new_hoh_enrollment
           update_params = { user_id: hmis_user.user_id }
