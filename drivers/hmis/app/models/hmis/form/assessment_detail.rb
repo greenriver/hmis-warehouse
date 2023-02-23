@@ -41,7 +41,7 @@ class Hmis::Form::AssessmentDetail < ::GrdaWarehouseBase
     return if assessment_processor.valid?
 
     assessment_processor.errors.each do |error|
-      errors.add(error.attribute, error.type, error.options)
+      errors.add(error.attribute, error.type, **error.options)
     end
   end
 end
