@@ -3456,6 +3456,7 @@ enum PrioritizationStatus {
 type Project {
   HMISParticipatingProject: Boolean
   HOPWAMedAssistedLivingFac: HOPWAMedAssistedLivingFac
+  access: ProjectsAccess!
   active: Boolean!
   contactInformation: String
   continuumProject: Boolean
@@ -3615,6 +3616,11 @@ enum ProjectType {
   Transitional Housing
   """
   TH
+}
+
+type ProjectsAccess {
+  canDeleteProject: Boolean!
+  canEditProjectDetails: Boolean!
 }
 
 type ProjectsPaginated {
