@@ -8,7 +8,7 @@ module Types
   class BaseAccess < BaseObject
     def self.create(node_class, class_name: nil, &block)
       Class.new(self) do
-        graphql_name(class_name || "#{node_class.graphql_name.pluralize}Access")
+        graphql_name(class_name || "#{node_class.graphql_name}Access")
         instance_eval(&block) if block
       end
     end
