@@ -60,13 +60,15 @@ class Hmis::User < ApplicationRecord
     define_method("#{permission}_for?") do |entity|
       return false unless send("#{permission}?")
 
-      access_group_ids = nil
+      access_group_ids = access_group_ids_for_entity(entity)
 
-      if entity.is_a?(Hmis::Hud::Project)
-        access_group_ids = Hmis::GroupViewableEntity.includes_project(entity).pluck(:access_group_id)
-      elsif entity.is_a?(Hmis::Hud::Organization)
-        access_group_ids = Hmis::GroupViewableEntity.includes_organization(entity).pluck(:access_group_id)
-      end
+      # access_group_ids = nil
+
+      # if entity.is_a?(Hmis::Hud::Project)
+      #   access_group_ids = Hmis::GroupViewableEntity.includes_project(entity).pluck(:access_group_id)
+      # elsif entity.is_a?(Hmis::Hud::Organization)
+      #   access_group_ids = Hmis::GroupViewableEntity.includes_organization(entity).pluck(:access_group_id)
+      # end
 
       raise "Invalid entity '#{entity.class.name}'" if access_group_ids.nil?
 
@@ -87,6 +89,18 @@ class Hmis::User < ApplicationRecord
     super opts.merge({ send_instructions: false })
   end
 
+  private def access_group_ids_for_entity(entity)
+    access_group_ids = nil
+
+    if entity.is_a?(Hmis::Hud::Project)
+      access_group_ids = Hmis::GroupViewableEntity.includes_project(entity).pluck(:access_group_id)
+    elsif entity.is_a?(Hmis::Hud::Organization)
+      access_group_ids = Hmis::GroupViewableEntity.includes_organization(entity).pluck(:access_group_id)
+    end
+
+    access_group_ids
+  end
+
   private def viewable(model)
     model.where(
       id: Hmis::GroupViewableEntity.where(
@@ -105,7 +119,11 @@ class Hmis::User < ApplicationRecord
   end
 
   def viewable_projects
-    viewable Hmis::Hud::Project
+    Hmis::Hud::Project.where(
+      id: Hmis::GroupViewableEntity.where(
+        access_group_id: access_groups.viewable.pluck(:id),
+      ).project_ids,
+    )
   end
 
   def viewable_project_access_groups
@@ -142,7 +160,11 @@ class Hmis::User < ApplicationRecord
   end
 
   def editable_projects
-    editable Hmis::Hud::Project
+    Hmis::Hud::Project.where(
+      id: Hmis::GroupViewableEntity.where(
+        access_group_id: access_groups.editable.pluck(:id),
+      ).project_ids,
+    )
   end
 
   def editable_project_access_groups
