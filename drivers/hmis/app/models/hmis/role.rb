@@ -80,36 +80,12 @@ class Hmis::Role < ::ApplicationRecord
           'Administration',
         ],
       },
-      can_view_full_ssn: {
-        description: 'Allow the user to see client\'s full SSN.',
-        administrative: false,
-        access: [:viewable],
-        categories: [
-          'Client Details',
-        ],
-      },
-      can_view_clients: {
-        description: 'Allow the user to see clients at assigned projects.',
-        administrative: false,
-        access: [:viewable],
-        categories: [
-          'Client Access',
-        ],
-      },
       can_delete_assigned_project_data: {
         description: 'Grants access to delete project related data for projects the user can see',
         administrative: false,
         access: [:editable],
         categories: [
           'Projects',
-        ],
-      },
-      can_delete_enrollments: {
-        description: 'Grants the ability to delete enrollments for clients the user has access to',
-        administrative: false,
-        access: [:editable],
-        categories: [
-          'Client Access',
         ],
       },
       can_delete_project: {
@@ -126,6 +102,86 @@ class Hmis::Role < ::ApplicationRecord
         access: [:editable],
         categories: [
           'Projects',
+        ],
+      },
+      can_edit_organization: {
+        description: 'Grants access to edit organizations',
+        administrative: false,
+        access: [:editable],
+        categories: [
+          'Organizations',
+        ],
+      },
+      can_delete_organization: {
+        description: 'Grants access to delete organizations',
+        administrative: false,
+        access: [:editable],
+        categories: [
+          'Organizations',
+        ],
+      },
+      can_view_clients: {
+        description: 'Allow the user to see clients at assigned projects.',
+        administrative: false,
+        access: [:viewable],
+        categories: [
+          'Client Access',
+        ],
+      },
+      can_edit_clients: {
+        description: 'Grants access to edit clients',
+        administrative: false,
+        access: [:editable],
+        categories: [
+          'Client Access',
+        ],
+      },
+      can_view_full_ssn: {
+        description: 'Allow the user to see client\'s full SSN.',
+        administrative: false,
+        access: [:viewable],
+        categories: [
+          'Client Details',
+        ],
+      },
+      can_view_partial_ssn: {
+        description: 'Grants access to view partial SSN',
+        administrative: false,
+        access: [:viewable],
+        categories: [
+          'Client Access',
+        ],
+      },
+      can_view_dob: {
+        description: 'Grants access to view clients\' DOB',
+        administrative: false,
+        access: [:viewable],
+        categories: [
+          'Client Access',
+        ],
+      },
+      can_view_enrollment_details: {
+        description: 'Grants access to view enrollments',
+        administrative: false,
+        access: [:viewable],
+        categories: [
+          'Enrollments',
+        ],
+      },
+      can_edit_enrollments: {
+        description: 'Grants access to edit enrollments',
+        administrative: false,
+        access: [:editable],
+        categories: [
+          'Enrollments',
+        ],
+      },
+      can_delete_enrollments: {
+        description: 'Grants the ability to delete enrollments',
+        administrative: false,
+        access: [:editable],
+        categories: [
+          'Enrollments',
         ],
       },
     }

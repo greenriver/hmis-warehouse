@@ -155,5 +155,14 @@ module Types
     end
 
     field :current_user, Application::User, null: true
+
+    access_field do
+      can :edit_clients, root: true
+      can :view_clients, root: true
+    end
+
+    def access
+      {}
+    end
   end
 end

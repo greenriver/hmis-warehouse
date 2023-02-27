@@ -44,6 +44,12 @@ module Types
     access_field do
       can :delete_project
       can :edit_project_details
+      can :view_partial_ssn
+      can :view_full_ssn
+      can :view_dob
+      can :view_enrollments
+      can :edit_enrollments
+      can :delete_enrollments
     end
 
     def enrollments(**args)
