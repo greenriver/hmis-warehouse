@@ -17,7 +17,8 @@ module Mutations
       new_hoh_enrollment = nil
       if enrollment.head_of_household? && assessment.exit?
         open_enrollments = Hmis::Hud::Enrollment.open_on_date.
-          where(household_id: enrollment.household_id, data_source_id: hmis_user.data_source_id).
+          viewable_by(current_user).
+          where(household_id: enrollment.household_id).
           where.not(id: enrollment.id)
 
         # Error: cannot exit HoH if there are any other open enrollments
@@ -27,6 +28,9 @@ module Mutations
           }
         end
       end
+
+      # TODO if this is an Intake, confirm that the HoH has already been submitted.
+      # Other members can't be submitted unless the HoH has already moved out of WIP status.
 
       # Determine the Assessment Date and validate it
       assessment_date, errors = definition.find_and_validate_assessment_date(
