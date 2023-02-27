@@ -11,6 +11,6 @@ module Types
     description 'HUD Race (1.7)'
     graphql_name 'Race'
 
-    with_enum_map Hmis::Hud::Client.race_enum_map, prefix: 'RACE_'
+    with_enum_map Hmis::Hud::Client.race_enum_map
   end
 end

@@ -20,7 +20,7 @@
         .col-md-6
           = f.input :start_date, as: :date_picker, label: 'Service Start Date', required: true, input_html: {id: 'compare_start_date'}
         .col-md-6
-          = f.input :end_date, as: :date_picker, label: '&nbsp;'.html_safe, label: 'Service End Date', required: true, input_html: {id: 'compare_end_date'}
+          = f.input :end_date, as: :date_picker, label: 'Service End Date', required: true, input_html: {id: 'compare_end_date'}
   .d-flex.align-items-center.justify-content-end
     .j-submit-button-error.hide.mr-4.alert.alert-danger.mt-2
     .j-submit-button-prompt.mr-4{class: filters.coc1 ? 'd-none' : nil} To start, select a Primary CoC

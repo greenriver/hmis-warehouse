@@ -20,6 +20,10 @@ module Types
         member_values[:key] = "#{prefix}#{member[:key]}"
         member_values[:desc] = prefix_description_with_key ? "(#{member_values[:value]}) #{member_values[:desc]}" : member_values[:desc]
         member_values = yield member if block_given?
+
+        # Ensure we are using DATA_NOT_COLLECTED key for 99s
+        member_values[:key] = 'DATA_NOT_COLLECTED' if member_values[:value] == 99
+
         value to_enum_key(member_values[:key]), member_values[:desc], value: member_values[:value]
       end
     end

@@ -5,7 +5,6 @@ module Mutations
     argument :relationship_to_ho_h, Types::HmisSchema::Enums::Hud::RelationshipToHoH, required: false
 
     field :enrollment, Types::HmisSchema::Enrollment, null: true
-    field :errors, [Types::HmisSchema::ValidationError], null: false
 
     def resolve(id:, entry_date: nil, relationship_to_ho_h: nil)
       errors = []
@@ -20,7 +19,7 @@ module Mutations
 
         errors << enrollment.errors.errors unless enrollment.valid?
       else
-        errors << InputValidationError.new("No enrollment found with ID '#{id}'", attribute: 'id')
+        errors << HmisErrors::Error.new(:enrollment, :not_found)
       end
 
       {

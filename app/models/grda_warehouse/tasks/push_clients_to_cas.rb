@@ -79,7 +79,7 @@ module GrdaWarehouse::Tasks
               end
 
               project_client.calculated_last_homeless_night = client.date_of_last_homeless_service
-              project_client.enrolled_project_ids = ongoing_enrolled_project_details[client.id]&.map(&:project_id)
+              project_client.enrolled_project_ids = ongoing_enrolled_project_details[client.id]&.map(&:project_id)&.uniq
               enrollments = ongoing_enrolled_project_details[client.id]
               project_client.enrolled_in_th = client.enrolled_in_th(enrollments)
               project_client.enrolled_in_sh = client.enrolled_in_sh(enrollments)

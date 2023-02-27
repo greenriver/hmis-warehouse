@@ -260,7 +260,7 @@ module Bo
 
     def call_once(settings, message_options)
       soap = Bo::Soap.new(username: @config.user, password: @config.pass)
-      soap.send(settings[:method], settings[:url], message_options)
+      soap.send(settings[:method], settings[:url], **message_options)
     end
 
     # Try a few times, re-try if we get some specific errors or the body is empty
@@ -270,7 +270,7 @@ module Bo
       while failures < 25
         begin
           soap = Bo::Soap.new(username: @config.user, password: @config.pass)
-          response = soap.send(settings[:method], settings[:url], message_options)
+          response = soap.send(settings[:method], settings[:url], **message_options)
         rescue NoMethodError => e
           failures += 1
           Rails.logger.info "failed with NoMethodError, #{failures} failures; #{settings[:url]}"

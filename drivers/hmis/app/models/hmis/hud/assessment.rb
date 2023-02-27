@@ -12,15 +12,17 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
   include ::Hmis::Hud::Concerns::EnrollmentRelated
   include ArelHelper
 
-  SORT_OPTIONS = [:assessment_date].freeze
+  SORT_OPTIONS = [:assessment_date, :date_updated].freeze
   WIP_ID = 'WIP'.freeze
 
   belongs_to :enrollment, **hmis_relation(:EnrollmentID, 'Enrollment')
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :assessments
-  has_one :assessment_detail, class_name: 'Hmis::Form::AssessmentDetail'
+  has_one :assessment_detail, class_name: 'Hmis::Form::AssessmentDetail', dependent: :destroy
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
-  has_one :wip, class_name: 'Hmis::Wip', as: :source
+  has_one :wip, class_name: 'Hmis::Wip', as: :source, dependent: :destroy
+  has_many :assessment_questions, **hmis_relation(:AssessmentID, 'AssessmentQuestion'), dependent: :destroy
+  has_many :assessment_results, **hmis_relation(:AssessmentID, 'AssessmentResult'), dependent: :destroy
 
   attr_accessor :in_progress
 
@@ -65,6 +67,8 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
     case option
     when :assessment_date
       order(assessment_date: :desc, date_created: :desc)
+    when :date_updated
+      order(date_updated: :desc)
     else
       raise NotImplementedError
     end
@@ -75,14 +79,15 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
 
     self.enrollment_id = WIP_ID
     save!(validate: false)
-    self.wip = Hmis::Wip.find_or_create_by(
-      {
-        source: self,
-        enrollment_id: saved_enrollment_id,
-        client_id: client.id,
-        date: assessment_date,
-      },
+    touch
+    self.wip = Hmis::Wip.create_with(date: assessment_date).find_or_create_by(
+      source: self,
+      enrollment_id: saved_enrollment_id,
+      client_id: client.id,
     )
+
+    wip.update(date: assessment_date)
+    wip
   end
 
   def save_not_in_progress
@@ -102,7 +107,11 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
     assessment_detail&.data_collection_stage == 1
   end
 
-  def self.new_with_defaults(enrollment:, user:, form_definition:, assessment_date:)
+  def exit?
+    assessment_detail&.data_collection_stage == 3
+  end
+
+  def self.new_with_defaults(enrollment:, user:, form_definition:, assessment_date: nil)
     new_assessment = new(
       data_source_id: user.data_source_id,
       user_id: user.user_id,
@@ -114,8 +123,6 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
       assessment_type: ::HudUtility.ignored_enum_value,
       assessment_level: ::HudUtility.ignored_enum_value,
       prioritization_status: ::HudUtility.ignored_enum_value,
-      date_created: DateTime.current,
-      date_updated: DateTime.current,
     )
 
     new_assessment.assessment_detail = Hmis::Form::AssessmentDetail.new(

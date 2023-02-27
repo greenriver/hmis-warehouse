@@ -80,8 +80,29 @@ class AccessGroup < ApplicationRecord
   end
 
   def self.delayed_system_group_maintenance(group: nil)
-    delay.maintain_system_groups(group: group)
+    delay.maintain_system_groups_no_named_arguments(group)
     Delayed::Worker.new.work_off if Rails.env.test?
+  end
+ 
+  def self.maintain_system_groups_no_named_arguments(group)
+    maintain_system_groups(group: group)
+  end
+
+  def self.system_groups
+    {
+      hmis_reports: AccessGroup.where(name: 'All HMIS Reports').first_or_create,
+      health_reports: AccessGroup.where(name: 'All Health Reports').first_or_create,
+      cohorts: AccessGroup.where(name: 'All Cohorts').first_or_create,
+      project_groups: AccessGroup.where(name: 'All Project Groups').first_or_create,
+      data_sources: AccessGroup.where(name: 'All Data Sources').first_or_create,
+    }
+  end
+
+  def self.system_group(group)
+    selected_group = system_groups[group] 
+    raise ArgumentError, "Unknown group: #{group}" unless selected_group
+
+    selected_group
   end
 
   def self.maintain_system_groups(group: nil)
@@ -90,12 +111,12 @@ class AccessGroup < ApplicationRecord
       # Reports
       all_reports = GrdaWarehouse::WarehouseReports::ReportDefinition.enabled
 
-      all_hmis_reports = AccessGroup.where(name: 'All HMIS Reports').first_or_create
+      all_hmis_reports = system_group(:hmis_reports)
       all_hmis_reports.update(system: ['Entities'], must_exist: true)
       ids = all_reports.where(health: false).pluck(:id)
       all_hmis_reports.set_viewables({ reports: ids })
 
-      all_health_reports = AccessGroup.where(name: 'All Health Reports').first_or_create
+      all_health_reports = system_group(:health_reports)
       all_health_reports.update(system: ['Entities'], must_exist: true)
       ids = all_reports.where(health: true).pluck(:id)
       all_health_reports.set_viewables({ reports: ids })
@@ -104,7 +125,7 @@ class AccessGroup < ApplicationRecord
 
     if group.blank? || group == :cohorts
       # Cohorts
-      all_cohorts = AccessGroup.where(name: 'All Cohorts').first_or_create
+      all_cohorts = system_group(:cohorts)
       all_cohorts.update(system: ['Entities'], must_exist: true)
       ids = GrdaWarehouse::Cohort.pluck(:id)
       all_cohorts.set_viewables({ cohorts: ids })
@@ -113,7 +134,7 @@ class AccessGroup < ApplicationRecord
 
     if group.blank? || group == :project_groups
       # Project Groups
-      all_project_groups = AccessGroup.where(name: 'All Project Groups').first_or_create
+      all_project_groups = system_group(:project_groups)
       all_project_groups.update(system: ['Entities'], must_exist: true)
       ids = GrdaWarehouse::ProjectGroup.pluck(:id)
       all_project_groups.set_viewables({ project_groups: ids })
@@ -122,7 +143,7 @@ class AccessGroup < ApplicationRecord
 
     if group.blank? || group == :data_sources # rubocop:disable Style/GuardClause
       # Data Sources
-      all_data_sources = AccessGroup.where(name: 'All Data Sources').first_or_create
+      all_data_sources = system_group(:data_sources)
       all_data_sources.update(system: ['Entities'], must_exist: true)
       ids = GrdaWarehouse::DataSource.pluck(:id)
       all_data_sources.set_viewables({ data_sources: ids })

@@ -1,6 +1,6 @@
 require 'rails_helper'
 require_relative 'login_and_permissions'
-require_relative 'hmis_base_setup'
+require_relative '../../support/hmis_base_setup'
 
 RSpec.describe Hmis::GraphqlController, type: :request do
   include_context 'hmis base setup'
@@ -46,9 +46,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         mutation CreateEnrollment($input: CreateEnrollmentInput!) {
           createEnrollment(input: $input) {
             enrollments {
-              id
-              entryDate
-              inProgress
+              #{scalar_fields(Types::HmisSchema::Enrollment)}
               client {
                 id
               }
@@ -144,24 +142,26 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           'should emit error if none of the clients are HoH',
           ->(input) { input.merge(household_members: input[:household_members][1..]) },
           {
-            'message' => 'Exactly one client must be head of household',
-            'attribute' => 'relationshipToHoH',
+            fullMessage: 'Exactly one client must be head of household',
+            attribute: 'relationshipToHoH',
+            severity: :error,
           },
         ],
         [
           'should emit error if entry date is in the future',
           ->(input) { input.merge(start_date: (Date.today + 1.week).strftime('%Y-%m-%d')) },
           {
-            'message' => 'Entry date cannot be in the future',
-            'attribute' => 'startDate',
+            fullMessage: 'Entry date cannot be in the future',
+            attribute: 'startDate',
+            severity: :error,
           },
         ],
         [
           'should emit error if project doesn\'t exist',
           ->(input) { input.merge(project_id: '0') },
           {
-            'message' => "Project with id '0' does not exist",
-            'attribute' => 'projectId',
+            fullMessage: 'Project not found',
+            severity: :error,
           },
         ],
       ].each do |test_name, input_proc, error_attrs|
@@ -175,7 +175,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             expect(response.status).to eq 200
             expect(enrollments).to be_empty
             expect(errors).to contain_exactly(
-              include(**error_attrs),
+              include(**error_attrs.transform_keys(&:to_s).transform_values(&:to_s)),
             )
           end
         end

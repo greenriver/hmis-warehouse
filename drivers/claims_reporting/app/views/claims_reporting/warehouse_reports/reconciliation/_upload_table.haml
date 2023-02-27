@@ -1,16 +1,17 @@
 %h3 Recent Uploads
-%table.table.table-hover
-  %thead
-    %tr
-      %th File
-      %th Patients
-      %th Date of Service Range
-      %th Completed
-  %tbody
-    - recent_uploads = ::ClaimsReporting::CpPaymentUpload.limit(5).order(completed_at: :desc)
-    - recent_uploads.select(:id, :completed_at, :original_filename).each do |upload|
+.card
+  %table.table.table-striped
+    %thead
       %tr
-        %td= upload.original_filename
-        %td= upload.details.distinct.count(:medicaid_id)
-        %td= upload.paid_dos_range.join(' - ')
-        %td= l upload.completed_at.to_date, format: :default
+        %th File
+        %th Patients
+        %th Date of Service Range
+        %th Completed
+    %tbody
+      - recent_uploads = ::ClaimsReporting::CpPaymentUpload.limit(5).order(completed_at: :desc)
+      - recent_uploads.select(:id, :completed_at, :original_filename).each do |upload|
+        %tr
+          %td= upload.original_filename
+          %td= upload.details.distinct.count(:medicaid_id)
+          %td= upload.paid_dos_range.join(' - ')
+          %td= l upload.completed_at.to_date, format: :default

@@ -3,6 +3,8 @@ class Hmis::Hud::Validators::ClientValidator < Hmis::Hud::Validators::BaseValida
     :ExportID,
     :Gender,
     :Race,
+    :DateCreated,
+    :DateUpdated,
   ].freeze
 
   def configuration

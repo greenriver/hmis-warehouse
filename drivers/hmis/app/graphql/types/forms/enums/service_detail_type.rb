@@ -7,9 +7,10 @@
 # frozen_string_literal: true
 
 module Types
-  class HmisSchema::ErrorGroup < Types::BaseObject
-    field :id, ID, null: false
-    field :class_name, String, null: true
-    field :errors, [Types::HmisSchema::ValidationError], null: false
+  class Forms::Enums::ServiceDetailType < Types::BaseEnum
+    graphql_name 'ServiceDetailType'
+
+    value 'CLIENT'
+    value 'BULK'
   end
 end

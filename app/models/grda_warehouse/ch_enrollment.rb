@@ -14,7 +14,8 @@ module GrdaWarehouse
     end
 
     scope :needs_processing, -> do
-      joins(:enrollment).where(arel_table[:processed_as].not_eq(e_t[:processed_as])).
+      joins(:enrollment).
+        where(arel_table[:processed_as].not_eq(e_t[:processed_as]).or(arel_table[:processed_as].eq(nil))).
         or(where(enrollment_id: GrdaWarehouse::Hud::Enrollment.open_on_date.chronic.select(:id)))
     end
 
@@ -308,7 +309,7 @@ module GrdaWarehouse
     end
 
     class << self
-      extend Memoist
+      include Memery
       def dates_in_enrollment_between(enrollment, start_date, end_date)
         enrollment.service_history_services.
           service_between(start_date: start_date, end_date: end_date).

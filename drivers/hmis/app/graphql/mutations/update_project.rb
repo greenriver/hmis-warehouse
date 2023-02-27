@@ -5,7 +5,6 @@ module Mutations
     argument :confirmed, Boolean, required: true
 
     field :project, Types::HmisSchema::Project, null: true
-    field :errors, [Types::HmisSchema::ValidationError], null: false
 
     def resolve(id:, input:, confirmed:)
       record = Hmis::Hud::Project.editable_by(current_user).find_by(id: id)
@@ -20,17 +19,24 @@ module Mutations
       response
     end
 
-    def create_warnings(project, input)
-      return [] unless project.operating_end_date.blank? && input.operating_end_date.present?
+    def create_errors(project, input)
+      errors = HmisErrors::Errors.new
 
-      funder_count = project.funders.where(end_date: nil).count
-      inventory_count = project.inventories.where(inventory_end_date: nil).count
-      open_enrollments = Hmis::Hud::Enrollment.open_on_date.in_project_including_wip(project.id, project.project_id)
-      warnings = []
-      warnings << InputConfirmationWarning.new("Project has #{open_enrollments.count} open #{'enrollment'.pluralize(open_enrollments.count)}.", attribute: 'id') if open_enrollments.present?
-      warnings << InputConfirmationWarning.new("#{funder_count} open #{'funder'.pluralize(funder_count)} will be closed.", attribute: 'id') if funder_count.positive?
-      warnings << InputConfirmationWarning.new("#{inventory_count} open inventory #{'record'.pluralize(inventory_count)} will be closed.", attribute: 'id') if inventory_count.positive?
-      warnings
+      # If project end date is changing
+      if input.operating_end_date.present? && project.operating_end_date != input.operating_end_date
+        open_enrollments = Hmis::Hud::Enrollment.open_on_date(input.operating_end_date).in_project_including_wip(project.id, project.project_id)
+        errors.add :base, :information, severity: :warning, full_message: "Project has #{open_enrollments.count} open #{'enrollment'.pluralize(open_enrollments.count)} on the selected end date." if open_enrollments.present?
+      end
+
+      # If project is being "closed" for the first time
+      if project.operating_end_date.blank? && input.operating_end_date.present?
+        funder_count = project.funders.where(end_date: nil).count
+        inventory_count = project.inventories.where(inventory_end_date: nil).count
+        errors.add :base, :information, severity: :warning, full_message: "#{funder_count} open #{'funder'.pluralize(funder_count)} will be closed." if funder_count.positive?
+        errors.add :base, :information, severity: :warning, full_message: "#{inventory_count} open inventory #{'record'.pluralize(inventory_count)} will be closed." if inventory_count.positive?
+      end
+
+      errors.errors
     end
 
     def close_related_records(project)

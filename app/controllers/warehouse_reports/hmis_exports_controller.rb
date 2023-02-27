@@ -114,7 +114,7 @@ module WarehouseReports
     end
 
     def report_params
-      params.require(:filter).permit(
+      permitted = params.require(:filter).permit(
         :version,
         :start_date,
         :end_date,
@@ -133,6 +133,8 @@ module WarehouseReports
         organization_ids: [],
         data_source_ids: [],
       )
+      permitted[:include_deleted] = true if permitted[:period_type].to_i == 1
+      permitted
     end
 
     def recurrence_params

@@ -27,7 +27,7 @@ module CohortColumns
     end
 
     def display_for(user)
-      if user.can_manage_cohorts? || user.can_edit_cohort_clients?
+      if user.can_add_cohort_clients?
         display_read_only(user)
       else
         ''
@@ -35,8 +35,14 @@ module CohortColumns
     end
 
     def display_read_only(_user)
-      content_tag(:a, href: pre_destroy_cohort_cohort_client_path(cohort, cohort_client), class: 'btn btn-danger btn-sm btn-icon-only', data: { loads_in_pjax_modal: true }) do
-        content_tag(:i, '', class: 'icon-cross')
+      if title == 'Restore' # Magic!
+        content_tag(:a, href: pre_destroy_cohort_cohort_client_path(cohort, cohort_client), class: 'btn btn-success btn-sm btn-icon-only') do
+          content_tag(:i, '', class: 'icon-settings_backup_restore')
+        end
+      else
+        content_tag(:a, href: pre_destroy_cohort_cohort_client_path(cohort, cohort_client), class: 'btn btn-danger btn-sm btn-icon-only', data: { loads_in_pjax_modal: true }) do
+          content_tag(:i, '', class: 'icon-cross')
+        end
       end
     end
   end

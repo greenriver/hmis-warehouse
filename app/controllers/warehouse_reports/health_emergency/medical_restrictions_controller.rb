@@ -74,7 +74,7 @@ module WarehouseReports::HealthEmergency
       }
 
       html = render_to_string('warehouse_reports/health_emergency/medical_restrictions/index')
-      Grover.new(html, grover_options).to_pdf
+      Grover.new(html, **grover_options).to_pdf
     end
 
     private def sort_options

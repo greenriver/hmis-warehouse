@@ -1,6 +1,6 @@
 require 'rails_helper'
 require_relative 'login_and_permissions'
-require_relative 'hmis_base_setup'
+require_relative '../../support/hmis_base_setup'
 
 RSpec.describe Hmis::GraphqlController, type: :request do
   before(:all) do
@@ -69,7 +69,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       service = result.dig('data', 'deleteService', 'service')
       errors = result.dig('data', 'deleteService', 'errors')
       expect(service).to be_nil
-      expect(errors).to contain_exactly(include('message' => 'Service record not found', 'attribute' => 'id'))
+      expect(errors).to contain_exactly(include('fullMessage' => 'Service not found'))
     end
   end
 end

@@ -5,6 +5,7 @@
 ###
 
 class Hmis::Hud::Client < Hmis::Hud::Base
+  extend OrderAsSpecified
   include ::HmisStructure::Client
   include ::Hmis::Hud::Concerns::Shared
   include ArelHelper
@@ -17,7 +18,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
-  has_many :enrollments, **hmis_relation(:PersonalID, 'Enrollment')
+  has_many :enrollments, **hmis_relation(:PersonalID, 'Enrollment'), dependent: :destroy
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :clients
 
   # NOTE: this does not include project where the enrollment is WIP
@@ -59,7 +60,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
   scope :matching_search_term, ->(text_search) do
     text_searcher(text_search) do |where|
-      where(where)
+      where(where).pluck(:id)
     rescue RangeError
       return none
     end
@@ -175,6 +176,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     end
   end
 
+  # fix these so they use DATA_NOT_COLLECTED And the other standard names
   use_enum(:gender_enum_map, ::HudUtility.genders) do |hash|
     hash.map do |value, desc|
       {

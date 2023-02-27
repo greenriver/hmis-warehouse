@@ -59,14 +59,23 @@ module Types
 
           record_type = enum.value.split(':').first
           record_type_key, record_type_enum = Types::HmisSchema::Enums::Hud::RecordType.enum_member_for_value(record_type&.to_i)
-          {
-            code: key,
-            label: enum.description.gsub(CODE_PATTERN, ''),
-            group_code: record_type_key,
-            group_label: record_type_enum&.description&.gsub(CODE_PATTERN, ''),
-          }
-        end.compact
 
+          label = enum.description.gsub(CODE_PATTERN, '')
+          sort_key = "#{record_type}:#{label}"
+
+          [
+            sort_key,
+            {
+              code: key,
+              label: label,
+              group_code: record_type_key,
+              group_label: record_type_enum&.description&.gsub(CODE_PATTERN, ''),
+            },
+          ]
+        end.
+          compact.
+          sort_by { |sort_key, _v| sort_key }.
+          map(&:second)
       when 'SUB_TYPE_PROVIDED_3'
         sub_type_provided_options(Types::HmisSchema::Enums::Hud::SSVFSubType3, '144:3')
 

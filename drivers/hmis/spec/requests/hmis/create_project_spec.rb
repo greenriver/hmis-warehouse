@@ -1,6 +1,6 @@
 require 'rails_helper'
 require_relative 'login_and_permissions'
-require_relative 'hmis_base_setup'
+require_relative '../../support/hmis_base_setup'
 
 RSpec.describe Hmis::GraphqlController, type: :request do
   before(:all) do
@@ -149,7 +149,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         errors = result.dig('data', 'createProject', 'errors')
         aggregate_failures 'checking response' do
           expect(response.status).to eq 200
-          expect(errors).to contain_exactly(*expected_errors.map { |error_attrs| include(**error_attrs) })
+          expect(errors).to match(expected_errors.map { |h| a_hash_including(**h) })
         end
       end
     end

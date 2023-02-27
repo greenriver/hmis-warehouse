@@ -72,7 +72,7 @@ module MaReports::MonthlyPerformance
     end
 
     def url
-      warehouse_reports_monthly_project_utilization_url(host: ENV.fetch('FQDN'), id: id, protocol: 'https')
+      ma_reports_warehouse_reports_monthly_project_utilization_url(host: ENV.fetch('FQDN'), id: id, protocol: 'https')
     end
 
     private def create_universe

@@ -6,7 +6,7 @@
 
 class CohortColumnOptionsController < ApplicationController
   include CohortAuthorization
-  before_action :require_can_manage_cohorts!
+  before_action :require_can_configure_cohorts!
   before_action :set_cohort_column_option, only: [:edit, :update]
   before_action :set_cohort_column_options, only: [:index, :create]
 

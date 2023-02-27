@@ -313,6 +313,7 @@ module HmisDataQualityTool
           required_for: 'All',
           detail_columns: [
             :destination_client_id,
+            :personal_id,
             :first_name,
             :last_name,
             :reporting_age,
@@ -351,6 +352,7 @@ module HmisDataQualityTool
           required_for: 'All',
           detail_columns: [
             :destination_client_id,
+            :personal_id,
             :first_name,
             :last_name,
             :reporting_age,
@@ -389,6 +391,7 @@ module HmisDataQualityTool
           required_for: 'All',
           detail_columns: [
             :destination_client_id,
+            :personal_id,
             :first_name,
             :last_name,
             :reporting_age,
@@ -417,6 +420,7 @@ module HmisDataQualityTool
           required_for: 'All',
           detail_columns: [
             :destination_client_id,
+            :personal_id,
             :first_name,
             :last_name,
             :reporting_age,
@@ -443,6 +447,7 @@ module HmisDataQualityTool
           required_for: 'All',
           detail_columns: [
             :destination_client_id,
+            :personal_id,
             :first_name,
             :last_name,
             :reporting_age,
@@ -466,6 +471,7 @@ module HmisDataQualityTool
           required_for: 'All',
           detail_columns: [
             :destination_client_id,
+            :personal_id,
             :first_name,
             :last_name,
             :reporting_age,
@@ -484,6 +490,7 @@ module HmisDataQualityTool
           required_for: 'Adults (as of report end)',
           detail_columns: [
             :destination_client_id,
+            :personal_id,
             :first_name,
             :last_name,
             :reporting_age,
@@ -504,6 +511,7 @@ module HmisDataQualityTool
           count_once: true,
           detail_columns: [
             :destination_client_id,
+            :personal_id,
             :first_name,
             :last_name,
             :reporting_age,
@@ -521,6 +529,7 @@ module HmisDataQualityTool
           count_once: true,
           detail_columns: [
             :destination_client_id,
+            :personal_id,
             :first_name,
             :last_name,
             :reporting_age,
@@ -539,6 +548,7 @@ module HmisDataQualityTool
           count_once: true,
           detail_columns: [
             :destination_client_id,
+            :personal_id,
             :first_name,
             :last_name,
             :reporting_age,
@@ -558,6 +568,7 @@ module HmisDataQualityTool
           count_once: true,
           detail_columns: [
             :destination_client_id,
+            :personal_id,
             :first_name,
             :last_name,
             :reporting_age,

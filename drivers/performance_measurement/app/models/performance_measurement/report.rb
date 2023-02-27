@@ -4,11 +4,11 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-require 'memoist'
+require 'memery'
 
 module PerformanceMeasurement
   class Report < SimpleReports::ReportInstance
-    extend Memoist
+    include Memery
     include Filter::ControlSections
     include Filter::FilterScopes
     include Reporting::Status

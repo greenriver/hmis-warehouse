@@ -7,19 +7,19 @@
 class Hmis::FieldMap
   BASE_NULL_VALUES = [
     {
-      key: :unknown,
+      key: :client_doesn_t_know,
       value: 8,
       desc: 'Client doesn\'t know',
       null: true,
     },
     {
-      key: :refused,
+      key: :client_refused,
       value: 9,
       desc: 'Client refused',
       null: true,
     },
     {
-      key: :not_collected,
+      key: :data_not_collected,
       value: 99,
       desc: 'Data not collected',
       null: true,

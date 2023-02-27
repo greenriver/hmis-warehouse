@@ -1,6 +1,6 @@
 require 'rails_helper'
 require_relative 'login_and_permissions'
-require_relative 'hmis_base_setup'
+require_relative '../../support/hmis_base_setup'
 
 RSpec.describe Hmis::GraphqlController, type: :request do
   before(:all) do
@@ -21,7 +21,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     }
   end
 
-  let!(:f1) { create :hmis_hud_funder, data_source_id: ds1.id, project: p1 }
+  let!(:f1) { create :hmis_hud_funder, data_source: ds1, project: p1 }
 
   let(:mutation) do
     <<~GRAPHQL
@@ -53,6 +53,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(record['id']).to be_present
         record = Hmis::Hud::Funder.find(record['id'])
         expect(record.funder).to eq 24
+        expect(record.date_created).to eq(f1.date_created)
+        expect(record.date_updated).not_to eq(f1.date_updated)
       end
     end
 

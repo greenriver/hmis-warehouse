@@ -610,6 +610,10 @@ module GrdaWarehouse::Hud
 
     alias_attribute :name, :ProjectName
 
+    def effective_target_population
+      target_population_override || self.TargetPopulation
+    end
+
     def confidential?
       super || GrdaWarehouse::Hud::Organization.confidential_org?(self.OrganizationID, data_source_id)
     end

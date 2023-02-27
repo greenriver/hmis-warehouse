@@ -1,6 +1,6 @@
 require 'rails_helper'
 require_relative 'login_and_permissions'
-require_relative 'hmis_base_setup'
+require_relative '../../support/hmis_base_setup'
 
 RSpec.describe Hmis::GraphqlController, type: :request do
   before(:all) do
@@ -57,6 +57,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         errors = result.dig('data', 'createFunder', 'errors')
         expect(errors).to be_empty
         expect(record['id']).to be_present
+        expect(record['dateUpdated']).to be_present
+        expect(record['dateCreated']).to be_present
         expect(record['active']).to eq(true)
 
         funder = Hmis::Hud::Funder.find(record['id'])

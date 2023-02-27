@@ -34,4 +34,9 @@ class Hmis::BaseController < ApplicationController
     data_source_id = GrdaWarehouse::DataSource.hmis.find_by(hmis: domain).id
     current_hmis_user.hmis_data_source_id = data_source_id
   end
+
+  # PaperTrail whodunnit (set in ApplicationController) uses this method to determine the label to be stored
+  def user_for_paper_trail
+    current_hmis_user&.id
+  end
 end
