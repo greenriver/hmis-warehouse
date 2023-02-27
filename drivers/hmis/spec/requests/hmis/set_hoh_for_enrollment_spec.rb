@@ -1,6 +1,6 @@
 require 'rails_helper'
 require_relative 'login_and_permissions'
-require_relative 'hmis_base_setup'
+require_relative '../../support/hmis_base_setup'
 
 RSpec.describe Hmis::GraphqlController, type: :request do
   include_context 'hmis base setup'
@@ -61,8 +61,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           }
         end,
         {
-          'message' => "No client with id '0'",
-          'attribute' => 'clientId',
+          fullMessage: 'Client not found',
+          severity: :error,
         },
       ],
       [
@@ -74,8 +74,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           }
         end,
         {
-          'message' => "No enrollment for this client with household ID '0'",
-          'attribute' => 'householdId',
+          fullMessage: "No enrollment for this client with household ID '0'",
+          attribute: :householdId,
         },
       ],
     ].each do |test_name, input_proc, error_attrs|
@@ -88,7 +88,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           expect(response.status).to eq 200
           expect(enrollment).to be_nil
           expect(errors).to contain_exactly(
-            include(**error_attrs),
+            include(**error_attrs.transform_keys(&:to_s).transform_values(&:to_s)),
           )
         end
       end

@@ -3,12 +3,11 @@ module Mutations
     argument :input, Types::HmisSchema::ServiceInput, required: true
 
     field :service, Types::HmisSchema::Service, null: true
-    field :errors, [Types::HmisSchema::ValidationError], null: false
 
     def validate_input(input)
       errors = []
       params = input.to_params
-      errors << InputValidationError.new("Enrollment with id '#{input.enrollment_id}' does not exist", attribute: 'enrollment_id') unless params[:enrollment_id].present?
+      errors << HmisErrors::Error.new(:enrollment_id, :not_found) unless params[:enrollment_id].present?
       errors
     end
 

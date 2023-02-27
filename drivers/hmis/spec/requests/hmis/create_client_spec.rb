@@ -1,6 +1,6 @@
 require 'rails_helper'
 require_relative 'login_and_permissions'
-require_relative 'hmis_base_setup'
+require_relative '../../support/hmis_base_setup'
 
 RSpec.describe Hmis::GraphqlController, type: :request do
   let(:test_input) do
@@ -58,7 +58,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     [
       [:gender, Hmis::Hud::Client.gender_enum_map, 'Data not collected', :GenderNone],
-      [:race, Hmis::Hud::Client.race_enum_map, :not_collected, :RaceNone],
+      [:race, Hmis::Hud::Client.race_enum_map, :data_not_collected, :RaceNone],
     ].each do |field, enum_map, not_collected_key, none_field|
       describe "when transforming #{field}" do
         it 'should set fields as expected when non-null values are provided' do
@@ -172,14 +172,16 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       client = result.dig('data', 'createClient', 'client')
       errors = result.dig('data', 'createClient', 'errors')
       expect(client['id']).to be_present
+      expect(client['dateUpdated']).to be_present
+      expect(client['dateCreated']).to be_present
       expect(errors).to be_empty
     end
 
     it 'should save and resolve race and gender correctly when missing' do
       mutation_input = {
         **mutation_test_input,
-        gender: ['GENDER_DATA_NOT_COLLECTED'],
-        race: ['RACE_REFUSED'],
+        gender: ['DATA_NOT_COLLECTED'],
+        race: ['CLIENT_REFUSED'],
       }
 
       response, result = post_graphql(input: mutation_input) { mutation }
@@ -190,14 +192,14 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         errors = result.dig('data', 'createClient', 'errors')
         expect(errors).to be_empty
         expect(client['id']).to be_present
-        expect(client['race']).to contain_exactly('RACE_REFUSED')
-        expect(client['gender']).to contain_exactly('GENDER_DATA_NOT_COLLECTED')
+        expect(client['race']).to contain_exactly('CLIENT_REFUSED')
+        expect(client['gender']).to contain_exactly('DATA_NOT_COLLECTED')
       end
     end
 
     it 'should save and resolve race and gender correctly when multiple present' do
-      genders = ['GENDER_QUESTIONING', 'GENDER_MALE']
-      races = ['RACE_ASIAN', 'RACE_BLACK_AF_AMERICAN']
+      genders = ['QUESTIONING', 'MALE']
+      races = ['ASIAN', 'BLACK_AF_AMERICAN']
       mutation_input = {
         **mutation_test_input,
         gender: genders,

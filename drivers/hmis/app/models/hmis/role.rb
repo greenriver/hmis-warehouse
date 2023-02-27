@@ -6,6 +6,8 @@
 
 class Hmis::Role < ::ApplicationRecord
   self.table_name = :hmis_roles
+  # Warehouse roles do not have a paper trail, so neither do these
+
   has_many :user_hmis_data_source_roles, class_name: '::Hmis::UserHmisDataSourceRole'
   has_many :users, through: :user_hmis_data_source_roles, source: :user
 

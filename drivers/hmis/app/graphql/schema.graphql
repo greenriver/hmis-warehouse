@@ -84,6 +84,38 @@ type AssessmentDetail {
   values: JsonObject
 }
 
+input AssessmentInput {
+  """
+  Required if updating an existing assessment
+  """
+  assessmentId: ID
+
+  """
+  Whether warnings have been confirmed
+  """
+  confirmed: Boolean
+
+  """
+  Required if saving a new assessment
+  """
+  enrollmentId: ID
+
+  """
+  Required if saving a new assessment
+  """
+  formDefinitionId: ID
+
+  """
+  Transformed HUD values as JSON
+  """
+  hudValues: JsonObject
+
+  """
+  Raw form state as JSON
+  """
+  values: JsonObject
+}
+
 """
 4.19.4
 """
@@ -131,6 +163,7 @@ HUD Assessment Sorting Options
 """
 enum AssessmentSortOption {
   ASSESSMENT_DATE
+  DATE_UPDATED
 }
 
 """
@@ -176,17 +209,22 @@ type AutofillValue {
   autofillWhen: [EnableWhen!]!
 
   """
-  If question is boolean type, autofill value
+  Link IDs of numeric questions to sum up and set as the value if condition is met
+  """
+  sumQuestions: [String!]
+
+  """
+  Value to autofill if condition is met
   """
   valueBoolean: Boolean
 
   """
-  If question is choice type, autofill value
+  Value to autofill if condition is met
   """
   valueCode: String
 
   """
-  If question is numeric, autofill value
+  Value to autofill if condition is met
   """
   valueNumber: Int
 }
@@ -309,7 +347,7 @@ type Client {
   disabilityGroups: [DisabilityGroup!]!
   dob: ISO8601Date
   dobDataQuality: DOBDataQuality!
-  enrollments(includeInProgress: Boolean, limit: Int, offset: Int, projectTypes: [ProjectType!], sortOrder: EnrollmentSortOption): EnrollmentsPaginated!
+  enrollments(includeInProgress: Boolean, limit: Int, offset: Int, openOnDate: ISO8601Date, projectTypes: [ProjectType!], sortOrder: EnrollmentSortOption): EnrollmentsPaginated!
   ethnicity: Ethnicity!
   firstName: String
   gender: [Gender!]!
@@ -466,6 +504,11 @@ enum Component {
   CHECKBOX
 
   """
+  Specialized component for rendering disabilities in a table
+  """
+  DISABILITY_TABLE
+
+  """
   Render a group of inputs horizontally
   """
   HORIZONTAL_GROUP
@@ -479,11 +522,6 @@ enum Component {
   Render a group that contains children of the same type (e.g. all booleans)
   """
   INPUT_GROUP
-
-  """
-  Render inputs as a table. Each nested group is rendered as a row.
-  """
-  INPUT_TABLE
 
   """
   Render a choice input item as radio buttons
@@ -1148,10 +1186,12 @@ type DisabilityGroup {
   chronicHealthCondition: NoYesReasonsForMissingData
   chronicHealthConditionIndefiniteAndImpairs: NoYesReasonsForMissingData
   dataCollectionStage: DataCollectionStage!
+  dateCreated: ISO8601DateTime
+  dateUpdated: ISO8601DateTime
   developmentalDisability: NoYesReasonsForMissingData
 
   """
-  Current disabling conditionn on the linked Enrollment. It may not match up with the disabilities specified in this group.
+  Current disabling condition on the linked Enrollment. It may not match up with the disabilities specified in this group.
   """
   disablingCondition: NoYesReasonsForMissingData!
   enrollment: Enrollment!
@@ -1634,9 +1674,19 @@ A question or group of questions
 """
 type FormItem {
   """
+  Whether this item corresponds to the assessment date. Must be used with DATE
+  type. Should be used no more than once per form
+  """
+  assessmentDate: Boolean
+
+  """
   Value(s) to autofill based on conditional logic
   """
   autofillValues: [AutofillValue!]
+
+  """
+  Bounds applied to the input value
+  """
   bounds: [ValueBound!]
 
   """
@@ -1663,7 +1713,7 @@ type FormItem {
 
   """
   Name of the field on the record (or on the query input type). Used for record
-  creation/update forms and for assessment population.
+  creation/update forms, for assessment population, and for assessment extraction.
   """
   fieldName: String
 
@@ -1708,6 +1758,12 @@ type FormItem {
   pickListReference: String
 
   """
+  Whether to allow pre-filling section from recent records. Should only be
+  enabled in conjunction with record_type and for top-level group items.
+  """
+  prefill: Boolean
+
+  """
   Prefix for the item label
   """
   prefix: String
@@ -1728,7 +1784,7 @@ type FormItem {
   readOnly: Boolean
 
   """
-  Record type to use for population
+  Record type to use for population and extraction
   """
   recordType: RelatedRecordType
 
@@ -1757,6 +1813,11 @@ type FormItem {
   """
   text: String
   type: ItemType!
+
+  """
+  Whether to show a warning if this question is unanswered
+  """
+  warnIfEmpty: Boolean
 }
 
 type Funder {
@@ -2066,48 +2127,53 @@ enum Gender {
   """
   (8) Client doesn't know
   """
-  GENDER_CLIENT_DOESN_T_KNOW
+  CLIENT_DOESN_T_KNOW
 
   """
   (9) Client refused
   """
-  GENDER_CLIENT_REFUSED
+  CLIENT_REFUSED
 
   """
   (99) Data not collected
   """
-  GENDER_DATA_NOT_COLLECTED
+  DATA_NOT_COLLECTED
 
   """
   (0) Female
   """
-  GENDER_FEMALE
+  FEMALE
 
   """
   (1) Male
   """
-  GENDER_MALE
+  MALE
 
   """
   (4) A gender other than singularly female or male (e.g., non-binary, genderfluid, agender, culturally specific gender)
   """
-  GENDER_NO_SINGLE_GENDER
+  NO_SINGLE_GENDER
 
   """
   (6) Questioning
   """
-  GENDER_QUESTIONING
+  QUESTIONING
 
   """
   (5) Transgender
   """
-  GENDER_TRANSGENDER
+  TRANSGENDER
 }
 
 """
 2.03.4
 """
 enum GeographyType {
+  """
+  (99) Unknown / data not collected
+  """
+  DATA_NOT_COLLECTED
+
   """
   Invalid Value
   """
@@ -2122,11 +2188,6 @@ enum GeographyType {
   (2) Suburban
   """
   SUBURBAN
-
-  """
-  (99) Unknown / data not collected
-  """
-  UNKNOWN_DATA_NOT_COLLECTED
 
   """
   (1) Urban
@@ -2412,17 +2473,31 @@ type IncomeBenefitsPaginated {
   pagesCount: Int!
 }
 
+enum InitialBehavior {
+  """
+  When loading the form, only set the specified initial value if there is no existing value.
+  """
+  IF_EMPTY
+
+  """
+  When loading the form, always overwrite the existing value with specified initial value.
+  """
+  OVERWRITE
+}
+
 """
 Initial value when item is first rendered
 """
 type InitialValue {
+  initialBehavior: InitialBehavior!
+
   """
-  If question is boolean type, initial value
+  Boolean to set as initial value
   """
   valueBoolean: Boolean
 
   """
-  If question is choice type, initial value
+  Code to set as initial value
   """
   valueCode: String
 
@@ -2432,7 +2507,7 @@ type InitialValue {
   valueLocalConstant: String
 
   """
-  If question is numeric, initial value
+  Number to set as initial value
   """
   valueNumber: Int
 }
@@ -3358,7 +3433,7 @@ type Project {
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
   description: String
-  enrollments(clientSearchTerm: String, includeInProgress: Boolean, limit: Int, offset: Int, sortOrder: EnrollmentSortOption): EnrollmentsPaginated!
+  enrollments(clientSearchTerm: String, includeInProgress: Boolean, limit: Int, offset: Int, openOnDate: ISO8601Date, sortOrder: EnrollmentSortOption): EnrollmentsPaginated!
   funders(limit: Int, offset: Int, sortOrder: FunderSortOption): FundersPaginated!
   housingType: HousingType
   id: ID!
@@ -3613,42 +3688,42 @@ enum Race {
   """
   (AmIndAKNative) American Indian, Alaska Native, or Indigenous
   """
-  RACE_AM_IND_AK_NATIVE
+  AM_IND_AK_NATIVE
 
   """
   (Asian) Asian or Asian American
   """
-  RACE_ASIAN
+  ASIAN
 
   """
   (BlackAfAmerican) Black, African American, or African
   """
-  RACE_BLACK_AF_AMERICAN
-
-  """
-  (NativeHIPacific) Native Hawaiian or Pacific Islander
-  """
-  RACE_NATIVE_HI_PACIFIC
-
-  """
-  (99) Data not collected
-  """
-  RACE_NOT_COLLECTED
-
-  """
-  (9) Client refused
-  """
-  RACE_REFUSED
+  BLACK_AF_AMERICAN
 
   """
   (8) Client doesn't know
   """
-  RACE_UNKNOWN
+  CLIENT_DOESN_T_KNOW
+
+  """
+  (9) Client refused
+  """
+  CLIENT_REFUSED
+
+  """
+  (99) Data not collected
+  """
+  DATA_NOT_COLLECTED
+
+  """
+  (NativeHIPacific) Native Hawaiian or Pacific Islander
+  """
+  NATIVE_HI_PACIFIC
 
   """
   (White) White
   """
-  RACE_WHITE
+  WHITE
 }
 
 """
@@ -3709,7 +3784,7 @@ enum RecentItemType {
 """
 enum RecordType {
   """
-  (200) Bed night
+  (200) Bed Night
   """
   BED_NIGHT
 
@@ -3724,17 +3799,17 @@ enum RecordType {
   CONTACT_13
 
   """
-  (151) HOPWA financial assistance
+  (151) HOPWA Financial Assistance
   """
   HOPWA_FINANCIAL_ASSISTANCE
 
   """
-  (143) HOPWA service
+  (143) HOPWA Service
   """
   HOPWA_SERVICE
 
   """
-  (210) HUD-VASH OTH voucher tracking
+  (210) HUD-VASH OTH Voucher Tracking
   """
   HUD_VASH_OTH_VOUCHER_TRACKING
 
@@ -3749,32 +3824,32 @@ enum RecordType {
   MOVING_ON_ASSISTANCE
 
   """
-  (161) PATH referral
+  (161) PATH Referral
   """
   PATH_REFERRAL
 
   """
-  (141) PATH service
+  (141) PATH Service
   """
   PATH_SERVICE
 
   """
-  (162) RHY referral
+  (162) RHY Referral
   """
   RHY_REFERRAL
 
   """
-  (142) RHY service connections
+  (142) RHY Service Connections
   """
   RHY_SERVICE_CONNECTIONS
 
   """
-  (152) SSVF financial assistance
+  (152) SSVF Financial Assistance
   """
   SSVF_FINANCIAL_ASSISTANCE
 
   """
-  (144) SSVF service
+  (144) SSVF Service
   """
   SSVF_SERVICE
 }
@@ -3989,34 +4064,10 @@ Autogenerated input type of SaveAssessment
 """
 input SaveAssessmentInput {
   """
-  Date with format yyyy-mm-dd
-  """
-  assessmentDate: String
-
-  """
-  Required if updating an existing assessment
-  """
-  assessmentId: ID
-
-  """
   A unique identifier for the client performing the mutation.
   """
   clientMutationId: String
-
-  """
-  Required if saving a new assessment
-  """
-  enrollmentId: ID
-
-  """
-  Required if saving a new assessment
-  """
-  formDefinitionId: ID
-
-  """
-  Form state as JSON
-  """
-  values: JsonObject!
+  input: AssessmentInput!
 }
 
 """
@@ -4752,39 +4803,10 @@ Autogenerated input type of SubmitAssessment
 """
 input SubmitAssessmentInput {
   """
-  Date with format yyyy-mm-dd
-  """
-  assessmentDate: String
-
-  """
-  Required if updating an existing assessment
-  """
-  assessmentId: ID
-
-  """
   A unique identifier for the client performing the mutation.
   """
   clientMutationId: String
-
-  """
-  Required if saving a new assessment
-  """
-  enrollmentId: ID
-
-  """
-  Required if saving a new assessment
-  """
-  formDefinitionId: ID
-
-  """
-  Transformed HUD values as JSON
-  """
-  hudValues: JsonObject
-
-  """
-  Form state as JSON
-  """
-  values: JsonObject!
+  input: AssessmentInput!
 }
 
 """
@@ -5213,22 +5235,53 @@ type User {
 }
 
 type ValidationError {
-  attribute: String
-  fullMessage: String
+  attribute: String!
+  fullMessage: String!
   id: String
+
+  """
+  Link ID of form item if this error is linked to a specific item
+  """
+  linkId: String
   message: String!
-  options: JsonObject
-  type: String!
+  readableAttribute: String
+  severity: ValidationSeverity!
+  type: ValidationType!
+}
+
+enum ValidationSeverity {
+  error
+  warning
+}
+
+enum ValidationType {
+  data_not_collected
+  information
+  invalid
+  not_found
+  out_of_range
+  required
+  server_error
 }
 
 """
-Bound for the response value. The bound may or may not be dependent on another questions answer.
+Bound applied to the response value. The bound may or may not be dependent on another questions answer.
 """
 type ValueBound {
   """
-  Link ID of dependent question, if bound value should be equal to the questions answer
+  Unique identifier for this bound
+  """
+  id: String
+
+  """
+  Link ID of dependent question, if this items value should be compared to another items value
   """
   question: String
+
+  """
+  Severity of bound. If error, user will be unable to submit a value that does not meet this condition.
+  """
+  severity: ValidationSeverity!
   type: BoundType!
   valueDate: ISO8601Date
   valueNumber: Int

@@ -60,7 +60,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
   scope :matching_search_term, ->(text_search) do
     text_searcher(text_search) do |where|
-      where(where)
+      where(where).pluck(:id)
     rescue RangeError
       return none
     end
@@ -176,6 +176,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     end
   end
 
+  # fix these so they use DATA_NOT_COLLECTED And the other standard names
   use_enum(:gender_enum_map, ::HudUtility.genders) do |hash|
     hash.map do |value, desc|
       {

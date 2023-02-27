@@ -3,17 +3,12 @@ module Mutations
     argument :input, Types::HmisSchema::ClientInput, required: true
 
     field :client, Types::HmisSchema::Client, null: true
-    field :errors, [Types::HmisSchema::ValidationError], null: false
 
     def resolve(input:)
-      user = hmis_user
-
       client = Hmis::Hud::Client.new(
-        data_source_id: user.data_source_id,
-        user_id: user.user_id,
+        data_source_id: hmis_user.data_source_id,
+        user_id: hmis_user.user_id,
         personal_id: Hmis::Hud::Base.generate_uuid,
-        date_updated: DateTime.current,
-        date_created: DateTime.current,
         **input.to_params,
       )
 

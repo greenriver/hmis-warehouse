@@ -6,14 +6,13 @@ module Mutations
     argument :in_progress, Boolean, required: false
 
     field :enrollments, [Types::HmisSchema::Enrollment], null: true
-    field :errors, [Types::HmisSchema::ValidationError], null: false
 
     def validate_input(project_id:, start_date:, household_members:)
-      errors = []
-      errors << InputValidationError.new('Exactly one client must be head of household', attribute: 'relationship_to_ho_h') if household_members.select { |hm| hm.relationship_to_ho_h == 1 }.size != 1
-      errors << InputValidationError.new('Entry date cannot be in the future', attribute: 'start_date') if Date.parse(start_date) > Date.today
-      errors << InputValidationError.new("Project with id '#{project_id}' does not exist", attribute: 'project_id') unless Hmis::Hud::Project.editable_by(current_user).exists?(id: project_id)
-      errors
+      errors = HmisErrors::Errors.new
+      errors.add :relationship_to_ho_h, full_message: 'Exactly one client must be head of household' if household_members.select { |hm| hm.relationship_to_ho_h == 1 }.size != 1
+      errors.add :start_date, :out_of_range, message: 'cannot be in the future', readable_attribute: 'Entry date' if Date.parse(start_date) > Date.today
+      errors.add :project_id, :not_found unless Hmis::Hud::Project.editable_by(current_user).exists?(id: project_id)
+      errors.errors
     end
 
     def to_enrollments_params(project_id:, start_date:, household_members:, in_progress: false)
@@ -40,19 +39,11 @@ module Mutations
     def resolve(project_id:, start_date:, household_members:, in_progress: false)
       user = hmis_user
       errors = validate_input(project_id: project_id, start_date: start_date, household_members: household_members)
-
-      if errors.present?
-        return {
-          enrollments: [],
-          errors: errors,
-        }
-      end
+      return { enrollments: [], errors: errors } if errors.any?
 
       enrollments = to_enrollments_params(project_id: project_id, start_date: start_date, household_members: household_members, in_progress: in_progress).map do |attrs|
         enrollment = Hmis::Hud::Enrollment.new(
           user_id: user.user_id,
-          date_updated: DateTime.current,
-          date_created: DateTime.current,
           data_source_id: user.data_source_id,
           **attrs,
         )

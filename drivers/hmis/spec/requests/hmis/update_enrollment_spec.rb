@@ -1,6 +1,6 @@
 require 'rails_helper'
 require_relative 'login_and_permissions'
-require_relative 'hmis_base_setup'
+require_relative '../../support/hmis_base_setup'
 
 RSpec.describe Hmis::GraphqlController, type: :request do
   include_context 'hmis base setup'
@@ -20,13 +20,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       mutation UpdateEnrollment($input: UpdateEnrollmentInput!) {
         updateEnrollment(input: $input) {
           enrollment {
-            id
-            entryDate
-            relationshipToHoH
+            #{scalar_fields(Types::HmisSchema::Enrollment)}
             client {
               id
             }
-            dateUpdated
           }
           #{error_fields}
         }

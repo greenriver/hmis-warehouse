@@ -1,6 +1,6 @@
 require 'rails_helper'
 require_relative 'login_and_permissions'
-require_relative 'hmis_base_setup'
+require_relative '../../support/hmis_base_setup'
 
 RSpec.describe Hmis::GraphqlController, type: :request do
   include_context 'hmis base setup'
@@ -124,24 +124,27 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             input
           end,
           {
-            'message' => 'Enrollment already has a head of household designated',
-            'attribute' => 'householdMembers',
+            fullMessage: 'Enrollment already has a Head of Household designated',
+            severity: :error,
+            type: :invalid,
           },
         ],
         [
           'should emit error if entry date is in the future',
           ->(input) { input.merge(start_date: (Date.today + 1.week).strftime('%Y-%m-%d')) },
           {
-            'message' => 'Entry date cannot be in the future',
-            'attribute' => 'startDate',
+            fullMessage: 'Entry date cannot be in the future',
+            severity: :error,
+            type: :out_of_range,
           },
         ],
         [
           'should emit error if household doesn\'t exist',
           ->(input) { input.merge(household_id: '0') },
           {
-            'message' => "Cannot find Enrollment for household with id '0'",
-            'attribute' => 'householdId',
+            fullMessage: "Cannot find Enrollment for household with id '0'",
+            severity: :error,
+            type: :invalid,
           },
         ],
       ].each do |test_name, input_proc, error_attrs|
@@ -151,11 +154,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
           enrollments = result.dig('data', 'addHouseholdMembersToEnrollment', 'enrollments')
           errors = result.dig('data', 'addHouseholdMembersToEnrollment', 'errors')
+
           aggregate_failures 'checking response' do
             expect(response.status).to eq 200
-            expect(enrollments).to be_empty
+            expect(enrollments).to be_nil
             expect(errors).to contain_exactly(
-              include(**error_attrs),
+              include(**error_attrs.transform_keys(&:to_s).transform_values(&:to_s)),
             )
           end
         end

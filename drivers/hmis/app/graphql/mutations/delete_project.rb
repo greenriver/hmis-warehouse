@@ -3,7 +3,6 @@ module Mutations
     argument :id, ID, required: true
 
     field :project, Types::HmisSchema::Project, null: true
-    field :errors, [Types::HmisSchema::ValidationError], null: false
 
     def resolve(id:)
       record = Hmis::Hud::Project.editable_by(current_user).find_by(id: id)

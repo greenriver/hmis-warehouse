@@ -16,7 +16,6 @@ module Health
     before_action :load_template_activity, only: [:edit, :update]
     before_action :load_note, only: [:show, :edit, :update, :download, :remove_file, :destroy]
     before_action :set_upload_object, only: [:edit, :update, :remove_file, :download]
-    protect_from_forgery except: :update
 
     def show
       render :show

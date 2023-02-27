@@ -34,11 +34,13 @@ module GraphqlHelpers
     <<~ERRORS
       errors {
         id
+        linkId
         attribute
         message
         fullMessage
         type
-        options
+        severity
+        readableAttribute
         __typename
       }
     ERRORS
