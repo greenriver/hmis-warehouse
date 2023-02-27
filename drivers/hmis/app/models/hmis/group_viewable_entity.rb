@@ -19,7 +19,8 @@ module Hmis
     scope :includes_project, ->(project) do
       where(entity_type: project.class.name, entity_id: project.id).
         or(includes_data_source(project.data_source)).
-        or(includes_organization(project.organization))
+        or(includes_organization(project.organization)).
+        or(where(entity_type: GrdaWarehouse::ProjectAccessGroup.name, entity_id: project.project_groups.pluck(:id)))
     end
 
     scope :includes_project_access_group, ->(pag) do
