@@ -41,8 +41,8 @@ module Mutations
       if assessments.first.exit? && includes_hoh
         # FIXME: If exit dates can be in the future, `open_on_date` should check against HoH exit date
         # and the max assessment date on all assessments being submitted. Maybe do in Exit validator instead.
-        open_enrollments = Hmis::Hud::Enrollment.open_on_date.
-          where(household_id: household_ids.first, data_source_id: hmis_user.data_source_id).
+        open_enrollments = Hmis::Hud::Enrollment.viewable_by(current_user).open_on_date.
+          where(household_id: household_ids.first).
           where.not(enrollment_id: enrollments.map(&:enrollment_id))
 
         # Error: cannot exit HoH if there are any other open enrollments
@@ -51,6 +51,9 @@ module Mutations
           return { errors: errors }
         end
       end
+
+      # TODO if this is a household Intake, verify that HoH is included.
+      # Other members can't be submitted without the HoH.
 
       # Validate form values based on FormDefinition
       assessments.each do |assessment|

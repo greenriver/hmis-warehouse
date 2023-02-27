@@ -10,13 +10,9 @@ module Mutations
       errors = HmisErrors::Errors.new
       errors.add :start_date, :out_of_range, message: 'cannot be in the future', readable_attribute: 'Entry date' if Date.parse(start_date) > Date.today
 
-      has_enrollment = Hmis::Hud::Enrollment.editable_by(current_user).exists?(
-        household_id: household_id,
-        data_source_id: hmis_user.data_source_id,
-      )
+      has_enrollment = Hmis::Hud::Enrollment.editable_by(current_user).exists?(household_id: household_id)
       has_hoh_enrollment = Hmis::Hud::Enrollment.editable_by(current_user).exists?(
         household_id: household_id,
-        data_source_id: hmis_user.data_source_id,
         relationship_to_ho_h: 1,
       )
 
@@ -28,17 +24,16 @@ module Mutations
     end
 
     def resolve(household_id:, start_date:, household_members:)
-      user = current_user
       errors = validate_input(household_id: household_id, start_date: start_date, household_members: household_members)
       return { errors: errors } if errors.any?
 
-      existing_enrollment = Hmis::Hud::Enrollment.editable_by(user).find_by(household_id: household_id, data_source_id: hmis_user.data_source_id)
+      existing_enrollment = Hmis::Hud::Enrollment.editable_by(current_user).find_by(household_id: household_id)
       lookup = Hmis::Hud::Client.where(id: household_members.map(&:id)).index_by(&:id)
       project_id = existing_enrollment.project.project_id
 
       enrollments = household_members.map do |household_member|
         client = lookup[household_member.id.to_i]
-        enrollment = client.enrollments.editable_by(user).find_by(household_id: household_id, data_source_id: hmis_user.data_source_id)
+        enrollment = client.enrollments.editable_by(current_user).find_by(household_id: household_id)
 
         next enrollment if enrollment.present?
 
