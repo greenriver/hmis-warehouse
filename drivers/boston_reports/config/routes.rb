@@ -8,6 +8,7 @@ BostonHmis::Application.routes.draw do
         get :download, on: :collection
         post :render_section, on: :collection
       end
+      resources :configs, only: [:index, :update]
     end
   end
 end
