@@ -50,8 +50,11 @@ module Importers::HmisAutoMigrate
 
         # options = {}
         # options = { password: @file_password } if @file_password.present?
-
-        cmd = "7z e -o#{tmp_folder} #{zip_file}"
+        cmd = if @file_password.present?
+          "7z e -p#{@file_password} -o#{tmp_folder} #{zip_file}"
+        else
+          "7z e -o#{tmp_folder} #{zip_file}"
+        end
         system(cmd)
         # File.open(zip_file, 'rb') do |seven_zip|
         #   SevenZipRuby::Reader.open(seven_zip, options) do |szr|
