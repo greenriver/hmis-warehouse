@@ -3456,6 +3456,7 @@ enum PrioritizationStatus {
 type Project {
   HMISParticipatingProject: Boolean
   HOPWAMedAssistedLivingFac: HOPWAMedAssistedLivingFac
+  access: ProjectAccess!
   active: Boolean!
   contactInformation: String
   continuumProject: Boolean
@@ -3477,6 +3478,11 @@ type Project {
   residentialAffiliation: Boolean
   targetPopulation: TargetPopulation
   trackingMethod: TrackingMethod
+}
+
+type ProjectAccess {
+  canDeleteProject: Boolean!
+  canEditProjectDetails: Boolean!
 }
 
 type ProjectCoc {

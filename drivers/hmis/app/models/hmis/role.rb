@@ -20,9 +20,9 @@ class Hmis::Role < ::ApplicationRecord
   end
 
   scope :with_any_permissions, ->(*perms) do
-    scope = self
-    perms.map { |p| scope = scope.or(Hmis::Role.where(p => true)) }
-    scope
+    rt = Hmis::Role.arel_table
+    where_clause = perms.map { |perm| rt[perm.to_sym].eq(true) }.reduce(:or)
+    where(where_clause)
   end
 
   scope :with_editable_permissions, -> do
@@ -67,7 +67,7 @@ class Hmis::Role < ::ApplicationRecord
   end
 
   def self.permissions_for_access(access)
-    permissions_with_descriptions.select { |_k, attrs| attrs[:access].include?(access) }.keys
+    permissions_with_descriptions.select { |_k, attrs| access == :viewable ? attrs[:access] == [:viewable] : attrs[:access].include?(access) }.keys
   end
 
   def self.permissions_with_descriptions
@@ -110,6 +110,22 @@ class Hmis::Role < ::ApplicationRecord
         access: [:editable],
         categories: [
           'Client Access',
+        ],
+      },
+      can_delete_project: {
+        description: 'Grants access to delete projects',
+        administrative: false,
+        access: [:editable],
+        categories: [
+          'Projects',
+        ],
+      },
+      can_edit_project_details: {
+        description: 'Grants access to edit project details',
+        administrative: false,
+        access: [:editable],
+        categories: [
+          'Projects',
         ],
       },
     }
