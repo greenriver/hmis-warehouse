@@ -62,10 +62,10 @@ class Hmis::User < ApplicationRecord
 
       access_group_ids = nil
 
-      if entity.is_a?(Hmis::Hud::Project)
-        access_group_ids = Hmis::GroupViewableEntity.includes_project(entity).pluck(:access_group_id)
+       access_group_ids = if entity.is_a?(Hmis::Hud::Project)
+       Hmis::GroupViewableEntity.includes_project(entity).pluck(:access_group_id)
       elsif entity.is_a?(Hmis::Hud::Organization)
-        access_group_ids = Hmis::GroupViewableEntity.includes_organization(entity).pluck(:access_group_id)
+        Hmis::GroupViewableEntity.includes_organization(entity).pluck(:access_group_id)
       end
 
       raise "Invalid entity '#{entity.class.name}'" if access_group_ids.nil?
