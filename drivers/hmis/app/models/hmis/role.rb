@@ -20,9 +20,9 @@ class Hmis::Role < ::ApplicationRecord
   end
 
   scope :with_any_permissions, ->(*perms) do
-    scope = none
-    perms.each_with_index.map { |p, i| scope = i.zero? ? where(p => true) : scope.or(Hmis::Role.where(p => true)) }
-    scope
+    rt = Hmis::Role.arel_table
+    where_clause = perms.map { |perm| rt[perm.to_sym].eq(true) }.reduce(:or)
+    where(where_clause)
   end
 
   scope :with_editable_permissions, -> do
