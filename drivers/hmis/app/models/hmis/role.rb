@@ -20,8 +20,8 @@ class Hmis::Role < ::ApplicationRecord
   end
 
   scope :with_any_permissions, ->(*perms) do
-    scope = self
-    perms.map { |p| scope = scope.or(Hmis::Role.where(p => true)) }
+    scope = none
+    perms.each_with_index.map { |p, i| scope = i.zero? ? where(p => true) : scope.or(Hmis::Role.where(p => true)) }
     scope
   end
 
@@ -67,7 +67,7 @@ class Hmis::Role < ::ApplicationRecord
   end
 
   def self.permissions_for_access(access)
-    permissions_with_descriptions.select { |_k, attrs| attrs[:access].include?(access) }.keys
+    permissions_with_descriptions.select { |_k, attrs| access == :viewable ? attrs[:access] == [:viewable] : attrs[:access].include?(access) }.keys
   end
 
   def self.permissions_with_descriptions

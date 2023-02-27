@@ -49,13 +49,5 @@ module Hmis
         none
       end
     end
-
-    def self.project_ids
-      ids = []
-      ids += projects.pluck(:entity_id)
-      ids += Hmis::Hud::Project.joins(:organization).merge(Hmis::Hud::Organization.where(id: organizations.pluck(:entity_id))).pluck(:id)
-      ids += Hmis::Hud::Project.where(data_source_id: data_sources.pluck(:entity_id)).pluck(:id)
-      ids
-    end
   end
 end

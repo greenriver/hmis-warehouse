@@ -119,11 +119,7 @@ class Hmis::User < ApplicationRecord
   end
 
   def viewable_projects
-    Hmis::Hud::Project.where(
-      id: Hmis::GroupViewableEntity.where(
-        access_group_id: access_groups.viewable.pluck(:id),
-      ).project_ids,
-    )
+    viewable Hmis::Hud::Project
   end
 
   def viewable_project_access_groups
@@ -160,11 +156,7 @@ class Hmis::User < ApplicationRecord
   end
 
   def editable_projects
-    Hmis::Hud::Project.where(
-      id: Hmis::GroupViewableEntity.where(
-        access_group_id: access_groups.editable.pluck(:id),
-      ).project_ids,
-    )
+    editable Hmis::Hud::Project
   end
 
   def editable_project_access_groups

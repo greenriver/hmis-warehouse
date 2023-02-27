@@ -16,7 +16,7 @@ RSpec.shared_context 'hmis base setup', shared_context: :metadata do
 
   let(:view_access_group) do
     group = create :view_access_group
-    role = create(:hmis_role_with_no_permissions, **Hmis::Role.permissions_for_access(:viewable).map { |p| [p, true] }.to_h)
+    role = create(:hmis_role_with_no_permissions, **Hmis::Role.permissions_with_descriptions.map { |k, v| v[:access] == [:viewable] ? k : nil }.compact.map { |p| [p, true] }.to_h)
     group.access_controls.create(role: role)
     group
   end
