@@ -3321,6 +3321,7 @@ union OmnisearchResult = Client | Project
 HUD Organization
 """
 type Organization {
+  access: OrganizationAccess!
   contactInformation: String
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
@@ -3330,6 +3331,11 @@ type Organization {
   organizationName: String!
   projects(limit: Int, offset: Int, projectTypes: [ProjectType!], searchTerm: String, sortOrder: ProjectSortOption): ProjectsPaginated!
   victimServiceProvider: Boolean
+}
+
+type OrganizationAccess {
+  canDeleteOrganization: Boolean!
+  canEditOrganization: Boolean!
 }
 
 """
@@ -3456,6 +3462,7 @@ enum PrioritizationStatus {
 type Project {
   HMISParticipatingProject: Boolean
   HOPWAMedAssistedLivingFac: HOPWAMedAssistedLivingFac
+  access: ProjectAccess!
   active: Boolean!
   contactInformation: String
   continuumProject: Boolean
@@ -3477,6 +3484,17 @@ type Project {
   residentialAffiliation: Boolean
   targetPopulation: TargetPopulation
   trackingMethod: TrackingMethod
+}
+
+type ProjectAccess {
+  canDeleteEnrollments: Boolean!
+  canDeleteProject: Boolean!
+  canEditEnrollments: Boolean!
+  canEditProjectDetails: Boolean!
+  canViewDob: Boolean!
+  canViewEnrollments: Boolean!
+  canViewFullSsn: Boolean!
+  canViewPartialSsn: Boolean!
 }
 
 type ProjectCoc {
@@ -3628,6 +3646,8 @@ type ProjectsPaginated {
 }
 
 type Query {
+  access: QueryAccess!
+
   """
   Assessment lookup
   """
@@ -3709,6 +3729,11 @@ type Query {
   Service lookup
   """
   service(id: ID!): Service
+}
+
+type QueryAccess {
+  canEditClients: Boolean!
+  canViewClients: Boolean!
 }
 
 """
