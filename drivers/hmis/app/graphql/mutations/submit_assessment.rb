@@ -13,8 +13,7 @@ module Mutations
       definition = assessment.assessment_detail.definition
       enrollment = assessment.enrollment
 
-      # If this is an HoH Exit, check special restrictions
-      new_hoh_enrollment = nil
+      # HoH Exit
       if enrollment.head_of_household? && assessment.exit?
         open_enrollments = Hmis::Hud::Enrollment.open_on_date.
           viewable_by(current_user).
@@ -29,8 +28,20 @@ module Mutations
         end
       end
 
-      # TODO if this is an Intake, confirm that the HoH has already been submitted.
-      # Other members can't be submitted unless the HoH has already moved out of WIP status.
+      # Non-HoH Intake
+      if !enrollment.head_of_household? && assessment.intake?
+        hoh_enrollment = Hmis::Hud::Enrollment.open_on_date.
+          viewable_by(current_user).
+          where(household_id: enrollment.household_id, relationship_to_hoh: 1).
+          first
+
+        # Error: HoH intake is WIP, so this assessment cannot be submitted yet
+        if hoh_enrollment&.in_progress?
+          return {
+            errors: [HmisErrors::Error.new(:assessment, :invalid, full_message: 'Cannot submit intake assessment because the Head of Household\'s intake has not yet been completed.')],
+          }
+        end
+      end
 
       # Determine the Assessment Date and validate it
       assessment_date, errors = definition.find_and_validate_assessment_date(
@@ -53,9 +64,7 @@ module Mutations
       validation_errors = assessment.assessment_detail.validate_form(ignore_warnings: input.confirmed)
       errors.push(*validation_errors)
 
-      # If this is an existing assessment and all the errors are warnings, save changes before returning.
-      # (NOTE: We could/should do this for new assessments, too, but it's a bit more complicated
-      # because we'd need to send back the newly created assessment ID to the frontend.)
+      # If this is an existing assessment and all the errors are warnings, save changes before returning
       if errors.all?(&:warning?) && assessment.id.present?
         assessment.assessment_detail.save!
         assessment.save!
@@ -83,9 +92,6 @@ module Mutations
         enrollment.save_not_in_progress if assessment.intake?
         # Update DateUpdated on the Enrollment
         enrollment.touch
-        # If we are assigning a new HoH as a result of this submission, save the HoH change
-        new_hoh_enrollment&.save!
-        new_hoh_enrollment&.touch
       else
         # These are potentially unfixable errors, so maybe we should throw a server error instead.
         # Leaving them visible to the user for now, while we QA the feature.
