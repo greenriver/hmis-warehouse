@@ -13,7 +13,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:o2) { create :hmis_hud_organization, OrganizationName: 'XXX', data_source: ds1 }
   let!(:p3) { create :hmis_hud_project, ProjectName: 'DDD', data_source: ds1, organization: o2 }
   let!(:p4) { create :hmis_hud_project, ProjectName: 'CCC', data_source: ds1, organization: o2 }
-  let(:edit_access_group) { create :edit_access_group }
 
   before(:all) do
     cleanup_test_environment

@@ -30,7 +30,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
     let!(:ds1) { create :hmis_data_source }
     let!(:o1) { create :hmis_hud_organization, data_source: ds1, user: u2 }
-    let(:edit_access_group) { create :edit_access_group }
 
     let(:mutation) do
       <<~GRAPHQL
