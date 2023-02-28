@@ -19,16 +19,14 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     cleanup_test_environment
   end
 
+  include_context 'hmis base setup'
+
   describe 'organization creation tests' do
-    let!(:user) { create(:user).tap { |u| u.add_viewable(ds1) } }
-    let(:hmis_user) { Hmis::User.find(user.id)&.tap { |u| u.update(hmis_data_source_id: ds1.id) } }
-    let(:u1) { Hmis::Hud::User.from_user(hmis_user) }
     let(:u2) do
       user2 = create(:user).tap { |u| u.add_viewable(ds1) }
       hmis_user2 = Hmis::User.find(user2.id)&.tap { |u| u.update(hmis_data_source_id: ds1.id) }
       Hmis::Hud::User.from_user(hmis_user2)
     end
-    let!(:ds1) { create :hmis_data_source }
     let!(:o1) { create :hmis_hud_organization, data_source: ds1, user: u2 }
 
     let(:mutation) do

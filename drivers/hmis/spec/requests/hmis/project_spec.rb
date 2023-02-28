@@ -52,8 +52,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               organizationName
             }
             access {
-              canDeleteProject
-              canEditProjectDetails
+              #{scalar_fields(Types::HmisSchema::Project.fields['access'])}
             }
           }
         }
@@ -79,11 +78,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     it 'handles permissions correctly' do
-      Hmis::Role.first.update(can_delete_project: false)
+      hmis_user.access_controls.first.role.update(can_delete_project: false)
       _res, result = post_graphql(id: p1.id) { query }
       expect(result.dig('data', 'project', 'access')).to include('canDeleteProject' => false)
 
-      Hmis::Role.first.update(can_delete_project: true)
+      hmis_user.access_controls.first.role.update(can_delete_project: true)
       _res, result = post_graphql(id: p1.id) { query }
       expect(result.dig('data', 'project', 'access')).to include('canDeleteProject' => true)
     end
