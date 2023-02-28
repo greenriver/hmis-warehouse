@@ -8,7 +8,7 @@
 # r = Hmis::Role.create(name: 'test')
 # u = Hmis::User.first; u.hmis_data_source_id = 3
 # g = Hmis::AccessGroup.create(name: 'test')
-# ac = u.access_controls.create(role: r, group: g)
+# ac = u.access_controls.create(role: r, access_group: g)
 # u.user_access_controls.create(user: u, access_control: ac)
 # u.can_view_full_ssn?
 require 'memery'
