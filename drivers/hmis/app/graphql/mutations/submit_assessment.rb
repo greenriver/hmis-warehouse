@@ -8,33 +8,49 @@ module Mutations
 
     def resolve(input:)
       assessment, errors = input.find_or_create_assessment
-      return { assessment: nil, errors: errors } if errors.any?
+      return { errors: errors } if errors.any?
 
       definition = assessment.assessment_detail.definition
       enrollment = assessment.enrollment
 
-      # Determine the Assessment Date (same as Information Date) and validate it
+      # If this is an HoH Exit, check special restrictions
+      if enrollment.head_of_household? && assessment.exit?
+        open_enrollments = Hmis::Hud::Enrollment.open_on_date.
+          viewable_by(current_user).
+          where(household_id: enrollment.household_id).
+          where.not(id: enrollment.id)
+
+        # Error: cannot exit HoH if there are any other open enrollments
+        if open_enrollments.any?
+          return {
+            errors: [HmisErrors::Error.new(:assessment, :invalid, full_message: 'Cannot exit head of household because there are existing open enrollments. Please assign a new HoH.')],
+          }
+        end
+      end
+
+      # TODO if this is an Intake, confirm that the HoH has already been submitted.
+      # Other members can't be submitted unless the HoH has already moved out of WIP status.
+
+      # Determine the Assessment Date and validate it
       assessment_date, errors = definition.find_and_validate_assessment_date(
-        hud_values: input.hud_values,
+        values: input.values,
         entry_date: enrollment.entry_date,
         exit_date: enrollment.exit_date,
       )
 
-      # Validate form values based on FormDefinition
-      validation_errors = definition.validate_form_values(input.values, input.hud_values)
-      # If user has already confirmed any warnings, remove them
-      validation_errors = validation_errors.reject(&:warning?) if input.confirmed
-      errors.push(*validation_errors)
-
       # Update values
       assessment.assessment_detail.assign_attributes(
         values: input.values,
-        hud_values: definition.key_by_field_name(input.hud_values),
+        hud_values: input.hud_values,
       )
       assessment.assign_attributes(
         user_id: hmis_user.user_id,
         assessment_date: assessment_date || assessment.assessment_date,
       )
+
+      # Validate form values based on FormDefinition
+      validation_errors = assessment.assessment_detail.validate_form(ignore_warnings: input.confirmed)
+      errors.push(*validation_errors)
 
       # If this is an existing assessment and all the errors are warnings, save changes before returning.
       # (NOTE: We could/should do this for new assessments, too, but it's a bit more complicated
@@ -74,7 +90,7 @@ module Mutations
         assessment = nil
       end
 
-      return {
+      {
         assessment: assessment,
         errors: errors,
       }

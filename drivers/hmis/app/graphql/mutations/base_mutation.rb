@@ -18,7 +18,7 @@ module Mutations
     end
 
     def hmis_user
-      Hmis::Hud::User.from_user(current_user)
+      @hmis_user ||= Hmis::Hud::User.from_user(current_user)
     end
 
     def self.date_string_argument(name, description, **kwargs)
