@@ -34,7 +34,7 @@ module Mutations
         return { errors: errors }
       end
 
-      # If this includes an HoH Exit, check special restrictions
+      # HoH Exit constraints
       enrollments = assessments.map(&:enrollment)
       includes_hoh = enrollments.map(&:relationship_to_ho_h).uniq.include?(1)
       new_hoh_enrollment = nil
@@ -52,8 +52,19 @@ module Mutations
         end
       end
 
-      # TODO if this is a household Intake, verify that HoH is included.
-      # Other members can't be submitted without the HoH.
+      # Non-HoH Intake constriants
+      if assessments.first.intake? && !includes_hoh
+        hoh_enrollment = Hmis::Hud::Enrollment.viewable_by(current_user).
+          where(household_id: household_ids.first, relationship_to_ho_h: 1).
+          first
+
+        # Error: HoH intake is WIP, so member assessments cannot be submitted yet
+        if hoh_enrollment&.in_progress?
+          return {
+            errors: [HmisErrors::Error.new(:assessment, :invalid, full_message: 'Please include the head of household. Other household members cannot be entered without the HoH.')],
+          }
+        end
+      end
 
       # Validate form values based on FormDefinition
       assessments.each do |assessment|
