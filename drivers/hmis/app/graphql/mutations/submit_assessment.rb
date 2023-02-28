@@ -14,7 +14,6 @@ module Mutations
       enrollment = assessment.enrollment
 
       # If this is an HoH Exit, check special restrictions
-      new_hoh_enrollment = nil
       if enrollment.head_of_household? && assessment.exit?
         open_enrollments = Hmis::Hud::Enrollment.open_on_date.
           viewable_by(current_user).
@@ -83,9 +82,6 @@ module Mutations
         enrollment.save_not_in_progress if assessment.intake?
         # Update DateUpdated on the Enrollment
         enrollment.touch
-        # If we are assigning a new HoH as a result of this submission, save the HoH change
-        new_hoh_enrollment&.save!
-        new_hoh_enrollment&.touch
       else
         # These are potentially unfixable errors, so maybe we should throw a server error instead.
         # Leaving them visible to the user for now, while we QA the feature.
