@@ -51,6 +51,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               id
               organizationName
             }
+            access {
+              canDeleteProject
+              canEditProjectDetails
+            }
           }
         }
       GRAPHQL
@@ -72,6 +76,16 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(record.dig('funders', 'nodes').map(&to_id)).to contain_exactly(f1.id, f2.id)
         expect(record.dig('organization', 'id').to_i).to eq(o1.id)
       end
+    end
+
+    it 'handles permissions correctly' do
+      Hmis::Role.first.update(can_delete_project: false)
+      _res, result = post_graphql(id: p1.id) { query }
+      expect(result.dig('data', 'project', 'access')).to include('canDeleteProject' => false)
+
+      Hmis::Role.first.update(can_delete_project: true)
+      _res, result = post_graphql(id: p1.id) { query }
+      expect(result.dig('data', 'project', 'access')).to include('canDeleteProject' => true)
     end
   end
 end

@@ -78,9 +78,10 @@ gem 'devise-security'
 gem 'devise-two-factor'
 gem 'rack-cors'
 
-gem 'omniauth', '~> 1.9.1'
-gem 'omniauth-oauth2'
-gem 'omniauth-rails_csrf_protection', '~> 0.1'
+gem 'omniauth', '~> 2.1'
+gem 'omniauth-oauth2', '~> 1.7.3'
+gem 'omniauth-rails_csrf_protection', '~> 1.0.1'
+gem 'faraday', '~> 1.8'
 
 gem 'pretender'
 gem 'rqrcode-rails3'

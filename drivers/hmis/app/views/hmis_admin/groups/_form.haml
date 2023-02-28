@@ -1,7 +1,6 @@
 .row
   .col-8
     = f.input :name
-    = f.input :scope, collection: Hmis::AccessGroup.available_scopes, as: :select_two, include_blank: false, label: 'Permission Scope', hint: 'Should this set of projects be editable by the assigned users, or just visible to them?'
 .row
   .col-12
     = render 'viewable_entities', f: f
