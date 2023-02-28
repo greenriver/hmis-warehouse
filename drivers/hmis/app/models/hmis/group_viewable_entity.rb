@@ -20,11 +20,15 @@ module Hmis
       where(entity_type: project.class.name, entity_id: project.id).
         or(includes_data_source(project.data_source)).
         or(includes_organization(project.organization)).
-        or(where(entity_type: GrdaWarehouse::ProjectAccessGroup.name, entity_id: project.project_groups.pluck(:id)))
+        or(includes_project_access_groups(project.project_groups))
     end
 
     scope :includes_project_access_group, ->(pag) do
       where(entity_type: GrdaWarehouse::ProjectAccessGroup.name, entity_id: pag.id)
+    end
+
+    scope :includes_project_access_groups, ->(pags) do
+      where(entity_type: GrdaWarehouse::ProjectAccessGroup.name, entity_id: pags.pluck(:id))
     end
 
     scope :includes_organization, ->(organization) do
