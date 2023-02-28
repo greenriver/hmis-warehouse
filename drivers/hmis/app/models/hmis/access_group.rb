@@ -19,6 +19,8 @@ class Hmis::AccessGroup < ApplicationRecord
   has_many :access_groups, through: :access_controls
 
   has_many :group_viewable_entities, class_name: 'Hmis::GroupViewableEntity'
+  has_many :data_sources, through: :group_viewable_entities, source: :entity, source_type: 'GrdaWarehouse::DataSource'
+  has_many :project_access_groups, through: :group_viewable_entities, source: :entity, source_type: 'GrdaWarehouse::ProjectAccessGroup'
   has_many :organizations, through: :group_viewable_entities, source: :entity, source_type: 'Hmis::Hud::Organization'
   has_many :projects, through: :group_viewable_entities, source: :entity, source_type: 'Hmis::Hud::Project'
 
@@ -124,7 +126,7 @@ class Hmis::AccessGroup < ApplicationRecord
           ]
         end
       when :project_access_group
-        project_access_access_.preload(:projects).map do |pag|
+        project_access_groups.preload(:projects).map do |pag|
           [
             pag.name,
             pag.projects.map(&:ProjectName),

@@ -1,0 +1,6 @@
+= render 'breadcrumbs'
+
+%h1 Edit Access Control list: #{@acl.id}
+
+.mt-4
+  = render 'users/user_members_table', item: @acl, path_to_add_users: hmis_admin_access_control_users_path(@acl), path_to_delete_item: hmis_admin_access_control_path(@acl), delete_user_lambda: ->(user) { hmis_admin_access_control_user_path(@acl, user) }

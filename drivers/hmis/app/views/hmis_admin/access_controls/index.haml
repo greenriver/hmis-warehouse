@@ -1,0 +1,38 @@
+- content_for :title, 'HMIS Group Administration'
+%h1= content_for :title
+= render 'hmis_admin/tabs', active_tab: :access_controls
+
+.alert.alert-info
+  %i.icon-warning.mr-4
+  %p Access control lists are a thing - explain
+.text-right
+  = link_to new_hmis_admin_access_control_path, class: 'btn btn-primary mb-2' do
+    %span.icon-plus
+    Create a new Access Control List
+- if @pagy.count.positive?
+  = render 'common/pagination_top', item_name: 'access control list'
+  .table-responsive
+    %table.table.table-striped
+      %thead
+        %tr
+          %th Role Name
+          %th Group Name
+          %th.text-center Assigned Users
+          %th
+      %tbody
+        - @access_controls.each do |acl|
+          %tr
+            %td= acl.role.name #link_to group.name, edit_hmis_admin_access_control_path(group)
+            %td= acl.access_group.name
+            %td.text-center= acl.users.count
+            %td
+              = link_to edit_hmis_admin_access_control_path(acl), class: ['btn', 'btn-sm', 'btn-secondary'] do
+                %span.icon-pencil
+                Edit
+              - unless acl.users.count.positive?
+                = link_to hmis_admin_access_control_path(acl),  method: :delete, data: {confirm: "Would you really like to delete the access control list for group '#{acl.access_group.name}' and role '#{acl.role.name}'?"}, class: ['btn', 'btn-sm', 'btn-danger', 'ml-2'] do
+                  %span.icon-cross
+                  Delete
+  = render 'common/pagination_bottom', item_name: 'access control list'
+- else
+  .none-found No groups found.
