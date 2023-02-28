@@ -1,4 +1,3 @@
-= link_to_edit = local_assigns[:link_to_edit] == false ? false : true
 .table-responsive.j-table.c-save-table{data: {objects: @roles.map(&:id).to_json.html_safe}}
   .c-save-table__submit-container.j-table__submit-container
     .c-save-table__submit-container-error-text
@@ -35,7 +34,7 @@
           %input.form-control.j-table__search.w-100{placeholder: 'Search permissions'}
         - @roles.each do |role|
           %th.c-table__cell--border-r-secondary.c-table__header-title.text-center.j-table__object{data:{role: role.id}}
-            = link_to_if link_to_edit, role.name, action: :edit, id: role
+            = link_to role.name, action: :edit, id: role
 
     %tbody
       - role_class.permissions(exclude_health: true).each do |permission|
