@@ -67,7 +67,7 @@ class Hmis::Role < ::ApplicationRecord
   end
 
   def self.permissions_for_access(access)
-    permissions_with_descriptions.select { |_k, attrs| access == :viewable ? attrs[:access] == [:viewable] : attrs[:access].include?(access) }.keys
+    permissions_with_descriptions.select { |_k, attrs| attrs[:access].include?(access) }.keys
   end
 
   def self.permissions_with_descriptions
@@ -75,7 +75,7 @@ class Hmis::Role < ::ApplicationRecord
       can_administer_hmis: {
         description: 'Grants access to the administration section for HMIS',
         administrative: true,
-        access: [:viewable, :editable],
+        access: [:editable],
         categories: [
           'Administration',
         ],

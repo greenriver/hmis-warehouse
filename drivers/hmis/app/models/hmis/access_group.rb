@@ -124,7 +124,7 @@ class Hmis::AccessGroup < ApplicationRecord
           ]
         end
       when :project_access_group
-        project_access_access_.preload(:projects).map do |pag|
+        project_access_groups.preload(:projects).map do |pag|
           [
             pag.name,
             pag.projects.map(&:ProjectName),
