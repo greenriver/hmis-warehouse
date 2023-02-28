@@ -5,7 +5,7 @@ class MigrateAccessGroupsToAccessControlLists < ActiveRecord::Migration[6.1]
         # Users that have this role and are in this group
         agm_scope = Hmis::AccessGroupMember.where(access_group_id: access_group.id)
         ushdr_scope = Hmis::UserHmisDataSourceRole.where(role_id: role.id)
-        users = Hmis::User.where(id: agm_scope).merge(Hmis::User.where(user_id: ushdr_scope.pluck(:user_id)))
+        users = Hmis::User.where(id: agm_scope.pluck(:user_id)).merge(Hmis::User.where(user_id: ushdr_scope.pluck(:user_id)))
         next unless users.any?
   
         # Create ACL and add all users to it
