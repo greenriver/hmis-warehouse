@@ -8,7 +8,7 @@
 # r = Hmis::Role.create(name: 'test')
 # u = Hmis::User.first; u.hmis_data_source_id = 3
 # g = Hmis::AccessGroup.create(name: 'test')
-# ac = u.access_controls.create(role: r, group: g)
+# ac = u.access_controls.create(role: r, access_group: g)
 # u.user_access_controls.create(user: u, access_control: ac)
 # u.can_view_full_ssn?
 require 'memery'
@@ -58,20 +58,15 @@ class Hmis::User < ApplicationRecord
     end
 
     define_method("#{permission}_for?") do |entity|
-      joins_association = nil
-      joins_association = :projects if entity.is_a?(Hmis::Hud::Project)
-      joins_association = :organizations if entity.is_a?(Hmis::Hud::Organization)
-
-      raise "Invalid entity '#{entity.class.name}'" unless joins_association.present?
       return false unless send("#{permission}?")
 
-      access_groups.
-        merge(
-          Hmis::AccessGroup.joins(:access_controls).
-            where(id: Hmis::GroupViewableEntity.where(entity_type: entity.class.name, entity_id: entity.id).pluck(:access_group_id)).
-            merge(Hmis::AccessControl.where(role_id: roles.where(permission => true).pluck(:id))),
-        )
-        .exists?
+      access_group_ids = access_group_ids_for_entity(entity)
+
+      raise "Invalid entity '#{entity.class.name}'" if access_group_ids.nil?
+
+      role_ids = roles.where(permission => true).pluck(:id)
+
+      access_controls.where(access_group_id: access_group_ids, role_id: role_ids).exists?
     end
 
     # Provide a scope for each permission to get any user who qualifies
@@ -84,6 +79,18 @@ class Hmis::User < ApplicationRecord
 
   def lock_access!(opts = {})
     super opts.merge({ send_instructions: false })
+  end
+
+  private def access_group_ids_for_entity(entity)
+    access_group_ids = nil
+
+    if entity.is_a?(Hmis::Hud::Project)
+      access_group_ids = Hmis::GroupViewableEntity.includes_project(entity).pluck(:access_group_id)
+    elsif entity.is_a?(Hmis::Hud::Organization)
+      access_group_ids = Hmis::GroupViewableEntity.includes_organization(entity).pluck(:access_group_id)
+    end
+
+    access_group_ids
   end
 
   private def viewable(model)

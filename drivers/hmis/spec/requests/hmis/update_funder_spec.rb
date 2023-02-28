@@ -21,7 +21,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     }
   end
 
-  let!(:f1) { create :hmis_hud_funder, data_source_id: ds1.id, project: p1 }
+  let!(:f1) { create :hmis_hud_funder, data_source: ds1, project: p1 }
 
   let(:mutation) do
     <<~GRAPHQL

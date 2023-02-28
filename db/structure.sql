@@ -639,7 +639,16 @@ CREATE TABLE public.hmis_roles (
     deleted_at timestamp without time zone,
     can_administer_hmis boolean DEFAULT false,
     can_delete_assigned_project_data boolean DEFAULT false,
-    can_delete_enrollments boolean DEFAULT false
+    can_delete_enrollments boolean DEFAULT false,
+    can_delete_project boolean DEFAULT false NOT NULL,
+    can_edit_project_details boolean DEFAULT false NOT NULL,
+    can_edit_organization boolean DEFAULT false NOT NULL,
+    can_delete_organization boolean DEFAULT false NOT NULL,
+    can_edit_clients boolean DEFAULT false NOT NULL,
+    can_view_partial_ssn boolean DEFAULT false NOT NULL,
+    can_view_dob boolean DEFAULT false NOT NULL,
+    can_view_enrollment_details boolean DEFAULT false NOT NULL,
+    can_edit_enrollments boolean DEFAULT false NOT NULL
 );
 
 
@@ -3185,6 +3194,9 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230130213746'),
 ('20230130215326'),
 ('20230217151359'),
-('20230217201904');
+('20230217151360'),
+('20230217201904'),
+('20230223204644'),
+('20230227221846');
 
 
