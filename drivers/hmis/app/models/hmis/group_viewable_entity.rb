@@ -41,14 +41,14 @@ module Hmis
     end
 
     scope :includes_entity, ->(entity) do
-      case entity.class
-      when Hmis::Hud::Project
+      case entity.class.name
+      when Hmis::Hud::Project.name
         includes_project(entity)
-      when Hmis::Hud::Organization
+      when Hmis::Hud::Organization.name
         includes_organization(entity)
-      when GrdaWarehouse::DataSource
+      when GrdaWarehouse::DataSource.name
         includes_data_source(entity)
-      when GrdaWarehouse::ProjectAccessGroup
+      when GrdaWarehouse::ProjectAccessGroup.name
         includes_project_access_group(entity)
       else
         none
