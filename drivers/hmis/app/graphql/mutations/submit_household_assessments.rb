@@ -51,7 +51,7 @@ module Mutations
         end
       end
 
-      # Non-HoH Intake constriants
+      # Non-HoH Intake constraints
       if assessments.first.intake? && !includes_hoh
         hoh_enrollment = Hmis::Hud::Enrollment.viewable_by(current_user).
           where(household_id: household_ids.first, relationship_to_ho_h: 1).

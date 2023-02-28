@@ -13,7 +13,7 @@ module Mutations
       definition = assessment.assessment_detail.definition
       enrollment = assessment.enrollment
 
-      # HoH Exit constriants
+      # HoH Exit constraints
       if enrollment.head_of_household? && assessment.exit?
         open_enrollments = Hmis::Hud::Enrollment.open_on_date.
           viewable_by(current_user).
@@ -28,7 +28,7 @@ module Mutations
         end
       end
 
-      # Non-HoH Intake constriants
+      # Non-HoH Intake constraints
       if !enrollment.head_of_household? && assessment.intake?
         hoh_enrollment = Hmis::Hud::Enrollment.open_on_date.
           viewable_by(current_user).
