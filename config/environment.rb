@@ -2,4 +2,7 @@
 require_relative 'application'
 
 # Initialize the Rails application.
-Rails.application.initialize!
+begin
+  Rails.application.initialize!
+rescue ActiveRecord::ConnectionNotEstablished
+end
