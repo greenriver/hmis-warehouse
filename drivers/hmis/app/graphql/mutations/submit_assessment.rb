@@ -13,6 +13,8 @@ module Mutations
       definition = assessment.assessment_detail.definition
       enrollment = assessment.enrollment
 
+      errors = HmisErrors::Errors.new
+
       # HoH Exit constraints
       if enrollment.head_of_household? && assessment.exit?
         open_enrollments = Hmis::Hud::Enrollment.open_on_date.
@@ -21,11 +23,7 @@ module Mutations
           where.not(id: enrollment.id)
 
         # Error: cannot exit HoH if there are any other open enrollments
-        if open_enrollments.any?
-          return {
-            errors: [HmisErrors::Error.new(:assessment, :invalid, full_message: 'Cannot exit head of household because there are existing open enrollments. Please assign a new HoH.')],
-          }
-        end
+        errors.add :assessment, :invalid, full_message: 'Cannot exit head of household because there are existing open enrollments. Please assign a new HoH.' if open_enrollments.any?
       end
 
       # Non-HoH Intake constraints
@@ -36,12 +34,11 @@ module Mutations
           first
 
         # Error: HoH intake is WIP, so this assessment cannot be submitted yet
-        if hoh_enrollment&.in_progress?
-          return {
-            errors: [HmisErrors::Error.new(:assessment, :invalid, full_message: 'Cannot submit intake assessment because the Head of Household\'s intake has not yet been completed.')],
-          }
-        end
+        errors.add :assessment, :invalid, full_message: 'Cannot submit intake assessment because the Head of Household\'s intake has not yet been completed.' if hoh_enrollment&.in_progress?
       end
+
+      errors.add :assessment, :invalid, full_message: 'Cannot exit an incomplete assessment. Please complete the entry assessment first.' if enrollment.in_progress?
+      return { errors: errors } if errors.any?
 
       # Determine the Assessment Date and validate it
       assessment_date, errors = definition.find_and_validate_assessment_date(
