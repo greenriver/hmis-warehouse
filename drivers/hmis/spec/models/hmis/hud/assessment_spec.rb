@@ -9,7 +9,7 @@ RSpec.describe Hmis::Hud::Assessment, type: :model do
     cleanup_test_environment
   end
 
-  describe 'in process assessments' do
+  describe 'in progress assessments' do
     let!(:assessment) { create(:hmis_hud_assessment_with_defaults) }
 
     before(:each) do
