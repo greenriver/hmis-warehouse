@@ -20,7 +20,7 @@ module Mutations
       errors.add :assessment, :not_found if assessments.count != assessment_ids.size
 
       # Error: assessments do not all belong to the same household
-      household_ids = enrollment.map(&:household_id).uniq
+      household_ids = enrollments.map(&:household_id).uniq
       errors.add :assessment, :invalid, full_message: 'Assessments must all belong to the same household.' if household_ids.count != 1
 
       # Error: assessments do not have the same data collection stage
