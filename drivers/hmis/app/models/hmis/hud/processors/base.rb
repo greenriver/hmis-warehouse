@@ -36,7 +36,7 @@ class Hmis::Hud::Processors::Base
 
   def attribute_value_for_enum(enum_type, value)
     if value.nil?
-      # The field was left empty. Save sa nil or 99.
+      # The field was left empty. Save as nil or 99.
       enum_type&.data_not_collected_value
     elsif value == HIDDEN_FIELD_VALUE
       # The field was hidden. Always save as nil.
