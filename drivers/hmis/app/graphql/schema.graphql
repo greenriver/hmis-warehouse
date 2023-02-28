@@ -3502,7 +3502,7 @@ type ProjectAccess {
   canEditEnrollments: Boolean!
   canEditProjectDetails: Boolean!
   canViewDob: Boolean!
-  canViewEnrollments: Boolean!
+  canViewEnrollmentDetails: Boolean!
   canViewFullSsn: Boolean!
   canViewPartialSsn: Boolean!
 }
@@ -3742,8 +3742,20 @@ type Query {
 }
 
 type QueryAccess {
+  canAdministerHmis: Boolean!
+  canDeleteAssignedProjectData: Boolean!
+  canDeleteEnrollments: Boolean!
+  canDeleteOrganization: Boolean!
+  canDeleteProject: Boolean!
   canEditClients: Boolean!
+  canEditEnrollments: Boolean!
+  canEditOrganization: Boolean!
+  canEditProjectDetails: Boolean!
   canViewClients: Boolean!
+  canViewDob: Boolean!
+  canViewEnrollmentDetails: Boolean!
+  canViewFullSsn: Boolean!
+  canViewPartialSsn: Boolean!
 }
 
 """
