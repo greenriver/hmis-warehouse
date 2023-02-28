@@ -37,7 +37,6 @@ module Mutations
       # HoH Exit constraints
       enrollments = assessments.map(&:enrollment)
       includes_hoh = enrollments.map(&:relationship_to_ho_h).uniq.include?(1)
-      new_hoh_enrollment = nil
       if assessments.first.exit? && includes_hoh
         # FIXME: If exit dates can be in the future, `open_on_date` should check against HoH exit date
         # and the max assessment date on all assessments being submitted. Maybe do in Exit validator instead.
@@ -105,10 +104,6 @@ module Mutations
         # Update DateUpdated on the Enrollment
         assessment.enrollment.touch
       end
-
-      # If we are assigning a new HoH as a result of this submission, save the HoH change
-      new_hoh_enrollment&.save!
-      new_hoh_enrollment&.touch
 
       {
         assessments: assessments,
