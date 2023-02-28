@@ -60,7 +60,7 @@ class Hmis::User < ApplicationRecord
     define_method("#{permission}_for?") do |entity|
       return false unless send("#{permission}?")
 
-      access_group_ids = access_group_ids_for_entity(entity)
+      access_group_ids = Hmis::GroupViewableEntity.includes_entity(entity).pluck(:access_group_id)
 
       raise "Invalid entity '#{entity.class.name}'" if access_group_ids.nil?
 
@@ -81,17 +81,17 @@ class Hmis::User < ApplicationRecord
     super opts.merge({ send_instructions: false })
   end
 
-  private def access_group_ids_for_entity(entity)
-    access_group_ids = nil
+  # private def access_group_ids_for_entity(entity)
+  #   access_group_ids = nil
 
-    if entity.is_a?(Hmis::Hud::Project)
-      access_group_ids = Hmis::GroupViewableEntity.includes_project(entity).pluck(:access_group_id)
-    elsif entity.is_a?(Hmis::Hud::Organization)
-      access_group_ids = Hmis::GroupViewableEntity.includes_organization(entity).pluck(:access_group_id)
-    end
+  #   if entity.is_a?(Hmis::Hud::Project)
+  #     access_group_ids = Hmis::GroupViewableEntity.includes_entity(entity).pluck(:access_group_id)
+  #   elsif entity.is_a?(Hmis::Hud::Organization)
+  #     access_group_ids = Hmis::GroupViewableEntity.includes_organization(entity).pluck(:access_group_id)
+  #   end
 
-    access_group_ids
-  end
+  #   access_group_ids
+  # end
 
   private def viewable(model)
     model.where(
