@@ -1,0 +1,4 @@
+.row
+  .col-8
+    = f.input :role_id, as: :select_two, label_method: :name, collection: Hmis::Role.all
+    = f.input :access_group_id, as: :select_two, label_method: :name, collection: Hmis::AccessGroup.all
