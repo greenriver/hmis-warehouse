@@ -1,4 +1,4 @@
 - content_for :title, 'HMIS Group Administration'
 %h1= content_for :title
 = render 'hmis_admin/tabs', active_tab: :roles
-= render 'admin/roles/table_form', path_for_new: new_hmis_admin_role_path, path_for_patch: hmis_admin_roles_path, role_class: Hmis::Role, link_to_edit: false
+= render 'admin/roles/table_form', path_for_new: new_hmis_admin_role_path, path_for_patch: hmis_admin_roles_path, role_class: Hmis::Role
