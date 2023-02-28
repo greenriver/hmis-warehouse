@@ -42,7 +42,7 @@ class Hmis::Hud::Processors::Base
       # The field was hidden. Always save as nil.
       nil
     else
-      # If the HUD type doesn't have a translator, fall back to the DB one
+      # Use the HUD enumeration value, or if the HUD type doesn't have a translator, fall back to the DB one
       enum_type&.value_for(value) || value
     end
   end
