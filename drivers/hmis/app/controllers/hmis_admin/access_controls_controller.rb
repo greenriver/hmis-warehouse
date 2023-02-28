@@ -30,6 +30,13 @@ class HmisAdmin::AccessControlsController < ApplicationController
   def edit
   end
 
+  def update
+    @acl.update(access_control_params)
+    @acl.save
+
+    redirect_to({ action: :index }, notice: 'Access Control List updated.')
+  end
+
   def destroy
     @acl.destroy
     redirect_to({ action: :index }, notice: 'Access Control List removed.')
