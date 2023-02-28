@@ -6,7 +6,7 @@
 
 default_app_db: &default_app_db
   adapter: <%= ENV['DATABASE_ADAPTER'] %>
-  pool: 15
+  pool: 5
   timeout: 5000
   <% if ENV['DATABASE_PORT'] %>
   port: <%= ENV['DATABASE_PORT'] %>
@@ -23,7 +23,7 @@ default_app_db: &default_app_db
 
 default_warehouse_db: &default_warehouse_db
   adapter: <%= ENV['WAREHOUSE_DATABASE_ADAPTER'] %>
-  pool: 15
+  pool: 5
   timeout: 5000
   <% if ENV['WAREHOUSE_DATABASE_PORT'] %>
   port: <%= ENV['WAREHOUSE_DATABASE_PORT'] %>
@@ -40,7 +40,7 @@ default_warehouse_db: &default_warehouse_db
 
 default_health_db: &default_health_db
   adapter: <%= ENV['HEALTH_DATABASE_ADAPTER'] %>
-  pool: 15
+  pool: 5
   timeout: 5000
   <% if ENV['HEALTH_DATABASE_PORT'] %>
   port: <%= ENV['HEALTH_DATABASE_PORT'] %>
@@ -57,7 +57,7 @@ default_health_db: &default_health_db
 
 default_reporting_db: &default_reporting_db
   adapter: <%= ENV['REPORTING_DATABASE_ADAPTER'] %>
-  pool: 15
+  pool: 5
   timeout: 5000
   <% if ENV['REPORTING_DATABASE_PORT'] %>
   port: <%= ENV['REPORTING_DATABASE_PORT'] %>
@@ -74,7 +74,7 @@ default_reporting_db: &default_reporting_db
 
 default_cas_db: &default_cas_db
   adapter: <%= ENV['CAS_DATABASE_ADAPTER'] %>
-  pool: 15
+  pool: 5
   timeout: 5000
   <% if ENV['CAS_DATABASE_PORT'] %>
   port: <%= ENV['CAS_DATABASE_PORT'] %>

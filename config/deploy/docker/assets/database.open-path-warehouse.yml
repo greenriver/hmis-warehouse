@@ -1,5 +1,5 @@
 default: &default
-  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 15 }.to_i %>
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 }.to_i %>
   timeout: 5000
   port: <%= ENV.fetch('DATABASE_PORT') { 5432 }.to_i  %>
   <% if ENV['RAILS_ENV'] == 'production' || ENV['RAILS_ENV'] == 'staging' %>
