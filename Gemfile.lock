@@ -1025,6 +1025,7 @@ DEPENDENCIES
   execjs
   factory_bot_rails
   faker (>= 1.7.2)
+  faraday (~> 1.8)
   fast_gettext
   ffi
   ffi-geos
