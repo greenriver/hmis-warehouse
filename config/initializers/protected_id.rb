@@ -13,6 +13,7 @@ module ProtectedId
   module Encoder
     def encode(id)
       return id.to_s unless PROTECT_IDS
+      return if id.nil?
 
       day_stamp = Date.today.to_time.to_i / (60 * 60 * 24) # Seconds in a day
       obfuscate(id, day_stamp)
