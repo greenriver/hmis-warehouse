@@ -33,13 +33,17 @@ RSpec.describe Hmis::Form::AssessmentProcessor, type: :model do
     expect(assessment.enrollment.enrollment_cocs.first.coc_code).to eq('MA-507')
   end
 
-  it 'ingests IncomeBenefit into the hud tables' do
+  it 'ingests IncomeBenefit into the hud tables (income sources)' do
     assessment = Hmis::Hud::Assessment.new_with_defaults(enrollment: e1, user: hmis_hud_user, form_definition: fd, assessment_date: Date.current)
     assessment.assessment_detail.hud_values = {
       'IncomeBenefit.incomeFromAnySource' => 'YES',
-      'IncomeBenefit.earned' => true,
-      'IncomeBenefit.earnedAmount' => 1,
-      'IncomeBenefit.otherInsurance' => false,
+      'IncomeBenefit.earned' => nil,
+      'IncomeBenefit.earnedAmount' => nil,
+      'IncomeBenefit.unemployment' => true,
+      'IncomeBenefit.unemploymentAmount' => 100,
+      'IncomeBenefit.otherIncomeSource' => false,
+      'IncomeBenefit.otherIncomeAmount' => 0,
+      'IncomeBenefit.otherIncomeSourceIdentify' => '_HIDDEN',
     }
 
     assessment.assessment_detail.assessment_processor.run!
@@ -49,9 +53,133 @@ RSpec.describe Hmis::Form::AssessmentProcessor, type: :model do
 
     income_benefits = assessment.enrollment.income_benefits.first
     expect(income_benefits.income_from_any_source).to eq(1)
-    expect(income_benefits.earned).to eq(1)
-    expect(income_benefits.earned_amount).to eq(1)
-    expect(income_benefits.other_insurance).to eq(0)
+    expect(income_benefits.earned).to eq(0) # overridden
+    expect(income_benefits.earned_amount).to eq(nil)
+    expect(income_benefits.unemployment).to eq(1)
+    expect(income_benefits.unemployment_amount).to eq(100)
+    expect(income_benefits.other_income_source).to eq(0)
+    expect(income_benefits.other_income_amount).to eq(0)
+    expect(income_benefits.other_income_source_identify).to eq(nil)
+  end
+
+  it 'ingests IncomeBenefit into the hud tables (non-cash benefits, all hidden)' do
+    assessment = Hmis::Hud::Assessment.new_with_defaults(enrollment: e1, user: hmis_hud_user, form_definition: fd, assessment_date: Date.current)
+    assessment.assessment_detail.hud_values = {
+      'IncomeBenefit.benefitsFromAnySource' => 'NO',
+      'IncomeBenefit.snap' => '_HIDDEN',
+      'IncomeBenefit.wic' => '_HIDDEN',
+      'IncomeBenefit.otherBenefitsSource' => '_HIDDEN',
+      'IncomeBenefit.otherBenefitsSourceIdentify' => '_HIDDEN',
+    }
+
+    assessment.assessment_detail.assessment_processor.run!
+    assessment.save_not_in_progress
+
+    expect(assessment.enrollment.income_benefits.count).to eq(1)
+
+    income_benefits = assessment.enrollment.income_benefits.first
+    expect(income_benefits.benefits_from_any_source).to eq(0)
+    expect(income_benefits.snap).to eq(0) # overridden
+    expect(income_benefits.wic).to eq(0) # overridden
+    expect(income_benefits.other_benefits_source).to eq(0) # overridden
+    expect(income_benefits.other_benefits_source_identify).to eq(nil)
+  end
+
+  it 'ingests IncomeBenefit into the hud tables (health insurance)' do
+    assessment = Hmis::Hud::Assessment.new_with_defaults(enrollment: e1, user: hmis_hud_user, form_definition: fd, assessment_date: Date.current)
+    assessment.assessment_detail.hud_values = {
+      'IncomeBenefit.insuranceFromAnySource' => 'YES',
+      'IncomeBenefit.medicaid' => true,
+      'IncomeBenefit.schip' => nil,
+      'IncomeBenefit.otherInsurance' => nil,
+      'IncomeBenefit.otherInsuranceIdentify' => '_HIDDEN',
+    }
+
+    assessment.assessment_detail.assessment_processor.run!
+    assessment.save_not_in_progress
+
+    expect(assessment.enrollment.income_benefits.count).to eq(1)
+
+    income_benefits = assessment.enrollment.income_benefits.first
+    expect(income_benefits.insurance_from_any_source).to eq(1)
+    expect(income_benefits.medicaid).to eq(1)
+    expect(income_benefits.schip).to eq(0) # overridden
+    expect(income_benefits.other_insurance).to eq(0) # overridden
+    expect(income_benefits.other_insurance_identify).to eq(nil)
+  end
+
+  it 'ingests IncomeBenefit into the hud tables (health insurance saves as 99)' do
+    assessment = Hmis::Hud::Assessment.new_with_defaults(enrollment: e1, user: hmis_hud_user, form_definition: fd, assessment_date: Date.current)
+    assessment.assessment_detail.hud_values = {
+      'IncomeBenefit.insuranceFromAnySource' => nil,
+      'IncomeBenefit.medicaid' => nil,
+    }
+
+    assessment.assessment_detail.assessment_processor.run!
+    assessment.save_not_in_progress
+
+    expect(assessment.enrollment.income_benefits.count).to eq(1)
+
+    income_benefits = assessment.enrollment.income_benefits.first
+    expect(income_benefits.insurance_from_any_source).to eq(99)
+    expect(income_benefits.medicaid).to eq(nil)
+  end
+
+  it 'ingests HealthAndDV into the hud tables (no)' do
+    assessment = Hmis::Hud::Assessment.new_with_defaults(enrollment: e1, user: hmis_hud_user, form_definition: fd, assessment_date: Date.current)
+    assessment.assessment_detail.hud_values = {
+      'HealthAndDv.domesticViolenceVictim' => 'NO',
+      'HealthAndDv.currentlyFleeing' => '_HIDDEN',
+      'HealthAndDv.whenOccurred' => '_HIDDEN',
+    }
+
+    assessment.assessment_detail.assessment_processor.run!
+    assessment.save_not_in_progress
+
+    expect(assessment.enrollment.health_and_dvs.count).to eq(1)
+
+    health_and_dv = assessment.enrollment.health_and_dvs.first
+    expect(health_and_dv.domestic_violence_victim).to eq(0)
+    expect(health_and_dv.currently_fleeing).to eq(nil)
+    expect(health_and_dv.when_occurred).to eq(nil)
+  end
+
+  it 'ingests HealthAndDV into the hud tables (99)' do
+    assessment = Hmis::Hud::Assessment.new_with_defaults(enrollment: e1, user: hmis_hud_user, form_definition: fd, assessment_date: Date.current)
+    assessment.assessment_detail.hud_values = {
+      'HealthAndDv.domesticViolenceVictim' => nil,
+      'HealthAndDv.currentlyFleeing' => '_HIDDEN',
+      'HealthAndDv.whenOccurred' => '_HIDDEN',
+    }
+
+    assessment.assessment_detail.assessment_processor.run!
+    assessment.save_not_in_progress
+
+    expect(assessment.enrollment.health_and_dvs.count).to eq(1)
+
+    health_and_dv = assessment.enrollment.health_and_dvs.first
+    expect(health_and_dv.domestic_violence_victim).to eq(99)
+    expect(health_and_dv.currently_fleeing).to eq(nil)
+    expect(health_and_dv.when_occurred).to eq(nil)
+  end
+
+  it 'ingests HealthAndDV into the hud tables (yes, with 99 conditional)' do
+    assessment = Hmis::Hud::Assessment.new_with_defaults(enrollment: e1, user: hmis_hud_user, form_definition: fd, assessment_date: Date.current)
+    assessment.assessment_detail.hud_values = {
+      'HealthAndDv.domesticViolenceVictim' => 'YES',
+      'HealthAndDv.currentlyFleeing' => nil,
+      'HealthAndDv.whenOccurred' => 'CLIENT_REFUSED',
+    }
+
+    assessment.assessment_detail.assessment_processor.run!
+    assessment.save_not_in_progress
+
+    expect(assessment.enrollment.health_and_dvs.count).to eq(1)
+
+    health_and_dv = assessment.enrollment.health_and_dvs.first
+    expect(health_and_dv.domestic_violence_victim).to eq(1)
+    expect(health_and_dv.currently_fleeing).to eq(99)
+    expect(health_and_dv.when_occurred).to eq(9)
   end
 
   it 'ingests DisabilityGroup into multiple Disabilities' do
@@ -84,6 +212,40 @@ RSpec.describe Hmis::Form::AssessmentProcessor, type: :model do
     expect(disabilities.find_by(disability_type: 6).indefinite_and_impairs).to be_nil
     # Substance Use
     expect(disabilities.find_by(disability_type: 10).disability_response).to eq(3)
+  end
+
+  it 'can process nil and _HIDDEN DisabilityGroup fields' do
+    assessment = Hmis::Hud::Assessment.new_with_defaults(enrollment: e1, user: hmis_hud_user, form_definition: fd, assessment_date: Date.current)
+    assessment.assessment_detail.hud_values = {
+      'DisabilityGroup.physicalDisability' => nil,
+      'DisabilityGroup.physicalDisabilityIndefiniteAndImpairs' => '_HIDDEN',
+      'DisabilityGroup.developmentalDisability' => 'NO',
+      'DisabilityGroup.developmentalDisabilityIndefiniteAndImpairs' => '_HIDDEN',
+      'DisabilityGroup.chronicHealthCondition' => 'YES',
+      'DisabilityGroup.chronicHealthConditionIndefiniteAndImpairs' => nil,
+      'DisabilityGroup.hivAids' => nil,
+      'DisabilityGroup.mentalHealthDisorder' => nil,
+      'DisabilityGroup.substanceUseDisorder' => 'BOTH_ALCOHOL_AND_DRUG_USE_DISORDERS',
+      'DisabilityGroup.substanceUseDisorderIndefiniteAndImpairs' => nil,
+      'DisabilityGroup.disablingCondition' => nil,
+    }
+
+    assessment.assessment_detail.assessment_processor.run!
+    assessment.save_not_in_progress
+
+    expect(assessment.enrollment.disabilities.count).to eq(6)
+    expect(assessment.enrollment.disabling_condition).to eq(99)
+
+    disabilities = assessment.enrollment.disabilities
+    # Physical Disability
+    expect(disabilities.find_by(disability_type: 5).disability_response).to eq(99) # nil is saved as 99
+    expect(disabilities.find_by(disability_type: 5).indefinite_and_impairs).to be_nil # hidden is saved as nil
+    # Developmental Disability
+    expect(disabilities.find_by(disability_type: 6).disability_response).to eq(0)
+    expect(disabilities.find_by(disability_type: 6).indefinite_and_impairs).to be_nil # hidden is saved as nil
+    # Substance Use
+    expect(disabilities.find_by(disability_type: 10).disability_response).to eq(3)
+    expect(disabilities.find_by(disability_type: 10).indefinite_and_impairs).to eq(99) # nil is saved as 99
   end
 
   it 'pulls validation errors up from HUD records' do

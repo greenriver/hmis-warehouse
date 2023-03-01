@@ -21,6 +21,11 @@ module Types
     field :date_created, GraphQL::Types::ISO8601DateTime, null: false
     field :date_deleted, GraphQL::Types::ISO8601DateTime, null: true
 
+    access_field do
+      can :delete_organization
+      can :edit_organization
+    end
+
     def projects(**args)
       resolve_projects(object.projects, **args)
     end

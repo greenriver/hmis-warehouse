@@ -6,7 +6,7 @@
 
 module HmisErrors
   class Error
-    def initialize(attribute, type = :invalid, message: nil, full_message: nil, severity: :error, readable_attribute: nil, id: nil, link_id: nil, **kwargs)
+    def initialize(attribute, type = :invalid, severity: :error, message: nil, full_message: nil, readable_attribute: nil, **kwargs)
       type = :invalid unless Types::HmisSchema::Enums::ValidationType.values.keys.include?(type.to_s)
 
       # Camelize attribute ("entryDate" not "entry_date")
@@ -25,8 +25,10 @@ module HmisErrors
         full_message: full_message,
         readable_attribute: readable_attribute,
         severity: severity,
-        id: id,
-        link_id: link_id,
+        id: nil,
+        record_id: nil,
+        link_id: nil,
+        section: nil,
         **kwargs,
       }.each do |key, value|
         define_singleton_method(key) { value }
@@ -45,7 +47,8 @@ module HmisErrors
         message: error.message,
         full_message: full_message,
         readable_attribute: readable_attribute,
-        severity: :error, # could it be set in options?
+        severity: :error,
+        record_id: error.object_id,
       )
     end
 

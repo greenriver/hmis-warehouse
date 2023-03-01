@@ -73,6 +73,8 @@ module ProtectedId
     include Encoder
 
     def to_param
+      return super unless id.is_a?(Integer)
+
       encode(id)
     end
   end

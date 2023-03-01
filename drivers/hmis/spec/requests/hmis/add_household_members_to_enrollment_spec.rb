@@ -134,6 +134,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           ->(input) { input.merge(start_date: (Date.today + 1.week).strftime('%Y-%m-%d')) },
           {
             fullMessage: 'Entry date cannot be in the future',
+            attribute: :startDate,
             severity: :error,
             type: :out_of_range,
           },
