@@ -9,7 +9,7 @@ class Hmis::Hud::Processors::Base
 
   def initialize(processor)
     @processor = processor
-    @hud_values = processor.assessment_detail.hud_values
+    @hud_values = processor.custom_form.hud_values
   end
 
   def process(field, value)
@@ -28,6 +28,7 @@ class Hmis::Hud::Processors::Base
   end
 
   def hud_type(field)
+    # binding.pry
     type = schema.fields[field].type
     return nil unless type.respond_to?(:value_for)
 

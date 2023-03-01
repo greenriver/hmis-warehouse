@@ -141,15 +141,15 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   def intake_assessment
     assessments_including_wip.
-      joins(:assessment_detail).
-      where(assessment_detail: { data_collection_stage: 1 }). # Project entry
+      joins(:custom_form).
+      where(custom_form: { data_collection_stage: 1 }). # Project entry
       first
   end
 
   def exit_assessment
     assessments_including_wip.
-      joins(:assessment_detail).
-      where(assessment_detail: { data_collection_stage: 3 }). # Project exit
+      joins(:custom_form).
+      where(custom_form: { data_collection_stage: 3 }). # Project exit
       first
   end
 end

@@ -8,7 +8,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   self.table_name = :hmis_form_definitions
 
   has_many :instances, foreign_key: :identifier, primary_key: :form_definition_identifier
-  has_many :assessment_details
+  has_many :custom_forms
 
   def self.definitions_for_project(project, role: nil)
     instance_scope = Hmis::Form::Instance.none
