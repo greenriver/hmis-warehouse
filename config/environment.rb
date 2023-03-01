@@ -7,9 +7,9 @@ begin
   # only occurs on deploy and console boot on deployed instances, and appears to have
   # no negative impacts
   Rails.application.initialize!
-rescue ActiveRecord::ConnectionNotEstablished => e
+rescue StandardError, ActiveRecord::ConnectionNotEstablished => e
   Sentry.capture_exception_with_info(
-    ActiveRecord::ConnectionNotEstablished.new('App failed to boot, you can probably ignore this'),
+    StandardError.new('App failed to boot, you can probably ignore this. Caused by ActiveRecord::ConnectionNotEstablished'),
     'App failed to boot',
     { backtrace: e.backtrace.to_s }
   )
