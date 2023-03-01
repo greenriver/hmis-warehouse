@@ -34,12 +34,14 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
 
   scope :in_progress, -> { where(enrollment_id: WIP_ID) }
   scope :not_in_progress, -> { where.not(enrollment_id: WIP_ID) }
+  scope :intakes, -> { where(data_collection_stage: 1) }
+  scope :exits, -> { where(data_collection_stage: 3) }
 
   # hide previous declaration of :viewable_by, we'll use this one
   replace_scope :viewable_by, ->(user) do
     enrollment_ids = Hmis::Hud::Enrollment.viewable_by(user).pluck(:id, :EnrollmentID)
     viewable_wip = wip_t[:enrollment_id].in(enrollment_ids.map(&:first))
-    viewable_completed = as_t[:EnrollmentID].in(enrollment_ids.map(&:second))
+    viewable_completed = cas_t[:EnrollmentID].in(enrollment_ids.map(&:second))
 
     left_outer_joins(:wip).where(viewable_wip.or(viewable_completed))
   end
@@ -48,7 +50,7 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
   replace_scope :editable_by, ->(user) do
     enrollment_ids = Hmis::Hud::Enrollment.editable_by(user).pluck(:id, :EnrollmentID)
     editable_wip = wip_t[:enrollment_id].in(enrollment_ids.map(&:first))
-    editable_completed = as_t[:EnrollmentID].in(enrollment_ids.map(&:second))
+    editable_completed = cas_t[:EnrollmentID].in(enrollment_ids.map(&:second))
 
     left_outer_joins(:wip).where(editable_wip.or(editable_completed))
   end

@@ -5,7 +5,7 @@ module Mutations
     field :assessment, Types::HmisSchema::Assessment, null: true
 
     def resolve(id:)
-      record = Hmis::Hud::Assessment.editable_by(current_user).find_by(id: id)
+      record = Hmis::Hud::CustomAssessment.editable_by(current_user).find_by(id: id)
       default_delete_record(record: record, field_name: :assessment)
     end
   end

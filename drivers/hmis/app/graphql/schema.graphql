@@ -52,36 +52,20 @@ type ApplicationUser {
 }
 
 """
-HUD Assessment
+Custom Assessment
 """
 type Assessment {
   assessmentDate: ISO8601Date!
-  assessmentDetail: AssessmentDetail
-  assessmentLevel: AssessmentLevel
-  assessmentLocation: String!
-  assessmentType: AssessmentType
   client: Client!
+  customForm: CustomForm
+  dataCollectionStage: DataCollectionStage
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
   enrollment: Enrollment!
   id: ID!
   inProgress: Boolean!
-  prioritizationStatus: PrioritizationStatus
   user: User
-}
-
-"""
-AssessmentDetail
-"""
-type AssessmentDetail {
-  assessment: Assessment!
-  dataCollectionStage: DataCollectionStage
-  definition: FormDefinition!
-  id: ID!
-  role: AssessmentRole!
-  status: String!
-  values: JsonObject
 }
 
 input AssessmentInput {
@@ -323,6 +307,34 @@ type BedsPaginated {
 enum BoundType {
   MAX
   MIN
+}
+
+"""
+HUD Coordinated Entry Assessment
+"""
+type CeAssessment {
+  assessmentDate: ISO8601Date!
+  assessmentLevel: AssessmentLevel
+  assessmentLocation: String!
+  assessmentType: AssessmentType
+  client: Client!
+  dateCreated: ISO8601DateTime!
+  dateDeleted: ISO8601DateTime
+  dateUpdated: ISO8601DateTime!
+  enrollment: Enrollment!
+  id: ID!
+  prioritizationStatus: PrioritizationStatus
+  user: User
+}
+
+type CeAssessmentsPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [CeAssessment!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
 }
 
 """
@@ -786,6 +798,16 @@ type CreateUnitsPayload {
   clientMutationId: String
   errors: [ValidationError!]!
   inventory: Inventory
+}
+
+"""
+CustomForm
+"""
+type CustomForm {
+  assessment: Assessment!
+  definition: FormDefinition!
+  id: ID!
+  values: JsonObject
 }
 
 """
@@ -1400,6 +1422,7 @@ HUD Enrollment
 """
 type Enrollment {
   assessments(inProgress: Boolean, limit: Int, offset: Int, roles: [AssessmentRole!], sortOrder: AssessmentSortOption): AssessmentsPaginated!
+  ceAssessments(limit: Int, offset: Int, sortOrder: AssessmentSortOption): CeAssessmentsPaginated!
   client: Client!
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime

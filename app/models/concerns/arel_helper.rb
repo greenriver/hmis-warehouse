@@ -264,6 +264,10 @@ module ArelHelper
     GrdaWarehouse::Hud::Assessment.arel_table
   end
 
+  def cas_t
+    Hmis::Hud::CustomAssessment.arel_table
+  end
+
   def asq_t
     GrdaWarehouse::Hud::AssessmentQuestion.arel_table
   end
@@ -638,6 +642,10 @@ module ArelHelper
 
     def as_t
       GrdaWarehouse::Hud::Assessment.arel_table
+    end
+
+    def cas_t
+      Hmis::Hud::CustomAssessment.arel_table
     end
 
     def asq_t

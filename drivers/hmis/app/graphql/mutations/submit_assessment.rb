@@ -10,7 +10,7 @@ module Mutations
       assessment, errors = input.find_or_create_assessment
       return { errors: errors } if errors.any?
 
-      definition = assessment.assessment_detail.definition
+      definition = assessment.custom_form.definition
       enrollment = assessment.enrollment
 
       errors = HmisErrors::Errors.new
@@ -49,7 +49,7 @@ module Mutations
       )
 
       # Update values
-      assessment.assessment_detail.assign_attributes(
+      assessment.custom_form.assign_attributes(
         values: input.values,
         hud_values: input.hud_values,
       )
@@ -59,12 +59,12 @@ module Mutations
       )
 
       # Validate form values based on FormDefinition
-      validation_errors = assessment.assessment_detail.validate_form(ignore_warnings: input.confirmed)
+      validation_errors = assessment.custom_form.validate_form(ignore_warnings: input.confirmed)
       errors.push(*validation_errors)
 
       # If this is an existing assessment and all the errors are warnings, save changes before returning
       if errors.all?(&:warning?) && assessment.id.present?
-        assessment.assessment_detail.save!
+        assessment.custom_form.save!
         assessment.save!
         assessment.touch
       end
@@ -72,18 +72,18 @@ module Mutations
       return { assessment: nil, errors: errors } if errors.any?
 
       # Run processor to create/update related records
-      assessment.assessment_detail.assessment_processor.run!
+      assessment.custom_form.form_processor.run!
 
       # Run both validations
       assessment_valid = assessment.valid?
-      assessment_detail_valid = assessment.assessment_detail.valid?
+      custom_form_valid = assessment.custom_form.valid?
 
-      if assessment_valid && assessment_detail_valid
+      if assessment_valid && custom_form_valid
         # We need to call save on the processor directly to get the before_save hook to invoke.
         # If this is removed, the Enrollment won't save.
-        assessment.assessment_detail.assessment_processor.save!
-        # Save AssessmentDetail to save the rest of the related records
-        assessment.assessment_detail.save!
+        assessment.custom_form.form_processor.save!
+        # Save CustomForm to save the rest of the related records
+        assessment.custom_form.save!
         # Save the assessment as non-WIP
         assessment.save_not_in_progress
         # If this is an intake assessment, ensure the enrollment is no longer in WIP status
@@ -93,7 +93,7 @@ module Mutations
       else
         # These are potentially unfixable errors, so maybe we should throw a server error instead.
         # Leaving them visible to the user for now, while we QA the feature.
-        errors.push(*assessment.assessment_detail&.errors&.errors)
+        errors.push(*assessment.custom_form&.errors&.errors)
         errors.push(*assessment.errors&.errors)
         assessment = nil
       end
