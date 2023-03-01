@@ -8,6 +8,7 @@ module BostonReports::WarehouseReports
 
     before_action :require_can_view_clients, only: [:detail]
     before_action :set_report
+    before_action :set_config
     before_action :set_pdf_export
 
     background_render_action(:render_section, ::BackgroundRender::StreetToHomeJob) do
@@ -29,6 +30,20 @@ module BostonReports::WarehouseReports
       end
     end
 
+    def details
+      console
+      @clients = if @report.clients.keys.include?(params[:cohort])
+        ids = @report.clients[params[:cohort]]
+        if ids.present?
+          @report.client_details(ids.to_a)
+        else
+          []
+        end
+      else
+        []
+      end
+    end
+
     private def set_report
       @report = report_class.new(@filter)
       if @report.include_comparison?
@@ -40,6 +55,10 @@ module BostonReports::WarehouseReports
 
     private def report_class
       BostonReports::StreetToHome
+    end
+
+    private def set_config
+      @config ||= BostonReports::Config.first_or_create(&:default_colors) # rubocop:disable Naming/MemoizedInstanceVariableName
     end
 
     def section

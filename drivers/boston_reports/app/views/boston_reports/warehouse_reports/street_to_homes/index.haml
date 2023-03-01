@@ -1,4 +1,4 @@
-- title = _('Street To Home')
+- title = _('Street 2 Home')
 - content_for :title, title
 
 - @layout__plain_inner = true
@@ -8,7 +8,7 @@
     = render 'filters/filter_controls/sidebar'
   .main-outer-prs1
     .utility-prs1
-      = render '/warehouse_reports/breadcrumbs', tab: 'operational'
+      = render '/warehouse_reports/breadcrumbs', tab: 'performance'
       = render "utility"
     .top-nav-prs1
       %h1.mb-5= title

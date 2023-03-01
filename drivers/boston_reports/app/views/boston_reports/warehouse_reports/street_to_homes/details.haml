@@ -1,0 +1,27 @@
+= content_for :crumbs do
+  = link_to boston_reports_warehouse_reports_street_to_homes_path(@report.filter.for_params) do
+    = "« Street 2 Home"
+- content_for :title do
+  = "Street 2 Home Details"
+.d-flex.mb-2
+  %h1= content_for :title
+
+
+- if @clients.blank?
+  .none-found No records found.
+- else
+  .card
+    .overflow-x-scroll{style: "height: 800px"}
+      %table.table.table-sm.table-bordered.table-fixed
+        %thead.thead-dark
+          %tr
+            %th
+            - @report.detail_headers.each_key do |header|
+              %th= header
+        %tbody.thead-dark
+          - @clients.each.with_index do |client, i|
+            %tr
+              %th= i + 1
+              - @report.detail_headers.each_value do |lamda|
+                %td{style: 'max-width: 600px;'}
+                  = lamda.(client)

@@ -50,14 +50,6 @@ module BostonReports
       ]
     end
 
-    def foreground_color(section_type, number)
-      bg_color = background_color(section_type, number)
-      case bg_color
-      when :total
-        'todo'
-      end
-    end
-
     def background_color(section_type, _number)
       case section_type
       when :total
@@ -128,6 +120,19 @@ module BostonReports
       GrdaWarehouse::CohortClient.
         where(cohort_id: filter.cohort_ids).
         preload(client: :source_clients)
+    end
+
+    def detail_headers
+      {
+        'First Name' => ->(cc) { CohortColumns::FirstName.new(cohort_client: cc).display_read_only(filter.user) },
+        'Last Name' => ->(cc) { CohortColumns::LastName.new(cohort_client: cc).display_read_only(filter.user) },
+        'Race' => ->(cc) { CohortColumns::Race.new(cohort_client: cc).display_read_only(filter.user) },
+        'Cohort' => ->(cc) { cohort_column_instance.class.new(cohort_client: cc).display_read_only(filter.user) },
+      }
+    end
+
+    def client_details(ids)
+      report_scope.where(client_id: ids)
     end
 
     def clients
@@ -285,7 +290,11 @@ module BostonReports
     end
 
     private def matched_column
-      @matched_column ||= GrdaWarehouse::Cohort.available_columns.detect { |c| c.title == 'Current Voucher or Match Type' }&.column
+      @matched_column ||= cohort_column_instance&.column
+    end
+
+    private def cohort_column_instance
+      @cohort_column_instance ||= GrdaWarehouse::Cohort.available_columns.detect { |c| c.title == 'Current Voucher or Match Type' }
     end
 
     private def match_types

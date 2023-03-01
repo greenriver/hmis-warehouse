@@ -849,6 +849,13 @@ module GrdaWarehouse::WarehouseReports
           limitable: false,
           health: false,
         }
+        r_list['Performance'] << {
+          url: 'boston_reports/warehouse_reports/configs',
+          name: _('Boston Reports Configuration'),
+          description: 'Report configuration for Boston specific reports',
+          limitable: false,
+          health: false,
+        }
       end
       if RailsDrivers.loaded.include?(:project_scorecard)
         r_list['Performance'] << {
@@ -1296,7 +1303,10 @@ module GrdaWarehouse::WarehouseReports
       cleanup << 'ma_yya_followup_report/warehouse_reports/youth_followup' unless RailsDrivers.loaded.include?(:ma_yya_followup_report)
       cleanup << 'service_scanning/warehouse_reports/scanned_services' unless RailsDrivers.loaded.include?(:service_scanning)
       cleanup << 'core_demographics_report/warehouse_reports/core' unless RailsDrivers.loaded.include?(:core_demographics_report)
-      cleanup << 'boston_reports/warehouse_reports/street_to_homes' unless RailsDrivers.loaded.include?(:boston_reports)
+      unless RailsDrivers.loaded.include?(:boston_reports)
+        cleanup << 'boston_reports/warehouse_reports/street_to_homes'
+        cleanup << 'boston_reports/warehouse_reports/configs'
+      end
 
       unless RailsDrivers.loaded.include?(:claims_reporting)
         cleanup << 'claims_reporting/warehouse_reports/reconciliation'
