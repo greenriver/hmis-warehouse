@@ -20,20 +20,14 @@ FactoryBot.define do
     enrollment { association :hmis_hud_enrollment, data_source: data_source }
     client { association :hmis_hud_client, data_source: data_source }
     sequence(:AssessmentID, 500)
-    AssessmentDate { Date.parse('2019-01-01') }
-    AssessmentLocation { 'Test Location' }
-    AssessmentType { 1 }
-    AssessmentLevel { 1 }
-    PrioritizationStatus { 1 }
     DateCreated { Date.parse('2019-01-01') }
     DateUpdated { Date.parse('2019-01-01') }
-
     initialize_with do
       Hmis::Hud::Assessment.new_with_defaults(
         enrollment: enrollment,
         user: enrollment.user,
         form_definition: create(:hmis_form_definition),
-        assessment_date: Date.current,
+        assessment_date: Date.parse('2019-01-01'),
       )
     end
   end

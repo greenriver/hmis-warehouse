@@ -9,6 +9,7 @@ def assign_viewable(access_group, viewable, user)
   # make a decision about it before changing all the tests
   viewable = Hmis::Hud::Project.find_by(id: viewable.id) if viewable.is_a? GrdaWarehouse::Hud::Project
   viewable = Hmis::Hud::Organization.find_by(id: viewable.id) if viewable.is_a? GrdaWarehouse::Hud::Organization
+  viewable = GrdaWarehouse::DataSource.find_by(id: viewable.id) if viewable.is_a? GrdaWarehouse::DataSource
 
   access_group.add_viewable(viewable)
   role = Hmis::Role.first || create(:hmis_role)

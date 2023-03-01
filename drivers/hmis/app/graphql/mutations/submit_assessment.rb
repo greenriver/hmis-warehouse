@@ -13,7 +13,9 @@ module Mutations
       definition = assessment.assessment_detail.definition
       enrollment = assessment.enrollment
 
-      # If this is an HoH Exit, check special restrictions
+      errors = HmisErrors::Errors.new
+
+      # HoH Exit constraints
       if enrollment.head_of_household? && assessment.exit?
         open_enrollments = Hmis::Hud::Enrollment.open_on_date.
           viewable_by(current_user).
@@ -21,15 +23,23 @@ module Mutations
           where.not(id: enrollment.id)
 
         # Error: cannot exit HoH if there are any other open enrollments
-        if open_enrollments.any?
-          return {
-            errors: [HmisErrors::Error.new(:assessment, :invalid, full_message: 'Cannot exit head of household because there are existing open enrollments. Please assign a new HoH.')],
-          }
-        end
+        errors.add :assessment, :invalid, full_message: 'Cannot exit head of household because there are existing open enrollments. Please assign a new HoH.' if open_enrollments.any?
       end
 
-      # TODO if this is an Intake, confirm that the HoH has already been submitted.
-      # Other members can't be submitted unless the HoH has already moved out of WIP status.
+      # Non-HoH Intake constraints
+      if !enrollment.head_of_household? && assessment.intake?
+        hoh_enrollment = Hmis::Hud::Enrollment.open_on_date.
+          heads_of_households.
+          viewable_by(current_user).
+          where(household_id: enrollment.household_id).
+          first
+
+        # Error: HoH intake is WIP, so this assessment cannot be submitted yet
+        errors.add :assessment, :invalid, full_message: 'Cannot submit intake assessment because the Head of Household\'s intake has not yet been completed.' if hoh_enrollment&.in_progress?
+      end
+
+      errors.add :assessment, :invalid, full_message: 'Cannot exit an incomplete enrollment. Please complete the entry assessment first.' if assessment.exit? && enrollment.in_progress?
+      return { errors: errors } if errors.any?
 
       # Determine the Assessment Date and validate it
       assessment_date, errors = definition.find_and_validate_assessment_date(
@@ -52,9 +62,7 @@ module Mutations
       validation_errors = assessment.assessment_detail.validate_form(ignore_warnings: input.confirmed)
       errors.push(*validation_errors)
 
-      # If this is an existing assessment and all the errors are warnings, save changes before returning.
-      # (NOTE: We could/should do this for new assessments, too, but it's a bit more complicated
-      # because we'd need to send back the newly created assessment ID to the frontend.)
+      # If this is an existing assessment and all the errors are warnings, save changes before returning
       if errors.all?(&:warning?) && assessment.id.present?
         assessment.assessment_detail.save!
         assessment.save!
