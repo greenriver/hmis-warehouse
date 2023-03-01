@@ -29,8 +29,9 @@ module Mutations
       # Non-HoH Intake constraints
       if !enrollment.head_of_household? && assessment.intake?
         hoh_enrollment = Hmis::Hud::Enrollment.open_on_date.
+          heads_of_households.
           viewable_by(current_user).
-          where(household_id: enrollment.household_id, relationship_to_ho_h: 1).
+          where(household_id: enrollment.household_id).
           first
 
         # Error: HoH intake is WIP, so this assessment cannot be submitted yet
