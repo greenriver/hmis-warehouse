@@ -21,7 +21,7 @@ RSpec.describe Hmis::Form::Definition, type: :model do
     it 'should error if assessment date value is missing from hud_values' do
       HUD_ASSESSMENT_ROLES.each do |role|
         definition = Hmis::Form::Definition.find_by(role: role)
-        date, errors = definition.find_and_validate_assessment_date(hud_values: { 'foo': 'bar' }, **default_args)
+        date, errors = definition.find_and_validate_assessment_date(values: { 'foo': 'bar' }, **default_args)
         expect(date).to be_nil
         expect(errors.length).to eq(1)
         expect(errors[0].type).to eq(:required)
@@ -33,7 +33,7 @@ RSpec.describe Hmis::Form::Definition, type: :model do
       HUD_ASSESSMENT_ROLES.each do |role|
         definition = Hmis::Form::Definition.find_by(role: role)
         link_id = definition.assessment_date_item.link_id
-        date, errors = definition.find_and_validate_assessment_date(hud_values: { link_id => nil }, **default_args)
+        date, errors = definition.find_and_validate_assessment_date(values: { link_id => nil }, **default_args)
         expect(date).to be_nil
         expect(errors.length).to eq(1)
         expect(errors[0].type).to eq(:required)
@@ -47,7 +47,7 @@ RSpec.describe Hmis::Form::Definition, type: :model do
         link_id = definition.assessment_date_item.link_id
         assessment_date = entry_date.strftime('%Y-%m-%d')
 
-        date, errors = definition.find_and_validate_assessment_date(hud_values: { link_id => assessment_date }, **default_args)
+        date, errors = definition.find_and_validate_assessment_date(values: { link_id => assessment_date }, **default_args)
         expect(errors).to be_empty
         expect(date).to eq(entry_date)
       end
@@ -59,7 +59,7 @@ RSpec.describe Hmis::Form::Definition, type: :model do
         link_id = definition.assessment_date_item.link_id
         assessment_date = (entry_date - 1.day).strftime('%Y-%m-%d')
 
-        date, errors = definition.find_and_validate_assessment_date(hud_values: { link_id => assessment_date }, **default_args)
+        date, errors = definition.find_and_validate_assessment_date(values: { link_id => assessment_date }, **default_args)
         expect(errors.length).to eq(1)
         expect(errors[0].type).to eq(:out_of_range)
         expect(errors[0].attribute).to eq(definition.assessment_date_item.field_name.to_sym)
@@ -72,7 +72,7 @@ RSpec.describe Hmis::Form::Definition, type: :model do
       link_id = definition.assessment_date_item.link_id
       assessment_date = (entry_date - 1.day).strftime('%Y-%m-%d')
 
-      date, errors = definition.find_and_validate_assessment_date(hud_values: { link_id => assessment_date }, **default_args)
+      date, errors = definition.find_and_validate_assessment_date(values: { link_id => assessment_date }, **default_args)
       expect(date).to eq(entry_date - 1.day)
       expect(errors).to be_empty
     end
@@ -83,7 +83,7 @@ RSpec.describe Hmis::Form::Definition, type: :model do
         link_id = definition.assessment_date_item.link_id
         assessment_date = (exit_date + 1.day).strftime('%Y-%m-%d')
 
-        date, errors = definition.find_and_validate_assessment_date(hud_values: { link_id => assessment_date }, **default_args)
+        date, errors = definition.find_and_validate_assessment_date(values: { link_id => assessment_date }, **default_args)
         expect(date).to be_nil
         expect(errors.length).to eq(1)
         expect(errors[0].type).to eq(:out_of_range)
@@ -96,7 +96,7 @@ RSpec.describe Hmis::Form::Definition, type: :model do
       link_id = definition.assessment_date_item.link_id
       assessment_date = (exit_date + 1.day).strftime('%Y-%m-%d')
 
-      date, errors = definition.find_and_validate_assessment_date(hud_values: { link_id => assessment_date }, **default_args)
+      date, errors = definition.find_and_validate_assessment_date(values: { link_id => assessment_date }, **default_args)
       expect(date).to eq(exit_date + 1.day)
       expect(errors).to be_empty
     end
@@ -105,7 +105,7 @@ RSpec.describe Hmis::Form::Definition, type: :model do
       ['2020', '0020-01-01', '1900-01-01', '2020-18-32'].each do |malformed_date|
         definition = Hmis::Form::Definition.find_by(role: 'INTAKE')
         link_id = definition.assessment_date_item.link_id
-        date, errors = definition.find_and_validate_assessment_date(hud_values: { link_id => malformed_date }, **default_args)
+        date, errors = definition.find_and_validate_assessment_date(values: { link_id => malformed_date }, **default_args)
 
         expect(date).to be_nil
         expect(errors.length).to eq(1)
@@ -116,7 +116,7 @@ RSpec.describe Hmis::Form::Definition, type: :model do
   end
 
   describe 'validate form values' do
-    let(:completed_hud_values_for_update) do
+    let(:completed_values_for_update) do
       {
         "information-date-input": '2023-02-15',
         "3.16": 'SC-501',
@@ -141,16 +141,16 @@ RSpec.describe Hmis::Form::Definition, type: :model do
       }
     end
     # It doesn't matter what the raw values are set to, but all the keys need to be present
-    let(:empty_values_for_update) { completed_hud_values_for_update.keys.map { |k| [k, nil] }.to_h }
+    let(:empty_values_for_update) { completed_values_for_update.keys.map { |k| [k, nil] }.to_h }
 
     it 'should have no errors when Update assessment is completely filled in' do
       definition = Hmis::Form::Definition.find_by(role: :UPDATE)
-      errors = definition.validate_form_values(empty_values_for_update, completed_hud_values_for_update)
+      errors = definition.validate_form_values(completed_values_for_update)
       expect(errors).to be_empty
     end
 
     it 'should error if required field is nil' do
-      hud_values = { 'linkid-required': nil }
+      values = { 'linkid-required': nil }
       expected_errors = [
         {
           type: :required,
@@ -159,23 +159,17 @@ RSpec.describe Hmis::Form::Definition, type: :model do
         },
       ]
       # Test using factory because actual forms don't have any required fields aside from assessment date
-      errors = factory_form_definition.validate_form_values(hud_values, hud_values)
+      errors = factory_form_definition.validate_form_values(values)
       expect(errors.map(&:to_h)).to match(expected_errors.map { |h| a_hash_including(**h) })
     end
 
     it 'should return warnings for warn_if_empty items' do
       definition = Hmis::Form::Definition.find_by(role: :UPDATE)
       values = {
-        **empty_values_for_update,
+        **completed_values_for_update,
         "4.11.2": 'YES',
         "4.11.A": nil,
         "4.11.B": nil,
-      }
-      hud_values = {
-        **completed_hud_values_for_update,
-        "4.11.2": 'YES',
-        "4.11.A": 'DATA_NOT_COLLECTED',
-        "4.11.B": 'DATA_NOT_COLLECTED',
       }
       expected_errors = [
         {
@@ -192,14 +186,14 @@ RSpec.describe Hmis::Form::Definition, type: :model do
         },
       ]
 
-      errors = definition.validate_form_values(values, hud_values)
+      errors = definition.validate_form_values(values)
       expect(errors.map(&:to_h)).to match(expected_errors.map { |h| a_hash_including(**h) })
     end
 
     it 'should warn if conditional warn_if_empty field is enabled' do
       definition = Hmis::Form::Definition.find_by(role: :UPDATE)
-      hud_values = {
-        **completed_hud_values_for_update,
+      values = {
+        **completed_values_for_update,
         "4.03.A": nil,
       }
       expected_errors = [
@@ -210,7 +204,7 @@ RSpec.describe Hmis::Form::Definition, type: :model do
         },
       ]
 
-      errors = definition.validate_form_values(empty_values_for_update, hud_values)
+      errors = definition.validate_form_values(values)
       expect(errors.map(&:to_h)).to match(expected_errors.map { |h| a_hash_including(**h) })
     end
   end

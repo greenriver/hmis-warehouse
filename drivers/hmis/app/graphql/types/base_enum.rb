@@ -63,5 +63,9 @@ module Types
 
       values[key].value
     end
+
+    def self.data_not_collected_value
+      enum_member_for_value(99)&.last&.value
+    end
   end
 end

@@ -5,17 +5,16 @@
 ###
 
 class Hmis::Hud::Processors::Base
+  HIDDEN_FIELD_VALUE = '_HIDDEN'.freeze
+
   def initialize(processor)
     @processor = processor
+    @hud_values = processor.assessment_detail.hud_values
   end
 
   def process(field, value)
     attribute_name = hud_name(field)
-    attribute_value = if value.nil?
-      nil # nil clears a field
-    else
-      hud_type(field)&.value_for(value) || value # If the HUD type doesn't have a translator, fall back to the DB one
-    end
+    attribute_value = attribute_value_for_enum(hud_type(field), value)
 
     @processor.send(factory_name).assign_attributes(attribute_name => attribute_value)
   end
@@ -33,6 +32,19 @@ class Hmis::Hud::Processors::Base
     return nil unless type.respond_to?(:value_for)
 
     type
+  end
+
+  def attribute_value_for_enum(enum_type, value)
+    if value.nil?
+      # The field was left empty. Save as nil or 99.
+      enum_type&.data_not_collected_value
+    elsif value == HIDDEN_FIELD_VALUE
+      # The field was hidden. Always save as nil.
+      nil
+    else
+      # Use the HUD enumeration value, or if the HUD type doesn't have a translator, fall back to the DB one
+      enum_type&.value_for(value) || value
+    end
   end
 
   # @return [Symbol] the name of the instance factory method on the processor

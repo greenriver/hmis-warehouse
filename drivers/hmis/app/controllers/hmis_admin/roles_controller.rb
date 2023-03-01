@@ -20,7 +20,6 @@ class HmisAdmin::RolesController < ApplicationController
   end
 
   def edit
-    @users = Hmis::User.joins(:roles).merge(Hmis::Role.where(id: @role.id))
   end
 
   def update

@@ -67,6 +67,14 @@ module Types
       nil
     end
 
+    def self.access_field(name = :access, class_name: nil, **field_attrs, &block)
+      field(name, BaseAccess.create(self, class_name: class_name, &block), null: false, **field_attrs)
+
+      define_method(name) do
+        object
+      end
+    end
+
     def self.hud_to_gql_type_map
       {
         string: String,

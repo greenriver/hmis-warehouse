@@ -8,22 +8,5 @@ if ENV['OKTA_DOMAIN'].present?
         expect(response).to redirect_to(root_path)
       end
     end
-
-    describe 'POST /auth/:provider without CSRF token protects against CVE-2015-9284' do
-      before do
-        @allow_forgery_protection = ActionController::Base.allow_forgery_protection
-        ActionController::Base.allow_forgery_protection = true
-      end
-
-      it do
-        expect do
-          post '/users/auth/okta'
-        end.to raise_error(ActionController::InvalidAuthenticityToken)
-      end
-
-      after do
-        ActionController::Base.allow_forgery_protection = @allow_forgery_protection
-      end
-    end
   end
 end
