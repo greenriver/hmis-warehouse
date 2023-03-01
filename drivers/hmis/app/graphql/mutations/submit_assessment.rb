@@ -38,7 +38,7 @@ module Mutations
         errors.add :assessment, :invalid, full_message: 'Cannot submit intake assessment because the Head of Household\'s intake has not yet been completed.' if hoh_enrollment&.in_progress?
       end
 
-      errors.add :assessment, :invalid, full_message: 'Cannot exit an incomplete assessment. Please complete the entry assessment first.' if enrollment.in_progress?
+      errors.add :assessment, :invalid, full_message: 'Cannot exit an incomplete enrollment. Please complete the entry assessment first.' if assessment.exit? && enrollment.in_progress?
       return { errors: errors } if errors.any?
 
       # Determine the Assessment Date and validate it
