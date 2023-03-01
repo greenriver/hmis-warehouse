@@ -12,7 +12,6 @@ module ProtectedId
 
   module Encoder
     def encode(id)
-      return if id.nil?
       return id.to_s unless PROTECT_IDS
 
       day_stamp = Date.today.to_time.to_i / (60 * 60 * 24) # Seconds in a day
@@ -74,6 +73,8 @@ module ProtectedId
     include Encoder
 
     def to_param
+      return '' if id.nil?
+
       encode(id)
     end
   end
