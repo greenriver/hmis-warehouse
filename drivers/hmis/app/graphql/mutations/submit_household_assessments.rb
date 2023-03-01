@@ -14,28 +14,21 @@ module Mutations
         where(id: assessment_ids).
         preload(:enrollment, :assessment_detail)
 
+      enrollments = assessments.map(&:enrollment)
+
       # Error: not all assessments found
-      if assessments.count != assessment_ids.size
-        errors.add :assessment, :not_found
-        return { errors: errors }
-      end
+      errors.add :assessment, :not_found if assessments.count != assessment_ids.size
 
       # Error: assessments do not all belong to the same household
-      household_ids = assessments.map { |a| a.enrollment.household_id }.uniq
-      if household_ids.count != 1
-        errors.add :assessment, :invalid, full_message: 'Assessments must all belong to the same household.'
-        return { errors: errors }
-      end
+      household_ids = enrollments.map(&:household_id).uniq
+      errors.add :assessment, :invalid, full_message: 'Assessments must all belong to the same household.' if household_ids.count != 1
 
       # Error: assessments do not have the same data collection stage
       data_collection_stages = assessments.map { |a| a.assessment_detail.data_collection_stage }.uniq
-      if data_collection_stages.count != 1
-        errors.add :assessment, :invalid, full_message: 'Assessments must have the same data collection stage.'
-        return { errors: errors }
-      end
+      errors.add :assessment, :invalid, full_message: 'Assessments must have the same data collection stage.' if data_collection_stages.count != 1
+      return { errors: errors } if errors.any?
 
-      # If this includes an HoH Exit, check special restrictions
-      enrollments = assessments.map(&:enrollment)
+      # HoH Exit constraints
       includes_hoh = enrollments.map(&:relationship_to_ho_h).uniq.include?(1)
       if assessments.first.exit? && includes_hoh
         # FIXME: If exit dates can be in the future, `open_on_date` should check against HoH exit date
@@ -45,14 +38,24 @@ module Mutations
           where.not(enrollment_id: enrollments.map(&:enrollment_id))
 
         # Error: cannot exit HoH if there are any other open enrollments
-        if open_enrollments.any?
-          errors.add :assessment, :invalid, full_message: 'Cannot exit head of household because there are existing open enrollments. Please assign a new HoH, or exit all open enrollments.'
-          return { errors: errors }
-        end
+        errors.add :assessment, :invalid, full_message: 'Cannot exit head of household because there are existing open enrollments. Please assign a new HoH, or exit all open enrollments.' if open_enrollments.any?
+
+        # Error: WIP enrollments cannot be exited
+        errors.add :assessment, :invalid, full_message: 'Cannot exit incomplete enrollments. Please complete entry assessments first.' if enrollments.any?(&:in_progress?)
       end
 
-      # TODO if this is a household Intake, verify that HoH is included.
-      # Other members can't be submitted without the HoH.
+      # Non-HoH Intake constraints
+      if assessments.first.intake? && !includes_hoh
+        hoh_enrollment = Hmis::Hud::Enrollment.viewable_by(current_user).
+          heads_of_households.
+          where(household_id: household_ids.first).
+          first
+
+        # Error: HoH intake is WIP, so member assessments cannot be submitted yet
+        errors.add :assessment, :invalid, full_message: 'Please include the head of household. Other household members cannot be entered without the HoH.' if hoh_enrollment&.in_progress?
+      end
+
+      return { errors: errors } if errors.any?
 
       # Validate form values based on FormDefinition
       assessments.each do |assessment|
