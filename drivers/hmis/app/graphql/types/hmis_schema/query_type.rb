@@ -157,8 +157,9 @@ module Types
     field :current_user, Application::User, null: true
 
     access_field do
-      can :edit_clients, root: true
-      can :view_clients, root: true
+      Hmis::Role.permissions_with_descriptions.keys.each do |perm|
+        can perm, field_name: perm, method_name: perm, root: true
+      end
     end
 
     def access

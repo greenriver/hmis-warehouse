@@ -47,7 +47,7 @@ module Types
       can :view_partial_ssn
       can :view_full_ssn
       can :view_dob
-      can :view_enrollments
+      can :view_enrollment_details
       can :edit_enrollments
       can :delete_enrollments
     end
