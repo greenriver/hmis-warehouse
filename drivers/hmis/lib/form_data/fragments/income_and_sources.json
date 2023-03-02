@@ -97,7 +97,94 @@
             }
           ]
         }
-      ]
+      ],
+      "validations": [{
+        "message": "At least one income source must be selected",
+        "severity": "error",
+        "error_behavior": "ALL",
+        "error_when": [
+          {
+            "question": "4.02.2",
+            "operator": "EQUAL",
+            "answer_code": "YES"
+          },
+          {
+            "question": "4.02.3",
+            "operator": "EQUAL",
+            "answer_boolean": false
+          },
+          {
+            "question": "4.02.4",
+            "operator": "EQUAL",
+            "answer_boolean": false
+          },
+          {
+            "question": "4.02.5",
+            "operator": "EQUAL",
+            "answer_boolean": false
+          },
+          {
+            "question": "4.02.6",
+            "operator": "EQUAL",
+            "answer_boolean": false
+          },
+          {
+            "question": "4.02.7",
+            "operator": "EQUAL",
+            "answer_boolean": false
+          },
+          {
+            "question": "4.02.8",
+            "operator": "EQUAL",
+            "answer_boolean": false
+          },
+          {
+            "question": "4.02.9",
+            "operator": "EQUAL",
+            "answer_boolean": false
+          },
+          {
+            "question": "4.02.10",
+            "operator": "EQUAL",
+            "answer_boolean": false
+          },
+          {
+            "question": "4.02.11",
+            "operator": "EQUAL",
+            "answer_boolean": false
+          },
+          {
+            "question": "4.02.12",
+            "operator": "EQUAL",
+            "answer_boolean": false
+          },
+          {
+            "question": "4.02.13",
+            "operator": "EQUAL",
+            "answer_boolean": false
+          },
+          {
+            "question": "4.02.14",
+            "operator": "EQUAL",
+            "answer_boolean": false
+          },
+          {
+            "question": "4.02.15",
+            "operator": "EQUAL",
+            "answer_boolean": false
+          },
+          {
+            "question": "4.02.16",
+            "operator": "EQUAL",
+            "answer_boolean": false
+          },
+          {
+            "question": "4.02.17",
+            "operator": "EQUAL",
+            "answer_boolean": false
+          }
+        ]
+      }]
     },
     {
       "type": "GROUP",

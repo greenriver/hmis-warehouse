@@ -20,6 +20,7 @@ module Types
     field :required, Boolean, 'Whether the item must be included in data results', null: true
     field :warn_if_empty, Boolean, 'Whether to show a warning if this question is unanswered', null: true
     field :bounds, [Forms::ValueBound], 'Bounds applied to the input value', null: true
+    field :validations, [Forms::Validation], 'Validations to run and display', null: true
 
     # field display
     field :type, Types::Forms::Enums::ItemType, null: false
