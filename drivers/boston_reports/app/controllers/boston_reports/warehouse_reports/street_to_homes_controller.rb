@@ -31,16 +31,14 @@ module BostonReports::WarehouseReports
     end
 
     def details
-      console
-      @clients = if @report.clients.keys.include?(params[:cohort])
-        ids = @report.clients[params[:cohort]]
-        if ids.present?
-          @report.client_details(ids.to_a)
-        else
-          []
+      @detail_options = {}
+      @detail_options[:sets] = params[:sets] if (@report.clients.keys & params[:sets]).present?
+      @clients = @report.client_details(params[:sets])
+      respond_to do |format|
+        format.html {}
+        format.xlsx do
+          render xlsx: 'details', filename: "Street2Home-Details-#{@detail_options[:sets].join('-')}.xlsx"
         end
-      else
-        []
       end
     end
 

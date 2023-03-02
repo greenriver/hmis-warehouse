@@ -1,0 +1,15 @@
+wb = xlsx_package.workbook
+ws_title = 'Street 2 Home Details'
+
+wb.add_worksheet(name: ws_title.slice(0, 30).gsub(':', ' ').gsub('/', '-')) do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
+  headers = @report.detail_headers.keys
+  sheet.add_row(headers, style: title)
+  @clients.each do |client|
+    row = []
+    @report.detail_headers.each_value do |lamda|
+      row << lamda.(client, download: true)
+    end
+    sheet.add_row(row)
+  end
+end
