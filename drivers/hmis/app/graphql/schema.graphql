@@ -1862,6 +1862,11 @@ type FormItem {
   type: ItemType!
 
   """
+  Validations to run and display
+  """
+  validations: [Validation!]
+
+  """
   Whether to show a warning if this question is unanswered
   """
   warnIfEmpty: Boolean
@@ -5362,6 +5367,24 @@ type User {
   dateUpdated: ISO8601DateTime!
   id: ID!
   name: String!
+}
+
+"""
+Conditions for a custom validation message
+"""
+type Validation {
+  errorBehavior: EnableBehavior!
+  errorWhen: [EnableWhen!]!
+
+  """
+  Validation message to display
+  """
+  message: String
+
+  """
+  Severity of validation. If error, user will be unable to submit if the specified condition is met.
+  """
+  severity: ValidationSeverity!
 }
 
 type ValidationError {

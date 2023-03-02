@@ -8,11 +8,11 @@
 
 module Types
   class Forms::Validation < Types::BaseObject
-    description 'Conditions for a validation message'
+    description 'Conditions for a custom validation message'
 
     # The validation message and severity level
     field :message, String, 'Validation message to display', null: true
-    field :severity, Types::HmisSchema::Enums::ValidationSeverity, 'Severity of validation. If error, user will be unable to submit a value that does not meet this condition.', null: false
+    field :severity, Types::HmisSchema::Enums::ValidationSeverity, 'Severity of validation. If error, user will be unable to submit if the specified condition is met.', null: false
 
     # Condition specifying when to display this validation
     field :error_behavior, Types::Forms::Enums::EnableBehavior, null: false
