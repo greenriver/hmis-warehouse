@@ -5,7 +5,7 @@
 ###
 
 class Hmis::Unit < Hmis::HmisBase
-  include HmisArelHelper
+  include ::Hmis::Concerns::HmisArelHelper
   self.table_name = :hmis_units
 
   belongs_to :inventory, class_name: 'Hmis::Hud::Inventory'

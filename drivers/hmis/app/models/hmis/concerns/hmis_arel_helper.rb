@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module HmisArelHelper
+module Hmis::Concerns::HmisArelHelper
   extend ActiveSupport::Concern
   include ArelHelper
 

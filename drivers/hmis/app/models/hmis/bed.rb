@@ -6,7 +6,7 @@
 
 class Hmis::Bed < Hmis::HmisBase
   include Hmis::Hud::Concerns::HasEnums
-  include HmisArelHelper
+  include ::Hmis::Concerns::HmisArelHelper
   self.table_name = :hmis_beds
   belongs_to :unit, class_name: 'Hmis::Unit'
   has_one :inventory, through: :unit
