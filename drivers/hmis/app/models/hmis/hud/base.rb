@@ -55,7 +55,6 @@ class Hmis::Hud::Base < ::GrdaWarehouseBase
   end
 
   private def ensure_id
-    return unless self.class.hud_key.present? # Some Custom HUD tables don't have HUD Keys
     return if send(self.class.hud_key).present? # Don't overwrite the ID if we already have one
 
     assign_attributes(self.class.hud_key => self.class.generate_uuid)

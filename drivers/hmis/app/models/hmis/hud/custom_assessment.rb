@@ -127,6 +127,6 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
   end
 
   def self.hud_key
-    nil
+    :CustomAssessmentID
   end
 end
