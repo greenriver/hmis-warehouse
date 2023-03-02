@@ -6,15 +6,47 @@
 
 class Hmis::Form::Definition < ::GrdaWarehouseBase
   self.table_name = :hmis_form_definitions
+  include Hmis::Hud::Concerns::HasEnums
 
   has_many :instances, foreign_key: :identifier, primary_key: :form_definition_identifier
   has_many :custom_forms
+  # has_many :custom_service_types, through: :instances
 
-  def self.definitions_for_project(project, role: nil)
+  FORM_ROLES = {
+    # Assessment forms
+    INTAKE: 'Intake Assessment',
+    UPDATE: 'Update Assessment',
+    ANNUAL: 'Annual Assessment',
+    EXIT: 'Exit Assessment',
+    CE: 'Coordinated Entry',
+    POST_EXIT: 'Post-Exit Assessment',
+    CUSTOM: 'Custom Assessment',
+    # Record-editing forms
+    SERVICE: 'Service',
+    PROJECT: 'Project',
+    ORGANIZATION: 'Organization',
+    CLIENT: 'Client',
+    FUNDER: 'Funder',
+    INVENTORY: 'Inventory',
+    PROJECT_COC: 'Project CoC',
+  }.freeze
+
+  FORM_DATA_COLLECTION_STAGES = {
+    INTAKE: 1,
+    UPDATE: 2,
+    ANNUAL: 5,
+    EXIT: 3,
+    POST_EXIT: 6,
+  }.freeze
+
+  HUD_ASSESSMENT_FORM_ROLES = FORM_ROLES.slice(:INTAKE, :UPDATE, :ANNUAL, :EXIT, :CE, :POST_EXIT).freeze
+
+  use_enum_with_same_key :form_role_enum_map, FORM_ROLES
+
+  scope :for_project, ->(project) do
     instance_scope = Hmis::Form::Instance.none
 
     base_scope = Hmis::Form::Instance.joins(:definition)
-    base_scope = base_scope.where(definition: { role: role }) if role.present?
     [
       base_scope.for_project(project.id),
       base_scope.for_organization(project.organization.id),
@@ -26,18 +58,16 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
       instance_scope = scope unless scope.empty?
     end
 
-    definitions = where(identifier: instance_scope.pluck(:definition_identifier))
-    definitions = definitions.where(role: role) if role.present?
-
-    definitions
+    where(identifier: instance_scope.pluck(:definition_identifier))
   end
 
-  def self.find_definition_for_project(project, role:, version: nil)
-    return none unless project.present?
+  scope :with_role, ->(role) { where(role: role) }
 
-    definitions = definitions_for_project(project, role: role)
-    definitions = definitions.where(version: version) if version.present?
-    definitions.order(version: :desc).first
+  def self.find_definition_for_role(role, project: nil, version: nil)
+    scope = Hmis::Form::Definition.with_role(role)
+    scope = scope.for_project(project) if project.present?
+    scope = scope.where(version: version) if version.present?
+    scope.order(version: :desc).first
   end
 
   # Validate JSON definition when loading, to ensure no duplicate link IDs
@@ -60,15 +90,15 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   end
 
   def hud_assessment?
-    Types::HmisSchema::Enums::AssessmentRole.as_data_collection_stage(role) != 99
+    Types::Forms::Enums::FormRole.as_data_collection_stage(role) != 99
   end
 
   def intake?
-    Types::HmisSchema::Enums::AssessmentRole.as_data_collection_stage(role) == 1
+    Types::Forms::Enums::FormRole.as_data_collection_stage(role) == 1
   end
 
   def exit?
-    Types::HmisSchema::Enums::AssessmentRole.as_data_collection_stage(role) == 3
+    Types::Forms::Enums::FormRole.as_data_collection_stage(role) == 3
   end
 
   def assessment_date_item
