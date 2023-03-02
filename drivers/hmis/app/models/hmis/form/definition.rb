@@ -90,15 +90,15 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   end
 
   def hud_assessment?
-    Types::Forms::Enums::FormRole.as_data_collection_stage(role) != 99
+    HUD_ASSESSMENT_FORM_ROLES.keys.include?(role.to_sym)
   end
 
   def intake?
-    Types::Forms::Enums::FormRole.as_data_collection_stage(role) == 1
+    role.to_sym == :INTAKE
   end
 
   def exit?
-    Types::Forms::Enums::FormRole.as_data_collection_stage(role) == 3
+    role.to_sym == :EXIT
   end
 
   def assessment_date_item

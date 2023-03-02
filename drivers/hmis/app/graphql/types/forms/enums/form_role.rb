@@ -12,9 +12,5 @@ module Types
     graphql_name 'FormRole'
 
     with_enum_map Hmis::Form::Definition.form_role_enum_map
-
-    def self.as_data_collection_stage(role)
-      Hmis::Form::Definition::FORM_DATA_COLLECTION_STAGES[role.to_sym] || 99
-    end
   end
 end

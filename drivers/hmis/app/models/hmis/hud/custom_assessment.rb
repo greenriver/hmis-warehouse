@@ -120,7 +120,7 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
       personal_id: enrollment.personal_id,
       enrollment_id: enrollment.enrollment_id,
       assessment_date: assessment_date,
-      data_collection_stage: Types::Forms::Enums::FormRole.as_data_collection_stage(form_definition.role),
+      data_collection_stage: Hmis::Form::Definition::FORM_DATA_COLLECTION_STAGES[form_definition.role.to_sym] || 99,
     )
     new_assessment.custom_form = Hmis::Form::CustomForm.new(definition: form_definition)
     new_assessment
