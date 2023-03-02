@@ -736,7 +736,8 @@ CREATE TABLE public."CustomAssessments" (
     data_source_id integer,
     "DateCreated" timestamp without time zone NOT NULL,
     "DateUpdated" timestamp without time zone NOT NULL,
-    "DateDeleted" timestamp without time zone
+    "DateDeleted" timestamp without time zone,
+    "CustomAssessmentID" character varying
 );
 
 
@@ -778,7 +779,8 @@ CREATE TABLE public."CustomClientAssessments" (
     data_source_id integer,
     "DateCreated" timestamp without time zone NOT NULL,
     "DateUpdated" timestamp without time zone NOT NULL,
-    "DateDeleted" timestamp without time zone
+    "DateDeleted" timestamp without time zone,
+    "CustomClientAssessmentID" character varying
 );
 
 
@@ -913,7 +915,8 @@ CREATE TABLE public."CustomProjectAssessments" (
     data_source_id integer,
     "DateCreated" timestamp without time zone NOT NULL,
     "DateUpdated" timestamp without time zone NOT NULL,
-    "DateDeleted" timestamp without time zone
+    "DateDeleted" timestamp without time zone,
+    "CustomProjectAssessmentID" character varying
 );
 
 
