@@ -264,10 +264,6 @@ module ArelHelper
     GrdaWarehouse::Hud::Assessment.arel_table
   end
 
-  def cas_t
-    Hmis::Hud::CustomAssessment.arel_table
-  end
-
   def asq_t
     GrdaWarehouse::Hud::AssessmentQuestion.arel_table
   end
@@ -418,14 +414,6 @@ module ArelHelper
 
   def hr_ri_t
     HudReports::ReportInstance.arel_table
-  end
-
-  def wip_t
-    Hmis::Wip.arel_table
-  end
-
-  def ar_t
-    Hmis::ActiveRange.arel_table
   end
 
   # and to the class itself (so they can be used in scopes, for example)
@@ -644,10 +632,6 @@ module ArelHelper
       GrdaWarehouse::Hud::Assessment.arel_table
     end
 
-    def cas_t
-      Hmis::Hud::CustomAssessment.arel_table
-    end
-
     def asq_t
       GrdaWarehouse::Hud::AssessmentQuestion.arel_table
     end
@@ -802,14 +786,6 @@ module ArelHelper
 
     def hr_ri_t
       HudReports::ReportInstance.arel_table
-    end
-
-    def wip_t
-      Hmis::Wip.arel_table
-    end
-
-    def ar_t
-      Hmis::ActiveRange.arel_table
     end
   end
 end

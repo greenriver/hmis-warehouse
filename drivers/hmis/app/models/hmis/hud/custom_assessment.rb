@@ -11,7 +11,7 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
   include ::HmisStructure::Assessment
   include ::Hmis::Hud::Concerns::Shared
   include ::Hmis::Hud::Concerns::EnrollmentRelated
-  include ArelHelper
+  include HmisArelHelper
 
   SORT_OPTIONS = [:assessment_date, :date_updated].freeze
   WIP_ID = 'WIP'.freeze

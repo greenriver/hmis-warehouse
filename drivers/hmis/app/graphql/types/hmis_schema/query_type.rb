@@ -15,7 +15,7 @@ module Types
     include Types::HmisSchema::HasProjects
     include Types::HmisSchema::HasOrganizations
     include Types::HmisSchema::HasClients
-    include ArelHelper
+    include HmisArelHelper
 
     projects_field :projects
 
