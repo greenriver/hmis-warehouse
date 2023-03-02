@@ -14,9 +14,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   include_context 'hmis base setup'
   include_context 'hmis form setup'
 
-  let!(:assessment1) { create :hmis_hud_assessment_with_defaults, data_source: ds1 }
-  let!(:assessment2) { create :hmis_hud_assessment_with_defaults, data_source: ds1 }
-  let!(:assessment3) { create :hmis_hud_assessment_with_defaults, data_source: ds1 }
+  let!(:assessment1) { create :hmis_custom_assessment_with_defaults, data_source: ds1 }
+  let!(:assessment2) { create :hmis_custom_assessment_with_defaults, data_source: ds1 }
+  let!(:assessment3) { create :hmis_custom_assessment_with_defaults, data_source: ds1 }
 
   let(:submit_assessment_mutation) do
     <<~GRAPHQL
@@ -49,6 +49,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
 
       # Save assessment as WIP with minimum needed values
+      assessment.update(data_collection_stage: role == :INTAKE ? 1 : 3)
       assessment.custom_form.update(**custom_form_attributes(role, assessment.assessment_date))
       assessment.build_wip(enrollment: enrollment, client: enrollment.client, date: assessment.assessment_date, project_id: project.id)
       assessment.save_in_progress

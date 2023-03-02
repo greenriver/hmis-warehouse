@@ -24,7 +24,7 @@ module Mutations
       errors.add :assessment, :invalid, full_message: 'Assessments must all belong to the same household.' if household_ids.count != 1
 
       # Error: assessments do not have the same data collection stage
-      data_collection_stages = assessments.map { |a| a.custom_form.data_collection_stage }.uniq
+      data_collection_stages = assessments.pluck(:data_collection_stage).uniq
       errors.add :assessment, :invalid, full_message: 'Assessments must have the same data collection stage.' if data_collection_stages.count != 1
       return { errors: errors } if errors.any?
 

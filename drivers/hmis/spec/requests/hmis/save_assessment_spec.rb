@@ -89,7 +89,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(assessment).to include(
         'inProgress' => true,
         'assessmentDate' => '2023-02-01',
-        'CustomForm' => include('values' => test_input[:values]),
+        'customForm' => include('values' => test_input[:values]),
       )
       expect(Hmis::Hud::CustomAssessment.count).to eq(1)
       expect(Hmis::Hud::CustomAssessment.in_progress.count).to eq(1)
@@ -134,7 +134,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(assessment).to include(
         'inProgress' => true,
         'assessmentDate' => new_information_date,
-        'CustomForm' => include('values' => input[:values]),
+        'customForm' => include('values' => input[:values]),
       )
       expect(Hmis::Hud::CustomAssessment.count).to eq(1)
       expect(Hmis::Hud::CustomAssessment.in_progress.count).to eq(1)
