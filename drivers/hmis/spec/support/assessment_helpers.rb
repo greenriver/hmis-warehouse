@@ -17,9 +17,7 @@ module AssessmentHelpers
     raise "No definition for role #{role}" unless definition.present?
 
     {
-      # data_collection_stage: Types::HmisSchema::Enums::AssessmentRole.as_data_collection_stage(role.to_s),
       definition: definition,
-      # role: role,
       **build_minimum_values(definition, assessment_date),
     }
   end

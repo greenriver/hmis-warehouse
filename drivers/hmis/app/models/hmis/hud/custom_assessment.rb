@@ -119,13 +119,10 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
       user_id: user.user_id,
       personal_id: enrollment.personal_id,
       enrollment_id: enrollment.enrollment_id,
-      # assessment_id: generate_uuid,
       assessment_date: assessment_date,
-      DataCollectionStage: Types::HmisSchema::Enums::AssessmentRole.as_data_collection_stage(form_definition.role),
+      data_collection_stage: Types::HmisSchema::Enums::AssessmentRole.as_data_collection_stage(form_definition.role),
     )
-
     new_assessment.custom_form = Hmis::Form::CustomForm.new(definition: form_definition)
-
     new_assessment
   end
 

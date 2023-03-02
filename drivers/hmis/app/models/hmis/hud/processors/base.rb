@@ -28,7 +28,6 @@ class Hmis::Hud::Processors::Base
   end
 
   def hud_type(field)
-    # binding.pry
     type = schema.fields[field].type
     return nil unless type.respond_to?(:value_for)
 

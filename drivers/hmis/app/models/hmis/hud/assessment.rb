@@ -21,10 +21,6 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
   has_many :assessment_questions, **hmis_relation(:AssessmentID, 'AssessmentQuestion'), dependent: :destroy
   has_many :assessment_results, **hmis_relation(:AssessmentID, 'AssessmentResult'), dependent: :destroy
 
-  attr_accessor :in_progress
-
-  # validates_with Hmis::Hud::Validators::AssessmentValidator
-
   def self.sort_by_option(option)
     raise NotImplementedError unless SORT_OPTIONS.include?(option)
 
