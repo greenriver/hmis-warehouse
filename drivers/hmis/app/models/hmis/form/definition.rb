@@ -135,9 +135,9 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
 
       # Validate required status
       if item.required && is_missing
-        errors.add item.field_name, :required, **error_context
+        errors.add item.field_name || :base, :required, **error_context
       elsif item.warn_if_empty && is_missing
-        errors.add item.field_name, :data_not_collected, severity: :warning, **error_context
+        errors.add item.field_name || :base, :data_not_collected, severity: :warning, **error_context
       end
 
       # TODO(##184404620): Validate ValueBounds (How to handle bounds that rely on local values like projectStartDate and entryDate?)
