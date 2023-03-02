@@ -734,9 +734,9 @@ CREATE TABLE public."CustomAssessments" (
     "AssessmentDate" date NOT NULL,
     "DataCollectionStage" integer NOT NULL,
     data_source_id integer,
-    deleted_at timestamp without time zone,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    "DateCreated" timestamp without time zone NOT NULL,
+    "DateUpdated" timestamp without time zone NOT NULL,
+    "DateDeleted" timestamp without time zone
 );
 
 
@@ -776,9 +776,9 @@ CREATE TABLE public."CustomClientAssessments" (
     "UserID" character varying(32) NOT NULL,
     "InformationDate" date NOT NULL,
     data_source_id integer,
-    deleted_at timestamp without time zone,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    "DateCreated" timestamp without time zone NOT NULL,
+    "DateUpdated" timestamp without time zone NOT NULL,
+    "DateDeleted" timestamp without time zone
 );
 
 
@@ -807,7 +807,7 @@ ALTER SEQUENCE public."CustomClientAssessments_id_seq" OWNED BY public."CustomCl
 
 CREATE TABLE public."CustomFormAnswers" (
     id bigint NOT NULL,
-    "CustomForms_id" bigint NOT NULL,
+    custom_form_id bigint NOT NULL,
     owner_type character varying NOT NULL,
     owner_id bigint NOT NULL,
     link_id character varying,
@@ -818,6 +818,7 @@ CREATE TABLE public."CustomFormAnswers" (
     value_string character varying,
     value_text text,
     value_json jsonb,
+    deleted_at timestamp without time zone,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL
 );
@@ -872,9 +873,10 @@ CREATE TABLE public."CustomForms" (
     owner_type character varying NOT NULL,
     owner_id bigint NOT NULL,
     definition_id bigint NOT NULL,
-    hmis_form_processor_id bigint,
+    form_processor_id bigint,
     "values" jsonb,
     hud_values jsonb,
+    deleted_at timestamp without time zone,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL
 );
@@ -909,9 +911,9 @@ CREATE TABLE public."CustomProjectAssessments" (
     "UserID" character varying(32) NOT NULL,
     "InformationDate" date NOT NULL,
     data_source_id integer,
-    deleted_at timestamp without time zone,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    "DateCreated" timestamp without time zone NOT NULL,
+    "DateUpdated" timestamp without time zone NOT NULL,
+    "DateDeleted" timestamp without time zone
 );
 
 
@@ -10551,6 +10553,44 @@ CREATE SEQUENCE public.hmis_assessment_details_id_seq
 --
 
 ALTER SEQUENCE public.hmis_assessment_details_id_seq OWNED BY public.hmis_assessment_details.id;
+
+
+--
+-- Name: hmis_assessment_processors; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_assessment_processors (
+    id bigint NOT NULL,
+    enrollment_coc_id bigint,
+    health_and_dv_id bigint,
+    income_benefit_id bigint,
+    physical_disability_id bigint,
+    developmental_disability_id bigint,
+    chronic_health_condition_id bigint,
+    hiv_aids_id bigint,
+    mental_health_disorder_id bigint,
+    substance_use_disorder_id bigint,
+    exit_id bigint
+);
+
+
+--
+-- Name: hmis_assessment_processors_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_assessment_processors_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_assessment_processors_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_assessment_processors_id_seq OWNED BY public.hmis_assessment_processors.id;
 
 
 --
@@ -22055,6 +22095,13 @@ ALTER TABLE ONLY public.hmis_assessment_details ALTER COLUMN id SET DEFAULT next
 
 
 --
+-- Name: hmis_assessment_processors id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_assessment_processors ALTER COLUMN id SET DEFAULT nextval('public.hmis_assessment_processors_id_seq'::regclass);
+
+
+--
 -- Name: hmis_assessments id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -25094,6 +25141,14 @@ ALTER TABLE ONLY public.hmis_aggregated_exits
 
 ALTER TABLE ONLY public.hmis_assessment_details
     ADD CONSTRAINT hmis_assessment_details_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_assessment_processors hmis_assessment_processors_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_assessment_processors
+    ADD CONSTRAINT hmis_assessment_processors_pkey PRIMARY KEY (id);
 
 
 --
@@ -39963,10 +40018,10 @@ CREATE INDEX "index_CurrentLivingSituation_on_pending_date_deleted" ON public."C
 
 
 --
--- Name: index_CustomFormAnswers_on_CustomForms_id; Type: INDEX; Schema: public; Owner: -
+-- Name: index_CustomFormAnswers_on_custom_form_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX "index_CustomFormAnswers_on_CustomForms_id" ON public."CustomFormAnswers" USING btree ("CustomForms_id");
+CREATE INDEX "index_CustomFormAnswers_on_custom_form_id" ON public."CustomFormAnswers" USING btree (custom_form_id);
 
 
 --
@@ -39984,10 +40039,10 @@ CREATE INDEX "index_CustomForms_on_definition_id" ON public."CustomForms" USING 
 
 
 --
--- Name: index_CustomForms_on_hmis_form_processor_id; Type: INDEX; Schema: public; Owner: -
+-- Name: index_CustomForms_on_form_processor_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX "index_CustomForms_on_hmis_form_processor_id" ON public."CustomForms" USING btree (hmis_form_processor_id);
+CREATE INDEX "index_CustomForms_on_form_processor_id" ON public."CustomForms" USING btree (form_processor_id);
 
 
 --
@@ -42214,6 +42269,76 @@ CREATE INDEX index_hmis_assessment_details_on_assessment_processor_id ON public.
 --
 
 CREATE INDEX index_hmis_assessment_details_on_definition_id ON public.hmis_assessment_details USING btree (definition_id);
+
+
+--
+-- Name: index_hmis_assessment_processors_on_chronic_health_condition_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_assessment_processors_on_chronic_health_condition_id ON public.hmis_assessment_processors USING btree (chronic_health_condition_id);
+
+
+--
+-- Name: index_hmis_assessment_processors_on_developmental_disability_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_assessment_processors_on_developmental_disability_id ON public.hmis_assessment_processors USING btree (developmental_disability_id);
+
+
+--
+-- Name: index_hmis_assessment_processors_on_enrollment_coc_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_assessment_processors_on_enrollment_coc_id ON public.hmis_assessment_processors USING btree (enrollment_coc_id);
+
+
+--
+-- Name: index_hmis_assessment_processors_on_exit_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_assessment_processors_on_exit_id ON public.hmis_assessment_processors USING btree (exit_id);
+
+
+--
+-- Name: index_hmis_assessment_processors_on_health_and_dv_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_assessment_processors_on_health_and_dv_id ON public.hmis_assessment_processors USING btree (health_and_dv_id);
+
+
+--
+-- Name: index_hmis_assessment_processors_on_hiv_aids_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_assessment_processors_on_hiv_aids_id ON public.hmis_assessment_processors USING btree (hiv_aids_id);
+
+
+--
+-- Name: index_hmis_assessment_processors_on_income_benefit_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_assessment_processors_on_income_benefit_id ON public.hmis_assessment_processors USING btree (income_benefit_id);
+
+
+--
+-- Name: index_hmis_assessment_processors_on_mental_health_disorder_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_assessment_processors_on_mental_health_disorder_id ON public.hmis_assessment_processors USING btree (mental_health_disorder_id);
+
+
+--
+-- Name: index_hmis_assessment_processors_on_physical_disability_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_assessment_processors_on_physical_disability_id ON public.hmis_assessment_processors USING btree (physical_disability_id);
+
+
+--
+-- Name: index_hmis_assessment_processors_on_substance_use_disorder_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_assessment_processors_on_substance_use_disorder_id ON public.hmis_assessment_processors USING btree (substance_use_disorder_id);
 
 
 --
@@ -50968,6 +51093,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230127200801'),
 ('20230206142754'),
 ('20230207151644'),
-('20230301170853');
+('20230301170853'),
+('20230301172341');
 
 

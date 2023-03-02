@@ -7,8 +7,10 @@ class AddCustomAssessments < ActiveRecord::Migration[6.1]
       t.date :AssessmentDate, null: false
       t.integer :DataCollectionStage, null: false, comment: 'One of the HMIS 5.03.1, or 99 for local use'
       t.integer :data_source_id
-      t.datetime :deleted_at
-      t.timestamps
+
+      t.datetime :DateCreated, null: false
+      t.datetime :DateUpdated, null: false
+      t.datetime :DateDeleted
     end
 
     create_table :CustomClientAssessments do |t|
@@ -16,8 +18,10 @@ class AddCustomAssessments < ActiveRecord::Migration[6.1]
       t.string :UserID, limit: 32, null: false
       t.date :InformationDate, null: false
       t.integer :data_source_id
-      t.datetime :deleted_at
-      t.timestamps
+
+      t.datetime :DateCreated, null: false
+      t.datetime :DateUpdated, null: false
+      t.datetime :DateDeleted
     end
 
     create_table :CustomProjectAssessments do |t|
@@ -25,24 +29,42 @@ class AddCustomAssessments < ActiveRecord::Migration[6.1]
       t.string :UserID, limit: 32, null: false
       t.date :InformationDate, null: false
       t.integer :data_source_id
-      t.datetime :deleted_at
-      t.timestamps
+
+      t.datetime :DateCreated, null: false
+      t.datetime :DateUpdated, null: false
+      t.datetime :DateDeleted
     end
 
     rename_table :hmis_assessment_processors, :hmis_form_processors
 
+    # Commented-out: if hmis_assessment_processors doesn't exist, run this instead
+    # create_table :hmis_form_processors do |t|
+    #   t.references :enrollment_coc
+    #   t.references :health_and_dv
+    #   t.references :income_benefit
+    #   t.references :physical_disability
+    #   t.references :developmental_disability
+    #   t.references :chronic_health_condition
+    #   t.references :hiv_aids
+    #   t.references :mental_health_disorder
+    #   t.references :substance_use_disorder
+    #   t.references :exit
+    # end
+
     create_table :CustomForms do |t|
       t.references :owner, null: false, polymorphic: true
       t.references :definition, null: false
-      t.references :hmis_form_processor
+      t.references :form_processor
       t.jsonb :values
       t.jsonb :hud_values
+
+      t.datetime :deleted_at
       t.timestamps
     end
 
     # Key-Value pairs of custom form responses
     create_table :CustomFormAnswers do |t|
-      t.references :CustomForms, null: false
+      t.references :custom_form, null: false
       t.references :owner, null: false, polymorphic: true, comment: 'Record that this data element applies to (Client, Project, etc)'
       t.string :link_id, comment: 'Link ID of the item in the definition that this answer corresponds to'
       t.string :key, comment: 'Human-readable key for this data element'
@@ -52,6 +74,8 @@ class AddCustomAssessments < ActiveRecord::Migration[6.1]
       t.string :value_string
       t.text :value_text
       t.jsonb :value_json
+
+      t.datetime :deleted_at
       t.timestamps
     end
   end
