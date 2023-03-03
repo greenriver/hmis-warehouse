@@ -728,6 +728,7 @@ ALTER SEQUENCE public."CurrentLivingSituation_id_seq" OWNED BY public."CurrentLi
 
 CREATE TABLE public."CustomAssessments" (
     id bigint NOT NULL,
+    "CustomAssessmentID" character varying NOT NULL,
     "EnrollmentID" character varying NOT NULL,
     "PersonalID" character varying NOT NULL,
     "UserID" character varying(32) NOT NULL,
@@ -736,8 +737,7 @@ CREATE TABLE public."CustomAssessments" (
     data_source_id integer,
     "DateCreated" timestamp without time zone NOT NULL,
     "DateUpdated" timestamp without time zone NOT NULL,
-    "DateDeleted" timestamp without time zone,
-    "CustomAssessmentID" character varying
+    "DateDeleted" timestamp without time zone
 );
 
 
@@ -773,14 +773,14 @@ ALTER SEQUENCE public."CustomAssessments_id_seq" OWNED BY public."CustomAssessme
 
 CREATE TABLE public."CustomClientAssessments" (
     id bigint NOT NULL,
+    "CustomClientAssessmentID" character varying NOT NULL,
     "PersonalID" character varying NOT NULL,
     "UserID" character varying(32) NOT NULL,
     "InformationDate" date NOT NULL,
     data_source_id integer,
     "DateCreated" timestamp without time zone NOT NULL,
     "DateUpdated" timestamp without time zone NOT NULL,
-    "DateDeleted" timestamp without time zone,
-    "CustomClientAssessmentID" character varying
+    "DateDeleted" timestamp without time zone
 );
 
 
@@ -909,14 +909,14 @@ ALTER SEQUENCE public."CustomForms_id_seq" OWNED BY public."CustomForms".id;
 
 CREATE TABLE public."CustomProjectAssessments" (
     id bigint NOT NULL,
+    "CustomProjectAssessmentID" character varying NOT NULL,
     "ProjectID" character varying NOT NULL,
     "UserID" character varying(32) NOT NULL,
     "InformationDate" date NOT NULL,
     data_source_id integer,
     "DateCreated" timestamp without time zone NOT NULL,
     "DateUpdated" timestamp without time zone NOT NULL,
-    "DateDeleted" timestamp without time zone,
-    "CustomProjectAssessmentID" character varying
+    "DateDeleted" timestamp without time zone
 );
 
 
@@ -937,6 +937,59 @@ CREATE SEQUENCE public."CustomProjectAssessments_id_seq"
 --
 
 ALTER SEQUENCE public."CustomProjectAssessments_id_seq" OWNED BY public."CustomProjectAssessments".id;
+
+
+--
+-- Name: CustomServices; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."CustomServices" (
+    id bigint NOT NULL,
+    "CustomServiceID" character varying NOT NULL,
+    "EnrollmentID" character varying NOT NULL,
+    "PersonalID" character varying NOT NULL,
+    "UserID" character varying(32) NOT NULL,
+    "DateProvided" date NOT NULL,
+    data_source_id integer,
+    service_type_id bigint,
+    service_name character varying,
+    "DateCreated" timestamp without time zone NOT NULL,
+    "DateUpdated" timestamp without time zone NOT NULL,
+    "DateDeleted" timestamp without time zone
+);
+
+
+--
+-- Name: COLUMN "CustomServices".service_type_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public."CustomServices".service_type_id IS 'Reference to the type of service rendered';
+
+
+--
+-- Name: COLUMN "CustomServices".service_name; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public."CustomServices".service_name IS 'Name of service rendered (for export)';
+
+
+--
+-- Name: CustomServices_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public."CustomServices_id_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: CustomServices_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public."CustomServices_id_seq" OWNED BY public."CustomServices".id;
 
 
 --
@@ -10559,44 +10612,6 @@ ALTER SEQUENCE public.hmis_assessment_details_id_seq OWNED BY public.hmis_assess
 
 
 --
--- Name: hmis_assessment_processors; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.hmis_assessment_processors (
-    id bigint NOT NULL,
-    enrollment_coc_id bigint,
-    health_and_dv_id bigint,
-    income_benefit_id bigint,
-    physical_disability_id bigint,
-    developmental_disability_id bigint,
-    chronic_health_condition_id bigint,
-    hiv_aids_id bigint,
-    mental_health_disorder_id bigint,
-    substance_use_disorder_id bigint,
-    exit_id bigint
-);
-
-
---
--- Name: hmis_assessment_processors_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.hmis_assessment_processors_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: hmis_assessment_processors_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.hmis_assessment_processors_id_seq OWNED BY public.hmis_assessment_processors.id;
-
-
---
 -- Name: hmis_assessments; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -14114,6 +14129,110 @@ CREATE SEQUENCE public.hmis_import_configs_id_seq
 --
 
 ALTER SEQUENCE public.hmis_import_configs_id_seq OWNED BY public.hmis_import_configs.id;
+
+
+--
+-- Name: hmis_service_categories; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_service_categories (
+    id bigint NOT NULL,
+    name character varying NOT NULL,
+    data_source_id integer,
+    deleted_at timestamp without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: COLUMN hmis_service_categories.name; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.hmis_service_categories.name IS 'Name of service category (eg Financial Assisstance)';
+
+
+--
+-- Name: hmis_service_categories_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_service_categories_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_service_categories_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_service_categories_id_seq OWNED BY public.hmis_service_categories.id;
+
+
+--
+-- Name: hmis_service_types; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_service_types (
+    id bigint NOT NULL,
+    name character varying NOT NULL,
+    service_category_id bigint,
+    hud_record_type integer,
+    hud_type_provided integer,
+    data_source_id integer,
+    deleted_at timestamp without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: COLUMN hmis_service_types.name; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.hmis_service_types.name IS 'Name of this service (eg HAP Rental Assistance)';
+
+
+--
+-- Name: COLUMN hmis_service_types.service_category_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.hmis_service_types.service_category_id IS 'Category that this service belongs to';
+
+
+--
+-- Name: COLUMN hmis_service_types.hud_record_type; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.hmis_service_types.hud_record_type IS 'Only applicable if this is a HUD service';
+
+
+--
+-- Name: COLUMN hmis_service_types.hud_type_provided; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.hmis_service_types.hud_type_provided IS 'Only applicable if this is a HUD service';
+
+
+--
+-- Name: hmis_service_types_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_service_types_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_service_types_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_service_types_id_seq OWNED BY public.hmis_service_types.id;
 
 
 --
@@ -20985,6 +21104,13 @@ ALTER TABLE ONLY public."CustomProjectAssessments" ALTER COLUMN id SET DEFAULT n
 
 
 --
+-- Name: CustomServices id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."CustomServices" ALTER COLUMN id SET DEFAULT nextval('public."CustomServices_id_seq"'::regclass);
+
+
+--
 -- Name: Disabilities id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -22098,13 +22224,6 @@ ALTER TABLE ONLY public.hmis_assessment_details ALTER COLUMN id SET DEFAULT next
 
 
 --
--- Name: hmis_assessment_processors id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_assessment_processors ALTER COLUMN id SET DEFAULT nextval('public.hmis_assessment_processors_id_seq'::regclass);
-
-
---
 -- Name: hmis_assessments id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -22578,6 +22697,20 @@ ALTER TABLE ONLY public.hmis_forms ALTER COLUMN id SET DEFAULT nextval('public.h
 --
 
 ALTER TABLE ONLY public.hmis_import_configs ALTER COLUMN id SET DEFAULT nextval('public.hmis_import_configs_id_seq'::regclass);
+
+
+--
+-- Name: hmis_service_categories id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_service_categories ALTER COLUMN id SET DEFAULT nextval('public.hmis_service_categories_id_seq'::regclass);
+
+
+--
+-- Name: hmis_service_types id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_service_types ALTER COLUMN id SET DEFAULT nextval('public.hmis_service_types_id_seq'::regclass);
 
 
 --
@@ -23867,6 +24000,14 @@ ALTER TABLE ONLY public."CustomProjectAssessments"
 
 
 --
+-- Name: CustomServices CustomServices_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."CustomServices"
+    ADD CONSTRAINT "CustomServices_pkey" PRIMARY KEY (id);
+
+
+--
 -- Name: Disabilities Disabilities_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -25147,14 +25288,6 @@ ALTER TABLE ONLY public.hmis_assessment_details
 
 
 --
--- Name: hmis_assessment_processors hmis_assessment_processors_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_assessment_processors
-    ADD CONSTRAINT hmis_assessment_processors_pkey PRIMARY KEY (id);
-
-
---
 -- Name: hmis_assessments hmis_assessments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -25696,6 +25829,22 @@ ALTER TABLE ONLY public.hmis_forms
 
 ALTER TABLE ONLY public.hmis_import_configs
     ADD CONSTRAINT hmis_import_configs_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_service_categories hmis_service_categories_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_service_categories
+    ADD CONSTRAINT hmis_service_categories_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_service_types hmis_service_types_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_service_types
+    ADD CONSTRAINT hmis_service_types_pkey PRIMARY KEY (id);
 
 
 --
@@ -40056,6 +40205,13 @@ CREATE INDEX "index_CustomForms_on_owner" ON public."CustomForms" USING btree (o
 
 
 --
+-- Name: index_CustomServices_on_service_type_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_CustomServices_on_service_type_id" ON public."CustomServices" USING btree (service_type_id);
+
+
+--
 -- Name: index_Disabilities_on_DateDeleted_and_data_source_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -42275,76 +42431,6 @@ CREATE INDEX index_hmis_assessment_details_on_definition_id ON public.hmis_asses
 
 
 --
--- Name: index_hmis_assessment_processors_on_chronic_health_condition_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_assessment_processors_on_chronic_health_condition_id ON public.hmis_assessment_processors USING btree (chronic_health_condition_id);
-
-
---
--- Name: index_hmis_assessment_processors_on_developmental_disability_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_assessment_processors_on_developmental_disability_id ON public.hmis_assessment_processors USING btree (developmental_disability_id);
-
-
---
--- Name: index_hmis_assessment_processors_on_enrollment_coc_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_assessment_processors_on_enrollment_coc_id ON public.hmis_assessment_processors USING btree (enrollment_coc_id);
-
-
---
--- Name: index_hmis_assessment_processors_on_exit_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_assessment_processors_on_exit_id ON public.hmis_assessment_processors USING btree (exit_id);
-
-
---
--- Name: index_hmis_assessment_processors_on_health_and_dv_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_assessment_processors_on_health_and_dv_id ON public.hmis_assessment_processors USING btree (health_and_dv_id);
-
-
---
--- Name: index_hmis_assessment_processors_on_hiv_aids_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_assessment_processors_on_hiv_aids_id ON public.hmis_assessment_processors USING btree (hiv_aids_id);
-
-
---
--- Name: index_hmis_assessment_processors_on_income_benefit_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_assessment_processors_on_income_benefit_id ON public.hmis_assessment_processors USING btree (income_benefit_id);
-
-
---
--- Name: index_hmis_assessment_processors_on_mental_health_disorder_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_assessment_processors_on_mental_health_disorder_id ON public.hmis_assessment_processors USING btree (mental_health_disorder_id);
-
-
---
--- Name: index_hmis_assessment_processors_on_physical_disability_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_assessment_processors_on_physical_disability_id ON public.hmis_assessment_processors USING btree (physical_disability_id);
-
-
---
--- Name: index_hmis_assessment_processors_on_substance_use_disorder_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_assessment_processors_on_substance_use_disorder_id ON public.hmis_assessment_processors USING btree (substance_use_disorder_id);
-
-
---
 -- Name: index_hmis_assessments_on_assessment_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -43119,6 +43205,13 @@ CREATE INDEX index_hmis_forms_on_name ON public.hmis_forms USING btree (name);
 --
 
 CREATE INDEX index_hmis_import_configs_on_data_source_id ON public.hmis_import_configs USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_service_types_on_service_category_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_service_types_on_service_category_id ON public.hmis_service_types USING btree (service_category_id);
 
 
 --
@@ -51097,6 +51190,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230206142754'),
 ('20230207151644'),
 ('20230301170853'),
-('20230301172341');
+('20230301172341'),
+('20230303154815');
 
 
