@@ -38,21 +38,22 @@ class AddCustomAssessments < ActiveRecord::Migration[6.1]
       t.datetime :DateDeleted
     end
 
-    rename_table :hmis_assessment_processors, :hmis_form_processors
-
-    # Commented-out: if hmis_assessment_processors doesn't exist, run this instead
-    # create_table :hmis_form_processors do |t|
-    #   t.references :enrollment_coc
-    #   t.references :health_and_dv
-    #   t.references :income_benefit
-    #   t.references :physical_disability
-    #   t.references :developmental_disability
-    #   t.references :chronic_health_condition
-    #   t.references :hiv_aids
-    #   t.references :mental_health_disorder
-    #   t.references :substance_use_disorder
-    #   t.references :exit
-    # end
+    GrdaWarehouseBase.connection.table_exists? 'hmis_assessment_processors'
+      rename_table :hmis_assessment_processors, :hmis_form_processors
+    else
+      create_table :hmis_form_processors do |t|
+        t.references :enrollment_coc
+        t.references :health_and_dv
+        t.references :income_benefit
+        t.references :physical_disability
+        t.references :developmental_disability
+        t.references :chronic_health_condition
+        t.references :hiv_aids
+        t.references :mental_health_disorder
+        t.references :substance_use_disorder
+        t.references :exit
+      end
+    end
 
     create_table :CustomForms do |t|
       t.references :owner, null: false, polymorphic: true
