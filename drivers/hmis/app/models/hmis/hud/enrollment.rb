@@ -22,6 +22,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   belongs_to :project, **hmis_relation(:ProjectID, 'Project'), optional: true
   has_one :exit, **hmis_relation(:EnrollmentID, 'Exit'), dependent: :destroy
   has_many :services, **hmis_relation(:EnrollmentID, 'Service'), dependent: :destroy
+  has_many :custom_services, **hmis_relation(:EnrollmentID, 'CustomService'), dependent: :destroy
   has_many :events, **hmis_relation(:EnrollmentID, 'Event'), dependent: :destroy
   has_many :income_benefits, **hmis_relation(:EnrollmentID, 'IncomeBenefit'), dependent: :destroy
   has_many :disabilities, **hmis_relation(:EnrollmentID, 'Disability'), dependent: :destroy
