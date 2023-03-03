@@ -8,22 +8,23 @@ class Hmis::Hud::Validators::ServiceValidator < Hmis::Hud::Validators::BaseValid
   ].freeze
 
   TYPE_PROVIDED_MAP = {
-    141 => ::HudUtility.p_a_t_h_services_map,
-    142 => ::HudUtility.r_h_y_services_map,
-    143 => ::HudUtility.h_o_p_w_a_services_map,
-    144 => ::HudUtility.s_s_v_f_services_map,
-    151 => ::HudUtility.h_o_p_w_a_financial_assistance_map,
-    152 => ::HudUtility.s_s_v_f_financial_assistance_map,
-    161 => ::HudUtility.p_a_t_h_referral_map,
-    200 => ::HudUtility.bed_night_map,
-    210 => ::HudUtility.voucher_tracking_map,
-    300 => ::HudUtility.moving_on_assistance_map,
+    141 => ::HudLists.path_services_map,
+    142 => ::HudLists.rhy_services_map,
+    143 => ::HudLists.hopwa_services_map,
+    144 => ::HudLists.ssvf_services_map,
+    151 => ::HudLists.hopwa_financial_assistance_map,
+    152 => ::HudLists.ssvf_financial_assistance_map,
+    161 => ::HudLists.path_referral_map,
+    162 => ::HudLists.rhy_referral_map,
+    200 => ::HudLists.bed_night_map,
+    210 => ::HudLists.voucher_tracking_map,
+    300 => ::HudLists.moving_on_assistance_map,
   }.freeze
 
   SUB_TYPE_PROVIDED_MAP = {
-    3 => ::HudUtility.s_s_v_f_sub_type3_map,
-    4 => ::HudUtility.s_s_v_f_sub_type4_map,
-    5 => ::HudUtility.s_s_v_f_sub_type5_map,
+    3 => ::HudLists.ssvf_sub_type3_map,
+    4 => ::HudLists.ssvf_sub_type4_map,
+    5 => ::HudLists.ssvf_sub_type5_map,
   }.freeze
 
   def configuration
@@ -32,12 +33,12 @@ class Hmis::Hud::Validators::ServiceValidator < Hmis::Hud::Validators::BaseValid
 
   def validate(record)
     super(record) do
-      validate_service_type(record)
-      validate_sub_type_provided(record)
+      self.class.validate_service_type(record)
+      self.class.validate_sub_type_provided(record)
     end
   end
 
-  def validate_service_type(record)
+  def self.validate_service_type(record)
     record.errors.add :type_provided, :required unless record.record_type.present? && record.type_provided.present?
     return unless record.record_type.present? && record.type_provided.present?
 
@@ -51,7 +52,7 @@ class Hmis::Hud::Validators::ServiceValidator < Hmis::Hud::Validators::BaseValid
     record.errors.add :type_provided, :invalid, full_message: "Value for service type '#{record.type_provided}' is not a valid service type for the category '#{record.record_type}'"
   end
 
-  def validate_sub_type_provided(record)
+  def self.validate_sub_type_provided(record)
     if record.record_type == 144
       if SUB_TYPE_PROVIDED_MAP.keys.include?(record.type_provided)
         record.errors.add :sub_type_provided, :invalid, full_message: "Value for SubTypeProvided '#{record.sub_type_provided}' does not match TypeProvided '#{record.type_provided}'" unless SUB_TYPE_PROVIDED_MAP.any? { |tp, stp_map| record.type_provided == tp && stp_map.keys.include?(record.sub_type_provided) }
