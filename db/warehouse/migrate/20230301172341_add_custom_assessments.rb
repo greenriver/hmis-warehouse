@@ -1,6 +1,7 @@
 class AddCustomAssessments < ActiveRecord::Migration[6.1]
   def change
     create_table :CustomAssessments do |t|
+      t.string :CustomAssessmentID, null: false
       t.string :EnrollmentID, null: false
       t.string :PersonalID, null: false
       t.string :UserID, limit: 32, null: false
@@ -14,6 +15,7 @@ class AddCustomAssessments < ActiveRecord::Migration[6.1]
     end
 
     create_table :CustomClientAssessments do |t|
+      t.string :CustomClientAssessmentID, null: false
       t.string :PersonalID, null: false
       t.string :UserID, limit: 32, null: false
       t.date :InformationDate, null: false
@@ -25,6 +27,7 @@ class AddCustomAssessments < ActiveRecord::Migration[6.1]
     end
 
     create_table :CustomProjectAssessments do |t|
+      t.string :CustomProjectAssessmentID, null: false
       t.string :ProjectID, null: false
       t.string :UserID, limit: 32, null: false
       t.date :InformationDate, null: false
