@@ -55,7 +55,7 @@ module Mutations
     end
 
     # Default CRUD Create functionality
-    def default_create_record(cls, field_name:, id_field_name:, input:)
+    def default_create_record(cls, field_name:, id_field_name:, input:, _permissions: nil)
       record = cls.new(
         **input.to_params,
         id_field_name => Hmis::Hud::Base.generate_uuid,
@@ -79,10 +79,18 @@ module Mutations
     end
 
     # Default CRUD Delete functionality
-    def default_delete_record(record:, field_name:)
+    def default_delete_record(record:, field_name:, permissions: nil)
       errors = []
       if record.present?
-        record.destroy
+        if permissions.present?
+          if current_user.permissions_for?(record, *permissions)
+            record.destroy
+          else
+            errors << HmisErrors::Error.new(field_name, :not_allowed)
+          end
+        else
+          record.destroy
+        end
       else
         errors << HmisErrors::Error.new(field_name, :not_found)
       end

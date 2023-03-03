@@ -16,7 +16,7 @@ module HmisErrors
 
       # Set default message and full message
       message ||= self.class.default_message_for_type(type)
-      full_message ||= "#{readable_attribute} #{message}"
+      full_message ||= self.class.default_full_message_for_type(readable_attribute, message, type)
 
       {
         attribute: attribute,
@@ -64,12 +64,23 @@ module HmisErrors
       attribute.to_s.underscore.humanize
     end
 
+    def self.default_full_message_for_type(attribute, message, err_type)
+      case err_type.to_sym
+      when :not_allowed
+        "Unauthorized operation on #{attribute}"
+      else
+        "#{attribute} #{message}"
+      end
+    end
+
     def self.default_message_for_type(err_type)
       case err_type.to_sym
       when :data_not_collected
         'is empty'
       when :not_found
         'not found'
+      when :not_allowed
+        'not allowed'
       else
         I18n.t("errors.messages.#{err_type}", default: 'is invalid')
       end
