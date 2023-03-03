@@ -34,6 +34,14 @@ module Types
 
       return [nil, errors.errors] if errors.any?
 
+      # Check if it's valid to create a new assessment of this type
+      unless assessment.present?
+        errors.add :assessment, :invalid, full_message: 'An intake assessment for this enrollment already exists.' if form_definition.intake? && enrollment.intake_assessment.present?
+        errors.add :assessment, :invalid, full_message: 'An exit assessment for this enrollment already exists.' if form_definition.exit? && enrollment.exit_assessment.present?
+      end
+
+      return [nil, errors.errors] if errors.any?
+
       # Create new Assessment (and CustomForm) if one doesn't exist already
       assessment ||= Hmis::Hud::CustomAssessment.new_with_defaults(
         enrollment: enrollment,
