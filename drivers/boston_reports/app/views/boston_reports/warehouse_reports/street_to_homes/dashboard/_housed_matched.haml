@@ -1,0 +1,72 @@
+.mr-0.ml-8
+  .well
+    .d-flex.mb-4
+      %h2.client-status-header Clients Housed
+      .client-status-switcher.btn-group.btn-group-toggle.btn-sm.ml-auto{ data: { toggle: :buttons }}
+        %label.btn.btn-secondary.btn-sm.active
+          %input#housed{ type: :radio, name: :client_status, checked: :checked}
+          Housed
+        %label.btn.btn-secondary.btn-sm
+          %input#matched{ type: :radio, name: :client_status}
+          Matched
+
+
+    #client-status-chart
+    #client-status-chart-legend.d-flex.m-4
+  - max_value = @report.counts_by_stage['columns'].map(&:last).max
+  = content_for :page_js do
+    :javascript
+      let housed_data = #{@report.housed_by_cohort.to_json.html_safe};
+      let housed_grid = #{@report.housed_by_cohort['columns'].first.drop(1).map { |d| { value: d, label: d }}.to_json.html_safe};
+      let matched_data = #{@report.matched_by_cohort.to_json.html_safe};
+      let matched_grid = #{@report.matched_by_cohort['columns'].first.drop(1).map { |d| { value: d, label: d }}.to_json.html_safe};
+      let status_chart = bb.generate({
+        data: housed_data,
+        bindto: '#client-status-chart',
+        legend: {
+          contents: {
+            bindto: '#client-status-chart-legend',
+            template: "<div class='d-flex mr-4'><div style='padding:5px; height: 14px; width: 26px; background-color:{=COLOR}; margin: auto; border-radius: 10px;'>&nbsp;</div><div class='m-2'>{=TITLE}</div></div>"
+          }
+        },
+        // TODO: regions: [{ start: '2022-01-01', end: '2022-01-31'}]
+        line: {
+          point: false,
+          classes: ['wide-line'],
+        },
+        axis: {
+          x: {
+            type: "timeseries",
+            tick: {
+              format: "%b '%y"
+            }
+          },
+          y: {
+            tick: {
+              culling: {
+                lines: false,
+                max: 3
+              },
+              format: function(x) {
+                return Math.round(x)
+              }
+            }
+          },
+        },
+        grid: {
+          x: {
+            lines: housed_grid,
+          },
+        }
+      });
+      $('.client-status-switcher').on('change', function(e) {
+        if($(e.target).attr('id') == 'housed') {
+          $('.client-status-header').text('Clients Housed')
+          status_chart.load(housed_data);
+          status_chart.xgrids(housed_grid);
+        } else {
+          $('.client-status-header').text('Clients Matched')
+          status_chart.load(matched_data);
+          status_chart.xgrids(matched_grid);
+        }
+      });

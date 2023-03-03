@@ -272,7 +272,6 @@ module BostonReports
           month += 1.months
           months << month
         end
-        # FIXME: months isn't correct
         data['type'] = 'line'
         data['x'] = 'dates'
         data['columns'] = [['dates'] + months]
@@ -289,6 +288,36 @@ module BostonReports
           end
           data['columns'] << row
           data['colors'][cohort] = config["breakdown_1_color_#{i}"]
+        end
+      end
+    end
+
+    def race_by_cohort
+      @race_by_cohort ||= {}.tap do |charts|
+        cohort_names.each do |cohort|
+          cohort_slug = cohort.parameterize(separator: '_')
+          charts[cohort_slug] = {}
+          charts[cohort_slug]['type'] = 'pie'
+          charts[cohort_slug]['columns'] = []
+          charts[cohort_slug]['colors'] = {}
+          races.each do |race|
+            charts[cohort_slug]['columns'] << [::HudUtility.race(race), (clients[cohort] & clients[race]).count]
+          end
+        end
+      end
+    end
+
+    def ethnicity_by_cohort
+      @ethnicity_by_cohort ||= {}.tap do |charts|
+        cohort_names.each do |cohort|
+          cohort_slug = cohort.parameterize(separator: '_')
+          charts[cohort_slug] = {}
+          charts[cohort_slug]['type'] = 'pie'
+          charts[cohort_slug]['columns'] = []
+          charts[cohort_slug]['colors'] = {}
+          ethnicities.each do |ethnicity|
+            charts[cohort_slug]['columns'] << [::HudUtility.ethnicity(ethnicity), (clients[cohort] & clients[ethnicity]).count]
+          end
         end
       end
     end
@@ -356,10 +385,11 @@ module BostonReports
       ::HudLists.ethnicity_map.select { |id, _| id.in?([0, 1]) }.values
     end
 
-    private def cohort_names
-      @cohort_names ||= GrdaWarehouse::CohortColumnOption.active.ordered.
-        where(cohort_column: filter.cohort_column).
-        pluck(:value)
+    def cohort_names
+      @cohort_names ||= report_scope.active.
+        where.not(filter.cohort_column => nil).
+        distinct.
+        pluck(filter.cohort_column).sort
     end
 
     private def stages
