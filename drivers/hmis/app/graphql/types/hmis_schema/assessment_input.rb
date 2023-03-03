@@ -20,11 +20,11 @@ module Types
 
       if assessment_id.present?
         # Updating an existing assessment
-        assessment = Hmis::Hud::Assessment.editable_by(current_user).find_by(id: assessment_id)
+        assessment = Hmis::Hud::Assessment.viewable_by(current_user).find_by(id: assessment_id)
         errors.add :assessment, :required unless assessment.present?
       elsif enrollment_id.present? && form_definition_id.present?
         # Creating a new assessment
-        enrollment = Hmis::Hud::Enrollment.editable_by(current_user).find_by(id: enrollment_id)
+        enrollment = Hmis::Hud::Enrollment.viewable_by(current_user).find_by(id: enrollment_id)
         form_definition = Hmis::Form::Definition.find_by(id: form_definition_id)
         errors.add :enrollment, :required unless enrollment.present?
         errors.add :form_definition, :required unless form_definition.present?

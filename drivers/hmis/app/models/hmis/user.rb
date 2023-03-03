@@ -173,6 +173,6 @@ class Hmis::User < ApplicationRecord
   end
 
   def editable_project_ids
-    @editable_project_ids ||= Hmis::Hud::Project.editable_by(self).pluck(:id)
+    @editable_project_ids ||= Hmis::Hud::Project.viewable_by(self).pluck(:id)
   end
 end

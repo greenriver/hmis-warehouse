@@ -11,7 +11,7 @@ module Mutations
       errors = HmisErrors::Errors.new
       errors.add :relationship_to_ho_h, full_message: 'Exactly one client must be head of household' if household_members.select { |hm| hm.relationship_to_ho_h == 1 }.size != 1
       errors.add :start_date, :out_of_range, message: 'cannot be in the future', readable_attribute: 'Entry date' if Date.parse(start_date) > Date.today
-      errors.add :project_id, :not_found unless Hmis::Hud::Project.editable_by(current_user).exists?(id: project_id)
+      errors.add :project_id, :not_found unless Hmis::Hud::Project.viewable_by(current_user).exists?(id: project_id)
       errors.errors
     end
 

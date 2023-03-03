@@ -49,15 +49,6 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     left_outer_joins(:wip).where(viewable_wip.or(viewable_enrollment))
   end
 
-  # hide previous declaration of :editable_by, we'll use this one
-  replace_scope :editable_by, ->(user) do
-    project_ids = Hmis::Hud::Project.editable_by(user).pluck(:id, :ProjectID)
-    editable_wip = wip_t[:project_id].in(project_ids.map(&:first))
-    editable_enrollment = e_t[:ProjectID].in(project_ids.map(&:second))
-
-    left_outer_joins(:wip).where(editable_wip.or(editable_enrollment))
-  end
-
   scope :in_project_including_wip, ->(ids, project_ids) do
     wip_enrollments = wip_t[:project_id].in(Array.wrap(ids))
     actual_enrollments = e_t[:ProjectID].in(Array.wrap(project_ids))

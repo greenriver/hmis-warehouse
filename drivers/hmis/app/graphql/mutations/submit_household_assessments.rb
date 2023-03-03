@@ -10,7 +10,7 @@ module Mutations
     def resolve(assessment_ids:, confirmed:)
       errors = HmisErrors::Errors.new
 
-      assessments = Hmis::Hud::Assessment.editable_by(current_user).
+      assessments = Hmis::Hud::Assessment.viewable_by(current_user).
         where(id: assessment_ids).
         preload(:enrollment, :assessment_detail)
 

@@ -12,10 +12,5 @@ module Hmis::Hud::Concerns::EnrollmentRelated
     replace_scope :viewable_by, ->(user) do
       joins(:enrollment).merge(Hmis::Hud::Enrollment.viewable_by(user))
     end
-
-    # hide previous declaration of :editable_by, we'll use this one
-    replace_scope :editable_by, ->(user) do
-      joins(:enrollment).merge(Hmis::Hud::Enrollment.editable_by(user))
-    end
   end
 end
