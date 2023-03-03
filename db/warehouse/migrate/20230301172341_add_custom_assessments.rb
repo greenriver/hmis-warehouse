@@ -1,5 +1,5 @@
 class AddCustomAssessments < ActiveRecord::Migration[6.1]
-  def change
+  def up
     create_table :CustomAssessments do |t|
       t.string :CustomAssessmentID, null: false
       t.string :EnrollmentID, null: false
@@ -38,7 +38,7 @@ class AddCustomAssessments < ActiveRecord::Migration[6.1]
       t.datetime :DateDeleted
     end
 
-    GrdaWarehouseBase.connection.table_exists? 'hmis_assessment_processors'
+    if GrdaWarehouseBase.connection.table_exists? 'hmis_assessment_processors'
       rename_table :hmis_assessment_processors, :hmis_form_processors
     else
       create_table :hmis_form_processors do |t|
@@ -81,6 +81,30 @@ class AddCustomAssessments < ActiveRecord::Migration[6.1]
 
       t.datetime :deleted_at
       t.timestamps
+    end
+  end
+
+  def down
+    drop_table :CustomAssessments
+    drop_table :CustomClientAssessments
+    drop_table :CustomProjectAssessments
+    drop_table :CustomForms
+    drop_table :CustomFormAnswers
+    drop_table :hmis_form_processors if  GrdaWarehouseBase.connection.table_exists? 'hmis_form_processors'
+
+    unless GrdaWarehouseBase.connection.table_exists? 'hmis_assessment_processors'
+      create_table :hmis_assessment_processors do |t|
+        t.references :enrollment_coc
+        t.references :health_and_dv
+        t.references :income_benefit
+        t.references :physical_disability
+        t.references :developmental_disability
+        t.references :chronic_health_condition
+        t.references :hiv_aids
+        t.references :mental_health_disorder
+        t.references :substance_use_disorder
+        t.references :exit
+      end
     end
   end
 end
