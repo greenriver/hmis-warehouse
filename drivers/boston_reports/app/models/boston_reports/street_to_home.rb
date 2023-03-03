@@ -300,8 +300,11 @@ module BostonReports
           charts[cohort_slug]['type'] = 'pie'
           charts[cohort_slug]['columns'] = []
           charts[cohort_slug]['colors'] = {}
-          races.each do |race|
+          charts[cohort_slug]['labels'] = { 'colors' => {} }
+          races.each.with_index do |race, i|
             charts[cohort_slug]['columns'] << [::HudUtility.race(race), (clients[cohort] & clients[race]).count]
+            charts[cohort_slug]['colors'][::HudUtility.race(race)] = config["breakdown_3_color_#{i}"]
+            charts[cohort_slug]['labels']['colors'][::HudUtility.race(race)] = config.foreground_color(config["breakdown_3_color_#{i}"])
           end
         end
       end
@@ -315,8 +318,11 @@ module BostonReports
           charts[cohort_slug]['type'] = 'pie'
           charts[cohort_slug]['columns'] = []
           charts[cohort_slug]['colors'] = {}
-          ethnicities.each do |ethnicity|
+          charts[cohort_slug]['labels'] = { 'colors' => {} }
+          ethnicities.each.with_index do |ethnicity, i|
             charts[cohort_slug]['columns'] << [::HudUtility.ethnicity(ethnicity), (clients[cohort] & clients[ethnicity]).count]
+            charts[cohort_slug]['colors'][::HudUtility.ethnicity(ethnicity)] = config["breakdown_4_color_#{i}"]
+            charts[cohort_slug]['labels']['colors'][::HudUtility.ethnicity(ethnicity)] = config.foreground_color(config["breakdown_4_color_#{i}"])
           end
         end
       end

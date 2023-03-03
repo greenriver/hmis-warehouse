@@ -1,8 +1,15 @@
 .dashboard-ethnicity-by-cohort-charts.hide
   .d-flex
-    - @report.cohort_names.each do |cohort|
+    - @report.cohort_names.each.with_index do |cohort, i|
       - chart_id = "ethnicity-by-cohort-chart-#{cohort.parameterize(separator: '_')}"
-      .ethnicity-by-cohort-chart.mr-6{ id: chart_id }
+      .chart-with-title
+        - # account for the legend weirdness
+        - style = if i.zero? then '' else 'margin-bottom: 20px;' end
+        .ethnicity-by-cohort-chart.ml-3.mr-3{ id: chart_id, style: style }
+        .chat_title
+          %h3.text-center= cohort
+          - bg_color = @config["breakdown_1_color_#{i}"]
+          #div{ style: "padding:5px; height: 14px; width: 26px; background-color:#{bg_color}; margin: 0 auto; border-radius: 10px;" } &nbsp;
     - # Bind charts to one legend (https://github.com/naver/billboard.js/issues/605)
     #ethnicity-by-cohort-chart-legend
 
