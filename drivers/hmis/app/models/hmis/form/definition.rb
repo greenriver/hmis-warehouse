@@ -145,12 +145,15 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
 
   def validate_form_values(form_values)
     errors = HmisErrors::Errors.new
-    form_values.each do |link_id, value|
-      item = link_id_item_hash[link_id.to_s]
-      raise "Unrecognized link ID: #{link_id}" unless item.present?
 
+    # Iterate over item hash so that errors are sorted according to the definition
+    link_id_item_hash.each do |link_id, item|
       # Skip assessment date, it is validated separately
       next if item.assessment_date
+      # Skip if not present in value hash
+      next unless form_values.key?(link_id)
+
+      value = form_values[link_id]
 
       error_context = {
         readable_attribute: item.brief_text || item.text,
@@ -162,13 +165,18 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
 
       # Validate required status
       if item.required && is_missing
-        errors.add item.field_name, :required, **error_context
+        errors.add item.field_name || :base, :required, **error_context
       elsif item.warn_if_empty && is_missing
-        errors.add item.field_name, :data_not_collected, severity: :warning, **error_context
+        errors.add item.field_name || :base, :data_not_collected, severity: :warning, **error_context
       end
 
       # TODO(##184404620): Validate ValueBounds (How to handle bounds that rely on local values like projectStartDate and entryDate?)
       # TODO(##184402463): Add support for RequiredWhen
+    end
+
+    # Ensure all link IDs are in the FormDefinition
+    form_values.each do |link_id, _|
+      raise "Unrecognized link ID: #{link_id} for definition #{identifier}" unless link_id_item_hash.key?(link_id)
     end
 
     errors.errors
@@ -209,9 +217,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
       recur_fill = lambda do |items|
         items.each do |item|
           recur_fill.call(item.item) if item.item
-          next unless item.field_name.present?
-
-          item_map[item.link_id] = item
+          item_map[item.link_id] = item unless item.type == 'GROUP'
         end
       end
 

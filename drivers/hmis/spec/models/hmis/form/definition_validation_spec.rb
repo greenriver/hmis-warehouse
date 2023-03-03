@@ -145,7 +145,7 @@ RSpec.describe Hmis::Form::Definition, type: :model do
 
     it 'should have no errors when Update assessment is completely filled in' do
       definition = Hmis::Form::Definition.find_by(role: :UPDATE)
-      errors = definition.validate_form_values(completed_values_for_update)
+      errors = definition.validate_form_values(completed_values_for_update.stringify_keys)
       expect(errors).to be_empty
     end
 
@@ -159,7 +159,7 @@ RSpec.describe Hmis::Form::Definition, type: :model do
         },
       ]
       # Test using factory because actual forms don't have any required fields aside from assessment date
-      errors = factory_form_definition.validate_form_values(values)
+      errors = factory_form_definition.validate_form_values(values.stringify_keys)
       expect(errors.map(&:to_h)).to match(expected_errors.map { |h| a_hash_including(**h) })
     end
 
@@ -186,7 +186,7 @@ RSpec.describe Hmis::Form::Definition, type: :model do
         },
       ]
 
-      errors = definition.validate_form_values(values)
+      errors = definition.validate_form_values(values.stringify_keys)
       expect(errors.map(&:to_h)).to match(expected_errors.map { |h| a_hash_including(**h) })
     end
 
@@ -204,7 +204,7 @@ RSpec.describe Hmis::Form::Definition, type: :model do
         },
       ]
 
-      errors = definition.validate_form_values(values)
+      errors = definition.validate_form_values(values.stringify_keys)
       expect(errors.map(&:to_h)).to match(expected_errors.map { |h| a_hash_including(**h) })
     end
   end
