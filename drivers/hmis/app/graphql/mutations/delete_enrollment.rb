@@ -6,9 +6,11 @@ module Mutations
 
     def resolve(id:)
       errors = []
-      enrollment = Hmis::Hud::Enrollment.editable_by(current_user).find_by(id: id)
+      enrollment = Hmis::Hud::Enrollment.viewable_by(current_user).find_by(id: id)
 
       if enrollment.present?
+        return { enrollment: nil, errors: [HmisErrors::Error.new(:enrollment, :not_allowed)] } unless current_user.permissions_for?(enrollment, :can_edit_project_details)
+
         if enrollment.in_progress?
           enrollment.destroy
         else

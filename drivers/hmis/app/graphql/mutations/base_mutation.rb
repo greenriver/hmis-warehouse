@@ -56,7 +56,9 @@ module Mutations
     end
 
     # Default CRUD Create functionality
-    def default_create_record(cls, field_name:, id_field_name:, input:, _permissions: nil)
+    def default_create_record(cls, field_name:, id_field_name:, input:, permissions: nil)
+      return { field_name => nil, errors: [HmisErrors::Error.new(field_name, :not_allowed)] } if permissions.present? && !current_user.permissions?(*permissions)
+
       record = cls.new(
         **input.to_params,
         id_field_name => Hmis::Hud::Base.generate_uuid,

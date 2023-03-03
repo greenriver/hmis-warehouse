@@ -6,8 +6,9 @@ module Mutations
     field :inventory, Types::HmisSchema::Inventory, null: true
 
     def resolve(inventory_id:, bed_ids:)
-      inventory = Hmis::Hud::Inventory.editable_by(current_user).find_by(id: inventory_id)
-      return { inventory => nil, errors: [HmisErrors::Error.new(:inventory_id, :not_found)] } unless inventory.present?
+      inventory = Hmis::Hud::Inventory.viewable_by(current_user).find_by(id: inventory_id)
+      return { inventory: nil, errors: [HmisErrors::Error.new(:inventory_id, :not_found)] } unless inventory.present?
+      return { inventory: nil, errors: [HmisErrors::Error.new(:inventory_id, :not_allowed)] } unless current_user.permissions_for?(inventory, :can_edit_project_details)
 
       return { inventory => inventory, errors: [] } unless bed_ids.any?
 

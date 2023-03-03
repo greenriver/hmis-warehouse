@@ -18,12 +18,14 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   after(:all) do
     cleanup_test_environment
   end
+  include_context 'hmis base setup'
 
   describe 'organization creation tests' do
-    let!(:ds1) { create :hmis_data_source }
-    let!(:user) { create(:user).tap { |u| u.add_viewable(ds1) } }
+    # let!(:ds1) { create :hmis_data_source }
+    # let!(:user) { create(:user).tap { |u| u.add_viewable(ds1) } }
     before(:each) do
       hmis_login(user)
+      assign_viewable(edit_access_group, ds1, hmis_user)
     end
 
     let(:mutation) do
@@ -56,6 +58,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(response.status).to eq 200
         organization = result.dig('data', 'createOrganization', 'organization')
         errors = result.dig('data', 'createOrganization', 'errors')
+        # byebug
         expect(organization['id']).to be_present
         expect(errors).to be_empty
       end

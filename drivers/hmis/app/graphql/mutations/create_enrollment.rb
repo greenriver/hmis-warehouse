@@ -19,7 +19,8 @@ module Mutations
       result = []
       household_id = Hmis::Hud::Enrollment.generate_household_id
       lookup = Hmis::Hud::Client.where(id: household_members.map(&:id)).pluck(:id, :personal_id).to_h
-      project = Hmis::Hud::Project.editable_by(context[:current_user]).find_by(id: project_id)
+      project = Hmis::Hud::Project.viewable_by(context[:current_user]).find_by(id: project_id)
+      return { enrollments: [], errors: [HmisErrors::Error.new(:project_id, :not_allowed)] } unless current_user.permissions_for?(project, :can_edit_enrollments)
 
       household_members.each do |household_member|
         result << {

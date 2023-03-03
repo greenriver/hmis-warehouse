@@ -10,6 +10,7 @@ module Mutations
         field_name: :organization,
         id_field_name: :organization_id,
         input: input,
+        permissions: [:can_edit_organization],
       )
     end
   end
