@@ -53,6 +53,23 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
   end
 
+  it 'should throw error if unauthorized' do
+    remove_permissions(hmis_user, :can_delete_enrollments)
+    response, result = post_graphql(input: { id: e1.id }) { mutation }
+
+    aggregate_failures 'checking response' do
+      expect(response.status).to eq 200
+      enrollment = result.dig('data', 'deleteEnrollment', 'enrollment')
+      errors = result.dig('data', 'deleteEnrollment', 'errors')
+      expect(enrollment).to be_nil
+      expect(errors).to contain_exactly(include('message' => 'operation not allowed'))
+      expect(Hmis::Hud::Enrollment.all).to contain_exactly(
+        have_attributes(id: e1.id),
+        have_attributes(id: e2.id),
+      )
+    end
+  end
+
   it 'should delete an enrollment that is in progress' do
     response, result = post_graphql(input: { id: e2.id }) { mutation }
 

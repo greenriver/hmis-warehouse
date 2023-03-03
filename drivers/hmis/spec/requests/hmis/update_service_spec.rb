@@ -86,6 +86,23 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(errors).to be_empty
     end
   end
+
+  it 'should throw error if unauthorized' do
+    remove_permissions(hmis_user, :can_edit_enrollments)
+    response, result = post_graphql(input: test_input, id: s1.id) { mutation }
+
+    aggregate_failures 'checking response' do
+      expect(response.status).to eq 200
+      service = result.dig('data', 'updateService', 'service')
+      errors = result.dig('data', 'updateService', 'errors')
+      expect(errors).to be_present
+      expect(errors).to contain_exactly(include('message' => 'operation not allowed'))
+      expect(service).to be_nil
+
+      service = Hmis::Hud::Service.find(s1.id)
+      expect(service.record_type == s1.record_type).to eq(true)
+    end
+  end
 end
 
 RSpec.configure do |c|

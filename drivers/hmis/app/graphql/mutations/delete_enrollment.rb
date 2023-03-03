@@ -9,7 +9,7 @@ module Mutations
       enrollment = Hmis::Hud::Enrollment.viewable_by(current_user).find_by(id: id)
 
       if enrollment.present?
-        return { enrollment: nil, errors: [HmisErrors::Error.new(:enrollment, :not_allowed)] } unless current_user.permissions_for?(enrollment, :can_edit_project_details)
+        return { enrollment: nil, errors: [HmisErrors::Error.new(:enrollment, :not_allowed)] } unless current_user.permissions_for?(enrollment, :can_delete_enrollments)
 
         if enrollment.in_progress?
           enrollment.destroy

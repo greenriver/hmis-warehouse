@@ -58,9 +58,23 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(response.status).to eq 200
         organization = result.dig('data', 'createOrganization', 'organization')
         errors = result.dig('data', 'createOrganization', 'errors')
-        # byebug
         expect(organization['id']).to be_present
         expect(errors).to be_empty
+      end
+    end
+
+    it 'throw error if unauthorized' do
+      remove_permissions(hmis_user, :can_edit_organization)
+      mutation_input = test_input
+      response, result = post_graphql(input: mutation_input) { mutation }
+
+      aggregate_failures 'checking response' do
+        expect(response.status).to eq 200
+        organization = result.dig('data', 'createOrganization', 'organization')
+        errors = result.dig('data', 'createOrganization', 'errors')
+        expect(organization).to be_nil
+        expect(errors).to be_present
+        expect(errors).to contain_exactly(include('message' => 'operation not allowed'))
       end
     end
 

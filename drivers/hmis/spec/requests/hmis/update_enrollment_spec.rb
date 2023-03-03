@@ -73,6 +73,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   describe 'with view access' do
     before(:each) do
       hmis_login(user)
+      remove_permissions(hmis_user, :can_edit_enrollments)
       assign_viewable(view_access_group, p1.as_warehouse, hmis_user)
     end
     it 'should not update enrollment' do

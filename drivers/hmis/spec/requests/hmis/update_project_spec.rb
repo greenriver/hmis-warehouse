@@ -91,6 +91,24 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
     end
 
+    it 'should throw error if unauthorized' do
+      remove_permissions(hmis_user, :can_edit_project_details)
+      aggregate_failures 'checking response' do
+        expect(p1.user_id).to eq(u2.user_id)
+        response, result = post_graphql(id: p1.id, input: test_input, confirmed: false) { mutation }
+
+        expect(response.status).to eq 200
+        project = result.dig('data', 'updateProject', 'project')
+        errors = result.dig('data', 'updateProject', 'errors')
+        expect(errors).to be_present
+        expect(errors).to contain_exactly(include('message' => 'operation not allowed'))
+        expect(project).to be_nil
+
+        project = Hmis::Hud::Project.find(p1.id)
+        expect(project.project_name == p1.project_name).to eq(true)
+      end
+    end
+
     it 'should allow nulls, and correctly nullify fields' do
       p1.update(description: 'foo', operating_end_date: '2022-01-01', housing_type: 3, continuum_project: 0, residential_affiliation: 1, HMISParticipatingProject: 99)
       input = {
