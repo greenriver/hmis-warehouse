@@ -23,6 +23,7 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
   has_one :wip, class_name: 'Hmis::Wip', as: :source, dependent: :destroy
   has_many :assessment_questions, **hmis_relation(:AssessmentID, 'AssessmentQuestion'), dependent: :destroy
   has_many :assessment_results, **hmis_relation(:AssessmentID, 'AssessmentResult'), dependent: :destroy
+  has_one :project, through: :enrollment
 
   attr_accessor :in_progress
 

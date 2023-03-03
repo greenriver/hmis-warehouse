@@ -8,16 +8,21 @@ module Mutations
 
     def resolve(id:, entry_date: nil, relationship_to_ho_h: nil)
       errors = []
-      enrollment = Hmis::Hud::Enrollment.editable_by(current_user).find_by(id: id)
+      enrollment = Hmis::Hud::Enrollment.viewable_by(current_user).find_by(id: id)
 
       if enrollment
-        enrollment.entry_date = entry_date if entry_date.present?
-        enrollment.relationship_to_ho_h = relationship_to_ho_h if relationship_to_ho_h.present?
-        enrollment.date_updated = DateTime.current
-        enrollment.user_id = hmis_user.user_id
-        enrollment.save!
+        if current_user.permissions_for?(enrollment, :can_edit_enrollments)
+          enrollment.entry_date = entry_date if entry_date.present?
+          enrollment.relationship_to_ho_h = relationship_to_ho_h if relationship_to_ho_h.present?
+          enrollment.date_updated = DateTime.current
+          enrollment.user_id = hmis_user.user_id
+          enrollment.save!
 
-        errors << enrollment.errors.errors unless enrollment.valid?
+          errors << enrollment.errors.errors unless enrollment.valid?
+        else
+          enrollment = nil
+          errors << HmisErrors::Error.new(:enrollment, :not_allowed)
+        end
       else
         errors << HmisErrors::Error.new(:enrollment, :not_found)
       end

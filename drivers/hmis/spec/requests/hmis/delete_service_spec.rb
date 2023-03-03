@@ -81,8 +81,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(response.status).to eq 200
       service = result.dig('data', 'deleteService', 'service')
       errors = result.dig('data', 'deleteService', 'errors')
-      expect(service).to be_present
-      expect(errors).to contain_exactly(include('message' => 'not allowed'))
+      expect(service).to be_nil
+      expect(errors).to contain_exactly(include('message' => 'operation not allowed'))
       expect(Hmis::Hud::Service.count).to eq(1)
     end
   end

@@ -7,13 +7,14 @@ module Mutations
     field :project, Types::HmisSchema::Project, null: true
 
     def resolve(id:, input:, confirmed:)
-      record = Hmis::Hud::Project.editable_by(current_user).find_by(id: id)
+      record = Hmis::Hud::Project.viewable_by(current_user).find_by(id: id)
       closes_project = record.present? && record.operating_end_date.blank? && input.operating_end_date.present?
       response = default_update_record(
         record: record,
         field_name: :project,
         input: input,
         confirmed: confirmed,
+        permissions: [:can_edit_project_details],
       )
       close_related_records(record) if closes_project && response[:project].present?
       response

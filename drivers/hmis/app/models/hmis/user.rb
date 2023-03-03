@@ -82,14 +82,10 @@ class Hmis::User < ApplicationRecord
   end
 
   private def permissions_base_for_entity(entity)
-    case entity.class.name
-    when Hmis::Hud::Service.name
-      entity.enrollment.project
-    when Hmis::Hud::Enrollment.name
-      entity.project
-    else
-      entity
-    end
+    return entity if entity.is_a? Hmis::Hud::Organization
+    return entity.project if entity.respond_to? :project
+
+    entity
   end
 
   private def check_permissions_with_mode(*permissions, mode: :any)

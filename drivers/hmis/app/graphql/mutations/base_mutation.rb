@@ -27,8 +27,9 @@ module Mutations
 
     # Default CRUD Update functionality
     # If confirm is not specified, treat as confirmed (aka ignore warnings)
-    def default_update_record(record:, field_name:, input:, confirmed: true)
+    def default_update_record(record:, field_name:, input:, confirmed: true, permissions: nil)
       return { field_name => nil, errors: [HmisErrors::Error.new(field_name, :not_found)] } unless record.present?
+      return { field_name => nil, errors: [HmisErrors::Error.new(field_name, :not_allowed)] } if permissions.present? && !current_user.permissions_for?(record, *permissions)
 
       # Create any custom validation errors
       errors = create_errors(record, input)
@@ -86,6 +87,7 @@ module Mutations
           if current_user.permissions_for?(record, *permissions)
             record.destroy
           else
+            record = nil
             errors << HmisErrors::Error.new(field_name, :not_allowed)
           end
         else

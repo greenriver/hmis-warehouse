@@ -9,10 +9,12 @@ module Mutations
     field :beds, [Types::HmisSchema::Bed], null: false
 
     def resolve(inventory_id:, bed_ids:, name: nil, gender: nil, unit: nil)
-      inventory = Hmis::Hud::Inventory.editable_by(current_user).find_by(id: inventory_id)
+      inventory = Hmis::Hud::Inventory.viewable_by(current_user).find_by(id: inventory_id)
       return { beds: [], errors: [HmisErrors::Error.new(:inventory_id, :not_found)] } unless inventory.present?
 
       beds = inventory.beds.where(id: bed_ids)
+      return { beds: beds, errors: [HmisErrors::Error.new(:inventory_id, :not_allowed)] } unless current_user.permissions_for?(inventory, :can_edit_project_details)
+
       common = { user_id: hmis_user.user_id, updated_at: Time.now }
       beds.update_all(gender: gender, name: name, **common)
       beds.update_all(unit_id: unit.to_i, **common) if unit.present?

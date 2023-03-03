@@ -6,7 +6,7 @@ module Mutations
 
     def resolve(id:)
       record = Hmis::Hud::Organization.editable_by(current_user).find_by(id: id)
-      default_delete_record(record: record, field_name: :organization)
+      default_delete_record(record: record, field_name: :organization, permissions: [:can_delete_organization])
     end
   end
 end
