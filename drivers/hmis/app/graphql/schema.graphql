@@ -3775,7 +3775,7 @@ type Query {
   funder(id: ID!): Funder
 
   """
-  Get most relevant/recent form definition to use for the specified Role and project (optionally)
+  Get most relevant/recent form definition for the specified Role and project (optionally)
   """
   getFormDefinition(enrollmentId: ID, projectId: ID, role: FormRole!): FormDefinition
 
