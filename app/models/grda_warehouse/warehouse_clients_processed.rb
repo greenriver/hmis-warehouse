@@ -815,43 +815,57 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
     def last_intentional_contacts(client_id)
       open_enrollments = GrdaWarehouse::ServiceHistoryEnrollment.entry.ongoing.
         where(client_id: @client_ids)
+
       @services ||= {}.tap do |h|
         open_enrollments.
-          joins(:service_history_services, :project).
-          merge(GrdaWarehouse::ServiceHistoryService.service_excluding_extrapolated).
-          preload(:service_history_services, :project).
-          order(shs_t[:date].desc).
-          pluck(:client_id, shs_t[:date], p_t[:project_name], p_t[:id]).each do |id, date, p_name, p_id|
-            h[id] ||= {}
-            h[id][p_id] ||= {
+          joins(enrollment: [:project, :services]).
+          group(she_t[:client_id], p_t[:project_name], p_t[:id]).maximum(s_t[:date_provided]).
+          map do |(service_client_id, project_name, project_id), date|
+            h[service_client_id] ||= {}
+            h[service_client_id][project_id] ||= {
               date: date,
-              project_name: p_name,
-              project_id: p_id,
+              project_name: project_name,
+              project_id: project_id,
             }
           end
       end
+
       @current_living_situations ||= {}.tap do |h|
         open_enrollments.
-          joins(:project, enrollment: :current_living_situations).
-          preload(:project, enrollment: :current_living_situations).
-          order(cls_t[:information_date].desc).
-          pluck(:client_id, cls_t[:information_date], p_t[:project_name], p_t[:id]).each do |id, date, p_name, p_id|
-          h[id] ||= {}
-          h[id][p_id] ||= {
+          joins(enrollment: [:project, :current_living_situations]).
+          group(she_t[:client_id], p_t[:project_name], p_t[:id]).maximum(cls_t[:information_date]).
+          map do |(cls_client_id, project_name, project_id), date|
+          h[cls_client_id] ||= {}
+          h[cls_client_id][project_id] ||= {
             date: date,
-            project_name: p_name,
-            project_id: p_id,
+            project_name: project_name,
+            project_id: project_id,
           }
         end
       end
+
+      @events ||= {}.tap do |h|
+        open_enrollments.
+          joins(enrollment: [:project, :events]).
+          group(she_t[:client_id], p_t[:project_name], p_t[:id]).maximum(ev_t[:event_date]).
+          map do |(event_client_id, project_name, project_id), date|
+          h[event_client_id] ||= {}
+          h[event_client_id][project_id] ||= {
+            date: date,
+            project_name: project_name,
+            project_id: project_id,
+          }
+        end
+      end
+
       @custom_services ||= if RailsDrivers.loaded.include?(:custom_imports_boston_service)
         {}.tap do |h|
           source_client_ids = GrdaWarehouse::WarehouseClient.where(destination_id: @client_ids).pluck(:source_id)
           CustomImportsBostonService::Row.
-            joins(:client).where(c_t[:id].in(source_client_ids)).
-            order(date: :desc).
-            pluck(c_t[:id], :date, :service_item).each do |id, date, item_name|
-              h[id] ||= {
+            joins(client: :destination_client).where(c_t[:id].in(source_client_ids)).
+            group(wc_t[:destination_id], :service_item).maximum(:date).
+            map do |(dest_client_id, item_name), date|
+              h[dest_client_id] ||= {
                 date: date,
                 project_name: item_name,
                 project_id: nil,
@@ -864,6 +878,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
       [
         @services[client_id]&.values,
         @current_living_situations[client_id]&.values,
+        @events[client_id]&.values,
         @custom_services[client_id],
       ].flatten.compact.to_json
     end
