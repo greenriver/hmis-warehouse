@@ -8,9 +8,9 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   self.table_name = :hmis_form_definitions
   include Hmis::Hud::Concerns::HasEnums
 
-  has_many :instances, foreign_key: :identifier, primary_key: :form_definition_identifier
+  has_many :instances, foreign_key: :definition_identifier, primary_key: :identifier
   has_many :custom_forms
-  # has_many :custom_service_types, through: :instances
+  has_many :custom_service_types, through: :instances, foreign_key: :identifier, primary_key: :form_definition_identifier
 
   FORM_ROLES = {
     # Assessment forms

@@ -940,6 +940,112 @@ ALTER SEQUENCE public."CustomProjectAssessments_id_seq" OWNED BY public."CustomP
 
 
 --
+-- Name: CustomServiceCategories; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."CustomServiceCategories" (
+    id bigint NOT NULL,
+    name character varying NOT NULL,
+    "UserID" character varying(32) NOT NULL,
+    data_source_id integer,
+    "DateCreated" timestamp without time zone NOT NULL,
+    "DateUpdated" timestamp without time zone NOT NULL,
+    "DateDeleted" timestamp without time zone
+);
+
+
+--
+-- Name: COLUMN "CustomServiceCategories".name; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public."CustomServiceCategories".name IS 'Name of service category (eg Financial Assistance)';
+
+
+--
+-- Name: CustomServiceCategories_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public."CustomServiceCategories_id_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: CustomServiceCategories_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public."CustomServiceCategories_id_seq" OWNED BY public."CustomServiceCategories".id;
+
+
+--
+-- Name: CustomServiceTypes; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."CustomServiceTypes" (
+    id bigint NOT NULL,
+    name character varying NOT NULL,
+    custom_service_category_id bigint,
+    hud_record_type integer,
+    hud_type_provided integer,
+    "UserID" character varying(32) NOT NULL,
+    data_source_id integer,
+    "DateCreated" timestamp without time zone NOT NULL,
+    "DateUpdated" timestamp without time zone NOT NULL,
+    "DateDeleted" timestamp without time zone
+);
+
+
+--
+-- Name: COLUMN "CustomServiceTypes".name; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public."CustomServiceTypes".name IS 'Name of this service (eg HAP Rental Assistance)';
+
+
+--
+-- Name: COLUMN "CustomServiceTypes".custom_service_category_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public."CustomServiceTypes".custom_service_category_id IS 'Category that this service belongs to';
+
+
+--
+-- Name: COLUMN "CustomServiceTypes".hud_record_type; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public."CustomServiceTypes".hud_record_type IS 'Only applicable if this is a HUD service';
+
+
+--
+-- Name: COLUMN "CustomServiceTypes".hud_type_provided; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public."CustomServiceTypes".hud_type_provided IS 'Only applicable if this is a HUD service';
+
+
+--
+-- Name: CustomServiceTypes_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public."CustomServiceTypes_id_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: CustomServiceTypes_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public."CustomServiceTypes_id_seq" OWNED BY public."CustomServiceTypes".id;
+
+
+--
 -- Name: CustomServices; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -951,7 +1057,7 @@ CREATE TABLE public."CustomServices" (
     "UserID" character varying(32) NOT NULL,
     "DateProvided" date NOT NULL,
     data_source_id integer,
-    service_type_id bigint,
+    custom_service_type_id bigint,
     service_name character varying,
     "DateCreated" timestamp without time zone NOT NULL,
     "DateUpdated" timestamp without time zone NOT NULL,
@@ -960,10 +1066,10 @@ CREATE TABLE public."CustomServices" (
 
 
 --
--- Name: COLUMN "CustomServices".service_type_id; Type: COMMENT; Schema: public; Owner: -
+-- Name: COLUMN "CustomServices".custom_service_type_id; Type: COMMENT; Schema: public; Owner: -
 --
 
-COMMENT ON COLUMN public."CustomServices".service_type_id IS 'Reference to the type of service rendered';
+COMMENT ON COLUMN public."CustomServices".custom_service_type_id IS 'Reference to the type of service rendered';
 
 
 --
@@ -13931,7 +14037,8 @@ CREATE TABLE public.hmis_form_instances (
     entity_id bigint,
     definition_identifier character varying NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    custom_service_type_id integer
 );
 
 
@@ -14129,110 +14236,6 @@ CREATE SEQUENCE public.hmis_import_configs_id_seq
 --
 
 ALTER SEQUENCE public.hmis_import_configs_id_seq OWNED BY public.hmis_import_configs.id;
-
-
---
--- Name: hmis_service_categories; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.hmis_service_categories (
-    id bigint NOT NULL,
-    name character varying NOT NULL,
-    data_source_id integer,
-    deleted_at timestamp without time zone,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
-);
-
-
---
--- Name: COLUMN hmis_service_categories.name; Type: COMMENT; Schema: public; Owner: -
---
-
-COMMENT ON COLUMN public.hmis_service_categories.name IS 'Name of service category (eg Financial Assisstance)';
-
-
---
--- Name: hmis_service_categories_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.hmis_service_categories_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: hmis_service_categories_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.hmis_service_categories_id_seq OWNED BY public.hmis_service_categories.id;
-
-
---
--- Name: hmis_service_types; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.hmis_service_types (
-    id bigint NOT NULL,
-    name character varying NOT NULL,
-    service_category_id bigint,
-    hud_record_type integer,
-    hud_type_provided integer,
-    data_source_id integer,
-    deleted_at timestamp without time zone,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
-);
-
-
---
--- Name: COLUMN hmis_service_types.name; Type: COMMENT; Schema: public; Owner: -
---
-
-COMMENT ON COLUMN public.hmis_service_types.name IS 'Name of this service (eg HAP Rental Assistance)';
-
-
---
--- Name: COLUMN hmis_service_types.service_category_id; Type: COMMENT; Schema: public; Owner: -
---
-
-COMMENT ON COLUMN public.hmis_service_types.service_category_id IS 'Category that this service belongs to';
-
-
---
--- Name: COLUMN hmis_service_types.hud_record_type; Type: COMMENT; Schema: public; Owner: -
---
-
-COMMENT ON COLUMN public.hmis_service_types.hud_record_type IS 'Only applicable if this is a HUD service';
-
-
---
--- Name: COLUMN hmis_service_types.hud_type_provided; Type: COMMENT; Schema: public; Owner: -
---
-
-COMMENT ON COLUMN public.hmis_service_types.hud_type_provided IS 'Only applicable if this is a HUD service';
-
-
---
--- Name: hmis_service_types_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.hmis_service_types_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: hmis_service_types_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.hmis_service_types_id_seq OWNED BY public.hmis_service_types.id;
 
 
 --
@@ -21104,6 +21107,20 @@ ALTER TABLE ONLY public."CustomProjectAssessments" ALTER COLUMN id SET DEFAULT n
 
 
 --
+-- Name: CustomServiceCategories id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."CustomServiceCategories" ALTER COLUMN id SET DEFAULT nextval('public."CustomServiceCategories_id_seq"'::regclass);
+
+
+--
+-- Name: CustomServiceTypes id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."CustomServiceTypes" ALTER COLUMN id SET DEFAULT nextval('public."CustomServiceTypes_id_seq"'::regclass);
+
+
+--
 -- Name: CustomServices id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -22700,20 +22717,6 @@ ALTER TABLE ONLY public.hmis_import_configs ALTER COLUMN id SET DEFAULT nextval(
 
 
 --
--- Name: hmis_service_categories id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_service_categories ALTER COLUMN id SET DEFAULT nextval('public.hmis_service_categories_id_seq'::regclass);
-
-
---
--- Name: hmis_service_types id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_service_types ALTER COLUMN id SET DEFAULT nextval('public.hmis_service_types_id_seq'::regclass);
-
-
---
 -- Name: hmis_staff id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -23997,6 +24000,22 @@ ALTER TABLE ONLY public."CustomForms"
 
 ALTER TABLE ONLY public."CustomProjectAssessments"
     ADD CONSTRAINT "CustomProjectAssessments_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: CustomServiceCategories CustomServiceCategories_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."CustomServiceCategories"
+    ADD CONSTRAINT "CustomServiceCategories_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: CustomServiceTypes CustomServiceTypes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."CustomServiceTypes"
+    ADD CONSTRAINT "CustomServiceTypes_pkey" PRIMARY KEY (id);
 
 
 --
@@ -25829,22 +25848,6 @@ ALTER TABLE ONLY public.hmis_forms
 
 ALTER TABLE ONLY public.hmis_import_configs
     ADD CONSTRAINT hmis_import_configs_pkey PRIMARY KEY (id);
-
-
---
--- Name: hmis_service_categories hmis_service_categories_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_service_categories
-    ADD CONSTRAINT hmis_service_categories_pkey PRIMARY KEY (id);
-
-
---
--- Name: hmis_service_types hmis_service_types_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_service_types
-    ADD CONSTRAINT hmis_service_types_pkey PRIMARY KEY (id);
 
 
 --
@@ -40205,10 +40208,17 @@ CREATE INDEX "index_CustomForms_on_owner" ON public."CustomForms" USING btree (o
 
 
 --
--- Name: index_CustomServices_on_service_type_id; Type: INDEX; Schema: public; Owner: -
+-- Name: index_CustomServiceTypes_on_custom_service_category_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX "index_CustomServices_on_service_type_id" ON public."CustomServices" USING btree (service_type_id);
+CREATE INDEX "index_CustomServiceTypes_on_custom_service_category_id" ON public."CustomServiceTypes" USING btree (custom_service_category_id);
+
+
+--
+-- Name: index_CustomServices_on_custom_service_type_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_CustomServices_on_custom_service_type_id" ON public."CustomServices" USING btree (custom_service_type_id);
 
 
 --
@@ -43205,13 +43215,6 @@ CREATE INDEX index_hmis_forms_on_name ON public.hmis_forms USING btree (name);
 --
 
 CREATE INDEX index_hmis_import_configs_on_data_source_id ON public.hmis_import_configs USING btree (data_source_id);
-
-
---
--- Name: index_hmis_service_types_on_service_category_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_service_types_on_service_category_id ON public.hmis_service_types USING btree (service_category_id);
 
 
 --
@@ -51191,6 +51194,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230207151644'),
 ('20230301170853'),
 ('20230301172341'),
-('20230303154815');
+('20230303154815'),
+('20230303181248');
 
 
