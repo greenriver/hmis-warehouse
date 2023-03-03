@@ -115,7 +115,7 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
 
   def self.new_with_defaults(enrollment:, user:, form_definition:, assessment_date: nil)
     new_assessment = new(
-      data_source_id: user.data_source_id,
+      data_source_id: enrollment.data_source_id,
       user_id: user.user_id,
       personal_id: enrollment.personal_id,
       enrollment_id: enrollment.enrollment_id,
