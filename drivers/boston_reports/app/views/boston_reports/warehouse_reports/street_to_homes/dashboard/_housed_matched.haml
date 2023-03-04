@@ -10,7 +10,6 @@
           %input#matched{ type: :radio, name: :client_status}
           Matched
 
-
     #client-status-chart
     #client-status-chart-legend.d-flex.m-4
   - max_value = @report.counts_by_stage['columns'].map(&:last).max

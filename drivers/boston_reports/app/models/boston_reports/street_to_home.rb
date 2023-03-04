@@ -332,10 +332,12 @@ module BostonReports
       @stage_by_cohort ||= {}.tap do |data|
         data['x'] = 'x'
         data['type'] = 'bar'
-        data['groups'] = [stages.values.map { |d| d[:label] }]
+        data['groups'] = [stages.values.map { |d| d[:label] } + ['Inactive']]
+        data['colors'] = {}
         data['columns'] = [['x', *cohort_names]]
-        stages.merge({ inactive: all_client_breakdowns[:inactive] }).each do |(key, stage)|
+        stages.merge({ inactive: all_client_breakdowns[:inactive] }).each.with_index do |(key, stage), i|
           row = [stage[:label]]
+          data['colors'][stage[:label]] = config["breakdown_2_color_#{i}"]
           cohort_names.each do |cohort|
             row << (clients[cohort] & clients[key.to_s]).count
           end
@@ -349,9 +351,11 @@ module BostonReports
         data['x'] = 'x'
         data['type'] = 'bar'
         data['groups'] = [cohort_names]
+        data['colors'] = {}
         data['columns'] = [['x', *stages.merge({ inactive: all_client_breakdowns[:inactive] }).values.map { |d| d[:label] }]]
-        cohort_names.each do |cohort|
+        cohort_names.each.with_index do |cohort, i|
           row = [cohort]
+          data['colors'][cohort] = config["breakdown_1_color_#{i}"]
           stages.merge({ inactive: all_client_breakdowns[:inactive] }).each do |(key, _stage)|
             row << (clients[cohort] & clients[key.to_s]).count
           end
