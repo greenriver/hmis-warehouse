@@ -44,7 +44,7 @@ module BostonReports
         'clients_by_stage',
         'stage_by_cohort',
         'cohort_by_stage',
-        'match_type_by_cohort',
+        'active_stage_by_cohort_by_voucher_type',
         'demographics_by_cohort',
         'demographics_by_stage',
         'comparison',
@@ -140,7 +140,7 @@ module BostonReports
                          end
                        },
         'Race' => ->(cc, download: false) { CohortColumns::Race.new(cohort_client: cc).display_read_only(filter.user) }, # rubocop:disable Lint/UnusedBlockArgument
-        'Cohort' => ->(cc, download: false) { cohort_column_instance.class.new(cohort_client: cc).display_read_only(filter.user) }, # rubocop:disable Lint/UnusedBlockArgument
+        'Cohort' => ->(cc, download: false) { voucher_type_instance.class.new(cohort_client: cc).display_read_only(filter.user) }, # rubocop:disable Lint/UnusedBlockArgument
       }
     end
 
@@ -171,8 +171,8 @@ module BostonReports
         stages.each do |(key, _)|
           counts[key.to_s] ||= Set.new
         end
-        match_types.each do |match_type|
-          counts[match_type] ||= Set.new
+        voucher_types.each do |voucher_type|
+          counts[voucher_type] ||= Set.new
         end
         races.each do |race|
           counts[race] ||= Set.new
@@ -191,8 +191,8 @@ module BostonReports
           stages.each do |(key, stage)|
             counts[key.to_s] << client.client_id if stage[:calculation].call(client)
           end
-          match_types.each do |match_type|
-            counts[match_type] << client.client_id if client[cohort_column_column] == match_type
+          voucher_types.each do |voucher_type|
+            counts[voucher_type] << client.client_id if client[voucher_type_column] == voucher_type
           end
           # Loop over all races so we don't end up with missing categories
           races.each do |race|
@@ -364,14 +364,44 @@ module BostonReports
       end
     end
 
+    def matched_cohort_by_voucher_type
+      @matched_cohort_by_voucher_type ||= {}.tap do |data|
+        data['x'] = 'x'
+        data['type'] = 'bar'
+        data['groups'] = [cohort_names]
+        data['colors'] = {}
+        data['columns'] = [['x', *voucher_types]]
+        cohort_names.each.with_index do |cohort, i|
+          row = [cohort]
+          data['colors'][cohort] = config["breakdown_1_color_#{i}"]
+          voucher_types.each do |type|
+            row << (clients['matched'] & clients[cohort] & clients[type]).count
+          end
+          data['columns'] << row
+        end
+      end
+    end
+
+    def moved_in_cohort_by_voucher_type
+      @moved_in_cohort_by_voucher_type ||= {}.tap do |data|
+        data['x'] = 'x'
+        data['type'] = 'bar'
+        data['groups'] = [cohort_names]
+        data['colors'] = {}
+        data['columns'] = [['x', *voucher_types]]
+        cohort_names.each.with_index do |cohort, i|
+          row = [cohort]
+          data['colors'][cohort] = config["breakdown_1_color_#{i}"]
+          voucher_types.each do |type|
+            row << (clients['moved_in'] & clients[cohort] & clients[type]).count
+          end
+          data['columns'] << row
+        end
+      end
+    end
+
     private def all_client_breakdowns
       @all_client_breakdowns ||= {
-        total: {
-          label: 'All clients',
-          calculation: ->(_client) { true },
-          count: report_scope.count,
-          scope: report_scope,
-        },
         active: {
           label: 'Active',
           calculation: ->(client) { client.active },
@@ -383,6 +413,12 @@ module BostonReports
           calculation: ->(client) { ! client.active },
           count: report_scope.inactive.count,
           scope: report_scope.inactive,
+        },
+        total: {
+          label: 'Total',
+          calculation: ->(_client) { true },
+          count: report_scope.count,
+          scope: report_scope,
         },
       }
     end
@@ -402,11 +438,39 @@ module BostonReports
         pluck(filter.cohort_column).sort
     end
 
+    def all_stages
+      (stages.map do |k, d|
+        [k, d[:label]]
+      end +
+      all_client_breakdowns.map do |k, d|
+        [k, d[:label]]
+      end).to_h
+    end
+
+    def cohort_counts_by_all_stages
+      @cohort_counts_by_all_stages || {}.tap do |data|
+        cohort_names.each do |cohort|
+          all_stages.each_key do |k|
+            data[cohort] ||= {}
+            ids = clients[cohort] & clients[k.to_s]
+            data[cohort][k.to_s] = ids.count
+          end
+        end
+        data['Total'] = {}
+        cohort_names.each do |cohort|
+          all_stages.each_key do |k|
+            data['Total'][k.to_s] ||= 0
+            data['Total'][k.to_s] += data[cohort][k.to_s]
+          end
+        end
+      end
+    end
+
     private def stages
       @stages ||= {}.tap do |s|
         s[:moved_in] = {
           label: 'Housed',
-          calculation: ->(client) { client.housed_date.present? },
+          calculation: ->(client) { client[housed_date_instance.column].present? },
           scope: report_scope.active.where(c_client_t[housed_date_instance.column].not_eq(nil)),
         }
         if voucher_date_instance.present? && housed_date_instance.present?
@@ -424,8 +488,8 @@ module BostonReports
       end
     end
 
-    private def cohort_column_column
-      @cohort_column_column ||= cohort_column_instance&.column
+    private def voucher_type_column
+      @voucher_type_column ||= voucher_type_instance&.column
     end
 
     private def voucher_date_instance
@@ -436,13 +500,13 @@ module BostonReports
       @housed_date_instance ||= GrdaWarehouse::Cohort.available_columns.detect { |c| c.title.strip.downcase == 'housed date' }
     end
 
-    private def cohort_column_instance
-      @cohort_column_instance ||= GrdaWarehouse::Cohort.available_columns.detect { |c| c.title.strip.downcase == 'current voucher or match type' }
+    private def voucher_type_instance
+      @voucher_type_instance ||= GrdaWarehouse::Cohort.available_columns.detect { |c| c.title.strip.downcase == 'current voucher or match type' }
     end
 
-    private def match_types
+    private def voucher_types
       GrdaWarehouse::CohortColumnOption.active.ordered.
-        where(cohort_column: cohort_column_column).
+        where(cohort_column: voucher_type_column).
         pluck(:value)
     end
 

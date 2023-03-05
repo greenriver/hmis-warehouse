@@ -1,0 +1,88 @@
+%h2 Voucher Type Details
+
+.well
+  .matched-cohort-by-voucher-type-wrapper
+    %h3 Matched
+    .d-flex
+      #matched-cohort-by-voucher-type-chart
+      #matched-cohort-by-voucher-type-legend
+  .moved-in-cohort-by-voucher-type-wrapper
+    %h3 Moved-in
+    .d-flex
+      #moved-in-cohort-by-voucher-type-chart
+      #moved-in-cohort-by-voucher-type-legend
+- matched_cohort_by_voucher_type = @report.matched_cohort_by_voucher_type
+- matched_cohort_by_voucher_type_max_value = matched_cohort_by_voucher_type['columns'].drop(1).map { |values| values.drop(1).sum }.max
+- moved_in_cohort_by_voucher_type = @report.moved_in_cohort_by_voucher_type
+- moved_in_cohort_by_voucher_type_max_value = moved_in_cohort_by_voucher_type['columns'].drop(1).map { |values| values.drop(1).sum }.max
+
+= content_for :page_js do
+  :javascript
+    let matched_cohort_by_voucher_type = #{matched_cohort_by_voucher_type.to_json.html_safe};
+    let matched_cohort_by_voucher_type_max_value = #{matched_cohort_by_voucher_type_max_value.to_json.html_safe};
+    let moved_in_cohort_by_voucher_type = #{moved_in_cohort_by_voucher_type.to_json.html_safe};
+    let moved_in_cohort_by_voucher_type_max_value = #{moved_in_cohort_by_voucher_type_max_value.to_json.html_safe};
+    let matched_cohort_by_voucher_type_chart = bb.generate({
+      'data': matched_cohort_by_voucher_type,
+      'bindto': "#matched-cohort-by-voucher-type-chart",
+      bar: {
+        padding: 20,
+        width: 85,
+      },
+      size: {
+        height: 250,
+        width: 700,
+      },
+      'axis': {
+        x: {
+          type: 'category',
+        },
+        y: {
+          tick: {
+            culling: {
+              lines: false,
+              max: 3
+            },
+            values: [0, #{matched_cohort_by_voucher_type_max_value}]
+          }
+        }
+      },
+      legend: {
+        contents: {
+          bindto: '#matched-cohort-by-voucher-type-legend',
+          template: "<div class='d-flex mr-auto text-left'><div class='mr-2 mt-2 mb-0 ml-0' style='padding:5px; height: 14px; width: 26px; background-color:{=COLOR}; border-radius: 10px; '>&nbsp;</div><div class='ml-0 mr-auto mt-1 mb-1'>{=TITLE}</div></div>"
+        }
+      }
+    });
+    let moved_in_cohort_by_voucher_type_chart = bb.generate({
+      'data': moved_in_cohort_by_voucher_type,
+      'bindto': "#moved-in-cohort-by-voucher-type-chart",
+      bar: {
+        padding: 20,
+        width: 85,
+      },
+      size: {
+        height: 250,
+        width: 700,
+      },
+      'axis': {
+        x: {
+          type: 'category',
+        },
+        y: {
+          tick: {
+            culling: {
+              lines: false,
+              max: 3
+            },
+            values: [0, #{moved_in_cohort_by_voucher_type_max_value}]
+          }
+        }
+      },
+      legend: {
+        contents: {
+          bindto: '#moved-in-cohort-by-voucher-type-legend',
+          template: "<div class='d-flex mr-auto text-left'><div class='mr-2 mt-2 mb-0 ml-0' style='padding:5px; height: 14px; width: 26px; background-color:{=COLOR}; border-radius: 10px; '>&nbsp;</div><div class='ml-0 mr-auto mt-1 mb-1'>{=TITLE}</div></div>"
+        }
+      }
+    });

@@ -13,7 +13,7 @@
     .d-flex
       #stage-by-cohort-chart
       #stage-by-cohort-legend
-  .cohort-by-stage--wrapper
+  .cohort-by-stage-wrapper
     .d-flex
       #cohort-by-stage-chart
       #cohort-by-stage-legend
@@ -21,6 +21,22 @@
 - stage_by_cohort_max_value = stage_by_cohort['columns'].drop(1).map { |values| values.drop(1).sum }.max
 - cohort_by_stage = @report.cohort_by_stage
 - cohort_by_stage_max_value = cohort_by_stage['columns'].drop(1).map { |values| values.drop(1).sum }.max
+.card
+  %table.table.mb-0
+    %thead
+      %tr
+        %th.border-top-0 Cohort
+        - @report.all_stages.each do |k, label|
+          - td_class = if k.to_s.in?(['active', 'inactive', 'total']) then 'table-active' else '' end
+          %th.text-right.border-top-0{ class: td_class }= label
+    %tbody
+      - @report.cohort_counts_by_all_stages.each do |cohort, data|
+        - td_class = if cohort == 'Total' then ['border-dark'] else [] end
+        %tr
+        %td{ class: td_class }= cohort
+        - @report.all_stages.each_key do |k|
+          - td_class += if k.to_s.in?(['active', 'inactive', 'total']) then ['table-active'] else [] end
+          %td.text-right{ class: td_class }= data[k.to_s]
 = content_for :page_js do
   :javascript
     let stage_by_cohort = #{stage_by_cohort.to_json.html_safe};
@@ -93,5 +109,5 @@
     });
     $('.stage-by-cohort-switcher').on('change', function(e) {
       $('.stage-by-cohort-wrapper').toggleClass('hide');
-      $('.cohort-by-stage--wrapper').toggleClass('hide');
+      $('.cohort-by-stage-wrapper').toggleClass('hide');
     });
