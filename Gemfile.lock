@@ -39,6 +39,14 @@ GIT
   specs:
     pg_fixtures (0.1.0)
 
+GIT
+  remote: https://github.com/greenriver/stupidedi.git
+  revision: 9e1b9896b371078d439e72505165082b898cd00a
+  specs:
+    stupidedi (1.4.1)
+      cantor (~> 1.2.1)
+      term-ansicolor (~> 1.3)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -851,9 +859,6 @@ GEM
       net-ssh (>= 2.8.0)
     ssrf_filter (1.0.7)
     stackprof (0.2.17)
-    stupidedi (1.4.1)
-      cantor (~> 1.2.1)
-      term-ansicolor (~> 1.3)
     sync (0.5.0)
     temple (0.8.2)
     term-ansicolor (1.7.1)
@@ -867,7 +872,7 @@ GEM
     tilt (2.0.10)
     timecop (0.9.4)
     timeout (0.3.1)
-    tins (1.29.1)
+    tins (1.32.1)
       sync
     tiny_tds (2.1.5)
     todo_or_die (0.0.4)
@@ -1131,7 +1136,7 @@ DEPENDENCIES
   sprockets-es6
   sshkit
   stackprof
-  stupidedi
+  stupidedi!
   terser
   text
   timecop
