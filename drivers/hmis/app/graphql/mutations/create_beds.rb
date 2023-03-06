@@ -5,9 +5,11 @@ module Mutations
     field :inventory, Types::HmisSchema::Inventory, null: true
 
     def resolve(input:)
-      inventory = Hmis::Hud::Inventory.editable_by(current_user).find_by(id: input.inventory_id)
+      inventory = Hmis::Hud::Inventory.viewable_by(current_user).find_by(id: input.inventory_id)
       errors = HmisErrors::Errors.new
       errors.add :inventory_id, :not_found unless inventory.present?
+      errors.add :inventory_id, :not_allowed if inventory.present? && !current_user.permissions_for?(inventory, :can_edit_project_details)
+      return { errors: errors.errors } if errors.any?
 
       unit = Hmis::Unit.find_by(id: input.unit_id)
       errors.add :unit_id, :not_found unless unit.present?
@@ -18,7 +20,7 @@ module Mutations
         errors.add bed_type, :out_of_range, message: 'must be positive' if num&.negative?
       end
 
-      return { inventory: nil, errors: errors.errors } if errors.any?
+      return { errors: errors.errors } if errors.any?
 
       # Create Beds
       bed_args = []

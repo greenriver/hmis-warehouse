@@ -29,6 +29,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   after(:all) do
     cleanup_test_environment
   end
+  include_context 'hmis base setup'
 
   describe 'Client input transformer' do
     let(:transformer) { Types::HmisSchema::Transformers::ClientInputTransformer }
@@ -117,8 +118,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   describe 'client creation tests' do
-    let!(:ds1) { create :hmis_data_source }
-    let!(:user) { create(:user).tap { |u| u.add_viewable(ds1) } }
     let(:mutation_test_input) do
       {
         **test_input,
@@ -134,6 +133,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     before(:each) do
       hmis_login(user)
+      assign_viewable(edit_access_group, o1.as_warehouse, hmis_user)
     end
 
     let(:mutation) do
@@ -215,6 +215,18 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(client['id']).to be_present
         expect(client['race']).to contain_exactly(*races)
         expect(client['gender']).to contain_exactly(*genders)
+      end
+    end
+
+    it 'should fail if user lacks can_edit_clients' do
+      remove_permissions(hmis_user, :can_edit_clients)
+      response, result = post_graphql(input: mutation_test_input) { mutation }
+      aggregate_failures 'checking response' do
+        expect(response.status).to eq 200
+        client = result.dig('data', 'createClient', 'client')
+        errors = result.dig('data', 'createClient', 'errors')
+        expect(client).to be_nil
+        expect(errors).to contain_exactly(include('type' => 'not_allowed'))
       end
     end
 

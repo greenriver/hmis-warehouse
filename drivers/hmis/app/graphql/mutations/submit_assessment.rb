@@ -69,7 +69,7 @@ module Mutations
         assessment.touch
       end
 
-      return { assessment: nil, errors: errors } if errors.any?
+      return { errors: errors } if errors.any?
 
       # Run processor to create/update related records
       assessment.custom_form.form_processor.run!

@@ -58,6 +58,24 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
     end
 
+    it 'should throw error if unauthorized' do
+      remove_permissions(hmis_user, :can_edit_project_details)
+      response, result = post_graphql(id: f1.id, input: valid_input) { mutation }
+
+      aggregate_failures 'checking response' do
+        expect(response.status).to eq 200
+        record = result.dig('data', 'updateFunder', 'funder')
+        errors = result.dig('data', 'updateFunder', 'errors')
+        expect(errors).to be_present
+        expect(record).to be_nil
+        expect(errors).to contain_exactly(include('type' => 'not_allowed'))
+        record = Hmis::Hud::Funder.find(f1.id)
+        expect(record.funder).to eq 20
+        expect(record.date_created).to eq(f1.date_created)
+        expect(record.date_updated).to eq(f1.date_updated)
+      end
+    end
+
     it 'fails if grant id is null' do
       response, result = post_graphql(id: f1.id, input: { **valid_input, grant_id: nil }) { mutation }
 

@@ -78,6 +78,24 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(errors).to be_empty
       end
     end
+
+    it 'should throw error if unauthorized' do
+      prev_date_updated = o1.date_updated
+      remove_permissions(hmis_user, :can_edit_organization)
+      aggregate_failures 'checking response' do
+        expect(o1.user_id).to eq(u2.user_id)
+
+        response, result = post_graphql(id: o1.id, input: test_input) { mutation }
+
+        expect(response.status).to eq 200
+        organization = result.dig('data', 'updateOrganization', 'organization')
+        errors = result.dig('data', 'updateOrganization', 'errors')
+        expect(organization).to be_nil
+        expect(errors).to be_present
+        expect(errors).to contain_exactly(include('type' => 'not_allowed'))
+        expect(o1.reload.date_updated == prev_date_updated).to eq(true)
+      end
+    end
   end
 end
 

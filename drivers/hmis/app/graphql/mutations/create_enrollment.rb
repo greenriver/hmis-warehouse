@@ -11,7 +11,7 @@ module Mutations
       errors = HmisErrors::Errors.new
       errors.add :relationship_to_ho_h, full_message: 'Exactly one client must be head of household' if household_members.select { |hm| hm.relationship_to_ho_h == 1 }.size != 1
       errors.add :start_date, :out_of_range, message: 'cannot be in the future', readable_attribute: 'Entry date' if Date.parse(start_date) > Date.today
-      errors.add :project_id, :not_found unless Hmis::Hud::Project.editable_by(current_user).exists?(id: project_id)
+      errors.add :project_id, :not_found unless Hmis::Hud::Project.viewable_by(current_user).exists?(id: project_id)
       errors.errors
     end
 
@@ -19,7 +19,7 @@ module Mutations
       result = []
       household_id = Hmis::Hud::Enrollment.generate_household_id
       lookup = Hmis::Hud::Client.where(id: household_members.map(&:id)).pluck(:id, :personal_id).to_h
-      project = Hmis::Hud::Project.editable_by(context[:current_user]).find_by(id: project_id)
+      project = Hmis::Hud::Project.viewable_by(context[:current_user]).find_by(id: project_id)
 
       household_members.each do |household_member|
         result << {
@@ -40,6 +40,9 @@ module Mutations
       user = hmis_user
       errors = validate_input(project_id: project_id, start_date: start_date, household_members: household_members)
       return { enrollments: [], errors: errors } if errors.any?
+
+      project = Hmis::Hud::Project.viewable_by(context[:current_user]).find_by(id: project_id)
+      return { enrollments: [], errors: [HmisErrors::Error.new(:project_id, :not_allowed)] } unless current_user.permissions_for?(project, :can_edit_enrollments)
 
       enrollments = to_enrollments_params(project_id: project_id, start_date: start_date, household_members: household_members, in_progress: in_progress).map do |attrs|
         enrollment = Hmis::Hud::Enrollment.new(

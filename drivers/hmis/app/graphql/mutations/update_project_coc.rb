@@ -6,11 +6,12 @@ module Mutations
     field :project_coc, Types::HmisSchema::ProjectCoc, null: true
 
     def resolve(id:, input:)
-      record = Hmis::Hud::ProjectCoc.editable_by(current_user).find_by(id: id)
+      record = Hmis::Hud::ProjectCoc.viewable_by(current_user).find_by(id: id)
       default_update_record(
         record: record,
         field_name: :project_coc,
         input: input,
+        permissions: [:can_edit_project_details],
       )
     end
   end

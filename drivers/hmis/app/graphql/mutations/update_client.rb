@@ -11,6 +11,7 @@ module Mutations
         record: record,
         field_name: :client,
         input: input,
+        permissions: [:can_edit_clients],
       )
     end
   end
