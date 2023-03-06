@@ -15,9 +15,8 @@ RSpec.describe Hmis::Form::Definition, type: :model do
   let(:entry_date) { Date.parse('2020-01-01') }
   let(:exit_date) { Date.parse('2024-01-01') }
   let(:default_args) { { entry_date: entry_date, exit_date: exit_date } }
-  let!(:factory_form_definition) { create :hmis_form_definition }
 
-  describe 'find and validate assessment' do
+  describe 'Validating assessment date on HUD assessments' do
     it 'should error if assessment date value is missing from hud_values' do
       HUD_ASSESSMENT_ROLES.each do |role|
         definition = Hmis::Form::Definition.find_by(role: role)
@@ -68,7 +67,7 @@ RSpec.describe Hmis::Form::Definition, type: :model do
     end
 
     it 'should succeed if assessment date is before entry date (intake)' do
-      definition = Hmis::Form::Definition.find_by(role: 'INTAKE')
+      definition = Hmis::Form::Definition.find_by(role: :INTAKE)
       link_id = definition.assessment_date_item.link_id
       assessment_date = (entry_date - 1.day).strftime('%Y-%m-%d')
 
@@ -92,7 +91,7 @@ RSpec.describe Hmis::Form::Definition, type: :model do
     end
 
     it 'should succeed if assessment date is after exit date (exit)' do
-      definition = Hmis::Form::Definition.find_by(role: 'EXIT')
+      definition = Hmis::Form::Definition.find_by(role: :EXIT)
       link_id = definition.assessment_date_item.link_id
       assessment_date = (exit_date + 1.day).strftime('%Y-%m-%d')
 
@@ -103,7 +102,7 @@ RSpec.describe Hmis::Form::Definition, type: :model do
 
     it 'should error if date is invalid/malformed' do
       ['2020', '0020-01-01', '1900-01-01', '2020-18-32'].each do |malformed_date|
-        definition = Hmis::Form::Definition.find_by(role: 'INTAKE')
+        definition = Hmis::Form::Definition.find_by(role: :INTAKE)
         link_id = definition.assessment_date_item.link_id
         date, errors = definition.find_and_validate_assessment_date(values: { link_id => malformed_date }, **default_args)
 
@@ -115,7 +114,7 @@ RSpec.describe Hmis::Form::Definition, type: :model do
     end
   end
 
-  describe 'validate form values' do
+  describe 'Validating form values on HUD assessments' do
     let(:completed_values_for_update) do
       {
         "information-date-input": '2023-02-15',
@@ -147,20 +146,6 @@ RSpec.describe Hmis::Form::Definition, type: :model do
       definition = Hmis::Form::Definition.find_by(role: :UPDATE)
       errors = definition.validate_form_values(completed_values_for_update.stringify_keys)
       expect(errors).to be_empty
-    end
-
-    it 'should error if required field is nil' do
-      values = { 'linkid-required': nil }
-      expected_errors = [
-        {
-          type: :required,
-          severity: :error,
-          readable_attribute: 'The Required Field',
-        },
-      ]
-      # Test using factory because actual forms don't have any required fields aside from assessment date
-      errors = factory_form_definition.validate_form_values(values.stringify_keys)
-      expect(errors.map(&:to_h)).to match(expected_errors.map { |h| a_hash_including(**h) })
     end
 
     it 'should return warnings for warn_if_empty items' do
@@ -205,6 +190,23 @@ RSpec.describe Hmis::Form::Definition, type: :model do
       ]
 
       errors = definition.validate_form_values(values.stringify_keys)
+      expect(errors.map(&:to_h)).to match(expected_errors.map { |h| a_hash_including(**h) })
+    end
+  end
+
+  describe 'Validating mock form validation' do
+    # Test using factory because actual forms don't have any required fields aside from assessment date
+    let!(:factory_form_definition) { create :hmis_form_definition }
+    it 'should error if required field is nil' do
+      values = { 'linkid-required': nil }
+      expected_errors = [
+        {
+          type: :required,
+          severity: :error,
+          readable_attribute: 'The Required Field',
+        },
+      ]
+      errors = factory_form_definition.validate_form_values(values.stringify_keys)
       expect(errors.map(&:to_h)).to match(expected_errors.map { |h| a_hash_including(**h) })
     end
   end

@@ -72,6 +72,20 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(errors).to contain_exactly(include('fullMessage' => 'Service not found'))
     end
   end
+
+  it 'should error if not allowed to delete a service' do
+    remove_permissions(hmis_user, :can_edit_enrollments)
+    response, result = post_graphql(id: s1.id) { mutation }
+
+    aggregate_failures 'checking response' do
+      expect(response.status).to eq 200
+      service = result.dig('data', 'deleteService', 'service')
+      errors = result.dig('data', 'deleteService', 'errors')
+      expect(service).to be_nil
+      expect(errors).to contain_exactly(include('type' => 'not_allowed'))
+      expect(Hmis::Hud::Service.count).to eq(1)
+    end
+  end
 end
 
 RSpec.configure do |c|

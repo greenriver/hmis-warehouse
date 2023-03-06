@@ -42,7 +42,7 @@
           %th= cat
     %tbody
       - @report.per_project_results.each do |project_id, data|
-        - project = @report.filter.effective_projects.detect { |p| p.id == project_id }
+        - project = @report.filter.effective_projects.detect { |p| p.id.to_s == project_id.to_s }
         - next unless project.present?
         %tr
           %td= link_to_if can_view_projects?, project.name(current_user), project_path(project)

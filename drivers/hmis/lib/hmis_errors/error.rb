@@ -70,6 +70,8 @@ module HmisErrors
         'is empty'
       when :not_found
         'not found'
+      when :not_allowed
+        'operation not allowed'
       else
         I18n.t("errors.messages.#{err_type}", default: 'is invalid')
       end

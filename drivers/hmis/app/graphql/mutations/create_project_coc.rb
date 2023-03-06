@@ -10,6 +10,7 @@ module Mutations
         field_name: :project_coc,
         id_field_name: :project_coc_id,
         input: input,
+        permissions: [:can_edit_project_details],
       )
     end
   end

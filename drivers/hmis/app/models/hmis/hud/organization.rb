@@ -26,13 +26,6 @@ class Hmis::Hud::Organization < Hmis::Hud::Base
     where(id: ids, data_source_id: user.hmis_data_source_id)
   end
 
-  # hide previous declaration of :editable_by, we'll use this one
-  replace_scope :editable_by, ->(user) do
-    ids = user.editable_organizations.pluck(:id)
-    ids += user.editable_data_sources.joins(:organizations).pluck(o_t[:id])
-    where(id: ids, data_source_id: user.hmis_data_source_id)
-  end
-
   SORT_OPTIONS = [:name].freeze
 
   def self.sort_by_option(option)
