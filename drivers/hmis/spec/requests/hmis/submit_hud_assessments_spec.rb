@@ -45,8 +45,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             client {
               id
             }
-            assessmentDetail {
-              #{scalar_fields(Types::HmisSchema::AssessmentDetail)}
+            customForm {
+              #{scalar_fields(Types::HmisSchema::CustomForm)}
               definition {
                 id
               }
@@ -73,8 +73,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             client {
               id
             }
-            assessmentDetail {
-              #{scalar_fields(Types::HmisSchema::AssessmentDetail)}
+            customForm {
+              #{scalar_fields(Types::HmisSchema::CustomForm)}
               definition {
                 id
               }
@@ -92,7 +92,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     expected_exit_date = Date.parse(expected_exit_date) if expected_exit_date.is_a?(String)
 
     expect(assessment).to be_present
-    expect(assessment.assessment_detail.assessment_processor).to be_present
+    expect(assessment.custom_form.form_processor).to be_present
     expect(assessment.assessment_date).to eq(expected_assessment_date)
     expect(assessment.enrollment.entry_date).to eq(expected_entry_date) if expected_entry_date.present?
     expect(assessment.enrollment.exit&.exit_date).to eq(expected_exit_date) if expected_exit_date.present?
@@ -111,7 +111,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         assessment_id = result.dig('data', 'submitAssessment', 'assessment', 'id')
         errors = result.dig('data', 'submitAssessment', 'errors')
         expect(errors).to be_empty
-        assessment = Hmis::Hud::Assessment.find(assessment_id)
+        assessment = Hmis::Hud::CustomAssessment.find(assessment_id)
         expect_assessment_dates(
           assessment,
           expected_assessment_date: initial_assessment_date,
@@ -155,7 +155,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         assessment_id = result.dig('data', 'saveAssessment', 'assessment', 'id')
         errors = result.dig('data', 'saveAssessment', 'errors')
         expect(errors).to be_empty
-        assessment = Hmis::Hud::Assessment.find(assessment_id)
+        assessment = Hmis::Hud::CustomAssessment.find(assessment_id)
         expect_assessment_dates(
           assessment,
           expected_assessment_date: initial_assessment_date,
@@ -171,7 +171,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         errors = result.dig('data', 'submitAssessment', 'errors')
         expect(errors).to be_empty
 
-        assessment = Hmis::Hud::Assessment.find(assessment_id)
+        assessment = Hmis::Hud::CustomAssessment.find(assessment_id)
         expect_assessment_dates(
           assessment,
           expected_assessment_date: new_assessment_date,
@@ -198,7 +198,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     assessment_id = result.dig('data', 'submitAssessment', 'assessment', 'id')
     errors = result.dig('data', 'submitAssessment', 'errors')
     expect(errors).to be_empty
-    assessment = Hmis::Hud::Assessment.find(assessment_id)
+    assessment = Hmis::Hud::CustomAssessment.find(assessment_id)
     expect_assessment_dates(
       assessment,
       expected_assessment_date: new_exit_date,

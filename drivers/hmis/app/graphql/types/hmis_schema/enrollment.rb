@@ -11,6 +11,7 @@ module Types
     include Types::HmisSchema::HasEvents
     include Types::HmisSchema::HasServices
     include Types::HmisSchema::HasAssessments
+    include Types::HmisSchema::HasCeAssessments
 
     def self.configuration
       Hmis::Hud::Enrollment.hmis_configuration(version: '2022')
@@ -24,6 +25,7 @@ module Types
     assessments_field
     events_field
     services_field
+    ce_assessments_field
     field :household, HmisSchema::Household, null: false
     field :household_size, Integer, null: false
     field :client, HmisSchema::Client, null: false
@@ -84,6 +86,10 @@ module Types
 
     def assessments(**args)
       resolve_assessments_including_wip(**args)
+    end
+
+    def ce_assessments(**args)
+      resolve_ce_assessments(**args)
     end
 
     def user

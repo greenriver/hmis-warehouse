@@ -9,7 +9,7 @@ class Hmis::Hud::Processors::Base
 
   def initialize(processor)
     @processor = processor
-    @hud_values = processor.assessment_detail.hud_values
+    @hud_values = processor.custom_form.hud_values
   end
 
   def process(field, value)

@@ -8,9 +8,9 @@ module Mutations
     field :assessments, [Types::HmisSchema::Assessment], null: true
 
     def resolve(assessment_ids:, confirmed:)
-      assessments = Hmis::Hud::Assessment.viewable_by(current_user).
+      assessments = Hmis::Hud::CustomAssessment.viewable_by(current_user).
         where(id: assessment_ids).
-        preload(:enrollment, :assessment_detail)
+        preload(:enrollment, :custom_form)
 
       enrollments = assessments.map(&:enrollment)
 
@@ -27,7 +27,7 @@ module Mutations
       errors.add :assessment, :invalid, full_message: 'Assessments must all belong to the same household.' if household_ids.count != 1
 
       # Error: assessments do not have the same data collection stage
-      data_collection_stages = assessments.map { |a| a.assessment_detail.data_collection_stage }.uniq
+      data_collection_stages = assessments.pluck(:data_collection_stage).uniq
       errors.add :assessment, :invalid, full_message: 'Assessments must have the same data collection stage.' if data_collection_stages.count != 1
       return { errors: errors } if errors.any?
 
@@ -62,7 +62,7 @@ module Mutations
 
       # Validate form values based on FormDefinition
       assessments.each do |assessment|
-        validation_errors = assessment.assessment_detail.validate_form(ignore_warnings: confirmed)
+        validation_errors = assessment.custom_form.validate_form(ignore_warnings: confirmed)
         errors.add_with_record_id(validation_errors, assessment.id)
       end
 
@@ -72,13 +72,13 @@ module Mutations
       assessments.each do |assessment|
         assessment.assign_attributes(user_id: hmis_user.user_id)
         # Run processor to create/update related records
-        assessment.assessment_detail.assessment_processor.run!
+        assessment.custom_form.form_processor.run!
         # Run both validations
         assessment_valid = assessment.valid?
-        assessment_detail_valid = assessment.assessment_detail.valid?
+        custom_form_valid = assessment.custom_form.valid?
 
-        if !assessment_valid || !assessment_detail_valid
-          errors.push(*assessment.assessment_detail&.errors&.errors)
+        if !assessment_valid || !custom_form_valid
+          errors.push(*assessment.custom_form&.errors&.errors)
           errors.push(*assessment.errors&.errors)
         end
       end
@@ -89,9 +89,9 @@ module Mutations
       assessments.each do |assessment|
         # We need to call save on the processor directly to get the before_save hook to invoke.
         # If this is removed, the Enrollment won't save.
-        assessment.assessment_detail.assessment_processor.save!
-        # Save AssessmentDetail to save the rest of the related records
-        assessment.assessment_detail.save!
+        assessment.custom_form.form_processor.save!
+        # Save CustomForm to save the rest of the related records
+        assessment.custom_form.save!
         # Save the assessment as non-WIP
         assessment.save_not_in_progress
         # If this is an intake assessment, ensure the enrollment is no longer in WIP status

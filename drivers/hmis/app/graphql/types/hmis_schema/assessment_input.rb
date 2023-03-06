@@ -20,7 +20,7 @@ module Types
 
       if assessment_id.present?
         # Updating an existing assessment
-        assessment = Hmis::Hud::Assessment.viewable_by(current_user).find_by(id: assessment_id)
+        assessment = Hmis::Hud::CustomAssessment.viewable_by(current_user).find_by(id: assessment_id)
         errors.add :assessment, :required unless assessment.present?
       elsif enrollment_id.present? && form_definition_id.present?
         # Creating a new assessment
@@ -39,7 +39,7 @@ module Types
       return [nil, errors.errors] if errors.any?
 
       # Create new Assessment (and AssessmentDetail) if one doesn't exist already
-      assessment ||= Hmis::Hud::Assessment.new_with_defaults(
+      assessment ||= Hmis::Hud::CustomAssessment.new_with_defaults(
         enrollment: enrollment,
         user: Hmis::Hud::User.from_user(current_user),
         form_definition: form_definition,

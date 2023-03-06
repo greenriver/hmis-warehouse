@@ -10,7 +10,7 @@ module Mutations
       assessment, errors = input.find_or_create_assessment
       return { errors: errors } if errors.any?
 
-      definition = assessment.assessment_detail.definition
+      definition = assessment.custom_form.definition
       enrollment = assessment.enrollment
 
       # Determine the Assessment Date and validate it
@@ -22,7 +22,7 @@ module Mutations
       return { errors: errors } if errors.any?
 
       # Update values
-      assessment.assessment_detail.assign_attributes(
+      assessment.custom_form.assign_attributes(
         values: input.values,
         hud_values: input.hud_values,
       )
@@ -31,12 +31,12 @@ module Mutations
         assessment_date: assessment_date,
       )
 
-      if assessment.valid? && assessment.assessment_detail.valid?
-        assessment.assessment_detail.save!
+      if assessment.valid? && assessment.custom_form.valid?
+        assessment.custom_form.save!
         assessment.save_in_progress
       else
         errors << assessment.errors
-        errors << assessment.assessment_detail.errors
+        errors << assessment.custom_form.errors
         assessment = nil
       end
 

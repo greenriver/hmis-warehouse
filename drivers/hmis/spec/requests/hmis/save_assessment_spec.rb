@@ -46,8 +46,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             client {
               id
             }
-            assessmentDetail {
-              #{scalar_fields(Types::HmisSchema::AssessmentDetail)}
+            customForm {
+              #{scalar_fields(Types::HmisSchema::CustomForm)}
               definition {
                 id
               }
@@ -89,14 +89,14 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(assessment).to include(
         'inProgress' => true,
         'assessmentDate' => '2023-02-01',
-        'assessmentDetail' => include('values' => test_input[:values]),
+        'customForm' => include('values' => test_input[:values]),
       )
-      expect(Hmis::Hud::Assessment.count).to eq(1)
-      expect(Hmis::Hud::Assessment.in_progress.count).to eq(1)
-      expect(Hmis::Hud::Assessment.where(enrollment_id: Hmis::Hud::Assessment::WIP_ID).count).to eq(1)
+      expect(Hmis::Hud::CustomAssessment.count).to eq(1)
+      expect(Hmis::Hud::CustomAssessment.in_progress.count).to eq(1)
+      expect(Hmis::Hud::CustomAssessment.where(enrollment_id: Hmis::Hud::CustomAssessment::WIP_ID).count).to eq(1)
       expect(Hmis::Wip.count).to eq(1)
       expect(Hmis::Wip.first).to have_attributes(enrollment_id: e1.id, client_id: c1.id, project_id: nil)
-      expect(Hmis::Hud::Assessment.viewable_by(hmis_user).count).to eq(1)
+      expect(Hmis::Hud::CustomAssessment.viewable_by(hmis_user).count).to eq(1)
     end
 
     # WIP assessment should appear on enrollment query
@@ -112,8 +112,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     response, result = post_graphql(input: { input: test_input }) { mutation }
     assessment_id = result.dig('data', 'saveAssessment', 'assessment', 'id')
     expect(assessment_id).to be_present
-    expect(Hmis::Hud::Assessment.count).to eq(1)
-    expect(Hmis::Hud::Assessment.in_progress.count).to eq(1)
+    expect(Hmis::Hud::CustomAssessment.count).to eq(1)
+    expect(Hmis::Hud::CustomAssessment.in_progress.count).to eq(1)
 
     # Subsequent request should update the existing WIP assessment
     new_information_date = '2024-01-01'
@@ -134,10 +134,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(assessment).to include(
         'inProgress' => true,
         'assessmentDate' => new_information_date,
-        'assessmentDetail' => include('values' => input[:values]),
+        'customForm' => include('values' => input[:values]),
       )
-      expect(Hmis::Hud::Assessment.count).to eq(1)
-      expect(Hmis::Hud::Assessment.in_progress.count).to eq(1)
+      expect(Hmis::Hud::CustomAssessment.count).to eq(1)
+      expect(Hmis::Hud::CustomAssessment.in_progress.count).to eq(1)
       expect(Hmis::Wip.count).to eq(1)
     end
   end

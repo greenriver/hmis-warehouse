@@ -43,8 +43,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             client {
               id
             }
-            assessmentDetail {
-              #{scalar_fields(Types::HmisSchema::AssessmentDetail)}
+            customForm {
+              #{scalar_fields(Types::HmisSchema::CustomForm)}
               definition {
                 id
               }
@@ -91,8 +91,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     it 'should work' do
       expect(@wip_assessment_ids.size).to eq(3)
-      expect(Hmis::Hud::Assessment.count).to eq(3)
-      expect(Hmis::Hud::Assessment.in_progress.count).to eq(3)
+      expect(Hmis::Hud::CustomAssessment.count).to eq(3)
+      expect(Hmis::Hud::CustomAssessment.in_progress.count).to eq(3)
 
       input = {
         assessment_ids: @wip_assessment_ids,
@@ -107,16 +107,16 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(errors).to be_empty
         expect(assessments).to be_present
         expect(assessments.size).to eq(3)
-        expect(Hmis::Hud::Assessment.count).to eq(3)
-        expect(Hmis::Hud::Assessment.in_progress.count).to eq(0)
+        expect(Hmis::Hud::CustomAssessment.count).to eq(3)
+        expect(Hmis::Hud::CustomAssessment.in_progress.count).to eq(0)
       end
     end
 
     it 'should emit warnings if any assessment is missing warnIfEmpty fields' do
       expect(@wip_assessment_ids.size).to eq(3)
-      expect(Hmis::Hud::Assessment.count).to eq(3)
-      expect(Hmis::Hud::Assessment.in_progress.count).to eq(3)
-      Hmis::Hud::Assessment.first.assessment_detail.update(values: incomplete_values)
+      expect(Hmis::Hud::CustomAssessment.count).to eq(3)
+      expect(Hmis::Hud::CustomAssessment.in_progress.count).to eq(3)
+      Hmis::Hud::CustomAssessment.first.custom_form.update(values: incomplete_values)
 
       input = {
         assessment_ids: @wip_assessment_ids,
@@ -131,14 +131,14 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(assessments).to be_nil
         expect(errors.size).to eq(1)
         expect(errors).to match([a_hash_including('severity' => 'warning', 'type' => 'data_not_collected')])
-        expect(Hmis::Hud::Assessment.in_progress.count).to eq(3)
+        expect(Hmis::Hud::CustomAssessment.in_progress.count).to eq(3)
       end
     end
     it 'should succeed if existing warnings are confirmed' do
       expect(@wip_assessment_ids.size).to eq(3)
-      expect(Hmis::Hud::Assessment.count).to eq(3)
-      expect(Hmis::Hud::Assessment.in_progress.count).to eq(3)
-      Hmis::Hud::Assessment.last.assessment_detail.update(values: incomplete_values)
+      expect(Hmis::Hud::CustomAssessment.count).to eq(3)
+      expect(Hmis::Hud::CustomAssessment.in_progress.count).to eq(3)
+      Hmis::Hud::CustomAssessment.last.custom_form.update(values: incomplete_values)
 
       input = {
         assessment_ids: @wip_assessment_ids,
@@ -153,8 +153,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(errors).to be_empty
         expect(assessments).to be_present
         expect(assessments.size).to eq(3)
-        expect(Hmis::Hud::Assessment.count).to eq(3)
-        expect(Hmis::Hud::Assessment.in_progress.count).to eq(0)
+        expect(Hmis::Hud::CustomAssessment.count).to eq(3)
+        expect(Hmis::Hud::CustomAssessment.in_progress.count).to eq(0)
       end
     end
   end
@@ -172,8 +172,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     it 'should fail' do
       expect(@wip_assessment_ids.size).to eq(2)
-      expect(Hmis::Hud::Assessment.count).to eq(2)
-      expect(Hmis::Hud::Assessment.in_progress.count).to eq(2)
+      expect(Hmis::Hud::CustomAssessment.count).to eq(2)
+      expect(Hmis::Hud::CustomAssessment.in_progress.count).to eq(2)
 
       input = {
         assessment_ids: @wip_assessment_ids,

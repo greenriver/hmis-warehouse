@@ -8,7 +8,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   include ::HmisStructure::Enrollment
   include ::Hmis::Hud::Concerns::Shared
   include ::HudConcerns::Enrollment
-  include ArelHelper
+  include ::Hmis::Concerns::HmisArelHelper
 
   self.table_name = :Enrollment
   self.sequence_name = "public.\"#{table_name}_id_seq\""
@@ -31,8 +31,11 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   has_many :employment_educations, **hmis_relation(:EnrollmentID, 'EmploymentEducation'), dependent: :destroy
   has_many :youth_education_statuses, **hmis_relation(:EnrollmentID, 'YouthEducationStatus'), dependent: :destroy
 
-  # NOTE: this does not include WIP assessments
+  # CE Assessments
   has_many :assessments, **hmis_relation(:EnrollmentID, 'Assessment'), dependent: :destroy
+  # Custom Assessments (note: this does NOT include WIP assessments)
+  has_many :custom_assessments, **hmis_relation(:EnrollmentID, 'CustomAssessment'), dependent: :destroy
+
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :enrollments
   has_one :wip, class_name: 'Hmis::Wip', as: :source, dependent: :destroy
@@ -56,11 +59,11 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     left_outer_joins(:wip).where(wip_enrollments.or(actual_enrollments))
   end
 
-  def assessments_including_wip
-    completed_assessments = as_t[:enrollment_id].eq(enrollment_id)
+  def custom_assessments_including_wip
+    completed_assessments = cas_t[:enrollment_id].eq(enrollment_id)
     wip_assessments = wip_t[:enrollment_id].eq(id)
 
-    Hmis::Hud::Assessment.left_outer_joins(:wip).where(completed_assessments.or(wip_assessments))
+    Hmis::Hud::CustomAssessment.left_outer_joins(:wip).where(completed_assessments.or(wip_assessments))
   end
 
   scope :heads_of_households, -> do
@@ -131,16 +134,10 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   end
 
   def intake_assessment
-    assessments_including_wip.
-      joins(:assessment_detail).
-      where(assessment_detail: { data_collection_stage: 1 }). # Project entry
-      first
+    custom_assessments_including_wip.intakes.first
   end
 
   def exit_assessment
-    assessments_including_wip.
-      joins(:assessment_detail).
-      where(assessment_detail: { data_collection_stage: 3 }). # Project exit
-      first
+    custom_assessments_including_wip.exits.first
   end
 end
