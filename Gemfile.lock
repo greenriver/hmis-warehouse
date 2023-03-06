@@ -42,6 +42,7 @@ GIT
 GIT
   remote: https://github.com/greenriver/stupidedi.git
   revision: 9e1b9896b371078d439e72505165082b898cd00a
+  branch: master
   specs:
     stupidedi (1.4.1)
       cantor (~> 1.2.1)

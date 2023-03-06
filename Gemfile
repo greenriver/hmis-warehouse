@@ -145,7 +145,7 @@ gem 'gmail', require: false
 # gem 'savon'
 # gem 'qaaws', require: false, git: 'https://github.com/greenriver/eis-ruby-qaaws.git', branch: 'master'
 
-gem 'stupidedi', git: 'https://github.com/greenriver/stupidedi.git'
+gem 'stupidedi', git: 'https://github.com/greenriver/stupidedi.git', branch: 'master'
 
 gem 'redcarpet'
 
