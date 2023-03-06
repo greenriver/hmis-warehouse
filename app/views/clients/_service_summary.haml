@@ -1,4 +1,4 @@
-- seen_before = ( projects = @client.last_intentional_contacts(include_confidential_names: can_view_confidential_project_names?).select(&:present?) ).any?
+- seen_before = ( projects = @client.last_intentional_contacts( current_user, include_confidential_names: can_view_confidential_project_names?).select(&:present?) ).any?
 
 - if @client.service_history_enrollments.empty?
   = "There is no service record for #{@client.name}"

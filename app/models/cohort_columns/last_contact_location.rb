@@ -6,7 +6,7 @@
 
 module CohortColumns
   class LastContactLocation < ReadOnly
-    attribute :column, String, lazy: true, default: :last_seen
+    attribute :column, String, lazy: true, default: :last_intentional_contact_location
     attribute :translation_key, String, lazy: true, default: 'Last Intentional Contacts'
     attribute :title, String, lazy: true, default: ->(model, _attr) { _(model.translation_key) }
 
@@ -23,16 +23,10 @@ module CohortColumns
     end
 
     def value(cohort_client, user) # OK
-      contacts = cohort_client.client.processed_service_history&.last_intentional_contacts
-      # e.g.: {:project_name=>\"APR - Transitional Housing\", :date=>Mon, 30 Sep 2019, :project_id=>10}
+      contacts = cohort_client.client.last_intentional_contacts(user, skip_confidential_projects: true, include_dates: true)
       return unless contacts.present?
 
-      contacts = JSON.parse(contacts)
-      contacts.select do |row|
-        row['project_id'].in?(user.visible_project_ids_enrollment_context) || row['project_id'].nil?
-      end.sort_by { |row| row['date'] }.reverse.map do |row|
-        "#{row['project_name']}: #{row['date'].to_date}"
-      end.join('; ')
+      contacts.join('; ')
     end
   end
 end
