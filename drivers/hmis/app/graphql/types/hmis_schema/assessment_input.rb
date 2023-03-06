@@ -32,16 +32,20 @@ module Types
         errors.add :enrollment, :required
       end
 
+      # Errors: input validation failed
       return [nil, errors.errors] if errors.any?
 
       enrollment ||= assessment&.enrollment
+
+      # Error: insufficient permissions
       errors.add :assessment, :not_allowed unless current_user.permissions_for?(enrollment, :can_edit_enrollments)
       return [nil, errors.errors] if errors.any?
 
-      # Check if it's valid to create a new assessment of this type
+      # Errors: can't created 2nd intake/exit assessment
       unless assessment.present?
         errors.add :assessment, :invalid, full_message: 'An intake assessment for this enrollment already exists.' if form_definition.intake? && enrollment.intake_assessment.present?
         errors.add :assessment, :invalid, full_message: 'An exit assessment for this enrollment already exists.' if form_definition.exit? && enrollment.exit_assessment.present?
+        return [nil, errors.errors] if errors.any?
       end
 
       # Create new Assessment (and CustomForm) if one doesn't exist already
