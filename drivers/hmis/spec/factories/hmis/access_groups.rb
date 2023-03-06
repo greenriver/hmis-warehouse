@@ -1,13 +1,9 @@
 FactoryBot.define do
   factory :hmis_role, class: 'Hmis::Role' do
     name { 'Test Role' }
-    can_view_full_ssn { true }
-    can_view_clients { true }
-    can_administer_hmis { true }
-    can_delete_assigned_project_data { true }
-    can_delete_enrollments { true }
-    can_delete_project { true }
-    can_edit_project_details { true }
+    Hmis::Role.permissions_with_descriptions.keys.each do |perm|
+      send(perm) { true }
+    end
   end
 
   factory :hmis_role_with_no_permissions, class: 'Hmis::Role' do

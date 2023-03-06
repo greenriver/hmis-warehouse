@@ -8,13 +8,16 @@ module Mutations
     field :assessments, [Types::HmisSchema::Assessment], null: true
 
     def resolve(assessment_ids:, confirmed:)
-      errors = HmisErrors::Errors.new
-
-      assessments = Hmis::Hud::Assessment.editable_by(current_user).
+      assessments = Hmis::Hud::Assessment.viewable_by(current_user).
         where(id: assessment_ids).
         preload(:enrollment, :assessment_detail)
 
       enrollments = assessments.map(&:enrollment)
+
+      errors = HmisErrors::Errors.new
+      # Error: insufficient permissions
+      errors.add :assessment, :not_allowed if enrollments.first.present? && !current_user.permissions_for?(enrollments.first, :can_edit_enrollments)
+      return { errors: errors } if errors.any?
 
       # Error: not all assessments found
       errors.add :assessment, :not_found if assessments.count != assessment_ids.size

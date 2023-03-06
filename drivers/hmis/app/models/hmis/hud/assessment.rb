@@ -23,6 +23,7 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
   has_one :wip, class_name: 'Hmis::Wip', as: :source, dependent: :destroy
   has_many :assessment_questions, **hmis_relation(:AssessmentID, 'AssessmentQuestion'), dependent: :destroy
   has_many :assessment_results, **hmis_relation(:AssessmentID, 'AssessmentResult'), dependent: :destroy
+  has_one :project, through: :enrollment
 
   attr_accessor :in_progress
 
@@ -38,15 +39,6 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
     viewable_completed = as_t[:EnrollmentID].in(enrollment_ids.map(&:second))
 
     left_outer_joins(:wip).where(viewable_wip.or(viewable_completed))
-  end
-
-  # hide previous declaration of :editable_by, we'll use this one
-  replace_scope :editable_by, ->(user) do
-    enrollment_ids = Hmis::Hud::Enrollment.editable_by(user).pluck(:id, :EnrollmentID)
-    editable_wip = wip_t[:enrollment_id].in(enrollment_ids.map(&:first))
-    editable_completed = as_t[:EnrollmentID].in(enrollment_ids.map(&:second))
-
-    left_outer_joins(:wip).where(editable_wip.or(editable_completed))
   end
 
   scope :with_role, ->(role) do

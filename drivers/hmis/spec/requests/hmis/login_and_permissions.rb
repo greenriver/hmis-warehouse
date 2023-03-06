@@ -21,3 +21,15 @@ def remove_viewable(access_group, viewable, user)
   access_group.remove_viewable(viewable)
   access_group.access_controls&.first&.remove(user)
 end
+
+def set_permissions(user, value, *permissions)
+  user.roles.update_all(**permissions.map { |p| [p, value] }.to_h)
+end
+
+def add_permissions(user, *permissions)
+  set_permissions(user, true, *permissions)
+end
+
+def remove_permissions(user, *permissions)
+  set_permissions(user, false, *permissions)
+end

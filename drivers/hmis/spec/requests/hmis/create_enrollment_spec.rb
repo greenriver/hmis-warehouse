@@ -107,6 +107,21 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
     end
 
+    it 'should throw error if unauthorized' do
+      remove_permissions(hmis_user, :can_edit_enrollments)
+      response, result = post_graphql(input: test_input) { mutation }
+
+      aggregate_failures 'checking response' do
+        expect(response.status).to eq 200
+        enrollments = result.dig('data', 'createEnrollment', 'enrollments')
+        errors = result.dig('data', 'createEnrollment', 'errors')
+        expect(enrollments).to be_empty
+        expect(errors).to be_present
+        expect(errors).to contain_exactly(include('type' => 'not_allowed'))
+        expect(Hmis::Hud::Enrollment.count).to eq(0)
+      end
+    end
+
     describe 'In progress tests' do
       it 'should create WIP enrollment' do
         response, result = post_graphql(input: test_input.merge(in_progress: true)) { mutation }
