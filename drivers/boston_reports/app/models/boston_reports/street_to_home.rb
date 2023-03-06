@@ -147,7 +147,7 @@ module BostonReports
           data
         else
           data.map.with_index do |v, j|
-            if j.zero?
+            if j.zero? || v.blank?
               v
             else
               0 - v
@@ -399,15 +399,25 @@ module BostonReports
         data['colors'] = {}
         data['labels'] = { 'colors' => {}, 'centered' => true }
         data['columns'] = [['x', *voucher_types]]
+        data['types'] = {
+          'Total' => 'scatter',
+        }
+        totals = {}
         cohort_names.each.with_index do |cohort, i|
           row = [cohort]
           bg_color = config["breakdown_1_color_#{i}"]
           data['colors'][cohort] = bg_color
           data['labels']['colors'][cohort] = config.foreground_color(bg_color)
           voucher_types.each do |type|
-            row << (clients['matched'] & clients[cohort] & clients[type]).count
+            totals[type] ||= 0
+            count = (clients['matched'] & clients[cohort] & clients[type]).count
+            row << count
+            totals[type] += count
           end
           data['columns'] << row
+        end
+        data['columns'] << ['Total'] + voucher_types.map do |type|
+          totals[type] if totals[type].positive?
         end
       end
     end
@@ -420,15 +430,25 @@ module BostonReports
         data['colors'] = {}
         data['labels'] = { 'colors' => {}, 'centered' => true }
         data['columns'] = [['x', *voucher_types]]
+        data['types'] = {
+          'Total' => 'scatter',
+        }
+        totals = {}
         cohort_names.each.with_index do |cohort, i|
           row = [cohort]
           bg_color = config["breakdown_1_color_#{i}"]
           data['colors'][cohort] = bg_color
           data['labels']['colors'][cohort] = config.foreground_color(bg_color)
           voucher_types.each do |type|
-            row << (clients['moved_in'] & clients[cohort] & clients[type]).count
+            totals[type] ||= 0
+            count = (clients['moved_in'] & clients[cohort] & clients[type]).count
+            row << count
+            totals[type] += count
           end
           data['columns'] << row
+        end
+        data['columns'] << ['Total'] + voucher_types.map do |type|
+          totals[type] if totals[type].positive?
         end
       end
     end

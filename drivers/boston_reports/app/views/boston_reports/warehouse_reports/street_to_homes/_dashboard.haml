@@ -47,4 +47,6 @@ Dashboard
         }
         $('.dashboard-ethnicity-by-cohort-charts').toggleClass('hide');
         $('.dashboard-race-by-cohort-charts').toggleClass('hide');
+        race_charts.forEach(e => eflush());
+        ethnicity_charts.forEach(e => eflush());
       });
