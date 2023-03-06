@@ -1718,22 +1718,18 @@ module GrdaWarehouse::Hud
       contacts = processed_service_history&.last_intentional_contacts
       return [] unless contacts.present?
 
-      visible_projects = user.visible_project_ids_enrollment_context
+      visible_projects = user.visible_projects_by_id
+      visible_project_ids = user.visible_project_ids_enrollment_context
       contacts = JSON.parse(contacts)
-      projects = GrdaWarehouse::Hud::Project.find(contacts.map { |contact| contact['project_id'] }.compact).index_by(&:id)
 
       contacts.map do |contact|
         project_id = contact['project_id']
-        next if project_id.present? && !project_id.in?(visible_projects)
+        next if project_id.present? && !project_id.in?(visible_project_ids)
 
-        confidential = projects[project_id]&.confidential? || false
-        next if confidential && skip_confidential_projects
+        project = visible_projects[project_id]
+        next if project&.confidential? && skip_confidential_projects
 
-        name = if ! confidential || include_confidential_names
-          contact['project_name']
-        else
-          GrdaWarehouse::Hud::Project.confidential_project_name
-        end
+        name = project&.name(ignore_confidential_status: include_confidential_names) || contact['project_name']
         name += ': ' + contact['date']&.to_date.to_s if include_dates
         name
       end.compact.uniq.sort
