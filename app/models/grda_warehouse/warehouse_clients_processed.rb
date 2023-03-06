@@ -855,23 +855,19 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
         end
       end
 
-      @custom_services ||= if RailsDrivers.loaded.include?(:custom_imports_boston_service)
-        {}.tap do |h|
-          source_client_ids = GrdaWarehouse::WarehouseClient.where(destination_id: @client_ids).pluck(:source_id)
-          CustomImportsBostonService::Row.
-            joins(client: :destination_client).where(c_t[:id].in(source_client_ids)).
-            group(wc_t[:destination_id], :service_item).maximum(:date).
-            map do |(dest_client_id, item_name), date|
-              h[dest_client_id] ||= {
-                date: date,
-                project_name: item_name,
-                project_id: nil,
-              }
-            end
-        end
-      else
-        {}
+      @custom_services ||= {}.tap do |h|
+        GrdaWarehouse::Generic::Service.
+          where(client_id: @client_ids).
+          group(:client_id, :title).maximum(:date).
+          map do |(custom_service_client_id, title), date|
+            h[custom_service_client_id] ||= {
+              date: date,
+              project_name: title,
+              project_id: nil,
+            }
+          end
       end
+
       [
         @services[client_id]&.values,
         @current_living_situations[client_id]&.values,
