@@ -28,8 +28,8 @@ module Mutations
     # Default CRUD Update functionality
     # If confirm is not specified, treat as confirmed (aka ignore warnings)
     def default_update_record(record:, field_name:, input:, confirmed: true, permissions: nil)
-      return { field_name => nil, errors: [HmisErrors::Error.new(field_name, :not_found)] } unless record.present?
-      return { field_name => nil, errors: [HmisErrors::Error.new(field_name, :not_allowed)] } if permissions.present? && !current_user.permissions_for?(record, *permissions)
+      return { errors: [HmisErrors::Error.new(field_name, :not_found)] } unless record.present?
+      return { errors: [HmisErrors::Error.new(field_name, :not_allowed)] } if permissions.present? && !current_user.permissions_for?(record, *permissions)
 
       # Create any custom validation errors
       errors = create_errors(record, input)
@@ -41,13 +41,14 @@ module Mutations
 
       # Add ActiveRecord validation errors to error list
       errors += record.errors.errors unless record.valid?
+      return { errors: errors } if errors.any?
 
-      if errors.empty?
-        record.save!
-        { field_name => record, errors: [] }
-      else
-        { field_name => nil, errors: errors }
-      end
+      record.save!
+      record.touch
+      {
+        field_name => record,
+        errors: [],
+      }
     end
 
     # Override to create custom errors
@@ -57,7 +58,7 @@ module Mutations
 
     # Default CRUD Create functionality
     def default_create_record(cls, field_name:, id_field_name:, input:, permissions: nil)
-      return { field_name => nil, errors: [HmisErrors::Error.new(field_name, :not_allowed)] } if permissions.present? && !current_user.permissions?(*permissions)
+      return { errors: [HmisErrors::Error.new(field_name, :not_allowed)] } if permissions.present? && !current_user.permissions?(*permissions)
 
       record = cls.new(
         **input.to_params,
@@ -65,6 +66,8 @@ module Mutations
         data_source_id: hmis_user.data_source_id,
         user_id: hmis_user.user_id,
       )
+
+      # check permissions_for here
 
       errors = create_errors(record, input)
 
@@ -83,25 +86,14 @@ module Mutations
 
     # Default CRUD Delete functionality
     def default_delete_record(record:, field_name:, permissions: nil)
-      errors = []
-      if record.present?
-        if permissions.present?
-          if current_user.permissions_for?(record, *permissions)
-            record.destroy
-          else
-            record = nil
-            errors << HmisErrors::Error.new(field_name, :not_allowed)
-          end
-        else
-          record.destroy
-        end
-      else
-        errors << HmisErrors::Error.new(field_name, :not_found)
-      end
+      return { errors: [HmisErrors::Error.new(field_name, :not_found)] } unless record.present?
+      return { errors: [HmisErrors::Error.new(field_name, :not_allowed)] } if permissions.present? && !current_user.permissions_for?(record, *permissions)
+
+      record.destroy
 
       {
         field_name => record,
-        errors: errors,
+        errors: [],
       }
     end
   end

@@ -7,24 +7,21 @@ module Mutations
     field :enrollment, Types::HmisSchema::Enrollment, null: true
 
     def resolve(id:, entry_date: nil, relationship_to_ho_h: nil)
-      errors = []
       enrollment = Hmis::Hud::Enrollment.viewable_by(current_user).find_by(id: id)
 
-      if enrollment
-        if current_user.permissions_for?(enrollment, :can_edit_enrollments)
-          enrollment.entry_date = entry_date if entry_date.present?
-          enrollment.relationship_to_ho_h = relationship_to_ho_h if relationship_to_ho_h.present?
-          enrollment.date_updated = DateTime.current
-          enrollment.user_id = hmis_user.user_id
-          enrollment.save!
+      return { errors: [HmisErrors::Error.new(:enrollment, :not_found)] } unless enrollment.present?
+      return { errors: [HmisErrors::Error.new(:enrollment, :not_allowed)] } unless current_user.permissions_for?(enrollment, :can_edit_enrollments)
 
-          errors << enrollment.errors.errors unless enrollment.valid?
-        else
-          enrollment = nil
-          errors << HmisErrors::Error.new(:enrollment, :not_allowed)
-        end
-      else
-        errors << HmisErrors::Error.new(:enrollment, :not_found)
+      enrollment.entry_date = entry_date if entry_date.present?
+      enrollment.relationship_to_ho_h = relationship_to_ho_h if relationship_to_ho_h.present?
+      enrollment.user_id = hmis_user.user_id
+      enrollment.save!
+      enrollment.touch
+
+      errors = []
+      unless enrollment.valid?
+        errors << enrollment.errors.errors
+        enrollment = nil
       end
 
       {
