@@ -40,10 +40,7 @@ module BostonReports
     def self.available_section_types
       [
         'dashboard',
-        'clients_by_cohort',
-        'clients_by_stage',
         'stage_by_cohort',
-        'cohort_by_stage',
         'active_stage_by_cohort_by_voucher_type',
         'demographics_by_cohort',
         'demographics_by_stage',
@@ -142,6 +139,22 @@ module BostonReports
         'Race' => ->(cc, download: false) { CohortColumns::Race.new(cohort_client: cc).display_read_only(filter.user) }, # rubocop:disable Lint/UnusedBlockArgument
         'Cohort' => ->(cc, download: false) { voucher_type_instance.class.new(cohort_client: cc).display_read_only(filter.user) }, # rubocop:disable Lint/UnusedBlockArgument
       }
+    end
+
+    def invert_columns(columns)
+      columns.map.with_index do |data, i|
+        if i.zero?
+          data
+        else
+          data.map.with_index do |v, j|
+            if j.zero?
+              v
+            else
+              0 - v
+            end
+          end
+        end
+      end
     end
 
     def allowed_sets(sets)
@@ -248,6 +261,7 @@ module BostonReports
         data['x'] = 'dates'
         data['columns'] = [['dates'] + months]
         data['colors'] = {}
+        overall_for_dates = {}
         cohort_names.each.with_index do |cohort, i|
           row = [cohort]
           ids = clients[cohort] & clients['moved_in']
@@ -255,11 +269,17 @@ module BostonReports
             pluck(housed_date_instance.column).
             map(&:beginning_of_month)
           months.each do |month_start|
-            row << dates.count { |date| date == month_start }
+            active_count = dates.count { |date| date == month_start }
+            row << active_count
+
+            overall_for_dates[month_start] ||= 0
+            overall_for_dates[month_start] += active_count
           end
           data['columns'] << row
           data['colors'][cohort] = config["breakdown_1_color_#{i}"]
         end
+        data['columns'] << ['Total'] + overall_for_dates.values
+        data['colors']['Total'] = config['total_color']
       end
     end
 
@@ -276,6 +296,7 @@ module BostonReports
         data['x'] = 'dates'
         data['columns'] = [['dates'] + months]
         data['colors'] = {}
+        overall_for_dates = {}
         cohort_names.each.with_index do |cohort, i|
           row = [cohort]
           ids = clients[cohort] & clients['matched']
@@ -284,11 +305,17 @@ module BostonReports
             map { |d| Date.parse(d).beginning_of_month }
 
           months.each do |month_start|
-            row << dates.count { |date| date == month_start }
+            active_count = dates.count { |date| date == month_start }
+            row << active_count
+
+            overall_for_dates[month_start] ||= 0
+            overall_for_dates[month_start] += active_count
           end
           data['columns'] << row
           data['colors'][cohort] = config["breakdown_1_color_#{i}"]
         end
+        data['columns'] << ['Total'] + overall_for_dates.values
+        data['colors']['Total'] = config['total_color']
       end
     end
 
@@ -370,10 +397,13 @@ module BostonReports
         data['type'] = 'bar'
         data['groups'] = [cohort_names]
         data['colors'] = {}
+        data['labels'] = { 'colors' => {}, 'centered' => true }
         data['columns'] = [['x', *voucher_types]]
         cohort_names.each.with_index do |cohort, i|
           row = [cohort]
-          data['colors'][cohort] = config["breakdown_1_color_#{i}"]
+          bg_color = config["breakdown_1_color_#{i}"]
+          data['colors'][cohort] = bg_color
+          data['labels']['colors'][cohort] = config.foreground_color(bg_color)
           voucher_types.each do |type|
             row << (clients['matched'] & clients[cohort] & clients[type]).count
           end
@@ -388,10 +418,13 @@ module BostonReports
         data['type'] = 'bar'
         data['groups'] = [cohort_names]
         data['colors'] = {}
+        data['labels'] = { 'colors' => {}, 'centered' => true }
         data['columns'] = [['x', *voucher_types]]
         cohort_names.each.with_index do |cohort, i|
           row = [cohort]
-          data['colors'][cohort] = config["breakdown_1_color_#{i}"]
+          bg_color = config["breakdown_1_color_#{i}"]
+          data['colors'][cohort] = bg_color
+          data['labels']['colors'][cohort] = config.foreground_color(bg_color)
           voucher_types.each do |type|
             row << (clients['moved_in'] & clients[cohort] & clients[type]).count
           end

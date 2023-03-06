@@ -12,13 +12,14 @@
 
     #client-status-chart
     #client-status-chart-legend.d-flex.m-4
-  - max_value = @report.counts_by_stage['columns'].map(&:last).max
   = content_for :page_js do
     :javascript
       let housed_data = #{@report.housed_by_cohort.to_json.html_safe};
       let housed_grid = #{@report.housed_by_cohort['columns'].first.drop(1).map { |d| { value: d, label: d }}.to_json.html_safe};
+      let housed_max = #{@report.housed_by_cohort['columns'].select { |m| m.first == 'Total' }.first.drop(1).max};
       let matched_data = #{@report.matched_by_cohort.to_json.html_safe};
       let matched_grid = #{@report.matched_by_cohort['columns'].first.drop(1).map { |d| { value: d, label: d }}.to_json.html_safe};
+      let matched_max = #{@report.matched_by_cohort['columns'].select { |m| m.first == 'Total' }.first.drop(1).max};
       let status_chart = bb.generate({
         data: housed_data,
         bindto: '#client-status-chart',
@@ -42,13 +43,7 @@
           },
           y: {
             tick: {
-              culling: {
-                lines: false,
-                max: 3
-              },
-              format: function(x) {
-                return Math.round(x)
-              }
+              values: [0, housed_max],
             }
           },
         },
@@ -61,10 +56,12 @@
       $('.client-status-switcher').on('change', function(e) {
         if($(e.target).attr('id') == 'housed') {
           $('.client-status-header').text('Clients Housed')
+          status_chart.config('axis.y.tick.values', [0, housed_max]);
           status_chart.load(housed_data);
           status_chart.xgrids(housed_grid);
         } else {
           $('.client-status-header').text('Clients Matched')
+          status_chart.config('axis.y.tick.values', [0, matched_max]);
           status_chart.load(matched_data);
           status_chart.xgrids(matched_grid);
         }
