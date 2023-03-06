@@ -819,12 +819,11 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
       @services ||= {}.tap do |h|
         open_enrollments.
           joins(enrollment: [:project, :services]).
-          group(she_t[:client_id], p_t[:project_name], p_t[:id]).maximum(s_t[:date_provided]).
-          map do |(service_client_id, project_name, project_id), date|
+          group(she_t[:client_id], p_t[:id]).maximum(s_t[:date_provided]).
+          map do |(service_client_id, project_id), date|
             h[service_client_id] ||= {}
             h[service_client_id][project_id] ||= {
               date: date,
-              project_name: project_name,
               project_id: project_id,
             }
           end
@@ -833,12 +832,11 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
       @current_living_situations ||= {}.tap do |h|
         open_enrollments.
           joins(enrollment: [:project, :current_living_situations]).
-          group(she_t[:client_id], p_t[:project_name], p_t[:id]).maximum(cls_t[:information_date]).
-          map do |(cls_client_id, project_name, project_id), date|
+          group(she_t[:client_id], p_t[:id]).maximum(cls_t[:information_date]).
+          map do |(cls_client_id, project_id), date|
           h[cls_client_id] ||= {}
           h[cls_client_id][project_id] ||= {
             date: date,
-            project_name: project_name,
             project_id: project_id,
           }
         end
@@ -847,12 +845,11 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
       @events ||= {}.tap do |h|
         open_enrollments.
           joins(enrollment: [:project, :events]).
-          group(she_t[:client_id], p_t[:project_name], p_t[:id]).maximum(ev_t[:event_date]).
-          map do |(event_client_id, project_name, project_id), date|
+          group(she_t[:client_id], p_t[:id]).maximum(ev_t[:event_date]).
+          map do |(event_client_id, project_id), date|
           h[event_client_id] ||= {}
           h[event_client_id][project_id] ||= {
             date: date,
-            project_name: project_name,
             project_id: project_id,
           }
         end
