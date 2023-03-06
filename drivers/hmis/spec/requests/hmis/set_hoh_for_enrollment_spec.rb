@@ -60,7 +60,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       errors = result.dig('data', 'setHoHForEnrollment', 'errors')
       expect(enrollment).to be_nil
       expect(errors).to be_present
-      expect(errors).to contain_exactly(include('message' => 'operation not allowed'))
+      expect(errors).to contain_exactly(include('type' => 'not_allowed'))
     end
   end
 

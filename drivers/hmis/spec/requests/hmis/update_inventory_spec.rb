@@ -70,7 +70,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         errors = result.dig('data', 'updateInventory', 'errors')
         expect(errors).to be_present
         expect(record).to be_nil
-        expect(errors).to contain_exactly(include('message' => 'operation not allowed'))
+        expect(errors).to contain_exactly(include('type' => 'not_allowed'))
         inventory = Hmis::Hud::Inventory.find(i1.id)
         expect(inventory.coc_code).to eq pc1.coc_code
       end

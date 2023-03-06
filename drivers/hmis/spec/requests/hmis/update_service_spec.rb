@@ -96,7 +96,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       service = result.dig('data', 'updateService', 'service')
       errors = result.dig('data', 'updateService', 'errors')
       expect(errors).to be_present
-      expect(errors).to contain_exactly(include('message' => 'operation not allowed'))
+      expect(errors).to contain_exactly(include('type' => 'not_allowed'))
       expect(service).to be_nil
 
       service = Hmis::Hud::Service.find(s1.id)

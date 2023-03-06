@@ -92,7 +92,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         errors = result.dig('data', 'updateOrganization', 'errors')
         expect(organization).to be_nil
         expect(errors).to be_present
-        expect(errors).to contain_exactly(include('message' => 'operation not allowed'))
+        expect(errors).to contain_exactly(include('type' => 'not_allowed'))
         expect(o1.reload.date_updated == prev_date_updated).to eq(true)
       end
     end

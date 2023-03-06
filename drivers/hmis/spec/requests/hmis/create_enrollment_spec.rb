@@ -117,7 +117,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         errors = result.dig('data', 'createEnrollment', 'errors')
         expect(enrollments).to be_empty
         expect(errors).to be_present
-        expect(errors).to contain_exactly(include('message' => 'operation not allowed'))
+        expect(errors).to contain_exactly(include('type' => 'not_allowed'))
         expect(Hmis::Hud::Enrollment.count).to eq(0)
       end
     end

@@ -76,7 +76,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         errors = result.dig('data', 'updateProjectCoc', 'errors')
         expect(errors).to be_present
         expect(record).to be_nil
-        expect(errors).to contain_exactly(include('message' => 'operation not allowed'))
+        expect(errors).to contain_exactly(include('type' => 'not_allowed'))
         record = Hmis::Hud::ProjectCoc.find(pc1.id)
         expect(record.coc_code).to eq(pc1.coc_code)
       end

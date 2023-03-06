@@ -101,7 +101,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         project = result.dig('data', 'updateProject', 'project')
         errors = result.dig('data', 'updateProject', 'errors')
         expect(errors).to be_present
-        expect(errors).to contain_exactly(include('message' => 'operation not allowed'))
+        expect(errors).to contain_exactly(include('type' => 'not_allowed'))
         expect(project).to be_nil
 
         project = Hmis::Hud::Project.find(p1.id)

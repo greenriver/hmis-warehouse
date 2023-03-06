@@ -29,7 +29,7 @@ module Mutations
 
       existing_enrollment = Hmis::Hud::Enrollment.viewable_by(current_user).find_by(household_id: household_id)
 
-      return { household_id: nil, errors: [HmisErrors::Error.new(:household_id, :not_allowed)] } unless current_user.permissions_for?(existing_enrollment, :can_edit_enrollments)
+      return { errors: [HmisErrors::Error.new(:household_id, :not_allowed)] } unless current_user.permissions_for?(existing_enrollment, :can_edit_enrollments)
 
       lookup = Hmis::Hud::Client.where(id: household_members.map(&:id)).index_by(&:id)
       project_id = existing_enrollment.project.project_id

@@ -68,7 +68,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         errors = result.dig('data', 'updateFunder', 'errors')
         expect(errors).to be_present
         expect(record).to be_nil
-        expect(errors).to contain_exactly(include('message' => 'operation not allowed'))
+        expect(errors).to contain_exactly(include('type' => 'not_allowed'))
         record = Hmis::Hud::Funder.find(f1.id)
         expect(record.funder).to eq 20
         expect(record.date_created).to eq(f1.date_created)

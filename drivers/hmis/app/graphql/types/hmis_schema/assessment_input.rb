@@ -34,6 +34,10 @@ module Types
 
       return [nil, errors.errors] if errors.any?
 
+      enrollment ||= assessment&.enrollment
+      errors.add :assessment, :not_allowed unless current_user.permissions_for?(enrollment, :can_edit_enrollments)
+      return [nil, errors.errors] if errors.any?
+
       # Create new Assessment (and AssessmentDetail) if one doesn't exist already
       assessment ||= Hmis::Hud::Assessment.new_with_defaults(
         enrollment: enrollment,

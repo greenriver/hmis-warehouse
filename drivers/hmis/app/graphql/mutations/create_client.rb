@@ -5,6 +5,10 @@ module Mutations
     field :client, Types::HmisSchema::Client, null: true
 
     def resolve(input:)
+      errors = HmisErrors::Errors.new
+      errors.add :client_id, :not_allowed unless current_user.permission?(:can_edit_clients)
+      return { errors: errors } if errors.any?
+
       client = Hmis::Hud::Client.new(
         data_source_id: hmis_user.data_source_id,
         user_id: hmis_user.user_id,
@@ -12,20 +16,12 @@ module Mutations
         **input.to_params,
       )
 
-      errors = []
+      return { errors: client.errors } unless client.valid?
 
-      if client.valid?
-        client.save!
-        GrdaWarehouse::Tasks::IdentifyDuplicates.new.delay.run!
-      else
-        errors = client.errors
-        client = nil
-      end
+      client.save!
+      GrdaWarehouse::Tasks::IdentifyDuplicates.new.delay.run!
 
-      {
-        client: client,
-        errors: errors,
-      }
+      { client: client, errors: [] }
     end
   end
 end
