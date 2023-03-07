@@ -3,6 +3,10 @@
   .active-stage-by-cohort-by-voucher-type-wrapper .bb-axis-x line {
     display: none;
   }
+  .active-stage-by-cohort-by-voucher-type-wrapper .bb-grid line.bb-ygrid {
+    stroke-dasharray: none;
+    stroke: #ddd;
+  }
 
 .well.active-stage-by-cohort-by-voucher-type-wrapper
   .d-flex
@@ -60,7 +64,7 @@
         height: 230,
         width: 500,
       },
-      'axis': {
+      axis: {
         rotated: true,
         x: {
           type: 'category',
@@ -73,6 +77,14 @@
             },
           }
         }
+      },
+      grid: {
+        y: {
+          show: true,
+        }
+      },
+      tooltip: {
+        order: '',
       },
       legend: {
         show: false,
@@ -93,7 +105,7 @@
         height: 250,
         width: 600,
       },
-      'axis': {
+      axis: {
         rotated: true,
         x: {
           type: 'category',
@@ -105,6 +117,14 @@
             },
           }
         }
+      },
+      grid: {
+        y: {
+          show: true,
+        }
+      },
+      tooltip: {
+        order: '',
       },
       legend: {
         contents: {

@@ -42,17 +42,15 @@ module BostonReports
         'dashboard',
         'stage_by_cohort',
         'active_stage_by_cohort_by_voucher_type',
-        'demographics_by_cohort',
-        'demographics_by_stage',
-        'comparison',
+        'internal',
+        'external',
       ]
     end
 
-    def background_color(section_type, _number)
-      case section_type
-      when :total
-        'todo'
-      end
+    def percent(numerator:, denominator:)
+      return 0 unless numerator&.positive? && denominator&.positive?
+
+      (numerator.to_f / denominator * 100).round
     end
 
     def section_ready?(_section)
@@ -333,6 +331,27 @@ module BostonReports
             charts[cohort_slug]['colors'][::HudUtility.race(race)] = config["breakdown_3_color_#{i}"]
             charts[cohort_slug]['labels']['colors'][::HudUtility.race(race)] = config.foreground_color(config["breakdown_3_color_#{i}"])
           end
+        end
+      end
+    end
+
+    def race_by_stage
+      @race_by_stage ||= {}.tap do |data|
+        data['x'] = 'x'
+        data['type'] = 'bar'
+        data['stack'] = { normalize: true }
+        data['columns'] = [['x'] + stages.values.map { |d| d[:label] } + ['Inactive']]
+        data['groups'] = [races.map { |race| ::HudUtility.race(race) }]
+        data['colors'] = {}
+        data['labels'] = { 'colors' => {} }
+        races.each.with_index do |race, i|
+          row = [::HudUtility.race(race)]
+          stages.each_key do |k|
+            row << (clients[k.to_s] & clients[race]).count
+          end
+          data['columns'] << row
+          data['colors'][::HudUtility.race(race)] = config["breakdown_2_color_#{i}"]
+          data['labels']['colors'][::HudUtility.race(race)] = config.foreground_color(config["breakdown_3_color_#{i}"])
         end
       end
     end

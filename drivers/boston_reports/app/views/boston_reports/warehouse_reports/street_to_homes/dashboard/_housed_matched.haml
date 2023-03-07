@@ -9,12 +9,13 @@
         %label.btn.btn-secondary.btn-sm
           %input#matched{ type: :radio, name: :client_status}
           Matched
-    .client-status-housed-wrapper
-      #client-status-housed-chart
-      #client-status-housed-chart-legend.d-flex.m-4
-    .client-status-matched-wrapper.hide
-      #client-status-matched-chart
-      #client-status-matched-chart-legend.d-flex.m-4
+    .client-housed-matched-wrapper
+      .client-status-housed-wrapper
+        #client-status-housed-chart
+        #client-status-housed-chart-legend.d-flex.m-4
+      .client-status-matched-wrapper.hide
+        #client-status-matched-chart
+        #client-status-matched-chart-legend.d-flex.m-4
   = content_for :page_js do
     :javascript
       let housed_data = #{@report.housed_by_cohort.to_json.html_safe};

@@ -1,28 +1,28 @@
-.dashboard-race-by-cohort-charts
+%div{class: ["#{base_name}-#{chart}-by-cohort-charts", hidden_class]}
   .d-flex
     - @report.cohort_names.each.with_index do |cohort, i|
-      - chart_id = "race-by-cohort-chart-#{cohort.parameterize(separator: '_')}"
+      - chart_id = "#{base_name}-#{chart}-by-cohort-chart-#{cohort.parameterize(separator: '_')}"
       .chart-with-title
         - # account for the legend weirdness
         - style = if i.zero? then '' else 'margin-bottom: 20px;' end
-        .race-by-cohort-chart.ml-3.mr-3{ id: chart_id, style: style }
+        .ml-3.mr-3{ id: chart_id, style: style, class: "#{base_name}-#{chart}-by-cohort-chart" }
         .chat_title
           %h3.text-center= cohort
           - bg_color = @config["breakdown_1_color_#{i}"]
           #div{ style: "padding:5px; height: 14px; width: 26px; background-color:#{bg_color}; margin: 0 auto; border-radius: 10px;" } &nbsp;
     - # Bind charts to one legend (https://github.com/naver/billboard.js/issues/605)
-    #race-by-cohort-chart-legend
+    %div{ id: "#{base_name}-#{chart}-by-cohort-chart-legend" }
 
   :ruby
     charts = @report.cohort_names.map do |cohort|
       cohohrt_slug = cohort.parameterize(separator: '_')
-      [cohohrt_slug, @report.race_by_cohort[cohohrt_slug]]
+      [cohohrt_slug, @report.public_send(data_method)[cohohrt_slug]]
     end
   = content_for :page_js do
     :javascript
-      let race_charts = #{charts.to_json.html_safe};
-      let active_race_charts = []
-      race_charts.forEach((arr, index) => {
+      let #{base_name}_#{chart}_charts = #{charts.to_json.html_safe};
+      let active_#{base_name}_#{chart}_charts = [];
+      #{base_name}_#{chart}_charts.forEach((arr, index) => {
         let chart_name, data, legend, width, height;
         [chart_name, data] = arr;
         if(index == 0) {
@@ -30,7 +30,7 @@
           height = 185;
           legend = {
             contents: {
-              bindto: '#race-by-cohort-chart-legend',
+              bindto: "##{base_name}-#{chart}-by-cohort-chart-legend",
               template: "<span><div class='d-flex mr-4'><div style='padding:5px; height: 14px; width: 26px; background-color:{=COLOR}; margin: auto 1rem; border-radius: 10px;'>&nbsp;</div><div class='m-2'>{=TITLE}</div></div></span>"
             },
             item: {
@@ -51,9 +51,9 @@
             },
           }
         }
-        active_race_charts.push(bb.generate({
+        active_#{base_name}_#{chart}_charts.push(bb.generate({
           data: data,
-          bindto: `#race-by-cohort-chart-${chart_name}`,
+          bindto: `##{base_name}-#{chart}-by-cohort-chart-${chart_name}`,
           legend: legend,
           size: {
             width: width,
@@ -62,12 +62,12 @@
         }));
       });
       // (2) Bind new event handler to handle all generated charts
-      d3.selectAll("#race-by-cohort-chart-legend span")
+      d3.selectAll("##{base_name}-#{chart}-by-cohort-chart-legend span")
         .on("mouseover mouseout click", (e) => {
           const id = e.target.innerHTML;
           const type = e.type;
 
-          active_race_charts.forEach(v => {
+          active_#{base_name}_#{chart}_charts.forEach(v => {
             switch (type) {
               case "mouseover":
                 v.focus(id);

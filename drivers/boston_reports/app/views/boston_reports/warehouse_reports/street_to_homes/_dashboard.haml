@@ -2,22 +2,32 @@
   .wide-line {
     stroke-width: 3px;
   }
-  .bb-xgrid-focus line {
+  .client-housed-matched-wrapper .bb-grid line {
+    stroke-dasharray: none;
+    stroke: #ddd;
+  }
+  .client-housed-matched-wrapper .bb-xgrid-focus line.bb-xgrid-focus  {
     stroke: #000;
   }
-Dashboard
+
+- total_count = @report.summary_counts['total'][:count]
 %table.street-2-home-summary.w-100.mb-6
   %tbody
     %tr
       - bg_color = @config.total_color
       %td.all-clients{ colspan: @report.summary_counts.count - 1, style: "background-color: #{bg_color}; color: #{@config.foreground_color(bg_color)};"}
-        .count= link_to number_with_delimiter(@report.summary_counts['total'][:count]), details_boston_reports_warehouse_reports_street_to_homes_path(@report.filter.for_params.merge(sets: ['total'])), style: "color: #{@config.foreground_color(bg_color)};"
+        .count= link_to number_with_delimiter(total_count), details_boston_reports_warehouse_reports_street_to_homes_path(@report.filter.for_params.merge(sets: ['total'])), style: "color: #{@config.foreground_color(bg_color)};", class: 'font-size-md'
         .label{style: "color: #{@config.foreground_color(@config.total_color)};"}= @report.summary_counts['total'][:label]
     %tr
       - @report.summary_counts.except('total').each.with_index do |(cohort, data), i|
         - bg_color = @config["breakdown_1_color_#{i}"]
         %td{ class: "cohort-#{i}", style: "background-color: #{bg_color}; color: #{@config.foreground_color(bg_color)};"}
-          .count= link_to number_with_delimiter(data[:count]), details_boston_reports_warehouse_reports_street_to_homes_path(@report.filter.for_params.merge(sets: [cohort])), style: "color: #{@config.foreground_color(bg_color)};"
+          .count
+            = link_to details_boston_reports_warehouse_reports_street_to_homes_path(@report.filter.for_params.merge(sets: [cohort])), style: "color: #{@config.foreground_color(bg_color)};" do
+              .d-flex
+                .ml-auto.mr-auto.d-flex
+                  .font-size-md= number_with_delimiter(data[:count])
+                  .font-size-sm.mt-auto.mb-1.ml-2 (#{@report.percent(numerator: data[:count], denominator: total_count)}%)
           .label{ style: "color: #{@config.foreground_color(bg_color)};" }= data[:label]
 
 .d-flex
@@ -25,28 +35,4 @@ Dashboard
 
   .w-50= render 'boston_reports/warehouse_reports/street_to_homes/dashboard/housed_matched'
 
-.well
-  .d-flex.mb-4
-    %h2.dashboard-race-ethnicity-header Race by Cohort
-    .dashboard-race-ethnicity-switcher.btn-group.btn-group-toggle.btn-sm.ml-auto{ data: { toggle: :buttons }}
-      %label.btn.btn-secondary.btn-sm.active
-        %input#dashboard-race{ type: :radio, name: :dashboard_race_ethnicity, checked: :checked}
-        Race
-      %label.btn.btn-secondary.btn-sm
-        %input#dashboard-ethnicity{ type: :radio, name: :dashboard_race_ethnicity}
-        Ethnicity
-  = render 'boston_reports/warehouse_reports/street_to_homes/dashboard/race_by_cohort'
-  = render 'boston_reports/warehouse_reports/street_to_homes/dashboard/ethnicity_by_cohort'
-  = content_for :page_js do
-    :javascript
-      $('.dashboard-race-ethnicity-switcher').on('change', function(e) {
-        if($(e.target).attr('id') == 'dashboard-race') {
-          $('.dashboard-race-ethnicity-header').text('Race by Cohort');
-        } else {
-          $('.dashboard-race-ethnicity-header').text('Ethnicity by Cohort');
-        }
-        $('.dashboard-ethnicity-by-cohort-charts').toggleClass('hide');
-        $('.dashboard-race-by-cohort-charts').toggleClass('hide');
-        race_charts.forEach(e => eflush());
-        ethnicity_charts.forEach(e => eflush());
-      });
+.well= render 'boston_reports/warehouse_reports/street_to_homes/race_ethnicity', base_name: 'dashboard'

@@ -11,12 +11,12 @@
 .well
   .stage-by-cohort-wrapper.hide
     .d-flex
-      #stage-by-cohort-chart
-      #stage-by-cohort-legend
+      #stage-by-cohort-chart{style: 'width: 80%;'}
+      #stage-by-cohort-legend{style: 'width: 20%;'}
   .cohort-by-stage-wrapper
     .d-flex
-      #cohort-by-stage-chart
-      #cohort-by-stage-legend
+      #cohort-by-stage-chart{style: 'width: 80%;'}
+      #cohort-by-stage-legend{style: 'width: 20%;'}
 - stage_by_cohort = @report.stage_by_cohort
 - stage_by_cohort_max_value = stage_by_cohort['columns'].drop(1).map { |values| values.drop(1).sum }.max
 - cohort_by_stage = @report.cohort_by_stage
@@ -52,7 +52,6 @@
       },
       size: {
         height: 250,
-        width: 700,
       },
       'axis': {
         x: {
@@ -80,7 +79,6 @@
       },
       size: {
         height: 250,
-        width: 700,
       },
       'axis': {
         x: {
@@ -102,4 +100,6 @@
     $('.stage-by-cohort-switcher').on('change', function(e) {
       $('.stage-by-cohort-wrapper').toggleClass('hide');
       $('.cohort-by-stage-wrapper').toggleClass('hide');
+      stage_by_cohort_chart.flush();
+      cohort_by_stage_chart.flush();
     });

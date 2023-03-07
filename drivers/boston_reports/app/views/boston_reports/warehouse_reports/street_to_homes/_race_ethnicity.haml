@@ -1,0 +1,22 @@
+.d-flex.mb-4
+  %h2{ class: "#{base_name}-race-ethnicity-header"} Race by Cohort
+  .btn-group.btn-group-toggle.btn-sm.ml-auto{ data: { toggle: :buttons }, class: "#{base_name}-race-ethnicity-switcher"}
+    %label.btn.btn-secondary.btn-sm.active
+      %input{ id: "#{base_name}-race", type: :radio, name: :dashboard_race_ethnicity, checked: :checked}
+      Race
+    %label.btn.btn-secondary.btn-sm
+      %input{ id: "#{base_name}-ethnicity", type: :radio, name: :dashboard_race_ethnicity}
+      Ethnicity
+= render 'boston_reports/warehouse_reports/street_to_homes/race_ethnicity_by_cohort', base_name: base_name, chart: 'race', data_method: :race_by_cohort, hidden_class: ''
+= render 'boston_reports/warehouse_reports/street_to_homes/race_ethnicity_by_cohort', base_name: base_name, chart: 'ethnicity', data_method: :ethnicity_by_cohort, hidden_class: 'hide'
+= content_for :page_js do
+  :javascript
+    $('.#{base_name}-race-ethnicity-switcher').on('change', function(e) {
+      if($(e.target).attr('id') == '#{base_name}-race') {
+        $('.#{base_name}-race-ethnicity-header').text('Race by Cohort');
+      } else {
+        $('.#{base_name}-race-ethnicity-header').text('Ethnicity by Cohort');
+      }
+      $('.#{base_name}-ethnicity-by-cohort-charts').toggleClass('hide');
+      $('.#{base_name}-race-by-cohort-charts').toggleClass('hide');
+    });
