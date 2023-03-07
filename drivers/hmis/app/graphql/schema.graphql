@@ -353,6 +353,7 @@ type Client {
   preferredName: String
   pronouns: [String!]!
   race: [Race!]!
+  services(limit: Int, offset: Int, sortOrder: ServiceSortOption): ServicesPaginated!
   ssn: String
   ssnDataQuality: SSNDataQuality!
   user: User
@@ -4231,6 +4232,9 @@ type SaveAssessmentPayload {
   errors: [ValidationError!]!
 }
 
+"""
+HUD or Custom Service rendered
+"""
 type Service {
   FAAmount: Float
   client: Client!
@@ -4242,10 +4246,10 @@ type Service {
   id: ID!
   movingOnOtherType: String
   otherTypeProvided: String
-  recordType: RecordType!
+  recordType: RecordType
   referralOutcome: PATHReferralOutcome
   subTypeProvided: ServiceSubTypeProvided
-  typeProvided: ServiceTypeProvided!
+  typeProvided: ServiceTypeProvided
   user: User
 }
 
@@ -4270,7 +4274,7 @@ input ServiceInput {
 }
 
 """
-HUD Service Sorting Options
+HMIS Service Sorting Options
 """
 enum ServiceSortOption {
   DATE_PROVIDED

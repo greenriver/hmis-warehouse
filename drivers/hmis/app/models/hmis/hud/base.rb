@@ -13,11 +13,6 @@ class Hmis::Hud::Base < ::GrdaWarehouseBase
   attr_writer :skip_validations
   attr_writer :required_fields
 
-  # Create aliases for common HUD fields
-  [:UserID, :DateCreated, :DateUpdated, :DateDeleted].each do |col|
-    alias_attribute col.to_s.underscore.to_sym, col
-  end
-
   before_validation :ensure_id
 
   scope :viewable_by, ->(_) do
@@ -39,6 +34,15 @@ class Hmis::Hud::Base < ::GrdaWarehouseBase
     h.merge! class_name: "Hmis::Hud::#{model_name}" if model_name
     h
   end
+
+  def self.alias_to_underscore(cols)
+    Array.wrap(cols).each do |col|
+      alias_attribute col.to_s.underscore.to_sym, col
+    end
+  end
+
+  # Create aliases for common HUD fields
+  alias_to_underscore [:UserID, :DateCreated, :DateUpdated, :DateDeleted]
 
   def self.generate_uuid
     SecureRandom.uuid.gsub(/-/, '')

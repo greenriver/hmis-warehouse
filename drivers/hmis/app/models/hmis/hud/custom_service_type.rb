@@ -15,6 +15,7 @@ class Hmis::Hud::CustomServiceType < Hmis::Hud::Base
   alias_attribute :category, :custom_service_category
 
   validates :hud_record_type, uniqueness: { scope: [:hud_type_provided] }, allow_nil: true
+  validates :name, uniqueness: { scope: [:custom_service_category] }
   validates_with Hmis::Hud::Validators::CustomServiceTypeValidator
 
   def hud_service?

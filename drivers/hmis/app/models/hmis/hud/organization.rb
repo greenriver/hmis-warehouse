@@ -38,8 +38,4 @@ class Hmis::Hud::Organization < Hmis::Hud::Base
       raise NotImplementedError
     end
   end
-
-  def self.generate_organization_id
-    generate_uuid
-  end
 end

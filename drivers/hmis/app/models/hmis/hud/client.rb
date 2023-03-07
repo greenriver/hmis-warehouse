@@ -28,6 +28,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   has_many :health_and_dvs, through: :enrollments
   has_many :client_files, class_name: 'GrdaWarehouse::ClientFile', primary_key: :id, foreign_key: :client_id
   has_many :current_living_situations, through: :enrollments
+  has_many :hmis_services, through: :enrollments # All services (HUD and Custom)
 
   validates_with Hmis::Hud::Validators::ClientValidator
 

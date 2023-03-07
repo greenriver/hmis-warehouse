@@ -22,11 +22,11 @@ module Types
         end
       end
 
-      def resolve_services_with_loader(association_name = :services, **args)
-        load_ar_association(object, association_name, scope: scoped_services(Hmis::Hud::Service, **args))
+      def resolve_services_with_loader(association_name = :hmis_services, **args)
+        load_ar_association(object, association_name, scope: scoped_services(Hmis::Hud::HmisService, **args))
       end
 
-      def resolve_services(scope = object.services, **args)
+      def resolve_services(scope = object.hmis_services, **args)
         scoped_services(scope, **args)
       end
 
