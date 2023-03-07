@@ -19,8 +19,8 @@ class Hmis::Hud::Validators::CustomServiceValidator < Hmis::Hud::Validators::Bas
 
   def validate(record)
     super(record) do
-      # TODO: what happens when a service type switches over from being non-HUD to being linked to HUD? we need to disallow that?
-      # record.errors.add :service_type, :invalid, full_message: 'Cannot save HUD Service to CustomService table' if record.service_type.hud_service?
+      # Ensure that HUD services are not saved to the CustomServices table
+      record.errors.add :custom_service_type, :invalid, message: 'is a HUD service' if record.service_type.hud_service?
     end
   end
 end
