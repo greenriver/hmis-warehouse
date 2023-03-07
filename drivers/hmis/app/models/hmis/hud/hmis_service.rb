@@ -16,6 +16,8 @@ class Hmis::Hud::HmisService < Hmis::Hud::Base
 
   belongs_to :owner, polymorphic: true # Service or CustomService
   belongs_to :custom_service_type
+  has_many :custom_service_categories, through: :custom_service_type
+
   alias_attribute :service_type, :custom_service_type
   alias_to_underscore [:DateProvided]
 
@@ -24,6 +26,20 @@ class Hmis::Hud::HmisService < Hmis::Hud::Base
 
   HUD_ATTRIBUTES.each do |hud_field_name|
     define_method(hud_field_name) { hud_service&.send(hud_field_name) }
+  end
+
+  scope :in_service_category, ->(category_id) do
+    type_ids = Hmis::Hud::CustomServiceType.where(custom_service_category_id: category_id).pluck(:id)
+    where(custom_service_type_id: type_ids)
+  end
+
+  scope :matching_search_term, ->(search_term) do
+    return none unless search_term.present?
+
+    search_term.strip!
+    query = "%#{search_term}%"
+    joins(:custom_service_type, :custom_service_categories).
+      where(cst_t[:name].matches(query).or(csc_t[:name].matches(query)))
   end
 
   def id

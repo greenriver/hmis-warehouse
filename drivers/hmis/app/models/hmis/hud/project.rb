@@ -5,7 +5,6 @@
 ###
 
 class Hmis::Hud::Project < Hmis::Hud::Base
-  include ::Hmis::Concerns::HmisArelHelper
   include ::HmisStructure::Project
   include ::Hmis::Hud::Concerns::Shared
   self.table_name = :Project

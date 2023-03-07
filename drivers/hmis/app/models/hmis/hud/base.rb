@@ -6,6 +6,7 @@
 
 class Hmis::Hud::Base < ::GrdaWarehouseBase
   self.abstract_class = true
+  include ::Hmis::Concerns::HmisArelHelper
 
   acts_as_paranoid(column: :DateDeleted)
   has_paper_trail # Track changes made to HUD objects via PaperTrail

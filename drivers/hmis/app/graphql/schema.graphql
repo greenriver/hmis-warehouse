@@ -353,7 +353,7 @@ type Client {
   preferredName: String
   pronouns: [String!]!
   race: [Race!]!
-  services(limit: Int, offset: Int, sortOrder: ServiceSortOption): ServicesPaginated!
+  services(limit: Int, offset: Int, searchTerm: String, serviceCategory: ID, serviceType: ID, sortOrder: ServiceSortOption): ServicesPaginated!
   ssn: String
   ssnDataQuality: SSNDataQuality!
   user: User
@@ -1424,7 +1424,7 @@ type Enrollment {
   previousStreetEssh: Boolean
   project: Project!
   relationshipToHoH: RelationshipToHoH!
-  services(limit: Int, offset: Int, sortOrder: ServiceSortOption): ServicesPaginated!
+  services(limit: Int, offset: Int, searchTerm: String, serviceCategory: ID, serviceType: ID, sortOrder: ServiceSortOption): ServicesPaginated!
   timesHomelessPastThreeYears: TimesHomelessPastThreeYears
   user: User
 }
