@@ -13,16 +13,19 @@ module Mutations
       definition = assessment.assessment_detail.definition
       enrollment = assessment.enrollment
 
-      # Determine the Assessment Date (same as Information Date) and validate it
+      # Determine the Assessment Date and validate it
       assessment_date, errors = definition.find_and_validate_assessment_date(
-        hud_values: input.hud_values,
+        values: input.values,
         entry_date: enrollment.entry_date,
         exit_date: enrollment.exit_date,
       )
       return { assessment: nil, errors: errors } if errors.any?
 
       # Update values
-      assessment.assessment_detail.assign_attributes(values: input.values)
+      assessment.assessment_detail.assign_attributes(
+        values: input.values,
+        hud_values: input.hud_values,
+      )
       assessment.assign_attributes(
         user_id: hmis_user.user_id,
         assessment_date: assessment_date,

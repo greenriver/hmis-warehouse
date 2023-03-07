@@ -10,12 +10,14 @@ module Types
   class HmisSchema::ValidationError < Types::BaseObject
     # Resolves an HmisError object
 
-    field :id, String, null: true
+    field :id, String, 'Unique ID for this error', null: true
+    field :record_id, ID, 'ID of the AR record this error pertains to', null: true
     field :link_id, String, 'Link ID of form item if this error is linked to a specific item', null: true
     field :attribute, String, null: false
     field :readable_attribute, String, null: true
     field :message, String, null: false
     field :full_message, String, null: false
+    field :section, String, null: true
     field :type, HmisSchema::Enums::ValidationType, null: false
     field :severity, HmisSchema::Enums::ValidationSeverity, null: false
 

@@ -186,6 +186,15 @@ module GrdaWarehouse::Tasks
         matches_ssn = (check_social(ssn, source_clients_grouped_by_ssn) - [dest_id])
         matches_dob = (check_birthday(dob, source_clients_grouped_by_dob) - [dest_id])
         all_matching_dest_ids = (matches_name + matches_ssn + matches_dob) - splits
+        # to_merge_by_dest_id = Set.new
+        # seen = Set.new
+        # all_matching_dest_ids.each do |num|
+        #   if seen.include?(num)
+        #     to_merge_by_dest_id << num
+        #   else
+        #     seen << num
+        #   end
+        # end
         to_merge_by_dest_id = all_matching_dest_ids.uniq.
           map { |num| [num, all_matching_dest_ids.count(num)] }.to_h.
           select { |_, v| v > 1 }

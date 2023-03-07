@@ -78,7 +78,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     it 'should not update enrollment' do
       prev_date_updated = e2.date_updated
       expect(e2.user_id).to eq(u2.user_id)
-
       response, result = post_graphql(
         input: {
           id: e2.id,

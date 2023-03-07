@@ -15,10 +15,14 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   belongs_to :organization, **hmis_relation(:OrganizationID, 'Organization')
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :projects
 
-  has_many :enrollments, **hmis_relation(:ProjectID, 'Enrollment'), inverse_of: :project
-  has_many :project_cocs, **hmis_relation(:ProjectID, 'ProjectCoc'), inverse_of: :project
-  has_many :inventories, **hmis_relation(:ProjectID, 'Inventory'), inverse_of: :project
-  has_many :funders, **hmis_relation(:ProjectID, 'Funder'), inverse_of: :project
+  has_many :enrollments, **hmis_relation(:ProjectID, 'Enrollment'), inverse_of: :project, dependent: :destroy
+  has_many :project_cocs, **hmis_relation(:ProjectID, 'ProjectCoc'), inverse_of: :project, dependent: :destroy
+  has_many :inventories, **hmis_relation(:ProjectID, 'Inventory'), inverse_of: :project, dependent: :destroy
+  has_many :funders, **hmis_relation(:ProjectID, 'Funder'), inverse_of: :project, dependent: :destroy
+
+  has_and_belongs_to_many :project_groups,
+                          class_name: 'GrdaWarehouse::ProjectGroup',
+                          join_table: :project_project_groups
 
   validates_with Hmis::Hud::Validators::ProjectValidator
 
@@ -36,9 +40,9 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   # hide previous declaration of :editable_by, we'll use this one
   replace_scope :editable_by, ->(user) do
     ids = user.editable_projects.pluck(:id)
-    ids += user.organizations.joins(:projects).pluck(p_t[:id])
-    ids += user.data_sources.joins(:projects).pluck(p_t[:id])
-    ids += user.project_access_groups.joins(:projects).pluck(p_t[:id])
+    ids += user.editable_organizations.joins(:projects).pluck(p_t[:id])
+    ids += user.editable_data_sources.joins(:projects).pluck(p_t[:id])
+    ids += user.editable_project_access_groups.joins(:projects).pluck(p_t[:id])
 
     where(id: ids, data_source_id: user.hmis_data_source_id)
   end

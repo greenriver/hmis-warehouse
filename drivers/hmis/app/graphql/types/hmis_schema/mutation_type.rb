@@ -45,6 +45,8 @@ module Types
     field :delete_service, mutation: Mutations::DeleteService
     field :save_assessment, mutation: Mutations::SaveAssessment
     field :submit_assessment, mutation: Mutations::SubmitAssessment
+    field :delete_assessment, mutation: Mutations::DeleteAssessment
+    field :submit_household_assessments, mutation: Mutations::SubmitHouseholdAssessments
     field :create_direct_upload, mutation: Mutations::CreateDirectUpload
 
     field :add_recent_item, mutation: Mutations::AddRecentItem

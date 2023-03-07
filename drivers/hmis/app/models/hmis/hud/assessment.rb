@@ -18,9 +18,11 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
   belongs_to :enrollment, **hmis_relation(:EnrollmentID, 'Enrollment')
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :assessments
-  has_one :assessment_detail, class_name: 'Hmis::Form::AssessmentDetail'
+  has_one :assessment_detail, class_name: 'Hmis::Form::AssessmentDetail', dependent: :destroy
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
-  has_one :wip, class_name: 'Hmis::Wip', as: :source
+  has_one :wip, class_name: 'Hmis::Wip', as: :source, dependent: :destroy
+  has_many :assessment_questions, **hmis_relation(:AssessmentID, 'AssessmentQuestion'), dependent: :destroy
+  has_many :assessment_results, **hmis_relation(:AssessmentID, 'AssessmentResult'), dependent: :destroy
 
   attr_accessor :in_progress
 
@@ -77,6 +79,7 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
 
     self.enrollment_id = WIP_ID
     save!(validate: false)
+    touch
     self.wip = Hmis::Wip.create_with(date: assessment_date).find_or_create_by(
       source: self,
       enrollment_id: saved_enrollment_id,
