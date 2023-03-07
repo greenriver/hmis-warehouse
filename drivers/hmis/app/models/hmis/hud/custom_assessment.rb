@@ -22,6 +22,7 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
   has_one :custom_form, class_name: 'Hmis::Form::CustomForm', as: :owner, dependent: :destroy
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   has_one :wip, class_name: 'Hmis::Wip', as: :source, dependent: :destroy
+  has_one :project, through: :enrollment
 
   # Alias fields that are not part of the Assessment schema
   [:DataCollectionStage].each do |col|
@@ -44,15 +45,6 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
     viewable_completed = cas_t[:EnrollmentID].in(enrollment_ids.map(&:second))
 
     left_outer_joins(:wip).where(viewable_wip.or(viewable_completed))
-  end
-
-  # hide previous declaration of :editable_by, we'll use this one
-  replace_scope :editable_by, ->(user) do
-    enrollment_ids = Hmis::Hud::Enrollment.editable_by(user).pluck(:id, :EnrollmentID)
-    editable_wip = wip_t[:enrollment_id].in(enrollment_ids.map(&:first))
-    editable_completed = cas_t[:EnrollmentID].in(enrollment_ids.map(&:second))
-
-    left_outer_joins(:wip).where(editable_wip.or(editable_completed))
   end
 
   scope :with_role, ->(role) do

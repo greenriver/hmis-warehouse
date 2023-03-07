@@ -60,7 +60,7 @@ class Hmis::User < ApplicationRecord
     define_method("#{permission}_for?") do |entity|
       return false unless send("#{permission}?")
 
-      access_group_ids = Hmis::GroupViewableEntity.includes_entity(entity).pluck(:access_group_id)
+      access_group_ids = Hmis::GroupViewableEntity.includes_entity(permissions_base_for_entity(entity)).pluck(:access_group_id)
 
       raise "Invalid entity '#{entity.class.name}'" if access_group_ids.nil?
 
@@ -81,17 +81,34 @@ class Hmis::User < ApplicationRecord
     super opts.merge({ send_instructions: false })
   end
 
-  # private def access_group_ids_for_entity(entity)
-  #   access_group_ids = nil
+  private def permissions_base_for_entity(entity)
+    return entity if entity.is_a? Hmis::Hud::Organization
+    return entity.project if entity.respond_to? :project
 
-  #   if entity.is_a?(Hmis::Hud::Project)
-  #     access_group_ids = Hmis::GroupViewableEntity.includes_entity(entity).pluck(:access_group_id)
-  #   elsif entity.is_a?(Hmis::Hud::Organization)
-  #     access_group_ids = Hmis::GroupViewableEntity.includes_organization(entity).pluck(:access_group_id)
-  #   end
+    entity
+  end
 
-  #   access_group_ids
-  # end
+  private def check_permissions_with_mode(*permissions, mode: :any)
+    method_name = mode == :all ? :all? : :any?
+    permissions.send(method_name) { |perm| yield(perm) }
+  end
+
+  def permission?(permission)
+    respond_to?(permission) ? send(permission) : false
+  end
+
+  def permission_for?(entity, permission)
+    method_name = "#{permission}_for?".to_sym
+    respond_to?(method_name) ? send(method_name, entity) : false
+  end
+
+  def permissions?(*permissions, mode: :any)
+    check_permissions_with_mode(*permissions, mode: mode) { |perm| permission?(perm) }
+  end
+
+  def permissions_for?(entity, *permissions, mode: :any)
+    check_permissions_with_mode(*permissions, mode: mode) { |perm| permission_for?(entity, perm) }
+  end
 
   private def viewable(model)
     model.where(
@@ -156,6 +173,6 @@ class Hmis::User < ApplicationRecord
   end
 
   def editable_project_ids
-    @editable_project_ids ||= Hmis::Hud::Project.editable_by(self).pluck(:id)
+    @editable_project_ids ||= Hmis::Hud::Project.viewable_by(self).pluck(:id)
   end
 end

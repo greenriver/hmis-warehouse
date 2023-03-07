@@ -178,7 +178,9 @@ module Health
       return '' if signature_id.nil?
 
       Rails.cache.fetch("signature-#{signature_id}", expires_in: 1.minutes) do
-        hs_client.get_embedded_sign_url(signature_id: signature_id).sign_url
+        client_id = hs_initial_response.dig('client_id')
+        hellosign_url = hs_client.get_embedded_sign_url(signature_id: signature_id).sign_url
+        "#{hellosign_url}&client_id=#{client_id}" # Manually patch the url to include the client_id
       end
     end
 

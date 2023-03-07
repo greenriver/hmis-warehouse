@@ -69,7 +69,7 @@ gem 'mimemagic'
 # it should be tested manually
 gem 'acts-as-taggable-on', '~> 7.0'
 # gem 'seven_zip_ruby' unless ENV['NO_7ZIP'] == '1'
-gem 'hellosign-ruby-sdk'
+gem 'hellosign-ruby-sdk', git: 'https://github.com/greenriver/hellosign-ruby-sdk.git'
 
 gem 'devise', '~> 4'
 gem 'devise_invitable', '~> 2.0'
@@ -81,7 +81,7 @@ gem 'rack-cors'
 gem 'omniauth', '~> 2.1'
 gem 'omniauth-oauth2', '~> 1.7.3'
 gem 'omniauth-rails_csrf_protection', '~> 1.0.1'
-gem 'faraday', '~> 1.8'
+gem 'faraday', '~> 2.2.0'
 
 gem 'pretender'
 gem 'rqrcode-rails3'
@@ -129,7 +129,7 @@ gem 'sprockets', '~> 3'
 gem 'sprockets-es6'
 gem 'jquery-ui-rails'
 # gem 'chart-js-rails'
-gem 'nominatim'
+gem 'nominatim', git: 'https://github.com/greenriver/nominatim.git', branch: 'aw/faraday-2'
 gem 'linefit'
 gem 'jquery-minicolors-rails'
 gem 'htmlentities'
@@ -145,7 +145,7 @@ gem 'gmail', require: false
 # gem 'savon'
 # gem 'qaaws', require: false, git: 'https://github.com/greenriver/eis-ruby-qaaws.git', branch: 'master'
 
-gem 'stupidedi' #, require: false #, git: 'https://github.com/greenriver/stupidedi.git', branch: '820'
+gem 'stupidedi', git: 'https://github.com/greenriver/stupidedi.git', branch: 'master'
 
 gem 'redcarpet'
 

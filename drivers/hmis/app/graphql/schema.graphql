@@ -5446,6 +5446,7 @@ enum ValidationType {
   data_not_collected
   information
   invalid
+  not_allowed
   not_found
   out_of_range
   required

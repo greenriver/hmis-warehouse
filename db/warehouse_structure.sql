@@ -14038,7 +14038,8 @@ CREATE TABLE public.hmis_form_instances (
     definition_identifier character varying NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    custom_service_type_id integer
+    custom_service_type_id integer,
+    custom_service_category_id integer
 );
 
 
@@ -51192,9 +51193,6 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230127200801'),
 ('20230206142754'),
 ('20230207151644'),
-('20230301170853'),
-('20230301172341'),
-('20230303154815'),
-('20230303181248');
+('20230301172341');
 
 

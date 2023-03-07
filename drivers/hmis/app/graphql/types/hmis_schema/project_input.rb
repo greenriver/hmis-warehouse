@@ -22,7 +22,7 @@ module Types
     def to_params
       result = to_h.except(:organization_id)
 
-      result[:organization_id] = Hmis::Hud::Organization.editable_by(current_user).find_by(id: organization_id)&.organization_id if organization_id.present?
+      result[:organization_id] = Hmis::Hud::Organization.viewable_by(current_user).find_by(id: organization_id)&.organization_id if organization_id.present?
 
       result
     end
