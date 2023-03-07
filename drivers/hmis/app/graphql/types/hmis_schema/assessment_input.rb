@@ -32,13 +32,23 @@ module Types
         errors.add :enrollment, :required
       end
 
+      # Errors: input validation failed
       return [nil, errors.errors] if errors.any?
 
       enrollment ||= assessment&.enrollment
+
+      # Error: insufficient permissions
       errors.add :assessment, :not_allowed unless current_user.permissions_for?(enrollment, :can_edit_enrollments)
       return [nil, errors.errors] if errors.any?
 
-      # Create new Assessment (and AssessmentDetail) if one doesn't exist already
+      # Errors: can't created 2nd intake/exit assessment
+      unless assessment.present?
+        errors.add :assessment, :invalid, full_message: 'An intake assessment for this enrollment already exists.' if form_definition.intake? && enrollment.intake_assessment.present?
+        errors.add :assessment, :invalid, full_message: 'An exit assessment for this enrollment already exists.' if form_definition.exit? && enrollment.exit_assessment.present?
+        return [nil, errors.errors] if errors.any?
+      end
+
+      # Create new Assessment (and CustomForm) if one doesn't exist already
       assessment ||= Hmis::Hud::CustomAssessment.new_with_defaults(
         enrollment: enrollment,
         user: Hmis::Hud::User.from_user(current_user),
