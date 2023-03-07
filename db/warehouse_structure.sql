@@ -14240,6 +14240,50 @@ ALTER SEQUENCE public.hmis_import_configs_id_seq OWNED BY public.hmis_import_con
 
 
 --
+-- Name: hmis_services; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW public.hmis_services AS
+ SELECT hud_services.owner_id,
+    hud_services.owner_type,
+    hud_services.custom_service_type_id,
+    hud_services."EnrollmentID",
+    hud_services."PersonalID",
+    hud_services."DateProvided",
+    hud_services."UserID",
+    hud_services."DateCreated",
+    hud_services."DateUpdated",
+    hud_services."DateDeleted",
+    hud_services.data_source_id
+   FROM ( SELECT "Services".id AS owner_id,
+            'Hmis::Hud::Service'::text AS owner_type,
+            "CustomServiceTypes".id AS custom_service_type_id,
+            "Services"."EnrollmentID",
+            "Services"."PersonalID",
+            "Services"."DateProvided",
+            "Services"."UserID",
+            "Services"."DateCreated",
+            "Services"."DateUpdated",
+            "Services"."DateDeleted",
+            "Services".data_source_id
+           FROM (public."Services"
+             JOIN public."CustomServiceTypes" ON ((("CustomServiceTypes".hud_record_type = "Services"."RecordType") AND ("CustomServiceTypes".hud_type_provided = "Services"."TypeProvided") AND ("CustomServiceTypes"."DateDeleted" IS NULL))))) hud_services
+UNION
+ SELECT "CustomServices".id AS owner_id,
+    'Hmis::Hud::CustomService'::text AS owner_type,
+    "CustomServices".custom_service_type_id,
+    "CustomServices"."EnrollmentID",
+    "CustomServices"."PersonalID",
+    "CustomServices"."DateProvided",
+    "CustomServices"."UserID",
+    "CustomServices"."DateCreated",
+    "CustomServices"."DateUpdated",
+    "CustomServices"."DateDeleted",
+    "CustomServices".data_source_id
+   FROM public."CustomServices";
+
+
+--
 -- Name: hmis_staff; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -51193,6 +51237,9 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230127200801'),
 ('20230206142754'),
 ('20230207151644'),
-('20230301172341');
+('20230301172341'),
+('20230303154815'),
+('20230303181248'),
+('20230307143837');
 
 
