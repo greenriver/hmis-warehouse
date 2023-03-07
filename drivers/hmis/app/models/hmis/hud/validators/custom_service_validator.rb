@@ -1,6 +1,7 @@
 class Hmis::Hud::Validators::CustomServiceValidator < Hmis::Hud::Validators::BaseValidator
   IGNORED = [
     :ExportID,
+    :ServicesID,
     :DateCreated,
     :DateUpdated,
     :RecordType,

@@ -13,4 +13,7 @@ class Hmis::Hud::CustomServiceType < Hmis::Hud::Base
   has_many :custom_services
 
   alias_attribute :category, :custom_service_category
+
+  validates :hud_record_type, uniqueness: { scope: [:hud_type_provided] }, allow_nil: true
+  validates_with Hmis::Hud::Validators::CustomServiceTypeValidator
 end
