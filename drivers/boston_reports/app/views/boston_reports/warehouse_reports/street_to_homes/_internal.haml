@@ -10,4 +10,67 @@
     border-left: .3em solid transparent;
   }
 .well= render 'boston_reports/warehouse_reports/street_to_homes/race_ethnicity', base_name: 'internal'
-.well= render 'boston_reports/warehouse_reports/street_to_homes/internal_chart', data_method: :race_by_stage, active_stage: :race, active_x: :stages, title: 'Race & Ethnicity Percentage by Stage'
+
+= render 'boston_reports/warehouse_reports/street_to_homes/internal_chart', data_method: :stacked_race_by_stage, active_stack: :race, active_x: :stages, title: 'Race Percentage by Stage', hidden_class: ''
+= render 'boston_reports/warehouse_reports/street_to_homes/internal_chart', data_method: :stacked_race_by_cohort, active_stack: :race, active_x: :cohorts, title: 'Race Percentage by Cohort', hidden_class: 'hide'
+
+= render 'boston_reports/warehouse_reports/street_to_homes/internal_chart', data_method: :stacked_ethnicity_by_stage, active_stack: :ethnicity, active_x: :stages, title: 'Ethnicity Percentage by Stage', hidden_class: 'hide'
+= render 'boston_reports/warehouse_reports/street_to_homes/internal_chart', data_method: :stacked_ethnicity_by_cohort, active_stack: :ethnicity, active_x: :cohorts, title: 'Ethnicity Percentage by Cohort', hidden_class: 'hide'
+
+= render 'boston_reports/warehouse_reports/street_to_homes/internal_chart', data_method: :stacked_stage_by_race, active_stack: :stages, active_x: :race, title: 'Stage Percentage by Race', hidden_class: 'hide'
+= render 'boston_reports/warehouse_reports/street_to_homes/internal_chart', data_method: :stacked_cohort_by_race, active_stack: :cohorts, active_x: :race, title: 'Cohort Percentage by Race', hidden_class: 'hide'
+
+= render 'boston_reports/warehouse_reports/street_to_homes/internal_chart', data_method: :stacked_stage_by_ethnicity, active_stack: :stages, active_x: :ethnicity, title: 'Stage Percentage by Ethnicity', hidden_class: 'hide'
+= render 'boston_reports/warehouse_reports/street_to_homes/internal_chart', data_method: :stacked_cohort_by_ethnicity, active_stack: :cohorts, active_x: :ethnicity, title: 'Cohort Percentage by Ethnicity', hidden_class: 'hide'
+
+
+= content_for :page_js do
+  :javascript
+    window.group = 'stages';
+    window.demographics = 'race';
+    $('.internal-stack-dropdown a.dropdown-item').on('click', function(e) {
+      e.preventDefault();
+      let current_x_axis = $('.internal-x-axis-dropdown a.dropdown-item.active').data('value');
+      let new_stack = $(this).data('value');
+      $('.internal-chart-wrapper').addClass('hide');
+      $(`.stack-${new_stack}.x-axis-${current_x_axis}`).removeClass('hide');
+
+      let chart_key = `internal_${new_stack}_by_${current_x_axis}_chart`;
+      window.charts[chart_key].flush();
+      window.demographics = new_stack;
+    });
+
+    $('.internal-x-axis-dropdown a.dropdown-item').on('click', function(e) {
+      e.preventDefault();
+      let current_stack = $('.internal-stack-dropdown a.dropdown-item.active').data('value');
+      '.internal-chart-wrapper'
+      let new_axis = $(this).data('value');
+      $('.internal-chart-wrapper').addClass('hide');
+      $(`.stack-${current_stack}.x-axis-${new_axis}`).removeClass('hide');
+
+      let chart_key = `internal_${current_stack}_by_${new_axis}_chart`;
+      window.charts[chart_key].flush();
+      window.group = new_axis;
+    });
+    window.swapped = false;
+    $('.internal-axis-swap').on('click', function(e) {
+      e.preventDefault();
+      let new_stack, new_axis;
+
+      if(window.swapped) {
+        new_stack = window.demographics;
+        new_axis = window.group;
+        window.swapped = false;
+      } else {
+        new_stack = window.group;
+        new_axis = window.demographics;
+        window.swapped = true;
+      }
+      $('.internal-chart-wrapper').addClass('hide');
+      $(`.stack-${new_stack}.x-axis-${new_axis}`).removeClass('hide');
+
+      console.log(window.swapped, new_stack, new_axis)
+
+      let chart_key = `internal_${new_stack}_by_${new_axis}_chart`;
+      window.charts[chart_key].flush();
+    });

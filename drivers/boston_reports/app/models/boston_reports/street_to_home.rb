@@ -335,8 +335,8 @@ module BostonReports
       end
     end
 
-    def race_by_stage
-      @race_by_stage ||= {}.tap do |data|
+    def stacked_race_by_stage
+      @stacked_race_by_stage ||= {}.tap do |data|
         data['x'] = 'x'
         data['type'] = 'bar'
         data['stack'] = { normalize: true }
@@ -350,8 +350,155 @@ module BostonReports
             row << (clients[k.to_s] & clients[race]).count
           end
           data['columns'] << row
-          data['colors'][::HudUtility.race(race)] = config["breakdown_2_color_#{i}"]
+          data['colors'][::HudUtility.race(race)] = config["breakdown_3_color_#{i}"]
           data['labels']['colors'][::HudUtility.race(race)] = config.foreground_color(config["breakdown_3_color_#{i}"])
+        end
+      end
+    end
+
+    def stacked_race_by_cohort
+      @stacked_race_by_cohort ||= {}.tap do |data|
+        data['x'] = 'x'
+        data['type'] = 'bar'
+        data['stack'] = { normalize: true }
+        data['columns'] = [['x'] + cohort_names]
+        data['groups'] = [races.map { |race| ::HudUtility.race(race) }]
+        data['colors'] = {}
+        data['labels'] = { 'colors' => {} }
+        races.each.with_index do |race, i|
+          row = [::HudUtility.race(race)]
+          cohort_names.each do |cohort|
+            row << (clients[cohort] & clients[race]).count
+          end
+          data['columns'] << row
+          data['colors'][::HudUtility.race(race)] = config["breakdown_3_color_#{i}"]
+          data['labels']['colors'][::HudUtility.race(race)] = config.foreground_color(config["breakdown_3_color_#{i}"])
+        end
+      end
+    end
+
+    def stacked_stage_by_race
+      @stacked_stage_by_race ||= {}.tap do |data|
+        data['x'] = 'x'
+        data['type'] = 'bar'
+        data['stack'] = { normalize: true }
+        data['columns'] = [['x'] + races.map { |race| ::HudUtility.race(race) }]
+        data['groups'] = [stages.values.map { |d| d[:label] } + ['Inactive']]
+        data['colors'] = {}
+        data['labels'] = { 'colors' => {} }
+        stages.each.with_index do |(k, stage), i|
+          row = [stage[:label]]
+          races.each do |race|
+            row << (clients[k.to_s] & clients[race]).count
+          end
+          data['columns'] << row
+          data['colors'][stage[:label]] = config["breakdown_2_color_#{i}"]
+          data['labels']['colors'][stage[:label]] = config.foreground_color(config["breakdown_2_color_#{i}"])
+        end
+      end
+    end
+
+    def stacked_cohort_by_race
+      @stacked_cohort_by_race ||= {}.tap do |data|
+        data['x'] = 'x'
+        data['type'] = 'bar'
+        data['stack'] = { normalize: true }
+        data['columns'] = [['x'] + races.map { |race| ::HudUtility.race(race) }]
+        data['groups'] = [cohort_names]
+        data['colors'] = {}
+        data['labels'] = { 'colors' => {} }
+        cohort_names.each.with_index do |cohort, i|
+          row = [cohort]
+          races.each do |race|
+            row << (clients[cohort] & clients[race]).count
+          end
+          data['columns'] << row
+          data['colors'][cohort] = config["breakdown_1_color_#{i}"]
+          data['labels']['colors'][cohort] = config.foreground_color(config["breakdown_1_color_#{i}"])
+        end
+      end
+    end
+
+    def stacked_ethnicity_by_stage
+      @stacked_ethnicity_by_stage ||= {}.tap do |data|
+        data['x'] = 'x'
+        data['type'] = 'bar'
+        data['stack'] = { normalize: true }
+        data['columns'] = [['x'] + stages.values.map { |d| d[:label] } + ['Inactive']]
+        data['groups'] = [ethnicities.map { |ethnicity| ::HudUtility.ethnicity(ethnicity) }]
+        data['colors'] = {}
+        data['labels'] = { 'colors' => {} }
+        ethnicities.each.with_index do |ethnicity, i|
+          row = [::HudUtility.ethnicity(ethnicity)]
+          stages.each_key do |k|
+            row << (clients[k.to_s] & clients[ethnicity]).count
+          end
+          data['columns'] << row
+          data['colors'][::HudUtility.ethnicity(ethnicity)] = config["breakdown_3_color_#{i}"]
+          data['labels']['colors'][::HudUtility.ethnicity(ethnicity)] = config.foreground_color(config["breakdown_3_color_#{i}"])
+        end
+      end
+    end
+
+    def stacked_ethnicity_by_cohort
+      @stacked_ethnicity_by_cohort ||= {}.tap do |data|
+        data['x'] = 'x'
+        data['type'] = 'bar'
+        data['stack'] = { normalize: true }
+        data['columns'] = [['x'] + cohort_names]
+        data['groups'] = [ethnicities.map { |ethnicity| ::HudUtility.ethnicity(ethnicity) }]
+        data['colors'] = {}
+        data['labels'] = { 'colors' => {} }
+        ethnicities.each.with_index do |ethnicity, i|
+          row = [::HudUtility.ethnicity(ethnicity)]
+          cohort_names.each do |cohort|
+            row << (clients[cohort] & clients[ethnicity]).count
+          end
+          data['columns'] << row
+          data['colors'][::HudUtility.ethnicity(ethnicity)] = config["breakdown_3_color_#{i}"]
+          data['labels']['colors'][::HudUtility.ethnicity(ethnicity)] = config.foreground_color(config["breakdown_3_color_#{i}"])
+        end
+      end
+    end
+
+    def stacked_stage_by_ethnicity
+      @stacked_stage_by_ethnicity ||= {}.tap do |data|
+        data['x'] = 'x'
+        data['type'] = 'bar'
+        data['stack'] = { normalize: true }
+        data['columns'] = [['x'] + ethnicities.map { |ethnicity| ::HudUtility.ethnicity(ethnicity) }]
+        data['groups'] = [stages.values.map { |d| d[:label] } + ['Inactive']]
+        data['colors'] = {}
+        data['labels'] = { 'colors' => {} }
+        stages.each.with_index do |(k, stage), i|
+          row = [stage[:label]]
+          ethnicities.each do |ethnicity|
+            row << (clients[k.to_s] & clients[ethnicity]).count
+          end
+          data['columns'] << row
+          data['colors'][stage[:label]] = config["breakdown_2_color_#{i}"]
+          data['labels']['colors'][stage[:label]] = config.foreground_color(config["breakdown_2_color_#{i}"])
+        end
+      end
+    end
+
+    def stacked_cohort_by_ethnicity
+      @stacked_cohort_by_ethnicity ||= {}.tap do |data|
+        data['x'] = 'x'
+        data['type'] = 'bar'
+        data['stack'] = { normalize: true }
+        data['columns'] = [['x'] + ethnicities.map { |ethnicity| ::HudUtility.ethnicity(ethnicity) }]
+        data['groups'] = [cohort_names]
+        data['colors'] = {}
+        data['labels'] = { 'colors' => {} }
+        cohort_names.each.with_index do |cohort, i|
+          row = [cohort]
+          ethnicities.each do |ethnicity|
+            row << (clients[cohort] & clients[ethnicity]).count
+          end
+          data['columns'] << row
+          data['colors'][cohort] = config["breakdown_1_color_#{i}"]
+          data['labels']['colors'][cohort] = config.foreground_color(config["breakdown_1_color_#{i}"])
         end
       end
     end

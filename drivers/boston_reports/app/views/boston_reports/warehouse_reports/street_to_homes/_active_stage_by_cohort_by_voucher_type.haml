@@ -56,6 +56,9 @@
     let matched_cohort_by_voucher_type_chart = bb.generate({
       'data': matched_data,
       'bindto': "#matched-cohort-by-voucher-type-chart",
+      point: {
+        show: false
+      },
       bar: {
         padding: 85,
         width: 26,
@@ -97,6 +100,9 @@
     let moved_in_cohort_by_voucher_type_chart = bb.generate({
       'data': moved_in_data,
       'bindto': "#moved-in-cohort-by-voucher-type-chart",
+      point: {
+        show: false
+      },
       bar: {
         padding: 85,
         width: 26,
