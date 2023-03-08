@@ -7,7 +7,7 @@
 class Hmis::Hud::Organization < Hmis::Hud::Base
   self.table_name = :Organization
   self.sequence_name = "public.\"#{table_name}_id_seq\""
-  include ArelHelper
+  include ::Hmis::Concerns::HmisArelHelper
   include ::HmisStructure::Organization
   include ::Hmis::Hud::Concerns::Shared
   include ::Hmis::Hud::Concerns::ProjectRelated
@@ -23,13 +23,6 @@ class Hmis::Hud::Organization < Hmis::Hud::Base
   replace_scope :viewable_by, ->(user) do
     ids = user.viewable_organizations.pluck(:id)
     ids += user.viewable_data_sources.joins(:organizations).pluck(o_t[:id])
-    where(id: ids, data_source_id: user.hmis_data_source_id)
-  end
-
-  # hide previous declaration of :editable_by, we'll use this one
-  replace_scope :editable_by, ->(user) do
-    ids = user.editable_organizations.pluck(:id)
-    ids += user.editable_data_sources.joins(:organizations).pluck(o_t[:id])
     where(id: ids, data_source_id: user.hmis_data_source_id)
   end
 

@@ -10,7 +10,7 @@ module Types
   module HmisSchema
     module HasDisabilityGroups
       extend ActiveSupport::Concern
-      include ArelHelper
+      include ::Hmis::Concerns::HmisArelHelper
 
       class_methods do
         def disability_groups_field(name = :disability_groups, description = nil, **override_options, &block)

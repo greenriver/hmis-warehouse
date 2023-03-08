@@ -11,7 +11,7 @@ module Types
     description 'HUD Assessment Sorting Options'
     graphql_name 'AssessmentSortOption'
 
-    Hmis::Hud::Assessment::SORT_OPTIONS.each do |opt|
+    Hmis::Hud::CustomAssessment::SORT_OPTIONS.each do |opt|
       value opt.to_s.upcase, value: opt
     end
   end

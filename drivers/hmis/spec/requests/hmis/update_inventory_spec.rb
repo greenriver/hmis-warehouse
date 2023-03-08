@@ -60,6 +60,22 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
     end
 
+    it 'should throw error if unauthorized' do
+      remove_permissions(hmis_user, :can_edit_project_details)
+      response, result = post_graphql(id: i1.id, input: valid_input) { mutation }
+
+      aggregate_failures 'checking response' do
+        expect(response.status).to eq 200
+        record = result.dig('data', 'updateInventory', 'inventory')
+        errors = result.dig('data', 'updateInventory', 'errors')
+        expect(errors).to be_present
+        expect(record).to be_nil
+        expect(errors).to contain_exactly(include('type' => 'not_allowed'))
+        inventory = Hmis::Hud::Inventory.find(i1.id)
+        expect(inventory.coc_code).to eq pc1.coc_code
+      end
+    end
+
     it 'fails if coc code is invalid' do
       response, result = post_graphql(id: i1.id, input: { **valid_input, coc_code: 'FL-512' }) { mutation }
 

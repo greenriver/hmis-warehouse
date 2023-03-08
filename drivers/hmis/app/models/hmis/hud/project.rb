@@ -5,7 +5,7 @@
 ###
 
 class Hmis::Hud::Project < Hmis::Hud::Base
-  include ArelHelper
+  include ::Hmis::Concerns::HmisArelHelper
   include ::HmisStructure::Project
   include ::Hmis::Hud::Concerns::Shared
   self.table_name = :Project
@@ -33,16 +33,6 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     ids += user.viewable_organizations.joins(:projects).pluck(p_t[:id])
     ids += user.viewable_data_sources.joins(:projects).pluck(p_t[:id])
     ids += user.viewable_project_access_groups.joins(:projects).pluck(p_t[:id])
-
-    where(id: ids, data_source_id: user.hmis_data_source_id)
-  end
-
-  # hide previous declaration of :editable_by, we'll use this one
-  replace_scope :editable_by, ->(user) do
-    ids = user.editable_projects.pluck(:id)
-    ids += user.editable_organizations.joins(:projects).pluck(p_t[:id])
-    ids += user.editable_data_sources.joins(:projects).pluck(p_t[:id])
-    ids += user.editable_project_access_groups.joins(:projects).pluck(p_t[:id])
 
     where(id: ids, data_source_id: user.hmis_data_source_id)
   end

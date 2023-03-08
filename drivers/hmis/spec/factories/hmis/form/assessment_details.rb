@@ -1,5 +1,5 @@
 FactoryBot.define do
-  factory :hmis_form_assessment_detail, class: 'Hmis::Form::AssessmentDetail' do
+  factory :hmis_form_custom_form, class: 'Hmis::Form::CustomForm' do
     definition { association :hmis_form_definition }
     assessment { association :hmis_hud_assessment }
     data_collection_stage { 1 }

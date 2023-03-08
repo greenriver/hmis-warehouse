@@ -838,7 +838,6 @@ Layout/SpaceInsideBlockBraces:
     - 'app/models/health/goal/base.rb'
     - 'app/models/health/premium_payment.rb'
     - 'app/models/health/sdh_case_management_note.rb'
-    - 'app/models/health/signable_document.rb'
     - 'app/models/health/transaction_acknowledgement.rb'
     - 'app/models/report_generators/data_quality/fy2017/q6.rb'
     - 'app/models/report_generators/lsa/fy2018/all.rb'
@@ -1645,7 +1644,6 @@ Style/MutableConstant:
 Style/NegatedIf:
   Exclude:
     - 'app/models/grda_warehouse/us_census_api/relevant_variables.rb'
-    - 'app/models/health/signable_document.rb'
 
 # Offense count: 21
 # Cop supports --auto-correct.

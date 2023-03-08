@@ -12,14 +12,12 @@ module AssessmentHelpers
     }
   end
 
-  def assessment_detail_attributes(role, assessment_date)
+  def custom_form_attributes(role, assessment_date)
     definition = Hmis::Form::Definition.find_by(role: role)
     raise "No definition for role #{role}" unless definition.present?
 
     {
-      data_collection_stage: Types::HmisSchema::Enums::AssessmentRole.as_data_collection_stage(role.to_s),
       definition: definition,
-      role: role,
       **build_minimum_values(definition, assessment_date),
     }
   end
