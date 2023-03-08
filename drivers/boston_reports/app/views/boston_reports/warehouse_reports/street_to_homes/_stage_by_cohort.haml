@@ -1,4 +1,4 @@
-.d-flex.mb-4
+.d-flex
   %h2.stage-by-cohort-header Total Clients by Stages & Cohorts
   .stage-by-cohort-switcher.btn-group.btn-group-toggle.btn-sm.ml-auto{ data: { toggle: :buttons }}
     %label.btn.btn-secondary.btn-sm.active
@@ -9,20 +9,22 @@
       Cohorts
 
 .well
-  .stage-by-cohort-wrapper.hide
-    .d-flex
-      #stage-by-cohort-chart{style: 'width: 80%;'}
-      #stage-by-cohort-legend{style: 'width: 20%;'}
-  .cohort-by-stage-wrapper
-    .d-flex
-      #cohort-by-stage-chart{style: 'width: 80%;'}
-      #cohort-by-stage-legend{style: 'width: 20%;'}
+  .row.stage-by-cohort-wrapper.hide
+    .col-sm-12
+      .d-flex
+        #stage-by-cohort-chart{style: 'max-width: 700px; width: 70%;'}
+        #stage-by-cohort-legend
+  .row.cohort-by-stage-wrapper
+    .col-sm-12
+      .d-flex
+        #cohort-by-stage-chart{style: 'max-width: 700px; width: 70%;'}
+        #cohort-by-stage-legend
 - stage_by_cohort = @report.stage_by_cohort
 - stage_by_cohort_max_value = stage_by_cohort['columns'].drop(1).map { |values| values.drop(1).sum }.max
 - cohort_by_stage = @report.cohort_by_stage
 - cohort_by_stage_max_value = cohort_by_stage['columns'].drop(1).map { |values| values.drop(1).sum }.max
 .card
-  %table.table.mb-0
+  %table.table.mb-0.w-100
     %thead
       %tr
         %th.border-top-0 Cohort

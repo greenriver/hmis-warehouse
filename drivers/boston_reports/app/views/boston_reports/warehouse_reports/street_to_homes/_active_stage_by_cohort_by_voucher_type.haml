@@ -12,16 +12,13 @@
   .d-flex
     %h2 Voucher Type Details
     #moved-in-cohort-by-voucher-type-legend.ml-auto.d-flex
-  .d-flex
-    .matched-cohort-by-voucher-type-wrapper
+  .row
+    .col-sm-5.matched-cohort-by-voucher-type-wrapper
       %h3.text-center Matched
-      .d-flex
-        #matched-cohort-by-voucher-type-chart
-        #matched-cohort-by-voucher-type-legend
-    .moved-in-cohort-by-voucher-type-wrapper
+      #matched-cohort-by-voucher-type-chart
+    .col-sm-7.moved-in-cohort-by-voucher-type-wrapper
       %h3.text-center Moved-in
-      .d-flex
-        #moved-in-cohort-by-voucher-type-chart
+      #moved-in-cohort-by-voucher-type-chart
 :ruby
   @report.matched_cohort_by_voucher_type['columns'] = @report.invert_columns(@report.matched_cohort_by_voucher_type['columns'])
   matched_cohort_by_voucher_type = @report.matched_cohort_by_voucher_type
@@ -46,15 +43,15 @@
     // Matched
     let matched_cohort_by_voucher_type = #{matched_cohort_by_voucher_type.to_json.html_safe};
     let matched_cohort_by_voucher_type_max_value = #{matched_cohort_by_voucher_type_max_value.to_json.html_safe};
-    let matched_data = $.extend(true, {}, matched_cohort_by_voucher_type, abs_label_format);
+    let matched_by_voucher_type_data = $.extend(true, {}, matched_cohort_by_voucher_type, abs_label_format);
 
     // Moved-in
     let moved_in_cohort_by_voucher_type = #{moved_in_cohort_by_voucher_type.to_json.html_safe};
     let moved_in_cohort_by_voucher_type_max_value = #{moved_in_cohort_by_voucher_type_max_value.to_json.html_safe};
-    let moved_in_data = $.extend(true, {}, moved_in_cohort_by_voucher_type, abs_label_format);
+    let moved_in_by_voucher_type_data = $.extend(true, {}, moved_in_cohort_by_voucher_type, abs_label_format);
 
     let matched_cohort_by_voucher_type_chart = bb.generate({
-      'data': matched_data,
+      'data': matched_by_voucher_type_data,
       'bindto': "#matched-cohort-by-voucher-type-chart",
       point: {
         show: false
@@ -65,7 +62,6 @@
       },
       size: {
         height: 230,
-        width: 500,
       },
       axis: {
         rotated: true,
@@ -98,7 +94,7 @@
       }
     });
     let moved_in_cohort_by_voucher_type_chart = bb.generate({
-      'data': moved_in_data,
+      'data': moved_in_by_voucher_type_data,
       'bindto': "#moved-in-cohort-by-voucher-type-chart",
       point: {
         show: false
@@ -109,7 +105,6 @@
       },
       size: {
         height: 250,
-        width: 600,
       },
       axis: {
         rotated: true,
@@ -135,7 +130,21 @@
       legend: {
         contents: {
           bindto: '#moved-in-cohort-by-voucher-type-legend',
-          template: "<div class='d-flex ml-4 mr-auto text-left'><div class='mr-2 mt-2 mb-0 ml-0' style='padding:5px; height: 14px; width: 26px; background-color:{=COLOR}; border-radius: 10px; '>&nbsp;</div><div class='ml-0 mr-auto mt-1 mb-1'>{=TITLE}</div></div>"
+          template: "<span><div class='d-flex ml-4 mr-auto text-left'><div class='mr-2 mt-2 mb-0 ml-0' style='padding:5px; height: 14px; width: 26px; background-color:{=COLOR}; border-radius: 10px; '>&nbsp;</div><div class='ml-0 mr-auto mt-1 mb-1'>{=TITLE}</div></div></span>"
         }
       }
     });
+    // Bind event handler to handle all generated charts
+    // FIXME: these get removed for some reason on window resize
+    d3.selectAll("#moved-in-cohort-by-voucher-type-legend span").
+      on('mouseover', (e) => {
+        const id = e.target.innerHTML;
+        matched_cohort_by_voucher_type_chart.focus(id);
+        moved_in_cohort_by_voucher_type_chart.focus(id);
+      });
+    d3.selectAll("#moved-in-cohort-by-voucher-type-legend span").
+      on('mouseout', (e) => {
+        const id = e.target.innerHTML;
+        matched_cohort_by_voucher_type_chart.revert();
+        moved_in_cohort_by_voucher_type_chart.revert();
+      });

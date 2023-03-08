@@ -8,7 +8,6 @@ module BostonReports::WarehouseReports
 
     before_action :require_can_view_clients, only: [:detail]
     before_action :set_report
-    before_action :set_config
     before_action :set_pdf_export
 
     background_render_action(:render_section, ::BackgroundRender::StreetToHomeJob) do
@@ -53,10 +52,6 @@ module BostonReports::WarehouseReports
 
     private def report_class
       BostonReports::StreetToHome
-    end
-
-    private def set_config
-      @config ||= BostonReports::Config.first_or_create(&:default_colors) # rubocop:disable Naming/MemoizedInstanceVariableName
     end
 
     def section

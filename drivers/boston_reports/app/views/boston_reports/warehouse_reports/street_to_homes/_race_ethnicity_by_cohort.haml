@@ -1,17 +1,17 @@
-%div{class: ["#{base_name}-#{chart}-by-cohort-charts", hidden_class]}
-  .d-flex
+.well{class: ["#{base_name}-#{chart}-by-cohort-charts", hidden_class]}
+  .row
     - @report.cohort_names.each.with_index do |cohort, i|
       - chart_id = "#{base_name}-#{chart}-by-cohort-chart-#{cohort.parameterize(separator: '_')}"
-      .chart-with-title
+      .col-md-2.chart-with-title
         - # account for the legend weirdness
         - style = if i.zero? then '' else 'margin-bottom: 20px;' end
         .ml-3.mr-3{ id: chart_id, style: style, class: "#{base_name}-#{chart}-by-cohort-chart" }
         .chat_title
           %h3.text-center= cohort
-          - bg_color = @config["breakdown_1_color_#{i}"]
+          - bg_color = @report.config["breakdown_1_color_#{i}"]
           #div{ style: "padding:5px; height: 14px; width: 26px; background-color:#{bg_color}; margin: 0 auto; border-radius: 10px;" } &nbsp;
     - # Bind charts to one legend (https://github.com/naver/billboard.js/issues/605)
-    %div{ id: "#{base_name}-#{chart}-by-cohort-chart-legend" }
+    .col-md-4{ id: "#{base_name}-#{chart}-by-cohort-chart-legend" }
 
   :ruby
     charts = @report.cohort_names.map do |cohort|
@@ -61,7 +61,8 @@
           }
         }));
       });
-      // (2) Bind new event handler to handle all generated charts
+      // Bind event handler to handle all generated charts
+      // FIXME: these get removed for some reason on window resize
       d3.selectAll("##{base_name}-#{chart}-by-cohort-chart-legend span")
         .on("mouseover mouseout click", (e) => {
           const id = e.target.innerHTML;

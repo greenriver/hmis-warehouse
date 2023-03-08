@@ -14,25 +14,26 @@
 %table.street-2-home-summary.w-100.mb-6
   %tbody
     %tr
-      - bg_color = @config.total_color
-      %td.all-clients{ colspan: @report.summary_counts.count - 1, style: "background-color: #{bg_color}; color: #{@config.foreground_color(bg_color)};"}
-        .count= link_to number_with_delimiter(total_count), details_boston_reports_warehouse_reports_street_to_homes_path(@report.filter.for_params.merge(sets: ['total'])), style: "color: #{@config.foreground_color(bg_color)};", class: 'font-size-md'
-        .label{style: "color: #{@config.foreground_color(@config.total_color)};"}= @report.summary_counts['total'][:label]
+      - bg_color = @report.config.total_color
+      %td.all-clients{ colspan: @report.summary_counts.count - 1, style: "background-color: #{bg_color}; color: #{@report.config.foreground_color(bg_color)};"}
+        .count= link_to number_with_delimiter(total_count), details_boston_reports_warehouse_reports_street_to_homes_path(@report.filter.for_params.merge(sets: ['total'])), style: "color: #{@report.config.foreground_color(bg_color)};", class: 'font-size-md'
+        .label{style: "color: #{@report.config.foreground_color(@report.config.total_color)};"}= @report.summary_counts['total'][:label]
     %tr
       - @report.summary_counts.except('total').each.with_index do |(cohort, data), i|
-        - bg_color = @config["breakdown_1_color_#{i}"]
-        %td{ class: "cohort-#{i}", style: "background-color: #{bg_color}; color: #{@config.foreground_color(bg_color)};"}
+        - bg_color = @report.config["breakdown_1_color_#{i}"]
+        %td{ class: "cohort-#{i}", style: "background-color: #{bg_color}; color: #{@report.config.foreground_color(bg_color)};"}
           .count
-            = link_to details_boston_reports_warehouse_reports_street_to_homes_path(@report.filter.for_params.merge(sets: [cohort])), style: "color: #{@config.foreground_color(bg_color)};" do
+            = link_to details_boston_reports_warehouse_reports_street_to_homes_path(@report.filter.for_params.merge(sets: [cohort])), style: "color: #{@report.config.foreground_color(bg_color)};" do
               .d-flex
                 .ml-auto.mr-auto.d-flex
                   .font-size-md= number_with_delimiter(data[:count])
                   .font-size-sm.mt-auto.mb-1.ml-2 (#{@report.percent(numerator: data[:count], denominator: total_count)}%)
-          .label{ style: "color: #{@config.foreground_color(bg_color)};" }= data[:label]
+          .label{ style: "color: #{@report.config.foreground_color(bg_color)};" }= data[:label]
 
-.d-flex
-  .w-50= render 'boston_reports/warehouse_reports/street_to_homes/dashboard/total_clients_by_stage'
+.row
+  .col-sm-6= render 'boston_reports/warehouse_reports/street_to_homes/dashboard/total_clients_by_stage'
 
-  .w-50= render 'boston_reports/warehouse_reports/street_to_homes/dashboard/housed_matched'
+  .col-sm-6= render 'boston_reports/warehouse_reports/street_to_homes/dashboard/housed_matched'
 
-.well= render 'boston_reports/warehouse_reports/street_to_homes/race_ethnicity', base_name: 'dashboard'
+.row
+  .col-sm-12= render 'boston_reports/warehouse_reports/street_to_homes/race_ethnicity', base_name: 'dashboard'

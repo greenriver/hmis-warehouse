@@ -16,21 +16,16 @@ module BostonReports::DocumentExports
     end
 
     protected def view_assigns
-      comparison_filter = filter.to_comparison
-      comparison_report = report_class.new(comparison_filter) if report.include_comparison?
-
       {
         report: report,
         filter: filter,
-        comparison: comparison_report || report,
-        comparison_filter: comparison_filter,
         pdf: true,
       }
     end
 
     def perform
       with_status_progression do
-        template_file = 'boston_reports/warehouse_reports/street_to_home/index_pdf'
+        template_file = 'boston_reports/warehouse_reports/street_to_homes/index_pdf'
         layout = 'layouts/performance_report'
 
         html = PdfGenerator.html(
