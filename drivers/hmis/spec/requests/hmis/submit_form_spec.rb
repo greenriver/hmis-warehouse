@@ -110,11 +110,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             end
 
             input = input_proc.call(test_input.merge(record_id: record_id))
-            puts ">>> input: #{input}"
             response, result = post_graphql(input: { input: input }) { mutation }
-            puts ">>> result: #{result}"
-            puts hmis_user.can_edit_organization?
-            puts hmis_user.permission_for?(o1, :can_edit_organization)
             record_id = result.dig('data', 'submitForm', 'record', 'id')
             errors = result.dig('data', 'submitForm', 'errors')
 
@@ -184,39 +180,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             end)
           end
         end
-
-        #   [
-        #     [
-        #       'should fail if required field is missing',
-        #       ->(input) {
-        #         input.merge(
-        #           # change this to dynamically look for a required field and make it null
-        #           values: input[:values].merge('2.02.2': ''),
-        #           hud_values: input[:hud_values].merge('projectName': nil),
-        #         )
-        #       },
-        # {
-        #   type: :required,
-        #   attribute: :projectName,
-        #   severity: :error,
-        # },
-        #     ],
-        #   ].each do |test_name, input_proc, *expected_errors|
-        #     it test_name do
-        #       input = input_proc.call(test_input)
-        #       puts input
-        #       response, result = post_graphql(input: { input: input }) { mutation }
-        #       record = result.dig('data', 'submitForm', 'record')
-        #       errors = result.dig('data', 'submitForm', 'errors')
-        #       aggregate_failures 'checking response' do
-        #         expect(response.status).to eq 200
-        #         expect(record).to be_nil
-        #         expect(errors).to match(expected_errors.map do |h|
-        #           a_hash_including(**h.transform_keys(&:to_s).transform_values(&:to_s))
-        #         end)
-        #       end
-        #     end
-        #   end
       end
     end
   end

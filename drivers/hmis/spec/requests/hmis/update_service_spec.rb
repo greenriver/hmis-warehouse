@@ -72,7 +72,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     aggregate_failures 'checking response' do
       expect(response.status).to eq 200
       service = result.dig('data', 'updateService', 'service')
-      puts " >>> #{service}"
       errors = result.dig('data', 'updateService', 'errors')
       expect(s1.reload.date_updated > prev_date_updated).to eq(true)
       expect(s1.user_id).to eq(u1.user_id)
