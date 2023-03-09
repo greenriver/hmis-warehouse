@@ -50,7 +50,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
       # Save assessment as WIP with minimum needed values
       assessment.update(data_collection_stage: role == :INTAKE ? 1 : 3)
-      assessment.custom_form.update(**custom_form_attributes(role, assessment_date: assessment.assessment_date))
+      assessment.custom_form.update(**custom_form_attributes(role, assessment.assessment_date))
       assessment.build_wip(enrollment: enrollment, client: enrollment.client, date: assessment.assessment_date, project_id: project.id)
       assessment.save_in_progress
     end
