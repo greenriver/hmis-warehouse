@@ -2,7 +2,8 @@
   = link_to boston_reports_warehouse_reports_street_to_homes_path(@report.filter.for_params) do
     = "« Street 2 Home"
 - content_for :title do
-  = "Street 2 Home Details"
+  Street 2 Home Details (#{@detail_options[:sets].join(', ')})
+
 .d-flex.mb-2
   %h1= content_for :title
 

@@ -16,14 +16,14 @@
     %tr
       - bg_color = @report.config.total_color
       %td.all-clients{ colspan: @report.summary_counts.count - 1, style: "background-color: #{bg_color}; color: #{@report.config.foreground_color(bg_color)};"}
-        .count= link_to number_with_delimiter(total_count), details_boston_reports_warehouse_reports_street_to_homes_path(@report.filter.for_params.merge(sets: ['total'])), style: "color: #{@report.config.foreground_color(bg_color)};", class: 'font-size-md'
+        .count= link_to number_with_delimiter(total_count), polymorphic_path(@report.detail_path_array, @report.filter.for_params.merge(sets: ['total'])), style: "color: #{@report.config.foreground_color(bg_color)};", class: 'font-size-md'
         .label{style: "color: #{@report.config.foreground_color(@report.config.total_color)};"}= @report.summary_counts['total'][:label]
     %tr
       - @report.summary_counts.except('total').each.with_index do |(cohort, data), i|
         - bg_color = @report.config["breakdown_1_color_#{i}"]
         %td{ class: "cohort-#{i}", style: "background-color: #{bg_color}; color: #{@report.config.foreground_color(bg_color)};"}
           .count
-            = link_to details_boston_reports_warehouse_reports_street_to_homes_path(@report.filter.for_params.merge(sets: [cohort])), style: "color: #{@report.config.foreground_color(bg_color)};" do
+            = link_to polymorphic_path(@report.detail_path_array, @report.filter.for_params.merge(sets: [cohort])), style: "color: #{@report.config.foreground_color(bg_color)};" do
               .d-flex
                 .ml-auto.mr-auto.d-flex
                   .font-size-md= number_with_delimiter(data[:count])
