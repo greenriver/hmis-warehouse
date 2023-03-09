@@ -6,6 +6,7 @@
 
 class Hmis::Hud::HmisService < Hmis::Hud::Base
   self.table_name = :hmis_services
+  self.primary_key = :id
 
   include ::Hmis::Hud::Concerns::EnrollmentRelated
 
@@ -42,8 +43,8 @@ class Hmis::Hud::HmisService < Hmis::Hud::Base
       where(cst_t[:name].matches(query).or(csc_t[:name].matches(query)))
   end
 
-  def id
-    "#{owner_type.sub('Hmis::Hud::', '')}:#{owner_id}"
+  def readonly?
+    true
   end
 
   private def hud_service

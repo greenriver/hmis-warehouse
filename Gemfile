@@ -2,6 +2,7 @@ source 'https://rubygems.org'
 
 gem 'rails', '~> 6.1'
 gem 'rails_drivers'
+gem 'rack', '>= 2.2.6.3'
 
 # bundle exec rake doc:rails generates the API under doc/api.
 gem 'sdoc', group: :doc

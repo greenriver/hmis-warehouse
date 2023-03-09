@@ -1,6 +1,7 @@
 require 'rails_helper'
 require_relative 'login_and_permissions'
 require_relative '../../support/hmis_base_setup'
+require_relative '../../support/hmis_service_setup'
 
 RSpec.describe Hmis::GraphqlController, type: :request do
   before(:all) do
@@ -11,6 +12,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   include_context 'hmis base setup'
+  include_context 'hmis service setup'
   let!(:c1) { create :hmis_hud_client, data_source: ds1, user: u1 }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, relationship_to_ho_h: 1, household_id: '1', user: u1 }
 
@@ -62,8 +64,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(response.status).to eq 200
       service = result.dig('data', 'createService', 'service')
       errors = result.dig('data', 'createService', 'errors')
-
       expect(service['id']).to be_present
+      expect(service['id']).to eq(Hmis::Hud::HmisService.first.id.to_s)
       expect(errors).to be_empty
     end
   end
