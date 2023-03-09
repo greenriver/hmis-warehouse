@@ -13,13 +13,14 @@ class Hmis::Hud::Base < ::GrdaWarehouseBase
   attr_writer :skip_validations
   attr_writer :required_fields
 
+  # Create aliases for common HUD fields
+  [:UserID, :DateCreated, :DateUpdated, :DateDeleted].each do |col|
+    alias_attribute col.to_s.underscore.to_sym, col
+  end
+
   before_validation :ensure_id
 
   scope :viewable_by, ->(_) do
-    none
-  end
-
-  scope :editable_by, ->(_) do
     none
   end
 
@@ -55,6 +56,7 @@ class Hmis::Hud::Base < ::GrdaWarehouseBase
   end
 
   private def ensure_id
+    return unless self.class.respond_to?(:hud_key)
     return if send(self.class.hud_key).present? # Don't overwrite the ID if we already have one
 
     assign_attributes(self.class.hud_key => self.class.generate_uuid)

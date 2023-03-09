@@ -10,6 +10,7 @@ module Mutations
         field_name: :funder,
         id_field_name: :funder_id,
         input: input,
+        permissions: [:can_edit_project_details],
       )
     end
   end

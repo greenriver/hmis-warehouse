@@ -345,7 +345,7 @@ module PerformanceMeasurement::Details
           untagged: true,
           denominator_label: '',
           calculation_description: 'The difference (as a percentage) between the total unduplicated number of persons who are unsheltered homeless as reported in HMIS (via SO projects) and seen within the report range and comparison range.',
-          calculation_column: :served_in_range_unsheltered,
+          calculation_column: :served_on_pit_date_unsheltered, # note served_on_pit_date_unsheltered is actually total for year
           detail_columns: [
             'served_on_pit_date',
             'served_on_pit_date_sheltered',

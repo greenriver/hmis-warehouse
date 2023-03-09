@@ -8,7 +8,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   extend OrderAsSpecified
   include ::HmisStructure::Client
   include ::Hmis::Hud::Concerns::Shared
-  include ArelHelper
+  include ::Hmis::Concerns::HmisArelHelper
   include ClientSearch
 
   attr_accessor :gender, :race
@@ -66,12 +66,12 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     end
   end
 
-  def assessments_including_wip
+  def custom_assessments_including_wip
     enrollment_ids = enrollments.pluck(:id, :enrollment_id)
     wip_assessments = wip_t[:enrollment_id].in(enrollment_ids.map(&:first))
-    completed_assessments = as_t[:enrollment_id].in(enrollment_ids.map(&:second))
+    completed_assessments = cas_t[:enrollment_id].in(enrollment_ids.map(&:second))
 
-    Hmis::Hud::Assessment.left_outer_joins(:wip).where(completed_assessments.or(wip_assessments))
+    Hmis::Hud::CustomAssessment.left_outer_joins(:wip).where(completed_assessments.or(wip_assessments))
   end
 
   def self.source_for(destination_id:, user:)

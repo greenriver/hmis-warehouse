@@ -4,12 +4,11 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class Hmis::Form::AssessmentProcessor < ::GrdaWarehouseBase
-  self.table_name = :hmis_assessment_processors
+class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
+  self.table_name = :hmis_form_processors
 
-  has_one :assessment_detail
+  has_one :custom_form
 
-  # assessment is accessed through the assessment_detail
   belongs_to :health_and_dv, class_name: 'Hmis::Hud::HealthAndDv', optional: true, autosave: true
   belongs_to :income_benefit, class_name: 'Hmis::Hud::IncomeBenefit', optional: true, autosave: true
   belongs_to :enrollment_coc, class_name: 'Hmis::Hud::EnrollmentCoc', optional: true, autosave: true
@@ -24,10 +23,11 @@ class Hmis::Form::AssessmentProcessor < ::GrdaWarehouseBase
   validate :hmis_records_are_valid
   before_save :save_enrollment
 
+  # TODO: update so we are operating on the _owner_ not the assessment
   def run!
-    return unless assessment_detail.hud_values.present?
+    return unless custom_form.hud_values.present?
 
-    assessment_detail.hud_values.each do |key, value|
+    custom_form.hud_values.each do |key, value|
       # Don't use greedy matching so that the container is up to the first dot, and the rest is the field
       match = /(.*?)\.(.*)/.match(key)
       next unless match.present?
@@ -42,7 +42,7 @@ class Hmis::Form::AssessmentProcessor < ::GrdaWarehouseBase
     end
 
     valid_containers.values.each do |processor|
-      processor.new(self).information_date(assessment_detail.assessment.assessment_date)
+      processor.new(self).information_date(custom_form.assessment.assessment_date)
     end
   end
 
@@ -53,15 +53,15 @@ class Hmis::Form::AssessmentProcessor < ::GrdaWarehouseBase
   # Type Factories
   def enrollment_factory(create: true) # rubocop:disable Lint/UnusedMethodArgument
     # The enrollment has already been created, so we can just return it
-    @enrollment_factory ||= assessment_detail.assessment.enrollment
+    @enrollment_factory ||= custom_form.assessment.enrollment
   end
 
   def common_attributes
     {
-      data_collection_stage: assessment_detail.data_collection_stage,
+      data_collection_stage: custom_form.assessment.data_collection_stage,
       personal_id: enrollment_factory.client.personal_id,
-      information_date: assessment_detail.assessment.assessment_date,
-      user_id: assessment_detail.assessment.user_id,
+      information_date: custom_form.assessment.assessment_date,
+      user_id: custom_form.assessment.user_id,
     }
   end
 
@@ -87,7 +87,7 @@ class Hmis::Form::AssessmentProcessor < ::GrdaWarehouseBase
     else
       self.exit = enrollment_factory.build_exit(
         personal_id: enrollment_factory.client.personal_id,
-        user_id: assessment_detail.assessment.user_id,
+        user_id: custom_form.assessment.user_id,
       )
     end
   end
