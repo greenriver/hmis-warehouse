@@ -224,9 +224,6 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
         errors.add(transformer.call(error.attribute), error.message, **error.options)
       end
     end
-
-    # If we are processing a record editing form, validate the owner record
-    custom_form.owner.valid? unless custom_form.owner.is_a? Hmis::Hud::CustomAssessment
   end
 
   private def translate_field(field, container: nil)
