@@ -28,6 +28,8 @@ class Hmis::Hud::Processors::Base
   end
 
   def hud_type(field)
+    return nil unless schema.fields[field].present?
+
     type = schema.fields[field].type
     return nil unless type.respond_to?(:value_for)
 

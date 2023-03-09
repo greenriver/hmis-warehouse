@@ -31,7 +31,6 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
   validates_with Hmis::Hud::Validators::ClientValidator
 
-  # ! Elliot: This logic probably wouldn't live here, but I've included it here for reference
   attr_accessor :image_blob_id
   after_save do
     current_image_blob = ActiveStorage::Blob.find_by(id: image_blob_id)
@@ -51,6 +50,10 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
   scope :visible_to, ->(user) do
     joins(:data_source).merge(GrdaWarehouse::DataSource.hmis(user))
+  end
+
+  class << self
+    alias viewable_by visible_to
   end
 
   scope :searchable_to, ->(user) do

@@ -31,6 +31,16 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     PROJECT_COC: 'Project CoC',
   }.freeze
 
+  FORM_ROLE_CLASSES = {
+    SERVICE: 'Hmis::Hud::HmisService',
+    PROJECT: 'Hmis::Hud::Project',
+    ORGANIZATION: 'Hmis::Hud::Organization',
+    CLIENT: 'Hmis::Hud::Client',
+    FUNDER: 'Hmis::Hud::Funder',
+    INVENTORY: 'Hmis::Hud::Inventory',
+    PROJECT_COC: 'Hmis::Hud::ProjectCoc',
+  }.freeze
+
   FORM_DATA_COLLECTION_STAGES = {
     INTAKE: 1,
     UPDATE: 2,
@@ -99,6 +109,10 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
 
   def exit?
     role.to_sym == :EXIT
+  end
+
+  def role_class_name
+    FORM_ROLE_CLASSES[role.to_sym]
   end
 
   def assessment_date_item
