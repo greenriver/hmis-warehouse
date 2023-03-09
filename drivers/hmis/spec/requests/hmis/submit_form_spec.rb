@@ -27,6 +27,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   before(:each) do
     hmis_login(user)
     assign_viewable(edit_access_group, o1.as_warehouse, hmis_user)
+    assign_viewable(view_access_group, o1.as_warehouse, hmis_user)
   end
 
   let(:mutation) do
@@ -112,6 +113,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             puts ">>> input: #{input}"
             response, result = post_graphql(input: { input: input }) { mutation }
             puts ">>> result: #{result}"
+            puts hmis_user.can_edit_organization?
+            puts hmis_user.permission_for?(o1, :can_edit_organization)
             record_id = result.dig('data', 'submitForm', 'record', 'id')
             errors = result.dig('data', 'submitForm', 'errors')
 
@@ -147,6 +150,28 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             {
               type: :required,
               attribute: required_item.field_name,
+              severity: :error,
+            },
+          ]
+
+          aggregate_failures 'checking response' do
+            expect(response.status).to eq 200
+            expect(record).to be_nil
+            expect(errors).to match(expected_errors.map do |h|
+              a_hash_including(**h.transform_keys(&:to_s).transform_values(&:to_s))
+            end)
+          end
+        end
+
+        it 'should fail if user lacks permission' do
+          remove_permissions(hmis_user, Hmis::Form::Definition::FORM_ROLE_PERMISSIONS[role])
+          response, result = post_graphql(input: { input: test_input }) { mutation }
+          record = result.dig('data', 'submitForm', 'record')
+          errors = result.dig('data', 'submitForm', 'errors')
+          expected_errors = [
+            {
+              type: :not_allowed,
+              attribute: :record,
               severity: :error,
             },
           ]

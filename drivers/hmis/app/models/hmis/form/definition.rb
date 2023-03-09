@@ -41,6 +41,16 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     PROJECT_COC: 'Hmis::Hud::ProjectCoc',
   }.freeze
 
+  FORM_ROLE_PERMISSIONS = {
+    SERVICE: :can_edit_enrollments,
+    PROJECT: :can_edit_project_details,
+    ORGANIZATION: :can_edit_organization,
+    CLIENT: :can_edit_clients,
+    FUNDER: :can_edit_project_details,
+    INVENTORY: :can_edit_project_details,
+    PROJECT_COC: :can_edit_project_details,
+  }.freeze
+
   FORM_DATA_COLLECTION_STAGES = {
     INTAKE: 1,
     UPDATE: 2,

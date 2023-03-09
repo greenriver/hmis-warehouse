@@ -32,7 +32,15 @@ module Mutations
       errors.add :record, :not_found unless record.present?
       return { errors: errors } if errors.any?
 
-      # TODO! check permissions
+      # Check permission
+      permission = Hmis::Form::Definition::FORM_ROLE_PERMISSIONS[definition.role.to_sym]
+      has_permission = if record.is_a?(Hmis::Hud::Organization) || record.is_a?(Hmis::Hud::Client)
+        current_user.permission?(permission)
+      else
+        current_user.permissions_for?(record, permission)
+      end
+      errors.add :record, :not_allowed unless has_permission
+      return { errors: errors } if errors.any?
 
       # Create CustomForm
       custom_form = Hmis::Form::CustomForm.new(
@@ -55,15 +63,12 @@ module Mutations
       custom_form_valid = custom_form.valid?
 
       if record_valid && custom_form_valid
-        # We need to call save on the processor directly to get the before_save hook to invoke.
-        # If this is removed, the Enrollment won't save.
-        custom_form.form_processor.save!
-        # Save CustomForm to save the rest of the related records
+        # Save CustomForm to save any related records (if any)
         custom_form.save!
         # Save the record
         record.save!
         record.touch
-        # Update DateUpdated on the Enrollment, if applicable
+        # Update DateUpdated on the Enrollment, if record is Enrollment-related
         record.enrollment.touch if record.respond_to?(:enrollment)
       else
         # These are potentially unfixable errors, so maybe we should throw a server error instead.
