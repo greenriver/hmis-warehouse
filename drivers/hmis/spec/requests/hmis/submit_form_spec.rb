@@ -119,7 +119,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               expect(errors).to be_empty
               expect(record_id).to be_present
               expect(record_id).to eq(input[:record_id].to_s) if input[:record_id].present?
-              record = definition.role_class_name.constantize.find_by(id: record_id)
+              record = definition.record_class_name.constantize.find_by(id: record_id)
               expect(record).to be_present
               expect(Hmis::Form::CustomForm.where(owner: record).count).to eq(1)
 
@@ -160,7 +160,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         end
 
         it 'should fail if user lacks permission' do
-          remove_permissions(hmis_user, Hmis::Form::Definition::FORM_ROLE_PERMISSIONS[role])
+          remove_permissions(hmis_user, definition.record_editing_permission)
           response, result = post_graphql(input: { input: test_input }) { mutation }
           record = result.dig('data', 'submitForm', 'record')
           errors = result.dig('data', 'submitForm', 'errors')

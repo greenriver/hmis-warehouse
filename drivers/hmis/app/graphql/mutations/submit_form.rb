@@ -15,7 +15,7 @@ module Mutations
       return { errors: errors } if errors.any?
 
       # Determine record class
-      klass = Hmis::Form::Definition::FORM_ROLE_CLASSES[definition.role.to_sym]&.constantize
+      klass = definition.record_class_name&.constantize
       errors.add :form_definition, :invalid unless klass.present?
       return { errors: errors } if errors.any?
 
@@ -33,11 +33,10 @@ module Mutations
       return { errors: errors } if errors.any?
 
       # Check permission
-      permission = Hmis::Form::Definition::FORM_ROLE_PERMISSIONS[definition.role.to_sym]
       has_permission = if record.is_a?(Hmis::Hud::Organization) || record.is_a?(Hmis::Hud::Client)
-        current_user.permission?(permission)
+        current_user.permission?(definition.record_editing_permission)
       else
-        current_user.permissions_for?(record, permission)
+        current_user.permissions_for?(record, definition.record_editing_permission)
       end
       errors.add :record, :not_allowed unless has_permission
       return { errors: errors } if errors.any?
