@@ -13,6 +13,9 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
   let(:c1) { create :hmis_hud_client, data_source: ds, user: hmis_hud_user }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds, project: p1, client: c1, user: hmis_hud_user }
 
+  HIDDEN = Hmis::Hud::Processors::Base::HIDDEN_FIELD_VALUE
+  INVALID = 'INVALID'.freeze # Invalid enum representation
+
   before(:all) do
     cleanup_test_environment
   end
@@ -43,7 +46,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       'IncomeBenefit.unemploymentAmount' => 100,
       'IncomeBenefit.otherIncomeSource' => 'NO',
       'IncomeBenefit.otherIncomeAmount' => 0,
-      'IncomeBenefit.otherIncomeSourceIdentify' => '_HIDDEN',
+      'IncomeBenefit.otherIncomeSourceIdentify' => HIDDEN,
     }
 
     assessment.custom_form.form_processor.run!
@@ -66,10 +69,10 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
     assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: hmis_hud_user, form_definition: fd, assessment_date: Date.current)
     assessment.custom_form.hud_values = {
       'IncomeBenefit.benefitsFromAnySource' => 'NO',
-      'IncomeBenefit.snap' => '_HIDDEN',
-      'IncomeBenefit.wic' => '_HIDDEN',
-      'IncomeBenefit.otherBenefitsSource' => '_HIDDEN',
-      'IncomeBenefit.otherBenefitsSourceIdentify' => '_HIDDEN',
+      'IncomeBenefit.snap' => HIDDEN,
+      'IncomeBenefit.wic' => HIDDEN,
+      'IncomeBenefit.otherBenefitsSource' => HIDDEN,
+      'IncomeBenefit.otherBenefitsSourceIdentify' => HIDDEN,
     }
 
     assessment.custom_form.form_processor.run!
@@ -92,7 +95,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       'IncomeBenefit.medicaid' => 'YES',
       'IncomeBenefit.schip' => nil,
       'IncomeBenefit.otherInsurance' => nil,
-      'IncomeBenefit.otherInsuranceIdentify' => '_HIDDEN',
+      'IncomeBenefit.otherInsuranceIdentify' => HIDDEN,
     }
 
     assessment.custom_form.form_processor.run!
@@ -129,8 +132,8 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
     assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: hmis_hud_user, form_definition: fd, assessment_date: Date.current)
     assessment.custom_form.hud_values = {
       'HealthAndDv.domesticViolenceVictim' => 'NO',
-      'HealthAndDv.currentlyFleeing' => '_HIDDEN',
-      'HealthAndDv.whenOccurred' => '_HIDDEN',
+      'HealthAndDv.currentlyFleeing' => HIDDEN,
+      'HealthAndDv.whenOccurred' => HIDDEN,
     }
 
     assessment.custom_form.form_processor.run!
@@ -148,8 +151,8 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
     assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: hmis_hud_user, form_definition: fd, assessment_date: Date.current)
     assessment.custom_form.hud_values = {
       'HealthAndDv.domesticViolenceVictim' => nil,
-      'HealthAndDv.currentlyFleeing' => '_HIDDEN',
-      'HealthAndDv.whenOccurred' => '_HIDDEN',
+      'HealthAndDv.currentlyFleeing' => HIDDEN,
+      'HealthAndDv.whenOccurred' => HIDDEN,
     }
 
     assessment.custom_form.form_processor.run!
@@ -218,9 +221,9 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
     assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: hmis_hud_user, form_definition: fd, assessment_date: Date.current)
     assessment.custom_form.hud_values = {
       'DisabilityGroup.physicalDisability' => nil,
-      'DisabilityGroup.physicalDisabilityIndefiniteAndImpairs' => '_HIDDEN',
+      'DisabilityGroup.physicalDisabilityIndefiniteAndImpairs' => HIDDEN,
       'DisabilityGroup.developmentalDisability' => 'NO',
-      'DisabilityGroup.developmentalDisabilityIndefiniteAndImpairs' => '_HIDDEN',
+      'DisabilityGroup.developmentalDisabilityIndefiniteAndImpairs' => HIDDEN,
       'DisabilityGroup.chronicHealthCondition' => 'YES',
       'DisabilityGroup.chronicHealthConditionIndefiniteAndImpairs' => nil,
       'DisabilityGroup.hivAids' => nil,
@@ -533,6 +536,97 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         expect(client.RaceNone).to eq(9)
         expect(client.gender_fields).to eq([])
         expect(client.GenderNone).to eq(8)
+      end
+    end
+  end
+
+  describe 'Form processing for Projects' do
+    let(:definition) { Hmis::Form::Definition.find_by(role: :PROJECT) }
+    let(:complete_hud_values) do
+      {
+        'projectName' => 'Test Project',
+        'description' => 'Description',
+        'contactInformation' => 'Contact Info',
+        'operatingStartDate' => '2023-01-13',
+        'operatingEndDate' => '2023-01-28',
+        'projectType' => 'ES',
+        'trackingMethod' => 'NIGHT_BY_NIGHT',
+        'residentialAffiliation' => HIDDEN,
+        'housingType' => 'SITE_BASED_SINGLE_SITE',
+        'targetPopulation' => 'PERSONS_WITH_HIV_AIDS',
+        'HOPWAMedAssistedLivingFac' => 'NO',
+        'continuumProject' => 'NO',
+        'HMISParticipatingProject' => 'YES',
+      }
+    end
+    let(:empty_hud_values) do
+      {
+        **complete_hud_values.map { |k, v| [k, v.is_a?(Array) ? [] : nil] }.to_h,
+        'projectName' => 'Test Project',
+        'operatingStartDate' => '2023-01-13',
+        'projectType' => 'SO',
+      }
+    end
+
+    it 'creates and updates all fields' do
+      existing_project = p1
+      new_project = Hmis::Hud::Project.new(data_source: ds, user: hmis_hud_user, organization: o1)
+      [existing_project, new_project].each do |project|
+        custom_form = Hmis::Form::CustomForm.new(owner: project, definition: definition)
+        custom_form.hud_values = complete_hud_values
+        custom_form.form_processor.run!
+        custom_form.owner.save!
+        project.reload
+
+        expect(project.project_name).to eq(complete_hud_values['projectName'])
+        expect(project.description).to eq(complete_hud_values['description'])
+        expect(project.contact_information).to eq(complete_hud_values['contactInformation'])
+        expect(project.operating_start_date.strftime('%Y-%m-%d')).to eq(complete_hud_values['operatingStartDate'])
+        expect(project.operating_end_date.strftime('%Y-%m-%d')).to eq(complete_hud_values['operatingEndDate'])
+
+        expect(project.project_type).to eq(1)
+        expect(project.tracking_method).to eq(3)
+        expect(project.residential_affiliation).to be nil # not 99 because disabled
+        expect(project.housing_type).to eq(1)
+        expect(project.target_population).to eq(3)
+        expect(project.hopwa_med_assisted_living_fac).to eq(0)
+        expect(project.continuum_project).to eq(0)
+        expect(project.hmis_participating_project).to eq(1)
+      end
+    end
+
+    it 'stores empty fields correctly' do
+      existing_project = p1
+      new_project = Hmis::Hud::Project.new(data_source: ds, user: hmis_hud_user, organization: o1)
+      [existing_project, new_project].each do |project|
+        custom_form = Hmis::Form::CustomForm.new(owner: project, definition: definition)
+        custom_form.hud_values = empty_hud_values
+        custom_form.form_processor.run!
+        custom_form.owner.save!
+        project.reload
+
+        expect(project.description).to be nil
+        expect(project.contact_information).to be nil
+        expect(project.operating_end_date).to be nil
+        expect(project.project_type).to eq(4)
+        expect(project.tracking_method).to be nil
+        expect(project.residential_affiliation).to eq(99)
+        expect(project.housing_type).to be nil
+        expect(project.target_population).to be nil
+        expect(project.hopwa_med_assisted_living_fac).to be nil
+        expect(project.continuum_project).to eq(99)
+        expect(project.hmis_participating_project).to eq(99)
+      end
+    end
+
+    it 'fails if validate if any enum field is invalid' do
+      existing_project = p1
+      new_project = Hmis::Hud::Project.new(data_source: ds, user: hmis_hud_user, organization: o1)
+      [existing_project, new_project].each do |project|
+        custom_form = Hmis::Form::CustomForm.new(owner: project, definition: definition)
+        custom_form.hud_values = empty_hud_values.merge('residentialAffiliation' => 'INVALID')
+        custom_form.form_processor.run!
+        expect(custom_form.owner.valid?).to eq(false)
       end
     end
   end
