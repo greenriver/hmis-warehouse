@@ -47,6 +47,16 @@ class Hmis::Hud::HmisService < Hmis::Hud::Base
     true
   end
 
+  HUD_SERVICE_ID_PREFIX = '1'.freeze
+  CUSTOM_SERVICE_ID_PREFIX = '2'.freeze
+
+  # HmisService IDs are prefixed. Check if a given ID format is valid.
+  def self.valid_id?(id)
+    return false unless id.to_s.length > 1
+
+    [HUD_SERVICE_ID_PREFIX, CUSTOM_SERVICE_ID_PREFIX].include?(id.to_s.first)
+  end
+
   private def hud_service
     owner if owner.is_a? Hmis::Hud::Service
   end

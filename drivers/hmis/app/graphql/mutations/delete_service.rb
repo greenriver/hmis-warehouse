@@ -5,8 +5,7 @@ module Mutations
     field :service, Types::HmisSchema::Service, null: true
 
     def resolve(id:)
-      # ID should be a HmisService view ID, which starts with 1 or 2.
-      return { errors: [HmisErrors::Error.new(:service, :not_found)] } if id.length < 2 || !['1', '2'].include?(id.first)
+      return { errors: [HmisErrors::Error.new(:service, :not_found)] } unless Hmis::Hud::HmisService.valid_id?(id)
 
       hmis_service = Hmis::Hud::HmisService.viewable_by(current_user).find_by(id: id)
       result = default_delete_record(
