@@ -60,12 +60,15 @@ class Hmis::User < ApplicationRecord
     define_method("#{permission}_for?") do |entity|
       return false unless send("#{permission}?")
 
-      access_group_ids = Hmis::GroupViewableEntity.includes_entities(permissions_base_for_entity(entity)).pluck(:access_group_id)
+      base_entities = permissions_base_for_entity(entity)
 
-      raise "Invalid entity '#{entity.class.name}'" if access_group_ids.nil?
+      # No entity was specified and this permission is allowed to be global (for example Client access)
+      return true if !base_entities.present? && ::Hmis::Role.global_permissions.include?(permission)
 
+      raise "Invalid entity '#{entity.class.name}' for permission '#{permission}'" unless base_entities.present?
+
+      access_group_ids = Hmis::GroupViewableEntity.includes_entities(base_entities).pluck(:access_group_id)
       role_ids = roles.where(permission => true).pluck(:id)
-
       access_controls.where(access_group_id: access_group_ids, role_id: role_ids).exists?
     end
 
@@ -81,12 +84,13 @@ class Hmis::User < ApplicationRecord
     super opts.merge({ send_instructions: false })
   end
 
-  def permissions_base_for_entity(entity)
+  private def permissions_base_for_entity(entity)
     return [entity.data_source, *entity.projects] if entity.is_a? Hmis::Hud::Client
     return entity if entity.is_a? Hmis::Hud::Organization
+    return entity if entity.is_a? Hmis::Hud::Project
     return entity.project if entity.respond_to? :project
 
-    entity
+    nil
   end
 
   private def check_permissions_with_mode(*permissions, mode: :any)

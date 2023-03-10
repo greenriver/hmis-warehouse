@@ -11,7 +11,6 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
   include ::HmisStructure::Assessment
   include ::Hmis::Hud::Concerns::Shared
   include ::Hmis::Hud::Concerns::EnrollmentRelated
-  include ::Hmis::Concerns::HmisArelHelper
 
   SORT_OPTIONS = [:assessment_date, :date_updated].freeze
   WIP_ID = 'WIP'.freeze
@@ -25,9 +24,7 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
   has_one :project, through: :enrollment
 
   # Alias fields that are not part of the Assessment schema
-  [:DataCollectionStage].each do |col|
-    alias_attribute col.to_s.underscore.to_sym, col
-  end
+  alias_to_underscore [:DataCollectionStage]
 
   attr_accessor :in_progress
 

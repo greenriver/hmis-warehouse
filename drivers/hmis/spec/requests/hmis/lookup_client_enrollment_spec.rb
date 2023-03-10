@@ -1,6 +1,7 @@
 require 'rails_helper'
 require_relative 'login_and_permissions'
 require_relative '../../support/hmis_base_setup'
+require_relative '../../support/hmis_service_setup'
 
 RSpec.describe Hmis::GraphqlController, type: :request do
   before(:all) do
@@ -11,13 +12,17 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   include_context 'hmis base setup'
+  include_context 'hmis service setup'
 
   let!(:c1) { create :hmis_hud_client_complete, data_source: ds1, user: u1 }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1 }
   let!(:income_benefit) { create :hmis_income_benefit, data_source: ds1, client: c1, user: u1, enrollment: e1 }
   let!(:health) { create :hmis_health_and_dv, data_source: ds1, client: c1, user: u1, enrollment: e1 }
   let!(:disability) { create :hmis_disability, data_source: ds1, client: c1, user: u1, enrollment: e1 }
+
   let!(:s1) { create :hmis_hud_service, data_source: ds1, client: c1, enrollment: e1, user: u1 }
+  let!(:cs1) { create :hmis_custom_service, custom_service_type: cst1, data_source: ds1, client: c1, enrollment: e1, user: u1 }
+
   let!(:a1) { create :hmis_custom_assessment, data_source: ds1, client: c1, enrollment: e1, user: u1 }
   let!(:ev1) { create :hmis_hud_event, data_source: ds1, client: c1, enrollment: e1, user: u1 }
 
@@ -64,6 +69,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               #{scalar_fields(Types::HmisSchema::Assessment)}
             }
           }
+          services {
+            nodesCount
+            nodes {
+              #{scalar_fields(Types::HmisSchema::Service)}
+            }
+          }
         }
       }
     GRAPHQL
@@ -92,6 +103,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               #{scalar_fields(Types::HmisSchema::Assessment)}
             }
           }
+          services {
+            nodesCount
+            nodes {
+              #{scalar_fields(Types::HmisSchema::Service)}
+            }
+          }
         }
       }
     GRAPHQL
@@ -111,6 +128,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(client['disabilities']['nodesCount']).to eq(0)
       expect(client['healthAndDvs']['nodesCount']).to eq(0)
       expect(client['disabilityGroups'].size).to eq(0)
+      expect(client['services']['nodesCount']).to eq(0)
     end
 
     it 'should resolve related records if user has view access' do
@@ -124,6 +142,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(client['disabilities']['nodesCount']).to eq(1)
       expect(client['healthAndDvs']['nodesCount']).to eq(1)
       expect(client['disabilityGroups'].size).to eq(1)
+      expect(client['services']['nodesCount']).to eq(2)
     end
   end
 
@@ -141,7 +160,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(response.status).to eq 200
       enrollment = result.dig('data', 'enrollment')
       expect(enrollment['id']).to eq(e1.id.to_s)
-      expect(enrollment['services']['nodesCount']).to eq(1)
+      expect(enrollment['services']['nodesCount']).to eq(2)
       expect(enrollment['events']['nodesCount']).to eq(1)
       expect(enrollment['assessments']['nodesCount']).to eq(1)
     end

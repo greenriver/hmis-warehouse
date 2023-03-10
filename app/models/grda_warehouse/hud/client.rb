@@ -13,6 +13,7 @@ module GrdaWarehouse::Hud
     include ArelHelper
     include HealthCharts
     include ApplicationHelper
+    include ::HudConcerns::Client
     include ::HmisStructure::Client
     include ::HmisStructure::Shared
     include HudSharedScopes
@@ -1929,16 +1930,6 @@ module GrdaWarehouse::Hud
       self.VeteranStatus = calculate_best_veteran_status(verified_veteran_status, va_verified_veteran, source_clients)
       save
       self.class.clear_view_cache(self.id) # rubocop:disable Style/RedundantSelf
-    end
-
-    # those columns that relate to race
-    def self.race_fields
-      ::HudUtility.races.keys
-    end
-
-    # those race fields which are marked as pertinent to the client
-    def race_fields
-      self.class.race_fields.select { |f| send(f).to_i == 1 }
     end
 
     def race_description(include_missing_reason: false)

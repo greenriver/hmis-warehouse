@@ -8,7 +8,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   extend OrderAsSpecified
   include ::HmisStructure::Client
   include ::Hmis::Hud::Concerns::Shared
-  include ::Hmis::Concerns::HmisArelHelper
+  include ::HudConcerns::Client
   include ClientSearch
 
   attr_accessor :gender, :race
@@ -28,10 +28,10 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   has_many :health_and_dvs, through: :enrollments
   has_many :client_files, class_name: 'GrdaWarehouse::ClientFile', primary_key: :id, foreign_key: :client_id
   has_many :current_living_situations, through: :enrollments
+  has_many :hmis_services, through: :enrollments # All services (HUD and Custom)
 
   validates_with Hmis::Hud::Validators::ClientValidator
 
-  # ! Elliot: This logic probably wouldn't live here, but I've included it here for reference
   attr_accessor :image_blob_id
   after_save do
     current_image_blob = ActiveStorage::Blob.find_by(id: image_blob_id)
@@ -53,6 +53,10 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     return none unless user.can_view_clients?
 
     joins(:data_source).merge(GrdaWarehouse::DataSource.hmis(user))
+  end
+
+  class << self
+    alias viewable_by visible_to
   end
 
   scope :searchable_to, ->(user) do
