@@ -239,6 +239,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(response.status).to eq 200
         expect(errors).to be_empty
         expect(record_id).to be_present
+        expect(i1.reload.inventory_end_date).to be nil
+        expect(f1.reload.end_date).to be nil
       end
     end
 
@@ -264,6 +266,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
                                   a_hash_including('severity' => 'warning', 'type' => 'information', 'fullMessage' => '1 open funder will be closed.'),
                                   a_hash_including('severity' => 'warning', 'type' => 'information', 'fullMessage' => '1 open inventory record will be closed.'),
                                 ])
+        expect(i1.reload.inventory_end_date).to be nil
+        expect(f1.reload.end_date).to be nil
       end
     end
 

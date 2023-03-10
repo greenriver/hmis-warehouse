@@ -89,11 +89,12 @@ module Mutations
     end
 
     private def perform_side_effects(record)
+      GrdaWarehouse::Tasks::IdentifyDuplicates.new.delay.run! if record.is_a? Hmis::Hud::Client
+
       return unless record.is_a? Hmis::Hud::Project
       return unless record.operating_end_date_was.nil? && record.operating_end_date.present?
 
-      record.funders.where(end_date: nil).update_all(end_date: record.operating_end_date)
-      record.inventories.where(inventory_end_date: nil).update_all(inventory_end_date: record.operating_end_date)
+      record.close_related_funders_and_inventory!
     end
   end
 end
