@@ -54,7 +54,8 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   end
 
   scope :searchable_to, ->(user) do
-    # TODO: additional access control rules go here
+    return none unless user.can_view_clients?
+
     visible_to(user)
   end
 

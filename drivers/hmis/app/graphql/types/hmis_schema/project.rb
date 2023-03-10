@@ -53,6 +53,8 @@ module Types
     end
 
     def enrollments(**args)
+      return Hmis::Hud::Enrollment.none unless current_user.can_view_enrollment_details_for?(object)
+
       resolve_enrollments(**args)
     end
 

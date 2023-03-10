@@ -60,7 +60,7 @@ class Hmis::User < ApplicationRecord
     define_method("#{permission}_for?") do |entity|
       return false unless send("#{permission}?")
 
-      access_group_ids = Hmis::GroupViewableEntity.includes_entity(permissions_base_for_entity(entity)).pluck(:access_group_id)
+      access_group_ids = Hmis::GroupViewableEntity.includes_entities(permissions_base_for_entity(entity)).pluck(:access_group_id)
 
       raise "Invalid entity '#{entity.class.name}'" if access_group_ids.nil?
 
@@ -82,6 +82,7 @@ class Hmis::User < ApplicationRecord
   end
 
   private def permissions_base_for_entity(entity)
+    return entity.projects if entity.is_a? Hmis::Hud::Client
     return entity if entity.is_a? Hmis::Hud::Organization
     return entity.project if entity.respond_to? :project
 
