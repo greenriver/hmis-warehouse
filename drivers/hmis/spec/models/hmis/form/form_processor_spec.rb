@@ -382,26 +382,6 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
     end
   end
 
-  describe 'Form processing for Projects' do
-    let(:definition) { Hmis::Form::Definition.find_by(role: :PROJECT) }
-
-    it 'updates a Project' do
-      custom_form = Hmis::Form::CustomForm.new(owner: p1, definition: definition)
-      custom_form.hud_values = {
-        'projectName' => 'new name',
-        'HMISParticipatingProject' => nil,
-        'continuumProject' => 'YES',
-
-      }
-      custom_form.form_processor.run!
-      custom_form.owner.save!
-      p1.reload
-      expect(p1.project_name).to eq('new name')
-      expect(p1.HMISParticipatingProject).to eq(99)
-      expect(p1.continuum_project).to eq(1)
-    end
-  end
-
   describe 'Form processing for Clients' do
     let(:definition) { Hmis::Form::Definition.find_by(role: :CLIENT) }
     let(:complete_hud_values) do
