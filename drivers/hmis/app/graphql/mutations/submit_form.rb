@@ -33,12 +33,7 @@ module Mutations
       return { errors: errors } if errors.any?
 
       # Check permission
-      has_permission = if record.is_a?(Hmis::Hud::Organization) || record.is_a?(Hmis::Hud::Client)
-        current_user.permission?(definition.record_editing_permission)
-      else
-        current_user.permissions_for?(record, definition.record_editing_permission)
-      end
-      errors.add :record, :not_allowed unless has_permission
+      errors.add :record, :not_allowed unless current_user.permissions_for?(record, definition.record_editing_permission)
       return { errors: errors } if errors.any?
 
       # Create CustomForm

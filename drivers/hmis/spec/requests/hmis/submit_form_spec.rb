@@ -26,8 +26,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   before(:each) do
     hmis_login(user)
-    assign_viewable(edit_access_group, o1.as_warehouse, hmis_user)
-    assign_viewable(view_access_group, o1.as_warehouse, hmis_user)
+    assign_viewable(edit_access_group, ds1, hmis_user)
+    assign_viewable(view_access_group, ds1, hmis_user)
   end
 
   let(:mutation) do

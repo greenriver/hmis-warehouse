@@ -12,7 +12,6 @@ module Hmis::Hud::Processors
 
       attributes = case attribute_name
       when 'race'
-        # binding.pry
         race_attributes(attribute_value)
       when 'gender'
         gender_attributes(attribute_value)
