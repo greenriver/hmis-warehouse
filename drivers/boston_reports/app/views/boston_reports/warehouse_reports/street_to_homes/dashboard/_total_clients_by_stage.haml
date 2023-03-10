@@ -5,20 +5,17 @@
 - max_value = @report.counts_by_stage['columns'].map(&:last).max
 = content_for :page_js do
   :javascript
-    let detail_path = '#{polymorphic_url(@report.detail_path_array)}';
-    // FIXME: needs to be a string format here, search params doesn't work well with nexted array/hash
-    let detail_params = new URLSearchParams('#{@report.filter.for_params.to_query.html_safe}');
     // @report.filter.for_params.merge(sets: [cohort])
-    let data = #{@report.counts_by_stage.to_json.html_safe};
-    data = $.extend(true, {}, data, {
+    let total_clients_by_stage_data = #{@report.counts_by_stage.to_json.html_safe};
+    total_clients_by_stage_data = $.extend(true, {}, total_clients_by_stage_data, {
       onclick: function(d, element) {
         let sets = new URLSearchParams({ 'sets[]': d.name });
-        let url = new URL(`${detail_path}?${detail_params.toString()}&${sets.toString()}`)
+        let url = new URL(`${detail_path}?${detail_params.toString()}&${sets.toString()}`);
         return window.open(url.toString());
       },
     });
     let total_chart = bb.generate({
-      data: data,
+      data: total_clients_by_stage_data,
       bindto: '#total-clients-by-stage-chart',
       bar: {
         padding: 20,

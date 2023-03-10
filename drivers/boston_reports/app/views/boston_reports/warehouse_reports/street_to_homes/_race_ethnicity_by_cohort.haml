@@ -18,10 +18,13 @@
       cohohrt_slug = cohort.parameterize(separator: '_')
       [cohohrt_slug, @report.public_send(data_method)[cohohrt_slug]]
     end
+
   = content_for :page_js do
     :javascript
       let #{base_name}_#{chart}_charts = #{charts.to_json.html_safe};
       let active_#{base_name}_#{chart}_charts = [];
+      window.cohort_names = #{@report.cohort_names.to_json.html_safe};
+
       #{base_name}_#{chart}_charts.forEach((arr, index) => {
         let chart_name, data, legend, width, height;
         [chart_name, data] = arr;
@@ -51,6 +54,16 @@
             },
           }
         }
+        data = $.extend(true, {}, data, {
+          onclick: function(d, element) {
+            let sets = new URLSearchParams()
+            sets.append('sets[]', window.cohort_names[index]);
+            sets.append('sets[]', d.name);
+            let url = new URL(`${detail_path}?${detail_params.toString()}&${sets.toString()}`);
+
+            return window.open(url.toString());
+          },
+        });
         active_#{base_name}_#{chart}_charts.push(bb.generate({
           data: data,
           bindto: `##{base_name}-#{chart}-by-cohort-chart-${chart_name}`,

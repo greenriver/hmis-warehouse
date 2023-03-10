@@ -38,13 +38,26 @@
         %td{ class: td_class }= cohort
         - @report.all_stages.each_key do |k|
           - td_class += if k.to_s.in?(['active', 'inactive', 'total']) then ['table-active'] else [] end
-          %td.text-right{ class: td_class }= data[k.to_s]
+          %td.text-right{ class: td_class }
+            = link_to polymorphic_path(@report.detail_path_array, @report.filter.for_params.merge(sets: [cohort, k.to_s])), target: :_blank do
+              = data[k.to_s]
 = content_for :page_js do
   :javascript
     let stage_by_cohort = #{stage_by_cohort.to_json.html_safe};
     let stage_by_cohort_max_value = #{stage_by_cohort_max_value.to_json.html_safe};
     let cohort_by_stage = #{cohort_by_stage.to_json.html_safe};
     let cohort_by_stage_max_value = #{cohort_by_stage_max_value.to_json.html_safe};
+    stage_by_cohort = $.extend(true, {}, stage_by_cohort, {
+      onclick: function(d, element) {
+        let sets = new URLSearchParams();
+        let cohort = stage_by_cohort.columns[0][d.x + 1];
+        sets.append('sets[]', cohort);
+        sets.append('sets[]', d.name);
+        let url = new URL(`${detail_path}?${detail_params.toString()}&${sets.toString()}`);
+
+        return window.open(url.toString());
+      },
+    });
     let stage_by_cohort_chart = bb.generate({
       'data': stage_by_cohort,
       'bindto': "#stage-by-cohort-chart",
@@ -71,6 +84,18 @@
           template: "<div class='d-flex mr-auto text-left'><div class='mr-2 mt-2 mb-0 ml-0' style='padding:5px; height: 14px; width: 26px; background-color:{=COLOR}; border-radius: 10px; '>&nbsp;</div><div class='ml-0 mr-auto mt-1 mb-1'>{=TITLE}</div></div>"
         }
       }
+    });
+
+    cohort_by_stage = $.extend(true, {}, cohort_by_stage, {
+      onclick: function(d, element) {
+        let sets = new URLSearchParams();
+        let stage = cohort_by_stage.columns[0][d.x + 1];
+        sets.append('sets[]', stage);
+        sets.append('sets[]', d.name);
+        let url = new URL(`${detail_path}?${detail_params.toString()}&${sets.toString()}`);
+
+        return window.open(url.toString());
+      },
     });
     let cohort_by_stage_chart = bb.generate({
       'data': cohort_by_stage,

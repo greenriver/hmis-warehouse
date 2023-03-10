@@ -14,10 +14,10 @@
     #moved-in-cohort-by-voucher-type-legend.ml-auto.d-flex
   .row
     .col-sm-5.matched-cohort-by-voucher-type-wrapper
-      %h3.text-center Matched
+      %h3.text-center= @report.matched_string
       #matched-cohort-by-voucher-type-chart
     .col-sm-7.moved-in-cohort-by-voucher-type-wrapper
-      %h3.text-center Moved-in
+      %h3.text-center= @report.housed_string
       #moved-in-cohort-by-voucher-type-chart
 :ruby
   @report.matched_cohort_by_voucher_type['columns'] = @report.invert_columns(@report.matched_cohort_by_voucher_type['columns'])
@@ -43,12 +43,34 @@
     // Matched
     let matched_cohort_by_voucher_type = #{matched_cohort_by_voucher_type.to_json.html_safe};
     let matched_cohort_by_voucher_type_max_value = #{matched_cohort_by_voucher_type_max_value.to_json.html_safe};
-    let matched_by_voucher_type_data = $.extend(true, {}, matched_cohort_by_voucher_type, abs_label_format);
+    let matched_by_voucher_type_data = $.extend(true, {}, matched_cohort_by_voucher_type, abs_label_format, {
+      onclick: function(d, element) {
+        let sets = new URLSearchParams();
+        let program = matched_cohort_by_voucher_type.columns[0][d.x + 1];
+        sets.append('sets[]', program);
+        sets.append('sets[]', '#{@report.matched_string}');
+        sets.append('sets[]', d.name);
+        let url = new URL(`${detail_path}?${detail_params.toString()}&${sets.toString()}`);
+
+        return window.open(url.toString());
+      },
+    });
 
     // Moved-in
     let moved_in_cohort_by_voucher_type = #{moved_in_cohort_by_voucher_type.to_json.html_safe};
     let moved_in_cohort_by_voucher_type_max_value = #{moved_in_cohort_by_voucher_type_max_value.to_json.html_safe};
-    let moved_in_by_voucher_type_data = $.extend(true, {}, moved_in_cohort_by_voucher_type, abs_label_format);
+    let moved_in_by_voucher_type_data = $.extend(true, {}, moved_in_cohort_by_voucher_type, abs_label_format, {
+      onclick: function(d, element) {
+        let sets = new URLSearchParams();
+        let program = moved_in_cohort_by_voucher_type.columns[0][d.x + 1];
+        sets.append('sets[]', program);
+        sets.append('sets[]', '#{@report.housed_string}');
+        sets.append('sets[]', d.name);
+        let url = new URL(`${detail_path}?${detail_params.toString()}&${sets.toString()}`);
+
+        return window.open(url.toString());
+      },
+    });
 
     let matched_cohort_by_voucher_type_chart = bb.generate({
       'data': matched_by_voucher_type_data,

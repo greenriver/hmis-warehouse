@@ -127,6 +127,7 @@ module BostonReports
 
       GrdaWarehouse::CohortClient.
         where(cohort_id: filter.cohort_ids).
+        where.not(filter.cohort_column => nil). # only include clients with a cohort or the report starts to have mis-calculations
         preload(client: :source_clients)
     end
 
@@ -146,8 +147,18 @@ module BostonReports
             CohortColumns::LastName.new(cohort_client: cc).display_read_only(filter.user)
           end
         },
-        'Race' => ->(cc, download: false) { CohortColumns::Race.new(cohort_client: cc).display_read_only(filter.user) }, # rubocop:disable Lint/UnusedBlockArgument
-        voucher_type_instance.title => ->(cc, download: false) { voucher_type_instance.class.new(cohort_client: cc).display_read_only(filter.user) }, # rubocop:disable Lint/UnusedBlockArgument
+        'Race' => ->(cc, download: false) { # rubocop:disable Lint/UnusedBlockArgument
+          CohortColumns::Race.new(cohort_client: cc).display_read_only(filter.user)
+        },
+        'Ethnicity' => ->(cc, download: false) { # rubocop:disable Lint/UnusedBlockArgument
+          CohortColumns::Ethnicity.new(cohort_client: cc).display_read_only(filter.user)
+        },
+        'Cohort' => ->(cc, download: false) { # rubocop:disable Lint/UnusedBlockArgument
+          cc[filter.cohort_column]
+        },
+        voucher_type_instance.title => ->(cc, download: false) { # rubocop:disable Lint/UnusedBlockArgument
+          voucher_type_instance.class.new(cohort_client: cc).display_read_only(filter.user)
+        },
         voucher_type_instance.title => ->(cc, download: false) {
           if download
             voucher_type_instance.class.new(cohort_client: cc).value(cc)
@@ -193,7 +204,10 @@ module BostonReports
     end
 
     def client_details(sets)
-      return [] unless sets.present? && allowed_sets(sets) == sets
+      return [] unless sets.present?
+
+      sets.uniq!
+      return unless allowed_sets(sets).sort == sets.uniq.sort
 
       # get the ids of any client in all sets
       ids = sets.map do |s|
@@ -219,10 +233,10 @@ module BostonReports
         voucher_types.each do |voucher_type|
           counts[voucher_type] ||= Set.new
         end
-        races.each do |race|
+        races.each_value do |race|
           counts[race] ||= Set.new
         end
-        ethnicities.each do |ethnicity|
+        ethnicities.each_value do |ethnicity|
           counts[ethnicity] ||= Set.new
         end
 
@@ -240,13 +254,13 @@ module BostonReports
             counts[voucher_type] << client.client_id if client[voucher_type_column] == voucher_type
           end
           # Loop over all races so we don't end up with missing categories
-          races.each do |race|
+          races.each do |race_key, race|
             CohortColumns::Race.new.value(client).each do |value|
-              counts[race] << client.client_id if value == race
+              counts[race] << client.client_id if value == race_key
             end
           end
           # Loop over all ethnicities so we don't end up with missing categories
-          ethnicities.each do |ethnicity|
+          ethnicities.each_value do |ethnicity|
             CohortColumns::Ethnicity.new.value(client).each do |value|
               counts[ethnicity] << client.client_id if value == ethnicity
             end
@@ -257,7 +271,7 @@ module BostonReports
 
     def summary_counts
       @summary_counts ||= {}.tap do |data|
-        data['total'] = all_client_breakdowns[:total].slice(:label, :count)
+        data['total'] = all_client_breakdowns['Total'].slice(:label, :count)
         cohort_names.each do |cohort|
           data[cohort] = {
             label: cohort,
@@ -272,7 +286,7 @@ module BostonReports
         data['type'] = 'bar'
         data['columns'] = []
         data['colors'] = {}
-        stages.merge({ inactive: all_client_breakdowns[:inactive] }).each.with_index do |(key, stage), i|
+        stages.merge({ 'Inactive' => all_client_breakdowns['Inactive'] }).each.with_index do |(key, stage), i|
           row = [stage[:label], clients[key.to_s].count]
           data['columns'] << row
           data['colors'][stage[:label]] = config["breakdown_2_color_#{i}"]
@@ -360,10 +374,10 @@ module BostonReports
           charts[cohort_slug]['columns'] = []
           charts[cohort_slug]['colors'] = {}
           charts[cohort_slug]['labels'] = { 'colors' => {} }
-          races.each.with_index do |race, i|
-            charts[cohort_slug]['columns'] << [::HudUtility.race(race), (clients[cohort] & clients[race]).count]
-            charts[cohort_slug]['colors'][::HudUtility.race(race)] = config["breakdown_3_color_#{i}"]
-            charts[cohort_slug]['labels']['colors'][::HudUtility.race(race)] = config.foreground_color(config["breakdown_3_color_#{i}"])
+          races.each_value.with_index do |race, i|
+            charts[cohort_slug]['columns'] << [race, (clients[cohort] & clients[race]).count]
+            charts[cohort_slug]['colors'][race] = config["breakdown_3_color_#{i}"]
+            charts[cohort_slug]['labels']['colors'][race] = config.foreground_color(config["breakdown_3_color_#{i}"])
           end
         end
       end
@@ -375,17 +389,17 @@ module BostonReports
         data['type'] = 'bar'
         data['stack'] = { normalize: true }
         data['columns'] = [['x'] + stages.values.map { |d| d[:label] } + ['Inactive']]
-        data['groups'] = [races.map { |race| ::HudUtility.race(race) }]
+        data['groups'] = [races.values]
         data['colors'] = {}
         data['labels'] = { 'colors' => {} }
-        races.each.with_index do |race, i|
-          row = [::HudUtility.race(race)]
+        races.each_value.with_index do |race, i|
+          row = [race]
           stages.each_key do |k|
             row << (clients[k.to_s] & clients[race]).count
           end
           data['columns'] << row
-          data['colors'][::HudUtility.race(race)] = config["breakdown_3_color_#{i}"]
-          data['labels']['colors'][::HudUtility.race(race)] = config.foreground_color(config["breakdown_3_color_#{i}"])
+          data['colors'][race] = config["breakdown_3_color_#{i}"]
+          data['labels']['colors'][race] = config.foreground_color(config["breakdown_3_color_#{i}"])
         end
       end
     end
@@ -396,17 +410,17 @@ module BostonReports
         data['type'] = 'bar'
         data['stack'] = { normalize: true }
         data['columns'] = [['x'] + cohort_names]
-        data['groups'] = [races.map { |race| ::HudUtility.race(race) }]
+        data['groups'] = [races.values]
         data['colors'] = {}
         data['labels'] = { 'colors' => {} }
-        races.each.with_index do |race, i|
-          row = [::HudUtility.race(race)]
+        races.each_value.with_index do |race, i|
+          row = [race]
           cohort_names.each do |cohort|
             row << (clients[cohort] & clients[race]).count
           end
           data['columns'] << row
-          data['colors'][::HudUtility.race(race)] = config["breakdown_3_color_#{i}"]
-          data['labels']['colors'][::HudUtility.race(race)] = config.foreground_color(config["breakdown_3_color_#{i}"])
+          data['colors'][race] = config["breakdown_3_color_#{i}"]
+          data['labels']['colors'][race] = config.foreground_color(config["breakdown_3_color_#{i}"])
         end
       end
     end
@@ -416,13 +430,13 @@ module BostonReports
         data['x'] = 'x'
         data['type'] = 'bar'
         data['stack'] = { normalize: true }
-        data['columns'] = [['x'] + races.map { |race| ::HudUtility.race(race) }]
+        data['columns'] = [['x'] + races.values]
         data['groups'] = [stages.values.map { |d| d[:label] } + ['Inactive']]
         data['colors'] = {}
         data['labels'] = { 'colors' => {} }
         stages.each.with_index do |(k, stage), i|
           row = [stage[:label]]
-          races.each do |race|
+          races.each_value do |race|
             row << (clients[k.to_s] & clients[race]).count
           end
           data['columns'] << row
@@ -437,13 +451,13 @@ module BostonReports
         data['x'] = 'x'
         data['type'] = 'bar'
         data['stack'] = { normalize: true }
-        data['columns'] = [['x'] + races.map { |race| ::HudUtility.race(race) }]
+        data['columns'] = [['x'] + races.values]
         data['groups'] = [cohort_names]
         data['colors'] = {}
         data['labels'] = { 'colors' => {} }
         cohort_names.each.with_index do |cohort, i|
           row = [cohort]
-          races.each do |race|
+          races.each_value do |race|
             row << (clients[cohort] & clients[race]).count
           end
           data['columns'] << row
@@ -459,17 +473,17 @@ module BostonReports
         data['type'] = 'bar'
         data['stack'] = { normalize: true }
         data['columns'] = [['x'] + stages.values.map { |d| d[:label] } + ['Inactive']]
-        data['groups'] = [ethnicities.map { |ethnicity| ::HudUtility.ethnicity(ethnicity) }]
+        data['groups'] = [ethnicities.values]
         data['colors'] = {}
         data['labels'] = { 'colors' => {} }
-        ethnicities.each.with_index do |ethnicity, i|
-          row = [::HudUtility.ethnicity(ethnicity)]
+        ethnicities.each_value.with_index do |ethnicity, i|
+          row = [ethnicity]
           stages.each_key do |k|
             row << (clients[k.to_s] & clients[ethnicity]).count
           end
           data['columns'] << row
-          data['colors'][::HudUtility.ethnicity(ethnicity)] = config["breakdown_3_color_#{i}"]
-          data['labels']['colors'][::HudUtility.ethnicity(ethnicity)] = config.foreground_color(config["breakdown_3_color_#{i}"])
+          data['colors'][ethnicity] = config["breakdown_3_color_#{i}"]
+          data['labels']['colors'][ethnicity] = config.foreground_color(config["breakdown_3_color_#{i}"])
         end
       end
     end
@@ -480,17 +494,17 @@ module BostonReports
         data['type'] = 'bar'
         data['stack'] = { normalize: true }
         data['columns'] = [['x'] + cohort_names]
-        data['groups'] = [ethnicities.map { |ethnicity| ::HudUtility.ethnicity(ethnicity) }]
+        data['groups'] = [ethnicities.values]
         data['colors'] = {}
         data['labels'] = { 'colors' => {} }
-        ethnicities.each.with_index do |ethnicity, i|
-          row = [::HudUtility.ethnicity(ethnicity)]
+        ethnicities.each_value.with_index do |ethnicity, i|
+          row = [ethnicity]
           cohort_names.each do |cohort|
             row << (clients[cohort] & clients[ethnicity]).count
           end
           data['columns'] << row
-          data['colors'][::HudUtility.ethnicity(ethnicity)] = config["breakdown_3_color_#{i}"]
-          data['labels']['colors'][::HudUtility.ethnicity(ethnicity)] = config.foreground_color(config["breakdown_3_color_#{i}"])
+          data['colors'][ethnicity] = config["breakdown_3_color_#{i}"]
+          data['labels']['colors'][ethnicity] = config.foreground_color(config["breakdown_3_color_#{i}"])
         end
       end
     end
@@ -500,13 +514,13 @@ module BostonReports
         data['x'] = 'x'
         data['type'] = 'bar'
         data['stack'] = { normalize: true }
-        data['columns'] = [['x'] + ethnicities.map { |ethnicity| ::HudUtility.ethnicity(ethnicity) }]
+        data['columns'] = [['x'] + ethnicities.values]
         data['groups'] = [stages.values.map { |d| d[:label] } + ['Inactive']]
         data['colors'] = {}
         data['labels'] = { 'colors' => {} }
         stages.each.with_index do |(k, stage), i|
           row = [stage[:label]]
-          ethnicities.each do |ethnicity|
+          ethnicities.each_value do |ethnicity|
             row << (clients[k.to_s] & clients[ethnicity]).count
           end
           data['columns'] << row
@@ -521,13 +535,13 @@ module BostonReports
         data['x'] = 'x'
         data['type'] = 'bar'
         data['stack'] = { normalize: true }
-        data['columns'] = [['x'] + ethnicities.map { |ethnicity| ::HudUtility.ethnicity(ethnicity) }]
+        data['columns'] = [['x'] + ethnicities.values]
         data['groups'] = [cohort_names]
         data['colors'] = {}
         data['labels'] = { 'colors' => {} }
         cohort_names.each.with_index do |cohort, i|
           row = [cohort]
-          ethnicities.each do |ethnicity|
+          ethnicities.each_value do |ethnicity|
             row << (clients[cohort] & clients[ethnicity]).count
           end
           data['columns'] << row
@@ -546,10 +560,10 @@ module BostonReports
           charts[cohort_slug]['columns'] = []
           charts[cohort_slug]['colors'] = {}
           charts[cohort_slug]['labels'] = { 'colors' => {} }
-          ethnicities.each.with_index do |ethnicity, i|
-            charts[cohort_slug]['columns'] << [::HudUtility.ethnicity(ethnicity), (clients[cohort] & clients[ethnicity]).count]
-            charts[cohort_slug]['colors'][::HudUtility.ethnicity(ethnicity)] = config["breakdown_4_color_#{i}"]
-            charts[cohort_slug]['labels']['colors'][::HudUtility.ethnicity(ethnicity)] = config.foreground_color(config["breakdown_4_color_#{i}"])
+          ethnicities.each_value.with_index do |ethnicity, i|
+            charts[cohort_slug]['columns'] << [ethnicity, (clients[cohort] & clients[ethnicity]).count]
+            charts[cohort_slug]['colors'][ethnicity] = config["breakdown_4_color_#{i}"]
+            charts[cohort_slug]['labels']['colors'][ethnicity] = config.foreground_color(config["breakdown_4_color_#{i}"])
           end
         end
       end
@@ -562,7 +576,7 @@ module BostonReports
         data['groups'] = [stages.values.map { |d| d[:label] } + ['Inactive']]
         data['colors'] = {}
         data['columns'] = [['x', *cohort_names]]
-        stages.merge({ inactive: all_client_breakdowns[:inactive] }).each.with_index do |(key, stage), i|
+        stages.merge({ 'Inactive' => all_client_breakdowns['Inactive'] }).each.with_index do |(key, stage), i|
           row = [stage[:label]]
           data['colors'][stage[:label]] = config["breakdown_2_color_#{i}"]
           cohort_names.each do |cohort|
@@ -579,11 +593,11 @@ module BostonReports
         data['type'] = 'bar'
         data['groups'] = [cohort_names]
         data['colors'] = {}
-        data['columns'] = [['x', *stages.merge({ inactive: all_client_breakdowns[:inactive] }).values.map { |d| d[:label] }]]
+        data['columns'] = [['x', *stages.merge({ 'Inactive' => all_client_breakdowns['Inactive'] }).values.map { |d| d[:label] }]]
         cohort_names.each.with_index do |cohort, i|
           row = [cohort]
           data['colors'][cohort] = config["breakdown_1_color_#{i}"]
-          stages.merge({ inactive: all_client_breakdowns[:inactive] }).each do |(key, _stage)|
+          stages.merge({ 'Inactive' => all_client_breakdowns['Inactive'] }).each do |(key, _stage)|
             row << (clients[cohort] & clients[key.to_s]).count
           end
           data['columns'] << row
@@ -655,19 +669,19 @@ module BostonReports
 
     private def all_client_breakdowns
       @all_client_breakdowns ||= {
-        active: {
+        'Active' => {
           label: 'Active',
           calculation: ->(client) { client.active },
           count: report_scope.active.count,
           scope: report_scope.active,
         },
-        inactive: {
+        'Inactive' => {
           label: 'Inactive',
           calculation: ->(client) { ! client.active },
           count: report_scope.inactive.count,
           scope: report_scope.inactive,
         },
-        total: {
+        'Total' => {
           label: 'Total',
           calculation: ->(_client) { true },
           count: report_scope.count,
@@ -677,16 +691,15 @@ module BostonReports
     end
 
     private def races
-      ::HudUtility.races.keys
+      ::HudLists.race_map
     end
 
     private def ethnicities
-      ::HudLists.ethnicity_map.select { |id, _| id.in?([0, 1]) }.values
+      ::HudLists.ethnicity_map.select { |id, _| id.in?([0, 1]) }
     end
 
     def cohort_names
       @cohort_names ||= report_scope.active.
-        where.not(filter.cohort_column => nil).
         distinct.
         pluck(filter.cohort_column).sort
     end

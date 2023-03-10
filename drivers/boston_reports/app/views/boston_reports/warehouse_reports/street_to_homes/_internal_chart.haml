@@ -28,6 +28,17 @@
 = content_for :page_js do
   :javascript
     let internal_#{active_demographic}_by_#{active_group} = #{@report.public_send(data_method).to_json.html_safe};
+    internal_#{active_demographic}_by_#{active_group} = $.extend(true, {}, internal_#{active_demographic}_by_#{active_group}, {
+      onclick: function(d, element) {
+        let sets = new URLSearchParams();
+        let demographic = internal_#{active_demographic}_by_#{active_group}.columns[0][d.x + 1];
+        sets.append('sets[]', demographic);
+        sets.append('sets[]', d.name);
+        let url = new URL(`${detail_path}?${detail_params.toString()}&${sets.toString()}`);
+
+        return window.open(url.toString());
+      },
+    });
     window.charts = window.charts || {}
     window.charts.internal_#{active_demographic}_by_#{active_group}_chart = bb.generate({
       'data': internal_#{active_demographic}_by_#{active_group},

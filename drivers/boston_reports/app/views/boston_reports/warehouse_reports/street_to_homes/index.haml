@@ -31,3 +31,7 @@
           - total_url = polymorphic_path(@report.filter_path_array, *link_params.except(:action))
           Please choose a cohort and cohort column under
           = link_to 'Select Universe.', total_url, data: { loads_in_pjax_modal: true }
+= content_for :page_js do
+  :javascript
+    let detail_path = '#{polymorphic_url(@report.detail_path_array)}';
+    let detail_params = new URLSearchParams('#{@report.filter.for_params.to_query.html_safe}');
