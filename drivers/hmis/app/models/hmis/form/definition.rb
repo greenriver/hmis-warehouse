@@ -31,6 +31,16 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     PROJECT_COC: 'Project CoC',
   }.freeze
 
+  FORM_ROLE_CONFIG = {
+    SERVICE: { class_name: 'Hmis::Hud::HmisService', permission: :can_edit_enrollments, resolve_as: 'Types::HmisSchema::Service' },
+    PROJECT: { class_name: 'Hmis::Hud::Project', permission: :can_edit_project_details, resolve_as: 'Types::HmisSchema::Project' },
+    ORGANIZATION: { class_name: 'Hmis::Hud::Organization', permission: :can_edit_organization, resolve_as: 'Types::HmisSchema::Organization' },
+    CLIENT: { class_name: 'Hmis::Hud::Client', permission: :can_edit_clients, resolve_as: 'Types::HmisSchema::Client' },
+    FUNDER: { class_name: 'Hmis::Hud::Funder', permission: :can_edit_project_details, resolve_as: 'Types::HmisSchema::Funder' },
+    INVENTORY: { class_name: 'Hmis::Hud::Inventory', permission: :can_edit_project_details, resolve_as: 'Types::HmisSchema::Inventory' },
+    PROJECT_COC: { class_name: 'Hmis::Hud::ProjectCoc', permission: :can_edit_project_details, resolve_as: 'Types::HmisSchema::ProjectCoc' },
+  }.freeze
+
   FORM_DATA_COLLECTION_STAGES = {
     INTAKE: 1,
     UPDATE: 2,
@@ -99,6 +109,18 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
 
   def exit?
     role.to_sym == :EXIT
+  end
+
+  def record_class_name
+    return unless FORM_ROLE_CONFIG[role.to_sym].present?
+
+    FORM_ROLE_CONFIG[role.to_sym][:class_name]
+  end
+
+  def record_editing_permission
+    return unless FORM_ROLE_CONFIG[role.to_sym].present?
+
+    FORM_ROLE_CONFIG[role.to_sym][:permission]
   end
 
   def assessment_date_item
