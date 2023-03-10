@@ -81,8 +81,8 @@ class Hmis::User < ApplicationRecord
     super opts.merge({ send_instructions: false })
   end
 
-  private def permissions_base_for_entity(entity)
-    return entity.projects if entity.is_a? Hmis::Hud::Client
+  def permissions_base_for_entity(entity)
+    return [entity.data_source, *entity.projects] if entity.is_a? Hmis::Hud::Client
     return entity if entity.is_a? Hmis::Hud::Organization
     return entity.project if entity.respond_to? :project
 

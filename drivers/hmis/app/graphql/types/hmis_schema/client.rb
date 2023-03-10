@@ -110,12 +110,12 @@ module Types
     end
 
     def ssn
-      return object.ssn if object.projects.any? { |project| current_user.can_view_full_ssn_for?(project) }
-      return object&.ssn&.sub(/(\w{4})$/, 'XXXXX\1') if object.projects.any? { |project| current_user.can_view_partial_ssn_for?(project) }
+      return object.ssn if current_user.can_view_full_ssn_for?(object)
+      return object&.ssn&.sub(/^.*?(\d{4})$/, 'XXXXX\1') if current_user.can_view_partial_ssn_for?(object)
     end
 
     def dob
-      return object.dob if object.projects.any? { |project| current_user.can_view_dob_for?(project) }
+      return object.dob if current_user.can_view_dob_for?(object)
     end
   end
 end
