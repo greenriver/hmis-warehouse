@@ -45,7 +45,7 @@ begin
       FileUtils.mkdir_p(target[0..i])
     end
 
-    if File.exists?(target) && ENV['UPDATE_ONLY']=='true'
+    if File.exist?(target) && ENV['UPDATE_ONLY']=='true'
       # puts "Skipping #{target} which already exists locally"
       next
     end

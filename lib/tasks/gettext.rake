@@ -47,7 +47,7 @@ namespace :gettext do
   desc "Bootstrap CHA Questions"
   task bootstrap_cha_translations: :environment do
     file = "config/cha_translations.yml"
-    if !File.exists?( file )
+    if !File.exist?( file )
       puts "You are missing #{file}"
       next
 
@@ -67,7 +67,7 @@ namespace :gettext do
     Rake::Task["gettext:find"].invoke
     Rake::Task['gettext:sync_po_to_db'].invoke
     cha_translations = "config/cha_translations.yml"
-    Rake::Task["gettext:bootstrap_cha_translations"].invoke if File.exists?( cha_translations )
+    Rake::Task["gettext:bootstrap_cha_translations"].invoke if File.exist?( cha_translations )
   end
 
   desc "sync translation"
