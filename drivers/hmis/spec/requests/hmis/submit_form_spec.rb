@@ -65,8 +65,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   describe 'SubmitForm' do
     [
-      :PROJECT, :FUNDER, :PROJECT_COC, :INVENTORY, :ORGANIZATION
-      # :CLIENT, :SERVICE,
+      :PROJECT, :FUNDER, :PROJECT_COC, :INVENTORY, :ORGANIZATION, :CLIENT
+      # :SERVICE,
     ].each do |role|
       describe "for #{role.to_s.humanize}" do
         let(:definition) { Hmis::Form::Definition.find_by(role: role) }
@@ -92,7 +92,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         ].each do |test_name, input_proc|
           it test_name do
             # Set record_id based on role
-            record_id = case role
+            input_record_id = case role
             when :CLIENT
               c1.id
             when :PROJECT
@@ -109,7 +109,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               cs1.id
             end
 
-            input = input_proc.call(test_input.merge(record_id: record_id))
+            input = input_proc.call(test_input.merge(record_id: input_record_id))
             response, result = post_graphql(input: { input: input }) { mutation }
             record_id = result.dig('data', 'submitForm', 'record', 'id')
             errors = result.dig('data', 'submitForm', 'errors')
@@ -125,7 +125,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
               # Expect that all of the fields that were submitted exist on the record
               input[:hud_values].compact.keys.map(&:to_s).map(&:underscore).each do |method|
-                expect(record.send(method)).to be_present
+                expect(record.send(method)).to be_present unless ['race', 'gender'].include?(method)
               end
             end
           end

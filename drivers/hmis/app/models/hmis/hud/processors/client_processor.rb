@@ -6,7 +6,26 @@
 
 module Hmis::Hud::Processors
   class ClientProcessor < Base
-    # TODO move ClientInputTransformer logic into here
+    def process(field, value)
+      attribute_name = hud_name(field)
+      attribute_value = attribute_value_for_enum(hud_type(field), value)
+
+      attributes = case attribute_name
+      when 'race'
+        # binding.pry
+        race_attributes(attribute_value)
+      when 'gender'
+        gender_attributes(attribute_value)
+      when 'pronouns'
+        { attribute_name => attribute_value.any? ? attribute_value.join('|') : nil }
+      when 'SSN'
+        { attribute_name => attribute_value.present? ? attribute_value.gsub(/[^\dXx]/, '') : nil }
+      else
+        { attribute_name => attribute_value }
+      end
+
+      @processor.send(factory_name).assign_attributes(attributes)
+    end
 
     def factory_name
       :owner_factory
@@ -17,6 +36,25 @@ module Hmis::Hud::Processors
     end
 
     def information_date(_)
+    end
+
+    # TODO: move actual logic here once ClientInputTransformer is removed because we stop using that mutation
+    private def race_attributes(attribute_value)
+      Types::HmisSchema::Transformers::ClientInputTransformer.multi_field_attrs(
+        attribute_value,
+        Hmis::Hud::Client.race_enum_map,
+        :data_not_collected,
+        :RaceNone,
+      )
+    end
+
+    private def gender_attributes(attribute_value)
+      Types::HmisSchema::Transformers::ClientInputTransformer.multi_field_attrs(
+        attribute_value,
+        Hmis::Hud::Client.gender_enum_map,
+        'Data not collected',
+        :GenderNone,
+      )
     end
   end
 end

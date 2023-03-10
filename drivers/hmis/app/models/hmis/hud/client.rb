@@ -8,6 +8,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   extend OrderAsSpecified
   include ::HmisStructure::Client
   include ::Hmis::Hud::Concerns::Shared
+  include ::HudConcerns::Client
   include ClientSearch
 
   attr_accessor :gender, :race
