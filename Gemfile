@@ -42,7 +42,7 @@ gem 'bootsnap'
 gem 'bcrypt'
 gem 'haml-rails'
 gem 'sassc-rails'
-gem 'autoprefixer-rails'
+gem 'autoprefixer-rails', '~> 10.3.3' # pinned until we can update to Bootstrap 5.3 or later
 gem 'kaminari'
 gem 'pagy'
 gem 'with_advisory_lock'
