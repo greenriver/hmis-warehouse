@@ -610,4 +610,20 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       end
     end
   end
+
+  describe 'Form processing for Organizations' do
+    let(:definition) { Hmis::Form::Definition.find_by(role: :ORGANIZATION) }
+  end
+
+  describe 'Form processing for Funders' do
+    let(:definition) { Hmis::Form::Definition.find_by(role: :FUNDER) }
+  end
+
+  describe 'Form processing for ProjectCoCs' do
+    let(:definition) { Hmis::Form::Definition.find_by(role: :PROJECT_COC) }
+  end
+
+  describe 'Form processing for Inventory' do
+    let(:definition) { Hmis::Form::Definition.find_by(role: :INVENTORY) }
+  end
 end
