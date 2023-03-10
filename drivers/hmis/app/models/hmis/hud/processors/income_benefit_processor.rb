@@ -9,8 +9,8 @@ module Hmis::Hud::Processors
     def process(field, value)
       attribute_name = hud_name(field)
       attribute_value = attribute_value_for_enum(hud_type(field), value)
-      attribute_value = false if override_to_false?(attribute_name, attribute_value)
-
+      attribute_value = 0 if override_to_no?(attribute_name, attribute_value)
+      # binding.pry if field == 'earned'
       @processor.send(factory_name).assign_attributes(attribute_name => attribute_value)
     end
 
@@ -22,15 +22,15 @@ module Hmis::Hud::Processors
       Types::HmisSchema::IncomeBenefit
     end
 
-    def override_to_false?(attribute_name, attribute_value)
+    def override_to_no?(attribute_name, attribute_value)
       summary_item_dependents.each do |field_key, dependents|
         next unless dependents.include?(attribute_name.to_sym)
 
         # If summary item is NO, dependent item should also be NO
         return true if @hud_values[field_key] == 'NO'
 
-        # If summary item is YES and dependent item is NIL, dependent item should be NO
-        return true if attribute_value.nil? && @hud_values[field_key] == 'YES'
+        # If summary item is YES and dependent item is unanswered, dependent item should be NO
+        return true if (attribute_value.nil? || attribute_value == 99) && @hud_values[field_key] == 'YES'
       end
 
       false

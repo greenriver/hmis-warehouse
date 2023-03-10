@@ -1419,9 +1419,9 @@ type Enrollment {
   intakeAssessment: Assessment
   lengthOfStay: ResidencePriorLengthOfStay
   livingSituation: LivingSituation
-  losUnderThreshold: Boolean
+  losUnderThreshold: NoYesMissing
   monthsHomelessPastThreeYears: MonthsHomelessPastThreeYears
-  previousStreetEssh: Boolean
+  previousStreetEssh: NoYesMissing
   project: Project!
   relationshipToHoH: RelationshipToHoH!
   services(limit: Int, offset: Int, searchTerm: String, serviceCategory: ID, serviceType: ID, sortOrder: ServiceSortOption): ServicesPaginated!
@@ -1502,8 +1502,8 @@ type Event {
   eventDate: ISO8601DateTime!
   id: ID!
   locationCrisisOrPhHousing: String
-  probSolDivRrResult: Boolean
-  referralCaseManageAfter: Boolean
+  probSolDivRrResult: NoYesMissing
+  referralCaseManageAfter: NoYesMissing
   referralResult: ReferralResult
   resultDate: ISO8601DateTime
   user: User
@@ -2496,32 +2496,32 @@ scalar ISO8601DateTime
 
 type IncomeBenefit {
   adap: NoYesReasonsForMissingData
-  alimony: Boolean
+  alimony: NoYesMissing
   alimonyAmount: Float
   benefitsFromAnySource: NoYesReasonsForMissingData
-  childSupport: Boolean
+  childSupport: NoYesMissing
   childSupportAmount: Float
   client: Client!
-  cobra: Boolean
+  cobra: NoYesMissing
   connectionWithSoar: NoYesReasonsForMissingData
   dataCollectionStage: DataCollectionStage!
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
-  earned: Boolean
+  earned: NoYesMissing
   earnedAmount: Float
-  employerProvided: Boolean
+  employerProvided: NoYesMissing
   enrollment: Enrollment!
-  ga: Boolean
+  ga: NoYesMissing
   gaAmount: Float
   hivaidsAssistance: NoYesReasonsForMissingData
   id: ID!
   incomeFromAnySource: NoYesReasonsForMissingData
-  indianHealthServices: Boolean
+  indianHealthServices: NoYesMissing
   informationDate: ISO8601Date!
   insuranceFromAnySource: NoYesReasonsForMissingData
-  medicaid: Boolean
-  medicare: Boolean
+  medicaid: NoYesMissing
+  medicare: NoYesMissing
   noAdapReason: NoAssistanceReason
   noCobraReason: ReasonNotInsured
   noEmployerProvidedReason: ReasonNotInsured
@@ -2534,44 +2534,44 @@ type IncomeBenefit {
   noSchipReason: ReasonNotInsured
   noStateHealthInsReason: ReasonNotInsured
   noVaMedReason: ReasonNotInsured
-  otherBenefitsSource: Boolean
+  otherBenefitsSource: NoYesMissing
   otherBenefitsSourceIdentify: String
   otherIncomeAmount: Float
-  otherIncomeSource: Boolean
+  otherIncomeSource: NoYesMissing
   otherIncomeSourceIdentify: String
-  otherInsurance: Boolean
+  otherInsurance: NoYesMissing
   otherInsuranceIdentify: String
-  otherTanf: Boolean
-  pension: Boolean
+  otherTanf: NoYesMissing
+  pension: NoYesMissing
   pensionAmount: Float
-  privateDisability: Boolean
+  privateDisability: NoYesMissing
   privateDisabilityAmount: Float
-  privatePay: Boolean
+  privatePay: NoYesMissing
   ryanWhiteMedDent: NoYesReasonsForMissingData
-  schip: Boolean
-  snap: Boolean
-  socSecRetirement: Boolean
+  schip: NoYesMissing
+  snap: NoYesMissing
+  socSecRetirement: NoYesMissing
   socSecRetirementAmount: Float
-  ssdi: Boolean
+  ssdi: NoYesMissing
   ssdiAmount: Float
-  ssi: Boolean
+  ssi: NoYesMissing
   ssiAmount: Float
-  stateHealthIns: Boolean
-  tanf: Boolean
+  stateHealthIns: NoYesMissing
+  tanf: NoYesMissing
   tanfAmount: Float
-  tanfChildCare: Boolean
-  tanfTransportation: Boolean
+  tanfChildCare: NoYesMissing
+  tanfTransportation: NoYesMissing
   totalMonthlyIncome: String
-  unemployment: Boolean
+  unemployment: NoYesMissing
   unemploymentAmount: Float
   user: User
-  vaDisabilityNonService: Boolean
+  vaDisabilityNonService: NoYesMissing
   vaDisabilityNonServiceAmount: Float
-  vaDisabilityService: Boolean
+  vaDisabilityService: NoYesMissing
   vaDisabilityServiceAmount: Float
-  vaMedicalServices: Boolean
-  wic: Boolean
-  workersComp: Boolean
+  vaMedicalServices: NoYesMissing
+  wic: NoYesMissing
+  workersComp: NoYesMissing
   workersCompAmount: Float
 }
 
@@ -3386,6 +3386,31 @@ enum NoAssistanceReason {
 }
 
 """
+1.7
+"""
+enum NoYesMissing {
+  """
+  (99) Data not collected
+  """
+  DATA_NOT_COLLECTED
+
+  """
+  Invalid Value
+  """
+  INVALID
+
+  """
+  (0) No
+  """
+  NO
+
+  """
+  (1) Yes
+  """
+  YES
+}
+
+"""
 1.8
 """
 enum NoYesReasonsForMissingData {
@@ -3425,9 +3450,6 @@ Results from client/project omnisearch
 """
 union OmnisearchResult = Client | Project
 
-"""
-HUD Organization
-"""
 type Organization {
   access: OrganizationAccess!
   contactInformation: String
@@ -3438,7 +3460,7 @@ type Organization {
   id: ID!
   organizationName: String!
   projects(limit: Int, offset: Int, projectTypes: [ProjectType!], searchTerm: String, sortOrder: ProjectSortOption): ProjectsPaginated!
-  victimServiceProvider: Boolean
+  victimServiceProvider: NoYesMissing!
 }
 
 type OrganizationAccess {
@@ -3568,12 +3590,12 @@ enum PrioritizationStatus {
 }
 
 type Project {
-  HMISParticipatingProject: Boolean
+  HMISParticipatingProject: NoYesMissing
   HOPWAMedAssistedLivingFac: HOPWAMedAssistedLivingFac
   access: ProjectAccess!
   active: Boolean!
   contactInformation: String
-  continuumProject: Boolean
+  continuumProject: NoYesMissing
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
@@ -3589,7 +3611,7 @@ type Project {
   projectCocs(limit: Int, offset: Int): ProjectCocsPaginated!
   projectName: String!
   projectType: ProjectType
-  residentialAffiliation: Boolean
+  residentialAffiliation: NoYesMissing
   targetPopulation: TargetPopulation
   trackingMethod: TrackingMethod
 }

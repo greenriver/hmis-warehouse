@@ -39,9 +39,9 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       'IncomeBenefit.incomeFromAnySource' => 'YES',
       'IncomeBenefit.earned' => nil,
       'IncomeBenefit.earnedAmount' => nil,
-      'IncomeBenefit.unemployment' => true,
+      'IncomeBenefit.unemployment' => 'YES',
       'IncomeBenefit.unemploymentAmount' => 100,
-      'IncomeBenefit.otherIncomeSource' => false,
+      'IncomeBenefit.otherIncomeSource' => 'NO',
       'IncomeBenefit.otherIncomeAmount' => 0,
       'IncomeBenefit.otherIncomeSourceIdentify' => '_HIDDEN',
     }
@@ -89,7 +89,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
     assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: hmis_hud_user, form_definition: fd, assessment_date: Date.current)
     assessment.custom_form.hud_values = {
       'IncomeBenefit.insuranceFromAnySource' => 'YES',
-      'IncomeBenefit.medicaid' => true,
+      'IncomeBenefit.medicaid' => 'YES',
       'IncomeBenefit.schip' => nil,
       'IncomeBenefit.otherInsurance' => nil,
       'IncomeBenefit.otherInsuranceIdentify' => '_HIDDEN',
@@ -122,7 +122,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
 
     income_benefits = assessment.enrollment.income_benefits.first
     expect(income_benefits.insurance_from_any_source).to eq(99)
-    expect(income_benefits.medicaid).to eq(nil)
+    expect(income_benefits.medicaid).to eq(99)
   end
 
   it 'ingests HealthAndDV into the hud tables (no)' do
@@ -386,11 +386,16 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       custom_form = Hmis::Form::CustomForm.new(owner: p1, definition: definition)
       custom_form.hud_values = {
         'projectName' => 'new name',
+        'HMISParticipatingProject' => nil,
+        'continuumProject' => 'YES',
+
       }
       custom_form.form_processor.run!
       custom_form.owner.save!
       p1.reload
       expect(p1.project_name).to eq('new name')
+      expect(p1.HMISParticipatingProject).to eq(99)
+      expect(p1.continuum_project).to eq(1)
     end
   end
 

@@ -125,7 +125,7 @@
           "field_name": "earned",
           "autofill_values": [
             {
-              "value_boolean": true,
+              "value_code": "YES",
               "autofill_behavior": "ALL",
               "autofill_when": [
                 {
@@ -136,7 +136,7 @@
               ]
             },
             {
-              "value_boolean": false,
+              "value_code": "NO",
               "autofill_behavior": "ANY",
               "autofill_when": [
                 {
@@ -166,7 +166,7 @@
           "field_name": "unemployment",
           "autofill_values": [
             {
-              "value_boolean": true,
+              "value_code": "YES",
               "autofill_behavior": "ALL",
               "autofill_when": [
                 {
@@ -177,7 +177,7 @@
               ]
             },
             {
-              "value_boolean": false,
+              "value_code": "NO",
               "autofill_behavior": "ANY",
               "autofill_when": [
                 {
@@ -207,7 +207,7 @@
           "field_name": "ssi",
           "autofill_values": [
             {
-              "value_boolean": true,
+              "value_code": "YES",
               "autofill_behavior": "ALL",
               "autofill_when": [
                 {
@@ -218,7 +218,7 @@
               ]
             },
             {
-              "value_boolean": false,
+              "value_code": "NO",
               "autofill_behavior": "ANY",
               "autofill_when": [
                 {
@@ -248,7 +248,7 @@
           "field_name": "ssdi",
           "autofill_values": [
             {
-              "value_boolean": true,
+              "value_code": "YES",
               "autofill_behavior": "ALL",
               "autofill_when": [
                 {
@@ -259,7 +259,7 @@
               ]
             },
             {
-              "value_boolean": false,
+              "value_code": "NO",
               "autofill_behavior": "ANY",
               "autofill_when": [
                 {
@@ -289,7 +289,7 @@
           "field_name": "vaDisabilityService",
           "autofill_values": [
             {
-              "value_boolean": true,
+              "value_code": "YES",
               "autofill_behavior": "ALL",
               "autofill_when": [
                 {
@@ -300,7 +300,7 @@
               ]
             },
             {
-              "value_boolean": false,
+              "value_code": "NO",
               "autofill_behavior": "ANY",
               "autofill_when": [
                 {
@@ -330,7 +330,7 @@
           "field_name": "vaDisabilityNonService",
           "autofill_values": [
             {
-              "value_boolean": true,
+              "value_code": "YES",
               "autofill_behavior": "ALL",
               "autofill_when": [
                 {
@@ -341,7 +341,7 @@
               ]
             },
             {
-              "value_boolean": false,
+              "value_code": "NO",
               "autofill_behavior": "ANY",
               "autofill_when": [
                 {
@@ -371,7 +371,7 @@
           "field_name": "privateDisability",
           "autofill_values": [
             {
-              "value_boolean": true,
+              "value_code": "YES",
               "autofill_behavior": "ALL",
               "autofill_when": [
                 {
@@ -382,7 +382,7 @@
               ]
             },
             {
-              "value_boolean": false,
+              "value_code": "NO",
               "autofill_behavior": "ANY",
               "autofill_when": [
                 {
@@ -412,7 +412,7 @@
           "field_name": "workersComp",
           "autofill_values": [
             {
-              "value_boolean": true,
+              "value_code": "YES",
               "autofill_behavior": "ALL",
               "autofill_when": [
                 {
@@ -423,7 +423,7 @@
               ]
             },
             {
-              "value_boolean": false,
+              "value_code": "NO",
               "autofill_behavior": "ANY",
               "autofill_when": [
                 {
@@ -453,7 +453,7 @@
           "field_name": "tanf",
           "autofill_values": [
             {
-              "value_boolean": true,
+              "value_code": "YES",
               "autofill_behavior": "ALL",
               "autofill_when": [
                 {
@@ -464,7 +464,7 @@
               ]
             },
             {
-              "value_boolean": false,
+              "value_code": "NO",
               "autofill_behavior": "ANY",
               "autofill_when": [
                 {
@@ -494,7 +494,7 @@
           "field_name": "ga",
           "autofill_values": [
             {
-              "value_boolean": true,
+              "value_code": "YES",
               "autofill_behavior": "ALL",
               "autofill_when": [
                 {
@@ -505,7 +505,7 @@
               ]
             },
             {
-              "value_boolean": false,
+              "value_code": "NO",
               "autofill_behavior": "ANY",
               "autofill_when": [
                 {
@@ -535,7 +535,7 @@
           "field_name": "socSecRetirement",
           "autofill_values": [
             {
-              "value_boolean": true,
+              "value_code": "YES",
               "autofill_behavior": "ALL",
               "autofill_when": [
                 {
@@ -546,7 +546,7 @@
               ]
             },
             {
-              "value_boolean": false,
+              "value_code": "NO",
               "autofill_behavior": "ANY",
               "autofill_when": [
                 {
@@ -576,7 +576,7 @@
           "field_name": "pension",
           "autofill_values": [
             {
-              "value_boolean": true,
+              "value_code": "YES",
               "autofill_behavior": "ALL",
               "autofill_when": [
                 {
@@ -587,7 +587,7 @@
               ]
             },
             {
-              "value_boolean": false,
+              "value_code": "NO",
               "autofill_behavior": "ANY",
               "autofill_when": [
                 {
@@ -617,7 +617,7 @@
           "field_name": "childSupport",
           "autofill_values": [
             {
-              "value_boolean": true,
+              "value_code": "YES",
               "autofill_behavior": "ALL",
               "autofill_when": [
                 {
@@ -628,7 +628,7 @@
               ]
             },
             {
-              "value_boolean": false,
+              "value_code": "NO",
               "autofill_behavior": "ANY",
               "autofill_when": [
                 {
@@ -658,7 +658,7 @@
           "field_name": "alimony",
           "autofill_values": [
             {
-              "value_boolean": true,
+              "value_code": "YES",
               "autofill_behavior": "ALL",
               "autofill_when": [
                 {
@@ -669,7 +669,7 @@
               ]
             },
             {
-              "value_boolean": false,
+              "value_code": "NO",
               "autofill_behavior": "ANY",
               "autofill_when": [
                 {
@@ -699,7 +699,7 @@
           "field_name": "otherIncomeSource",
           "autofill_values": [
             {
-              "value_boolean": true,
+              "value_code": "YES",
               "autofill_behavior": "ALL",
               "autofill_when": [
                 {
@@ -710,7 +710,7 @@
               ]
             },
             {
-              "value_boolean": false,
+              "value_code": "NO",
               "autofill_behavior": "ANY",
               "autofill_when": [
                 {
