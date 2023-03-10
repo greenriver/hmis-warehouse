@@ -94,6 +94,21 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
     end
 
+    it 'should throw error if unauthorized' do
+      remove_permissions(hmis_user, :can_edit_enrollments)
+      response, result = post_graphql(input: test_input) { mutation }
+
+      aggregate_failures 'checking response' do
+        expect(response.status).to eq 200
+        enrollments = result.dig('data', 'addHouseholdMembersToEnrollment', 'enrollments')
+        errors = result.dig('data', 'addHouseholdMembersToEnrollment', 'errors')
+        expect(enrollments).to be_nil
+        expect(errors).to be_present
+        expect(errors).to contain_exactly(include('type' => 'not_allowed'))
+        expect(Hmis::Hud::Enrollment.count).to eq(1)
+      end
+    end
+
     it 'should add members to an in-progress enrollment correctly' do
       enrollment.save_in_progress
 
@@ -134,6 +149,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           ->(input) { input.merge(start_date: (Date.today + 1.week).strftime('%Y-%m-%d')) },
           {
             fullMessage: 'Entry date cannot be in the future',
+            attribute: :startDate,
             severity: :error,
             type: :out_of_range,
           },

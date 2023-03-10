@@ -12,7 +12,9 @@ class Hmis::Hud::ProjectCoc < Hmis::Hud::Base
   include ::Hmis::Hud::Concerns::ProjectRelated
   validates_with Hmis::Hud::Validators::ProjectCocValidator
 
+  belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   belongs_to :project, **hmis_relation(:ProjectID, 'Project')
+  belongs_to :user, **hmis_relation(:UserID, 'User')
 
   def required_fields
     @required_fields ||= [

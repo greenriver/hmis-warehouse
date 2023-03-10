@@ -26,7 +26,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       enrollment_id: e1.id,
       form_definition_id: fd1.id,
       values: { 'linkid-date' => '2023-02-01' },
-      hud_values: { 'linkid-date' => '2023-02-01' },
+      hud_values: { 'informationDate' => '2023-02-01' },
     }
   end
 
@@ -45,8 +45,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             client {
               id
             }
-            assessmentDetail {
-              #{scalar_fields(Types::HmisSchema::AssessmentDetail)}
+            customForm {
+              #{scalar_fields(Types::HmisSchema::CustomForm)}
               definition {
                 id
               }
@@ -69,12 +69,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(errors).to be_empty
         expect(assessment['id']).to be_present
         expect(assessment['assessmentDate']).to eq('2023-02-01')
-        expect(Hmis::Hud::Assessment.count).to eq(1)
-        expect(Hmis::Hud::Assessment.in_progress.count).to eq(0)
-        expect(Hmis::Hud::Assessment.first.enrollment_id).to eq(e1.enrollment_id)
-        details = Hmis::Hud::Assessment.first.assessment_detail
+        expect(Hmis::Hud::CustomAssessment.count).to eq(1)
+        expect(Hmis::Hud::CustomAssessment.in_progress.count).to eq(0)
+        expect(Hmis::Hud::CustomAssessment.first.enrollment_id).to eq(e1.enrollment_id)
+        details = Hmis::Hud::CustomAssessment.first.custom_form
         expect(details.values).to include(test_input[:values])
-        expect(details.hud_values).to include({ 'informationDate' => '2023-02-01' })
+        expect(details.hud_values).to include(test_input[:hud_values])
       end
     end
   end
@@ -84,15 +84,15 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       # create tha initial submitted assessment
       _resp, result = post_graphql(input: { input: test_input }) { mutation }
       id = result.dig('data', 'submitAssessment', 'assessment', 'id')
-      @assessment = Hmis::Hud::Assessment.find(id)
+      @assessment = Hmis::Hud::CustomAssessment.find(id)
     end
 
     it 'should update assessment successfully' do
       new_information_date = '2024-01-01'
       input = {
         assessment_id: @assessment.id,
-        values: { 'linkid-date' => '2023-02-01' },
-        hud_values: { 'linkid-date' => new_information_date },
+        values: { 'linkid-date' => new_information_date },
+        hud_values: { 'informationDate' => new_information_date },
       }
       response, result = post_graphql(input: { input: input }) { mutation }
       assessment = result.dig('data', 'submitAssessment', 'assessment')
@@ -103,11 +103,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(errors).to be_empty
         expect(assessment['id']).to be_present
         expect(assessment['assessmentDate']).to eq(new_information_date)
-        expect(Hmis::Hud::Assessment.count).to eq(1)
-        expect(Hmis::Hud::Assessment.in_progress.count).to eq(0)
-        details = Hmis::Hud::Assessment.first.assessment_detail
+        expect(Hmis::Hud::CustomAssessment.count).to eq(1)
+        expect(Hmis::Hud::CustomAssessment.in_progress.count).to eq(0)
+        details = Hmis::Hud::CustomAssessment.first.custom_form
         expect(details.values).to include(input[:values])
-        expect(details.hud_values).to include({ 'informationDate' => new_information_date })
+        expect(details.hud_values).to include(input[:hud_values])
       end
     end
   end
@@ -130,17 +130,17 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       # create the initial WIP assessment
       _resp, result = post_graphql(input: { input: test_input }) { save_wip_mutation }
       id = result.dig('data', 'saveAssessment', 'assessment', 'id')
-      @assessment = Hmis::Hud::Assessment.find(id)
+      @assessment = Hmis::Hud::CustomAssessment.find(id)
     end
 
     it 'should update and submit assessment successfully' do
-      expect(Hmis::Hud::Assessment.in_progress.count).to eq(1)
+      expect(Hmis::Hud::CustomAssessment.in_progress.count).to eq(1)
 
       new_information_date = '2024-01-01'
       input = {
         assessment_id: @assessment.id,
         values: { 'linkid-date' => new_information_date },
-        hud_values: { 'linkid-date' => new_information_date },
+        hud_values: { 'informationDate' => new_information_date },
       }
       response, result = post_graphql(input: { input: input }) { mutation }
       assessment = result.dig('data', 'submitAssessment', 'assessment')
@@ -153,9 +153,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(assessment['enrollment']).to be_present
         expect(assessment['assessmentDate']).to eq(new_information_date)
         expect(assessment['inProgress']).to eq(false)
-        expect(Hmis::Hud::Assessment.count).to eq(1)
-        expect(Hmis::Hud::Assessment.in_progress.count).to eq(0)
-        expect(Hmis::Hud::Assessment.where(enrollment_id: Hmis::Hud::Assessment::WIP_ID).count).to eq(0)
+        expect(Hmis::Hud::CustomAssessment.count).to eq(1)
+        expect(Hmis::Hud::CustomAssessment.in_progress.count).to eq(0)
+        expect(Hmis::Hud::CustomAssessment.where(enrollment_id: Hmis::Hud::CustomAssessment::WIP_ID).count).to eq(0)
         expect(Hmis::Wip.count).to eq(0)
         @assessment.reload
         expect(@assessment.in_progress?).to eq(false)
@@ -163,13 +163,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     it 'should save without submitting if there are unconfirmed warnings' do
-      expect(Hmis::Hud::Assessment.in_progress.count).to eq(1)
+      expect(Hmis::Hud::CustomAssessment.in_progress.count).to eq(1)
 
       new_information_date = '2026-01-01'
       input = {
         assessment_id: @assessment.id,
         values: { 'linkid-date' => new_information_date, 'linkid-choice' => nil },
-        hud_values: { 'linkid-date' => new_information_date, 'linkid-choice' => 'DATA_NOT_COLLECTED' },
+        hud_values: { 'informationDate' => new_information_date, 'linkid-choice' => nil },
       }
       response, result = post_graphql(input: { input: input }) { mutation }
       assessment = result.dig('data', 'submitAssessment', 'assessment')
@@ -184,8 +184,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         # It is still WIP, but its values and assessment date have been updated
         expect(@assessment.in_progress?).to eq(true)
         expect(@assessment.assessment_date).to eq(Date.parse(new_information_date))
-        expect(@assessment.assessment_detail.values).to include(**input[:values])
-        expect(@assessment.assessment_detail.hud_values).to include('fieldTwo' => 'DATA_NOT_COLLECTED', 'informationDate' => '2026-01-01')
+        expect(@assessment.custom_form.values).to include(**input[:values])
+        expect(@assessment.custom_form.hud_values).to include(**input[:hud_values])
       end
     end
   end

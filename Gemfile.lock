@@ -15,6 +15,25 @@ GIT
       http
 
 GIT
+  remote: https://github.com/greenriver/hellosign-ruby-sdk.git
+  revision: 112d2219341806566ae4a8f6f8d51a367e76366a
+  specs:
+    hellosign-ruby-sdk (3.7.10)
+      faraday (~> 2.2.0)
+      faraday-multipart (~> 1.0.0)
+      mime-types
+      multi_json
+
+GIT
+  remote: https://github.com/greenriver/nominatim.git
+  revision: 9b5dcb4967b11fc252a470e28e0799f36a4c9f31
+  branch: aw/faraday-2
+  specs:
+    nominatim (0.0.7)
+      faraday (>= 2)
+      multi_json
+
+GIT
   remote: https://github.com/greenriver/pg_fixtures.git
   revision: 48c46a77893f472890cb06366d89eba6492d8c27
   specs:
@@ -27,6 +46,15 @@ GIT
   specs:
     rails_drivers (1.2.0)
       rails (>= 5.2)
+
+GIT
+  remote: https://github.com/greenriver/stupidedi.git
+  revision: 9e1b9896b371078d439e72505165082b898cd00a
+  branch: master
+  specs:
+    stupidedi (1.4.1)
+      cantor (~> 1.2.1)
+      term-ansicolor (~> 1.3)
 
 GEM
   remote: https://rubygems.org/
@@ -379,25 +407,12 @@ GEM
       railties (>= 5.0.0)
     faker (2.19.0)
       i18n (>= 1.6, < 2)
-    faraday (1.8.0)
-      faraday-em_http (~> 1.0)
-      faraday-em_synchrony (~> 1.0)
-      faraday-excon (~> 1.1)
-      faraday-httpclient (~> 1.0.1)
-      faraday-net_http (~> 1.0)
-      faraday-net_http_persistent (~> 1.1)
-      faraday-patron (~> 1.0)
-      faraday-rack (~> 1.0)
-      multipart-post (>= 1.2, < 3)
+    faraday (2.2.0)
+      faraday-net_http (~> 2.0)
       ruby2_keywords (>= 0.0.4)
-    faraday-em_http (1.0.0)
-    faraday-em_synchrony (1.0.0)
-    faraday-excon (1.1.0)
-    faraday-httpclient (1.0.1)
-    faraday-net_http (1.0.1)
-    faraday-net_http_persistent (1.2.0)
-    faraday-patron (1.0.0)
-    faraday-rack (1.0.0)
+    faraday-multipart (1.0.4)
+      multipart-post (~> 2)
+    faraday-net_http (2.1.0)
     fast_gettext (2.1.0)
     ffi (1.15.5)
     ffi-compiler (1.0.1)
@@ -446,10 +461,6 @@ GEM
     hashie (5.0.0)
     heapy (0.2.0)
       thor
-    hellosign-ruby-sdk (3.7.7)
-      faraday
-      mime-types
-      multi_json
     highline (2.0.3)
     html2haml (2.2.0)
       erubis (~> 2.7.0)
@@ -474,7 +485,6 @@ GEM
       ruby-vips (>= 2.0.17, < 3)
     iniparse (1.5.0)
     io-console (0.6.0)
-    jmespath (1.6.1)
     jmespath (1.6.2)
     jquery-minicolors-rails (2.2.6.2)
       jquery-rails
@@ -486,7 +496,7 @@ GEM
     jquery-ui-rails (6.0.1)
       railties (>= 3.2.16)
     json (2.6.3)
-    jwt (2.3.0)
+    jwt (2.7.0)
     kaminari (1.2.1)
       activesupport (>= 4.1.0)
       kaminari-actionview (= 1.2.1)
@@ -553,7 +563,7 @@ GEM
     msgpack (1.4.2)
     multi_json (1.15.0)
     multi_xml (0.6.0)
-    multipart-post (2.1.1)
+    multipart-post (2.3.0)
     net-http (0.3.2)
       uri
     net-imap (0.3.4)
@@ -581,26 +591,25 @@ GEM
       racc (~> 1.4)
     nokogiri (1.14.1-x86_64-linux)
       racc (~> 1.4)
-    nominatim (0.0.6)
-      faraday
-      multi_json
     oauth (0.5.6)
-    oauth2 (1.4.7)
-      faraday (>= 0.8, < 2.0)
+    oauth2 (2.0.9)
+      faraday (>= 0.17.3, < 3.0)
       jwt (>= 1.0, < 3.0)
-      multi_json (~> 1.3)
       multi_xml (~> 0.5)
-      rack (>= 1.2, < 3)
+      rack (>= 1.2, < 4)
+      snaky_hash (~> 2.0)
+      version_gem (~> 1.1)
     oj (3.13.10)
-    omniauth (1.9.2)
+    omniauth (2.1.1)
       hashie (>= 3.4.6)
-      rack (>= 1.6.2, < 3)
-    omniauth-oauth2 (1.7.1)
-      oauth2 (~> 1.4)
+      rack (>= 2.2.3)
+      rack-protection
+    omniauth-oauth2 (1.7.3)
+      oauth2 (>= 1.4, < 3)
       omniauth (>= 1.9, < 3)
-    omniauth-rails_csrf_protection (0.1.2)
+    omniauth-rails_csrf_protection (1.0.1)
       actionpack (>= 4.2)
-      omniauth (>= 1.3.1)
+      omniauth (~> 2.0)
     options (2.3.2)
     order_as_specified (1.7)
       activerecord (>= 5.0.0)
@@ -640,13 +649,15 @@ GEM
       nio4r (~> 2.0)
     pwned (2.0.2)
     racc (1.6.2)
-    rack (2.2.6.2)
+    rack (2.2.6.3)
     rack-attack (6.5.0)
       rack (>= 1.0, < 3)
     rack-cors (1.1.1)
       rack (>= 2.0.0)
     rack-mini-profiler (2.3.3)
       rack (>= 1.2.0)
+    rack-protection (3.0.5)
+      rack
     rack-test (2.0.2)
       rack (>= 1.3)
     rails (6.1.7.1)
@@ -824,6 +835,9 @@ GEM
       actionpack (>= 5.2)
       activemodel (>= 5.2)
     slack-notifier (2.4.0)
+    snaky_hash (2.0.1)
+      hashie
+      version_gem (~> 1.1, >= 1.1.1)
     sniffer (0.5.0)
       anyway_config (>= 1.0)
       dry-initializer (~> 3)
@@ -850,9 +864,6 @@ GEM
       net-ssh (>= 2.8.0)
     ssrf_filter (1.0.7)
     stackprof (0.2.17)
-    stupidedi (1.4.1)
-      cantor (~> 1.2.1)
-      term-ansicolor (~> 1.3)
     sync (0.5.0)
     temple (0.8.2)
     term-ansicolor (1.7.1)
@@ -866,7 +877,7 @@ GEM
     tilt (2.0.10)
     timecop (0.9.4)
     timeout (0.3.1)
-    tins (1.29.1)
+    tins (1.32.1)
       sync
     tiny_tds (2.1.5)
     todo_or_die (0.0.4)
@@ -883,6 +894,7 @@ GEM
     validates_email_format_of (1.6.3)
       i18n
     vcr (6.1.0)
+    version_gem (1.1.1)
     virtus (2.0.0)
       axiom-types (~> 0.1)
       coercible (~> 1.0)
@@ -1022,6 +1034,7 @@ DEPENDENCIES
   execjs
   factory_bot_rails
   faker (>= 1.7.2)
+  faraday (~> 2.2.0)
   fast_gettext
   ffi
   ffi-geos
@@ -1037,7 +1050,7 @@ DEPENDENCIES
   grover
   haml-rails
   handlebars_assets
-  hellosign-ruby-sdk
+  hellosign-ruby-sdk!
   html2haml
   htmlentities
   image_processing
@@ -1064,11 +1077,11 @@ DEPENDENCIES
   net-sftp
   net-ssh (~> 7)
   nokogiri (>= 1.13.10)
-  nominatim
+  nominatim!
   oj
-  omniauth (~> 1.9.1)
-  omniauth-oauth2
-  omniauth-rails_csrf_protection (~> 0.1)
+  omniauth (~> 2.1)
+  omniauth-oauth2 (~> 1.7.3)
+  omniauth-rails_csrf_protection (~> 1.0.1)
   order_as_specified
   overcommit
   pagy
@@ -1082,6 +1095,7 @@ DEPENDENCIES
   progress_bar
   pry-rails
   puma (~> 4.3.11)
+  rack (>= 2.2.6.3)
   rack-attack
   rack-cors
   rack-mini-profiler
@@ -1128,7 +1142,7 @@ DEPENDENCIES
   sprockets-es6
   sshkit
   stackprof
-  stupidedi
+  stupidedi!
   terser
   text
   timecop
@@ -1151,4 +1165,4 @@ DEPENDENCIES
   yabeda-rails
 
 BUNDLED WITH
-   2.4.6
+   2.3.24

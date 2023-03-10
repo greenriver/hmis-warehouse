@@ -12,16 +12,24 @@ def seed_record_form_definitions
     file = File.read(file_path)
     form_definition = JSON.parse(file)
     forms.push(identifier)
+    role = identifier.upcase.to_sym
+    raise "unrecognized role #{role}" unless Hmis::Form::Definition::FORM_ROLES.key?(role)
 
     definition = Hmis::Form::Definition.find_or_create_by(
       identifier: identifier,
       version: 0,
-      role: 'RECORD',
+      role: role,
       status: 'draft',
     )
     definition.definition = form_definition.to_json
     definition.save!
+
+    # Make this form the default instance for this role
+    instance = Hmis::Form::Instance.find_or_create_by(entity_type: nil, entity_id: nil, definition_identifier: identifier)
+    instance.save!
   end
+  Hmis::Form::Definition.where(role: 'RECORD').destroy_all # remove legacy role
+
   puts "Saved definitions with identifiers: #{forms}"
 end
 

@@ -6,11 +6,12 @@ module Mutations
     field :inventory, Types::HmisSchema::Inventory, null: true
 
     def resolve(id:, input:)
-      record = Hmis::Hud::Inventory.editable_by(current_user).find_by(id: id)
+      record = Hmis::Hud::Inventory.viewable_by(current_user).find_by(id: id)
       default_update_record(
         record: record,
         field_name: :inventory,
         input: input,
+        permissions: [:can_edit_project_details],
       )
     end
   end

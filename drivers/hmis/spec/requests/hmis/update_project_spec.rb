@@ -18,13 +18,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     Hmis::Hud::User.from_user(hmis_user2)
   end
 
-  let(:edit_access_group) { create :edit_access_group }
-  let(:view_access_group) { create :view_access_group }
-
   let(:test_input) do
     {
       project_name: 'Project 1',
-      operating_start_date: (Date.yesterday).strftime('%Y-%m-%d'),
+      operating_start_date: Date.yesterday.strftime('%Y-%m-%d'),
       operating_end_date: Date.current.strftime('%Y-%m-%d'),
       description: 'This is a test project',
       contact_information: 'Contact for contact information',
@@ -94,6 +91,24 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
     end
 
+    it 'should throw error if unauthorized' do
+      remove_permissions(hmis_user, :can_edit_project_details)
+      aggregate_failures 'checking response' do
+        expect(p1.user_id).to eq(u2.user_id)
+        response, result = post_graphql(id: p1.id, input: test_input, confirmed: false) { mutation }
+
+        expect(response.status).to eq 200
+        project = result.dig('data', 'updateProject', 'project')
+        errors = result.dig('data', 'updateProject', 'errors')
+        expect(errors).to be_present
+        expect(errors).to contain_exactly(include('type' => 'not_allowed'))
+        expect(project).to be_nil
+
+        project = Hmis::Hud::Project.find(p1.id)
+        expect(project.project_name == p1.project_name).to eq(true)
+      end
+    end
+
     it 'should allow nulls, and correctly nullify fields' do
       p1.update(description: 'foo', operating_end_date: '2022-01-01', housing_type: 3, continuum_project: 0, residential_affiliation: 1, HMISParticipatingProject: 99)
       input = {
@@ -155,9 +170,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       assign_viewable(edit_access_group, p1.as_warehouse, hmis_user)
     end
 
-    let!(:pc1) { create :hmis_hud_project_coc, data_source_id: ds1.id, project: p1, coc_code: 'CO-500' }
+    let!(:pc1) { create :hmis_hud_project_coc, data_source: ds1, project: p1, coc_code: 'CO-500' }
     let!(:i1) { create :hmis_hud_inventory, data_source: ds1, project: p1, coc_code: pc1.coc_code, inventory_start_date: '2020-01-01' }
-    let!(:f1) { create :hmis_hud_funder, data_source_id: ds1.id, project: p1 }
+    let!(:f1) { create :hmis_hud_funder, data_source: ds1, project: p1 }
 
     it 'should warn if closing project with open funders and inventory' do
       p1.update!(operating_end_date: nil)

@@ -21,7 +21,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     }
   end
 
-  let!(:f1) { create :hmis_hud_funder, data_source_id: ds1.id, project: p1 }
+  let!(:f1) { create :hmis_hud_funder, data_source: ds1, project: p1 }
 
   let(:mutation) do
     <<~GRAPHQL
@@ -55,6 +55,24 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(record.funder).to eq 24
         expect(record.date_created).to eq(f1.date_created)
         expect(record.date_updated).not_to eq(f1.date_updated)
+      end
+    end
+
+    it 'should throw error if unauthorized' do
+      remove_permissions(hmis_user, :can_edit_project_details)
+      response, result = post_graphql(id: f1.id, input: valid_input) { mutation }
+
+      aggregate_failures 'checking response' do
+        expect(response.status).to eq 200
+        record = result.dig('data', 'updateFunder', 'funder')
+        errors = result.dig('data', 'updateFunder', 'errors')
+        expect(errors).to be_present
+        expect(record).to be_nil
+        expect(errors).to contain_exactly(include('type' => 'not_allowed'))
+        record = Hmis::Hud::Funder.find(f1.id)
+        expect(record.funder).to eq 20
+        expect(record.date_created).to eq(f1.date_created)
+        expect(record.date_updated).to eq(f1.date_updated)
       end
     end
 
