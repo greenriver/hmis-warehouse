@@ -52,11 +52,21 @@ module Mutations
       # Run processor to create/update record(s)
       custom_form.form_processor.run!
 
+      # Run custom validator for any warnings/errors (like closing a Project)
+      validator = klass.validators.find { |v| v.respond_to?(:hmis_validate) }
+      if validator.present?
+        validation_errors = validator.hmis_validate(record, ignore_warnings: input.confirmed)
+        errors.push(*validation_errors)
+      end
+      return { errors: errors } if errors.any?
+
       # Run both validations
       record_valid = record.valid?
       custom_form_valid = custom_form.valid?
 
       if record_valid && custom_form_valid
+        # Perform any side effects
+        perform_side_effects(record)
         # Save CustomForm to save any related records (if any)
         custom_form.save!
         # Save the record
@@ -76,6 +86,14 @@ module Mutations
         record: record,
         errors: errors,
       }
+    end
+
+    private def perform_side_effects(record)
+      return unless record.is_a? Hmis::Hud::Project
+      return unless record.operating_end_date_was.nil? && record.operating_end_date.present?
+
+      record.funders.where(end_date: nil).update_all(end_date: record.operating_end_date)
+      record.inventories.where(inventory_end_date: nil).update_all(inventory_end_date: record.operating_end_date)
     end
   end
 end
