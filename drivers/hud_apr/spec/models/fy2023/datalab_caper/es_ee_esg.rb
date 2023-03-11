@@ -34,9 +34,9 @@ RSpec.shared_context 'datalab es ee esg caper', shared_context: :metadata do
         file_path: result_file_prefix + 'caper/es_ee_esg',
         question: 'Q6a',
         # Pending AirTable, client 705787 does not have an SSN, but not included in D3, Issue ID 32
-        skip: [
-          'D3',
-        ],
+        # skip: [
+        #   'D3',
+        # ],
       )
     end
 
@@ -45,10 +45,10 @@ RSpec.shared_context 'datalab es ee esg caper', shared_context: :metadata do
         file_path: result_file_prefix + 'caper/es_ee_esg',
         question: 'Q6b',
         # Pending AirTable for HouseholdID h_842571 with two HoH
-        skip: [
-          'B4',
-          'C4',
-        ],
+        # skip: [
+        #   'B4',
+        #   'C4',
+        # ],
       )
     end
 
@@ -57,11 +57,11 @@ RSpec.shared_context 'datalab es ee esg caper', shared_context: :metadata do
         file_path: result_file_prefix + 'caper/es_ee_esg',
         question: 'Q6c',
         # Pending AirTable submitted 1/13/2023 - submitted regarding APR - DataLab - SSO CoC Q6c B5
-        skip: [
-          'B3',
-          'C3',
-          'B5',
-        ],
+        # skip: [
+        #   'B3',
+        #   'C3',
+        #   'B5',
+        # ],
       )
     end
 
@@ -72,7 +72,7 @@ RSpec.shared_context 'datalab es ee esg caper', shared_context: :metadata do
       )
     end
 
-    it 'Q6e' do
+    it 'Q6e' do # FIXME
       compare_results(
         file_path: result_file_prefix + 'caper/es_ee_esg',
         question: 'Q6e',
@@ -243,11 +243,11 @@ RSpec.shared_context 'datalab es ee esg caper', shared_context: :metadata do
         # Ephemeral	Chassis
         # Poplin	Cress
         # Coating	Spirit
-        skip: [
-          'C13',
-          'D13',
-          'E13',
-        ],
+        # skip: [
+        #   'C13',
+        #   'D13',
+        #   'E13',
+        # ],
       )
     end
 

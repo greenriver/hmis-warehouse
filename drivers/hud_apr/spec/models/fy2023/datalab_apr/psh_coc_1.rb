@@ -71,28 +71,28 @@ RSpec.shared_context 'datalab psh coc 1 apr', shared_context: :metadata do
       )
     end
 
-    it 'Q7a' do
+    it 'Q7a' do # FIXME
       compare_results(
         file_path: result_file_prefix + 'apr/psh_coc_1',
         question: 'Q7a',
       )
     end
 
-    it 'Q7b' do
+    it 'Q7b' do # FIXME
       compare_results(
         file_path: result_file_prefix + 'apr/psh_coc_1',
         question: 'Q7b',
       )
     end
 
-    it 'Q8a' do
+    it 'Q8a' do # FIXME
       compare_results(
         file_path: result_file_prefix + 'apr/psh_coc_1',
         question: 'Q8a',
       )
     end
 
-    it 'Q8b' do
+    it 'Q8b' do # FIXME
       compare_results(
         file_path: result_file_prefix + 'apr/psh_coc_1',
         question: 'Q8b',
@@ -299,14 +299,14 @@ RSpec.shared_context 'datalab psh coc 1 apr', shared_context: :metadata do
       )
     end
 
-    it 'Q22c' do
+    it 'Q22c' do # FIXME
       compare_results(
         file_path: result_file_prefix + 'apr/psh_coc_1',
         question: 'Q22c',
       )
     end
 
-    it 'Q22e' do
+    it 'Q22e' do # FIXME
       compare_results(
         file_path: result_file_prefix + 'apr/psh_coc_1',
         question: 'Q22e',
@@ -349,7 +349,7 @@ RSpec.shared_context 'datalab psh coc 1 apr', shared_context: :metadata do
     end
 
     # Pending AAQ https://www.hudexchange.info/program-support/my-question/?askaquestionaction=public%3Amain.answer&key=7621DC58-B880-4E59-8ED2027685A40C16 (and AirTable submission)
-    xit 'Q25e' do
+    it 'Q25e' do
       compare_results(
         file_path: result_file_prefix + 'apr/psh_coc_1',
         question: 'Q25e',
@@ -413,7 +413,7 @@ RSpec.shared_context 'datalab psh coc 1 apr', shared_context: :metadata do
     end
 
     # Pending AAQ https://www.hudexchange.info/program-support/my-question/?askaquestionaction=public%3Amain.answer&key=7621DC58-B880-4E59-8ED2027685A40C16 (and AirTable submission)
-    xit 'Q26e' do
+    it 'Q26e' do
       compare_results(
         file_path: result_file_prefix + 'apr/psh_coc_1',
         question: 'Q26e',

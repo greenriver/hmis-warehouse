@@ -27,10 +27,10 @@ RSpec.shared_context 'datalab sso coc apr', shared_context: :metadata do
         file_path: result_file_prefix + 'apr/sso_coc',
         question: 'Q5a',
         # Pending AirTable from 1/13/2023 LOT Method 1 – Using Start/Exit Dates Issue ID 25
-        skip: [
-          'B17',
-          'C17',
-        ],
+        # skip: [
+        #   'B17',
+        #   'C17',
+        # ],
       )
     end
 
@@ -48,15 +48,15 @@ RSpec.shared_context 'datalab sso coc apr', shared_context: :metadata do
       )
     end
 
-    it 'Q6c' do
+    it 'Q6c' do # FIXME
       compare_results(
         file_path: result_file_prefix + 'apr/sso_coc',
         question: 'Q6c',
         # Pending AirTable submitted 1/13/2023 Issue ID 26
-        skip: [
-          'B5',
-          'C5',
-        ],
+        # skip: [
+        #   'B5',
+        #   'C5',
+        # ],
       )
     end
 
@@ -67,7 +67,7 @@ RSpec.shared_context 'datalab sso coc apr', shared_context: :metadata do
       )
     end
 
-    it 'Q6e' do
+    it 'Q6e' do # FIXME
       compare_results(
         file_path: result_file_prefix + 'apr/sso_coc',
         question: 'Q6e',
@@ -228,7 +228,7 @@ RSpec.shared_context 'datalab sso coc apr', shared_context: :metadata do
       )
     end
 
-    it 'Q16' do
+    it 'Q16' do # FIXME
       compare_results(
         file_path: result_file_prefix + 'apr/sso_coc',
         question: 'Q16',
@@ -261,11 +261,11 @@ RSpec.shared_context 'datalab sso coc apr', shared_context: :metadata do
         file_path: result_file_prefix + 'apr/sso_coc',
         question: 'Q19a2',
         # Pending AirTable submitted 1/13/2023 Issue ID 27 and 36
-        skip: [
-          'B4',
-          'G4',
-          'B5',
-        ],
+        # skip: [
+        #   'B4',
+        #   'G4',
+        #   'B5',
+        # ],
       )
     end
 
@@ -275,10 +275,10 @@ RSpec.shared_context 'datalab sso coc apr', shared_context: :metadata do
         question: 'Q19b',
         # Pending AAQ: https://www.hudexchange.info/program-support/my-question/?askaquestionaction=public%3Amain.answer&key=99B4E7C1-9C9A-4C5C-877330D949FEE8A7
         # IncomeFromAnySource = 0, but do have earned income
-        skip: [
-          'C13',
-          'D13',
-        ],
+        # skip: [
+        #   'C13',
+        #   'D13',
+        # ],
       )
     end
 
@@ -350,10 +350,10 @@ RSpec.shared_context 'datalab sso coc apr', shared_context: :metadata do
         file_path: result_file_prefix + 'apr/sso_coc',
         question: 'Q25b',
         # pending AirTable from 1/13/2023 regarding ChildrenOnly household
-        skip: [
-          'B6',
-          'B7',
-        ],
+        # skip: [
+        #   'B6',
+        #   'B7',
+        # ],
       )
     end
 
@@ -411,12 +411,12 @@ RSpec.shared_context 'datalab sso coc apr', shared_context: :metadata do
         file_path: result_file_prefix + 'apr/sso_coc',
         question: 'Q26a',
         # pending AirTable 1/13/2023 related to https://www.hudexchange.info/program-support/my-question/?askaquestionaction=public%3Amain.answer&key=6B4F6314-CD74-429E-9DF7E4E93C938AD4
-        skip: [
-          'B3',
-          'E3',
-          'B5',
-          'E5',
-        ],
+        # skip: [
+        #   'B3',
+        #   'E3',
+        #   'B5',
+        #   'E5',
+        # ],
       )
     end
 
@@ -425,12 +425,12 @@ RSpec.shared_context 'datalab sso coc apr', shared_context: :metadata do
         file_path: result_file_prefix + 'apr/sso_coc',
         question: 'Q26b',
         # pending AirTable 1/13/2023 related to https://www.hudexchange.info/program-support/my-question/?askaquestionaction=public%3Amain.answer&key=6B4F6314-CD74-429E-9DF7E4E93C938AD4
-        skip: [
-          'B3',
-          'E3',
-          'B5',
-          'E5',
-        ],
+        # skip: [
+        #   'B3',
+        #   'E3',
+        #   'B5',
+        #   'E5',
+        # ],
       )
     end
 
@@ -532,20 +532,20 @@ RSpec.shared_context 'datalab sso coc apr', shared_context: :metadata do
       )
     end
 
-    it 'Q27i' do
+    it 'Q27i' do # FIXME
       compare_results(
         file_path: result_file_prefix + 'apr/sso_coc',
         question: 'Q27i',
         # Pending AAQ: https://www.hudexchange.info/program-support/my-question/?askaquestionaction=public%3Amain.answer&key=99B4E7C1-9C9A-4C5C-877330D949FEE8A7
         # IncomeFromAnySource = 0, but do have earned income
-        skip: [
-          'C13',
-          'D13',
-          'J13',
-          'L13',
-          'M13',
-          'M14',
-        ],
+        # skip: [
+        #   'C13',
+        #   'D13',
+        #   'J13',
+        #   'L13',
+        #   'M13',
+        #   'M14',
+        # ],
       )
     end
   end
