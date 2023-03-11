@@ -163,6 +163,8 @@ module HudApr::Generators::Shared::Fy2023
           end
 
           chronic_source = household_chronic_status(hh_id, last_service_history_enrollment.client_id)
+          move_in_date = last_service_history_enrollment.move_in_date
+          move_in_date = nil if move_in_date.present? && move_in_date < last_service_history_enrollment.first_date_in_program
           processed_source_clients << source_client.id
           ce_hash = {}
           options = {
@@ -249,7 +251,7 @@ module HudApr::Generators::Shared::Fy2023
             mental_health_problem_latest: disabilities_latest.detect(&:mental?)&.DisabilityResponse,
             mental_health_problem: disabilities.detect(&:mental?).present?,
             months_homeless: enrollment.MonthsHomelessPastThreeYears,
-            move_in_date: last_service_history_enrollment.move_in_date,
+            move_in_date: move_in_date,
             name_quality: source_client.NameDataQuality,
             non_cash_benefits_from_any_source_at_annual_assessment: income_at_annual_assessment&.BenefitsFromAnySource,
             non_cash_benefits_from_any_source_at_exit: income_at_exit&.BenefitsFromAnySource,
@@ -506,8 +508,9 @@ module HudApr::Generators::Shared::Fy2023
           when 3, 13 # PSH/RRH
             enrollment.first_date_in_program <= pit_date &&
               (enrollment.last_date_in_program.nil? || enrollment.last_date_in_program > pit_date) && # Exclude exit date
-              enrollment.move_in_date.present? && # Check that move in date is present and is before the PIT data
-              enrollment.move_in_date <= pit_date
+              enrollment.move_in_date.present? && # Check that move in date is present and is before the PIT data and on or after the entry date
+              enrollment.move_in_date <= pit_date &&
+              enrollment.move_in_date >= enrollment.first_date_in_program
           when 1, 2, 8, 9, 10 # Other residential
             enrollment.first_date_in_program <= pit_date &&
               (enrollment.last_date_in_program.nil? || enrollment.last_date_in_program > pit_date) # Exclude exit date
