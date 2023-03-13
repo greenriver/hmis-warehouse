@@ -65,10 +65,18 @@ RSpec.shared_context 'datalab so esg caper', shared_context: :metadata do
       )
     end
 
-    it 'Q6e' do # FIXME
+    it 'Q6e' do
       compare_results(
         file_path: result_file_prefix + 'caper/so_esg',
         question: 'Q6e',
+        # pending https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recWCP4jftXR51nYq (47)
+        skip: [
+          'C2',
+          'C3',
+          'C4',
+          'C5',
+          'C6',
+        ],
       )
     end
 

@@ -61,7 +61,7 @@ RSpec.shared_context 'datalab rrh coc 2 apr', shared_context: :metadata do
       )
     end
 
-    it 'Q6e' do # FIXME
+    it 'Q6e' do
       compare_results(
         file_path: result_file_prefix + 'apr/rrh_coc_2',
         question: 'Q6e',
@@ -263,14 +263,14 @@ RSpec.shared_context 'datalab rrh coc 2 apr', shared_context: :metadata do
       )
     end
 
-    it 'Q19a2' do # FIXME
+    it 'Q19a2' do
       compare_results(
         file_path: result_file_prefix + 'apr/rrh_coc_2',
         question: 'Q19a2',
       )
     end
 
-    it 'Q19b' do # FIXME
+    it 'Q19b' do
       compare_results(
         file_path: result_file_prefix + 'apr/rrh_coc_2',
         question: 'Q19b',

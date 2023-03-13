@@ -171,6 +171,13 @@ RSpec.shared_context 'datalab es nbn esg caper', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'caper/es_nbn_esg',
         question: 'Q10a',
+        # Pending https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recyYttiE2kyVkXPR (53)
+        skip: [
+          'B3',
+          'D3',
+          'B9',
+          'D9',
+        ],
       )
     end
 
@@ -192,6 +199,13 @@ RSpec.shared_context 'datalab es nbn esg caper', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'caper/es_nbn_esg',
         question: 'Q10d',
+        # Pending https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recyYttiE2kyVkXPR (53)
+        skip: [
+          'B3',
+          'E3',
+          'B9',
+          'E9',
+        ],
       )
     end
 
@@ -199,6 +213,13 @@ RSpec.shared_context 'datalab es nbn esg caper', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'caper/es_nbn_esg',
         question: 'Q11',
+        # Pending https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recyYttiE2kyVkXPR (53)
+        skip: [
+          'B6',
+          'D6',
+          'B13',
+          'D13',
+        ],
       )
     end
 
@@ -206,6 +227,13 @@ RSpec.shared_context 'datalab es nbn esg caper', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'caper/es_nbn_esg',
         question: 'Q12a',
+        # Pending https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recyYttiE2kyVkXPR (53)
+        skip: [
+          'B3',
+          'D3',
+          'B10',
+          'D10',
+        ],
       )
     end
 
@@ -213,6 +241,13 @@ RSpec.shared_context 'datalab es nbn esg caper', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'caper/es_nbn_esg',
         question: 'Q12b',
+        # Pending https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recyYttiE2kyVkXPR (53)
+        skip: [
+          'B2',
+          'D2',
+          'B6',
+          'D6',
+        ],
       )
     end
 
@@ -241,6 +276,13 @@ RSpec.shared_context 'datalab es nbn esg caper', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'caper/es_nbn_esg',
         question: 'Q14a',
+        # Pending https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recyYttiE2kyVkXPR (53)
+        skip: [
+          'B3',
+          'D3',
+          'B6',
+          'D6',
+        ],
       )
     end
 
@@ -255,6 +297,15 @@ RSpec.shared_context 'datalab es nbn esg caper', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'caper/es_nbn_esg',
         question: 'Q15',
+        # Pending https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recyYttiE2kyVkXPR (53)
+        skip: [
+          'B30',
+          'D30',
+          'B34',
+          'D34',
+          'B35',
+          'D35',
+        ],
       )
     end
 
@@ -262,6 +313,13 @@ RSpec.shared_context 'datalab es nbn esg caper', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'caper/es_nbn_esg',
         question: 'Q16',
+        # Pending https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recyYttiE2kyVkXPR (53)
+        skip: [
+          'B7',
+          'D7',
+          'B14',
+          'D14',
+        ],
       )
     end
 
@@ -269,6 +327,12 @@ RSpec.shared_context 'datalab es nbn esg caper', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'caper/es_nbn_esg',
         question: 'Q17',
+        # Pending https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recyYttiE2kyVkXPR (53)
+        skip: [
+          'B2',
+          'D2',
+          'D17',
+        ],
       )
     end
 
@@ -276,6 +340,17 @@ RSpec.shared_context 'datalab es nbn esg caper', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'caper/es_nbn_esg',
         question: 'Q19b',
+        # Pending https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recyYttiE2kyVkXPR (53)
+        skip: [
+          'G2',
+          'H2',
+          'B13',
+          'C13',
+          'D13',
+          'E13',
+          'G14',
+          'H14',
+        ],
       )
     end
 
@@ -290,13 +365,31 @@ RSpec.shared_context 'datalab es nbn esg caper', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'caper/es_nbn_esg',
         question: 'Q21',
+        # Pending https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recyYttiE2kyVkXPR (53)
+        skip: [
+          'B2',
+          'D2',
+          'B16',
+          'D16',
+        ],
       )
     end
 
-    it 'Q22a2' do # pending AAQ
+    it 'Q22a2' do
       compare_results(
         file_path: result_file_prefix + 'caper/es_nbn_esg',
         question: 'Q22a2',
+        # Pending https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recyYttiE2kyVkXPR (53)
+        skip: [
+          'B3',
+          'C3',
+          'B5',
+          'C5',
+          'B6',
+          'C6',
+          'B16',
+          'C16',
+        ],
       )
     end
 
@@ -311,6 +404,19 @@ RSpec.shared_context 'datalab es nbn esg caper', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'caper/es_nbn_esg',
         question: 'Q22d',
+        # Pending https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recyYttiE2kyVkXPR (53)
+        skip: [
+          'B3',
+          'D3',
+          'C4',
+          'D4',
+          'B5',
+          'C5',
+          'B6',
+          'C6',
+          'B16',
+          'D16',
+        ],
       )
     end
 
@@ -318,6 +424,15 @@ RSpec.shared_context 'datalab es nbn esg caper', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'caper/es_nbn_esg',
         question: 'Q22e',
+        # Pending https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recyYttiE2kyVkXPR (53)
+        skip: [
+          'B4',
+          'D4',
+          'B11',
+          'D11',
+          'B14',
+          'D14',
+        ],
       )
     end
 
@@ -325,6 +440,18 @@ RSpec.shared_context 'datalab es nbn esg caper', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'caper/es_nbn_esg',
         question: 'Q23c',
+        # Pending https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recyYttiE2kyVkXPR (53)
+        skip: [
+          'B13',
+          'D13',
+          'B16',
+          'D16',
+          'B43',
+          'D43',
+          'B44',
+          'D44',
+          'D46',
+        ],
       )
     end
 
@@ -339,6 +466,13 @@ RSpec.shared_context 'datalab es nbn esg caper', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'caper/es_nbn_esg',
         question: 'Q25a',
+        # Pending https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recyYttiE2kyVkXPR (53)
+        skip: [
+          'B4',
+          'D4',
+          'B7',
+          'D7',
+        ],
       )
     end
 
@@ -346,6 +480,13 @@ RSpec.shared_context 'datalab es nbn esg caper', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'caper/es_nbn_esg',
         question: 'Q26b',
+        # Pending https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recyYttiE2kyVkXPR (53)
+        skip: [
+          'B3',
+          'D3',
+          'B6',
+          'D6',
+        ],
       )
     end
   end
