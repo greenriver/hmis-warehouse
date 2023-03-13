@@ -518,6 +518,24 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         expect(client.GenderNone).to eq(8)
       end
     end
+
+    [
+      [
+        'fails if first and last are both nil',
+        ->(input) { input.merge('firstName' => nil, 'lastName' => nil) },
+      ],
+    ].each do |test_name, input_proc|
+      it test_name do
+        existing_record = c1
+        new_record = Hmis::Hud::Client.new(data_source: ds, user: hmis_hud_user)
+        [existing_record, new_record].each do |record|
+          custom_form = Hmis::Form::CustomForm.new(owner: record, definition: definition)
+          custom_form.hud_values = input_proc.call(complete_hud_values)
+          custom_form.form_processor.run!
+          expect(custom_form.owner.valid?).to eq(false)
+        end
+      end
+    end
   end
 
   describe 'Form processing for Projects' do
@@ -708,6 +726,28 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         expect(funder.other_funder).to eq('foo')
       end
     end
+
+    [
+      [
+        'fails if other funder not specified',
+        ->(input) { input.merge('funder' => 'LOCAL_OR_OTHER_FUNDING_SOURCE', 'otherFunder' => nil) },
+      ],
+      [
+        'fails if end date is before start date',
+        ->(input) { input.merge('endDate' => '2021-01-01') },
+      ],
+    ].each do |test_name, input_proc|
+      it test_name do
+        existing_record = f1
+        new_record = Hmis::Hud::Funder.new(data_source: ds, user: hmis_hud_user, project: p1)
+        [existing_record, new_record].each do |record|
+          custom_form = Hmis::Form::CustomForm.new(owner: record, definition: definition)
+          custom_form.hud_values = input_proc.call(complete_hud_values)
+          custom_form.form_processor.run!
+          expect(custom_form.owner.valid?).to eq(false)
+        end
+      end
+    end
   end
 
   describe 'Form processing for ProjectCoCs' do
@@ -758,11 +798,15 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         'householdType' => 'HOUSEHOLDS_WITH_AT_LEAST_ONE_ADULT_AND_ONE_CHILD',
         'availability' => 'SEASONAL',
         'esBedType' => 'OTHER',
-        'inventoryStartDate' => '2023-01-23',
-        'inventoryEndDate' => '2023-01-28',
+        'inventoryStartDate' => '2019-01-03',
+        'inventoryEndDate' => '2019-01-15',
         'unitInventory' => 0,
         'bedInventory' => 0,
       }
+    end
+
+    before(:each) do
+      p1.update(operating_start_date: '2019-01-01', operating_end_date: '2019-02-01')
     end
 
     it 'creates and updates all fields' do
@@ -779,23 +823,78 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         expect(record.household_type).to eq(3)
         expect(record.availability).to eq(2)
         expect(record.es_bed_type).to eq(3)
-        expect(record.inventory_start_date.strftime('%Y-%m-%d')).to eq('2023-01-23')
-        expect(record.inventory_end_date.strftime('%Y-%m-%d')).to eq('2023-01-28')
+        expect(record.inventory_start_date.strftime('%Y-%m-%d')).to eq('2019-01-03')
+        expect(record.inventory_end_date.strftime('%Y-%m-%d')).to eq('2019-01-15')
         expect(record.bed_inventory).to eq(0)
         expect(record.unit_inventory).to eq(0)
       end
     end
 
-    it 'fails if CoC code is not valid for project' do
+    it 'succeeds if operating period matches project operating period' do
       existing_record = i1
       new_record = Hmis::Hud::Inventory.new(data_source: ds, user: hmis_hud_user, project: p1)
       [existing_record, new_record].each do |record|
         custom_form = Hmis::Form::CustomForm.new(owner: record, definition: definition)
         custom_form.hud_values = complete_hud_values.merge(
-          'cocCode' => 'MA-500',
+          'inventoryStartDate' => p1.operating_start_date.strftime('%Y-%m-%d'),
+          'inventoryEndDate' => p1.operating_end_date.strftime('%Y-%m-%d'),
         )
         custom_form.form_processor.run!
-        expect(custom_form.owner.valid?).to eq(false)
+        custom_form.owner.save!
+        record.reload
+
+        expect(record.inventory_start_date.strftime('%Y-%m-%d')).to eq('2019-01-01')
+        expect(record.inventory_end_date.strftime('%Y-%m-%d')).to eq('2019-02-01')
+      end
+    end
+
+    [
+      [
+        'fails if CoC code is null',
+        ->(input) { input.merge('cocCode' => nil) },
+      ],
+      [
+        'fails if CoC code is invalid for project',
+        ->(input) { input.merge('cocCode' => 'MA-500') },
+      ],
+      [
+        'fails if start date is null',
+        ->(input) { input.merge('inventoryStartDate' => nil) },
+      ],
+      [
+        'fails if end date is before start date',
+        ->(input) { input.merge('inventoryEndDate' => '2002-01-01') },
+      ],
+      [
+        'fails if count is negative',
+        ->(input) { input.merge('bedInventory' => -1) },
+      ],
+      [
+        'fails if start date too early',
+        ->(input) { input.merge('inventoryStartDate' => '2018-12-31', 'inventoryEndDate' => nil) },
+      ],
+      [
+        'fails if start date too early, with end date',
+        ->(input) { input.merge('cocCode' => '2018-12-31') },
+      ],
+      [
+        'fails if period fully outside of project operating period',
+        ->(input) { input.merge('inventoryStartDate' => '2015-01-01', 'inventoryEndDate' => '2015-02-01') },
+      ],
+      [
+        'fails if period fully outside of project operating period (other direction)',
+        ->(input) { input.merge('inventoryStartDate' => '2022-01-01', 'inventoryEndDate' => '2022-02-01') },
+      ],
+    ].each do |test_name, input_proc|
+      it test_name do
+        existing_record = i1
+        new_record = Hmis::Hud::Inventory.new(data_source: ds, user: hmis_hud_user, project: p1)
+        [existing_record, new_record].each do |record|
+          custom_form = Hmis::Form::CustomForm.new(owner: record, definition: definition)
+          custom_form.hud_values = input_proc.call(complete_hud_values)
+          custom_form.form_processor.run!
+          expect(custom_form.owner.valid?).to eq(false)
+        end
       end
     end
   end
