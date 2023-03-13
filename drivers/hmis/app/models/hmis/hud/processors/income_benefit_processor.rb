@@ -10,7 +10,7 @@ module Hmis::Hud::Processors
       attribute_name = hud_name(field)
       attribute_value = attribute_value_for_enum(hud_type(field), value)
       attribute_value = 0 if override_to_no?(attribute_name, attribute_value)
-      # binding.pry if field == 'earned'
+
       @processor.send(factory_name).assign_attributes(attribute_name => attribute_value)
     end
 
