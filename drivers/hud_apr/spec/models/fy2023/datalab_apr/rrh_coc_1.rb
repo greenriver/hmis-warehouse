@@ -61,7 +61,7 @@ RSpec.shared_context 'datalab rrh coc 1 apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'apr/rrh_coc_1',
         question: 'Q6e',
-        # pending https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recB4DAslxoDhA9OO
+        # pending https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recWCP4jftXR51nYq (47)
         skip: [
           'C2',
           'C5',
