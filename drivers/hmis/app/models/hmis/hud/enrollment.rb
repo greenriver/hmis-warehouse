@@ -42,6 +42,9 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   # Custom Assessments (note: this does NOT include WIP assessments)
   has_many :custom_assessments, **hmis_relation(:EnrollmentID, 'CustomAssessment'), dependent: :destroy
 
+  # Files
+  has_many :files, class_name: '::Hmis::File', dependent: :destroy, inverse_of: :enrollment
+
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :enrollments
   has_one :wip, class_name: 'Hmis::Wip', as: :source, dependent: :destroy
