@@ -10,7 +10,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
 
   let(:o1) { create :hmis_hud_organization, data_source: ds, user: hmis_hud_user }
   let(:p1) { create :hmis_hud_project, data_source: ds, organization: o1, user: hmis_hud_user }
-  let(:c1) { create :hmis_hud_client, data_source: ds, user: hmis_hud_user }
+  let(:c1) { create :hmis_hud_client_complete, data_source: ds, user: hmis_hud_user }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds, project: p1, client: c1, user: hmis_hud_user }
 
   HIDDEN = Hmis::Hud::Processors::Base::HIDDEN_FIELD_VALUE
