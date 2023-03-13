@@ -18,7 +18,7 @@ RSpec.shared_context 'datalab th coc apr', shared_context: :metadata do
         question: 'Q4a',
         skip: [
           'L2', # Is the generator name, so not expected to match
-          'P2', # Pending AirTable regarding children of CH HoH submitted 1/14/2023
+          # 'P2', # Pending AirTable regarding children of CH HoH submitted 1/14/2023
         ],
       )
     end

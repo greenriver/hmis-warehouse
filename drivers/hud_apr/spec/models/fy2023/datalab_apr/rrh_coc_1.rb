@@ -264,7 +264,7 @@ RSpec.shared_context 'datalab rrh coc 1 apr', shared_context: :metadata do
         file_path: result_file_prefix + 'apr/rrh_coc_1',
         question: 'Q19b',
         # Pending AAQ: https://www.hudexchange.info/program-support/my-question/?askaquestionaction=public%3Amain.answer&key=99B4E7C1-9C9A-4C5C-877330D949FEE8A7
-        # and https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recJd87KB7pyODgD1
+        # and https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recJd87KB7pyODgD1 (48)
         skip: [
           'C13',
           'D13',
