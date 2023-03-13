@@ -15,10 +15,11 @@ class Hmis::Hud::HmisService < Hmis::Hud::Base
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :services
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   has_one :project, through: :enrollment
-
   belongs_to :owner, polymorphic: true # Service or CustomService
   belongs_to :custom_service_type
   has_many :custom_service_categories, through: :custom_service_type
+
+  validate :service_is_valid
 
   alias_attribute :service_type, :custom_service_type
   alias_to_underscore [:DateProvided, :EnrollmentID, :PersonalID]
@@ -48,12 +49,8 @@ class Hmis::Hud::HmisService < Hmis::Hud::Base
       where(cst_t[:name].matches(query).or(csc_t[:name].matches(query)))
   end
 
-  # def readonly?
-  #   true
-  # end
-
-  def save!
-    owner&.save!
+  def readonly?
+    true
   end
 
   # FIXME: needs to be updated to support Custom services
@@ -100,6 +97,15 @@ class Hmis::Hud::HmisService < Hmis::Hud::Base
       order(DateProvided: :desc)
     else
       raise NotImplementedError
+    end
+  end
+
+  # Pull up the errors from the assessment form_processor so we can see them (as opposed to validates_associated)
+  private def service_is_valid
+    return if owner.valid?
+
+    owner.errors.each do |error|
+      errors.add(error.attribute, error.type, **error.options)
     end
   end
 end

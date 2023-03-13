@@ -19,6 +19,8 @@ module Hmis::Hud::Processors
           record_type: record_type,
           type_provided: type_provided,
         )
+        custom_service_type = Hmis::Hud::CustomServiceType.find_by(hud_record_type: record_type, hud_type_provided: type_provided)
+        @processor.owner_factory.assign_attributes(custom_service_type: custom_service_type)
       else
         @processor.send(factory_name).assign_attributes(attribute_name => attribute_value)
       end

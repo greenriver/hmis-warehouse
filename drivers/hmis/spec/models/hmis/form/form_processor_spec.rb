@@ -933,9 +933,9 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         custom_form = Hmis::Form::CustomForm.new(owner: record, definition: definition)
         custom_form.hud_values = complete_hud_values
         custom_form.form_processor.run!
-        custom_form.owner.save!
 
         hud_service = custom_form.owner.owner
+        hud_service.save!
         hmis_service = Hmis::Hud::HmisService.find_by(owner: hud_service)
         expect(hmis_service.hud_service?).to eq(true)
         expect(hmis_service.custom_service?).to eq(false)

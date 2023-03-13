@@ -24,6 +24,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:i1) { create :hmis_hud_inventory, data_source: ds1, project: p1, coc_code: pc1.coc_code, inventory_start_date: '2020-01-01', inventory_end_date: nil, user: u1 }
   let!(:s1) { create :hmis_hud_service, data_source: ds1, client: c1, enrollment: e1, user: u1 }
   let!(:cs1) { create :hmis_custom_service, custom_service_type: cst1, data_source: ds1, client: c1, enrollment: e1, user: u1 }
+  let!(:hmis_hud_service1) { Hmis::Hud::HmisService.find_by(owner: s1) }
 
   before(:each) do
     hmis_login(user)
@@ -66,8 +67,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   describe 'SubmitForm' do
     [
-      :PROJECT, :FUNDER, :PROJECT_COC, :INVENTORY, :ORGANIZATION, :CLIENT
-      # :SERVICE,
+      :PROJECT, :FUNDER, :PROJECT_COC, :INVENTORY, :ORGANIZATION, :CLIENT, :SERVICE
     ].each do |role|
       describe "for #{role.to_s.humanize}" do
         let(:definition) { Hmis::Form::Definition.find_by(role: role) }
@@ -108,7 +108,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             when :INVENTORY
               i1.id
             when :SERVICE
-              cs1.id
+              hmis_hud_service1.id
             end
 
             input = input_proc.call(test_input.merge(record_id: input_record_id))
@@ -124,9 +124,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               record = definition.record_class_name.constantize.find_by(id: record_id)
               expect(record).to be_present
               expect(Hmis::Form::CustomForm.where(owner: record).count).to eq(1)
+              custom_form = Hmis::Form::CustomForm.find_by(owner: record)
+              expect(custom_form.owner_id).to eq(record_id.to_i)
 
               # Expect that all of the fields that were submitted exist on the record
-              input[:hud_values].compact.keys.map(&:to_s).map(&:underscore).each do |method|
+              expected_present_keys = input[:hud_values].map { |k, v| [k, v == '_HIDDEN' ? nil : v] }.to_h.compact.keys
+              expected_present_keys.map(&:to_s).map(&:underscore).each do |method|
                 expect(record.send(method)).to be_present unless ['race', 'gender'].include?(method)
               end
             end
