@@ -14,16 +14,21 @@ class Hmis::Hud::HmisService < Hmis::Hud::Base
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :services
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
+  has_one :project, through: :enrollment
 
   belongs_to :owner, polymorphic: true # Service or CustomService
   belongs_to :custom_service_type
   has_many :custom_service_categories, through: :custom_service_type
 
   alias_attribute :service_type, :custom_service_type
-  alias_to_underscore [:DateProvided]
+  alias_to_underscore [:DateProvided, :EnrollmentID, :PersonalID]
+
+  after_initialize :initialize_owner, if: :new_record?
 
   SORT_OPTIONS = [:date_provided].freeze
-  HUD_ATTRIBUTES = [:record_type, :type_provided, :other_type_provided, :moving_on_other_type, :sub_type_provided, :referral_outcome, :FAAmount].freeze
+  HUD_ATTRIBUTES = [:record_type, :type_provided, :other_type_provided, :moving_on_other_type, :sub_type_provided, :referral_outcome, :FAAmount, :fa_amount].freeze
+
+  attr_accessor(*HUD_ATTRIBUTES)
 
   HUD_ATTRIBUTES.each do |hud_field_name|
     define_method(hud_field_name) { hud_service&.send(hud_field_name) }
@@ -43,8 +48,22 @@ class Hmis::Hud::HmisService < Hmis::Hud::Base
       where(cst_t[:name].matches(query).or(csc_t[:name].matches(query)))
   end
 
-  def readonly?
-    true
+  # def readonly?
+  #   true
+  # end
+
+  def save!
+    owner&.save!
+  end
+
+  # FIXME: needs to be updated to support Custom services
+  private def initialize_owner
+    self.owner = Hmis::Hud::Service.new(
+      enrollment_id: enrollment_id,
+      personal_id: personal_id,
+      user_id: user_id,
+      data_source_id: data_source_id,
+    )
   end
 
   HUD_SERVICE_ID_PREFIX = '1'.freeze
@@ -57,12 +76,20 @@ class Hmis::Hud::HmisService < Hmis::Hud::Base
     [HUD_SERVICE_ID_PREFIX, CUSTOM_SERVICE_ID_PREFIX].include?(id.to_s.first)
   end
 
+  def hud_service?
+    owner.is_a? Hmis::Hud::Service
+  end
+
+  def custom_service?
+    owner.is_a? Hmis::Hud::CustomService
+  end
+
   private def hud_service
-    owner if owner.is_a? Hmis::Hud::Service
+    owner if hud_service?
   end
 
   private def custom_service
-    owner if owner.is_a? Hmis::Hud::CustomService
+    owner if custom_service?
   end
 
   def self.sort_by_option(option)

@@ -33,6 +33,7 @@ module Types
         record.project_id = Hmis::Hud::Project.viewable_by(current_user).find_by(id: project_id)&.ProjectID
       when Hmis::Hud::HmisService
         record.enrollment_id = Hmis::Hud::Enrollment.viewable_by(current_user).find_by(id: enrollment_id)&.EnrollmentID
+        record.personal_id = Hmis::Hud::Enrollment.viewable_by(current_user).find_by(id: enrollment_id)&.PersonalID
       end
       record
     end

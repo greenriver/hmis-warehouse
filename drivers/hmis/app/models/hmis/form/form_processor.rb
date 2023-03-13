@@ -58,6 +58,10 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     custom_form.owner
   end
 
+  def service_factory(create: true) # rubocop:disable Lint/UnusedMethodArgument
+    custom_form.owner.owner if custom_form.owner.is_a? Hmis::Hud::HmisService
+  end
+
   # Type Factories
   def enrollment_factory(create: true) # rubocop:disable Lint/UnusedMethodArgument
     # The enrollment has already been created, so we can just return it
