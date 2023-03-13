@@ -37,30 +37,39 @@ module ClientFileBase
     scope :client_photos, -> do
       tagged_with('Client Headshot')
     end
-  end
 
-  def file_exists_and_not_too_large
-    errors.add :client_file, 'No uploaded file found' if (client_file.byte_size || 0) < 100
-    errors.add :client_file, 'File size should be less than 4 MB' if (client_file.byte_size || 0) > 4.megabytes
-  end
+    def file_exists_and_not_too_large
+      errors.add :client_file, 'No uploaded file found' if (client_file.byte_size || 0) < 100
+      errors.add :client_file, 'File size should be less than 4 MB' if (client_file.byte_size || 0) > 4.megabytes
+    end
 
-  def note_if_other
-    errors.add :note, 'Note is required if Other is chosen above' if tag_list.include?('Other') && note.blank?
-  end
+    def note_if_other
+      errors.add :note, 'Note is required if Other is chosen above' if tag_list.include?('Other') && note.blank?
+    end
 
-  def self.available_tags
-    GrdaWarehouse::AvailableFileTag.grouped
-  end
+    def self.all_available_tags
+      GrdaWarehouse::AvailableFileTag.all
+    end
 
-  def as_preview
-    return client_file.download unless client_file.variable?
+    def self.grouped_available_tags
+      GrdaWarehouse::AvailableFileTag.grouped
+    end
 
-    client_file.variant(resize_to_limit: [1920, 1080]).processed.download
-  end
+    def self.available_tags
+      # To maintain default behavior for warehouse
+      grouped_available_tags
+    end
 
-  def as_thumb
-    return nil unless client_file.variable?
+    def as_preview
+      return client_file.download unless client_file.variable?
 
-    client_file.variant(resize_to_limit: [400, 400]).processed.download
+      client_file.variant(resize_to_limit: [1920, 1080]).processed.download
+    end
+
+    def as_thumb
+      return nil unless client_file.variable?
+
+      client_file.variant(resize_to_limit: [400, 400]).processed.download
+    end
   end
 end
