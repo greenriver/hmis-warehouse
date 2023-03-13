@@ -43,7 +43,7 @@ RSpec.describe 'Datalab 2023', type: :model do
     include_context 'datalab rrh coc 1 apr' # done
     include_context 'datalab rrh coc 2 apr' # done
     include_context 'datalab sso coc apr' # done
-    include_context 'datalab th coc apr'
+    include_context 'datalab th coc apr' # done
 
     include_context 'datalab es ee esg caper'
     # Pending AAQ https://www.hudexchange.info/program-support/my-question/?askaquestionaction=public%3Amain.answer&key=D3F0FFCA-1B80-4323-A0BFA0B69D6C4B26

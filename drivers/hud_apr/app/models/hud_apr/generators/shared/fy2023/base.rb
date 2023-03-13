@@ -204,6 +204,7 @@ module HudApr::Generators::Shared::Fy2023
             disabling_condition: enrollment.DisablingCondition,
             dob_quality: source_client.DOBDataQuality,
             dob: source_client.DOB,
+            client_created_at: source_client.DateCreated,
             domestic_violence: health_and_dv&.DomesticViolenceVictim,
             drug_abuse_entry: [2, 3].include?(disabilities_at_entry.detect(&:substance?)&.DisabilityResponse),
             drug_abuse_exit: [2, 3].include?(disabilities_at_exit.detect(&:substance?)&.DisabilityResponse),

@@ -77,28 +77,28 @@ RSpec.shared_context 'datalab psh coc 1 apr', shared_context: :metadata do
       )
     end
 
-    it 'Q7a' do # FIXME
+    it 'Q7a' do
       compare_results(
         file_path: result_file_prefix + 'apr/psh_coc_1',
         question: 'Q7a',
       )
     end
 
-    it 'Q7b' do # FIXME
+    it 'Q7b' do
       compare_results(
         file_path: result_file_prefix + 'apr/psh_coc_1',
         question: 'Q7b',
       )
     end
 
-    it 'Q8a' do # FIXME
+    it 'Q8a' do
       compare_results(
         file_path: result_file_prefix + 'apr/psh_coc_1',
         question: 'Q8a',
       )
     end
 
-    it 'Q8b' do # FIXME
+    it 'Q8b' do
       compare_results(
         file_path: result_file_prefix + 'apr/psh_coc_1',
         question: 'Q8b',
@@ -305,14 +305,14 @@ RSpec.shared_context 'datalab psh coc 1 apr', shared_context: :metadata do
       )
     end
 
-    it 'Q22c' do # FIXME
+    it 'Q22c' do
       compare_results(
         file_path: result_file_prefix + 'apr/psh_coc_1',
         question: 'Q22c',
       )
     end
 
-    it 'Q22e' do # FIXME
+    it 'Q22e' do
       compare_results(
         file_path: result_file_prefix + 'apr/psh_coc_1',
         question: 'Q22e',
