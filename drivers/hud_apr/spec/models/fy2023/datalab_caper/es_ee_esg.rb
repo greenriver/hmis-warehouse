@@ -33,10 +33,6 @@ RSpec.shared_context 'datalab es ee esg caper', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'caper/es_ee_esg',
         question: 'Q6a',
-        # Pending AirTable, client 705787 does not have an SSN, but not included in D3, Issue ID 32
-        # skip: [
-        #   'D3',
-        # ],
       )
     end
 
@@ -44,11 +40,6 @@ RSpec.shared_context 'datalab es ee esg caper', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'caper/es_ee_esg',
         question: 'Q6b',
-        # Pending AirTable for HouseholdID h_842571 with two HoH
-        # skip: [
-        #   'B4',
-        #   'C4',
-        # ],
       )
     end
 
@@ -56,12 +47,6 @@ RSpec.shared_context 'datalab es ee esg caper', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'caper/es_ee_esg',
         question: 'Q6c',
-        # Pending AirTable submitted 1/13/2023 - submitted regarding APR - DataLab - SSO CoC Q6c B5
-        # skip: [
-        #   'B3',
-        #   'C3',
-        #   'B5',
-        # ],
       )
     end
 
@@ -72,10 +57,18 @@ RSpec.shared_context 'datalab es ee esg caper', shared_context: :metadata do
       )
     end
 
-    it 'Q6e' do # FIXME
+    it 'Q6e' do
       compare_results(
         file_path: result_file_prefix + 'caper/es_ee_esg',
         question: 'Q6e',
+        # pending https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recWCP4jftXR51nYq (47)
+        skip: [
+          'C2',
+          'C3',
+          'C4',
+          'C5',
+          'C6',
+        ],
       )
     end
 
@@ -238,16 +231,17 @@ RSpec.shared_context 'datalab es ee esg caper', shared_context: :metadata do
         file_path: result_file_prefix + 'caper/es_ee_esg',
         question: 'Q19b',
         # Pending AAQ: https://www.hudexchange.info/program-support/my-question/?askaquestionaction=public%3Amain.answer&key=99B4E7C1-9C9A-4C5C-877330D949FEE8A7
+        # and https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recJd87KB7pyODgD1 (48)
         # The following have IncomeFromAnySource = 1, but no sources specified
         # Brilliant	Overcharge
         # Ephemeral	Chassis
         # Poplin	Cress
         # Coating	Spirit
-        # skip: [
-        #   'C13',
-        #   'D13',
-        #   'E13',
-        # ],
+        skip: [
+          'C13',
+          'D13',
+          'E13',
+        ],
       )
     end
 
@@ -286,7 +280,6 @@ RSpec.shared_context 'datalab es ee esg caper', shared_context: :metadata do
       )
     end
 
-    # FIXME: this should be re-enabled when the new data set is implemented
     it 'Q22e' do
       compare_results(
         file_path: result_file_prefix + 'caper/es_ee_esg',
