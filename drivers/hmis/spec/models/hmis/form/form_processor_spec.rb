@@ -613,17 +613,190 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
 
   describe 'Form processing for Organizations' do
     let(:definition) { Hmis::Form::Definition.find_by(role: :ORGANIZATION) }
+    let(:complete_hud_values) do
+      {
+        'organizationName' => 'Test org',
+        'description' => 'description',
+        'contactInformation' => 'contact info',
+        'victimServiceProvider' => 'NO',
+      }
+    end
+
+    it 'creates and updates all fields' do
+      existing_record = o1
+      new_record = Hmis::Hud::Organization.new(data_source: ds, user: hmis_hud_user)
+      [existing_record, new_record].each do |organization|
+        custom_form = Hmis::Form::CustomForm.new(owner: organization, definition: definition)
+        custom_form.hud_values = complete_hud_values
+        custom_form.form_processor.run!
+        custom_form.owner.save!
+        organization.reload
+
+        expect(organization.organization_name).to eq('Test org')
+        expect(organization.victim_service_provider).to eq(0)
+        expect(organization.description).to eq('description')
+        expect(organization.contact_information).to eq('contact info')
+      end
+    end
+
+    it 'stores empty fields correctly' do
+      existing_record = o1
+      new_record = Hmis::Hud::Organization.new(data_source: ds, user: hmis_hud_user)
+      [existing_record, new_record].each do |organization|
+        custom_form = Hmis::Form::CustomForm.new(owner: organization, definition: definition)
+        custom_form.hud_values = complete_hud_values.merge(
+          'description' => nil,
+          'contactInformation' => nil,
+          'victimServiceProvider' => nil,
+        )
+        custom_form.form_processor.run!
+        custom_form.owner.save!
+        organization.reload
+
+        expect(organization.victim_service_provider).to eq(99)
+        expect(organization.description).to be nil
+        expect(organization.contact_information).to be nil
+      end
+    end
   end
 
   describe 'Form processing for Funders' do
     let(:definition) { Hmis::Form::Definition.find_by(role: :FUNDER) }
+    let!(:f1) { create :hmis_hud_funder, data_source: ds, project: p1, user: hmis_hud_user, other_funder: 'exists' }
+    let(:complete_hud_values) do
+      {
+        'funder' => 'HUD_COC_TRANSITIONAL_HOUSING',
+        'otherFunder' => HIDDEN,
+        'grantId' => 'ABCDEF',
+        'startDate' => '2022-12-01',
+        'endDate' => '2023-03-24',
+      }
+    end
+
+    it 'creates and updates all fields' do
+      existing_record = f1
+      new_record = Hmis::Hud::Funder.new(data_source: ds, user: hmis_hud_user, project: p1)
+      [existing_record, new_record].each do |funder|
+        custom_form = Hmis::Form::CustomForm.new(owner: funder, definition: definition)
+        custom_form.hud_values = complete_hud_values
+        custom_form.form_processor.run!
+        custom_form.owner.save!
+        funder.reload
+
+        expect(funder.funder).to eq(5)
+        expect(funder.other_funder).to be nil
+        expect(funder.grant_id).to eq('ABCDEF')
+        expect(funder.start_date.strftime('%Y-%m-%d')).to eq('2022-12-01')
+        expect(funder.end_date.strftime('%Y-%m-%d')).to eq('2023-03-24')
+      end
+    end
+
+    it 'sets other funder' do
+      existing_record = f1
+      new_record = Hmis::Hud::Funder.new(data_source: ds, user: hmis_hud_user, project: p1)
+      [existing_record, new_record].each do |funder|
+        custom_form = Hmis::Form::CustomForm.new(owner: funder, definition: definition)
+        custom_form.hud_values = complete_hud_values.merge(
+          'funder' => 'LOCAL_OR_OTHER_FUNDING_SOURCE',
+          'otherFunder' => 'foo',
+        )
+        custom_form.form_processor.run!
+        custom_form.owner.save!
+        funder.reload
+
+        expect(funder.funder).to eq(46)
+        expect(funder.other_funder).to eq('foo')
+      end
+    end
   end
 
   describe 'Form processing for ProjectCoCs' do
     let(:definition) { Hmis::Form::Definition.find_by(role: :PROJECT_COC) }
+    let!(:pc1) { create :hmis_hud_project_coc, data_source: ds, project: p1, coc_code: 'CO-500', user: hmis_hud_user }
+    let(:complete_hud_values) do
+      {
+        'cocCode' => 'MA-504',
+        'geocode' => '250354',
+        'geographyType' => 'SUBURBAN',
+        'address1' => '1 State Street',
+        'address2' => nil,
+        'city' => 'Brockton',
+        'state' => 'MA',
+        'zip' => '12345',
+      }
+    end
+
+    it 'creates and updates all fields' do
+      existing_record = pc1
+      new_record = Hmis::Hud::ProjectCoc.new(data_source: ds, user: hmis_hud_user, project: p1)
+      [existing_record, new_record].each do |record|
+        custom_form = Hmis::Form::CustomForm.new(owner: record, definition: definition)
+        custom_form.hud_values = complete_hud_values
+        custom_form.form_processor.run!
+        custom_form.owner.save!
+        record.reload
+
+        expect(record.coc_code).to eq('MA-504')
+        expect(record.geocode).to eq('250354')
+        expect(record.geography_type).to eq(2)
+        expect(record.address1).to eq('1 State Street')
+        expect(record.address2).to be nil
+        expect(record.city).to eq('Brockton')
+        expect(record.state).to eq('MA')
+        expect(record.zip).to eq('12345')
+      end
+    end
   end
 
   describe 'Form processing for Inventory' do
     let(:definition) { Hmis::Form::Definition.find_by(role: :INVENTORY) }
+    let!(:pc1) { create :hmis_hud_project_coc, data_source: ds, project: p1, coc_code: 'CO-500', user: hmis_hud_user }
+    let!(:i1) { create :hmis_hud_inventory, data_source: ds, project: p1, coc_code: pc1.coc_code, inventory_start_date: '2020-01-01', inventory_end_date: nil, user: hmis_hud_user }
+    let(:complete_hud_values) do
+      {
+        'cocCode' => 'CO-500',
+        'householdType' => 'HOUSEHOLDS_WITH_AT_LEAST_ONE_ADULT_AND_ONE_CHILD',
+        'availability' => 'SEASONAL',
+        'esBedType' => 'OTHER',
+        'inventoryStartDate' => '2023-01-23',
+        'inventoryEndDate' => '2023-01-28',
+        'unitInventory' => 0,
+        'bedInventory' => 0,
+      }
+    end
+
+    it 'creates and updates all fields' do
+      existing_record = i1
+      new_record = Hmis::Hud::Inventory.new(data_source: ds, user: hmis_hud_user, project: p1)
+      [existing_record, new_record].each do |record|
+        custom_form = Hmis::Form::CustomForm.new(owner: record, definition: definition)
+        custom_form.hud_values = complete_hud_values
+        custom_form.form_processor.run!
+        custom_form.owner.save!
+        record.reload
+
+        expect(record.coc_code).to eq('CO-500')
+        expect(record.household_type).to eq(3)
+        expect(record.availability).to eq(2)
+        expect(record.es_bed_type).to eq(3)
+        expect(record.inventory_start_date.strftime('%Y-%m-%d')).to eq('2023-01-23')
+        expect(record.inventory_end_date.strftime('%Y-%m-%d')).to eq('2023-01-28')
+        expect(record.bed_inventory).to eq(0)
+        expect(record.unit_inventory).to eq(0)
+      end
+    end
+
+    it 'fails if CoC code is not valid for project' do
+      existing_record = i1
+      new_record = Hmis::Hud::Inventory.new(data_source: ds, user: hmis_hud_user, project: p1)
+      [existing_record, new_record].each do |record|
+        custom_form = Hmis::Form::CustomForm.new(owner: record, definition: definition)
+        custom_form.hud_values = complete_hud_values.merge(
+          'cocCode' => 'MA-500',
+        )
+        custom_form.form_processor.run!
+        expect(custom_form.owner.valid?).to eq(false)
+      end
+    end
   end
 end
