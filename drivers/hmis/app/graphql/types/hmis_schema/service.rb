@@ -8,6 +8,8 @@
 
 module Types
   class HmisSchema::Service < Types::BaseObject
+    description 'HUD or Custom Service rendered'
+
     def self.configuration
       Hmis::Hud::Service.hmis_configuration(version: '2022')
     end
@@ -16,8 +18,8 @@ module Types
     hud_field :enrollment, Types::HmisSchema::Enrollment, null: false
     hud_field :client, HmisSchema::Client, null: false
     hud_field :date_provided
-    hud_field :record_type, HmisSchema::Enums::Hud::RecordType
-    hud_field :type_provided, HmisSchema::Enums::ServiceTypeProvided
+    hud_field :record_type, HmisSchema::Enums::Hud::RecordType, null: true
+    hud_field :type_provided, HmisSchema::Enums::ServiceTypeProvided, null: true
     hud_field :other_type_provided
     hud_field :moving_on_other_type
     hud_field :sub_type_provided, HmisSchema::Enums::ServiceSubTypeProvided

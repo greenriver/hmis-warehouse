@@ -5,7 +5,6 @@
 ###
 
 class Hmis::Hud::Project < Hmis::Hud::Base
-  include ::Hmis::Concerns::HmisArelHelper
   include ::HmisStructure::Project
   include ::Hmis::Hud::Concerns::Shared
   self.table_name = :Project
@@ -63,10 +62,6 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     else
       raise NotImplementedError
     end
-  end
-
-  def self.generate_project_id
-    generate_uuid
   end
 
   def active

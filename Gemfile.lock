@@ -40,6 +40,14 @@ GIT
     pg_fixtures (0.1.0)
 
 GIT
+  remote: https://github.com/greenriver/rails_drivers.git
+  revision: 9ae472566aab064be43dbc355d4b5bb611c6d360
+  branch: master
+  specs:
+    rails_drivers (1.2.0)
+      rails (>= 5.2)
+
+GIT
   remote: https://github.com/greenriver/stupidedi.git
   revision: 9e1b9896b371078d439e72505165082b898cd00a
   branch: master
@@ -91,11 +99,10 @@ GEM
       rails-html-sanitizer (~> 1.1, >= 1.2.0)
     active_median (0.3.3)
       activesupport (>= 5.2)
-    active_record_distinct_on (1.2.0)
-      activerecord (>= 5.2, < 6.2)
-    active_record_extended (2.0.3)
-      activerecord (>= 5.1, < 6.2)
-      ar_outer_joins (~> 0.2)
+    active_record_distinct_on (1.4.0)
+      activerecord (>= 5.2, < 7.1)
+    active_record_extended (3.1.0)
+      activerecord (>= 5.2, < 7.1.0)
       pg (< 3.0)
     active_record_query_trace (1.8)
     activejob (6.1.7.1)
@@ -106,8 +113,8 @@ GEM
     activerecord (6.1.7.1)
       activemodel (= 6.1.7.1)
       activesupport (= 6.1.7.1)
-    activerecord-import (1.2.0)
-      activerecord (>= 3.2)
+    activerecord-import (1.4.1)
+      activerecord (>= 4.2)
     activerecord-postgis-adapter (7.1.1)
       activerecord (~> 6.1)
       rgeo-activerecord (~> 7.0.0)
@@ -135,28 +142,26 @@ GEM
       zeitwerk (~> 2.3)
     acts-as-taggable-on (7.0.0)
       activerecord (>= 5.0, < 6.2)
-    addressable (2.8.0)
-      public_suffix (>= 2.0.2, < 5.0)
-    airbrussh (1.4.0)
+    addressable (2.8.1)
+      public_suffix (>= 2.0.2, < 6.0)
+    airbrussh (1.4.1)
       sshkit (>= 1.6.1, != 1.7.0)
     ajax_modal_rails (1.0.12)
       rails (>= 4)
     amazing_print (1.4.0)
     ansi (1.5.0)
-    anyway_config (2.3.0)
+    anyway_config (2.3.1)
       ruby-next-core (>= 0.14.0)
-    ar_outer_joins (0.2.0)
-      activerecord (>= 3.2)
     ast (2.4.2)
     attr_encrypted (3.1.0)
       encryptor (~> 3.0.0)
     attribute_normalizer (1.2.0)
-    authtrail (0.4.1)
+    authtrail (0.4.3)
       activerecord (>= 5.2)
       railties (>= 5.2)
       warden
-    auto-session-timeout (0.9.7)
-      actionpack (>= 3.2, < 7)
+    auto-session-timeout (0.9.9)
+      actionpack (>= 3.2, < 7.1)
     autoprefixer-rails (10.3.3.0)
       execjs (~> 2)
     aws-eventstream (1.2.0)
@@ -246,8 +251,8 @@ GEM
     babel-transpiler (0.7.0)
       babel-source (>= 4.0, < 6)
       execjs (~> 2.0)
-    bcrypt (3.1.17)
-    benchmark-ips (2.9.2)
+    bcrypt (3.1.18)
+    benchmark-ips (2.10.0)
     bindex (0.8.1)
     bootsnap (1.9.1)
       msgpack (~> 1.0)
@@ -260,7 +265,7 @@ GEM
     brakeman (5.0.4)
     browser (5.3.1)
     builder (3.2.4)
-    bumbler (0.8.0)
+    bumbler (0.9.0)
     bundler-audit (0.9.0.1)
       bundler (>= 1.2.0, < 3)
       thor (~> 1.0)
@@ -288,8 +293,9 @@ GEM
     capistrano-rvm (0.1.2)
       capistrano (~> 3.0)
       sshkit (~> 1.2)
-    capybara (3.35.3)
+    capybara (3.38.0)
       addressable
+      matrix
       mini_mime (>= 0.1.3)
       nokogiri (~> 1.8)
       rack (>= 1.6.0)
@@ -433,7 +439,7 @@ GEM
     graphiql-rails (1.8.0)
       railties
       sprockets-rails
-    graphql (2.0.9)
+    graphql (2.0.16)
     grosser-pomo (0.5.1)
     grover (1.1.3)
       combine_pdf (~> 1.0)
@@ -478,7 +484,7 @@ GEM
       mini_magick (>= 4.9.5, < 5)
       ruby-vips (>= 2.0.17, < 3)
     iniparse (1.5.0)
-    io-console (0.5.9)
+    io-console (0.6.0)
     jmespath (1.6.2)
     jquery-minicolors-rails (2.2.6.2)
       jquery-rails
@@ -489,7 +495,7 @@ GEM
       thor (>= 0.14, < 2.0)
     jquery-ui-rails (6.0.1)
       railties (>= 3.2.16)
-    json (2.6.0)
+    json (2.6.3)
     jwt (2.7.0)
     kaminari (1.2.1)
       activesupport (>= 4.1.0)
@@ -613,9 +619,9 @@ GEM
       iniparse (~> 1.4)
       rexml (~> 3.2)
     pagy (5.1.2)
-    paper_trail (11.1.0)
-      activerecord (>= 5.2)
-      request_store (~> 1.1)
+    paper_trail (14.0.0)
+      activerecord (>= 6.0)
+      request_store (~> 1.4)
     parallel (1.22.1)
     paranoia (2.4.3)
       activerecord (>= 4.0, < 6.2)
@@ -638,7 +644,7 @@ GEM
       method_source (~> 1.0)
     pry-rails (0.3.9)
       pry (>= 0.10.4)
-    public_suffix (4.0.6)
+    public_suffix (5.0.1)
     puma (4.3.12)
       nio4r (~> 2.0)
     pwned (2.0.2)
@@ -683,8 +689,6 @@ GEM
       ruby-graphviz (~> 1.2)
     rails-html-sanitizer (1.5.0)
       loofah (~> 2.19, >= 2.19.1)
-    rails_drivers (1.2.0)
-      rails (>= 5.2)
     railties (6.1.7.1)
       actionpack (= 6.1.7.1)
       activesupport (= 6.1.7.1)
@@ -710,10 +714,10 @@ GEM
       redis-store (>= 1.2, < 2)
     redis-store (1.9.0)
       redis (>= 4, < 5)
-    regexp_parser (2.5.0)
-    reline (0.2.7)
+    regexp_parser (2.6.2)
+    reline (0.3.2)
       io-console (~> 0.5)
-    request_store (1.5.0)
+    request_store (1.5.1)
       rack (>= 1.4)
     responders (3.0.1)
       actionpack (>= 5.0)
@@ -798,8 +802,8 @@ GEM
     rubyXL (3.4.25)
       nokogiri (>= 1.10.8)
       rubyzip (>= 1.3.0)
-    ruby_parser (3.17.0)
-      sexp_processor (~> 4.15, >= 4.15.1)
+    ruby_parser (3.20.0)
+      sexp_processor (~> 4.16)
     rubyzip (2.3.2)
     sassc (2.4.0)
       ffi (~> 1.9)
@@ -820,7 +824,7 @@ GEM
     sentry-ruby (5.7.0)
       concurrent-ruby (~> 1.0, >= 1.0.2)
     set (1.0.1)
-    sexp_processor (4.15.3)
+    sexp_processor (4.16.1)
     shoulda (4.0.0)
       shoulda-context (~> 2.0)
       shoulda-matchers (~> 4.0)
@@ -889,7 +893,7 @@ GEM
       public_suffix
     validates_email_format_of (1.6.3)
       i18n
-    vcr (6.0.0)
+    vcr (6.1.0)
     version_gem (1.1.1)
     virtus (2.0.0)
       axiom-types (~> 0.1)
@@ -933,7 +937,7 @@ GEM
       prometheus-client (>= 0.10, < 3.0)
       rack
       yabeda (~> 0.10)
-    yabeda-puma-plugin (0.7.0)
+    yabeda-puma-plugin (0.7.1)
       json
       puma
       yabeda (~> 0.5)
@@ -968,7 +972,7 @@ DEPENDENCIES
   attribute_normalizer
   authtrail
   auto-session-timeout
-  autoprefixer-rails
+  autoprefixer-rails (~> 10.3.3)
   aws-sdk-autoscaling (~> 1)
   aws-sdk-cloudwatch (~> 1)
   aws-sdk-cloudwatchevents (~> 1)
@@ -1099,11 +1103,11 @@ DEPENDENCIES
   rails-controller-testing
   rails-erd
   rails-html-sanitizer (>= 1.4.4)
-  rails_drivers
+  rails_drivers!
   ransack
   redcarpet
   redis-actionpack
-  reline (~> 0.2)
+  reline
   responders
   rest-client (~> 2.0)
   rgeo

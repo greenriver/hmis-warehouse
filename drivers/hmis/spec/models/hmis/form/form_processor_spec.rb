@@ -340,7 +340,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       expect(assessment.enrollment.exit_date).to be_nil
 
       assessment.custom_form.hud_values = {
-        'Exit.destination' => '1',
+        'Exit.destination' => 'SAFE_HAVEN',
       }
 
       assessment.custom_form.form_processor.run!
@@ -349,7 +349,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       assessment.reload
 
       expect(assessment.enrollment.exit).to be_present
-      expect(assessment.enrollment.exit.destination).to eq(1)
+      expect(assessment.enrollment.exit.destination).to eq(18)
     end
 
     it 'updates enrollment entry date when appropriate' do
@@ -376,6 +376,159 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
 
       expect(assessment.enrollment.entry_date).not_to eq(old_entry_date)
       expect(assessment.enrollment.entry_date).to eq(Date.parse(new_entry_date))
+    end
+  end
+
+  describe 'Form processing for Projects' do
+    let(:definition) { Hmis::Form::Definition.find_by(role: :PROJECT) }
+
+    it 'updates a Project' do
+      custom_form = Hmis::Form::CustomForm.new(owner: p1, definition: definition)
+      custom_form.hud_values = {
+        'projectName' => 'new name',
+      }
+      custom_form.form_processor.run!
+      custom_form.owner.save!
+      p1.reload
+      expect(p1.project_name).to eq('new name')
+    end
+  end
+
+  describe 'Form processing for Clients' do
+    let(:definition) { Hmis::Form::Definition.find_by(role: :CLIENT) }
+    let(:complete_hud_values) do
+      {
+        'firstName' => 'First',
+        'middleName' => 'Middle',
+        'lastName' => 'Last',
+        'nameSuffix' => 'Sf',
+        'preferredName' => 'Pref',
+        'nameDataQuality' => 'FULL_NAME_REPORTED',
+        'dob' => '2000-03-29',
+        'dobDataQuality' => 'FULL_DOB_REPORTED',
+        'ssn' => 'XXXXX1234',
+        'ssnDataQuality' => 'APPROXIMATE_OR_PARTIAL_SSN_REPORTED',
+        'race' => [
+          'WHITE',
+          'ASIAN',
+        ],
+        'ethnicity' => 'HISPANIC_LATIN_A_O_X',
+        'gender' => [
+          'FEMALE',
+          'TRANSGENDER',
+        ],
+        'pronouns' => [
+          'she/her',
+          'they/them',
+        ],
+        'veteranStatus' => 'CLIENT_REFUSED',
+        'imageBlobId' => nil,
+      }
+    end
+    let(:empty_hud_values) do
+      empty = complete_hud_values.map { |k, v| [k, v.is_a?(Array) ? [] : nil] }.to_h
+      empty['firstName'] = 'First' # First or last is required
+      empty
+    end
+
+    it 'creates and updates all fields' do
+      existing_client = c1
+      existing_client.update(NoSingleGender: 1, BlackAfAmerican: 1)
+      new_client = Hmis::Hud::Client.new(data_source: ds, user: hmis_hud_user)
+      [existing_client, new_client].each do |client|
+        custom_form = Hmis::Form::CustomForm.new(owner: client, definition: definition)
+        custom_form.hud_values = complete_hud_values
+        custom_form.form_processor.run!
+        custom_form.owner.save!
+        client.reload
+
+        expect(client.first_name).to eq('First')
+        expect(client.middle_name).to eq('Middle')
+        expect(client.last_name).to eq('Last')
+        expect(client.name_suffix).to eq('Sf')
+        expect(client.preferred_name).to eq('Pref')
+        expect(client.name_data_quality).to eq(1)
+        expect(client.dob.strftime('%Y-%m-%d')).to eq('2000-03-29')
+        expect(client.dob_data_quality).to eq(1)
+        expect(client.ssn).to eq('XXXXX1234')
+        expect(client.ssn_data_quality).to eq(2)
+        expect(client.ethnicity).to eq(1)
+        expect(client.pronouns).to eq('she/her|they/them')
+        expect(client.veteran_status).to eq(9)
+        expect(client.race_fields).to contain_exactly('White', 'Asian')
+        expect(client.RaceNone).to be nil
+        expect(client.BlackAfAmerican).to eq(0)
+        expect(client.NativeHIPacific).to eq(0)
+        expect(client.AmIndAKNative).to eq(0)
+        expect(client.gender_fields).to contain_exactly(:Female, :Transgender)
+        expect(client.GenderNone).to be nil
+        expect(client.NoSingleGender).to eq(0)
+        expect(client.Male).to eq(0)
+        expect(client.Questioning).to eq(0)
+      end
+    end
+
+    it 'stores empty fields correctly' do
+      existing_client = c1
+      existing_client.update(NoSingleGender: 1, BlackAfAmerican: 1)
+      new_client = Hmis::Hud::Client.new(data_source: ds, user: hmis_hud_user)
+      [existing_client, new_client].each do |client|
+        custom_form = Hmis::Form::CustomForm.new(owner: client, definition: definition)
+        custom_form.hud_values = empty_hud_values
+        custom_form.form_processor.run!
+        custom_form.owner.save!
+        client.reload
+
+        expect(client.first_name).to eq('First')
+        expect(client.middle_name).to be nil
+        expect(client.last_name).to be nil
+        expect(client.name_suffix).to be nil
+        expect(client.preferred_name).to be nil
+        expect(client.name_data_quality).to eq(99)
+        expect(client.dob).to be nil
+        expect(client.dob_data_quality).to eq(99)
+        expect(client.ssn).to be nil
+        expect(client.ssn_data_quality).to eq(99)
+        expect(client.ethnicity).to eq(99)
+        expect(client.pronouns).to be nil
+        expect(client.veteran_status).to eq(99)
+        expect(client.race_fields).to eq([])
+        expect(client.RaceNone).to eq(99)
+        expect(client.BlackAfAmerican).to eq(99)
+        expect(client.NativeHIPacific).to eq(99)
+        expect(client.AmIndAKNative).to eq(99)
+        expect(client.gender_fields).to eq([])
+        expect(client.GenderNone).to eq(99)
+        expect(client.NoSingleGender).to eq(99)
+        expect(client.Male).to eq(99)
+        expect(client.Questioning).to eq(99)
+      end
+    end
+
+    it 'handles Client Refused (8) and Client Doesn\t Know (9)' do
+      existing_client = c1
+      new_client = Hmis::Hud::Client.new(data_source: ds, user: hmis_hud_user)
+      [existing_client, new_client].each do |client|
+        custom_form = Hmis::Form::CustomForm.new(owner: client, definition: definition)
+        custom_form.hud_values = empty_hud_values.merge(
+          'ethnicity' => 'CLIENT_REFUSED', # 9
+          'veteranStatus' => 'CLIENT_REFUSED', # 9
+          'dobDataQuality' => 'CLIENT_REFUSED', # 9
+          'race' => ['CLIENT_REFUSED'], # 9
+          'gender' => ['CLIENT_DOESN_T_KNOW'], # 8
+        )
+        custom_form.form_processor.run!
+        custom_form.owner.save!
+        client.reload
+
+        expect(client.ethnicity).to eq(9)
+        expect(client.veteran_status).to eq(9)
+        expect(client.dob_data_quality).to eq(9)
+        expect(client.race_fields).to eq([])
+        expect(client.RaceNone).to eq(9)
+        expect(client.gender_fields).to eq([])
+        expect(client.GenderNone).to eq(8)
+      end
     end
   end
 end

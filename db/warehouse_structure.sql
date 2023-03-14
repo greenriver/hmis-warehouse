@@ -14315,7 +14315,8 @@ ALTER SEQUENCE public.hmis_import_configs_id_seq OWNED BY public.hmis_import_con
 --
 
 CREATE VIEW public.hmis_services AS
- SELECT hud_services.owner_id,
+ SELECT hud_services.id,
+    hud_services.owner_id,
     hud_services.owner_type,
     hud_services.custom_service_type_id,
     hud_services."EnrollmentID",
@@ -14326,7 +14327,8 @@ CREATE VIEW public.hmis_services AS
     hud_services."DateUpdated",
     hud_services."DateDeleted",
     hud_services.data_source_id
-   FROM ( SELECT "Services".id AS owner_id,
+   FROM ( SELECT (concat('1', ("Services".id)::character varying))::integer AS id,
+            "Services".id AS owner_id,
             'Hmis::Hud::Service'::text AS owner_type,
             "CustomServiceTypes".id AS custom_service_type_id,
             "Services"."EnrollmentID",
@@ -14340,7 +14342,8 @@ CREATE VIEW public.hmis_services AS
            FROM (public."Services"
              JOIN public."CustomServiceTypes" ON ((("CustomServiceTypes".hud_record_type = "Services"."RecordType") AND ("CustomServiceTypes".hud_type_provided = "Services"."TypeProvided") AND ("CustomServiceTypes"."DateDeleted" IS NULL))))) hud_services
 UNION
- SELECT "CustomServices".id AS owner_id,
+ SELECT (concat('2', ("CustomServices".id)::character varying))::integer AS id,
+    "CustomServices".id AS owner_id,
     'Hmis::Hud::CustomService'::text AS owner_type,
     "CustomServices".custom_service_type_id,
     "CustomServices"."EnrollmentID",
@@ -14351,7 +14354,8 @@ UNION
     "CustomServices"."DateUpdated",
     "CustomServices"."DateDeleted",
     "CustomServices".data_source_id
-   FROM public."CustomServices";
+   FROM public."CustomServices"
+  WHERE ("CustomServices"."DateDeleted" IS NULL);
 
 
 --
@@ -51536,6 +51540,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230301172341'),
 ('20230303154815'),
 ('20230303181248'),
-('20230307143837');
+('20230307143837'),
+('20230309205059');
 
 
