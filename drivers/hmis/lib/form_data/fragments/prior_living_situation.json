@@ -83,6 +83,7 @@
       "hidden": true,
       "link_id": "los-threshold",
       "field_name": "losUnderThreshold",
+      "pick_list_reference": "NoYesMissing",
       "autofill_values": [
         {
           "_comment": "LOS is above the threshold if either of the 'break' display notices are shown",
