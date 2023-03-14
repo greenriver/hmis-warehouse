@@ -25,10 +25,10 @@ module Mutations
       blob = ActiveStorage::Blob.find_by(id: file_blob_id)
 
       if blob
-        file = GrdaWarehouse::ClientFile.new(
+        file = Hmis::File.new(
           client_id: client_id,
           enrollment_id: enrollment_id,
-          user_id: user.id,
+          user_id: current_user.id,
           name: blob.filename,
           visible_in_window: false,
           **input,
