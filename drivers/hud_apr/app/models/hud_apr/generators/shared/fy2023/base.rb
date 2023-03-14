@@ -426,16 +426,19 @@ module HudApr::Generators::Shared::Fy2023
         reject { |_, enrollments| enrollments.empty? }
     end
 
-    # FIXME: https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recyYttiE2kyVkXPR (53)
-    # indicates we should count Exit date as a date of service
+    # Uses Method 2 Active Clients by Date of Service from the HMIS Glossary
     private def nbn_with_service?(enrollment)
       return true unless enrollment.nbn?
 
-      @with_service ||= GrdaWarehouse::ServiceHistoryService.bed_night.
-        service_excluding_extrapolated.
-        service_within_date_range(start_date: @report.start_date, end_date: @report.end_date).
-        where(service_history_enrollment_id: enrollment_scope_without_preloads.select(:id)).
-        pluck(:service_history_enrollment_id).to_set
+      @with_service ||= (
+        # anyone with service in the range
+        GrdaWarehouse::ServiceHistoryService.bed_night.
+          service_excluding_extrapolated.
+          service_within_date_range(start_date: @report.start_date, end_date: @report.end_date).
+          where(service_history_enrollment_id: enrollment_scope_without_preloads.select(:id)).
+          pluck(:service_history_enrollment_id) +
+        # plus anyone with an exit within the range
+        enrollment_scope_without_preloads.exit_within_date_range(start_date: @report.start_date, end_date: @report.end_date).pluck(:id)).to_set
 
       @with_service.include?(enrollment.id)
     end

@@ -60,11 +60,6 @@ RSpec.shared_context 'datalab th ce ce apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'ce_apr/ce',
         question: 'Q9b',
-        # skip: [ # pending AirTable submission, test kit doesn't include 4 significant digits
-        #   'B4',
-        #   'C4',
-        #   'D4',
-        # ],
       )
     end
 
@@ -82,10 +77,14 @@ RSpec.shared_context 'datalab th ce ce apr', shared_context: :metadata do
       )
     end
 
-    it 'Q10' do # FIXME
+    it 'Q10' do
       compare_results(
         file_path: result_file_prefix + 'ce_apr/ce',
         question: 'Q10',
+        # Pending https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recSjxF8M57MueVCs (59)
+        skip: [
+          'B7',
+        ],
       )
     end
   end
