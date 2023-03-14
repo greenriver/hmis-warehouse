@@ -79,7 +79,7 @@
       ]
     },
     {
-      "type": "DISPLAY",
+      "type": "CHOICE",
       "hidden": true,
       "link_id": "los-threshold",
       "field_name": "losUnderThreshold",
