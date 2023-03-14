@@ -99,7 +99,13 @@ module Mutations
     end
 
     private def perform_side_effects(record)
-      GrdaWarehouse::Tasks::IdentifyDuplicates.new.delay.run! if record.is_a? Hmis::Hud::Client
+      if record.is_a?(Hmis::Hud::Client)
+        if record.new_record?
+          GrdaWarehouse::Tasks::IdentifyDuplicates.new.delay.run!
+        else
+          GrdaWarehouse::Tasks::IdentifyDuplicates.new.delay.match_existing!
+        end
+      end
 
       return unless record.is_a? Hmis::Hud::Project
       return unless record.operating_end_date_was.nil? && record.operating_end_date.present?
@@ -118,9 +124,10 @@ module Mutations
           project_id: Hmis::Hud::Project.viewable_by(current_user).find_by(id: input.project_id)&.ProjectID,
         }
       when 'Hmis::Hud::HmisService'
+        enrollment = Hmis::Hud::Enrollment.viewable_by(current_user).find_by(id: input.enrollment_id)
         {
-          enrollment_id: Hmis::Hud::Enrollment.viewable_by(current_user).find_by(id: input.enrollment_id)&.EnrollmentID,
-          personal_id: Hmis::Hud::Enrollment.viewable_by(current_user).find_by(id: input.enrollment_id)&.PersonalID,
+          enrollment_id: enrollment&.EnrollmentID,
+          personal_id: enrollment&.PersonalID,
         }
       else
         {}
