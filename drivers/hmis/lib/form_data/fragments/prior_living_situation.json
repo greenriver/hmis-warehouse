@@ -116,6 +116,12 @@
               "answer_boolean": true
             }
           ]
+        },
+        {
+          "_comment": "LOS is null otherwise",
+          "value_code": "DATA_NOT_COLLECTED",
+          "autofill_behavior": "ALL",
+          "autofill_when": []
         }
       ]
     },
