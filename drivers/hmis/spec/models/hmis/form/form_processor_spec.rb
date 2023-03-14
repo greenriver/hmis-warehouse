@@ -382,6 +382,65 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
     end
   end
 
+  describe 'Processing PriorLivingSituation fields' do
+    it 'correctly sets all fields, and then nullifies them' do
+      assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: hmis_hud_user, form_definition: fd, assessment_date: Date.current)
+      assessment.custom_form.hud_values = {
+        "EnrollmentCoc.cocCode": 'SC-501',
+        "Enrollment.livingSituation": 'HOSPITAL_OR_OTHER_RESIDENTIAL_NON_PSYCHIATRIC_MEDICAL_FACILITY',
+        "Enrollment.lengthOfStay": 'ONE_MONTH_OR_MORE_BUT_LESS_THAN_90_DAYS',
+        "Enrollment.losUnderThreshold": 'YES',
+        "Enrollment.previousStreetEssh": 'YES',
+        "Enrollment.dateToStreetEssh": '2023-03-14',
+        "Enrollment.timesHomelessPastThreeYears": 'FOUR_OR_MORE_TIMES',
+        "Enrollment.monthsHomelessPastThreeYears": 'NUM_2',
+      }.stringify_keys
+
+      assessment.custom_form.form_processor.run!
+      assessment.save_not_in_progress
+
+      enrollment = assessment.enrollment.reload
+      expect(enrollment.living_situation).to eq(6)
+      expect(enrollment.length_of_stay).to eq(3)
+      expect(enrollment.los_under_threshold).to eq(1)
+      expect(enrollment.previous_street_essh).to eq(1)
+      expect(enrollment.times_homeless_past_three_years).to eq(4)
+      expect(enrollment.months_homeless_past_three_years).to eq(102)
+    end
+
+    it 'correctly nullifies fields' do
+      e1.update(living_situation: 6)
+      e1.update(length_of_stay: 3)
+      e1.update(los_under_threshold: 1)
+      e1.update(previous_street_essh: 0)
+      e1.update(times_homeless_past_three_years: 4)
+      e1.update(months_homeless_past_three_years: 102)
+      assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: hmis_hud_user, form_definition: fd, assessment_date: Date.current)
+
+      assessment.custom_form.hud_values = {
+        'EnrollmentCoc.cocCode' => 'MA-507',
+        'Enrollment.livingSituation' => nil,
+        'Enrollment.lengthOfStay' => nil,
+        'Enrollment.losUnderThreshold' => nil,
+        'Enrollment.previousStreetEssh' => nil,
+        'Enrollment.dateToStreetEssh' => nil,
+        'Enrollment.timesHomelessPastThreeYears' => nil,
+        'Enrollment.monthsHomelessPastThreeYears' => nil,
+      }
+
+      assessment.custom_form.form_processor.run!
+      assessment.save_not_in_progress
+
+      enrollment = assessment.enrollment.reload
+      expect(enrollment.living_situation).to eq(99)
+      expect(enrollment.length_of_stay).to eq(99)
+      expect(enrollment.los_under_threshold).to eq(99)
+      expect(enrollment.previous_street_essh).to eq(99)
+      expect(enrollment.times_homeless_past_three_years).to eq(99)
+      expect(enrollment.months_homeless_past_three_years).to eq(99)
+    end
+  end
+
   describe 'Form processing for Clients' do
     let(:definition) { Hmis::Form::Definition.find_by(role: :CLIENT) }
     let(:complete_hud_values) do
