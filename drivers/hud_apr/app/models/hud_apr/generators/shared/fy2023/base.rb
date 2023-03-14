@@ -426,6 +426,8 @@ module HudApr::Generators::Shared::Fy2023
         reject { |_, enrollments| enrollments.empty? }
     end
 
+    # FIXME: https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recyYttiE2kyVkXPR (53)
+    # indicates we should count Exit date as a date of service
     private def nbn_with_service?(enrollment)
       return true unless enrollment.nbn?
 
