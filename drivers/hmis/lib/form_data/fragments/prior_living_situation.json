@@ -120,10 +120,11 @@
       ]
     },
     {
-      "type": "BOOLEAN",
+      "type": "CHOICE",
       "link_id": "3.917.C",
       "required": false,
       "warn_if_empty": true,
+      "pick_list_reference": "NoYesMissing",
       "field_name": "previousStreetEssh",
       "text": "On the night before, did the client stay on the streets, ES or SH?",
       "brief_text": "Homeless on previous night",
