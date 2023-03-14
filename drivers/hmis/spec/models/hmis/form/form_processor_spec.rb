@@ -414,7 +414,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       }
     end
     let(:empty_hud_values) do
-      empty = complete_hud_values.map { |k, v| [k, v.is_a?(Array) ? [] : nil] }.to_h
+      empty = complete_hud_values.map { |k, _| [k, nil] }.to_h
       empty['firstName'] = 'First' # First or last is required
       empty
     end
@@ -490,6 +490,35 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         expect(client.NoSingleGender).to eq(99)
         expect(client.Male).to eq(99)
         expect(client.Questioning).to eq(99)
+      end
+    end
+
+    it 'handles empty arrays' do
+      existing_client = c1
+      existing_client.update(NoSingleGender: 1, BlackAfAmerican: 1)
+      new_client = Hmis::Hud::Client.new(data_source: ds, user: hmis_hud_user)
+      [existing_client, new_client].each do |client|
+        custom_form = Hmis::Form::CustomForm.new(owner: client, definition: definition)
+        custom_form.hud_values = empty_hud_values.merge(
+          'race' => [],
+          'gender' => [],
+          'pronouns' => [],
+        )
+        custom_form.form_processor.run!
+        custom_form.owner.save!
+        client.reload
+
+        expect(client.race_fields).to eq([])
+        expect(client.RaceNone).to eq(99)
+        expect(client.BlackAfAmerican).to eq(99)
+        expect(client.NativeHIPacific).to eq(99)
+        expect(client.AmIndAKNative).to eq(99)
+        expect(client.gender_fields).to eq([])
+        expect(client.GenderNone).to eq(99)
+        expect(client.NoSingleGender).to eq(99)
+        expect(client.Male).to eq(99)
+        expect(client.Questioning).to eq(99)
+        expect(client.pronouns).to be nil
       end
     end
 
