@@ -20,6 +20,18 @@ module Hmis::Concerns::HmisArelHelper
     def ar_t
       Hmis::ActiveRange.arel_table
     end
+
+    def cs_t
+      Hmis::Hud::CustomService.arel_table
+    end
+
+    def cst_t
+      Hmis::Hud::CustomServiceType.arel_table
+    end
+
+    def csc_t
+      Hmis::Hud::CustomServiceCategory.arel_table
+    end
   end
 
   included do
