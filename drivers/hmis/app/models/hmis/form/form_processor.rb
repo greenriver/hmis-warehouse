@@ -71,7 +71,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
   def common_attributes
     {
       data_collection_stage: custom_form.assessment.data_collection_stage,
-      personal_id: enrollment_factory.personal_id,
+      personal_id: custom_form.assessment.personal_id,
       information_date: custom_form.assessment.assessment_date,
       user_id: custom_form.assessment.user_id,
     }
