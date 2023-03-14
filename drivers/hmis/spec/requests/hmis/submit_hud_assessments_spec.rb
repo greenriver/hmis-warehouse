@@ -45,8 +45,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             client {
               id
             }
-            assessmentDetail {
-              #{scalar_fields(Types::HmisSchema::AssessmentDetail)}
+            customForm {
+              #{scalar_fields(Types::HmisSchema::CustomForm)}
               definition {
                 id
               }
@@ -73,8 +73,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             client {
               id
             }
-            assessmentDetail {
-              #{scalar_fields(Types::HmisSchema::AssessmentDetail)}
+            customForm {
+              #{scalar_fields(Types::HmisSchema::CustomForm)}
               definition {
                 id
               }
@@ -92,7 +92,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     expected_exit_date = Date.parse(expected_exit_date) if expected_exit_date.is_a?(String)
 
     expect(assessment).to be_present
-    expect(assessment.assessment_detail.assessment_processor).to be_present
+    expect(assessment.custom_form.form_processor).to be_present
     expect(assessment.assessment_date).to eq(expected_assessment_date)
     expect(assessment.enrollment.entry_date).to eq(expected_entry_date) if expected_entry_date.present?
     expect(assessment.enrollment.exit&.exit_date).to eq(expected_exit_date) if expected_exit_date.present?
@@ -111,7 +111,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         assessment_id = result.dig('data', 'submitAssessment', 'assessment', 'id')
         errors = result.dig('data', 'submitAssessment', 'errors')
         expect(errors).to be_empty
-        assessment = Hmis::Hud::Assessment.find(assessment_id)
+        assessment = Hmis::Hud::CustomAssessment.find(assessment_id)
         expect_assessment_dates(
           assessment,
           expected_assessment_date: initial_assessment_date,
@@ -155,7 +155,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         assessment_id = result.dig('data', 'saveAssessment', 'assessment', 'id')
         errors = result.dig('data', 'saveAssessment', 'errors')
         expect(errors).to be_empty
-        assessment = Hmis::Hud::Assessment.find(assessment_id)
+        assessment = Hmis::Hud::CustomAssessment.find(assessment_id)
         expect_assessment_dates(
           assessment,
           expected_assessment_date: initial_assessment_date,
@@ -171,7 +171,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         errors = result.dig('data', 'submitAssessment', 'errors')
         expect(errors).to be_empty
 
-        assessment = Hmis::Hud::Assessment.find(assessment_id)
+        assessment = Hmis::Hud::CustomAssessment.find(assessment_id)
         expect_assessment_dates(
           assessment,
           expected_assessment_date: new_assessment_date,
@@ -198,7 +198,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     assessment_id = result.dig('data', 'submitAssessment', 'assessment', 'id')
     errors = result.dig('data', 'submitAssessment', 'errors')
     expect(errors).to be_empty
-    assessment = Hmis::Hud::Assessment.find(assessment_id)
+    assessment = Hmis::Hud::CustomAssessment.find(assessment_id)
     expect_assessment_dates(
       assessment,
       expected_assessment_date: new_exit_date,
@@ -213,25 +213,39 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     let!(:hoh_enrollment) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c2, user: u1, entry_date: '2000-01-01' }
     let!(:open_enrollment) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c3, user: u1, entry_date: '2000-01-01', household_id: hoh_enrollment.household_id, relationship_to_ho_h: 99 }
     let!(:open_enrollment2) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c4, user: u1, entry_date: '2000-01-01', household_id: hoh_enrollment.household_id, relationship_to_ho_h: 99 }
+    let(:definition) { Hmis::Form::Definition.find_by(role: :EXIT) }
+    let(:assesment_date) { '2005-03-02' }
 
     it 'fails if exiting HoH member' do
-      definition = Hmis::Form::Definition.find_by(role: :EXIT)
-      initial_assessment_date = '2005-03-02'
-      input = { enrollment_id: hoh_enrollment.id, form_definition_id: definition.id, **build_minimum_values(definition, initial_assessment_date) }
+      input = { enrollment_id: hoh_enrollment.id, form_definition_id: definition.id, **build_minimum_values(definition, assesment_date) }
       _resp, result = post_graphql(input: { input: input }) { submit_assessment_mutation }
       errors = result.dig('data', 'submitAssessment', 'errors')
       expect(errors).to match([a_hash_including('severity' => 'error', 'fullMessage' => 'Cannot exit head of household because there are existing open enrollments. Please assign a new HoH.')])
     end
 
     it 'succeeds if exiting non-HoH member' do
-      definition = Hmis::Form::Definition.find_by(role: :EXIT)
-      initial_assessment_date = '2005-03-02'
-      input = { enrollment_id: open_enrollment2.id, form_definition_id: definition.id, **build_minimum_values(definition, initial_assessment_date) }
+      input = { enrollment_id: open_enrollment2.id, form_definition_id: definition.id, **build_minimum_values(definition, assesment_date) }
       _resp, result = post_graphql(input: { input: input }) { submit_assessment_mutation }
       assessment_id = result.dig('data', 'submitAssessment', 'assessment', 'id')
       errors = result.dig('data', 'submitAssessment', 'errors')
       expect(errors).to be_empty
       expect(assessment_id).to be_present
+    end
+
+    it 'fails if trying to create a second exit assessment' do
+      input = { enrollment_id: open_enrollment2.id, form_definition_id: definition.id, **build_minimum_values(definition, assesment_date) }
+      _resp, result = post_graphql(input: { input: input }) { submit_assessment_mutation }
+      assessment_id = result.dig('data', 'submitAssessment', 'assessment', 'id')
+      errors = result.dig('data', 'submitAssessment', 'errors')
+      expect(errors).to be_empty
+      expect(assessment_id).to be_present
+
+      input = { enrollment_id: open_enrollment2.id, form_definition_id: definition.id, **build_minimum_values(definition, assesment_date) }
+      _resp, result = post_graphql(input: { input: input }) { submit_assessment_mutation }
+      errors = result.dig('data', 'submitAssessment', 'errors')
+      assessment_id = result.dig('data', 'submitAssessment', 'assessment', 'id')
+      expect(errors).to match([a_hash_including('severity' => 'error', 'fullMessage' => 'An exit assessment for this enrollment already exists.')])
+      expect(assessment_id).to eq(nil)
     end
   end
 
@@ -239,6 +253,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     let!(:hoh_enrollment) { create :hmis_hud_enrollment, data_source: ds1, project: p1, user: u1, entry_date: '2000-01-01' }
     let!(:other_enrollment) { create :hmis_hud_enrollment, data_source: ds1, project: p1, user: u1, entry_date: '2000-01-01', household_id: hoh_enrollment.household_id, relationship_to_ho_h: 99 }
     let(:assesment_date) { '2005-03-02' }
+    let(:definition) { Hmis::Form::Definition.find_by(role: :INTAKE) }
 
     before(:each) do
       hoh_enrollment.build_wip(client: hoh_enrollment.client, date: hoh_enrollment.entry_date, project_id: hoh_enrollment.project.id)
@@ -249,7 +264,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     it 'fails if entering non-HoH member' do
-      definition = Hmis::Form::Definition.find_by(role: :INTAKE)
       input = { enrollment_id: other_enrollment.id, form_definition_id: definition.id, **build_minimum_values(definition, assesment_date) }
       _resp, result = post_graphql(input: { input: input }) { submit_assessment_mutation }
       errors = result.dig('data', 'submitAssessment', 'errors')
@@ -257,7 +271,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     it 'succeeds if entering HoH' do
-      definition = Hmis::Form::Definition.find_by(role: :INTAKE)
       input = { enrollment_id: hoh_enrollment.id, form_definition_id: definition.id, **build_minimum_values(definition, assesment_date) }
       _resp, result = post_graphql(input: { input: input }) { submit_assessment_mutation }
       assessment_id = result.dig('data', 'submitAssessment', 'assessment', 'id')
@@ -265,10 +278,26 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(errors).to be_empty
       expect(assessment_id).to be_present
     end
+
+    it 'fails if trying to create a second intake assessment' do
+      input = { enrollment_id: hoh_enrollment.id, form_definition_id: definition.id, **build_minimum_values(definition, assesment_date) }
+      _resp, result = post_graphql(input: { input: input }) { submit_assessment_mutation }
+      assessment_id = result.dig('data', 'submitAssessment', 'assessment', 'id')
+      errors = result.dig('data', 'submitAssessment', 'errors')
+      expect(errors).to be_empty
+      expect(assessment_id).to be_present
+
+      input = { enrollment_id: hoh_enrollment.id, form_definition_id: definition.id, **build_minimum_values(definition, assesment_date) }
+      _resp, result = post_graphql(input: { input: input }) { submit_assessment_mutation }
+      errors = result.dig('data', 'submitAssessment', 'errors')
+      assessment_id = result.dig('data', 'submitAssessment', 'assessment', 'id')
+      expect(errors).to match([a_hash_including('severity' => 'error', 'fullMessage' => 'An intake assessment for this enrollment already exists.')])
+      expect(assessment_id).to eq(nil)
+    end
   end
 end
 
 RSpec.configure do |c|
   c.include GraphqlHelpers
-  c.include AssessmentHelpers
+  c.include FormHelpers
 end

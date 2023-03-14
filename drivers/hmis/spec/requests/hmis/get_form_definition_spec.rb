@@ -21,48 +21,28 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     hmis_login(user)
   end
 
-  let(:find_by_role_query) do
+  let(:query) do
     <<~GRAPHQL
-      query FindFormDefinitionByRole($enrollmentId: ID!, $assessmentRole: AssessmentRole!) {
-        getFormDefinition(enrollmentId: $enrollmentId, assessmentRole: $assessmentRole) {
+      query GetFormDefinition($enrollmentId: ID, $role: FormRole!) {
+        getFormDefinition(enrollmentId: $enrollmentId, role: $role) {
           #{form_definition_fragment}
         }
       }
     GRAPHQL
   end
 
-  let(:lookup_query) do
-    <<~GRAPHQL
-      query LookupFormDefinition($identifier: String!) {
-        formDefinition(identifier: $identifier) {
-          #{form_definition_fragment}
-        }
-      }
-    GRAPHQL
-  end
-
-  [:INTAKE, :UPDATE, :ANNUAL, :EXIT].each do |role|
+  Hmis::Form::Definition::FORM_ROLES.except(:CE, :POST_EXIT, :CUSTOM).keys.each do |role|
     it 'should find default definition by role' do
-      response, result = post_graphql({ enrollment_id: e1.id.to_s, assessment_role: role }) { find_by_role_query }
+      response, result = post_graphql({ enrollment_id: e1.id.to_s, role: role }) { query }
 
       aggregate_failures 'checking response' do
         expect(response.status).to eq 200
         form_definition = result.dig('data', 'getFormDefinition')
+        expect(form_definition).to be_present
         expect(form_definition['role']).to eq(role.to_s)
       end
     end
   end
-
-  it 'should successfully lookup all form definitions by identifier' do
-    records = ['search', 'project', 'funder', 'project_coc', 'organization', 'inventory', 'client', 'service']
-    assessments = ['base-intake', 'base-annual', 'base-update', 'base-exit']
-    (records + assessments).each do |identifier|
-      response, _result = post_graphql(identifier: identifier) { lookup_query }
-      expect(response.status).to eq 200
-    end
-  end
-
-  # Could add more cases here, but tests for the specific definition resolution logic are already in spec/models/hmis/form/definition_spec.rb
 end
 
 RSpec.configure do |c|

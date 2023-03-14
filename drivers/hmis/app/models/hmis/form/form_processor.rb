@@ -4,12 +4,11 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class Hmis::Form::AssessmentProcessor < ::GrdaWarehouseBase
-  self.table_name = :hmis_assessment_processors
+class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
+  self.table_name = :hmis_form_processors
 
-  has_one :assessment_detail
+  has_one :custom_form
 
-  # assessment is accessed through the assessment_detail
   belongs_to :health_and_dv, class_name: 'Hmis::Hud::HealthAndDv', optional: true, autosave: true
   belongs_to :income_benefit, class_name: 'Hmis::Hud::IncomeBenefit', optional: true, autosave: true
   belongs_to :enrollment_coc, class_name: 'Hmis::Hud::EnrollmentCoc', optional: true, autosave: true
@@ -25,14 +24,19 @@ class Hmis::Form::AssessmentProcessor < ::GrdaWarehouseBase
   before_save :save_enrollment
 
   def run!
-    return unless assessment_detail.hud_values.present?
+    return unless custom_form.hud_values.present?
 
-    assessment_detail.hud_values.each do |key, value|
+    custom_form.hud_values.each do |key, value|
       # Don't use greedy matching so that the container is up to the first dot, and the rest is the field
       match = /(.*?)\.(.*)/.match(key)
-      next unless match.present?
-
-      container, field = match[1..2]
+      if match.present?
+        # Key format is "Enrollment.entryDate"
+        container, field = match[1..2]
+      else
+        # Key format is "projectType", and the container is the owner type ("Project")
+        container = custom_form.owner.class.name.demodulize
+        field = key
+      end
 
       begin
         container_processor(container)&.process(field, value)
@@ -42,7 +46,7 @@ class Hmis::Form::AssessmentProcessor < ::GrdaWarehouseBase
     end
 
     valid_containers.values.each do |processor|
-      processor.new(self).information_date(assessment_detail.assessment.assessment_date)
+      processor.new(self).information_date(custom_form.assessment.assessment_date) if custom_form.assessment.present?
     end
   end
 
@@ -50,18 +54,22 @@ class Hmis::Form::AssessmentProcessor < ::GrdaWarehouseBase
     enrollment_factory.save! if enrollment_factory.present?
   end
 
+  def owner_factory(create: true) # rubocop:disable Lint/UnusedMethodArgument
+    custom_form.owner
+  end
+
   # Type Factories
   def enrollment_factory(create: true) # rubocop:disable Lint/UnusedMethodArgument
     # The enrollment has already been created, so we can just return it
-    @enrollment_factory ||= assessment_detail.assessment.enrollment
+    @enrollment_factory ||= custom_form.owner.enrollment if custom_form.owner.respond_to?(:enrollment)
   end
 
   def common_attributes
     {
-      data_collection_stage: assessment_detail.data_collection_stage,
-      personal_id: enrollment_factory.client.personal_id,
-      information_date: assessment_detail.assessment.assessment_date,
-      user_id: assessment_detail.assessment.user_id,
+      data_collection_stage: custom_form.assessment.data_collection_stage,
+      personal_id: enrollment_factory.personal_id,
+      information_date: custom_form.assessment.assessment_date,
+      user_id: custom_form.assessment.user_id,
     }
   end
 
@@ -87,7 +95,7 @@ class Hmis::Form::AssessmentProcessor < ::GrdaWarehouseBase
     else
       self.exit = enrollment_factory.build_exit(
         personal_id: enrollment_factory.client.personal_id,
-        user_id: assessment_detail.assessment.user_id,
+        user_id: custom_form.assessment.user_id,
       )
     end
   end
@@ -176,12 +184,21 @@ class Hmis::Form::AssessmentProcessor < ::GrdaWarehouseBase
 
   private def valid_containers
     @valid_containers ||= {
+      # Assessment-related records
       DisabilityGroup: Hmis::Hud::Processors::DisabilityGroupProcessor,
       Enrollment: Hmis::Hud::Processors::EnrollmentProcessor,
       EnrollmentCoc: Hmis::Hud::Processors::EnrollmentCocProcessor,
       HealthAndDv: Hmis::Hud::Processors::HealthAndDvProcessor,
       IncomeBenefit: Hmis::Hud::Processors::IncomeBenefitProcessor,
       Exit: Hmis::Hud::Processors::ExitProcessor,
+      # Form Records
+      Client: Hmis::Hud::Processors::ClientProcessor,
+      HmisService: Hmis::Hud::Processors::ServiceProcessor,
+      Organization: Hmis::Hud::Processors::OrganizationProcessor,
+      Project: Hmis::Hud::Processors::ProjectProcessor,
+      Inventory: Hmis::Hud::Processors::InventoryProcessor,
+      ProjectCoc: Hmis::Hud::Processors::ProjectCoCProcessor,
+      Funder: Hmis::Hud::Processors::FunderProcessor,
     }.freeze
   end
 

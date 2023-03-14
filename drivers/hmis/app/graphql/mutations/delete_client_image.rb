@@ -6,18 +6,18 @@ module Mutations
 
     def resolve(client_id:)
       client = Hmis::Hud::Client.visible_to(current_user).find_by(id: client_id)
-      errors = []
 
-      errors << HmisErrors::Error.new(:client_id, :not_found) unless client.present?
+      errors = HmisErrors::Errors.new
+      errors.add :client_id, :not_found unless client.present?
+      errors.add :client_id, :not_allowed if client.present? && !current_user.permission?(:can_edit_clients)
+      return { errors: errors } if errors.any?
 
-      if client.present?
-        client.delete_image
-        client = client.reload
-      end
+      client.delete_image
+      client = client.reload
 
-      return {
+      {
         client: client,
-        errors: errors,
+        errors: [],
       }
     end
   end

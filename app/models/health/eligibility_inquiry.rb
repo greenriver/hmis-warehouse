@@ -105,7 +105,7 @@ module Health
 
     private def build_inquiry_edi
       config = Stupidedi::Config.hipaa
-      b = Stupidedi::Builder::BuilderDsl.build(config)
+      b = Stupidedi::Parser::BuilderDsl.build(config)
       hl = 0
 
       sender = Health::Cp.sender.first

@@ -6,15 +6,57 @@
 
 class Hmis::Form::Definition < ::GrdaWarehouseBase
   self.table_name = :hmis_form_definitions
+  include Hmis::Hud::Concerns::HasEnums
 
-  has_many :instances, foreign_key: :identifier, primary_key: :form_definition_identifier
-  has_many :assessment_details
+  has_many :instances, foreign_key: :definition_identifier, primary_key: :identifier
+  has_many :custom_forms
+  has_many :custom_service_types, through: :instances, foreign_key: :identifier, primary_key: :form_definition_identifier
 
-  def self.definitions_for_project(project, role: nil)
+  FORM_ROLES = {
+    # Assessment forms
+    INTAKE: 'Intake Assessment',
+    UPDATE: 'Update Assessment',
+    ANNUAL: 'Annual Assessment',
+    EXIT: 'Exit Assessment',
+    CE: 'Coordinated Entry',
+    POST_EXIT: 'Post-Exit Assessment',
+    CUSTOM: 'Custom Assessment',
+    # Record-editing forms
+    SERVICE: 'Service',
+    PROJECT: 'Project',
+    ORGANIZATION: 'Organization',
+    CLIENT: 'Client',
+    FUNDER: 'Funder',
+    INVENTORY: 'Inventory',
+    PROJECT_COC: 'Project CoC',
+  }.freeze
+
+  FORM_ROLE_CONFIG = {
+    SERVICE: { class_name: 'Hmis::Hud::HmisService', permission: :can_edit_enrollments, resolve_as: 'Types::HmisSchema::Service' },
+    PROJECT: { class_name: 'Hmis::Hud::Project', permission: :can_edit_project_details, resolve_as: 'Types::HmisSchema::Project' },
+    ORGANIZATION: { class_name: 'Hmis::Hud::Organization', permission: :can_edit_organization, resolve_as: 'Types::HmisSchema::Organization' },
+    CLIENT: { class_name: 'Hmis::Hud::Client', permission: :can_edit_clients, resolve_as: 'Types::HmisSchema::Client' },
+    FUNDER: { class_name: 'Hmis::Hud::Funder', permission: :can_edit_project_details, resolve_as: 'Types::HmisSchema::Funder' },
+    INVENTORY: { class_name: 'Hmis::Hud::Inventory', permission: :can_edit_project_details, resolve_as: 'Types::HmisSchema::Inventory' },
+    PROJECT_COC: { class_name: 'Hmis::Hud::ProjectCoc', permission: :can_edit_project_details, resolve_as: 'Types::HmisSchema::ProjectCoc' },
+  }.freeze
+
+  FORM_DATA_COLLECTION_STAGES = {
+    INTAKE: 1,
+    UPDATE: 2,
+    ANNUAL: 5,
+    EXIT: 3,
+    POST_EXIT: 6,
+  }.freeze
+
+  HUD_ASSESSMENT_FORM_ROLES = FORM_ROLES.slice(:INTAKE, :UPDATE, :ANNUAL, :EXIT, :CE, :POST_EXIT).freeze
+
+  use_enum_with_same_key :form_role_enum_map, FORM_ROLES
+
+  scope :for_project, ->(project) do
     instance_scope = Hmis::Form::Instance.none
 
     base_scope = Hmis::Form::Instance.joins(:definition)
-    base_scope = base_scope.where(definition: { role: role }) if role.present?
     [
       base_scope.for_project(project.id),
       base_scope.for_organization(project.organization.id),
@@ -26,18 +68,16 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
       instance_scope = scope unless scope.empty?
     end
 
-    definitions = where(identifier: instance_scope.pluck(:definition_identifier))
-    definitions = definitions.where(role: role) if role.present?
-
-    definitions
+    where(identifier: instance_scope.pluck(:definition_identifier))
   end
 
-  def self.find_definition_for_project(project, role:, version: nil)
-    return none unless project.present?
+  scope :with_role, ->(role) { where(role: role) }
 
-    definitions = definitions_for_project(project, role: role)
-    definitions = definitions.where(version: version) if version.present?
-    definitions.order(version: :desc).first
+  def self.find_definition_for_role(role, project: nil, version: nil)
+    scope = Hmis::Form::Definition.with_role(role)
+    scope = scope.for_project(project) if project.present?
+    scope = scope.where(version: version) if version.present?
+    scope.order(version: :desc).first
   end
 
   # Validate JSON definition when loading, to ensure no duplicate link IDs
@@ -60,15 +100,27 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   end
 
   def hud_assessment?
-    Types::HmisSchema::Enums::AssessmentRole.as_data_collection_stage(role) != 99
+    HUD_ASSESSMENT_FORM_ROLES.keys.include?(role.to_sym)
   end
 
   def intake?
-    Types::HmisSchema::Enums::AssessmentRole.as_data_collection_stage(role) == 1
+    role.to_sym == :INTAKE
   end
 
   def exit?
-    Types::HmisSchema::Enums::AssessmentRole.as_data_collection_stage(role) == 3
+    role.to_sym == :EXIT
+  end
+
+  def record_class_name
+    return unless FORM_ROLE_CONFIG[role.to_sym].present?
+
+    FORM_ROLE_CONFIG[role.to_sym][:class_name]
+  end
+
+  def record_editing_permission
+    return unless FORM_ROLE_CONFIG[role.to_sym].present?
+
+    FORM_ROLE_CONFIG[role.to_sym][:permission]
   end
 
   def assessment_date_item
@@ -115,12 +167,15 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
 
   def validate_form_values(form_values)
     errors = HmisErrors::Errors.new
-    form_values.each do |link_id, value|
-      item = link_id_item_hash[link_id.to_s]
-      raise "Unrecognized link ID: #{link_id}" unless item.present?
 
+    # Iterate over item hash so that errors are sorted according to the definition
+    link_id_item_hash.each do |link_id, item|
       # Skip assessment date, it is validated separately
       next if item.assessment_date
+      # Skip if not present in value hash
+      next unless form_values.key?(link_id)
+
+      value = form_values[link_id]
 
       error_context = {
         readable_attribute: item.brief_text || item.text,
@@ -132,13 +187,18 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
 
       # Validate required status
       if item.required && is_missing
-        errors.add item.field_name, :required, **error_context
+        errors.add item.field_name || :base, :required, **error_context
       elsif item.warn_if_empty && is_missing
-        errors.add item.field_name, :data_not_collected, severity: :warning, **error_context
+        errors.add item.field_name || :base, :data_not_collected, severity: :warning, **error_context
       end
 
       # TODO(##184404620): Validate ValueBounds (How to handle bounds that rely on local values like projectStartDate and entryDate?)
       # TODO(##184402463): Add support for RequiredWhen
+    end
+
+    # Ensure all link IDs are in the FormDefinition
+    form_values.each do |link_id, _|
+      raise "Unrecognized link ID: #{link_id} for definition #{identifier}" unless link_id_item_hash.key?(link_id)
     end
 
     errors.errors
@@ -179,9 +239,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
       recur_fill = lambda do |items|
         items.each do |item|
           recur_fill.call(item.item) if item.item
-          next unless item.field_name.present?
-
-          item_map[item.link_id] = item
+          item_map[item.link_id] = item unless item.type == 'GROUP'
         end
       end
 

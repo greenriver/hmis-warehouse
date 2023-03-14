@@ -8,7 +8,6 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   include ::HmisStructure::Enrollment
   include ::Hmis::Hud::Concerns::Shared
   include ::HudConcerns::Enrollment
-  include ArelHelper
 
   self.table_name = :Enrollment
   self.sequence_name = "public.\"#{table_name}_id_seq\""
@@ -21,7 +20,14 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   belongs_to :project, **hmis_relation(:ProjectID, 'Project'), optional: true
   has_one :exit, **hmis_relation(:EnrollmentID, 'Exit'), dependent: :destroy
+
+  # HUD services
   has_many :services, **hmis_relation(:EnrollmentID, 'Service'), dependent: :destroy
+  # Custom services
+  has_many :custom_services, **hmis_relation(:EnrollmentID, 'CustomService'), dependent: :destroy
+  # All services (combined view of HUD and Custom services)
+  has_many :hmis_services, **hmis_relation(:EnrollmentID, 'HmisService')
+
   has_many :events, **hmis_relation(:EnrollmentID, 'Event'), dependent: :destroy
   has_many :income_benefits, **hmis_relation(:EnrollmentID, 'IncomeBenefit'), dependent: :destroy
   has_many :disabilities, **hmis_relation(:EnrollmentID, 'Disability'), dependent: :destroy
@@ -31,8 +37,11 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   has_many :employment_educations, **hmis_relation(:EnrollmentID, 'EmploymentEducation'), dependent: :destroy
   has_many :youth_education_statuses, **hmis_relation(:EnrollmentID, 'YouthEducationStatus'), dependent: :destroy
 
-  # NOTE: this does not include WIP assessments
+  # CE Assessments
   has_many :assessments, **hmis_relation(:EnrollmentID, 'Assessment'), dependent: :destroy
+  # Custom Assessments (note: this does NOT include WIP assessments)
+  has_many :custom_assessments, **hmis_relation(:EnrollmentID, 'CustomAssessment'), dependent: :destroy
+
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :enrollments
   has_one :wip, class_name: 'Hmis::Wip', as: :source, dependent: :destroy
@@ -49,15 +58,6 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     left_outer_joins(:wip).where(viewable_wip.or(viewable_enrollment))
   end
 
-  # hide previous declaration of :editable_by, we'll use this one
-  replace_scope :editable_by, ->(user) do
-    project_ids = Hmis::Hud::Project.editable_by(user).pluck(:id, :ProjectID)
-    editable_wip = wip_t[:project_id].in(project_ids.map(&:first))
-    editable_enrollment = e_t[:ProjectID].in(project_ids.map(&:second))
-
-    left_outer_joins(:wip).where(editable_wip.or(editable_enrollment))
-  end
-
   scope :in_project_including_wip, ->(ids, project_ids) do
     wip_enrollments = wip_t[:project_id].in(Array.wrap(ids))
     actual_enrollments = e_t[:ProjectID].in(Array.wrap(project_ids))
@@ -65,11 +65,11 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     left_outer_joins(:wip).where(wip_enrollments.or(actual_enrollments))
   end
 
-  def assessments_including_wip
-    completed_assessments = as_t[:enrollment_id].eq(enrollment_id)
+  def custom_assessments_including_wip
+    completed_assessments = cas_t[:enrollment_id].eq(enrollment_id)
     wip_assessments = wip_t[:enrollment_id].eq(id)
 
-    Hmis::Hud::Assessment.left_outer_joins(:wip).where(completed_assessments.or(wip_assessments))
+    Hmis::Hud::CustomAssessment.left_outer_joins(:wip).where(completed_assessments.or(wip_assessments))
   end
 
   scope :heads_of_households, -> do
@@ -140,16 +140,10 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   end
 
   def intake_assessment
-    assessments_including_wip.
-      joins(:assessment_detail).
-      where(assessment_detail: { data_collection_stage: 1 }). # Project entry
-      first
+    custom_assessments_including_wip.intakes.first
   end
 
   def exit_assessment
-    assessments_including_wip.
-      joins(:assessment_detail).
-      where(assessment_detail: { data_collection_stage: 3 }). # Project exit
-      first
+    custom_assessments_including_wip.exits.first
   end
 end
