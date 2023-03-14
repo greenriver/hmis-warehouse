@@ -296,7 +296,9 @@ module BostonReports
 
     def housed_by_cohort
       @housed_by_cohort ||= {}.tap do |data|
-        active_months = stages[housed_string][:scope].pluck(housed_date_instance.column).map(&:beginning_of_month).uniq.sort
+        active_months = stages[housed_string][:scope].pluck(housed_date_instance.column).
+          reject(&:blank?).
+          map(&:beginning_of_month).uniq.sort
         months = [active_months.first]
         month = active_months.first
         while month < active_months.last
@@ -313,6 +315,7 @@ module BostonReports
           ids = clients[cohort] & clients[housed_string]
           dates = report_scope.where(client_id: ids).
             pluck(housed_date_instance.column).
+            reject(&:blank?).
             map(&:beginning_of_month)
           months.each do |month_start|
             active_count = dates.count { |date| date == month_start }
@@ -331,7 +334,9 @@ module BostonReports
 
     def matched_by_cohort
       @matched_by_cohort ||= {}.tap do |data|
-        active_months = stages[matched_string][:scope].pluck(voucher_date_instance.column).map { |d| Date.parse(d).beginning_of_month }.uniq.sort
+        active_months = stages[matched_string][:scope].pluck(voucher_date_instance.column).
+          reject(&:blank?).
+          map { |d| Date.parse(d).beginning_of_month }.uniq.sort
         months = [active_months.first]
         month = active_months.first
         while month < active_months.last
@@ -348,6 +353,7 @@ module BostonReports
           ids = clients[cohort] & clients[matched_string]
           dates = report_scope.where(client_id: ids).
             pluck(voucher_date_instance.column).
+            reject(&:blank?).
             map { |d| Date.parse(d).beginning_of_month }
 
           months.each do |month_start|
