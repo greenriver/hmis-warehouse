@@ -19,18 +19,15 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     cleanup_test_environment
   end
 
+  include_context 'hmis base setup'
+
   describe 'organization creation tests' do
-    let!(:user) { create(:user).tap { |u| u.add_viewable(ds1) } }
-    let(:hmis_user) { Hmis::User.find(user.id)&.tap { |u| u.update(hmis_data_source_id: ds1.id) } }
-    let(:u1) { Hmis::Hud::User.from_user(hmis_user) }
     let(:u2) do
       user2 = create(:user).tap { |u| u.add_viewable(ds1) }
       hmis_user2 = Hmis::User.find(user2.id)&.tap { |u| u.update(hmis_data_source_id: ds1.id) }
       Hmis::Hud::User.from_user(hmis_user2)
     end
-    let!(:ds1) { create :hmis_data_source }
     let!(:o1) { create :hmis_hud_organization, data_source: ds1, user: u2 }
-    let(:edit_access_group) { create :edit_access_group }
 
     let(:mutation) do
       <<~GRAPHQL
@@ -79,6 +76,24 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           'contactInformation' => test_input[:contact_information],
         )
         expect(errors).to be_empty
+      end
+    end
+
+    it 'should throw error if unauthorized' do
+      prev_date_updated = o1.date_updated
+      remove_permissions(hmis_user, :can_edit_organization)
+      aggregate_failures 'checking response' do
+        expect(o1.user_id).to eq(u2.user_id)
+
+        response, result = post_graphql(id: o1.id, input: test_input) { mutation }
+
+        expect(response.status).to eq 200
+        organization = result.dig('data', 'updateOrganization', 'organization')
+        errors = result.dig('data', 'updateOrganization', 'errors')
+        expect(organization).to be_nil
+        expect(errors).to be_present
+        expect(errors).to contain_exactly(include('type' => 'not_allowed'))
+        expect(o1.reload.date_updated == prev_date_updated).to eq(true)
       end
     end
   end

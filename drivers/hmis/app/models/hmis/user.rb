@@ -7,7 +7,9 @@
 # NOTE:
 # r = Hmis::Role.create(name: 'test')
 # u = Hmis::User.first; u.hmis_data_source_id = 3
-# u.user_hmis_data_sources_roles.create(role: r, data_source_id: u.hmis_data_source_id)
+# g = Hmis::AccessGroup.create(name: 'test')
+# ac = u.access_controls.create(role: r, access_group: g)
+# u.user_access_controls.create(user: u, access_control: ac)
 # u.can_view_full_ssn?
 require 'memery'
 class Hmis::User < ApplicationRecord
@@ -15,10 +17,11 @@ class Hmis::User < ApplicationRecord
   include HasRecentItems
   self.table_name = :users
 
-  has_many :user_hmis_data_sources_roles, class_name: '::Hmis::UserHmisDataSourceRole', dependent: :destroy, inverse_of: :user # join table with user_id, data_source_id, role_id
-  has_many :roles, through: :user_hmis_data_sources_roles, source: :role
-  has_many :hmis_data_sources, through: :user_hmis_data_sources_roles, source: :data_source
-  has_many :groups, class_name: '::Hmis::AccessGroup'
+  has_many :user_access_controls, class_name: '::Hmis::UserAccessControl', dependent: :destroy, inverse_of: :user
+  has_many :access_controls, through: :user_access_controls
+  has_many :access_groups, through: :access_controls
+  has_many :roles, through: :access_controls
+
   has_recent :clients, Hmis::Hud::Client
   has_recent :projects, Hmis::Hud::Project
   attr_accessor :hmis_data_source_id # stores the data_source_id of the currently logged in HMIS
@@ -27,12 +30,12 @@ class Hmis::User < ApplicationRecord
     true
   end
 
-  # load a hash of permission names (e.g. 'can_view_all_reports')
+  # load a hash of global permission names (e.g. 'can_view_all_reports')
   # to a boolean true if the user has the permission through one
   # of their roles
   def load_effective_permissions
     {}.tap do |h|
-      roles.merge(Hmis::UserHmisDataSourceRole.where(data_source_id: hmis_data_source_id)).each do |role|
+      roles.each do |role|
         ::Hmis::Role.permissions.each do |permission|
           h[permission] ||= role.send(permission)
         end
@@ -54,6 +57,21 @@ class Hmis::User < ApplicationRecord
       send(permission)
     end
 
+    define_method("#{permission}_for?") do |entity|
+      return false unless send("#{permission}?")
+
+      base_entity = permissions_base_for_entity(entity)
+
+      # No entity was specified and this permission is allowed to be global (for example Client access)
+      return true if base_entity.nil? && ::Hmis::Role.global_permissions.include?(permission)
+
+      raise "Invalid entity '#{entity.class.name}' for permission '#{permission}'" unless base_entity.present?
+
+      access_group_ids = Hmis::GroupViewableEntity.includes_entity(base_entity).pluck(:access_group_id)
+      role_ids = roles.where(permission => true).pluck(:id)
+      access_controls.where(access_group_id: access_group_ids, role_id: role_ids).exists?
+    end
+
     # Provide a scope for each permission to get any user who qualifies
     # e.g. User.can_administer_health
     scope permission, -> do
@@ -66,9 +84,39 @@ class Hmis::User < ApplicationRecord
     super opts.merge({ send_instructions: false })
   end
 
+  private def permissions_base_for_entity(entity)
+    return entity if entity.is_a? Hmis::Hud::Project
+    return entity if entity.is_a? Hmis::Hud::Organization
+    return entity.project if entity.respond_to? :project
+
+    nil
+  end
+
+  private def check_permissions_with_mode(*permissions, mode: :any)
+    method_name = mode == :all ? :all? : :any?
+    permissions.send(method_name) { |perm| yield(perm) }
+  end
+
+  def permission?(permission)
+    respond_to?(permission) ? send(permission) : false
+  end
+
+  def permission_for?(entity, permission)
+    method_name = "#{permission}_for?".to_sym
+    respond_to?(method_name) ? send(method_name, entity) : false
+  end
+
+  def permissions?(*permissions, mode: :any)
+    check_permissions_with_mode(*permissions, mode: mode) { |perm| permission?(perm) }
+  end
+
+  def permissions_for?(entity, *permissions, mode: :any)
+    check_permissions_with_mode(*permissions, mode: mode) { |perm| permission_for?(entity, perm) }
+  end
+
   private def viewable(model)
     model.where(
-      id: GrdaWarehouse::GroupViewableEntity.where(
+      id: Hmis::GroupViewableEntity.where(
         access_group_id: access_groups.viewable.pluck(:id),
         entity_type: model.sti_name,
       ).select(:entity_id),
@@ -80,11 +128,11 @@ class Hmis::User < ApplicationRecord
   end
 
   def viewable_organizations
-    viewable GrdaWarehouse::Hud::Organization
+    viewable Hmis::Hud::Organization
   end
 
   def viewable_projects
-    viewable GrdaWarehouse::Hud::Project
+    viewable Hmis::Hud::Project
   end
 
   def viewable_project_access_groups
@@ -105,7 +153,7 @@ class Hmis::User < ApplicationRecord
 
   private def editable(model)
     model.where(
-      id: GrdaWarehouse::GroupViewableEntity.where(
+      id: Hmis::GroupViewableEntity.where(
         access_group_id: access_groups.editable.pluck(:id),
         entity_type: model.sti_name,
       ).select(:entity_id),
@@ -117,11 +165,11 @@ class Hmis::User < ApplicationRecord
   end
 
   def editable_organizations
-    editable GrdaWarehouse::Hud::Organization
+    editable Hmis::Hud::Organization
   end
 
   def editable_projects
-    editable GrdaWarehouse::Hud::Project
+    editable Hmis::Hud::Project
   end
 
   def editable_project_access_groups
@@ -129,6 +177,6 @@ class Hmis::User < ApplicationRecord
   end
 
   def editable_project_ids
-    @editable_project_ids ||= Hmis::Hud::Project.editable_by(self).pluck(:id)
+    @editable_project_ids ||= Hmis::Hud::Project.viewable_by(self).pluck(:id)
   end
 end

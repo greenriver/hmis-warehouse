@@ -27,7 +27,7 @@ module Types
       result[:sub_type_provided] = sub_type_provided.split(':').last&.to_i if sub_type_provided.present?
 
       if enrollment_id.present?
-        enrollment = Hmis::Hud::Enrollment.editable_by(current_user).find_by(id: enrollment_id)
+        enrollment = Hmis::Hud::Enrollment.viewable_by(current_user).find_by(id: enrollment_id)
 
         result[:enrollment_id] = enrollment&.enrollment_id
         result[:personal_id] = enrollment&.personal_id

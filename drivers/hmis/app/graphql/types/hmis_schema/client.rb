@@ -9,6 +9,7 @@
 module Types
   class HmisSchema::Client < Types::BaseObject
     include Types::HmisSchema::HasEnrollments
+    include Types::HmisSchema::HasServices
     include Types::HmisSchema::HasIncomeBenefits
     include Types::HmisSchema::HasDisabilities
     include Types::HmisSchema::HasDisabilityGroups
@@ -43,6 +44,7 @@ module Types
     disability_groups_field
     health_and_dvs_field
     assessments_field
+    services_field
     hud_field :date_updated
     hud_field :date_created
     hud_field :date_deleted
@@ -71,6 +73,10 @@ module Types
 
     def assessments(**args)
       resolve_assessments_including_wip(**args)
+    end
+
+    def services(**args)
+      resolve_services(**args)
     end
 
     def pronouns

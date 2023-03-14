@@ -11,12 +11,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   include_context 'hmis base setup'
-  let!(:pc1) { create :hmis_hud_project_coc, data_source_id: ds1.id, project: p1, coc_code: 'CO-500' }
-  let!(:pc2) { create :hmis_hud_project_coc, data_source_id: ds1.id, project: p1, coc_code: 'CO-503' }
+  let!(:pc1) { create :hmis_hud_project_coc, data_source: ds1, project: p1, coc_code: 'CO-500' }
+  let!(:pc2) { create :hmis_hud_project_coc, data_source: ds1, project: p1, coc_code: 'CO-503' }
   let!(:i1) { create :hmis_hud_inventory, data_source: ds1, project: p1, coc_code: pc1.coc_code, inventory_start_date: '2020-01-01' }
   let!(:i2) { create :hmis_hud_inventory, data_source: ds1, project: p1, coc_code: pc2.coc_code, inventory_start_date: '2022-01-01' }
-  let!(:f1) { create :hmis_hud_funder, data_source_id: ds1.id, project: p1 }
-  let!(:f2) { create :hmis_hud_funder, data_source_id: ds1.id, project: p1 }
+  let!(:f1) { create :hmis_hud_funder, data_source: ds1, project: p1 }
+  let!(:f2) { create :hmis_hud_funder, data_source: ds1, project: p1 }
 
   describe 'project query' do
     before(:each) do
@@ -51,6 +51,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               id
               organizationName
             }
+            access {
+              #{scalar_fields(Types::HmisSchema::Project.fields['access'])}
+            }
           }
         }
       GRAPHQL
@@ -72,6 +75,16 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(record.dig('funders', 'nodes').map(&to_id)).to contain_exactly(f1.id, f2.id)
         expect(record.dig('organization', 'id').to_i).to eq(o1.id)
       end
+    end
+
+    it 'handles permissions correctly' do
+      hmis_user.access_controls.first.role.update(can_delete_project: false)
+      _res, result = post_graphql(id: p1.id) { query }
+      expect(result.dig('data', 'project', 'access')).to include('canDeleteProject' => false)
+
+      hmis_user.access_controls.first.role.update(can_delete_project: true)
+      _res, result = post_graphql(id: p1.id) { query }
+      expect(result.dig('data', 'project', 'access')).to include('canDeleteProject' => true)
     end
   end
 end

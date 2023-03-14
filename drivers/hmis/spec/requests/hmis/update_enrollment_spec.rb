@@ -73,12 +73,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   describe 'with view access' do
     before(:each) do
       hmis_login(user)
+      remove_permissions(hmis_user, :can_edit_enrollments)
       assign_viewable(view_access_group, p1.as_warehouse, hmis_user)
     end
     it 'should not update enrollment' do
       prev_date_updated = e2.date_updated
       expect(e2.user_id).to eq(u2.user_id)
-
       response, result = post_graphql(
         input: {
           id: e2.id,
@@ -93,7 +93,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         errors = result.dig('data', 'updateEnrollment', 'errors')
         expect(e2.reload.date_updated > prev_date_updated).to eq(false)
         expect(e2.reload.user_id).to eq(u2.user_id)
-        expect(enrollment).to be_blank
+        expect(enrollment).to be_nil
         expect(errors).to be_present
 
         expect(Hmis::Hud::Enrollment.all).to contain_exactly(

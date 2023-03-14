@@ -6,11 +6,12 @@
 
 class Hmis::Bed < Hmis::HmisBase
   include Hmis::Hud::Concerns::HasEnums
-  include ArelHelper
+  include ::Hmis::Concerns::HmisArelHelper
   self.table_name = :hmis_beds
   belongs_to :unit, class_name: 'Hmis::Unit'
   has_one :inventory, through: :unit
-  has_many :active_ranges, class_name: 'Hmis::ActiveRange', as: :entity
+  has_many :active_ranges, class_name: 'Hmis::ActiveRange', as: :entity, dependent: :destroy
+  belongs_to :user, class_name: 'User'
 
   scope :active, ->(date = Date.today) do
     active_bed = ar_t[:end].eq(nil).or(ar_t[:end].gteq(date))

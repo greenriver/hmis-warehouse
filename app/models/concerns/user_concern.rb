@@ -150,7 +150,7 @@ module UserConcern
     end
 
     def timeout_time(session)
-      Time.current + (Devise.timeout_in - (Time.now.utc - session['last_request_at'].presence || 0).to_i)
+      Time.current + (Devise.timeout_in - (Time.now.utc - (session['last_request_at'].presence || 0)).to_i)
     end
 
     def future_expiration?

@@ -11,8 +11,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   include_context 'hmis base setup'
-  let!(:pc1) { create :hmis_hud_project_coc, data_source_id: ds1.id, project: p1, coc_code: 'CO-500' }
-  let!(:pc2) { create :hmis_hud_project_coc, data_source_id: ds1.id, project: p1, coc_code: 'CO-503' }
+  let!(:pc1) { create :hmis_hud_project_coc, data_source: ds1, project: p1, coc_code: 'CO-500' }
+  let!(:pc2) { create :hmis_hud_project_coc, data_source: ds1, project: p1, coc_code: 'CO-503' }
 
   let(:valid_input) do
     {
@@ -57,6 +57,22 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(record['id']).to be_present
         inventory = Hmis::Hud::Inventory.find(record['id'])
         expect(inventory.coc_code).to eq pc2.coc_code
+      end
+    end
+
+    it 'should throw error if unauthorized' do
+      remove_permissions(hmis_user, :can_edit_project_details)
+      response, result = post_graphql(id: i1.id, input: valid_input) { mutation }
+
+      aggregate_failures 'checking response' do
+        expect(response.status).to eq 200
+        record = result.dig('data', 'updateInventory', 'inventory')
+        errors = result.dig('data', 'updateInventory', 'errors')
+        expect(errors).to be_present
+        expect(record).to be_nil
+        expect(errors).to contain_exactly(include('type' => 'not_allowed'))
+        inventory = Hmis::Hud::Inventory.find(i1.id)
+        expect(inventory.coc_code).to eq pc1.coc_code
       end
     end
 

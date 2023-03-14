@@ -12,8 +12,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   include_context 'hmis base setup'
 
-  let(:view_access_group) { create :view_access_group }
-
   let(:query) do
     <<~GRAPHQL
       query GetProject($id: ID!) {

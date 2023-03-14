@@ -771,7 +771,9 @@ module PerformanceMeasurement
               }
             },
             ->(spm_client, project_id, variant_name) {
-              return unless spm_client[:m7a1_destination].present? && spm_client[:m7a1_destination].in?(HudSpmReport::Generators::Fy2020::Base::PERMANENT_DESTINATIONS)
+              # list from drivers/hud_spm_report/app/models/hud_spm_report/generators/fy2020/measure_seven.rb
+              # represents institutional and permanent destinations for 7a.1 C3 and C4
+              return unless spm_client[:m7a1_destination].present? && spm_client[:m7a1_destination].in?(HudSpmReport::Generators::Fy2020::Base::PERMANENT_DESTINATIONS + [1, 15, 14, 27, 4, 18, 12, 13, 5, 2, 25, 32])
 
               {
                 report_id: id,

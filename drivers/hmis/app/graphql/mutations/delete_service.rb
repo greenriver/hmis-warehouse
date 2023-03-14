@@ -5,8 +5,19 @@ module Mutations
     field :service, Types::HmisSchema::Service, null: true
 
     def resolve(id:)
-      record = Hmis::Hud::Service.editable_by(current_user).find_by(id: id)
-      default_delete_record(record: record, field_name: :service)
+      return { errors: [HmisErrors::Error.new(:service, :not_found)] } unless Hmis::Hud::HmisService.valid_id?(id)
+
+      hmis_service = Hmis::Hud::HmisService.viewable_by(current_user).find_by(id: id)
+      result = default_delete_record(
+        record: hmis_service&.owner,
+        field_name: :service,
+        permissions: :can_edit_enrollments,
+      )
+
+      # Return the HmisService object
+      result[:service] = hmis_service.reload if result[:service].present?
+
+      result
     end
   end
 end

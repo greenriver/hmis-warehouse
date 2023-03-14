@@ -15,7 +15,7 @@ module Types
     include Types::HmisSchema::HasProjects
     include Types::HmisSchema::HasOrganizations
     include Types::HmisSchema::HasClients
-    include ArelHelper
+    include ::Hmis::Concerns::HmisArelHelper
 
     projects_field :projects
 
@@ -91,7 +91,7 @@ module Types
     end
 
     def assessment(id:)
-      Hmis::Hud::Assessment.viewable_by(current_user).find_by(id: id)
+      Hmis::Hud::CustomAssessment.viewable_by(current_user).find_by(id: id)
     end
 
     field :inventory, Types::HmisSchema::Inventory, 'Inventory lookup', null: true do
@@ -126,24 +126,17 @@ module Types
       Hmis::Hud::Service.viewable_by(current_user).find_by(id: id)
     end
 
-    field :form_definition, Types::Forms::FormDefinition, 'Form definition lookup by identifier', null: true do
-      argument :identifier, String, required: true
+    field :get_form_definition, Types::Forms::FormDefinition, 'Get most relevant/recent form definition for the specified Role and project (optionally)', null: true do
+      argument :role, Types::Forms::Enums::FormRole, required: true
+      argument :enrollment_id, ID, required: false
+      argument :project_id, ID, required: false
     end
 
-    def form_definition(identifier:)
-      Hmis::Form::Definition.where(identifier: identifier).order(version: :desc).first
-    end
+    def get_form_definition(role:, enrollment_id: nil, project_id: nil)
+      project = Hmis::Hud::Project.find_by(id: project_id) if project_id.present?
+      project = Hmis::Hud::Enrollment.find_by(id: enrollment_id)&.project if enrollment_id.present?
 
-    field :get_form_definition, Types::Forms::FormDefinition, 'Get form definition for enrollment & assessment role', null: true do
-      argument :enrollment_id, ID, required: true
-      argument :assessment_role, Types::HmisSchema::Enums::AssessmentRole, required: true
-    end
-
-    def get_form_definition(enrollment_id:, assessment_role:)
-      enrollment = Hmis::Hud::Enrollment.find_by(id: enrollment_id)
-      definition = enrollment&.project&.present? ? Hmis::Form::Definition.find_definition_for_project(enrollment.project, role: assessment_role) : nil
-
-      definition
+      Hmis::Form::Definition.find_definition_for_role(role, project: project)
     end
 
     field :pick_list, [Types::Forms::PickListOption], 'Get list of options for pick list', null: false do
@@ -155,5 +148,15 @@ module Types
     end
 
     field :current_user, Application::User, null: true
+
+    access_field do
+      Hmis::Role.permissions_with_descriptions.keys.each do |perm|
+        can perm, field_name: perm, method_name: perm, root: true
+      end
+    end
+
+    def access
+      {}
+    end
   end
 end

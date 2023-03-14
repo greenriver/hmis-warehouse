@@ -5,17 +5,16 @@
 ###
 
 class Hmis::Hud::Processors::Base
+  HIDDEN_FIELD_VALUE = '_HIDDEN'.freeze
+
   def initialize(processor)
     @processor = processor
+    @hud_values = processor.custom_form.hud_values
   end
 
   def process(field, value)
     attribute_name = hud_name(field)
-    attribute_value = if value.nil?
-      nil # nil clears a field
-    else
-      hud_type(field)&.value_for(value) || value # If the HUD type doesn't have a translator, fall back to the DB one
-    end
+    attribute_value = attribute_value_for_enum(hud_type(field), value)
 
     @processor.send(factory_name).assign_attributes(attribute_name => attribute_value)
   end
@@ -29,10 +28,32 @@ class Hmis::Hud::Processors::Base
   end
 
   def hud_type(field)
+    return nil unless schema.fields[field].present?
+
     type = schema.fields[field].type
+    (type = type&.of_type) while type.non_null? || type.list?
     return nil unless type.respond_to?(:value_for)
 
     type
+  end
+
+  def attribute_value_for_enum(enum_type, value)
+    is_array = value.is_a? Array
+
+    # The field was left empty. Save as nil or 99.
+    if value.nil?
+      enum_type&.data_not_collected_value
+    elsif is_array && value.empty?
+      [enum_type&.data_not_collected_value].compact
+    # The field was hidden. Always save as nil.
+    elsif value == HIDDEN_FIELD_VALUE
+      nil
+    # Use the HUD enumeration value, or if the HUD type doesn't have a translator, fall back to the DB one
+    elsif is_array
+      value.map { |val| enum_type&.value_for(val) || val }
+    else
+      enum_type&.value_for(value) || value
+    end
   end
 
   # @return [Symbol] the name of the instance factory method on the processor

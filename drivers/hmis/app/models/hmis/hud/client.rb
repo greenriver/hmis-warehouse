@@ -8,7 +8,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   extend OrderAsSpecified
   include ::HmisStructure::Client
   include ::Hmis::Hud::Concerns::Shared
-  include ArelHelper
+  include ::HudConcerns::Client
   include ClientSearch
 
   attr_accessor :gender, :race
@@ -18,7 +18,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
-  has_many :enrollments, **hmis_relation(:PersonalID, 'Enrollment')
+  has_many :enrollments, **hmis_relation(:PersonalID, 'Enrollment'), dependent: :destroy
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :clients
 
   # NOTE: this does not include project where the enrollment is WIP
@@ -28,10 +28,10 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   has_many :health_and_dvs, through: :enrollments
   has_many :client_files, class_name: 'GrdaWarehouse::ClientFile', primary_key: :id, foreign_key: :client_id
   has_many :current_living_situations, through: :enrollments
+  has_many :hmis_services, through: :enrollments # All services (HUD and Custom)
 
   validates_with Hmis::Hud::Validators::ClientValidator
 
-  # ! Elliot: This logic probably wouldn't live here, but I've included it here for reference
   attr_accessor :image_blob_id
   after_save do
     current_image_blob = ActiveStorage::Blob.find_by(id: image_blob_id)
@@ -53,6 +53,10 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     joins(:data_source).merge(GrdaWarehouse::DataSource.hmis(user))
   end
 
+  class << self
+    alias viewable_by visible_to
+  end
+
   scope :searchable_to, ->(user) do
     # TODO: additional access control rules go here
     visible_to(user)
@@ -66,12 +70,12 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     end
   end
 
-  def assessments_including_wip
+  def custom_assessments_including_wip
     enrollment_ids = enrollments.pluck(:id, :enrollment_id)
     wip_assessments = wip_t[:enrollment_id].in(enrollment_ids.map(&:first))
-    completed_assessments = as_t[:enrollment_id].in(enrollment_ids.map(&:second))
+    completed_assessments = cas_t[:enrollment_id].in(enrollment_ids.map(&:second))
 
-    Hmis::Hud::Assessment.left_outer_joins(:wip).where(completed_assessments.or(wip_assessments))
+    Hmis::Hud::CustomAssessment.left_outer_joins(:wip).where(completed_assessments.or(wip_assessments))
   end
 
   def self.source_for(destination_id:, user:)
