@@ -223,7 +223,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(record_id).to be_nil
         expect(p1.operating_end_date).to be_nil
         expect(errors).to match([
-                                  a_hash_including('severity' => 'warning', 'type' => 'information', 'fullMessage' => 'Project has 1 open enrollment on the selected end date.'),
+                                  a_hash_including('severity' => 'warning', 'type' => 'information', 'fullMessage' => Hmis::Hud::Validators::ProjectValidator.open_enrollments_message(1)),
                                 ])
       end
     end
@@ -266,8 +266,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(record_id).to be_nil
         expect(p1.operating_end_date).to be_nil
         expect(errors).to match([
-                                  a_hash_including('severity' => 'warning', 'type' => 'information', 'fullMessage' => '1 open funder will be closed.'),
-                                  a_hash_including('severity' => 'warning', 'type' => 'information', 'fullMessage' => '1 open inventory record will be closed.'),
+                                  a_hash_including('severity' => 'warning', 'type' => 'information', 'fullMessage' => Hmis::Hud::Validators::ProjectValidator.open_funders_message(1)),
+                                  a_hash_including('severity' => 'warning', 'type' => 'information', 'fullMessage' => Hmis::Hud::Validators::ProjectValidator.open_inventory_message(1)),
                                 ])
         expect(i1.reload.inventory_end_date).to be nil
         expect(f1.reload.end_date).to be nil
