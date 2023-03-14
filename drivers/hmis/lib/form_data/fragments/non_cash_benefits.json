@@ -23,32 +23,32 @@
             {
               "question": "4.03.3",
               "operator": "EQUAL",
-              "answer_boolean": true
+              "answer_code": "YES"
             },
             {
               "question": "4.03.4",
               "operator": "EQUAL",
-              "answer_boolean": true
+              "answer_code": "YES"
             },
             {
               "question": "4.03.5",
               "operator": "EQUAL",
-              "answer_boolean": true
+              "answer_code": "YES"
             },
             {
               "question": "4.03.6",
               "operator": "EQUAL",
-              "answer_boolean": true
+              "answer_code": "YES"
             },
             {
               "question": "4.03.7",
               "operator": "EQUAL",
-              "answer_boolean": true
+              "answer_code": "YES"
             },
             {
               "question": "4.03.8",
               "operator": "EQUAL",
-              "answer_boolean": true
+              "answer_code": "YES"
             }
           ]
         }

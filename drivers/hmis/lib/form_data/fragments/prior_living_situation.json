@@ -154,7 +154,7 @@
           "question": "3.917.C",
           "operator": "EQUAL",
           "_comment": "not homeless on the night before",
-          "answer_boolean": false
+          "answer_code": "NO"
         },
         {
           "question": "3.917.1",
