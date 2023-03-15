@@ -85,6 +85,8 @@ module MaReports::MonthlyPerformance
         enrollment_batch = {}
 
         batch.each do |enrollment|
+          next unless enrollment.enrollment.present?
+
           client = enrollment.client
           client_start_date = [filter.start_date, enrollment.first_date_in_program].max
           age = client.age_on(client_start_date)
