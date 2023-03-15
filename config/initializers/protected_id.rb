@@ -43,7 +43,7 @@ module ProtectedId
       composed = (id << 32) + day_stamp
       encrypted = Encryptor.encrypt(
         value: composed.to_s(16), # encrypt requires a string, so convert the composed id into hex
-        algorithm: 'des-ecb', # Weak algorithm to limit size of ids
+        algorithm: 'aes-128-ecb', # Weak algorithm to limit size of ids
         insecure_mode: true, # No IV
         key: KEY,
       )
@@ -54,13 +54,23 @@ module ProtectedId
 
     def deobfuscate(slug)
       encrypted = Base64.decode64(slug.delete_prefix(INITIAL_DELIMITER))
-      composed = Encryptor.decrypt(
-        value: encrypted,
-        algorithm: 'des-ecb',
-        insecure_mode: true,
-        key: KEY,
-      ).to_i(16)
-
+      begin
+        composed = Encryptor.decrypt(
+          value: encrypted,
+          algorithm: 'aes-128-ecb',
+          insecure_mode: true,
+          key: KEY,
+        ).to_i(16)
+      rescue OpenSSL::Cipher::CipherError
+        # attempt with prior algorithm
+        Rails.logger.info('Decrypting ID with DES-ECB')
+        composed = Encryptor.decrypt(
+          value: encrypted,
+          algorithm: 'des-ecb',
+          insecure_mode: true,
+          key: KEY,
+        ).to_i(16)
+      end
       id_part = composed >> 32
       day_stamp = composed & (2**32 - 1)
 
