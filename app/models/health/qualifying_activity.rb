@@ -35,6 +35,18 @@ module Health
 
     MODE_OF_CONTACT_OTHER = 'other'.freeze
     REACHED_CLIENT_OTHER = 'collateral'.freeze
+    VERSIONS = [
+      Health::QualifyingActivityV1,
+      Health::QualifyingActivityV2,
+    ].freeze
+
+    private def qa_version
+      return unless date_of_activity.present?
+
+      VERSIONS.each do |version|
+        return version.new(self) if version::EFFECTIVE_DATE_RANGE.cover?(date_of_activity)
+      end
+    end
 
     scope :submitted, -> do
       where.not(claim_submitted_on: nil)
@@ -60,7 +72,19 @@ module Health
     end
 
     scope :face_to_face, -> do
-      where(mode_of_contact: :in_person)
+      @face_to_face_query ||= begin
+        query = nil
+        VERSIONS.each do |version|
+          query_part = hqa_t[:date_of_activity].between(version::EFFECTIVE_DATE_RANGE).and(hqa_t[:mode_of_contact].in(version::FACE_TO_FACE_KEYS))
+          query = if query.nil?
+            query_part
+          else
+            query.or(query_part)
+          end
+        end
+        query
+      end
+      where(@face_to_face_query)
     end
 
     scope :payable, -> do
@@ -113,134 +137,16 @@ module Health
     belongs_to :user, optional: true
     belongs_to :patient, optional: true
 
-    def self.modes_of_contact
-      @modes_of_contact ||= {
-        in_person: {
-          title: 'In person',
-          code: 'U2',
-          weight: 0,
-        },
-        phone_call: {
-          title: 'Phone call',
-          code: 'U3',
-          weight: 10,
-        },
-        email: {
-          title: 'Email',
-          code: 'U3',
-          weight: 20,
-        },
-        video_call: {
-          title: 'Video call',
-          code: 'U3',
-          weight: 30,
-        },
-        verbal: {
-          title: 'Verbal',
-          code: 'U3',
-          weight: 40,
-        },
-        other: {
-          title: 'Other',
-          code: '',
-          weight: 50,
-        },
-      }.sort_by { |_, m| m[:weight] }.to_h
+    def modes_of_contact
+      qa_version.modes_of_contact
     end
 
-    def self.client_reached
-      @client_reached ||= {
-        yes: {
-          title: 'Yes (face to face, phone call answered, response to email)',
-          code: 'U1',
-          weight: 0,
-        },
-        group: {
-          title: 'Group session',
-          code: 'HQ',
-          weight: 10,
-        },
-        no: {
-          title: 'Did not reach',
-          code: '',
-          weight: 20,
-        },
-        collateral: {
-          title: 'Collateral contact - not with client directly',
-          code: 'UK',
-          weight: 30,
-        },
-      }.sort_by { |_, m| m[:weight] }.to_h
+    def client_reached
+      qa_version.client_reached
     end
 
-    def self.activities
-      @activities ||= {
-        outreach: {
-          title: 'Outreach for enrollment',
-          code: 'G9011',
-          weight: 0,
-        },
-        cha: {
-          title: 'Comprehensive Health Assessment',
-          code: 'G0506',
-          weight: 10,
-        },
-        care_planning: {
-          title: 'Care planning',
-          code: 'T2024',
-          weight: 20,
-        },
-        med_rec: {
-          title: 'Supported Medication Reconciliation (NCM only)',
-          code: 'G8427',
-          weight: 21,
-        },
-        care_coordination: {
-          title: 'Care coordination',
-          code: 'G9005',
-          weight: 30,
-        },
-        care_transitions: {
-          title: 'Care transitions (working with care team)',
-          code: 'G9007',
-          weight: 40,
-        },
-        discharge_follow_up: {
-          title: 'Follow-up from inpatient hospital discharge (with client)',
-          code: 'G9007>U5',
-          weight: 50,
-        },
-        health_coaching: {
-          title: 'Health and wellness coaching',
-          code: 'G9006',
-          weight: 60,
-        },
-        community_connection: {
-          title: 'Connection to community and social services',
-          code: 'G9004',
-          weight: 70,
-        },
-        screening_completed: {
-          title: 'Social services screening completed',
-          code: 'T1023',
-          weight: 80,
-        },
-        referral_to_aco: {
-          title: 'Referral to ACO for Flexible Services',
-          code: 'T1023>U6',
-          weight: 90,
-        },
-        pctp_signed: {
-          title: 'Person-Centered Treatment Plan signed',
-          code: 'T2024>U4',
-          weight: 100,
-        },
-        intake_completed: {
-          title: 'Intake/Reassessment (completing consent/ROI, CHA, SSM, care plan)',
-          code: 'G9005',
-          weight: 110,
-        },
-      }.sort_by { |_, m| m[:weight] }.to_h
+    def activities
+      qa_version.activities
     end
 
     def self.date_search(start_date, end_date)
@@ -255,23 +161,22 @@ module Health
       end
     end
 
-    def self.face_to_face?(value)
-      face_to_face_modes.include?(value&.to_sym)
+    def face_to_face?
+      mode_of_contact.to_sym.in?(face_to_face_modes)
     end
 
     # Return the string and the key so we can check either
-    def self.face_to_face_modes
-      keys = [
-        :in_person,
-      ]
-      Health::QualifyingActivity.modes_of_contact.select { |k, _| keys.include? k }.
-        map { |_, m| m[:title] } + keys
+    def face_to_face_modes
+      face_to_face_keys = qa_version.class::FACE_TO_FACE_KEYS
+
+      modes_of_contact.select { |k, _| face_to_face_keys.include? k }.
+        map { |_, m| m[:title] } + face_to_face_keys
     end
 
     # These validations must come after the above methods
-    validates :mode_of_contact, inclusion: { in: Health::QualifyingActivity.modes_of_contact.keys.map(&:to_s) }, allow_blank: true
-    validates :reached_client, inclusion: { in: Health::QualifyingActivity.client_reached.keys.map(&:to_s) }, allow_blank: true
-    validates :activity, inclusion: { in: Health::QualifyingActivity.activities.keys.map(&:to_s) }, allow_blank: true
+    validates :mode_of_contact, inclusion: { in: ->(qa) { qa.modes_of_contact.keys.map(&:to_s) } }, allow_blank: true
+    validates :reached_client, inclusion: { in: ->(qa) { qa.client_reached.keys.map(&:to_s) } }, allow_blank: true
+    validates :activity, inclusion: { in: ->(qa) { qa.activities.keys.map(&:to_s) } }, allow_blank: true
     validates_presence_of(
       :user,
       :user_full_name,
@@ -305,54 +210,22 @@ module Health
       follow_up.blank?
     end
 
-    def self.load_string_collection(collection)
-      collection.map { |k, v| [v, k] }
-    end
-
-    def self.mode_of_contact_collection
-      load_string_collection(
-        modes_of_contact.
-        # select{ |k,_| k != :other }.
-        map { |k, mode| [k, mode[:title]] },
-      )
-    end
-
-    def self.reached_client_collection
-      load_string_collection(
-        client_reached.
-        map { |k, mode| [k, mode[:title]] },
-      )
-    end
-
-    def self.activity_collection
-      suppress_from_view = [
-        :cha,
-        :care_planning,
-        :pctp_signed,
-      ]
-      load_string_collection(
-        activities.
-        reject { |k| suppress_from_view.include?(k) }.
-        map { |k, mode| [k, mode[:title]] },
-      )
-    end
-
     def activity_title key
       return '' unless key
 
-      self.class.activities[key&.to_sym].try(:[], :title) || key
+      activities[key&.to_sym].try(:[], :title) || key
     end
 
     def mode_of_contact_title key
       return '' unless key
 
-      self.class.modes_of_contact[key&.to_sym].try(:[], :title) || key
+      modes_of_contact[key&.to_sym].try(:[], :title) || key
     end
 
     def client_reached_title key
       return '' unless key
 
-      self.class.client_reached[key&.to_sym].try(:[], :title) || key
+      client_reached[key&.to_sym].try(:[], :title) || key
     end
 
     def mode_of_contact_is_other?
@@ -387,20 +260,20 @@ module Health
     end
 
     def title_for_mode_of_contact
-      self.class.modes_of_contact[mode_of_contact&.to_sym].try(:[], :title) if mode_of_contact.present?
+      modes_of_contact[mode_of_contact&.to_sym].try(:[], :title) if mode_of_contact.present?
     end
 
     def title_for_client_reached
-      self.class.client_reached[reached_client&.to_sym].try(:[], :title) if reached_client.present?
+      client_reached[reached_client&.to_sym].try(:[], :title) if reached_client.present?
     end
 
     def title_for_activity
-      self.class.activities[activity&.to_sym].try(:[], :title) if activity.present?
+      activities[activity&.to_sym].try(:[], :title) if activity.present?
     end
 
     def procedure_code
       # ignore any modifiers
-      self.class.activities[activity&.to_sym].try(:[], :code)&.split(' ').try(:[], 0)
+      activities[activity&.to_sym].try(:[], :code)&.split(' ').try(:[], 0)
     end
 
     def outreach?
@@ -414,19 +287,19 @@ module Health
       case activity&.to_sym
       when :cha, :discharge_follow_up
         if [:phone_call, :video_call].include?(mode_of_contact&.to_sym)
-          contact_modifier = self.class.modes_of_contact[:in_person][:code]
+          contact_modifier = modes_of_contact[:in_person][:code]
         else
-          contact_modifier = self.class.modes_of_contact[mode_of_contact&.to_sym].try(:[], :code)
+          contact_modifier = modes_of_contact[mode_of_contact&.to_sym].try(:[], :code)
         end
       else
-        contact_modifier = self.class.modes_of_contact[mode_of_contact&.to_sym].try(:[], :code)
+        contact_modifier = modes_of_contact[mode_of_contact&.to_sym].try(:[], :code)
       end
 
       # attach modifiers from activity
-      modifiers << self.class.activities[activity&.to_sym].try(:[], :code)&.split(' ').try(:[], 1)
+      modifiers << activities[activity&.to_sym].try(:[], :code)&.split(' ').try(:[], 1)
 
       modifiers << contact_modifier
-      modifiers << self.class.client_reached[reached_client&.to_sym].try(:[], :code)
+      modifiers << client_reached[reached_client&.to_sym].try(:[], :code)
 
       return modifiers.reject(&:blank?).compact
     end
