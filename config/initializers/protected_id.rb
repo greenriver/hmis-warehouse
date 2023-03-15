@@ -56,19 +56,13 @@ module ProtectedId
 
     def deobfuscate(slug)
       encrypted = Base64.decode64(slug.delete_prefix(INITIAL_DELIMITER))
-      begin
-        composed = Encryptor.decrypt(
-          value: encrypted,
-          algorithm: 'aes-128-ecb', # note pre ruby 3 this was des-ecb
-          insecure_mode: true,
-          key: KEY,
-        ).to_i(16)
-      rescue OpenSSL::Cipher::CipherError
-        # Log that this happened so we can watch the logs to determine when this can be removed
-        Rails.logger.info 'Found a DES-ECB encrypted ID'
-        # use DES to decrypt, remove around the end of 2023
-        composed = des_ecb_decrypt(encrypted)
-      end
+      composed = Encryptor.decrypt(
+        value: encrypted,
+        algorithm: 'aes-128-ecb', # note pre ruby 3 this was des-ecb
+        insecure_mode: true,
+        key: KEY,
+      ).to_i(16)
+
       id_part = composed >> 32
       day_stamp = composed & (2**32 - 1)
 
