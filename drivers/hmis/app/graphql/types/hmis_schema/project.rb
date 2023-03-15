@@ -32,9 +32,9 @@ module Types
     hud_field :tracking_method, Types::HmisSchema::Enums::Hud::TrackingMethod
     hud_field :target_population, HmisSchema::Enums::Hud::TargetPopulation
     hud_field :HOPWAMedAssistedLivingFac, HmisSchema::Enums::Hud::HOPWAMedAssistedLivingFac
-    yes_no_missing_field :continuum_project
-    yes_no_missing_field :residential_affiliation
-    yes_no_missing_field :HMISParticipatingProject
+    hud_field :continuum_project, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    hud_field :residential_affiliation, HmisSchema::Enums::Hud::NoYesMissing
+    hud_field :HMISParticipatingProject, HmisSchema::Enums::Hud::NoYesMissing
     hud_field :date_updated
     hud_field :date_created
     hud_field :date_deleted

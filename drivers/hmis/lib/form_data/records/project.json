@@ -138,17 +138,19 @@
           "field_name": "HOPWAMedAssistedLivingFac"
         },
         {
-          "type": "BOOLEAN",
+          "type": "CHOICE",
           "required": false,
           "link_id": "2.02.5",
           "text": "Continuum Project?",
+          "pick_list_reference": "NoYesMissing",
           "field_name": "continuumProject"
         },
         {
-          "type": "BOOLEAN",
+          "type": "CHOICE",
           "required": false,
           "link_id": "2.02.7",
           "text": "HMIS Participating Project?",
+          "pick_list_reference": "NoYesMissing",
           "field_name": "HMISParticipatingProject"
         }
       ]

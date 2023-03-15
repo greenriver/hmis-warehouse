@@ -12,11 +12,11 @@ module Hmis::Hud::Processors
 
       attributes = case attribute_name
       when 'race'
-        race_attributes(attribute_value)
+        race_attributes(Array.wrap(attribute_value))
       when 'gender'
-        gender_attributes(attribute_value)
+        gender_attributes(Array.wrap(attribute_value))
       when 'pronouns'
-        { attribute_name => attribute_value.any? ? attribute_value.join('|') : nil }
+        { attribute_name => Array.wrap(attribute_value).any? ? Array.wrap(attribute_value).join('|') : nil }
       when 'SSN'
         { attribute_name => attribute_value.present? ? attribute_value.gsub(/[^\dXx]/, '') : nil }
       else
