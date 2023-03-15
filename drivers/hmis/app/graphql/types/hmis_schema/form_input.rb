@@ -24,17 +24,5 @@ module Types
     argument :hud_values, Types::JsonObject, required: false
     # Whether warnings have been confirmed
     argument :confirmed, Boolean, required: false
-
-    def apply_related_ids(record)
-      case record
-      when Hmis::Hud::Project
-        record.organization_id = Hmis::Hud::Organization.viewable_by(current_user).find_by(id: organization_id)&.OrganizationID
-      when Hmis::Hud::Funder, Hmis::Hud::ProjectCoc, Hmis::Hud::Inventory
-        record.project_id = Hmis::Hud::Project.viewable_by(current_user).find_by(id: project_id)&.ProjectID
-      when Hmis::Hud::HmisService
-        record.enrollment_id = Hmis::Hud::Enrollment.viewable_by(current_user).find_by(id: enrollment_id)&.EnrollmentID
-      end
-      record
-    end
   end
 end
