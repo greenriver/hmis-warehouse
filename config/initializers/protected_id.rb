@@ -6,7 +6,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-require 'des'
+require 'ruby-des'
 
 module ProtectedId
   PROTECT_IDS = ENV['PROTECTED_IDS'].present? && ENV['PROTECTED_IDS'] == 'true'
@@ -56,13 +56,19 @@ module ProtectedId
 
     def deobfuscate(slug)
       encrypted = Base64.decode64(slug.delete_prefix(INITIAL_DELIMITER))
-      composed = Encryptor.decrypt(
-        value: encrypted,
-        algorithm: 'aes-128-ecb', # note pre ruby 3 this was des-ecb
-        insecure_mode: true,
-        key: KEY,
-      ).to_i(16)
-
+      begin
+        composed = Encryptor.decrypt(
+          value: encrypted,
+          algorithm: 'aes-128-ecb', # note pre ruby 3 this was des-ecb
+          insecure_mode: true,
+          key: KEY,
+        ).to_i(16)
+      rescue OpenSSL::Cipher::CipherError
+        # Log that this happened so we can watch the logs to determine when this can be removed
+        Rails.logger.info 'Found a DES-ECB encrypted ID'
+        # use DES to decrypt, remove around the end of 2023
+        composed = des_ecb_decrypt(encrypted)
+      end
       id_part = composed >> 32
       day_stamp = composed & (2**32 - 1)
 
@@ -71,15 +77,15 @@ module ProtectedId
     module_function :deobfuscate
 
     def des_ecb_decrypt(encrypted)
-      des = DES::Context.new(KEY, true)
-      block_size = des.block_size
+      key = ::RubyDES::Block.new(KEY)
+      block_size = 8
       plaintext = ''
       encrypted.scan(/.{1,#{block_size}}/) do |block|
-        plaintext += des.decrypt(block)
+        plaintext += ::RubyDES::Ctx.new(RubyDES::Block.new(block), key).decrypt
       end
       plaintext
     end
-     module_function :des_ecb_decrypt
+    module_function :des_ecb_decrypt
   end
 
   module Labeler

@@ -48,6 +48,13 @@ GIT
       rails (>= 5.2)
 
 GIT
+  remote: https://github.com/greenriver/ruby-des
+  revision: 333ef872ddfb2e037d82cb9e49e78beef1523858
+  branch: ruby-3
+  specs:
+    ruby-des (1.1)
+
+GIT
   remote: https://github.com/greenriver/stupidedi.git
   revision: 9e1b9896b371078d439e72505165082b898cd00a
   branch: master
@@ -365,7 +372,6 @@ GEM
       rake (> 10, < 14)
       ruby-statistics (>= 2.1)
       thor (>= 0.19, < 2)
-    des (1.03)
     descendants_tracker (0.0.4)
       thread_safe (~> 0.3, >= 0.3.1)
     devise (4.8.1)
@@ -1024,7 +1030,6 @@ DEPENDENCIES
   delayed_job_active_record
   deprecation_toolkit
   derailed_benchmarks
-  des
   devise (~> 4)
   devise-pwned_password
   devise-security
@@ -1126,6 +1131,7 @@ DEPENDENCIES
   rubocop
   rubocop-rails
   rubocop-rspec
+  ruby-des!
   ruby-filemagic
   ruby-mailchecker
   ruby-prof
