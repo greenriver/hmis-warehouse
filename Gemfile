@@ -83,6 +83,7 @@ gem 'omniauth', '~> 2.1'
 gem 'omniauth-oauth2', '~> 1.7.3'
 gem 'omniauth-rails_csrf_protection', '~> 1.0.1'
 gem 'faraday', '~> 2.2.0'
+gem 'des'
 
 gem 'pretender'
 gem 'rqrcode-rails3'

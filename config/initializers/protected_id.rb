@@ -6,6 +6,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+require 'des'
+
 module ProtectedId
   PROTECT_IDS = ENV['PROTECTED_IDS'].present? && ENV['PROTECTED_IDS'] == 'true'
   INITIAL_DELIMITER = '=='
@@ -67,6 +69,17 @@ module ProtectedId
       [id_part, day_stamp]
     end
     module_function :deobfuscate
+
+    def des_ecb_decrypt(encrypted)
+      des = DES::Context.new(KEY, true)
+      block_size = des.block_size
+      plaintext = ''
+      encrypted.scan(/.{1,#{block_size}}/) do |block|
+        plaintext += des.decrypt(block)
+      end
+      plaintext
+    end
+     module_function :des_ecb_decrypt
   end
 
   module Labeler

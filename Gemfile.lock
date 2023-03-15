@@ -365,6 +365,7 @@ GEM
       rake (> 10, < 14)
       ruby-statistics (>= 2.1)
       thor (>= 0.19, < 2)
+    des (1.03)
     descendants_tracker (0.0.4)
       thread_safe (~> 0.3, >= 0.3.1)
     devise (4.8.1)
@@ -1023,6 +1024,7 @@ DEPENDENCIES
   delayed_job_active_record
   deprecation_toolkit
   derailed_benchmarks
+  des
   devise (~> 4)
   devise-pwned_password
   devise-security
