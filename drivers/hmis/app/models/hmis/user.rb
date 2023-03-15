@@ -115,13 +115,17 @@ class Hmis::User < ApplicationRecord
     check_permissions_with_mode(*permissions, mode: mode) { |perm| permission_for?(entity, perm) }
   end
 
-  private def viewable(model)
+  def entities_with_permissions(model, *permissions, **kwargs)
     model.where(
       id: Hmis::GroupViewableEntity.where(
-        access_group_id: access_groups.viewable.pluck(:id),
+        access_group_id: access_groups.with_permissions(*permissions, **kwargs).pluck(:id),
         entity_type: model.sti_name,
       ).select(:entity_id),
     )
+  end
+
+  private def viewable(model)
+    entities_with_permissions(model, *Hmis::Role.permissions_for_access(:viewable), mode: 'any')
   end
 
   def viewable_data_sources
