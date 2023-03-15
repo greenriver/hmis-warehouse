@@ -40,6 +40,19 @@ module Health
       Health::QualifyingActivityV2,
     ].freeze
 
+    [
+      :mode_of_contact,
+      :mode_of_contact_other,
+      :reached_client,
+      :reached_client_collateral_contact,
+      :activity,
+    ].each do |attr_sym|
+      VERSIONS.each do |version|
+        alias_name = (attr_sym.to_s + version::ATTRIBUTE_SUFFIX).to_sym
+        alias_attribute alias_name, attr_sym
+      end
+    end
+
     private def qa_version
       return unless date_of_activity.present?
 

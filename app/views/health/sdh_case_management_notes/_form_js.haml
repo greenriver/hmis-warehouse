@@ -1,6 +1,28 @@
 - content_for :page_js do
   :javascript
-    
+    const versions = [#{Health::QualifyingActivity::VERSIONS.map(&:js_model).join(', ').html_safe}]
+
+    function version_qas() {
+      $('.sdh-note__activity').each(function(index, activity) {
+        // enable the inputs for the version specified by the date picker
+        let qa_date = new Date($(activity).find('.date_picker input').val());
+        versions.forEach(function(version) {
+          let section = $(activity).find(`.${version.css_class}`);
+          if(qa_date <= version.range_end && qa_date >= version.range_start) {
+            section.show();
+            $(section).find('input').each(function(index, element) {
+              $(element).prop('name', $(element).prop('name').replace('x-', ''));
+            });
+          } else {
+            section.hide();
+            $(section).find('input').each(function(index, element) {
+              $(element).prop('name', `x-${$(element).prop('name').replace('x-', '')}`);
+            });
+          }
+        });
+      });
+    }
+
     var radioButtonsWithOtherChange = function(input) {
       var container = $(input).parents('.string-collection-with-other__container');
       var otherInput = container.find('.string-collection-with-other__input');
@@ -34,6 +56,7 @@
     }
 
     var saveNote = function(e) {
+      version_qas();
       var form = $(e.target).closest('form');
       var data = form.serialize();
       $.ajax({
@@ -118,6 +141,7 @@
         }
       });
       remove.prop('checked', isEmpty);
+      version_qas();
       saveNote(event);
     }
 
@@ -141,6 +165,7 @@
       });
       var removeActivities = $(behaviorSelector('remove activity'));
       removeActivities.on('click', removeActivity);
+      version_qas();
     }
 
     $(document).ready(function() {

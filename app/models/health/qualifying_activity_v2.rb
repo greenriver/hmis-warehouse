@@ -15,6 +15,7 @@ module Health
     ].freeze
 
     EFFECTIVE_DATE_RANGE = ('2023-04-01'.to_date ..).freeze
+    ATTRIBUTE_SUFFIX = '_v2'.freeze
 
     def initialize(qa)
       @qa = qa

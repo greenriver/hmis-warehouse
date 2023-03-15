@@ -37,7 +37,7 @@ module Health
     end
 
     def edit
-      @note.activities.build if @note.activities.size.zero? # Add a qa if there isn't at least one
+      @note.activities.build(date_of_activity: Date.current) if @note.activities.size.zero? # Add a qa if there isn't at least one
       @activities = @note.activities.sort_by(&:id)
       @note.build_health_file unless @note.health_file
       respond_with @note
@@ -111,7 +111,7 @@ module Health
     end
 
     private def load_template_activity
-      @template_activity = Health::QualifyingActivity.new(user: current_user, user_full_name: current_user.name)
+      @template_activity = Health::QualifyingActivity.new(user: current_user, user_full_name: current_user.name, date_of_activity: Date.current)
     end
 
     private def clean_note_params!(permitted_params)
@@ -148,6 +148,28 @@ module Health
     end
 
     private def permitted_request_params
+      versioned_activities_attributes = [].tap do |arr|
+        [
+          :id,
+          :date_of_activity,
+          :follow_up,
+          :_destroy,
+        ].each { |k| arr << k } # << so that the tap works
+
+        [
+          :mode_of_contact,
+          :mode_of_contact_other,
+          :reached_client,
+          :reached_client_collateral_contact,
+          :activity,
+        ].each do |attr_sym|
+          Health::QualifyingActivity::VERSIONS.each do |version|
+            name = (attr_sym.to_s + version::ATTRIBUTE_SUFFIX).to_sym
+            arr << name
+          end
+        end
+      end
+
       params.require(:health_sdh_case_management_note).permit(
         :title,
         :total_time_spent_in_minutes,
@@ -163,17 +185,7 @@ module Health
         :completed_on,
         client_action: [],
         topics: [],
-        activities_attributes: [
-          :id,
-          :mode_of_contact,
-          :mode_of_contact_other,
-          :reached_client,
-          :reached_client_collateral_contact,
-          :activity,
-          :date_of_activity,
-          :follow_up,
-          :_destroy,
-        ],
+        activities_attributes: versioned_activities_attributes,
         health_file_attributes: [
           :id,
           :file,
