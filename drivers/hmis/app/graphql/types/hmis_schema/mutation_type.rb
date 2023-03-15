@@ -10,7 +10,6 @@ module Types
   class HmisSchema::MutationType < Types::BaseObject
     field :update_client_image, mutation: Mutations::UpdateClientImage
     field :delete_client_image, mutation: Mutations::DeleteClientImage
-    field :upload_client_file, mutation: Mutations::UploadClientFile
     field :delete_client_file, mutation: Mutations::DeleteClientFile
     field :create_enrollment, mutation: Mutations::CreateEnrollment
     field :add_household_members_to_enrollment, mutation: Mutations::AddHouseholdMembersToEnrollment

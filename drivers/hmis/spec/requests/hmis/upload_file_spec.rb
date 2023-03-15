@@ -71,7 +71,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     [files, errors]
   end
 
-  describe 'creation tests' do
+  # ! This has the right logic to test file creation, but we're removing this mutation so it's skipped now. Leaving this as a reference for the processor tests
+  xdescribe 'creation tests' do
     it 'should create the file correctly' do
       files, errors = call_mutation(full_test_input)
       expect(errors).to be_empty

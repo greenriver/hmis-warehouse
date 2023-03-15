@@ -1,3 +1,5 @@
+# ! This is not included in the schema, but it does define the logic for creating a new file, so leaving in place as reference for the file processor
+
 module Mutations
   class UploadClientFile < BaseMutation
     argument :client_id, ID, required: true
