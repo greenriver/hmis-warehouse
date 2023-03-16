@@ -88,6 +88,13 @@ class Hmis::User < ApplicationRecord
     return [entity.data_source, *entity.projects] if entity.is_a? Hmis::Hud::Client
     return entity if entity.is_a? Hmis::Hud::Organization
     return entity if entity.is_a? Hmis::Hud::Project
+
+    if entity.is_a? Hmis::File
+      return [entity.client.data_source, *entity.client.projects] unless entity.enrollment.present?
+
+      return entity.enrollment.project
+    end
+
     return entity.project if entity.respond_to? :project
 
     nil

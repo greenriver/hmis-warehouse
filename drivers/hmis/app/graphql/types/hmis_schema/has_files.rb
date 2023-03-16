@@ -33,7 +33,7 @@ module Types
       private
 
       def scoped_files(scope, sort_order: :date_created)
-        scope = scope.visible_by?(current_user)
+        scope = scope.viewable_by(current_user)
         scope = scope.sort_by_option(sort_order) if sort_order.present?
         scope
       end

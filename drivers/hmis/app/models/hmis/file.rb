@@ -16,6 +16,10 @@ class Hmis::File < GrdaWarehouse::File
   belongs_to :enrollment, class_name: '::Hmis::Hud::Enrollment', optional: true
   belongs_to :client, class_name: '::Hmis::Hud::Client'
 
+  scope :viewable_by, ->(_user) do
+    current_scope
+  end
+
   def self.sort_by_option(option)
     raise NotImplementedError unless SORT_OPTIONS.include?(option)
 

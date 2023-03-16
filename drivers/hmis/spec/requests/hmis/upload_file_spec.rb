@@ -36,21 +36,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     <<~GRAPHQL
       mutation UploadClientFile($input: UploadClientFileInput!) {
         uploadClientFile(input: $input) {
-          client {
-            id
-            files {
-              nodes {
-                id
-                url
-                name
-                contentType
-                effectiveDate
-                expirationDate
-                confidential
-                createdAt
-                updatedAt
-              }
-            }
+          file {
+            #{scalar_fields(Types::HmisSchema::File)}
           }
           #{error_fields}
         }
@@ -66,17 +53,17 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   def call_mutation(input)
     response, result = post_graphql(input: input) { mutation }
     expect(response.status).to eq 200
-    files = result.dig('data', 'uploadClientFile', 'client', 'files', 'nodes')
+    file = result.dig('data', 'uploadClientFile', 'file')
     errors = result.dig('data', 'uploadClientFile', 'errors')
-    [files, errors]
+    [file, errors]
   end
 
   # ! This has the right logic to test file creation, but we're removing this mutation so it's skipped now. Leaving this as a reference for the processor tests
   xdescribe 'creation tests' do
     it 'should create the file correctly' do
-      files, errors = call_mutation(full_test_input)
+      file, errors = call_mutation(full_test_input)
       expect(errors).to be_empty
-      expect(files).to contain_exactly(
+      expect(file).to contain_exactly(
         include(
           'contentType' => blob.content_type,
           'name' => blob.filename,
@@ -88,7 +75,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       )
       expect(Hmis::File.all).to contain_exactly(
         have_attributes(
-          id: files.first['id'].to_i,
+          id: file.first['id'].to_i,
           name: full_test_input[:name] || blob.filename,
           effective_date: full_test_input[:effective_date],
           expiration_date: full_test_input[:expiration_date],

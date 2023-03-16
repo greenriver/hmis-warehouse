@@ -22,14 +22,6 @@ module ClientFileBase
       order(created_at: :desc)
     end
 
-    scope :visible_by?, ->(_user) do
-      current_scope
-    end
-
-    scope :editable_by?, ->(_user) do
-      current_scope
-    end
-
     scope :non_cache, -> do
       where.not(name: 'Client Headshot Cache')
     end

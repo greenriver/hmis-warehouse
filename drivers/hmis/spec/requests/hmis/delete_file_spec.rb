@@ -36,21 +36,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     <<~GRAPHQL
       mutation DeleteClientFile($fileId: ID!) {
         deleteClientFile(input: { fileId: $fileId }) {
-          client {
-            id
-            files {
-              nodes {
-                id
-                url
-                name
-                contentType
-                effectiveDate
-                expirationDate
-                confidential
-                createdAt
-                updatedAt
-              }
-            }
+          file {
+            #{scalar_fields(Types::HmisSchema::File)}
           }
           #{error_fields}
         }
@@ -66,17 +53,17 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   def call_mutation(file_id)
     response, result = post_graphql(file_id: file_id) { mutation }
     expect(response.status).to eq 200
-    files = result.dig('data', 'deleteClientFile', 'client', 'files', 'nodes')
+    file = result.dig('data', 'deleteClientFile', 'file')
     errors = result.dig('data', 'deleteClientFile', 'errors')
-    [files, errors]
+    [file, errors]
   end
 
-  describe 'creation tests' do
+  describe 'deletion tests' do
     it 'should delete the file correctly' do
       file_id = f1.id
-      files, errors = call_mutation(file_id)
+      file, errors = call_mutation(file_id)
       expect(errors).to be_empty
-      expect(files).not_to include(include('id' => file_id.to_s))
+      expect(file).to be_present
       expect(Hmis::File.all).not_to include(have_attributes(id: file_id))
     end
   end
