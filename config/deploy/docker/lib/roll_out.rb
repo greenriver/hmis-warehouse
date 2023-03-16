@@ -229,7 +229,7 @@ class RollOut
         'PROMETHEUS_EXPORTER_PORT' => '9394',
         'role' => 'web',
       },
-      command: ['puma', '-b', 'ssl://0.0.0.0:3000?key=/app/config/key.pem&cert=/app/config/cert.pem&verify_mode=none'],
+      command: ['bundle exec puma', '-b', 'ssl://0.0.0.0:3000?key=/app/config/key.pem&cert=/app/config/cert.pem&verify_mode=none'],
       ports: [
         {
           'container_port' => 3000, # rails app
