@@ -247,6 +247,25 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
     end
 
+    it 'should NOT warn if the operating end date was cleared' do
+      p1.update!(operating_end_date: '2030-01-01')
+      input = merge_hud_values(
+        test_input.merge(confirmed: false),
+        'operatingEndDate' => nil,
+      )
+      response, result = post_graphql(input: { input: input }) { mutation }
+      record_id = result.dig('data', 'submitForm', 'record', 'id')
+      errors = result.dig('data', 'submitForm', 'errors')
+      p1.reload
+      aggregate_failures 'checking response' do
+        expect(response.status).to eq 200
+        expect(errors).to be_empty
+        expect(record_id).to be_present
+        expect(i1.reload.inventory_end_date).to be nil
+        expect(f1.reload.end_date).to be nil
+      end
+    end
+
     it 'should warn if closing project with open funders and inventory' do
       p1.update!(operating_end_date: nil)
       # Unlink enrollment, so we don't get a warning about it
