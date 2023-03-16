@@ -14,8 +14,8 @@ module Types
     field :effective_date, GraphQL::Types::ISO8601Date, null: true
     field :expiration_date, GraphQL::Types::ISO8601Date, null: true
     field :confidential, Boolean, null: true
-    field :updated_at, GraphQL::Types::ISO8601DateTime, null: true
-    field :created_at, GraphQL::Types::ISO8601DateTime, null: true
+    field :updated_at, GraphQL::Types::ISO8601DateTime, null: false
+    field :created_at, GraphQL::Types::ISO8601DateTime, null: false
     field :url, String, null: false
     field :name, String, null: false
 
