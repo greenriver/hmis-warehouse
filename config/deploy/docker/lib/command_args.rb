@@ -12,7 +12,7 @@ class CommandArgs
     path = Pathname.new(__FILE__).join('..', '..', 'assets', 'secret.deploy.values.yml')
 
     if File.exist?(path)
-      local_config = YAML.load_file(path)
+      local_config = YAML.load_file(path, aliases: true)
       local_config = nil if local_config.empty?
     else
       local_config = nil
