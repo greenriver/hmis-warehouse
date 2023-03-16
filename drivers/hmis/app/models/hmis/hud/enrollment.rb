@@ -84,7 +84,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   scope :not_in_progress, -> { where.not(project_id: nil) }
 
   def project
-    super || Hmis::Hud::Project.find(wip.project_id)
+    super || Hmis::Hud::Project.find_by(id: wip.project_id)
   end
 
   def self.sort_by_option(option)
