@@ -329,6 +329,8 @@ input ClearRecentItemsInput {
 HUD Client
 """
 type Client {
+  access: ClientAccess!
+  age: Int
   assessments(inProgress: Boolean, limit: Int, offset: Int, roles: [FormRole!], sortOrder: AssessmentSortOption): AssessmentsPaginated!
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
@@ -358,6 +360,15 @@ type Client {
   ssnDataQuality: SSNDataQuality!
   user: User
   veteranStatus: NoYesReasonsForMissingData!
+}
+
+type ClientAccess {
+  canDeleteEnrollments: Boolean!
+  canEditEnrollments: Boolean!
+  canViewDob: Boolean!
+  canViewEnrollmentDetails: Boolean!
+  canViewFullSsn: Boolean!
+  canViewPartialSsn: Boolean!
 }
 
 """

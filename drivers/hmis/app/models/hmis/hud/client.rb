@@ -50,6 +50,8 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   end
 
   scope :visible_to, ->(user) do
+    return none unless user.can_view_clients?
+
     joins(:data_source).merge(GrdaWarehouse::DataSource.hmis(user))
   end
 
@@ -58,7 +60,6 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   end
 
   scope :searchable_to, ->(user) do
-    # TODO: additional access control rules go here
     visible_to(user)
   end
 
