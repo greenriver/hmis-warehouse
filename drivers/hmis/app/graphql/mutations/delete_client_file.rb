@@ -6,18 +6,11 @@ module Mutations
 
     def resolve(file_id:)
       file = Hmis::File.find_by(id: file_id)
-
-      errors = HmisErrors::Errors.new
-      errors.add :file_id, :not_found unless file.present?
-      errors.add :file_id, :not_allowed if file.present? && !current_user.can_edit_clients_for?(file.client)
-      return { errors: errors } if errors.any?
-
-      file.destroy!
-
-      {
-        client: file.client,
-        errors: [],
-      }
-    end
+     default_delete_record(
+        record: file,
+        field_name: :file,
+        permissions: :can_manage_client_files,
+      )
+   end
   end
 end
