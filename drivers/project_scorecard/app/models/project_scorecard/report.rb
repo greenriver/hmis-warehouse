@@ -208,11 +208,16 @@ module ProjectScorecard
         else
           project_ids = GrdaWarehouse::ProjectGroup.viewable_by(User.find(user_id)).find(project_group_id).projects.pluck(:id)
         end
+        coc_codes = GrdaWarehouse::Hud::ProjectCoc.joins(:project).
+          merge(GrdaWarehouse::Hud::Project.where(id: project_ids)).
+          distinct.
+          pluck(GrdaWarehouse::Hud::ProjectCoc.coc_code_coalesce)
         filter.set_from_params(
           {
             start: start_date,
             end: end_date,
             project_ids: project_ids,
+            coc_codes: coc_codes,
           },
         )
         questions = [
