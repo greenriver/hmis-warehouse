@@ -158,7 +158,7 @@ module Health::Exporter
 
     def create_export_directory
       # make sure the path is clean
-      FileUtils.rmtree(@file_path) if File.exists? @file_path
+      FileUtils.rmtree(@file_path) if File.exist? @file_path
       FileUtils.mkdir_p(@file_path)
     end
 
@@ -220,7 +220,7 @@ module Health::Exporter
     end
 
     def remove_export_files
-      FileUtils.rmtree(@file_path) if File.exists? @file_path
+      FileUtils.rmtree(@file_path) if File.exist? @file_path
     end
   end
 end

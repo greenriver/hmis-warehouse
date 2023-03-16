@@ -73,8 +73,8 @@ module FormHelpers
         'housingType' => 'SITE_BASED_SINGLE_SITE',
         'targetPopulation' => 'PERSONS_WITH_HIV_AIDS',
         'HOPWAMedAssistedLivingFac' => 'NO',
-        'continuumProject' => false,
-        'HMISParticipatingProject' => true,
+        'continuumProject' => 'NO',
+        'HMISParticipatingProject' => 'YES',
       },
     },
     CLIENT: {
@@ -272,13 +272,29 @@ module FormHelpers
         'name' => 'Test org',
         'description' => 'description',
         'contact' => nil,
-        'victimServiceProvider' => false,
+        'victimServiceProvider' => { 'code' => 'NO' },
       },
       hud_values: {
         'organizationName' => 'Test org',
         'description' => 'description',
         'contactInformation' => nil,
-        'victimServiceProvider' => false,
+        'victimServiceProvider' => 'NO',
+      },
+    },
+    SERVICE: {
+      values: {
+        'typeProvided' => 'MOVING_ON_ASSISTANCE__OTHER',
+        'movingOnOtherType' => 'something',
+        'dateProvided' => '2023-03-15',
+      },
+      hud_values: {
+        'typeProvided' => 'MOVING_ON_ASSISTANCE__OTHER',
+        'otherTypeProvided' => '_HIDDEN',
+        'movingOnOtherType' => 'something',
+        'subTypeProvided' => '_HIDDEN',
+        'FAAmount' => '_HIDDEN',
+        'referralOutcome' => '_HIDDEN',
+        'dateProvided' => '2023-03-15',
       },
     },
   }.freeze

@@ -28,7 +28,7 @@ end
 env_file = env_files[@response]
 
 
-if File.exists?(target) && !File.symlink?(target)
+if File.exist?(target) && !File.symlink?(target)
   puts "Refusing to link to #{target} because it's a regular file."
 else
   puts "Linking .env.local to #{env_file}"
@@ -38,7 +38,8 @@ else
 
 
   if !ENV['TMUX'].nil?
-    system("tmux send-keys 'source .env.local'")
+    system("tmux send-keys 'source .env.local
+'")
   else
     puts "Type this:\nsource .env.local"
   end

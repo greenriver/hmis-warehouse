@@ -35,11 +35,11 @@ module GrdaWarehouse::Tasks
     end
 
     def run!
-      if remove_old && File.exists?(@export_root_path)
+      if remove_old && File.exist?(@export_root_path)
         logger.info "removing all data in #{@export_root_path}"
         FileUtils.rmtree dir
       end
-      FileUtils.mkdir_p(@export_root_path) unless File.exists?(@export_root_path)
+      FileUtils.mkdir_p(@export_root_path) unless File.exist?(@export_root_path)
       Dir.chdir(@export_root_path)
       connect_to_staging
       all_objects = {}
