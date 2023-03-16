@@ -26,8 +26,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     {
       enrollment_id: e1.id.to_s,
       form_definition_id: fd1.id,
-      values: { 'linkid-date' => '2023-02-01' },
-      hud_values: { 'informationDate' => '2023-02-01' },
+      values: { 'linkid-date' => '2023-03-01' },
+      hud_values: { 'informationDate' => '2023-03-01' },
     }
   end
 
@@ -88,7 +88,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(assessment['enrollment']).to be_present
       expect(assessment).to include(
         'inProgress' => true,
-        'assessmentDate' => '2023-02-01',
+        'assessmentDate' => '2023-03-01',
         'customForm' => include('values' => test_input[:values]),
       )
       expect(Hmis::Hud::CustomAssessment.count).to eq(1)
@@ -111,6 +111,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     # Create new WIP assessment
     response, result = post_graphql(input: { input: test_input }) { mutation }
     assessment_id = result.dig('data', 'saveAssessment', 'assessment', 'id')
+    errors = result.dig('data', 'saveAssessment', 'errors')
+    expect(errors).to be_empty
     expect(assessment_id).to be_present
     expect(Hmis::Hud::CustomAssessment.count).to eq(1)
     expect(Hmis::Hud::CustomAssessment.in_progress.count).to eq(1)
