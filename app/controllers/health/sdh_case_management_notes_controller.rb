@@ -148,14 +148,12 @@ module Health
     end
 
     private def permitted_request_params
-      versioned_activities_attributes = [].tap do |arr|
-        [
-          :id,
-          :date_of_activity,
-          :follow_up,
-          :_destroy,
-        ].each { |k| arr << k } # << so that the tap works
-
+      versioned_activities_attributes = [
+        :id,
+        :date_of_activity,
+        :follow_up,
+        :_destroy,
+      ].tap do |arr|
         [
           :mode_of_contact,
           :mode_of_contact_other,
