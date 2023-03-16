@@ -25,7 +25,7 @@ class Hmis::Hud::Validators::ProjectValidator < Hmis::Hud::Validators::BaseValid
     errors = HmisErrors::Errors.new
 
     # If project end date is changing
-    if project.operating_end_date_changed?
+    if project.operating_end_date.present? && project.operating_end_date_changed?
       open_enrollments = Hmis::Hud::Enrollment.open_on_date(project.operating_end_date).
         in_project_including_wip(project.id, project.project_id)
       errors.add :base, :information, severity: :warning, full_message: self.class.open_enrollments_message(open_enrollments.count) if open_enrollments.any?
