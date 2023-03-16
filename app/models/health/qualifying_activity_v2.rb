@@ -48,11 +48,6 @@ module Health
           code: 'U3',
           weight: 35,
         },
-        # verbal: {
-        #   title: 'Verbal',
-        #   code: 'U3',
-        #   weight: 40,
-        # },
         other: {
           title: 'Other',
           code: '',
@@ -68,11 +63,6 @@ module Health
           code: 'U1',
           weight: 0,
         },
-        # group: {
-        #   title: 'Group session',
-        #   code: 'HQ',
-        #   weight: 10,
-        # },
         no: {
           title: 'Did not reach',
           code: '',
