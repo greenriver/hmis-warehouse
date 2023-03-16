@@ -58,6 +58,10 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     custom_form.owner
   end
 
+  def service_factory(create: true) # rubocop:disable Lint/UnusedMethodArgument
+    custom_form.owner.owner if custom_form.owner.is_a? Hmis::Hud::HmisService
+  end
+
   # Type Factories
   def enrollment_factory(create: true) # rubocop:disable Lint/UnusedMethodArgument
     # The enrollment has already been created, so we can just return it
@@ -67,7 +71,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
   def common_attributes
     {
       data_collection_stage: custom_form.assessment.data_collection_stage,
-      personal_id: enrollment_factory.personal_id,
+      personal_id: custom_form.assessment.personal_id,
       information_date: custom_form.assessment.assessment_date,
       user_id: custom_form.assessment.user_id,
     }

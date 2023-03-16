@@ -7,6 +7,8 @@
 class Hmis::Hud::Project < Hmis::Hud::Base
   include ::HmisStructure::Project
   include ::Hmis::Hud::Concerns::Shared
+  include ActiveModel::Dirty
+
   self.table_name = :Project
   self.sequence_name = "public.\"#{table_name}_id_seq\""
 
@@ -32,6 +34,15 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     ids += user.viewable_organizations.joins(:projects).pluck(p_t[:id])
     ids += user.viewable_data_sources.joins(:projects).pluck(p_t[:id])
     ids += user.viewable_project_access_groups.joins(:projects).pluck(p_t[:id])
+
+    where(id: ids, data_source_id: user.hmis_data_source_id)
+  end
+
+  scope :with_access, ->(user, *permissions, **kwargs) do
+    ids = user.entities_with_permissions(Hmis::Hud::Project, *permissions, **kwargs).pluck(:id)
+    ids += user.entities_with_permissions(Hmis::Hud::Organization, *permissions, **kwargs).joins(:projects).pluck(p_t[:id])
+    ids += user.entities_with_permissions(GrdaWarehouse::DataSource, *permissions, **kwargs).joins(:projects).pluck(p_t[:id])
+    ids += user.entities_with_permissions(GrdaWarehouse::ProjectAccessGroup, *permissions, **kwargs).joins(:projects).pluck(p_t[:id])
 
     where(id: ids, data_source_id: user.hmis_data_source_id)
   end
@@ -72,5 +83,10 @@ class Hmis::Hud::Project < Hmis::Hud::Base
 
   def enrollments
     Hmis::Hud::Enrollment.in_project_including_wip(id, project_id)
+  end
+
+  def close_related_funders_and_inventory!
+    funders.where(end_date: nil).update_all(end_date: operating_end_date)
+    inventories.where(inventory_end_date: nil).update_all(inventory_end_date: operating_end_date)
   end
 end

@@ -190,8 +190,7 @@ module BostonProjectScorecard
       if apr.present?
         # Project Performance
         one_a_value = percentage(answer(apr, 'Q23c', 'B46'))
-        one_b_value = percentage((answer(apr, 'Q5a', 'B1') - answer(apr, 'Q23c', 'B43') + answer(apr, 'Q23c', 'B44')) /
-          (answer(apr, 'Q5a', 'B1') - answer(apr, 'Q23c', 'B45')).to_f)
+        one_b_value = percentage((answer(apr, 'Q5a', 'B1') - answer(apr, 'Q23c', 'B43') + answer(apr, 'Q23c', 'B44')) / (answer(apr, 'Q5a', 'B1') - answer(apr, 'Q23c', 'B45')).to_f)
 
         assessment_answers.merge!(
           {
@@ -258,11 +257,16 @@ module BostonProjectScorecard
       else
         project_ids = GrdaWarehouse::ProjectGroup.viewable_by(User.find(user_id)).find(project_group_id).projects.pluck(:id)
       end
+      coc_codes = GrdaWarehouse::Hud::ProjectCoc.joins(:project).
+        merge(GrdaWarehouse::Hud::Project.where(id: project_ids)).
+        distinct.
+        pluck(GrdaWarehouse::Hud::ProjectCoc.coc_code_coalesce)
       filter.set_from_params(
         {
           start: start_date,
           end: end_date,
           project_ids: project_ids,
+          coc_codes: coc_codes,
         },
       )
       questions = [

@@ -95,7 +95,7 @@ module Health
       @sender = Health::Cp.sender.first
       created_at ||= Time.now.utc
       config = Stupidedi::Config.hipaa
-      b = Stupidedi::PARSER::BuilderDsl.build(config)
+      b = Stupidedi::Parser::BuilderDsl.build(config)
 
       # rubocop:disable Layout/IndentationConsistency
       b.ISA '00', '', '00', '', 'ZZ', "#{@sender.pid}#{@sender.sl}", 'ZZ', @sender.receiver_id, created_at, created_at, repetition_separator, '00501', @isa_control_number, '0', interchange_usage_indicator, component_element_separator
