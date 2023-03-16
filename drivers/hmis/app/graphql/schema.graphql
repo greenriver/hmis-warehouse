@@ -1557,12 +1557,12 @@ File
 type File {
   confidential: Boolean
   contentType: String!
-  createdAt: ISO8601DateTime
+  createdAt: ISO8601DateTime!
   effectiveDate: ISO8601Date
   expirationDate: ISO8601Date
   id: ID!
   name: String!
-  updatedAt: ISO8601DateTime
+  updatedAt: ISO8601DateTime!
   url: String!
 }
 
