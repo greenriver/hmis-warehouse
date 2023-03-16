@@ -66,6 +66,15 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(file).to be_present
       expect(Hmis::File.all).not_to include(have_attributes(id: file_id))
     end
+
+    it 'should throw error if not allowed to manage files' do
+      remove_permissions(hmis_user, :can_manage_client_files)
+      file_id = f1.id
+      file, errors = call_mutation(file_id)
+      expect(file).to be_nil
+      expect(errors).to contain_exactly(include('type' => 'not_allowed'))
+      expect(Hmis::File.all).to include(have_attributes(id: file_id))
+    end
   end
 end
 
