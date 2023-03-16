@@ -21,19 +21,6 @@ class Hmis::Hud::CustomService < Hmis::Hud::Base
   before_validation :set_service_name
   validates_with Hmis::Hud::Validators::CustomServiceValidator
 
-  SORT_OPTIONS = [:date_provided].freeze
-
-  def self.sort_by_option(option)
-    raise NotImplementedError unless SORT_OPTIONS.include?(option)
-
-    case option
-    when :date_provided
-      order(DateProvided: :desc)
-    else
-      raise NotImplementedError
-    end
-  end
-
   def self.hud_key
     'CustomServiceID'
   end

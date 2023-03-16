@@ -8,10 +8,10 @@
 
 module Types
   class HmisSchema::ServiceSortOption < Types::BaseEnum
-    description 'HUD Service Sorting Options'
+    description 'HMIS Service Sorting Options'
     graphql_name 'ServiceSortOption'
 
-    Hmis::Hud::Service::SORT_OPTIONS.each do |opt|
+    Hmis::Hud::HmisService::SORT_OPTIONS.each do |opt|
       value opt.to_s.upcase, value: opt
     end
   end

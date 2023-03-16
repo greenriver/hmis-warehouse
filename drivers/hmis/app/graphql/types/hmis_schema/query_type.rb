@@ -123,7 +123,7 @@ module Types
     end
 
     def service(id:)
-      Hmis::Hud::Service.viewable_by(current_user).find_by(id: id)
+      Hmis::Hud::HmisService.viewable_by(current_user).find_by(id: id)
     end
 
     field :get_form_definition, Types::Forms::FormDefinition, 'Get most relevant/recent form definition for the specified Role and project (optionally)', null: true do

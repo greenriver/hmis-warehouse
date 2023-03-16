@@ -6,17 +6,13 @@
 
 class Hmis::Hud::Base < ::GrdaWarehouseBase
   self.abstract_class = true
+  include ::Hmis::Concerns::HmisArelHelper
 
   acts_as_paranoid(column: :DateDeleted)
   has_paper_trail # Track changes made to HUD objects via PaperTrail
 
   attr_writer :skip_validations
   attr_writer :required_fields
-
-  # Create aliases for common HUD fields
-  [:UserID, :DateCreated, :DateUpdated, :DateDeleted].each do |col|
-    alias_attribute col.to_s.underscore.to_sym, col
-  end
 
   before_validation :ensure_id
 
@@ -39,6 +35,15 @@ class Hmis::Hud::Base < ::GrdaWarehouseBase
     h.merge! class_name: "Hmis::Hud::#{model_name}" if model_name
     h
   end
+
+  def self.alias_to_underscore(cols)
+    Array.wrap(cols).each do |col|
+      alias_attribute col.to_s.underscore.to_sym, col
+    end
+  end
+
+  # Create aliases for common HUD fields
+  alias_to_underscore [:UserID, :DateCreated, :DateUpdated, :DateDeleted]
 
   def self.generate_uuid
     SecureRandom.uuid.gsub(/-/, '')

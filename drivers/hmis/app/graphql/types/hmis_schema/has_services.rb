@@ -17,24 +17,30 @@ module Types
           field_options = default_field_options.merge(override_options)
           field(name, **field_options) do
             argument :sort_order, Types::HmisSchema::ServiceSortOption, required: false
+            argument :service_type, GraphQL::Types::ID, required: false
+            argument :service_category, GraphQL::Types::ID, required: false
+            argument :search_term, String, required: false
             instance_eval(&block) if block_given?
           end
         end
       end
 
-      def resolve_services_with_loader(association_name = :services, **args)
-        load_ar_association(object, association_name, scope: scoped_services(Hmis::Hud::Service, **args))
+      def resolve_services_with_loader(association_name = :hmis_services, **args)
+        load_ar_association(object, association_name, scope: scoped_services(Hmis::Hud::HmisService, **args))
       end
 
-      def resolve_services(scope = object.services, **args)
+      def resolve_services(scope = object.hmis_services, **args)
         scoped_services(scope, **args)
       end
 
       private
 
-      def scoped_services(scope, sort_order: :date_provided)
+      def scoped_services(scope, sort_order: :date_provided, service_type: nil, service_category: nil, search_term: nil)
         scope = scope.viewable_by(current_user)
         scope = scope.sort_by_option(sort_order) if sort_order.present?
+        scope = scope.where(service_type: service_type) if service_type.present?
+        scope = scope.in_service_category(service_category) if service_category.present?
+        scope = scope.matching_search_term(search_term) if search_term.present?
         scope
       end
     end

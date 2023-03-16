@@ -70,6 +70,11 @@ class Hmis::Role < ::ApplicationRecord
     permissions_with_descriptions.select { |_k, attrs| attrs[:access].include?(access) }.keys
   end
 
+  # Permissions that may be used globally (data access does not need to be specified)
+  def self.global_permissions
+    permissions_with_descriptions.select { |_k, attrs| attrs[:global] }.keys
+  end
+
   def self.permissions_with_descriptions
     {
       can_administer_hmis: {
@@ -124,6 +129,7 @@ class Hmis::Role < ::ApplicationRecord
         description: 'Allow the user to see clients at assigned projects.',
         administrative: false,
         access: [:viewable],
+        global: true,
         categories: [
           'Client Access',
         ],
@@ -132,6 +138,7 @@ class Hmis::Role < ::ApplicationRecord
         description: 'Grants access to edit clients',
         administrative: false,
         access: [:editable],
+        global: true,
         categories: [
           'Client Access',
         ],
@@ -140,6 +147,7 @@ class Hmis::Role < ::ApplicationRecord
         description: 'Allow the user to see client\'s full SSN.',
         administrative: false,
         access: [:viewable],
+        global: true,
         categories: [
           'Client Details',
         ],
@@ -148,6 +156,7 @@ class Hmis::Role < ::ApplicationRecord
         description: 'Grants access to view partial SSN',
         administrative: false,
         access: [:viewable],
+        global: true,
         categories: [
           'Client Access',
         ],
@@ -156,6 +165,7 @@ class Hmis::Role < ::ApplicationRecord
         description: 'Grants access to view clients\' DOB',
         administrative: false,
         access: [:viewable],
+        global: true,
         categories: [
           'Client Access',
         ],
