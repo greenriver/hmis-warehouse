@@ -98,9 +98,8 @@ module Mutations
         # Update DateUpdated on the Enrollment
         enrollment.touch
       else
-        # These are potentially unfixable errors, so maybe we should throw a server error instead.
-        # Leaving them visible to the user for now, as they are helpful in development.
-        # *NOTE* These may fail to transform into the GQL ValidationError type
+        # These are potentially unfixable errors. Maybe should be server error instead.
+        # For now, return them all because they are useful in development.
         errors.add_ar_errors(assessment.custom_form&.errors&.errors)
         errors.add_ar_errors(assessment.errors&.errors)
         assessment = nil

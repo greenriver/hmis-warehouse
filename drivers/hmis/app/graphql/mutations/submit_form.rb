@@ -81,8 +81,8 @@ module Mutations
         # Update DateUpdated on the Enrollment, if record is Enrollment-related
         record.enrollment.touch if record.respond_to?(:enrollment)
       else
-        # These are potentially unfixable errors, so maybe we should throw a server error instead.
-        # Leaving them visible to the user for now, while we QA the feature.
+        # These are potentially unfixable errors. Maybe should be server error instead.
+        # For now, return them all because they are useful in development.
         errors.add_ar_errors(custom_form.errors&.errors)
         errors.add_ar_errors(record.errors&.errors)
         record = nil
