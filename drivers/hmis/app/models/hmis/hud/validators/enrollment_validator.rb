@@ -10,10 +10,11 @@ class Hmis::Hud::Validators::EnrollmentValidator < Hmis::Hud::Validators::BaseVa
     Hmis::Hud::Enrollment.hmis_configuration(version: '2022').except(*IGNORED)
   end
 
-  def self.hmis_validate(record, ignore_warnings: false, user: nil)
+  def self.hmis_validate(record, ignore_warnings: false, user: nil, role: nil)
     errors = HmisErrors::Errors.new
 
-    if record.entry_date.present?
+    # Only validate the entry date in the context of an intake
+    if record.entry_date.present? && role == :INTAKE
       dob = record.client&.dob
       safe_dob = record.client&.safe_dob(user)
       errors.add :entry_date, :out_of_range, message: 'cannot be in the future' if record.entry_date.future?

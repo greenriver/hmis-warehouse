@@ -235,19 +235,21 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     end
   end
 
-  # Get list of all related record errors as HmisError::Error objects that can be resolved
-  # as GraphQL ValidationErrors.
-  def collect_hmis_errors(user: nil)
-    errors = HmisErrors::Errors.new
-    all_factories.each do |factory_method|
+  def related_records
+    all_factories.map do |factory_method|
       record = send(factory_method, create: false)
-      next unless record.present?
+      # assessment is not considered a related record, other "owners" are
       next if record.is_a?(Hmis::Hud::CustomAssessment)
 
-      # Collect HmisError errors/warnings from custom validator
-      validator = record.class.validators.find { |v| v.is_a?(Hmis::Hud::Validators::BaseValidator) }&.class
-      errors.push(*validator.hmis_validate(record, user: user)) if validator.present?
+      record
+    end.compact.uniq
+  end
 
+  # Get list of all related record errors as HmisError::Error objects that can be resolved
+  # as GraphQL ValidationErrors.
+  def collect_hmis_errors
+    errors = HmisErrors::Errors.new
+    related_records.each do |record|
       next if record.errors.none?
 
       # Collect AR errors, skipping relation fields (to avoid errors like "Income Benefit is invalid" on the Enrollment)
@@ -256,7 +258,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       end)
     end
 
-    errors.errors
+    errors
   end
 
   private def translate_field(field, container: nil)

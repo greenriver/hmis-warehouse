@@ -35,24 +35,26 @@ class Hmis::Form::CustomForm < ::GrdaWarehouseBase
   # @return [HmisError::Error] an array errors
   def collect_form_validations(ignore_warnings: false)
     validation_errors = definition.validate_form_values(values)
+    return validation_errors.reject(&:warning?) if ignore_warnings
 
-    if ignore_warnings
-      validation_errors.reject(&:warning?)
-    else
-      validation_errors
-    end
+    validation_errors
   end
 
   # Validate related records using custom AR Validators
   # @return [HmisError::Error] an array errors
   def collect_record_validations(ignore_warnings: false, user: nil)
-    validation_errors = form_processor.collect_hmis_errors(user: user)
+    errors = form_processor.collect_hmis_errors
 
-    if ignore_warnings
-      validation_errors.reject(&:warning?)
-    else
-      validation_errors
+    # Collect HmisError errors/warnings from custom validator, in the context of this role
+    role = definition.role
+    form_processor.related_records.each do |record|
+      validator = record.class.validators.find { |v| v.is_a?(Hmis::Hud::Validators::BaseValidator) }&.class
+      errors.push(*validator.hmis_validate(record, user: user, role: role)) if validator.present?
     end
+
+    return errors.errors.reject(&:warning?) if ignore_warnings
+
+    errors.errors
   end
 
   private def initialize_form_processor

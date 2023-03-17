@@ -9,7 +9,7 @@ module HmisErrors
     include Enumerable
 
     extend Forwardable
-    def_delegators :@errors, :size, :clear, :blank?, :empty?, :uniq!, :any?, :count, :push
+    def_delegators :@errors, :size, :clear, :blank?, :empty?, :uniq!, :any?, :count, :push, :all?
     attr_reader :errors
     alias objects errors
 
