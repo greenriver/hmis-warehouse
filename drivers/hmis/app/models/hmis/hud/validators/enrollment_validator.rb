@@ -14,7 +14,7 @@ class Hmis::Hud::Validators::EnrollmentValidator < Hmis::Hud::Validators::BaseVa
     return unless record.entry_date.present?
 
     client_dob = record.client&.dob
-    record.errors.add :entry_date, :invalid, message: "must be on or after Date of Birth (#{client_dob.strftime('%m/%d/%Y')})" if client_dob.present? && client_dob > record.entry_date
+    record.errors.add :entry_date, :invalid, message: "cannot be before DOB (#{client_dob.strftime('%m/%d/%Y')})" if client_dob.present? && client_dob > record.entry_date
 
     # TODO add a bunch more entry date validations
   end

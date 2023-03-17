@@ -235,13 +235,12 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
 
   # Get list of related record errors that can be resolved as ValidationErrors
   def assessment_related_record_errors
-    assessment_record_factories.map do |factory_method, _|
+    assessment_record_factories.map do |factory_method|
       record = send(factory_method, create: false)
       next unless record.present?
       next if record.errors.none?
 
       record.errors.errors.reject do |e|
-        # binding.pry
         # Skip errors on relation fields (to avoid errors like "Income Benefit is invalid" on the Enrollment)
         e.attribute.to_s.underscore.ends_with?('_id') || record.send(e.attribute).is_a?(ActiveRecord::Relation)
       end

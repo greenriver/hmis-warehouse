@@ -191,9 +191,9 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
 
       assessment.custom_form.form_processor.run!
       expect(assessment.custom_form.valid?).to be false
-      expect(assessment.custom_form.errors[:incomeFromAnySource]&.first).to eq(Hmis::Hud::Validators::IncomeBenefitValidator::INCOME_SOURCES_UNSPECIFIED)
-      expect(assessment.custom_form.errors[:benefitsFromAnySource]&.first).to eq(Hmis::Hud::Validators::IncomeBenefitValidator::BENEFIT_SOURCES_UNSPECIFIED)
-      expect(assessment.custom_form.errors[:insuranceFromAnySource]&.first).to eq(Hmis::Hud::Validators::IncomeBenefitValidator::INSURANCE_SOURCES_UNSPECIFIED)
+      expect(assessment.custom_form.errors.where(:income_from_any_source).first.options[:full_message]).to eq(Hmis::Hud::Validators::IncomeBenefitValidator::INCOME_SOURCES_UNSPECIFIED)
+      expect(assessment.custom_form.errors.where(:benefits_from_any_source).first.options[:full_message]).to eq(Hmis::Hud::Validators::IncomeBenefitValidator::BENEFIT_SOURCES_UNSPECIFIED)
+      expect(assessment.custom_form.errors.where(:insurance_from_any_source).first.options[:full_message]).to eq(Hmis::Hud::Validators::IncomeBenefitValidator::INSURANCE_SOURCES_UNSPECIFIED)
     end
   end
 
@@ -347,6 +347,8 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
 
       assessment.custom_form.hud_values = {
         'IncomeBenefit.incomeFromAnySource' => 'YES',
+        'IncomeBenefit.unemployment' => 'YES',
+        'IncomeBenefit.unemploymentAmount' => 100,
       }
 
       assessment.custom_form.form_processor.run!
@@ -358,6 +360,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
 
       income_benefits = assessment.enrollment.income_benefits.first
       expect(income_benefits.income_from_any_source).to eq(1)
+      expect(income_benefits.unemployment).to eq(1)
     end
 
     it 'clears an existing value, if it is null' do
