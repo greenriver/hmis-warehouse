@@ -354,7 +354,6 @@ RSpec.shared_context 'datalab psh coc 1 apr', shared_context: :metadata do
       )
     end
 
-    # Pending AAQ https://www.hudexchange.info/program-support/my-question/?askaquestionaction=public%3Amain.answer&key=7621DC58-B880-4E59-8ED2027685A40C16 (and AirTable submission)
     it 'Q25e' do
       compare_results(
         file_path: result_file_prefix + 'apr/psh_coc_1',

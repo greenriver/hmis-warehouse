@@ -39,11 +39,6 @@ RSpec.shared_context 'datalab rrh coc 2 apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'apr/rrh_coc_2',
         question: 'Q6b',
-        # Pending https://www.hudexchange.info/program-support/my-question/?askaquestionaction=public%3Amain.answer&key=98BF8791-4249-48F3-8E5395910C01CF59
-        # skip: [
-        #   'B6',
-        #   'C6',
-        # ],
       )
     end
 

@@ -43,7 +43,7 @@ RSpec.shared_context 'datalab sso coc apr', shared_context: :metadata do
       )
     end
 
-    it 'Q6c' do # FIXME
+    it 'Q6c' do
       compare_results(
         file_path: result_file_prefix + 'apr/sso_coc',
         question: 'Q6c',
@@ -533,7 +533,7 @@ RSpec.shared_context 'datalab sso coc apr', shared_context: :metadata do
       )
     end
 
-    it 'Q27i' do # FIXME
+    it 'Q27i' do
       compare_results(
         file_path: result_file_prefix + 'apr/sso_coc',
         question: 'Q27i',
