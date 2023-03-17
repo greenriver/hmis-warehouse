@@ -48,8 +48,8 @@ module Mutations
       )
 
       # Validate based on FormDefinition
-      validation_errors = custom_form.validate_form(ignore_warnings: input.confirmed)
-      errors.push(*validation_errors)
+      form_validations = custom_form.collect_form_validations(ignore_warnings: input.confirmed)
+      errors.push(*form_validations)
 
       # Run processor to create/update record(s)
       custom_form.form_processor.run!
@@ -57,15 +57,10 @@ module Mutations
       # Run both validations
       is_valid = record.valid? && custom_form.valid?
 
-      # Push errors from record and any related records
-      errors.add_ar_errors(record.errors.errors) if record.errors.any?
+      # Collect validations and warnings from AR Validator classes
+      record_validations = custom_form.collect_record_validations(ignore_warnings: input.confirmed, user: current_user)
+      errors.push(*record_validations)
 
-      # Run custom validator for any warnings/errors (like closing a Project)
-      validator = klass.validators.find { |v| v.respond_to?(:hmis_validate) }
-      if validator.present?
-        validation_errors = validator.hmis_validate(record, ignore_warnings: input.confirmed)
-        errors.push(*validation_errors)
-      end
       return { errors: errors } if errors.any?
 
       if is_valid
@@ -89,6 +84,7 @@ module Mutations
         # These are potentially unfixable errors, so maybe we should throw a server error instead.
         # Leaving them visible to the user for now, while we QA the feature.
         errors.add_ar_errors(custom_form.errors&.errors)
+        errors.add_ar_errors(record.errors&.errors)
         record = nil
       end
 

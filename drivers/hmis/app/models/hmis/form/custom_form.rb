@@ -31,8 +31,22 @@ class Hmis::Form::CustomForm < ::GrdaWarehouseBase
     data_collection_stage == 3
   end
 
-  def validate_form(ignore_warnings: false)
+  # Validate `values` purely based on FormDefinition validation requirements
+  # @return [HmisError::Error] an array errors
+  def collect_form_validations(ignore_warnings: false)
     validation_errors = definition.validate_form_values(values)
+
+    if ignore_warnings
+      validation_errors.reject(&:warning?)
+    else
+      validation_errors
+    end
+  end
+
+  # Validate related records using custom AR Validators
+  # @return [HmisError::Error] an array errors
+  def collect_record_validations(ignore_warnings: false, user: nil)
+    validation_errors = form_processor.collect_hmis_errors(user: user)
 
     if ignore_warnings
       validation_errors.reject(&:warning?)

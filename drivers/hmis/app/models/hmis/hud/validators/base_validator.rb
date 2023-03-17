@@ -15,6 +15,11 @@ class Hmis::Hud::Validators::BaseValidator < ActiveModel::Validator
     record.required_fields
   end
 
+  # Override to return HmisError::Error objects
+  def self.hmis_validate(_record, **_)
+    []
+  end
+
   def validate(record)
     return if skip_all_validations?(record)
 

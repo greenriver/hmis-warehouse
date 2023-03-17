@@ -60,8 +60,8 @@ module Mutations
       )
 
       # Validate form values based on FormDefinition
-      validation_errors = assessment.custom_form.validate_form(ignore_warnings: input.confirmed)
-      errors.push(*validation_errors)
+      form_validations = assessment.custom_form.collect_form_validations(ignore_warnings: input.confirmed)
+      errors.push(*form_validations)
 
       # Run processor to create/update related records
       assessment.custom_form.form_processor.run!
@@ -69,11 +69,15 @@ module Mutations
       # Run both validations
       is_valid = assessment.valid? && assessment.custom_form.valid?
 
-      # Push errors from related records
-      errors.add_ar_errors(assessment.custom_form&.form_processor&.assessment_related_record_errors)
+      # Collect validations and warnings from AR Validator classes
+      record_validations = assessment.custom_form.collect_record_validations(
+        user: current_user,
+        ignore_warnings: input.confirmed,
+      )
+      errors.push(*record_validations)
 
       # If this is an existing assessment and all the errors are warnings, save changes before returning
-      if errors.any? && assessment.id.present? && errors.all? { |e| e.is_a?(HmisErrors::Error) && e.warning? }
+      if errors.any? && assessment.id.present? && errors.all?(&:warning?)
         assessment.custom_form.save!
         assessment.save!
         assessment.touch

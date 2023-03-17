@@ -206,7 +206,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     }.freeze
   end
 
-  private def assessment_record_factories
+  private def all_factories
     [
       :enrollment_factory,
       :enrollment_coc_factory,
@@ -219,12 +219,14 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       :mental_health_disorder_factory,
       :substance_use_disorder_factory,
       :exit_factory,
+      :owner_factory,
+      :service_factory,
     ]
   end
 
   # Pull up any errors from the HMIS records
   private def hmis_records_are_valid
-    assessment_record_factories.each do |factory_method|
+    all_factories.excluding(:owner_factory, :service_factory).each do |factory_method|
       record = send(factory_method, create: false)
       next unless record.present?
       next if record.valid?
@@ -233,18 +235,28 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     end
   end
 
-  # Get list of related record errors that can be resolved as ValidationErrors
-  def assessment_related_record_errors
-    assessment_record_factories.map do |factory_method|
+  # Get list of all related record errors as HmisError::Error objects that can be resolved
+  # as GraphQL ValidationErrors.
+  def collect_hmis_errors(user: nil)
+    errors = HmisErrors::Errors.new
+    all_factories.each do |factory_method|
       record = send(factory_method, create: false)
       next unless record.present?
+      next if record.is_a?(Hmis::Hud::CustomAssessment)
+
+      # Collect HmisError errors/warnings from custom validator
+      validator = record.class.validators.find { |v| v.is_a?(Hmis::Hud::Validators::BaseValidator) }&.class
+      errors.push(*validator.hmis_validate(record, user: user)) if validator.present?
+
       next if record.errors.none?
 
-      record.errors.errors.reject do |e|
-        # Skip errors on relation fields (to avoid errors like "Income Benefit is invalid" on the Enrollment)
+      # Collect AR errors, skipping relation fields (to avoid errors like "Income Benefit is invalid" on the Enrollment)
+      errors.add_ar_errors(record.errors.errors.reject do |e|
         e.attribute.to_s.underscore.ends_with?('_id') || record.send(e.attribute).is_a?(ActiveRecord::Relation)
-      end
-    end.compact.flatten
+      end)
+    end
+
+    errors.errors
   end
 
   private def translate_field(field, container: nil)
