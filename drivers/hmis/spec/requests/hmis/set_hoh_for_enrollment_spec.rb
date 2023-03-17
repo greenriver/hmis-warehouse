@@ -50,6 +50,20 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
   end
 
+  it 'should throw error if unauthorized' do
+    remove_permissions(hmis_user, :can_edit_enrollments)
+    response, result = post_graphql(input: { household_id: '1', client_id: c3.id }) { mutation }
+
+    aggregate_failures 'checking response' do
+      expect(response.status).to eq 200
+      enrollment = result.dig('data', 'setHoHForEnrollment', 'enrollment')
+      errors = result.dig('data', 'setHoHForEnrollment', 'errors')
+      expect(enrollment).to be_nil
+      expect(errors).to be_present
+      expect(errors).to contain_exactly(include('type' => 'not_allowed'))
+    end
+  end
+
   describe 'Validity tests' do
     [
       [

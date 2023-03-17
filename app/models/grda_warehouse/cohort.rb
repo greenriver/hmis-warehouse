@@ -298,6 +298,7 @@ module GrdaWarehouse
         ::CohortColumns::HousingNavigator.new,
         ::CohortColumns::LocationType.new,
         ::CohortColumns::Location.new,
+        ::CohortColumns::LastContactLocation.new,
         ::CohortColumns::Status.new,
         ::CohortColumns::SsvfEligible.new,
         ::CohortColumns::VetSquaresConfirmed.new,

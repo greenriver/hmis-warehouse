@@ -5,20 +5,19 @@ module Mutations
     field :enrollment, Types::HmisSchema::Enrollment, null: true
 
     def resolve(id:)
+      enrollment = Hmis::Hud::Enrollment.viewable_by(current_user).find_by(id: id)
+
+      return { errors: [HmisErrors::Error.new(:enrollment, :not_found)] } unless enrollment.present?
+      return { errors: [HmisErrors::Error.new(:enrollment, :not_allowed)] } unless current_user.permissions_for?(enrollment, :can_delete_enrollments)
+
       errors = []
-      enrollment = Hmis::Hud::Enrollment.editable_by(current_user).find_by(id: id)
-
-      if enrollment.present?
-        if enrollment.in_progress?
-          enrollment.destroy
-        else
-          errors << HmisErrors::Error.new(:base, full_message: 'Completed enrollments can not be deleted. Please exit the client instead.')
-        end
-
-        errors << enrollment.errors.errors unless enrollment.valid?
+      if enrollment.in_progress?
+        enrollment.destroy
       else
-        errors << HmisErrors::Error.new(:enrollment, :not_found)
+        errors << HmisErrors::Error.new(:base, full_message: 'Completed enrollments can not be deleted. Please exit the client instead.')
       end
+
+      errors << enrollment.errors.errors unless enrollment.valid?
 
       {
         enrollment: enrollment,

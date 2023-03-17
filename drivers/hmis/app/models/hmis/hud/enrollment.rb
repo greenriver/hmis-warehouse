@@ -8,7 +8,6 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   include ::HmisStructure::Enrollment
   include ::Hmis::Hud::Concerns::Shared
   include ::HudConcerns::Enrollment
-  include ::Hmis::Concerns::HmisArelHelper
 
   self.table_name = :Enrollment
   self.sequence_name = "public.\"#{table_name}_id_seq\""
@@ -21,7 +20,14 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   belongs_to :project, **hmis_relation(:ProjectID, 'Project'), optional: true
   has_one :exit, **hmis_relation(:EnrollmentID, 'Exit'), dependent: :destroy
+
+  # HUD services
   has_many :services, **hmis_relation(:EnrollmentID, 'Service'), dependent: :destroy
+  # Custom services
+  has_many :custom_services, **hmis_relation(:EnrollmentID, 'CustomService'), dependent: :destroy
+  # All services (combined view of HUD and Custom services)
+  has_many :hmis_services, **hmis_relation(:EnrollmentID, 'HmisService')
+
   has_many :events, **hmis_relation(:EnrollmentID, 'Event'), dependent: :destroy
   has_many :income_benefits, **hmis_relation(:EnrollmentID, 'IncomeBenefit'), dependent: :destroy
   has_many :disabilities, **hmis_relation(:EnrollmentID, 'Disability'), dependent: :destroy
@@ -45,20 +51,11 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   # hide previous declaration of :viewable_by, we'll use this one
   # A user can see any enrollment associated with a project they can access
   replace_scope :viewable_by, ->(user) do
-    project_ids = Hmis::Hud::Project.viewable_by(user).pluck(:id, :ProjectID)
+    project_ids = Hmis::Hud::Project.with_access(user, :can_view_enrollment_details).pluck(:id, :ProjectID)
     viewable_wip = wip_t[:project_id].in(project_ids.map(&:first))
     viewable_enrollment = e_t[:ProjectID].in(project_ids.map(&:second))
 
     left_outer_joins(:wip).where(viewable_wip.or(viewable_enrollment))
-  end
-
-  # hide previous declaration of :editable_by, we'll use this one
-  replace_scope :editable_by, ->(user) do
-    project_ids = Hmis::Hud::Project.editable_by(user).pluck(:id, :ProjectID)
-    editable_wip = wip_t[:project_id].in(project_ids.map(&:first))
-    editable_enrollment = e_t[:ProjectID].in(project_ids.map(&:second))
-
-    left_outer_joins(:wip).where(editable_wip.or(editable_enrollment))
   end
 
   scope :in_project_including_wip, ->(ids, project_ids) do
@@ -84,7 +81,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   scope :not_in_progress, -> { where.not(project_id: nil) }
 
   def project
-    super || Hmis::Hud::Project.find(wip.project_id)
+    super || Hmis::Hud::Project.find_by(id: wip.project_id)
   end
 
   def self.sort_by_option(option)

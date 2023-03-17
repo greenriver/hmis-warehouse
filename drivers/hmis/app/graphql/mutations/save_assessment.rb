@@ -8,7 +8,7 @@ module Mutations
 
     def resolve(input:)
       assessment, errors = input.find_or_create_assessment
-      return { assessment: nil, errors: errors } if errors.any?
+      return { errors: errors } if errors.any?
 
       definition = assessment.custom_form.definition
       enrollment = assessment.enrollment
@@ -19,7 +19,7 @@ module Mutations
         entry_date: enrollment.entry_date,
         exit_date: enrollment.exit_date,
       )
-      return { assessment: nil, errors: errors } if errors.any?
+      return { errors: errors } if errors.any?
 
       # Update values
       assessment.custom_form.assign_attributes(

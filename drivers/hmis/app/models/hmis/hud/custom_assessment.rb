@@ -11,7 +11,6 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
   include ::HmisStructure::Assessment
   include ::Hmis::Hud::Concerns::Shared
   include ::Hmis::Hud::Concerns::EnrollmentRelated
-  include ::Hmis::Concerns::HmisArelHelper
 
   SORT_OPTIONS = [:assessment_date, :date_updated].freeze
   WIP_ID = 'WIP'.freeze
@@ -22,11 +21,10 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
   has_one :custom_form, class_name: 'Hmis::Form::CustomForm', as: :owner, dependent: :destroy
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   has_one :wip, class_name: 'Hmis::Wip', as: :source, dependent: :destroy
+  has_one :project, through: :enrollment
 
   # Alias fields that are not part of the Assessment schema
-  [:DataCollectionStage].each do |col|
-    alias_attribute col.to_s.underscore.to_sym, col
-  end
+  alias_to_underscore [:DataCollectionStage]
 
   attr_accessor :in_progress
 
@@ -44,15 +42,6 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
     viewable_completed = cas_t[:EnrollmentID].in(enrollment_ids.map(&:second))
 
     left_outer_joins(:wip).where(viewable_wip.or(viewable_completed))
-  end
-
-  # hide previous declaration of :editable_by, we'll use this one
-  replace_scope :editable_by, ->(user) do
-    enrollment_ids = Hmis::Hud::Enrollment.editable_by(user).pluck(:id, :EnrollmentID)
-    editable_wip = wip_t[:enrollment_id].in(enrollment_ids.map(&:first))
-    editable_completed = cas_t[:EnrollmentID].in(enrollment_ids.map(&:second))
-
-    left_outer_joins(:wip).where(editable_wip.or(editable_completed))
   end
 
   scope :with_role, ->(role) do
@@ -115,14 +104,14 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
 
   def self.new_with_defaults(enrollment:, user:, form_definition:, assessment_date: nil)
     new_assessment = new(
-      data_source_id: user.data_source_id,
+      data_source_id: enrollment.data_source_id,
       user_id: user.user_id,
       personal_id: enrollment.personal_id,
       enrollment_id: enrollment.enrollment_id,
       assessment_date: assessment_date,
-      data_collection_stage: Types::HmisSchema::Enums::AssessmentRole.as_data_collection_stage(form_definition.role),
+      data_collection_stage: Hmis::Form::Definition::FORM_DATA_COLLECTION_STAGES[form_definition.role.to_sym] || 99,
     )
-    new_assessment.custom_form = Hmis::Form::CustomForm.new(definition: form_definition)
+    new_assessment.custom_form = Hmis::Form::CustomForm.new(definition: form_definition, owner: new_assessment)
     new_assessment
   end
 
