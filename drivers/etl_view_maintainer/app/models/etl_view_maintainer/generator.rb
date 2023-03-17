@@ -4,9 +4,47 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# aws-vault exec openpath -- docker compose run shell bundle exec rails runner 'EtlViewMaintainer::Generator.save_to_s3'
 module EtlViewMaintainer
   class Generator
     include ArelHelper
+
+    def self.save_to_s3(range: (1.weeks.ago.to_date .. Date.current), bucket: ENV.fetch('S3_BUCKET_DATA_TEAM'))
+      key = "warehouse.denormalized.#{Rails.env}.#{range.first.to_s(:db)}.to.#{range.last.to_s(:db)}.csv"
+      s3_object = Aws::S3::Object.new(bucket, key)
+
+      options = {
+        content_disposition: "attachment; filename=\"#{key}\"",
+        content_type: 'text/csv',
+      }
+
+      # Make it even more obvious the file is just for testing
+      sql_to_run = Rails.env.development? ? 'select * from schema_migrations' : view_sql(range)
+
+      s3_object.upload_stream(options) do |write_stream|
+        to_csv(sql_to_run) do |row|
+          write_stream << row
+        end
+      end
+    end
+
+    # Fetch the request of a query as a CSV row by row
+    def self.to_csv(query, &block)
+      raw = GrdaWarehouseBase.connection.raw_connection
+
+      statement = <<~SQL
+        COPY (#{query}) TO STDIN
+        WITH CSV HEADER DELIMITER ',' QUOTE '"'
+      SQL
+
+      raw.copy_data statement do |_|
+        row = raw.get_copy_data
+        while row.present?
+          block.call(row)
+          row = raw.get_copy_data
+        end
+      end
+    end
 
     def self.view_sql(range = (1.weeks.ago.to_date .. Date.current))
       scope(range).select(*columns).to_sql
