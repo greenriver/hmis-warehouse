@@ -107,6 +107,14 @@ module BostonReports
       'Un-matched'
     end
 
+    def necessary_selections_made?
+      filter.cohort_ids.present? &&
+      filter.cohort_column.present? &&
+      filter.cohort_column_voucher_type.present? &&
+      filter.cohort_column_housed_date.present? &&
+      filter.cohort_column_matched_date.present?
+    end
+
     private def build_general_control_section
       ::Filters::UiControlSection.new(id: 'general').tap do |section|
         section.add_control(
@@ -118,6 +126,21 @@ module BostonReports
           id: 'cohort_column',
           required: true,
           value: @filter.cohort_column,
+        )
+        section.add_control(
+          id: 'cohort_column_voucher_type',
+          required: true,
+          value: @filter.cohort_column_voucher_type,
+        )
+        section.add_control(
+          id: 'cohort_column_housed_date',
+          required: true,
+          value: @filter.cohort_column_housed_date,
+        )
+        section.add_control(
+          id: 'cohort_column_matched_date',
+          required: true,
+          value: @filter.cohort_column_matched_date,
         )
       end
     end
@@ -765,15 +788,15 @@ module BostonReports
     end
 
     private def voucher_date_instance
-      @voucher_date_instance ||= GrdaWarehouse::Cohort.available_columns.detect { |c| c.title.strip.downcase == 'voucher issued date' }
+      @voucher_date_instance ||= GrdaWarehouse::Cohort.available_columns.detect { |c| c.column == filter.cohort_column_matched_date }
     end
 
     private def housed_date_instance
-      @housed_date_instance ||= GrdaWarehouse::Cohort.available_columns.detect { |c| c.title.strip.downcase == 'housed date' }
+      @housed_date_instance ||= GrdaWarehouse::Cohort.available_columns.detect { |c| c.column == filter.cohort_column_housed_date }
     end
 
     private def voucher_type_instance
-      @voucher_type_instance ||= GrdaWarehouse::Cohort.available_columns.detect { |c| c.title.strip.downcase == 'current voucher or match type' }
+      @voucher_type_instance ||= GrdaWarehouse::Cohort.available_columns.detect { |c| c.column == filter.cohort_column_voucher_type }
     end
 
     private def voucher_types

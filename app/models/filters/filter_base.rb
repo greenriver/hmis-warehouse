@@ -47,6 +47,9 @@ module Filters
     attribute :funder_ids, Array, default: []
     attribute :cohort_ids, Array, default: []
     attribute :cohort_column, String, default: nil
+    attribute :cohort_column_housed_date, String, default: nil
+    attribute :cohort_column_matched_date, String, default: nil
+    attribute :cohort_column_voucher_type, String, default: nil
     attribute :coc_codes, Array, default: []
     attribute :coc_code, String, default: ->(_, _) { GrdaWarehouse::Config.get(:site_coc_codes) }
     attribute :sub_population, Symbol, default: :clients
@@ -127,6 +130,9 @@ module Filters
       self.length_of_times = filters.dig(:length_of_times)&.reject(&:blank?)&.map(&:to_sym).presence || length_of_times
       self.cohort_ids = filters.dig(:cohort_ids)&.reject(&:blank?)&.map(&:to_i).presence || cohort_ids
       self.cohort_column = filters.dig(:cohort_column)&.presence || cohort_column
+      self.cohort_column_voucher_type = filters.dig(:cohort_column_voucher_type)&.presence || cohort_column_voucher_type
+      self.cohort_column_housed_date = filters.dig(:cohort_column_housed_date)&.presence || cohort_column_housed_date
+      self.cohort_column_matched_date = filters.dig(:cohort_column_matched_date)&.presence || cohort_column_matched_date
 
       self.disabilities = filters.dig(:disabilities)&.reject(&:blank?)&.map(&:to_i).presence || disabilities
       self.indefinite_disabilities = filters.dig(:indefinite_disabilities)&.reject(&:blank?)&.map(&:to_i).presence || indefinite_disabilities
@@ -179,6 +185,9 @@ module Filters
           project_group_ids: project_group_ids,
           cohort_ids: cohort_ids,
           cohort_column: cohort_column,
+          cohort_column_voucher_type: cohort_column_voucher_type,
+          cohort_column_housed_date: cohort_column_housed_date,
+          cohort_column_matched_date: cohort_column_matched_date,
           hoh_only: hoh_only,
           prior_living_situation_ids: prior_living_situation_ids,
           destination_ids: destination_ids,
@@ -238,6 +247,9 @@ module Filters
         :inactivity_days,
         :lsa_scope,
         :cohort_column,
+        :cohort_column_voucher_type,
+        :cohort_column_housed_date,
+        :cohort_column_matched_date,
         coc_codes: [],
         default_project_type_codes: [],
         project_types: [],
@@ -632,6 +644,17 @@ module Filters
       end
     end
 
+    def cohort_columns_for_dates
+      GrdaWarehouse::Cohort.available_columns.select do |column|
+        column.class.ancestors.include?(CohortColumns::CohortDate)
+      end.map do |column|
+        [
+          column.title,
+          column.column,
+        ]
+      end
+    end
+
     # End Select display options
 
     def clients_from_cohorts
@@ -935,7 +958,13 @@ module Filters
       when :cohort_ids
         'Cohorts'
       when :cohort_column
-        'Cohort Column'
+        'Cohort Column for Initiative Cohorts'
+      when :cohort_column_voucher_type
+        'Cohort Column for Voucher Type'
+      when :cohort_column_housed_date
+        'Cohort Column for House Date'
+      when :cohort_column_matched_date
+        'Cohort Column for Matched Date'
       else
         key.to_s.titleize
       end
@@ -1009,6 +1038,12 @@ module Filters
         cohorts
       when :cohort_column
         cohort_column
+      when :cohort_column_voucher_type
+        cohort_column_voucher_type
+      when :cohort_column_housed_date
+        cohort_column_housed_date
+      when :cohort_column_matched_date
+        cohort_column_matched_date
       else
         val = send(key)
         val.instance_of?(String) ? val.titleize : val

@@ -14,7 +14,7 @@
       %h1.mb-5= title
       = render '/warehouse_reports/beta_warning'
     .main-inner-prs1
-      - if @filter.cohort_column.present? && @filter.cohort_ids.present?
+      - if @report.necessary_selections_made?
         .text-right.mb-4
           = render 'report_downloads/report_download', export: @pdf_export, excel_download_path: nil
 
@@ -29,7 +29,7 @@
       - else
         .none-found
           - total_url = polymorphic_path(@report.filter_path_array, *link_params.except(:action))
-          Please choose a cohort and cohort column under
+          All options must be selected under
           = link_to 'Select Universe.', total_url, data: { loads_in_pjax_modal: true }
 = content_for :page_js do
   :javascript
