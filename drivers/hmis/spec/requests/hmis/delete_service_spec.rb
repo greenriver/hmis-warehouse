@@ -1,6 +1,7 @@
 require 'rails_helper'
 require_relative 'login_and_permissions'
 require_relative '../../support/hmis_base_setup'
+require_relative '../../support/hmis_service_setup'
 
 RSpec.describe Hmis::GraphqlController, type: :request do
   before(:all) do
@@ -11,9 +12,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   include_context 'hmis base setup'
+  include_context 'hmis service setup'
   let!(:c1) { create :hmis_hud_client, data_source: ds1, user: u1 }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, client: c1, project: p1, user: u1 }
-  let!(:s1) { create :hmis_hud_service, data_source: ds1, client: c1, enrollment: e1, user: u1 }
+  let!(:hud_s1) { create :hmis_hud_service, data_source: ds1, client: c1, enrollment: e1, user: u1 }
+  let(:s1) { Hmis::Hud::HmisService.find_by(owner: hud_s1) }
 
   before(:each) do
     hmis_login(user)
@@ -62,7 +65,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   it 'should error if a service does not exist' do
-    response, result = post_graphql(id: '0') { mutation }
+    response, result = post_graphql(id: '123') { mutation }
 
     aggregate_failures 'checking response' do
       expect(response.status).to eq 200

@@ -23,16 +23,20 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
   validate :hmis_records_are_valid
   before_save :save_enrollment
 
-  # TODO: update so we are operating on the _owner_ not the assessment
   def run!
     return unless custom_form.hud_values.present?
 
     custom_form.hud_values.each do |key, value|
       # Don't use greedy matching so that the container is up to the first dot, and the rest is the field
       match = /(.*?)\.(.*)/.match(key)
-      next unless match.present?
-
-      container, field = match[1..2]
+      if match.present?
+        # Key format is "Enrollment.entryDate"
+        container, field = match[1..2]
+      else
+        # Key format is "projectType", and the container is the owner type ("Project")
+        container = custom_form.owner.class.name.demodulize
+        field = key
+      end
 
       begin
         container_processor(container)&.process(field, value)
@@ -42,7 +46,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     end
 
     valid_containers.values.each do |processor|
-      processor.new(self).information_date(custom_form.assessment.assessment_date)
+      processor.new(self).information_date(custom_form.assessment.assessment_date) if custom_form.assessment.present?
     end
   end
 
@@ -50,16 +54,24 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     enrollment_factory.save! if enrollment_factory.present?
   end
 
+  def owner_factory(create: true) # rubocop:disable Lint/UnusedMethodArgument
+    custom_form.owner
+  end
+
+  def service_factory(create: true) # rubocop:disable Lint/UnusedMethodArgument
+    custom_form.owner.owner if custom_form.owner.is_a? Hmis::Hud::HmisService
+  end
+
   # Type Factories
   def enrollment_factory(create: true) # rubocop:disable Lint/UnusedMethodArgument
     # The enrollment has already been created, so we can just return it
-    @enrollment_factory ||= custom_form.assessment.enrollment
+    @enrollment_factory ||= custom_form.owner.enrollment if custom_form.owner.respond_to?(:enrollment)
   end
 
   def common_attributes
     {
       data_collection_stage: custom_form.assessment.data_collection_stage,
-      personal_id: enrollment_factory.client.personal_id,
+      personal_id: custom_form.assessment.personal_id,
       information_date: custom_form.assessment.assessment_date,
       user_id: custom_form.assessment.user_id,
     }
@@ -176,12 +188,21 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
 
   private def valid_containers
     @valid_containers ||= {
+      # Assessment-related records
       DisabilityGroup: Hmis::Hud::Processors::DisabilityGroupProcessor,
       Enrollment: Hmis::Hud::Processors::EnrollmentProcessor,
       EnrollmentCoc: Hmis::Hud::Processors::EnrollmentCocProcessor,
       HealthAndDv: Hmis::Hud::Processors::HealthAndDvProcessor,
       IncomeBenefit: Hmis::Hud::Processors::IncomeBenefitProcessor,
       Exit: Hmis::Hud::Processors::ExitProcessor,
+      # Form Records
+      Client: Hmis::Hud::Processors::ClientProcessor,
+      HmisService: Hmis::Hud::Processors::ServiceProcessor,
+      Organization: Hmis::Hud::Processors::OrganizationProcessor,
+      Project: Hmis::Hud::Processors::ProjectProcessor,
+      Inventory: Hmis::Hud::Processors::InventoryProcessor,
+      ProjectCoc: Hmis::Hud::Processors::ProjectCoCProcessor,
+      Funder: Hmis::Hud::Processors::FunderProcessor,
     }.freeze
   end
 

@@ -27,10 +27,11 @@
           "field_name": "contactInformation"
         },
         {
-          "type": "BOOLEAN",
+          "type": "CHOICE",
           "required": false,
           "hidden": false,
           "text": "Victim Service Provider",
+          "pick_list_reference": "NoYesMissing",
           "link_id": "victimServiceProvider",
           "field_name": "victimServiceProvider"
         }

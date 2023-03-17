@@ -7034,7 +7034,9 @@ CREATE TABLE public.files (
     delete_reason integer,
     delete_detail character varying,
     consent_revoked_at timestamp without time zone,
-    coc_codes jsonb DEFAULT '[]'::jsonb
+    coc_codes jsonb DEFAULT '[]'::jsonb,
+    enrollment_id bigint,
+    confidential boolean
 );
 
 
@@ -14315,7 +14317,8 @@ ALTER SEQUENCE public.hmis_import_configs_id_seq OWNED BY public.hmis_import_con
 --
 
 CREATE VIEW public.hmis_services AS
- SELECT hud_services.owner_id,
+ SELECT hud_services.id,
+    hud_services.owner_id,
     hud_services.owner_type,
     hud_services.custom_service_type_id,
     hud_services."EnrollmentID",
@@ -14326,7 +14329,8 @@ CREATE VIEW public.hmis_services AS
     hud_services."DateUpdated",
     hud_services."DateDeleted",
     hud_services.data_source_id
-   FROM ( SELECT "Services".id AS owner_id,
+   FROM ( SELECT (concat('1', ("Services".id)::character varying))::integer AS id,
+            "Services".id AS owner_id,
             'Hmis::Hud::Service'::text AS owner_type,
             "CustomServiceTypes".id AS custom_service_type_id,
             "Services"."EnrollmentID",
@@ -14340,7 +14344,8 @@ CREATE VIEW public.hmis_services AS
            FROM (public."Services"
              JOIN public."CustomServiceTypes" ON ((("CustomServiceTypes".hud_record_type = "Services"."RecordType") AND ("CustomServiceTypes".hud_type_provided = "Services"."TypeProvided") AND ("CustomServiceTypes"."DateDeleted" IS NULL))))) hud_services
 UNION
- SELECT "CustomServices".id AS owner_id,
+ SELECT (concat('2', ("CustomServices".id)::character varying))::integer AS id,
+    "CustomServices".id AS owner_id,
     'Hmis::Hud::CustomService'::text AS owner_type,
     "CustomServices".custom_service_type_id,
     "CustomServices"."EnrollmentID",
@@ -14351,7 +14356,8 @@ UNION
     "CustomServices"."DateUpdated",
     "CustomServices"."DateDeleted",
     "CustomServices".data_source_id
-   FROM public."CustomServices";
+   FROM public."CustomServices"
+  WHERE ("CustomServices"."DateDeleted" IS NULL);
 
 
 --
@@ -15100,7 +15106,8 @@ CREATE TABLE public.hud_report_apr_clients (
     pit_enrollments jsonb DEFAULT '[]'::jsonb,
     source_enrollment_id integer,
     los_under_threshold integer,
-    project_id integer
+    project_id integer,
+    client_created_at timestamp without time zone
 );
 
 
@@ -20847,7 +20854,8 @@ CREATE TABLE public.warehouse_clients_processed (
     cohorts_ongoing_enrollments_th jsonb,
     cohorts_ongoing_enrollments_so jsonb,
     cohorts_ongoing_enrollments_psh jsonb,
-    cohorts_ongoing_enrollments_rrh jsonb
+    cohorts_ongoing_enrollments_rrh jsonb,
+    last_intentional_contacts character varying
 );
 
 
@@ -42228,6 +42236,13 @@ CREATE INDEX index_favorites_on_user_id ON public.favorites USING btree (user_id
 
 
 --
+-- Name: index_files_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_files_on_enrollment_id ON public.files USING btree (enrollment_id);
+
+
+--
 -- Name: index_files_on_type; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -51532,10 +51547,14 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230127200801'),
 ('20230206142754'),
 ('20230207151644'),
+('20230214194841'),
 ('20230227195221'),
 ('20230301172341'),
 ('20230303154815'),
 ('20230303181248'),
-('20230307143837');
+('20230307143837'),
+('20230309205059'),
+('20230313122300'),
+('20230313152950');
 
 

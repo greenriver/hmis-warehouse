@@ -299,5 +299,5 @@ end
 
 RSpec.configure do |c|
   c.include GraphqlHelpers
-  c.include AssessmentHelpers
+  c.include FormHelpers
 end

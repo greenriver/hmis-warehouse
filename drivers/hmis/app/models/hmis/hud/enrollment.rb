@@ -8,7 +8,6 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   include ::HmisStructure::Enrollment
   include ::Hmis::Hud::Concerns::Shared
   include ::HudConcerns::Enrollment
-  include ::Hmis::Concerns::HmisArelHelper
 
   self.table_name = :Enrollment
   self.sequence_name = "public.\"#{table_name}_id_seq\""
@@ -43,6 +42,9 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   # Custom Assessments (note: this does NOT include WIP assessments)
   has_many :custom_assessments, **hmis_relation(:EnrollmentID, 'CustomAssessment'), dependent: :destroy
 
+  # Files
+  has_many :files, class_name: '::Hmis::File', dependent: :destroy, inverse_of: :enrollment
+
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :enrollments
   has_one :wip, class_name: 'Hmis::Wip', as: :source, dependent: :destroy
@@ -52,7 +54,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   # hide previous declaration of :viewable_by, we'll use this one
   # A user can see any enrollment associated with a project they can access
   replace_scope :viewable_by, ->(user) do
-    project_ids = Hmis::Hud::Project.viewable_by(user).pluck(:id, :ProjectID)
+    project_ids = Hmis::Hud::Project.with_access(user, :can_view_enrollment_details).pluck(:id, :ProjectID)
     viewable_wip = wip_t[:project_id].in(project_ids.map(&:first))
     viewable_enrollment = e_t[:ProjectID].in(project_ids.map(&:second))
 
@@ -82,7 +84,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   scope :not_in_progress, -> { where.not(project_id: nil) }
 
   def project
-    super || Hmis::Hud::Project.find(wip.project_id)
+    super || Hmis::Hud::Project.find_by(id: wip.project_id)
   end
 
   def self.sort_by_option(option)

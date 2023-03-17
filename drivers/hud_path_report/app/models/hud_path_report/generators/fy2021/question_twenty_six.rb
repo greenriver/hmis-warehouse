@@ -112,7 +112,7 @@ module HudPathReport::Generators::Fy2021
         '31-40' => a_t[:age].between(31..40).and(a_t[:dob_quality].in([1, 2])),
         '41-50' => a_t[:age].between(41..50).and(a_t[:dob_quality].in([1, 2])),
         '51-61' => a_t[:age].between(51..61).and(a_t[:dob_quality].in([1, 2])),
-        '62 and over' => a_t[:age].between(55..61).and(a_t[:dob_quality].in([1, 2])),
+        '62 and over' => a_t[:age].gteq(62).and(a_t[:dob_quality].in([1, 2])),
         "Client doesn't know" => a_t[:dob_quality].eq(8),
         'Client refused' => a_t[:dob_quality].eq(9),
         'Data not collected' => a_t[:dob_quality].not_in([8, 9]).and(a_t[:dob_quality].eq(99).or(a_t[:dob_quality].eq(nil)).or(a_t[:age].lt(0)).or(a_t[:age].eq(nil))),
