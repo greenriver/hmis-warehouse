@@ -9,7 +9,16 @@
 module Types
   class HmisSchema::SubmitFormResult < Types::BaseUnion
     description 'Union type of allowed records for form submission response'
-    possible_types Types::HmisSchema::Client, Types::HmisSchema::Project, Types::HmisSchema::Organization, Types::HmisSchema::ProjectCoc, Types::HmisSchema::Funder, Types::HmisSchema::Inventory, Types::HmisSchema::Service
+    possible_types(
+      Types::HmisSchema::Client,
+      Types::HmisSchema::Project,
+      Types::HmisSchema::Organization,
+      Types::HmisSchema::ProjectCoc,
+      Types::HmisSchema::Funder,
+      Types::HmisSchema::Inventory,
+      Types::HmisSchema::Service,
+      Types::HmisSchema::File,
+    )
 
     def self.resolve_type(object, _context)
       config = Hmis::Form::Definition::FORM_ROLE_CONFIG.find do |_, value|

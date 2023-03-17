@@ -133,6 +133,16 @@ module Types
         end.
           compact.
           sort_by { |obj| [obj[:group_label] + obj[:label]].join(' ') }
+      when 'CLIENT_ENROLLMENTS'
+        client = Hmis::Hud::Client.viewable_by(user).find_by(id: relation_id)
+        return [] unless client.present?
+
+        client.enrollments.map do |enrollment|
+          {
+            code: enrollment.id,
+            label: enrollment.project.project_name,
+          }
+        end
       end
     end
 

@@ -132,6 +132,14 @@ module Types
       argument :project_id, ID, required: false
     end
 
+    field :file, Types::HmisSchema::File, null: true do
+      argument :id, ID, required: true
+    end
+
+    def file(id:)
+      Hmis::File.viewable_by(current_user).find_by(id: id)
+    end
+
     def get_form_definition(role:, enrollment_id: nil, project_id: nil)
       project = Hmis::Hud::Project.find_by(id: project_id) if project_id.present?
       project = Hmis::Hud::Enrollment.find_by(id: enrollment_id)&.project if enrollment_id.present?
