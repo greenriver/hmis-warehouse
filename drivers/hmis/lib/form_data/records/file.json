@@ -48,9 +48,9 @@
         {
           "type": "FILE",
           "required": true,
-          "link_id": "blobId",
+          "link_id": "fileBlobId",
           "text": "Attachment",
-          "field_name": "blobId"
+          "field_name": "fileBlobId"
         }
       ]
     }

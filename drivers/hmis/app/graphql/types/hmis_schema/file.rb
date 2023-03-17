@@ -15,9 +15,11 @@ module Types
     field :expiration_date, GraphQL::Types::ISO8601Date, null: true
     field :confidential, Boolean, null: true
     field :updated_at, GraphQL::Types::ISO8601DateTime, null: false
+    field :updated_by, Types::HmisSchema::User, null: false
     field :created_at, GraphQL::Types::ISO8601DateTime, null: false
     field :url, String, null: false
     field :name, String, null: false
+    field :tags, [String], null: false
 
     # Object is a Hmis::File
 
@@ -26,7 +28,15 @@ module Types
     end
 
     def url
-      Rails.application.routes.url_helpers.url_for(object.client_file)
+      Rails.application.routes.url_helpers.rails_blob_url(object.client_file, only_path: true)
+    end
+
+    def tags
+      object.tags.map(&:name)
+    end
+
+    def updated_by
+      object.user
     end
   end
 end

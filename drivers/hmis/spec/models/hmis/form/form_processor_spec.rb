@@ -1,4 +1,5 @@
 require 'rails_helper'
+require_relative '../../../support/hmis_base_setup'
 
 RSpec.describe Hmis::Form::FormProcessor, type: :model do
   let!(:ds) { create :hmis_data_source }
@@ -1037,6 +1038,46 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         expect(hmis_service.referral_outcome).to be nil
         expect(hmis_service.date_provided.strftime('%Y-%m-%d')).to eq('2023-03-13')
       end
+    end
+  end
+
+  describe 'Form processing for File' do
+    include_context 'file upload setup'
+
+    let(:definition) { Hmis::Form::Definition.find_by(role: :FILE) }
+    let(:complete_hud_values) do
+      {
+        "fileTags": [
+          tag.id.to_s,
+        ],
+        'clientId': e1.client.id.to_s,
+        "enrollmentId": e1.id.to_s,
+        "effectiveDate": '2023-03-17',
+        "expirationDate": '2023-03-17',
+        "confidential": true,
+        "blobId": blob.id.to_s,
+      }
+    end
+
+    let!(:f1) do
+      file = Hmis::File.new(
+        name: blob.filename,
+        client_id: c1.id,
+        enrollment_id: e1.id,
+        effective_date: Date.today,
+        expiration_date: Date.tomorrow,
+        user_id: hmis_user.id,
+        confidential: true,
+      )
+      file.tag_list.add([tag.id])
+      file.client_file.attach(blob)
+      file.save!
+
+      file
+    end
+
+    it 'should test' do
+      # byebug
     end
   end
 end

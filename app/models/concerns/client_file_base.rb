@@ -9,6 +9,16 @@ module ClientFileBase
   include ArelHelper
 
   included do
+    # attr_accessor :file_blob_id
+    # after_save do
+    #   current_blob = ActiveStorage::Blob.find_by(id: file_blob_id)
+    #   if current_blob
+    #     client_file.attach(current_blob)
+    #     save!
+    #   end
+    #   self.file_blob_id = nil
+    # end
+
     acts_as_taggable
 
     mount_uploader :file, FileUploader
@@ -28,6 +38,10 @@ module ClientFileBase
 
     scope :client_photos, -> do
       tagged_with('Client Headshot')
+    end
+
+    def tags
+      GrdaWarehouse::AvailableFileTag.where(id: tag_list)
     end
 
     def file_exists_and_not_too_large

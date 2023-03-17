@@ -1562,7 +1562,9 @@ type File {
   expirationDate: ISO8601Date
   id: ID!
   name: String!
+  tags: [String!]!
   updatedAt: ISO8601DateTime!
+  updatedBy: User!
   url: String!
 }
 

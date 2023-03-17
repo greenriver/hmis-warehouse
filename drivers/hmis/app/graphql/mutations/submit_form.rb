@@ -36,7 +36,7 @@ module Mutations
       return { errors: errors } if errors.any?
 
       # Check permission
-      errors.add :record, :not_allowed unless current_user.permissions_for?(record, definition.record_editing_permission)
+      errors.add :record, :not_allowed unless current_user.permissions_for?(record, *Array(definition.record_editing_permission))
       return { errors: errors } if errors.any?
 
       # Create CustomForm
@@ -83,7 +83,7 @@ module Mutations
         end
 
         # Update DateUpdated on the Enrollment, if record is Enrollment-related
-        record.enrollment.touch if record.respond_to?(:enrollment)
+        record.enrollment&.touch if record.respond_to?(:enrollment)
       else
         # These are potentially unfixable errors, so maybe we should throw a server error instead.
         # Leaving them visible to the user for now, while we QA the feature.
@@ -128,6 +128,11 @@ module Mutations
         {
           enrollment_id: enrollment&.EnrollmentID,
           personal_id: enrollment&.PersonalID,
+        }
+      when 'Hmis::File'
+        {
+          client_id: Hmis::Hud::Client.viewable_by(current_user).find_by(id: input.client_id)&.id,
+          enrollment_id: Hmis::Hud::Enrollment.viewable_by(current_user).find_by(id: input.enrollment_id)&.id,
         }
       else
         {}
