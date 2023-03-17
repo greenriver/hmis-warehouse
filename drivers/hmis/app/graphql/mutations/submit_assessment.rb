@@ -62,8 +62,17 @@ module Mutations
       validation_errors = assessment.custom_form.validate_form(ignore_warnings: input.confirmed)
       errors.push(*validation_errors)
 
+      # Run processor to create/update related records
+      assessment.custom_form.form_processor.run!
+
+      # Run both validations
+      is_valid = assessment.valid? && assessment.custom_form.valid?
+
+      # Push errors from related records
+      errors.push(*assessment.custom_form&.form_processor&.assessment_related_record_errors)
+
       # If this is an existing assessment and all the errors are warnings, save changes before returning
-      if errors.all?(&:warning?) && assessment.id.present?
+      if errors.any? && assessment.id.present? && errors.all? { |e| e.is_a?(HmisErrors::Error) && e.warning? }
         assessment.custom_form.save!
         assessment.save!
         assessment.touch
@@ -71,14 +80,7 @@ module Mutations
 
       return { errors: errors } if errors.any?
 
-      # Run processor to create/update related records
-      assessment.custom_form.form_processor.run!
-
-      # Run both validations
-      assessment_valid = assessment.valid?
-      custom_form_valid = assessment.custom_form.valid?
-
-      if assessment_valid && custom_form_valid
+      if is_valid
         # We need to call save on the processor directly to get the before_save hook to invoke.
         # If this is removed, the Enrollment won't save.
         assessment.custom_form.form_processor.save!
@@ -92,7 +94,8 @@ module Mutations
         enrollment.touch
       else
         # These are potentially unfixable errors, so maybe we should throw a server error instead.
-        # Leaving them visible to the user for now, while we QA the feature.
+        # Leaving them visible to the user for now, as they are helpful in development.
+        # *NOTE* These may fail to transform into the GQL ValidationError type
         errors.push(*assessment.custom_form&.errors&.errors)
         errors.push(*assessment.errors&.errors)
         assessment = nil

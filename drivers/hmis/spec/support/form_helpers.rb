@@ -1,14 +1,14 @@
 # frozen_string_literal: true
 
 module FormHelpers
-  def build_minimum_values(definition, assessment_date)
+  def build_minimum_values(definition, assessment_date, values: {}, hud_values: {})
     item = definition.assessment_date_item
     field_name = item.field_name
     field_name = 'Exit.exitDate' if field_name == 'exitDate'
     field_name = 'Enrollment.entryDate' if field_name == 'entryDate'
     {
-      values: { item.link_id => assessment_date },
-      hud_values: { field_name => assessment_date },
+      values: { item.link_id => assessment_date, **values.stringify_keys },
+      hud_values: { field_name => assessment_date, **hud_values.stringify_keys },
     }
   end
 

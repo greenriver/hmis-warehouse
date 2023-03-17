@@ -206,28 +206,46 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     }.freeze
   end
 
-  # Pull up and errors from the HMIS records, adjusting their attribute names as required
+  private def assessment_record_factories
+    [
+      :enrollment_factory,
+      :enrollment_coc_factory,
+      :health_and_dv_factory,
+      :income_benefit_factory,
+      :physical_disability_factory,
+      :developmental_disability_factory,
+      :chronic_health_condition_factory,
+      :hiv_aids_factory,
+      :mental_health_disorder_factory,
+      :substance_use_disorder_factory,
+      :exit_factory,
+    ]
+  end
+
+  # Pull up any errors from the HMIS records
   private def hmis_records_are_valid
-    {
-      enrollment_coc_factory: ->(attribute_name) { translate_field(attribute_name) },
-      health_and_dv_factory: ->(attribute_name) { translate_field(attribute_name) },
-      income_benefit_factory: ->(attribute_name) { translate_field(attribute_name) },
-      physical_disability_factory: ->(attribute_name) { translate_disability_field('physicalDisability', attribute_name) },
-      developmental_disability_factory: ->(attribute_name) { translate_disability_field('developmentalDisability', attribute_name) },
-      chronic_health_condition_factory: ->(attribute_name) { translate_disability_field('chronicHealthCondition', attribute_name) },
-      hiv_aids_factory: ->(attribute_name) { translate_disability_field('hivAids', attribute_name) },
-      mental_health_disorder_factory: ->(attribute_name) { translate_disability_field('mentalHealthDisorder', attribute_name) },
-      substance_use_disorder_factory: ->(attribute_name) { translate_disability_field('substanceUseDisorder', attribute_name) },
-      exit_factory: ->(attribute_name) { translate_field(attribute_name) },
-    }.each do |factory_method, transformer|
+    assessment_record_factories.each do |factory_method|
       record = send(factory_method, create: false)
       next unless record.present?
       next if record.valid?
 
-      record.errors.each do |error|
-        errors.add(transformer.call(error.attribute), error.message, **error.options)
-      end
+      errors.merge!(record.errors)
     end
+  end
+
+  # Get list of related record errors that can be resolved as ValidationErrors
+  def assessment_related_record_errors
+    assessment_record_factories.map do |factory_method, _|
+      record = send(factory_method, create: false)
+      next unless record.present?
+      next if record.errors.none?
+
+      record.errors.errors.reject do |e|
+        # binding.pry
+        # Skip errors on relation fields (to avoid errors like "Income Benefit is invalid" on the Enrollment)
+        e.attribute.to_s.underscore.ends_with?('_id') || record.send(e.attribute).is_a?(ActiveRecord::Relation)
+      end
+    end.compact.flatten
   end
 
   private def translate_field(field, container: nil)

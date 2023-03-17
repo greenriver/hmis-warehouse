@@ -295,6 +295,30 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(assessment_id).to eq(nil)
     end
   end
+
+  it 'Resolves errors from IncomeBenefit ActiveRecord validation' do
+    definition = Hmis::Form::Definition.find_by(role: :ANNUAL)
+    input = {
+      enrollment_id: e1.id,
+      form_definition_id: definition.id,
+      **build_minimum_values(
+        definition,
+        '2005-03-02',
+        values: { '4.04.2': { code: 'YES' } },
+        hud_values: { 'IncomeBenefit.insuranceFromAnySource': 'YES' },
+      ),
+      confirmed: false,
+    }
+    _resp, result = post_graphql(input: { input: input }) { submit_assessment_mutation }
+    errors = result.dig('data', 'submitAssessment', 'errors')
+    expect(errors).to match([
+                              a_hash_including(
+                                'severity' => 'error',
+                                'attribute' => 'insuranceFromAnySource',
+                                'fullMessage' => Hmis::Hud::Validators::IncomeBenefitValidator::INSURANCE_SOURCES_UNSPECIFIED,
+                              ),
+                            ])
+  end
 end
 
 RSpec.configure do |c|

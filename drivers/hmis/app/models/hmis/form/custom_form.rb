@@ -11,7 +11,8 @@ class Hmis::Form::CustomForm < ::GrdaWarehouseBase
   belongs_to :owner, polymorphic: true, optional: false
   belongs_to :definition, optional: false
   belongs_to :form_processor, dependent: :destroy, autosave: true
-  validate :form_processor_is_valid
+
+  validates_associated :form_processor
 
   after_initialize :initialize_form_processor, if: :new_record?
 
@@ -43,14 +44,5 @@ class Hmis::Form::CustomForm < ::GrdaWarehouseBase
 
   private def initialize_form_processor
     self.form_processor = Hmis::Form::FormProcessor.new(custom_form: self)
-  end
-
-  # Pull up the errors from the assessment form_processor so we can see them (as opposed to validates_associated)
-  private def form_processor_is_valid
-    return if form_processor.valid?
-
-    form_processor.errors.each do |error|
-      errors.add(error.attribute, error.type, **error.options)
-    end
   end
 end
