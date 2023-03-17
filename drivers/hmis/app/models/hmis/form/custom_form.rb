@@ -13,7 +13,6 @@ class Hmis::Form::CustomForm < ::GrdaWarehouseBase
   belongs_to :form_processor, dependent: :destroy, autosave: true
 
   validate :form_processor_is_valid
-
   after_initialize :initialize_form_processor, if: :new_record?
 
   scope :with_role, ->(role) do
@@ -46,7 +45,7 @@ class Hmis::Form::CustomForm < ::GrdaWarehouseBase
     self.form_processor = Hmis::Form::FormProcessor.new(custom_form: self)
   end
 
-  # Pull up the errors from the assessmentform_processor so we can see them
+  # Pull up the errors from the assessment form_processor so we can see them (as opposed to validates_associated)
   private def form_processor_is_valid
     return if form_processor.valid?
 

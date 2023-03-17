@@ -42,11 +42,12 @@ module Mutations
       return { errors: errors } if errors.any?
 
       # Determine the Assessment Date and validate it
-      assessment_date, errors = definition.find_and_validate_assessment_date(
+      assessment_date, date_validation_errors = definition.find_and_validate_assessment_date(
         values: input.values,
         entry_date: enrollment.entry_date,
         exit_date: enrollment.exit_date,
       )
+      errors.push(*date_validation_errors)
 
       # Update values
       assessment.custom_form.assign_attributes(

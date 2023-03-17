@@ -121,7 +121,7 @@ module Types
     end
 
     def dob
-      return object.dob if current_user.can_view_dob_for?(object)
+      object.safe_dob(current_user)
     end
   end
 end

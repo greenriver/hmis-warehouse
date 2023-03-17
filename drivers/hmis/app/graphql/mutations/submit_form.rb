@@ -88,7 +88,7 @@ module Mutations
       else
         # These are potentially unfixable errors, so maybe we should throw a server error instead.
         # Leaving them visible to the user for now, while we QA the feature.
-        errors.push(*custom_form&.errors&.errors)
+        errors.add_ar_errors(custom_form.errors&.errors)
         record = nil
       end
 

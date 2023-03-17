@@ -10,18 +10,25 @@ class Hmis::Hud::Validators::EnrollmentValidator < Hmis::Hud::Validators::BaseVa
     Hmis::Hud::Enrollment.hmis_configuration(version: '2022').except(*IGNORED)
   end
 
-  def self.validate_entry_date(record)
-    return unless record.entry_date.present?
+  def self.hmis_validate(record, ignore_warnings: false, user: nil)
+    errors = HmisErrors::Errors.new
 
-    client_dob = record.client&.dob
-    record.errors.add :entry_date, :invalid, message: "cannot be before DOB (#{client_dob.strftime('%m/%d/%Y')})" if client_dob.present? && client_dob > record.entry_date
+    if record.entry_date.present?
+      dob = record.client&.dob
+      safe_dob = record.client&.safe_dob(user)
+      errors.add :entry_date, :out_of_range, message: 'cannot be in the future' if record.entry_date.future?
+      errors.add :entry_date, :out_of_range, message: "cannot be before client's DOB" if dob.present? && dob > record.entry_date
+      errors.add :entry_date, :information, severity: :warning, message: "is equal to client's DOB" if safe_dob.present? && safe_dob == record.entry_date
+      errors.add :entry_date, :information, severity: :warning, message: 'is over 30 days ago' if record.entry_date < (Date.today - 30.days)
+    end
 
-    # TODO add a bunch more entry date validations
+    return errors.errors.reject(&:warning?) if ignore_warnings
+
+    errors.errors
   end
 
   def validate(record)
     super(record) do
-      self.class.validate_entry_date(record)
       record.errors.add :project_id, :required if record.project_id.nil? && record.wip.nil?
     end
   end
