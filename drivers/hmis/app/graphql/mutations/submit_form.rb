@@ -58,7 +58,7 @@ module Mutations
       is_valid = record.valid? && custom_form.valid?
 
       # Push errors from record and any related records
-      errors.push(*record.errors&.errors)
+      errors.add_ar_errors(record.errors.errors) if record.errors.any?
 
       # Run custom validator for any warnings/errors (like closing a Project)
       validator = klass.validators.find { |v| v.respond_to?(:hmis_validate) }

@@ -69,7 +69,7 @@ module Mutations
       is_valid = assessment.valid? && assessment.custom_form.valid?
 
       # Push errors from related records
-      errors.push(*assessment.custom_form&.form_processor&.assessment_related_record_errors)
+      errors.add_ar_errors(assessment.custom_form&.form_processor&.assessment_related_record_errors)
 
       # If this is an existing assessment and all the errors are warnings, save changes before returning
       if errors.any? && assessment.id.present? && errors.all? { |e| e.is_a?(HmisErrors::Error) && e.warning? }
@@ -96,8 +96,8 @@ module Mutations
         # These are potentially unfixable errors, so maybe we should throw a server error instead.
         # Leaving them visible to the user for now, as they are helpful in development.
         # *NOTE* These may fail to transform into the GQL ValidationError type
-        errors.push(*assessment.custom_form&.errors&.errors)
-        errors.push(*assessment.errors&.errors)
+        errors.add_ar_errors(assessment.custom_form&.errors&.errors)
+        errors.add_ar_errors(assessment.errors&.errors)
         assessment = nil
       end
 
