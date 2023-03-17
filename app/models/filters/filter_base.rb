@@ -308,7 +308,7 @@ module Filters
         opts['Current Living Situation Homeless'] = 'Yes' if ce_cls_as_homeless
         opts['Client Limits'] = chosen_vispdat_limits if limit_to_vispdat != :all_clients
         opts['Times Homeless in Past 3 Years'] = chosen_times_homeless_in_last_three_years if times_homeless_in_last_three_years.any?
-        opts['Require Service During Range'] - 'Yes' if require_service_during_range
+        opts['Require Service During Range'] = 'Yes' if require_service_during_range
       end
     end
 
