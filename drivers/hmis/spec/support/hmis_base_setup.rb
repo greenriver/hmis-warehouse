@@ -22,6 +22,25 @@ RSpec.shared_context 'hmis base setup', shared_context: :metadata do
   end
 end
 
+RSpec.shared_context 'file upload setup', shared_context: :metadata do
+  let!(:tag) do
+    GrdaWarehouse::AvailableFileTag.create!(
+      name: 'Birth Certificate',
+      group: 'Citizenship Verification',
+      included_info: 'DoB, citizenship',
+    )
+  end
+
+  let!(:file) { File.open('drivers/hmis/spec/fixtures/files/TEST_PDF.pdf') }
+  let!(:blob) do
+    ActiveStorage::Blob.create_and_upload!(
+      io: file,
+      filename: 'TEST_PDF.pdf',
+      content_type: 'application/pdf',
+    )
+  end
+end
+
 RSpec.configure do |rspec|
   rspec.include_context 'hmis base setup', include_shared: true
 end
