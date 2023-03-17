@@ -81,13 +81,13 @@ module Health
         :participation_signature_on,
         :signature_on,
         :reviewed_by_supervisor,
-        :mode_of_contact,
         health_file_attributes: [
           :id,
           :file,
           :file_cache,
         ],
       )
+      local_params.merge!(mode_of_contact: 'in_person') # Force mode of contact to be in person
       if ! current_user.can_approve_release?
         local_params.except(:reviewed_by_supervisor)
       else
