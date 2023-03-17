@@ -845,14 +845,14 @@ module GrdaWarehouse::WarehouseReports
         r_list['Performance'] << {
           url: 'boston_reports/warehouse_reports/street_to_homes',
           name: _('Street to Home'),
-          description: 'Boston specific report to track progress for the Street to Home initiative',
+          description: 'Boston-specific report to track progress for the Street to Home initiative',
           limitable: false,
           health: false,
         }
         r_list['Performance'] << {
           url: 'boston_reports/warehouse_reports/configs',
           name: _('Boston Reports Configuration'),
-          description: 'Report configuration for Boston specific reports',
+          description: 'Report configuration for Boston-specific reports',
           limitable: false,
           health: false,
         }

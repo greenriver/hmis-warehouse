@@ -13,7 +13,7 @@ class BackgroundRender::StreetToHomeJob < BackgroundRenderJob
     @section = @report.class.available_section_types.detect do |m|
       m == partial
     end
-    @section = 'overall' if @section.blank? && params.require(:partial) == 'dashboard'
+    @section = 'dashboard' if @section.blank? && params.require(:partial) == 'dashboard'
 
     raise 'Rollup not in allowlist' unless @section.present?
 

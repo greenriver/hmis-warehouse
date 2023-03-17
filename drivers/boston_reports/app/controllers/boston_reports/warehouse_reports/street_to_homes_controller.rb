@@ -58,7 +58,7 @@ module BostonReports::WarehouseReports
       @section = @report.class.available_section_types.detect do |m|
         m == params.require(:partial).underscore
       end
-      @section = 'overall' if @section.blank? && params.require(:partial) == 'overall'
+      @section = 'dashboard' if @section.blank? && params.require(:partial) == 'dashboard'
 
       raise 'Rollup not in allowlist' unless @section.present?
 
