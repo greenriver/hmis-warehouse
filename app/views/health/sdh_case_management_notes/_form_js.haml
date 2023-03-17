@@ -120,6 +120,7 @@
 
     var isActivityInput = function(input) {
       var name = loadInput(input).attr('name');
+      if (!(name in window)) return false;
       return name.indexOf('health_sdh_case_management_note[activities_attributes]') >= 0
     }
 
