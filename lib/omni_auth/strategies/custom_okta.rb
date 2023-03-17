@@ -46,6 +46,18 @@ module OmniAuth
         end
       end
 
+      # if we're supporting SSO from the HMIS front-end, track it via user_type cookie
+      if ENV['HMIS_HOSTNAME'].present?
+        def request_phase
+          param_value = request
+            .params['user_type']
+            .presence_in(Users::OmniauthCallbacksController::USER_TYPES)
+          default_value = Users::OmniauthCallbacksController::WH_USER_TYPE
+          cookie_jar[:user_type] = param_value || default_value
+          super
+        end
+      end
+
       def client_options
         options.fetch(:client_options)
       end
@@ -70,6 +82,28 @@ module OmniAuth
 
       def callback_url
         options[:redirect_uri] || (full_host + callback_path)
+      end
+
+      # override fullhost to use hmis
+      def full_host
+        if cookie_jar[:user_type] == hmis_user_type
+          host = ENV.fetch('HMIS_HOSTNAME')
+          "https://#{host}"
+        else
+          super
+        end
+      end
+
+      def hmis_user_type
+        Users::OmniauthCallbacksController::HMIS_USER_TYPE
+      end
+
+      def rails_request
+        @rails_request ||= ActionDispatch::Request.new(env)
+      end
+
+      def cookie_jar
+        rails_request.cookie_jar.signed
       end
 
       # Returns the qualified URL for the authorization server

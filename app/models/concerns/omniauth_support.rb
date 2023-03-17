@@ -8,7 +8,11 @@ module OmniauthSupport
   extend ActiveSupport::Concern
 
   included do
-    devise :omniauthable, omniauth_providers: [:okta] if ENV['OKTA_DOMAIN'].present?
+    # NOTE: Currently, Devise's Omniauthable module does not work with multiple models so we only include it on User.
+    # Reference:
+    # https://stackoverflow.com/a/13591797
+    # https://github.com/heartcombo/devise/wiki/OmniAuth-with-multiple-models
+    devise :omniauthable, omniauth_providers: [:okta] if ENV['OKTA_DOMAIN'].present? && self == User
   end
 
   module ClassMethods
@@ -65,7 +69,7 @@ module OmniauthSupport
 
       user.skip_confirmation! unless user.confirmed?
       user.skip_reconfirmation!
-      user.save(validate: false)
+      user.save!(validate: false)
 
       # send notifications if this is a completely new user, or if the user was just connected to omniauth
       NotifyUser.new_account_created(user.reload).deliver_later if newly_created
@@ -103,7 +107,7 @@ module OmniauthSupport
 
     self.password = Devise.friendly_token if reset_password
 
-    save(validate: false)
+    save!(validate: false)
 
     send_reset_password_instructions if reset_password
 

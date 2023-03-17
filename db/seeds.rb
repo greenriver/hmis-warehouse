@@ -332,7 +332,9 @@ def setup_hmis_admin_access
   return unless user.present?
 
   user.hmis_data_source_id = hmis_ds.id
-  user.user_hmis_data_sources_roles.create(role: role, data_source_id: user.hmis_data_source_id)
+  access_group = Hmis::AccessGroup.create!(name: 'test')
+  ac = user.access_controls.create!(role: role, access_group: access_group)
+  user.user_access_controls.create!(user: user, access_control: ac)
 end
 
 ensure_db_triggers_and_functions
