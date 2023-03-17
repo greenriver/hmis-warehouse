@@ -419,6 +419,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       expect(assessment.enrollment.exit_date).to be_nil
 
       assessment.custom_form.hud_values = {
+        'Exit.exitDate' => assessment.enrollment.entry_date + 7.days,
         'Exit.destination' => 'SAFE_HAVEN',
       }
 
