@@ -40,13 +40,17 @@ module Health
         # The CHA QA actually requires both the CHA and the SSM, so check both
         # also done in the SsmSaver so it can be done in either order
         if @complete && @create_qa && @cha.patient.recent_ssm_form&.completed_at.present?
-          qualifying_activity = setup_qualifying_activity
+          qualifying_activity = if @reviewed
+            setup_completed_qualifying_activity
+          else
+            setup_development_qualifying_activity
+          end
           qualifying_activity.save
         end
       end
     end
 
-    protected def setup_qualifying_activity
+    private def setup_development_qualifying_activity
       Health::QualifyingActivity.new(
         source_type: @cha.class.name,
         source_id: @cha.id,
@@ -55,6 +59,21 @@ module Health
         date_of_activity: @cha.completed_at.to_date,
         activity: :cha,
         follow_up: 'This writer completed CHA and SSM with patient.',
+        reached_client: :yes,
+        mode_of_contact: @cha.collection_method,
+        patient_id: @cha.patient_id,
+      )
+    end
+
+    private def setup_completed_qualifying_activity
+      Health::QualifyingActivity.new(
+        source_type: @cha.class.name,
+        source_id: @cha.id,
+        user_id: @user.id,
+        user_full_name: @user.name_with_email,
+        date_of_activity: @cha.reviewed_at.to_date,
+        activity: :cha_completed,
+        follow_up: 'CHA and SSM with patient approved by NCM.',
         reached_client: :yes,
         mode_of_contact: @cha.collection_method,
         patient_id: @cha.patient_id,
