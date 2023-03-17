@@ -1045,39 +1045,62 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
     include_context 'file upload setup'
 
     let(:definition) { Hmis::Form::Definition.find_by(role: :FILE) }
-    let(:complete_hud_values) do
+    let(:hud_values) do
       {
-        "fileTags": [
-          tag.id.to_s,
+        'fileTags' => [
+          tag2.id.to_s,
         ],
-        'clientId': e1.client.id.to_s,
-        "enrollmentId": e1.id.to_s,
-        "effectiveDate": '2023-03-17',
-        "expirationDate": '2023-03-17',
-        "confidential": true,
-        "blobId": blob.id.to_s,
+        'clientId' => e1.client.id.to_s,
+        'enrollmentId' => e1.id.to_s,
+        'effectiveDate' => '2023-03-17',
+        'expirationDate' => '2023-03-17',
+        'confidential' => true,
+        'fileBlobId' => blob.id.to_s,
       }
     end
 
-    let!(:f1) do
+    let!(:existing_file) do
       file = Hmis::File.new(
         name: blob.filename,
         client_id: c1.id,
         enrollment_id: e1.id,
-        effective_date: Date.today,
+        effective_date: Date.yesterday,
         expiration_date: Date.tomorrow,
         user_id: hmis_user.id,
-        confidential: true,
+        confidential: false,
       )
-      file.tag_list.add([tag.id])
+      file.tag_list = [tag.id]
       file.client_file.attach(blob)
       file.save!
 
       file
     end
 
+    let!(:new_file) do
+      file = Hmis::File.new(
+        name: blob.filename,
+      )
+
+      file
+    end
+
     it 'should test' do
-      # byebug
+      [existing_file, new_file].each do |record|
+        custom_form = Hmis::Form::CustomForm.new(owner: record, definition: definition)
+        custom_form.hud_values = hud_values
+        custom_form.form_processor.run!
+
+        hmis_file = custom_form.owner
+        hmis_file.save!
+        file = Hmis::File.find_by(id: hmis_file.id)
+        expect(file.name).to eq(blob.filename.to_s)
+        expect(file.client).to eq(c1)
+        expect(file.enrollment).to eq(e1)
+        expect(file.effective_date.strftime('%Y-%m-%d')).to eq(hud_values['effectiveDate'])
+        expect(file.expiration_date.strftime('%Y-%m-%d')).to eq(hud_values['expirationDate'])
+        expect(file.confidential).to eq(hud_values['confidential'])
+        expect(file.client_file.blob).to eq(blob)
+      end
     end
   end
 end

@@ -9,16 +9,6 @@ module ClientFileBase
   include ArelHelper
 
   included do
-    # attr_accessor :file_blob_id
-    # after_save do
-    #   current_blob = ActiveStorage::Blob.find_by(id: file_blob_id)
-    #   if current_blob
-    #     client_file.attach(current_blob)
-    #     save!
-    #   end
-    #   self.file_blob_id = nil
-    # end
-
     acts_as_taggable
 
     mount_uploader :file, FileUploader
