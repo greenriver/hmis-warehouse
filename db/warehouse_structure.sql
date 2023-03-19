@@ -15107,7 +15107,8 @@ CREATE TABLE public.hud_report_apr_clients (
     source_enrollment_id integer,
     los_under_threshold integer,
     project_id integer,
-    client_created_at timestamp without time zone
+    client_created_at timestamp without time zone,
+    personal_id character varying
 );
 
 
@@ -15317,7 +15318,8 @@ CREATE TABLE public.hud_report_dq_clients (
     times_homeless integer,
     veteran_status integer,
     annual_assessment_in_window boolean,
-    gender_multi character varying
+    gender_multi character varying,
+    personal_id character varying
 );
 
 
@@ -15724,7 +15726,8 @@ CREATE TABLE public.hud_report_path_clients (
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     gender_multi character varying,
-    destination_client_id integer
+    destination_client_id integer,
+    personal_id character varying
 );
 
 
@@ -15800,7 +15803,8 @@ CREATE TABLE public.hud_report_pit_clients (
     exit_date date,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    personal_id character varying
 );
 
 
