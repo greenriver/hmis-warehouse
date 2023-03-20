@@ -27,6 +27,8 @@ module FormHelpers
   end
 
   def completed_form_values_for_role(role)
+    yield(COMPLETE_VALUES[role]) if block_given?
+
     COMPLETE_VALUES[role]
   end
 
@@ -295,6 +297,20 @@ module FormHelpers
         'FAAmount' => '_HIDDEN',
         'referralOutcome' => '_HIDDEN',
         'dateProvided' => '2023-03-15',
+      },
+    },
+    FILE: {
+      values: {
+        'confidential' => false,
+        'enrollmentId' => nil,
+        'effectiveDate' => '2023-03-17',
+        'expirationDate' => nil,
+      },
+      hud_values: {
+        'confidential' => false,
+        'enrollmentId' => nil,
+        'effectiveDate' => '2023-03-17',
+        'expirationDate' => nil,
       },
     },
   }.freeze
