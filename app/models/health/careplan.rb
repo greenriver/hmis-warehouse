@@ -72,7 +72,7 @@ module Health
     end, through: :pcp_signed_signature_requests, source: :signable_document
     has_many :pcp_signed_health_files, through: :pcp_signed_documents, source: :health_files
 
-    belongs_to :approving_rn, class_name: 'User'
+    belongs_to :approving_rn, class_name: 'User', optional: true
 
     # Patient
     has_many :patient_signature_requests, class_name: 'Health::SignatureRequests::PatientSignatureRequest'
