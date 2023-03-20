@@ -1069,7 +1069,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         user_id: hmis_user.id,
         confidential: false,
       )
-      file.tag_list = [tag.id]
+      file.tag_list.add(tag.id)
       file.client_file.attach(blob)
       file.save!
 

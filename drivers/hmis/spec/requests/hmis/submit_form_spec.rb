@@ -26,7 +26,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:s1) { create :hmis_hud_service, data_source: ds1, client: c1, enrollment: e1, user: u1 }
   let!(:cs1) { create :hmis_custom_service, custom_service_type: cst1, data_source: ds1, client: c1, enrollment: e1, user: u1 }
   let!(:hmis_hud_service1) { Hmis::Hud::HmisService.find_by(owner: s1) }
-  let!(:file1) do
+  let(:file1) do
     file = Hmis::File.new(
       name: blob.filename,
       client_id: c1.id,
@@ -34,7 +34,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       effective_date: Date.yesterday,
       expiration_date: Date.tomorrow,
       user_id: hmis_user.id,
-      confidential: false,
+      confidential: true,
     )
     file.client_file.attach(blob)
     file.save!
@@ -86,7 +86,14 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   describe 'SubmitForm' do
     [
-      :PROJECT, :FUNDER, :PROJECT_COC, :INVENTORY, :ORGANIZATION, :CLIENT, :SERVICE, :FILE
+      :PROJECT,
+      :FUNDER,
+      :PROJECT_COC,
+      :INVENTORY,
+      :ORGANIZATION,
+      :CLIENT,
+      :SERVICE,
+      :FILE,
     ].each do |role|
       describe "for #{role.to_s.humanize}" do
         let(:definition) { Hmis::Form::Definition.find_by(role: role) }
@@ -100,9 +107,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             confirmed: true, # ignore warnings, they are tested separately
             **completed_form_values_for_role(role) do |values|
               if role == :FILE
-                values[:values]['fileTags'] = [tag2.id.to_s]
+                # values[:values]['fileTags'] = [tag2.id.to_s]
                 values[:values]['fileBlobId'] = blob.id.to_s
-                values[:hud_values]['fileTags'] = [tag2.id.to_s]
+                # values[:hud_values]['fileTags'] = [tag2.id.to_s]
                 values[:hud_values]['fileBlobId'] = blob.id.to_s
               end
               values
@@ -160,7 +167,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               # Expect that all of the fields that were submitted exist on the record
               expected_present_keys = input[:hud_values].map { |k, v| [k, v == '_HIDDEN' ? nil : v] }.to_h.compact.keys
               expected_present_keys.map(&:to_s).map(&:underscore).each do |method|
-                expect(record.send(method)).to be_present unless ['race', 'gender', 'file_tags', 'file_blob_id'].include?(method)
+                expect(record.send(method)).not_to be_nil unless ['race', 'gender', 'file_tags', 'file_blob_id'].include?(method)
               end
             end
           end

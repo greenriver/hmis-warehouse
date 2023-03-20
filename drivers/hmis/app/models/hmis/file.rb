@@ -7,6 +7,8 @@
 class Hmis::File < GrdaWarehouse::File
   include ClientFileBase
 
+  acts_as_taggable
+
   # There are not used, they're here so that we won't get an error trying to get/set the data source
   attr_accessor :data_source_id
   def data_source

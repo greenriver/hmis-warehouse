@@ -9,8 +9,6 @@ module ClientFileBase
   include ArelHelper
 
   included do
-    acts_as_taggable
-
     mount_uploader :file, FileUploader
     has_one_attached :client_file
 
@@ -30,9 +28,9 @@ module ClientFileBase
       tagged_with('Client Headshot')
     end
 
-    def tags
-      GrdaWarehouse::AvailableFileTag.where(id: tag_list)
-    end
+    # def tags
+    #   GrdaWarehouse::AvailableFileTag.where(id: tag_list)
+    # end
 
     def file_exists_and_not_too_large
       errors.add :client_file, 'No uploaded file found' if (client_file.byte_size || 0) < 100

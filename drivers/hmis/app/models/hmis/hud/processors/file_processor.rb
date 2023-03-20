@@ -19,7 +19,7 @@ module Hmis::Hud::Processors
       attribute_value = attribute_value_for_enum(hud_type(field), value)
 
       if attribute_name == 'file_tags'
-        @processor.send(factory_name).tag_list.remove(*Array(value))
+        @processor.send(factory_name).tag_list.remove(@processor.send(factory_name).tag_list)
         @processor.send(factory_name).tag_list.add(*Array(value))
       elsif attribute_name == 'file_blob_id'
         blob = ActiveStorage::Blob.find_by(id: value)

@@ -12,6 +12,8 @@ module GrdaWarehouse
     include ClientFileBase
     include ArelHelper
 
+    acts_as_taggable
+
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
     belongs_to :vispdat, class_name: 'GrdaWarehouse::Vispdat::Base', optional: true
     validates_inclusion_of :visible_in_window, in: [true, false]
