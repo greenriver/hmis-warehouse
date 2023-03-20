@@ -34,6 +34,7 @@
 //= require d3/dist/d3.min
 //= require d3-interpolate/dist/d3-interpolate.min
 //= require d3-scale-chromatic/dist/d3-scale-chromatic.min
+//= require d3-sankey/dist/d3-sankey.min
 //= require topojson-client/dist/topojson-client.min
 //= require inputmask/dist/min/jquery.inputmask.bundle.min
 //= require inputmask/dist/min/inputmask/bindings/inputmask.binding.min

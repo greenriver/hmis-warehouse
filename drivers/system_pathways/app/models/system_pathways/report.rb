@@ -7,7 +7,6 @@
 module SystemPathways
   class Report < SimpleReports::ReportInstance
     include Rails.application.routes.url_helpers
-    include Queries
     include Reporting::Status
 
     def run_and_save!
@@ -50,7 +49,7 @@ module SystemPathways
     end
 
     def url
-      system_pathway_warehouse_reports_report_url(host: ENV.fetch('FQDN'), id: id, protocol: 'https')
+      system_pathways_warehouse_reports_report_url(host: ENV.fetch('FQDN'), id: id, protocol: 'https')
     end
 
     private def create_universe
