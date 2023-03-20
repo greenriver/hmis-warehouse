@@ -116,225 +116,115 @@ CREATE TYPE public.record_type AS ENUM (
 CREATE FUNCTION public.service_history_service_insert_trigger() RETURNS trigger
     LANGUAGE plpgsql
     AS $$
-
       BEGIN
-
       IF  ( NEW.date BETWEEN DATE '2050-01-01' AND DATE '2050-12-31' ) THEN
-
             INSERT INTO service_history_services_2050 VALUES (NEW.*);
-
          ELSIF  ( NEW.date BETWEEN DATE '2049-01-01' AND DATE '2049-12-31' ) THEN
-
             INSERT INTO service_history_services_2049 VALUES (NEW.*);
-
          ELSIF  ( NEW.date BETWEEN DATE '2048-01-01' AND DATE '2048-12-31' ) THEN
-
             INSERT INTO service_history_services_2048 VALUES (NEW.*);
-
          ELSIF  ( NEW.date BETWEEN DATE '2047-01-01' AND DATE '2047-12-31' ) THEN
-
             INSERT INTO service_history_services_2047 VALUES (NEW.*);
-
          ELSIF  ( NEW.date BETWEEN DATE '2046-01-01' AND DATE '2046-12-31' ) THEN
-
             INSERT INTO service_history_services_2046 VALUES (NEW.*);
-
          ELSIF  ( NEW.date BETWEEN DATE '2045-01-01' AND DATE '2045-12-31' ) THEN
-
             INSERT INTO service_history_services_2045 VALUES (NEW.*);
-
          ELSIF  ( NEW.date BETWEEN DATE '2044-01-01' AND DATE '2044-12-31' ) THEN
-
             INSERT INTO service_history_services_2044 VALUES (NEW.*);
-
          ELSIF  ( NEW.date BETWEEN DATE '2043-01-01' AND DATE '2043-12-31' ) THEN
-
             INSERT INTO service_history_services_2043 VALUES (NEW.*);
-
          ELSIF  ( NEW.date BETWEEN DATE '2042-01-01' AND DATE '2042-12-31' ) THEN
-
             INSERT INTO service_history_services_2042 VALUES (NEW.*);
-
          ELSIF  ( NEW.date BETWEEN DATE '2041-01-01' AND DATE '2041-12-31' ) THEN
-
             INSERT INTO service_history_services_2041 VALUES (NEW.*);
-
          ELSIF  ( NEW.date BETWEEN DATE '2040-01-01' AND DATE '2040-12-31' ) THEN
-
             INSERT INTO service_history_services_2040 VALUES (NEW.*);
-
          ELSIF  ( NEW.date BETWEEN DATE '2039-01-01' AND DATE '2039-12-31' ) THEN
-
             INSERT INTO service_history_services_2039 VALUES (NEW.*);
-
          ELSIF  ( NEW.date BETWEEN DATE '2038-01-01' AND DATE '2038-12-31' ) THEN
-
             INSERT INTO service_history_services_2038 VALUES (NEW.*);
-
          ELSIF  ( NEW.date BETWEEN DATE '2037-01-01' AND DATE '2037-12-31' ) THEN
-
             INSERT INTO service_history_services_2037 VALUES (NEW.*);
-
          ELSIF  ( NEW.date BETWEEN DATE '2036-01-01' AND DATE '2036-12-31' ) THEN
-
             INSERT INTO service_history_services_2036 VALUES (NEW.*);
-
          ELSIF  ( NEW.date BETWEEN DATE '2035-01-01' AND DATE '2035-12-31' ) THEN
-
             INSERT INTO service_history_services_2035 VALUES (NEW.*);
-
          ELSIF  ( NEW.date BETWEEN DATE '2034-01-01' AND DATE '2034-12-31' ) THEN
-
             INSERT INTO service_history_services_2034 VALUES (NEW.*);
-
          ELSIF  ( NEW.date BETWEEN DATE '2033-01-01' AND DATE '2033-12-31' ) THEN
-
             INSERT INTO service_history_services_2033 VALUES (NEW.*);
-
          ELSIF  ( NEW.date BETWEEN DATE '2032-01-01' AND DATE '2032-12-31' ) THEN
-
             INSERT INTO service_history_services_2032 VALUES (NEW.*);
-
          ELSIF  ( NEW.date BETWEEN DATE '2031-01-01' AND DATE '2031-12-31' ) THEN
-
             INSERT INTO service_history_services_2031 VALUES (NEW.*);
-
          ELSIF  ( NEW.date BETWEEN DATE '2030-01-01' AND DATE '2030-12-31' ) THEN
-
             INSERT INTO service_history_services_2030 VALUES (NEW.*);
-
          ELSIF  ( NEW.date BETWEEN DATE '2029-01-01' AND DATE '2029-12-31' ) THEN
-
             INSERT INTO service_history_services_2029 VALUES (NEW.*);
-
          ELSIF  ( NEW.date BETWEEN DATE '2028-01-01' AND DATE '2028-12-31' ) THEN
-
             INSERT INTO service_history_services_2028 VALUES (NEW.*);
-
          ELSIF  ( NEW.date BETWEEN DATE '2027-01-01' AND DATE '2027-12-31' ) THEN
-
             INSERT INTO service_history_services_2027 VALUES (NEW.*);
-
          ELSIF  ( NEW.date BETWEEN DATE '2026-01-01' AND DATE '2026-12-31' ) THEN
-
             INSERT INTO service_history_services_2026 VALUES (NEW.*);
-
          ELSIF  ( NEW.date BETWEEN DATE '2025-01-01' AND DATE '2025-12-31' ) THEN
-
             INSERT INTO service_history_services_2025 VALUES (NEW.*);
-
          ELSIF  ( NEW.date BETWEEN DATE '2024-01-01' AND DATE '2024-12-31' ) THEN
-
             INSERT INTO service_history_services_2024 VALUES (NEW.*);
-
          ELSIF  ( NEW.date BETWEEN DATE '2023-01-01' AND DATE '2023-12-31' ) THEN
-
             INSERT INTO service_history_services_2023 VALUES (NEW.*);
-
          ELSIF  ( NEW.date BETWEEN DATE '2022-01-01' AND DATE '2022-12-31' ) THEN
-
             INSERT INTO service_history_services_2022 VALUES (NEW.*);
-
          ELSIF  ( NEW.date BETWEEN DATE '2021-01-01' AND DATE '2021-12-31' ) THEN
-
             INSERT INTO service_history_services_2021 VALUES (NEW.*);
-
          ELSIF  ( NEW.date BETWEEN DATE '2020-01-01' AND DATE '2020-12-31' ) THEN
-
             INSERT INTO service_history_services_2020 VALUES (NEW.*);
-
          ELSIF  ( NEW.date BETWEEN DATE '2019-01-01' AND DATE '2019-12-31' ) THEN
-
             INSERT INTO service_history_services_2019 VALUES (NEW.*);
-
          ELSIF  ( NEW.date BETWEEN DATE '2018-01-01' AND DATE '2018-12-31' ) THEN
-
             INSERT INTO service_history_services_2018 VALUES (NEW.*);
-
          ELSIF  ( NEW.date BETWEEN DATE '2017-01-01' AND DATE '2017-12-31' ) THEN
-
             INSERT INTO service_history_services_2017 VALUES (NEW.*);
-
          ELSIF  ( NEW.date BETWEEN DATE '2016-01-01' AND DATE '2016-12-31' ) THEN
-
             INSERT INTO service_history_services_2016 VALUES (NEW.*);
-
          ELSIF  ( NEW.date BETWEEN DATE '2015-01-01' AND DATE '2015-12-31' ) THEN
-
             INSERT INTO service_history_services_2015 VALUES (NEW.*);
-
          ELSIF  ( NEW.date BETWEEN DATE '2014-01-01' AND DATE '2014-12-31' ) THEN
-
             INSERT INTO service_history_services_2014 VALUES (NEW.*);
-
          ELSIF  ( NEW.date BETWEEN DATE '2013-01-01' AND DATE '2013-12-31' ) THEN
-
             INSERT INTO service_history_services_2013 VALUES (NEW.*);
-
          ELSIF  ( NEW.date BETWEEN DATE '2012-01-01' AND DATE '2012-12-31' ) THEN
-
             INSERT INTO service_history_services_2012 VALUES (NEW.*);
-
          ELSIF  ( NEW.date BETWEEN DATE '2011-01-01' AND DATE '2011-12-31' ) THEN
-
             INSERT INTO service_history_services_2011 VALUES (NEW.*);
-
          ELSIF  ( NEW.date BETWEEN DATE '2010-01-01' AND DATE '2010-12-31' ) THEN
-
             INSERT INTO service_history_services_2010 VALUES (NEW.*);
-
          ELSIF  ( NEW.date BETWEEN DATE '2009-01-01' AND DATE '2009-12-31' ) THEN
-
             INSERT INTO service_history_services_2009 VALUES (NEW.*);
-
          ELSIF  ( NEW.date BETWEEN DATE '2008-01-01' AND DATE '2008-12-31' ) THEN
-
             INSERT INTO service_history_services_2008 VALUES (NEW.*);
-
          ELSIF  ( NEW.date BETWEEN DATE '2007-01-01' AND DATE '2007-12-31' ) THEN
-
             INSERT INTO service_history_services_2007 VALUES (NEW.*);
-
          ELSIF  ( NEW.date BETWEEN DATE '2006-01-01' AND DATE '2006-12-31' ) THEN
-
             INSERT INTO service_history_services_2006 VALUES (NEW.*);
-
          ELSIF  ( NEW.date BETWEEN DATE '2005-01-01' AND DATE '2005-12-31' ) THEN
-
             INSERT INTO service_history_services_2005 VALUES (NEW.*);
-
          ELSIF  ( NEW.date BETWEEN DATE '2004-01-01' AND DATE '2004-12-31' ) THEN
-
             INSERT INTO service_history_services_2004 VALUES (NEW.*);
-
          ELSIF  ( NEW.date BETWEEN DATE '2003-01-01' AND DATE '2003-12-31' ) THEN
-
             INSERT INTO service_history_services_2003 VALUES (NEW.*);
-
          ELSIF  ( NEW.date BETWEEN DATE '2002-01-01' AND DATE '2002-12-31' ) THEN
-
             INSERT INTO service_history_services_2002 VALUES (NEW.*);
-
          ELSIF  ( NEW.date BETWEEN DATE '2001-01-01' AND DATE '2001-12-31' ) THEN
-
             INSERT INTO service_history_services_2001 VALUES (NEW.*);
-
          ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
-
             INSERT INTO service_history_services_2000 VALUES (NEW.*);
-
         
-
       ELSE
-
         INSERT INTO service_history_services_remainder VALUES (NEW.*);
-
         END IF;
-
         RETURN NULL;
-
     END;
-
     $$;
 
 
@@ -15217,7 +15107,8 @@ CREATE TABLE public.hud_report_apr_clients (
     source_enrollment_id integer,
     los_under_threshold integer,
     project_id integer,
-    client_created_at timestamp without time zone
+    client_created_at timestamp without time zone,
+    personal_id character varying
 );
 
 
@@ -15427,7 +15318,8 @@ CREATE TABLE public.hud_report_dq_clients (
     times_homeless integer,
     veteran_status integer,
     annual_assessment_in_window boolean,
-    gender_multi character varying
+    gender_multi character varying,
+    personal_id character varying
 );
 
 
@@ -15834,7 +15726,8 @@ CREATE TABLE public.hud_report_path_clients (
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     gender_multi character varying,
-    destination_client_id integer
+    destination_client_id integer,
+    personal_id character varying
 );
 
 
@@ -15910,7 +15803,8 @@ CREATE TABLE public.hud_report_pit_clients (
     exit_date date,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    personal_id character varying
 );
 
 
@@ -16003,7 +15897,8 @@ CREATE TABLE public.hud_report_spm_clients (
     m7a1_project_id integer,
     m7b_project_id integer,
     personal_id character varying,
-    data_lab_public_id character varying
+    data_lab_public_id character varying,
+    source_client_personal_ids character varying
 );
 
 
@@ -20181,6 +20076,70 @@ ALTER SEQUENCE public.synthetic_youth_education_statuses_id_seq OWNED BY public.
 
 
 --
+-- Name: system_pathways_clients; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.system_pathways_clients (
+    id bigint NOT NULL,
+    client_id bigint,
+    first_name character varying,
+    last_name character varying,
+    personal_ids character varying,
+    dob date,
+    age integer,
+    am_ind_ak_native boolean,
+    asian boolean,
+    black_af_american boolean,
+    native_hi_pacific boolean,
+    white boolean,
+    ethnicity integer,
+    male boolean,
+    female boolean,
+    gender_other boolean,
+    transgender boolean,
+    questioning boolean,
+    no_single_gender boolean,
+    disabling_condition boolean,
+    relationship_to_hoh integer,
+    veteran_status integer,
+    household_id character varying,
+    household_type character varying,
+    ce boolean,
+    system boolean,
+    es boolean,
+    sh boolean,
+    th boolean,
+    rrh boolean,
+    psh boolean,
+    oph boolean,
+    ph boolean,
+    destination integer,
+    returned integer,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: system_pathways_clients_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.system_pathways_clients_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: system_pathways_clients_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.system_pathways_clients_id_seq OWNED BY public.system_pathways_clients.id;
+
+
+--
 -- Name: taggings; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -24021,6 +23980,13 @@ ALTER TABLE ONLY public.synthetic_youth_education_statuses ALTER COLUMN id SET D
 
 
 --
+-- Name: system_pathways_clients id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.system_pathways_clients ALTER COLUMN id SET DEFAULT nextval('public.system_pathways_clients_id_seq'::regclass);
+
+
+--
 -- Name: taggings id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -26896,6 +26862,14 @@ ALTER TABLE ONLY public.synthetic_events
 
 ALTER TABLE ONLY public.synthetic_youth_education_statuses
     ADD CONSTRAINT synthetic_youth_education_statuses_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: system_pathways_clients system_pathways_clients_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.system_pathways_clients
+    ADD CONSTRAINT system_pathways_clients_pkey PRIMARY KEY (id);
 
 
 --
@@ -48254,6 +48228,13 @@ CREATE INDEX index_synthetic_youth_education_statuses_on_source ON public.synthe
 
 
 --
+-- Name: index_system_pathways_clients_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_system_pathways_clients_on_client_id ON public.system_pathways_clients USING btree (client_id);
+
+
+--
 -- Name: index_taggings_on_context; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -51665,7 +51646,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230307143837'),
 ('20230309205059'),
 ('20230313122300'),
-('20230313152950');
-
+('20230313152950'),
+('20230319133739'),
+('20230320131930');
 
 
