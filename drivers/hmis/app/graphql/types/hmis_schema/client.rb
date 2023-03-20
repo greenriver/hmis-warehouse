@@ -31,7 +31,6 @@ module Types
     hud_field :name_suffix
     hud_field :name_data_quality, Types::HmisSchema::Enums::Hud::NameDataQuality
     hud_field :dob
-    field :age, Int, null: true
     hud_field :dob_data_quality, Types::HmisSchema::Enums::Hud::DOBDataQuality
     hud_field :ssn
     hud_field :ssn_data_quality, Types::HmisSchema::Enums::Hud::SSNDataQuality
@@ -53,15 +52,6 @@ module Types
     hud_field :date_deleted
     field :user, HmisSchema::User, null: true
     field :image, HmisSchema::ClientImage, null: true
-
-    access_field do
-      can :view_partial_ssn
-      can :view_full_ssn
-      can :view_dob
-      can :view_enrollment_details
-      can :edit_enrollments
-      can :delete_enrollments
-    end
 
     def enrollments(**args)
       resolve_enrollments(**args)
@@ -119,15 +109,6 @@ module Types
 
     def user
       load_ar_association(object, :user)
-    end
-
-    def ssn
-      return object.ssn if current_user.can_view_full_ssn_for?(object)
-      return object&.ssn&.sub(/^.*?(\d{4})$/, 'XXXXX\1') if current_user.can_view_partial_ssn_for?(object)
-    end
-
-    def dob
-      return object.dob if current_user.can_view_dob_for?(object)
     end
   end
 end

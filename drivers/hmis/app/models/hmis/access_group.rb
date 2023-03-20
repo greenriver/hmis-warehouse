@@ -38,10 +38,6 @@ class Hmis::AccessGroup < ApplicationRecord
     joins(:roles).merge(Hmis::Role.with_editable_permissions)
   end
 
-  scope :with_permissions, ->(*perms, mode: 'any') do
-    joins(:roles).merge(mode == 'all' ? Hmis::Role.with_all_permissions(*perms) : Hmis::Role.with_any_permissions(*perms))
-  end
-
   scope :contains, ->(entity) do
     where(
       id: Hmis::GroupViewableEntity.where(

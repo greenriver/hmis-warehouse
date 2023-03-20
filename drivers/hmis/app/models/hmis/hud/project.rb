@@ -38,15 +38,6 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     where(id: ids, data_source_id: user.hmis_data_source_id)
   end
 
-  scope :with_access, ->(user, *permissions, **kwargs) do
-    ids = user.entities_with_permissions(Hmis::Hud::Project, *permissions, **kwargs).pluck(:id)
-    ids += user.entities_with_permissions(Hmis::Hud::Organization, *permissions, **kwargs).joins(:projects).pluck(p_t[:id])
-    ids += user.entities_with_permissions(GrdaWarehouse::DataSource, *permissions, **kwargs).joins(:projects).pluck(p_t[:id])
-    ids += user.entities_with_permissions(GrdaWarehouse::ProjectAccessGroup, *permissions, **kwargs).joins(:projects).pluck(p_t[:id])
-
-    where(id: ids, data_source_id: user.hmis_data_source_id)
-  end
-
   # Always use ProjectType, we shouldn't need overrides since we can change the source data
   scope :with_project_type, ->(project_types) do
     where(ProjectType: project_types)

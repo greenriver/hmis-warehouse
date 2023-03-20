@@ -9,15 +9,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   after(:all) do
     cleanup_test_environment
   end
-  include_context 'hmis base setup'
 
-  # let!(:ds1) { create :hmis_data_source }
-  # let!(:user) { create(:user).tap { |u| u.add_viewable(ds1) } }
+  let!(:ds1) { create :hmis_data_source }
+  let!(:user) { create(:user).tap { |u| u.add_viewable(ds1) } }
   let!(:ds2) { create :hmis_data_source, hmis: nil }
 
   before(:each) do
     hmis_login(user)
-    assign_viewable(edit_access_group, ds1, hmis_user)
   end
 
   let(:query) do
@@ -48,14 +46,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       clients = result.dig('data', 'clientSearch', 'nodes')
       expect(clients).to include({ 'id' => client1.id.to_s })
       expect(clients).not_to include({ 'id' => client2.id.to_s })
-    end
-
-    it 'should return no clients if user does not have permission to view clients' do
-      remove_permissions(hmis_user, :can_view_clients)
-      response, result = post_graphql(input: {}) { query }
-      expect(response.status).to eq 200
-      clients = result.dig('data', 'clientSearch', 'nodes')
-      expect(clients).to be_empty
     end
   end
 

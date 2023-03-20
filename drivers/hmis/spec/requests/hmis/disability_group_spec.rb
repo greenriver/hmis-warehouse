@@ -32,7 +32,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   before(:each) do
     hmis_login(user)
-    assign_viewable(edit_access_group, ds1, hmis_user)
   end
 
   let(:client_query) do
@@ -56,7 +55,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   describe 'Client lookup with disabilityGroups' do
     it 'should resolve no related records if user does not have view access' do
-      remove_permissions(hmis_user, :can_view_enrollment_details)
       response, result = post_graphql(id: c1.id) { client_query }
       expect(response.status).to eq 200
       client = result.dig('data', 'client')
