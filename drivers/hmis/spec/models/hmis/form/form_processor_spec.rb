@@ -1047,7 +1047,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
     let(:definition) { Hmis::Form::Definition.find_by(role: :FILE) }
     let(:hud_values) do
       {
-        'fileTags' => [
+        'tags' => [
           tag2.id.to_s,
         ],
         'clientId' => e1.client.id.to_s,

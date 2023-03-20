@@ -20,8 +20,13 @@ module Types
     field :url, String, null: false
     field :name, String, null: false
     field :tags, [String], null: false
+    field :file_blob_id, ID, null: false
 
     # Object is a Hmis::File
+
+    def file_blob_id
+      object.client_file&.blob&.id
+    end
 
     def content_type
       object.client_file.content_type

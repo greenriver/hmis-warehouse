@@ -126,9 +126,10 @@ module Types
         Hmis::File.all_available_tags.map do |tag|
           {
             code: tag.id,
-            label: "#{tag.name} (included: #{tag.included_info})",
+            label: tag.name,
             group_code: tag.group,
             group_label: tag.group,
+            secondary_label: "(included: #{tag.included_info})",
           }
         end.
           compact.

@@ -107,9 +107,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             confirmed: true, # ignore warnings, they are tested separately
             **completed_form_values_for_role(role) do |values|
               if role == :FILE
-                # values[:values]['fileTags'] = [tag2.id.to_s]
+                # values[:values]['tags'] = [tag2.id.to_s]
                 values[:values]['fileBlobId'] = blob.id.to_s
-                # values[:hud_values]['fileTags'] = [tag2.id.to_s]
+                # values[:hud_values]['tags'] = [tag2.id.to_s]
                 values[:hud_values]['fileBlobId'] = blob.id.to_s
               end
               values
@@ -167,7 +167,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               # Expect that all of the fields that were submitted exist on the record
               expected_present_keys = input[:hud_values].map { |k, v| [k, v == '_HIDDEN' ? nil : v] }.to_h.compact.keys
               expected_present_keys.map(&:to_s).map(&:underscore).each do |method|
-                expect(record.send(method)).not_to be_nil unless ['race', 'gender', 'file_tags', 'file_blob_id'].include?(method)
+                expect(record.send(method)).not_to be_nil unless ['race', 'gender', 'tags', 'file_blob_id'].include?(method)
               end
             end
           end

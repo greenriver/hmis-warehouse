@@ -2,13 +2,24 @@
   "name": "file",
   "item": [
     {
+      "type": "STRING",
+      "link_id": "fileId",
+      "hidden": true,
+      "initial": [
+        {
+          "initial_behavior": "OVERWRITE",
+          "value_local_constant": "$fileId"
+        }
+      ]
+    },
+    {
       "type": "CHOICE",
       "required": true,
       "repeats": true,
-      "link_id": "fileTags",
+      "link_id": "tags",
       "text": "File Tags",
       "pick_list_reference": "AVAILABLE_FILE_TYPES",
-      "field_name": "fileTags"
+      "field_name": "tags"
     },
     {
       "type": "CHOICE",
@@ -51,6 +62,14 @@
           "link_id": "fileBlobId",
           "text": "Attachment",
           "field_name": "fileBlobId"
+        }
+      ],
+      "enable_behavior": "ANY",
+      "enable_when": [
+        {
+          "question": "fileId",
+          "operator": "EXISTS",
+          "answer_boolean": false
         }
       ]
     }

@@ -13,7 +13,7 @@ module Mutations
 
     field :client, Types::HmisSchema::Client, null: true
 
-    def resolve(client_id:, enrollment_id: nil, file_blob_id:, file_tags: [], **input)
+    def resolve(client_id:, enrollment_id: nil, file_blob_id:, tags: [], **input)
       client = Hmis::Hud::Client.visible_to(current_user).find_by(id: client_id)
       enrollment = Hmis::Hud::Enrollment.viewable_by(current_user).find_by(id: enrollment_id)
 
@@ -35,7 +35,7 @@ module Mutations
           visible_in_window: false,
           **input,
         )
-        file.tag_list.add(file_tags)
+        file.tag_list.add(tags)
         file.client_file.attach(blob)
         file.save!
       end
