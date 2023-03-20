@@ -162,6 +162,10 @@ module Health
       qa_version.activities
     end
 
+    def contact_required?
+      qa_version.contact_required?(activity)
+    end
+
     def self.date_search(start_date, end_date)
       if start_date.present? && end_date.present?
         where('date_of_activity >= ? AND date_of_activity <= ?', start_date, end_date)
@@ -193,13 +197,14 @@ module Health
     validates_presence_of(
       :user,
       :user_full_name,
-      :source, :follow_up,
+      :source,
       :date_of_activity,
       :patient_id,
-      :mode_of_contact,
-      :reached_client,
-      :activity
+      :activity,
+      :follow_up,
     )
+    validates_presence_of :mode_of_contact, if: :contact_required?
+    validates_presence_of :reached_client, if: :contact_required?
     validates_presence_of :mode_of_contact_other, if: :mode_of_contact_is_other?
     validates_presence_of :reached_client_collateral_contact, if: :reached_client_is_collateral_contact?
 

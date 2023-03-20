@@ -153,5 +153,11 @@ module Health
         },
       }.sort_by { |_, m| m[:weight] }.to_h
     end
+
+    def contact_required?(activity)
+      return false unless activity
+
+      true
+    end
   end
 end

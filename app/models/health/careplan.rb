@@ -38,6 +38,8 @@ module Health
     phi_attr :patient_signature_requested_at, Phi::Date, 'Date of request for patient signature'
     phi_attr :provider_signature_requested_at, Phi::Date, 'Date of request for provider signature'
     phi_attr :health_file_id, Phi::OtherIdentifier, 'ID of health file'
+    phi_attr :approving_rn_id, Phi::SmallPopulation, 'ID of approving RN'
+    phi_attr :rn_approved_on, Phi::Date, 'Date of RN approval'
 
     # has_many :goals, class_name: 'Health::Goal::Base'
     # has_many :hpc_goals, class_name: 'Health::Goal::Hpc'
@@ -70,6 +72,8 @@ module Health
     end, through: :pcp_signed_signature_requests, source: :signable_document
     has_many :pcp_signed_health_files, through: :pcp_signed_documents, source: :health_files
 
+    belongs_to :approving_rn, class_name: 'User'
+
     # Patient
     has_many :patient_signature_requests, class_name: 'Health::SignatureRequests::PatientSignatureRequest'
     has_many :patient_signed_signature_requests, -> do
@@ -96,10 +100,10 @@ module Health
     serialize :goals_archive, Array
     serialize :backup_plan_archive, Array
 
-    validates_presence_of :provider_id, if: -> { provider_signed_on.present? }
+    # validates_presence_of :provider_id, if: -> { provider_signed_on.present? }
     # We are not collecting patient signature mode yet, so don't enforce this
     # validates_presence_of :patient_signature_mode, if: -> { self.patient_signed_on.present? }
-    validates_presence_of :provider_signature_mode, if: -> { provider_signed_on.present? }
+    # validates_presence_of :provider_signature_mode, if: -> { provider_signed_on.present? }
 
     # Scopes
     scope :locked, -> do
@@ -182,12 +186,18 @@ module Health
     end
 
     # We need both signatures, and one of must have just been done
+    # FIXME: Left until HelloSign is removed
     def just_signed?
       (patient_signed_on.present? && provider_signed_on.present?) && (patient_signed_on_changed? || provider_signed_on_changed?)
     end
 
+    def just_approved?
+      @cha = patient.recent_cha_form
+      (@cha.complete? && rn_approved_on.present? && rn_approved_on_changed?)
+    end
+
     def set_lock
-      if patient_signed_on.present? || provider_signed_on.present?
+      if patient_signed_on.present?
         self.locked = true
         archive_services
         archive_equipment
@@ -265,7 +275,7 @@ module Health
 
     def compact_future_issues
       issues = []
-      (0..10).each do |i|
+      11.times do |i|
         issues << self["future_issues_#{i}"].presence
         self["future_issues_#{i}"] = nil
       end
@@ -275,7 +285,7 @@ module Health
     end
 
     def future_issues?
-      (0..10).each do |i|
+      11.times do |i|
         future_issues = self["future_issues_#{i}"]
         return true if future_issues&.strip&.present?
       end

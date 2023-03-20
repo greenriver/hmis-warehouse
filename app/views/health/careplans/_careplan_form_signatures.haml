@@ -12,13 +12,18 @@
 
   = f.input :provider_id, as: :select_two, label: 'Primary Care Provider or PCP Designee', collection: available_team_members, input_html: { class: ['select2--full-width'] }, wrapper_html: { class: 'mb-3'}, disabled: @careplan.locked? && f.object.provider_id.present?
 
-  = f.input :provider_signature_requested_at, as: :date_picker, label: 'Date Requested'
+  = f.input :provider_signature_requested_at, as: :date_picker, label: 'Date Sent'
 
-  .row
-    .col
-      = f.input :provider_signed_on, as: :date_picker, label: 'Date Signed'
-    .col
-      = f.input :provider_signature_mode, collection: @careplan.signature_modes, as: :select_two, label: 'Signed'
+  -# .row
+  -#   .col
+  -#     = f.input :provider_signed_on, as: :date_picker, label: 'Date Signed'
+  -#   .col
+  -#     = f.input :provider_signature_mode, collection: @careplan.signature_modes, as: :select_two, label: 'Signed'
+
+  - if @cha&.complete?
+    - approval_hint = @careplan.rn_approved_on.present? ? "Approved by #{@careplan.approving_rn.name} on #{@careplan.rn_approved_on}" : nil
+    -# TODO add guard current_user.can_approve_careplans?
+    = f.input :rn_approval, label: 'RN Approval of CHA and CP', hint: approval_hint
 
 .col-md-6
 
