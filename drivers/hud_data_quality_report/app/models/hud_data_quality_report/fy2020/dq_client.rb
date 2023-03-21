@@ -21,8 +21,6 @@ module HudDataQualityReport::Fy2020
         label = case h
         when 'destination_client_id'
           'Warehouse Client ID'
-        when 'client_id'
-          'Warehouse Source Client ID'
         when 'personal_id'
           'HMIS Personal ID'
         else
