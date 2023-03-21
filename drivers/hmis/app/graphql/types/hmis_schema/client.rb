@@ -40,7 +40,7 @@ module Types
     hud_field :ethnicity, Types::HmisSchema::Enums::Hud::Ethnicity
     hud_field :veteran_status, Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData
     field :pronouns, [String], null: false
-    enrollments_field without_args: [:client_search_term]
+    enrollments_field without_args: [:search_term]
     income_benefits_field
     disabilities_field
     disability_groups_field
