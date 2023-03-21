@@ -285,7 +285,7 @@ module HudPit::Generators::Pit::Fy2023
         },
         age_over_64: {
           title: 'Number of Persons (over age 64)',
-          query: age_ranges['64+'],
+          query: age_ranges['65+'],
         },
         youth_hoh: {
           title: 'Number of parenting youth (youth parents only)',
