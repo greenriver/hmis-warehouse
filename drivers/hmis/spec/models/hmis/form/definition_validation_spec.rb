@@ -15,16 +15,8 @@ RSpec.describe Hmis::Form::Definition, type: :model do
 
   HUD_ASSESSMENT_ROLES = [:INTAKE, :UPDATE, :ANNUAL, :EXIT].freeze
 
-  # let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: 2.weeks.ago }
   let!(:e2) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: 2.weeks.ago }
   let!(:exit2) { create :hmis_hud_exit, enrollment: e2, data_source: ds1, client: c1, user: u1, exit_date: 1.week.ago }
-
-  # let(:default_args) do
-  #   {
-  #     enrollment: e1,
-  #     ignore_warnings: true,
-  #   }
-  # end
 
   let(:default_args) do
     {
