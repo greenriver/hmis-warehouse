@@ -2321,6 +2321,7 @@ HUD Household
 type Household {
   householdClients: [HouseholdClient!]!
   id: ID!
+  shortId: ID!
 }
 
 """
@@ -3405,7 +3406,7 @@ type Project {
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
   description: String
-  enrollments(clientSearchTerm: String, includeInProgress: Boolean, limit: Int, offset: Int, openOnDate: ISO8601Date, sortOrder: EnrollmentSortOption): EnrollmentsPaginated!
+  enrollments(includeInProgress: Boolean, limit: Int, offset: Int, openOnDate: ISO8601Date, searchTerm: String, sortOrder: EnrollmentSortOption): EnrollmentsPaginated!
   funders(limit: Int, offset: Int, sortOrder: FunderSortOption): FundersPaginated!
   housingType: HousingType
   id: ID!
