@@ -9,21 +9,29 @@ class Hmis::Hud::Validators::ExitValidator < Hmis::Hud::Validators::BaseValidato
     Hmis::Hud::Exit.hmis_configuration(version: '2022').except(*IGNORED)
   end
 
-  def self.hmis_validate(record, role: nil, **_)
+  def self.validate_exit_date(exit_date, enrollment:, options:)
+    return [] unless exit_date.present?
+
     errors = HmisErrors::Errors.new
 
-    if record.exit_date.present? && role == :EXIT
-      errors.add :exit_date, :out_of_range, message: 'cannot be in the future' if record.exit_date.future?
-      errors.add :exit_date, :information, severity: :warning, message: 'is over 30 days ago' if record.exit_date < (Date.today - 30.days)
-    end
+    errors.add :exit_date, :out_of_range, message: future_message, **options if exit_date.future?
+    entry_date = enrollment&.entry_date
+    errors.add :exit_date, :out_of_range, message: before_entry_message(entry_date), **options if entry_date.present? && entry_date > exit_date
+    errors.add :exit_date, :information, severity: :warning, message: over_thirty_days_ago_message, **options if exit_date < (Date.today - 30.days)
+    errors.errors
+  end
 
+  def self.hmis_validate(record, role: nil, **_)
+    errors = HmisErrors::Errors.new
+    errors.push(*validate_exit_date(record, record.exit_date)) if role == :EXIT
     errors.errors
   end
 
   def validate(record)
     super(record) do
+      record.errors.add :other_destination, :required if record.destination == 17 && !record.other_destination.present?
       entry_date = record.enrollment&.entry_date
-      record.errors.add :exit_date, :invalid, message: "cannot be before entry date (#{entry_date.strftime('%m/%d/%Y')})" if entry_date.present? && record.exit_date.present? && record.exit_date < entry_date
+      record.errors.add :exit_date, :invalid, message: self.class.before_entry_message(entry_date) if entry_date.present? && record.exit_date.present? && entry_date > record.exit_date
     end
   end
 end

@@ -10,19 +10,32 @@ class Hmis::Hud::Validators::EnrollmentValidator < Hmis::Hud::Validators::BaseVa
     Hmis::Hud::Enrollment.hmis_configuration(version: '2022').except(*IGNORED)
   end
 
-  def self.hmis_validate(record, user: nil, role: nil)
-    errors = HmisErrors::Errors.new
+  def self.validate_entry_date(entry_date, enrollment:, options: {})
+    return [] unless entry_date.present?
 
-    # Only validate the entry date in the context of an intake
-    if record.entry_date.present? && role == :INTAKE
-      dob = record.client&.dob
-      safe_dob = record.client&.safe_dob(user)
-      errors.add :entry_date, :out_of_range, message: 'cannot be in the future' if record.entry_date.future?
-      errors.add :entry_date, :out_of_range, message: "cannot be before client's DOB" if dob.present? && dob > record.entry_date
-      errors.add :entry_date, :information, severity: :warning, message: "is equal to client's DOB" if safe_dob.present? && safe_dob == record.entry_date
-      errors.add :entry_date, :information, severity: :warning, message: 'is over 30 days ago' if record.entry_date < (Date.today - 30.days)
+    errors = HmisErrors::Errors.new
+    dob = enrollment.client&.dob
+    exit_date = enrollment&.exit_date
+
+    errors.add :entry_date, :out_of_range, message: future_message, **options if entry_date.future?
+    errors.add :entry_date, :out_of_range, message: over_twenty_years_ago_message, **options if entry_date < (Date.today - 20.years)
+    errors.add :entry_date, :out_of_range, message: before_dob_message, **options if dob.present? && dob > entry_date
+    errors.add :entry_date, :out_of_range, message: after_exit_message(exit_date), **options if exit_date.present? && exit_date < entry_date
+
+    unless enrollment.head_of_household?
+      hoh_entry_date = enrollment.hoh_entry_date
+      errors.add :entry_date, :out_of_range, severity: :warning, message: before_hoh_entry_message(hoh_entry_date), **options if hoh_entry_date.present? && entry_date < hoh_entry_date
     end
 
+    errors.add :entry_date, :information, severity: :warning, message: equals_dob_message, **options if dob.present? && dob == entry_date
+    errors.add :entry_date, :information, severity: :warning, message: over_thirty_days_ago_message, **options if entry_date < (Date.today - 30.days)
+
+    errors.errors
+  end
+
+  def self.hmis_validate(record, role: nil, **_)
+    errors = HmisErrors::Errors.new
+    errors.push(*validate_entry_date(record, record.entry_date)) if role == :INTAKE
     errors.errors
   end
 
