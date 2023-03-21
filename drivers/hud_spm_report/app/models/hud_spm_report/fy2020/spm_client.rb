@@ -10,5 +10,14 @@ module HudSpmReport::Fy2020
     acts_as_paranoid
 
     has_many :hud_reports_universe_members, inverse_of: :universe_membership, class_name: 'HudReports::UniverseMember', foreign_key: :universe_membership_id
+
+    def self.header_label(col)
+      case col.to_s
+      when 'source_client_personal_ids'
+        'HMIS Personal IDs'
+      else
+        human_attribute_name(col)
+      end
+    end
   end
 end

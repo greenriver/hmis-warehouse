@@ -139,7 +139,7 @@ module HudSpmReport::Generators::Fy2020
         :first_name, # for add_universe_members
         :last_name, # for add_universe_members
         :VeteranStatus,
-      ).find_in_batches do |batch|
+      ).preload(:source_clients).find_in_batches do |batch|
         clients_by_id = batch.index_by(&:id)
         yield clients_by_id
       end
@@ -197,6 +197,7 @@ module HudSpmReport::Generators::Fy2020
         data_source_id: client.data_source_id,
         dob: client.DOB,
         personal_id: client.PersonalID, # for debugging
+        source_client_personal_ids: client.source_clients.map(&:PersonalID).uniq.join('; '),
         data_lab_public_id: data_lab_public_id,
         first_name: client.first_name,
         last_name: client.last_name,
@@ -964,6 +965,7 @@ module HudSpmReport::Generators::Fy2020
         :dob,
         :first_name,
         :last_name,
+        :source_client_personal_ids,
         :veteran,
         exit_from_project_type_col,
         exit_to_destination_col,
@@ -1007,6 +1009,7 @@ module HudSpmReport::Generators::Fy2020
             first_name: client.first_name,
             last_name: client.last_name,
             veteran: client.veteran?,
+            source_client_personal_ids: client.source_clients.map(&:PersonalID).uniq.join('; '),
           )
 
           # 4. Using data from step 2, report the distinct number of clients who exited to permanent housing destinations
