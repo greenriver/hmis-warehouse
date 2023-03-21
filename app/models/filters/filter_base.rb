@@ -284,6 +284,8 @@ module Filters
         opts['Project Groups'] = project_groups if project_group_ids.any?
         opts['Funders'] = funder_names if funder_ids.any?
         opts['Heads of Household only?'] = 'Yes' if hoh_only
+        opts['Including CE homeless at entry'] = 'Yes' if coordinated_assessment_living_situation_homeless
+        opts['Including CE Current Living Situation Homeless'] = 'Yes' if ce_cls_as_homeless
         opts['Household Type'] = chosen_household_type if household_type
         opts['Age Ranges'] = chosen_age_ranges if age_ranges.any?
         opts['Races'] = chosen_races if races.any?
@@ -306,6 +308,7 @@ module Filters
         opts['Current Living Situation Homeless'] = 'Yes' if ce_cls_as_homeless
         opts['Client Limits'] = chosen_vispdat_limits if limit_to_vispdat != :all_clients
         opts['Times Homeless in Past 3 Years'] = chosen_times_homeless_in_last_three_years if times_homeless_in_last_three_years.any?
+        opts['Require Service During Range'] = 'Yes' if require_service_during_range
       end
     end
 
@@ -915,6 +918,10 @@ module Filters
         'LSA Scope'
       when :cohort_ids
         'Cohorts'
+      when :ce_cls_as_homeless
+        'Including CE Current Living Situation Homeless'
+      when :coordinated_assessment_living_situation_homeless
+        'Including CE homeless at entry?'
       else
         key.to_s.titleize
       end
@@ -978,6 +985,12 @@ module Filters
         chosen_currently_fleeing
       when :heads_of_household, :hoh_only
         'Yes' if heads_of_household || hoh_only
+      when :require_service_during_range
+        'Yes' if require_service_during_range
+      when :ce_cls_as_homeless
+        'Yes' if ce_cls_as_homeless
+      when :coordinated_assessment_living_situation_homeless
+        'Yes' if coordinated_assessment_living_situation_homeless
       when :limit_to_vispdat
         chosen_vispdat_limits
       when :times_homeless_in_last_three_years
