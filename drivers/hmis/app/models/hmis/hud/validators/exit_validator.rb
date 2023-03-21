@@ -4,6 +4,7 @@ class Hmis::Hud::Validators::ExitValidator < Hmis::Hud::Validators::BaseValidato
     :DateCreated,
     :DateUpdated,
   ].freeze
+  OTHER_DESTINATION = 17
 
   def configuration
     Hmis::Hud::Exit.hmis_configuration(version: '2022').except(*IGNORED)
@@ -29,7 +30,7 @@ class Hmis::Hud::Validators::ExitValidator < Hmis::Hud::Validators::BaseValidato
 
   def validate(record)
     super(record) do
-      record.errors.add :other_destination, :required if record.destination == 17 && !record.other_destination.present?
+      record.errors.add :other_destination, :required if record.destination == OTHER_DESTINATION && !record.other_destination.present?
       entry_date = record.enrollment&.entry_date
       record.errors.add :exit_date, :invalid, message: self.class.before_entry_message(entry_date) if entry_date.present? && record.exit_date.present? && entry_date > record.exit_date
     end

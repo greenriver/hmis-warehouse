@@ -83,6 +83,7 @@ module Mutations
         assessment.touch
       end
 
+      errors.deduplicate!
       return { errors: errors } if errors.any?
 
       if is_valid

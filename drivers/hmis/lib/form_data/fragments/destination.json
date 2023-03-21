@@ -29,7 +29,7 @@
       "warn_if_empty": true
     },
     {
-      "type": "CHOICE",
+      "type": "STRING",
       "link_id": "3.12.A ",
       "text": "Other destination",
       "field_name": "otherDestination",

@@ -61,6 +61,7 @@ module Mutations
       record_validations = custom_form.collect_record_validations(ignore_warnings: input.confirmed, user: current_user)
       errors.push(*record_validations)
 
+      errors.deduplicate!
       return { errors: errors } if errors.any?
 
       if is_valid

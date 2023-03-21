@@ -46,6 +46,10 @@ module HmisErrors
       @errors = @errors.reject(&:warning?)
     end
 
+    def deduplicate!
+      @errors = @errors.uniq { |e| [e.attribute.to_s, e.type.to_sym, e.severity, e.full_message] }
+    end
+
     def self.errors_are_equal(first, second)
       first.attribute.to_s == second.attribute.to_s &&
       first.type.to_sym == :required && second.type.to_sym == :required
