@@ -6,13 +6,9 @@ input AddHouseholdMembersToEnrollmentInput {
   A unique identifier for the client performing the mutation.
   """
   clientMutationId: String
+  entryDate: ISO8601Date!
   householdId: ID!
   householdMembers: [EnrollmentHouseholdMemberInput!]!
-
-  """
-  Start date with format yyyy-mm-dd
-  """
-  startDate: String!
 }
 
 """

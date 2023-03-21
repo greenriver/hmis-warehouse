@@ -124,7 +124,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(response.status).to eq 200
         enrollments = result.dig('data', 'createEnrollment', 'enrollments')
         errors = result.dig('data', 'createEnrollment', 'errors')
-        expect(enrollments).to be_empty
+        expect(enrollments).to be nil
         expect(errors).to be_present
         expect(errors).to contain_exactly(include('type' => 'not_allowed'))
         expect(Hmis::Hud::Enrollment.count).to eq(0)
@@ -168,7 +168,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           errors = result.dig('data', 'createEnrollment', 'errors')
           aggregate_failures 'checking response' do
             expect(response.status).to eq 200
-            expect(enrollments).to be_empty
+            expect(enrollments).to be nil
             expect(errors).to contain_exactly(
               include(**error_attrs.transform_keys(&:to_s).transform_values(&:to_s)),
             )
