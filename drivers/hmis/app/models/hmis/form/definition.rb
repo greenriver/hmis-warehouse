@@ -141,7 +141,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
       date_string = values[item.link_id]
 
       if date_string.present?
-        date = HmisUtil::Dates.safe_parse_date(date_string: date_string, reasonable_years_distance: 30)
+        date = HmisUtil::Dates.safe_parse_date(date_string: date_string)
         errors.add item.field_name, :invalid, **error_context unless date.present?
       else
         errors.add item.field_name, :required, **error_context

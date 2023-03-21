@@ -10,7 +10,7 @@ class Hmis::Hud::Validators::EnrollmentValidator < Hmis::Hud::Validators::BaseVa
     Hmis::Hud::Enrollment.hmis_configuration(version: '2022').except(*IGNORED)
   end
 
-  def self.hmis_validate(record, ignore_warnings: false, user: nil, role: nil)
+  def self.hmis_validate(record, user: nil, role: nil)
     errors = HmisErrors::Errors.new
 
     # Only validate the entry date in the context of an intake
@@ -22,8 +22,6 @@ class Hmis::Hud::Validators::EnrollmentValidator < Hmis::Hud::Validators::BaseVa
       errors.add :entry_date, :information, severity: :warning, message: "is equal to client's DOB" if safe_dob.present? && safe_dob == record.entry_date
       errors.add :entry_date, :information, severity: :warning, message: 'is over 30 days ago' if record.entry_date < (Date.today - 30.days)
     end
-
-    return errors.errors.reject(&:warning?) if ignore_warnings
 
     errors.errors
   end

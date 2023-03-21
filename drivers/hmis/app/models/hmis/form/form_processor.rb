@@ -245,17 +245,18 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     end.compact.uniq
   end
 
-  # Get list of all related record errors as HmisError::Error objects that can be resolved
+  # Get HmisError::Errors object containing related record errors that can be resolved
   # as GraphQL ValidationErrors.
   def collect_hmis_errors
     errors = HmisErrors::Errors.new
     related_records.each do |record|
       next if record.errors.none?
 
-      # Collect AR errors, skipping relation fields (to avoid errors like "Income Benefit is invalid" on the Enrollment)
-      errors.add_ar_errors(record.errors.errors.reject do |e|
+      # Skip relation fields, to avoid errors like "Income Benefit is invalid" on the Enrollment
+      ar_errors = record.errors.errors.reject do |e|
         e.attribute.to_s.underscore.ends_with?('_id') || record.send(e.attribute).is_a?(ActiveRecord::Relation)
-      end)
+      end
+      errors.add_ar_errors(ar_errors)
     end
 
     errors

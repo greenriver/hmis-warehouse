@@ -11,8 +11,8 @@ class Hmis::Form::CustomForm < ::GrdaWarehouseBase
   belongs_to :owner, polymorphic: true, optional: false
   belongs_to :definition, optional: false
   belongs_to :form_processor, dependent: :destroy, autosave: true
-
   validate :form_processor_is_valid
+
   after_initialize :initialize_form_processor, if: :new_record?
 
   scope :with_role, ->(role) do
@@ -43,9 +43,10 @@ class Hmis::Form::CustomForm < ::GrdaWarehouseBase
   # Validate related records using custom AR Validators
   # @return [HmisError::Error] an array errors
   def collect_record_validations(ignore_warnings: false, user: nil)
+    # Collect ActiveRecord validations (as HmisErrors)
     errors = form_processor.collect_hmis_errors
 
-    # Collect HmisError errors/warnings from custom validator, in the context of this role
+    # Collect errors from custom validator, in the context of this role
     role = definition.role
     form_processor.related_records.each do |record|
       validator = record.class.validators.find { |v| v.is_a?(Hmis::Hud::Validators::BaseValidator) }&.class
