@@ -1059,30 +1059,8 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       }
     end
 
-    let!(:existing_file) do
-      file = Hmis::File.new(
-        name: blob.filename,
-        client_id: c1.id,
-        enrollment_id: e1.id,
-        effective_date: Date.yesterday,
-        expiration_date: Date.tomorrow,
-        user_id: hmis_user.id,
-        confidential: false,
-      )
-      file.tag_list.add(tag.id)
-      file.client_file.attach(blob)
-      file.save!
-
-      file
-    end
-
-    let!(:new_file) do
-      file = Hmis::File.new(
-        name: blob.filename,
-      )
-
-      file
-    end
+    let!(:existing_file) { create :file, client: c1, enrollment: e1, blob: blob, user_id: hmis_user.id, tags: [tag] }
+    let!(:new_file) { Hmis::File.new(name: blob.filename) }
 
     it 'should test' do
       [existing_file, new_file].each do |record|

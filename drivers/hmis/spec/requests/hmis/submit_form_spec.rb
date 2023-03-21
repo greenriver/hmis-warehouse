@@ -26,21 +26,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:s1) { create :hmis_hud_service, data_source: ds1, client: c1, enrollment: e1, user: u1 }
   let!(:cs1) { create :hmis_custom_service, custom_service_type: cst1, data_source: ds1, client: c1, enrollment: e1, user: u1 }
   let!(:hmis_hud_service1) { Hmis::Hud::HmisService.find_by(owner: s1) }
-  let(:file1) do
-    file = Hmis::File.new(
-      name: blob.filename,
-      client_id: c1.id,
-      enrollment_id: e1.id,
-      effective_date: Date.yesterday,
-      expiration_date: Date.tomorrow,
-      user_id: hmis_user.id,
-      confidential: true,
-    )
-    file.client_file.attach(blob)
-    file.save!
-
-    file
-  end
+  let!(:file1) { create :file, client: c1, enrollment: e1, blob: blob, user_id: hmis_user.id, tags: [tag] }
 
   before(:each) do
     hmis_login(user)

@@ -36,7 +36,10 @@ module Mutations
       return { errors: errors } if errors.any?
 
       # Check permission
-      errors.add :record, :not_allowed unless current_user.permissions_for?(record, *Array(definition.record_editing_permission))
+      allowed = true
+      allowed = current_user.permissions_for?(record, *Array(definition.record_editing_permission)) if definition.record_editing_permission.present?
+      allowed = definition.allowed_proc.call(record, current_user) if definition.allowed_proc.present?
+      errors.add :record, :not_allowed unless allowed
       return { errors: errors } if errors.any?
 
       # Create CustomForm

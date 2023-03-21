@@ -10,6 +10,7 @@ module Mutations
         record: file,
         field_name: :file,
         permissions: :can_manage_any_client_files,
+        authorize: Hmis::File.authorize_proc,
       )
     end
   end
