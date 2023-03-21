@@ -105,7 +105,7 @@ module Health
     def update
       @careplan.user = current_user
       @careplan.assign_attributes(careplan_params)
-      @careplan.assign_attributes(rn_approved_on: Date.current, approving_rn_id: current_user.id) if careplan_params[:rn_approval]
+      @careplan.assign_attributes(rn_approved_on: Date.current, approving_rn_id: current_user.id) if careplan_params[:rn_approval] == '1'
 
       @careplan.health_file.set_calculated!(current_user.id, @client.id) if @careplan.health_file&.new_record?
       Health::CareplanSaver.new(careplan: @careplan, user: current_user, create_qa: true).update
