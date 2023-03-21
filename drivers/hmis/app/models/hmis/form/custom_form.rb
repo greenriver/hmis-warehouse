@@ -53,7 +53,7 @@ class Hmis::Form::CustomForm < ::GrdaWarehouseBase
       errors.push(*validator.hmis_validate(record, user: user, role: role)) if validator.present?
     end
 
-    return errors.errors.reject(&:warning?) if ignore_warnings
+    return errors.drop_warnings! if ignore_warnings
 
     errors.errors
   end

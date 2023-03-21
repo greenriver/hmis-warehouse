@@ -144,6 +144,10 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     self.RelationshipToHoH == 1
   end
 
+  def hoh_entry_date
+    Hmis::Hud::Enrollment.where(household_id: household_id).heads_of_households.first&.entry_date
+  end
+
   def intake_assessment
     custom_assessments_including_wip.intakes.first
   end

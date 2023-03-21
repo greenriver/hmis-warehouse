@@ -7,6 +7,8 @@
 module HmisErrors
   class Error
     def initialize(attribute, type = :invalid, severity: :error, message: nil, full_message: nil, readable_attribute: nil, **kwargs)
+      attribute = kwargs[:attribute] if kwargs[:attribute].present? # allow overwriting attribute name
+
       type = :invalid unless Types::HmisSchema::Enums::ValidationType.values.keys.include?(type.to_s)
 
       # Camelize attribute ("entryDate" not "entry_date")

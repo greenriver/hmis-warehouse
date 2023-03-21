@@ -562,14 +562,9 @@ input CreateEnrollmentInput {
   A unique identifier for the client performing the mutation.
   """
   clientMutationId: String
+  entryDate: ISO8601Date!
   householdMembers: [EnrollmentHouseholdMemberInput!]!
-  inProgress: Boolean
   projectId: ID!
-
-  """
-  Start date with format yyyy-mm-dd
-  """
-  startDate: String!
 }
 
 """

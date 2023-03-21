@@ -127,7 +127,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     @assessment_date_item ||= link_id_item_hash.values.find(&:assessment_date)
   end
 
-  def find_and_validate_assessment_date(values:, entry_date:, exit_date:)
+  def find_and_validate_assessment_date(values:, enrollment:, ignore_warnings: false)
     errors = HmisErrors::Errors.new
     date = nil
     item = assessment_date_item
@@ -135,6 +135,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     error_context = {
       readable_attribute: item.brief_text || item.text,
       link_id: item&.link_id,
+      attribute: item.field_name.to_sym,
     }
 
     if item.present? && values.present?
@@ -154,11 +155,17 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
 
     # Additional validations for HUD assessment dates to be within appropriate entry/exit bounds
     if date.present? && hud_assessment?
-      # Ensure assessment date is on or after entry date
-      errors.add item.field_name, :out_of_range, **error_context, message: "must be after entry date (#{entry_date.strftime('%m/%d/%Y')})" if entry_date.present? && !intake? && date < entry_date
-      # Ensure assessment date is on or before exit date
-      errors.add item.field_name, :out_of_range, **error_context, message: "must be before exit date (#{exit_date.strftime('%m/%d/%Y')})" if exit_date.present? && !exit? && date > exit_date
+      validations = if intake?
+        Hmis::Hud::Validators::EnrollmentValidator.validate_entry_date(date, enrollment: enrollment, options: error_context)
+      elsif exit?
+        Hmis::Hud::Validators::ExitValidator.validate_exit_date(date, enrollment: enrollment, options: error_context)
+      else
+        Hmis::Hud::Validators::CustomAssessmentValidator.validate_assessment_date(date, enrollment: enrollment, options: error_context)
+      end
+      errors.push(*validations)
     end
+
+    errors.drop_warnings! if ignore_warnings
 
     date = nil if errors.errors.any?
 

@@ -34,13 +34,12 @@
       "text": "Other destination",
       "field_name": "otherDestination",
       "enable_behavior": "ALL",
+      "required": true,
       "enable_when": [
         {
           "question": "3.12",
           "operator": "EQUAL",
-          "answer_code": "OTHER",
-          "required": false,
-          "warn_if_empty": true
+          "answer_code": "OTHER"
         }
       ]
     }

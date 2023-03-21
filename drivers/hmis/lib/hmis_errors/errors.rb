@@ -42,6 +42,10 @@ module HmisErrors
       @errors
     end
 
+    def drop_warnings!
+      @errors = @errors.reject(&:warning?)
+    end
+
     def self.errors_are_equal(first, second)
       first.attribute.to_s == second.attribute.to_s &&
       first.type.to_sym == :required && second.type.to_sym == :required
