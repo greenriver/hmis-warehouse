@@ -25,7 +25,7 @@ module Types
       # Only allow this if fetching our own recent items
       return [] unless current_user == object
 
-      current_user.recent_items
+      current_user.viewable_recent_items
     end
   end
 end
