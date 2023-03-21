@@ -40,7 +40,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     FUNDER: { class_name: 'Hmis::Hud::Funder', permission: :can_edit_project_details, resolve_as: 'Types::HmisSchema::Funder' },
     INVENTORY: { class_name: 'Hmis::Hud::Inventory', permission: :can_edit_project_details, resolve_as: 'Types::HmisSchema::Inventory' },
     PROJECT_COC: { class_name: 'Hmis::Hud::ProjectCoc', permission: :can_edit_project_details, resolve_as: 'Types::HmisSchema::ProjectCoc' },
-    FILE: { class_name: 'Hmis::File', permission: :can_manage_client_files, resolve_as: 'Types::HmisSchema::File' },
+    FILE: { class_name: 'Hmis::File', permission: :can_manage_any_client_files, resolve_as: 'Types::HmisSchema::File' },
   }.freeze
 
   FORM_DATA_COLLECTION_STAGES = {

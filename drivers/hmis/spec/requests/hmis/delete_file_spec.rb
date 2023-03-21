@@ -68,7 +68,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     it 'should throw error if not allowed to manage files' do
-      remove_permissions(hmis_user, :can_manage_client_files)
+      remove_permissions(hmis_user, :can_manage_any_client_files)
       file_id = f1.id
       file, errors = call_mutation(file_id)
       expect(file).to be_nil
