@@ -90,7 +90,7 @@ module LongitudinalSpm
         [
           :end,
           :comparison_pattern,
-          :coc_code,
+          :coc_codes,
           :project_type_codes,
           :project_ids,
           :project_group_ids,
