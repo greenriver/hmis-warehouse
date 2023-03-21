@@ -27,9 +27,9 @@ module Mutations
 
     # Default CRUD Update functionality
     # If confirm is not specified, treat as confirmed (aka ignore warnings)
-    def default_update_record(record:, field_name:, input:, confirmed: true, permissions: nil)
+    def default_update_record(record:, field_name:, input:, confirmed: true, **auth_args)
       return { errors: [HmisErrors::Error.new(field_name, :not_found)] } unless record.present?
-      return { errors: [HmisErrors::Error.new(field_name, :not_allowed)] } if permissions.present? && !current_user.permissions_for?(record, *permissions)
+      return { errors: [HmisErrors::Error.new(field_name, :not_allowed)] } unless allowed?(record: record, **auth_args)
 
       # Create any custom validation errors
       errors = create_errors(record, input)
@@ -57,8 +57,8 @@ module Mutations
     end
 
     # Default CRUD Create functionality
-    def default_create_record(cls, field_name:, id_field_name:, input:, permissions: nil)
-      return { errors: [HmisErrors::Error.new(field_name, :not_allowed)] } if permissions.present? && !current_user.permissions?(*permissions)
+    def default_create_record(cls, field_name:, id_field_name:, input:, **auth_args)
+      return { errors: [HmisErrors::Error.new(field_name, :not_allowed)] } unless allowed?(**auth_args)
 
       record = cls.new(
         **input.to_params,
@@ -85,9 +85,9 @@ module Mutations
     end
 
     # Default CRUD Delete functionality
-    def default_delete_record(record:, field_name:, permissions: nil)
+    def default_delete_record(record:, field_name:, **auth_args)
       return { errors: [HmisErrors::Error.new(field_name, :not_found)] } unless record.present?
-      return { errors: [HmisErrors::Error.new(field_name, :not_allowed)] } if permissions.present? && !current_user.permissions_for?(record, *permissions)
+      return { errors: [HmisErrors::Error.new(field_name, :not_allowed)] } unless allowed?(record: record, **auth_args)
 
       record.destroy
 
@@ -95,6 +95,14 @@ module Mutations
         field_name => record,
         errors: [],
       }
+    end
+
+    def allowed?(record: nil, permissions: nil, authorize: nil)
+      allowed = true
+      allowed = record ? current_user.permissions_for?(record, *permissions) : current_user.permissions?(*permissions) if permissions.present?
+      allowed = authorize.call(record, current_user) if authorize.present?
+
+      allowed
     end
   end
 end
