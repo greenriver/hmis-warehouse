@@ -60,7 +60,7 @@ module HudReports::Ages
         '55-61' => a_t[:age].between(55..61),
         '55-64' => a_t[:age].between(55..64),
         '62+' => a_t[:age].gteq(62),
-        '64+' => a_t[:age].gteq(64),
+        '65+' => a_t[:age].gteq(65),
         "Client Doesn't Know/Client Refused" => a_t[:dob_quality].in([8, 9]).and(a_t[:dob].eq(nil)),
         'Data Not Collected' => a_t[:dob_quality].eq(99).and(a_t[:dob].eq(nil)),
         'Total' => Arel.sql('1=1'), # include everyone
