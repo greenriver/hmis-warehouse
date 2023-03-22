@@ -1,6 +1,6 @@
+.text-right
+  = render 'hud_reports/view_filter'
 - if @pagy.count.positive?
-  .text-right
-    = render 'hud_reports/view_filter'
   .jReportListing
     = render 'hud_reports/reports'
   = render 'hud_reports/list_refresher'

@@ -49,6 +49,7 @@ module HudPathReport::Generators::Fy2021
             report_instance_id: @report.id,
             first_name: source_client.FirstName,
             last_name: source_client.LastName,
+            personal_id: source_client.PersonalID,
             age: source_client.age_on([@report.start_date, enrollment.EntryDate].max),
             dob: source_client.DOB,
             dob_quality: source_client.DOBDataQuality,
