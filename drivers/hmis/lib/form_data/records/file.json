@@ -2,74 +2,78 @@
   "name": "file",
   "item": [
     {
-      "type": "STRING",
-      "link_id": "fileId",
-      "hidden": true,
-      "initial": [
-        {
-          "initial_behavior": "OVERWRITE",
-          "value_local_constant": "$fileId"
-        }
-      ]
-    },
-    {
-      "type": "CHOICE",
-      "required": true,
-      "repeats": true,
-      "link_id": "tags",
-      "text": "File Tags",
-      "pick_list_reference": "AVAILABLE_FILE_TYPES",
-      "field_name": "tags"
-    },
-    {
-      "type": "CHOICE",
-      "required": false,
-      "link_id": "enrollmentId",
-      "text": "Enrollment",
-      "pick_list_reference": "CLIENT_ENROLLMENTS",
-      "field_name": "enrollmentId"
-    },
-    {
-      "type": "DATE",
-      "link_id": "effectiveDate",
-      "text": "Signature Date",
-      "required": false,
-      "field_name": "effectiveDate"
-    },
-    {
-      "type": "DATE",
-      "link_id": "expirationDate",
-      "text": "Expiration Date",
-      "required": false,
-      "field_name": "expirationDate"
-    },
-    {
-      "type": "BOOLEAN",
-      "required": false,
-      "link_id": "confidential",
-      "text": "Confidential",
-      "field_name": "confidential"
-    },
-    {
       "type": "GROUP",
-      "required": false,
-      "link_id": "image",
-      "text": "Attachment",
+      "link_id": "1",
       "item": [
+        {
+          "type": "STRING",
+          "link_id": "fileId",
+          "hidden": true,
+          "initial": [
+            {
+              "initial_behavior": "OVERWRITE",
+              "value_local_constant": "$fileId"
+            }
+          ]
+        },
         {
           "type": "FILE",
           "required": true,
           "link_id": "fileBlobId",
           "text": "Attachment",
-          "field_name": "fileBlobId"
-        }
-      ],
-      "enable_behavior": "ANY",
-      "enable_when": [
+          "field_name": "fileBlobId",
+          "enable_behavior": "ANY",
+          "enable_when": [
+            {
+              "question": "fileId",
+              "operator": "EXISTS",
+              "answer_boolean": false
+            }
+          ]
+        },
         {
-          "question": "fileId",
-          "operator": "EXISTS",
-          "answer_boolean": false
+          "type": "CHOICE",
+          "required": true,
+          "repeats": true,
+          "link_id": "tags",
+          "text": "File Tags",
+          "pick_list_reference": "AVAILABLE_FILE_TYPES",
+          "field_name": "tags"
+        },
+        {
+          "type": "CHOICE",
+          "required": false,
+          "link_id": "enrollmentId",
+          "text": "Enrollment",
+          "pick_list_reference": "CLIENT_ENROLLMENTS",
+          "field_name": "enrollmentId"
+        },
+        {
+          "type": "DATE",
+          "link_id": "effectiveDate",
+          "text": "Signature Date",
+          "required": false,
+          "field_name": "effectiveDate"
+        },
+        {
+          "type": "DATE",
+          "link_id": "expirationDate",
+          "text": "Expiration Date",
+          "required": false,
+          "field_name": "expirationDate"
+        },
+        {
+          "type": "BOOLEAN",
+          "required": false,
+          "link_id": "confidential",
+          "text": "Confidential",
+          "field_name": "confidential",
+          "initial": [
+            {
+              "initial_behavior": "IF_EMPTY",
+              "value_boolean": false
+            }
+          ]
         }
       ]
     }
