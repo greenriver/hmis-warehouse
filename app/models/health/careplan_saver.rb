@@ -28,17 +28,15 @@ module Health
         @careplan.class.transaction do
           # This needs to be done before the save so that the _changed tracking is triggered
           care_planning_qa = setup_care_planning_qualifying_activity if @careplan.just_finished? && @create_qa
-          if @careplan.just_approved? && @create_qa
-            pctp_signed_qa = setup_pctp_signed_qualifying_activity
-            cha_approved_qa = setup_cha_approved_qualifying_activity
-          end
+          cha_approved_qa = setup_cha_approved_qualifying_activity if @careplan.ncm_just_approved? && @create_qa
+          pctp_signed_qa = setup_pctp_signed_qualifying_activity if @careplan.rn_just_approved? && @create_qa
 
           # Validate the save so that no QAs are  created if the PCTP is invalid
           @careplan.save!
 
           # This is done after the save to guarantee the careplan has an id
-          cha_approved_qa.save! if cha_approved_qa.present?
           complete_qa(care_planning_qa) if care_planning_qa.present?
+          cha_approved_qa.save! if cha_approved_qa.present?
           complete_qa(pctp_signed_qa) if pctp_signed_qa.present?
 
           @careplan.set_lock
@@ -91,7 +89,7 @@ module Health
         user_id: @user.id,
         user_full_name: @user.name_with_email,
         activity: :cha_completed,
-        date_of_activity: [@careplan.rn_approved_on, '2023-04-01'.to_date].max,
+        date_of_activity: [@careplan.ncm_approved_on, '2023-04-01'.to_date].max,
         mode_of_contact: nil, # There are no contact modifiers listed in the QA specification
         reached_client: nil,
         follow_up: 'Approve Comprehensive Assessment',
