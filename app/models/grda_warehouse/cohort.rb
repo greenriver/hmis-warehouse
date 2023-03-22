@@ -108,13 +108,14 @@ module GrdaWarehouse
           client: [
             :source_clients,
             :processed_service_history,
-            :most_recent_pathways_or_rrh_assessment,
             {
               cohort_clients: [
                 :cohort,
               ],
               source_clients: [
                 :most_recent_tc_hat,
+                :most_recent_current_living_situation,
+                :most_recent_pathways_or_rrh_assessment,
               ],
             },
           ],
@@ -361,6 +362,8 @@ module GrdaWarehouse
         ::CohortColumns::PreviousRemovalReason.new,
         ::CohortColumns::HealthPrioritized.new,
         ::CohortColumns::MostRecentDateToStreet.new,
+        ::CohortColumns::DaysHomelessPathways.new,
+        ::CohortColumns::MostRecentClsSheltered.new,
         ::CohortColumns::UserString1.new,
         ::CohortColumns::UserString2.new,
         ::CohortColumns::UserString3.new,
