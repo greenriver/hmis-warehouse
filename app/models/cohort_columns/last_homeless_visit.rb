@@ -27,9 +27,12 @@ module CohortColumns
       # e.g.: {:project_name=>\"APR - Transitional Housing\", :date=>Mon, 30 Sep 2019, :project_id=>10}
       return unless lhv.present?
 
+      enforce_visibility = cohort_client.cohort.enforce_project_visibility_on_cells?
       lhv = JSON.parse(lhv)
       lhv.select do |row|
-        row['project_id'].in? user.visible_project_ids_enrollment_context
+        next true unless enforce_visibility
+
+        row['project_id'].in?(user.visible_project_ids_enrollment_context)
       end.sort_by { |row| row['date'] }.reverse.map do |row|
         "#{row['project_name']}: #{row['date'].to_date}"
       end.join('; ')

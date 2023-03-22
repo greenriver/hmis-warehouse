@@ -18,10 +18,13 @@ module CohortOngoingEnrollments
   private def for_display(column, user)
     return nil unless cohort_client.client.processed_service_history&.public_send(column)
 
+    enforce_visibility = cohort_client.cohort.enforce_project_visibility_on_cells?
     # in the form [{project_name: 'Project Name', date: 'last date', project_id: 'Project ID}]
     cohort_client.client.processed_service_history.public_send(column).
       select do |row|
-        row['project_id'].in? user.visible_project_ids_enrollment_context
+        next true unless enforce_visibility
+
+        row['project_id'].in?(user.visible_project_ids_enrollment_context)
       end.
       sort do |a, b|
         b['date'].to_date <=> a['date'].to_date

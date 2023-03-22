@@ -5702,7 +5702,8 @@ CREATE TABLE public.cohorts (
     threshold_label_5 character varying,
     system_cohort boolean DEFAULT false,
     type character varying DEFAULT 'GrdaWarehouse::Cohort'::character varying,
-    project_group_id bigint
+    project_group_id bigint,
+    enforce_project_visibility_on_cells boolean DEFAULT true NOT NULL
 );
 
 
@@ -20076,6 +20077,70 @@ ALTER SEQUENCE public.synthetic_youth_education_statuses_id_seq OWNED BY public.
 
 
 --
+-- Name: system_pathways_clients; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.system_pathways_clients (
+    id bigint NOT NULL,
+    client_id bigint,
+    first_name character varying,
+    last_name character varying,
+    personal_ids character varying,
+    dob date,
+    age integer,
+    am_ind_ak_native boolean,
+    asian boolean,
+    black_af_american boolean,
+    native_hi_pacific boolean,
+    white boolean,
+    ethnicity integer,
+    male boolean,
+    female boolean,
+    gender_other boolean,
+    transgender boolean,
+    questioning boolean,
+    no_single_gender boolean,
+    disabling_condition boolean,
+    relationship_to_hoh integer,
+    veteran_status integer,
+    household_id character varying,
+    household_type character varying,
+    ce boolean,
+    system boolean,
+    es boolean,
+    sh boolean,
+    th boolean,
+    rrh boolean,
+    psh boolean,
+    oph boolean,
+    ph boolean,
+    destination integer,
+    returned integer,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: system_pathways_clients_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.system_pathways_clients_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: system_pathways_clients_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.system_pathways_clients_id_seq OWNED BY public.system_pathways_clients.id;
+
+
+--
 -- Name: taggings; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -23916,6 +23981,13 @@ ALTER TABLE ONLY public.synthetic_youth_education_statuses ALTER COLUMN id SET D
 
 
 --
+-- Name: system_pathways_clients id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.system_pathways_clients ALTER COLUMN id SET DEFAULT nextval('public.system_pathways_clients_id_seq'::regclass);
+
+
+--
 -- Name: taggings id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -26791,6 +26863,14 @@ ALTER TABLE ONLY public.synthetic_events
 
 ALTER TABLE ONLY public.synthetic_youth_education_statuses
     ADD CONSTRAINT synthetic_youth_education_statuses_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: system_pathways_clients system_pathways_clients_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.system_pathways_clients
+    ADD CONSTRAINT system_pathways_clients_pkey PRIMARY KEY (id);
 
 
 --
@@ -48149,6 +48229,13 @@ CREATE INDEX index_synthetic_youth_education_statuses_on_source ON public.synthe
 
 
 --
+-- Name: index_system_pathways_clients_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_system_pathways_clients_on_client_id ON public.system_pathways_clients USING btree (client_id);
+
+
+--
 -- Name: index_taggings_on_context; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -51561,6 +51648,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230309205059'),
 ('20230313122300'),
 ('20230313152950'),
-('20230319133739');
+('20230319133739'),
+('20230320131930'),
+('20230322183901');
 
 
