@@ -32,9 +32,9 @@
       = checkmark(true)
       RN Approved
   - elsif careplan.patient_signed_on
-    -# TODO: add guard current_user.can_approve_careplans?
-    = link_to polymorphic_path([:edit] + careplan_path_generator, id: careplan) do
-      Review Care Plan
+    - if current_user.can_approve_careplan? || current_user.can_approve_cha?
+      = link_to polymorphic_path([:edit] + careplan_path_generator, id: careplan) do
+        Review Care Plan
   .signature-date
     (#{careplan.provider_signed_on&.to_date || careplan.rn_approved_on&.to_date})
   -# - elsif careplan.aco_signature_requests.outstanding.exists?
