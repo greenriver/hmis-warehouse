@@ -299,7 +299,7 @@ module Health
     CP2_DATE = '2023-04-01'.to_date.freeze
     def completed?
       cp1 = provider_signed_on && patient_signed_on && [provider_signed_on, patient_signed_on].max < CP2_DATE
-      cp2 = patient_signed_on >= CP2_DATE && rn_approval?
+      cp2 = patient_signed_on && patient_signed_on >= CP2_DATE && rn_approval?
 
       cp1 || cp2
     end

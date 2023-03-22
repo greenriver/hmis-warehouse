@@ -205,6 +205,8 @@ module Health
         or(merge(Health::PatientReferral.cp_2_referrals).cp_2_engagement(on))
     end
 
+    # CP 1 required an SSM, CHA, participation agreement and information release (combined after 11/2022),
+    # and a PCTP signed by both the patient and their PCP.
     def self.cp_1_engagement(on) # rubocop:disable Naming/MethodParameterName
       # This lives in the warehouse DB and must be materialized
       # hmis_ssm_client_ids = GrdaWarehouse::Hud::Client.joins(:source_hmis_forms).merge(GrdaWarehouse::HmisForm.self_sufficiency).distinct.pluck(:id)
@@ -275,6 +277,8 @@ module Health
       )
     end
 
+    # CP 2 relaxed the requirements for the PCTP so that it required in-house clinical approval instead of needing
+    # to be approved by the patients PCP.
     def self.cp_2_engagement(on) # rubocop:disable Naming/MethodParameterName
       ssm_patient_id_scope = Health::SelfSufficiencyMatrixForm.distinct.
         completed.
