@@ -30,7 +30,7 @@ class Hmis::File < GrdaWarehouse::File
   end
 
   scope :confidential, -> { where(confidential: true) }
-  scope :nonconfidential, -> { where(confidential: false) }
+  scope :nonconfidential, -> { where(confidential: [false, nil]) }
 
   scope :viewable_by, ->(user) do
     new_scope = where(client_id: Hmis::Hud::Client.with_access(user, :can_view_any_nonconfidential_client_files, :can_view_any_confidential_client_files))
