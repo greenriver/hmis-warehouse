@@ -147,20 +147,18 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           response, result = post_graphql(input: { input: input }) { mutation }
           record = result.dig('data', 'submitForm', 'record')
           errors = result.dig('data', 'submitForm', 'errors')
-          expected_errors = [
-            {
-              type: :required,
-              attribute: required_item.field_name,
-              severity: :error,
-            },
-          ]
+          expected_error = {
+            type: :required,
+            attribute: required_item.field_name,
+            severity: :error,
+          }
 
           aggregate_failures 'checking response' do
             expect(response.status).to eq 200
             expect(record).to be_nil
-            expect(errors).to match(expected_errors.map do |h|
-              a_hash_including(**h.transform_keys(&:to_s).transform_values(&:to_s))
-            end)
+            expect(errors).to include(
+              a_hash_including(**expected_error.transform_keys(&:to_s).transform_values(&:to_s)),
+            )
           end
         end
 

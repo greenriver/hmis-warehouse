@@ -7,6 +7,8 @@
 module HmisErrors
   class Error
     def initialize(attribute, type = :invalid, severity: :error, message: nil, full_message: nil, readable_attribute: nil, **kwargs)
+      attribute = kwargs[:attribute] if kwargs[:attribute].present? # allow overwriting attribute name
+
       type = :invalid unless Types::HmisSchema::Enums::ValidationType.values.keys.include?(type.to_s)
 
       # Camelize attribute ("entryDate" not "entry_date")
@@ -36,10 +38,12 @@ module HmisErrors
     end
 
     def self.from_ar_error(error)
+      error = error.inner_error if error.is_a? ActiveModel::NestedError
+
       # 'must exist' string as type: https://github.com/rails/rails/blob/83217025a171593547d1268651b446d3533e2019/activemodel/lib/active_model/error.rb#L65
       type = [:blank, 'must exist'].include?(error.type) ? :required : error.type
       readable_attribute = humanize_attribute(error.attribute)
-      full_message = error.full_message&.gsub(error.attribute.to_s.downcase.capitalize, readable_attribute)
+      full_message = error.options[:full_message] || error.full_message&.gsub(error.attribute.to_s.downcase.capitalize, readable_attribute)
 
       new(
         error.attribute,
@@ -72,6 +76,8 @@ module HmisErrors
         'not found'
       when :not_allowed
         'operation not allowed'
+      when :server_error
+        'failed to validate due to a server error'
       else
         I18n.t("errors.messages.#{err_type}", default: 'is invalid')
       end

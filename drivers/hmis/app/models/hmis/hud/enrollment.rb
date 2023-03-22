@@ -49,6 +49,8 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :enrollments
   has_one :wip, class_name: 'Hmis::Wip', as: :source, dependent: :destroy
 
+  validates_with Hmis::Hud::Validators::EnrollmentValidator
+
   SORT_OPTIONS = [:most_recent].freeze
 
   # hide previous declaration of :viewable_by, we'll use this one
@@ -151,6 +153,10 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   def head_of_household?
     self.RelationshipToHoH == 1
+  end
+
+  def hoh_entry_date
+    Hmis::Hud::Enrollment.where(household_id: household_id).heads_of_households.first&.entry_date
   end
 
   def intake_assessment
