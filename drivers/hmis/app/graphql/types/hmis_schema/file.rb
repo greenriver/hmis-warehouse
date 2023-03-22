@@ -21,6 +21,7 @@ module Types
     field :name, String, null: false
     field :tags, [String], null: false
     field :file_blob_id, ID, null: false
+    field :own_file, Boolean, null: false
 
     # Object is a Hmis::File
 
@@ -42,6 +43,10 @@ module Types
 
     def updated_by
       object.user
+    end
+
+    def own_file
+      object.user.user_id == current_user.id.to_s
     end
   end
 end

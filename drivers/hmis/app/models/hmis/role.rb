@@ -40,14 +40,6 @@ class Hmis::Role < ::ApplicationRecord
     false
   end
 
-  def remove_all_permissions
-    update(**self.class.permissions_with_descriptions.keys.map { |key| [key, false] }.to_h)
-  end
-
-  def add_all_permissions
-    update(**self.class.permissions_with_descriptions.keys.map { |key| [key, true] }.to_h)
-  end
-
   def self.description_for(permission:)
     permissions_with_descriptions[permission][:description] rescue '' # rubocop:disable Style/RescueModifier
   end

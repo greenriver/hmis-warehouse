@@ -366,6 +366,10 @@ type Client {
 type ClientAccess {
   canDeleteEnrollments: Boolean!
   canEditEnrollments: Boolean!
+  canManageAnyClientFiles: Boolean!
+  canManageOwnClientFiles: Boolean!
+  canViewAnyConfidentialClientFiles: Boolean!
+  canViewAnyNonconfidentialClientFiles: Boolean!
   canViewDob: Boolean!
   canViewEnrollmentDetails: Boolean!
   canViewFullSsn: Boolean!
@@ -1563,6 +1567,7 @@ type File {
   fileBlobId: ID!
   id: ID!
   name: String!
+  ownFile: Boolean!
   tags: [String!]!
   updatedAt: ISO8601DateTime!
   updatedBy: User!
@@ -3654,7 +3659,10 @@ type QueryAccess {
   canEditEnrollments: Boolean!
   canEditOrganization: Boolean!
   canEditProjectDetails: Boolean!
-  canManageClientFiles: Boolean!
+  canManageAnyClientFiles: Boolean!
+  canManageOwnClientFiles: Boolean!
+  canViewAnyConfidentialClientFiles: Boolean!
+  canViewAnyNonconfidentialClientFiles: Boolean!
   canViewClients: Boolean!
   canViewDob: Boolean!
   canViewEnrollmentDetails: Boolean!
