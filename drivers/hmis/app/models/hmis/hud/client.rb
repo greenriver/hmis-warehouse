@@ -208,6 +208,12 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     GrdaWarehouse::Hud::Client.age(date: date, dob: self.DOB)
   end
 
+  def safe_dob(user)
+    return nil unless user.present?
+
+    dob if user.can_view_dob_for?(self)
+  end
+
   def image
     @image ||= client_files&.client_photos&.newest_first&.first&.client_file
   end

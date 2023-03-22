@@ -13,7 +13,7 @@ module Hmis::Hud::Processors
 
       return if attribute_name == 'custom_service_type'
 
-      if attribute_name == 'type_provided'
+      if attribute_name == 'type_provided' && attribute_value.present?
         record_type, type_provided = attribute_value.split(':')
         @processor.send(factory_name).assign_attributes(
           record_type: record_type,
