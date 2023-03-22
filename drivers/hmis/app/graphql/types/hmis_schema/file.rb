@@ -34,7 +34,10 @@ module Types
     end
 
     def url
-      Rails.application.routes.url_helpers.rails_blob_url(object.client_file, host: ENV['FQDN']) if object.client_file.attached?
+      # Use service url in dev to avoid CORS issues
+      return object.client_file.blob.service_url if Rails.env.development?
+
+      Rails.application.routes.url_helpers.rails_blob_url(object.client_file, host: ENV['FQDN'], protocol: 'https') if object.client_file.attached?
     end
 
     def tags
