@@ -105,6 +105,8 @@ module Health
     def update
       @careplan.user = current_user
       @careplan.assign_attributes(careplan_params)
+      @careplan.assign_attributes(careplan_sent_on: Date.current, careplan_sender_id: current_user.id) if careplan_params[:careplan_sent] == '1'
+      @careplan.assign_attributes(ncm_approved_on: Date.current, approving_ncm_id: current_user.id) if careplan_params[:ncm_approval] == '1'
       @careplan.assign_attributes(rn_approved_on: Date.current, approving_rn_id: current_user.id) if careplan_params[:rn_approval] == '1'
 
       @careplan.health_file.set_calculated!(current_user.id, @client.id) if @careplan.health_file&.new_record?
@@ -185,7 +187,9 @@ module Health
         :future_issues_10,
         :member_understands_contingency,
         :member_verbalizes_understanding,
+        :careplan_sent,
       ]
+      careplan_params << :ncm_approval if current_user.can_approve_cha?
       careplan_params << :rn_approval # TODO add guard current_user.can_approve_careplans?
 
       params.require(:health_careplan).

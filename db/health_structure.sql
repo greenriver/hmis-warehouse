@@ -360,7 +360,13 @@ CREATE TABLE public.careplans (
     provider_signature_mode character varying,
     rn_approval boolean,
     approving_rn_id bigint,
-    rn_approved_on date
+    rn_approved_on date,
+    ncm_approval boolean,
+    approving_ncm_id bigint,
+    ncm_approved_on date,
+    careplan_sent boolean,
+    careplan_sender_id bigint,
+    careplan_sent_on date
 );
 
 
@@ -6374,10 +6380,24 @@ CREATE INDEX index_backup_plans_on_patient_id ON public.backup_plans USING btree
 
 
 --
+-- Name: index_careplans_on_approving_ncm_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_careplans_on_approving_ncm_id ON public.careplans USING btree (approving_ncm_id);
+
+
+--
 -- Name: index_careplans_on_approving_rn_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_careplans_on_approving_rn_id ON public.careplans USING btree (approving_rn_id);
+
+
+--
+-- Name: index_careplans_on_careplan_sender_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_careplans_on_careplan_sender_id ON public.careplans USING btree (careplan_sender_id);
 
 
 --
@@ -7650,6 +7670,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20221006205522'),
 ('20221108190522'),
 ('20230123201023'),
-('20230317185655');
+('20230317185655'),
+('20230322163322'),
+('20230322172802');
 
 
