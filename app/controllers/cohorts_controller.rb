@@ -154,6 +154,7 @@ class CohortsController < ApplicationController
       :assessment_trigger,
       :tag_id,
       :project_group_id,
+      :enforce_project_visibility_on_cells,
       user_ids: [],
     ] + GrdaWarehouse::Cohort.threshold_keys
     params.require(:cohort).permit(opts)
