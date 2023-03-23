@@ -129,7 +129,7 @@ module Types
             label: tag.name,
             group_code: tag.group,
             group_label: tag.group,
-            secondary_label: "(included: #{tag.included_info})",
+            secondary_label: "(includes: #{tag.included_info})",
           }
         end.
           compact.
@@ -141,7 +141,7 @@ module Types
         client.enrollments.map do |enrollment|
           {
             code: enrollment.id,
-            label: enrollment.project.project_name,
+            label: "#{enrollment.project.project_name} (#{[enrollment.entry_date.strfdate('mm/dd/yyyy'), enrollment.exit_date&.strfdate('mm/dd/yyyy')].compact.join(' - ')})",
           }
         end
       end

@@ -13,10 +13,13 @@ if ENV['ENABLE_HMIS_API'] == 'true' && hmis_hostname.present?
         methods: [:get, :post, :delete, :put, :patch, :options, :head],
         credentials: true
 
-      resource '/rails/active_storage/*',
-        headers: :any,
-        methods: [:get, :options, :head],
-        credentials: true
+      # We only need this when the proxy is being used, which is not in dev
+      unless Rails.env.development?
+        resource '/rails/active_storage/*',
+          headers: :any,
+          methods: [:get, :options, :head],
+          credentials: true
+      end
     end
   end
 end

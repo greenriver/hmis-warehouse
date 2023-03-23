@@ -18,10 +18,6 @@ module HasRecentItems
     end
 
     def recent_items
-      recent_item_links.order(updated_at: :desc).preload(:item).map(&:item).compact
-    end
-
-    def viewable_recent_items
       viewable_recent_item_links.order(updated_at: :desc).preload(:item).map(&:item).compact
     end
 
@@ -60,7 +56,7 @@ module HasRecentItems
     end
 
     def viewable_map
-      @viewable_map
+      @viewable_map ||= {}
     end
 
     # This method should not be converted to 'recent?'
@@ -71,9 +67,7 @@ module HasRecentItems
       has_many association_name, through: :recent_item_links, source: :item, source_type: item_class.name
       @recent_item_types = {} if @recent_item_types.nil?
       @recent_item_types[association_name] = item_class
-
-      @viewable_map = {} if @viewable_map.nil?
-      @viewable_map[item_class.name] = viewable_proc
+      viewable_map[item_class.name] = viewable_proc
     end
     # rubocop:enable Naming/PredicateName
   end

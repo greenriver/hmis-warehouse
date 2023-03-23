@@ -125,7 +125,7 @@ Rails.application.configure do
   end
 
   # In order to fix the problem, the following options must be set.
-  routes.default_url_options = { host: ENV['FQDN'], protocol: 'https' }
+  routes.default_url_options ||= {}
   routes.default_url_options[:script_name]= ''
 
   # Disable CSRF origin check during development because the HMIS frontend has a different origin
