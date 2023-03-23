@@ -32,8 +32,10 @@
 
   - if @careplan.ncm_approval?
     - approval_hint = @careplan.rn_approved_on.present? ? "Approved by #{@careplan.approving_rn.name} on #{@careplan.rn_approved_on}" : nil
-    -# TODO add guard current_user.can_approve_careplans?
-    = f.input :rn_approval, label: 'Clinical Manager Approval of Care Plan', hint: approval_hint
+    - if current_user.can_approve_careplan?
+      = f.input :rn_approval, label: 'Clinical Manager Approval of Care Plan', hint: approval_hint
+    -else
+      = approval_hint
 
 .col-md-6
 

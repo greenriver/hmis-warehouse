@@ -190,7 +190,7 @@ module Health
         :careplan_sent,
       ]
       careplan_params << :ncm_approval if current_user.can_approve_cha?
-      careplan_params << :rn_approval # TODO add guard current_user.can_approve_careplans?
+      careplan_params << :rn_approval if current_user.can_approve_careplan?
 
       params.require(:health_careplan).
         permit(
