@@ -858,24 +858,24 @@ CREATE SEQUENCE public.has_mental_health_problems_id_seq
 
 
 --
--- Name: hmis_access_group_members; Type: TABLE; Schema: public; Owner: -
+-- Name: hmis_access_controls; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.hmis_access_group_members (
+CREATE TABLE public.hmis_access_controls (
     id bigint NOT NULL,
     access_group_id bigint,
-    user_id bigint,
+    role_id bigint,
+    deleted_at timestamp without time zone,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone
+    updated_at timestamp(6) without time zone NOT NULL
 );
 
 
 --
--- Name: hmis_access_group_members_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+-- Name: hmis_access_controls_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.hmis_access_group_members_id_seq
+CREATE SEQUENCE public.hmis_access_controls_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -884,10 +884,10 @@ CREATE SEQUENCE public.hmis_access_group_members_id_seq
 
 
 --
--- Name: hmis_access_group_members_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+-- Name: hmis_access_controls_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
-ALTER SEQUENCE public.hmis_access_group_members_id_seq OWNED BY public.hmis_access_group_members.id;
+ALTER SEQUENCE public.hmis_access_controls_id_seq OWNED BY public.hmis_access_controls.id;
 
 
 --
@@ -899,8 +899,7 @@ CREATE TABLE public.hmis_access_groups (
     name character varying NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone,
-    scope character varying DEFAULT 'view'::character varying
+    deleted_at timestamp without time zone
 );
 
 
@@ -937,7 +936,17 @@ CREATE TABLE public.hmis_roles (
     deleted_at timestamp without time zone,
     can_administer_hmis boolean DEFAULT false,
     can_delete_assigned_project_data boolean DEFAULT false,
-    can_delete_enrollments boolean DEFAULT false
+    can_delete_enrollments boolean DEFAULT false,
+    can_delete_project boolean DEFAULT false NOT NULL,
+    can_edit_project_details boolean DEFAULT false NOT NULL,
+    can_edit_organization boolean DEFAULT false NOT NULL,
+    can_delete_organization boolean DEFAULT false NOT NULL,
+    can_edit_clients boolean DEFAULT false NOT NULL,
+    can_view_partial_ssn boolean DEFAULT false NOT NULL,
+    can_view_dob boolean DEFAULT false NOT NULL,
+    can_view_enrollment_details boolean DEFAULT false NOT NULL,
+    can_edit_enrollments boolean DEFAULT false NOT NULL,
+    can_manage_client_files boolean DEFAULT false NOT NULL
 );
 
 
@@ -958,6 +967,39 @@ CREATE SEQUENCE public.hmis_roles_id_seq
 --
 
 ALTER SEQUENCE public.hmis_roles_id_seq OWNED BY public.hmis_roles.id;
+
+
+--
+-- Name: hmis_user_access_controls; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_user_access_controls (
+    id bigint NOT NULL,
+    access_control_id bigint,
+    user_id bigint,
+    deleted_at timestamp without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: hmis_user_access_controls_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_user_access_controls_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_user_access_controls_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_user_access_controls_id_seq OWNED BY public.hmis_user_access_controls.id;
 
 
 --
@@ -1905,7 +1947,16 @@ CREATE TABLE public.roles (
     can_report_on_confidential_projects boolean DEFAULT false,
     can_edit_assigned_project_groups boolean DEFAULT false,
     can_view_chronic_tab boolean DEFAULT false,
-    can_view_confidential_enrollment_details boolean DEFAULT false
+    can_view_confidential_enrollment_details boolean DEFAULT false,
+    can_configure_cohorts boolean DEFAULT false,
+    can_add_cohort_clients boolean DEFAULT false,
+    can_manage_cohort_data boolean DEFAULT false,
+    can_view_cohorts boolean DEFAULT false,
+    can_participate_in_cohorts boolean DEFAULT false,
+    can_view_inactive_cohort_clients boolean DEFAULT false,
+    can_manage_inactive_cohort_clients boolean DEFAULT false,
+    can_view_deleted_cohort_clients boolean DEFAULT false,
+    can_view_cohort_client_changes_report boolean DEFAULT false
 );
 
 
@@ -2406,40 +2457,6 @@ ALTER SEQUENCE public.uploads_id_seq OWNED BY public.uploads.id;
 
 
 --
--- Name: user_hmis_data_source_roles; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.user_hmis_data_source_roles (
-    id bigint NOT NULL,
-    user_id bigint NOT NULL,
-    role_id bigint NOT NULL,
-    data_source_id bigint NOT NULL,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone
-);
-
-
---
--- Name: user_hmis_data_source_roles_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.user_hmis_data_source_roles_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: user_hmis_data_source_roles_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.user_hmis_data_source_roles_id_seq OWNED BY public.user_hmis_data_source_roles.id;
-
-
---
 -- Name: user_roles; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2762,10 +2779,10 @@ ALTER TABLE ONLY public.glacier_vaults ALTER COLUMN id SET DEFAULT nextval('publ
 
 
 --
--- Name: hmis_access_group_members id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: hmis_access_controls id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.hmis_access_group_members ALTER COLUMN id SET DEFAULT nextval('public.hmis_access_group_members_id_seq'::regclass);
+ALTER TABLE ONLY public.hmis_access_controls ALTER COLUMN id SET DEFAULT nextval('public.hmis_access_controls_id_seq'::regclass);
 
 
 --
@@ -2780,6 +2797,13 @@ ALTER TABLE ONLY public.hmis_access_groups ALTER COLUMN id SET DEFAULT nextval('
 --
 
 ALTER TABLE ONLY public.hmis_roles ALTER COLUMN id SET DEFAULT nextval('public.hmis_roles_id_seq'::regclass);
+
+
+--
+-- Name: hmis_user_access_controls id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_user_access_controls ALTER COLUMN id SET DEFAULT nextval('public.hmis_user_access_controls_id_seq'::regclass);
 
 
 --
@@ -2930,13 +2954,6 @@ ALTER TABLE ONLY public.uploads ALTER COLUMN id SET DEFAULT nextval('public.uplo
 
 
 --
--- Name: user_hmis_data_source_roles id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.user_hmis_data_source_roles ALTER COLUMN id SET DEFAULT nextval('public.user_hmis_data_source_roles_id_seq'::regclass);
-
-
---
 -- Name: user_roles id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -3077,11 +3094,11 @@ ALTER TABLE ONLY public.glacier_vaults
 
 
 --
--- Name: hmis_access_group_members hmis_access_group_members_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: hmis_access_controls hmis_access_controls_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.hmis_access_group_members
-    ADD CONSTRAINT hmis_access_group_members_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.hmis_access_controls
+    ADD CONSTRAINT hmis_access_controls_pkey PRIMARY KEY (id);
 
 
 --
@@ -3098,6 +3115,14 @@ ALTER TABLE ONLY public.hmis_access_groups
 
 ALTER TABLE ONLY public.hmis_roles
     ADD CONSTRAINT hmis_roles_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_user_access_controls hmis_user_access_controls_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_user_access_controls
+    ADD CONSTRAINT hmis_user_access_controls_pkey PRIMARY KEY (id);
 
 
 --
@@ -3277,14 +3302,6 @@ ALTER TABLE ONLY public.uploads
 
 
 --
--- Name: user_hmis_data_source_roles user_hmis_data_source_roles_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.user_hmis_data_source_roles
-    ADD CONSTRAINT user_hmis_data_source_roles_pkey PRIMARY KEY (id);
-
-
---
 -- Name: user_roles user_roles_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3450,17 +3467,31 @@ CREATE UNIQUE INDEX index_glacier_vaults_on_name ON public.glacier_vaults USING 
 
 
 --
--- Name: index_hmis_access_group_members_on_access_group_id; Type: INDEX; Schema: public; Owner: -
+-- Name: index_hmis_access_controls_on_access_group_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_hmis_access_group_members_on_access_group_id ON public.hmis_access_group_members USING btree (access_group_id);
+CREATE INDEX index_hmis_access_controls_on_access_group_id ON public.hmis_access_controls USING btree (access_group_id);
 
 
 --
--- Name: index_hmis_access_group_members_on_user_id; Type: INDEX; Schema: public; Owner: -
+-- Name: index_hmis_access_controls_on_role_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_hmis_access_group_members_on_user_id ON public.hmis_access_group_members USING btree (user_id);
+CREATE INDEX index_hmis_access_controls_on_role_id ON public.hmis_access_controls USING btree (role_id);
+
+
+--
+-- Name: index_hmis_user_access_controls_on_access_control_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_user_access_controls_on_access_control_id ON public.hmis_user_access_controls USING btree (access_control_id);
+
+
+--
+-- Name: index_hmis_user_access_controls_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_user_access_controls_on_user_id ON public.hmis_user_access_controls USING btree (user_id);
 
 
 --
@@ -3636,27 +3667,6 @@ CREATE INDEX index_two_factors_memorized_devices_on_user_id ON public.two_factor
 --
 
 CREATE INDEX index_uploads_on_deleted_at ON public.uploads USING btree (deleted_at);
-
-
---
--- Name: index_user_hmis_data_source_roles_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_user_hmis_data_source_roles_on_data_source_id ON public.user_hmis_data_source_roles USING btree (data_source_id);
-
-
---
--- Name: index_user_hmis_data_source_roles_on_role_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_user_hmis_data_source_roles_on_role_id ON public.user_hmis_data_source_roles USING btree (role_id);
-
-
---
--- Name: index_user_hmis_data_source_roles_on_user_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_user_hmis_data_source_roles_on_user_id ON public.user_hmis_data_source_roles USING btree (user_id);
 
 
 --
@@ -4059,6 +4069,14 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20221102141424'),
 ('20221103165106'),
 ('20221103165625'),
-('20221130180430');
+('20221130180430'),
+('20230130213746'),
+('20230130215326'),
+('20230217151359'),
+('20230217151360'),
+('20230217201904'),
+('20230223204644'),
+('20230227221846'),
+('20230313152950');
 
 

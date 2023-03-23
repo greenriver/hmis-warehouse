@@ -41,12 +41,17 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
       self.class.delay(
         queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running),
         priority: 12,
-      ).update_cached_counts(
-        client_ids: batch,
-        include_cas_and_cohorts: include_cas_and_cohorts,
-        skip_expensive_calculations: skip_expensive_calculations,
+      ).update_cached_counts_no_named_arguments(
+        batch,
+        include_cas_and_cohorts,
+        skip_expensive_calculations,
       )
     end
+  end
+
+  # Used for temporary compatability with Delayed::Job that hasn't been fully updated for ruby 3
+  def self.update_cached_counts_no_named_arguments(client_ids, include_cas_and_cohorts = false, skip_expensive_calculations = false)
+    update_cached_counts(client_ids: client_ids, include_cas_and_cohorts: include_cas_and_cohorts, skip_expensive_calculations: skip_expensive_calculations)
   end
 
   private def internal_update_cached_counts(client_ids: [], include_cas_and_cohorts: false, skip_expensive_calculations: false)
@@ -215,6 +220,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
           last_exit_destination: calcs.last_exit_destination(client_id),
           vispdat_score: calcs.vispdat_score(client_id),
           vispdat_priority_score: calcs.vispdat_priority_score(client_id),
+          last_intentional_contacts: calcs.last_intentional_contacts(client_id),
         )
         processed_batch << processed if processed.changed?
       end
@@ -255,6 +261,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
               :last_exit_destination,
               :vispdat_score,
               :vispdat_priority_score,
+              :last_intentional_contacts,
             ],
           },
         )
@@ -803,6 +810,70 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
         end
         vispdat_score + vispdat_prioritized_days_score
       end
+    end
+
+    def last_intentional_contacts(client_id)
+      open_enrollments = GrdaWarehouse::ServiceHistoryEnrollment.entry.ongoing.
+        where(client_id: @client_ids)
+
+      @services ||= {}.tap do |h|
+        open_enrollments.
+          joins(enrollment: [:project, :services]).
+          group(she_t[:client_id], p_t[:id]).maximum(s_t[:date_provided]).
+          map do |(service_client_id, project_id), date|
+            h[service_client_id] ||= {}
+            h[service_client_id][project_id] ||= {
+              date: date,
+              project_id: project_id,
+            }
+          end
+      end
+
+      @current_living_situations ||= {}.tap do |h|
+        open_enrollments.
+          joins(enrollment: [:project, :current_living_situations]).
+          group(she_t[:client_id], p_t[:id]).maximum(cls_t[:information_date]).
+          map do |(cls_client_id, project_id), date|
+          h[cls_client_id] ||= {}
+          h[cls_client_id][project_id] ||= {
+            date: date,
+            project_id: project_id,
+          }
+        end
+      end
+
+      @events ||= {}.tap do |h|
+        open_enrollments.
+          joins(enrollment: [:project, :events]).
+          group(she_t[:client_id], p_t[:id]).maximum(ev_t[:event_date]).
+          map do |(event_client_id, project_id), date|
+          h[event_client_id] ||= {}
+          h[event_client_id][project_id] ||= {
+            date: date,
+            project_id: project_id,
+          }
+        end
+      end
+
+      @custom_services ||= {}.tap do |h|
+        GrdaWarehouse::Generic::Service.
+          where(client_id: @client_ids).
+          group(:client_id, :title).maximum(:date).
+          map do |(custom_service_client_id, title), date|
+            h[custom_service_client_id] ||= {
+              date: date,
+              project_name: title,
+              project_id: nil,
+            }
+          end
+      end
+
+      [
+        @services[client_id]&.values,
+        @current_living_situations[client_id]&.values,
+        @events[client_id]&.values,
+        @custom_services[client_id],
+      ].flatten.compact.to_json
     end
 
     private def days_homeless_for_vispdat_prioritization(_vispdat, client)

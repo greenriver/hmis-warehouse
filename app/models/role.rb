@@ -531,29 +531,50 @@ class Role < ApplicationRecord
           'Client Extras',
         ],
       },
-      can_manage_cohorts: {
-        description: 'Ability to create, edit, add and remove clients, and see changes to all cohorts',
-        administrative: true,
-        categories: [
-          'Cohorts',
-        ],
-      },
-      can_edit_cohort_clients: {
-        description: 'Ability to participate in all cohorts, including adding, editing, removing clients, and viewing inactive clients, but not changing cohort settings',
-        administrative: true,
-        categories: [
-          'Cohorts',
-        ],
-      },
-      can_edit_assigned_cohorts: {
-        description: 'Ability to participate in assigned cohorts, including adding, editing, and removing clients, but not changing cohort settings',
+      can_configure_cohorts: {
+        description: 'Ability to create, configure, and remove cohorts',
         administrative: false,
         categories: [
           'Cohorts',
         ],
       },
-      can_view_assigned_cohorts: {
-        description: 'Read-only access to assigned cohorts',
+      can_add_cohort_clients: {
+        description: 'Ability to add, remove, and import cohort clients',
+        administrative: false,
+        categories: [
+          'Cohorts',
+        ],
+      },
+      can_manage_cohort_data: {
+        description: "Ability to modify all visible cohort client data (except for 'Active')",
+        administrative: false,
+        categories: [
+          'Cohorts',
+        ],
+      },
+      can_view_cohorts: {
+        description: 'Ability to view, but not modify, cohorts',
+        administrative: false,
+        categories: [
+          'Cohorts',
+        ],
+      },
+      can_participate_in_cohorts: {
+        description: 'Ability to modify editable visible cohort client data',
+        administrative: false,
+        categories: [
+          'Cohorts',
+        ],
+      },
+      can_view_inactive_cohort_clients: {
+        description: 'Ability to view inactive cohort clients',
+        administrative: false,
+        categories: [
+          'Cohorts',
+        ],
+      },
+      can_manage_inactive_cohort_clients: {
+        description: 'Ability to update if client cohorts are active (grants the ability to see inactive clients)',
         administrative: false,
         categories: [
           'Cohorts',
@@ -561,6 +582,20 @@ class Role < ApplicationRecord
       },
       can_download_cohorts: {
         description: 'Ability to download the contents of a cohort',
+        administrative: false,
+        categories: [
+          'Cohorts',
+        ],
+      },
+      can_view_deleted_cohort_clients: {
+        description: 'Ability to view the clients removed from a cohort',
+        administrative: false,
+        categories: [
+          'Cohorts',
+        ],
+      },
+      can_view_cohort_client_changes_report: {
+        description: 'Ability to view the history of clients added and removed from a cohort',
         administrative: false,
         categories: [
           'Cohorts',

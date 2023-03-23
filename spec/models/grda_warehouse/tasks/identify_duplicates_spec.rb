@@ -8,14 +8,14 @@ RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicates, type: :model do
   let!(:client_in_destination) { create :grda_warehouse_hud_client, data_source: destination_data_source }
 
   it 'recognizes an obvious match' do
-    expect(check_for_obvious_match(client_in_source.id)).to be client_in_destination.id
+    expect(check_for_obvious_match(client_in_source)).to be client_in_destination.id
   end
 
   describe 'obvious match processing with a split' do
     let!(:split) { create :grda_warehouse_client_split_history, split_from: client_in_source.id, split_into: client_in_destination.id }
 
     it 'does not return an obvious match if it was split' do
-      expect(check_for_obvious_match(client_in_source.id)).to be_nil
+      expect(check_for_obvious_match(client_in_source)).to be_nil
     end
   end
 

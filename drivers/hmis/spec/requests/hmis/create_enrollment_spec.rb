@@ -1,6 +1,6 @@
 require 'rails_helper'
 require_relative 'login_and_permissions'
-require_relative 'hmis_base_setup'
+require_relative '../../support/hmis_base_setup'
 
 RSpec.describe Hmis::GraphqlController, type: :request do
   include_context 'hmis base setup'
@@ -10,7 +10,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let(:test_input) do
     {
       project_id: p1.id,
-      start_date: Date.today.strftime('%Y-%m-%d'),
+      entry_date: Date.today.strftime('%Y-%m-%d'),
       household_members: [
         {
           id: c1.id,
@@ -46,9 +46,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         mutation CreateEnrollment($input: CreateEnrollmentInput!) {
           createEnrollment(input: $input) {
             enrollments {
-              id
-              entryDate
-              inProgress
+              #{scalar_fields(Types::HmisSchema::Enrollment)}
               client {
                 id
               }
@@ -78,29 +76,38 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       GRAPHQL
     end
 
-    it 'should create an enrollment successfully' do
+    it 'should create all household enrollments successfully' do
       response, result = post_graphql(input: test_input) { mutation }
-
       aggregate_failures 'checking response' do
         expect(response.status).to eq 200
         enrollments = result.dig('data', 'createEnrollment', 'enrollments')
         errors = result.dig('data', 'createEnrollment', 'errors')
         expect(enrollments).to be_present
         expect(enrollments.count).to eq(3)
+        expect(enrollments.pluck('inProgress').uniq).to eq([true])
+        expect(enrollments.pluck('project')).to all(be_present)
         expect(errors).to be_empty
         expect(Hmis::Hud::Enrollment.count).to eq(3)
-        expect(Hmis::Hud::Enrollment.in_progress.count).to eq(0)
+        expect(Hmis::Hud::Enrollment.in_progress.count).to eq(3)
+        expect(Hmis::Hud::Enrollment.where(project_id: nil).count).to eq(3)
         expect(Hmis::Hud::Enrollment.all).to include(
           *enrollments.map do |e|
             have_attributes(
               enrollment_id: be_present,
-              project_id: Hmis::Hud::Project.find(test_input[:project_id]).project_id,
+              household_id: be_present,
+              relationship_to_ho_h: be_present,
+              entry_date: be_present,
+              project_id: nil, # because WIP
               personal_id: Hmis::Hud::Client.find(e['client']['id'].to_i).personal_id,
             )
           end,
         )
+        expect(Hmis::Hud::Enrollment.pluck(:household_id).uniq.count).to eq(1)
+        expect(Hmis::Wip.count).to eq(3)
+        expect(Hmis::Wip.all).to include(*enrollments.map { |e| have_attributes(project_id: test_input[:project_id], client_id: e['client']['id'].to_i) })
+        expect(Hmis::Hud::Enrollment.viewable_by(hmis_user).count).to eq(3)
 
-        # enrollment should appear on client query
+        # WIP enrollment should appear on client query
         response, result = post_graphql(id: c1.id) { get_client_query }
         expect(response.status).to eq 200
         client = result.dig('data', 'client')
@@ -109,32 +116,18 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
     end
 
-    describe 'In progress tests' do
-      it 'should create WIP enrollment' do
-        response, result = post_graphql(input: test_input.merge(in_progress: true)) { mutation }
-        aggregate_failures 'checking response' do
-          expect(response.status).to eq 200
-          enrollments = result.dig('data', 'createEnrollment', 'enrollments')
-          errors = result.dig('data', 'createEnrollment', 'errors')
-          expect(enrollments).to be_present
-          expect(enrollments.count).to eq(3)
-          expect(enrollments.pluck('inProgress').uniq).to eq([true])
-          expect(enrollments.pluck('project')).to all(be_present)
-          expect(errors).to be_empty
-          expect(Hmis::Hud::Enrollment.count).to eq(3)
-          expect(Hmis::Hud::Enrollment.in_progress.count).to eq(3)
-          expect(Hmis::Hud::Enrollment.where(project_id: nil).count).to eq(3)
-          expect(Hmis::Wip.count).to eq(3)
-          expect(Hmis::Wip.all).to include(*enrollments.map { |e| have_attributes(project_id: test_input[:project_id], client_id: e['client']['id'].to_i) })
-          expect(Hmis::Hud::Enrollment.viewable_by(hmis_user).count).to eq(3)
+    it 'should throw error if unauthorized' do
+      remove_permissions(hmis_user, :can_edit_enrollments)
+      response, result = post_graphql(input: test_input) { mutation }
 
-          # WIP enrollment should appear on client query
-          response, result = post_graphql(id: c1.id) { get_client_query }
-          expect(response.status).to eq 200
-          client = result.dig('data', 'client')
-          expect(client).to be_present
-          expect(client.dig('enrollments', 'nodesCount')).to eq(1)
-        end
+      aggregate_failures 'checking response' do
+        expect(response.status).to eq 200
+        enrollments = result.dig('data', 'createEnrollment', 'enrollments')
+        errors = result.dig('data', 'createEnrollment', 'errors')
+        expect(enrollments).to be nil
+        expect(errors).to be_present
+        expect(errors).to contain_exactly(include('type' => 'not_allowed'))
+        expect(Hmis::Hud::Enrollment.count).to eq(0)
       end
     end
 
@@ -144,24 +137,26 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           'should emit error if none of the clients are HoH',
           ->(input) { input.merge(household_members: input[:household_members][1..]) },
           {
-            'message' => 'Exactly one client must be head of household',
-            'attribute' => 'relationshipToHoH',
+            fullMessage: 'Exactly one client must be head of household',
+            attribute: 'relationshipToHoH',
+            severity: :error,
           },
         ],
         [
           'should emit error if entry date is in the future',
-          ->(input) { input.merge(start_date: (Date.today + 1.week).strftime('%Y-%m-%d')) },
+          ->(input) { input.merge(entry_date: (Date.today + 1.week).strftime('%Y-%m-%d')) },
           {
-            'message' => 'Entry date cannot be in the future',
-            'attribute' => 'startDate',
+            fullMessage: 'Entry date cannot be in the future',
+            attribute: 'entryDate',
+            severity: :error,
           },
         ],
         [
           'should emit error if project doesn\'t exist',
           ->(input) { input.merge(project_id: '0') },
           {
-            'message' => "Project with id '0' does not exist",
-            'attribute' => 'projectId',
+            fullMessage: 'Project not found',
+            severity: :error,
           },
         ],
       ].each do |test_name, input_proc, error_attrs|
@@ -173,9 +168,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           errors = result.dig('data', 'createEnrollment', 'errors')
           aggregate_failures 'checking response' do
             expect(response.status).to eq 200
-            expect(enrollments).to be_empty
+            expect(enrollments).to be nil
             expect(errors).to contain_exactly(
-              include(**error_attrs),
+              include(**error_attrs.transform_keys(&:to_s).transform_values(&:to_s)),
             )
           end
         end

@@ -59,14 +59,23 @@ module Types
 
           record_type = enum.value.split(':').first
           record_type_key, record_type_enum = Types::HmisSchema::Enums::Hud::RecordType.enum_member_for_value(record_type&.to_i)
-          {
-            code: key,
-            label: enum.description.gsub(CODE_PATTERN, ''),
-            group_code: record_type_key,
-            group_label: record_type_enum&.description&.gsub(CODE_PATTERN, ''),
-          }
-        end.compact
 
+          label = enum.description.gsub(CODE_PATTERN, '')
+          sort_key = "#{record_type}:#{label}"
+
+          [
+            sort_key,
+            {
+              code: key,
+              label: label,
+              group_code: record_type_key,
+              group_label: record_type_enum&.description&.gsub(CODE_PATTERN, ''),
+            },
+          ]
+        end.
+          compact.
+          sort_by { |sort_key, _v| sort_key }.
+          map(&:second)
       when 'SUB_TYPE_PROVIDED_3'
         sub_type_provided_options(Types::HmisSchema::Enums::Hud::SSVFSubType3, '144:3')
 
@@ -86,7 +95,7 @@ module Types
         living_situation_options(as: :destination)
 
       when 'PROJECT'
-        Hmis::Hud::Project.editable_by(user).
+        Hmis::Hud::Project.viewable_by(user).
           joins(:organization).
           sort_by_option(:organization_and_name).
           map do |project|
@@ -100,7 +109,7 @@ module Types
         end
 
       when 'ORGANIZATION'
-        Hmis::Hud::Organization.editable_by(user).
+        Hmis::Hud::Organization.viewable_by(user).
           sort_by_option(:name).
           map do |organization|
           {
@@ -113,6 +122,17 @@ module Types
         return [] unless inventory.present?
 
         inventory.units.map { |unit| { code: unit.id, label: unit.name } }
+      when 'AVAILABLE_FILE_TYPES'
+        Hmis::File.all_available_tags.map do |tag|
+          {
+            code: tag.id,
+            label: "#{tag.name} (included: #{tag.included_info})",
+            group_code: tag.group,
+            group_label: tag.group,
+          }
+        end.
+          compact.
+          sort_by { |obj| [obj[:group_label] + obj[:label]].join(' ') }
       end
     end
 

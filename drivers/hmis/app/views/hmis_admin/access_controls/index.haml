@@ -1,0 +1,39 @@
+- content_for :title, 'HMIS Access Control Administration'
+%h1= content_for :title
+= render 'hmis_admin/tabs', active_tab: :access_controls
+
+.alert.alert-info
+  %i.icon-warning.mr-4
+  %p Access Control Lists are used to grant users access to HMIS data and permissions. Each Access Control List consists of one Group and one Role. Each user in the Access Control List inherits data access from the Group, and inherits permissions from the Role.
+.text-right
+  = link_to new_hmis_admin_access_control_path, class: 'btn btn-primary mb-2' do
+    %span.icon-plus
+    Create a new Access Control List
+- if @pagy.count.positive?
+  = render 'common/pagination_top', item_name: 'access control list'
+  .table-responsive
+    %table.table.table-striped
+      %thead
+        %tr
+          %th Role
+          %th Access Group
+          %th.text-center Assigned Users
+          %th
+      %tbody
+        - @access_controls.each do |acl|
+          %tr
+            %td= acl.role.name
+            %td= link_to acl.access_group.name, edit_hmis_admin_group_path(acl.access_group)
+            %td.text-center= acl.users.count
+            %td
+              .float-right
+                = link_to edit_hmis_admin_access_control_path(acl), class: ['btn', 'btn-sm', 'btn-secondary'] do
+                  %span.icon-pencil
+                  Edit Access Control List
+                - unless acl.users.count.positive?
+                  = link_to hmis_admin_access_control_path(acl),  method: :delete, data: {confirm: "Would you really like to delete the access control list for group '#{acl.access_group.name}' and role '#{acl.role.name}'?"}, class: ['btn', 'btn-sm', 'btn-danger', 'ml-2'] do
+                    %span.icon-cross
+                    Delete
+  = render 'common/pagination_bottom', item_name: 'access control list'
+- else
+  .none-found No access control lists.

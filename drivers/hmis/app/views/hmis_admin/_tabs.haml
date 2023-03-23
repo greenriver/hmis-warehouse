@@ -5,3 +5,6 @@
   - nav_class = if active_tab == :groups then 'active' else '' end
   %li.nav-item{class: nav_class}
     = link_to 'Groups', hmis_admin_groups_path, class: 'nav-link'
+  - nav_class = if active_tab.to_sym == :access_controls then 'active' else '' end
+  %li.nav-item{class: nav_class}
+    = link_to 'Access Control Lists', hmis_admin_access_controls_path, class: 'nav-link'

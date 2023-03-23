@@ -6,7 +6,7 @@
   %tr.jCohortClient{class: [inactivity_class, ineligible_class], data: {cohort_client_id: cohort_client.id, client_id: cohort_client.client.id, cohort_client_updated_at: cohort_client.updated_at.to_i}}
     %td
       - if @cohort.user_can_edit_cohort_clients current_user
-        - if current_user.can_manage_cohorts? || ! cohort_client.ineligible?
+        - if current_user.can_add_cohort_clients? || ! cohort_client.ineligible?
           = link_to edit_cohort_cohort_client_path(@cohort, cohort_client), data: {loads_in_pjax_modal: true, toggle: :tooltip, title: "Edit #{cohort_client.name}", placement: :right}, class: 'btn btn-primary btn-sm' do
             %span.icon-pencil
       - if inactivity_class == 'homeless_inactive'

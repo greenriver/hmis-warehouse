@@ -794,6 +794,26 @@
     {
       "warning_type": "Command Injection",
       "warning_code": 14,
+      "fingerprint": "5499b637b8348aa1e36c39c76eedd901c66563518a8514361499efb75c9b0b43",
+      "check_name": "Execute",
+      "message": "Possible command injection",
+      "file": "app/jobs/worker_status.rb",
+      "line": 108,
+      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
+      "code": "`curl #{ENV[\"ECS_CONTAINER_METADATA_URI_V4\"]}/task`",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "WorkerStatus",
+        "method": "task_metadata"
+      },
+      "user_input": "ENV[\"ECS_CONTAINER_METADATA_URI_V4\"]",
+      "confidence": "Medium",
+      "note": "Considering AWS provided URI okay to inject"
+    },
+    {
+      "warning_type": "Command Injection",
+      "warning_code": 14,
       "fingerprint": "54f8e790a2519455109daadf5dd74297f7684aa397825fa9c2f1bf9bdef73192",
       "check_name": "Execute",
       "message": "Possible command injection",
@@ -1333,6 +1353,26 @@
       "note": ""
     },
     {
+      "warning_type": "Remote Code Execution",
+      "warning_code": 24,
+      "fingerprint": "82e659e3c26b016652cb4f7b2ff4b27a0ecc1e24e74af02de95ac355d080738e",
+      "check_name": "UnsafeReflection",
+      "message": "Unsafe reflection method `constantize` called with model attribute",
+      "file": "drivers/hmis/app/graphql/mutations/submit_form.rb",
+      "line": 18,
+      "link": "https://brakemanscanner.org/docs/warning_types/remote_code_execution/",
+      "code": "Hmis::Form::Definition.find_by(:id => input.form_definition_id).record_class_name.constantize",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Mutations::SubmitForm",
+        "method": "resolve"
+      },
+      "user_input": "Hmis::Form::Definition.find_by(:id => input.form_definition_id).record_class_name",
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
       "warning_type": "Command Injection",
       "warning_code": 14,
       "fingerprint": "850068cbcbd30e554efc5cc597f03ad14dfbd68240142d37a64e9f7a6c53a1a7",
@@ -1499,7 +1539,7 @@
       "check_name": "Execute",
       "message": "Possible command injection",
       "file": "config/deploy/docker/lib/deployer.rb",
-      "line": 391,
+      "line": 389,
       "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
       "code": "`docker image ls -f 'reference=#{repo_name}' | grep \"#{_ruby_version}-#{_pre_cache_version}--pre-cache\"`",
       "render_path": null,
@@ -1698,7 +1738,7 @@
       "check_name": "UnsafeReflection",
       "message": "Unsafe reflection method `constantize` called with model attribute",
       "file": "app/controllers/cohorts/clients_controller.rb",
-      "line": 432,
+      "line": 457,
       "link": "https://brakemanscanner.org/docs/warning_types/remote_code_execution/",
       "code": "GrdaWarehouse::Cohort.available_columns.map(&:class).map(&:name).select do\n (m == params.require(:field))\n end.first.constantize",
       "render_path": null,
@@ -1901,6 +1941,26 @@
       "user_input": "_assets_path",
       "confidence": "Medium",
       "note": ""
+    },
+    {
+      "warning_type": "Command Injection",
+      "warning_code": 14,
+      "fingerprint": "b86000207c4fe44ca5dd3bcc3d9a87789cfaab516d90a3c76a5b4a25d8e91e55",
+      "check_name": "Execute",
+      "message": "Possible command injection",
+      "file": "app/jobs/worker_status.rb",
+      "line": 66,
+      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
+      "code": "`curl -k https://#{ENV[\"FQDN\"]}/system_status/details`",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "WorkerStatus",
+        "method": "latest_deployment_is_at_least_partially_finished"
+      },
+      "user_input": "ENV[\"FQDN\"]",
+      "confidence": "Medium",
+      "note": "Injected value is from the environment"
     },
     {
       "warning_type": "Dynamic Render Path",
@@ -2239,7 +2299,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/data_source.rb",
-      "line": 69,
+      "line": 73,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "where(\"#{has_access_to_data_source_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_data_source_through_organizations(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_data_source_through_projects(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)}\")",
       "render_path": null,
@@ -2690,8 +2750,28 @@
       "user_input": "details[:table_name]",
       "confidence": "Medium",
       "note": ""
+    },
+    {
+      "warning_type": "Remote Code Execution",
+      "warning_code": 24,
+      "fingerprint": "ff4e9944330ec5bf9f13b025d9b4151a4abc8f503b0191e7e6367e206a360fdf",
+      "check_name": "UnsafeReflection",
+      "message": "Unsafe reflection method `constantize` called with model attribute",
+      "file": "drivers/hmis/app/graphql/types/hmis_schema/submit_form_result.rb",
+      "line": 20,
+      "link": "https://brakemanscanner.org/docs/warning_types/remote_code_execution/",
+      "code": "Hmis::Form::Definition::FORM_ROLE_CONFIG.find do\n (value[:class_name] == object.class.name)\n end.last[:resolve_as].constantize",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Types::HmisSchema::SubmitFormResult",
+        "method": "s(:self).resolve_type"
+      },
+      "user_input": "Hmis::Form::Definition::FORM_ROLE_CONFIG.find",
+      "confidence": "Medium",
+      "note": ""
     }
   ],
-  "updated": "2023-01-19 20:38:27 +0000",
+  "updated": "2023-03-14 17:38:29 +0000",
   "brakeman_version": "5.0.4"
 }

@@ -115,10 +115,10 @@ module GrdaWarehouse
     # re-compress the zip file with a password and 7zip
     private def encrypt_seven_zip(content)
       tmp = Tempfile.new(['hmis_export', '.zip'], 'tmp', binmode: true)
-      local_source_path = tmp.path
+      # local_source_path = tmp.path
       source_path = Rails.root.join(tmp.path).to_s
       destination_path = ::File.join(::File.dirname(source_path), ::File.basename(source_path, '.zip')).to_s
-      local_destination_path = ::File.join(::File.dirname(local_source_path), ::File.basename(source_path, '.zip')).to_s
+      # local_destination_path = ::File.join(::File.dirname(local_source_path), ::File.basename(source_path, '.zip')).to_s
       destination_file = "#{::File.join(::File.dirname(source_path), ::File.basename(source_path, '.zip'))}_enc.7z"
       tmp.write(content)
       tmp.close
@@ -130,19 +130,22 @@ module GrdaWarehouse
         end
       end
 
-      ::File.open(destination_file, 'wb') do |file|
-        SevenZipRuby::SevenZipWriter.open(file, password: zip_password) do |szw|
-          szw.method = 'LZMA'
-          szw.level = 9
-          szw.solid = false
-          szw.header_compression = false
-          szw.header_encryption = true
-          # szw.multi_threading = false
-          Dir.glob("#{destination_path}/*.csv").each do |f|
-            szw.add_data(::File.open(::File.join(local_destination_path, ::File.basename(f))).read, ::File.basename(f))
-          end
-        end
-      end
+      cmd = "7z a -mx9 -p#{zip_password} #{destination_file} #{destination_path}/*.csv"
+      system(cmd)
+
+      # ::File.open(destination_file, 'wb') do |file|
+      #   SevenZipRuby::SevenZipWriter.open(file, password: zip_password) do |szw|
+      #     szw.method = 'LZMA'
+      #     szw.level = 9
+      #     szw.solid = false
+      #     szw.header_compression = false
+      #     szw.header_encryption = true
+      #     # szw.multi_threading = false
+      #     Dir.glob("#{destination_path}/*.csv").each do |f|
+      #       szw.add_data(::File.open(::File.join(local_destination_path, ::File.basename(f))).read, ::File.basename(f))
+      #     end
+      #   end
+      # end
       # for some reason we need a bit of sand after talking to zipcloak
       sleep(5) unless ::File.exist?(destination_file)
       # return the encrypted content

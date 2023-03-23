@@ -4,13 +4,13 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-require 'memoist'
+require 'memery'
 
 module GrdaWarehouse
   class Cohort < GrdaWarehouseBase
     include ArelHelper
     include AccessGroups
-    extend Memoist
+    include Memery
 
     acts_as_paranoid
     validates_presence_of :name
@@ -60,9 +60,7 @@ module GrdaWarehouse
     scope :viewable_by, ->(user) do
       return none unless user.present?
 
-      if user.can_edit_cohort_clients? || user.can_manage_cohorts?
-        current_scope
-      elsif user.can_view_assigned_cohorts? || user.can_edit_assigned_cohorts?
+      if user.can_access_some_cohorts
         if current_scope.present?
           current_scope.merge(user.cohorts)
         else
@@ -74,9 +72,7 @@ module GrdaWarehouse
     end
 
     scope :editable_by, ->(user) do
-      if user.can_edit_cohort_clients? || user.can_manage_cohorts?
-        current_scope
-      elsif user.can_view_assigned_cohorts? || user.can_edit_assigned_cohorts?
+      if user.can_edit_some_cohorts
         if current_scope.present?
           current_scope.merge(user.cohorts)
         else
@@ -99,6 +95,8 @@ module GrdaWarehouse
         ineligible_scope
       when :inactive
         inactive_scope(user)
+      when :deleted
+        deleted_scope(user)
       else # active
         active_scope.where(active: true)
       end
@@ -143,15 +141,31 @@ module GrdaWarehouse
 
     # only administrator should have access to the inactive clients
     def inactive_scope user
-      return @client_search_scope.none unless user.can_manage_cohorts? || user.can_edit_cohort_clients?
+      return @client_search_scope.none unless user.can_view_inactive_cohort_clients? || user.can_manage_inactive_cohort_clients?
 
       @client_search_scope.where(active: false)
     end
 
     def show_inactive user
-      return false unless user.can_manage_cohorts? || user.can_edit_cohort_clients?
+      return false unless user.can_view_inactive_cohort_clients? || user.can_manage_inactive_cohort_clients?
 
       inactive_scope(user).exists?
+    end
+
+    def deleted_scope(user)
+      return @client_search_scope.none unless can_see_deleted_cohort_clients?(user)
+
+      @client_search_scope.only_deleted
+    end
+
+    def show_deleted user
+      return false unless can_see_deleted_cohort_clients?(user)
+
+      deleted_scope(user).exists?
+    end
+
+    private def can_see_deleted_cohort_clients?(user)
+      user.can_view_deleted_cohort_clients? || user.can_add_cohort_clients?
     end
 
     # should we show the housed option for the last `client_search`
@@ -183,11 +197,11 @@ module GrdaWarehouse
     attr_reader :client_search_result
 
     def self.has_some_cohort_access user # rubocop:disable  Naming/PredicateName
-      user.can_view_assigned_cohorts? || user.can_edit_assigned_cohorts? || user.can_edit_cohort_clients? || user.can_manage_cohorts?
+      user.can_access_some_cohorts
     end
 
     def user_can_edit_cohort_clients user
-      user.can_manage_cohorts? || user.can_edit_cohort_clients? || (user.can_edit_assigned_cohorts? && user.cohorts.where(id: id).exists?)
+      user.can_edit_some_cohorts && user.cohorts.where(id: id).exists?
     end
     memoize :user_can_edit_cohort_clients
 
@@ -284,6 +298,7 @@ module GrdaWarehouse
         ::CohortColumns::HousingNavigator.new,
         ::CohortColumns::LocationType.new,
         ::CohortColumns::Location.new,
+        ::CohortColumns::LastContactLocation.new,
         ::CohortColumns::Status.new,
         ::CohortColumns::SsvfEligible.new,
         ::CohortColumns::VetSquaresConfirmed.new,
@@ -489,26 +504,47 @@ module GrdaWarehouse
       return unless client_ids.present?
 
       GrdaWarehouse::WarehouseClientsProcessed.update_cached_counts(client_ids: client_ids)
-      GrdaWarehouse::Cohort.active.each(&:refresh_time_dependant_client_data)
+      GrdaWarehouse::Cohort.active.find_each(&:refresh_time_dependant_client_data)
     end
 
     def refresh_time_dependant_client_data(cohort_client_ids: nil)
       scope = cohort_clients
       scope = scope.where(id: cohort_client_ids) if cohort_client_ids.present?
-      scope.joins(:client).each do |cc|
-        data = {
-          calculated_days_homeless_on_effective_date: calculated_days_homeless(cc.client),
-          days_homeless_last_three_years_on_effective_date: days_homeless_last_three_years(cc.client),
-          days_literally_homeless_last_three_years_on_effective_date: days_literally_homeless_last_three_years(cc.client),
-          destination_from_homelessness: destination_from_homelessness(cc.client),
-          related_users: related_users(cc.client),
-          disability_verification_date: disability_verification_date(cc.client),
-          missing_documents: missing_documents(cc.client),
-          days_homeless_plus_overrides: days_homeless_plus_overrides(cc.client),
-          individual_in_most_recent_homeless_enrollment: individual_in_most_recent_homeless_enrollment(cc.client),
-          most_recent_date_to_street: most_recent_date_to_street(cc.client),
-        }
-        cc.update(data)
+      scope.joins(:client).preload(client: :processed_service_history).find_in_batches do |batch|
+        rows = []
+        batch.each do |cc|
+          cc.assign_attributes(
+            calculated_days_homeless_on_effective_date: calculated_days_homeless(cc.client),
+            days_homeless_last_three_years_on_effective_date: days_homeless_last_three_years(cc.client),
+            days_literally_homeless_last_three_years_on_effective_date: days_literally_homeless_last_three_years(cc.client),
+            destination_from_homelessness: destination_from_homelessness(cc.client),
+            related_users: related_users(cc.client),
+            disability_verification_date: disability_verification_date(cc.client),
+            missing_documents: missing_documents(cc.client),
+            days_homeless_plus_overrides: days_homeless_plus_overrides(cc.client),
+            individual_in_most_recent_homeless_enrollment: individual_in_most_recent_homeless_enrollment(cc.client),
+            most_recent_date_to_street: most_recent_date_to_street(cc.client),
+          )
+          rows << cc
+        end
+        GrdaWarehouse::CohortClient.import(
+          rows,
+          on_duplicate_key_update: {
+            conflict_target: [:id],
+            columns: [
+              :calculated_days_homeless_on_effective_date,
+              :days_homeless_last_three_years_on_effective_date,
+              :days_literally_homeless_last_three_years_on_effective_date,
+              :destination_from_homelessness,
+              :related_users,
+              :disability_verification_date,
+              :missing_documents,
+              :days_homeless_plus_overrides,
+              :individual_in_most_recent_homeless_enrollment,
+              :most_recent_date_to_street,
+            ],
+          },
+        )
       end
     end
 

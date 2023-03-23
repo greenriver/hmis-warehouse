@@ -75,8 +75,7 @@
   }
 
   .warehouse-reports__completed * {
-    -webkit-print-color-adjust: exact;
-      color-adjust: exact;
+      print-color-adjust: exact;
   }
   .warehouse-reports__completed .parameter-label,
   .warehouse-reports__chronic .parameter-label,

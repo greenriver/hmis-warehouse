@@ -5,9 +5,10 @@
 ###
 
 class Hmis::Hud::Project < Hmis::Hud::Base
-  include ArelHelper
   include ::HmisStructure::Project
   include ::Hmis::Hud::Concerns::Shared
+  include ActiveModel::Dirty
+
   self.table_name = :Project
   self.sequence_name = "public.\"#{table_name}_id_seq\""
 
@@ -15,10 +16,14 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   belongs_to :organization, **hmis_relation(:OrganizationID, 'Organization')
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :projects
 
-  has_many :enrollments, **hmis_relation(:ProjectID, 'Enrollment'), inverse_of: :project
-  has_many :project_cocs, **hmis_relation(:ProjectID, 'ProjectCoc'), inverse_of: :project
-  has_many :inventories, **hmis_relation(:ProjectID, 'Inventory'), inverse_of: :project
-  has_many :funders, **hmis_relation(:ProjectID, 'Funder'), inverse_of: :project
+  has_many :enrollments, **hmis_relation(:ProjectID, 'Enrollment'), inverse_of: :project, dependent: :destroy
+  has_many :project_cocs, **hmis_relation(:ProjectID, 'ProjectCoc'), inverse_of: :project, dependent: :destroy
+  has_many :inventories, **hmis_relation(:ProjectID, 'Inventory'), inverse_of: :project, dependent: :destroy
+  has_many :funders, **hmis_relation(:ProjectID, 'Funder'), inverse_of: :project, dependent: :destroy
+
+  has_and_belongs_to_many :project_groups,
+                          class_name: 'GrdaWarehouse::ProjectGroup',
+                          join_table: :project_project_groups
 
   validates_with Hmis::Hud::Validators::ProjectValidator
 
@@ -33,12 +38,11 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     where(id: ids, data_source_id: user.hmis_data_source_id)
   end
 
-  # hide previous declaration of :editable_by, we'll use this one
-  replace_scope :editable_by, ->(user) do
-    ids = user.editable_projects.pluck(:id)
-    ids += user.organizations.joins(:projects).pluck(p_t[:id])
-    ids += user.data_sources.joins(:projects).pluck(p_t[:id])
-    ids += user.project_access_groups.joins(:projects).pluck(p_t[:id])
+  scope :with_access, ->(user, *permissions, **kwargs) do
+    ids = user.entities_with_permissions(Hmis::Hud::Project, *permissions, **kwargs).pluck(:id)
+    ids += user.entities_with_permissions(Hmis::Hud::Organization, *permissions, **kwargs).joins(:projects).pluck(p_t[:id])
+    ids += user.entities_with_permissions(GrdaWarehouse::DataSource, *permissions, **kwargs).joins(:projects).pluck(p_t[:id])
+    ids += user.entities_with_permissions(GrdaWarehouse::ProjectAccessGroup, *permissions, **kwargs).joins(:projects).pluck(p_t[:id])
 
     where(id: ids, data_source_id: user.hmis_data_source_id)
   end
@@ -71,10 +75,6 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     end
   end
 
-  def self.generate_project_id
-    generate_uuid
-  end
-
   def active
     return true unless operating_end_date.present?
 
@@ -83,5 +83,10 @@ class Hmis::Hud::Project < Hmis::Hud::Base
 
   def enrollments
     Hmis::Hud::Enrollment.in_project_including_wip(id, project_id)
+  end
+
+  def close_related_funders_and_inventory!
+    funders.where(end_date: nil).update_all(end_date: operating_end_date)
+    inventories.where(inventory_end_date: nil).update_all(inventory_end_date: operating_end_date)
   end
 end

@@ -6,7 +6,7 @@
 
 module Cohorts
   class ReportsController < ApplicationController
-    before_action :require_can_manage_cohorts!
+    before_action :require_can_view_cohort_client_changes_report!
     before_action :set_cohort
 
     def show

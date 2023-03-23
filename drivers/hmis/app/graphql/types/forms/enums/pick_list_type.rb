@@ -24,5 +24,6 @@ module Types
     value 'SUB_TYPE_PROVIDED_4'
     value 'SUB_TYPE_PROVIDED_5'
     value 'REFERRAL_OUTCOME'
+    value 'AVAILABLE_FILE_TYPES'
   end
 end

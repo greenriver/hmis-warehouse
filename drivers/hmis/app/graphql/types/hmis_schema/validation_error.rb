@@ -8,43 +8,29 @@
 
 module Types
   class HmisSchema::ValidationError < Types::BaseObject
-    field :id, String, null: true
-    field :attribute, String, null: true
+    # Resolves an HmisError object
+
+    field :id, String, 'Unique ID for this error', null: true
+    field :record_id, ID, 'ID of the AR record this error pertains to', null: true
+    field :link_id, String, 'Link ID of form item if this error is linked to a specific item', null: true
+    field :attribute, String, null: false
+    field :readable_attribute, String, null: true
     field :message, String, null: false
-    field :full_message, String, null: true
-    field :type, String, null: false
-    field :options, JsonObject, null: true
+    field :full_message, String, null: false
+    field :section, String, null: true
+    field :type, HmisSchema::Enums::ValidationType, null: false
+    field :severity, HmisSchema::Enums::ValidationSeverity, null: false
 
     def attribute
-      return object.attribute.to_s.underscore.camelize(:lower) if object.respond_to?(:attribute)
-    end
-
-    def options
-      return object.options if object.respond_to?(:options)
-    end
-
-    def id
-      return object.id if object.respond_to?(:id)
-    end
-
-    def full_message
-      return object.full_message.gsub(object.attribute.to_s.downcase.capitalize, readable_attribute) if object.respond_to?(:full_message)
+      object.attribute.to_s
     end
 
     def type
-      if object.respond_to?(:type)
-        return object.type == :blank ? :required : object.type
-      end
-
-      return object.class.name if object.is_a?(Exception)
-
-      'UnknownError'
+      object.type.to_s
     end
 
-    # Convert 'operatingStartDate' => 'Operating start date'
-    # Convert 'organizationId' => 'Organization'
-    private def readable_attribute
-      object.attribute.to_s.underscore.humanize
+    def severity
+      object.severity.to_s
     end
   end
 end

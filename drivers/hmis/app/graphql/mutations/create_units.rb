@@ -3,13 +3,16 @@ module Mutations
     argument :input, Types::HmisSchema::UnitInput, required: true
 
     field :inventory, Types::HmisSchema::Inventory, null: true
-    field :errors, [Types::HmisSchema::ValidationError], null: false
 
     def resolve(input:)
-      inventory = Hmis::Hud::Inventory.editable_by(current_user).find_by(id: input.inventory_id)
-      return { inventory => nil, errors: [InputValidationError.new('Inventory record not found', attribute: 'id')] } unless inventory.present?
+      inventory = Hmis::Hud::Inventory.viewable_by(current_user).find_by(id: input.inventory_id)
 
-      return { inventory => nil, errors: [InputValidationError.new('Unit count must be positive', attribute: 'count')] } if input.count&.negative?
+      errors = HmisErrors::Errors.new
+      errors.add :inventory_id, :not_found unless inventory.present?
+      errors.add :inventory_id, :not_allowed if inventory.present? && !current_user.permissions_for?(inventory, :can_edit_project_details)
+      errors.add :count, :required unless input.count.present?
+      errors.add :count, :out_of_range, message: 'must be positive' if input.count&.negative?
+      return { errors: errors.errors } if errors.any?
 
       # Create Units
       common = { user_id: hmis_user.user_id, created_at: Time.now, updated_at: Time.now }

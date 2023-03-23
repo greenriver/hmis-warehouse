@@ -4,7 +4,7 @@
 
 .alert.alert-info
   %i.icon-warning.mr-4
-  %p Groups can be used to assign access to particular sets of data.  Users are assigned groups and inherit data access from the group.  Roles are then assigned to users to grant access to sections of the warehouse.  When used in combination a user can be given access to a sub-set of warehouse data within a specified limited context.
+  %p Groups can be used to assign access to particular sets of data.  To grant data access to users, they must be used in combination with Access Control Lists.
 .text-right
   = link_to new_hmis_admin_group_path, class: 'btn btn-primary mb-2' do
     %span.icon-plus
@@ -16,14 +16,12 @@
       %thead
         %tr
           %th Name
-          %th Permission Scope
           %th.text-center Assigned Users
           %th
       %tbody
         - @groups.each do |group|
           %tr
             %td= link_to group.name, edit_hmis_admin_group_path(group)
-            %td= group.permission_scope
             %td.text-center= group.users.count
             %td
               - unless group.users.count.positive?

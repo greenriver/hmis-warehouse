@@ -6,8 +6,32 @@
 
 class Hmis::Role < ::ApplicationRecord
   self.table_name = :hmis_roles
-  has_many :user_hmis_data_source_roles, class_name: '::Hmis::UserHmisDataSourceRole'
-  has_many :users, through: :user_hmis_data_source_roles, source: :user
+  # Warehouse roles do not have a paper trail, so neither do these
+
+  has_many :access_controls, class_name: '::Hmis::AccessControl', inverse_of: :role
+  has_many :user_access_controls, through: :access_controls
+  has_many :users, through: :user_access_controls
+
+  # has_many :user_hmis_data_source_roles, class_name: '::Hmis::UserHmisDataSourceRole'
+  # has_many :users, through: :user_hmis_data_source_roles, source: :user
+
+  scope :with_all_permissions, ->(*perms) do
+    where(**perms.map { |p| [p, true] }.to_h)
+  end
+
+  scope :with_any_permissions, ->(*perms) do
+    rt = Hmis::Role.arel_table
+    where_clause = perms.map { |perm| rt[perm.to_sym].eq(true) }.reduce(:or)
+    where(where_clause)
+  end
+
+  scope :with_editable_permissions, -> do
+    with_any_permissions(*permissions_for_access(:editable))
+  end
+
+  scope :with_viewable_permissions, -> do
+    with_any_permissions(*permissions_for_access(:viewable))
+  end
 
   def administrative?
     self.class.permissions_with_descriptions.each do |permission, description|
@@ -42,54 +66,142 @@ class Hmis::Role < ::ApplicationRecord
     end
   end
 
+  def self.permissions_for_access(access)
+    permissions_with_descriptions.select { |_k, attrs| attrs[:access].include?(access) }.keys
+  end
+
+  # Permissions that may be used globally (data access does not need to be specified)
+  def self.global_permissions
+    permissions_with_descriptions.select { |_k, attrs| attrs[:global] }.keys
+  end
+
   def self.permissions_with_descriptions
     {
       can_administer_hmis: {
         description: 'Grants access to the administration section for HMIS',
         administrative: true,
+        access: [:editable],
         categories: [
           'Administration',
-        ],
-      },
-      can_view_full_ssn: {
-        description: 'Allow the user to see client\'s full SSN.',
-        administrative: false,
-        categories: [
-          'Client Details',
-        ],
-      },
-      can_view_clients: {
-        description: 'Allow the user to see clients at assigned projects.',
-        administrative: false,
-        categories: [
-          'Client Access',
         ],
       },
       can_delete_assigned_project_data: {
         description: 'Grants access to delete project related data for projects the user can see',
         administrative: false,
+        access: [:editable],
         categories: [
           'Projects',
         ],
       },
-      can_delete_enrollments: {
-        description: 'Grants the ability to delete enrollments for clients the user has access to',
+      can_delete_project: {
+        description: 'Grants access to delete projects',
         administrative: false,
+        access: [:editable],
+        categories: [
+          'Projects',
+        ],
+      },
+      can_edit_project_details: {
+        description: 'Grants access to edit project details',
+        administrative: false,
+        access: [:editable],
+        categories: [
+          'Projects',
+        ],
+      },
+      can_edit_organization: {
+        description: 'Grants access to edit organizations',
+        administrative: false,
+        access: [:editable],
+        categories: [
+          'Organizations',
+        ],
+      },
+      can_delete_organization: {
+        description: 'Grants access to delete organizations',
+        administrative: false,
+        access: [:editable],
+        categories: [
+          'Organizations',
+        ],
+      },
+      can_view_clients: {
+        description: 'Allow the user to see clients at assigned projects.',
+        administrative: false,
+        access: [:viewable],
+        global: true,
         categories: [
           'Client Access',
         ],
       },
+      can_edit_clients: {
+        description: 'Grants access to edit clients',
+        administrative: false,
+        access: [:editable],
+        global: true,
+        categories: [
+          'Client Access',
+        ],
+      },
+      can_view_full_ssn: {
+        description: 'Allow the user to see client\'s full SSN.',
+        administrative: false,
+        access: [:viewable],
+        global: true,
+        categories: [
+          'Client Details',
+        ],
+      },
+      can_view_partial_ssn: {
+        description: 'Grants access to view partial SSN',
+        administrative: false,
+        access: [:viewable],
+        global: true,
+        categories: [
+          'Client Access',
+        ],
+      },
+      can_view_dob: {
+        description: 'Grants access to view clients\' DOB',
+        administrative: false,
+        access: [:viewable],
+        global: true,
+        categories: [
+          'Client Access',
+        ],
+      },
+      can_view_enrollment_details: {
+        description: 'Grants access to view enrollments',
+        administrative: false,
+        access: [:viewable],
+        categories: [
+          'Enrollments',
+        ],
+      },
+      can_edit_enrollments: {
+        description: 'Grants access to edit enrollments',
+        administrative: false,
+        access: [:editable],
+        categories: [
+          'Enrollments',
+        ],
+      },
+      can_delete_enrollments: {
+        description: 'Grants the ability to delete enrollments',
+        administrative: false,
+        access: [:editable],
+        categories: [
+          'Enrollments',
+        ],
+      },
+      can_manage_client_files: {
+        description: 'Grants the ability to manage client files',
+        administrative: false,
+        access: [:editable],
+        categories: [
+          'Files',
+        ],
+      },
     }
-  end
-
-  def add(users)
-    hmis_ds = GrdaWarehouse::DataSource.hmis.first
-    Array.wrap(users).each do |u|
-      u.user_hmis_data_sources_roles.create(role: self, data_source_id: hmis_ds.id)
-    end
-  end
-
-  def remove(users)
-    self.users = (self.users - Array.wrap(users))
   end
 end

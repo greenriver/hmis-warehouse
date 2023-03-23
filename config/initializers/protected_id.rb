@@ -43,7 +43,7 @@ module ProtectedId
       composed = (id << 32) + day_stamp
       encrypted = Encryptor.encrypt(
         value: composed.to_s(16), # encrypt requires a string, so convert the composed id into hex
-        algorithm: 'des-ecb', # Weak algorithm to limit size of ids
+        algorithm: 'aes-128-ecb', # Weak algorithm to limit size of ids, note pre ruby 3 this was des-ecb
         insecure_mode: true, # No IV
         key: KEY,
       )
@@ -56,7 +56,7 @@ module ProtectedId
       encrypted = Base64.decode64(slug.delete_prefix(INITIAL_DELIMITER))
       composed = Encryptor.decrypt(
         value: encrypted,
-        algorithm: 'des-ecb',
+        algorithm: 'aes-128-ecb', # note pre ruby 3 this was des-ecb
         insecure_mode: true,
         key: KEY,
       ).to_i(16)
@@ -73,6 +73,8 @@ module ProtectedId
     include Encoder
 
     def to_param
+      return super unless id.is_a?(Integer)
+
       encode(id)
     end
   end

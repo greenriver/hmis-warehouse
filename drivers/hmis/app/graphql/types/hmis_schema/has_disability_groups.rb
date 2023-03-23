@@ -10,7 +10,7 @@ module Types
   module HmisSchema
     module HasDisabilityGroups
       extend ActiveSupport::Concern
-      include ArelHelper
+      include ::Hmis::Concerns::HmisArelHelper
 
       class_methods do
         def disability_groups_field(name = :disability_groups, description = nil, **override_options, &block)
@@ -28,6 +28,7 @@ module Types
       # Each struct contains a `disabilities` array field, which has
       # information about all six disability types.
       def resolve_disability_groups(scope = object.disabilities, **_args)
+        # FIXME: we should key by SOURCE ASSESSMENT if possible, since there can be 2 update assessments on the same day.
         key_fields = [
           :enrollment_id, # Don't move! below code depends on item being first in array
           :user_id,       # Don't move! below code depends on item being second in array
@@ -39,8 +40,10 @@ module Types
           :disability_response,
           :indefinite_and_impairs,
           :id,
+          :date_updated,
+          :date_created,
         ]
-        result_aggregations = result_fields.map { |f| array_agg(d_t[f]).to_sql }
+        result_aggregations = result_fields.map { |f| nf('json_agg', [d_t[f]]).to_sql }
 
         disability_groups = scope.viewable_by(current_user).
           order(information_date: :desc, data_collection_stage: :desc).
@@ -65,8 +68,6 @@ module Types
             OpenStruct.new(result_fields.zip(arr).to_h)
           end
 
-          # Concatenate disability IDs to create a unique "ID" for the DisabilityGroup
-          obj.id = obj.disabilities.map(&:id).join(':')
           obj
         end
       end

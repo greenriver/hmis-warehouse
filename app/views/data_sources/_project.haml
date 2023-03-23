@@ -2,14 +2,16 @@
   %td
     .project__name.mb-2{id: "project-#{project.id}"}
       = link_to_if can_view_projects?, project.name(current_user, ignore_confidential_status: can_edit_projects?), project_path(project)
-    %td
-      .enrollment__project_type{class: "client__service_type_#{project.ProjectType}"}
+    %td.d-flex
+      .enrollment__project_type.mr-2{class: "client__service_type_#{project.ProjectType}"}
         .service-type__program-type{data: {toggle: :tooltip, title: HudUtility.project_type(project.ProjectType)}}
           = HudUtility.project_type_brief project.ProjectType
       - if project.act_as_project_type.present? && project.act_as_project_type != project.ProjectType
-        .o-text--italic.mb-2
-          Acts as
-          = HudUtility.project_type project.act_as_project_type
+        .o-text--italic.mr-2
+          acts as
+        .enrollment__project_type{class: "client__service_type_#{project.act_as_project_type}"}
+          .service-type__program-type{data: {toggle: :tooltip, title: HudUtility.project_type(project.act_as_project_type)}}
+            = HudUtility.project_type_brief project.act_as_project_type
     %td= HudUtility.tracking_method project.TrackingMethod
     %td.text-center
       %span{data: {toggle: :tooltip, title: project.confidential_hint}}

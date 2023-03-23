@@ -4,6 +4,7 @@
   "text": "Disability",
   "data_collected_about": "ALL_CLIENTS",
   "record_type": "DISABILITY_GROUP",
+  "prefill": true,
   "item": [
     {
       "type": "DISPLAY",
@@ -13,7 +14,7 @@
     {
       "type": "GROUP",
       "link_id": "disability-table",
-      "component": "INPUT_TABLE",
+      "component": "DISABILITY_TABLE",
       "item": [
         {
           "type": "GROUP",
@@ -25,15 +26,19 @@
               "link_id": "4.05.2",
               "text": "Physical Disability",
               "field_name": "physicalDisability",
-              "pick_list_reference": "NoYesReasonsForMissingData"
+              "pick_list_reference": "NoYesReasonsForMissingData",
+              "required": false,
+              "warn_if_empty": true
             },
             {
               "type": "CHOICE",
               "link_id": "4.05.A",
               "text": "Is this a disabling condition?",
-              "brief_text": "Disabling Condition",
+              "brief_text": "Physical Disability Indefinite and Impairs",
               "field_name": "physicalDisabilityIndefiniteAndImpairs",
               "pick_list_reference": "NoYesReasonsForMissingData",
+              "required": false,
+              "warn_if_empty": true,
               "disabled_display": "PROTECTED",
               "enable_behavior": "ALL",
               "enable_when": [
@@ -54,6 +59,8 @@
             {
               "type": "CHOICE",
               "link_id": "4.06.2",
+              "required": false,
+              "warn_if_empty": true,
               "text": "Developmental Disability",
               "field_name": "developmentalDisability",
               "pick_list_reference": "NoYesReasonsForMissingData"
@@ -73,6 +80,8 @@
             {
               "type": "CHOICE",
               "link_id": "4.07.2",
+              "required": false,
+              "warn_if_empty": true,
               "text": "Chronic Health Condition",
               "field_name": "chronicHealthCondition",
               "pick_list_reference": "NoYesReasonsForMissingData"
@@ -80,8 +89,10 @@
             {
               "type": "CHOICE",
               "link_id": "4.07.A",
+              "required": false,
+              "warn_if_empty": true,
               "text": "Is this a disabling condition?",
-              "brief_text": "Disabling Condition",
+              "brief_text": "Chronic Indefinite and Impairs",
               "field_name": "chronicHealthConditionIndefiniteAndImpairs",
               "pick_list_reference": "NoYesReasonsForMissingData",
               "disabled_display": "PROTECTED",
@@ -104,6 +115,8 @@
             {
               "type": "CHOICE",
               "link_id": "4.08.2",
+              "required": false,
+              "warn_if_empty": true,
               "text": "HIV/AIDS",
               "field_name": "hivAids",
               "pick_list_reference": "NoYesReasonsForMissingData"
@@ -123,6 +136,8 @@
             {
               "type": "CHOICE",
               "link_id": "4.09.2",
+              "required": false,
+              "warn_if_empty": true,
               "text": "Mental Health Disorder",
               "field_name": "mentalHealthDisorder",
               "pick_list_reference": "NoYesReasonsForMissingData"
@@ -130,8 +145,10 @@
             {
               "type": "CHOICE",
               "link_id": "4.09.A",
+              "required": false,
+              "warn_if_empty": true,
               "text": "Is this a disabling condition?",
-              "brief_text": "Disabling Condition",
+              "brief_text": "Mental Health Indefinite and Impairs",
               "field_name": "mentalHealthDisorderIndefiniteAndImpairs",
               "pick_list_reference": "NoYesReasonsForMissingData",
               "disabled_display": "PROTECTED",
@@ -154,6 +171,8 @@
             {
               "type": "CHOICE",
               "link_id": "4.10.2",
+              "required": false,
+              "warn_if_empty": true,
               "text": "Substance Use Disorder",
               "field_name": "substanceUseDisorder",
               "pick_list_reference": "DisabilityResponse"
@@ -161,8 +180,10 @@
             {
               "type": "CHOICE",
               "link_id": "4.10.A",
+              "required": false,
+              "warn_if_empty": true,
               "text": "Is this a disabling condition?",
-              "brief_text": "Disabling Condition",
+              "brief_text": "Substance Use Indefinite and Impairs",
               "field_name": "substanceUseDisorderIndefiniteAndImpairs",
               "pick_list_reference": "NoYesReasonsForMissingData",
               "disabled_display": "PROTECTED",
@@ -196,6 +217,8 @@
             {
               "type": "CHOICE",
               "link_id": "3.08",
+              "required": false,
+              "warn_if_empty": true,
               "text": "Disabling Condition",
               "field_name": "disablingCondition",
               "pick_list_reference": "NoYesReasonsForMissingData",

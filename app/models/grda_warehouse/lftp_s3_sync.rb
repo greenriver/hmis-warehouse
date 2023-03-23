@@ -35,7 +35,7 @@ module GrdaWarehouse
     end
 
     private def tmp_destination
-      File.join('tmp', slug)
+      ::File.join('tmp', slug)
     end
 
     private def ensure_tmp_destination
@@ -54,7 +54,7 @@ module GrdaWarehouse
       system("mkdir -p #{lftp_bookmark_path}")
       system("echo #{lftp_bookmark} > #{lftp_bookmark_location}")
       # FileUtils.mkdir_p(lftp_bookmark_path)
-      # f = File.new(lftp_bookmark_location, 'w')
+      # f = ::File.new(lftp_bookmark_location, 'w')
       # f.write(lftp_bookmark)
       # f.close()
     end
@@ -72,15 +72,15 @@ module GrdaWarehouse
     end
 
     private def lftp_bookmark_path
-      File.join('~', '.lftp')
+      ::File.join('~', '.lftp')
     end
 
     private def lftp_bookmark_location
-      File.join(lftp_bookmark_path, 'bookmarks')
+      ::File.join(lftp_bookmark_path, 'bookmarks')
     end
 
     private def lftp_config_location
-      File.join(lftp_bookmark_path, 'rc')
+      ::File.join(lftp_bookmark_path, 'rc')
     end
 
     def fetch
@@ -89,7 +89,7 @@ module GrdaWarehouse
 
     def push
       s3_missing.each do |file_name|
-        full_path = File.join(tmp_destination, file_name)
+        full_path = ::File.join(tmp_destination, file_name)
         s3.put(file_name: full_path, prefix: s3_path.gsub(/\/$/, ''))
       end
     end
@@ -99,11 +99,11 @@ module GrdaWarehouse
     end
 
     private def s3_existing
-      s3.fetch_key_list(prefix: s3_path).map{|e| e.gsub(/^#{s3_path}/, '')}
+      s3.fetch_key_list(prefix: s3_path).map { |e| e.gsub(/^#{s3_path}/, '') }
     end
 
     private def lftp_existing
-      Dir.entries(tmp_destination).reject{|e| e.in?(['.', '..'])}
+      Dir.entries(tmp_destination).reject { |e| e.in?(['.', '..']) }
     end
 
     private def s3_path

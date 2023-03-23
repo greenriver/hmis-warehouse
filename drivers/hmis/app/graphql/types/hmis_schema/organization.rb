@@ -10,16 +10,24 @@ module Types
   class HmisSchema::Organization < Types::BaseObject
     include Types::HmisSchema::HasProjects
 
-    description 'HUD Organization'
-    field :id, ID, null: false
-    field :organization_name, String, null: false
+    def self.configuration
+      Hmis::Hud::Organization.hmis_configuration(version: '2022')
+    end
+
+    hud_field :id, ID, null: false
+    hud_field :organization_name
     projects_field :projects
-    yes_no_missing_field :victim_service_provider, null: true
+    hud_field :victim_service_provider, HmisSchema::Enums::Hud::NoYesMissing
     field :description, String, null: true
     field :contact_information, String, null: true
-    field :date_updated, GraphQL::Types::ISO8601DateTime, null: false
-    field :date_created, GraphQL::Types::ISO8601DateTime, null: false
-    field :date_deleted, GraphQL::Types::ISO8601DateTime, null: true
+    hud_field :date_updated
+    hud_field :date_created
+    hud_field :date_deleted
+
+    access_field do
+      can :delete_organization
+      can :edit_organization
+    end
 
     def projects(**args)
       resolve_projects(object.projects, **args)

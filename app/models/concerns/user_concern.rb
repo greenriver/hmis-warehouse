@@ -150,7 +150,7 @@ module UserConcern
     end
 
     def timeout_time(session)
-      Time.current + (Devise.timeout_in - (Time.now.utc - session['last_request_at'].presence || 0).to_i)
+      Time.current + (Devise.timeout_in - (Time.now.utc - (session['last_request_at'].presence || 0)).to_i)
     end
 
     def future_expiration?
@@ -431,6 +431,10 @@ module UserConcern
         GrdaWarehouse::DataSource.visible_in_window_for_cohorts_to(self).joins(:projects).pluck(p_t[:id])
     end
 
+    def visible_projects_by_id
+      @visible_projects_by_id ||= GrdaWarehouse::Hud::Project.find(visible_project_ids_enrollment_context).index_by(&:id)
+    end
+
     # inverse of GrdaWarehouse::Hud::Project.viewable_by(user)
     def viewable_project_ids
       @viewable_project_ids ||= GrdaWarehouse::Hud::Project.viewable_by(self).pluck(:id)
@@ -551,7 +555,7 @@ module UserConcern
     end
 
     class << self
-      extend Memoist
+      include Memery
       def group_associations
         {
           data_sources: GrdaWarehouse::DataSource,

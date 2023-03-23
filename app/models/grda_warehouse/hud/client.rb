@@ -13,6 +13,7 @@ module GrdaWarehouse::Hud
     include ArelHelper
     include HealthCharts
     include ApplicationHelper
+    include ::HudConcerns::Client
     include ::HmisStructure::Client
     include ::HmisStructure::Shared
     include HudSharedScopes
@@ -1019,15 +1020,12 @@ module GrdaWarehouse::Hud
 
     def self.revoke_expired_consent
       if release_duration.in?(['One Year', 'Two Years'])
-        clients_with_consent = where.not(consent_form_signed_on: nil)
-        clients_with_consent.each do |client|
-          next unless client.consent_form_signed_on < consent_validity_period.ago
-
-          client.update_columns(
+        # This doesn't trigger callbacks (e.g., papertrail)
+        where(c_t[:consent_form_signed_on].lteq(consent_validity_period.ago.to_date)).
+          update_all(
             housing_release_status: nil,
             consented_coc_codes: [],
           )
-        end
       elsif release_duration == 'Use Expiration Date'
         destination.where(
           arel_table[:consent_expires_on].lt(Date.current),
@@ -1717,6 +1715,27 @@ module GrdaWarehouse::Hud
       end.uniq.sort
     end
 
+    def last_intentional_contacts(user, include_confidential_names: false, skip_confidential_projects: false, include_dates: false)
+      contacts = processed_service_history&.last_intentional_contacts
+      return [] unless contacts.present?
+
+      visible_projects = user.visible_projects_by_id
+      visible_project_ids = user.visible_project_ids_enrollment_context
+      contacts = JSON.parse(contacts)
+
+      contacts.map do |contact|
+        project_id = contact['project_id']
+        next if project_id.present? && !project_id.in?(visible_project_ids)
+
+        project = visible_projects[project_id]
+        next if project&.confidential? && skip_confidential_projects
+
+        name = project&.name(ignore_confidential_status: include_confidential_names) || contact['project_name']
+        name += ': ' + contact['date']&.to_date.to_s if include_dates
+        name
+      end.compact.uniq.sort
+    end
+
     def weeks_of_service
       total_days_of_service / 7 rescue 'unknown' # rubocop:disable Style/RescueModifier
     end
@@ -1932,16 +1951,6 @@ module GrdaWarehouse::Hud
       self.VeteranStatus = calculate_best_veteran_status(verified_veteran_status, va_verified_veteran, source_clients)
       save
       self.class.clear_view_cache(self.id) # rubocop:disable Style/RedundantSelf
-    end
-
-    # those columns that relate to race
-    def self.race_fields
-      ::HudUtility.races.keys
-    end
-
-    # those race fields which are marked as pertinent to the client
-    def race_fields
-      self.class.race_fields.select { |f| send(f).to_i == 1 }
     end
 
     def race_description(include_missing_reason: false)

@@ -1,6 +1,6 @@
 require 'rails_helper'
 require_relative 'login_and_permissions'
-require_relative 'hmis_base_setup'
+require_relative '../../support/hmis_base_setup'
 
 RSpec.describe Hmis::GraphqlController, type: :request do
   before(:all) do
@@ -11,8 +11,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   include_context 'hmis base setup'
-
-  let(:view_access_group) { create :view_access_group }
 
   let(:query) do
     <<~GRAPHQL
@@ -37,6 +35,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       p1.update(project_type: 300)
       p1.update(housing_type: 300)
       p1.update(tracking_method: 300)
+      p1.update(residential_affiliation: 50)
+      p1.update(continuum_project: 50)
 
       aggregate_failures 'checking response' do
         response, result = post_graphql({ id: p1.id }) { query }
@@ -47,22 +47,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           'projectType' => 'INVALID',
           'housingType' => 'INVALID',
           'trackingMethod' => 'INVALID',
-        )
-      end
-    end
-
-    it 'should resolve invalid NoYesMissing values as nil' do
-      p1.update(residential_affiliation: 50)
-      p1.update(continuum_project: 50)
-
-      aggregate_failures 'checking response' do
-        response, result = post_graphql({ id: p1.id }) { query }
-        expect(response.status).to eq 200
-        project = result.dig('data', 'project')
-        expect(project).to include(
-          'id' => p1.id.to_s,
-          'residentialAffiliation' => nil,
-          'continuumProject' => nil,
+          'residentialAffiliation' => 'INVALID',
+          'continuumProject' => 'INVALID',
         )
       end
     end

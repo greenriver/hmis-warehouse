@@ -1,25 +1,26 @@
 - if @files.any?
   %h2 Previous 834 Files
-  %table.table
-    %thead
-      %tr
-        %th Upload Date
-        %th
-        %th New Enrollments
-        %th Updated Patients
-        %th Returning Enrollments
-        %th Disenrollments
-    %tbody
-      - @files.each do |file|
+  .card
+    %table.table.table-striped
+      %thead
         %tr
-          - label = file.status == 'processing' ? 'processing...' : ''
-          %td= link_to file.created_at, warehouse_reports_health_enrollment_path(file)
-          %td
-            - if file.status == 'processing'
-              = render 'spinner'
-            - else
-              = checkmark_or_x(file.status == 'complete', file.status)
-          %td= link_to (file.new_patients || label), review_admin_health_patient_referrals_path
-          %td= file.updated_patients
-          %td= file.returning_patients
-          %td= link_to (file.disenrolled_patients || label), disenrolled_admin_health_patient_referrals_path
+          %th Upload Date
+          %th
+          %th New Enrollments
+          %th Updated Patients
+          %th Returning Enrollments
+          %th Disenrollments
+      %tbody
+        - @files.each do |file|
+          %tr
+            - label = file.status == 'processing' ? 'processing...' : ''
+            %td= link_to file.created_at, warehouse_reports_health_enrollment_path(file)
+            %td
+              - if file.status == 'processing'
+                = render 'spinner'
+              - else
+                = checkmark_or_x(file.status == 'complete', file.status)
+            %td= link_to (file.new_patients || label), review_admin_health_patient_referrals_path
+            %td= file.updated_patients
+            %td= file.returning_patients
+            %td= link_to (file.disenrolled_patients || label), disenrolled_admin_health_patient_referrals_path

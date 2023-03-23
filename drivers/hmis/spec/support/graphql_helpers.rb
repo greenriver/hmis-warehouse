@@ -22,7 +22,9 @@ module GraphqlHelpers
 
   def scalar_fields(typ)
     fields = []
-    typ.fields.each do |name, field|
+
+    field_types = typ.respond_to?(:fields) ? typ.fields : typ.type&.of_type&.fields
+    field_types.each do |name, field|
       next if field.type.list? || field.type.respond_to?(:fields) || (field.type.respond_to?(:of_type) && field.type.of_type.respond_to?(:fields))
 
       fields << name
@@ -34,11 +36,13 @@ module GraphqlHelpers
     <<~ERRORS
       errors {
         id
+        linkId
         attribute
         message
         fullMessage
         type
-        options
+        severity
+        readableAttribute
         __typename
       }
     ERRORS

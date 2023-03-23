@@ -10,7 +10,7 @@
 class HmisCsvImporter::HmisCsvValidation::EntryAfterExit < HmisCsvImporter::HmisCsvValidation::Validation
   include HmisCsvImporter::HmisCsv
 
-  def self.check_validity!(klass, importer_log, _options)
+  def self.check_validity!(klass, importer_log)
     # FIXME: Very slow!!!
     e_t = importable_file_class('Enrollment').arel_table
     ex_t = importable_file_class('Exit').arel_table

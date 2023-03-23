@@ -5,7 +5,7 @@
 ###
 
 class HmisCsvImporter::HmisCsvValidation::NonBlankValidation < HmisCsvImporter::HmisCsvValidation::Validation
-  def self.check_validity!(item, column, _args)
+  def self.check_validity!(item, column)
     value = item[column]
     return if value.present?
 

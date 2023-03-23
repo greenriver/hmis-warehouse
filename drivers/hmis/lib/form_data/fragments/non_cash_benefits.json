@@ -4,11 +4,14 @@
   "text": "Non-Cash Benefits",
   "data_collected_about": "HOH_AND_ADULTS",
   "record_type": "INCOME_BENEFIT",
+  "prefill": true,
   "item": [
     {
       "type": "CHOICE",
       "component": "RADIO_BUTTONS",
       "link_id": "4.03.2",
+      "required": false,
+      "warn_if_empty": true,
       "text": "Non-Cash Benefits from Any Source",
       "pick_list_reference": "NoYesReasonsForMissingData",
       "field_name": "benefitsFromAnySource",
@@ -20,32 +23,32 @@
             {
               "question": "4.03.3",
               "operator": "EQUAL",
-              "answer_boolean": true
+              "answer_code": "YES"
             },
             {
               "question": "4.03.4",
               "operator": "EQUAL",
-              "answer_boolean": true
+              "answer_code": "YES"
             },
             {
               "question": "4.03.5",
               "operator": "EQUAL",
-              "answer_boolean": true
+              "answer_code": "YES"
             },
             {
               "question": "4.03.6",
               "operator": "EQUAL",
-              "answer_boolean": true
+              "answer_code": "YES"
             },
             {
               "question": "4.03.7",
               "operator": "EQUAL",
-              "answer_boolean": true
+              "answer_code": "YES"
             },
             {
               "question": "4.03.8",
               "operator": "EQUAL",
-              "answer_boolean": true
+              "answer_code": "YES"
             }
           ]
         }
@@ -71,42 +74,48 @@
       ],
       "item": [
         {
-          "type": "BOOLEAN",
+          "type": "CHOICE",
+          "pick_list_reference": "NoYesMissing",
           "link_id": "4.03.3",
           "component": "CHECKBOX",
           "text": "Supplemental Nutrition Assistance Program (SNAP) (Previously known as Food Stamps)",
           "field_name": "snap"
         },
         {
-          "type": "BOOLEAN",
+          "type": "CHOICE",
+          "pick_list_reference": "NoYesMissing",
           "link_id": "4.03.4",
           "component": "CHECKBOX",
           "text": "Special Supplemental Nutrition Program for Women, Infants, and Children (WIC)",
           "field_name": "wic"
         },
         {
-          "type": "BOOLEAN",
+          "type": "CHOICE",
+          "pick_list_reference": "NoYesMissing",
           "link_id": "4.03.5",
           "component": "CHECKBOX",
           "text": "TANF Child Care services",
           "field_name": "tanfChildCare"
         },
         {
-          "type": "BOOLEAN",
+          "type": "CHOICE",
+          "pick_list_reference": "NoYesMissing",
           "link_id": "4.03.6",
           "component": "CHECKBOX",
           "text": "TANF transportation services",
           "field_name": "tanfTransportation"
         },
         {
-          "type": "BOOLEAN",
+          "type": "CHOICE",
+          "pick_list_reference": "NoYesMissing",
           "link_id": "4.03.7",
           "component": "CHECKBOX",
           "text": "Other TANF-funded services",
           "field_name": "otherTanf"
         },
         {
-          "type": "BOOLEAN",
+          "type": "CHOICE",
+          "pick_list_reference": "NoYesMissing",
           "link_id": "4.03.8",
           "component": "CHECKBOX",
           "text": "Other source",
@@ -116,14 +125,16 @@
           "type": "STRING",
           "link_id": "4.03.A",
           "text": "Specify other source",
-          "required": true,
+          "brief_text": "Other benefits source",
+          "required": false,
+          "warn_if_empty": true,
           "field_name": "otherBenefitsSourceIdentify",
           "enable_behavior": "ALL",
           "enable_when": [
             {
               "question": "4.03.8",
               "operator": "EQUAL",
-              "answer_boolean": true
+              "answer_code": "YES"
             }
           ]
         }

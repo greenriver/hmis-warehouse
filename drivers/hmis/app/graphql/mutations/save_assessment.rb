@@ -2,60 +2,45 @@ module Mutations
   class SaveAssessment < BaseMutation
     description 'Create/Save assessment as work-in-progress'
 
-    argument :assessment_id, ID, 'Required if updating an existing assessment', required: false
-    argument :enrollment_id, ID, 'Required if saving a new assessment', required: false
-    argument :form_definition_id, ID, 'Required if saving a new assessment', required: false
-    argument :values, Types::JsonObject, 'Form state as JSON', required: true
-    date_string_argument :assessment_date, 'Date with format yyyy-mm-dd', required: false
+    argument :input, Types::HmisSchema::AssessmentInput, required: true
 
     field :assessment, Types::HmisSchema::Assessment, null: true
-    field :errors, [Types::HmisSchema::ValidationError], null: false
 
-    def resolve(assessment_id: nil, enrollment_id: nil, form_definition_id: nil, values:, assessment_date: nil)
-      errors = []
+    def resolve(input:)
+      assessment, errors = input.find_or_create_assessment
+      return { errors: errors } if errors.any?
 
-      # Look up Assessment or Enrollment
-      if assessment_id
-        assessment = Hmis::Hud::Assessment.viewable_by(current_user).find_by(id: assessment_id)
-        errors << InputValidationError.new('Assessment must exist', attribute: 'assessment_id') unless assessment.present?
-      elsif enrollment_id
-        enrollment = Hmis::Hud::Enrollment.viewable_by(current_user).find_by(id: enrollment_id)
-        errors << InputValidationError.new('Enrollment must exist', attribute: 'enrollment_id') unless enrollment.present?
+      definition = assessment.custom_form.definition
+      enrollment = assessment.enrollment
 
-        form_definition = Hmis::Form::Definition.find_by(id: form_definition_id)
-        errors << InputValidationError.new('Form definition must exist', attribute: 'form_definition_id') unless form_definition.present?
-      else
-        errors << InputValidationError.new('Enrollment ID or Assessment ID must exist', attribute: 'enrollment_id')
-      end
-
-      return { assessment: nil, errors: errors } if errors.present?
-
-      # Create new Assessment (and AssessmentDetail) if one doesn't exist already
-      assessment ||= Hmis::Hud::Assessment.new_with_defaults(
+      # Determine the Assessment Date and validate it
+      assessment_date, errors = definition.find_and_validate_assessment_date(
+        values: input.values,
         enrollment: enrollment,
-        user: hmis_user,
-        form_definition: form_definition,
-        assessment_date: assessment_date ? Date.strptime(assessment_date) : Date.today,
+        ignore_warnings: true,
       )
+      return { errors: errors } if errors.any?
 
       # Update values
-      assessment.assessment_detail.assign_attributes(values: values)
+      assessment.custom_form.assign_attributes(
+        values: input.values,
+        hud_values: input.hud_values,
+      )
       assessment.assign_attributes(
         user_id: hmis_user.user_id,
-        date_updated: DateTime.current,
-        assessment_date: assessment_date ? Date.strptime(assessment_date) : assessment.assessment_date,
+        assessment_date: assessment_date,
       )
 
-      if assessment.valid? && assessment.assessment_detail.valid?
-        assessment.assessment_detail.save!
+      if assessment.valid? && assessment.custom_form.valid?
+        assessment.custom_form.save!
         assessment.save_in_progress
       else
         errors << assessment.errors
-        errors << assessment.assessment_detail.errors
+        errors << assessment.custom_form.errors
         assessment = nil
       end
 
-      return {
+      {
         assessment: assessment,
         errors: errors,
       }

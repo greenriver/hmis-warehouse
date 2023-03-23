@@ -8,19 +8,20 @@
 # Risk: Attached claims_file contains EDI serialized PHI
 # Control: PHI attributes documented
 
-require "stupidedi"
+require 'stupidedi'
+
 module Health
   class Claim < HealthBase
     include ArelHelper
     acts_as_paranoid
 
-    phi_attr :id, Phi::SmallPopulation, "ID of claim"
+    phi_attr :id, Phi::SmallPopulation, 'ID of claim'
     phi_attr :claims_file, Phi::Bulk # contains EDI serialized PHI
 
     has_many :qualifying_activities
     validates_presence_of :max_date
 
-    scope :visible_by?, -> (user) do
+    scope :visible_by?, ->(user) do
       if user.can_administer_health?
         all
       else
@@ -79,11 +80,10 @@ module Health
       complete_report
     end
 
-
     def claims_file_valid?
       config = Stupidedi::Config.hipaa
-      parser = Stupidedi::Builder::StateMachine.build(config)
-      parse, result = parser.read(Stupidedi::Reader.build(claims_file))
+      parser = Stupidedi::Parser::StateMachine.build(config)
+      _, result = parser.read(Stupidedi::Reader.build(claims_file))
       return result
     end
 
@@ -95,29 +95,29 @@ module Health
       @sender = Health::Cp.sender.first
       created_at ||= Time.now.utc
       config = Stupidedi::Config.hipaa
-      b = Stupidedi::Builder::BuilderDsl.build(config)
-      s = Stupidedi::Builder::IdentifierStack.new(1)
+      b = Stupidedi::Parser::BuilderDsl.build(config)
 
-      b.ISA "00", '', "00", '', 'ZZ', "#{@sender.pid}#{@sender.sl}", 'ZZ', @sender.receiver_id, created_at, created_at, repetition_separator, '00501', @isa_control_number, '0', interchange_usage_indicator, component_element_separator
+      # rubocop:disable Layout/IndentationConsistency
+      b.ISA '00', '', '00', '', 'ZZ', "#{@sender.pid}#{@sender.sl}", 'ZZ', @sender.receiver_id, created_at, created_at, repetition_separator, '00501', @isa_control_number, '0', interchange_usage_indicator, component_element_separator
       b.GS 'HC', "#{@sender.pid}#{@sender.sl}", @sender.receiver_id, created_at, created_at, @group_control_number, 'X', implementation_convention_reference_number
-      b.ST "837", id&.to_s&.rjust(4, '0') || '0'.rjust(4, '0'), implementation_convention_reference_number
-        b.BHT "0019", "00", id&.to_s&.rjust(4, '0') || '0'.rjust(4, '0'), created_at, created_at.strftime('%H%M'), "CH"
-        b.NM1 '41', '2', @sender.mmis_enrollment_name, nil, nil, nil, nil, "46", "#{@sender.pid}#{@sender.sl}"
-        b.PER "IC", "#{@sender.key_contact_first_name} #{@sender.key_contact_last_name}", 'TE', @sender.key_contact_phone.delete('^0-9')
-        b.NM1 "40", "2", @sender.receiver_name, nil, nil, nil, nil, "46", @sender.receiver_id
+      b.ST '837', id&.to_s&.rjust(4, '0') || '0'.rjust(4, '0'), implementation_convention_reference_number
+        b.BHT '0019', '00', id&.to_s&.rjust(4, '0') || '0'.rjust(4, '0'), created_at, created_at.strftime('%H%M'), 'CH'
+        b.NM1 '41', '2', @sender.mmis_enrollment_name, nil, nil, nil, nil, '46', "#{@sender.pid}#{@sender.sl}"
+        b.PER 'IC', "#{@sender.key_contact_first_name} #{@sender.key_contact_last_name}", 'TE', @sender.key_contact_phone.delete('^0-9')
+        b.NM1 '40', '2', @sender.receiver_name, nil, nil, nil, nil, '46', @sender.receiver_id
           @hl += 1
-          b.HL @hl, nil, "20", "1"
-        b.NM1 "85", "2", @sender.mmis_enrollment_name, nil, nil, nil, nil, 'XX', @sender.npi
+          b.HL @hl, nil, '20', '1'
+        b.NM1 '85', '2', @sender.mmis_enrollment_name, nil, nil, nil, nil, 'XX', @sender.npi
           b.N3  @sender.address_1
           b.N4  @sender.city, @sender.state, @sender.zip.delete('^0-9')
-          b.REF "EI", @sender.ein
+          b.REF 'EI', @sender.ein
 
       patients.each do |patient|
         # skip the patient if there are no QA that can be sent
         patient_qa = patient.qualifying_activities.unsubmitted.payable.
           where(
             hqa_t[:date_of_activity].lteq(max_date).
-            and(hqa_t[:date_of_activity].gteq(start_date))
+            and(hqa_t[:date_of_activity].gteq(start_date)),
           )
         next unless patient_qa.map(&:procedure_code).map(&:present?).any?
 
@@ -125,20 +125,18 @@ module Health
         pr = patient.patient_referral
 
         city_state_zip = [pr&.address_city, pr&.address_state, pr&.address_zip&.delete('^0-9')]
-        if city_state_zip.reject(&:blank?).count != 3
-          city_state_zip = [@sender.city, @sender.state, @sender.zip.delete('^0-9')]
-        end
+        city_state_zip = [@sender.city, @sender.state, @sender.zip.delete('^0-9')] if city_state_zip.reject(&:blank?).count != 3
         b.HL @hl, '1', '22', '0'
           b.SBR 'P', '18', nil, nil, nil, nil, nil, nil, 'MC'
           b.NM1 'IL', '1', pr.last_name, pr.first_name, nil, nil, nil, 'MI', pr.medicaid_id
           b.N3((pr.address_line_1.presence || @sender.address_1)&.gsub("\n", ' '))
-          b.N4 *city_state_zip
+          b.N4(*city_state_zip)
           b.DMG 'D8', pr.birthdate&.strftime('%Y%m%d'), pr.gender.presence || 'U'
           b.NM1 'PR', '2', @sender.receiver_name, nil, nil, nil, nil, 'PI', @sender.receiver_id
           valid_qa = patient_qa.where(hqa_t[:date_of_activity].lteq(max_date)).
-            select{|m| m.procedure_code.present?}
+            select { |m| m.procedure_code.present? }
           # batch services by month
-          valid_qa.group_by{|qa| qa.date_of_activity.strftime('%Y%m')}.each do |group, qas|
+          valid_qa.group_by { |qa| qa.date_of_activity.strftime('%Y%m') }.each do |_, qas|
             # puts "QA Count: #{qas.count} in #{group} for patient: #{patient.id}"
 
             # never put more than 20 services in any given claim
@@ -157,14 +155,13 @@ module Health
       end
       m = b.machine
       st = m
-      while st.segment.fetch.node.id != :ST
-        st = st.parent.fetch
-      end
+      st = st.parent.fetch while st.segment.fetch.node.id != :ST
 
       # ST line should be the second line in the file
       b.SE 2 + m.distance(st).fetch, id.to_s.rjust(4, '0')
       b.GE '1', @group_control_number
       b.IEA '1', @isa_control_number.to_s.rjust(9, '0')
+      # rubocop:enable Layout/IndentationConsistency
 
       @edi_builder = b
     end
@@ -174,12 +171,12 @@ module Health
       @edi_builder.machine.zipper.tap do |z|
         separators = Stupidedi::Reader::Separators.build(
           segment: "~\n",
-          element: "*",
+          element: '*',
           component: component_element_separator,
-          repetition:  repetition_separator
+          repetition: repetition_separator,
         )
         w = Stupidedi::Writer::Default.new(z.root, separators)
-        file = w.write().upcase
+        file = w.write.upcase
       end
       return file
     end
@@ -187,30 +184,27 @@ module Health
     def pid_sl_from_claims_file
       pid_sl = ''
       parsed_claims_file.first.tap do |m|
-        el(m, 6){|e| pid_sl = e}
+        el(m, 6) { |e| pid_sl = e }
       end
       return pid_sl
     end
 
     def parsed_claims_file
       config = Stupidedi::Config.hipaa
-      parser = Stupidedi::Builder::StateMachine.build(config)
+      parser = Stupidedi::Parser::StateMachine.build(config)
       parser, result = parser.read(Stupidedi::Reader.build(claims_file))
-      if result.fatal?
-        result.explain{|reason| raise reason + " at #{result.position.inspect}" }
-      end
+      result.explain { |reason| raise reason + " at #{result.position.inspect}" } if result.fatal?
       return parser
     end
 
     # Helper function: fetch an element from the current segment
-    def el(m, *ns, &block)
-      if Stupidedi::Either === m
-        m.tap{|m| el(m, *ns, &block) }
+    def el(m, *ns, &block) # rubocop:disable Naming/MethodParameterName
+      if m.is_a?(Stupidedi::Either)
+        m.tap { |m| el(m, *ns, &block) }
       else
-        yield(*ns.map{|n| m.elementn(n).map(&:value).fetch })
+        yield(*ns.map { |n| m.elementn(n).map(&:value).fetch })
       end
     end
-
 
     def start_report
       update(started_at: Time.now)
@@ -221,7 +215,7 @@ module Health
         completed_at: Time.now,
         max_isa_control_number: @isa_control_number,
         max_group_control_number: @group_control_number,
-        max_st_number: @st_control_number
+        max_st_number: @st_control_number,
       )
       save!
     end
@@ -273,18 +267,17 @@ module Health
 
     def self.next_isa_control_number
       current_max = maximum(:max_isa_control_number) || 10
-      current_max += 1
+      current_max + 1
     end
 
     def self.next_group_control_number
       current_max = maximum(:max_group_control_number) || 1010
-      current_max += 1
+      current_max + 1
     end
 
     def self.next_st_control_number
       current_max = maximum(:max_st_number) || 1010
-      current_max += 1
+      current_max + 1
     end
-
   end
 end

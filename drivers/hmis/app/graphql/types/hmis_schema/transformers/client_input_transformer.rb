@@ -8,7 +8,7 @@ module Types
       Hmis::Hud::Client.race_enum_map
     end
 
-    def multi_field_attrs(input_field, enum_map, not_collected_key, none_field)
+    def self.multi_field_attrs(input_field, enum_map, not_collected_key, none_field)
       result = {}
       return result if input_field.nil?
 
@@ -32,11 +32,11 @@ module Types
     end
 
     def gender_attrs
-      multi_field_attrs(gender, gender_map, 'Data not collected', :GenderNone)
+      self.class.multi_field_attrs(gender, gender_map, 'Data not collected', :GenderNone)
     end
 
     def race_attrs
-      multi_field_attrs(race, race_map, :not_collected, :RaceNone)
+      self.class.multi_field_attrs(race, race_map, :data_not_collected, :RaceNone)
     end
 
     def to_params

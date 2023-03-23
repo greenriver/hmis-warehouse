@@ -17,15 +17,17 @@ BostonHmis::Application.routes.draw do
         match 'logout' => 'sessions#destroy', via: :get if Rails.env.development?
       end
 
+      get 'theme', to: 'theme#index', defaults: { format: :json }
+      get 'themes', to: 'theme#list', defaults: { format: :json }
+
       post 'hmis-gql', to: 'graphql#execute', defaults: { schema: :hmis }
       mount GraphiQL::Rails::Engine, at: '/graphiql', graphql_path: '/hmis/hmis-gql', defaults: { format: :html } if Rails.env.development?
     end
     namespace :hmis_admin do
-      resources :roles do
-        resources :users, only: [:create, :destroy], controller: 'roles/users'
-      end
-      resources :groups do
-        resources :users, only: [:create, :destroy], controller: 'groups/users'
+      resources :roles
+      resources :groups
+      resources :access_controls do
+        resources :users, only: [:create, :destroy], controller: 'access_controls/users'
       end
     end
   end

@@ -6,28 +6,33 @@
 
 .results
   - if @results.any? && searched?
-    %table.table.table-condensed
-      %thead
-        %tr
-          %th Data Source
-          %th Warehouse ID
-          %th= @klass.hud_key
-          - @klass.related_item_keys.each do |k|
-            %th= k
-          %th DateCreated
-          %th DateUpdated
-
-      %tbody
-        - @results.each do |result|
-          - url = source_datum_path(result, type: params[:search].try(:[], :type))
+    .card
+      %table.table.table-striped
+        %thead
           %tr
-            %td= link_to result.data_source.name, data_source_path(result.data_source)
-            %td= link_to result.id, url
-            %td= link_to result[@klass.hud_key], url
+            %th Data Source
+            %th Warehouse ID
+            %th= @klass.hud_key
             - @klass.related_item_keys.each do |k|
-              %td= result[k]
-            %td= result.DateCreated
-            %td= result.DateUpdated
+              %th= k
+            %th DateCreated
+            %th DateUpdated
+
+        %tbody
+          - @results.each do |result|
+            - url = source_datum_path(result, type: params[:search].try(:[], :type))
+            %tr
+              %td= link_to result.data_source.name, data_source_path(result.data_source)
+              %td= link_to result.id, url
+              %td= link_to result[@klass.hud_key], url
+              - @klass.related_item_keys.each do |k|
+                %td= result[k]
+              %td
+                - if result.respond_to?(:DateCreated)
+                  = result.DateCreated
+              %td
+                - if result.respond_to?(:DateUpdated)
+                  = result.DateUpdated
 
   - elsif searched?
     %p No results found

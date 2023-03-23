@@ -9,7 +9,7 @@ class CohortsController < ApplicationController
   include CohortAuthorization
   include CohortClients
   before_action :some_cohort_access!
-  before_action :require_can_manage_cohorts!, only: [:create, :destroy, :edit, :update]
+  before_action :require_can_configure_cohorts!, only: [:create, :destroy, :edit, :update]
   before_action :require_can_access_cohort!, only: [:show]
   before_action :set_cohort, only: [:edit, :update, :destroy, :show]
   before_action :set_groups, only: [:edit, :update, :destroy, :show]
@@ -54,12 +54,18 @@ class CohortsController < ApplicationController
       format.html do
         @visible_columns = [CohortColumns::Meta.new]
         @visible_columns += @cohort.visible_columns(user: current_user)
-        @visible_columns << CohortColumns::Delete.new if (can_manage_cohorts? || can_edit_cohort_clients?) && ! @cohort.system_cohort && ! @cohort.auto_maintained?
+        delete_column = if params[:population] == 'deleted'
+          CohortColumns::Delete.new(title: 'Restore')
+        else
+          CohortColumns::Delete.new
+        end
+        @visible_columns << delete_column if can_add_cohort_clients? && ! @cohort.system_cohort && ! @cohort.auto_maintained?
         @column_headers = @visible_columns.each_with_index.map do |col, index|
+          col.cohort = @cohort # Needed for display_as_editable?
           header = {
             headerName: col.title,
             field: col.column,
-            editable: col.column_editable? && col.editable,
+            editable: col.column_editable? && col.display_as_editable?(current_user, nil),
           }
           header[:pinned] = :left if index <= @cohort.static_column_count
           header[:renderer] = col.renderer
@@ -111,7 +117,12 @@ class CohortsController < ApplicationController
 
   def create
     @cohort = cohort_source.create!(cohort_params)
-    respond_with(@cohort, location: cohort_path(@cohort))
+    # If the user doesn't have All Cohorts access, grant them access to the cohort
+    current_user.access_group.add_viewable(@cohort) unless AccessGroup.system_group(:cohorts).users.include?(current_user)
+    # Always add the cohort to the system group
+    AccessGroup.maintain_system_groups(group: :cohorts)
+    # Search the list so you can see the newly created cohort
+    redirect_to cohorts_path('q[name_cont]' => @cohort.name)
   rescue Exception => e
     flash[:error] = e.message
     redirect_to cohorts_path

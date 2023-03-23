@@ -4,11 +4,11 @@ module Mutations
     argument :unit_ids, [ID], required: true
 
     field :inventory, Types::HmisSchema::Inventory, null: true
-    field :errors, [Types::HmisSchema::ValidationError], null: false
 
     def resolve(inventory_id:, unit_ids:)
-      inventory = Hmis::Hud::Inventory.editable_by(current_user).find_by(id: inventory_id)
-      return { inventory => nil, errors: [InputValidationError.new('Inventory record not found', attribute: 'inventory_id')] } unless inventory.present?
+      inventory = Hmis::Hud::Inventory.viewable_by(current_user).find_by(id: inventory_id)
+      return { errors: [HmisErrors::Error.new(:inventory_id, :not_found)] } unless inventory.present?
+      return { errors: [HmisErrors::Error.new(:inventory_id, :not_allowed)] } unless current_user.permissions_for?(enrollment, :can_edit_project_details)
 
       return { inventory => inventory, errors: [] } unless unit_ids.any?
 

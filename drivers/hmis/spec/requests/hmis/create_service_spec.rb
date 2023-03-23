@@ -1,6 +1,7 @@
 require 'rails_helper'
 require_relative 'login_and_permissions'
-require_relative 'hmis_base_setup'
+require_relative '../../support/hmis_base_setup'
+require_relative '../../support/hmis_service_setup'
 
 RSpec.describe Hmis::GraphqlController, type: :request do
   before(:all) do
@@ -11,6 +12,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   include_context 'hmis base setup'
+  include_context 'hmis service setup'
   let!(:c1) { create :hmis_hud_client, data_source: ds1, user: u1 }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, relationship_to_ho_h: 1, household_id: '1', user: u1 }
 
@@ -38,7 +40,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       mutation CreateService($input: ServiceInput!) {
         createService(input: { input: $input }) {
           service {
-            id
+            #{scalar_fields(Types::HmisSchema::Service)}
             enrollment {
               id
             }
@@ -48,14 +50,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             user {
               id
             }
-            dateProvided
-            recordType
-            typeProvided
-            subTypeProvided
-            otherTypeProvided
-            movingOnOtherType
-            FAAmount
-            referralOutcome
           }
           #{error_fields}
         }
@@ -70,8 +64,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(response.status).to eq 200
       service = result.dig('data', 'createService', 'service')
       errors = result.dig('data', 'createService', 'errors')
-
       expect(service['id']).to be_present
+      expect(service['id']).to eq(Hmis::Hud::HmisService.first.id.to_s)
       expect(errors).to be_empty
     end
   end
@@ -95,16 +89,14 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         'should emit error if enrollment ID is not provided',
         ->(input) { input.except(:enrollment_id) },
         {
-          'message' => "Enrollment with id '' does not exist",
-          'attribute' => 'enrollmentId',
+          fullMessage: 'Enrollment not found',
         },
       ],
       [
         'should emit error if enrollment does not exist',
         ->(input) { input.merge(enrollment_id: '0') },
         {
-          'message' => "Enrollment with id '0' does not exist",
-          'attribute' => 'enrollmentId',
+          fullMessage: 'Enrollment not found',
         },
       ],
       [
@@ -118,8 +110,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           input
         end,
         {
-          'fullMessage' => 'Type provided Invalid service type',
-          'attribute' => 'typeProvided',
+          attribute: :typeProvided,
+          type: :invalid,
+          severity: :error,
         },
       ],
       [
@@ -131,8 +124,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           )
         end,
         {
-          'message' => 'Invalid SubTypeProvided for RecordType',
-          'attribute' => 'subTypeProvided',
+          attribute: :subTypeProvided,
+          type: :invalid,
+          severity: :error,
         },
       ],
       [
@@ -144,8 +138,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           )
         end,
         {
-          'message' => 'Invalid SubTypeProvided for TypeProvided',
-          'attribute' => 'subTypeProvided',
+          attribute: :subTypeProvided,
+          type: :invalid,
+          severity: :error,
         },
       ],
       [
@@ -158,8 +153,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           )
         end,
         {
-          'message' => 'Invalid SubTypeProvided for TypeProvided',
-          'attribute' => 'subTypeProvided',
+          attribute: :subTypeProvided,
+          type: :invalid,
+          severity: :error,
         },
       ],
     ].each do |test_name, input_proc, *expected_errors|
@@ -169,7 +165,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         errors = result.dig('data', 'createService', 'errors')
         aggregate_failures 'checking response' do
           expect(response.status).to eq 200
-          expect(errors).to contain_exactly(*expected_errors.map { |error_attrs| include(**error_attrs) })
+          expect(errors).to match(expected_errors.map do |h|
+            a_hash_including(**h.transform_keys(&:to_s).transform_values(&:to_s))
+          end)
         end
       end
     end

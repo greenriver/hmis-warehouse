@@ -1,6 +1,6 @@
 require 'rails_helper'
 require_relative 'login_and_permissions'
-require_relative 'hmis_base_setup'
+require_relative '../../support/hmis_base_setup'
 
 RSpec.describe Hmis::GraphqlController, type: :request do
   before(:all) do
@@ -12,7 +12,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   include_context 'hmis base setup'
 
-  let!(:pc1) { create :hmis_hud_project_coc, data_source_id: ds1.id, project: p1, coc_code: 'MA-500' }
+  let!(:pc1) { create :hmis_hud_project_coc, data_source: ds1, project: p1, coc_code: 'MA-500' }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, relationship_to_ho_h: 1, household_id: '1', user: u1 }
 
   before(:each) do
@@ -127,7 +127,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         'code' => 'PATH_SERVICE__RE_ENGAGEMENT',
         'label' => 'Re-engagement',
         'groupCode' => 'PATH_SERVICE',
-        'groupLabel' => 'PATH service',
+        'groupLabel' => 'PATH Service',
       ),
     )
   end

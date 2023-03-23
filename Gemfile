@@ -1,7 +1,8 @@
 source 'https://rubygems.org'
 
 gem 'rails', '~> 6.1'
-gem 'rails_drivers'
+gem 'rails_drivers', github: 'greenriver/rails_drivers', branch: 'master'
+gem 'rack', '>= 2.2.6.3'
 
 # bundle exec rake doc:rails generates the API under doc/api.
 gem 'sdoc', group: :doc
@@ -41,13 +42,13 @@ gem 'bootsnap'
 gem 'bcrypt'
 gem 'haml-rails'
 gem 'sassc-rails'
-gem 'autoprefixer-rails'
+gem 'autoprefixer-rails', '~> 10.3.3' # pinned until we can update to Bootstrap 5.3 or later
 gem 'kaminari'
 gem 'pagy'
 gem 'with_advisory_lock'
 # gem 'schema_plus_views'
 gem 'scenic'
-gem 'memoist', require: false
+gem 'memery', require: false
 gem 'rserve-client', require: false
 gem 'rserve-simpler', require: false
 gem 'encryptor'
@@ -58,7 +59,7 @@ gem 'carrierwave-i18n'
 
 # version 1.5 has the fix we need when we ever go to 1.5
 #gem 'carrierwave-aws', '~> 1.4'
-gem 'carrierwave-aws', git: "https://github.com/greenriver/carrierwave-aws.git", branch: "gr-1.4.0-without-deprecations"
+gem 'carrierwave-aws', git: 'https://github.com/greenriver/carrierwave-aws.git', branch: 'gr-1.4.0-without-deprecations'
 gem 'image_processing'
 
 gem 'ruby-filemagic'
@@ -68,8 +69,8 @@ gem 'mimemagic'
 # since there are no tests for this
 # it should be tested manually
 gem 'acts-as-taggable-on', '~> 7.0'
-gem 'seven_zip_ruby' unless ENV['NO_7ZIP'] == '1'
-gem 'hellosign-ruby-sdk'
+# gem 'seven_zip_ruby' unless ENV['NO_7ZIP'] == '1'
+gem 'hellosign-ruby-sdk', git: 'https://github.com/greenriver/hellosign-ruby-sdk.git'
 
 gem 'devise', '~> 4'
 gem 'devise_invitable', '~> 2.0'
@@ -78,9 +79,10 @@ gem 'devise-security'
 gem 'devise-two-factor'
 gem 'rack-cors'
 
-gem 'omniauth', '~> 1.9.1'
-gem 'omniauth-oauth2'
-gem 'omniauth-rails_csrf_protection', '~> 0.1'
+gem 'omniauth', '~> 2.1'
+gem 'omniauth-oauth2', '~> 1.7.3'
+gem 'omniauth-rails_csrf_protection', '~> 1.0.1'
+gem 'faraday', '~> 2.2.0'
 
 gem 'pretender'
 gem 'rqrcode-rails3'
@@ -128,7 +130,7 @@ gem 'sprockets', '~> 3'
 gem 'sprockets-es6'
 gem 'jquery-ui-rails'
 # gem 'chart-js-rails'
-gem 'nominatim'
+gem 'nominatim', git: 'https://github.com/greenriver/nominatim.git', branch: 'aw/faraday-2'
 gem 'linefit'
 gem 'jquery-minicolors-rails'
 gem 'htmlentities'
@@ -144,7 +146,7 @@ gem 'gmail', require: false
 # gem 'savon'
 # gem 'qaaws', require: false, git: 'https://github.com/greenriver/eis-ruby-qaaws.git', branch: 'master'
 
-gem 'stupidedi' #, require: false #, git: 'https://github.com/greenriver/stupidedi.git', branch: '820'
+gem 'stupidedi', git: 'https://github.com/greenriver/stupidedi.git', branch: 'master'
 
 gem 'redcarpet'
 
@@ -194,7 +196,7 @@ gem 'aws-sdk-secretsmanager', '~> 1'
 gem 'aws-sdk-ses', '~> 1'
 gem 'aws-sdk-iam', '~> 1'
 gem 'aws-sdk-sns', require: false
-gem "aws-sdk-ssm", "~> 1"
+gem 'aws-sdk-ssm', '~> 1'
 gem 'json'
 gem 'oj'
 gem 'amazing_print'
@@ -220,12 +222,13 @@ gem 'ansi'
 
 gem 'parallel'
 gem 'todo_or_die'
-gem 'reline', '~> 0.2'
+gem 'reline'
 
-gem "business_time", "~> 0.10.0"
-gem "cable_ready", "~> 4.5"
-gem "graphql", "~> 2.0"
-gem "sentry-rails", "~> 5.5"
+gem 'business_time', '~> 0.10.0'
+gem 'cable_ready', '~> 4.5'
+gem 'graphql', '~> 2.0'
+gem 'sentry-rails', '~> 5.5'
+gem 'warning'
 
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
@@ -237,7 +240,7 @@ group :development, :test do
   gem 'factory_bot_rails'
   gem 'vcr'
   gem 'webmock'
-  # gem 'rb-readline'
+  gem 'deprecation_toolkit', require: false
 end
 
 group :development do

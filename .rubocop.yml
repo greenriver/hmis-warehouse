@@ -1,4 +1,6 @@
 inherit_from: .rubocop_todo.yml
+require:
+  - ./lib/rubocop/cop/lint/last_keyword_argument.rb
 
 AllCops:
   Exclude:
@@ -21,6 +23,10 @@ AllCops:
     - 'config/deploy/docker/lib/*.rb'
 
   NewCops: disable
+
+Lint/LastKeywordArgument:
+  Enabled: true
+  Safe: false
 
 # We don't care about method length, since we check method cyclomatic
 # complexity.
@@ -255,3 +261,5 @@ Style/SoleNestedConditional:
   Enabled: false
 Style/ExplicitBlockArgument:
   Enabled: false
+Style/HashSyntax:
+  EnforcedShorthandSyntax: never

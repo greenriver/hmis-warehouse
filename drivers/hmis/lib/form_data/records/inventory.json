@@ -7,6 +7,7 @@
       "hidden": true,
       "initial": [
         {
+          "initial_behavior": "OVERWRITE",
           "value_local_constant": "$projectStartDate"
         }
       ]
@@ -17,7 +18,32 @@
       "hidden": true,
       "initial": [
         {
+          "initial_behavior": "OVERWRITE",
           "value_local_constant": "$projectEndDate"
+        }
+      ]
+    },
+    {
+      "type": "INTEGER",
+      "link_id": "bed-inv",
+      "hidden": true,
+      "field_name": "bedInventory",
+      "initial": [
+        {
+          "initial_behavior": "OVERWRITE",
+          "value_local_constant": "$bedInventory"
+        }
+      ]
+    },
+    {
+      "type": "INTEGER",
+      "link_id": "unit-inv",
+      "hidden": true,
+      "field_name": "unitInventory",
+      "initial": [
+        {
+          "initial_behavior": "OVERWRITE",
+          "value_local_constant": "$unitInventory"
         }
       ]
     },

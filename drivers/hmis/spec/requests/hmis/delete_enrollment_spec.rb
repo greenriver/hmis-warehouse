@@ -1,6 +1,6 @@
 require 'rails_helper'
 require_relative 'login_and_permissions'
-require_relative 'hmis_base_setup'
+require_relative '../../support/hmis_base_setup'
 
 RSpec.describe Hmis::GraphqlController, type: :request do
   include_context 'hmis base setup'
@@ -45,7 +45,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       enrollment = result.dig('data', 'deleteEnrollment', 'enrollment')
       errors = result.dig('data', 'deleteEnrollment', 'errors')
       expect(enrollment).to be_present
-      expect(errors).to contain_exactly(include('message' => 'Only in-progress enrollments can be deleted'))
+      expect(errors).to contain_exactly(include('fullMessage' => 'Completed enrollments can not be deleted. Please exit the client instead.'))
       expect(Hmis::Hud::Enrollment.all).to contain_exactly(
         have_attributes(id: e1.id),
         have_attributes(id: e2.id),
@@ -64,6 +64,23 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(errors).to be_empty
       expect(Hmis::Hud::Enrollment.all).to contain_exactly(
         have_attributes(id: e1.id),
+      )
+    end
+  end
+
+  it 'should throw error if unauthorized' do
+    remove_permissions(hmis_user, :can_delete_enrollments)
+    response, result = post_graphql(input: { id: e2.id }) { mutation }
+
+    aggregate_failures 'checking response' do
+      expect(response.status).to eq 200
+      enrollment = result.dig('data', 'deleteEnrollment', 'enrollment')
+      errors = result.dig('data', 'deleteEnrollment', 'errors')
+      expect(enrollment).to be_nil
+      expect(errors).to contain_exactly(include('type' => 'not_allowed'))
+      expect(Hmis::Hud::Enrollment.all).to contain_exactly(
+        have_attributes(id: e1.id),
+        have_attributes(id: e2.id),
       )
     end
   end

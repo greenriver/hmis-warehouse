@@ -1,69 +1,60 @@
 module Mutations
   class AddHouseholdMembersToEnrollment < BaseMutation
     argument :household_id, ID, required: true
-    date_string_argument :start_date, 'Start date with format yyyy-mm-dd', required: true
+    argument :entry_date, GraphQL::Types::ISO8601Date, required: true
     argument :household_members, [Types::HmisSchema::EnrollmentHouseholdMemberInput], required: true
 
     field :enrollments, [Types::HmisSchema::Enrollment], null: true
-    field :errors, [Types::HmisSchema::ValidationError], null: false
 
-    def validate_input(household_id:, start_date:, household_members:)
-      errors = []
-      errors << InputValidationError.new('Entry date cannot be in the future', attribute: 'start_date') if Date.parse(start_date) > Date.today
+    def resolve(household_id:, entry_date:, household_members:)
+      errors = HmisErrors::Errors.new
+      existing_enrollments = Hmis::Hud::Enrollment.viewable_by(current_user).where(household_id: household_id)
 
-      has_enrollment = Hmis::Hud::Enrollment.editable_by(current_user).exists?(household_id: household_id)
-      has_hoh_enrollment = Hmis::Hud::Enrollment.editable_by(current_user).exists?(household_id: household_id, relationship_to_ho_h: 1)
-      errors << InputValidationError.new("Cannot find Enrollment for household with id '#{household_id}'", attribute: 'household_id') unless has_enrollment
-      errors << InputValidationError.new('Enrollment already has a head of household designated', attribute: 'household_members') if has_hoh_enrollment && household_members.find { |hm| hm.relationship_to_ho_h == 1 }
+      errors.add :household_id, :not_found unless existing_enrollments.exists?
+      return { errors: errors } if errors.any?
 
-      errors
-    end
+      errors.add :household_id, :not_allowed unless current_user.permissions_for?(existing_enrollments.first, :can_edit_enrollments)
+      return { errors: errors } if errors.any?
 
-    def resolve(household_id:, start_date:, household_members:)
-      user = current_user
-      errors = validate_input(household_id: household_id, start_date: start_date, household_members: household_members)
+      has_hoh = existing_enrollments.heads_of_households.exists?
+      errors.add :household_members, :invalid, full_message: 'Enrollment already has a Head of Household designated' if has_hoh && household_members.find { |hm| hm.relationship_to_ho_h == 1 }
 
-      if errors.present?
-        return {
-          enrollments: [],
-          errors: errors,
-        }
-      end
+      client_ids = household_members.map(&:id)
+      errors.add :household_members, :invalid, full_message: 'Client is already a member of this household' if existing_enrollments.joins(:client).where(client: { id: client_ids }).exists?
 
-      existing_enrollment = Hmis::Hud::Enrollment.editable_by(user).find_by(household_id: household_id)
-      lookup = Hmis::Hud::Client.where(id: household_members.map(&:id)).index_by(&:id)
-      project_id = existing_enrollment.project.project_id
+      lookup = Hmis::Hud::Client.viewable_by(current_user).where(id: client_ids).pluck(:id, :personal_id).to_h
+      errors.add :household_members, :not_found if lookup.keys.size != household_members.size
+      return { errors: errors } if errors.any?
 
+      project_id = existing_enrollments.first.project.project_id
       enrollments = household_members.map do |household_member|
-        client = lookup[household_member.id.to_i]
-        enrollment = client.enrollments.editable_by(user).find_by(household_id: household_id)
-
-        next enrollment if enrollment.present?
-
-        enrollment = Hmis::Hud::Enrollment.new(
+        Hmis::Hud::Enrollment.new(
           data_source_id: hmis_user.data_source_id,
           user_id: hmis_user.user_id,
-          date_updated: DateTime.current,
-          date_created: DateTime.current,
-          personal_id: client.personal_id,
+          personal_id: lookup[household_member.id.to_i],
           relationship_to_ho_h: household_member.relationship_to_ho_h,
-          entry_date: start_date,
+          entry_date: entry_date,
           project_id: project_id,
           household_id: household_id,
-          enrollment_id: Hmis::Hud::Enrollment.generate_enrollment_id,
         )
-        enrollment.save_in_progress
-
-        enrollment
       end
 
+      # Validate entry date. Drop warnings for now, because we don't handle them yet in the frontend.
+      validation_errors = Hmis::Hud::Validators::EnrollmentValidator.validate_entry_date(entry_date, enrollment: enrollments.first)
+      validation_errors = validation_errors.reject(&:warning?)
+      return { errors: validation_errors } if validation_errors.any?
+
+      errors = []
       enrollments.each(&:valid?).each do |enrollment|
         errors += enrollment.errors.errors unless enrollment.errors.empty?
       end
+      return { errors: errors } if errors.any?
+
+      enrollments.each(&:save_in_progress)
 
       {
         enrollments: enrollments,
-        errors: errors,
+        errors: [],
       }
     end
   end

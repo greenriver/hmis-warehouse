@@ -54,7 +54,7 @@ class AssetCompiler
     Dotenv.load('.env')
 
     time_me name: 'Compiling assets' do
-      system('source .env; rake --quiet assets:precompile > /dev/null 2>&1') # TODO: don't call out to rake like this, it's inefficient
+      system('source .env; bundle rails --quiet assets:precompile > /dev/null 2>&1') # TODO: don't call out to rake like this, it's inefficient
     end
 
     time_me name: 'Uploading compiled assets' do
