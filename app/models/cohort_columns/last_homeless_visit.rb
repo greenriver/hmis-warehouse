@@ -30,9 +30,13 @@ module CohortColumns
       enforce_visibility = cohort_client.cohort.enforce_project_visibility_on_cells?
       lhv = JSON.parse(lhv)
       lhv.select do |row|
-        next true unless enforce_visibility
+        next row['project_id'].in?(user.visible_project_ids_enrollment_context) if enforce_visibility
+        next true unless cohort.only_window?
 
-        row['project_id'].in?(user.visible_project_ids_enrollment_context)
+        window_project_ids = GrdaWarehouse::Hud::Project.joins(:data_source).
+          merge(GrdaWarehouse::DataSource.visible_in_window).
+          pluck(:id)
+        row['project_id'].in?(window_project_ids)
       end.sort_by { |row| row['date'] }.reverse.map do |row|
         "#{row['project_name']}: #{row['date'].to_date}"
       end.join('; ')
