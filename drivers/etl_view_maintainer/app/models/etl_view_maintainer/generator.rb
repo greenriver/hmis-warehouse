@@ -14,7 +14,7 @@ module EtlViewMaintainer
       key = "warehouse.denormalized.#{Rails.env}.#{range.first.to_s(:db)}.to.#{range.last.to_s(:db)}.#{extension}"
 
       upload_options = {
-        part_size: 100 * 1024 * 1024,
+        part_size: 25 * 1024 * 1024,
       }
 
       s3_object = Aws::S3::Object.new(bucket, key)
