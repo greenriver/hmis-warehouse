@@ -783,5 +783,26 @@ module HudApr::Generators::Shared::Fy2023
 
       potential_events.max_by(&:EventDate)
     end
+
+    private def apr_age_ranges
+      @apr_age_ranges ||= age_ranges.select { |k, _| age_range_keys.include?(k) }
+    end
+
+    private def age_range_keys
+      [
+        'Under 5',
+        '5-12',
+        '13-17',
+        '18-24',
+        '25-34',
+        '35-44',
+        '45-54',
+        '55-61',
+        '62+',
+        "Client Doesn't Know/Client Refused",
+        'Data Not Collected',
+        'Total',
+      ].freeze
+    end
   end
 end
