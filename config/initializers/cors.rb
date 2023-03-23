@@ -12,6 +12,11 @@ if ENV['ENABLE_HMIS_API'] == 'true' && hmis_hostname.present?
         headers: :any,
         methods: [:get, :post, :delete, :put, :patch, :options, :head],
         credentials: true
+
+      resource '/rails/active_storage/*',
+        headers: :any,
+        methods: [:get, :options, :head],
+        credentials: true
     end
   end
 end
