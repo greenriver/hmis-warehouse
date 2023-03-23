@@ -73,7 +73,7 @@ module Health
         user_full_name: @user.name_with_email,
         date_of_activity: @cha.reviewed_at.to_date,
         activity: :cha_completed,
-        follow_up: 'CHA and SSM with patient approved by NCM.',
+        follow_up: 'CHA and SSM for patient approved by NCM.',
         reached_client: :yes,
         mode_of_contact: @cha.collection_method,
         patient_id: @cha.patient_id,

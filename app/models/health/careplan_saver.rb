@@ -29,6 +29,7 @@ module Health
           # This needs to be done before the save so that the _changed tracking is triggered
           care_planning_qa = setup_care_planning_qualifying_activity if @careplan.just_finished? && @create_qa
           cha_approved_qa = setup_cha_approved_qualifying_activity if @careplan.ncm_just_approved? && @create_qa
+          sdoh_qa = setup_sdoh_qualifying_activity if @careplan.ncm_just_approved? && @create_qa
           pctp_signed_qa = setup_pctp_signed_qualifying_activity if @careplan.rn_just_approved? && @create_qa
 
           # Validate the save so that no QAs are  created if the PCTP is invalid
@@ -37,6 +38,7 @@ module Health
           # This is done after the save to guarantee the careplan has an id
           complete_qa(care_planning_qa) if care_planning_qa.present?
           cha_approved_qa.save! if cha_approved_qa.present?
+          sdoh_qa.save! if sdoh_qa.present?
           complete_qa(pctp_signed_qa) if pctp_signed_qa.present?
 
           @careplan.set_lock
@@ -95,6 +97,35 @@ module Health
         follow_up: 'Approve Comprehensive Assessment',
         patient_id: @careplan.patient_id,
       )
+    end
+
+    private def setup_sdoh_qualifying_activity
+      @ssm = @careplan.patient.recent_ssm_form
+      return unless @ssm.present?
+
+      qa = Health::QualifyingActivity.new(
+        source_type: @ssm.class.name,
+        source_id: @ssm.id,
+        user_id: @user.id,
+        user_full_name: @user.name_with_email,
+        date_of_activity: [@careplan.ncm_approved_on, '2023-04-01'.to_date].max,
+        mode_of_contact: nil, # There are no contact modifiers listed in the QA specification
+        reached_client: nil,
+        patient_id: @careplan.patient_id,
+      )
+      if @ssm.positive_sdoh?
+        qa.assign_attributes(
+          activity: :sdoh_positive,
+          follow_up: 'Patient SDoH Screening Positive',
+        )
+      else
+        qa.assign_attributes(
+          activity: :sdoh_negative,
+          follow_up: 'Patient SDoH Screening Negative',
+        )
+      end
+
+      qa
     end
   end
 end

@@ -154,7 +154,7 @@ module Health
     def contact_required?(activity)
       return false unless activity
 
-      !activity.to_sym.in?([:cha_completed, :pctp_signed])
+      !activity.to_sym.in?([:cha_completed, :pctp_signed, :sdoh_positive, :sdoh_negative])
     end
   end
 end
