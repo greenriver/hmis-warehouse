@@ -207,28 +207,60 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     }.freeze
   end
 
-  # Pull up and errors from the HMIS records, adjusting their attribute names as required
+  private def all_factories
+    [
+      :enrollment_factory,
+      :enrollment_coc_factory,
+      :health_and_dv_factory,
+      :income_benefit_factory,
+      :physical_disability_factory,
+      :developmental_disability_factory,
+      :chronic_health_condition_factory,
+      :hiv_aids_factory,
+      :mental_health_disorder_factory,
+      :substance_use_disorder_factory,
+      :exit_factory,
+      :owner_factory,
+      :service_factory,
+    ]
+  end
+
+  # Pull up any errors from the HMIS records
   private def hmis_records_are_valid
-    {
-      enrollment_coc_factory: ->(attribute_name) { translate_field(attribute_name) },
-      health_and_dv_factory: ->(attribute_name) { translate_field(attribute_name) },
-      income_benefit_factory: ->(attribute_name) { translate_field(attribute_name) },
-      physical_disability_factory: ->(attribute_name) { translate_disability_field('physicalDisability', attribute_name) },
-      developmental_disability_factory: ->(attribute_name) { translate_disability_field('developmentalDisability', attribute_name) },
-      chronic_health_condition_factory: ->(attribute_name) { translate_disability_field('chronicHealthCondition', attribute_name) },
-      hiv_aids_factory: ->(attribute_name) { translate_disability_field('hivAids', attribute_name) },
-      mental_health_disorder_factory: ->(attribute_name) { translate_disability_field('mentalHealthDisorder', attribute_name) },
-      substance_use_disorder_factory: ->(attribute_name) { translate_disability_field('substanceUseDisorder', attribute_name) },
-      exit_factory: ->(attribute_name) { translate_field(attribute_name) },
-    }.each do |factory_method, transformer|
+    all_factories.excluding(:owner_factory, :service_factory).each do |factory_method|
       record = send(factory_method, create: false)
       next unless record.present?
       next if record.valid?
 
-      record.errors.each do |error|
-        errors.add(transformer.call(error.attribute), error.message, **error.options)
-      end
+      errors.merge!(record.errors)
     end
+  end
+
+  def related_records
+    all_factories.map do |factory_method|
+      record = send(factory_method, create: false)
+      # assessment is not considered a related record, other "owners" are
+      next if record.is_a?(Hmis::Hud::CustomAssessment)
+
+      record
+    end.compact.uniq
+  end
+
+  # Get HmisError::Errors object containing related record errors that can be resolved
+  # as GraphQL ValidationErrors.
+  def collect_hmis_errors
+    errors = HmisErrors::Errors.new
+    related_records.each do |record|
+      next if record.errors.none?
+
+      # Skip relation fields, to avoid errors like "Income Benefit is invalid" on the Enrollment
+      ar_errors = record.errors.errors.reject do |e|
+        e.attribute.to_s.underscore.ends_with?('_id') || record.send(e.attribute).is_a?(ActiveRecord::Relation)
+      end
+      errors.add_ar_errors(ar_errors)
+    end
+
+    errors
   end
 
   private def translate_field(field, container: nil)

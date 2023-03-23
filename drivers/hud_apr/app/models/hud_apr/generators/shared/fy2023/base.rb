@@ -163,12 +163,15 @@ module HudApr::Generators::Shared::Fy2023
           end
 
           chronic_source = household_chronic_status(hh_id, last_service_history_enrollment.client_id)
+          move_in_date = last_service_history_enrollment.move_in_date
+          move_in_date = nil if move_in_date.present? && move_in_date < last_service_history_enrollment.first_date_in_program
           processed_source_clients << source_client.id
           ce_hash = {}
           options = {
             client_id: source_client.id,
             destination_client_id: last_service_history_enrollment.client_id,
             data_source_id: source_client.data_source_id,
+            personal_id: source_client.PersonalID,
             project_id: last_service_history_enrollment.project.id,
             report_instance_id: @report.id,
             source_enrollment_id: enrollment.id,
@@ -202,6 +205,7 @@ module HudApr::Generators::Shared::Fy2023
             disabling_condition: enrollment.DisablingCondition,
             dob_quality: source_client.DOBDataQuality,
             dob: source_client.DOB,
+            client_created_at: source_client.DateCreated,
             domestic_violence: health_and_dv&.DomesticViolenceVictim,
             drug_abuse_entry: [2, 3].include?(disabilities_at_entry.detect(&:substance?)&.DisabilityResponse),
             drug_abuse_exit: [2, 3].include?(disabilities_at_exit.detect(&:substance?)&.DisabilityResponse),
@@ -249,7 +253,7 @@ module HudApr::Generators::Shared::Fy2023
             mental_health_problem_latest: disabilities_latest.detect(&:mental?)&.DisabilityResponse,
             mental_health_problem: disabilities.detect(&:mental?).present?,
             months_homeless: enrollment.MonthsHomelessPastThreeYears,
-            move_in_date: last_service_history_enrollment.move_in_date,
+            move_in_date: move_in_date,
             name_quality: source_client.NameDataQuality,
             non_cash_benefits_from_any_source_at_annual_assessment: income_at_annual_assessment&.BenefitsFromAnySource,
             non_cash_benefits_from_any_source_at_exit: income_at_exit&.BenefitsFromAnySource,
@@ -346,9 +350,9 @@ module HudApr::Generators::Shared::Fy2023
           last_enrollment = enrollments_by_client_id[apr_client.destination_client_id].last.enrollment
           situations = last_enrollment.current_living_situations
           engagement_date = last_enrollment.DateOfEngagement
-          # If we're looking at SO and don't have a CLS on the engagement date,
+          # If we're looking at SO or ES and don't have a CLS on the engagement date,
           # add one of type "37" - "Worker unable to determine" because it doesn't count as missing.
-          if last_enrollment.project.so? && engagement_date.present? && ! situations.detect { |cls| cls.InformationDate == engagement_date }
+          if (last_enrollment.project.so? || last_enrollment.project.night_by_night?) && engagement_date.present? && ! situations.detect { |cls| cls.InformationDate == engagement_date }
             client_living_situations << apr_client.hud_report_apr_living_situations.build(
               information_date: engagement_date,
               living_situation: 37,
@@ -423,14 +427,19 @@ module HudApr::Generators::Shared::Fy2023
         reject { |_, enrollments| enrollments.empty? }
     end
 
+    # Uses Method 2 Active Clients by Date of Service from the HMIS Glossary
     private def nbn_with_service?(enrollment)
       return true unless enrollment.nbn?
 
-      @with_service ||= GrdaWarehouse::ServiceHistoryService.bed_night.
-        service_excluding_extrapolated.
-        service_within_date_range(start_date: @report.start_date, end_date: @report.end_date).
-        where(service_history_enrollment_id: enrollment_scope_without_preloads.select(:id)).
-        pluck(:service_history_enrollment_id).to_set
+      @with_service ||= (
+        # anyone with service in the range
+        GrdaWarehouse::ServiceHistoryService.bed_night.
+          service_excluding_extrapolated.
+          service_within_date_range(start_date: @report.start_date, end_date: @report.end_date).
+          where(service_history_enrollment_id: enrollment_scope_without_preloads.select(:id)).
+          pluck(:service_history_enrollment_id) +
+        # plus anyone with an exit within the range
+        enrollment_scope_without_preloads.exit_within_date_range(start_date: @report.start_date, end_date: @report.end_date).pluck(:id)).to_set
 
       @with_service.include?(enrollment.id)
     end
@@ -506,8 +515,9 @@ module HudApr::Generators::Shared::Fy2023
           when 3, 13 # PSH/RRH
             enrollment.first_date_in_program <= pit_date &&
               (enrollment.last_date_in_program.nil? || enrollment.last_date_in_program > pit_date) && # Exclude exit date
-              enrollment.move_in_date.present? && # Check that move in date is present and is before the PIT data
-              enrollment.move_in_date <= pit_date
+              enrollment.move_in_date.present? && # Check that move in date is present and is before the PIT data and on or after the entry date
+              enrollment.move_in_date <= pit_date &&
+              enrollment.move_in_date >= enrollment.first_date_in_program
           when 1, 2, 8, 9, 10 # Other residential
             enrollment.first_date_in_program <= pit_date &&
               (enrollment.last_date_in_program.nil? || enrollment.last_date_in_program > pit_date) # Exclude exit date

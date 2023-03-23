@@ -51,26 +51,23 @@ module Mutations
       )
 
       # Validate based on FormDefinition
-      validation_errors = custom_form.validate_form(ignore_warnings: input.confirmed)
-      errors.push(*validation_errors)
-      return { errors: errors } if errors.any?
+      form_validations = custom_form.collect_form_validations(ignore_warnings: input.confirmed)
+      errors.push(*form_validations)
 
       # Run processor to create/update record(s)
       custom_form.form_processor.run!
 
-      # Run custom validator for any warnings/errors (like closing a Project)
-      validator = klass.validators.find { |v| v.respond_to?(:hmis_validate) }
-      if validator.present?
-        validation_errors = validator.hmis_validate(record, ignore_warnings: input.confirmed)
-        errors.push(*validation_errors)
-      end
+      # Run both validations
+      is_valid = record.valid? && custom_form.valid?
+
+      # Collect validations and warnings from AR Validator classes
+      record_validations = custom_form.collect_record_validations(ignore_warnings: input.confirmed, user: current_user)
+      errors.push(*record_validations)
+
+      errors.deduplicate!
       return { errors: errors } if errors.any?
 
-      # Run both validations
-      record_valid = record.valid?
-      custom_form_valid = custom_form.valid?
-
-      if record_valid && custom_form_valid
+      if is_valid
         # Perform any side effects
         perform_side_effects(record)
 
@@ -88,10 +85,10 @@ module Mutations
         # Update DateUpdated on the Enrollment, if record is Enrollment-related
         record.enrollment&.touch if record.respond_to?(:enrollment)
       else
-        # These are potentially unfixable errors, so maybe we should throw a server error instead.
-        # Leaving them visible to the user for now, while we QA the feature.
-        errors.push(*custom_form&.errors&.errors)
-        errors.push(*record.errors&.errors)
+        # These are potentially unfixable errors. Maybe should be server error instead.
+        # For now, return them all because they are useful in development.
+        errors.add_ar_errors(custom_form.errors&.errors)
+        errors.add_ar_errors(record.errors&.errors)
         record = nil
       end
 

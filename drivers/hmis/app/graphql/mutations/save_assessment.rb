@@ -16,8 +16,8 @@ module Mutations
       # Determine the Assessment Date and validate it
       assessment_date, errors = definition.find_and_validate_assessment_date(
         values: input.values,
-        entry_date: enrollment.entry_date,
-        exit_date: enrollment.exit_date,
+        enrollment: enrollment,
+        ignore_warnings: true,
       )
       return { errors: errors } if errors.any?
 
