@@ -5606,7 +5606,26 @@ CREATE TABLE public.cohort_clients (
     user_date_28 character varying,
     user_date_29 character varying,
     user_date_30 character varying,
-    most_recent_date_to_street date
+    most_recent_date_to_street date,
+    user_boolean_31 boolean,
+    user_boolean_32 boolean,
+    user_boolean_33 boolean,
+    user_boolean_34 boolean,
+    user_boolean_35 boolean,
+    user_boolean_36 boolean,
+    user_boolean_37 boolean,
+    user_boolean_38 boolean,
+    user_boolean_39 boolean,
+    user_boolean_40 boolean,
+    user_boolean_41 boolean,
+    user_boolean_42 boolean,
+    user_boolean_43 boolean,
+    user_boolean_44 boolean,
+    user_boolean_45 boolean,
+    user_boolean_46 boolean,
+    user_boolean_47 boolean,
+    user_boolean_48 boolean,
+    user_boolean_49 boolean
 );
 
 
@@ -51650,6 +51669,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230313152950'),
 ('20230319133739'),
 ('20230320131930'),
-('20230322183901');
+('20230322183901'),
+('20230322220754');
 
 

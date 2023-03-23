@@ -48,8 +48,13 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
     joins(:custom_form).merge(Hmis::Form::CustomForm.with_role(role))
   end
 
+  # Load project for WIP enrollment
+  def project
+    super || enrollment.project
+  end
+
   def enrollment
-    super || Hmis::Hud::Enrollment.find(wip.enrollment_id)
+    super || Hmis::Hud::Enrollment.find_by(id: wip&.enrollment_id)
   end
 
   def self.sort_by_option(option)

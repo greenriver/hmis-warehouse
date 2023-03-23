@@ -127,7 +127,7 @@ module HudApr::Generators::Shared::Fy2023
       dq_universe_members.preload(:universe_membership).find_each do |u_member|
         member = u_member.universe_membership
         q_member_ids << u_member.id if member.ssn_quality == 2 ||
-          (member.ssn_quality == 1 && !HudUtility.valid_social?(member.ssn))
+          (member.ssn_quality == 1 && member.ssn.present? && !HudUtility.valid_social?(member.ssn))
       end
       q_members = dq_universe_members.where(id: q_member_ids)
       answer.add_members(q_members)
@@ -170,7 +170,8 @@ module HudApr::Generators::Shared::Fy2023
         member = u_member.universe_membership
         q_member_ids << u_member.id if member.dob_quality == 2 ||
           (member.dob_quality == 1 && !valid_dob?(member)) ||
-          (member.dob_quality.in?([8, 9, 99]) && member.dob.present?)
+          (member.dob_quality.in?([8, 9, 99]) && member.dob.present?) ||
+          (member.dob.present? && member.dob > member.client_created_at)
       end
       q_members = dq_universe_members.where(id: q_member_ids)
       answer.add_members(q_members)
@@ -751,9 +752,7 @@ module HudApr::Generators::Shared::Fy2023
         # entry 1..3 days
         {
           cell: 'B3',
-          # To match test kit, count anything less than 3 days, except 0
-          # AAQ: https://www.hudexchange.info/program-support/my-question/?askaquestionaction=public%3Amain.answer&key=CAA8AE17-22C4-447B-AA191B21C984CBA7
-          clause: datediff(report_client_universe, 'day', a_t[:enrollment_created], a_t[:first_date_in_program]).not_eq(0).
+          clause: datediff(report_client_universe, 'day', a_t[:enrollment_created], a_t[:first_date_in_program]).gt(0).
             and(datediff(report_client_universe, 'day', a_t[:enrollment_created], a_t[:first_date_in_program]).lteq(3)),
         },
         # entry 4..6 days
@@ -791,9 +790,7 @@ module HudApr::Generators::Shared::Fy2023
         # exit 1..3 days
         {
           cell: 'C3',
-          # To match test kit, count anything less than 3 days, except 0
-          # AAQ: https://www.hudexchange.info/program-support/my-question/?askaquestionaction=public%3Amain.answer&key=CAA8AE17-22C4-447B-AA191B21C984CBA7
-          clause: datediff(report_client_universe, 'day', a_t[:exit_created], a_t[:last_date_in_program]).not_eq(0).
+          clause: datediff(report_client_universe, 'day', a_t[:exit_created], a_t[:last_date_in_program]).gt(0).
             and(datediff(report_client_universe, 'day', a_t[:exit_created], a_t[:last_date_in_program]).lteq(3)),
         },
         # exit 4..6 days

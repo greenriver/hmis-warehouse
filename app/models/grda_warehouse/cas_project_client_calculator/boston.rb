@@ -232,8 +232,9 @@ module GrdaWarehouse::CasProjectClientCalculator
       CasAccess::Neighborhood.neighborhood_ids_from_names(names)
     end
 
-    private def days_homeless_in_last_three_years_cached(client)
-      days = most_recent_pathways_or_transfer(client).
+    # NOTE: this is also used in cohorts
+    def days_homeless_in_last_three_years_cached(client)
+      days = most_recent_pathways_or_transfer(client)&.
         question_matching_requirement('c_new_boston_homeless_nights_total')&.AssessmentAnswer
       return days if days.present?
 
@@ -313,7 +314,8 @@ module GrdaWarehouse::CasProjectClientCalculator
     end
 
     # as of 3/21/2022 Set majority_sheltered based on CLS response
-    private def majority_sheltered(client)
+    # NOTE: this is also used in cohorts
+    def majority_sheltered(client)
       cls = client.most_recent_cls
       return nil if cls.blank?
 
