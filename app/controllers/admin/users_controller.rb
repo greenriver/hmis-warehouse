@@ -145,6 +145,7 @@ module Admin
         :first_name,
         :email,
         :phone,
+        :credentials,
         :agency_id,
         :exclude_from_directory,
         :exclude_phone_from_directory,
