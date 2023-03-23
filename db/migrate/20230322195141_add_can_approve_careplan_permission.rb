@@ -5,6 +5,6 @@ class AddCanApproveCareplanPermission < ActiveRecord::Migration[6.1]
   end
 
   def down
-    remove_column :roles, :can_manage_accountable_care_organizations
+    remove_column :roles, :can_approve_careplan
   end
 end
