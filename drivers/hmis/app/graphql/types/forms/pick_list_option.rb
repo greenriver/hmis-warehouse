@@ -122,6 +122,17 @@ module Types
         return [] unless inventory.present?
 
         inventory.units.map { |unit| { code: unit.id, label: unit.name } }
+      when 'AVAILABLE_FILE_TYPES'
+        Hmis::File.all_available_tags.map do |tag|
+          {
+            code: tag.id,
+            label: "#{tag.name} (included: #{tag.included_info})",
+            group_code: tag.group,
+            group_label: tag.group,
+          }
+        end.
+          compact.
+          sort_by { |obj| [obj[:group_label] + obj[:label]].join(' ') }
       end
     end
 

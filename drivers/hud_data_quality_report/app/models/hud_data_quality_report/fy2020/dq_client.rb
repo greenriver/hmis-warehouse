@@ -14,13 +14,15 @@ module HudDataQualityReport::Fy2020
 
     # Hide ID, move destination_client_id, and name to the front
     def self.detail_headers
-      special = ['destination_client_id', 'first_name', 'last_name']
+      special = ['destination_client_id', 'personal_id', 'first_name', 'last_name']
       remove = ['id', 'client_id', 'created_at', 'updated_at', 'gender']
       cols = special + (column_names - special - remove)
       cols.map do |h|
         label = case h
         when 'destination_client_id'
           'Warehouse Client ID'
+        when 'personal_id'
+          'HMIS Personal ID'
         else
           h.humanize
         end

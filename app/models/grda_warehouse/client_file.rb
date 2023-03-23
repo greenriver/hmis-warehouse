@@ -9,19 +9,12 @@ module GrdaWarehouse
     # attr_accessor :requires_expiration_date
     # attr_accessor :requires_effective_date
     attr_accessor :callbacks_skipped
-
-    acts_as_taggable
-
+    include ClientFileBase
     include ArelHelper
 
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
     belongs_to :vispdat, class_name: 'GrdaWarehouse::Vispdat::Base', optional: true
-    validates_presence_of :name
     validates_inclusion_of :visible_in_window, in: [true, false]
-    validate :file_exists_and_not_too_large
-    validate :note_if_other
-    mount_uploader :file, FileUploader # Tells rails to use this uploader for this model.
-    has_one_attached :client_file
     validates_presence_of :expiration_date, on: :requires_expiration_date, message: 'Expiration date is required'
     validates_presence_of :effective_date, on: :requires_effective_date, message: 'Effective date is required'
 
@@ -31,10 +24,6 @@ module GrdaWarehouse
 
     scope :window, -> do
       where(visible_in_window: true)
-    end
-
-    scope :newest_first, -> do
-      order(created_at: :desc)
     end
 
     scope :visible_by?, ->(user) do
@@ -121,14 +110,6 @@ module GrdaWarehouse
         pluck(:taggable_id)
 
       where.not(id: consent_form_tagging_ids)
-    end
-
-    scope :non_cache, -> do
-      where.not(name: 'Client Headshot Cache')
-    end
-
-    scope :client_photos, -> do
-      tagged_with('Client Headshot')
     end
 
     scope :verified_homeless_history, -> do
@@ -331,22 +312,6 @@ module GrdaWarehouse
 
     def note_if_other
       errors.add :note, 'Note is required if Other is chosen above' if tag_list.include?('Other') && note.blank?
-    end
-
-    def self.available_tags
-      GrdaWarehouse::AvailableFileTag.grouped
-    end
-
-    def as_preview
-      return client_file.download unless client_file.variable?
-
-      client_file.variant(resize_to_limit: [1920, 1080]).processed.download
-    end
-
-    def as_thumb
-      return nil unless client_file.variable?
-
-      client_file.variant(resize_to_limit: [400, 400]).processed.download
     end
 
     def copy_to_s3!

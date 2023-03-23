@@ -12,6 +12,7 @@ module Types
     include Types::HmisSchema::HasServices
     include Types::HmisSchema::HasAssessments
     include Types::HmisSchema::HasCeAssessments
+    include Types::HmisSchema::HasFiles
 
     def self.configuration
       Hmis::Hud::Enrollment.hmis_configuration(version: '2022')
@@ -25,6 +26,7 @@ module Types
     assessments_field
     events_field
     services_field
+    files_field
     ce_assessments_field
     field :household, HmisSchema::Household, null: false
     field :household_size, Integer, null: false
@@ -32,8 +34,8 @@ module Types
     hud_field :relationship_to_ho_h, HmisSchema::Enums::Hud::RelationshipToHoH, null: false
     field :living_situation, HmisSchema::Enums::Hud::LivingSituation
     hud_field :length_of_stay, HmisSchema::Enums::Hud::ResidencePriorLengthOfStay
-    yes_no_missing_field :los_under_threshold
-    yes_no_missing_field :previous_street_essh
+    hud_field :los_under_threshold, HmisSchema::Enums::Hud::NoYesMissing
+    hud_field :previous_street_essh, HmisSchema::Enums::Hud::NoYesMissing
     hud_field :date_to_street_essh
     hud_field :times_homeless_past_three_years, HmisSchema::Enums::Hud::TimesHomelessPastThreeYears
     hud_field :months_homeless_past_three_years, HmisSchema::Enums::Hud::MonthsHomelessPastThreeYears
@@ -90,6 +92,10 @@ module Types
 
     def ce_assessments(**args)
       resolve_ce_assessments(**args)
+    end
+
+    def files(**args)
+      resolve_files(**args)
     end
 
     def user

@@ -171,6 +171,7 @@ module HudApr::Generators::Shared::Fy2023
             client_id: source_client.id,
             destination_client_id: last_service_history_enrollment.client_id,
             data_source_id: source_client.data_source_id,
+            personal_id: source_client.PersonalID,
             project_id: last_service_history_enrollment.project.id,
             report_instance_id: @report.id,
             source_enrollment_id: enrollment.id,

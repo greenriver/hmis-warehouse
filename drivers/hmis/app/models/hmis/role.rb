@@ -194,6 +194,14 @@ class Hmis::Role < ::ApplicationRecord
           'Enrollments',
         ],
       },
+      can_manage_client_files: {
+        description: 'Grants the ability to manage client files',
+        administrative: false,
+        access: [:editable],
+        categories: [
+          'Files',
+        ],
+      },
     }
   end
 end

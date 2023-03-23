@@ -5,14 +5,12 @@
 ###
 module HmisUtil
   class Dates
-    def self.safe_parse_date(date_string:, date_format: '%Y-%m-%d', reasonable_years_distance: 100)
+    def self.safe_parse_date(date_string:, date_format: '%Y-%m-%d')
       date = begin
         Date.strptime(date_string, date_format)
       rescue ArgumentError
         return nil
       end
-
-      return nil if (date.year - Date.today.year).abs > reasonable_years_distance
 
       date
     end

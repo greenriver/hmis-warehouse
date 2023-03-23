@@ -23,52 +23,52 @@
             {
               "question": "4.04.3",
               "operator": "EQUAL",
-              "answer_boolean": true
+              "answer_code": "YES"
             },
             {
               "question": "4.04.4",
               "operator": "EQUAL",
-              "answer_boolean": true
+              "answer_code": "YES"
             },
             {
               "question": "4.04.5",
               "operator": "EQUAL",
-              "answer_boolean": true
+              "answer_code": "YES"
             },
             {
               "question": "4.04.6",
               "operator": "EQUAL",
-              "answer_boolean": true
+              "answer_code": "YES"
             },
             {
               "question": "4.04.7",
               "operator": "EQUAL",
-              "answer_boolean": true
+              "answer_code": "YES"
             },
             {
               "question": "4.04.8",
               "operator": "EQUAL",
-              "answer_boolean": true
+              "answer_code": "YES"
             },
             {
               "question": "4.04.9",
               "operator": "EQUAL",
-              "answer_boolean": true
+              "answer_code": "YES"
             },
             {
               "question": "4.04.10",
               "operator": "EQUAL",
-              "answer_boolean": true
+              "answer_code": "YES"
             },
             {
               "question": "4.04.11",
               "operator": "EQUAL",
-              "answer_boolean": true
+              "answer_code": "YES"
             },
             {
               "question": "4.04.12",
               "operator": "EQUAL",
-              "answer_boolean": true
+              "answer_code": "YES"
             }
           ]
         }
@@ -94,70 +94,80 @@
       ],
       "item": [
         {
-          "type": "BOOLEAN",
+          "type": "CHOICE",
+          "pick_list_reference": "NoYesMissing",
           "component": "CHECKBOX",
           "link_id": "4.04.3",
           "text": "Medicaid",
           "field_name": "medicaid"
         },
         {
-          "type": "BOOLEAN",
+          "type": "CHOICE",
+          "pick_list_reference": "NoYesMissing",
           "component": "CHECKBOX",
           "link_id": "4.04.4",
           "text": "Medicare",
           "field_name": "medicare"
         },
         {
-          "type": "BOOLEAN",
+          "type": "CHOICE",
+          "pick_list_reference": "NoYesMissing",
           "component": "CHECKBOX",
           "link_id": "4.04.5",
           "text": "State Children's Health Insurance Program",
           "field_name": "schip"
         },
         {
-          "type": "BOOLEAN",
+          "type": "CHOICE",
+          "pick_list_reference": "NoYesMissing",
           "component": "CHECKBOX",
           "link_id": "4.04.6",
           "text": "VA Medical Services",
           "field_name": "vaMedicalServices"
         },
         {
-          "type": "BOOLEAN",
+          "type": "CHOICE",
+          "pick_list_reference": "NoYesMissing",
           "component": "CHECKBOX",
           "link_id": "4.04.7",
           "text": "Employer-Provided Health Insurance",
           "field_name": "employerProvided"
         },
         {
-          "type": "BOOLEAN",
+          "type": "CHOICE",
+          "pick_list_reference": "NoYesMissing",
           "component": "CHECKBOX",
           "link_id": "4.04.8",
           "text": "Health Insurance obtained through COBRA",
           "field_name": "cobra"
         },
         {
-          "type": "BOOLEAN",
+          "type": "CHOICE",
+          "pick_list_reference": "NoYesMissing",
           "component": "CHECKBOX",
           "link_id": "4.04.9",
           "text": "Private Pay Health Insurance",
           "field_name": "privatePay"
         },
         {
-          "type": "BOOLEAN",
+          "type": "CHOICE",
+          "pick_list_reference": "NoYesMissing",
           "component": "CHECKBOX",
           "link_id": "4.04.10",
           "text": "State Health Insurance for Adults",
           "field_name": "stateHealthIns"
         },
         {
-          "type": "BOOLEAN",
+          "type": "CHOICE",
+          "pick_list_reference": "NoYesMissing",
           "component": "CHECKBOX",
           "link_id": "4.04.11",
           "text": "Indian Health Services Program",
           "field_name": "indianHealthServices"
         },
         {
-          "type": "BOOLEAN",
+          "type": "CHOICE",
+          "pick_list_reference": "NoYesMissing",
           "component": "CHECKBOX",
           "link_id": "4.04.12",
           "text": "Other",
@@ -175,7 +185,7 @@
           "enable_when": [
             {
               "question": "4.04.12",
-              "answer_boolean": true,
+              "answer_code": "YES",
               "operator": "EQUAL"
             }
           ]

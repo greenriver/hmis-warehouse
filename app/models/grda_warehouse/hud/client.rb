@@ -1715,6 +1715,27 @@ module GrdaWarehouse::Hud
       end.uniq.sort
     end
 
+    def last_intentional_contacts(user, include_confidential_names: false, skip_confidential_projects: false, include_dates: false)
+      contacts = processed_service_history&.last_intentional_contacts
+      return [] unless contacts.present?
+
+      visible_projects = user.visible_projects_by_id
+      visible_project_ids = user.visible_project_ids_enrollment_context
+      contacts = JSON.parse(contacts)
+
+      contacts.map do |contact|
+        project_id = contact['project_id']
+        next if project_id.present? && !project_id.in?(visible_project_ids)
+
+        project = visible_projects[project_id]
+        next if project&.confidential? && skip_confidential_projects
+
+        name = project&.name(ignore_confidential_status: include_confidential_names) || contact['project_name']
+        name += ': ' + contact['date']&.to_date.to_s if include_dates
+        name
+      end.compact.uniq.sort
+    end
+
     def weeks_of_service
       total_days_of_service / 7 rescue 'unknown' # rubocop:disable Style/RescueModifier
     end

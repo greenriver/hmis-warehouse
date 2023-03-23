@@ -20,6 +20,8 @@ module Resolvers
           error
         elsif error.instance_of?(ActiveModel::Error)
           ::HmisErrors::Error.from_ar_error(error)
+        elsif error.instance_of?(ActiveModel::NestedError)
+          ::HmisErrors::Error.from_ar_error(error)
         else
           raise "Unrecognized error type: #{error.class}"
         end

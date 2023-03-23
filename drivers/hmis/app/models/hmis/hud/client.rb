@@ -27,6 +27,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   has_many :disabilities, through: :enrollments
   has_many :health_and_dvs, through: :enrollments
   has_many :client_files, class_name: 'GrdaWarehouse::ClientFile', primary_key: :id, foreign_key: :client_id
+  has_many :files, class_name: '::Hmis::File', dependent: :destroy, inverse_of: :client
   has_many :current_living_situations, through: :enrollments
   has_many :hmis_services, through: :enrollments # All services (HUD and Custom)
 
@@ -50,6 +51,8 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   end
 
   scope :visible_to, ->(user) do
+    return none unless user.can_view_clients?
+
     joins(:data_source).merge(GrdaWarehouse::DataSource.hmis(user))
   end
 
@@ -58,7 +61,6 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   end
 
   scope :searchable_to, ->(user) do
-    # TODO: additional access control rules go here
     visible_to(user)
   end
 
@@ -204,6 +206,12 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
   def age(date = Date.current)
     GrdaWarehouse::Hud::Client.age(date: date, dob: self.DOB)
+  end
+
+  def safe_dob(user)
+    return nil unless user.present?
+
+    dob if user.can_view_dob_for?(self)
   end
 
   def image

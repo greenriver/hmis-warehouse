@@ -54,5 +54,9 @@ module Hmis
         none
       end
     end
+
+    scope :includes_entities, ->(entities) do
+      where(id: Array(entities).flat_map { |entity| includes_entity(entity).pluck(:id) })
+    end
   end
 end

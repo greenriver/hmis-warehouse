@@ -51,5 +51,7 @@ Rails.application.configure do
   # Devise requires a default URL
   config.action_mailer.default_url_options = { host: ENV['FQDN'], port: ENV['PORT'] }
 
+  routes.default_url_options = { host: ENV['FQDN'] }
+
   config.force_ssl = false
 end

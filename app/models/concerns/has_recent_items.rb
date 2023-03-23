@@ -14,7 +14,7 @@ module HasRecentItems
     end
 
     def recent_items
-      sorted_recent_item_links.preload(:item).map(&:item)
+      sorted_recent_item_links.preload(:item).map(&:item).compact
     end
 
     def add_recent_item(item)

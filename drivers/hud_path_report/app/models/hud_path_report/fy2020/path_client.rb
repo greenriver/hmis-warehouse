@@ -11,7 +11,7 @@ module HudPathReport::Fy2020
     has_many :hud_reports_universe_members, inverse_of: :universe_membership, class_name: 'HudReports::UniverseMember', foreign_key: :universe_membership_id
 
     def self.detail_headers
-      special = ['destination_client_id', 'client_id', 'first_name', 'last_name']
+      special = ['destination_client_id', 'client_id', 'personal_id', 'first_name', 'last_name']
       remove = ['id', 'created_at', 'updated_at']
       cols = special + (column_names - special - remove)
       cols.map do |h|
@@ -20,6 +20,8 @@ module HudPathReport::Fy2020
           'Warehouse Source Client ID'
         when 'destination_client_id'
           'Warehouse Client ID'
+        when 'personal_id'
+          'HMIS Personal ID'
         else
           h.humanize
         end
