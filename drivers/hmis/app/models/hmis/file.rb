@@ -21,6 +21,7 @@ class Hmis::File < GrdaWarehouse::File
   ].freeze
 
   self.table_name = :files
+
   belongs_to :enrollment, class_name: '::Hmis::Hud::Enrollment', optional: true
   belongs_to :client, class_name: '::Hmis::Hud::Client'
   belongs_to :user, class_name: 'Hmis::Hud::User', optional: true

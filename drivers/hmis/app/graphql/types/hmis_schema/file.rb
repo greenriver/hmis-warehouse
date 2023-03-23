@@ -34,10 +34,11 @@ module Types
     end
 
     def url
+      return unless object.client_file.attached?
       # Use service url in dev to avoid CORS issues
       return object.client_file.blob.service_url if Rails.env.development?
 
-      Rails.application.routes.url_helpers.rails_blob_url(object.client_file, host: ENV['FQDN'], protocol: 'https') if object.client_file.attached?
+      Rails.application.routes.url_helpers.rails_blob_url(object.client_file, host: ENV['FQDN'], protocol: 'https', only_path: true)
     end
 
     def tags
@@ -49,7 +50,7 @@ module Types
     end
 
     def own_file
-      object.user.user_id == current_user.id.to_s
+      object.user&.user_id == current_user.id.to_s
     end
   end
 end

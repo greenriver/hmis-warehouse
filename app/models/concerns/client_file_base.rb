@@ -9,7 +9,6 @@ module ClientFileBase
   include ArelHelper
 
   included do
-    mount_uploader :file, FileUploader
     has_one_attached :client_file
 
     validates_presence_of :name
