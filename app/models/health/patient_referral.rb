@@ -138,6 +138,16 @@ module Health
       where(enrollment_start_date: date)
     end
 
+    CP_2_REFERRAL_DATE = '2023-04-01'.to_date.freeze
+
+    scope :cp_1_referrals, -> do
+      where(enrollment_start_date: (...CP_2_REFERRAL_DATE)) # ... to exclude the start date
+    end
+
+    scope :cp_2_referrals, -> do
+      where(enrollment_start_date: (CP_2_REFERRAL_DATE..))
+    end
+
     scope :at_acos, ->(aco_ids) do
       where(accountable_care_organization_id: aco_ids)
     end

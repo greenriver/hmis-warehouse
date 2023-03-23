@@ -27,16 +27,18 @@
     .signature-words
       = checkmark(true)
       PCP Signature
+    .signature-date
+      (#{careplan.provider_signed_on&.to_date})
   - elsif careplan.rn_approval?
     .signature-words
       = checkmark(true)
       RN Approved
+    .signature-date
+      (#{careplan.rn_approved_on&.to_date})
   - elsif careplan.patient_signed_on
     - if current_user.can_approve_careplan? || current_user.can_approve_cha?
       = link_to polymorphic_path([:edit] + careplan_path_generator, id: careplan) do
         Review Care Plan
-  .signature-date
-    (#{careplan.provider_signed_on&.to_date || careplan.rn_approved_on&.to_date})
   -# - elsif careplan.aco_signature_requests.outstanding.exists?
   -#   .pcpt__signature-aco.mb-2
   -#     - aco_signature_request = careplan.aco_signature_requests.order(created_at: :desc).limit(1).first

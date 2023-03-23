@@ -132,34 +132,60 @@ module Health
     scope :pcp_signed, -> do
       where.not(provider_signed_on: nil)
     end
+
     scope :patient_signed, -> do
       where.not(patient_signed_on: nil)
     end
+
+    scope :cp_1_careplans, -> do
+      joins(patient: :patient_referrals).
+        merge(Health::PatientReferral.current.cp_1_referrals)
+    end
+
+    scope :cp_2_careplans, -> do
+      joins(patient: :patient_referrals).
+        merge(Health::PatientReferral.current.cp_2_referrals)
+    end
+
+    scope :rn_approved, -> do
+      where(rn_approval: true)
+    end
+
     scope :fully_signed, -> do
-      pcp_signed.patient_signed
+      cp_1_careplans.pcp_signed.patient_signed.
+        or(cp_2_careplans.rn_approved.patient_signed)
     end
 
     scope :recent, -> do
-      order(provider_signed_on: :desc).limit(1)
+      cp_1_careplans.or(cp_2_careplans).
+        order(cl(h_cp_t[:rn_approved_on], h_cp_t[:provider_signed_on]).desc).
+        limit(1)
     end
+
     scope :active, -> do
-      fully_signed.where(arel_table[:provider_signed_on].gteq(12.months.ago))
+      fully_signed.
+        where(cl(h_cp_t[:rn_approved_on], h_cp_t[:provider_signed_on]).gteq(12.months.ago))
     end
+
     scope :expired, -> do
-      where(arel_table[:provider_signed_on].lt(12.months.ago))
+      where(cl(h_cp_t[:rn_approved_on], h_cp_t[:provider_signed_on]).lt(12.months.ago))
     end
+
     scope :expiring_soon, -> do
-      where(provider_signed_on: 12.months.ago..11.months.ago)
+      where(cl(h_cp_t[:rn_approved_on], h_cp_t[:provider_signed_on]).between(12.months.ago..11.months.ago))
     end
+
     scope :recently_signed, -> do
-      active.where(arel_table[:provider_signed_on].gteq(1.months.ago))
+      active.where(cl(h_cp_t[:rn_approved_on], h_cp_t[:provider_signed_on]).gteq(1.months.ago))
     end
+
     scope :during_current_enrollment, -> do
-      where(arel_table[:provider_signed_on].gteq(hpr_t[:enrollment_start_date])).
+      where(cl(h_cp_t[:rn_approved_on], h_cp_t[:provider_signed_on]).gteq(hpr_t[:enrollment_start_date])).
         joins(patient: :patient_referral)
     end
+
     scope :during_contributing_enrollments, -> do
-      where(arel_table[:provider_signed_on].gteq(hpr_t[:enrollment_start_date])).
+      where(cl(h_cp_t[:rn_approved_on], h_cp_t[:provider_signed_on]).gteq(hpr_t[:enrollment_start_date])).
         joins(patient: :patient_referrals).
         merge(Health::PatientReferral.contributing)
     end
@@ -266,6 +292,7 @@ module Health
       [
         provider_signed_on,
         patient_signed_on,
+        rn_approved_on,
       ].compact.max
     end
 
@@ -279,8 +306,12 @@ module Health
       completed? && expires_on >= Date.current
     end
 
+    CP2_DATE = '2023-04-01'.to_date.freeze
     def completed?
-      provider_signed_on && patient_signed_on
+      cp1 = provider_signed_on && patient_signed_on && [provider_signed_on, patient_signed_on].max < CP2_DATE
+      cp2 = patient_signed_on && patient_signed_on >= CP2_DATE && rn_approval?
+
+      cp1 || cp2
     end
 
     def compact_future_issues
