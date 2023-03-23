@@ -15,31 +15,6 @@
         "value": 124
       },
       {
-        "source": "Served by Homeless System",
-        "target": "TH",
-        "value": 50
-      },
-      {
-        "source": "TH",
-        "target": "RRH",
-        "value": 21
-      },
-      {
-        "source": "Served by Homeless System",
-        "target": "RRH",
-        "value": 12
-      },
-      {
-        "source": "Served by Homeless System",
-        "target": "PSH",
-        "value": 28
-      },
-      {
-        "source": "Served by Homeless System",
-        "target": "Other Pathways",
-        "value": 8
-      },
-      {
         "source": "ES/SH",
         "target": "RRH",
         "value": 23
@@ -80,6 +55,46 @@
         "value": 32
       },
       {
+        "source": "Served by Homeless System",
+        "target": "TH",
+        "value": 50
+      },
+      {
+        "source": "TH",
+        "target": "RRH",
+        "value": 21
+      },
+      {
+        "source": "TH",
+        "target": "Temporary Destinations",
+        "value": 5
+      },
+      {
+        "source": "TH",
+        "target": "Permanent Destinations",
+        "value": 15
+      },
+      {
+        "source": "Served by Homeless System",
+        "target": "RRH",
+        "value": 12
+      },
+      {
+        "source": "Served by Homeless System",
+        "target": "PSH",
+        "value": 28
+      },
+      {
+        "source": "Served by Homeless System",
+        "target": "Other Pathways",
+        "value": 8
+      },
+      {
+        "source": "Other Pathways",
+        "target": "Permanent Destinations",
+        "value": 8
+      },
+      {
         "source": "RRH",
         "target": "Institutional Destinations",
         "value": 4
@@ -104,6 +119,21 @@
         "target": "Permanent Destinations",
         "value": 32
       },
+      {
+        "source": "PSH",
+        "target": "Permanent Destinations",
+        "value": 8
+      },
+      {
+        "source": "PSH",
+        "target": "Unknown/Other",
+        "value": 5
+      },
+      {
+        "source": "Permanent Destinations",
+        "target": "Returns to Homelessness",
+        "value": 4
+      },
     ];
 
     function SankeyChart({
@@ -118,11 +148,11 @@
       nodeLabel, // given d in (computed) nodes, text to label the associated rect
       nodeTitle = d => `${d.id}\n${format(d.value)}`, // given d in (computed) nodes, hover text
       nodeAlign = align, // Sankey node alignment strategy: left, right, justify, center
-      nodeWidth = 15, // width of node rects
+      nodeWidth = 35, // width of node rects
       nodePadding = 10, // vertical separation between adjacent nodes
       nodeLabelPadding = 6, // horizontal separation between node and label
       nodeStroke = "currentColor", // stroke around node rects
-      nodeStrokeWidth, // width of stroke around node rects, in pixels
+      nodeStrokeWidth = 0, // width of stroke around node rects, in pixels
       nodeStrokeOpacity, // opacity of stroke around node rects
       nodeStrokeLinejoin, // line join for stroke around node rects
       linkSource = ({source}) => source, // given d in links, returns a node identifier string
@@ -257,7 +287,7 @@
       return Object.assign(svg.node(), {scales: {color}});
     };
 
-    const nodeAlign = "justify";
+    const nodeAlign = 'left'; //"justify";
     const linkColor = 'source-target';
 
     let chart = SankeyChart({
