@@ -19,8 +19,8 @@ module Types
             argument :sort_order, HmisSchema::EnrollmentSortOption, required: false
             argument :include_in_progress, GraphQL::Types::Boolean, required: false
             argument :open_on_date, GraphQL::Types::ISO8601Date, required: false
-            argument :project_types, [Types::HmisSchema::Enums::ProjectType], required: false  unless without_args.include? :project_types
-            argument :client_search_term, String, required: false unless without_args.include? :client_search_term
+            argument :project_types, [Types::HmisSchema::Enums::ProjectType], required: false unless without_args.include? :project_types
+            argument :search_term, String, required: false unless without_args.include? :search_term
             instance_eval(&block) if block_given?
           end
         end
@@ -36,12 +36,12 @@ module Types
 
       private
 
-      def scoped_enrollments(scope, sort_order: :most_recent, include_in_progress: false, open_on_date: nil, project_types: nil, client_search_term: nil)
+      def scoped_enrollments(scope, sort_order: :most_recent, include_in_progress: false, open_on_date: nil, project_types: nil, search_term: nil)
         scope = scope.viewable_by(current_user)
         scope = scope.where.not(project_id: nil) unless include_in_progress
         scope = scope.open_on_date(open_on_date) if open_on_date.present?
         scope = scope.with_project_type(project_types) if project_types.present?
-        scope = scope.joins(:client).merge(Hmis::Hud::Client.matching_search_term(client_search_term)) if client_search_term.present?
+        scope = scope.matching_search_term(search_term) if search_term.present?
         scope = scope.sort_by_option(sort_order) if sort_order.present?
         scope
       end

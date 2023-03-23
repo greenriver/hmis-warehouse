@@ -40,6 +40,10 @@ module Health
     phi_attr :health_file_id, Phi::OtherIdentifier, 'ID of health file'
     phi_attr :approving_rn_id, Phi::SmallPopulation, 'ID of approving RN'
     phi_attr :rn_approved_on, Phi::Date, 'Date of RN approval'
+    phi_attr :approving_ncm_id, Phi::SmallPopulation, 'ID of approving NCM'
+    phi_attr :ncm_approved_on, Phi::Date, 'Date of NCM approval'
+    phi_attr :careplan_sender_id, Phi::SmallPopulation, 'ID of sender'
+    phi_attr :careplan_sent_on, Phi::Date, 'Date careplan was sent to PCP'
 
     # has_many :goals, class_name: 'Health::Goal::Base'
     # has_many :hpc_goals, class_name: 'Health::Goal::Hpc'
@@ -73,6 +77,8 @@ module Health
     has_many :pcp_signed_health_files, through: :pcp_signed_documents, source: :health_files
 
     belongs_to :approving_rn, class_name: 'User', optional: true
+    belongs_to :careplan_sender, class_name: 'User', optional: true
+    belongs_to :approving_ncm, class_name: 'User', optional: true
 
     # Patient
     has_many :patient_signature_requests, class_name: 'Health::SignatureRequests::PatientSignatureRequest'
@@ -217,9 +223,13 @@ module Health
       (patient_signed_on.present? && provider_signed_on.present?) && (patient_signed_on_changed? || provider_signed_on_changed?)
     end
 
-    def just_approved?
+    def ncm_just_approved?
       @cha = patient.recent_cha_form
-      (@cha.complete? && rn_approved_on.present? && rn_approved_on_changed?)
+      @cha.complete? && ncm_approved_on.present? && ncm_approved_on_changed?
+    end
+
+    def rn_just_approved?
+      ncm_approval? && rn_approved_on.present? && rn_approved_on_changed?
     end
 
     def set_lock
