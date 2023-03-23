@@ -9,23 +9,43 @@ module EtlViewMaintainer
   class Generator
     include ArelHelper
 
-    def self.save_to_s3(range: (1.weeks.ago.to_date .. Date.current), bucket: ENV.fetch('S3_BUCKET_DATA_TEAM'))
-      key = "warehouse.denormalized.#{Rails.env}.#{range.first.to_s(:db)}.to.#{range.last.to_s(:db)}.csv"
-      s3_object = Aws::S3::Object.new(bucket, key)
+    def self.save_to_s3(range: (1.weeks.ago.to_date .. Date.current), bucket: ENV.fetch('S3_BUCKET_DATA_TEAM'), compressed: true)
+      extension = compressed ? 'csv.gz' : 'csv'
+      key = "warehouse.denormalized.#{Rails.env}.#{range.first.to_s(:db)}.to.#{range.last.to_s(:db)}.#{extension}"
 
-      options = {
-        content_disposition: "attachment; filename=\"#{key}\"",
-        content_type: 'text/csv',
+      upload_options = {
+        part_size: 100 * 1024 * 1024,
       }
+
+      s3_object = Aws::S3::Object.new(bucket, key)
 
       # Make it even more obvious the file is just for testing
       sql_to_run = Rails.env.development? ? 'select * from schema_migrations' : view_sql(range)
 
-      s3_object.upload_stream(options) do |write_stream|
-        to_csv(sql_to_run) do |row|
-          write_stream << row
+      if compressed
+        s3_object.upload_stream(**upload_options) do |write_stream|
+          write_stream.set_encoding(Encoding::ASCII_8BIT)
+
+          gz = Zlib::GzipWriter.new(write_stream)
+
+          to_csv(sql_to_run) do |row|
+            gz.write(row)
+          end
+
+          gz.close
+        end
+      else
+        s3_object.upload_stream(options) do |write_stream|
+          to_csv(sql_to_run) do |row|
+            write_stream << row
+          end
         end
       end
+
+      # You can only set this with a copy_object API call. Probably don't need these anyway
+      # content_type = 'text/csv'
+      # content_encoding = 'gzip'
+      # content_disposition = "attachment; filename=\"#{key}\""
     end
 
     # Fetch the request of a query as a CSV row by row
@@ -73,9 +93,10 @@ module EtlViewMaintainer
             :enrollment_cocs,
             :income_benefits,
             :youth_education_statuses,
-            :events,
-            :current_living_situations,
-            :services,
+            # Removed at Elliot's request to reduce payload a lot
+            # :events,
+            # :current_living_situations,
+            # :services,
             assessments: :assessment_results,
             project: [
               :project_cocs,
