@@ -89,7 +89,7 @@ module HudPit::Generators::Pit::Fy2023
             map(&:InformationDate).max
           disabilities_latest = disabilities.select { |d| d.InformationDate == max_disability_date }
 
-          health_and_dv = enrollment.health_and_dvs.
+          dv_record = enrollment.health_and_dvs.
             select { |h| h.InformationDate <= @generator.filter.on && !h.DomesticViolenceVictim.nil? }.
             max_by(&:InformationDate)
 
@@ -150,8 +150,8 @@ module HudPit::Generators::Pit::Fy2023
             chronically_homeless_household: hoh_enrollment&.chronically_homeless_at_start?(date: @generator.filter.on),
             substance_use: disabilities_latest.detect(&:substance?)&.DisabilityResponse&.present?,
             substance_use_indefinite_impairing: disabilities_latest.detect { |d| d.indefinite_and_impairs? && d.substance? }&.DisabilityResponse.present?,
-            domestic_violence: health_and_dv&.DomesticViolenceVictim,
-            domestic_violence_currently_fleeing: health_and_dv&.CurrentlyFleeing,
+            domestic_violence: dv_record&.DomesticViolenceVictim,
+            domestic_violence_currently_fleeing: dv_record&.CurrentlyFleeing,
             hiv_aids: disabilities_latest.detect(&:hiv?)&.DisabilityResponse&.present?,
             mental_illness: disabilities_latest.detect(&:mental?)&.DisabilityResponse&.present?,
             mental_illness_indefinite_impairing: disabilities_latest.detect { |d| d.indefinite_and_impairs? && d.mental? }&.DisabilityResponse.present?,
