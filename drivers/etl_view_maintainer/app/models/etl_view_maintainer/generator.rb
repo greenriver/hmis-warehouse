@@ -132,13 +132,13 @@ module EtlViewMaintainer
         ::GrdaWarehouse::Hud::Exit,
         ::GrdaWarehouse::Hud::EnrollmentCoc,
         ::GrdaWarehouse::Hud::Disability,
-        ::GrdaWarehouse::Hud::Event,
+        # ::GrdaWarehouse::Hud::Event,
         ::GrdaWarehouse::Hud::EmploymentEducation,
         ::GrdaWarehouse::Hud::HealthAndDv,
         ::GrdaWarehouse::Hud::IncomeBenefit,
-        ::GrdaWarehouse::Hud::CurrentLivingSituation,
+        # ::GrdaWarehouse::Hud::CurrentLivingSituation,
         ::GrdaWarehouse::Hud::Assessment,
-        ::GrdaWarehouse::Hud::Service,
+        # ::GrdaWarehouse::Hud::Service,
         ::GrdaWarehouse::Hud::AssessmentResult,
       ]
     end
