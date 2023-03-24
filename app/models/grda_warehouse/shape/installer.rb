@@ -48,7 +48,7 @@ module GrdaWarehouse
           # easier to just pass it along for all
           system("./shape_files/#{conf.dir}/make.inserts #{ENV['RELEVANT_COC_STATE']}")
 
-          if File.exists?("shape_files/#{conf.dir}/inserts.sql") # rubocop:disable Lint/DeprecatedClassMethods
+          if File.exist?("shape_files/#{conf.dir}/inserts.sql") # rubocop:disable Lint/DeprecatedClassMethods
             Rails.logger.info "Inserting #{conf.klass} into the database, conserving RAM"
           elsif conf.klass == GrdaWarehouse::Shape::Town
             Rails.logger.warn 'Shape-loading logic relies on precense of records, so adding a fake town record'
