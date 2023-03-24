@@ -7,7 +7,7 @@ FactoryBot.define do
     sequence(:EventID, 500)
     DateCreated { Date.parse('2019-01-01') }
     DateUpdated { Date.parse('2019-01-01') }
-    EventDate { Date.today }
+    EventDate { Date.yesterday }
     Event { 10 }
   end
 end
