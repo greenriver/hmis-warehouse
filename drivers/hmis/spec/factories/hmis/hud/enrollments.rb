@@ -10,16 +10,15 @@ FactoryBot.define do
     HouseholdID { SecureRandom.uuid.gsub(/-/, '') }
     DisablingCondition { 99 }
     sequence(:EnrollmentID, 500)
-    sequence(:EntryDate) { Date.yesterday }
-    # sequence(:EntryDate) do |n|
-    #   dates = [
-    #     3.weeks.ago,
-    #     2.weeks.ago,
-    #     1.week.ago,
-    #     2.days.ago,
-    #     Date.yesterday,
-    #   ]
-    #   dates[n % 5].to_date
-    # end
+    sequence(:EntryDate) do |n|
+      dates = [
+        3.weeks.ago,
+        2.weeks.ago,
+        1.week.ago,
+        2.days.ago,
+        Date.yesterday,
+      ]
+      dates[n % 5].to_date
+    end
   end
 end
