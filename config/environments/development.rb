@@ -97,7 +97,7 @@ Rails.application.configure do
   # config.action_view.raise_on_missing_translations = true
 
   # Devise requires a default URL
-  config.action_mailer.default_url_options ||= {}
+  config.action_mailer.default_url_options = { host: ENV['FQDN'], port: ENV['PORT'] }
 
   # don't need email sandbox with letter opener
   config.sandbox_email_mode = true
