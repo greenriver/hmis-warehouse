@@ -22,8 +22,8 @@ class Hmis::User < ApplicationRecord
   has_many :access_groups, through: :access_controls
   has_many :roles, through: :access_controls
 
-  has_recent :clients, Hmis::Hud::Client, viewable_proc: ->(user, _ri_scope) { Hmis::Hud::Client.viewable_by(user) }
-  has_recent :projects, Hmis::Hud::Project, viewable_proc: ->(user, _ri_scope) { Hmis::Hud::Project.viewable_by(user) }
+  has_recent :clients, Hmis::Hud::Client
+  has_recent :projects, Hmis::Hud::Project
   attr_accessor :hmis_data_source_id # stores the data_source_id of the currently logged in HMIS
 
   def skip_session_limitable?

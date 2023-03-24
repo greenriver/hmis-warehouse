@@ -13,24 +13,14 @@ module HasRecentItems
       self.class.recent_item_types
     end
 
-    def viewable_map
-      self.class.viewable_map
-    end
-
     def recent_items
       viewable_recent_item_links.order(updated_at: :desc).preload(:item).map(&:item).compact
     end
 
     def viewable_recent_item_links
-      return recent_item_links if viewable_map.compact.empty?
-
-      ids = []
-
-      recent_item_types.values.map do |item_class|
-        ri_scope = recent_item_links.where(item_type: item_class.name)
-        ri_scope = ri_scope.where(item_id: viewable_map[item_class.name].call(self, ri_scope).pluck(:id)) if viewable_map[item_class.name].present?
-        ids += ri_scope.pluck(:id)
-      end
+      ids = recent_item_types.values.map do |item_class|
+        recent_item_links.where(item_type: item_class.name, item_id: item_class.viewable_by(self).pluck(:id)).pluck(:id)
+      end.flatten
 
       recent_item_links.where(id: ids)
     end
@@ -49,25 +39,19 @@ module HasRecentItems
 
   class_methods do
     @recent_item_types = {}
-    @viewable_map = {}
 
     def recent_item_types
       @recent_item_types
     end
 
-    def viewable_map
-      @viewable_map ||= {}
-    end
-
     # This method should not be converted to 'recent?'
     # It does not query whether this item is recent, it declares a recent item type on the inheriting class
     # rubocop:disable Naming/PredicateName
-    def has_recent(item_type, item_class, name: nil, viewable_proc: nil)
+    def has_recent(item_type, item_class, name: nil)
       association_name = name || "recent_#{item_type}".to_sym
       has_many association_name, through: :recent_item_links, source: :item, source_type: item_class.name
       @recent_item_types = {} if @recent_item_types.nil?
       @recent_item_types[association_name] = item_class
-      viewable_map[item_class.name] = viewable_proc
     end
     # rubocop:enable Naming/PredicateName
   end

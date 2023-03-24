@@ -138,10 +138,10 @@ module Types
         client = Hmis::Hud::Client.viewable_by(user).find_by(id: relation_id)
         return [] unless client.present?
 
-        client.enrollments.map do |enrollment|
+        client.enrollments.sort_by_option(:most_recent).map do |enrollment|
           {
             code: enrollment.id,
-            label: "#{enrollment.project.project_name} (#{[enrollment.entry_date.strfdate('mm/dd/yyyy'), enrollment.exit_date&.strfdate('mm/dd/yyyy')].compact.join(' - ')})",
+            label: "#{enrollment.project.project_name} (#{[enrollment.entry_date.strfdate('mm/dd/yyyy'), enrollment.exit_date&.strfdate('mm/dd/yyyy') || 'ongoing'].join(' - ')})",
           }
         end
       end
