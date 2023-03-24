@@ -15,4 +15,6 @@ class Hmis::Hud::IncomeBenefit < Hmis::Hud::Base
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
   belongs_to :user, **hmis_relation(:UserID, 'User')
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
+
+  validates_with Hmis::Hud::Validators::IncomeBenefitValidator
 end

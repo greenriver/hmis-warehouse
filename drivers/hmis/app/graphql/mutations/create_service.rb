@@ -13,14 +13,20 @@ module Mutations
 
     def resolve(input:)
       errors = validate_input(input)
-      return { service: nil, errors: errors } if errors.present?
+      return { errors: errors } if errors.any?
 
-      default_create_record(
+      result = default_create_record(
         Hmis::Hud::Service,
         field_name: :service,
         id_field_name: :services_id,
         input: input,
+        permissions: [:can_edit_enrollments],
       )
+
+      # Return the HmisService object
+      result[:service] = Hmis::Hud::HmisService.find_by(owner: result[:service]) if result[:service].present?
+
+      result
     end
   end
 end

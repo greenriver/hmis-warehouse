@@ -6,6 +6,7 @@
 
 class Hmis::Hud::Base < ::GrdaWarehouseBase
   self.abstract_class = true
+  include ::Hmis::Concerns::HmisArelHelper
 
   acts_as_paranoid(column: :DateDeleted)
   has_paper_trail # Track changes made to HUD objects via PaperTrail
@@ -16,10 +17,6 @@ class Hmis::Hud::Base < ::GrdaWarehouseBase
   before_validation :ensure_id
 
   scope :viewable_by, ->(_) do
-    none
-  end
-
-  scope :editable_by, ->(_) do
     none
   end
 
@@ -39,6 +36,15 @@ class Hmis::Hud::Base < ::GrdaWarehouseBase
     h
   end
 
+  def self.alias_to_underscore(cols)
+    Array.wrap(cols).each do |col|
+      alias_attribute col.to_s.underscore.to_sym, col
+    end
+  end
+
+  # Create aliases for common HUD fields
+  alias_to_underscore [:UserID, :DateCreated, :DateUpdated, :DateDeleted]
+
   def self.generate_uuid
     SecureRandom.uuid.gsub(/-/, '')
   end
@@ -55,6 +61,7 @@ class Hmis::Hud::Base < ::GrdaWarehouseBase
   end
 
   private def ensure_id
+    return unless self.class.respond_to?(:hud_key)
     return if send(self.class.hud_key).present? # Don't overwrite the ID if we already have one
 
     assign_attributes(self.class.hud_key => self.class.generate_uuid)
