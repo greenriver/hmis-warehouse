@@ -7,12 +7,12 @@
 # ### HIPAA Risk Assessment
 # Stateless, QA data lives in associated model
 module Health
-  class QualifyingActivityV2
-    include Health::VersionedQualifyingActivity
-
+  class QualifyingActivityV2 < QualifyingActivityBase
     FACE_TO_FACE_KEYS = [
       :in_person,
     ].freeze
+
+    CONTACTLESS_ACTIVITIES = [:cha_completed, :pctp_signed, :sdoh_positive, :sdoh_negative].freeze
 
     EFFECTIVE_DATE_RANGE = ('2023-04-01'.to_date ..).freeze
     ATTRIBUTE_SUFFIX = '_v2'.freeze
@@ -88,73 +88,91 @@ module Health
           title: 'Outreach for enrollment',
           code: 'G9011',
           weight: 0,
+          allowed: ['U1', 'UK', 'U2', 'U3', '95'],
+          required: [],
         },
         cha: {
           title: 'Comprehensive Assessment',
           code: 'G0506',
           weight: 10,
           hidden: true,
+          allowed: ['U1', 'UK', 'U2'],
+          required: [],
         },
         cha_completed: {
           title: 'Comprehensive Assessment completed',
           code: 'G0506>U4',
           weight: 15,
           hidden: true,
+          allowed: [],
+          required: ['U4'],
         },
         care_planning: {
           title: 'Development of Care Plan',
           code: 'T2024',
           weight: 20,
           hidden: true,
+          allowed: ['U1', 'UK', 'U2', 'U3', '95'],
+          required: [],
         },
         care_coordination: {
           title: 'Care coordination',
           code: 'G9005',
           weight: 30,
+          allowed: ['U1', 'UK', 'U2', 'U3', '95'],
+          required: [],
         },
         care_team: {
           title: 'Meeting with 3+ care team members',
           code: 'G9007',
           weight: 40,
+          allowed: ['U1', 'U2', 'U3', '95'],
+          required: [],
         },
         care_transitions: {
           title: 'Emergency Department visit (7 days)',
           code: 'T2038',
           weight: 45,
+          allowed: ['U1', 'U2', 'U3', '95'],
+          required: [],
         },
         discharge_follow_up: {
           title: 'Follow-up from inpatient discharge with client (7 days)',
           code: 'T2038>U5',
           weight: 50,
+          allowed: ['U1', 'U2'],
+          required: ['U5'],
         },
         pctp_signed: {
           title: 'Care Plan completed',
           code: 'T2024>U4',
           weight: 100,
           hidden: true,
+          allowed: [''],
+          required: ['U4'],
         },
         intake_completed: {
           title: 'Intake/reassessment (completing consent ROI, comprehensive assessment, care plan)',
           code: 'G9005',
           weight: 110,
+          allowed: ['U1', 'UK', 'U2', 'U3', '95'],
+          required: [],
         },
         sdoh_positive: {
           title: 'SDoH screening positive',
           code: 'G9919',
           weight: 200,
+          allowed: [],
+          required: [],
         },
         sdoh_negative: {
           title: 'SDoH screening negative',
           code: 'G9920',
           weight: 210,
+          allowed: [],
+          required: [],
         },
       }.sort_by { |_, m| m[:weight] }.to_h
-    end
-
-    def contact_required?(activity)
-      return false unless activity
-
-      !activity.to_sym.in?([:cha_completed, :pctp_signed, :sdoh_positive, :sdoh_negative])
     end
   end
 end

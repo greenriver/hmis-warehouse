@@ -4,10 +4,10 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module Health::VersionedQualifyingActivity
-  extend ActiveSupport::Concern
-
-  included do
+# ### HIPAA Risk Assessment
+# Stateless, QA data lives in associated model
+module Health
+  class QualifyingActivityBase
     def modes_of_contact
       @modes_of_contact ||= self.class.modes_of_contact
     end
@@ -45,6 +45,17 @@ module Health::VersionedQualifyingActivity
       activities.
         reject { |_k, mode| mode[:hidden] }.
         map { |k, mode| [mode[:title], k] }
+    end
+
+    def modifiers(qa)
+      # Attach modifiers from activity
+      modlist = activities[qa.activity&.to_sym].try(:[], :code)&.split(/[ |>]/).try(:[], 1..)
+
+      # Attach modifiers from contact, if present
+      modlist << modes_of_contact[qa.mode_of_contact&.to_sym].try(:[], :code)
+      modlist << client_reached[qa.reached_client&.to_sym].try(:[], :code)
+
+      return modlist.reject(&:blank?).compact
     end
   end
 end

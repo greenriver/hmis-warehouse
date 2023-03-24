@@ -53,7 +53,7 @@ module Health
       end
     end
 
-    private def qa_version
+    def qa_version
       return unless date_of_activity.present?
 
       VERSIONS.each do |version|
@@ -70,10 +70,17 @@ module Health
     end
 
     scope :submittable, -> do
-      where.not(mode_of_contact: nil).
-        where.not(reached_client: nil).
-        where.not(activity: nil).
-        where.not(follow_up: nil)
+      @submittable_query ||= begin
+        query = hqa_t[:activity].not_eq(nil).and(hqa_t[:follow_up].not_eq(nil))
+        VERSIONS.each do |version|
+          query_part = hqa_t[:date_of_activity].between(version::EFFECTIVE_DATE_RANGE).
+            and(hqa_t[:activity].not_in(version::CONTACTLESS_ACTIVITIES).or(hqa_t[:mode_of_contact].not_eq(nil).and(hqa_t[:reached_client].not_eq(nil))))
+          query = query.or(query_part)
+        end
+        query
+      end
+
+      where(@submittable_query)
     end
 
     scope :in_range, ->(range) do
@@ -162,8 +169,10 @@ module Health
       qa_version.activities
     end
 
-    def contact_required?
-      qa_version.contact_required?(activity)
+    def contact_required?(activity)
+      return false unless activity
+
+      !activity.to_sym.in?(qa_version.class::CONTACTLESS_ACTIVITIES)
     end
 
     def self.date_search(start_date, end_date)
@@ -291,7 +300,7 @@ module Health
 
     def procedure_code
       # ignore any modifiers
-      activities[activity&.to_sym].try(:[], :code)&.split(' ').try(:[], 0)
+      activities[activity&.to_sym].try(:[], :code)&.split(/[ |>]/).try(:[], 0)
     end
 
     def outreach?
@@ -299,62 +308,32 @@ module Health
     end
 
     def modifiers
-      TodoOrDie('Remove MH COVID flexibility', by: '2023-03-31')
-
-      modifiers = []
-      case activity&.to_sym
-      when :cha, :discharge_follow_up
-        if [:phone_call, :video_call].include?(mode_of_contact&.to_sym)
-          contact_modifier = modes_of_contact[:in_person][:code]
-        else
-          contact_modifier = modes_of_contact[mode_of_contact&.to_sym].try(:[], :code)
-        end
-      else
-        contact_modifier = modes_of_contact[mode_of_contact&.to_sym].try(:[], :code)
-      end
-
-      # attach modifiers from activity
-      modifiers << activities[activity&.to_sym].try(:[], :code)&.split(' ').try(:[], 1)
-
-      modifiers << contact_modifier
-      modifiers << client_reached[reached_client&.to_sym].try(:[], :code)
-
-      return modifiers.reject(&:blank?).compact
+      qa_version.modifiers(self)
     end
 
     def compute_procedure_valid?
-      return false unless date_of_activity.present? && activity.present? && mode_of_contact.present? && reached_client.present?
+      activity_sym = activity.to_sym
+      # Incomplete QAs
+      return false unless date_of_activity.present? && activity.present?
+      return false if (mode_of_contact.blank? || reached_client.blank?) && !activity_sym.in?(qa_version.class::CONTACTLESS_ACTIVITIES)
 
-      procedure_code = self.procedure_code
-      modifiers = self.modifiers
-      reached_client = self.reached_client
-      # Some special cases
+      # Conflicting modifiers
       return false if modifiers.include?('U2') && modifiers.include?('U3') # Marked as both f2f and indirect
-      return false if modifiers.include?('U1') && modifiers.include?('HQ') # Marked as both individual and group
+      return false if modifiers.include?('U1') && modifiers.include?('HQ') # Marked as both individual and group (CP1)
+      return false if modifiers.include?('U2') && modifiers.include?('95') # Marked as both f2f and telehealth
+      return false if modifiers.include?('U3') && modifiers.include?('95') # Marked as both indirect and telehealth
 
-      if procedure_code.to_s == 'T2024' && modifiers.include?('U4') || procedure_code.to_s == 'T2024>U4'
-        procedure_code = 'T2024>U4'.to_sym
-        modifiers = modifiers.uniq - ['U4']
-      elsif procedure_code.to_s == 'G9007' && modifiers.include?('U5') || procedure_code.to_s == 'G9007>U5'
-        procedure_code = 'G9007>U5'.to_sym
-        modifiers = modifiers.uniq - ['U5']
-      elsif procedure_code.to_s == 'T1023' && modifiers.include?('U6') || procedure_code.to_s == 'T1023>U6'
-        procedure_code = 'T1023>U6'.to_sym
-        modifiers = modifiers.uniq - ['U6']
-      else
-        procedure_code = procedure_code&.to_sym
-      end
+      # In-person contacts must reach the client, EXCEPT for outreach
+      return false if modifiers.include?('U2') && (!modifiers.include?('U1') || activity_sym == activities[:outreach][:code])
 
-      # If the client isn't reached, and it's an in-person encounter, you can only count outreach attempts
-      if reached_client.to_s == 'no'
-        return false if modifiers.uniq.count == 1 && modifiers.include?('U2') && procedure_code.to_s != 'G9011'
-      end
+      valid_options = qa_version.activities[activity_sym]
+      # Must not contain forbidden modifiers
+      return false unless modifiers.all? { |modifier| (valid_options[:allowed] + valid_options[:required]).include?(modifier) }
 
-      return false if procedure_code.blank?
-      return true if modifiers.empty?
+      # Must contain required modifiers
+      return false unless valid_options[:required].all? { |modifier| modifiers.include?(modifier) }
 
-      # Check that all of the modifiers we have occur in the acceptable modifiers
-      (modifiers - Array.wrap(valid_options[procedure_code])).empty?
+      true
     end
 
     def first_of_type_for_day_for_patient?
@@ -555,8 +534,10 @@ module Health
         reasons = []
         reasons << _('the date of the activity is missing') unless date_of_activity.present?
         reasons << _('no activity was specified') unless activity.present?
-        reasons << _('no mode of contact') unless mode_of_contact.present?
-        reasons << _('no indication if the client was reached') unless reached_client.present?
+        if contact_required?(activity)
+          reasons << _('no mode of contact') unless mode_of_contact.present?
+          reasons << _('no indication if the client was reached') unless reached_client.present?
+        end
         reasons << _('invalid procedure code') if reasons.blank?
 
         reasons
@@ -586,12 +567,12 @@ module Health
 
     # at the time of this call does the patient have
     # a valid care plan covering the date_of_activity
-    def patient_has_valid_care_plan?
-      return false if patient.care_plan_renewal_date.blank?
-      return false unless date_of_activity.present?
-
-      date_of_activity >= patient.care_plan_provider_signed_date && date_of_activity < patient.care_plan_renewal_date
-    end
+    # def patient_has_valid_care_plan?
+    #   return false if patient.care_plan_renewal_date.blank?
+    #   return false unless date_of_activity.present?
+    #
+    #   date_of_activity >= patient.care_plan_provider_signed_date && date_of_activity < patient.care_plan_renewal_date
+    # end
 
     # Is a valid care_plan missing for the date_of_activity?. This is much
     # slower and more complex than patient_has_valid_care_plan? which
@@ -709,80 +690,6 @@ module Health
       activities.select do |_, act|
         in_first_three_months_procedure_codes.include?(act[:code].to_s)
       end.keys
-    end
-
-    # def restricted_procedure_codes
-    #   once_per_day_procedure_codes + in_first_three_months_procedure_codes
-    # end
-
-    def valid_options
-      @valid_options ||= {
-        G9011: [
-          'U1',
-          'U2',
-          'U3',
-          'UK',
-        ],
-        G0506: [
-          'U1',
-          'U2',
-          'UK',
-        ],
-        T2024: [
-          'U1',
-          'U2',
-          'U3',
-          'UK',
-        ],
-        'T2024>U4'.to_sym => [
-          'U1',
-          'U2',
-          'UK',
-        ],
-        G9005: [
-          'U1',
-          'U2',
-          'U3',
-          'UK',
-        ],
-        G9007: [
-          'U1',
-          'U2',
-          'U3',
-          'UK',
-        ],
-        'G9007>U5'.to_sym => [
-          'U1',
-          'U2',
-        ],
-        G8427: [
-          'U1',
-          'U2',
-          'U3',
-          'UK',
-        ],
-        G9006: [
-          'U1',
-          'U2',
-          'HQ',
-        ],
-        G9004: [
-          'U1',
-          'U2',
-          'U3',
-          'UK',
-        ],
-        T1023: [
-          'U1',
-          'U2',
-          'U3',
-        ],
-        'T1023>U6'.to_sym => [
-          'U1',
-          'U2',
-          'U3',
-        ],
-      }
     end
   end
 end
