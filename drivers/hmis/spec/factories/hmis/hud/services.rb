@@ -7,7 +7,7 @@ FactoryBot.define do
     sequence(:ServicesID, 500)
     DateCreated { Date.parse('2019-01-01') }
     DateUpdated { Date.parse('2019-01-01') }
-    DateProvided { Date.today }
+    DateProvided { Date.yesterday }
     RecordType { 200 }
     TypeProvided { 200 }
   end
