@@ -15,7 +15,7 @@ module Types
     field :group_label, String, 'Label for group that option belongs to, if grouped', null: true
     field :initial_selected, Boolean, 'Whether option is selected by default', null: true
 
-    CODE_PATTERN = /^\(([0-9]*)\) /.freeze
+    CODE_PATTERN = /^\(([0-9]*)\) /
 
     def self.options_for_type(pick_list_type, user:, relation_id: nil)
       relevant_state = ENV['RELEVANT_COC_STATE']
@@ -141,7 +141,7 @@ module Types
         client.enrollments.sort_by_option(:most_recent).map do |enrollment|
           {
             code: enrollment.id,
-            label: "#{enrollment.project.project_name} (#{[enrollment.entry_date.strfdate('mm/dd/yyyy'), enrollment.exit_date&.strfdate('mm/dd/yyyy') || 'ongoing'].join(' - ')})",
+            label: "#{enrollment.project.project_name} (#{[enrollment.entry_date.strftime('mm/dd/yyyy'), enrollment.exit_date&.strftime('mm/dd/yyyy') || 'ongoing'].join(' - ')})",
           }
         end
       end
