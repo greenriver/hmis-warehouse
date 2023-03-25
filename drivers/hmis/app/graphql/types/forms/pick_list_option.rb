@@ -95,7 +95,7 @@ module Types
         living_situation_options(as: :destination)
 
       when 'PROJECT'
-        Hmis::Hud::Project.editable_by(user).
+        Hmis::Hud::Project.viewable_by(user).
           joins(:organization).
           sort_by_option(:organization_and_name).
           map do |project|
@@ -109,7 +109,7 @@ module Types
         end
 
       when 'ORGANIZATION'
-        Hmis::Hud::Organization.editable_by(user).
+        Hmis::Hud::Organization.viewable_by(user).
           sort_by_option(:name).
           map do |organization|
           {
@@ -122,6 +122,17 @@ module Types
         return [] unless inventory.present?
 
         inventory.units.map { |unit| { code: unit.id, label: unit.name } }
+      when 'AVAILABLE_FILE_TYPES'
+        Hmis::File.all_available_tags.map do |tag|
+          {
+            code: tag.id,
+            label: "#{tag.name} (included: #{tag.included_info})",
+            group_code: tag.group,
+            group_label: tag.group,
+          }
+        end.
+          compact.
+          sort_by { |obj| [obj[:group_label] + obj[:label]].join(' ') }
       end
     end
 

@@ -1091,6 +1091,7 @@ DEPENDENCIES
   progress_bar
   pry-rails
   puma (~> 4.3.11)
+  rack (>= 2.2.6.3)
   rack-attack
   rack-cors
   rack-mini-profiler

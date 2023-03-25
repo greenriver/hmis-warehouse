@@ -14,6 +14,7 @@ module Types
     value 'invalid'
     value 'information'
     value 'not_found'
+    value 'not_allowed'
     value 'out_of_range'
     value 'server_error'
     value 'data_not_collected'

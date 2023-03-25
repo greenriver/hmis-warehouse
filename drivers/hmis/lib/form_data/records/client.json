@@ -1,7 +1,7 @@
 {
   "item": [
     {
-      "type": "DATE",
+      "type": "STRING",
       "link_id": "client-id",
       "hidden": true,
       "initial": [

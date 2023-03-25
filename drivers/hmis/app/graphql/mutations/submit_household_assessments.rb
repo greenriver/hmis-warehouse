@@ -8,13 +8,16 @@ module Mutations
     field :assessments, [Types::HmisSchema::Assessment], null: true
 
     def resolve(assessment_ids:, confirmed:)
-      errors = HmisErrors::Errors.new
-
-      assessments = Hmis::Hud::Assessment.editable_by(current_user).
+      assessments = Hmis::Hud::CustomAssessment.viewable_by(current_user).
         where(id: assessment_ids).
-        preload(:enrollment, :assessment_detail)
+        preload(:enrollment, :custom_form)
 
       enrollments = assessments.map(&:enrollment)
+
+      errors = HmisErrors::Errors.new
+      # Error: insufficient permissions
+      errors.add :assessment, :not_allowed if enrollments.first.present? && !current_user.permissions_for?(enrollments.first, :can_edit_enrollments)
+      return { errors: errors } if errors.any?
 
       # Error: not all assessments found
       errors.add :assessment, :not_found if assessments.count != assessment_ids.size
@@ -24,7 +27,7 @@ module Mutations
       errors.add :assessment, :invalid, full_message: 'Assessments must all belong to the same household.' if household_ids.count != 1
 
       # Error: assessments do not have the same data collection stage
-      data_collection_stages = assessments.map { |a| a.assessment_detail.data_collection_stage }.uniq
+      data_collection_stages = assessments.pluck(:data_collection_stage).uniq
       errors.add :assessment, :invalid, full_message: 'Assessments must have the same data collection stage.' if data_collection_stages.count != 1
       return { errors: errors } if errors.any?
 
@@ -59,47 +62,59 @@ module Mutations
 
       # Validate form values based on FormDefinition
       assessments.each do |assessment|
-        validation_errors = assessment.assessment_detail.validate_form(ignore_warnings: confirmed)
-        errors.add_with_record_id(validation_errors, assessment.id)
+        form_validations = assessment.custom_form.collect_form_validations(ignore_warnings: confirmed)
+        errors.add_with_record_id(form_validations, assessment.id)
       end
 
-      return { errors: errors } if errors.any?
-
+      all_valid = true
       # Run form processor on each assessment, validate all records
       assessments.each do |assessment|
         assessment.assign_attributes(user_id: hmis_user.user_id)
         # Run processor to create/update related records
-        assessment.assessment_detail.assessment_processor.run!
+        assessment.custom_form.form_processor.run!
         # Run both validations
-        assessment_valid = assessment.valid?
-        assessment_detail_valid = assessment.assessment_detail.valid?
+        is_valid = assessment.valid? && assessment.custom_form.valid?
+        all_valid = false unless is_valid
 
-        if !assessment_valid || !assessment_detail_valid
-          errors.push(*assessment.assessment_detail&.errors&.errors)
-          errors.push(*assessment.errors&.errors)
-        end
+        # Collect validations and warnings from AR Validator classes
+        record_validations = assessment.custom_form.collect_record_validations(
+          user: current_user,
+          ignore_warnings: confirmed,
+        )
+        errors.add_with_record_id(record_validations, assessment.id)
       end
 
+      # Return any validation errors
       return { errors: errors } if errors.any?
 
-      # Save all assessments
-      assessments.each do |assessment|
-        # We need to call save on the processor directly to get the before_save hook to invoke.
-        # If this is removed, the Enrollment won't save.
-        assessment.assessment_detail.assessment_processor.save!
-        # Save AssessmentDetail to save the rest of the related records
-        assessment.assessment_detail.save!
-        # Save the assessment as non-WIP
-        assessment.save_not_in_progress
-        # If this is an intake assessment, ensure the enrollment is no longer in WIP status
-        assessment.enrollment.save_not_in_progress if assessment.intake?
-        # Update DateUpdated on the Enrollment
-        assessment.enrollment.touch
+      if all_valid
+        # Save all assessments
+        assessments.each do |assessment|
+          # We need to call save on the processor directly to get the before_save hook to invoke.
+          # If this is removed, the Enrollment won't save.
+          assessment.custom_form.form_processor.save!
+          # Save CustomForm to save the rest of the related records
+          assessment.custom_form.save!
+          # Save the assessment as non-WIP
+          assessment.save_not_in_progress
+          # If this is an intake assessment, ensure the enrollment is no longer in WIP status
+          assessment.enrollment.save_not_in_progress if assessment.intake?
+          # Update DateUpdated on the Enrollment
+          assessment.enrollment.touch
+        end
+      else
+        # These are potentially unfixable errors. Maybe should be server error instead.
+        # For now, return them all because they are useful in development.
+        assessments.each do |assessment|
+          errors.add_ar_errors(assessment.custom_form&.errors&.errors)
+          errors.add_ar_errors(assessment.errors&.errors)
+        end
+        assessments = []
       end
 
       {
         assessments: assessments,
-        errors: [],
+        errors: errors,
       }
     end
   end

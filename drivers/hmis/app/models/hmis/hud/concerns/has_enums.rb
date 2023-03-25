@@ -30,5 +30,19 @@ module Hmis::Hud::Concerns::HasEnums
 
       define_singleton_method(name) { Hmis::FieldMap.send(type) }
     end
+
+    def use_enum_with_same_key(name, hash, **kwargs)
+      values = hash.map do |key, desc|
+        {
+          key: key.to_s,
+          value: key.to_s,
+          desc: desc,
+        }
+      end
+
+      define_singleton_method(name) do
+        Hmis::FieldMap.new(values, **kwargs)
+      end
+    end
   end
 end

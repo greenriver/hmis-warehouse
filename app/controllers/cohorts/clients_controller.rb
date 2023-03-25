@@ -246,14 +246,18 @@ module Cohorts
       else
         @clients = @clients.where(wcp_t[:homeless_days].gteq(@actives[:min_days_homeless]))
       end
-      @actives[:actives_population] = [:clients] unless @actives.key? :actives_population
 
       enrollment_scope = base_enrollment_scope
       enrollment_scope = enrollment_scope.in_age_ranges(@actives[:age_ranges]) if @actives[:age_ranges].present?
 
-      populations = @actives[:actives_population]
-      populations.each do |population|
-        population = population.presence || :clients
+      # make sure we have an :actives_population array
+      @actives[:actives_population] = [] unless @actives.key?(:actives_population)
+      # filter for available sub-populations, defaulting to :clients if none remain
+      @actives[:actives_population] = @actives[:actives_population].select do |population|
+        population.to_sym.in?(AvailableSubPopulations.available_sub_populations.values)
+      end.presence || [:clients]
+
+      @actives[:actives_population].each do |population|
         # Force service to fall within the correct age ranges for some populations
         service_scope = if population.to_s == 'child_only_households'
           :children

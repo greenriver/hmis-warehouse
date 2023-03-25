@@ -13,6 +13,21 @@ FactoryBot.define do
       ]
       dates[n % 5].to_date
     end
+    destination { 1 }
     user { association :hmis_hud_user, data_source: data_source }
+
+    after(:build) do |exit|
+      return unless exit.enrollment.present?
+
+      # Set exit date to be after entry date (but not in the future) to ensure validity
+      distances = [
+        15.days,
+        16.days,
+        17.days,
+        4.weeks,
+      ]
+
+      exit.exit_date = [exit.enrollment.entry_date + distances.sample, Date.today].min
+    end
   end
 end

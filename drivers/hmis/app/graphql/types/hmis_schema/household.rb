@@ -10,12 +10,17 @@ module Types
   class HmisSchema::Household < Types::BaseObject
     description 'HUD Household'
     field :id, ID, null: false
+    field :short_id, ID, null: false
     field :household_clients, [HmisSchema::HouseholdClient], null: false
 
     # object is a scope on Hmis::Hud::Enrollment
 
     def id
       object.first.household_id
+    end
+
+    def short_id
+      object.first.short_household_id.upcase
     end
 
     def household_clients
