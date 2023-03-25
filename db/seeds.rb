@@ -1,3 +1,16 @@
+###
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+###
+# 🚨🚨 WARNING:
+# db:seed is called on every deploy. This seed script will be run on
+# production. Ensure operations are idempotent. Seeds for testing or
+# development should be conditional on Rails.env or equiv.
+###
+
 require 'faker'
 
 def setup_fake_user
@@ -332,9 +345,7 @@ def setup_hmis_admin_access
   return unless user.present?
 
   user.hmis_data_source_id = hmis_ds.id
-  access_group = Hmis::AccessGroup.create!(name: 'test')
-  ac = user.access_controls.create!(role: role, access_group: access_group)
-  user.user_access_controls.create!(user: user, access_control: ac)
+  user.user_hmis_data_sources_roles.create(role: role, data_source_id: user.hmis_data_source_id)
 end
 
 ensure_db_triggers_and_functions

@@ -6,6 +6,7 @@
 
 class Users::OmniauthCallbacksController < Devise::OmniauthCallbacksController
   include AuthenticatesWithTwoFactor
+  USER_TYPES = [HMIS_USER_TYPE = 'hmis_user'.freeze, WH_USER_TYPE = 'user'.freeze].freeze
 
   def okta
     log("begin user_type:#{user_type}")
@@ -75,8 +76,6 @@ class Users::OmniauthCallbacksController < Devise::OmniauthCallbacksController
   def set_csrf_cookie
     cookies['CSRF-Token'] = form_authenticity_token
   end
-
-  USER_TYPES = [HMIS_USER_TYPE = 'hmis_user'.freeze, WH_USER_TYPE = 'user'.freeze].freeze
 
   def user_type
     value = cookies.signed[:user_type]
