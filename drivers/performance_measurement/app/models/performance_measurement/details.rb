@@ -864,7 +864,7 @@ module PerformanceMeasurement::Details
           goal_calculation: :income,
           denominator_label: 'Total Stayers',
           calculation_description: 'The number of adult stayers in CoC-funded projects with an increased earned income divided by the number of adult stayers in CoC-funded projects.',
-          calculation_column: :increased_earned_income__income_stayer,
+          calculation_column: :increased_income__earned_income_stayer,
           measure: 'Measure 4',
           detail_columns: [
             'income_stayer',
@@ -884,7 +884,7 @@ module PerformanceMeasurement::Details
           goal_calculation: :income,
           denominator_label: 'Total Stayers',
           calculation_description: 'The number of adult stayers in CoC-funded projects with an increased non-cash income divided by the number of adult stayers in CoC-funded projects.',
-          calculation_column: :increased_non_cash_income__income_stayer,
+          calculation_column: :increased_income__non_earned_income_stayer,
           measure: 'Measure 4',
           detail_columns: [
             'income_stayer',
@@ -924,7 +924,7 @@ module PerformanceMeasurement::Details
           goal_calculation: :income,
           denominator_label: 'Total Leavers',
           calculation_description: 'The number of adult leavers in CoC-funded projects with an increased earned income divided by the number of adult leavers in CoC-funded projects.',
-          calculation_column: :increased_earned_income__income_leaver,
+          calculation_column: :increased_income__earned_income_leaver,
           measure: 'Measure 4',
           detail_columns: [
             'income_leaver',

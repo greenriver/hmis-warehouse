@@ -284,6 +284,7 @@ module PerformanceMeasurement
             report_client["#{variant_name}_prior_living_situation"] ||= parts[:value_calculation].call(:housing_status_at_entry, client_id, data)
             # HoH status may vary, just note if they were ever an HoH
             report_client["#{variant_name}_hoh"] ||= parts[:value_calculation].call(:head_of_household, client_id, data) || false
+            # FIXME: Prior Living Situations display should go through HudUtil
 
             parts[:value_calculation].call(:project_ids, client_id, data).each do |project_id|
               involved_projects << project_id
