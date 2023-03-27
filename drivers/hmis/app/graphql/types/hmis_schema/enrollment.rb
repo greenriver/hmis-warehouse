@@ -23,6 +23,7 @@ module Types
     field :project, Types::HmisSchema::Project, null: false
     hud_field :entry_date
     field :exit_date, GraphQL::Types::ISO8601Date, null: true
+    field :status, HmisSchema::Enums::EnrollmentStatus, null: false
     assessments_field
     events_field
     services_field
@@ -58,6 +59,10 @@ module Types
 
     def exit
       load_ar_association(object, :exit)
+    end
+
+    def status
+      Types::HmisSchema::Enums::EnrollmentStatus.from_enrollment(object, user: current_user)
     end
 
     def household
