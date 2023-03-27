@@ -1,0 +1,37 @@
+- title = _('Street 2 Home')
+- content_for :title, title
+
+- @layout__plain_inner = true
+- @layout__width = 'lg'
+.content-outer-prs1
+  %nav.nav-drawer.prs1
+    = render 'filters/filter_controls/sidebar'
+  .main-outer-prs1
+    .utility-prs1
+      = render '/warehouse_reports/breadcrumbs', tab: 'performance'
+      = render "utility"
+    .top-nav-prs1
+      %h1.mb-5= title
+      = render '/warehouse_reports/beta_warning'
+    .main-inner-prs1
+      - if @report.necessary_selections_made?
+        .text-right.mb-4
+          = render 'report_downloads/report_download', export: @pdf_export, excel_download_path: nil
+
+        - @report.class.available_section_types.each do |section|
+          %section.mb-5.page-break-after
+            = render "boston_reports/warehouse_reports/street_to_homes/#{section}"
+        -#   = render 'background_render', url: render_section_boston_reports_warehouse_reports_street_to_homes_path, fetch_params: {partial: section, filters: @filter.for_params[:filters] } do
+        -#     .rollup
+        -#       .rollup-container.well
+        -#       = render 'common/section_not_loading', path_to_section: section_boston_reports_warehouse_reports_street_to_homes_path(partial: section, filters: @filter.for_params[:filters])
+        -#   =# debug section
+      - else
+        .none-found
+          - total_url = polymorphic_path(@report.filter_path_array, *link_params.except(:action))
+          All options must be selected under
+          = link_to 'Select Universe.', total_url, data: { loads_in_pjax_modal: true }
+= content_for :page_js do
+  :javascript
+    let detail_path = '#{polymorphic_url(@report.detail_path_array)}';
+    let detail_params = new URLSearchParams('#{@report.filter.for_params.to_query.html_safe}');

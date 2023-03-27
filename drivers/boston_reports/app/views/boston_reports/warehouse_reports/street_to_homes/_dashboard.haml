@@ -1,0 +1,39 @@
+:css
+  .wide-line {
+    stroke-width: 3px;
+  }
+  .client-housed-matched-wrapper .bb-grid line {
+    stroke-dasharray: none;
+    stroke: #ddd;
+  }
+  .client-housed-matched-wrapper .bb-xgrid-focus line.bb-xgrid-focus  {
+    stroke: #000;
+  }
+
+- total_count = @report.summary_counts['total'][:count]
+%table.street-2-home-summary.w-100.mb-6
+  %tbody
+    %tr
+      - bg_color = @report.config.total_color
+      %td.all-clients{ colspan: @report.summary_counts.count - 1, style: "background-color: #{bg_color}; color: #{@report.config.foreground_color(bg_color)};"}
+        .count= link_to number_with_delimiter(total_count), polymorphic_path(@report.detail_path_array, @report.filter.for_params.merge(sets: ['total'])), style: "color: #{@report.config.foreground_color(bg_color)};", class: 'font-size-md'
+        .label{style: "color: #{@report.config.foreground_color(@report.config.total_color)};"}= @report.summary_counts['total'][:label]
+    %tr
+      - @report.summary_counts.except('total').each.with_index do |(cohort, data), i|
+        - bg_color = @report.config["breakdown_1_color_#{i}"]
+        %td{ class: "cohort-#{i}", style: "background-color: #{bg_color}; color: #{@report.config.foreground_color(bg_color)};"}
+          .count
+            = link_to polymorphic_path(@report.detail_path_array, @report.filter.for_params.merge(sets: [cohort])), style: "color: #{@report.config.foreground_color(bg_color)};" do
+              .d-flex
+                .ml-auto.mr-auto.d-flex
+                  .font-size-md= number_with_delimiter(data[:count])
+                  .font-size-sm.mt-auto.mb-1.ml-2 (#{@report.percent(numerator: data[:count], denominator: total_count)}%)
+          .label{ style: "color: #{@report.config.foreground_color(bg_color)};" }= data[:label]
+
+.row
+  .col-sm-6= render 'boston_reports/warehouse_reports/street_to_homes/dashboard/total_clients_by_stage'
+
+  .col-sm-6= render 'boston_reports/warehouse_reports/street_to_homes/dashboard/housed_matched'
+
+.row
+  .col-sm-12= render 'boston_reports/warehouse_reports/street_to_homes/race_ethnicity', base_name: 'dashboard'

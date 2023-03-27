@@ -125,7 +125,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         enrollment_date_updated = assessment.enrollment.date_updated
 
         # Update the assessment (submit)
-        new_assessment_date = Date.today.strftime('%Y-%m-%d')
+        new_assessment_date = Date.yesterday.strftime('%Y-%m-%d')
         input = { assessment_id: assessment.id, **build_minimum_values(definition, assessment_date: new_assessment_date) }
         _resp, result = post_graphql(input: { input: input }) { submit_assessment_mutation }
         errors = result.dig('data', 'submitAssessment', 'errors')
@@ -168,7 +168,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(assessment.enrollment.date_updated.strftime(TIME_FMT)).to eq(enrollment_date_updated.strftime(TIME_FMT))
 
         # Update the assessment (submit)
-        new_assessment_date = Date.today.strftime('%Y-%m-%d')
+        new_assessment_date = Date.yesterday.strftime('%Y-%m-%d')
         input = { assessment_id: assessment.id, **build_minimum_values(definition, assessment_date: new_assessment_date) }
         _resp, result = post_graphql(input: { input: input }) { submit_assessment_mutation }
         errors = result.dig('data', 'submitAssessment', 'errors')
@@ -191,7 +191,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   it 'Can update the Exit Date when submitting a NEW Exit assessment on an Enrollment that has already been exited (edge case)' do
     definition = Hmis::Form::Definition.find_by(role: :EXIT)
-    new_exit_date = Date.today.strftime('%Y-%m-%d')
+    new_exit_date = Date.yesterday.strftime('%Y-%m-%d')
     input = {
       enrollment_id: exited_enrollment.id,
       form_definition_id: definition.id,

@@ -1,0 +1,18 @@
+- title = "Boston Report Configuration"
+- content_for :title, title
+
+= render '/warehouse_reports/breadcrumbs', tab: 'performance'
+%h1.mb-5= title
+
+= simple_form_for @config, url: boston_reports_warehouse_reports_config_path(@config), as: :config do |f|
+  .d-flex
+    - @config.color_fields.each do |fields|
+      .well.mr-4
+        %h3= fields[:title]
+        - fields[:colors].each do |field|
+          = f.input field, input_html: { class: 'colorpicker' }, wrapper_class: 'mb-0'
+          - bg_color = @config.public_send(field)
+          .example.p-2.text-center.mb-4{ style: "background-color: #{bg_color}; color: #{@config.foreground_color(bg_color)};"}
+            Sample Text
+
+  = f.submit 'Save Configuration'
