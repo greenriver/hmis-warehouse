@@ -18,7 +18,7 @@ module HudApr::Generators::Shared::Fy2023
       table_name = 'Q11'
       metadata = {
         header_row: [' '] + sub_populations.keys,
-        row_labels: age_ranges.keys,
+        row_labels: apr_age_ranges.keys,
         first_column: 'B',
         last_column: 'F',
         first_row: 2,
@@ -29,7 +29,7 @@ module HudApr::Generators::Shared::Fy2023
       cols = (metadata[:first_column]..metadata[:last_column]).to_a
       rows = (metadata[:first_row]..metadata[:last_row]).to_a
       sub_populations.values.each_with_index do |population_clause, col_index|
-        age_ranges.values.each_with_index do |age_clause, row_index|
+        apr_age_ranges.values.each_with_index do |age_clause, row_index|
           cell = "#{cols[col_index]}#{rows[row_index]}"
           next if intentionally_blank.include?(cell)
 

@@ -5606,7 +5606,26 @@ CREATE TABLE public.cohort_clients (
     user_date_28 character varying,
     user_date_29 character varying,
     user_date_30 character varying,
-    most_recent_date_to_street date
+    most_recent_date_to_street date,
+    user_boolean_31 boolean,
+    user_boolean_32 boolean,
+    user_boolean_33 boolean,
+    user_boolean_34 boolean,
+    user_boolean_35 boolean,
+    user_boolean_36 boolean,
+    user_boolean_37 boolean,
+    user_boolean_38 boolean,
+    user_boolean_39 boolean,
+    user_boolean_40 boolean,
+    user_boolean_41 boolean,
+    user_boolean_42 boolean,
+    user_boolean_43 boolean,
+    user_boolean_44 boolean,
+    user_boolean_45 boolean,
+    user_boolean_46 boolean,
+    user_boolean_47 boolean,
+    user_boolean_48 boolean,
+    user_boolean_49 boolean
 );
 
 
@@ -5702,7 +5721,8 @@ CREATE TABLE public.cohorts (
     threshold_label_5 character varying,
     system_cohort boolean DEFAULT false,
     type character varying DEFAULT 'GrdaWarehouse::Cohort'::character varying,
-    project_group_id bigint
+    project_group_id bigint,
+    enforce_project_visibility_on_cells boolean DEFAULT true NOT NULL
 );
 
 
@@ -15107,7 +15127,8 @@ CREATE TABLE public.hud_report_apr_clients (
     source_enrollment_id integer,
     los_under_threshold integer,
     project_id integer,
-    client_created_at timestamp without time zone
+    client_created_at timestamp without time zone,
+    personal_id character varying
 );
 
 
@@ -15317,7 +15338,8 @@ CREATE TABLE public.hud_report_dq_clients (
     times_homeless integer,
     veteran_status integer,
     annual_assessment_in_window boolean,
-    gender_multi character varying
+    gender_multi character varying,
+    personal_id character varying
 );
 
 
@@ -15724,7 +15746,8 @@ CREATE TABLE public.hud_report_path_clients (
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     gender_multi character varying,
-    destination_client_id integer
+    destination_client_id integer,
+    personal_id character varying
 );
 
 
@@ -15800,7 +15823,8 @@ CREATE TABLE public.hud_report_pit_clients (
     exit_date date,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    personal_id character varying
 );
 
 
@@ -15893,7 +15917,8 @@ CREATE TABLE public.hud_report_spm_clients (
     m7a1_project_id integer,
     m7b_project_id integer,
     personal_id character varying,
-    data_lab_public_id character varying
+    data_lab_public_id character varying,
+    source_client_personal_ids character varying
 );
 
 
@@ -20071,6 +20096,70 @@ ALTER SEQUENCE public.synthetic_youth_education_statuses_id_seq OWNED BY public.
 
 
 --
+-- Name: system_pathways_clients; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.system_pathways_clients (
+    id bigint NOT NULL,
+    client_id bigint,
+    first_name character varying,
+    last_name character varying,
+    personal_ids character varying,
+    dob date,
+    age integer,
+    am_ind_ak_native boolean,
+    asian boolean,
+    black_af_american boolean,
+    native_hi_pacific boolean,
+    white boolean,
+    ethnicity integer,
+    male boolean,
+    female boolean,
+    gender_other boolean,
+    transgender boolean,
+    questioning boolean,
+    no_single_gender boolean,
+    disabling_condition boolean,
+    relationship_to_hoh integer,
+    veteran_status integer,
+    household_id character varying,
+    household_type character varying,
+    ce boolean,
+    system boolean,
+    es boolean,
+    sh boolean,
+    th boolean,
+    rrh boolean,
+    psh boolean,
+    oph boolean,
+    ph boolean,
+    destination integer,
+    returned integer,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: system_pathways_clients_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.system_pathways_clients_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: system_pathways_clients_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.system_pathways_clients_id_seq OWNED BY public.system_pathways_clients.id;
+
+
+--
 -- Name: taggings; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -23911,6 +24000,13 @@ ALTER TABLE ONLY public.synthetic_youth_education_statuses ALTER COLUMN id SET D
 
 
 --
+-- Name: system_pathways_clients id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.system_pathways_clients ALTER COLUMN id SET DEFAULT nextval('public.system_pathways_clients_id_seq'::regclass);
+
+
+--
 -- Name: taggings id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -26786,6 +26882,14 @@ ALTER TABLE ONLY public.synthetic_events
 
 ALTER TABLE ONLY public.synthetic_youth_education_statuses
     ADD CONSTRAINT synthetic_youth_education_statuses_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: system_pathways_clients system_pathways_clients_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.system_pathways_clients
+    ADD CONSTRAINT system_pathways_clients_pkey PRIMARY KEY (id);
 
 
 --
@@ -48144,6 +48248,13 @@ CREATE INDEX index_synthetic_youth_education_statuses_on_source ON public.synthe
 
 
 --
+-- Name: index_system_pathways_clients_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_system_pathways_clients_on_client_id ON public.system_pathways_clients USING btree (client_id);
+
+
+--
 -- Name: index_taggings_on_context; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -51555,6 +51666,9 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230307143837'),
 ('20230309205059'),
 ('20230313122300'),
-('20230313152950');
-
+('20230313152950'),
+('20230319133739'),
+('20230320131930'),
+('20230322183901'),
+('20230322220754');
 

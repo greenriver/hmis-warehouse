@@ -374,7 +374,7 @@ module HudApr::Generators::Shared::Fy2023
     private def ch_age_ranges
       {
         '0 - 17' => a_t[:age].between(0..17).and(a_t[:dob_quality].in([1, 2])),
-      }.merge(age_ranges.except('Under 5', '5-12', '13-17'))
+      }.merge(apr_age_ranges.except('Under 5', '5-12', '13-17'))
     end
 
     private def ch_income_types(suffix)

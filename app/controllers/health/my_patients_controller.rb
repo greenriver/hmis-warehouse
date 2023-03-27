@@ -112,6 +112,7 @@ module Health
           population.
             joins(:patient_referral).
             merge(Health::PatientReferral.rejected.not_confirmed_rejected).
+            where(hpr_t[:disenrollment_date].between(Date.current.beginning_of_month .. Date.current.end_of_month)).
             where.not(id: patient_ids_with_payable_qas_in_month),
         )
     end
