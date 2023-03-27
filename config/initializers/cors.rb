@@ -4,14 +4,22 @@
 hmis_hostname = ENV['HMIS_HOSTNAME']
 if ENV['ENABLE_HMIS_API'] == 'true' && hmis_hostname.present?
   Rails.application.config.middleware.insert_before 0, Rack::Cors do
-    # Allow requests to /hmis from the HMIS frontend host
     allow do
       origins hmis_hostname
 
+      # Allow requests to /hmis from the HMIS frontend host for the API
       resource '/hmis/*',
         headers: :any,
         methods: [:get, :post, :delete, :put, :patch, :options, :head],
         credentials: true
+
+      if ENV['OKTA_DOMAIN'].present?
+        # Allow requests to the SSO okta endpoints for authentication
+        resource '/users/auth/okta',
+          headers: :any,
+          methods: [:get, :post, :delete, :put, :patch, :options, :head],
+          credentials: true
+      end
     end
   end
 end
