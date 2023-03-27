@@ -129,7 +129,7 @@ module Types
             label: tag.name,
             group_code: tag.group,
             group_label: tag.group,
-            secondary_label: "(includes: #{tag.included_info})",
+            secondary_label: tag.included_info&.strip&.present? ? "(includes: #{tag.included_info})" : nil,
           }
         end.
           compact.
@@ -141,7 +141,7 @@ module Types
         client.enrollments.sort_by_option(:most_recent).map do |enrollment|
           {
             code: enrollment.id,
-            label: "#{enrollment.project.project_name} (#{[enrollment.entry_date.strftime('mm/dd/yyyy'), enrollment.exit_date&.strftime('mm/dd/yyyy') || 'ongoing'].join(' - ')})",
+            label: "#{enrollment.project.project_name} (#{[enrollment.entry_date.strftime('%m/%d/%Y'), enrollment.exit_date&.strftime('%m/%d/%Y') || 'ongoing'].join(' - ')})",
           }
         end
       end

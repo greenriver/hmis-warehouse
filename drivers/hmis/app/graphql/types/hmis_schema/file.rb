@@ -42,7 +42,7 @@ module Types
     end
 
     def tags
-      object.tags.map(&:name)
+      object.tags.map(&:id)
     end
 
     def updated_by
