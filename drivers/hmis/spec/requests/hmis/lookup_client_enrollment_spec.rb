@@ -160,6 +160,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(response.status).to eq 200
       enrollment = result.dig('data', 'enrollment')
       expect(enrollment['id']).to eq(e1.id.to_s)
+      expect(enrollment['status']).to eq('ACTIVE')
       expect(enrollment['services']['nodesCount']).to eq(2)
       expect(enrollment['events']['nodesCount']).to eq(1)
       expect(enrollment['assessments']['nodesCount']).to eq(1)
