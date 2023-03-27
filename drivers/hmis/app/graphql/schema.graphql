@@ -3670,6 +3670,7 @@ type QueryAccess {
   canEditEnrollments: Boolean!
   canEditOrganization: Boolean!
   canEditProjectDetails: Boolean!
+  canManageClientFiles: Boolean!
   canViewClients: Boolean!
   canViewDob: Boolean!
   canViewEnrollmentDetails: Boolean!
