@@ -169,7 +169,7 @@ module Health
       qa_version.activities
     end
 
-    def contact_required?(activity)
+    def contact_required?
       return false unless activity
 
       !activity.to_sym.in?(qa_version.class::CONTACTLESS_ACTIVITIES)

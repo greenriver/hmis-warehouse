@@ -225,7 +225,7 @@ module Health
 
     def ncm_just_approved?
       @cha = patient.recent_cha_form
-      @cha.complete? && ncm_approved_on.present? && ncm_approved_on_changed?
+      @cha&.complete? && ncm_approved_on.present? && ncm_approved_on_changed?
     end
 
     def rn_just_approved?

@@ -197,7 +197,7 @@ module Health
       end
 
       # attach modifiers from activity
-      modifiers << activities[qa.activity&.to_sym].try(:[], :code)&.split(' ').try(:[], 1)
+      modifiers << activities[qa.activity&.to_sym].try(:[], :code)&.split(/[ |>]/).try(:[], 1)
 
       modifiers << contact_modifier
       modifiers << client_reached[qa.reached_client&.to_sym].try(:[], :code)
