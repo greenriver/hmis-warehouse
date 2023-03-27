@@ -34,9 +34,8 @@ module Mutations
       # HoH Exit constraints
       includes_hoh = enrollments.map(&:relationship_to_ho_h).uniq.include?(1)
       if assessments.first.exit? && includes_hoh
-        # FIXME: If exit dates can be in the future, `open_on_date` should check against HoH exit date
-        # and the max assessment date on all assessments being submitted. Maybe do in Exit validator instead.
-        open_enrollments = Hmis::Hud::Enrollment.viewable_by(current_user).open_on_date.
+        # "Date.tomorrow" because it's OK if the exit date is today, but not if there is no exit date, or if the exit date is in the future (shouldn't happen)
+        open_enrollments = Hmis::Hud::Enrollment.viewable_by(current_user).open_on_date(Date.tomorrow).
           where(household_id: household_ids.first).
           where.not(enrollment_id: enrollments.map(&:enrollment_id))
 
