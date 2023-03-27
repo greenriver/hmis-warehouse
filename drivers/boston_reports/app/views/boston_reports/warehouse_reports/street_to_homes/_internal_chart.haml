@@ -22,7 +22,7 @@
       .well{ data: { demographic: active_demographic, group: active_group } }
         .d-flex
           .chart.d-flex{style: 'width: 90%;'}
-            %div{ id: "internal-#{active_demographic}-by-#{active_group}-chart", style: 'width: 80%;' }
+            %div{ id: "internal-#{active_demographic}-by-#{active_group}-chart", style: 'width: 80%; max-width: 80%;' }
             %div{ id: "internal-#{active_demographic}-by-#{active_group}-legend", style: 'width: 20%;' }
 
 = content_for :page_js do

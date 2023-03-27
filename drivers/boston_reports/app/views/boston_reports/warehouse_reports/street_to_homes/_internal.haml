@@ -25,6 +25,13 @@
 
 = content_for :page_js do
   :javascript
+    // Force window resize re-calculation
+    resize_window_event = function() {
+      window.dispatchEvent(new Event('resize'));
+      var resizeEvent = window.document.createEvent('UIEvents');
+      resizeEvent.initUIEvent('resize', true, false, window, 0);
+      window.dispatchEvent(resizeEvent);
+    };
     window.group = 'stages';
     window.demographics = 'race';
     $('.internal-demographic-dropdown a.dropdown-item').on('click', function(e) {
@@ -37,6 +44,7 @@
       let chart_key = `internal_${new_demographic}_by_${current_group}_chart`;
       window.charts[chart_key].flush();
       window.demographics = new_demographic;
+      resize_window_event();
     });
 
     $('.internal-group-dropdown a.dropdown-item').on('click', function(e) {
@@ -50,10 +58,10 @@
       let chart_key = `internal_${current_demographic}_by_${new_group}_chart`;
       window.charts[chart_key].flush();
       window.group = new_group;
+      resize_window_event();
     });
     window.swapped = false;
 
-    // FIXME: swapping axis doesn't correctly resize the chart until the window is resized
     $('body').on('click', '.internal-axis-swap', function(e) {
       e.preventDefault();
 
@@ -72,6 +80,6 @@
       $(`.demographic-${new_demographic}.group-${new_group}`).removeClass('hide');
 
       let chart_key = `internal_${new_demographic}_by_${new_group}_chart`;
+      resize_window_event();
       Object.keys(window.charts).forEach(chart_key => window.charts[chart_key].flush());
-      $('window').trigger('resize');
     });
