@@ -11,6 +11,7 @@
           - bg_color = @report.config["breakdown_1_color_#{i}"]
           #div{ style: "padding:5px; height: 14px; width: 26px; background-color:#{bg_color}; margin: 0 auto; border-radius: 10px;" } &nbsp;
     - # Bind charts to one legend (https://github.com/naver/billboard.js/issues/605)
+    - # Actually, see onover and onout below, it works way better
     .col-md-4{ id: "#{base_name}-#{chart}-by-cohort-chart-legend" }
 
   :ruby
@@ -23,6 +24,13 @@
     :javascript
       let #{base_name}_#{chart}_charts = #{charts.to_json.html_safe};
       let active_#{base_name}_#{chart}_charts = [];
+      let active_#{base_name}_#{chart}_chart_ids = [];
+      #{base_name}_#{chart}_charts.forEach((arr, index) => {
+        let chart_name, data;
+        [chart_name, data] = arr;
+        active_#{base_name}_#{chart}_chart_ids.push(`#{base_name}-#{chart}-by-cohort-chart-${chart_name}`);
+      });
+
       window.cohort_names = #{@report.cohort_names.to_json.html_safe};
 
       #{base_name}_#{chart}_charts.forEach((arr, index) => {
@@ -34,12 +42,24 @@
           legend = {
             contents: {
               bindto: "##{base_name}-#{chart}-by-cohort-chart-legend",
-              template: "<span><div class='d-flex mr-4'><div style='padding:5px; height: 14px; width: 26px; background-color:{=COLOR}; margin: auto 1rem; border-radius: 10px;'>&nbsp;</div><div class='m-2'>{=TITLE}</div></div></span>"
+              template: "<div class='all-charts-legend'><div class='d-flex mr-4'><div style='padding:5px; height: 14px; width: 26px; background-color:{=COLOR}; margin: auto 1rem; border-radius: 10px;'>&nbsp;</div><div class='m-2'>{=TITLE}</div></div></div>",
             },
             item: {
               onclick: function(id) {
-                false;
+                return false;
               },
+              onover: function(id) {
+                active_#{base_name}_#{chart}_chart_ids.forEach(chart_id => {
+                  let chart = bb.instance.filter(v => v.$.chart.attr("id") === chart_id)[0];
+                  chart.focus(id);
+                });
+              },
+              onout: function(id) {
+                active_#{base_name}_#{chart}_chart_ids.forEach(chart_id => {
+                  let chart = bb.instance.filter(v => v.$.chart.attr("id") === chart_id)[0];
+                  chart.revert();
+                });
+              }
             },
           }
         } else {
@@ -74,21 +94,3 @@
           }
         }));
       });
-      // Bind event handler to handle all generated charts
-      // FIXME: these get removed for some reason on window resize
-      d3.selectAll("##{base_name}-#{chart}-by-cohort-chart-legend span")
-        .on("mouseover mouseout click", (e) => {
-          const id = e.target.innerHTML;
-          const type = e.type;
-
-          active_#{base_name}_#{chart}_charts.forEach(v => {
-            switch (type) {
-              case "mouseover":
-                v.focus(id);
-                break;
-              case "mouseout":
-                v.revert();
-                break;
-              }
-            });
-        });

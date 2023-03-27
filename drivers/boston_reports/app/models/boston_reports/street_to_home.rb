@@ -309,7 +309,7 @@ module BostonReports
         data['type'] = 'bar'
         data['columns'] = []
         data['colors'] = {}
-        stages.merge({ 'Inactive' => all_client_breakdowns['Inactive'] }).each.with_index do |(key, stage), i|
+        { 'Inactive' => all_client_breakdowns['Inactive'] }.merge(stages).each.with_index do |(key, stage), i|
           row = [stage[:label], clients[key.to_s].count]
           data['columns'] << row
           data['colors'][stage[:label]] = config["breakdown_2_color_#{i}"]
@@ -417,13 +417,13 @@ module BostonReports
         data['x'] = 'x'
         data['type'] = 'bar'
         data['stack'] = { normalize: true }
-        data['columns'] = [['x'] + stages.values.map { |d| d[:label] } + ['Inactive']]
+        data['columns'] = [['x'] + ['Inactive'] + stages.values.map { |d| d[:label] }]
         data['groups'] = [races.values]
         data['colors'] = {}
         data['labels'] = { 'colors' => {} }
         races.each_value.with_index do |race, i|
           row = [race]
-          stages.each_key do |k|
+          { 'Inactive' => all_client_breakdowns['Inactive'] }.merge(stages).each_key do |k|
             row << (clients[k.to_s] & clients[race]).count
           end
           data['columns'] << row
@@ -460,10 +460,10 @@ module BostonReports
         data['type'] = 'bar'
         data['stack'] = { normalize: true }
         data['columns'] = [['x'] + races.values]
-        data['groups'] = [stages.values.map { |d| d[:label] } + ['Inactive']]
+        data['groups'] = [['Inactive'] + stages.values.map { |d| d[:label] }]
         data['colors'] = {}
         data['labels'] = { 'colors' => {} }
-        stages.each.with_index do |(k, stage), i|
+        { 'Inactive' => all_client_breakdowns['Inactive'] }.merge(stages).each.with_index do |(k, stage), i|
           row = [stage[:label]]
           races.each_value do |race|
             row << (clients[k.to_s] & clients[race]).count
@@ -501,13 +501,13 @@ module BostonReports
         data['x'] = 'x'
         data['type'] = 'bar'
         data['stack'] = { normalize: true }
-        data['columns'] = [['x'] + stages.values.map { |d| d[:label] } + ['Inactive']]
+        data['columns'] = [['x'] + ['Inactive'] + stages.values.map { |d| d[:label] }]
         data['groups'] = [ethnicities.values]
         data['colors'] = {}
         data['labels'] = { 'colors' => {} }
         ethnicities.each_value.with_index do |ethnicity, i|
           row = [ethnicity]
-          stages.each_key do |k|
+          { 'Inactive' => all_client_breakdowns['Inactive'] }.merge(stages).each_key do |k|
             row << (clients[k.to_s] & clients[ethnicity]).count
           end
           data['columns'] << row
@@ -532,8 +532,8 @@ module BostonReports
             row << (clients[cohort] & clients[ethnicity]).count
           end
           data['columns'] << row
-          data['colors'][ethnicity] = config["breakdown_3_color_#{i}"]
-          data['labels']['colors'][ethnicity] = config.foreground_color(config["breakdown_3_color_#{i}"])
+          data['colors'][ethnicity] = config["breakdown_2_color_#{i}"]
+          data['labels']['colors'][ethnicity] = config.foreground_color(config["breakdown_2_color_#{i}"])
         end
       end
     end
@@ -544,10 +544,10 @@ module BostonReports
         data['type'] = 'bar'
         data['stack'] = { normalize: true }
         data['columns'] = [['x'] + ethnicities.values]
-        data['groups'] = [stages.values.map { |d| d[:label] } + ['Inactive']]
+        data['groups'] = [['Inactive'] + stages.values.map { |d| d[:label] }]
         data['colors'] = {}
         data['labels'] = { 'colors' => {} }
-        stages.each.with_index do |(k, stage), i|
+        { 'Inactive' => all_client_breakdowns['Inactive'] }.merge(stages).each.with_index do |(k, stage), i|
           row = [stage[:label]]
           ethnicities.each_value do |ethnicity|
             row << (clients[k.to_s] & clients[ethnicity]).count
@@ -602,10 +602,10 @@ module BostonReports
       @stage_by_cohort ||= {}.tap do |data|
         data['x'] = 'x'
         data['type'] = 'bar'
-        data['groups'] = [stages.values.map { |d| d[:label] } + ['Inactive']]
+        data['groups'] = [['Inactive'] + stages.values.map { |d| d[:label] }]
         data['colors'] = {}
         data['columns'] = [['x', *cohort_names]]
-        stages.merge({ 'Inactive' => all_client_breakdowns['Inactive'] }).each.with_index do |(key, stage), i|
+        { 'Inactive' => all_client_breakdowns['Inactive'] }.merge(stages).each.with_index do |(key, stage), i|
           row = [stage[:label]]
           data['colors'][stage[:label]] = config["breakdown_2_color_#{i}"]
           cohort_names.each do |cohort|
@@ -622,11 +622,11 @@ module BostonReports
         data['type'] = 'bar'
         data['groups'] = [cohort_names]
         data['colors'] = {}
-        data['columns'] = [['x', *stages.merge({ 'Inactive' => all_client_breakdowns['Inactive'] }).values.map { |d| d[:label] }]]
+        data['columns'] = [['x', *{ 'Inactive' => all_client_breakdowns['Inactive'] }.merge(stages).values.map { |d| d[:label] }]]
         cohort_names.each.with_index do |cohort, i|
           row = [cohort]
           data['colors'][cohort] = config["breakdown_1_color_#{i}"]
-          stages.merge({ 'Inactive' => all_client_breakdowns['Inactive'] }).each do |(key, _stage)|
+          { 'Inactive' => all_client_breakdowns['Inactive'] }.merge(stages).each do |(key, _stage)|
             row << (clients[cohort] & clients[key.to_s]).count
           end
           data['columns'] << row
@@ -763,23 +763,23 @@ module BostonReports
 
     private def stages
       @stages ||= {}.tap do |s|
-        s[housed_string] = {
-          label: housed_string,
-          calculation: ->(client) { client[housed_date_instance.column].present? },
-          scope: report_scope.active.where(c_client_t[housed_date_instance.column].not_eq(nil)),
-        }
         if voucher_date_instance.present? && housed_date_instance.present?
-          s[matched_string] = {
-            label: matched_string,
-            calculation: ->(client) { client[housed_date_instance.column].blank? && client[voucher_date_instance.column].present? },
-            scope: report_scope.active.where(c_client_t[voucher_date_instance.column].not_eq(nil).and(c_client_t[housed_date_instance.column].eq(nil))),
-          }
           s[un_matched_string] = {
             label: un_matched_string,
             calculation: ->(client) { client[housed_date_instance.column].blank? && client[voucher_date_instance.column].blank? },
             scope: report_scope.active.where(c_client_t[voucher_date_instance.column].eq(nil).and(c_client_t[housed_date_instance.column].eq(nil))),
           }
+          s[matched_string] = {
+            label: matched_string,
+            calculation: ->(client) { client[housed_date_instance.column].blank? && client[voucher_date_instance.column].present? },
+            scope: report_scope.active.where(c_client_t[voucher_date_instance.column].not_eq(nil).and(c_client_t[housed_date_instance.column].eq(nil))),
+          }
         end
+        s[housed_string] = {
+          label: housed_string,
+          calculation: ->(client) { client[housed_date_instance.column].present? },
+          scope: report_scope.active.where(c_client_t[housed_date_instance.column].not_eq(nil)),
+        }
       end
     end
 
