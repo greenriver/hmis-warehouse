@@ -90,6 +90,7 @@ module Health
           weight: 0,
           allowed: ['U1', 'UK', 'U2', 'U3', '95'],
           required: [],
+          per_day: 3,
         },
         cha: {
           title: 'Comprehensive Assessment',
@@ -98,6 +99,7 @@ module Health
           hidden: true,
           allowed: ['U1', 'UK', 'U2'],
           required: [],
+          per_day: 1,
         },
         cha_completed: {
           title: 'Comprehensive Assessment completed',
@@ -106,6 +108,7 @@ module Health
           hidden: true,
           allowed: [],
           required: ['U4'],
+          per_day: 1,
         },
         care_planning: {
           title: 'Development of Care Plan',
@@ -114,6 +117,7 @@ module Health
           hidden: true,
           allowed: ['U1', 'UK', 'U2', 'U3', '95'],
           required: [],
+          per_day: 3,
         },
         care_coordination: {
           title: 'Care coordination',
@@ -121,6 +125,7 @@ module Health
           weight: 30,
           allowed: ['U1', 'UK', 'U2', 'U3', '95'],
           required: [],
+          per_day: 4,
         },
         care_team: {
           title: 'Meeting with 3+ care team members',
@@ -128,6 +133,7 @@ module Health
           weight: 40,
           allowed: ['U1', 'U2', 'U3', '95'],
           required: [],
+          per_day: 1,
         },
         care_transitions: {
           title: 'Emergency Department visit (7 days)',
@@ -135,6 +141,7 @@ module Health
           weight: 45,
           allowed: ['U1', 'U2', 'U3', '95'],
           required: [],
+          per_day: 2,
         },
         discharge_follow_up: {
           title: 'Follow-up from inpatient discharge with client (7 days)',
@@ -142,6 +149,7 @@ module Health
           weight: 50,
           allowed: ['U1', 'U2'],
           required: ['U5'],
+          per_day: 2,
         },
         pctp_signed: {
           title: 'Care Plan completed',
@@ -150,6 +158,7 @@ module Health
           hidden: true,
           allowed: [''],
           required: ['U4'],
+          per_day: 1,
         },
         intake_completed: {
           title: 'Intake/reassessment (completing consent ROI, comprehensive assessment, care plan)',
@@ -157,6 +166,7 @@ module Health
           weight: 110,
           allowed: ['U1', 'UK', 'U2', 'U3', '95'],
           required: [],
+          per_day: 4,
         },
         sdoh_positive: {
           title: 'SDoH screening positive',
@@ -164,6 +174,7 @@ module Health
           weight: 200,
           allowed: [],
           required: [],
+          per_day: 1,
         },
         sdoh_negative: {
           title: 'SDoH screening negative',
@@ -171,8 +182,30 @@ module Health
           weight: 210,
           allowed: [],
           required: [],
+          per_day: 1,
         },
       }.sort_by { |_, m| m[:weight] }.to_h
+    end
+
+    def internal_compute_valid_unpayable
+      reasons = []
+      computed_procedure_valid = @qa.compute_procedure_valid?
+
+      # Only valid procedures can be valid unpayable
+      return nil unless computed_procedure_valid
+
+      # Unpayable if it is a valid procedure, but it didn't occur during an enrollment
+      reasons << :outside_enrollment if computed_procedure_valid && ! @qa.occurred_during_any_enrollment?
+
+      # Unpayable if this was a phone/video call where the client wasn't reached
+      reasons << :call_not_reached if @qa.reached_client == 'no' && ['phone_call', 'video_call'].include?(@qa.mode_of_contact)
+
+      reasons << :limit_per_day unless @qa.within_per_day_limits?
+
+      # Signing a care plan is payable regardless of engagement status
+      return reasons if @qa.activity == 'pctp_signed'
+
+      reasons.uniq
     end
   end
 end

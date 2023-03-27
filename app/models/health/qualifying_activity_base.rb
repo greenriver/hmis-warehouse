@@ -47,13 +47,13 @@ module Health
         map { |k, mode| [mode[:title], k] }
     end
 
-    def modifiers(qa)
+    def modifiers
       # Attach modifiers from activity
-      modlist = activities[qa.activity&.to_sym].try(:[], :code)&.split(/[ |>]/).try(:[], 1..)
+      modlist = activities[@qa.activity&.to_sym].try(:[], :code)&.split(/[ |>]/).try(:[], 1..)
 
       # Attach modifiers from contact, if present
-      modlist << modes_of_contact[qa.mode_of_contact&.to_sym].try(:[], :code)
-      modlist << client_reached[qa.reached_client&.to_sym].try(:[], :code)
+      modlist << modes_of_contact[@qa.mode_of_contact&.to_sym].try(:[], :code)
+      modlist << client_reached[@qa.reached_client&.to_sym].try(:[], :code)
 
       return modlist.reject(&:blank?).compact
     end

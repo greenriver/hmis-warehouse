@@ -308,7 +308,7 @@ module Health
     end
 
     def modifiers
-      qa_version.modifiers(self)
+      qa_version.modifiers
     end
 
     def compute_procedure_valid?
@@ -335,6 +335,25 @@ module Health
 
       true
     end
+
+    def same_of_type_for_day_for_patient
+      self.class.where(
+        activity: activity,
+        patient_id: patient_id,
+        date_of_activity: date_of_activity,
+      )
+    end
+
+    def within_per_day_limits?
+      # Assumes ids are strictly increasing, so all prior QAs will have a lower id
+      prior_instances = same_of_type_for_day_for_patient.where(hqa_t[:id].lt(id)).order(:id).count
+      limit = qa_version.activities[activity.to_sym][:per_day]
+      return true unless limit.present?
+
+      prior_instances < limit
+    end
+
+    # CP 1.0 QAs by date limits
 
     def first_of_type_for_day_for_patient?
       # Assumes ids are strictly increasing, so the lowest id will
@@ -392,14 +411,6 @@ module Health
       non_outreaches_by_month.reject { |_k, v| v.zero? }.keys.count
     end
 
-    def same_of_type_for_day_for_patient
-      self.class.where(
-        activity: activity,
-        patient_id: patient_id,
-        date_of_activity: date_of_activity,
-      )
-    end
-
     def outreaches_of_month_for_patient
       self.class.where(
         patient_id: patient_id,
@@ -423,7 +434,7 @@ module Health
       # 10/31/2018 removed meets_date_restrictions? check.  QA that are valid but unpayable
       # will still be submitted
       self.naturally_payable = compute_procedure_valid?
-      if naturally_payable && once_per_day_procedure_codes.include?(procedure_code.to_s)
+      if naturally_payable && !within_per_day_limits? # once_per_day_procedure_codes.include?(procedure_code.to_s)
         # Log duplicates for any that aren't the first of type for a type that can't be repeated on the same day
         self.duplicate_id = first_of_type_for_day_for_patient_not_self
       else
@@ -453,51 +464,8 @@ module Health
       compute_valid_unpayable.present?
     end
 
-    # Returns the reason the QA is valid unpayable, or nil
-    # :outside_enrollment -
-    # :call_not_reached -
-    # :outreach_past_cutoff -
-    # :limit_outreaches_per_month_exceeded -
-    # :limit_months_outreach_exceeded -
-    # :limit_activities_per_month_without_careplan_exceeded -
-    # :activity_outside_of_engagement_without_careplan -
-    # :limit_months_without_careplan_exceeded -
     def compute_valid_unpayable
-      @compute_valid_unpayable ||= internal_compute_valid_unpayable
-    end
-
-    private def internal_compute_valid_unpayable
-      reasons = []
-      computed_procedure_valid = compute_procedure_valid?
-
-      # Only valid procedures can be valid unpayable
-      return nil unless computed_procedure_valid
-
-      # Unpayable if it is a valid procedure, but it didn't occur during an enrollment
-      reasons << :outside_enrollment if computed_procedure_valid && ! occurred_during_any_enrollment?
-
-      # Unpayable if this was a phone/video call where the client wasn't reached
-      reasons << :call_not_reached if reached_client == 'no' && ['phone_call', 'video_call'].include?(mode_of_contact)
-
-      # Signing a care plan is payable regardless of engagement status
-      return reasons if activity == 'pctp_signed'
-
-      # Outreach is limited by the outreach cut-off date, enrollment ranges, and frequency
-      if outreach?
-        reasons << :outreach_past_cutoff if date_of_activity > patient.outreach_cutoff_date
-        reasons << :outside_enrollment unless patient.contributed_dates.include?(date_of_activity)
-        reasons << :limit_outreaches_per_month_exceeded unless first_outreach_of_month_for_patient?
-        reasons << :limit_months_outreach_exceeded if number_of_outreach_activity_months > 3
-      else
-        # Non-outreach activities are payable at 1 per month before engagement unless there is a care-plan
-        unless patient_has_signed_careplan?
-          reasons << :limit_activities_per_month_without_careplan_exceeded unless first_non_outreach_of_month_for_patient?
-          reasons << :activity_outside_of_engagement_without_careplan if patient.engagement_date.blank? || date_of_activity > patient.engagement_date
-          reasons << :limit_months_without_careplan_exceeded if number_of_non_outreach_activity_months > 5
-        end
-      end
-
-      reasons.uniq
+      @compute_valid_unpayable ||= qa_version.internal_compute_valid_unpayable
     end
 
     def validity_class
@@ -516,6 +484,8 @@ module Health
             _('patient did not have an active enrollment on the date of the activity')
           when :call_not_reached
             _('phone or video calls are not payable if the patient was not reached')
+          when :limit_per_day
+            _('number of activities of this type per day exceeded')
           when :outreach_past_cutoff
             _('outreach activities are not payable after the outreach period')
           when :limit_outreaches_per_month_exceeded
@@ -664,16 +634,6 @@ module Health
 
     def no_signed_careplan?
       ! patient_has_signed_careplan?
-    end
-
-    def once_per_day_procedure_codes
-      [
-        'G0506', # cha
-        'T2024', # care planning
-        'T2024>U4', # completed care planning
-        'T1023', # screening completed
-        'T1023>U6', # referral to ACO
-      ]
     end
 
     def in_first_three_months_procedure_codes

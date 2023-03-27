@@ -97,6 +97,7 @@ module Health
           hidden: true,
           allowed: ['U1', 'U2', 'UK'],
           required: [],
+          per_day: 1,
         },
         care_planning: {
           title: 'Care planning',
@@ -105,6 +106,7 @@ module Health
           hidden: true,
           allowed: ['U1', 'U2', 'U3', 'UK'],
           required: [],
+          per_day: 1,
         },
         med_rec: {
           title: 'Supported Medication Reconciliation (NCM only)',
@@ -154,6 +156,7 @@ module Health
           weight: 80,
           allowed: ['U1', 'U2', 'U3'],
           required: [],
+          per_day: 1,
         },
         referral_to_aco: {
           title: 'Referral to ACO for Flexible Services',
@@ -161,6 +164,7 @@ module Health
           weight: 90,
           allowed: ['U1', 'U2', 'U3'],
           required: ['U6'],
+          per_day: 1,
         },
         pctp_signed: {
           title: 'Person-Centered Treatment Plan signed',
@@ -169,6 +173,7 @@ module Health
           hidden: true,
           allowed: ['U1', 'U2', 'UK'],
           required: ['U4'],
+          per_day: 1,
         },
         intake_completed: {
           title: 'Intake/Reassessment (completing consent/ROI, CHA, SSM, care plan)',
@@ -180,29 +185,67 @@ module Health
       }.sort_by { |_, m| m[:weight] }.to_h
     end
 
-    def modifiers(qa)
+    def modifiers
       modifiers = []
 
       # COVID rules permitted remote contacts to be treated as in-person,
       # these rules ended with the end of the first CP program
-      contact_modifier = case qa.activity&.to_sym
+      contact_modifier = case @qa.activity&.to_sym
       when :cha, :discharge_follow_up
-        if [:phone_call, :video_call].include?(qa.mode_of_contact&.to_sym)
+        if [:phone_call, :video_call].include?(@qa.mode_of_contact&.to_sym)
           modes_of_contact[:in_person][:code]
         else
-          modes_of_contact[qa.mode_of_contact&.to_sym].try(:[], :code)
+          modes_of_contact[@qa.mode_of_contact&.to_sym].try(:[], :code)
         end
       else
-        modes_of_contact[qa.mode_of_contact&.to_sym].try(:[], :code)
+        modes_of_contact[@qa.mode_of_contact&.to_sym].try(:[], :code)
       end
 
       # attach modifiers from activity
-      modifiers << activities[qa.activity&.to_sym].try(:[], :code)&.split(/[ |>]/).try(:[], 1)
+      modifiers << activities[@qa.activity&.to_sym].try(:[], :code)&.split(/[ |>]/).try(:[], 1)
 
       modifiers << contact_modifier
-      modifiers << client_reached[qa.reached_client&.to_sym].try(:[], :code)
+      modifiers << client_reached[@qa.reached_client&.to_sym].try(:[], :code)
 
       return modifiers.reject(&:blank?).compact
+    end
+
+    def internal_compute_valid_unpayable
+      reasons = []
+      computed_procedure_valid = @qa.compute_procedure_valid?
+
+      # Only valid procedures can be valid unpayable
+      return nil unless computed_procedure_valid
+
+      # Unpayable if it is a valid procedure, but it didn't occur during an enrollment
+      reasons << :outside_enrollment if computed_procedure_valid && ! @qa.occurred_during_any_enrollment?
+
+      # Unpayable if this was a phone/video call where the client wasn't reached
+      reasons << :call_not_reached if @qa.reached_client == 'no' && ['phone_call', 'video_call'].include?(@qa.mode_of_contact)
+
+      reasons << :limit_per_day unless @qa.within_per_day_limits?
+
+      # Signing a care plan is payable regardless of engagement status
+      return reasons if @qa.activity == 'pctp_signed'
+
+      patient = @qa.patient
+      date_of_activity = @qa.date_of_activity
+      # Outreach is limited by the outreach cut-off date, enrollment ranges, and frequency
+      if @qa.outreach?
+        reasons << :outreach_past_cutoff if @qa.date_of_activity > patient.outreach_cutoff_date
+        reasons << :outside_enrollment unless patient.contributed_dates.include?(date_of_activity)
+        reasons << :limit_outreaches_per_month_exceeded unless @qa.first_outreach_of_month_for_patient?
+        reasons << :limit_months_outreach_exceeded if @qa.number_of_outreach_activity_months > 3
+      else
+        # Non-outreach activities are payable at 1 per month before engagement unless there is a care-plan
+        unless @qa.patient_has_signed_careplan?
+          reasons << :limit_activities_per_month_without_careplan_exceeded unless @qa.first_non_outreach_of_month_for_patient?
+          reasons << :activity_outside_of_engagement_without_careplan if patient.engagement_date.blank? || date_of_activity > patient.engagement_date
+          reasons << :limit_months_without_careplan_exceeded if @qa.number_of_non_outreach_activity_months > 5
+        end
+      end
+
+      reasons.uniq
     end
   end
 end
