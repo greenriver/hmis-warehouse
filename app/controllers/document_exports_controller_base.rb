@@ -93,6 +93,7 @@ class DocumentExportsControllerBase < ApplicationController
       'PerformanceMeasurement::DocumentExports::ReportExport',
       'HomelessSummaryReport::DocumentExports::ReportExport',
       'GrdaWarehouse::WarehouseReports::DocumentExports::ActiveClientReportExport',
+      'BostonReports::DocumentExports::StreetToHomePdfExport',
     ]
   end
 end
