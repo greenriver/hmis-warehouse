@@ -28,7 +28,7 @@ module Mutations
 
       # Non-HoH Intake constraints
       if !enrollment.head_of_household? && assessment.intake?
-        hoh_enrollment = Hmis::Hud::Enrollment.open_on_date.
+        hoh_enrollment = Hmis::Hud::Enrollment.open_on_date(Date.tomorrow).
           heads_of_households.
           viewable_by(current_user).
           where(household_id: enrollment.household_id).
