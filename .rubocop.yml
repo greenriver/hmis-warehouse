@@ -262,4 +262,4 @@ Style/SoleNestedConditional:
 Style/ExplicitBlockArgument:
   Enabled: false
 Style/HashSyntax:
-   EnforcedShorthandSyntax: never
+  EnforcedShorthandSyntax: never
