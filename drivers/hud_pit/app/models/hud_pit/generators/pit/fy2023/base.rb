@@ -35,14 +35,7 @@ module HudPit::Generators::Pit::Fy2023
     }.freeze
 
     def self.allowed_options
-      [
-        :on,
-        :coc_codes,
-        :project_ids,
-        :data_source_ids,
-        :project_type_codes,
-        :project_group_ids,
-      ]
+      HudPit::Generators::Pit::Fy2023::Generator.allowed_options
     end
 
     private def universe
@@ -127,6 +120,7 @@ module HudPit::Generators::Pit::Fy2023
             last_name: source_client.LastName,
             household_type: household_type,
             max_age: household_ages.compact&.max,
+            hoh_age: hoh_age(hh_id, @generator.filter.on),
             hoh_veteran: hoh_veteran,
             head_of_household: enrollment.RelationshipToHoH == 1,
             relationship_to_hoh: enrollment.RelationshipToHoH,
@@ -207,15 +201,18 @@ module HudPit::Generators::Pit::Fy2023
     end
 
     private def enrollment_scope
-      preloads = {
-        enrollment: [
-          :disabilities,
-          :project,
-          :enrollment_coc_at_entry,
-          :health_and_dvs,
-          :exit,
-        ],
-      }
+      preloads = [
+        :client,
+        {
+          enrollment: [
+            :disabilities,
+            :project,
+            :enrollment_coc_at_entry,
+            :health_and_dvs,
+            :exit,
+          ],
+        },
+      ]
       enrollment_scope_without_preloads.preload(preloads)
     end
 
@@ -288,7 +285,7 @@ module HudPit::Generators::Pit::Fy2023
           query: age_ranges['65+'],
         },
         youth_hoh: {
-          title: 'Number of parenting youth (youth parents only)',
+          title: 'Number of parenting youth (age 18 to 24)',
           query: hoh_clause.and(age_ranges['18-24']),
         },
         child_hoh: {
@@ -300,8 +297,16 @@ module HudPit::Generators::Pit::Fy2023
           query: hoh_clause,
         },
         children_of_youth_parents: {
-          title: 'Number of children with parenting youth (children under age 18 with parents under age 25)',
+          title: 'Total Children in Parenting Youth Households',
           query: a_t[:head_of_household].eq(false).and(child_clause),
+        },
+        children_of_18_to_24_parents: {
+          title: 'Children in households with parenting youth age 18 to 24 (children under age 18 with parents age 18 to 24)',
+          query: a_t[:head_of_household].eq(false).and(child_clause).and(a_t[:hoh_age].in(18..24)),
+        },
+        children_of_0_to_18_parents: {
+          title: 'Children in households with parenting youth under age 18 (children under age 18 with parents under 18)',
+          query: a_t[:head_of_household].eq(false).and(child_clause).and(a_t[:hoh_age].in(0..17)),
         },
         over_24: {
           title: 'Number of Persons (over age 24)',
@@ -339,7 +344,7 @@ module HudPit::Generators::Pit::Fy2023
           title: 'White',
           query: a_t[:pit_race].eq('White'),
         },
-        black: {
+        black_af_american: {
           title: 'Black, African American, or African',
           query: a_t[:pit_race].eq('BlackAfAmerican'),
         },
