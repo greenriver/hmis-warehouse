@@ -229,7 +229,7 @@ module ProjectScorecard
           'Question 23',
           'Question 26',
         ]
-        generator = HudApr::Generators::Apr::Fy2021::Generator
+        generator = HudApr::Generators::Apr::Fy2023::Generator
         apr = HudReports::ReportInstance.from_filter(filter, generator.title, build_for_questions: questions)
         generator.new(apr).run!(email: false, manual: false)
 
@@ -245,7 +245,7 @@ module ProjectScorecard
             chronic_households_served: answer(apr, 'Q26a', 'B2'),
             total_households_served: answer(apr, 'Q26a', 'B6'),
 
-            total_persons_served: answer(apr, 'Q5a', 'B1'),
+            total_persons_served: answer(apr, 'Q5a', 'B2'),
             total_persons_with_positive_exit: answer(apr, 'Q23c', 'B44'),
             total_persons_exited: answer(apr, 'Q23c', 'B43'),
             excluded_exits: answer(apr, 'Q23c', 'B45'),
@@ -269,14 +269,16 @@ module ProjectScorecard
         percent_increased_other_cash_income_at_exit = percentage(increased_other_income / leavers_or_annual_expected_with_other_income.to_f)
 
         # Data quality calculations
-        total_hoh_served = answer(apr, 'Q5a', 'B14')
+        total_clients_served = answer(apr, 'Q5a', 'B2')
 
         # need unique count of client_ids not, sum of counts since someone might appear more than once
-        total_ude_errors = (2..6).map { |row| answer_client_ids(apr, 'Q6b', 'B' + row.to_s) }.flatten.uniq.count
-        percent_ude_errors = percentage(total_ude_errors / total_hoh_served.to_f)
+        total_ude_errors = (3..7).map { |row| answer_client_ids(apr, 'Q6b', 'B' + row.to_s) }.flatten.uniq.count
+        percent_ude_errors = percentage(total_ude_errors / total_clients_served.to_f)
 
+        # Include adults, leavers, and all HoHs in denominators
+        denominator = [3, 6, 15, 16].map { |row| answer_client_ids(apr, 'Q5a', 'B' + row.to_s) }.flatten.uniq.count
         total_income_and_housing_errors = (2..5).map { |row| answer_client_ids(apr, 'Q6c', 'B' + row.to_s) }.flatten.uniq.count
-        percent_income_and_housing_errors = percentage(total_income_and_housing_errors / total_hoh_served.to_f)
+        percent_income_and_housing_errors = percentage(total_income_and_housing_errors / denominator.to_f)
 
         assessment_answers.merge!(
           {
