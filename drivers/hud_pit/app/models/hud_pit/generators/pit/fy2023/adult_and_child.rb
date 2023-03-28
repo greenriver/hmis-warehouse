@@ -48,8 +48,8 @@ module HudPit::Generators::Pit::Fy2023
         :latino,
         :native_ak,
         :asian,
+        :black_af_american,
         :native_pi,
-        :black,
         :white,
         :multi_racial,
         :chronic_households,
@@ -70,7 +70,7 @@ module HudPit::Generators::Pit::Fy2023
         first_column: 'B',
         last_column: 'D',
         first_row: 2,
-        last_row: 20,
+        last_row: rows.count + 1,
       }
       populate_table(table_name, metadata)
     end
