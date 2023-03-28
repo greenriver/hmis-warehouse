@@ -83,13 +83,6 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     left_outer_joins(:wip).where(wip_enrollments.or(actual_enrollments))
   end
 
-  def custom_assessments_including_wip
-    completed_assessments = cas_t[:enrollment_id].eq(enrollment_id)
-    wip_assessments = wip_t[:enrollment_id].eq(id)
-
-    Hmis::Hud::CustomAssessment.left_outer_joins(:wip).where(completed_assessments.or(wip_assessments))
-  end
-
   scope :heads_of_households, -> do
     where(RelationshipToHoH: 1)
   end
@@ -148,17 +141,11 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     end
   end
 
-  def in_progress?
-    @in_progress = project_id.nil? if @in_progress.nil?
-    @in_progress
-  end
+  def custom_assessments_including_wip
+    completed_assessments = cas_t[:enrollment_id].eq(enrollment_id)
+    wip_assessments = wip_t[:enrollment_id].eq(id)
 
-  def head_of_household?
-    self.RelationshipToHoH == 1
-  end
-
-  def hoh_entry_date
-    Hmis::Hud::Enrollment.where(household_id: household_id).heads_of_households.first&.entry_date
+    Hmis::Hud::CustomAssessment.left_outer_joins(:wip).where(completed_assessments.or(wip_assessments))
   end
 
   def intake_assessment
@@ -167,6 +154,27 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   def exit_assessment
     custom_assessments_including_wip.exits.first
+  end
+
+  def in_progress?
+    @in_progress = project_id.nil? if @in_progress.nil?
+    @in_progress
+  end
+
+  def exit_in_progress?
+    exit.nil? && exit_assessment&.present?
+  end
+
+  def head_of_household?
+    self.RelationshipToHoH == 1
+  end
+
+  def household_members
+    Hmis::Hud::Enrollment.where(household_id: household_id, data_source_id: data_source_id)
+  end
+
+  def hoh_entry_date
+    household_members.heads_of_households.first&.entry_date
   end
 
   TRIMMED_HOUSEHOLD_ID_LENGTH = 6
