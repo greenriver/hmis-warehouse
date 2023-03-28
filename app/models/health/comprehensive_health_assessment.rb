@@ -957,7 +957,7 @@ module Health
     before_save :set_answers, :set_reviewed_at
 
     validate :validate_health_file_if_present
-    validates :completed_at, absence: true, unless: -> { collection_method.present? }
+    # validates :completed_at, absence: true, unless: -> { collection_method.present? }
 
     def complete?
       completed_at.present?
@@ -1051,12 +1051,12 @@ module Health
       }
     end
 
-    def collection_methods
-      {
-        in_person: 'In-Person',
-        phone_call: 'On Phone',
-      }.invert
-    end
+    # def collection_methods
+    #   {
+    #     in_person: 'In-Person',
+    #     phone_call: 'On Phone',
+    #   }.invert
+    # end
 
     # allow keys, but some keys need to allow multiple checkbox selections (b_q2 & b_q4)
     PERMITTED_PARAMS = QUESTION_ANSWER_OPTIONS.keys - [:b_q2, :b_q4, :r_q8] + [{ b_q2: [] }, { b_q4: [] }, { r_q8: [] }]
