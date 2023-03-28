@@ -10,6 +10,13 @@ SET client_min_messages = warning;
 SET row_security = off;
 
 --
+-- Name: public; Type: SCHEMA; Schema: -; Owner: -
+--
+
+-- *not* creating schema, since initdb creates it
+
+
+--
 -- Name: fuzzystrmatch; Type: EXTENSION; Schema: -; Owner: -
 --
 
@@ -15824,7 +15831,8 @@ CREATE TABLE public.hud_report_pit_clients (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     deleted_at timestamp without time zone,
-    personal_id character varying
+    personal_id character varying,
+    hoh_age integer
 );
 
 
@@ -51670,5 +51678,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230319133739'),
 ('20230320131930'),
 ('20230322183901'),
-('20230322220754');
+('20230322220754'),
+('20230327202808');
+
 
