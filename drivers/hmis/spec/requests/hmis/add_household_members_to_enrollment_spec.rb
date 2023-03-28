@@ -13,7 +13,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let(:test_input) do
     {
       household_id: enrollment.household_id,
-      entry_date: Date.today.strftime('%Y-%m-%d'),
+      entry_date: Date.yesterday.strftime('%Y-%m-%d'),
       household_members: [
         {
           id: c2.id,

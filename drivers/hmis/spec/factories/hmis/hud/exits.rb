@@ -5,7 +5,7 @@ FactoryBot.define do
     sequence(:PersonalID, 30)
     sequence(:ExitDate) do |n|
       dates = [
-        Date.current,
+        Date.yesterday,
         15.days.ago,
         16.days.ago,
         17.days.ago,
@@ -27,7 +27,7 @@ FactoryBot.define do
         4.weeks,
       ]
 
-      exit.exit_date = [exit.enrollment.entry_date + distances.sample, Date.today].min
+      exit.exit_date = [exit.enrollment.entry_date + distances.sample, Date.yesterday].min
     end
   end
 end
