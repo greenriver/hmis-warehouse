@@ -963,6 +963,7 @@ module PerformanceMeasurement::Details
     def detail_headers(key:, period: 'reporting')
       columns = [
         'client_id',
+        'source_client_personal_ids',
         'dob',
         'veteran',
         "#{period}_age",

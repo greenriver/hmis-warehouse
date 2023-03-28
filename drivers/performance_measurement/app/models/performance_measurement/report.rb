@@ -245,6 +245,7 @@ module PerformanceMeasurement
               report_client = report_clients[spm_client[:client_id]] || Client.new(report_id: id, client_id: spm_client[:client_id])
               report_client[:dob] = spm_client[:dob]
               report_client[:veteran] = spm_client[:veteran]
+              report_client[:source_client_personal_ids] ||= spm_client[:source_client_personal_ids]
               # Age may vary based on which SPM questions the client is included in, just pick the first one.
               report_client["#{variant_name}_age"] ||= spm_client["#{parts[:measure]}_reporting_age"]
               # HoH status may vary, just note if they were ever an HoH
@@ -279,12 +280,12 @@ module PerformanceMeasurement
           data.each_key do |client_id|
             report_client = report_clients[client_id] || Client.new(report_id: id, client_id: client_id)
             report_client[:dob] = parts[:value_calculation].call(:dob, client_id, data)
+            report_client[:source_client_personal_ids] ||= source_client_personal_ids(filter)[client_id]&.uniq&.join('; ')
             report_client["#{variant_name}_#{parts[:key]}"] = parts[:value_calculation].call(:value, client_id, data)
             # A client may have multiple Prior Living Situations, just use the first one
             report_client["#{variant_name}_prior_living_situation"] ||= parts[:value_calculation].call(:housing_status_at_entry, client_id, data)
             # HoH status may vary, just note if they were ever an HoH
             report_client["#{variant_name}_hoh"] ||= parts[:value_calculation].call(:head_of_household, client_id, data) || false
-            # FIXME: Prior Living Situations display should go through HudUtil
 
             parts[:value_calculation].call(:project_ids, client_id, data).each do |project_id|
               involved_projects << project_id
@@ -338,6 +339,18 @@ module PerformanceMeasurement
 
     private def answer_clients(report, table, cell)
       report.answer(question: table, cell: cell).universe_members.preload(:universe_membership).map(&:universe_membership)
+    end
+
+    private def source_client_personal_ids(filter)
+      @source_client_personal_ids ||= {}.tap do |data|
+        report_scope.joins(:service_history_services, :project, :client).
+          preload(client: :source_clients).
+          where(shs_t[:date].eq(filter.pit_date)).
+          find_each(batch_size: 10_000) do |she|
+            client = she.client
+            data[client.id] = client.source_clients.map(&:PersonalID)
+          end
+      end
     end
 
     private def extra_calculations # rubocop:disable Metrics/AbcSize

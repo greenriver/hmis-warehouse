@@ -132,11 +132,12 @@ module PerformanceMeasurement::WarehouseReports
       return view_context.content_tag(:pre, JSON.pretty_generate(cell)) if cell.is_a?(Array) || cell.is_a?(Hash)
       return view_context.yes_no(cell) if cell.in?([true, false])
 
-      if key.include?('prior_living_situation')
+      case key.to_s
+      when /prior_living_situation$/
         HudUtility.living_situation(cell)
-      elsif key.include?('destination')
+      when /_destination$/
         HudUtility.destination(cell)
-      elsif key.include?('days_')
+      when /_days_/
         number_with_delimiter(cell)
       else
         cell

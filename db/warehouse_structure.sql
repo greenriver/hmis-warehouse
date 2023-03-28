@@ -15824,7 +15824,8 @@ CREATE TABLE public.hud_report_pit_clients (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     deleted_at timestamp without time zone,
-    personal_id character varying
+    personal_id character varying,
+    hoh_age integer
 );
 
 
@@ -17289,7 +17290,8 @@ CREATE TABLE public.pm_clients (
     comparison_earned_income_stayer boolean DEFAULT false NOT NULL,
     comparison_earned_income_leaver boolean DEFAULT false NOT NULL,
     comparison_non_employment_income_stayer boolean DEFAULT false NOT NULL,
-    comparison_non_employment_income_leaver boolean DEFAULT false NOT NULL
+    comparison_non_employment_income_leaver boolean DEFAULT false NOT NULL,
+    source_client_personal_ids character varying
 );
 
 
@@ -51670,6 +51672,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230319133739'),
 ('20230320131930'),
 ('20230322183901'),
-('20230322220754');
+('20230322220754'),
+('20230327202808'),
+('20230328171436');
 
 
