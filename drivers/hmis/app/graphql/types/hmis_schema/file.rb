@@ -11,6 +11,8 @@ module Types
     description 'File'
     field :id, ID, null: false
     field :content_type, String, null: false
+    field :enrollment_id, ID, null: true
+    field :enrollment, Types::HmisSchema::Enrollment, null: true
     field :effective_date, GraphQL::Types::ISO8601Date, null: true
     field :expiration_date, GraphQL::Types::ISO8601Date, null: true
     field :confidential, Boolean, null: true

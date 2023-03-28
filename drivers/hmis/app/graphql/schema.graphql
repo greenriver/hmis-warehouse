@@ -1554,6 +1554,8 @@ type File {
   contentType: String!
   createdAt: ISO8601DateTime!
   effectiveDate: ISO8601Date
+  enrollment: Enrollment
+  enrollmentId: ID
   expirationDate: ISO8601Date
   fileBlobId: ID!
   id: ID!
