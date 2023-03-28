@@ -195,7 +195,7 @@ module Health
       return nil unless computed_procedure_valid
 
       # Unpayable if it is a valid procedure, but it didn't occur during an enrollment
-      reasons << :outside_enrollment if computed_procedure_valid && ! @qa.occurred_during_any_enrollment?
+      reasons << :outside_enrollment unless @qa.occurred_during_any_enrollment?
 
       # Unpayable if this was a phone/video call where the client wasn't reached
       reasons << :call_not_reached if @qa.reached_client == 'no' && ['phone_call', 'video_call'].include?(@qa.mode_of_contact)
@@ -203,7 +203,7 @@ module Health
       reasons << :limit_per_day unless @qa.within_per_day_limits?
 
       # Signing a care plan is payable regardless of engagement status
-      return reasons if @qa.activity == 'pctp_signed'
+      return reasons.uniq if @qa.activity == 'pctp_signed'
 
       reasons.uniq
     end
