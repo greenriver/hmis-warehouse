@@ -1291,6 +1291,7 @@ type Enrollment {
   project: Project!
   relationshipToHoH: RelationshipToHoH!
   services(limit: Int, offset: Int, searchTerm: String, serviceCategory: ID, serviceType: ID, sortOrder: ServiceSortOption): ServicesPaginated!
+  status: EnrollmentStatus!
   timesHomelessPastThreeYears: TimesHomelessPastThreeYears
   user: User
 }
@@ -1308,6 +1309,41 @@ HUD Enrollment Sorting Options
 """
 enum EnrollmentSortOption {
   MOST_RECENT
+}
+
+"""
+Status of this enrollment
+"""
+enum EnrollmentStatus {
+  """
+  Active
+  """
+  ACTIVE
+
+  """
+  Household Entry Incomplete
+  """
+  ANY_ENTRY_INCOMPLETE
+
+  """
+  Household Exit Incomplete
+  """
+  ANY_EXIT_INCOMPLETE
+
+  """
+  Exited
+  """
+  EXITED
+
+  """
+  Entry Incomplete
+  """
+  OWN_ENTRY_INCOMPLETE
+
+  """
+  Exit Incomplete
+  """
+  OWN_EXIT_INCOMPLETE
 }
 
 type EnrollmentsPaginated {
