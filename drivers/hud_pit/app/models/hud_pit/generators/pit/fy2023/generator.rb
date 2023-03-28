@@ -18,6 +18,17 @@ module  HudPit::Generators::Pit::Fy2023
       'PIT'
     end
 
+    def self.allowed_options
+      [
+        :on,
+        :coc_codes,
+        :project_ids,
+        :data_source_ids,
+        :project_type_codes,
+        :project_group_ids,
+      ]
+    end
+
     def self.default_project_type_codes
       GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.keys
     end

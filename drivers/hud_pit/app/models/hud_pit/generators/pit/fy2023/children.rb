@@ -33,8 +33,6 @@ module HudPit::Generators::Pit::Fy2023
       [
         :households,
         :clients,
-        :youth,
-        :over_24,
         :female,
         :male,
         :no_single_gender,
@@ -45,7 +43,7 @@ module HudPit::Generators::Pit::Fy2023
         :native_ak,
         :asian,
         :native_pi,
-        :black,
+        :black_af_american,
         :white,
         :multi_racial,
         :chronic_clients,
@@ -66,7 +64,7 @@ module HudPit::Generators::Pit::Fy2023
         first_column: 'B',
         last_column: 'E',
         first_row: 2,
-        last_row: 18,
+        last_row: rows.count + 1,
       }
       populate_table(table_name, metadata)
     end

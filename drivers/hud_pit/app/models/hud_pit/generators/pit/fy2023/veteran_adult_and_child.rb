@@ -42,13 +42,19 @@ module HudPit::Generators::Pit::Fy2023
         :latino,
         :native_ak,
         :asian,
+        :black_af_american,
         :native_pi,
-        :black,
         :white,
         :multi_racial,
         :chronic_households,
         :chronic_clients,
       ]
+    end
+
+    private def row_limits
+      (5..19).map do |i|
+        [i, a_t[:veteran].eq(true)]
+      end.to_h
     end
 
     private def calculate
@@ -64,7 +70,7 @@ module HudPit::Generators::Pit::Fy2023
         first_column: 'B',
         last_column: 'D',
         first_row: 2,
-        last_row: 18,
+        last_row: rows.count + 1,
       }
       populate_table(table_name, metadata)
     end
