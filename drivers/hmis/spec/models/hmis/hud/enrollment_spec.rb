@@ -104,14 +104,10 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
     let!(:e2) { create :hmis_hud_enrollment, data_source: ds1 }
     let!(:e3) { create :hmis_hud_enrollment, data_source: ds1 }
 
-    before(:each) do
-      assign_viewable(view_access_group, ds1, hmis_user)
-    end
-
     it 'household with two entered members' do
       e1.update(household_id: e2.household_id)
-      expect(Types::HmisSchema::Enums::EnrollmentStatus.from_enrollment(e1, user: hmis_user)).to eq('ACTIVE')
-      expect(Types::HmisSchema::Enums::EnrollmentStatus.from_enrollment(e2, user: hmis_user)).to eq('ACTIVE')
+      expect(Types::HmisSchema::Enums::EnrollmentStatus.from_enrollment(e1)).to eq('ACTIVE')
+      expect(Types::HmisSchema::Enums::EnrollmentStatus.from_enrollment(e2)).to eq('ACTIVE')
     end
 
     describe 'entry statuses' do
@@ -129,8 +125,8 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
       it 'household with one entered (e1) and one WIP with no intake assessment (e2)' do
         expect(e1.wip).to be nil
         expect(e2.wip).to be_present
-        expect(Types::HmisSchema::Enums::EnrollmentStatus.from_enrollment(e1, user: hmis_user)).to eq('ANY_ENTRY_INCOMPLETE')
-        expect(Types::HmisSchema::Enums::EnrollmentStatus.from_enrollment(e2, user: hmis_user)).to eq('OWN_ENTRY_INCOMPLETE')
+        expect(Types::HmisSchema::Enums::EnrollmentStatus.from_enrollment(e1)).to eq('ANY_ENTRY_INCOMPLETE')
+        expect(Types::HmisSchema::Enums::EnrollmentStatus.from_enrollment(e2)).to eq('OWN_ENTRY_INCOMPLETE')
       end
 
       it 'household with one entered (e1) and one WIP with a WIP intake assessment (e2)' do
@@ -142,8 +138,8 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
         expect(e2.wip).to be_present
         expect(e2.intake_assessment).to be_present
         expect(e2.intake_assessment.in_progress?).to eq(true)
-        expect(Types::HmisSchema::Enums::EnrollmentStatus.from_enrollment(e1, user: hmis_user)).to eq('ANY_ENTRY_INCOMPLETE')
-        expect(Types::HmisSchema::Enums::EnrollmentStatus.from_enrollment(e2, user: hmis_user)).to eq('OWN_ENTRY_INCOMPLETE')
+        expect(Types::HmisSchema::Enums::EnrollmentStatus.from_enrollment(e1)).to eq('ANY_ENTRY_INCOMPLETE')
+        expect(Types::HmisSchema::Enums::EnrollmentStatus.from_enrollment(e2)).to eq('OWN_ENTRY_INCOMPLETE')
       end
 
       it 'household with one entered (e1) and one WIP with a submitted intake assessment (e2, bad state)' do
@@ -153,8 +149,8 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
         expect(e2.wip).to be_present
         expect(e2.intake_assessment).to be_present
         expect(e2.intake_assessment.in_progress?).to eq(false)
-        expect(Types::HmisSchema::Enums::EnrollmentStatus.from_enrollment(e1, user: hmis_user)).to eq('ANY_ENTRY_INCOMPLETE')
-        expect(Types::HmisSchema::Enums::EnrollmentStatus.from_enrollment(e2, user: hmis_user)).to eq('OWN_ENTRY_INCOMPLETE')
+        expect(Types::HmisSchema::Enums::EnrollmentStatus.from_enrollment(e1)).to eq('ANY_ENTRY_INCOMPLETE')
+        expect(Types::HmisSchema::Enums::EnrollmentStatus.from_enrollment(e2)).to eq('OWN_ENTRY_INCOMPLETE')
       end
     end
 
@@ -170,8 +166,8 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
       end
 
       it 'household with one exited (e3) and one unexited with no exit assessment (e2)' do
-        expect(Types::HmisSchema::Enums::EnrollmentStatus.from_enrollment(e3, user: hmis_user)).to eq('EXITED')
-        expect(Types::HmisSchema::Enums::EnrollmentStatus.from_enrollment(e2, user: hmis_user)).to eq('ACTIVE')
+        expect(Types::HmisSchema::Enums::EnrollmentStatus.from_enrollment(e3)).to eq('EXITED')
+        expect(Types::HmisSchema::Enums::EnrollmentStatus.from_enrollment(e2)).to eq('ACTIVE')
       end
 
       it 'household with one exited (e3) and one unexited with a WIP exit assessment (e2)' do
@@ -179,14 +175,23 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
         exit_assessment.build_wip(enrollment: exit_assessment.enrollment, client: exit_assessment.enrollment.client, date: exit_assessment.assessment_date)
         exit_assessment.save_in_progress
 
-        expect(Types::HmisSchema::Enums::EnrollmentStatus.from_enrollment(e3, user: hmis_user)).to eq('ANY_EXIT_INCOMPLETE')
-        expect(Types::HmisSchema::Enums::EnrollmentStatus.from_enrollment(e2, user: hmis_user)).to eq('OWN_EXIT_INCOMPLETE')
+        expect(Types::HmisSchema::Enums::EnrollmentStatus.from_enrollment(e3)).to eq('ANY_EXIT_INCOMPLETE')
+        expect(Types::HmisSchema::Enums::EnrollmentStatus.from_enrollment(e2)).to eq('OWN_EXIT_INCOMPLETE')
       end
 
       it 'household with one exited (e3) and one unexited with a submitted exit assessment (e2, bad state)' do
         exit_assessment.update(enrollment: e2)
-        expect(Types::HmisSchema::Enums::EnrollmentStatus.from_enrollment(e3, user: hmis_user)).to eq('ANY_EXIT_INCOMPLETE')
-        expect(Types::HmisSchema::Enums::EnrollmentStatus.from_enrollment(e2, user: hmis_user)).to eq('OWN_EXIT_INCOMPLETE')
+        expect(Types::HmisSchema::Enums::EnrollmentStatus.from_enrollment(e3)).to eq('ANY_EXIT_INCOMPLETE')
+        expect(Types::HmisSchema::Enums::EnrollmentStatus.from_enrollment(e2)).to eq('OWN_EXIT_INCOMPLETE')
+      end
+
+      describe 'two exited members' do
+        let!(:exit2) { create :hmis_hud_exit, data_source: ds1, enrollment: e2, client: e2.client }
+        it 'household with one exited (e3) and one exited with a submitted exit assessment (e2)' do
+          exit_assessment.update(enrollment: e2)
+          expect(Types::HmisSchema::Enums::EnrollmentStatus.from_enrollment(e3)).to eq('EXITED')
+          expect(Types::HmisSchema::Enums::EnrollmentStatus.from_enrollment(e2)).to eq('EXITED')
+        end
       end
     end
   end

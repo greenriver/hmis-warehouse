@@ -18,14 +18,17 @@ module Types
     value 'OWN_EXIT_INCOMPLETE', 'Exit Incomplete'
     value 'ANY_EXIT_INCOMPLETE', 'Household Exit Incomplete'
 
-    def self.from_enrollment(enrollment, user:)
+    def self.from_enrollment(enrollment)
       return 'OWN_ENTRY_INCOMPLETE' if enrollment.in_progress?
 
-      return 'OWN_EXIT_INCOMPLETE' if enrollment.exit_date.nil? && enrollment.exit_assessment&.present?
+      return 'OWN_EXIT_INCOMPLETE' if enrollment.exit_in_progress?
 
-      household_members = Hmis::Hud::Enrollment.viewable_by(user).where(household_id: enrollment.household_id)
-      return 'ANY_ENTRY_INCOMPLETE' if household_members.count > 1 && household_members.in_progress.exists?
-      return 'ANY_EXIT_INCOMPLETE' if household_members.count > 1 && household_members.find(&:exit_assessment).present?
+      # If there are other household members, check for any incomplete entries or exits
+      household_members = enrollment.household_members
+      if household_members.count > 1
+        return 'ANY_ENTRY_INCOMPLETE' if household_members.in_progress.exists?
+        return 'ANY_EXIT_INCOMPLETE' if household_members.find(&:exit_in_progress?).present?
+      end
 
       return 'EXITED' if enrollment.exit_date.present?
 

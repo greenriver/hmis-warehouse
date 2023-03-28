@@ -62,7 +62,7 @@ module Types
     end
 
     def status
-      Types::HmisSchema::Enums::EnrollmentStatus.from_enrollment(object, user: current_user)
+      Types::HmisSchema::Enums::EnrollmentStatus.from_enrollment(object)
     end
 
     def household
