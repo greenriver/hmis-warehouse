@@ -321,18 +321,33 @@ end
 def setup_hmis_admin_access
   return unless ENV['HMIS_HOSTNAME'].present?
 
-  hmis_ds = GrdaWarehouse::DataSource.source.where.not(hmis: nil).first_or_create do |ds|
-    ds.hmis = ENV['HMIS_HOSTNAME']
+  # Create HMIS Administrator role
+  hmis_admin_role = Hmis::Role.where(can_administer_hmis: true).first_or_create do |role|
+    role.name = 'HMIS Administrator'
+  end
+
+  # Create HMIS Data Source
+  hmis_ds = GrdaWarehouse::DataSource.source.where(hmis: ENV['HMIS_HOSTNAME']).first_or_create do |ds|
     ds.name = 'HMIS Data Source'
   end
-  return if Hmis::Role.where(can_administer_hmis: true).exists?
 
-  role = Hmis::Role.create(name: 'HMIS Administrator', can_administer_hmis: true)
+  # Dev only: give a user HMIS Admin access by setting up a basic Access Control List
+  return unless Rails.env.development?
+  return if hmis_admin_role.users.any?
+
+  # Find a user to make the admin
   user = Hmis::User.not_system.first
   return unless user.present?
 
   user.hmis_data_source_id = hmis_ds.id
-  user.user_hmis_data_sources_roles.create(role: role, data_source_id: user.hmis_data_source_id)
+
+  # Create Access Group with no data access
+  access_group = Hmis::AccessGroup.where(name: 'Empty Access Group').first_or_create
+  # Create ACL linking the group and the role
+  acl = Hmis::AccessControl.where(role: hmis_admin_role, access_group: access_group).first_or_create
+  # Assign user to the ACL
+  user.user_access_controls.create(user: user, access_control: acl)
+  puts "#{user.name} is now an HMIS Administrator. Go to https://hmis-warehouse.dev.test/hmis_admin/roles to manage data access and permissions."
 end
 
 ensure_db_triggers_and_functions
