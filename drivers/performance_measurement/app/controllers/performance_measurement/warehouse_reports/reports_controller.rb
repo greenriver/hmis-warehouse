@@ -10,6 +10,7 @@ module PerformanceMeasurement::WarehouseReports
     include AjaxModalRails::Controller
     include ArelHelper
     include BaseFilters
+    include ActionView::Helpers::NumberHelper
 
     before_action :require_can_access_some_version_of_clients!, only: [:clients]
     before_action :require_my_project!, only: [:clients]
@@ -127,11 +128,20 @@ module PerformanceMeasurement::WarehouseReports
       @pdf_export = PerformanceMeasurement::DocumentExports::ReportExport.new
     end
 
-    def formatted_cell(cell)
+    def formatted_cell(cell, key)
       return view_context.content_tag(:pre, JSON.pretty_generate(cell)) if cell.is_a?(Array) || cell.is_a?(Hash)
       return view_context.yes_no(cell) if cell.in?([true, false])
 
-      cell
+      case key.to_s
+      when /prior_living_situation$/
+        HudUtility.living_situation(cell)
+      when /_destination$/
+        HudUtility.destination(cell)
+      when /_days_/
+        number_with_delimiter(cell)
+      else
+        cell
+      end
     end
     helper_method :formatted_cell
   end
