@@ -51,6 +51,12 @@ module HudPit::Generators::Pit::Fy2023
       ]
     end
 
+    private def row_limits
+      (5..19).map do |i|
+        [i, a_t[:veteran].eq(true)]
+      end.to_h
+    end
+
     private def calculate
       table_name = QUESTION_NUMBER
       metadata = {

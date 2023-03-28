@@ -413,13 +413,19 @@ module HudPit::Generators::Pit::Fy2023
       end
     end
 
+    private def row_limits
+      {}
+    end
+
     private def populate_table(table_name, metadata)
       @report.answer(question: table_name).update(metadata: metadata)
       project_types.each.with_index do |project_clause, column_num|
         rows.each.with_index do |key, row_num|
-          cell = "#{(column_num + 2).to_csv_column}#{row_num + 2}"
+          row = row_num + 2
+          cell = "#{(column_num + 2).to_csv_column}#{row}"
           calc = sub_calculations[key]
           members = universe.members.where(project_clause).where(calc[:query])
+          members = members.where(row_limits[row]) if row_limits.key?(row)
           answer = @report.answer(question: table_name, cell: cell)
           answer.add_members(members)
           # puts "Added: #{members.count} to: #{cell} for: #{calc[:title]} #{universe.members.where(project_clause).where(calc[:query]).to_sql}\n\n"
