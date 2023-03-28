@@ -10,13 +10,6 @@ SET client_min_messages = warning;
 SET row_security = off;
 
 --
--- Name: public; Type: SCHEMA; Schema: -; Owner: -
---
-
--- *not* creating schema, since initdb creates it
-
-
---
 -- Name: fuzzystrmatch; Type: EXTENSION; Schema: -; Owner: -
 --
 
@@ -17297,7 +17290,8 @@ CREATE TABLE public.pm_clients (
     comparison_earned_income_stayer boolean DEFAULT false NOT NULL,
     comparison_earned_income_leaver boolean DEFAULT false NOT NULL,
     comparison_non_employment_income_stayer boolean DEFAULT false NOT NULL,
-    comparison_non_employment_income_leaver boolean DEFAULT false NOT NULL
+    comparison_non_employment_income_leaver boolean DEFAULT false NOT NULL,
+    source_client_personal_ids character varying
 );
 
 
@@ -51679,6 +51673,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230320131930'),
 ('20230322183901'),
 ('20230322220754'),
-('20230327202808');
+('20230327202808'),
+('20230328171436');
 
 

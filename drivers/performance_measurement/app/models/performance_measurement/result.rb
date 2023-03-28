@@ -6,6 +6,7 @@
 
 module PerformanceMeasurement
   class Result < GrdaWarehouseBase
+    include ActionView::Helpers::NumberHelper
     self.table_name = :pm_results
     acts_as_paranoid
 
@@ -50,9 +51,9 @@ module PerformanceMeasurement
     end
 
     def data_for_row
-      this_year_count = primary_value.to_s
+      this_year_count = number_with_delimiter(primary_value).to_s
       this_year_count += ' %' if percentage?
-      last_year_count = comparison_primary_value.to_s
+      last_year_count = number_with_delimiter(comparison_primary_value).to_s
       last_year_count += ' %' if percentage?
       OpenStruct.new(
         unit: primary_unit.sub('% ', ''),
