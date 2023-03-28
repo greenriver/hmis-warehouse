@@ -10,7 +10,7 @@
     -#.col
     -#  = f.input :patient_signature_mode, collection: @careplan.signature_modes, as: :select_two, label: 'Signed'
 
-  = f.input :provider_id, as: :select_two, label: 'Primary Care Provider or PCP Designee', collection: available_team_members, input_html: { class: ['select2--full-width'] }, wrapper_html: { class: 'mb-3'}, disabled: @careplan.locked? && f.object.provider_id.present?
+  = f.input :provider_id, as: :select_two, label: 'Primary Care Provider or PCP Designee', collection: available_team_members, input_html: { class: ['select2--full-width'] }, wrapper_html: { class: 'mb-3'}
 
   -# = f.input :provider_signature_requested_at, as: :date_picker, label: 'Date Sent'
 
