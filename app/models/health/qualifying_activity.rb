@@ -504,7 +504,7 @@ module Health
         reasons = []
         reasons << _('the date of the activity is missing') unless date_of_activity.present?
         reasons << _('no activity was specified') unless activity.present?
-        if contact_required?(activity)
+        if contact_required?
           reasons << _('no mode of contact') unless mode_of_contact.present?
           reasons << _('no indication if the client was reached') unless reached_client.present?
         end
