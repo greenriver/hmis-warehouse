@@ -60,7 +60,7 @@ module Health
         activity: :cha,
         follow_up: 'This writer completed CHA and SSM with patient.',
         reached_client: :yes,
-        mode_of_contact: @cha.collection_method,
+        mode_of_contact: :in_person,
         patient_id: @cha.patient_id,
       )
     end
@@ -75,7 +75,7 @@ module Health
         activity: :cha_completed,
         follow_up: 'CHA and SSM for patient approved by NCM.',
         reached_client: :yes,
-        mode_of_contact: @cha.collection_method,
+        mode_of_contact: :in_person,
         patient_id: @cha.patient_id,
       )
     end

@@ -476,7 +476,7 @@
       %h3#section-review
         Complete & Review
       .well
-        = f.input :collection_method, as: :radio_buttons, collection: @cha.collection_methods, required: true, input_html: { class: [:jCollectionMethod] }
+        -# = f.input :collection_method, as: :radio_buttons, collection: @cha.collection_methods, required: true, input_html: { class: [:jCollectionMethod] }
         = f.input :completed, as: :boolean, label: 'Mark complete?', checked_value: 'yes', unchecked_value: 'no', input_html: { checked: @cha.complete?, class: [:jMarkComplete] }
 
         -# = f.input :reviewed_by_supervisor, as: :boolean, label: 'Mark Reviewed by Nurse Care Manager', checked_value: 'yes', unchecked_value: 'no', hint: 'CHA must be complete before it can be reviewed', input_html: {class: [:jMarkReviewed, :jSetReviewer], checked: f.object.reviewed_by_id.present?}

@@ -109,7 +109,7 @@ module Health
         # :reviewed_by_supervisor,
         # :reviewer,
         :completed,
-        :collection_method,
+        # :collection_method,
         *Health::ComprehensiveHealthAssessment::PERMITTED_PARAMS,
       )
       local_params
