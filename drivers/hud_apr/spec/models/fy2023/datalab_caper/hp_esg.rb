@@ -26,6 +26,21 @@ RSpec.shared_context 'datalab hp esg caper', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'caper/hp_esg',
         question: 'Q5a',
+        # Pending https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recSn8LQYuAViGMBi (56)
+        skip: [
+          'B6',
+          'C6',
+          'B7',
+          'C7',
+          'B8',
+          'C8',
+          'B9',
+          'C9',
+          'B10',
+          'C10',
+          'B17',
+          'C17',
+        ],
       )
     end
 

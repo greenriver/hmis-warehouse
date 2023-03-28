@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module PaperTrail
+module GrPaperTrail
   class Version < ActiveRecord::Base
     include PaperTrail::VersionConcern
 

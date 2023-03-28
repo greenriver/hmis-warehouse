@@ -7,7 +7,7 @@ FactoryBot.define do
     sequence(:DisabilitiesID, 500)
     disability_type { 7 }
     disability_response { 1 }
-    information_date { Date.today }
+    information_date { Date.yesterday }
     data_collection_stage { 1 }
     DateCreated { Time.now }
     DateUpdated { Time.now }

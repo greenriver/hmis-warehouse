@@ -54,7 +54,6 @@ module MaReports::MonthlyPerformance
         :sub_population,
         :coc_codes,
         :project_type_numbers,
-        :age_ranges,
         :data_source_ids,
         :organization_ids,
         :project_ids,

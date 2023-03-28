@@ -12,14 +12,14 @@ class CommandArgs
     path = Pathname.new(__FILE__).join('..', '..', 'assets', 'secret.deploy.values.yml')
 
     if File.exist?(path)
-      local_config = YAML.load_file(path)
+      local_config = YAML.load_file(path, aliases: true)
       local_config = nil if local_config.empty?
     else
       local_config = nil
     end
 
     remote_config_text = AwsSdkHelpers::Helpers.get_secret(ENV['SECRETS_YML_SECRET_ARN'])
-    remote_config = YAML.safe_load(remote_config_text, [Symbol], aliases: true)
+    remote_config = YAML.safe_load(remote_config_text, permitted_classes: [Symbol], aliases: true)
 
     if !local_config.nil? && local_config != remote_config
       puts 'Local secrets.yml differs from remote config, would you like to pull down the remote version? This will overwrite your local file. [y/N]'

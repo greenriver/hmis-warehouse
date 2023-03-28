@@ -1,0 +1,132 @@
+.d-flex
+  %h2.stage-by-cohort-header Total Clients by Stages & Cohorts
+  .stage-by-cohort-switcher.btn-group.btn-group-toggle.btn-sm.ml-auto{ data: { toggle: :buttons }}
+    %label.btn.btn-secondary.btn-sm.active
+      %input#stage{ type: :radio, name: :stage_by_cohort, checked: :checked}
+      Stages
+    %label.btn.btn-secondary.btn-sm
+      %input#cohort{ type: :radio, name: :stage_by_cohort}
+      Cohorts
+
+.well
+  .row.stage-by-cohort-wrapper.hide
+    .col-sm-12
+      .d-flex
+        #stage-by-cohort-chart{style: 'max-width: 700px; width: 70%;'}
+        #stage-by-cohort-legend
+  .row.cohort-by-stage-wrapper
+    .col-sm-12
+      .d-flex
+        #cohort-by-stage-chart{style: 'max-width: 700px; width: 70%;'}
+        #cohort-by-stage-legend
+- stage_by_cohort = @report.stage_by_cohort
+- stage_by_cohort_max_value = stage_by_cohort['columns'].drop(1).map { |values| values.drop(1).sum }.max
+- cohort_by_stage = @report.cohort_by_stage
+- cohort_by_stage_max_value = cohort_by_stage['columns'].drop(1).map { |values| values.drop(1).sum }.max
+.card
+  %table.table.mb-0.w-100
+    %thead
+      %tr
+        %th.border-top-0 Cohort
+        - @report.all_stages.each do |k, label|
+          - td_class = if k.to_s.in?(['active', 'inactive', 'total']) then 'table-active' else '' end
+          %th.text-right.border-top-0{ class: td_class }= label
+    %tbody
+      - @report.cohort_counts_by_all_stages.each do |cohort, data|
+        - td_class = if cohort == 'Total' then ['border-dark'] else [] end
+        %tr
+        %td{ class: td_class }= cohort
+        - @report.all_stages.each_key do |k|
+          - td_class += if k.to_s.in?(['active', 'inactive', 'total']) then ['table-active'] else [] end
+          %td.text-right{ class: td_class }
+            = link_to polymorphic_path(@report.detail_path_array, @report.filter.for_params.merge(sets: [cohort, k.to_s])), target: :_blank do
+              = data[k.to_s]
+= content_for :page_js do
+  :javascript
+    let stage_by_cohort = #{stage_by_cohort.to_json.html_safe};
+    let stage_by_cohort_max_value = #{stage_by_cohort_max_value.to_json.html_safe};
+    let cohort_by_stage = #{cohort_by_stage.to_json.html_safe};
+    let cohort_by_stage_max_value = #{cohort_by_stage_max_value.to_json.html_safe};
+    stage_by_cohort = $.extend(true, {}, stage_by_cohort, {
+      onclick: function(d, element) {
+        let sets = new URLSearchParams();
+        let cohort = stage_by_cohort.columns[0][d.x + 1];
+        sets.append('sets[]', cohort);
+        sets.append('sets[]', d.name);
+        let url = new URL(`${detail_path}?${detail_params.toString()}&${sets.toString()}`);
+
+        return window.open(url.toString());
+      },
+    });
+    let stage_by_cohort_chart = bb.generate({
+      'data': stage_by_cohort,
+      'bindto': "#stage-by-cohort-chart",
+      bar: {
+        padding: 20,
+        width: 85,
+      },
+      size: {
+        height: 250,
+      },
+      'axis': {
+        x: {
+          type: 'category',
+        },
+        y: {
+          tick: {
+            values: [0, #{cohort_by_stage_max_value}]
+          }
+        }
+      },
+      legend: {
+        contents: {
+          bindto: '#stage-by-cohort-legend',
+          template: "<div class='d-flex mr-auto text-left'><div class='mr-2 mt-2 mb-0 ml-0' style='padding:5px; height: 14px; width: 26px; background-color:{=COLOR}; border-radius: 10px; '>&nbsp;</div><div class='ml-0 mr-auto mt-1 mb-1'>{=TITLE}</div></div>"
+        }
+      }
+    });
+
+    cohort_by_stage = $.extend(true, {}, cohort_by_stage, {
+      onclick: function(d, element) {
+        let sets = new URLSearchParams();
+        let stage = cohort_by_stage.columns[0][d.x + 1];
+        sets.append('sets[]', stage);
+        sets.append('sets[]', d.name);
+        let url = new URL(`${detail_path}?${detail_params.toString()}&${sets.toString()}`);
+
+        return window.open(url.toString());
+      },
+    });
+    let cohort_by_stage_chart = bb.generate({
+      'data': cohort_by_stage,
+      'bindto': "#cohort-by-stage-chart",
+      bar: {
+        padding: 20,
+        width: 85,
+      },
+      size: {
+        height: 250,
+      },
+      'axis': {
+        x: {
+          type: 'category',
+        },
+        y: {
+          tick: {
+            values: [0, #{stage_by_cohort_max_value}]
+          }
+        }
+      },
+      legend: {
+        contents: {
+          bindto: '#cohort-by-stage-legend',
+          template: "<div class='d-flex mr-auto text-left'><div class='mr-2 mt-2 mb-0 ml-0' style='padding:5px; height: 14px; width: 26px; background-color:{=COLOR}; border-radius: 10px; '>&nbsp;</div><div class='ml-0 mr-auto mt-1 mb-1'>{=TITLE}</div></div>"
+        }
+      }
+    });
+    $('.stage-by-cohort-switcher').on('change', function(e) {
+      $('.stage-by-cohort-wrapper').toggleClass('hide');
+      $('.cohort-by-stage-wrapper').toggleClass('hide');
+      stage_by_cohort_chart.flush();
+      cohort_by_stage_chart.flush();
+    });

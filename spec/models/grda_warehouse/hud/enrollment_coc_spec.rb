@@ -2,6 +2,9 @@ require 'rails_helper'
 
 model = GrdaWarehouse::Hud::EnrollmentCoc
 RSpec.describe model, type: :model do
+  before(:all) do
+    GrdaWarehouse::Utility.clear!
+  end
   let!(:admin_role) { create :admin_role }
 
   let!(:user) { create :user }
@@ -16,7 +19,7 @@ RSpec.describe model, type: :model do
     describe 'viewability' do
       describe 'ordinary user' do
         it 'sees nothing' do
-          expect(model.viewable_by(user).exists?).to be false
+          expect(model.viewable_by(user).pluck(:id)).to eq([])
         end
       end
 

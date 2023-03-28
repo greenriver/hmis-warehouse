@@ -209,6 +209,10 @@ module GrdaWarehouse::Hud
       where(cl(p_t[:tracking_method_override], p_t[:TrackingMethod]).eq(3))
     end
 
+    def night_by_night?
+      (tracking_method_override.presence || self.TrackingMethod) == 3
+    end
+
     scope :confidential, -> do
       joins(:organization).where(p_t[:confidential].eq(true).or(o_t[:confidential].eq(true)))
     end

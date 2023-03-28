@@ -304,3 +304,19 @@
   width: 2px;
   position: absolute;
 }
+
+.street-2-home-summary {
+  text-align: center;
+  padding: 2rem;
+  .count {
+    font-size: 2em;
+    font-weight: 600;
+  }
+  .percentage {
+    font-size: 1.4em;
+    font-weight: 100;
+  }
+  .label {
+    font-size: 1.4em;
+  }
+}

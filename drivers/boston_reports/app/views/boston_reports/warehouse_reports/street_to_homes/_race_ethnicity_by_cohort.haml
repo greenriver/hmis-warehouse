@@ -1,0 +1,96 @@
+.well{class: ["#{base_name}-#{chart}-by-cohort-charts", hidden_class]}
+  .row
+    - @report.cohort_names.each.with_index do |cohort, i|
+      - chart_id = "#{base_name}-#{chart}-by-cohort-chart-#{cohort.parameterize(separator: '_')}"
+      .col-md-2.chart-with-title
+        - # account for the legend weirdness
+        - style = if i.zero? then '' else 'margin-bottom: 20px;' end
+        .ml-3.mr-3{ id: chart_id, style: style, class: "#{base_name}-#{chart}-by-cohort-chart" }
+        .chat_title
+          %h3.text-center= cohort
+          - bg_color = @report.config["breakdown_1_color_#{i}"]
+          #div{ style: "padding:5px; height: 14px; width: 26px; background-color:#{bg_color}; margin: 0 auto; border-radius: 10px;" } &nbsp;
+    - # Bind charts to one legend (https://github.com/naver/billboard.js/issues/605)
+    - # Actually, see onover and onout below, it works way better
+    .col-md-4{ id: "#{base_name}-#{chart}-by-cohort-chart-legend" }
+
+  :ruby
+    charts = @report.cohort_names.map do |cohort|
+      cohohrt_slug = cohort.parameterize(separator: '_')
+      [cohohrt_slug, @report.public_send(data_method)[cohohrt_slug]]
+    end
+
+  = content_for :page_js do
+    :javascript
+      let #{base_name}_#{chart}_charts = #{charts.to_json.html_safe};
+      let active_#{base_name}_#{chart}_charts = [];
+      let active_#{base_name}_#{chart}_chart_ids = [];
+      #{base_name}_#{chart}_charts.forEach((arr, index) => {
+        let chart_name, data;
+        [chart_name, data] = arr;
+        active_#{base_name}_#{chart}_chart_ids.push(`#{base_name}-#{chart}-by-cohort-chart-${chart_name}`);
+      });
+
+      window.cohort_names = #{@report.cohort_names.to_json.html_safe};
+
+      #{base_name}_#{chart}_charts.forEach((arr, index) => {
+        let chart_name, data, legend, width, height;
+        [chart_name, data] = arr;
+        if(index == 0) {
+          width = 185;
+          height = 185;
+          legend = {
+            contents: {
+              bindto: "##{base_name}-#{chart}-by-cohort-chart-legend",
+              template: "<div class='all-charts-legend'><div class='d-flex mr-4'><div style='padding:5px; height: 14px; width: 26px; background-color:{=COLOR}; margin: auto 1rem; border-radius: 10px;'>&nbsp;</div><div class='m-2'>{=TITLE}</div></div></div>",
+            },
+            item: {
+              onclick: function(id) {
+                return false;
+              },
+              onover: function(id) {
+                active_#{base_name}_#{chart}_chart_ids.forEach(chart_id => {
+                  let chart = bb.instance.filter(v => v.$.chart.attr("id") === chart_id)[0];
+                  chart.focus(id);
+                });
+              },
+              onout: function(id) {
+                active_#{base_name}_#{chart}_chart_ids.forEach(chart_id => {
+                  let chart = bb.instance.filter(v => v.$.chart.attr("id") === chart_id)[0];
+                  chart.revert();
+                });
+              }
+            },
+          }
+        } else {
+          width = 165;
+          height = 165;
+          legend = {
+            show: false,
+            item: {
+              onclick: function(id) {
+                false;
+              },
+            },
+          }
+        }
+        data = $.extend(true, {}, data, {
+          onclick: function(d, element) {
+            let sets = new URLSearchParams()
+            sets.append('sets[]', window.cohort_names[index]);
+            sets.append('sets[]', d.name);
+            let url = new URL(`${detail_path}?${detail_params.toString()}&${sets.toString()}`);
+
+            return window.open(url.toString());
+          },
+        });
+        active_#{base_name}_#{chart}_charts.push(bb.generate({
+          data: data,
+          bindto: `##{base_name}-#{chart}-by-cohort-chart-${chart_name}`,
+          legend: legend,
+          size: {
+            width: width,
+            height: height
+          }
+        }));
+      });

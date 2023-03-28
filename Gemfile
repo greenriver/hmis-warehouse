@@ -1,7 +1,7 @@
 source 'https://rubygems.org'
 
 gem 'rails', '~> 6.1'
-gem 'rails_drivers'
+gem 'rails_drivers', github: 'greenriver/rails_drivers', branch: 'master'
 gem 'rack', '>= 2.2.6.3'
 
 # bundle exec rake doc:rails generates the API under doc/api.
@@ -42,7 +42,7 @@ gem 'bootsnap'
 gem 'bcrypt'
 gem 'haml-rails'
 gem 'sassc-rails'
-gem 'autoprefixer-rails'
+gem 'autoprefixer-rails', '~> 10.3.3' # pinned until we can update to Bootstrap 5.3 or later
 gem 'kaminari'
 gem 'pagy'
 gem 'with_advisory_lock'
@@ -126,8 +126,9 @@ gem 'jquery-rails'
 gem 'coffee-rails'
 gem 'handlebars_assets'
 gem 'execjs'
-gem 'sprockets', '~> 3'
-gem 'sprockets-es6'
+gem 'sprockets', '~> 4.0'
+gem 'babel-transpiler'
+# gem 'sprockets-es6'
 gem 'jquery-ui-rails'
 # gem 'chart-js-rails'
 gem 'nominatim', git: 'https://github.com/greenriver/nominatim.git', branch: 'aw/faraday-2'
@@ -222,7 +223,7 @@ gem 'ansi'
 
 gem 'parallel'
 gem 'todo_or_die'
-gem 'reline', '~> 0.2'
+gem 'reline'
 
 gem 'business_time', '~> 0.10.0'
 gem 'cable_ready', '~> 4.5'
