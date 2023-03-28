@@ -2,7 +2,7 @@
 
 module FormHelpers
   def build_minimum_values(definition, assessment_date: nil, values: {}, hud_values: {})
-    assessment_date ||= Date.today.strftime('%Y-%m-%d')
+    assessment_date ||= Date.yesterday.strftime('%Y-%m-%d')
 
     date_item = definition.assessment_date_item
     date_field = date_item.field_name

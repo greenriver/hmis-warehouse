@@ -24,6 +24,10 @@ module GrdaWarehouse
       where(active: true)
     end
 
+    scope :inactive, -> do
+      where(active: false)
+    end
+
     attr_accessor :reason
 
     def self.available_removal_reasons

@@ -5,7 +5,7 @@ FactoryBot.define do
     enrollment { association :hmis_hud_enrollment, data_source: data_source }
     client { association :hmis_hud_client, data_source: data_source }
     sequence(:EnrollmentCoCID, 500)
-    information_date { Date.today }
+    information_date { Date.yesterday }
     coc_code { 'XX-500' }
     data_collection_stage { 1 }
     DateCreated { Date.parse('2019-01-01') }

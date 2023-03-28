@@ -1,0 +1,9 @@
+- title = _('Street 2 Home')
+- content_for :title, title
+
+%h1.mb-5= title
+
+%section.mb-5=# render 'boston_reports/warehouse_reports/street_to_homes/hero_counts'
+- @report.class.available_section_types.each do |section|
+  %section.mb-5.page-break-after
+    = render "boston_reports/warehouse_reports/street_to_homes/#{section}"

@@ -225,7 +225,6 @@ Layout/EmptyLinesAroundClassBody:
     - 'app/models/grda_warehouse/cas_non_hmis_client_history.rb'
     - 'app/models/grda_warehouse/cas_vacancy.rb'
     - 'app/models/grda_warehouse/client_merge_history.rb'
-    - 'app/models/grda_warehouse/cohort_column_option.rb'
     - 'app/models/grda_warehouse/cohort_copier.rb'
     - 'app/models/grda_warehouse/dashboard_export_file.rb'
     - 'app/models/grda_warehouse/eto_qaaws/subject_response_lookup.rb'
@@ -714,7 +713,6 @@ Layout/SpaceAroundOperators:
 Layout/SpaceBeforeBlockBraces:
   Exclude:
     - 'app/models/grda_warehouse/available_file_tag.rb'
-    - 'app/models/grda_warehouse/cohort_column_option.rb'
     - 'app/models/grda_warehouse/cohort_copier.rb'
     - 'app/models/grda_warehouse/export/hmis_six_one_one/client.rb'
     - 'app/models/grda_warehouse/export/hmis_six_one_one/exit.rb'
@@ -749,7 +747,6 @@ Layout/SpaceBeforeBlockBraces:
 # Cop supports --auto-correct.
 Layout/SpaceBeforeComma:
   Exclude:
-    - 'app/models/grda_warehouse/cohort_column_option.rb'
     - 'app/models/grda_warehouse/us_census_api/relevant_variables.rb'
 
 # Offense count: 1
@@ -816,7 +813,6 @@ Layout/SpaceInsideArrayLiteralBrackets:
 Layout/SpaceInsideBlockBraces:
   Exclude:
     - 'app/models/grda_warehouse/available_file_tag.rb'
-    - 'app/models/grda_warehouse/cohort_column_option.rb'
     - 'app/models/grda_warehouse/cohort_copier.rb'
     - 'app/models/grda_warehouse/export/hmis_six_one_one/client.rb'
     - 'app/models/grda_warehouse/export/hmis_six_one_one/exit.rb'
