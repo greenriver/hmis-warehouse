@@ -32,8 +32,8 @@ module HudPit::Generators::Pit::Fy2023
     private def rows
       [
         :households,
+        :clients,
         :youth,
-        :over_24,
         :age_25_34,
         :age_35_44,
         :age_45_54,
