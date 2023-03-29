@@ -192,7 +192,7 @@ module Types
       homeless = ::HudUtility.homeless_situations(as: as).map(&to_option.call('HOMELESS', 'Homeless'))
       institutional = ::HudUtility.institutional_situations(as: as).map(&to_option.call('INSTITUTIONAL', 'Institutional'))
       temporary = ::HudUtility.temporary_and_permanent_housing_situations(as: as).map(&to_option.call('TEMPORARY_PERMANENT_OTHER', 'Temporary or Permanent'))
-      missing_reasons = ::HudUtility.other_situations(as: as).map(&to_option.call('MISSING', 'Other'))
+      missing_reasons = ::HudUtility.other_situations(as: as).excluding(99).map(&to_option.call('MISSING', 'Other'))
 
       homeless + institutional + temporary + missing_reasons
     end
