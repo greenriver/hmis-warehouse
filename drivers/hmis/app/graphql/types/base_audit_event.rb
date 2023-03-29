@@ -24,7 +24,14 @@ module Types
     end
 
     def object_changes
-      return YAML.load(object.object_changes, permitted_classes: [Time, Date, Symbol]) if object.object_changes.present?
+      return unless object.object_changes.present?
+
+      result = YAML.load(object.object_changes, permitted_classes: [Time, Date, Symbol]).except('DateUpdated')
+
+      result = result.except('SSN') unless current_user.can_view_full_ssn_for?(object)
+      result = result.except('DOB') unless current_user.can_view_dob_for?(object)
+
+      result
     end
   end
 end
