@@ -4,10 +4,11 @@ module Mutations
 
     argument :assessment_ids, [ID], required: true
     argument :confirmed, Boolean, 'Whether warnings have been confirmed', required: false
+    argument :validate_only, Boolean, 'Validate assessments but don\'t submit them', required: false
 
     field :assessments, [Types::HmisSchema::Assessment], null: true
 
-    def resolve(assessment_ids:, confirmed:)
+    def resolve(assessment_ids:, confirmed:, validate_only:)
       assessments = Hmis::Hud::CustomAssessment.viewable_by(current_user).
         where(id: assessment_ids).
         preload(:enrollment, :custom_form)
@@ -85,6 +86,8 @@ module Mutations
 
       # Return any validation errors
       return { errors: errors } if errors.any?
+
+      return { assessments: assessments, errors: [] } if validate_only
 
       if all_valid
         # Save all assessments

@@ -14,6 +14,7 @@ module Types
     argument :values, Types::JsonObject, 'Raw form state as JSON', required: false
     argument :hud_values, Types::JsonObject, 'Transformed HUD values as JSON', required: false
     argument :confirmed, Boolean, 'Whether warnings have been confirmed', required: false
+    argument :validate_only, Boolean, 'Validate assessment but don\'t submit it', required: false
 
     def find_or_create_assessment
       errors = HmisErrors::Errors.new
