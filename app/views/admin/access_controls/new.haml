@@ -1,0 +1,17 @@
+- title = "New Access Control List"
+- content_for :title, title
+
+= render 'breadcrumbs'
+
+.o-page
+  .o-page__title
+    %h1= content_for :title
+.row
+  .col-sm-12
+    = simple_form_for @acl, as: :access_control, url: admin_access_controls_path do |f|
+      = f.error_notification
+      .form-inputs
+        = render 'form', f: f
+
+      .form_actions.mt-4
+        = f.button :submit, value: 'Create Access Control List'

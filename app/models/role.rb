@@ -5,8 +5,8 @@
 ###
 
 class Role < ApplicationRecord
-  has_many :user_roles, dependent: :destroy, inverse_of: :role
-  has_many :users, through: :user_roles
+  # has_many :user_roles, dependent: :destroy, inverse_of: :role
+  # has_many :users, through: :user_roles
   validates :name, presence: true
 
   def role_name
@@ -23,6 +23,28 @@ class Role < ApplicationRecord
 
   scope :nurse_care_manager, -> do
     health.where(name: 'Nurse Care Manager')
+  end
+
+  has_many :access_controls, inverse_of: :role
+  has_many :user_access_controls, through: :access_controls
+  has_many :users, through: :user_access_controls
+
+  scope :with_all_permissions, ->(*perms) do
+    where(**perms.map { |p| [p, true] }.to_h)
+  end
+
+  scope :with_any_permissions, ->(*perms) do
+    r_t = Role.arel_table
+    where_clause = perms.map { |perm| r_t[perm.to_sym].eq(true) }.reduce(:or)
+    where(where_clause)
+  end
+
+  scope :with_editable_permissions, -> do
+    with_any_permissions(*permissions_for_access(:editable))
+  end
+
+  scope :with_viewable_permissions, -> do
+    with_any_permissions(*permissions_for_access(:viewable))
   end
 
   def has_super_admin_permissions? # rubocop:disable Naming/PredicateName
@@ -74,6 +96,10 @@ class Role < ApplicationRecord
 
   def self.administrative? permission:
     permissions_with_descriptions.merge(health_permissions_with_descriptions)[permission][:administrative] rescue true # rubocop:disable Style/RescueModifier
+  end
+
+  def self.permissions_for_access(access)
+    permissions_with_descriptions.select { |_k, attrs| attrs[:access].include?(access) }.keys
   end
 
   def self.permissions_with_descriptions
@@ -1087,11 +1113,11 @@ class Role < ApplicationRecord
     end
   end
 
-  def add(users)
-    self.users = (self.users + Array.wrap(users)).uniq
-  end
+  # def add(users)
+  #   self.users = (self.users + Array.wrap(users)).uniq
+  # end
 
-  def remove(users)
-    self.users = (self.users - Array.wrap(users))
-  end
+  # def remove(users)
+  #   self.users = (self.users - Array.wrap(users))
+  # end
 end

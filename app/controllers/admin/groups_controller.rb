@@ -69,7 +69,7 @@ module Admin
     end
 
     private def set_group
-      @group = access_group_scope.find(params[:id].to_i)
+      @group = AccessGroup.find(params[:id].to_i)
     end
 
     private def set_entities

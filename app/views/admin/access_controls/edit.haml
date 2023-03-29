@@ -1,0 +1,18 @@
+= render 'breadcrumbs'
+
+%h1 Edit Access Control List #{@acl.id}
+
+
+.row
+  .col-sm-12
+    = render 'users/user_members_table', item: @acl, path_to_add_users: admin_access_control_users_path(@acl), path_to_delete_item: admin_access_control_path(@acl), delete_user_lambda: ->(user) { admin_access_control_user_path(@acl, user) }
+
+.row.mt-10
+  .col-sm-8
+    %h2 Update Access Control List Definition
+    = simple_form_for @acl, as: :access_control, url: admin_access_control_path do |f|
+      = f.error_notification
+      .form-inputs.mt-4
+        = render 'form', f: f
+      .form_actions.mt-4
+        = f.button :submit, value: 'Update Access Control List'

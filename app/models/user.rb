@@ -8,8 +8,12 @@ require 'memery'
 class User < ApplicationRecord
   include UserConcern
   include RailsDrivers::Extensions
-  has_many :user_roles, dependent: :destroy, inverse_of: :user
-  has_many :roles, through: :user_roles
+  # has_many :user_roles, dependent: :destroy, inverse_of: :user
+  # has_many :roles, through: :user_roles
+  has_many :user_access_controls, dependent: :destroy, inverse_of: :user
+  has_many :access_controls, through: :user_access_controls
+  has_many :access_groups, through: :access_controls
+  has_many :roles, through: :access_controls
 
   # load a hash of permission names (e.g. 'can_view_all_reports')
   # to a boolean true if the user has the permission through one
@@ -36,6 +40,18 @@ class User < ApplicationRecord
     # e.g. the_user.can_administer_health?
     define_method("#{permission}?") do
       send(permission)
+    end
+
+    define_method("#{permission}_for?") do |entity|
+      return false unless send("#{permission}?")
+
+      access_group_ids = GroupViewableEntity.includes_entity(entity).pluck(:access_group_id)
+
+      raise "Invalid entity '#{entity.class.name}'" if access_group_ids.nil?
+
+      role_ids = roles.where(permission => true).pluck(:id)
+
+      access_controls.where(access_group_id: access_group_ids, role_id: role_ids).exists?
     end
 
     # Provide a scope for each permission to get any user who qualifies

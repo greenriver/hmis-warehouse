@@ -1,6 +1,6 @@
 - content_for :title, t('.title')
 %h1= content_for :title
-= render partial: 'menus/admin_tabs'
+= render 'menus/admin_tabs'
 = render 'login_chart'
 .o-page
   .o-page__header
@@ -32,8 +32,7 @@
             %th.text-nowrap
               = sort_link(titles[k], k, directions)
               %i{:class => ["fa", "fa-sort-#{directions[k]}"] }
-          %th Roles
-          %th Groups
+          %th Access Control Lists
           %th Status
           %th Actions
       %tbody
@@ -52,11 +51,8 @@
                   %em
                     = link_to 'Agency not assigned!', edit_admin_user_path(id: user), class: 'text-danger'
             %td
-              - user.roles.each do |r|
-                .mb-1= r.name
-            %td
-              - user.access_groups.general.each do |g|
-                .mb-1= g.name
+              - user.access_controls.each do |ac|
+                .mb-1= ac.name
             %td
               - if user.provider.present?
                 %div= "Sign-in provided by #{user.provider.upcase}"

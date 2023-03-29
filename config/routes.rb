@@ -763,6 +763,9 @@ Rails.application.routes.draw do
     resources :groups do
       resources :users, only: [:create, :destroy], controller: 'groups/users'
     end
+    resources :access_controls do
+      resources :users, only: [:create, :destroy], controller: 'access_controls/users'
+    end
     resources :agencies
     resources :glacier, only: [:index]
     namespace :dashboard do
