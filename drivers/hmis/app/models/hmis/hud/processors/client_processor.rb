@@ -17,8 +17,18 @@ module Hmis::Hud::Processors
         gender_attributes(Array.wrap(attribute_value))
       when 'pronouns'
         { attribute_name => Array.wrap(attribute_value).any? ? Array.wrap(attribute_value).join('|') : nil }
-      when 'SSN'
-        { attribute_name => attribute_value.present? ? attribute_value.gsub(/[^\dXx]/, '') : nil }
+      when 'ssn'
+        if value == Base::HIDDEN_FIELD_VALUE
+          { attribute_name => @processor.send(factory_name).ssn }
+        else
+          { attribute_name => attribute_value.present? ? attribute_value.gsub(/[^\dXx]/, '') : nil }
+        end
+      when 'dob'
+        { attribute_name => value == Base::HIDDEN_FIELD_VALUE ? @processor.send(factory_name).dob : attribute_value }
+      when 'ssn_data_quality'
+        { attribute_name => (value == Base::HIDDEN_FIELD_VALUE ? @processor.send(factory_name).ssn_data_quality : attribute_value) || 99 }
+      when 'dob_data_quality'
+        { attribute_name => (value == Base::HIDDEN_FIELD_VALUE ? @processor.send(factory_name).dob_data_quality : attribute_value) || 99 }
       else
         { attribute_name => attribute_value }
       end
@@ -40,10 +50,9 @@ module Hmis::Hud::Processors
     # TODO: move actual logic here once ClientInputTransformer is removed because we stop using that mutation
     private def race_attributes(attribute_value)
       Types::HmisSchema::Transformers::ClientInputTransformer.multi_field_attrs(
-        attribute_value,
-        Hmis::Hud::Client.race_enum_map,
+        attribute_value, Hmis::Hud::Client.race_enum_map,
         :data_not_collected,
-        :RaceNone,
+        :RaceNone
       )
     end
 
