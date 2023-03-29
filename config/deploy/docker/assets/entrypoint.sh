@@ -26,6 +26,9 @@ ruby ./bin/materialize.database.yaml.rb
 T2=`date +%s`
 echo "...database materialize took $(expr $T2 - $T1) seconds"
 
+echo 'Use a sane .irbrc'
+cp ./sample.irbrc .irbrc
+
 echo 'Setting Timezone'
 cp /usr/share/zoneinfo/$TIMEZONE /app/etc-localtime
 echo $TIMEZONE > /etc/timezone
