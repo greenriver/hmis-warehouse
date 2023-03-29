@@ -334,7 +334,7 @@ type Client {
   access: ClientAccess!
   age: Int
   assessments(inProgress: Boolean, limit: Int, offset: Int, roles: [FormRole!], sortOrder: AssessmentSortOption): AssessmentsPaginated!
-  auditHistory(limit: Int, offset: Int): ClientsAuditEventsPaginated!
+  auditHistory(limit: Int, offset: Int): ClientAuditEventsPaginated!
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
@@ -377,6 +377,25 @@ type ClientAccess {
   canViewEnrollmentDetails: Boolean!
   canViewFullSsn: Boolean!
   canViewPartialSsn: Boolean!
+}
+
+type ClientAuditEvent {
+  createdAt: ISO8601DateTime!
+  event: AuditEventType!
+  id: ID!
+  item: Client!
+  objectChanges: JsonObject
+  user: User
+}
+
+type ClientAuditEventsPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [ClientAuditEvent!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
 }
 
 """
@@ -453,25 +472,6 @@ enum ClientSortOption {
   Last Name: Z-A
   """
   LAST_NAME_Z_TO_A
-}
-
-type ClientsAuditEvent {
-  createdAt: ISO8601DateTime!
-  event: AuditEventType!
-  id: ID!
-  item: Client!
-  objectChanges: JsonObject
-  user: User
-}
-
-type ClientsAuditEventsPaginated {
-  hasMoreAfter: Boolean!
-  hasMoreBefore: Boolean!
-  limit: Int!
-  nodes: [ClientsAuditEvent!]!
-  nodesCount: Int!
-  offset: Int!
-  pagesCount: Int!
 }
 
 type ClientsPaginated {

@@ -8,7 +8,7 @@ module Types
   class BaseAuditEvent < BaseObject
     def self.create(node_class)
       Class.new(self) do
-        graphql_name("#{node_class.graphql_name.pluralize}AuditEvent")
+        graphql_name("#{node_class.graphql_name}AuditEvent")
         field :item, node_class, null: false
       end
     end
