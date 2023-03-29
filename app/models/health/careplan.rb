@@ -139,12 +139,12 @@ module Health
 
     scope :cp_1_careplans, -> do
       joins(patient: :patient_referrals).
-        merge(Health::PatientReferral.current.cp_1_referrals)
+        merge(Health::PatientReferral.current.cp_1_referrals, rewhere: true) # Rewhere to avoid spurious deprecation
     end
 
     scope :cp_2_careplans, -> do
       joins(patient: :patient_referrals).
-        merge(Health::PatientReferral.current.cp_2_referrals)
+        merge(Health::PatientReferral.current.cp_2_referrals, rewhere: true) # Rewhere to avoid spurious deprecation
     end
 
     scope :rn_approved, -> do
