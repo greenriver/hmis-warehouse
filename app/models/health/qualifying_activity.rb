@@ -54,10 +54,11 @@ module Health
     end
 
     def qa_version
-      return unless date_of_activity.present?
+      # If the QA doesn't have a date, use the creation date as a fallback to determine the version
+      date = date_of_activity || created_at.to_date
 
       VERSIONS.each do |version|
-        return version.new(self) if version::EFFECTIVE_DATE_RANGE.cover?(date_of_activity)
+        return version.new(self) if version::EFFECTIVE_DATE_RANGE.cover?(date)
       end
     end
 

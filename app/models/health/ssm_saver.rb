@@ -32,6 +32,7 @@ module Health
               setup_development_qualifying_activity
             end
             qualifying_activity.save
+            qualifying_activity.maintain_cached_values
           end
         end
         @ssm.save!

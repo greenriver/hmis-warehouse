@@ -59,8 +59,7 @@
         %td
           %strong Procedure Code:
         %td
-          = qa.procedure_code
-          = qa.modifiers.join('>')
+          = qa.procedure_with_modifiers
       - if qa.describe_validity_reasons.present?
         %tr
           %td

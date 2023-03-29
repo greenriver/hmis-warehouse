@@ -37,8 +37,8 @@ module Health
 
           # This is done after the save to guarantee the careplan has an id
           complete_qa(care_planning_qa) if care_planning_qa.present?
-          cha_approved_qa.save! if cha_approved_qa.present?
-          sdoh_qa.save! if sdoh_qa.present?
+          save_qa(cha_approved_qa) if cha_approved_qa.present?
+          save_qa(sdoh_qa) if sdoh_qa.present?
           complete_qa(pctp_signed_qa) if pctp_signed_qa.present?
 
           @careplan.set_lock
@@ -51,7 +51,12 @@ module Health
 
     private def complete_qa(qualifying_activity)
       qualifying_activity.source_id = @careplan.id
-      qualifying_activity.save
+      save_qa(qualifying_activity)
+    end
+
+    private def save_qa(qualifying_activity)
+      qualifying_activity.save!
+      qualifying_activity.maintain_cached_values
     end
 
     private def setup_care_planning_qualifying_activity
