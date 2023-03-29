@@ -40,10 +40,6 @@ class Hmis::Role < ::ApplicationRecord
     false
   end
 
-  def can_manage_client_files
-    true
-  end
-
   def self.description_for(permission:)
     permissions_with_descriptions[permission][:description] rescue '' # rubocop:disable Style/RescueModifier
   end

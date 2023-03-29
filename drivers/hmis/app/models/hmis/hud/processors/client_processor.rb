@@ -10,6 +10,9 @@ module Hmis::Hud::Processors
       attribute_name = hud_name(field)
       attribute_value = attribute_value_for_enum(hud_type(field), value)
 
+      # Skip SSN/DOB fields if hidden, because they are always hidden due to lack of permissions (see client.json form definition)
+      return if value == Base::HIDDEN_FIELD_VALUE && ['ssn', 'dob'].include?(attribute_name)
+
       attributes = case attribute_name
       when 'race'
         race_attributes(Array.wrap(attribute_value))
@@ -18,17 +21,15 @@ module Hmis::Hud::Processors
       when 'pronouns'
         { attribute_name => Array.wrap(attribute_value).any? ? Array.wrap(attribute_value).join('|') : nil }
       when 'ssn'
-        if value == Base::HIDDEN_FIELD_VALUE
-          { attribute_name => @processor.send(factory_name).ssn }
-        else
-          { attribute_name => attribute_value.present? ? attribute_value.gsub(/[^\dXx]/, '') : nil }
-        end
-      when 'dob'
-        { attribute_name => value == Base::HIDDEN_FIELD_VALUE ? @processor.send(factory_name).dob : attribute_value }
+        { attribute_name => attribute_value.present? ? attribute_value.gsub(/[^\dXx]/, '') : nil }
       when 'ssn_data_quality'
-        { attribute_name => (value == Base::HIDDEN_FIELD_VALUE ? @processor.send(factory_name).ssn_data_quality : attribute_value) || 99 }
+        # If hidden due to permissions, set to old value or 99
+        attribute_value = @processor.send(factory_name).ssn_data_quality || 99 if value == Base::HIDDEN_FIELD_VALUE
+        { attribute_name => attribute_value }
       when 'dob_data_quality'
-        { attribute_name => (value == Base::HIDDEN_FIELD_VALUE ? @processor.send(factory_name).dob_data_quality : attribute_value) || 99 }
+        # If hidden due to permissions, set to old value or 99
+        attribute_value = @processor.send(factory_name).dob_data_quality || 99 if value == Base::HIDDEN_FIELD_VALUE
+        { attribute_name => attribute_value }
       else
         { attribute_name => attribute_value }
       end
@@ -50,9 +51,10 @@ module Hmis::Hud::Processors
     # TODO: move actual logic here once ClientInputTransformer is removed because we stop using that mutation
     private def race_attributes(attribute_value)
       Types::HmisSchema::Transformers::ClientInputTransformer.multi_field_attrs(
-        attribute_value, Hmis::Hud::Client.race_enum_map,
+        attribute_value,
+        Hmis::Hud::Client.race_enum_map,
         :data_not_collected,
-        :RaceNone
+        :RaceNone,
       )
     end
 

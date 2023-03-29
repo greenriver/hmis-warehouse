@@ -689,6 +689,8 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       existing_client = c1
       new_client = Hmis::Hud::Client.new(data_source: ds, user: hmis_hud_user)
       [existing_client, new_client].each do |client|
+        original_values = client.attributes.slice(:ssn, :dob, :dob_data_quality, :ssn_data_quality)
+
         custom_form = Hmis::Form::CustomForm.new(owner: client, definition: definition)
         custom_form.hud_values = complete_hud_values.merge(
           'dob' => Hmis::Hud::Processors::Base::HIDDEN_FIELD_VALUE,
@@ -700,10 +702,9 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         custom_form.owner.save!
         client.reload
 
-        expect(client.dob).to eq(client.dob)
-        expect(client.dob_data_quality).to eq(client.dob_data_quality)
-        expect(client.ssn).to eq(client.ssn)
-        expect(client.ssn_data_quality).to eq(client.ssn_data_quality)
+        original_values.each do |key, val|
+          expect(client.send(key)).to eq(val)
+        end
       end
     end
 
