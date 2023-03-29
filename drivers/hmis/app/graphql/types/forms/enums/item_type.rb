@@ -25,5 +25,6 @@ module Types
     value 'CHOICE'
     value 'OPEN_CHOICE'
     value 'IMAGE'
+    value 'FILE'
   end
 end

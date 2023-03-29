@@ -6,6 +6,7 @@
 
 module TxClientReports
   class ResearchExports::Export < GrdaWarehouse::File
+    mount_uploader :file, FileUploader
     belongs_to :user
     belongs_to :file, class_name: 'GrdaWarehouse::File', optional: true
   end

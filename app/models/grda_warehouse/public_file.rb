@@ -7,6 +7,7 @@
 module GrdaWarehouse
   class PublicFile < GrdaWarehouse::File
     include ArelHelper
+    mount_uploader :file, FileUploader
     acts_as_taggable
 
     validates_presence_of :name

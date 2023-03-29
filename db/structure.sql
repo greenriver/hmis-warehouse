@@ -946,7 +946,10 @@ CREATE TABLE public.hmis_roles (
     can_view_dob boolean DEFAULT false NOT NULL,
     can_view_enrollment_details boolean DEFAULT false NOT NULL,
     can_edit_enrollments boolean DEFAULT false NOT NULL,
-    can_manage_client_files boolean DEFAULT false NOT NULL
+    can_manage_any_client_files boolean DEFAULT false NOT NULL,
+    can_manage_own_client_files boolean DEFAULT false NOT NULL,
+    can_view_any_nonconfidential_client_files boolean DEFAULT false NOT NULL,
+    can_view_any_confidential_client_files boolean DEFAULT false NOT NULL
 );
 
 
@@ -4077,6 +4080,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230217201904'),
 ('20230223204644'),
 ('20230227221846'),
-('20230313152950');
+('20230313152950'),
+('20230321123918');
 
 
