@@ -34,6 +34,7 @@ COPY config ./config
 COPY app ./app
 COPY vendor ./vendor
 COPY config/deploy/docker/assets/dotenv.temporary ./.env
+COPY sample.irbrc .irbrc
 
 COPY shape_files/sync.from.s3 ./shape_files
 COPY shape_files/CoC/make.inserts ./shape_files/CoC
