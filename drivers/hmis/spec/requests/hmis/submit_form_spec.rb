@@ -14,6 +14,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   include_context 'hmis base setup'
   include_context 'hmis service setup'
   include_context 'hmis form setup'
+  include_context 'file upload setup'
 
   TIME_FMT = '%Y-%m-%d %T.%3N'.freeze
 
@@ -25,6 +26,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:s1) { create :hmis_hud_service, data_source: ds1, client: c1, enrollment: e1, user: u1 }
   let!(:cs1) { create :hmis_custom_service, custom_service_type: cst1, data_source: ds1, client: c1, enrollment: e1, user: u1 }
   let!(:hmis_hud_service1) { Hmis::Hud::HmisService.find_by(owner: s1) }
+  let!(:file1) { create :file, client: c1, enrollment: e1, blob: blob, user_id: hmis_user.id, tags: [tag] }
 
   before(:each) do
     hmis_login(user)
@@ -58,6 +60,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             ... on Service {
               id
             }
+            ... on File {
+              id
+            }
           }
           #{error_fields}
         }
@@ -67,7 +72,14 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   describe 'SubmitForm' do
     [
-      :PROJECT, :FUNDER, :PROJECT_COC, :INVENTORY, :ORGANIZATION, :CLIENT, :SERVICE
+      :PROJECT,
+      :FUNDER,
+      :PROJECT_COC,
+      :INVENTORY,
+      :ORGANIZATION,
+      :CLIENT,
+      :SERVICE,
+      :FILE,
     ].each do |role|
       describe "for #{role.to_s.humanize}" do
         let(:definition) { Hmis::Form::Definition.find_by(role: role) }
@@ -77,8 +89,17 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             organization_id: o1.id,
             project_id: p1.id,
             enrollment_id: e1.id,
+            client_id: c1.id,
             confirmed: true, # ignore warnings, they are tested separately
-            **completed_form_values_for_role(role),
+            **completed_form_values_for_role(role) do |values|
+              if role == :FILE
+                # values[:values]['tags'] = [tag2.id.to_s]
+                values[:values]['fileBlobId'] = blob.id.to_s
+                # values[:hud_values]['tags'] = [tag2.id.to_s]
+                values[:hud_values]['fileBlobId'] = blob.id.to_s
+              end
+              values
+            end,
           }
         end
 
@@ -109,6 +130,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               i1.id
             when :SERVICE
               hmis_hud_service1.id
+            when :FILE
+              file1.id
             end
 
             input = input_proc.call(test_input.merge(record_id: input_record_id))
@@ -130,7 +153,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               # Expect that all of the fields that were submitted exist on the record
               expected_present_keys = input[:hud_values].map { |k, v| [k, v == '_HIDDEN' ? nil : v] }.to_h.compact.keys
               expected_present_keys.map(&:to_s).map(&:underscore).each do |method|
-                expect(record.send(method)).to be_present unless ['race', 'gender'].include?(method)
+                expect(record.send(method)).not_to be_nil unless ['race', 'gender', 'tags', 'file_blob_id'].include?(method)
               end
             end
           end

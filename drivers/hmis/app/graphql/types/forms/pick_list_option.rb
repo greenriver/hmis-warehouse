@@ -15,7 +15,7 @@ module Types
     field :group_label, String, 'Label for group that option belongs to, if grouped', null: true
     field :initial_selected, Boolean, 'Whether option is selected by default', null: true
 
-    CODE_PATTERN = /^\(([0-9]*)\) /.freeze
+    CODE_PATTERN = /^\(([0-9]*)\) /
 
     def self.options_for_type(pick_list_type, user:, relation_id: nil)
       relevant_state = ENV['RELEVANT_COC_STATE']
@@ -126,13 +126,24 @@ module Types
         Hmis::File.all_available_tags.map do |tag|
           {
             code: tag.id,
-            label: "#{tag.name} (included: #{tag.included_info})",
+            label: tag.name,
             group_code: tag.group,
             group_label: tag.group,
+            secondary_label: tag.included_info&.strip&.present? ? "(includes: #{tag.included_info})" : nil,
           }
         end.
           compact.
           sort_by { |obj| [obj[:group_label] + obj[:label]].join(' ') }
+      when 'CLIENT_ENROLLMENTS'
+        client = Hmis::Hud::Client.viewable_by(user).find_by(id: relation_id)
+        return [] unless client.present?
+
+        client.enrollments.sort_by_option(:most_recent).map do |enrollment|
+          {
+            code: enrollment.id,
+            label: "#{enrollment.project.project_name} (#{[enrollment.entry_date.strftime('%m/%d/%Y'), enrollment.exit_date&.strftime('%m/%d/%Y') || 'ongoing'].join(' - ')})",
+          }
+        end
       end
     end
 
