@@ -16,6 +16,7 @@ module PerformanceMeasurement
     def self.column_titles(period: 'reporting')
       {
         'client_id' => 'Warehouse Client ID',
+        'source_client_personal_ids' => 'Source Client Personal IDs',
         'dob' => 'DOB',
         'veteran' => 'Veteran Status',
         "#{period}_age" => 'Age for Report',

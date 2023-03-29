@@ -43,7 +43,7 @@ module HudPit::Generators::Pit::Fy2023
         :native_ak,
         :asian,
         :native_pi,
-        :black,
+        :black_af_american,
         :white,
         :multi_racial,
       ].each do |key|
@@ -57,9 +57,11 @@ module HudPit::Generators::Pit::Fy2023
         :households,
         :clients,
         :hoh_for_youth,
-        :child_hoh,
-        :youth_hoh,
         :children_of_youth_parents,
+        :child_hoh,
+        :children_of_0_to_18_parents,
+        :youth_hoh,
+        :children_of_18_to_24_parents,
         :female,
         :male,
         :no_single_gender,
@@ -69,8 +71,8 @@ module HudPit::Generators::Pit::Fy2023
         :latino,
         :native_ak,
         :asian,
+        :black_af_american,
         :native_pi,
-        :black,
         :white,
         :multi_racial,
         :chronic_households,
@@ -91,7 +93,7 @@ module HudPit::Generators::Pit::Fy2023
         first_column: 'B',
         last_column: 'D',
         first_row: 2,
-        last_row: 21,
+        last_row: rows.count + 1,
       }
       populate_table(table_name, metadata)
     end
