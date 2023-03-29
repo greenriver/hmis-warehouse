@@ -12,6 +12,9 @@ module GrdaWarehouse
     include ClientFileBase
     include ArelHelper
 
+    mount_uploader :file, FileUploader # This is probably no necessary, but added to be safe
+    acts_as_taggable
+
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
     belongs_to :vispdat, class_name: 'GrdaWarehouse::Vispdat::Base', optional: true
     validates_inclusion_of :visible_in_window, in: [true, false]

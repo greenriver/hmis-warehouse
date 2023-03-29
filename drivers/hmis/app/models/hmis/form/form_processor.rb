@@ -203,6 +203,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       Inventory: Hmis::Hud::Processors::InventoryProcessor,
       ProjectCoc: Hmis::Hud::Processors::ProjectCoCProcessor,
       Funder: Hmis::Hud::Processors::FunderProcessor,
+      File: Hmis::Hud::Processors::FileProcessor,
     }.freeze
   end
 

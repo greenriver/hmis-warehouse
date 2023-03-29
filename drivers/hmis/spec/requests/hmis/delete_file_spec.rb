@@ -14,23 +14,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   include_context 'file upload setup'
 
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, relationship_to_ho_h: 1, household_id: '1', user: u1 }
-  let!(:f1) do
-    file = Hmis::File.new(
-      name: blob.filename,
-      client_id: c1.id,
-      enrollment_id: e1.id,
-      effective_date: Date.today,
-      expiration_date: Date.tomorrow,
-      user_id: hmis_user.id,
-      confidential: true,
-      visible_in_window: false,
-    )
-    file.tag_list.add([tag.id])
-    file.client_file.attach(blob)
-    file.save!
-
-    file
-  end
+  let!(:f1) { create :file, client: c1, enrollment: e1, blob: blob, user_id: hmis_user.id, tags: [tag] }
+  let(:u2) { create(:user) }
 
   let(:mutation) do
     <<~GRAPHQL
@@ -68,8 +53,18 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     it 'should throw error if not allowed to manage files' do
-      remove_permissions(hmis_user, :can_manage_client_files)
+      remove_permissions(hmis_user, :can_manage_any_client_files, :can_manage_own_client_files)
       file_id = f1.id
+      file, errors = call_mutation(file_id)
+      expect(file).to be_nil
+      expect(errors).to contain_exactly(include('type' => 'not_allowed'))
+      expect(Hmis::File.all).to include(have_attributes(id: file_id))
+    end
+
+    it 'should throw error if only allowed to manage own files and trying to delete file that is not their own' do
+      remove_permissions(hmis_user, :can_manage_any_client_files)
+      file_id = f1.id
+      f1.update(user_id: u2.id)
       file, errors = call_mutation(file_id)
       expect(file).to be_nil
       expect(errors).to contain_exactly(include('type' => 'not_allowed'))

@@ -25,5 +25,6 @@ module Types
     value 'SUB_TYPE_PROVIDED_5'
     value 'REFERRAL_OUTCOME'
     value 'AVAILABLE_FILE_TYPES'
+    value 'CLIENT_ENROLLMENTS'
   end
 end

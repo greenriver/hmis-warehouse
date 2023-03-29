@@ -16,6 +16,8 @@ module Types
     argument :enrollment_id, ID, required: false
     # Needed for Project creation
     argument :organization_id, ID, required: false
+    # Needed for File creation
+    argument :client_id, ID, required: false
     # Needed for Funder/ProjectCoC/etc creation
     argument :project_id, ID, required: false
     # Raw form state as JSON
