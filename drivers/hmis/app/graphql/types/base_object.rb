@@ -18,6 +18,10 @@ module Types
       @page_type ||= BasePaginated.create(self)
     end
 
+    def self.audit_event_type
+      @audit_event_type ||= BaseAuditEvent.create(self)
+    end
+
     def self.yes_no_missing_field(name, description = nil, **kwargs)
       field name, Boolean, description, **kwargs
 

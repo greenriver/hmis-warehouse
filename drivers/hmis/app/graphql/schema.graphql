@@ -159,6 +159,12 @@ type AssessmentsPaginated {
   pagesCount: Int!
 }
 
+enum AuditEventType {
+  create
+  destroy
+  update
+}
+
 """
 Value to autofill based on conditional logic
 """
@@ -328,6 +334,7 @@ type Client {
   access: ClientAccess!
   age: Int
   assessments(inProgress: Boolean, limit: Int, offset: Int, roles: [FormRole!], sortOrder: AssessmentSortOption): AssessmentsPaginated!
+  auditHistory(limit: Int, offset: Int): ClientsAuditEventsPaginated!
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
@@ -446,6 +453,25 @@ enum ClientSortOption {
   Last Name: Z-A
   """
   LAST_NAME_Z_TO_A
+}
+
+type ClientsAuditEvent {
+  createdAt: ISO8601DateTime!
+  event: AuditEventType!
+  id: ID!
+  item: Client!
+  objectChanges: JsonObject
+  user: User
+}
+
+type ClientsAuditEventsPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [ClientsAuditEvent!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
 }
 
 type ClientsPaginated {

@@ -16,6 +16,7 @@ module Types
     include Types::HmisSchema::HasHealthAndDvs
     include Types::HmisSchema::HasAssessments
     include Types::HmisSchema::HasFiles
+    include Types::HmisSchema::HasAuditHistory
 
     def self.configuration
       Hmis::Hud::Client.hmis_configuration(version: '2022')
@@ -48,6 +49,7 @@ module Types
     assessments_field
     services_field
     files_field
+    audit_history_field
     hud_field :date_updated
     hud_field :date_created
     hud_field :date_deleted
