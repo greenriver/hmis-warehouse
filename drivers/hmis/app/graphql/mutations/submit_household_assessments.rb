@@ -8,7 +8,7 @@ module Mutations
 
     field :assessments, [Types::HmisSchema::Assessment], null: true
 
-    def resolve(assessment_ids:, confirmed:, validate_only:)
+    def resolve(assessment_ids:, confirmed:, validate_only: false)
       assessments = Hmis::Hud::CustomAssessment.viewable_by(current_user).
         where(id: assessment_ids).
         preload(:enrollment, :custom_form)
