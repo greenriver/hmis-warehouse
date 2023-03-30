@@ -42,9 +42,10 @@ module CohortAuthorization
       @cohort = cohort_scope.find(cohort_id)
     end
 
-    def set_groups
-      @groups = @cohort.access_groups
-      @group_ids = @cohort.access_group_ids
+    def set_users
+      @users = User.active.not_system
+      @participator_ids = @cohort.editable_acl.user_ids
+      @viewer_ids = @cohort.viewable_acl.user_ids
     end
 
     def cohort_source

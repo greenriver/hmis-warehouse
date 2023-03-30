@@ -51,7 +51,9 @@
                   %em
                     = link_to 'Agency not assigned!', edit_admin_user_path(id: user), class: 'text-danger'
             %td
-              - user.access_controls.each do |ac|
+              - user.access_controls.ordered.each do |ac|
+                - next if ac.health?
+
                 .mb-1= ac.name
             %td
               - if user.provider.present?

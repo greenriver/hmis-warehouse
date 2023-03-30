@@ -15,7 +15,8 @@
         = f.input :active_cohort, as: :pretty_boolean, label: 'Active'
       %h3 Access
       .well
-        = f.input :user_ids, collection: @groups, as: :grouped_select_two, group_method: :last, selected: @group_ids, input_html: {multiple: :multiple, style: 'width: 100%;'}, label: 'Grant access to users and groups', hint: 'Specified user and members of specified groups will have access to this cohort.'
+        = f.input :participator_ids, collection: @users, as: :select_two, selected: @participator_ids, input_html: {multiple: :multiple, style: 'width: 100%;'}, label: 'Grant participation-level access to users', hint: 'Specified user will have access to participate in this cohort.'
+        = f.input :viewer_ids, collection: @users, as: :select_two, selected: @viewer_ids, input_html: {multiple: :multiple, style: 'width: 100%;'}, label: 'Grant read-only-level access to users', hint: 'Specified user will have access to view, but not change clients on this cohort.'
       %h3 Automation
       .well
         = f.input :project_group_id, collection: GrdaWarehouse::ProjectGroup.options_for_select(user: current_user), as: :select_two, include_blank: 'Manually controlled (no project group)', hint: 'If you select a project group, this cohort will always contain clients with an open enrollment at a project contained in the group.  You will not be able to add and remove clients manually.'

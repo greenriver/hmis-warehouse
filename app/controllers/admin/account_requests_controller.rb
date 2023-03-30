@@ -7,7 +7,6 @@
 module Admin
   class AccountRequestsController < ApplicationController
     include AjaxModalRails::Controller
-    include ViewableEntities
     # This controller is namespaced to prevent
     # route collision with Devise
     before_action :require_can_edit_users!
@@ -29,7 +28,7 @@ module Admin
         return
       end
 
-      @account_request.convert_to_user!(user: current_user, role_ids: role_ids, access_group_ids: access_group_ids)
+      @account_request.convert_to_user!(user: current_user, access_control_ids: access_control_ids)
       flash[:notice] = "Account created for #{@account_request.name}"
       redirect_to(action: :index)
     end
@@ -46,8 +45,7 @@ module Admin
     private def account_params
       params.require(:account_request).permit(
         :agency_id,
-        role_ids: [],
-        access_group_ids: [],
+        access_control_ids: [],
       )
     end
 
@@ -62,17 +60,6 @@ module Admin
     private def confirmation_params
       params.require(:user).permit(
         :confirmation_password,
-      )
-    end
-
-    private def viewable_params
-      params.require(:user).permit(
-        data_sources: [],
-        organizations: [],
-        projects: [],
-        reports: [],
-        cohorts: [],
-        project_groups: [],
       )
     end
 

@@ -7,12 +7,13 @@
       %span.icon-cross
       Delete #{item.name}
 
-= simple_form_for :user_members, url: path_to_add_users do |f|
-  .d-flex
-    .ml-auto.w-50
-      = f.input :user_ids, collection: User.not_system.active.where.not(id: item.user_ids), as: :select_two, input_html: { multiple: true }, label: 'Users to Add'
-    .ml-4
-      = f.button :submit, 'Add Users', class: 'btn btn-secondary mt-no-label'
+- if path_to_add_users
+  = simple_form_for :user_members, url: path_to_add_users do |f|
+    .d-flex
+      .ml-auto.w-50
+        = f.input :user_ids, collection: User.not_system.active.where.not(id: item.user_ids), as: :select_two, input_html: { multiple: true }, label: 'Users to Add'
+      .ml-4
+        = f.button :submit, 'Add Users', class: 'btn btn-secondary mt-no-label'
 
 %h3.mt-4.mb-4
   = pluralize(item.users.active.count, 'User')
@@ -33,9 +34,9 @@
             %td= link_to_if can_edit_users?, user.name, edit_admin_user_path(user)
             %td= user.email
             %td.d-flex
-
-              = link_to delete_user_lambda.call(user), class: 'btn btn-sm btn-danger ml-auto', method: :delete, data: { confirm: "Are you sure you want to remove #{user.name} from #{item.name}?" } do
-                %i.icon-cross
-                Remove User
+              - if delete_user_lambda
+                = link_to delete_user_lambda.call(user), class: 'btn btn-sm btn-danger ml-auto', method: :delete, data: { confirm: "Are you sure you want to remove #{user.name} from #{item.name}?" } do
+                  %i.icon-cross
+                  Remove User
 - else
   .none-found No users

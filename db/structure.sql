@@ -1996,7 +1996,8 @@ CREATE TABLE public.roles (
     can_view_inactive_cohort_clients boolean DEFAULT false,
     can_manage_inactive_cohort_clients boolean DEFAULT false,
     can_view_deleted_cohort_clients boolean DEFAULT false,
-    can_view_cohort_client_changes_report boolean DEFAULT false
+    can_view_cohort_client_changes_report boolean DEFAULT false,
+    system boolean DEFAULT false NOT NULL
 );
 
 
@@ -4210,6 +4211,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230227221846'),
 ('20230313152950'),
 ('20230329112926'),
-('20230329112954');
+('20230329112954'),
+('20230330182609');
 
 

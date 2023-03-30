@@ -6,7 +6,6 @@
 
 module Admin
   class UsersController < ApplicationController
-    include ViewableEntities
     # This controller is namespaced to prevent
     # route collision with Devise
     before_action :require_can_edit_users!, except: [:stop_impersonating]
@@ -27,7 +26,7 @@ module Admin
       end
 
       @users = @users.
-        preload(:roles).
+        preload(:access_controls).
         order(sort_column => sort_direction)
 
       @pagy, @users = pagy(@users)
@@ -35,7 +34,6 @@ module Admin
 
     def edit
       @user.set_initial_two_factor_secret!
-      @group = @user.access_group
     end
 
     def unlock
@@ -70,25 +68,13 @@ module Admin
         return
       end
 
-      existing_health_roles = @user.roles.health.to_a
       begin
         User.transaction do
           @user.skip_reconfirmation!
-          # Associations don't play well with acts_as_paranoid, so manually clean up user roles
-          @user.user_roles.where.not(role_id: user_params[:role_ids]&.select(&:present?)).destroy_all
-          @user.access_groups.not_system.
-            where.not(id: user_params[:access_group_ids]&.select(&:present?)).each do |g|
-              # Don't remove or add system groups
-              next if g.system?
-
-              g.remove(@user)
-            end
+          # Associations don't play well with acts_as_paranoid, so manually clean up user ACLs
+          @user.user_access_controls.where.not(access_control_id: assigned_acl_ids).destroy_all
           @user.disable_2fa! if user_params[:otp_required_for_login] == 'false'
           @user.update!(user_params)
-
-          # Restore any health roles we previously had
-          @user.roles = (@user.roles + existing_health_roles).uniq
-          @user.set_viewables viewable_params
         end
       rescue Exception
         flash[:error] = 'Please review the form problems below'
@@ -118,20 +104,28 @@ module Admin
     private def adding_admin?
       @adming_admin ||= begin # rubocop:disable Naming/MemoizedInstanceVariableName
         adming_admin = false
-        existing_roles = @user.user_roles
-        unless existing_roles.map(&:role).map(&:has_super_admin_permissions?).any?
-          assigned_roles = user_params[:role_ids]&.select(&:present?)&.map(&:to_i) || []
-          added_role_ids = assigned_roles - existing_roles.pluck(:role_id)
-          added_role_ids.select(&:present?).each do |id|
-            role = Role.find(id.to_i)
+        existing_roles = @user.roles
+
+        # If we don't already have a role granting an admin permission, and we're assinging some
+        # ACLs (with associated roles)
+        if existing_roles.map(&:has_super_admin_permissions?).none? && assigned_acl_ids.present?
+          assigned_roles = AccessControl.where(id: assigned_acl_ids).joins(:role).distinct.pluck(Role.arel_table[:id])
+          added_role_ids = assigned_roles - existing_roles.pluck(:id)
+          Role.where(id: added_role_ids.reject(&:blank?)).find_each do |role|
+            # If any role we're adding is administrative, make note, and present the confirmation page
             if role.administrative?
               @admin_role_name = role.role_name
               adming_admin = true
+              break
             end
           end
         end
         adming_admin
       end
+    end
+
+    private def assigned_acl_ids
+      user_params[:access_control_ids]&.reject(&:blank?)&.map(&:to_i) || []
     end
 
     private def user_scope
@@ -157,16 +151,9 @@ module Admin
         :otp_required_for_login,
         :expired_at,
         :training_completed,
-        role_ids: [],
-        access_group_ids: [],
-        coc_codes: [],
+        access_control_ids: [],
         contact_attributes: [:id, :first_name, :last_name, :phone, :email, :role],
-      ).tap do |result|
-        result[:coc_codes] ||= []
-        # re-add system groups so we don't remove them here
-        result[:access_group_ids] ||= []
-        result[:access_group_ids] += @user.access_groups.system.pluck(:id).map(&:to_s)
-      end
+      )
     end
 
     private def confirmation_params

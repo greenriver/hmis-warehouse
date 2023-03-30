@@ -54,7 +54,5 @@ class Admin::AccessControlsController < ApplicationController
 
   private def set_access_control
     @acl = access_control_scope.find(params[:id].to_i)
-    # Set a name to be used by the user_members_table partial
-    @acl.define_singleton_method(:name) { "Access Control List #{id}" }
   end
 end

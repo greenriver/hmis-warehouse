@@ -42,18 +42,12 @@ module UserConcern
     # Connect users to login attempts
     has_many :login_activities, as: :user
 
-    # Ensure that users have a user-specific access group
-    after_save :create_access_group
-
     validates :email, presence: true, uniqueness: true, email_format: { check_mx: true }, length: { maximum: 250 }, on: :update
     validate :password_cannot_be_sequential, on: :update
     validates :last_name, presence: true, length: { maximum: 40 }
     validates :first_name, presence: true, length: { maximum: 40 }
     validates :email_schedule, inclusion: { in: Message::SCHEDULES }, allow_blank: false
     validates :agency_id, presence: true
-
-    has_many :access_group_members, dependent: :destroy, inverse_of: :user
-    has_many :access_groups, through: :access_group_members
 
     has_many :user_clients, class_name: 'GrdaWarehouse::UserClient'
     has_many :clients, through: :user_clients, inverse_of: :users, dependent: :destroy
@@ -357,73 +351,6 @@ module UserConcern
       expired?
     end
 
-    def data_sources
-      viewable GrdaWarehouse::DataSource
-    end
-
-    def organizations
-      viewable GrdaWarehouse::Hud::Organization
-    end
-
-    def projects
-      viewable GrdaWarehouse::Hud::Project
-    end
-
-    def project_access_groups
-      viewable GrdaWarehouse::ProjectAccessGroup
-    end
-
-    def reports
-      viewable GrdaWarehouse::WarehouseReports::ReportDefinition
-    end
-
-    def cohorts
-      viewable GrdaWarehouse::Cohort
-    end
-
-    def project_groups
-      viewable GrdaWarehouse::ProjectGroup
-    end
-
-    def associated_by(associations:)
-      return [] unless associations.present?
-
-      associations.flat_map do |association|
-        case association
-        when :coc_code
-          coc_codes.map do |code|
-            [
-              code,
-              GrdaWarehouse::Hud::Project.project_names_for_coc(code),
-            ]
-          end
-        when :organization
-          organizations.preload(:projects).map do |org|
-            [
-              org.OrganizationName,
-              org.projects.map(&:ProjectName),
-            ]
-          end
-        when :data_source
-          data_sources.preload(:projects).map do |ds|
-            [
-              ds.name,
-              ds.projects.map(&:ProjectName),
-            ]
-          end
-        when :project_access_group
-          project_access_groups.preload(:projects).map do |pag|
-            [
-              pag.name,
-              pag.projects.map(&:ProjectName),
-            ]
-          end
-        else
-          []
-        end
-      end
-    end
-
     # Within the context of a client enrollment, what projects can this user see
     # Note this differs from Project.viewable_by because they may not have access to the actual project
     def visible_project_ids_enrollment_context
@@ -475,40 +402,12 @@ module UserConcern
       Health::Patient.where(care_coordinator_id: id)
     end
 
-    private def create_access_group
-      group = AccessGroup.for_user(self).first_or_create
-      group.access_group_members.where(user_id: id).first_or_create
-    end
-
-    def access_group
-      @access_group ||= AccessGroup.for_user(self).first_or_initialize
-    end
-
-    def set_viewables(viewables) # rubocop:disable Naming/AccessorMethodName
-      return unless persisted?
-
-      access_group.set_viewables(viewables)
-    end
-
-    def add_viewable(*viewables)
-      viewables.each do |viewable|
-        access_group.add_viewable(viewable)
-      end
-      # invalidate cache of project ids, since we've changed the list
-      cached_viewable_project_ids(force_calculation: true)
-      coc_codes(force_calculation: true)
-    end
-
     def coc_codes(force_calculation: false)
       key = [self.class.name, __method__, id]
       Rails.cache.delete(key) if force_calculation
       Rails.cache.fetch(key, expires_in: 1.minutes) do
-        (access_groups.map(&:coc_codes).flatten + access_group.coc_codes).compact.uniq
+        access_groups.flat_map(&:coc_codes).compact.uniq
       end
-    end
-
-    def coc_codes=(codes)
-      access_group.update(coc_codes: codes)
     end
 
     def admin_dashboard_landing_path

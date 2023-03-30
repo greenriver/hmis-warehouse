@@ -1,8 +1,7 @@
 = render 'breadcrumbs'
 
-%h1 Edit Access Control List #{@acl.id}
-
-
+%h1 Edit Access Control List #{@acl.name}
+%p Access Control Lists grant a set of permissions for a set of data.  Permissions are attached to Roles, data access is granted through Groups.
 .row
   .col-sm-12
     = render 'users/user_members_table', item: @acl, path_to_add_users: admin_access_control_users_path(@acl), path_to_delete_item: admin_access_control_path(@acl), delete_user_lambda: ->(user) { admin_access_control_user_path(@acl, user) }

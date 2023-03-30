@@ -21,7 +21,6 @@ module Admin
     end
 
     def edit
-      @users = User.joins(:roles).merge(Role.where(id: @role.id))
     end
 
     def update

@@ -9,7 +9,7 @@ require 'memery'
 module GrdaWarehouse
   class Cohort < GrdaWarehouseBase
     include ArelHelper
-    include AccessGroups
+    include EntityAccess
     include Memery
 
     acts_as_paranoid
@@ -27,7 +27,7 @@ module GrdaWarehouse
 
     has_many :group_viewable_entities, class_name: 'GrdaWarehouse::GroupViewableEntity', foreign_key: :entity_id
 
-    attr_accessor :client_ids, :user_ids
+    attr_accessor :client_ids, :participator_ids, :viewer_ids
 
     scope :active, -> do
       where(active_cohort: true)
@@ -731,6 +731,22 @@ module GrdaWarehouse
 
     private def cohort_client_changes_source
       GrdaWarehouse::CohortClientChange
+    end
+
+    private def editable_role_name
+      'System Role - Can Participate in Cohorts'
+    end
+
+    private def viewable_role_name
+      'System Role - Can View Cohorts'
+    end
+
+    private def editable_permission
+      :can_participate_in_cohorts
+    end
+
+    private def vieable_permission
+      :can_view_cohorts
     end
   end
 end

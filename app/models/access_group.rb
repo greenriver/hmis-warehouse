@@ -8,8 +8,8 @@ class AccessGroup < ApplicationRecord
   acts_as_paranoid
   has_paper_trail
 
-  has_many :access_group_members
-  has_many :users, through: :access_group_members
+  has_many :access_controls
+  has_many :users, through: :access_controls
 
   has_many :group_viewable_entities, class_name: 'GrdaWarehouse::GroupViewableEntity'
   has_many :data_sources, through: :group_viewable_entities, source: :entity, source_type: 'GrdaWarehouse::DataSource'
@@ -106,7 +106,6 @@ class AccessGroup < ApplicationRecord
   end
 
   def self.maintain_system_groups(group: nil)
-    system_user = User.setup_system_user
     if group.blank? || group == :reports
       # Reports
       all_reports = GrdaWarehouse::WarehouseReports::ReportDefinition.enabled
@@ -120,7 +119,7 @@ class AccessGroup < ApplicationRecord
       all_health_reports.update(system: ['Entities'], must_exist: true)
       ids = all_reports.where(health: true).pluck(:id)
       all_health_reports.set_viewables({ reports: ids })
-      all_health_reports.add(system_user)
+      all_health_reports.add(User.system_user)
     end
 
     if group.blank? || group == :cohorts
@@ -129,7 +128,7 @@ class AccessGroup < ApplicationRecord
       all_cohorts.update(system: ['Entities'], must_exist: true)
       ids = GrdaWarehouse::Cohort.pluck(:id)
       all_cohorts.set_viewables({ cohorts: ids })
-      all_cohorts.add(system_user)
+      all_cohorts.add(User.system_user)
     end
 
     if group.blank? || group == :project_groups
@@ -138,7 +137,7 @@ class AccessGroup < ApplicationRecord
       all_project_groups.update(system: ['Entities'], must_exist: true)
       ids = GrdaWarehouse::ProjectGroup.pluck(:id)
       all_project_groups.set_viewables({ project_groups: ids })
-      all_project_groups.add(system_user)
+      all_project_groups.add(User.system_user)
     end
 
     if group.blank? || group == :data_sources # rubocop:disable Style/GuardClause
@@ -147,7 +146,7 @@ class AccessGroup < ApplicationRecord
       all_data_sources.update(system: ['Entities'], must_exist: true)
       ids = GrdaWarehouse::DataSource.pluck(:id)
       all_data_sources.set_viewables({ data_sources: ids })
-      all_data_sources.add(system_user)
+      all_data_sources.add(User.system_user)
     end
   end
 

@@ -9,25 +9,39 @@ class Role < ApplicationRecord
   # has_many :users, through: :user_roles
   validates :name, presence: true
 
+  has_many :access_controls, inverse_of: :role
+  has_many :user_access_controls, through: :access_controls
+  has_many :users, through: :user_access_controls
+  has_many :user_roles
+  has_many :health_users, through: :user_roles
+
   def role_name
     name.to_s
   end
 
+  scope :system, -> do
+    where(system: true)
+  end
+
+  scope :not_system, -> do
+    where(system: false)
+  end
+
   scope :health, -> do
-    where(health_role: true)
+    not_system.where(health_role: true)
   end
 
   scope :editable, -> do
-    where(health_role: false)
+    not_system.where(health_role: false)
+  end
+
+  scope :homeless, -> do
+    editable
   end
 
   scope :nurse_care_manager, -> do
     health.where(name: 'Nurse Care Manager')
   end
-
-  has_many :access_controls, inverse_of: :role
-  has_many :user_access_controls, through: :access_controls
-  has_many :users, through: :user_access_controls
 
   scope :with_all_permissions, ->(*perms) do
     where(**perms.map { |p| [p, true] }.to_h)
@@ -45,6 +59,10 @@ class Role < ApplicationRecord
 
   scope :with_viewable_permissions, -> do
     with_any_permissions(*permissions_for_access(:viewable))
+  end
+
+  def health?
+    health_role
   end
 
   def has_super_admin_permissions? # rubocop:disable Naming/PredicateName
@@ -1113,11 +1131,12 @@ class Role < ApplicationRecord
     end
   end
 
-  # def add(users)
-  #   self.users = (self.users + Array.wrap(users)).uniq
-  # end
+  # Only used in the Healthcare context
+  def add(users)
+    self.users = (self.users + Array.wrap(users)).uniq
+  end
 
-  # def remove(users)
-  #   self.users = (self.users - Array.wrap(users))
-  # end
+  def remove(users)
+    self.users = (self.users - Array.wrap(users))
+  end
 end

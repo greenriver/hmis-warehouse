@@ -8,7 +8,7 @@ class MigrateAccessGroupsToAccessControls < ActiveRecord::Migration[6.1]
       }
       unique_user_groups[access_group.associated_entity_set][:user_ids] << access_group.user_id
     end
-    Role.all.each do |role|
+    Role.homeless.each do |role|
       puts "Processing role: #{role.name}"
       # Move the non-user specific access groups
       AccessGroup.general.each do |access_group|
@@ -27,7 +27,7 @@ class MigrateAccessGroupsToAccessControls < ActiveRecord::Migration[6.1]
       end
     end
 
-    Role.all.each do |role|
+    Role.homeless.each do |role|
       puts "Processing role for individual users: #{role.name}"
       # Loop through unique_user_groups and see if an existing AccessGroup.general exists with each user that has an entity set that is equal or larger, if found, remove user from batch
       # Loop through and see if an existing AccessGroup.general exists with the same entity set, if found, add users, if not, create AccessGroup with entities

@@ -8,7 +8,7 @@ require 'roo'
 module GrdaWarehouse
   class ProjectGroup < GrdaWarehouseBase
     include ArelHelper
-    include AccessGroups
+    include EntityAccess
     acts_as_paranoid
     has_paper_trail
 
@@ -235,6 +235,14 @@ module GrdaWarehouse
     def data_source_ids=(ids)
       filter.update(data_source_ids: ids)
       save_filter!
+    end
+
+    private def editable_role_name
+      'System Role - Can Edit Project Groups'
+    end
+
+    private def editable_permission
+      :can_edit_project_groups
     end
   end
 end

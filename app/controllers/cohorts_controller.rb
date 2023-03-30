@@ -12,7 +12,7 @@ class CohortsController < ApplicationController
   before_action :require_can_configure_cohorts!, only: [:create, :destroy, :edit, :update]
   before_action :require_can_access_cohort!, only: [:show]
   before_action :set_cohort, only: [:edit, :update, :destroy, :show]
-  before_action :set_groups, only: [:edit, :update, :destroy, :show]
+  before_action :set_users, only: [:edit, :update, :destroy, :show]
   before_action :set_thresholds, only: [:show]
   before_action :set_assessment_types, only: [:edit]
 
@@ -117,8 +117,7 @@ class CohortsController < ApplicationController
 
   def create
     @cohort = cohort_source.create!(cohort_params)
-    # If the user doesn't have All Cohorts access, grant them access to the cohort
-    current_user.access_group.add_viewable(@cohort) unless AccessGroup.system_group(:cohorts).users.include?(current_user)
+    @cohort.replace_access(current_user, scope: :editor)
     # Always add the cohort to the system group
     AccessGroup.maintain_system_groups(group: :cohorts)
     # Search the list so you can see the newly created cohort
@@ -129,11 +128,13 @@ class CohortsController < ApplicationController
   end
 
   def update
-    cohort_options = cohort_params.except(:user_ids)
+    cohort_options = cohort_params.except(:participator_ids, :viewer_ids)
     cohort_options = cohort_options.except(:name) if @cohort.system_cohort
-    user_ids = cohort_params[:user_ids].select(&:present?).map(&:to_i)
+    participator_ids = cohort_params[:participator_ids].reject(&:blank?).map(&:to_i)
+    viewer_ids = cohort_params[:viewer_ids].reject(&:blank?).map(&:to_i)
     @cohort.update(cohort_options)
-    @cohort.update_access(user_ids)
+    @cohort.replace_access(User.find(participator_ids), scope: :editor)
+    @cohort.replace_access(User.find(viewer_ids), scope: :viewer)
     @cohort.delay.maintain if @cohort.auto_maintained?
     respond_with(@cohort, location: cohort_path(@cohort))
   end
@@ -155,7 +156,8 @@ class CohortsController < ApplicationController
       :tag_id,
       :project_group_id,
       :enforce_project_visibility_on_cells,
-      user_ids: [],
+      participator_ids: [],
+      viewer_ids: [],
     ] + GrdaWarehouse::Cohort.threshold_keys
     params.require(:cohort).permit(opts)
   end
