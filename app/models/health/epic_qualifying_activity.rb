@@ -147,19 +147,37 @@ module Health
     end
 
     def care_hub_activity_key(qa)
-      qa.activities.detect { |_k, v| v[:title] == clean_activity_title }.first
+      qa.activities.detect { |_k, v| v[:title] == clean_activity_title(qa) }.first
     end
 
-    def clean_activity_title
-      case activity
-      when 'Comprehensive assessment', 'Comprehensive health assessment'
-        'Comprehensive Health Assessment'
-      when 'Person-Centered Treatment Plan Signed'
-        'Person-Centered Treatment Plan signed'
-      when 'Follow-up within 3 days of hospital discharge (with client)'
-        'Follow-up from inpatient hospital discharge (with client)'
-      else
-        activity
+    def clean_activity_title(qa)
+      case qa.qa_version.class.name.split('::').last
+      when 'QualifyingActivityV1'
+        case activity
+        when 'Comprehensive assessment', 'Comprehensive health assessment'
+          'Comprehensive Health Assessment'
+        when 'Person-Centered Treatment Plan Signed'
+          'Person-Centered Treatment Plan signed'
+        when 'Follow-up within 3 days of hospital discharge (with client)'
+          'Follow-up from inpatient hospital discharge (with client)'
+        else
+          activity
+        end
+      when 'QualifyingActivityV2'
+        case activity
+        when 'Comprehensive health assessment'
+          'Comprehensive Assessment'
+        when 'Follow up after discharge'
+          'Follow-up from inpatient discharge with client (7 days)'
+        when 'Care team meeting'
+          'Meeting with 3+ care team members'
+        when 'Person-Centered Treatment Plan Signed'
+          'Care Plan completed'
+        when 'Care planning'
+          'Intake/reassessment (completing consent ROI, comprehensive assessment, care plan)'
+        else
+          activity
+        end
       end
     end
 
