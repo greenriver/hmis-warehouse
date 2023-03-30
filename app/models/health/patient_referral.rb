@@ -242,7 +242,9 @@ module Health
       patient.care_plan_signed? && Date.current <= patient.engagement_date
     end
 
-    ENGAGEMENT_IN_DAYS = 150
+    # After moving to days after enrollment, engagement date was 150 days after enrollment until 2023-04-01
+    ENGAGEMENT_IN_DAYS = 153
+
     # The engagement date is the date by which a patient must be engaged
     def engagement_date
       return nil unless enrollment_start_date.present?
@@ -250,6 +252,7 @@ module Health
       # Historical calculations...
       # Before 2018-09-01, engagement was 120 days following the start of the month following enrollment
       # Until 2020-04-01, engagement was 90 days following the start of the month following enrollment
+      # And then it was moved to a number of days after enrollment (see ENGAGEMENT_IN_DAYS above)
 
       (enrollment_start_date + ENGAGEMENT_IN_DAYS).to_date
     end
