@@ -685,6 +685,31 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       end
     end
 
+    it 'handles SSN and DOB fields being hidden' do
+      existing_client = c1
+      new_client = Hmis::Hud::Client.new(data_source: ds, user: hmis_hud_user)
+      [existing_client, new_client].each do |client|
+        expected_values = client.attributes.slice('SSN', 'DOB', 'DOBDataQuality', 'SSNDataQuality')
+        expected_values['DOBDataQuality'] = 99 if client.dob_data_quality.nil?
+        expected_values['SSNDataQuality'] = 99 if client.ssn_data_quality.nil?
+
+        custom_form = Hmis::Form::CustomForm.new(owner: client, definition: definition)
+        custom_form.hud_values = complete_hud_values.merge(
+          'dob' => Hmis::Hud::Processors::Base::HIDDEN_FIELD_VALUE,
+          'dobDataQuality' => Hmis::Hud::Processors::Base::HIDDEN_FIELD_VALUE,
+          'ssn' => Hmis::Hud::Processors::Base::HIDDEN_FIELD_VALUE,
+          'ssnDataQuality' => Hmis::Hud::Processors::Base::HIDDEN_FIELD_VALUE,
+        )
+        custom_form.form_processor.run!
+        custom_form.owner.save!
+        client.reload
+
+        expected_values.each do |key, val|
+          expect(client.send(key)).to eq(val)
+        end
+      end
+    end
+
     [
       [
         'fails if first and last are both nil',
