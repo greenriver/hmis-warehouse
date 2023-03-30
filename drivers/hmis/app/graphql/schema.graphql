@@ -375,6 +375,7 @@ type ClientAccess {
   canViewEnrollmentDetails: Boolean!
   canViewFullSsn: Boolean!
   canViewPartialSsn: Boolean!
+  id: ID!
 }
 
 """
@@ -3330,6 +3331,7 @@ type Organization {
 type OrganizationAccess {
   canDeleteOrganization: Boolean!
   canEditOrganization: Boolean!
+  id: ID!
 }
 
 """
@@ -3481,6 +3483,7 @@ type ProjectAccess {
   canViewEnrollmentDetails: Boolean!
   canViewFullSsn: Boolean!
   canViewPartialSsn: Boolean!
+  id: ID!
 }
 
 type ProjectCoc {
@@ -3703,6 +3706,7 @@ type QueryAccess {
   canViewEnrollmentDetails: Boolean!
   canViewFullSsn: Boolean!
   canViewPartialSsn: Boolean!
+  id: ID!
 }
 
 """
