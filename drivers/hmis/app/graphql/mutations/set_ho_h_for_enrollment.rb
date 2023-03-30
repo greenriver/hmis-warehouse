@@ -6,33 +6,35 @@ module Mutations
     field :enrollment, Types::HmisSchema::Enrollment, null: true
 
     def resolve(household_id:, client_id:)
-      errors = []
-      enrollment = nil
-
+      errors = HmisErrors::Errors.new
       client = Hmis::Hud::Client.find_by(id: client_id)
 
-      if client
-        household_enrollments = Hmis::Hud::Enrollment.viewable_by(current_user).where(household_id: household_id)
-        return { errors: [HmisErrors::Error.new(:household_id, :not_allowed)] } unless household_enrollments.all? { |e| current_user.permissions_for?(e, :can_edit_enrollments) }
+      errors.add :client_id, :not_found unless client.present?
+      return { errors: errors } if errors.any?
 
-        new_hoh_enrollment = household_enrollments.find_by(personal_id: client&.personal_id)
-        if new_hoh_enrollment
-          update_params = { user_id: hmis_user.user_id }
-          household_enrollments.where(relationship_to_ho_h: 1).update_all(relationship_to_ho_h: 99, **update_params)
-          new_hoh_enrollment.update(relationship_to_ho_h: 1, **update_params)
-          new_hoh_enrollment.save!
+      household_enrollments = Hmis::Hud::Enrollment.viewable_by(current_user).where(household_id: household_id)
 
-          enrollment = new_hoh_enrollment
-        else
-          errors << HmisErrors::Error.new(:household_id, full_message: "No enrollment for this client with household ID '#{household_id}'")
-        end
-      else
-        errors << HmisErrors::Error.new(:client_id, :not_found)
+      errors.add :household_id, :not_found unless household_enrollments.exists?
+      return { errors: errors } if errors.any?
+
+      errors.add :household_id, :not_allowed unless current_user.permissions_for?(household_enrollments.first, :can_edit_enrollments)
+      return { errors: errors } if errors.any?
+
+      new_hoh_enrollment = household_enrollments.find_by(personal_id: client.personal_id)
+
+      errors.add :client_id, :invalid, full_message: "No enrollment for this client with household ID '#{household_id}'" unless new_hoh_enrollment.present?
+      return { errors: errors } if errors.any?
+
+      update_params = { user_id: hmis_user.user_id }
+      Hmis::Hud::Enrollment.transaction do
+        household_enrollments.where(relationship_to_ho_h: 1).update_all(relationship_to_ho_h: 99, **update_params)
+        new_hoh_enrollment.update(relationship_to_ho_h: 1, **update_params)
+        new_hoh_enrollment.save!
       end
 
       {
-        enrollment: enrollment,
-        errors: errors,
+        enrollment: new_hoh_enrollment,
+        errors: [],
       }
     end
   end
