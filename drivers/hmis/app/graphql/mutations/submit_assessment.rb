@@ -86,6 +86,8 @@ module Mutations
       errors.deduplicate!
       return { errors: errors } if errors.any?
 
+      return { assessments: assessments, errors: [] } if input.validate_only
+
       if is_valid
         # We need to call save on the processor directly to get the before_save hook to invoke.
         # If this is removed, the Enrollment won't save.

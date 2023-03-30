@@ -312,13 +312,17 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     }
     _resp, result = post_graphql(input: { input: input }) { submit_assessment_mutation }
     errors = result.dig('data', 'submitAssessment', 'errors')
-    expect(errors).to match([
-                              a_hash_including(
-                                'severity' => 'error',
-                                'attribute' => 'insuranceFromAnySource',
-                                'fullMessage' => Hmis::Hud::Validators::IncomeBenefitValidator::INSURANCE_SOURCES_UNSPECIFIED,
-                              ),
-                            ])
+    expected_error = {
+      'severity' => 'error',
+      'attribute' => 'insuranceFromAnySource',
+      'fullMessage' => Hmis::Hud::Validators::IncomeBenefitValidator::INSURANCE_SOURCES_UNSPECIFIED,
+    }
+    expect(errors).to match([a_hash_including(expected_error)])
+
+    # Ensure using validate_only gives the same error
+    _resp, result = post_graphql(input: { input: input.merge(validate_only: true) }) { submit_assessment_mutation }
+    errors = result.dig('data', 'submitAssessment', 'errors')
+    expect(errors).to match([a_hash_including(expected_error)])
   end
 end
 

@@ -91,6 +91,11 @@ input AssessmentInput {
   hudValues: JsonObject
 
   """
+  Validate assessment but don't submit it
+  """
+  validateOnly: Boolean
+
+  """
   Raw form state as JSON
   """
   values: JsonObject
@@ -4887,6 +4892,11 @@ input SubmitHouseholdAssessmentsInput {
   Whether warnings have been confirmed
   """
   confirmed: Boolean
+
+  """
+  Validate assessments but don't submit them
+  """
+  validateOnly: Boolean
 }
 
 """
