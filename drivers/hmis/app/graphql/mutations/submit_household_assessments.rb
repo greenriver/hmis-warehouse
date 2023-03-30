@@ -62,6 +62,22 @@ module Mutations
 
       # Validate form values based on FormDefinition
       assessments.each do |assessment|
+        # FIXME: this needs to validate against the PROPOSED dates, not the actual dates
+        # Validate the assessment date
+        assessment_date, date_validation_errors = assessment.custom_form.definition.find_and_validate_assessment_date(
+          values: assessment.custom_form.values,
+          enrollment: assessment.enrollment,
+          ignore_warnings: confirmed,
+        )
+        errors.add_with_record_id(date_validation_errors, assessment.id)
+
+        # Set the assessment date (doesn't happen on WIP save)
+        assessment.assign_attributes(
+          assessment_date: assessment_date || assessment.assessment_date,
+          user_id: hmis_user.user_id,
+        )
+
+        # Collect other form validations
         form_validations = assessment.custom_form.collect_form_validations(ignore_warnings: confirmed)
         errors.add_with_record_id(form_validations, assessment.id)
       end
@@ -69,7 +85,6 @@ module Mutations
       all_valid = true
       # Run form processor on each assessment, validate all records
       assessments.each do |assessment|
-        assessment.assign_attributes(user_id: hmis_user.user_id)
         # Run processor to create/update related records
         assessment.custom_form.form_processor.run!
         # Run both validations
