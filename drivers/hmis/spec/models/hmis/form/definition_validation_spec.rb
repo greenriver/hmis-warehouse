@@ -100,15 +100,47 @@ RSpec.describe Hmis::Form::Definition, type: :model do
       end
     end
 
-    it 'should succeed if assessment date is after exit date (exit)' do
-      definition = Hmis::Form::Definition.find_by(role: :EXIT)
-      link_id = definition.assessment_date_item.link_id
-      e2.exit.update(exit_date: 3.days.ago)
-      assessment_date = (e2.exit_date + 1.day).strftime('%Y-%m-%d')
+    describe 'Exit assessment' do
+      let!(:definition) { Hmis::Form::Definition.find_by(role: :EXIT) }
+      let!(:e3) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: e2.entry_date, relationship_to_ho_h: 2 }
+      let!(:exit3) { create :hmis_hud_exit, enrollment: e3, data_source: ds1, client: c1, user: u1, exit_date: 1.day.ago }
 
-      date, errors = definition.find_and_validate_assessment_date(values: { link_id => assessment_date }, **default_args)
-      expect(date).to eq(e2.exit_date + 1.day)
-      expect(errors).to be_empty
+      it 'should succeed if assessment date is after exit date' do
+        link_id = definition.assessment_date_item.link_id
+        e2.exit.update(exit_date: 3.days.ago)
+        assessment_date = (e2.exit_date + 1.day).strftime('%Y-%m-%d')
+
+        date, errors = definition.find_and_validate_assessment_date(values: { link_id => assessment_date }, **default_args)
+        expect(date).to eq(Date.parse(assessment_date))
+        expect(errors).to be_empty
+      end
+
+      it 'should error if assessment date is before entry' do
+        link_id = definition.assessment_date_item.link_id
+        assessment_date = (e2.entry_date - 1.day).strftime('%Y-%m-%d')
+
+        _, errors = definition.find_and_validate_assessment_date(values: { link_id => assessment_date }, **default_args)
+        expect(errors[0].type).to eq(:out_of_range)
+        expect(errors[0].severity).to eq(:error)
+        expect(errors[0].attribute).to eq(definition.assessment_date_item.field_name.to_sym)
+      end
+
+      it 'should warn if HoH exit date is before other members' do
+        e3.update(household_id: e2.household_id)
+        e2.exit.update(exit_date: 1.week.ago)
+        e3.exit.update(exit_date: 1.day.ago)
+        link_id = definition.assessment_date_item.link_id
+        assessment_date = e2.exit_date.strftime('%Y-%m-%d')
+
+        _, errors = definition.find_and_validate_assessment_date(values: { link_id => assessment_date }, enrollment: e2, ignore_warnings: false)
+        expect(errors[0].severity).to eq(:warning)
+        expect(errors[0].message).to eq(Hmis::Hud::Validators::ExitValidator.hoh_exits_before_others)
+
+        assessment_date = e3.exit_date.strftime('%Y-%m-%d')
+        _, errors = definition.find_and_validate_assessment_date(values: { link_id => assessment_date }, enrollment: e3, ignore_warnings: false)
+        expect(errors[0].severity).to eq(:warning)
+        expect(errors[0].message).to eq(Hmis::Hud::Validators::ExitValidator.member_exits_after_hoh(e2.exit_date))
+      end
     end
 
     it 'should error if date is invalid/malformed' do
