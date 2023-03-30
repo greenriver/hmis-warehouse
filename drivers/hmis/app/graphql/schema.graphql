@@ -5097,11 +5097,6 @@ input UpdateEnrollmentInput {
   A unique identifier for the client performing the mutation.
   """
   clientMutationId: String
-
-  """
-  Entry date with format yyyy-mm-dd
-  """
-  entryDate: String
   id: ID!
   relationshipToHoH: RelationshipToHoH
 }
