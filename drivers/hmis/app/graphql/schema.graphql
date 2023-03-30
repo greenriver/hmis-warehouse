@@ -3707,6 +3707,7 @@ type Query {
 
 type QueryAccess {
   canAdministerHmis: Boolean!
+  canAuditClients: Boolean!
   canDeleteAssignedProjectData: Boolean!
   canDeleteEnrollments: Boolean!
   canDeleteOrganization: Boolean!

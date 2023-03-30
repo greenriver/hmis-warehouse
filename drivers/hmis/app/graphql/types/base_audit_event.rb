@@ -10,6 +10,10 @@ module Types
       Class.new(self) do
         graphql_name("#{node_class.graphql_name}AuditEvent")
         field :item, node_class, null: false
+
+        define_method(:schema_type) do
+          node_class
+        end
       end
     end
 
@@ -17,7 +21,7 @@ module Types
     field :event, HmisSchema::Enums::AuditEventType, null: false
     field :created_at, GraphQL::Types::ISO8601DateTime, null: false
     field :user, HmisSchema::User, null: true
-    field :object_changes, Types::JsonObject, null: true
+    field :object_changes, Types::JsonObject, null: true, description: 'Format is { field: { fieldName: "GQL field name", displayName: "Human readable name", values: [old, new] } }'
 
     def user
       Hmis::Hud::User.find_by(id: object.whodunnit)
@@ -28,8 +32,24 @@ module Types
 
       result = YAML.load(object.object_changes, permitted_classes: [Time, Date, Symbol]).except('DateUpdated')
 
-      result = result.except('SSN') unless current_user.can_view_full_ssn_for?(object)
-      result = result.except('DOB') unless current_user.can_view_dob_for?(object)
+      result = result.map do |key, value|
+        name = key.camelize(:lower)
+        field = Hmis::Hud::Processors::Base.hud_type(name, schema_type)
+
+        values = value.map { |val| field ? field.key_for(val) : val }
+
+        values = 'changed' if key == 'SSN' && !current_user.can_view_full_ssn_for?(object)
+        values = 'changed' if key == 'DOB' && !current_user.can_view_dob_for?(object)
+
+        [
+          name,
+          {
+            'fieldName' => name,
+            'displayName' => key.titleize,
+            'values' => values,
+          },
+        ]
+      end.to_h
 
       result
     end

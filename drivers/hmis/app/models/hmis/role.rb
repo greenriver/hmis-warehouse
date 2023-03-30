@@ -226,6 +226,14 @@ class Hmis::Role < ::ApplicationRecord
           'Files',
         ],
       },
+      can_audit_clients: {
+        description: 'Access to see who has changed a client record.',
+        administrative: false,
+        access: [:viewable],
+        categories: [
+          'Audit History',
+        ],
+      },
     }
   end
 end

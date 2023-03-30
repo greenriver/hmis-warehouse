@@ -26,7 +26,7 @@ module Types
           # Override "resolve_audit_history" to override default scope behavior
           define_method(:resolve_audit_history) do
             # Unscope to remove default order, otherwise it will conflict
-            object.send(association_name).unscope(:order).order(created_at: :desc)
+            object.send(association_name).where.not(object_changes: nil).unscope(:order).order(created_at: :desc)
           end
         end
       end

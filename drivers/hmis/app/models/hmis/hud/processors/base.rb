@@ -27,7 +27,7 @@ class Hmis::Hud::Processors::Base
     field.underscore
   end
 
-  def hud_type(field)
+  def self.hud_type(field, schema)
     return nil unless schema.fields[field].present?
 
     type = schema.fields[field].type
@@ -35,6 +35,10 @@ class Hmis::Hud::Processors::Base
     return nil unless type.respond_to?(:value_for)
 
     type
+  end
+
+  def hud_type(field)
+    self.class.hud_type(field, schema)
   end
 
   def attribute_value_for_enum(enum_type, value)
