@@ -200,9 +200,20 @@ module Health
     end
 
     scope :engaged, ->(on: Date.current) do
+      engaged_cp_1(on).
+        or(engaged_cp_2(on))
+    end
+
+    scope :engaged_cp_1, ->(on) do
       joins(:patient_referrals).
-        merge(Health::PatientReferral.cp_1_referrals).cp_1_engagement(on).
-        or(merge(Health::PatientReferral.cp_2_referrals).cp_2_engagement(on))
+        merge(Health::PatientReferral.cp_1_referrals).
+        cp_1_engagement(on)
+    end
+
+    scope :engaged_cp_2, ->(on) do
+      joins(:patient_referrals).
+        merge(Health::PatientReferral.cp_2_referrals).
+        cp_2_engagement(on)
     end
 
     # CP 1 required an SSM, CHA, participation agreement and information release (combined after 11/2022),
