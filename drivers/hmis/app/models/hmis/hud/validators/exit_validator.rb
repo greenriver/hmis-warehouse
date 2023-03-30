@@ -31,7 +31,7 @@ class Hmis::Hud::Validators::ExitValidator < Hmis::Hud::Validators::BaseValidato
 
     member_enrollments = enrollment.household_members
     if member_enrollments.size > 1
-      member_exit_dates = member_enrollments.map(&:exit_date)
+      member_exit_dates = member_enrollments.map(&:exit_date).compact
       # If HoH, other members exit dates shouldn't be later
       errors.add :exit_date, :out_of_range, severity: :warning, message: hoh_exits_before_others if enrollment.head_of_household? && member_exit_dates.any? { |date| date > exit_date }
 
