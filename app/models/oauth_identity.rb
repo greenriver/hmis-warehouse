@@ -20,6 +20,11 @@ class OauthIdentity < ApplicationRecord
     raw_info['id_token']
   end
 
+  # human friendly provider name
+  def provider_name
+    provider =~ /okta/ ? 'OKTA' : provider
+  end
+
   # https://developer.okta.com/docs/reference/api/oidc/#logout
   # @param post_logout_redirect_uri [String]
   # @param state [String]

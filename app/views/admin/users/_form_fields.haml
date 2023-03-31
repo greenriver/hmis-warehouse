@@ -2,9 +2,10 @@
 .row
   .col-sm-6
     %h3 User Information
-    - if user.provider.present?
+    - providers = user.oauth_identities.map(&:provider_name).sort.uniq
+    - if providers.any?
       .alert.alert-info
-        = "Sign-in provided by #{user.provider.upcase}. Changes made here to personal information may be overwritten on the user's next login."
+        = "Sign-in provided by #{providers.to_sentence}. Changes made here to personal information may be overwritten on the user's next login."
     .form-inputs.well
       .row
         .col-sm-10
