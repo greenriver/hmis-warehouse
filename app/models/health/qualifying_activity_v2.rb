@@ -14,7 +14,7 @@ module Health
 
     CONTACTLESS_ACTIVITIES = [:cha_completed, :pctp_signed, :sdoh_positive, :sdoh_negative].freeze
 
-    EFFECTIVE_DATE_RANGE = ('2023-04-01'.to_date ..).freeze
+    EFFECTIVE_DATE_RANGE = ('2023-04-01'.to_date ..)
     ATTRIBUTE_SUFFIX = '_v2'.freeze
 
     def initialize(qa)
@@ -172,6 +172,7 @@ module Health
           title: 'SDoH screening positive',
           code: 'G9919',
           weight: 200,
+          hidden: true,
           allowed: [],
           required: [],
           per_day: 1,
@@ -180,6 +181,7 @@ module Health
           title: 'SDoH screening negative',
           code: 'G9920',
           weight: 210,
+          hidden: true,
           allowed: [],
           required: [],
           per_day: 1,
