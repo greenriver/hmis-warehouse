@@ -32,13 +32,16 @@ module Mutations
       errors.add :assessment, :invalid, full_message: 'Assessments must have the same data collection stage.' if data_collection_stages.count != 1
       return { errors: errors } if errors.any?
 
-      # HoH Exit constraints
+      is_exit = assessments.first.exit?
+      is_intake = assessments.first.intake?
       includes_hoh = enrollments.map(&:relationship_to_ho_h).uniq.include?(1)
-      if assessments.first.exit? && includes_hoh
+
+      household_enrollments_not_included = enrollments.first.household_members.where.not(enrollment_id: enrollments.map(&:enrollment_id))
+
+      # HoH Exit constraints
+      if is_exit && includes_hoh
         # "Date.tomorrow" because it's OK if the exit date is today, but not if there is no exit date, or if the exit date is in the future (shouldn't happen)
-        open_enrollments = Hmis::Hud::Enrollment.viewable_by(current_user).open_on_date(Date.tomorrow).
-          where(household_id: household_ids.first).
-          where.not(enrollment_id: enrollments.map(&:enrollment_id))
+        open_enrollments = household_enrollments_not_included.open_on_date(Date.tomorrow)
 
         # Error: cannot exit HoH if there are any other open enrollments
         errors.add :assessment, :invalid, full_message: 'Cannot exit head of household because there are existing open enrollments. Please assign a new HoH, or exit all open enrollments.' if open_enrollments.any?
@@ -48,7 +51,7 @@ module Mutations
       end
 
       # Non-HoH Intake constraints
-      if assessments.first.intake? && !includes_hoh
+      if is_intake && !includes_hoh
         hoh_enrollment = Hmis::Hud::Enrollment.viewable_by(current_user).
           heads_of_households.
           where(household_id: household_ids.first).
@@ -60,22 +63,32 @@ module Mutations
 
       return { errors: errors } if errors.any?
 
+      # Get the HoH entry date (or proposed entry date) for validation
+      if is_intake
+        hoh_entry_date = if includes_hoh
+          assessments.find { |a| a.enrollment.head_of_household? }.assessment_date_item
+        else
+          assessments.first.enrollment.hoh_entry_date
+        end
+      end
+
+      # Get all members exit dates (and/or proposed exit dates) for validation
+      if is_exit
+        member_exit_dates = assessments.map(&:assessment_date)
+        member_exit_dates.push(*household_enrollments_not_included.map(&:exit_date).compact)
+      end
+
       # Validate form values based on FormDefinition
       assessments.each do |assessment|
-        # FIXME: this needs to validate against the PROPOSED dates, not the actual dates
         # Validate the assessment date
-        assessment_date, date_validation_errors = assessment.custom_form.definition.find_and_validate_assessment_date(
-          values: assessment.custom_form.values,
+        date_validation_errors = assessment.custom_form.definition.validate_assessment_date(
+          date: assessment.assessment_date,
           enrollment: assessment.enrollment,
           ignore_warnings: confirmed,
+          hoh_entry_date: hoh_entry_date,
+          member_exit_dates: member_exit_dates,
         )
         errors.add_with_record_id(date_validation_errors, assessment.id)
-
-        # Set the assessment date (doesn't happen on WIP save)
-        assessment.assign_attributes(
-          assessment_date: assessment_date || assessment.assessment_date,
-          user_id: hmis_user.user_id,
-        )
 
         # Collect other form validations
         form_validations = assessment.custom_form.collect_form_validations(ignore_warnings: confirmed)
@@ -85,6 +98,7 @@ module Mutations
       all_valid = true
       # Run form processor on each assessment, validate all records
       assessments.each do |assessment|
+        assessment.assign_attributes(user_id: hmis_user.user_id)
         # Run processor to create/update related records
         assessment.custom_form.form_processor.run!
         # Run both validations

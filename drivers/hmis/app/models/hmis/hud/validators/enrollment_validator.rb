@@ -10,7 +10,7 @@ class Hmis::Hud::Validators::EnrollmentValidator < Hmis::Hud::Validators::BaseVa
     Hmis::Hud::Enrollment.hmis_configuration(version: '2022').except(*IGNORED)
   end
 
-  def self.validate_entry_date(entry_date, enrollment:, options: {})
+  def self.validate_entry_date(entry_date, enrollment:, hoh_entry_date: nil, options: {})
     return [] unless entry_date.present?
 
     errors = HmisErrors::Errors.new
@@ -23,7 +23,7 @@ class Hmis::Hud::Validators::EnrollmentValidator < Hmis::Hud::Validators::BaseVa
     errors.add :entry_date, :out_of_range, message: after_exit_message(exit_date), **options if exit_date.present? && exit_date < entry_date
 
     unless enrollment.head_of_household?
-      hoh_entry_date = enrollment.hoh_entry_date
+      hoh_entry_date ||= enrollment.hoh_entry_date
       errors.add :entry_date, :out_of_range, severity: :warning, message: before_hoh_entry_message(hoh_entry_date), **options if hoh_entry_date.present? && entry_date < hoh_entry_date
     end
 
