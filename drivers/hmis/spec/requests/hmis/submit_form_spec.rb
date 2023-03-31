@@ -1,7 +1,6 @@
 require 'rails_helper'
 require_relative 'login_and_permissions'
 require_relative '../../support/hmis_base_setup'
-require_relative '../../models/hmis/form/hmis_form_setup'
 
 RSpec.describe Hmis::GraphqlController, type: :request do
   before(:all) do
@@ -12,8 +11,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   include_context 'hmis base setup'
-  include_context 'hmis service setup'
-  include_context 'hmis form setup'
   include_context 'file upload setup'
 
   TIME_FMT = '%Y-%m-%d %T.%3N'.freeze

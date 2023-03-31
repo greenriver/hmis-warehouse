@@ -329,7 +329,14 @@ def setup_hmis_admin_access
   # Create HMIS Data Source
   hmis_ds = GrdaWarehouse::DataSource.source.where(hmis: ENV['HMIS_HOSTNAME']).first_or_create! do |ds|
     ds.name = 'HMIS Data Source'
+    ds.short_name = 'HMIS'
   end
+
+  # Load FormDefinitions from JSON files
+  HmisUtil::JsonForms.seed_record_form_definitions
+  HmisUtil::JsonForms.seed_assessment_form_definitions
+  # Load HUD service types
+  HmisUtil::ServiceTypes.seed_hud_service_types(hmis_ds.id)
 
   # Dev only: give a user HMIS Admin access by setting up a basic Access Control List
   return unless Rails.env.development?

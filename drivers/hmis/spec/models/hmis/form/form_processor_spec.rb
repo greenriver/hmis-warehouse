@@ -1091,11 +1091,6 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
   end
 
   describe 'Form processing for Service' do
-    before(:each) do
-      ::HmisUtil::ServiceTypes.seed_hud_service_types(ds.id)
-    end
-    let!(:csc1) { create :hmis_custom_service_category, data_source: ds, user: hmis_hud_user }
-    let!(:cst1) { create :hmis_custom_service_type, data_source: ds, custom_service_category: csc1, user: hmis_hud_user }
     let!(:hud_s1) { create :hmis_hud_service, data_source: ds, client: c1, enrollment: e1, date_updated: Date.today - 1.week, user: hmis_hud_user }
     let(:s1) { Hmis::Hud::HmisService.find_by(owner: hud_s1) }
 
