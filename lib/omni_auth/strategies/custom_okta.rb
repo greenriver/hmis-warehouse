@@ -7,9 +7,11 @@ module OmniAuth
     class CustomOkta < OmniAuth::Strategies::OAuth2
       DEFAULT_SCOPE = %(openid profile email)
 
-      option :name, 'okta'
+      # specify name option when adding strategy to the stack
+      # option :name, 'okta'
       option :skip_jwt, false
       option :jwt_leeway, 60
+      option :full_host, nil
 
       # These are defaults that need to be overriden on an implementation
       option :client_options, {
@@ -46,18 +48,6 @@ module OmniAuth
         end
       end
 
-      # if we're supporting SSO from the HMIS front-end, track it via user_type cookie
-      if ENV['HMIS_HOSTNAME'].present?
-        def request_phase
-          param_value = request
-            .params['user_type']
-            .presence_in(Users::OmniauthCallbacksController::USER_TYPES)
-          default_value = Users::OmniauthCallbacksController::WH_USER_TYPE
-          cookie_jar[:user_type] = param_value || default_value
-          super
-        end
-      end
-
       def client_options
         options.fetch(:client_options)
       end
@@ -84,26 +74,10 @@ module OmniAuth
         options[:redirect_uri] || (full_host + callback_path)
       end
 
-      # override fullhost to use hmis
+      # allow override of full_host via options rather than inferring it from the request
+      # (in the case of proxy from HMIS front-end, this hostname might not be public)
       def full_host
-        if cookie_jar[:user_type] == hmis_user_type
-          host = ENV.fetch('HMIS_HOSTNAME')
-          "https://#{host}"
-        else
-          super
-        end
-      end
-
-      def hmis_user_type
-        Users::OmniauthCallbacksController::HMIS_USER_TYPE
-      end
-
-      def rails_request
-        @rails_request ||= ActionDispatch::Request.new(env)
-      end
-
-      def cookie_jar
-        rails_request.cookie_jar.signed
+        options[:full_host] || super
       end
 
       # Returns the qualified URL for the authorization server

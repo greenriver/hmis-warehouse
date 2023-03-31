@@ -9,8 +9,9 @@ class Hmis::AppSettingsController < Hmis::BaseController
   prepend_before_action :skip_timeout
 
   def show
+    okta_enabled = ENV['HMIS_OKTA_CLIENT_ID'].present? && ENV['OKTA_DOMAIN'].present?
     render json: {
-      oktaPath: ENV['OKTA_DOMAIN'].present? ? '/users/auth/okta' : nil,
+      oktaPath: okta_enabled ? '/hmis/users/auth/hmis_okta' : nil,
     }
   end
 end

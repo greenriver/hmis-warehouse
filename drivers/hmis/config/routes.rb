@@ -13,6 +13,9 @@ BostonHmis::Application.routes.draw do
 
       devise_scope :hmis_user do
         match 'logout' => 'sessions#destroy', via: :get if Rails.env.development?
+        if ENV['OKTA_DOMAIN'].present?
+          get '/users/auth/hmis_okta/callback' => 'users/omniauth_callbacks#okta' if ENV['HMIS_OKTA_CLIENT_ID']
+        end
       end
 
       get 'theme', to: 'theme#index', defaults: { format: :json }

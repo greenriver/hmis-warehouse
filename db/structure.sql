@@ -10,6 +10,13 @@ SET client_min_messages = warning;
 SET row_security = off;
 
 --
+-- Name: public; Type: SCHEMA; Schema: -; Owner: -
+--
+
+-- *not* creating schema, since initdb creates it
+
+
+--
 -- Name: fuzzystrmatch; Type: EXTENSION; Schema: -; Owner: -
 --
 
@@ -1465,6 +1472,40 @@ CREATE SEQUENCE public.notifications_id_seq
 
 
 --
+-- Name: oauth_identities; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.oauth_identities (
+    id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    user_id bigint,
+    provider character varying NOT NULL,
+    raw_info json,
+    uid character varying NOT NULL
+);
+
+
+--
+-- Name: oauth_identities_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.oauth_identities_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: oauth_identities_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.oauth_identities_id_seq OWNED BY public.oauth_identities.id;
+
+
+--
 -- Name: old_passwords; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2548,10 +2589,10 @@ CREATE TABLE public.users (
     training_completed boolean DEFAULT false,
     last_training_completed date,
     receive_account_request_notifications boolean DEFAULT false,
-    provider character varying,
-    uid character varying,
-    provider_raw_info json,
-    provider_set_at timestamp without time zone,
+    deprecated_provider character varying,
+    deprecated_uid character varying,
+    deprecated_provider_raw_info json,
+    deprecated_provider_set_at timestamp without time zone,
     exclude_from_directory boolean DEFAULT false,
     exclude_phone_from_directory boolean DEFAULT false,
     notify_on_new_account boolean DEFAULT false NOT NULL
@@ -2853,6 +2894,13 @@ ALTER TABLE ONLY public.messages ALTER COLUMN id SET DEFAULT nextval('public.mes
 --
 
 ALTER TABLE ONLY public.nicknames ALTER COLUMN id SET DEFAULT nextval('public.nicknames_id_seq'::regclass);
+
+
+--
+-- Name: oauth_identities id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.oauth_identities ALTER COLUMN id SET DEFAULT nextval('public.oauth_identities_id_seq'::regclass);
 
 
 --
@@ -3182,6 +3230,14 @@ ALTER TABLE ONLY public.nicknames
 
 
 --
+-- Name: oauth_identities oauth_identities_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.oauth_identities
+    ADD CONSTRAINT oauth_identities_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: old_passwords old_passwords_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3338,6 +3394,13 @@ ALTER TABLE ONLY public.warehouse_alerts
 --
 
 CREATE INDEX delayed_jobs_priority ON public.delayed_jobs USING btree (priority, run_at);
+
+
+--
+-- Name: idx_oauth_on_provider_and_uid; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX idx_oauth_on_provider_and_uid ON public.oauth_identities USING btree (provider, uid);
 
 
 --
@@ -3513,6 +3576,20 @@ CREATE INDEX index_login_activities_on_identity ON public.login_activities USING
 --
 
 CREATE INDEX index_login_activities_on_ip ON public.login_activities USING btree (ip);
+
+
+--
+-- Name: index_oauth_identities_on_uid; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_oauth_identities_on_uid ON public.oauth_identities USING btree (uid);
+
+
+--
+-- Name: index_oauth_identities_on_user_id_and_provider; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_oauth_identities_on_user_id_and_provider ON public.oauth_identities USING btree (user_id, provider);
 
 
 --
@@ -3730,13 +3807,6 @@ CREATE INDEX index_users_on_invited_by_id ON public.users USING btree (invited_b
 --
 
 CREATE UNIQUE INDEX index_users_on_reset_password_token ON public.users USING btree (reset_password_token);
-
-
---
--- Name: index_users_on_uid_and_provider; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX index_users_on_uid_and_provider ON public.users USING btree (uid, provider);
 
 
 --
@@ -4077,6 +4147,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230217201904'),
 ('20230223204644'),
 ('20230227221846'),
-('20230313152950');
+('20230313152950'),
+('20230328150855');
 
 

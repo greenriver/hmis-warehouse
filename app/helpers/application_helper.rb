@@ -389,4 +389,12 @@ module ApplicationHelper
   def hmis_admin_visible?
     HmisEnforcement.hmis_admin_visible?(current_user)
   end
+
+  def omni_auth_providers
+    if ENV['ENABLE_HMIS_API']
+      [['Okta', '/users/auth/okta']]
+    else
+      []
+    end
+  end
 end
