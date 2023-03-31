@@ -16,7 +16,7 @@ FactoryBot.define do
         2.weeks.ago,
         1.week.ago,
         2.days.ago,
-        Date.current,
+        Date.yesterday,
       ]
       dates[n % 5].to_date
     end

@@ -16,6 +16,10 @@
         {
           "initial_behavior": "OVERWRITE",
           "value_local_constant": "$exitDate"
+        },
+        {
+          "initial_behavior": "IF_EMPTY",
+          "value_local_constant": "$today"
         }
       ]
     },

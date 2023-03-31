@@ -12,6 +12,28 @@
       ]
     },
     {
+      "type": "BOOLEAN",
+      "link_id": "see-ssn",
+      "hidden": true,
+      "initial": [
+        {
+          "initial_behavior": "OVERWRITE",
+          "value_local_constant": "$canViewFullSsn"
+        }
+      ]
+    },
+    {
+      "type": "BOOLEAN",
+      "link_id": "see-dob",
+      "hidden": true,
+      "initial": [
+        {
+          "initial_behavior": "OVERWRITE",
+          "value_local_constant": "$canViewDob"
+        }
+      ]
+    },
+    {
       "type": "GROUP",
       "link_id": "name",
       "text": "Name",
@@ -88,7 +110,14 @@
           "required": false,
           "link_id": "dob",
           "text": "Date of Birth",
-          "field_name": "dob"
+          "field_name": "dob",
+          "enable_when": [
+            {
+              "question": "see-dob",
+              "operator": "EQUAL",
+              "answer_boolean": true
+            }
+          ]
         },
         {
           "type": "GROUP",
@@ -103,6 +132,13 @@
               "field_name": "dobDataQuality",
               "pick_list_reference": "DOBDataQuality"
             }
+          ],
+          "enable_when": [
+            {
+              "question": "see-dob",
+              "operator": "EQUAL",
+              "answer_boolean": true
+            }
           ]
         },
         {
@@ -111,7 +147,14 @@
           "link_id": "ssn",
           "text": "Social Security Number",
           "field_name": "ssn",
-          "component": "SSN"
+          "component": "SSN",
+          "enable_when": [
+            {
+              "question": "see-ssn",
+              "operator": "EQUAL",
+              "answer_boolean": true
+            }
+          ]
         },
         {
           "type": "GROUP",
@@ -126,7 +169,27 @@
               "field_name": "ssnDataQuality",
               "pick_list_reference": "SSNDataQuality"
             }
+          ],
+          "enable_when": [
+            {
+              "question": "see-ssn",
+              "operator": "EQUAL",
+              "answer_boolean": true
+            }
           ]
+        }
+      ],
+      "enable_behavior": "ANY",
+      "enable_when": [
+        {
+          "question": "see-dob",
+          "operator": "EQUAL",
+          "answer_boolean": true
+        },
+        {
+          "question": "see-ssn",
+          "operator": "EQUAL",
+          "answer_boolean": true
         }
       ]
     },

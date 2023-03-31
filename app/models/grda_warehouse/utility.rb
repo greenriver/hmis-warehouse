@@ -57,7 +57,7 @@ class GrdaWarehouse::Utility
       Reporting::Housed,
       Reporting::MonthlyClientIds,
       Reporting::Return,
-      PaperTrail::Version,
+      GrPaperTrail::Version,
       ReportResult,
       AccessGroup,
       AccessGroupMember,

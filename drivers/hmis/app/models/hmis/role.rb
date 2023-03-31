@@ -194,10 +194,34 @@ class Hmis::Role < ::ApplicationRecord
           'Enrollments',
         ],
       },
-      can_manage_client_files: {
-        description: 'Grants the ability to manage client files',
+      can_manage_any_client_files: {
+        description: 'Grants the ability to manage anyone\'s client files',
         administrative: false,
         access: [:editable],
+        categories: [
+          'Files',
+        ],
+      },
+      can_manage_own_client_files: {
+        description: 'Grants the ability to manage user\'s own client files',
+        administrative: false,
+        access: [:editable],
+        categories: [
+          'Files',
+        ],
+      },
+      can_view_any_nonconfidential_client_files: {
+        description: 'Grants the ability to view non-confidential client files uploaded by anyone',
+        administrative: false,
+        access: [:viewable],
+        categories: [
+          'Files',
+        ],
+      },
+      can_view_any_confidential_client_files: {
+        description: 'Grants the ability to view confidential client files uploaded by anyone',
+        administrative: false,
+        access: [:viewable],
         categories: [
           'Files',
         ],

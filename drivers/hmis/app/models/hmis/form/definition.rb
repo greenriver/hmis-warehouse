@@ -29,6 +29,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     FUNDER: 'Funder',
     INVENTORY: 'Inventory',
     PROJECT_COC: 'Project CoC',
+    FILE: 'File',
   }.freeze
 
   FORM_ROLE_CONFIG = {
@@ -39,6 +40,12 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     FUNDER: { class_name: 'Hmis::Hud::Funder', permission: :can_edit_project_details, resolve_as: 'Types::HmisSchema::Funder' },
     INVENTORY: { class_name: 'Hmis::Hud::Inventory', permission: :can_edit_project_details, resolve_as: 'Types::HmisSchema::Inventory' },
     PROJECT_COC: { class_name: 'Hmis::Hud::ProjectCoc', permission: :can_edit_project_details, resolve_as: 'Types::HmisSchema::ProjectCoc' },
+    FILE: {
+      class_name: 'Hmis::File',
+      permission: :can_manage_any_client_files,
+      authorize: Hmis::File.authorize_proc,
+      resolve_as: 'Types::HmisSchema::File',
+    },
   }.freeze
 
   FORM_DATA_COLLECTION_STAGES = {
@@ -121,6 +128,12 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     return unless FORM_ROLE_CONFIG[role.to_sym].present?
 
     FORM_ROLE_CONFIG[role.to_sym][:permission]
+  end
+
+  def allowed_proc
+    return unless FORM_ROLE_CONFIG[role.to_sym].present?
+
+    FORM_ROLE_CONFIG[role.to_sym][:authorize]
   end
 
   def assessment_date_item

@@ -31,6 +31,14 @@ RSpec.shared_context 'file upload setup', shared_context: :metadata do
     )
   end
 
+  let!(:tag2) do
+    GrdaWarehouse::AvailableFileTag.create!(
+      name: 'Social Security Card',
+      group: 'Citizenship Verification',
+      included_info: 'SSN',
+    )
+  end
+
   let!(:file) { File.open('drivers/hmis/spec/fixtures/files/TEST_PDF.pdf') }
   let!(:blob) do
     ActiveStorage::Blob.create_and_upload!(

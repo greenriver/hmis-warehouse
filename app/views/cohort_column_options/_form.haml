@@ -3,7 +3,7 @@
 .row
   .col-sm-6
     .form-inputs
-      = f.input :cohort_column, collection: @cohort_column_option.available_cohort_columns, include_blank: "Choose Column"
+      = f.input :cohort_column, collection: @cohort_column_option.available_cohort_columns, as: :select_two, include_blank: 'Choose Column'
       = f.input :value
       = f.input :active, label: "Active?"
 

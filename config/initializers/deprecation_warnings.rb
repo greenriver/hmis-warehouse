@@ -1,4 +1,5 @@
 ActiveSupport::Notifications.subscribe('deprecation.rails') do |name, start, finish, id, payload|
+  include NotifierConfig
   setup_notifier('DeprecationWarning')
   @notifier.ping(
     payload[:message],
