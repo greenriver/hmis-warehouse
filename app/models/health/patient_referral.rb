@@ -243,7 +243,7 @@ module Health
     end
 
     # After moving to days after enrollment, engagement date was 150 days after enrollment until 2023-04-01
-    ENGAGEMENT_IN_DAYS = 153
+    ENGAGEMENT_IN_DAYS = 153.days
 
     # The engagement date is the date by which a patient must be engaged
     def engagement_date
