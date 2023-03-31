@@ -11,10 +11,6 @@ module Hmis
 
       protected
 
-      def home_path
-        hmis_host_url
-      end
-
       def handle_success(user)
         sign_in(:hmis_user, user, event: :authentication)
         log('sign-in success')

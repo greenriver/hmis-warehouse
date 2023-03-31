@@ -27,18 +27,7 @@ module OmniauthCallbackBehavior
     end
   end
 
-  def passthru
-    # Just send them to the home page for now instead
-    # of showing the ugly text messsage
-
-    redirect_to home_path
-  end
-
   protected
-
-  def home_path
-    root_path
-  end
 
   def log(msg)
     method_name = caller_locations(1, 1)[0].label

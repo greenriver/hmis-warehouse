@@ -391,7 +391,7 @@ module ApplicationHelper
   end
 
   def omni_auth_providers
-    if ENV['ENABLE_HMIS_API']
+    if ENV['OKTA_DOMAIN']
       [['Okta', '/users/auth/okta']]
     else
       []
