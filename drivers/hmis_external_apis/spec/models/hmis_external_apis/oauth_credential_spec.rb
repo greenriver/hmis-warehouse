@@ -1,0 +1,49 @@
+###
+# Copyright 2016 - 2022 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+require 'rails_helper'
+
+# We need many secrets to test this. Essentially, this runs locally or on staging
+RSpec.describe HmisExternalApis::OauthCredential, type: :model do
+  if ENV['OAUTH_CREDENTIAL_TEST'] == 'true'
+    let(:host) { ENV.fetch('MCI_HOST', 'someapi.net') }
+    let(:client_id) { ENV.fetch('MCI_CLIENT_ID', '1234567890') }
+    let(:client_secret) { ENV.fetch('MCI_CLIENT_SECRET', 'secretsecretsecret') }
+    let(:token_url) { ENV.fetch('MCI_TOKEN_URL', 'https://api.somewhere.com/oauth2/ausn4n76zqvelHaPb0h7/v1/token') }
+    let(:ocp_apim_subscription_key) { ENV.fetch('MCI_OCP_APIM_SUBSCRIPTION_KEY', '1234567eaeaeaeaea') }
+
+    let(:subject) do
+      HmisExternalApis::OauthCredential.new(
+        client_id: client_id,
+        client_secret: client_secret,
+        token_url: token_url,
+        headers: { 'Ocp-Apim-Subscription-Key' => ocp_apim_subscription_key },
+        scope: 'API_TEST',
+      )
+    end
+
+    it 'supports a get' do
+      result = subject.get("https://#{host}/clients/v1/api/Lookup/logicalTables")
+      expect(result.status).to eq(200)
+      expect(result.parsed_body).to include('COUNTRY')
+      expect(result.parsed_body).to include('RACE')
+    end
+
+    it 'handles errors' do
+      result = subject.get("https://#{host}/clients/v1/api/not-a-thing")
+      expect(result.status).to be_nil
+      expect(result.body).to be_nil
+      expect(result.parsed_body).to be_nil
+      expect(result.error_type).to eq('OAuth2::Error')
+    end
+
+    it 'supports a post' do
+      result = subject.post("https://#{host}/clients/v1/api/Clients/clearance", { 'firstName' => 'John', 'lastName' => 'Smith', 'genderCode' => 1 })
+      expect(result.status).to eq(200)
+      expect(result.parsed_body.length).to eq(470)
+    end
+  end
+end

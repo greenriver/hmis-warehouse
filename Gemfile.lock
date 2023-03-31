@@ -1075,6 +1075,7 @@ DEPENDENCIES
   net-ssh (~> 7)
   nokogiri (>= 1.13.10)
   nominatim!
+  oauth2
   oj
   omniauth (~> 2.1)
   omniauth-oauth2 (~> 1.7.3)
@@ -1162,4 +1163,4 @@ DEPENDENCIES
   yabeda-rails
 
 BUNDLED WITH
-   2.3.26
+   2.4.9
