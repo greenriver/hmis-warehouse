@@ -46,6 +46,10 @@ module Reports::Pit::Fy2018
       ''
     end
 
+    def allowed_options(result)
+      options_from_result(result).keys.map(&:to_sym)
+    end
+
     def filter_from_result(result)
       # Old PITs don't the filter, but the HudFilterBase will handle display.
       f = ::Filters::HudFilterBase.new(user_id: result.user_id)
