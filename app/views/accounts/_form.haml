@@ -4,7 +4,7 @@
   .row
     .col-sm-6
       .form-inputs
-        - if @user.provider == 'okta'
+        - if @user.oauth_identities.any?(&:okta?)
           %p= link_to_if ENV['OKTA_DOMAIN'].present?, 'Manage Personal Information in OKTA', "https://#{ENV['OKTA_DOMAIN']}/enduser/settings"
         - else
           = f.input :first_name, required: true, disabled: @user.provider?
@@ -15,4 +15,3 @@
 
       .form-actions
         = f.button :submit, value: 'Update Account', class: 'btn btn-primary'
-

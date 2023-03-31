@@ -44,21 +44,19 @@ module OmniauthSupport
 
     raise 'user must be saved first' if new_record?
 
-    assign_attributes(
-      provider: nil,
-      uid: nil,
-      provider_set_at: nil,
-    )
+    transaction do
+      oauth_identities.each(&:destroy!)
 
-    if reactivate
-      self.last_activity_at = Time.current
-      self.expired_at = nil
-      self.active = true
+      if reactivate
+        self.last_activity_at = Time.current
+        self.expired_at = nil
+        self.active = true
+      end
+
+      self.password = Devise.friendly_token if reset_password
+
+      save!(validate: false)
     end
-
-    self.password = Devise.friendly_token if reset_password
-
-    save!(validate: false)
 
     send_reset_password_instructions if reset_password
 
