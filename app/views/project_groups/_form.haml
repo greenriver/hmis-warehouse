@@ -14,4 +14,10 @@
     .col-sm-6
       = f.input :data_source_ids, collection: @project_group.filter.data_source_options_for_select(user: current_user), as: :select_two, input_html: {multiple: true, placeholder: 'Choose Data Sources' }, label: 'Data Sources'
   %h3 Access
-  = f.input :users, collection: @groups, as: :grouped_select_two, group_method: :last, selected: @group_ids, input_html: {multiple: :multiple, placeholder: 'Please choose'}, label: 'Users and groups'
+  - users = @project_group.users_with_access(access_type: :edit)
+  - if users.count > 0
+    %p The following users already have access to participate in this cohort:
+    %ul
+      - users.each do |u|
+        %li= u.name_with_email
+  = f.input :editor_ids, collection: @users, as: :select_two, selected: @editor_ids, input_html: {multiple: :multiple, placeholder: 'Please choose'}, label: 'Users with edit access to this group'

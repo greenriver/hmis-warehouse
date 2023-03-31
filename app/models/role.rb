@@ -19,7 +19,7 @@ class Role < ApplicationRecord
     name.to_s
   end
 
-  scope :system, -> do
+  replace_scope :system, -> do
     where(system: true)
   end
 
@@ -59,6 +59,17 @@ class Role < ApplicationRecord
 
   scope :with_viewable_permissions, -> do
     with_any_permissions(*permissions_for_access(:viewable))
+  end
+
+  def self.system_user_role
+    where(
+      system: true,
+      name: 'System User Role',
+      can_edit_projects: true,
+      can_manage_cohort_data: true,
+      can_edit_project_groups: true,
+      can_view_all_reports: true,
+    ).first_or_create
   end
 
   def health?

@@ -12,11 +12,19 @@ module GrdaWarehouse
     acts_as_paranoid
     has_paper_trail
 
+    attr_accessor :editor_ids
+
     validates_presence_of :name
     after_create :maintain_system_group
 
     has_and_belongs_to_many :projects, class_name: 'GrdaWarehouse::Hud::Project', join_table: :project_project_groups
     has_many :clients, through: :projects
+
+    has_many :group_viewable_entities, -> { where(entity_type: 'GrdaWarehouse::ProjectGroup') }, class_name: 'GrdaWarehouse::GroupViewableEntity', foreign_key: :entity_id
+    # NOTE: these are in the app DB
+    has_many :access_groups, through: :group_viewable_entities
+    has_many :access_controls, through: :access_groups
+    has_many :users, through: :access_controls
 
     has_many :data_quality_reports, class_name: 'GrdaWarehouse::WarehouseReports::Project::DataQuality::Base'
     has_one :current_data_quality_report, -> do
@@ -243,6 +251,13 @@ module GrdaWarehouse
 
     private def editable_permission
       :can_edit_project_groups
+    end
+
+    private def editable_permissions
+      [
+        :can_edit_assigned_project_groups,
+        editable_permission,
+      ]
     end
   end
 end

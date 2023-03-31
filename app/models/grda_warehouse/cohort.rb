@@ -733,28 +733,6 @@ module GrdaWarehouse
       client_ids
     end
 
-    def users_with_access(access_type:)
-      access_group_ids = group_viewable_entities.pluck(:access_group_id)
-      return [] unless access_group_ids
-
-      permissions = case access_type
-      when :view
-        viewable_permissions
-      when :edit
-        editable_permissions
-      else
-        raise 'Unknown access type'
-      end
-
-      ors = permissions.map do |perm|
-        r_t[perm].eq(true).to_sql
-      end
-      User.diet.distinct.
-        joins(:roles, :access_groups).
-        where(Arel.sql(ors.join(' or '))).
-        merge(AccessGroup.where(id: access_group_ids)).to_a
-    end
-
     private def cohort_client_changes_source
       GrdaWarehouse::CohortClientChange
     end

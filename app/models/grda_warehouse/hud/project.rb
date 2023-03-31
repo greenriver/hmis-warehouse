@@ -568,10 +568,10 @@ module GrdaWarehouse::Hud
     end
 
     def self.access_to_project_through_project_access_groups(user, _, _)
-      return '(1=0)' unless user.present? && user.project_access_groups.any?
+      return '(1=0)' unless user.present? && user.project_groups.any?
 
       project_ids = Rails.cache.fetch([user, 'project_access_group_project_ids'], expires_in: 1.minutes) do
-        user.project_access_groups.flat_map(&:projects).map(&:id)
+        user.project_groups.flat_map(&:projects).map(&:id)
       end
       p_t[:id].in(project_ids).to_sql
     end

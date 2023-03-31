@@ -95,6 +95,7 @@ class AccessGroup < ApplicationRecord
       cohorts: AccessGroup.where(name: 'All Cohorts').first_or_create,
       project_groups: AccessGroup.where(name: 'All Project Groups').first_or_create,
       data_sources: AccessGroup.where(name: 'All Data Sources').first_or_create,
+      system_user: AccessGroup.where(name: 'System User Group', must_exist: true, system: ['Entities', 'Hidden']).first_or_create,
     }
   end
 
@@ -106,20 +107,35 @@ class AccessGroup < ApplicationRecord
   end
 
   def self.maintain_system_groups(group: nil)
+    # First or Create the following:
+    # setup system role
+    # setup system hidden group (with all items currently in system groups below)
+    # setup system user
+    # setup system ACL with system role, system groups, system user
+    # Then add all ids for each category with set_viewables
+    system_user_role = Role.system_user_role
+    system_user_group = system_group(:system_user)
+    system_user = User.system_user
+    # TODO: add system flag and hide from UI
+    system_user_acl = AccessControl.where(role: system_user_role, access_group: system_user_group).first_or_create
+    system_user_acl.add(system_user)
+
     if group.blank? || group == :reports
       # Reports
       all_reports = GrdaWarehouse::WarehouseReports::ReportDefinition.enabled
-
+      all_report_ids = []
       all_hmis_reports = system_group(:hmis_reports)
       all_hmis_reports.update(system: ['Entities'], must_exist: true)
       ids = all_reports.where(health: false).pluck(:id)
       all_hmis_reports.set_viewables({ reports: ids })
+      all_report_ids += ids
 
       all_health_reports = system_group(:health_reports)
       all_health_reports.update(system: ['Entities'], must_exist: true)
       ids = all_reports.where(health: true).pluck(:id)
       all_health_reports.set_viewables({ reports: ids })
-      all_health_reports.add(User.system_user)
+      all_report_ids += ids
+      system_user_group.set_viewables({ reports: all_report_ids })
     end
 
     if group.blank? || group == :cohorts
@@ -128,7 +144,7 @@ class AccessGroup < ApplicationRecord
       all_cohorts.update(system: ['Entities'], must_exist: true)
       ids = GrdaWarehouse::Cohort.pluck(:id)
       all_cohorts.set_viewables({ cohorts: ids })
-      all_cohorts.add(User.system_user)
+      system_user_group.set_viewables({ cohorts: ids })
     end
 
     if group.blank? || group == :project_groups
@@ -137,7 +153,7 @@ class AccessGroup < ApplicationRecord
       all_project_groups.update(system: ['Entities'], must_exist: true)
       ids = GrdaWarehouse::ProjectGroup.pluck(:id)
       all_project_groups.set_viewables({ project_groups: ids })
-      all_project_groups.add(User.system_user)
+      system_user_group.set_viewables({ project_groups: ids })
     end
 
     if group.blank? || group == :data_sources # rubocop:disable Style/GuardClause
@@ -146,7 +162,7 @@ class AccessGroup < ApplicationRecord
       all_data_sources.update(system: ['Entities'], must_exist: true)
       ids = GrdaWarehouse::DataSource.pluck(:id)
       all_data_sources.set_viewables({ data_sources: ids })
-      all_data_sources.add(User.system_user)
+      system_user_group.set_viewables({ data_sources: ids })
     end
   end
 
