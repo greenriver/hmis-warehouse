@@ -70,6 +70,11 @@ module OmniAuth
         raise ::Timeout::Error
       end
 
+      # test failure case
+      # def request_phase
+      #   fail!(:authenticity_error)
+      # end
+
       def callback_url
         options[:redirect_uri] || (full_host + callback_path)
       end

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# mixin for okta callbacks,
+# note failure is configured in omniauth initializer
 module OmniauthCallbackBehavior
   extend ActiveSupport::Concern
   include AuthenticatesWithTwoFactor
@@ -30,12 +32,6 @@ module OmniauthCallbackBehavior
     # of showing the ugly text messsage
 
     redirect_to home_path
-  end
-
-  # configured in omniauth initializer
-  def failure
-    log('failure')
-    redirect_to home_path + '?sso_failed=1'
   end
 
   protected

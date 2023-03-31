@@ -71,9 +71,16 @@ if ENV['OKTA_DOMAIN'].present?
     end
   end
 
-  OmniAuth.config.on_failure = Proc.new { |env|
-    env["devise.mapping"] = Devise.mappings[:user] if env['omniauth.params'].present?
-    Devise::OmniauthCallbacksController.action(:failure).call(env)
-  }
+  # configure failure
+  class CustomFailureEndpoint < OmniAuth::FailureEndpoint
+    def failure
+      message_key = Rack::Utils.escape(env['omniauth.error.type'])
+      origin = Rack::Utils.escape(env['omniauth.origin'])
+      Rails.logger.info("omniauth failed: #{env['HTTP_REFERER']} #{[message_key, origin].inspect}")
+      new_path = "/?sso_failed=1"
+      Rack::Response.new(['302 Moved'], 302, 'Location' => new_path).finish
+    end
+  end
+  OmniAuth.config.on_failure = Proc.new { |env| CustomFailureEndpoint.new(env).failure }
 
 end
