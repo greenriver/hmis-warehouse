@@ -1,5 +1,5 @@
 .well.mx-auto(style='max-width: 340px')
-  - if omni_auth_providers.any?
+  - if omni_auth_providers.any? && !params[:local]
     - omni_auth_providers.each do |name, url|
       .my-4
         = button_to "Sign in with #{name}", url, class: 'btn btn-primary btn-block text-center'

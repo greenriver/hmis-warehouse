@@ -4,10 +4,6 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# originally from https://github.com/gitlabhq/gitlabhq/blob/master/app/controllers/concerns/authenticates_with_two_factor.rb
-
-# frozen_string_literal: true
-
 module OmniauthCallbackBehavior
   extend ActiveSupport::Concern
   include AuthenticatesWithTwoFactor
