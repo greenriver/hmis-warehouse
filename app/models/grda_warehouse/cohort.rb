@@ -25,7 +25,11 @@ module GrdaWarehouse
     belongs_to :tags, class_name: 'CasAccess::Tag', optional: true
     belongs_to :project_group, class_name: 'GrdaWarehouse::ProjectGroup', optional: true
 
-    has_many :group_viewable_entities, class_name: 'GrdaWarehouse::GroupViewableEntity', foreign_key: :entity_id
+    has_many :group_viewable_entities, -> { where(entity_type: 'GrdaWarehouse::Cohort') }, class_name: 'GrdaWarehouse::GroupViewableEntity', foreign_key: :entity_id
+    # NOTE: these are in the app DB
+    has_many :access_groups, through: :group_viewable_entities
+    has_many :access_controls, through: :access_groups
+    has_many :users, through: :access_controls
 
     attr_accessor :client_ids, :participator_ids, :viewer_ids
 
@@ -729,6 +733,28 @@ module GrdaWarehouse
       client_ids
     end
 
+    def users_with_access(access_type:)
+      access_group_ids = group_viewable_entities.pluck(:access_group_id)
+      return [] unless access_group_ids
+
+      permissions = case access_type
+      when :view
+        viewable_permissions
+      when :edit
+        editable_permissions
+      else
+        raise 'Unknown access type'
+      end
+
+      ors = permissions.map do |perm|
+        r_t[perm].eq(true).to_sql
+      end
+      User.diet.distinct.
+        joins(:roles, :access_groups).
+        where(Arel.sql(ors.join(' or '))).
+        merge(AccessGroup.where(id: access_group_ids)).to_a
+    end
+
     private def cohort_client_changes_source
       GrdaWarehouse::CohortClientChange
     end
@@ -745,8 +771,22 @@ module GrdaWarehouse
       :can_participate_in_cohorts
     end
 
-    private def vieable_permission
+    private def viewable_permission
       :can_view_cohorts
+    end
+
+    private def viewable_permissions
+      [
+        viewable_permission,
+      ]
+    end
+
+    private def editable_permissions
+      [
+        :can_manage_cohort_data,
+        :can_view_cohorts,
+        editable_permission,
+      ]
     end
   end
 end

@@ -65,7 +65,7 @@ module UserConcern
     belongs_to :agency, optional: true
 
     scope :diet, -> do
-      select(*(column_names - ['provider_raw_info', 'coc_codes', 'otp_backup_codes']))
+      select(*(column_names - ['provider_raw_info', 'coc_codes', 'otp_backup_codes']).map { |c| arel_table[c].to_sql })
     end
 
     scope :receives_file_notifications, -> do

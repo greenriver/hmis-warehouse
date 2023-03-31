@@ -15,7 +15,19 @@
         = f.input :active_cohort, as: :pretty_boolean, label: 'Active'
       %h3 Access
       .well
+        - users = @cohort.users_with_access(access_type: :edit)
+        - if users.count > 0
+          %p The following users already have access to participate in this cohort:
+          %ul
+            - users.each do |u|
+              %li= u.name_with_email
         = f.input :participator_ids, collection: @users, as: :select_two, selected: @participator_ids, input_html: {multiple: :multiple, style: 'width: 100%;'}, label: 'Grant participation-level access to users', hint: 'Specified user will have access to participate in this cohort.'
+        - users = @cohort.users_with_access(access_type: :view)
+        - if users.count > 0
+          %p The following users already have access to view this cohort:
+          %ul
+            - users.each do |u|
+              %li= u.name_with_email
         = f.input :viewer_ids, collection: @users, as: :select_two, selected: @viewer_ids, input_html: {multiple: :multiple, style: 'width: 100%;'}, label: 'Grant read-only-level access to users', hint: 'Specified user will have access to view, but not change clients on this cohort.'
       %h3 Automation
       .well

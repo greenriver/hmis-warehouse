@@ -42,7 +42,7 @@ module EntityAccess
   end
 
   def viewable_role
-    @viewable_role ||= Role.system.where(name: viewable_role_name, vieable_permission => true).first_or_create
+    @viewable_role ||= Role.system.where(name: viewable_role_name, viewable_permission => true).first_or_create
   end
 
   def editable_role
