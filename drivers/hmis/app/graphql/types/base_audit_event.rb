@@ -6,7 +6,7 @@
 
 module Types
   class BaseAuditEvent < BaseObject
-    def self.create(node_class)
+    def self.build(node_class)
       Class.new(self) do
         graphql_name("#{node_class.graphql_name}AuditEvent")
         field :item, node_class, null: false
@@ -20,11 +20,11 @@ module Types
     field :id, ID, null: false
     field :event, HmisSchema::Enums::AuditEventType, null: false
     field :created_at, GraphQL::Types::ISO8601DateTime, null: false
-    field :user, HmisSchema::User, null: true
+    field :user, Application::User, null: true
     field :object_changes, Types::JsonObject, null: true, description: 'Format is { field: { fieldName: "GQL field name", displayName: "Human readable name", values: [old, new] } }'
 
     def user
-      Hmis::Hud::User.find_by(id: object.whodunnit)
+      Hmis::User.find_by(id: object.whodunnit)
     end
 
     def object_changes

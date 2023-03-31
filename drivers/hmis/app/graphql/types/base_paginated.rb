@@ -6,7 +6,7 @@
 
 module Types
   class BasePaginated < BaseObject
-    def self.create(node_class)
+    def self.build(node_class)
       Class.new(self) do
         graphql_name("#{node_class.graphql_name.pluralize}Paginated")
         field :nodes, [node_class], null: false
