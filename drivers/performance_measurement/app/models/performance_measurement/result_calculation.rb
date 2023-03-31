@@ -927,11 +927,11 @@ module PerformanceMeasurement::ResultCalculation
     end
 
     def leavers_with_increased_earned_income(detail, project: nil)
-      increased_income(detail, :income_stayer, __method__, project: project)
+      increased_income(detail, :income_leaver, __method__, project: project)
     end
 
     def leavers_with_increased_non_cash_income(detail, project: nil)
-      increased_income(detail, :income_stayer, __method__, project: project)
+      increased_income(detail, :income_leaver, __method__, project: project)
     end
 
     def increased_income_all_clients(detail, project: nil)

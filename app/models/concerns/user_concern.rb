@@ -300,7 +300,9 @@ module UserConcern
       return 'Account deactivated' unless version
       return "Account deactivated on #{version.created_at}" unless user.can_audit_users? || version.whodunnit.blank?
 
-      name = version.name_of_whodunnit?
+      name = nil
+      name = User.find_by(id: version.whodunnit)&.name if version.whodunnit&.to_i&.to_s == version.whodunnit
+
       return "Account deactivated on #{version.created_at}" unless name
 
       "Account deactivated by #{name} on #{version.created_at}"
