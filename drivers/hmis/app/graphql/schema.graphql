@@ -389,6 +389,10 @@ type ClientAuditEvent {
   event: AuditEventType!
   id: ID!
   item: Client!
+
+  """
+  Format is { field: { fieldName: "GQL field name", displayName: "Human readable name", values: [old, new] } }
+  """
   objectChanges: JsonObject
   user: User
 }
