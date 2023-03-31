@@ -233,3 +233,7 @@ RSpec.describe Hmis::Form::Definition, type: :model do
     end
   end
 end
+
+RSpec.configure do |c|
+  c.include GraphqlHelpers
+end
