@@ -6,6 +6,8 @@
 
 class OauthIdentity < ApplicationRecord
   belongs_to :user
+  PROVIDERS = ['wh_okta', 'hmis_okta'].freeze
+  validates :provider, inclusion: { in: PROVIDERS }
 
   # @param user [User, Hmis::User]
   def self.for_user(user)

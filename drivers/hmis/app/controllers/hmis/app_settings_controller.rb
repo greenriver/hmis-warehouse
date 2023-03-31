@@ -11,7 +11,7 @@ class Hmis::AppSettingsController < Hmis::BaseController
   def show
     okta_enabled = ENV['HMIS_OKTA_CLIENT_ID'].present? && ENV['OKTA_DOMAIN'].present?
     render json: {
-      oktaPath: okta_enabled ? '/hmis/users/auth/hmis_okta' : nil,
+      oktaPath: okta_enabled ? '/hmis/users/auth/okta' : nil,
     }
   end
 end

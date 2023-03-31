@@ -27,6 +27,7 @@ if ENV['OKTA_DOMAIN'].present?
     end
   end
 
+  # options for ::OAuth2::Client
   client_options = {
     site: "https://#{domain}",
     authorize_url: "https://#{domain}/oauth2/#{auth_server}/v1/authorize",
@@ -43,8 +44,10 @@ if ENV['OKTA_DOMAIN'].present?
         ENV.fetch('OKTA_CLIENT_ID'), ENV.fetch('OKTA_CLIENT_SECRET'),
         scope: 'openid profile email phone',
         fields: ['profile', 'email', 'phone'],
-        name: 'okta',
+        name: 'wh_okta',
         path_prefix: "/users/auth",
+        request_path: "/users/auth/okta",
+        callback_path: "/users/auth/okta/callback",
         client_options: client_options,
       )
     end
@@ -60,6 +63,8 @@ if ENV['OKTA_DOMAIN'].present?
         fields: ['profile', 'email', 'phone'],
         name: 'hmis_okta',
         path_prefix: "/hmis/users/auth",
+        request_path: "/hmis/users/auth/okta",
+        callback_path: "/hmis/users/auth/okta/callback",
         full_host: "https://#{ENV.fetch('HMIS_HOSTNAME')}",
         client_options: client_options,
       )
