@@ -1107,6 +1107,7 @@ DEPENDENCIES
   reline
   responders
   rest-client (~> 2.0)
+  rexml
   rgeo
   rgeo-geojson
   rgeo-proj4
@@ -1161,4 +1162,4 @@ DEPENDENCIES
   yabeda-rails
 
 BUNDLED WITH
-   2.3.24
+   2.3.26
