@@ -12,6 +12,7 @@ module OmniAuth
       option :skip_jwt, false
       option :jwt_leeway, 60
       option :full_host, nil
+      option :after_failure, nil
 
       # These are defaults that need to be overriden on an implementation
       option :client_options, {
@@ -70,7 +71,26 @@ module OmniAuth
         raise ::Timeout::Error
       end
 
-      # test failure case
+      # override to allow custom handling
+      def fail!(message_key, exception = nil)
+        env['omniauth.error'] = exception
+        env['omniauth.error.type'] = message_key.to_sym
+        env['omniauth.error.strategy'] = self
+
+        if exception
+          log :error, "Authentication failure! #{message_key}: #{exception.class}, #{exception.message}"
+        else
+          log :error, "Authentication failure! #{message_key} encountered."
+        end
+
+        if options[:on_failure]
+          options[:on_failure].call(env)
+        else
+          OmniAuth.config.on_failure.call(env)
+        end
+      end
+
+      # uncomment to test failure case
       # def request_phase
       #   fail!(:authenticity_error)
       # end

@@ -14,6 +14,8 @@
 if ENV['OKTA_DOMAIN'].present?
   require 'omni_auth/strategies/custom_okta'
 
+  OmniAuth.config.logger = Rails.logger
+
   domain = ENV.fetch('OKTA_DOMAIN')
   auth_server = ENV.fetch('OKTA_AUTH_SERVER') { 'default' }
 
@@ -38,6 +40,10 @@ if ENV['OKTA_DOMAIN'].present?
 
   # warehouse okta app
   if ENV['OKTA_CLIENT_ID']
+    devise_failure_handler = ->(env) {
+      env["devise.mapping"] = Devise.mappings[:user]
+      Devise::OmniauthCallbacksController.action(:failure).call(env)
+    }
     Rails.application.middleware.use OmniAuth::Builder do
       provider(
         OmniAuth::Strategies::CustomOkta,
@@ -49,12 +55,17 @@ if ENV['OKTA_DOMAIN'].present?
         request_path: "/users/auth/okta",
         callback_path: "/users/auth/okta/callback",
         client_options: client_options,
+        on_failure: devise_failure_handler,
       )
     end
   end
 
   # hmis okta app
   if ENV['HMIS_OKTA_CLIENT_ID']
+    simple_failure_handler = -> (env) {
+      new_path = "/?sso_failed=1"
+      Rack::Response.new(['302 Moved'], 302, 'Location' => new_path).finish
+    }
     Rails.application.middleware.use OmniAuth::Builder do
       provider(
         OmniAuth::Strategies::CustomOkta,
@@ -67,20 +78,9 @@ if ENV['OKTA_DOMAIN'].present?
         callback_path: "/hmis/users/auth/okta/callback",
         full_host: "https://#{ENV.fetch('HMIS_HOSTNAME')}",
         client_options: client_options,
+        on_failure: simple_failure_handler,
       )
     end
   end
-
-  # configure failure
-  class CustomFailureEndpoint < OmniAuth::FailureEndpoint
-    def failure
-      message_key = Rack::Utils.escape(env['omniauth.error.type'])
-      origin = Rack::Utils.escape(env['omniauth.origin'])
-      Rails.logger.info("omniauth failed: #{env['HTTP_REFERER']} #{[message_key, origin].inspect}")
-      new_path = "/?sso_failed=1"
-      Rack::Response.new(['302 Moved'], 302, 'Location' => new_path).finish
-    end
-  end
-  OmniAuth.config.on_failure = Proc.new { |env| CustomFailureEndpoint.new(env).failure }
 
 end
