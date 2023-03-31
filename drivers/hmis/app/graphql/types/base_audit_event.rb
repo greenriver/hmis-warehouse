@@ -6,13 +6,25 @@
 
 module Types
   class BaseAuditEvent < BaseObject
-    def self.build(node_class)
+    def self.build(node_class, field_permissions: nil, transform_changes: nil)
       Class.new(self) do
         graphql_name("#{node_class.graphql_name}AuditEvent")
         field :item, node_class, null: false
 
         define_method(:schema_type) do
           node_class
+        end
+
+        define_method(:transform_changes) do |object, changes|
+          return transform_changes.call(object, changes) if transform_changes.present?
+
+          changes
+        end
+
+        define_method(:authorize_field) do |object, key|
+          authorized = true
+          authorized = current_user.permissions_for?(object.item, *Array.wrap(field_permissions[key])) if field_permissions[key].present?
+          authorized
         end
       end
     end
@@ -30,16 +42,21 @@ module Types
     def object_changes
       return unless object.object_changes.present?
 
-      result = YAML.load(object.object_changes, permitted_classes: [Time, Date, Symbol]).except('DateUpdated')
+      result = YAML.load(object.object_changes, permitted_classes: [Time, Date, Symbol], aliases: true).except('DateUpdated')
 
-      result = result.map do |key, value|
+      result = transform_changes(object, result).map do |key, value|
         name = key.camelize(:lower)
         field = Hmis::Hud::Processors::Base.hud_type(name, schema_type)
 
-        values = value.map { |val| field ? field.key_for(val) : val }
+        values = value.map do |val|
+          next unless val.present?
+          next val unless field.present?
+          next val.map { |v| v.present? ? field.key_for(v) : nil } if val.is_a? Array
 
-        values = 'changed' if key == 'SSN' && !current_user.can_view_full_ssn_for?(object)
-        values = 'changed' if key == 'DOB' && !current_user.can_view_dob_for?(object)
+          field.key_for(val)
+        end
+
+        values = 'changed' unless authorize_field(object, key)
 
         [
           name,
