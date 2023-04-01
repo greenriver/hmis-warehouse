@@ -16,6 +16,7 @@ module EntityAccess
   #   4. add user to the access control
   # NOTE: this will remove any existing who are not included
   def replace_access(users, scope:)
+    users = Array.wrap(users)
     acl = case scope
     when :editor
       editable_acl
@@ -26,7 +27,7 @@ module EntityAccess
     end
     to_remove = acl.users - users
     acl.remove(to_remove) if to_remove.present?
-    acl.add(Array.wrap(users)) if users.present?
+    acl.add(users) if users.present?
   end
 
   def viewable_acl

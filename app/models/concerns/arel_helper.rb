@@ -200,6 +200,10 @@ module ArelHelper
     Role.arel_table
   end
 
+  def ag_t
+    AccessGroup.arel_table
+  end
+
   def she_t
     GrdaWarehouse::ServiceHistoryEnrollment.arel_table
   end
@@ -570,6 +574,10 @@ module ArelHelper
     # Some shortcuts for arel tables
     def r_t
       Role.arel_table
+    end
+
+    def ag_t
+      AccessGroup.arel_table
     end
 
     def she_t

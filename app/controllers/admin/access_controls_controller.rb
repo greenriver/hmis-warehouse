@@ -6,12 +6,13 @@
 
 class Admin::AccessControlsController < ApplicationController
   include ViewableEntities
+  include ArelHelper
 
   before_action :require_can_edit_users!
   before_action :set_access_control, only: [:edit, :update, :destroy]
 
   def index
-    @access_controls = access_control_scope.order(:role_id)
+    @access_controls = access_control_scope.joins(:role, :access_group).order(r_t[:name].asc, ag_t[:name].asc)
     @pagy, @access_controls = pagy(@access_controls)
   end
 

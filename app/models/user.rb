@@ -76,6 +76,20 @@ class User < ApplicationRecord
     end
   end
 
+  # To fetch the list of AccessGroups that grant a user access to a particular set of projects
+  # user.access_group_for?('GrdaWarehouse::Hud::Project', 'can_view_projects')
+  # To fetch the list of AccessGroups that grant a user access to clients enrolled at as set of projects
+  # user.access_group_for?('GrdaWarehouse::Hud::Project', 'can_view_clients')
+  def access_groups_for?(entity_type, perm)
+    return false unless entity_type.present? && perm.present?
+    return false unless send("#{perm}?")
+
+    role_ids = roles.where(perm => true).pluck(:id)
+    access_group_ids = access_controls.where(access_group_id: access_group_ids, role_id: role_ids)
+
+    AccessGroup.where(id: access_group_ids, entity_type: entity_type)
+  end
+
   def related_hmis_user(data_source)
     return unless HmisEnforcement.hmis_enabled?
 

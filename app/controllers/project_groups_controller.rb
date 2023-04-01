@@ -23,13 +23,12 @@ class ProjectGroupsController < ApplicationController
 
   def create
     @project_group = project_group_source.new
-    begin
-      project_group_source.transaction do
-        @project_group.assign_attributes(name: group_params[:name])
-        filter = ::Filters::HudFilterBase.new(user_id: current_user.id, project_type_numbers: []).update(filter_params.merge(coc_codes: []))
-        filter.coc_codes = []
-        @project_group.options = filter.to_h
-        @project_group.save!
+    project_group_source.transaction do
+      @project_group.assign_attributes(name: group_params[:name])
+      filter = ::Filters::HudFilterBase.new(user_id: current_user.id, project_type_numbers: []).update(filter_params.merge(coc_codes: []))
+      filter.coc_codes = []
+      @project_group.options = filter.to_h
+      if @project_group.save
         users = user_params[:editor_ids]&.reject(&:blank?)&.map(&:to_i)
         # If the user can't edit all project groups, make sure we add the user so they can access it later
         users << current_user.id
@@ -37,13 +36,8 @@ class ProjectGroupsController < ApplicationController
         @project_group.maintain_projects!
         AccessGroup.maintain_system_groups(group: :project_groups)
       end
-    rescue Exception => e
-      flash[:error] = e.message
-      set_access
-      render action: :new
-      return
     end
-    redirect_to action: :index
+    respond_with(@project_group, location: project_groups_path)
   end
 
   def edit
@@ -51,25 +45,20 @@ class ProjectGroupsController < ApplicationController
   end
 
   def update
-    begin
-      project_group_source.transaction do
-        @project_group.assign_attributes(name: group_params[:name])
-        filter = ::Filters::HudFilterBase.new(user_id: current_user.id, project_type_numbers: []).update(filter_params)
-        filter.coc_codes = []
-        @project_group.options = filter.to_h
-        @project_group.save!
-        if user_params.key?(:editor_ids)
-          users = user_params[:editor_ids]&.reject(&:empty?)&.map(&:to_i)
-          @project_group.replace_access(User.find(users), scope: :editor)
-        end
-        @project_group.maintain_projects!
+    project_group_source.transaction do
+      @project_group.assign_attributes(name: group_params[:name])
+      filter = ::Filters::HudFilterBase.new(user_id: current_user.id, project_type_numbers: []).update(filter_params)
+      filter.coc_codes = []
+      @project_group.options = filter.to_h
+      @project_group.save
+      if user_params.key?(:editor_ids)
+        users = user_params[:editor_ids]&.reject(&:empty?)&.map(&:to_i)
+        @project_group.replace_access(User.find(users), scope: :editor)
       end
-    rescue Exception => e
-      flash[:error] = e.message
-      render action: :edit
-      return
+      @project_group.maintain_projects!
     end
-    redirect_to action: :index
+
+    respond_with(@project_group, location: project_groups_path)
   end
 
   def destroy
@@ -120,8 +109,7 @@ class ProjectGroupsController < ApplicationController
   end
 
   def set_access
-    @users = User.active.not_system
-    @participator_ids = @project_group.editable_acl.user_ids
+    @editor_ids = @project_group.editable_acl.user_ids
   end
 
   def project_group_source

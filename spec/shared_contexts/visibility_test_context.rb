@@ -179,6 +179,7 @@ RSpec.shared_context 'visibility test context', shared_context: :metadata do
   let!(:can_search_own_clients) { create :role, can_search_own_clients: true }
 
   # groups
+  let!(:no_data_source_access_group) { create :access_group }
   let!(:window_data_source_viewable) { create :access_group }
   let!(:window_organization_viewable) { create :access_group }
   let!(:window_project_viewable) { create :access_group }

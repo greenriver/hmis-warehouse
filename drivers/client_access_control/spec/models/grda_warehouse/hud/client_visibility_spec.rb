@@ -26,7 +26,9 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
     end
     describe 'and the user has a role granting can view clients' do
       before do
-        user.roles << can_view_clients
+        AccessControl.where(role: can_view_clients, access_group: no_data_source_access_group).
+          first_or_create.
+          add(user)
       end
       it 'user can see only window clients' do
         expect(GrdaWarehouse::Hud::Client.source_visible_to(user).count).to eq(2)
@@ -35,7 +37,9 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
 
       describe 'and the user has all data source group' do
         before do
-          AccessGroup.where(name: 'All Data Sources').first.users << user
+          AccessControl.where(role: can_view_clients, access_group: AccessGroup.where(name: 'All Data Sources').first).
+            first_or_create.
+            add(user)
         end
         it 'user can see all clients' do
           expect(GrdaWarehouse::Hud::Client.source.source_visible_to(user).count).to eq(4)
@@ -46,7 +50,9 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
 
     describe 'and the user has a role granting can search window' do
       before do
-        user.roles << can_search_window
+        AccessControl.where(role: can_search_window, access_group: no_data_source_access_group).
+          first_or_create.
+          add(user)
       end
       it 'user can see only window clients' do
         expect(GrdaWarehouse::Hud::Client.searchable_to(user).count).to eq(2)
@@ -56,8 +62,9 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
     describe 'and the user has a role granting visibility by data source' do
       describe 'and the user is assigned a data source' do
         before do
-          user.roles << can_view_clients
-          user.add_viewable(non_window_visible_data_source)
+          AccessControl.where(role: can_view_clients, access_group: non_window_data_source_viewable).
+            first_or_create.
+            add(user)
         end
         it 'user can see one client in expected data source and any window clients' do
           expect(GrdaWarehouse::Hud::Client.source_visible_to(user).count).to eq(4)
@@ -65,7 +72,9 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
         end
         describe 'and the user can search the window' do
           before do
-            user.roles << can_search_window
+            AccessControl.where(role: can_search_window, access_group: no_data_source_access_group).
+              first_or_create.
+              add(user)
           end
           it 'user can see clients visible in window and in data source' do
             expect(GrdaWarehouse::Hud::Client.searchable_to(user).count).to eq(4)

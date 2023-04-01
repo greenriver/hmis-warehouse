@@ -7,6 +7,7 @@
 - content_for :title, title
 = render 'cohorts_js'
 = render 'cohorts_css'
+- @skip_cohort = true # Don't show a breadcrumb back to the cohort from the show page
 = render 'breadcrumbs'
 %h1= content_for :title
 - if @cohort.inactive?
