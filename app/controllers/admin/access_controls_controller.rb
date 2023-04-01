@@ -42,7 +42,7 @@ class Admin::AccessControlsController < ApplicationController
   end
 
   private def access_control_scope
-    AccessControl
+    AccessControl.selectable
   end
 
   private def access_control_params

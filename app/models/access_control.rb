@@ -15,6 +15,22 @@ class AccessControl < ApplicationRecord
 
   delegate :health?, to: :role
 
+  # These should not show up anywhere, (there should only be one)
+  # The system access control list is joined to the hidden system group that includes
+  # all data sources, reports, cohorts, and project groups
+  # hide previous declaration of :system (from Kernel), we'll use this one
+  replace_scope :system, -> do
+    joins(:access_group).merge(AccessGroup.hidden)
+  end
+
+  scope :not_system, -> do
+    joins(:access_group).merge(AccessGroup.not_system)
+  end
+
+  scope :selectable, -> do
+    not_system
+  end
+
   scope :health, -> do
     joins(:role).merge(Role.health)
   end

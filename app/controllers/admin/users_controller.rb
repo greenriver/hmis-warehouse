@@ -129,7 +129,7 @@ module Admin
     end
 
     private def user_scope
-      User.active
+      User.active.not_system
     end
 
     private def user_params
