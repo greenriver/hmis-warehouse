@@ -39,7 +39,7 @@ if ENV['OKTA_DOMAIN'].present?
   }
 
   # warehouse okta app
-  if ENV['OKTA_CLIENT_ID']
+  if ENV['OKTA_CLIENT_ID'].present?
     devise_failure_handler = ->(env) {
       env["devise.mapping"] = Devise.mappings[:user]
       Devise::OmniauthCallbacksController.action(:failure).call(env)
@@ -61,7 +61,7 @@ if ENV['OKTA_DOMAIN'].present?
   end
 
   # hmis okta app
-  if ENV['HMIS_OKTA_CLIENT_ID']
+  if ENV['HMIS_OKTA_CLIENT_ID'].present?
     simple_failure_handler = -> (env) {
       new_path = "/?sso_failed=1"
       Rack::Response.new(['302 Moved'], 302, 'Location' => new_path).finish

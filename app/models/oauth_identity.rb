@@ -28,7 +28,7 @@ class OauthIdentity < ApplicationRecord
 
   # human friendly provider name
   def provider_name
-    provider =~ okta? ? 'OKTA' : provider
+    okta? ? 'OKTA' : provider
   end
 
   # https://developer.okta.com/docs/reference/api/oidc/#logout
