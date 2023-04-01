@@ -391,7 +391,7 @@ module ApplicationHelper
   end
 
   def omni_auth_providers
-    if ENV['OKTA_DOMAIN']
+    if ENV['OKTA_DOMAIN'].present?
       [['Okta', '/users/auth/okta']]
     else
       []
