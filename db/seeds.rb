@@ -353,15 +353,15 @@ end
 def load_hmis_data
   return unless ENV['HMIS_HOSTNAME'].present?
 
-  hmis_ds = GrdaWarehouse::DataSource.where(hmis: ENV['HMIS_HOSTNAME']).first
-  return unless hmis_ds.present?
+  datasources = GrdaWarehouse::DataSource.hmis
+  return unless datasources.present?
 
   # Load FormDefinitions from JSON files
   HmisUtil::JsonForms.seed_record_form_definitions
   HmisUtil::JsonForms.seed_assessment_form_definitions
 
   # Load HUD service types
-  HmisUtil::ServiceTypes.seed_hud_service_types(hmis_ds.id)
+  datasources.each { |hmis_ds| HmisUtil::ServiceTypes.seed_hud_service_types(hmis_ds.id) }
 end
 
 ensure_db_triggers_and_functions
