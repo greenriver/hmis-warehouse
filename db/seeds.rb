@@ -320,6 +320,7 @@ end
 
 def setup_hmis_admin_access
   return unless ENV['HMIS_HOSTNAME'].present?
+  return if Rails.env.production?
 
   # Create HMIS Administrator role
   hmis_admin_role = Hmis::Role.where(can_administer_hmis: true).first_or_create! do |role|
@@ -332,17 +333,9 @@ def setup_hmis_admin_access
     ds.short_name = 'HMIS'
   end
 
-  # Load FormDefinitions from JSON files
-  HmisUtil::JsonForms.seed_record_form_definitions
-  HmisUtil::JsonForms.seed_assessment_form_definitions
-  # Load HUD service types
-  HmisUtil::ServiceTypes.seed_hud_service_types(hmis_ds.id)
-
-  # Dev only: give a user HMIS Admin access by setting up a basic Access Control List
-  return unless Rails.env.development?
   return if hmis_admin_role.users.any?
 
-  # Find a user to make the admin
+  # Give a user HMIS Admin access by setting up a basic Access Control List
   user = Hmis::User.not_system.first
   return unless user.present?
 
@@ -357,6 +350,20 @@ def setup_hmis_admin_access
   puts "#{user.name} is now an HMIS Administrator. Go to https://hmis-warehouse.dev.test/hmis_admin/roles to manage data access and permissions."
 end
 
+def load_hmis_data
+  return unless ENV['HMIS_HOSTNAME'].present?
+
+  hmis_ds = GrdaWarehouse::DataSource.where(hmis: ENV['HMIS_HOSTNAME']).first
+  return unless hmis_ds.present?
+
+  # Load FormDefinitions from JSON files
+  HmisUtil::JsonForms.seed_record_form_definitions
+  HmisUtil::JsonForms.seed_assessment_form_definitions
+
+  # Load HUD service types
+  HmisUtil::ServiceTypes.seed_hud_service_types(hmis_ds.id)
+end
+
 ensure_db_triggers_and_functions
 setup_fake_user if Rails.env.development?
 setup_fake_health_data
@@ -364,6 +371,7 @@ maintain_data_sources
 GrdaWarehouse::WarehouseReports::ReportDefinition.maintain_report_definitions
 maintain_health_seeds
 setup_hmis_admin_access
+load_hmis_data
 # install_shapes() # run manually as needed
 maintain_lookups
 GrdaWarehouse::Help.setup_default_links
