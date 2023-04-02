@@ -105,4 +105,9 @@ class User < ApplicationRecord
   def project_groups
     GrdaWarehouse::ProjectGroup.where(id: access_groups.flat_map(&:project_group_ids))
   end
+
+  # list any data sources the user has some level of access to
+  def data_sources
+    GrdaWarehouse::DataSource.where(id: access_groups.flat_map(&:data_source_ids))
+  end
 end

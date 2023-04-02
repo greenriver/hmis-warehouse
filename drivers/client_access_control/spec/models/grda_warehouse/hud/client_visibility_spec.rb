@@ -26,9 +26,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
     end
     describe 'and the user has a role granting can view clients' do
       before do
-        AccessControl.where(role: can_view_clients, access_group: no_data_source_access_group).
-          first_or_create.
-          add(user)
+        setup_acl(user, can_view_clients, no_data_source_access_group)
       end
       it 'user can see only window clients' do
         expect(GrdaWarehouse::Hud::Client.source_visible_to(user).count).to eq(2)
@@ -37,9 +35,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
 
       describe 'and the user has all data source group' do
         before do
-          AccessControl.where(role: can_view_clients, access_group: AccessGroup.where(name: 'All Data Sources').first).
-            first_or_create.
-            add(user)
+          setup_acl(user, can_view_clients, AccessGroup.where(name: 'All Data Sources').first)
         end
         it 'user can see all clients' do
           expect(GrdaWarehouse::Hud::Client.source.source_visible_to(user).count).to eq(4)
@@ -50,9 +46,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
 
     describe 'and the user has a role granting can search window' do
       before do
-        AccessControl.where(role: can_search_window, access_group: no_data_source_access_group).
-          first_or_create.
-          add(user)
+        setup_acl(user, can_search_window, no_data_source_access_group)
       end
       it 'user can see only window clients' do
         expect(GrdaWarehouse::Hud::Client.searchable_to(user).count).to eq(2)
@@ -62,9 +56,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
     describe 'and the user has a role granting visibility by data source' do
       describe 'and the user is assigned a data source' do
         before do
-          AccessControl.where(role: can_view_clients, access_group: non_window_data_source_viewable).
-            first_or_create.
-            add(user)
+          setup_acl(user, can_view_clients, non_window_data_source_viewable)
         end
         it 'user can see one client in expected data source and any window clients' do
           expect(GrdaWarehouse::Hud::Client.source_visible_to(user).count).to eq(4)
@@ -72,9 +64,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
         end
         describe 'and the user can search the window' do
           before do
-            AccessControl.where(role: can_search_window, access_group: no_data_source_access_group).
-              first_or_create.
-              add(user)
+            setup_acl(user, can_search_window, no_data_source_access_group)
           end
           it 'user can see clients visible in window and in data source' do
             expect(GrdaWarehouse::Hud::Client.searchable_to(user).count).to eq(4)
@@ -100,8 +90,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
     end
     describe 'and the user has a role granting can view clients' do
       before do
-        user.roles << can_view_clients
-        AccessGroup.where(name: 'All Data Sources').first.users << user
+        setup_acl(user, can_view_clients, AccessGroup.where(name: 'All Data Sources').first)
       end
       it 'user can see all clients' do
         expect(GrdaWarehouse::Hud::Client.source_visible_to(user).count).to eq(4)
@@ -110,7 +99,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
     end
     describe 'and the user has a role granting can view window clients' do
       before do
-        user.roles << can_view_clients
+        setup_acl(user, can_view_clients, no_data_source_access_group)
       end
       it 'user can only search, not see, window clients' do
         expect(GrdaWarehouse::Hud::Client.searchable_to(user).count).to eq(2)
@@ -134,7 +123,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
     end
     describe 'and the user has a role granting can search window' do
       before do
-        user.roles << can_search_window
+        setup_acl(user, can_search_window, no_data_source_access_group)
       end
       it 'user can only search, not see, window clients' do
         expect(GrdaWarehouse::Hud::Client.searchable_by(user).count).to eq(2)
@@ -145,7 +134,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
     end
     describe 'and the user has a role granting visibility by data source' do
       before do
-        user.roles << can_view_clients
+        setup_acl(user, can_view_clients, no_data_source_access_group)
       end
       it 'can search for but not see window clients' do
         expect(GrdaWarehouse::Hud::Client.searchable_by(user).count).to eq(2)
@@ -155,7 +144,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
       end
       describe 'and the user is assigned a data source' do
         before do
-          user.add_viewable(non_window_visible_data_source)
+          setup_acl(user, can_view_clients, non_window_data_source_viewable)
         end
         it 'user can see one client in expected data source but not details of window clients' do
           expect(GrdaWarehouse::Hud::Client.searchable_by(user).count).to eq(4)
@@ -166,7 +155,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
         end
         describe 'and the user can search the window' do
           before do
-            user.roles << can_search_window
+            setup_acl(user, can_search_window, no_data_source_access_group)
           end
           it 'user can see clients visible in window and in data source' do
             expect(GrdaWarehouse::Hud::Client.searchable_by(user).count).to eq(4)
@@ -192,8 +181,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
     end
     describe 'and the user has a role granting can view clients' do
       before do
-        user.roles << can_view_clients
-        AccessGroup.where(name: 'All Data Sources').first.users << user
+        setup_acl(user, can_view_clients, AccessGroup.where(name: 'All Data Sources').first)
       end
       it 'user can see all clients' do
         expect(GrdaWarehouse::Hud::Client.source_visible_to(user).count).to eq(4)
@@ -202,7 +190,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
     end
     describe 'and the user has a role granting can view window clients' do
       before do
-        user.roles << can_view_clients
+        setup_acl(user, can_view_clients, no_data_source_access_group)
       end
       it 'user can see only window clients' do
         expect(GrdaWarehouse::Hud::Client.source_visible_to(user).count).to eq(2)
@@ -211,7 +199,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
     end
     describe 'and the user has a role granting can search window' do
       before do
-        user.roles << can_search_window
+        setup_acl(user, can_search_window, no_data_source_access_group)
       end
       it 'user can see only window clients' do
         expect(GrdaWarehouse::Hud::Client.searchable_by(user).count).to eq(2)
@@ -220,7 +208,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
     end
     describe 'and the user has a role granting visibility by data source' do
       before do
-        user.roles << can_view_clients
+        setup_acl(user, can_view_clients, no_data_source_access_group)
       end
       it 'can search for but not see window clients' do
         expect(GrdaWarehouse::Hud::Client.source_visible_to(user).count).to eq(2)
@@ -229,7 +217,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
       end
       describe 'and the user is assigned a data source' do
         before do
-          user.add_viewable(non_window_visible_data_source)
+          setup_acl(user, can_view_clients, non_window_data_source_viewable)
         end
         it 'user can see one client in expected data source and any window clients' do
           expect(GrdaWarehouse::Hud::Client.source_visible_to(user).count).to eq(4)
@@ -237,7 +225,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
         end
         describe 'and the user can search the window' do
           before do
-            user.roles << can_search_window
+            setup_acl(user, can_search_window, no_data_source_access_group)
           end
           it 'user can see clients visible in window and in data source' do
             expect(GrdaWarehouse::Hud::Client.source_visible_to(user).count).to eq(4)
@@ -263,8 +251,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
     end
     describe 'and the user has a role granting can view clients' do
       before do
-        user.roles << can_view_clients
-        AccessGroup.where(name: 'All Data Sources').first.users << user
+        setup_acl(user, can_view_clients, AccessGroup.where(name: 'All Data Sources').first)
       end
       it 'user can see all clients' do
         expect(GrdaWarehouse::Hud::Client.source_visible_to(user).count).to eq(4)
@@ -273,7 +260,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
     end
     describe 'and the user has a role granting can view window clients' do
       before do
-        user.roles << can_view_clients
+        setup_acl(user, can_view_clients, no_data_source_access_group)
       end
       it 'user can see only window clients' do
         expect(GrdaWarehouse::Hud::Client.source_visible_to(user).count).to eq(2)
@@ -282,7 +269,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
     end
     describe 'and the user has a role granting can search window' do
       before do
-        user.roles << can_search_window
+        setup_acl(user, can_search_window, no_data_source_access_group)
       end
       it 'user can search only window clients' do
         expect(GrdaWarehouse::Hud::Client.searchable_by(user).count).to eq(2)
@@ -291,7 +278,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
     end
     describe 'and the user has a role granting visibility by data source' do
       before do
-        user.roles << can_view_clients
+        setup_acl(user, can_view_clients, no_data_source_access_group)
       end
       it 'can search for but not see window clients' do
         expect(GrdaWarehouse::Hud::Client.source_visible_to(user).count).to eq(2)
@@ -300,7 +287,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
       end
       describe 'and the user is assigned a data source' do
         before do
-          user.add_viewable(non_window_visible_data_source)
+          setup_acl(user, can_view_clients, non_window_data_source_viewable)
         end
         it 'user can see one client in expected data source and any window clients' do
           expect(GrdaWarehouse::Hud::Client.source_visible_to(user).count).to eq(4)
@@ -308,7 +295,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
         end
         describe 'and the user can search the window' do
           before do
-            user.roles << can_search_window
+            setup_acl(user, can_search_window, no_data_source_access_group)
           end
           it 'user can see clients visible in window and in data source' do
             expect(GrdaWarehouse::Hud::Client.source_visible_to(user).count).to eq(4)
@@ -335,8 +322,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
     end
     describe 'and the user has a role granting can view clients' do
       before do
-        user.roles << can_view_clients
-        AccessGroup.where(name: 'All Data Sources').first.users << user
+        setup_acl(user, can_view_clients, AccessGroup.where(name: 'All Data Sources').first)
       end
       it 'user can see all clients' do
         expect(GrdaWarehouse::Hud::Client.source_visible_to(user).count).to eq(4)
@@ -345,7 +331,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
     end
     describe 'and the user has a role granting can view window clients' do
       before do
-        user.roles << can_view_clients
+        setup_acl(user, can_view_clients, no_data_source_access_group)
       end
       it 'user can only search, not see, window clients' do
         expect(GrdaWarehouse::Hud::Client.searchable_by(user).count).to eq(4)
@@ -369,7 +355,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
     end
     describe 'and the user has a role granting can use strict search' do
       before do
-        user.roles << can_use_strict_search
+        setup_acl(user, can_use_strict_search, no_data_source_access_group)
       end
       it 'user can only search, not see, window clients' do
         expect(GrdaWarehouse::Hud::Client.searchable_by(user).count).to eq(4)
@@ -380,7 +366,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
     end
     describe 'and the user has a role granting visibility by data source' do
       before do
-        user.roles << can_view_clients
+        setup_acl(user, can_view_clients, no_data_source_access_group)
       end
       it 'can search for but not see window clients' do
         expect(GrdaWarehouse::Hud::Client.searchable_by(user).count).to eq(4)
@@ -390,7 +376,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
       end
       describe 'and the user is assigned a data source' do
         before do
-          user.add_viewable(non_window_visible_data_source)
+          setup_acl(user, can_view_clients, non_window_data_source_viewable)
         end
         it 'user can see one client in expected data source but not details of window clients' do
           expect(GrdaWarehouse::Hud::Client.searchable_by(user).count).to eq(4)
@@ -403,7 +389,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
     end
     describe 'and the user has a role granting visibility by coc release' do
       before do
-        user.roles << can_view_clients
+        setup_acl(user, can_view_clients, no_data_source_access_group)
       end
       it 'user can search for all clients, but not see details' do
         expect(GrdaWarehouse::Hud::Client.searchable_by(user).count).to eq(4)
@@ -414,7 +400,8 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
       end
       describe 'and the user is assigned a CoC' do
         before do
-          user.coc_codes = ['ZZ-999']
+          coc_code_viewable.update(coc_codes: ['ZZ-999'])
+          setup_acl(user, no_permission_role, coc_code_viewable)
         end
         it 'user cannot see client details' do
           expect(window_destination_client.show_demographics_to?(user)).to eq false
@@ -450,6 +437,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
             )
           end
           it 'user can see client dashboard for assigned client' do
+            expect(user.coc_codes).to include('ZZ-999')
             expect(non_window_destination_client.show_demographics_to?(user)).to eq true
           end
           it 'user cannot see client dashboard for window client' do
@@ -517,8 +505,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
     end
     describe 'and the user has a role granting can view clients' do
       before do
-        user.roles << can_view_clients
-        AccessGroup.where(name: 'All Data Sources').first.users << user
+        setup_acl(user, can_view_clients, AccessGroup.where(name: 'All Data Sources').first)
       end
       it 'user can see all clients' do
         expect(GrdaWarehouse::Hud::Client.source_visible_to(user).count).to eq(4)
@@ -527,8 +514,8 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
     end
     describe 'and the user has a role granting can search own clients' do
       before do
-        user.roles << can_search_own_clients
-        user.roles << can_view_clients
+        setup_acl(user, can_search_own_clients, no_data_source_access_group)
+        setup_acl(user, can_view_clients, no_data_source_access_group)
       end
       describe 'but the user has no assignments' do
         it 'search returns no clients' do
@@ -539,7 +526,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
       end
       describe 'and the user has one assignment' do
         before do
-          user.add_viewable(non_window_project)
+          setup_acl(user, can_view_clients, non_window_project_viewable)
         end
         it 'search only returns clients based on data assignment' do
           expect(GrdaWarehouse::Hud::Client.searchable_by(user).count).to eq(2)
@@ -551,8 +538,8 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
     end
     describe 'and the user has a role granting visibility by coc release but no assignments' do
       before do
-        user.roles << can_search_own_clients
-        user.roles << can_view_clients
+        setup_acl(user, can_search_own_clients, no_data_source_access_group)
+        setup_acl(user, can_view_clients, no_data_source_access_group)
       end
       it 'user can only search for their own clients' do
         expect(GrdaWarehouse::Hud::Client.searchable_by(user).count).to eq(0)
@@ -563,7 +550,8 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
       end
       describe 'and the user is assigned a CoC' do
         before do
-          user.coc_codes = ['ZZ-999']
+          coc_code_viewable.update(coc_codes: ['ZZ-999'])
+          setup_acl(user, no_permission_role, coc_code_viewable)
         end
         it 'user cannot see client details for someone not in their projects' do
           expect(window_destination_client.show_demographics_to?(user)).to eq false
@@ -649,7 +637,8 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
         end
         describe 'when the client does not have a valid consent but the user has a CoC Code matching the enrollment' do
           before do
-            user.coc_codes = ['ZZ-000']
+            coc_code_viewable.update(coc_codes: ['ZZ-000'])
+            setup_acl(user, no_permission_role, coc_code_viewable)
             non_window_destination_client.update(
               housing_release_status: nil,
               consent_form_signed_on: nil,
@@ -702,7 +691,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
       let!(:user) { create :user }
       before do
         config.update(verified_homeless_history_method: :visible_to_user)
-        user.roles << can_view_clients
+        setup_acl(user, can_view_clients, no_data_source_access_group)
       end
       it 'enrollments visible to user are included' do
         # confirm client has 1 enrollment, but it's not included because it's not visible
@@ -710,7 +699,8 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
         expect(non_window_source_client.enrollments_for_verified_homeless_history(user: user).count).to eq 0
 
         # add visibility and confirm it's included
-        user.add_viewable(non_window_project)
+        setup_acl(user, can_view_clients, non_window_project_viewable)
+        user.access_groups.reload
         expect(non_window_source_client.enrollments_for_verified_homeless_history(user: user).count).to eq 1
       end
     end
@@ -722,7 +712,8 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
       end
       describe 'and client has valid release in users CoC' do
         before do
-          user.coc_codes = ['ZZ-999']
+          coc_code_viewable.update(coc_codes: ['ZZ-999'])
+          setup_acl(user, no_permission_role, coc_code_viewable)
           non_window_source_client.update(
             housing_release_status: non_window_source_client.class.full_release_string,
             consent_form_signed_on: 5.days.ago,
@@ -737,8 +728,9 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
 
       describe 'and client has valid release, but user does not have assigned coc_codes' do
         before do
-          user.coc_codes = []
-          user.roles << can_view_clients
+          coc_code_viewable.update(coc_codes: [])
+          setup_acl(user, no_permission_role, coc_code_viewable)
+          setup_acl(user, can_view_clients, no_data_source_access_group)
           non_window_source_client.update(
             housing_release_status: non_window_source_client.class.full_release_string,
             consent_form_signed_on: 5.days.ago,
@@ -750,15 +742,17 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
           expect(non_window_source_client.enrollments_for_verified_homeless_history(user: user).count).to eq 0
 
           # add visibility and confirm it gets included
-          user.add_viewable(non_window_project)
+          setup_acl(user, can_view_clients, non_window_project_viewable)
+          user.access_groups.reload
           expect(non_window_source_client.enrollments_for_verified_homeless_history(user: user).count).to eq 1
         end
       end
 
       describe 'and client has valid release in a different CoC' do
         before do
-          user.roles << can_view_clients
-          user.coc_codes = ['ZZ-100']
+          setup_acl(user, can_view_clients, no_data_source_access_group)
+          coc_code_viewable.update(coc_codes: ['ZZ-100'])
+          setup_acl(user, no_permission_role, coc_code_viewable)
           non_window_source_client.update(
             housing_release_status: non_window_source_client.class.full_release_string,
             consent_form_signed_on: 5.days.ago,
@@ -770,20 +764,22 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
           expect(non_window_source_client.enrollments_for_verified_homeless_history(user: user).count).to eq 0
 
           # add visibility and confirm it gets included
-          user.add_viewable(non_window_project)
+          setup_acl(user, can_view_clients, non_window_project_viewable)
+          user.access_groups.reload
           expect(non_window_source_client.enrollments_for_verified_homeless_history(user: user).count).to eq 1
         end
       end
 
       describe 'and client does not have a valid release' do
         before do
-          user.roles << can_view_clients
+          setup_acl(user, can_view_clients, no_data_source_access_group)
         end
         it 'enrollments visible to user included' do
           expect(non_window_source_client.enrollments_for_verified_homeless_history(user: user).count).to eq 0
 
           # add visibility and confirm it gets included
-          user.add_viewable(non_window_project)
+          setup_acl(user, can_view_clients, non_window_project_viewable)
+          user.access_groups.reload
           expect(non_window_source_client.enrollments_for_verified_homeless_history(user: user).count).to eq 1
         end
       end

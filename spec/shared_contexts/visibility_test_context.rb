@@ -177,6 +177,7 @@ RSpec.shared_context 'visibility test context', shared_context: :metadata do
   let!(:can_manage_config) { create :role, can_manage_config: true }
   let!(:can_edit_data_sources) { create :role, can_edit_data_sources: true, can_view_projects: true }
   let!(:can_search_own_clients) { create :role, can_search_own_clients: true }
+  let!(:no_permission_role) { create :role }
 
   # groups
   let!(:no_data_source_access_group) { create :access_group }
@@ -184,6 +185,7 @@ RSpec.shared_context 'visibility test context', shared_context: :metadata do
   let!(:window_organization_viewable) { create :access_group }
   let!(:window_project_viewable) { create :access_group }
   let!(:window_coc_code_viewable) { create :access_group, coc_codes: ['AA-000'] }
+  let!(:coc_code_viewable) { create :access_group }
   before(:each) do
     window_data_source_viewable.add_viewable(window_visible_data_source)
     window_organization_viewable.add_viewable(window_organization)
