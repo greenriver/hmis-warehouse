@@ -1107,6 +1107,10 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       }
     end
 
+    before(:each) do
+      HmisUtil::ServiceTypes.seed_hud_service_types(ds.id)
+    end
+
     it 'creates and updates all fields on HUD Service' do
       existing_record = s1
       new_record = Hmis::Hud::HmisService.new(

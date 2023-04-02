@@ -4,6 +4,7 @@ require_relative '../../../support/hmis_base_setup'
 RSpec.describe Hmis::Form::Definition, type: :model do
   before(:all) do
     cleanup_test_environment
+    HmisUtil::JsonForms.seed_assessment_form_definitions
   end
   after(:all) do
     cleanup_test_environment
@@ -232,8 +233,4 @@ RSpec.describe Hmis::Form::Definition, type: :model do
       expect(errors.map(&:to_h)).to match(expected_errors.map { |h| a_hash_including(**h) })
     end
   end
-end
-
-RSpec.configure do |c|
-  c.include GraphqlHelpers
 end
