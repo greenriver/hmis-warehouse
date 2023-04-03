@@ -11,9 +11,11 @@ module CohortColumns
     attribute :title, String, lazy: true, default: ->(model, _attr) { _(model.translation_key) }
 
     def value(cohort_client) # OK
-      # NOTE: while this relies exclusively on the Boston calculator, the calculator will return client.processed_service_history&.days_homeless_last_three_years
-      # if no pathways assessment has been completed
-      GrdaWarehouse::CasProjectClientCalculator::Boston.new.days_homeless_in_last_three_years_cached(cohort_client.client)
+      client = cohort_client.client
+      # NOTE: this will return nothing unless the client has a recent pathways or transfer assessment
+      return unless client&.source_clients&.map(&:most_recent_pathways_or_rrh_assessment)&.any?
+
+      GrdaWarehouse::CasProjectClientCalculator::Boston.new.days_homeless_in_last_three_years_cached(client)
     end
   end
 end
