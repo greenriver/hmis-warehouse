@@ -10,8 +10,8 @@ module Admin
     before_action :set_user
 
     def show
-      pt_a = PaperTrail::Version.arel_table
-      edits = PaperTrail::Version.where(
+      pt_a = GrPaperTrail::Version.arel_table
+      edits = GrPaperTrail::Version.where(
         pt_a[:item_id].eq(@user_id).and(pt_a[:item_type].eq('User')).
         or(pt_a[:referenced_user_id].eq(@user_id)),
       )
@@ -22,6 +22,9 @@ module Admin
     def describe_changes_to(version)
       klass = version.item_type.constantize
       klass.describe_changes(version, get_changes_to(version))
+    rescue NameError => e
+      Rails.logger.error(e.full_message)
+      ["Missing source class: #{version.item_type}"]
     end
     helper_method :describe_changes_to
 
