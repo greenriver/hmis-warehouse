@@ -126,7 +126,7 @@ module Health
     end
 
     def care_hub_reached_key(qa)
-      qa.client_reached.detect { |_k, v| v[:title] == clean_reached_title }.first
+      qa.client_reached.detect { |_k, v| v[:title] == clean_reached_title }&.first
     end
 
     def clean_reached_title
@@ -139,7 +139,7 @@ module Health
     end
 
     def care_hub_mode_key(qa)
-      qa.modes_of_contact.detect { |_k, v| v[:title] == clean_mode_title }.first
+      qa.modes_of_contact.detect { |_k, v| v[:title] == clean_mode_title }&.first
     end
 
     def clean_mode_title
@@ -147,7 +147,7 @@ module Health
     end
 
     def care_hub_activity_key(qa)
-      qa.activities.detect { |_k, v| v[:title] == clean_activity_title(qa) }.first
+      qa.activities.detect { |_k, v| v[:title] == clean_activity_title(qa) }&.first
     end
 
     def clean_activity_title(qa)
