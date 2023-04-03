@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # app/graphql/types/json_object.rb
 class Types::Base64 < Types::BaseScalar
   description 'A base64 encoded string'

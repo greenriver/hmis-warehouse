@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 class Hmis::Hud::Validators::BaseValidator < ActiveModel::Validator
   def skip_all_validations?(record)
     record.skip_validations == [:all]
