@@ -28,13 +28,19 @@ class CohortsController < ApplicationController
       @visible_in_cas = true
       @active_filter = true
     end
-    @search = scope.ransack(params[:q])
+
+    name_query = params[:q][:name_cont]
+    @search = if name_query.present?
+      scope.where(GrdaWarehouse::Cohort.arel_table[:name].matches("%#{name_query}%"))
+    else
+      scope.none
+    end
 
     @cohort = cohort_source.new
-    @cohorts = @search.result.active_user.reorder(sort_string)
-    @inactive_cohorts = @search.result.inactive.reorder(sort_string)
+    @cohorts = @search.active_user.reorder(sort_string)
+    @inactive_cohorts = @search.inactive.reorder(sort_string)
     @system_cohorts = if ::GrdaWarehouse::Config.get(:enable_system_cohorts)
-      @search.result.system_cohorts.reorder(sort_string)
+      @search.system_cohorts.reorder(sort_string)
     else
       scope.none
     end
