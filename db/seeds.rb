@@ -17,7 +17,8 @@ def setup_fake_user
       user.last_name = 'Admin'
       user.password = user.password_confirmation = initial_password
       user.confirmed_at = Time.now
-      user.roles = [admin, dnd_staff]
+      setup_acl(user, admin, AccessGroup.where(name: 'All Data Sources').first)
+      setup_acl(user, dnd_staff, AccessGroup.where(name: 'All Data Sources').first)
       user.agency_id = agency.id
       user.save!
       puts "Created initial admin email: #{user.email}  password: #{user.password}"
@@ -315,6 +316,12 @@ def setup_fake_health_data
   )
   u = User.not_system.first
   u.roles << health_admin
+  group = AccessGroup.create(name: 'Health Group') # at this time, we don't need any particular access
+  acl = AccessControl.where(
+    role_id: health_admin.id,
+    access_group_id: group.id,
+  ).first_or_create!
+  acl.add(u)
   Health::AgencyUserSaver.new(user_id: u.id, agency_ids: Health::Agency.pluck(:id)).save
 end
 
@@ -336,7 +343,6 @@ def setup_hmis_admin_access
 end
 
 ensure_db_triggers_and_functions
-setup_fake_user if Rails.env.development?
 setup_fake_health_data
 maintain_data_sources
 GrdaWarehouse::WarehouseReports::ReportDefinition.maintain_report_definitions
@@ -347,6 +353,7 @@ maintain_lookups
 GrdaWarehouse::Help.setup_default_links
 maintain_system_groups
 maintain_zip_code_shapes
+setup_fake_user if Rails.env.development?
 # for the most recent 50 reports, re-calculate results (which will move the cache to the DB)
 # Remove this if release-59 has been merged to production
 # HmisDataQualityTool::Report.ordered.limit(50).find_each(&:results)

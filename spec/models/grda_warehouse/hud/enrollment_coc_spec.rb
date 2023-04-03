@@ -11,6 +11,7 @@ RSpec.describe model, type: :model do
 
   let!(:ec1) { create :hud_enrollment_coc, CoCCode: 'foo' }
   let!(:ec2) { create :hud_enrollment_coc, CoCCode: 'bar' }
+  let!(:coc_code_viewable) { create :access_group }
 
   user_ids = ->(user) { model.viewable_by(user).pluck(:id).sort }
   ids      = ->(*ecs) { ecs.map(&:id).sort }
@@ -25,13 +26,11 @@ RSpec.describe model, type: :model do
 
       describe 'admin user' do
         before do
-          user.roles << admin_role
           AccessGroup.maintain_system_groups
-          user.access_groups = AccessGroup.all
+          setup_acl(user, admin_role, AccessGroup.where(name: 'All Data Sources').first)
         end
         after do
-          user.roles = []
-          user.access_groups = []
+          user.user_access_controls.destroy_all
         end
         it 'sees both' do
           expect(user_ids[user]).to eq ids[ec1, ec2]
@@ -40,7 +39,8 @@ RSpec.describe model, type: :model do
 
       describe 'user assigned to coc foo' do
         before do
-          user.coc_codes = ['foo']
+          coc_code_viewable.update(coc_codes: ['foo'])
+          setup_acl(user, admin_role, coc_code_viewable)
         end
         it 'sees ec1' do
           expect(user_ids[user]).to eq ids[ec1]

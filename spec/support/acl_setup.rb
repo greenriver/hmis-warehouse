@@ -5,5 +5,7 @@ module AclSetup
       access_group_id: group.id,
     ).first_or_create!
     acl.add(user)
+    user.access_groups.reload
+    acl
   end
 end

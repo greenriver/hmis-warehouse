@@ -65,14 +65,15 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request, vcr: true
 
       describe 'and the user has a fairly admin-like role' do
         before do
-          user.roles << can_view_clients
-          user.roles << can_search_window
-          user.roles << can_view_all_reports
-          user.roles << can_edit_users
-          user.roles << can_manage_config
-          user.roles << can_edit_data_sources
-          GrdaWarehouse::DataSource.all.each do |ds|
-            user.add_viewable(ds)
+          [
+            can_view_clients,
+            can_search_window,
+            can_view_all_reports,
+            can_edit_users,
+            can_manage_config,
+            can_edit_data_sources,
+          ].each do |role|
+            setup_acl(user, role, AccessGroup.where(name: 'All Data Sources').first)
           end
           sign_in user
         end

@@ -168,6 +168,8 @@ class AccessGroup < ApplicationRecord
     end
   end
 
+  # Replace all viewables with those provided
+  # @param [Hash] viewables Of the format { reports: [1, 2, 3], projects: [4, 5] }
   def set_viewables(viewables) # rubocop:disable Naming/AccessorMethodName
     return unless persisted?
 

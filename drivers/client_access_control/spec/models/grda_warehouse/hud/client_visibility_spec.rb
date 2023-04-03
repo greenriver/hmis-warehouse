@@ -700,7 +700,6 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
 
         # add visibility and confirm it's included
         setup_acl(user, can_view_clients, non_window_project_viewable)
-        user.access_groups.reload
         expect(non_window_source_client.enrollments_for_verified_homeless_history(user: user).count).to eq 1
       end
     end
@@ -743,7 +742,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
 
           # add visibility and confirm it gets included
           setup_acl(user, can_view_clients, non_window_project_viewable)
-          user.access_groups.reload
+
           expect(non_window_source_client.enrollments_for_verified_homeless_history(user: user).count).to eq 1
         end
       end
@@ -765,7 +764,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
 
           # add visibility and confirm it gets included
           setup_acl(user, can_view_clients, non_window_project_viewable)
-          user.access_groups.reload
+
           expect(non_window_source_client.enrollments_for_verified_homeless_history(user: user).count).to eq 1
         end
       end
@@ -779,7 +778,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
 
           # add visibility and confirm it gets included
           setup_acl(user, can_view_clients, non_window_project_viewable)
-          user.access_groups.reload
+
           expect(non_window_source_client.enrollments_for_verified_homeless_history(user: user).count).to eq 1
         end
       end
