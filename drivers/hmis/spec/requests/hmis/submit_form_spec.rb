@@ -186,7 +186,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         end
 
         it 'should fail if user lacks permission' do
-          remove_permissions(hmis_user, definition.record_editing_permission)
+          remove_permissions(hmis_user, *Array(definition.record_editing_permission))
           response, result = post_graphql(input: { input: test_input }) { mutation }
           record = result.dig('data', 'submitForm', 'record')
           errors = result.dig('data', 'submitForm', 'errors')
