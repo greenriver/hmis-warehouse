@@ -15,7 +15,7 @@ RSpec.describe 'ClaimsReporting::ReconcilationReport', type: :model do
     month = Date.iso8601('2020-06-15')
     claim_submitted_on = month >> 2
     active_patients = []
-    engagement_days = ::Health::PatientReferral::ENGAGEMENT_IN_DAYS.days
+    engagement_days = ::Health::PatientReferral::ENGAGEMENT_IN_DAYS
     # | QA occurs...
     # 0. before enrollment
     create(:patient).tap do |patient|

@@ -204,12 +204,27 @@ module UserConcern
       "#{name} <#{email}>"
     end
 
+    def name_with_credentials
+      return "#{name}, #{credentials}" if credentials.present?
+
+      name
+    end
+
     def agency_name
       agency&.name if agency.present?
     end
 
     def phone_for_directory
       phone unless exclude_phone_from_directory
+    end
+
+    def show_credentials?
+      # Show the credentials field if the user has at least one health role
+      roles.health.exists?
+    end
+
+    def credential_options
+      @credential_options ||= User.pluck(:credentials).compact.uniq.sort
     end
 
     def two_factor_label

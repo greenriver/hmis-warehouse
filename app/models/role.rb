@@ -1018,6 +1018,11 @@ class Role < ApplicationRecord
         administrative: false,
         categories: [],
       },
+      can_approve_careplan: {
+        description: 'Ability to approve Care Plans',
+        administrative: false,
+        categories: [],
+      },
       can_edit_all_patient_items: {
         description: 'Unused',
         administrative: true,
