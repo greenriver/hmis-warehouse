@@ -133,6 +133,7 @@ module Mutations
         {
           client_id: Hmis::Hud::Client.viewable_by(current_user).find_by(id: input.client_id)&.id,
           enrollment_id: Hmis::Hud::Enrollment.viewable_by(current_user).find_by(id: input.enrollment_id)&.id,
+          uploaded_by_id: Hmis::Hud::User.from_user(current_user)&.id,
         }
       else
         {}

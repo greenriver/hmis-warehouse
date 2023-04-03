@@ -52,7 +52,7 @@ module Types
     end
 
     def own_file
-      object.user&.user_id == current_user.id.to_s
+      object.uploaded_by_id == Hmis::Hud::User.from_user(current_user).id
     end
   end
 end
