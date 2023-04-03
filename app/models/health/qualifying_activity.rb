@@ -595,11 +595,11 @@ module Health
       enrolled_dates = Set.new
       contributing_referrals.each do |r|
         enrolled_dates += r.enrolled_days_to_date
-        break if enrolled_dates.size >= engagement_period_in_days
+        break if enrolled_dates.size.days >= engagement_period_in_days
       end
 
       # We have not yet been enrolled 150 days so there is still time for a care plan to arrive
-      return false if enrolled_dates.size < engagement_period_in_days
+      return false if enrolled_dates.size.days < engagement_period_in_days
 
       pcp_signed_plans = patient.careplans.select(&:provider_signed_on)
       # Fast fail: no pcp signed plans at all.
