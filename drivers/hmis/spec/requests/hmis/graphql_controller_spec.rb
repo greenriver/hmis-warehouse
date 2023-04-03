@@ -4,7 +4,7 @@ require_relative '../../support/hmis_base_setup'
 
 RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:ds1) { create :hmis_data_source }
-  let!(:user) { create(:user).tap { |u| u.add_viewable(ds1) } }
+  let!(:user) { create(:user) }
   let(:hmis_user) { Hmis::User.find(user.id)&.tap { |u| u.update(hmis_data_source_id: ds1.id) } }
   let(:u1) { Hmis::Hud::User.from_user(hmis_user) }
   let!(:o1) { create :hmis_hud_organization, OrganizationName: 'ZZZ', data_source: ds1 }
@@ -20,6 +20,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     group
   end
 
+  let!(:no_permission_role) { create :role }
+  let!(:empty_access_group) { create :access_group }
+
   before(:all) do
     cleanup_test_environment
   end
@@ -28,6 +31,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   before(:each) do
+    empty_access_group.set_viewables({ data_sources: [ds1.id] })
+    setup_acl(user, no_permission_role, empty_access_group)
     hmis_login(user)
     assign_viewable(edit_access_group, ds1, hmis_user)
   end

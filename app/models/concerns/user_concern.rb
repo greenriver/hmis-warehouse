@@ -320,21 +320,23 @@ module UserConcern
     end
 
     def self.setup_system_user
-      user = User.find_by(email: 'noreply@greenriver.com')
+      user = find_by(email: 'noreply@greenriver.com')
       return user if user.present?
 
-      user = User.with_deleted.find_by(email: 'noreply@greenriver.com')
-      user.restore if user.present?
-      user = User.invite!(email: 'noreply@greenriver.com', first_name: 'System', last_name: 'User', agency_id: 0) do |u|
+      user = only_deleted.find_by(email: 'noreply@greenriver.com')
+      user&.restore
+      return user if user.present?
+
+      invite!(email: 'noreply@greenriver.com', first_name: 'System', last_name: 'User', agency_id: 0) do |u|
         u.skip_invitation = true
       end
-      user
     end
 
     def self.system_user
-      Rails.cache.fetch('system_user', expires_in: 4.hours) do
-        setup_system_user
-      end
+      # Test environment really doen't like caching this
+      return setup_system_user if Rails.env.test?
+
+      @system_user ||= setup_system_user
     end
 
     def system_user?

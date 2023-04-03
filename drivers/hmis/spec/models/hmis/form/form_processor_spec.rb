@@ -2,7 +2,7 @@ require 'rails_helper'
 
 RSpec.describe Hmis::Form::FormProcessor, type: :model do
   let!(:ds) { create :hmis_data_source }
-  let!(:user) { create(:user).tap { |u| u.add_viewable(ds) } }
+  let!(:user) { create(:user) }
   let(:hmis_user) { Hmis::User.find(user.id)&.tap { |u| u.update(hmis_data_source_id: ds.id) } }
   let(:hmis_hud_user) { Hmis::Hud::User.from_user(hmis_user) }
 
@@ -13,6 +13,9 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
   let(:c1) { create :hmis_hud_client_complete, data_source: ds, user: hmis_hud_user }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds, project: p1, client: c1, user: hmis_hud_user }
 
+  let!(:no_permission_role) { create :role }
+  let!(:empty_access_group) { create :access_group }
+
   HIDDEN = Hmis::Hud::Processors::Base::HIDDEN_FIELD_VALUE
   INVALID = 'INVALID'.freeze # Invalid enum representation
 
@@ -21,6 +24,11 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
   end
   after(:all) do
     cleanup_test_environment
+  end
+
+  before do
+    empty_access_group.set_viewables({ data_sources: [ds.id] })
+    setup_acl(user, no_permission_role, empty_access_group)
   end
 
   it 'ingests EnrollmentCoC into the hud tables' do

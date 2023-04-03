@@ -4,8 +4,8 @@ require_relative '../../support/hmis_base_setup'
 
 RSpec.describe Hmis::GraphqlController, type: :request do
   include_context 'hmis base setup'
+  let!(:user2) { create :user }
   let(:u2) do
-    user2 = create(:user).tap { |u| u.add_viewable(ds1) }
     hmis_user2 = Hmis::User.find(user2.id)&.tap { |u| u.update(hmis_data_source_id: ds1.id) }
     Hmis::Hud::User.from_user(hmis_user2)
   end
@@ -14,6 +14,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, relationship_to_ho_h: 1, household_id: '1', user: u1 }
   let!(:e2) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c2, relationship_to_ho_h: 2, household_id: '1', user: u2 }
   let(:new_entry_date) { Date.today - 7.days }
+  let!(:no_permission_role) { create :role }
+  let!(:empty_access_group) { create :access_group }
 
   let(:mutation) do
     <<~GRAPHQL
@@ -33,6 +35,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   describe 'with edit access' do
     before(:each) do
+      empty_access_group.set_viewables({ data_sources: [ds1.id] })
+      setup_acl(user2, no_permission_role, empty_access_group)
       hmis_login(user)
       assign_viewable(edit_access_group, p1.as_warehouse, hmis_user)
     end

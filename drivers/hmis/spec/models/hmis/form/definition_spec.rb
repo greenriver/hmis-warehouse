@@ -9,7 +9,7 @@ RSpec.describe Hmis::Form::Definition, type: :model do
   end
 
   let!(:ds1) { create :hmis_data_source }
-  let!(:user) { create(:user).tap { |u| u.add_viewable(ds1) } }
+  let!(:user) { create(:user) }
   let(:hmis_user) { Hmis::User.find(user.id)&.tap { |u| u.update(hmis_data_source_id: ds1.id) } }
   let(:u1) { Hmis::Hud::User.from_user(hmis_user) }
   let(:o1) { create :hmis_hud_organization, data_source: ds1, user: u1 }
@@ -18,6 +18,13 @@ RSpec.describe Hmis::Form::Definition, type: :model do
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1 }
   let!(:fd1) { create :hmis_form_definition, role: 'INTAKE' }
   let!(:fi1) { create :hmis_form_instance, definition: fd1, entity: p1 }
+  let!(:no_permission_role) { create :role }
+  let!(:empty_access_group) { create :access_group }
+
+  before do
+    empty_access_group.set_viewables({ data_sources: [ds1.id] })
+    setup_acl(user, no_permission_role, empty_access_group)
+  end
 
   it 'should return the right definition if a project has a specific assessment' do
     expect(Hmis::Form::Definition.find_definition_for_role(fd1.role, project: p1)).to eq(fd1)

@@ -81,7 +81,7 @@ class Users::InvitationsController < Devise::InvitationsController
   end
 
   private def assigned_acl_ids
-    user_params[:access_control_ids]&.reject(&:blank?)&.map(&:to_i) || []
+    invite_params[:access_control_ids]&.reject(&:blank?)&.map(&:to_i) || []
   end
 
   private def creating_admin?

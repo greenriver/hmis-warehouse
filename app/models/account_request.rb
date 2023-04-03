@@ -29,7 +29,7 @@ class AccountRequest < ApplicationRecord
     "#{first_name} #{last_name}"
   end
 
-  def convert_to_user!(user:, acl_ids: [])
+  def convert_to_user!(user:, access_control_ids: [])
     options = {
       first_name: first_name,
       last_name: last_name,
@@ -40,7 +40,7 @@ class AccountRequest < ApplicationRecord
     user = User.invite!(options, user)
     # roles = Role.where(id: role_ids)
     # access_groups = AccessGroup.where(id: access_group_ids)
-    acls = AccessControl.where(id: acl_ids)
+    acls = AccessControl.where(id: access_control_ids)
     acls.each do |acl|
       acl.add(user)
     end

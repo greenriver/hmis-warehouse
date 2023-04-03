@@ -1,6 +1,6 @@
 RSpec.shared_context 'hmis base setup', shared_context: :metadata do
   let!(:ds1) { create :hmis_data_source }
-  let!(:user) { create(:user).tap { |u| u.add_viewable(ds1) } }
+  let!(:user) { create(:user) }
   let(:hmis_user) { user.related_hmis_user(ds1) }
   let(:u1) { Hmis::Hud::User.from_user(hmis_user) }
   let!(:o1) { create :hmis_hud_organization, data_source: ds1, user: u1 }
@@ -19,6 +19,14 @@ RSpec.shared_context 'hmis base setup', shared_context: :metadata do
     role = create(:hmis_role_with_no_permissions, **Hmis::Role.permissions_with_descriptions.map { |k, v| v[:access] == [:viewable] ? k : nil }.compact.map { |p| [p, true] }.to_h)
     group.access_controls.create(role: role)
     group
+  end
+
+  let!(:no_permission_role) { create :role }
+  let!(:empty_access_group) { create :access_group }
+
+  before do
+    empty_access_group.set_viewables({ data_sources: [ds1.id] })
+    setup_acl(user, no_permission_role, empty_access_group)
   end
 end
 

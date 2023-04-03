@@ -12,7 +12,7 @@ module HmisUtil
     # Once we introduce the ability to customize how HUD services are
     # categorized, this will need to change.
     def self.seed_hud_service_types(data_source_id)
-      system_user = Hmis::User.find(User.system_user.id)
+      system_user = Hmis::User.system_user
       system_user.hmis_data_source_id = data_source_id
       hud_user = Hmis::Hud::User.from_user(system_user)
 
