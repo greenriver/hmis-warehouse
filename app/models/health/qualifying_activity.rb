@@ -35,6 +35,32 @@ module Health
 
     MODE_OF_CONTACT_OTHER = 'other'.freeze
     REACHED_CLIENT_OTHER = 'collateral'.freeze
+    VERSIONS = [
+      Health::QualifyingActivityV1,
+      Health::QualifyingActivityV2,
+    ].freeze
+
+    [
+      :mode_of_contact,
+      :mode_of_contact_other,
+      :reached_client,
+      :reached_client_collateral_contact,
+      :activity,
+    ].each do |attr_sym|
+      VERSIONS.each do |version|
+        alias_name = (attr_sym.to_s + version::ATTRIBUTE_SUFFIX).to_sym
+        alias_attribute alias_name, attr_sym
+      end
+    end
+
+    def qa_version
+      # If the QA doesn't have a date, use the creation date as a fallback to determine the version
+      date = date_of_activity || created_at.to_date
+
+      VERSIONS.each do |version|
+        return version.new(self) if version::EFFECTIVE_DATE_RANGE.cover?(date)
+      end
+    end
 
     scope :submitted, -> do
       where.not(claim_submitted_on: nil)
@@ -45,10 +71,17 @@ module Health
     end
 
     scope :submittable, -> do
-      where.not(mode_of_contact: nil).
-        where.not(reached_client: nil).
-        where.not(activity: nil).
-        where.not(follow_up: nil)
+      @submittable_query ||= begin
+        query = hqa_t[:activity].not_eq(nil).and(hqa_t[:follow_up].not_eq(nil))
+        VERSIONS.each do |version|
+          query_part = hqa_t[:date_of_activity].between(version::EFFECTIVE_DATE_RANGE).
+            and(hqa_t[:activity].not_in(version::CONTACTLESS_ACTIVITIES).or(hqa_t[:mode_of_contact].not_eq(nil).and(hqa_t[:reached_client].not_eq(nil))))
+          query = query.or(query_part)
+        end
+        query
+      end
+
+      where(@submittable_query)
     end
 
     scope :in_range, ->(range) do
@@ -60,7 +93,19 @@ module Health
     end
 
     scope :face_to_face, -> do
-      where(mode_of_contact: :in_person)
+      @face_to_face_query ||= begin
+        query = nil
+        VERSIONS.each do |version|
+          query_part = hqa_t[:date_of_activity].between(version::EFFECTIVE_DATE_RANGE).and(hqa_t[:mode_of_contact].in(version::FACE_TO_FACE_KEYS))
+          query = if query.nil?
+            query_part
+          else
+            query.or(query_part)
+          end
+        end
+        query
+      end
+      where(@face_to_face_query)
     end
 
     scope :payable, -> do
@@ -113,134 +158,22 @@ module Health
     belongs_to :user, optional: true
     belongs_to :patient, optional: true
 
-    def self.modes_of_contact
-      @modes_of_contact ||= {
-        in_person: {
-          title: 'In person',
-          code: 'U2',
-          weight: 0,
-        },
-        phone_call: {
-          title: 'Phone call',
-          code: 'U3',
-          weight: 10,
-        },
-        email: {
-          title: 'Email',
-          code: 'U3',
-          weight: 20,
-        },
-        video_call: {
-          title: 'Video call',
-          code: 'U3',
-          weight: 30,
-        },
-        verbal: {
-          title: 'Verbal',
-          code: 'U3',
-          weight: 40,
-        },
-        other: {
-          title: 'Other',
-          code: '',
-          weight: 50,
-        },
-      }.sort_by { |_, m| m[:weight] }.to_h
+    def modes_of_contact
+      qa_version.modes_of_contact
     end
 
-    def self.client_reached
-      @client_reached ||= {
-        yes: {
-          title: 'Yes (face to face, phone call answered, response to email)',
-          code: 'U1',
-          weight: 0,
-        },
-        group: {
-          title: 'Group session',
-          code: 'HQ',
-          weight: 10,
-        },
-        no: {
-          title: 'Did not reach',
-          code: '',
-          weight: 20,
-        },
-        collateral: {
-          title: 'Collateral contact - not with client directly',
-          code: 'UK',
-          weight: 30,
-        },
-      }.sort_by { |_, m| m[:weight] }.to_h
+    def client_reached
+      qa_version.client_reached
     end
 
-    def self.activities
-      @activities ||= {
-        outreach: {
-          title: 'Outreach for enrollment',
-          code: 'G9011',
-          weight: 0,
-        },
-        cha: {
-          title: 'Comprehensive Health Assessment',
-          code: 'G0506',
-          weight: 10,
-        },
-        care_planning: {
-          title: 'Care planning',
-          code: 'T2024',
-          weight: 20,
-        },
-        med_rec: {
-          title: 'Supported Medication Reconciliation (NCM only)',
-          code: 'G8427',
-          weight: 21,
-        },
-        care_coordination: {
-          title: 'Care coordination',
-          code: 'G9005',
-          weight: 30,
-        },
-        care_transitions: {
-          title: 'Care transitions (working with care team)',
-          code: 'G9007',
-          weight: 40,
-        },
-        discharge_follow_up: {
-          title: 'Follow-up from inpatient hospital discharge (with client)',
-          code: 'G9007>U5',
-          weight: 50,
-        },
-        health_coaching: {
-          title: 'Health and wellness coaching',
-          code: 'G9006',
-          weight: 60,
-        },
-        community_connection: {
-          title: 'Connection to community and social services',
-          code: 'G9004',
-          weight: 70,
-        },
-        screening_completed: {
-          title: 'Social services screening completed',
-          code: 'T1023',
-          weight: 80,
-        },
-        referral_to_aco: {
-          title: 'Referral to ACO for Flexible Services',
-          code: 'T1023>U6',
-          weight: 90,
-        },
-        pctp_signed: {
-          title: 'Person-Centered Treatment Plan signed',
-          code: 'T2024>U4',
-          weight: 100,
-        },
-        intake_completed: {
-          title: 'Intake/Reassessment (completing consent/ROI, CHA, SSM, care plan)',
-          code: 'G9005',
-          weight: 110,
-        },
-      }.sort_by { |_, m| m[:weight] }.to_h
+    def activities
+      qa_version.activities
+    end
+
+    def contact_required?
+      return false unless activity
+
+      !activity.to_sym.in?(qa_version.class::CONTACTLESS_ACTIVITIES)
     end
 
     def self.date_search(start_date, end_date)
@@ -255,33 +188,33 @@ module Health
       end
     end
 
-    def self.face_to_face?(value)
-      face_to_face_modes.include?(value&.to_sym)
+    def face_to_face?
+      mode_of_contact.to_sym.in?(face_to_face_modes)
     end
 
     # Return the string and the key so we can check either
-    def self.face_to_face_modes
-      keys = [
-        :in_person,
-      ]
-      Health::QualifyingActivity.modes_of_contact.select { |k, _| keys.include? k }.
-        map { |_, m| m[:title] } + keys
+    def face_to_face_modes
+      face_to_face_keys = qa_version.class::FACE_TO_FACE_KEYS
+
+      modes_of_contact.select { |k, _| face_to_face_keys.include? k }.
+        map { |_, m| m[:title] } + face_to_face_keys
     end
 
     # These validations must come after the above methods
-    validates :mode_of_contact, inclusion: { in: Health::QualifyingActivity.modes_of_contact.keys.map(&:to_s) }, allow_blank: true
-    validates :reached_client, inclusion: { in: Health::QualifyingActivity.client_reached.keys.map(&:to_s) }, allow_blank: true
-    validates :activity, inclusion: { in: Health::QualifyingActivity.activities.keys.map(&:to_s) }, allow_blank: true
+    validates :mode_of_contact, inclusion: { in: ->(qa) { qa.modes_of_contact.keys.map(&:to_s) } }, allow_blank: true
+    validates :reached_client, inclusion: { in: ->(qa) { qa.client_reached.keys.map(&:to_s) } }, allow_blank: true
+    validates :activity, inclusion: { in: ->(qa) { qa.activities.keys.map(&:to_s) } }, allow_blank: true
     validates_presence_of(
       :user,
       :user_full_name,
-      :source, :follow_up,
+      :source,
       :date_of_activity,
       :patient_id,
-      :mode_of_contact,
-      :reached_client,
-      :activity
+      :activity,
+      :follow_up,
     )
+    validates_presence_of :mode_of_contact, if: :contact_required?
+    validates_presence_of :reached_client, if: :contact_required?
     validates_presence_of :mode_of_contact_other, if: :mode_of_contact_is_other?
     validates_presence_of :reached_client_collateral_contact, if: :reached_client_is_collateral_contact?
 
@@ -305,54 +238,22 @@ module Health
       follow_up.blank?
     end
 
-    def self.load_string_collection(collection)
-      collection.map { |k, v| [v, k] }
-    end
-
-    def self.mode_of_contact_collection
-      load_string_collection(
-        modes_of_contact.
-        # select{ |k,_| k != :other }.
-        map { |k, mode| [k, mode[:title]] },
-      )
-    end
-
-    def self.reached_client_collection
-      load_string_collection(
-        client_reached.
-        map { |k, mode| [k, mode[:title]] },
-      )
-    end
-
-    def self.activity_collection
-      suppress_from_view = [
-        :cha,
-        :care_planning,
-        :pctp_signed,
-      ]
-      load_string_collection(
-        activities.
-        reject { |k| suppress_from_view.include?(k) }.
-        map { |k, mode| [k, mode[:title]] },
-      )
-    end
-
     def activity_title key
       return '' unless key
 
-      self.class.activities[key&.to_sym].try(:[], :title) || key
+      activities[key&.to_sym].try(:[], :title) || key
     end
 
     def mode_of_contact_title key
       return '' unless key
 
-      self.class.modes_of_contact[key&.to_sym].try(:[], :title) || key
+      modes_of_contact[key&.to_sym].try(:[], :title) || key
     end
 
     def client_reached_title key
       return '' unless key
 
-      self.class.client_reached[key&.to_sym].try(:[], :title) || key
+      client_reached[key&.to_sym].try(:[], :title) || key
     end
 
     def mode_of_contact_is_other?
@@ -387,20 +288,20 @@ module Health
     end
 
     def title_for_mode_of_contact
-      self.class.modes_of_contact[mode_of_contact&.to_sym].try(:[], :title) if mode_of_contact.present?
+      modes_of_contact[mode_of_contact&.to_sym].try(:[], :title) if mode_of_contact.present?
     end
 
     def title_for_client_reached
-      self.class.client_reached[reached_client&.to_sym].try(:[], :title) if reached_client.present?
+      client_reached[reached_client&.to_sym].try(:[], :title) if reached_client.present?
     end
 
     def title_for_activity
-      self.class.activities[activity&.to_sym].try(:[], :title) if activity.present?
+      activities[activity&.to_sym].try(:[], :title) if activity.present?
     end
 
     def procedure_code
       # ignore any modifiers
-      self.class.activities[activity&.to_sym].try(:[], :code)&.split(' ').try(:[], 0)
+      activities[activity&.to_sym].try(:[], :code)&.split(/[ |>]/).try(:[], 0)
     end
 
     def outreach?
@@ -408,63 +309,52 @@ module Health
     end
 
     def modifiers
-      TodoOrDie('Remove MH COVID flexibility', by: '2023-03-31')
-
-      modifiers = []
-      case activity&.to_sym
-      when :cha, :discharge_follow_up
-        if [:phone_call, :video_call].include?(mode_of_contact&.to_sym)
-          contact_modifier = self.class.modes_of_contact[:in_person][:code]
-        else
-          contact_modifier = self.class.modes_of_contact[mode_of_contact&.to_sym].try(:[], :code)
-        end
-      else
-        contact_modifier = self.class.modes_of_contact[mode_of_contact&.to_sym].try(:[], :code)
-      end
-
-      # attach modifiers from activity
-      modifiers << self.class.activities[activity&.to_sym].try(:[], :code)&.split(' ').try(:[], 1)
-
-      modifiers << contact_modifier
-      modifiers << self.class.client_reached[reached_client&.to_sym].try(:[], :code)
-
-      return modifiers.reject(&:blank?).compact
+      qa_version.modifiers
     end
 
     def compute_procedure_valid?
-      return false unless date_of_activity.present? && activity.present? && mode_of_contact.present? && reached_client.present?
+      activity_sym = activity.to_sym
+      # Incomplete QAs
+      return false unless date_of_activity.present? && activity.present?
+      return false if (mode_of_contact.blank? || reached_client.blank?) && !activity_sym.in?(qa_version.class::CONTACTLESS_ACTIVITIES)
 
-      procedure_code = self.procedure_code
-      modifiers = self.modifiers
-      reached_client = self.reached_client
-      # Some special cases
+      # Conflicting modifiers
       return false if modifiers.include?('U2') && modifiers.include?('U3') # Marked as both f2f and indirect
-      return false if modifiers.include?('U1') && modifiers.include?('HQ') # Marked as both individual and group
+      return false if modifiers.include?('U1') && modifiers.include?('HQ') # Marked as both individual and group (CP1)
+      return false if modifiers.include?('U2') && modifiers.include?('95') # Marked as both f2f and telehealth
+      return false if modifiers.include?('U3') && modifiers.include?('95') # Marked as both indirect and telehealth
 
-      if procedure_code.to_s == 'T2024' && modifiers.include?('U4') || procedure_code.to_s == 'T2024>U4'
-        procedure_code = 'T2024>U4'.to_sym
-        modifiers = modifiers.uniq - ['U4']
-      elsif procedure_code.to_s == 'G9007' && modifiers.include?('U5') || procedure_code.to_s == 'G9007>U5'
-        procedure_code = 'G9007>U5'.to_sym
-        modifiers = modifiers.uniq - ['U5']
-      elsif procedure_code.to_s == 'T1023' && modifiers.include?('U6') || procedure_code.to_s == 'T1023>U6'
-        procedure_code = 'T1023>U6'.to_sym
-        modifiers = modifiers.uniq - ['U6']
-      else
-        procedure_code = procedure_code&.to_sym
-      end
+      # In-person contacts must reach the client, EXCEPT for outreach
+      return false if modifiers.include?('U2') && (!modifiers.include?('U1') || activity_sym == activities[:outreach][:code])
 
-      # If the client isn't reached, and it's an in-person encounter, you can only count outreach attempts
-      if reached_client.to_s == 'no'
-        return false if modifiers.uniq.count == 1 && modifiers.include?('U2') && procedure_code.to_s != 'G9011'
-      end
+      valid_options = qa_version.activities[activity_sym]
+      # Must not contain forbidden modifiers
+      return false unless modifiers.all? { |modifier| (valid_options[:allowed] + valid_options[:required]).include?(modifier) }
 
-      return false if procedure_code.blank?
-      return true if modifiers.empty?
+      # Must contain required modifiers
+      return false unless valid_options[:required].all? { |modifier| modifiers.include?(modifier) }
 
-      # Check that all of the modifiers we have occur in the acceptable modifiers
-      (modifiers - Array.wrap(valid_options[procedure_code])).empty?
+      true
     end
+
+    def same_of_type_for_day_for_patient
+      self.class.where(
+        activity: activity,
+        patient_id: patient_id,
+        date_of_activity: date_of_activity,
+      )
+    end
+
+    def within_per_day_limits?
+      # Assumes ids are strictly increasing, so all prior QAs will have a lower id
+      prior_instances = same_of_type_for_day_for_patient.where(hqa_t[:id].lt(id)).order(:id).count
+      limit = qa_version.activities[activity.to_sym][:per_day]
+      return true unless limit.present?
+
+      prior_instances < limit
+    end
+
+    # CP 1.0 QAs by date limits
 
     def first_of_type_for_day_for_patient?
       # Assumes ids are strictly increasing, so the lowest id will
@@ -522,14 +412,6 @@ module Health
       non_outreaches_by_month.reject { |_k, v| v.zero? }.keys.count
     end
 
-    def same_of_type_for_day_for_patient
-      self.class.where(
-        activity: activity,
-        patient_id: patient_id,
-        date_of_activity: date_of_activity,
-      )
-    end
-
     def outreaches_of_month_for_patient
       self.class.where(
         patient_id: patient_id,
@@ -553,7 +435,7 @@ module Health
       # 10/31/2018 removed meets_date_restrictions? check.  QA that are valid but unpayable
       # will still be submitted
       self.naturally_payable = compute_procedure_valid?
-      if naturally_payable && once_per_day_procedure_codes.include?(procedure_code.to_s)
+      if naturally_payable && !within_per_day_limits? # once_per_day_procedure_codes.include?(procedure_code.to_s)
         # Log duplicates for any that aren't the first of type for a type that can't be repeated on the same day
         self.duplicate_id = first_of_type_for_day_for_patient_not_self
       else
@@ -583,51 +465,8 @@ module Health
       compute_valid_unpayable.present?
     end
 
-    # Returns the reason the QA is valid unpayable, or nil
-    # :outside_enrollment -
-    # :call_not_reached -
-    # :outreach_past_cutoff -
-    # :limit_outreaches_per_month_exceeded -
-    # :limit_months_outreach_exceeded -
-    # :limit_activities_per_month_without_careplan_exceeded -
-    # :activity_outside_of_engagement_without_careplan -
-    # :limit_months_without_careplan_exceeded -
     def compute_valid_unpayable
-      @compute_valid_unpayable ||= internal_compute_valid_unpayable
-    end
-
-    private def internal_compute_valid_unpayable
-      reasons = []
-      computed_procedure_valid = compute_procedure_valid?
-
-      # Only valid procedures can be valid unpayable
-      return nil unless computed_procedure_valid
-
-      # Unpayable if it is a valid procedure, but it didn't occur during an enrollment
-      reasons << :outside_enrollment if computed_procedure_valid && ! occurred_during_any_enrollment?
-
-      # Unpayable if this was a phone/video call where the client wasn't reached
-      reasons << :call_not_reached if reached_client == 'no' && ['phone_call', 'video_call'].include?(mode_of_contact)
-
-      # Signing a care plan is payable regardless of engagement status
-      return reasons if activity == 'pctp_signed'
-
-      # Outreach is limited by the outreach cut-off date, enrollment ranges, and frequency
-      if outreach?
-        reasons << :outreach_past_cutoff if date_of_activity > patient.outreach_cutoff_date
-        reasons << :outside_enrollment unless patient.contributed_dates.include?(date_of_activity)
-        reasons << :limit_outreaches_per_month_exceeded unless first_outreach_of_month_for_patient?
-        reasons << :limit_months_outreach_exceeded if number_of_outreach_activity_months > 3
-      else
-        # Non-outreach activities are payable at 1 per month before engagement unless there is a care-plan
-        unless patient_has_signed_careplan?
-          reasons << :limit_activities_per_month_without_careplan_exceeded unless first_non_outreach_of_month_for_patient?
-          reasons << :activity_outside_of_engagement_without_careplan if patient.engagement_date.blank? || date_of_activity > patient.engagement_date
-          reasons << :limit_months_without_careplan_exceeded if number_of_non_outreach_activity_months > 5
-        end
-      end
-
-      reasons.uniq
+      @compute_valid_unpayable ||= qa_version.internal_compute_valid_unpayable
     end
 
     def validity_class
@@ -646,6 +485,8 @@ module Health
             _('patient did not have an active enrollment on the date of the activity')
           when :call_not_reached
             _('phone or video calls are not payable if the patient was not reached')
+          when :limit_per_day
+            _('number of activities of this type per day exceeded')
           when :outreach_past_cutoff
             _('outreach activities are not payable after the outreach period')
           when :limit_outreaches_per_month_exceeded
@@ -664,8 +505,10 @@ module Health
         reasons = []
         reasons << _('the date of the activity is missing') unless date_of_activity.present?
         reasons << _('no activity was specified') unless activity.present?
-        reasons << _('no mode of contact') unless mode_of_contact.present?
-        reasons << _('no indication if the client was reached') unless reached_client.present?
+        if contact_required?
+          reasons << _('no mode of contact') unless mode_of_contact.present?
+          reasons << _('no indication if the client was reached') unless reached_client.present?
+        end
         reasons << _('invalid procedure code') if reasons.blank?
 
         reasons
@@ -695,12 +538,12 @@ module Health
 
     # at the time of this call does the patient have
     # a valid care plan covering the date_of_activity
-    def patient_has_valid_care_plan?
-      return false if patient.care_plan_renewal_date.blank?
-      return false unless date_of_activity.present?
-
-      date_of_activity >= patient.care_plan_provider_signed_date && date_of_activity < patient.care_plan_renewal_date
-    end
+    # def patient_has_valid_care_plan?
+    #   return false if patient.care_plan_renewal_date.blank?
+    #   return false unless date_of_activity.present?
+    #
+    #   date_of_activity >= patient.care_plan_provider_signed_date && date_of_activity < patient.care_plan_renewal_date
+    # end
 
     # Is a valid care_plan missing for the date_of_activity?. This is much
     # slower and more complex than patient_has_valid_care_plan? which
@@ -752,11 +595,11 @@ module Health
       enrolled_dates = Set.new
       contributing_referrals.each do |r|
         enrolled_dates += r.enrolled_days_to_date
-        break if enrolled_dates.size >= engagement_period_in_days
+        break if enrolled_dates.size.days >= engagement_period_in_days
       end
 
       # We have not yet been enrolled 150 days so there is still time for a care plan to arrive
-      return false if enrolled_dates.size < engagement_period_in_days
+      return false if enrolled_dates.size.days < engagement_period_in_days
 
       pcp_signed_plans = patient.careplans.select(&:provider_signed_on)
       # Fast fail: no pcp signed plans at all.
@@ -794,16 +637,6 @@ module Health
       ! patient_has_signed_careplan?
     end
 
-    def once_per_day_procedure_codes
-      [
-        'G0506', # cha
-        'T2024', # care planning
-        'T2024>U4', # completed care planning
-        'T1023', # screening completed
-        'T1023>U6', # referral to ACO
-      ]
-    end
-
     def in_first_three_months_procedure_codes
       self.class.in_first_three_months_procedure_codes
     end
@@ -818,80 +651,6 @@ module Health
       activities.select do |_, act|
         in_first_three_months_procedure_codes.include?(act[:code].to_s)
       end.keys
-    end
-
-    # def restricted_procedure_codes
-    #   once_per_day_procedure_codes + in_first_three_months_procedure_codes
-    # end
-
-    def valid_options
-      @valid_options ||= {
-        G9011: [
-          'U1',
-          'U2',
-          'U3',
-          'UK',
-        ],
-        G0506: [
-          'U1',
-          'U2',
-          'UK',
-        ],
-        T2024: [
-          'U1',
-          'U2',
-          'U3',
-          'UK',
-        ],
-        'T2024>U4'.to_sym => [
-          'U1',
-          'U2',
-          'UK',
-        ],
-        G9005: [
-          'U1',
-          'U2',
-          'U3',
-          'UK',
-        ],
-        G9007: [
-          'U1',
-          'U2',
-          'U3',
-          'UK',
-        ],
-        'G9007>U5'.to_sym => [
-          'U1',
-          'U2',
-        ],
-        G8427: [
-          'U1',
-          'U2',
-          'U3',
-          'UK',
-        ],
-        G9006: [
-          'U1',
-          'U2',
-          'HQ',
-        ],
-        G9004: [
-          'U1',
-          'U2',
-          'U3',
-          'UK',
-        ],
-        T1023: [
-          'U1',
-          'U2',
-          'U3',
-        ],
-        'T1023>U6'.to_sym => [
-          'U1',
-          'U2',
-          'U3',
-        ],
-      }
     end
   end
 end

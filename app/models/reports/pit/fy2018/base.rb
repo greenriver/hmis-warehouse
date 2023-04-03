@@ -46,6 +46,26 @@ module Reports::Pit::Fy2018
       ''
     end
 
+    def allowed_options(result)
+      options_from_result(result).keys.map(&:to_sym)
+    end
+
+    def filter_from_result(result)
+      # Old PITs don't the filter, but the HudFilterBase will handle display.
+      f = ::Filters::HudFilterBase.new(user_id: result.user_id)
+      f.update(options_from_result(result).with_indifferent_access)
+      f
+    end
+
+    private def options_from_result(result)
+      options = result.options.deep_dup
+      # Cleanup some discrepancies
+      options[:on] = options.delete('pit_date')
+      options[:start] = nil
+      options[:end] = nil
+      options
+    end
+
     def value_for_options options
       value = "PIT: #{options['pit_date']}, Chronic: #{options['chronic_date']}" if options.present?
       value += ", CoC Code(s): #{options['coc_codes'].join(' ')}" if options['coc_codes'].present? && options['coc_codes'].select(&:present?).any?

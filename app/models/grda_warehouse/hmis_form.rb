@@ -640,10 +640,10 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   end
 
   def care_hub_reached_key qa
-    @care_hub_client_reached ||= Health::QualifyingActivity.client_reached.map do |k, reached|
+    hqa = Health::QualifyingActivity.new(date_of_activity: collected_at.to_date)
+    hqa.client_reached.map do |k, reached|
       [reached[:title], k]
-    end.to_h
-    @care_hub_client_reached[clean_reached_title(qa)]
+    end.to_h[clean_reached_title(qa)]
   end
 
   def clean_reached_title qa
@@ -651,10 +651,10 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   end
 
   def care_hub_mode_key qa
-    @care_hub_modes_of_contact ||= Health::QualifyingActivity.modes_of_contact.map do |k, mode|
+    hqa = Health::QualifyingActivity.new(date_of_activity: collected_at.to_date)
+    hqa.modes_of_contact.map do |k, mode|
       [mode[:title], k]
-    end.to_h
-    @care_hub_modes_of_contact[clean_mode_title(qa)]
+    end.to_h[clean_mode_title(qa)]
   end
 
   def clean_mode_title qa
@@ -662,10 +662,10 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   end
 
   def care_hub_activity_key qa
-    @care_hub_activities ||= Health::QualifyingActivity.activities.map do |k, activity|
+    hqa = Health::QualifyingActivity.new(date_of_activity: collected_at.to_date)
+    hqa.activities.map do |k, activity|
       [activity[:title], k]
-    end.to_h
-    @care_hub_activities[clean_activity_title(qa)]
+    end.to_h[clean_activity_title(qa)]
   end
 
   def clean_activity_title qa
