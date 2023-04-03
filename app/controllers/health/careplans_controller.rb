@@ -105,6 +105,10 @@ module Health
     def update
       @careplan.user = current_user
       @careplan.assign_attributes(careplan_params)
+      @careplan.assign_attributes(careplan_sent_on: Date.current, careplan_sender_id: current_user.id) if careplan_params[:careplan_sent] == '1'
+      @careplan.assign_attributes(ncm_approved_on: Date.current, approving_ncm_id: current_user.id) if careplan_params[:ncm_approval] == '1'
+      @careplan.assign_attributes(rn_approved_on: Date.current, approving_rn_id: current_user.id) if careplan_params[:rn_approval] == '1'
+
       @careplan.health_file.set_calculated!(current_user.id, @client.id) if @careplan.health_file&.new_record?
       Health::CareplanSaver.new(careplan: @careplan, user: current_user, create_qa: true).update
       @form_button = 'Save Care Plan'
@@ -144,6 +148,7 @@ module Health
 
     def set_careplan
       @careplan = careplan_source.find(params[:id].to_i)
+      @cha = @careplan.patient.recent_cha_form
     end
 
     def set_epic_goals
@@ -151,38 +156,45 @@ module Health
     end
 
     def careplan_params
+      careplan_params = [
+        :initial_date,
+        :review_date,
+        :patient_signed_on,
+        :patient_signature_mode,
+        :provider_signed_on,
+        :provider_signature_mode,
+        :case_manager_id,
+        :responsible_team_member_id,
+        :responsible_team_member_signed_on,
+        :representative_id,
+        :representative_signed_on,
+        :provider_id,
+        :provider_signature_requested_at,
+        :patient_health_problems,
+        :patient_strengths,
+        :patient_goals,
+        :patient_barriers,
+        :future_issues_0,
+        :future_issues_1,
+        :future_issues_2,
+        :future_issues_3,
+        :future_issues_4,
+        :future_issues_5,
+        :future_issues_6,
+        :future_issues_7,
+        :future_issues_8,
+        :future_issues_9,
+        :future_issues_10,
+        :member_understands_contingency,
+        :member_verbalizes_understanding,
+        :careplan_sent,
+      ]
+      careplan_params << :ncm_approval if current_user.can_approve_cha?
+      careplan_params << :rn_approval if current_user.can_approve_careplan?
+
       params.require(:health_careplan).
         permit(
-          :initial_date,
-          :review_date,
-          :patient_signed_on,
-          :patient_signature_mode,
-          :provider_signed_on,
-          :provider_signature_mode,
-          :case_manager_id,
-          :responsible_team_member_id,
-          :responsible_team_member_signed_on,
-          :representative_id,
-          :representative_signed_on,
-          :provider_id,
-          :provider_signature_requested_at,
-          :patient_health_problems,
-          :patient_strengths,
-          :patient_goals,
-          :patient_barriers,
-          :future_issues_0,
-          :future_issues_1,
-          :future_issues_2,
-          :future_issues_3,
-          :future_issues_4,
-          :future_issues_5,
-          :future_issues_6,
-          :future_issues_7,
-          :future_issues_8,
-          :future_issues_9,
-          :future_issues_10,
-          :member_understands_contingency,
-          :member_verbalizes_understanding,
+          *careplan_params,
           health_file_attributes: [
             :id,
             :file,

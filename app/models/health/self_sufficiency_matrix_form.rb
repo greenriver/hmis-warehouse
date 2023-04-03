@@ -442,6 +442,11 @@ module Health
       completed_at && completed_at >= 1.years.ago
     end
 
+    def positive_sdoh?
+      # A positive SDOH indicates that one or more of the questions was answered but in the range of 1..4
+      SECTIONS.keys.map { |key| send("#{key}_score") }.any? { |answer| answer.in?(1..4) }
+    end
+
     def encounter_report_details
       {
         source: 'Warehouse',

@@ -17,22 +17,22 @@ module Types
           field_options = default_field_options.merge(override_options)
           field(name, **field_options) do
             argument :sort_order, Types::HmisSchema::AssessmentSortOption, required: false
-            argument :roles, [HmisSchema::Enums::AssessmentRole], required: false
+            argument :roles, [Types::Forms::Enums::FormRole], required: false
             argument :in_progress, GraphQL::Types::Boolean, required: false
             instance_eval(&block) if block_given?
           end
         end
       end
 
-      def resolve_assessments_with_loader(association_name = :assessments, **args)
-        load_ar_association(object, association_name, scope: scoped_assessments(Hmis::Hud::Assessment, **args))
+      def resolve_assessments_with_loader(association_name = :custom_assessments, **args)
+        load_ar_association(object, association_name, scope: scoped_assessments(Hmis::Hud::CustomAssessment, **args))
       end
 
-      def resolve_assessments(scope = object.assessments, **args)
+      def resolve_assessments(scope = object.custom_assessments, **args)
         scoped_assessments(scope, **args)
       end
 
-      def resolve_assessments_including_wip(scope = object.assessments_including_wip, **args)
+      def resolve_assessments_including_wip(scope = object.custom_assessments_including_wip, **args)
         scoped_assessments(scope, **args)
       end
 

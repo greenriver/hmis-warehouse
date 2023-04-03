@@ -1,6 +1,7 @@
 require 'rails_helper'
 require_relative 'login_and_permissions'
 require_relative '../../support/hmis_base_setup'
+require_relative '../../support/hmis_service_setup'
 
 RSpec.describe Hmis::GraphqlController, type: :request do
   before(:all) do
@@ -11,6 +12,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   include_context 'hmis base setup'
+  include_context 'hmis service setup'
   let(:u2) do
     user2 = create(:user).tap { |u| u.add_viewable(ds1) }
     hmis_user2 = Hmis::User.find(user2.id)&.tap { |u| u.update(hmis_data_source_id: ds1.id) }
@@ -18,11 +20,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
   let!(:c1) { create :hmis_hud_client, data_source: ds1, user: u1 }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, client: c1, project: p1, user: u1 }
-  let!(:s1) { create :hmis_hud_service, data_source: ds1, client: c1, enrollment: e1, date_updated: Date.today - 1.week, user: u2 }
+  let!(:hud_s1) { create :hmis_hud_service, data_source: ds1, client: c1, enrollment: e1, date_updated: Date.today - 1.week, user: u2 }
+  let(:s1) { Hmis::Hud::HmisService.find_by(owner: hud_s1) }
 
   let(:test_input) do
     {
-      date_provided: Date.today.strftime('%Y-%m-%d'),
+      date_provided: Date.yesterday.strftime('%Y-%m-%d'),
       record_type: Types::HmisSchema::Enums::Hud::RecordType.enum_member_for_value(144).first,
       type_provided: Types::HmisSchema::Enums::ServiceTypeProvided.enum_member_for_value('144:3').first,
       sub_type_provided: Types::HmisSchema::Enums::ServiceSubTypeProvided.enum_member_for_value('144:3:1').first,
@@ -84,6 +87,23 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         'referralOutcome' => test_input[:referral_outcome],
       )
       expect(errors).to be_empty
+    end
+  end
+
+  it 'should throw error if unauthorized' do
+    remove_permissions(hmis_user, :can_edit_enrollments)
+    response, result = post_graphql(input: test_input, id: s1.id) { mutation }
+
+    aggregate_failures 'checking response' do
+      expect(response.status).to eq 200
+      service = result.dig('data', 'updateService', 'service')
+      errors = result.dig('data', 'updateService', 'errors')
+      expect(errors).to be_present
+      expect(errors).to contain_exactly(include('type' => 'not_allowed'))
+      expect(service).to be_nil
+
+      service = Hmis::Hud::Service.find(s1.owner.id)
+      expect(service.record_type == s1.owner.record_type).to eq(true)
     end
   end
 end

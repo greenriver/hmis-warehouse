@@ -27,6 +27,8 @@ module HudPit::Fy2022
           'Warehouse Source Client ID'
         when 'PersonalID'
           'Personal ID'
+        when 'hoh_age'
+          'HoH Age'
         else
           h.humanize
         end

@@ -91,11 +91,6 @@ module Health
           or(patient_source.where(nurse_care_manager_id: current_user.id))
       end
 
-      patient_ids_with_payable_qas_in_month = population.
-        joins(:qualifying_activities).
-        merge(Health::QualifyingActivity.payable.in_range(Date.current.beginning_of_month..Date.current.end_of_month)).
-        pluck(:id)
-
       population.
         # Assigned, and enrolled
         joins(:patient_referral).
@@ -108,11 +103,11 @@ module Health
             where(hpr_t[:pending_disenrollment_date].gteq(Date.current.beginning_of_month)),
         ).
         or(
-          # Have an un-confirmed rejection without a QA in the current month
+          # Have an un-confirmed rejection before the disenrollment date
           population.
             joins(:patient_referral).
             merge(Health::PatientReferral.rejected.not_confirmed_rejected).
-            where.not(id: patient_ids_with_payable_qas_in_month),
+            where(hpr_t[:disenrollment_date].lteq(Date.current)),
         )
     end
 

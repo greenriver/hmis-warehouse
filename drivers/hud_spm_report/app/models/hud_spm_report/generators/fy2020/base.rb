@@ -139,7 +139,7 @@ module HudSpmReport::Generators::Fy2020
         :first_name, # for add_universe_members
         :last_name, # for add_universe_members
         :VeteranStatus,
-      ).find_in_batches do |batch|
+      ).preload(:source_clients).find_in_batches do |batch|
         clients_by_id = batch.index_by(&:id)
         yield clients_by_id
       end
@@ -173,11 +173,7 @@ module HudSpmReport::Generators::Fy2020
       return age if entry_date.blank?
 
       entry_date = entry_date.to_date
-      date = if entry_date > @report.start_date
-        entry_date
-      else
-        @report.start_date
-      end
+      date = [entry_date, @report.start_date].max
 
       GrdaWarehouse::Hud::Client.age(dob: dob, date: date)
     end
@@ -197,6 +193,7 @@ module HudSpmReport::Generators::Fy2020
         data_source_id: client.data_source_id,
         dob: client.DOB,
         personal_id: client.PersonalID, # for debugging
+        source_client_personal_ids: client.source_clients.map(&:PersonalID).uniq.join('; '),
         data_lab_public_id: data_lab_public_id,
         first_name: client.first_name,
         last_name: client.last_name,
@@ -378,7 +375,7 @@ module HudSpmReport::Generators::Fy2020
             m1a_es_sh_th_days: calculate_valid_days_in_project_type(nights.dup, project_types: ES_SH_TH, line: :m1a2),
             m1b_es_sh_ph_days: calculate_valid_days_in_project_type(nights.dup, project_types: ES_SH_PH, line: :m1b1),
             m1b_es_sh_th_ph_days: calculate_valid_days_in_project_type(nights.dup, project_types: ES_SH_TH_PH, line: :m1b2, debug: false),
-            m1_reporting_age: age_for_report(dob: client.DOB, entry_date: m1_history.last[:last_date_in_program], age: m1_history.first[:age]),
+            m1_reporting_age: age_for_report(dob: client.DOB, entry_date: m1_history.last[:first_date_in_program], age: m1_history.first[:age]),
             veteran: client.veteran?,
             m1_head_of_household: m1_history.last[:head_of_household] || false,
           )
@@ -405,7 +402,7 @@ module HudSpmReport::Generators::Fy2020
           m3_active_project_types: enrollments.map { |e| e[:project_type] }.uniq,
           m3_history: { enrollments: enrollments.map { |e| { project_id: e[:project_id] } } },
           m3_project_id: enrollments.last[:project_id],
-          m3_reporting_age: age_for_report(dob: client.DOB, entry_date: enrollments.last[:last_date_in_program], age: enrollments.first[:age]),
+          m3_reporting_age: age_for_report(dob: client.DOB, entry_date: enrollments.last[:first_date_in_program], age: enrollments.first[:age]),
           veteran: client.veteran?,
           m3_head_of_household: enrollments.last[:head_of_household] || false,
         }
@@ -964,6 +961,7 @@ module HudSpmReport::Generators::Fy2020
         :dob,
         :first_name,
         :last_name,
+        :source_client_personal_ids,
         :veteran,
         exit_from_project_type_col,
         exit_to_destination_col,
@@ -1007,6 +1005,7 @@ module HudSpmReport::Generators::Fy2020
             first_name: client.first_name,
             last_name: client.last_name,
             veteran: client.veteran?,
+            source_client_personal_ids: client.source_clients.map(&:PersonalID).uniq.join('; '),
           )
 
           # 4. Using data from step 2, report the distinct number of clients who exited to permanent housing destinations

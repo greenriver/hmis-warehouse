@@ -8,13 +8,21 @@ module GrdaWarehouse
   class CohortColumnOption < GrdaWarehouseBase
     validates_presence_of :cohort_column, :value
 
+    scope :active, -> do
+      where(active: 1)
+    end
+
+    scope :ordered, -> do
+      order(weight: :asc)
+    end
+
     def cohort_columns
       @cohort_columns ||= GrdaWarehouse::Cohort.available_columns.select do |m|
         m.is_a? CohortColumns::Select
       end
     end
 
-    def self.add_initial_cohort_column_options
+    def self.add_initial_cohort_column_options # rubocop:disable Metrics/AbcSize
       where(cohort_column: :chapter_115, value: '', active: 1).first_or_create
       where(cohort_column: :chapter_115, value: 'Receiving', active: 1).first_or_create
       where(cohort_column: :chapter_115, value: 'Eligible', active: 1).first_or_create
@@ -126,17 +134,17 @@ module GrdaWarehouse
       where(cohort_column: :primary_housing_track_suggested, value: 'SSVF', active: 1).first_or_create
       where(cohort_column: :primary_housing_track_suggested, value: 'VASH', active: 1).first_or_create
 
-      where(cohort_column: :sensory_impaired , value: '', active: 1).first_or_create
-      where(cohort_column: :sensory_impaired , value: 'No', active: 1).first_or_create
-      where(cohort_column: :sensory_impaired , value: 'Sight', active: 1).first_or_create
-      where(cohort_column: :sensory_impaired , value: 'Hearing', active: 1).first_or_create
-      where(cohort_column: :sensory_impaired , value: 'Sight and Hearing', active: 1).first_or_create
-      where(cohort_column: :sensory_impaired , value: 'Other: Must be in Notes', active: 1).first_or_create
+      where(cohort_column: :sensory_impaired, value: '', active: 1).first_or_create
+      where(cohort_column: :sensory_impaired, value: 'No', active: 1).first_or_create
+      where(cohort_column: :sensory_impaired, value: 'Sight', active: 1).first_or_create
+      where(cohort_column: :sensory_impaired, value: 'Hearing', active: 1).first_or_create
+      where(cohort_column: :sensory_impaired, value: 'Sight and Hearing', active: 1).first_or_create
+      where(cohort_column: :sensory_impaired, value: 'Other: Must be in Notes', active: 1).first_or_create
 
-      where(cohort_column: :st_francis_house , value: '', active: 1).first_or_create
-      where(cohort_column: :st_francis_house , value: 'Infrequent Visitor', active: 1).first_or_create
-      where(cohort_column: :st_francis_house , value: 'Frequent Visitor', active: 1).first_or_create
-      where(cohort_column: :st_francis_house , value: 'Case Management', active: 1).first_or_create
+      where(cohort_column: :st_francis_house, value: '', active: 1).first_or_create
+      where(cohort_column: :st_francis_house, value: 'Infrequent Visitor', active: 1).first_or_create
+      where(cohort_column: :st_francis_house, value: 'Frequent Visitor', active: 1).first_or_create
+      where(cohort_column: :st_francis_house, value: 'Case Management', active: 1).first_or_create
 
       where(cohort_column: :status, value: '', active: 1).first_or_create
       where(cohort_column: :status, value: 'Chronic', active: 1).first_or_create
@@ -188,8 +196,7 @@ module GrdaWarehouse
     end
 
     def available_cohort_columns
-      cohort_columns.map{|c| [c.title, c.column]}.sort_by(&:first).to_h
+      cohort_columns.map { |c| [c.title, c.column] }.sort_by(&:first).to_h
     end
-
   end
 end

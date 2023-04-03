@@ -345,7 +345,7 @@ module PerformanceMeasurement::Details
           untagged: true,
           denominator_label: '',
           calculation_description: 'The difference (as a percentage) between the total unduplicated number of persons who are unsheltered homeless as reported in HMIS (via SO projects) and seen within the report range and comparison range.',
-          calculation_column: :served_in_range_unsheltered,
+          calculation_column: :served_on_pit_date_unsheltered, # note served_on_pit_date_unsheltered is actually total for year
           detail_columns: [
             'served_on_pit_date',
             'served_on_pit_date_sheltered',
@@ -864,7 +864,7 @@ module PerformanceMeasurement::Details
           goal_calculation: :income,
           denominator_label: 'Total Stayers',
           calculation_description: 'The number of adult stayers in CoC-funded projects with an increased earned income divided by the number of adult stayers in CoC-funded projects.',
-          calculation_column: :increased_earned_income__income_stayer,
+          calculation_column: :increased_income__earned_income_stayer,
           measure: 'Measure 4',
           detail_columns: [
             'income_stayer',
@@ -884,7 +884,7 @@ module PerformanceMeasurement::Details
           goal_calculation: :income,
           denominator_label: 'Total Stayers',
           calculation_description: 'The number of adult stayers in CoC-funded projects with an increased non-cash income divided by the number of adult stayers in CoC-funded projects.',
-          calculation_column: :increased_non_cash_income__income_stayer,
+          calculation_column: :increased_income__non_earned_income_stayer,
           measure: 'Measure 4',
           detail_columns: [
             'income_stayer',
@@ -924,7 +924,7 @@ module PerformanceMeasurement::Details
           goal_calculation: :income,
           denominator_label: 'Total Leavers',
           calculation_description: 'The number of adult leavers in CoC-funded projects with an increased earned income divided by the number of adult leavers in CoC-funded projects.',
-          calculation_column: :increased_earned_income__income_leaver,
+          calculation_column: :increased_income__earned_income_leaver,
           measure: 'Measure 4',
           detail_columns: [
             'income_leaver',
@@ -944,7 +944,7 @@ module PerformanceMeasurement::Details
           goal_calculation: :income,
           denominator_label: 'Total Leavers',
           calculation_description: 'The number of adult leavers in CoC-funded projects with an increased non-cash income divided by the number of adult leavers in CoC-funded projects.',
-          calculation_column: :increased_non_cash_income__income_leaver,
+          calculation_column: :increased_income__non_earned_income_leaver,
           measure: 'Measure 4',
           detail_columns: [
             'income_leaver',
@@ -963,6 +963,7 @@ module PerformanceMeasurement::Details
     def detail_headers(key:, period: 'reporting')
       columns = [
         'client_id',
+        'source_client_personal_ids',
         'dob',
         'veteran',
         "#{period}_age",

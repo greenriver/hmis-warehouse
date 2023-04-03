@@ -723,6 +723,382 @@ ALTER SEQUENCE public."CurrentLivingSituation_id_seq" OWNED BY public."CurrentLi
 
 
 --
+-- Name: CustomAssessments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."CustomAssessments" (
+    id bigint NOT NULL,
+    "CustomAssessmentID" character varying NOT NULL,
+    "EnrollmentID" character varying NOT NULL,
+    "PersonalID" character varying NOT NULL,
+    "UserID" character varying(32) NOT NULL,
+    "AssessmentDate" date NOT NULL,
+    "DataCollectionStage" integer NOT NULL,
+    data_source_id integer,
+    "DateCreated" timestamp without time zone NOT NULL,
+    "DateUpdated" timestamp without time zone NOT NULL,
+    "DateDeleted" timestamp without time zone
+);
+
+
+--
+-- Name: COLUMN "CustomAssessments"."DataCollectionStage"; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public."CustomAssessments"."DataCollectionStage" IS 'One of the HMIS 5.03.1, or 99 for local use';
+
+
+--
+-- Name: CustomAssessments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public."CustomAssessments_id_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: CustomAssessments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public."CustomAssessments_id_seq" OWNED BY public."CustomAssessments".id;
+
+
+--
+-- Name: CustomClientAssessments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."CustomClientAssessments" (
+    id bigint NOT NULL,
+    "CustomClientAssessmentID" character varying NOT NULL,
+    "PersonalID" character varying NOT NULL,
+    "UserID" character varying(32) NOT NULL,
+    "InformationDate" date NOT NULL,
+    data_source_id integer,
+    "DateCreated" timestamp without time zone NOT NULL,
+    "DateUpdated" timestamp without time zone NOT NULL,
+    "DateDeleted" timestamp without time zone
+);
+
+
+--
+-- Name: CustomClientAssessments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public."CustomClientAssessments_id_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: CustomClientAssessments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public."CustomClientAssessments_id_seq" OWNED BY public."CustomClientAssessments".id;
+
+
+--
+-- Name: CustomFormAnswers; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."CustomFormAnswers" (
+    id bigint NOT NULL,
+    custom_form_id bigint NOT NULL,
+    owner_type character varying NOT NULL,
+    owner_id bigint NOT NULL,
+    link_id character varying,
+    key character varying,
+    value_float double precision,
+    value_integer integer,
+    value_boolean boolean,
+    value_string character varying,
+    value_text text,
+    value_json jsonb,
+    deleted_at timestamp without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: COLUMN "CustomFormAnswers".owner_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public."CustomFormAnswers".owner_id IS 'Record that this data element applies to (Client, Project, etc)';
+
+
+--
+-- Name: COLUMN "CustomFormAnswers".link_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public."CustomFormAnswers".link_id IS 'Link ID of the item in the definition that this answer corresponds to';
+
+
+--
+-- Name: COLUMN "CustomFormAnswers".key; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public."CustomFormAnswers".key IS 'Human-readable key for this data element';
+
+
+--
+-- Name: CustomFormAnswers_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public."CustomFormAnswers_id_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: CustomFormAnswers_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public."CustomFormAnswers_id_seq" OWNED BY public."CustomFormAnswers".id;
+
+
+--
+-- Name: CustomForms; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."CustomForms" (
+    id bigint NOT NULL,
+    owner_type character varying NOT NULL,
+    owner_id bigint NOT NULL,
+    definition_id bigint NOT NULL,
+    form_processor_id bigint,
+    "values" jsonb,
+    hud_values jsonb,
+    deleted_at timestamp without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: CustomForms_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public."CustomForms_id_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: CustomForms_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public."CustomForms_id_seq" OWNED BY public."CustomForms".id;
+
+
+--
+-- Name: CustomProjectAssessments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."CustomProjectAssessments" (
+    id bigint NOT NULL,
+    "CustomProjectAssessmentID" character varying NOT NULL,
+    "ProjectID" character varying NOT NULL,
+    "UserID" character varying(32) NOT NULL,
+    "InformationDate" date NOT NULL,
+    data_source_id integer,
+    "DateCreated" timestamp without time zone NOT NULL,
+    "DateUpdated" timestamp without time zone NOT NULL,
+    "DateDeleted" timestamp without time zone
+);
+
+
+--
+-- Name: CustomProjectAssessments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public."CustomProjectAssessments_id_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: CustomProjectAssessments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public."CustomProjectAssessments_id_seq" OWNED BY public."CustomProjectAssessments".id;
+
+
+--
+-- Name: CustomServiceCategories; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."CustomServiceCategories" (
+    id bigint NOT NULL,
+    name character varying NOT NULL,
+    "UserID" character varying(32) NOT NULL,
+    data_source_id integer,
+    "DateCreated" timestamp without time zone NOT NULL,
+    "DateUpdated" timestamp without time zone NOT NULL,
+    "DateDeleted" timestamp without time zone
+);
+
+
+--
+-- Name: COLUMN "CustomServiceCategories".name; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public."CustomServiceCategories".name IS 'Name of service category (eg Financial Assistance)';
+
+
+--
+-- Name: CustomServiceCategories_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public."CustomServiceCategories_id_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: CustomServiceCategories_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public."CustomServiceCategories_id_seq" OWNED BY public."CustomServiceCategories".id;
+
+
+--
+-- Name: CustomServiceTypes; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."CustomServiceTypes" (
+    id bigint NOT NULL,
+    name character varying NOT NULL,
+    custom_service_category_id bigint,
+    hud_record_type integer,
+    hud_type_provided integer,
+    "UserID" character varying(32) NOT NULL,
+    data_source_id integer,
+    "DateCreated" timestamp without time zone NOT NULL,
+    "DateUpdated" timestamp without time zone NOT NULL,
+    "DateDeleted" timestamp without time zone
+);
+
+
+--
+-- Name: COLUMN "CustomServiceTypes".name; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public."CustomServiceTypes".name IS 'Name of this service (eg HAP Rental Assistance)';
+
+
+--
+-- Name: COLUMN "CustomServiceTypes".custom_service_category_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public."CustomServiceTypes".custom_service_category_id IS 'Category that this service belongs to';
+
+
+--
+-- Name: COLUMN "CustomServiceTypes".hud_record_type; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public."CustomServiceTypes".hud_record_type IS 'Only applicable if this is a HUD service';
+
+
+--
+-- Name: COLUMN "CustomServiceTypes".hud_type_provided; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public."CustomServiceTypes".hud_type_provided IS 'Only applicable if this is a HUD service';
+
+
+--
+-- Name: CustomServiceTypes_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public."CustomServiceTypes_id_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: CustomServiceTypes_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public."CustomServiceTypes_id_seq" OWNED BY public."CustomServiceTypes".id;
+
+
+--
+-- Name: CustomServices; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."CustomServices" (
+    id bigint NOT NULL,
+    "CustomServiceID" character varying NOT NULL,
+    "EnrollmentID" character varying NOT NULL,
+    "PersonalID" character varying NOT NULL,
+    "UserID" character varying(32) NOT NULL,
+    "DateProvided" date NOT NULL,
+    data_source_id integer,
+    custom_service_type_id bigint,
+    service_name character varying,
+    "DateCreated" timestamp without time zone NOT NULL,
+    "DateUpdated" timestamp without time zone NOT NULL,
+    "DateDeleted" timestamp without time zone
+);
+
+
+--
+-- Name: COLUMN "CustomServices".custom_service_type_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public."CustomServices".custom_service_type_id IS 'Reference to the type of service rendered';
+
+
+--
+-- Name: COLUMN "CustomServices".service_name; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public."CustomServices".service_name IS 'Name of service rendered (for export)';
+
+
+--
+-- Name: CustomServices_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public."CustomServices_id_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: CustomServices_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public."CustomServices_id_seq" OWNED BY public."CustomServices".id;
+
+
+--
 -- Name: Disabilities; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -3506,42 +3882,62 @@ ALTER SEQUENCE public.boston_project_scorecard_reports_id_seq OWNED BY public.bo
 
 
 --
--- Name: boston_reports_configs; Type: TABLE; Schema: public; Owner: -
+-- Name: boston_report_configs; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.boston_reports_configs (
+CREATE TABLE public.boston_report_configs (
     id bigint NOT NULL,
     total_color character varying,
-    cohort_color_0 character varying,
-    stage_0 character varying,
-    cohort_color_1 character varying,
-    stage_1 character varying,
-    cohort_color_2 character varying,
-    stage_2 character varying,
-    cohort_color_3 character varying,
-    stage_3 character varying,
-    cohort_color_4 character varying,
-    stage_4 character varying,
-    cohort_color_5 character varying,
-    stage_5 character varying,
-    cohort_color_6 character varying,
-    stage_6 character varying,
-    cohort_color_7 character varying,
-    stage_7 character varying,
-    cohort_color_8 character varying,
-    stage_8 character varying,
-    cohort_color_9 character varying,
-    stage_9 character varying,
+    breakdown_1_color_0 character varying,
+    breakdown_2_color_0 character varying,
+    breakdown_3_color_0 character varying,
+    breakdown_4_color_0 character varying,
+    breakdown_1_color_1 character varying,
+    breakdown_2_color_1 character varying,
+    breakdown_3_color_1 character varying,
+    breakdown_4_color_1 character varying,
+    breakdown_1_color_2 character varying,
+    breakdown_2_color_2 character varying,
+    breakdown_3_color_2 character varying,
+    breakdown_4_color_2 character varying,
+    breakdown_1_color_3 character varying,
+    breakdown_2_color_3 character varying,
+    breakdown_3_color_3 character varying,
+    breakdown_4_color_3 character varying,
+    breakdown_1_color_4 character varying,
+    breakdown_2_color_4 character varying,
+    breakdown_3_color_4 character varying,
+    breakdown_4_color_4 character varying,
+    breakdown_1_color_5 character varying,
+    breakdown_2_color_5 character varying,
+    breakdown_3_color_5 character varying,
+    breakdown_4_color_5 character varying,
+    breakdown_1_color_6 character varying,
+    breakdown_2_color_6 character varying,
+    breakdown_3_color_6 character varying,
+    breakdown_4_color_6 character varying,
+    breakdown_1_color_7 character varying,
+    breakdown_2_color_7 character varying,
+    breakdown_3_color_7 character varying,
+    breakdown_4_color_7 character varying,
+    breakdown_1_color_8 character varying,
+    breakdown_2_color_8 character varying,
+    breakdown_3_color_8 character varying,
+    breakdown_4_color_8 character varying,
+    breakdown_1_color_9 character varying,
+    breakdown_2_color_9 character varying,
+    breakdown_3_color_9 character varying,
+    breakdown_4_color_9 character varying,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL
 );
 
 
 --
--- Name: boston_reports_configs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+-- Name: boston_report_configs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.boston_reports_configs_id_seq
+CREATE SEQUENCE public.boston_report_configs_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -3550,10 +3946,10 @@ CREATE SEQUENCE public.boston_reports_configs_id_seq
 
 
 --
--- Name: boston_reports_configs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+-- Name: boston_report_configs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
-ALTER SEQUENCE public.boston_reports_configs_id_seq OWNED BY public.boston_reports_configs.id;
+ALTER SEQUENCE public.boston_report_configs_id_seq OWNED BY public.boston_report_configs.id;
 
 
 --
@@ -5210,7 +5606,26 @@ CREATE TABLE public.cohort_clients (
     user_date_28 character varying,
     user_date_29 character varying,
     user_date_30 character varying,
-    most_recent_date_to_street date
+    most_recent_date_to_street date,
+    user_boolean_31 boolean,
+    user_boolean_32 boolean,
+    user_boolean_33 boolean,
+    user_boolean_34 boolean,
+    user_boolean_35 boolean,
+    user_boolean_36 boolean,
+    user_boolean_37 boolean,
+    user_boolean_38 boolean,
+    user_boolean_39 boolean,
+    user_boolean_40 boolean,
+    user_boolean_41 boolean,
+    user_boolean_42 boolean,
+    user_boolean_43 boolean,
+    user_boolean_44 boolean,
+    user_boolean_45 boolean,
+    user_boolean_46 boolean,
+    user_boolean_47 boolean,
+    user_boolean_48 boolean,
+    user_boolean_49 boolean
 );
 
 
@@ -5306,7 +5721,8 @@ CREATE TABLE public.cohorts (
     threshold_label_5 character varying,
     system_cohort boolean DEFAULT false,
     type character varying DEFAULT 'GrdaWarehouse::Cohort'::character varying,
-    project_group_id bigint
+    project_group_id bigint,
+    enforce_project_visibility_on_cells boolean DEFAULT true NOT NULL
 );
 
 
@@ -6638,7 +7054,9 @@ CREATE TABLE public.files (
     delete_reason integer,
     delete_detail character varying,
     consent_revoked_at timestamp without time zone,
-    coc_codes jsonb DEFAULT '[]'::jsonb
+    coc_codes jsonb DEFAULT '[]'::jsonb,
+    enrollment_id bigint,
+    confidential boolean
 );
 
 
@@ -10393,44 +10811,6 @@ ALTER SEQUENCE public.hmis_assessment_details_id_seq OWNED BY public.hmis_assess
 
 
 --
--- Name: hmis_assessment_processors; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.hmis_assessment_processors (
-    id bigint NOT NULL,
-    enrollment_coc_id bigint,
-    health_and_dv_id bigint,
-    income_benefit_id bigint,
-    physical_disability_id bigint,
-    developmental_disability_id bigint,
-    chronic_health_condition_id bigint,
-    hiv_aids_id bigint,
-    mental_health_disorder_id bigint,
-    substance_use_disorder_id bigint,
-    exit_id bigint
-);
-
-
---
--- Name: hmis_assessment_processors_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.hmis_assessment_processors_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: hmis_assessment_processors_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.hmis_assessment_processors_id_seq OWNED BY public.hmis_assessment_processors.id;
-
-
---
 -- Name: hmis_assessments; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -13750,7 +14130,9 @@ CREATE TABLE public.hmis_form_instances (
     entity_id bigint,
     definition_identifier character varying NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    custom_service_type_id integer,
+    custom_service_category_id integer
 );
 
 
@@ -13771,6 +14153,44 @@ CREATE SEQUENCE public.hmis_form_instances_id_seq
 --
 
 ALTER SEQUENCE public.hmis_form_instances_id_seq OWNED BY public.hmis_form_instances.id;
+
+
+--
+-- Name: hmis_form_processors; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_form_processors (
+    id bigint NOT NULL,
+    enrollment_coc_id bigint,
+    health_and_dv_id bigint,
+    income_benefit_id bigint,
+    physical_disability_id bigint,
+    developmental_disability_id bigint,
+    chronic_health_condition_id bigint,
+    hiv_aids_id bigint,
+    mental_health_disorder_id bigint,
+    substance_use_disorder_id bigint,
+    exit_id bigint
+);
+
+
+--
+-- Name: hmis_form_processors_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_form_processors_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_form_processors_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_form_processors_id_seq OWNED BY public.hmis_form_processors.id;
 
 
 --
@@ -13910,6 +14330,54 @@ CREATE SEQUENCE public.hmis_import_configs_id_seq
 --
 
 ALTER SEQUENCE public.hmis_import_configs_id_seq OWNED BY public.hmis_import_configs.id;
+
+
+--
+-- Name: hmis_services; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW public.hmis_services AS
+ SELECT hud_services.id,
+    hud_services.owner_id,
+    hud_services.owner_type,
+    hud_services.custom_service_type_id,
+    hud_services."EnrollmentID",
+    hud_services."PersonalID",
+    hud_services."DateProvided",
+    hud_services."UserID",
+    hud_services."DateCreated",
+    hud_services."DateUpdated",
+    hud_services."DateDeleted",
+    hud_services.data_source_id
+   FROM ( SELECT (concat('1', ("Services".id)::character varying))::integer AS id,
+            "Services".id AS owner_id,
+            'Hmis::Hud::Service'::text AS owner_type,
+            "CustomServiceTypes".id AS custom_service_type_id,
+            "Services"."EnrollmentID",
+            "Services"."PersonalID",
+            "Services"."DateProvided",
+            "Services"."UserID",
+            "Services"."DateCreated",
+            "Services"."DateUpdated",
+            "Services"."DateDeleted",
+            "Services".data_source_id
+           FROM (public."Services"
+             JOIN public."CustomServiceTypes" ON ((("CustomServiceTypes".hud_record_type = "Services"."RecordType") AND ("CustomServiceTypes".hud_type_provided = "Services"."TypeProvided") AND ("CustomServiceTypes"."DateDeleted" IS NULL))))) hud_services
+UNION
+ SELECT (concat('2', ("CustomServices".id)::character varying))::integer AS id,
+    "CustomServices".id AS owner_id,
+    'Hmis::Hud::CustomService'::text AS owner_type,
+    "CustomServices".custom_service_type_id,
+    "CustomServices"."EnrollmentID",
+    "CustomServices"."PersonalID",
+    "CustomServices"."DateProvided",
+    "CustomServices"."UserID",
+    "CustomServices"."DateCreated",
+    "CustomServices"."DateUpdated",
+    "CustomServices"."DateDeleted",
+    "CustomServices".data_source_id
+   FROM public."CustomServices"
+  WHERE ("CustomServices"."DateDeleted" IS NULL);
 
 
 --
@@ -14658,7 +15126,9 @@ CREATE TABLE public.hud_report_apr_clients (
     pit_enrollments jsonb DEFAULT '[]'::jsonb,
     source_enrollment_id integer,
     los_under_threshold integer,
-    project_id integer
+    project_id integer,
+    client_created_at timestamp without time zone,
+    personal_id character varying
 );
 
 
@@ -14868,7 +15338,8 @@ CREATE TABLE public.hud_report_dq_clients (
     times_homeless integer,
     veteran_status integer,
     annual_assessment_in_window boolean,
-    gender_multi character varying
+    gender_multi character varying,
+    personal_id character varying
 );
 
 
@@ -15275,7 +15746,8 @@ CREATE TABLE public.hud_report_path_clients (
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     gender_multi character varying,
-    destination_client_id integer
+    destination_client_id integer,
+    personal_id character varying
 );
 
 
@@ -15351,7 +15823,9 @@ CREATE TABLE public.hud_report_pit_clients (
     exit_date date,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    personal_id character varying,
+    hoh_age integer
 );
 
 
@@ -15444,7 +15918,8 @@ CREATE TABLE public.hud_report_spm_clients (
     m7a1_project_id integer,
     m7b_project_id integer,
     personal_id character varying,
-    data_lab_public_id character varying
+    data_lab_public_id character varying,
+    source_client_personal_ids character varying
 );
 
 
@@ -16815,7 +17290,8 @@ CREATE TABLE public.pm_clients (
     comparison_earned_income_stayer boolean DEFAULT false NOT NULL,
     comparison_earned_income_leaver boolean DEFAULT false NOT NULL,
     comparison_non_employment_income_stayer boolean DEFAULT false NOT NULL,
-    comparison_non_employment_income_leaver boolean DEFAULT false NOT NULL
+    comparison_non_employment_income_leaver boolean DEFAULT false NOT NULL,
+    source_client_personal_ids character varying
 );
 
 
@@ -19622,6 +20098,70 @@ ALTER SEQUENCE public.synthetic_youth_education_statuses_id_seq OWNED BY public.
 
 
 --
+-- Name: system_pathways_clients; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.system_pathways_clients (
+    id bigint NOT NULL,
+    client_id bigint,
+    first_name character varying,
+    last_name character varying,
+    personal_ids character varying,
+    dob date,
+    age integer,
+    am_ind_ak_native boolean,
+    asian boolean,
+    black_af_american boolean,
+    native_hi_pacific boolean,
+    white boolean,
+    ethnicity integer,
+    male boolean,
+    female boolean,
+    gender_other boolean,
+    transgender boolean,
+    questioning boolean,
+    no_single_gender boolean,
+    disabling_condition boolean,
+    relationship_to_hoh integer,
+    veteran_status integer,
+    household_id character varying,
+    household_type character varying,
+    ce boolean,
+    system boolean,
+    es boolean,
+    sh boolean,
+    th boolean,
+    rrh boolean,
+    psh boolean,
+    oph boolean,
+    ph boolean,
+    destination integer,
+    returned integer,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: system_pathways_clients_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.system_pathways_clients_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: system_pathways_clients_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.system_pathways_clients_id_seq OWNED BY public.system_pathways_clients.id;
+
+
+--
 -- Name: taggings; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -20405,7 +20945,8 @@ CREATE TABLE public.warehouse_clients_processed (
     cohorts_ongoing_enrollments_th jsonb,
     cohorts_ongoing_enrollments_so jsonb,
     cohorts_ongoing_enrollments_psh jsonb,
-    cohorts_ongoing_enrollments_rrh jsonb
+    cohorts_ongoing_enrollments_rrh jsonb,
+    last_intentional_contacts character varying
 );
 
 
@@ -20801,6 +21342,62 @@ ALTER TABLE ONLY public."CurrentLivingSituation" ALTER COLUMN id SET DEFAULT nex
 
 
 --
+-- Name: CustomAssessments id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."CustomAssessments" ALTER COLUMN id SET DEFAULT nextval('public."CustomAssessments_id_seq"'::regclass);
+
+
+--
+-- Name: CustomClientAssessments id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."CustomClientAssessments" ALTER COLUMN id SET DEFAULT nextval('public."CustomClientAssessments_id_seq"'::regclass);
+
+
+--
+-- Name: CustomFormAnswers id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."CustomFormAnswers" ALTER COLUMN id SET DEFAULT nextval('public."CustomFormAnswers_id_seq"'::regclass);
+
+
+--
+-- Name: CustomForms id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."CustomForms" ALTER COLUMN id SET DEFAULT nextval('public."CustomForms_id_seq"'::regclass);
+
+
+--
+-- Name: CustomProjectAssessments id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."CustomProjectAssessments" ALTER COLUMN id SET DEFAULT nextval('public."CustomProjectAssessments_id_seq"'::regclass);
+
+
+--
+-- Name: CustomServiceCategories id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."CustomServiceCategories" ALTER COLUMN id SET DEFAULT nextval('public."CustomServiceCategories_id_seq"'::regclass);
+
+
+--
+-- Name: CustomServiceTypes id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."CustomServiceTypes" ALTER COLUMN id SET DEFAULT nextval('public."CustomServiceTypes_id_seq"'::regclass);
+
+
+--
+-- Name: CustomServices id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."CustomServices" ALTER COLUMN id SET DEFAULT nextval('public."CustomServices_id_seq"'::regclass);
+
+
+--
 -- Name: Disabilities id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -20997,10 +21594,10 @@ ALTER TABLE ONLY public.boston_project_scorecard_reports ALTER COLUMN id SET DEF
 
 
 --
--- Name: boston_reports_configs id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: boston_report_configs id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.boston_reports_configs ALTER COLUMN id SET DEFAULT nextval('public.boston_reports_configs_id_seq'::regclass);
+ALTER TABLE ONLY public.boston_report_configs ALTER COLUMN id SET DEFAULT nextval('public.boston_report_configs_id_seq'::regclass);
 
 
 --
@@ -21921,13 +22518,6 @@ ALTER TABLE ONLY public.hmis_assessment_details ALTER COLUMN id SET DEFAULT next
 
 
 --
--- Name: hmis_assessment_processors id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_assessment_processors ALTER COLUMN id SET DEFAULT nextval('public.hmis_assessment_processors_id_seq'::regclass);
-
-
---
 -- Name: hmis_assessments id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -22380,6 +22970,13 @@ ALTER TABLE ONLY public.hmis_form_definitions ALTER COLUMN id SET DEFAULT nextva
 --
 
 ALTER TABLE ONLY public.hmis_form_instances ALTER COLUMN id SET DEFAULT nextval('public.hmis_form_instances_id_seq'::regclass);
+
+
+--
+-- Name: hmis_form_processors id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_form_processors ALTER COLUMN id SET DEFAULT nextval('public.hmis_form_processors_id_seq'::regclass);
 
 
 --
@@ -23405,6 +24002,13 @@ ALTER TABLE ONLY public.synthetic_youth_education_statuses ALTER COLUMN id SET D
 
 
 --
+-- Name: system_pathways_clients id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.system_pathways_clients ALTER COLUMN id SET DEFAULT nextval('public.system_pathways_clients_id_seq'::regclass);
+
+
+--
 -- Name: taggings id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -23643,6 +24247,70 @@ ALTER TABLE ONLY public."CurrentLivingSituation"
 
 
 --
+-- Name: CustomAssessments CustomAssessments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."CustomAssessments"
+    ADD CONSTRAINT "CustomAssessments_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: CustomClientAssessments CustomClientAssessments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."CustomClientAssessments"
+    ADD CONSTRAINT "CustomClientAssessments_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: CustomFormAnswers CustomFormAnswers_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."CustomFormAnswers"
+    ADD CONSTRAINT "CustomFormAnswers_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: CustomForms CustomForms_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."CustomForms"
+    ADD CONSTRAINT "CustomForms_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: CustomProjectAssessments CustomProjectAssessments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."CustomProjectAssessments"
+    ADD CONSTRAINT "CustomProjectAssessments_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: CustomServiceCategories CustomServiceCategories_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."CustomServiceCategories"
+    ADD CONSTRAINT "CustomServiceCategories_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: CustomServiceTypes CustomServiceTypes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."CustomServiceTypes"
+    ADD CONSTRAINT "CustomServiceTypes_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: CustomServices CustomServices_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."CustomServices"
+    ADD CONSTRAINT "CustomServices_pkey" PRIMARY KEY (id);
+
+
+--
 -- Name: Disabilities Disabilities_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -23875,11 +24543,11 @@ ALTER TABLE ONLY public.boston_project_scorecard_reports
 
 
 --
--- Name: boston_reports_configs boston_reports_configs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: boston_report_configs boston_report_configs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.boston_reports_configs
-    ADD CONSTRAINT boston_reports_configs_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.boston_report_configs
+    ADD CONSTRAINT boston_report_configs_pkey PRIMARY KEY (id);
 
 
 --
@@ -24931,14 +25599,6 @@ ALTER TABLE ONLY public.hmis_assessment_details
 
 
 --
--- Name: hmis_assessment_processors hmis_assessment_processors_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_assessment_processors
-    ADD CONSTRAINT hmis_assessment_processors_pkey PRIMARY KEY (id);
-
-
---
 -- Name: hmis_assessments hmis_assessments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -25456,6 +26116,14 @@ ALTER TABLE ONLY public.hmis_form_definitions
 
 ALTER TABLE ONLY public.hmis_form_instances
     ADD CONSTRAINT hmis_form_instances_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_form_processors hmis_form_processors_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_form_processors
+    ADD CONSTRAINT hmis_form_processors_pkey PRIMARY KEY (id);
 
 
 --
@@ -26216,6 +26884,14 @@ ALTER TABLE ONLY public.synthetic_events
 
 ALTER TABLE ONLY public.synthetic_youth_education_statuses
     ADD CONSTRAINT synthetic_youth_education_statuses_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: system_pathways_clients system_pathways_clients_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.system_pathways_clients
+    ADD CONSTRAINT system_pathways_clients_pkey PRIMARY KEY (id);
 
 
 --
@@ -39930,6 +40606,55 @@ CREATE INDEX "index_CurrentLivingSituation_on_pending_date_deleted" ON public."C
 
 
 --
+-- Name: index_CustomFormAnswers_on_custom_form_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_CustomFormAnswers_on_custom_form_id" ON public."CustomFormAnswers" USING btree (custom_form_id);
+
+
+--
+-- Name: index_CustomFormAnswers_on_owner; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_CustomFormAnswers_on_owner" ON public."CustomFormAnswers" USING btree (owner_type, owner_id);
+
+
+--
+-- Name: index_CustomForms_on_definition_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_CustomForms_on_definition_id" ON public."CustomForms" USING btree (definition_id);
+
+
+--
+-- Name: index_CustomForms_on_form_processor_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_CustomForms_on_form_processor_id" ON public."CustomForms" USING btree (form_processor_id);
+
+
+--
+-- Name: index_CustomForms_on_owner; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_CustomForms_on_owner" ON public."CustomForms" USING btree (owner_type, owner_id);
+
+
+--
+-- Name: index_CustomServiceTypes_on_custom_service_category_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_CustomServiceTypes_on_custom_service_category_id" ON public."CustomServiceTypes" USING btree (custom_service_category_id);
+
+
+--
+-- Name: index_CustomServices_on_custom_service_type_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_CustomServices_on_custom_service_type_id" ON public."CustomServices" USING btree (custom_service_type_id);
+
+
+--
 -- Name: index_Disabilities_on_DateDeleted_and_data_source_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -41617,6 +42342,13 @@ CREATE INDEX index_favorites_on_user_id ON public.favorites USING btree (user_id
 
 
 --
+-- Name: index_files_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_files_on_enrollment_id ON public.files USING btree (enrollment_id);
+
+
+--
 -- Name: index_files_on_type; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -42146,76 +42878,6 @@ CREATE INDEX index_hmis_assessment_details_on_assessment_processor_id ON public.
 --
 
 CREATE INDEX index_hmis_assessment_details_on_definition_id ON public.hmis_assessment_details USING btree (definition_id);
-
-
---
--- Name: index_hmis_assessment_processors_on_chronic_health_condition_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_assessment_processors_on_chronic_health_condition_id ON public.hmis_assessment_processors USING btree (chronic_health_condition_id);
-
-
---
--- Name: index_hmis_assessment_processors_on_developmental_disability_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_assessment_processors_on_developmental_disability_id ON public.hmis_assessment_processors USING btree (developmental_disability_id);
-
-
---
--- Name: index_hmis_assessment_processors_on_enrollment_coc_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_assessment_processors_on_enrollment_coc_id ON public.hmis_assessment_processors USING btree (enrollment_coc_id);
-
-
---
--- Name: index_hmis_assessment_processors_on_exit_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_assessment_processors_on_exit_id ON public.hmis_assessment_processors USING btree (exit_id);
-
-
---
--- Name: index_hmis_assessment_processors_on_health_and_dv_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_assessment_processors_on_health_and_dv_id ON public.hmis_assessment_processors USING btree (health_and_dv_id);
-
-
---
--- Name: index_hmis_assessment_processors_on_hiv_aids_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_assessment_processors_on_hiv_aids_id ON public.hmis_assessment_processors USING btree (hiv_aids_id);
-
-
---
--- Name: index_hmis_assessment_processors_on_income_benefit_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_assessment_processors_on_income_benefit_id ON public.hmis_assessment_processors USING btree (income_benefit_id);
-
-
---
--- Name: index_hmis_assessment_processors_on_mental_health_disorder_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_assessment_processors_on_mental_health_disorder_id ON public.hmis_assessment_processors USING btree (mental_health_disorder_id);
-
-
---
--- Name: index_hmis_assessment_processors_on_physical_disability_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_assessment_processors_on_physical_disability_id ON public.hmis_assessment_processors USING btree (physical_disability_id);
-
-
---
--- Name: index_hmis_assessment_processors_on_substance_use_disorder_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_assessment_processors_on_substance_use_disorder_id ON public.hmis_assessment_processors USING btree (substance_use_disorder_id);
 
 
 --
@@ -42888,6 +43550,76 @@ CREATE INDEX index_hmis_dqt_inventories_on_report_id ON public.hmis_dqt_inventor
 --
 
 CREATE INDEX index_hmis_form_instances_on_entity ON public.hmis_form_instances USING btree (entity_type, entity_id);
+
+
+--
+-- Name: index_hmis_form_processors_on_chronic_health_condition_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_form_processors_on_chronic_health_condition_id ON public.hmis_form_processors USING btree (chronic_health_condition_id);
+
+
+--
+-- Name: index_hmis_form_processors_on_developmental_disability_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_form_processors_on_developmental_disability_id ON public.hmis_form_processors USING btree (developmental_disability_id);
+
+
+--
+-- Name: index_hmis_form_processors_on_enrollment_coc_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_form_processors_on_enrollment_coc_id ON public.hmis_form_processors USING btree (enrollment_coc_id);
+
+
+--
+-- Name: index_hmis_form_processors_on_exit_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_form_processors_on_exit_id ON public.hmis_form_processors USING btree (exit_id);
+
+
+--
+-- Name: index_hmis_form_processors_on_health_and_dv_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_form_processors_on_health_and_dv_id ON public.hmis_form_processors USING btree (health_and_dv_id);
+
+
+--
+-- Name: index_hmis_form_processors_on_hiv_aids_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_form_processors_on_hiv_aids_id ON public.hmis_form_processors USING btree (hiv_aids_id);
+
+
+--
+-- Name: index_hmis_form_processors_on_income_benefit_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_form_processors_on_income_benefit_id ON public.hmis_form_processors USING btree (income_benefit_id);
+
+
+--
+-- Name: index_hmis_form_processors_on_mental_health_disorder_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_form_processors_on_mental_health_disorder_id ON public.hmis_form_processors USING btree (mental_health_disorder_id);
+
+
+--
+-- Name: index_hmis_form_processors_on_physical_disability_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_form_processors_on_physical_disability_id ON public.hmis_form_processors USING btree (physical_disability_id);
+
+
+--
+-- Name: index_hmis_form_processors_on_substance_use_disorder_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_form_processors_on_substance_use_disorder_id ON public.hmis_form_processors USING btree (substance_use_disorder_id);
 
 
 --
@@ -47518,6 +48250,13 @@ CREATE INDEX index_synthetic_youth_education_statuses_on_source ON public.synthe
 
 
 --
+-- Name: index_system_pathways_clients_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_system_pathways_clients_on_client_id ON public.system_pathways_clients USING btree (client_id);
+
+
+--
 -- Name: index_taggings_on_context; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -50921,6 +51660,20 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230127200801'),
 ('20230206142754'),
 ('20230207151644'),
-('20230227195221');
+('20230214194841'),
+('20230227195221'),
+('20230301172341'),
+('20230303154815'),
+('20230303181248'),
+('20230307143837'),
+('20230309205059'),
+('20230313122300'),
+('20230313152950'),
+('20230319133739'),
+('20230320131930'),
+('20230322183901'),
+('20230322220754'),
+('20230327202808'),
+('20230328171436');
 
 

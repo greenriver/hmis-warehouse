@@ -40,7 +40,7 @@ Rails.application.configure do
   config.action_mailer.delivery_method = :test
 
   # Print deprecation notices to the stderr.
-  config.active_support.deprecation = :stderr
+  config.active_support.deprecation = :raise
 
   # don't need email sandbox with letter opener
   config.sandbox_email_mode = false
@@ -50,6 +50,8 @@ Rails.application.configure do
 
   # Devise requires a default URL
   config.action_mailer.default_url_options = { host: ENV['FQDN'], port: ENV['PORT'] }
+
+  routes.default_url_options = { host: ENV['FQDN'] }
 
   config.force_ssl = false
 end

@@ -1,5 +1,6 @@
 require 'rails_helper'
 require_relative 'hmis_form_setup'
+require_relative '../../../support/hmis_base_setup'
 
 RSpec.describe Hmis::Form::Definition, type: :model do
   before(:all) do
@@ -9,15 +10,22 @@ RSpec.describe Hmis::Form::Definition, type: :model do
     cleanup_test_environment
   end
 
+  include_context 'hmis base setup'
   include_context 'hmis form setup'
 
   HUD_ASSESSMENT_ROLES = [:INTAKE, :UPDATE, :ANNUAL, :EXIT].freeze
-  let(:entry_date) { Date.parse('2020-01-01') }
-  let(:exit_date) { Date.parse('2024-01-01') }
-  let(:default_args) { { entry_date: entry_date, exit_date: exit_date } }
-  let!(:factory_form_definition) { create :hmis_form_definition }
 
-  describe 'find and validate assessment' do
+  let!(:e2) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: 2.weeks.ago }
+  let!(:exit2) { create :hmis_hud_exit, enrollment: e2, data_source: ds1, client: c1, user: u1, exit_date: 1.week.ago }
+
+  let(:default_args) do
+    {
+      enrollment: e2,
+      ignore_warnings: true,
+    }
+  end
+
+  describe 'Validating assessment date on HUD assessments' do
     it 'should error if assessment date value is missing from hud_values' do
       HUD_ASSESSMENT_ROLES.each do |role|
         definition = Hmis::Form::Definition.find_by(role: role)
@@ -41,23 +49,23 @@ RSpec.describe Hmis::Form::Definition, type: :model do
       end
     end
 
-    it 'should succeed if assessment date is the same as entry date for all roles' do
-      HUD_ASSESSMENT_ROLES.each do |role|
+    HUD_ASSESSMENT_ROLES.each do |role|
+      it "should succeed if assessment date is the same as entry date (#{role})" do
         definition = Hmis::Form::Definition.find_by(role: role)
         link_id = definition.assessment_date_item.link_id
-        assessment_date = entry_date.strftime('%Y-%m-%d')
+        assessment_date = e2.entry_date.strftime('%Y-%m-%d')
 
         date, errors = definition.find_and_validate_assessment_date(values: { link_id => assessment_date }, **default_args)
         expect(errors).to be_empty
-        expect(date).to eq(entry_date)
+        expect(date).to eq(e2.entry_date)
       end
     end
 
-    it 'should error if assessment date is before entry date (non-intake)' do
-      HUD_ASSESSMENT_ROLES.excluding(:INTAKE).each do |role|
+    HUD_ASSESSMENT_ROLES.excluding(:INTAKE).each do |role|
+      it "should error if assessment date is before entry date (#{role})" do
         definition = Hmis::Form::Definition.find_by(role: role)
         link_id = definition.assessment_date_item.link_id
-        assessment_date = (entry_date - 1.day).strftime('%Y-%m-%d')
+        assessment_date = (e2.entry_date - 1.day).strftime('%Y-%m-%d')
 
         date, errors = definition.find_and_validate_assessment_date(values: { link_id => assessment_date }, **default_args)
         expect(errors.length).to eq(1)
@@ -68,20 +76,21 @@ RSpec.describe Hmis::Form::Definition, type: :model do
     end
 
     it 'should succeed if assessment date is before entry date (intake)' do
-      definition = Hmis::Form::Definition.find_by(role: 'INTAKE')
+      definition = Hmis::Form::Definition.find_by(role: :INTAKE)
       link_id = definition.assessment_date_item.link_id
-      assessment_date = (entry_date - 1.day).strftime('%Y-%m-%d')
+      assessment_date = (e2.entry_date - 1.day).strftime('%Y-%m-%d')
 
       date, errors = definition.find_and_validate_assessment_date(values: { link_id => assessment_date }, **default_args)
-      expect(date).to eq(entry_date - 1.day)
+      expect(date).to eq(e2.entry_date - 1.day)
       expect(errors).to be_empty
     end
 
-    it 'should error if assessment date is after exit date (non-exit)' do
-      HUD_ASSESSMENT_ROLES.excluding(:EXIT).each do |role|
+    HUD_ASSESSMENT_ROLES.excluding(:EXIT).each do |role|
+      it "should error if assessment date is after exit date (#{role})" do
         definition = Hmis::Form::Definition.find_by(role: role)
         link_id = definition.assessment_date_item.link_id
-        assessment_date = (exit_date + 1.day).strftime('%Y-%m-%d')
+        e2.exit.update(exit_date: 3.days.ago)
+        assessment_date = (e2.exit_date + 1.day).strftime('%Y-%m-%d')
 
         date, errors = definition.find_and_validate_assessment_date(values: { link_id => assessment_date }, **default_args)
         expect(date).to be_nil
@@ -92,18 +101,19 @@ RSpec.describe Hmis::Form::Definition, type: :model do
     end
 
     it 'should succeed if assessment date is after exit date (exit)' do
-      definition = Hmis::Form::Definition.find_by(role: 'EXIT')
+      definition = Hmis::Form::Definition.find_by(role: :EXIT)
       link_id = definition.assessment_date_item.link_id
-      assessment_date = (exit_date + 1.day).strftime('%Y-%m-%d')
+      e2.exit.update(exit_date: 3.days.ago)
+      assessment_date = (e2.exit_date + 1.day).strftime('%Y-%m-%d')
 
       date, errors = definition.find_and_validate_assessment_date(values: { link_id => assessment_date }, **default_args)
-      expect(date).to eq(exit_date + 1.day)
+      expect(date).to eq(e2.exit_date + 1.day)
       expect(errors).to be_empty
     end
 
     it 'should error if date is invalid/malformed' do
-      ['2020', '0020-01-01', '1900-01-01', '2020-18-32'].each do |malformed_date|
-        definition = Hmis::Form::Definition.find_by(role: 'INTAKE')
+      ['2020', '2020-18-32'].each do |malformed_date|
+        definition = Hmis::Form::Definition.find_by(role: :ANNUAL)
         link_id = definition.assessment_date_item.link_id
         date, errors = definition.find_and_validate_assessment_date(values: { link_id => malformed_date }, **default_args)
 
@@ -113,9 +123,22 @@ RSpec.describe Hmis::Form::Definition, type: :model do
         expect(errors[0].attribute).to eq(definition.assessment_date_item.field_name.to_sym)
       end
     end
+
+    it 'should error if date is >20 years ago' do
+      ['0020-01-01', '1980-01-01'].each do |malformed_date|
+        definition = Hmis::Form::Definition.find_by(role: :ANNUAL)
+        link_id = definition.assessment_date_item.link_id
+        date, errors = definition.find_and_validate_assessment_date(values: { link_id => malformed_date }, **default_args)
+
+        expect(date).to be_nil
+        expect(errors.length).to eq(2)
+        expect(errors[0].type).to eq(:out_of_range)
+        expect(errors[0].attribute).to eq(definition.assessment_date_item.field_name.to_sym)
+      end
+    end
   end
 
-  describe 'validate form values' do
+  describe 'Validating form values on HUD assessments' do
     let(:completed_values_for_update) do
       {
         "information-date-input": '2023-02-15',
@@ -145,22 +168,8 @@ RSpec.describe Hmis::Form::Definition, type: :model do
 
     it 'should have no errors when Update assessment is completely filled in' do
       definition = Hmis::Form::Definition.find_by(role: :UPDATE)
-      errors = definition.validate_form_values(completed_values_for_update)
+      errors = definition.validate_form_values(completed_values_for_update.stringify_keys)
       expect(errors).to be_empty
-    end
-
-    it 'should error if required field is nil' do
-      values = { 'linkid-required': nil }
-      expected_errors = [
-        {
-          type: :required,
-          severity: :error,
-          readable_attribute: 'The Required Field',
-        },
-      ]
-      # Test using factory because actual forms don't have any required fields aside from assessment date
-      errors = factory_form_definition.validate_form_values(values)
-      expect(errors.map(&:to_h)).to match(expected_errors.map { |h| a_hash_including(**h) })
     end
 
     it 'should return warnings for warn_if_empty items' do
@@ -186,7 +195,7 @@ RSpec.describe Hmis::Form::Definition, type: :model do
         },
       ]
 
-      errors = definition.validate_form_values(values)
+      errors = definition.validate_form_values(values.stringify_keys)
       expect(errors.map(&:to_h)).to match(expected_errors.map { |h| a_hash_including(**h) })
     end
 
@@ -204,7 +213,24 @@ RSpec.describe Hmis::Form::Definition, type: :model do
         },
       ]
 
-      errors = definition.validate_form_values(values)
+      errors = definition.validate_form_values(values.stringify_keys)
+      expect(errors.map(&:to_h)).to match(expected_errors.map { |h| a_hash_including(**h) })
+    end
+  end
+
+  describe 'Validating mock form validation' do
+    # Test using factory because actual forms don't have any required fields aside from assessment date
+    let!(:factory_form_definition) { create :hmis_form_definition }
+    it 'should error if required field is nil' do
+      values = { 'linkid-required': nil }
+      expected_errors = [
+        {
+          type: :required,
+          severity: :error,
+          readable_attribute: 'The Required Field',
+        },
+      ]
+      errors = factory_form_definition.validate_form_values(values.stringify_keys)
       expect(errors.map(&:to_h)).to match(expected_errors.map { |h| a_hash_including(**h) })
     end
   end

@@ -244,6 +244,12 @@ module PerformanceMeasurement
             spm_clients.each do |spm_client|
               report_client = report_clients[spm_client[:client_id]] || Client.new(report_id: id, client_id: spm_client[:client_id])
               report_client[:dob] = spm_client[:dob]
+              report_client[:veteran] = spm_client[:veteran]
+              report_client[:source_client_personal_ids] ||= spm_client[:source_client_personal_ids]
+              # Age may vary based on which SPM questions the client is included in, just pick the first one.
+              report_client["#{variant_name}_age"] ||= spm_client["#{parts[:measure]}_reporting_age"]
+              # HoH status may vary, just note if they were ever an HoH
+              report_client["#{variant_name}_hoh"] ||= spm_client["#{parts[:measure]}_head_of_household"] || false
               project_id = spm_client[parts[:project_source]]
               involved_projects << project_id
               parts[:questions].each do |question|
@@ -274,7 +280,13 @@ module PerformanceMeasurement
           data.each_key do |client_id|
             report_client = report_clients[client_id] || Client.new(report_id: id, client_id: client_id)
             report_client[:dob] = parts[:value_calculation].call(:dob, client_id, data)
+            report_client[:source_client_personal_ids] ||= source_client_personal_ids(filter)[client_id]&.uniq&.join('; ')
             report_client["#{variant_name}_#{parts[:key]}"] = parts[:value_calculation].call(:value, client_id, data)
+            # A client may have multiple Prior Living Situations, just use the first one
+            report_client["#{variant_name}_prior_living_situation"] ||= parts[:value_calculation].call(:housing_status_at_entry, client_id, data)
+            # HoH status may vary, just note if they were ever an HoH
+            report_client["#{variant_name}_hoh"] ||= parts[:value_calculation].call(:head_of_household, client_id, data) || false
+
             parts[:value_calculation].call(:project_ids, client_id, data).each do |project_id|
               involved_projects << project_id
               project_clients << {
@@ -329,6 +341,18 @@ module PerformanceMeasurement
       report.answer(question: table, cell: cell).universe_members.preload(:universe_membership).map(&:universe_membership)
     end
 
+    private def source_client_personal_ids(filter)
+      @source_client_personal_ids ||= {}.tap do |data|
+        report_scope.joins(:service_history_services, :project, :client).
+          preload(client: :source_clients).
+          where(shs_t[:date].eq(filter.pit_date)).
+          find_each(batch_size: 10_000) do |she|
+            client = she.client
+            data[client.id] = client.source_clients.map(&:PersonalID)
+          end
+      end
+    end
+
     private def extra_calculations # rubocop:disable Metrics/AbcSize
       extras = [
         {
@@ -338,11 +362,16 @@ module PerformanceMeasurement
               report_scope.joins(:service_history_services, :project, :client).
                 where(shs_t[:date].eq(filter.pit_date)).
                 homeless.distinct.
-                pluck(:client_id, c_t[:DOB], p_t[:id]).
-                each do |client_id, dob, project_id|
-                  project_types_by_client_id[client_id] ||= { value: true, project_ids: Set.new, dob: nil }
+                pluck(:client_id, c_t[:DOB], p_t[:id], :housing_status_at_entry, :head_of_household).
+                each do |client_id, dob, project_id, housing_status_at_entry, head_of_household|
+                  project_types_by_client_id[client_id] ||= {
+                    value: true,
+                    project_ids: Set.new,
+                    dob: dob,
+                    housing_status_at_entry: housing_status_at_entry,
+                    head_of_household: head_of_household,
+                  }
                   project_types_by_client_id[client_id][:project_ids] << project_id
-                  project_types_by_client_id[client_id][:dob] = dob
                 end
             end
           },
@@ -360,11 +389,16 @@ module PerformanceMeasurement
               report_scope.joins(:service_history_services, :project, :client).
                 # where(shs_t[:date].eq(filter.pit_date)). # removed to become yearly to match SPM M3 3.2
                 so.distinct.
-                pluck(:client_id, c_t[:DOB], p_t[:id]).
-                each do |client_id, dob, project_id|
-                  project_types_by_client_id[client_id] ||= { value: true, project_ids: Set.new, dob: nil }
+                pluck(:client_id, c_t[:DOB], p_t[:id], :housing_status_at_entry, :head_of_household).
+                each do |client_id, dob, project_id, housing_status_at_entry, head_of_household|
+                  project_types_by_client_id[client_id] ||= {
+                    value: true,
+                    project_ids: Set.new,
+                    dob: dob,
+                    housing_status_at_entry: housing_status_at_entry,
+                    head_of_household: head_of_household,
+                  }
                   project_types_by_client_id[client_id][:project_ids] << project_id
-                  project_types_by_client_id[client_id][:dob] = dob
                 end
             end
           },
@@ -704,6 +738,7 @@ module PerformanceMeasurement
         {
           cells: [['3.2', 'C2']],
           title: 'Sheltered Clients',
+          measure: :m3,
           history_source: :m3_history,
           project_source: :m3_project_id,
           questions: [
@@ -716,6 +751,7 @@ module PerformanceMeasurement
         {
           cells: [['5.1', 'C4']],
           title: 'First Time',
+          measure: :m5,
           history_source: :m5_history,
           project_source: :m5_project_id,
           questions: [
@@ -728,6 +764,7 @@ module PerformanceMeasurement
         {
           cells: [['1a', 'C3']],
           title: 'Length of Time Homeless in ES, SH, TH',
+          measure: :m1,
           history_source: :m1_history,
           questions: [
             {
@@ -739,6 +776,7 @@ module PerformanceMeasurement
         {
           cells: [['1b', 'C3']],
           title: 'Length of Time Homeless in ES, SH, TH, PH',
+          measure: :m1,
           history_source: :m1_history,
           questions: [
             {
@@ -750,6 +788,7 @@ module PerformanceMeasurement
         {
           cells: [['7a.1', 'C2']],
           title: 'Exits from SO',
+          measure: :m7,
           history_source: :m7_history,
           project_source: :m7a1_project_id,
           questions: [
@@ -771,7 +810,9 @@ module PerformanceMeasurement
               }
             },
             ->(spm_client, project_id, variant_name) {
-              return unless spm_client[:m7a1_destination].present? && spm_client[:m7a1_destination].in?(HudSpmReport::Generators::Fy2020::Base::PERMANENT_DESTINATIONS)
+              # list from drivers/hud_spm_report/app/models/hud_spm_report/generators/fy2020/measure_seven.rb
+              # represents institutional and permanent destinations for 7a.1 C3 and C4
+              return unless spm_client[:m7a1_destination].present? && spm_client[:m7a1_destination].in?(HudSpmReport::Generators::Fy2020::Base::PERMANENT_DESTINATIONS + [1, 15, 14, 27, 4, 18, 12, 13, 5, 2, 25, 32])
 
               {
                 report_id: id,
@@ -786,6 +827,7 @@ module PerformanceMeasurement
         {
           cells: [['7b.1', 'C2']],
           title: 'Exits from ES, SH, TH, RRH, PH with No Move-in',
+          measure: :m7,
           history_source: :m7b_history,
           project_source: :m7b_project_id,
           questions: [
@@ -822,6 +864,7 @@ module PerformanceMeasurement
         {
           cells: [['7b.2', 'C2']],
           title: 'RRH, PH with Move-in or Permanent Exit',
+          measure: :m7,
           history_source: :m7b_history,
           project_source: :m7b_project_id,
           questions: [
@@ -858,6 +901,7 @@ module PerformanceMeasurement
         {
           cells: [['2', 'B7']],
           title: 'Returned to Homelessness Within 6 months',
+          measure: :m2,
           history_source: :m2_history,
           project_source: :m2_project_id,
           questions: [
@@ -910,6 +954,7 @@ module PerformanceMeasurement
         {
           cells: [['4.3', 'C2']],
           title: 'Stayers with Increased Income',
+          measure: :m4,
           history_source: :m4_history,
           project_source: :m4_project_id,
           questions: [
@@ -939,6 +984,7 @@ module PerformanceMeasurement
         {
           cells: [['4.1', 'C2']],
           title: 'Stayers with Increased Earned Income',
+          measure: :m4,
           history_source: :m4_history,
           project_source: :m4_project_id,
           questions: [
@@ -964,6 +1010,7 @@ module PerformanceMeasurement
         {
           cells: [['4.2', 'C2']],
           title: 'Stayers with Increased Non-Cash Income',
+          measure: :m4,
           history_source: :m4_history,
           project_source: :m4_project_id,
           questions: [
@@ -989,6 +1036,7 @@ module PerformanceMeasurement
         {
           cells: [['4.6', 'C2']],
           title: 'Leavers with Increased Income',
+          measure: :m4,
           history_source: :m4_history,
           project_source: :m4_project_id,
           questions: [
@@ -1018,6 +1066,7 @@ module PerformanceMeasurement
         {
           cells: [['4.4', 'C2']],
           title: 'Leavers with Increased Earned Income',
+          measure: :m4,
           history_source: :m4_history,
           project_source: :m4_project_id,
           questions: [
@@ -1043,6 +1092,7 @@ module PerformanceMeasurement
         {
           cells: [['4.5', 'C2']],
           title: 'Leavers with Increased Non-Cash Income',
+          measure: :m4,
           history_source: :m4_history,
           project_source: :m4_project_id,
           questions: [

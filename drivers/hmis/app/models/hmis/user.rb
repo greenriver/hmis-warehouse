@@ -60,12 +60,15 @@ class Hmis::User < ApplicationRecord
     define_method("#{permission}_for?") do |entity|
       return false unless send("#{permission}?")
 
-      access_group_ids = Hmis::GroupViewableEntity.includes_entity(entity).pluck(:access_group_id)
+      base_entities = permissions_base_for_entity(entity)
 
-      raise "Invalid entity '#{entity.class.name}'" if access_group_ids.nil?
+      # No entity was specified and this permission is allowed to be global (for example Client access)
+      return true if !base_entities.present? && ::Hmis::Role.global_permissions.include?(permission)
 
+      raise "Invalid entity '#{entity.class.name}' for permission '#{permission}'" unless base_entities.present?
+
+      access_group_ids = Hmis::GroupViewableEntity.includes_entities(base_entities).pluck(:access_group_id)
       role_ids = roles.where(permission => true).pluck(:id)
-
       access_controls.where(access_group_id: access_group_ids, role_id: role_ids).exists?
     end
 
@@ -81,25 +84,55 @@ class Hmis::User < ApplicationRecord
     super opts.merge({ send_instructions: false })
   end
 
-  # private def access_group_ids_for_entity(entity)
-  #   access_group_ids = nil
+  private def permissions_base_for_entity(entity)
+    return [entity.data_source, *entity.projects] if entity.is_a? Hmis::Hud::Client
+    return entity if entity.is_a? Hmis::Hud::Organization
+    return entity if entity.is_a? Hmis::Hud::Project
 
-  #   if entity.is_a?(Hmis::Hud::Project)
-  #     access_group_ids = Hmis::GroupViewableEntity.includes_entity(entity).pluck(:access_group_id)
-  #   elsif entity.is_a?(Hmis::Hud::Organization)
-  #     access_group_ids = Hmis::GroupViewableEntity.includes_organization(entity).pluck(:access_group_id)
-  #   end
+    if entity.is_a? Hmis::File
+      return [entity.client.data_source, *entity.client.projects] unless entity.enrollment.present?
 
-  #   access_group_ids
-  # end
+      return entity.enrollment.project
+    end
 
-  private def viewable(model)
+    return entity.project if entity.respond_to? :project
+
+    nil
+  end
+
+  private def check_permissions_with_mode(*permissions, mode: :any)
+    method_name = mode == :all ? :all? : :any?
+    permissions.send(method_name) { |perm| yield(perm) }
+  end
+
+  def permission?(permission)
+    respond_to?(permission) ? send(permission) : false
+  end
+
+  def permission_for?(entity, permission)
+    method_name = "#{permission}_for?".to_sym
+    respond_to?(method_name) ? send(method_name, entity) : false
+  end
+
+  def permissions?(*permissions, mode: :any)
+    check_permissions_with_mode(*permissions, mode: mode) { |perm| permission?(perm) }
+  end
+
+  def permissions_for?(entity, *permissions, mode: :any)
+    check_permissions_with_mode(*permissions, mode: mode) { |perm| permission_for?(entity, perm) }
+  end
+
+  def entities_with_permissions(model, *permissions, **kwargs)
     model.where(
       id: Hmis::GroupViewableEntity.where(
-        access_group_id: access_groups.viewable.pluck(:id),
+        access_group_id: access_groups.with_permissions(*permissions, **kwargs).pluck(:id),
         entity_type: model.sti_name,
       ).select(:entity_id),
     )
+  end
+
+  private def viewable(model)
+    entities_with_permissions(model, *Hmis::Role.permissions_for_access(:viewable), mode: 'any')
   end
 
   def viewable_data_sources
@@ -156,6 +189,6 @@ class Hmis::User < ApplicationRecord
   end
 
   def editable_project_ids
-    @editable_project_ids ||= Hmis::Hud::Project.editable_by(self).pluck(:id)
+    @editable_project_ids ||= Hmis::Hud::Project.viewable_by(self).pluck(:id)
   end
 end

@@ -106,10 +106,10 @@ module Health
 
     def form_params
       local_params = params.require(:form).permit(
-        :reviewed_by_supervisor,
-        :reviewer,
+        # :reviewed_by_supervisor,
+        # :reviewer,
         :completed,
-        :collection_method,
+        # :collection_method,
         *Health::ComprehensiveHealthAssessment::PERMITTED_PARAMS,
       )
       local_params

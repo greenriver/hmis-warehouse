@@ -204,12 +204,27 @@ module UserConcern
       "#{name} <#{email}>"
     end
 
+    def name_with_credentials
+      return "#{name}, #{credentials}" if credentials.present?
+
+      name
+    end
+
     def agency_name
       agency&.name if agency.present?
     end
 
     def phone_for_directory
       phone unless exclude_phone_from_directory
+    end
+
+    def show_credentials?
+      # Show the credentials field if the user has at least one health role
+      roles.health.exists?
+    end
+
+    def credential_options
+      @credential_options ||= User.pluck(:credentials).compact.uniq.sort
     end
 
     def two_factor_label
@@ -306,7 +321,9 @@ module UserConcern
       return 'Account deactivated' unless version
       return "Account deactivated on #{version.created_at}" unless user.can_audit_users? || version.whodunnit.blank?
 
-      name = version.name_of_whodunnit?
+      name = nil
+      name = User.find_by(id: version.whodunnit)&.name if version.whodunnit&.to_i&.to_s == version.whodunnit
+
       return "Account deactivated on #{version.created_at}" unless name
 
       "Account deactivated by #{name} on #{version.created_at}"
@@ -429,6 +446,10 @@ module UserConcern
     def visible_project_ids_enrollment_context
       @visible_project_ids_enrollment_context ||= GrdaWarehouse::Hud::Project.viewable_by(self).pluck(:id) |
         GrdaWarehouse::DataSource.visible_in_window_for_cohorts_to(self).joins(:projects).pluck(p_t[:id])
+    end
+
+    def visible_projects_by_id
+      @visible_projects_by_id ||= GrdaWarehouse::Hud::Project.find(visible_project_ids_enrollment_context).index_by(&:id)
     end
 
     # inverse of GrdaWarehouse::Hud::Project.viewable_by(user)
