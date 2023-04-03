@@ -6,9 +6,12 @@
 
 class GrdaWarehouse::DataSource < GrdaWarehouseBase
   include RailsDrivers::Extensions
+  include EntityAccess
+  include ArelHelper
+
   self.primary_key = :id
   require 'memery'
-  include ArelHelper
+
   acts_as_paranoid
   validates :name, presence: true
   validates :short_name, presence: true
@@ -463,6 +466,20 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
       :authoritative_data_source_ids,
       :window_data_source_ids,
     ].each { |key| Rails.cache.delete(key) }
+  end
+
+  private def editable_role_name
+    'System Role - Can Edit Data Sources'
+  end
+
+  private def editable_permission
+    :can_edit_data_sources
+  end
+
+  private def editable_permissions
+    [
+      editable_permission,
+    ]
   end
 
   class << self

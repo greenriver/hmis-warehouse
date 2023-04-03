@@ -41,7 +41,9 @@ class DataSourcesController < ApplicationController
     @data_source = data_source_source.new(new_data_source_params)
     @data_source.source_type = :authoritative if new_data_source_params[:authoritative]
     if @data_source.save
-      current_user.add_viewable @data_source
+      ag = AccessGroup.create("#{@data_source.name} - only")
+      AccessControl.create(current_user, @data_source.editable_role, ag)
+
       flash[:notice] = "#{@data_source.name} created."
       redirect_to action: :index
     else

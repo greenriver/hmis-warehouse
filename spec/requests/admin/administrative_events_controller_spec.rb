@@ -2,16 +2,17 @@ require 'rails_helper'
 
 RSpec.describe Admin::AdministrativeEventsController, type: :request do
   let!(:user) { create :user }
-  let!(:role) { build :admin_role }
+  let!(:role) { create :admin_role }
   let!(:administrative_event) { create :grda_warehouse_administrative_event }
   let!(:initial_administrative_event_count) { GrdaWarehouse::AdministrativeEvent.count }
   let!(:valid_attr) { { title: 'New title', description: 'New description', date: 'Apr 30, 2018' } }
   let!(:invalid_attr) { { title: '', description: 'New description', date: 'Jan 1, 2010' } } # invalid because title is an empty string
+  let!(:no_data_source_access_group) { create :access_group }
 
   describe 'GET #index' do
     context 'User with access to administrative events' do
       before(:each) do
-        user.roles << role
+        setup_acl(user, role, no_data_source_access_group)
         sign_in user
       end
 
@@ -36,7 +37,7 @@ RSpec.describe Admin::AdministrativeEventsController, type: :request do
 
   describe 'POST #create' do
     before(:each) do
-      user.roles << role
+      setup_acl(user, role, no_data_source_access_group)
       sign_in user
       # allow_any_instance_of(ApplicationController).to receive(:current_user).and_return(user) # Stub the instance method :current_user
     end
@@ -72,7 +73,7 @@ RSpec.describe Admin::AdministrativeEventsController, type: :request do
 
   describe 'PATCH #update' do
     before(:each) do
-      user.roles << role
+      setup_acl(user, role, no_data_source_access_group)
       sign_in user
     end
 
@@ -125,7 +126,7 @@ RSpec.describe Admin::AdministrativeEventsController, type: :request do
 
   describe '#destroy' do
     before(:each) do
-      user.roles << role
+      setup_acl(user, role, no_data_source_access_group)
       sign_in user
       delete admin_administrative_event_path(administrative_event)
     end

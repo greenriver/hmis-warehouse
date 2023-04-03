@@ -315,7 +315,6 @@ def setup_fake_health_data
     can_manage_health_agency: true,
   )
   u = User.not_system.first
-  u.roles << health_admin
   group = AccessGroup.create(name: 'Health Group') # at this time, we don't need any particular access
   acl = AccessControl.where(
     role_id: health_admin.id,

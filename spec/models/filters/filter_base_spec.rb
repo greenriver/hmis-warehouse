@@ -6,9 +6,12 @@ RSpec.describe Filters::FilterBase, type: :model do
   let!(:es_project) { create :grda_warehouse_hud_project, computed_project_type: 1, OrganizationID: organization.OrganizationID }
   let!(:psh_project) { create :grda_warehouse_hud_project, computed_project_type: 3, OrganizationID: organization.OrganizationID }
   let!(:user) { create :user }
+  let!(:no_permission_role) { create :role }
+  let!(:empty_access_group) { create :access_group }
 
   before :each do
-    user.add_viewable(data_source)
+    empty_access_group.set_viewables({ data_sources: [data_source.id] })
+    setup_acl(user, no_permission_role, empty_access_group)
   end
 
   describe 'FilterBase' do

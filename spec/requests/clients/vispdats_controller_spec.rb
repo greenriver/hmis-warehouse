@@ -9,6 +9,7 @@ RSpec.describe Clients::VispdatsController, type: :request do
   let(:client) { warehouse_client.destination }
   let(:vispdat) { create(:vispdat, client: client) }
   let(:invalid_attributes) {}
+  let!(:no_data_source_access_group) { create :access_group }
 
   # This should return the minimal set of values that should be in the session
   # in order to pass any filters (e.g. authentication) defined in
@@ -19,7 +20,7 @@ RSpec.describe Clients::VispdatsController, type: :request do
   let(:vispdat_editor) { create :vispdat_editor }
 
   before(:each) do
-    user.roles << vispdat_editor
+    setup_acl(user, vispdat_editor, no_data_source_access_group)
     sign_in user
   end
 

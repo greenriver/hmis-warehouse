@@ -35,10 +35,11 @@ RSpec.describe Admin::AvailableFileTagsController, type: :request do
   let(:user) { create(:user) }
   let(:admin)       { create(:user) }
   let(:admin_role)  { create :admin_role }
+  let!(:no_data_source_access_group) { create :access_group }
 
   before(:each) do
     sign_in admin
-    admin.roles << admin_role
+    setup_acl(admin, admin_role, no_data_source_access_group)
   end
 
   describe 'GET #index' do

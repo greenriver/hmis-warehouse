@@ -13,10 +13,11 @@ RSpec.describe Clients::NotesController, type: :request do
   let!(:warehouse_client) { create :warehouse_client, source: source_client, destination: client }
   let!(:chronic_justification) { create :grda_warehouse_client_notes_chronic_justification, client: client }
   let!(:initial_note_count) { GrdaWarehouse::ClientNotes::ChronicJustification.count }
+  let!(:no_data_source_access_group) { create :access_group }
 
   before do
     sign_in admin
-    admin.roles << admin_role
+    setup_acl(admin, admin_role, no_data_source_access_group)
   end
 
   describe 'DELETE #destroy' do
