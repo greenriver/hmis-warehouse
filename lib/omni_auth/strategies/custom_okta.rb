@@ -77,10 +77,13 @@ module OmniAuth
         env['omniauth.error.type'] = message_key.to_sym
         env['omniauth.error.strategy'] = self
 
+        message = "Authentication failure! #{message_key} encountered."
         if exception
-          log :error, "Authentication failure! #{message_key}: #{exception.class}, #{exception.message}"
+          log :error, "#{message}: #{exception.class}, #{exception.message}"
+          Sentry.capture_exception_with_info(exception, message)
         else
-          log :error, "Authentication failure! #{message_key} encountered."
+          log :error, message
+          Sentry.capture_exception(StandardError.new(message))
         end
 
         if options[:on_failure]
