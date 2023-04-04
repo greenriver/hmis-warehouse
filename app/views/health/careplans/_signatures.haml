@@ -86,12 +86,12 @@
   -# - else
   -#   = link_to polymorphic_path([:edit] + careplan_path_generator, id: careplan, anchor: 'upload_file'), class: 'btn btn-sm btn-secondary' do
   -#     Upload signed pdf or enter signature date
+- expires_on = careplan.expires_on
 - if expires_on.present?
   - if careplan.cp1?
     .pctp__expiration.mt-2
       Careplan needs review
   - else
-    - expires_on = careplan.expires_on
     - if expires_on > Date.current
       .pctp__expiration.mt-2
         Careplan expires
