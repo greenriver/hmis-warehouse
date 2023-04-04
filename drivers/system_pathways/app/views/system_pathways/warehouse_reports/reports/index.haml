@@ -258,7 +258,9 @@
         .call(gradient => gradient.append("stop")
           .attr("offset", "100%")
           .attr("stop-color", ({target: {index: i}}) => color(G[i])));
-
+      // Target specific node and link
+      // move it
+      // d3.select(‘#id’).node().__datum___
       link.append("path")
         .attr("d", linkPath)
         .attr("stroke", linkColor === "source-target" ? ({index: i}) => 'url(#' + uid + '-link-' + i + ')'
@@ -274,6 +276,8 @@
         .selectAll("text")
         .data(nodes)
         .join("text")
+          // insepct d here, maybe move x 50% of chart and down
+          // look at d3 path tools (manipulate path)
           .attr("x", d => d.x0 < width / 2 ? d.x1 + nodeLabelPadding : d.x0 - nodeLabelPadding)
           .attr("y", d => (d.y1 + d.y0) / 2)
           .attr("dy", "0.35em")
@@ -301,3 +305,7 @@
       height: 600
     });
     document.getElementById('sankey').appendChild(chart);
+
+    // Tooltips: https://d3-graph-gallery.com/graph/interactivity_tooltip.html
+    // https://gramener.github.io/d3js-playbook/tooltips.html
+    // https://www.d3sankey.com/tooltips
