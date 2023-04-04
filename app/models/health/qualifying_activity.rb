@@ -313,9 +313,10 @@ module Health
     end
 
     def compute_procedure_valid?
-      activity_sym = activity.to_sym
       # Incomplete QAs
       return false unless date_of_activity.present? && activity.present?
+
+      activity_sym = activity.to_sym
       return false if (mode_of_contact.blank? || reached_client.blank?) && !activity_sym.in?(qa_version.class::CONTACTLESS_ACTIVITIES)
 
       # Conflicting modifiers
