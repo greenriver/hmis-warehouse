@@ -151,6 +151,7 @@ module BostonReports
       GrdaWarehouse::CohortClient.
         where(cohort_id: filter.cohort_ids).
         where.not(filter.cohort_column => nil). # only include clients with a cohort or the report starts to have mis-calculations
+        where.not(filter.cohort_column => '').
         preload(client: :source_clients)
     end
 
