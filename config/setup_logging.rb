@@ -103,7 +103,7 @@ class SetupLogging
   def _development
     config.log_level = ENV.fetch('LOG_LEVEL') { 'debug' }.to_sym
 
-    if ENV['RAILS_LOG_TO_STDOUT'] == 'true'
+    if ENV['RAILS_LOG_TO_STDOUT'] == 'true' || ENV['LOG_STD'] == 'true'
       config.logger = _tagged(ActiveSupport::Logger.new($stdout))
     else
       config.logger = _tagged(ActiveSupport::Logger.new("log/#{Rails.env}.log"))

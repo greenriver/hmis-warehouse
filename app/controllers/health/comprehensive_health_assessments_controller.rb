@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -106,10 +106,10 @@ module Health
 
     def form_params
       local_params = params.require(:form).permit(
-        :reviewed_by_supervisor,
-        :reviewer,
+        # :reviewed_by_supervisor,
+        # :reviewer,
         :completed,
-        :collection_method,
+        # :collection_method,
         *Health::ComprehensiveHealthAssessment::PERMITTED_PARAMS,
       )
       local_params

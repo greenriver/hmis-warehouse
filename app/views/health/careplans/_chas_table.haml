@@ -16,7 +16,7 @@
               - if form.reviewed_at.present?
                 = "Reviewed on #{form.reviewed_at.to_date}"
               - elsif form.completed_at.present?
-                Awaiting Review
+                = "Completed on #{form.completed_at.to_date}"
               - else
                 In Progress
             %td= form&.user&.name
