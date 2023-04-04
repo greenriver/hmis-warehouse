@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -195,21 +195,30 @@ module Health
       )
     end
 
-    # at least one of the following is true
-    # No SSM
-    # No Participation Form
-    # No Release Form
-    # No CHA
     scope :not_engaged, -> do
       where.not(id: engaged.select(:id))
     end
 
-    # all must be true
-    # Has SSM
-    # Has Participation Form
-    # Has Release Form
-    # Has CHA
     scope :engaged, ->(on: Date.current) do
+      engaged_cp_1(on).
+        or(engaged_cp_2(on))
+    end
+
+    scope :engaged_cp_1, ->(on) do
+      joins(:patient_referrals).
+        merge(Health::PatientReferral.cp_1_referrals).
+        cp_1_engagement(on)
+    end
+
+    scope :engaged_cp_2, ->(on) do
+      joins(:patient_referrals).
+        merge(Health::PatientReferral.cp_2_referrals).
+        cp_2_engagement(on)
+    end
+
+    # CP 1 required an SSM, CHA, participation agreement and information release (combined after 11/2022),
+    # and a PCTP signed by both the patient and their PCP.
+    def self.cp_1_engagement(on) # rubocop:disable Naming/MethodParameterName
       # This lives in the warehouse DB and must be materialized
       # hmis_ssm_client_ids = GrdaWarehouse::Hud::Client.joins(:source_hmis_forms).merge(GrdaWarehouse::HmisForm.self_sufficiency).distinct.pluck(:id)
       first_date = Health::PatientReferral.first_enrollment_start_date&.to_time || '2015-01-01'.to_time
@@ -276,6 +285,61 @@ module Health
         and(
           arel_table[:id].in(Arel.sql(pctp_signed_patient_id_scope.to_sql)),
         ),
+      )
+    end
+
+    # CP 2 relaxed the requirements for the PCTP so that it required in-house clinical approval instead of needing
+    # to be approved by the patients PCP.
+    def self.cp_2_engagement(on) # rubocop:disable Naming/MethodParameterName
+      ssm_patient_id_scope = Health::SelfSufficiencyMatrixForm.distinct.
+        completed.
+        allowed_for_engagement.
+        where(completed_at: (..on.to_time)).
+        select(:patient_id)
+
+      epic_ssm_patient_id_scope = Health::EpicSsm.distinct.
+        allowed_for_engagement.
+        where(ssm_updated_at: (..on.to_time)).
+        select(hp_t[:id].to_sql)
+
+      release_form_patient_id_scope = Health::ReleaseForm.distinct.
+        valid.
+        allowed_for_engagement.
+        select(:patient_id)
+
+      cha_patient_id_scope = Health::ComprehensiveHealthAssessment.distinct.
+        reviewed.
+        allowed_for_engagement.
+        where(reviewed_at: (..on.to_time)).
+        select(:patient_id)
+
+      epic_cha_patient_id_scope = Health::EpicCha.distinct.
+        allowed_for_engagement.
+        where(cha_updated_at: (..on.to_time)).
+        select(hp_t[:id].to_sql)
+
+      pctp_signed_patient_id_scope = Health::Careplan.distinct.
+        rn_approved.
+        where(rn_approved_on: (..on.to_time)).
+        select(:patient_id)
+
+      where(
+        arel_table[:id].in(Arel.sql(release_form_patient_id_scope.to_sql)).
+          and(
+            arel_table[:id].in(Arel.sql(cha_patient_id_scope.to_sql)).
+              or(
+                arel_table[:id].in(Arel.sql(epic_cha_patient_id_scope.to_sql)),
+              ),
+          ).
+          and(
+            arel_table[:id].in(Arel.sql(ssm_patient_id_scope.to_sql)).
+              or(
+                arel_table[:id].in(Arel.sql(epic_ssm_patient_id_scope.to_sql)),
+              ),
+          ).
+          and(
+            arel_table[:id].in(Arel.sql(pctp_signed_patient_id_scope.to_sql)),
+          ),
       )
     end
 

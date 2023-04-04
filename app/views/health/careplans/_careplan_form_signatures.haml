@@ -10,16 +10,47 @@
     -#.col
     -#  = f.input :patient_signature_mode, collection: @careplan.signature_modes, as: :select_two, label: 'Signed'
 
-  = f.input :provider_id, as: :select_two, label: 'Primary Care Provider or PCP Designee', collection: available_team_members, input_html: { class: ['select2--full-width'] }, wrapper_html: { class: 'mb-3'}, disabled: @careplan.locked? && f.object.provider_id.present?
+  = f.input :provider_id, as: :select_two, label: 'Primary Care Provider or PCP Designee', collection: available_team_members, input_html: { class: ['select2--full-width'] }, wrapper_html: { class: 'mb-3'}
 
-  = f.input :provider_signature_requested_at, as: :date_picker, label: 'Date Requested'
+  -# = f.input :provider_signature_requested_at, as: :date_picker, label: 'Date Sent'
 
-  .row
-    .col
-      = f.input :provider_signed_on, as: :date_picker, label: 'Date Signed'
-    .col
-      = f.input :provider_signature_mode, collection: @careplan.signature_modes, as: :select_two, label: 'Signed'
+  -# .row
+  -#   .col
+  -#     = f.input :provider_signed_on, as: :date_picker, label: 'Date Signed'
+  -#   .col
+  -#     = f.input :provider_signature_mode, collection: @careplan.signature_modes, as: :select_two, label: 'Signed'
+
+  - if @cha&.completed?
+    - approval_hint = @careplan.ncm_approved_on.present? ? "Approved by #{@careplan.approving_ncm.name} on #{@careplan.ncm_approved_on}" : nil
+    - if current_user.can_approve_cha?
+      = f.input :ncm_approval, label: 'NCM Approval of CHA and Care Plan', hint: approval_hint, input_html: { class: :jNCMApproval }
+    - else
+      = approval_hint
+
+  - if @cha&.completed?
+    - approval_hint = @careplan.rn_approved_on.present? ? "Approved by #{@careplan.approving_rn.name} on #{@careplan.rn_approved_on}" : nil
+    - if current_user.can_approve_careplan?
+      - disabled = @careplan.ncm_approval.blank?
+      = f.input :rn_approval, label: 'Clinical Manager Approval of Care Plan', hint: approval_hint, input_html: { class: :jRNApproval, disabled: disabled }
+    -else
+      = approval_hint
+
+  - sent_hint = @careplan.careplan_sent_on.present? ? "Care Plan sent by #{@careplan.careplan_sender.name} on #{@careplan.careplan_sent_on}" : nil
+  - disabled = @careplan.rn_approval.blank?
+  = f.input :careplan_sent, label: 'Care Plan sent to PCP', hint: sent_hint, input_html: { class: :jCareplanSent, disabled: disabled }
 
 .col-md-6
 
   = f.input :representative_id, as: :select_two, label: 'Patient’s Designated Representative', collection: available_team_members, input_html: { class: ['select2--full-width'] }, wrapper_html: { class: 'mb-3'}, disabled: @careplan.locked?
+
+= content_for :page_js do
+  :javascript
+    $(document).ready(function() {
+      $('.jNCMApproval').on('change', function(e) {
+        $('.jRNApproval').attr('disabled', ! $(e.target).is(':checked'));
+      });
+
+      $('.jRNApproval').on('change', function(e) {
+        $('.jCareplanSent').attr('disabled', ! $(e.target).is(':checked'));
+      });
+    });

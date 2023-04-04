@@ -1,20 +1,8 @@
 namespace :log do
-  desc 'Log INFO and DEBUG to STDOUT'
-  task :debug_to_stdout, [] => [:environment] do
-    if Rails.env == 'development'
-      logger = Logger.new($stdout)
-      logger.level = Logger::DEBUG
-      Rails.logger = logger
-    end
-  end
-
   desc 'Log INFO to STDOUT'
   task :info_to_stdout, [] => [:environment] do
-    if Rails.env == 'development'
-      logger = Logger.new($stdout)
-      logger.level = Logger::INFO
-      Rails.logger = logger
-    end
+    # NOTE if you want the logs to go to standard out, set LOG_STD=true
+    Rails.logger.level = Logger::INFO if Rails.env == 'development'
   end
 
   # Moved from :test namespace because something was trying to make that run in

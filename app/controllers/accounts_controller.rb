@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -14,6 +14,7 @@ class AccountsController < ApplicationController
   def update
     changed_notes = []
     changed_notes << 'Account name was updated.' if @user.first_name != account_params[:first_name] || @user.last_name != account_params[:last_name]
+    changed_notes << 'User credentials were changed.' if @user.credentials != account_params[:credentials]
     changed_notes << 'Email schedule was updated.' if @user.email_schedule != account_params[:email_schedule]
     changed_notes << 'Phone number was updated.' if @user.phone != account_params[:phone]
     changed_notes << 'Agency name was updated.' if @user.agency_id.to_s != account_params[:agency].to_s && account_params[:agency].present?
@@ -38,6 +39,7 @@ class AccountsController < ApplicationController
         :phone,
         :email_schedule,
         :otp_required_for_login,
+        :credentials,
       )
   end
 
