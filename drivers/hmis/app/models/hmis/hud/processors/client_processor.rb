@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -10,6 +10,9 @@ module Hmis::Hud::Processors
       attribute_name = hud_name(field)
       attribute_value = attribute_value_for_enum(hud_type(field), value)
 
+      # Skip SSN/DOB fields if hidden, because they are always hidden due to lack of permissions (see client.json form definition)
+      return if value == Base::HIDDEN_FIELD_VALUE && ['ssn', 'dob'].include?(attribute_name)
+
       attributes = case attribute_name
       when 'race'
         race_attributes(Array.wrap(attribute_value))
@@ -17,8 +20,16 @@ module Hmis::Hud::Processors
         gender_attributes(Array.wrap(attribute_value))
       when 'pronouns'
         { attribute_name => Array.wrap(attribute_value).any? ? Array.wrap(attribute_value).join('|') : nil }
-      when 'SSN'
+      when 'ssn'
         { attribute_name => attribute_value.present? ? attribute_value.gsub(/[^\dXx]/, '') : nil }
+      when 'ssn_data_quality'
+        # If hidden due to permissions, set to old value or 99
+        attribute_value = @processor.send(factory_name).ssn_data_quality || 99 if value == Base::HIDDEN_FIELD_VALUE
+        { attribute_name => attribute_value }
+      when 'dob_data_quality'
+        # If hidden due to permissions, set to old value or 99
+        attribute_value = @processor.send(factory_name).dob_data_quality || 99 if value == Base::HIDDEN_FIELD_VALUE
+        { attribute_name => attribute_value }
       else
         { attribute_name => attribute_value }
       end

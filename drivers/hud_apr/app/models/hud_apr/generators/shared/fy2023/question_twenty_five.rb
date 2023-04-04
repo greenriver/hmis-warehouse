@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -419,7 +419,7 @@ module HudApr::Generators::Shared::Fy2023
     end
 
     private def veteran_age_ranges
-      age_ranges.except('Under 5', '5-12', '13-17')
+      apr_age_ranges.except('Under 5', '5-12', '13-17')
     end
 
     private def q25e_populations

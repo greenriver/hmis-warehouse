@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -49,11 +49,15 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :enrollments
   has_one :wip, class_name: 'Hmis::Wip', as: :source, dependent: :destroy
 
+  validates_with Hmis::Hud::Validators::EnrollmentValidator
+
   SORT_OPTIONS = [:most_recent].freeze
 
   # hide previous declaration of :viewable_by, we'll use this one
   # A user can see any enrollment associated with a project they can access
   replace_scope :viewable_by, ->(user) do
+    return none unless user.permissions?(:can_view_enrollment_details)
+
     project_ids = Hmis::Hud::Project.with_access(user, :can_view_enrollment_details).pluck(:id, :ProjectID)
     viewable_wip = wip_t[:project_id].in(project_ids.map(&:first))
     viewable_enrollment = e_t[:ProjectID].in(project_ids.map(&:second))
@@ -61,18 +65,22 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     left_outer_joins(:wip).where(viewable_wip.or(viewable_enrollment))
   end
 
+  scope :matching_search_term, ->(search_term) do
+    search_term.strip!
+    # If there are Household ID matches, return those only
+    household_matches = where(e_t[:household_id].lower.matches("#{search_term.downcase}%")) if search_term.size == TRIMMED_HOUSEHOLD_ID_LENGTH
+    household_matches = where(e_t[:household_id].lower.eq(search_term.downcase)) unless household_matches.any?
+    return household_matches if household_matches.any?
+
+    # Search by client
+    joins(:client).merge(Hmis::Hud::Client.matching_search_term(search_term))
+  end
+
   scope :in_project_including_wip, ->(ids, project_ids) do
     wip_enrollments = wip_t[:project_id].in(Array.wrap(ids))
     actual_enrollments = e_t[:ProjectID].in(Array.wrap(project_ids))
 
     left_outer_joins(:wip).where(wip_enrollments.or(actual_enrollments))
-  end
-
-  def custom_assessments_including_wip
-    completed_assessments = cas_t[:enrollment_id].eq(enrollment_id)
-    wip_assessments = wip_t[:enrollment_id].eq(id)
-
-    Hmis::Hud::CustomAssessment.left_outer_joins(:wip).where(completed_assessments.or(wip_assessments))
   end
 
   scope :heads_of_households, -> do
@@ -133,13 +141,11 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     end
   end
 
-  def in_progress?
-    @in_progress = project_id.nil? if @in_progress.nil?
-    @in_progress
-  end
+  def custom_assessments_including_wip
+    completed_assessments = cas_t[:enrollment_id].eq(enrollment_id)
+    wip_assessments = wip_t[:enrollment_id].eq(id)
 
-  def head_of_household?
-    self.RelationshipToHoH == 1
+    Hmis::Hud::CustomAssessment.left_outer_joins(:wip).where(completed_assessments.or(wip_assessments))
   end
 
   def intake_assessment
@@ -148,5 +154,31 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   def exit_assessment
     custom_assessments_including_wip.exits.first
+  end
+
+  def in_progress?
+    @in_progress = project_id.nil? if @in_progress.nil?
+    @in_progress
+  end
+
+  def exit_in_progress?
+    exit.nil? && exit_assessment&.present?
+  end
+
+  def head_of_household?
+    self.RelationshipToHoH == 1
+  end
+
+  def household_members
+    Hmis::Hud::Enrollment.where(household_id: household_id, data_source_id: data_source_id)
+  end
+
+  def hoh_entry_date
+    household_members.heads_of_households.first&.entry_date
+  end
+
+  TRIMMED_HOUSEHOLD_ID_LENGTH = 6
+  def short_household_id
+    household_id.first(TRIMMED_HOUSEHOLD_ID_LENGTH)
   end
 end

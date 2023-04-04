@@ -1,4 +1,11 @@
+###
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 require 'rails_helper'
+require_relative '../../../support/hmis_base_setup'
 
 RSpec.describe Hmis::Form::FormProcessor, type: :model do
   let!(:ds) { create :hmis_data_source }
@@ -24,7 +31,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
   end
 
   it 'ingests EnrollmentCoC into the hud tables' do
-    assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: hmis_hud_user, form_definition: fd, assessment_date: Date.current)
+    assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: hmis_hud_user, form_definition: fd, assessment_date: Date.yesterday)
     assessment.custom_form.hud_values = {
       'EnrollmentCoc.cocCode' => 'MA-507',
     }
@@ -36,223 +43,296 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
     expect(assessment.enrollment.enrollment_cocs.first.coc_code).to eq('MA-507')
   end
 
-  it 'ingests IncomeBenefit into the hud tables (income sources)' do
-    assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: hmis_hud_user, form_definition: fd, assessment_date: Date.current)
-    assessment.custom_form.hud_values = {
-      'IncomeBenefit.incomeFromAnySource' => 'YES',
-      'IncomeBenefit.earned' => nil,
-      'IncomeBenefit.earnedAmount' => nil,
-      'IncomeBenefit.unemployment' => 'YES',
-      'IncomeBenefit.unemploymentAmount' => 100,
-      'IncomeBenefit.otherIncomeSource' => 'NO',
-      'IncomeBenefit.otherIncomeAmount' => 0,
-      'IncomeBenefit.otherIncomeSourceIdentify' => HIDDEN,
-    }
+  describe 'IncomeBenefit processor' do
+    it 'succeeds if overall is YES and sources are specified (income)' do
+      assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: hmis_hud_user, form_definition: fd, assessment_date: Date.yesterday)
+      assessment.custom_form.hud_values = {
+        'IncomeBenefit.incomeFromAnySource' => 'YES',
+        'IncomeBenefit.earned' => nil,
+        'IncomeBenefit.earnedAmount' => nil,
+        'IncomeBenefit.unemployment' => 'YES',
+        'IncomeBenefit.unemploymentAmount' => 100,
+        'IncomeBenefit.otherIncomeSource' => 'NO',
+        'IncomeBenefit.otherIncomeAmount' => 0,
+        'IncomeBenefit.otherIncomeSourceIdentify' => HIDDEN,
+      }
 
-    assessment.custom_form.form_processor.run!
-    assessment.save_not_in_progress
+      assessment.custom_form.form_processor.run!
+      assessment.save_not_in_progress
 
-    expect(assessment.enrollment.income_benefits.count).to eq(1)
+      expect(assessment.enrollment.income_benefits.count).to eq(1)
 
-    income_benefits = assessment.enrollment.income_benefits.first
-    expect(income_benefits.income_from_any_source).to eq(1)
-    expect(income_benefits.earned).to eq(0) # overridden
-    expect(income_benefits.earned_amount).to eq(nil)
-    expect(income_benefits.unemployment).to eq(1)
-    expect(income_benefits.unemployment_amount).to eq(100)
-    expect(income_benefits.other_income_source).to eq(0)
-    expect(income_benefits.other_income_amount).to eq(0)
-    expect(income_benefits.other_income_source_identify).to eq(nil)
+      income_benefits = assessment.enrollment.income_benefits.first
+      expect(income_benefits.income_from_any_source).to eq(1)
+      expect(income_benefits.earned).to eq(0) # overridden
+      expect(income_benefits.earned_amount).to eq(nil)
+      expect(income_benefits.unemployment).to eq(1)
+      expect(income_benefits.unemployment_amount).to eq(100)
+      expect(income_benefits.other_income_source).to eq(0)
+      expect(income_benefits.other_income_amount).to eq(0)
+      expect(income_benefits.other_income_source_identify).to eq(nil)
+    end
+
+    it 'succeeds if section is left empty (income)' do
+      assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: hmis_hud_user, form_definition: fd, assessment_date: Date.yesterday)
+      assessment.custom_form.hud_values = {
+        'IncomeBenefit.incomeFromAnySource' => nil,
+        'IncomeBenefit.earned' => nil,
+        'IncomeBenefit.earnedAmount' => nil,
+        'IncomeBenefit.unemployment' => nil,
+        'IncomeBenefit.unemploymentAmount' => nil,
+        'IncomeBenefit.otherIncomeSource' => nil,
+        'IncomeBenefit.otherIncomeAmount' => nil,
+        'IncomeBenefit.otherIncomeSourceIdentify' => HIDDEN,
+      }
+
+      assessment.custom_form.form_processor.run!
+      assessment.save_not_in_progress
+
+      expect(assessment.enrollment.income_benefits.count).to eq(1)
+
+      income_benefits = assessment.enrollment.income_benefits.first
+      expect(income_benefits.income_from_any_source).to eq(99)
+      expect(income_benefits.earned).to eq(99)
+      expect(income_benefits.earned_amount).to be nil
+      expect(income_benefits.unemployment).to eq(99)
+      expect(income_benefits.unemployment_amount).to be nil
+      expect(income_benefits.other_income_source).to eq(99)
+      expect(income_benefits.other_income_amount).to be nil
+      expect(income_benefits.other_income_source_identify).to be nil
+    end
+
+    it 'succeeds if overall is NO' do
+      assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: hmis_hud_user, form_definition: fd, assessment_date: Date.yesterday)
+      assessment.custom_form.hud_values = {
+        'IncomeBenefit.benefitsFromAnySource' => 'NO',
+        'IncomeBenefit.snap' => HIDDEN,
+        'IncomeBenefit.wic' => HIDDEN,
+        'IncomeBenefit.otherBenefitsSource' => HIDDEN,
+        'IncomeBenefit.otherBenefitsSourceIdentify' => HIDDEN,
+      }
+
+      assessment.custom_form.form_processor.run!
+      assessment.save_not_in_progress
+
+      expect(assessment.enrollment.income_benefits.count).to eq(1)
+
+      income_benefits = assessment.enrollment.income_benefits.first
+      expect(income_benefits.benefits_from_any_source).to eq(0)
+      expect(income_benefits.snap).to eq(0) # overridden
+      expect(income_benefits.wic).to eq(0) # overridden
+      expect(income_benefits.other_benefits_source).to eq(0) # overridden
+      expect(income_benefits.other_benefits_source_identify).to eq(nil)
+    end
+
+    it 'succeeds if overall is CLIENT_REFUSED' do
+      assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: hmis_hud_user, form_definition: fd, assessment_date: Date.yesterday)
+      assessment.custom_form.hud_values = {
+        'IncomeBenefit.benefitsFromAnySource' => 'CLIENT_REFUSED',
+        'IncomeBenefit.snap' => HIDDEN,
+        'IncomeBenefit.wic' => HIDDEN,
+        'IncomeBenefit.otherBenefitsSource' => HIDDEN,
+        'IncomeBenefit.otherBenefitsSourceIdentify' => HIDDEN,
+      }
+
+      assessment.custom_form.form_processor.run!
+      assessment.save_not_in_progress
+
+      expect(assessment.enrollment.income_benefits.count).to eq(1)
+
+      income_benefits = assessment.enrollment.income_benefits.first
+      expect(income_benefits.benefits_from_any_source).to eq(9)
+      expect(income_benefits.snap).to be nil
+      expect(income_benefits.wic).to be nil
+      expect(income_benefits.other_benefits_source).to be nil
+      expect(income_benefits.other_benefits_source_identify).to be nil
+    end
+
+    it 'succeeds if overall is YES and sources are specified (health insurance)' do
+      assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: hmis_hud_user, form_definition: fd, assessment_date: Date.yesterday)
+      assessment.custom_form.hud_values = {
+        'IncomeBenefit.insuranceFromAnySource' => 'YES',
+        'IncomeBenefit.medicaid' => 'YES',
+        'IncomeBenefit.schip' => nil,
+        'IncomeBenefit.otherInsurance' => nil,
+        'IncomeBenefit.otherInsuranceIdentify' => HIDDEN,
+      }
+
+      assessment.custom_form.form_processor.run!
+      assessment.save_not_in_progress
+
+      expect(assessment.enrollment.income_benefits.count).to eq(1)
+
+      income_benefits = assessment.enrollment.income_benefits.first
+      expect(income_benefits.insurance_from_any_source).to eq(1)
+      expect(income_benefits.medicaid).to eq(1)
+      expect(income_benefits.schip).to eq(0) # overridden
+      expect(income_benefits.other_insurance).to eq(0) # overridden
+      expect(income_benefits.other_insurance_identify).to eq(nil)
+    end
+
+    it 'succeeds if section is left empty (health insurance)' do
+      assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: hmis_hud_user, form_definition: fd, assessment_date: Date.yesterday)
+      assessment.custom_form.hud_values = {
+        'IncomeBenefit.insuranceFromAnySource' => nil,
+        'IncomeBenefit.medicaid' => nil,
+      }
+
+      assessment.custom_form.form_processor.run!
+      assessment.save_not_in_progress
+
+      expect(assessment.enrollment.income_benefits.count).to eq(1)
+
+      income_benefits = assessment.enrollment.income_benefits.first
+      expect(income_benefits.insurance_from_any_source).to eq(99)
+      expect(income_benefits.medicaid).to eq(99)
+    end
+
+    it 'fails if overall iS YES but no sources were specified' do
+      assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: hmis_hud_user, form_definition: fd, assessment_date: Date.yesterday)
+      assessment.custom_form.hud_values = {
+        'IncomeBenefit.incomeFromAnySource' => 'YES',
+        'IncomeBenefit.benefitsFromAnySource' => 'YES',
+        'IncomeBenefit.insuranceFromAnySource' => 'YES',
+      }
+
+      assessment.custom_form.form_processor.run!
+      expect(assessment.custom_form.valid?).to be false
+      expect(assessment.custom_form.errors.where(:income_from_any_source).first.options[:full_message]).to eq(Hmis::Hud::Validators::IncomeBenefitValidator::INCOME_SOURCES_UNSPECIFIED)
+      expect(assessment.custom_form.errors.where(:benefits_from_any_source).first.options[:full_message]).to eq(Hmis::Hud::Validators::IncomeBenefitValidator::BENEFIT_SOURCES_UNSPECIFIED)
+      expect(assessment.custom_form.errors.where(:insurance_from_any_source).first.options[:full_message]).to eq(Hmis::Hud::Validators::IncomeBenefitValidator::INSURANCE_SOURCES_UNSPECIFIED)
+    end
   end
 
-  it 'ingests IncomeBenefit into the hud tables (non-cash benefits, all hidden)' do
-    assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: hmis_hud_user, form_definition: fd, assessment_date: Date.current)
-    assessment.custom_form.hud_values = {
-      'IncomeBenefit.benefitsFromAnySource' => 'NO',
-      'IncomeBenefit.snap' => HIDDEN,
-      'IncomeBenefit.wic' => HIDDEN,
-      'IncomeBenefit.otherBenefitsSource' => HIDDEN,
-      'IncomeBenefit.otherBenefitsSourceIdentify' => HIDDEN,
-    }
+  describe 'HealthAndDV processor' do
+    it 'ingests HealthAndDV into the hud tables (no)' do
+      assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: hmis_hud_user, form_definition: fd, assessment_date: Date.yesterday)
+      assessment.custom_form.hud_values = {
+        'HealthAndDv.domesticViolenceVictim' => 'NO',
+        'HealthAndDv.currentlyFleeing' => HIDDEN,
+        'HealthAndDv.whenOccurred' => HIDDEN,
+      }
 
-    assessment.custom_form.form_processor.run!
-    assessment.save_not_in_progress
+      assessment.custom_form.form_processor.run!
+      assessment.save_not_in_progress
 
-    expect(assessment.enrollment.income_benefits.count).to eq(1)
+      expect(assessment.enrollment.health_and_dvs.count).to eq(1)
 
-    income_benefits = assessment.enrollment.income_benefits.first
-    expect(income_benefits.benefits_from_any_source).to eq(0)
-    expect(income_benefits.snap).to eq(0) # overridden
-    expect(income_benefits.wic).to eq(0) # overridden
-    expect(income_benefits.other_benefits_source).to eq(0) # overridden
-    expect(income_benefits.other_benefits_source_identify).to eq(nil)
+      health_and_dv = assessment.enrollment.health_and_dvs.first
+      expect(health_and_dv.domestic_violence_victim).to eq(0)
+      expect(health_and_dv.currently_fleeing).to eq(nil)
+      expect(health_and_dv.when_occurred).to eq(nil)
+    end
+
+    it 'ingests HealthAndDV into the hud tables (99)' do
+      assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: hmis_hud_user, form_definition: fd, assessment_date: Date.yesterday)
+      assessment.custom_form.hud_values = {
+        'HealthAndDv.domesticViolenceVictim' => nil,
+        'HealthAndDv.currentlyFleeing' => HIDDEN,
+        'HealthAndDv.whenOccurred' => HIDDEN,
+      }
+
+      assessment.custom_form.form_processor.run!
+      assessment.save_not_in_progress
+
+      expect(assessment.enrollment.health_and_dvs.count).to eq(1)
+
+      health_and_dv = assessment.enrollment.health_and_dvs.first
+      expect(health_and_dv.domestic_violence_victim).to eq(99)
+      expect(health_and_dv.currently_fleeing).to eq(nil)
+      expect(health_and_dv.when_occurred).to eq(nil)
+    end
+
+    it 'ingests HealthAndDV into the hud tables (yes, with 99 conditional)' do
+      assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: hmis_hud_user, form_definition: fd, assessment_date: Date.yesterday)
+      assessment.custom_form.hud_values = {
+        'HealthAndDv.domesticViolenceVictim' => 'YES',
+        'HealthAndDv.currentlyFleeing' => nil,
+        'HealthAndDv.whenOccurred' => 'CLIENT_REFUSED',
+      }
+
+      assessment.custom_form.form_processor.run!
+      assessment.save_not_in_progress
+
+      expect(assessment.enrollment.health_and_dvs.count).to eq(1)
+
+      health_and_dv = assessment.enrollment.health_and_dvs.first
+      expect(health_and_dv.domestic_violence_victim).to eq(1)
+      expect(health_and_dv.currently_fleeing).to eq(99)
+      expect(health_and_dv.when_occurred).to eq(9)
+    end
   end
 
-  it 'ingests IncomeBenefit into the hud tables (health insurance)' do
-    assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: hmis_hud_user, form_definition: fd, assessment_date: Date.current)
-    assessment.custom_form.hud_values = {
-      'IncomeBenefit.insuranceFromAnySource' => 'YES',
-      'IncomeBenefit.medicaid' => 'YES',
-      'IncomeBenefit.schip' => nil,
-      'IncomeBenefit.otherInsurance' => nil,
-      'IncomeBenefit.otherInsuranceIdentify' => HIDDEN,
-    }
+  describe 'DisabilityGroup processor' do
+    it 'ingests DisabilityGroup into multiple Disabilities' do
+      assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: hmis_hud_user, form_definition: fd, assessment_date: Date.yesterday)
+      assessment.custom_form.hud_values = {
+        'DisabilityGroup.physicalDisability' => 'YES',
+        'DisabilityGroup.physicalDisabilityIndefiniteAndImpairs' => 'YES',
+        'DisabilityGroup.developmentalDisability' => 'NO',
+        'DisabilityGroup.chronicHealthCondition' => 'YES',
+        'DisabilityGroup.chronicHealthConditionIndefiniteAndImpairs' => 'NO',
+        'DisabilityGroup.hivAids' => 'YES',
+        'DisabilityGroup.mentalHealthDisorder' => 'NO',
+        'DisabilityGroup.substanceUseDisorder' => 'BOTH_ALCOHOL_AND_DRUG_USE_DISORDERS',
+        'DisabilityGroup.substanceUseDisorderIndefiniteAndImpairs' => 'YES',
+        'DisabilityGroup.disablingCondition' => 'YES',
+      }
 
-    assessment.custom_form.form_processor.run!
-    assessment.save_not_in_progress
+      assessment.custom_form.form_processor.run!
+      assessment.save_not_in_progress
 
-    expect(assessment.enrollment.income_benefits.count).to eq(1)
+      expect(assessment.enrollment.disabilities.count).to eq(6)
+      expect(assessment.enrollment.disabling_condition).to eq(1)
 
-    income_benefits = assessment.enrollment.income_benefits.first
-    expect(income_benefits.insurance_from_any_source).to eq(1)
-    expect(income_benefits.medicaid).to eq(1)
-    expect(income_benefits.schip).to eq(0) # overridden
-    expect(income_benefits.other_insurance).to eq(0) # overridden
-    expect(income_benefits.other_insurance_identify).to eq(nil)
-  end
+      disabilities = assessment.enrollment.disabilities
+      # Physical Disability
+      expect(disabilities.find_by(disability_type: 5).disability_response).to eq(1)
+      expect(disabilities.find_by(disability_type: 5).indefinite_and_impairs).to eq(1)
+      # Developmental Disability
+      expect(disabilities.find_by(disability_type: 6).disability_response).to eq(0)
+      expect(disabilities.find_by(disability_type: 6).indefinite_and_impairs).to be_nil
+      # Substance Use
+      expect(disabilities.find_by(disability_type: 10).disability_response).to eq(3)
+    end
 
-  it 'ingests IncomeBenefit into the hud tables (health insurance saves as 99)' do
-    assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: hmis_hud_user, form_definition: fd, assessment_date: Date.current)
-    assessment.custom_form.hud_values = {
-      'IncomeBenefit.insuranceFromAnySource' => nil,
-      'IncomeBenefit.medicaid' => nil,
-    }
+    it 'can process nil and _HIDDEN DisabilityGroup fields' do
+      assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: hmis_hud_user, form_definition: fd, assessment_date: Date.yesterday)
+      assessment.custom_form.hud_values = {
+        'DisabilityGroup.physicalDisability' => nil,
+        'DisabilityGroup.physicalDisabilityIndefiniteAndImpairs' => HIDDEN,
+        'DisabilityGroup.developmentalDisability' => 'NO',
+        'DisabilityGroup.developmentalDisabilityIndefiniteAndImpairs' => HIDDEN,
+        'DisabilityGroup.chronicHealthCondition' => 'YES',
+        'DisabilityGroup.chronicHealthConditionIndefiniteAndImpairs' => nil,
+        'DisabilityGroup.hivAids' => nil,
+        'DisabilityGroup.mentalHealthDisorder' => nil,
+        'DisabilityGroup.substanceUseDisorder' => 'BOTH_ALCOHOL_AND_DRUG_USE_DISORDERS',
+        'DisabilityGroup.substanceUseDisorderIndefiniteAndImpairs' => nil,
+        'DisabilityGroup.disablingCondition' => nil,
+      }
 
-    assessment.custom_form.form_processor.run!
-    assessment.save_not_in_progress
+      assessment.custom_form.form_processor.run!
+      assessment.save_not_in_progress
 
-    expect(assessment.enrollment.income_benefits.count).to eq(1)
+      expect(assessment.enrollment.disabilities.count).to eq(6)
+      expect(assessment.enrollment.disabling_condition).to eq(99)
 
-    income_benefits = assessment.enrollment.income_benefits.first
-    expect(income_benefits.insurance_from_any_source).to eq(99)
-    expect(income_benefits.medicaid).to eq(99)
-  end
-
-  it 'ingests HealthAndDV into the hud tables (no)' do
-    assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: hmis_hud_user, form_definition: fd, assessment_date: Date.current)
-    assessment.custom_form.hud_values = {
-      'HealthAndDv.domesticViolenceVictim' => 'NO',
-      'HealthAndDv.currentlyFleeing' => HIDDEN,
-      'HealthAndDv.whenOccurred' => HIDDEN,
-    }
-
-    assessment.custom_form.form_processor.run!
-    assessment.save_not_in_progress
-
-    expect(assessment.enrollment.health_and_dvs.count).to eq(1)
-
-    health_and_dv = assessment.enrollment.health_and_dvs.first
-    expect(health_and_dv.domestic_violence_victim).to eq(0)
-    expect(health_and_dv.currently_fleeing).to eq(nil)
-    expect(health_and_dv.when_occurred).to eq(nil)
-  end
-
-  it 'ingests HealthAndDV into the hud tables (99)' do
-    assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: hmis_hud_user, form_definition: fd, assessment_date: Date.current)
-    assessment.custom_form.hud_values = {
-      'HealthAndDv.domesticViolenceVictim' => nil,
-      'HealthAndDv.currentlyFleeing' => HIDDEN,
-      'HealthAndDv.whenOccurred' => HIDDEN,
-    }
-
-    assessment.custom_form.form_processor.run!
-    assessment.save_not_in_progress
-
-    expect(assessment.enrollment.health_and_dvs.count).to eq(1)
-
-    health_and_dv = assessment.enrollment.health_and_dvs.first
-    expect(health_and_dv.domestic_violence_victim).to eq(99)
-    expect(health_and_dv.currently_fleeing).to eq(nil)
-    expect(health_and_dv.when_occurred).to eq(nil)
-  end
-
-  it 'ingests HealthAndDV into the hud tables (yes, with 99 conditional)' do
-    assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: hmis_hud_user, form_definition: fd, assessment_date: Date.current)
-    assessment.custom_form.hud_values = {
-      'HealthAndDv.domesticViolenceVictim' => 'YES',
-      'HealthAndDv.currentlyFleeing' => nil,
-      'HealthAndDv.whenOccurred' => 'CLIENT_REFUSED',
-    }
-
-    assessment.custom_form.form_processor.run!
-    assessment.save_not_in_progress
-
-    expect(assessment.enrollment.health_and_dvs.count).to eq(1)
-
-    health_and_dv = assessment.enrollment.health_and_dvs.first
-    expect(health_and_dv.domestic_violence_victim).to eq(1)
-    expect(health_and_dv.currently_fleeing).to eq(99)
-    expect(health_and_dv.when_occurred).to eq(9)
-  end
-
-  it 'ingests DisabilityGroup into multiple Disabilities' do
-    assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: hmis_hud_user, form_definition: fd, assessment_date: Date.current)
-    assessment.custom_form.hud_values = {
-      'DisabilityGroup.physicalDisability' => 'YES',
-      'DisabilityGroup.physicalDisabilityIndefiniteAndImpairs' => 'YES',
-      'DisabilityGroup.developmentalDisability' => 'NO',
-      'DisabilityGroup.chronicHealthCondition' => 'YES',
-      'DisabilityGroup.chronicHealthConditionIndefiniteAndImpairs' => 'NO',
-      'DisabilityGroup.hivAids' => 'YES',
-      'DisabilityGroup.mentalHealthDisorder' => 'NO',
-      'DisabilityGroup.substanceUseDisorder' => 'BOTH_ALCOHOL_AND_DRUG_USE_DISORDERS',
-      'DisabilityGroup.substanceUseDisorderIndefiniteAndImpairs' => 'YES',
-      'DisabilityGroup.disablingCondition' => 'YES',
-    }
-
-    assessment.custom_form.form_processor.run!
-    assessment.save_not_in_progress
-
-    expect(assessment.enrollment.disabilities.count).to eq(6)
-    expect(assessment.enrollment.disabling_condition).to eq(1)
-
-    disabilities = assessment.enrollment.disabilities
-    # Physical Disability
-    expect(disabilities.find_by(disability_type: 5).disability_response).to eq(1)
-    expect(disabilities.find_by(disability_type: 5).indefinite_and_impairs).to eq(1)
-    # Developmental Disability
-    expect(disabilities.find_by(disability_type: 6).disability_response).to eq(0)
-    expect(disabilities.find_by(disability_type: 6).indefinite_and_impairs).to be_nil
-    # Substance Use
-    expect(disabilities.find_by(disability_type: 10).disability_response).to eq(3)
-  end
-
-  it 'can process nil and _HIDDEN DisabilityGroup fields' do
-    assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: hmis_hud_user, form_definition: fd, assessment_date: Date.current)
-    assessment.custom_form.hud_values = {
-      'DisabilityGroup.physicalDisability' => nil,
-      'DisabilityGroup.physicalDisabilityIndefiniteAndImpairs' => HIDDEN,
-      'DisabilityGroup.developmentalDisability' => 'NO',
-      'DisabilityGroup.developmentalDisabilityIndefiniteAndImpairs' => HIDDEN,
-      'DisabilityGroup.chronicHealthCondition' => 'YES',
-      'DisabilityGroup.chronicHealthConditionIndefiniteAndImpairs' => nil,
-      'DisabilityGroup.hivAids' => nil,
-      'DisabilityGroup.mentalHealthDisorder' => nil,
-      'DisabilityGroup.substanceUseDisorder' => 'BOTH_ALCOHOL_AND_DRUG_USE_DISORDERS',
-      'DisabilityGroup.substanceUseDisorderIndefiniteAndImpairs' => nil,
-      'DisabilityGroup.disablingCondition' => nil,
-    }
-
-    assessment.custom_form.form_processor.run!
-    assessment.save_not_in_progress
-
-    expect(assessment.enrollment.disabilities.count).to eq(6)
-    expect(assessment.enrollment.disabling_condition).to eq(99)
-
-    disabilities = assessment.enrollment.disabilities
-    # Physical Disability
-    expect(disabilities.find_by(disability_type: 5).disability_response).to eq(99) # nil is saved as 99
-    expect(disabilities.find_by(disability_type: 5).indefinite_and_impairs).to be_nil # hidden is saved as nil
-    # Developmental Disability
-    expect(disabilities.find_by(disability_type: 6).disability_response).to eq(0)
-    expect(disabilities.find_by(disability_type: 6).indefinite_and_impairs).to be_nil # hidden is saved as nil
-    # Substance Use
-    expect(disabilities.find_by(disability_type: 10).disability_response).to eq(3)
-    expect(disabilities.find_by(disability_type: 10).indefinite_and_impairs).to eq(99) # nil is saved as 99
+      disabilities = assessment.enrollment.disabilities
+      # Physical Disability
+      expect(disabilities.find_by(disability_type: 5).disability_response).to eq(99) # nil is saved as 99
+      expect(disabilities.find_by(disability_type: 5).indefinite_and_impairs).to be_nil # hidden is saved as nil
+      # Developmental Disability
+      expect(disabilities.find_by(disability_type: 6).disability_response).to eq(0)
+      expect(disabilities.find_by(disability_type: 6).indefinite_and_impairs).to be_nil # hidden is saved as nil
+      # Substance Use
+      expect(disabilities.find_by(disability_type: 10).disability_response).to eq(3)
+      expect(disabilities.find_by(disability_type: 10).indefinite_and_impairs).to eq(99) # nil is saved as 99
+    end
   end
 
   it 'pulls validation errors up from HUD records' do
-    assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: hmis_hud_user, form_definition: fd, assessment_date: Date.current)
+    assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: hmis_hud_user, form_definition: fd, assessment_date: Date.yesterday)
     assessment.custom_form.hud_values = {
       'EnrollmentCoc.user_id' => nil,
     }
@@ -264,7 +344,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
 
   describe 'updating existing assessment' do
     it "doesn't touch an existing value, if it isn't listed (but applies the listed fields)" do
-      assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: hmis_hud_user, form_definition: fd, assessment_date: Date.current)
+      assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: hmis_hud_user, form_definition: fd, assessment_date: Date.yesterday)
       assessment.custom_form.hud_values = {
         'EnrollmentCoc.cocCode' => 'MA-507',
       }
@@ -274,6 +354,8 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
 
       assessment.custom_form.hud_values = {
         'IncomeBenefit.incomeFromAnySource' => 'YES',
+        'IncomeBenefit.unemployment' => 'YES',
+        'IncomeBenefit.unemploymentAmount' => 100,
       }
 
       assessment.custom_form.form_processor.run!
@@ -285,10 +367,11 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
 
       income_benefits = assessment.enrollment.income_benefits.first
       expect(income_benefits.income_from_any_source).to eq(1)
+      expect(income_benefits.unemployment).to eq(1)
     end
 
     it 'clears an existing value, if it is null' do
-      assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: hmis_hud_user, form_definition: fd, assessment_date: Date.current)
+      assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: hmis_hud_user, form_definition: fd, assessment_date: Date.yesterday)
       assessment.custom_form.hud_values = {
         'EnrollmentCoc.cocCode' => 'MA-507',
         'IncomeBenefit.incomeFromAnySource' => 'YES',
@@ -311,7 +394,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
     end
 
     it 'adjusts the information dates as appropriate' do
-      assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: hmis_hud_user, form_definition: fd, assessment_date: Date.current)
+      assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: hmis_hud_user, form_definition: fd, assessment_date: Date.yesterday)
       assessment.custom_form.hud_values = {
         'EnrollmentCoc.cocCode' => 'MA-507',
       }
@@ -331,7 +414,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
     end
 
     it 'adds an exit record when appropriate' do
-      assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: hmis_hud_user, form_definition: fd, assessment_date: Date.current)
+      assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: hmis_hud_user, form_definition: fd, assessment_date: Date.yesterday)
       assessment.custom_form.hud_values = {
         'EnrollmentCoc.cocCode' => 'MA-507',
       }
@@ -343,6 +426,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       expect(assessment.enrollment.exit_date).to be_nil
 
       assessment.custom_form.hud_values = {
+        'Exit.exitDate' => assessment.enrollment.entry_date + 7.days,
         'Exit.destination' => 'SAFE_HAVEN',
       }
 
@@ -356,7 +440,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
     end
 
     it 'updates enrollment entry date when appropriate' do
-      assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: hmis_hud_user, form_definition: fd, assessment_date: Date.current)
+      assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: hmis_hud_user, form_definition: fd, assessment_date: Date.yesterday)
       assessment.custom_form.hud_values = {
         'EnrollmentCoc.cocCode' => 'MA-507',
       }
@@ -383,8 +467,8 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
   end
 
   describe 'Processing PriorLivingSituation fields' do
-    it 'correctly sets all fields, and then nullifies them' do
-      assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: hmis_hud_user, form_definition: fd, assessment_date: Date.current)
+    it 'correctly sets all fields' do
+      assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: hmis_hud_user, form_definition: fd, assessment_date: Date.yesterday)
       assessment.custom_form.hud_values = {
         "EnrollmentCoc.cocCode": 'SC-501',
         "Enrollment.livingSituation": 'HOSPITAL_OR_OTHER_RESIDENTIAL_NON_PSYCHIATRIC_MEDICAL_FACILITY',
@@ -415,7 +499,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       e1.update(previous_street_essh: 0)
       e1.update(times_homeless_past_three_years: 4)
       e1.update(months_homeless_past_three_years: 102)
-      assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: hmis_hud_user, form_definition: fd, assessment_date: Date.current)
+      assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: hmis_hud_user, form_definition: fd, assessment_date: Date.yesterday)
 
       assessment.custom_form.hud_values = {
         'EnrollmentCoc.cocCode' => 'MA-507',
@@ -604,6 +688,31 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         expect(client.RaceNone).to eq(9)
         expect(client.gender_fields).to eq([])
         expect(client.GenderNone).to eq(8)
+      end
+    end
+
+    it 'handles SSN and DOB fields being hidden' do
+      existing_client = c1
+      new_client = Hmis::Hud::Client.new(data_source: ds, user: hmis_hud_user)
+      [existing_client, new_client].each do |client|
+        expected_values = client.attributes.slice('SSN', 'DOB', 'DOBDataQuality', 'SSNDataQuality')
+        expected_values['DOBDataQuality'] = 99 if client.dob_data_quality.nil?
+        expected_values['SSNDataQuality'] = 99 if client.ssn_data_quality.nil?
+
+        custom_form = Hmis::Form::CustomForm.new(owner: client, definition: definition)
+        custom_form.hud_values = complete_hud_values.merge(
+          'dob' => Hmis::Hud::Processors::Base::HIDDEN_FIELD_VALUE,
+          'dobDataQuality' => Hmis::Hud::Processors::Base::HIDDEN_FIELD_VALUE,
+          'ssn' => Hmis::Hud::Processors::Base::HIDDEN_FIELD_VALUE,
+          'ssnDataQuality' => Hmis::Hud::Processors::Base::HIDDEN_FIELD_VALUE,
+        )
+        custom_form.form_processor.run!
+        custom_form.owner.save!
+        client.reload
+
+        expected_values.each do |key, val|
+          expect(client.send(key)).to eq(val)
+        end
       end
     end
 
@@ -1036,6 +1145,47 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         expect(hmis_service.fa_amount).to be nil
         expect(hmis_service.referral_outcome).to be nil
         expect(hmis_service.date_provided.strftime('%Y-%m-%d')).to eq('2023-03-13')
+      end
+    end
+  end
+
+  describe 'Form processing for File' do
+    include_context 'file upload setup'
+
+    let(:definition) { Hmis::Form::Definition.find_by(role: :FILE) }
+    let(:hud_values) do
+      {
+        'tags' => [
+          tag2.id.to_s,
+        ],
+        'clientId' => e1.client.id.to_s,
+        'enrollmentId' => e1.id.to_s,
+        'effectiveDate' => '2023-03-17',
+        'expirationDate' => '2023-03-17',
+        'confidential' => true,
+        'fileBlobId' => blob.id.to_s,
+      }
+    end
+
+    let!(:existing_file) { create :file, client: c1, enrollment: e1, blob: blob, user_id: hmis_user.id, tags: [tag] }
+    let!(:new_file) { Hmis::File.new(name: blob.filename) }
+
+    it 'should test' do
+      [existing_file, new_file].each do |record|
+        custom_form = Hmis::Form::CustomForm.new(owner: record, definition: definition)
+        custom_form.hud_values = hud_values
+        custom_form.form_processor.run!
+
+        hmis_file = custom_form.owner
+        hmis_file.save!
+        file = Hmis::File.find_by(id: hmis_file.id)
+        expect(file.name).to eq(blob.filename.to_s)
+        expect(file.client).to eq(c1)
+        expect(file.enrollment).to eq(e1)
+        expect(file.effective_date.strftime('%Y-%m-%d')).to eq(hud_values['effectiveDate'])
+        expect(file.expiration_date.strftime('%Y-%m-%d')).to eq(hud_values['expirationDate'])
+        expect(file.confidential).to eq(hud_values['confidential'])
+        expect(file.client_file.blob).to eq(blob)
       end
     end
   end

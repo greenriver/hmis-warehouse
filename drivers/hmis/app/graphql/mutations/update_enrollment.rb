@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 module Mutations
   class UpdateEnrollment < BaseMutation
     argument :id, ID, required: true
@@ -12,6 +18,7 @@ module Mutations
       return { errors: [HmisErrors::Error.new(:enrollment, :not_found)] } unless enrollment.present?
       return { errors: [HmisErrors::Error.new(:enrollment, :not_allowed)] } unless current_user.permissions_for?(enrollment, :can_edit_enrollments)
 
+      # TODO: remove ability to update entry date here
       enrollment.entry_date = entry_date if entry_date.present?
       enrollment.relationship_to_ho_h = relationship_to_ho_h if relationship_to_ho_h.present?
       enrollment.user_id = hmis_user.user_id

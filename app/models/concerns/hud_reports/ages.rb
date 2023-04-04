@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -58,7 +58,9 @@ module HudReports::Ages
         '35-44' => a_t[:age].between(35..44),
         '45-54' => a_t[:age].between(45..54),
         '55-61' => a_t[:age].between(55..61),
+        '55-64' => a_t[:age].between(55..64),
         '62+' => a_t[:age].gteq(62),
+        '65+' => a_t[:age].gteq(65),
         "Client Doesn't Know/Client Refused" => a_t[:dob_quality].in([8, 9]).and(a_t[:dob].eq(nil)),
         'Data Not Collected' => a_t[:dob_quality].eq(99).and(a_t[:dob].eq(nil)),
         'Total' => Arel.sql('1=1'), # include everyone

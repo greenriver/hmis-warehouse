@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -119,6 +119,7 @@ module HudDataQualityReport::Generators::Fy2022
           pending_associations[client] = report_client_universe.new(
             client_id: source_client.id,
             destination_client_id: last_service_history_enrollment.client_id,
+            personal_id: source_client.PersonalID,
             data_source_id: source_client.data_source_id,
             report_instance_id: @report.id,
 

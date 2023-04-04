@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -27,9 +27,16 @@ module CohortColumns
       # e.g.: {:project_name=>\"APR - Transitional Housing\", :date=>Mon, 30 Sep 2019, :project_id=>10}
       return unless lhv.present?
 
+      enforce_visibility = cohort_client.cohort.enforce_project_visibility_on_cells?
+      window_project_ids = GrdaWarehouse::Hud::Project.joins(:data_source).
+        merge(GrdaWarehouse::DataSource.visible_in_window).
+        pluck(:id)
       lhv = JSON.parse(lhv)
       lhv.select do |row|
-        row['project_id'].in? user.visible_project_ids_enrollment_context
+        next row['project_id'].in?(user.visible_project_ids_enrollment_context) if enforce_visibility
+        next true unless cohort.only_window?
+
+        row['project_id'].in?(window_project_ids)
       end.sort_by { |row| row['date'] }.reverse.map do |row|
         "#{row['project_name']}: #{row['date'].to_date}"
       end.join('; ')

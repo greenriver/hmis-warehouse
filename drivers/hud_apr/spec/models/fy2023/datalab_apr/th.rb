@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -18,7 +18,7 @@ RSpec.shared_context 'datalab th coc apr', shared_context: :metadata do
         question: 'Q4a',
         skip: [
           'L2', # Is the generator name, so not expected to match
-          'P2', # Pending AirTable regarding children of CH HoH submitted 1/14/2023
+          'P2', # Pending AirTable regarding children of CH HoH submitted 1/14/2023 https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/rec3mJbXygkAoje1t (30)
         ],
       )
     end
@@ -27,15 +27,6 @@ RSpec.shared_context 'datalab th coc apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'apr/th_coc',
         question: 'Q5a',
-        # Pending AirTable regarding children of CH HoH submitted 1/14/2023
-        skip: [
-          'B12',
-          'C12',
-          'B13',
-          'C13',
-          'B14',
-          'C14',
-        ],
       )
     end
 
@@ -50,11 +41,6 @@ RSpec.shared_context 'datalab th coc apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'apr/th_coc',
         question: 'Q6b',
-        # Pending AirTable regarding children of CH HoH submitted 1/14/2023
-        skip: [
-          'B4',
-          'C4',
-        ],
       )
     end
 
@@ -69,13 +55,6 @@ RSpec.shared_context 'datalab th coc apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'apr/th_coc',
         question: 'Q6d',
-        # Pending AAQ - one client has en entry date prior to 10/1/2016
-        skip: [
-          'B3', # confirmed via AAQ, client won't be included
-          'H3',
-          'B5',
-          'H5',
-        ],
       )
     end
 
@@ -83,6 +62,14 @@ RSpec.shared_context 'datalab th coc apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'apr/th_coc',
         question: 'Q6e',
+        # pending https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recWCP4jftXR51nYq (47)
+        skip: [
+          'C2',
+          'C3',
+          'C4',
+          'C5',
+          'C6',
+        ],
       )
     end
 
@@ -97,7 +84,7 @@ RSpec.shared_context 'datalab th coc apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'apr/th_coc',
         question: 'Q7a',
-        # Pending AirTable regarding children of CH HoH submitted 1/14/2023
+        # Pending https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recatAtoRG7R0ZWaF (51)
         skip: [
           'D3',
           'E3',
@@ -111,10 +98,8 @@ RSpec.shared_context 'datalab th coc apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'apr/th_coc',
         question: 'Q7b',
-        # Pending AirTable regarding children of CH HoH submitted 1/14/2023
+        # Pending https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recatAtoRG7R0ZWaF (51)
         skip: [
-          'B4',
-          'D4',
           'D5',
           'E5',
         ],
@@ -160,7 +145,7 @@ RSpec.shared_context 'datalab th coc apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'apr/th_coc',
         question: 'Q10b',
-        # Pending AirTable regarding children of CH HoH submitted 1/14/2023
+        # Pending https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recatAtoRG7R0ZWaF (51)
         skip: [
           'C2',
           'D2',
@@ -181,10 +166,10 @@ RSpec.shared_context 'datalab th coc apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'apr/th_coc',
         question: 'Q11',
-        # Pending AirTable regarding children of CH HoH submitted 1/14/2023
+        # Pending https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recatAtoRG7R0ZWaF (51)
         skip: [
-          'D4',
-          'E4',
+          'D3',
+          'E3',
           'D13',
           'E13',
         ],
@@ -195,7 +180,7 @@ RSpec.shared_context 'datalab th coc apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'apr/th_coc',
         question: 'Q12a',
-        # Pending AirTable regarding children of CH HoH submitted 1/14/2023
+        # Pending https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recatAtoRG7R0ZWaF (51)
         skip: [
           'D2',
           'E2',
@@ -209,7 +194,7 @@ RSpec.shared_context 'datalab th coc apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'apr/th_coc',
         question: 'Q12b',
-        # Pending AirTable regarding children of CH HoH submitted 1/14/2023
+        # Pending https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recatAtoRG7R0ZWaF (51)
         skip: [
           'D3',
           'E3',
@@ -230,7 +215,7 @@ RSpec.shared_context 'datalab th coc apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'apr/th_coc',
         question: 'Q13a2',
-        # Pending AirTable regarding children of CH HoH submitted 1/14/2023
+        # Pending https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recatAtoRG7R0ZWaF (51)
         skip: [
           'E2',
           'F2',
@@ -251,7 +236,7 @@ RSpec.shared_context 'datalab th coc apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'apr/th_coc',
         question: 'Q13b2',
-        # Pending AirTable regarding children of CH HoH submitted 1/14/2023
+        # Pending https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recatAtoRG7R0ZWaF (51)
         skip: [
           'E2',
           'F2',
@@ -336,6 +321,7 @@ RSpec.shared_context 'datalab th coc apr', shared_context: :metadata do
         file_path: result_file_prefix + 'apr/th_coc',
         question: 'Q19b',
         # Pending AAQ: https://www.hudexchange.info/program-support/my-question/?askaquestionaction=public%3Amain.answer&key=99B4E7C1-9C9A-4C5C-877330D949FEE8A7
+        # also https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recJd87KB7pyODgD1 (48)
         skip: [
           'B13',
           'D13',
@@ -385,19 +371,34 @@ RSpec.shared_context 'datalab th coc apr', shared_context: :metadata do
       )
     end
 
-    # Pending AirTable regarding children of CH HoH submitted 1/14/2023
-    xit 'Q22e' do
+    it 'Q22e' do
       compare_results(
         file_path: result_file_prefix + 'apr/th_coc',
         question: 'Q22e',
+        # Pending https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recatAtoRG7R0ZWaF (51)
+        skip: [
+          'D13',
+          'E13',
+          'D14',
+          'E14',
+        ],
       )
     end
 
-    # Pending AirTable regarding children of CH HoH submitted 1/14/2023
-    xit 'Q23c' do
+    it 'Q23c' do
       compare_results(
         file_path: result_file_prefix + 'apr/th_coc',
         question: 'Q23c',
+        # Pending https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recatAtoRG7R0ZWaF (51)
+        skip: [
+          'D25',
+          'E25',
+          'D27',
+          'E27',
+          'D43',
+          'E43',
+          'D46',
+        ],
       )
     end
 
@@ -429,8 +430,7 @@ RSpec.shared_context 'datalab th coc apr', shared_context: :metadata do
       )
     end
 
-    # Pending AAQ https://www.hudexchange.info/program-support/my-question/?askaquestionaction=public%3Amain.answer&key=7621DC58-B880-4E59-8ED2027685A40C16 (and AirTable submission)
-    xit 'Q25e' do
+    it 'Q25e' do
       compare_results(
         file_path: result_file_prefix + 'apr/th_coc',
         question: 'Q25e',
@@ -465,24 +465,42 @@ RSpec.shared_context 'datalab th coc apr', shared_context: :metadata do
       )
     end
 
-    # Pending AirTable regarding children of CH HoH submitted 1/14/2023
-    xit 'Q26a' do
+    it 'Q26a' do
       compare_results(
         file_path: result_file_prefix + 'apr/th_coc',
         question: 'Q26a',
+        # Pending https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recatAtoRG7R0ZWaF (51)
+        skip: [
+          'B3',
+          'C3',
+          'D3',
+          'B5',
+          'C5',
+          'D5',
+        ],
       )
     end
 
-    # Pending AirTable regarding children of CH HoH submitted 1/14/2023
-    xit 'Q26b' do
+    it 'Q26b' do
       compare_results(
         file_path: result_file_prefix + 'apr/th_coc',
         question: 'Q26b',
+        # Pending https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recatAtoRG7R0ZWaF (51)
+        skip: [
+          'B3',
+          'C3',
+          'D3',
+          'E3',
+          'B5',
+          'C5',
+          'D5',
+          'D6',
+          'E6',
+        ],
       )
     end
 
-    # Pending AirTable regarding children of CH HoH submitted 1/14/2023
-    xit 'Q26c' do
+    it 'Q26c' do
       compare_results(
         file_path: result_file_prefix + 'apr/th_coc',
         question: 'Q26c',
@@ -496,8 +514,7 @@ RSpec.shared_context 'datalab th coc apr', shared_context: :metadata do
       )
     end
 
-    # Pending AAQ https://www.hudexchange.info/program-support/my-question/?askaquestionaction=public%3Amain.answer&key=7621DC58-B880-4E59-8ED2027685A40C16 (and AirTable submission)
-    xit 'Q26e' do
+    it 'Q26e' do
       compare_results(
         file_path: result_file_prefix + 'apr/th_coc',
         question: 'Q26e',
@@ -529,13 +546,6 @@ RSpec.shared_context 'datalab th coc apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'apr/th_coc',
         question: 'Q27a',
-        # Pending AirTable submitted 1/13/2023 (650976 is in an AdultChild household)
-        skip: [
-          'B2',
-          'E2',
-          'B6',
-          'E6',
-        ],
       )
     end
 
@@ -543,11 +553,6 @@ RSpec.shared_context 'datalab th coc apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'apr/th_coc',
         question: 'Q27b',
-        # Pending AirTable submitted 1/13/2023 (650976 is in an AdultChild household)
-        skip: [
-          'C2',
-          'D2',
-        ],
       )
     end
 
@@ -555,13 +560,6 @@ RSpec.shared_context 'datalab th coc apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'apr/th_coc',
         question: 'Q27c',
-        # Pending AirTable submitted 1/13/2023 (650976 is in an AdultChild household)
-        skip: [
-          'B2',
-          'E2',
-          'B9',
-          'E9',
-        ],
       )
     end
 
@@ -576,13 +574,6 @@ RSpec.shared_context 'datalab th coc apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'apr/th_coc',
         question: 'Q27e',
-        # Pending AirTable submitted 1/13/2023 (650976 is in an AdultChild household)
-        skip: [
-          'B5',
-          'C5',
-          'B13',
-          'C13',
-        ],
       )
     end
 
@@ -590,16 +581,6 @@ RSpec.shared_context 'datalab th coc apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'apr/th_coc',
         question: 'Q27f',
-        # Pending AirTable submitted 1/13/2023 (650976 is in an AdultChild household)
-        skip: [
-          'B25',
-          'E25',
-          'B27',
-          'E27',
-          'B43',
-          'E43',
-          'B46',
-        ],
       )
     end
 
@@ -614,13 +595,6 @@ RSpec.shared_context 'datalab th coc apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'apr/th_coc',
         question: 'Q27h',
-        # Pending AirTable submitted 1/13/2023 (650976 is in an AdultChild household)
-        skip: [
-          'B7',
-          'D7',
-          'B10',
-          'D10',
-        ],
       )
     end
 

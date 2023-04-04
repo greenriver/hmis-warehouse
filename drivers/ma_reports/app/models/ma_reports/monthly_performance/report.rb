@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -54,7 +54,6 @@ module MaReports::MonthlyPerformance
         :sub_population,
         :coc_codes,
         :project_type_numbers,
-        :age_ranges,
         :data_source_ids,
         :organization_ids,
         :project_ids,

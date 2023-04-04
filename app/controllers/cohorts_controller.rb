@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -154,6 +154,7 @@ class CohortsController < ApplicationController
       :assessment_trigger,
       :tag_id,
       :project_group_id,
+      :enforce_project_visibility_on_cells,
       user_ids: [],
     ] + GrdaWarehouse::Cohort.threshold_keys
     params.require(:cohort).permit(opts)

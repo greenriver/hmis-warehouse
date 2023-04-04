@@ -1,11 +1,11 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 class HmisCsvValidation::NonBlank < HmisCsvValidation::Error
-  def self.check_validity!(item, column, _args)
+  def self.check_validity!(item, column)
     value = item[column]
     return if value.present?
 

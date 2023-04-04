@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -26,11 +26,6 @@ RSpec.shared_context 'datalab sso coc apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'apr/sso_coc',
         question: 'Q5a',
-        # Pending AirTable from 1/13/2023 LOT Method 1 – Using Start/Exit Dates Issue ID 25
-        skip: [
-          'B17',
-          'C17',
-        ],
       )
     end
 
@@ -52,10 +47,11 @@ RSpec.shared_context 'datalab sso coc apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'apr/sso_coc',
         question: 'Q6c',
-        # Pending AirTable submitted 1/13/2023 Issue ID 26
+        # Need to compare who's in B4 and who should be in the overall count of people with an annual assessment
+        # test kit has 50% error rate for one person, we have 100%
+        # pending https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recrrcX718GygIUxt (50)
         skip: [
-          'B5',
-          'C5',
+          'C4',
         ],
       )
     end
@@ -71,6 +67,14 @@ RSpec.shared_context 'datalab sso coc apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'apr/sso_coc',
         question: 'Q6e',
+        # pending https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recWCP4jftXR51nYq (47)
+        skip: [
+          'C2',
+          'C3',
+          'C4',
+          'C5',
+          'C6',
+        ],
       )
     end
 
@@ -232,6 +236,11 @@ RSpec.shared_context 'datalab sso coc apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'apr/sso_coc',
         question: 'Q16',
+        # Pending https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recy3LHu4yNPSVLSm (49)
+        skip: [
+          'B2',
+          'B8',
+        ],
       )
     end
 
@@ -260,12 +269,6 @@ RSpec.shared_context 'datalab sso coc apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'apr/sso_coc',
         question: 'Q19a2',
-        # Pending AirTable submitted 1/13/2023 Issue ID 27 and 36
-        skip: [
-          'B4',
-          'G4',
-          'B5',
-        ],
       )
     end
 
@@ -274,6 +277,7 @@ RSpec.shared_context 'datalab sso coc apr', shared_context: :metadata do
         file_path: result_file_prefix + 'apr/sso_coc',
         question: 'Q19b',
         # Pending AAQ: https://www.hudexchange.info/program-support/my-question/?askaquestionaction=public%3Amain.answer&key=99B4E7C1-9C9A-4C5C-877330D949FEE8A7
+        # and https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recJd87KB7pyODgD1 (48)
         # IncomeFromAnySource = 0, but do have earned income
         skip: [
           'C13',
@@ -349,11 +353,6 @@ RSpec.shared_context 'datalab sso coc apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'apr/sso_coc',
         question: 'Q25b',
-        # pending AirTable from 1/13/2023 regarding ChildrenOnly household
-        skip: [
-          'B6',
-          'B7',
-        ],
       )
     end
 
@@ -411,6 +410,7 @@ RSpec.shared_context 'datalab sso coc apr', shared_context: :metadata do
         file_path: result_file_prefix + 'apr/sso_coc',
         question: 'Q26a',
         # pending AirTable 1/13/2023 related to https://www.hudexchange.info/program-support/my-question/?askaquestionaction=public%3Amain.answer&key=6B4F6314-CD74-429E-9DF7E4E93C938AD4
+        # also pending outcome of HMIS Glossary changes to CH calculations
         skip: [
           'B3',
           'E3',
@@ -425,6 +425,7 @@ RSpec.shared_context 'datalab sso coc apr', shared_context: :metadata do
         file_path: result_file_prefix + 'apr/sso_coc',
         question: 'Q26b',
         # pending AirTable 1/13/2023 related to https://www.hudexchange.info/program-support/my-question/?askaquestionaction=public%3Amain.answer&key=6B4F6314-CD74-429E-9DF7E4E93C938AD4
+        # also pending outcome of HMIS Glossary changes to CH calculations
         skip: [
           'B3',
           'E3',
@@ -537,11 +538,13 @@ RSpec.shared_context 'datalab sso coc apr', shared_context: :metadata do
         file_path: result_file_prefix + 'apr/sso_coc',
         question: 'Q27i',
         # Pending AAQ: https://www.hudexchange.info/program-support/my-question/?askaquestionaction=public%3Amain.answer&key=99B4E7C1-9C9A-4C5C-877330D949FEE8A7
+        # and https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recJd87KB7pyODgD1 (48)
         # IncomeFromAnySource = 0, but do have earned income
         skip: [
           'C13',
           'D13',
           'J13',
+          'K13',
           'L13',
           'M13',
           'M14',

@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 FactoryBot.define do
   factory :hmis_hud_service, class: 'Hmis::Hud::Service' do
     data_source { association :hmis_data_source }
@@ -7,7 +13,7 @@ FactoryBot.define do
     sequence(:ServicesID, 500)
     DateCreated { Date.parse('2019-01-01') }
     DateUpdated { Date.parse('2019-01-01') }
-    DateProvided { Date.today }
+    DateProvided { Date.yesterday }
     RecordType { 200 }
     TypeProvided { 200 }
   end

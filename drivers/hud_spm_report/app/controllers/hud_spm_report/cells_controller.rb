@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -22,12 +22,10 @@ module HudSpmReport
 
       # this is a very wide table. just grab the cols related to this measure
       q_num = @question[/\d+\z/]
-      cols = ['client_id', 'first_name', 'last_name'] + HudSpmReport::Fy2020::SpmClient.column_names.select { |c| c.starts_with? "m#{q_num}" }
+      cols = ['client_id', 'source_client_personal_ids', 'first_name', 'last_name'] + HudSpmReport::Fy2020::SpmClient.column_names.select { |c| c.starts_with? "m#{q_num}" }
       @headers = cols.map do |col|
-        [col, HudSpmReport::Fy2020::SpmClient.human_attribute_name(col)]
+        [col, HudSpmReport::Fy2020::SpmClient.header_label(col)]
       end.to_h
-
-      @headers.except!('first_name', 'last_name', 'dob', 'ssn') unless GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
 
       @clients = HudSpmReport::Fy2020::SpmClient.
         joins(hud_reports_universe_members: { report_cell: :report_instance }).
@@ -37,6 +35,7 @@ module HudSpmReport
       respond_to do |format|
         format.html {}
         format.xlsx do
+          @headers.except!('first_name', 'last_name', 'dob', 'ssn') unless GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
           headers['Content-Disposition'] = "attachment; filename=#{@name}.xlsx"
         end
       end

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -39,11 +39,6 @@ RSpec.shared_context 'datalab rrh coc 2 apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'apr/rrh_coc_2',
         question: 'Q6b',
-        # Pending https://www.hudexchange.info/program-support/my-question/?askaquestionaction=public%3Amain.answer&key=98BF8791-4249-48F3-8E5395910C01CF59
-        skip: [
-          'B6',
-          'C6',
-        ],
       )
     end
 
@@ -66,8 +61,13 @@ RSpec.shared_context 'datalab rrh coc 2 apr', shared_context: :metadata do
         file_path: result_file_prefix + 'apr/rrh_coc_2',
         question: 'Q6e',
         # Pending https://www.hudexchange.info/program-support/my-question/?askaquestionaction=public%3Amain.answer&key=CAA8AE17-22C4-447B-AA191B21C984CBA7
+        # pending https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recWCP4jftXR51nYq (47)
         skip: [
+          'C2',
           'C3',
+          'C4',
+          'C5',
+          'C6',
         ],
       )
     end
@@ -270,12 +270,12 @@ RSpec.shared_context 'datalab rrh coc 2 apr', shared_context: :metadata do
         file_path: result_file_prefix + 'apr/rrh_coc_2',
         question: 'Q19b',
         # Pending AAQ: https://www.hudexchange.info/program-support/my-question/?askaquestionaction=public%3Amain.answer&key=99B4E7C1-9C9A-4C5C-877330D949FEE8A7
+        # and https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recJd87KB7pyODgD1 (48)
         skip: [
           'B13',
+          'C13',
           'D13',
           'E13',
-          'G13',
-          'H13',
         ],
       )
     end
@@ -319,11 +319,6 @@ RSpec.shared_context 'datalab rrh coc 2 apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'apr/rrh_coc_2',
         question: 'Q22c',
-        # Pending AirTable question (1/13/2023) Issue ID 23
-        skip: [
-          'B11',
-          'C11',
-        ],
       )
     end
 
@@ -352,11 +347,6 @@ RSpec.shared_context 'datalab rrh coc 2 apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'apr/rrh_coc_2',
         question: 'Q25b',
-        # pending AirTable from 1/13/2023 regarding ChildrenOnly household  Issue ID 24
-        skip: [
-          'B6',
-          'B7',
-        ],
       )
     end
 
@@ -374,8 +364,7 @@ RSpec.shared_context 'datalab rrh coc 2 apr', shared_context: :metadata do
       )
     end
 
-    # Pending AAQ https://www.hudexchange.info/program-support/my-question/?askaquestionaction=public%3Amain.answer&key=7621DC58-B880-4E59-8ED2027685A40C16 (and AirTable submission)
-    xit 'Q25e' do
+    it 'Q25e' do
       compare_results(
         file_path: result_file_prefix + 'apr/rrh_coc_2',
         question: 'Q25e',
@@ -438,8 +427,7 @@ RSpec.shared_context 'datalab rrh coc 2 apr', shared_context: :metadata do
       )
     end
 
-    # Pending AAQ https://www.hudexchange.info/program-support/my-question/?askaquestionaction=public%3Amain.answer&key=7621DC58-B880-4E59-8ED2027685A40C16 (and AirTable submission)
-    xit 'Q26e' do
+    it 'Q26e' do
       compare_results(
         file_path: result_file_prefix + 'apr/rrh_coc_2',
         question: 'Q26e',

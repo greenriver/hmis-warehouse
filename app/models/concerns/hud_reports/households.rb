@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -34,6 +34,15 @@ module HudReports::Households
       return [] unless households[household_id]
 
       households[household_id].map { |client| GrdaWarehouse::Hud::Client.age(date: date, dob: client[:dob]) }
+    end
+
+    def hoh_age(household_id, date)
+      return unless households[household_id]
+
+      hoh_dob = households[household_id].detect { |hm| hm[:relationship_to_hoh] == 1 }&.try(:[], :dob)
+      return unless hoh_dob
+
+      GrdaWarehouse::Hud::Client.age(date: date, dob: hoh_dob)
     end
 
     private def get_hh_id(service_history_enrollment)

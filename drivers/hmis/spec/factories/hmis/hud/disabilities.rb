@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 FactoryBot.define do
   factory :hmis_disability, class: 'Hmis::Hud::Disability' do
     data_source { association :hmis_data_source }
@@ -7,7 +13,7 @@ FactoryBot.define do
     sequence(:DisabilitiesID, 500)
     disability_type { 7 }
     disability_response { 1 }
-    information_date { Date.today }
+    information_date { Date.yesterday }
     data_collection_stage { 1 }
     DateCreated { Time.now }
     DateUpdated { Time.now }

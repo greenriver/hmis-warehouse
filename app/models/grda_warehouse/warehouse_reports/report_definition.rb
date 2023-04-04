@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -841,6 +841,22 @@ module GrdaWarehouse::WarehouseReports
           health: false,
         }
       end
+      if RailsDrivers.loaded.include?(:boston_reports)
+        r_list['Performance'] << {
+          url: 'boston_reports/warehouse_reports/street_to_homes',
+          name: _('Street to Home'),
+          description: 'Boston-specific report to track progress for the Street to Home initiative',
+          limitable: false,
+          health: false,
+        }
+        r_list['Performance'] << {
+          url: 'boston_reports/warehouse_reports/configs',
+          name: _('Boston Reports Configuration'),
+          description: 'Report configuration for Boston-specific reports',
+          limitable: false,
+          health: false,
+        }
+      end
       if RailsDrivers.loaded.include?(:project_scorecard)
         r_list['Performance'] << {
           url: 'project_scorecard/warehouse_reports/scorecards',
@@ -1297,6 +1313,11 @@ module GrdaWarehouse::WarehouseReports
       cleanup << 'ma_yya_followup_report/warehouse_reports/youth_followup' unless RailsDrivers.loaded.include?(:ma_yya_followup_report)
       cleanup << 'service_scanning/warehouse_reports/scanned_services' unless RailsDrivers.loaded.include?(:service_scanning)
       cleanup << 'core_demographics_report/warehouse_reports/core' unless RailsDrivers.loaded.include?(:core_demographics_report)
+      unless RailsDrivers.loaded.include?(:boston_reports)
+        cleanup << 'boston_reports/warehouse_reports/street_to_homes'
+        cleanup << 'boston_reports/warehouse_reports/configs'
+      end
+
       unless RailsDrivers.loaded.include?(:claims_reporting)
         cleanup << 'claims_reporting/warehouse_reports/reconciliation'
         cleanup << 'claims_reporting/warehouse_reports/engagement_trends'

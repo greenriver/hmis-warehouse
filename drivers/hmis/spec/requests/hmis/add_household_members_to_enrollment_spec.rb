@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 require 'rails_helper'
 require_relative 'login_and_permissions'
 require_relative '../../support/hmis_base_setup'
@@ -13,7 +19,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let(:test_input) do
     {
       household_id: enrollment.household_id,
-      start_date: Date.today.strftime('%Y-%m-%d'),
+      entry_date: Date.yesterday.strftime('%Y-%m-%d'),
       household_members: [
         {
           id: c2.id,
@@ -146,10 +152,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         ],
         [
           'should emit error if entry date is in the future',
-          ->(input) { input.merge(start_date: (Date.today + 1.week).strftime('%Y-%m-%d')) },
+          ->(input) { input.merge(entry_date: (Date.today + 1.week).strftime('%Y-%m-%d')) },
           {
             fullMessage: 'Entry date cannot be in the future',
-            attribute: :startDate,
+            attribute: :entryDate,
             severity: :error,
             type: :out_of_range,
           },
@@ -158,9 +164,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           'should emit error if household doesn\'t exist',
           ->(input) { input.merge(household_id: '0') },
           {
-            fullMessage: "Cannot find Enrollment for household with id '0'",
             severity: :error,
-            type: :invalid,
+            type: :not_found,
+            attribute: :householdId,
           },
         ],
       ].each do |test_name, input_proc, error_attrs|

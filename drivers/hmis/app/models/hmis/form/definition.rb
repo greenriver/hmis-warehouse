@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -29,6 +29,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     FUNDER: 'Funder',
     INVENTORY: 'Inventory',
     PROJECT_COC: 'Project CoC',
+    FILE: 'File',
   }.freeze
 
   FORM_ROLE_CONFIG = {
@@ -39,6 +40,12 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     FUNDER: { class_name: 'Hmis::Hud::Funder', permission: :can_edit_project_details, resolve_as: 'Types::HmisSchema::Funder' },
     INVENTORY: { class_name: 'Hmis::Hud::Inventory', permission: :can_edit_project_details, resolve_as: 'Types::HmisSchema::Inventory' },
     PROJECT_COC: { class_name: 'Hmis::Hud::ProjectCoc', permission: :can_edit_project_details, resolve_as: 'Types::HmisSchema::ProjectCoc' },
+    FILE: {
+      class_name: 'Hmis::File',
+      permission: :can_manage_any_client_files,
+      authorize: Hmis::File.authorize_proc,
+      resolve_as: 'Types::HmisSchema::File',
+    },
   }.freeze
 
   FORM_DATA_COLLECTION_STAGES = {
@@ -123,11 +130,17 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     FORM_ROLE_CONFIG[role.to_sym][:permission]
   end
 
+  def allowed_proc
+    return unless FORM_ROLE_CONFIG[role.to_sym].present?
+
+    FORM_ROLE_CONFIG[role.to_sym][:authorize]
+  end
+
   def assessment_date_item
     @assessment_date_item ||= link_id_item_hash.values.find(&:assessment_date)
   end
 
-  def find_and_validate_assessment_date(values:, entry_date:, exit_date:)
+  def find_and_validate_assessment_date(values:, enrollment:, ignore_warnings: false)
     errors = HmisErrors::Errors.new
     date = nil
     item = assessment_date_item
@@ -135,13 +148,14 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     error_context = {
       readable_attribute: item.brief_text || item.text,
       link_id: item&.link_id,
+      attribute: item.field_name.to_sym,
     }
 
     if item.present? && values.present?
       date_string = values[item.link_id]
 
       if date_string.present?
-        date = HmisUtil::Dates.safe_parse_date(date_string: date_string, reasonable_years_distance: 30)
+        date = HmisUtil::Dates.safe_parse_date(date_string: date_string)
         errors.add item.field_name, :invalid, **error_context unless date.present?
       else
         errors.add item.field_name, :required, **error_context
@@ -154,11 +168,17 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
 
     # Additional validations for HUD assessment dates to be within appropriate entry/exit bounds
     if date.present? && hud_assessment?
-      # Ensure assessment date is on or after entry date
-      errors.add item.field_name, :out_of_range, **error_context, message: "must be after entry date (#{entry_date.strftime('%m/%d/%Y')})" if entry_date.present? && !intake? && date < entry_date
-      # Ensure assessment date is on or before exit date
-      errors.add item.field_name, :out_of_range, **error_context, message: "must be before exit date (#{exit_date.strftime('%m/%d/%Y')})" if exit_date.present? && !exit? && date > exit_date
+      validations = if intake?
+        Hmis::Hud::Validators::EnrollmentValidator.validate_entry_date(date, enrollment: enrollment, options: error_context)
+      elsif exit?
+        Hmis::Hud::Validators::ExitValidator.validate_exit_date(date, enrollment: enrollment, options: error_context)
+      else
+        Hmis::Hud::Validators::CustomAssessmentValidator.validate_assessment_date(date, enrollment: enrollment, options: error_context)
+      end
+      errors.push(*validations)
     end
+
+    errors.drop_warnings! if ignore_warnings
 
     date = nil if errors.errors.any?
 
@@ -191,6 +211,9 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
       elsif item.warn_if_empty && is_missing
         errors.add item.field_name || :base, :data_not_collected, severity: :warning, **error_context
       end
+
+      # Additional validations for currency
+      errors.add item.field_name, :out_of_range, **error_context, message: 'must be positive' if item.type == 'CURRENCY' && value&.negative?
 
       # TODO(##184404620): Validate ValueBounds (How to handle bounds that rely on local values like projectStartDate and entryDate?)
       # TODO(##184402463): Add support for RequiredWhen

@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 class Hmis::Hud::Validators::ProjectValidator < Hmis::Hud::Validators::BaseValidator
   IGNORED = [
     :ExportID,
@@ -21,25 +27,23 @@ class Hmis::Hud::Validators::ProjectValidator < Hmis::Hud::Validators::BaseValid
     "#{num} open inventory #{'record'.pluralize(num)} will be closed."
   end
 
-  def hmis_validate(project, ignore_warnings: false)
+  def self.hmis_validate(project, **_)
     errors = HmisErrors::Errors.new
 
     # If project end date is changing
     if project.operating_end_date.present? && project.operating_end_date_changed?
       open_enrollments = Hmis::Hud::Enrollment.open_on_date(project.operating_end_date).
         in_project_including_wip(project.id, project.project_id)
-      errors.add :base, :information, severity: :warning, full_message: self.class.open_enrollments_message(open_enrollments.count) if open_enrollments.any?
+      errors.add :base, :information, severity: :warning, full_message: open_enrollments_message(open_enrollments.count) if open_enrollments.any?
     end
 
     # If project is being "closed" for the first time
     if project.operating_end_date_was.nil? && project.operating_end_date.present?
       funder_count = project.funders.where(end_date: nil).count
       inventory_count = project.inventories.where(inventory_end_date: nil).count
-      errors.add :base, :information, severity: :warning, full_message: self.class.open_funders_message(funder_count) if funder_count.positive?
-      errors.add :base, :information, severity: :warning, full_message: self.class.open_inventory_message(inventory_count) if inventory_count.positive?
+      errors.add :base, :information, severity: :warning, full_message: open_funders_message(funder_count) if funder_count.positive?
+      errors.add :base, :information, severity: :warning, full_message: open_inventory_message(inventory_count) if inventory_count.positive?
     end
-
-    return errors.errors.reject(&:warning?) if ignore_warnings
 
     errors.errors
   end

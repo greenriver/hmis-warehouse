@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 module Mutations
   class SaveAssessment < BaseMutation
     description 'Create/Save assessment as work-in-progress'
@@ -16,8 +22,8 @@ module Mutations
       # Determine the Assessment Date and validate it
       assessment_date, errors = definition.find_and_validate_assessment_date(
         values: input.values,
-        entry_date: enrollment.entry_date,
-        exit_date: enrollment.exit_date,
+        enrollment: enrollment,
+        ignore_warnings: true,
       )
       return { errors: errors } if errors.any?
 
@@ -31,12 +37,15 @@ module Mutations
         assessment_date: assessment_date,
       )
 
-      if assessment.valid? && assessment.custom_form.valid?
+      errors = HmisErrors::Errors.new
+      is_valid = assessment.valid? && assessment.custom_form.valid?
+      if is_valid
         assessment.custom_form.save!
         assessment.save_in_progress
       else
-        errors << assessment.errors
-        errors << assessment.custom_form.errors
+        errors.add_ar_errors(assessment.errors&.errors)
+        errors.add_ar_errors(assessment.custom_form&.errors&.errors)
+        errors.deduplicate!
         assessment = nil
       end
 

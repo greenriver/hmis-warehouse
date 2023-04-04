@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -61,6 +61,11 @@ RSpec.shared_context 'datalab rrh esg caper', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'caper/rrh_esg',
         question: 'Q6e',
+        # pending https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recWCP4jftXR51nYq (47)
+        skip: [
+          'C4',
+          'C6',
+        ],
       )
     end
 

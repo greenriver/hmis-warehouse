@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 module Mutations
   class SubmitAssessment < BaseMutation
     description 'Create/Submit assessment, and create/update related HUD records'
@@ -28,7 +34,7 @@ module Mutations
 
       # Non-HoH Intake constraints
       if !enrollment.head_of_household? && assessment.intake?
-        hoh_enrollment = Hmis::Hud::Enrollment.open_on_date.
+        hoh_enrollment = Hmis::Hud::Enrollment.open_on_date(Date.tomorrow).
           heads_of_households.
           viewable_by(current_user).
           where(household_id: enrollment.household_id).
@@ -42,11 +48,12 @@ module Mutations
       return { errors: errors } if errors.any?
 
       # Determine the Assessment Date and validate it
-      assessment_date, errors = definition.find_and_validate_assessment_date(
+      assessment_date, date_validation_errors = definition.find_and_validate_assessment_date(
         values: input.values,
-        entry_date: enrollment.entry_date,
-        exit_date: enrollment.exit_date,
+        enrollment: enrollment,
+        ignore_warnings: input.confirmed,
       )
+      errors.push(*date_validation_errors)
 
       # Update values
       assessment.custom_form.assign_attributes(
@@ -59,26 +66,35 @@ module Mutations
       )
 
       # Validate form values based on FormDefinition
-      validation_errors = assessment.custom_form.validate_form(ignore_warnings: input.confirmed)
-      errors.push(*validation_errors)
-
-      # If this is an existing assessment and all the errors are warnings, save changes before returning
-      if errors.all?(&:warning?) && assessment.id.present?
-        assessment.custom_form.save!
-        assessment.save!
-        assessment.touch
-      end
-
-      return { errors: errors } if errors.any?
+      form_validations = assessment.custom_form.collect_form_validations(ignore_warnings: input.confirmed)
+      errors.push(*form_validations)
 
       # Run processor to create/update related records
       assessment.custom_form.form_processor.run!
 
       # Run both validations
-      assessment_valid = assessment.valid?
-      custom_form_valid = assessment.custom_form.valid?
+      is_valid = assessment.valid? && assessment.custom_form.valid?
 
-      if assessment_valid && custom_form_valid
+      # Collect validations and warnings from AR Validator classes
+      record_validations = assessment.custom_form.collect_record_validations(
+        user: current_user,
+        ignore_warnings: input.confirmed,
+      )
+      errors.push(*record_validations)
+
+      # If this is an existing assessment and all the errors are warnings, save changes before returning
+      if errors.any? && assessment.id.present? && errors.all?(&:warning?)
+        assessment.custom_form.save!
+        assessment.save!
+        assessment.touch
+      end
+
+      errors.deduplicate!
+      return { errors: errors } if errors.any?
+
+      return { assessments: assessments, errors: [] } if input.validate_only
+
+      if is_valid
         # We need to call save on the processor directly to get the before_save hook to invoke.
         # If this is removed, the Enrollment won't save.
         assessment.custom_form.form_processor.save!
@@ -91,10 +107,10 @@ module Mutations
         # Update DateUpdated on the Enrollment
         enrollment.touch
       else
-        # These are potentially unfixable errors, so maybe we should throw a server error instead.
-        # Leaving them visible to the user for now, while we QA the feature.
-        errors.push(*assessment.custom_form&.errors&.errors)
-        errors.push(*assessment.errors&.errors)
+        # These are potentially unfixable errors. Maybe should be server error instead.
+        # For now, return them all because they are useful in development.
+        errors.add_ar_errors(assessment.custom_form&.errors&.errors)
+        errors.add_ar_errors(assessment.errors&.errors)
         assessment = nil
       end
 

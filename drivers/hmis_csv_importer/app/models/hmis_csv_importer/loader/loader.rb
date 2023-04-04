@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -214,7 +214,7 @@ module HmisCsvImporter::Loader
       base_name = File.basename(file_name)
 
       Rails.logger.debug do
-        "Loading #{base_name} into #{klass.table_name} #{hash_as_log_str(loader_id: @loader_log.id)}"
+        "Loading #{base_name} into #{klass.table_name} #{hash_as_log_str({ loader_id: @loader_log.id })}"
       end
 
       meta_data_names = ['data_source_id', 'loader_id', 'loaded_at']
@@ -444,7 +444,7 @@ module HmisCsvImporter::Loader
 
     private def start_load
       @loaded_at = Time.current
-      log("Starting load for #{hash_as_log_str log_ids}.")
+      log("Starting load for #{hash_as_log_str(log_ids)}.")
     end
 
     private def complete_load(status:, err: nil)
@@ -454,8 +454,8 @@ module HmisCsvImporter::Loader
         status: status,
       )
       status = "#{status} error:#{err}" if err
-      # log("Completed loading in #{elapsed_time(elapsed)} #{hash_as_log_str log_ids}. status:#{status}", summary_as_log_str(loader_log.summary))
-      log("Completed loading in #{elapsed_time(elapsed)} #{hash_as_log_str log_ids}. status:#{status} #{summary_as_log_str(loader_log.summary)}")
+      # log("Completed loading in #{elapsed_time(elapsed)} #{hash_as_log_str(log_ids)}. status:#{status}", summary_as_log_str(loader_log.summary))
+      log("Completed loading in #{elapsed_time(elapsed)} #{hash_as_log_str(log_ids)}. status:#{status} #{summary_as_log_str(loader_log.summary)}")
       @import_log&.update(
         loader_log: loader_log,
         files: loadable_files.transform_values(&:name).invert.to_a,

@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 RSpec.shared_context 'hmis form setup', shared_context: :metadata do
   before(:all) do
     system 'RAILS_ENV=test bin/rake driver:hmis:seed_definitions'

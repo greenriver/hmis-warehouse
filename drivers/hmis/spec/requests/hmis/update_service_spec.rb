@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 require 'rails_helper'
 require_relative 'login_and_permissions'
 require_relative '../../support/hmis_base_setup'
@@ -25,7 +31,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   let(:test_input) do
     {
-      date_provided: Date.today.strftime('%Y-%m-%d'),
+      date_provided: Date.yesterday.strftime('%Y-%m-%d'),
       record_type: Types::HmisSchema::Enums::Hud::RecordType.enum_member_for_value(144).first,
       type_provided: Types::HmisSchema::Enums::ServiceTypeProvided.enum_member_for_value('144:3').first,
       sub_type_provided: Types::HmisSchema::Enums::ServiceSubTypeProvided.enum_member_for_value('144:3:1').first,

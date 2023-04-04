@@ -10,6 +10,13 @@ SET client_min_messages = warning;
 SET row_security = off;
 
 --
+-- Name: public; Type: SCHEMA; Schema: -; Owner: -
+--
+
+-- *not* creating schema, since initdb creates it
+
+
+--
 -- Name: fuzzystrmatch; Type: EXTENSION; Schema: -; Owner: -
 --
 
@@ -5606,7 +5613,26 @@ CREATE TABLE public.cohort_clients (
     user_date_28 character varying,
     user_date_29 character varying,
     user_date_30 character varying,
-    most_recent_date_to_street date
+    most_recent_date_to_street date,
+    user_boolean_31 boolean,
+    user_boolean_32 boolean,
+    user_boolean_33 boolean,
+    user_boolean_34 boolean,
+    user_boolean_35 boolean,
+    user_boolean_36 boolean,
+    user_boolean_37 boolean,
+    user_boolean_38 boolean,
+    user_boolean_39 boolean,
+    user_boolean_40 boolean,
+    user_boolean_41 boolean,
+    user_boolean_42 boolean,
+    user_boolean_43 boolean,
+    user_boolean_44 boolean,
+    user_boolean_45 boolean,
+    user_boolean_46 boolean,
+    user_boolean_47 boolean,
+    user_boolean_48 boolean,
+    user_boolean_49 boolean
 );
 
 
@@ -5702,7 +5728,8 @@ CREATE TABLE public.cohorts (
     threshold_label_5 character varying,
     system_cohort boolean DEFAULT false,
     type character varying DEFAULT 'GrdaWarehouse::Cohort'::character varying,
-    project_group_id bigint
+    project_group_id bigint,
+    enforce_project_visibility_on_cells boolean DEFAULT true NOT NULL
 );
 
 
@@ -15804,7 +15831,8 @@ CREATE TABLE public.hud_report_pit_clients (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     deleted_at timestamp without time zone,
-    personal_id character varying
+    personal_id character varying,
+    hoh_age integer
 );
 
 
@@ -17269,7 +17297,8 @@ CREATE TABLE public.pm_clients (
     comparison_earned_income_stayer boolean DEFAULT false NOT NULL,
     comparison_earned_income_leaver boolean DEFAULT false NOT NULL,
     comparison_non_employment_income_stayer boolean DEFAULT false NOT NULL,
-    comparison_non_employment_income_leaver boolean DEFAULT false NOT NULL
+    comparison_non_employment_income_leaver boolean DEFAULT false NOT NULL,
+    source_client_personal_ids character varying
 );
 
 
@@ -51648,6 +51677,10 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230313122300'),
 ('20230313152950'),
 ('20230319133739'),
-('20230320131930');
+('20230320131930'),
+('20230322183901'),
+('20230322220754'),
+('20230327202808'),
+('20230328171436');
 
 

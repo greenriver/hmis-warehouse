@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -263,7 +263,32 @@ module PerformanceMetrics
     end
 
     def describe_filter_as_html
-      filter.describe_filter_as_html(filter.all_known_keys.reject { |k| k.in?([:on, :lsa_scope]) })
+      known_keys = [
+        :start,
+        :comparison_pattern,
+        :project_type_codes,
+        :coordinated_assessment_living_situation_homeless,
+        :ce_cls_as_homeless,
+        :require_service_during_range,
+        :funding_sources,
+        :data_sources,
+        :organizations,
+        :projects,
+        :project_groups,
+        :hoh_only,
+        :sub_population,
+        :races,
+        :ethnicities,
+        :age_ranges,
+        :genders,
+        :veteran_statuses,
+        :times_homeless_in_last_three_years,
+      ]
+
+      known_keys << :coc_codes if GrdaWarehouse::Config.get(:multi_coc_installation)
+      known_keys << :cohorts if GrdaWarehouse::Cohort.viewable_by(filter.user).exists?
+
+      filter.describe_filter_as_html(known_keys)
     end
 
     private def to_comparison

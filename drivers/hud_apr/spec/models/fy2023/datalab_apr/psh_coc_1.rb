@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -61,6 +61,12 @@ RSpec.shared_context 'datalab psh coc 1 apr', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + 'apr/psh_coc_1',
         question: 'Q6e',
+        # pending https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recWCP4jftXR51nYq (47)
+        skip: [
+          'C3',
+          'C4',
+          'C6',
+        ],
       )
     end
 
@@ -348,8 +354,7 @@ RSpec.shared_context 'datalab psh coc 1 apr', shared_context: :metadata do
       )
     end
 
-    # Pending AAQ https://www.hudexchange.info/program-support/my-question/?askaquestionaction=public%3Amain.answer&key=7621DC58-B880-4E59-8ED2027685A40C16 (and AirTable submission)
-    xit 'Q25e' do
+    it 'Q25e' do
       compare_results(
         file_path: result_file_prefix + 'apr/psh_coc_1',
         question: 'Q25e',
@@ -413,7 +418,7 @@ RSpec.shared_context 'datalab psh coc 1 apr', shared_context: :metadata do
     end
 
     # Pending AAQ https://www.hudexchange.info/program-support/my-question/?askaquestionaction=public%3Amain.answer&key=7621DC58-B880-4E59-8ED2027685A40C16 (and AirTable submission)
-    xit 'Q26e' do
+    it 'Q26e' do
       compare_results(
         file_path: result_file_prefix + 'apr/psh_coc_1',
         question: 'Q26e',

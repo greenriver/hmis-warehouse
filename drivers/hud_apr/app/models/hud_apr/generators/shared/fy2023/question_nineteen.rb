@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -30,7 +30,11 @@ module HudApr::Generators::Shared::Fy2023
           answer = @report.answer(question: table_name, cell: cell)
           adults = universe.members.
             where(inclusion_clause).
-            where(a_t[:income_total_at_start].not_eq(nil))
+            where(
+              # exclude anyone with income not collected at start
+              a_t[:income_total_at_start].not_eq(nil).
+              and(a_t[:income_from_any_source_at_start].not_eq(nil)),
+            )
 
           case column[:amount_at_start]
           when :positive

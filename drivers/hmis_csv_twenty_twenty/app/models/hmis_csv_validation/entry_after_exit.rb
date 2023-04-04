@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -8,7 +8,7 @@
 # are no entry dates after exit dates. This needs
 # the full data set in-place to check and should happen only once after the import is complete
 class HmisCsvValidation::EntryAfterExit < HmisCsvValidation::Validation
-  def self.check_validity!(klass, importer_log, _options)
+  def self.check_validity!(klass, importer_log)
     # FIXME: Very slow!!!
     e_t = HmisCsvTwentyTwenty::Importer::Enrollment.arel_table
     ex_t = HmisCsvTwentyTwenty::Importer::Exit.arel_table

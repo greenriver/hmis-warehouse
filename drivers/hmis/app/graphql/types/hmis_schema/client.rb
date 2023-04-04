@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -40,7 +40,7 @@ module Types
     hud_field :ethnicity, Types::HmisSchema::Enums::Hud::Ethnicity
     hud_field :veteran_status, Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData
     field :pronouns, [String], null: false
-    enrollments_field without_args: [:client_search_term]
+    enrollments_field without_args: [:search_term]
     income_benefits_field
     disabilities_field
     disability_groups_field
@@ -61,6 +61,10 @@ module Types
       can :view_enrollment_details
       can :edit_enrollments
       can :delete_enrollments
+      can :manage_any_client_files
+      can :manage_own_client_files
+      can :view_any_nonconfidential_client_files
+      can :view_any_confidential_client_files
     end
 
     def enrollments(**args)
@@ -127,7 +131,7 @@ module Types
     end
 
     def dob
-      return object.dob if current_user.can_view_dob_for?(object)
+      object.safe_dob(current_user)
     end
   end
 end

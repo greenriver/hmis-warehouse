@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -46,13 +46,14 @@ RSpec.describe 'Datalab 2023', type: :model do
     include_context 'datalab th coc apr' # done
 
     include_context 'datalab es ee esg caper' # done
-    # Pending AAQ https://www.hudexchange.info/program-support/my-question/?askaquestionaction=public%3Amain.answer&key=D3F0FFCA-1B80-4323-A0BFA0B69D6C4B26
-    # include_context 'datalab es nbn esg caper'
-    include_context 'datalab hp esg caper' # done
-    include_context 'datalab rrh esg caper' # done
-    include_context 'datalab so esg caper'
+    include_context 'datalab es nbn esg caper' # done
+    # Pending https://airtable.com/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recSn8LQYuAViGMBi (56)
+    # include_context 'datalab hp esg caper'
 
-    include_context 'datalab th ce ce apr' # done
+    include_context 'datalab rrh esg caper' # done
+    include_context 'datalab so esg caper' # done
+
+    include_context 'datalab th ce ce apr'
   else
     xit 'Data Lab Testkit based tests are skipped, files are missing' do
     end

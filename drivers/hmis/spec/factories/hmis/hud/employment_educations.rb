@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 FactoryBot.define do
   factory :hmis_employment_education, class: 'Hmis::Hud::EmploymentEducation' do
     data_source { association :hmis_data_source }
@@ -5,7 +11,7 @@ FactoryBot.define do
     enrollment { association :hmis_hud_enrollment, data_source: data_source }
     client { association :hmis_hud_client, data_source: data_source }
     sequence(:EmploymentEducationID, 500)
-    information_date { Date.today }
+    information_date { Date.yesterday }
     data_collection_stage { 1 }
     DateCreated { Date.parse('2019-01-01') }
     DateUpdated { Date.parse('2019-01-01') }

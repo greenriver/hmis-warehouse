@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -27,6 +27,8 @@ module HudPit::Fy2022
           'Warehouse Source Client ID'
         when 'PersonalID'
           'Personal ID'
+        when 'hoh_age'
+          'HoH Age'
         else
           h.humanize
         end

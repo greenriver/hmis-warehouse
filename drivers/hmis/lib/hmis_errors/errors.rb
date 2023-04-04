@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -9,7 +9,7 @@ module HmisErrors
     include Enumerable
 
     extend Forwardable
-    def_delegators :@errors, :size, :clear, :blank?, :empty?, :uniq!, :any?, :count, :push
+    def_delegators :@errors, :size, :clear, :blank?, :empty?, :uniq!, :any?, :count, :push, :all?
     attr_reader :errors
     alias objects errors
 
@@ -17,9 +17,12 @@ module HmisErrors
       @errors = []
     end
 
-    def add_ar_errors(errors)
+    def add_ar_errors(errors, ignore_duplicates: true)
       Array.wrap(errors).each do |ar_error|
-        @errors << HmisErrors::Error.from_ar_error(ar_error)
+        hmis_error = HmisErrors::Error.from_ar_error(ar_error)
+        next if ignore_duplicates && @errors.find { |e| self.class.errors_are_equal(e, hmis_error) }
+
+        @errors << hmis_error
       end
       @errors
     end
@@ -37,6 +40,19 @@ module HmisErrors
         @errors << e
       end
       @errors
+    end
+
+    def drop_warnings!
+      @errors = @errors.reject(&:warning?)
+    end
+
+    def deduplicate!
+      @errors = @errors.uniq { |e| [e.attribute.to_s.downcase, e.type.to_sym, e.severity, e.full_message.downcase] }
+    end
+
+    def self.errors_are_equal(first, second)
+      first.attribute.to_s == second.attribute.to_s &&
+      first.type.to_sym == :required && second.type.to_sym == :required
     end
   end
 end

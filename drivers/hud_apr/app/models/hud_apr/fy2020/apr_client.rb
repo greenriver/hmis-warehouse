@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -17,7 +17,7 @@ module HudApr::Fy2020
 
     # Hide ID, move destination_client_id, and name to the front
     def self.detail_headers
-      special = ['destination_client_id', 'first_name', 'last_name']
+      special = ['destination_client_id', 'personal_id', 'first_name', 'last_name']
       remove = ['id', 'created_at', 'updated_at']
       cols = special + (column_names - special - remove)
       cols.map do |h|
@@ -26,6 +26,8 @@ module HudApr::Fy2020
           'Warehouse Client ID'
         when 'client_id'
           'Warehouse Source Client ID'
+        when 'personal_id'
+          'HMIS Personal ID'
         else
           h.humanize
         end

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -80,7 +80,11 @@ module GrdaWarehouse
     end
 
     def filter
-      @filter ||= ::Filters::HudFilterBase.new(user_id: User.setup_system_user.id).update(options)
+      @filter ||= begin
+        f = ::Filters::HudFilterBase.new(user_id: User.setup_system_user.id).update(options)
+        f.coc_codes = []
+        f
+      end
     end
 
     # NOTE: we only care about Data Sources, Organizations, Projects, and Project Types

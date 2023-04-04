@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -90,7 +90,7 @@ module LongitudinalSpm
         [
           :end,
           :comparison_pattern,
-          :coc_code,
+          :coc_codes,
           :project_type_codes,
           :project_ids,
           :project_group_ids,

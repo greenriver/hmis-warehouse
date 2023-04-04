@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -62,14 +62,16 @@ module Health
         patient_id: patient.id,
         date_of_activity: date_of_activity,
         user_full_name: entered_by,
-        mode_of_contact: care_hub_mode_key,
-        reached_client: care_hub_reached_key,
-        activity: care_hub_activity_key,
         follow_up: 'See Epic',
         source_type: self.class.name,
         source_id: id,
         epic_source_id: id_in_source,
         user_id: user.id,
+      )
+      qa.assign_attributes(
+        mode_of_contact: care_hub_mode_key(qa),
+        reached_client: care_hub_reached_key(qa),
+        activity: care_hub_activity_key(qa),
       )
       qa.save(validate: false)
     end
@@ -123,11 +125,8 @@ module Health
       end
     end
 
-    def care_hub_reached_key
-      @care_hub_client_reached ||= Health::QualifyingActivity.client_reached.map do |k, reached|
-        [reached[:title], k]
-      end.to_h
-      @care_hub_client_reached[clean_reached_title]
+    def care_hub_reached_key(qa)
+      qa.client_reached.detect { |_k, v| v[:title] == clean_reached_title }&.first
     end
 
     def clean_reached_title
@@ -139,34 +138,46 @@ module Health
       end
     end
 
-    def care_hub_mode_key
-      @care_hub_modes_of_contact ||= Health::QualifyingActivity.modes_of_contact.map do |k, mode|
-        [mode[:title], k]
-      end.to_h
-      @care_hub_modes_of_contact[clean_mode_title]
+    def care_hub_mode_key(qa)
+      qa.modes_of_contact.detect { |_k, v| v[:title] == clean_mode_title }&.first
     end
 
     def clean_mode_title
       mode
     end
 
-    def care_hub_activity_key
-      @care_hub_activities ||= Health::QualifyingActivity.activities.map do |k, activity|
-        [activity[:title], k]
-      end.to_h
-      @care_hub_activities[clean_activity_title]
+    def care_hub_activity_key(qa)
+      qa.activities.detect { |_k, v| v[:title] == clean_activity_title(qa) }&.first
     end
 
-    def clean_activity_title
-      case activity
-      when 'Comprehensive assessment', 'Comprehensive health assessment'
-        'Comprehensive Health Assessment'
-      when 'Person-Centered Treatment Plan Signed'
-        'Person-Centered Treatment Plan signed'
-      when 'Follow-up within 3 days of hospital discharge (with client)'
-        'Follow-up from inpatient hospital discharge (with client)'
-      else
-        activity
+    def clean_activity_title(qa)
+      case qa.qa_version.class.name.split('::').last
+      when 'QualifyingActivityV1'
+        case activity
+        when 'Comprehensive assessment', 'Comprehensive health assessment'
+          'Comprehensive Health Assessment'
+        when 'Person-Centered Treatment Plan Signed'
+          'Person-Centered Treatment Plan signed'
+        when 'Follow-up within 3 days of hospital discharge (with client)'
+          'Follow-up from inpatient hospital discharge (with client)'
+        else
+          activity
+        end
+      when 'QualifyingActivityV2'
+        case activity
+        when 'Comprehensive health assessment'
+          'Comprehensive Assessment'
+        when 'Follow up after discharge'
+          'Follow-up from inpatient discharge with client (7 days)'
+        when 'Care team meeting'
+          'Meeting with 3+ care team members'
+        when 'Person-Centered Treatment Plan Signed'
+          'Care Plan completed'
+        when 'Care planning'
+          'Intake/reassessment (completing consent ROI, comprehensive assessment, care plan)'
+        else
+          activity
+        end
       end
     end
 

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -154,7 +154,7 @@ module HudApr::Generators::Shared::Fy2023
               value = 0
               members = members.where(a_t[:move_in_date].between(@report.start_date..@report.end_date))
               stay_lengths = members.pluck(a_t[:time_to_move_in])
-              value = (stay_lengths.sum(0.0) / stay_lengths.count).round(2) if stay_lengths.any?
+              value = (stay_lengths.sum(0.0) / stay_lengths.count).round if stay_lengths.any? # using round since this is an average number of days
             end
           else
             members = members.where(length_clause)

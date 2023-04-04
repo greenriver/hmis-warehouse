@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -46,6 +46,10 @@ module Filters
     attribute :data_source_ids, Array, default: []
     attribute :funder_ids, Array, default: []
     attribute :cohort_ids, Array, default: []
+    attribute :cohort_column, String, default: nil
+    attribute :cohort_column_housed_date, String, default: nil
+    attribute :cohort_column_matched_date, String, default: nil
+    attribute :cohort_column_voucher_type, String, default: nil
     attribute :coc_codes, Array, default: []
     attribute :coc_code, String, default: ->(_, _) { GrdaWarehouse::Config.get(:site_coc_codes) }
     attribute :sub_population, Symbol, default: :clients
@@ -93,7 +97,7 @@ module Filters
       self.require_service_during_range = require_service.in?(['1', 'true', true]) unless require_service.nil?
       self.comparison_pattern = clean_comparison_pattern(filters.dig(:comparison_pattern)&.to_sym)
       self.coc_codes = filters.dig(:coc_codes)&.select { |code| available_coc_codes&.include?(code) }.presence || coc_codes.presence
-      self.coc_codes = user.coc_codes.presence || coc_codes.presence if GrdaWarehouse::Config.get(:multi_coc_installation) && ! filters.key(:coc_codes)
+      self.coc_codes = user.coc_codes.presence || coc_codes.presence if GrdaWarehouse::Config.get(:multi_coc_installation) && ! filters.key?(:coc_codes)
       self.coc_code = filters.dig(:coc_code) if available_coc_codes&.include?(filters.dig(:coc_code))
       self.household_type = filters.dig(:household_type)&.to_sym || household_type
       unless filters.dig(:hoh_only).nil?
@@ -125,6 +129,10 @@ module Filters
       self.destination_ids = filters.dig(:destination_ids)&.reject(&:blank?)&.map(&:to_i).presence || destination_ids
       self.length_of_times = filters.dig(:length_of_times)&.reject(&:blank?)&.map(&:to_sym).presence || length_of_times
       self.cohort_ids = filters.dig(:cohort_ids)&.reject(&:blank?)&.map(&:to_i).presence || cohort_ids
+      self.cohort_column = filters.dig(:cohort_column)&.presence || cohort_column
+      self.cohort_column_voucher_type = filters.dig(:cohort_column_voucher_type)&.presence || cohort_column_voucher_type
+      self.cohort_column_housed_date = filters.dig(:cohort_column_housed_date)&.presence || cohort_column_housed_date
+      self.cohort_column_matched_date = filters.dig(:cohort_column_matched_date)&.presence || cohort_column_matched_date
 
       self.disabilities = filters.dig(:disabilities)&.reject(&:blank?)&.map(&:to_i).presence || disabilities
       self.indefinite_disabilities = filters.dig(:indefinite_disabilities)&.reject(&:blank?)&.map(&:to_i).presence || indefinite_disabilities
@@ -176,6 +184,10 @@ module Filters
           ethnicities: ethnicities,
           project_group_ids: project_group_ids,
           cohort_ids: cohort_ids,
+          cohort_column: cohort_column,
+          cohort_column_voucher_type: cohort_column_voucher_type,
+          cohort_column_housed_date: cohort_column_housed_date,
+          cohort_column_matched_date: cohort_column_matched_date,
           hoh_only: hoh_only,
           prior_living_situation_ids: prior_living_situation_ids,
           destination_ids: destination_ids,
@@ -234,6 +246,10 @@ module Filters
         :creator_id,
         :inactivity_days,
         :lsa_scope,
+        :cohort_column,
+        :cohort_column_voucher_type,
+        :cohort_column_housed_date,
+        :cohort_column_matched_date,
         coc_codes: [],
         default_project_type_codes: [],
         project_types: [],
@@ -284,6 +300,8 @@ module Filters
         opts['Project Groups'] = project_groups if project_group_ids.any?
         opts['Funders'] = funder_names if funder_ids.any?
         opts['Heads of Household only?'] = 'Yes' if hoh_only
+        opts['Including CE homeless at entry'] = 'Yes' if coordinated_assessment_living_situation_homeless
+        opts['Including CE Current Living Situation Homeless'] = 'Yes' if ce_cls_as_homeless
         opts['Household Type'] = chosen_household_type if household_type
         opts['Age Ranges'] = chosen_age_ranges if age_ranges.any?
         opts['Races'] = chosen_races if races.any?
@@ -306,6 +324,7 @@ module Filters
         opts['Current Living Situation Homeless'] = 'Yes' if ce_cls_as_homeless
         opts['Client Limits'] = chosen_vispdat_limits if limit_to_vispdat != :all_clients
         opts['Times Homeless in Past 3 Years'] = chosen_times_homeless_in_last_three_years if times_homeless_in_last_three_years.any?
+        opts['Require Service During Range'] = 'Yes' if require_service_during_range
       end
     end
 
@@ -613,6 +632,32 @@ module Filters
     def cohorts_for_select(user:)
       GrdaWarehouse::Cohort.viewable_by(user).distinct.order(name: :asc).pluck(:name, :id)
     end
+
+    # A list of select/drop-down type cohort columns where there is at least one choice.
+    # This should give us a reasonable list of options to choose from
+    def cohort_columns_for_select
+      initialized_columns = GrdaWarehouse::CohortColumnOption.distinct.pluck(:cohort_column)
+      GrdaWarehouse::Cohort.available_columns.select do |column|
+        column.column.in?(initialized_columns)
+      end.map do |column|
+        [
+          column.title,
+          column.column,
+        ]
+      end
+    end
+
+    def cohort_columns_for_dates
+      GrdaWarehouse::Cohort.available_columns.select do |column|
+        column.class.ancestors.include?(CohortColumns::CohortDate)
+      end.map do |column|
+        [
+          column.title,
+          column.column,
+        ]
+      end
+    end
+
     # End Select display options
 
     def clients_from_cohorts
@@ -915,6 +960,18 @@ module Filters
         'LSA Scope'
       when :cohort_ids
         'Cohorts'
+      when :cohort_column
+        'Cohort Column for Initiative Cohorts'
+      when :cohort_column_voucher_type
+        'Cohort Column for Voucher Type'
+      when :cohort_column_housed_date
+        'Cohort Column for House Date'
+      when :cohort_column_matched_date
+        'Cohort Column for Matched Date'
+      when :ce_cls_as_homeless
+        'Including CE Current Living Situation Homeless'
+      when :coordinated_assessment_living_situation_homeless
+        'Including CE homeless at entry?'
       else
         key.to_s.titleize
       end
@@ -978,6 +1035,12 @@ module Filters
         chosen_currently_fleeing
       when :heads_of_household, :hoh_only
         'Yes' if heads_of_household || hoh_only
+      when :require_service_during_range
+        'Yes' if require_service_during_range
+      when :ce_cls_as_homeless
+        'Yes' if ce_cls_as_homeless
+      when :coordinated_assessment_living_situation_homeless
+        'Yes' if coordinated_assessment_living_situation_homeless
       when :limit_to_vispdat
         chosen_vispdat_limits
       when :times_homeless_in_last_three_years
@@ -986,6 +1049,14 @@ module Filters
         chosen_lsa_scope
       when :cohort_ids
         cohorts
+      when :cohort_column
+        cohort_column
+      when :cohort_column_voucher_type
+        cohort_column_voucher_type
+      when :cohort_column_housed_date
+        cohort_column_housed_date
+      when :cohort_column_matched_date
+        cohort_column_matched_date
       else
         val = send(key)
         val.instance_of?(String) ? val.titleize : val

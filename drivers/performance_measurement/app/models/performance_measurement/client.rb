@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -16,6 +16,7 @@ module PerformanceMeasurement
     def self.column_titles(period: 'reporting')
       {
         'client_id' => 'Warehouse Client ID',
+        'source_client_personal_ids' => 'Source Client Personal IDs',
         'dob' => 'DOB',
         'veteran' => 'Veteran Status',
         "#{period}_age" => 'Age for Report',

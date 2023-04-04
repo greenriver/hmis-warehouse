@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -25,7 +25,9 @@ class ProjectGroupsController < ApplicationController
     @project_group = project_group_source.new
     begin
       @project_group.assign_attributes(name: group_params[:name])
-      @project_group.options = ::Filters::HudFilterBase.new(user_id: current_user.id, project_type_numbers: []).update(filter_params).to_h
+      filter = ::Filters::HudFilterBase.new(user_id: current_user.id, project_type_numbers: []).update(filter_params.merge(coc_codes: []))
+      filter.coc_codes = []
+      @project_group.options = filter.to_h
       @project_group.save!
       users = user_params[:users]&.reject(&:empty?)
       # If the user can't edit all project groups, make sure we add the user so they can access it later
@@ -48,7 +50,9 @@ class ProjectGroupsController < ApplicationController
   def update
     begin
       @project_group.assign_attributes(name: group_params[:name])
-      @project_group.options = ::Filters::HudFilterBase.new(user_id: current_user.id, project_type_numbers: []).update(filter_params).to_h
+      filter = ::Filters::HudFilterBase.new(user_id: current_user.id, project_type_numbers: []).update(filter_params)
+      filter.coc_codes = []
+      @project_group.options = filter.to_h
       @project_group.save!
       if user_params.key?(:users)
         users = user_params[:users]&.reject(&:empty?)

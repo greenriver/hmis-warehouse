@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -9,13 +9,14 @@ module HudPit::PitConcern
   included do
     def available_report_versions
       {
+        'FY 2023 (current)' => { slug: :fy2023, active: true },
         'FY 2022' => { slug: :fy2022, active: true },
       }.freeze
     end
     helper_method :available_report_versions
 
     def default_report_version
-      :fy2022
+      :fy2023
     end
 
     private def filter_class
@@ -25,6 +26,7 @@ module HudPit::PitConcern
     private def possible_generator_classes
       {
         fy2022: HudPit::Generators::Pit::Fy2022::Generator,
+        fy2023: HudPit::Generators::Pit::Fy2023::Generator,
       }
     end
 

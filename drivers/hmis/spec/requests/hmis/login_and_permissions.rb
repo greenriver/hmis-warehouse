@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 def hmis_login(user)
   post hmis_user_session_path(hmis_user: { email: user.email, password: user.password })
 end

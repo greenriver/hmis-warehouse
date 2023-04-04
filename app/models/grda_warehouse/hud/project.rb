@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -207,6 +207,10 @@ module GrdaWarehouse::Hud
 
     scope :night_by_night, -> do
       where(cl(p_t[:tracking_method_override], p_t[:TrackingMethod]).eq(3))
+    end
+
+    def night_by_night?
+      (tracking_method_override.presence || self.TrackingMethod) == 3
     end
 
     scope :confidential, -> do

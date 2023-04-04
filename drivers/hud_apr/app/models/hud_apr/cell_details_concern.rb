@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -47,6 +47,7 @@ module HudApr::CellDetailsConcern
     def self.common_fields
       [
         :destination_client_id,
+        :personal_id,
         :first_name,
         :last_name,
         :first_date_in_program,

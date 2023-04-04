@@ -67,7 +67,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/hud/project.rb",
-      "line": 364,
+      "line": 368,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "where(\"#{access_to_project_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_organization(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_data_source(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_coc_codes(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_project_access_groups(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)}\")",
       "render_path": null,
@@ -1533,6 +1533,47 @@
       "note": ""
     },
     {
+      "warning_type": "Cross-Site Scripting",
+      "warning_code": 2,
+      "fingerprint": "8953cd063d177616f902f1dd4316cc5f3acdec49d0d9936a94e7d971353232d1",
+      "check_name": "CrossSiteScripting",
+      "message": "Unescaped model attribute",
+      "file": "app/views/health/sdh_case_management_notes/_form_js.haml",
+      "line": 3,
+      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
+      "code": "[Health::QualifyingActivityV1, Health::QualifyingActivityV2].map(&:js_model).join(\", \")",
+      "render_path": [
+        {
+          "type": "controller",
+          "class": "Health::SdhCaseManagementNotesController",
+          "method": "edit",
+          "line": 44,
+          "file": "app/controllers/health/sdh_case_management_notes_controller.rb",
+          "rendered": {
+            "name": "health/sdh_case_management_notes/edit",
+            "file": "app/views/health/sdh_case_management_notes/edit.haml"
+          }
+        },
+        {
+          "type": "template",
+          "name": "health/sdh_case_management_notes/edit",
+          "line": 4,
+          "file": "app/views/health/sdh_case_management_notes/edit.haml",
+          "rendered": {
+            "name": "health/sdh_case_management_notes/_form_js",
+            "file": "app/views/health/sdh_case_management_notes/_form_js.haml"
+          }
+        }
+      ],
+      "location": {
+        "type": "template",
+        "template": "health/sdh_case_management_notes/_form_js"
+      },
+      "user_input": "[Health::QualifyingActivityV1, Health::QualifyingActivityV2].map(&:js_model)",
+      "confidence": "Weak",
+      "note": ""
+    },
+    {
       "warning_type": "Command Injection",
       "warning_code": 14,
       "fingerprint": "8a29ddebc189081add6710e179967e490ad042f12df9fdfaac8211e87e8d97db",
@@ -2772,6 +2813,6 @@
       "note": ""
     }
   ],
-  "updated": "2023-03-14 17:38:29 +0000",
+  "updated": "2023-03-17 12:54:45 -0400",
   "brakeman_version": "5.0.4"
 }

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -7,6 +7,7 @@
 module GrdaWarehouse
   class PublicFile < GrdaWarehouse::File
     include ArelHelper
+    mount_uploader :file, FileUploader
     acts_as_taggable
 
     validates_presence_of :name
