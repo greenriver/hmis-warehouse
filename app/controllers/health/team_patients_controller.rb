@@ -9,6 +9,7 @@ module Health
     include ClientPathGenerator
     include AjaxModalRails::Controller
     include HealthPatientDashboard
+    include Search
 
     before_action :require_can_view_patients_for_own_agency!
     before_action :require_has_team_or_admin!
@@ -42,8 +43,8 @@ module Health
         patient_source.where(id: @report.total_counts.patient_referrals)
       end
 
-      @q = @patients.ransack(params[:q])
-      @patients = @q.result(distinct: true) if params[:q].present?
+      search_setup(scope: :full_text_search)
+      @patients = @search.distinct if @search_string.present?
       if params[:filter].present?
         @active_filter = true if params[:filter][:population] != 'all'
         case params[:filter][:population]
@@ -103,6 +104,10 @@ module Health
           render(xlsx: 'index', filename: "Tracking Sheet #{date}.xlsx")
         end
       end
+    end
+
+    private def search_scope
+      Health::Patient
     end
 
     def detail

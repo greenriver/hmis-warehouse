@@ -1283,10 +1283,6 @@ module Health
       :asc
     end
 
-    def self.ransackable_scopes(_auth_object = nil)
-      [:full_text_search]
-    end
-
     def self.text_search(text, patient_scope:)
       return none unless text.present?
 

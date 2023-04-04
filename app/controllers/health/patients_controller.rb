@@ -15,10 +15,11 @@ module Health
     include ClientPathGenerator
     include AjaxModalRails::Controller
     include HealthPatientDashboard
+    include Search
 
     def index
-      @q = @patients.ransack(params[:q])
-      @patients = @q.result(distinct: true) if params[:q].present?
+      search_setup(scope: :full_text_search)
+      @patients = @search.distinct if @search_string.present?
       if params[:filter].present?
         @active_filter = true if params[:filter][:population] != 'all'
         case params[:filter][:population]
@@ -68,6 +69,10 @@ module Health
       end
       @pagy, @patients = pagy(@patients)
       @scores = calculate_dashboards(medicaid_ids)
+    end
+
+    private def search_scope
+      patient_scope
     end
 
     def load_active_agency

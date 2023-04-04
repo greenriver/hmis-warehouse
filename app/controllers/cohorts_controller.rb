@@ -8,6 +8,7 @@ class CohortsController < ApplicationController
   include AjaxModalRails::Controller
   include CohortAuthorization
   include CohortClients
+  include Search
   before_action :some_cohort_access!
   before_action :require_can_configure_cohorts!, only: [:create, :destroy, :edit, :update]
   before_action :require_can_access_cohort!, only: [:show]
@@ -29,13 +30,7 @@ class CohortsController < ApplicationController
       @active_filter = true
     end
 
-    name_query = params[:q][:name_cont]
-    @search = if name_query.present?
-      scope.where(GrdaWarehouse::Cohort.arel_table[:name].matches("%#{name_query}%"))
-    else
-      scope.none
-    end
-
+    search_setup(columns: [:name])
     @cohort = cohort_source.new
     @cohorts = @search.active_user.reorder(sort_string)
     @inactive_cohorts = @search.inactive.reorder(sort_string)
@@ -44,6 +39,14 @@ class CohortsController < ApplicationController
     else
       scope.none
     end
+  end
+
+  private def cohort_scope
+    GrdaWarehouse::Cohort.viewable_by(current_user)
+  end
+
+  private def search_scope
+    cohort_scope
   end
 
   def show

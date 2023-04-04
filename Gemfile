@@ -212,7 +212,6 @@ gem 'gettext', '>=3.0.2'
 gem 'grosser-pomo'
 
 gem 'responders'
-gem 'ransack'
 
 gem 'rack-attack'
 
