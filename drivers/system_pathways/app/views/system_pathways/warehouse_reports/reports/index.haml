@@ -5,10 +5,8 @@
     // Released under the ISC license.
     // https://observablehq.com/@d3/sankey-diagram
 
-    console.log(d3);
-
     const d3Sankey = d3
-    let energy = [
+    let data = [
       {
         "source": "Served by Homeless System",
         "target": "ES/SH",
@@ -135,6 +133,13 @@
         "value": 4
       },
     ];
+    const targetColors = {
+      "Institutional": '#CCCCCC',
+      "Temporary": '#CCCCCC',
+      "Unknown": '#CCCCCC',
+      "Homeless": '#CCCCCC',
+      "Returns": '#FF0000',
+    }
 
     function SankeyChart({
       nodes, // an iterable of node objects (typically [{id}, …]); implied by links if missing
@@ -158,6 +163,7 @@
       linkSource = ({source}) => source, // given d in links, returns a node identifier string
       linkTarget = ({target}) => target, // given d in links, returns a node identifier string
       linkValue = ({value}) => value, // given d in links, returns the quantitative value
+      targetColors = {},
       linkPath = d3Sankey.sankeyLinkHorizontal(), // given d in (computed) links, returns the SVG path
       linkTitle = d => `${d.source.id} → ${d.target.id}\n${format(d.value)}`, // given d in (computed) links
       linkColor = "source-target", // source, target, source-target, or static color
@@ -186,6 +192,7 @@
       const N = d3.map(nodes, nodeId).map(intern);
       const G = nodeGroup == null ? null : d3.map(nodes, nodeGroup).map(intern);
 
+      console.log(LS, LT, LV, N, G)
       // Replace the input nodes and links with mutable objects for the simulation.
       nodes = d3.map(nodes, (_, i) => ({id: N[i]}));
       links = d3.map(links, (_, i) => ({source: LS[i], target: LT[i], value: LV[i]}));
@@ -232,11 +239,18 @@
         .data(nodes)
         .join("rect")
         .attr("x", d => d.x0)
-        .attr("y", d => d.y0)
+        .attr("y", d => {
+          if(G[d.index] == 'Returns') {
+            // Box
+            return 500
+          } else {
+            return d.y0
+          }
+        })
         .attr("height", d => d.y1 - d.y0)
         .attr("width", d => d.x1 - d.x0);
 
-      if (G) node.attr("fill", ({index: i}) => color(G[i]));
+      if (G) node.attr("fill", ({index: i}) => color_for_target(G[i]))
       if (Tt) node.append("title").text(({index: i}) => Tt[i]);
 
       const link = svg.append("g")
@@ -257,7 +271,7 @@
           .attr("stop-color", ({source: {index: i}}) => color(G[i])))
         .call(gradient => gradient.append("stop")
           .attr("offset", "100%")
-          .attr("stop-color", ({target: {index: i}}) => color(G[i])));
+          .attr("stop-color", ({target: {index: i}}) => color_for_target(G[i])));
       // Target specific node and link
       // move it
       // d3.select(‘#id’).node().__datum___
@@ -278,14 +292,27 @@
         .join("text")
           // insepct d here, maybe move x 50% of chart and down
           // look at d3 path tools (manipulate path)
-          .attr("x", d => d.x0 < width / 2 ? d.x1 + nodeLabelPadding : d.x0 - nodeLabelPadding)
-          .attr("y", d => (d.y1 + d.y0) / 2)
+          .attr("x", d => {
+            return d.x0 < width / 2 ? d.x1 + nodeLabelPadding : d.x0 - nodeLabelPadding
+          })
+          .attr("y", d => {
+            // Label
+            if(G[d.index] == 'Returns') {
+              return 500
+            } else {
+              return (d.y1 + d.y0) / 2
+            }
+          })
           .attr("dy", "0.35em")
           .attr("text-anchor", d => d.x0 < width / 2 ? "start" : "end")
           .text(({index: i}) => Tl[i]);
 
       function intern(value) {
         return value !== null && typeof value === "object" ? value.valueOf() : value;
+      }
+
+      function color_for_target(test) {
+        return targetColors[test] == null ? color(test) : targetColors[test]
       }
 
       return Object.assign(svg.node(), {scales: {color}});
@@ -295,11 +322,12 @@
     const linkColor = 'source-target';
 
     let chart = SankeyChart({
-      links: energy
+      links: data
     }, {
       nodeGroup: d => d.id.split(/\W/)[0], // take first word for color
       nodeAlign, // e.g., d3.sankeyJustify; set by input above
       linkColor, // e.g., "source" or "target"; set by input above
+      targetColors: targetColors,
       format: (f => d => `${f(d)} TWh`)(d3.format(",.1~f")),
       width: 800, //width,
       height: 600
