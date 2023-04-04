@@ -16,6 +16,7 @@ class OmniauthUserProvisioner
     log "find or provision user from #{auth['info']}"
 
     user = nil
+    identity = nil
     new_authorization_created = false
     new_user_created = false
 
@@ -57,7 +58,9 @@ class OmniauthUserProvisioner
     # Notify existing users the first time this provider is used to sign into their account
     if new_authorization_created && !new_user_created
       log "linking to pre-existing user. provider:#{auth.provider} uid:#{auth.uid} existing_user_id:#{user.id}"
-      ::ApplicationMailer.with(user: user).provider_linked.deliver_later
+      ::ApplicationMailer
+        .with(user: user, provider_name: identity.provider_name)
+        .provider_linked.deliver_later
     end
 
     # send notifications if this is a completely new user, or if the user was just connected to omniauth
@@ -71,5 +74,4 @@ class OmniauthUserProvisioner
     method_name = caller_locations(1, 1)[0].label
     Rails.logger.debug "#{self.class.name}##{method_name} #{msg}"
   end
-
 end
