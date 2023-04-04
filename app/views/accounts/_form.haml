@@ -11,6 +11,8 @@
           = f.input :first_name, required: true, disabled: has_okta
           = f.input :last_name, required: true, disabled: has_okta
         = f.input :phone
+        - if @user.show_credentials?
+          = f.input :credentials, label: 'Credentials', collection: @user.credential_options, as: :select_two, input_html: { data: {tags: true} }, hint: 'Add a new credential type by typing the name and hitting enter.'
         = f.association :agency, disabled: true, as: :select_two
         = f.input :email_schedule, collection: Message::SCHEDULES.map{ |s| [ s.titleize, s ] }, include_blank: false, hint: 'Messages not sent on the "immediate" schedule are sent as a digest.', as: :select_two
 

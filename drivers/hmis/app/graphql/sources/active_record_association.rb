@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # https://gist.github.com/itkrt2y/1e1a947c71772044f5d67f358b4772fc
 
 class Sources::ActiveRecordAssociation < ::GraphQL::Dataloader::Source

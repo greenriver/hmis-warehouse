@@ -19,6 +19,10 @@
       .row
         .col-sm-4
           = f.input :phone
+      - if user.show_credentials?
+        .row
+          .col-sm-10
+            = f.input :credentials, label: 'Credentials', collection: @user.credential_options, as: :select_two, input_html: { data: {tags: true} }, hint: 'Add a new credential type by typing the name and hitting enter.'
       .row
         .col-sm-10
           = f.input :agency_id, collection: @agencies, label_method: :name, value_method: :id, include_blank: true, as: :select_two, required: true

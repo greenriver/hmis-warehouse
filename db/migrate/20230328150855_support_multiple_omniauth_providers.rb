@@ -28,9 +28,13 @@ class SupportMultipleOmniauthProviders < ActiveRecord::Migration[6.1]
   def data_migration
     rows = []
     User.where.not(provider: nil).find_each do |user|
+      provider = user.provider
+      if provider != 'okta'
+        raise "Unknown provider for user##{user.id}: #{user.provider}"
+      end
       rows.push({
         user_id: user.id,
-        provider: user.provider,
+        provider: 'wh_okta',
         created_at: user.provider_set_at,
         updated_at: user.provider_set_at,
         uid: user.uid,

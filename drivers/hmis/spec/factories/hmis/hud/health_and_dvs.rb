@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 FactoryBot.define do
   factory :hmis_health_and_dv, class: 'Hmis::Hud::HealthAndDv' do
     data_source { association :hmis_data_source }

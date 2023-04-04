@@ -2000,7 +2000,8 @@ CREATE TABLE public.roles (
     can_view_inactive_cohort_clients boolean DEFAULT false,
     can_manage_inactive_cohort_clients boolean DEFAULT false,
     can_view_deleted_cohort_clients boolean DEFAULT false,
-    can_view_cohort_client_changes_report boolean DEFAULT false
+    can_view_cohort_client_changes_report boolean DEFAULT false,
+    can_approve_careplan boolean DEFAULT false
 );
 
 
@@ -2598,7 +2599,8 @@ CREATE TABLE public.users (
     deprecated_provider_set_at timestamp without time zone,
     exclude_from_directory boolean DEFAULT false,
     exclude_phone_from_directory boolean DEFAULT false,
-    notify_on_new_account boolean DEFAULT false NOT NULL
+    notify_on_new_account boolean DEFAULT false NOT NULL,
+    credentials character varying
 );
 
 
@@ -4152,6 +4154,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230227221846'),
 ('20230313152950'),
 ('20230321123918'),
+('20230322195141'),
+('20230322204908'),
 ('20230328150855');
 
 
