@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -32,8 +32,8 @@ module HudPit::Generators::Pit::Fy2023
     private def rows
       [
         :households,
+        :clients,
         :youth,
-        :over_24,
         :age_25_34,
         :age_35_44,
         :age_45_54,

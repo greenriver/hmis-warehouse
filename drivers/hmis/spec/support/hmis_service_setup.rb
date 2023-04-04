@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 RSpec.shared_context 'hmis service setup', shared_context: :metadata do
   before(:each) do
     ::HmisUtil::ServiceTypes.seed_hud_service_types(ds1.id)

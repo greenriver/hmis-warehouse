@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -83,7 +83,7 @@ class AccessGroup < ApplicationRecord
     delay.maintain_system_groups_no_named_arguments(group)
     Delayed::Worker.new.work_off if Rails.env.test?
   end
- 
+
   def self.maintain_system_groups_no_named_arguments(group)
     maintain_system_groups(group: group)
   end
@@ -99,7 +99,7 @@ class AccessGroup < ApplicationRecord
   end
 
   def self.system_group(group)
-    selected_group = system_groups[group] 
+    selected_group = system_groups[group]
     raise ArgumentError, "Unknown group: #{group}" unless selected_group
 
     selected_group

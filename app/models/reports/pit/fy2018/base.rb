@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -44,6 +44,26 @@ module Reports::Pit::Fy2018
 
     def describe_filter_as_html(_)
       ''
+    end
+
+    def allowed_options(result)
+      options_from_result(result).keys.map(&:to_sym)
+    end
+
+    def filter_from_result(result)
+      # Old PITs don't the filter, but the HudFilterBase will handle display.
+      f = ::Filters::HudFilterBase.new(user_id: result.user_id)
+      f.update(options_from_result(result).with_indifferent_access)
+      f
+    end
+
+    private def options_from_result(result)
+      options = result.options.deep_dup
+      # Cleanup some discrepancies
+      options[:on] = options.delete('pit_date')
+      options[:start] = nil
+      options[:end] = nil
+      options
     end
 
     def value_for_options options

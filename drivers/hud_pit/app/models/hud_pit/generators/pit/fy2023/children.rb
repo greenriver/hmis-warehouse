@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -42,8 +42,8 @@ module HudPit::Generators::Pit::Fy2023
         :latino,
         :native_ak,
         :asian,
-        :native_pi,
         :black_af_american,
+        :native_pi,
         :white,
         :multi_racial,
         :chronic_clients,

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -38,6 +38,12 @@ module Health
     phi_attr :patient_signature_requested_at, Phi::Date, 'Date of request for patient signature'
     phi_attr :provider_signature_requested_at, Phi::Date, 'Date of request for provider signature'
     phi_attr :health_file_id, Phi::OtherIdentifier, 'ID of health file'
+    phi_attr :approving_rn_id, Phi::SmallPopulation, 'ID of approving RN'
+    phi_attr :rn_approved_on, Phi::Date, 'Date of RN approval'
+    phi_attr :approving_ncm_id, Phi::SmallPopulation, 'ID of approving NCM'
+    phi_attr :ncm_approved_on, Phi::Date, 'Date of NCM approval'
+    phi_attr :careplan_sender_id, Phi::SmallPopulation, 'ID of sender'
+    phi_attr :careplan_sent_on, Phi::Date, 'Date careplan was sent to PCP'
 
     # has_many :goals, class_name: 'Health::Goal::Base'
     # has_many :hpc_goals, class_name: 'Health::Goal::Hpc'
@@ -70,6 +76,10 @@ module Health
     end, through: :pcp_signed_signature_requests, source: :signable_document
     has_many :pcp_signed_health_files, through: :pcp_signed_documents, source: :health_files
 
+    belongs_to :approving_rn, class_name: 'User', optional: true
+    belongs_to :careplan_sender, class_name: 'User', optional: true
+    belongs_to :approving_ncm, class_name: 'User', optional: true
+
     # Patient
     has_many :patient_signature_requests, class_name: 'Health::SignatureRequests::PatientSignatureRequest'
     has_many :patient_signed_signature_requests, -> do
@@ -96,10 +106,10 @@ module Health
     serialize :goals_archive, Array
     serialize :backup_plan_archive, Array
 
-    validates_presence_of :provider_id, if: -> { provider_signed_on.present? }
+    # validates_presence_of :provider_id, if: -> { provider_signed_on.present? }
     # We are not collecting patient signature mode yet, so don't enforce this
     # validates_presence_of :patient_signature_mode, if: -> { self.patient_signed_on.present? }
-    validates_presence_of :provider_signature_mode, if: -> { provider_signed_on.present? }
+    # validates_presence_of :provider_signature_mode, if: -> { provider_signed_on.present? }
 
     # Scopes
     scope :locked, -> do
@@ -122,34 +132,60 @@ module Health
     scope :pcp_signed, -> do
       where.not(provider_signed_on: nil)
     end
+
     scope :patient_signed, -> do
       where.not(patient_signed_on: nil)
     end
+
+    scope :cp_1_careplans, -> do
+      joins(patient: :patient_referrals).
+        merge(Health::PatientReferral.current.cp_1_referrals, rewhere: true) # Rewhere to avoid spurious deprecation
+    end
+
+    scope :cp_2_careplans, -> do
+      joins(patient: :patient_referrals).
+        merge(Health::PatientReferral.current.cp_2_referrals, rewhere: true) # Rewhere to avoid spurious deprecation
+    end
+
+    scope :rn_approved, -> do
+      where(rn_approval: true)
+    end
+
     scope :fully_signed, -> do
-      pcp_signed.patient_signed
+      cp_1_careplans.pcp_signed.patient_signed.
+        or(cp_2_careplans.rn_approved.patient_signed)
     end
 
     scope :recent, -> do
-      order(provider_signed_on: :desc).limit(1)
+      cp_1_careplans.or(cp_2_careplans).
+        order(cl(h_cp_t[:rn_approved_on], h_cp_t[:provider_signed_on]).desc).
+        limit(1)
     end
+
     scope :active, -> do
-      fully_signed.where(arel_table[:provider_signed_on].gteq(12.months.ago))
+      fully_signed.
+        where(cl(h_cp_t[:rn_approved_on], h_cp_t[:provider_signed_on]).gteq(12.months.ago))
     end
+
     scope :expired, -> do
-      where(arel_table[:provider_signed_on].lt(12.months.ago))
+      where(cl(h_cp_t[:rn_approved_on], h_cp_t[:provider_signed_on]).lt(12.months.ago))
     end
+
     scope :expiring_soon, -> do
-      where(provider_signed_on: 12.months.ago..11.months.ago)
+      where(cl(h_cp_t[:rn_approved_on], h_cp_t[:provider_signed_on]).between(12.months.ago..11.months.ago))
     end
+
     scope :recently_signed, -> do
-      active.where(arel_table[:provider_signed_on].gteq(1.months.ago))
+      active.where(cl(h_cp_t[:rn_approved_on], h_cp_t[:provider_signed_on]).gteq(1.months.ago))
     end
+
     scope :during_current_enrollment, -> do
-      where(arel_table[:provider_signed_on].gteq(hpr_t[:enrollment_start_date])).
+      where(cl(h_cp_t[:rn_approved_on], h_cp_t[:provider_signed_on]).gteq(hpr_t[:enrollment_start_date])).
         joins(patient: :patient_referral)
     end
+
     scope :during_contributing_enrollments, -> do
-      where(arel_table[:provider_signed_on].gteq(hpr_t[:enrollment_start_date])).
+      where(cl(h_cp_t[:rn_approved_on], h_cp_t[:provider_signed_on]).gteq(hpr_t[:enrollment_start_date])).
         joins(patient: :patient_referrals).
         merge(Health::PatientReferral.contributing)
     end
@@ -182,12 +218,22 @@ module Health
     end
 
     # We need both signatures, and one of must have just been done
+    # FIXME: Left until HelloSign is removed
     def just_signed?
       (patient_signed_on.present? && provider_signed_on.present?) && (patient_signed_on_changed? || provider_signed_on_changed?)
     end
 
+    def ncm_just_approved?
+      @cha = patient.recent_cha_form
+      @cha&.complete? && ncm_approved_on.present? && ncm_approved_on_changed?
+    end
+
+    def rn_just_approved?
+      ncm_approval? && rn_approved_on.present? && rn_approved_on_changed?
+    end
+
     def set_lock
-      if patient_signed_on.present? || provider_signed_on.present?
+      if patient_signed_on.present?
         self.locked = true
         archive_services
         archive_equipment
@@ -246,6 +292,7 @@ module Health
       [
         provider_signed_on,
         patient_signed_on,
+        rn_approved_on,
       ].compact.max
     end
 
@@ -259,13 +306,17 @@ module Health
       completed? && expires_on >= Date.current
     end
 
+    CP2_DATE = '2023-04-01'.to_date.freeze
     def completed?
-      provider_signed_on && patient_signed_on
+      cp1 = provider_signed_on && patient_signed_on && [provider_signed_on, patient_signed_on].max < CP2_DATE
+      cp2 = patient_signed_on && patient_signed_on >= CP2_DATE && rn_approval?
+
+      cp1 || cp2
     end
 
     def compact_future_issues
       issues = []
-      (0..10).each do |i|
+      11.times do |i|
         issues << self["future_issues_#{i}"].presence
         self["future_issues_#{i}"] = nil
       end
@@ -275,7 +326,7 @@ module Health
     end
 
     def future_issues?
-      (0..10).each do |i|
+      11.times do |i|
         future_issues = self["future_issues_#{i}"]
         return true if future_issues&.strip&.present?
       end
