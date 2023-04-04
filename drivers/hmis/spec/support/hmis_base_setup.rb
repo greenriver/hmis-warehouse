@@ -70,6 +70,15 @@ RSpec.shared_context 'hmis base setup', shared_context: :metadata do
   end
 end
 
+RSpec.shared_context 'hmis service setup', shared_context: :metadata do
+  before(:each) do
+    ::HmisUtil::ServiceTypes.seed_hud_service_types(ds1.id)
+  end
+
+  let!(:csc1) { create :hmis_custom_service_category, data_source: ds1, user: u1 }
+  let!(:cst1) { create :hmis_custom_service_type, data_source: ds1, custom_service_category: csc1, user: u1 }
+end
+
 RSpec.shared_context 'file upload setup', shared_context: :metadata do
   let!(:tag) do
     GrdaWarehouse::AvailableFileTag.create!(

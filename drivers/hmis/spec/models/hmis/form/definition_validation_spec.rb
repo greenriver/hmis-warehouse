@@ -4,7 +4,6 @@ require_relative '../../../support/hmis_base_setup'
 RSpec.describe Hmis::Form::Definition, type: :model do
   before(:all) do
     cleanup_test_environment
-    HmisUtil::JsonForms.seed_assessment_form_definitions
   end
   after(:all) do
     cleanup_test_environment

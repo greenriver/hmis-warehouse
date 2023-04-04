@@ -351,14 +351,14 @@ def setup_hmis_admin_access
 end
 
 def load_hmis_data
-  return unless ENV['HMIS_HOSTNAME'].present?
-
-  datasources = GrdaWarehouse::DataSource.hmis
-  return unless datasources.present?
+  return unless ENV['ENABLE_HMIS_API'] == 'true'
 
   # Load FormDefinitions from JSON files
   HmisUtil::JsonForms.seed_record_form_definitions
   HmisUtil::JsonForms.seed_assessment_form_definitions
+
+  datasources = GrdaWarehouse::DataSource.hmis
+  return unless datasources.present?
 
   # Load HUD service types
   datasources.each { |hmis_ds| HmisUtil::ServiceTypes.seed_hud_service_types(hmis_ds.id) }
