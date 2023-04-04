@@ -314,6 +314,10 @@ module Health
       cp1 || cp2
     end
 
+    def cp1?
+      completed? && [provider_signed_on, patient_signed_on].max < CP2_DATE
+    end
+
     def compact_future_issues
       issues = []
       11.times do |i|

@@ -25,7 +25,7 @@
     - if current_user.can_approve_cha?
       = f.input :ncm_approval, label: 'NCM Approval of CHA and Care Plan', hint: approval_hint, input_html: { class: :jNCMApproval }
     - else
-      = approval_hint
+      %p= approval_hint
 
   - if @cha&.completed?
     - approval_hint = @careplan.rn_approved_on.present? ? "Approved by #{@careplan.approving_rn.name} on #{@careplan.rn_approved_on}" : nil
@@ -33,7 +33,7 @@
       - disabled = @careplan.ncm_approval.blank?
       = f.input :rn_approval, label: 'Clinical Manager Approval of Care Plan', hint: approval_hint, input_html: { class: :jRNApproval, disabled: disabled }
     -else
-      = approval_hint
+      %p= approval_hint
 
   - sent_hint = @careplan.careplan_sent_on.present? ? "Care Plan sent by #{@careplan.careplan_sender.name} on #{@careplan.careplan_sent_on}" : nil
   - disabled = @careplan.rn_approval.blank?
