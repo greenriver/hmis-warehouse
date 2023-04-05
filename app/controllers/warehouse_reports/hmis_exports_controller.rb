@@ -22,7 +22,7 @@ module WarehouseReports
 
     def set_jobs
       @job_reports = Delayed::Job.jobs_for_class(::Filters::HmisExport.job_classes).order(run_at: :desc).map do |job|
-        parameters = YAML.load(job.handler).job_data['arguments'].first # rubocop:disable Security/YAMLLoad
+        parameters = YAML.unsafe_load(job.handler).job_data['arguments'].first
         parameters.delete('_aj_symbol_keys')
         parameters.delete('_aj_globalid')
         parameters['project_ids'] = parameters.delete('projects')

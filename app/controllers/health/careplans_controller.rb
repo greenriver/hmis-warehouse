@@ -15,7 +15,7 @@ module Health
 
     before_action :set_client
     before_action :set_hpc_patient
-    before_action :set_careplan, only: [:show, :edit, :update, :revise, :destroy, :download, :remove_file, :upload, :pctp]
+    before_action :set_careplan, only: [:show, :edit, :update, :revise, :destroy, :download, :remove_file, :upload, :pctp, :coversheet]
     before_action :set_live_services_equipment_backup, only: [:show, :pctp, :edit]
     before_action :set_medications, only: [:show]
     before_action :set_problems, only: [:show]
