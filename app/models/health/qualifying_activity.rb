@@ -329,6 +329,9 @@ module Health
       return false if modifiers.include?('U2') && (!modifiers.include?('U1') || activity_sym == activities[:outreach][:code])
 
       valid_options = qa_version.activities[activity_sym]
+      # Must be a QA in the CP
+      return false unless valid_options
+
       # Must not contain forbidden modifiers
       return false unless modifiers.all? { |modifier| (valid_options[:allowed] + valid_options[:required]).include?(modifier) }
 
