@@ -73,19 +73,16 @@ module OmniAuth
 
       # override to allow custom handling
       def fail!(message_key, exception = nil)
-        Sentry.capture_message('okta fail! called')
-
         env['omniauth.error'] = exception
         env['omniauth.error.type'] = message_key.to_sym
         env['omniauth.error.strategy'] = self
 
         message = "Authentication failure! #{message_key} encountered."
+        Sentry.capture_message(message)
         if exception
           log :error, "#{message}: #{exception.class}, #{exception.message}"
-          Sentry.capture_exception_with_info(exception, message)
         else
           log :error, message
-          Sentry.capture_exception(StandardError.new(message))
         end
 
         if options[:on_failure]
