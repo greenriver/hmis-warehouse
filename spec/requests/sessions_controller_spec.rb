@@ -20,7 +20,7 @@ RSpec.describe Users::SessionsController, type: :request do
       post user_session_path(user: { email: user.email, password: 'incorrect' })
     end
 
-    it 'user sees and error' do
+    it 'user sees an error' do
       response.body.should include 'Invalid Email or password'
     end
 
