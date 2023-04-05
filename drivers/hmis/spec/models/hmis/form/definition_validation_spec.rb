@@ -1,5 +1,10 @@
+###
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 require 'rails_helper'
-require_relative 'hmis_form_setup'
 require_relative '../../../support/hmis_base_setup'
 
 RSpec.describe Hmis::Form::Definition, type: :model do
@@ -11,7 +16,6 @@ RSpec.describe Hmis::Form::Definition, type: :model do
   end
 
   include_context 'hmis base setup'
-  include_context 'hmis form setup'
 
   HUD_ASSESSMENT_ROLES = [:INTAKE, :UPDATE, :ANNUAL, :EXIT].freeze
 

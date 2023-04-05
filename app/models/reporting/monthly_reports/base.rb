@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -54,7 +54,7 @@ module Reporting::MonthlyReports
           apply_prior_enrollments(@enrollments_by_client)
           self.class.transaction do
             _clear!(batch)
-            self.class.import @enrollments_by_client.values.flatten
+            self.class.import(@enrollments_by_client.values.flatten.select { |m| m[:project_id].present? })
           end
         end
       maintain_month_range_cache

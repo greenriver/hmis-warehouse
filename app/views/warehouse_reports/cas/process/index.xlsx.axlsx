@@ -1,9 +1,9 @@
 wb = xlsx_package.workbook
-wb.add_worksheet(name: "CAS Match Process") do |sheet|
-  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
-  warning = "The following matches started between #{@range.start} and #{@range.end}.  Looking at the time between #{@step_range.first} and #{@step_range.second}."
+wb.add_worksheet(name: 'CAS Match Process') do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
+  warning = "The following matches started between #{@range.start} and #{@range.end}.  Looking at the time between #{@step_range.first_step} and #{@step_range.second_step}."
   sheet.add_row([warning])
-  sheet.merge_cells("A1:F1")
+  sheet.merge_cells('A1:F1')
   columns = [
     'Program',
     'Sub-Program',
@@ -11,13 +11,13 @@ wb.add_worksheet(name: "CAS Match Process") do |sheet|
     'Route',
     'Terminal Step',
     'Terminal Date',
-    "Result",
+    'Result',
     'Link',
-    "Source Datasource",
-    "Source Id",
-    "CAS Id",
+    'Source Datasource',
+    'Source Id',
+    'CAS Id',
   ]
-  sheet.add_row(columns, :style => title)
+  sheet.add_row(columns, style: title)
   @matches.each do |_,match|
     terminal_step = @all_steps[match.id.to_i]&.last
     row = [
@@ -33,7 +33,6 @@ wb.add_worksheet(name: "CAS Match Process") do |sheet|
       match.client_id,
       match.cas_client_id,
     ]
-  sheet.add_row(row)
-
+    sheet.add_row(row)
   end
 end

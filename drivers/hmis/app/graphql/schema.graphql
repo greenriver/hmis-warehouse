@@ -164,6 +164,12 @@ type AssessmentsPaginated {
   pagesCount: Int!
 }
 
+enum AuditEventType {
+  create
+  destroy
+  update
+}
+
 """
 Value to autofill based on conditional logic
 """
@@ -333,6 +339,7 @@ type Client {
   access: ClientAccess!
   age: Int
   assessments(inProgress: Boolean, limit: Int, offset: Int, roles: [FormRole!], sortOrder: AssessmentSortOption): AssessmentsPaginated!
+  auditHistory(limit: Int, offset: Int): ClientAuditEventsPaginated!
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
@@ -375,6 +382,30 @@ type ClientAccess {
   canViewEnrollmentDetails: Boolean!
   canViewFullSsn: Boolean!
   canViewPartialSsn: Boolean!
+  id: ID!
+}
+
+type ClientAuditEvent {
+  createdAt: ISO8601DateTime!
+  event: AuditEventType!
+  id: ID!
+  item: Client!
+
+  """
+  Format is { field: { fieldName: "GQL field name", displayName: "Human readable name", values: [old, new] } }
+  """
+  objectChanges: JsonObject
+  user: ApplicationUser
+}
+
+type ClientAuditEventsPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [ClientAuditEvent!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
 }
 
 """
@@ -3330,6 +3361,7 @@ type Organization {
 type OrganizationAccess {
   canDeleteOrganization: Boolean!
   canEditOrganization: Boolean!
+  id: ID!
 }
 
 """
@@ -3481,6 +3513,7 @@ type ProjectAccess {
   canViewEnrollmentDetails: Boolean!
   canViewFullSsn: Boolean!
   canViewPartialSsn: Boolean!
+  id: ID!
 }
 
 type ProjectCoc {
@@ -3686,6 +3719,7 @@ type Query {
 
 type QueryAccess {
   canAdministerHmis: Boolean!
+  canAuditClients: Boolean!
   canDeleteAssignedProjectData: Boolean!
   canDeleteEnrollments: Boolean!
   canDeleteOrganization: Boolean!
@@ -3703,6 +3737,7 @@ type QueryAccess {
   canViewEnrollmentDetails: Boolean!
   canViewFullSsn: Boolean!
   canViewPartialSsn: Boolean!
+  id: ID!
 }
 
 """

@@ -55,7 +55,7 @@ RSpec.describe Health::Patient, type: :model do
       Timecop.travel(enrollment_start_date + 240.days)
       aggregate_failures do
         expect(@patient.outreach_cutoff_date).to eq(enrollment_start_date + 90.days)
-        expect(@patient.engagement_date).to eq(enrollment_start_date + 150.days)
+        expect(@patient.engagement_date).to eq(enrollment_start_date + Health::PatientReferral::ENGAGEMENT_IN_DAYS)
       end
     end
 
@@ -78,7 +78,7 @@ RSpec.describe Health::Patient, type: :model do
       aggregate_failures do
         # Days disenrolled days don't count against outreach for auto re-enrollment
         expect(@patient.outreach_cutoff_date).to eq(enrollment_start_date + 30.days + 90.days)
-        expect(@patient.engagement_date).to eq(re_enrollment_date + 150.days)
+        expect(@patient.engagement_date).to eq(re_enrollment_date + Health::PatientReferral::ENGAGEMENT_IN_DAYS)
       end
     end
 
@@ -109,7 +109,7 @@ RSpec.describe Health::Patient, type: :model do
       aggregate_failures do
         # Days disenrolled days don't count against outreach for auto re-enrollment
         expect(@patient.outreach_cutoff_date).to eq(enrollment_start_date + 30.days + 90.days)
-        expect(@patient.engagement_date).to eq(enrollment_start_date + 150.days)
+        expect(@patient.engagement_date).to eq(enrollment_start_date + Health::PatientReferral::ENGAGEMENT_IN_DAYS)
       end
     end
 
@@ -140,7 +140,7 @@ RSpec.describe Health::Patient, type: :model do
       Timecop.travel(enrollment_start_date + 240.days)
       aggregate_failures do
         expect(@patient.outreach_cutoff_date).to eq(new_enrollment_date + 90.days)
-        expect(@patient.engagement_date).to eq(new_enrollment_date + 150.days)
+        expect(@patient.engagement_date).to eq(new_enrollment_date + Health::PatientReferral::ENGAGEMENT_IN_DAYS)
       end
     end
   end
