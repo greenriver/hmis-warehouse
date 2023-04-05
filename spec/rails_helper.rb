@@ -79,6 +79,11 @@ RSpec.configure do |config|
     Delayed::Job.delete_all
     GrdaWarehouse::WarehouseReports::ReportDefinition.maintain_report_definitions
     AccessGroup.maintain_system_groups
+
+    if ENV['ENABLE_HMIS_API'] == 'true'
+      HmisUtil::JsonForms.seed_record_form_definitions
+      HmisUtil::JsonForms.seed_assessment_form_definitions
+    end
   end
 end
 
