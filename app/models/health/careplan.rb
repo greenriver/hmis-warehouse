@@ -311,7 +311,7 @@ module Health
       # CP1 PCTPs are completed when fully signed
       return provider_signed_on && patient_signed_on if cp1?
       # CP2 PCTPs are completed when sent to the PCP
-      return careplan_sent_on.present? unless cp1?
+      return careplan_sent_on.present? if cp2?
 
       false
     end
