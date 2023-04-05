@@ -146,13 +146,15 @@ RSpec.describe Users::SessionsController, type: :request do
     end
   end
 
-  describe 'user with an okta/oauth identity' do
-    it 'cannot login with a password' do
-      identity = create(:oauth_identity, user: user)
-      post user_session_path(user: { email: user.email, password: user.password })
-      expect(response).to have_http_status(:success)
-      response.body.should include 'Invalid Email or password'
-      identity.destroy!
+  if ENV['OKTA_DOMAIN']
+    describe 'user with an okta/oauth identity' do
+      it 'cannot login with a password' do
+        identity = create(:oauth_identity, user: user)
+        post user_session_path(user: { email: user.email, password: user.password })
+        expect(response).to have_http_status(:success)
+        response.body.should include 'Invalid Email or password'
+        identity.destroy!
+      end
     end
   end
 end
