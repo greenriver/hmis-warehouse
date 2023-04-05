@@ -146,7 +146,7 @@ RSpec.describe Users::SessionsController, type: :request do
     end
   end
 
-  if ENV['OKTA_DOMAIN']
+  if ENV['OKTA_DOMAIN'].present?
     describe 'user with an okta/oauth identity' do
       it 'cannot login with a password' do
         identity = create(:oauth_identity, user: user)
