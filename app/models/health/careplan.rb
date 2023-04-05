@@ -308,14 +308,29 @@ module Health
 
     CP2_DATE = '2023-04-01'.to_date.freeze
     def completed?
-      cp1 = provider_signed_on && patient_signed_on && [provider_signed_on, patient_signed_on].max < CP2_DATE
-      cp2 = patient_signed_on && patient_signed_on >= CP2_DATE && rn_approval?
+      # CP1 PCTPs are completed when fully signed
+      return provider_signed_on && patient_signed_on if cp1?
+      # CP2 PCTPs are completed when sent to the PCP
+      return careplan_sent_on.present? unless cp1?
 
-      cp1 || cp2
+      false
     end
 
     def cp1?
-      completed? && [provider_signed_on, patient_signed_on].max < CP2_DATE
+      # A PCTP is from CP1 if it was created before the start of CP2, and it has not been reviewed for CP2
+      created_at.to_date <= CP2_DATE && !rn_approval?
+    end
+
+    def cp2?
+      ! cp1?
+    end
+
+    def needs_rereview?
+      # Only CP1 careplans need to be reviewed for CP2
+      return false unless cp1?
+
+      # Only the most recent PCTP needs review
+      patient.recent_pctp_form == self
     end
 
     def compact_future_issues
