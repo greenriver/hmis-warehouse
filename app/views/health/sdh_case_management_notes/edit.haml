@@ -20,10 +20,14 @@
       });
     });
 
-    // Show type in box for other values
     $('body').on('change', '.string-collection-with-other__control', function(e) {
-      let input = e.target;
-      let container = $(input).parents('.string-collection-with-other__container');
+      let container = $(e.target).parents('.string-collection-with-other__container');
+      updateTextBoxVisibility(container);
+      updateDatePickerVisibility(e.target, container);
+    });
+
+    // Show text box for other values
+    function updateTextBoxVisibility(container) {
       let otherInput = container.find('.string-collection-with-other__input');
       let otherValue = otherInput.data('other-value');
       let inputs = container.find('.string-collection-with-other__control:checked');
@@ -38,21 +42,18 @@
         otherInput.find('input').val('');
         otherInput.slideUp();
       }
-    });
+    }
 
     // Show date picker for housing statuses w/ dates
-    $('body').on('change', '.string-collection-with-other__control', function(e) {
-      let input = e.target;
-      let container = $(input).parents('.string-collection-with-other__container');
+    function updateDatePickerVisibility(input, container) {
       let dateInput = container.find('.string-collection-date__input');
-
       if(dateInput.length === 1) {
-        var dateValues = dateInput.data('date-values');
-        var value = $(input).val()
+        let dateValues = dateInput.data('date-values');
+        let value = $(input).val()
         if($(input).is(':checked') && dateValues.indexOf(value) > -1) {
           dateInput.slideDown();
         } else {
           dateInput.slideUp();
         }
       }
-    });
+    }
