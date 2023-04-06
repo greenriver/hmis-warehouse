@@ -6,6 +6,7 @@
   :javascript
     const versions = [#{Health::QualifyingActivity::VERSIONS.map(&:js_model).join(', ').html_safe}]
 
+    // Handle QA date changes
     $('body').on('change', '.sdh-note__activity .jDateOfActivity', function(e) {
       let qa_date = new Date($(e.target).val())
       $('.sdh-note__activity').find('.jVersionedInputs').addClass('hide');
@@ -17,4 +18,41 @@
           section.removeClass('hide');
         }
       });
+    });
+
+    // Show type in box for other values
+    $('body').on('change', '.string-collection-with-other__control', function(e) {
+      let input = e.target;
+      let container = $(input).parents('.string-collection-with-other__container');
+      let otherInput = container.find('.string-collection-with-other__input');
+      let otherValue = otherInput.data('other-value');
+      let inputs = container.find('.string-collection-with-other__control:checked');
+
+      let selectedValues = [];
+      inputs.each(function() {
+        selectedValues.push($(this).val());
+      });
+      if(selectedValues.indexOf(otherValue) > -1) {
+        otherInput.slideDown();
+      } else {
+        otherInput.find('input').val('');
+        otherInput.slideUp();
+      }
+    });
+
+    // Show date picker for housing statuses w/ dates
+    $('body').on('change', '.string-collection-with-other__control', function(e) {
+      let input = e.target;
+      let container = $(input).parents('.string-collection-with-other__container');
+      let dateInput = container.find('.string-collection-date__input');
+
+      if(dateInput.length === 1) {
+        var dateValues = dateInput.data('date-values');
+        var value = $(input).val()
+        if($(input).is(':checked') && dateValues.indexOf(value) > -1) {
+          dateInput.slideDown();
+        } else {
+          dateInput.slideUp();
+        }
+      }
     });
