@@ -1,3 +1,3 @@
 ## HmisExternalApis README
 
-This README file should be used to explain the functionality of the driver.
+This driver provides interfaces to query external APIs

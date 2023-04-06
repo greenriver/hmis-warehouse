@@ -7,7 +7,7 @@
 require 'rails_helper'
 
 # We need many secrets to test this. Essentially, this runs locally or on staging
-RSpec.describe HmisExternalApis::OauthCredential, type: :model do
+Rspec.describe HmisExternalApis::OauthClientConnection, type: :model do
   if ENV['OAUTH_CREDENTIAL_TEST'] == 'true'
     let(:host) { ENV.fetch('MCI_HOST', 'someapi.net') }
     let(:client_id) { ENV.fetch('MCI_CLIENT_ID', '1234567890') }
@@ -21,19 +21,20 @@ RSpec.describe HmisExternalApis::OauthCredential, type: :model do
         client_secret: client_secret,
         token_url: token_url,
         headers: { 'Ocp-Apim-Subscription-Key' => ocp_apim_subscription_key },
+        base_url: "https://#{host}/",
         scope: 'API_TEST',
       )
     end
 
     it 'supports a get' do
-      result = subject.get("https://#{host}/clients/v1/api/Lookup/logicalTables")
+      result = subject.get('clients/v1/api/Lookup/logicalTables')
       expect(result.status).to eq(200)
       expect(result.parsed_body).to include('COUNTRY')
       expect(result.parsed_body).to include('RACE')
     end
 
     it 'handles errors' do
-      result = subject.get("https://#{host}/clients/v1/api/not-a-thing")
+      result = subject.get('clients/v1/api/not-a-thing')
       expect(result.status).to be_nil
       expect(result.body).to be_nil
       expect(result.parsed_body).to be_nil
@@ -41,7 +42,7 @@ RSpec.describe HmisExternalApis::OauthCredential, type: :model do
     end
 
     it 'supports a post' do
-      result = subject.post("https://#{host}/clients/v1/api/Clients/clearance", { 'firstName' => 'John', 'lastName' => 'Smith', 'genderCode' => 1 })
+      result = subject.post('clients/v1/api/Clients/clearance', { 'firstName' => 'John', 'lastName' => 'Smith', 'genderCode' => 1 })
       expect(result.status).to eq(200)
       expect(result.parsed_body.length).to eq(470)
     end

@@ -18295,7 +18295,9 @@ CREATE TABLE public.remote_credentials (
     endpoint character varying,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    additional_headers jsonb DEFAULT '{}'::jsonb,
+    slug character varying
 );
 
 
@@ -51385,6 +51387,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230322183901'),
 ('20230322220754'),
 ('20230327202808'),
-('20230328171436');
+('20230328171436'),
+('20230406154235');
 
 

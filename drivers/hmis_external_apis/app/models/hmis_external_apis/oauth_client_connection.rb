@@ -6,13 +6,13 @@
 
 module HmisExternalApis
   # https://gitlab.com/oauth-xx/oauth2/
-  OauthCredential = Struct.new(:client_id, :client_secret, :token_url, :headers, :scope, keyword_init: true) do
-    def get(url)
-      request(:get, url)
+  OauthClientConnection = Struct.new(:client_id, :client_secret, :token_url, :headers, :scope, :base_url, keyword_init: true) do
+    def get(path)
+      request(:get, base_url + path)
     end
 
-    def post(url, payload)
-      request(:post, url, payload)
+    def post(path, payload)
+      request(:post, base_url + path, payload)
     end
 
     def self.access(client_id)
@@ -54,7 +54,11 @@ module HmisExternalApis
         status: result&.status,
         body: result&.body,
         parsed_body: nil,
-        error: e.message,
+        error: begin
+                 JSON.parse(e.message)
+               rescue StandardError
+                 e.message
+               end,
         error_type: e.class.name,
       )
     end
@@ -62,13 +66,13 @@ module HmisExternalApis
     # We can't cache this in redis, but we want to retain access tokens between
     # web requests.
     def access
-      a = OauthCredential.access(client_id)
+      a = OauthClientConnection.access(client_id)
 
       needs_a_new_one = a.blank? || (a.present? && (a.expires_at - Time.now.to_i) < 30)
 
-      OauthCredential.access = client.client_credentials.get_token(scope: scope) if needs_a_new_one
+      OauthClientConnection.access = client.client_credentials.get_token(scope: scope) if needs_a_new_one
 
-      OauthCredential.access(client_id)
+      OauthClientConnection.access(client_id)
     end
 
     def client
