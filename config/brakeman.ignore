@@ -2243,25 +2243,6 @@
       "note": ""
     },
     {
-      "warning_type": "Cross-Site Scripting",
-      "warning_code": 2,
-      "fingerprint": "cafee3be2192a199dda016fc47d0d37d55d0288bbb449d7395624e49a46ede86",
-      "check_name": "CrossSiteScripting",
-      "message": "Unescaped model attribute",
-      "file": "app/views/health/sdh_case_management_notes/_form_js.haml",
-      "line": 3,
-      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
-      "code": "Health::QualifyingActivity::VERSIONS.map(&:js_model).join(\", \")",
-      "render_path": null,
-      "location": {
-        "type": "template",
-        "template": "health/sdh_case_management_notes/_form_js"
-      },
-      "user_input": "Health::QualifyingActivity::VERSIONS.map(&:js_model)",
-      "confidence": "Weak",
-      "note": ""
-    },
-    {
       "warning_type": "SQL Injection",
       "warning_code": 0,
       "fingerprint": "cb24bc097afffbd5cf87060d03cc8dbc62621b116886794d375a27bbc5d50b93",
@@ -2841,6 +2822,6 @@
       "note": ""
     }
   ],
-  "updated": "2023-04-06 14:53:22 -0400",
+  "updated": "2023-04-06 15:10:53 -0400",
   "brakeman_version": "5.0.4"
 }
