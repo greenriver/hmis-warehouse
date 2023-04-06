@@ -18,6 +18,7 @@ module Types
     field :confidential, Boolean, null: true
     field :updated_at, GraphQL::Types::ISO8601DateTime, null: false
     field :updated_by, Types::Application::User, null: false
+    field :uploaded_by, Types::Application::User, null: false
     field :created_at, GraphQL::Types::ISO8601DateTime, null: false
     field :url, String, null: false
     field :name, String, null: false
@@ -47,8 +48,8 @@ module Types
       object.tags.map(&:id)
     end
 
-    def updated_by
-      object.updated_by
+    def uploaded_by
+      object.user
     end
 
     def own_file
