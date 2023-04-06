@@ -4,9 +4,22 @@ if ENV['OKTA_DOMAIN'].present?
   RSpec.describe Users::OmniauthCallbacksController, type: :request do
     describe 'GET /users/auth/:provider protects against CVE-2015-9284' do
       it do
-        get '/users/auth/okta'
-        expect(response).to redirect_to(root_path)
+        expect {
+          get '/users/auth/okta'
+        }.to raise_error(ActionController::RoutingError)
       end
     end
+
+    describe 'okta auth request has no smoke' do
+      it do
+        post '/users/auth/okta'
+        expect(response.location).to match("https://#{ENV['OKTA_DOMAIN']}/oauth2/default/v1/authorize")
+        uri = URI.parse(response.location)
+        expect(uri.hostname).to eq(ENV['OKTA_DOMAIN'])
+        redir = CGI.parse(uri.query)['redirect_uri'][0]
+        expect(redir).to eq('http://www.example.com/users/auth/okta/callback')
+      end
+    end
+
   end
 end

@@ -6,9 +6,7 @@
 
 BostonHmis::Application.routes.draw do
   # Routes for the HMIS API
-  # NOTE: current omniauthable setup doesn't play nicely with multiple models.
-  # If we need to use Okta and the HMIS API together, see https://stackoverflow.com/a/13591797
-  if ENV['ENABLE_HMIS_API'] == 'true' && !ENV['OKTA_DOMAIN'].present?
+  if ENV['ENABLE_HMIS_API'] == 'true'
     namespace :hmis, defaults: { format: :json } do
       devise_for :users, class_name: 'Hmis::User',
                          skip: [:registrations, :invitations, :passwords, :confirmations, :unlocks, :password_expired],
@@ -21,10 +19,14 @@ BostonHmis::Application.routes.draw do
 
       devise_scope :hmis_user do
         match 'logout' => 'sessions#destroy', via: :get if Rails.env.development?
+        if ENV['OKTA_DOMAIN'].present?
+          get '/users/auth/okta/callback' => 'users/omniauth_callbacks#okta' if ENV['HMIS_OKTA_CLIENT_ID']
+        end
       end
 
       get 'theme', to: 'theme#index', defaults: { format: :json }
       get 'themes', to: 'theme#list', defaults: { format: :json }
+      resource 'app_settings', only: [:show], defaults: { format: :json }
 
       post 'hmis-gql', to: 'graphql#execute', defaults: { schema: :hmis }
       mount GraphiQL::Rails::Engine, at: '/graphiql', graphql_path: '/hmis/hmis-gql', defaults: { format: :html } if Rails.env.development?
