@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 RSpec.shared_context 'hmis base setup', shared_context: :metadata do
   let!(:ds1) { create :hmis_data_source }
   let!(:user) { create(:user).tap { |u| u.add_viewable(ds1) } }
@@ -6,6 +12,10 @@ RSpec.shared_context 'hmis base setup', shared_context: :metadata do
   let!(:o1) { create :hmis_hud_organization, data_source: ds1, user: u1 }
   let!(:p1) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1 }
   let(:c1) { create :hmis_hud_client, data_source: ds1, user: u1 }
+
+  # Custom Service Category and Custom Service Type
+  let!(:csc1) { create :hmis_custom_service_category, data_source: ds1, user: u1 }
+  let!(:cst1) { create :hmis_custom_service_type, data_source: ds1, custom_service_category: csc1, user: u1 }
 
   let(:edit_access_group) do
     group = create :edit_access_group
@@ -20,6 +30,59 @@ RSpec.shared_context 'hmis base setup', shared_context: :metadata do
     group.access_controls.create(role: role)
     group
   end
+
+  let(:form_item_fragment) do
+    <<~GRAPHQL
+      #{scalar_fields(Types::Forms::FormItem)}
+      pickListOptions {
+        #{scalar_fields(Types::Forms::PickListOption)}
+      }
+      bounds {
+        #{scalar_fields(Types::Forms::ValueBound)}
+      }
+      enableWhen {
+        #{scalar_fields(Types::Forms::EnableWhen)}
+      }
+      initial {
+        #{scalar_fields(Types::Forms::InitialValue)}
+      }
+      autofillValues {
+        #{scalar_fields(Types::Forms::AutofillValue)}
+        autofillWhen {
+          #{scalar_fields(Types::Forms::EnableWhen)}
+        }
+      }
+    GRAPHQL
+  end
+
+  let(:form_definition_fragment) do
+    <<~GRAPHQL
+      #{scalar_fields(Types::Forms::FormDefinition)}
+      definition {
+        item {
+          #{form_item_fragment}
+          item {
+            #{form_item_fragment}
+            item {
+              #{form_item_fragment}
+              item {
+                #{form_item_fragment}
+              }
+            }
+          }
+        }
+      }
+    GRAPHQL
+  end
+end
+
+RSpec.shared_context 'hmis service setup', shared_context: :metadata do
+  before(:each) do
+    ::HmisUtil::ServiceTypes.seed_hud_service_types(ds1.id)
+  end
+
+  let!(:csc1) { create :hmis_custom_service_category, data_source: ds1, user: u1 }
+  let!(:cst1) { create :hmis_custom_service_type, data_source: ds1, custom_service_category: csc1, user: u1 }
 end
 
 RSpec.shared_context 'file upload setup', shared_context: :metadata do

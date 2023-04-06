@@ -23,9 +23,10 @@
     .col
       .j-file-upload= render 'upload_fields', f: f
 
-  .row
+  .row.mb-4
     .col
-      = f.input :mode_of_contact, as: :radio_buttons, collection: @release_form.modes_of_contact
+      - if @release_form.mode_of_contact == 'verbal'
+        %b Form was signed via directed signature!
 
   .row
     .col-sm-8

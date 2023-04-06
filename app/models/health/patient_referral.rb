@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -138,6 +138,16 @@ module Health
       where(enrollment_start_date: date)
     end
 
+    CP_2_REFERRAL_DATE = '2023-04-01'.to_date.freeze
+
+    scope :cp_1_referrals, -> do
+      where(enrollment_start_date: (...CP_2_REFERRAL_DATE)) # ... to exclude the start date
+    end
+
+    scope :cp_2_referrals, -> do
+      where(enrollment_start_date: (CP_2_REFERRAL_DATE..))
+    end
+
     scope :at_acos, ->(aco_ids) do
       where(accountable_care_organization_id: aco_ids)
     end
@@ -232,7 +242,9 @@ module Health
       patient.care_plan_signed? && Date.current <= patient.engagement_date
     end
 
-    ENGAGEMENT_IN_DAYS = 150
+    # After moving to days after enrollment, engagement date was 150 days after enrollment until 2023-04-01
+    ENGAGEMENT_IN_DAYS = 153.days
+
     # The engagement date is the date by which a patient must be engaged
     def engagement_date
       return nil unless enrollment_start_date.present?
@@ -240,6 +252,7 @@ module Health
       # Historical calculations...
       # Before 2018-09-01, engagement was 120 days following the start of the month following enrollment
       # Until 2020-04-01, engagement was 90 days following the start of the month following enrollment
+      # And then it was moved to a number of days after enrollment (see ENGAGEMENT_IN_DAYS above)
 
       (enrollment_start_date + ENGAGEMENT_IN_DAYS).to_date
     end

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -224,6 +224,14 @@ class Hmis::Role < ::ApplicationRecord
         access: [:viewable],
         categories: [
           'Files',
+        ],
+      },
+      can_audit_clients: {
+        description: 'Access to see who has changed a client record.',
+        administrative: false,
+        access: [:viewable],
+        categories: [
+          'Audit History',
         ],
       },
     }

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -188,9 +188,11 @@ class ApplicationController < ActionController::Base
   end
 
   def after_sign_out_path_for(_scope)
-    if (user = request.env['last_user'])
-      url = user.idp_signout_url(post_logout_redirect_uri: root_url)
-      return url if url.present?
+    user = request.env['last_user']
+    if user
+      provider = cookies.signed[:active_provider]
+      identity = OauthIdentity.for_user(user).where(provider: provider).first if provider
+      identity&.idp_signout_url(post_logout_redirect_uri: root_url) || root_url
     else
       root_url
     end

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -64,6 +64,7 @@ module UserConcern
     has_many :activity_logs
 
     has_many :two_factors_memorized_devices
+    has_many :oauth_identities, dependent: :destroy
 
     has_many :favorites
     has_many :favorite_reports, through: :favorites, source: :entity, source_type: 'GrdaWarehouse::WarehouseReports::ReportDefinition'
@@ -204,12 +205,27 @@ module UserConcern
       "#{name} <#{email}>"
     end
 
+    def name_with_credentials
+      return "#{name}, #{credentials}" if credentials.present?
+
+      name
+    end
+
     def agency_name
       agency&.name if agency.present?
     end
 
     def phone_for_directory
       phone unless exclude_phone_from_directory
+    end
+
+    def show_credentials?
+      # Show the credentials field if the user has at least one health role
+      roles.health.exists?
+    end
+
+    def credential_options
+      @credential_options ||= User.pluck(:credentials).compact.uniq.sort
     end
 
     def two_factor_label
@@ -306,7 +322,9 @@ module UserConcern
       return 'Account deactivated' unless version
       return "Account deactivated on #{version.created_at}" unless user.can_audit_users? || version.whodunnit.blank?
 
-      name = version.name_of_whodunnit?
+      name = nil
+      name = User.find_by(id: version.whodunnit)&.name if version.whodunnit&.to_i&.to_s == version.whodunnit
+
       return "Account deactivated on #{version.created_at}" unless name
 
       "Account deactivated by #{name} on #{version.created_at}"

@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 class Dba::PartitionAll
   def tables
     t = HmisCsvImporter::Loader::Loader.loadable_files.values.map(&:table_name)
