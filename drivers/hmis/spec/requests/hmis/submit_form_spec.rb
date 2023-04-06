@@ -206,6 +206,33 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             end)
           end
         end
+
+        it 'should update user correctly' do
+          _response, result = post_graphql(input: { input: test_input }) { mutation }
+          record_id = result.dig('data', 'submitForm', 'record', 'id')
+          record = definition.record_class_name.constantize.find_by(id: record_id)
+
+          if role == :FILE
+            expect(record.user).to eq(hmis_user)
+            expect(record.updated_by).to eq(hmis_user)
+          else
+            expect(record.user).to eq(Hmis::Hud::User.from_user(hmis_user))
+          end
+
+          next_input = test_input.merge(record_id: record.id)
+          record.update(user_id: 999, updated_by_id: nil) if role == :FILE
+
+          _response, result = post_graphql(input: { input: next_input }) { mutation }
+          record_id = result.dig('data', 'submitForm', 'record', 'id')
+          record = definition.record_class_name.constantize.find_by(id: record_id)
+
+          if role == :FILE
+            expect(record.user_id).to eq(999)
+            expect(record.updated_by).to eq(hmis_user)
+          else
+            expect(record.user).to eq(Hmis::Hud::User.from_user(hmis_user))
+          end
+        end
       end
     end
   end

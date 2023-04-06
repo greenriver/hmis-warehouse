@@ -17,7 +17,7 @@ module Types
     field :expiration_date, GraphQL::Types::ISO8601Date, null: true
     field :confidential, Boolean, null: true
     field :updated_at, GraphQL::Types::ISO8601DateTime, null: false
-    field :updated_by, Types::HmisSchema::User, null: false
+    field :updated_by, Types::Application::User, null: false
     field :created_at, GraphQL::Types::ISO8601DateTime, null: false
     field :url, String, null: false
     field :name, String, null: false
@@ -48,11 +48,11 @@ module Types
     end
 
     def updated_by
-      object.user
+      object.updated_by
     end
 
     def own_file
-      object.uploaded_by_id == Hmis::Hud::User.from_user(current_user).id
+      object.user_id == current_user.id
     end
   end
 end

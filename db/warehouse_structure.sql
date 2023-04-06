@@ -7064,7 +7064,7 @@ CREATE TABLE public.files (
     coc_codes jsonb DEFAULT '[]'::jsonb,
     enrollment_id bigint,
     confidential boolean,
-    uploaded_by_id bigint
+    updated_by_id bigint
 );
 
 
@@ -42160,10 +42160,10 @@ CREATE INDEX index_files_on_type ON public.files USING btree (type);
 
 
 --
--- Name: index_files_on_uploaded_by_id; Type: INDEX; Schema: public; Owner: -
+-- Name: index_files_on_updated_by_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_files_on_uploaded_by_id ON public.files USING btree (uploaded_by_id);
+CREATE INDEX index_files_on_updated_by_id ON public.files USING btree (updated_by_id);
 
 
 --

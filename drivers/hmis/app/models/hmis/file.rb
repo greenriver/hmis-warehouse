@@ -24,11 +24,11 @@ class Hmis::File < GrdaWarehouse::File
 
   belongs_to :enrollment, class_name: '::Hmis::Hud::Enrollment', optional: true
   belongs_to :client, class_name: '::Hmis::Hud::Client'
-  belongs_to :user, class_name: 'Hmis::Hud::User', optional: true
-  belongs_to :uploaded_by, class_name: 'Hmis::Hud::User', optional: true
+  belongs_to :user, class_name: 'Hmis::User', optional: true
+  belongs_to :updated_by, class_name: 'Hmis::User', optional: true
 
   scope :with_owner, ->(user) do
-    where(uploaded_by_id: user.id)
+    where(user_id: user.id)
   end
 
   scope :confidential, -> { where(confidential: true) }
@@ -57,7 +57,7 @@ class Hmis::File < GrdaWarehouse::File
   def self.authorize_proc
     ->(record, user) do
       return true if user.permissions_for?(record.client, :can_manage_any_client_files)
-      return true if user.permissions_for?(record.client, :can_manage_own_client_files) && (record.id.nil? || (record.user&.id == user.id))
+      return true if user.permissions_for?(record.client, :can_manage_own_client_files) && (record.id.nil? || (record.user_id == user.id.to_s))
 
       false
     end

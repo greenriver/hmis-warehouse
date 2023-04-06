@@ -23,13 +23,18 @@ module Mutations
       hud_user = Hmis::Hud::User.from_user(current_user)
       if input.record_id.present?
         record = klass.viewable_by(current_user).find_by(id: input.record_id)
-        record&.assign_attributes(user: hud_user)
+        if record.is_a?(Hmis::File)
+          record&.assign_attributes(updated_by: current_user)
+        else
+          record&.assign_attributes(user: hud_user)
+        end
       else
         record = klass.new(
-          user: hud_user,
+          user: klass == Hmis::File ? current_user : hud_user,
           data_source_id: hud_user.data_source_id,
           **related_id_attributes(klass.name, input),
         )
+        record.updated_by = current_user if klass == Hmis::File
       end
 
       errors.add :record, :not_found unless record.present?
@@ -133,7 +138,6 @@ module Mutations
         {
           client_id: Hmis::Hud::Client.viewable_by(current_user).find_by(id: input.client_id)&.id,
           enrollment_id: Hmis::Hud::Enrollment.viewable_by(current_user).find_by(id: input.enrollment_id)&.id,
-          uploaded_by_id: Hmis::Hud::User.from_user(current_user)&.id,
         }
       else
         {}
