@@ -14,11 +14,19 @@ module Health
 
     CONTACTLESS_ACTIVITIES = [].freeze
 
-    EFFECTIVE_DATE_RANGE = (.. '2023-03-31'.to_date).freeze
+    EFFECTIVE_DATE_RANGE = (.. '2023-03-31'.to_date)
     ATTRIBUTE_SUFFIX = '_v1'.freeze
 
     def initialize(qa)
       @qa = qa
+    end
+
+    def self.versioned_attribute_names
+      QualifyingActivity.column_names.map do |c|
+        next c unless c.to_sym.in?(QualifyingActivity::VERSIONED_ATTRIBUTES)
+
+        "#{c}#{ATTRIBUTE_SUFFIX}"
+      end
     end
 
     def self.modes_of_contact

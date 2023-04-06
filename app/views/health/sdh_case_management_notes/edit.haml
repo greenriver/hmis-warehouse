@@ -1,4 +1,22 @@
 = render 'health/breadcrumbs'
 %div{data: {behavior: 'container'}}
   = render 'form'
-= render 'form_js'
+
+- content_for :page_js do
+  :javascript
+    const versions = [#{Health::QualifyingActivity::VERSIONS.map(&:js_model).join(', ').html_safe}]
+
+    $('body').on('change', '.sdh-note__activity .jDateOfActivity', function(e) {
+      let qa_date = new Date($(e.target).val())
+      $('.sdh-note__activity').find('.jVersionedInputs').addClass('hide');
+      versions.forEach(function(version) {
+        console.log(qa_date, version, qa_date <= version.range_end && qa_date >= version.range_start)
+
+        let section = $('.sdh-note__activity').find(`.${version.css_class}`);
+        if(qa_date <= version.range_end && qa_date >= version.range_start) {
+          section.removeClass('hide');
+        } else {
+
+        }
+      });
+    });

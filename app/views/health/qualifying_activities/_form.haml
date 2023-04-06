@@ -1,21 +1,19 @@
+
+= f.hidden_field :source_type, value: @qa.source_type
+= f.hidden_field :source_id, value: @qa.source_id
+
 %div{ data: { behavior: 'activities' }}
-  = simple_form_for @qa, url: client_health_qualifying_activities_path(@client) do |f|
-    .sdh-note__activity{ data: { behavior: 'activity' }}
-      .row
-        .col-sm-6
-          = f.input :date_of_activity, as: :date_picker, input_html: {value: f.object.date_of_activity&.to_date || Date.current.to_date}
-      - Health::QualifyingActivity::VERSIONS.each do |version|
-        %div{class: version.css_class}
-          .row
-            .col-sm-6
-              = render 'health/sdh_case_management_notes/string_collection_with_other', object: version, f: f, note_attr: 'mode_of_contact', label: 'Mode of contact', other_label: 'Please specify', other: 'other', as: :radio_buttons
-          .row
-            .col-sm-6
-              = render 'health/sdh_case_management_notes/string_collection_with_other', object: version, f: f, note_attr: 'reached_client', label: 'Reached client?', other_label: 'Collateral contact - with whom?', other: 'collateral_contact', as: :radio_buttons
-          .row
-            .col-sm-6
-              - activity_name = 'activity' + version::ATTRIBUTE_SUFFIX
-              = f.input activity_name, collection: version.activity_collection, as: :radio_buttons, label: 'Which of these activities took place?', hint: 'Choose one. You will be able to add additional activities below.'
-      .row
-        .col-sm-8
-          = f.input :follow_up, as: :text, label: 'Notes and follow-up', input_html: {rows: 10}
+  = f.error_notification
+  .sdh-note__activity{ data: { behavior: 'activity' }}
+    - date = f.object.date_of_activity&.to_date || Date.current.to_date
+    = f.input :date_of_activity, as: :date_picker, input_html: { value: date, class: 'jDateOfActivity' }
+    - Health::QualifyingActivity::VERSIONS.each do |version|
+      - hidden_class = if Health::QualifyingActivity.version_for_date(date).class == version then '' else 'hide' end
+      .jVersionedInputs{ class: [version.css_class, hidden_class] }
+        = render 'health/sdh_case_management_notes/string_collection_with_other', object: version, f: f, note_attr: 'mode_of_contact', label: 'Mode of contact', other_label: 'Please specify', other: 'other', as: :radio_buttons
+        = render 'health/sdh_case_management_notes/string_collection_with_other', object: version, f: f, note_attr: 'reached_client', label: 'Reached client?', other_label: 'Collateral contact - with whom?', other: 'collateral_contact', as: :radio_buttons
+        - activity_name = 'activity' + version::ATTRIBUTE_SUFFIX
+        = f.input activity_name, collection: version.activity_collection, as: :radio_buttons, label: 'Which of these activities took place?', hint: 'Choose one. You will be able to add additional activities below.'
+    .row
+      .col-sm-8
+        = f.input :follow_up, as: :text, label: 'Notes and follow-up', input_html: {rows: 10}

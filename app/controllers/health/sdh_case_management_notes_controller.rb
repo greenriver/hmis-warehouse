@@ -37,7 +37,7 @@ module Health
     end
 
     def edit
-      @note.activities.build(date_of_activity: Date.current) if @note.activities.size.zero? # Add a qa if there isn't at least one
+      # @note.activities.build(date_of_activity: Date.current) if @note.activities.size.zero? # Add a qa if there isn't at least one
       @activities = @note.activities.sort_by(&:id)
       @note.build_health_file unless @note.health_file
       respond_with @note
