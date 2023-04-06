@@ -13,8 +13,14 @@ module Health
     before_action :set_hpc_patient
     before_action :set_qualifying_activities, only: [:index]
     before_action :require_can_unsubmit_submitted_claims!, only: [:destroy]
-    before_action :set_qualifying_activity, only: [:destroy]
+    before_action :set_qualifying_activity, only: [:destroy, :update, :edit]
     before_action :set_client
+
+    def new
+      @qa = @patient.qualifying_activities.new(user: current_user)
+    end
+
+
 
     def index
       @start_date = params[:start_date]

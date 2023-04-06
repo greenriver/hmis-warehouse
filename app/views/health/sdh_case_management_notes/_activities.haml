@@ -1,0 +1,30 @@
+%section.c-card.c-card--block.mb-6
+  .c-card__header.c-card__header--external
+    %h3 Qualifying Activities
+  .card
+    %table.table.table-striped.mb-0
+      %thead
+        %tr
+          %th Date
+          %th Activity
+          %th Client Reached
+          %td Follow-up
+      %tbody
+        - @activities.each do |qa|
+          %tr
+            %td= qa.date_of_activity
+            %td= qa.title_for_activity
+            %td
+              = qa.title_for_mode_of_contact
+              - if qa.mode_of_contact_is_other?
+                = qa.mode_of_contact_other_value
+              %br
+              = qa.title_for_client_reached
+              - if qa.reached_client_is_collateral_contact?
+                = qa.reached_client_collateral_contact_value
+            %td= qa.follow_up
+    = #render "fields_for_activities", f: f
+    .sdh-note__action.d-flex
+      .ml-auto.mr-4.mb-4
+        - btn_text = @activities.any? ? 'Add Another Qualifying Activity' : 'Add Qualifying Activity'
+        = link_to btn_text, new_client_health_qualifying_activity_path(@client), class: 'btn btn-secondary', data: { loads_in_ajax_modal: true }

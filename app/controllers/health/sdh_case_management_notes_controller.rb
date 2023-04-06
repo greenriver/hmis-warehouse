@@ -49,7 +49,7 @@ module Health
       if params[:commit] == 'Save Case Note'
         @note.health_file.set_calculated!(current_user.id, @client.id) if @note.health_file&.new_record?
         # Clean up any invalid QAs
-        @note.activities = @note.activities.to_a.select(&:valid?)
+        # @note.activities = @note.activities.to_a.select(&:valid?)
         @note.save
       else
         # Save invalid data for WIP -- will get cleaned up on save
@@ -57,9 +57,9 @@ module Health
       end
       @note_added = (@activity_count != @note.activities.size)
       @activities = @note.activities.sort_by(&:id)
-      @activities.each do |qa|
-        qa.delay.maintain_cached_values if qa.persisted?
-      end
+      # @activities.each do |qa|
+      #   qa.delay.maintain_cached_values if qa.persisted?
+      # end
       respond_with @note, location: polymorphic_path(careplans_path_generator)
     end
 

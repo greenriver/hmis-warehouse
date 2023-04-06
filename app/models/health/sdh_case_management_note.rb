@@ -194,13 +194,13 @@ module Health
       current_user.id == user_id && current_user.can_edit_patient_items_for_own_agency?
     end
 
-    def display_note_form_sections
-      [
-        {id: :basic_info, title: 'Note Details'},
-        {id: :activities, title: 'Qualifying Activities'},
-        {id: :additional_questions, title: 'Additional Questions'}
-      ]
-    end
+    # def display_note_form_sections
+    #   [
+    #     {id: :basic_info, title: 'Note Details'},
+    #     {id: :activities, title: 'Qualifying Activities'},
+    #     {id: :additional_questions, title: 'Additional Questions'}
+    #   ]
+    # end
 
     def display_basic_info_section
       {
