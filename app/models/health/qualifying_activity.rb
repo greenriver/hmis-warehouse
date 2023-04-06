@@ -54,9 +54,9 @@ module Health
       end
     end
 
-    def self.version_for_date(date)
+    def self.version_for_date(date, qa = nil)
       VERSIONS.each do |version|
-        return version.new(self) if version::EFFECTIVE_DATE_RANGE.cover?(date)
+        return version.new(qa) if version::EFFECTIVE_DATE_RANGE.cover?(date)
       end
     end
 
@@ -64,7 +64,7 @@ module Health
       # If the QA doesn't have a date, use the creation date as a fallback to determine the version
       date = date_of_activity || created_at.to_date
 
-      self.class.version_for_date(date)
+      self.class.version_for_date(date, self)
     end
 
     scope :submitted, -> do
