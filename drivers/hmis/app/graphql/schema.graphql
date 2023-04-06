@@ -1636,6 +1636,7 @@ type File {
   tags: [String!]!
   updatedAt: ISO8601DateTime!
   updatedBy: ApplicationUser!
+  uploadedBy: ApplicationUser!
   url: String!
 }
 
