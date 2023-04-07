@@ -28,7 +28,7 @@ class Hmis::AppSettingsController < Hmis::BaseController
       resetPasswordUrl: "https://#{hostname}/users/password/new",
       unlockAccountUrl: "https://#{hostname}/users/unlock/new",
       manageAccountUrl: "https://#{hostname}/account/edit",
-      casUrl: nil, # TODO: get CAS url from env
+      casUrl: GrdaWarehouse::Config.get(:cas_url),
     }
   end
 end
