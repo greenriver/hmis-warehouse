@@ -1635,7 +1635,8 @@ type File {
   ownFile: Boolean!
   tags: [String!]!
   updatedAt: ISO8601DateTime!
-  updatedBy: User!
+  updatedBy: ApplicationUser
+  uploadedBy: ApplicationUser
   url: String!
 }
 
