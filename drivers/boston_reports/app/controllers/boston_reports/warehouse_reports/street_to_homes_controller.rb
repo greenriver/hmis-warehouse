@@ -72,6 +72,8 @@ module BostonReports::WarehouseReports
     end
 
     def filter_params
+      return report_class.default_filter_options unless params[:filters].present?
+
       params.permit(filters: @filter.known_params)
     end
     helper_method :filter_params

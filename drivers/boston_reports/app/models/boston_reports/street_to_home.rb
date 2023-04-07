@@ -20,12 +20,15 @@ module BostonReports
       @config = BostonReports::Config.first_or_create(&:default_colors)
     end
 
-    def self.comparison_patterns
+    def self.default_filter_options
       {
-        no_comparison_period: 'None',
-        prior_year: 'Same period, prior year',
-        prior_period: 'Prior Period',
-      }.invert.freeze
+        filters: {
+          cohort_column: :user_select_12,
+          cohort_column_voucher_type: :user_select_9,
+          cohort_column_housed_date: :housed_date,
+          cohort_column_matched_date: :user_date_4,
+        },
+      }
     end
 
     def self.viewable_by(user)
