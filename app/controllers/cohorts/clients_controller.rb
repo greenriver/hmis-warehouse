@@ -136,7 +136,7 @@ module Cohorts
         @client_ids = @client_ids.strip.split(/\s+/).map { |m| m[/\d+/].to_i }
         @clients = client_scope.where(id: @client_ids)
       elsif params.dig(:search_form, :q).present?
-        search_setup(scope: :full_text_search)
+        @search = search_setup(scope: :full_text_search)
         search_client_ids = @search.distinct.select(:id) if @search_string.present?
         # Calling merge on a scope where both sides access the same attribute
         # results in throwing out the left-hand of the equation

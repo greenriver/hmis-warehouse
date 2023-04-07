@@ -30,7 +30,7 @@ class CohortsController < ApplicationController
       @active_filter = true
     end
 
-    search_setup(columns: [:name])
+    @search = search_setup(columns: [:name])
     @cohort = cohort_source.new
     @cohorts = @search.active_user.reorder(sort_string)
     @inactive_cohorts = @search.inactive.reorder(sort_string)
