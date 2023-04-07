@@ -1770,10 +1770,6 @@ module GrdaWarehouse::Hud
       ((date_of_last_service - date_of_first_service).to_i + 1) rescue 'unknown' # rubocop:disable Style/RescueModifier
     end
 
-    def self.ransackable_scopes(auth_object = nil) # rubocop:disable Lint/UnusedMethodArgument
-      [:full_text_search]
-    end
-
     def self.text_search(text, client_scope:)
       text_searcher(text) do |where|
         client_scope.
