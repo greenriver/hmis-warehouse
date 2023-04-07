@@ -20,6 +20,10 @@ RSpec.describe Users::SessionsController, type: :request do
       post user_session_path(user: { email: user.email, password: 'incorrect' })
     end
 
+    it 'user sees an error' do
+      response.body.should include 'Invalid Email or password'
+    end
+
     # FIXME: we need to double the number of attempts because of a bug in devise 2FA that
     # hasn't been fixed yet https://github.com/tinfoil/devise-two-factor/pull/136
     # https://github.com/tinfoil/devise-two-factor/pull/130
@@ -138,6 +142,18 @@ RSpec.describe Users::SessionsController, type: :request do
           post user_session_path(user: { email: user_2fa.email, password: user_2fa.password })
           expect(response).to render_template('devise/sessions/two_factor')
         end
+      end
+    end
+  end
+
+  if ENV['OKTA_DOMAIN'].present?
+    describe 'user with an okta/oauth identity' do
+      it 'cannot login with a password' do
+        identity = create(:oauth_identity, user: user)
+        post user_session_path(user: { email: user.email, password: user.password })
+        expect(response).to have_http_status(:success)
+        response.body.should include 'Invalid Email or password'
+        identity.destroy!
       end
     end
   end

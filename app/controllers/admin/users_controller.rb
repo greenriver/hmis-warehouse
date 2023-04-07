@@ -27,7 +27,7 @@ module Admin
       end
 
       @users = @users.
-        preload(:roles).
+        preload(:roles, :oauth_identities).
         order(sort_column => sort_direction)
 
       @pagy, @users = pagy(@users)

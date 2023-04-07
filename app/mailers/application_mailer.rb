@@ -22,7 +22,7 @@ class ApplicationMailer < ActionMailer::Base
 
   def provider_linked
     @user = params[:user]
-    @provider_name = @user.provider.upcase
+    @provider_name = params[:provider_name]
 
     mail(
       to: @user.email,

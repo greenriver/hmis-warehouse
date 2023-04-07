@@ -7063,7 +7063,8 @@ CREATE TABLE public.files (
     consent_revoked_at timestamp without time zone,
     coc_codes jsonb DEFAULT '[]'::jsonb,
     enrollment_id bigint,
-    confidential boolean
+    confidential boolean,
+    updated_by_id bigint
 );
 
 
@@ -42363,6 +42364,13 @@ CREATE INDEX index_files_on_type ON public.files USING btree (type);
 
 
 --
+-- Name: index_files_on_updated_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_files_on_updated_by_id ON public.files USING btree (updated_by_id);
+
+
+--
 -- Name: index_files_on_vispdat_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -51681,6 +51689,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230322183901'),
 ('20230322220754'),
 ('20230327202808'),
-('20230328171436');
+('20230328171436'),
+('20230403144801');
 
 
