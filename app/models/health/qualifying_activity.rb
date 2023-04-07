@@ -40,16 +40,23 @@ module Health
       Health::QualifyingActivityV2,
     ].freeze
 
-    [
+    VERSIONED_ATTRIBUTES = [
       :mode_of_contact,
       :mode_of_contact_other,
       :reached_client,
       :reached_client_collateral_contact,
       :activity,
-    ].each do |attr_sym|
+    ].freeze
+    VERSIONED_ATTRIBUTES.each do |attr_sym|
       VERSIONS.each do |version|
         alias_name = (attr_sym.to_s + version::ATTRIBUTE_SUFFIX).to_sym
         alias_attribute alias_name, attr_sym
+      end
+    end
+
+    def self.version_for_date(date, qa = nil)
+      VERSIONS.each do |version|
+        return version.new(qa) if version::EFFECTIVE_DATE_RANGE.cover?(date)
       end
     end
 
@@ -57,9 +64,7 @@ module Health
       # If the QA doesn't have a date, use the creation date as a fallback to determine the version
       date = date_of_activity || created_at.to_date
 
-      VERSIONS.each do |version|
-        return version.new(self) if version::EFFECTIVE_DATE_RANGE.cover?(date)
-      end
+      self.class.version_for_date(date, self)
     end
 
     scope :submitted, -> do

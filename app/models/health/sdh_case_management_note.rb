@@ -41,18 +41,18 @@ module Health
       'Needs assessment',
       'Obtain housing',
       'Transportation',
-      'Vital documents'
-    ]
+      'Vital documents',
+    ].freeze
 
     PLACE_OF_CONTACT = [
-      "Street",
-      "Shelter",
-      "Outpatient clinic",
-      "Hospital",
+      'Street',
+      'Shelter',
+      'Outpatient clinic',
+      'Hospital',
       "Client's home",
-      "Other"
-    ]
-    PLACE_OF_CONTACT_OTHER = 'Other'
+      'Other',
+    ].freeze
+    PLACE_OF_CONTACT_OTHER = 'Other'.freeze
 
     HOUSING_STATUS = [
       'Doubling Up',
@@ -64,19 +64,19 @@ module Health
       'Housing with No Supports',
       'Assisted Living / Nursing Home / Rest Home',
       'Unknown',
-      'Other'
-    ]
-    HOUSING_STATUS_OTHER = 'Other'
-    HOUSING_STATUS_DATE = ['Supportive Housing', 'Housing with No Supports']
+      'Other',
+    ].freeze
+    HOUSING_STATUS_OTHER = 'Other'.freeze
+    HOUSING_STATUS_DATE = ['Supportive Housing', 'Housing with No Supports'].freeze
 
     CLIENT_ACTION = [
       'Client signed participation form and release of information',
       'Client declined to participate in BH CP program',
       'Client wants to switch to a different BH CP',
       'Client declines consent at this time; willing to revisit',
-      'Supporting medication reconciliation'
-    ]
-    CLIENT_ACTION_OTHER = 'Supporting medication reconciliation'
+      'Supporting medication reconciliation',
+    ].freeze
+    CLIENT_ACTION_OTHER = 'Supporting medication reconciliation'.freeze
 
     belongs_to :patient, optional: true
     belongs_to :user, optional: true
@@ -90,12 +90,12 @@ module Health
     serialize :client_action, Array
 
     scope :recent, -> { order(updated_at: :desc).limit(1) }
-    scope :last_form_created, -> {order(created_at: :desc).limit(1)}
+    scope :last_form_created, -> { order(created_at: :desc).limit(1) }
     scope :with_phone, -> { where.not(client_phone_number: nil) }
     scope :with_housing_status, -> do
       where.not(housing_status: [nil, '']).where.not(date_of_contact: nil)
     end
-    scope :within_range, -> (range) do
+    scope :within_range, ->(range) do
       where(date_of_contact: range)
     end
 
@@ -106,9 +106,9 @@ module Health
     validates_presence_of :place_of_contact_other, if: :place_of_contact_is_other?, allow_blank: false
     validates_presence_of :housing_status_other, if: :housing_status_is_other?, allow_blank: false
     validates_presence_of :client_action_medication_reconciliation_clinician, if: :client_action_is_medication_reconciliation_clinician?, allow_blank: false
-    validates :total_time_spent_in_minutes, numericality: {greater_than_or_equal_to: 0}, allow_blank: true
-    validates :place_of_contact, inclusion: {in: PLACE_OF_CONTACT}, allow_blank: true
-    validates :housing_status, inclusion: {in: HOUSING_STATUS}, allow_blank: true
+    validates :total_time_spent_in_minutes, numericality: { greater_than_or_equal_to: 0 }, allow_blank: true
+    validates :place_of_contact, inclusion: { in: PLACE_OF_CONTACT }, allow_blank: true
+    validates :housing_status, inclusion: { in: HOUSING_STATUS }, allow_blank: true
     validate :validate_health_file_if_present
 
     # doing this after validation because form updates with ajax and no validation
@@ -116,9 +116,7 @@ module Health
     after_validation :remove_housing_placement_date
 
     def remove_housing_placement_date
-      unless housing_status_includes_date?
-        self.housing_placement_date = nil
-      end
+      self.housing_placement_date = nil unless housing_status_includes_date?
     end
 
     def self.last_form
@@ -138,7 +136,7 @@ module Health
     end
 
     def self.load_string_collection(collection, include_none: true)
-      collection = collection.map{|c| [c, c]}
+      collection = collection.map { |c| [c, c] }
       if include_none
         [['None', '']] + collection
       else
@@ -147,15 +145,15 @@ module Health
     end
 
     def self.place_of_contact_collection
-      self.load_string_collection(PLACE_OF_CONTACT)
+      load_string_collection(PLACE_OF_CONTACT)
     end
 
     def self.housing_status_collection
-      self.load_string_collection(HOUSING_STATUS)
+      load_string_collection(HOUSING_STATUS)
     end
 
     def self.client_action_collection
-      self.load_string_collection(CLIENT_ACTION, include_none: false)
+      load_string_collection(CLIENT_ACTION, include_none: false)
     end
 
     def place_of_contact_is_other?
@@ -194,44 +192,36 @@ module Health
       current_user.id == user_id && current_user.can_edit_patient_items_for_own_agency?
     end
 
-    def display_note_form_sections
-      [
-        {id: :basic_info, title: 'Note Details'},
-        {id: :activities, title: 'Qualifying Activities'},
-        {id: :additional_questions, title: 'Additional Questions'}
-      ]
-    end
-
     def display_basic_info_section
       {
         values: [
-          {key: 'Name:', value: patient.client.name},
-          {key: 'Date Completed:', value: completed_on&.to_date},
-          {key: 'Case Worker:', value: user.name}
-        ]
+          { key: 'Name:', value: patient.client.name },
+          { key: 'Date Completed:', value: completed_on&.to_date },
+          { key: 'Case Worker:', value: user.name },
+        ],
       }
     end
 
     def display_basic_note_section
       {
         values: [
-          {key: 'Topic:', value: topics.join(', ')},
-          {key: 'Title:', value: title},
-          {key: 'Time Spent:', value: (total_time_spent_in_minutes.present? ? "#{total_time_spent_in_minutes} minutes" : '')},
-          {key: 'Date of contact:', value: date_of_contact&.strftime('%b %d, %Y')}
-        ]
+          { key: 'Topic:', value: topics.join(', ') },
+          { key: 'Title:', value: title },
+          { key: 'Time Spent:', value: (total_time_spent_in_minutes.present? ? "#{total_time_spent_in_minutes} minutes" : '') },
+          { key: 'Date of contact:', value: date_of_contact&.strftime('%b %d, %Y') },
+        ],
       }
     end
 
     def display_note_details_section
       {
         values: [
-          {key: 'Place of Contact:', value: place_of_contact, other: (place_of_contact_is_other? ? {key: 'Other:', value: place_of_contact_other} : false)},
-          {key: 'Housing Status:', value: housing_status, other: (housing_status_is_other? ? {key: 'Other:', value: housing_status_other} : false )},
-          {key: 'Housing Placement Date:', value: housing_placement_date},
-          {key: 'The following happened:', value: client_action, list: true, other: (client_action_is_medication_reconciliation_clinician? ? {key: 'Clinician who performed medication reconciliation:', value: client_action_medication_reconciliation_clinician} : false)},
-          {key: 'Client Phone:', value: client_phone_number}
-        ]
+          { key: 'Place of Contact:', value: place_of_contact, other: (place_of_contact_is_other? ? { key: 'Other:', value: place_of_contact_other } : false) },
+          { key: 'Housing Status:', value: housing_status, other: (housing_status_is_other? ? { key: 'Other:', value: housing_status_other } : false) },
+          { key: 'Housing Placement Date:', value: housing_placement_date },
+          { key: 'The following happened:', value: client_action, list: true, other: (client_action_is_medication_reconciliation_clinician? ? { key: 'Clinician who performed medication reconciliation:', value: client_action_medication_reconciliation_clinician } : false) },
+          { key: 'Client Phone:', value: client_phone_number },
+        ],
       }
     end
 
@@ -239,17 +229,15 @@ module Health
       {
         title: 'Additional Questions',
         values: [
-          {key: 'Additional Information:', value: notes_from_encounter, text_area: true},
-          {key: 'File:', value: health_file&.name, download: true},
-          {key: 'File Description:', value: health_file&.note, text_area: true}
-        ]
+          { key: 'Additional Information:', value: notes_from_encounter, text_area: true },
+          { key: 'File:', value: health_file&.name, download: true },
+          { key: 'File Description:', value: health_file&.note, text_area: true },
+        ],
       }
     end
 
     def validate_health_file_if_present
-      if health_file.present? && health_file.invalid?
-        errors.add :health_file, health_file.errors.messages.try(:[], :file)&.uniq&.join('; ')
-      end
+      errors.add :health_file, health_file.errors.messages.try(:[], :file)&.uniq&.join('; ') if health_file.present? && health_file.invalid?
     end
 
     def encounter_report_details

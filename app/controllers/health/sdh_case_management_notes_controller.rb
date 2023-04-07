@@ -37,7 +37,6 @@ module Health
     end
 
     def edit
-      @note.activities.build(date_of_activity: Date.current) if @note.activities.size.zero? # Add a qa if there isn't at least one
       @activities = @note.activities.sort_by(&:id)
       @note.build_health_file unless @note.health_file
       respond_with @note
@@ -48,8 +47,6 @@ module Health
       @note.assign_attributes(note_params.merge(updated_at: Time.now))
       if params[:commit] == 'Save Case Note'
         @note.health_file.set_calculated!(current_user.id, @client.id) if @note.health_file&.new_record?
-        # Clean up any invalid QAs
-        @note.activities = @note.activities.to_a.select(&:valid?)
         @note.save
       else
         # Save invalid data for WIP -- will get cleaned up on save
@@ -57,9 +54,6 @@ module Health
       end
       @note_added = (@activity_count != @note.activities.size)
       @activities = @note.activities.sort_by(&:id)
-      @activities.each do |qa|
-        qa.delay.maintain_cached_values if qa.persisted?
-      end
       respond_with @note, location: polymorphic_path(careplans_path_generator)
     end
 
@@ -115,20 +109,6 @@ module Health
     end
 
     private def clean_note_params!(permitted_params)
-      # NOTE: Remove -999 from activities_attributes -- if this is present in params we get unpermitted params
-      # Let me know if there is a better solution @meborn
-      # -999 is used to add activities via js see health/sdh_case_management_note/form_js addActivity
-      #
-      # '-999' used to be 'COPY', but Rails 5 discards the map if it contains a string key
-      (permitted_params[:activities_attributes] || {}).reject! { |k, _v| k == '-999' }
-      # remove :_destroy on ajax
-      # remove health_file on ajax
-      permitted_params.delete(:health_file_attributes) if params[:commit] != 'Save Case Note'
-      if params[:commit] != 'Save Case Note' && params[:commit] != 'Remove Activity'
-        (permitted_params[:activities_attributes] || {}).keys.each do |key|
-          (permitted_params[:activities_attributes] || {})[key].reject! { |k, _v| k == '_destroy' }
-        end
-      end
       # remove empty element from topics array
       (permitted_params[:topics] || []).reject!(&:blank?)
       # remove empty element from client action array
@@ -136,38 +116,7 @@ module Health
       permitted_params
     end
 
-    private def add_calculated_params_to_activities!(permitted_params)
-      (permitted_params[:activities_attributes] || {}).keys.each do |key|
-        permitted_params[:activities_attributes][key].merge!(
-          user_id: current_user.id,
-          user_full_name: current_user.name,
-          patient_id: @patient.id,
-        )
-      end
-      permitted_params
-    end
-
     private def permitted_request_params
-      versioned_activities_attributes = [
-        :id,
-        :date_of_activity,
-        :follow_up,
-        :_destroy,
-      ].tap do |arr|
-        [
-          :mode_of_contact,
-          :mode_of_contact_other,
-          :reached_client,
-          :reached_client_collateral_contact,
-          :activity,
-        ].each do |attr_sym|
-          Health::QualifyingActivity::VERSIONS.each do |version|
-            name = (attr_sym.to_s + version::ATTRIBUTE_SUFFIX).to_sym
-            arr << name
-          end
-        end
-      end
-
       params.require(:health_sdh_case_management_note).permit(
         :title,
         :total_time_spent_in_minutes,
@@ -183,7 +132,6 @@ module Health
         :completed_on,
         client_action: [],
         topics: [],
-        activities_attributes: versioned_activities_attributes,
         health_file_attributes: [
           :id,
           :file,
@@ -194,8 +142,7 @@ module Health
     end
 
     private def note_params
-      permitted_params = clean_note_params!(permitted_request_params)
-      add_calculated_params_to_activities!(permitted_params)
+      clean_note_params!(permitted_request_params)
     end
 
     private def flash_interpolation_options
