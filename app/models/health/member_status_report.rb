@@ -145,7 +145,7 @@ module Health
     end
 
     def client_recent_face_to_face(qa)
-      if qa.face_to_face?
+      if qa&.face_to_face?
         'Y'
       elsif qa.present?
         'N'

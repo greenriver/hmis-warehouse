@@ -330,7 +330,7 @@ module Health
       return false unless cp1?
 
       # Only the most recent PCTP needs review
-      patient.careplans.order(initial_date: :desc).first == self
+      patient.careplans.sorted.first == self
     end
 
     def compact_future_issues
