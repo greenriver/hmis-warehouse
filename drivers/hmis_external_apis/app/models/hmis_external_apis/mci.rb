@@ -51,19 +51,30 @@ module HmisExternalApis
     # https://www.pivotaltracker.com/story/show/184816322), and return the
     # client
     def create_mci_id(client)
-      # FIXME: check if client has mci id first and abort if it does
-      # FIXME:
+      external_id = ExternalId.where(source: client).where(remote_credential: creds).first_or_initialize
+
+      if external_id.persisted?
+        # FIXME: Handle in a more clean way
+        raise 'Client already has an MCI id'
+      end
 
       payload = MciPayload.from_client(client)
+
       result = conn.post('clients/v1/api/clients/newclient', payload)
 
-      ap result
+      external_id.value = result.parsed_payload
 
-      # mci_id = result.parsed_payload
-
-      # FIXME: pseudo-code:
-      # client.mci_external_ids.build(external_id: mci_id)
-      # ...
+      external_id.external_request_log = ExternalRequestLog.new(
+        initiator: creds,
+        content_type: result.content_type,
+        method: result.method,
+        ip: result.ip,
+        request_headers: result.request_headers,
+        request: result.request,
+        response: result.payload,
+        requested_at: Time.now,
+      )
+      external_id.save!
 
       client
     end
@@ -132,20 +143,20 @@ module HmisExternalApis
 
     private
 
+    def creds
+      @creds ||= GrdaWarehouse::RemoteCredentials::Oauth.find_by(slug: 'mci')
+    end
+
     def conn
       @conn ||=
-        begin
-          creds = GrdaWarehouse::RemoteCredentials::Oauth.find_by(slug: 'mci')
-
-          OauthClientConnection.new(
-            client_id: creds.client_id,
-            client_secret: creds.client_secret,
-            token_url: creds.token_url,
-            base_url: creds.base_url,
-            headers: creds.additional_headers,
-            scope: creds.oauth_scope,
-          )
-        end
+        OauthClientConnection.new(
+          client_id: creds.client_id,
+          client_secret: creds.client_secret,
+          token_url: creds.token_url,
+          base_url: creds.base_url,
+          headers: creds.additional_headers,
+          scope: creds.oauth_scope,
+        )
     end
   end
 end

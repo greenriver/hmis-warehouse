@@ -6878,6 +6878,82 @@ ALTER SEQUENCE public.exports_id_seq OWNED BY public.exports.id;
 
 
 --
+-- Name: external_ids; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.external_ids (
+    id bigint NOT NULL,
+    value character varying NOT NULL,
+    source_type character varying NOT NULL,
+    source_id bigint NOT NULL,
+    remote_credential_id bigint,
+    external_request_log_id bigint,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: external_ids_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.external_ids_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: external_ids_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.external_ids_id_seq OWNED BY public.external_ids.id;
+
+
+--
+-- Name: external_request_logs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.external_request_logs (
+    id bigint NOT NULL,
+    initiator_type character varying,
+    initiator_id bigint,
+    identifier character varying,
+    content_type character varying,
+    url character varying NOT NULL,
+    method character varying DEFAULT 'GET'::character varying NOT NULL,
+    ip inet,
+    request_headers jsonb DEFAULT '{}'::jsonb NOT NULL,
+    request text NOT NULL,
+    response text NOT NULL,
+    requested_at timestamp without time zone NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: external_request_logs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.external_request_logs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: external_request_logs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.external_request_logs_id_seq OWNED BY public.external_request_logs.id;
+
+
+--
 -- Name: fake_data; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -21918,6 +21994,20 @@ ALTER TABLE ONLY public.exports_ad_hocs ALTER COLUMN id SET DEFAULT nextval('pub
 
 
 --
+-- Name: external_ids id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.external_ids ALTER COLUMN id SET DEFAULT nextval('public.external_ids_id_seq'::regclass);
+
+
+--
+-- Name: external_request_logs id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.external_request_logs ALTER COLUMN id SET DEFAULT nextval('public.external_request_logs_id_seq'::regclass);
+
+
+--
 -- Name: fake_data id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -24919,6 +25009,22 @@ ALTER TABLE ONLY public.exports_ad_hocs
 
 ALTER TABLE ONLY public.exports
     ADD CONSTRAINT exports_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: external_ids external_ids_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.external_ids
+    ADD CONSTRAINT external_ids_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: external_request_logs external_request_logs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.external_request_logs
+    ADD CONSTRAINT external_request_logs_pkey PRIMARY KEY (id);
 
 
 --
@@ -42056,6 +42162,69 @@ CREATE INDEX index_exports_on_export_id ON public.exports USING btree (export_id
 
 
 --
+-- Name: index_external_ids_on_external_request_log_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_external_ids_on_external_request_log_id ON public.external_ids USING btree (external_request_log_id);
+
+
+--
+-- Name: index_external_ids_on_remote_credential_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_external_ids_on_remote_credential_id ON public.external_ids USING btree (remote_credential_id);
+
+
+--
+-- Name: index_external_ids_on_source; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_external_ids_on_source ON public.external_ids USING btree (source_type, source_id);
+
+
+--
+-- Name: index_external_ids_on_source_id_and_source_type_and_value; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_external_ids_on_source_id_and_source_type_and_value ON public.external_ids USING btree (source_id, source_type, value);
+
+
+--
+-- Name: index_external_ids_on_value; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_external_ids_on_value ON public.external_ids USING btree (value);
+
+
+--
+-- Name: index_external_request_logs_on_initiator; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_external_request_logs_on_initiator ON public.external_request_logs USING btree (initiator_type, initiator_id);
+
+
+--
+-- Name: index_external_request_logs_on_initiator_id_and_initiator_type; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_external_request_logs_on_initiator_id_and_initiator_type ON public.external_request_logs USING btree (initiator_id, initiator_type);
+
+
+--
+-- Name: index_external_request_logs_on_ip; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_external_request_logs_on_ip ON public.external_request_logs USING btree (ip);
+
+
+--
+-- Name: index_external_request_logs_on_requested_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_external_request_logs_on_requested_at ON public.external_request_logs USING btree (requested_at);
+
+
+--
 -- Name: index_favorites_on_created_at; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -49806,6 +49975,14 @@ ALTER TABLE ONLY public.service_history_services_2036
 
 
 --
+-- Name: external_ids fk_rails_01fbc7ded3; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.external_ids
+    ADD CONSTRAINT fk_rails_01fbc7ded3 FOREIGN KEY (remote_credential_id) REFERENCES public.remote_credentials(id);
+
+
+--
 -- Name: service_history_services_2023 fk_rails_0702601703; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -50043,6 +50220,14 @@ ALTER TABLE ONLY public.service_history_services_2017
 
 ALTER TABLE ONLY public.service_history_services_2039
     ADD CONSTRAINT fk_rails_6c0d4085ac FOREIGN KEY (service_history_enrollment_id) REFERENCES public.service_history_enrollments(id) ON DELETE CASCADE;
+
+
+--
+-- Name: external_ids fk_rails_6c5b5c909b; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.external_ids
+    ADD CONSTRAINT fk_rails_6c5b5c909b FOREIGN KEY (external_request_log_id) REFERENCES public.external_request_logs(id);
 
 
 --
@@ -51388,6 +51573,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230322220754'),
 ('20230327202808'),
 ('20230328171436'),
-('20230406154235');
+('20230406154235'),
+('20230406183420');
 
 
