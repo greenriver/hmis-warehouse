@@ -58,8 +58,9 @@
               - user.access_groups.general.each do |g|
                 .mb-1= g.name
             %td
-              - if user.provider.present?
-                %div= "Sign-in provided by #{user.provider.upcase}"
+              - providers = user.oauth_identities.map(&:provider_name).sort.uniq
+              - if providers.any?
+                %div= "Sign-in provided by #{providers.to_sentence}"
               = render 'user_invitation_status', user: user
             %td
               - if user.invitation_status != :active || user.access_locked?

@@ -25,8 +25,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     c1.update({ dob: Date.today - 18.years, ssn: '123456789' })
   end
 
-  let!(:f1) { create :file, client: c1, blob: blob, user_id: hmis_user.id, tags: [tag] }
-  let!(:f2) { create :file, client: c1, blob: blob, user_id: hmis_user.id, tags: [tag], confidential: true }
+  let!(:f1) { create :file, client: c1, blob: blob, user: hmis_user, tags: [tag] }
+  let!(:f2) { create :file, client: c1, blob: blob, user: hmis_user, tags: [tag], confidential: true }
 
   let(:query) do
     <<~GRAPHQL

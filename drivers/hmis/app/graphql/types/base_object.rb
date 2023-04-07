@@ -15,7 +15,11 @@ module Types
     end
 
     def self.page_type
-      @page_type ||= BasePaginated.create(self)
+      @page_type ||= BasePaginated.build(self)
+    end
+
+    def self.audit_event_type(**args)
+      @audit_event_type ||= BaseAuditEvent.build(self, **args)
     end
 
     def self.yes_no_missing_field(name, description = nil, **kwargs)
@@ -68,7 +72,7 @@ module Types
     end
 
     def self.access_field(name = :access, class_name: nil, **field_attrs, &block)
-      field(name, BaseAccess.create(self, class_name: class_name, &block), null: false, **field_attrs)
+      field(name, BaseAccess.build(self, class_name: class_name, &block), null: false, **field_attrs)
 
       define_method(name) do
         object

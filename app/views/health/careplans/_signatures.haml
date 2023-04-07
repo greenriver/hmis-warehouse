@@ -23,18 +23,12 @@
     = link_to polymorphic_path([:edit] + careplan_path_generator, id: careplan, anchor: 'upload_file'), class: 'btn btn-sm btn-secondary' do
       Upload signed pdf or enter signature date
 .pctp__signature
-  - if careplan.provider_signed_on
+  - if careplan.careplan_sent_on.present?
     .signature-words
       = checkmark(true)
-      PCP Signature
+      Careplan Sent
     .signature-date
-      (#{careplan.provider_signed_on&.to_date})
-  - elsif careplan.rn_approval?
-    .signature-words
-      = checkmark(true)
-      RN Approved
-    .signature-date
-      (#{careplan.rn_approved_on&.to_date})
+      (#{careplan.careplan_sent_on&.to_date})
   - elsif careplan.patient_signed_on
     - if current_user.can_approve_careplan? || current_user.can_approve_cha?
       = link_to polymorphic_path([:edit] + careplan_path_generator, id: careplan) do
@@ -92,14 +86,19 @@
   -# - else
   -#   = link_to polymorphic_path([:edit] + careplan_path_generator, id: careplan, anchor: 'upload_file'), class: 'btn btn-sm btn-secondary' do
   -#     Upload signed pdf or enter signature date
-- if expires_on = careplan.expires_on
-  - if expires_on > Date.current
+- expires_on = careplan.expires_on
+- if expires_on.present?
+  - if careplan.cp1?
     .pctp__expiration.mt-2
-      Careplan expires
-      %br
-      #{expires_on}
+      Careplan needs review
   - else
-    .pctp__expired.mt-2
-      Careplan expired
-      %br
-      #{expires_on}
+    - if expires_on > Date.current
+      .pctp__expiration.mt-2
+        Careplan expires
+        %br
+        #{expires_on}
+    - else
+      .pctp__expired.mt-2
+        Careplan expired
+        %br
+        #{expires_on}

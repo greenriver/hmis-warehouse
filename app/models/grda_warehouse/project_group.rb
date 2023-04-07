@@ -131,12 +131,10 @@ module GrdaWarehouse
       original = parsed.dup
       errors = []
       unless check_header!(parsed)
-        errors << 'Incorrect headers'
-        return errors
-      end
-
-      if parsed.empty?
-        errors << 'No projects found'
+        errors << {
+          file: 'Incorrect file format',
+          message: 'The file must contain at least one project, and the header row of the uploaded file must match the description below.',
+        }
         return errors
       end
 
