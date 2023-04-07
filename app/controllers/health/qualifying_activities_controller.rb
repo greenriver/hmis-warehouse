@@ -36,6 +36,8 @@ module Health
       end
 
       if @qa.update(unversioned_params)
+        # Keep the QA tab consistent
+        @qa.delay.maintain_cached_values
         # if we have an SDH Case Management Note, we need to set it for the view to work
         @note = Health::SdhCaseManagementNote.find(unversioned_params[:source_id].to_i) if case_note_in_params?(unversioned_params)
         respond_with(@qa) unless request.xhr?
@@ -52,6 +54,8 @@ module Health
       end
 
       if @qa.update(unversioned_params)
+        # Keep the QA tab consistent
+        @qa.delay.maintain_cached_values
         # if we have an SDH Case Management Note, we need to set it for the view to work
         @note = Health::SdhCaseManagementNote.find(unversioned_params[:source_id].to_i) if case_note_in_params?(unversioned_params)
         if @note.present?
