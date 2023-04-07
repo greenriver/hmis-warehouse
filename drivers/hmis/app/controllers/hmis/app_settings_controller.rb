@@ -10,8 +10,24 @@ class Hmis::AppSettingsController < Hmis::BaseController
 
   def show
     okta_enabled = ENV['HMIS_OKTA_CLIENT_ID'].present? && ENV['OKTA_DOMAIN'].present?
+
+    logo = ENV['LOGO']
+    logo_path = if SerializedAsset.exists?(logo)
+      SerializedAsset.get_src(logo)
+    else
+      "theme/logo/#{logo}"
+    end
+
+    hostname = ENV['FQDN']
+
     render json: {
       oktaPath: okta_enabled ? '/hmis/users/auth/okta' : nil,
+      logoPath: logo_path.present? ? ActionController::Base.helpers.asset_path(logo_path) : nil,
+      warehouseUrl: "https://#{hostname}",
+      warehouseName: _('Boston DND Warehouse'),
+      resetPasswordUrl: "https://#{hostname}/users/password/new",
+      unlockAccountUrl: "https://#{hostname}/users/unlock/new",
+      casUrl: nil, # TODO: get CAS url from env
     }
   end
 end
