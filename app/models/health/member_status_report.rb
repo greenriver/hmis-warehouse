@@ -144,8 +144,8 @@ module Health
       end
     end
 
-    def client_recent_face_to_face qa # rubocop:disable Naming/MethodParameterName
-      if Health::QualifyingActivity.face_to_face?(qa&.mode_of_contact)
+    def client_recent_face_to_face(qa)
+      if qa.face_to_face?
         'Y'
       elsif qa.present?
         'N'
