@@ -2595,7 +2595,7 @@ CREATE TABLE public.users (
     receive_account_request_notifications boolean DEFAULT false,
     deprecated_provider character varying,
     deprecated_uid character varying,
-    deprecated_provider_raw_info json,
+    deprecated_provider_raw_info jsonb,
     deprecated_provider_set_at timestamp without time zone,
     exclude_from_directory boolean DEFAULT false,
     exclude_phone_from_directory boolean DEFAULT false,
@@ -4156,6 +4156,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230321123918'),
 ('20230322195141'),
 ('20230322204908'),
-('20230328150855');
+('20230328150855'),
+('20230410233052');
 
 
